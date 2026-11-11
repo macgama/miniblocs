@@ -180,6 +180,35 @@ const TREE_BY_KIND: Array[float] = [0, 0, 0, 0, 0.10, 0.025, 0.004, 0, 0, 0.01, 
 const BUSH_BY_KIND: Array[float] = [0, 0, 0, 0, 0.03, 0.05, 0, 0, 0, 0, 0, 0.02, 0, 0, 0.01]
 
 
+## Hauteurs affichées (comme cell_height) de toutes les cases d'un rectangle,
+## rangées (x - rect.x) + (z - rect.y) * rect.size.x. Bien plus rapide case par case.
+func cell_heights(rect: Rect2i) -> PackedFloat32Array:
+	var pxs := PackedFloat64Array()
+	pxs.resize(rect.size.x)
+	for i in rect.size.x:
+		pxs[i] = _pixel_x(rect.position.x + i + 0.5)
+	var pys := PackedFloat64Array()
+	pys.resize(rect.size.y)
+	for j in rect.size.y:
+		pys[j] = _pixel_y(rect.position.y + j + 0.5)
+	var h := tiles.sample_grid(pxs, pys)
+	for n in h.size():
+		h[n] = _quantize(h[n])
+	if not modifications.is_empty():
+		var w := rect.size.x
+		if modifications.size() < h.size():
+			for c: Vector2i in modifications:
+				if rect.has_point(c):
+					h[(c.x - rect.position.x) + (c.y - rect.position.y) * w] = modifications[c]
+		else:
+			for j in rect.size.y:
+				for i in w:
+					var c := rect.position + Vector2i(i, j)
+					if modifications.has(c):
+						h[i + j * w] = modifications[c]
+	return h
+
+
 ## Biome d'une case à partir de son altitude, de sa pente et du code WorldCover
 ## (0 = inconnu : on devine avec l'altitude seule).
 static func cell_kind(h: float, slope: float, code := 0) -> String:

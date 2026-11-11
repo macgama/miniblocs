@@ -15,7 +15,3 @@ static var lat := 48.8584
 static var lon := 2.2945
 static var place_name := ""
 static var mode: Mode = Mode.BAC_A_SABLE
-## Partie à charger en arrivant dans la scène Terre (dossier dans user://parties), ou "".
-static var load_slot := ""
-## Partie en cours (où « Sauver » écrit), ou "" si pas encore sauvegardée.
-static var slot_id := ""

@@ -84,75 +84,6 @@ func gable(cx: float, y0: float, cz: float, sx: float, sz: float, h: float, col:
 		tri(Vector3(x0, y0, z1), Vector3(x1, y0, z1), Vector3(cx, y1, z1), Vector3.BACK, gable_col)
 
 
-## Toit à quatre pans : faîtage le long du plus grand côté.
-func hip(cx: float, y0: float, cz: float, sx: float, sz: float, h: float, col: Color) -> void:
-	if absf(sx - sz) < 0.01:
-		pyramid(cx, y0, cz, sx, sz, h, col)
-		return
-	var y1 := y0 + h
-	var x0 := cx - sx / 2.0
-	var x1 := cx + sx / 2.0
-	var z0 := cz - sz / 2.0
-	var z1 := cz + sz / 2.0
-	if sx > sz:
-		var r := (sx - sz) / 2.0
-		var a := Vector3(cx - r, y1, cz)
-		var b := Vector3(cx + r, y1, cz)
-		quad(Vector3(x0, y0, z0), Vector3(x1, y0, z0), b, a, Vector3(0, sz / 2.0, -h).normalized(), col)
-		quad(Vector3(x0, y0, z1), Vector3(x1, y0, z1), b, a, Vector3(0, sz / 2.0, h).normalized(), col.darkened(0.1))
-		tri(Vector3(x0, y0, z0), Vector3(x0, y0, z1), a, Vector3(-h, sz / 2.0, 0).normalized(), col.darkened(0.05))
-		tri(Vector3(x1, y0, z0), Vector3(x1, y0, z1), b, Vector3(h, sz / 2.0, 0).normalized(), col.darkened(0.05))
-	else:
-		var r := (sz - sx) / 2.0
-		var a := Vector3(cx, y1, cz - r)
-		var b := Vector3(cx, y1, cz + r)
-		quad(Vector3(x0, y0, z0), Vector3(x0, y0, z1), b, a, Vector3(-h, sx / 2.0, 0).normalized(), col.darkened(0.05))
-		quad(Vector3(x1, y0, z0), Vector3(x1, y0, z1), b, a, Vector3(h, sx / 2.0, 0).normalized(), col.darkened(0.1))
-		tri(Vector3(x0, y0, z0), Vector3(x1, y0, z0), a, Vector3(0, sx / 2.0, -h).normalized(), col)
-		tri(Vector3(x0, y0, z1), Vector3(x1, y0, z1), b, Vector3(0, sx / 2.0, h).normalized(), col.darkened(0.1))
-
-
-## Solide de révolution : profil de points (rayon, hauteur) du bas vers le haut.
-## Sert aux dômes, bulbes, stupas, cônes de chaume, réservoirs…
-func lathe(cx: float, y0: float, cz: float, profile: Array, sides: int, col: Color) -> void:
-	for j in profile.size() - 1:
-		var p0: Vector2 = profile[j]
-		var p1: Vector2 = profile[j + 1]
-		var shade := col.darkened(0.03 * (profile.size() - 2 - j) / maxf(profile.size() - 2, 1.0))
-		for i in sides:
-			var a0 := TAU * i / sides
-			var a1 := TAU * (i + 1) / sides
-			var am := (a0 + a1) / 2.0
-			var dr := p0.x - p1.x
-			var dy := p1.y - p0.y
-			var n := Vector3(cos(am) * dy, dr, sin(am) * dy).normalized()
-			var q00 := Vector3(cx + cos(a0) * p0.x, y0 + p0.y, cz + sin(a0) * p0.x)
-			var q01 := Vector3(cx + cos(a1) * p0.x, y0 + p0.y, cz + sin(a1) * p0.x)
-			var q10 := Vector3(cx + cos(a0) * p1.x, y0 + p1.y, cz + sin(a0) * p1.x)
-			var q11 := Vector3(cx + cos(a1) * p1.x, y0 + p1.y, cz + sin(a1) * p1.x)
-			if p1.x <= 0.001:
-				tri(q00, q01, q10, n, shade)
-			elif p0.x <= 0.001:
-				tri(q00, q11, q10, n, shade)
-			else:
-				quad(q00, q01, q11, q10, n, shade)
-
-
-## Dôme (demi-sphère aplatie ou non) posé en y0.
-func dome(cx: float, y0: float, cz: float, r: float, h: float, col: Color, sides := 12) -> void:
-	var prof := []
-	for i in 6:
-		var a := PI / 2.0 * i / 5.0
-		prof.append(Vector2(cos(a) * r, sin(a) * h))
-	lathe(cx, y0, cz, prof, sides, col)
-
-
-## Bulbe à l'orientale (églises russes, palais moghols).
-func onion(cx: float, y0: float, cz: float, r: float, h: float, col: Color, sides := 10) -> void:
-	lathe(cx, y0, cz, [Vector2(r * 0.7, 0), Vector2(r, h * 0.25), Vector2(r * 0.95, h * 0.45),
-		Vector2(r * 0.6, h * 0.65), Vector2(r * 0.2, h * 0.85), Vector2(0, h)], sides, col)
-
-
 ## Toit en pyramide (clocher, kiosque…).
 func pyramid(cx: float, y0: float, cz: float, sx: float, sz: float, h: float, col: Color) -> void:
 	var top := Vector3(cx, y0 + h, cz)
@@ -217,35 +148,6 @@ func windows_col(x: float, cz: float, depth: float, y: float, count: int, w: flo
 	for i in count:
 		var z := cz - depth / 2.0 + step * (i + 0.5)
 		box(x, y, z, 0.12, h, w, col)
-
-
-## Ramène le modèle dans son emprise w × d (centrée) s'il en dépasse : les
-## auvents, escaliers ou annexes trop larges sont resserrés, la hauteur ne change pas.
-func fit_xz(w: float, d: float) -> void:
-	if verts.is_empty():
-		return
-	var lo := Vector2(INF, INF)
-	var hi := Vector2(-INF, -INF)
-	for v in verts:
-		lo = Vector2(minf(lo.x, v.x), minf(lo.y, v.z))
-		hi = Vector2(maxf(hi.x, v.x), maxf(hi.y, v.z))
-	var size := hi - lo
-	if lo.x >= -w / 2.0 - 0.01 and hi.x <= w / 2.0 + 0.01 and lo.y >= -d / 2.0 - 0.01 and hi.y <= d / 2.0 + 0.01:
-		return
-	var center := (lo + hi) / 2.0
-	var sx := minf(1.0, w / maxf(size.x, 0.01))
-	var sz := minf(1.0, d / maxf(size.y, 0.01))
-	# On ne recentre que si le modèle dépasse encore après le resserrage.
-	var off := Vector2.ZERO
-	if size.x * sx > w - 0.01 or hi.x > w / 2.0 or lo.x < -w / 2.0:
-		off.x = center.x
-	if size.y * sz > d - 0.01 or hi.y > d / 2.0 or lo.y < -d / 2.0:
-		off.y = center.y
-	for i in verts.size():
-		var v := verts[i]
-		verts[i] = Vector3((v.x - off.x) * sx, v.y, (v.z - off.y) * sz)
-		var n := normals[i]
-		normals[i] = Vector3(n.x / sx, n.y, n.z / sz).normalized()
 
 
 func to_mesh(material: Material = null) -> ArrayMesh:

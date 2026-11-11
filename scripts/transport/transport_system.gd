@@ -28,7 +28,6 @@ const CLEARANCE := 4.5
 var network := TransportNetwork.new()
 var view: TransportView
 var traffic: Traffic
-var stations: StationSystem
 var world: TerrainWorld
 var camera: Camera3D
 
@@ -52,10 +51,7 @@ var _ctrl_marker: MeshInstance3D
 var _highlight_edge := -1
 var _right_press := Vector2.ZERO
 ## Cases recouvertes par une voie au sol (pas d'arbres dessus, talus protégés).
-## Cases couvertes par les voies : Vector2i -> nombre de tronçons qui la couvrent.
 var _occupied: Dictionary = {}
-## Emprise de chaque tronçon : id -> {e: tronçon, cells: Array[Vector2i]}.
-var _edge_fp: Dictionary = {}
 ## Grille de recherche : case de 16 m -> [[tronçon, segment], …]
 var _hash: Dictionary = {}
 var _hash_dirty := true
@@ -80,12 +76,8 @@ func _ready() -> void:
 	add_child(traffic)
 	traffic.setup(network)
 	network.changed.connect(_on_network_changed)
-	stations = StationSystem.new()
-	stations.name = "Stations"
-	add_child(stations)
-	stations.setup(self)
 	if world != null:
-		world.tree_blocker = func(c: Vector2i) -> bool: return _occupied.has(c) or stations.occupies(c)
+		world.tree_blocker = func(c: Vector2i) -> bool: return _occupied.has(c)
 
 	_preview = MeshInstance3D.new()
 	_preview.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -120,7 +112,6 @@ static func _tint(c: Color) -> StandardMaterial3D:
 
 
 func clear() -> void:
-	stations.clear()
 	traffic.clear()
 	network.clear()
 	cancel()
@@ -128,34 +119,24 @@ func clear() -> void:
 
 func _on_network_changed() -> void:
 	_hash_dirty = true
-	# Mise à jour incrémentale : seuls les tronçons ajoutés, supprimés ou
-	# remplacés recalculent leur emprise (le réseau peut faire des dizaines de km).
-	var changed_cells := []
-	for id in _edge_fp.keys():
-		var old: Dictionary = _edge_fp[id]
-		if network.edges.has(id) and is_same(old.e, network.edges[id]):
-			continue
-		for c in old.cells:
-			var n: int = _occupied.get(c, 0) - 1
-			if n <= 0:
-				_occupied.erase(c)
-				changed_cells.append(c)
-			else:
-				_occupied[c] = n
-		_edge_fp.erase(id)
+	var now := {}
 	for id in network.edges:
-		if _edge_fp.has(id):
-			continue
 		var e: Dictionary = network.edges[id]
-		var cells: Array = RoutePlanner.footprint(float(e.width), e.pts, e.st).keys()
-		for c in cells:
-			var n: int = _occupied.get(c, 0)
-			if n == 0:
+		for c in RoutePlanner.footprint(float(e.width), e.pts, e.st):
+			now[c] = true
+	if world != null:
+		var changed_cells := []
+		for c in now:
+			if not _occupied.has(c):
 				changed_cells.append(c)
-			_occupied[c] = n + 1
-		_edge_fp[id] = {"e": e, "cells": cells}
-	if world != null and not changed_cells.is_empty():
-		world.mark_cells_dirty(changed_cells)
+		for c in _occupied:
+			if not now.has(c):
+				changed_cells.append(c)
+		_occupied = now
+		if not changed_cells.is_empty():
+			world.mark_cells_dirty(changed_cells)
+	else:
+		_occupied = now
 	network_changed.emit()
 
 
@@ -173,7 +154,7 @@ func is_blocked(id: String, pts: PackedVector3Array, st: PackedByteArray) -> boo
 
 
 func is_cell_occupied(c: Vector2i) -> bool:
-	return _occupied.has(c) or (stations != null and stations.occupies(c))
+	return _occupied.has(c)
 
 
 # --- Outils et réglages ------------------------------------------------------------------
@@ -239,6 +220,13 @@ func cancel() -> void:
 	_set_highlight(-1)
 	_update_marker()
 	_emit_help()
+
+
+## Surface d'une rivière ou d'un lac (NAN s'il n'y en a pas) : les voies l'enjambent.
+func water_surface(x: float, z: float) -> float:
+	if world == null:
+		return NAN
+	return world.water_surface_at(x, z)
 
 
 ## Hauteur du sol pour la pose : case modifiée, sinon relief réel lissé.
@@ -467,7 +455,7 @@ func evaluate(id: String, s: Dictionary, path: PackedVector2Array) -> Dictionary
 		path[path.size() - 1] = Vector2(sb.pos.x, sb.pos.z)
 	var h0: float = sa.pos.y if not sa.is_empty() else NAN
 	var h1: float = sb.pos.y if not sb.is_empty() else NAN
-	var plan := RoutePlanner.plan(id, path, h0, h1, ground_height)
+	var plan := RoutePlanner.plan(id, path, h0, h1, ground_height, water_surface)
 	plan.snap_a = sa
 	plan.snap_b = sb
 	plan.crossings = []
@@ -523,18 +511,6 @@ func _rebuild_hash() -> void:
 						_hash[k] = []
 					(_hash[k] as Array).append([eid, j])
 	_hash_dirty = false
-
-
-## Tronçons qui passent à moins de radius (environ) du point p, sans doublon.
-func edges_near(p: Vector3, radius: float) -> Array[int]:
-	var out: Array[int] = []
-	var seen := {}
-	for item in _query(Vector2(p.x - radius, p.z - radius), Vector2(p.x + radius, p.z + radius)):
-		var eid: int = item[0]
-		if not seen.has(eid):
-			seen[eid] = true
-			out.append(eid)
-	return out
 
 
 ## Segments existants près d'un rectangle (coins lo / hi), sans doublon.
@@ -693,6 +669,10 @@ func build_path(id: String, s: Dictionary, path: PackedVector2Array) -> Dictiona
 	var works := {}
 	if world != null:
 		works = RoutePlanner.earthworks(width, pts, st, world.height_step, ground_height, _occupied)
+		# Les talus ne bouchent pas les rivières.
+		for c in works.keys():
+			if not is_nan(water_surface(c.x + 0.5, c.y + 0.5)):
+				works.erase(c)
 
 	var na := _resolve(sa, pts[0], mode)
 	if not sb.is_empty():
@@ -789,14 +769,10 @@ static func _km(m: float) -> String:
 
 
 func to_dict() -> Dictionary:
-	var d := network.to_dict()
-	d["stations"] = stations.to_dict()
-	return d
+	return network.to_dict()
 
 
 func from_dict(data: Dictionary) -> void:
-	stations.clear()
 	traffic.clear()
 	cancel()
 	network.from_dict(data)
-	stations.from_dict(data.get("stations", {}))

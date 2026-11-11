@@ -19,7 +19,7 @@ const CATEGORIES := [
 const ROAD := ["route"]
 const ROAD_OR_PATH := ["route", "chemin"]
 
-const BASE_TYPES := {
+const TYPES := {
 	# --- Logement -----------------------------------------------------------------
 	"maison": {"name": "Maison", "cat": "logement", "w": 10, "d": 12, "access": ROAD,
 		"logements": 1, "desc": "Maison individuelle avec jardin."},
@@ -105,51 +105,18 @@ const LINE := Color("f2f2f2")
 const CONCRETE := Color("b9b6ae")
 
 
-static var _all: Dictionary = {}
-
-
-## Tous les types : les modèles faits main, puis la bible générée par styles
-## (région × époque × archétype, voir Styles et StyleBuilder).
-static func all_types() -> Dictionary:
-	if _all.is_empty():
-		for id in BASE_TYPES:
-			var t: Dictionary = BASE_TYPES[id].duplicate()
-			t["region"] = "monde"
-			t["era"] = "moderne"
-			t["style"] = ""
-			_all[id] = t
-		_all.merge(StyleBuilder.generate())
-	return _all
-
-
 static func get_type(id: String) -> Dictionary:
-	return all_types().get(id, {})
+	return TYPES.get(id, {})
 
 
 static func cost(id: String) -> int:
-	if COSTS.has(id):
-		return int(COSTS[id])
-	return int(get_type(id).get("cost", 0))
+	return int(COSTS.get(id, 0))
 
 
-## Identifiants d'une catégorie, filtrés par région et par époque ("" = toutes).
-static func ids_in(cat: String, region := "", era := "") -> Array[String]:
+static func ids_in(cat: String) -> Array[String]:
 	var out: Array[String] = []
-	var types := all_types()
-	for id in types:
-		var t: Dictionary = types[id]
-		if t.cat == cat and Styles.matches(t, region, era):
-			out.append(id)
-	return out
-
-
-## Identifiants d'un style donné dans une catégorie.
-static func ids_of_style(cat: String, style: String) -> Array[String]:
-	var out: Array[String] = []
-	var types := all_types()
-	for id in types:
-		var t: Dictionary = types[id]
-		if t.cat == cat and String(t.get("style", "")) == style:
+	for id in TYPES:
+		if TYPES[id].cat == cat:
 			out.append(id)
 	return out
 
@@ -175,10 +142,6 @@ static func build_mesh(id: String, material: Material = null) -> ArrayMesh:
 	var t := get_type(id)
 	var w := float(t.get("w", 4))
 	var d := float(t.get("d", 4))
-	if t.has("arch"):
-		StyleBuilder.build(k, t)
-		k.fit_xz(w, d)
-		return k.to_mesh(material)
 	match id:
 		"maison":
 			k.plate(0, 0, w, d, GRASS)
@@ -465,7 +428,6 @@ static func build_mesh(id: String, material: Material = null) -> ArrayMesh:
 			k.tree(14.0, 10.0, 0.8)
 		_:
 			k.box(0, 0, 0, w * 0.8, 4.0, d * 0.8, WALL)
-	k.fit_xz(w, d)
 	return k.to_mesh(material)
 
 

@@ -51,14 +51,12 @@ var buildings: Dictionary = {}
 ## Vector2i -> id du bâtiment qui occupe la case
 var occupancy: Dictionary = {}
 var next_id := 1
-## Zone touchée par le dernier changement (vide = tout a pu changer, ex. chargement).
-var last_change_rect := Rect2i()
 ## Si défini, Callable(case: Vector2i) -> bool : case prise par autre chose (blocs libres).
 var extra_blocker: Callable
 
 var _nodes: Dictionary = {} # id -> MeshInstance3D
 var _meshes: Dictionary = {} # type -> ArrayMesh
-var _material: Material
+var _material: StandardMaterial3D
 var _ghost: MeshInstance3D
 var _plate: MeshInstance3D
 var _link: MeshInstance3D
@@ -81,14 +79,14 @@ func _ready() -> void:
 		transport = get_node_or_null(transport_path) as TransportSystem
 	changed.connect(func() -> void: _summary_dirty = true)
 	if transport != null:
-		transport.network_changed.connect(func() -> void:
-			_summary_dirty = true
-			_access_cache.clear())
+		transport.network_changed.connect(func() -> void: _summary_dirty = true)
 		# Une voie ne peut pas traverser un bâtiment.
 		transport.blocker = func(c: Vector2i) -> bool:
 			return occupancy.has(c) or (extra_blocker.is_valid() and extra_blocker.call(c))
-	# Couleurs par sommet, et fenêtres qui s'allument la nuit (cycle jour/nuit).
-	_material = NightWindows.building_material()
+	_material = StandardMaterial3D.new()
+	_material.vertex_color_use_as_albedo = true
+	_material.vertex_color_is_srgb = true
+	_material.roughness = 0.95
 	_ok_mat = _tint(Color(0.35, 0.95, 0.45, 0.55))
 	_bad_mat = _tint(Color(1.0, 0.3, 0.25, 0.55))
 	_hover_mat = _tint(Color(1.0, 0.25, 0.2, 0.45))
@@ -166,7 +164,6 @@ func clear() -> void:
 	next_id = 1
 	money = START_MONEY
 	_hover_building = -1
-	last_change_rect = Rect2i()
 	changed.emit()
 
 
@@ -204,8 +201,7 @@ func find_access(id: String, rect: Rect2i, r: int) -> Dictionary:
 	for type in BuildingCatalog.get_type(id).get("access", []):
 		# "route" ou "chemin" : toute classe de voie de ce mode (rue, avenue…).
 		var mode := TransportTypes.mode_of(type)
-		# Seuls les tronçons proches de la porte (index spatial du réseau).
-		for eid in transport.edges_near(door, ACCESS_MAX + 30.0):
+		for eid in transport.network.edges:
 			var e: Dictionary = transport.network.edges[eid]
 			if TransportTypes.mode_of(e.t) != mode:
 				continue
@@ -314,7 +310,6 @@ func place(id: String, center: Vector2i, r: int, zone := 0) -> int:
 	_add({"id": bid, "t": id, "x": rect.position.x, "z": rect.position.y, "r": r, "h": res.h, "cost": res.cost, "zone": zone})
 	if zone == 0:
 		message.emit("%s construit pour %s." % [BuildingCatalog.get_type(id).name, format_money(res.cost)])
-	last_change_rect = rect.grow(3)
 	changed.emit()
 	return bid
 
@@ -337,7 +332,6 @@ func demolish(bid: int) -> void:
 	if _hover_building == bid:
 		_hover_building = -1
 	message.emit("%s démoli (%s rendus)." % [BuildingCatalog.get_type(b.t).get("name", b.t), format_money(back)])
-	last_change_rect = rect.grow(3)
 	changed.emit()
 
 
@@ -542,18 +536,13 @@ func totals() -> Dictionary:
 		var t := BuildingCatalog.get_type(b.t)
 		for k in ["logements", "emplois", "visiteurs"]:
 			out[k] += int(t.get(k, 0))
-		var bid := int(b.id)
-		if not _access_cache.has(bid):
-			_access_cache[bid] = not find_access(b.t, _rect_of(b), int(b.r)).is_empty()
-		if not _access_cache[bid]:
+		if find_access(b.t, _rect_of(b), int(b.r)).is_empty():
 			out.non_desservis += 1
 	return out
 
 
 var _summary := ""
 var _summary_dirty := true
-## Bâtiment desservi par une voie ? id -> bool (vidé quand le réseau change).
-var _access_cache := {}
 
 
 func summary() -> String:
@@ -590,5 +579,4 @@ func from_dict(data: Dictionary) -> void:
 		_add({"id": int(b.id), "t": String(b.t), "x": int(b.x), "z": int(b.z), "r": int(b.r),
 			"h": float(b.h), "cost": int(b.get("cost", 0)), "zone": int(b.get("zone", 0))})
 		next_id = maxi(next_id, int(b.id) + 1)
-	last_change_rect = Rect2i()
 	changed.emit()

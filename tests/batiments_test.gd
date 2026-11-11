@@ -32,7 +32,7 @@ func _run() -> void:
 	print("Catalogue :")
 	var all_ok := true
 	var n_types := 0
-	for id in BuildingCatalog.all_types():
+	for id in BuildingCatalog.TYPES:
 		n_types += 1
 		var t := BuildingCatalog.get_type(id)
 		var m := BuildingCatalog.build_mesh(id)
@@ -52,21 +52,6 @@ func _run() -> void:
 	_check(all_ok, "%d modèles construits, chacun dans son emprise, avec prix et catégorie" % n_types)
 	for c in BuildingCatalog.CATEGORIES:
 		_check(BuildingCatalog.ids_in(c.id).size() >= 3, "catégorie %s : %d bâtiments" % [c.name, BuildingCatalog.ids_in(c.id).size()])
-	_check(n_types >= 200, "bible : %d bâtiments au total" % n_types)
-	for r in Styles.REGIONS:
-		_check(BuildingCatalog.ids_in("logement", r.id).size() >= 1, "région %s : %d logements" % [r.name, BuildingCatalog.ids_in("logement", r.id).size()])
-	for e in Styles.ERAS:
-		var n_e := 0
-		for c in BuildingCatalog.CATEGORIES:
-			n_e += BuildingCatalog.ids_in(c.id, "", e.id).size()
-		_check(n_e >= 5, "époque %s : %d bâtiments" % [e.name, n_e])
-	var filt_ok := true
-	for id in BuildingCatalog.ids_in("services", "asie_est", "traditionnel"):
-		var tt := BuildingCatalog.get_type(id)
-		filt_ok = filt_ok and tt.region == "asie_est" and tt.era == "traditionnel" and tt.cat == "services"
-	_check(filt_ok and BuildingCatalog.ids_in("services", "asie_est", "traditionnel").size() >= 2, "filtres région + époque")
-	_check(ZoneSystem.types_for("R", "japonais").has("japonais__maison") and not ZoneSystem.types_for("R", "japonais").has("maison"), "zonage par style : modèles du style seulement")
-	_check(ZoneSystem.types_for("C", "").has("cafe"), "zonage classique inchangé")
 	_check(BuildingCatalog.footprint("maison", 1) == Vector2i(12, 10), "un quart de tour échange largeur et profondeur")
 	_check(BuildingSystem.format_money(1234567) == "1 234 567 €", "affichage de l'argent")
 
@@ -166,24 +151,6 @@ func _run() -> void:
 	_check(zs.remove_area(Rect2i(-50, -10, 45, 20)) == 1 and zs.zones.size() == 2, "retirer le milieu coupe la zone en deux")
 	_check(zs.zone_at(Vector2i(-20, 0)) == -1 and zs.zone_at(Vector2i(-20, -30)) > 0, "le milieu n'est plus zoné")
 	_check(zs.add_zone("I", Rect2i(0, 0, 400, 10)) == -1, "zone trop grande refusée")
-	zs.current_style = "japonais"
-	var zj := zs.add_zone("R", Rect2i(-50, 41, 45, 19))
-	zs.current_style = ""
-	var nj0 := bs.buildings.size()
-	for i in 30:
-		zs._grow_in(zs.zones[zj])
-	var styled := true
-	var nj := 0
-	for bb in bs.buildings.values():
-		if int(bb.get("zone", 0)) == zj:
-			nj += 1
-			styled = styled and String(bb.t).begins_with("japonais__")
-	_check(nj >= 1 and styled, "zone de style japonais : %d bâtiments japonais ont poussé" % nj)
-	zs.remove_area(Rect2i(-50, 41, 45, 19))
-	for bid in bs.buildings.keys():
-		if int(bs.buildings[bid].get("zone", 0)) == zj:
-			bs.demolish(bid)
-	_check(bs.buildings.size() == nj0, "zone de style retirée")
 	await process_frame
 	_check(zs._views.size() == 2, "calques de zone dessinés")
 	var nb := bs.buildings.size()

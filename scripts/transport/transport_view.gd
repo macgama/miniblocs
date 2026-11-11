@@ -29,7 +29,6 @@ var _material: StandardMaterial3D
 var _edge_meshes: Dictionary = {} # id de tronçon -> MeshInstance3D
 var _edge_keys: Dictionary = {} # id de tronçon -> rognages utilisés
 var _node_meshes: Dictionary = {} # id de nœud -> MeshInstance3D
-var _node_keys: Dictionary = {} # id de nœud -> ce qui a servi à dessiner son plateau
 
 
 func _init() -> void:
@@ -75,24 +74,10 @@ func rebuild() -> void:
 			_edge_meshes[id] = mi
 		mi.mesh = build_mesh(e.t, e.w, e.pts, e.st, ground, key.x, key.y)
 		_edge_keys[id] = key
-	# Plateaux de carrefour : seuls ceux dont les tronçons ou les rognages ont changé.
-	for id in _node_keys.keys():
-		if not network.nodes.has(id):
-			if _node_meshes.has(id):
-				(_node_meshes[id] as Node).queue_free()
-				_node_meshes.erase(id)
-			_node_keys.erase(id)
+	for id in _node_meshes.keys():
+		(_node_meshes[id] as Node).queue_free()
+	_node_meshes.clear()
 	for id in network.nodes:
-		var key := [network.node_pos(id)]
-		for eid in network.adjacency.get(id, []):
-			key.append(network.edges[eid])
-			key.append(trims.get(eid, Vector2.ZERO))
-		if _node_keys.has(id) and _same_key(_node_keys[id], key):
-			continue
-		_node_keys[id] = key
-		if _node_meshes.has(id):
-			(_node_meshes[id] as Node).queue_free()
-			_node_meshes.erase(id)
 		var m := _junction_mesh(id, trims)
 		if m != null:
 			var mi := MeshInstance3D.new()
@@ -100,19 +85,6 @@ func rebuild() -> void:
 			mi.material_override = _material
 			add_child(mi)
 			_node_meshes[id] = mi
-
-
-## Compare deux clés de carrefour (les tronçons par identité, le reste par valeur).
-static func _same_key(a: Array, b: Array) -> bool:
-	if a.size() != b.size():
-		return false
-	for i in a.size():
-		if typeof(a[i]) == TYPE_DICTIONARY:
-			if not is_same(a[i], b[i]):
-				return false
-		elif a[i] != b[i]:
-			return false
-	return true
 
 
 func edge_mesh_count() -> int:

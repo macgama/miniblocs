@@ -14,6 +14,8 @@ const MAX_LENGTH := 3000.0
 const MIN_LENGTH := 3.0
 ## Hauteur minimale d'un tablier au-dessus de la mer (m).
 const SEA_CLEARANCE := 3.0
+## Hauteur libre d'un pont au-dessus d'une rivière ou d'un ruisseau (m).
+const RIVER_CLEARANCE := 1.5
 const SEA_LEVEL := 0.0
 ## Pente des talus de remblai / déblai (horizontal pour 1 m de vertical).
 const TALUS := 1.5
@@ -80,9 +82,12 @@ static func min_radius(xz: PackedVector2Array) -> float:
 
 ## path : tracé en plan (au moins 2 points). h0 / h1 : hauteur imposée aux
 ## extrémités (NAN = hauteur du sol). ground : Callable(x, z) -> float.
+## water (optionnel) : Callable(x, z) -> float, surface d'une rivière ou d'un lac
+## (NAN = pas d'eau douce) : la voie l'enjambe par un pont.
 ## Renvoie : ok, reason, type, pts, st, length, max_grade, min_radius,
 ## bridge_len, tunnel_len.
-static func plan(type_id: String, path: PackedVector2Array, h0: float, h1: float, ground: Callable) -> Dictionary:
+static func plan(type_id: String, path: PackedVector2Array, h0: float, h1: float, ground: Callable,
+		water: Callable = Callable()) -> Dictionary:
 	type_id = TransportTypes.resolve(type_id)
 	var ty := TransportTypes.get_type(type_id)
 	var res := {"type": type_id, "ok": false, "reason": "", "pts": PackedVector3Array(), "st": PackedByteArray(),
@@ -116,6 +121,18 @@ static func plan(type_id: String, path: PackedVector2Array, h0: float, h1: float
 			res.reason = "Relief pas encore chargé à cet endroit."
 			return res
 		g[i] = h
+	# Eau douce : on regarde aussi entre deux points (un ruisseau fait 1 m, un pas 2 m).
+	var ws := PackedFloat32Array()
+	ws.resize(n)
+	ws.fill(NAN)
+	if water.is_valid():
+		for i in n:
+			var dir := (xz[mini(i + 1, n - 1)] - xz[maxi(i - 1, 0)]).normalized()
+			for t in [0.0, -0.25, 0.25, -0.5, 0.5]:
+				var q: Vector2 = xz[i] + dir * ds * t
+				var wv: float = water.call(q.x, q.y)
+				if not is_nan(wv):
+					ws[i] = wv if is_nan(ws[i]) else maxf(ws[i], wv)
 
 	var pts := PackedVector3Array()
 	pts.resize(n)
@@ -125,12 +142,12 @@ static func plan(type_id: String, path: PackedVector2Array, h0: float, h1: float
 	# Voie navigable : uniquement sur l'eau, au niveau de la mer.
 	if int(ty.mode) == TransportTypes.Mode.WATER:
 		for i in n:
-			pts[i] = Vector3(xz[i].x, SEA_LEVEL, xz[i].y)
+			pts[i] = Vector3(xz[i].x, SEA_LEVEL if is_nan(ws[i]) else ws[i], xz[i].y)
 			st[i] = TransportTypes.Struct.WATER
 		res.pts = pts
 		res.st = st
 		for i in n:
-			if g[i] > SEA_LEVEL - 0.3:
+			if g[i] > SEA_LEVEL - 0.3 and is_nan(ws[i]):
 				res.reason = "Une voie navigable doit rester sur l'eau."
 				return res
 		if too_tight:
@@ -144,6 +161,8 @@ static func plan(type_id: String, path: PackedVector2Array, h0: float, h1: float
 	want.resize(n)
 	for i in n:
 		want[i] = g[i] if g[i] >= SEA_LEVEL else SEA_LEVEL + SEA_CLEARANCE
+		if not is_nan(ws[i]):
+			want[i] = maxf(want[i], ws[i] + RIVER_CLEARANCE)
 	if is_nan(h0):
 		h0 = maxf(g[0], SEA_LEVEL + 0.5)
 	if is_nan(h1):
@@ -172,13 +191,19 @@ static func plan(type_id: String, path: PackedVector2Array, h0: float, h1: float
 		var hi := minf(h0 + eff_grade * s, h1 + eff_grade * (length - s))
 		var lo := maxf(h0 - eff_grade * s, h1 - eff_grade * (length - s))
 		p[i] = clampf(p[i], lo, hi)
+	# Plancher : le tablier passe au-dessus des rivières (les rampes suivent).
+	var floor_h := PackedFloat32Array()
+	floor_h.resize(n)
+	for i in n:
+		floor_h[i] = -INF if is_nan(ws[i]) else ws[i] + RIVER_CLEARANCE
+		p[i] = maxf(p[i], floor_h[i])
 	p[0] = h0
 	p[n - 1] = h1
 	for _pass in 4:
 		for i in range(1, n):
-			p[i] = clampf(p[i], p[i - 1] - step_max, p[i - 1] + step_max)
+			p[i] = maxf(clampf(p[i], p[i - 1] - step_max, p[i - 1] + step_max), floor_h[i])
 		for i in range(n - 2, -1, -1):
-			p[i] = clampf(p[i], p[i + 1] - step_max, p[i + 1] + step_max)
+			p[i] = maxf(clampf(p[i], p[i + 1] - step_max, p[i + 1] + step_max), floor_h[i])
 		p[0] = h0
 		p[n - 1] = h1
 
@@ -194,6 +219,11 @@ static func plan(type_id: String, path: PackedVector2Array, h0: float, h1: float
 		else:
 			st[i] = TransportTypes.Struct.GROUND
 	_clean_runs(st, maxi(2, roundi(8.0 / ds)))
+	# Au-dessus d'une rivière, toujours un pont (avec un appui de chaque côté).
+	for i in n:
+		if not is_nan(ws[i]):
+			for k in range(maxi(0, i - 1), mini(n - 1, i + 1) + 1):
+				st[k] = TransportTypes.Struct.BRIDGE
 
 	var max_g := 0.0
 	var bridge := 0.0

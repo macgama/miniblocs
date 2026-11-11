@@ -112,10 +112,6 @@ const CLASSES := {
 		"name": "Voie navigable", "mode": Mode.WATER, "kmh": 12.0, "width": [12.0, 60.0, 20.0],
 		"r_min": 50.0, "max_grade": 0.0, "smooth": 0.0, "bridge_gap": 0.0, "tunnel_depth": 0.0,
 	},
-	"chenal": {
-		"name": "Chenal maritime", "mode": Mode.WATER, "kmh": 40.0, "width": [60.0, 400.0, 150.0],
-		"r_min": 400.0, "max_grade": 0.0, "smooth": 0.0, "bridge_gap": 0.0, "tunnel_depth": 0.0,
-	},
 }
 
 ## Anciens identifiants (sauvegardes de la première version).
@@ -126,7 +122,7 @@ const BY_MODE := {
 	Mode.ROAD: ["rue", "avenue", "departementale", "voie_express", "autoroute"],
 	Mode.RAIL: ["tram", "train", "lgv"],
 	Mode.PATH: ["trottoir", "piste_cyclable", "voie_verte"],
-	Mode.WATER: ["canal", "chenal"],
+	Mode.WATER: ["canal"],
 }
 
 ## Pas d'échantillonnage du tracé (m).

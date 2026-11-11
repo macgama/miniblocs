@@ -13,6 +13,8 @@ signal block_tool_chosen(tool: int)
 signal block_material_chosen(material: int)
 signal wall_height_changed(height: int)
 signal zone_style_chosen(style: String)
+signal capture_name_changed(name: String)
+signal creation_deleted(id: String)
 
 var _panel: PanelContainer
 var _list: VBoxContainer
@@ -35,6 +37,7 @@ var _era := ""
 var _search := ""
 var _zone_style := ""
 var _filters: HFlowContainer
+var _capture_name := ""
 
 
 func _ready() -> void:
@@ -63,6 +66,7 @@ func _ready() -> void:
 	var tabs: Array = BuildingCatalog.CATEGORIES.duplicate()
 	tabs.append({"id": "zones", "name": "Zonage", "color": Color("ffd166")})
 	tabs.append({"id": "blocs", "name": "Éditeur libre", "color": Color("8ecae6")})
+	tabs.append({"id": Creations.CATEGORY, "name": "Mes créations", "color": Color("f4a261")})
 	for c in tabs:
 		var b := Button.new()
 		b.text = c.name
@@ -163,6 +167,9 @@ func show_category(cat: String) -> void:
 		return
 	if cat == "blocs":
 		_show_blocks()
+		return
+	if cat == Creations.CATEGORY:
+		_show_creations()
 		return
 	_filters.visible = true
 	var shown := 0
@@ -318,12 +325,67 @@ func _show_blocks() -> void:
 			_block_material = mi
 			block_material_chosen.emit(mi))
 		grid.add_child(b)
+	# Enregistrer une construction comme bâtiment de « Mes créations ».
+	_list.add_child(HSeparator.new())
+	var crow := HBoxContainer.new()
+	var cname := LineEdit.new()
+	cname.placeholder_text = "Nom de la création"
+	cname.text = _capture_name
+	cname.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	cname.text_changed.connect(func(txt: String) -> void:
+		_capture_name = txt
+		capture_name_changed.emit(txt))
+	crow.add_child(cname)
+	var cap := Button.new()
+	cap.text = "Enregistrer"
+	cap.tooltip_text = "Clic glissé autour de ta construction : elle devient un bâtiment de l'onglet Mes créations, à poser où tu veux."
+	cap.toggle_mode = true
+	cap.button_group = _item_group
+	cap.pressed.connect(func() -> void: block_tool_chosen.emit(BlockEditor.Tool.CAPTURE))
+	crow.add_child(cap)
+	_list.add_child(crow)
+	_item_buttons.append(crow)
 	_block_label = Label.new()
 	_block_label.add_theme_font_size_override("font_size", 12)
 	_block_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_block_label.text = "Clic droit : retirer un bloc · Ctrl+Z : annuler"
 	_list.add_child(_block_label)
 	_item_buttons.append(_block_label)
+
+
+func _show_creations() -> void:
+	_filters.visible = false
+	var ids := Creations.ids()
+	if ids.is_empty():
+		var none := Label.new()
+		none.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		none.text = "Aucune création pour l'instant. Construis avec l'Éditeur libre, puis « Enregistrer » et un clic glissé autour de ta construction."
+		_list.add_child(none)
+		_item_buttons.append(none)
+		return
+	for id in ids:
+		var t := BuildingCatalog.get_type(id)
+		var row := HBoxContainer.new()
+		var b := Button.new()
+		b.text = "%s  ·  %d × %d m  ·  %s" % [t.name, t.w, t.d, BuildingSystem.format_short(BuildingCatalog.cost(id))]
+		b.tooltip_text = String(t.desc)
+		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		b.clip_text = true
+		b.toggle_mode = true
+		b.button_group = _item_group
+		var type_id: String = id
+		b.pressed.connect(func() -> void: building_chosen.emit(type_id))
+		row.add_child(b)
+		var del := Button.new()
+		del.text = "✕"
+		del.tooltip_text = "Supprimer cette création de la bibliothèque (les exemplaires déjà posés restent)."
+		del.pressed.connect(func() -> void:
+			creation_deleted.emit(type_id)
+			show_category(Creations.CATEGORY))
+		row.add_child(del)
+		_list.add_child(row)
+		_item_buttons.append(row)
 
 
 func set_block_info(text: String) -> void:

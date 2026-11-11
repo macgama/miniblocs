@@ -76,6 +76,12 @@ func _ready() -> void:
 		if blocks.tool == BlockEditor.Tool.NONE:
 			_select_building_tool()
 			blocks.set_tool(BlockEditor.Tool.BLOCK))
+	build_panel.capture_name_changed.connect(func(n: String) -> void: blocks.capture_name = n)
+	build_panel.creation_deleted.connect(func(id: String) -> void: Creations.remove(id))
+	blocks.captured.connect(func(res: Dictionary) -> void:
+		if res.ok:
+			blocks.set_tool(BlockEditor.Tool.NONE)
+			build_panel.clear_selection())
 	build_panel.wall_height_changed.connect(func(h: int) -> void:
 		blocks.wall_height = h
 		blocks._emit_help())
@@ -141,7 +147,8 @@ func _game_title() -> String:
 ## Sections de la sauvegarde : uniquement ce que le joueur a créé ou changé.
 func save_sections() -> Dictionary:
 	return {"terrain": world.to_dict(), "transport": transport.to_dict(), "batiments": buildings.to_dict(),
-		"zones": zones.to_dict(), "blocs": blocks.to_dict(), "ambiance": ambiance.to_dict()}
+		"zones": zones.to_dict(), "blocs": blocks.to_dict(), "ambiance": ambiance.to_dict(),
+		"creations": Creations.to_dict(Creations.used_by(buildings))}
 
 
 ## Sauvegarde dans la partie en cours (ou une nouvelle). title : nom d'une nouvelle partie.
@@ -187,6 +194,7 @@ func load_game(slot := "") -> bool:
 	GameStart.place_name = String(lieu.get("nom", ""))
 	world.from_dict(sec.terrain)
 	transport.from_dict(sec.get("transport", {}))
+	Creations.adopt(sec.get("creations", {}))
 	buildings.from_dict(sec.get("batiments", {}))
 	zones.from_dict(sec.get("zones", {}))
 	blocks.from_dict(sec.get("blocs", {}))

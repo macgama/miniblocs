@@ -5,6 +5,7 @@ extends SceneTree
 ## --blocs : une maison construite bloc par bloc.
 ## --styles a,b,c : seulement les bâtiments de ces styles (bible, voir Styles.STYLES).
 ## --arch culte,palais : seulement ces archétypes. --zone-style japonais : style du zonage.
+## --cat espaces : seulement une catégorie.
 ## --zones : un quartier né du zonage (routes en grille, zones R/C/I) au lieu du catalogue.
 
 
@@ -35,6 +36,7 @@ func _run() -> void:
 	var only_styles: PackedStringArray = []
 	var only_archs: PackedStringArray = []
 	var zone_style := ""
+	var only_cat := ""
 	for i in args.size():
 		if args[i] == "--screenshot" and i + 1 < args.size():
 			shot = args[i + 1]
@@ -46,6 +48,8 @@ func _run() -> void:
 			only_styles = args[i + 1].split(",")
 		if args[i] == "--arch" and i + 1 < args.size():
 			only_archs = args[i + 1].split(",")
+		if args[i] == "--cat" and i + 1 < args.size():
+			only_cat = args[i + 1]
 		if args[i] == "--zone-style" and i + 1 < args.size():
 			zone_style = args[i + 1]
 		if args[i] == "--focus" and i + 1 < args.size():
@@ -96,6 +100,8 @@ func _run() -> void:
 			continue
 		if not only_archs.is_empty() and not String(tt.get("arch", "")) in only_archs:
 			continue
+		if only_cat != "" and String(tt.cat) != only_cat:
+			continue
 		ids.append(id)
 	var rows := [[0.0, -1.0], [0.0, 1.0], [150.0, -1.0], [150.0, 1.0]]
 	var row := 0
@@ -114,7 +120,7 @@ func _run() -> void:
 			r = 0 if side > 0 else 2
 			fp = BuildingCatalog.footprint(id, r)
 		var road_z: float = rows[row][0]
-		var cz := road_z + side * (5.0 + fp.y / 2.0)
+		var cz := road_z + side * (7.0 + fp.y / 2.0)
 		var placed := bs.place(id, Vector2i(int(x + fp.x / 2.0), int(cz)), r)
 		if placed < 0:
 			print("non posé : ", id, " ", bs.check_place(id, Vector2i(int(x + fp.x / 2.0), int(cz)), r).reason)
@@ -128,7 +134,7 @@ func _run() -> void:
 	rig.rotation_degrees.y = yaw
 	for i in 90:
 		await process_frame
-	scene.get_node("PanneauConstruction").show_category("sport")
+	scene.get_node("PanneauConstruction").show_category(only_cat if only_cat != "" else "sport")
 	for i in 5:
 		await process_frame
 	root.get_viewport().get_texture().get_image().save_png(shot)

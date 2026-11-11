@@ -15,7 +15,18 @@ On ne peut donc pas « dessiner » toute la Terre à l'avance. À la place, le j
 
 - **Terre vierge** : seulement le vrai relief et les mers. Pas de routes ni de villes réelles.
 - **Le joueur choisit où il commence**, sur un globe 3D, puis joue dans une région de 10 × 10 km autour de ce point.
-- **Multijoueur prévu** : une carte par joueur (solo) ou tous sur la même carte (ensemble). Comme le relief se recalcule à l'identique chez tout le monde, il suffira d'échanger les cases modifiées. Hébergement par un joueur via Steam, sans serveur payant au départ.
+- **Trois types de cartes** :
+  - **Bac à sable** : seul, hors ligne, on fait ce qu'on veut.
+  - **Entre amis** : un joueur crée la carte et invite ses amis. Elle reste accessible à tous ses membres même si le créateur n'est pas en ligne.
+  - **Carte mondiale** : une seule Terre partagée par tous les joueurs.
+- Comme le relief se recalcule à l'identique chez tout le monde, une carte partagée se résume aux cases modifiées et aux constructions : peu de données à stocker et à échanger. Les deux modes en ligne ont besoin d'un service toujours allumé (voir ci-dessous).
+
+## Héberger les cartes en ligne
+
+| Étape | Solution | Coût |
+| --- | --- | --- |
+| Entre amis (début) | Base de données en ligne avec synchro temps réel (Supabase ou Nakama). Chaque carte = ses cases modifiées. La simulation tourne chez les joueurs connectés ; à la reconnexion, le jeu calcule ce qui s'est passé pendant l'absence. | Gratuit jusqu'à quelques centaines de joueurs (offres gratuites) |
+| Carte mondiale | Serveur de jeu Godot sans affichage qui charge les régions où il y a des joueurs, découpage en régions de 10 × 10 km, règles anti-vandalisme | Petit serveur loué (≈ 5 à 20 €/mois au début), à faire grandir avec le nombre de joueurs |
 
 ## Comment c'est fait (version actuelle)
 

@@ -67,7 +67,7 @@ Architecture, feuille de route et questions ouvertes : [docs/transport-architect
 
 ## Bâtiments : poser des bâtiments à l'échelle réelle
 
-Dans le mode Terre, le panneau **Construire** (à droite, **B** pour le masquer) propose 27 bâtiments low-poly à l'échelle réelle (1 case = 1 m), rangés en six catégories : **Logement**, **Commerce**, **Industrie**, **Services publics**, **Loisirs** et **Sport** (maison 10 × 12 m, tour d'habitation de 41 m, supermarché et son parking, hôpital, terrain de football de 105 × 68 m…).
+Dans le mode Terre, le panneau **Construire** (à droite, **B** pour le masquer) propose **250 bâtiments** low-poly à l'échelle réelle (27 modèles classiques et une bible de 223 bâtiments de 29 styles du monde, voir plus bas) (1 case = 1 m), rangés en six catégories : **Logement**, **Commerce**, **Industrie**, **Services publics**, **Loisirs** et **Sport** (maison 10 × 12 m, tour d'habitation de 41 m, supermarché et son parking, hôpital, terrain de football de 105 × 68 m…).
 
 ![Bâtiments le long de deux routes](docs/apercu-batiments.png)
 
@@ -88,6 +88,23 @@ L'onglet **Zonage** du même panneau permet de peindre des zones **résidentiell
 - **Demande** affichée dans le panneau : il vient toujours des habitants, d'autant plus qu'il y a du travail ; commerces et industries s'installent selon la population.
 - **Retirer des zones** : glisser sur la zone à effacer (une zone coupée en partie est redécoupée). Les bâtiments déjà construits restent.
 - Case **Croissance automatique** pour mettre la ville en pause.
+
+### La bible : styles du monde, de l'Antiquité au futur
+
+Les listes du panneau mélangent les modèles classiques et la **bible** : 29 styles d'architecture, chacun décliné en archétypes (maison, immeuble, boutique, marché, usine, ferme, lieu de culte, palais, école, gare, théâtre, jardin…).
+
+![Styles d'Asie](docs/apercu-bible-asie.png)
+![Styles d'Europe, d'Afrique et de Méditerranée](docs/apercu-bible-europe-afrique.png)
+
+- **Régions** : Europe, Méditerranée, Moyen-Orient et Maghreb, Afrique, Asie de l'Est, Asie du Sud et du Sud-Est, Amériques, Monde.
+- **Époques** : Antiquité, Traditionnel, XIXe – 1945, Moderne, Contemporain, Futuriste.
+- **Exemples** : colombages, gothique (cathédrale), haussmannien, briques industrielles, scandinave (stavkirke), isba (église à bulbes, kremlin), Grèce antique (temple, amphithéâtre), méditerranéen, Maghreb (kasbah), persan, Golfe, Sahel (mosquée en terre, cases rondes), Afrique australe (kraal), Afrique moderne, chinois (pagode, Cité interdite), japonais (sanctuaire, château), Asie dense (néons), Inde (temple shikhara, palais moghol), Asie du Sud-Est (maisons sur pilotis, wat), pueblo, précolombien (pyramide), colonial, latino, Art déco, banlieue américaine, style international, tours de verre, futuriste.
+- **Filtres** en haut de la liste : région, époque et recherche par nom (« pagode », « gare », « japonais »…).
+- **Zonage par style** : dans l'onglet Zonage, choisis le **Style** avant de peindre une zone. Les bâtiments qui y poussent suivent ce style (« Classique MiniBlocs » par défaut, ou « Mélange de tous les styles »). Chaque zone garde son style.
+
+![Zone résidentielle de style japonais](docs/apercu-zonage-style.png)
+
+Pour ajouter un style : une entrée dans `Styles.STYLES` (`scripts/catalogue/styles.gd`) avec sa région, son époque, ses couleurs, son toit et ses archétypes ; le modèle 3D est fabriqué par `StyleBuilder`.
 
 ### Éditeur libre : construire bloc par bloc
 
@@ -146,8 +163,10 @@ L'onglet **Éditeur libre** permet de construire ce que tu veux avec des blocs d
 | `scripts/batiments/building_panel.gd` | Panneau « Construire » |
 | `scripts/batiments/zone_system.gd` | Zonage : zones peintes, demande, croissance le long des routes |
 | `scripts/batiments/block_editor.gd` | Éditeur libre bloc par bloc : outils, matériaux, annulation, rendu par blocs de 16 × 16 m |
+| `scripts/catalogue/styles.gd` | Bible : régions, époques, archétypes et les 29 styles d'architecture |
+| `scripts/catalogue/style_builder.gd` | Fabrique les bâtiments de la bible (emprise, chiffres, modèle 3D) d'après style + archétype |
 | `tests/batiments_test.gd` | Test automatique des bâtiments (sans réseau) |
-| `tests/batiments_vitrine.gd` | Pose tout le catalogue (ou fait pousser un quartier avec `--zones`, ou construit une maison en blocs avec `--blocs`) et prend une capture |
+| `tests/batiments_vitrine.gd` | Pose tout le catalogue (ou fait pousser un quartier avec `--zones`, ou construit une maison en blocs avec `--blocs`) et prend une capture. `--styles japonais,chinois` ou `--arch culte` filtrent la bible, `--zone-style` choisit le style du zonage |
 
 ## Test automatique
 

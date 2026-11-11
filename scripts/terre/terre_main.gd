@@ -70,6 +70,7 @@ func _ready() -> void:
 		blocks.wall_height = h
 		blocks._emit_help())
 	build_panel.growth_toggled.connect(func(on: bool) -> void: zones.growth = on)
+	build_panel.zone_style_chosen.connect(func(st: String) -> void: zones.current_style = st)
 	build_panel.rules_changed.connect(func(access: bool, unlimited: bool) -> void:
 		buildings.require_access = access
 		buildings.unlimited_money = unlimited

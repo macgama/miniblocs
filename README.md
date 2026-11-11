@@ -63,6 +63,18 @@ Dans le mode Terre, la barre du bas propose **5 Route**, **6 Rail**, **7 Chemin*
 
 ![Pont et talus au-dessus d'une vallée](docs/apercu-transport-pont.png)
 
+### Stations et lignes de transport en commun
+
+![Arrêts de tram et de bus, un tram et des bus à impériale en ligne](docs/apercu-lignes.png)
+
+Bouton **Lignes (T)** (ou touche **T**) : le panneau des transports publics.
+
+1. **Pose des stations** : arrêt de bus (sur une route), arrêt de tram (sur une voie de tram), gare (ligne classique ou LGV : quais, marquise et bâtiment voyageurs de la bible), port (jetée, grue et gare maritime sur une voie d'eau), **héliport**, **aérodrome** (piste en herbe de 600 m) et **aéroport** (piste de 1 000 m, aire de stationnement, aérogare, tour de contrôle ; **R** pour tourner, le terrain est aplani). Les stations du réseau coupent la voie à cet endroit ; les quais et les pistes sont réservés (pas d'arbres ni de bâtiments).
+2. **Nouvelle ligne** : clique les stations dans l'ordre, puis **Entrée** (ou clic droit). Une ligne relie des stations du même genre, avec une voie entre chaque.
+3. **Choisis le véhicule** dans le catalogue (bus à impériale, tram 1900, locomotive Pacific, bateau-bus, hélicoptère, gros-porteur…) et leur **nombre**. Ils font la navette d'un bout à l'autre et marquent l'arrêt 12 s à chaque station ; les avions roulent sur la piste, décollent, volent à 260 m et atterrissent.
+
+Tout est gardé par **Sauver / Charger**.
+
 ### Le catalogue de véhicules
 
 ![Voitures, bus, deux-roues et attelages du monde entier](docs/apercu-vehicules.png)
@@ -226,6 +238,8 @@ Détails et limites : [docs/ambiance.md](docs/ambiance.md).
 | `scripts/transport/route_planner.gd` | Tracé sur le relief : pente, ponts, tunnels, terrassement |
 | `scripts/transport/transport_view.gd` | Modèles low-poly des voies, ponts et tunnels |
 | `scripts/transport/traffic.gd` | Véhicules qui circulent (modèles tirés du catalogue, filtre époque / région) |
+| `scripts/transport/station_system.gd` | Stations (arrêts, gares, ports, héliports, aérodromes, aéroports), lignes, trajets des avions, sauvegarde |
+| `scripts/transport/station_panel.gd` | Panneau « Transports publics » (touche T) |
 | `scripts/transport/vehicle_catalog.gd` | Catalogue des 131 véhicules : catégories, époques, régions, chiffres, modèles low-poly |
 | `scripts/transport/vehicle_mesh.gd` | Formes des véhicules (roues, coques, ailes, voiles, chevaux…) en plus de BlocMesh |
 | `tests/vehicules_vitrine.gd` | Aligne une ou plusieurs catégories du catalogue et prend une capture |
@@ -242,6 +256,16 @@ Détails et limites : [docs/ambiance.md](docs/ambiance.md).
 | `tests/batiments_test.gd` | Test automatique des bâtiments (sans réseau) |
 | `tests/batiments_vitrine.gd` | Pose tout le catalogue (ou fait pousser un quartier avec `--zones`, ou construit une maison en blocs avec `--blocs`) et prend une capture. `--styles japonais,chinois` ou `--arch culte` filtrent la bible, `--zone-style` choisit le style du zonage |
 
+## Sauvegarde des parties
+
+Chaque partie a son propre dossier : on peut en garder autant qu'on veut.
+
+- **Sauver** ou **F5** : sauvegarde la partie en cours (la première fois, une partie est créée au nom du lieu).
+- **Charger** : liste des parties (charger, supprimer, sauvegarder sous un autre nom). **F9** : recharge la partie en cours.
+- Sur le globe : **Continuer** reprend la dernière partie, **Parties…** ouvre la liste.
+- Sauvegarde automatique toutes les 5 minutes (partie « Sauvegarde automatique »), si quelque chose a changé.
+- Seuls les changements du joueur sont gardés (le relief réel se recalcule) ; format versionné, prêt pour le multijoueur : [docs/sauvegarde.md](docs/sauvegarde.md).
+
 ## Test automatique
 
 ```bash
@@ -255,6 +279,8 @@ godot --headless --path . --script res://tests/terre_test.gd
 ```
 
 Vérifie les conversions de coordonnées, le décodage des tuiles, la génération des blocs, le terrassement et la sauvegarde. Il affiche `TERRE TEST OK`. De même, `tests/globe_test.gd` affiche `GLOBE TEST OK`, `tests/transport_test.gd` affiche `TRANSPORT TEST OK` et `tests/batiments_test.gd` affiche `BATIMENTS TEST OK`.
+
+`tests/sauvegarde_test.gd` vérifie le format des parties (écriture, relecture, section abîmée, import de l'ancienne sauvegarde) et affiche `SAUVEGARDE TEST OK`.
 
 ```bash
 godot --headless --path . --script res://tests/perf_bench.gd [-- --big] [--reseau]

@@ -238,6 +238,83 @@ func _run() -> void:
 	tr.traffic.set_filters("", "")
 	tr.traffic.enabled = true
 
+	print("Stations et lignes :")
+	tr.traffic.clear()
+	var st := tr.stations
+	var bus1 := st.place("arret_bus", Vector3(-20, 0, -30))
+	var bus2 := st.place("arret_bus", Vector3(-20, 0, 50))
+	_check(bus1.ok and bus2.ok, "deux arrêts de bus posés sur la route")
+	_check(st.stations[bus1.id].node >= 0 and tr.network.degree(st.stations[bus1.id].node) == 2, "l'arrêt coupe la route en deux tronçons")
+	var too_close := st.place("arret_bus", Vector3(-20, 0, -24))
+	_check(not too_close.ok, "refus d'un arrêt trop près d'un autre (« %s »)" % too_close.get("reason", ""))
+	var bad_tram := st.place("arret_tram", Vector3(150, 0, -20))
+	_check(not bad_tram.ok and String(bad_tram.reason).contains("tram"), "pas d'arrêt de tram sur une ligne classique (« %s »)" % bad_tram.get("reason", ""))
+	var g1 := st.place("gare", Vector3(80, 0, -20))
+	var g2 := st.place("gare", Vector3(320, 0, -20))
+	_check(g1.ok and g2.ok, "deux gares sur la voie ferrée (%s / %s)" % [g1.get("reason", "ok"), g2.get("reason", "ok")])
+	var port1 := st.place("port", Vector3(-418, 0, -60))
+	var port2 := st.place("port", Vector3(-383, 0, 100))
+	_check(port1.ok and port2.ok, "deux ports sur la voie navigable (%s / %s)" % [port1.get("reason", "ok"), port2.get("reason", "ok")])
+	var on_hill := st.check_air("aeroport", Vector3(200, 0, 0), 0.0)
+	_check(not on_hill.ok, "pas d'aéroport sur la colline (« %s »)" % on_hill.reason)
+	for i in 240:
+		if not String(st.check_air("aeroport", Vector3(420, 0, 650), 0.0).reason).contains("chargement") \
+				and not String(st.check_air("heliport", Vector3(10, 0, 250), 0.0).reason).contains("chargement"):
+			break
+		await process_frame
+	var heli := st.place("heliport", Vector3(10, 0, 250))
+	var apt := st.place("aeroport", Vector3(420, 0, 650), 0.0)
+	_check(heli.ok and apt.ok, "héliport et aéroport posés (%s / %s)" % [heli.get("reason", "ok"), apt.get("reason", "ok")])
+	_check(tr.is_cell_occupied(Vector2i(420, 650)) and tr.is_cell_occupied(Vector2i(620, 650)) and not tr.is_cell_occupied(Vector2i(700, 650)), "piste et installations réservées")
+	_check((tr.is_cell_occupied(Vector2i(-16, -30)) and world.tree_blocker.call(Vector2i(-16, -30))) or (tr.is_cell_occupied(Vector2i(-24, -30)) and world.tree_blocker.call(Vector2i(-24, -30))), "quai de l'arrêt de bus réservé")
+	_check(absf(world.cell_height(Vector2i(420, 300)) - float(st.stations[apt.id].pos.y)) < 0.01, "piste aplanie")
+	var bl := st.create_line([bus1.id, bus2.id], "", 2)
+	_check(bl.ok and VehicleCatalog.get_type(st.lines[bl.id].model).cat == "bus", "ligne de bus (%s)" % st.lines.get(bl.get("id", -1), {}).get("model", bl.get("reason", "")))
+	var tl := st.create_line([g1.id, g2.id], "vapeur_pacific", 1)
+	var bt := st.create_line([port1.id, port2.id], "bateau_bus", 1)
+	_check(tl.ok and bt.ok, "ligne de train et ligne de bateau")
+	var mixed := st.create_line([bus1.id, g1.id])
+	_check(not mixed.ok, "refus d'une ligne qui mélange bus et train")
+	var al := st.create_line([heli.id, apt.id])
+	_check(al.ok and String(VehicleCatalog.get_type(st.lines[al.id].model).kind) in ["helico", "multirotor", "ballon"], "ligne aérienne depuis un héliport : hélicoptère (%s)" % st.lines.get(al.get("id", -1), {}).get("model", al.get("reason", "")))
+	var line_vehicles := 0
+	for v in tr.traffic.vehicles:
+		if v.has("line"):
+			line_vehicles += 1
+	_check(line_vehicles == 6, "6 véhicules de ligne en service : 2 bus, 1 train, 1 bateau, 2 hélicoptères (%d)" % line_vehicles)
+	st.set_line(bl.id, "imperiale", 3)
+	var buses := 0
+	var all_imp := true
+	for v in tr.traffic.vehicles:
+		if v.has("line") and int(v.line) == int(bl.id):
+			buses += 1
+			all_imp = all_imp and v.model == "imperiale"
+	_check(buses == 3 and all_imp, "changer le modèle et le nombre : 3 bus à impériale")
+	var bus_v: Dictionary = {}
+	var air_v: Dictionary = {}
+	for v in tr.traffic.vehicles:
+		if v.has("line") and int(v.line) == int(bl.id) and bus_v.is_empty():
+			bus_v = v
+		if int(v.mode) == TransportTypes.Mode.AIR:
+			air_v = v
+	var max_alt := 0.0
+	var dwelled := false
+	var bus_start: Vector3 = (bus_v.body as Node3D).position
+	var bus_far := 0.0
+	tr.traffic.enabled = false
+	for i in 900:
+		tr.traffic.step(0.1)
+		max_alt = maxf(max_alt, (air_v.body as Node3D).position.y - 20.0)
+		dwelled = dwelled or float(bus_v.get("dwell", 0.0)) > 1.0
+		bus_far = maxf(bus_far, (bus_v.body as Node3D).position.distance_to(bus_start))
+	tr.traffic.enabled = true
+	_check(max_alt > 100.0, "l'hélicoptère décolle et vole (%d m)" % roundi(max_alt))
+	_check(bus_far > 40.0 and dwelled, "le bus roule d'arrêt en arrêt et marque l'arrêt (%d m)" % roundi(bus_far))
+	var n_lines := st.lines.size()
+	st.remove_station(port1.id)
+	_check(st.lines.size() == n_lines - 1, "supprimer un port supprime sa ligne devenue inutile")
+	var n_stations := st.stations.size()
+
 	print("Souris :")
 	var cam: Camera3D = scene.get_node("CameraRig/Camera3D")
 	var n_edges := tr.network.edges.size()
@@ -283,6 +360,7 @@ func _run() -> void:
 	_check(world.load_world(), "chargement")
 	tr.from_dict(world.loaded_data.get("transport", {}))
 	_check(tr.network.edges.size() == edges_before - 1 and world.modifications.size() == mods, "réseau et terrassement restaurés")
+	_check(tr.stations.stations.size() == n_stations and tr.stations.lines.size() == n_lines - 1, "stations et lignes restaurées (%d stations, %d lignes)" % [tr.stations.stations.size(), tr.stations.lines.size()])
 
 	var place := ""
 	for i in args.size():
@@ -321,6 +399,19 @@ func _run() -> void:
 		]
 		for d in demo2:
 			print("  vitrine : ", tr._describe(d, true) if d.ok else d.reason)
+		# Arrêts et lignes de la vitrine.
+		var sv := tr.stations
+		var ta := sv.place("arret_tram", Vector3(60, 0, 195))
+		var tb := sv.place("arret_tram", Vector3(180, 0, 195))
+		var ba := sv.place("arret_bus", Vector3(50, 0, 150))
+		var bb := sv.place("arret_bus", Vector3(195, 0, 150))
+		print("  stations vitrine : ", [ta.get("reason", "ok"), tb.get("reason", "ok"), ba.get("reason", "ok"), bb.get("reason", "ok")])
+		sv.create_line([ta.id, tb.id], "tram_moderne", 1)
+		sv.create_line([ba.id, bb.id], "imperiale", 2)
+		tr.traffic.enabled = false
+		for i in 40:
+			tr.traffic.step(0.1)
+		tr.traffic.enabled = true
 	if shot != "":
 		for i in 60:
 			await process_frame

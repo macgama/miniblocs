@@ -17,7 +17,9 @@ signal chunk_rebuilt(k: Vector2i)
 
 enum Tool { INSPECT, FLATTEN, RAISE, LOWER }
 
-const SAVE_PATH := "user://terre_save.json"
+## Fichier de save_world() / load_world() (ancien format, gardé pour les tests).
+## Les parties du joueur passent par SaveGame (user://parties/).
+const SAVE_PATH := "user://test_terre_save.json"
 const WATER_LEVEL := -0.1
 
 @export var chunk_size: int = 64
@@ -178,6 +180,35 @@ const KIND_NAMES: Array[String] = ["Mer", "Lac / rivière", "Glacier", "Roche", 
 ## Probabilité d'un arbre / d'un buisson sur une case, par type.
 const TREE_BY_KIND: Array[float] = [0, 0, 0, 0, 0.10, 0.025, 0.004, 0, 0, 0.01, 0.08, 0, 0, 0, 0]
 const BUSH_BY_KIND: Array[float] = [0, 0, 0, 0, 0.03, 0.05, 0, 0, 0, 0, 0, 0.02, 0, 0, 0.01]
+
+
+## Hauteurs affichées (comme cell_height) de toutes les cases d'un rectangle,
+## rangées (x - rect.x) + (z - rect.y) * rect.size.x. Bien plus rapide case par case.
+func cell_heights(rect: Rect2i) -> PackedFloat32Array:
+	var pxs := PackedFloat64Array()
+	pxs.resize(rect.size.x)
+	for i in rect.size.x:
+		pxs[i] = _pixel_x(rect.position.x + i + 0.5)
+	var pys := PackedFloat64Array()
+	pys.resize(rect.size.y)
+	for j in rect.size.y:
+		pys[j] = _pixel_y(rect.position.y + j + 0.5)
+	var h := tiles.sample_grid(pxs, pys)
+	for n in h.size():
+		h[n] = _quantize(h[n])
+	if not modifications.is_empty():
+		var w := rect.size.x
+		if modifications.size() < h.size():
+			for c: Vector2i in modifications:
+				if rect.has_point(c):
+					h[(c.x - rect.position.x) + (c.y - rect.position.y) * w] = modifications[c]
+		else:
+			for j in rect.size.y:
+				for i in w:
+					var c := rect.position + Vector2i(i, j)
+					if modifications.has(c):
+						h[i + j * w] = modifications[c]
+	return h
 
 
 ## Biome d'une case à partir de son altitude, de sa pente et du code WorldCover
@@ -897,6 +928,19 @@ func _mark_dirty_around(c: Vector2i) -> void:
 
 
 # --- Sauvegarde --------------------------------------------------------------
+
+## Section « terrain » de la sauvegarde : lieu et cases modifiées, par blocs.
+func to_dict() -> Dictionary:
+	return {"version": 2, "lat": origin_lat, "lon": origin_lon, "modifs": SaveGame.encode_cells(modifications)}
+
+
+## Recharge le lieu et les cases modifiées (vide aussi les autres systèmes via origin_changed).
+func from_dict(data: Dictionary) -> void:
+	if int(data.get("version", 1)) < 2:
+		data = SaveGame.migrate_section("terrain", 1, data)
+	set_origin(float(data.get("lat", origin_lat)), float(data.get("lon", origin_lon)))
+	modifications = SaveGame.decode_cells(data.get("modifs", {}))
+
 
 ## Données lues par le dernier load_world() (pour les autres systèmes : transports…).
 var loaded_data: Dictionary = {}

@@ -23,6 +23,12 @@ const CAR_COLORS: Array[Color] = [Color("d64933"), Color("f2c14e"), Color("2e86a
 const CAT_WEIGHT := {"voiture": 10.0, "utilitaire": 2.0, "bus": 1.0, "deux_roues": 1.5, "attelage": 0.5}
 ## Part des piétons sur les chemins (le reste : vélos, trottinettes…).
 const WALKERS := 0.55
+## Arrêt en station des véhicules de ligne (s).
+const DWELL := 12.0
+const DWELL_AIR := 25.0
+
+## Émis quand la circulation est réactivée : les lignes remettent leurs véhicules.
+signal restarted
 
 var network: TransportNetwork
 var enabled := true
@@ -55,12 +61,148 @@ func set_enabled(on: bool) -> void:
 	enabled = on
 	if not on:
 		clear()
+	else:
+		restarted.emit()
 
 
-func clear() -> void:
+## Retire les véhicules ; ambient_only : garde ceux des lignes.
+func clear(ambient_only := false) -> void:
+	var keep: Array[Dictionary] = []
 	for v in vehicles:
-		_free_vehicle(v)
-	vehicles.clear()
+		if ambient_only and v.has("line"):
+			keep.append(v)
+		else:
+			_free_vehicle(v)
+	vehicles = keep
+
+
+## Retire les véhicules d'une ligne (-1 : de toutes les lignes).
+func remove_line_vehicles(line_id: int) -> void:
+	var keep: Array[Dictionary] = []
+	for v in vehicles:
+		if v.has("line") and (line_id < 0 or int(v.line) == line_id):
+			_free_vehicle(v)
+		else:
+			keep.append(v)
+	vehicles = keep
+
+
+## Véhicule de ligne sur le réseau : fait la navette entre les nœuds stops,
+## en partant du k-ième. delay : attente avant le premier départ (négatif = à quai).
+func add_line_vehicle(line_id: int, model: String, stops: Array[int], k: int, delay := 0.0) -> bool:
+	if stops.size() < 2 or not network.nodes.has(stops[k]):
+		return false
+	var mode := network.node_mode(stops[k])
+	var v := {"mode": mode, "node": stops[k], "route": [] as Array[int], "leg": 0, "s": 0.0,
+		"trail": PackedVector3Array(), "wagons": [], "speed": 0.0, "lane": 0.6, "lane_idx": 0, "factor": 1.0, "own_speed": 0.0,
+		"max_speed": INF, "model": model, "gaps": [], "line": line_id, "stops": stops, "stop_i": k, "step": 1,
+		"dwell": absf(delay) + 1.0}
+	if k == stops.size() - 1:
+		v.step = -1
+	if not _next_stop(v):
+		return false
+	_make_body(v)
+	vehicles.append(v)
+	_place(v)
+	return true
+
+
+## Aéronef de ligne : path_fn(line_id, de, vers) donne le trajet en 3D.
+func add_air_vehicle(line_id: int, model: String, n_stops: int, k: int, path_fn: Callable, delay := 0.0) -> bool:
+	if n_stops < 2:
+		return false
+	var v := {"mode": TransportTypes.Mode.AIR, "model": model, "line": line_id, "n_stops": n_stops, "stop_i": k,
+		"step": 1 if k < n_stops - 1 else -1, "dwell": absf(delay) + 1.0, "path_fn": path_fn, "s": 0.0, "wagons": [], "gaps": []}
+	if not _next_flight(v):
+		return false
+	var mi := MeshInstance3D.new()
+	mi.material_override = _material
+	mi.mesh = _model_mesh(model, line_id)
+	add_child(mi)
+	v.body = mi
+	v.max_speed = minf(float(VehicleCatalog.get_type(model).get("kmh", 300)) / 3.6, 110.0)
+	vehicles.append(v)
+	_place_air(v)
+	return true
+
+
+func _next_flight(v: Dictionary) -> bool:
+	var n: int = v.n_stops
+	var ni: int = int(v.stop_i) + int(v.step)
+	if ni < 0 or ni >= n:
+		v.step = -int(v.step)
+		ni = int(v.stop_i) + int(v.step)
+	var path: PackedVector3Array = (v.path_fn as Callable).call(int(v.line), int(v.stop_i), ni)
+	if path.size() < 2:
+		return false
+	var d := PackedFloat32Array([0.0])
+	for i in range(1, path.size()):
+		d.append(d[i - 1] + path[i].distance_to(path[i - 1]))
+	v.path = path
+	v.pd = d
+	v.target_i = ni
+	v.s = 0.0
+	return true
+
+
+func _advance_air(v: Dictionary, delta: float) -> bool:
+	if float(v.dwell) > 0.0:
+		v.dwell = float(v.dwell) - delta
+		_place_air(v)
+		return true
+	var path: PackedVector3Array = v.path
+	var d: PackedFloat32Array = v.pd
+	var i := clampi(d.bsearch(float(v.s)), 1, path.size() - 1)
+	var ground := minf(path[0].y, path[path.size() - 1].y)
+	var alt := path[i].y - ground
+	var vmax: float = v.max_speed
+	var spd := lerpf(minf(25.0, vmax), vmax, clampf(alt / 60.0, 0.0, 1.0))
+	v.s = float(v.s) + spd * delta
+	if float(v.s) >= d[d.size() - 1]:
+		v.stop_i = v.target_i
+		v.dwell = DWELL_AIR
+		if not _next_flight(v):
+			return false
+	_place_air(v)
+	return true
+
+
+func _place_air(v: Dictionary) -> void:
+	var path: PackedVector3Array = v.path
+	var d: PackedFloat32Array = v.pd
+	var s := clampf(float(v.s), 0.0, d[d.size() - 1])
+	var i := clampi(d.bsearch(s), 1, path.size() - 1)
+	var seg := maxf(d[i] - d[i - 1], 1e-4)
+	var p := path[i - 1].lerp(path[i], clampf((s - d[i - 1]) / seg, 0.0, 1.0))
+	var t := path[i] - path[i - 1]
+	var flat := Vector3(t.x, 0, t.z)
+	var body: Node3D = v.body
+	body.position = p
+	if flat.length_squared() > 1e-4:
+		# Pas de piqué pour un trajet vertical : l'appareil garde son cap.
+		var look := t if absf(t.y) < flat.length() * 2.0 else flat
+		body.basis = Basis.looking_at(look.normalized(), Vector3.UP)
+
+
+func _next_stop(v: Dictionary) -> bool:
+	var stops: Array[int] = v.stops
+	var n := stops.size()
+	for _try in n + 1:
+		var ni: int = int(v.stop_i) + int(v.step)
+		if ni < 0 or ni >= n:
+			v.step = -int(v.step)
+			ni = int(v.stop_i) + int(v.step)
+		v.stop_i = ni
+		var target: int = stops[ni]
+		if target == int(v.node):
+			continue
+		var r := network.find_route(v.node, target)
+		if not r.is_empty():
+			v.route = r
+			v.leg = 0
+			v.s = 0.0
+			return true
+	return false
 
 
 ## Change l'époque et la région des véhicules ; la circulation est renouvelée.
@@ -68,7 +210,7 @@ func set_filters(era: String, region: String) -> void:
 	era_filter = era
 	region_filter = region
 	_pool_cache.clear()
-	clear()
+	clear(true)
 
 
 ## Modèles possibles sur une classe de voie, avec le filtre courant (ou sans
@@ -113,10 +255,11 @@ func pick_model(cls: String) -> String:
 	return in_cat[rng.randi() % in_cat.size()]
 
 
+## Véhicules d'ambiance d'un mode (sans ceux des lignes).
 func count_mode(mode: int) -> int:
 	var c := 0
 	for v in vehicles:
-		if int(v.mode) == mode:
+		if int(v.mode) == mode and not v.has("line"):
 			c += 1
 	return c
 
@@ -137,7 +280,7 @@ func _process(delta: float) -> void:
 				spawn(mode)
 			elif have > want:
 				for i in vehicles.size():
-					if int(vehicles[i].mode) == mode:
+					if int(vehicles[i].mode) == mode and not vehicles[i].has("line"):
 						_free_vehicle(vehicles[i])
 						vehicles.remove_at(i)
 						break
@@ -179,6 +322,8 @@ func spawn(mode: int) -> bool:
 
 
 func _new_route(v: Dictionary) -> bool:
+	if v.has("line"):
+		return _next_stop(v)
 	var start: int = v.node
 	if not network.nodes.has(start):
 		return false
@@ -198,6 +343,12 @@ func _new_route(v: Dictionary) -> bool:
 
 ## Avance un véhicule ; renvoie faux s'il doit disparaître.
 func _advance(v: Dictionary, delta: float) -> bool:
+	if int(v.mode) == TransportTypes.Mode.AIR:
+		return _advance_air(v, delta)
+	if float(v.get("dwell", 0.0)) > 0.0:
+		v.dwell = float(v.dwell) - delta
+		_place(v)
+		return true
 	var route: Array[int] = v.route
 	if v.leg >= route.size():
 		return false
@@ -214,6 +365,13 @@ func _advance(v: Dictionary, delta: float) -> bool:
 		v.node = network.other_end(eid, v.node)
 		v.leg = int(v.leg) + 1
 		if v.leg >= route.size():
+			if v.has("line"):
+				# Arrivée en station : arrêt, puis départ vers la suivante.
+				if not _next_stop(v):
+					return false
+				v.dwell = DWELL
+				_place(v)
+				return true
 			if not _new_route(v):
 				return false
 			route = v.route
@@ -281,7 +439,11 @@ func _make_body(v: Dictionary) -> void:
 	var first_edge: Dictionary = network.edges[(v.route as Array[int])[0]]
 	var cls: String = first_edge.t
 	var model := ""
-	if mode == TransportTypes.Mode.PATH and (cls == "trottoir" or rng.randf() < WALKERS):
+	if v.has("line"):
+		model = v.model
+		v.factor = 1.0
+		v.lane_idx = 0
+	elif mode == TransportTypes.Mode.PATH and (cls == "trottoir" or rng.randf() < WALKERS):
 		model = ""
 	else:
 		model = pick_model(cls)

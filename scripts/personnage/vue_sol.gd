@@ -48,6 +48,7 @@ var _ui: CanvasLayer
 var _boutons: Array[Button] = []
 var _aide: Label
 var _viseur: Control
+var _panneau_visible := true
 
 
 func _ready() -> void:
@@ -142,6 +143,11 @@ func _descendre() -> void:
 	personnage.en_attente = not collisions.pret_a(personnage.global_position)
 	rig.set_process(false)
 	rig.set_process_unhandled_input(false)
+	# Au sol, le panneau de construction est rangé ; il revient en vue de dessus.
+	var panneau := _panneau_construction()
+	if panneau:
+		_panneau_visible = panneau.visible
+		panneau.visible = false
 	camera.make_current()
 	world.set_view(camera, personnage)
 	world.view_radius_override = rayon_affichage
@@ -158,6 +164,9 @@ func _remonter() -> void:
 	rig.rotation.y = _cap
 	rig.set_process(true)
 	rig.set_process_unhandled_input(true)
+	var panneau := _panneau_construction()
+	if panneau:
+		panneau.visible = _panneau_visible
 	var cam_dessus := rig.get_node_or_null("Camera3D") as Camera3D
 	if cam_dessus:
 		cam_dessus.make_current()
@@ -167,6 +176,10 @@ func _remonter() -> void:
 		_env.fog_density = _brouillard_dessus
 	_set_actif(personnage, false)
 	collisions.set_physics_process(false)
+
+
+func _panneau_construction() -> CanvasLayer:
+	return get_parent().get_node_or_null("PanneauConstruction") as CanvasLayer
 
 
 func _set_actif(n: Node3D, on: bool) -> void:
@@ -313,9 +326,10 @@ func _construire_ui() -> void:
 	_ui.layer = 2
 	add_child(_ui)
 	var panneau := PanelContainer.new()
-	panneau.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	panneau.position = Vector2(-12, 12)
-	panneau.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	# En haut au centre : la gauche et la droite sont prises par les autres panneaux.
+	panneau.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	panneau.position = Vector2(0, 12)
+	panneau.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	_ui.add_child(panneau)
 	var boite := VBoxContainer.new()
 	panneau.add_child(boite)
@@ -339,7 +353,7 @@ func _construire_ui() -> void:
 	_aide = Label.new()
 	_aide.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	_aide.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	_aide.position.y = 230
+	_aide.position.y = 232
 	_aide.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_aide.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
 	_aide.add_theme_constant_override("outline_size", 5)

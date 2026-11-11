@@ -350,7 +350,7 @@ func _update_preview() -> void:
 	_preview.material_override = _mat(TOOL_COLORS[current_tool], true)
 
 
-func _make_zone_plate(type: Cell) -> MeshInstance3D:
+func _make_zone_plate(type: Cell) -> Node3D:
 	var mi := MeshInstance3D.new()
 	var box := BoxMesh.new()
 	box.size = Vector3(0.94, 0.04, 0.94)

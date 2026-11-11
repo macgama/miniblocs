@@ -12,6 +12,8 @@ signal globe_requested
 signal traffic_toggled(on: bool)
 ## Époque et région des véhicules de la circulation ("" = toutes).
 signal traffic_filter_changed(era: String, region: String)
+## Bouton « Lignes » : panneau des transports publics.
+signal transit_requested
 signal spec_edited(type_id: String, spec: Dictionary)
 signal curve_toggled(on: bool)
 
@@ -133,7 +135,7 @@ func _ready() -> void:
 	var help := Label.new()
 	help.text = "ZQSD / flèches : déplacer   ·   Molette : zoom   ·   A / E ou clic molette : tourner   ·   Clic droit glissé : déplacer la carte\n" \
 		+ "Clic gauche glissé : terrasser (2-4)   ·   5-8 : poser une voie (classe et largeur dans le panneau), clic par point, C : courbe, Échap / clic droit pour finir, Maj : angles de 15°   ·   9 : démolir\n" \
-		+ "B : panneau Construire (clic : poser, R : tourner)   ·   1-9 : outils   ·   F5 : sauvegarder   ·   F9 : charger   ·   Échap : annuler"
+		+ "B : panneau Construire (clic : poser, R : tourner)   ·   T : stations et lignes   ·   1-9 : outils   ·   F5 : sauvegarder   ·   F9 : charger   ·   Échap : annuler"
 	help.add_theme_color_override("font_color", Color(1, 1, 1, 0.9))
 	help.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
 	help.add_theme_constant_override("outline_size", 4)
@@ -177,6 +179,11 @@ func _ready() -> void:
 	traffic.toggled.connect(func(on: bool) -> void: traffic_toggled.emit(on))
 	bar.add_child(traffic)
 	bar.add_child(_build_vehicle_menu())
+	var transit := Button.new()
+	transit.text = "Lignes (T)"
+	transit.tooltip_text = "Stations, gares, ports, aéroports et lignes de transport en commun"
+	transit.pressed.connect(func() -> void: transit_requested.emit())
+	bar.add_child(transit)
 	for spec in [["Sauver", save_requested], ["Charger", load_requested], ["Globe", globe_requested], ["Ville prototype", city_requested]]:
 		var b := Button.new()
 		b.text = spec[0]

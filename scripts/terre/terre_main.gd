@@ -16,6 +16,7 @@ const TRANSPORT_TOOLS := ["departementale", "train", "voie_verte", "canal"]
 var _tool_class := {}
 
 var _status_timer := 0.0
+var transit_panel: StationPanel
 var _hover := Vector2i.ZERO
 var _hover_valid := false
 
@@ -34,6 +35,7 @@ func _ready() -> void:
 		GameStart.place_name = ""
 		world.set_origin(lat, lon))
 	hud.tool_selected.connect(_on_tool_selected)
+	_setup_transit()
 	hud.traffic_toggled.connect(func(on: bool) -> void: transport.traffic.set_enabled(on))
 	hud.traffic_filter_changed.connect(func(era: String, region: String) -> void:
 		transport.traffic.set_filters(era, region)
@@ -100,7 +102,7 @@ func _ready() -> void:
 			hud.show_message("Partie chargée : %s." % _game_title())
 		else:
 			hud.show_message("Chargement impossible : " + last_error))
-	for sig in [world.terrain_edited, transport.network_changed, buildings.changed, zones.changed, blocks.changed]:
+	for sig in [world.terrain_edited, transport.network_changed, buildings.changed, zones.changed, blocks.changed, transport.stations.lines_changed]:
 		(sig as Signal).connect(func(_a = null) -> void: _unsaved = true)
 	hud.city_requested.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/main.tscn"))
 	hud.globe_requested.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/globe.tscn"))
@@ -206,6 +208,30 @@ func load_game(slot := "") -> bool:
 	return true
 
 
+## Panneau des transports publics : stations et lignes.
+func _setup_transit() -> void:
+	transit_panel = StationPanel.new()
+	transit_panel.name = "PanneauLignes"
+	add_child(transit_panel)
+	var st := transport.stations
+	transit_panel.setup(st)
+	st.info_changed.connect(func(t: String) -> void: hud.set_tool_info(t))
+	st.message.connect(func(t: String) -> void: hud.show_message(t))
+	hud.transit_requested.connect(func() -> void: transit_panel.toggle())
+	transit_panel.station_chosen.connect(func(id: String) -> void:
+		_select_building_tool(true)
+		build_panel.clear_selection()
+		st.set_place(id))
+	transit_panel.demolish_chosen.connect(func() -> void:
+		_select_building_tool(true)
+		build_panel.clear_selection()
+		st.set_demolish())
+	transit_panel.line_tool_chosen.connect(func() -> void:
+		_select_building_tool(true)
+		build_panel.clear_selection()
+		st.set_line_tool())
+
+
 func _network_length() -> float:
 	var t := 0.0
 	for id in transport.network.edges:
@@ -250,8 +276,11 @@ func _autosave(delta: float) -> void:
 
 
 ## Un outil de construction prend la main : on range ceux du terrain et des voies.
-func _select_building_tool() -> void:
+func _select_building_tool(from_transit := false) -> void:
 	world.set_tool(TerrainWorld.Tool.INSPECT)
+	transport.stations.set_inactive()
+	if transit_panel and not from_transit:
+		transit_panel.clear_selection()
 	transport.set_inactive()
 	hud.show_spec("", {}, false)
 	buildings.set_inactive()
@@ -261,6 +290,8 @@ func _select_building_tool() -> void:
 
 
 func _on_tool_selected(t: int) -> void:
+	transport.stations.set_inactive()
+	transit_panel.clear_selection()
 	buildings.set_inactive()
 	zones.set_inactive()
 	blocks.set_inactive()

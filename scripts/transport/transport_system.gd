@@ -28,6 +28,7 @@ const CLEARANCE := 4.5
 var network := TransportNetwork.new()
 var view: TransportView
 var traffic: Traffic
+var stations: StationSystem
 var world: TerrainWorld
 var camera: Camera3D
 
@@ -79,8 +80,12 @@ func _ready() -> void:
 	add_child(traffic)
 	traffic.setup(network)
 	network.changed.connect(_on_network_changed)
+	stations = StationSystem.new()
+	stations.name = "Stations"
+	add_child(stations)
+	stations.setup(self)
 	if world != null:
-		world.tree_blocker = func(c: Vector2i) -> bool: return _occupied.has(c)
+		world.tree_blocker = func(c: Vector2i) -> bool: return _occupied.has(c) or stations.occupies(c)
 
 	_preview = MeshInstance3D.new()
 	_preview.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -115,6 +120,7 @@ static func _tint(c: Color) -> StandardMaterial3D:
 
 
 func clear() -> void:
+	stations.clear()
 	traffic.clear()
 	network.clear()
 	cancel()
@@ -167,7 +173,7 @@ func is_blocked(id: String, pts: PackedVector3Array, st: PackedByteArray) -> boo
 
 
 func is_cell_occupied(c: Vector2i) -> bool:
-	return _occupied.has(c)
+	return _occupied.has(c) or (stations != null and stations.occupies(c))
 
 
 # --- Outils et réglages ------------------------------------------------------------------
@@ -783,10 +789,14 @@ static func _km(m: float) -> String:
 
 
 func to_dict() -> Dictionary:
-	return network.to_dict()
+	var d := network.to_dict()
+	d["stations"] = stations.to_dict()
+	return d
 
 
 func from_dict(data: Dictionary) -> void:
+	stations.clear()
 	traffic.clear()
 	cancel()
 	network.from_dict(data)
+	stations.from_dict(data.get("stations", {}))

@@ -10,6 +10,7 @@ var clock: DayNight
 var _time_label: Label
 var _info_label: Label
 var _slider: HSlider
+var _weather_pick: OptionButton
 var _speed_buttons: Array[Button] = []
 var _updating := false
 
@@ -79,6 +80,15 @@ func _ready() -> void:
 		b.pressed.connect(func() -> void: clock.set_speed(idx))
 		speeds.add_child(b)
 		_speed_buttons.append(b)
+	_weather_pick = OptionButton.new()
+	_weather_pick.focus_mode = Control.FOCUS_NONE
+	_weather_pick.add_theme_font_size_override("font_size", 12)
+	for n in Meteo.MODE_NAMES:
+		_weather_pick.add_item("Météo : " + n)
+	_weather_pick.tooltip_text = "Automatique : le temps suit le climat réel du lieu et la saison."
+	_weather_pick.item_selected.connect(func(i: int) -> void:
+		clock.weather.mode = i as Meteo.Mode)
+	speeds.add_child(_weather_pick)
 	clock.time_changed.connect(refresh)
 	refresh()
 
@@ -86,6 +96,15 @@ func _ready() -> void:
 static func format_hour(h: float) -> String:
 	var m := int(roundf(h * 60.0)) % (24 * 60)
 	return "%02d:%02d" % [m / 60, m % 60]
+
+
+## « UTC+1 », « UTC−3:30 », « UTC+5:45 »…
+static func format_offset(off: float) -> String:
+	var m := roundi(absf(off) * 60.0)
+	var s := "UTC%s%d" % ["+" if off >= 0.0 else "−", m / 60]
+	if m % 60 != 0:
+		s += ":%02d" % (m % 60)
+	return s
 
 
 static func moon_phase_name(age: float) -> String:
@@ -110,9 +129,13 @@ func refresh() -> void:
 	else:
 		sun_txt = "lever %s · coucher %s" % [format_hour(rs.x) if rs.x >= 0.0 else "—", format_hour(rs.y) if rs.y >= 0.0 else "—"]
 	var off := clock.utc_offset()
-	_info_label.text = "%s · soleil %d° · %s · UTC%s%d (approx.)" % [
-		sun_txt, roundi(clock.sun_horiz.x), moon_phase_name(Astro.moon_age(clock.unix_time)),
-		"+" if off >= 0.0 else "−", absi(int(off))]
+	_info_label.text = "%s · soleil %d° · %s · %s" % [
+		sun_txt, roundi(clock.sun_horiz.x), moon_phase_name(Astro.moon_age(clock.unix_time)), format_offset(off)]
+	if clock.weather != null:
+		var w := clock.weather
+		_info_label.text += "\n%s · %d °C" % [w.describe(), roundi(w.temperature)]
+		if _weather_pick.selected != int(w.mode):
+			_weather_pick.select(int(w.mode))
 	_updating = true
 	_slider.value = h
 	_updating = false

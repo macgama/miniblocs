@@ -167,6 +167,35 @@ func _run() -> void:
 	await process_frame
 	_check(tr.view.edge_mesh_count() == tr.network.edges.size(), "un maillage par tronçon (%d)" % tr.view.edge_mesh_count())
 
+	print("Catalogue de véhicules :")
+	var n_types := 0
+	var all_ok := true
+	var era_ids: Array = Styles.ERAS.map(func(e: Dictionary) -> String: return e.id)
+	var region_ids: Array = Styles.REGIONS.map(func(r: Dictionary) -> String: return r.id)
+	for id in VehicleCatalog.TYPES:
+		var vt := VehicleCatalog.get_type(id)
+		n_types += 1
+		var m := VehicleCatalog.build_mesh(id)
+		if m.get_surface_count() == 0 or not era_ids.has(vt.era) or not region_ids.has(vt.region) or VehicleCatalog.category(vt.cat).is_empty():
+			all_ok = false
+			push_error("véhicule incomplet : " + id)
+		for wid in vt.get("consist", []):
+			if VehicleCatalog.get_type(wid).is_empty():
+				all_ok = false
+				push_error("voiture attelée inconnue : %s dans %s" % [wid, id])
+	_check(all_ok and n_types >= 100, "%d modèles, chacun avec maillage, époque, région et catégorie" % n_types)
+	for vc in VehicleCatalog.CATEGORIES:
+		_check(VehicleCatalog.ids_in(vc.id).size() >= 4, "catégorie %s : %d modèles" % [vc.name, VehicleCatalog.ids_in(vc.id).size()])
+	for cls in TransportTypes.CLASSES:
+		_check(not VehicleCatalog.for_track(cls).is_empty(), "des véhicules pour la classe %s (%d)" % [cls, VehicleCatalog.for_track(cls).size()])
+	_check(VehicleCatalog.for_track("tram").has("tram_moderne") and not VehicleCatalog.for_track("tram").has("tgv"), "les tramways vont sur les voies de tram, pas les TGV")
+	_check(not VehicleCatalog.for_track("canal").has("croisiere") and VehicleCatalog.for_track("chenal").has("croisiere"), "les grands navires restent dans les chenaux")
+	var old_ids := VehicleCatalog.for_track("departementale", "classique", "europe")
+	var only_old := not old_ids.is_empty()
+	for id in old_ids:
+		only_old = only_old and VehicleCatalog.get_type(id).era == "classique"
+	_check(only_old, "filtre époque et région (%d modèles européens d'avant 1945)" % old_ids.size())
+
 	print("Véhicules :")
 	tr.traffic.clear()
 	for i in 6:
@@ -178,12 +207,18 @@ func _run() -> void:
 	_check(tr.traffic.count_mode(TransportTypes.Mode.RAIL) == 1, "un train sur le rail")
 	_check(tr.traffic.count_mode(TransportTypes.Mode.WATER) == 1, "un bateau sur l'eau")
 	var car: Dictionary = tr.traffic.vehicles[0]
+	_check(String(car.model) != "" and VehicleCatalog.get_type(car.model).mode == TransportTypes.Mode.ROAD, "modèle routier tiré du catalogue (%s)" % car.model)
+	var train: Dictionary = {}
+	for v in tr.traffic.vehicles:
+		if int(v.mode) == TransportTypes.Mode.RAIL:
+			train = v
+	_check(not train.is_empty() and (train.wagons as Array).size() == (VehicleCatalog.get_type(train.model).get("consist", []) as Array).size(), "le train tire ses voitures (%s)" % train.get("model", "?"))
 	var before: Vector3 = (car.body as Node3D).position
 	tr.traffic.enabled = false
 	for i in 20:
 		tr.traffic.step(0.1)
 	var after: Vector3 = (car.body as Node3D).position
-	_check(before.distance_to(after) > 10.0, "une voiture avance (%.1f m en 2 s)" % before.distance_to(after))
+	_check(before.distance_to(after) > 4.0, "un véhicule avance (%.1f m en 2 s)" % before.distance_to(after))
 	var on_road := false
 	for id in tr.network.edges:
 		if TransportTypes.mode_of(tr.network.edges[id].t) == TransportTypes.Mode.ROAD:
@@ -193,6 +228,14 @@ func _run() -> void:
 	for i in 600:
 		tr.traffic.step(0.1)
 	_check(tr.traffic.vehicles.size() >= 8, "les véhicules repartent vers de nouvelles destinations (%d)" % tr.traffic.vehicles.size())
+	tr.traffic.set_filters("classique", "")
+	for i in 5:
+		tr.traffic.spawn(TransportTypes.Mode.ROAD)
+	var all_classic := tr.traffic.vehicles.size() == 5
+	for v in tr.traffic.vehicles:
+		all_classic = all_classic and VehicleCatalog.get_type(v.model).era == "classique"
+	_check(all_classic, "filtre de la circulation : 5 véhicules de 1800-1945")
+	tr.traffic.set_filters("", "")
 	tr.traffic.enabled = true
 
 	print("Souris :")

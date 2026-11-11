@@ -124,15 +124,49 @@ func _run() -> void:
 	_check(not bs.buildings.has(id3) and bs.building_at(Vector2i(-60, 40)) == -1, "démolition")
 	_check(bs.money == before + roundi(paid * BuildingSystem.REFUND), "moitié du prix rendue")
 
+	print("Zonage :")
+	var zs: ZoneSystem = scene.get_node("Zones")
+	zs.growth = false
+	var m0 := bs.money
+	var zid := zs.add_zone("R", Rect2i(-50, -40, 45, 80))
+	_check(zid > 0 and bs.money == m0 - 45 * 80 * ZoneSystem.PRICE_M2, "zone résidentielle peinte et payée")
+	_check(float(zs.demand().R) > 0.0, "demande résidentielle au départ")
+	var n0 := bs.buildings.size()
+	for i in 40:
+		zs.grow_step()
+	var grown := 0
+	var inside := true
+	var served := true
+	for bb in bs.buildings.values():
+		if int(bb.get("zone", 0)) == 0:
+			continue
+		grown += 1
+		inside = inside and Rect2i(-50, -40, 45, 80).encloses(Rect2i(Vector2i(bb.x, bb.z), BuildingCatalog.footprint(bb.t, bb.r)))
+		served = served and not bs.find_access(bb.t, Rect2i(Vector2i(bb.x, bb.z), BuildingCatalog.footprint(bb.t, bb.r)), bb.r).is_empty()
+		inside = inside and BuildingCatalog.get_type(bb.t).cat == "logement"
+	_check(grown >= 4 and bs.buildings.size() == n0 + grown, "%d logements ont poussé dans la zone" % grown)
+	_check(inside, "tous dans la zone, tous des logements")
+	_check(served, "tous desservis par la route")
+	_check(bs.money == m0 - 45 * 80 * ZoneSystem.PRICE_M2, "les bâtiments de zone ne coûtent rien au joueur")
+	_check(zs.remove_area(Rect2i(-50, -10, 45, 20)) == 1 and zs.zones.size() == 2, "retirer le milieu coupe la zone en deux")
+	_check(zs.zone_at(Vector2i(-20, 0)) == -1 and zs.zone_at(Vector2i(-20, -30)) > 0, "le milieu n'est plus zoné")
+	_check(zs.add_zone("I", Rect2i(0, 0, 400, 10)) == -1, "zone trop grande refusée")
+	await process_frame
+	_check(zs._views.size() == 2, "calques de zone dessinés")
+	var nb := bs.buildings.size()
+
 	print("Sauvegarde :")
-	_check(world.save_world({"transport": transport.to_dict(), "batiments": bs.to_dict()}), "sauvegarde")
+	_check(world.save_world({"transport": transport.to_dict(), "batiments": bs.to_dict(), "zones": zs.to_dict()}), "sauvegarde")
 	world.set_origin(45.8326, 6.8652)
 	_check(bs.buildings.is_empty() and bs.occupancy.is_empty(), "nouvelle région : aucun bâtiment")
+	_check(zs.zones.is_empty(), "nouvelle région : aucune zone")
 	_check(world.load_world(), "chargement")
 	transport.from_dict(world.loaded_data.get("transport", {}))
 	bs.from_dict(world.loaded_data.get("batiments", {}))
-	_check(bs.buildings.size() == 2 and bs.building_at(Vector2i(12, 0)) == id, "bâtiments restaurés")
-	_check(bs.money == before + roundi(paid * BuildingSystem.REFUND), "caisse restaurée")
+	zs.from_dict(world.loaded_data.get("zones", {}))
+	_check(zs.zones.size() == 2, "zones restaurées")
+	_check(bs.buildings.size() == nb and bs.building_at(Vector2i(12, 0)) == id, "bâtiments restaurés")
+	_check(bs.money == before + roundi(paid * BuildingSystem.REFUND) - 45 * 80 * ZoneSystem.PRICE_M2, "caisse restaurée")
 	bs.unlimited_money = true
 	_check(bs.place("maison", Vector2i(12, 20), 3) > id3, "les nouveaux identifiants continuent après les anciens")
 

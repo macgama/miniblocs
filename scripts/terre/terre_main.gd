@@ -7,6 +7,7 @@ extends Node3D
 @onready var transport: TransportSystem = $Transport
 @onready var buildings: BuildingSystem = $Batiments
 @onready var build_panel: BuildingPanel = $PanneauConstruction
+@onready var zones: ZoneSystem = $Zones
 
 const TRANSPORT_TOOLS := ["route", "rail", "chemin", "voie_eau"]
 
@@ -38,18 +39,29 @@ func _ready() -> void:
 	build_panel.demolish_chosen.connect(func() -> void:
 		_select_building_tool()
 		buildings.set_demolish())
+	zones.info_changed.connect(func(t: String) -> void: hud.set_tool_info(t))
+	zones.message.connect(func(t: String) -> void: hud.show_message(t))
+	build_panel.zone_chosen.connect(func(k: String) -> void:
+		_select_building_tool()
+		zones.set_paint(k))
+	build_panel.zone_remove_chosen.connect(func() -> void:
+		_select_building_tool()
+		zones.set_remove())
+	build_panel.growth_toggled.connect(func(on: bool) -> void: zones.growth = on)
 	build_panel.rules_changed.connect(func(access: bool, unlimited: bool) -> void:
 		buildings.require_access = access
 		buildings.unlimited_money = unlimited
 		buildings._refresh())
 	hud.save_requested.connect(func() -> void:
-		var ok := world.save_world({"transport": transport.to_dict(), "batiments": buildings.to_dict()})
+		var ok := world.save_world({"transport": transport.to_dict(), "batiments": buildings.to_dict(), "zones": zones.to_dict()})
 		hud.show_message("Région sauvegardée." if ok else "Échec de la sauvegarde."))
 	hud.load_requested.connect(func() -> void:
 		if world.load_world():
 			transport.from_dict(world.loaded_data.get("transport", {}))
 			buildings.from_dict(world.loaded_data.get("batiments", {}))
+			zones.from_dict(world.loaded_data.get("zones", {}))
 			build_panel.set_rules(buildings.require_access, buildings.unlimited_money)
+			build_panel.set_growth(zones.growth)
 			hud.show_message("Région chargée.")
 		else:
 			hud.show_message("Aucune sauvegarde trouvée."))
@@ -64,11 +76,14 @@ func _ready() -> void:
 func _select_building_tool() -> void:
 	world.set_tool(TerrainWorld.Tool.INSPECT)
 	transport.set_inactive()
+	buildings.set_inactive()
+	zones.set_inactive()
 	hud.select_tool_silently(0)
 
 
 func _on_tool_selected(t: int) -> void:
 	buildings.set_inactive()
+	zones.set_inactive()
 	build_panel.clear_selection()
 	var k := t - TerreHud.FIRST_TRANSPORT_TOOL
 	if k < 0:
@@ -86,6 +101,7 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 	# Nouvelle région : réseau vierge.
 	transport.clear()
 	buildings.clear()
+	zones.clear()
 	GameStart.lat = lat
 	GameStart.lon = lon
 	hud.set_place(lat, lon)
@@ -122,6 +138,7 @@ func _process(delta: float) -> void:
 		hud.set_network_info(transport.summary())
 		build_panel.set_money("Caisse : illimitée" if buildings.unlimited_money else "Caisse : " + BuildingSystem.format_money(buildings.money))
 		build_panel.set_summary(buildings.summary())
+		build_panel.set_zone_info(zones.summary())
 
 
 func _refresh_cell_info() -> void:

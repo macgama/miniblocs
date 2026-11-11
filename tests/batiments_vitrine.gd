@@ -1,7 +1,8 @@
 extends SceneTree
 ## Vitrine : pose tout le catalogue le long de deux routes et prend une capture.
 ## Usage (avec affichage) :
-##   godot --path . --script res://tests/batiments_vitrine.gd -- --screenshot vitrine.png [--distance 220] [--yaw 30]
+##   godot --path . --script res://tests/batiments_vitrine.gd -- --screenshot vitrine.png [--distance 220] [--yaw 30] [--zones]
+## --zones : un quartier né du zonage (routes en grille, zones R/C/I) au lieu du catalogue.
 
 
 func _initialize() -> void:
@@ -26,6 +27,7 @@ func _run() -> void:
 	var dist := 220.0
 	var yaw := 30.0
 	var focus := Vector2(0, 0)
+	var zoning := args.has("--zones")
 	for i in args.size():
 		if args[i] == "--screenshot" and i + 1 < args.size():
 			shot = args[i + 1]
@@ -48,6 +50,21 @@ func _run() -> void:
 	for i in 60:
 		await process_frame
 	bs.unlimited_money = true
+
+	if zoning:
+		await _zoning(scene, world, transport, bs)
+		var rig0 = scene.get_node("CameraRig")
+		rig0.position = Vector3(focus.x, 42.0, focus.y)
+		rig0._distance = dist
+		rig0._target_distance = dist
+		rig0.rotation_degrees.y = yaw
+		scene.get_node("PanneauConstruction").show_category("zones")
+		for i in 90:
+			await process_frame
+		root.get_viewport().get_texture().get_image().save_png(shot)
+		print("Capture : ", shot)
+		quit(0)
+		return
 
 	# Deux routes Est-Ouest ; les bâtiments s'alignent des deux côtés.
 	for z in [0.0, 150.0]:
@@ -92,3 +109,27 @@ func _run() -> void:
 	root.get_viewport().get_texture().get_image().save_png(shot)
 	print("Capture : ", shot)
 	quit(0)
+
+
+## Quartier en grille : 3 rues Nord-Sud, 3 rues Est-Ouest, zones R, C et I.
+func _zoning(scene: Node, world: TerrainWorld, transport: TransportSystem, bs: BuildingSystem) -> void:
+	var zs: ZoneSystem = scene.get_node("Zones")
+	zs.growth = false
+	for x in [-120.0, 0.0, 120.0]:
+		var y := world.cell_height(Vector2i(int(x), 0))
+		transport.build_segment("route", Vector3(x, y, -180), Vector3(x, y, 180))
+	for z in [-120.0, 0.0, 120.0]:
+		var y := world.cell_height(Vector2i(0, int(z)))
+		transport.build_segment("route", Vector3(-180, y, z), Vector3(180, y, z))
+	zs.add_zone("R", Rect2i(-180, -180, 175, 175))
+	zs.add_zone("R", Rect2i(5, -180, 175, 175))
+	zs.add_zone("C", Rect2i(-180, 5, 175, 110))
+	zs.add_zone("I", Rect2i(5, 5, 175, 175))
+	# Quelques services posés à la main.
+	bs.place("ecole", Vector2i(-60, 150), bs.best_rotation("ecole", Vector2i(-60, 150)))
+	bs.place("parc", Vector2i(-60, -60), bs.best_rotation("parc", Vector2i(-60, -60)))
+	for i in 600:
+		zs.grow_step()
+	await process_frame
+	print(bs.summary())
+	print(zs.summary())

@@ -6,6 +6,9 @@ extends CanvasLayer
 signal building_chosen(id: String)
 signal demolish_chosen
 signal rules_changed(require_access: bool, unlimited_money: bool)
+signal zone_chosen(kind: String)
+signal zone_remove_chosen
+signal growth_toggled(on: bool)
 
 var _panel: PanelContainer
 var _list: VBoxContainer
@@ -15,9 +18,11 @@ var _access_box: CheckBox
 var _money_box: CheckBox
 var _cat_buttons: Dictionary = {}
 var _item_group := ButtonGroup.new()
-var _item_buttons: Array[Button] = []
+var _item_buttons: Array[Control] = []
 var _demolish_button: Button
 var _category := "logement"
+var _zone_label: Label
+var _growth := true
 
 
 func _ready() -> void:
@@ -43,7 +48,9 @@ func _ready() -> void:
 	var cats := HFlowContainer.new()
 	box.add_child(cats)
 	var cat_group := ButtonGroup.new()
-	for c in BuildingCatalog.CATEGORIES:
+	var tabs: Array = BuildingCatalog.CATEGORIES.duplicate()
+	tabs.append({"id": "zones", "name": "Zonage", "color": Color("ffd166")})
+	for c in tabs:
 		var b := Button.new()
 		b.text = c.name
 		b.toggle_mode = true
@@ -106,6 +113,9 @@ func show_category(cat: String) -> void:
 	for b in _item_buttons:
 		b.queue_free()
 	_item_buttons.clear()
+	if cat == "zones":
+		_show_zones()
+		return
 	for id in BuildingCatalog.ids_in(cat):
 		var t := BuildingCatalog.get_type(id)
 		var b := Button.new()
@@ -118,6 +128,51 @@ func show_category(cat: String) -> void:
 		b.pressed.connect(func() -> void: building_chosen.emit(type_id))
 		_list.add_child(b)
 		_item_buttons.append(b)
+
+
+func _show_zones() -> void:
+	for k in ZoneSystem.KINDS:
+		var b := Button.new()
+		b.text = "Zone %s  ·  %d €/m²" % [String(ZoneSystem.KINDS[k].name).to_lower(), ZoneSystem.PRICE_M2]
+		b.tooltip_text = "Clic gauche glissé pour peindre. Des bâtiments poussent le long des routes selon la demande."
+		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		b.toggle_mode = true
+		b.button_group = _item_group
+		b.add_theme_color_override("font_pressed_color", (ZoneSystem.KINDS[k].color as Color).lightened(0.4))
+		var kk: String = k
+		b.pressed.connect(func() -> void: zone_chosen.emit(kk))
+		_list.add_child(b)
+		_item_buttons.append(b)
+	var rm := Button.new()
+	rm.text = "Retirer des zones"
+	rm.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	rm.toggle_mode = true
+	rm.button_group = _item_group
+	rm.pressed.connect(func() -> void: zone_remove_chosen.emit())
+	_list.add_child(rm)
+	_item_buttons.append(rm)
+	var grow := CheckBox.new()
+	grow.text = "Croissance automatique"
+	grow.button_pressed = _growth
+	grow.toggled.connect(func(on: bool) -> void:
+		_growth = on
+		growth_toggled.emit(on))
+	_list.add_child(grow)
+	_item_buttons.append(grow)
+	_zone_label = Label.new()
+	_zone_label.add_theme_font_size_override("font_size", 12)
+	_zone_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_list.add_child(_zone_label)
+	_item_buttons.append(_zone_label)
+
+
+func set_zone_info(text: String) -> void:
+	if is_instance_valid(_zone_label) and not _zone_label.is_queued_for_deletion():
+		_zone_label.text = text
+
+
+func set_growth(on: bool) -> void:
+	_growth = on
 
 
 ## Plus rien de sélectionné dans le panneau (un autre outil a été choisi).

@@ -65,7 +65,18 @@ Dans le mode Terre, le panneau **Construire** (à droite, **B** pour le masquer)
 - **Terrassement** : le terrain est aplani sous le bâtiment, avec un petit talus autour. Refusé si le dénivelé dépasse 12 m, dans la mer, sur un lac ou une rivière, sur une voie ou sur un autre bâtiment. Une voie ne peut plus traverser un bâtiment.
 - **Règles du bac à sable** (cases à cocher dans le panneau) : **accès à une voie obligatoire** (route, ou chemin pour les parcs, terrains de sport, écoles…, à moins de 10 m de la porte) et **caisse** de départ de 20 M€ : chaque bâtiment a un prix, plus le terrassement. **Argent illimité** pour construire librement.
 - **Démolir un bâtiment** : bouton du panneau, puis clic sur le bâtiment (la moitié du prix est rendue, le terrain reste aplani).
-- **Sauver / Charger** gardent les bâtiments et la caisse avec le terrain et le réseau.
+- **Sauver / Charger** gardent les bâtiments, les zones et la caisse avec le terrain et le réseau.
+
+### Zonage : laisser la ville pousser
+
+L'onglet **Zonage** du même panneau permet de peindre des zones **résidentielles**, **commerciales** ou **industrielles** (clic gauche glissé, 2 € le m², 300 m de côté au maximum). Tu choisis librement entre poser toi-même et laisser pousser, et tu peux mélanger les deux.
+
+![Un quartier né du zonage](docs/apercu-zonage.png)
+
+- Les bâtiments **poussent tout seuls le long des routes** de la zone, façade vers la rue, sur le relief aplani. Ils ne coûtent rien au joueur (ce sont des constructions privées).
+- **Demande** affichée dans le panneau : il vient toujours des habitants, d'autant plus qu'il y a du travail ; commerces et industries s'installent selon la population.
+- **Retirer des zones** : glisser sur la zone à effacer (une zone coupée en partie est redécoupée). Les bâtiments déjà construits restent.
+- Case **Croissance automatique** pour mettre la ville en pause.
 
 ## Comment ça marche
 
@@ -110,8 +121,9 @@ Dans le mode Terre, le panneau **Construire** (à droite, **B** pour le masquer)
 | `scripts/batiments/bloc_mesh.gd` | Formes low-poly (boîtes, toits, cylindres) assemblées en un seul maillage |
 | `scripts/batiments/building_system.gd` | Pose, règles, terrassement, démolition et sauvegarde des bâtiments |
 | `scripts/batiments/building_panel.gd` | Panneau « Construire » |
+| `scripts/batiments/zone_system.gd` | Zonage : zones peintes, demande, croissance le long des routes |
 | `tests/batiments_test.gd` | Test automatique des bâtiments (sans réseau) |
-| `tests/batiments_vitrine.gd` | Pose tout le catalogue et prend une capture |
+| `tests/batiments_vitrine.gd` | Pose tout le catalogue (ou fait pousser un quartier avec `--zones`) et prend une capture |
 
 ## Test automatique
 

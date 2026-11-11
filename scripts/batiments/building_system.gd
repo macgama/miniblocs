@@ -209,7 +209,8 @@ func find_access(id: String, rect: Rect2i, r: int) -> Dictionary:
 
 
 ## Analyse complète d'une pose : {ok, reason, rect, h, cost, access, earth}.
-func check_place(id: String, center: Vector2i, r: int) -> Dictionary:
+## grown : bâtiment poussé dans une zone (accès toujours exigé, rien à payer).
+func check_place(id: String, center: Vector2i, r: int, grown := false) -> Dictionary:
 	var t := BuildingCatalog.get_type(id)
 	var rect := rect_for(id, center, r)
 	var res := {"ok": false, "reason": "", "rect": rect, "h": 0.0, "cost": 0, "access": {}, "earth": 0.0}
@@ -256,13 +257,15 @@ func check_place(id: String, center: Vector2i, r: int) -> Dictionary:
 	res.earth = earth
 	res.cost = BuildingCatalog.cost(id) + roundi(earth * EARTH_COST)
 	res.access = find_access(id, rect, r)
-	if require_access and res.access.is_empty():
+	if grown:
+		res.cost = 0
+	if (require_access or grown) and res.access.is_empty():
 		var names: Array[String] = []
 		for a in t.get("access", []):
 			names.append(String(TransportTypes.get_type(a).get("name", a)).to_lower())
 		res.reason = "Il faut une %s à moins de %d m de la porte." % [" ou un ".join(names), int(ACCESS_MAX)]
 		return res
-	if not unlimited_money and res.cost > money:
+	if not grown and not unlimited_money and res.cost > money:
 		res.reason = "Pas assez d'argent : %s nécessaires." % format_money(res.cost)
 		return res
 	res.ok = true
@@ -284,10 +287,12 @@ func best_rotation(id: String, center: Vector2i) -> int:
 # --- Pose et démolition -----------------------------------------------------------------
 
 ## Pose un bâtiment centré sur une case. Renvoie son id, ou -1 (raison dans message).
-func place(id: String, center: Vector2i, r: int) -> int:
-	var res := check_place(id, center, r)
+## zone > 0 : le bâtiment pousse dans cette zone (gratuit, sans message).
+func place(id: String, center: Vector2i, r: int, zone := 0) -> int:
+	var res := check_place(id, center, r, zone > 0)
 	if not res.ok:
-		message.emit(res.reason)
+		if zone == 0:
+			message.emit(res.reason)
 		return -1
 	_terrace(res.rect, res.h)
 	if not unlimited_money:
@@ -295,8 +300,9 @@ func place(id: String, center: Vector2i, r: int) -> int:
 	var bid := next_id
 	next_id += 1
 	var rect: Rect2i = res.rect
-	_add({"id": bid, "t": id, "x": rect.position.x, "z": rect.position.y, "r": r, "h": res.h, "cost": res.cost})
-	message.emit("%s construit pour %s." % [BuildingCatalog.get_type(id).name, format_money(res.cost)])
+	_add({"id": bid, "t": id, "x": rect.position.x, "z": rect.position.y, "r": r, "h": res.h, "cost": res.cost, "zone": zone})
+	if zone == 0:
+		message.emit("%s construit pour %s." % [BuildingCatalog.get_type(id).name, format_money(res.cost)])
 	changed.emit()
 	return bid
 
@@ -539,7 +545,7 @@ func summary() -> String:
 func to_dict() -> Dictionary:
 	var list := []
 	for b in buildings.values():
-		list.append({"id": b.id, "t": b.t, "x": b.x, "z": b.z, "r": b.r, "h": b.h, "cost": b.get("cost", 0)})
+		list.append({"id": b.id, "t": b.t, "x": b.x, "z": b.z, "r": b.r, "h": b.h, "cost": b.get("cost", 0), "zone": b.get("zone", 0)})
 	return {"version": 1, "next_id": next_id, "money": money, "require_access": require_access,
 		"unlimited_money": unlimited_money, "buildings": list}
 
@@ -554,6 +560,6 @@ func from_dict(data: Dictionary) -> void:
 		if BuildingCatalog.get_type(String(b.t)).is_empty():
 			continue
 		_add({"id": int(b.id), "t": String(b.t), "x": int(b.x), "z": int(b.z), "r": int(b.r),
-			"h": float(b.h), "cost": int(b.get("cost", 0))})
+			"h": float(b.h), "cost": int(b.get("cost", 0)), "zone": int(b.get("zone", 0))})
 		next_id = maxi(next_id, int(b.id) + 1)
 	changed.emit()

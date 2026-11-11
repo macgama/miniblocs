@@ -12,7 +12,7 @@ const SECTIONS := [
 		["A / E, ou clic molette glissé", "tourner (Q / E en QWERTY)"],
 	]],
 	["Outils (barre du bas)", [
-		["1", "observer : survoler une case pour voir son altitude et son biome"],
+		["1", "observer : survoler une case pour voir son altitude et son biome (et le nom de la rivière)"],
 		["2 · 3 · 4", "aplanir, monter de 1 m, creuser de 1 m (clic gauche glissé)"],
 		["5 · 6 · 7 · 8", "route, rail, chemin, voie d'eau : un clic par point"],
 		["C", "voie en courbe (pendant le tracé)"],
@@ -111,7 +111,7 @@ func _ready() -> void:
 			grid.add_child(d)
 		col.add_child(Control.new())
 	var credit := Label.new()
-	credit.text = "Relief : Mapzen Terrain Tiles (AWS Open Data) — SRTM, GMTED, ETOPO1, EU-DEM · Biomes : © ESA WorldCover 2021, données Copernicus Sentinel (CC BY 4.0)"
+	credit.text = "Relief : Mapzen Terrain Tiles (AWS Open Data) — SRTM, GMTED, ETOPO1, EU-DEM · Biomes : © ESA WorldCover 2021, données Copernicus Sentinel (CC BY 4.0) · Rivières : © contributeurs OpenStreetMap (ODbL), sinon calculées sur le relief"
 	credit.add_theme_font_size_override("font_size", 11)
 	credit.add_theme_color_override("font_color", Color(1, 1, 1, 0.6))
 	v.add_child(credit)

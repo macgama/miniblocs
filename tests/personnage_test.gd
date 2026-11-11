@@ -138,7 +138,9 @@ func _run() -> void:
 		"marche sur le pont à %.1f m (sol de la vallée à %.1f m)" % [p.global_position.y, sol])
 	# Vers le côté : le parapet retient.
 	await _marcher(p, Vector2(1, 0), -PI / 2.0, 2.0)
-	_check(absf(p.global_position.z - deck.z) < 3.8 and p.global_position.y > deck.y - 0.5, "le parapet empêche de tomber du pont")
+	var demi := float(e.width) * 0.5
+	_check(absf(p.global_position.z - deck.z) < demi and p.global_position.y > deck.y - 0.5,
+		"le parapet empêche de tomber du pont (%.1f m de l'axe, bord à %.1f m)" % [absf(p.global_position.z - deck.z), demi])
 
 	print("Collisions avec un bâtiment :")
 	var mur := StaticBody3D.new()
@@ -176,6 +178,19 @@ func _run() -> void:
 	var hc := world.cell_height(Vector2i(floori(cc.x), floori(cc.z)))
 	_check(cc.y > hc - 0.3, "la caméra ne passe pas sous le relief (%.2f m, sol %.2f m)" % [cc.y, hc])
 	vue._tangage = -0.25
+
+	# Un vrai bâtiment du catalogue (maison de 10 × 12 m), posé sans règles d'accès ni de coût.
+	var bs: BuildingSystem = scene.get_node("Batiments")
+	bs.require_access = false
+	bs.unlimited_money = true
+	var bid := bs.place("maison", Vector2i(40, -60), 0)
+	_check(bid > 0, "poser une maison")
+	await _frames(5)
+	p.teleporter(Vector3(25.5, world.cell_height(Vector2i(25, -60)) + 0.3, -59.5), -PI / 2.0)
+	vue.collisions.mettre_a_jour(p.global_position, 99)
+	await _frames(20)
+	await _marcher(p, Vector2(0, 1), -PI / 2.0, 4.0)
+	_check(p.global_position.x < 36.0, "la maison arrête le personnage (x = %.2f)" % p.global_position.x)
 
 	print("1re personne :")
 	vue.zoomer(-1)

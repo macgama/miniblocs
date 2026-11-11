@@ -100,10 +100,16 @@ func spawn(mode: int) -> bool:
 	var starts := network.nodes_of_mode(mode)
 	if starts.size() < 2:
 		return false
-	var start: int = starts[rng.randi() % starts.size()]
-	var v := {"mode": mode, "node": start, "route": [] as Array[int], "leg": 0, "s": rng.randf() * 4.0,
-		"trail": PackedVector3Array(), "wagons": [], "speed": 0.0, "lane": 0.0}
-	if not _new_route(v):
+	var v := {}
+	var found := false
+	for _try in 6:
+		var start: int = starts[rng.randi() % starts.size()]
+		v = {"mode": mode, "node": start, "route": [] as Array[int], "leg": 0, "s": rng.randf() * 4.0,
+			"trail": PackedVector3Array(), "wagons": [], "speed": 0.0, "lane": 0.0, "lane_idx": 0, "factor": 1.0, "own_speed": 0.0}
+		if _new_route(v):
+			found = true
+			break
+	if not found:
 		return false
 	_make_body(v)
 	vehicles.append(v)
@@ -118,10 +124,9 @@ func _new_route(v: Dictionary) -> bool:
 	var comp := network.component(start)
 	if comp.size() < 2:
 		return false
+	comp.erase(start)
 	for _try in 4:
 		var dest: int = comp[rng.randi() % comp.size()]
-		if dest == start:
-			continue
 		var r := network.find_route(start, dest)
 		if not r.is_empty():
 			v.route = r
@@ -138,7 +143,9 @@ func _advance(v: Dictionary, delta: float) -> bool:
 	var eid: int = route[v.leg]
 	if not network.edges.has(eid):
 		return false
-	v.s = float(v.s) + float(v.speed) * delta
+	var e0: Dictionary = network.edges[eid]
+	var spd: float = v.own_speed if float(v.own_speed) > 0.0 else TransportTypes.speed_of(e0.t) * float(v.factor)
+	v.s = float(v.s) + spd * delta
 	var guard := 0
 	while float(v.s) >= float(network.edges[eid].len) and guard < 16:
 		guard += 1
@@ -173,10 +180,14 @@ func _place(v: Dictionary) -> void:
 		flat = Vector3.FORWARD
 	flat = flat.normalized()
 	var right := Vector3(-flat.z, 0, flat.x)
-	var surface := 0.08 if int(v.mode) != TransportTypes.Mode.RAIL else 0.36
+	var surface := 0.08 if int(v.mode) != TransportTypes.Mode.RAIL else 0.47
 	if int(v.mode) == TransportTypes.Mode.WATER:
 		surface = 0.0
-	var pos := p + right * float(v.lane) + Vector3(0, surface, 0)
+	var offsets := TransportTypes.lane_offsets(e.t, e.w)
+	var lane: float = offsets[mini(int(v.lane_idx), offsets.size() - 1)] if not offsets.is_empty() else 0.0
+	if int(v.mode) == TransportTypes.Mode.PATH:
+		lane *= float(v.lane)
+	var pos := p + right * lane + Vector3(0, surface, 0)
 	var body: Node3D = v.body
 	body.position = pos
 	body.basis = Basis.looking_at(t, Vector3.UP)
@@ -202,22 +213,38 @@ func _place(v: Dictionary) -> void:
 
 func _make_body(v: Dictionary) -> void:
 	var mode: int = v.mode
-	var ty := _type_for(mode)
-	v.lane = float(ty.get("lane", 0.0))
-	v.speed = float(ty.get("speed", 5.0)) * rng.randf_range(0.85, 1.1)
+	v.factor = rng.randf_range(0.85, 1.05)
+	v.lane_idx = rng.randi() % 4
+	v.lane = rng.randf_range(0.3, 1.4)
+	var first_edge: Dictionary = network.edges[(v.route as Array[int])[0]]
+	var cls: String = first_edge.t
 	var key := ""
+	var wagon := ""
+	var wagons := 0
 	match mode:
 		TransportTypes.Mode.ROAD:
 			key = "car_%d" % (rng.randi() % CAR_COLORS.size())
 		TransportTypes.Mode.RAIL:
-			key = "loco"
+			match cls:
+				"tram":
+					key = "tram"
+					wagon = "tram"
+					wagons = 1
+				"lgv":
+					key = "tgv"
+					wagon = "tgv_car"
+					wagons = 3
+				_:
+					key = "loco"
+					wagon = "wagon"
+					wagons = 2
 		TransportTypes.Mode.PATH:
-			if rng.randf() < 0.35:
+			if cls != "trottoir" and rng.randf() < 0.45:
 				key = "bike_%d" % (rng.randi() % 4)
-				v.speed = rng.randf_range(4.0, 6.0)
+				v.own_speed = rng.randf_range(4.0, 6.0)
 			else:
 				key = "walker_%d" % (rng.randi() % 5)
-			v.lane = float(v.lane) * rng.randf_range(0.4, 1.4)
+				v.own_speed = rng.randf_range(1.1, 1.6)
 		TransportTypes.Mode.WATER:
 			key = "boat"
 	var mi := MeshInstance3D.new()
@@ -225,21 +252,13 @@ func _make_body(v: Dictionary) -> void:
 	mi.material_override = _material
 	add_child(mi)
 	v.body = mi
-	if mode == TransportTypes.Mode.RAIL:
-		for k in 2:
-			var w := MeshInstance3D.new()
-			w.mesh = _mesh("wagon")
-			w.material_override = _material
-			w.visible = false
-			add_child(w)
-			(v.wagons as Array).append(w)
-
-
-func _type_for(mode: int) -> Dictionary:
-	for id in TransportTypes.TYPES:
-		if int(TransportTypes.TYPES[id].mode) == mode:
-			return TransportTypes.TYPES[id]
-	return {}
+	for k in wagons:
+		var w := MeshInstance3D.new()
+		w.mesh = _mesh(wagon)
+		w.material_override = _material
+		w.visible = false
+		add_child(w)
+		(v.wagons as Array).append(w)
 
 
 func _free_vehicle(v: Dictionary) -> void:
@@ -264,6 +283,19 @@ func _mesh(key: String) -> ArrayMesh:
 		k.oriented_box(Vector3(0, 2.2, 0), R, Vector3(2.9, 2.6, 13.6), Color("c0392b"))
 		k.oriented_box(Vector3(0, 2.7, -6.85), R, Vector3(2.4, 1.0, 0.1), Color("23313f"))
 		k.oriented_box(Vector3(0, 3.6, 0), R, Vector3(2.6, 0.2, 12.0), Color("e5e5e5"))
+	elif key == "tram" :
+		k.oriented_box(Vector3(0, 0.5, 0), R, Vector3(2.4, 0.5, 13.0), Color("2c2f33"))
+		k.oriented_box(Vector3(0, 1.9, 0), R, Vector3(2.45, 2.4, 13.0), Color("e8e8e8"))
+		k.oriented_box(Vector3(0, 2.2, 0), R, Vector3(2.5, 1.0, 11.5), Color("2a9d8f"))
+	elif key == "tgv":
+		k.oriented_box(Vector3(0, 0.6, 0), R, Vector3(2.8, 0.6, 14.0), Color("2c2f33"))
+		k.oriented_box(Vector3(0, 2.1, 0.8), R, Vector3(2.9, 2.6, 12.4), Color("f4f4f4"))
+		k.oriented_box(Vector3(0, 1.6, -6.2), R, Vector3(2.7, 1.6, 2.0), Color("f4f4f4"))
+		k.oriented_box(Vector3(0, 2.4, 0.8), R, Vector3(2.95, 0.5, 12.4), Color("3d5a80"))
+	elif key == "tgv_car":
+		k.oriented_box(Vector3(0, 0.6, 0), R, Vector3(2.8, 0.6, 13.6), Color("2c2f33"))
+		k.oriented_box(Vector3(0, 2.1, 0), R, Vector3(2.9, 2.6, 13.2), Color("f4f4f4"))
+		k.oriented_box(Vector3(0, 2.4, 0), R, Vector3(2.95, 0.5, 12.0), Color("3d5a80"))
 	elif key == "wagon":
 		k.oriented_box(Vector3(0, 0.6, 0), R, Vector3(2.8, 0.6, 13.6), Color("2c2f33"))
 		k.oriented_box(Vector3(0, 2.2, 0), R, Vector3(2.9, 2.6, 13.2), Color("eae6da"))

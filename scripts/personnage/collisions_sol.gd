@@ -147,7 +147,7 @@ func _reconstruire_voies() -> void:
 		if _voies.has(id):
 			continue
 		var e: Dictionary = network.edges[id]
-		var faces := faces_voie(e.t, e.pts, e.st)
+		var faces := faces_voie(e.t, float(e.get("width", 0.0)), e.pts, e.st)
 		var corps := StaticBody3D.new()
 		corps.name = "Voie_%d" % id
 		corps.set_meta("e", e)
@@ -163,12 +163,15 @@ func _reconstruire_voies() -> void:
 
 
 ## Triangles de la surface d'une voie (et des parapets des ponts).
-static func faces_voie(type_id: String, pts: PackedVector3Array, st: PackedByteArray) -> PackedVector3Array:
+## width : largeur totale (m) ; 0 = largeur par défaut du type.
+static func faces_voie(type_id: String, width: float, pts: PackedVector3Array, st: PackedByteArray) -> PackedVector3Array:
 	var faces := PackedVector3Array()
 	var ty := TransportTypes.get_type(type_id)
 	if ty.is_empty() or int(ty.mode) == TransportTypes.Mode.WATER:
 		return faces
-	var hw := float(ty.width) * 0.5
+	if width <= 0.0:
+		width = TransportTypes.width_of(type_id, {})
+	var hw := width * 0.5
 	var dessus := 0.12 if int(ty.mode) == TransportTypes.Mode.RAIL else 0.08
 	var right := TransportView._rights(pts)
 	var S := TransportTypes.Struct

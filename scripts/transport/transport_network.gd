@@ -52,13 +52,14 @@ func degree(id: int) -> int:
 
 
 ## Ajoute un tronçon. Les extrémités du tracé sont recollées sur les nœuds.
-func add_edge(a: int, b: int, type_id: String, pts: PackedVector3Array, st: PackedByteArray) -> int:
+func add_edge(a: int, b: int, type_id: String, pts: PackedVector3Array, st: PackedByteArray, spec: Dictionary = {}) -> int:
 	assert(pts.size() >= 2 and pts.size() == st.size())
 	pts[0] = node_pos(a)
 	pts[pts.size() - 1] = node_pos(b)
 	var id := next_id
 	next_id += 1
-	var e := {"a": a, "b": b, "t": type_id, "pts": pts, "st": st}
+	type_id = TransportTypes.resolve(type_id)
+	var e := {"a": a, "b": b, "t": type_id, "pts": pts, "st": st, "w": TransportTypes.normalize(type_id, spec)}
 	_measure(e)
 	edges[id] = e
 	(adjacency[a] as Array).append(id)
@@ -77,6 +78,19 @@ static func _measure(e: Dictionary) -> void:
 		d[i] = acc
 	e.d = d
 	e.len = acc
+	e.width = TransportTypes.width_of(e.t, e.get("w", {}))
+
+
+func half_width(edge_id: int) -> float:
+	return float(edges[edge_id].width) * 0.5
+
+
+## Demi-largeur de la plus large voie qui touche le nœud.
+func node_half_width(id: int) -> float:
+	var hw := 0.0
+	for eid in adjacency.get(id, []):
+		hw = maxf(hw, half_width(eid))
+	return hw
 
 
 ## Supprime un tronçon et les nœuds devenus isolés.
@@ -108,6 +122,7 @@ func split_edge(id: int, s: float, snap := 1.5) -> int:
 	var a: int = e.a
 	var b: int = e.b
 	var t: String = e.t
+	var spec: Dictionary = e.w
 	var keep_a: Dictionary = nodes[a].duplicate()
 	var keep_b: Dictionary = nodes[b].duplicate()
 	remove_edge(id)
@@ -118,8 +133,8 @@ func split_edge(id: int, s: float, snap := 1.5) -> int:
 	if not nodes.has(b):
 		nodes[b] = keep_b
 		adjacency[b] = []
-	add_edge(a, mid, t, first[0], first[1])
-	add_edge(mid, b, t, second[0], second[1])
+	add_edge(a, mid, t, first[0], first[1], spec)
+	add_edge(mid, b, t, second[0], second[1], spec)
 	return mid
 
 
@@ -198,35 +213,50 @@ func nearest_on_edge(id: int, p: Vector3) -> Dictionary:
 	return best
 
 
-## Accroche : nœud proche, sinon point d'un tronçon proche, du même mode.
+## Accroche : nœud proche, sinon point d'une voie proche, du même mode.
+## margin : distance au-delà du bord de la voie (on accroche en cliquant sur la chaussée).
 ## Renvoie {"node": id ou -1, "edge": id ou -1, "s": float, "pos": Vector3} ou {}.
-func find_snap(p: Vector3, mode: int, radius: float) -> Dictionary:
+func find_snap(p: Vector3, mode: int, margin: float) -> Dictionary:
 	var best_node := -1
-	var best_d := radius
+	var best_d := INF
 	for id in nodes:
 		if node_mode(id) != mode:
 			continue
 		var np := node_pos(id)
 		var dd := Vector2(np.x - p.x, np.z - p.z).length()
-		if dd <= best_d:
+		if dd <= node_half_width(id) + margin + 1.0 and dd < best_d:
 			best_d = dd
 			best_node = id
 	if best_node >= 0:
 		return {"node": best_node, "edge": -1, "s": 0.0, "pos": node_pos(best_node)}
 	var best_edge := -1
 	var best_hit := {}
-	best_d = radius
+	best_d = INF
 	for id in edges:
 		if TransportTypes.mode_of(edges[id].t) != mode:
 			continue
 		var hit := nearest_on_edge(id, p)
-		if hit.dist <= best_d:
+		if hit.dist <= half_width(id) + margin and hit.dist < best_d:
 			best_d = hit.dist
 			best_edge = id
 			best_hit = hit
 	if best_edge >= 0:
 		return {"node": -1, "edge": best_edge, "s": best_hit.s, "pos": best_hit.pos}
 	return {}
+
+
+## Direction (horizontale) par laquelle un tronçon quitte un nœud.
+func leave_dir(edge_id: int, node_id: int) -> Vector3:
+	var e: Dictionary = edges[edge_id]
+	var pts: PackedVector3Array = e.pts
+	var n := pts.size()
+	var v: Vector3
+	if e.a == node_id:
+		v = pts[mini(2, n - 1)] - pts[0]
+	else:
+		v = pts[maxi(n - 3, 0)] - pts[n - 1]
+	v.y = 0.0
+	return v.normalized() if v.length_squared() > 1e-8 else Vector3.FORWARD
 
 
 # --- Itinéraires ------------------------------------------------------------------
@@ -323,7 +353,7 @@ func to_dict() -> Dictionary:
 		var flat := []
 		for p in (e.pts as PackedVector3Array):
 			flat.append_array([snappedf(p.x, 0.01), snappedf(p.y, 0.01), snappedf(p.z, 0.01)])
-		es.append({"id": id, "a": e.a, "b": e.b, "t": e.t, "p": flat, "s": Array(e.st as PackedByteArray)})
+		es.append({"id": id, "a": e.a, "b": e.b, "t": e.t, "w": e.w, "p": flat, "s": Array(e.st as PackedByteArray)})
 	return {"version": 1, "next_id": next_id, "nodes": ns, "edges": es}
 
 
@@ -348,7 +378,10 @@ func from_dict(data: Dictionary) -> void:
 		var b := int(ed.b)
 		if not nodes.has(a) or not nodes.has(b) or pts.size() < 2 or pts.size() != st.size():
 			continue
-		var e := {"a": a, "b": b, "t": String(ed.t), "pts": pts, "st": st}
+		var t := TransportTypes.resolve(String(ed.t))
+		if TransportTypes.get_type(t).is_empty():
+			continue
+		var e := {"a": a, "b": b, "t": t, "pts": pts, "st": st, "w": TransportTypes.normalize(t, ed.get("w", {}))}
 		_measure(e)
 		edges[id] = e
 		(adjacency[a] as Array).append(id)

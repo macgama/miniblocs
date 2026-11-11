@@ -51,6 +51,8 @@ var buildings: Dictionary = {}
 ## Vector2i -> id du bâtiment qui occupe la case
 var occupancy: Dictionary = {}
 var next_id := 1
+## Si défini, Callable(case: Vector2i) -> bool : case prise par autre chose (blocs libres).
+var extra_blocker: Callable
 
 var _nodes: Dictionary = {} # id -> MeshInstance3D
 var _meshes: Dictionary = {} # type -> ArrayMesh
@@ -79,7 +81,8 @@ func _ready() -> void:
 	if transport != null:
 		transport.network_changed.connect(func() -> void: _summary_dirty = true)
 		# Une voie ne peut pas traverser un bâtiment.
-		transport.blocker = func(c: Vector2i) -> bool: return occupancy.has(c)
+		transport.blocker = func(c: Vector2i) -> bool:
+			return occupancy.has(c) or (extra_blocker.is_valid() and extra_blocker.call(c))
 	_material = StandardMaterial3D.new()
 	_material.vertex_color_use_as_albedo = true
 	_material.vertex_color_is_srgb = true
@@ -196,12 +199,13 @@ func find_access(id: String, rect: Rect2i, r: int) -> Dictionary:
 	var door := door_point(id, rect, r)
 	var best := {}
 	for type in BuildingCatalog.get_type(id).get("access", []):
-		var ty := TransportTypes.get_type(type)
-		var reach := ACCESS_MAX + float(ty.get("width", 4.0)) / 2.0
+		# "route" ou "chemin" : toute classe de voie de ce mode (rue, avenue…).
+		var mode := TransportTypes.mode_of(type)
 		for eid in transport.network.edges:
 			var e: Dictionary = transport.network.edges[eid]
-			if e.t != type:
+			if TransportTypes.mode_of(e.t) != mode:
 				continue
+			var reach := ACCESS_MAX + float(e.get("width", 4.0)) / 2.0
 			var hit := transport.network.nearest_on_edge(eid, door)
 			if hit.dist <= reach and (best.is_empty() or hit.dist < best.dist):
 				best = {"dist": hit.dist, "pos": hit.pos, "type": type, "door": door}
@@ -229,6 +233,9 @@ func check_place(id: String, center: Vector2i, r: int, grown := false) -> Dictio
 				return res
 			if transport != null and transport.is_cell_occupied(c):
 				res.reason = "Une voie passe sur l'emplacement."
+				return res
+			if extra_blocker.is_valid() and extra_blocker.call(c):
+				res.reason = "Des blocs sont construits ici."
 				return res
 			var h := world.cell_height(c)
 			if is_nan(h):
@@ -349,6 +356,16 @@ func _add(b: Dictionary) -> void:
 	mi.position = rect_center(rect) + Vector3(0, float(b.h), 0)
 	mi.rotation.y = -int(b.r) * PI / 2.0
 	mi.visibility_range_end = 1400.0
+	# Collision : le personnage de la vue au sol ne traverse pas le bâtiment.
+	var body := StaticBody3D.new()
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	var bb := mi.mesh.get_aabb()
+	box.size = bb.size
+	shape.shape = box
+	shape.position = bb.get_center()
+	body.add_child(shape)
+	mi.add_child(body)
 	add_child(mi)
 	_nodes[bid] = mi
 

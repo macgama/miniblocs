@@ -41,16 +41,27 @@ Comment ça marche, limites et prochaines étapes : [docs/terre-architecture.md]
 
 Dans le mode Terre, la barre du bas propose **5 Route**, **6 Rail**, **7 Chemin** (piétons et vélos), **8 Voie d'eau** et **9 Démolir**.
 
-![Transports près de Marseille](docs/apercu-transport.png)
+![Carrefours, avenue 2 × 2 voies, rue en courbe, piste cyclable, tramway](docs/apercu-transport-carrefours.png)
 
-- **Tracer** : clic gauche pour commencer, puis un clic pour chaque point suivant. Le tracé continue depuis le dernier point ; **Échap** ou **clic droit** pour arrêter. **Maj** maintenue : angles par pas de 15°.
-- **Aperçu** vert (possible) ou rouge (impossible, avec la raison : pente trop forte, voie d'eau hors de l'eau…), avec la longueur, la pente maxi et les mètres de pont et de tunnel.
-- **Relief** : la voie respecte une pente maximale (route 10 %, rail 4 %, chemin 15 %). Le jeu fait tout seul les **remblais et déblais**, les **ponts** (creux, mer) et les **tunnels** (collines).
-- **Carrefours** : clique sur une voie existante pour t'y raccrocher (carrefour en T), ou croise-la : le carrefour se crée tout seul. Route et rail se croisent par un passage à niveau.
-- **Véhicules** : voitures, trains, piétons, cyclistes et bateaux circulent dès qu'un réseau existe. Bouton **Circulation** pour les masquer.
+- **Classe et largeur** : un panneau au-dessus de la barre permet de choisir la classe de voie et ses réglages, toujours dans les limites des normes françaises (guide ARP, ICTAAL, CEREMA, SNCF Réseau) :
+
+  | Outil | Classes | Réglages |
+  | --- | --- | --- |
+  | Route | Rue de desserte (30 km/h), avenue urbaine (50), route départementale (80), voie express (110), autoroute (130) | Voies par sens, largeur d'une voie (2,75 à 3,50 m selon la classe) ; trottoirs, accotements, bandes d'arrêt d'urgence et terre-plein ajoutés d'office |
+  | Rail | Tramway, ligne classique, ligne à grande vitesse | Voie unique ou double voie (écartement 1,435 m, entraxe 3,00 / 4,20 / 4,50 m) |
+  | Chemin | Chemin piéton, piste cyclable bidirectionnelle, voie verte | Largeur (1,40 à 5,00 m selon la classe) |
+  | Voie d'eau | Voie navigable | Largeur (12 à 60 m) |
+
+  Chaque classe a aussi sa **pente maximale** (rue 12 %, autoroute 5 %, ligne classique 25 ‰…) et son **rayon de courbure minimal** (rue 15 m, départementale 240 m, autoroute 665 m, LGV 4 000 m).
+- **Tracer droit** : clic pour commencer, puis un clic pour chaque point. **Échap** ou **clic droit** pour arrêter. **Maj** : angles par pas de 15°.
+- **Tracer en courbe** : touche **C** (ou bouton **Courbe**). Clic de départ, clic qui donne la direction, clic d'arrivée. En prolongeant une voie, la courbe part dans son prolongement : un seul clic suffit. Un virage plus serré que le rayon minimal de la classe est refusé.
+- **Aperçu** vert (possible) ou rouge avec la raison : pente trop forte, virage trop serré, chevauchement, croisement à mauvaise hauteur…
+- **Relief** : la voie monte et descend avec le terrain dans la limite de sa pente. Le jeu fait la plate-forme, des **talus** en pente douce (1 pour 1,5) jusqu'au terrain naturel, les **ponts** (creux, mer) et les **tunnels** (collines).
+- **Carrefours sans superposition** : clique sur une voie existante pour t'y raccrocher (carrefour en T) ou croise-la : le carrefour se crée tout seul, les voies s'arrêtent à son bord et un plateau les relie. Une voie qui en recouvre une autre sans s'y raccorder est refusée. Route et rail (ou chemin) se croisent par un passage à niveau.
+- **Véhicules** : voitures (sur les différentes voies), tramways, trains, TGV, piétons, cyclistes et bateaux. Bouton **Circulation** pour les masquer.
 - **Sauver / Charger** gardent le réseau avec le terrain.
 
-![Pont au-dessus d'une vallée](docs/apercu-transport-pont.png)
+![Pont et talus au-dessus d'une vallée](docs/apercu-transport-pont.png)
 
 Architecture, feuille de route et questions ouvertes : [docs/transport-architecture.md](docs/transport-architecture.md).
 
@@ -65,7 +76,7 @@ Dans le mode Terre, le panneau **Construire** (à droite, **B** pour le masquer)
 - **Terrassement** : le terrain est aplani sous le bâtiment, avec un petit talus autour. Refusé si le dénivelé dépasse 12 m, dans la mer, sur un lac ou une rivière, sur une voie ou sur un autre bâtiment. Une voie ne peut plus traverser un bâtiment.
 - **Règles du bac à sable** (cases à cocher dans le panneau) : **accès à une voie obligatoire** (route, ou chemin pour les parcs, terrains de sport, écoles…, à moins de 10 m de la porte) et **caisse** de départ de 20 M€ : chaque bâtiment a un prix, plus le terrassement. **Argent illimité** pour construire librement.
 - **Démolir un bâtiment** : bouton du panneau, puis clic sur le bâtiment (la moitié du prix est rendue, le terrain reste aplani).
-- **Sauver / Charger** gardent les bâtiments, les zones et la caisse avec le terrain et le réseau.
+- **Sauver / Charger** gardent les bâtiments, les zones, les blocs et la caisse avec le terrain et le réseau.
 
 ### Zonage : laisser la ville pousser
 
@@ -78,9 +89,21 @@ L'onglet **Zonage** du même panneau permet de peindre des zones **résidentiell
 - **Retirer des zones** : glisser sur la zone à effacer (une zone coupée en partie est redécoupée). Les bâtiments déjà construits restent.
 - Case **Croissance automatique** pour mettre la ville en pause.
 
+### Éditeur libre : construire bloc par bloc
+
+L'onglet **Éditeur libre** permet de construire ce que tu veux avec des blocs de 1 m × 1 m × 1 m, posés sur le relief ou les uns contre les autres.
+
+![Une maison en blocs](docs/apercu-blocs.png)
+
+- **Outils** : **Bloc** (un clic = un bloc, sur le sol ou sur la face visée d'un autre bloc), **Rectangle** (clic glissé : dalle, plancher, toit plat), **Mur** (clic glissé en ligne, hauteur réglable) et **Gomme** (clic sur un bloc, ou glissé pour effacer un étage).
+- **Clic droit** court : retirer le bloc visé. **Ctrl+Z** : annuler. **Échap** : arrêter.
+- **14 matériaux** : brique, pierre, bois, planches, béton, enduits, tuile, ardoise, métal, verre (transparent), herbe, sable, feuillage. Chaque bloc a un prix payé par la caisse (moitié rendue quand on le retire).
+- Pas de bloc sous terre, sur une voie ou dans un bâtiment. Inversement, ni bâtiment ni voie ne peuvent passer sur des blocs.
+- La taille des blocs est une constante (`BlockEditor.SIZE`) : on pourra passer à 50 cm pour plus de détails.
+
 ## Vue au sol : marcher à la 3e ou à la 1re personne
 
-Dans le mode Terre, appuie sur **V** (ou les boutons **Dessus / 3e pers. / 1re pers.** en haut à droite) : un personnage apparaît au sol, au centre de la vue de gestion.
+Dans le mode Terre, appuie sur **V** (ou les boutons **Dessus / 3e pers. / 1re pers.** en haut au centre) : un personnage apparaît au sol, au centre de la vue de gestion.
 
 ![Vue à la 3e personne](docs/apercu-3e-personne.png)
 
@@ -93,7 +116,7 @@ Dans le mode Terre, appuie sur **V** (ou les boutons **Dessus / 3e pers. / 1re p
 | Rapprocher / éloigner la caméra | Molette (tout près : 1re personne, molette arrière : 3e personne) |
 | Libérer la souris (pour cliquer sur l'interface) | Échap, puis clic dans la vue pour la reprendre |
 
-- **Collisions** : le personnage marche sur le relief (et sur les cases que tu as aplanies ou creusées), sur les routes, rails, chemins et ponts (les parapets empêchent de tomber). Tout objet qui a une collision (bâtiments…) l'arrête.
+- **Collisions** : le personnage marche sur le relief (et sur les cases que tu as aplanies ou creusées), sur les routes, rails, chemins et ponts (les parapets empêchent de tomber). Les bâtiments et les constructions de l'éditeur libre l'arrêtent.
 - **Caméra 3e personne** : elle se rapproche toute seule quand un mur, une colline ou le sol passerait entre elle et le personnage.
 - **Eau** : dans l'eau profonde, il nage à la surface.
 - **Retour en vue de dessus** : la caméra de gestion se recentre sur le personnage.
@@ -149,8 +172,9 @@ Dans le mode Terre, appuie sur **V** (ou les boutons **Dessus / 3e pers. / 1re p
 | `scripts/batiments/building_system.gd` | Pose, règles, terrassement, démolition et sauvegarde des bâtiments |
 | `scripts/batiments/building_panel.gd` | Panneau « Construire » |
 | `scripts/batiments/zone_system.gd` | Zonage : zones peintes, demande, croissance le long des routes |
+| `scripts/batiments/block_editor.gd` | Éditeur libre bloc par bloc : outils, matériaux, annulation, rendu par blocs de 16 × 16 m |
 | `tests/batiments_test.gd` | Test automatique des bâtiments (sans réseau) |
-| `tests/batiments_vitrine.gd` | Pose tout le catalogue (ou fait pousser un quartier avec `--zones`) et prend une capture |
+| `tests/batiments_vitrine.gd` | Pose tout le catalogue (ou fait pousser un quartier avec `--zones`, ou construit une maison en blocs avec `--blocs`) et prend une capture |
 
 ## Test automatique
 

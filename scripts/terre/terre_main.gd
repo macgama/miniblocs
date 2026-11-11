@@ -8,8 +8,11 @@ extends Node3D
 @onready var buildings: BuildingSystem = $Batiments
 @onready var build_panel: BuildingPanel = $PanneauConstruction
 @onready var zones: ZoneSystem = $Zones
+@onready var blocks: BlockEditor = $Blocs
 
-const TRANSPORT_TOOLS := ["route", "rail", "chemin", "voie_eau"]
+const TRANSPORT_TOOLS := ["departementale", "train", "voie_verte", "canal"]
+## Dernière classe choisie pour chaque outil de transport.
+var _tool_class := {}
 
 var _status_timer := 0.0
 var _hover := Vector2i.ZERO
@@ -31,6 +34,12 @@ func _ready() -> void:
 	hud.traffic_toggled.connect(func(on: bool) -> void: transport.traffic.set_enabled(on))
 	transport.info_changed.connect(func(t: String) -> void: hud.set_tool_info(t))
 	transport.message.connect(func(t: String) -> void: hud.show_message(t))
+	transport.spec_changed.connect(func(id: String, s: Dictionary) -> void: hud.show_spec(id, s, transport.curve_mode))
+	hud.spec_edited.connect(func(id: String, s: Dictionary) -> void:
+		_tool_class[TransportTypes.mode_of(id)] = id
+		transport.set_spec(id, s)
+		hud.show_spec(id, transport.spec, transport.curve_mode))
+	hud.curve_toggled.connect(func(on: bool) -> void: transport.set_curve(on))
 	buildings.info_changed.connect(func(t: String) -> void: hud.set_tool_info(t))
 	buildings.message.connect(func(t: String) -> void: hud.show_message(t))
 	build_panel.building_chosen.connect(func(id: String) -> void:
@@ -47,19 +56,33 @@ func _ready() -> void:
 	build_panel.zone_remove_chosen.connect(func() -> void:
 		_select_building_tool()
 		zones.set_remove())
+	blocks.info_changed.connect(func(t: String) -> void: hud.set_tool_info(t))
+	blocks.message.connect(func(t: String) -> void: hud.show_message(t))
+	build_panel.block_tool_chosen.connect(func(t: int) -> void:
+		_select_building_tool()
+		blocks.set_tool(t))
+	build_panel.block_material_chosen.connect(func(m: int) -> void:
+		blocks.set_material(m)
+		if blocks.tool == BlockEditor.Tool.NONE:
+			_select_building_tool()
+			blocks.set_tool(BlockEditor.Tool.BLOCK))
+	build_panel.wall_height_changed.connect(func(h: int) -> void:
+		blocks.wall_height = h
+		blocks._emit_help())
 	build_panel.growth_toggled.connect(func(on: bool) -> void: zones.growth = on)
 	build_panel.rules_changed.connect(func(access: bool, unlimited: bool) -> void:
 		buildings.require_access = access
 		buildings.unlimited_money = unlimited
 		buildings._refresh())
 	hud.save_requested.connect(func() -> void:
-		var ok := world.save_world({"transport": transport.to_dict(), "batiments": buildings.to_dict(), "zones": zones.to_dict()})
+		var ok := world.save_world({"transport": transport.to_dict(), "batiments": buildings.to_dict(), "zones": zones.to_dict(), "blocs": blocks.to_dict()})
 		hud.show_message("Région sauvegardée." if ok else "Échec de la sauvegarde."))
 	hud.load_requested.connect(func() -> void:
 		if world.load_world():
 			transport.from_dict(world.loaded_data.get("transport", {}))
 			buildings.from_dict(world.loaded_data.get("batiments", {}))
 			zones.from_dict(world.loaded_data.get("zones", {}))
+			blocks.from_dict(world.loaded_data.get("blocs", {}))
 			build_panel.set_rules(buildings.require_access, buildings.unlimited_money)
 			build_panel.set_growth(zones.growth)
 			hud.show_message("Région chargée.")
@@ -76,24 +99,30 @@ func _ready() -> void:
 func _select_building_tool() -> void:
 	world.set_tool(TerrainWorld.Tool.INSPECT)
 	transport.set_inactive()
+	hud.show_spec("", {}, false)
 	buildings.set_inactive()
 	zones.set_inactive()
+	blocks.set_inactive()
 	hud.select_tool_silently(0)
 
 
 func _on_tool_selected(t: int) -> void:
 	buildings.set_inactive()
 	zones.set_inactive()
+	blocks.set_inactive()
 	build_panel.clear_selection()
 	var k := t - TerreHud.FIRST_TRANSPORT_TOOL
 	if k < 0:
 		transport.set_inactive()
+		hud.show_spec("", {}, false)
 		world.set_tool(t)
 		return
 	world.set_tool(TerrainWorld.Tool.INSPECT)
 	if k < TRANSPORT_TOOLS.size():
-		transport.set_build(TRANSPORT_TOOLS[k])
+		var default_id: String = TRANSPORT_TOOLS[k]
+		transport.set_build(_tool_class.get(TransportTypes.mode_of(default_id), default_id))
 	else:
+		hud.show_spec("", {}, false)
 		transport.set_demolish()
 
 
@@ -102,6 +131,7 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 	transport.clear()
 	buildings.clear()
 	zones.clear()
+	blocks.clear()
 	GameStart.lat = lat
 	GameStart.lon = lon
 	hud.set_place(lat, lon)
@@ -139,6 +169,7 @@ func _process(delta: float) -> void:
 		build_panel.set_money("Caisse : illimitée" if buildings.unlimited_money else "Caisse : " + BuildingSystem.format_money(buildings.money))
 		build_panel.set_summary(buildings.summary())
 		build_panel.set_zone_info(zones.summary())
+		build_panel.set_block_info(blocks.summary())
 
 
 func _refresh_cell_info() -> void:

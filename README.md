@@ -37,6 +37,23 @@ Au lancement (**F5**), un **globe 3D** coloré par les vrais biomes (forêts, ch
 
 Comment ça marche, limites et prochaines étapes : [docs/terre-architecture.md](docs/terre-architecture.md).
 
+## Transports : routes, rail, chemins et voies d'eau sur le vrai relief
+
+Dans le mode Terre, la barre du bas propose **5 Route**, **6 Rail**, **7 Chemin** (piétons et vélos), **8 Voie d'eau** et **9 Démolir**.
+
+![Transports près de Marseille](docs/apercu-transport.png)
+
+- **Tracer** : clic gauche pour commencer, puis un clic pour chaque point suivant. Le tracé continue depuis le dernier point ; **Échap** ou **clic droit** pour arrêter. **Maj** maintenue : angles par pas de 15°.
+- **Aperçu** vert (possible) ou rouge (impossible, avec la raison : pente trop forte, voie d'eau hors de l'eau…), avec la longueur, la pente maxi et les mètres de pont et de tunnel.
+- **Relief** : la voie respecte une pente maximale (route 10 %, rail 4 %, chemin 15 %). Le jeu fait tout seul les **remblais et déblais**, les **ponts** (creux, mer) et les **tunnels** (collines).
+- **Carrefours** : clique sur une voie existante pour t'y raccrocher (carrefour en T), ou croise-la : le carrefour se crée tout seul. Route et rail se croisent par un passage à niveau.
+- **Véhicules** : voitures, trains, piétons, cyclistes et bateaux circulent dès qu'un réseau existe. Bouton **Circulation** pour les masquer.
+- **Sauver / Charger** gardent le réseau avec le terrain.
+
+![Pont au-dessus d'une vallée](docs/apercu-transport-pont.png)
+
+Architecture, feuille de route et questions ouvertes : [docs/transport-architecture.md](docs/transport-architecture.md).
+
 ## Comment ça marche
 
 - **Routes** : se tracent en L entre le point de départ et la souris. Le marquage s'adapte aux routes voisines (lignes droites, virages, carrefours).
@@ -69,6 +86,13 @@ Comment ça marche, limites et prochaines étapes : [docs/terre-architecture.md]
 | `scripts/terre/terre_hud.gd` | Interface du mode Terre |
 | `tests/terre_test.gd` | Test automatique du mode Terre (sans réseau) |
 | `tests/globe_test.gd` | Test automatique du globe (sans réseau) |
+| `scripts/transport/transport_types.gd` | Catalogue des types de voies (largeur, pente maxi, vitesse…) |
+| `scripts/transport/transport_network.gd` | Graphe commun à tous les réseaux, itinéraires A*, sauvegarde |
+| `scripts/transport/route_planner.gd` | Tracé sur le relief : pente, ponts, tunnels, terrassement |
+| `scripts/transport/transport_view.gd` | Modèles low-poly des voies, ponts et tunnels |
+| `scripts/transport/traffic.gd` | Véhicules qui circulent |
+| `scripts/transport/transport_system.gd` | Outils de pose et de démolition dans le mode Terre |
+| `tests/transport_test.gd` | Test automatique des transports (sans réseau) |
 
 ## Test automatique
 
@@ -82,11 +106,10 @@ Le test pose des routes et des zones, attend la croissance, puis vérifie la sau
 godot --headless --path . --script res://tests/terre_test.gd
 ```
 
-Vérifie les conversions de coordonnées, le décodage des tuiles, la génération des blocs, le terrassement et la sauvegarde. Il affiche `TERRE TEST OK`. De même, `tests/globe_test.gd` affiche `GLOBE TEST OK`.
+Vérifie les conversions de coordonnées, le décodage des tuiles, la génération des blocs, le terrassement et la sauvegarde. Il affiche `TERRE TEST OK`. De même, `tests/globe_test.gd` affiche `GLOBE TEST OK` et `tests/transport_test.gd` affiche `TRANSPORT TEST OK`.
 
 ## Pistes pour la suite
 
 - Remplacer les modèles générés par des packs CC0 (Kenney City Kit, Quaternius) en gardant la même logique.
 - Besoins entre zones (les habitants ont besoin d'emplois et de commerces), argent et budget.
 - Services : électricité, eau, parcs.
-- Petites voitures sur les routes.

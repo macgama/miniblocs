@@ -592,6 +592,14 @@ func _update_hover(screen_pos: Vector2) -> void:
 
 ## Lance un rayon et renvoie la case touchée (Vector2i) ou null.
 func pick_cell(origin: Vector3, dir: Vector3) -> Variant:
+	var p: Variant = pick_point(origin, dir)
+	if p == null:
+		return null
+	return Vector2i(floori((p as Vector3).x), floori((p as Vector3).z))
+
+
+## Lance un rayon et renvoie le point touché sur le dessus des cases (Vector3) ou null.
+func pick_point(origin: Vector3, dir: Vector3) -> Variant:
 	var t := 0.0
 	var max_t := _view_radius * 3.0 + 400.0
 	while t < max_t:
@@ -602,7 +610,7 @@ func pick_cell(origin: Vector3, dir: Vector3) -> Variant:
 			h = -1.0e6
 		var top := maxf(h, WATER_LEVEL)
 		if p.y <= top:
-			return c
+			return Vector3(p.x, top, p.z)
 		t += clampf((p.y - top) * 0.5, 0.15, 25.0)
 	return null
 
@@ -660,6 +668,23 @@ func apply_tool(a: Vector2i, b: Vector2i) -> int:
 	return count
 
 
+## Impose la hauteur de plusieurs cases (terrassement sous une route, par exemple).
+## cells : Vector2i -> float. Renvoie le nombre de cases changées.
+func set_cells(cells: Dictionary) -> int:
+	var count := 0
+	for c in cells:
+		var h: float = cells[c]
+		if cell_height(c) == h:
+			continue
+		modifications[c] = h
+		_mark_dirty_around(c)
+		count += 1
+	if count > 0:
+		terrain_edited.emit(count)
+		_update_selection()
+	return count
+
+
 ## À appeler quand quelque chose posé sur des cases (ex. des routes) doit
 ## faire redessiner le terrain et sa végétation.
 func mark_cells_dirty(cells: Array) -> void:
@@ -678,11 +703,17 @@ func _mark_dirty_around(c: Vector2i) -> void:
 
 # --- Sauvegarde --------------------------------------------------------------
 
-func save_world() -> bool:
+## Données lues par le dernier load_world() (pour les autres systèmes : transports…).
+var loaded_data: Dictionary = {}
+
+
+## extra : données d'autres systèmes à ranger dans la même sauvegarde (ex. {"transport": …}).
+func save_world(extra: Dictionary = {}) -> bool:
 	var mods := []
 	for c in modifications:
 		mods.append([c.x, c.y, modifications[c]])
 	var data := {"version": 1, "lat": origin_lat, "lon": origin_lon, "modifications": mods}
+	data.merge(extra)
 	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if f == null:
 		return false
@@ -696,6 +727,7 @@ func load_world() -> bool:
 	var data = JSON.parse_string(FileAccess.get_file_as_string(SAVE_PATH))
 	if typeof(data) != TYPE_DICTIONARY:
 		return false
+	loaded_data = data
 	set_origin(float(data.lat), float(data.lon))
 	for m in data.get("modifications", []):
 		modifications[Vector2i(int(m[0]), int(m[1]))] = float(m[2])

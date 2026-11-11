@@ -1,3 +1,4 @@
+class_name TerreHud
 extends CanvasLayer
 ## Interface du mode Terre : choix du lieu, outils de terrassement, infos de la case.
 
@@ -7,6 +8,7 @@ signal save_requested
 signal load_requested
 signal city_requested
 signal globe_requested
+signal traffic_toggled(on: bool)
 
 const PLACES := [
 	{"name": "Tour Eiffel", "lat": 48.85826, "lon": 2.29450},
@@ -23,12 +25,21 @@ const TOOLS := [
 	{"name": "Aplanir", "key": KEY_2},
 	{"name": "Monter +1 m", "key": KEY_3},
 	{"name": "Creuser −1 m", "key": KEY_4},
+	{"name": "Route", "key": KEY_5},
+	{"name": "Rail", "key": KEY_6},
+	{"name": "Chemin", "key": KEY_7},
+	{"name": "Voie d'eau", "key": KEY_8},
+	{"name": "Démolir", "key": KEY_9},
 ]
+## Premier outil de transport dans TOOLS (les précédents sont les outils de terrain).
+const FIRST_TRANSPORT_TOOL := 4
 
 var coords_edit: LineEdit
 var _place_label: Label
 var _cell_label: Label
 var _status_label: Label
+var _network_label: Label
+var _tool_label: Label
 var _message_label: Label
 var _message_timer := 0.0
 var _buttons: Array[Button] = []
@@ -89,6 +100,8 @@ func _ready() -> void:
 	_status_label.add_theme_font_size_override("font_size", 12)
 	_status_label.add_theme_color_override("font_color", Color(1, 1, 1, 0.7))
 	top_box.add_child(_status_label)
+	_network_label = Label.new()
+	top_box.add_child(_network_label)
 
 	_message_label = Label.new()
 	_message_label.add_theme_color_override("font_color", Color("fff3b0"))
@@ -103,12 +116,19 @@ func _ready() -> void:
 
 	var help := Label.new()
 	help.text = "ZQSD / flèches : déplacer   ·   Molette : zoom   ·   A / E ou clic molette : tourner   ·   Clic droit glissé : déplacer la carte\n" \
-		+ "Clic gauche glissé : terrasser   ·   1-4 : outils   ·   F5 : sauvegarder   ·   F9 : charger   ·   Échap : annuler"
+		+ "Clic gauche glissé : terrasser (2-4)   ·   5-8 : poser une voie, clic par point, Échap / clic droit pour finir, Maj : angles de 15°   ·   9 : démolir\n" \
+		+ "1-9 : outils   ·   F5 : sauvegarder   ·   F9 : charger   ·   Échap : annuler"
 	help.add_theme_color_override("font_color", Color(1, 1, 1, 0.9))
 	help.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
 	help.add_theme_constant_override("outline_size", 4)
 	help.add_theme_font_size_override("font_size", 13)
 	layout.add_child(help)
+
+	_tool_label = Label.new()
+	_tool_label.add_theme_color_override("font_color", Color("d8f3dc"))
+	_tool_label.add_theme_color_override("font_outline_color", Color.BLACK)
+	_tool_label.add_theme_constant_override("outline_size", 6)
+	layout.add_child(_tool_label)
 
 	var bottom := HBoxContainer.new()
 	layout.add_child(bottom)
@@ -119,17 +139,25 @@ func _ready() -> void:
 	bar_panel.add_child(bar)
 	var group := ButtonGroup.new()
 	for i in TOOLS.size():
+		if i == FIRST_TRANSPORT_TOOL:
+			bar.add_child(VSeparator.new())
 		var b := Button.new()
 		b.text = "%d · %s" % [i + 1, TOOLS[i].name]
 		b.toggle_mode = true
 		b.button_group = group
-		b.custom_minimum_size = Vector2(120, 40)
+		b.custom_minimum_size = Vector2(96, 40)
 		var tool_index := i
 		b.pressed.connect(func() -> void: tool_selected.emit(tool_index))
 		bar.add_child(b)
 		_buttons.append(b)
 	_buttons[0].button_pressed = true
 	bar.add_child(VSeparator.new())
+	var traffic := Button.new()
+	traffic.text = "Circulation"
+	traffic.toggle_mode = true
+	traffic.button_pressed = true
+	traffic.toggled.connect(func(on: bool) -> void: traffic_toggled.emit(on))
+	bar.add_child(traffic)
 	for spec in [["Sauver", save_requested], ["Charger", load_requested], ["Globe", globe_requested], ["Ville prototype", city_requested]]:
 		var b := Button.new()
 		b.text = spec[0]
@@ -196,6 +224,14 @@ func set_place(lat: float, lon: float) -> void:
 
 func set_cell_info(text: String) -> void:
 	_cell_label.text = text
+
+
+func set_tool_info(text: String) -> void:
+	_tool_label.text = text
+
+
+func set_network_info(text: String) -> void:
+	_network_label.text = text
 
 
 func set_status(text: String) -> void:

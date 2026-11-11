@@ -95,3 +95,7 @@ Choix simples pour l'instant (questions 1 et 2 toujours ouvertes) : pas de voyag
 ## Giratoires
 
 `TransportSystem.make_roundabout(nid)` coupe chaque branche à un rayon r du carrefour, supprime le centre et relie les nouveaux nœuds par des arcs de classe `giratoire` (à sens unique de `a` vers `b`, sens inverse des aiguilles d'une montre vu du dessus). `find_route` ne prend un tronçon à sens unique que dans son sens, et `lane_offsets` répartit les voies d'un sens unique sur toute la chaussée. Les nœuds d'entrée prennent le régime `giratoire` : l'anneau est prioritaire et les branches cèdent le passage. Les îlots centraux sont gardés dans `roundabouts` (sauvegardés sous la clé `giratoires`).
+
+## Parkings
+
+Un parking est une station de type `parking` (nœud du réseau routier, emprise à droite de la route). `StationSystem._sync_parkings()` donne à `Traffic.parkings` la position de chaque place (`Transform3D`) et leur occupation. Un véhicule ambiant (voiture, utilitaire, deux-roues) a 35 % de chances, à chaque nouvelle destination, de viser une place libre : la place est réservée, il roule jusqu'au nœud du parking, se gare (`parked`, hors des files) puis repart quand la voie est libre.

@@ -124,6 +124,12 @@ Bouton **Lignes (L)** (ou touche **L**) : le panneau des transports publics.
 
 Tout est gardé par **Sauver / Charger**.
 
+### Parkings
+
+Le panneau **Lignes (L)** propose aussi le **Parking** : 26 places en épi droit au bord d'une rue, d'une avenue ou d'une départementale. Une partie des voitures, utilitaires et deux-roues de passage y vont, se garent sur une place libre de 40 s à 2 min 40, puis repartent quand la voie est libre.
+
+![Parking au bord d'une départementale](docs/apercu-parking.png)
+
 ### Le catalogue de véhicules
 
 ![Voitures, bus, deux-roues et attelages du monde entier](docs/apercu-vehicules.png)

@@ -4,6 +4,9 @@ extends Node3D
 @onready var world: TerrainWorld = $Terrain
 @onready var hud: CanvasLayer = $HUD
 @onready var rig: Node3D = $CameraRig
+@onready var transport: TransportSystem = $Transport
+
+const TRANSPORT_TOOLS := ["route", "rail", "chemin", "voie_eau"]
 
 var _status_timer := 0.0
 var _hover := Vector2i.ZERO
@@ -21,11 +24,19 @@ func _ready() -> void:
 			hud.show_message("%d case%s modifiée%s." % [n, "s" if n > 1 else "", "s" if n > 1 else ""])
 		_refresh_cell_info())
 	hud.go_requested.connect(func(lat: float, lon: float) -> void: world.set_origin(lat, lon))
-	hud.tool_selected.connect(func(t: int) -> void: world.set_tool(t))
+	hud.tool_selected.connect(_on_tool_selected)
+	hud.traffic_toggled.connect(func(on: bool) -> void: transport.traffic.set_enabled(on))
+	transport.info_changed.connect(func(t: String) -> void: hud.set_tool_info(t))
+	transport.message.connect(func(t: String) -> void: hud.show_message(t))
 	hud.save_requested.connect(func() -> void:
-		hud.show_message("Région sauvegardée." if world.save_world() else "Échec de la sauvegarde."))
+		var ok := world.save_world({"transport": transport.to_dict()})
+		hud.show_message("Région sauvegardée." if ok else "Échec de la sauvegarde."))
 	hud.load_requested.connect(func() -> void:
-		hud.show_message("Région chargée." if world.load_world() else "Aucune sauvegarde trouvée."))
+		if world.load_world():
+			transport.from_dict(world.loaded_data.get("transport", {}))
+			hud.show_message("Région chargée.")
+		else:
+			hud.show_message("Aucune sauvegarde trouvée."))
 	hud.city_requested.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/main.tscn"))
 	hud.globe_requested.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/globe.tscn"))
 	if GameStart.chosen:
@@ -33,7 +44,22 @@ func _ready() -> void:
 	_on_origin_changed(world.origin_lat, world.origin_lon)
 
 
+func _on_tool_selected(t: int) -> void:
+	var k := t - TerreHud.FIRST_TRANSPORT_TOOL
+	if k < 0:
+		transport.set_inactive()
+		world.set_tool(t)
+		return
+	world.set_tool(TerrainWorld.Tool.INSPECT)
+	if k < TRANSPORT_TOOLS.size():
+		transport.set_build(TRANSPORT_TOOLS[k])
+	else:
+		transport.set_demolish()
+
+
 func _on_origin_changed(lat: float, lon: float) -> void:
+	# Nouvelle région : réseau vierge.
+	transport.clear()
 	GameStart.lat = lat
 	GameStart.lon = lon
 	hud.set_place(lat, lon)
@@ -67,6 +93,7 @@ func _process(delta: float) -> void:
 			s += "   ·   %d tuile(s) introuvable(s) (pas de réseau ?)" % t.failed_count()
 		s += "   ·   Cases modifiées : %d" % world.modifications.size()
 		hud.set_status(s)
+		hud.set_network_info(transport.summary())
 
 
 func _refresh_cell_info() -> void:

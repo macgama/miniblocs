@@ -65,6 +65,30 @@ Dans le mode Terre, la barre du bas propose **5 Route**, **6 Rail**, **7 Chemin*
 
 Architecture, feuille de route et questions ouvertes : [docs/transport-architecture.md](docs/transport-architecture.md).
 
+## Bâtiments : poser des bâtiments à l'échelle réelle
+
+Dans le mode Terre, le panneau **Construire** (à droite, **B** pour le masquer) propose 27 bâtiments low-poly à l'échelle réelle (1 case = 1 m), rangés en six catégories : **Logement**, **Commerce**, **Industrie**, **Services publics**, **Loisirs** et **Sport** (maison 10 × 12 m, tour d'habitation de 41 m, supermarché et son parking, hôpital, terrain de football de 105 × 68 m…).
+
+![Bâtiments le long de deux routes](docs/apercu-batiments.png)
+
+- **Poser** : choisis un bâtiment dans la liste. Un fantôme suit la souris, vert si c'est possible, rouge sinon avec la raison. Clic gauche pour poser, **R** pour tourner d'un quart de tour, **clic droit** ou **Échap** pour arrêter.
+- **Orientation** : tant que tu n'appuies pas sur R, la façade se tourne toute seule vers la route la plus proche. Un trait jaune relie la porte à la voie qui la dessert.
+- **Terrassement** : le terrain est aplani sous le bâtiment, avec un petit talus autour. Refusé si le dénivelé dépasse 12 m, dans la mer, sur un lac ou une rivière, sur une voie ou sur un autre bâtiment. Une voie ne peut plus traverser un bâtiment.
+- **Règles du bac à sable** (cases à cocher dans le panneau) : **accès à une voie obligatoire** (route, ou chemin pour les parcs, terrains de sport, écoles…, à moins de 10 m de la porte) et **caisse** de départ de 20 M€ : chaque bâtiment a un prix, plus le terrassement. **Argent illimité** pour construire librement.
+- **Démolir un bâtiment** : bouton du panneau, puis clic sur le bâtiment (la moitié du prix est rendue, le terrain reste aplani).
+- **Sauver / Charger** gardent les bâtiments, les zones et la caisse avec le terrain et le réseau.
+
+### Zonage : laisser la ville pousser
+
+L'onglet **Zonage** du même panneau permet de peindre des zones **résidentielles**, **commerciales** ou **industrielles** (clic gauche glissé, 2 € le m², 300 m de côté au maximum). Tu choisis librement entre poser toi-même et laisser pousser, et tu peux mélanger les deux.
+
+![Un quartier né du zonage](docs/apercu-zonage.png)
+
+- Les bâtiments **poussent tout seuls le long des routes** de la zone, façade vers la rue, sur le relief aplani. Ils ne coûtent rien au joueur (ce sont des constructions privées).
+- **Demande** affichée dans le panneau : il vient toujours des habitants, d'autant plus qu'il y a du travail ; commerces et industries s'installent selon la population.
+- **Retirer des zones** : glisser sur la zone à effacer (une zone coupée en partie est redécoupée). Les bâtiments déjà construits restent.
+- Case **Croissance automatique** pour mettre la ville en pause.
+
 ## Comment ça marche
 
 - **Routes** : se tracent en L entre le point de départ et la souris. Le marquage s'adapte aux routes voisines (lignes droites, virages, carrefours).
@@ -104,6 +128,13 @@ Architecture, feuille de route et questions ouvertes : [docs/transport-architect
 | `scripts/transport/traffic.gd` | Véhicules qui circulent |
 | `scripts/transport/transport_system.gd` | Outils de pose et de démolition dans le mode Terre |
 | `tests/transport_test.gd` | Test automatique des transports (sans réseau) |
+| `scripts/batiments/building_catalog.gd` | Catalogue des bâtiments : catégories, emprises, prix, modèles low-poly |
+| `scripts/batiments/bloc_mesh.gd` | Formes low-poly (boîtes, toits, cylindres) assemblées en un seul maillage |
+| `scripts/batiments/building_system.gd` | Pose, règles, terrassement, démolition et sauvegarde des bâtiments |
+| `scripts/batiments/building_panel.gd` | Panneau « Construire » |
+| `scripts/batiments/zone_system.gd` | Zonage : zones peintes, demande, croissance le long des routes |
+| `tests/batiments_test.gd` | Test automatique des bâtiments (sans réseau) |
+| `tests/batiments_vitrine.gd` | Pose tout le catalogue (ou fait pousser un quartier avec `--zones`) et prend une capture |
 
 ## Test automatique
 
@@ -117,7 +148,7 @@ Le test pose des routes et des zones, attend la croissance, puis vérifie la sau
 godot --headless --path . --script res://tests/terre_test.gd
 ```
 
-Vérifie les conversions de coordonnées, le décodage des tuiles, la génération des blocs, le terrassement et la sauvegarde. Il affiche `TERRE TEST OK`. De même, `tests/globe_test.gd` affiche `GLOBE TEST OK` et `tests/transport_test.gd` affiche `TRANSPORT TEST OK`.
+Vérifie les conversions de coordonnées, le décodage des tuiles, la génération des blocs, le terrassement et la sauvegarde. Il affiche `TERRE TEST OK`. De même, `tests/globe_test.gd` affiche `GLOBE TEST OK`, `tests/transport_test.gd` affiche `TRANSPORT TEST OK` et `tests/batiments_test.gd` affiche `BATIMENTS TEST OK`.
 
 ## Pistes pour la suite
 

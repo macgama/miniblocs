@@ -57,6 +57,9 @@ var _hash: Dictionary = {}
 var _hash_dirty := true
 var _max_hw := 0.0
 const HASH := 16.0
+## Si défini, Callable(case: Vector2i) -> bool : vrai si la case est interdite
+## aux voies (un bâtiment s'y trouve).
+var blocker: Callable
 
 
 func _ready() -> void:
@@ -135,6 +138,19 @@ func _on_network_changed() -> void:
 	else:
 		_occupied = now
 	network_changed.emit()
+
+
+## Vrai si le tracé passe sur une case interdite (au sol ou en pont, pas en tunnel).
+func is_blocked(id: String, pts: PackedVector3Array, st: PackedByteArray) -> bool:
+	if not blocker.is_valid():
+		return false
+	for c in RoutePlanner.footprint(TransportTypes.width_of(id, spec), pts, st):
+		if blocker.call(c):
+			return true
+	for i in pts.size():
+		if st[i] == TransportTypes.Struct.BRIDGE and blocker.call(Vector2i(floori(pts[i].x), floori(pts[i].z))):
+			return true
+	return false
 
 
 func is_cell_occupied(c: Vector2i) -> bool:
@@ -441,6 +457,10 @@ func evaluate(id: String, s: Dictionary, path: PackedVector2Array) -> Dictionary
 		plan.reason = "Le départ et l'arrivée sont au même endroit."
 		return plan
 	if not plan.ok:
+		return plan
+	if is_blocked(id, plan.pts, plan.st):
+		plan.ok = false
+		plan.reason = "Un bâtiment se trouve sur le tracé."
 		return plan
 	var pts: PackedVector3Array = plan.pts
 	var st: PackedByteArray = plan.st

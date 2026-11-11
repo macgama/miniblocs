@@ -44,6 +44,8 @@ const YIELD_DIST := 32.0
 
 ## Émis quand la circulation est réactivée : les lignes remettent leurs véhicules.
 signal restarted
+## Émis quand un véhicule de ligne arrive à une station (chargement, déchargement).
+signal line_arrived(line_id: int, model: String)
 
 var network: TransportNetwork
 var enabled := true
@@ -564,6 +566,7 @@ func _advance(v: Dictionary, delta: float) -> bool:
 		if v.leg >= route.size():
 			if v.has("line"):
 				# Arrivée en station : arrêt, puis départ vers la suivante.
+				line_arrived.emit(int(v.line), String(v.model))
 				if not _next_stop(v):
 					return false
 				v.dwell = DWELL

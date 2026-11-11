@@ -34,6 +34,8 @@ const TYPES := {
 		"desc": "Quais, marquise et bâtiment voyageurs, sur une ligne classique ou une LGV."},
 	"port": {"name": "Port", "mode": WATER, "kind": "bateau", "classes": [], "len": 60.0,
 		"desc": "Jetée, grue et gare maritime, sur une voie d'eau."},
+	"depot": {"name": "Dépôt de marchandises", "mode": ROAD, "kind": "camion", "classes": [], "len": 40.0,
+		"desc": "Entrepôt et quai de chargement au bord d'une route : des camions y chargent et déchargent."},
 	"parking": {"name": "Parking", "mode": ROAD, "kind": "parking", "classes": ["rue", "avenue", "departementale"], "len": 36.0,
 		"desc": "Parking de 28 places au bord d'une route : les voitures de passage viennent s'y garer un moment."},
 	"heliport": {"name": "Héliport", "mode": AIR, "kind": "avion", "len": 0.0, "pad": 24.0, "flat": 2.0,
@@ -43,8 +45,12 @@ const TYPES := {
 	"aeroport": {"name": "Aéroport", "mode": AIR, "kind": "avion", "len": 1000.0, "width": 45.0, "flat": 20.0,
 		"desc": "Piste de 1 000 × 45 m, aire de stationnement, aérogare et tour de contrôle."},
 }
-const ORDER := ["arret_bus", "arret_tram", "gare", "port", "heliport", "aerodrome", "aeroport", "parking"]
-const KIND_NAMES := {"bus": "Bus", "tram": "Tramway", "train": "Train", "bateau": "Bateau", "avion": "Avion", "parking": "Parking"}
+const ORDER := ["arret_bus", "arret_tram", "gare", "port", "heliport", "aerodrome", "aeroport", "depot", "parking"]
+const KIND_NAMES := {"bus": "Bus", "tram": "Tramway", "train": "Train", "bateau": "Bateau", "avion": "Avion", "parking": "Parking", "camion": "Camions"}
+## Noms des lignes de marchandises.
+const FREIGHT_NAMES := {"train": "Fret ferroviaire", "bateau": "Fret par bateau", "camion": "Camions"}
+## Genres de ligne qui peuvent transporter des marchandises.
+const FREIGHT_KINDS := ["train", "bateau", "camion"]
 ## Places de parking : largeur, profondeur, allée (m).
 const SPOT_W := 2.5
 const SPOT_D := 5.0
@@ -92,6 +98,7 @@ func setup(t: TransportSystem) -> void:
 	camera = t.camera
 	network.changed.connect(_on_network_changed)
 	traffic.restarted.connect(respawn_all)
+	traffic.line_arrived.connect(_on_line_arrived)
 	_material = StandardMaterial3D.new()
 	_material.vertex_color_use_as_albedo = true
 	_material.vertex_color_is_srgb = true
@@ -507,7 +514,8 @@ func finish_line() -> Dictionary:
 
 
 ## Crée une ligne passant par les stations données. Renvoie {ok, reason, id}.
-func create_line(stops: Array, model := "", count := 2) -> Dictionary:
+## fret : ligne de marchandises (trains et bateaux ; toujours vrai pour les camions).
+func create_line(stops: Array, model := "", count := 2, fret := false) -> Dictionary:
 	var clean: Array[int] = []
 	for s in stops:
 		if stations.has(int(s)) and (clean.is_empty() or clean[clean.size() - 1] != int(s)):
@@ -526,29 +534,60 @@ func create_line(stops: Array, model := "", count := 2) -> Dictionary:
 			var b: int = stations[clean[i + 1]].node
 			if network.find_route(a, b).is_empty():
 				return {"ok": false, "reason": "Pas de voie entre %s et %s." % [stations[clean[i]].name, stations[clean[i + 1]].name]}
-	var models := models_for(kind, clean)
+	fret = kind == "camion" or (fret and FREIGHT_KINDS.has(kind))
+	var models := models_for(kind, clean, fret)
 	if models.is_empty():
 		return {"ok": false, "reason": "Aucun véhicule ne peut desservir ces stations."}
 	if model == "" or not models.has(model):
 		model = _default_model(kind, models)
 	var id := next_id
 	next_id += 1
-	var n := 1
-	for lid in lines:
-		if lines[lid].kind == kind:
-			n += 1
-	lines[id] = {"id": id, "name": "%s %d" % [KIND_NAMES[kind], n], "kind": kind, "stops": clean,
+	lines[id] = {"id": id, "name": _line_name(kind, fret), "kind": kind, "stops": clean, "fret": fret, "tonnes": 0.0,
 		"model": model, "count": clampi(count, 1, 30), "color": LINE_COLORS[(id - 1) % LINE_COLORS.size()]}
 	_respawn(id)
 	lines_changed.emit()
 	return {"ok": true, "reason": "", "id": id}
 
 
+func _line_name(kind: String, fret: bool) -> String:
+	var base: String = FREIGHT_NAMES[kind] if fret else KIND_NAMES[kind]
+	var n := 1
+	for lid in lines:
+		if String(lines[lid].name).begins_with(base + " "):
+			n += 1
+	return "%s %d" % [base, n]
+
+
+## Passe une ligne de train ou de bateau en fret (ou en voyageurs).
+func set_fret(id: int, on: bool) -> void:
+	if not lines.has(id):
+		return
+	var l: Dictionary = lines[id]
+	if not FREIGHT_KINDS.has(String(l.kind)) or l.kind == "camion" or bool(l.get("fret", false)) == on:
+		return
+	var models := models_for(l.kind, l.stops, on)
+	if models.is_empty():
+		message.emit("Aucun véhicule de ce genre pour ces stations.")
+		lines_changed.emit()
+		return
+	l.fret = on
+	l.name = _line_name(l.kind, on)
+	l.model = _default_model(l.kind, models)
+	_respawn(id)
+	lines_changed.emit()
+
+
+## Chargement et déchargement : les lignes de fret comptent leurs tonnes.
+func _on_line_arrived(line_id: int, model: String) -> void:
+	if lines.has(line_id) and bool(lines[line_id].get("fret", false)):
+		lines[line_id].tonnes = float(lines[line_id].get("tonnes", 0.0)) + VehicleCatalog.capacity_t(model)
+
+
 func set_line(id: int, model: String, count: int) -> void:
 	if not lines.has(id):
 		return
 	var l: Dictionary = lines[id]
-	if models_for(l.kind, l.stops).has(model):
+	if models_for(l.kind, l.stops, bool(l.get("fret", false))).has(model):
 		l.model = model
 	l.count = clampi(count, 1, 30)
 	_respawn(id)
@@ -562,7 +601,7 @@ func remove_line(id: int) -> void:
 
 
 ## Modèles du catalogue qui peuvent desservir une ligne de ce genre.
-func models_for(kind: String, stops: Array = []) -> Array[String]:
+func models_for(kind: String, stops: Array = [], fret := false) -> Array[String]:
 	var out: Array[String] = []
 	var heli_only := false
 	var rail_cls := ""
@@ -577,7 +616,12 @@ func models_for(kind: String, stops: Array = []) -> Array[String]:
 		var t := VehicleCatalog.get_type(id)
 		if t.get("hidden", false):
 			continue
+		if FREIGHT_KINDS.has(kind) and VehicleCatalog.is_freight(id) != (fret or kind == "camion"):
+			continue
 		match kind:
+			"camion":
+				if not (t.cat in ["utilitaire", "attelage"]):
+					continue
 			"bus":
 				if t.cat != "bus":
 					continue
@@ -601,7 +645,9 @@ func models_for(kind: String, stops: Array = []) -> Array[String]:
 
 
 func _default_model(kind: String, models: Array[String]) -> String:
-	var prefer := {"bus": "bus_urbain", "tram": "tram_moderne", "train": "regional", "bateau": "bateau_bus", "avion": "court_courrier"}
+	var prefer := {"bus": "bus_urbain", "tram": "tram_moderne", "train": "regional", "bateau": "bateau_bus", "avion": "court_courrier", "camion": "semi"}
+	if not models.is_empty() and VehicleCatalog.is_freight(models[0]) and kind != "camion":
+		prefer = {"train": "electrique_fret", "bateau": "peniche"}
 	var era := traffic.era_filter
 	var region := traffic.region_filter
 	for id in models:
@@ -705,7 +751,18 @@ func flight_path(line_id: int, from_i: int, to_i: int) -> PackedVector3Array:
 func line_summary(id: int) -> String:
 	var l: Dictionary = lines[id]
 	var names: Array = (l.stops as Array).map(func(s: int) -> String: return stations[s].name if stations.has(s) else "?")
-	return "%s : %s" % [l.name, " ↔ ".join(names)]
+	var txt := "%s : %s" % [l.name, " ↔ ".join(names)]
+	if bool(l.get("fret", false)):
+		txt += "  ·  %s transportées" % format_tonnes(float(l.get("tonnes", 0.0)))
+	return txt
+
+
+static func format_tonnes(t: float) -> String:
+	if t < 1000.0:
+		return ("%.1f t" % t).replace(".", ",").replace(",0 t", " t")
+	if t < 1.0e6:
+		return ("%.1f kt" % (t / 1000.0)).replace(".", ",")
+	return ("%.2f Mt" % (t / 1.0e6)).replace(".", ",")
 
 
 # --- Emprises -------------------------------------------------------------------------------
@@ -728,6 +785,8 @@ func _rects(type_id: String, hw := 0.0) -> Array:
 			return [[-half, half, hw + 0.2, hw + 3.4], [-half, half, -hw - 3.4, -hw - 0.2]]
 		"parking":
 			return [[-half, half, hw + 0.2, hw + 1.0 + SPOT_D * 2.0 + AISLE + 0.5]]
+		"depot":
+			return [[-half, half, hw + 0.2, hw + 26.0]]
 		"gare":
 			return [[-half, half, hw + 0.2, hw + 32.0], [-half, half, -hw - 6.4, -hw - 0.2]]
 	return []
@@ -897,6 +956,22 @@ static func build_network_mesh(type_id: String, hw: float) -> ArrayMesh:
 	var k := VehicleMesh.new()
 	var len := float(get_type(type_id).len)
 	match type_id:
+		"depot":
+			# Cour, entrepôt, quai de chargement et piles de conteneurs.
+			k.box(hw + 13.0, 0.0, 0, 25.6, 0.15, len, CONCRETE)
+			k.box(hw + 19.0, 0.15, -4.0, 12.0, 8.0, 26.0, Color("a8a29e"))
+			k.box(hw + 19.0, 8.15, -4.0, 12.6, 0.4, 26.6, Color("57534e"))
+			k.box(hw + 12.6, 0.15, -4.0, 1.2, 1.2, 26.0, Color("78716c"))
+			for i in 4:
+				k.box(hw + 13.15, 1.4, -14.0 + i * 6.6, 0.1, 4.2, 4.0, Color("d6d3d1"))
+			var cols := [Color("c1121f"), Color("1d4ed8"), Color("f77f00"), Color("2d6a4f"), Color("6b7280")]
+			for i in 6:
+				var z := 12.0 + (i % 3) * 2.7
+				var lvl := i / 3
+				k.box(hw + 6.0, 0.15 + lvl * 2.6, z, 6.1, 2.55, 2.45, cols[i % cols.size()])
+			# Barrière d'entrée.
+			k.box(hw + 0.6, 0.0, len / 2.0 - 1.0, 0.25, 1.1, 0.25, Color("dcdcdc"))
+			k.box(hw + 0.6, 1.0, len / 2.0 - 4.0, 0.12, 0.12, 6.0, Color("e63946"))
 		"parking":
 			var depth := SPOT_D * 2.0 + AISLE + 1.0
 			k.box(hw + 0.6 + depth / 2.0, 0.0, 0, depth, 0.12, len, ASPHALT)
@@ -1033,7 +1108,8 @@ func to_dict() -> Dictionary:
 	var ls := []
 	for lid in lines:
 		var l: Dictionary = lines[lid]
-		ls.append({"id": lid, "name": l.name, "kind": l.kind, "stops": l.stops, "model": l.model, "count": l.count, "color": (l.color as Color).to_html(false)})
+		ls.append({"id": lid, "name": l.name, "kind": l.kind, "stops": l.stops, "model": l.model, "count": l.count, "color": (l.color as Color).to_html(false),
+			"fret": bool(l.get("fret", false)), "tonnes": snappedf(float(l.get("tonnes", 0.0)), 0.1)})
 	return {"next_id": next_id, "stations": ss, "lines": ls}
 
 
@@ -1064,6 +1140,7 @@ func from_dict(data: Dictionary) -> void:
 		if stops.size() < 2:
 			continue
 		lines[id] = {"id": id, "name": String(l.name), "kind": String(l.kind), "stops": stops, "model": String(l.model),
+			"fret": bool(l.get("fret", String(l.kind) == "camion")), "tonnes": float(l.get("tonnes", 0.0)),
 			"count": int(l.count), "color": Color(String(l.get("color", "e63946")))}
 		next_id = maxi(next_id, id + 1)
 	next_id = maxi(next_id, int(data.get("next_id", 1)))

@@ -12,6 +12,8 @@ extends Node3D
 signal origin_changed(lat: float, lon: float)
 signal hovered_cell_changed(cell: Vector2i, valid: bool)
 signal terrain_edited(count: int)
+## Un bloc d'affichage vient d'être (re)construit : son relief a pu changer.
+signal chunk_rebuilt(k: Vector2i)
 
 enum Tool { INSPECT, FLATTEN, RAISE, LOWER }
 
@@ -56,6 +58,8 @@ var _hover_valid := false
 var _drag_start := Vector2i.ZERO
 var _dragging := false
 var _view_radius := 200.0
+## Rayon d'affichage imposé (m), par ex. en vue au sol. 0 = selon la distance de la caméra.
+var view_radius_override := 0.0
 # Conversion mètres locaux -> pixels globaux, mise à jour à chaque changement d'origine.
 var _px0 := 0.0
 var _px_per_m := 0.0
@@ -228,6 +232,8 @@ func _process(_delta: float) -> void:
 	if _camera:
 		var cam_dist := _camera.global_position.distance_to(center)
 		_view_radius = clampf(cam_dist * 2.4, min_view_radius, max_view_radius)
+	if view_radius_override > 0.0:
+		_view_radius = view_radius_override
 	var cs := float(chunk_size)
 	_water.position.x = snappedf(center.x, cs)
 	_water.position.z = snappedf(center.z, cs)
@@ -417,6 +423,7 @@ func _build_chunk(k: Vector2i) -> void:
 	mi.mesh = mesh
 	_plant_vegetation(mi, k, h, kinds)
 	_dirty.erase(k)
+	chunk_rebuilt.emit(k)
 
 
 static func _quad(verts: PackedVector3Array, normals: PackedVector3Array, cols: PackedColorArray,
@@ -548,6 +555,12 @@ static func _add_multimesh(parent: Node3D, mesh: Mesh, xforms: Array[Transform3D
 
 
 # --- Souris et outils ------------------------------------------------------
+
+## Change la caméra et le point suivis pour charger le relief (vue de dessus ou personnage).
+func set_view(camera: Camera3D, focus: Node3D) -> void:
+	_camera = camera
+	_focus = focus
+
 
 func set_tool(t: Tool) -> void:
 	current_tool = t

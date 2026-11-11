@@ -54,6 +54,29 @@ Dans le mode Terre, la barre du bas propose **5 Route**, **6 Rail**, **7 Chemin*
 
 Architecture, feuille de route et questions ouvertes : [docs/transport-architecture.md](docs/transport-architecture.md).
 
+## Vue au sol : marcher à la 3e ou à la 1re personne
+
+Dans le mode Terre, appuie sur **V** (ou les boutons **Dessus / 3e pers. / 1re pers.** en haut à droite) : un personnage apparaît au sol, au centre de la vue de gestion.
+
+![Vue à la 3e personne](docs/apercu-3e-personne.png)
+
+| Action | Touches |
+| --- | --- |
+| Changer de vue (dessus → 3e → 1re → dessus) | V |
+| Marcher / courir | ZQSD (WASD en QWERTY) ou flèches / Maj maintenue |
+| Sauter, remonter en nageant | Espace |
+| Regarder | Souris |
+| Rapprocher / éloigner la caméra | Molette (tout près : 1re personne, molette arrière : 3e personne) |
+| Libérer la souris (pour cliquer sur l'interface) | Échap, puis clic dans la vue pour la reprendre |
+
+- **Collisions** : le personnage marche sur le relief (et sur les cases que tu as aplanies ou creusées), sur les routes, rails, chemins et ponts (les parapets empêchent de tomber). Tout objet qui a une collision (bâtiments…) l'arrête.
+- **Caméra 3e personne** : elle se rapproche toute seule quand un mur, une colline ou le sol passerait entre elle et le personnage.
+- **Eau** : dans l'eau profonde, il nage à la surface.
+- **Retour en vue de dessus** : la caméra de gestion se recentre sur le personnage.
+- Limites actuelles : on traverse encore les arbres et les véhicules, et les tunnels ne sont pas praticables à pied.
+
+![Vue à la 1re personne sur une route](docs/apercu-1re-personne.png)
+
 ## Comment ça marche
 
 - **Routes** : se tracent en L entre le point de départ et la souris. Le marquage s'adapte aux routes voisines (lignes droites, virages, carrefours).
@@ -78,6 +101,10 @@ Architecture, feuille de route et questions ouvertes : [docs/transport-architect
 | `scripts/terre/globe_menu.gd` | Globe : rotation, clic, recherche, hasard, aperçu, lancement |
 | `scripts/terre/game_start.gd` | Choix du joueur transmis à la partie (lieu, mode) |
 | `scenes/terre.tscn` | Mode Terre : relief réel en cases de 1 m |
+| `scripts/personnage/vue_sol.gd` | Bascule vue de dessus / 3e / 1re personne, caméra au sol |
+| `scripts/personnage/personnage.gd` | Personnage qui marche (piloté par des ordres, prêt pour le multijoueur) |
+| `scripts/personnage/collisions_sol.gd` | Collisions du relief et des voies autour du personnage |
+| `tests/personnage_test.gd` | Test de la vue au sol (marche, pont, mur, caméra, nage) |
 | `scripts/terre/geo.gd` | Conversions latitude / longitude ↔ mètres ↔ tuiles |
 | `scripts/terre/land_cover.gd` | Biomes réels (ESA WorldCover) lus par blocs autour du lieu |
 | `assets/biomes_monde.png` | Carte mondiale des biomes du globe (fabriquée par `tools/build_biome_map.py`) |

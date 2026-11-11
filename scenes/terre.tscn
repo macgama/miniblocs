@@ -1,10 +1,11 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scripts/terre/terre_main.gd" id="1_main"]
 [ext_resource type="Script" path="res://scripts/camera_rig.gd" id="2_cam"]
 [ext_resource type="Script" path="res://scripts/terre/terrain_world.gd" id="3_world"]
 [ext_resource type="Script" path="res://scripts/terre/terre_hud.gd" id="4_hud"]
 [ext_resource type="Script" path="res://scripts/transport/transport_system.gd" id="5_transport"]
+[ext_resource type="Script" path="res://scripts/personnage/vue_sol.gd" id="9_vue_sol"]
 
 [sub_resource type="ProceduralSkyMaterial" id="sky_mat"]
 sky_top_color = Color(0.45, 0.66, 0.9, 1)
@@ -65,3 +66,11 @@ camera_path = NodePath("../CameraRig/Camera3D")
 
 [node name="HUD" type="CanvasLayer" parent="."]
 script = ExtResource("4_hud")
+
+[node name="VueSol" type="Node3D" parent="."]
+script = ExtResource("9_vue_sol")
+world_path = NodePath("../Terrain")
+rig_path = NodePath("../CameraRig")
+transport_path = NodePath("../Transport")
+hud_path = NodePath("../HUD")
+environment_path = NodePath("../WorldEnvironment")

@@ -182,11 +182,25 @@ func _run() -> void:
 	# 4. Sauvegarde et chargement.
 	t0 = Time.get_ticks_usec()
 	var main = scene
+	for nm in ["Terrain", "Transport", "Batiments", "Zones", "Blocs"]:
+		var t9 := Time.get_ticks_usec()
+		scene.get_node(nm).to_dict()
+		print("  %s : %.0f ms" % [nm, (Time.get_ticks_usec() - t9) / 1000.0])
+	t0 = Time.get_ticks_usec()
+	var secs: Dictionary = main.save_sections()
+	print("  sections en mémoire : %.0f ms" % ((Time.get_ticks_usec() - t0) / 1000.0))
+	t0 = Time.get_ticks_usec()
 	main.save_game()
 	var save_ms := (Time.get_ticks_usec() - t0) / 1000.0
 	t0 = Time.get_ticks_usec()
 	var loaded: bool = main.load_game()
 	print("Sauvegarde %.0f ms, chargement %.0f ms (%s)" % [save_ms, (Time.get_ticks_usec() - t0) / 1000.0, "ok" if loaded else "ÉCHEC"])
+	var size := 0
+	var dir := SaveGame.DIR.path_join(GameStart.slot_id)
+	for f in DirAccess.get_files_at(dir):
+		size += FileAccess.get_file_as_bytes(dir.path_join(f)).size()
+	print("Taille de la sauvegarde : %d Ko (%d cases modifiées)" % [size / 1024, world.modifications.size()])
+	SaveGame.delete(GameStart.slot_id)
 	print(bs.summary())
 	print("PERF BENCH OK")
 	quit(0)

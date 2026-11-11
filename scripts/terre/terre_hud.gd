@@ -6,6 +6,7 @@ signal go_requested(lat: float, lon: float)
 signal tool_selected(tool: int)
 signal save_requested
 signal load_requested
+signal quick_load_requested
 signal city_requested
 signal globe_requested
 signal traffic_toggled(on: bool)
@@ -363,7 +364,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	if key.keycode == KEY_F5:
 		save_requested.emit()
 	elif key.keycode == KEY_F9:
-		load_requested.emit()
+		quick_load_requested.emit()
 
 
 ## Enfonce le bouton d'un outil sans prévenir (un autre système a pris la main).

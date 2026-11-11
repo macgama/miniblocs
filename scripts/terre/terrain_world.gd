@@ -17,7 +17,9 @@ signal chunk_rebuilt(k: Vector2i)
 
 enum Tool { INSPECT, FLATTEN, RAISE, LOWER }
 
-const SAVE_PATH := "user://terre_save.json"
+## Fichier de save_world() / load_world() (ancien format, gardé pour les tests).
+## Les parties du joueur passent par SaveGame (user://parties/).
+const SAVE_PATH := "user://test_terre_save.json"
 const WATER_LEVEL := -0.1
 
 @export var chunk_size: int = 64
@@ -926,6 +928,19 @@ func _mark_dirty_around(c: Vector2i) -> void:
 
 
 # --- Sauvegarde --------------------------------------------------------------
+
+## Section « terrain » de la sauvegarde : lieu et cases modifiées, par blocs.
+func to_dict() -> Dictionary:
+	return {"version": 2, "lat": origin_lat, "lon": origin_lon, "modifs": SaveGame.encode_cells(modifications)}
+
+
+## Recharge le lieu et les cases modifiées (vide aussi les autres systèmes via origin_changed).
+func from_dict(data: Dictionary) -> void:
+	if int(data.get("version", 1)) < 2:
+		data = SaveGame.migrate_section("terrain", 1, data)
+	set_origin(float(data.get("lat", origin_lat)), float(data.get("lon", origin_lon)))
+	modifications = SaveGame.decode_cells(data.get("modifs", {}))
+
 
 ## Données lues par le dernier load_world() (pour les autres systèmes : transports…).
 var loaded_data: Dictionary = {}

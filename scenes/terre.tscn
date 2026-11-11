@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=16 format=3]
 
 [ext_resource type="Script" path="res://scripts/terre/terre_main.gd" id="1_main"]
 [ext_resource type="Script" path="res://scripts/camera_rig.gd" id="2_cam"]
@@ -9,6 +9,7 @@
 [ext_resource type="Script" path="res://scripts/batiments/building_panel.gd" id="7_panneau"]
 [ext_resource type="Script" path="res://scripts/batiments/zone_system.gd" id="8_zones"]
 [ext_resource type="Script" path="res://scripts/batiments/block_editor.gd" id="9_blocs"]
+[ext_resource type="Script" path="res://scripts/ambiance/day_night.gd" id="11_ambiance"]
 [ext_resource type="Script" path="res://scripts/personnage/vue_sol.gd" id="10_vue_sol"]
 
 [sub_resource type="ProceduralSkyMaterial" id="sky_mat"]
@@ -91,6 +92,13 @@ buildings_path = NodePath("../Batiments")
 
 [node name="PanneauConstruction" type="CanvasLayer" parent="."]
 script = ExtResource("7_panneau")
+
+[node name="Ambiance" type="Node" parent="."]
+script = ExtResource("11_ambiance")
+sun_path = NodePath("../Sun")
+environment_path = NodePath("../WorldEnvironment")
+transport_path = NodePath("../Transport")
+world_path = NodePath("../Terrain")
 
 [node name="VueSol" type="Node3D" parent="."]
 script = ExtResource("10_vue_sol")

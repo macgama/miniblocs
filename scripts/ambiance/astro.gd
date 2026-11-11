@@ -97,42 +97,6 @@ static func direction(horiz: Vector2) -> Vector3:
 	return Vector3(sin(az) * cos(el), sin(el), -cos(az) * cos(el))
 
 
-## Décalage horaire approximatif (heures) d'un lieu, heure d'été comprise.
-## Pas de base de fuseaux : une règle simple par longitude, corrigée pour
-## l'Europe de l'Ouest (heure de Paris) et le Royaume-Uni, qui suffit à afficher
-## une heure vraisemblable sur place.
-static func utc_offset(lat: float, lon: float, unix: float) -> float:
-	var base := float(roundi(lon / 15.0))
-	var europe := lat > 35.0 and lat < 72.0 and lon > -11.0 and lon < 40.0
-	if europe:
-		if lon < 1.8 and lat > 49.9 or lon < -6.2:
-			base = 0.0 # Royaume-Uni, Irlande, Portugal
-		elif lon < 19.0:
-			base = 1.0 # Europe centrale (France, Espagne, Allemagne, Italie…)
-		elif lon < 30.0:
-			base = 2.0
-		else:
-			base = 3.0
-		if _europe_summer(unix):
-			base += 1.0
-	return base
-
-
-## Heure d'été européenne : du dernier dimanche de mars au dernier dimanche d'octobre.
-static func _europe_summer(unix: float) -> bool:
-	var d := Time.get_datetime_dict_from_unix_time(int(unix))
-	var m: int = d.month
-	if m < 3 or m > 10:
-		return false
-	if m > 3 and m < 10:
-		return true
-	# Dernier dimanche du mois (31 jours en mars et en octobre).
-	var last := Time.get_unix_time_from_datetime_dict({"year": d.year, "month": m, "day": 31, "hour": 1, "minute": 0, "second": 0})
-	var wd: int = Time.get_datetime_dict_from_unix_time(int(last)).weekday # 0 = dimanche
-	var switch := last - wd * 86400.0
-	return unix >= switch if m == 3 else unix < switch
-
-
 ## Heures (locales, en heures décimales) du lever et du coucher du Soleil pour le
 ## jour qui contient `unix`. Renvoie Vector2(-1, -1) pendant la nuit polaire et
 ## Vector2(-2, -2) pendant le jour polaire.

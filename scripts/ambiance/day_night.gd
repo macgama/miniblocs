@@ -114,7 +114,7 @@ func _ready() -> void:
 ## Démarre aujourd'hui (date de l'ordinateur), à 10 h, heure du lieu.
 func _start_today() -> void:
 	var now := Time.get_unix_time_from_system()
-	var off := Astro.utc_offset(lat, lon, now) * 3600.0
+	var off := Fuseaux.utc_offset(lat, lon, now) * 3600.0
 	var local_midnight := floorf((now + off) / 86400.0) * 86400.0
 	unix_time = local_midnight + START_HOUR * 3600.0 - off
 
@@ -128,7 +128,7 @@ func set_place(a: float, o: float) -> void:
 
 ## Décalage horaire du lieu (heures).
 func utc_offset() -> float:
-	return Astro.utc_offset(lat, lon, unix_time)
+	return Fuseaux.utc_offset(lat, lon, unix_time)
 
 
 ## Heure locale en heures décimales (0 à 24).

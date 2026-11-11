@@ -58,11 +58,30 @@ func _run() -> void:
 	dir = Astro.direction(Vector2(0, 180))
 	_check(dir.distance_to(Vector3(0, 0, 1)) < 0.001, "Sud = +Z dans le repère du jeu")
 	# Lever / coucher à Paris (heure légale) : 21 juin ≈ 05:47 / 21:58, 21 déc ≈ 08:41 / 16:56.
-	var off := Astro.utc_offset(48.8566, 2.3522, _utc(2026, 6, 21, 12))
+	print("Fuseaux horaires :")
+	_check(Fuseaux.available(), "Carte des fuseaux chargée")
+	var off := Fuseaux.utc_offset(48.8566, 2.3522, _utc(2026, 6, 21, 12))
 	_check(off == 2.0, "Paris en été : UTC+2")
-	_check(Astro.utc_offset(48.8566, 2.3522, _utc(2026, 12, 21, 12)) == 1.0, "Paris en hiver : UTC+1")
-	_check(Astro.utc_offset(51.5072, -0.1276, _utc(2026, 12, 21, 12)) == 0.0, "Londres en hiver : UTC+0")
-	_check(Astro.utc_offset(35.68, 139.69, _utc(2026, 12, 21, 12)) == 9.0, "Tokyo : UTC+9")
+	var tz_cases := [
+		["Paris en hiver", 48.8566, 2.3522, _utc(2026, 12, 21, 12), 1.0],
+		["Paris, 29 mars 2026 à 00:59 UTC (avant le changement)", 48.8566, 2.3522, _utc(2026, 3, 29, 0, 59), 1.0],
+		["Paris, 29 mars 2026 à 01:00 UTC (heure d'été)", 48.8566, 2.3522, _utc(2026, 3, 29, 1, 0), 2.0],
+		["Paris en juillet 2070 (au-delà de la table)", 48.8566, 2.3522, _utc(2070, 7, 1, 12), 2.0],
+		["Londres en hiver", 51.5072, -0.1276, _utc(2026, 12, 21, 12), 0.0],
+		["Tokyo", 35.68, 139.69, _utc(2026, 12, 21, 12), 9.0],
+		["Pékin", 39.9, 116.4, _utc(2026, 7, 1, 12), 8.0],
+		["New York en été", 40.71, -74.0, _utc(2026, 7, 1, 12), -4.0],
+		["Phoenix en été (pas d'heure d'été)", 33.45, -112.07, _utc(2026, 7, 1, 12), -7.0],
+		["Bombay", 19.07, 72.87, _utc(2026, 7, 1, 12), 5.5],
+		["Katmandou", 27.7, 85.32, _utc(2026, 7, 1, 12), 5.75],
+		["Sydney en janvier (été austral)", -33.87, 151.21, _utc(2026, 1, 15, 12), 11.0],
+		["Rio", -22.95, -43.16, _utc(2026, 1, 15, 12), -3.0],
+		["Étretat (côte)", 49.707, 0.2016, _utc(2026, 1, 15, 12), 1.0],
+		["Milieu de l'Atlantique (fuseau nautique)", 35.0, -40.0, _utc(2026, 1, 15, 12), -3.0],
+	]
+	for c in tz_cases:
+		var o := Fuseaux.utc_offset(c[1], c[2], c[3])
+		_check(absf(o - float(c[4])) < 0.01, "%s : %s" % [c[0], ClockHud.format_offset(o)])
 	var rs := Astro.sun_rise_set(_utc(2026, 6, 21, 12), 48.8566, 2.3522, off)
 	_check(absf(rs.x - 5.78) < 0.1 and absf(rs.y - 21.97) < 0.1, "Paris, 21 juin : lever %s, coucher %s (≈ 05:47, 21:58)" % [ClockHud.format_hour(rs.x), ClockHud.format_hour(rs.y)])
 	rs = Astro.sun_rise_set(_utc(2026, 12, 21, 12), 48.8566, 2.3522, 1.0)

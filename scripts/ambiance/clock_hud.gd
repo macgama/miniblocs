@@ -88,6 +88,15 @@ static func format_hour(h: float) -> String:
 	return "%02d:%02d" % [m / 60, m % 60]
 
 
+## « UTC+1 », « UTC−3:30 », « UTC+5:45 »…
+static func format_offset(off: float) -> String:
+	var m := roundi(absf(off) * 60.0)
+	var s := "UTC%s%d" % ["+" if off >= 0.0 else "−", m / 60]
+	if m % 60 != 0:
+		s += ":%02d" % (m % 60)
+	return s
+
+
 static func moon_phase_name(age: float) -> String:
 	var names := ["nouvelle lune", "premier croissant", "premier quartier", "lune gibbeuse croissante",
 		"pleine lune", "lune gibbeuse décroissante", "dernier quartier", "dernier croissant"]
@@ -110,9 +119,8 @@ func refresh() -> void:
 	else:
 		sun_txt = "lever %s · coucher %s" % [format_hour(rs.x) if rs.x >= 0.0 else "—", format_hour(rs.y) if rs.y >= 0.0 else "—"]
 	var off := clock.utc_offset()
-	_info_label.text = "%s · soleil %d° · %s · UTC%s%d (approx.)" % [
-		sun_txt, roundi(clock.sun_horiz.x), moon_phase_name(Astro.moon_age(clock.unix_time)),
-		"+" if off >= 0.0 else "−", absi(int(off))]
+	_info_label.text = "%s · soleil %d° · %s · %s" % [
+		sun_txt, roundi(clock.sun_horiz.x), moon_phase_name(Astro.moon_age(clock.unix_time)), format_offset(off)]
 	_updating = true
 	_slider.value = h
 	_updating = false

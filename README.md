@@ -41,22 +41,33 @@ Comment ça marche, limites et prochaines étapes : [docs/terre-architecture.md]
 
 Dans le mode Terre, la barre du bas propose **5 Route**, **6 Rail**, **7 Chemin** (piétons et vélos), **8 Voie d'eau** et **9 Démolir**.
 
-![Transports près de Marseille](docs/apercu-transport.png)
+![Carrefours, avenue 2 × 2 voies, rue en courbe, piste cyclable, tramway](docs/apercu-transport-carrefours.png)
 
-- **Tracer** : clic gauche pour commencer, puis un clic pour chaque point suivant. Le tracé continue depuis le dernier point ; **Échap** ou **clic droit** pour arrêter. **Maj** maintenue : angles par pas de 15°.
-- **Aperçu** vert (possible) ou rouge (impossible, avec la raison : pente trop forte, voie d'eau hors de l'eau…), avec la longueur, la pente maxi et les mètres de pont et de tunnel.
-- **Relief** : la voie respecte une pente maximale (route 10 %, rail 4 %, chemin 15 %). Le jeu fait tout seul les **remblais et déblais**, les **ponts** (creux, mer) et les **tunnels** (collines).
-- **Carrefours** : clique sur une voie existante pour t'y raccrocher (carrefour en T), ou croise-la : le carrefour se crée tout seul. Route et rail se croisent par un passage à niveau.
-- **Véhicules** : voitures, trains, piétons, cyclistes et bateaux circulent dès qu'un réseau existe. Bouton **Circulation** pour les masquer.
+- **Classe et largeur** : un panneau au-dessus de la barre permet de choisir la classe de voie et ses réglages, toujours dans les limites des normes françaises (guide ARP, ICTAAL, CEREMA, SNCF Réseau) :
+
+  | Outil | Classes | Réglages |
+  | --- | --- | --- |
+  | Route | Rue de desserte (30 km/h), avenue urbaine (50), route départementale (80), voie express (110), autoroute (130) | Voies par sens, largeur d'une voie (2,75 à 3,50 m selon la classe) ; trottoirs, accotements, bandes d'arrêt d'urgence et terre-plein ajoutés d'office |
+  | Rail | Tramway, ligne classique, ligne à grande vitesse | Voie unique ou double voie (écartement 1,435 m, entraxe 3,00 / 4,20 / 4,50 m) |
+  | Chemin | Chemin piéton, piste cyclable bidirectionnelle, voie verte | Largeur (1,40 à 5,00 m selon la classe) |
+  | Voie d'eau | Voie navigable | Largeur (12 à 60 m) |
+
+  Chaque classe a aussi sa **pente maximale** (rue 12 %, autoroute 5 %, ligne classique 25 ‰…) et son **rayon de courbure minimal** (rue 15 m, départementale 240 m, autoroute 665 m, LGV 4 000 m).
+- **Tracer droit** : clic pour commencer, puis un clic pour chaque point. **Échap** ou **clic droit** pour arrêter. **Maj** : angles par pas de 15°.
+- **Tracer en courbe** : touche **C** (ou bouton **Courbe**). Clic de départ, clic qui donne la direction, clic d'arrivée. En prolongeant une voie, la courbe part dans son prolongement : un seul clic suffit. Un virage plus serré que le rayon minimal de la classe est refusé.
+- **Aperçu** vert (possible) ou rouge avec la raison : pente trop forte, virage trop serré, chevauchement, croisement à mauvaise hauteur…
+- **Relief** : la voie monte et descend avec le terrain dans la limite de sa pente. Le jeu fait la plate-forme, des **talus** en pente douce (1 pour 1,5) jusqu'au terrain naturel, les **ponts** (creux, mer) et les **tunnels** (collines).
+- **Carrefours sans superposition** : clique sur une voie existante pour t'y raccrocher (carrefour en T) ou croise-la : le carrefour se crée tout seul, les voies s'arrêtent à son bord et un plateau les relie. Une voie qui en recouvre une autre sans s'y raccorder est refusée. Route et rail (ou chemin) se croisent par un passage à niveau.
+- **Véhicules** : voitures (sur les différentes voies), tramways, trains, TGV, piétons, cyclistes et bateaux. Bouton **Circulation** pour les masquer.
 - **Sauver / Charger** gardent le réseau avec le terrain.
 
-![Pont au-dessus d'une vallée](docs/apercu-transport-pont.png)
+![Pont et talus au-dessus d'une vallée](docs/apercu-transport-pont.png)
 
 Architecture, feuille de route et questions ouvertes : [docs/transport-architecture.md](docs/transport-architecture.md).
 
 ## Bâtiments : poser des bâtiments à l'échelle réelle
 
-Dans le mode Terre, le panneau **Construire** (à droite, **B** pour le masquer) propose 27 bâtiments low-poly à l'échelle réelle (1 case = 1 m), rangés en six catégories : **Logement**, **Commerce**, **Industrie**, **Services publics**, **Loisirs** et **Sport** (maison 10 × 12 m, tour d'habitation de 41 m, supermarché et son parking, hôpital, terrain de football de 105 × 68 m…).
+Dans le mode Terre, le panneau **Construire** (à droite, **B** pour le masquer) propose **250 bâtiments** low-poly à l'échelle réelle (27 modèles classiques et une bible de 223 bâtiments de 29 styles du monde, voir plus bas) (1 case = 1 m), rangés en six catégories : **Logement**, **Commerce**, **Industrie**, **Services publics**, **Loisirs** et **Sport** (maison 10 × 12 m, tour d'habitation de 41 m, supermarché et son parking, hôpital, terrain de football de 105 × 68 m…).
 
 ![Bâtiments le long de deux routes](docs/apercu-batiments.png)
 
@@ -78,6 +89,23 @@ L'onglet **Zonage** du même panneau permet de peindre des zones **résidentiell
 - **Retirer des zones** : glisser sur la zone à effacer (une zone coupée en partie est redécoupée). Les bâtiments déjà construits restent.
 - Case **Croissance automatique** pour mettre la ville en pause.
 
+### La bible : styles du monde, de l'Antiquité au futur
+
+Les listes du panneau mélangent les modèles classiques et la **bible** : 29 styles d'architecture, chacun décliné en archétypes (maison, immeuble, boutique, marché, usine, ferme, lieu de culte, palais, école, gare, théâtre, jardin…).
+
+![Styles d'Asie](docs/apercu-bible-asie.png)
+![Styles d'Europe, d'Afrique et de Méditerranée](docs/apercu-bible-europe-afrique.png)
+
+- **Régions** : Europe, Méditerranée, Moyen-Orient et Maghreb, Afrique, Asie de l'Est, Asie du Sud et du Sud-Est, Amériques, Monde.
+- **Époques** : Antiquité, Traditionnel, XIXe – 1945, Moderne, Contemporain, Futuriste.
+- **Exemples** : colombages, gothique (cathédrale), haussmannien, briques industrielles, scandinave (stavkirke), isba (église à bulbes, kremlin), Grèce antique (temple, amphithéâtre), méditerranéen, Maghreb (kasbah), persan, Golfe, Sahel (mosquée en terre, cases rondes), Afrique australe (kraal), Afrique moderne, chinois (pagode, Cité interdite), japonais (sanctuaire, château), Asie dense (néons), Inde (temple shikhara, palais moghol), Asie du Sud-Est (maisons sur pilotis, wat), pueblo, précolombien (pyramide), colonial, latino, Art déco, banlieue américaine, style international, tours de verre, futuriste.
+- **Filtres** en haut de la liste : région, époque et recherche par nom (« pagode », « gare », « japonais »…).
+- **Zonage par style** : dans l'onglet Zonage, choisis le **Style** avant de peindre une zone. Les bâtiments qui y poussent suivent ce style (« Classique MiniBlocs » par défaut, ou « Mélange de tous les styles »). Chaque zone garde son style.
+
+![Zone résidentielle de style japonais](docs/apercu-zonage-style.png)
+
+Pour ajouter un style : une entrée dans `Styles.STYLES` (`scripts/catalogue/styles.gd`) avec sa région, son époque, ses couleurs, son toit et ses archétypes ; le modèle 3D est fabriqué par `StyleBuilder`.
+
 ### Éditeur libre : construire bloc par bloc
 
 L'onglet **Éditeur libre** permet de construire ce que tu veux avec des blocs de 1 m × 1 m × 1 m, posés sur le relief ou les uns contre les autres.
@@ -89,6 +117,29 @@ L'onglet **Éditeur libre** permet de construire ce que tu veux avec des blocs d
 - **14 matériaux** : brique, pierre, bois, planches, béton, enduits, tuile, ardoise, métal, verre (transparent), herbe, sable, feuillage. Chaque bloc a un prix payé par la caisse (moitié rendue quand on le retire).
 - Pas de bloc sous terre, sur une voie ou dans un bâtiment. Inversement, ni bâtiment ni voie ne peuvent passer sur des blocs.
 - La taille des blocs est une constante (`BlockEditor.SIZE`) : on pourra passer à 50 cm pour plus de détails.
+
+## Vue au sol : marcher à la 3e ou à la 1re personne
+
+Dans le mode Terre, appuie sur **V** (ou les boutons **Dessus / 3e pers. / 1re pers.** en haut au centre) : un personnage apparaît au sol, au centre de la vue de gestion.
+
+![Vue à la 3e personne](docs/apercu-3e-personne.png)
+
+| Action | Touches |
+| --- | --- |
+| Changer de vue (dessus → 3e → 1re → dessus) | V |
+| Marcher / courir | ZQSD (WASD en QWERTY) ou flèches / Maj maintenue |
+| Sauter, remonter en nageant | Espace |
+| Regarder | Souris |
+| Rapprocher / éloigner la caméra | Molette (tout près : 1re personne, molette arrière : 3e personne) |
+| Libérer la souris (pour cliquer sur l'interface) | Échap, puis clic dans la vue pour la reprendre |
+
+- **Collisions** : le personnage marche sur le relief (et sur les cases que tu as aplanies ou creusées), sur les routes, rails, chemins et ponts (les parapets empêchent de tomber). Les bâtiments et les constructions de l'éditeur libre l'arrêtent.
+- **Caméra 3e personne** : elle se rapproche toute seule quand un mur, une colline ou le sol passerait entre elle et le personnage.
+- **Eau** : dans l'eau profonde, il nage à la surface.
+- **Retour en vue de dessus** : la caméra de gestion se recentre sur le personnage.
+- Limites actuelles : on traverse encore les arbres et les véhicules, et les tunnels ne sont pas praticables à pied.
+
+![Vue à la 1re personne sur une route](docs/apercu-1re-personne.png)
 
 ## Comment ça marche
 
@@ -114,6 +165,10 @@ L'onglet **Éditeur libre** permet de construire ce que tu veux avec des blocs d
 | `scripts/terre/globe_menu.gd` | Globe : rotation, clic, recherche, hasard, aperçu, lancement |
 | `scripts/terre/game_start.gd` | Choix du joueur transmis à la partie (lieu, mode) |
 | `scenes/terre.tscn` | Mode Terre : relief réel en cases de 1 m |
+| `scripts/personnage/vue_sol.gd` | Bascule vue de dessus / 3e / 1re personne, caméra au sol |
+| `scripts/personnage/personnage.gd` | Personnage qui marche (piloté par des ordres, prêt pour le multijoueur) |
+| `scripts/personnage/collisions_sol.gd` | Collisions du relief et des voies autour du personnage |
+| `tests/personnage_test.gd` | Test de la vue au sol (marche, pont, mur, caméra, nage) |
 | `scripts/terre/geo.gd` | Conversions latitude / longitude ↔ mètres ↔ tuiles |
 | `scripts/terre/land_cover.gd` | Biomes réels (ESA WorldCover) lus par blocs autour du lieu |
 | `assets/biomes_monde.png` | Carte mondiale des biomes du globe (fabriquée par `tools/build_biome_map.py`) |
@@ -135,8 +190,10 @@ L'onglet **Éditeur libre** permet de construire ce que tu veux avec des blocs d
 | `scripts/batiments/building_panel.gd` | Panneau « Construire » |
 | `scripts/batiments/zone_system.gd` | Zonage : zones peintes, demande, croissance le long des routes |
 | `scripts/batiments/block_editor.gd` | Éditeur libre bloc par bloc : outils, matériaux, annulation, rendu par blocs de 16 × 16 m |
+| `scripts/catalogue/styles.gd` | Bible : régions, époques, archétypes et les 29 styles d'architecture |
+| `scripts/catalogue/style_builder.gd` | Fabrique les bâtiments de la bible (emprise, chiffres, modèle 3D) d'après style + archétype |
 | `tests/batiments_test.gd` | Test automatique des bâtiments (sans réseau) |
-| `tests/batiments_vitrine.gd` | Pose tout le catalogue (ou fait pousser un quartier avec `--zones`, ou construit une maison en blocs avec `--blocs`) et prend une capture |
+| `tests/batiments_vitrine.gd` | Pose tout le catalogue (ou fait pousser un quartier avec `--zones`, ou construit une maison en blocs avec `--blocs`) et prend une capture. `--styles japonais,chinois` ou `--arch culte` filtrent la bible, `--zone-style` choisit le style du zonage |
 
 ## Test automatique
 

@@ -199,12 +199,13 @@ func find_access(id: String, rect: Rect2i, r: int) -> Dictionary:
 	var door := door_point(id, rect, r)
 	var best := {}
 	for type in BuildingCatalog.get_type(id).get("access", []):
-		var ty := TransportTypes.get_type(type)
-		var reach := ACCESS_MAX + float(ty.get("width", 4.0)) / 2.0
+		# "route" ou "chemin" : toute classe de voie de ce mode (rue, avenue…).
+		var mode := TransportTypes.mode_of(type)
 		for eid in transport.network.edges:
 			var e: Dictionary = transport.network.edges[eid]
-			if e.t != type:
+			if TransportTypes.mode_of(e.t) != mode:
 				continue
+			var reach := ACCESS_MAX + float(e.get("width", 4.0)) / 2.0
 			var hit := transport.network.nearest_on_edge(eid, door)
 			if hit.dist <= reach and (best.is_empty() or hit.dist < best.dist):
 				best = {"dist": hit.dist, "pos": hit.pos, "type": type, "door": door}

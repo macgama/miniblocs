@@ -12,15 +12,23 @@ Prototype de city builder en vue de dessus, style low-poly, mode bac à sable. F
 
 ## Commandes
 
+Dans le jeu, **F1** (ou le bouton **Aide**) affiche toutes les commandes.
+
 | Action | Touches |
 | --- | --- |
 | Déplacer la caméra | ZQSD (WASD en QWERTY) ou flèches, ou clic droit maintenu + glisser |
 | Zoomer | Molette |
 | Tourner la caméra | A / E (Q / E en QWERTY), ou clic molette maintenu + glisser |
-| Construire | Clic gauche maintenu + glisser |
-| Choisir un outil | 1 Route · 2 Résidentiel · 3 Commercial · 4 Industriel · 5 Bulldozer |
-| Annuler le tracé en cours | Échap |
-| Sauvegarder / charger | F5 / F9 (ou les boutons en bas) |
+| Outils (barre du bas) | 1 Observer · 2 Aplanir · 3 Monter · 4 Creuser · 5 Route · 6 Rail · 7 Chemin · 8 Voie d'eau · 9 Démolir |
+| Tracer une voie | un clic par point, **C** courbe, **Maj** angles de 15°, **Échap** / clic droit pour finir |
+| Panneau Construire | **B** (bâtiments, zonage, éditeur libre ; **R** tourne le bâtiment, **Ctrl + Z** annule un bloc) |
+| Transports publics | **L** (stations, gares, ports, aéroports, lignes) |
+| Temps | **T** pause, **Maj + T** vitesse suivante |
+| Vue au sol | **V** (dessus, 3e personne, 1re personne) |
+| Sauvegarder / recharger | **F5** / **F9** ; boutons **Sauver**, **Charger** (liste des parties), **Globe** en haut à gauche |
+| Aide | **F1** |
+
+L'interface s'adapte à la taille de la fenêtre (elle est dessinée pour 1600 × 900 puis agrandie ou réduite).
 
 ## Mode Terre : choisis ton lieu sur le globe, puis joue sur le vrai relief
 
@@ -75,7 +83,7 @@ Dans le mode Terre, la barre du bas propose **5 Route**, **6 Rail**, **7 Chemin*
 
 ![Arrêts de tram et de bus, un tram et des bus à impériale en ligne](docs/apercu-lignes.png)
 
-Bouton **Lignes (T)** (ou touche **T**) : le panneau des transports publics.
+Bouton **Lignes (L)** (ou touche **L**) : le panneau des transports publics.
 
 1. **Pose des stations** : arrêt de bus (sur une route), arrêt de tram (sur une voie de tram), gare (ligne classique ou LGV : quais, marquise et bâtiment voyageurs de la bible), port (jetée, grue et gare maritime sur une voie d'eau), **héliport**, **aérodrome** (piste en herbe de 600 m) et **aéroport** (piste de 1 000 m, aire de stationnement, aérogare, tour de contrôle ; **R** pour tourner, le terrain est aplani). Les stations du réseau coupent la voie à cet endroit ; les quais et les pistes sont réservés (pas d'arbres ni de bâtiments).
 2. **Nouvelle ligne** : clique les stations dans l'ordre, puis **Entrée** (ou clic droit). Une ligne relie des stations du même genre, avec une voie entre chaque.
@@ -249,7 +257,7 @@ Détails et limites : [docs/ambiance.md](docs/ambiance.md).
 | `scripts/transport/transport_view.gd` | Modèles low-poly des voies, ponts et tunnels |
 | `scripts/transport/traffic.gd` | Véhicules qui circulent (modèles tirés du catalogue, filtre époque / région) |
 | `scripts/transport/station_system.gd` | Stations (arrêts, gares, ports, héliports, aérodromes, aéroports), lignes, trajets des avions, sauvegarde |
-| `scripts/transport/station_panel.gd` | Panneau « Transports publics » (touche T) |
+| `scripts/transport/station_panel.gd` | Panneau « Transports publics » (touche L) |
 | `scripts/transport/vehicle_catalog.gd` | Catalogue des 131 véhicules : catégories, époques, régions, chiffres, modèles low-poly |
 | `scripts/transport/vehicle_mesh.gd` | Formes des véhicules (roues, coques, ailes, voiles, chevaux…) en plus de BlocMesh |
 | `tests/vehicules_vitrine.gd` | Aligne une ou plusieurs catégories du catalogue et prend une capture |
@@ -278,6 +286,8 @@ Chaque partie a son propre dossier : on peut en garder autant qu'on veut.
 
 ## Test automatique
 
+Tous les tests d'un coup : `sh tests/tous.sh` (affiche une ligne « … TEST OK » par test).
+
 ```bash
 godot --headless --path . --script res://tests/smoke_test.gd
 ```
@@ -290,7 +300,7 @@ godot --headless --path . --script res://tests/terre_test.gd
 
 Vérifie les conversions de coordonnées, le décodage des tuiles, la génération des blocs, les rivières (calcul sur une vallée, lecture d'OpenStreetMap, lit creusé, surface d'eau, ponts), le terrassement et la sauvegarde. Il affiche `TERRE TEST OK`. De même, `tests/globe_test.gd` affiche `GLOBE TEST OK`, `tests/transport_test.gd` affiche `TRANSPORT TEST OK` et `tests/batiments_test.gd` affiche `BATIMENTS TEST OK`.
 
-`tests/sauvegarde_test.gd` vérifie le format des parties (écriture, relecture, section abîmée, import de l'ancienne sauvegarde) et affiche `SAUVEGARDE TEST OK`.
+`tests/parcours_test.gd` joue une partie comme un joueur, avec de vraies touches (globe, outils 1-9, B, L, T, V, F1, F5, Continuer) et affiche `PARCOURS TEST OK`. `tests/sauvegarde_test.gd` vérifie le format des parties (écriture, relecture, section abîmée, import de l'ancienne sauvegarde) et affiche `SAUVEGARDE TEST OK`.
 
 ```bash
 godot --headless --path . --script res://tests/perf_bench.gd [-- --big] [--reseau]

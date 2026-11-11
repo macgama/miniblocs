@@ -173,7 +173,10 @@ func show_category(cat: String) -> void:
 		shown += 1
 		var b := Button.new()
 		b.text = "%s  ·  %d × %d m  ·  %s" % [t.name, t.w, t.d, BuildingSystem.format_short(BuildingCatalog.cost(id))]
-		b.tooltip_text = "%s\nPrix : %s (hors terrassement)" % [t.desc, BuildingSystem.format_money(BuildingCatalog.cost(id))]
+		b.tooltip_text = "%s\n%s\nPrix : %s (hors terrassement)" % [b.text, t.desc, BuildingSystem.format_money(BuildingCatalog.cost(id))]
+		# Noms longs (« Maisons de ville (village méditerranéen) ») : coupés « … », complets dans l'infobulle.
+		b.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		b.clip_text = true
 		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		b.toggle_mode = true
 		b.button_group = _item_group

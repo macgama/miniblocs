@@ -5,6 +5,7 @@ extends CanvasLayer
 signal go_requested(lat: float, lon: float)
 signal tool_selected(tool: int)
 signal save_requested
+signal help_requested
 signal load_requested
 signal quick_load_requested
 signal city_requested
@@ -81,8 +82,21 @@ func _ready() -> void:
 	layout.add_child(top)
 	var top_box := VBoxContainer.new()
 	top.add_child(top_box)
+	var title_row := HBoxContainer.new()
+	top_box.add_child(title_row)
 	_place_label = Label.new()
-	top_box.add_child(_place_label)
+	_place_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title_row.add_child(_place_label)
+	# Menu de la partie : toujours au même endroit, en haut à gauche.
+	for spec in [["Sauver", save_requested, "Sauvegarder la partie (F5)"], ["Charger", load_requested, "Parties sauvegardées (F9 : recharger la partie en cours)"],
+			["Globe", globe_requested, "Revenir au globe pour changer de lieu"], ["Aide", help_requested, "Toutes les commandes (F1)"]]:
+		var mb := Button.new()
+		mb.text = spec[0]
+		mb.tooltip_text = spec[2]
+		mb.focus_mode = Control.FOCUS_NONE
+		var sig: Signal = spec[1]
+		mb.pressed.connect(func() -> void: sig.emit())
+		title_row.add_child(mb)
 
 	var row := HBoxContainer.new()
 	top_box.add_child(row)
@@ -98,19 +112,6 @@ func _ready() -> void:
 	go.text = "Y aller"
 	go.pressed.connect(_on_go)
 	row.add_child(go)
-
-	var places := HFlowContainer.new()
-	places.custom_minimum_size = Vector2(560, 0)
-	top_box.add_child(places)
-	for p in PLACES:
-		var b := Button.new()
-		b.text = p.name
-		var lat: float = p.lat
-		var lon: float = p.lon
-		b.pressed.connect(func() -> void:
-			coords_edit.text = "%.5f, %.5f" % [lat, lon]
-			go_requested.emit(lat, lon))
-		places.add_child(b)
 
 	_cell_label = Label.new()
 	top_box.add_child(_cell_label)
@@ -133,9 +134,7 @@ func _ready() -> void:
 	layout.add_child(spacer)
 
 	var help := Label.new()
-	help.text = "ZQSD / flèches : déplacer   ·   Molette : zoom   ·   A / E ou clic molette : tourner   ·   Clic droit glissé : déplacer la carte\n" \
-		+ "Clic gauche glissé : terrasser (2-4)   ·   5-8 : poser une voie (classe et largeur dans le panneau), clic par point, C : courbe, Échap / clic droit pour finir, Maj : angles de 15°   ·   9 : démolir\n" \
-		+ "B : panneau Construire (clic : poser, R : tourner)   ·   T : stations et lignes   ·   1-9 : outils   ·   F5 : sauvegarder   ·   F9 : charger   ·   Échap : annuler"
+	help.text = "F1 : toutes les commandes   ·   ZQSD : déplacer   ·   Molette : zoom   ·   A / E : tourner   ·   1-9 : outils   ·   B : construire   ·   L : lignes   ·   V : vue   ·   T : pause   ·   Échap : annuler"
 	help.add_theme_color_override("font_color", Color(1, 1, 1, 0.9))
 	help.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
 	help.add_theme_constant_override("outline_size", 4)
@@ -180,36 +179,26 @@ func _ready() -> void:
 	bar.add_child(traffic)
 	bar.add_child(_build_vehicle_menu())
 	var transit := Button.new()
-	transit.text = "Lignes (T)"
+	transit.text = "Lignes (L)"
 	transit.tooltip_text = "Stations, gares, ports, aéroports et lignes de transport en commun"
 	transit.pressed.connect(func() -> void: transit_requested.emit())
 	bar.add_child(transit)
-	for spec in [["Sauver", save_requested], ["Charger", load_requested], ["Globe", globe_requested], ["Ville prototype", city_requested]]:
-		var b := Button.new()
-		b.text = spec[0]
-		var sig: Signal = spec[1]
-		b.pressed.connect(func() -> void: sig.emit())
-		bar.add_child(b)
 
 	var fill := Control.new()
 	fill.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	bottom.add_child(fill)
 	var credit := Label.new()
-	credit.text = "Relief : Mapzen Terrain Tiles (AWS Open Data) — SRTM, GMTED, ETOPO1, EU-DEM\nBiomes : © ESA WorldCover 2021, données Copernicus Sentinel (CC BY 4.0)\nRivières : © contributeurs OpenStreetMap (ODbL) si disponible, sinon calculées sur le relief"
+	credit.text = "Relief : Mapzen Terrain Tiles\nBiomes : © ESA WorldCover 2021\nRivières : © OpenStreetMap"
+	credit.tooltip_text = "Relief : Mapzen Terrain Tiles (AWS Open Data) — SRTM, GMTED, ETOPO1, EU-DEM\nBiomes : © ESA WorldCover 2021, données Copernicus Sentinel (CC BY 4.0)\nRivières : © contributeurs OpenStreetMap (ODbL) si disponible, sinon calculées sur le relief"
+	credit.mouse_filter = Control.MOUSE_FILTER_PASS
 	credit.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	# Ancré en bas à droite, au-dessus de la barre d'outils : jamais coupé.
-	credit.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
-	credit.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	credit.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	credit.offset_right = -10.0
-	credit.offset_bottom = -54.0
-	credit.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	credit.size_flags_vertical = Control.SIZE_SHRINK_END
 	credit.add_theme_font_size_override("font_size", 11)
 	credit.add_theme_color_override("font_color", Color(1, 1, 1, 0.75))
 	credit.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
 	credit.add_theme_constant_override("outline_size", 3)
-	layout.add_child(credit)
+	bottom.add_child(credit)
 
 
 var _veh_era := ""
@@ -374,7 +363,9 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			_buttons[i].button_pressed = true
 			tool_selected.emit(i)
 			return
-	if key.keycode == KEY_F5:
+	if key.keycode == KEY_F1:
+		help_requested.emit()
+	elif key.keycode == KEY_F5:
 		save_requested.emit()
 	elif key.keycode == KEY_F9:
 		quick_load_requested.emit()
@@ -391,7 +382,9 @@ func show_message(text: String) -> void:
 
 
 func set_place(lat: float, lon: float) -> void:
-	_place_label.text = "MiniBlocs · Terre   —   région centrée sur %.5f, %.5f   (1 case = 1 m × 1 m)" % [lat, lon]
+	var where := GameStart.place_name if GameStart.place_name != "" else "%.4f, %.4f" % [lat, lon]
+	_place_label.text = "MiniBlocs  ·  " + where
+	_place_label.tooltip_text = "Région de 10 × 10 km centrée sur %.5f, %.5f (1 case = 1 m × 1 m)" % [lat, lon]
 	if not coords_edit.has_focus():
 		coords_edit.text = "%.5f, %.5f" % [lat, lon]
 

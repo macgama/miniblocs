@@ -10,6 +10,7 @@ var clock: DayNight
 var _time_label: Label
 var _info_label: Label
 var _slider: HSlider
+var _weather_pick: OptionButton
 var _speed_buttons: Array[Button] = []
 var _updating := false
 
@@ -22,7 +23,7 @@ func _ready() -> void:
 	anchor.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(anchor)
 	var panel := PanelContainer.new()
-	panel.position = Vector2(-452, -212)
+	panel.position = Vector2(-452, -205)
 	panel.custom_minimum_size = Vector2(440, 0)
 	anchor.add_child(panel)
 	var box := VBoxContainer.new()
@@ -79,6 +80,15 @@ func _ready() -> void:
 		b.pressed.connect(func() -> void: clock.set_speed(idx))
 		speeds.add_child(b)
 		_speed_buttons.append(b)
+	_weather_pick = OptionButton.new()
+	_weather_pick.focus_mode = Control.FOCUS_NONE
+	_weather_pick.add_theme_font_size_override("font_size", 12)
+	for n in Meteo.MODE_NAMES:
+		_weather_pick.add_item("Météo : " + n)
+	_weather_pick.tooltip_text = "Automatique : le temps suit le climat réel du lieu et la saison."
+	_weather_pick.item_selected.connect(func(i: int) -> void:
+		clock.weather.mode = i as Meteo.Mode)
+	speeds.add_child(_weather_pick)
 	clock.time_changed.connect(refresh)
 	refresh()
 
@@ -121,6 +131,11 @@ func refresh() -> void:
 	var off := clock.utc_offset()
 	_info_label.text = "%s · soleil %d° · %s · %s" % [
 		sun_txt, roundi(clock.sun_horiz.x), moon_phase_name(Astro.moon_age(clock.unix_time)), format_offset(off)]
+	if clock.weather != null:
+		var w := clock.weather
+		_info_label.text += "\n%s · %d °C" % [w.describe(), roundi(w.temperature)]
+		if _weather_pick.selected != int(w.mode):
+			_weather_pick.select(int(w.mode))
 	_updating = true
 	_slider.value = h
 	_updating = false

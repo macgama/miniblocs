@@ -96,6 +96,33 @@ func _run() -> void:
 	_check(ClockHud.moon_phase_name(Astro.moon_age(_utc(2026, 5, 31, 8, 45))) == "pleine lune", "Nom de la phase : pleine lune")
 	_check(NightWindows.lit_ratio_at(20.0) > NightWindows.lit_ratio_at(3.0), "Plus de fenêtres allumées à 20 h qu'à 3 h")
 
+	print("Météo :")
+	var t_paris_jan := Meteo.air_temperature(48.85, _utc(2026, 1, 15, 14), 14.0, 35.0)
+	var t_paris_jul := Meteo.air_temperature(48.85, _utc(2026, 7, 15, 14), 15.0, 35.0)
+	_check(t_paris_jan > 0.0 and t_paris_jan < 12.0, "Paris, mi-janvier, après-midi : %.0f °C" % t_paris_jan)
+	_check(t_paris_jul > 18.0 and t_paris_jul < 30.0, "Paris, mi-juillet, après-midi : %.0f °C" % t_paris_jul)
+	_check(Meteo.air_temperature(-33.9, _utc(2026, 1, 15, 4), 15.0, 0.0) > Meteo.air_temperature(-33.9, _utc(2026, 7, 15, 4), 15.0, 0.0), "Hémisphère sud : janvier plus chaud que juillet")
+	_check(Meteo.air_temperature(45.83, _utc(2026, 7, 15, 13), 15.0, 4800.0) < 0.0, "Sommet du mont Blanc en juillet : sous 0 °C")
+	_check(Meteo.default_humidity(25.0) < Meteo.default_humidity(48.0), "Tropiques plus secs que l'Europe")
+	# Sur un an à Paris : il pleut parfois, pas tout le temps ; plus de pluie en climat humide.
+	var rainy := 0
+	var rainy_dry := 0
+	var cloudy := 0
+	for d in 365:
+		var u := _utc(2026, 1, 1, 12) + d * 86400.0
+		var n := Meteo.natural(u, 48.85, 2.35, 0.55, 12.0, 14.0)
+		if float(n[1]) > 0.2:
+			rainy += 1
+		if float(n[0]) > 0.6:
+			cloudy += 1
+		if float(Meteo.natural(u, 23.0, 10.0, 0.08, 30.0, 14.0)[1]) > 0.2:
+			rainy_dry += 1
+	_check(rainy > 15 and rainy < 200, "Paris : %d jours de pluie à 14 h sur 365" % rainy)
+	_check(cloudy > 40 and cloudy < 330, "Paris : %d jours très nuageux sur 365" % cloudy)
+	_check(rainy_dry < rainy / 3, "Sahara : %d jours de pluie seulement" % rainy_dry)
+	_check(Meteo.natural(_utc(2026, 5, 1, 12), 48.85, 2.35, 0.55, 12.0, 14.0) == Meteo.natural(_utc(2026, 5, 1, 12), 48.85, 2.35, 0.55, 12.0, 14.0), "Même temps pour tous au même endroit au même moment")
+	_check(Headlights.lamp_points({"L": 4.0, "W": 1.8, "H": 1.5})[0].z < -1.9, "Phares à l'avant du véhicule (−Z)")
+
 	print("Scène :")
 	var scene: Node = load("res://scenes/terre.tscn").instantiate()
 	var world: TerrainWorld = scene.get_node("Terrain")
@@ -170,6 +197,35 @@ func _run() -> void:
 			lit += 1
 	_check(lit == 0, "Le jour, les lampadaires sont éteints")
 
+	# Météo forcée.
+	dn.weather.mode = Meteo.Mode.PLUIE
+	dn.weather.settle(dn.unix_time, dn.local_hour())
+	for i in 3:
+		await process_frame
+	_check(dn.weather.precip > 0.3 and dn.weather.cover > 0.6, "Météo « Pluie » : il pleut (%.0f %%)" % (dn.weather.precip * 100.0))
+	_check(dn.env.fog_density > 0.0005, "Pluie : la visibilité baisse")
+	dn.weather.mode = Meteo.Mode.SOLEIL
+	dn.weather.settle(dn.unix_time, dn.local_hour())
+	for i in 3:
+		await process_frame
+	_check(dn.weather.precip < 0.1, "Retour au soleil")
+	dn.weather.mode = Meteo.Mode.AUTO
+	# Phares la nuit.
+	transport.traffic.set_enabled(true)
+	dn.set_local_hour(23.0)
+	for i in 120:
+		await process_frame
+	var cars := 0
+	for v in transport.traffic.vehicles:
+		if String(v.get("model", "")) != "":
+			cars += 1
+	_check(cars == 0 or dn.headlights.get_child(0).multimesh.instance_count > 0, "La nuit, %d véhicules ont leurs phares allumés" % cars)
+	dn.set_local_hour(12.0)
+	for i in 5:
+		await process_frame
+	if dn.weather.fog < 0.3 and dn.weather.precip < 0.3:
+		_check(dn.headlights.get_child(0).multimesh.instance_count == 0, "Le jour, phares éteints")
+
 	# Le temps avance.
 	dn.set_speed(4)
 	var t0 := dn.unix_time
@@ -181,12 +237,15 @@ func _run() -> void:
 
 	# Sauvegarde.
 	dn.set_local_hour(21.0)
+	dn.weather.mode = Meteo.Mode.NEIGE
 	var saved := dn.to_dict()
 	dn.set_local_hour(8.0)
 	dn.from_dict(JSON.parse_string(JSON.stringify(saved)))
 	_check(absf(dn.local_hour() - 21.0) < 0.01, "Sauvegarde : l'heure est retrouvée")
+	_check(dn.weather.mode == Meteo.Mode.NEIGE, "Sauvegarde : la météo choisie est retrouvée")
+	dn.weather.mode = Meteo.Mode.SOLEIL
 
-	if shot != "":
+	if shot != "" and not args.has("--meteo"):
 		var rig = scene.get_node("CameraRig")
 		rig.position = Vector3(-40, y, -10)
 		rig._distance = dist
@@ -209,6 +268,25 @@ func _run() -> void:
 			rig.rotation_degrees.y = item[2]
 			dn.set_local_hour(item[1])
 			for i in 40:
+				await process_frame
+			var path := "%s-%s.png" % [shot, item[0]]
+			root.get_viewport().get_texture().get_image().save_png(path)
+			print("Capture : ", path)
+
+	if shot != "":
+		var rig = scene.get_node("CameraRig")
+		rig.position = Vector3(-40, y, -10)
+		rig.pitch_degrees = 30.0
+		rig._distance = 90.0
+		rig._target_distance = 90.0
+		rig.rotation_degrees.y = 200.0
+		for item in [["pluie", Meteo.Mode.PLUIE, 15.0], ["neige", Meteo.Mode.NEIGE, 11.0],
+				["brouillard", Meteo.Mode.BROUILLARD, 8.0], ["nuageux", Meteo.Mode.NUAGEUX, 17.0],
+				["phares", Meteo.Mode.SOLEIL, 23.2]]:
+			dn.weather.mode = item[1]
+			dn.set_local_hour(item[2])
+			dn.weather.settle(dn.unix_time, dn.local_hour())
+			for i in 90:
 				await process_frame
 			var path := "%s-%s.png" % [shot, item[0]]
 			root.get_viewport().get_texture().get_image().save_png(path)

@@ -16,7 +16,7 @@ signal time_changed
 
 ## Vitesses proposées (secondes de jeu par seconde réelle).
 const SPEEDS := [0.0, 1.0, 60.0, 600.0, 3600.0]
-const SPEED_NAMES := ["Pause", "Temps réel", "1 min/s", "10 min/s", "1 h/s"]
+const SPEED_NAMES := ["Pause", "Réel", "1 min/s", "10 min/s", "1 h/s"]
 const DEFAULT_SPEED := 2
 const START_HOUR := 10.0
 
@@ -24,6 +24,7 @@ const START_HOUR := 10.0
 @export var environment_path: NodePath
 @export var transport_path: NodePath
 @export var world_path: NodePath
+@export var vue_sol_path: NodePath
 
 var sun: DirectionalLight3D
 var moon: DirectionalLight3D
@@ -32,6 +33,10 @@ var world: TerrainWorld
 var street: StreetLights
 var sky_material: ShaderMaterial
 var hud: ClockHud
+var weather: Meteo
+var headlights: Headlights
+## Vue au sol (facultative) : elle règle son propre brouillard.
+var _vue_sol: Node
 
 ## Instant du jeu (secondes Unix, UTC).
 var unix_time := 0.0
@@ -97,6 +102,20 @@ func _ready() -> void:
 		env.glow_blend_mode = Environment.GLOW_BLEND_MODE_SOFTLIGHT
 		env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 
+	weather = Meteo.new()
+	weather.name = "Meteo"
+	weather.world = world
+	add_child(weather)
+	weather.set_place(lat, lon)
+	_vue_sol = get_node_or_null(vue_sol_path)
+
+	headlights = Headlights.new()
+	headlights.name = "Phares"
+	var tr := get_node_or_null(transport_path) as TransportSystem
+	if tr != null:
+		headlights.traffic = tr.traffic
+	add_child(headlights)
+
 	street = StreetLights.new()
 	street.name = "Eclairage"
 	street.transport = get_node_or_null(transport_path) as TransportSystem
@@ -123,6 +142,8 @@ func set_place(a: float, o: float) -> void:
 	lat = a
 	lon = o
 	_rise_set_day = -1
+	if weather != null:
+		weather.set_place(a, o)
 	_apply()
 
 
@@ -181,8 +202,15 @@ func _process(delta: float) -> void:
 	var s: float = SPEEDS[speed_index]
 	if s > 0.0:
 		unix_time += delta * s
-		_apply()
+	weather.update_weather(delta, unix_time, local_hour())
+	_apply()
 	_adapt_shadows()
+	var cam := get_viewport().get_camera_3d()
+	if cam != null:
+		var g := NAN
+		if world != null:
+			g = world.cell_height(Vector2i(floori(cam.global_position.x), floori(cam.global_position.z)))
+		weather.follow(cam, 0.0 if is_nan(g) else maxf(g, 0.0))
 
 
 # --- Lumières -------------------------------------------------------------------
@@ -236,18 +264,23 @@ func _apply() -> void:
 	night = night_factor(elev)
 	var illum := Astro.moon_illumination(unix_time)
 
+	# Météo : nuages qui voilent le Soleil, pluie et brouillard qui assombrissent.
+	var cover := weather.cover if weather != null else 0.0
+	var wet := maxf(weather.precip, weather.fog) if weather != null else 0.0
+	var dim := lerpf(1.0, 0.22, pow(cover, 1.6)) * lerpf(1.0, 0.75, wet)
 	if sun != null:
 		var day := smoothstep(-1.5, 6.0, elev)
 		sun.visible = day > 0.001
 		if sun.visible:
 			_aim(sun, sun_dir)
 		sun.light_color = sun_color_at(elev)
-		sun.light_energy = 1.05 * day
+		sun.light_energy = 1.05 * day * dim
 		sun.shadow_enabled = day > 0.05
+		sun.shadow_opacity = lerpf(1.0, 0.2, cover)
 
 	# La Lune éclaire faiblement, surtout pleine et quand le Soleil est couché.
 	var moon_up := smoothstep(-1.0, 5.0, moon_horiz.x)
-	moon_light = (0.06 + 0.22 * illum) * moon_up * night
+	moon_light = (0.06 + 0.22 * illum) * moon_up * night * lerpf(1.0, 0.3, cover)
 	moon.visible = moon_light > 0.002
 	if moon.visible:
 		_aim(moon, moon_dir)
@@ -268,10 +301,21 @@ func _apply() -> void:
 		sky_material.set_shader_parameter("moon_visible", smoothstep(-1.0, 1.0, moon_horiz.x) * lerpf(0.55, 1.0, night))
 		sky_material.set_shader_parameter("stars", smoothstep(0.55, 1.0, night))
 		sky_material.set_shader_parameter("star_basis", _star_basis())
+		if weather != null:
+			sky_material.set_shader_parameter("cloud_cover", weather.cover)
+			sky_material.set_shader_parameter("cloud_dark", clampf(weather.precip * 0.8 + weather.storm * 0.4, 0.0, 1.0))
+			sky_material.set_shader_parameter("cloud_offset", weather.cloud_offset)
+			sky_material.set_shader_parameter("flash", weather.flash)
+			sky_material.set_shader_parameter("haze", clampf(weather.fog + weather.precip * 0.5, 0.0, 1.0))
 	if env != null:
-		env.ambient_light_color = k[3]
-		env.ambient_light_energy = k[4]
-		env.fog_light_color = (k[2] as Color).lerp(k[1], 0.25)
+		var grey := Color(0.62, 0.65, 0.7).darkened(0.85 * night)
+		env.ambient_light_color = (k[3] as Color).lerp(grey, cover * 0.6)
+		env.ambient_light_energy = float(k[4]) * lerpf(1.0, 1.25, cover) * lerpf(1.0, 0.8, wet)
+		if weather != null and weather.flash > 0.0:
+			env.ambient_light_energy += 2.5 * weather.flash
+			env.ambient_light_color = env.ambient_light_color.lerp(Color(0.8, 0.85, 1.0), weather.flash)
+		env.fog_light_color = (k[2] as Color).lerp(k[1], 0.25).lerp(grey, clampf(cover * 0.5 + wet, 0.0, 1.0))
+		env.fog_density = maxf(_base_fog(), weather_fog())
 		env.glow_intensity = lerpf(0.25, 1.1, night)
 		env.glow_strength = lerpf(0.8, 1.15, night)
 		env.tonemap_exposure = lerpf(1.0, 1.35, night)
@@ -279,9 +323,27 @@ func _apply() -> void:
 	var mat := NightWindows.building_material()
 	mat.set_shader_parameter("night", night)
 	mat.set_shader_parameter("lit_ratio", NightWindows.lit_ratio_at(local_hour()))
+	# Lampadaires et phares : la nuit, et aussi par brouillard ou grosse pluie.
+	var dark := maxf(night, smoothstep(0.4, 0.9, wet) * 0.7)
 	if street != null:
-		street.set_night(smoothstep(0.25, 0.75, night))
+		street.set_night(smoothstep(0.25, 0.75, dark))
+	if headlights != null:
+		headlights.set_on(smoothstep(0.2, 0.6, dark))
 	time_changed.emit()
+
+
+## Brouillard demandé par la météo (densité de l'environnement).
+func weather_fog() -> float:
+	if weather == null:
+		return 0.0
+	return 0.0004 + weather.fog * weather.fog * 0.014 + weather.precip * 0.0022
+
+
+## Brouillard de base : celui de la vue au sol quand elle est active.
+func _base_fog() -> float:
+	if _vue_sol != null and int(_vue_sol.get("vue")) != 0:
+		return float(_vue_sol.get("brouillard_sol"))
+	return 0.0004
 
 
 ## Oriente une lumière directionnelle pour qu'elle vienne de la direction `toward`.
@@ -322,7 +384,7 @@ func _adapt_shadows() -> void:
 # --- Sauvegarde -----------------------------------------------------------------
 
 func to_dict() -> Dictionary:
-	return {"unix": unix_time, "vitesse": speed_index}
+	return {"unix": unix_time, "vitesse": speed_index, "meteo": weather.to_dict()}
 
 
 func from_dict(d: Dictionary) -> void:
@@ -330,5 +392,7 @@ func from_dict(d: Dictionary) -> void:
 		unix_time = float(d.unix)
 	if d.has("vitesse"):
 		speed_index = clampi(int(d.vitesse), 0, SPEEDS.size() - 1)
+	if d.has("meteo"):
+		weather.from_dict(d.meteo)
 	_rise_set_day = -1
 	_apply()

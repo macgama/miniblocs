@@ -91,6 +91,7 @@ func _ready() -> void:
 		else:
 			hud.show_message("Échec de la sauvegarde : " + last_error))
 	hud.load_requested.connect(open_saves_panel)
+	hud.help_requested.connect(toggle_help)
 	hud.quick_load_requested.connect(func() -> void:
 		var slot := GameStart.slot_id
 		if slot == "" or not SaveGame.exists(slot):
@@ -243,7 +244,7 @@ func open_saves_panel() -> void:
 	if _saves_panel != null:
 		return
 	_saves_panel = PartiesPanel.new(true)
-	hud.add_child(_saves_panel)
+	_windows_layer().add_child(_saves_panel)
 	_saves_panel.closed.connect(func() -> void: _saves_panel = null)
 	_saves_panel.load_chosen.connect(func(slot: String) -> void:
 		_saves_panel.close_panel()
@@ -257,6 +258,29 @@ func open_saves_panel() -> void:
 			_saves_panel.refresh()
 		else:
 			hud.show_message("Échec de la sauvegarde : " + last_error))
+
+
+var _help: AidePanel
+var _windows: CanvasLayer
+
+
+## Calque des fenêtres (aide, parties) : au-dessus de tous les panneaux.
+func _windows_layer() -> CanvasLayer:
+	if _windows == null:
+		_windows = CanvasLayer.new()
+		_windows.name = "Fenetres"
+		_windows.layer = 20
+		add_child(_windows)
+	return _windows
+
+
+func toggle_help() -> void:
+	if _help != null:
+		_help.close_panel()
+		return
+	_help = AidePanel.new()
+	_help.closed.connect(func() -> void: _help = null)
+	_windows_layer().add_child(_help)
 
 
 func _autosave(delta: float) -> void:

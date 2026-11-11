@@ -18,12 +18,12 @@ var _updating := false
 func _ready() -> void:
 	layer = 2
 	var anchor := Control.new()
-	# En bas à droite, au-dessus de la barre d'outils (libre dans l'interface actuelle).
-	anchor.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+	# En haut au centre, entre le panneau du lieu (gauche) et Construire (droite).
+	anchor.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	anchor.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(anchor)
 	var panel := PanelContainer.new()
-	panel.position = Vector2(-452, -205)
+	panel.position = Vector2(-220, 8)
 	panel.custom_minimum_size = Vector2(440, 0)
 	anchor.add_child(panel)
 	var box := VBoxContainer.new()

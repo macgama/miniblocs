@@ -53,6 +53,10 @@ Les valeurs sont des repères de conception simplifiés pour le jeu. Elles sont 
 - Une nouvelle voie qui en croise une autre **du même mode et à la même hauteur** (moins de 1,5 m d'écart) crée un **carrefour** automatiquement. Avec 4,5 m ou plus d'écart (pont, tunnel), elles se croisent sans se relier ; entre les deux, le tracé est refusé. Route et rail (ou chemin) se croisent par un passage à niveau.
 - **Pas de superposition** : chaque voie est rognée à l'approche d'un carrefour, d'une longueur qui dépend des largeurs et de l'angle entre les voies, et un plateau (enveloppe convexe des bords) relie les chaussées. Une voie qui en recouvre une autre ailleurs qu'à un raccord ou un croisement est refusée.
 
+## Catalogue de véhicules
+
+`scripts/transport/vehicle_catalog.gd` (VehicleCatalog), même principe que BuildingCatalog : `CATEGORIES`, `TYPES` (name, cat, mode, era, region, year, L, W, H, kmh, places, desc, shape et ses réglages, consist pour les voitures attelées), `build_mesh(id, paint)`. Les époques et régions sont celles de `Styles` (la bible). `for_track(classe, era, region)` donne les modèles qui peuvent rouler sur une classe de voie. Les formes sont dans `vehicle_mesh.gd` (VehicleMesh, qui étend BlocMesh).
+
 ## Véhicules (étape 1)
 
 `scripts/transport/traffic.gd` : voitures, trains (locomotive + 2 voitures), piétons, cyclistes et bateaux. Chacun choisit une destination au hasard dans son réseau et y va par le plus court chemin (A*), en roulant à droite. Le nombre de véhicules suit la longueur du réseau (1 voiture tous les 45 m de route, etc.). Pas encore de collisions, de feux, ni de lignes.
@@ -63,6 +67,7 @@ Les valeurs sont des repères de conception simplifiés pour le jeu. Elles sont 
 | --- | --- |
 | **1. Fait** | Graphe commun, route / rail / chemin / voie d'eau sur le vrai relief, ponts, tunnels, terrassement, carrefours, véhicules d'ambiance, sauvegarde. |
 | **2. Fait** | Classes réglementaires (largeurs, rayons, pentes), courbes, plateaux de carrefour, refus des chevauchements, talus. |
+| **Catalogue. Fait** | 131 véhicules de toutes époques et régions, branchés sur la circulation avec filtre époque / région. |
 | 2 bis | Ponts et tunnels forcés à la main (échangeurs, sauts-de-mouton), bretelles, ronds-points, aiguillages dessinés. |
 | 3 | **Stations** : arrêts de bus, gares, ports, héliports et **aéroports** (pistes, couloirs aériens entre aéroports, avions). |
 | 4 | **Lignes** : le joueur relie des stations, choisit les véhicules et la fréquence. |

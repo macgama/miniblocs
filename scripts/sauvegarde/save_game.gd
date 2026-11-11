@@ -271,22 +271,30 @@ const CELL_BLOCK := 64
 ## Cases modifiées (Vector2i -> hauteur) -> {"bloc": 64, "blocs": {"bx,bz": base64}}.
 ## Chaque bloc : suite de (x local u8, z local u8, hauteur f32), triée.
 static func encode_cells(mods: Dictionary) -> Dictionary:
+	# Bloc -> {indice local (z * 64 + x) -> hauteur}.
 	var by_block := {}
 	for c: Vector2i in mods:
-		var bk := Vector2i(floori(float(c.x) / CELL_BLOCK), floori(float(c.y) / CELL_BLOCK))
-		if not by_block.has(bk):
-			by_block[bk] = []
-		(by_block[bk] as Array).append(c)
+		var bx := c.x >> 6
+		var bz := c.y >> 6
+		var bk := Vector2i(bx, bz)
+		var d: Dictionary = by_block.get(bk, {})
+		if d.is_empty():
+			by_block[bk] = d
+		d[((c.y - (bz << 6)) << 6) | (c.x - (bx << 6))] = mods[c]
 	var blocks := {}
 	for bk: Vector2i in by_block:
-		var cells: Array = by_block[bk]
-		cells.sort_custom(func(a: Vector2i, b: Vector2i) -> bool: return a.y < b.y or (a.y == b.y and a.x < b.x))
-		var buf := StreamPeerBuffer.new()
-		for c: Vector2i in cells:
-			buf.put_u8(c.x - bk.x * CELL_BLOCK)
-			buf.put_u8(c.y - bk.y * CELL_BLOCK)
-			buf.put_float(float(mods[c]))
-		blocks["%d,%d" % [bk.x, bk.y]] = Marshalls.raw_to_base64(buf.data_array)
+		var d: Dictionary = by_block[bk]
+		var keys := PackedInt32Array(d.keys())
+		keys.sort()
+		var buf := PackedByteArray()
+		buf.resize(keys.size() * 6)
+		var o := 0
+		for k in keys:
+			buf[o] = k & 63
+			buf[o + 1] = k >> 6
+			buf.encode_float(o + 2, float(d[k]))
+			o += 6
+		blocks["%d,%d" % [bk.x, bk.y]] = Marshalls.raw_to_base64(buf)
 	return {"bloc": CELL_BLOCK, "blocs": blocks}
 
 
@@ -300,10 +308,9 @@ static func decode_cells(data: Dictionary) -> Dictionary:
 			continue
 		var bx := int(p[0]) * size
 		var bz := int(p[1]) * size
-		var buf := StreamPeerBuffer.new()
-		buf.data_array = Marshalls.base64_to_raw(String(blocks[key]))
-		while buf.get_available_bytes() >= 6:
-			var x := buf.get_u8()
-			var z := buf.get_u8()
-			out[Vector2i(bx + x, bz + z)] = buf.get_float()
+		var raw := Marshalls.base64_to_raw(String(blocks[key]))
+		var o := 0
+		while o + 6 <= raw.size():
+			out[Vector2i(bx + raw[o], bz + raw[o + 1])] = raw.decode_float(o + 2)
+			o += 6
 	return out

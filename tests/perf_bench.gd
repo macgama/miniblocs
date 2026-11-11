@@ -182,6 +182,14 @@ func _run() -> void:
 	# 4. Sauvegarde et chargement.
 	t0 = Time.get_ticks_usec()
 	var main = scene
+	for nm in ["Terrain", "Transport", "Batiments", "Zones", "Blocs"]:
+		var t9 := Time.get_ticks_usec()
+		scene.get_node(nm).to_dict()
+		print("  %s : %.0f ms" % [nm, (Time.get_ticks_usec() - t9) / 1000.0])
+	t0 = Time.get_ticks_usec()
+	var secs: Dictionary = main.save_sections()
+	print("  sections en mémoire : %.0f ms" % ((Time.get_ticks_usec() - t0) / 1000.0))
+	t0 = Time.get_ticks_usec()
 	main.save_game()
 	var save_ms := (Time.get_ticks_usec() - t0) / 1000.0
 	t0 = Time.get_ticks_usec()

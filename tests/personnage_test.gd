@@ -78,6 +78,8 @@ func _run() -> void:
 	for i in 30:
 		await process_frame
 	var p := vue.personnage
+	# Pas de circulation pendant les tests de marche (on la teste à part, plus bas).
+	tr.traffic.set_enabled(false)
 
 	print("Bascule de vue :")
 	_check(vue.vue == VueSol.Vue.DESSUS and not p.visible, "on commence en vue de dessus, sans personnage")
@@ -274,6 +276,8 @@ func _run() -> void:
 
 	print("Véhicules :")
 	tr.traffic.set_enabled(true)
+	for i in 3:
+		tr.traffic.spawn(TransportTypes.Mode.ROAD)
 	for i in 200:
 		tr.traffic.step(0.25)
 	var auto: MeshInstance3D = null
@@ -330,6 +334,17 @@ func _run() -> void:
 	if shot != "":
 		await _captures(vue, p, rig, shot, tr)
 
+	print("Sauvegarde :")
+	vue.set_vue(VueSol.Vue.PREMIERE)
+	p.teleporter(Vector3(12.5, 20.1, 33.5), 0.4)
+	vue._cap = 0.4
+	var sauve: Dictionary = JSON.parse_string(JSON.stringify(vue.to_dict()))
+	vue.set_vue(VueSol.Vue.DESSUS)
+	vue.from_dict(sauve)
+	_check(vue.vue == VueSol.Vue.PREMIERE and p.global_position.distance_to(Vector3(12.5, 20.1, 33.5)) < 0.01 and is_equal_approx(vue._cap, 0.4),
+		"la vue et la place du personnage sont gardées dans la sauvegarde")
+	vue.set_vue(VueSol.Vue.TROISIEME)
+
 	print("Retour en vue de dessus :")
 	vue.set_physics_process(true)
 	p.teleporter(Vector3(30.5, 20.1, 40.5), 0.7)
@@ -346,7 +361,7 @@ func _run() -> void:
 	vue.vue_suivante()
 	_check(vue.vue == VueSol.Vue.DESSUS, "V : 1re personne → dessus")
 
-	print("PERSONNAGE TEST OK" if ok else "PERSONNAGE TEST EN ÉCHEC")
+	print("PERSONNAGE TEST OK" if ok else "PERSONNAGE TEST ÉCHEC")
 	quit(0 if ok else 1)
 
 

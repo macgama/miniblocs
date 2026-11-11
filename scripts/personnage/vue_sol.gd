@@ -27,6 +27,8 @@ const NOMS := {Vue.DESSUS: "Vue de dessus", Vue.TROISIEME: "3e personne", Vue.PR
 ## Rayon d'affichage du relief au sol (m) et brouillard qui en cache le bord.
 @export var rayon_affichage := 320.0
 @export var brouillard_sol := 0.006
+## Brouillard au sol hors des tunnels ; brouillard_sol baisse sous terre (lu aussi par l'ambiance).
+var _brouillard_air := 0.0
 
 var vue: Vue = Vue.DESSUS
 var personnage: Personnage
@@ -59,6 +61,7 @@ func _ready() -> void:
 	if not environment_path.is_empty():
 		_env = (get_node(environment_path) as WorldEnvironment).environment
 		_brouillard_dessus = _env.fog_density
+	_brouillard_air = brouillard_sol
 	var network: TransportNetwork = null
 	var trafic: Traffic = null
 	if not transport_path.is_empty():
@@ -302,7 +305,29 @@ func _physics_process(_delta: float) -> void:
 	collisions.ecarter(personnage)
 	# Dans un tunnel, moins de brouillard : il éclaircirait tout le tube.
 	if _env:
-		_env.fog_density = brouillard_sol * (0.15 if _sous_tunnel(q) else 1.0)
+		brouillard_sol = _brouillard_air * (0.15 if _sous_tunnel(q) else 1.0)
+		_env.fog_density = brouillard_sol
+
+
+## Section « personnage » de la sauvegarde : vue choisie et état du personnage.
+func to_dict() -> Dictionary:
+	return {"vue": int(vue), "cap": _cap, "tangage": _tangage, "distance": _distance, "etat": personnage.etat()}
+
+
+func from_dict(d: Dictionary) -> void:
+	set_vue(Vue.DESSUS)
+	if d.is_empty():
+		return
+	_distance = float(d.get("distance", _distance))
+	var v := int(d.get("vue", 0)) as Vue
+	if v == Vue.DESSUS:
+		return
+	set_vue(v)
+	personnage.appliquer_etat(d.get("etat", {}))
+	_cap = float(d.get("cap", 0.0))
+	_tangage = float(d.get("tangage", -0.2))
+	# Le relief peut ne pas être encore chargé : il attend sur place.
+	personnage.en_attente = not collisions.pret_a(personnage.global_position)
 
 
 ## Vrai si le point est dans un tunnel (sous la voûte, là où le relief est percé).

@@ -15,6 +15,7 @@ const MODES: Array[String] = ["auto", "feux", "stop", "cedez", "droite"]
 const MODE_NAMES := {
 	"auto": "Automatique", "feux": "Feux tricolores", "stop": "Stop sur les voies secondaires",
 	"cedez": "Cédez-le-passage sur les voies secondaires", "droite": "Priorité à droite",
+	"giratoire": "Giratoire (cédez-le-passage à l'entrée)",
 }
 const GREEN := 14.0
 const AMBER := 3.0
@@ -133,7 +134,7 @@ func light(nid: int, eid: int) -> int:
 
 ## Passe au régime suivant (auto → feux → stop → cédez → priorité à droite).
 func cycle(nid: int) -> String:
-	if not _info.has(nid):
+	if not _info.has(nid) or kind(nid) == "giratoire":
 		return ""
 	var i := MODES.find(mode_of(nid))
 	set_mode(nid, MODES[(i + 1) % MODES.size()])
@@ -141,7 +142,7 @@ func cycle(nid: int) -> String:
 
 
 func set_mode(nid: int, mode: String) -> void:
-	if not _info.has(nid) or not MODES.has(mode):
+	if not _info.has(nid) or not MODES.has(mode) or kind(nid) == "giratoire":
 		return
 	if mode == "auto":
 		overrides.erase(nid)
@@ -157,6 +158,8 @@ func describe(nid: int) -> String:
 		return ""
 	var k := kind(nid)
 	var txt := "Carrefour à %d branches : %s" % [network.degree(nid), String(MODE_NAMES[k]).to_lower()]
+	if k == "giratoire":
+		return "Entrée de giratoire : cédez-le-passage aux véhicules de l'anneau"
 	if mode_of(nid) == "auto":
 		txt += " (choix automatique)"
 	return txt
@@ -234,6 +237,16 @@ func _analyse(nid: int) -> Dictionary:
 		speeds.append(kmh[eid])
 	var auto := _auto_kind(speeds)
 	var mode: String = overrides.get(nid, "auto")
+	# Entrée de giratoire : l'anneau est prioritaire.
+	var ring := {}
+	for eid in adj:
+		if TransportTypes.is_oneway(network.edges[eid].t):
+			ring[eid] = true
+	if not ring.is_empty():
+		overrides.erase(nid)
+		mode = "auto"
+		auto = "giratoire"
+		major = ring
 	return {"kind": auto if mode == "auto" else mode, "auto": auto, "phase": phase, "phases": maxi(n_phases, 1),
 		"major": major, "right": right, "off": fmod(float(nid) * 7.3, (GREEN + AMBER + ALL_RED) * maxi(n_phases, 1))}
 

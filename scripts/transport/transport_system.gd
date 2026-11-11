@@ -30,6 +30,9 @@ var view: TransportView
 var traffic: Traffic
 var stations: StationSystem
 var junctions: JunctionControl
+## Îlots centraux des giratoires : [{"c": Vector3, "r": float}].
+var roundabouts: Array = []
+var _islands: Node3D
 var world: TerrainWorld
 var camera: Camera3D
 
@@ -84,6 +87,9 @@ func _ready() -> void:
 	add_child(junctions)
 	junctions.setup(network)
 	traffic.junctions = junctions
+	_islands = Node3D.new()
+	_islands.name = "Giratoires"
+	add_child(_islands)
 	network.changed.connect(_on_network_changed)
 	stations = StationSystem.new()
 	stations.name = "Stations"
@@ -126,6 +132,7 @@ static func _tint(c: Color) -> StandardMaterial3D:
 
 func clear() -> void:
 	junctions.overrides.clear()
+	roundabouts.clear()
 	stations.clear()
 	traffic.clear()
 	network.clear()
@@ -133,6 +140,7 @@ func clear() -> void:
 
 
 func _on_network_changed() -> void:
+	_refresh_islands()
 	_hash_dirty = true
 	# Mise à jour incrémentale : seuls les tronçons ajoutés, supprimés ou
 	# remplacés recalculent leur emprise (le réseau peut faire des dizaines de km).
@@ -235,7 +243,129 @@ func set_demolish() -> void:
 func set_junction_tool() -> void:
 	tool = Tool.JUNCTION
 	cancel()
-	info_changed.emit("Carrefour : clic sur un carrefour pour changer son régime (automatique → feux → stop → cédez-le-passage → priorité à droite).")
+	info_changed.emit("Carrefour : clic sur un carrefour pour changer son régime (automatique → feux → stop → cédez-le-passage → priorité à droite) · Maj + clic : le transformer en giratoire.")
+
+
+## Transforme un carrefour en giratoire : chaque branche est coupée sur un
+## cercle autour du carrefour, et des arcs à sens unique (sens inverse des
+## aiguilles d'une montre, vu du dessus) relient les branches. Renvoie {ok, reason}.
+func make_roundabout(nid: int) -> Dictionary:
+	if not network.nodes.has(nid) or network.node_mode(nid) != TransportTypes.Mode.ROAD:
+		return {"ok": false, "reason": "Il faut un carrefour routier."}
+	var adj: Array = (network.adjacency[nid] as Array).duplicate()
+	if adj.size() < 3:
+		return {"ok": false, "reason": "Il faut au moins trois routes qui se rejoignent."}
+	var hw := 0.0
+	for eid in adj:
+		var e: Dictionary = network.edges[eid]
+		if TransportTypes.is_oneway(e.t):
+			return {"ok": false, "reason": "C'est déjà un giratoire."}
+		if TransportTypes.mode_of(e.t) != TransportTypes.Mode.ROAD:
+			return {"ok": false, "reason": "Seulement entre des routes."}
+		hw = maxf(hw, network.half_width(eid))
+	var ring_hw := TransportTypes.width_of("giratoire", {}) * 0.5
+	var r := clampf(hw * 2.2 + ring_hw + 4.0, 14.0, 34.0)
+	for eid in adj:
+		if float(network.edges[eid].len) < r + 12.0:
+			return {"ok": false, "reason": "Branche trop courte pour un giratoire de %d m de rayon." % roundi(r)}
+	var c := network.node_pos(nid)
+	var ends: Array[int] = []
+	for eid in adj:
+		var e: Dictionary = network.edges[eid]
+		var p := network.split_edge(eid, r if e.a == nid else float(e.len) - r, 0.0)
+		ends.append(p)
+		for piece in (network.adjacency.get(nid, []) as Array).duplicate():
+			if network.other_end(piece, nid) == p:
+				network.remove_edge(piece)
+				break
+	var ang := func(n: int) -> float:
+		var q := network.node_pos(n) - c
+		return atan2(-q.z, q.x)
+	ends.sort_custom(func(x: int, y: int) -> bool: return ang.call(x) < ang.call(y))
+	for i in ends.size():
+		var a := ends[i]
+		var b := ends[(i + 1) % ends.size()]
+		var pa := network.node_pos(a)
+		var pb := network.node_pos(b)
+		var a0: float = ang.call(a)
+		var a1: float = ang.call(b)
+		if a1 <= a0:
+			a1 += TAU
+		var ra := Vector2(pa.x - c.x, pa.z - c.z).length()
+		var rb := Vector2(pb.x - c.x, pb.z - c.z).length()
+		var n := maxi(4, ceili((a1 - a0) * r / TransportTypes.STEP))
+		var pts := PackedVector3Array()
+		var st := PackedByteArray()
+		for k in n + 1:
+			var u := float(k) / n
+			var th := lerpf(a0, a1, u)
+			var rr := lerpf(ra, rb, u)
+			pts.append(Vector3(c.x + cos(th) * rr, lerpf(pa.y, pb.y, u), c.z - sin(th) * rr))
+			st.append(TransportTypes.Struct.GROUND)
+		network.add_edge(a, b, "giratoire", pts, st)
+	roundabouts.append({"c": c, "r": r - ring_hw})
+	network.changed.emit()
+	return {"ok": true, "radius": r, "nodes": ends}
+
+
+## Îlots centraux : on garde ceux dont l'anneau existe encore.
+func _refresh_islands() -> void:
+	if _islands == null:
+		return
+	var keep: Array = []
+	for g in roundabouts:
+		var c: Vector3 = g.c
+		var alive := false
+		for eid in network.edges:
+			var e: Dictionary = network.edges[eid]
+			if TransportTypes.is_oneway(e.t) and network.nearest_on_edge(eid, c).dist < float(g.r) + 6.0:
+				alive = true
+				break
+		if alive:
+			keep.append(g)
+	roundabouts = keep
+	for ch in _islands.get_children():
+		ch.queue_free()
+	for g in roundabouts:
+		var island := MeshInstance3D.new()
+		var cm := CylinderMesh.new()
+		cm.top_radius = float(g.r)
+		cm.bottom_radius = float(g.r) + 0.3
+		cm.height = 0.6
+		cm.radial_segments = 32
+		cm.rings = 1
+		island.mesh = cm
+		var m := StandardMaterial3D.new()
+		m.albedo_color = Color("6f8f4e")
+		m.roughness = 0.9
+		island.material_override = m
+		island.position = (g.c as Vector3) + Vector3(0, 0.05, 0)
+		_islands.add_child(island)
+		var kerb := MeshInstance3D.new()
+		var km := CylinderMesh.new()
+		km.top_radius = float(g.r) + 0.35
+		km.bottom_radius = float(g.r) + 0.35
+		km.height = 0.4
+		km.radial_segments = 32
+		kerb.mesh = km
+		var mk := StandardMaterial3D.new()
+		mk.albedo_color = Color("c9c5bd")
+		kerb.material_override = mk
+		kerb.position = (g.c as Vector3) + Vector3(0, -0.02, 0)
+		_islands.add_child(kerb)
+		# Un arbre au milieu.
+		var tree := MeshInstance3D.new()
+		var tm := CylinderMesh.new()
+		tm.top_radius = 0.0
+		tm.bottom_radius = minf(2.2, float(g.r) * 0.4)
+		tm.height = 5.0
+		tm.radial_segments = 6
+		tree.mesh = tm
+		var mt := StandardMaterial3D.new()
+		mt.albedo_color = Color("3f7d3a")
+		tree.material_override = mt
+		tree.position = (g.c as Vector3) + Vector3(0, 2.8, 0)
+		_islands.add_child(tree)
 
 
 ## Carrefour routier le plus proche du point p (-1 si aucun à moins de sa largeur).
@@ -311,6 +441,10 @@ func _unhandled_input(event: InputEvent) -> void:
 			return
 		if tool == Tool.JUNCTION:
 			var nid := junction_at(_cursor)
+			if nid >= 0 and mb.shift_pressed:
+				var res := make_roundabout(nid)
+				message.emit("Giratoire de %d m de rayon construit." % roundi(res.radius) if res.ok else String(res.reason))
+				return
 			if nid < 0:
 				message.emit("Pas de carrefour ici (il faut au moins trois routes qui se rejoignent).")
 			else:
@@ -426,7 +560,7 @@ func _update_cursor(screen: Vector2) -> void:
 	elif tool == Tool.JUNCTION:
 		var nid := junction_at(_cursor) if _cursor_valid else -1
 		if nid >= 0:
-			info_changed.emit(junctions.describe(nid) + " · clic : régime suivant")
+			info_changed.emit(junctions.describe(nid) + " · clic : régime suivant · Maj + clic : giratoire")
 	else:
 		_update_preview()
 	_update_marker()
@@ -843,6 +977,11 @@ func to_dict() -> Dictionary:
 	var d := network.to_dict()
 	d["stations"] = stations.to_dict()
 	d["carrefours"] = junctions.to_dict()
+	var g := []
+	for r in roundabouts:
+		var c: Vector3 = r.c
+		g.append([snappedf(c.x, 0.01), snappedf(c.y, 0.01), snappedf(c.z, 0.01), snappedf(float(r.r), 0.01)])
+	d["giratoires"] = g
 	return d
 
 
@@ -850,6 +989,9 @@ func from_dict(data: Dictionary) -> void:
 	stations.clear()
 	traffic.clear()
 	cancel()
+	roundabouts.clear()
+	for g in data.get("giratoires", []):
+		roundabouts.append({"c": Vector3(float(g[0]), float(g[1]), float(g[2])), "r": float(g[3])})
 	network.from_dict(data)
 	junctions.from_dict(data.get("carrefours", {}))
 	stations.from_dict(data.get("stations", {}))

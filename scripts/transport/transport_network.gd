@@ -290,7 +290,7 @@ func find_route(from: int, to: int) -> Array[int]:
 		closed[cur] = true
 		for eid in adjacency.get(cur, []):
 			var nxt := other_end(eid, cur)
-			if closed.has(nxt):
+			if closed.has(nxt) or (edges[eid].a != cur and TransportTypes.is_oneway(edges[eid].t)):
 				continue
 			var cost: float = g[cur] + float(edges[eid].len)
 			if cost < float(g.get(nxt, INF)):

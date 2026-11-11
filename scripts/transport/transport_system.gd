@@ -35,6 +35,8 @@ var _preview_bad_mat: StandardMaterial3D
 var _marker: MeshInstance3D
 var _highlight_edge := -1
 var _right_press := Vector2.ZERO
+## Cases recouvertes par une voie au sol (pas d'arbres dessus).
+var _occupied: Dictionary = {}
 
 
 func _ready() -> void:
@@ -50,7 +52,9 @@ func _ready() -> void:
 	traffic.name = "Vehicules"
 	add_child(traffic)
 	traffic.setup(network)
-	network.changed.connect(func() -> void: network_changed.emit())
+	network.changed.connect(_on_network_changed)
+	if world != null:
+		world.tree_blocker = func(c: Vector2i) -> bool: return _occupied.has(c)
 
 	_preview = MeshInstance3D.new()
 	_preview.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -83,6 +87,33 @@ func clear() -> void:
 	traffic.clear()
 	network.clear()
 	cancel()
+
+
+func _on_network_changed() -> void:
+	var now := {}
+	for id in network.edges:
+		var e: Dictionary = network.edges[id]
+		var step := world.height_step if world != null else 0.5
+		for c in RoutePlanner.earthworks(e.t, e.pts, e.st, step):
+			now[c] = true
+	if world != null:
+		var changed_cells := []
+		for c in now:
+			if not _occupied.has(c):
+				changed_cells.append(c)
+		for c in _occupied:
+			if not now.has(c):
+				changed_cells.append(c)
+		_occupied = now
+		if not changed_cells.is_empty():
+			world.mark_cells_dirty(changed_cells)
+	else:
+		_occupied = now
+	network_changed.emit()
+
+
+func is_cell_occupied(c: Vector2i) -> bool:
+	return _occupied.has(c)
 
 
 # --- Outils -------------------------------------------------------------------------

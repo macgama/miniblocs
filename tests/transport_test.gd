@@ -117,6 +117,8 @@ func _run() -> void:
 		if tr.network.degree(id) == 4:
 			cross = id
 	_check(cross >= 0 and tr.network.edges.size() == 4, "carrefour à 4 branches")
+	_check(tr.is_cell_occupied(Vector2i(-20, 10)) and world.tree_blocker.call(Vector2i(-20, 10)), "pas d'arbre sur la route")
+	_check(not world.tree_blocker.call(Vector2i(-80, 80)), "arbres possibles loin des voies")
 	var r3 := tr.build_segment("route", Vector3(30.5, 0, 0.8), Vector3(30, 0, 50))
 	_check(r3.ok and int(r3.start_node) == int(r2.end_node), "raccord sur l'extrémité d'une route")
 	var r4 := tr.build_segment("route", Vector3(-20, 0, 30), Vector3(-60, 0, 70))

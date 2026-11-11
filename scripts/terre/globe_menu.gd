@@ -53,6 +53,8 @@ var _camera: Camera3D
 var _globe_tiles: ElevationTiles
 var _detail_tiles: ElevationTiles
 var _planet: Image
+var _biome_tex: Texture2D
+var _biome_img: Image
 var _press_pos := Vector2.ZERO
 var _pressing := false
 var _dragged := false
@@ -86,6 +88,11 @@ func _ready() -> void:
 	_globe.mesh = sphere
 	_globe_mat = ShaderMaterial.new()
 	_globe_mat.shader = preload("res://scripts/terre/globe.gdshader")
+	_biome_tex = load("res://assets/biomes_monde.png")
+	if _biome_tex:
+		_globe_mat.set_shader_parameter("biomes", _biome_tex)
+		_globe_mat.set_shader_parameter("has_biomes", true)
+		_biome_img = _biome_tex.get_image()
 	_globe.material_override = _globe_mat
 	add_child(_globe)
 
@@ -182,6 +189,22 @@ func planet_height(lat: float, lon: float) -> float:
 	var py := clampi(int(Geo.lat_to_pixel_y(lat, 0) / 256.0 * w), 0, w - 1)
 	var c := _planet.get_pixel(px, py)
 	return c.r8 * 256.0 + c.g8 + c.b8 / 256.0 - 32768.0
+
+
+const BIOME_NAMES := {10: "Forêt", 20: "Broussailles", 30: "Prairie", 40: "Champs", 50: "Prairie",
+	60: "Désert ou roche", 70: "Glacier", 80: "Lacs et rivières", 90: "Marais", 95: "Mangrove", 100: "Toundra"}
+
+
+## Biome dominant (≈ 10 km) autour d'un point, d'après la carte mondiale.
+func planet_biome(lat: float, lon: float) -> String:
+	if _biome_img == null:
+		return ""
+	var w := _biome_img.get_width()
+	var hgt := _biome_img.get_height()
+	var x := clampi(int((lon + 180.0) / 360.0 * w), 0, w - 1)
+	var y := clampi(int((90.0 - lat) / 180.0 * hgt), 0, hgt - 1)
+	var code := roundi(_biome_img.get_pixel(x, y).r * 255.0)
+	return BIOME_NAMES.get(code, "")
 
 
 # --- Géométrie du globe -----------------------------------------------------
@@ -343,6 +366,9 @@ func _update_detail() -> void:
 		_detail_label.text = "Lecture du relief…"
 		return
 	var txt := "Altitude : %d m\nRelief : %s (de %d à %d m sur ~1 km)" % [roundi(d.height), d.kind, roundi(d.min), roundi(d.max)]
+	var biome := planet_biome(sel_lat, sel_lon)
+	if biome != "" and d.height >= 0.0:
+		txt += "\nBiome dominant : " + biome
 	if d.height < 0.0:
 		txt += "\nAttention : tu commenceras sous l'eau."
 	txt += "\nRégion de jeu : %d × %d km" % [int(GameStart.REGION_SIZE / 1000.0), int(GameStart.REGION_SIZE / 1000.0)]
@@ -501,7 +527,7 @@ func _build_ui() -> void:
 	proto.pressed.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/main.tscn"))
 	ui.add_child(proto)
 
-	var credit := _panel_label("Relief : Mapzen Terrain Tiles (AWS Open Data) — SRTM, GMTED, ETOPO1, EU-DEM et autres sources publiques", 11, 0.6)
+	var credit := _panel_label("Relief : Mapzen Terrain Tiles (AWS Open Data) — SRTM, GMTED, ETOPO1, EU-DEM · Biomes : © ESA WorldCover 2021 (CC BY 4.0)", 11, 0.6)
 	credit.autowrap_mode = TextServer.AUTOWRAP_OFF
 	credit.anchor_left = 1.0
 	credit.anchor_right = 1.0

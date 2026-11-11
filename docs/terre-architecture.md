@@ -42,9 +42,18 @@ On ne peut donc pas « dessiner » toute la Terre à l'avance. À la place, le j
 
 Une grille de carrés parfaits ne peut pas recouvrir une sphère sans se déformer (pensez à une carte du monde où le Groenland paraît énorme). Le jeu travaille donc par **régions** : partout sur Terre on peut ouvrir une région, et à l'intérieur les cases font vraiment 1 m × 1 m. C'est ce que font la plupart des jeux sur carte réelle.
 
+## Biomes (forêt, champs, eau douce, glacier, désert…)
+
+Source : **ESA WorldCover 2021** (10 m, licence CC BY 4.0, attribution affichée en jeu), hébergée gratuitement sur AWS Open Data.
+
+- **Globe** : `assets/biomes_monde.png` (4096 × 2048, ≈ 10 km par pixel, 400 Ko) est fabriquée une fois par `tools/build_biome_map.py` à partir des aperçus des 2 651 fichiers WorldCover. Le shader du globe combine biome + altitude (mers, sommets enneigés, ombrage du relief).
+- **Terrain** : `scripts/terre/land_cover.gd` lit directement les fichiers GeoTIFF de WorldCover sur AWS, sans les télécharger en entier : seulement l'en-tête puis les blocs de ~10 km autour du lieu (50 à 150 Ko chacun), gardés dans `user://landcover_cache/`. Chaque case de 1 m reçoit le biome du pixel de 10 m qui la contient.
+- Correspondance : forêt, broussailles, prairie (le bâti réel devient de la prairie : terre vierge), champs, sol nu (désert en plaine, roche en montagne), glacier, lac ou rivière (eau sous 0 m = mer), marais, mangrove, toundra. Arbres et buissons low-poly plantés selon le biome, toujours au même endroit pour un même lieu.
+- Les rivières de moins de ~10 m de large n'apparaissent pas (résolution de WorldCover).
+
 ## Limites connues
 
-- La mer est « tout ce qui est sous 0 m » : les polders des Pays-Bas sont inondés, et les lacs en altitude ne sont pas encore de l'eau.
+- La mer est dessinée comme un plan d'eau à 0 m : les polders des Pays-Bas restent inondés à l'écran (leur biome, lui, est correct).
 - Les bâtiments, la tour Eiffel ou les arbres ne sont pas dans ces données (c'est le sol nu, parfois bruité en ville).
 - Le jeu télécharge les tuiles depuis Internet la première fois. Pour une version Steam, il faudra soit embarquer des régions pré-téléchargées, soit garder ce téléchargement avec un écran de chargement.
 
@@ -52,7 +61,6 @@ Une grille de carrés parfaits ne peut pas recouvrir une sphère sans se déform
 
 | Étape | Données | Licence |
 | --- | --- | --- |
-| Lacs et rivières en eau (sans routes ni bâtiments) | OpenStreetMap, couches eau uniquement | ODbL : attribution |
 | Mode « Ensemble » | Synchroniser les cases modifiées entre joueurs (GodotSteam) | — |
 | Relief vraiment au mètre en France | IGN RGE ALTI 1 m | Licence Ouverte Etalab 2.0 |
 | Relief au mètre en Suisse | swisstopo swissALTI3D (0,5 m) | Libre, attribution |

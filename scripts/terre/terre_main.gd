@@ -384,6 +384,8 @@ func _process(delta: float) -> void:
 		if t.failed_count() > 0:
 			s += "   ·   %d tuile(s) introuvable(s) (pas de réseau ?)" % t.failed_count()
 		s += "   ·   Cases modifiées : %d" % world.modifications.size()
+		if world.water.status != "":
+			s += "   ·   " + world.water.status
 		hud.set_status(s)
 		hud.set_network_info(transport.summary())
 		build_panel.set_money("Caisse : illimitée" if buildings.unlimited_money else "Caisse : " + BuildingSystem.format_money(buildings.money))
@@ -405,6 +407,9 @@ func _refresh_cell_info() -> void:
 	var real := world.raw_height(_hover.x + 0.5, _hover.y + 0.5)
 	var txt := "Case %d, %d   ·   %.6f, %.6f   ·   %s   ·   hauteur %.1f m (réelle %.1f m)" % [
 		_hover.x, _hover.y, ll.x, ll.y, kind, h, real]
+	var river := world.water_name_at(_hover)
+	if river != "":
+		txt += " (%s)" % river
 	if world.modifications.has(_hover):
 		txt += "   ·   modifiée"
 	hud.set_cell_info(txt)

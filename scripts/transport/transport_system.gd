@@ -241,6 +241,13 @@ func cancel() -> void:
 	_emit_help()
 
 
+## Surface d'une rivière ou d'un lac (NAN s'il n'y en a pas) : les voies l'enjambent.
+func water_surface(x: float, z: float) -> float:
+	if world == null:
+		return NAN
+	return world.water_surface_at(x, z)
+
+
 ## Hauteur du sol pour la pose : case modifiée, sinon relief réel lissé.
 func ground_height(x: float, z: float) -> float:
 	if world == null:
@@ -467,7 +474,7 @@ func evaluate(id: String, s: Dictionary, path: PackedVector2Array) -> Dictionary
 		path[path.size() - 1] = Vector2(sb.pos.x, sb.pos.z)
 	var h0: float = sa.pos.y if not sa.is_empty() else NAN
 	var h1: float = sb.pos.y if not sb.is_empty() else NAN
-	var plan := RoutePlanner.plan(id, path, h0, h1, ground_height)
+	var plan := RoutePlanner.plan(id, path, h0, h1, ground_height, water_surface)
 	plan.snap_a = sa
 	plan.snap_b = sb
 	plan.crossings = []
@@ -693,6 +700,10 @@ func build_path(id: String, s: Dictionary, path: PackedVector2Array) -> Dictiona
 	var works := {}
 	if world != null:
 		works = RoutePlanner.earthworks(width, pts, st, world.height_step, ground_height, _occupied)
+		# Les talus ne bouchent pas les rivières.
+		for c in works.keys():
+			if not is_nan(water_surface(c.x + 0.5, c.y + 0.5)):
+				works.erase(c)
 
 	var na := _resolve(sa, pts[0], mode)
 	if not sb.is_empty():

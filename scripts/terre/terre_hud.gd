@@ -189,8 +189,8 @@ func _ready() -> void:
 	fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	bottom.add_child(fill)
 	var credit := Label.new()
-	credit.text = "Relief : Mapzen Terrain Tiles\nBiomes : © ESA WorldCover 2021"
-	credit.tooltip_text = "Relief : Mapzen Terrain Tiles (AWS Open Data) — SRTM, GMTED, ETOPO1, EU-DEM\nBiomes : © ESA WorldCover 2021, données Copernicus Sentinel (CC BY 4.0)"
+	credit.text = "Relief : Mapzen Terrain Tiles\nBiomes : © ESA WorldCover 2021\nRivières : © OpenStreetMap"
+	credit.tooltip_text = "Relief : Mapzen Terrain Tiles (AWS Open Data) — SRTM, GMTED, ETOPO1, EU-DEM\nBiomes : © ESA WorldCover 2021, données Copernicus Sentinel (CC BY 4.0)\nRivières : © contributeurs OpenStreetMap (ODbL) si disponible, sinon calculées sur le relief"
 	credit.mouse_filter = Control.MOUSE_FILTER_PASS
 	credit.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	credit.size_flags_vertical = Control.SIZE_SHRINK_END

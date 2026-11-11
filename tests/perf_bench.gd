@@ -187,6 +187,12 @@ func _run() -> void:
 	t0 = Time.get_ticks_usec()
 	var loaded: bool = main.load_game()
 	print("Sauvegarde %.0f ms, chargement %.0f ms (%s)" % [save_ms, (Time.get_ticks_usec() - t0) / 1000.0, "ok" if loaded else "ÉCHEC"])
+	var size := 0
+	var dir := SaveGame.DIR.path_join(GameStart.slot_id)
+	for f in DirAccess.get_files_at(dir):
+		size += FileAccess.get_file_as_bytes(dir.path_join(f)).size()
+	print("Taille de la sauvegarde : %d Ko (%d cases modifiées)" % [size / 1024, world.modifications.size()])
+	SaveGame.delete(GameStart.slot_id)
 	print(bs.summary())
 	print("PERF BENCH OK")
 	quit(0)

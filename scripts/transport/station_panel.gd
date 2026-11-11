@@ -12,6 +12,8 @@ var _panel: PanelContainer
 var _lines_box: VBoxContainer
 var _group := ButtonGroup.new()
 var _buttons: Array[Button] = []
+var _summaries: Dictionary = {} # id de ligne -> Label
+var _tick := 0.0
 
 
 func setup(s: StationSystem) -> void:
@@ -43,7 +45,7 @@ func _build() -> void:
 	title.add_theme_font_size_override("font_size", 16)
 	box.add_child(title)
 	var hint := Label.new()
-	hint.text = "1. Pose des stations sur tes voies.\n2. Nouvelle ligne : clique les stations dans l'ordre.\n3. Choisis le véhicule et leur nombre."
+	hint.text = "1. Pose des stations sur tes voies.\n2. Nouvelle ligne : clique les stations dans l'ordre.\n3. Choisis le véhicule et leur nombre.\nFret : dépôts de marchandises pour les camions ; case « Fret » pour les trains et les bateaux."
 	hint.add_theme_font_size_override("font_size", 12)
 	hint.add_theme_color_override("font_color", Color(1, 1, 1, 0.75))
 	box.add_child(hint)
@@ -90,6 +92,17 @@ func is_open() -> bool:
 	return _panel.visible
 
 
+## Les tonnes transportées changent sans cesse : on met les résumés à jour chaque seconde.
+func _process(delta: float) -> void:
+	_tick += delta
+	if _tick < 1.0 or not is_open():
+		return
+	_tick = 0.0
+	for lid in _summaries:
+		if stations.lines.has(lid) and is_instance_valid(_summaries[lid]):
+			(_summaries[lid] as Label).text = stations.line_summary(lid)
+
+
 func _unhandled_key_input(event: InputEvent) -> void:
 	var k := event as InputEventKey
 	if k and k.pressed and not k.echo and k.physical_keycode == KEY_L:
@@ -102,6 +115,7 @@ func _refresh_lines() -> void:
 		return
 	for c in _lines_box.get_children():
 		c.queue_free()
+	_summaries.clear()
 	if stations.lines.is_empty():
 		var l := Label.new()
 		l.text = "Aucune ligne."
@@ -123,6 +137,7 @@ func _refresh_lines() -> void:
 		name_.custom_minimum_size = Vector2(240, 0)
 		name_.add_theme_font_size_override("font_size", 13)
 		head.add_child(name_)
+		_summaries[lid] = name_
 		var x := Button.new()
 		x.text = "✕"
 		x.tooltip_text = "Supprimer la ligne"
@@ -135,7 +150,7 @@ func _refresh_lines() -> void:
 		pick.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		pick.fit_to_longest_item = false
 		pick.custom_minimum_size = Vector2(220, 0)
-		var models := stations.models_for(line.kind, line.stops)
+		var models := stations.models_for(line.kind, line.stops, bool(line.get("fret", false)))
 		for i in models.size():
 			var t := VehicleCatalog.get_type(models[i])
 			pick.add_item("%s (%d)" % [t.name, int(t.year)], i)
@@ -148,6 +163,13 @@ func _refresh_lines() -> void:
 		count.value = int(line.count)
 		count.tooltip_text = "Nombre de véhicules"
 		row.add_child(count)
+		if StationSystem.FREIGHT_KINDS.has(String(line.kind)) and line.kind != "camion":
+			var fret := CheckBox.new()
+			fret.text = "Fret"
+			fret.tooltip_text = "Ligne de marchandises : trains de fret, péniches, cargos"
+			fret.button_pressed = bool(line.get("fret", false))
+			fret.toggled.connect(func(on: bool) -> void: stations.set_fret.call_deferred(id_, on))
+			row.add_child(fret)
 		pick.item_selected.connect(func(i: int) -> void: stations.set_line(id_, models[i], int(count.value)))
 		count.value_changed.connect(func(v: float) -> void: stations.set_line(id_, String(stations.lines[id_].model), int(v)))
 		_lines_box.add_child(row)

@@ -250,6 +250,16 @@ Détails et limites : [docs/ambiance.md](docs/ambiance.md).
 | `tests/batiments_test.gd` | Test automatique des bâtiments (sans réseau) |
 | `tests/batiments_vitrine.gd` | Pose tout le catalogue (ou fait pousser un quartier avec `--zones`, ou construit une maison en blocs avec `--blocs`) et prend une capture. `--styles japonais,chinois` ou `--arch culte` filtrent la bible, `--zone-style` choisit le style du zonage |
 
+## Sauvegarde des parties
+
+Chaque partie a son propre dossier : on peut en garder autant qu'on veut.
+
+- **Sauver** ou **F5** : sauvegarde la partie en cours (la première fois, une partie est créée au nom du lieu).
+- **Charger** : liste des parties (charger, supprimer, sauvegarder sous un autre nom). **F9** : recharge la partie en cours.
+- Sur le globe : **Continuer** reprend la dernière partie, **Parties…** ouvre la liste.
+- Sauvegarde automatique toutes les 5 minutes (partie « Sauvegarde automatique »), si quelque chose a changé.
+- Seuls les changements du joueur sont gardés (le relief réel se recalcule) ; format versionné, prêt pour le multijoueur : [docs/sauvegarde.md](docs/sauvegarde.md).
+
 ## Test automatique
 
 ```bash
@@ -263,6 +273,8 @@ godot --headless --path . --script res://tests/terre_test.gd
 ```
 
 Vérifie les conversions de coordonnées, le décodage des tuiles, la génération des blocs, le terrassement et la sauvegarde. Il affiche `TERRE TEST OK`. De même, `tests/globe_test.gd` affiche `GLOBE TEST OK`, `tests/transport_test.gd` affiche `TRANSPORT TEST OK` et `tests/batiments_test.gd` affiche `BATIMENTS TEST OK`.
+
+`tests/sauvegarde_test.gd` vérifie le format des parties (écriture, relecture, section abîmée, import de l'ancienne sauvegarde) et affiche `SAUVEGARDE TEST OK`.
 
 ```bash
 godot --headless --path . --script res://tests/perf_bench.gd [-- --big] [--reseau]

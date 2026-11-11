@@ -73,6 +73,10 @@ var _random_btn: Button
 var _filtered: Array = []
 
 
+var _continue_btn: Button
+var _saves_panel: PartiesPanel
+
+
 func _ready() -> void:
 	_camera = Camera3D.new()
 	_camera.fov = 40.0
@@ -398,6 +402,29 @@ func start_game() -> void:
 	get_tree().change_scene_to_file("res://scenes/terre.tscn")
 
 
+## Ouvre une partie sauvegardée dans la scène Terre.
+func load_saved_game(slot_id: String) -> void:
+	var m := SaveGame.read_manifest(slot_id)
+	if m.is_empty():
+		return
+	var lieu: Dictionary = m.get("lieu", {})
+	GameStart.chosen = true
+	GameStart.lat = float(lieu.get("lat", GameStart.lat))
+	GameStart.lon = float(lieu.get("lon", GameStart.lon))
+	GameStart.place_name = String(lieu.get("nom", ""))
+	GameStart.load_slot = slot_id
+	get_tree().change_scene_to_file("res://scenes/terre.tscn")
+
+
+func _open_saves(ui: CanvasLayer) -> void:
+	if _saves_panel != null:
+		return
+	_saves_panel = PartiesPanel.new(false)
+	ui.add_child(_saves_panel)
+	_saves_panel.closed.connect(func() -> void: _saves_panel = null)
+	_saves_panel.load_chosen.connect(load_saved_game)
+
+
 # --- Interface --------------------------------------------------------------
 
 func _make_marker() -> Node3D:
@@ -516,6 +543,27 @@ func _build_ui() -> void:
 	_start_btn.disabled = true
 	_start_btn.pressed.connect(start_game)
 	rv.add_child(_start_btn)
+
+	# Parties sauvegardées : reprendre la dernière, ou choisir dans la liste.
+	var saves := SaveGame.list_saves()
+	var srow := HBoxContainer.new()
+	rv.add_child(srow)
+	_continue_btn = Button.new()
+	_continue_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_continue_btn.custom_minimum_size = Vector2(0, 36)
+	if saves.is_empty():
+		_continue_btn.text = "Aucune partie sauvegardée"
+		_continue_btn.disabled = true
+	else:
+		_continue_btn.text = "Continuer : " + String(saves[0].get("nom", saves[0].id))
+		_continue_btn.tooltip_text = PartiesPanel.format_date(int(saves[0].get("modifie", 0)))
+		var last_id := String(saves[0].id)
+		_continue_btn.pressed.connect(func() -> void: load_saved_game(last_id))
+	srow.add_child(_continue_btn)
+	var all_btn := Button.new()
+	all_btn.text = "Parties…"
+	all_btn.pressed.connect(func() -> void: _open_saves(ui))
+	srow.add_child(all_btn)
 
 	var proto := Button.new()
 	proto.text = "Ville prototype"

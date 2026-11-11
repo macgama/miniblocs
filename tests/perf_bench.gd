@@ -142,6 +142,36 @@ func _run() -> void:
 		(Time.get_ticks_usec() - t0) / 1000.0, (Time.get_ticks_usec() - t0) / 1000.0 / steps])
 	print(bs.summary())
 
+	if OS.get_cmdline_user_args().has("--prof"):
+		for i in 30:
+			await _frame()
+		for i in 15:
+			var t1 := Time.get_ticks_usec()
+			zs.demand()
+			var t2 := Time.get_ticks_usec()
+			var bid := zs.grow_step()
+			var t3 := Time.get_ticks_usec()
+			zs._rebuild_dirty_views(INF)
+			var t4 := Time.get_ticks_usec()
+			bs.summary()
+			var t5 := Time.get_ticks_usec()
+			_last_usec = 0
+			await _frame()
+			await _frame()
+			print("demand %.1f grow %.1f views %.1f summary %.1f frame %.1f (bid %d)" % [(t2-t1)/1000.0, (t3-t2)/1000.0, (t4-t3)/1000.0, (t5-t4)/1000.0, _frame_ms[-1], bid])
+		quit(0)
+		return
+	# Croissance en jeu : une tentative par image (affichage des zones compris).
+	zs.growth = true
+	_frame_ms.clear()
+	_last_usec = 0
+	for i in 120:
+		zs._timer = 1000.0
+		await _frame()
+	zs.growth = false
+	print(_stats("Croissance en jeu (une tentative par image)", _frame_ms))
+	print(bs.summary())
+
 	_frame_ms.clear()
 	_last_usec = 0
 	for i in 300:

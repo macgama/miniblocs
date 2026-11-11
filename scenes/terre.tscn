@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://scripts/terre/terre_main.gd" id="1_main"]
 [ext_resource type="Script" path="res://scripts/camera_rig.gd" id="2_cam"]
@@ -8,6 +8,7 @@
 [ext_resource type="Script" path="res://scripts/batiments/building_system.gd" id="6_batiments"]
 [ext_resource type="Script" path="res://scripts/batiments/building_panel.gd" id="7_panneau"]
 [ext_resource type="Script" path="res://scripts/batiments/zone_system.gd" id="8_zones"]
+[ext_resource type="Script" path="res://scripts/batiments/block_editor.gd" id="9_blocs"]
 
 [sub_resource type="ProceduralSkyMaterial" id="sky_mat"]
 sky_top_color = Color(0.45, 0.66, 0.9, 1)
@@ -77,6 +78,12 @@ transport_path = NodePath("../Transport")
 
 [node name="Zones" type="Node3D" parent="."]
 script = ExtResource("8_zones")
+world_path = NodePath("../Terrain")
+camera_path = NodePath("../CameraRig/Camera3D")
+buildings_path = NodePath("../Batiments")
+
+[node name="Blocs" type="Node3D" parent="."]
+script = ExtResource("9_blocs")
 world_path = NodePath("../Terrain")
 camera_path = NodePath("../CameraRig/Camera3D")
 buildings_path = NodePath("../Batiments")

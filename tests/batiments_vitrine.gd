@@ -2,6 +2,7 @@ extends SceneTree
 ## Vitrine : pose tout le catalogue le long de deux routes et prend une capture.
 ## Usage (avec affichage) :
 ##   godot --path . --script res://tests/batiments_vitrine.gd -- --screenshot vitrine.png [--distance 220] [--yaw 30] [--zones]
+## --blocs : une maison construite bloc par bloc.
 ## --zones : un quartier né du zonage (routes en grille, zones R/C/I) au lieu du catalogue.
 
 
@@ -28,6 +29,7 @@ func _run() -> void:
 	var yaw := 30.0
 	var focus := Vector2(0, 0)
 	var zoning := args.has("--zones")
+	var bloc_mode := args.has("--blocs")
 	for i in args.size():
 		if args[i] == "--screenshot" and i + 1 < args.size():
 			shot = args[i + 1]
@@ -51,14 +53,18 @@ func _run() -> void:
 		await process_frame
 	bs.unlimited_money = true
 
-	if zoning:
-		await _zoning(scene, world, transport, bs)
+	if zoning or bloc_mode:
+		if zoning:
+			await _zoning(scene, world, transport, bs)
+		else:
+			_blocks_house(scene, world)
+			scene.get_node("Blocs").set_tool(BlockEditor.Tool.BLOCK)
 		var rig0 = scene.get_node("CameraRig")
 		rig0.position = Vector3(focus.x, 42.0, focus.y)
 		rig0._distance = dist
 		rig0._target_distance = dist
 		rig0.rotation_degrees.y = yaw
-		scene.get_node("PanneauConstruction").show_category("zones")
+		scene.get_node("PanneauConstruction").show_category("zones" if zoning else "blocs")
 		for i in 90:
 			await process_frame
 		root.get_viewport().get_texture().get_image().save_png(shot)
@@ -133,3 +139,57 @@ func _zoning(scene: Node, world: TerrainWorld, transport: TransportSystem, bs: B
 	await process_frame
 	print(bs.summary())
 	print(zs.summary())
+
+
+## Petite maison en blocs : plancher, murs de brique, fenêtres, toit en tuiles, un arbre.
+func _blocks_house(scene: Node, world: TerrainWorld) -> void:
+	var be: BlockEditor = scene.get_node("Blocs")
+	var g := world.cell_height(Vector2i(0, 0))
+	var y := roundi(maxf(g, 0.0) / BlockEditor.UNIT_Y) + BlockEditor.HU
+	var hu := BlockEditor.HU
+	# Socle en pierre qui suit le sol.
+	var base: Array = []
+	for x in range(-1, 11):
+		for z in range(-1, 9):
+			var c := Vector2i(x, z)
+			var gy := roundi(maxf(world.cell_height(c), 0.0) / BlockEditor.UNIT_Y)
+			var k := Vector3i(x, gy, z)
+			while k.y < y:
+				base.append(k)
+				k.y += hu
+	be.place_blocks(base, 1)
+	var floor_keys: Array = be.drag_keys(Vector3i(0, y, 0), Vector3i(9, y, 7), BlockEditor.Tool.RECT)
+	be.place_blocks(floor_keys, 3)
+	var walls := {}
+	for x in range(0, 10):
+		for z in range(0, 8):
+			if x == 0 or x == 9 or z == 0 or z == 7:
+				for h in range(1, 4):
+					walls[Vector3i(x, y + h * hu, z)] = 5
+	# Porte et fenêtres.
+	walls.erase(Vector3i(4, y + hu, 0))
+	walls.erase(Vector3i(4, y + 2 * hu, 0))
+	for w in [Vector3i(2, y + 2 * hu, 0), Vector3i(7, y + 2 * hu, 0), Vector3i(0, y + 2 * hu, 3), Vector3i(0, y + 2 * hu, 4),
+			Vector3i(9, y + 2 * hu, 3), Vector3i(9, y + 2 * hu, 4), Vector3i(3, y + 2 * hu, 7), Vector3i(6, y + 2 * hu, 7)]:
+		walls[w] = 10
+	for x in [0, 9]:
+		for z in [0, 7]:
+			for h in range(1, 4):
+				walls[Vector3i(x, y + h * hu, z)] = 2
+	for m in [5, 2, 10]:
+		var ks: Array = []
+		for k in walls:
+			if walls[k] == m:
+				ks.append(k)
+		be.place_blocks(ks, m)
+	# Toit en escalier.
+	for i in 5:
+		var ks: Array = be.drag_keys(Vector3i(0, y + (4 + i) * hu, i), Vector3i(9, y + (4 + i) * hu, 7 - i), BlockEditor.Tool.RECT)
+		be.place_blocks(ks, 7 if i < 3 else 8)
+	# Arbre.
+	var ty := roundi(maxf(world.cell_height(Vector2i(14, 4)), 0.0) / BlockEditor.UNIT_Y)
+	be.place_blocks(be.drag_keys(Vector3i(14, ty, 4), Vector3i(14, ty, 4), BlockEditor.Tool.WALL), 2)
+	for h in range(3, 6):
+		var r := 2 if h < 5 else 1
+		be.place_blocks(be.drag_keys(Vector3i(14 - r, ty + h * hu, 4 - r), Vector3i(14 + r, ty + h * hu, 4 + r), BlockEditor.Tool.RECT), 13)
+	print(be.summary(), " ", be.count_by_material())

@@ -51,6 +51,8 @@ var buildings: Dictionary = {}
 ## Vector2i -> id du bâtiment qui occupe la case
 var occupancy: Dictionary = {}
 var next_id := 1
+## Si défini, Callable(case: Vector2i) -> bool : case prise par autre chose (blocs libres).
+var extra_blocker: Callable
 
 var _nodes: Dictionary = {} # id -> MeshInstance3D
 var _meshes: Dictionary = {} # type -> ArrayMesh
@@ -79,7 +81,8 @@ func _ready() -> void:
 	if transport != null:
 		transport.network_changed.connect(func() -> void: _summary_dirty = true)
 		# Une voie ne peut pas traverser un bâtiment.
-		transport.blocker = func(c: Vector2i) -> bool: return occupancy.has(c)
+		transport.blocker = func(c: Vector2i) -> bool:
+			return occupancy.has(c) or (extra_blocker.is_valid() and extra_blocker.call(c))
 	_material = StandardMaterial3D.new()
 	_material.vertex_color_use_as_albedo = true
 	_material.vertex_color_is_srgb = true
@@ -229,6 +232,9 @@ func check_place(id: String, center: Vector2i, r: int, grown := false) -> Dictio
 				return res
 			if transport != null and transport.is_cell_occupied(c):
 				res.reason = "Une voie passe sur l'emplacement."
+				return res
+			if extra_blocker.is_valid() and extra_blocker.call(c):
+				res.reason = "Des blocs sont construits ici."
 				return res
 			var h := world.cell_height(c)
 			if is_nan(h):

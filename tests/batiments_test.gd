@@ -155,8 +155,42 @@ func _run() -> void:
 	_check(zs._views.size() == 2, "calques de zone dessinés")
 	var nb := bs.buildings.size()
 
+	print("Éditeur libre :")
+	var be: BlockEditor = scene.get_node("Blocs")
+	bs.unlimited_money = false
+	bs.money = 1_000_000
+	var g := world.cell_height(Vector2i(-120, -100))
+	var k0 := Vector3i(-120, roundi(g / BlockEditor.UNIT_Y), -100)
+	var tg := be.target_from_ray(Vector3(-119.5, g + 60.0, -99.5), Vector3.DOWN)
+	_check(not tg.is_empty() and tg.place == k0 and tg.hit == null, "visée sur le sol : bloc posé au ras du relief")
+	_check(be.place_blocks([k0], 0) == 1 and bs.money == 1_000_000 - 120, "un bloc de brique posé et payé")
+	tg = be.target_from_ray(Vector3(-119.5, g + 60.0, -99.5), Vector3.DOWN)
+	_check(tg.hit == k0 and tg.place == k0 + Vector3i(0, BlockEditor.HU, 0), "visée sur le dessus : le bloc suivant va au-dessus")
+	tg = be.target_from_ray(Vector3(-130.0, g + 0.6, -99.5), Vector3.RIGHT)
+	_check(tg.get("hit") == k0 and tg.place == k0 + Vector3i(-1, 0, 0), "visée de côté : le bloc suivant va à côté")
+	_check(be.place_blocks([k0], 0) == 0, "pas deux blocs au même endroit")
+	_check(be.check_block(k0 - Vector3i(0, 2 * BlockEditor.HU, 0)).contains("sous terre"), "pas de bloc sous terre")
+	var wall := be.drag_keys(k0 + Vector3i(0, 0, 2), k0 + Vector3i(1, 0, 7), BlockEditor.Tool.WALL)
+	_check(wall.size() == 6 * be.wall_height, "mur de 6 × %d blocs" % be.wall_height)
+	_check(be.place_blocks(wall, 4) == wall.size(), "mur en béton posé")
+	var slab := be.drag_keys(k0 + Vector3i(-3, 0, 9), k0 + Vector3i(0, 0, 12), BlockEditor.Tool.RECT)
+	_check(be.place_blocks(slab, 3) == 16, "dalle de 4 × 4 en planches")
+	var nblocks := be.blocks.size()
+	var on_blocks := bs.check_place("maison", Vector2i(-118, -98), 0)
+	_check(not on_blocks.ok and String(on_blocks.reason).contains("blocs"), "pas de bâtiment sur des blocs")
+	var yb2 := world.cell_height(Vector2i(-140, -97))
+	var rb := transport.build_segment("route", Vector3(-140, yb2, -97), Vector3(-100, yb2, -97))
+	_check(not rb.ok, "pas de route à travers des blocs")
+	var m1 := bs.money
+	_check(be.remove_blocks([k0]) == 1 and bs.money == m1 + 60, "bloc retiré, moitié du prix rendue")
+	_check(be.undo() and be.blocks.has(k0) and bs.money == m1, "Ctrl+Z remet le bloc")
+	await process_frame
+	_check(be._chunks.size() >= 1, "blocs dessinés")
+	_check(world.modifications.has(Vector2i(-120, -100)), "pas d'arbres sous les blocs")
+	bs.money = before + roundi(paid * BuildingSystem.REFUND) - 45 * 80 * ZoneSystem.PRICE_M2
+
 	print("Sauvegarde :")
-	_check(world.save_world({"transport": transport.to_dict(), "batiments": bs.to_dict(), "zones": zs.to_dict()}), "sauvegarde")
+	_check(world.save_world({"transport": transport.to_dict(), "batiments": bs.to_dict(), "zones": zs.to_dict(), "blocs": be.to_dict()}), "sauvegarde")
 	world.set_origin(45.8326, 6.8652)
 	_check(bs.buildings.is_empty() and bs.occupancy.is_empty(), "nouvelle région : aucun bâtiment")
 	_check(zs.zones.is_empty(), "nouvelle région : aucune zone")
@@ -165,6 +199,8 @@ func _run() -> void:
 	bs.from_dict(world.loaded_data.get("batiments", {}))
 	zs.from_dict(world.loaded_data.get("zones", {}))
 	_check(zs.zones.size() == 2, "zones restaurées")
+	be.from_dict(world.loaded_data.get("blocs", {}))
+	_check(be.blocks.size() == nblocks and be.blocks.get(k0) == 0, "blocs restaurés")
 	_check(bs.buildings.size() == nb and bs.building_at(Vector2i(12, 0)) == id, "bâtiments restaurés")
 	_check(bs.money == before + roundi(paid * BuildingSystem.REFUND) - 45 * 80 * ZoneSystem.PRICE_M2, "caisse restaurée")
 	bs.unlimited_money = true

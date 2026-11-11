@@ -21,6 +21,8 @@ enum Tool { INSPECT, FLATTEN, RAISE, LOWER }
 ## Les parties du joueur passent par SaveGame (user://parties/).
 const SAVE_PATH := "user://test_terre_save.json"
 const WATER_LEVEL := -0.1
+## La surface des rivières et des lacs est un peu sous le haut des berges.
+const WATER_SURFACE_DROP := 0.15
 
 @export var chunk_size: int = 64
 ## Les hauteurs sont arrondies à ce pas : crée des plateaux plats constructibles
@@ -46,6 +48,8 @@ var chunks: Dictionary = {}
 var tiles: ElevationTiles
 ## Occupation du sol réelle (forêt, champs, eau douce, glacier…).
 var land: LandCover
+## Rivières et ruisseaux (OpenStreetMap ou calculés depuis le relief).
+var water: WaterMap
 ## Optionnel : Callable(c: Vector2i) -> bool. Vrai = pas d'arbre sur cette case
 ## (ex. une route posée sur un terrain plat).
 var tree_blocker: Callable
@@ -59,6 +63,7 @@ var _max_jobs := clampi(OS.get_processor_count() - 1, 1, 6)
 var _generation := 0
 var _material: ShaderMaterial
 var _water: MeshInstance3D
+var _water_material: ShaderMaterial
 var _selection: MeshInstance3D
 var _camera: Camera3D
 var _focus: Node3D
@@ -81,6 +86,10 @@ func _ready() -> void:
 	land = LandCover.new()
 	land.name = "LandCover"
 	add_child(land)
+	water = WaterMap.new()
+	water.name = "WaterMap"
+	add_child(water)
+	water.water_changed.connect(_on_water_changed)
 	_build_vegetation_meshes()
 	if not camera_path.is_empty():
 		_camera = get_node(camera_path) as Camera3D
@@ -94,12 +103,15 @@ func _ready() -> void:
 	var plane := PlaneMesh.new()
 	plane.size = Vector2.ONE * (max_view_radius * 2.0 + 256.0)
 	_water.mesh = plane
-	var wm := StandardMaterial3D.new()
-	wm.albedo_color = Color(0.22, 0.5, 0.78, 0.78)
-	wm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	wm.roughness = 0.15
-	wm.metallic_specular = 0.7
+	var water_shader := preload("res://scripts/terre/water.gdshader")
+	var wm := ShaderMaterial.new()
+	wm.shader = water_shader
+	wm.set_shader_parameter("foam_amount", 0.0)
+	wm.set_shader_parameter("fixed_depth", 1.0)
+	wm.set_shader_parameter("wave_scale", 0.6)
 	_water.material_override = wm
+	_water_material = ShaderMaterial.new()
+	_water_material.shader = water_shader
 	_water.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_water.position.y = WATER_LEVEL
 	add_child(_water)
@@ -136,6 +148,10 @@ func set_origin(lat: float, lon: float) -> void:
 	_px0 = Geo.lon_to_pixel_x(lon, z)
 	_px_per_m = Geo.lon_to_pixel_x(Geo.local_to_lon(lat, lon, 1000.0), z) - _px0
 	_px_per_m /= 1000.0
+	if water:
+		# Relief synthétique (tests) : pas de vraies rivières par-dessus.
+		water.offline = tiles.offline_generator.is_valid()
+		water.set_origin(lat, lon)
 	origin_changed.emit(lat, lon)
 
 
@@ -162,24 +178,72 @@ func _quantize(h: float) -> float:
 	return snappedf(h, height_step)
 
 
-## Hauteur affichée d'une case (arrondie, avec les modifications du joueur).
+## Hauteur affichée d'une case (arrondie, avec les modifications du joueur et
+## le lit creusé des rivières).
 func cell_height(c: Vector2i) -> float:
 	if modifications.has(c):
 		return modifications[c]
 	var h := raw_height(c.x + 0.5, c.y + 0.5)
 	if is_nan(h):
 		return NAN
-	return _quantize(h)
+	var q := _quantize(h)
+	return q - water_depth(q, cell_biome(c), water.width_at(c.x + 0.5, c.y + 0.5), height_step)
+
+
+## Hauteur d'une case sans le creusement des rivières.
+func _bank_height(c: Vector2i) -> float:
+	if modifications.has(c):
+		return modifications[c]
+	var h := raw_height(c.x + 0.5, c.y + 0.5)
+	return NAN if is_nan(h) else _quantize(h)
+
+
+## Profondeur du lit creusé sous la hauteur arrondie q (0 = pas d'eau douce).
+## width : largeur du cours d'eau (WaterMap.width_at), bio : code WorldCover.
+static func water_depth(q: float, bio: int, width: float, step: float) -> float:
+	if q < 0.0:
+		return 0.0 # la mer est gérée à part
+	if width >= WaterMap.POND_WIDTH or bio == 80:
+		return step
+	if width > 0.0:
+		return step * (1.0 if width < 3.0 else 2.0)
+	return 0.0
+
+
+## Hauteur de la surface de l'eau douce (rivière, ruisseau, lac) sur la case
+## qui contient (x, z), ou NAN s'il n'y en a pas. La mer n'est pas comptée.
+func water_surface_at(x: float, z: float) -> float:
+	var c := Vector2i(floori(x), floori(z))
+	if modifications.has(c):
+		return NAN
+	var h := raw_height(c.x + 0.5, c.y + 0.5)
+	if is_nan(h):
+		return NAN
+	var q := _quantize(h)
+	if water_depth(q, cell_biome(c), water.width_at(c.x + 0.5, c.y + 0.5), height_step) == 0.0:
+		return NAN
+	return q - WATER_SURFACE_DROP
+
+
+## Nom du cours d'eau ou du lac sur une case (OpenStreetMap), ou "".
+func water_name_at(c: Vector2i) -> String:
+	return water.name_at(c.x + 0.5, c.y + 0.5)
+
+
+func _on_water_changed() -> void:
+	for k in chunks:
+		_dirty[k] = true
 
 
 ## Types de case (biomes affichés). L'ordre sert d'indice dans les tables ci-dessous.
 enum Kind { MER, LAC, GLACIER, ROCHE, FORET, BROUSSAILLES, PRAIRIE, CHAMPS, DESERT,
-	MARAIS, MANGROVE, TOUNDRA, PLAGE, NEIGE, ALPAGE }
+	MARAIS, MANGROVE, TOUNDRA, PLAGE, NEIGE, ALPAGE, RIVIERE, RUISSEAU, ETANG }
 const KIND_NAMES: Array[String] = ["Mer", "Lac / rivière", "Glacier", "Roche", "Forêt", "Broussailles",
-	"Prairie", "Champs", "Désert", "Marais", "Mangrove", "Toundra", "Plage", "Neige", "Alpage"]
+	"Prairie", "Champs", "Désert", "Marais", "Mangrove", "Toundra", "Plage", "Neige", "Alpage",
+	"Rivière", "Ruisseau", "Étang"]
 ## Probabilité d'un arbre / d'un buisson sur une case, par type.
-const TREE_BY_KIND: Array[float] = [0, 0, 0, 0, 0.10, 0.025, 0.004, 0, 0, 0.01, 0.08, 0, 0, 0, 0]
-const BUSH_BY_KIND: Array[float] = [0, 0, 0, 0, 0.03, 0.05, 0, 0, 0, 0, 0, 0.02, 0, 0, 0.01]
+const TREE_BY_KIND: Array[float] = [0, 0, 0, 0, 0.10, 0.025, 0.004, 0, 0, 0.01, 0.08, 0, 0, 0, 0, 0, 0, 0]
+const BUSH_BY_KIND: Array[float] = [0, 0, 0, 0, 0.03, 0.05, 0, 0, 0, 0, 0, 0.02, 0, 0, 0.01, 0, 0, 0]
 
 
 ## Hauteurs affichées (comme cell_height) de toutes les cases d'un rectangle,
@@ -196,6 +260,7 @@ func cell_heights(rect: Rect2i) -> PackedFloat32Array:
 	var h := tiles.sample_grid(pxs, pys)
 	for n in h.size():
 		h[n] = _quantize(h[n])
+	_carve_rect(rect, h)
 	if not modifications.is_empty():
 		var w := rect.size.x
 		if modifications.size() < h.size():
@@ -209,6 +274,26 @@ func cell_heights(rect: Rect2i) -> PackedFloat32Array:
 					if modifications.has(c):
 						h[i + j * w] = modifications[c]
 	return h
+
+
+## Creuse le lit des rivières et des lacs dans une grille de hauteurs arrondies.
+func _carve_rect(rect: Rect2i, h: PackedFloat32Array) -> void:
+	var lats := PackedFloat64Array()
+	lats.resize(rect.size.y)
+	for j in rect.size.y:
+		lats[j] = Geo.local_to_lat(origin_lat, rect.position.y + j + 0.5)
+	var lons := PackedFloat64Array()
+	lons.resize(rect.size.x)
+	for i in rect.size.x:
+		lons[i] = Geo.local_to_lon(origin_lat, origin_lon, rect.position.x + i + 0.5)
+	var bio := land.sample_grid(lats, lons)
+	var any := water.any_in_rect(rect.position.x, rect.position.y, rect.end.x, rect.end.y)
+	var w := rect.size.x
+	for n in h.size():
+		var width := 0.0
+		if any:
+			width = water.width_at(rect.position.x + n % w + 0.5, rect.position.y + n / w + 0.5)
+		h[n] -= water_depth(h[n], bio[n], width, height_step)
 
 
 ## Biome d'une case à partir de son altitude, de sa pente et du code WorldCover
@@ -276,14 +361,30 @@ func cell_kind_at(c: Vector2i) -> String:
 	var h := cell_height(c)
 	if is_nan(h):
 		return ""
-	return cell_kind(h, cell_slope(c), cell_biome(c))
+	var bio := cell_biome(c)
+	if not modifications.has(c) and bio != 80:
+		var wk := stream_kind_id(water.width_at(c.x + 0.5, c.y + 0.5), h)
+		if wk >= 0:
+			return KIND_NAMES[wk]
+	return cell_kind(h, cell_slope(c), bio)
 
 
+## Type de case pour un cours d'eau de largeur w (m), -1 s'il n'y en a pas.
+static func stream_kind_id(w: float, h: float) -> int:
+	if w <= 0.0 or h < -2.0:
+		return -1
+	if w >= WaterMap.POND_WIDTH:
+		return Kind.ETANG
+	return Kind.RIVIERE if w >= 3.0 else Kind.RUISSEAU
+
+
+## Pente autour d'une case (écart de hauteur maximal avec ses voisines), sans
+## compter le creusement des rivières.
 func cell_slope(c: Vector2i) -> float:
-	var h := cell_height(c)
+	var h := _bank_height(c)
 	var s := 0.0
 	for d in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
-		var n := cell_height(c + d)
+		var n := _bank_height(c + d)
 		if not is_nan(n):
 			s = maxf(s, absf(n - h))
 	return s
@@ -466,9 +567,16 @@ func _prepare_chunk(k: Vector2i) -> Dictionary:
 					if modifications.has(c):
 						mod_idx.append(i + j * w)
 						mod_h.append(modifications[c])
+	# Rivières et ruisseaux de la WaterMap (largeur en m, 0 = pas d'eau).
+	var wid := PackedFloat32Array()
+	wid.resize(w * w)
+	if water.any_in_rect(x0 - 1.0, z0 - 1.0, x0 + cs + 1.0, z0 + cs + 1.0):
+		for j in w:
+			for i in w:
+				wid[i + j * w] = water.width_at(x0 + i - 1 + 0.5, z0 + j - 1 + 0.5)
 	return {"k": k, "gen": _generation, "cs": cs, "step": height_step,
 		"pxs": pxs, "pys": pys, "win": tiles.grab_window(pxs, pys),
-		"bio": land.sample_grid(lats, lons), "mod_idx": mod_idx, "mod_h": mod_h}
+		"bio": land.sample_grid(lats, lons), "wid": wid, "mod_idx": mod_idx, "mod_h": mod_h}
 
 
 ## Calcul pur du maillage et des positions d'arbres (peut tourner sur un autre fil :
@@ -489,10 +597,28 @@ static func _compute_chunk(job: Dictionary) -> void:
 		h[mod_idx[m]] = mod_h[m]
 		modified[mod_idx[m]] = 1
 	var bio: PackedByteArray = job.bio
-	# L'eau douce est creusée d'une marche pour dessiner les berges.
+	var wid: PackedFloat32Array = job.wid
+	# L'eau douce est creusée pour dessiner les berges ; on retient sa surface.
+	# wet : 0 = terre, 1 = eau douce, 2 = mer.
+	var wet := PackedByteArray()
+	wet.resize(w * w)
+	var surf := PackedFloat32Array()
+	surf.resize(w * w)
+	# Hauteurs avant creusement : les berges gardent leur biome (pas de « roche »).
+	var h_bank := h.duplicate()
 	for n in w * w:
-		if bio[n] == 80 and h[n] >= 0.0 and modified[n] == 0:
-			h[n] -= step
+		if bio[n] == 80:
+			wid[n] = 0.0 # dans un lac WorldCover, pas de ruisseau dessiné par-dessus
+		if h[n] < 0.0:
+			wet[n] = 2
+			continue
+		if modified[n] != 0:
+			continue
+		var d := water_depth(h[n], bio[n], wid[n], step)
+		if d > 0.0:
+			wet[n] = 1
+			surf[n] = h[n] - WATER_SURFACE_DROP
+			h[n] -= d
 
 	var colors := PackedColorArray()
 	colors.resize(w * w)
@@ -502,12 +628,17 @@ static func _compute_chunk(job: Dictionary) -> void:
 		for i in range(1, w - 1):
 			var n := i + j * w
 			var hc := h[n]
-			var s := maxf(maxf(absf(h[n + 1] - hc), absf(h[n - 1] - hc)),
-					maxf(absf(h[n + w] - hc), absf(h[n - w] - hc)))
+			var hb := h_bank[n]
+			var s := maxf(maxf(absf(h_bank[n + 1] - hb), absf(h_bank[n - 1] - hb)),
+					maxf(absf(h_bank[n + w] - hb), absf(h_bank[n - w] - hb)))
 			var code := bio[n]
 			var kind: int = _KIND_BY_CODE[code]
 			if kind < 0 or hc < 0.0 or s >= 1.0 or hc < 1.5 or hc > 1500.0:
 				kind = cell_kind_id(hc, s, code)
+			if wet[n] == 1 and wid[n] > 0.0:
+				var sk := stream_kind_id(wid[n], hc)
+				if sk >= 0:
+					kind = sk
 			kinds[n] = kind
 			if kind == Kind.PRAIRIE:
 				colors[n] = _prairie_colors[clampi(floori(hc / 2.0), 0, 200)]
@@ -577,7 +708,63 @@ static func _compute_chunk(job: Dictionary) -> void:
 	arrays[Mesh.ARRAY_INDEX] = idx
 	job.arrays = arrays
 	job.h = h
+	job.water_arrays = _compute_water_mesh(cs, wet, surf, wid)
 	_compute_vegetation(job, h, kinds, modified)
+
+
+## Surface d'eau douce du bloc : un carré par case d'eau, à la hauteur de sa
+## surface, avec des cascades entre deux cases d'eau de hauteurs différentes.
+## Couleur de sommet (donnée pour le shader) : r = bord (écume), g = profondeur.
+## Renvoie les tableaux du maillage, ou [] s'il n'y a pas d'eau douce.
+static func _compute_water_mesh(cs: int, wet: PackedByteArray, surf: PackedFloat32Array,
+		wid: PackedFloat32Array) -> Array:
+	var w := cs + 2
+	var verts := PackedVector3Array()
+	var normals := PackedVector3Array()
+	var cols := PackedColorArray()
+	var idx := PackedInt32Array()
+	for j in range(1, cs + 1):
+		for i in range(1, cs + 1):
+			var n := i + j * w
+			if wet[n] != 1:
+				continue
+			var y := surf[n]
+			var depth := 1.0 if wid[n] == 0.0 or wid[n] >= WaterMap.POND_WIDTH else clampf(wid[n] / 15.0, 0.15, 1.0)
+			var base := verts.size()
+			# Coins (a, b) en coordonnées de grille : bord si une case autour est sèche.
+			for corner: Vector2i in [Vector2i(i - 1, j - 1), Vector2i(i, j - 1), Vector2i(i, j), Vector2i(i - 1, j)]:
+				var shore := 0.0
+				for ddx in 2:
+					for ddz in 2:
+						if wet[corner.x + ddx + (corner.y + ddz) * w] == 0:
+							shore = 1.0
+				verts.push_back(Vector3(corner.x, y, corner.y))
+				normals.push_back(Vector3.UP)
+				cols.push_back(Color(shore, depth, 0.0, 1.0))
+			idx.append_array([base, base + 1, base + 2, base, base + 2, base + 3])
+			# Cascades vers l'Est et le Sud.
+			for d: Vector2i in [Vector2i(1, 0), Vector2i(0, 1)]:
+				var m: int = i + d.x + (j + d.y) * w
+				if wet[m] != 1 or surf[m] == y:
+					continue
+				var hi := maxf(y, surf[m])
+				var lo := minf(y, surf[m])
+				var fall := Color(1.0, depth, 0.0, 1.0)
+				if d.x == 1:
+					_quad(verts, normals, cols, idx, Vector3(i, hi, j - 1), Vector3(i, hi, j),
+						Vector3(i, lo, j), Vector3(i, lo, j - 1), Vector3.RIGHT, fall)
+				else:
+					_quad(verts, normals, cols, idx, Vector3(i - 1, hi, j), Vector3(i, hi, j),
+						Vector3(i, lo, j), Vector3(i - 1, lo, j), Vector3.BACK, fall)
+	if verts.is_empty():
+		return []
+	var arrays := []
+	arrays.resize(Mesh.ARRAY_MAX)
+	arrays[Mesh.ARRAY_VERTEX] = verts
+	arrays[Mesh.ARRAY_NORMAL] = normals
+	arrays[Mesh.ARRAY_COLOR] = cols
+	arrays[Mesh.ARRAY_INDEX] = idx
+	return arrays
 
 
 ## Fil principal : crée ou remplace le maillage du bloc.
@@ -595,6 +782,16 @@ func _apply_chunk(job: Dictionary) -> void:
 		chunks[k] = mi
 	mi.mesh = mesh
 	_plant_vegetation(mi, job)
+	var wa: Array = job.water_arrays
+	if not wa.is_empty():
+		var wmesh := ArrayMesh.new()
+		wmesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, wa)
+		var wmi := MeshInstance3D.new()
+		wmi.name = "Eau"
+		wmi.mesh = wmesh
+		wmi.material_override = _water_material
+		wmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		mi.add_child(wmi)
 	chunk_rebuilt.emit(k)
 
 
@@ -621,8 +818,9 @@ static var _base_colors: PackedColorArray = _make_base_colors()
 
 
 static func _make_base_colors() -> PackedColorArray:
-	var hexes := ["c9b27c", "4f8fc4", "eef3f8", "8e8a82", "4c8c3c", "8d9a58", "5d9e47", "d2c06a",
-		"e6d59c", "6c9a7c", "3b7354", "a9a88a", "e6d59c", "eef3f8", "98a56a"]
+	# Lac, rivière, ruisseau, étang : le lit, vu à travers l'eau animée.
+	var hexes := ["c9b27c", "5f7a6a", "eef3f8", "8e8a82", "4c8c3c", "8d9a58", "5d9e47", "d2c06a",
+		"e6d59c", "6c9a7c", "3b7354", "a9a88a", "e6d59c", "eef3f8", "98a56a", "5f7a6a", "5f7a6a", "5f7a6a"]
 	var out := PackedColorArray()
 	for x in hexes:
 		out.append(Color(x).srgb_to_linear())
@@ -727,6 +925,7 @@ static func _compute_vegetation(job: Dictionary, h: PackedFloat32Array, kinds: P
 ## Fil principal : retire la végétation sous les voies (tree_blocker) et la pose.
 func _plant_vegetation(mi: MeshInstance3D, job: Dictionary) -> void:
 	for child in mi.get_children():
+		mi.remove_child(child)
 		child.queue_free()
 	var veg: Dictionary = job.veg
 	var cells: Array[Vector2i] = veg.cells

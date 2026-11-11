@@ -196,14 +196,20 @@ func _ready() -> void:
 	fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	bottom.add_child(fill)
 	var credit := Label.new()
-	credit.text = "Relief : Mapzen Terrain Tiles (AWS Open Data) — SRTM, GMTED, ETOPO1, EU-DEM\nBiomes : © ESA WorldCover 2021, données Copernicus Sentinel (CC BY 4.0)"
+	credit.text = "Relief : Mapzen Terrain Tiles (AWS Open Data) — SRTM, GMTED, ETOPO1, EU-DEM\nBiomes : © ESA WorldCover 2021, données Copernicus Sentinel (CC BY 4.0)\nRivières : © contributeurs OpenStreetMap (ODbL) si disponible, sinon calculées sur le relief"
 	credit.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	credit.size_flags_vertical = Control.SIZE_SHRINK_END
+	# Ancré en bas à droite, au-dessus de la barre d'outils : jamais coupé.
+	credit.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
+	credit.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	credit.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	credit.offset_right = -10.0
+	credit.offset_bottom = -54.0
+	credit.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	credit.add_theme_font_size_override("font_size", 11)
 	credit.add_theme_color_override("font_color", Color(1, 1, 1, 0.75))
 	credit.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
 	credit.add_theme_constant_override("outline_size", 3)
-	bottom.add_child(credit)
+	layout.add_child(credit)
 
 
 var _veh_era := ""

@@ -37,6 +37,9 @@ var _highlight_edge := -1
 var _right_press := Vector2.ZERO
 ## Cases recouvertes par une voie au sol (pas d'arbres dessus).
 var _occupied: Dictionary = {}
+## Si défini, Callable(case: Vector2i) -> bool : vrai si la case est interdite
+## aux voies (un bâtiment s'y trouve).
+var blocker: Callable
 
 
 func _ready() -> void:
@@ -110,6 +113,20 @@ func _on_network_changed() -> void:
 	else:
 		_occupied = now
 	network_changed.emit()
+
+
+## Vrai si le tracé passe sur une case interdite (au sol ou en pont, pas en tunnel).
+func is_blocked(id: String, pts: PackedVector3Array, st: PackedByteArray) -> bool:
+	if not blocker.is_valid():
+		return false
+	var step := world.height_step if world != null else 0.5
+	for c in RoutePlanner.earthworks(id, pts, st, step):
+		if blocker.call(c):
+			return true
+	for i in pts.size():
+		if st[i] == TransportTypes.Struct.BRIDGE and blocker.call(Vector2i(floori(pts[i].x), floori(pts[i].z))):
+			return true
+	return false
 
 
 func is_cell_occupied(c: Vector2i) -> bool:
@@ -273,6 +290,9 @@ func _update_preview() -> void:
 	if _plan.pts.size() >= 2:
 		_preview.mesh = TransportView.build_mesh(type_id, _plan.pts, _plan.st, ground_height)
 		_preview.position = Vector3(0, 0.05, 0)
+		if _plan.ok and is_blocked(type_id, _plan.pts, _plan.st):
+			_plan.ok = false
+			_plan.reason = "Un bâtiment se trouve sur le tracé."
 		_preview.material_override = _preview_ok_mat if _plan.ok else _preview_bad_mat
 	else:
 		_preview.mesh = null
@@ -325,6 +345,8 @@ func build_segment(id: String, a: Vector3, b: Vector3) -> Dictionary:
 	var plan := RoutePlanner.plan(id, a_pos, b_pos, ground_height)
 	if not plan.ok:
 		return plan
+	if is_blocked(id, plan.pts, plan.st):
+		return {"ok": false, "reason": "Un bâtiment se trouve sur le tracé."}
 	var pts: PackedVector3Array = plan.pts
 	var st: PackedByteArray = plan.st
 	var n := pts.size()

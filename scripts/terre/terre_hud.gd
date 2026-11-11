@@ -117,7 +117,7 @@ func _ready() -> void:
 	var help := Label.new()
 	help.text = "ZQSD / flèches : déplacer   ·   Molette : zoom   ·   A / E ou clic molette : tourner   ·   Clic droit glissé : déplacer la carte\n" \
 		+ "Clic gauche glissé : terrasser (2-4)   ·   5-8 : poser une voie, clic par point, Échap / clic droit pour finir, Maj : angles de 15°   ·   9 : démolir\n" \
-		+ "1-9 : outils   ·   F5 : sauvegarder   ·   F9 : charger   ·   Échap : annuler"
+		+ "B : panneau Construire (clic : poser, R : tourner)   ·   1-9 : outils   ·   F5 : sauvegarder   ·   F9 : charger   ·   Échap : annuler"
 	help.add_theme_color_override("font_color", Color(1, 1, 1, 0.9))
 	help.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
 	help.add_theme_constant_override("outline_size", 4)
@@ -209,6 +209,11 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		save_requested.emit()
 	elif key.keycode == KEY_F9:
 		load_requested.emit()
+
+
+## Enfonce le bouton d'un outil sans prévenir (un autre système a pris la main).
+func select_tool_silently(i: int) -> void:
+	_buttons[i].set_pressed_no_signal(true)
 
 
 func show_message(text: String) -> void:

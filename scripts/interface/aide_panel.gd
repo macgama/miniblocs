@@ -18,6 +18,7 @@ const SECTIONS := [
 		["C", "voie en courbe (pendant le tracé)"],
 		["Maj", "angles par pas de 15° (pendant le tracé)"],
 		["9", "démolir une voie"],
+		["0", "paysage : colline, lisser, lac ou canal, combler l'eau, peindre un biome, planter ou arracher des arbres (pinceau rond, clic gauche glissé)"],
 		["Échap ou clic droit", "arrêter le tracé, annuler l'outil"],
 	]],
 	["Construire (panneau de droite)", [

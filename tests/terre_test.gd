@@ -202,6 +202,37 @@ func _run() -> void:
 					print("Route : ", built.get("ok"), " ", built.get("reason", ""))
 					for i in 60:
 						await process_frame
+			if "--paysage" in args:
+				# Démonstration des pinceaux : un lac, un canal, une colline boisée, un désert.
+				var c0 := Vector2i(floori(rig.position.x), floori(rig.position.z))
+				world.brush_radius = 7
+				world.set_tool(TerrainWorld.Tool.DIG_WATER)
+				world._stroke_level = NAN
+				for dx in range(-6, 7, 3):
+					world.apply_brush(c0 + Vector2i(dx, 0))
+				world.brush_radius = 1
+				for dz in range(5, 40, 2):
+					world.apply_brush(c0 + Vector2i(dz / 3, dz))
+				world.brush_radius = 8
+				world.set_tool(TerrainWorld.Tool.HILL)
+				for i in 3:
+					world.apply_brush(c0 + Vector2i(-28, -20))
+				world.set_tool(TerrainWorld.Tool.SMOOTH)
+				world.apply_brush(c0 + Vector2i(-28, -20))
+				world.set_tool(TerrainWorld.Tool.PLANT)
+				world.apply_brush(c0 + Vector2i(-28, -20))
+				world.set_tool(TerrainWorld.Tool.BIOME)
+				world.paint_kind = TerrainWorld.Kind.DESERT
+				world.brush_radius = 6
+				for dx in range(20, 40, 4):
+					world.apply_brush(c0 + Vector2i(dx, -15))
+				world.set_tool(TerrainWorld.Tool.INSPECT)
+				scene.hud.select_tool_silently(TerreHud.LANDSCAPE_TOOL)
+				scene._on_tool_selected(TerreHud.LANDSCAPE_TOOL)
+				for i in 120:
+					await process_frame
+					if world._dirty.is_empty() and world._jobs.is_empty():
+						break
 			rig._distance = dist
 			rig._target_distance = dist
 			rig.rotation_degrees.y = 25.0
@@ -329,6 +360,82 @@ func _run() -> void:
 	_check(small_bridge, "petit pont même sur un ruisseau de 1 m")
 	var no_water := RoutePlanner.plan("rue", PackedVector2Array([Vector2(0, 10), Vector2(28, 10)]), NAN, NAN, ground)
 	_check(no_water.ok, "plan() marche toujours sans le paramètre eau")
+
+	print("Paysage :")
+	world.brush_radius = 3
+	world.set_tool(TerrainWorld.Tool.HILL)
+	var hc0 := world.cell_height(Vector2i(120, -40))
+	_check(world.apply_brush(Vector2i(120, -40)) > 20, "colline : le pinceau rond change ~37 cases")
+	_check(world.cell_height(Vector2i(120, -40)) == hc0 + 1.5, "colline : +1,5 m au centre")
+	_check(world.cell_height(Vector2i(124, -40)) == world._quantize(world.raw_height(124.5, -39.5)), "colline : rien hors du pinceau")
+	world.apply_brush(Vector2i(120, -40))
+	var peak := world.cell_height(Vector2i(120, -40))
+	world.set_tool(TerrainWorld.Tool.SMOOTH)
+	world.apply_brush(Vector2i(120, -40))
+	_check(world.cell_height(Vector2i(120, -40)) < peak, "lisser abaisse le sommet")
+	world.set_tool(TerrainWorld.Tool.DIG_WATER)
+	world._stroke_level = NAN
+	var bank := world.cell_height(Vector2i(120, -80))
+	world.apply_brush(Vector2i(120, -80))
+	world.apply_brush(Vector2i(126, -80)) # même coup de pinceau, vers l'amont (Est)
+	var s1 := world.water_surface_at(120.5, -79.5)
+	_check(absf(s1 - (bank - TerrainWorld.WATER_SURFACE_DROP)) < 0.01, "lac creusé : eau juste sous la berge")
+	_check(world.cell_height(Vector2i(120, -80)) == bank - 1.0, "lac creusé : lit 1 m plus bas")
+	_check(world.water_surface_at(128.5, -79.5) == s1, "canal : l'eau garde son niveau en montant")
+	_check(world.cell_kind_at(Vector2i(120, -80)) == "Lac / canal", "type de case « Lac / canal »")
+	var over := RoutePlanner.plan("rue", PackedVector2Array([Vector2(123, -100), Vector2(123, -60)]), NAN, NAN,
+		func(x: float, z: float) -> float: return world.cell_height(Vector2i(floori(x), floori(z))), world.water_surface_at)
+	var on_bridge := false
+	for i in over.pts.size():
+		if absf(over.pts[i].z + 79.5) < 1.0 and over.st[i] == TransportTypes.Struct.BRIDGE:
+			on_bridge = true
+	_check(on_bridge, "une rue enjambe le canal creusé")
+	world.set_tool(TerrainWorld.Tool.FILL_WATER)
+	world.apply_brush(Vector2i(126, -80))
+	_check(is_nan(world.water_surface_at(126.5, -79.5)) and world.cell_height(Vector2i(126, -80)) == s1 + TerrainWorld.WATER_SURFACE_DROP, "combler l'eau")
+	world.set_tool(TerrainWorld.Tool.BIOME)
+	world.paint_kind = TerrainWorld.Kind.DESERT
+	world.apply_brush(Vector2i(100, 30))
+	_check(world.cell_kind_at(Vector2i(100, 30)) == "Désert", "peindre un désert (%s)" % world.cell_kind_at(Vector2i(100, 30)))
+	# (le rendu sans écran ne relit pas les positions des arbres : on compte par bloc)
+	var count_trees := func(kk: Vector2i) -> int:
+		var ch: MeshInstance3D = world.chunks.get(kk)
+		var total := 0
+		if ch:
+			for g in ch.get_children():
+				if g is MultiMeshInstance3D and not g.is_queued_for_deletion():
+					total += (g as MultiMeshInstance3D).multimesh.instance_count
+		return total
+	var fields_before: int = count_trees.call(Vector2i(1, 0))
+	var forest_before: int = count_trees.call(Vector2i(1, -1))
+	world.brush_radius = 6
+	world.set_tool(TerrainWorld.Tool.PLANT)
+	world.apply_brush(Vector2i(100, 45))
+	world.set_tool(TerrainWorld.Tool.CLEAR_TREES)
+	world.apply_brush(Vector2i(100, -30))
+	for i in 300:
+		await process_frame
+		if world._dirty.is_empty() and world._jobs.is_empty():
+			break
+	var fields_after: int = count_trees.call(Vector2i(1, 0))
+	var forest_after: int = count_trees.call(Vector2i(1, -1))
+	_check(fields_before == 0 and fields_after >= 15, "arbres plantés dans les champs (%d -> %d)" % [fields_before, fields_after])
+	_check(forest_before - forest_after >= 8, "arbres arrachés dans la forêt (%d -> %d)" % [forest_before, forest_after])
+	var saved := world.to_dict()
+	var n_water := world.water_cells.size()
+	world.from_dict(saved)
+	_check(world.water_cells.size() == n_water and world.biome_paint.size() > 0 and world.tree_paint.size() > 0, "paysage sauvegardé et rechargé")
+	_check(world.cell_kind_at(Vector2i(100, 30)) == "Désert" and not is_nan(world.water_surface_at(120.5, -79.5)), "biome et lac retrouvés après chargement")
+	for i in 300:
+		await process_frame
+		if world._dirty.is_empty() and world._jobs.is_empty() and world.chunks.size() > 10:
+			break
+	world.set_tool(TerrainWorld.Tool.INSPECT)
+	world.set_origin(48.8584, 2.2945) # région vierge pour la suite
+	for i in 300:
+		await process_frame
+		if world._dirty.is_empty() and world._jobs.is_empty() and world.chunks.size() > 10:
+			break
 
 	var hit: Variant = world.pick_cell(Vector3(0.5, h0 + 80.0, 0.5), Vector3.DOWN)
 	_check(hit == Vector2i(0, 0), "rayon vertical -> case 0, 0")

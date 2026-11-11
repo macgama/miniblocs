@@ -38,9 +38,12 @@ const TOOLS := [
 	{"name": "Chemin", "key": KEY_7},
 	{"name": "Voie d'eau", "key": KEY_8},
 	{"name": "Démolir", "key": KEY_9},
+	{"name": "Paysage", "key": KEY_0},
 ]
 ## Premier outil de transport dans TOOLS (les précédents sont les outils de terrain).
 const FIRST_TRANSPORT_TOOL := 4
+## Outil « Paysage » : ouvre le panneau des pinceaux (colline, eau, biomes, arbres).
+const LANDSCAPE_TOOL := 9
 
 var coords_edit: LineEdit
 var _place_label: Label
@@ -134,7 +137,7 @@ func _ready() -> void:
 	layout.add_child(spacer)
 
 	var help := Label.new()
-	help.text = "F1 : toutes les commandes   ·   ZQSD : déplacer   ·   Molette : zoom   ·   A / E : tourner   ·   1-9 : outils   ·   B : construire   ·   L : lignes   ·   V : vue   ·   T : pause   ·   Échap : annuler"
+	help.text = "F1 : toutes les commandes   ·   ZQSD : déplacer   ·   Molette : zoom   ·   A / E : tourner   ·   0-9 : outils   ·   B : construire   ·   L : lignes   ·   V : vue   ·   T : pause   ·   Échap : annuler"
 	help.add_theme_color_override("font_color", Color(1, 1, 1, 0.9))
 	help.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
 	help.add_theme_constant_override("outline_size", 4)
@@ -158,10 +161,10 @@ func _ready() -> void:
 	bar_panel.add_child(bar)
 	var group := ButtonGroup.new()
 	for i in TOOLS.size():
-		if i == FIRST_TRANSPORT_TOOL:
+		if i == FIRST_TRANSPORT_TOOL or i == LANDSCAPE_TOOL:
 			bar.add_child(VSeparator.new())
 		var b := Button.new()
-		b.text = "%d · %s" % [i + 1, TOOLS[i].name]
+		b.text = "%s · %s" % [OS.get_keycode_string(TOOLS[i].key), TOOLS[i].name]
 		b.toggle_mode = true
 		b.button_group = group
 		b.custom_minimum_size = Vector2(96, 40)
@@ -189,7 +192,7 @@ func _ready() -> void:
 	fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	bottom.add_child(fill)
 	var credit := Label.new()
-	credit.text = "Relief : Mapzen Terrain Tiles\nBiomes : © ESA WorldCover 2021\nRivières : © OpenStreetMap"
+	credit.text = "Relief : Mapzen\nBiomes : © ESA\nRivières : © OSM"
 	credit.tooltip_text = "Relief : Mapzen Terrain Tiles (AWS Open Data) — SRTM, GMTED, ETOPO1, EU-DEM\nBiomes : © ESA WorldCover 2021, données Copernicus Sentinel (CC BY 4.0)\nRivières : © contributeurs OpenStreetMap (ODbL) si disponible, sinon calculées sur le relief"
 	credit.mouse_filter = Control.MOUSE_FILTER_PASS
 	credit.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT

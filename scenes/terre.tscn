@@ -9,6 +9,7 @@
 [ext_resource type="Script" path="res://scripts/batiments/building_panel.gd" id="7_panneau"]
 [ext_resource type="Script" path="res://scripts/batiments/zone_system.gd" id="8_zones"]
 [ext_resource type="Script" path="res://scripts/batiments/block_editor.gd" id="9_blocs"]
+[ext_resource type="Script" path="res://scripts/personnage/vue_sol.gd" id="10_vue_sol"]
 
 [sub_resource type="ProceduralSkyMaterial" id="sky_mat"]
 sky_top_color = Color(0.45, 0.66, 0.9, 1)
@@ -90,3 +91,11 @@ buildings_path = NodePath("../Batiments")
 
 [node name="PanneauConstruction" type="CanvasLayer" parent="."]
 script = ExtResource("7_panneau")
+
+[node name="VueSol" type="Node3D" parent="."]
+script = ExtResource("10_vue_sol")
+world_path = NodePath("../Terrain")
+rig_path = NodePath("../CameraRig")
+transport_path = NodePath("../Transport")
+hud_path = NodePath("../HUD")
+environment_path = NodePath("../WorldEnvironment")

@@ -14,7 +14,7 @@ On ne peut donc pas « dessiner » toute la Terre à l'avance. À la place, le j
 ## Décisions de game design (11/11/2026)
 
 - **Terre vierge** : seulement le vrai relief et les mers. Pas de routes ni de villes réelles.
-- **Le joueur choisit où il commence**, sur un globe 3D, puis joue dans une région de 10 × 10 km autour de ce point.
+- **Le joueur choisit où il commence**, sur un globe 3D, puis joue dans une région de 40 × 40 km autour de ce point.
 - **Trois types de cartes** :
   - **Bac à sable** : seul, hors ligne, on fait ce qu'on veut.
   - **Entre amis** : un joueur crée la carte et invite ses amis. Elle reste accessible à tous ses membres même si le créateur n'est pas en ligne.
@@ -33,7 +33,7 @@ On ne peut donc pas « dessiner » toute la Terre à l'avance. À la place, le j
 1. **Données réelles gratuites** : tuiles d'altitude « Terrarium » (Mapzen Terrain Tiles, hébergées par AWS Open Data). Pas de clé, pas de compte, pas de serveur à payer. Couverture mondiale, terres et fonds marins.
 2. **Résolution** : au zoom 15, un pixel ≈ 4,8 m × cos(latitude) (≈ 3,1 m à Paris). Les sources d'origine sont plus grossières à beaucoup d'endroits (SRTM ≈ 30 m). Le jeu **interpole** pour obtenir une hauteur par case de 1 m : le relief est vrai à grande échelle, lissé au mètre près.
 3. **Cache** : chaque tuile (~80 Ko, environ 780 m × 780 m à Paris) est gardée dans `user://terrain_cache/`. Un lieu déjà visité se recharge hors ligne.
-4. **Région locale** : on choisit un point (latitude, longitude). Il devient la case (0, 0) d'une grille plate où 1 unité Godot = 1 m = 1 case. La région de jeu fait 10 × 10 km (± 5 km). Sur cette distance, l'erreur due à la courbure de la Terre reste inférieure à 0,1 %.
+4. **Région locale** : on choisit un point (latitude, longitude). Il devient la case (0, 0) d'une grille plate où 1 unité Godot = 1 m = 1 case. La région de jeu fait 40 × 40 km (± 20 km, `GameStart.REGION_SIZE`). Sur cette distance, la déformation due à la courbure de la Terre reste de l'ordre de 0,3 % (invisible : tout le jeu utilise la même grille). Les rivières sont chargées par zones de 10 × 10 km autour de la caméra (voir plus bas). Au-delà de ~100 km, il faudrait une « origine flottante » (recentrer le monde) à cause de la précision des nombres à virgule.
 5. **Blocs de 64 × 64 cases** générés autour de la caméra (rayon 160 à 460 m selon le zoom), libérés quand on s'éloigne. Les cases identiques voisines sont fusionnées pour garder peu de triangles.
 6. **Hauteurs arrondies à 0,5 m** : donne des plateaux plats constructibles et des marches nettes, façon blocs.
 7. **Modifications du joueur** : dictionnaire creux `case -> hauteur`. Seules les cases modifiées sont sauvegardées (`user://terre_save.json`).

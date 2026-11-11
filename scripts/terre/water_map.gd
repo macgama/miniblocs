@@ -18,8 +18,14 @@ signal water_changed
 
 enum Source { NONE, RELIEF, OSM }
 
+## La région est découpée en zones de 10 × 10 km, chargées autour de la caméra.
+const ZONE := 10000.0
+## Les rivières d'une zone sont calculées sur ± 9 km autour de son centre
+## (la zone + ses bassins versants), puis on ne garde que celles de la zone.
 const HYDRO_ZOOM := 12
-const HYDRO_MARGIN := 9000.0 # m autour de l'origine (région ± 5 km + bassins versants)
+const HYDRO_MARGIN := 9000.0
+## On prépare les zones voisines quand la caméra s'approche à moins de ça de leur bord.
+const PRELOAD := 3000.0
 ## Surface drainée minimale pour qu'un ruisseau apparaisse (km²).
 const MIN_AREA_KM2 := 0.6
 const BUCKET := 64.0
@@ -33,6 +39,7 @@ const OSM_WIDTHS := {"river": 12.0, "canal": 8.0, "stream": 2.0, "brook": 1.5, "
 
 ## Pour les tests : pas de réseau (ni Overpass, ni tuiles).
 var offline := false
+## Source de la dernière zone terminée (pour l'affichage).
 var source: Source = Source.NONE
 var status := ""
 
@@ -50,15 +57,23 @@ var poly_name: Array[String] = []
 var _seg_buckets: Dictionary = {}
 var _poly_buckets: Dictionary = {}
 
+## Vector2i (zone) -> "osm" (en attente d'OpenStreetMap), "tiles", "queued",
+## "running", ou une Source quand elle est terminée.
+var _zones: Dictionary = {}
+var _osm_queue: Array[Vector2i] = []
+var _osm_zone := Vector2i(1 << 30, 0)
+## OpenStreetMap injoignable une fois : on ne le redemande plus de la session.
+var _osm_unreachable := false
+var _hydro_queue: Array[Vector2i] = []
+var _counts := {Source.OSM: 0, Source.RELIEF: 0}
+
 var _tiles: ElevationTiles
 var _http: HTTPRequest
 var _generation := 0
-var _hydro_wanted: Array[Vector2i] = []
 var _hydro_running := false
 var _hydro_task := -1
 ## Partagé avec le calcul en arrière-plan : [true] = abandonner.
 var _hydro_cancel: Array = [false]
-var _osm_done := false
 
 
 func _ready() -> void:
@@ -68,7 +83,7 @@ func _ready() -> void:
 	add_child(_tiles)
 	_tiles.tile_ready.connect(_on_tile_ready)
 	_http = HTTPRequest.new()
-	_http.timeout = 60.0
+	_http.timeout = 30.0
 	add_child(_http)
 	_http.request_completed.connect(_on_osm)
 
@@ -91,25 +106,82 @@ func set_origin(lat: float, lon: float) -> void:
 	_generation += 1
 	_hydro_cancel[0] = true
 	_clear()
+	_zones.clear()
+	_osm_queue.clear()
+	_hydro_queue.clear()
+	_osm_zone = Vector2i(1 << 30, 0)
+	_counts = {Source.OSM: 0, Source.RELIEF: 0}
 	source = Source.NONE
-	_osm_done = false
 	status = "Calcul des rivières…"
+	if offline or not is_inside_tree():
+		return
+	_http.cancel_request()
+	request_zone(Vector2i.ZERO)
+
+
+## Zone (10 × 10 km) qui contient le point local (x, z).
+static func zone_of(x: float, z: float) -> Vector2i:
+	return Vector2i(roundi(x / ZONE), roundi(z / ZONE))
+
+
+## À appeler avec la position de la caméra : charge sa zone et, près d'un bord, la voisine.
+func update_focus(x: float, z: float) -> void:
 	if offline:
 		return
-	_load_osm()
-	# Tuiles d'altitude grossières couvrant la région et ses bassins versants.
-	var p0 := _local_to_pixel12(-HYDRO_MARGIN, -HYDRO_MARGIN)
-	var p1 := _local_to_pixel12(HYDRO_MARGIN, HYDRO_MARGIN)
-	_hydro_wanted.clear()
-	for tx in range(floori(p0.x / 256.0), floori(p1.x / 256.0) + 1):
-		for ty in range(floori(p0.y / 256.0), floori(p1.y / 256.0) + 1):
-			_hydro_wanted.append(Vector2i(tx, ty))
-			_tiles.request_tile(Vector2i(tx, ty))
-	_try_start_hydro()
+	var k := zone_of(x, z)
+	request_zone(k)
+	var fx := x / ZONE - k.x
+	var fz := z / ZONE - k.y
+	var near := 0.5 - PRELOAD / ZONE
+	var dx := 1 if fx > near else (-1 if fx < -near else 0)
+	var dz := 1 if fz > near else (-1 if fz < -near else 0)
+	if dx != 0:
+		request_zone(k + Vector2i(dx, 0))
+	if dz != 0:
+		request_zone(k + Vector2i(0, dz))
+	if dx != 0 and dz != 0:
+		request_zone(k + Vector2i(dx, dz))
+
+
+## Lance le chargement des rivières d'une zone (OpenStreetMap, sinon relief).
+func request_zone(k: Vector2i) -> void:
+	if offline or _zones.has(k) or not is_inside_tree():
+		return
+	_zones[k] = "osm"
+	if _load_osm_cache(k):
+		return
+	if _osm_unreachable:
+		_start_relief(k)
+		return
+	_osm_queue.append(k)
+	_next_osm()
+
+
+## Vrai quand la zone du point (x, z) a ses rivières (ou qu'on est hors ligne).
+func is_ready_at(x: float, z: float) -> bool:
+	return offline or typeof(_zones.get(zone_of(x, z), "")) == TYPE_INT
 
 
 func is_ready() -> bool:
-	return source != Source.NONE or offline
+	return is_ready_at(0.0, 0.0)
+
+
+## Rectangle (mètres locaux) couvert par une zone.
+static func zone_rect(k: Vector2i) -> Rect2:
+	return Rect2((k.x - 0.5) * ZONE, (k.y - 0.5) * ZONE, ZONE, ZONE)
+
+
+func _zone_done(k: Vector2i, src: Source, count: int) -> void:
+	_zones[k] = src
+	source = src
+	_counts[src] = int(_counts[src]) + count
+	var parts := []
+	if int(_counts[Source.OSM]) > 0:
+		parts.append("OpenStreetMap (%d)" % _counts[Source.OSM])
+	if int(_counts[Source.RELIEF]) > 0:
+		parts.append("calculées depuis le relief (%d cours d'eau)" % _counts[Source.RELIEF])
+	status = "Rivières : " + (", ".join(parts) if not parts.is_empty() else "aucune")
+	water_changed.emit()
 
 
 func _clear() -> void:
@@ -237,45 +309,66 @@ static func _pixel_to_lat_lon(px: float, py: float, zoom: int) -> Vector2:
 
 # --- Source 1 : OpenStreetMap ---------------------------------------------------
 
-func _osm_cache_path() -> String:
-	return "%s/osm_%.4f_%.4f.json" % [CACHE_DIR, origin_lat, origin_lon]
+func _osm_cache_path(k: Vector2i) -> String:
+	return "%s/osm_%.4f_%.4f_%d_%d.json" % [CACHE_DIR, origin_lat, origin_lon, k.x, k.y]
 
 
-func _load_osm() -> void:
-	var path := _osm_cache_path()
-	if FileAccess.file_exists(path):
-		_apply_osm_text(FileAccess.get_file_as_string(path), _generation)
+func _load_osm_cache(k: Vector2i) -> bool:
+	var path := _osm_cache_path(k)
+	if not FileAccess.file_exists(path):
+		return false
+	return _apply_osm_text(FileAccess.get_file_as_string(path), _generation, k)
+
+
+## Une requête Overpass à la fois.
+func _next_osm() -> void:
+	if _osm_zone.x != 1 << 30 or _osm_queue.is_empty():
 		return
-	var r := 6500.0
-	var sw := Vector2(Geo.local_to_lat(origin_lat, r), Geo.local_to_lon(origin_lat, origin_lon, -r))
-	var ne := Vector2(Geo.local_to_lat(origin_lat, -r), Geo.local_to_lon(origin_lat, origin_lon, r))
+	var k: Vector2i = _osm_queue.pop_front()
+	if _osm_unreachable:
+		_start_relief(k)
+		_next_osm()
+		return
+	var r := zone_rect(k).grow(300.0)
+	var sw := Vector2(Geo.local_to_lat(origin_lat, r.end.y), Geo.local_to_lon(origin_lat, origin_lon, r.position.x))
+	var ne := Vector2(Geo.local_to_lat(origin_lat, r.position.y), Geo.local_to_lon(origin_lat, origin_lon, r.end.x))
 	var bbox := "%.5f,%.5f,%.5f,%.5f" % [sw.x, sw.y, ne.x, ne.y]
-	var q := "[out:json][timeout:50];(way[\"waterway\"~\"^(river|stream|canal|brook|ditch|drain|tidal_channel)$\"](%s);way[\"natural\"=\"water\"](%s););out geom;" % [bbox, bbox]
-	_http.cancel_request()
+	var q := "[out:json][timeout:25];(way[\"waterway\"~\"^(river|stream|canal|brook|ditch|drain|tidal_channel)$\"](%s);way[\"natural\"=\"water\"](%s););out geom;" % [bbox, bbox]
 	var headers := PackedStringArray(["Content-Type: application/x-www-form-urlencoded", "User-Agent: MiniBlocs/0.1 (jeu Godot)"])
-	var gen := _generation
-	_http.set_meta("gen", gen)
+	_osm_zone = k
+	_http.set_meta("gen", _generation)
 	if _http.request(OVERPASS_URL, headers, HTTPClient.METHOD_POST, "data=" + q.uri_encode()) != OK:
-		_osm_done = true
+		_osm_zone = Vector2i(1 << 30, 0)
+		_osm_unreachable = true
+		_start_relief(k)
+		_next_osm()
 
 
 func _on_osm(result: int, code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
 	var gen: int = _http.get_meta("gen", -1)
+	var k := _osm_zone
+	_osm_zone = Vector2i(1 << 30, 0)
 	if gen != _generation:
+		_next_osm()
 		return
-	_osm_done = true
 	if result != HTTPRequest.RESULT_SUCCESS or code != 200:
+		if result != HTTPRequest.RESULT_SUCCESS or code == 403:
+			_osm_unreachable = true
 		push_warning("OpenStreetMap injoignable (résultat %d, code %d) : rivières calculées depuis le relief." % [result, code])
-		return
-	var text := body.get_string_from_utf8()
-	if _apply_osm_text(text, gen):
-		var f := FileAccess.open(_osm_cache_path(), FileAccess.WRITE)
-		if f:
-			f.store_string(text)
+		_start_relief(k)
+	else:
+		var text := body.get_string_from_utf8()
+		if _apply_osm_text(text, gen, k):
+			var f := FileAccess.open(_osm_cache_path(k), FileAccess.WRITE)
+			if f:
+				f.store_string(text)
+		else:
+			_start_relief(k) # réponse vide : pas de rivière connue, on calcule
+	_next_osm()
 
 
-## Lit une réponse Overpass (JSON, « out geom »). Vrai si elle contient de l'eau.
-func _apply_osm_text(text: String, gen: int) -> bool:
+## Lit une réponse Overpass (JSON, « out geom ») pour la zone k. Vrai si elle contient de l'eau.
+func _apply_osm_text(text: String, gen: int, k := Vector2i.ZERO) -> bool:
 	var data = JSON.parse_string(text)
 	if typeof(data) != TYPE_DICTIONARY or not data.has("elements"):
 		return false
@@ -301,28 +394,59 @@ func _apply_osm_text(text: String, gen: int) -> bool:
 		return false
 	if gen != _generation:
 		return false
-	_clear()
 	for l in lines:
 		add_line(l[0], l[1], l[2])
 	for a in areas:
 		add_polygon(a[0], a[1])
-	source = Source.OSM
-	status = "Rivières : OpenStreetMap (%d cours d'eau, %d étangs)" % [lines.size(), areas.size()]
-	water_changed.emit()
+	_zone_done(k, Source.OSM, lines.size())
 	return true
 
 
 # --- Source 2 : calcul sur le relief -------------------------------------------
 
-func _try_start_hydro() -> void:
-	if _hydro_running or source != Source.NONE or offline or _hydro_wanted.is_empty():
+## Tuiles d'altitude (zoom 12) d'une zone et de ses bassins versants.
+func _zone_tiles(k: Vector2i) -> Array[Vector2i]:
+	var c := Vector2(k) * ZONE
+	var p0 := _local_to_pixel12(c.x - HYDRO_MARGIN, c.y - HYDRO_MARGIN)
+	var p1 := _local_to_pixel12(c.x + HYDRO_MARGIN, c.y + HYDRO_MARGIN)
+	var out: Array[Vector2i] = []
+	for tx in range(floori(p0.x / 256.0), floori(p1.x / 256.0) + 1):
+		for ty in range(floori(p0.y / 256.0), floori(p1.y / 256.0) + 1):
+			out.append(Vector2i(tx, ty))
+	return out
+
+
+func _start_relief(k: Vector2i) -> void:
+	if typeof(_zones.get(k, "")) == TYPE_INT:
 		return
-	for t in _hydro_wanted:
-		if not _tiles.has_tile(t):
-			return
-	# Grille d'altitude (pixels zoom 12) couvrant la région et ses marges.
-	var p0 := _local_to_pixel12(-HYDRO_MARGIN, -HYDRO_MARGIN)
-	var p1 := _local_to_pixel12(HYDRO_MARGIN, HYDRO_MARGIN)
+	_zones[k] = "queued"
+	for t in _zone_tiles(k):
+		_tiles.request_tile(t)
+	_hydro_queue.append(k)
+	_try_start_hydro()
+
+
+func _try_start_hydro() -> void:
+	if _hydro_running or offline or _hydro_queue.is_empty():
+		return
+	# La première zone dont toutes les tuiles sont là.
+	var k := Vector2i(1 << 30, 0)
+	for z in _hydro_queue:
+		var ok := true
+		for t in _zone_tiles(z):
+			if not _tiles.has_tile(t):
+				ok = false
+				break
+		if ok:
+			k = z
+			break
+	if k.x == 1 << 30:
+		return
+	_hydro_queue.erase(k)
+	_zones[k] = "running"
+	var c := Vector2(k) * ZONE
+	var p0 := _local_to_pixel12(c.x - HYDRO_MARGIN, c.y - HYDRO_MARGIN)
+	var p1 := _local_to_pixel12(c.x + HYDRO_MARGIN, c.y + HYDRO_MARGIN)
 	var x0 := floori(p0.x)
 	var y0 := floori(p0.y)
 	var w := floori(p1.x) - x0 + 1
@@ -340,30 +464,32 @@ func _try_start_hydro() -> void:
 	_hydro_cancel = cancel
 	_hydro_task = WorkerThreadPool.add_task(func() -> void:
 		var res := compute_streams(elev, w, h, px_m, cancel)
-		_finish_hydro.call_deferred(res, x0, y0, gen))
+		_finish_hydro.call_deferred(res, x0, y0, gen, k))
 
 
-func _finish_hydro(res: Dictionary, x0: int, y0: int, gen: int) -> void:
+func _finish_hydro(res: Dictionary, x0: int, y0: int, gen: int, k := Vector2i.ZERO) -> void:
 	_hydro_running = false
 	if _hydro_task >= 0:
 		WorkerThreadPool.wait_for_task_completion(_hydro_task)
 		_hydro_task = -1
 	if gen != _generation:
-		_try_start_hydro() # le lieu a changé pendant le calcul : on recommence
+		_try_start_hydro()
 		return
-	if source == Source.OSM:
-		return
+	# On ne garde que les tronçons de la zone (les voisines ont leur propre calcul).
+	var rect := zone_rect(k)
 	var count := 0
 	for line in res.lines:
 		var pts := PackedVector2Array()
 		for p in (line[0] as PackedVector2Array):
 			var ll := _pixel_to_lat_lon(x0 + p.x + 0.5, y0 + p.y + 0.5, HYDRO_ZOOM)
 			pts.append(_lat_lon_to_local(ll.x, ll.y))
+		var mid := (pts[0] + pts[pts.size() - 1]) * 0.5
+		if not rect.has_point(mid):
+			continue
 		add_line(_chaikin(pts, 2), line[1])
 		count += 1
-	source = Source.RELIEF
-	status = "Rivières : calculées depuis le relief (%d cours d'eau)" % count
-	water_changed.emit()
+	_zone_done(k, Source.RELIEF, count)
+	_try_start_hydro()
 
 
 ## Écoulement de l'eau sur une grille d'altitude (algorithme « priority-flood ») :

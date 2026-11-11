@@ -9,6 +9,7 @@ extends Node3D
 @onready var build_panel: BuildingPanel = $PanneauConstruction
 @onready var zones: ZoneSystem = $Zones
 @onready var blocks: BlockEditor = $Blocs
+@onready var ambiance: DayNight = $Ambiance
 
 const TRANSPORT_TOOLS := ["route", "rail", "chemin", "voie_eau"]
 
@@ -67,7 +68,7 @@ func _ready() -> void:
 		buildings.unlimited_money = unlimited
 		buildings._refresh())
 	hud.save_requested.connect(func() -> void:
-		var ok := world.save_world({"transport": transport.to_dict(), "batiments": buildings.to_dict(), "zones": zones.to_dict(), "blocs": blocks.to_dict()})
+		var ok := world.save_world({"transport": transport.to_dict(), "batiments": buildings.to_dict(), "zones": zones.to_dict(), "blocs": blocks.to_dict(), "ambiance": ambiance.to_dict()})
 		hud.show_message("Région sauvegardée." if ok else "Échec de la sauvegarde."))
 	hud.load_requested.connect(func() -> void:
 		if world.load_world():
@@ -75,6 +76,7 @@ func _ready() -> void:
 			buildings.from_dict(world.loaded_data.get("batiments", {}))
 			zones.from_dict(world.loaded_data.get("zones", {}))
 			blocks.from_dict(world.loaded_data.get("blocs", {}))
+			ambiance.from_dict(world.loaded_data.get("ambiance", {}))
 			build_panel.set_rules(buildings.require_access, buildings.unlimited_money)
 			build_panel.set_growth(zones.growth)
 			hud.show_message("Région chargée.")

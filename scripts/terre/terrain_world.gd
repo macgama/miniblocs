@@ -535,6 +535,8 @@ func _plant_vegetation(mi: MeshInstance3D, k: Vector2i, h: PackedFloat32Array, k
 				bushes.append(Transform3D(basis, Vector3(i - 1 + jx, h[i + j * w] + 0.3 * s, j - 1 + jz)))
 				bush_cols.append(Color("587a33") * shade)
 	_add_multimesh(mi, _tree_mesh, trees, tree_cols)
+	# Gardé pour les collisions des troncs (vue au sol).
+	mi.set_meta("arbres", trees)
 	_add_multimesh(mi, _bush_mesh, bushes, bush_cols)
 
 

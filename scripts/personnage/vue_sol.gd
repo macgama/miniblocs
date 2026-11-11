@@ -60,8 +60,11 @@ func _ready() -> void:
 		_env = (get_node(environment_path) as WorldEnvironment).environment
 		_brouillard_dessus = _env.fog_density
 	var network: TransportNetwork = null
+	var trafic: Traffic = null
 	if not transport_path.is_empty():
-		network = (get_node(transport_path) as TransportSystem).network
+		var ts := get_node(transport_path) as TransportSystem
+		network = ts.network
+		trafic = ts.traffic
 
 	personnage = Personnage.new()
 	personnage.name = "Personnage"
@@ -72,7 +75,7 @@ func _ready() -> void:
 	collisions = CollisionsSol.new()
 	collisions.name = "CollisionsSol"
 	add_child(collisions)
-	collisions.setup(world, network, personnage)
+	collisions.setup(world, network, personnage, trafic)
 	collisions.set_physics_process(false)
 
 	_pivot = Node3D.new()
@@ -286,16 +289,26 @@ func _physics_process(_delta: float) -> void:
 		# Le relief est arrivé : on pose le personnage dessus.
 		var p := personnage.global_position
 		var h := world.cell_height(Vector2i(floori(p.x), floori(p.z)))
-		if not is_nan(h) and p.y < h - 0.3:
+		if not is_nan(h) and p.y < h - 0.3 and not _sous_tunnel(p):
 			personnage.teleporter(Vector3(p.x, maxf(h, TerrainWorld.WATER_LEVEL - 1.3) + 0.05, p.z), _cap)
 		personnage.en_attente = false
 	# Passé sous le relief (case creusée sous ses pieds, chute) : on le remet dessus.
 	var q := personnage.global_position
 	var hq := world.cell_height(Vector2i(floori(q.x), floori(q.z)))
-	if (not is_nan(hq) and q.y < hq - 2.5 and q.y > TerrainWorld.WATER_LEVEL - 1.0) or q.y < -600.0:
+	if (not is_nan(hq) and q.y < hq - 2.5 and q.y > TerrainWorld.WATER_LEVEL - 1.0 and not _sous_tunnel(q)) or q.y < -600.0:
 		personnage.teleporter(Vector3(q.x, (hq if not is_nan(hq) else 0.0) + 0.5, q.z), _cap)
 	if vue == Vue.PREMIERE:
 		personnage.aligner_corps()
+	collisions.ecarter(personnage)
+	# Dans un tunnel, moins de brouillard : il éclaircirait tout le tube.
+	if _env:
+		_env.fog_density = brouillard_sol * (0.15 if _sous_tunnel(q) else 1.0)
+
+
+## Vrai si le point est dans un tunnel (sous la voûte, là où le relief est percé).
+func _sous_tunnel(p: Vector3) -> bool:
+	var c := Vector2i(floori(p.x), floori(p.z))
+	return collisions.trous.has(c) and p.y < float(collisions.trous[c])
 
 
 func _process(delta: float) -> void:

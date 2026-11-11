@@ -120,7 +120,10 @@ Dans le mode Terre, appuie sur **V** (ou les boutons **Dessus / 3e pers. / 1re p
 - **Caméra 3e personne** : elle se rapproche toute seule quand un mur, une colline ou le sol passerait entre elle et le personnage.
 - **Eau** : dans l'eau profonde, il nage à la surface.
 - **Retour en vue de dessus** : la caméra de gestion se recentre sur le personnage.
-- Limites actuelles : on traverse encore les arbres et les véhicules, et les tunnels ne sont pas praticables à pied.
+- **Arbres et véhicules** : on ne traverse plus les troncs (on passe à travers les buissons). Les voitures, trains, vélos, piétons et bateaux proches ont une collision : on ne peut pas leur rentrer dedans, et un véhicule qui arrive sur le personnage l'écarte sur le côté.
+- **Tunnels** : on peut y entrer à pied et les traverser (sol, murs et voûte éclairés). Au-dessus, la colline reste praticable.
+
+![Entrée d'un tunnel ferroviaire](docs/apercu-tunnel-entree.png)
 
 ![Vue à la 1re personne sur une route](docs/apercu-1re-personne.png)
 
@@ -150,8 +153,8 @@ Dans le mode Terre, appuie sur **V** (ou les boutons **Dessus / 3e pers. / 1re p
 | `scenes/terre.tscn` | Mode Terre : relief réel en cases de 1 m |
 | `scripts/personnage/vue_sol.gd` | Bascule vue de dessus / 3e / 1re personne, caméra au sol |
 | `scripts/personnage/personnage.gd` | Personnage qui marche (piloté par des ordres, prêt pour le multijoueur) |
-| `scripts/personnage/collisions_sol.gd` | Collisions du relief et des voies autour du personnage |
-| `tests/personnage_test.gd` | Test de la vue au sol (marche, pont, mur, caméra, nage) |
+| `scripts/personnage/collisions_sol.gd` | Collisions autour du personnage : relief, arbres, voies, tunnels, véhicules |
+| `tests/personnage_test.gd` | Test de la vue au sol (marche, pont, bâtiment, arbre, tunnel, véhicule, caméra, nage) |
 | `scripts/terre/geo.gd` | Conversions latitude / longitude ↔ mètres ↔ tuiles |
 | `scripts/terre/land_cover.gd` | Biomes réels (ESA WorldCover) lus par blocs autour du lieu |
 | `assets/biomes_monde.png` | Carte mondiale des biomes du globe (fabriquée par `tools/build_biome_map.py`) |

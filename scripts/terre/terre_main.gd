@@ -9,6 +9,7 @@ extends Node3D
 @onready var build_panel: BuildingPanel = $PanneauConstruction
 @onready var zones: ZoneSystem = $Zones
 @onready var blocks: BlockEditor = $Blocs
+@onready var ambiance: DayNight = $Ambiance
 
 const TRANSPORT_TOOLS := ["departementale", "train", "voie_verte", "canal"]
 ## Dernière classe choisie pour chaque outil de transport.
@@ -32,6 +33,11 @@ func _ready() -> void:
 	hud.go_requested.connect(func(lat: float, lon: float) -> void: world.set_origin(lat, lon))
 	hud.tool_selected.connect(_on_tool_selected)
 	hud.traffic_toggled.connect(func(on: bool) -> void: transport.traffic.set_enabled(on))
+	hud.traffic_filter_changed.connect(func(era: String, region: String) -> void:
+		transport.traffic.set_filters(era, region)
+		hud.show_message("Véhicules : %s, %s." % [
+			"toutes les époques" if era == "" else Styles.era_name(era).to_lower(),
+			"toutes les régions" if region == "" else Styles.region_name(region)]))
 	transport.info_changed.connect(func(t: String) -> void: hud.set_tool_info(t))
 	transport.message.connect(func(t: String) -> void: hud.show_message(t))
 	transport.spec_changed.connect(func(id: String, s: Dictionary) -> void: hud.show_spec(id, s, transport.curve_mode))
@@ -87,7 +93,7 @@ func _ready() -> void:
 
 
 func save_game() -> bool:
-	return world.save_world({"transport": transport.to_dict(), "batiments": buildings.to_dict(), "zones": zones.to_dict(), "blocs": blocks.to_dict()})
+	return world.save_world({"transport": transport.to_dict(), "batiments": buildings.to_dict(), "zones": zones.to_dict(), "blocs": blocks.to_dict(), "ambiance": ambiance.to_dict()})
 
 
 func load_game() -> bool:
@@ -97,6 +103,7 @@ func load_game() -> bool:
 	buildings.from_dict(world.loaded_data.get("batiments", {}))
 	zones.from_dict(world.loaded_data.get("zones", {}))
 	blocks.from_dict(world.loaded_data.get("blocs", {}))
+	ambiance.from_dict(world.loaded_data.get("ambiance", {}))
 	build_panel.set_rules(buildings.require_access, buildings.unlimited_money)
 	build_panel.set_growth(zones.growth)
 	return true

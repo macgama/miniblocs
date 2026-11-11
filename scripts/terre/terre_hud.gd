@@ -9,6 +9,8 @@ signal load_requested
 signal city_requested
 signal globe_requested
 signal traffic_toggled(on: bool)
+## Époque et région des véhicules de la circulation ("" = toutes).
+signal traffic_filter_changed(era: String, region: String)
 signal spec_edited(type_id: String, spec: Dictionary)
 signal curve_toggled(on: bool)
 
@@ -173,6 +175,7 @@ func _ready() -> void:
 	traffic.button_pressed = true
 	traffic.toggled.connect(func(on: bool) -> void: traffic_toggled.emit(on))
 	bar.add_child(traffic)
+	bar.add_child(_build_vehicle_menu())
 	for spec in [["Sauver", save_requested], ["Charger", load_requested], ["Globe", globe_requested], ["Ville prototype", city_requested]]:
 		var b := Button.new()
 		b.text = spec[0]
@@ -193,6 +196,50 @@ func _ready() -> void:
 	credit.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
 	credit.add_theme_constant_override("outline_size", 3)
 	bottom.add_child(credit)
+
+
+var _veh_era := ""
+var _veh_region := ""
+
+
+## Menu « Véhicules » : époque et région des modèles qui circulent.
+func _build_vehicle_menu() -> MenuButton:
+	var mb := MenuButton.new()
+	mb.text = "Véhicules ▾"
+	mb.flat = false
+	var pm := mb.get_popup()
+	pm.hide_on_checkable_item_selection = false
+	pm.add_separator("Époque")
+	var entries: Array = [["era", ""]]
+	pm.add_radio_check_item("Toutes les époques", 0)
+	for e in Styles.ERAS:
+		pm.add_radio_check_item(e.name, entries.size())
+		entries.append(["era", e.id])
+	pm.add_separator("Région")
+	pm.add_radio_check_item("Toutes les régions", entries.size())
+	entries.append(["region", ""])
+	for r in Styles.REGIONS:
+		if r.id == "monde":
+			continue
+		pm.add_radio_check_item(r.name, entries.size())
+		entries.append(["region", r.id])
+	var refresh := func() -> void:
+		for i in pm.item_count:
+			var id := pm.get_item_id(i)
+			if pm.is_item_separator(i) or id < 0 or id >= entries.size():
+				continue
+			var en: Array = entries[id]
+			pm.set_item_checked(i, (_veh_era if en[0] == "era" else _veh_region) == en[1])
+	refresh.call()
+	pm.id_pressed.connect(func(id: int) -> void:
+		var en: Array = entries[id]
+		if en[0] == "era":
+			_veh_era = en[1]
+		else:
+			_veh_region = en[1]
+		refresh.call()
+		traffic_filter_changed.emit(_veh_era, _veh_region))
+	return mb
 
 
 func _build_spec_panel(layout: Control) -> void:

@@ -6,6 +6,9 @@ extends Node3D
 ## Étape 1 : chaque véhicule choisit une destination au hasard dans son réseau
 ## et y va par le plus court chemin (A*), en roulant à droite. Pas encore de
 ## collisions ni de lignes : ce sera l'étape suivante.
+##
+## Les modèles viennent du catalogue (VehicleCatalog) : chaque véhicule est tiré
+## parmi ceux qui peuvent rouler sur la voie, filtrés par époque et région.
 
 ## Nombre de véhicules par mètre de réseau, et maximum.
 const DENSITY := {
@@ -16,7 +19,10 @@ const DENSITY := {
 }
 const CAR_COLORS: Array[Color] = [Color("d64933"), Color("f2c14e"), Color("2e86ab"), Color("f4f4f4"),
 	Color("3c3c3c"), Color("6aa84f"), Color("8e7dbe"), Color("e07a5f")]
-const WAGON_GAP := 15
+## Part de chaque catégorie dans la circulation routière.
+const CAT_WEIGHT := {"voiture": 10.0, "utilitaire": 2.0, "bus": 1.0, "deux_roues": 1.5, "attelage": 0.5}
+## Part des piétons sur les chemins (le reste : vélos, trottinettes…).
+const WALKERS := 0.55
 
 var network: TransportNetwork
 var enabled := true
@@ -26,6 +32,10 @@ var rng := RandomNumberGenerator.new()
 var _material: StandardMaterial3D
 var _meshes: Dictionary = {}
 var _spawn_timer := 0.0
+## Filtres du catalogue ("" = tout) : époque et région (ids de Styles).
+var era_filter := ""
+var region_filter := ""
+var _pool_cache: Dictionary = {}
 
 
 func _init() -> void:
@@ -51,6 +61,56 @@ func clear() -> void:
 	for v in vehicles:
 		_free_vehicle(v)
 	vehicles.clear()
+
+
+## Change l'époque et la région des véhicules ; la circulation est renouvelée.
+func set_filters(era: String, region: String) -> void:
+	era_filter = era
+	region_filter = region
+	_pool_cache.clear()
+	clear()
+
+
+## Modèles possibles sur une classe de voie, avec le filtre courant (ou sans
+## filtre si rien ne correspond, pour ne jamais laisser une voie vide).
+func pool_for(cls: String) -> Array[String]:
+	if _pool_cache.has(cls):
+		return _pool_cache[cls]
+	var ids := VehicleCatalog.for_track(cls, era_filter, region_filter)
+	if ids.is_empty():
+		ids = VehicleCatalog.for_track(cls, era_filter, "")
+	if ids.is_empty():
+		ids = VehicleCatalog.for_track(cls)
+	_pool_cache[cls] = ids
+	return ids
+
+
+## Tire un modèle au hasard ; sur route, les voitures dominent.
+func pick_model(cls: String) -> String:
+	var ids := pool_for(cls)
+	if ids.is_empty():
+		return ""
+	if TransportTypes.mode_of(cls) != TransportTypes.Mode.ROAD:
+		return ids[rng.randi() % ids.size()]
+	var per_cat: Dictionary = {}
+	for id in ids:
+		var c: String = VehicleCatalog.get_type(id).cat
+		per_cat[c] = int(per_cat.get(c, 0)) + 1
+	var total := 0.0
+	for c in per_cat:
+		total += float(CAT_WEIGHT.get(c, 1.0))
+	var x := rng.randf() * total
+	var cat := ""
+	for c in per_cat:
+		x -= float(CAT_WEIGHT.get(c, 1.0))
+		cat = c
+		if x <= 0.0:
+			break
+	var in_cat: Array[String] = []
+	for id in ids:
+		if VehicleCatalog.get_type(id).cat == cat:
+			in_cat.append(id)
+	return in_cat[rng.randi() % in_cat.size()]
 
 
 func count_mode(mode: int) -> int:
@@ -105,7 +165,8 @@ func spawn(mode: int) -> bool:
 	for _try in 6:
 		var start: int = starts[rng.randi() % starts.size()]
 		v = {"mode": mode, "node": start, "route": [] as Array[int], "leg": 0, "s": rng.randf() * 4.0,
-			"trail": PackedVector3Array(), "wagons": [], "speed": 0.0, "lane": 0.0, "lane_idx": 0, "factor": 1.0, "own_speed": 0.0}
+			"trail": PackedVector3Array(), "wagons": [], "speed": 0.0, "lane": 0.0, "lane_idx": 0, "factor": 1.0, "own_speed": 0.0,
+			"max_speed": INF, "model": "", "gaps": []}
 		if _new_route(v):
 			found = true
 			break
@@ -144,7 +205,7 @@ func _advance(v: Dictionary, delta: float) -> bool:
 	if not network.edges.has(eid):
 		return false
 	var e0: Dictionary = network.edges[eid]
-	var spd: float = v.own_speed if float(v.own_speed) > 0.0 else TransportTypes.speed_of(e0.t) * float(v.factor)
+	var spd: float = v.own_speed if float(v.own_speed) > 0.0 else minf(TransportTypes.speed_of(e0.t), float(v.max_speed)) * float(v.factor)
 	v.s = float(v.s) + spd * delta
 	var guard := 0
 	while float(v.s) >= float(network.edges[eid].len) and guard < 16:
@@ -192,15 +253,16 @@ func _place(v: Dictionary) -> void:
 	body.position = pos
 	body.basis = Basis.looking_at(t, Vector3.UP)
 	if not (v.wagons as Array).is_empty():
+		var gaps: Array = v.gaps
 		var trail: PackedVector3Array = v.trail
 		if trail.is_empty() or trail[trail.size() - 1].distance_to(pos) >= 1.0:
 			trail.append(pos)
-			if trail.size() > WAGON_GAP * 4:
+			if trail.size() > int(gaps[gaps.size() - 1]) + 8:
 				trail.remove_at(0)
 			v.trail = trail
 		for k in (v.wagons as Array).size():
 			var w: Node3D = v.wagons[k]
-			var idx := trail.size() - 1 - WAGON_GAP * (k + 1)
+			var idx := trail.size() - 1 - int(gaps[k])
 			w.visible = idx >= 0
 			if idx >= 0:
 				w.position = trail[idx]
@@ -218,47 +280,52 @@ func _make_body(v: Dictionary) -> void:
 	v.lane = rng.randf_range(0.3, 1.4)
 	var first_edge: Dictionary = network.edges[(v.route as Array[int])[0]]
 	var cls: String = first_edge.t
-	var key := ""
-	var wagon := ""
-	var wagons := 0
-	match mode:
-		TransportTypes.Mode.ROAD:
-			key = "car_%d" % (rng.randi() % CAR_COLORS.size())
-		TransportTypes.Mode.RAIL:
-			match cls:
-				"tram":
-					key = "tram"
-					wagon = "tram"
-					wagons = 1
-				"lgv":
-					key = "tgv"
-					wagon = "tgv_car"
-					wagons = 3
-				_:
-					key = "loco"
-					wagon = "wagon"
-					wagons = 2
-		TransportTypes.Mode.PATH:
-			if cls != "trottoir" and rng.randf() < 0.45:
-				key = "bike_%d" % (rng.randi() % 4)
-				v.own_speed = rng.randf_range(4.0, 6.0)
-			else:
-				key = "walker_%d" % (rng.randi() % 5)
-				v.own_speed = rng.randf_range(1.1, 1.6)
-		TransportTypes.Mode.WATER:
-			key = "boat"
+	var model := ""
+	if mode == TransportTypes.Mode.PATH and (cls == "trottoir" or rng.randf() < WALKERS):
+		model = ""
+	else:
+		model = pick_model(cls)
+		# Pas de navire plus large que le chenal.
+		for _try in 6:
+			if model == "" or float(VehicleCatalog.get_type(model).W) <= float(first_edge.get("width", 99.0)) * 0.6:
+				break
+			model = pick_model(cls)
+	v.model = model
 	var mi := MeshInstance3D.new()
-	mi.mesh = _mesh(key)
 	mi.material_override = _material
 	add_child(mi)
 	v.body = mi
-	for k in wagons:
+	if model == "":
+		var key := "walker_%d" % (rng.randi() % 5) if mode == TransportTypes.Mode.PATH else "boat"
+		mi.mesh = _mesh(key)
+		v.own_speed = rng.randf_range(1.1, 1.6) if mode == TransportTypes.Mode.PATH else 0.0
+		return
+	var t := VehicleCatalog.get_type(model)
+	var paint := rng.randi() % VehicleCatalog.paint_count(model)
+	mi.mesh = _model_mesh(model, paint)
+	v.max_speed = float(t.kmh) / 3.6
+	if mode == TransportTypes.Mode.PATH:
+		v.own_speed = v.max_speed * rng.randf_range(0.6, 0.9)
+	# Voitures attelées : écart (en mètres de trace) entre chaque caisse et la tête.
+	var gap := float(t.L) / 2.0
+	for wid in t.get("consist", []):
+		var wt := VehicleCatalog.get_type(wid)
+		gap += float(wt.L) / 2.0 + 0.8
+		(v.gaps as Array).append(roundi(gap))
+		gap += float(wt.L) / 2.0
 		var w := MeshInstance3D.new()
-		w.mesh = _mesh(wagon)
+		w.mesh = _model_mesh(wid, paint)
 		w.material_override = _material
 		w.visible = false
 		add_child(w)
 		(v.wagons as Array).append(w)
+
+
+func _model_mesh(id: String, paint: int) -> ArrayMesh:
+	var key := "%s:%d" % [id, paint]
+	if not _meshes.has(key):
+		_meshes[key] = VehicleCatalog.build_mesh(id, paint)
+	return _meshes[key]
 
 
 func _free_vehicle(v: Dictionary) -> void:

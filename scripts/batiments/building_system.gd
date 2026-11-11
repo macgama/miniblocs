@@ -58,7 +58,7 @@ var extra_blocker: Callable
 
 var _nodes: Dictionary = {} # id -> MeshInstance3D
 var _meshes: Dictionary = {} # type -> ArrayMesh
-var _material: StandardMaterial3D
+var _material: Material
 var _ghost: MeshInstance3D
 var _plate: MeshInstance3D
 var _link: MeshInstance3D
@@ -87,10 +87,8 @@ func _ready() -> void:
 		# Une voie ne peut pas traverser un bâtiment.
 		transport.blocker = func(c: Vector2i) -> bool:
 			return occupancy.has(c) or (extra_blocker.is_valid() and extra_blocker.call(c))
-	_material = StandardMaterial3D.new()
-	_material.vertex_color_use_as_albedo = true
-	_material.vertex_color_is_srgb = true
-	_material.roughness = 0.95
+	# Couleurs par sommet, et fenêtres qui s'allument la nuit (cycle jour/nuit).
+	_material = NightWindows.building_material()
 	_ok_mat = _tint(Color(0.35, 0.95, 0.45, 0.55))
 	_bad_mat = _tint(Color(1.0, 0.3, 0.25, 0.55))
 	_hover_mat = _tint(Color(1.0, 0.25, 0.2, 0.45))

@@ -263,7 +263,7 @@ func _grow_in(z: Dictionary, need := INF) -> int:
 	var grown := rect.grow(14)
 	for eid in net.edges:
 		var e: Dictionary = net.edges[eid]
-		if e.t != "route":
+		if TransportTypes.mode_of(e.t) != TransportTypes.Mode.ROAD:
 			continue
 		for p in (e.pts as PackedVector3Array):
 			if grown.has_point(Vector2i(floori(p.x), floori(p.z))):
@@ -284,7 +284,7 @@ func _grow_in(z: Dictionary, need := INF) -> int:
 		var tan := net.tangent_at(eid, s)
 		var nrm := Vector3(-tan.z, 0.0, tan.x).normalized()
 		var side := 1.0 if rng.randf() < 0.5 else -1.0
-		var hw := float(TransportTypes.get_type("route").width) / 2.0
+		var hw := float(e.get("width", 7.0)) / 2.0
 		var c3 := p + nrm * side * (hw + 2.0 + float(t.d) / 2.0)
 		# Façade vers la route : rotation la plus proche de la direction −nrm·side.
 		var facing := -nrm * side

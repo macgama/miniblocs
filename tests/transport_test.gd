@@ -76,22 +76,34 @@ func _run() -> void:
 
 	print("Tracé sur le relief :")
 	var g := func(x: float, z: float) -> float: return terrain_at(x, z)
-	var nan := NAN
-	var flat := RoutePlanner.plan("route", Vector3(-20, nan, -50), Vector3(-20, nan, 50), g)
+	var flat := _p("route", -20, -50, -20, 50, g)
 	_check(flat.ok and float(flat.bridge_len) == 0.0 and float(flat.tunnel_len) == 0.0, "route en plaine, au sol")
-	var valley := RoutePlanner.plan("route", Vector3(-170, nan, 0), Vector3(-30, nan, 0), g)
+	var valley := _p("route", -170, 0, -30, 0, g)
 	_check(valley.ok and float(valley.bridge_len) > 10.0, "pont au-dessus de la vallée (%d m)" % roundi(valley.get("bridge_len", 0.0)))
-	_check(valley.ok and float(valley.max_grade) <= 0.1001, "pente maxi respectée (%.1f %%)" % (float(valley.max_grade) * 100.0))
-	var hill := RoutePlanner.plan("rail", Vector3(60, nan, 0), Vector3(340, nan, 0), g)
+	_check(valley.ok and float(valley.max_grade) <= 0.0701, "pente maxi de la départementale respectée (%.1f %%)" % (float(valley.max_grade) * 100.0))
+	var hill := _p("rail", 60, 0, 340, 0, g)
 	_check(hill.ok and float(hill.tunnel_len) > 20.0, "tunnel ferroviaire sous la colline (%d m)" % roundi(hill.get("tunnel_len", 0.0)))
-	_check(hill.ok and float(hill.max_grade) <= 0.0401, "rail : pente ≤ 4 %% (%.1f %%)" % (float(hill.max_grade) * 100.0))
-	var steep := RoutePlanner.plan("route", Vector3(60, nan, 0), Vector3(200, nan, 0), g)
+	_check(hill.ok and float(hill.max_grade) <= 0.0251, "rail : rampe ≤ 25 ‰ (%.1f %%)" % (float(hill.max_grade) * 100.0))
+
+	print("Gabarits et courbes :")
+	_check(is_equal_approx(TransportTypes.width_of("departementale", {}), 9.5), "départementale : 2 × 3,00 m + accotements 1,75 m = 9,50 m")
+	_check(is_equal_approx(TransportTypes.width_of("autoroute", {"lanes": 2}), 23.0), "autoroute 2 × 2 voies : 23 m (voies 3,50, TPC 3, BAU 3)")
+	_check(TransportTypes.normalize("avenue", {"lanes": 5, "lane_w": 4.2}) == {"lanes": 3, "lane_w": 3.5}, "réglages ramenés aux limites réglementaires")
+	_check(is_equal_approx(TransportTypes.width_of("avenue", {"lanes": 1, "lane_w": 3.0}), 10.0), "avenue 2 × 1 voie sans terre-plein : 10 m")
+	_check(TransportTypes.resolve("route") == "departementale", "anciennes sauvegardes : « route » devient départementale")
+	var bend := RoutePlanner.bezier(Vector2(-20, -60), Vector2(40, -60), Vector2(40, 0))
+	var c_rue := RoutePlanner.plan("rue", bend, NAN, NAN, g)
+	_check(c_rue.ok and float(c_rue.min_radius) < 80.0, "rue en courbe (rayon %d m)" % roundi(c_rue.get("min_radius", 0.0)))
+	var c_auto := RoutePlanner.plan("autoroute", bend, NAN, NAN, g)
+	_check(not c_auto.ok and String(c_auto.reason).begins_with("Virage trop serré"), "autoroute : virage trop serré refusé")
+	_check(c_auto.pts.size() > 10, "le tracé refusé reste affiché en aperçu")
+	var steep := _p("route", 60, 0, 200, 0, g)
 	_check(not steep.ok and String(steep.reason).begins_with("Pente trop forte"), "refus si la pente est trop forte")
-	var sea := RoutePlanner.plan("voie_eau", Vector3(-400, nan, 0), Vector3(-350, nan, 60), g)
+	var sea := _p("voie_eau", -400, 0, -350, 60, g)
 	_check(sea.ok, "voie navigable sur la mer")
-	var land := RoutePlanner.plan("voie_eau", Vector3(-400, nan, 0), Vector3(-200, nan, 0), g)
+	var land := _p("voie_eau", -400, 0, -200, 0, g)
 	_check(not land.ok, "voie navigable refusée sur la terre")
-	var coast := RoutePlanner.plan("route", Vector3(-200, nan, 0), Vector3(-420, nan, 0), g)
+	var coast := _p("rue", -200, 0, -420, 0, g)
 	_check(coast.ok and float(coast.bridge_len) > 40.0, "pont au-dessus de la mer")
 
 	print("Mode Terre :")
@@ -107,6 +119,8 @@ func _run() -> void:
 
 	var r1 := tr.build_segment("route", Vector3(-20, 0, -60), Vector3(-20, 0, 60))
 	_check(r1.ok and tr.network.edges.size() == 1, "poser une route")
+	var par := tr.build_segment("route", Vector3(-14, 0, -40), Vector3(-14, 0, -10))
+	_check(not par.ok and String(par.reason).begins_with("Chevauche"), "refus d'une route qui en chevauche une autre")
 	var under := world.cell_height(Vector2i(-20, 0))
 	var deck := tr.network.point_at(r1.edges[0], 60.0).y
 	_check(under <= deck + 0.01 and deck - under < 0.6, "la chaussée repose sur les cases (%.2f / %.2f)" % [deck, under])
@@ -117,6 +131,15 @@ func _run() -> void:
 		if tr.network.degree(id) == 4:
 			cross = id
 	_check(cross >= 0 and tr.network.edges.size() == 4, "carrefour à 4 branches")
+	await process_frame
+	var trims := TransportView.compute_trims(tr.network)
+	var trimmed := 0
+	for eid in tr.network.adjacency[cross]:
+		var tv: Vector2 = trims.get(eid, Vector2.ZERO)
+		if tv.x > 4.0 or tv.y > 4.0:
+			trimmed += 1
+	_check(trimmed == 4, "les 4 branches s'arrêtent au bord du carrefour")
+	_check(tr.view.junction_count() >= 1, "plateau de carrefour dessiné")
 	_check(tr.is_cell_occupied(Vector2i(-20, 10)) and world.tree_blocker.call(Vector2i(-20, 10)), "pas d'arbre sur la route")
 	_check(not world.tree_blocker.call(Vector2i(-80, 80)), "arbres possibles loin des voies")
 	var r3 := tr.build_segment("route", Vector3(30.5, 0, 0.8), Vector3(30, 0, 50))
@@ -127,12 +150,18 @@ func _run() -> void:
 	_check(rr.ok and float(rr.tunnel_len) > 0.0, "voie ferrée avec tunnel")
 	var rail2 := tr.build_segment("rail", Vector3(-5, 0, -40), Vector3(60, 0, -20))
 	_check(rail2.ok and int(rail2.end_node) == int(rr.start_node), "rail prolongé")
-	var rail_x := tr.build_segment("rail", Vector3(-40, 0, -80), Vector3(-40, 0, 40))
+	var rail_x := tr.build_segment("rail", Vector3(-40, 0, -80), Vector3(-40, 0, 20))
 	_check(rail_x.ok and int(rail_x.junctions) == 0, "rail qui traverse une route : passage à niveau sans carrefour")
 	var p1 := tr.build_segment("chemin", Vector3(-30, 0, -50), Vector3(-30, 0, 50))
 	_check(p1.ok, "chemin piéton")
 	var w1 := tr.build_segment("voie_eau", Vector3(-420, 0, -80), Vector3(-380, 0, 120))
 	_check(w1.ok, "voie navigable")
+	var curve_path := TransportSystem.make_path(Vector2(60, 60), Vector2(120, 120), Vector2(120, 60), Vector2.ZERO, true)
+	var cv := tr.build_path("rue", {}, curve_path)
+	_check(cv.ok and tr.network.edges[cv.edges[0]].pts.size() > 30, "poser une rue en courbe")
+	var talus := tr.build_segment("rue", Vector3(-110, 0, -80), Vector3(-110, 0, -30))
+	var core := RoutePlanner.footprint(TransportTypes.width_of("rue", {}), talus.pts, talus.st)
+	_check(talus.ok and int(talus.earthworks) > core.size(), "talus en pente douce de part et d'autre (%d cases, dont %d sous la rue)" % [talus.get("earthworks", 0), core.size()])
 	_check(world.modifications.size() > 50, "remblais et déblais sous les voies (%d cases)" % world.modifications.size())
 
 	await process_frame
@@ -158,7 +187,7 @@ func _run() -> void:
 	var on_road := false
 	for id in tr.network.edges:
 		if TransportTypes.mode_of(tr.network.edges[id].t) == TransportTypes.Mode.ROAD:
-			if float(tr.network.nearest_on_edge(id, after).dist) < 3.6:
+			if float(tr.network.nearest_on_edge(id, after).dist) < tr.network.half_width(id):
 				on_road = true
 	_check(on_road, "la voiture reste sur la chaussée")
 	for i in 600:
@@ -170,7 +199,10 @@ func _run() -> void:
 	var cam: Camera3D = scene.get_node("CameraRig/Camera3D")
 	var n_edges := tr.network.edges.size()
 	root.size = Vector2i(1600, 900)
-	await process_frame
+	var rig0 = scene.get_node("CameraRig")
+	rig0.position = Vector3(100, rig0.position.y, 110)
+	for i in 10:
+		await process_frame
 	tr.set_build("route")
 	tr.message.connect(func(t: String) -> void: print("      message : ", t))
 	var vp := root.get_visible_rect().size
@@ -235,6 +267,17 @@ func _run() -> void:
 		tr.build_segment("route", Vector3(-30, 0, -100), Vector3(-20, 0, -60))
 		tr.build_segment("chemin", Vector3(-35, 0, 60), Vector3(-35, 0, -100))
 		tr.build_segment("chemin", Vector3(-35, 0, 60), Vector3(-120, 0, 60))
+		# Vitrine : avenue 2 × 2 voies, rue en courbe, départementale, piste cyclable, tramway.
+		var demo2 := [
+			tr.build_segment("avenue", Vector3(30, 0, 150), Vector3(210, 0, 150), {"lanes": 2}),
+			tr.build_path("rue", {}, TransportSystem.make_path(Vector2(140, 150), Vector2(200, 95), Vector2(140, 95), Vector2.ZERO, true)),
+			tr.build_segment("departementale", Vector3(80, 0, 95), Vector3(80, 0, 230)),
+			tr.build_segment("piste_cyclable", Vector3(30, 0, 175), Vector3(210, 0, 175)),
+			tr.build_segment("tram", Vector3(30, 0, 195), Vector3(210, 0, 195)),
+			tr.build_segment("autoroute", Vector3(30, 0, 260), Vector3(260, 0, 260), {"lanes": 3}),
+		]
+		for d in demo2:
+			print("  vitrine : ", tr._describe(d, true) if d.ok else d.reason)
 	if shot != "":
 		for i in 60:
 			await process_frame
@@ -255,6 +298,10 @@ func _run() -> void:
 
 	print("TRANSPORT TEST OK" if ok else "TRANSPORT TEST ÉCHEC")
 	quit(0 if ok else 1)
+
+
+static func _p(t: String, x0: float, z0: float, x1: float, z1: float, g: Callable) -> Dictionary:
+	return RoutePlanner.plan(t, PackedVector2Array([Vector2(x0, z0), Vector2(x1, z1)]), NAN, NAN, g)
 
 
 static func _line(a: Vector3, b: Vector3) -> PackedVector3Array:

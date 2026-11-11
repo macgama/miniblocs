@@ -10,7 +10,9 @@ extends Node3D
 @onready var zones: ZoneSystem = $Zones
 @onready var blocks: BlockEditor = $Blocs
 
-const TRANSPORT_TOOLS := ["route", "rail", "chemin", "voie_eau"]
+const TRANSPORT_TOOLS := ["departementale", "train", "voie_verte", "canal"]
+## Dernière classe choisie pour chaque outil de transport.
+var _tool_class := {}
 
 var _status_timer := 0.0
 var _hover := Vector2i.ZERO
@@ -32,6 +34,12 @@ func _ready() -> void:
 	hud.traffic_toggled.connect(func(on: bool) -> void: transport.traffic.set_enabled(on))
 	transport.info_changed.connect(func(t: String) -> void: hud.set_tool_info(t))
 	transport.message.connect(func(t: String) -> void: hud.show_message(t))
+	transport.spec_changed.connect(func(id: String, s: Dictionary) -> void: hud.show_spec(id, s, transport.curve_mode))
+	hud.spec_edited.connect(func(id: String, s: Dictionary) -> void:
+		_tool_class[TransportTypes.mode_of(id)] = id
+		transport.set_spec(id, s)
+		hud.show_spec(id, transport.spec, transport.curve_mode))
+	hud.curve_toggled.connect(func(on: bool) -> void: transport.set_curve(on))
 	buildings.info_changed.connect(func(t: String) -> void: hud.set_tool_info(t))
 	buildings.message.connect(func(t: String) -> void: hud.show_message(t))
 	build_panel.building_chosen.connect(func(id: String) -> void:
@@ -91,6 +99,7 @@ func _ready() -> void:
 func _select_building_tool() -> void:
 	world.set_tool(TerrainWorld.Tool.INSPECT)
 	transport.set_inactive()
+	hud.show_spec("", {}, false)
 	buildings.set_inactive()
 	zones.set_inactive()
 	blocks.set_inactive()
@@ -105,12 +114,15 @@ func _on_tool_selected(t: int) -> void:
 	var k := t - TerreHud.FIRST_TRANSPORT_TOOL
 	if k < 0:
 		transport.set_inactive()
+		hud.show_spec("", {}, false)
 		world.set_tool(t)
 		return
 	world.set_tool(TerrainWorld.Tool.INSPECT)
 	if k < TRANSPORT_TOOLS.size():
-		transport.set_build(TRANSPORT_TOOLS[k])
+		var default_id: String = TRANSPORT_TOOLS[k]
+		transport.set_build(_tool_class.get(TransportTypes.mode_of(default_id), default_id))
 	else:
+		hud.show_spec("", {}, false)
 		transport.set_demolish()
 
 

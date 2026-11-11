@@ -148,7 +148,8 @@ func _game_title() -> String:
 func save_sections() -> Dictionary:
 	return {"terrain": world.to_dict(), "transport": transport.to_dict(), "batiments": buildings.to_dict(),
 		"zones": zones.to_dict(), "blocs": blocks.to_dict(), "ambiance": ambiance.to_dict(),
-		"creations": Creations.to_dict(Creations.used_by(buildings))}
+		"creations": Creations.to_dict(Creations.used_by(buildings)),
+		"personnage": ($VueSol as VueSol).to_dict()}
 
 
 ## Sauvegarde dans la partie en cours (ou une nouvelle). title : nom d'une nouvelle partie.
@@ -199,6 +200,7 @@ func load_game(slot := "") -> bool:
 	zones.from_dict(sec.get("zones", {}))
 	blocks.from_dict(sec.get("blocs", {}))
 	ambiance.from_dict(sec.get("ambiance", {}))
+	($VueSol as VueSol).from_dict(sec.get("personnage", {}))
 	build_panel.set_rules(buildings.require_access, buildings.unlimited_money)
 	build_panel.set_growth(zones.growth)
 	var cam: Dictionary = m.get("camera", {})

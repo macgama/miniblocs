@@ -142,7 +142,7 @@ func _ready() -> void:
 	fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	bottom.add_child(fill)
 	var credit := Label.new()
-	credit.text = "Relief : Mapzen Terrain Tiles (AWS Open Data)\nSRTM, GMTED, ETOPO1, EU-DEM et autres sources publiques"
+	credit.text = "Relief : Mapzen Terrain Tiles (AWS Open Data) — SRTM, GMTED, ETOPO1, EU-DEM\nBiomes : © ESA WorldCover 2021, données Copernicus Sentinel (CC BY 4.0)"
 	credit.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	credit.size_flags_vertical = Control.SIZE_SHRINK_END
 	credit.add_theme_font_size_override("font_size", 11)

@@ -24,7 +24,7 @@ Prototype de city builder en vue de dessus, style low-poly, mode bac à sable. F
 
 ## Mode Terre : choisis ton lieu sur le globe, puis joue sur le vrai relief
 
-Au lancement (**F5**), un **globe 3D** coloré par les vraies altitudes s'affiche. Le joueur choisit son point de départ n'importe où sur Terre, puis joue sur une **terre vierge** (vrai relief et mers, sans routes ni bâtiments) découpée en cases de 1 m × 1 m.
+Au lancement (**F5**), un **globe 3D** coloré par les vrais biomes (forêts, champs, déserts, glaciers, lacs…) et le vrai relief s'affiche. Le joueur choisit son point de départ n'importe où sur Terre, puis joue sur une **terre vierge** (vrai relief et mers, sans routes ni bâtiments) découpée en cases de 1 m × 1 m.
 
 ![Globe de départ](docs/apercu-globe.png)
 
@@ -33,7 +33,7 @@ Au lancement (**F5**), un **globe 3D** coloré par les vraies altitudes s'affich
 - **Commencer la partie** : ouvre la région en cases de 1 m. Survole une case pour voir ses coordonnées et son altitude. Outils : **2 Aplanir**, **3 Monter +1 m**, **4 Creuser −1 m** (clic gauche glissé). Bouton **Globe** pour changer de lieu.
 - Le relief est téléchargé la première fois (Internet nécessaire), puis gardé en cache.
 
-![Mode Terre : bord du Grand Canyon](docs/apercu-terre.png)
+![Mode Terre : forêt au-dessus du lac d'Annecy](docs/apercu-biomes.png)
 
 Comment ça marche, limites et prochaines étapes : [docs/terre-architecture.md](docs/terre-architecture.md).
 
@@ -62,6 +62,8 @@ Comment ça marche, limites et prochaines étapes : [docs/terre-architecture.md]
 | `scripts/terre/game_start.gd` | Choix du joueur transmis à la partie (lieu, mode) |
 | `scenes/terre.tscn` | Mode Terre : relief réel en cases de 1 m |
 | `scripts/terre/geo.gd` | Conversions latitude / longitude ↔ mètres ↔ tuiles |
+| `scripts/terre/land_cover.gd` | Biomes réels (ESA WorldCover) lus par blocs autour du lieu |
+| `assets/biomes_monde.png` | Carte mondiale des biomes du globe (fabriquée par `tools/build_biome_map.py`) |
 | `scripts/terre/elevation_tiles.gd` | Téléchargement, cache et lecture des tuiles d'altitude |
 | `scripts/terre/terrain_world.gd` | Blocs de 64 × 64 cases autour de la caméra, outils, sauvegarde |
 | `scripts/terre/terre_hud.gd` | Interface du mode Terre |

@@ -25,7 +25,7 @@ tonemap_white = 2.0
 ssao_enabled = true
 fog_enabled = true
 fog_light_color = Color(0.76, 0.84, 0.92, 1)
-fog_density = 0.0009
+fog_density = 0.0004
 fog_sky_affect = 0.0
 
 [node name="Terre" type="Node3D"]

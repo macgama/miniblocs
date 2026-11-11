@@ -78,7 +78,7 @@ func _refresh_cell_info() -> void:
 		hud.set_cell_info("Case %d, %d : relief en cours de chargement…" % [_hover.x, _hover.y])
 		return
 	var ll := world.local_to_lat_lon(_hover.x + 0.5, _hover.y + 0.5)
-	var kind := TerrainWorld.cell_kind(h, world.cell_slope(_hover))
+	var kind := world.cell_kind_at(_hover)
 	var real := world.raw_height(_hover.x + 0.5, _hover.y + 0.5)
 	var txt := "Case %d, %d   ·   %.6f, %.6f   ·   %s   ·   hauteur %.1f m (réelle %.1f m)" % [
 		_hover.x, _hover.y, ll.x, ll.y, kind, h, real]

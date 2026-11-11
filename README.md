@@ -43,6 +43,19 @@ Au lancement (**F5**), un **globe 3D** coloré par les vrais biomes (forêts, ch
 
 ![Mode Terre : forêt au-dessus du lac d'Annecy](docs/apercu-biomes.png)
 
+### Paysage : façonner la terre au pinceau (outil 0)
+
+La touche **0** ouvre le panneau **Paysage**. Clic gauche glissé avec un pinceau rond de 1 à 31 m :
+
+- **Colline** et **Lisser** : modeler le relief en douceur.
+- **Lac / canal** : creuse et remplit d'eau animée. L'eau garde le niveau du premier clic, donc un canal qui monte est creusé plus profond, comme un vrai canal. Les routes posées par-dessus passent sur un pont, et les bateaux peuvent y naviguer. **Combler l'eau** rebouche.
+- **Peindre un biome** : forêt (qui se remplit d'arbres), prairie, champs, broussailles, désert, plage, roche, neige, marais, toundra.
+- **Planter** ou **arracher** des arbres.
+
+Tout est sauvegardé avec la partie.
+
+![Panneau Paysage : lac, canal et désert peints dans les Vosges](docs/apercu-paysage.png)
+
 ### Rivières, ruisseaux et lacs
 
 Les cours d'eau sont de vraies cases d'eau creusées dans le relief (berges d'une ou deux marches), avec une eau animée : vagues, reflets, écume le long des berges et petites cascades quand le lit descend d'une marche. Les lacs viennent d'ESA WorldCover. Les rivières viennent d'OpenStreetMap (avec leur nom, même les ruisseaux de 1 m) quand le jeu peut joindre le service Overpass ; sinon le jeu les **calcule sur le vrai relief** en faisant « couler la pluie » : elles suivent les vraies vallées et s'élargissent vers l'aval. Les routes, rails et chemins posés au-dessus passent automatiquement **sur un pont**.
@@ -55,7 +68,7 @@ Comment ça marche, limites et prochaines étapes : [docs/terre-architecture.md]
 
 ## Transports : routes, rail, chemins et voies d'eau sur le vrai relief
 
-Dans le mode Terre, la barre du bas propose **5 Route**, **6 Rail**, **7 Chemin** (piétons et vélos), **8 Voie d'eau**, **9 Démolir** et **0 Carrefour**.
+Dans le mode Terre, la barre du bas propose **5 Route**, **6 Rail**, **7 Chemin** (piétons et vélos), **8 Voie d'eau**, **9 Démolir** et **J Carrefour**.
 
 ![Carrefours, avenue 2 × 2 voies, rue en courbe, piste cyclable, tramway](docs/apercu-transport-carrefours.png)
 
@@ -91,7 +104,7 @@ Chaque carrefour routier (3 branches ou plus) a un **régime**, choisi tout seul
 | Avenues, départementales de même rang | Feux tricolores |
 | Une voie secondaire sur une voie principale | Cédez-le-passage (stop si la principale roule à 80 km/h ou plus) |
 
-L'outil **0 Carrefour** change le régime d'un clic (automatique → feux → stop → cédez-le-passage → priorité à droite). Les feux, les panneaux et les lignes d'arrêt sont posés sur la chaussée.
+L'outil **J Carrefour** change le régime d'un clic (automatique → feux → stop → cédez-le-passage → priorité à droite). Les feux, les panneaux et les lignes d'arrêt sont posés sur la chaussée.
 
 Les véhicules **gardent leurs distances** (files d'attente), **freinent et accélèrent**, s'arrêtent à la ligne au rouge, marquent le stop, laissent passer les prioritaires et ne s'engagent pas si la sortie est bouchée. Les feux marchent par phases : deux branches face à face ont le vert ensemble, puis orange, rouge intégral et phase suivante.
 
@@ -278,6 +291,7 @@ Détails et limites : [docs/ambiance.md](docs/ambiance.md).
 | `scripts/terre/land_cover.gd` | Biomes réels (ESA WorldCover) lus par blocs autour du lieu |
 | `assets/biomes_monde.png` | Carte mondiale des biomes du globe (fabriquée par `tools/build_biome_map.py`) |
 | `scripts/ambiance/` | Cycle jour/nuit, Soleil et Lune réels, ciel, lampadaires, fenêtres allumées (voir [docs/ambiance.md](docs/ambiance.md)) |
+| `scripts/terre/paysage_panel.gd` | Panneau Paysage : pinceaux colline, lisser, lac / canal, biomes, arbres |
 | `scripts/terre/water_map.gd` | Rivières et étangs : OpenStreetMap, sinon calcul d'écoulement sur le relief |
 | `scripts/terre/water.gdshader` | Eau animée (rivières, lacs, mer) : vagues, reflets, écume |
 | `scripts/terre/elevation_tiles.gd` | Téléchargement, cache et lecture des tuiles d'altitude |

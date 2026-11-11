@@ -15,7 +15,13 @@ signal terrain_edited(count: int)
 ## Un bloc d'affichage vient d'être (re)construit : son relief a pu changer.
 signal chunk_rebuilt(k: Vector2i)
 
-enum Tool { INSPECT, FLATTEN, RAISE, LOWER }
+enum Tool { INSPECT, FLATTEN, RAISE, LOWER,
+	## Outils de paysage (pinceau rond de rayon brush_radius).
+	HILL, SMOOTH, DIG_WATER, FILL_WATER, BIOME, PLANT, CLEAR_TREES }
+## Outils qui peignent avec un pinceau rond en glissant (les autres : rectangle).
+const BRUSH_TOOLS := [Tool.HILL, Tool.SMOOTH, Tool.DIG_WATER, Tool.FILL_WATER, Tool.BIOME, Tool.PLANT, Tool.CLEAR_TREES]
+## Biomes que le joueur peut peindre.
+const PAINTABLE_KINDS := [4, 6, 7, 5, 8, 12, 3, 13, 9, 11] # forêt, prairie, champs, broussailles, désert, plage, roche, neige, marais, toundra
 
 ## Fichier de save_world() / load_world() (ancien format, gardé pour les tests).
 ## Les parties du joueur passent par SaveGame (user://parties/).
@@ -42,6 +48,20 @@ var origin_lon := 2.2945
 var current_tool: Tool = Tool.INSPECT
 ## Vector2i -> float : hauteur imposée par le joueur.
 var modifications: Dictionary = {}
+## Vector2i -> float : surface de l'eau d'un lac ou d'un canal creusé par le joueur.
+var water_cells: Dictionary = {}
+## Vector2i -> float (indice Kind) : biome peint par le joueur.
+var biome_paint: Dictionary = {}
+## Vector2i -> float : 1 = arbre planté, 0 = arbres arrachés.
+var tree_paint: Dictionary = {}
+## Rayon du pinceau des outils de paysage (cases).
+var brush_radius := 3
+## Biome posé par l'outil BIOME (indice Kind).
+var paint_kind := 4
+## Hauteur ajoutée au centre d'un coup de pinceau « colline » (m).
+var hill_height := 1.5
+var _stroke_level := NAN
+var _last_brush := Vector2i(1 << 30, 0)
 ## Vector2i (indice de bloc) -> MeshInstance3D
 var chunks: Dictionary = {}
 
@@ -143,6 +163,9 @@ func set_origin(lat: float, lon: float) -> void:
 	_dirty.clear()
 	_generation += 1
 	modifications.clear()
+	water_cells.clear()
+	biome_paint.clear()
+	tree_paint.clear()
 	_dragging = false
 	var z := ElevationTiles.ZOOM
 	_px0 = Geo.lon_to_pixel_x(lon, z)
@@ -192,6 +215,8 @@ func cell_height(c: Vector2i) -> float:
 
 ## Hauteur d'une case sans le creusement des rivières.
 func _bank_height(c: Vector2i) -> float:
+	if water_cells.has(c):
+		return float(water_cells[c]) + WATER_SURFACE_DROP
 	if modifications.has(c):
 		return modifications[c]
 	var h := raw_height(c.x + 0.5, c.y + 0.5)
@@ -214,6 +239,8 @@ static func water_depth(q: float, bio: int, width: float, step: float) -> float:
 ## qui contient (x, z), ou NAN s'il n'y en a pas. La mer n'est pas comptée.
 func water_surface_at(x: float, z: float) -> float:
 	var c := Vector2i(floori(x), floori(z))
+	if water_cells.has(c):
+		return water_cells[c]
 	if modifications.has(c):
 		return NAN
 	var h := raw_height(c.x + 0.5, c.y + 0.5)
@@ -237,13 +264,15 @@ func _on_water_changed() -> void:
 
 ## Types de case (biomes affichés). L'ordre sert d'indice dans les tables ci-dessous.
 enum Kind { MER, LAC, GLACIER, ROCHE, FORET, BROUSSAILLES, PRAIRIE, CHAMPS, DESERT,
-	MARAIS, MANGROVE, TOUNDRA, PLAGE, NEIGE, ALPAGE, RIVIERE, RUISSEAU, ETANG }
+	MARAIS, MANGROVE, TOUNDRA, PLAGE, NEIGE, ALPAGE, RIVIERE, RUISSEAU, ETANG, CANAL }
 const KIND_NAMES: Array[String] = ["Mer", "Lac / rivière", "Glacier", "Roche", "Forêt", "Broussailles",
 	"Prairie", "Champs", "Désert", "Marais", "Mangrove", "Toundra", "Plage", "Neige", "Alpage",
-	"Rivière", "Ruisseau", "Étang"]
+	"Rivière", "Ruisseau", "Étang", "Lac / canal"]
 ## Probabilité d'un arbre / d'un buisson sur une case, par type.
-const TREE_BY_KIND: Array[float] = [0, 0, 0, 0, 0.10, 0.025, 0.004, 0, 0, 0.01, 0.08, 0, 0, 0, 0, 0, 0, 0]
-const BUSH_BY_KIND: Array[float] = [0, 0, 0, 0, 0.03, 0.05, 0, 0, 0, 0, 0, 0.02, 0, 0, 0.01, 0, 0, 0]
+const TREE_BY_KIND: Array[float] = [0, 0, 0, 0, 0.10, 0.025, 0.004, 0, 0, 0.01, 0.08, 0, 0, 0, 0, 0, 0, 0, 0]
+const BUSH_BY_KIND: Array[float] = [0, 0, 0, 0, 0.03, 0.05, 0, 0, 0, 0, 0, 0.02, 0, 0, 0.01, 0, 0, 0, 0]
+## Densité des arbres plantés au pinceau.
+const PLANTED_TREES := 0.3
 
 
 ## Hauteurs affichées (comme cell_height) de toutes les cases d'un rectangle,
@@ -361,6 +390,10 @@ func cell_kind_at(c: Vector2i) -> String:
 	var h := cell_height(c)
 	if is_nan(h):
 		return ""
+	if water_cells.has(c):
+		return KIND_NAMES[Kind.CANAL]
+	if biome_paint.has(c):
+		return KIND_NAMES[int(biome_paint[c])]
 	var bio := cell_biome(c)
 	if not modifications.has(c) and bio != 80:
 		var wk := stream_kind_id(water.width_at(c.x + 0.5, c.y + 0.5), h)
@@ -574,9 +607,32 @@ func _prepare_chunk(k: Vector2i) -> Dictionary:
 		for j in w:
 			for i in w:
 				wid[i + j * w] = water.width_at(x0 + i - 1 + 0.5, z0 + j - 1 + 0.5)
+	var rect := Rect2i(x0 - 1, z0 - 1, w, w)
 	return {"k": k, "gen": _generation, "cs": cs, "step": height_step,
 		"pxs": pxs, "pys": pys, "win": tiles.grab_window(pxs, pys),
-		"bio": land.sample_grid(lats, lons), "wid": wid, "mod_idx": mod_idx, "mod_h": mod_h}
+		"bio": land.sample_grid(lats, lons), "wid": wid, "mod_idx": mod_idx, "mod_h": mod_h,
+		"pwater": _collect_cells(water_cells, rect), "paint": _collect_cells(biome_paint, rect),
+		"trees": _collect_cells(tree_paint, rect)}
+
+
+## Cases d'un dictionnaire creux tombant dans rect : [indices locaux, valeurs].
+static func _collect_cells(dict: Dictionary, rect: Rect2i) -> Array:
+	var idx := PackedInt32Array()
+	var val := PackedFloat32Array()
+	var w := rect.size.x
+	if dict.size() < rect.size.x * rect.size.y:
+		for c: Vector2i in dict:
+			if rect.has_point(c):
+				idx.append((c.x - rect.position.x) + (c.y - rect.position.y) * w)
+				val.append(dict[c])
+	else:
+		for j in rect.size.y:
+			for i in w:
+				var c := rect.position + Vector2i(i, j)
+				if dict.has(c):
+					idx.append(i + j * w)
+					val.append(dict[c])
+	return [idx, val]
 
 
 ## Calcul pur du maillage et des positions d'arbres (peut tourner sur un autre fil :
@@ -619,6 +675,27 @@ static func _compute_chunk(job: Dictionary) -> void:
 			wet[n] = 1
 			surf[n] = h[n] - WATER_SURFACE_DROP
 			h[n] -= d
+	# Lacs et canaux creusés par le joueur (le lit est déjà dans les modifications).
+	var pw_idx: PackedInt32Array = job.pwater[0]
+	var pw_val: PackedFloat32Array = job.pwater[1]
+	var player_water := PackedByteArray()
+	player_water.resize(w * w)
+	for m in pw_idx.size():
+		var n := pw_idx[m]
+		wet[n] = 1
+		surf[n] = pw_val[m]
+		wid[n] = 0.0
+		h_bank[n] = pw_val[m] + WATER_SURFACE_DROP
+		player_water[n] = 1
+	var paint := PackedByteArray()
+	paint.resize(w * w)
+	paint.fill(255)
+	for m in (job.paint[0] as PackedInt32Array).size():
+		paint[job.paint[0][m]] = int(job.paint[1][m])
+	var tree_mark := PackedByteArray() # 0 = rien, 1 = arrachés, 2 = plantés
+	tree_mark.resize(w * w)
+	for m in (job.trees[0] as PackedInt32Array).size():
+		tree_mark[job.trees[0][m]] = 2 if job.trees[1][m] > 0.5 else 1
 
 	var colors := PackedColorArray()
 	colors.resize(w * w)
@@ -639,6 +716,10 @@ static func _compute_chunk(job: Dictionary) -> void:
 				var sk := stream_kind_id(wid[n], hc)
 				if sk >= 0:
 					kind = sk
+			if player_water[n] == 1:
+				kind = Kind.CANAL
+			elif paint[n] != 255 and wet[n] != 1:
+				kind = paint[n]
 			kinds[n] = kind
 			if kind == Kind.PRAIRIE:
 				colors[n] = _prairie_colors[clampi(floori(hc / 2.0), 0, 200)]
@@ -709,6 +790,11 @@ static func _compute_chunk(job: Dictionary) -> void:
 	job.arrays = arrays
 	job.h = h
 	job.water_arrays = _compute_water_mesh(cs, wet, surf, wid)
+	# Une case peinte (biome ou arbres) garde sa végétation même terrassée.
+	for n in w * w:
+		if paint[n] != 255 or tree_mark[n] != 0:
+			modified[n] = 0
+	job.tree_mark = tree_mark
 	_compute_vegetation(job, h, kinds, modified)
 
 
@@ -820,7 +906,7 @@ static var _base_colors: PackedColorArray = _make_base_colors()
 static func _make_base_colors() -> PackedColorArray:
 	# Lac, rivière, ruisseau, étang : le lit, vu à travers l'eau animée.
 	var hexes := ["c9b27c", "5f7a6a", "eef3f8", "8e8a82", "4c8c3c", "8d9a58", "5d9e47", "d2c06a",
-		"e6d59c", "6c9a7c", "3b7354", "a9a88a", "e6d59c", "eef3f8", "98a56a", "5f7a6a", "5f7a6a", "5f7a6a"]
+		"e6d59c", "6c9a7c", "3b7354", "a9a88a", "e6d59c", "eef3f8", "98a56a", "5f7a6a", "5f7a6a", "5f7a6a", "5f7a6a"]
 	var out := PackedColorArray()
 	for x in hexes:
 		out.append(Color(x).srgb_to_linear())
@@ -892,12 +978,18 @@ static func _compute_vegetation(job: Dictionary, h: PackedFloat32Array, kinds: P
 	var tree_green := Color("2a6a2a")
 	var meadow_green := Color("367a30")
 	var bush_green := Color("587a33")
+	var tree_mark: PackedByteArray = job.tree_mark
 	for j in range(1, cs + 1):
 		for i in range(1, cs + 1):
 			var n := i + j * w
 			var kind := kinds[n]
 			var td: float = TREE_BY_KIND[kind]
 			var bd: float = BUSH_BY_KIND[kind]
+			var mark: int = tree_mark[n]
+			if mark == 1:
+				continue
+			if mark == 2 and kind != Kind.CANAL:
+				td = maxf(td, PLANTED_TREES)
 			if (td == 0.0 and bd == 0.0) or modified[n] != 0:
 				continue
 			var c := Vector2i(k.x * cs + i - 1, k.y * cs + j - 1)
@@ -987,11 +1079,23 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event is InputEventMouseMotion:
 		_update_hover((event as InputEventMouseMotion).position)
+		if _dragging and is_brush_tool() and _hover_valid and _hover != _last_brush:
+			apply_brush(_hover)
 	elif event is InputEventMouseButton:
 		var mb := event as InputEventMouseButton
 		if mb.button_index != MOUSE_BUTTON_LEFT:
 			return
 		_update_hover(mb.position)
+		if is_brush_tool():
+			if mb.pressed and _hover_valid:
+				_dragging = true
+				_stroke_level = NAN
+				apply_brush(_hover)
+			elif not mb.pressed:
+				_dragging = false
+				_last_brush = Vector2i(1 << 30, 0)
+			_update_selection()
+			return
 		if mb.pressed and _hover_valid and current_tool != Tool.INSPECT:
 			_dragging = true
 			_drag_start = _hover
@@ -1042,7 +1146,13 @@ func pick_point(origin: Vector3, dir: Vector3) -> Variant:
 	return null
 
 
+func is_brush_tool() -> bool:
+	return current_tool in BRUSH_TOOLS
+
+
 func _selection_rect() -> Rect2i:
+	if is_brush_tool():
+		return Rect2i(_hover - Vector2i(brush_radius, brush_radius), Vector2i.ONE * (brush_radius * 2 + 1))
 	var a := _drag_start if _dragging else _hover
 	var b := _hover
 	var lo := Vector2i(mini(a.x, b.x), mini(a.y, b.y))
@@ -1055,7 +1165,7 @@ func _update_selection() -> void:
 		_selection.visible = false
 		return
 	var r := _selection_rect()
-	var ref := _drag_start if _dragging else _hover
+	var ref := _drag_start if _dragging and not is_brush_tool() else _hover
 	var h := cell_height(ref)
 	if is_nan(h):
 		_selection.visible = false
@@ -1088,9 +1198,100 @@ func apply_tool(a: Vector2i, b: Vector2i) -> int:
 				Tool.LOWER:
 					h -= 1.0
 			modifications[c] = h
+			water_cells.erase(c)
 			count += 1
 			_mark_dirty_around(c)
 	terrain_edited.emit(count)
+	_update_selection()
+	return count
+
+
+## Cases du pinceau rond centré sur center.
+func brush_cells(center: Vector2i) -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	var r := brush_radius
+	var lim := (r + 0.5) * (r + 0.5)
+	for dz in range(-r, r + 1):
+		for dx in range(-r, r + 1):
+			if dx * dx + dz * dz <= lim:
+				out.append(center + Vector2i(dx, dz))
+	return out
+
+
+## Un coup de pinceau de l'outil de paysage courant. Renvoie le nombre de cases changées.
+func apply_brush(center: Vector2i) -> int:
+	_last_brush = center
+	var cells := brush_cells(center)
+	var count := 0
+	var r := float(brush_radius) + 0.5
+	match current_tool:
+		Tool.HILL:
+			for c in cells:
+				var h := cell_height(c)
+				if is_nan(h):
+					continue
+				var d := Vector2(c - center).length() / r
+				var add := snappedf(hill_height * (1.0 - d * d), height_step)
+				if add <= 0.0:
+					continue
+				water_cells.erase(c)
+				modifications[c] = h + add
+				count += 1
+		Tool.SMOOTH:
+			var new_h := {}
+			for c in cells:
+				var sum := 0.0
+				var n := 0
+				for dz in range(-2, 3):
+					for dx in range(-2, 3):
+						var v := cell_height(c + Vector2i(dx, dz))
+						if not is_nan(v):
+							sum += v
+							n += 1
+				if n > 0 and not water_cells.has(c):
+					new_h[c] = _quantize(sum / n)
+			for c in new_h:
+				if new_h[c] != cell_height(c):
+					modifications[c] = new_h[c]
+					count += 1
+		Tool.DIG_WATER:
+			# Le niveau de l'eau est celui du premier coup de pinceau : un canal
+			# qui monte est creusé plus profond, comme un vrai canal.
+			if is_nan(_stroke_level):
+				_stroke_level = _bank_height(center)
+				if is_nan(_stroke_level):
+					return 0
+			for c in cells:
+				if water_cells.has(c):
+					continue
+				var bank := _bank_height(c)
+				if is_nan(bank) or bank < 0.0:
+					continue
+				var level := minf(bank, _stroke_level)
+				water_cells[c] = level - WATER_SURFACE_DROP
+				modifications[c] = level - 1.0
+				count += 1
+		Tool.FILL_WATER:
+			for c in cells:
+				if water_cells.has(c):
+					modifications[c] = float(water_cells[c]) + WATER_SURFACE_DROP
+					water_cells.erase(c)
+					count += 1
+		Tool.BIOME:
+			for c in cells:
+				if float(biome_paint.get(c, -1.0)) != float(paint_kind):
+					biome_paint[c] = float(paint_kind)
+					count += 1
+		Tool.PLANT, Tool.CLEAR_TREES:
+			var v := 1.0 if current_tool == Tool.PLANT else 0.0
+			for c in cells:
+				if float(tree_paint.get(c, -1.0)) != v:
+					tree_paint[c] = v
+					count += 1
+	if count > 0:
+		for c in cells:
+			_mark_dirty_around(c)
+		terrain_edited.emit(count)
 	_update_selection()
 	return count
 
@@ -1132,7 +1333,15 @@ func _mark_dirty_around(c: Vector2i) -> void:
 
 ## Section « terrain » de la sauvegarde : lieu et cases modifiées, par blocs.
 func to_dict() -> Dictionary:
-	return {"version": 2, "lat": origin_lat, "lon": origin_lon, "modifs": SaveGame.encode_cells(modifications)}
+	var d := {"version": 2, "lat": origin_lat, "lon": origin_lon, "modifs": SaveGame.encode_cells(modifications)}
+	# Paysage du joueur (absent des anciennes parties : sections facultatives).
+	if not water_cells.is_empty():
+		d["eau"] = SaveGame.encode_cells(water_cells)
+	if not biome_paint.is_empty():
+		d["biomes"] = SaveGame.encode_cells(biome_paint)
+	if not tree_paint.is_empty():
+		d["arbres"] = SaveGame.encode_cells(tree_paint)
+	return d
 
 
 ## Recharge le lieu et les cases modifiées (vide aussi les autres systèmes via origin_changed).
@@ -1141,6 +1350,9 @@ func from_dict(data: Dictionary) -> void:
 		data = SaveGame.migrate_section("terrain", 1, data)
 	set_origin(float(data.get("lat", origin_lat)), float(data.get("lon", origin_lon)))
 	modifications = SaveGame.decode_cells(data.get("modifs", {}))
+	water_cells = SaveGame.decode_cells(data.get("eau", {}))
+	biome_paint = SaveGame.decode_cells(data.get("biomes", {}))
+	tree_paint = SaveGame.decode_cells(data.get("arbres", {}))
 
 
 ## Données lues par le dernier load_world() (pour les autres systèmes : transports…).

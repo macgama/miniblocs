@@ -35,6 +35,7 @@ func _ready() -> void:
 		GameStart.place_name = ""
 		world.set_origin(lat, lon))
 	hud.tool_selected.connect(_on_tool_selected)
+	_setup_landscape()
 	_setup_transit()
 	hud.traffic_toggled.connect(func(on: bool) -> void: transport.traffic.set_enabled(on))
 	hud.traffic_filter_changed.connect(func(era: String, region: String) -> void:
@@ -312,6 +313,7 @@ func _autosave(delta: float) -> void:
 ## Un outil de construction prend la main : on range ceux du terrain et des voies.
 func _select_building_tool(from_transit := false) -> void:
 	world.set_tool(TerrainWorld.Tool.INSPECT)
+	landscape.set_shown(false)
 	transport.stations.set_inactive()
 	if transit_panel and not from_transit:
 		transit_panel.clear_selection()
@@ -323,13 +325,39 @@ func _select_building_tool(from_transit := false) -> void:
 	hud.select_tool_silently(0)
 
 
+## Panneau « Paysage » : pinceaux de terrain (outil 0).
+var landscape: PaysagePanel
+
+
+func _setup_landscape() -> void:
+	landscape = PaysagePanel.new()
+	landscape.name = "PanneauPaysage"
+	add_child(landscape)
+	landscape.set_shown(false)
+	landscape.tool_chosen.connect(func(t: int) -> void:
+		if landscape.visible:
+			world.set_tool(t))
+	landscape.radius_changed.connect(func(r: int) -> void:
+		world.brush_radius = r
+		world._update_selection())
+	landscape.biome_chosen.connect(func(k: int) -> void: world.paint_kind = k)
+	world.brush_radius = landscape.radius
+	world.paint_kind = landscape.kind
+
+
 func _on_tool_selected(t: int) -> void:
+	landscape.set_shown(t == TerreHud.LANDSCAPE_TOOL)
 	transport.stations.set_inactive()
 	transit_panel.clear_selection()
 	buildings.set_inactive()
 	zones.set_inactive()
 	blocks.set_inactive()
 	build_panel.clear_selection()
+	if t == TerreHud.LANDSCAPE_TOOL:
+		transport.set_inactive()
+		hud.show_spec("", {}, false)
+		world.set_tool(landscape.current_tool)
+		return
 	var k := t - TerreHud.FIRST_TRANSPORT_TOOL
 	if k < 0:
 		transport.set_inactive()

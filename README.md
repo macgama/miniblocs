@@ -43,6 +43,19 @@ Au lancement (**F5**), un **globe 3D** coloré par les vrais biomes (forêts, ch
 
 ![Mode Terre : forêt au-dessus du lac d'Annecy](docs/apercu-biomes.png)
 
+### Paysage : façonner la terre au pinceau (outil 0)
+
+La touche **0** ouvre le panneau **Paysage**. Clic gauche glissé avec un pinceau rond de 1 à 31 m :
+
+- **Colline** et **Lisser** : modeler le relief en douceur.
+- **Lac / canal** : creuse et remplit d'eau animée. L'eau garde le niveau du premier clic, donc un canal qui monte est creusé plus profond, comme un vrai canal. Les routes posées par-dessus passent sur un pont, et les bateaux peuvent y naviguer. **Combler l'eau** rebouche.
+- **Peindre un biome** : forêt (qui se remplit d'arbres), prairie, champs, broussailles, désert, plage, roche, neige, marais, toundra.
+- **Planter** ou **arracher** des arbres.
+
+Tout est sauvegardé avec la partie.
+
+![Panneau Paysage : lac, canal et désert peints dans les Vosges](docs/apercu-paysage.png)
+
 ### Rivières, ruisseaux et lacs
 
 Les cours d'eau sont de vraies cases d'eau creusées dans le relief (berges d'une ou deux marches), avec une eau animée : vagues, reflets, écume le long des berges et petites cascades quand le lit descend d'une marche. Les lacs viennent d'ESA WorldCover. Les rivières viennent d'OpenStreetMap (avec leur nom, même les ruisseaux de 1 m) quand le jeu peut joindre le service Overpass ; sinon le jeu les **calcule sur le vrai relief** en faisant « couler la pluie » : elles suivent les vraies vallées et s'élargissent vers l'aval. Les routes, rails et chemins posés au-dessus passent automatiquement **sur un pont**.
@@ -262,6 +275,7 @@ Détails et limites : [docs/ambiance.md](docs/ambiance.md).
 | `scripts/terre/land_cover.gd` | Biomes réels (ESA WorldCover) lus par blocs autour du lieu |
 | `assets/biomes_monde.png` | Carte mondiale des biomes du globe (fabriquée par `tools/build_biome_map.py`) |
 | `scripts/ambiance/` | Cycle jour/nuit, Soleil et Lune réels, ciel, lampadaires, fenêtres allumées (voir [docs/ambiance.md](docs/ambiance.md)) |
+| `scripts/terre/paysage_panel.gd` | Panneau Paysage : pinceaux colline, lisser, lac / canal, biomes, arbres |
 | `scripts/terre/water_map.gd` | Rivières et étangs : OpenStreetMap, sinon calcul d'écoulement sur le relief |
 | `scripts/terre/water.gdshader` | Eau animée (rivières, lacs, mer) : vagues, reflets, écume |
 | `scripts/terre/elevation_tiles.gd` | Téléchargement, cache et lecture des tuiles d'altitude |

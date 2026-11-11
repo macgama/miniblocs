@@ -1,6 +1,6 @@
 class_name StationPanel
 extends CanvasLayer
-## Panneau « Transports publics » (touche T) : poser des stations, tracer des
+## Panneau « Transports publics » (touche L) : poser des stations, tracer des
 ## lignes, choisir le véhicule et le nombre de véhicules de chaque ligne.
 
 signal station_chosen(type_id: String)
@@ -39,7 +39,7 @@ func _build() -> void:
 	box.add_theme_constant_override("separation", 4)
 	scroll.add_child(box)
 	var title := Label.new()
-	title.text = "Transports publics   (T : masquer)"
+	title.text = "Transports publics   (L : masquer)"
 	title.add_theme_font_size_override("font_size", 16)
 	box.add_child(title)
 	var hint := Label.new()
@@ -92,7 +92,7 @@ func is_open() -> bool:
 
 func _unhandled_key_input(event: InputEvent) -> void:
 	var k := event as InputEventKey
-	if k and k.pressed and not k.echo and k.keycode == KEY_T:
+	if k and k.pressed and not k.echo and k.physical_keycode == KEY_L:
 		toggle()
 		get_viewport().set_input_as_handled()
 

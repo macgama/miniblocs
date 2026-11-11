@@ -97,6 +97,11 @@ func _ready() -> void:
 	clear_btn.text = "Tout effacer"
 	clear_btn.pressed.connect(func() -> void: clear_requested.emit())
 	bar.add_child(clear_btn)
+	bar.add_child(VSeparator.new())
+	var earth_btn := Button.new()
+	earth_btn.text = "Terre (globe)"
+	earth_btn.pressed.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/globe.tscn"))
+	bar.add_child(earth_btn)
 
 
 func _process(delta: float) -> void:

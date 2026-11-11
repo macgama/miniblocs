@@ -9,6 +9,8 @@ signal load_requested
 signal city_requested
 signal globe_requested
 signal traffic_toggled(on: bool)
+signal spec_edited(type_id: String, spec: Dictionary)
+signal curve_toggled(on: bool)
 
 const PLACES := [
 	{"name": "Tour Eiffel", "lat": 48.85826, "lon": 2.29450},
@@ -43,6 +45,17 @@ var _tool_label: Label
 var _message_label: Label
 var _message_timer := 0.0
 var _buttons: Array[Button] = []
+# Panneau de réglage de la voie à poser.
+var _spec_panel: PanelContainer
+var _class_pick: OptionButton
+var _class_ids: Array = []
+var _lanes: SpinBox
+var _lane_w: SpinBox
+var _tracks: SpinBox
+var _width: SpinBox
+var _curve: Button
+var _spec_rows: Dictionary = {}
+var _filling := false
 
 
 func _ready() -> void:
@@ -116,13 +129,15 @@ func _ready() -> void:
 
 	var help := Label.new()
 	help.text = "ZQSD / flèches : déplacer   ·   Molette : zoom   ·   A / E ou clic molette : tourner   ·   Clic droit glissé : déplacer la carte\n" \
-		+ "Clic gauche glissé : terrasser (2-4)   ·   5-8 : poser une voie, clic par point, Échap / clic droit pour finir, Maj : angles de 15°   ·   9 : démolir\n" \
+		+ "Clic gauche glissé : terrasser (2-4)   ·   5-8 : poser une voie (classe et largeur dans le panneau), clic par point, C : courbe, Échap / clic droit pour finir, Maj : angles de 15°   ·   9 : démolir\n" \
 		+ "1-9 : outils   ·   F5 : sauvegarder   ·   F9 : charger   ·   Échap : annuler"
 	help.add_theme_color_override("font_color", Color(1, 1, 1, 0.9))
 	help.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
 	help.add_theme_constant_override("outline_size", 4)
 	help.add_theme_font_size_override("font_size", 13)
 	layout.add_child(help)
+
+	_build_spec_panel(layout)
 
 	_tool_label = Label.new()
 	_tool_label.add_theme_color_override("font_color", Color("d8f3dc"))
@@ -178,6 +193,99 @@ func _ready() -> void:
 	credit.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
 	credit.add_theme_constant_override("outline_size", 3)
 	bottom.add_child(credit)
+
+
+func _build_spec_panel(layout: Control) -> void:
+	_spec_panel = PanelContainer.new()
+	_spec_panel.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	_spec_panel.visible = false
+	layout.add_child(_spec_panel)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 10)
+	_spec_panel.add_child(row)
+	_class_pick = OptionButton.new()
+	_class_pick.custom_minimum_size = Vector2(260, 0)
+	_class_pick.item_selected.connect(func(i: int) -> void:
+		if _filling:
+			return
+		var id: String = _class_ids[i]
+		spec_edited.emit(id, TransportTypes.default_spec(id)))
+	row.add_child(_class_pick)
+	_lanes = _spin(row, "lanes", "Voies par sens", 1, 4, 1)
+	_lane_w = _spin(row, "lane_w", "Largeur d'une voie (m)", 2.75, 3.5, 0.05)
+	_tracks = _spin(row, "tracks", "Voies ferrées", 1, 2, 1)
+	_width = _spin(row, "width", "Largeur (m)", 1.0, 60.0, 0.1)
+	_curve = Button.new()
+	_curve.text = "Courbe (C)"
+	_curve.toggle_mode = true
+	_curve.toggled.connect(func(on: bool) -> void:
+		if not _filling:
+			curve_toggled.emit(on))
+	row.add_child(_curve)
+
+
+func _spin(row: Control, key: String, label: String, lo: float, hi: float, step: float) -> SpinBox:
+	var box := HBoxContainer.new()
+	var l := Label.new()
+	l.text = label
+	box.add_child(l)
+	var sb := SpinBox.new()
+	sb.min_value = lo
+	sb.max_value = hi
+	sb.step = step
+	sb.custom_minimum_size = Vector2(90, 0)
+	sb.value_changed.connect(func(_v: float) -> void: _emit_spec())
+	box.add_child(sb)
+	row.add_child(box)
+	_spec_rows[key] = box
+	return sb
+
+
+func _emit_spec() -> void:
+	if _filling or _class_ids.is_empty():
+		return
+	var id: String = _class_ids[_class_pick.selected]
+	var s := {"lanes": int(_lanes.value), "lane_w": _lane_w.value, "tracks": int(_tracks.value), "width": _width.value}
+	spec_edited.emit(id, TransportTypes.normalize(id, s))
+
+
+## Affiche le panneau de réglage pour une classe de voie (null : le cacher).
+func show_spec(type_id: String, spec: Dictionary, curve: bool) -> void:
+	if type_id == "":
+		_spec_panel.visible = false
+		return
+	_filling = true
+	var c := TransportTypes.get_type(type_id)
+	_class_ids = TransportTypes.BY_MODE.get(int(c.mode), [type_id])
+	_class_pick.clear()
+	for id in _class_ids:
+		_class_pick.add_item(TransportTypes.get_type(id).name)
+	_class_pick.select(maxi(0, _class_ids.find(type_id)))
+	_spec_rows.lanes.visible = c.has("lanes")
+	_spec_rows.lane_w.visible = c.has("lanes")
+	_spec_rows.tracks.visible = c.has("tracks")
+	_spec_rows.width.visible = c.has("width")
+	if c.has("lanes"):
+		_lanes.min_value = c.lanes[0]
+		_lanes.max_value = c.lanes[1]
+		_lanes.value = spec.lanes
+		_lanes.editable = int(c.lanes[0]) != int(c.lanes[1])
+		_lane_w.min_value = c.lane_w[0]
+		_lane_w.max_value = c.lane_w[1]
+		_lane_w.value = spec.lane_w
+		_lane_w.editable = float(c.lane_w[0]) != float(c.lane_w[1])
+	if c.has("tracks"):
+		_tracks.min_value = c.tracks[0]
+		_tracks.max_value = c.tracks[1]
+		_tracks.value = spec.tracks
+		_tracks.editable = int(c.tracks[0]) != int(c.tracks[1])
+	if c.has("width"):
+		_width.min_value = c.width[0]
+		_width.max_value = c.width[1]
+		_width.value = spec.width
+	_curve.button_pressed = curve
+	_spec_panel.visible = true
+	_filling = false
 
 
 func _on_go() -> void:

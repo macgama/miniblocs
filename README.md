@@ -56,6 +56,10 @@ Tout est sauvegardé avec la partie.
 
 ![Panneau Paysage : lac, canal et désert peints dans les Vosges](docs/apercu-paysage.png)
 
+### Mer et côtes
+
+La mer a une **houle** douce (la surface monte et descend), un **ressac** : des bandes d'écume qui roulent vers le rivage sur une bande de 4 m, et des **plages de sable** là où la terre basse (moins de 2,5 m) et peu pentue touche la mer. Les falaises et les rochers restent tels quels. Les marées ne sont pas encore faites.
+
 ### Rivières, ruisseaux et lacs
 
 Les cours d'eau sont de vraies cases d'eau creusées dans le relief (berges d'une ou deux marches), avec une eau animée : vagues, reflets, écume le long des berges et petites cascades quand le lit descend d'une marche. Les lacs viennent d'ESA WorldCover. Les rivières viennent d'OpenStreetMap (avec leur nom, même les ruisseaux de 1 m) quand le jeu peut joindre le service Overpass ; sinon le jeu les **calcule sur le vrai relief** en faisant « couler la pluie » : elles suivent les vraies vallées et s'élargissent vers l'aval. Les routes, rails et chemins posés au-dessus passent automatiquement **sur un pont**.

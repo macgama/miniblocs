@@ -68,6 +68,15 @@ Code : `scripts/terre/water_map.gd` (où est l'eau) et `scripts/terre/water.gdsh
 
 Limite : le réseau du conteneur cloud où le jeu est développé bloque Overpass ; la lecture d'OpenStreetMap est testée avec une réponse enregistrée, et le calcul sur le relief prend le relais. Sur un PC normal, OpenStreetMap répond.
 
+## Mer et côtes
+
+Code : `scripts/terre/terrain_world.gd` (`_compute_surf_mesh`, plages dans `_compute_chunk` et `cell_kind_at`) et `scripts/terre/water.gdshader` (`wave_height`, `surf_only`).
+
+- **Houle** : le grand plan de mer est subdivisé (96 × 96) et ses sommets montent et descendent (somme de sinus, ± 7 cm).
+- **Ressac** : dans chaque bloc, on calcule pour chaque case de mer sa distance à la terre (cases sèches seulement, pas les lacs). Les cases à 4 m ou moins reçoivent une bande d'écume (child « Ressac ») ; le shader y fait rouler des bandes vers la plage, plus une écume fixe tout au bord.
+- **Plages** : une case de terre devient « Plage » si elle est entre 0 et 2,5 m, peu pentue, et touche la mer (ou est à 1 m au plus), et si son biome est naturel (prairie, buissons, champs, sol nu, mangrove, zone humide). Villes, forêts et rochers restent tels quels.
+- **Marées** : pas faites. Le niveau de la mer (0 m) sert partout (eau, ponts, plages) ; une marée demanderait de rendre ce niveau variable dans le temps.
+
 ## Limites connues
 
 - La mer est dessinée comme un plan d'eau à 0 m : les polders des Pays-Bas restent inondés à l'écran (leur biome, lui, est correct).

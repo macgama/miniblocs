@@ -37,7 +37,7 @@ Au lancement (**F5**), un **globe 3D** coloré par les vrais biomes (forêts, ch
 ![Globe de départ](docs/apercu-globe.png)
 
 - **Globe** : glisser pour tourner, molette pour zoomer, clic pour poser le point de départ. On peut aussi chercher dans la liste de lieux, coller des coordonnées (Google Maps : clic droit sur un lieu) ou cliquer sur **Lieu au hasard**.
-- **Aperçu** : altitude du point et type de relief autour (plaine, collines, montagne, côte, mer), région de jeu de 10 × 10 km.
+- **Aperçu** : altitude du point et type de relief autour (plaine, collines, montagne, côte, mer), région de jeu de 40 × 40 km (1 600 km², soit 1,6 milliard de cases).
 - **Commencer la partie** : ouvre la région en cases de 1 m. Survole une case pour voir ses coordonnées et son altitude. Outils : **2 Aplanir**, **3 Monter +1 m**, **4 Creuser −1 m** (clic gauche glissé). Bouton **Globe** pour changer de lieu.
 - Le relief est téléchargé la première fois (Internet nécessaire), puis gardé en cache.
 

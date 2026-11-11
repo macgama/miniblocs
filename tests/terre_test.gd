@@ -85,6 +85,10 @@ func _run() -> void:
 	zbuf.fill(30)
 	_check(zbuf.compress(FileAccess.COMPRESSION_DEFLATE).decompress(1024 * 1024, FileAccess.COMPRESSION_DEFLATE) == zbuf, "décompression des blocs")
 
+	print("Zones de rivières :")
+	_check(WaterMap.zone_of(0, 0) == Vector2i.ZERO and WaterMap.zone_of(5200, -4900) == Vector2i(1, 0) and WaterMap.zone_of(-15100, 0) == Vector2i(-2, 0), "zones de 10 × 10 km")
+	_check(WaterMap.zone_rect(Vector2i(1, -1)) == Rect2(5000, -15000, 10000, 10000), "rectangle d'une zone")
+	_check(GameStart.REGION_SIZE >= 40000.0, "région de jeu de 40 × 40 km")
 	print("Rivières :")
 	# Vallée en V qui descend vers le Sud : l'eau doit suivre le fond (x = 30).
 	var vw := 61
@@ -202,6 +206,15 @@ func _run() -> void:
 					print("Route : ", built.get("ok"), " ", built.get("reason", ""))
 					for i in 60:
 						await process_frame
+			if "--far" in args:
+				# Va à 14 km à l'Est : relief, biomes et rivières doivent suivre.
+				rig.position.x = 14000.0
+				var t2 := Time.get_ticks_msec()
+				while Time.get_ticks_msec() - t2 < 90_000:
+					await process_frame
+					if world.missing_chunk_count() == 0 and world.water.is_ready_at(14000.0, 0.0) and Time.get_ticks_msec() - t2 > 3000:
+						break
+				print("Loin : blocs manquants %d, rivières prêtes %s, %s (%d ms)" % [world.missing_chunk_count(), world.water.is_ready_at(14000.0, 0.0), world.water.status, Time.get_ticks_msec() - t2])
 			if "--paysage" in args:
 				# Démonstration des pinceaux : un lac, un canal, une colline boisée, un désert.
 				var c0 := Vector2i(floori(rig.position.x), floori(rig.position.z))

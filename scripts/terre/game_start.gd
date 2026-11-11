@@ -8,7 +8,7 @@ extends RefCounted
 enum Mode { BAC_A_SABLE, ENTRE_AMIS, MONDIALE }
 
 ## Côté de la région jouable autour du point de départ (mètres).
-const REGION_SIZE := 10000.0
+const REGION_SIZE := 40000.0
 
 static var chosen := false
 static var lat := 48.8584

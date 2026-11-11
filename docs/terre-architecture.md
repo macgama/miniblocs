@@ -11,12 +11,18 @@
 
 On ne peut donc pas « dessiner » toute la Terre à l'avance. À la place, le jeu **fabrique les cases à la demande** à partir de vraies données d'altitude, uniquement autour de la caméra, et ne mémorise que ce que le joueur change.
 
+## Décisions de game design (11/11/2026)
+
+- **Terre vierge** : seulement le vrai relief et les mers. Pas de routes ni de villes réelles.
+- **Le joueur choisit où il commence**, sur un globe 3D, puis joue dans une région de 10 × 10 km autour de ce point.
+- **Multijoueur prévu** : une carte par joueur (solo) ou tous sur la même carte (ensemble). Comme le relief se recalcule à l'identique chez tout le monde, il suffira d'échanger les cases modifiées. Hébergement par un joueur via Steam, sans serveur payant au départ.
+
 ## Comment c'est fait (version actuelle)
 
 1. **Données réelles gratuites** : tuiles d'altitude « Terrarium » (Mapzen Terrain Tiles, hébergées par AWS Open Data). Pas de clé, pas de compte, pas de serveur à payer. Couverture mondiale, terres et fonds marins.
 2. **Résolution** : au zoom 15, un pixel ≈ 4,8 m × cos(latitude) (≈ 3,1 m à Paris). Les sources d'origine sont plus grossières à beaucoup d'endroits (SRTM ≈ 30 m). Le jeu **interpole** pour obtenir une hauteur par case de 1 m : le relief est vrai à grande échelle, lissé au mètre près.
 3. **Cache** : chaque tuile (~80 Ko, environ 780 m × 780 m à Paris) est gardée dans `user://terrain_cache/`. Un lieu déjà visité se recharge hors ligne.
-4. **Région locale** : on choisit un point (latitude, longitude). Il devient la case (0, 0) d'une grille plate où 1 unité Godot = 1 m = 1 case. La caméra peut aller à ± 12 km. Sur cette distance, l'erreur due à la courbure de la Terre reste de l'ordre de 0,2 %.
+4. **Région locale** : on choisit un point (latitude, longitude). Il devient la case (0, 0) d'une grille plate où 1 unité Godot = 1 m = 1 case. La région de jeu fait 10 × 10 km (± 5 km). Sur cette distance, l'erreur due à la courbure de la Terre reste inférieure à 0,1 %.
 5. **Blocs de 64 × 64 cases** générés autour de la caméra (rayon 160 à 460 m selon le zoom), libérés quand on s'éloigne. Les cases identiques voisines sont fusionnées pour garder peu de triangles.
 6. **Hauteurs arrondies à 0,5 m** : donne des plateaux plats constructibles et des marches nettes, façon blocs.
 7. **Modifications du joueur** : dictionnaire creux `case -> hauteur`. Seules les cases modifiées sont sauvegardées (`user://terre_save.json`).
@@ -35,9 +41,10 @@ Une grille de carrés parfaits ne peut pas recouvrir une sphère sans se déform
 
 | Étape | Données | Licence |
 | --- | --- | --- |
-| Vraies routes, bâtiments, rivières, lacs, forêts | OpenStreetMap (via Overpass ou des extraits Geofabrik) | ODbL : attribution et partage des données modifiées |
+| Lacs et rivières en eau (sans routes ni bâtiments) | OpenStreetMap, couches eau uniquement | ODbL : attribution |
+| Mode « Ensemble » | Synchroniser les cases modifiées entre joueurs (GodotSteam) | — |
 | Relief vraiment au mètre en France | IGN RGE ALTI 1 m | Licence Ouverte Etalab 2.0 |
 | Relief au mètre en Suisse | swisstopo swissALTI3D (0,5 m) | Libre, attribution |
-| Recherche d'un lieu par son nom | Nominatim (OpenStreetMap) | Usage limité, attribution |
-| Relier le mode Terre au city builder | Routes et zonage posés sur le relief réel | — |
+| Recherche de n'importe quel lieu par son nom | Nominatim / Photon, ou une liste de villes embarquée (GeoNames) | Nominatim : usage limité ; GeoNames : CC BY |
+| Relier le mode Terre au city builder | Routes et zonage posés sur le relief | — |
 | Très grandes distances | « Origine flottante » : recentrer le monde quand la caméra s'éloigne | — |

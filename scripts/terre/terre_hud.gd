@@ -6,6 +6,7 @@ signal tool_selected(tool: int)
 signal save_requested
 signal load_requested
 signal city_requested
+signal globe_requested
 
 const PLACES := [
 	{"name": "Tour Eiffel", "lat": 48.85826, "lon": 2.29450},
@@ -129,7 +130,7 @@ func _ready() -> void:
 		_buttons.append(b)
 	_buttons[0].button_pressed = true
 	bar.add_child(VSeparator.new())
-	for spec in [["Sauver", save_requested], ["Charger", load_requested], ["Ville prototype", city_requested]]:
+	for spec in [["Sauver", save_requested], ["Charger", load_requested], ["Globe", globe_requested], ["Ville prototype", city_requested]]:
 		var b := Button.new()
 		b.text = spec[0]
 		var sig: Signal = spec[1]

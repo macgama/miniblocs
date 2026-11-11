@@ -8,7 +8,7 @@ Prototype de city builder en vue de dessus, style low-poly, mode bac à sable. F
 
 1. Installe [Godot 4.3 ou plus](https://godotengine.org/download) (version standard, pas .NET).
 2. Ouvre Godot, clique sur **Importer** et choisis le fichier `project.godot` de ce dossier.
-3. Appuie sur **F5** (ou le bouton ▶) pour lancer.
+3. Appuie sur **F5** (ou le bouton ▶) pour lancer : le globe de départ s'ouvre. Le prototype de ville reste accessible avec le bouton **Ville prototype** (ou ouvre `scenes/main.tscn` et appuie sur **F6**).
 
 ## Commandes
 
@@ -22,16 +22,18 @@ Prototype de city builder en vue de dessus, style low-poly, mode bac à sable. F
 | Annuler le tracé en cours | Échap |
 | Sauvegarder / charger | F5 / F9 (ou les boutons en bas) |
 
-## Mode Terre : le vrai relief, case par case
+## Mode Terre : choisis ton lieu sur le globe, puis joue sur le vrai relief
 
-Un deuxième mode permet de choisir **n'importe quel lieu sur Terre** (latitude, longitude) et d'y jouer sur le **vrai relief**, découpé en cases de 1 m × 1 m.
+Au lancement (**F5**), un **globe 3D** coloré par les vraies altitudes s'affiche. Le joueur choisit son point de départ n'importe où sur Terre, puis joue sur une **terre vierge** (vrai relief et mers, sans routes ni bâtiments) découpée en cases de 1 m × 1 m.
+
+![Globe de départ](docs/apercu-globe.png)
+
+- **Globe** : glisser pour tourner, molette pour zoomer, clic pour poser le point de départ. On peut aussi chercher dans la liste de lieux, coller des coordonnées (Google Maps : clic droit sur un lieu) ou cliquer sur **Lieu au hasard**.
+- **Aperçu** : altitude du point et type de relief autour (plaine, collines, montagne, côte, mer), région de jeu de 10 × 10 km.
+- **Commencer la partie** : ouvre la région en cases de 1 m. Survole une case pour voir ses coordonnées et son altitude. Outils : **2 Aplanir**, **3 Monter +1 m**, **4 Creuser −1 m** (clic gauche glissé). Bouton **Globe** pour changer de lieu.
+- Le relief est téléchargé la première fois (Internet nécessaire), puis gardé en cache.
 
 ![Mode Terre : bord du Grand Canyon](docs/apercu-terre.png)
-
-- Ouvre `scenes/terre.tscn` et appuie sur **F6** (ou clique sur **Terre (relief réel)** dans la barre d'outils du prototype).
-- Tape des coordonnées (par ex. `48.8584, 2.2945`, copiées depuis Google Maps : clic droit sur un lieu) puis **Y aller**, ou clique sur un lieu proposé.
-- Survole une case pour voir ses coordonnées, son type et son altitude. Outils : **2 Aplanir**, **3 Monter +1 m**, **4 Creuser −1 m** (clic gauche glissé).
-- Le relief est téléchargé la première fois (Internet nécessaire), puis gardé en cache.
 
 Comment ça marche, limites et prochaines étapes : [docs/terre-architecture.md](docs/terre-architecture.md).
 
@@ -55,12 +57,16 @@ Comment ça marche, limites et prochaines étapes : [docs/terre-architecture.md]
 | `scripts/ground_grid.gdshader` | Sol herbeux quadrillé |
 | `scripts/hud.gd` | Barre d'outils, statistiques, aide |
 | `tests/smoke_test.gd` | Test automatique de bout en bout |
+| `scenes/globe.tscn` | Écran de départ : globe 3D pour choisir le lieu |
+| `scripts/terre/globe_menu.gd` | Globe : rotation, clic, recherche, hasard, aperçu, lancement |
+| `scripts/terre/game_start.gd` | Choix du joueur transmis à la partie (lieu, mode) |
 | `scenes/terre.tscn` | Mode Terre : relief réel en cases de 1 m |
 | `scripts/terre/geo.gd` | Conversions latitude / longitude ↔ mètres ↔ tuiles |
 | `scripts/terre/elevation_tiles.gd` | Téléchargement, cache et lecture des tuiles d'altitude |
 | `scripts/terre/terrain_world.gd` | Blocs de 64 × 64 cases autour de la caméra, outils, sauvegarde |
 | `scripts/terre/terre_hud.gd` | Interface du mode Terre |
 | `tests/terre_test.gd` | Test automatique du mode Terre (sans réseau) |
+| `tests/globe_test.gd` | Test automatique du globe (sans réseau) |
 
 ## Test automatique
 
@@ -74,7 +80,7 @@ Le test pose des routes et des zones, attend la croissance, puis vérifie la sau
 godot --headless --path . --script res://tests/terre_test.gd
 ```
 
-Vérifie les conversions de coordonnées, le décodage des tuiles, la génération des blocs, le terrassement et la sauvegarde. Il affiche `TERRE TEST OK`.
+Vérifie les conversions de coordonnées, le décodage des tuiles, la génération des blocs, le terrassement et la sauvegarde. Il affiche `TERRE TEST OK`. De même, `tests/globe_test.gd` affiche `GLOBE TEST OK`.
 
 ## Pistes pour la suite
 

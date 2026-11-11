@@ -46,7 +46,7 @@ script = ExtResource("2_cam")
 move_speed = 30.0
 min_distance = 6.0
 max_distance = 200.0
-bounds = Rect2(-12000, -12000, 24000, 24000)
+bounds = Rect2(-5000, -5000, 10000, 10000)
 
 [node name="Camera3D" type="Camera3D" parent="CameraRig"]
 fov = 50.0

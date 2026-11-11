@@ -17,12 +17,19 @@ const CACHE_DIR := "user://terrain_cache"
 const MAX_PARALLEL := 4
 const TILE_PIXELS := 256
 
+## Niveau de zoom des tuiles (15 pour le terrain, 2 ou 3 pour le globe).
+var zoom := ZOOM
+## Garder aussi les images PNG brutes (utilisé par le globe pour sa texture).
+var keep_images := false
+
 ## Si défini, aucune requête réseau : ce Callable(tile: Vector2i) -> PackedFloat32Array
 ## fabrique les tuiles (utilisé par les tests).
 var offline_generator: Callable
 
 ## Vector2i -> PackedFloat32Array (256 × 256 altitudes, ligne par ligne)
 var _tiles: Dictionary = {}
+## Vector2i -> Image (seulement si keep_images)
+var _images: Dictionary = {}
 var _queued: Dictionary = {}
 var _queue: Array[Vector2i] = []
 var _free_requests: Array[HTTPRequest] = []
@@ -69,8 +76,10 @@ func request_tile(t: Vector2i) -> void:
 		return
 	var path := _cache_path(t)
 	if FileAccess.file_exists(path):
-		var heights := _decode(FileAccess.get_file_as_bytes(path))
+		var bytes := FileAccess.get_file_as_bytes(path)
+		var heights := _decode(bytes)
 		if heights.size() == TILE_PIXELS * TILE_PIXELS:
+			_keep_image(t, bytes)
 			_store(t, heights)
 			return
 	_queued[t] = true
@@ -82,7 +91,7 @@ func _process(_delta: float) -> void:
 		var t: Vector2i = _queue.pop_front()
 		var req: HTTPRequest = _free_requests.pop_back()
 		_request_tile[req] = t
-		if req.request(URL % [ZOOM, t.x, t.y]) != OK:
+		if req.request(URL % [zoom, t.x, t.y]) != OK:
 			_request_tile.erase(req)
 			_free_requests.append(req)
 			_fail(t)
@@ -104,6 +113,7 @@ func _on_completed(result: int, code: int, _headers: PackedStringArray, body: Pa
 	var f := FileAccess.open(_cache_path(t), FileAccess.WRITE)
 	if f:
 		f.store_buffer(body)
+	_keep_image(t, body)
 	_store(t, heights)
 
 
@@ -122,8 +132,22 @@ func _store(t: Vector2i, heights: PackedFloat32Array) -> void:
 	tile_ready.emit(t)
 
 
+func _keep_image(t: Vector2i, png: PackedByteArray) -> void:
+	if not keep_images:
+		return
+	var img := Image.new()
+	if img.load_png_from_buffer(png) == OK:
+		img.convert(Image.FORMAT_RGB8)
+		_images[t] = img
+
+
+## Image PNG brute d'une tuile (couleurs encodant l'altitude), ou null.
+func get_image(t: Vector2i) -> Image:
+	return _images.get(t)
+
+
 func _cache_path(t: Vector2i) -> String:
-	return "%s/%d_%d_%d.png" % [CACHE_DIR, ZOOM, t.x, t.y]
+	return "%s/%d_%d_%d.png" % [CACHE_DIR, zoom, t.x, t.y]
 
 
 static func _decode(png: PackedByteArray) -> PackedFloat32Array:
@@ -148,7 +172,7 @@ static func tile_of_pixel(px: float, py: float) -> Vector2i:
 
 ## Altitude d'un pixel global (entiers). NAN si la tuile n'est pas encore chargée.
 func height_at_pixel(ix: int, iy: int) -> float:
-	var n := TILE_PIXELS << ZOOM
+	var n := TILE_PIXELS << zoom
 	ix = posmod(ix, n)
 	iy = clampi(iy, 0, n - 1)
 	var key := Vector2i(ix >> 8, iy >> 8)

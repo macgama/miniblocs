@@ -27,10 +27,15 @@ func _ready() -> void:
 	hud.load_requested.connect(func() -> void:
 		hud.show_message("Région chargée." if world.load_world() else "Aucune sauvegarde trouvée."))
 	hud.city_requested.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/main.tscn"))
+	hud.globe_requested.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/globe.tscn"))
+	if GameStart.chosen:
+		world.set_origin(GameStart.lat, GameStart.lon)
 	_on_origin_changed(world.origin_lat, world.origin_lon)
 
 
 func _on_origin_changed(lat: float, lon: float) -> void:
+	GameStart.lat = lat
+	GameStart.lon = lon
 	hud.set_place(lat, lon)
 	rig.position = Vector3.ZERO
 	_snap_pending = true

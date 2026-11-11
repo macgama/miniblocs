@@ -22,6 +22,9 @@ var _hover_valid := false
 
 
 func _ready() -> void:
+	# Région jouable : REGION_SIZE de côté autour du point de départ.
+	var half := GameStart.REGION_SIZE * 0.5
+	rig.bounds = Rect2(-half, -half, GameStart.REGION_SIZE, GameStart.REGION_SIZE)
 	world.origin_changed.connect(_on_origin_changed)
 	world.hovered_cell_changed.connect(func(c: Vector2i, valid: bool) -> void:
 		_hover = c

@@ -387,7 +387,8 @@ func show_message(text: String) -> void:
 func set_place(lat: float, lon: float) -> void:
 	var where := GameStart.place_name if GameStart.place_name != "" else "%.4f, %.4f" % [lat, lon]
 	_place_label.text = "MiniBlocs  ·  " + where
-	_place_label.tooltip_text = "Région de 10 × 10 km centrée sur %.5f, %.5f (1 case = 1 m × 1 m)" % [lat, lon]
+	_place_label.tooltip_text = "Région de %d × %d km centrée sur %.5f, %.5f (1 case = 1 m × 1 m)" % [
+		int(GameStart.REGION_SIZE / 1000.0), int(GameStart.REGION_SIZE / 1000.0), lat, lon]
 	if not coords_edit.has_focus():
 		coords_edit.text = "%.5f, %.5f" % [lat, lon]
 

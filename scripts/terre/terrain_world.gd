@@ -437,6 +437,7 @@ func _process(_delta: float) -> void:
 	var cs := float(chunk_size)
 	_water.position.x = snappedf(center.x, cs)
 	_water.position.z = snappedf(center.z, cs)
+	water.update_focus(center.x, center.z)
 
 	var cc := Vector2i(floori(center.x / cs), floori(center.z / cs))
 	var r := ceili(_view_radius / cs)

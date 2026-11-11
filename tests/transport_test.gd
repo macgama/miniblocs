@@ -349,6 +349,9 @@ func _run() -> void:
 	if cam == null:
 		ok = false
 
+	print("Carrefours :")
+	await _junction_tests()
+
 	print("Démolition et sauvegarde :")
 	var edges_before := tr.network.edges.size()
 	tr.demolish(int(p1.edges[0]))
@@ -432,6 +435,108 @@ func _run() -> void:
 
 	print("TRANSPORT TEST OK" if ok else "TRANSPORT TEST ÉCHEC")
 	quit(0 if ok else 1)
+
+
+## Carrefours sur un réseau synthétique : régimes, feux, files d'attente.
+func _junction_tests() -> void:
+	var net := TransportNetwork.new()
+	var M := TransportTypes.Mode.ROAD
+	var c := net.add_node(Vector3(0, 0, 0), M)
+	var arms: Array[int] = []
+	for d in [Vector3(1, 0, 0), Vector3(0, 0, 1), Vector3(-1, 0, 0), Vector3(0, 0, -1)]:
+		var n := net.add_node(d * 150.0, M)
+		arms.append(net.add_edge(c, n, "avenue", _line(Vector3.ZERO, d * 150.0), _flat(51)))
+	# Une rue en T sur la branche est (priorité : cédez-le-passage sur la rue).
+	var t_node := net.split_edge(arms[0], 90.0)
+	var side := net.add_node(Vector3(90, 0, -80), M)
+	net.add_edge(t_node, side, "rue", _line(net.node_pos(t_node), Vector3(90, 0, -80)), _flat(51))
+	# Un carrefour de rues (priorité à droite) au bout de la rue.
+	var s_end := side
+	for d in [Vector3(60, 0, 0), Vector3(-60, 0, 0)]:
+		var q: Vector3 = net.node_pos(s_end) + d
+		net.add_edge(s_end, net.add_node(q, M), "rue", _line(net.node_pos(s_end), q), _flat(51))
+	var holder := Node3D.new()
+	root.add_child(holder)
+	var jc := JunctionControl.new()
+	holder.add_child(jc)
+	jc.setup(net)
+	var tf := Traffic.new()
+	holder.add_child(tf)
+	tf.setup(net)
+	tf.junctions = jc
+	tf.enabled = false
+	_check(jc.kind(c) == "feux", "feux tricolores au croisement de deux avenues")
+	_check(jc.kind(t_node) == "cedez", "cédez-le-passage pour la rue qui débouche sur l'avenue")
+	_check(jc.kind(s_end) == "droite", "priorité à droite entre rues")
+	var cross_arms: Array = net.adjacency[c]
+	var opposite_same := true
+	var conflict := false
+	var saw := {JunctionControl.VERT: false, JunctionControl.ORANGE: false, JunctionControl.RED: false}
+	for i in 400:
+		jc.time = i * 0.25
+		var l := []
+		for eid in cross_arms:
+			l.append(jc.light(c, eid))
+			saw[l[l.size() - 1]] = true
+		var dirs := []
+		for eid in cross_arms:
+			dirs.append(net.leave_dir(eid, c))
+		for a in cross_arms.size():
+			for b in range(a + 1, cross_arms.size()):
+				var aligned := absf((dirs[a] as Vector3).dot(dirs[b])) > 0.7
+				if aligned and l[a] != l[b]:
+					opposite_same = false
+				if not aligned and l[a] != JunctionControl.RED and l[b] != JunctionControl.RED:
+					conflict = true
+	_check(opposite_same and not conflict and saw[JunctionControl.ORANGE], "feux : deux phases, jamais de vert croisé, orange entre les deux")
+	var heads := 0
+	for ch in jc.get_children():
+		heads += ch.get_child_count()
+	_check(heads > 20, "feux, panneaux et lignes d'arrêt posés (%d éléments)" % heads)
+	jc.time = 0.0
+	for i in 60:
+		tf.spawn(M)
+	var crossed := 0
+	var waited := 0
+	var overlap := 0
+	var last_node := {}
+	for step_i in 1500:
+		tf.step(0.1)
+		for v in tf.vehicles:
+			var uid := int(v.uid)
+			if last_node.has(uid) and int(last_node[uid]) != int(v.node) and int(v.node) == c:
+				crossed += 1
+			last_node[uid] = v.node
+			if float(v.speed) < 0.05 and float(v.get("wait", 0.0)) > 2.0:
+				waited += 1
+		if step_i % 10 == 0:
+			tf._build_index()
+			for k in tf._index:
+				var q: Array = tf._index[k]
+				for a in q.size():
+					for b in q.size():
+						if a == b:
+							continue
+						var va: Dictionary = q[a]
+						var vb: Dictionary = q[b]
+						var gap := float(vb.s) - float(va.s)
+						if gap > 0.0 and gap < float(va.half) + float(vb.rear) - 0.5:
+							overlap += 1
+		if tf.vehicles.size() < 40:
+			tf.spawn(M)
+	_check(crossed > 25, "la circulation traverse le carrefour à feux (%d passages en 150 s)" % crossed)
+	_check(waited > 50, "les véhicules s'arrêtent aux feux et aux priorités")
+	_check(overlap == 0, "les véhicules gardent leurs distances dans les files (%d chevauchements)" % overlap)
+	jc.cycle(c)
+	_check(jc.cycle(c) == "stop" and jc.kind(c) == "stop", "l'outil Carrefour impose un stop")
+	var saved := jc.to_dict()
+	jc.clear()
+	_check(jc.kind(c) == "feux", "retour au régime automatique")
+	jc.from_dict(saved)
+	_check(jc.kind(c) == "stop", "régime imposé sauvegardé")
+	tf.clear()
+	holder.queue_free()
+	await process_frame
 
 
 static func _p(t: String, x0: float, z0: float, x1: float, z1: float, g: Callable) -> Dictionary:

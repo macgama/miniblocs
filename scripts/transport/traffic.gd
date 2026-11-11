@@ -3,9 +3,11 @@ extends Node3D
 ## Véhicules qui circulent sur les réseaux : voitures sur les routes, trains sur
 ## les rails, piétons et cyclistes sur les chemins, bateaux sur les voies d'eau.
 ##
-## Étape 1 : chaque véhicule choisit une destination au hasard dans son réseau
-## et y va par le plus court chemin (A*), en roulant à droite. Pas encore de
-## collisions ni de lignes : ce sera l'étape suivante.
+## Chaque véhicule choisit une destination au hasard dans son réseau et y va par
+## le plus court chemin (A*), en roulant à droite. Sur les routes et les rails,
+## il garde ses distances avec celui qui le précède (file d'attente), freine et
+## accélère, et respecte le régime des carrefours (feux, stop, cédez-le-passage,
+## priorité à droite) géré par JunctionControl.
 ##
 ## Les modèles viennent du catalogue (VehicleCatalog) : chaque véhicule est tiré
 ## parmi ceux qui peuvent rouler sur la voie, filtrés par époque et région.
@@ -26,6 +28,15 @@ const WALKERS := 0.55
 ## Arrêt en station des véhicules de ligne (s).
 const DWELL := 12.0
 const DWELL_AIR := 25.0
+## Conduite : accélération et freinage (m/s²), distance entre deux véhicules (m).
+const ACCEL := 2.5
+const BRAKE := 4.5
+const MIN_GAP := 2.0
+## Un véhicule bloqué plus longtemps (s) disparaît (ou passe outre, pour les lignes).
+const STUCK := 75.0
+const STUCK_LINE := 20.0
+## Distance (m) en deçà de laquelle un véhicule prioritaire qui arrive fait attendre.
+const YIELD_DIST := 32.0
 
 ## Émis quand la circulation est réactivée : les lignes remettent leurs véhicules.
 signal restarted
@@ -42,6 +53,14 @@ var _spawn_timer := 0.0
 var era_filter := ""
 var region_filter := ""
 var _pool_cache: Dictionary = {}
+## Régime des carrefours (fourni par TransportSystem ; null = libre).
+var junctions: JunctionControl
+## Véhicules routiers et ferroviaires par file (tronçon, sens, voie).
+var _index: Dictionary = {}
+var _lanes: Dictionary = {}
+var _uid := 0
+## Occupation des carrefours : id de nœud -> {uid: Vector2i(tronçon d'arrivée, de sortie)}.
+var _busy: Dictionary = {}
 
 
 func _init() -> void:
@@ -55,6 +74,9 @@ func _init() -> void:
 
 func setup(net: TransportNetwork) -> void:
 	network = net
+	network.changed.connect(func() -> void:
+		_lanes.clear()
+		_busy.clear())
 
 
 func set_enabled(on: bool) -> void:
@@ -289,6 +311,9 @@ func _process(delta: float) -> void:
 
 ## Fait avancer tous les véhicules de delta secondes.
 func step(delta: float) -> void:
+	if junctions != null:
+		junctions.tick(delta)
+	_build_index()
 	var i := 0
 	while i < vehicles.size():
 		if _advance(vehicles[i], delta):
@@ -310,7 +335,7 @@ func spawn(mode: int) -> bool:
 		v = {"mode": mode, "node": start, "route": [] as Array[int], "leg": 0, "s": rng.randf() * 4.0,
 			"trail": PackedVector3Array(), "wagons": [], "speed": 0.0, "lane": 0.0, "lane_idx": 0, "factor": 1.0, "own_speed": 0.0,
 			"max_speed": INF, "model": "", "gaps": []}
-		if _new_route(v):
+		if _new_route(v) and _spawn_free(v):
 			found = true
 			break
 	if not found:
@@ -319,6 +344,47 @@ func spawn(mode: int) -> bool:
 	vehicles.append(v)
 	_place(v)
 	return true
+
+
+## Pas d'apparition sur un véhicule déjà présent au même endroit.
+func _spawn_free(v: Dictionary) -> bool:
+	var mode := int(v.mode)
+	if mode != TransportTypes.Mode.ROAD and mode != TransportTypes.Mode.RAIL:
+		return true
+	var eid: int = (v.route as Array[int])[0]
+	if junctions != null and junctions.is_controlled(int(v.node)):
+		return false
+	for o in vehicles:
+		if int(o.mode) != mode or int(o.leg) >= (o.route as Array).size():
+			continue
+		if int(o.route[o.leg]) == eid and int(o.node) == int(v.node) and absf(float(o.s) - float(v.s)) < 16.0:
+			return false
+		# Ni au milieu d'un véhicule qui arrive au même nœud.
+		if int(o.node) != int(v.node) and network.other_end(int(o.route[o.leg]), int(o.node)) == int(v.node) \
+				and network.edges.has(int(o.route[o.leg])) and float(network.edges[int(o.route[o.leg])].len) - float(o.s) < 25.0:
+			return false
+	return true
+
+
+## Ajoute à l'itinéraire d'un véhicule ambiant le trajet vers une nouvelle destination.
+func _extend_route(v: Dictionary) -> void:
+	var route: Array[int] = v.route
+	var leg := int(v.leg)
+	var end := network.other_end(route[leg], v.node)
+	var comp := network.component(end)
+	if comp.size() < 2:
+		return
+	comp.erase(end)
+	for _try in 3:
+		var r := network.find_route(end, comp[rng.randi() % comp.size()])
+		# Demi-tour seulement au bout d'une impasse.
+		if r.is_empty() or (r[0] == route[leg] and network.degree(end) > 1):
+			continue
+		var nr: Array[int] = route.slice(leg)
+		nr.append_array(r)
+		v.route = nr
+		v.leg = 0
+		return
 
 
 func _new_route(v: Dictionary) -> bool:
@@ -357,13 +423,19 @@ func _advance(v: Dictionary, delta: float) -> bool:
 		return false
 	var e0: Dictionary = network.edges[eid]
 	var spd: float = v.own_speed if float(v.own_speed) > 0.0 else minf(TransportTypes.speed_of(e0.t), float(v.max_speed)) * float(v.factor)
-	v.s = float(v.s) + spd * delta
+	var mode := int(v.mode)
+	if mode == TransportTypes.Mode.ROAD or mode == TransportTypes.Mode.RAIL:
+		if not _drive(v, eid, e0, spd, delta):
+			return false
+	else:
+		v.s = float(v.s) + spd * delta
 	var guard := 0
 	while float(v.s) >= float(network.edges[eid].len) and guard < 16:
 		guard += 1
 		v.s = float(v.s) - float(network.edges[eid].len)
 		v.node = network.other_end(eid, v.node)
 		v.leg = int(v.leg) + 1
+		v.granted = -1
 		if v.leg >= route.size():
 			if v.has("line"):
 				# Arrivée en station : arrêt, puis départ vers la suivante.
@@ -381,8 +453,219 @@ func _advance(v: Dictionary, delta: float) -> bool:
 		var e: Dictionary = network.edges[eid]
 		if e.a != v.node and e.b != v.node:
 			return false
+	_release_if_clear(v)
 	_place(v)
 	return true
+
+
+# --- Conduite : files, freinage et carrefours ---------------------------------------
+
+func _lane_count(eid: int) -> int:
+	if not _lanes.has(eid):
+		var e: Dictionary = network.edges[eid]
+		_lanes[eid] = maxi(1, TransportTypes.lane_offsets(e.t, e.w).size())
+	return _lanes[eid]
+
+
+func _key(eid: int, forward: bool, lane_idx: int) -> int:
+	return (eid * 2 + (0 if forward else 1)) * 4 + mini(lane_idx, _lane_count(eid) - 1)
+
+
+func _build_index() -> void:
+	_index.clear()
+	for v in vehicles:
+		var mode := int(v.mode)
+		if mode != TransportTypes.Mode.ROAD and mode != TransportTypes.Mode.RAIL:
+			continue
+		var route: Array[int] = v.route
+		if int(v.leg) >= route.size():
+			continue
+		var eid: int = route[v.leg]
+		if not network.edges.has(eid):
+			continue
+		var k := _key(eid, network.edges[eid].a == v.node, int(v.lane_idx))
+		if not _index.has(k):
+			_index[k] = []
+		(_index[k] as Array).append(v)
+
+
+## Véhicule le plus proche devant la position s dans une file : [véhicule, s] ou [].
+func _leader(k: int, s: float, me: Dictionary) -> Array:
+	var best: Dictionary = {}
+	var best_s := INF
+	for o in _index.get(k, []):
+		if is_same(o, me):
+			continue
+		var os := float(o.s)
+		if os < s or (os == s and int(o.uid) > int(me.uid)):
+			continue
+		if os < best_s:
+			best_s = os
+			best = o
+	return [] if best.is_empty() else [best, best_s]
+
+
+## Place libre devant v (m) : jusqu'à l'arrière du véhicule qui le précède,
+## sur son tronçon ou sur le suivant.
+func _room(v: Dictionary, eid: int, e: Dictionary, s: float) -> float:
+	var forward: bool = e.a == v.node
+	var front := s + float(v.get("half", 2.0))
+	var lead := _leader(_key(eid, forward, int(v.lane_idx)), s, v)
+	if not lead.is_empty():
+		return float(lead[1]) - float(lead[0].get("rear", 2.0)) - front - MIN_GAP
+	var route: Array[int] = v.route
+	if int(v.leg) + 1 >= route.size():
+		# Véhicule ambiant sans suite connue : il attend au nœud qu'on lui en trouve une.
+		return INF if v.has("line") else float(e.len) - s - 0.01
+	var nxt: int = route[int(v.leg) + 1]
+	if not network.edges.has(nxt):
+		return INF
+	var n2 := network.other_end(eid, v.node)
+	var lead2 := _leader(_key(nxt, network.edges[nxt].a == n2, int(v.lane_idx)), -1.0, v)
+	if lead2.is_empty():
+		return INF
+	return float(e.len) + float(lead2[1]) - float(lead2[0].get("rear", 2.0)) - front - MIN_GAP
+
+
+## Avance un véhicule routier ou ferroviaire : file d'attente, carrefours,
+## freinage. Renvoie faux s'il est resté bloqué trop longtemps.
+func _drive(v: Dictionary, eid: int, e: Dictionary, cruise: float, delta: float) -> bool:
+	var s := float(v.s)
+	var stuck := float(v.get("stuck", 0.0))
+	var ghost: bool = v.has("line") and stuck > STUCK_LINE
+	var route: Array[int] = v.route
+	# Destination suivante choisie à l'avance : le véhicule voit qui est devant
+	# lui à la sortie du nœud et respecte le carrefour.
+	if not v.has("line") and int(v.leg) + 1 >= route.size() and float(e.len) - s < 40.0:
+		_extend_route(v)
+		route = v.route
+	var limit := INF if ghost else _room(v, eid, e, s)
+	var nid := network.other_end(eid, v.node)
+	if int(v.mode) == TransportTypes.Mode.ROAD and junctions != null and junctions.is_controlled(nid) \
+			and int(v.leg) + 1 < route.size() and int(v.get("granted", -1)) != nid and not ghost:
+		var stop_s := float(e.len) - junctions.trim(eid, nid) - 0.6
+		var dist := stop_s - s
+		var at_line := dist <= maxf(1.0, float(v.speed) * 1.2)
+		if at_line and _may_enter(v, nid, eid, route[int(v.leg) + 1], maxf(dist, 0.0)):
+			v.granted = nid
+			_release(v)
+			if not _busy.has(nid):
+				_busy[nid] = {}
+			_busy[nid][int(v.uid)] = Vector2i(eid, route[int(v.leg) + 1])
+			v.res = nid
+		else:
+			limit = minf(limit, maxf(dist, 0.0))
+	var target := cruise
+	if limit < INF:
+		target = minf(cruise, sqrt(2.0 * BRAKE * maxf(limit, 0.0)))
+	var speed := float(v.speed)
+	speed = target if speed > target else minf(target, speed + ACCEL * delta)
+	var adv := speed * delta
+	if limit < INF:
+		adv = clampf(adv, 0.0, maxf(limit, 0.0))
+	v.speed = speed
+	v.s = s + adv
+	if adv < 0.05 * delta:
+		v.wait = float(v.get("wait", 0.0)) + delta
+		v.stuck = stuck + delta
+		if not v.has("line") and float(v.stuck) > STUCK:
+			return false
+	else:
+		v.wait = 0.0
+		v.stuck = 0.0 if adv > 0.5 * delta else stuck
+	return true
+
+
+## Le véhicule v, arrêté (ou presque) à la ligne de la branche eid, peut-il
+## s'engager dans le carrefour nid pour sortir par exit_eid ?
+func _may_enter(v: Dictionary, nid: int, eid: int, exit_eid: int, dist: float) -> bool:
+	# Place à la sortie, sinon on bloquerait le carrefour.
+	if network.edges.has(exit_eid):
+		var ex: Dictionary = network.edges[exit_eid]
+		var lead := _leader(_key(exit_eid, ex.a == nid, int(v.lane_idx)), -1.0, v)
+		if not lead.is_empty() and float(lead[1]) - float(lead[0].get("rear", 2.0)) < float(v.get("half", 2.0)) * 2.0 + MIN_GAP + junctions.trim(exit_eid, nid) * 0.5:
+			return false
+	# Un autre véhicule s'engage déjà vers la même sortie.
+	for uid in _busy.get(nid, {}):
+		var b: Vector2i = _busy[nid][uid]
+		if b.x != eid and b.y == exit_eid:
+			return false
+	var waited := float(v.get("wait", 0.0))
+	match junctions.kind(nid):
+		"feux":
+			var c := junctions.light(nid, eid)
+			if c == JunctionControl.VERT:
+				return true
+			# À l'orange, on passe seulement si on ne peut plus s'arrêter.
+			return c == JunctionControl.ORANGE and float(v.speed) > 4.0 and dist < float(v.speed) * 0.8
+		"stop", "cedez":
+			if junctions.is_major(nid, eid):
+				return true
+			if junctions.kind(nid) == "stop" and (waited < 1.2 or dist > 1.2):
+				return false
+			if _crossing_from_other(nid, eid):
+				return false
+			for o in network.adjacency.get(nid, []):
+				if o != eid and junctions.is_major(nid, o) and _approaching(nid, o, YIELD_DIST):
+					return false
+			return true
+		"droite":
+			if _crossing_from_other(nid, eid):
+				return false
+			# Au bout de quelques secondes, on finit par passer (tout le monde
+			# attendrait sinon celui de droite).
+			var r := junctions.right_of(nid, eid)
+			if r >= 0 and waited < 4.0 and _approaching(nid, r, YIELD_DIST * 0.8):
+				return false
+			return true
+	return true
+
+
+## Un véhicule venu d'une autre branche est-il en train de traverser ?
+func _crossing_from_other(nid: int, eid: int) -> bool:
+	for uid in _busy.get(nid, {}):
+		if (_busy[nid][uid] as Vector2i).x != eid:
+			return true
+	return false
+
+
+## Un véhicule arrive-t-il au carrefour nid par la branche eid, à moins de d m ?
+func _approaching(nid: int, eid: int, d: float) -> bool:
+	var e: Dictionary = network.edges[eid]
+	var toward_b: bool = e.b == nid # sens a -> b
+	for lane in _lane_count(eid):
+		for o in _index.get(_key(eid, toward_b, lane), []):
+			if float(e.len) - float(o.s) < d:
+				return true
+	return false
+
+
+## Libère le carrefour quand le véhicule en est sorti.
+func _release_if_clear(v: Dictionary) -> void:
+	var res := int(v.get("res", -1))
+	if res < 0:
+		return
+	var route: Array[int] = v.route
+	if int(v.leg) >= route.size() or not network.edges.has(route[v.leg]) or junctions == null:
+		_release(v)
+		return
+	var eid: int = route[v.leg]
+	var gone: bool
+	if int(v.node) == res:
+		# Sorti du carrefour quand l'arrière a franchi le bord du plateau.
+		gone = float(v.s) > junctions.trim(eid, res) + float(v.get("rear", 2.0))
+	else:
+		# Encore en approche ? Sinon (itinéraire changé), on libère.
+		gone = network.other_end(eid, v.node) != res
+	if gone:
+		_release(v)
+
+
+func _release(v: Dictionary) -> void:
+	var res := int(v.get("res", -1))
+	if res >= 0 and _busy.has(res):
+		(_busy[res] as Dictionary).erase(int(v.get("uid", 0)))
+	v.res = -1
 
 
 func _place(v: Dictionary) -> void:
@@ -433,6 +716,10 @@ func _place(v: Dictionary) -> void:
 
 func _make_body(v: Dictionary) -> void:
 	var mode: int = v.mode
+	_uid += 1
+	v.uid = _uid
+	v.half = 0.5
+	v.rear = 0.5
 	v.factor = rng.randf_range(0.85, 1.05)
 	v.lane_idx = rng.randi() % 4
 	v.lane = rng.randf_range(0.3, 1.4)
@@ -466,6 +753,9 @@ func _make_body(v: Dictionary) -> void:
 	var paint := rng.randi() % VehicleCatalog.paint_count(model)
 	mi.mesh = _model_mesh(model, paint)
 	v.max_speed = float(t.kmh) / 3.6
+	v.half = float(t.L) / 2.0
+	v.rear = v.half
+	v.speed = 0.0 if v.has("line") else v.max_speed * 0.5
 	if mode == TransportTypes.Mode.PATH:
 		v.own_speed = v.max_speed * rng.randf_range(0.6, 0.9)
 	# Voitures attelées : écart (en mètres de trace) entre chaque caisse et la tête.
@@ -475,6 +765,7 @@ func _make_body(v: Dictionary) -> void:
 		gap += float(wt.L) / 2.0 + 0.8
 		(v.gaps as Array).append(roundi(gap))
 		gap += float(wt.L) / 2.0
+		v.rear = gap
 		var w := MeshInstance3D.new()
 		w.mesh = _model_mesh(wid, paint)
 		w.material_override = _material
@@ -491,6 +782,7 @@ func _model_mesh(id: String, paint: int) -> ArrayMesh:
 
 
 func _free_vehicle(v: Dictionary) -> void:
+	_release(v)
 	if v.has("body"):
 		(v.body as Node).queue_free()
 	for w in v.get("wagons", []):

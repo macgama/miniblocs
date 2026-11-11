@@ -37,6 +37,7 @@ const TOOLS := [
 	{"name": "Chemin", "key": KEY_7},
 	{"name": "Voie d'eau", "key": KEY_8},
 	{"name": "Démolir", "key": KEY_9},
+	{"name": "Carrefour", "key": KEY_0},
 ]
 ## Premier outil de transport dans TOOLS (les précédents sont les outils de terrain).
 const FIRST_TRANSPORT_TOOL := 4
@@ -162,7 +163,7 @@ func _ready() -> void:
 		if i == FIRST_TRANSPORT_TOOL:
 			bar.add_child(VSeparator.new())
 		var b := Button.new()
-		b.text = "%d · %s" % [i + 1, TOOLS[i].name]
+		b.text = "%d · %s" % [(i + 1) % 10, TOOLS[i].name]
 		b.toggle_mode = true
 		b.button_group = group
 		b.custom_minimum_size = Vector2(96, 40)

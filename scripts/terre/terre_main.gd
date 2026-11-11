@@ -102,7 +102,7 @@ func _ready() -> void:
 			hud.show_message("Partie chargée : %s." % _game_title())
 		else:
 			hud.show_message("Chargement impossible : " + last_error))
-	for sig in [world.terrain_edited, transport.network_changed, buildings.changed, zones.changed, blocks.changed, transport.stations.lines_changed]:
+	for sig in [world.terrain_edited, transport.network_changed, buildings.changed, zones.changed, blocks.changed, transport.stations.lines_changed, transport.junctions.changed]:
 		(sig as Signal).connect(func(_a = null) -> void: _unsaved = true)
 	hud.city_requested.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/main.tscn"))
 	hud.globe_requested.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/globe.tscn"))
@@ -306,9 +306,12 @@ func _on_tool_selected(t: int) -> void:
 	if k < TRANSPORT_TOOLS.size():
 		var default_id: String = TRANSPORT_TOOLS[k]
 		transport.set_build(_tool_class.get(TransportTypes.mode_of(default_id), default_id))
-	else:
+	elif k == TRANSPORT_TOOLS.size():
 		hud.show_spec("", {}, false)
 		transport.set_demolish()
+	else:
+		hud.show_spec("", {}, false)
+		transport.set_junction_tool()
 
 
 func _on_origin_changed(lat: float, lon: float) -> void:

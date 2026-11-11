@@ -118,6 +118,48 @@ func request_at(lat: float, lon: float) -> void:
 		_request_tile(loc.file, loc.index)
 
 
+## Codes WorldCover sur une grille lats (lignes) × lons (colonnes), rangés
+## i + j * lons.size(). Même résultat que class_at(), sans recalculer le nom
+## de fichier ni la clé du bloc pour chaque case.
+func sample_grid(lats: PackedFloat64Array, lons: PackedFloat64Array) -> PackedByteArray:
+	var nx := lons.size()
+	var ny := lats.size()
+	var out := PackedByteArray()
+	out.resize(nx * ny)
+	if offline_generator.is_valid():
+		for j in ny:
+			for i in nx:
+				out[i + j * nx] = offline_generator.call(lats[j], lons[i])
+		return out
+	var lo0s := PackedFloat64Array()
+	lo0s.resize(nx)
+	var cols := PackedInt32Array()
+	cols.resize(nx)
+	for i in nx:
+		var lo0 := floorf(lons[i] / 3.0) * 3.0
+		lo0s[i] = lo0
+		cols[i] = clampi(int((lons[i] - lo0) * PX_PER_DEG), 0, 35999)
+	var k_la := INF
+	var k_lo := INF
+	var k_idx := -1
+	var tile := PackedByteArray()
+	for j in ny:
+		var la0 := floorf(lats[j] / 3.0) * 3.0
+		var row := clampi(int((la0 + 3.0 - lats[j]) * PX_PER_DEG), 0, 35999)
+		var row_base := (row & 1023) * TILE
+		var row_idx := (row >> 10) * TILES_ACROSS
+		for i in nx:
+			var col := cols[i]
+			var idx := row_idx + (col >> 10)
+			if idx != k_idx or la0 != k_la or lo0s[i] != k_lo:
+				k_idx = idx
+				k_la = la0
+				k_lo = lo0s[i]
+				tile = _tiles.get("%s|%d" % [file_name(la0 + 0.5, lo0s[i] + 0.5), idx], PackedByteArray())
+			out[i + j * nx] = 0 if tile.is_empty() else tile[row_base + (col & 1023)]
+	return out
+
+
 ## Code WorldCover du point, ou 0 si inconnu.
 func class_at(lat: float, lon: float) -> int:
 	if offline_generator.is_valid():

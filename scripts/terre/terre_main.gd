@@ -67,24 +67,30 @@ func _ready() -> void:
 		buildings.unlimited_money = unlimited
 		buildings._refresh())
 	hud.save_requested.connect(func() -> void:
-		var ok := world.save_world({"transport": transport.to_dict(), "batiments": buildings.to_dict(), "zones": zones.to_dict(), "blocs": blocks.to_dict()})
-		hud.show_message("Région sauvegardée." if ok else "Échec de la sauvegarde."))
+		hud.show_message("Région sauvegardée." if save_game() else "Échec de la sauvegarde."))
 	hud.load_requested.connect(func() -> void:
-		if world.load_world():
-			transport.from_dict(world.loaded_data.get("transport", {}))
-			buildings.from_dict(world.loaded_data.get("batiments", {}))
-			zones.from_dict(world.loaded_data.get("zones", {}))
-			blocks.from_dict(world.loaded_data.get("blocs", {}))
-			build_panel.set_rules(buildings.require_access, buildings.unlimited_money)
-			build_panel.set_growth(zones.growth)
-			hud.show_message("Région chargée.")
-		else:
-			hud.show_message("Aucune sauvegarde trouvée."))
+		hud.show_message("Région chargée." if load_game() else "Aucune sauvegarde trouvée."))
 	hud.city_requested.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/main.tscn"))
 	hud.globe_requested.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/globe.tscn"))
 	if GameStart.chosen:
 		world.set_origin(GameStart.lat, GameStart.lon)
 	_on_origin_changed(world.origin_lat, world.origin_lon)
+
+
+func save_game() -> bool:
+	return world.save_world({"transport": transport.to_dict(), "batiments": buildings.to_dict(), "zones": zones.to_dict(), "blocs": blocks.to_dict()})
+
+
+func load_game() -> bool:
+	if not world.load_world():
+		return false
+	transport.from_dict(world.loaded_data.get("transport", {}))
+	buildings.from_dict(world.loaded_data.get("batiments", {}))
+	zones.from_dict(world.loaded_data.get("zones", {}))
+	blocks.from_dict(world.loaded_data.get("blocs", {}))
+	build_panel.set_rules(buildings.require_access, buildings.unlimited_money)
+	build_panel.set_growth(zones.growth)
+	return true
 
 
 ## Un outil de construction prend la main : on range ceux du terrain et des voies.

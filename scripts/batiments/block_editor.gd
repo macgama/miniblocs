@@ -636,6 +636,15 @@ func _build_chunk(ck: Vector2i, keys: Array) -> void:
 		add_child(mi)
 		_chunks[ck] = mi
 	mi.mesh = mesh
+	# Collision des blocs pleins (le verre aussi : on ne passe pas à travers).
+	for c in mi.get_children():
+		c.queue_free()
+	if mesh.get_surface_count() > 0:
+		var body := StaticBody3D.new()
+		var shape := CollisionShape3D.new()
+		shape.shape = mesh.create_trimesh_shape()
+		body.add_child(shape)
+		mi.add_child(body)
 
 
 ## Vrai si un voisin exactement aligné cache cette face.

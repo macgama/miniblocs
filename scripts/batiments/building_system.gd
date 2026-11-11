@@ -355,6 +355,16 @@ func _add(b: Dictionary) -> void:
 	mi.position = rect_center(rect) + Vector3(0, float(b.h), 0)
 	mi.rotation.y = -int(b.r) * PI / 2.0
 	mi.visibility_range_end = 1400.0
+	# Collision : le personnage de la vue au sol ne traverse pas le bâtiment.
+	var body := StaticBody3D.new()
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	var bb := mi.mesh.get_aabb()
+	box.size = bb.size
+	shape.shape = box
+	shape.position = bb.get_center()
+	body.add_child(shape)
+	mi.add_child(body)
 	add_child(mi)
 	_nodes[bid] = mi
 

@@ -186,6 +186,12 @@ func _run() -> void:
 	_check(be.undo() and be.blocks.has(k0) and bs.money == m1, "Ctrl+Z remet le bloc")
 	await process_frame
 	_check(be._chunks.size() >= 1, "blocs dessinés")
+	var has_body := false
+	for c in (be._chunks.values()[0] as Node).get_children():
+		has_body = has_body or c is StaticBody3D
+	_check(has_body, "les blocs ont une collision")
+	var bnode: Node = bs._nodes[id]
+	_check(bnode.get_child(0) is StaticBody3D, "les bâtiments ont une collision")
 	_check(world.modifications.has(Vector2i(-120, -100)), "pas d'arbres sous les blocs")
 	bs.money = before + roundi(paid * BuildingSystem.REFUND) - 45 * 80 * ZoneSystem.PRICE_M2
 

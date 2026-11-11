@@ -92,3 +92,6 @@ Choix simples pour l'instant (questions 1 et 2 toujours ouvertes) : pas de voyag
 ## Carrefours et conduite
 
 `JunctionControl` (scripts/transport/junction_control.gd) donne à chaque nœud routier de degré 3 ou plus un régime (`feux`, `stop`, `cedez`, `droite`), choisi daprès
+## Giratoires
+
+`TransportSystem.make_roundabout(nid)` coupe chaque branche à un rayon r du carrefour, supprime le centre et relie les nouveaux nœuds par des arcs de classe `giratoire` (à sens unique de `a` vers `b`, sens inverse des aiguilles d'une montre vu du dessus). `find_route` ne prend un tronçon à sens unique que dans son sens, et `lane_offsets` répartit les voies d'un sens unique sur toute la chaussée. Les nœuds d'entrée prennent le régime `giratoire` : l'anneau est prioritaire et les branches cèdent le passage. Les îlots centraux sont gardés dans `roundabouts` (sauvegardés sous la clé `giratoires`).

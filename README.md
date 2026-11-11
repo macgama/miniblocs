@@ -106,6 +106,10 @@ Chaque carrefour routier (3 branches ou plus) a un **régime**, choisi tout seul
 
 L'outil **J Carrefour** change le régime d'un clic (automatique → feux → stop → cédez-le-passage → priorité à droite). Les feux, les panneaux et les lignes d'arrêt sont posés sur la chaussée.
 
+**Giratoires** : avec l'outil **J Carrefour**, **Maj + clic** sur un carrefour le transforme en giratoire. Les branches sont coupées sur un cercle (rayon de 14 à 34 m selon la largeur des voies), un anneau à deux voies à sens unique les relie et un îlot central planté occupe le milieu. On tourne dans le sens inverse des aiguilles d'une montre, et on cède le passage à l'anneau en entrant.
+
+![Giratoire sur deux départementales](docs/apercu-giratoire.png)
+
 Les véhicules **gardent leurs distances** (files d'attente), **freinent et accélèrent**, s'arrêtent à la ligne au rouge, marquent le stop, laissent passer les prioritaires et ne s'engagent pas si la sortie est bouchée. Les feux marchent par phases : deux branches face à face ont le vert ensemble, puis orange, rouge intégral et phase suivante.
 
 ### Stations et lignes de transport en commun

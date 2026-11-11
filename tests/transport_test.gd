@@ -351,6 +351,90 @@ func _run() -> void:
 
 	print("Carrefours :")
 	await _junction_tests()
+	var gx1 := tr.build_segment("route", Vector3(60, 0, 300), Vector3(240, 0, 300))
+	var gx2 := tr.build_segment("route", Vector3(150, 0, 210), Vector3(150, 0, 390))
+	var gnode := -1
+	for id in tr.network.nodes:
+		if tr.network.node_pos(id).distance_to(Vector3(150, tr.network.node_pos(id).y, 300)) < 1.0:
+			gnode = id
+	_check(gx1.ok and gx2.ok and gnode >= 0 and tr.network.degree(gnode) == 4, "croisement de deux départementales")
+	var gres := tr.make_roundabout(gnode)
+	var ring := 0
+	var entries := 0
+	for id in tr.network.edges:
+		if tr.network.edges[id].t == "giratoire":
+			ring += 1
+	for n in gres.get("nodes", []):
+		if tr.junctions.kind(n) == "giratoire":
+			entries += 1
+	_check(gres.ok and ring == 4 and entries == 4 and not tr.network.nodes.has(gnode), "giratoire de %d m de rayon : 4 arcs, 4 entrées en cédez-le-passage" % roundi(gres.get("radius", 0)))
+	_check(tr.roundabouts.size() == 1, "îlot central")
+	var west := -1
+	var north := -1
+	for id in tr.network.nodes:
+		var q := tr.network.node_pos(id)
+		if q.distance_to(Vector3(60, q.y, 300)) < 1.0:
+			west = id
+		if q.distance_to(Vector3(150, q.y, 210)) < 1.0:
+			north = id
+	var forward_only := true
+	var used_ring := 0
+	for pair in [[west, north], [north, west]]:
+		var cur: int = pair[0]
+		for eid in tr.network.find_route(pair[0], pair[1]):
+			var e: Dictionary = tr.network.edges[eid]
+			if e.t == "giratoire":
+				used_ring += 1
+				forward_only = forward_only and e.a == cur
+			cur = tr.network.other_end(eid, cur)
+	_check(west >= 0 and north >= 0 and used_ring >= 4 and forward_only, "on tourne dans le bon sens (%d arcs empruntés à l'aller et au retour)" % used_ring)
+	_check(not tr.make_roundabout(gres.nodes[0]).ok, "pas de giratoire sur un giratoire")
+	tr.traffic.enabled = false
+	tr.traffic.clear()
+	var wrong := 0
+	var on_ring := {}
+	for i in 1200:
+		if tr.traffic.vehicles.size() < 30:
+			tr.traffic.spawn(TransportTypes.Mode.ROAD)
+		tr.traffic.step(0.1)
+		for v in tr.traffic.vehicles:
+			if int(v.mode) != TransportTypes.Mode.ROAD or int(v.leg) >= (v.route as Array).size():
+				continue
+			var e: Dictionary = tr.network.edges.get(v.route[v.leg], {})
+			if e.get("t", "") == "giratoire":
+				on_ring[int(v.uid)] = true
+				if int(v.node) != int(e.a):
+					wrong += 1
+	_check(on_ring.size() >= 3 and wrong == 0, "la circulation tourne dans le giratoire (%d véhicules, %d à contresens)" % [on_ring.size(), wrong])
+	tr.traffic.clear()
+	var pk := tr.stations.place("parking", Vector3(92, 0, 300))
+	_check(pk.ok and tr.traffic.parkings.size() == 1 and (tr.traffic.parkings.values()[0].spots as Array).size() == 26, "parking de 26 places (%s)" % pk.get("reason", "ok"))
+	_check(tr.is_cell_occupied(Vector2i(92, 300 - 12)) or tr.is_cell_occupied(Vector2i(92, 300 + 12)), "emprise du parking réservée")
+	_check(not tr.stations.create_line([pk.get("id", -1), pk.get("id", -1)]).ok, "pas de ligne vers un parking")
+	var max_parked := 0
+	var left := 0
+	var twice := 0
+	var was_parked := {}
+	for i in 3000:
+		if tr.traffic.vehicles.size() < 40:
+			tr.traffic.spawn(TransportTypes.Mode.ROAD)
+		tr.traffic.step(0.1)
+		max_parked = maxi(max_parked, tr.traffic.parked_count())
+		var seen_spot := {}
+		for v in tr.traffic.vehicles:
+			var uid := int(v.get("uid", 0))
+			if v.get("parked", false):
+				was_parked[uid] = true
+				if seen_spot.has(int(v.spot)):
+					twice += 1
+				seen_spot[int(v.spot)] = true
+			elif was_parked.has(uid):
+				was_parked.erase(uid)
+				left += 1
+	_check(max_parked >= 4 and twice == 0, "des voitures se garent (jusqu'à %d à la fois, une par place)" % max_parked)
+	_check(left >= 2, "et repartent (%d départs)" % left)
+	tr.traffic.clear()
+	tr.traffic.enabled = true
 
 	print("Démolition et sauvegarde :")
 	var edges_before := tr.network.edges.size()
@@ -363,7 +447,9 @@ func _run() -> void:
 	_check(world.load_world(), "chargement")
 	tr.from_dict(world.loaded_data.get("transport", {}))
 	_check(tr.network.edges.size() == edges_before - 1 and world.modifications.size() == mods, "réseau et terrassement restaurés")
-	_check(tr.stations.stations.size() == n_stations and tr.stations.lines.size() == n_lines - 1, "stations et lignes restaurées (%d stations, %d lignes)" % [tr.stations.stations.size(), tr.stations.lines.size()])
+	_check(tr.roundabouts.size() == 1 and tr.junctions.kind(gres.nodes[0]) == "giratoire", "giratoire restauré")
+	_check(tr.stations.stations.size() == n_stations + 1 and tr.stations.lines.size() == n_lines - 1, "stations et lignes restaurées (%d stations, %d lignes)" % [tr.stations.stations.size(), tr.stations.lines.size()])
+	_check(tr.traffic.parkings.size() == 1, "parking restauré")
 
 	var place := ""
 	for i in args.size():
@@ -412,7 +498,9 @@ func _run() -> void:
 		sv.create_line([ta.id, tb.id], "tram_moderne", 1)
 		sv.create_line([ba.id, bb.id], "imperiale", 2)
 		tr.traffic.enabled = false
-		for i in 40:
+		for i in 1200:
+			if tr.traffic.count_mode(TransportTypes.Mode.ROAD) < 50:
+				tr.traffic.spawn(TransportTypes.Mode.ROAD)
 			tr.traffic.step(0.1)
 		tr.traffic.enabled = true
 	if shot != "":

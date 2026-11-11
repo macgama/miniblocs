@@ -35,6 +35,10 @@ const MIN_GAP := 2.0
 ## Un véhicule bloqué plus longtemps (s) disparaît (ou passe outre, pour les lignes).
 const STUCK := 75.0
 const STUCK_LINE := 20.0
+## Parkings : part des voitures qui vont s'y garer, durée du stationnement (s).
+const PARK_CHANCE := 0.35
+const PARK_TIME := [40.0, 160.0]
+const PARKERS := ["voiture", "utilitaire", "deux_roues"]
 ## Distance (m) en deçà de laquelle un véhicule prioritaire qui arrive fait attendre.
 const YIELD_DIST := 32.0
 
@@ -61,6 +65,8 @@ var _lanes: Dictionary = {}
 var _uid := 0
 ## Occupation des carrefours : id de nœud -> {uid: Vector2i(tronçon d'arrivée, de sortie)}.
 var _busy: Dictionary = {}
+## Parkings (fournis par StationSystem) : id de nœud -> {spots: Array[Transform3D], used: Array[int]}.
+var parkings: Dictionary = {}
 
 
 func _init() -> void:
@@ -371,6 +377,13 @@ func _extend_route(v: Dictionary) -> void:
 	var route: Array[int] = v.route
 	var leg := int(v.leg)
 	var end := network.other_end(route[leg], v.node)
+	var pr := _maybe_park(v, end, route[leg])
+	if not pr.is_empty():
+		var np: Array[int] = route.slice(leg)
+		np.append_array(pr)
+		v.route = np
+		v.leg = 0
+		return
 	var comp := network.component(end)
 	if comp.size() < 2:
 		return
@@ -387,10 +400,117 @@ func _extend_route(v: Dictionary) -> void:
 		return
 
 
+# --- Parkings -----------------------------------------------------------------------------
+
+## Nouvelle liste de parkings ; les véhicules qui visaient un parking disparu
+## reprennent leur route, ceux qui y étaient garés repartent.
+func set_parkings(p: Dictionary) -> void:
+	parkings = p
+	for v in vehicles:
+		if v.has("park_at") and not parkings.has(int(v.park_at)):
+			v.erase("park_at")
+			v.erase("spot")
+			if v.get("parked", false):
+				v.parked = false
+				v.dwell = 0.0
+				if not _new_route(v):
+					v.leg = (v.route as Array).size()
+
+
+func parked_count() -> int:
+	var n := 0
+	for v in vehicles:
+		if v.get("parked", false):
+			n += 1
+	return n
+
+
+## Peut-être une place de parking comme prochaine destination : renvoie
+## l'itinéraire depuis start (place réservée) ou [] ; avoid : tronçon d'arrivée
+## (pas de demi-tour dessus).
+func _maybe_park(v: Dictionary, start: int, avoid := -1) -> Array[int]:
+	var none: Array[int] = []
+	if parkings.is_empty() or int(v.mode) != TransportTypes.Mode.ROAD or v.has("line") or not (v.wagons as Array).is_empty():
+		return none
+	if String(v.model) == "" or not PARKERS.has(String(VehicleCatalog.get_type(v.model).get("cat", ""))):
+		return none
+	if rng.randf() > PARK_CHANCE:
+		return none
+	var nodes := parkings.keys()
+	var node: int = nodes[rng.randi() % nodes.size()]
+	if node == start:
+		return none
+	var used: Array = parkings[node].used
+	var free := used.find(0)
+	if free < 0:
+		return none
+	var r := network.find_route(start, node)
+	if r.is_empty() or (r[0] == avoid and network.degree(start) > 1):
+		return none
+	used[free] = int(v.uid)
+	v.park_at = node
+	v.spot = free
+	return r
+
+
+func _park(v: Dictionary) -> void:
+	var p: Dictionary = parkings.get(int(v.park_at), {})
+	if p.is_empty():
+		v.erase("park_at")
+		return
+	var spot: Transform3D = p.spots[int(v.spot)]
+	(v.body as Node3D).transform = spot
+	v.parked = true
+	v.speed = 0.0
+	v.node = int(v.park_at)
+	v.dwell = rng.randf_range(PARK_TIME[0], PARK_TIME[1])
+	_release(v)
+
+
+func _unpark(v: Dictionary) -> void:
+	var node := int(v.park_at)
+	# On attend que la voie soit libre devant la sortie.
+	for o in vehicles:
+		if is_same(o, v) or o.get("parked", false) or int(o.mode) != TransportTypes.Mode.ROAD or int(o.leg) >= (o.route as Array).size():
+			continue
+		var e: Dictionary = network.edges.get(int(o.route[o.leg]), {})
+		if e.is_empty():
+			continue
+		var d := float(o.s) if int(o.node) == node else (float(e.len) - float(o.s) if network.other_end(int(o.route[o.leg]), int(o.node)) == node else INF)
+		if d < 12.0:
+			v.dwell = 1.5
+			return
+	_free_spot(v)
+	v.parked = false
+	v.erase("park_at")
+	v.node = node
+	v.s = 0.0
+	v.speed = 0.0
+	if not _new_route(v):
+		v.route = [] as Array[int]
+		v.leg = 0
+		return
+	_place(v)
+
+
+func _free_spot(v: Dictionary) -> void:
+	if not v.has("spot"):
+		return
+	var p: Dictionary = parkings.get(int(v.get("park_at", -1)), {})
+	if not p.is_empty() and int(p.used[int(v.spot)]) == int(v.uid):
+		p.used[int(v.spot)] = 0
+	v.erase("spot")
+
+
 func _new_route(v: Dictionary) -> bool:
 	if v.has("line"):
 		return _next_stop(v)
 	var start: int = v.node
+	var pr := _maybe_park(v, start)
+	if not pr.is_empty():
+		v.route = pr
+		v.leg = 0
+		return true
 	if not network.nodes.has(start):
 		return false
 	var comp := network.component(start)
@@ -411,6 +531,11 @@ func _new_route(v: Dictionary) -> bool:
 func _advance(v: Dictionary, delta: float) -> bool:
 	if int(v.mode) == TransportTypes.Mode.AIR:
 		return _advance_air(v, delta)
+	if v.get("parked", false):
+		v.dwell = float(v.dwell) - delta
+		if float(v.dwell) <= 0.0:
+			_unpark(v)
+		return true
 	if float(v.get("dwell", 0.0)) > 0.0:
 		v.dwell = float(v.dwell) - delta
 		_place(v)
@@ -444,6 +569,9 @@ func _advance(v: Dictionary, delta: float) -> bool:
 				v.dwell = DWELL
 				_place(v)
 				return true
+			if v.has("park_at"):
+				_park(v)
+				return true
 			if not _new_route(v):
 				return false
 			route = v.route
@@ -476,6 +604,8 @@ func _build_index() -> void:
 	for v in vehicles:
 		var mode := int(v.mode)
 		if mode != TransportTypes.Mode.ROAD and mode != TransportTypes.Mode.RAIL:
+			continue
+		if v.get("parked", false):
 			continue
 		var route: Array[int] = v.route
 		if int(v.leg) >= route.size():
@@ -516,7 +646,7 @@ func _room(v: Dictionary, eid: int, e: Dictionary, s: float) -> float:
 	var route: Array[int] = v.route
 	if int(v.leg) + 1 >= route.size():
 		# Véhicule ambiant sans suite connue : il attend au nœud qu'on lui en trouve une.
-		return INF if v.has("line") else float(e.len) - s - 0.01
+		return INF if v.has("line") or v.has("park_at") else float(e.len) - s - 0.01
 	var nxt: int = route[int(v.leg) + 1]
 	if not network.edges.has(nxt):
 		return INF
@@ -536,7 +666,7 @@ func _drive(v: Dictionary, eid: int, e: Dictionary, cruise: float, delta: float)
 	var route: Array[int] = v.route
 	# Destination suivante choisie à l'avance : le véhicule voit qui est devant
 	# lui à la sortie du nœud et respecte le carrefour.
-	if not v.has("line") and int(v.leg) + 1 >= route.size() and float(e.len) - s < 40.0:
+	if not v.has("line") and not v.has("park_at") and int(v.leg) + 1 >= route.size() and float(e.len) - s < 40.0:
 		_extend_route(v)
 		route = v.route
 	var limit := INF if ghost else _room(v, eid, e, s)
@@ -598,7 +728,7 @@ func _may_enter(v: Dictionary, nid: int, eid: int, exit_eid: int, dist: float) -
 				return true
 			# À l'orange, on passe seulement si on ne peut plus s'arrêter.
 			return c == JunctionControl.ORANGE and float(v.speed) > 4.0 and dist < float(v.speed) * 0.8
-		"stop", "cedez":
+		"stop", "cedez", "giratoire":
 			if junctions.is_major(nid, eid):
 				return true
 			if junctions.kind(nid) == "stop" and (waited < 1.2 or dist > 1.2):
@@ -783,6 +913,7 @@ func _model_mesh(id: String, paint: int) -> ArrayMesh:
 
 func _free_vehicle(v: Dictionary) -> void:
 	_release(v)
+	_free_spot(v)
 	if v.has("body"):
 		(v.body as Node).queue_free()
 	for w in v.get("wagons", []):

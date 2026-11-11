@@ -19,6 +19,7 @@ const SECTIONS := [
 		["Maj", "angles par pas de 15° (pendant le tracé)"],
 		["9", "démolir une voie"],
 		["J", "carrefour : clic pour changer son régime (auto, feux, stop, cédez-le-passage, priorité à droite)"],
+		["Maj + clic (outil J)", "transformer le carrefour en giratoire"],
 		["0", "paysage : colline, lisser, lac ou canal, combler l'eau, peindre un biome, planter ou arracher des arbres (pinceau rond, clic gauche glissé)"],
 		["Échap ou clic droit", "arrêter le tracé, annuler l'outil"],
 	]],
@@ -31,7 +32,7 @@ const SECTIONS := [
 		["Filtres", "région, époque et recherche par nom dans les listes de bâtiments"],
 	]],
 	["Transports publics", [
-		["L", "panneau Lignes : stations, gares, ports, aéroports et lignes"],
+		["L", "panneau Lignes : stations, gares, ports, aéroports, parkings et lignes"],
 	]],
 	["Temps et vue", [
 		["T", "mettre le temps en pause / reprendre"],

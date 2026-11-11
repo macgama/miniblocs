@@ -34,6 +34,8 @@ const TYPES := {
 		"desc": "Quais, marquise et bâtiment voyageurs, sur une ligne classique ou une LGV."},
 	"port": {"name": "Port", "mode": WATER, "kind": "bateau", "classes": [], "len": 60.0,
 		"desc": "Jetée, grue et gare maritime, sur une voie d'eau."},
+	"parking": {"name": "Parking", "mode": ROAD, "kind": "parking", "classes": ["rue", "avenue", "departementale"], "len": 36.0,
+		"desc": "Parking de 28 places au bord d'une route : les voitures de passage viennent s'y garer un moment."},
 	"heliport": {"name": "Héliport", "mode": AIR, "kind": "avion", "len": 0.0, "pad": 24.0, "flat": 2.0,
 		"desc": "Plateforme pour hélicoptères et taxis volants."},
 	"aerodrome": {"name": "Aérodrome", "mode": AIR, "kind": "avion", "len": 600.0, "width": 30.0, "flat": 8.0,
@@ -41,8 +43,12 @@ const TYPES := {
 	"aeroport": {"name": "Aéroport", "mode": AIR, "kind": "avion", "len": 1000.0, "width": 45.0, "flat": 20.0,
 		"desc": "Piste de 1 000 × 45 m, aire de stationnement, aérogare et tour de contrôle."},
 }
-const ORDER := ["arret_bus", "arret_tram", "gare", "port", "heliport", "aerodrome", "aeroport"]
-const KIND_NAMES := {"bus": "Bus", "tram": "Tramway", "train": "Train", "bateau": "Bateau", "avion": "Avion"}
+const ORDER := ["arret_bus", "arret_tram", "gare", "port", "heliport", "aerodrome", "aeroport", "parking"]
+const KIND_NAMES := {"bus": "Bus", "tram": "Tramway", "train": "Train", "bateau": "Bateau", "avion": "Avion", "parking": "Parking"}
+## Places de parking : largeur, profondeur, allée (m).
+const SPOT_W := 2.5
+const SPOT_D := 5.0
+const AISLE := 6.0
 const LINE_COLORS := [Color("e63946"), Color("2a9d8f"), Color("f4a261"), Color("457b9d"), Color("9d4edd"),
 	Color("e9c46a"), Color("06d6a0"), Color("ef476f"), Color("118ab2"), Color("8d6e63")]
 ## Arrêt en station (s).
@@ -118,6 +124,7 @@ func clear() -> void:
 	_pending.clear()
 	next_id = 1
 	traffic.remove_line_vehicles(-1)
+	_sync_parkings()
 	lines_changed.emit()
 
 
@@ -180,6 +187,8 @@ func _unhandled_input(event: InputEvent) -> void:
 				var sid := station_at(_cursor)
 				if sid < 0:
 					message.emit("Clique sur une station.")
+				elif get_type(stations[sid].type).kind == "parking":
+					message.emit("Un parking ne se dessert pas par une ligne.")
 				elif not _pending.is_empty() and get_type(stations[sid].type).kind != get_type(stations[_pending[0]].type).kind:
 					message.emit("Une ligne relie des stations du même genre (%s)." % KIND_NAMES[get_type(stations[_pending[0]].type).kind].to_lower())
 				elif not _pending.is_empty() and _pending[_pending.size() - 1] == sid:
@@ -423,6 +432,7 @@ func remove_station(id: int) -> void:
 			remove_line(lid)
 		else:
 			_respawn(lid)
+	_sync_parkings()
 	lines_changed.emit()
 
 
@@ -443,6 +453,44 @@ func _on_network_changed() -> void:
 		s.hw = _station_hw(s)
 		_update_footprint(sid)
 		_refresh_station(sid)
+	_sync_parkings()
+
+
+## Places des parkings, en coordonnées du monde, données à la circulation :
+## id de nœud -> {"spots": Array[Transform3D], "used": Array[int]} (uid du véhicule garé, 0 si libre).
+func _sync_parkings() -> void:
+	var out := {}
+	for sid in stations:
+		var s: Dictionary = stations[sid]
+		if s.type != "parking" or not network.nodes.has(int(s.node)):
+			continue
+		var node := int(s.node)
+		var old: Dictionary = traffic.parkings.get(node, {})
+		var spots: Array = parking_spots(s.pos, s.dir, _station_hw(s))
+		var used: Array = old.get("used", [])
+		used.resize(spots.size())
+		for i in used.size():
+			if used[i] == null:
+				used[i] = 0
+		out[node] = {"spots": spots, "used": used, "station": sid}
+	traffic.set_parkings(out)
+
+
+## Places d'un parking (repère : route le long de fwd, parking à droite).
+static func parking_spots(pos: Vector3, fwd: Vector3, hw: float) -> Array:
+	var right := Vector3(-fwd.z, 0, fwd.x)
+	var half := float(TYPES.parking.len) / 2.0
+	var out: Array = []
+	var n := floori((half * 2.0 - 2.0) / SPOT_W)
+	for row in 2:
+		# Rangée côté route (nez vers la route) puis rangée du fond (nez vers le fond).
+		var v := hw + 1.0 + SPOT_D * 0.5 if row == 0 else hw + 1.0 + SPOT_D + AISLE + SPOT_D * 0.5
+		var face := -right if row == 0 else right
+		for i in n:
+			var u := -half + 1.0 + SPOT_W * (i + 0.5)
+			var p := pos + fwd * u + right * v + Vector3(0, 0.14, 0)
+			out.append(Transform3D(Basis.looking_at(face, Vector3.UP), p))
+	return out
 
 
 # --- Lignes ---------------------------------------------------------------------------------
@@ -467,6 +515,8 @@ func create_line(stops: Array, model := "", count := 2) -> Dictionary:
 	if clean.size() < 2:
 		return {"ok": false, "reason": "Une ligne relie au moins deux stations."}
 	var kind: String = get_type(stations[clean[0]].type).kind
+	if kind == "parking":
+		return {"ok": false, "reason": "Un parking ne se dessert pas par une ligne."}
 	for s in clean:
 		if get_type(stations[s].type).kind != kind:
 			return {"ok": false, "reason": "Toutes les stations d'une ligne doivent être du même genre."}
@@ -676,6 +726,8 @@ func _rects(type_id: String, hw := 0.0) -> Array:
 			return [[-half, half, hw + 0.2, hw + 3.4]]
 		"arret_tram":
 			return [[-half, half, hw + 0.2, hw + 3.4], [-half, half, -hw - 3.4, -hw - 0.2]]
+		"parking":
+			return [[-half, half, hw + 0.2, hw + 1.0 + SPOT_D * 2.0 + AISLE + 0.5]]
 		"gare":
 			return [[-half, half, hw + 0.2, hw + 32.0], [-half, half, -hw - 6.4, -hw - 0.2]]
 	return []
@@ -845,6 +897,29 @@ static func build_network_mesh(type_id: String, hw: float) -> ArrayMesh:
 	var k := VehicleMesh.new()
 	var len := float(get_type(type_id).len)
 	match type_id:
+		"parking":
+			var depth := SPOT_D * 2.0 + AISLE + 1.0
+			k.box(hw + 0.6 + depth / 2.0, 0.0, 0, depth, 0.12, len, ASPHALT)
+			# Bordure, avec l'entrée au milieu.
+			for zz in [-len / 4.0 - 2.0, len / 4.0 + 2.0]:
+				k.box(hw + 0.4, 0.0, zz, 0.3, 0.25, len / 2.0 - 4.0, Color("dcdcdc"))
+			k.box(hw + 1.0 + depth, 0.0, 0, 0.3, 0.3, len, Color("dcdcdc"))
+			# Marquage des places.
+			var n := floori((len - 2.0) / SPOT_W)
+			for row in 2:
+				var x0 := hw + 1.0 if row == 0 else hw + 1.0 + SPOT_D + AISLE
+				for i in n + 1:
+					var z := -len / 2.0 + 1.0 + SPOT_W * i
+					k.box(x0 + SPOT_D / 2.0, 0.12, z, SPOT_D, 0.02, 0.12, WHITE)
+			# Panneau P.
+			k.box(hw + 0.6, 0.0, -len / 2.0 + 0.5, 0.12, 2.6, 0.12, ROOF)
+			k.box(hw + 0.6, 2.6, -len / 2.0 + 0.5, 0.08, 0.8, 0.8, Color("1d4ed8"))
+			k.box(hw + 0.55, 2.75, -len / 2.0 + 0.5, 0.02, 0.5, 0.1, WHITE)
+			k.box(hw + 0.55, 2.9, -len / 2.0 + 0.6, 0.02, 0.2, 0.25, WHITE)
+			# Quelques arbres en bout de rangée.
+			for zz in [-len / 2.0 - 1.5, len / 2.0 + 1.5]:
+				k.box(hw + 0.6 + depth / 2.0, 0.0, zz, 0.3, 2.2, 0.3, Color("6d4c41"))
+				k.box(hw + 0.6 + depth / 2.0, 2.2, zz, 2.2, 2.0, 2.2, Color("4f8a3c"))
 		"arret_bus":
 			k.box(hw + 1.8, 0.0, 0, 3.2, 0.18, len, CONCRETE)
 			k.box(hw + 0.25, 0.0, 0, 0.3, 0.2, len, Color("dcdcdc"))
@@ -979,6 +1054,7 @@ func from_dict(data: Dictionary) -> void:
 		next_id = maxi(next_id, id + 1)
 		_update_footprint(id)
 		_refresh_station(id)
+	_sync_parkings()
 	for l in data.get("lines", []):
 		var id := int(l.id)
 		var stops: Array[int] = []

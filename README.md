@@ -110,6 +110,10 @@ Chaque carrefour routier (3 branches ou plus) a un **régime**, choisi tout seul
 
 L'outil **J Carrefour** change le régime d'un clic (automatique → feux → stop → cédez-le-passage → priorité à droite). Les feux, les panneaux et les lignes d'arrêt sont posés sur la chaussée.
 
+**Giratoires** : avec l'outil **J Carrefour**, **Maj + clic** sur un carrefour le transforme en giratoire. Les branches sont coupées sur un cercle (rayon de 14 à 34 m selon la largeur des voies), un anneau à deux voies à sens unique les relie et un îlot central planté occupe le milieu. On tourne dans le sens inverse des aiguilles d'une montre, et on cède le passage à l'anneau en entrant.
+
+![Giratoire sur deux départementales](docs/apercu-giratoire.png)
+
 Les véhicules **gardent leurs distances** (files d'attente), **freinent et accélèrent**, s'arrêtent à la ligne au rouge, marquent le stop, laissent passer les prioritaires et ne s'engagent pas si la sortie est bouchée. Les feux marchent par phases : deux branches face à face ont le vert ensemble, puis orange, rouge intégral et phase suivante.
 
 ### Stations et lignes de transport en commun
@@ -123,6 +127,12 @@ Bouton **Lignes (L)** (ou touche **L**) : le panneau des transports publics.
 3. **Choisis le véhicule** dans le catalogue (bus à impériale, tram 1900, locomotive Pacific, bateau-bus, hélicoptère, gros-porteur…) et leur **nombre**. Ils font la navette d'un bout à l'autre et marquent l'arrêt 12 s à chaque station ; les avions roulent sur la piste, décollent, volent à 260 m et atterrissent.
 
 Tout est gardé par **Sauver / Charger**.
+
+### Parkings
+
+Le panneau **Lignes (L)** propose aussi le **Parking** : 26 places en épi droit au bord d'une rue, d'une avenue ou d'une départementale. Une partie des voitures, utilitaires et deux-roues de passage y vont, se garent sur une place libre de 40 s à 2 min 40, puis repartent quand la voie est libre.
+
+![Parking au bord d'une départementale](docs/apercu-parking.png)
 
 ### Le catalogue de véhicules
 

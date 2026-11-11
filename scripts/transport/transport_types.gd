@@ -60,6 +60,12 @@ const CLASSES := {
 		"side": 2.0, "side_kind": "trottoir", "center": "solid",
 		"r_min": 40.0, "max_grade": 0.08, "smooth": 10.0, "bridge_gap": 4.0, "tunnel_depth": 6.0,
 	},
+	"giratoire": {
+		"name": "Anneau de giratoire", "mode": Mode.ROAD, "kmh": 30.0, "oneway": true,
+		"lanes": [1, 1, 1], "lane_w": [3.5, 4.5, 4.0], "median": 0.0, "median_from": 9,
+		"side": 1.0, "side_kind": "accotement", "center": "dashed",
+		"r_min": 12.0, "max_grade": 0.06, "smooth": 4.0, "bridge_gap": 4.0, "tunnel_depth": 6.0,
+	},
 	"departementale": {
 		"name": "Route départementale", "mode": Mode.ROAD, "kmh": 80.0,
 		"lanes": [1, 1, 1], "lane_w": [3.0, 3.5, 3.0], "median": 0.0, "median_from": 9,
@@ -145,6 +151,10 @@ static func mode_of(id: String) -> int:
 	return int(get_type(id).get("mode", -1))
 
 
+static func is_oneway(id: String) -> bool:
+	return bool(get_type(id).get("oneway", false))
+
+
 static func speed_of(id: String) -> float:
 	return float(get_type(id).get("kmh", 30.0)) / 3.6
 
@@ -205,6 +215,12 @@ static func lane_offsets(id: String, spec: Dictionary) -> Array[float]:
 	var out: Array[float] = []
 	match int(c.get("mode", -1)):
 		Mode.ROAD:
+			if c.get("oneway", false):
+				# Sens unique : toutes les voies dans le même sens, de droite à gauche.
+				var n := int(s.lanes) * 2
+				for i in n:
+					out.append(float(s.lane_w) * (n * 0.5 - i - 0.5))
+				return out
 			for i in int(s.lanes):
 				out.append(median_of(id, s) * 0.5 + float(s.lane_w) * (i + 0.5))
 		Mode.RAIL:

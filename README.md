@@ -175,6 +175,21 @@ Dans le mode Terre, appuie sur **V** (ou les boutons **Dessus / 3e pers. / 1re p
 
 ![Vue à la 1re personne sur une route](docs/apercu-1re-personne.png)
 
+## Ambiance : cycle jour/nuit, vrai Soleil et vraie Lune
+
+Le mode Terre a maintenant une **horloge** : le Soleil et la Lune sont à leur vraie place dans le ciel pour le lieu, la date et l'heure (saisons, durée du jour, phases de la Lune, nuit polaire…). Le ciel passe du bleu de midi à l'orangé du couchant, puis à la nuit étoilée.
+
+![Coucher de soleil](docs/apercu-coucher.png)
+
+- **La nuit**, des **lampadaires** s'allument le long des routes et des chemins (posés tout seuls), et les **fenêtres** des bâtiments s'éclairent, plus ou moins selon l'heure.
+- **Panneau Horloge** (en bas à droite) : heure et date du lieu, lever et coucher du Soleil, phase de la Lune. Barre pour choisir l'heure, ◀ ▶ pour changer de mois (et donc de saison).
+- **T** : pause / reprise. **Maj + T** : vitesse suivante (temps réel, 1 min/s, 10 min/s, 1 h/s).
+- **Sauver / Charger** gardent la date et l'heure.
+
+![La nuit](docs/apercu-nuit.png)
+
+Détails et limites : [docs/ambiance.md](docs/ambiance.md).
+
 ## Comment ça marche
 
 - **Routes** : se tracent en L entre le point de départ et la souris. Le marquage s'adapte aux routes voisines (lignes droites, virages, carrefours).
@@ -206,6 +221,7 @@ Dans le mode Terre, appuie sur **V** (ou les boutons **Dessus / 3e pers. / 1re p
 | `scripts/terre/geo.gd` | Conversions latitude / longitude ↔ mètres ↔ tuiles |
 | `scripts/terre/land_cover.gd` | Biomes réels (ESA WorldCover) lus par blocs autour du lieu |
 | `assets/biomes_monde.png` | Carte mondiale des biomes du globe (fabriquée par `tools/build_biome_map.py`) |
+| `scripts/ambiance/` | Cycle jour/nuit, Soleil et Lune réels, ciel, lampadaires, fenêtres allumées (voir [docs/ambiance.md](docs/ambiance.md)) |
 | `scripts/terre/elevation_tiles.gd` | Téléchargement, cache et lecture des tuiles d'altitude |
 | `scripts/terre/terrain_world.gd` | Blocs de 64 × 64 cases autour de la caméra, outils, sauvegarde |
 | `scripts/terre/terre_hud.gd` | Interface du mode Terre |

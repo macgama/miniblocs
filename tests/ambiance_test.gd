@@ -1,0 +1,199 @@
+extends SceneTree
+## Test du cycle jour/nuit : position du Soleil et de la Lune, lever et coucher,
+## fuseau horaire approximatif, lampadaires, fenêtres allumées, sauvegarde.
+## Fonctionne sans réseau (relief synthétique).
+## Usage : godot --headless --path . --script res://tests/ambiance_test.gd
+## Captures (avec affichage) : -- --screenshot prefixe [--distance 140]
+##   donne prefixe-jour.png, prefixe-coucher.png, prefixe-nuit.png
+
+var ok := true
+
+
+func _initialize() -> void:
+	_run.call_deferred()
+
+
+func _check(cond: bool, what: String) -> void:
+	if not cond:
+		push_error("ÉCHEC : " + what)
+		ok = false
+	else:
+		print("  ok  ", what)
+
+
+func _utc(y: int, mo: int, d: int, h: int, mi := 0) -> float:
+	return Time.get_unix_time_from_datetime_dict({"year": y, "month": mo, "day": d, "hour": h, "minute": mi, "second": 0})
+
+
+func _flat_tile(t: Vector2i) -> PackedFloat32Array:
+	var a := PackedFloat32Array()
+	a.resize(256 * 256)
+	for y in 256:
+		for x in 256:
+			a[y * 256 + x] = 40.0 + sin((t.x * 256 + x) * 0.05) * 1.0
+	return a
+
+
+func _run() -> void:
+	var args := OS.get_cmdline_user_args()
+	var shot := ""
+	var dist := 140.0
+	for i in args.size():
+		if args[i] == "--screenshot" and i + 1 < args.size():
+			shot = args[i + 1]
+		if args[i] == "--distance" and i + 1 < args.size():
+			dist = args[i + 1].to_float()
+
+	print("Astronomie :")
+	# Paris, solstice d'été 2026 à midi solaire (≈ 11:51 UTC) : hauteur ≈ 64,6°.
+	var s := Astro.sun_horizontal(_utc(2026, 6, 21, 11, 51), 48.8566, 2.3522)
+	_check(absf(s.x - 64.6) < 0.5, "Paris, 21 juin, midi : Soleil à %.1f° (≈ 64,6°)" % s.x)
+	_check(absf(s.y - 180.0) < 3.0, "… plein Sud (azimut %.1f°)" % s.y)
+	s = Astro.sun_horizontal(_utc(2026, 12, 21, 11, 49), 48.8566, 2.3522)
+	_check(absf(s.x - 17.7) < 0.5, "Paris, 21 décembre, midi : Soleil à %.1f° (≈ 17,7°)" % s.x)
+	s = Astro.sun_horizontal(_utc(2026, 3, 20, 6, 0), 48.8566, 2.3522)
+	_check(s.y > 80.0 and s.y < 100.0, "Matin d'équinoxe : le Soleil se lève à l'Est (%.0f°)" % s.y)
+	var dir := Astro.direction(Vector2(0, 90))
+	_check(dir.distance_to(Vector3(1, 0, 0)) < 0.001, "Est = +X dans le repère du jeu")
+	dir = Astro.direction(Vector2(0, 180))
+	_check(dir.distance_to(Vector3(0, 0, 1)) < 0.001, "Sud = +Z dans le repère du jeu")
+	# Lever / coucher à Paris (heure légale) : 21 juin ≈ 05:47 / 21:58, 21 déc ≈ 08:41 / 16:56.
+	var off := Astro.utc_offset(48.8566, 2.3522, _utc(2026, 6, 21, 12))
+	_check(off == 2.0, "Paris en été : UTC+2")
+	_check(Astro.utc_offset(48.8566, 2.3522, _utc(2026, 12, 21, 12)) == 1.0, "Paris en hiver : UTC+1")
+	_check(Astro.utc_offset(51.5072, -0.1276, _utc(2026, 12, 21, 12)) == 0.0, "Londres en hiver : UTC+0")
+	_check(Astro.utc_offset(35.68, 139.69, _utc(2026, 12, 21, 12)) == 9.0, "Tokyo : UTC+9")
+	var rs := Astro.sun_rise_set(_utc(2026, 6, 21, 12), 48.8566, 2.3522, off)
+	_check(absf(rs.x - 5.78) < 0.1 and absf(rs.y - 21.97) < 0.1, "Paris, 21 juin : lever %s, coucher %s (≈ 05:47, 21:58)" % [ClockHud.format_hour(rs.x), ClockHud.format_hour(rs.y)])
+	rs = Astro.sun_rise_set(_utc(2026, 12, 21, 12), 48.8566, 2.3522, 1.0)
+	_check(absf(rs.x - 8.68) < 0.1 and absf(rs.y - 16.93) < 0.1, "Paris, 21 décembre : lever %s, coucher %s (≈ 08:41, 16:56)" % [ClockHud.format_hour(rs.x), ClockHud.format_hour(rs.y)])
+	_check(Astro.sun_rise_set(_utc(2026, 12, 21, 12), 69.65, 18.96, 1.0) == Vector2(-1, -1), "Tromsø en décembre : nuit polaire")
+	_check(Astro.sun_rise_set(_utc(2026, 6, 21, 12), 69.65, 18.96, 2.0) == Vector2(-2, -2), "Tromsø en juin : soleil de minuit")
+	# Lune : pleine le 2026-05-31 08:45 UTC, nouvelle le 2026-06-15 02:54 UTC.
+	var full := Astro.moon_illumination(_utc(2026, 5, 31, 8, 45))
+	var new := Astro.moon_illumination(_utc(2026, 6, 15, 2, 54))
+	_check(full > 0.97, "Pleine lune du 31 mai 2026 : %.0f %% éclairée" % (full * 100.0))
+	_check(new < 0.03, "Nouvelle lune du 15 juin 2026 : %.0f %% éclairée" % (new * 100.0))
+	_check(ClockHud.moon_phase_name(Astro.moon_age(_utc(2026, 5, 31, 8, 45))) == "pleine lune", "Nom de la phase : pleine lune")
+	_check(NightWindows.lit_ratio_at(20.0) > NightWindows.lit_ratio_at(3.0), "Plus de fenêtres allumées à 20 h qu'à 3 h")
+
+	print("Scène :")
+	var scene: Node = load("res://scenes/terre.tscn").instantiate()
+	var world: TerrainWorld = scene.get_node("Terrain")
+	var transport: TransportSystem = scene.get_node("Transport")
+	var bs: BuildingSystem = scene.get_node("Batiments")
+	root.add_child(scene)
+	world.tiles.offline_generator = _flat_tile
+	world.land.offline_generator = func(_lat: float, _lon: float) -> int: return 30
+	world.set_origin(48.8584, 2.2945)
+	var dn: DayNight = scene.get_node("Ambiance")
+	_check(dn != null and dn.sun != null and dn.moon != null, "Soleil, Lune et ciel en place")
+	for i in 40:
+		await process_frame
+	bs.unlimited_money = true
+	var y := world.cell_height(Vector2i(0, 0))
+	var r1 := transport.build_segment("route", Vector3(-150, y, 0), Vector3(150, y, 0))
+	var r2 := transport.build_segment("chemin", Vector3(-100, y, 40), Vector3(100, y, 40))
+	_check(r1.ok and r2.ok, "Route et chemin construits")
+	var placed := 0
+	var x := -130
+	for id in ["immeuble", "maison", "bureaux", "superette", "tour_habitation", "cafe", "maison", "ecole"]:
+		var r := 2
+		var fp := BuildingCatalog.footprint(id, r)
+		if bs.place(id, Vector2i(x + fp.x / 2, -6 - fp.y / 2), r) >= 0:
+			placed += 1
+		x += fp.x + 4
+	_check(placed >= 6, "%d bâtiments posés" % placed)
+	# Quelques bâtiments de la bible des styles, de l'autre côté de la route.
+	var styled: Array[String] = []
+	for id in BuildingCatalog.all_types():
+		if String(id).ends_with("__gratte_ciel") or String(id) in ["haussmann__immeuble", "japonais__maison", "chinois__boutique"]:
+			styled.append(id)
+	x = -130
+	var placed_styled := 0
+	for id in styled.slice(0, 6):
+		var fp := BuildingCatalog.footprint(id, 0)
+		if x + fp.x > 140:
+			break
+		if bs.place(id, Vector2i(x + fp.x / 2, 6 + fp.y / 2), 0) >= 0:
+			placed_styled += 1
+		x += fp.x + 4
+	_check(placed_styled >= 2, "%d bâtiments de la bible posés" % placed_styled)
+	_check(NightWindows.window_colors().size() >= 8, "%d couleurs de vitres reconnues (catalogue et styles)" % NightWindows.window_colors().size())
+	await process_frame
+	await process_frame
+	var lamps := dn.street.count()
+	_check(lamps >= 12 and lamps <= 20, "%d lampadaires le long de 300 m de route et 200 m de chemin" % lamps)
+	_check(bs.mesh_for("maison").surface_get_material(0) == NightWindows.building_material(), "Bâtiments : matériau aux fenêtres allumables")
+
+	# Journée, puis nuit.
+	dn.set_speed(0)
+	dn.unix_time = _utc(2026, 6, 21, 10) # midi à Paris (UTC+2)
+	dn._apply()
+	_check(dn.night < 0.01 and dn.sun.visible and dn.sun.shadow_enabled, "Midi : plein jour, ombres du Soleil")
+	_check(absf(dn.local_hour() - 12.0) < 0.01, "Heure locale affichée : 12:00")
+	dn.set_local_hour(23.5)
+	_check(dn.night > 0.95 and not dn.sun.visible, "23 h 30 : nuit")
+	_check(float(NightWindows.building_material().get_shader_parameter("night")) > 0.95, "La nuit, les fenêtres s'allument")
+	for i in 20:
+		await process_frame
+	var lit := 0
+	for c in dn.street.get_children():
+		if c is SpotLight3D and c.visible:
+			lit += 1
+	_check(lit >= 10, "%d lampadaires éclairent le sol près de la caméra" % lit)
+	dn.set_local_hour(12.0)
+	for i in 20:
+		await process_frame
+	lit = 0
+	for c in dn.street.get_children():
+		if c is SpotLight3D and c.visible:
+			lit += 1
+	_check(lit == 0, "Le jour, les lampadaires sont éteints")
+
+	# Le temps avance.
+	dn.set_speed(4)
+	var t0 := dn.unix_time
+	for i in 10:
+		await process_frame
+	_check(dn.unix_time > t0, "Le temps avance à 1 h/s")
+	dn.toggle_pause()
+	_check(dn.speed_index == 0, "T : pause")
+
+	# Sauvegarde.
+	dn.set_local_hour(21.0)
+	var saved := dn.to_dict()
+	dn.set_local_hour(8.0)
+	dn.from_dict(JSON.parse_string(JSON.stringify(saved)))
+	_check(absf(dn.local_hour() - 21.0) < 0.01, "Sauvegarde : l'heure est retrouvée")
+
+	if shot != "":
+		var rig = scene.get_node("CameraRig")
+		rig.position = Vector3(-40, y, -10)
+		rig._distance = dist
+		rig._target_distance = dist
+		rig.rotation_degrees.y = 200.0
+		dn.unix_time = _utc(2026, 6, 21, 12)
+		for item in [["jour", 15.0], ["coucher", 21.6], ["nuit", 23.4]]:
+			dn.set_local_hour(item[1])
+			for i in 40:
+				await process_frame
+			var path := "%s-%s.png" % [shot, item[0]]
+			root.get_viewport().get_texture().get_image().save_png(path)
+			print("Capture : ", path)
+		# Le ciel au ras du sol : Lune, étoiles, lueur du couchant.
+		rig.pitch_degrees = 8.0
+		rig._distance = 60.0
+		rig._target_distance = 60.0
+		# Couchant au Nord-Ouest, Lune (premier quartier) au Sud-Ouest.
+		for item in [["ciel-coucher", 21.9, 55.0], ["ciel-nuit", 23.9, 135.0]]:
+			rig.rotation_degrees.y = item[2]
+			dn.set_local_hour(item[1])
+			for i in 40:
+				await process_frame
+			var path := "%s-%s.png" % [shot, item[0]]
+			root.get_viewport().get_texture().get_image().save_png(path)
+			print("Capture : ", path)
+
+	print("AMBIANCE TEST OK" if ok else "AMBIANCE TEST ÉCHEC")
+	quit(0 if ok else 1)

@@ -52,7 +52,10 @@ var _ctrl_marker: MeshInstance3D
 var _highlight_edge := -1
 var _right_press := Vector2.ZERO
 ## Cases recouvertes par une voie au sol (pas d'arbres dessus, talus protégés).
+## Cases couvertes par les voies : Vector2i -> nombre de tronçons qui la couvrent.
 var _occupied: Dictionary = {}
+## Emprise de chaque tronçon : id -> {e: tronçon, cells: Array[Vector2i]}.
+var _edge_fp: Dictionary = {}
 ## Grille de recherche : case de 16 m -> [[tronçon, segment], …]
 var _hash: Dictionary = {}
 var _hash_dirty := true
@@ -125,24 +128,34 @@ func clear() -> void:
 
 func _on_network_changed() -> void:
 	_hash_dirty = true
-	var now := {}
+	# Mise à jour incrémentale : seuls les tronçons ajoutés, supprimés ou
+	# remplacés recalculent leur emprise (le réseau peut faire des dizaines de km).
+	var changed_cells := []
+	for id in _edge_fp.keys():
+		var old: Dictionary = _edge_fp[id]
+		if network.edges.has(id) and is_same(old.e, network.edges[id]):
+			continue
+		for c in old.cells:
+			var n: int = _occupied.get(c, 0) - 1
+			if n <= 0:
+				_occupied.erase(c)
+				changed_cells.append(c)
+			else:
+				_occupied[c] = n
+		_edge_fp.erase(id)
 	for id in network.edges:
+		if _edge_fp.has(id):
+			continue
 		var e: Dictionary = network.edges[id]
-		for c in RoutePlanner.footprint(float(e.width), e.pts, e.st):
-			now[c] = true
-	if world != null:
-		var changed_cells := []
-		for c in now:
-			if not _occupied.has(c):
+		var cells: Array = RoutePlanner.footprint(float(e.width), e.pts, e.st).keys()
+		for c in cells:
+			var n: int = _occupied.get(c, 0)
+			if n == 0:
 				changed_cells.append(c)
-		for c in _occupied:
-			if not now.has(c):
-				changed_cells.append(c)
-		_occupied = now
-		if not changed_cells.is_empty():
-			world.mark_cells_dirty(changed_cells)
-	else:
-		_occupied = now
+			_occupied[c] = n + 1
+		_edge_fp[id] = {"e": e, "cells": cells}
+	if world != null and not changed_cells.is_empty():
+		world.mark_cells_dirty(changed_cells)
 	network_changed.emit()
 
 
@@ -510,6 +523,18 @@ func _rebuild_hash() -> void:
 						_hash[k] = []
 					(_hash[k] as Array).append([eid, j])
 	_hash_dirty = false
+
+
+## Tronçons qui passent à moins de radius (environ) du point p, sans doublon.
+func edges_near(p: Vector3, radius: float) -> Array[int]:
+	var out: Array[int] = []
+	var seen := {}
+	for item in _query(Vector2(p.x - radius, p.z - radius), Vector2(p.x + radius, p.z + radius)):
+		var eid: int = item[0]
+		if not seen.has(eid):
+			seen[eid] = true
+			out.append(eid)
+	return out
 
 
 ## Segments existants près d'un rectangle (coins lo / hi), sans doublon.

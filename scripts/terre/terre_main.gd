@@ -9,6 +9,7 @@ extends Node3D
 @onready var build_panel: BuildingPanel = $PanneauConstruction
 @onready var zones: ZoneSystem = $Zones
 @onready var blocks: BlockEditor = $Blocs
+@onready var ambiance: DayNight = $Ambiance
 
 const TRANSPORT_TOOLS := ["departementale", "train", "voie_verte", "canal"]
 ## Dernière classe choisie pour chaque outil de transport.
@@ -94,7 +95,7 @@ func _ready() -> void:
 
 
 func save_game() -> bool:
-	return world.save_world({"transport": transport.to_dict(), "batiments": buildings.to_dict(), "zones": zones.to_dict(), "blocs": blocks.to_dict()})
+	return world.save_world({"transport": transport.to_dict(), "batiments": buildings.to_dict(), "zones": zones.to_dict(), "blocs": blocks.to_dict(), "ambiance": ambiance.to_dict()})
 
 
 func load_game() -> bool:
@@ -104,6 +105,7 @@ func load_game() -> bool:
 	buildings.from_dict(world.loaded_data.get("batiments", {}))
 	zones.from_dict(world.loaded_data.get("zones", {}))
 	blocks.from_dict(world.loaded_data.get("blocs", {}))
+	ambiance.from_dict(world.loaded_data.get("ambiance", {}))
 	build_panel.set_rules(buildings.require_access, buildings.unlimited_money)
 	build_panel.set_growth(zones.growth)
 	return true

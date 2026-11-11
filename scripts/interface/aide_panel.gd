@@ -18,6 +18,7 @@ const SECTIONS := [
 		["C", "voie en courbe (pendant le tracé)"],
 		["Maj", "angles par pas de 15° (pendant le tracé)"],
 		["9", "démolir une voie"],
+		["0", "carrefour : clic pour changer son régime (auto, feux, stop, cédez-le-passage, priorité à droite)"],
 		["Échap ou clic droit", "arrêter le tracé, annuler l'outil"],
 	]],
 	["Construire (panneau de droite)", [

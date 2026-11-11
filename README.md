@@ -55,7 +55,7 @@ Comment ça marche, limites et prochaines étapes : [docs/terre-architecture.md]
 
 ## Transports : routes, rail, chemins et voies d'eau sur le vrai relief
 
-Dans le mode Terre, la barre du bas propose **5 Route**, **6 Rail**, **7 Chemin** (piétons et vélos), **8 Voie d'eau** et **9 Démolir**.
+Dans le mode Terre, la barre du bas propose **5 Route**, **6 Rail**, **7 Chemin** (piétons et vélos), **8 Voie d'eau**, **9 Démolir** et **0 Carrefour**.
 
 ![Carrefours, avenue 2 × 2 voies, rue en courbe, piste cyclable, tramway](docs/apercu-transport-carrefours.png)
 
@@ -78,6 +78,22 @@ Dans le mode Terre, la barre du bas propose **5 Route**, **6 Rail**, **7 Chemin*
 - **Sauver / Charger** gardent le réseau avec le terrain.
 
 ![Pont et talus au-dessus d'une vallée](docs/apercu-transport-pont.png)
+
+### Carrefours : feux, stop, cédez-le-passage, priorité à droite
+
+![Carrefour à feux : le camion attend au rouge derrière la ligne d'arrêt](docs/apercu-feux.png)
+
+Chaque carrefour routier (3 branches ou plus) a un **régime**, choisi tout seul d'après les voies qui s'y croisent :
+
+| Voies qui se croisent | Régime automatique |
+| --- | --- |
+| Rues de desserte entre elles | Priorité à droite |
+| Avenues, départementales de même rang | Feux tricolores |
+| Une voie secondaire sur une voie principale | Cédez-le-passage (stop si la principale roule à 80 km/h ou plus) |
+
+L'outil **0 Carrefour** change le régime d'un clic (automatique → feux → stop → cédez-le-passage → priorité à droite). Les feux, les panneaux et les lignes d'arrêt sont posés sur la chaussée.
+
+Les véhicules **gardent leurs distances** (files d'attente), **freinent et accélèrent**, s'arrêtent à la ligne au rouge, marquent le stop, laissent passer les prioritaires et ne s'engagent pas si la sortie est bouchée. Les feux marchent par phases : deux branches face à face ont le vert ensemble, puis orange, rouge intégral et phase suivante.
 
 ### Stations et lignes de transport en commun
 
@@ -273,7 +289,8 @@ Détails et limites : [docs/ambiance.md](docs/ambiance.md).
 | `scripts/transport/transport_network.gd` | Graphe commun à tous les réseaux, itinéraires A*, sauvegarde |
 | `scripts/transport/route_planner.gd` | Tracé sur le relief : pente, ponts, tunnels, terrassement |
 | `scripts/transport/transport_view.gd` | Modèles low-poly des voies, ponts et tunnels |
-| `scripts/transport/traffic.gd` | Véhicules qui circulent (modèles tirés du catalogue, filtre époque / région) |
+| `scripts/transport/traffic.gd` | Véhicules qui circulent (modèles tirés du catalogue, filtre époque / région), files d'attente, freinage, passage des carrefours |
+| `scripts/transport/junction_control.gd` | Régime des carrefours (feux et leurs phases, stop, cédez-le-passage, priorité à droite), signalisation |
 | `scripts/transport/station_system.gd` | Stations (arrêts, gares, ports, héliports, aérodromes, aéroports), lignes, trajets des avions, sauvegarde |
 | `scripts/transport/station_panel.gd` | Panneau « Transports publics » (touche L) |
 | `scripts/transport/vehicle_catalog.gd` | Catalogue des 131 véhicules : catégories, époques, régions, chiffres, modèles low-poly |

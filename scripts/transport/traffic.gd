@@ -543,7 +543,7 @@ func _drive(v: Dictionary, eid: int, e: Dictionary, cruise: float, delta: float)
 	var nid := network.other_end(eid, v.node)
 	if int(v.mode) == TransportTypes.Mode.ROAD and junctions != null and junctions.is_controlled(nid) \
 			and int(v.leg) + 1 < route.size() and int(v.get("granted", -1)) != nid and not ghost:
-		var stop_s := float(e.len) - junctions.trim(eid, nid) - 0.6
+		var stop_s := float(e.len) - junctions.trim(eid, nid) - 0.6 - float(v.get("half", 2.0))
 		var dist := stop_s - s
 		var at_line := dist <= maxf(1.0, float(v.speed) * 1.2)
 		if at_line and _may_enter(v, nid, eid, route[int(v.leg) + 1], maxf(dist, 0.0)):

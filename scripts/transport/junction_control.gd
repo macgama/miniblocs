@@ -298,26 +298,26 @@ func _approach_signs(root: Node3D, nid: int, eid: int, k: String) -> void:
 	root.add_child(line)
 	var foot := base + right * (hw + 0.5) - fwd * 0.6
 	if k == "feux":
-		_pole(root, foot, 3.4)
+		_pole(root, foot, 3.9)
 		var head := MeshInstance3D.new()
 		var hm := BoxMesh.new()
-		hm.size = Vector3(0.38, 1.05, 0.28)
+		hm.size = Vector3(0.5, 1.35, 0.32)
 		head.mesh = hm
 		head.material_override = _mats.head
 		head.basis = basis
-		head.position = foot + Vector3(0, 3.0, 0)
+		head.position = foot + Vector3(0, 3.3, 0)
 		root.add_child(head)
 		var lamps: Array = []
 		for i in 3:
 			var lamp := MeshInstance3D.new()
 			var sm := SphereMesh.new()
-			sm.radius = 0.12
-			sm.height = 0.24
+			sm.radius = 0.17
+			sm.height = 0.34
 			sm.radial_segments = 8
 			sm.rings = 4
 			lamp.mesh = sm
 			lamp.material_override = _mats.off
-			lamp.position = foot + Vector3(0, 3.33 - i * 0.32, 0) - fwd * 0.15
+			lamp.position = foot + Vector3(0, 3.72 - i * 0.41, 0) - fwd * 0.17
 			root.add_child(lamp)
 			lamps.append(lamp)
 		_heads.append({"nid": nid, "eid": eid, "lamps": lamps, "state": -1})

@@ -9,12 +9,14 @@ extends Node3D
 @onready var build_panel: BuildingPanel = $PanneauConstruction
 @onready var zones: ZoneSystem = $Zones
 @onready var blocks: BlockEditor = $Blocs
+@onready var ambiance: DayNight = $Ambiance
 
 const TRANSPORT_TOOLS := ["departementale", "train", "voie_verte", "canal"]
 ## Dernière classe choisie pour chaque outil de transport.
 var _tool_class := {}
 
 var _status_timer := 0.0
+var transit_panel: StationPanel
 var _hover := Vector2i.ZERO
 var _hover_valid := false
 
@@ -29,9 +31,17 @@ func _ready() -> void:
 		if n > 0:
 			hud.show_message("%d case%s modifiée%s." % [n, "s" if n > 1 else "", "s" if n > 1 else ""])
 		_refresh_cell_info())
-	hud.go_requested.connect(func(lat: float, lon: float) -> void: world.set_origin(lat, lon))
+	hud.go_requested.connect(func(lat: float, lon: float) -> void:
+		GameStart.place_name = ""
+		world.set_origin(lat, lon))
 	hud.tool_selected.connect(_on_tool_selected)
+	_setup_transit()
 	hud.traffic_toggled.connect(func(on: bool) -> void: transport.traffic.set_enabled(on))
+	hud.traffic_filter_changed.connect(func(era: String, region: String) -> void:
+		transport.traffic.set_filters(era, region)
+		hud.show_message("Véhicules : %s, %s." % [
+			"toutes les époques" if era == "" else Styles.era_name(era).to_lower(),
+			"toutes les régions" if region == "" else Styles.region_name(region)]))
 	transport.info_changed.connect(func(t: String) -> void: hud.set_tool_info(t))
 	transport.message.connect(func(t: String) -> void: hud.show_message(t))
 	transport.spec_changed.connect(func(id: String, s: Dictionary) -> void: hud.show_spec(id, s, transport.curve_mode))
@@ -70,34 +80,231 @@ func _ready() -> void:
 		blocks.wall_height = h
 		blocks._emit_help())
 	build_panel.growth_toggled.connect(func(on: bool) -> void: zones.growth = on)
+	build_panel.zone_style_chosen.connect(func(st: String) -> void: zones.current_style = st)
 	build_panel.rules_changed.connect(func(access: bool, unlimited: bool) -> void:
 		buildings.require_access = access
 		buildings.unlimited_money = unlimited
 		buildings._refresh())
 	hud.save_requested.connect(func() -> void:
-		var ok := world.save_world({"transport": transport.to_dict(), "batiments": buildings.to_dict(), "zones": zones.to_dict(), "blocs": blocks.to_dict()})
-		hud.show_message("Région sauvegardée." if ok else "Échec de la sauvegarde."))
-	hud.load_requested.connect(func() -> void:
-		if world.load_world():
-			transport.from_dict(world.loaded_data.get("transport", {}))
-			buildings.from_dict(world.loaded_data.get("batiments", {}))
-			zones.from_dict(world.loaded_data.get("zones", {}))
-			blocks.from_dict(world.loaded_data.get("blocs", {}))
-			build_panel.set_rules(buildings.require_access, buildings.unlimited_money)
-			build_panel.set_growth(zones.growth)
-			hud.show_message("Région chargée.")
+		if save_game():
+			hud.show_message("Partie sauvegardée : %s." % _game_title())
 		else:
-			hud.show_message("Aucune sauvegarde trouvée."))
+			hud.show_message("Échec de la sauvegarde : " + last_error))
+	hud.load_requested.connect(open_saves_panel)
+	hud.help_requested.connect(toggle_help)
+	hud.quick_load_requested.connect(func() -> void:
+		var slot := GameStart.slot_id
+		if slot == "" or not SaveGame.exists(slot):
+			var all := SaveGame.list_saves()
+			slot = String(all[0].id) if not all.is_empty() else ""
+		if slot == "":
+			hud.show_message("Aucune partie sauvegardée.")
+		elif load_game(slot):
+			hud.show_message("Partie chargée : %s." % _game_title())
+		else:
+			hud.show_message("Chargement impossible : " + last_error))
+	for sig in [world.terrain_edited, transport.network_changed, buildings.changed, zones.changed, blocks.changed, transport.stations.lines_changed]:
+		(sig as Signal).connect(func(_a = null) -> void: _unsaved = true)
 	hud.city_requested.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/main.tscn"))
 	hud.globe_requested.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/globe.tscn"))
 	if GameStart.chosen:
 		world.set_origin(GameStart.lat, GameStart.lon)
 	_on_origin_changed(world.origin_lat, world.origin_lon)
+	if GameStart.load_slot != "":
+		var slot := GameStart.load_slot
+		GameStart.load_slot = ""
+		if load_game(slot):
+			hud.show_message("Partie chargée : %s." % _game_title())
+		else:
+			hud.show_message("Chargement impossible : " + last_error)
+
+
+# --- Sauvegarde -------------------------------------------------------------------
+
+## Message de la dernière erreur de sauvegarde ou de chargement.
+var last_error := ""
+## Des changements depuis la dernière sauvegarde (pour la sauvegarde automatique).
+var _unsaved := false
+var _autosave_timer := 0.0
+## Sauvegarde automatique toutes les 5 minutes, dans une partie à part.
+const AUTOSAVE_SLOT := "sauvegarde-auto"
+const AUTOSAVE_INTERVAL := 300.0
+var _saves_panel: PartiesPanel
+
+
+func _game_title() -> String:
+	if GameStart.place_name != "":
+		return GameStart.place_name
+	return "Région %.3f, %.3f" % [world.origin_lat, world.origin_lon]
+
+
+## Sections de la sauvegarde : uniquement ce que le joueur a créé ou changé.
+func save_sections() -> Dictionary:
+	return {"terrain": world.to_dict(), "transport": transport.to_dict(), "batiments": buildings.to_dict(),
+		"zones": zones.to_dict(), "blocs": blocks.to_dict(), "ambiance": ambiance.to_dict()}
+
+
+## Sauvegarde dans la partie en cours (ou une nouvelle). title : nom d'une nouvelle partie.
+func save_game(slot := "", title := "") -> bool:
+	if slot == "":
+		slot = GameStart.slot_id if GameStart.slot_id != AUTOSAVE_SLOT else ""
+	if slot == "":
+		slot = SaveGame.make_slot_id(title if title != "" else _game_title())
+	var old := SaveGame.read_manifest(slot)
+	var name: String = title if title != "" else String(old.get("nom", _game_title()))
+	var t := buildings.totals()
+	var info := {
+		"nom": name,
+		"lieu": {"lat": world.origin_lat, "lon": world.origin_lon, "nom": GameStart.place_name},
+		"mode": ["bac_a_sable", "entre_amis", "mondiale"][int(GameStart.mode)],
+		"camera": {"x": snappedf(rig.position.x, 0.01), "z": snappedf(rig.position.z, 0.01),
+			"distance": snappedf(rig._target_distance, 0.01), "angle": snappedf(rig.rotation_degrees.y, 0.01)},
+		"resume": {"batiments": t.count, "logements": t.logements, "emplois": t.emplois,
+			"reseau": TransportSystem._km(_network_length()),
+			"blocs": blocks.blocks.size(), "cases_modifiees": world.modifications.size()},
+	}
+	last_error = SaveGame.write(slot, info, save_sections())
+	if last_error != "":
+		return false
+	if slot != AUTOSAVE_SLOT:
+		GameStart.slot_id = slot
+	_unsaved = false
+	_autosave_timer = 0.0
+	return true
+
+
+## Charge une partie (par défaut la partie en cours).
+func load_game(slot := "") -> bool:
+	if slot == "":
+		slot = GameStart.slot_id
+	var res := SaveGame.read(slot)
+	if not res.ok:
+		last_error = res.error
+		return false
+	var sec: Dictionary = res.sections
+	var m: Dictionary = res.manifest
+	var lieu: Dictionary = m.get("lieu", {})
+	GameStart.place_name = String(lieu.get("nom", ""))
+	world.from_dict(sec.terrain)
+	transport.from_dict(sec.get("transport", {}))
+	buildings.from_dict(sec.get("batiments", {}))
+	zones.from_dict(sec.get("zones", {}))
+	blocks.from_dict(sec.get("blocs", {}))
+	ambiance.from_dict(sec.get("ambiance", {}))
+	build_panel.set_rules(buildings.require_access, buildings.unlimited_money)
+	build_panel.set_growth(zones.growth)
+	var cam: Dictionary = m.get("camera", {})
+	if not cam.is_empty():
+		rig.position.x = float(cam.get("x", 0.0))
+		rig.position.z = float(cam.get("z", 0.0))
+		rig._target_distance = float(cam.get("distance", rig._target_distance))
+		rig.rotation_degrees.y = float(cam.get("angle", 0.0))
+		_snap_pending = true
+	GameStart.slot_id = slot
+	_unsaved = false
+	_autosave_timer = 0.0
+	last_error = "" if res.warnings.is_empty() else "; ".join(res.warnings)
+	if last_error != "":
+		hud.show_message("Partie chargée avec des pertes : " + last_error)
+	return true
+
+
+## Panneau des transports publics : stations et lignes.
+func _setup_transit() -> void:
+	transit_panel = StationPanel.new()
+	transit_panel.name = "PanneauLignes"
+	add_child(transit_panel)
+	var st := transport.stations
+	transit_panel.setup(st)
+	st.info_changed.connect(func(t: String) -> void: hud.set_tool_info(t))
+	st.message.connect(func(t: String) -> void: hud.show_message(t))
+	hud.transit_requested.connect(func() -> void: transit_panel.toggle())
+	transit_panel.station_chosen.connect(func(id: String) -> void:
+		_select_building_tool(true)
+		build_panel.clear_selection()
+		st.set_place(id))
+	transit_panel.demolish_chosen.connect(func() -> void:
+		_select_building_tool(true)
+		build_panel.clear_selection()
+		st.set_demolish())
+	transit_panel.line_tool_chosen.connect(func() -> void:
+		_select_building_tool(true)
+		build_panel.clear_selection()
+		st.set_line_tool())
+
+
+func _network_length() -> float:
+	var t := 0.0
+	for id in transport.network.edges:
+		t += float(transport.network.edges[id].len)
+	return t
+
+
+func open_saves_panel() -> void:
+	if _saves_panel != null:
+		return
+	_saves_panel = PartiesPanel.new(true)
+	_windows_layer().add_child(_saves_panel)
+	_saves_panel.closed.connect(func() -> void: _saves_panel = null)
+	_saves_panel.load_chosen.connect(func(slot: String) -> void:
+		_saves_panel.close_panel()
+		if load_game(slot):
+			hud.show_message("Partie chargée : %s." % _game_title())
+		else:
+			hud.show_message("Chargement impossible : " + last_error))
+	_saves_panel.save_as_requested.connect(func(title: String) -> void:
+		if save_game(SaveGame.make_slot_id(title), title):
+			hud.show_message("Partie sauvegardée : %s." % title)
+			_saves_panel.refresh()
+		else:
+			hud.show_message("Échec de la sauvegarde : " + last_error))
+
+
+var _help: AidePanel
+var _windows: CanvasLayer
+
+
+## Calque des fenêtres (aide, parties) : au-dessus de tous les panneaux.
+func _windows_layer() -> CanvasLayer:
+	if _windows == null:
+		_windows = CanvasLayer.new()
+		_windows.name = "Fenetres"
+		_windows.layer = 20
+		add_child(_windows)
+	return _windows
+
+
+func toggle_help() -> void:
+	if _help != null:
+		_help.close_panel()
+		return
+	_help = AidePanel.new()
+	_help.closed.connect(func() -> void: _help = null)
+	_windows_layer().add_child(_help)
+
+
+func _autosave(delta: float) -> void:
+	_autosave_timer += delta
+	if _autosave_timer < AUTOSAVE_INTERVAL:
+		return
+	_autosave_timer = 0.0
+	if not _unsaved:
+		return
+	var keep := GameStart.slot_id
+	var t := _game_title()
+	if save_game(AUTOSAVE_SLOT, "Sauvegarde automatique · " + t):
+		hud.show_message("Sauvegarde automatique.")
+	GameStart.slot_id = keep
+	# La partie du joueur n'est pas à jour : on garde la marque « non sauvegardé ».
+	_unsaved = keep != ""
 
 
 ## Un outil de construction prend la main : on range ceux du terrain et des voies.
-func _select_building_tool() -> void:
+func _select_building_tool(from_transit := false) -> void:
 	world.set_tool(TerrainWorld.Tool.INSPECT)
+	transport.stations.set_inactive()
+	if transit_panel and not from_transit:
+		transit_panel.clear_selection()
 	transport.set_inactive()
 	hud.show_spec("", {}, false)
 	buildings.set_inactive()
@@ -107,6 +314,8 @@ func _select_building_tool() -> void:
 
 
 func _on_tool_selected(t: int) -> void:
+	transport.stations.set_inactive()
+	transit_panel.clear_selection()
 	buildings.set_inactive()
 	zones.set_inactive()
 	blocks.set_inactive()
@@ -134,6 +343,8 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 	blocks.clear()
 	GameStart.lat = lat
 	GameStart.lon = lon
+	# Nouvelle région : nouvelle partie (load_game() remet son identifiant après).
+	GameStart.slot_id = ""
 	hud.set_place(lat, lon)
 	rig.position = Vector3.ZERO
 	_snap_pending = true
@@ -144,6 +355,7 @@ var _snap_pending := true
 
 
 func _process(delta: float) -> void:
+	_autosave(delta)
 	# Le pivot de la caméra suit le relief sous lui.
 	var h := world.cell_height(Vector2i(floori(rig.position.x), floori(rig.position.z)))
 	if not is_nan(h):
@@ -164,6 +376,8 @@ func _process(delta: float) -> void:
 		if t.failed_count() > 0:
 			s += "   ·   %d tuile(s) introuvable(s) (pas de réseau ?)" % t.failed_count()
 		s += "   ·   Cases modifiées : %d" % world.modifications.size()
+		if world.water.status != "":
+			s += "   ·   " + world.water.status
 		hud.set_status(s)
 		hud.set_network_info(transport.summary())
 		build_panel.set_money("Caisse : illimitée" if buildings.unlimited_money else "Caisse : " + BuildingSystem.format_money(buildings.money))
@@ -185,6 +399,9 @@ func _refresh_cell_info() -> void:
 	var real := world.raw_height(_hover.x + 0.5, _hover.y + 0.5)
 	var txt := "Case %d, %d   ·   %.6f, %.6f   ·   %s   ·   hauteur %.1f m (réelle %.1f m)" % [
 		_hover.x, _hover.y, ll.x, ll.y, kind, h, real]
+	var river := world.water_name_at(_hover)
+	if river != "":
+		txt += " (%s)" % river
 	if world.modifications.has(_hover):
 		txt += "   ·   modifiée"
 	hud.set_cell_info(txt)

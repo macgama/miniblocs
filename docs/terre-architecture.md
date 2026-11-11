@@ -49,7 +49,24 @@ Source : **ESA WorldCover 2021** (10 m, licence CC BY 4.0, attribution affichée
 - **Globe** : `assets/biomes_monde.png` (4096 × 2048, ≈ 10 km par pixel, 400 Ko) est fabriquée une fois par `tools/build_biome_map.py` à partir des aperçus des 2 651 fichiers WorldCover. Le shader du globe combine biome + altitude (mers, sommets enneigés, ombrage du relief).
 - **Terrain** : `scripts/terre/land_cover.gd` lit directement les fichiers GeoTIFF de WorldCover sur AWS, sans les télécharger en entier : seulement l'en-tête puis les blocs de ~10 km autour du lieu (50 à 150 Ko chacun), gardés dans `user://landcover_cache/`. Chaque case de 1 m reçoit le biome du pixel de 10 m qui la contient.
 - Correspondance : forêt, broussailles, prairie (le bâti réel devient de la prairie : terre vierge), champs, sol nu (désert en plaine, roche en montagne), glacier, lac ou rivière (eau sous 0 m = mer), marais, mangrove, toundra. Arbres et buissons low-poly plantés selon le biome, toujours au même endroit pour un même lieu.
-- Les rivières de moins de ~10 m de large n'apparaissent pas (résolution de WorldCover).
+- Les rivières de moins de ~10 m de large ne sont pas dans WorldCover : elles viennent d'OpenStreetMap ou du calcul sur le relief (voir plus bas).
+
+## Rivières, ruisseaux et lacs
+
+Code : `scripts/terre/water_map.gd` (où est l'eau) et `scripts/terre/water.gdshader` (son aspect).
+
+| Source | Quand | Ce qu'elle donne |
+| --- | --- | --- |
+| **OpenStreetMap** (API Overpass) | Si le jeu peut joindre `overpass-api.de` (gardé ensuite dans `user://water_cache/`) | Les vrais cours d'eau avec leur nom et leur largeur, jusqu'aux fossés de 1 m, et les étangs. Licence ODbL : attribution affichée en jeu. |
+| **Calcul sur le relief** | Toujours, hors ligne | Le jeu fait « couler la pluie » sur l'altitude réelle (tuiles zoom 12, ≈ 25 m par pixel, sur ± 9 km). Chaque point se vide vers son voisin le plus bas, même dans les cuvettes (algorithme « priority-flood »), puis on additionne la surface drainée. Un ruisseau naît là où plus de 0,6 km² s'écoule et s'élargit vers l'aval (≈ 1 m à la source, 8 m pour 100 km², 40 m au plus). Calcul en arrière-plan, < 1 s. |
+| **ESA WorldCover** | Toujours | Les lacs et les grandes rivières (plus de ~10 m de large). |
+
+- **Cases d'eau** : le lit est creusé d'une marche (ruisseau < 3 m, lac) ou de deux (rivière). La surface de l'eau est 15 cm sous le haut des berges. Pas d'arbres dans l'eau. Une case modifiée par le joueur (remblai) n'est plus de l'eau.
+- **Eau animée** : un même shader pour la mer, les lacs et les rivières. Vagues procédurales, reflets plus forts en regardant de biais, eau plus claire et transparente dans les petits ruisseaux, écume qui bouge le long des berges et dans les cascades (quand le lit descend d'une marche).
+- **Ponts** : `RoutePlanner.plan(…, water)` reçoit `TerrainWorld.water_surface_at`. Au-dessus de l'eau, la voie passe toujours sur un pont, au moins 1,5 m au-dessus de la surface, avec des rampes ; le terrassement ne bouche jamais une rivière. Les voies d'eau (canaux) peuvent naviguer sur les rivières.
+- Dans le jeu, survoler une case affiche « Rivière », « Ruisseau » ou « Étang », et son nom quand il vient d'OpenStreetMap.
+
+Limite : le réseau du conteneur cloud où le jeu est développé bloque Overpass ; la lecture d'OpenStreetMap est testée avec une réponse enregistrée, et le calcul sur le relief prend le relais. Sur un PC normal, OpenStreetMap répond.
 
 ## Limites connues
 

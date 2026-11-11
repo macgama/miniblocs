@@ -12,15 +12,23 @@ Prototype de city builder en vue de dessus, style low-poly, mode bac à sable. F
 
 ## Commandes
 
+Dans le jeu, **F1** (ou le bouton **Aide**) affiche toutes les commandes.
+
 | Action | Touches |
 | --- | --- |
 | Déplacer la caméra | ZQSD (WASD en QWERTY) ou flèches, ou clic droit maintenu + glisser |
 | Zoomer | Molette |
 | Tourner la caméra | A / E (Q / E en QWERTY), ou clic molette maintenu + glisser |
-| Construire | Clic gauche maintenu + glisser |
-| Choisir un outil | 1 Route · 2 Résidentiel · 3 Commercial · 4 Industriel · 5 Bulldozer |
-| Annuler le tracé en cours | Échap |
-| Sauvegarder / charger | F5 / F9 (ou les boutons en bas) |
+| Outils (barre du bas) | 1 Observer · 2 Aplanir · 3 Monter · 4 Creuser · 5 Route · 6 Rail · 7 Chemin · 8 Voie d'eau · 9 Démolir |
+| Tracer une voie | un clic par point, **C** courbe, **Maj** angles de 15°, **Échap** / clic droit pour finir |
+| Panneau Construire | **B** (bâtiments, zonage, éditeur libre ; **R** tourne le bâtiment, **Ctrl + Z** annule un bloc) |
+| Transports publics | **L** (stations, gares, ports, aéroports, lignes) |
+| Temps | **T** pause, **Maj + T** vitesse suivante |
+| Vue au sol | **V** (dessus, 3e personne, 1re personne) |
+| Sauvegarder / recharger | **F5** / **F9** ; boutons **Sauver**, **Charger** (liste des parties), **Globe** en haut à gauche |
+| Aide | **F1** |
+
+L'interface s'adapte à la taille de la fenêtre (elle est dessinée pour 1600 × 900 puis agrandie ou réduite).
 
 ## Mode Terre : choisis ton lieu sur le globe, puis joue sur le vrai relief
 
@@ -34,6 +42,14 @@ Au lancement (**F5**), un **globe 3D** coloré par les vrais biomes (forêts, ch
 - Le relief est téléchargé la première fois (Internet nécessaire), puis gardé en cache.
 
 ![Mode Terre : forêt au-dessus du lac d'Annecy](docs/apercu-biomes.png)
+
+### Rivières, ruisseaux et lacs
+
+Les cours d'eau sont de vraies cases d'eau creusées dans le relief (berges d'une ou deux marches), avec une eau animée : vagues, reflets, écume le long des berges et petites cascades quand le lit descend d'une marche. Les lacs viennent d'ESA WorldCover. Les rivières viennent d'OpenStreetMap (avec leur nom, même les ruisseaux de 1 m) quand le jeu peut joindre le service Overpass ; sinon le jeu les **calcule sur le vrai relief** en faisant « couler la pluie » : elles suivent les vraies vallées et s'élargissent vers l'aval. Les routes, rails et chemins posés au-dessus passent automatiquement **sur un pont**.
+
+![Ruisseaux calculés sur le relief des Vosges](docs/apercu-rivieres.png)
+
+![Une départementale enjambe un ruisseau](docs/apercu-pont-riviere.png)
 
 Comment ça marche, limites et prochaines étapes : [docs/terre-architecture.md](docs/terre-architecture.md).
 
@@ -50,7 +66,7 @@ Dans le mode Terre, la barre du bas propose **5 Route**, **6 Rail**, **7 Chemin*
   | Route | Rue de desserte (30 km/h), avenue urbaine (50), route départementale (80), voie express (110), autoroute (130) | Voies par sens, largeur d'une voie (2,75 à 3,50 m selon la classe) ; trottoirs, accotements, bandes d'arrêt d'urgence et terre-plein ajoutés d'office |
   | Rail | Tramway, ligne classique, ligne à grande vitesse | Voie unique ou double voie (écartement 1,435 m, entraxe 3,00 / 4,20 / 4,50 m) |
   | Chemin | Chemin piéton, piste cyclable bidirectionnelle, voie verte | Largeur (1,40 à 5,00 m selon la classe) |
-  | Voie d'eau | Voie navigable | Largeur (12 à 60 m) |
+  | Voie d'eau | Voie navigable, chenal maritime | Largeur (12 à 60 m, chenal 60 à 400 m pour les grands navires) |
 
   Chaque classe a aussi sa **pente maximale** (rue 12 %, autoroute 5 %, ligne classique 25 ‰…) et son **rayon de courbure minimal** (rue 15 m, départementale 240 m, autoroute 665 m, LGV 4 000 m).
 - **Tracer droit** : clic pour commencer, puis un clic pour chaque point. **Échap** ou **clic droit** pour arrêter. **Maj** : angles par pas de 15°.
@@ -58,16 +74,50 @@ Dans le mode Terre, la barre du bas propose **5 Route**, **6 Rail**, **7 Chemin*
 - **Aperçu** vert (possible) ou rouge avec la raison : pente trop forte, virage trop serré, chevauchement, croisement à mauvaise hauteur…
 - **Relief** : la voie monte et descend avec le terrain dans la limite de sa pente. Le jeu fait la plate-forme, des **talus** en pente douce (1 pour 1,5) jusqu'au terrain naturel, les **ponts** (creux, mer) et les **tunnels** (collines).
 - **Carrefours sans superposition** : clique sur une voie existante pour t'y raccrocher (carrefour en T) ou croise-la : le carrefour se crée tout seul, les voies s'arrêtent à son bord et un plateau les relie. Une voie qui en recouvre une autre sans s'y raccorder est refusée. Route et rail (ou chemin) se croisent par un passage à niveau.
-- **Véhicules** : voitures (sur les différentes voies), tramways, trains, TGV, piétons, cyclistes et bateaux. Bouton **Circulation** pour les masquer.
+- **Véhicules** : ils viennent d'un **catalogue de 131 modèles** (voir plus bas), tirés au hasard parmi ceux qui peuvent rouler sur chaque voie : tramways sur les voies de tram, TGV sur les LGV, vélos et piétons sur les chemins, péniches sur les canaux, paquebots dans les chenaux. Bouton **Circulation** pour les masquer, menu **Véhicules ▾** pour choisir l'**époque** et la **région** de ce qui circule (par exemple : XIXe – 1945, Amériques).
 - **Sauver / Charger** gardent le réseau avec le terrain.
 
 ![Pont et talus au-dessus d'une vallée](docs/apercu-transport-pont.png)
+
+### Stations et lignes de transport en commun
+
+![Arrêts de tram et de bus, un tram et des bus à impériale en ligne](docs/apercu-lignes.png)
+
+Bouton **Lignes (L)** (ou touche **L**) : le panneau des transports publics.
+
+1. **Pose des stations** : arrêt de bus (sur une route), arrêt de tram (sur une voie de tram), gare (ligne classique ou LGV : quais, marquise et bâtiment voyageurs de la bible), port (jetée, grue et gare maritime sur une voie d'eau), **héliport**, **aérodrome** (piste en herbe de 600 m) et **aéroport** (piste de 1 000 m, aire de stationnement, aérogare, tour de contrôle ; **R** pour tourner, le terrain est aplani). Les stations du réseau coupent la voie à cet endroit ; les quais et les pistes sont réservés (pas d'arbres ni de bâtiments).
+2. **Nouvelle ligne** : clique les stations dans l'ordre, puis **Entrée** (ou clic droit). Une ligne relie des stations du même genre, avec une voie entre chaque.
+3. **Choisis le véhicule** dans le catalogue (bus à impériale, tram 1900, locomotive Pacific, bateau-bus, hélicoptère, gros-porteur…) et leur **nombre**. Ils font la navette d'un bout à l'autre et marquent l'arrêt 12 s à chaque station ; les avions roulent sur la piste, décollent, volent à 260 m et atterrissent.
+
+Tout est gardé par **Sauver / Charger**.
+
+### Le catalogue de véhicules
+
+![Voitures, bus, deux-roues et attelages du monde entier](docs/apercu-vehicules.png)
+
+131 modèles low-poly fabriqués en code, à l'échelle réelle, avec leur vitesse et leur nombre de places. Ils utilisent les **époques et régions de la bible** des bâtiments (Antiquité → futuriste, Europe, Amériques, Afrique, Moyen-Orient, Asie de l'Est, Asie du Sud…) :
+
+| Catégorie | Exemples |
+| --- | --- |
+| Voitures (22) | voiture sans chevaux 1900, torpédo, berline des années 30, américaine à ailerons, mini citadine, taxi jaune de New York, taxi londonien, kei car japonaise, 4×4 de brousse, pick-up, électrique, supercar, capsule autonome |
+| Utilitaires (12) | camionnette des années 30, semi-remorque, camion américain à long capot, citerne, grumier, porte-conteneur, pompiers, ambulance, camion décoré d'Asie du Sud, tracteur |
+| Bus (12) | autobus à plateforme, bus à impériale, bus scolaire jaune, bus articulé, trolleybus, matatu, bus coloré d'Amérique centrale, jeepney, navette autonome |
+| Deux et trois roues (11) | grand-bi, vélo, vélo cargo, trottinette, scooter, side-car, moto-taxi, tuk-tuk, cyclo-pousse, pousse-pousse |
+| Attelages (5) | charrette, calèche, diligence, chariot bâché, omnibus à chevaux |
+| Tramways (5) | tram 1900, tram à câble de San Francisco, tram des années 50, tram à étage, tram moderne articulé |
+| Trains (13) et wagons | vapeur des débuts, américaine à chasse-buffles, Pacific, train de luxe, diesel de fret (et ses wagons), électrique, autorail, régional, métro, TGV, train japonais à nez long, train magnétique |
+| Bateaux (20) | pirogue, pirogue à balancier, gondole, drakkar, jonque, sampan, felouque, boutre, caravelle, bateau à aubes, péniche, bateau-bus, remorqueur, voilier, ferry, porte-conteneurs, paquebot à quatre cheminées, navire de croisière |
+| Aéronefs (12) | montgolfière, dirigeable, biplan, hydravion, avion à hélices, turbopropulseur, court-courrier, gros-porteur, supersonique, jet d'affaires, hélicoptère, taxi volant |
+
+![Locomotives, trains à grande vitesse et tramways](docs/apercu-trains.png)
+
+Pour voir tout le catalogue : `godot --path . --script res://tests/vehicules_vitrine.gd -- --screenshot v.png --cat bateau` (catégories : `voiture`, `utilitaire`, `bus`, `deux_roues`, `attelage`, `tram`, `train`, `wagon`, `bateau`, `avion`).
 
 Architecture, feuille de route et questions ouvertes : [docs/transport-architecture.md](docs/transport-architecture.md).
 
 ## Bâtiments : poser des bâtiments à l'échelle réelle
 
-Dans le mode Terre, le panneau **Construire** (à droite, **B** pour le masquer) propose 27 bâtiments low-poly à l'échelle réelle (1 case = 1 m), rangés en six catégories : **Logement**, **Commerce**, **Industrie**, **Services publics**, **Loisirs** et **Sport** (maison 10 × 12 m, tour d'habitation de 41 m, supermarché et son parking, hôpital, terrain de football de 105 × 68 m…).
+Dans le mode Terre, le panneau **Construire** (à droite, **B** pour le masquer) propose **250 bâtiments** low-poly à l'échelle réelle (27 modèles classiques et une bible de 223 bâtiments de 29 styles du monde, voir plus bas) (1 case = 1 m), rangés en six catégories : **Logement**, **Commerce**, **Industrie**, **Services publics**, **Loisirs** et **Sport** (maison 10 × 12 m, tour d'habitation de 41 m, supermarché et son parking, hôpital, terrain de football de 105 × 68 m…).
 
 ![Bâtiments le long de deux routes](docs/apercu-batiments.png)
 
@@ -88,6 +138,23 @@ L'onglet **Zonage** du même panneau permet de peindre des zones **résidentiell
 - **Demande** affichée dans le panneau : il vient toujours des habitants, d'autant plus qu'il y a du travail ; commerces et industries s'installent selon la population.
 - **Retirer des zones** : glisser sur la zone à effacer (une zone coupée en partie est redécoupée). Les bâtiments déjà construits restent.
 - Case **Croissance automatique** pour mettre la ville en pause.
+
+### La bible : styles du monde, de l'Antiquité au futur
+
+Les listes du panneau mélangent les modèles classiques et la **bible** : 29 styles d'architecture, chacun décliné en archétypes (maison, immeuble, boutique, marché, usine, ferme, lieu de culte, palais, école, gare, théâtre, jardin…).
+
+![Styles d'Asie](docs/apercu-bible-asie.png)
+![Styles d'Europe, d'Afrique et de Méditerranée](docs/apercu-bible-europe-afrique.png)
+
+- **Régions** : Europe, Méditerranée, Moyen-Orient et Maghreb, Afrique, Asie de l'Est, Asie du Sud et du Sud-Est, Amériques, Monde.
+- **Époques** : Antiquité, Traditionnel, XIXe – 1945, Moderne, Contemporain, Futuriste.
+- **Exemples** : colombages, gothique (cathédrale), haussmannien, briques industrielles, scandinave (stavkirke), isba (église à bulbes, kremlin), Grèce antique (temple, amphithéâtre), méditerranéen, Maghreb (kasbah), persan, Golfe, Sahel (mosquée en terre, cases rondes), Afrique australe (kraal), Afrique moderne, chinois (pagode, Cité interdite), japonais (sanctuaire, château), Asie dense (néons), Inde (temple shikhara, palais moghol), Asie du Sud-Est (maisons sur pilotis, wat), pueblo, précolombien (pyramide), colonial, latino, Art déco, banlieue américaine, style international, tours de verre, futuriste.
+- **Filtres** en haut de la liste : région, époque et recherche par nom (« pagode », « gare », « japonais »…).
+- **Zonage par style** : dans l'onglet Zonage, choisis le **Style** avant de peindre une zone. Les bâtiments qui y poussent suivent ce style (« Classique MiniBlocs » par défaut, ou « Mélange de tous les styles »). Chaque zone garde son style.
+
+![Zone résidentielle de style japonais](docs/apercu-zonage-style.png)
+
+Pour ajouter un style : une entrée dans `Styles.STYLES` (`scripts/catalogue/styles.gd`) avec sa région, son époque, ses couleurs, son toit et ses archétypes ; le modèle 3D est fabriqué par `StyleBuilder`.
 
 ### Éditeur libre : construire bloc par bloc
 
@@ -127,6 +194,27 @@ Dans le mode Terre, appuie sur **V** (ou les boutons **Dessus / 3e pers. / 1re p
 
 ![Vue à la 1re personne sur une route](docs/apercu-1re-personne.png)
 
+## Ambiance : cycle jour/nuit, vrai Soleil et vraie Lune
+
+Le mode Terre a maintenant une **horloge** : le Soleil et la Lune sont à leur vraie place dans le ciel pour le lieu, la date et l'heure (saisons, durée du jour, phases de la Lune, nuit polaire…). Le ciel passe du bleu de midi à l'orangé du couchant, puis à la nuit étoilée.
+
+![Coucher de soleil](docs/apercu-coucher.png)
+
+- **La nuit**, des **lampadaires** s'allument le long des routes et des chemins (posés tout seuls), et les **fenêtres** des bâtiments s'éclairent, plus ou moins selon l'heure.
+- **Panneau Horloge** (en bas à droite) : heure et date du lieu, lever et coucher du Soleil, phase de la Lune. Barre pour choisir l'heure, ◀ ▶ pour changer de mois (et donc de saison).
+- **T** : pause / reprise. **Maj + T** : vitesse suivante (temps réel, 1 min/s, 10 min/s, 1 h/s).
+- **Heure officielle du lieu**, avec les vrais fuseaux horaires du monde et l'heure d'été.
+- **Météo** selon le climat réel du lieu et la saison : nuages, pluie, neige, brouillard, orages avec éclairs. La liste « Météo » du panneau Horloge permet de forcer un temps.
+- **Phares** des véhicules allumés la nuit et par mauvais temps.
+
+![Pluie](docs/apercu-pluie.png)
+
+- **Sauver / Charger** gardent la date, l'heure et la météo choisie.
+
+![La nuit](docs/apercu-nuit.png)
+
+Détails et limites : [docs/ambiance.md](docs/ambiance.md).
+
 ## Comment ça marche
 
 - **Routes** : se tracent en L entre le point de départ et la souris. Le marquage s'adapte aux routes voisines (lignes droites, virages, carrefours).
@@ -158,6 +246,9 @@ Dans le mode Terre, appuie sur **V** (ou les boutons **Dessus / 3e pers. / 1re p
 | `scripts/terre/geo.gd` | Conversions latitude / longitude ↔ mètres ↔ tuiles |
 | `scripts/terre/land_cover.gd` | Biomes réels (ESA WorldCover) lus par blocs autour du lieu |
 | `assets/biomes_monde.png` | Carte mondiale des biomes du globe (fabriquée par `tools/build_biome_map.py`) |
+| `scripts/ambiance/` | Cycle jour/nuit, Soleil et Lune réels, ciel, lampadaires, fenêtres allumées (voir [docs/ambiance.md](docs/ambiance.md)) |
+| `scripts/terre/water_map.gd` | Rivières et étangs : OpenStreetMap, sinon calcul d'écoulement sur le relief |
+| `scripts/terre/water.gdshader` | Eau animée (rivières, lacs, mer) : vagues, reflets, écume |
 | `scripts/terre/elevation_tiles.gd` | Téléchargement, cache et lecture des tuiles d'altitude |
 | `scripts/terre/terrain_world.gd` | Blocs de 64 × 64 cases autour de la caméra, outils, sauvegarde |
 | `scripts/terre/terre_hud.gd` | Interface du mode Terre |
@@ -167,7 +258,12 @@ Dans le mode Terre, appuie sur **V** (ou les boutons **Dessus / 3e pers. / 1re p
 | `scripts/transport/transport_network.gd` | Graphe commun à tous les réseaux, itinéraires A*, sauvegarde |
 | `scripts/transport/route_planner.gd` | Tracé sur le relief : pente, ponts, tunnels, terrassement |
 | `scripts/transport/transport_view.gd` | Modèles low-poly des voies, ponts et tunnels |
-| `scripts/transport/traffic.gd` | Véhicules qui circulent |
+| `scripts/transport/traffic.gd` | Véhicules qui circulent (modèles tirés du catalogue, filtre époque / région) |
+| `scripts/transport/station_system.gd` | Stations (arrêts, gares, ports, héliports, aérodromes, aéroports), lignes, trajets des avions, sauvegarde |
+| `scripts/transport/station_panel.gd` | Panneau « Transports publics » (touche L) |
+| `scripts/transport/vehicle_catalog.gd` | Catalogue des 131 véhicules : catégories, époques, régions, chiffres, modèles low-poly |
+| `scripts/transport/vehicle_mesh.gd` | Formes des véhicules (roues, coques, ailes, voiles, chevaux…) en plus de BlocMesh |
+| `tests/vehicules_vitrine.gd` | Aligne une ou plusieurs catégories du catalogue et prend une capture |
 | `scripts/transport/transport_system.gd` | Outils de pose et de démolition dans le mode Terre |
 | `tests/transport_test.gd` | Test automatique des transports (sans réseau) |
 | `scripts/batiments/building_catalog.gd` | Catalogue des bâtiments : catégories, emprises, prix, modèles low-poly |
@@ -176,10 +272,24 @@ Dans le mode Terre, appuie sur **V** (ou les boutons **Dessus / 3e pers. / 1re p
 | `scripts/batiments/building_panel.gd` | Panneau « Construire » |
 | `scripts/batiments/zone_system.gd` | Zonage : zones peintes, demande, croissance le long des routes |
 | `scripts/batiments/block_editor.gd` | Éditeur libre bloc par bloc : outils, matériaux, annulation, rendu par blocs de 16 × 16 m |
+| `scripts/catalogue/styles.gd` | Bible : régions, époques, archétypes et les 29 styles d'architecture |
+| `scripts/catalogue/style_builder.gd` | Fabrique les bâtiments de la bible (emprise, chiffres, modèle 3D) d'après style + archétype |
 | `tests/batiments_test.gd` | Test automatique des bâtiments (sans réseau) |
-| `tests/batiments_vitrine.gd` | Pose tout le catalogue (ou fait pousser un quartier avec `--zones`, ou construit une maison en blocs avec `--blocs`) et prend une capture |
+| `tests/batiments_vitrine.gd` | Pose tout le catalogue (ou fait pousser un quartier avec `--zones`, ou construit une maison en blocs avec `--blocs`) et prend une capture. `--styles japonais,chinois` ou `--arch culte` filtrent la bible, `--zone-style` choisit le style du zonage |
+
+## Sauvegarde des parties
+
+Chaque partie a son propre dossier : on peut en garder autant qu'on veut.
+
+- **Sauver** ou **F5** : sauvegarde la partie en cours (la première fois, une partie est créée au nom du lieu).
+- **Charger** : liste des parties (charger, supprimer, sauvegarder sous un autre nom). **F9** : recharge la partie en cours.
+- Sur le globe : **Continuer** reprend la dernière partie, **Parties…** ouvre la liste.
+- Sauvegarde automatique toutes les 5 minutes (partie « Sauvegarde automatique »), si quelque chose a changé.
+- Seuls les changements du joueur sont gardés (le relief réel se recalcule) ; format versionné, prêt pour le multijoueur : [docs/sauvegarde.md](docs/sauvegarde.md).
 
 ## Test automatique
+
+Tous les tests d'un coup : `sh tests/tous.sh` (affiche une ligne « … TEST OK » par test).
 
 ```bash
 godot --headless --path . --script res://tests/smoke_test.gd
@@ -191,7 +301,15 @@ Le test pose des routes et des zones, attend la croissance, puis vérifie la sau
 godot --headless --path . --script res://tests/terre_test.gd
 ```
 
-Vérifie les conversions de coordonnées, le décodage des tuiles, la génération des blocs, le terrassement et la sauvegarde. Il affiche `TERRE TEST OK`. De même, `tests/globe_test.gd` affiche `GLOBE TEST OK`, `tests/transport_test.gd` affiche `TRANSPORT TEST OK` et `tests/batiments_test.gd` affiche `BATIMENTS TEST OK`.
+Vérifie les conversions de coordonnées, le décodage des tuiles, la génération des blocs, les rivières (calcul sur une vallée, lecture d'OpenStreetMap, lit creusé, surface d'eau, ponts), le terrassement et la sauvegarde. Il affiche `TERRE TEST OK`. De même, `tests/globe_test.gd` affiche `GLOBE TEST OK`, `tests/transport_test.gd` affiche `TRANSPORT TEST OK` et `tests/batiments_test.gd` affiche `BATIMENTS TEST OK`.
+
+`tests/parcours_test.gd` joue une partie comme un joueur, avec de vraies touches (globe, outils 1-9, B, L, T, V, F1, F5, Continuer) et affiche `PARCOURS TEST OK`. `tests/sauvegarde_test.gd` vérifie le format des parties (écriture, relecture, section abîmée, import de l'ancienne sauvegarde) et affiche `SAUVEGARDE TEST OK`.
+
+```bash
+godot --headless --path . --script res://tests/perf_bench.gd [-- --big] [--reseau]
+```
+
+Banc d'essai des performances sur une région de 10 × 10 km : chargement du terrain, survol de 4 km, grande ville en grille (routes, zonage, circulation), sauvegarde et chargement. Affiche les temps par image et `PERF BENCH OK`. `--reseau` utilise le vrai relief d'Annecy, `--big` une ville deux fois plus grande.
 
 ## Pistes pour la suite
 

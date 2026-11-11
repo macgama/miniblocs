@@ -30,6 +30,8 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	# Pas de déplacement pendant la saisie d'un texte (ex. coordonnées).
 	var typing := get_viewport().gui_get_focus_owner() is LineEdit
+	# Ctrl / Alt / Cmd + touche : raccourci (ex. Ctrl+Z en AZERTY), pas un déplacement.
+	typing = typing or Input.is_key_pressed(KEY_CTRL) or Input.is_key_pressed(KEY_ALT) or Input.is_key_pressed(KEY_META)
 	# Touches « physiques » : même position sur AZERTY (ZQSD) et QWERTY (WASD).
 	var input := Vector2.ZERO
 	if Input.is_physical_key_pressed(KEY_W) or Input.is_key_pressed(KEY_UP):

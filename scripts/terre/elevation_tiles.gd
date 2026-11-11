@@ -51,6 +51,13 @@ func _ready() -> void:
 		_free_requests.append(req)
 
 
+## Arrête proprement les téléchargements en cours (sinon Godot peut planter
+## en quittant pendant qu'un téléchargement tourne encore).
+func _exit_tree() -> void:
+	for req in _request_tile.keys():
+		(req as HTTPRequest).cancel_request()
+
+
 func has_tile(t: Vector2i) -> bool:
 	return _tiles.has(t)
 
@@ -182,6 +189,74 @@ func height_at_pixel(ix: int, iy: int) -> float:
 		_last_key = key
 		_last_tile = _tiles[key]
 	return _last_tile[(iy & 255) * TILE_PIXELS + (ix & 255)]
+
+
+## Altitudes interpolées sur une grille : pxs (colonnes) × pys (lignes), en pixels
+## globaux. Résultat rangé ligne par ligne (i + j * pxs.size()). Même calcul que
+## height_at(), mais bien plus rapide : on recopie d'abord la petite fenêtre de
+## pixels utile, puis on interpole sans chercher les tuiles case par case.
+func sample_grid(pxs: PackedFloat64Array, pys: PackedFloat64Array) -> PackedFloat32Array:
+	return interpolate_window(grab_window(pxs, pys), pxs, pys)
+
+
+## Recopie la fenêtre de pixels qui couvre la grille (à faire sur le fil principal).
+func grab_window(pxs: PackedFloat64Array, pys: PackedFloat64Array) -> Dictionary:
+	var x_lo := 1 << 30
+	var x_hi := -(1 << 30)
+	for px in pxs:
+		var ix := floori(px - 0.5)
+		x_lo = mini(x_lo, ix)
+		x_hi = maxi(x_hi, ix + 1)
+	var y_lo := 1 << 30
+	var y_hi := -(1 << 30)
+	for py in pys:
+		var iy := floori(py - 0.5)
+		y_lo = mini(y_lo, iy)
+		y_hi = maxi(y_hi, iy + 1)
+	var ww := maxi(x_hi - x_lo + 1, 0)
+	var wh := maxi(y_hi - y_lo + 1, 0)
+	var win := PackedFloat32Array()
+	win.resize(ww * wh)
+	for wy in wh:
+		for wx in ww:
+			win[wx + wy * ww] = height_at_pixel(x_lo + wx, y_lo + wy)
+	return {"x": x_lo, "y": y_lo, "w": ww, "data": win}
+
+
+## Interpolation bilinéaire dans une fenêtre recopiée (sans accès aux tuiles :
+## peut tourner sur un autre fil).
+static func interpolate_window(win: Dictionary, pxs: PackedFloat64Array, pys: PackedFloat64Array) -> PackedFloat32Array:
+	var nx := pxs.size()
+	var ny := pys.size()
+	var out := PackedFloat32Array()
+	out.resize(nx * ny)
+	var data: PackedFloat32Array = win.data
+	var x_lo: int = win.x
+	var y_lo: int = win.y
+	var ww: int = win.w
+	var cix := PackedInt32Array()
+	cix.resize(nx)
+	var ctx := PackedFloat32Array()
+	ctx.resize(nx)
+	for i in nx:
+		var fx := pxs[i] - 0.5
+		var ix := floori(fx)
+		cix[i] = ix - x_lo
+		ctx[i] = fx - ix
+	for j in ny:
+		var fy := pys[j] - 0.5
+		var iy := floori(fy)
+		var ty := fy - iy
+		var r0 := (iy - y_lo) * ww
+		var r1 := r0 + ww
+		var o := j * nx
+		for i in nx:
+			var c := cix[i]
+			var tx := ctx[i]
+			var a := lerpf(data[r0 + c], data[r0 + c + 1], tx)
+			var b := lerpf(data[r1 + c], data[r1 + c + 1], tx)
+			out[o + i] = lerpf(a, b, ty)
+	return out
 
 
 ## Altitude interpolée (bilinéaire) en un point en pixels globaux (flottants).

@@ -24,6 +24,16 @@ const KINDS := {
 	"I": {"name": "Industrielle", "color": Color(1.0, 0.8, 0.2, 0.33),
 		"types": {"atelier": 4, "entrepot": 3, "usine": 2}},
 }
+## Archétypes de la bible qui poussent dans chaque type de zone, avec leur poids.
+const STYLE_ARCHS := {
+	"R": {"maison": 6, "grande_maison": 2, "rangee": 3, "immeuble": 3, "tour": 1},
+	"C": {"boutique": 4, "restaurant": 3, "marche": 1, "bureaux": 2, "grand_magasin": 1, "gratte_ciel": 1},
+	"I": {"atelier": 4, "entrepot": 3, "usine": 2, "ferme": 1},
+}
+## Style des nouvelles zones : "" = modèles classiques MiniBlocs, "mix" = tous
+## les styles mélangés, sinon un style de Styles.STYLES.
+var current_style := ""
+
 ## Prix du zonage (€ par m²).
 const PRICE_M2 := 2
 ## Côté maximal d'une zone (m).
@@ -71,9 +81,17 @@ func _ready() -> void:
 	if not buildings_path.is_empty():
 		buildings = get_node_or_null(buildings_path) as BuildingSystem
 	if buildings != null:
+		if buildings.transport != null:
+			buildings.transport.network.changed.connect(func() -> void: _roads_cache.clear())
 		buildings.changed.connect(func() -> void:
-			for id in zones:
-				_dirty_views[id] = true)
+			_demand_cache.clear()
+			# Seules les parties de zone autour du bâtiment changé sont redessinées.
+			var r := buildings.last_change_rect
+			if r.has_area():
+				_mark_area(r)
+			else:
+				for id in zones:
+					_dirty_views[id] = true)
 	for k in KINDS:
 		var m := StandardMaterial3D.new()
 		m.albedo_color = KINDS[k].color
@@ -147,7 +165,7 @@ func add_zone(k: String, rect: Rect2i) -> int:
 		buildings.money -= cost
 	var id := next_id
 	next_id += 1
-	zones[id] = {"id": id, "k": k, "x": rect.position.x, "z": rect.position.y, "w": rect.size.x, "h": rect.size.y}
+	zones[id] = {"id": id, "k": k, "x": rect.position.x, "z": rect.position.y, "w": rect.size.x, "h": rect.size.y, "s": current_style}
 	_dirty_views[id] = true
 	message.emit("Zone %s de %d × %d m (%s)." % [String(KINDS[k].name).to_lower(), rect.size.x, rect.size.y, BuildingSystem.format_money(cost)])
 	changed.emit()
@@ -177,7 +195,7 @@ func remove_area(rect: Rect2i, notify := true) -> int:
 			if p.size.x > 0 and p.size.y > 0:
 				var nid := next_id
 				next_id += 1
-				zones[nid] = {"id": nid, "k": z.k, "x": p.position.x, "z": p.position.y, "w": p.size.x, "h": p.size.y}
+				zones[nid] = {"id": nid, "k": z.k, "x": p.position.x, "z": p.position.y, "w": p.size.x, "h": p.size.y, "s": String(z.get("s", ""))}
 				_dirty_views[nid] = true
 	if notify and touched > 0:
 		message.emit("Zonage retiré.")
@@ -197,6 +215,18 @@ func zone_at(c: Vector2i) -> int:
 
 ## Demande pour chaque type de zone (positive : des bâtiments peuvent pousser).
 func demand() -> Dictionary:
+	if _demand_cache.is_empty():
+		_demand_cache = _compute_demand()
+	return _demand_cache.duplicate()
+
+
+## Demande recalculée seulement quand les bâtiments changent.
+var _demand_cache := {}
+## Routes qui desservent chaque zone : id -> {rect, roads} (vidé quand le réseau change).
+var _roads_cache := {}
+
+
+func _compute_demand() -> Dictionary:
 	var homes := 0
 	var jobs_c := 0
 	var jobs_i := 0
@@ -225,9 +255,7 @@ func demand() -> Dictionary:
 
 
 func _process(delta: float) -> void:
-	for id in _dirty_views.keys():
-		_rebuild_view(id)
-	_dirty_views.clear()
+	_rebuild_dirty_views(VIEW_BUDGET_MS)
 	if not growth or zones.is_empty() or buildings == null:
 		return
 	_timer += delta
@@ -259,19 +287,24 @@ func grow_step() -> int:
 func _grow_in(z: Dictionary, need := INF) -> int:
 	var rect := zone_rect(z)
 	var net := buildings.transport.network
+	var cached: Dictionary = _roads_cache.get(int(z.id), {})
 	var roads: Array = []
-	var grown := rect.grow(14)
-	for eid in net.edges:
-		var e: Dictionary = net.edges[eid]
-		if TransportTypes.mode_of(e.t) != TransportTypes.Mode.ROAD:
-			continue
-		for p in (e.pts as PackedVector3Array):
-			if grown.has_point(Vector2i(floori(p.x), floori(p.z))):
-				roads.append(eid)
-				break
+	if not cached.is_empty() and cached.rect == rect:
+		roads = cached.roads
+	else:
+		var grown := rect.grow(14)
+		for eid in net.edges:
+			var e: Dictionary = net.edges[eid]
+			if TransportTypes.mode_of(e.t) != TransportTypes.Mode.ROAD:
+				continue
+			for p in (e.pts as PackedVector3Array):
+				if grown.has_point(Vector2i(floori(p.x), floori(p.z))):
+					roads.append(eid)
+					break
+		_roads_cache[int(z.id)] = {"rect": rect, "roads": roads}
 	if roads.is_empty():
 		return -1
-	var types: Dictionary = KINDS[z.k].types
+	var types := types_for(String(z.k), String(z.get("s", "")))
 	for attempt in 14:
 		var type_id := _pick(types)
 		var t := BuildingCatalog.get_type(type_id)
@@ -305,6 +338,24 @@ func _grow_in(z: Dictionary, need := INF) -> int:
 	return -1
 
 
+## Types qui poussent dans une zone de type k avec le style donné (poids).
+static func types_for(k: String, style: String) -> Dictionary:
+	if style == "" or not STYLE_ARCHS.has(k):
+		return KINDS[k].types
+	var out := {}
+	var archs: Dictionary = STYLE_ARCHS[k]
+	var styles: Array = Styles.STYLES.keys() if style == "mix" else [style]
+	for sid in styles:
+		if not Styles.STYLES.has(sid):
+			continue
+		for arch in archs:
+			var id := "%s__%s" % [sid, arch]
+			if BuildingCatalog.all_types().has(id):
+				out[id] = int(archs[arch])
+	# Un style sans modèle pour ce type de zone : on garde les modèles classiques.
+	return out if not out.is_empty() else KINDS[k].types
+
+
 func _pick(weights: Dictionary) -> String:
 	var total := 0
 	for k in weights:
@@ -326,38 +377,109 @@ func _drop_view(id: int) -> void:
 	_dirty_views.erase(id)
 
 
-## Calque coloré posé sur chaque case libre de la zone (suit le relief).
-func _rebuild_view(id: int) -> void:
+## Côté des morceaux de calque (m) : un bâtiment qui pousse ne redessine que ceux qu'il touche.
+const VIEW_SUB := 32
+
+
+## Temps maximum par image pour redessiner les calques de zones (ms).
+const VIEW_BUDGET_MS := 4.0
+
+
+## Redessine les morceaux de calque en attente, dans la limite du budget
+## (INF : tout, par ex. dans les tests).
+func _rebuild_dirty_views(budget_ms: float) -> void:
+	var start := Time.get_ticks_usec()
+	for id in _dirty_views.keys():
+		var v: Variant = _dirty_views[id]
+		if not v is Dictionary:
+			# Toute la zone : on repart de zéro, morceau par morceau.
+			if not zones.has(id):
+				_dirty_views.erase(id)
+				continue
+			var holder: Node3D = _views.get(id)
+			if holder != null:
+				for ch in holder.get_children():
+					holder.remove_child(ch)
+					ch.queue_free()
+			var subs := {}
+			var rect := zone_rect(zones[id])
+			for sx in range(floori(float(rect.position.x) / VIEW_SUB), floori(float(rect.end.x - 1) / VIEW_SUB) + 1):
+				for sz in range(floori(float(rect.position.y) / VIEW_SUB), floori(float(rect.end.y - 1) / VIEW_SUB) + 1):
+					subs[Vector2i(sx, sz)] = true
+			_dirty_views[id] = subs
+			v = subs
+		var d: Dictionary = v
+		for sk in d.keys():
+			_rebuild_sub(id, sk)
+			d.erase(sk)
+			if (Time.get_ticks_usec() - start) / 1000.0 > budget_ms:
+				return
+		_dirty_views.erase(id)
+
+
+## Marque à redessiner les morceaux de calque qui touchent rect, dans toutes les zones.
+func _mark_area(rect: Rect2i) -> void:
+	for id in zones:
+		var r := zone_rect(zones[id]).intersection(rect.grow(1))
+		if not r.has_area():
+			continue
+		var v: Variant = _dirty_views.get(id, {})
+		if not v is Dictionary:
+			continue
+		var subs: Dictionary = v
+		for sx in range(floori(float(r.position.x) / VIEW_SUB), floori(float(r.end.x - 1) / VIEW_SUB) + 1):
+			for sz in range(floori(float(r.position.y) / VIEW_SUB), floori(float(r.end.y - 1) / VIEW_SUB) + 1):
+				subs[Vector2i(sx, sz)] = true
+		_dirty_views[id] = subs
+
+
+## Calque coloré posé sur chaque case libre de la zone (suit le relief), en morceaux.
+func _rebuild_sub(id: int, sk: Vector2i) -> void:
 	if not zones.has(id) or world == null:
 		return
 	var z: Dictionary = zones[id]
-	var rect := zone_rect(z)
+	var rect := zone_rect(z).intersection(Rect2i(sk * VIEW_SUB, Vector2i(VIEW_SUB, VIEW_SUB)))
+	var holder: Node3D = _views.get(id)
+	if holder == null:
+		holder = Node3D.new()
+		holder.name = "Zone_%d" % id
+		add_child(holder)
+		_views[id] = holder
+	var sub_name := "S_%d_%d" % [sk.x, sk.y]
+	var mi := holder.get_node_or_null(sub_name) as MeshInstance3D
+	if not rect.has_area():
+		if mi != null:
+			mi.queue_free()
+		return
+	var hs := world.cell_heights(rect)
+	var rw := rect.size.x
 	var verts := PackedVector3Array()
-	for j in range(rect.position.y, rect.end.y):
-		var i := rect.position.x
-		while i < rect.end.x:
-			var c := Vector2i(i, j)
-			var h := world.cell_height(c)
+	for jj in rect.size.y:
+		var j := rect.position.y + jj
+		var ii := 0
+		while ii < rw:
+			var c := Vector2i(rect.position.x + ii, j)
+			var h := hs[ii + jj * rw]
 			if is_nan(h) or _covered(c):
-				i += 1
+				ii += 1
 				continue
 			# Cases voisines de même hauteur réunies en une bande.
-			var e := i
-			while e + 1 < rect.end.x:
-				var n := Vector2i(e + 1, j)
-				if world.cell_height(n) != h or _covered(n):
+			var e := ii
+			while e + 1 < rw:
+				if hs[e + 1 + jj * rw] != h or _covered(Vector2i(rect.position.x + e + 1, j)):
 					break
 				e += 1
 			var y := maxf(h, 0.0) + 0.06
-			verts.append_array([Vector3(i, y, j), Vector3(e + 1, y, j), Vector3(e + 1, y, j + 1),
-				Vector3(i, y, j), Vector3(e + 1, y, j + 1), Vector3(i, y, j + 1)])
-			i = e + 1
-	var mi: MeshInstance3D = _views.get(id)
+			var x0 := float(rect.position.x + ii)
+			var x1 := float(rect.position.x + e + 1)
+			verts.append_array([Vector3(x0, y, j), Vector3(x1, y, j), Vector3(x1, y, j + 1),
+				Vector3(x0, y, j), Vector3(x1, y, j + 1), Vector3(x0, y, j + 1)])
+			ii = e + 1
 	if mi == null:
 		mi = MeshInstance3D.new()
+		mi.name = sub_name
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		add_child(mi)
-		_views[id] = mi
+		holder.add_child(mi)
 	mi.material_override = _mats[z.k]
 	if verts.is_empty():
 		mi.mesh = null
@@ -484,7 +606,7 @@ func from_dict(data: Dictionary) -> void:
 		var id := int(z.id)
 		if not KINDS.has(String(z.k)):
 			continue
-		zones[id] = {"id": id, "k": String(z.k), "x": int(z.x), "z": int(z.z), "w": int(z.w), "h": int(z.h)}
+		zones[id] = {"id": id, "k": String(z.k), "x": int(z.x), "z": int(z.z), "w": int(z.w), "h": int(z.h), "s": String(z.get("s", ""))}
 		_dirty_views[id] = true
 		next_id = maxi(next_id, id + 1)
 	changed.emit()

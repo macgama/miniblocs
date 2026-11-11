@@ -5,10 +5,16 @@ extends CanvasLayer
 signal go_requested(lat: float, lon: float)
 signal tool_selected(tool: int)
 signal save_requested
+signal help_requested
 signal load_requested
+signal quick_load_requested
 signal city_requested
 signal globe_requested
 signal traffic_toggled(on: bool)
+## Époque et région des véhicules de la circulation ("" = toutes).
+signal traffic_filter_changed(era: String, region: String)
+## Bouton « Lignes » : panneau des transports publics.
+signal transit_requested
 signal spec_edited(type_id: String, spec: Dictionary)
 signal curve_toggled(on: bool)
 
@@ -76,8 +82,21 @@ func _ready() -> void:
 	layout.add_child(top)
 	var top_box := VBoxContainer.new()
 	top.add_child(top_box)
+	var title_row := HBoxContainer.new()
+	top_box.add_child(title_row)
 	_place_label = Label.new()
-	top_box.add_child(_place_label)
+	_place_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title_row.add_child(_place_label)
+	# Menu de la partie : toujours au même endroit, en haut à gauche.
+	for spec in [["Sauver", save_requested, "Sauvegarder la partie (F5)"], ["Charger", load_requested, "Parties sauvegardées (F9 : recharger la partie en cours)"],
+			["Globe", globe_requested, "Revenir au globe pour changer de lieu"], ["Aide", help_requested, "Toutes les commandes (F1)"]]:
+		var mb := Button.new()
+		mb.text = spec[0]
+		mb.tooltip_text = spec[2]
+		mb.focus_mode = Control.FOCUS_NONE
+		var sig: Signal = spec[1]
+		mb.pressed.connect(func() -> void: sig.emit())
+		title_row.add_child(mb)
 
 	var row := HBoxContainer.new()
 	top_box.add_child(row)
@@ -93,19 +112,6 @@ func _ready() -> void:
 	go.text = "Y aller"
 	go.pressed.connect(_on_go)
 	row.add_child(go)
-
-	var places := HFlowContainer.new()
-	places.custom_minimum_size = Vector2(560, 0)
-	top_box.add_child(places)
-	for p in PLACES:
-		var b := Button.new()
-		b.text = p.name
-		var lat: float = p.lat
-		var lon: float = p.lon
-		b.pressed.connect(func() -> void:
-			coords_edit.text = "%.5f, %.5f" % [lat, lon]
-			go_requested.emit(lat, lon))
-		places.add_child(b)
 
 	_cell_label = Label.new()
 	top_box.add_child(_cell_label)
@@ -128,9 +134,7 @@ func _ready() -> void:
 	layout.add_child(spacer)
 
 	var help := Label.new()
-	help.text = "ZQSD / flèches : déplacer   ·   Molette : zoom   ·   A / E ou clic molette : tourner   ·   Clic droit glissé : déplacer la carte\n" \
-		+ "Clic gauche glissé : terrasser (2-4)   ·   5-8 : poser une voie (classe et largeur dans le panneau), clic par point, C : courbe, Échap / clic droit pour finir, Maj : angles de 15°   ·   9 : démolir\n" \
-		+ "B : panneau Construire (clic : poser, R : tourner)   ·   1-9 : outils   ·   F5 : sauvegarder   ·   F9 : charger   ·   Échap : annuler"
+	help.text = "F1 : toutes les commandes   ·   ZQSD : déplacer   ·   Molette : zoom   ·   A / E : tourner   ·   1-9 : outils   ·   B : construire   ·   L : lignes   ·   V : vue   ·   T : pause   ·   Échap : annuler"
 	help.add_theme_color_override("font_color", Color(1, 1, 1, 0.9))
 	help.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
 	help.add_theme_constant_override("outline_size", 4)
@@ -173,19 +177,21 @@ func _ready() -> void:
 	traffic.button_pressed = true
 	traffic.toggled.connect(func(on: bool) -> void: traffic_toggled.emit(on))
 	bar.add_child(traffic)
-	for spec in [["Sauver", save_requested], ["Charger", load_requested], ["Globe", globe_requested], ["Ville prototype", city_requested]]:
-		var b := Button.new()
-		b.text = spec[0]
-		var sig: Signal = spec[1]
-		b.pressed.connect(func() -> void: sig.emit())
-		bar.add_child(b)
+	bar.add_child(_build_vehicle_menu())
+	var transit := Button.new()
+	transit.text = "Lignes (L)"
+	transit.tooltip_text = "Stations, gares, ports, aéroports et lignes de transport en commun"
+	transit.pressed.connect(func() -> void: transit_requested.emit())
+	bar.add_child(transit)
 
 	var fill := Control.new()
 	fill.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	bottom.add_child(fill)
 	var credit := Label.new()
-	credit.text = "Relief : Mapzen Terrain Tiles (AWS Open Data) — SRTM, GMTED, ETOPO1, EU-DEM\nBiomes : © ESA WorldCover 2021, données Copernicus Sentinel (CC BY 4.0)"
+	credit.text = "Relief : Mapzen Terrain Tiles\nBiomes : © ESA WorldCover 2021\nRivières : © OpenStreetMap"
+	credit.tooltip_text = "Relief : Mapzen Terrain Tiles (AWS Open Data) — SRTM, GMTED, ETOPO1, EU-DEM\nBiomes : © ESA WorldCover 2021, données Copernicus Sentinel (CC BY 4.0)\nRivières : © contributeurs OpenStreetMap (ODbL) si disponible, sinon calculées sur le relief"
+	credit.mouse_filter = Control.MOUSE_FILTER_PASS
 	credit.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	credit.size_flags_vertical = Control.SIZE_SHRINK_END
 	credit.add_theme_font_size_override("font_size", 11)
@@ -193,6 +199,50 @@ func _ready() -> void:
 	credit.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
 	credit.add_theme_constant_override("outline_size", 3)
 	bottom.add_child(credit)
+
+
+var _veh_era := ""
+var _veh_region := ""
+
+
+## Menu « Véhicules » : époque et région des modèles qui circulent.
+func _build_vehicle_menu() -> MenuButton:
+	var mb := MenuButton.new()
+	mb.text = "Véhicules ▾"
+	mb.flat = false
+	var pm := mb.get_popup()
+	pm.hide_on_checkable_item_selection = false
+	pm.add_separator("Époque")
+	var entries: Array = [["era", ""]]
+	pm.add_radio_check_item("Toutes les époques", 0)
+	for e in Styles.ERAS:
+		pm.add_radio_check_item(e.name, entries.size())
+		entries.append(["era", e.id])
+	pm.add_separator("Région")
+	pm.add_radio_check_item("Toutes les régions", entries.size())
+	entries.append(["region", ""])
+	for r in Styles.REGIONS:
+		if r.id == "monde":
+			continue
+		pm.add_radio_check_item(r.name, entries.size())
+		entries.append(["region", r.id])
+	var refresh := func() -> void:
+		for i in pm.item_count:
+			var id := pm.get_item_id(i)
+			if pm.is_item_separator(i) or id < 0 or id >= entries.size():
+				continue
+			var en: Array = entries[id]
+			pm.set_item_checked(i, (_veh_era if en[0] == "era" else _veh_region) == en[1])
+	refresh.call()
+	pm.id_pressed.connect(func(id: int) -> void:
+		var en: Array = entries[id]
+		if en[0] == "era":
+			_veh_era = en[1]
+		else:
+			_veh_region = en[1]
+		refresh.call()
+		traffic_filter_changed.emit(_veh_era, _veh_region))
+	return mb
 
 
 func _build_spec_panel(layout: Control) -> void:
@@ -313,10 +363,12 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			_buttons[i].button_pressed = true
 			tool_selected.emit(i)
 			return
-	if key.keycode == KEY_F5:
+	if key.keycode == KEY_F1:
+		help_requested.emit()
+	elif key.keycode == KEY_F5:
 		save_requested.emit()
 	elif key.keycode == KEY_F9:
-		load_requested.emit()
+		quick_load_requested.emit()
 
 
 ## Enfonce le bouton d'un outil sans prévenir (un autre système a pris la main).
@@ -330,7 +382,9 @@ func show_message(text: String) -> void:
 
 
 func set_place(lat: float, lon: float) -> void:
-	_place_label.text = "MiniBlocs · Terre   —   région centrée sur %.5f, %.5f   (1 case = 1 m × 1 m)" % [lat, lon]
+	var where := GameStart.place_name if GameStart.place_name != "" else "%.4f, %.4f" % [lat, lon]
+	_place_label.text = "MiniBlocs  ·  " + where
+	_place_label.tooltip_text = "Région de 10 × 10 km centrée sur %.5f, %.5f (1 case = 1 m × 1 m)" % [lat, lon]
 	if not coords_edit.has_focus():
 		coords_edit.text = "%.5f, %.5f" % [lat, lon]
 

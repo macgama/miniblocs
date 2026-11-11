@@ -167,6 +167,35 @@ func _run() -> void:
 	await process_frame
 	_check(tr.view.edge_mesh_count() == tr.network.edges.size(), "un maillage par tronçon (%d)" % tr.view.edge_mesh_count())
 
+	print("Catalogue de véhicules :")
+	var n_types := 0
+	var all_ok := true
+	var era_ids: Array = Styles.ERAS.map(func(e: Dictionary) -> String: return e.id)
+	var region_ids: Array = Styles.REGIONS.map(func(r: Dictionary) -> String: return r.id)
+	for id in VehicleCatalog.TYPES:
+		var vt := VehicleCatalog.get_type(id)
+		n_types += 1
+		var m := VehicleCatalog.build_mesh(id)
+		if m.get_surface_count() == 0 or not era_ids.has(vt.era) or not region_ids.has(vt.region) or VehicleCatalog.category(vt.cat).is_empty():
+			all_ok = false
+			push_error("véhicule incomplet : " + id)
+		for wid in vt.get("consist", []):
+			if VehicleCatalog.get_type(wid).is_empty():
+				all_ok = false
+				push_error("voiture attelée inconnue : %s dans %s" % [wid, id])
+	_check(all_ok and n_types >= 100, "%d modèles, chacun avec maillage, époque, région et catégorie" % n_types)
+	for vc in VehicleCatalog.CATEGORIES:
+		_check(VehicleCatalog.ids_in(vc.id).size() >= 4, "catégorie %s : %d modèles" % [vc.name, VehicleCatalog.ids_in(vc.id).size()])
+	for cls in TransportTypes.CLASSES:
+		_check(not VehicleCatalog.for_track(cls).is_empty(), "des véhicules pour la classe %s (%d)" % [cls, VehicleCatalog.for_track(cls).size()])
+	_check(VehicleCatalog.for_track("tram").has("tram_moderne") and not VehicleCatalog.for_track("tram").has("tgv"), "les tramways vont sur les voies de tram, pas les TGV")
+	_check(not VehicleCatalog.for_track("canal").has("croisiere") and VehicleCatalog.for_track("chenal").has("croisiere"), "les grands navires restent dans les chenaux")
+	var old_ids := VehicleCatalog.for_track("departementale", "classique", "europe")
+	var only_old := not old_ids.is_empty()
+	for id in old_ids:
+		only_old = only_old and VehicleCatalog.get_type(id).era == "classique"
+	_check(only_old, "filtre époque et région (%d modèles européens d'avant 1945)" % old_ids.size())
+
 	print("Véhicules :")
 	tr.traffic.clear()
 	for i in 6:
@@ -178,12 +207,18 @@ func _run() -> void:
 	_check(tr.traffic.count_mode(TransportTypes.Mode.RAIL) == 1, "un train sur le rail")
 	_check(tr.traffic.count_mode(TransportTypes.Mode.WATER) == 1, "un bateau sur l'eau")
 	var car: Dictionary = tr.traffic.vehicles[0]
+	_check(String(car.model) != "" and VehicleCatalog.get_type(car.model).mode == TransportTypes.Mode.ROAD, "modèle routier tiré du catalogue (%s)" % car.model)
+	var train: Dictionary = {}
+	for v in tr.traffic.vehicles:
+		if int(v.mode) == TransportTypes.Mode.RAIL:
+			train = v
+	_check(not train.is_empty() and (train.wagons as Array).size() == (VehicleCatalog.get_type(train.model).get("consist", []) as Array).size(), "le train tire ses voitures (%s)" % train.get("model", "?"))
 	var before: Vector3 = (car.body as Node3D).position
 	tr.traffic.enabled = false
 	for i in 20:
 		tr.traffic.step(0.1)
 	var after: Vector3 = (car.body as Node3D).position
-	_check(before.distance_to(after) > 10.0, "une voiture avance (%.1f m en 2 s)" % before.distance_to(after))
+	_check(before.distance_to(after) > 4.0, "un véhicule avance (%.1f m en 2 s)" % before.distance_to(after))
 	var on_road := false
 	for id in tr.network.edges:
 		if TransportTypes.mode_of(tr.network.edges[id].t) == TransportTypes.Mode.ROAD:
@@ -193,7 +228,92 @@ func _run() -> void:
 	for i in 600:
 		tr.traffic.step(0.1)
 	_check(tr.traffic.vehicles.size() >= 8, "les véhicules repartent vers de nouvelles destinations (%d)" % tr.traffic.vehicles.size())
+	tr.traffic.set_filters("classique", "")
+	for i in 5:
+		tr.traffic.spawn(TransportTypes.Mode.ROAD)
+	var all_classic := tr.traffic.vehicles.size() == 5
+	for v in tr.traffic.vehicles:
+		all_classic = all_classic and VehicleCatalog.get_type(v.model).era == "classique"
+	_check(all_classic, "filtre de la circulation : 5 véhicules de 1800-1945")
+	tr.traffic.set_filters("", "")
 	tr.traffic.enabled = true
+
+	print("Stations et lignes :")
+	tr.traffic.clear()
+	var st := tr.stations
+	var bus1 := st.place("arret_bus", Vector3(-20, 0, -30))
+	var bus2 := st.place("arret_bus", Vector3(-20, 0, 50))
+	_check(bus1.ok and bus2.ok, "deux arrêts de bus posés sur la route")
+	_check(st.stations[bus1.id].node >= 0 and tr.network.degree(st.stations[bus1.id].node) == 2, "l'arrêt coupe la route en deux tronçons")
+	var too_close := st.place("arret_bus", Vector3(-20, 0, -24))
+	_check(not too_close.ok, "refus d'un arrêt trop près d'un autre (« %s »)" % too_close.get("reason", ""))
+	var bad_tram := st.place("arret_tram", Vector3(150, 0, -20))
+	_check(not bad_tram.ok and String(bad_tram.reason).contains("tram"), "pas d'arrêt de tram sur une ligne classique (« %s »)" % bad_tram.get("reason", ""))
+	var g1 := st.place("gare", Vector3(80, 0, -20))
+	var g2 := st.place("gare", Vector3(320, 0, -20))
+	_check(g1.ok and g2.ok, "deux gares sur la voie ferrée (%s / %s)" % [g1.get("reason", "ok"), g2.get("reason", "ok")])
+	var port1 := st.place("port", Vector3(-418, 0, -60))
+	var port2 := st.place("port", Vector3(-383, 0, 100))
+	_check(port1.ok and port2.ok, "deux ports sur la voie navigable (%s / %s)" % [port1.get("reason", "ok"), port2.get("reason", "ok")])
+	var on_hill := st.check_air("aeroport", Vector3(200, 0, 0), 0.0)
+	_check(not on_hill.ok, "pas d'aéroport sur la colline (« %s »)" % on_hill.reason)
+	for i in 240:
+		if not String(st.check_air("aeroport", Vector3(420, 0, 650), 0.0).reason).contains("chargement") \
+				and not String(st.check_air("heliport", Vector3(10, 0, 250), 0.0).reason).contains("chargement"):
+			break
+		await process_frame
+	var heli := st.place("heliport", Vector3(10, 0, 250))
+	var apt := st.place("aeroport", Vector3(420, 0, 650), 0.0)
+	_check(heli.ok and apt.ok, "héliport et aéroport posés (%s / %s)" % [heli.get("reason", "ok"), apt.get("reason", "ok")])
+	_check(tr.is_cell_occupied(Vector2i(420, 650)) and tr.is_cell_occupied(Vector2i(620, 650)) and not tr.is_cell_occupied(Vector2i(700, 650)), "piste et installations réservées")
+	_check((tr.is_cell_occupied(Vector2i(-16, -30)) and world.tree_blocker.call(Vector2i(-16, -30))) or (tr.is_cell_occupied(Vector2i(-24, -30)) and world.tree_blocker.call(Vector2i(-24, -30))), "quai de l'arrêt de bus réservé")
+	_check(absf(world.cell_height(Vector2i(420, 300)) - float(st.stations[apt.id].pos.y)) < 0.01, "piste aplanie")
+	var bl := st.create_line([bus1.id, bus2.id], "", 2)
+	_check(bl.ok and VehicleCatalog.get_type(st.lines[bl.id].model).cat == "bus", "ligne de bus (%s)" % st.lines.get(bl.get("id", -1), {}).get("model", bl.get("reason", "")))
+	var tl := st.create_line([g1.id, g2.id], "vapeur_pacific", 1)
+	var bt := st.create_line([port1.id, port2.id], "bateau_bus", 1)
+	_check(tl.ok and bt.ok, "ligne de train et ligne de bateau")
+	var mixed := st.create_line([bus1.id, g1.id])
+	_check(not mixed.ok, "refus d'une ligne qui mélange bus et train")
+	var al := st.create_line([heli.id, apt.id])
+	_check(al.ok and String(VehicleCatalog.get_type(st.lines[al.id].model).kind) in ["helico", "multirotor", "ballon"], "ligne aérienne depuis un héliport : hélicoptère (%s)" % st.lines.get(al.get("id", -1), {}).get("model", al.get("reason", "")))
+	var line_vehicles := 0
+	for v in tr.traffic.vehicles:
+		if v.has("line"):
+			line_vehicles += 1
+	_check(line_vehicles == 6, "6 véhicules de ligne en service : 2 bus, 1 train, 1 bateau, 2 hélicoptères (%d)" % line_vehicles)
+	st.set_line(bl.id, "imperiale", 3)
+	var buses := 0
+	var all_imp := true
+	for v in tr.traffic.vehicles:
+		if v.has("line") and int(v.line) == int(bl.id):
+			buses += 1
+			all_imp = all_imp and v.model == "imperiale"
+	_check(buses == 3 and all_imp, "changer le modèle et le nombre : 3 bus à impériale")
+	var bus_v: Dictionary = {}
+	var air_v: Dictionary = {}
+	for v in tr.traffic.vehicles:
+		if v.has("line") and int(v.line) == int(bl.id) and bus_v.is_empty():
+			bus_v = v
+		if int(v.mode) == TransportTypes.Mode.AIR:
+			air_v = v
+	var max_alt := 0.0
+	var dwelled := false
+	var bus_start: Vector3 = (bus_v.body as Node3D).position
+	var bus_far := 0.0
+	tr.traffic.enabled = false
+	for i in 900:
+		tr.traffic.step(0.1)
+		max_alt = maxf(max_alt, (air_v.body as Node3D).position.y - 20.0)
+		dwelled = dwelled or float(bus_v.get("dwell", 0.0)) > 1.0
+		bus_far = maxf(bus_far, (bus_v.body as Node3D).position.distance_to(bus_start))
+	tr.traffic.enabled = true
+	_check(max_alt > 100.0, "l'hélicoptère décolle et vole (%d m)" % roundi(max_alt))
+	_check(bus_far > 40.0 and dwelled, "le bus roule d'arrêt en arrêt et marque l'arrêt (%d m)" % roundi(bus_far))
+	var n_lines := st.lines.size()
+	st.remove_station(port1.id)
+	_check(st.lines.size() == n_lines - 1, "supprimer un port supprime sa ligne devenue inutile")
+	var n_stations := st.stations.size()
 
 	print("Souris :")
 	var cam: Camera3D = scene.get_node("CameraRig/Camera3D")
@@ -240,6 +360,7 @@ func _run() -> void:
 	_check(world.load_world(), "chargement")
 	tr.from_dict(world.loaded_data.get("transport", {}))
 	_check(tr.network.edges.size() == edges_before - 1 and world.modifications.size() == mods, "réseau et terrassement restaurés")
+	_check(tr.stations.stations.size() == n_stations and tr.stations.lines.size() == n_lines - 1, "stations et lignes restaurées (%d stations, %d lignes)" % [tr.stations.stations.size(), tr.stations.lines.size()])
 
 	var place := ""
 	for i in args.size():
@@ -278,6 +399,19 @@ func _run() -> void:
 		]
 		for d in demo2:
 			print("  vitrine : ", tr._describe(d, true) if d.ok else d.reason)
+		# Arrêts et lignes de la vitrine.
+		var sv := tr.stations
+		var ta := sv.place("arret_tram", Vector3(60, 0, 195))
+		var tb := sv.place("arret_tram", Vector3(180, 0, 195))
+		var ba := sv.place("arret_bus", Vector3(50, 0, 150))
+		var bb := sv.place("arret_bus", Vector3(195, 0, 150))
+		print("  stations vitrine : ", [ta.get("reason", "ok"), tb.get("reason", "ok"), ba.get("reason", "ok"), bb.get("reason", "ok")])
+		sv.create_line([ta.id, tb.id], "tram_moderne", 1)
+		sv.create_line([ba.id, bb.id], "imperiale", 2)
+		tr.traffic.enabled = false
+		for i in 40:
+			tr.traffic.step(0.1)
+		tr.traffic.enabled = true
 	if shot != "":
 		for i in 60:
 			await process_frame

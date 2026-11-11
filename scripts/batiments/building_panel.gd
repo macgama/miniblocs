@@ -9,6 +9,9 @@ signal rules_changed(require_access: bool, unlimited_money: bool)
 signal zone_chosen(kind: String)
 signal zone_remove_chosen
 signal growth_toggled(on: bool)
+signal block_tool_chosen(tool: int)
+signal block_material_chosen(material: int)
+signal wall_height_changed(height: int)
 
 var _panel: PanelContainer
 var _list: VBoxContainer
@@ -23,6 +26,9 @@ var _demolish_button: Button
 var _category := "logement"
 var _zone_label: Label
 var _growth := true
+var _block_label: Label
+var _block_material := 0
+var _wall_height := 3
 
 
 func _ready() -> void:
@@ -50,6 +56,7 @@ func _ready() -> void:
 	var cat_group := ButtonGroup.new()
 	var tabs: Array = BuildingCatalog.CATEGORIES.duplicate()
 	tabs.append({"id": "zones", "name": "Zonage", "color": Color("ffd166")})
+	tabs.append({"id": "blocs", "name": "Éditeur libre", "color": Color("8ecae6")})
 	for c in tabs:
 		var b := Button.new()
 		b.text = c.name
@@ -116,6 +123,9 @@ func show_category(cat: String) -> void:
 	if cat == "zones":
 		_show_zones()
 		return
+	if cat == "blocs":
+		_show_blocks()
+		return
 	for id in BuildingCatalog.ids_in(cat):
 		var t := BuildingCatalog.get_type(id)
 		var b := Button.new()
@@ -164,6 +174,80 @@ func _show_zones() -> void:
 	_zone_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_list.add_child(_zone_label)
 	_item_buttons.append(_zone_label)
+
+
+func _show_blocks() -> void:
+	var tools := [["Bloc", BlockEditor.Tool.BLOCK, "Un clic = un bloc, contre le sol ou contre un autre bloc."],
+		["Rectangle", BlockEditor.Tool.RECT, "Clic glissé : dalle, plancher ou toit plat."],
+		["Mur", BlockEditor.Tool.WALL, "Clic glissé en ligne : mur de la hauteur choisie."],
+		["Gomme", BlockEditor.Tool.ERASE, "Clic sur un bloc, ou glissé pour effacer un étage."]]
+	var row := HFlowContainer.new()
+	_list.add_child(row)
+	_item_buttons.append(row)
+	for t in tools:
+		var b := Button.new()
+		b.text = t[0]
+		b.tooltip_text = t[2]
+		b.toggle_mode = true
+		b.button_group = _item_group
+		var tool_id: int = t[1]
+		b.pressed.connect(func() -> void: block_tool_chosen.emit(tool_id))
+		row.add_child(b)
+	var hrow := HBoxContainer.new()
+	var hl := Label.new()
+	hl.text = "Hauteur des murs (blocs) :"
+	hrow.add_child(hl)
+	var spin := SpinBox.new()
+	spin.min_value = 1
+	spin.max_value = 30
+	spin.value = _wall_height
+	spin.value_changed.connect(func(v: float) -> void:
+		_wall_height = int(v)
+		wall_height_changed.emit(int(v)))
+	hrow.add_child(spin)
+	_list.add_child(hrow)
+	_item_buttons.append(hrow)
+	var grid := GridContainer.new()
+	grid.columns = 7
+	_list.add_child(grid)
+	_item_buttons.append(grid)
+	var mat_group := ButtonGroup.new()
+	for i in BlockEditor.MATERIALS.size():
+		var m: Dictionary = BlockEditor.MATERIALS[i]
+		var b := Button.new()
+		b.custom_minimum_size = Vector2(40, 34)
+		b.toggle_mode = true
+		b.button_group = mat_group
+		b.tooltip_text = "%s · %d € le bloc" % [m.name, m.price]
+		var col: Color = m.color
+		for state in ["normal", "hover", "pressed", "hover_pressed"]:
+			var sb := StyleBoxFlat.new()
+			sb.bg_color = Color(col.r, col.g, col.b, 1.0)
+			sb.set_corner_radius_all(4)
+			if state.contains("pressed"):
+				sb.set_border_width_all(3)
+				sb.border_color = Color.WHITE
+			elif state == "hover":
+				sb.set_border_width_all(2)
+				sb.border_color = Color(1, 1, 1, 0.6)
+			b.add_theme_stylebox_override(state, sb)
+		b.button_pressed = i == _block_material
+		var mi := i
+		b.pressed.connect(func() -> void:
+			_block_material = mi
+			block_material_chosen.emit(mi))
+		grid.add_child(b)
+	_block_label = Label.new()
+	_block_label.add_theme_font_size_override("font_size", 12)
+	_block_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_block_label.text = "Clic droit : retirer un bloc · Ctrl+Z : annuler"
+	_list.add_child(_block_label)
+	_item_buttons.append(_block_label)
+
+
+func set_block_info(text: String) -> void:
+	if is_instance_valid(_block_label) and not _block_label.is_queued_for_deletion():
+		_block_label.text = text + "\nClic droit : retirer un bloc · Ctrl+Z : annuler"
 
 
 func set_zone_info(text: String) -> void:

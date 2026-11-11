@@ -270,7 +270,8 @@ func check_place(id: String, center: Vector2i, r: int, grown := false) -> Dictio
 	res.access = find_access(id, rect, r)
 	if grown:
 		res.cost = 0
-	if (require_access or grown) and res.access.is_empty():
+	var needs_access := not (t.get("access", []) as Array).is_empty()
+	if (require_access or grown) and needs_access and res.access.is_empty():
 		var names: Array[String] = []
 		for a in t.get("access", []):
 			names.append(String(TransportTypes.get_type(a).get("name", a)).to_lower())
@@ -544,7 +545,7 @@ func totals() -> Dictionary:
 			out[k] += int(t.get(k, 0))
 		var bid := int(b.id)
 		if not _access_cache.has(bid):
-			_access_cache[bid] = not find_access(b.t, _rect_of(b), int(b.r)).is_empty()
+			_access_cache[bid] = (t.get("access", []) as Array).is_empty() or not find_access(b.t, _rect_of(b), int(b.r)).is_empty()
 		if not _access_cache[bid]:
 			out.non_desservis += 1
 	return out

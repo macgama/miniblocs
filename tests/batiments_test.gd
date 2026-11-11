@@ -29,6 +29,7 @@ func _fake_tile(t: Vector2i) -> PackedFloat32Array:
 
 
 func _run() -> void:
+	Creations.persist = false
 	print("Catalogue :")
 	var all_ok := true
 	var n_types := 0
@@ -226,7 +227,39 @@ func _run() -> void:
 	var bnode: Node = bs._nodes[id]
 	_check(bnode.get_child(0) is StaticBody3D, "les bâtiments ont une collision")
 	_check(world.modifications.has(Vector2i(-120, -100)), "pas d'arbres sous les blocs")
+
+	print("Espaces publics :")
+	_check(BuildingCatalog.ids_in("espaces").size() >= 25, "%d places, parcs, monuments et mobilier" % BuildingCatalog.ids_in("espaces").size())
+	var bench := bs.check_place("banc", Vector2i(-250, -200), 0)
+	_check(bench.ok, "un banc se pose sans route (%s)" % bench.reason)
+	_check(not bs.check_place("place_pavee", Vector2i(-250, -230), 0).ok, "une place pavée demande une voie")
+
+	print("Mes créations :")
+	be.capture_name = "Ma cabane"
+	var cap := be.capture(Rect2i(k0.x - 5, k0.z - 2, 9, 16))
+	_check(cap.ok and int(cap.blocks) == nblocks, "création enregistrée : %s blocs" % cap.get("blocks"))
+	var crea_id: String = cap.get("id", "")
+	var ct := BuildingCatalog.get_type(crea_id)
+	_check(ct.get("name") == "Ma cabane" and ct.cat == Creations.CATEGORY and int(ct.w) == 4 and int(ct.d) == 13, "dans le catalogue : 4 × 13 m (%s × %s)" % [ct.get("w"), ct.get("d")])
+	_check(Creations.ids().has(crea_id) and BuildingCatalog.cost(crea_id) > 0, "listée dans Mes créations, avec un prix")
+	var cm := BuildingCatalog.build_mesh(crea_id)
+	var cbb := cm.get_aabb()
+	_check(cm.get_surface_count() == 1 and absf(cbb.size.x - 4.0) < 0.01 and absf(cbb.size.z - 13.0) < 0.01 and cbb.size.y >= 1.5, "modèle de la création à la bonne taille")
+	_check(not be.capture(Rect2i(500, 500, 3, 3)).ok, "sélection vide refusée")
+	bs.require_access = false
+	var cid := bs.place(crea_id, Vector2i(-200, 100), 1)
+	bs.require_access = true
+	_check(cid >= 0, "création posée comme un bâtiment")
 	bs.money = before + roundi(paid * BuildingSystem.REFUND) - 45 * 80 * ZoneSystem.PRICE_M2
+	nb = bs.buildings.size()
+	var crea_save := Creations.to_dict(Creations.used_by(bs))
+	_check((crea_save.items as Dictionary).has(crea_id), "la partie garde une copie de la création")
+	Creations.remove(crea_id)
+	_check(not Creations.ids().has(crea_id) and not BuildingCatalog.get_type(crea_id).is_empty(), "retirée de la liste, toujours connue des bâtiments posés")
+	Creations.items.erase(crea_id)
+	BuildingCatalog.all_types().erase(crea_id)
+	Creations.adopt(JSON.parse_string(JSON.stringify(crea_save)))
+	_check(BuildingCatalog.get_type(crea_id).get("name") == "Ma cabane", "création retrouvée depuis la sauvegarde")
 
 	print("Sauvegarde :")
 	_check(world.save_world({"transport": transport.to_dict(), "batiments": bs.to_dict(), "zones": zs.to_dict(), "blocs": be.to_dict()}), "sauvegarde")

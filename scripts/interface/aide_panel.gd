@@ -25,6 +25,8 @@ const SECTIONS := [
 		["Clic gauche", "poser le bâtiment choisi"],
 		["R", "tourner le bâtiment d'un quart de tour"],
 		["Ctrl + Z", "annuler (éditeur libre bloc par bloc)"],
+		["Enregistrer + clic glissé", "éditeur libre : ta construction devient un bâtiment de « Mes créations »"],
+		["Filtres", "région, époque et recherche par nom dans les listes de bâtiments"],
 	]],
 	["Transports publics", [
 		["L", "panneau Lignes : stations, gares, ports, aéroports et lignes"],

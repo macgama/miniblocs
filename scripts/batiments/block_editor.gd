@@ -16,8 +16,10 @@ extends Node3D
 signal info_changed(text: String)
 signal message(text: String)
 signal changed
+## Une création a été enregistrée (ou refusée) : résultat de Creations.capture.
+signal captured(result: Dictionary)
 
-enum Tool { NONE, BLOCK, RECT, WALL, ERASE }
+enum Tool { NONE, BLOCK, RECT, WALL, ERASE, CAPTURE }
 
 ## Côté d'un bloc (m). 0,5 donnerait des blocs plus fins.
 const SIZE := 1.0
@@ -57,6 +59,8 @@ var buildings: BuildingSystem
 var tool: Tool = Tool.NONE
 var material := 0
 var wall_height := 3
+## Nom donné à la prochaine création enregistrée (outil Enregistrer).
+var capture_name := ""
 
 ## Vector3i(x, y2, z) -> matériau
 var blocks: Dictionary = {}
@@ -143,6 +147,9 @@ func _emit_help() -> void:
 			t = "Mur de %d bloc%s : clic glissé le long du mur" % [wall_height, "s" if wall_height > 1 else ""]
 		Tool.ERASE:
 			t = "Gomme : clic sur un bloc, ou glissé pour effacer un étage"
+		Tool.CAPTURE:
+			info_changed.emit("Enregistrer une création : clic glissé autour de ta construction (toutes les hauteurs sont prises) · Échap : arrêter")
+			return
 	info_changed.emit("%s · %s (%d € le bloc) · clic : poser · clic droit : retirer · Ctrl+Z : annuler · Échap : arrêter" % [t, mat.name, mat.price])
 
 
@@ -430,7 +437,7 @@ func target_from_ray(origin: Vector3, dir: Vector3) -> Dictionary:
 func drag_keys(a: Vector3i, b: Vector3i, t: Tool) -> Array:
 	var out: Array = []
 	match t:
-		Tool.RECT, Tool.ERASE:
+		Tool.RECT, Tool.ERASE, Tool.CAPTURE:
 			for x in range(mini(a.x, b.x), maxi(a.x, b.x) + 1):
 				for z in range(mini(a.z, b.z), maxi(a.z, b.z) + 1):
 					out.append(Vector3i(x, a.y, z))
@@ -474,7 +481,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		if mb.pressed:
 			if _target.is_empty():
 				return
-			if tool == Tool.BLOCK:
+			if tool == Tool.CAPTURE:
+				_drag = true
+				_drag_start = _target.duplicate()
+				_drag_start.place = _cap_key(_target)
+			elif tool == Tool.BLOCK:
 				place_blocks([_target.place], material)
 				_update_target(mb.position)
 			elif tool == Tool.ERASE and _target.get("hit") == null:
@@ -484,7 +495,11 @@ func _unhandled_input(event: InputEvent) -> void:
 				_drag_start = _target.duplicate()
 		elif _drag:
 			_drag = false
-			if tool == Tool.ERASE:
+			if tool == Tool.CAPTURE:
+				var ca: Vector3i = _drag_start.place
+				var cb: Vector3i = _cap_key(_target) if not _target.is_empty() else ca
+				capture(Rect2i(Vector2i(mini(ca.x, cb.x), mini(ca.z, cb.z)), Vector2i(absi(cb.x - ca.x) + 1, absi(cb.z - ca.z) + 1)))
+			elif tool == Tool.ERASE:
 				var a: Vector3i = _drag_start.hit
 				var b: Vector3i = _target.get("hit") if _target.get("hit") != null else a
 				remove_blocks(drag_keys(a, Vector3i(b.x, a.y, b.z), Tool.ERASE))
@@ -510,6 +525,23 @@ func _unhandled_input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 
 
+## Case visée par l'outil Enregistrer : le bloc touché lui-même, sinon le sol.
+func _cap_key(t: Dictionary) -> Vector3i:
+	return t.hit if t.get("hit") != null else t.place
+
+
+## Enregistre les blocs du rectangle comme création du catalogue.
+func capture(rect: Rect2i) -> Dictionary:
+	var res := Creations.capture(self, rect, capture_name)
+	if res.ok:
+		message.emit("Création « %s » enregistrée : %d blocs, %d × %d m. Retrouve-la dans l'onglet Mes créations." % [
+			Creations.items[res.id].name, res.blocks, res.w, res.d])
+	else:
+		message.emit(res.reason)
+	captured.emit(res)
+	return res
+
+
 func _update_target(screen: Vector2) -> void:
 	_target = target_from_ray(camera.project_ray_origin(screen), camera.project_ray_normal(screen))
 	_update_ghost()
@@ -528,6 +560,10 @@ func _update_ghost() -> void:
 		var a: Vector3i = _drag_start.hit if _drag else _target.hit
 		var b: Vector3i = _target.hit
 		keys = drag_keys(a, Vector3i(b.x, a.y, b.z), Tool.ERASE) if _drag else [a]
+	elif tool == Tool.CAPTURE:
+		var ca: Vector3i = _drag_start.place if _drag else _cap_key(_target)
+		var cb: Vector3i = _cap_key(_target)
+		keys = drag_keys(ca, Vector3i(cb.x, ca.y, cb.z), Tool.CAPTURE)
 	else:
 		var a2: Vector3i = _drag_start.place if _drag else _target.place
 		var b2: Vector3i = _target.place
@@ -546,6 +582,19 @@ func _update_ghost() -> void:
 	var mat: Dictionary = MATERIALS[material]
 	if tool == Tool.ERASE:
 		_ghost.material_override = _ghost_bad
+	elif tool == Tool.CAPTURE:
+		_ghost_ok.albedo_color = Color(0.3, 0.7, 1.0, 0.35)
+		_ghost.material_override = _ghost_ok
+		# Toute la hauteur des colonnes sélectionnées.
+		var top := hi.y
+		for k in blocks:
+			if k.x >= lo.x and k.x < hi.x and k.z >= lo.z and k.z < hi.z:
+				top = maxf(top, k.y * UNIT_Y + HU * UNIT_Y)
+		(_ghost.mesh as BoxMesh).size.y = top - lo.y + 0.04
+		_ghost.position.y = (lo.y + top) / 2.0
+		if _drag:
+			info_changed.emit("Sélection %d × %d m · relâche pour enregistrer" % [roundi(hi.x - lo.x), roundi(hi.z - lo.z)])
+		return
 	elif ok:
 		var c: Color = mat.color
 		_ghost_ok.albedo_color = Color(c.r, c.g, c.b, 0.55)

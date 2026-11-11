@@ -407,6 +407,33 @@ func _run() -> void:
 					wrong += 1
 	_check(on_ring.size() >= 3 and wrong == 0, "la circulation tourne dans le giratoire (%d véhicules, %d à contresens)" % [on_ring.size(), wrong])
 	tr.traffic.clear()
+	var pk := tr.stations.place("parking", Vector3(92, 0, 300))
+	_check(pk.ok and tr.traffic.parkings.size() == 1 and (tr.traffic.parkings.values()[0].spots as Array).size() == 26, "parking de 26 places (%s)" % pk.get("reason", "ok"))
+	_check(tr.is_cell_occupied(Vector2i(92, 300 - 12)) or tr.is_cell_occupied(Vector2i(92, 300 + 12)), "emprise du parking réservée")
+	_check(not tr.stations.create_line([pk.get("id", -1), pk.get("id", -1)]).ok, "pas de ligne vers un parking")
+	var max_parked := 0
+	var left := 0
+	var twice := 0
+	var was_parked := {}
+	for i in 3000:
+		if tr.traffic.vehicles.size() < 40:
+			tr.traffic.spawn(TransportTypes.Mode.ROAD)
+		tr.traffic.step(0.1)
+		max_parked = maxi(max_parked, tr.traffic.parked_count())
+		var seen_spot := {}
+		for v in tr.traffic.vehicles:
+			var uid := int(v.get("uid", 0))
+			if v.get("parked", false):
+				was_parked[uid] = true
+				if seen_spot.has(int(v.spot)):
+					twice += 1
+				seen_spot[int(v.spot)] = true
+			elif was_parked.has(uid):
+				was_parked.erase(uid)
+				left += 1
+	_check(max_parked >= 4 and twice == 0, "des voitures se garent (jusqu'à %d à la fois, une par place)" % max_parked)
+	_check(left >= 2, "et repartent (%d départs)" % left)
+	tr.traffic.clear()
 	tr.traffic.enabled = true
 
 	print("Démolition et sauvegarde :")
@@ -421,7 +448,8 @@ func _run() -> void:
 	tr.from_dict(world.loaded_data.get("transport", {}))
 	_check(tr.network.edges.size() == edges_before - 1 and world.modifications.size() == mods, "réseau et terrassement restaurés")
 	_check(tr.roundabouts.size() == 1 and tr.junctions.kind(gres.nodes[0]) == "giratoire", "giratoire restauré")
-	_check(tr.stations.stations.size() == n_stations and tr.stations.lines.size() == n_lines - 1, "stations et lignes restaurées (%d stations, %d lignes)" % [tr.stations.stations.size(), tr.stations.lines.size()])
+	_check(tr.stations.stations.size() == n_stations + 1 and tr.stations.lines.size() == n_lines - 1, "stations et lignes restaurées (%d stations, %d lignes)" % [tr.stations.stations.size(), tr.stations.lines.size()])
+	_check(tr.traffic.parkings.size() == 1, "parking restauré")
 
 	var place := ""
 	for i in args.size():
@@ -470,7 +498,9 @@ func _run() -> void:
 		sv.create_line([ta.id, tb.id], "tram_moderne", 1)
 		sv.create_line([ba.id, bb.id], "imperiale", 2)
 		tr.traffic.enabled = false
-		for i in 40:
+		for i in 1200:
+			if tr.traffic.count_mode(TransportTypes.Mode.ROAD) < 50:
+				tr.traffic.spawn(TransportTypes.Mode.ROAD)
 			tr.traffic.step(0.1)
 		tr.traffic.enabled = true
 	if shot != "":

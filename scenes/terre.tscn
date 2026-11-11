@@ -99,6 +99,7 @@ sun_path = NodePath("../Sun")
 environment_path = NodePath("../WorldEnvironment")
 transport_path = NodePath("../Transport")
 world_path = NodePath("../Terrain")
+vue_sol_path = NodePath("../VueSol")
 
 [node name="VueSol" type="Node3D" parent="."]
 script = ExtResource("10_vue_sol")

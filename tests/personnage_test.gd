@@ -8,6 +8,7 @@ extends SceneTree
 
 var ok := true
 var world: TerrainWorld
+var _tunnel_debut := Vector3.ZERO
 
 
 func _initialize() -> void:
@@ -77,6 +78,8 @@ func _run() -> void:
 	for i in 30:
 		await process_frame
 	var p := vue.personnage
+	# Pas de circulation pendant les tests de marche (on la teste à part, plus bas).
+	tr.traffic.set_enabled(false)
 
 	print("Bascule de vue :")
 	_check(vue.vue == VueSol.Vue.DESSUS and not p.visible, "on commence en vue de dessus, sans personnage")
@@ -142,6 +145,17 @@ func _run() -> void:
 	_check(absf(p.global_position.z - deck.z) < demi and p.global_position.y > deck.y - 0.5,
 		"le parapet empêche de tomber du pont (%.1f m de l'axe, bord à %.1f m)" % [absf(p.global_position.z - deck.z), demi])
 
+	# Longue marche sans aide sur la route (130 m, pont compris) : les collisions suivent toutes seules.
+	var r0 := tr.network.point_at(eid, 3.0)
+	p.teleporter(r0 + Vector3(0, 0.4, 0), -PI / 2.0)
+	vue.collisions.mettre_a_jour(p.global_position, 99)
+	await _frames(10)
+	await _marcher(p, Vector2(0, 1), -PI / 2.0, 14.0, true)
+	var proche := tr.network.nearest_on_edge(eid, p.global_position)
+	var route_y := tr.network.point_at(eid, float(proche.s)).y
+	_check(p.global_position.x - r0.x > 100.0 and absf(p.global_position.y - route_y) < 0.6,
+		"longue course sur la route (%.0f m) : le sol suit toujours sous les pieds" % (p.global_position.x - r0.x))
+
 	print("Collisions avec un bâtiment :")
 	var mur := StaticBody3D.new()
 	var cs := CollisionShape3D.new()
@@ -192,15 +206,112 @@ func _run() -> void:
 	await _marcher(p, Vector2(0, 1), -PI / 2.0, 4.0)
 	_check(p.global_position.x < 36.0, "la maison arrête le personnage (x = %.2f)" % p.global_position.x)
 
+	print("Arbres :")
+	# Cherche un arbre affiché près du point (60, 60) et fonce dessus.
+	var arbre := Vector3.INF
+	var cible := Vector2(60, 60)
+	for k in world.chunks:
+		var bloc_aff := world.chunks[k] as Node3D
+		for t: Transform3D in bloc_aff.get_meta("arbres", []):
+			var q := bloc_aff.position + t.origin
+			if Vector2(q.x, q.z).distance_to(cible) < Vector2(arbre.x, arbre.z).distance_to(cible):
+				arbre = q
+	_check(arbre != Vector3.INF, "des arbres sont plantés")
+	var sol_arbre := world.cell_height(Vector2i(floori(arbre.x), floori(arbre.z)))
+	p.teleporter(Vector3(arbre.x - 4.0, world.cell_height(Vector2i(floori(arbre.x - 4.0), floori(arbre.z))) + 0.3, arbre.z), -PI / 2.0)
+	vue.collisions.mettre_a_jour(p.global_position, 99)
+	await _frames(20)
+	await _marcher(p, Vector2(0, 1), -PI / 2.0, 2.0)
+	_check(p.global_position.x < arbre.x - 0.3 and absf(p.global_position.y - sol_arbre) < 2.0,
+		"le tronc d'un arbre arrête le personnage (%.2f m avant l'arbre)" % (arbre.x - p.global_position.x))
+
+	print("Tunnel :")
+	var rt := tr.build_segment("rail", Vector3(60, 0, 0), Vector3(340, 0, 0))
+	_check(rt.ok and float(rt.tunnel_len) > 20.0, "voie ferrée en tunnel sous la colline (%d m)" % roundi(rt.get("tunnel_len", 0.0)))
+	await _frames(5)
+	var debut := Vector3.INF
+	var fin := Vector3.INF
+	var voute := 0.0
+	for id in rt.edges:
+		var et: Dictionary = tr.network.edges[id]
+		for i in (et.pts as PackedVector3Array).size():
+			if et.st[i] == TransportTypes.Struct.TUNNEL:
+				if debut == Vector3.INF:
+					debut = et.pts[i]
+				fin = et.pts[i]
+	_tunnel_debut = debut
+	_check(vue.collisions.trous.size() > 50, "le relief est percé au-dessus du tunnel (%d cases)" % vue.collisions.trous.size())
+	# Entrée côté ouest, quelques mètres avant le portail, puis on marche vers l'est.
+	var entree := debut + Vector3(-6.0, 0.4, 0.0)
+	p.teleporter(entree, -PI / 2.0)
+	vue.collisions.mettre_a_jour(p.global_position, 99)
+	await _frames(20)
+	var x_dep := p.global_position.x
+	await _marcher(p, Vector2(0, 1), -PI / 2.0, 8.0, true)
+	var milieu_x := (debut.x + fin.x) * 0.5
+	_check(p.global_position.x > debut.x + 30.0 and p.global_position.x < fin.x, "on entre à pied dans le tunnel et on y avance (%.0f m → %.0f m, tunnel de %.0f à %.0f m)" % [x_dep, p.global_position.x, debut.x, fin.x])
+	var dessus := world.cell_height(Vector2i(floori(p.global_position.x), floori(p.global_position.z)))
+	var voie_y := 0.0
+	var meilleur := INF
+	for id in rt.edges:
+		for q in (tr.network.edges[id].pts as PackedVector3Array):
+			var dq := Vector2(q.x - p.global_position.x, q.z - p.global_position.z).length()
+			if dq < meilleur:
+				meilleur = dq
+				voie_y = q.y
+	_check(dessus - p.global_position.y > 4.0 and absf(p.global_position.y - voie_y) < 0.6,
+		"sous terre, debout sur la voie (%.1f m sous la surface, %s, voie %.1f, tunnel %s → %s)" % [dessus - p.global_position.y, p.global_position, voie_y, debut, fin])
+	# Le contrôleur ne doit pas « sauver » le personnage en le remontant sur la colline.
+	var avant_ctrl := p.global_position
+	vue._physics_process(1.0 / 60.0)
+	_check(p.global_position.distance_to(avant_ctrl) < 0.5, "dans le tunnel, le personnage n'est pas renvoyé à la surface")
+	# Au-dessus du tunnel, sur la colline : on ne tombe pas dedans.
+	var haut := Vector3(milieu_x + 0.5, 0.0, 0.5)
+	haut.y = world.cell_height(Vector2i(floori(haut.x), 0)) + 0.3
+	p.teleporter(haut, 0.0)
+	vue.collisions.mettre_a_jour(p.global_position, 99)
+	await _frames(20)
+	await _marcher(p, Vector2(1, 0), 0.0, 1.0)
+	_check(p.global_position.y > haut.y - 1.5, "sur la colline au-dessus du tunnel, on ne tombe pas dedans (%.1f m)" % p.global_position.y)
+
+	print("Véhicules :")
+	tr.traffic.set_enabled(true)
+	for i in 3:
+		tr.traffic.spawn(TransportTypes.Mode.ROAD)
+	for i in 200:
+		tr.traffic.step(0.25)
+	var auto: MeshInstance3D = null
+	for v in tr.traffic.vehicles:
+		if int(v.mode) == TransportTypes.Mode.ROAD:
+			auto = v.body
+			break
+	_check(auto != null, "des voitures roulent")
+	if auto:
+		p.teleporter(auto.global_position + Vector3(0, 3, 0), 0.0)
+		vue.collisions.suivre_vehicules(p.global_position)
+		_check(vue.collisions.nb_vehicules_actifs() >= 1, "les véhicules proches ont une collision")
+		p.global_position = auto.global_position
+		vue.collisions.suivre_vehicules(p.global_position)
+		vue.collisions.ecarter(p)
+		var hors := auto.global_transform.affine_inverse() * (p.global_position + Vector3(0, 0.9, 0))
+		var demi_x := auto.mesh.get_aabb().size.x * 0.5
+		_check(absf(hors.x) >= demi_x, "une voiture qui arrive sur le personnage l'écarte sur le côté")
+	tr.traffic.set_enabled(false)
+
 	print("1re personne :")
+	p.teleporter(Vector3(0.5, 20.1, 20.5), 0.0)
+	vue.collisions.mettre_a_jour(p.global_position, 99)
+	await _frames(40)
 	vue.zoomer(-1)
 	for i in 20:
 		vue.zoomer(-1)
 	_check(vue.vue == VueSol.Vue.PREMIERE, "molette : au plus près, on passe à la 1re personne")
 	await _frames(5)
 	await process_frame
+	await process_frame
 	var oeil := p.global_position + Vector3(0, Personnage.YEUX, 0)
-	_check(vue.camera.global_position.distance_to(oeil) < 0.05, "caméra à hauteur des yeux")
+	var ecart := vue.camera.global_position - oeil
+	_check(ecart.length() < 0.15, "caméra à hauteur des yeux (écart %.2f m : %s)" % [ecart.length(), ecart])
 	_check(vue.camera.cull_mask & Personnage.COUCHE_CORPS == 0, "son propre corps ne gêne pas la vue")
 	vue.zoomer(1)
 	_check(vue.vue == VueSol.Vue.TROISIEME, "molette arrière : retour à la 3e personne")
@@ -223,6 +334,17 @@ func _run() -> void:
 	if shot != "":
 		await _captures(vue, p, rig, shot, tr)
 
+	print("Sauvegarde :")
+	vue.set_vue(VueSol.Vue.PREMIERE)
+	p.teleporter(Vector3(12.5, 20.1, 33.5), 0.4)
+	vue._cap = 0.4
+	var sauve: Dictionary = JSON.parse_string(JSON.stringify(vue.to_dict()))
+	vue.set_vue(VueSol.Vue.DESSUS)
+	vue.from_dict(sauve)
+	_check(vue.vue == VueSol.Vue.PREMIERE and p.global_position.distance_to(Vector3(12.5, 20.1, 33.5)) < 0.01 and is_equal_approx(vue._cap, 0.4),
+		"la vue et la place du personnage sont gardées dans la sauvegarde")
+	vue.set_vue(VueSol.Vue.TROISIEME)
+
 	print("Retour en vue de dessus :")
 	vue.set_physics_process(true)
 	p.teleporter(Vector3(30.5, 20.1, 40.5), 0.7)
@@ -239,16 +361,19 @@ func _run() -> void:
 	vue.vue_suivante()
 	_check(vue.vue == VueSol.Vue.DESSUS, "V : 1re personne → dessus")
 
-	print("PERSONNAGE TEST OK" if ok else "PERSONNAGE TEST EN ÉCHEC")
+	print("PERSONNAGE TEST OK" if ok else "PERSONNAGE TEST ÉCHEC")
 	quit(0 if ok else 1)
 
 
 func _captures(vue: VueSol, p: Personnage, rig: Node3D, dossier: String, tr: TransportSystem) -> void:
+	vue.set_physics_process(true)
 	# Une petite route sur la plaine, en contrebas de la colline.
 	tr.build_segment("route", Vector3(20, 0, -40), Vector3(150, 0, -10))
 	var vues := [
 		["3e-personne", VueSol.Vue.TROISIEME, Vector3(40.5, 21, -30.5), -1.75, -0.12, 5.0],
 		["1re-personne", VueSol.Vue.PREMIERE, Vector3(-150.5, 21, 30.5), -PI / 2.0 + 0.25, -0.05, 4.5],
+		["tunnel-entree", VueSol.Vue.TROISIEME, _tunnel_debut + Vector3(-14, 0.4, 0), -PI / 2.0, -0.08, 5.0],
+		["tunnel-dedans", VueSol.Vue.TROISIEME, _tunnel_debut + Vector3(25, 0.4, 0), -PI / 2.0, -0.05, 4.0],
 	]
 	for v in vues:
 		vue.set_vue(v[1])
@@ -256,6 +381,7 @@ func _captures(vue: VueSol, p: Personnage, rig: Node3D, dossier: String, tr: Tra
 		vue._cap = v[3]
 		vue._tangage = v[4]
 		vue._distance = v[5]
+		vue.collisions.mettre_a_jour(p.global_position, 99)
 		for i in 120:
 			await process_frame
 		var im := root.get_viewport().get_texture().get_image()

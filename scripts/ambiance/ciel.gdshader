@@ -14,6 +14,12 @@ uniform float sun_visible = 1.0;
 uniform vec3 moon_dir = vec3(0.0, -1.0, 0.0);
 uniform float moon_visible = 0.0;
 uniform float stars = 0.0;
+// Météo : couverture nuageuse, nuages sombres (pluie), voile (brume), éclair.
+uniform float cloud_cover = 0.2;
+uniform float cloud_dark = 0.0;
+uniform vec2 cloud_offset = vec2(0.0);
+uniform float haze = 0.0;
+uniform float flash = 0.0;
 // Rotation du ciel étoilé (repère local -> repère des étoiles).
 uniform mat3 star_basis = mat3(1.0);
 
@@ -21,6 +27,28 @@ float hash3(vec3 p) {
 	p = fract(p * 0.3183099 + vec3(0.1, 0.2, 0.3));
 	p *= 17.0;
 	return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
+}
+
+float vnoise(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	f = f * f * (3.0 - 2.0 * f);
+	float a = hash3(vec3(i, 1.0));
+	float b = hash3(vec3(i + vec2(1.0, 0.0), 1.0));
+	float c = hash3(vec3(i + vec2(0.0, 1.0), 1.0));
+	float d = hash3(vec3(i + vec2(1.0, 1.0), 1.0));
+	return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+}
+
+float fbm(vec2 p) {
+	float v = 0.0;
+	float a = 0.5;
+	for (int i = 0; i < 5; i++) {
+		v += a * vnoise(p);
+		p = p * 2.03 + vec2(1.7, 9.2);
+		a *= 0.5;
+	}
+	return v;
 }
 
 vec3 star_field(vec3 d) {
@@ -84,5 +112,25 @@ void sky() {
 		// Halo léger.
 		col += vec3(0.5, 0.55, 0.65) * pow(max(cm, 0.0), 900.0) * 0.25 * moon_visible;
 	}
+	// Nuages : une couche plate vue en perspective, poussée par le vent.
+	if (h > 0.0 && cloud_cover > 0.01) {
+		vec2 uv = d.xz / (h + 0.12) * 1.6 + cloud_offset * 40.0;
+		float n = fbm(uv);
+		float density = smoothstep(1.0 - cloud_cover * 0.95 - 0.08, 1.0 - cloud_cover * 0.95 + 0.22, n);
+		density *= smoothstep(0.0, 0.12, h);
+		float day = clamp(sd.y * 4.0 + 0.3, 0.0, 1.0);
+		vec3 lit = mix(vec3(0.05, 0.06, 0.09), sun_color * 0.9 + vec3(0.15), day);
+		vec3 shade = mix(lit * 0.55, lit * 0.25, cloud_dark);
+		float inner = smoothstep(0.4, 1.0, n);
+		vec3 cloud = mix(lit * mix(1.0, 0.6, cloud_dark), shade, inner);
+		// Bords dorés quand le Soleil est bas, du côté du Soleil.
+		cloud += glow_color * glow_strength * pow(max(dot(d, sd), 0.0), 6.0) * 0.6;
+		col = mix(col, cloud, density * 0.95);
+	}
+	// Ciel gris quand il est couvert, voile de brume.
+	float lum = dot(col, vec3(0.3, 0.55, 0.15));
+	col = mix(col, vec3(lum) * mix(1.0, 0.7, cloud_dark), cloud_cover * cloud_cover * 0.6);
+	col = mix(col, horizon_color * 0.9 + vec3(0.04), haze * 0.7 * (1.0 - smoothstep(0.0, 0.6, abs(h)) * 0.5));
+	col += vec3(0.75, 0.8, 1.0) * flash * 1.5;
 	COLOR = col;
 }

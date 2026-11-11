@@ -76,6 +76,12 @@ func _ready() -> void:
 		if blocks.tool == BlockEditor.Tool.NONE:
 			_select_building_tool()
 			blocks.set_tool(BlockEditor.Tool.BLOCK))
+	build_panel.capture_name_changed.connect(func(n: String) -> void: blocks.capture_name = n)
+	build_panel.creation_deleted.connect(func(id: String) -> void: Creations.remove(id))
+	blocks.captured.connect(func(res: Dictionary) -> void:
+		if res.ok:
+			blocks.set_tool(BlockEditor.Tool.NONE)
+			build_panel.clear_selection())
 	build_panel.wall_height_changed.connect(func(h: int) -> void:
 		blocks.wall_height = h
 		blocks._emit_help())
@@ -91,6 +97,7 @@ func _ready() -> void:
 		else:
 			hud.show_message("Échec de la sauvegarde : " + last_error))
 	hud.load_requested.connect(open_saves_panel)
+	hud.help_requested.connect(toggle_help)
 	hud.quick_load_requested.connect(func() -> void:
 		var slot := GameStart.slot_id
 		if slot == "" or not SaveGame.exists(slot):
@@ -140,7 +147,9 @@ func _game_title() -> String:
 ## Sections de la sauvegarde : uniquement ce que le joueur a créé ou changé.
 func save_sections() -> Dictionary:
 	return {"terrain": world.to_dict(), "transport": transport.to_dict(), "batiments": buildings.to_dict(),
-		"zones": zones.to_dict(), "blocs": blocks.to_dict(), "ambiance": ambiance.to_dict()}
+		"zones": zones.to_dict(), "blocs": blocks.to_dict(), "ambiance": ambiance.to_dict(),
+		"creations": Creations.to_dict(Creations.used_by(buildings)),
+		"personnage": ($VueSol as VueSol).to_dict()}
 
 
 ## Sauvegarde dans la partie en cours (ou une nouvelle). title : nom d'une nouvelle partie.
@@ -186,10 +195,12 @@ func load_game(slot := "") -> bool:
 	GameStart.place_name = String(lieu.get("nom", ""))
 	world.from_dict(sec.terrain)
 	transport.from_dict(sec.get("transport", {}))
+	Creations.adopt(sec.get("creations", {}))
 	buildings.from_dict(sec.get("batiments", {}))
 	zones.from_dict(sec.get("zones", {}))
 	blocks.from_dict(sec.get("blocs", {}))
 	ambiance.from_dict(sec.get("ambiance", {}))
+	($VueSol as VueSol).from_dict(sec.get("personnage", {}))
 	build_panel.set_rules(buildings.require_access, buildings.unlimited_money)
 	build_panel.set_growth(zones.growth)
 	var cam: Dictionary = m.get("camera", {})
@@ -243,7 +254,7 @@ func open_saves_panel() -> void:
 	if _saves_panel != null:
 		return
 	_saves_panel = PartiesPanel.new(true)
-	hud.add_child(_saves_panel)
+	_windows_layer().add_child(_saves_panel)
 	_saves_panel.closed.connect(func() -> void: _saves_panel = null)
 	_saves_panel.load_chosen.connect(func(slot: String) -> void:
 		_saves_panel.close_panel()
@@ -257,6 +268,29 @@ func open_saves_panel() -> void:
 			_saves_panel.refresh()
 		else:
 			hud.show_message("Échec de la sauvegarde : " + last_error))
+
+
+var _help: AidePanel
+var _windows: CanvasLayer
+
+
+## Calque des fenêtres (aide, parties) : au-dessus de tous les panneaux.
+func _windows_layer() -> CanvasLayer:
+	if _windows == null:
+		_windows = CanvasLayer.new()
+		_windows.name = "Fenetres"
+		_windows.layer = 20
+		add_child(_windows)
+	return _windows
+
+
+func toggle_help() -> void:
+	if _help != null:
+		_help.close_panel()
+		return
+	_help = AidePanel.new()
+	_help.closed.connect(func() -> void: _help = null)
+	_windows_layer().add_child(_help)
 
 
 func _autosave(delta: float) -> void:
@@ -355,6 +389,8 @@ func _process(delta: float) -> void:
 		if t.failed_count() > 0:
 			s += "   ·   %d tuile(s) introuvable(s) (pas de réseau ?)" % t.failed_count()
 		s += "   ·   Cases modifiées : %d" % world.modifications.size()
+		if world.water.status != "":
+			s += "   ·   " + world.water.status
 		hud.set_status(s)
 		hud.set_network_info(transport.summary())
 		build_panel.set_money("Caisse : illimitée" if buildings.unlimited_money else "Caisse : " + BuildingSystem.format_money(buildings.money))
@@ -376,6 +412,9 @@ func _refresh_cell_info() -> void:
 	var real := world.raw_height(_hover.x + 0.5, _hover.y + 0.5)
 	var txt := "Case %d, %d   ·   %.6f, %.6f   ·   %s   ·   hauteur %.1f m (réelle %.1f m)" % [
 		_hover.x, _hover.y, ll.x, ll.y, kind, h, real]
+	var river := world.water_name_at(_hover)
+	if river != "":
+		txt += " (%s)" % river
 	if world.modifications.has(_hover):
 		txt += "   ·   modifiée"
 	hud.set_cell_info(txt)

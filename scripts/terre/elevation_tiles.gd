@@ -51,6 +51,13 @@ func _ready() -> void:
 		_free_requests.append(req)
 
 
+## Arrête proprement les téléchargements en cours (sinon Godot peut planter
+## en quittant pendant qu'un téléchargement tourne encore).
+func _exit_tree() -> void:
+	for req in _request_tile.keys():
+		(req as HTTPRequest).cancel_request()
+
+
 func has_tile(t: Vector2i) -> bool:
 	return _tiles.has(t)
 

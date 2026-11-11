@@ -14,6 +14,7 @@ const CATEGORIES := [
 	{"id": "services", "name": "Services publics", "color": Color("e76f51")},
 	{"id": "loisirs", "name": "Loisirs", "color": Color("80b918")},
 	{"id": "sport", "name": "Sport", "color": Color("9d4edd")},
+	{"id": "espaces", "name": "Espaces publics", "color": Color("52b788")},
 ]
 
 const ROAD := ["route"]
@@ -118,7 +119,11 @@ static func all_types() -> Dictionary:
 			t["era"] = "moderne"
 			t["style"] = ""
 			_all[id] = t
+		_all.merge(EspacesPublics.entries())
 		_all.merge(StyleBuilder.generate())
+		for id in Creations.items:
+			_all[id] = Creations.catalog_entry(id)
+		Creations.ensure_loaded()
 	return _all
 
 
@@ -175,6 +180,13 @@ static func build_mesh(id: String, material: Material = null) -> ArrayMesh:
 	var t := get_type(id)
 	var w := float(t.get("w", 4))
 	var d := float(t.get("d", 4))
+	if t.get("espace", false):
+		EspacesPublics.build(k, id, t)
+		k.fit_xz(w, d)
+		return k.to_mesh(material)
+	if t.has("blocks"):
+		Creations.build(k, t)
+		return k.to_mesh(material)
 	if t.has("arch"):
 		StyleBuilder.build(k, t)
 		k.fit_xz(w, d)

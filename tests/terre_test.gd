@@ -85,6 +85,57 @@ func _run() -> void:
 	zbuf.fill(30)
 	_check(zbuf.compress(FileAccess.COMPRESSION_DEFLATE).decompress(1024 * 1024, FileAccess.COMPRESSION_DEFLATE) == zbuf, "décompression des blocs")
 
+	print("Rivières :")
+	# Vallée en V qui descend vers le Sud : l'eau doit suivre le fond (x = 30).
+	var vw := 61
+	var vh := 80
+	var velev := PackedFloat32Array()
+	velev.resize(vw * vh)
+	for y in vh:
+		for x in vw:
+			velev[x + y * vw] = 10.0 + absf(x - 30) * 2.0 + float(vh - y) * 0.5
+	var streams := WaterMap.compute_streams(velev, vw, vh, 30.0)
+	var all_pts := PackedVector2Array()
+	var reaches_end := false
+	var widths_grow := true
+	var prev_w := 0.0
+	for l in streams.lines:
+		var pl: PackedVector2Array = l[0]
+		all_pts.append_array(pl)
+		reaches_end = reaches_end or pl[pl.size() - 1].y >= vh - 2
+		widths_grow = widths_grow and float(l[1]) >= prev_w
+		prev_w = float(l[1])
+	var on_floor := all_pts.size() > 10
+	for q in all_pts:
+		on_floor = on_floor and (absf(q.x - 30.0) <= 1.0 or q.y >= vh - 2)
+	_check(on_floor, "le ruisseau calculé suit le fond de la vallée (%d points)" % all_pts.size())
+	_check(reaches_end, "il coule vers l'aval (le Sud)")
+	_check(widths_grow and prev_w > float(streams.lines[0][1]), "il s'élargit vers l'aval (%.1f -> %.1f m)" % [float(streams.lines[0][1]), prev_w])
+	var smooth := WaterMap._chaikin(PackedVector2Array([Vector2(0, 0), Vector2(10, 0), Vector2(10, 10)]), 2)
+	_check(smooth.size() > 3 and smooth[0] == Vector2(0, 0) and smooth[smooth.size() - 1] == Vector2(10, 10), "lissage des tracés")
+	# Réponse OpenStreetMap (Overpass, « out geom ») : une rivière et un étang.
+	var wm := WaterMap.new()
+	wm.offline = true
+	wm.set_origin(48.8584, 2.2945)
+	var fixture := {"elements": [
+		{"type": "way", "tags": {"waterway": "river", "name": "Seine", "width": "30"},
+			"geometry": [{"lat": 48.8584, "lon": 2.2900}, {"lat": 48.8584, "lon": 2.2990}]},
+		{"type": "way", "tags": {"waterway": "stream"},
+			"geometry": [{"lat": 48.8570, "lon": 2.2945}, {"lat": 48.8560, "lon": 2.2945}]},
+		{"type": "way", "tags": {"natural": "water", "name": "Étang test"},
+			"geometry": [{"lat": 48.8600, "lon": 2.2940}, {"lat": 48.8600, "lon": 2.2950},
+				{"lat": 48.8605, "lon": 2.2950}, {"lat": 48.8605, "lon": 2.2940}, {"lat": 48.8600, "lon": 2.2940}]}]}
+	_check(wm._apply_osm_text(JSON.stringify(fixture), wm._generation), "lecture d'une réponse OpenStreetMap")
+	_check(wm.source == WaterMap.Source.OSM, "source = OpenStreetMap")
+	_check(wm.width_at(0.0, 10.0) == 30.0 and wm.width_at(0.0, 20.0) == 0.0, "largeur de la Seine (30 m de large)")
+	_check(wm.name_at(0.0, 0.0) == "Seine", "nom de la rivière")
+	var stream_z := -Geo.EARTH_RADIUS * deg_to_rad(48.8565 - 48.8584)
+	_check(wm.width_at(0.3, stream_z) == 2.0 and wm.width_at(2.0, stream_z) == 0.0, "ruisseau étroit (2 m)")
+	var pond_z := -Geo.EARTH_RADIUS * deg_to_rad(48.86025 - 48.8584)
+	_check(wm.width_at(0.0, pond_z) == WaterMap.POND_WIDTH and wm.name_at(0.0, pond_z) == "Étang test", "étang")
+	wm.free()
+	print('FREED')
+
 	var cache := "user://terrain_cache/15_16592_11272.png"
 	if FileAccess.file_exists(cache):
 		var real := ElevationTiles.new()
@@ -105,6 +156,7 @@ func _run() -> void:
 		print("Lieu : ", v)
 		world.set_origin(v.x, v.y)
 	else:
+		world.water.offline = true
 		world.tiles.offline_generator = _fake_tile
 		# Forêt au Nord de l'origine, champs au Sud, un lac à l'Est.
 		world.land.offline_generator = func(lat: float, lon: float) -> int:
@@ -119,13 +171,37 @@ func _run() -> void:
 
 	if place != "":
 		var t0 := Time.get_ticks_msec()
-		while Time.get_ticks_msec() - t0 < 60_000:
+		while Time.get_ticks_msec() - t0 < 120_000:
 			await process_frame
-			if world.tiles.pending_count() == 0 and world.chunks.size() > 40 and world._dirty.is_empty():
+			if world.tiles.pending_count() == 0 and world.chunks.size() > 40 and world._dirty.is_empty() and world.water.is_ready():
 				break
 		print("Blocs : %d, tuiles : %d, en attente : %d" % [world.chunks.size(), world.tiles.loaded_count(), world.tiles.pending_count()])
+		print(world.water.status, " (", Time.get_ticks_msec() - t0, " ms)")
 		if shot != "":
 			var rig = scene.get_node("CameraRig")
+			if "--water" in args:
+				# Vise le cours d'eau (d'au moins 3 m) le plus proche du centre.
+				var best := INF
+				var spot := Vector2.ZERO
+				for si in world.water.seg_a.size():
+					var mid: Vector2 = (world.water.seg_a[si] + world.water.seg_b[si]) * 0.5
+					if world.water.seg_w[si] >= 3.0 and mid.length() < best:
+						best = mid.length()
+						spot = mid
+				print("Cours d'eau visé : ", spot)
+				rig.position = Vector3(spot.x, rig.position.y, spot.y)
+				var t1 := Time.get_ticks_msec()
+				while Time.get_ticks_msec() - t1 < 60_000:
+					await process_frame
+					if world.tiles.pending_count() == 0 and world._dirty.is_empty() and Time.get_ticks_msec() - t1 > 3000:
+						break
+				if "--bridge" in args:
+					# Une départementale qui traverse le cours d'eau.
+					var tr: TransportSystem = scene.get_node("Transport")
+					var built := tr.build_path("departementale", {}, PackedVector2Array([spot + Vector2(-50, 30), spot + Vector2(50, -30)]))
+					print("Route : ", built.get("ok"), " ", built.get("reason", ""))
+					for i in 60:
+						await process_frame
 			rig._distance = dist
 			rig._target_distance = dist
 			rig.rotation_degrees.y = 25.0
@@ -163,7 +239,12 @@ func _run() -> void:
 				trees += (ch as MultiMeshInstance3D).multimesh.instance_count
 	_check(trees > 100, "arbres plantés dans la forêt (%d)" % trees)
 	var south: MeshInstance3D = world.chunks.get(Vector2i(0, 1))
-	_check(south != null and south.get_child_count() == 0, "pas d'arbres dans les champs")
+	var south_trees := 0
+	if south:
+		for ch in south.get_children():
+			if ch is MultiMeshInstance3D:
+				south_trees += 1
+	_check(south != null and south_trees == 0, "pas d'arbres dans les champs")
 	world.tree_blocker = func(c: Vector2i) -> bool: return true
 	world.mark_cells_dirty([Vector2i(10, -10)])
 	for i in 120:
@@ -176,6 +257,78 @@ func _run() -> void:
 			blocked += 1
 	_check(blocked == 0, "tree_blocker empêche les arbres")
 	world.tree_blocker = Callable()
+
+	print("Eau douce :")
+	# Une rivière de 4 m (x ≈ 20) et un ruisseau de 1 m en diagonale (x ≈ 30 à 36).
+	world.water.add_line(PackedVector2Array([Vector2(20, -120), Vector2(20, 120)]), 4.0, "Rivière test")
+	world.water.add_line(PackedVector2Array([Vector2(30, -60), Vector2(36, 60)]), 1.0)
+	world.water.add_polygon(PackedVector2Array([Vector2(-20, 30), Vector2(-10, 30), Vector2(-10, 40), Vector2(-20, 40)]))
+	world.water.water_changed.emit()
+	_check(world._dirty.size() >= world.chunks.size(), "les blocs sont redessinés quand l'eau arrive")
+	for i in 300:
+		await process_frame
+		if world._dirty.is_empty() and world._jobs.is_empty():
+			break
+	var rc := Vector2i(20, 10)
+	var q := world._quantize(world.raw_height(20.5, 10.5))
+	_check(world.cell_kind_at(rc) == "Rivière", "case de rivière (%s)" % world.cell_kind_at(rc))
+	_check(world.water_name_at(rc) == "Rivière test", "nom du cours d'eau sur la case")
+	_check(world.cell_height(rc) == q - 2.0 * world.height_step, "lit de rivière creusé de 1 m (%.1f / %.1f)" % [world.cell_height(rc), q])
+	_check(absf(world.water_surface_at(20.5, 10.5) - (q - TerrainWorld.WATER_SURFACE_DROP)) < 0.001, "surface de l'eau juste sous la berge")
+	_check(is_nan(world.water_surface_at(25.5, 10.5)), "pas d'eau sur la berge")
+	_check(world.cell_kind_at(Vector2i(33, 0)) == "Ruisseau", "ruisseau de 1 m (%s)" % world.cell_kind_at(Vector2i(33, 0)))
+	var qs := world._quantize(world.raw_height(33.5, 0.5))
+	_check(world.cell_height(Vector2i(33, 0)) == qs - world.height_step, "ruisseau creusé d'une marche")
+	_check(world.cell_kind_at(Vector2i(-15, 35)) == "Étang", "étang (%s)" % world.cell_kind_at(Vector2i(-15, 35)))
+	var lake_s := world.water_surface_at(55.5, 5.5)
+	_check(not is_nan(lake_s), "le lac WorldCover a une surface d'eau")
+	_check(is_nan(world.water_surface_at(-300.5, 0.5)), "la mer n'est pas de l'eau douce")
+	var c00: MeshInstance3D = world.chunks.get(Vector2i(0, 0))
+	var eau: MeshInstance3D = c00.get_node_or_null("Eau") if c00 else null
+	_check(eau != null and eau.mesh != null and eau.material_override is ShaderMaterial, "surface d'eau animée dans le bloc")
+	var shore_v := 0
+	var open_v := 0
+	if eau:
+		var cols: PackedColorArray = eau.mesh.surface_get_arrays(0)[Mesh.ARRAY_COLOR]
+		for col in cols:
+			if col.r > 0.5:
+				shore_v += 1
+			else:
+				open_v += 1
+	_check(shore_v > 0 and open_v > 0, "écume sur les berges, eau libre au milieu (%d / %d)" % [shore_v, open_v])
+	var trees_in_river := 0
+	for ch in c00.get_children():
+		if ch is MultiMeshInstance3D:
+			var mm: MultiMesh = (ch as MultiMeshInstance3D).multimesh
+			for t in mm.instance_count:
+				var o := mm.get_instance_transform(t).origin
+				if o.x >= 18.0 and o.x < 22.0:
+					trees_in_river += 1
+	_check(trees_in_river == 0, "pas d'arbres dans la rivière")
+	# Une route qui traverse la rivière passe sur un pont.
+	# (sol plat à 5 m, rivière de x = 19 à 21 et ruisseau en x = 34)
+	var ground := func(_x: float, _z: float) -> float: return 5.0
+	var river := func(x: float, _z: float) -> float:
+		return 4.85 if (x >= 19.0 and x < 21.0) or (x >= 34.0 and x < 35.0) else NAN
+	var cross := RoutePlanner.plan("rue", PackedVector2Array([Vector2(0, 10), Vector2(28, 10)]), NAN, NAN, ground, river)
+	var bridge_ok := false
+	var dry_ok := true
+	for i in cross.pts.size():
+		var px_: float = cross.pts[i].x
+		if px_ >= 19.0 and px_ <= 21.0:
+			bridge_ok = cross.st[i] == TransportTypes.Struct.BRIDGE and cross.pts[i].y >= 4.85 + 1.0
+		if px_ < 10.0 and cross.st[i] == TransportTypes.Struct.BRIDGE:
+			dry_ok = false
+	_check(cross.ok and bridge_ok, "pont au-dessus de la rivière (%s)" % cross.reason)
+	_check(dry_ok, "pas de pont loin de la rivière")
+	var cross2 := RoutePlanner.plan("rue", PackedVector2Array([Vector2(26, 0), Vector2(42, 0)]), NAN, NAN, ground, river)
+	var small_bridge := false
+	for i in cross2.pts.size():
+		if cross2.st[i] == TransportTypes.Struct.BRIDGE:
+			small_bridge = true
+	_check(small_bridge, "petit pont même sur un ruisseau de 1 m")
+	var no_water := RoutePlanner.plan("rue", PackedVector2Array([Vector2(0, 10), Vector2(28, 10)]), NAN, NAN, ground)
+	_check(no_water.ok, "plan() marche toujours sans le paramètre eau")
 
 	var hit: Variant = world.pick_cell(Vector3(0.5, h0 + 80.0, 0.5), Vector3.DOWN)
 	_check(hit == Vector2i(0, 0), "rayon vertical -> case 0, 0")

@@ -1039,6 +1039,8 @@ func _plant_vegetation(mi: MeshInstance3D, job: Dictionary) -> void:
 			bushes.append(xforms[n])
 			bush_cols.append(cols[n])
 	_add_multimesh(mi, _tree_mesh, trees, tree_cols)
+	# Gardé pour les collisions des troncs (vue au sol).
+	mi.set_meta("arbres", trees)
 	_add_multimesh(mi, _bush_mesh, bushes, bush_cols)
 
 

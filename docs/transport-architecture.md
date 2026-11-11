@@ -57,6 +57,12 @@ Les valeurs sont des repères de conception simplifiés pour le jeu. Elles sont 
 
 `scripts/transport/vehicle_catalog.gd` (VehicleCatalog), même principe que BuildingCatalog : `CATEGORIES`, `TYPES` (name, cat, mode, era, region, year, L, W, H, kmh, places, desc, shape et ses réglages, consist pour les voitures attelées), `build_mesh(id, paint)`. Les époques et régions sont celles de `Styles` (la bible). `for_track(classe, era, region)` donne les modèles qui peuvent rouler sur une classe de voie. Les formes sont dans `vehicle_mesh.gd` (VehicleMesh, qui étend BlocMesh).
 
+## Stations et lignes
+
+`scripts/transport/station_system.gd` (StationSystem, enfant de TransportSystem). Une station du réseau est un **nœud du graphe** (la voie est coupée à cet endroit) ; une station aérienne est posée seule (centre, direction de la piste). Les emprises sont des rectangles dans le repère de la station (`occupies(case)`), le terrain sous une piste est aplani. Une ligne = `{kind, stops, model, count, color}` ; ses véhicules sont dans Traffic (`add_line_vehicle`, `add_air_vehicle`) : navette d'une station à l'autre (A*), arrêt de 12 s. Les avions suivent `flight_path()` : roulage, décollage, croisière à 260 m, approche dans l'axe, atterrissage. Sauvegarde dans la clé `transport.stations`.
+
+Choix simples pour l'instant (questions 1 et 2 toujours ouvertes) : pas de voyageurs simulés, pas d'horaires, navette aller-retour.
+
 ## Véhicules (étape 1)
 
 `scripts/transport/traffic.gd` : voitures, trains (locomotive + 2 voitures), piétons, cyclistes et bateaux. Chacun choisit une destination au hasard dans son réseau et y va par le plus court chemin (A*), en roulant à droite. Le nombre de véhicules suit la longueur du réseau (1 voiture tous les 45 m de route, etc.). Pas encore de collisions, de feux, ni de lignes.
@@ -68,6 +74,7 @@ Les valeurs sont des repères de conception simplifiés pour le jeu. Elles sont 
 | **1. Fait** | Graphe commun, route / rail / chemin / voie d'eau sur le vrai relief, ponts, tunnels, terrassement, carrefours, véhicules d'ambiance, sauvegarde. |
 | **2. Fait** | Classes réglementaires (largeurs, rayons, pentes), courbes, plateaux de carrefour, refus des chevauchements, talus. |
 | **Catalogue. Fait** | 131 véhicules de toutes époques et régions, branchés sur la circulation avec filtre époque / région. |
+| **3 et 4. Fait (version simple)** | Stations : arrêts de bus et de tram, gares, ports, héliports, aérodromes, aéroports. Lignes : stations dans l'ordre, véhicule du catalogue, nombre de véhicules, navette avec arrêts ; avions qui décollent et atterrissent. |
 | 2 bis | Ponts et tunnels forcés à la main (échangeurs, sauts-de-mouton), bretelles, ronds-points, aiguillages dessinés. |
 | 3 | **Stations** : arrêts de bus, gares, ports, héliports et **aéroports** (pistes, couloirs aériens entre aéroports, avions). |
 | 4 | **Lignes** : le joueur relie des stations, choisit les véhicules et la fréquence. |

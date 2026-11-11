@@ -15,6 +15,7 @@ const TRANSPORT_TOOLS := ["departementale", "train", "voie_verte", "canal"]
 var _tool_class := {}
 
 var _status_timer := 0.0
+var transit_panel: StationPanel
 var _hover := Vector2i.ZERO
 var _hover_valid := false
 
@@ -31,6 +32,7 @@ func _ready() -> void:
 		_refresh_cell_info())
 	hud.go_requested.connect(func(lat: float, lon: float) -> void: world.set_origin(lat, lon))
 	hud.tool_selected.connect(_on_tool_selected)
+	_setup_transit()
 	hud.traffic_toggled.connect(func(on: bool) -> void: transport.traffic.set_enabled(on))
 	hud.traffic_filter_changed.connect(func(era: String, region: String) -> void:
 		transport.traffic.set_filters(era, region)
@@ -107,9 +109,36 @@ func load_game() -> bool:
 	return true
 
 
+## Panneau des transports publics : stations et lignes.
+func _setup_transit() -> void:
+	transit_panel = StationPanel.new()
+	transit_panel.name = "PanneauLignes"
+	add_child(transit_panel)
+	var st := transport.stations
+	transit_panel.setup(st)
+	st.info_changed.connect(func(t: String) -> void: hud.set_tool_info(t))
+	st.message.connect(func(t: String) -> void: hud.show_message(t))
+	hud.transit_requested.connect(func() -> void: transit_panel.toggle())
+	transit_panel.station_chosen.connect(func(id: String) -> void:
+		_select_building_tool(true)
+		build_panel.clear_selection()
+		st.set_place(id))
+	transit_panel.demolish_chosen.connect(func() -> void:
+		_select_building_tool(true)
+		build_panel.clear_selection()
+		st.set_demolish())
+	transit_panel.line_tool_chosen.connect(func() -> void:
+		_select_building_tool(true)
+		build_panel.clear_selection()
+		st.set_line_tool())
+
+
 ## Un outil de construction prend la main : on range ceux du terrain et des voies.
-func _select_building_tool() -> void:
+func _select_building_tool(from_transit := false) -> void:
 	world.set_tool(TerrainWorld.Tool.INSPECT)
+	transport.stations.set_inactive()
+	if transit_panel and not from_transit:
+		transit_panel.clear_selection()
 	transport.set_inactive()
 	hud.show_spec("", {}, false)
 	buildings.set_inactive()
@@ -119,6 +148,8 @@ func _select_building_tool() -> void:
 
 
 func _on_tool_selected(t: int) -> void:
+	transport.stations.set_inactive()
+	transit_panel.clear_selection()
 	buildings.set_inactive()
 	zones.set_inactive()
 	blocks.set_inactive()

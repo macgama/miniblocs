@@ -24,6 +24,16 @@ const KINDS := {
 	"I": {"name": "Industrielle", "color": Color(1.0, 0.8, 0.2, 0.33),
 		"types": {"atelier": 4, "entrepot": 3, "usine": 2}},
 }
+## Archétypes de la bible qui poussent dans chaque type de zone, avec leur poids.
+const STYLE_ARCHS := {
+	"R": {"maison": 6, "grande_maison": 2, "rangee": 3, "immeuble": 3, "tour": 1},
+	"C": {"boutique": 4, "restaurant": 3, "marche": 1, "bureaux": 2, "grand_magasin": 1, "gratte_ciel": 1},
+	"I": {"atelier": 4, "entrepot": 3, "usine": 2, "ferme": 1},
+}
+## Style des nouvelles zones : "" = modèles classiques MiniBlocs, "mix" = tous
+## les styles mélangés, sinon un style de Styles.STYLES.
+var current_style := ""
+
 ## Prix du zonage (€ par m²).
 const PRICE_M2 := 2
 ## Côté maximal d'une zone (m).
@@ -147,7 +157,7 @@ func add_zone(k: String, rect: Rect2i) -> int:
 		buildings.money -= cost
 	var id := next_id
 	next_id += 1
-	zones[id] = {"id": id, "k": k, "x": rect.position.x, "z": rect.position.y, "w": rect.size.x, "h": rect.size.y}
+	zones[id] = {"id": id, "k": k, "x": rect.position.x, "z": rect.position.y, "w": rect.size.x, "h": rect.size.y, "s": current_style}
 	_dirty_views[id] = true
 	message.emit("Zone %s de %d × %d m (%s)." % [String(KINDS[k].name).to_lower(), rect.size.x, rect.size.y, BuildingSystem.format_money(cost)])
 	changed.emit()
@@ -177,7 +187,7 @@ func remove_area(rect: Rect2i, notify := true) -> int:
 			if p.size.x > 0 and p.size.y > 0:
 				var nid := next_id
 				next_id += 1
-				zones[nid] = {"id": nid, "k": z.k, "x": p.position.x, "z": p.position.y, "w": p.size.x, "h": p.size.y}
+				zones[nid] = {"id": nid, "k": z.k, "x": p.position.x, "z": p.position.y, "w": p.size.x, "h": p.size.y, "s": String(z.get("s", ""))}
 				_dirty_views[nid] = true
 	if notify and touched > 0:
 		message.emit("Zonage retiré.")
@@ -263,7 +273,7 @@ func _grow_in(z: Dictionary, need := INF) -> int:
 	var grown := rect.grow(14)
 	for eid in net.edges:
 		var e: Dictionary = net.edges[eid]
-		if e.t != "route":
+		if TransportTypes.mode_of(e.t) != TransportTypes.Mode.ROAD:
 			continue
 		for p in (e.pts as PackedVector3Array):
 			if grown.has_point(Vector2i(floori(p.x), floori(p.z))):
@@ -271,7 +281,7 @@ func _grow_in(z: Dictionary, need := INF) -> int:
 				break
 	if roads.is_empty():
 		return -1
-	var types: Dictionary = KINDS[z.k].types
+	var types := types_for(String(z.k), String(z.get("s", "")))
 	for attempt in 14:
 		var type_id := _pick(types)
 		var t := BuildingCatalog.get_type(type_id)
@@ -284,7 +294,7 @@ func _grow_in(z: Dictionary, need := INF) -> int:
 		var tan := net.tangent_at(eid, s)
 		var nrm := Vector3(-tan.z, 0.0, tan.x).normalized()
 		var side := 1.0 if rng.randf() < 0.5 else -1.0
-		var hw := float(TransportTypes.get_type("route").width) / 2.0
+		var hw := float(e.get("width", 7.0)) / 2.0
 		var c3 := p + nrm * side * (hw + 2.0 + float(t.d) / 2.0)
 		# Façade vers la route : rotation la plus proche de la direction −nrm·side.
 		var facing := -nrm * side
@@ -303,6 +313,24 @@ func _grow_in(z: Dictionary, need := INF) -> int:
 		if bid >= 0:
 			return bid
 	return -1
+
+
+## Types qui poussent dans une zone de type k avec le style donné (poids).
+static func types_for(k: String, style: String) -> Dictionary:
+	if style == "" or not STYLE_ARCHS.has(k):
+		return KINDS[k].types
+	var out := {}
+	var archs: Dictionary = STYLE_ARCHS[k]
+	var styles: Array = Styles.STYLES.keys() if style == "mix" else [style]
+	for sid in styles:
+		if not Styles.STYLES.has(sid):
+			continue
+		for arch in archs:
+			var id := "%s__%s" % [sid, arch]
+			if BuildingCatalog.all_types().has(id):
+				out[id] = int(archs[arch])
+	# Un style sans modèle pour ce type de zone : on garde les modèles classiques.
+	return out if not out.is_empty() else KINDS[k].types
 
 
 func _pick(weights: Dictionary) -> String:
@@ -484,7 +512,7 @@ func from_dict(data: Dictionary) -> void:
 		var id := int(z.id)
 		if not KINDS.has(String(z.k)):
 			continue
-		zones[id] = {"id": id, "k": String(z.k), "x": int(z.x), "z": int(z.z), "w": int(z.w), "h": int(z.h)}
+		zones[id] = {"id": id, "k": String(z.k), "x": int(z.x), "z": int(z.z), "w": int(z.w), "h": int(z.h), "s": String(z.get("s", ""))}
 		_dirty_views[id] = true
 		next_id = maxi(next_id, id + 1)
 	changed.emit()

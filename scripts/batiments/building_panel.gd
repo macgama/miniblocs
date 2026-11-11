@@ -12,6 +12,7 @@ signal growth_toggled(on: bool)
 signal block_tool_chosen(tool: int)
 signal block_material_chosen(material: int)
 signal wall_height_changed(height: int)
+signal zone_style_chosen(style: String)
 
 var _panel: PanelContainer
 var _list: VBoxContainer
@@ -29,6 +30,11 @@ var _growth := true
 var _block_label: Label
 var _block_material := 0
 var _wall_height := 3
+var _region := ""
+var _era := ""
+var _search := ""
+var _zone_style := ""
+var _filters: HFlowContainer
 
 
 func _ready() -> void:
@@ -67,6 +73,38 @@ func _ready() -> void:
 		b.pressed.connect(func() -> void: show_category(id))
 		cats.add_child(b)
 		_cat_buttons[id] = b
+
+	# Filtres de la bible : région du monde, époque, recherche par nom.
+	_filters = HFlowContainer.new()
+	box.add_child(_filters)
+	var region_opt := OptionButton.new()
+	region_opt.add_item("Toutes les régions")
+	region_opt.set_item_metadata(0, "")
+	for r in Styles.REGIONS:
+		region_opt.add_item(r.name)
+		region_opt.set_item_metadata(region_opt.item_count - 1, r.id)
+	region_opt.item_selected.connect(func(i: int) -> void:
+		_region = String(region_opt.get_item_metadata(i))
+		show_category(_category))
+	_filters.add_child(region_opt)
+	var era_opt := OptionButton.new()
+	era_opt.add_item("Toutes les époques")
+	era_opt.set_item_metadata(0, "")
+	for e in Styles.ERAS:
+		era_opt.add_item(e.name)
+		era_opt.set_item_metadata(era_opt.item_count - 1, e.id)
+	era_opt.item_selected.connect(func(i: int) -> void:
+		_era = String(era_opt.get_item_metadata(i))
+		show_category(_category))
+	_filters.add_child(era_opt)
+	var search := LineEdit.new()
+	search.placeholder_text = "Chercher…"
+	search.custom_minimum_size = Vector2(150, 0)
+	search.clear_button_enabled = true
+	search.text_changed.connect(func(txt: String) -> void:
+		_search = txt.strip_edges().to_lower()
+		show_category(_category))
+	_filters.add_child(search)
 
 	var scroll := ScrollContainer.new()
 	scroll.custom_minimum_size = Vector2(0, 300)
@@ -126,8 +164,13 @@ func show_category(cat: String) -> void:
 	if cat == "blocs":
 		_show_blocks()
 		return
-	for id in BuildingCatalog.ids_in(cat):
+	_filters.visible = true
+	var shown := 0
+	for id in BuildingCatalog.ids_in(cat, _region, _era):
 		var t := BuildingCatalog.get_type(id)
+		if _search != "" and not (String(t.name) + " " + String(t.desc)).to_lower().contains(_search):
+			continue
+		shown += 1
 		var b := Button.new()
 		b.text = "%s  ·  %d × %d m  ·  %s" % [t.name, t.w, t.d, BuildingSystem.format_short(BuildingCatalog.cost(id))]
 		b.tooltip_text = "%s\nPrix : %s (hors terrassement)" % [t.desc, BuildingSystem.format_money(BuildingCatalog.cost(id))]
@@ -138,9 +181,43 @@ func show_category(cat: String) -> void:
 		b.pressed.connect(func() -> void: building_chosen.emit(type_id))
 		_list.add_child(b)
 		_item_buttons.append(b)
+	if shown == 0:
+		var none := Label.new()
+		none.text = "Aucun bâtiment pour ces filtres."
+		_list.add_child(none)
+		_item_buttons.append(none)
 
 
 func _show_zones() -> void:
+	_filters.visible = false
+	# Style que suivra le zonage (les bâtiments qui poussent).
+	var srow := HBoxContainer.new()
+	var sl := Label.new()
+	sl.text = "Style :"
+	srow.add_child(sl)
+	var style_opt := OptionButton.new()
+	style_opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	style_opt.fit_to_longest_item = false
+	style_opt.clip_text = true
+	style_opt.custom_minimum_size = Vector2(220, 0)
+	style_opt.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	style_opt.add_item("Classique MiniBlocs")
+	style_opt.set_item_metadata(0, "")
+	style_opt.add_item("Mélange de tous les styles")
+	style_opt.set_item_metadata(1, "mix")
+	for sid in Styles.STYLES:
+		var st: Dictionary = Styles.STYLES[sid]
+		style_opt.add_item("%s (%s, %s)" % [st.name, Styles.region_name(st.region), Styles.era_name(st.era).to_lower()])
+		style_opt.set_item_metadata(style_opt.item_count - 1, sid)
+	for i in style_opt.item_count:
+		if String(style_opt.get_item_metadata(i)) == _zone_style:
+			style_opt.select(i)
+	style_opt.item_selected.connect(func(i: int) -> void:
+		_zone_style = String(style_opt.get_item_metadata(i))
+		zone_style_chosen.emit(_zone_style))
+	srow.add_child(style_opt)
+	_list.add_child(srow)
+	_item_buttons.append(srow)
 	for k in ZoneSystem.KINDS:
 		var b := Button.new()
 		b.text = "Zone %s  ·  %d €/m²" % [String(ZoneSystem.KINDS[k].name).to_lower(), ZoneSystem.PRICE_M2]
@@ -177,6 +254,7 @@ func _show_zones() -> void:
 
 
 func _show_blocks() -> void:
+	_filters.visible = false
 	var tools := [["Bloc", BlockEditor.Tool.BLOCK, "Un clic = un bloc, contre le sol ou contre un autre bloc."],
 		["Rectangle", BlockEditor.Tool.RECT, "Clic glissé : dalle, plancher ou toit plat."],
 		["Mur", BlockEditor.Tool.WALL, "Clic glissé en ligne : mur de la hauteur choisie."],

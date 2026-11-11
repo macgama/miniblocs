@@ -104,7 +104,7 @@ static func layout(net: TransportNetwork) -> Array[Transform3D]:
 			scale = PATH_SCALE
 		else:
 			continue
-		var width := float(TransportTypes.get_type(e.t).get("width", 6.0))
+		var width := TransportTypes.width_of(e.t, e.get("w", {}))
 		var length := float(e.len)
 		if length < 8.0:
 			continue
@@ -124,7 +124,8 @@ static func layout(net: TransportNetwork) -> Array[Transform3D]:
 			# En quinconce sur les routes, toujours à droite sur les chemins.
 			var side := 1.0 if mode == TransportTypes.Mode.PATH or (int(id) + i) % 2 == 0 else -1.0
 			var n := right * side
-			var pos := p + n * (width / 2.0 + 0.7)
+			# Routes : au bord du trottoir. Chemins : juste à côté.
+			var pos := p + n * (width / 2.0 + (0.5 if mode == TransportTypes.Mode.PATH else -0.4))
 			# Bras (+X local) vers l'axe de la voie.
 			var x_axis := -n
 			var basis := Basis(x_axis, Vector3.UP, x_axis.cross(Vector3.UP)).scaled(Vector3.ONE * scale)
@@ -150,6 +151,8 @@ func count() -> int:
 
 
 func set_night(f: float) -> void:
+	if (f > 0.02) != (night > 0.02):
+		_timer = 0.0 # allumage / extinction tout de suite
 	night = f
 	_head_material.emission_energy_multiplier = 6.0 * f
 	_head_material.albedo_color = Color("d8d2c0").lerp(Color("fff1d6"), f)

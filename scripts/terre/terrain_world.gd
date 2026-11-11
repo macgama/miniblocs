@@ -12,6 +12,8 @@ extends Node3D
 signal origin_changed(lat: float, lon: float)
 signal hovered_cell_changed(cell: Vector2i, valid: bool)
 signal terrain_edited(count: int)
+## Un bloc d'affichage vient d'être (re)construit : son relief a pu changer.
+signal chunk_rebuilt(k: Vector2i)
 
 enum Tool { INSPECT, FLATTEN, RAISE, LOWER }
 
@@ -26,6 +28,8 @@ const WATER_LEVEL := -0.1
 @export var max_view_radius: float = 460.0
 ## Temps maximum consacré à fabriquer des blocs à chaque image (ms).
 @export var build_budget_ms: float = 6.0
+## Calcule les blocs sur les autres cœurs du processeur (fluidité en se déplaçant).
+@export var threaded := true
 @export var camera_path: NodePath
 @export var focus_path: NodePath
 
@@ -46,6 +50,11 @@ var tree_blocker: Callable
 var _tree_mesh: Mesh
 var _bush_mesh: Mesh
 var _dirty: Dictionary = {}
+## Blocs en cours de calcul sur un autre fil : Vector2i -> {job, task}.
+var _jobs: Dictionary = {}
+var _max_jobs := clampi(OS.get_processor_count() - 1, 1, 6)
+## Change à chaque nouvelle région : les calculs lancés avant sont ignorés.
+var _generation := 0
 var _material: ShaderMaterial
 var _water: MeshInstance3D
 var _selection: MeshInstance3D
@@ -56,6 +65,8 @@ var _hover_valid := false
 var _drag_start := Vector2i.ZERO
 var _dragging := false
 var _view_radius := 200.0
+## Rayon d'affichage imposé (m), par ex. en vue au sol. 0 = selon la distance de la caméra.
+var view_radius_override := 0.0
 # Conversion mètres locaux -> pixels globaux, mise à jour à chaque changement d'origine.
 var _px0 := 0.0
 var _px_per_m := 0.0
@@ -116,6 +127,7 @@ func set_origin(lat: float, lon: float) -> void:
 		(c as Node).queue_free()
 	chunks.clear()
 	_dirty.clear()
+	_generation += 1
 	modifications.clear()
 	_dragging = false
 	var z := ElevationTiles.ZOOM
@@ -158,41 +170,68 @@ func cell_height(c: Vector2i) -> float:
 	return _quantize(h)
 
 
+## Types de case (biomes affichés). L'ordre sert d'indice dans les tables ci-dessous.
+enum Kind { MER, LAC, GLACIER, ROCHE, FORET, BROUSSAILLES, PRAIRIE, CHAMPS, DESERT,
+	MARAIS, MANGROVE, TOUNDRA, PLAGE, NEIGE, ALPAGE }
+const KIND_NAMES: Array[String] = ["Mer", "Lac / rivière", "Glacier", "Roche", "Forêt", "Broussailles",
+	"Prairie", "Champs", "Désert", "Marais", "Mangrove", "Toundra", "Plage", "Neige", "Alpage"]
+## Probabilité d'un arbre / d'un buisson sur une case, par type.
+const TREE_BY_KIND: Array[float] = [0, 0, 0, 0, 0.10, 0.025, 0.004, 0, 0, 0.01, 0.08, 0, 0, 0, 0]
+const BUSH_BY_KIND: Array[float] = [0, 0, 0, 0, 0.03, 0.05, 0, 0, 0, 0, 0, 0.02, 0, 0, 0.01]
+
+
 ## Biome d'une case à partir de son altitude, de sa pente et du code WorldCover
 ## (0 = inconnu : on devine avec l'altitude seule).
 static func cell_kind(h: float, slope: float, code := 0) -> String:
+	return KIND_NAMES[cell_kind_id(h, slope, code)]
+
+
+## Raccourci du cas courant (terre ferme, pente douce, altitude moyenne) : code WorldCover -> type.
+static var _KIND_BY_CODE: PackedInt32Array = _make_kind_by_code()
+
+
+static func _make_kind_by_code() -> PackedInt32Array:
+	var out := PackedInt32Array()
+	out.resize(256)
+	out.fill(-1)
+	for code in [10, 20, 30, 40, 50, 60, 90, 95, 100]:
+		out[code] = cell_kind_id(100.0, 0.0, code)
+	return out
+
+
+static func cell_kind_id(h: float, slope: float, code := 0) -> int:
 	if h < 0.0 and (code == 0 or code == 80):
-		return "Mer"
+		return Kind.MER
 	if code == 80:
-		return "Lac / rivière"
+		return Kind.LAC
 	if code == 70:
-		return "Glacier"
+		return Kind.GLACIER
 	if slope >= 1.0:
-		return "Roche"
+		return Kind.ROCHE
 	match code:
 		10:
-			return "Forêt"
+			return Kind.FORET
 		20:
-			return "Broussailles"
+			return Kind.BROUSSAILLES
 		30, 50:
-			return "Prairie"
+			return Kind.PRAIRIE
 		40:
-			return "Champs"
+			return Kind.CHAMPS
 		60:
-			return "Roche" if h > 1500.0 else "Désert"
+			return Kind.ROCHE if h > 1500.0 else Kind.DESERT
 		90:
-			return "Marais"
+			return Kind.MARAIS
 		95:
-			return "Mangrove"
+			return Kind.MANGROVE
 		100:
-			return "Toundra"
+			return Kind.TOUNDRA
 	if h < 1.5:
-		return "Plage"
+		return Kind.PLAGE
 	if h > 2600.0:
-		return "Neige"
+		return Kind.NEIGE
 	if h > 1900.0:
-		return "Alpage"
-	return "Prairie"
+		return Kind.ALPAGE
+	return Kind.PRAIRIE
 
 
 ## Code WorldCover sous le centre d'une case (0 si inconnu).
@@ -228,6 +267,8 @@ func _process(_delta: float) -> void:
 	if _camera:
 		var cam_dist := _camera.global_position.distance_to(center)
 		_view_radius = clampf(cam_dist * 2.4, min_view_radius, max_view_radius)
+	if view_radius_override > 0.0:
+		_view_radius = view_radius_override
 	var cs := float(chunk_size)
 	_water.position.x = snappedf(center.x, cs)
 	_water.position.z = snappedf(center.z, cs)
@@ -239,15 +280,26 @@ func _process(_delta: float) -> void:
 		for dz in range(-r, r + 1):
 			var k := cc + Vector2i(dx, dz)
 			if _chunk_distance(k, center) <= _view_radius:
-				if not chunks.has(k) or _dirty.has(k):
+				if (not chunks.has(k) or _dirty.has(k)) and not _jobs.has(k):
 					wanted.append(k)
 	wanted.sort_custom(func(a: Vector2i, b: Vector2i) -> bool:
 		return _chunk_distance(a, center) < _chunk_distance(b, center))
 
+	_collect_jobs()
 	var start := Time.get_ticks_usec()
 	for k in wanted:
+		if threaded and _jobs.size() >= _max_jobs:
+			break
+		if _jobs.has(k):
+			continue
 		if _ensure_tiles(k):
-			_build_chunk(k)
+			_dirty.erase(k)
+			var job := _prepare_chunk(k)
+			if threaded:
+				_jobs[k] = {"job": job, "task": WorkerThreadPool.add_task(_compute_chunk.bind(job))}
+			else:
+				_compute_chunk(job)
+				_apply_chunk(job)
 			if (Time.get_ticks_usec() - start) / 1000.0 > build_budget_ms:
 				break
 
@@ -256,6 +308,54 @@ func _process(_delta: float) -> void:
 		if _chunk_distance(k, center) > _view_radius + cs * 1.5:
 			(chunks[k] as Node).queue_free()
 			chunks.erase(k)
+
+
+## Récupère les blocs calculés par les fils et les pose (dans la limite du budget).
+func _collect_jobs() -> void:
+	var start := Time.get_ticks_usec()
+	for k in _jobs.keys():
+		var entry: Dictionary = _jobs[k]
+		if not WorkerThreadPool.is_task_completed(entry.task):
+			continue
+		WorkerThreadPool.wait_for_task_completion(entry.task)
+		_jobs.erase(k)
+		var job: Dictionary = entry.job
+		# Région changée entre-temps : résultat périmé.
+		if job.gen == _generation:
+			_apply_chunk(job)
+		if (Time.get_ticks_usec() - start) / 1000.0 > build_budget_ms:
+			break
+
+
+## Attend la fin de tous les calculs en cours (avant de quitter la scène, ou dans les tests).
+func finish_jobs() -> void:
+	for k in _jobs.keys():
+		WorkerThreadPool.wait_for_task_completion(_jobs[k].task)
+		var job: Dictionary = _jobs[k].job
+		if job.gen == _generation:
+			_apply_chunk(job)
+	_jobs.clear()
+
+
+func _exit_tree() -> void:
+	for k in _jobs.keys():
+		WorkerThreadPool.wait_for_task_completion(_jobs[k].task)
+	_jobs.clear()
+
+
+## Nombre de blocs visibles pas encore construits (ou à reconstruire).
+func missing_chunk_count() -> int:
+	var center := _focus.global_position if _focus else Vector3.ZERO
+	var cs := float(chunk_size)
+	var cc := Vector2i(floori(center.x / cs), floori(center.z / cs))
+	var r := ceili(_view_radius / cs)
+	var n := 0
+	for dx in range(-r, r + 1):
+		for dz in range(-r, r + 1):
+			var k := cc + Vector2i(dx, dz)
+			if _chunk_distance(k, center) <= _view_radius and (not chunks.has(k) or _dirty.has(k) or _jobs.has(k)):
+				n += 1
+	return n
 
 
 func _chunk_distance(k: Vector2i, center: Vector3) -> float:
@@ -289,58 +389,99 @@ func _ensure_tiles(k: Vector2i) -> bool:
 	return ready
 
 
-## Construit (ou reconstruit) le maillage d'un bloc de chunk_size × chunk_size cases.
+## Construit (ou reconstruit) le maillage d'un bloc de chunk_size × chunk_size cases,
+## tout de suite (sans passer par les fils de calcul).
 func _build_chunk(k: Vector2i) -> void:
+	var job := _prepare_chunk(k)
+	_compute_chunk(job)
+	_apply_chunk(job)
+
+
+## Fil principal : rassemble ce qu'il faut lire dans les tuiles et les modifications.
+func _prepare_chunk(k: Vector2i) -> Dictionary:
 	var cs := chunk_size
 	var x0 := k.x * cs
 	var z0 := k.y * cs
 	var w := cs + 2 # une case de marge de chaque côté
-	# Hauteurs de la grille [-1 .. cs] × [-1 .. cs], indice (i + 1) + (j + 1) * w.
-	var h := PackedFloat32Array()
-	h.resize(w * w)
+	# Grille [-1 .. cs] × [-1 .. cs], indice (i + 1) + (j + 1) * w.
 	var pxs := PackedFloat64Array()
 	pxs.resize(w)
-	for i in w:
-		pxs[i] = _pixel_x(x0 + i - 1 + 0.5)
-	for j in w:
-		var py := _pixel_y(z0 + j - 1 + 0.5)
-		for i in w:
-			var c := Vector2i(x0 + i - 1, z0 + j - 1)
-			if modifications.has(c):
-				h[i + j * w] = modifications[c]
-			else:
-				h[i + j * w] = _quantize(tiles.height_at(pxs[i], py))
-
-	# Occupation du sol de chaque case.
-	var bio := PackedByteArray()
-	bio.resize(w * w)
 	var lons := PackedFloat64Array()
 	lons.resize(w)
 	for i in w:
+		pxs[i] = _pixel_x(x0 + i - 1 + 0.5)
 		lons[i] = Geo.local_to_lon(origin_lat, origin_lon, x0 + i - 1 + 0.5)
+	var pys := PackedFloat64Array()
+	pys.resize(w)
+	var lats := PackedFloat64Array()
+	lats.resize(w)
 	for j in w:
-		var lat := Geo.local_to_lat(origin_lat, z0 + j - 1 + 0.5)
-		for i in w:
-			bio[i + j * w] = land.class_at(lat, lons[i])
+		lats[j] = Geo.local_to_lat(origin_lat, z0 + j - 1 + 0.5)
+		pys[j] = Geo.lat_to_pixel_y(lats[j], ElevationTiles.ZOOM)
+	# Cases modifiées du bloc : indice -> hauteur.
+	var mod_idx := PackedInt32Array()
+	var mod_h := PackedFloat32Array()
+	if not modifications.is_empty():
+		var rect := Rect2i(x0 - 1, z0 - 1, w, w)
+		if modifications.size() < w * w:
+			for c: Vector2i in modifications:
+				if rect.has_point(c):
+					mod_idx.append((c.x - x0 + 1) + (c.y - z0 + 1) * w)
+					mod_h.append(modifications[c])
+		else:
+			for j in w:
+				for i in w:
+					var c := Vector2i(x0 + i - 1, z0 + j - 1)
+					if modifications.has(c):
+						mod_idx.append(i + j * w)
+						mod_h.append(modifications[c])
+	return {"k": k, "gen": _generation, "cs": cs, "step": height_step,
+		"pxs": pxs, "pys": pys, "win": tiles.grab_window(pxs, pys),
+		"bio": land.sample_grid(lats, lons), "mod_idx": mod_idx, "mod_h": mod_h}
+
+
+## Calcul pur du maillage et des positions d'arbres (peut tourner sur un autre fil :
+## ne lit que job).
+static func _compute_chunk(job: Dictionary) -> void:
+	var cs: int = job.cs
+	var w := cs + 2
+	var step: float = job.step
+	var h := ElevationTiles.interpolate_window(job.win, job.pxs, job.pys)
+	for n in w * w:
+		var v := h[n]
+		h[n] = minf(snappedf(v, step), -step) if v < 0.0 else snappedf(v, step)
+	var modified := PackedByteArray()
+	modified.resize(w * w)
+	var mod_idx: PackedInt32Array = job.mod_idx
+	var mod_h: PackedFloat32Array = job.mod_h
+	for m in mod_idx.size():
+		h[mod_idx[m]] = mod_h[m]
+		modified[mod_idx[m]] = 1
+	var bio: PackedByteArray = job.bio
 	# L'eau douce est creusée d'une marche pour dessiner les berges.
 	for n in w * w:
-		if bio[n] == 80 and h[n] >= 0.0:
-			var c := Vector2i(x0 + n % w - 1, z0 + n / w - 1)
-			if not modifications.has(c):
-				h[n] -= height_step
+		if bio[n] == 80 and h[n] >= 0.0 and modified[n] == 0:
+			h[n] -= step
 
 	var colors := PackedColorArray()
 	colors.resize(w * w)
-	var kinds: Array[String] = []
+	var kinds := PackedByteArray()
 	kinds.resize(w * w)
 	for j in range(1, w - 1):
 		for i in range(1, w - 1):
-			var hc := h[i + j * w]
-			var s := maxf(maxf(absf(h[i + 1 + j * w] - hc), absf(h[i - 1 + j * w] - hc)),
-					maxf(absf(h[i + (j + 1) * w] - hc), absf(h[i + (j - 1) * w] - hc)))
-			var kind := cell_kind(hc, s, bio[i + j * w])
-			kinds[i + j * w] = kind
-			colors[i + j * w] = _color_for(kind, hc)
+			var n := i + j * w
+			var hc := h[n]
+			var s := maxf(maxf(absf(h[n + 1] - hc), absf(h[n - 1] - hc)),
+					maxf(absf(h[n + w] - hc), absf(h[n - w] - hc)))
+			var code := bio[n]
+			var kind: int = _KIND_BY_CODE[code]
+			if kind < 0 or hc < 0.0 or s >= 1.0 or hc < 1.5 or hc > 1500.0:
+				kind = cell_kind_id(hc, s, code)
+			kinds[n] = kind
+			if kind == Kind.PRAIRIE:
+				colors[n] = _prairie_colors[clampi(floori(hc / 2.0), 0, 200)]
+			else:
+				colors[n] = _color_for_id(kind, hc)
 
 	var verts := PackedVector3Array()
 	var normals := PackedVector3Array()
@@ -403,70 +544,89 @@ func _build_chunk(k: Vector2i) -> void:
 	arrays[Mesh.ARRAY_NORMAL] = normals
 	arrays[Mesh.ARRAY_COLOR] = cols
 	arrays[Mesh.ARRAY_INDEX] = idx
-	var mesh := ArrayMesh.new()
-	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	job.arrays = arrays
+	job.h = h
+	_compute_vegetation(job, h, kinds, modified)
 
+
+## Fil principal : crée ou remplace le maillage du bloc.
+func _apply_chunk(job: Dictionary) -> void:
+	var k: Vector2i = job.k
+	var mesh := ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, job.arrays)
 	var mi: MeshInstance3D = chunks.get(k)
 	if mi == null:
 		mi = MeshInstance3D.new()
 		mi.name = "Bloc_%d_%d" % [k.x, k.y]
-		mi.position = Vector3(x0, 0.0, z0)
+		mi.position = Vector3(k.x * chunk_size, 0.0, k.y * chunk_size)
 		mi.material_override = _material
 		add_child(mi)
 		chunks[k] = mi
 	mi.mesh = mesh
-	_plant_vegetation(mi, k, h, kinds)
-	_dirty.erase(k)
+	_plant_vegetation(mi, job)
+	chunk_rebuilt.emit(k)
 
 
 static func _quad(verts: PackedVector3Array, normals: PackedVector3Array, cols: PackedColorArray,
 		idx: PackedInt32Array, a: Vector3, b: Vector3, c: Vector3, d: Vector3, n: Vector3, col: Color) -> void:
 	var base := verts.size()
-	verts.append_array([a, b, c, d])
-	normals.append_array([n, n, n, n])
-	cols.append_array([col, col, col, col])
-	idx.append_array([base, base + 1, base + 2, base, base + 2, base + 3])
+	verts.push_back(a)
+	verts.push_back(b)
+	verts.push_back(c)
+	verts.push_back(d)
+	for _v in 4:
+		normals.push_back(n)
+		cols.push_back(col)
+	idx.push_back(base)
+	idx.push_back(base + 1)
+	idx.push_back(base + 2)
+	idx.push_back(base)
+	idx.push_back(base + 2)
+	idx.push_back(base + 3)
+
+
+## Couleurs de base (linéaires) par type de case ; la prairie et la mer varient avec l'altitude.
+static var _base_colors: PackedColorArray = _make_base_colors()
+
+
+static func _make_base_colors() -> PackedColorArray:
+	var hexes := ["c9b27c", "4f8fc4", "eef3f8", "8e8a82", "4c8c3c", "8d9a58", "5d9e47", "d2c06a",
+		"e6d59c", "6c9a7c", "3b7354", "a9a88a", "e6d59c", "eef3f8", "98a56a"]
+	var out := PackedColorArray()
+	for x in hexes:
+		out.append(Color(x).srgb_to_linear())
+	return out
 
 
 static func _color_for(kind: String, h: float) -> Color:
-	var c: Color
-	match kind:
-		"Mer":
-			c = Color("c9b27c").darkened(clampf(-h / 40.0, 0.0, 0.6))
-		"Lac / rivière":
-			c = Color("4f8fc4")
-		"Plage", "Désert":
-			c = Color("e6d59c")
-		"Roche":
-			c = Color("8e8a82")
-		"Neige", "Glacier":
-			c = Color("eef3f8")
-		"Alpage":
-			c = Color("98a56a")
-		"Forêt":
-			c = Color("4c8c3c")
-		"Mangrove":
-			c = Color("3b7354")
-		"Broussailles":
-			c = Color("8d9a58")
-		"Champs":
-			c = Color("d2c06a")
-		"Marais":
-			c = Color("6c9a7c")
-		"Toundra":
-			c = Color("a9a88a")
-		_:
-			# Prairie : plus claire en montant, par paliers de 2 m, pour lire le relief.
-			var t := clampf(floorf(h / 2.0) * 2.0 / 400.0, 0.0, 1.0)
-			c = Color("5d9e47").lerp(Color("a8b864"), t)
-	# Le shader travaille en couleurs linéaires.
-	return c.srgb_to_linear()
+	var id := KIND_NAMES.find(kind)
+	return _color_for_id(id if id >= 0 else Kind.PRAIRIE, h)
+
+
+## Prairie : plus claire en montant, par paliers de 2 m (0 à 400 m), pour lire le relief.
+static var _prairie_colors: PackedColorArray = _make_ramp(Color("5d9e47"), Color("a8b864"), 200, false)
+## Fond marin : plus sombre en profondeur, par paliers de 0,5 m (0 à 24 m).
+static var _sea_colors: PackedColorArray = _make_ramp(Color("c9b27c"), Color(), 48, true)
+
+
+static func _make_ramp(from: Color, to: Color, n: int, darken: bool) -> PackedColorArray:
+	var out := PackedColorArray()
+	for i in n + 1:
+		var c := from.darkened(i * 0.5 / 40.0) if darken else from.lerp(to, float(i) / n)
+		out.append(c.srgb_to_linear())
+	return out
+
+
+static func _color_for_id(kind: int, h: float) -> Color:
+	if kind == Kind.PRAIRIE:
+		return _prairie_colors[clampi(floori(h / 2.0), 0, 200)]
+	if kind == Kind.MER:
+		return _sea_colors[clampi(roundi(-h / 0.5), 0, 48)]
+	return _base_colors[kind]
 
 
 # --- Végétation --------------------------------------------------------------
 
-const TREE_DENSITY := {"Forêt": 0.10, "Mangrove": 0.08, "Broussailles": 0.025, "Prairie": 0.004, "Marais": 0.01}
-const BUSH_DENSITY := {"Broussailles": 0.05, "Toundra": 0.02, "Forêt": 0.03, "Alpage": 0.01}
 
 
 func _build_vegetation_meshes() -> void:
@@ -490,43 +650,72 @@ func _build_vegetation_meshes() -> void:
 	_bush_mesh = bush
 
 
-## Plante des arbres et des buissons low-poly selon le biome, de façon
-## déterministe (le même lieu donne toujours la même forêt).
-func _plant_vegetation(mi: MeshInstance3D, k: Vector2i, h: PackedFloat32Array, kinds: Array[String]) -> void:
-	for child in mi.get_children():
-		child.queue_free()
-	var cs := chunk_size
+## Choisit les arbres et buissons low-poly selon le biome, de façon déterministe
+## (le même lieu donne toujours la même forêt). Calcul pur, sans lire la scène.
+static func _compute_vegetation(job: Dictionary, h: PackedFloat32Array, kinds: PackedByteArray, modified: PackedByteArray) -> void:
+	var k: Vector2i = job.k
+	var cs: int = job.cs
 	var w := cs + 2
-	var trees: Array[Transform3D] = []
-	var tree_cols: Array[Color] = []
-	var bushes: Array[Transform3D] = []
-	var bush_cols: Array[Color] = []
+	var cells: Array[Vector2i] = []
+	var xforms: Array[Transform3D] = []
+	var cols: Array[Color] = []
+	var is_tree := PackedByteArray()
+	var tree_green := Color("2a6a2a")
+	var meadow_green := Color("367a30")
+	var bush_green := Color("587a33")
 	for j in range(1, cs + 1):
 		for i in range(1, cs + 1):
-			var kind := kinds[i + j * w]
-			var td: float = TREE_DENSITY.get(kind, 0.0)
-			var bd: float = BUSH_DENSITY.get(kind, 0.0)
-			if td == 0.0 and bd == 0.0:
+			var n := i + j * w
+			var kind := kinds[n]
+			var td: float = TREE_BY_KIND[kind]
+			var bd: float = BUSH_BY_KIND[kind]
+			if (td == 0.0 and bd == 0.0) or modified[n] != 0:
 				continue
 			var c := Vector2i(k.x * cs + i - 1, k.y * cs + j - 1)
-			if modifications.has(c) or (tree_blocker.is_valid() and tree_blocker.call(c)):
-				continue
 			var r := absi(hash(c))
 			var u := float(r & 0xffff) / 65535.0
 			if u >= td + bd:
 				continue
 			var jx := float((r >> 16) & 0xff) / 255.0 * 0.6 + 0.2
 			var jz := float((r >> 24) & 0x7f) / 127.0 * 0.6 + 0.2
-			var s := 0.7 + float((r >> 8) & 0xff) / 255.0 * 0.6
+			var sc := 0.7 + float((r >> 8) & 0xff) / 255.0 * 0.6
 			var shade := 0.85 + float((r >> 4) & 0x3f) / 63.0 * 0.3
-			var basis := Basis(Vector3.UP, float(r & 0xff)).scaled(Vector3(s, s, s))
+			var basis := Basis(Vector3.UP, float(r & 0xff)).scaled(Vector3(sc, sc, sc))
+			cells.append(c)
 			if u < td:
-				trees.append(Transform3D(basis, Vector3(i - 1 + jx, h[i + j * w] + 1.8 * s, j - 1 + jz)))
-				var green := Color("2a6a2a") if kind != "Prairie" else Color("367a30")
-				tree_cols.append(green * shade)
+				xforms.append(Transform3D(basis, Vector3(i - 1 + jx, h[n] + 1.8 * sc, j - 1 + jz)))
+				cols.append((tree_green if kind != Kind.PRAIRIE else meadow_green) * shade)
+				is_tree.append(1)
 			else:
-				bushes.append(Transform3D(basis, Vector3(i - 1 + jx, h[i + j * w] + 0.3 * s, j - 1 + jz)))
-				bush_cols.append(Color("587a33") * shade)
+				xforms.append(Transform3D(basis, Vector3(i - 1 + jx, h[n] + 0.3 * sc, j - 1 + jz)))
+				cols.append(bush_green * shade)
+				is_tree.append(0)
+	job.veg = {"cells": cells, "xforms": xforms, "cols": cols, "tree": is_tree}
+
+
+## Fil principal : retire la végétation sous les voies (tree_blocker) et la pose.
+func _plant_vegetation(mi: MeshInstance3D, job: Dictionary) -> void:
+	for child in mi.get_children():
+		child.queue_free()
+	var veg: Dictionary = job.veg
+	var cells: Array[Vector2i] = veg.cells
+	var xforms: Array[Transform3D] = veg.xforms
+	var cols: Array[Color] = veg.cols
+	var is_tree: PackedByteArray = veg.tree
+	var trees: Array[Transform3D] = []
+	var tree_cols: Array[Color] = []
+	var bushes: Array[Transform3D] = []
+	var bush_cols: Array[Color] = []
+	var check := tree_blocker.is_valid()
+	for n in cells.size():
+		if check and tree_blocker.call(cells[n]):
+			continue
+		if is_tree[n] == 1:
+			trees.append(xforms[n])
+			tree_cols.append(cols[n])
+		else:
+			bushes.append(xforms[n])
+			bush_cols.append(cols[n])
 	_add_multimesh(mi, _tree_mesh, trees, tree_cols)
 	_add_multimesh(mi, _bush_mesh, bushes, bush_cols)
 
@@ -548,6 +737,12 @@ static func _add_multimesh(parent: Node3D, mesh: Mesh, xforms: Array[Transform3D
 
 
 # --- Souris et outils ------------------------------------------------------
+
+## Change la caméra et le point suivis pour charger le relief (vue de dessus ou personnage).
+func set_view(camera: Camera3D, focus: Node3D) -> void:
+	_camera = camera
+	_focus = focus
+
 
 func set_tool(t: Tool) -> void:
 	current_tool = t

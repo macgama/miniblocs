@@ -22,8 +22,8 @@ func _ready() -> void:
 	anchor.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(anchor)
 	var panel := PanelContainer.new()
-	panel.position = Vector2(-562, -200)
-	panel.custom_minimum_size = Vector2(550, 0)
+	panel.position = Vector2(-452, -212)
+	panel.custom_minimum_size = Vector2(440, 0)
 	anchor.add_child(panel)
 	var box := VBoxContainer.new()
 	panel.add_child(box)
@@ -49,6 +49,8 @@ func _ready() -> void:
 	_info_label = Label.new()
 	_info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_info_label.add_theme_font_size_override("font_size", 12)
+	_info_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_info_label.custom_minimum_size = Vector2(420, 0)
 	box.add_child(_info_label)
 
 	_slider = HSlider.new()
@@ -108,7 +110,7 @@ func refresh() -> void:
 	else:
 		sun_txt = "lever %s · coucher %s" % [format_hour(rs.x) if rs.x >= 0.0 else "—", format_hour(rs.y) if rs.y >= 0.0 else "—"]
 	var off := clock.utc_offset()
-	_info_label.text = "%s   ·   soleil %d°   ·   %s   ·   UTC%s%d (approx.)" % [
+	_info_label.text = "%s · soleil %d° · %s · UTC%s%d (approx.)" % [
 		sun_txt, roundi(clock.sun_horiz.x), moon_phase_name(Astro.moon_age(clock.unix_time)),
 		"+" if off >= 0.0 else "−", absi(int(off))]
 	_updating = true

@@ -104,6 +104,22 @@ func _run() -> void:
 			placed += 1
 		x += fp.x + 4
 	_check(placed >= 6, "%d bâtiments posés" % placed)
+	# Quelques bâtiments de la bible des styles, de l'autre côté de la route.
+	var styled: Array[String] = []
+	for id in BuildingCatalog.all_types():
+		if String(id).ends_with("__gratte_ciel") or String(id) in ["haussmann__immeuble", "japonais__maison", "chinois__boutique"]:
+			styled.append(id)
+	x = -130
+	var placed_styled := 0
+	for id in styled.slice(0, 6):
+		var fp := BuildingCatalog.footprint(id, 0)
+		if x + fp.x > 140:
+			break
+		if bs.place(id, Vector2i(x + fp.x / 2, 6 + fp.y / 2), 0) >= 0:
+			placed_styled += 1
+		x += fp.x + 4
+	_check(placed_styled >= 2, "%d bâtiments de la bible posés" % placed_styled)
+	_check(NightWindows.window_colors().size() >= 8, "%d couleurs de vitres reconnues (catalogue et styles)" % NightWindows.window_colors().size())
 	await process_frame
 	await process_frame
 	var lamps := dn.street.count()

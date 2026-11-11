@@ -3,6 +3,8 @@ extends SceneTree
 ## Usage (avec affichage) :
 ##   godot --path . --script res://tests/batiments_vitrine.gd -- --screenshot vitrine.png [--distance 220] [--yaw 30] [--zones]
 ## --blocs : une maison construite bloc par bloc.
+## --styles a,b,c : seulement les bâtiments de ces styles (bible, voir Styles.STYLES).
+## --arch culte,palais : seulement ces archétypes. --zone-style japonais : style du zonage.
 ## --zones : un quartier né du zonage (routes en grille, zones R/C/I) au lieu du catalogue.
 
 
@@ -30,6 +32,9 @@ func _run() -> void:
 	var focus := Vector2(0, 0)
 	var zoning := args.has("--zones")
 	var bloc_mode := args.has("--blocs")
+	var only_styles: PackedStringArray = []
+	var only_archs: PackedStringArray = []
+	var zone_style := ""
 	for i in args.size():
 		if args[i] == "--screenshot" and i + 1 < args.size():
 			shot = args[i + 1]
@@ -37,6 +42,12 @@ func _run() -> void:
 			dist = args[i + 1].to_float()
 		if args[i] == "--yaw" and i + 1 < args.size():
 			yaw = args[i + 1].to_float()
+		if args[i] == "--styles" and i + 1 < args.size():
+			only_styles = args[i + 1].split(",")
+		if args[i] == "--arch" and i + 1 < args.size():
+			only_archs = args[i + 1].split(",")
+		if args[i] == "--zone-style" and i + 1 < args.size():
+			zone_style = args[i + 1]
 		if args[i] == "--focus" and i + 1 < args.size():
 			var p := args[i + 1].split(",")
 			focus = Vector2(p[0].to_float(), p[1].to_float())
@@ -55,6 +66,7 @@ func _run() -> void:
 
 	if zoning or bloc_mode:
 		if zoning:
+			scene.get_node("Zones").current_style = zone_style
 			await _zoning(scene, world, transport, bs)
 		else:
 			_blocks_house(scene, world)
@@ -77,7 +89,14 @@ func _run() -> void:
 		var y := world.cell_height(Vector2i(0, int(z)))
 		var rr := transport.build_segment("route", Vector3(-260, y, z), Vector3(260, y, z))
 		print("route : ", rr.ok, " ", rr.get("reason", ""))
-	var ids: Array = BuildingCatalog.TYPES.keys()
+	var ids: Array = []
+	for id in BuildingCatalog.all_types():
+		var tt := BuildingCatalog.get_type(id)
+		if not only_styles.is_empty() and not String(tt.get("style", "")) in only_styles:
+			continue
+		if not only_archs.is_empty() and not String(tt.get("arch", "")) in only_archs:
+			continue
+		ids.append(id)
 	var rows := [[0.0, -1.0], [0.0, 1.0], [150.0, -1.0], [150.0, 1.0]]
 	var row := 0
 	var x := -240.0

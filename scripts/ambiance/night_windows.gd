@@ -11,9 +11,34 @@ static func building_material() -> ShaderMaterial:
 	if _material == null:
 		_material = ShaderMaterial.new()
 		_material.shader = load("res://scripts/ambiance/batiment.gdshader")
-		var g := BuildingCatalog.GLASS
-		_material.set_shader_parameter("window_color", Vector3(g.r, g.g, g.b))
+		var cols := window_colors()
+		var arr := PackedVector3Array()
+		for c in cols:
+			arr.append(Vector3(c.r, c.g, c.b))
+		_material.set_shader_parameter("window_colors", arr)
+		_material.set_shader_parameter("window_count", arr.size())
 	return _material
+
+
+## Couleurs de vitres reconnues comme fenêtres (32 au maximum).
+static func window_colors() -> Array[Color]:
+	var out: Array[Color] = []
+	# Vitres du catalogue de base, porte vitrée, façades vitrées de bureaux.
+	for c in [BuildingCatalog.GLASS, Color("1d2d3c"), Color("8fb8d8"), Color("6d97b8"), Color("4f6d8f")]:
+		_add_unique(out, c)
+	# Vitres de chaque style de la bible.
+	for sid in Styles.STYLES:
+		var g = (Styles.STYLES[sid] as Dictionary).get("glass", null)
+		if g != null:
+			_add_unique(out, Color(g))
+	return out.slice(0, 32)
+
+
+static func _add_unique(list: Array[Color], c: Color) -> void:
+	for o in list:
+		if o.is_equal_approx(c):
+			return
+	list.append(c)
 
 
 ## Part des fenêtres allumées selon l'heure locale (heures décimales).

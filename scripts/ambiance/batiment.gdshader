@@ -1,17 +1,16 @@
 shader_type spatial;
 // Matériau des bâtiments : couleurs par sommet (comme avant) et fenêtres qui
-// s'allument la nuit. Une face dont la couleur est celle des vitres
-// (BuildingCatalog.GLASS, ou une couleur proche) devient une fenêtre.
+// s'allument la nuit. Une face dont la couleur est celle d'une vitre (liste
+// `window_colors`, fournie par NightWindows : BuildingCatalog.GLASS et les
+// vitres de chaque style de la bible), même assombrie, devient une fenêtre.
 // Les bandeaux vitrés longs sont découpés en fenêtres de `cell_width` mètres,
 // allumées ou éteintes au hasard (toujours les mêmes pour un même bâtiment).
 
 uniform float night = 0.0;
 uniform float lit_ratio = 0.6;
-uniform vec3 window_color = vec3(0.2, 0.286, 0.369);
-uniform vec3 window_color_2 = vec3(0.114, 0.176, 0.235);
-// Façades entièrement vitrées (immeuble de bureaux).
-uniform vec3 window_color_3 = vec3(0.561, 0.722, 0.847);
-uniform float tolerance = 0.06;
+uniform vec3 window_colors[32];
+uniform int window_count = 0;
+uniform float tolerance = 0.025;
 uniform vec3 glow_warm : source_color = vec3(1.0, 0.78, 0.45);
 uniform vec3 glow_cool : source_color = vec3(0.8, 0.88, 1.0);
 uniform float glow_energy = 2.4;
@@ -43,11 +42,15 @@ void fragment() {
 	ALBEDO = to_linear(c);
 	ROUGHNESS = roughness_value;
 	float is_window = 0.0;
-	float d1 = max(max(abs(c.r - window_color.r), abs(c.g - window_color.g)), abs(c.b - window_color.b));
-	float d2 = max(max(abs(c.r - window_color_2.r), abs(c.g - window_color_2.g)), abs(c.b - window_color_2.b));
-	float d3 = max(max(abs(c.r - window_color_3.r), abs(c.g - window_color_3.g)), abs(c.b - window_color_3.b));
-	if (min(min(d1, d2), d3) < tolerance) {
-		is_window = 1.0;
+	for (int i = 0; i < window_count; i++) {
+		vec3 g = window_colors[i];
+		// Même teinte, éventuellement assombrie (côtés des boîtes, variantes).
+		float k = dot(c, g) / max(dot(g, g), 0.0001);
+		vec3 diff = abs(c - g * k);
+		if (k > 0.68 && k < 1.06 && max(max(diff.r, diff.g), diff.b) < tolerance) {
+			is_window = 1.0;
+			break;
+		}
 	}
 	if (is_window > 0.5) {
 		ROUGHNESS = 0.25;

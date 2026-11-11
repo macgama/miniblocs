@@ -40,7 +40,7 @@ L'heure, la date et la vitesse sont gardées par **Sauver / Charger**.
   - tous les lampadaires sont dessinés en une seule fois (MultiMesh) ;
   - seuls les 48 plus proches de la caméra projettent une vraie lumière au sol, les autres brillent sans éclairer ;
   - les fenêtres sont calculées par le matériau des bâtiments, sans lumière supplémentaire.
-- **Fenêtres** : toute face d'un bâtiment de la couleur `BuildingCatalog.GLASS` (vitres) devient une fenêtre la nuit, ainsi que deux autres couleurs vitrées (porte vitrée, façade de bureaux). Pour un nouveau bâtiment, il suffit d'utiliser `GLASS` pour ses fenêtres.
+- **Fenêtres** : toute face d'un bâtiment de la couleur `BuildingCatalog.GLASS` (vitres) devient une fenêtre la nuit, ainsi que les vitres de chaque style de la bible (`"glass"` dans `Styles.STYLES`) et quelques façades vitrées, même assombries. Pour un nouveau bâtiment, il suffit d'utiliser `GLASS` pour ses fenêtres.
 
 ## Prochaines étapes possibles
 

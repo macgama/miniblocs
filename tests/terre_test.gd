@@ -166,8 +166,10 @@ func _run() -> void:
 	_check(south != null and south.get_child_count() == 0, "pas d'arbres dans les champs")
 	world.tree_blocker = func(c: Vector2i) -> bool: return true
 	world.mark_cells_dirty([Vector2i(10, -10)])
-	for i in 3:
+	for i in 120:
 		await process_frame
+		if world._dirty.is_empty() and world._jobs.is_empty():
+			break
 	var blocked := 0
 	for ch in north.get_children():
 		if ch is MultiMeshInstance3D and not ch.is_queued_for_deletion():
@@ -192,8 +194,10 @@ func _run() -> void:
 	world.apply_tool(Vector2i(2, 2), Vector2i(2, 2))
 	_check(world.cell_height(Vector2i(2, 2)) == h0 + 1.0, "monter une case de 1 m")
 	_check(world._dirty.size() > 0, "blocs touchés marqués à reconstruire")
-	for i in 5:
+	for i in 120:
 		await process_frame
+		if world._dirty.is_empty() and world._jobs.is_empty():
+			break
 	_check(world._dirty.is_empty(), "blocs reconstruits")
 
 	_check(world.save_world(), "sauvegarde")

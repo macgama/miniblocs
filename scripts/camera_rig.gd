@@ -28,6 +28,8 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	# Pas de déplacement pendant la saisie d'un texte (ex. coordonnées).
+	var typing := get_viewport().gui_get_focus_owner() is LineEdit
 	# Touches « physiques » : même position sur AZERTY (ZQSD) et QWERTY (WASD).
 	var input := Vector2.ZERO
 	if Input.is_physical_key_pressed(KEY_W) or Input.is_key_pressed(KEY_UP):
@@ -39,7 +41,7 @@ func _process(delta: float) -> void:
 	if Input.is_physical_key_pressed(KEY_D) or Input.is_key_pressed(KEY_RIGHT):
 		input.x += 1.0
 
-	if input != Vector2.ZERO:
+	if input != Vector2.ZERO and not typing:
 		# La vitesse augmente avec le zoom pour garder une sensation constante.
 		var speed := move_speed * (_distance / 36.0)
 		_move_local(input.normalized() * speed * delta)
@@ -49,7 +51,7 @@ func _process(delta: float) -> void:
 		rot += 1.0
 	if Input.is_physical_key_pressed(KEY_E):
 		rot -= 1.0
-	if rot != 0.0:
+	if rot != 0.0 and not typing:
 		rotation_degrees.y += rot * rotate_speed * delta
 
 	_distance = lerp(_distance, _target_distance, clamp(delta * 10.0, 0.0, 1.0))

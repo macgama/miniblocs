@@ -1,0 +1,61 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/terre/terre_main.gd" id="1_main"]
+[ext_resource type="Script" path="res://scripts/camera_rig.gd" id="2_cam"]
+[ext_resource type="Script" path="res://scripts/terre/terrain_world.gd" id="3_world"]
+[ext_resource type="Script" path="res://scripts/terre/terre_hud.gd" id="4_hud"]
+
+[sub_resource type="ProceduralSkyMaterial" id="sky_mat"]
+sky_top_color = Color(0.45, 0.66, 0.9, 1)
+sky_horizon_color = Color(0.78, 0.86, 0.93, 1)
+ground_bottom_color = Color(0.78, 0.86, 0.93, 1)
+ground_horizon_color = Color(0.78, 0.86, 0.93, 1)
+
+[sub_resource type="Sky" id="sky"]
+sky_material = SubResource("sky_mat")
+
+[sub_resource type="Environment" id="env"]
+background_mode = 2
+sky = SubResource("sky")
+ambient_light_source = 2
+ambient_light_color = Color(0.85, 0.88, 0.95, 1)
+ambient_light_energy = 0.45
+tonemap_mode = 2
+tonemap_white = 2.0
+ssao_enabled = true
+fog_enabled = true
+fog_light_color = Color(0.76, 0.84, 0.92, 1)
+fog_density = 0.0009
+fog_sky_affect = 0.0
+
+[node name="Terre" type="Node3D"]
+script = ExtResource("1_main")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("env")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.353553, 0.353553, 0, 0.707107, 0.707107, -0.5, -0.612372, 0.612372, 0, 20, 0)
+light_color = Color(1, 0.96, 0.88, 1)
+light_energy = 0.85
+shadow_enabled = true
+directional_shadow_max_distance = 220.0
+
+[node name="CameraRig" type="Node3D" parent="."]
+script = ExtResource("2_cam")
+move_speed = 30.0
+min_distance = 6.0
+max_distance = 200.0
+bounds = Rect2(-12000, -12000, 24000, 24000)
+
+[node name="Camera3D" type="Camera3D" parent="CameraRig"]
+fov = 50.0
+far = 1500.0
+
+[node name="Terrain" type="Node3D" parent="."]
+script = ExtResource("3_world")
+camera_path = NodePath("../CameraRig/Camera3D")
+focus_path = NodePath("../CameraRig")
+
+[node name="HUD" type="CanvasLayer" parent="."]
+script = ExtResource("4_hud")

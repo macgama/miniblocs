@@ -22,6 +22,19 @@ Prototype de city builder en vue de dessus, style low-poly, mode bac à sable. F
 | Annuler le tracé en cours | Échap |
 | Sauvegarder / charger | F5 / F9 (ou les boutons en bas) |
 
+## Mode Terre : le vrai relief, case par case
+
+Un deuxième mode permet de choisir **n'importe quel lieu sur Terre** (latitude, longitude) et d'y jouer sur le **vrai relief**, découpé en cases de 1 m × 1 m.
+
+![Mode Terre : bord du Grand Canyon](docs/apercu-terre.png)
+
+- Ouvre `scenes/terre.tscn` et appuie sur **F6** (ou clique sur **Terre (relief réel)** dans la barre d'outils du prototype).
+- Tape des coordonnées (par ex. `48.8584, 2.2945`, copiées depuis Google Maps : clic droit sur un lieu) puis **Y aller**, ou clique sur un lieu proposé.
+- Survole une case pour voir ses coordonnées, son type et son altitude. Outils : **2 Aplanir**, **3 Monter +1 m**, **4 Creuser −1 m** (clic gauche glissé).
+- Le relief est téléchargé la première fois (Internet nécessaire), puis gardé en cache.
+
+Comment ça marche, limites et prochaines étapes : [docs/terre-architecture.md](docs/terre-architecture.md).
+
 ## Comment ça marche
 
 - **Routes** : se tracent en L entre le point de départ et la souris. Le marquage s'adapte aux routes voisines (lignes droites, virages, carrefours).
@@ -42,6 +55,12 @@ Prototype de city builder en vue de dessus, style low-poly, mode bac à sable. F
 | `scripts/ground_grid.gdshader` | Sol herbeux quadrillé |
 | `scripts/hud.gd` | Barre d'outils, statistiques, aide |
 | `tests/smoke_test.gd` | Test automatique de bout en bout |
+| `scenes/terre.tscn` | Mode Terre : relief réel en cases de 1 m |
+| `scripts/terre/geo.gd` | Conversions latitude / longitude ↔ mètres ↔ tuiles |
+| `scripts/terre/elevation_tiles.gd` | Téléchargement, cache et lecture des tuiles d'altitude |
+| `scripts/terre/terrain_world.gd` | Blocs de 64 × 64 cases autour de la caméra, outils, sauvegarde |
+| `scripts/terre/terre_hud.gd` | Interface du mode Terre |
+| `tests/terre_test.gd` | Test automatique du mode Terre (sans réseau) |
 
 ## Test automatique
 
@@ -50,6 +69,12 @@ godot --headless --path . --script res://tests/smoke_test.gd
 ```
 
 Le test pose des routes et des zones, attend la croissance, puis vérifie la sauvegarde, le chargement et le bulldozer. Il affiche `SMOKE TEST OK` si tout va bien.
+
+```bash
+godot --headless --path . --script res://tests/terre_test.gd
+```
+
+Vérifie les conversions de coordonnées, le décodage des tuiles, la génération des blocs, le terrassement et la sauvegarde. Il affiche `TERRE TEST OK`.
 
 ## Pistes pour la suite
 

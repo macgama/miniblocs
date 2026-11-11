@@ -15,11 +15,25 @@ uniform float wave_scale = 1.0;
 uniform float wave_strength = 0.18;
 uniform float alpha_shallow = 0.5;
 uniform float alpha_deep = 0.86;
+// Houle (m) : la surface monte et descend (la mer). 0 = surface plate.
+uniform float wave_height = 0.0;
+// Ressac : ne dessine que l'écume qui roule vers le rivage (bande côtière
+// posée sur la mer ; r = proximité du rivage, 1 au bord de la plage).
+uniform bool surf_only = false;
 
 varying vec3 world_pos;
 
+float swell(vec2 p, float t) {
+	return sin(p.x * 0.11 + t * 0.9) * 0.6 + sin(p.y * 0.083 - t * 0.7) * 0.4
+		+ sin((p.x + p.y) * 0.21 + t * 1.6) * 0.25;
+}
+
 void vertex() {
 	world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+	if (wave_height > 0.0) {
+		VERTEX.y += swell(world_pos.xz, TIME) * wave_height * 0.6;
+		world_pos.y += swell(world_pos.xz, TIME) * wave_height * 0.6;
+	}
 }
 
 // Somme de vagues sinusoïdales : renvoie la pente (dérivées en x et z).
@@ -38,6 +52,16 @@ vec2 wave_slope(vec2 p, float t) {
 }
 
 void fragment() {
+	if (surf_only) {
+		// Vagues d'écume qui arrivent sur la plage, en bandes irrégulières.
+		float near = COLOR.r;
+		float wobble = sin(world_pos.x * 0.21 + world_pos.z * 0.17) * 0.35 + sin(world_pos.z * 0.43 - world_pos.x * 0.11) * 0.2;
+		float band = sin(near * 7.0 - TIME * 1.3 + wobble);
+		float f = smoothstep(0.6, 0.95, band) * smoothstep(0.05, 0.5, near) + smoothstep(0.75, 1.0, near) * 0.85;
+		ALBEDO = foam_color;
+		ROUGHNESS = 0.7;
+		ALPHA = clamp(f, 0.0, 0.9);
+	} else {
 	vec2 p = world_pos.xz * wave_scale;
 	vec2 g = wave_slope(p, TIME) * wave_strength;
 	vec3 n = normalize(vec3(-g.x, 1.0, -g.y));
@@ -57,4 +81,5 @@ void fragment() {
 	ROUGHNESS = mix(0.06, 0.6, foam);
 	SPECULAR = 0.7;
 	ALPHA = clamp(mix(alpha_shallow, alpha_deep, depth) + fresnel * 0.25 + foam * 0.5, 0.0, 0.97);
+	}
 }

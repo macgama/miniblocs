@@ -268,6 +268,23 @@ func _run() -> void:
 	_check(west < 0.0, "la mer apparaît à l'Ouest (%.1f m)" % west)
 	_check(TerrainWorld.cell_kind(west, 0.0) == "Mer", "type de case « Mer »")
 
+	print("Côtes :")
+	var coast_x := 999
+	for x in range(-400, 50):
+		if world.cell_height(Vector2i(x, 20)) >= 0.0:
+			coast_x = x
+			break
+	_check(coast_x < 50, "rivage trouvé à l'Ouest (x = %d)" % coast_x)
+	_check(world.cell_kind_at(Vector2i(coast_x, 20)) == "Plage", "plage au bord de la mer (%s)" % world.cell_kind_at(Vector2i(coast_x, 20)))
+	var ck := Vector2i(floori(coast_x / 64.0), 0)
+	if world._ensure_tiles(ck):
+		world._build_chunk(ck)
+	var coast_chunk: MeshInstance3D = world.chunks.get(ck)
+	if coast_chunk:
+		var surf_node := coast_chunk.get_node_or_null("Ressac") as MeshInstance3D
+		_check(surf_node != null and surf_node.material_override.get_shader_parameter("surf_only") == true, "écume du ressac le long du rivage")
+	else:
+		print("  --  bloc du rivage pas chargé : ressac non vérifié")
 	print("Biomes :")
 	_check(world.cell_kind_at(Vector2i(5, -20)) == "Forêt", "forêt au Nord (%s)" % world.cell_kind_at(Vector2i(5, -20)))
 	_check(world.cell_kind_at(Vector2i(5, 20)) == "Champs", "champs au Sud (%s)" % world.cell_kind_at(Vector2i(5, 20)))

@@ -66,6 +66,25 @@ func _run() -> void:
 	_check(dec.size() == 65536 and dec[0] == 0.0 and absf(dec[3] - 300.5) < 0.01, "décodage des couleurs Terrarium")
 
 	# Vraie tuile en cache (si présente) : le sol au pied de la tour Eiffel est vers 33 m.
+	# Lecture d'un en-tête GeoTIFF minimal (format des fichiers WorldCover).
+	var tif := PackedByteArray([0x49, 0x49, 42, 0, 8, 0, 0, 0])
+	var entries := [[259, 3, 1, 8], [322, 3, 1, 1024], [323, 3, 1, 1024], [324, 4, 1, 5000], [325, 4, 1, 1234]]
+	tif.append_array(PackedByteArray([entries.size(), 0]))
+	for e in entries:
+		var b := PackedByteArray()
+		b.resize(12)
+		b.encode_u16(0, e[0]); b.encode_u16(2, e[1]); b.encode_u32(4, e[2]); b.encode_u32(8, e[3])
+		tif.append_array(b)
+	tif.append_array(PackedByteArray([0, 0, 0, 0]))
+	var parsed := LandCover.parse_tiff_header(tif)
+	_check(not parsed.is_empty() and parsed.offs[0] == 5000 and parsed.cnts[0] == 1234, "lecture d'un en-tête GeoTIFF")
+	_check(LandCover.file_name(46.2, 6.14) == "ESA_WorldCover_10m_2021_v200_N45E006_Map.tif", "fichier WorldCover de Genève")
+	_check(LandCover.file_name(-22.9, -43.2) == "ESA_WorldCover_10m_2021_v200_S24W045_Map.tif", "fichier WorldCover de Rio")
+	var zbuf := PackedByteArray()
+	zbuf.resize(1024 * 1024)
+	zbuf.fill(30)
+	_check(zbuf.compress(FileAccess.COMPRESSION_DEFLATE).decompress(1024 * 1024, FileAccess.COMPRESSION_DEFLATE) == zbuf, "décompression des blocs")
+
 	var cache := "user://terrain_cache/15_16592_11272.png"
 	if FileAccess.file_exists(cache):
 		var real := ElevationTiles.new()
@@ -83,9 +102,15 @@ func _run() -> void:
 	root.add_child(scene)
 	if place != "":
 		var v: Variant = Geo.parse_lat_lon(place)
+		print("Lieu : ", v)
 		world.set_origin(v.x, v.y)
 	else:
 		world.tiles.offline_generator = _fake_tile
+		# Forêt au Nord de l'origine, champs au Sud, un lac à l'Est.
+		world.land.offline_generator = func(lat: float, lon: float) -> int:
+			if lon > 2.2945 + 0.0006 and lon < 2.2945 + 0.0009:
+				return 80
+			return 10 if lat > 48.8584 else 40
 		world.set_origin(48.8584, 2.2945)
 	for i in 120:
 		await process_frame
@@ -122,6 +147,33 @@ func _run() -> void:
 	var west := world.cell_height(Vector2i(-300, 0))
 	_check(west < 0.0, "la mer apparaît à l'Ouest (%.1f m)" % west)
 	_check(TerrainWorld.cell_kind(west, 0.0) == "Mer", "type de case « Mer »")
+
+	print("Biomes :")
+	_check(world.cell_kind_at(Vector2i(5, -20)) == "Forêt", "forêt au Nord (%s)" % world.cell_kind_at(Vector2i(5, -20)))
+	_check(world.cell_kind_at(Vector2i(5, 20)) == "Champs", "champs au Sud (%s)" % world.cell_kind_at(Vector2i(5, 20)))
+	_check(world.cell_kind_at(Vector2i(55, 5)) == "Lac / rivière", "lac à l'Est (%s)" % world.cell_kind_at(Vector2i(55, 5)))
+	_check(TerrainWorld.cell_kind(500.0, 0.0, 70) == "Glacier", "code 70 -> Glacier")
+	_check(TerrainWorld.cell_kind(200.0, 0.0, 60) == "Désert" and TerrainWorld.cell_kind(2500.0, 0.0, 60) == "Roche", "sol nu -> désert en plaine, roche en montagne")
+	_check(TerrainWorld.cell_kind(-3.0, 0.0, 40) == "Champs", "polder sous le niveau de la mer reste un champ")
+	var north: MeshInstance3D = world.chunks.get(Vector2i(0, -1))
+	var trees := 0
+	if north:
+		for ch in north.get_children():
+			if ch is MultiMeshInstance3D:
+				trees += (ch as MultiMeshInstance3D).multimesh.instance_count
+	_check(trees > 100, "arbres plantés dans la forêt (%d)" % trees)
+	var south: MeshInstance3D = world.chunks.get(Vector2i(0, 1))
+	_check(south != null and south.get_child_count() == 0, "pas d'arbres dans les champs")
+	world.tree_blocker = func(c: Vector2i) -> bool: return true
+	world.mark_cells_dirty([Vector2i(10, -10)])
+	for i in 3:
+		await process_frame
+	var blocked := 0
+	for ch in north.get_children():
+		if ch is MultiMeshInstance3D and not ch.is_queued_for_deletion():
+			blocked += 1
+	_check(blocked == 0, "tree_blocker empêche les arbres")
+	world.tree_blocker = Callable()
 
 	var hit: Variant = world.pick_cell(Vector3(0.5, h0 + 80.0, 0.5), Vector3.DOWN)
 	_check(hit == Vector2i(0, 0), "rayon vertical -> case 0, 0")

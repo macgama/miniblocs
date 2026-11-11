@@ -38,6 +38,13 @@ var modifications: Dictionary = {}
 var chunks: Dictionary = {}
 
 var tiles: ElevationTiles
+## Occupation du sol réelle (forêt, champs, eau douce, glacier…).
+var land: LandCover
+## Optionnel : Callable(c: Vector2i) -> bool. Vrai = pas d'arbre sur cette case
+## (ex. une route posée sur un terrain plat).
+var tree_blocker: Callable
+var _tree_mesh: Mesh
+var _bush_mesh: Mesh
 var _dirty: Dictionary = {}
 var _material: ShaderMaterial
 var _water: MeshInstance3D
@@ -58,6 +65,10 @@ func _ready() -> void:
 	tiles = ElevationTiles.new()
 	tiles.name = "ElevationTiles"
 	add_child(tiles)
+	land = LandCover.new()
+	land.name = "LandCover"
+	add_child(land)
+	_build_vegetation_meshes()
 	if not camera_path.is_empty():
 		_camera = get_node(camera_path) as Camera3D
 	if not focus_path.is_empty():
@@ -147,18 +158,55 @@ func cell_height(c: Vector2i) -> float:
 	return _quantize(h)
 
 
-static func cell_kind(h: float, slope: float) -> String:
-	if h < 0.0:
+## Biome d'une case à partir de son altitude, de sa pente et du code WorldCover
+## (0 = inconnu : on devine avec l'altitude seule).
+static func cell_kind(h: float, slope: float, code := 0) -> String:
+	if h < 0.0 and (code == 0 or code == 80):
 		return "Mer"
-	if h < 1.5:
-		return "Plage"
+	if code == 80:
+		return "Lac / rivière"
+	if code == 70:
+		return "Glacier"
 	if slope >= 1.0:
 		return "Roche"
+	match code:
+		10:
+			return "Forêt"
+		20:
+			return "Broussailles"
+		30, 50:
+			return "Prairie"
+		40:
+			return "Champs"
+		60:
+			return "Roche" if h > 1500.0 else "Désert"
+		90:
+			return "Marais"
+		95:
+			return "Mangrove"
+		100:
+			return "Toundra"
+	if h < 1.5:
+		return "Plage"
 	if h > 2600.0:
 		return "Neige"
 	if h > 1900.0:
 		return "Alpage"
-	return "Herbe"
+	return "Prairie"
+
+
+## Code WorldCover sous le centre d'une case (0 si inconnu).
+func cell_biome(c: Vector2i) -> int:
+	var ll := local_to_lat_lon(c.x + 0.5, c.y + 0.5)
+	return land.class_at(ll.x, ll.y)
+
+
+## Nom du biome d'une case, prêt à afficher.
+func cell_kind_at(c: Vector2i) -> String:
+	var h := cell_height(c)
+	if is_nan(h):
+		return ""
+	return cell_kind(h, cell_slope(c), cell_biome(c))
 
 
 func cell_slope(c: Vector2i) -> float:
@@ -232,6 +280,12 @@ func _ensure_tiles(k: Vector2i) -> bool:
 				tiles.request_tile(t)
 				if not tiles.has_tile(t):
 					ready = false
+	# Occupation du sol aux quatre coins du bloc (un bloc WorldCover fait ~10 km).
+	for corner in [Vector2(x0, z0), Vector2(x1, z0), Vector2(x0, z1), Vector2(x1, z1)]:
+		var ll := local_to_lat_lon(corner.x, corner.y)
+		if not land.is_ready_at(ll.x, ll.y):
+			land.request_at(ll.x, ll.y)
+			ready = false
 	return ready
 
 
@@ -257,14 +311,36 @@ func _build_chunk(k: Vector2i) -> void:
 			else:
 				h[i + j * w] = _quantize(tiles.height_at(pxs[i], py))
 
+	# Occupation du sol de chaque case.
+	var bio := PackedByteArray()
+	bio.resize(w * w)
+	var lons := PackedFloat64Array()
+	lons.resize(w)
+	for i in w:
+		lons[i] = Geo.local_to_lon(origin_lat, origin_lon, x0 + i - 1 + 0.5)
+	for j in w:
+		var lat := Geo.local_to_lat(origin_lat, z0 + j - 1 + 0.5)
+		for i in w:
+			bio[i + j * w] = land.class_at(lat, lons[i])
+	# L'eau douce est creusée d'une marche pour dessiner les berges.
+	for n in w * w:
+		if bio[n] == 80 and h[n] >= 0.0:
+			var c := Vector2i(x0 + n % w - 1, z0 + n / w - 1)
+			if not modifications.has(c):
+				h[n] -= height_step
+
 	var colors := PackedColorArray()
 	colors.resize(w * w)
+	var kinds: Array[String] = []
+	kinds.resize(w * w)
 	for j in range(1, w - 1):
 		for i in range(1, w - 1):
 			var hc := h[i + j * w]
 			var s := maxf(maxf(absf(h[i + 1 + j * w] - hc), absf(h[i - 1 + j * w] - hc)),
 					maxf(absf(h[i + (j + 1) * w] - hc), absf(h[i + (j - 1) * w] - hc)))
-			colors[i + j * w] = _color_for(hc, s)
+			var kind := cell_kind(hc, s, bio[i + j * w])
+			kinds[i + j * w] = kind
+			colors[i + j * w] = _color_for(kind, hc)
 
 	var verts := PackedVector3Array()
 	var normals := PackedVector3Array()
@@ -339,6 +415,7 @@ func _build_chunk(k: Vector2i) -> void:
 		add_child(mi)
 		chunks[k] = mi
 	mi.mesh = mesh
+	_plant_vegetation(mi, k, h, kinds)
 	_dirty.erase(k)
 
 
@@ -351,25 +428,123 @@ static func _quad(verts: PackedVector3Array, normals: PackedVector3Array, cols: 
 	idx.append_array([base, base + 1, base + 2, base, base + 2, base + 3])
 
 
-static func _color_for(h: float, slope: float) -> Color:
+static func _color_for(kind: String, h: float) -> Color:
 	var c: Color
-	match cell_kind(h, slope):
+	match kind:
 		"Mer":
 			c = Color("c9b27c").darkened(clampf(-h / 40.0, 0.0, 0.6))
-		"Plage":
+		"Lac / rivière":
+			c = Color("4f8fc4")
+		"Plage", "Désert":
 			c = Color("e6d59c")
 		"Roche":
 			c = Color("8e8a82")
-		"Neige":
-			c = Color("f1f3f6")
+		"Neige", "Glacier":
+			c = Color("eef3f8")
 		"Alpage":
 			c = Color("98a56a")
+		"Forêt":
+			c = Color("4c8c3c")
+		"Mangrove":
+			c = Color("3b7354")
+		"Broussailles":
+			c = Color("8d9a58")
+		"Champs":
+			c = Color("d2c06a")
+		"Marais":
+			c = Color("6c9a7c")
+		"Toundra":
+			c = Color("a9a88a")
 		_:
-			# Herbe : plus claire en montant, par paliers de 2 m, pour lire le relief.
+			# Prairie : plus claire en montant, par paliers de 2 m, pour lire le relief.
 			var t := clampf(floorf(h / 2.0) * 2.0 / 400.0, 0.0, 1.0)
-			c = Color("4f8f3c").lerp(Color("a8b864"), t)
+			c = Color("5d9e47").lerp(Color("a8b864"), t)
 	# Le shader travaille en couleurs linéaires.
 	return c.srgb_to_linear()
+
+
+# --- Végétation --------------------------------------------------------------
+
+const TREE_DENSITY := {"Forêt": 0.10, "Mangrove": 0.08, "Broussailles": 0.025, "Prairie": 0.004, "Marais": 0.01}
+const BUSH_DENSITY := {"Broussailles": 0.05, "Toundra": 0.02, "Forêt": 0.03, "Alpage": 0.01}
+
+
+func _build_vegetation_meshes() -> void:
+	var cone := CylinderMesh.new()
+	cone.top_radius = 0.0
+	cone.bottom_radius = 1.1
+	cone.height = 3.6
+	cone.radial_segments = 6
+	cone.rings = 1
+	var tm := StandardMaterial3D.new()
+	tm.vertex_color_use_as_albedo = true
+	tm.roughness = 1.0
+	cone.material = tm
+	_tree_mesh = cone
+	var bush := SphereMesh.new()
+	bush.radius = 0.55
+	bush.height = 0.8
+	bush.radial_segments = 6
+	bush.rings = 3
+	bush.material = tm
+	_bush_mesh = bush
+
+
+## Plante des arbres et des buissons low-poly selon le biome, de façon
+## déterministe (le même lieu donne toujours la même forêt).
+func _plant_vegetation(mi: MeshInstance3D, k: Vector2i, h: PackedFloat32Array, kinds: Array[String]) -> void:
+	for child in mi.get_children():
+		child.queue_free()
+	var cs := chunk_size
+	var w := cs + 2
+	var trees: Array[Transform3D] = []
+	var tree_cols: Array[Color] = []
+	var bushes: Array[Transform3D] = []
+	var bush_cols: Array[Color] = []
+	for j in range(1, cs + 1):
+		for i in range(1, cs + 1):
+			var kind := kinds[i + j * w]
+			var td: float = TREE_DENSITY.get(kind, 0.0)
+			var bd: float = BUSH_DENSITY.get(kind, 0.0)
+			if td == 0.0 and bd == 0.0:
+				continue
+			var c := Vector2i(k.x * cs + i - 1, k.y * cs + j - 1)
+			if modifications.has(c) or (tree_blocker.is_valid() and tree_blocker.call(c)):
+				continue
+			var r := absi(hash(c))
+			var u := float(r & 0xffff) / 65535.0
+			if u >= td + bd:
+				continue
+			var jx := float((r >> 16) & 0xff) / 255.0 * 0.6 + 0.2
+			var jz := float((r >> 24) & 0x7f) / 127.0 * 0.6 + 0.2
+			var s := 0.7 + float((r >> 8) & 0xff) / 255.0 * 0.6
+			var shade := 0.85 + float((r >> 4) & 0x3f) / 63.0 * 0.3
+			var basis := Basis(Vector3.UP, float(r & 0xff)).scaled(Vector3(s, s, s))
+			if u < td:
+				trees.append(Transform3D(basis, Vector3(i - 1 + jx, h[i + j * w] + 1.8 * s, j - 1 + jz)))
+				var green := Color("2a6a2a") if kind != "Prairie" else Color("367a30")
+				tree_cols.append(green * shade)
+			else:
+				bushes.append(Transform3D(basis, Vector3(i - 1 + jx, h[i + j * w] + 0.3 * s, j - 1 + jz)))
+				bush_cols.append(Color("587a33") * shade)
+	_add_multimesh(mi, _tree_mesh, trees, tree_cols)
+	_add_multimesh(mi, _bush_mesh, bushes, bush_cols)
+
+
+static func _add_multimesh(parent: Node3D, mesh: Mesh, xforms: Array[Transform3D], cols: Array[Color]) -> void:
+	if xforms.is_empty():
+		return
+	var mm := MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+	mm.use_colors = true
+	mm.mesh = mesh
+	mm.instance_count = xforms.size()
+	for n in xforms.size():
+		mm.set_instance_transform(n, xforms[n])
+		mm.set_instance_color(n, cols[n])
+	var inst := MultiMeshInstance3D.new()
+	inst.multimesh = mm
+	parent.add_child(inst)
 
 
 # --- Souris et outils ------------------------------------------------------
@@ -483,6 +658,13 @@ func apply_tool(a: Vector2i, b: Vector2i) -> int:
 	terrain_edited.emit(count)
 	_update_selection()
 	return count
+
+
+## À appeler quand quelque chose posé sur des cases (ex. des routes) doit
+## faire redessiner le terrain et sa végétation.
+func mark_cells_dirty(cells: Array) -> void:
+	for c in cells:
+		_mark_dirty_around(c)
 
 
 func _mark_dirty_around(c: Vector2i) -> void:

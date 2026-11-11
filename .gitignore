@@ -2,3 +2,6 @@
 *.import
 export_presets.cfg
 /build/
+
+# Réglages d'import à garder (carte des biomes : pas de compression)
+!assets/*.import

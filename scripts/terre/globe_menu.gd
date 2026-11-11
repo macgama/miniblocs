@@ -368,7 +368,7 @@ func start_game() -> void:
 	GameStart.lat = sel_lat
 	GameStart.lon = sel_lon
 	GameStart.place_name = sel_name
-	GameStart.mode = GameStart.Mode.SOLO
+	GameStart.mode = GameStart.Mode.BAC_A_SABLE
 	get_tree().change_scene_to_file("res://scenes/terre.tscn")
 
 
@@ -478,9 +478,11 @@ func _build_ui() -> void:
 	_detail_label = _panel_label("", 13, 0.8)
 	rv.add_child(_detail_label)
 	_mode = OptionButton.new()
-	_mode.add_item("Solo : ma propre Terre")
-	_mode.add_item("Ensemble : même carte (bientôt)")
+	_mode.add_item("Bac à sable : seul, hors ligne")
+	_mode.add_item("Entre amis : sur invitation (bientôt)")
+	_mode.add_item("Carte mondiale : tous les joueurs (bientôt)")
 	_mode.set_item_disabled(1, true)
+	_mode.set_item_disabled(2, true)
 	rv.add_child(_mode)
 	_start_btn = Button.new()
 	_start_btn.text = "Commencer la partie"

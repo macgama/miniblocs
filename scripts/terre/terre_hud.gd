@@ -38,12 +38,13 @@ const TOOLS := [
 	{"name": "Chemin", "key": KEY_7},
 	{"name": "Voie d'eau", "key": KEY_8},
 	{"name": "Démolir", "key": KEY_9},
+	{"name": "Carrefour", "key": KEY_J},
 	{"name": "Paysage", "key": KEY_0},
 ]
 ## Premier outil de transport dans TOOLS (les précédents sont les outils de terrain).
 const FIRST_TRANSPORT_TOOL := 4
 ## Outil « Paysage » : ouvre le panneau des pinceaux (colline, eau, biomes, arbres).
-const LANDSCAPE_TOOL := 9
+const LANDSCAPE_TOOL := 10
 
 var coords_edit: LineEdit
 var _place_label: Label
@@ -137,7 +138,7 @@ func _ready() -> void:
 	layout.add_child(spacer)
 
 	var help := Label.new()
-	help.text = "F1 : toutes les commandes   ·   ZQSD : déplacer   ·   Molette : zoom   ·   A / E : tourner   ·   0-9 : outils   ·   B : construire   ·   L : lignes   ·   V : vue   ·   T : pause   ·   Échap : annuler"
+	help.text = "F1 : toutes les commandes   ·   ZQSD : déplacer   ·   Molette : zoom   ·   A / E : tourner   ·   0-9, J : outils   ·   B : construire   ·   L : lignes   ·   V : vue   ·   T : pause   ·   Échap : annuler"
 	help.add_theme_color_override("font_color", Color(1, 1, 1, 0.9))
 	help.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
 	help.add_theme_constant_override("outline_size", 4)

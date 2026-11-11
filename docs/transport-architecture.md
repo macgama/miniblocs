@@ -88,3 +88,7 @@ Choix simples pour l'instant (questions 1 et 2 toujours ouvertes) : pas de voyag
 2. Lignes : gestion détaillée (à la Transport Fever) ou simple (deux gares = une navette) ?
 3. Argent : coûts dès maintenant ou bac à sable gratuit ?
 4. Tracé : angles libres et courbes, ou routes alignées sur les cases ?
+
+## Carrefours et conduite
+
+`JunctionControl` (scripts/transport/junction_control.gd) donne à chaque nœud routier de degré 3 ou plus un régime (`feux`, `stop`, `cedez`, `droite`), choisi daprès

@@ -15,7 +15,7 @@ signal message(text: String)
 signal network_changed
 signal spec_changed(type_id: String, spec: Dictionary)
 
-enum Tool { NONE, BUILD, DEMOLISH }
+enum Tool { NONE, BUILD, DEMOLISH, JUNCTION }
 
 ## Hauteur entre deux voies qui se croisent : en dessous, carrefour (ou passage
 ## à niveau) ; au-dessus de CLEARANCE, l'une passe sous l'autre.
@@ -29,6 +29,7 @@ var network := TransportNetwork.new()
 var view: TransportView
 var traffic: Traffic
 var stations: StationSystem
+var junctions: JunctionControl
 var world: TerrainWorld
 var camera: Camera3D
 
@@ -79,6 +80,10 @@ func _ready() -> void:
 	traffic.name = "Vehicules"
 	add_child(traffic)
 	traffic.setup(network)
+	junctions = JunctionControl.new()
+	add_child(junctions)
+	junctions.setup(network)
+	traffic.junctions = junctions
 	network.changed.connect(_on_network_changed)
 	stations = StationSystem.new()
 	stations.name = "Stations"
@@ -120,6 +125,7 @@ static func _tint(c: Color) -> StandardMaterial3D:
 
 
 func clear() -> void:
+	junctions.overrides.clear()
 	stations.clear()
 	traffic.clear()
 	network.clear()
@@ -224,6 +230,27 @@ func set_demolish() -> void:
 	info_changed.emit("Démolir : clic sur un tronçon pour le supprimer (le terrain reste terrassé).")
 
 
+## Outil « Carrefour » : un clic sur un carrefour change son régime
+## (automatique, feux, stop, cédez-le-passage, priorité à droite).
+func set_junction_tool() -> void:
+	tool = Tool.JUNCTION
+	cancel()
+	info_changed.emit("Carrefour : clic sur un carrefour pour changer son régime (automatique → feux → stop → cédez-le-passage → priorité à droite).")
+
+
+## Carrefour routier le plus proche du point p (-1 si aucun à moins de sa largeur).
+func junction_at(p: Vector3) -> int:
+	var best := -1
+	var best_d := INF
+	for nid in junctions.controlled_nodes():
+		var q := network.node_pos(nid)
+		var d := Vector2(q.x - p.x, q.z - p.z).length()
+		if d < maxf(network.node_half_width(nid) * 1.6, 8.0) and d < best_d:
+			best_d = d
+			best = nid
+	return best
+
+
 func set_inactive() -> void:
 	tool = Tool.NONE
 	cancel()
@@ -281,6 +308,15 @@ func _unhandled_input(event: InputEvent) -> void:
 		if tool == Tool.DEMOLISH:
 			if _highlight_edge >= 0:
 				demolish(_highlight_edge)
+			return
+		if tool == Tool.JUNCTION:
+			var nid := junction_at(_cursor)
+			if nid < 0:
+				message.emit("Pas de carrefour ici (il faut au moins trois routes qui se rejoignent).")
+			else:
+				junctions.cycle(nid)
+				info_changed.emit(junctions.describe(nid) + " · clic : régime suivant")
+				message.emit(String(JunctionControl.MODE_NAMES[junctions.mode_of(nid)]) + (" : " + String(JunctionControl.MODE_NAMES[junctions.kind(nid)]).to_lower() if junctions.mode_of(nid) == "auto" else "") + ".")
 			return
 		_click_build()
 	elif event is InputEventKey:
@@ -387,6 +423,10 @@ func _update_cursor(screen: Vector2) -> void:
 		if best >= 0:
 			var e: Dictionary = network.edges[best]
 			info_changed.emit("Démolir : %s de %d m · clic pour supprimer" % [TransportTypes.get_type(e.t).name, roundi(e.len)])
+	elif tool == Tool.JUNCTION:
+		var nid := junction_at(_cursor) if _cursor_valid else -1
+		if nid >= 0:
+			info_changed.emit(junctions.describe(nid) + " · clic : régime suivant")
 	else:
 		_update_preview()
 	_update_marker()
@@ -802,6 +842,7 @@ static func _km(m: float) -> String:
 func to_dict() -> Dictionary:
 	var d := network.to_dict()
 	d["stations"] = stations.to_dict()
+	d["carrefours"] = junctions.to_dict()
 	return d
 
 
@@ -810,4 +851,5 @@ func from_dict(data: Dictionary) -> void:
 	traffic.clear()
 	cancel()
 	network.from_dict(data)
+	junctions.from_dict(data.get("carrefours", {}))
 	stations.from_dict(data.get("stations", {}))

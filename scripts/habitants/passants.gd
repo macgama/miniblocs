@@ -17,7 +17,7 @@ const SIDEWALK := 1.2
 const LANE := 1.7
 
 var pop: Population
-## pid → {body: MeshInstance3D, mode: String, path: PackedVector3Array, d: PackedFloat32Array, s0, s1}
+## pid → {body: Node3D (Silhouettes à pied, MeshInstance3D sinon), mode: String, path: PackedVector3Array, d: PackedFloat32Array, s0, s1}
 var agents: Dictionary = {}
 var _routes: Dictionary = {}
 var _plans: Dictionary = {}
@@ -175,10 +175,16 @@ func _show(pid: int, from: int, to: int, mode: String, t: float) -> void:
 	if a.is_empty() or int(a.from) != from or int(a.to) != to or String(a.mode) != mode:
 		if not a.is_empty():
 			(a.body as Node).queue_free()
-		var mi := MeshInstance3D.new()
-		mi.material_override = _material
-		mi.mesh = _mesh_for(pid, mode)
-		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		var mi: Node3D
+		if mode == "pied" and Silhouettes.disponible():
+			# Personnage arrondi, avec l'apparence de l'habitant.
+			mi = Silhouettes.pour_habitant(pop, pid)
+		else:
+			var m3 := MeshInstance3D.new()
+			m3.material_override = _material
+			m3.mesh = _mesh_for(pid, mode)
+			m3.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			mi = m3
 		add_child(mi)
 		var route := route_between(from, to, mode)
 		a = {"body": mi, "mode": mode, "from": from, "to": to, "path": route.path, "d": route.d}
@@ -196,8 +202,10 @@ func _show(pid: int, from: int, to: int, mode: String, t: float) -> void:
 	var pos := path[i].lerp(path[i + 1], clampf((s - pd[i]) / seg_len, 0.0, 1.0))
 	var dir := path[i + 1] - path[i]
 	dir.y = 0.0
-	var body: MeshInstance3D = a.body
+	var body: Node3D = a.body
 	body.position = pos
+	if body.has_meta("rig"):
+		Silhouettes.marcher(body, s * 2.6, 1.0)
 	if dir.length_squared() > 0.0001:
 		body.basis = Basis.looking_at(dir.normalized(), Vector3.UP)
 	# Le marcheur suivi est un peu plus grand, pour le repérer.

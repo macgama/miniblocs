@@ -179,9 +179,15 @@ static func footprint(id: String, rot: int) -> Vector2i:
 ## Fabrique le modèle low-poly d'un type (repère local : sol en y = 0, façade vers −Z).
 ## `details` : finitions low-poly (toits en rangs, teintes par face…) ; sans
 ## elles, c'est la version légère utilisée au loin.
-static func build_mesh(id: String, material: Material = null, details := true) -> ArrayMesh:
+## variant : variante du modèle (bâtiments de la bible seulement, 0 = modèle de base).
+## Variantes par type de la bible (couleurs, fenêtres, pente du toit, détails).
+const VARIANTES := 4
+
+
+static func build_mesh(id: String, material: Material = null, details := true, variant := 0) -> ArrayMesh:
 	var k := BlocMesh.new()
 	k.details = details
+	k.variant = variant
 	var t := get_type(id)
 	var w := float(t.get("w", 4))
 	var d := float(t.get("d", 4))
@@ -490,6 +496,11 @@ static func build_mesh(id: String, material: Material = null, details := true) -
 
 
 ## Hauteur indicative du modèle (pour cadrer la caméra, les étiquettes…).
+## Nombre de variantes d'un type (1 = toujours le même modèle).
+static func variants_of(id: String) -> int:
+	return VARIANTES if get_type(id).has("arch") else 1
+
+
 static func approx_height(id: String) -> float:
 	var m := build_mesh(id)
 	if m.get_surface_count() == 0:

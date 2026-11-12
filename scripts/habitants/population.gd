@@ -269,7 +269,8 @@ func _sync_buildings() -> void:
 		_remove_building(bid)
 	var added := false
 	for bid in buildings.buildings:
-		if not known.has(bid):
+		# Un bâtiment en chantier n'accueille encore personne.
+		if not known.has(bid) and not buildings.en_chantier(bid):
 			known[bid] = _info_of(buildings.buildings[bid])
 			added = true
 	# Bâtiments en murs fins : leur fiche suit leurs meubles (lits, postes, pupitres…).

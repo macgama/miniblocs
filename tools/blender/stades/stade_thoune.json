@@ -1,0 +1,54 @@
+{
+  "nom": "stade_thoune",
+  "titre": "Stockhorn Arena (Visana Stadion), Thoune — FC Thoune",
+  "capacite": 10398,
+  "sources": [
+    "Wikipédia (fr et en), consulté le 12 novembre 2026",
+    "photo libre de Wikimedia Commons (Stockhorn_Arena_(FC_Thun)_2.JPG)"
+  ],
+  "notes": "Bol fermé compact, façade claire à nervures verticales, gazon synthétique, centre commercial voisin.",
+  "famille": "anneau",
+  "synthetique": true,
+  "anneau": {
+    "demi_longueur": 57,
+    "demi_largeur": 39,
+    "rayon_angle": 2
+  },
+  "tribunes": {
+    "profondeur": 22,
+    "hauteur": 12,
+    "niveaux": 1,
+    "sieges": [
+      "#c41e3a",
+      "#f2f2f2"
+    ],
+    "groupe": 2,
+    "soubassement": 4
+  },
+  "toit": {
+    "hauteur": 15.5,
+    "dessus": "metal",
+    "couleur": "#8d939a",
+    "debut": 2.5,
+    "debord": 1
+  },
+  "facade": {
+    "type": "lamelles",
+    "couleurs": [
+      "#eceef0",
+      "#c9ced4"
+    ],
+    "pas": 2.5,
+    "saillie": 0.5
+  },
+  "batiments": [
+    {
+      "x": 0,
+      "y": -110,
+      "l": 150,
+      "p": 55,
+      "h": 12,
+      "couleur": "#c3c7cc"
+    }
+  ]
+}

@@ -391,9 +391,8 @@ func _apply() -> void:
 		if rendu_pousse:
 			_rendu_pousse_apply(k, elev)
 
-	var mat := NightWindows.building_material()
-	mat.set_shader_parameter("night", night)
-	mat.set_shader_parameter("lit_ratio", NightWindows.lit_ratio_at(local_hour()))
+	NightWindows.set_shared("night", night)
+	NightWindows.set_shared("lit_ratio", NightWindows.lit_ratio_at(local_hour()))
 	# Lampadaires et phares : la nuit, et aussi par brouillard ou grosse pluie.
 	var dark := maxf(night, smoothstep(0.4, 0.9, wet) * 0.7)
 	if street != null:
@@ -431,18 +430,23 @@ func _rendu_pousse_apply(k: Array, elev: float) -> void:
 	env.volumetric_fog_albedo = Color(1.0, 0.95, 0.88)
 
 
+## Brume de l'air par beau temps, vue de dessus : la moitié du paysage est
+## voilée vers 4 km, l'horizon (10 km) se fond dans le ciel.
+const HAZE_FOG := 0.00018
+
+
 ## Brouillard demandé par la météo (densité de l'environnement).
 func weather_fog() -> float:
 	if weather == null:
 		return 0.0
-	return 0.0004 + weather.fog * weather.fog * 0.014 + weather.precip * 0.0022
+	return HAZE_FOG + weather.fog * weather.fog * 0.014 + weather.precip * 0.0022
 
 
 ## Brouillard de base : celui de la vue au sol quand elle est active.
 func _base_fog() -> float:
 	if _vue_sol != null and int(_vue_sol.get("vue")) != 0:
 		return float(_vue_sol.get("brouillard_sol"))
-	return 0.0004
+	return HAZE_FOG
 
 
 ## Oriente une lumière directionnelle pour qu'elle vienne de la direction `toward`.

@@ -22,6 +22,26 @@ var details := false
 var roof_style := ""
 ## Interrupteur général des finitions (comparaisons, machines modestes).
 static var details_enabled := true
+## Variante du modèle (0 = modèle de base) : couleurs, volets, cheminée… changent
+## d'une variante à l'autre pour que deux bâtiments du même type diffèrent.
+var variant := 0
+## Points remarquables du modèle (repère local), gardés dans le maillage
+## (métadonnée « ancres ») : "fumee" = sommets des cheminées.
+var anchors := {}
+
+
+func anchor(kind: String, p: Vector3) -> void:
+	if not anchors.has(kind):
+		anchors[kind] = []
+	(anchors[kind] as Array).append(p)
+
+
+## Quadrilatère quelconque dont la normale est calculée (côté `outward`).
+func panel(a: Vector3, b: Vector3, c: Vector3, d: Vector3, outward: Vector3, col: Color) -> void:
+	var n := (b - a).cross(d - a).normalized()
+	if n.dot(outward) < 0.0:
+		n = -n
+	quad(a, b, c, d, n, col)
 
 
 func _fine() -> bool:
@@ -121,6 +141,27 @@ func box(cx: float, y0: float, cz: float, sx: float, sy: float, sz: float, col: 
 		var wz := (sz + 0.2 if deep else 0.36)
 		box(cx, y0 - 0.1, cz, wx, 0.1, wz, sill)
 		box(cx, y0 + sy, cz, (0.26 if deep else sx + 0.12), 0.08, (sz + 0.12 if deep else 0.26), sill.darkened(0.08))
+		# Encadrement en relief et petits bois : la vitre paraît en creux.
+		var fr := Color("ece8df")
+		var t := 0.13
+		var w := sz if deep else sx
+		var fd := 0.26
+		if deep:
+			box(cx, y0, cz - w / 2.0 - t / 2.0, fd, sy, t, fr)
+			box(cx, y0, cz + w / 2.0 + t / 2.0, fd, sy, t, fr)
+			box(cx, y0 + sy - 0.02, cz, fd, 0.1, w + 2.0 * t, fr)
+		else:
+			box(cx - w / 2.0 - t / 2.0, y0, cz, t, sy, fd, fr)
+			box(cx + w / 2.0 + t / 2.0, y0, cz, t, sy, fd, fr)
+			box(cx, y0 + sy - 0.02, cz, w + 2.0 * t, 0.1, fd, fr)
+		if w >= 0.7 and sy >= 0.9:
+			var md := 0.15
+			if deep:
+				box(cx, y0, cz, md, sy, 0.07, fr)
+				box(cx, y0 + sy * 0.6, cz, md, 0.07, w, fr)
+			else:
+				box(cx, y0, cz, 0.07, sy, md, fr)
+				box(cx, y0 + sy * 0.6, cz, w, 0.07, md, fr)
 	# Soubassement de pierre sous les grands volumes posés au sol.
 	if _fine() and y0 <= 0.05 and sy >= 2.4 and minf(sx, sz) >= 3.0:
 		var plinth := col.darkened(0.3).lerp(Color("8a8378"), 0.45)
@@ -213,8 +254,8 @@ func _slope(p0: Vector3, p1: Vector3, q0: Vector3, q1: Vector3, n: Vector3, col:
 	var slope_len := ((p0 + p1) * 0.5).distance_to((q0 + q1) * 0.5)
 	if slope_len < 0.3:
 		return
-	var rows := clampi(int(round(slope_len / (0.75 if chaume else 0.45))), 1, 22)
-	var lip := 0.2 if chaume else 0.06
+	var rows := clampi(int(round(slope_len / (0.75 if chaume else 0.55))), 1, 22)
+	var lip := 0.2 if chaume else 0.1
 	var down := ((p0 + p1) * 0.5 - (q0 + q1) * 0.5).normalized()
 	var seg_len := 1.4 if chaume else 1.3
 	for r in rows:
@@ -409,6 +450,11 @@ func fit_xz(w: float, d: float) -> void:
 		verts[i] = Vector3((v.x - off.x) * sx, v.y, (v.z - off.y) * sz)
 		var n := normals[i]
 		normals[i] = Vector3(n.x / sx, n.y, n.z / sz).normalized()
+	for kind in anchors:
+		var list: Array = anchors[kind]
+		for j in list.size():
+			var a: Vector3 = list[j]
+			list[j] = Vector3((a.x - off.x) * sx, a.y, (a.z - off.y) * sz)
 
 
 func to_mesh(material: Material = null) -> ArrayMesh:
@@ -424,4 +470,6 @@ func to_mesh(material: Material = null) -> ArrayMesh:
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
 	if material:
 		mesh.surface_set_material(0, material)
+	if not anchors.is_empty():
+		mesh.set_meta("ancres", anchors)
 	return mesh

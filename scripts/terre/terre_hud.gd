@@ -47,17 +47,50 @@ const FIRST_TRANSPORT_TOOL := 4
 ## Outil « Paysage » : ouvre le panneau des pinceaux (colline, eau, biomes, arbres).
 const LANDSCAPE_TOOL := 10
 
+## Catégories de la barre du bas : outils (indices dans TOOLS) ou panneaux.
+const CATEGORIES := [
+	{"id": "observer", "name": "Observer", "icon": "observer", "key": "1", "tools": [0]},
+	{"id": "terrain", "name": "Terrain", "icon": "terrain", "key": "2-4", "tools": [1, 2, 3]},
+	{"id": "voies", "name": "Voies", "icon": "route", "key": "5-9", "tools": [4, 5, 6, 7, 9, 8]},
+	{"id": "paysage", "name": "Paysage", "icon": "paysage", "key": "0", "tools": [10]},
+	{"id": "construire", "name": "Construire", "icon": "construire", "key": "B", "panel": true},
+	{"id": "lignes", "name": "Lignes", "icon": "lignes", "key": "L", "panel": true},
+	{"id": "habitants", "name": "Habitants", "icon": "habitants", "key": "H", "panel": true},
+]
+## Icône de chaque outil de TOOLS.
+const TOOL_ICONS := ["observer", "aplanir", "monter", "creuser", "route", "rail", "chemin", "eau", "demolir", "carrefour", "paysage"]
+## Nom court sous l'icône (le nom complet est dans l'infobulle).
+const TOOL_SHORT := ["Observer", "Aplanir", "Monter", "Creuser", "Route", "Rail", "Chemin", "Voie d'eau", "Démolir", "Carrefour", "Paysage"]
+const VIEW_NAMES := ["Dessus", "3e pers.", "1re pers."]
+
+## Bouton « Construire » de la barre du bas (le panneau s'ouvre à droite).
+signal build_requested
+## Bouton « Vue » : vue suivante (dessus, 3e personne, 1re personne).
+signal view_requested
+
 var coords_edit: LineEdit
 var _place_label: Label
 var _cell_label: Label
 var _status_label: Label
 var _network_label: Label
 var _tool_label: Label
+var _hint_panel: PanelContainer
 var _message_label: Label
 var _message_timer := 0.0
+## Boutons des outils (mêmes indices que TOOLS), rangés dans le plateau au-dessus de la barre.
 var _buttons: Array[Button] = []
+var _cat_buttons := {}
+var _tray: PanelContainer
+var _tray_tools: HBoxContainer
+var _tray_sep: Control
+var _coords_panel: PanelContainer
+var _chips := {}
+var _view_button: Button
+var _current_tool := 0
+## Dernier outil choisi dans chaque catégorie (clic sur la catégorie = on y revient).
+var _last_tool := {"terrain": 1, "voies": 4}
 # Panneau de réglage de la voie à poser.
-var _spec_panel: PanelContainer
+var _spec_panel: HBoxContainer
 var _class_pick: OptionButton
 var _class_ids: Array = []
 var _lanes: SpinBox
@@ -70,41 +103,108 @@ var _filling := false
 
 
 func _ready() -> void:
-	var root := MarginContainer.new()
-	root.set_anchors_preset(Control.PRESET_FULL_RECT)
-	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	for side in ["left", "right", "top", "bottom"]:
-		root.add_theme_constant_override("margin_" + side, 12)
-	add_child(root)
+	_build_top_bar()
+	_build_coords_panel()
 
-	var layout := VBoxContainer.new()
-	layout.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root.add_child(layout)
+	_message_label = Label.new()
+	_message_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	_message_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_message_label.offset_top = 76
+	_message_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_message_label.add_theme_font_size_override("font_size", 16)
+	_message_label.add_theme_color_override("font_color", Color("fff3b0"))
+	_message_label.add_theme_color_override("font_outline_color", Color.BLACK)
+	_message_label.add_theme_constant_override("outline_size", 6)
+	_message_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_message_label)
 
-	# Panneau du haut : lieu.
+	_build_cell_card()
+	_build_bottom()
+
+	var credit := _build_credit()
+	credit.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+	credit.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	credit.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	credit.offset_right = -12
+	credit.offset_bottom = -6
+	add_child(credit)
+	_update_categories()
+
+
+# --- Barre du haut : lieu, partie, chiffres (l'horloge se place au centre) ---------
+
+func _build_top_bar() -> void:
 	var top := PanelContainer.new()
-	top.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	layout.add_child(top)
-	var top_box := VBoxContainer.new()
-	top.add_child(top_box)
-	var title_row := HBoxContainer.new()
-	top_box.add_child(title_row)
-	_place_label = Label.new()
-	_place_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	title_row.add_child(_place_label)
-	# Menu de la partie : toujours au même endroit, en haut à gauche.
-	for spec in [["Sauver", save_requested, "Sauvegarder la partie (F5)"], ["Charger", load_requested, "Parties sauvegardées (F9 : recharger la partie en cours)"],
-			["Globe", globe_requested, "Revenir au globe pour changer de lieu"], ["Aide", help_requested, "Toutes les commandes (F1)"]]:
-		var mb := Button.new()
-		mb.text = spec[0]
-		mb.tooltip_text = spec[2]
-		mb.focus_mode = Control.FOCUS_NONE
-		var sig: Signal = spec[1]
-		mb.pressed.connect(func() -> void: sig.emit())
-		title_row.add_child(mb)
-
+	top.name = "BarreHaut"
+	top.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	top.offset_left = 10
+	top.offset_right = -10
+	top.offset_top = 10
+	top.custom_minimum_size = Vector2(0, 58)
+	UiStyle.style_panel(top, 0.86, 12, 8)
+	add_child(top)
 	var row := HBoxContainer.new()
-	top_box.add_child(row)
+	row.add_theme_constant_override("separation", 8)
+	top.add_child(row)
+
+	var pin := TextureRect.new()
+	pin.texture = Icones.get_icon("lieu", 22, UiStyle.ACCENT)
+	pin.stretch_mode = TextureRect.STRETCH_KEEP_CENTERED
+	pin.custom_minimum_size = Vector2(26, 0)
+	row.add_child(pin)
+	_place_label = Label.new()
+	_place_label.add_theme_font_size_override("font_size", 16)
+	_place_label.custom_minimum_size = Vector2(150, 0)
+	_place_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_place_label.clip_text = true
+	_place_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	_place_label.mouse_filter = Control.MOUSE_FILTER_PASS
+	row.add_child(_place_label)
+	var go := UiStyle.icon_button("chercher", "Aller à d'autres coordonnées, infos techniques")
+	go.toggle_mode = true
+	go.toggled.connect(func(on: bool) -> void:
+		_coords_panel.visible = on
+		if on:
+			coords_edit.grab_focus())
+	row.add_child(go)
+	row.add_child(UiStyle.vsep())
+	for spec in [["globe", "Revenir au globe pour changer de lieu", "", globe_requested],
+			["sauver", "Sauvegarder la partie", "F5", save_requested],
+			["charger", "Parties sauvegardées (F9 : recharger la partie en cours)", "F9", load_requested],
+			["aide", "Toutes les commandes", "F1", help_requested]]:
+		var b := UiStyle.icon_button(spec[0], spec[1], spec[2])
+		var sig: Signal = spec[3]
+		b.pressed.connect(func() -> void: sig.emit())
+		row.add_child(b)
+
+	# Centre : l'horloge (ClockHud, calque au-dessus) s'y pose.
+	var middle := Control.new()
+	middle.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	middle.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(middle)
+
+	for spec in [["caisse", "budget", "Caisse de la ville (clic : budget)"],
+			["habitants", "habitants", "Habitants (clic : panneau Habitants, H)"],
+			["satisfaction", "sourire", "Satisfaction moyenne sur 100"],
+			["chomage", "emploi", "Chômage"]]:
+		var chip := UiStyle.stat_chip(spec[1], spec[2])
+		chip.text = "—"
+		chip.pressed.connect(func() -> void: habitants_requested.emit())
+		row.add_child(chip)
+		_chips[spec[0]] = chip
+
+
+func _build_coords_panel() -> void:
+	_coords_panel = PanelContainer.new()
+	_coords_panel.position = Vector2(10, 74)
+	_coords_panel.visible = false
+	UiStyle.style_panel(_coords_panel)
+	add_child(_coords_panel)
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 6)
+	_coords_panel.add_child(box)
+	var row := HBoxContainer.new()
+	box.add_child(row)
 	var l := Label.new()
 	l.text = "Latitude, longitude :"
 	row.add_child(l)
@@ -117,89 +217,236 @@ func _ready() -> void:
 	go.text = "Y aller"
 	go.pressed.connect(_on_go)
 	row.add_child(go)
-
-	_cell_label = Label.new()
-	top_box.add_child(_cell_label)
+	var places := HFlowContainer.new()
+	places.custom_minimum_size = Vector2(460, 0)
+	box.add_child(places)
+	for p in PLACES:
+		var b := Button.new()
+		b.text = p.name
+		b.focus_mode = Control.FOCUS_NONE
+		var lat: float = p.lat
+		var lon: float = p.lon
+		b.pressed.connect(func() -> void:
+			_coords_panel.visible = false
+			go_requested.emit(lat, lon))
+		places.add_child(b)
 	_status_label = Label.new()
+	_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_status_label.custom_minimum_size = Vector2(460, 0)
 	_status_label.add_theme_font_size_override("font_size", 12)
-	_status_label.add_theme_color_override("font_color", Color(1, 1, 1, 0.7))
-	top_box.add_child(_status_label)
+	_status_label.add_theme_color_override("font_color", UiStyle.TEXT_DIM)
+	box.add_child(_status_label)
+
+
+# --- Carte de la case survolée (en bas à gauche) -------------------------------------
+
+func _build_cell_card() -> void:
+	var card := PanelContainer.new()
+	card.name = "CarteCase"
+	card.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+	card.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	card.offset_left = 10
+	card.offset_bottom = -10
+	card.custom_minimum_size = Vector2(300, 0)
+	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UiStyle.style_panel(card, 0.82, 12, 10)
+	add_child(card)
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 3)
+	card.add_child(box)
+	_cell_label = Label.new()
+	_cell_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_cell_label.custom_minimum_size = Vector2(278, 0)
+	_cell_label.add_theme_font_size_override("font_size", 13)
+	box.add_child(_cell_label)
 	_network_label = Label.new()
-	top_box.add_child(_network_label)
+	_network_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_network_label.custom_minimum_size = Vector2(278, 0)
+	_network_label.add_theme_font_size_override("font_size", 12)
+	_network_label.add_theme_color_override("font_color", UiStyle.TEXT_DIM)
+	box.add_child(_network_label)
 
-	_message_label = Label.new()
-	_message_label.add_theme_color_override("font_color", Color("fff3b0"))
-	_message_label.add_theme_color_override("font_outline_color", Color.BLACK)
-	_message_label.add_theme_constant_override("outline_size", 6)
-	layout.add_child(_message_label)
 
-	var spacer := Control.new()
-	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	layout.add_child(spacer)
+# --- Bas de l'écran : aide de l'outil, plateau d'outils, barre de catégories -------
 
-	var help := Label.new()
-	help.text = "F1 : toutes les commandes   ·   ZQSD : déplacer   ·   Molette : zoom   ·   A / E : tourner   ·   0-9, J : outils   ·   B : construire   ·   L : lignes   ·   H : habitants   ·   V : vue   ·   T : pause   ·   Échap : annuler"
-	help.add_theme_color_override("font_color", Color(1, 1, 1, 0.9))
-	help.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
-	help.add_theme_constant_override("outline_size", 4)
-	help.add_theme_font_size_override("font_size", 13)
-	help.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var help_row := HBoxContainer.new()
-	layout.add_child(help_row)
-	help_row.add_child(help)
-	# Sources des données, sur la même ligne (la barre d'outils prend toute la largeur).
-	help_row.add_child(_build_credit())
+func _build_bottom() -> void:
+	var col := VBoxContainer.new()
+	col.name = "BasEcran"
+	col.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	col.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	col.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	col.offset_bottom = -10
+	col.alignment = BoxContainer.ALIGNMENT_END
+	col.add_theme_constant_override("separation", 8)
+	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(col)
 
-	_build_spec_panel(layout)
-
+	# Aide de l'outil en cours : une seule ligne, au-dessus du plateau.
+	_hint_panel = PanelContainer.new()
+	_hint_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_hint_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var hsb := UiStyle.flat_box(Color(0.08, 0.10, 0.09, 0.72), 14, 5)
+	hsb.content_margin_left = 14
+	hsb.content_margin_right = 14
+	_hint_panel.add_theme_stylebox_override("panel", hsb)
+	_hint_panel.visible = false
+	col.add_child(_hint_panel)
 	_tool_label = Label.new()
-	_tool_label.add_theme_color_override("font_color", Color("d8f3dc"))
-	_tool_label.add_theme_color_override("font_outline_color", Color.BLACK)
-	_tool_label.add_theme_constant_override("outline_size", 6)
-	layout.add_child(_tool_label)
+	_tool_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_tool_label.add_theme_font_size_override("font_size", 14)
+	_tool_label.add_theme_color_override("font_color", Color("e8f5e9"))
+	_hint_panel.add_child(_tool_label)
 
-	var bottom := HBoxContainer.new()
-	layout.add_child(bottom)
-	var bar_panel := PanelContainer.new()
-	bottom.add_child(bar_panel)
-	var bar := HBoxContainer.new()
-	bar.add_theme_constant_override("separation", 3)
-	bar_panel.add_child(bar)
+	# Plateau : les outils de la catégorie choisie et le réglage de la voie.
+	_tray = PanelContainer.new()
+	_tray.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	UiStyle.style_panel(_tray, 0.88, 12, 8)
+	col.add_child(_tray)
+	var tray_row := HBoxContainer.new()
+	tray_row.add_theme_constant_override("separation", 4)
+	_tray.add_child(tray_row)
+	_tray_tools = HBoxContainer.new()
+	_tray_tools.add_theme_constant_override("separation", 4)
+	tray_row.add_child(_tray_tools)
 	var group := ButtonGroup.new()
 	for i in TOOLS.size():
-		if i == FIRST_TRANSPORT_TOOL or i == LANDSCAPE_TOOL:
-			bar.add_child(VSeparator.new())
-		var b := Button.new()
-		b.text = "%s · %s" % [OS.get_keycode_string(TOOLS[i].key), TOOLS[i].name]
+		var b := UiStyle.tile_button(TOOL_ICONS[i], TOOL_SHORT[i], OS.get_keycode_string(TOOLS[i].key), Vector2(76, 64), 28)
+		b.tooltip_text = "%s (%s)" % [TOOLS[i].name, OS.get_keycode_string(TOOLS[i].key)]
+		b.add_theme_font_size_override("font_size", 12)
 		b.toggle_mode = true
 		b.button_group = group
-		b.custom_minimum_size = Vector2(96, 40)
 		var tool_index := i
-		b.pressed.connect(func() -> void: tool_selected.emit(tool_index))
-		bar.add_child(b)
+		b.pressed.connect(func() -> void:
+			_set_current_tool(tool_index)
+			tool_selected.emit(tool_index))
+		_tray_tools.add_child(b)
 		_buttons.append(b)
 	_buttons[0].button_pressed = true
-	bar.add_child(VSeparator.new())
-	var traffic := Button.new()
-	traffic.text = "Circulation"
+	_tray_sep = UiStyle.vsep()
+	tray_row.add_child(_tray_sep)
+	_build_spec_panel(tray_row)
+
+	# Barre de catégories.
+	var dock := PanelContainer.new()
+	dock.name = "BarreCategories"
+	dock.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	UiStyle.style_panel(dock, 0.88, 14, 8)
+	col.add_child(dock)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 4)
+	dock.add_child(row)
+	for c in CATEGORIES:
+		if c.id == "construire":
+			row.add_child(UiStyle.vsep())
+		var b := UiStyle.tile_button(c.icon, c.name, c.key)
+		b.tooltip_text = "%s (%s)" % [c.name, c.key]
+		# Toutes allumables : outil en cours ou panneau ouvert (état remis par _update_categories / set_panel_open).
+		b.toggle_mode = true
+		var id: String = c.id
+		b.pressed.connect(func() -> void: _on_category(id))
+		row.add_child(b)
+		_cat_buttons[id] = b
+	row.add_child(UiStyle.vsep())
+	var traffic := UiStyle.tile_button("circulation", "Circulation")
+	traffic.tooltip_text = "Afficher ou masquer la circulation"
 	traffic.toggle_mode = true
 	traffic.button_pressed = true
+	traffic.add_theme_stylebox_override("pressed", UiStyle.flat_box(Color(0.62, 0.89, 0.69, 0.18)))
+	traffic.add_theme_stylebox_override("hover_pressed", UiStyle.flat_box(Color(0.62, 0.89, 0.69, 0.26)))
+	for k in ["font_pressed_color", "font_hover_pressed_color", "icon_pressed_color", "icon_hover_pressed_color"]:
+		traffic.add_theme_color_override(k, UiStyle.GOOD)
 	traffic.toggled.connect(func(on: bool) -> void: traffic_toggled.emit(on))
-	bar.add_child(traffic)
-	bar.add_child(_build_vehicle_menu())
-	var transit := Button.new()
-	transit.text = "Lignes (L)"
-	transit.tooltip_text = "Stations, gares, ports, aéroports et lignes de transport en commun"
-	transit.pressed.connect(func() -> void: transit_requested.emit())
-	bar.add_child(transit)
-	var people := Button.new()
-	people.text = "Habitants"
-	people.tooltip_text = "Habitants, foyers, emplois, écoles et budget de la ville"
-	people.focus_mode = Control.FOCUS_NONE
-	people.pressed.connect(func() -> void: habitants_requested.emit())
-	bar.add_child(people)
+	row.add_child(traffic)
+	row.add_child(_build_vehicle_menu())
+	_view_button = UiStyle.tile_button("vue", "Dessus", "V")
+	_view_button.tooltip_text = "Vue suivante : dessus, 3e personne, 1re personne (V)"
+	_view_button.pressed.connect(func() -> void: view_requested.emit())
+	row.add_child(_view_button)
 
+
+func _on_category(id: String) -> void:
+	var c := _category(id)
+	if c.get("panel", false):
+		match id:
+			"construire": build_requested.emit()
+			"lignes": transit_requested.emit()
+			"habitants": habitants_requested.emit()
+		_update_categories()
+		return
+	var tools: Array = c.tools
+	var t: int = tools[0]
+	if tools.has(_current_tool):
+		# Deuxième clic sur la catégorie active : retour à Observer.
+		t = 0
+	elif _last_tool.has(id):
+		t = _last_tool[id]
+	_buttons[t].button_pressed = true
+	_set_current_tool(t)
+	tool_selected.emit(t)
+
+
+func _category(id: String) -> Dictionary:
+	for c in CATEGORIES:
+		if c.id == id:
+			return c
+	return {}
+
+
+func _category_of_tool(t: int) -> String:
+	for c in CATEGORIES:
+		if (c.get("tools", []) as Array).has(t):
+			return c.id
+	return "observer"
+
+
+func _set_current_tool(t: int) -> void:
+	_current_tool = t
+	var cat := _category_of_tool(t)
+	if _last_tool.has(cat):
+		_last_tool[cat] = t
+	_update_categories()
+
+
+## Met la barre à jour : catégorie active en ambre, plateau des outils de la catégorie.
+func _update_categories() -> void:
+	if _tray == null:
+		return
+	var cat := _category_of_tool(_current_tool)
+	for c in CATEGORIES:
+		if not c.get("panel", false):
+			(_cat_buttons[c.id] as Button).set_pressed_no_signal(c.id == cat)
+	var tools: Array = _category(cat).get("tools", [])
+	for i in _buttons.size():
+		_buttons[i].visible = tools.size() > 1 and tools.has(i)
+	# Ordre du plateau : celui de la catégorie (Carrefour avant Démolir).
+	for k in tools.size():
+		_tray_tools.move_child(_buttons[tools[k]], k)
+	var spec_on := _spec_panel != null and _spec_panel.visible
+	_tray_tools.visible = tools.size() > 1
+	_tray_sep.visible = _tray_tools.visible and spec_on
+	_tray.visible = _tray_tools.visible or spec_on
+
+
+## Panneaux ouverts (Construire, Lignes, Habitants) : leur catégorie est allumée.
+func set_panel_open(id: String, on: bool) -> void:
+	var b := _cat_buttons.get(id) as Button
+	if b and b.button_pressed != on:
+		b.set_pressed_no_signal(on)
+
+
+func set_view(v: int) -> void:
+	if _view_button:
+		_view_button.text = VIEW_NAMES[clampi(v, 0, 2)]
+
+
+## Chiffres de la ville dans la barre du haut.
+func set_stats(money: String, people: int, satisfaction: int, unemployment: String) -> void:
+	if _chips.is_empty():
+		return
+	(_chips.caisse as Button).text = money
+	(_chips.habitants as Button).text = str(people)
+	(_chips.satisfaction as Button).text = "—" if people == 0 else str(satisfaction)
+	(_chips.chomage as Button).text = unemployment
 
 
 func _build_credit() -> Label:
@@ -224,7 +471,14 @@ var _veh_region := ""
 func _build_vehicle_menu() -> MenuButton:
 	var mb := MenuButton.new()
 	mb.text = "Véhicules ▾"
-	mb.flat = false
+	mb.icon = Icones.get_icon("vehicules", 30)
+	mb.tooltip_text = "Époque et région des véhicules qui circulent"
+	mb.custom_minimum_size = Vector2(82, 70)
+	mb.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	mb.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
+	mb.add_theme_font_size_override("font_size", 13)
+	mb.add_theme_constant_override("icon_max_width", 30)
+	UiStyle.style_icon_button(mb)
 	var pm := mb.get_popup()
 	pm.hide_on_checkable_item_selection = false
 	pm.add_separator("Époque")
@@ -260,16 +514,15 @@ func _build_vehicle_menu() -> MenuButton:
 	return mb
 
 
-func _build_spec_panel(layout: Control) -> void:
-	_spec_panel = PanelContainer.new()
-	_spec_panel.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+func _build_spec_panel(parent: Control) -> void:
+	_spec_panel = HBoxContainer.new()
 	_spec_panel.visible = false
-	layout.add_child(_spec_panel)
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 10)
-	_spec_panel.add_child(row)
+	_spec_panel.add_theme_constant_override("separation", 10)
+	parent.add_child(_spec_panel)
+	var row := _spec_panel
 	_class_pick = OptionButton.new()
-	_class_pick.custom_minimum_size = Vector2(260, 0)
+	_class_pick.custom_minimum_size = Vector2(230, 0)
+	_class_pick.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_class_pick.item_selected.connect(func(i: int) -> void:
 		if _filling:
 			return
@@ -281,7 +534,10 @@ func _build_spec_panel(layout: Control) -> void:
 	_tracks = _spin(row, "tracks", "Voies ferrées", 1, 2, 1)
 	_width = _spin(row, "width", "Largeur (m)", 1.0, 60.0, 0.1)
 	_curve = Button.new()
-	_curve.text = "Courbe (C)"
+	_curve.text = "Courbe"
+	_curve.icon = Icones.get_icon("courbe", 18)
+	_curve.tooltip_text = "Voie en courbe (C)"
+	_curve.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_curve.toggle_mode = true
 	_curve.toggled.connect(func(on: bool) -> void:
 		if not _filling:
@@ -290,15 +546,19 @@ func _build_spec_panel(layout: Control) -> void:
 
 
 func _spin(row: Control, key: String, label: String, lo: float, hi: float, step: float) -> SpinBox:
-	var box := HBoxContainer.new()
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 1)
+	box.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	var l := Label.new()
 	l.text = label
+	l.add_theme_font_size_override("font_size", 11)
+	l.add_theme_color_override("font_color", UiStyle.TEXT_DIM)
 	box.add_child(l)
 	var sb := SpinBox.new()
 	sb.min_value = lo
 	sb.max_value = hi
 	sb.step = step
-	sb.custom_minimum_size = Vector2(90, 0)
+	sb.custom_minimum_size = Vector2(86, 0)
 	sb.value_changed.connect(func(_v: float) -> void: _emit_spec())
 	box.add_child(sb)
 	row.add_child(box)
@@ -318,6 +578,7 @@ func _emit_spec() -> void:
 func show_spec(type_id: String, spec: Dictionary, curve: bool) -> void:
 	if type_id == "":
 		_spec_panel.visible = false
+		_update_categories()
 		return
 	_filling = true
 	var c := TransportTypes.get_type(type_id)
@@ -351,6 +612,7 @@ func show_spec(type_id: String, spec: Dictionary, curve: bool) -> void:
 	_curve.button_pressed = curve
 	_spec_panel.visible = true
 	_filling = false
+	_update_categories()
 
 
 func _on_go() -> void:
@@ -376,6 +638,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	for i in TOOLS.size():
 		if key.keycode == TOOLS[i].key or key.physical_keycode == TOOLS[i].key:
 			_buttons[i].button_pressed = true
+			_set_current_tool(i)
 			tool_selected.emit(i)
 			return
 	if key.keycode == KEY_F1:
@@ -389,6 +652,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 ## Enfonce le bouton d'un outil sans prévenir (un autre système a pris la main).
 func select_tool_silently(i: int) -> void:
 	_buttons[i].set_pressed_no_signal(true)
+	_set_current_tool(i)
 
 
 func show_message(text: String) -> void:
@@ -398,7 +662,7 @@ func show_message(text: String) -> void:
 
 func set_place(lat: float, lon: float) -> void:
 	var where := GameStart.place_name if GameStart.place_name != "" else "%.4f, %.4f" % [lat, lon]
-	_place_label.text = "MiniBlocs  ·  " + where
+	_place_label.text = where
 	_place_label.tooltip_text = "Région de %d × %d km centrée sur %.5f, %.5f (1 case = 1 m × 1 m)" % [
 		int(GameStart.REGION_SIZE / 1000.0), int(GameStart.REGION_SIZE / 1000.0), lat, lon]
 	if not coords_edit.has_focus():
@@ -410,7 +674,8 @@ func set_cell_info(text: String) -> void:
 
 
 func set_tool_info(text: String) -> void:
-	_tool_label.text = text
+	_tool_label.text = text.strip_edges()
+	_hint_panel.visible = _tool_label.text != ""
 
 
 func set_network_info(text: String) -> void:

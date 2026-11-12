@@ -1,7 +1,8 @@
 class_name BuildingPanel
 extends CanvasLayer
-## Panneau « Construire » (à droite de l'écran) : catégories, catalogue,
-## démolition et règles du bac à sable. B : afficher ou masquer.
+## Panneau « Construire » (à droite de l'écran) : catégories en icônes,
+## bâtiments en vignettes, démolition et règles du bac à sable.
+## B ou le bouton Construire de la barre du bas : afficher ou masquer.
 
 signal building_chosen(id: String)
 signal demolish_chosen
@@ -38,29 +39,58 @@ var _search := ""
 var _zone_style := ""
 var _filters: HFlowContainer
 var _capture_name := ""
+var _cat_title: Label
+var _rules_box: VBoxContainer
+var _vignettes: Vignettes
+
+## Icône de chaque onglet.
+const CAT_ICONS := {"logement": "logement", "commerce": "commerce", "industrie": "industrie",
+	"services": "services", "loisirs": "loisirs", "sport": "sport", "espaces": "publics",
+	"zones": "zonage", "blocs": "editeur", "creations": "creations"}
 
 
 func _ready() -> void:
 	_item_group.allow_unpress = true
+	_vignettes = Vignettes.new()
+	_vignettes.name = "Vignettes"
+	add_child(_vignettes)
 	_panel = PanelContainer.new()
 	_panel.anchor_left = 1.0
 	_panel.anchor_right = 1.0
-	_panel.offset_left = -372
-	_panel.offset_right = -12
-	_panel.offset_top = 12
+	_panel.anchor_bottom = 1.0
+	_panel.offset_left = UiStyle.SIDE_LEFT
+	_panel.offset_right = UiStyle.SIDE_RIGHT
+	_panel.offset_top = UiStyle.SIDE_TOP
+	_panel.offset_bottom = -112
+	_panel.visible = false
+	UiStyle.style_panel(_panel)
 	add_child(_panel)
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 6)
 	_panel.add_child(box)
 
+	var head := HBoxContainer.new()
+	box.add_child(head)
+	var hi := TextureRect.new()
+	hi.texture = Icones.get_icon("construire", 24, UiStyle.ACCENT)
+	hi.stretch_mode = TextureRect.STRETCH_KEEP_CENTERED
+	head.add_child(hi)
 	var title := Label.new()
-	title.text = "Construire   (B : masquer)"
-	title.add_theme_font_size_override("font_size", 17)
-	box.add_child(title)
+	title.text = "Construire"
+	title.add_theme_font_size_override("font_size", 18)
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	head.add_child(title)
 	_money_label = Label.new()
-	box.add_child(_money_label)
+	_money_label.add_theme_color_override("font_color", UiStyle.TEXT_DIM)
+	head.add_child(_money_label)
+	var close := UiStyle.icon_button("fermer", "Fermer", "B", 18, 32)
+	close.pressed.connect(func() -> void: set_open(false))
+	head.add_child(close)
 
-	var cats := HFlowContainer.new()
+	var cats := GridContainer.new()
+	cats.columns = 5
+	cats.add_theme_constant_override("h_separation", 4)
+	cats.add_theme_constant_override("v_separation", 4)
 	box.add_child(cats)
 	var cat_group := ButtonGroup.new()
 	var tabs: Array = BuildingCatalog.CATEGORIES.duplicate()
@@ -68,15 +98,18 @@ func _ready() -> void:
 	tabs.append({"id": "blocs", "name": "Éditeur libre", "color": Color("8ecae6")})
 	tabs.append({"id": Creations.CATEGORY, "name": "Mes créations", "color": Color("f4a261")})
 	for c in tabs:
-		var b := Button.new()
-		b.text = c.name
+		var b := UiStyle.icon_button(String(CAT_ICONS.get(c.id, "construire")), c.name, "", 26, 46)
+		b.custom_minimum_size = Vector2(70, 46)
 		b.toggle_mode = true
 		b.button_group = cat_group
-		b.add_theme_color_override("font_pressed_color", c.color.lightened(0.3))
 		var id: String = c.id
 		b.pressed.connect(func() -> void: show_category(id))
 		cats.add_child(b)
 		_cat_buttons[id] = b
+	_cat_title = Label.new()
+	_cat_title.add_theme_font_size_override("font_size", 15)
+	_cat_title.add_theme_color_override("font_color", UiStyle.ACCENT)
+	box.add_child(_cat_title)
 
 	# Filtres de la bible : région du monde, époque, recherche par nom.
 	_filters = HFlowContainer.new()
@@ -111,37 +144,52 @@ func _ready() -> void:
 	_filters.add_child(search)
 
 	var scroll := ScrollContainer.new()
-	scroll.custom_minimum_size = Vector2(0, 300)
+	scroll.custom_minimum_size = Vector2(0, 200)
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	box.add_child(scroll)
 	_list = VBoxContainer.new()
 	_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.add_child(_list)
 
+	var foot := HBoxContainer.new()
+	box.add_child(foot)
 	_demolish_button = Button.new()
 	_demolish_button.text = "Démolir un bâtiment"
+	_demolish_button.icon = Icones.get_icon("demolir", 20)
+	_demolish_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_demolish_button.toggle_mode = true
 	_demolish_button.button_group = _item_group
 	_demolish_button.pressed.connect(func() -> void: demolish_chosen.emit())
-	box.add_child(_demolish_button)
+	foot.add_child(_demolish_button)
+	var rules := Button.new()
+	rules.text = "Règles"
+	rules.icon = Icones.get_icon("details", 20)
+	rules.tooltip_text = "Règles du bac à sable : accès à une voie, argent illimité"
+	rules.toggle_mode = true
+	rules.toggled.connect(func(on: bool) -> void: _rules_box.visible = on)
+	foot.add_child(rules)
 
-	box.add_child(HSeparator.new())
-	var rules := Label.new()
-	rules.text = "Règles du bac à sable"
-	box.add_child(rules)
+	_rules_box = VBoxContainer.new()
+	_rules_box.visible = false
+	box.add_child(_rules_box)
+	var rl := Label.new()
+	rl.text = "Règles du bac à sable"
+	_rules_box.add_child(rl)
 	_access_box = CheckBox.new()
 	_access_box.text = "Accès à une voie obligatoire"
 	_access_box.button_pressed = true
 	_access_box.toggled.connect(func(_on: bool) -> void: _emit_rules())
-	box.add_child(_access_box)
+	_rules_box.add_child(_access_box)
 	_money_box = CheckBox.new()
 	_money_box.text = "Argent illimité"
 	_money_box.toggled.connect(func(_on: bool) -> void: _emit_rules())
-	box.add_child(_money_box)
+	_rules_box.add_child(_money_box)
 
 	_summary_label = Label.new()
 	_summary_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_summary_label.add_theme_font_size_override("font_size", 12)
+	_summary_label.add_theme_color_override("font_color", UiStyle.TEXT_DIM)
 	box.add_child(_summary_label)
 
 	show_category(_category)
@@ -159,6 +207,9 @@ func set_rules(require_access: bool, unlimited_money: bool) -> void:
 func show_category(cat: String) -> void:
 	_category = cat
 	(_cat_buttons[cat] as Button).button_pressed = true
+	_cat_title.text = (_cat_buttons[cat] as Button).tooltip_text
+	if _vignettes:
+		_vignettes.cancel_all()
 	for b in _item_buttons:
 		b.queue_free()
 	_item_buttons.clear()
@@ -173,24 +224,19 @@ func show_category(cat: String) -> void:
 		return
 	_filters.visible = true
 	var shown := 0
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 6)
+	grid.add_theme_constant_override("v_separation", 6)
+	_list.add_child(grid)
+	_item_buttons.append(grid)
 	for id in BuildingCatalog.ids_in(cat, _region, _era):
 		var t := BuildingCatalog.get_type(id)
 		if _search != "" and not (String(t.name) + " " + String(t.desc)).to_lower().contains(_search):
 			continue
 		shown += 1
-		var b := Button.new()
-		b.text = "%s  ·  %d × %d m  ·  %s" % [t.name, t.w, t.d, BuildingSystem.format_short(BuildingCatalog.cost(id))]
-		b.tooltip_text = "%s\n%s\nPrix : %s (hors terrassement)" % [b.text, t.desc, BuildingSystem.format_money(BuildingCatalog.cost(id))]
-		# Noms longs (« Maisons de ville (village méditerranéen) ») : coupés « … », complets dans l'infobulle.
-		b.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-		b.clip_text = true
-		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		b.toggle_mode = true
-		b.button_group = _item_group
-		var type_id: String = id
-		b.pressed.connect(func() -> void: building_chosen.emit(type_id))
-		_list.add_child(b)
-		_item_buttons.append(b)
+		grid.add_child(_card(id, String(CAT_ICONS.get(cat, "construire"))))
+	_cat_title.text += "  ·  %d" % shown
 	if shown == 0:
 		var none := Label.new()
 		none.text = "Aucun bâtiment pour ces filtres."
@@ -398,6 +444,68 @@ func set_zone_info(text: String) -> void:
 		_zone_label.text = text
 
 
+## Carte d'un bâtiment : vignette, nom, taille et prix. Clic : le poser.
+func _card(id: String, fallback_icon: String) -> Button:
+	var t := BuildingCatalog.get_type(id)
+	var b := Button.new()
+	b.custom_minimum_size = Vector2(168, 150)
+	b.toggle_mode = true
+	b.button_group = _item_group
+	b.focus_mode = Control.FOCUS_NONE
+	b.tooltip_text = "%s · %d × %d m · %s\n%s\nPrix : %s (hors terrassement)" % [t.name, t.w, t.d,
+		BuildingSystem.format_short(BuildingCatalog.cost(id)), t.desc, BuildingSystem.format_money(BuildingCatalog.cost(id))]
+	var sel := UiStyle.flat_box(Color(1, 0.82, 0.4, 0.16), 10, 6)
+	sel.border_color = UiStyle.ACCENT
+	sel.set_border_width_all(2)
+	b.add_theme_stylebox_override("normal", UiStyle.flat_box(Color(1, 1, 1, 0.05), 10, 6))
+	b.add_theme_stylebox_override("hover", UiStyle.flat_box(Color(1, 1, 1, 0.11), 10, 6))
+	b.add_theme_stylebox_override("pressed", sel)
+	b.add_theme_stylebox_override("hover_pressed", sel)
+	var type_id := id
+	b.pressed.connect(func() -> void: building_chosen.emit(type_id))
+	var box := VBoxContainer.new()
+	box.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT, Control.PRESET_MODE_MINSIZE, 6)
+	box.add_theme_constant_override("separation", 2)
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	b.add_child(box)
+	var pic := TextureRect.new()
+	pic.custom_minimum_size = Vector2(156, 92)
+	pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	pic.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	pic.texture = Icones.get_icon(fallback_icon, 48, Color(1, 1, 1, 0.35))
+	box.add_child(pic)
+	if _vignettes:
+		_vignettes.request(id, pic)
+	var name_l := Label.new()
+	name_l.text = String(t.name)
+	name_l.clip_text = true
+	name_l.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	name_l.custom_minimum_size = Vector2(156, 0)
+	name_l.add_theme_font_size_override("font_size", 13)
+	name_l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(name_l)
+	var meta := Label.new()
+	meta.text = "%d × %d m  ·  %s" % [t.w, t.d, BuildingSystem.format_short(BuildingCatalog.cost(id))]
+	meta.add_theme_font_size_override("font_size", 12)
+	meta.add_theme_color_override("font_color", UiStyle.TEXT_DIM)
+	meta.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(meta)
+	return b
+
+
+func is_open() -> bool:
+	return _panel.visible
+
+
+func set_open(on: bool) -> void:
+	_panel.visible = on
+
+
+func toggle() -> void:
+	set_open(not _panel.visible)
+
+
 func set_growth(on: bool) -> void:
 	_growth = on
 
@@ -410,7 +518,7 @@ func clear_selection() -> void:
 
 
 func set_money(text: String) -> void:
-	_money_label.text = text
+	_money_label.text = text.replace("Caisse : ", "")
 
 
 func set_summary(text: String) -> void:
@@ -420,4 +528,4 @@ func set_summary(text: String) -> void:
 func _unhandled_key_input(event: InputEvent) -> void:
 	var key := event as InputEventKey
 	if key and key.pressed and not key.echo and key.physical_keycode == KEY_B:
-		_panel.visible = not _panel.visible
+		toggle()

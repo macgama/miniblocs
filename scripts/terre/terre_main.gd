@@ -119,6 +119,11 @@ func _ready() -> void:
 			hud.show_message("Chargement impossible : " + last_error))
 	for sig in [world.terrain_edited, transport.network_changed, buildings.changed, zones.changed, blocks.changed, transport.stations.lines_changed, transport.junctions.changed, population.changed]:
 		(sig as Signal).connect(func(_a = null) -> void: _unsaved = true)
+	hud.build_requested.connect(func() -> void: build_panel.toggle())
+	var vue := get_node_or_null("VueSol")
+	if vue:
+		hud.view_requested.connect(func() -> void: vue.vue_suivante())
+		vue.vue_changee.connect(func(v: int) -> void: hud.set_view(v))
 	hud.city_requested.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/main.tscn"))
 	hud.globe_requested.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/globe.tscn"))
 	if GameStart.chosen:
@@ -458,6 +463,45 @@ func _process(delta: float) -> void:
 		build_panel.set_summary(buildings.summary())
 		build_panel.set_zone_info(zones.summary())
 		build_panel.set_block_info(blocks.summary())
+		_stats_timer -= 0.3
+		if _stats_timer <= 0.0:
+			_stats_timer = 1.0
+			_refresh_stats()
+	_exclusive_panels()
+
+
+var _stats_timer := 0.0
+## Panneaux de droite ouverts à l'image précédente (pour n'en garder qu'un).
+var _open_before := {}
+
+
+## Construire, Lignes et Habitants partagent la même place à droite : quand
+## l'un s'ouvre, les autres se ferment. Leur bouton de la barre du bas s'allume.
+func _exclusive_panels() -> void:
+	var panels := {"construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel}
+	var opened := ""
+	for id in panels:
+		var p = panels[id]
+		var on: bool = p != null and p.is_open()
+		if on and not _open_before.get(id, false):
+			opened = id
+		_open_before[id] = on
+	if opened != "":
+		for id in panels:
+			if id != opened and _open_before[id]:
+				panels[id].set_open(false)
+				_open_before[id] = false
+	for id in panels:
+		hud.set_panel_open(id, _open_before[id])
+
+
+## Chiffres de la ville dans la barre du haut : caisse, habitants, satisfaction, chômage.
+func _refresh_stats() -> void:
+	var money := "Illimitée" if buildings.unlimited_money else BuildingSystem.format_money(buildings.money)
+	var s := population.stats()
+	var adults: int = int(s.actif) + int(s.chomeur)
+	var unemployment := "—" if adults == 0 else "%d %%" % roundi(100.0 * int(s.chomeur) / adults)
+	hud.set_stats(money, int(s.habitants), int(s.satisfaction), unemployment)
 
 
 func _refresh_cell_info() -> void:
@@ -471,11 +515,11 @@ func _refresh_cell_info() -> void:
 	var ll := world.local_to_lat_lon(_hover.x + 0.5, _hover.y + 0.5)
 	var kind := world.cell_kind_at(_hover)
 	var real := world.raw_height(_hover.x + 0.5, _hover.y + 0.5)
-	var txt := "Case %d, %d   ·   %.6f, %.6f   ·   %s   ·   hauteur %.1f m (réelle %.1f m)" % [
-		_hover.x, _hover.y, ll.x, ll.y, kind, h, real]
+	var txt := "Case %d, %d   ·   %s" % [_hover.x, _hover.y, kind]
 	var river := world.water_name_at(_hover)
 	if river != "":
 		txt += " (%s)" % river
+	txt += "\nHauteur %.1f m (réelle %.1f m)   ·   %.5f, %.5f" % [h, real, ll.x, ll.y]
 	if world.modifications.has(_hover):
 		txt += "   ·   modifiée"
 	hud.set_cell_info(txt)

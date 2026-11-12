@@ -363,35 +363,11 @@ func _construire_ui() -> void:
 	_ui.name = "InterfaceVue"
 	_ui.layer = 2
 	add_child(_ui)
-	var panneau := PanelContainer.new()
-	# En haut au centre, sous l'horloge : la gauche et la droite sont prises par les autres panneaux.
-	panneau.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	panneau.position = Vector2(-120, 158)
-	panneau.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	_ui.add_child(panneau)
-	var boite := HBoxContainer.new()
-	panneau.add_child(boite)
-	var titre := Label.new()
-	titre.text = "Vue (V) :"
-	boite.add_child(titre)
-	var ligne := HBoxContainer.new()
-	boite.add_child(ligne)
-	var groupe := ButtonGroup.new()
-	for v in [Vue.DESSUS, Vue.TROISIEME, Vue.PREMIERE]:
-		var b := Button.new()
-		b.text = ["Dessus", "3e pers.", "1re pers."][v]
-		b.toggle_mode = true
-		b.button_group = groupe
-		b.focus_mode = Control.FOCUS_NONE
-		b.tooltip_text = NOMS[v]
-		b.pressed.connect(func() -> void: set_vue(v))
-		ligne.add_child(b)
-		_boutons.append(b)
-
+	# Le choix de la vue est dans la barre du bas (bouton Vue, touche V) : voir TerreHud.
 	_aide = Label.new()
 	_aide.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	_aide.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	_aide.position.y = 214
+	_aide.position.y = 104
 	_aide.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_aide.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
 	_aide.add_theme_constant_override("outline_size", 5)

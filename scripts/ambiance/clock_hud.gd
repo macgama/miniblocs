@@ -23,7 +23,8 @@ func _ready() -> void:
 	anchor.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(anchor)
 	var panel := PanelContainer.new()
-	panel.position = Vector2(-220, 8)
+	# Décalée à droite du centre : la barre de titre (Sauver, Charger…) occupe la gauche.
+	panel.position = Vector2(-120, 8)
 	panel.custom_minimum_size = Vector2(440, 0)
 	anchor.add_child(panel)
 	var box := VBoxContainer.new()

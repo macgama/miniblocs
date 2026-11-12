@@ -663,19 +663,24 @@ static func _compute_chunk(job: Dictionary) -> void:
 	surf.resize(w * w)
 	# Hauteurs avant creusement : les berges gardent leur biome (pas de « roche »).
 	var h_bank := h.duplicate()
+	# Même règle que water_depth, écrite en ligne : cette boucle passe sur chaque case.
+	var any_wet := false
 	for n in w * w:
-		if bio[n] == 80:
+		var b := bio[n]
+		if b == 80:
 			wid[n] = 0.0 # dans un lac WorldCover, pas de ruisseau dessiné par-dessus
-		if h[n] < 0.0:
+		var hn := h[n]
+		if hn < 0.0:
 			wet[n] = 2
 			continue
-		if modified[n] != 0:
+		var wn := wid[n]
+		if (wn == 0.0 and b != 80) or modified[n] != 0:
 			continue
-		var d := water_depth(h[n], bio[n], wid[n], step)
-		if d > 0.0:
-			wet[n] = 1
-			surf[n] = h[n] - WATER_SURFACE_DROP
-			h[n] -= d
+		var d := step if (b == 80 or wn >= WaterMap.POND_WIDTH) else step * (1.0 if wn < 3.0 else 2.0)
+		wet[n] = 1
+		surf[n] = hn - WATER_SURFACE_DROP
+		h[n] = hn - d
+		any_wet = true
 	# Lacs et canaux creusés par le joueur (le lit est déjà dans les modifications).
 	var pw_idx: PackedInt32Array = job.pwater[0]
 	var pw_val: PackedFloat32Array = job.pwater[1]
@@ -688,6 +693,8 @@ static func _compute_chunk(job: Dictionary) -> void:
 		wid[n] = 0.0
 		h_bank[n] = pw_val[m] + WATER_SURFACE_DROP
 		player_water[n] = 1
+	any_wet = any_wet or pw_idx.size() > 0
+	var has_marks := (job.paint[0] as PackedInt32Array).size() > 0 or (job.trees[0] as PackedInt32Array).size() > 0
 	var paint := PackedByteArray()
 	paint.resize(w * w)
 	paint.fill(255)
@@ -713,13 +720,13 @@ static func _compute_chunk(job: Dictionary) -> void:
 			var kind: int = _KIND_BY_CODE[code]
 			if kind < 0 or hc < 0.0 or s >= 1.0 or hc < 1.5 or hc > 1500.0:
 				kind = cell_kind_id(hc, s, code)
-			if wet[n] == 1 and wid[n] > 0.0:
+			if any_wet and wet[n] == 1 and wid[n] > 0.0:
 				var sk := stream_kind_id(wid[n], hc)
 				if sk >= 0:
 					kind = sk
-			if player_water[n] == 1:
+			if any_wet and player_water[n] == 1:
 				kind = Kind.CANAL
-			elif paint[n] != 255 and wet[n] != 1:
+			elif has_marks and paint[n] != 255 and wet[n] != 1:
 				kind = paint[n]
 			kinds[n] = kind
 			if kind == Kind.PRAIRIE:
@@ -790,11 +797,12 @@ static func _compute_chunk(job: Dictionary) -> void:
 	arrays[Mesh.ARRAY_INDEX] = idx
 	job.arrays = arrays
 	job.h = h
-	job.water_arrays = _compute_water_mesh(cs, wet, surf, wid)
+	job.water_arrays = _compute_water_mesh(cs, wet, surf, wid) if any_wet else []
 	# Une case peinte (biome ou arbres) garde sa végétation même terrassée.
-	for n in w * w:
-		if paint[n] != 255 or tree_mark[n] != 0:
-			modified[n] = 0
+	if has_marks:
+		for n in w * w:
+			if paint[n] != 255 or tree_mark[n] != 0:
+				modified[n] = 0
 	job.tree_mark = tree_mark
 	_compute_vegetation(job, h, kinds, modified)
 
@@ -810,6 +818,15 @@ static func _compute_water_mesh(cs: int, wet: PackedByteArray, surf: PackedFloat
 	var normals := PackedVector3Array()
 	var cols := PackedColorArray()
 	var idx := PackedInt32Array()
+	# Coin (a, b) de la grille : bord si une des quatre cases qui le touchent est sèche.
+	var cw := cs + 1
+	var shore_at := PackedByteArray()
+	shore_at.resize(cw * cw)
+	for b in cw:
+		for a in cw:
+			var n0 := a + b * w
+			if wet[n0] == 0 or wet[n0 + 1] == 0 or wet[n0 + w] == 0 or wet[n0 + w + 1] == 0:
+				shore_at[a + b * cw] = 1
 	for j in range(1, cs + 1):
 		for i in range(1, cs + 1):
 			var n := i + j * w
@@ -818,17 +835,23 @@ static func _compute_water_mesh(cs: int, wet: PackedByteArray, surf: PackedFloat
 			var y := surf[n]
 			var depth := 1.0 if wid[n] == 0.0 or wid[n] >= WaterMap.POND_WIDTH else clampf(wid[n] / 15.0, 0.15, 1.0)
 			var base := verts.size()
-			# Coins (a, b) en coordonnées de grille : bord si une case autour est sèche.
-			for corner: Vector2i in [Vector2i(i - 1, j - 1), Vector2i(i, j - 1), Vector2i(i, j), Vector2i(i - 1, j)]:
-				var shore := 0.0
-				for ddx in 2:
-					for ddz in 2:
-						if wet[corner.x + ddx + (corner.y + ddz) * w] == 0:
-							shore = 1.0
-				verts.push_back(Vector3(corner.x, y, corner.y))
+			var c0 := (i - 1) + (j - 1) * cw
+			verts.push_back(Vector3(i - 1, y, j - 1))
+			verts.push_back(Vector3(i, y, j - 1))
+			verts.push_back(Vector3(i, y, j))
+			verts.push_back(Vector3(i - 1, y, j))
+			for q in 4:
 				normals.push_back(Vector3.UP)
-				cols.push_back(Color(shore, depth, 0.0, 1.0))
-			idx.append_array([base, base + 1, base + 2, base, base + 2, base + 3])
+			cols.push_back(Color(shore_at[c0], depth, 0.0, 1.0))
+			cols.push_back(Color(shore_at[c0 + 1], depth, 0.0, 1.0))
+			cols.push_back(Color(shore_at[c0 + 1 + cw], depth, 0.0, 1.0))
+			cols.push_back(Color(shore_at[c0 + cw], depth, 0.0, 1.0))
+			idx.push_back(base)
+			idx.push_back(base + 1)
+			idx.push_back(base + 2)
+			idx.push_back(base)
+			idx.push_back(base + 2)
+			idx.push_back(base + 3)
 			# Cascades vers l'Est et le Sud.
 			for d: Vector2i in [Vector2i(1, 0), Vector2i(0, 1)]:
 				var m: int = i + d.x + (j + d.y) * w

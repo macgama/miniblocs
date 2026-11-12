@@ -66,8 +66,11 @@ func _run() -> void:
 	world.land.offline_generator = func(_lat: float, lon: float) -> int: return 10 if lon < LON else 40
 	world.view_radius_override = 1100.0
 	world.set_origin(LAT, LON)
-	for i in 150:
+	# Attend que le relief soit chargé partout (plus long avec les plantes).
+	for i in 3000:
 		await process_frame
+		if i >= 150 and world.missing_chunk_count() == 0 and world._dirty.is_empty() and world._jobs.is_empty():
+			break
 	var prod: Production = scene.production
 	var pop: Population = scene.population
 	_check(prod != null and prod.population == pop and bs.extra_check.is_valid(), "production branchée dans la scène")

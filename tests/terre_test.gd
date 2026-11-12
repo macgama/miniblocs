@@ -376,11 +376,17 @@ func _run() -> void:
 	_check(trees > 100, "arbres plantés dans la forêt (%d)" % trees)
 	var south: MeshInstance3D = world.chunks.get(Vector2i(0, 1))
 	var south_trees := 0
+	var south_crops := 0
 	if south:
 		for ch in south.get_children():
-			if ch is MultiMeshInstance3D:
-				south_trees += 1
+			if ch is MultiMeshInstance3D and not ch.has_meta("loin"):
+				var cat: int = ch.get_meta("categorie", -1)
+				if cat == Plantes.Cat.ARBRE or cat == Plantes.Cat.ARBUSTE:
+					south_trees += 1
+				elif cat == Plantes.Cat.CULTURE:
+					south_crops += (ch as MultiMeshInstance3D).multimesh.instance_count
 	_check(south != null and south_trees == 0, "pas d'arbres dans les champs")
+	_check(south_crops > 100, "cultures dans les champs (%d)" % south_crops)
 	world.tree_blocker = func(c: Vector2i) -> bool: return true
 	world.mark_cells_dirty([Vector2i(10, -10)])
 	for i in 120:
@@ -503,13 +509,16 @@ func _run() -> void:
 	world.apply_brush(Vector2i(100, 30))
 	_check(world.cell_kind_at(Vector2i(100, 30)) == "Désert", "peindre un désert (%s)" % world.cell_kind_at(Vector2i(100, 30)))
 	# (le rendu sans écran ne relit pas les positions des arbres : on compte par bloc)
+	# Arbres et arbustes seulement (pas les cultures ni les herbes, pas les versions lointaines).
 	var count_trees := func(kk: Vector2i) -> int:
 		var ch: MeshInstance3D = world.chunks.get(kk)
 		var total := 0
 		if ch:
 			for g in ch.get_children():
-				if g is MultiMeshInstance3D and not g.is_queued_for_deletion():
-					total += (g as MultiMeshInstance3D).multimesh.instance_count
+				if g is MultiMeshInstance3D and not g.is_queued_for_deletion() and not g.has_meta("loin"):
+					var cat: int = g.get_meta("categorie", -1)
+					if cat == Plantes.Cat.ARBRE or cat == Plantes.Cat.ARBUSTE:
+						total += (g as MultiMeshInstance3D).multimesh.instance_count
 		return total
 	var fields_before: int = count_trees.call(Vector2i(1, 0))
 	var forest_before: int = count_trees.call(Vector2i(1, -1))

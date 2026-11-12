@@ -55,6 +55,8 @@ Dans la vitrine : **C** donne de nouvelles couleurs au hasard, **X** remet les c
 
 Pour un export du jeu, ajouter `*.json` au filtre « fichiers non-ressources » du préréglage d'export, pour que les cartes de palette soient incluses.
 
+Les **plantes** (arbres, herbes, cultures…) ont leur propre script, `tools/blender/plantes_lowpoly.py` : voir [plantes-et-sols.md](plantes-et-sols.md).
+
 ## Bâtiments recréés d'après une image
 
 Un bâtiment particulier a son propre script dans `tools/blender/batiments/`, qui réutilise les briques du générateur : boîtes, cylindres et portions de cylindre, dalles, vitrages à petits carreaux (texture répétée), garde-corps en grille ou à barreaux fins (texture semi-transparente), hublots.

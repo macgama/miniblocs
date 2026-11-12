@@ -5,6 +5,7 @@ Tout est dans `main`, et les 9 tests automatiques passent (`sh tests/tous.sh`).
 ## Nouveautés
 
 **Le monde**
+- Plantes et textures du sol : 46 plantes low-poly faites dans Blender (arbres, arbustes, fleurs, cultures, rochers) selon le biome et le climat, sols texturés et champs en patchwork (voir docs/plantes-et-sols.md).
 - Rivières, ruisseaux et lacs avec de l'eau animée, et des ponts au-dessus (#21). Région jouable de 40 × 40 km, les rivières se chargent autour de la caméra (#26).
 - Mer et côtes : houle, ressac et plages de sable (#29).
 - Paysage (outil **0**) : collines, lissage, lacs et canaux, peinture de biomes, plantation et arrachage d'arbres au pinceau (#24).

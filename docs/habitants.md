@@ -40,9 +40,57 @@ Ce découpage est prêt pour faire marcher de vrais piétons : chaque étape de 
 
 Le solde est versé chaque jour (1/30,44 du mois) dans la caisse, sauf avec « argent illimité ».
 
+## Cycle de vie (`scripts/habitants/cycle_vie.gd`)
+
+Par défaut, **1 an de vie = 1 jour de jeu** (`Population.DEFAULT_LIFE_SPEED`, réglage de partie `vitesse_vie`). Chaque jour de jeu, `CycleVie.daily()` fait passer un an pour tout le monde.
+
+**CV.** Chaque habitant a une liste d'étapes `cv` : `[jour de vie, code, texte, référence]`. Le texte est écrit au moment de l'étape (le nom d'un bâtiment reste même s'il est démoli). Codes : `naissance`, `arrivee`, `ecole`, `diplome`, `etudes`, `emploi`, `fin_emploi`, `retraite`, `demenage`, `couple`, `pacs`, `mariage`, `separation`, `enfant`, `veuvage`, `deuil`, `heritage`, `loisir`, `sport`, `permis`, `voiture`, `maladie`, `guerison`, `deces`, `depart`. Les nouveaux arrivants ont un passé inventé (naissance « loin d'ici », diplômes, permis, union), daté avant leur arrivée.
+
+**Famille.** `pa` = [mère, père], `cj` = conjoint, `un` = `couple`, `pacs` ou `mariage`. `CycleVie.relation()` donne le lien (mère, demi-frère, beau-père, petite-fille…). Les foyers d'une ancienne sauvegarde sont reliés au chargement (couple et parents devinés).
+
+| Chaque année de vie | Probabilité (par an) |
+| --- | --- |
+| Rencontre (célibataires de 20 à 77 ans) | 30 % ; au travail, au même loisir, dans le quartier (moins de 400 m) ou par des amis ; écart d'âge 10 ans au plus |
+| Emménager ensemble | aussitôt : le plus petit foyer rejoint l'autre avec ses enfants mineurs (famille recomposée) ; deux jeunes qui vivent chez leurs parents prennent un logement libre |
+| Mariage ou PACS | 12 % pour un couple qui vit ensemble (60 % mariage) |
+| Séparation | 1,2 % mariés, 3 % sinon ; l'un part dans un logement libre avec 40 % de l'épargne, les enfants restent |
+| Naissance | 11 % pour une femme de 20 à 42 ans en couple sous le même toit (2 petits de moins de 6 ans au plus) |
+| Quitter ses parents | 30 % de 19 à 31 ans (pas pendant les études) |
+| Brevet / bac | à 15 ans (87 %) et 18 ans (85 %), seulement si l'enfant avait une place au collège puis au lycée |
+| Études supérieures | 60 % des bacheliers : BTS 2 ans, licence 3 ans, master 5 ans, à l'université hors de la ville (étape « Étudiant », bourse de 500 € par mois) |
+| Travail | 6,5 % changent de travail, 1,5 % perdent leur emploi ; les diplômés (licence, master) prennent le métier le mieux payé de deux tirages, les non-diplômés le moins bien payé |
+| Permis | 35 % par an (70 % si le foyer a une voiture) ; un foyer sans voiture qui a 12 000 € d'épargne en achète une (25 %) |
+| Loisirs | 10 % : un nouveau loisir ; un loisir trop jeune pour l'âge est abandonné |
+| Distinctions sportives | 7 % par sport pratiqué dans un club de la ville (tournoi, médaille régionale, champion départemental, équipe nationale) |
+
+**Santé et mort.** Risque de décès de base `0,00002 × e^(0,1 × âge)` (+ 0,35 % la première année, + 0,03 % avant 40 ans), soit environ 83 ans d'espérance de vie. La ville le change :
+
+| | Effet sur le risque |
+| --- | --- |
+| Hôpital à moins de 6 km | × 0,82 (sinon × 1,15) ; il double aussi les chances de guérir |
+| Pollution (usines et industries à moins de 800 m) | × (1 + 0,4 × pollution) ; elle donne aussi de l'asthme |
+| Satisfaction | × (1,3 − 0,006 × satisfaction) : de × 1,3 (0/100) à × 0,7 (100/100) |
+| Maladie | hypertension × 1,25, diabète × 1,35, maladie du cœur × 1,8, cancer × 2,4, asthme × 1,15 |
+
+La fiche montre l'espérance de vie estimée et ce qui la fait varier.
+
+**Héritage.** L'épargne est celle du foyer : le conjoint la garde avec le logement. Sans adulte, les enfants majeurs héritent du logement familial et deviennent les adultes du foyer. Une personne seule lègue son épargne à ses enfants qui vivent en ville. Des mineurs sans adulte partent chez leur autre parent, leurs grands-parents ou un frère ou une sœur majeur ; sinon dans une famille d'accueil hors de la ville.
+
+**Défunts.** Les défunts et les habitants partis gardent leur fiche dans `CycleVie.archive` (4 000 au plus) : CV, famille, cause du décès, dernier logement. Liste « Défunts et partis » dans le panneau. Un cimetière viendra plus tard dans le catalogue.
+
+**Nouvelles.** Chaque jour, un message résume les naissances, décès, couples, mariages, PACS, séparations, diplômes et médailles. Les étapes de l'habitant suivi s'affichent une par une.
+
+**Suivre un habitant.** Bouton « ☆ Suivre » de la fiche : un repère jaune tourne au-dessus de lui avec son nom et ce qu'il fait, une carte en haut à gauche le résume, la caméra l'accompagne (sur un trajet, elle glisse d'un lieu à l'autre). Touche **F** : caméra qui le suit ou libre ; déplacer la caméra la libère. À sa mort, le suivi passe à l'aîné de ses enfants en ville, sinon à son conjoint.
+
+**Sauvegarde.** Section `habitants` version 2 : chaque habitant a un 12e champ (dictionnaire `CycleVie.pack`) et la section a une clé `vie` (archive, habitant suivi, totaux). Les sauvegardes version 1 se chargent toujours.
+
+Test : `tests/cycle_vie_test.gd` (80 ans simulés). Captures : `tests/cycle_vie_vitrine.gd`.
+
 ## Pistes
 
 - Faire marcher les habitants dans la rue (piétons) et monter dans les bus d'après leur journée.
 - Demande de logements, d'emplois et de commerces selon la population (le zonage pourrait la suivre).
-- Couples qui se forment, déménagements, études supérieures, crèches, collèges et lycées séparés.
+- Université dans le catalogue (les études se font aujourd'hui hors de la ville), crèches, collèges et lycées séparés.
+- Cimetière dans le catalogue, avec les tombes des défunts.
+- Piétons visibles : l'habitant suivi marcherait vraiment dans la rue.
 - Commerces qui vivent des achats des habitants, impôts réglables, satisfaction qui attire ou fait partir.

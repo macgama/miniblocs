@@ -117,3 +117,18 @@ La classe `metro` (mode rail) a une clé `underground` (14 m) : `RoutePlanner` v
 Classe `cremaillere` (rail, 25 km/h, pente maxi 25 %, rayon mini 60 m, clé `rack`) : `TransportView._rail_section` y ajoute le rail denté. Les véhicules ont `"rail": "cremaillere"` ; `VehicleCatalog.for_track` et `StationSystem.models_for` (gare dont la voie est une crémaillère) séparent ces trains des autres.
 
 `TransportView._viaducts` remplace les piles génériques pour le rail : chaque suite de points `BRIDGE` est découpée en travées égales (en pierre : 0,8 × la hauteur entre 8 m et `VIADUCT_SPAN` 18 m ; LGV : 2 × la hauteur entre 25 m et `VIADUCT_SPAN_LGV` 40 m), avec une pile à fruit à chaque appui intérieur et, en pierre, des tympans pleins sous le tablier au-dessus d'un intrados en demi-cercle.
+
+## Piétons des trottoirs et passages piétons
+
+`Traffic.spawn_walker()` crée un piéton (`sidewalk` = ±1, côté du trottoir par rapport au sens de marche) sur un tronçon dont la classe a `side_kind: "trottoir"`. Leur nombre suit `SIDEWALK_DENSITY`, à part des véhicules d'ambiance (`count_mode` ne les compte pas). Au bout d'un tronçon, `_sidewalk_next` choisit un autre trottoir.
+
+`JunctionControl.has_crosswalk(nid, eid)` est vrai pour une branche à trottoirs d'un carrefour géré si le tronçon est assez long. La bande (`CROSS_W` = 3 m) est peinte juste après le plateau, et `stop_dist(eid, nid)` recule la ligne d'arrêt derrière elle (utilisée par `Traffic._drive`).
+
+Un piéton qui arrive au milieu du passage traverse avec la probabilité `CROSS_CHANCE` :
+- attente (`cross` = 1) jusqu'à ce que `_may_cross` l'autorise : rouge pour sa branche aux feux, aucune réservation du carrefour sur cette branche, aucun véhicule tout près ;
+- traversée (`cross` = 2) ;
+- puis il continue sur le trottoir d'en face.
+
+Pendant la traversée, `JunctionControl.crossing[Vector2i(nœud, tronçon)]` est compté, et `Traffic._may_enter` refuse l'entrée par cette branche comme la sortie vers elle.
+
+`VehicleCatalog.bike_on_road(id, cls)` ajoute les vélos (mode chemin) au catalogue des rues et avenues (`BIKE_ROADS`) ; dans le trafic, ils prennent la voie de droite (`lane_idx` 3, ramené au nombre de voies), décalés de 30 % de sa largeur vers le bord.

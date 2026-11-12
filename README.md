@@ -160,6 +160,17 @@ Le jeu sait calculer le meilleur trajet d'un point à un autre : marche jusqu'à
 
 ![Dépôt de marchandises au bord d'une départementale](docs/apercu-fret.png)
 
+### Piétons, passages piétons et vélos
+
+![Passages piétons aux branches d'un carrefour à feux](docs/apercu-pietons.png)
+
+- **Piétons sur les trottoirs** : les rues et les avenues ont leurs promeneurs (un tous les 20 m environ, 120 au plus), au milieu du trottoir. Ils vont de rue en rue et ne font demi-tour qu'au bout d'une impasse.
+- **Passages piétons** : chaque branche à trottoirs d'un carrefour géré (feux, stop, cédez-le-passage, priorité à droite, giratoire) a ses bandes blanches, avec la ligne d'arrêt reculée juste derrière. Les piétons y traversent :
+  - aux feux, quand les voitures de leur branche ont le rouge ;
+  - ailleurs, quand aucune voiture n'arrive.
+  Une fois un piéton engagé, les voitures s'arrêtent avant le passage et n'entrent pas dans le carrefour pour sortir par cette branche.
+- **Vélos sur la chaussée** : vélos de ville, vélos cargos, grands-bis et cyclo-pousses roulent aussi sur les rues et les avenues, serrés à droite de la voie de droite (jamais sur les départementales rapides, voies express et autoroutes). Ils ralentissent les voitures derrière eux, comme en vrai.
+
 ### Parkings
 
 Le panneau **Lignes (L)** propose aussi le **Parking** : 26 places en épi droit au bord d'une rue, d'une avenue ou d'une départementale. Une partie des voitures, utilitaires et deux-roues de passage y vont, se garent sur une place libre de 40 s à 2 min 40, puis repartent quand la voie est libre.

@@ -1,0 +1,26 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "bois_clair": {
+   "index": 0,
+   "origine": "#c39a6b"
+  },
+  "noir": {
+   "index": 1,
+   "origine": "#2a2b2e"
+  },
+  "verre_bleu": {
+   "index": 2,
+   "origine": "#4f6d8f"
+  },
+  "sous_toit": {
+   "index": 3,
+   "origine": "#6a5040"
+  },
+  "verre_nuit": {
+   "index": 4,
+   "origine": "#1d2d3c"
+  }
+ }
+}

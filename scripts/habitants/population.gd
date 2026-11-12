@@ -327,7 +327,7 @@ func _info_of(b: Dictionary) -> Dictionary:
 	return {"t": String(b.t), "cat": String(t.get("cat", "")), "serves": serves, "log": int(t.get("logements", 0)),
 		"emp": int(t.get("emplois", 0)), "seats": seats, "pos": BuildingSystem.rect_center(rect) + Vector3(0, float(b.get("h", 0.0)), 0),
 		"rect": rect, "public": String(t.get("cat", "")) == "services", "cost": int(b.get("cost", BuildingCatalog.cost(String(b.t)))),
-		"house": t.get("arch", String(b.t)) in ["maison", "villa", "grande_maison", "ferme"],
+		"house": t.get("arch", t.get("role", String(b.t))) in ["maison", "villa", "grande_maison", "ferme"],
 		"region": String(t.get("region", "monde"))}
 
 

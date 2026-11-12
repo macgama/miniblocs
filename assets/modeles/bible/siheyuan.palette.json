@@ -1,0 +1,34 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "pierre_grise": {
+   "index": 0,
+   "origine": "#9c988f"
+  },
+  "bois_rouge": {
+   "index": 1,
+   "origine": "#8e3b2e"
+  },
+  "vitre": {
+   "index": 2,
+   "origine": "#33495e"
+  },
+  "ardoise": {
+   "index": 3,
+   "origine": "#5b5f66"
+  },
+  "tuile_ombre": {
+   "index": 4,
+   "origine": "#8f3a29"
+  },
+  "sous_toit": {
+   "index": 5,
+   "origine": "#6a5040"
+  },
+  "bois_sombre": {
+   "index": 6,
+   "origine": "#5a3e2b"
+  }
+ }
+}

@@ -1,0 +1,42 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "asphalte": {
+   "index": 0,
+   "origine": "#55585e"
+  },
+  "pierre_grise": {
+   "index": 1,
+   "origine": "#9c988f"
+  },
+  "brique_claire": {
+   "index": 2,
+   "origine": "#c87f5d"
+  },
+  "pierre_claire": {
+   "index": 3,
+   "origine": "#d8d0bf"
+  },
+  "vitre": {
+   "index": 4,
+   "origine": "#33495e"
+  },
+  "ardoise": {
+   "index": 5,
+   "origine": "#5b5f66"
+  },
+  "sous_toit": {
+   "index": 6,
+   "origine": "#6a5040"
+  },
+  "noir": {
+   "index": 7,
+   "origine": "#2a2b2e"
+  },
+  "blanc": {
+   "index": 8,
+   "origine": "#f7f7f5"
+  }
+ }
+}

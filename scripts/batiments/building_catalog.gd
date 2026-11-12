@@ -124,6 +124,7 @@ static func all_types() -> Dictionary:
 		_all.merge(ProductionTypes.entries())
 		_all.merge(CommercesTypes.entries())
 		_all.merge(StyleBuilder.generate())
+		_all.merge(BibleGlb.entries())
 		for id in Creations.items:
 			_all[id] = Creations.catalog_entry(id)
 		Creations.ensure_loaded()
@@ -199,6 +200,8 @@ static func build_mesh(id: String, material: Material = null, details := true, v
 		return k.to_mesh(material)
 	if t.has("blocks"):
 		return Creations.build_mesh(t)
+	if t.has("glb"):
+		return BibleGlb.build_mesh(id, material, details, variant)
 	if t.has("boutique_eco"):
 		CommercesTypes.build(k, id, t)
 		k.fit_xz(w, d)
@@ -504,7 +507,10 @@ static func build_mesh(id: String, material: Material = null, details := true, v
 ## Hauteur indicative du modèle (pour cadrer la caméra, les étiquettes…).
 ## Nombre de variantes d'un type (1 = toujours le même modèle).
 static func variants_of(id: String) -> int:
-	return VARIANTES if get_type(id).has("arch") else 1
+	var t := get_type(id)
+	if t.has("glb"):
+		return maxi(int(t.get("variantes", 1)), 1)
+	return VARIANTES if t.has("arch") else 1
 
 
 static func approx_height(id: String) -> float:

@@ -1,0 +1,50 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "pierre_grise": {
+   "index": 0,
+   "origine": "#9c988f"
+  },
+  "bois": {
+   "index": 1,
+   "origine": "#8a6142"
+  },
+  "bleu": {
+   "index": 2,
+   "origine": "#2a6fdb"
+  },
+  "vitre": {
+   "index": 3,
+   "origine": "#33495e"
+  },
+  "blanc": {
+   "index": 4,
+   "origine": "#f7f7f5"
+  },
+  "cadre": {
+   "index": 5,
+   "origine": "#f4f1ea"
+  },
+  "bois_sombre": {
+   "index": 6,
+   "origine": "#5a3e2b"
+  },
+  "pierre": {
+   "index": 7,
+   "origine": "#b9b0a0"
+  },
+  "bois_gris": {
+   "index": 8,
+   "origine": "#8b8478"
+  },
+  "tuile_ombre": {
+   "index": 9,
+   "origine": "#8f3a29"
+  },
+  "sous_toit": {
+   "index": 10,
+   "origine": "#6a5040"
+  }
+ }
+}

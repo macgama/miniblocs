@@ -21,6 +21,8 @@ const SLEEPER := Color("5b4636")
 const STEEL := Color("c6cbd1")
 const DARK := Color("1d1f22")
 const METRO_TRACE := Color("3a86ff")
+## Largeur d'un passage piéton (m), devant la ligne d'arrêt.
+const CROSS_W := 3.0
 const STONE := Color("b39b78")
 ## Longueur des travées des viaducs (m).
 const VIADUCT_SPAN := 18.0
@@ -187,9 +189,9 @@ static func crosswalk_clear(net: TransportNetwork, eid: int, nid: int, trims: Di
 	if String(TransportTypes.get_type(e.t).get("side_kind", "")) != "trottoir":
 		return 0.0
 	var tr: Vector2 = trims.get(eid, Vector2.ZERO)
-	if float(e.len) - tr.x - tr.y <= JunctionControl.CROSS_W * 2.0 + 6.0:
+	if float(e.len) - tr.x - tr.y <= CROSS_W * 2.0 + 6.0:
 		return 0.0
-	return JunctionControl.CROSS_W + 0.6
+	return CROSS_W + 0.6
 
 
 ## Longueur à retirer au début (x) et à la fin (y) de chaque tronçon pour
@@ -311,7 +313,7 @@ static func _junction_arms(net: TransportNetwork, nid: int, trims: Dictionary) -
 		var ty := TransportTypes.get_type(e.t)
 		# Direction au bout rogné (pas au nœud) : sur une courbe, les bords du
 		# plateau tombent ainsi exactement sur ceux du tronçon.
-		var dir := net.out_dir_at(eid, nid, s)
+		var dir: Vector3 = net.out_dir_at(eid, nid, s)
 		var hw := net.half_width(eid)
 		var walk := float(ty.get("side", 0.0)) if String(ty.get("side_kind", "")) == "trottoir" else 0.0
 		arms.append({"p": net.point_at(eid, s), "d": dir, "r": Vector3(-dir.z, 0, dir.x), "hw": hw, "kerb": hw - walk,

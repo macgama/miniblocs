@@ -21,7 +21,7 @@ const GREEN := 14.0
 const AMBER := 3.0
 const ALL_RED := 2.0
 ## Passage piéton : largeur de la bande (m), devant la ligne d'arrêt.
-const CROSS_W := 3.0
+const CROSS_W := TransportView.CROSS_W
 const RED := 0
 const ORANGE := 1
 const VERT := 2
@@ -316,7 +316,7 @@ func _crosswalk(root: Node3D, nid: int, eid: int) -> void:
 	var d := trim(eid, nid) + CROSS_W * 0.5
 	var sd := d if e.a == nid else float(e.len) - d
 	var base := network.point_at(eid, sd)
-	var out := network.out_dir_at(eid, nid, sd)
+	var out: Vector3 = network.out_dir_at(eid, nid, sd)
 	var right := Vector3(-out.z, 0, out.x)
 	var road := network.half_width(eid) - float(TransportTypes.get_type(e.t).get("side", 1.5))
 	var n := maxi(2, floori(road * 2.0 / 1.0))
@@ -341,8 +341,8 @@ func _approach_signs(root: Node3D, nid: int, eid: int, k: String) -> void:
 	var tr := stop_dist(eid, nid) - 0.6
 	var s := tr if e.a == nid else float(e.len) - tr
 	var base := network.point_at(eid, s)
-	var out := network.out_dir_at(eid, nid, s) # vers l'extérieur du carrefour
-	var fwd := -out # sens de l'arrivée
+	var out: Vector3 = network.out_dir_at(eid, nid, s) # vers l'extérieur du carrefour
+	var fwd: Vector3 = -out # sens de l'arrivée
 	var right := Vector3(-fwd.z, 0, fwd.x)
 	var hw := network.half_width(eid)
 	var lanes_w := hw

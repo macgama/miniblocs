@@ -15,6 +15,7 @@ signal traffic_toggled(on: bool)
 signal traffic_filter_changed(era: String, region: String)
 ## Bouton « Lignes » : panneau des transports publics.
 signal transit_requested
+signal habitants_requested
 signal spec_edited(type_id: String, spec: Dictionary)
 signal curve_toggled(on: bool)
 
@@ -138,7 +139,7 @@ func _ready() -> void:
 	layout.add_child(spacer)
 
 	var help := Label.new()
-	help.text = "F1 : toutes les commandes   ·   ZQSD : déplacer   ·   Molette : zoom   ·   A / E : tourner   ·   0-9, J : outils   ·   B : construire   ·   L : lignes   ·   V : vue   ·   T : pause   ·   Échap : annuler"
+	help.text = "F1 : toutes les commandes   ·   ZQSD : déplacer   ·   Molette : zoom   ·   A / E : tourner   ·   0-9, J : outils   ·   B : construire   ·   L : lignes   ·   H : habitants   ·   V : vue   ·   T : pause   ·   Échap : annuler"
 	help.add_theme_color_override("font_color", Color(1, 1, 1, 0.9))
 	help.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
 	help.add_theme_constant_override("outline_size", 4)
@@ -163,7 +164,7 @@ func _ready() -> void:
 	var bar_panel := PanelContainer.new()
 	bottom.add_child(bar_panel)
 	var bar := HBoxContainer.new()
-	bar.add_theme_constant_override("separation", 6)
+	bar.add_theme_constant_override("separation", 3)
 	bar_panel.add_child(bar)
 	var group := ButtonGroup.new()
 	for i in TOOLS.size():
@@ -192,6 +193,12 @@ func _ready() -> void:
 	transit.tooltip_text = "Stations, gares, ports, aéroports et lignes de transport en commun"
 	transit.pressed.connect(func() -> void: transit_requested.emit())
 	bar.add_child(transit)
+	var people := Button.new()
+	people.text = "Habitants"
+	people.tooltip_text = "Habitants, foyers, emplois, écoles et budget de la ville"
+	people.focus_mode = Control.FOCUS_NONE
+	people.pressed.connect(func() -> void: habitants_requested.emit())
+	bar.add_child(people)
 
 
 

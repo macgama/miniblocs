@@ -12,7 +12,11 @@ Prototype de city builder en vue de dessus, style low-poly, mode bac à sable. F
 
 ## Commandes
 
-Dans le jeu, **F1** (ou le bouton **Aide**) affiche toutes les commandes.
+Dans le jeu, **F1** (ou le bouton **?** en haut à gauche) affiche toutes les commandes.
+
+L'écran a une barre en haut (lieu, partie, heure et vitesse du temps, chiffres de la ville) et une barre de catégories en bas, avec des icônes : Observer, Terrain, Voies, Paysage, Construire, Lignes, Habitants, Circulation, Véhicules, Vue. Les outils de la catégorie choisie s'affichent juste au-dessus. Détails : [docs/interface.md](docs/interface.md).
+
+![Barre de catégories et outils des voies](docs/apercu-menus-voies.png)
 
 | Action | Touches |
 | --- | --- |
@@ -26,7 +30,7 @@ Dans le jeu, **F1** (ou le bouton **Aide**) affiche toutes les commandes.
 | Habitants | **H** (la ville en chiffres, liste des habitants, budget) ; clic sur un bâtiment avec l'outil 1 |
 | Temps | **T** pause, **Maj + T** vitesse suivante |
 | Vue au sol | **V** (dessus, 3e personne, 1re personne) |
-| Sauvegarder / recharger | **F5** / **F9** ; boutons **Sauver**, **Charger** (liste des parties), **Globe** en haut à gauche |
+| Sauvegarder / recharger | **F5** / **F9** ; icônes Sauver, Charger (liste des parties) et Globe en haut à gauche |
 | Aide | **F1** |
 
 L'interface s'adapte à la taille de la fenêtre (elle est dessinée pour 1600 × 900 puis agrandie ou réduite).
@@ -394,7 +398,11 @@ Détails et limites : [docs/ambiance.md](docs/ambiance.md).
 | `scripts/terre/water.gdshader` | Eau animée (rivières, lacs, mer) : vagues, reflets, écume |
 | `scripts/terre/elevation_tiles.gd` | Téléchargement, cache et lecture des tuiles d'altitude |
 | `scripts/terre/terrain_world.gd` | Blocs de 64 × 64 cases autour de la caméra, outils, sauvegarde |
-| `scripts/terre/terre_hud.gd` | Interface du mode Terre |
+| `scripts/terre/terre_hud.gd` | Interface du mode Terre : barre du haut, barre de catégories, plateau d'outils |
+| `scripts/interface/icones.gd` | Les 61 icônes SVG du jeu, rendues à la taille voulue |
+| `scripts/interface/ui_style.gd` | Style commun des menus (panneaux, boutons à icône, pastilles de touche) |
+| `scripts/interface/vignettes.gd` | Vignettes des bâtiments du panneau Construire |
+| `scripts/interface/aide_panel.gd` | Fenêtre d'aide (F1) |
 | `tests/terre_test.gd` | Test automatique du mode Terre (sans réseau) |
 | `tests/globe_test.gd` | Test automatique du globe (sans réseau) |
 | `scripts/transport/transport_types.gd` | Catalogue des types de voies (largeur, pente maxi, vitesse…) |
@@ -459,7 +467,7 @@ godot --headless --path . --script res://tests/terre_test.gd
 
 Vérifie les conversions de coordonnées, le décodage des tuiles, la génération des blocs, les rivières (calcul sur une vallée, lecture d'OpenStreetMap, lit creusé, surface d'eau, ponts), le terrassement et la sauvegarde. Il affiche `TERRE TEST OK`. De même, `tests/globe_test.gd` affiche `GLOBE TEST OK`, `tests/transport_test.gd` affiche `TRANSPORT TEST OK` et `tests/batiments_test.gd` affiche `BATIMENTS TEST OK`.
 
-`tests/parcours_test.gd` joue une partie comme un joueur, avec de vraies touches (globe, outils 1-9, B, L, T, V, F1, F5, Continuer) et affiche `PARCOURS TEST OK`. `tests/habitants_test.gd` vérifie les habitants (école, emplois, emploi du temps, budget, bus, sauvegarde, panneau) et affiche `HABITANTS TEST OK`. `tests/sauvegarde_test.gd` vérifie le format des parties (écriture, relecture, section abîmée, import de l'ancienne sauvegarde) et affiche `SAUVEGARDE TEST OK`.
+`tests/parcours_test.gd` joue une partie comme un joueur, avec de vraies touches (globe, outils 1-9, B, L, T, V, F1, F5, Continuer) et affiche `PARCOURS TEST OK`. `tests/habitants_test.gd` vérifie les habitants (école, emplois, emploi du temps, budget, bus, sauvegarde, panneau) et affiche `HABITANTS TEST OK`. `tests/sauvegarde_test.gd` vérifie le format des parties (écriture, relecture, section abîmée, import de l'ancienne sauvegarde) et affiche `SAUVEGARDE TEST OK`. `tests/interface_test.gd` vérifie les menus (icônes, barre de catégories, panneaux un à la fois, vignettes, fiche d'un bâtiment) et affiche `INTERFACE TEST OK`.
 
 ```bash
 godot --headless --path . --script res://tests/perf_bench.gd [-- --big] [--reseau]

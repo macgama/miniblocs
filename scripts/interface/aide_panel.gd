@@ -11,7 +11,9 @@ const SECTIONS := [
 		["Molette", "zoomer"],
 		["A / E, ou clic molette glissé", "tourner (Q / E en QWERTY)"],
 	]],
-	["Outils (barre du bas)", [
+	["Barre du bas", [
+		["Catégories", "Observer, Terrain, Voies, Paysage : un clic ouvre leurs outils juste au-dessus ; Construire, Lignes, Habitants ouvrent leur panneau à droite (un seul à la fois)"],
+		["Circulation, Véhicules, Vue", "afficher la circulation, choisir l'époque et la région des véhicules, changer de vue"],
 		["1", "observer : survoler une case pour voir son altitude et son biome (et le nom de la rivière)"],
 		["2 · 3 · 4", "aplanir, monter de 1 m, creuser de 1 m (clic gauche glissé)"],
 		["5 · 6 · 7 · 8", "route, rail (tram, train, LGV, crémaillère, métro), chemin, voie d'eau : un clic par point"],
@@ -24,7 +26,7 @@ const SECTIONS := [
 		["Échap ou clic droit", "arrêter le tracé, annuler l'outil"],
 	]],
 	["Construire (panneau de droite)", [
-		["B", "afficher ou masquer le panneau Construire"],
+		["B", "afficher ou masquer le panneau Construire (catégories en icônes, bâtiments en vignettes)"],
 		["Clic gauche", "poser le bâtiment choisi"],
 		["R", "tourner le bâtiment d'un quart de tour"],
 		["Ctrl + Z", "annuler (éditeur libre bloc par bloc)"],
@@ -37,7 +39,7 @@ const SECTIONS := [
 	]],
 	["Habitants", [
 		["H", "panneau Habitants : la ville en chiffres, la liste des habitants, le budget de la ville"],
-		["Clic sur un bâtiment (outil 1)", "qui y vit, y travaille, y étudie et qui s'y trouve en ce moment"],
+		["Clic sur un bâtiment (outil 1)", "fiche du bâtiment : logements, employés, élèves, qui y vit et qui s'y trouve en ce moment"],
 		["Clic sur un nom", "profil : âge, foyer, travail ou école, loisirs, budget et journée heure par heure"],
 		["Vitesse de la vie", "réglage du panneau : vieillissement réaliste, rapide (1 an = 1 mois) ou très rapide (1 an = 1 jour)"],
 	]],
@@ -49,7 +51,10 @@ const SECTIONS := [
 		["E ou clic gauche", "ouvrir ou fermer une porte, une porte de garage (vue au sol)"],
 		["Échap", "libérer la souris (vue au sol)"],
 	]],
-	["Partie", [
+	["Partie (barre du haut)", [
+		["Loupe", "aller à des coordonnées ou à un lieu connu, infos techniques (tuiles, marée)"],
+		["Chiffres", "caisse, habitants, satisfaction, chômage : un clic ouvre le panneau Habitants"],
+		["… (horloge)", "lever et coucher du Soleil, Lune, curseur de l'heure, mois précédent ou suivant, météo"],
 		["F5", "sauvegarder la partie"],
 		["F9", "recharger la partie en cours"],
 		["Charger", "liste des parties : charger, supprimer, sauvegarder sous un autre nom"],
@@ -94,13 +99,16 @@ func _ready() -> void:
 	var cols := HBoxContainer.new()
 	cols.add_theme_constant_override("separation", 28)
 	v.add_child(cols)
-	var col_a := VBoxContainer.new()
-	var col_b := VBoxContainer.new()
-	cols.add_child(col_a)
-	cols.add_child(col_b)
+	# Trois colonnes : barre du bas · construire, lignes, habitants · caméra, temps, partie.
+	const COLUMN_OF := [2, 0, 1, 1, 1, 2, 2]
+	var columns: Array[VBoxContainer] = []
+	for c in 3:
+		var vb := VBoxContainer.new()
+		cols.add_child(vb)
+		columns.append(vb)
 	for i in SECTIONS.size():
 		var sec: Array = SECTIONS[i]
-		var col := col_a if i < 3 else col_b
+		var col := columns[COLUMN_OF[mini(i, COLUMN_OF.size() - 1)]]
 		var h := Label.new()
 		h.text = sec[0]
 		h.add_theme_font_size_override("font_size", 16)
@@ -114,16 +122,18 @@ func _ready() -> void:
 			var k := Label.new()
 			k.text = row[0]
 			k.add_theme_color_override("font_color", Color("d8f3dc"))
-			k.add_theme_font_size_override("font_size", 14)
+			k.add_theme_font_size_override("font_size", 13)
 			grid.add_child(k)
 			var d := Label.new()
 			d.text = row[1]
-			d.add_theme_font_size_override("font_size", 14)
-			d.custom_minimum_size = Vector2(330, 0)
+			d.add_theme_font_size_override("font_size", 13)
+			d.custom_minimum_size = Vector2(250, 0)
 			d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 			grid.add_child(d)
 		col.add_child(Control.new())
 	var credit := Label.new()
+	credit.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	credit.custom_minimum_size = Vector2(1200, 0)
 	credit.text = "Relief : Mapzen Terrain Tiles (AWS Open Data) — SRTM, GMTED, ETOPO1, EU-DEM · Biomes : © ESA WorldCover 2021, données Copernicus Sentinel (CC BY 4.0) · Rivières : © contributeurs OpenStreetMap (ODbL), sinon calculées sur le relief"
 	credit.add_theme_font_size_override("font_size", 11)
 	credit.add_theme_color_override("font_color", Color(1, 1, 1, 0.6))

@@ -1,0 +1,30 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "bardage": {
+   "index": 0,
+   "origine": "#a4aab0"
+  },
+  "noir": {
+   "index": 1,
+   "origine": "#2a2b2e"
+  },
+  "beton_sombre": {
+   "index": 2,
+   "origine": "#8c8a85"
+  },
+  "verre_bleu": {
+   "index": 3,
+   "origine": "#4f6d8f"
+  },
+  "rouge": {
+   "index": 4,
+   "origine": "#c0392b"
+  },
+  "jaune": {
+   "index": 5,
+   "origine": "#f2c14e"
+  }
+ }
+}

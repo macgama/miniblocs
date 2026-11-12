@@ -1,0 +1,38 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "brique_sombre": {
+   "index": 0,
+   "origine": "#7e3b2c"
+  },
+  "pierre_claire": {
+   "index": 1,
+   "origine": "#d8d0bf"
+  },
+  "vitre": {
+   "index": 2,
+   "origine": "#33495e"
+  },
+  "bois_sombre": {
+   "index": 3,
+   "origine": "#5a3e2b"
+  },
+  "pierre": {
+   "index": 4,
+   "origine": "#b9b0a0"
+  },
+  "beton_clair": {
+   "index": 5,
+   "origine": "#d4d1ca"
+  },
+  "beton_sombre": {
+   "index": 6,
+   "origine": "#8c8a85"
+  },
+  "noir": {
+   "index": 7,
+   "origine": "#2a2b2e"
+  }
+ }
+}

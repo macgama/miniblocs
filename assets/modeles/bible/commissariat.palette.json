@@ -1,0 +1,30 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "beton_clair": {
+   "index": 0,
+   "origine": "#d4d1ca"
+  },
+  "noir": {
+   "index": 1,
+   "origine": "#2a2b2e"
+  },
+  "verre_ciel": {
+   "index": 2,
+   "origine": "#6d97b8"
+  },
+  "verre_bleu": {
+   "index": 3,
+   "origine": "#4f6d8f"
+  },
+  "bleu": {
+   "index": 4,
+   "origine": "#2a6fdb"
+  },
+  "beton_sombre": {
+   "index": 5,
+   "origine": "#8c8a85"
+  }
+ }
+}

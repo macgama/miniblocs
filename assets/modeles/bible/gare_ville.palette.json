@@ -1,0 +1,46 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "granit": {
+   "index": 0,
+   "origine": "#7f7d78"
+  },
+  "pierre_claire": {
+   "index": 1,
+   "origine": "#d8d0bf"
+  },
+  "pierre": {
+   "index": 2,
+   "origine": "#b9b0a0"
+  },
+  "vitre": {
+   "index": 3,
+   "origine": "#33495e"
+  },
+  "ardoise": {
+   "index": 4,
+   "origine": "#5b5f66"
+  },
+  "zinc": {
+   "index": 5,
+   "origine": "#7e8890"
+  },
+  "sous_toit": {
+   "index": 6,
+   "origine": "#6a5040"
+  },
+  "verre_ciel": {
+   "index": 7,
+   "origine": "#6d97b8"
+  },
+  "noir": {
+   "index": 8,
+   "origine": "#2a2b2e"
+  },
+  "blanc": {
+   "index": 9,
+   "origine": "#f7f7f5"
+  }
+ }
+}

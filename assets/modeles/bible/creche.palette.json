@@ -1,0 +1,46 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "pelouse": {
+   "index": 0,
+   "origine": "#6aa84f"
+  },
+  "jaune": {
+   "index": 1,
+   "origine": "#f2c14e"
+  },
+  "blanc": {
+   "index": 2,
+   "origine": "#f7f7f5"
+  },
+  "verre_ciel": {
+   "index": 3,
+   "origine": "#6d97b8"
+  },
+  "zinc": {
+   "index": 4,
+   "origine": "#7e8890"
+  },
+  "sous_toit": {
+   "index": 5,
+   "origine": "#6a5040"
+  },
+  "bois_clair": {
+   "index": 6,
+   "origine": "#c39a6b"
+  },
+  "cadre": {
+   "index": 7,
+   "origine": "#f4f1ea"
+  },
+  "orange": {
+   "index": 8,
+   "origine": "#e4772e"
+  },
+  "vert": {
+   "index": 9,
+   "origine": "#3f8f5a"
+  }
+ }
+}

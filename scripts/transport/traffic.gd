@@ -25,6 +25,12 @@ const CAR_COLORS: Array[Color] = [Color("d64933"), Color("f2c14e"), Color("2e86a
 const CAT_WEIGHT := {"voiture": 10.0, "utilitaire": 2.0, "bus": 1.0, "deux_roues": 1.5, "attelage": 0.5}
 ## Part des piétons sur les chemins (le reste : vélos, trottinettes…).
 const WALKERS := 0.55
+## Piétons sur les trottoirs des rues et avenues : par mètre de voie, maximum.
+const SIDEWALK_DENSITY := [1.0 / 20.0, 120]
+## Probabilité qu'un piéton traverse au passage piéton d'un carrefour.
+const CROSS_CHANCE := 0.5
+## Un piéton qui attend trop longtemps pour traverser renonce (s).
+const CROSS_GIVE_UP := 60.0
 ## Arrêt en station des véhicules de ligne (s).
 const DWELL := 12.0
 const DWELL_AIR := 25.0
@@ -69,6 +75,9 @@ var _uid := 0
 var _busy: Dictionary = {}
 ## Parkings (fournis par StationSystem) : id de nœud -> {spots: Array[Transform3D], used: Array[int]}.
 var parkings: Dictionary = {}
+## Tronçons à trottoirs (cache) et leur longueur totale.
+var _sidewalks: Array[int] = []
+var _sidewalk_len := -1.0
 
 
 func _init() -> void:
@@ -84,7 +93,8 @@ func setup(net: TransportNetwork) -> void:
 	network = net
 	network.changed.connect(func() -> void:
 		_lanes.clear()
-		_busy.clear())
+		_busy.clear()
+		_sidewalk_len = -1.0)
 
 
 func set_enabled(on: bool) -> void:
@@ -289,7 +299,7 @@ func pick_model(cls: String) -> String:
 func count_mode(mode: int) -> int:
 	var c := 0
 	for v in vehicles:
-		if int(v.mode) == mode and not v.has("line"):
+		if int(v.mode) == mode and not v.has("line") and not v.has("sidewalk"):
 			c += 1
 	return c
 
@@ -314,6 +324,16 @@ func _process(delta: float) -> void:
 						_free_vehicle(vehicles[i])
 						vehicles.remove_at(i)
 						break
+		var want_w := mini(int(SIDEWALK_DENSITY[1]), floori(sidewalk_length() * float(SIDEWALK_DENSITY[0])))
+		var have_w := walker_count()
+		if have_w < want_w:
+			spawn_walker()
+		elif have_w > want_w:
+			for i in vehicles.size():
+				if vehicles[i].has("sidewalk"):
+					_free_vehicle(vehicles[i])
+					vehicles.remove_at(i)
+					break
 	step(delta)
 
 
@@ -352,6 +372,156 @@ func spawn(mode: int) -> bool:
 	vehicles.append(v)
 	_place(v)
 	return true
+
+
+# --- Piétons des trottoirs ----------------------------------------------------------
+
+## Longueur totale des rues et avenues à trottoirs (m).
+func sidewalk_length() -> float:
+	if _sidewalk_len < 0.0:
+		_sidewalks.clear()
+		_sidewalk_len = 0.0
+		for eid in network.edges:
+			if _has_sidewalk(eid):
+				_sidewalks.append(eid)
+				_sidewalk_len += float(network.edges[eid].len)
+	return _sidewalk_len
+
+
+func _has_sidewalk(eid: int) -> bool:
+	var e: Dictionary = network.edges[eid]
+	return String(TransportTypes.get_type(e.t).get("side_kind", "")) == "trottoir"
+
+
+func walker_count() -> int:
+	var c := 0
+	for v in vehicles:
+		if v.has("sidewalk"):
+			c += 1
+	return c
+
+
+## Fait apparaître un piéton sur un trottoir au hasard.
+func spawn_walker() -> bool:
+	sidewalk_length()
+	if _sidewalks.is_empty():
+		return false
+	var eid: int = _sidewalks[rng.randi() % _sidewalks.size()]
+	var e: Dictionary = network.edges[eid]
+	var forward := rng.randf() < 0.5
+	_uid += 1
+	var v := {"mode": TransportTypes.Mode.PATH, "node": e.a if forward else e.b, "route": [eid] as Array[int], "leg": 0,
+		"s": rng.randf() * float(e.len), "trail": PackedVector3Array(), "wagons": [], "speed": 0.0, "lane": 0.0, "lane_idx": 0,
+		"factor": 1.0, "own_speed": rng.randf_range(1.1, 1.6), "max_speed": INF, "model": "", "gaps": [],
+		"sidewalk": 1.0 if rng.randf() < 0.5 else -1.0, "cross": 0, "uid": _uid, "half": 0.3, "rear": 0.3}
+	var mi := MeshInstance3D.new()
+	mi.material_override = _material
+	mi.mesh = _mesh("walker_%d" % (rng.randi() % 5))
+	add_child(mi)
+	v.body = mi
+	vehicles.append(v)
+	_place(v)
+	return true
+
+
+## Trottoir suivant au bout du tronçon : on évite de faire demi-tour.
+func _sidewalk_next(v: Dictionary) -> bool:
+	var route: Array[int] = v.route
+	var prev: int = route[route.size() - 1] if not route.is_empty() else -1
+	var options: Array[int] = []
+	for o in network.adjacency.get(int(v.node), []):
+		if o != prev and _has_sidewalk(o):
+			options.append(o)
+	if options.is_empty():
+		if prev < 0 or not network.edges.has(prev):
+			return false
+		options.append(prev)
+		v.sidewalk = -float(v.sidewalk) # demi-tour : même trottoir, l'autre main
+	v.route = [options[rng.randi() % options.size()]] as Array[int]
+	v.leg = 0
+	return true
+
+
+## Marche d'un piéton de trottoir. Renvoie vrai s'il est occupé à traverser
+## (ou à attendre pour traverser) : il n'avance pas le long de la rue.
+func _walk(v: Dictionary, eid: int, e: Dictionary, spd: float, delta: float) -> bool:
+	var nid := network.other_end(eid, v.node)
+	var state := int(v.get("cross", 0))
+	if state == 2:
+		v.cp = float(v.cp) + spd * delta / maxf(1.0, float(v.cw))
+		if float(v.cp) >= 1.0:
+			_end_cross(v)
+			v.sidewalk = -float(v.sidewalk)
+			v.cross = 3
+		return true
+	if state == 1:
+		if _may_cross(nid, eid):
+			v.cross = 2
+			v.cp = 0.0
+			v.cw = (network.half_width(eid) - _side_w(eid)) * 2.0 + _side_w(eid)
+			var key := Vector2i(nid, eid)
+			junctions.crossing[key] = int(junctions.crossing.get(key, 0)) + 1
+			v.crossing_at = key
+		else:
+			v.wait = float(v.get("wait", 0.0)) + delta
+			if float(v.wait) > CROSS_GIVE_UP:
+				v.cross = 3
+		return true
+	var s := float(v.s)
+	var ns := s + spd * delta
+	if state == 0 and junctions != null and junctions.has_crosswalk(nid, eid):
+		var cross_s := float(e.len) - junctions.trim(eid, nid) - JunctionControl.CROSS_W * 0.5
+		if s <= cross_s and ns >= cross_s:
+			if rng.randf() < CROSS_CHANCE:
+				v.s = cross_s
+				v.cross = 1
+				v.wait = 0.0
+				return true
+			v.cross = 3
+	v.s = ns
+	return false
+
+
+## Le piéton peut-il s'engager sur le passage de la branche eid ?
+func _may_cross(nid: int, eid: int) -> bool:
+	if not junctions.is_controlled(nid):
+		return true
+	# Aucun véhicule engagé dans le carrefour depuis ou vers cette branche.
+	for uid in _busy.get(nid, {}):
+		var b: Vector2i = _busy[nid][uid]
+		if b.x == eid or b.y == eid:
+			return false
+	if junctions.kind(nid) == "feux" and junctions.light(nid, eid) != JunctionControl.RED:
+		return false
+	# Ni véhicule tout près du passage, dans un sens ou dans l'autre.
+	var e: Dictionary = network.edges[eid]
+	var tr := junctions.trim(eid, nid)
+	var toward: bool = e.b == nid
+	for lane in _lane_count(eid):
+		for o in _index.get(_key(eid, toward, lane), []):
+			var d := float(e.len) - float(o.s) - float(o.get("half", 2.0))
+			if d < tr + JunctionControl.CROSS_W + 1.0 and d > tr - 1.0 and float(o.speed) > 0.5:
+				return false
+		for o in _index.get(_key(eid, not toward, lane), []):
+			if float(o.s) - float(o.get("rear", 2.0)) < tr + JunctionControl.CROSS_W + 0.5:
+				return false
+	return true
+
+
+func _end_cross(v: Dictionary) -> void:
+	if not v.has("crossing_at") or junctions == null:
+		return
+	var key: Vector2i = v.crossing_at
+	var n := int(junctions.crossing.get(key, 0)) - 1
+	if n <= 0:
+		junctions.crossing.erase(key)
+	else:
+		junctions.crossing[key] = n
+	v.erase("crossing_at")
+
+
+func _side_w(eid: int) -> float:
+	return float(TransportTypes.get_type(network.edges[eid].t).get("side", 1.5))
 
 
 ## Pas d'apparition sur un véhicule déjà présent au même endroit.
@@ -507,6 +677,8 @@ func _free_spot(v: Dictionary) -> void:
 func _new_route(v: Dictionary) -> bool:
 	if v.has("line"):
 		return _next_stop(v)
+	if v.has("sidewalk"):
+		return _sidewalk_next(v)
 	var start: int = v.node
 	var pr := _maybe_park(v, start)
 	if not pr.is_empty():
@@ -554,6 +726,10 @@ func _advance(v: Dictionary, delta: float) -> bool:
 	if mode == TransportTypes.Mode.ROAD or mode == TransportTypes.Mode.RAIL:
 		if not _drive(v, eid, e0, spd, delta):
 			return false
+	elif v.has("sidewalk"):
+		if _walk(v, eid, e0, spd, delta):
+			_place(v)
+			return true
 	else:
 		v.s = float(v.s) + spd * delta
 	var guard := 0
@@ -563,6 +739,7 @@ func _advance(v: Dictionary, delta: float) -> bool:
 		v.node = network.other_end(eid, v.node)
 		v.leg = int(v.leg) + 1
 		v.granted = -1
+		v.cross = 0
 		if v.leg >= route.size():
 			if v.has("line"):
 				# Arrivée en station : arrêt, puis départ vers la suivante.
@@ -676,7 +853,7 @@ func _drive(v: Dictionary, eid: int, e: Dictionary, cruise: float, delta: float)
 	var nid := network.other_end(eid, v.node)
 	if int(v.mode) == TransportTypes.Mode.ROAD and junctions != null and junctions.is_controlled(nid) \
 			and int(v.leg) + 1 < route.size() and int(v.get("granted", -1)) != nid and not ghost:
-		var stop_s := float(e.len) - junctions.trim(eid, nid) - 0.6 - float(v.get("half", 2.0))
+		var stop_s := float(e.len) - junctions.stop_dist(eid, nid) - float(v.get("half", 2.0))
 		var dist := stop_s - s
 		var at_line := dist <= maxf(1.0, float(v.speed) * 1.2)
 		if at_line and _may_enter(v, nid, eid, route[int(v.leg) + 1], maxf(dist, 0.0)):
@@ -712,6 +889,9 @@ func _drive(v: Dictionary, eid: int, e: Dictionary, cruise: float, delta: float)
 ## Le véhicule v, arrêté (ou presque) à la ligne de la branche eid, peut-il
 ## s'engager dans le carrefour nid pour sortir par exit_eid ?
 func _may_enter(v: Dictionary, nid: int, eid: int, exit_eid: int, dist: float) -> bool:
+	# Piétons sur le passage, devant ou à la sortie : on les laisse traverser.
+	if junctions.crosswalk_busy(nid, eid) or junctions.crosswalk_busy(nid, exit_eid):
+		return false
 	# Place à la sortie, sinon on bloquerait le carrefour.
 	if network.edges.has(exit_eid):
 		var ex: Dictionary = network.edges[exit_eid]
@@ -823,10 +1003,24 @@ func _place(v: Dictionary) -> void:
 	var lane: float = offsets[mini(int(v.lane_idx), offsets.size() - 1)] if not offsets.is_empty() else 0.0
 	if int(v.mode) == TransportTypes.Mode.PATH:
 		lane *= float(v.lane)
+	elif v.has("bike"):
+		lane += float(TransportTypes.normalize(e.t, e.w).get("lane_w", 3.0)) * 0.3
+	var look := t
+	if v.has("sidewalk"):
+		# Au milieu du trottoir, ou sur le passage piéton pendant la traversée.
+		var off := network.half_width(eid) - _side_w(eid) * 0.5
+		var side := float(v.sidewalk)
+		lane = side * off
+		surface = 0.22
+		if int(v.get("cross", 0)) == 2:
+			lane = lerpf(side * off, -side * off, float(v.cp))
+			if absf(lane) < off - _side_w(eid) * 0.5:
+				surface = 0.1
+			look = right * -side
 	var pos := p + right * lane + Vector3(0, surface, 0)
 	var body: Node3D = v.body
 	body.position = pos
-	body.basis = Basis.looking_at(t, Vector3.UP)
+	body.basis = Basis.looking_at(look, Vector3.UP)
 	if not (v.wagons as Array).is_empty():
 		var gaps: Array = v.gaps
 		var trail: PackedVector3Array = v.trail
@@ -874,6 +1068,10 @@ func _make_body(v: Dictionary) -> void:
 				break
 			model = pick_model(cls)
 	v.model = model
+	if mode == TransportTypes.Mode.ROAD and model != "" and int(VehicleCatalog.get_type(model).mode) == TransportTypes.Mode.PATH:
+		# Vélo sur la route : voie de droite, serré contre le bord.
+		v.bike = true
+		v.lane_idx = 3
 	var mi := MeshInstance3D.new()
 	mi.material_override = _material
 	add_child(mi)
@@ -916,6 +1114,7 @@ func _model_mesh(id: String, paint: int) -> ArrayMesh:
 
 
 func _free_vehicle(v: Dictionary) -> void:
+	_end_cross(v)
 	_release(v)
 	_free_spot(v)
 	if v.has("body"):

@@ -607,6 +607,8 @@ func _run() -> void:
 		sv.create_line([ta.id, tb.id], "tram_moderne", 1)
 		sv.create_line([ba.id, bb.id], "imperiale", 2)
 		tr.traffic.enabled = false
+		for i in 60:
+			tr.traffic.spawn_walker()
 		for i in 1200:
 			if tr.traffic.count_mode(TransportTypes.Mode.ROAD) < 50:
 				tr.traffic.spawn(TransportTypes.Mode.ROAD)
@@ -726,6 +728,63 @@ func _junction_tests() -> void:
 	_check(crossed > 25, "la circulation traverse le carrefour à feux (%d passages en 150 s)" % crossed)
 	_check(waited > 50, "les véhicules s'arrêtent aux feux et aux priorités")
 	_check(overlap == 0, "les véhicules gardent leurs distances dans les files (%d chevauchements)" % overlap)
+
+	# Piétons, passages piétons et vélos.
+	var arm0: int = cross_arms[0]
+	_check(jc.has_crosswalk(c, arm0) and jc.stop_dist(arm0, c) > jc.trim(arm0, c) + JunctionControl.CROSS_W, "passage piéton devant la ligne d'arrêt des avenues")
+	_check(tf.sidewalk_length() > 500.0, "trottoirs des rues et avenues (%d m)" % roundi(tf.sidewalk_length()))
+	for i in 50:
+		tf.spawn_walker()
+	_check(tf.walker_count() == 50 and tf.count_mode(TransportTypes.Mode.PATH) == 0, "50 piétons sur les trottoirs")
+	var crossings := 0
+	var bad_light := 0
+	var off_walk := 0
+	var started := {}
+	crossed = 0
+	last_node.clear()
+	for step_i in 1500:
+		tf.step(0.1)
+		for v in tf.vehicles:
+			if v.has("sidewalk"):
+				if int(v.cross) == 2 and not started.has(int(v.uid)):
+					started[int(v.uid)] = true
+					crossings += 1
+					var at: Vector2i = v.crossing_at
+					if jc.kind(at.x) == "feux" and jc.light(at.x, at.y) != JunctionControl.RED:
+						bad_light += 1
+				elif int(v.cross) != 2:
+					started.erase(int(v.uid))
+					var body: Node3D = v.body
+					var eid_w: int = v.route[v.leg]
+					var e_w: Dictionary = net.edges[eid_w]
+					var fw: bool = e_w.a == v.node
+					var cp := net.point_at(eid_w, float(v.s) if fw else float(e_w.len) - float(v.s))
+					var lat := Vector2(body.position.x - cp.x, body.position.z - cp.z).length()
+					if absf(lat - (net.half_width(eid_w) - float(TransportTypes.get_type(e_w.t).side) * 0.5)) > 0.3:
+						off_walk += 1
+				continue
+			var uid := int(v.uid)
+			if last_node.has(uid) and int(last_node[uid]) != int(v.node) and int(v.node) == c:
+				crossed += 1
+			last_node[uid] = v.node
+		if tf.count_mode(M) < 40:
+			tf.spawn(M)
+	_check(crossings > 10, "les piétons traversent aux passages piétons (%d traversées en 150 s)" % crossings)
+	_check(bad_light == 0, "aux feux, les piétons traversent quand les voitures ont le rouge")
+	_check(off_walk == 0, "les piétons marchent au milieu du trottoir (%d écarts)" % off_walk)
+	_check(crossed > 15, "les voitures passent toujours le carrefour (%d passages)" % crossed)
+	var probe := {"uid": -99, "lane_idx": 0, "half": 2.0, "speed": 0.0, "wait": 10.0}
+	jc.crossing[Vector2i(c, arm0)] = 1
+	var blocked := not tf._may_enter(probe, c, arm0, cross_arms[2], 0.0) and not tf._may_enter(probe, c, cross_arms[2], arm0, 0.0)
+	jc.crossing.erase(Vector2i(c, arm0))
+	_check(blocked, "les voitures laissent passer les piétons engagés (devant et à la sortie)")
+	_check(VehicleCatalog.for_track("rue").has("velo") and VehicleCatalog.for_track("avenue").has("velo_cargo") \
+		and not VehicleCatalog.for_track("autoroute").has("velo") and not VehicleCatalog.for_track("rue").has("trottinette"), "vélos sur les rues et avenues, pas sur l'autoroute")
+	var bikes := 0
+	for v in tf.vehicles:
+		if v.has("bike"):
+			bikes += 1
+	_check(bikes > 0, "des cyclistes roulent sur la chaussée (%d)" % bikes)
 	jc.cycle(c)
 	_check(jc.cycle(c) == "stop" and jc.kind(c) == "stop", "l'outil Carrefour impose un stop")
 	var saved := jc.to_dict()

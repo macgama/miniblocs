@@ -508,7 +508,7 @@ static func for_track(class_id: String, era := "", region := "") -> Array[String
 			continue
 		if not matches(id, era, region):
 			continue
-		if int(t.mode) != mode:
+		if int(t.mode) != mode and not (mode == ROAD and bike_on_road(id, cls)):
 			continue
 		if mode == RAIL:
 			var r: String = t.get("rail", "train")
@@ -530,6 +530,16 @@ static func for_track(class_id: String, era := "", region := "") -> Array[String
 			continue
 		out.append(id)
 	return out
+
+
+## Les vélos roulent aussi sur les rues et les avenues (à droite de la voie).
+const BIKE_ROADS := ["rue", "avenue"]
+
+
+static func bike_on_road(id: String, cls: String) -> bool:
+	var t := get_type(id)
+	return BIKE_ROADS.has(cls) and t.get("cat", "") == "deux_roues" and String(t.get("shape", "")) == "velo" \
+		and not (String(t.get("kind", "")) in ["trottinette", "pousse"])
 
 
 ## Vrai si le type correspond au filtre d'époque et de région ("" = tout).

@@ -30,6 +30,10 @@ var resource_overlay: RessourcesOverlay
 var vie_batiments: BatimentsVie
 var _hover := Vector2i.ZERO
 var _hover_valid := false
+## Intérieurs : meubles, pièces, usage des bâtiments en murs fins (onglet Intérieur).
+var mobilier: Mobilier
+var occupants: Occupants
+var interieur_panel: InterieurPanel
 
 
 func _ready() -> void:
@@ -65,6 +69,7 @@ func _ready() -> void:
 	_setup_landscape()
 	_setup_transit()
 	_setup_population()
+	_setup_mobilier()
 	_setup_production()
 	_setup_vie()
 	hud.traffic_toggled.connect(func(on: bool) -> void: transport.traffic.set_enabled(on))
@@ -119,7 +124,8 @@ func _ready() -> void:
 			blocks.set_tool(BlockEditor.Tool.BLOCK))
 	($VueSol as VueSol).interaction.connect(func(o: Vector3, d: Vector3) -> void:
 		if not blocks.interact_ray(o, d, 4.0):
-			plans.interact_ray(o, d, 3.0))
+			if not plans.interact_ray(o, d, 3.0):
+				mobilier.interact_ray(o, d, 3.0))
 	build_panel.block_tint_chosen.connect(func(t: int) -> void:
 		blocks.set_tint(t)
 		plans.set_tint(t))
@@ -154,7 +160,7 @@ func _ready() -> void:
 			hud.show_message("Partie chargée : %s." % _game_title())
 		else:
 			hud.show_message("Chargement impossible : " + last_error))
-	for sig in [world.terrain_edited, transport.network_changed, buildings.changed, zones.changed, blocks.changed, plans.changed, transport.stations.lines_changed, transport.junctions.changed, population.changed, production.changed]:
+	for sig in [world.terrain_edited, transport.network_changed, buildings.changed, zones.changed, blocks.changed, plans.changed, transport.stations.lines_changed, transport.junctions.changed, population.changed, production.changed, mobilier.changed]:
 		(sig as Signal).connect(func(_a = null) -> void: _unsaved = true)
 	hud.build_requested.connect(func() -> void: build_panel.toggle())
 	var vue := get_node_or_null("VueSol")
@@ -200,7 +206,7 @@ func save_sections() -> Dictionary:
 	return {"terrain": world.to_dict(), "transport": transport.to_dict(), "batiments": buildings.to_dict(),
 		"zones": zones.to_dict(), "blocs": blocks.to_dict(), "plans": plans.to_dict(), "ambiance": ambiance.to_dict(),
 		"creations": Creations.to_dict(Creations.used_by(buildings)),
-		"personnage": ($VueSol as VueSol).to_dict(), "habitants": population.to_dict(),
+		"personnage": ($VueSol as VueSol).to_dict(), "habitants": population.to_dict(), "mobilier": mobilier.to_dict(),
 		"production": production.to_dict(), "reglages": _settings_snapshot().to_dict()}
 
 
@@ -251,10 +257,12 @@ func load_game(slot := "") -> bool:
 	Creations.adopt(sec.get("creations", {}))
 	buildings.from_dict(sec.get("batiments", {}))
 	zones.from_dict(sec.get("zones", {}))
+	blocks.from_dict(sec.get("blocs", {}))
+	# Murs fins et meubles avant les habitants : ils y vivent et y travaillent.
+	plans.from_dict(sec.get("plans", {}))
+	mobilier.from_dict(sec.get("mobilier", {}))
 	population.from_dict(sec.get("habitants", {}))
 	production.from_dict(sec.get("production", {}))
-	blocks.from_dict(sec.get("blocs", {}))
-	plans.from_dict(sec.get("plans", {}))
 	ambiance.from_dict(sec.get("ambiance", {}))
 	($VueSol as VueSol).from_dict(sec.get("personnage", {}))
 	_load_settings(sec.get("reglages", {}), m)
@@ -535,6 +543,30 @@ func _setup_plans() -> void:
 		plans.add_roof(plans.active_id(), kind))
 
 
+## Intérieurs : meubles posés case par case, mobilier généré, bâtiments meublés,
+## habitants dans les pièces à leurs heures.
+func _setup_mobilier() -> void:
+	mobilier = Mobilier.new()
+	mobilier.name = "Mobilier"
+	mobilier.plans_path = NodePath("../Plans")
+	mobilier.buildings_path = NodePath("../Batiments")
+	mobilier.camera_path = NodePath("../CameraRig/Camera3D")
+	add_child(mobilier)
+	mobilier.info_changed.connect(func(t: String) -> void: hud.set_tool_info(t))
+	mobilier.message.connect(func(t: String) -> void: hud.show_message(t))
+	population.extra_buildings = mobilier.population_info
+	population.extra_pick = mobilier.bid_at
+	mobilier.changed.connect(func() -> void: population._sync_buildings.call_deferred())
+	plans.changed.connect(func() -> void: population._sync_buildings.call_deferred())
+	occupants = Occupants.new()
+	occupants.name = "Occupants"
+	add_child(occupants)
+	occupants.setup(mobilier, population, get_viewport().get_camera_3d() if get_viewport().get_camera_3d() != null else $CameraRig/Camera3D)
+	interieur_panel = InterieurPanel.new()
+	interieur_panel.setup(mobilier, func() -> void: _select_building_tool())
+	build_panel.interieur_builder = interieur_panel.build
+
+
 ## Un outil de construction prend la main : on range ceux du terrain et des voies.
 func _select_building_tool(from_transit := false) -> void:
 	world.set_tool(TerrainWorld.Tool.INSPECT)
@@ -548,6 +580,7 @@ func _select_building_tool(from_transit := false) -> void:
 	zones.set_inactive()
 	blocks.set_inactive()
 	plans.set_inactive()
+	mobilier.set_inactive()
 	hud.select_tool_silently(0)
 
 
@@ -579,6 +612,7 @@ func _on_tool_selected(t: int) -> void:
 	zones.set_inactive()
 	blocks.set_inactive()
 	plans.set_inactive()
+	mobilier.set_inactive()
 	build_panel.clear_selection()
 	if t == TerreHud.LANDSCAPE_TOOL:
 		transport.set_inactive()
@@ -615,6 +649,7 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 	zones.clear()
 	blocks.clear()
 	plans.clear()
+	mobilier.clear()
 	GameStart.lat = lat
 	GameStart.lon = lon
 	# Nouvelle région : nouvelle partie (load_game() remet son identifiant après).

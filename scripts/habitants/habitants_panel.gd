@@ -371,6 +371,8 @@ func _view_building(bid: int) -> void:
 	var t := BuildingCatalog.get_type(String(info.t))
 	var cat := BuildingCatalog.category(String(info.cat))
 	_text("%s · %s" % [String(cat.get("name", info.cat)), String(t.get("desc", ""))], true, 12)
+	if info.has("conf"):
+		_text("Intérieur aménagé · confort %d · attractivité %d · valeur %s" % [int(info.conf), int(info.attr), BuildingSystem.format_money(int(info.valeur))], true, 12)
 	var here := pop.present_in(bid)
 	# Fiche : icône de la catégorie, jauges d'occupation, bouton « Aller voir ».
 	var card := HBoxContainer.new()

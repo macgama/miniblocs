@@ -116,11 +116,7 @@ func trim(eid: int, nid: int) -> float:
 func has_crosswalk(nid: int, eid: int) -> bool:
 	if not _info.has(nid) or not network.edges.has(eid):
 		return false
-	var e: Dictionary = network.edges[eid]
-	if String(TransportTypes.get_type(e.t).get("side_kind", "")) != "trottoir":
-		return false
-	var other := network.other_end(eid, nid)
-	return float(e.len) - trim(eid, nid) - trim(eid, other) > CROSS_W * 2.0 + 6.0
+	return TransportView.crosswalk_clear(network, eid, nid, _trims) > 0.0
 
 
 ## Distance entre le centre du carrefour et la ligne d'arrêt (derrière le passage piéton).

@@ -514,6 +514,36 @@ func _run() -> void:
 	var vb := tr.build_segment("train", Vector3(-220, 0, 120), Vector3(20, 0, 120))
 	_check(vb.ok, "viaduc construit (%s)" % vb.get("reason", "ok"))
 
+	print("Carrefour en pente :")
+	var sl1 := tr.build_segment("rue", Vector3(230, 0, 80), Vector3(230, 0, 140))
+	var sl2 := tr.build_segment("rue", Vector3(195, 0, 105), Vector3(265, 0, 105))
+	_check(sl1.ok and sl2.ok and int(sl2.junctions) == 1, "deux rues se croisent sur la pente (%s / %s)" % [sl1.get("reason", "ok"), sl2.get("reason", "ok")])
+	var slope_node := -1
+	for nid in tr.network.adjacency:
+		if tr.network.degree(nid) == 4 and tr.network.node_pos(nid).distance_to(Vector3(230, tr.network.node_pos(nid).y, 105)) < 1.0:
+			slope_node = nid
+	var jtrims := TransportView.compute_trims(tr.network)
+	var jcells := TransportView.junction_cells(tr.network, slope_node, jtrims) if slope_node >= 0 else {}
+	var poke := 0
+	var free_cells := 0
+	for jc in jcells:
+		if world.cell_height(jc) > float(jcells[jc]) + 0.01:
+			poke += 1
+		if not tr.is_cell_occupied(jc):
+			free_cells += 1
+	_check(jcells.size() > 60 and poke == 0, "le sol ne perce pas le plateau ni les trottoirs des angles (%d cases, %d au-dessus)" % [jcells.size(), poke])
+	_check(free_cells == 0, "pas d'arbres sur le plateau du carrefour")
+	var jmesh := TransportView.junction_mesh(tr.network, slope_node, jtrims) if slope_node >= 0 else null
+	var tilted := 0
+	if jmesh != null:
+		var nr: PackedVector3Array = jmesh.surface_get_arrays(0)[Mesh.ARRAY_NORMAL]
+		var cl: PackedColorArray = jmesh.surface_get_arrays(0)[Mesh.ARRAY_COLOR]
+		for vi in nr.size():
+			if absf(cl[vi].r - TransportView.ASPHALT.r) < 0.02 and nr[vi].y < 0.999:
+				tilted += 1
+	_check(jmesh != null and tilted == 0, "plateau éclairé uniformément, sans facettes")
+	_check(TransportView.crosswalk_clear(tr.network, int(tr.network.adjacency[slope_node][0]), slope_node, jtrims) > JunctionControl.CROSS_W, "pas de marquage peint sur les passages piétons")
+
 	print("Itinéraires :")
 	var pl := sv2.planner
 	var trip := pl.plan(Vector3(340, 0, -300), Vector3(660, 0, -300))
@@ -602,6 +632,8 @@ func _run() -> void:
 		demo2.append(tr.build_segment("avenue", Vector3(280, 0, 470), Vector3(420, 0, 470)))
 		demo2.append(tr.build_segment("rue", Vector3(350, 0, 470), Vector3(390, 0, 530)))
 		demo2.append(tr.build_segment("rue", Vector3(350, 0, 470), Vector3(330, 0, 420)))
+		# Départementale (accotements) qui débouche sur une avenue (trottoirs).
+		demo2.append(tr.build_segment("departementale", Vector3(300, 0, 470), Vector3(300, 0, 560)))
 		for d in demo2:
 			print("  vitrine : ", tr._describe(d, true) if d.ok else d.reason)
 		# Arrêts et lignes de la vitrine.
@@ -625,21 +657,26 @@ func _run() -> void:
 		for i in 60:
 			await process_frame
 		var rig = scene.get_node("CameraRig")
-		var cam_args := [-10.0, 0.0, 150.0, 35.0]
+		# --cam x,z,distance,cap[,inclinaison] ; plusieurs vues séparées par « ; »
+		# (capture_1.png, capture_2.png…).
+		var cams: Array = ["-10,0,150,35"]
 		for i in args.size():
 			if args[i] == "--cam" and i + 1 < args.size():
-				cam_args = Array(args[i + 1].split(",")).map(func(x: String) -> float: return x.to_float())
-		rig.position = Vector3(cam_args[0], 20, cam_args[1])
-		rig._distance = cam_args[2]
-		rig._target_distance = cam_args[2]
-		rig.rotation_degrees.y = cam_args[3]
-		if cam_args.size() > 4:
-			rig.pitch_degrees = cam_args[4]
-		for i in 90:
-			await process_frame
-		var im := root.get_viewport().get_texture().get_image()
-		im.save_png(shot)
-		print("Capture : ", shot)
+				cams = Array(args[i + 1].split(";"))
+		for ci in cams.size():
+			var cam_args: Array = Array(String(cams[ci]).split(",")).map(func(x: String) -> float: return x.to_float())
+			rig.position = Vector3(cam_args[0], 20, cam_args[1])
+			rig._distance = cam_args[2]
+			rig._target_distance = cam_args[2]
+			rig.rotation_degrees.y = cam_args[3]
+			if cam_args.size() > 4:
+				rig.pitch_degrees = cam_args[4]
+			for i in 90:
+				await process_frame
+			var im := root.get_viewport().get_texture().get_image()
+			var path := shot if cams.size() == 1 else shot.get_basename() + "_%d.png" % (ci + 1)
+			im.save_png(path)
+			print("Capture : ", path)
 
 	print("TRANSPORT TEST OK" if ok else "TRANSPORT TEST ÉCHEC")
 	quit(0 if ok else 1)

@@ -60,6 +60,8 @@ var _right_press := Vector2.ZERO
 var _occupied: Dictionary = {}
 ## Emprise de chaque tronçon : id -> {e: tronçon, cells: Array[Vector2i]}.
 var _edge_fp: Dictionary = {}
+## Emprise des plateaux de carrefour : id de nœud -> {key, cells}.
+var _node_fp: Dictionary = {}
 ## Grille de recherche : case de 16 m -> [[tronçon, segment], …]
 var _hash: Dictionary = {}
 var _hash_dirty := true
@@ -168,9 +170,52 @@ func _on_network_changed() -> void:
 				changed_cells.append(c)
 			_occupied[c] = n + 1
 		_edge_fp[id] = {"e": e, "cells": cells}
+	_refresh_junction_cells(changed_cells)
 	if world != null and not changed_cells.is_empty():
 		world.mark_cells_dirty(changed_cells)
 	network_changed.emit()
+
+
+## Plateaux de carrefour : cases réservées (pas d'arbres, pas de talus d'une
+## autre voie) et terrain mis au niveau de la chaussée, pour que le sol ne
+## perce pas les trottoirs arrondis des angles.
+func _refresh_junction_cells(changed_cells: Array) -> void:
+	var trims := TransportView.compute_trims(network)
+	var keys := {}
+	for nid in network.nodes:
+		if network.degree(nid) < 2:
+			continue
+		var key := [network.node_pos(nid)]
+		for eid in network.adjacency.get(nid, []):
+			key.append(network.edges[eid])
+			key.append(trims.get(eid, Vector2.ZERO))
+		keys[nid] = key
+	for nid in _node_fp.keys():
+		if keys.has(nid) and TransportView._same_key(_node_fp[nid].key, keys[nid]):
+			continue
+		for c in _node_fp[nid].cells:
+			var n: int = _occupied.get(c, 0) - 1
+			if n <= 0:
+				_occupied.erase(c)
+				changed_cells.append(c)
+			else:
+				_occupied[c] = n
+		_node_fp.erase(nid)
+	var works := {}
+	for nid in keys:
+		if _node_fp.has(nid):
+			continue
+		var cells := TransportView.junction_cells(network, nid, trims)
+		for c in cells:
+			var n: int = _occupied.get(c, 0)
+			if n == 0:
+				changed_cells.append(c)
+			_occupied[c] = n + 1
+			if world != null and is_nan(water_surface(c.x + 0.5, c.y + 0.5)):
+				works[c] = floorf((float(cells[c]) + 0.001) / world.height_step) * world.height_step
+		_node_fp[nid] = {"key": keys[nid], "cells": cells.keys()}
+	if world != null and not works.is_empty():
+		world.set_cells(works)
 
 
 ## Vrai si le tracé passe sur une case interdite (au sol ou en pont, pas en tunnel).

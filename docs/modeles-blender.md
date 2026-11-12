@@ -104,6 +104,29 @@ for f in tools/blender/stades/*.json; do "C:/Program Files/Blender Foundation/Bl
 
 Voir un seul stade dans la vitrine : `godot --path . res://scenes/vitrine_modeles.tscn -- --modele stade_berne`.
 
+## Kit d'abords (assets séparés)
+
+Des pièces à poser autour des bâtiments, chacune dans son propre `.glb` (`assets/modeles/abords/`), faites par `tools/blender/abords/kit_abords.py`. Mêmes règles que les bâtiments : mètres, origine au sol, avant vers +Z dans Godot, couleurs modifiables (eau, margelle, dalle, asphalte, marquage, porte de garage, bois de terrasse…).
+
+| Pièce | Contenu | Triangles |
+| --- | --- | --- |
+| `piscine_rect` | Bassin 9 × 4,5 m, margelle, plage dallée, échelle, trois transats | 142 |
+| `piscine_haricot` | Bassin en haricot, margelle, plage, deux transats | 302 |
+| `parking_4` | Quatre places marquées, butées, bordures, deux lampadaires | 152 |
+| `parking_12` | Douze places sur deux rangs, allée centrale, lampadaires | 250 |
+| `garage_simple` / `garage_double` | Garage à toit plat, portes basculantes à rainures en creux, fenêtre, dalle devant | 78 / 106 |
+| `carport` | Abri ouvert sur quatre poteaux bois, sol en gravier | 74 |
+| `allee` | Allée pavée de 3 × 9 m avec bordures | 50 |
+| `terrasse` | Terrasse en lames de bois de 6 × 4 m, marche | 46 |
+
+L'eau des piscines est posée au-dessus du sol, entre les margelles : rien ne descend sous le terrain. Les plantes, haies et arbres, ainsi que les jardins, clôtures, boîtes aux lettres et pots de fleurs, sont faits ailleurs dans le projet.
+
+![Les pièces du kit](apercu-abords-kit.jpg)
+
+![Une parcelle composée : maison, garage, allée, terrasse et piscine](apercu-abords-parcelle.png)
+
+Voir le kit : `godot --path . res://scenes/vitrine_modeles.tscn -- --dossier abords`, ou une parcelle d'exemple avec `-- --lot` (touche **C** pour changer les couleurs).
+
 ## Outils et ressources gratuits
 
 Seulement des licences compatibles avec un jeu vendu sur Steam.

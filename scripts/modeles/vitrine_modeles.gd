@@ -8,8 +8,11 @@ extends Node3D
 ##   godot --path . res://scenes/vitrine_modeles.tscn -- --screenshot vitrine_glb.png [--modele stade_tuiliere]
 ## --modele nom : seulement ce modèle (nom du fichier sans .glb).
 ## --variante 7 : capture avec des couleurs au hasard (graine 7).
+## --dossier abords : le kit d'abords (piscines, parkings, garages…) au lieu des bâtiments.
+## --lot : une parcelle composée (maison, garage, allée, terrasse, piscine).
 
 const DOSSIER := "res://assets/modeles/batiments"
+const DOSSIER_ABORDS := "res://assets/modeles/abords"
 const ECART := 4.0
 
 var _cam: Camera3D
@@ -21,6 +24,7 @@ var _tourne := true
 var _poses: Array[Node3D] = []
 var _chemins: Array[String] = []
 var _rng := RandomNumberGenerator.new()
+var _centre_lot := false
 
 
 func _ready() -> void:
@@ -33,27 +37,37 @@ func _ready() -> void:
 	var im := args.find("--modele")
 	if im >= 0 and im + 1 < args.size():
 		seul = args[im + 1]
-	var d := DirAccess.open(DOSSIER)
+	var dossier := DOSSIER
+	var idos := args.find("--dossier")
+	if idos >= 0 and idos + 1 < args.size():
+		dossier = "res://assets/modeles".path_join(args[idos + 1])
+	var d := DirAccess.open(dossier)
+	if args.has("--lot"):
+		x = _lot()
+		d = null
 	if d:
 		for f in d.get_files():
 			if not f.ends_with(".glb") or (seul != "" and f.get_basename() != seul):
 				continue
-			var sc := load(DOSSIER.path_join(f)) as PackedScene
+			var sc := load(dossier.path_join(f)) as PackedScene
 			if sc == null:
 				continue
 			var n := sc.instantiate() as Node3D
 			add_child(n)
 			_poses.append(n)
-			_chemins.append(DOSSIER.path_join(f))
+			_chemins.append(dossier.path_join(f))
 			var lar := _largeur(n)
 			n.position.x = x + lar / 2.0
 			x += lar + ECART
 			largeurs.append(lar)
 			noeuds.append(n)
-	if noeuds.is_empty():
+	if noeuds.is_empty() and not _centre_lot:
 		push_warning("Aucun .glb dans " + DOSSIER)
 	_centre = Vector3((x - ECART) / 2.0, 3.0, 0)
 	_dist = maxf(22.0, x * 1.25)
+	if _centre_lot:
+		_centre = Vector3(3, 1.5, -3)
+		_dist = 34.0
 	_cam = Camera3D.new()
 	_cam.fov = 40
 	add_child(_cam)
@@ -65,6 +79,31 @@ func _ready() -> void:
 	var i := args.find("--screenshot")
 	if i >= 0 and i + 1 < args.size():
 		_capture(args[i + 1])
+
+
+## Parcelle d'exemple : les pièces du kit d'abords posées autour de la maison
+## (façade de la maison vers +Z). Renvoie la largeur occupée.
+func _lot() -> float:
+	var pieces := [
+		["batiments/maison_test", Vector3(0, 0, 0), 0.0],
+		["abords/garage_simple", Vector3(8.5, 0, -0.5), 0.0],
+		["abords/allee", Vector3(8.5, 0, 7.6), 0.0],
+		["abords/terrasse", Vector3(0, 0, -6.2), 180.0],
+		["abords/piscine_haricot", Vector3(1.5, 0, -14.0), 0.0],
+	]
+	for p in pieces:
+		var chemin := "res://assets/modeles".path_join(String(p[0]) + ".glb")
+		var sc := load(chemin) as PackedScene
+		if sc == null:
+			continue
+		var n := sc.instantiate() as Node3D
+		n.position = p[1]
+		n.rotation_degrees.y = p[2]
+		add_child(n)
+		_poses.append(n)
+		_chemins.append(chemin)
+	_centre_lot = true
+	return 22.0
 
 
 func _decor() -> void:

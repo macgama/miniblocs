@@ -37,6 +37,9 @@ var _hover_valid := false
 var mobilier: Mobilier
 var occupants: Occupants
 var interieur_panel: InterieurPanel
+## Décors : mobilier urbain, clôtures, animaux, bateaux, rochers (touche G).
+var decors: DecorSystem
+var decors_panel: DecorPanel
 ## Événements : fêtes, marchés, matchs, incendies, tempêtes, épidémies (touche I).
 var evenements: Evenements
 var evenements_panel: EvenementsPanel
@@ -80,6 +83,7 @@ func _ready() -> void:
 	_setup_production()
 	_setup_urgences()
 	_setup_vie()
+	_setup_decors()
 	_setup_evenements()
 	_setup_create_mode()
 	hud.traffic_toggled.connect(func(on: bool) -> void: transport.traffic.set_enabled(on))
@@ -170,7 +174,7 @@ func _ready() -> void:
 			hud.show_message("Partie chargée : %s." % _game_title())
 		else:
 			hud.show_message("Chargement impossible : " + last_error))
-	for sig in [world.terrain_edited, transport.network_changed, buildings.changed, zones.changed, blocks.changed, plans.changed, transport.stations.lines_changed, transport.junctions.changed, population.changed, production.changed, mobilier.changed, evenements.changed]:
+	for sig in [world.terrain_edited, transport.network_changed, buildings.changed, zones.changed, blocks.changed, plans.changed, transport.stations.lines_changed, transport.junctions.changed, population.changed, production.changed, mobilier.changed, evenements.changed, decors.changed]:
 		(sig as Signal).connect(func(_a = null) -> void: _unsaved = true)
 	hud.build_requested.connect(func() -> void: build_panel.toggle())
 	var vue := get_node_or_null("VueSol")
@@ -221,7 +225,7 @@ func save_sections() -> Dictionary:
 		"zones": zones.to_dict(), "blocs": blocks.to_dict(), "plans": plans.to_dict(), "ambiance": ambiance.to_dict(),
 		"creations": Creations.to_dict(Creations.used_by(buildings)),
 		"personnage": ($VueSol as VueSol).to_dict(), "habitants": population.to_dict(), "mobilier": mobilier.to_dict(),
-		"production": production.to_dict(), "urgences": urgences.to_dict(), "reglages": _settings_snapshot().to_dict(), "evenements": evenements.to_dict()}
+		"production": production.to_dict(), "urgences": urgences.to_dict(), "reglages": _settings_snapshot().to_dict(), "evenements": evenements.to_dict(), "decors": decors.to_dict()}
 
 
 ## Sauvegarde dans la partie en cours (ou une nouvelle). title : nom d'une nouvelle partie.
@@ -277,6 +281,7 @@ func load_game(slot := "") -> bool:
 	mobilier.from_dict(sec.get("mobilier", {}))
 	population.from_dict(sec.get("habitants", {}))
 	production.from_dict(sec.get("production", {}))
+	decors.from_dict(sec.get("decors", {}))
 	urgences.from_dict(sec.get("urgences", {}))
 	ambiance.from_dict(sec.get("ambiance", {}))
 	# Après les bâtiments et les habitants : dégâts, ruines, malades, matchs.
@@ -823,6 +828,8 @@ func _refresh_ladder() -> void:
 func _select_building_tool(from_transit := false) -> void:
 	world.set_tool(TerrainWorld.Tool.INSPECT)
 	landscape.set_shown(false)
+	if decors_panel:
+		decors_panel.set_shown(false)
 	transport.stations.set_inactive()
 	if transit_panel and not from_transit:
 		transit_panel.clear_selection()
@@ -836,6 +843,31 @@ func _select_building_tool(from_transit := false) -> void:
 	if banque_pose:
 		banque_pose.stop()
 	hud.select_tool_silently(0)
+
+
+## Décors (DecorSystem) et leur panneau (touche G).
+func _setup_decors() -> void:
+	decors = DecorSystem.new()
+	decors.name = "Decors"
+	add_child(decors)
+	decors.setup(world, transport, buildings, ambiance)
+	decors.message.connect(func(t: String) -> void: hud.show_message(t))
+	decors.info_changed.connect(func(t: String) -> void: hud.set_tool_info(t))
+	decors_panel = DecorPanel.new()
+	decors_panel.name = "PanneauDecors"
+	decors_panel.decors = decors
+	add_child(decors_panel)
+	hud.decors_requested.connect(toggle_decors)
+	decors_panel.bascule_demandee.connect(toggle_decors)
+
+
+## Ouvre ou ferme le panneau des décors (les autres outils sont rangés).
+func toggle_decors() -> void:
+	if decors_panel.visible:
+		decors_panel.set_shown(false)
+		return
+	_select_building_tool()
+	decors_panel.set_shown(true)
 
 
 ## Panneau « Paysage » : pinceaux de terrain (outil 0).
@@ -860,6 +892,8 @@ func _setup_landscape() -> void:
 
 func _on_tool_selected(t: int) -> void:
 	landscape.set_shown(t == TerreHud.LANDSCAPE_TOOL)
+	if decors_panel:
+		decors_panel.set_shown(false)
 	if banque_pose:
 		banque_pose.stop()
 	transport.stations.set_inactive()

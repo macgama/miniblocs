@@ -788,6 +788,9 @@ func _ramp_tests(tr: TransportSystem) -> void:
 	_check(straight.size() >= 1 and not on_ramp, "tout droit sur l'autoroute sans passer par les bretelles")
 	tr.traffic.enabled = false
 	tr.traffic.clear()
+	# Tirage fixé ici aussi : le résultat ne dépend pas du nombre d'images
+	# passées avant (le trafic tire au sort à chaque image quand il roule).
+	tr.traffic.rng.seed = 3
 	var wrong := 0
 	var seen := {}
 	for i in 1500:

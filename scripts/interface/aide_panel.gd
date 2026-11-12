@@ -79,6 +79,12 @@ const SECTIONS := [
 		["Survol d'une case", "les ressources les plus riches de la case s'affichent dans la fiche du terrain"],
 		["Règles", "il faut des habitants pour les emplois, une voie d'accès, des commerces pour vendre, un dépôt, une gare ou un port pour exporter"],
 	]],
+	["Décors", [
+		["G", "panneau Décors : 160 modèles (bancs, lampadaires, fontaines, statues, clôtures, panneaux, marché, jeux, plage, ferme, animaux, bateaux, rochers)"],
+		["Poser", "clic : un décor ; glisser : une rangée, ou une clôture d'un point à l'autre ; R / Maj+R : tourner"],
+		["Pinceau, Gomme", "semer au hasard (troupeau, bottes de foin, rochers) ; la gomme efface aussi les décors automatiques"],
+		["Automatiques", "bancs et poteaux le long des routes, bottes de foin après la moisson, troupeaux qui broutent, pontons et bateaux, rochers (case à cocher du panneau)"],
+	]],
 	["Urgences", [
 		["U", "panneau Urgences : appels en cours (clic : y aller), casernes et véhicules, bilan des temps d'intervention, carte de couverture"],
 		["Construire → Services", "caserne de pompiers (FPT, VSAV, grande échelle), commissariat (police, ou gendarmerie dans une ville de moins de 2 000 habitants), hôpital (ambulances, SMUR)"],

@@ -20,7 +20,7 @@ Option `--blend fichier.blend` : garde aussi le fichier Blender pour le retouche
 
 - **1 unité = 1 mètre** = une case du jeu. Origine au sol, au centre de l'emprise.
 - **Façade principale** vers -Y dans Blender, donc +Z dans Godot.
-- **Une seule texture palette** de 64 × 64 px (8 × 8 couleurs franches) : chaque face prend la couleur d'une case. Un seul matériau, très peu de mémoire, et les couleurs se changent en éditant la palette.
+- **Une texture palette** de 64 × 64 px (8 × 8 couleurs franches) : chaque face prend la couleur d'une case. En plus, trois motifs de 32 × 32 px répétés seulement si le bâtiment en a besoin : vitrage à petits carreaux, grille ajourée, panneaux solaires.
 - **Budget** : quelques centaines de triangles pour une maison (la maison test en a 176), 3 000 au maximum pour un grand monument. Le test le vérifie.
 
 ## Tester dans Godot 4.7
@@ -48,8 +48,13 @@ Un bâtiment particulier a son propre script dans `tools/blender/batiments/`, qu
 | Script | Bâtiment | Triangles |
 | --- | --- | --- |
 | `maison_frank.py` | Villa moderniste d'après une maison de Josef Frank (années 1930) : bow-window, tours cylindriques, terrasses | 558 |
+| `stade_tuiliere.py` | Stade de la Tuilière, Lausanne (2020) : 12 544 places, terrain 105 × 68 m, tribune principale à façade de verre à facettes, trois tribunes ouvertes, toit en porte-à-faux couvert de panneaux solaires, voiles de béton aux angles. Sources en tête du script. | 470 |
 
 ![Maison Frank et maison test dans la vitrine](apercu-glb-maison_frank.png)
+
+![Stade de la Tuilière dans la vitrine](apercu-glb-stade_tuiliere.png)
+
+Un seul modèle dans la vitrine : `godot --path . res://scenes/vitrine_modeles.tscn -- --modele stade_tuiliere` (avec `--screenshot fichier.png` pour une capture).
 
 ```bash
 "C:\Program Files\Blender Foundation\Blender 5.2\blender.exe" --background --factory-startup --python tools/blender/batiments/maison_frank.py -- --out assets/modeles/batiments/maison_frank.glb --apercu apercu.png --azimuts -8,40

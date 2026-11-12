@@ -4,7 +4,8 @@ extends Node3D
 ## côte à côte sur une pelouse, la caméra tourne autour.
 ## Molette : zoom. Clic gauche glissé : tourner. Espace : arrêter / relancer la rotation.
 ## Capture en ligne de commande :
-##   godot --path . res://scenes/vitrine_modeles.tscn -- --screenshot vitrine_glb.png
+##   godot --path . res://scenes/vitrine_modeles.tscn -- --screenshot vitrine_glb.png [--modele stade_tuiliere]
+## --modele nom : seulement ce modèle (nom du fichier sans .glb).
 
 const DOSSIER := "res://assets/modeles/batiments"
 const ECART := 4.0
@@ -22,10 +23,15 @@ func _ready() -> void:
 	var x := 0.0
 	var largeurs: Array[float] = []
 	var noeuds: Array[Node3D] = []
+	var args := OS.get_cmdline_user_args()
+	var seul := ""
+	var im := args.find("--modele")
+	if im >= 0 and im + 1 < args.size():
+		seul = args[im + 1]
 	var d := DirAccess.open(DOSSIER)
 	if d:
 		for f in d.get_files():
-			if not f.ends_with(".glb"):
+			if not f.ends_with(".glb") or (seul != "" and f.get_basename() != seul):
 				continue
 			var sc := load(DOSSIER.path_join(f)) as PackedScene
 			if sc == null:
@@ -40,12 +46,11 @@ func _ready() -> void:
 	if noeuds.is_empty():
 		push_warning("Aucun .glb dans " + DOSSIER)
 	_centre = Vector3((x - ECART) / 2.0, 3.0, 0)
-	_dist = maxf(22.0, x * 0.9)
+	_dist = maxf(22.0, x * 1.25)
 	_cam = Camera3D.new()
 	_cam.fov = 40
 	add_child(_cam)
 	_place_camera()
-	var args := OS.get_cmdline_user_args()
 	var i := args.find("--screenshot")
 	if i >= 0 and i + 1 < args.size():
 		_capture(args[i + 1])
@@ -72,7 +77,7 @@ func _decor() -> void:
 	add_child(soleil)
 	var sol := MeshInstance3D.new()
 	var plan := PlaneMesh.new()
-	plan.size = Vector2(400, 400)
+	plan.size = Vector2(1200, 1200)
 	sol.mesh = plan
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = Color("6aa84f")

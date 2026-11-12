@@ -108,8 +108,9 @@ class Palette:
 
 # --- Construction -------------------------------------------------------------
 # Matériaux : 0 = palette (presque tout), 1 = vitrage à petits carreaux,
-# 2 = grille ajourée (garde-corps, treillage), textures de 32 × 32 px répétées.
-MAT_PALETTE, MAT_CARREAUX, MAT_GRILLE = 0, 1, 2
+# 2 = grille ajourée (garde-corps, treillage), 3 = panneaux solaires ;
+# textures de 32 × 32 px répétées.
+MAT_PALETTE, MAT_CARREAUX, MAT_GRILLE, MAT_SOLAIRE = 0, 1, 2, 3
 
 
 def arc(cx, cy, r, a0, a1, n):
@@ -146,6 +147,31 @@ class Batisseur:
         f.material_index = mat
         for loop, uv in zip(f.loops, [(0, 0), (ru, 0), (ru, rv), (0, rv)]):
             loop[self.uv].uv = uv
+        return f
+
+    def face_orientee(self, pts, couleur, vers, mat=None, echelle=None):
+        """Face dont la normale est retournée si besoin pour pointer vers
+        `vers` (vecteur). Avec mat et echelle : texture projetée en coordonnées
+        du monde (u = x / échelle_u, v = y ou z / échelle_v selon la face)."""
+        a, b, c = (Vector(p) for p in pts[:3])
+        n = (b - a).cross(c - a)
+        if n.dot(Vector(vers)) < 0:
+            pts = list(reversed(pts))
+        if mat is None:
+            return self.face(pts, couleur)
+        verts = [self.bm.verts.new(p) for p in pts]
+        f = self.bm.faces.new(verts)
+        f.smooth = False
+        f.material_index = mat
+        su, sv = echelle
+        horizontale = abs(n.normalized().z) > 0.7
+        for loop, p in zip(f.loops, pts):
+            if horizontale:
+                loop[self.uv].uv = (p[0] / su, p[1] / sv)
+            else:
+                # Mur : u le long du mur (x ou y selon l'orientation), v = hauteur.
+                u = p[0] if abs(n.x) < abs(n.y) else p[1]
+                loop[self.uv].uv = (u / su, p[2] / sv)
         return f
 
     def cylindre(self, cx, cy, z0, z1, r, couleur, n=16, a0=0.0, a1=360.0,
@@ -366,6 +392,16 @@ def _grille(x, y, t):
     return [0.95, 0.95, 0.93, 0.12]
 
 
+def _solaire(x, y, t):
+    """Panneau solaire : cellules bleu nuit, joints gris fins."""
+    if x == 0 or y == 0:
+        return [0.42, 0.44, 0.47, 1.0]
+    if x % 8 == 0 or y % 16 == 0:
+        return [0.12, 0.16, 0.24, 1.0]
+    k = 0.07 + 0.03 * (y / t)
+    return [k, k * 1.3, k * 2.0, 1.0]
+
+
 def _materiau_texture(nom, image, closest, transparent=False, rugosite=0.9):
     mat = bpy.data.materials.new(nom)
     mat.use_nodes = True
@@ -385,7 +421,7 @@ def _materiau_texture(nom, image, closest, transparent=False, rugosite=0.9):
 
 
 def materiaux(palette, nom):
-    """Les trois matériaux, dans l'ordre MAT_PALETTE, MAT_CARREAUX, MAT_GRILLE.
+    """Les matériaux, dans l'ordre MAT_PALETTE, MAT_CARREAUX, MAT_GRILLE, MAT_SOLAIRE.
     Seuls ceux réellement utilisés par des faces sont exportés."""
     return [
         _materiau_texture(nom, palette.image(nom + "_palette"), closest=True),
@@ -393,6 +429,8 @@ def materiaux(palette, nom):
                           closest=False, rugosite=0.25),
         _materiau_texture(nom + "_grille", _texture_motif(nom + "_grille_tex", _grille, alpha=True),
                           closest=False, transparent=True),
+        _materiau_texture(nom + "_solaire", _texture_motif(nom + "_solaire_tex", _solaire),
+                          closest=False, rugosite=0.3),
     ]
 
 

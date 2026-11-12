@@ -34,6 +34,12 @@ const SECTIONS := [
 	["Transports publics", [
 		["L", "panneau Lignes : stations, gares, ports, aéroports, dépôts de marchandises, parkings et lignes (case Fret pour les trains et les bateaux)"],
 	]],
+	["Habitants", [
+		["H", "panneau Habitants : la ville en chiffres, la liste des habitants, le budget de la ville"],
+		["Clic sur un bâtiment (outil 1)", "qui y vit, y travaille, y étudie et qui s'y trouve en ce moment"],
+		["Clic sur un nom", "profil : âge, foyer, travail ou école, loisirs, budget et journée heure par heure"],
+		["Vitesse de la vie", "réglage du panneau : vieillissement réaliste, rapide (1 an = 1 mois) ou très rapide (1 an = 1 jour)"],
+	]],
 	["Temps et vue", [
 		["T", "mettre le temps en pause / reprendre"],
 		["Maj + T", "vitesse suivante du temps"],

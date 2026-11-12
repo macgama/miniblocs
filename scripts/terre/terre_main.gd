@@ -437,6 +437,7 @@ func _setup_plans() -> void:
 			plans.set_tool(PlanEditor.Tool.OPENING))
 	build_panel.plan_level_step.connect(func(d: int) -> void: plans.step_level(d))
 	build_panel.plan_cutaway_toggled.connect(func(on: bool) -> void: plans.set_cutaway(on))
+	build_panel.plan_wall_levels.connect(func(n: int) -> void: plans.set_wall_levels(n))
 	build_panel.plan_copy_level.connect(func(n: int) -> void:
 		if plans.active_id() == "":
 			hud.show_message("Vise d'abord un bâtiment avec un outil Murs et étages.")

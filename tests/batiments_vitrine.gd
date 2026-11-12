@@ -2,6 +2,7 @@ extends SceneTree
 ## Vitrine : pose tout le catalogue le long de deux routes et prend une capture.
 ## Usage (avec affichage) :
 ##   godot --path . --script res://tests/batiments_vitrine.gd -- --screenshot vitrine.png [--distance 220] [--yaw 30] [--zones]
+## --sans-finitions : sans les finitions low-poly (teintes par face, toits en rangs…). --fxaa : anticrénelage d'écran.
 ## --blocs : une maison construite bloc par bloc.
 ## --styles a,b,c : seulement les bâtiments de ces styles (bible, voir Styles.STYLES).
 ## --arch culte,palais : seulement ces archétypes. --zone-style japonais : style du zonage.
@@ -64,6 +65,12 @@ func _run() -> void:
 			var p := args[i + 1].split(",")
 			focus = Vector2(p[0].to_float(), p[1].to_float())
 
+	# --sans-finitions : rendu d'avant les finitions low-poly (comparaison).
+	BlocMesh.details_enabled = not args.has("--sans-finitions")
+	# --fxaa : anticrénelage d'écran (le MSAA du rendu logiciel laisse des pixels parasites).
+	if args.has("--fxaa"):
+		root.msaa_3d = Viewport.MSAA_DISABLED
+		root.screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA
 	var scene: Node = load("res://scenes/terre.tscn").instantiate()
 	var world: TerrainWorld = scene.get_node("Terrain")
 	var transport: TransportSystem = scene.get_node("Transport")

@@ -51,6 +51,22 @@ Tout passe par un petit kit, `scripts/demo/lp_kit.gd` (classe `LpKit`), réutili
 
 **Ce que la démo montre en chiffres** : environ 210 000 triangles de décor, 27 000 touffes d'herbe et 27 000 gerbes de blé, construits en un peu plus d'une seconde.
 
+## Dans le jeu : les finitions de tous les bâtiments
+
+Depuis la PR suivante, l'atelier commun des bâtiments (`BlocMesh`, utilisé par les quelque 400 modèles du catalogue, de la bible et du zonage) applique automatiquement une partie de ces techniques :
+
+- une teinte légèrement différente par face, et le pied des murs assombri ;
+- les toits en pente (deux pans, quatre pans, pyramides) en rangs de tuiles ou d'ardoises, ou en bottes de chaume pour les styles à toit de chaume, avec une faîtière ;
+- un soubassement sous les grands volumes posés au sol, des appuis et linteaux sous et sur les fenêtres.
+
+Au-delà de 320 m, chaque bâtiment passe à sa version légère (sans finitions, environ 5 fois moins de triangles). Les finitions se coupent d'un coup avec `BlocMesh.details_enabled = false`.
+
+En haut, avant ; en bas, après :
+
+![Finitions : quartier né du zonage](apercu-finitions-ville.jpg)
+
+![Finitions : de près](apercu-finitions-pres.jpg)
+
 ## Fichiers
 
 - `scripts/demo/lp_kit.gd` : le kit de modelage (triangles, boîtes, pierres, poutres, tubes, objets de révolution, sphères bosselées).

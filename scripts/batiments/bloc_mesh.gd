@@ -12,13 +12,73 @@ var normals := PackedVector3Array()
 var colors := PackedColorArray()
 var indices := PackedInt32Array()
 
+## Finitions « low-poly poussé » (voir docs/demo-low-poly.md), activées pour
+## les bâtiments : une teinte un peu différente par face, pied des murs
+## assombri (ombre peinte), toits en rangs de tuiles ou de chaume avec faîtière,
+## soubassement sous les grands volumes. Les véhicules et le mobilier urbain
+## gardent le rendu simple.
+var details := false
+## Style des toits en pente quand `details` est actif : "" (tuiles, ardoises) ou "chaume".
+var roof_style := ""
+## Interrupteur général des finitions (comparaisons, machines modestes).
+static var details_enabled := true
+
+
+func _fine() -> bool:
+	return details and details_enabled
+
+
+static var _glass: Array[Color] = []
+
+
+## La couleur est-elle celle d'une vitre (catalogue et styles de la bible) ?
+static func _is_glass(c: Color) -> bool:
+	if _glass.is_empty():
+		_glass = NightWindows.window_colors()
+	for g in _glass:
+		if absf(g.r - c.r) + absf(g.g - c.g) + absf(g.b - c.b) < 0.03:
+			return true
+	return false
+
+
+## Petit nombre pseudo-aléatoire stable (même position = même valeur).
+static func _hash(p: Vector3) -> float:
+	return fposmod(sin(p.dot(Vector3(12.9898, 78.233, 37.719))) * 43758.5453, 1.0)
+
+
+static func _scale(c: Color, f: float) -> Color:
+	return Color(minf(c.r * f, 1.0), minf(c.g * f, 1.0), minf(c.b * f, 1.0), c.a)
+
+
+## Ombre peinte au pied des murs : plus sombre près du sol (repère local, sol en 0).
+static func _ao(c: Color, y: float) -> Color:
+	return _scale(c, lerpf(0.8, 1.0, clampf(y / 1.6, 0.0, 1.0)))
+
+
+## Couleurs des sommets d'une face : variation par face, ombre au pied des murs.
+func _face_colors(pts: Array, n: Vector3, col: Color) -> Array:
+	if not _fine():
+		var same := []
+		for p in pts:
+			same.append(col)
+		return same
+	var mid := Vector3.ZERO
+	for p in pts:
+		mid += p
+	mid /= pts.size()
+	var cf := _scale(col, 0.95 + _hash(mid * 1.7) * 0.09)
+	var out := []
+	for p: Vector3 in pts:
+		out.append(_ao(cf, p.y) if absf(n.y) < 0.5 else cf)
+	return out
+
 
 ## Quadrilatère a-b-c-d (dans l'ordre du tour) avec sa normale extérieure.
 func quad(a: Vector3, b: Vector3, c: Vector3, d: Vector3, n: Vector3, col: Color) -> void:
 	var base := verts.size()
 	verts.append_array([a, b, c, d])
 	normals.append_array([n, n, n, n])
-	colors.append_array([col, col, col, col])
+	colors.append_array(_face_colors([a, b, c, d], n, col))
 	# Godot dessine les faces dont les sommets tournent dans le sens horaire
 	# vu de l'extérieur : on remet l'ordre dans le bon sens si besoin.
 	if (b - a).cross(c - a).dot(n) > 0.0:
@@ -31,7 +91,7 @@ func tri(a: Vector3, b: Vector3, c: Vector3, n: Vector3, col: Color) -> void:
 	var base := verts.size()
 	verts.append_array([a, b, c])
 	normals.append_array([n, n, n])
-	colors.append_array([col, col, col])
+	colors.append_array(_face_colors([a, b, c], n, col))
 	if (b - a).cross(c - a).dot(n) > 0.0:
 		indices.append_array([base, base + 2, base + 1])
 	else:
@@ -53,6 +113,18 @@ func box(cx: float, y0: float, cz: float, sx: float, sy: float, sz: float, col: 
 	quad(Vector3(x1, y0, z0), Vector3(x1, y0, z1), Vector3(x1, y1, z1), Vector3(x1, y1, z0), Vector3.RIGHT, side)
 	if bottom:
 		quad(Vector3(x0, y0, z0), Vector3(x1, y0, z0), Vector3(x1, y0, z1), Vector3(x0, y0, z1), Vector3.DOWN, side)
+	# Appui et linteau sous et sur chaque fenêtre (une vitre fine et petite).
+	if _fine() and y0 >= 0.3 and minf(sx, sz) <= 0.25 and maxf(sx, sz) <= 3.2 and sy <= 3.0 and sy >= 0.5 and _is_glass(col):
+		var deep := sx <= 0.25
+		var sill := Color("e4ddcf")
+		var wx := (0.36 if deep else sx + 0.2)
+		var wz := (sz + 0.2 if deep else 0.36)
+		box(cx, y0 - 0.1, cz, wx, 0.1, wz, sill)
+		box(cx, y0 + sy, cz, (0.26 if deep else sx + 0.12), 0.08, (sz + 0.12 if deep else 0.26), sill.darkened(0.08))
+	# Soubassement de pierre sous les grands volumes posés au sol.
+	if _fine() and y0 <= 0.05 and sy >= 2.4 and minf(sx, sz) >= 3.0:
+		var plinth := col.darkened(0.3).lerp(Color("8a8378"), 0.45)
+		box(cx, y0, cz, sx + 0.08, 0.45, sz + 0.08, plinth)
 
 
 ## Plaque fine posée au sol (pelouse, parking, lignes…).
@@ -75,6 +147,10 @@ func gable(cx: float, y0: float, cz: float, sx: float, sz: float, h: float, col:
 		quad(Vector3(x0, y0, z1), Vector3(x1, y0, z1), Vector3(x1, y1, cz), Vector3(x0, y1, cz), n2, col.darkened(0.08))
 		tri(Vector3(x0, y0, z0), Vector3(x0, y0, z1), Vector3(x0, y1, cz), Vector3.LEFT, gable_col)
 		tri(Vector3(x1, y0, z0), Vector3(x1, y0, z1), Vector3(x1, y1, cz), Vector3.RIGHT, gable_col)
+		if _fine():
+			_slope(Vector3(x0, y0, z0), Vector3(x1, y0, z0), Vector3(x0, y1, cz), Vector3(x1, y1, cz), n1, col)
+			_slope(Vector3(x0, y0, z1), Vector3(x1, y0, z1), Vector3(x0, y1, cz), Vector3(x1, y1, cz), n2, col.darkened(0.08))
+			_ridge(Vector3(x0, y1, cz), Vector3(x1, y1, cz), col)
 	else:
 		var n1 := Vector3(-h, sx / 2.0, 0).normalized()
 		var n2 := Vector3(h, sx / 2.0, 0).normalized()
@@ -82,6 +158,10 @@ func gable(cx: float, y0: float, cz: float, sx: float, sz: float, h: float, col:
 		quad(Vector3(x1, y0, z0), Vector3(x1, y0, z1), Vector3(cx, y1, z1), Vector3(cx, y1, z0), n2, col.darkened(0.08))
 		tri(Vector3(x0, y0, z0), Vector3(x1, y0, z0), Vector3(cx, y1, z0), Vector3.FORWARD, gable_col)
 		tri(Vector3(x0, y0, z1), Vector3(x1, y0, z1), Vector3(cx, y1, z1), Vector3.BACK, gable_col)
+		if _fine():
+			_slope(Vector3(x0, y0, z0), Vector3(x0, y0, z1), Vector3(cx, y1, z0), Vector3(cx, y1, z1), n1, col)
+			_slope(Vector3(x1, y0, z0), Vector3(x1, y0, z1), Vector3(cx, y1, z0), Vector3(cx, y1, z1), n2, col.darkened(0.08))
+			_ridge(Vector3(cx, y1, z0), Vector3(cx, y1, z1), col)
 
 
 ## Toit à quatre pans : faîtage le long du plus grand côté.
@@ -102,6 +182,12 @@ func hip(cx: float, y0: float, cz: float, sx: float, sz: float, h: float, col: C
 		quad(Vector3(x0, y0, z1), Vector3(x1, y0, z1), b, a, Vector3(0, sz / 2.0, h).normalized(), col.darkened(0.1))
 		tri(Vector3(x0, y0, z0), Vector3(x0, y0, z1), a, Vector3(-h, sz / 2.0, 0).normalized(), col.darkened(0.05))
 		tri(Vector3(x1, y0, z0), Vector3(x1, y0, z1), b, Vector3(h, sz / 2.0, 0).normalized(), col.darkened(0.05))
+		if _fine():
+			_slope(Vector3(x0, y0, z0), Vector3(x1, y0, z0), a, b, Vector3(0, sz / 2.0, -h).normalized(), col)
+			_slope(Vector3(x0, y0, z1), Vector3(x1, y0, z1), a, b, Vector3(0, sz / 2.0, h).normalized(), col.darkened(0.1))
+			_slope(Vector3(x0, y0, z0), Vector3(x0, y0, z1), a, a, Vector3(-h, sz / 2.0, 0).normalized(), col.darkened(0.05))
+			_slope(Vector3(x1, y0, z0), Vector3(x1, y0, z1), b, b, Vector3(h, sz / 2.0, 0).normalized(), col.darkened(0.05))
+			_ridge(a, b, col)
 	else:
 		var r := (sz - sx) / 2.0
 		var a := Vector3(cx, y1, cz - r)
@@ -110,6 +196,78 @@ func hip(cx: float, y0: float, cz: float, sx: float, sz: float, h: float, col: C
 		quad(Vector3(x1, y0, z0), Vector3(x1, y0, z1), b, a, Vector3(h, sx / 2.0, 0).normalized(), col.darkened(0.1))
 		tri(Vector3(x0, y0, z0), Vector3(x1, y0, z0), a, Vector3(0, sx / 2.0, -h).normalized(), col)
 		tri(Vector3(x0, y0, z1), Vector3(x1, y0, z1), b, Vector3(0, sx / 2.0, h).normalized(), col.darkened(0.1))
+		if _fine():
+			_slope(Vector3(x0, y0, z0), Vector3(x0, y0, z1), a, b, Vector3(-h, sx / 2.0, 0).normalized(), col.darkened(0.05))
+			_slope(Vector3(x1, y0, z0), Vector3(x1, y0, z1), a, b, Vector3(h, sx / 2.0, 0).normalized(), col.darkened(0.1))
+			_slope(Vector3(x0, y0, z0), Vector3(x1, y0, z0), a, a, Vector3(0, sx / 2.0, -h).normalized(), col)
+			_slope(Vector3(x0, y0, z1), Vector3(x1, y0, z1), b, b, Vector3(0, sx / 2.0, h).normalized(), col.darkened(0.1))
+			_ridge(a, b, col)
+
+
+## Pan de toit en rangs (finitions) : du bord bas p0-p1 vers le haut q0-q1
+## (q0 = q1 pour un pan triangulaire). Chaque rang est légèrement soulevé à son
+## bord bas, avec une tranche visible : tuiles ou bottes de chaume, chaque
+## morceau d'une teinte un peu différente. Posé par-dessus le pan lisse.
+func _slope(p0: Vector3, p1: Vector3, q0: Vector3, q1: Vector3, n: Vector3, col: Color) -> void:
+	var chaume := roof_style == "chaume"
+	var slope_len := ((p0 + p1) * 0.5).distance_to((q0 + q1) * 0.5)
+	if slope_len < 0.3:
+		return
+	var rows := clampi(int(round(slope_len / (0.75 if chaume else 0.45))), 1, 22)
+	var lip := 0.2 if chaume else 0.06
+	var down := ((p0 + p1) * 0.5 - (q0 + q1) * 0.5).normalized()
+	var seg_len := 1.4 if chaume else 1.3
+	for r in rows:
+		var t0 := float(r) / rows
+		var t1 := float(r + 1) / rows
+		var a0 := p0.lerp(q0, t0)
+		var a1 := p1.lerp(q1, t0)
+		var b0 := p0.lerp(q0, t1)
+		var b1 := p1.lerp(q1, t1)
+		var segs := clampi(int(ceil(a0.distance_to(a1) / seg_len)), 1, 18)
+		var l := lip * (1.6 if r == 0 else 1.0)
+		for sg in segs:
+			var u0 := float(sg) / segs
+			var u1 := float(sg + 1) / segs
+			var la := a0.lerp(a1, u0)
+			var lb := a0.lerp(a1, u1)
+			var ua := b0.lerp(b1, u0)
+			var ub := b0.lerp(b1, u1)
+			if chaume:
+				# Bord bas ondulé, continu d'un morceau à l'autre.
+				la += down * _hash(la * 3.1) * 0.14
+				lb += down * _hash(lb * 3.1) * 0.14
+			var h := _hash((la + ub) * 2.3)
+			var c := _scale(col, (0.94 + h * 0.12) if chaume else (0.95 + h * 0.1))
+			if chaume and r < 2:
+				c = c.lerp(Color("6f7b3a"), _hash(la * 1.3) * 0.15)
+			elif not chaume and h > 0.95:
+				c = c.darkened(0.1)
+			var oa := la + n * l
+			var ob := lb + n * l
+			var tn := (ob - oa).cross(ua - oa)
+			if tn.length_squared() < 1e-8:
+				tn = n
+			tn = tn.normalized()
+			if tn.dot(n) < 0.0:
+				tn = -tn
+			quad(oa, ob, ub, ua, tn, c)
+			quad(la, lb, ob, oa, (down + n * 0.3).normalized(), c.darkened(0.28))
+
+
+## Faîtière (finitions) le long d'une arête horizontale du toit.
+func _ridge(a: Vector3, b: Vector3, col: Color) -> void:
+	if a.distance_to(b) < 0.05:
+		return
+	var t := 0.5 if roof_style == "chaume" else 0.26
+	var c := col.darkened(0.22)
+	var m := (a + b) * 0.5
+	var along_x := absf(b.x - a.x) > absf(b.z - a.z)
+	var length := a.distance_to(b) + t
+	if along_x:
+		box(m.x, m.y - t * 0.45, m.z, length, t, t, c)
+	else:
+		box(m.x, m.y - t * 0.45, m.z, t, t, length, c)
 
 
 ## Solide de révolution : profil de points (rayon, hauteur) du bas vers le haut.
@@ -164,6 +322,11 @@ func pyramid(cx: float, y0: float, cz: float, sx: float, sz: float, h: float, co
 	tri(b, c, top, Vector3(h, sx / 2.0, 0).normalized(), col.darkened(0.05))
 	tri(c, d, top, Vector3(0, sz / 2.0, h).normalized(), col.darkened(0.1))
 	tri(d, a, top, Vector3(-h, sx / 2.0, 0).normalized(), col.darkened(0.05))
+	if _fine():
+		_slope(a, b, top, top, Vector3(0, sz / 2.0, -h).normalized(), col)
+		_slope(b, c, top, top, Vector3(h, sx / 2.0, 0).normalized(), col.darkened(0.05))
+		_slope(c, d, top, top, Vector3(0, sz / 2.0, h).normalized(), col.darkened(0.1))
+		_slope(d, a, top, top, Vector3(-h, sx / 2.0, 0).normalized(), col.darkened(0.05))
 
 
 ## Cylindre (ou cône si r1 = 0) à facettes, base centrée en (cx, y0, cz).

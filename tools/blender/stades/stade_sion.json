@@ -1,0 +1,57 @@
+{
+  "nom": "stade_sion",
+  "titre": "Stade de Tourbillon, Sion — FC Sion",
+  "capacite": 14850,
+  "sources": [
+    "Wikipédia (fr et en), consulté le 12 novembre 2026",
+    "photo libre de Wikimedia Commons (Stade_de_Tourbillon.JPG)"
+  ],
+  "notes": "Stade de 1968 couvert en 1989 : quatre tribunes séparées, angles ouverts, toits clairs.",
+  "famille": "separees",
+  "degagement": 6,
+  "tribunes": {
+    "S": {
+      "profondeur": 22,
+      "hauteur": 13,
+      "toit": 17,
+      "sieges": [
+        "#d0202e",
+        "#f2f2f2",
+        "#d0202e"
+      ],
+      "facade": "#c9c4ba",
+      "couleur_toit": "#e9e9e9"
+    },
+    "N": {
+      "profondeur": 16,
+      "hauteur": 9,
+      "toit": 12.5,
+      "sieges": [
+        "#d0202e"
+      ],
+      "couleur_toit": "#e9e9e9"
+    },
+    "O": {
+      "profondeur": 14,
+      "hauteur": 7,
+      "toit": 10,
+      "longueur": 60,
+      "sieges": [
+        "#f2f2f2",
+        "#d0202e"
+      ],
+      "couleur_toit": "#e9e9e9"
+    },
+    "E": {
+      "profondeur": 14,
+      "hauteur": 7,
+      "toit": 10,
+      "longueur": 60,
+      "sieges": [
+        "#d0202e",
+        "#f2f2f2"
+      ],
+      "couleur_toit": "#e9e9e9"
+    }
+  }
+}

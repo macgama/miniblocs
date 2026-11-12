@@ -290,14 +290,17 @@ class Batisseur:
         for u, s in ((u0, -1), (u1, 1)):
             self.face_orientee([p(u, z0, 0), p(u, z0, w1), p(u, z1, w1), p(u, z1, 0)], couleur, (s * ux, s * uy, 0))
 
-    def cadre_creux(self, cx, cy, normale, uc, zc, largeur, hauteur, bord, saillie, couleur):
+    def cadre_creux(self, cx, cy, normale, uc, zc, largeur, hauteur, bord, saillie, couleur, sans_bas=False):
         """Encadrement en saillie autour d'une ouverture : la vitre (au nu du
         mur) paraît en creux, avec des embrasures qui prennent l'ombre."""
         p, (ux, uy), (nx, ny) = self.repere(cx, cy, normale)
         l, h, f, s = largeur / 2, hauteur / 2, bord, saillie
-        ext = [(uc - l - f, zc - h - f), (uc + l + f, zc - h - f), (uc + l + f, zc + h + f), (uc - l - f, zc + h + f)]
+        fb = 0.0 if sans_bas else f  # porte : pas de traverse basse (seuil au sol)
+        ext = [(uc - l - f, zc - h - fb), (uc + l + f, zc - h - fb), (uc + l + f, zc + h + f), (uc - l - f, zc + h + f)]
         inte = [(uc - l, zc - h), (uc + l, zc - h), (uc + l, zc + h), (uc - l, zc + h)]
         for k in range(4):
+            if sans_bas and k == 0:
+                continue
             (ea, eb), (ia, ib) = (ext[k], ext[(k + 1) % 4]), (inte[k], inte[(k + 1) % 4])
             self.face_orientee([p(*ea, s), p(*eb, s), p(*ib, s), p(*ia, s)], couleur, (nx, ny, 0))
             # Normale du côté k dans le plan du mur (bas, droite, haut, gauche).
@@ -328,14 +331,28 @@ class Batisseur:
                 self.boite_mur(cx, cy, normale, min(u_int, u_ext), max(u_int, u_ext),
                                zc - h - 0.05, zc + h + 0.05, 0.06, d["volets"], dessous=False)
 
+    def vitrage_relief(self, centre, normale, largeur, hauteur, cols, lignes, appui="pierre"):
+        """Fenêtre à petits carreaux en creux : vitrage au nu du mur,
+        encadrement en saillie et appui (même centre que vitrage())."""
+        cx, cy, cz = centre
+        p, _, (nx, ny) = self.repere(cx, cy, normale)
+        l, h = largeur / 2, hauteur / 2
+        self.quad_motif([p(-l, cz - h, 0.01), p(l, cz - h, 0.01), p(l, cz + h, 0.01), p(-l, cz + h, 0.01)],
+                        MAT_CARREAUX, cols, lignes)
+        self.cadre_creux(cx, cy, normale, 0, cz, largeur, hauteur, 0.08, 0.1, "cadre")
+        if appui:
+            self.boite_mur(cx, cy, normale, -l - 0.12, l + 0.12, cz - h - 0.14, cz - h - 0.06, 0.16, appui)
+
     def porte_relief(self, cx, cy, normale, uc, z0, largeur, hauteur, couleur, cadre):
         p, _, (nx, ny) = self.repere(cx, cy, normale)
         l = largeur / 2
         self.face_orientee([p(uc - l, z0, 0.01), p(uc + l, z0, 0.01),
                             p(uc + l, z0 + hauteur, 0.01), p(uc - l, z0 + hauteur, 0.01)], couleur, (nx, ny, 0))
-        self.cadre_creux(cx, cy, normale, uc, z0 + hauteur / 2, largeur, hauteur, 0.12, 0.15, cadre)
+        self.cadre_creux(cx, cy, normale, uc, z0 + hauteur / 2, largeur, hauteur, 0.12, 0.15, cadre, sans_bas=True)
         # Marche devant la porte.
-        self.boite_mur(cx, cy, normale, uc - l - 0.3, uc + l + 0.3, z0 - 0.17, z0, 0.45, "pierre", dessous=False)
+        # (Porte au ras du sol : la marche reste posée sur le sol.)
+        zb, zh = (z0 - 0.17, z0) if z0 >= 0.17 else (0.0, 0.12)
+        self.boite_mur(cx, cy, normale, uc - l - 0.3, uc + l + 0.3, zb, zh, 0.45, "pierre", dessous=False)
 
 
 def _pan_en_rangs(b, x0, x1, yb, zb, faite, couleur, rangs, saut=0.07):
@@ -615,6 +632,18 @@ def exporte(batisseur, nom, opts):
 
     out = os.path.abspath(opts["out"])
     os.makedirs(os.path.dirname(out), exist_ok=True)
+    # Carte de la palette, à côté du .glb : nom de couleur -> case (index,
+    # couleur d'origine). Godot s'en sert pour recolorer un modèle sans le
+    # refaire (scripts/modeles/couleurs_modele.gd).
+    pal = batisseur.palette
+    carte = {"taille": PALETTE_TAILLE, "pixels_par_case": PIXELS_PAR_CASE, "couleurs": {}}
+    for cle, idx in pal.cases.items():
+        r, g, bl = pal.couleurs[idx]
+        carte["couleurs"][cle] = {"index": idx, "origine": "#%02x%02x%02x" % (
+            round(r * 255), round(g * 255), round(bl * 255))}
+    with open(os.path.splitext(out)[0] + ".palette.json", "w", encoding="utf-8", newline="\n") as f:
+        json.dump(carte, f, ensure_ascii=False, indent=1)
+        f.write("\n")
     bpy.ops.object.select_all(action="DESELECT")
     obj.select_set(True)
     bpy.ops.export_scene.gltf(

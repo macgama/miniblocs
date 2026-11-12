@@ -1,0 +1,43 @@
+{
+  "nom": "stade_geneve",
+  "titre": "Stade de Genève (la Praille), Lancy — Servette FC",
+  "capacite": 30084,
+  "sources": [
+    "Wikipédia (fr et en), consulté le 12 novembre 2026",
+    "photo libre de Wikimedia Commons (Stade-de-Genève-aerial.jpg)"
+  ],
+  "notes": "Bol fermé à un grand niveau, angles arrondis, toit clair.",
+  "famille": "anneau",
+  "anneau": {
+    "demi_longueur": 58,
+    "demi_largeur": 40,
+    "rayon_angle": 16
+  },
+  "tribunes": {
+    "profondeur": 34,
+    "hauteur": 24,
+    "niveaux": 1,
+    "sieges": [
+      "#7a1f2b",
+      "#8c8f94"
+    ],
+    "groupe": 3,
+    "soubassement": 5
+  },
+  "toit": {
+    "hauteur": 28,
+    "dessus": "metal",
+    "couleur": "#e6e9ec",
+    "sous_toit": "#f0f0f0",
+    "debut": 3,
+    "debord": 1.5
+  },
+  "facade": {
+    "type": "bandes",
+    "couleurs": [
+      "#f2f2f0",
+      "#c9ced3"
+    ],
+    "nb_bandes": 2
+  }
+}

@@ -26,6 +26,8 @@ var habitants_panel: HabitantsPanel
 var production: Production
 var production_panel: ProductionPanel
 var resource_overlay: RessourcesOverlay
+## Chantiers, usure des bâtiments, abords et fumée des maisons habitées.
+var vie_batiments: BatimentsVie
 var _hover := Vector2i.ZERO
 var _hover_valid := false
 
@@ -64,6 +66,7 @@ func _ready() -> void:
 	_setup_transit()
 	_setup_population()
 	_setup_production()
+	_setup_vie()
 	hud.traffic_toggled.connect(func(on: bool) -> void: transport.traffic.set_enabled(on))
 	hud.traffic_filter_changed.connect(func(era: String, region: String) -> void:
 		transport.traffic.set_filters(era, region)
@@ -366,6 +369,14 @@ func _setup_population() -> void:
 	hud.habitants_requested.connect(func() -> void: habitants_panel.toggle())
 
 
+## Vie des bâtiments : chantiers, usure, abords des maisons habitées, fumée.
+func _setup_vie() -> void:
+	vie_batiments = BatimentsVie.new()
+	vie_batiments.name = "VieBatiments"
+	add_child(vie_batiments)
+	vie_batiments.setup(buildings, ambiance, population)
+
+
 ## Production : sites, stocks, carte des ressources sur le terrain et panneau (P).
 func _setup_production() -> void:
 	production = Production.new()
@@ -505,6 +516,7 @@ func _setup_plans() -> void:
 			plans.set_tool(PlanEditor.Tool.OPENING))
 	build_panel.plan_level_step.connect(func(d: int) -> void: plans.step_level(d))
 	build_panel.plan_cutaway_toggled.connect(func(on: bool) -> void: plans.set_cutaway(on))
+	build_panel.plan_wall_levels.connect(func(n: int) -> void: plans.set_wall_levels(n))
 	build_panel.plan_copy_level.connect(func(n: int) -> void:
 		if plans.active_id() == "":
 			hud.show_message("Vise d'abord un bâtiment avec un outil Murs et étages.")

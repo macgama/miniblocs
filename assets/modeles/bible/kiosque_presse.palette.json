@@ -1,0 +1,26 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "vert": {
+   "index": 0,
+   "origine": "#3f8f5a"
+  },
+  "or": {
+   "index": 1,
+   "origine": "#d7b04a"
+  },
+  "vitre": {
+   "index": 2,
+   "origine": "#33495e"
+  },
+  "tole_verte": {
+   "index": 3,
+   "origine": "#4f6b52"
+  },
+  "jaune": {
+   "index": 4,
+   "origine": "#f2c14e"
+  }
+ }
+}

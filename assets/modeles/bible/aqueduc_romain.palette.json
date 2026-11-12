@@ -1,0 +1,22 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "eau": {
+   "index": 0,
+   "origine": "#3fa7d6"
+  },
+  "pierre_claire": {
+   "index": 1,
+   "origine": "#d8d0bf"
+  },
+  "pierre": {
+   "index": 2,
+   "origine": "#b9b0a0"
+  },
+  "ombre": {
+   "index": 3,
+   "origine": "#c9bdab"
+  }
+ }
+}

@@ -1,0 +1,1794 @@
+{
+ "famille": "monde",
+ "batiments": [
+  {
+   "id": "mosquee_banco",
+   "name": "Grande mosquée de terre",
+   "cat": "services",
+   "cost": 4800000,
+   "desc": "Mosquée de banco aux contreforts pointus et poutres de rônier saillantes.",
+   "source": "Grande mosquée de Djenné (Mali)",
+   "region": "afrique",
+   "era": "traditionnel",
+   "emplois": 4,
+   "logements": 0,
+   "visiteurs": 3000,
+   "variantes": 1,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "agent_public",
+     2
+    ]
+   ],
+   "role": "culte",
+   "sans_vitres": true,
+   "glb": "res://assets/modeles/bible/mosquee_banco.glb",
+   "w": 46,
+   "d": 36,
+   "h": 23.0,
+   "tris": 830,
+   "palette": [
+    [
+     "terre",
+     "#b9825a"
+    ],
+    [
+     "ocre",
+     "#d39b5a"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ]
+   ]
+  },
+  {
+   "id": "kasbah",
+   "name": "Kasbah",
+   "cat": "logement",
+   "cost": 1800000,
+   "desc": "Forteresse familiale de pisé à quatre tours d'angle crénelées.",
+   "source": "Ksar d'Aït-Ben-Haddou (Maroc)",
+   "region": "moyen_orient",
+   "era": "traditionnel",
+   "emplois": 0,
+   "logements": 4,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "maison",
+   "zone": "R",
+   "sans_vitres": true,
+   "glb": "res://assets/modeles/bible/kasbah.glb",
+   "w": 23,
+   "d": 23,
+   "h": 15.7,
+   "tris": 626,
+   "palette": [
+    [
+     "terre",
+     "#b9825a"
+    ],
+    [
+     "ocre",
+     "#d39b5a"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ]
+   ]
+  },
+  {
+   "id": "case_obus",
+   "name": "Case obus",
+   "cat": "logement",
+   "cost": 120000,
+   "desc": "Case de terre en forme d'ogive, striée de reliefs pour grimper au sommet.",
+   "source": "Cases obus des Musgum (Cameroun)",
+   "region": "afrique",
+   "era": "traditionnel",
+   "emplois": 0,
+   "logements": 1,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "maison",
+   "zone": "R",
+   "sans_vitres": true,
+   "glb": "res://assets/modeles/bible/case_obus.glb",
+   "w": 22,
+   "d": 15,
+   "h": 8.0,
+   "tris": 452,
+   "palette": [
+    [
+     "terre",
+     "#b9825a"
+    ],
+    [
+     "ocre",
+     "#d39b5a"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ]
+   ]
+  },
+  {
+   "id": "maison_swahilie",
+   "name": "Maison swahilie",
+   "cat": "logement",
+   "cost": 520000,
+   "desc": "Maison de corail blanchi à terrasse, porte sculptée et barza en façade.",
+   "source": "Vieille ville de Lamu (Kenya) et Stone Town (Zanzibar)",
+   "region": "afrique",
+   "era": "traditionnel",
+   "emplois": 0,
+   "logements": 2,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "maison",
+   "zone": "R",
+   "glb": "res://assets/modeles/bible/maison_swahilie.glb",
+   "w": 15,
+   "d": 16,
+   "h": 11.1,
+   "tris": 266,
+   "palette": [
+    [
+     "enduit_blanc",
+     "#f4f2ec"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "chaume",
+     "#c9a861"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ]
+   ]
+  },
+  {
+   "id": "grenier_dogon",
+   "name": "Village de greniers dogon",
+   "cat": "production",
+   "cost": 160000,
+   "desc": "Greniers carrés de terre coiffés de chapeaux de paille, au pied de la falaise.",
+   "source": "Greniers des villages dogon (falaise de Bandiagara, Mali)",
+   "region": "afrique",
+   "era": "traditionnel",
+   "emplois": 4,
+   "logements": 0,
+   "visiteurs": 0,
+   "variantes": 1,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "agriculteur",
+     3
+    ]
+   ],
+   "role": "grenier",
+   "sans_vitres": true,
+   "glb": "res://assets/modeles/bible/grenier_dogon.glb",
+   "w": 20,
+   "d": 16,
+   "h": 5.2,
+   "tris": 486,
+   "palette": [
+    [
+     "terre",
+     "#b9825a"
+    ],
+    [
+     "pierre_grise",
+     "#9c988f"
+    ],
+    [
+     "chaume",
+     "#c9a861"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ]
+   ]
+  },
+  {
+   "id": "eglise_monolithe",
+   "name": "Église monolithe",
+   "cat": "services",
+   "cost": 2600000,
+   "desc": "Église en croix grecque taillée dans la roche, au fond d'une fosse.",
+   "source": "Bete Giyorgis, Lalibela (Éthiopie)",
+   "region": "afrique",
+   "era": "antique",
+   "emplois": 2,
+   "logements": 0,
+   "visiteurs": 600,
+   "variantes": 1,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "agent_public",
+     1
+    ]
+   ],
+   "role": "culte",
+   "sans_vitres": true,
+   "glb": "res://assets/modeles/bible/eglise_monolithe.glb",
+   "w": 32,
+   "d": 32,
+   "h": 8.8,
+   "tris": 226,
+   "palette": [
+    [
+     "terre",
+     "#b9825a"
+    ],
+    [
+     "terre_battue",
+     "#c46a3b"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ]
+   ]
+  },
+  {
+   "id": "marche_africain",
+   "name": "Marché couvert africain",
+   "cat": "commerce",
+   "cost": 900000,
+   "desc": "Étals sous toits de tôle ondulée, parasols et ballots colorés.",
+   "source": "Marché de Kejetia (Kumasi, Ghana)",
+   "region": "afrique",
+   "era": "moderne",
+   "emplois": 40,
+   "logements": 0,
+   "visiteurs": 2500,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "vendeur",
+     5
+    ],
+    [
+     "artisan",
+     1
+    ]
+   ],
+   "role": "marche",
+   "zone": "C",
+   "sans_vitres": true,
+   "glb": "res://assets/modeles/bible/marche_africain.glb",
+   "w": 38,
+   "d": 28,
+   "h": 3.5,
+   "tris": 874,
+   "palette": [
+    [
+     "terre_battue",
+     "#c46a3b"
+    ],
+    [
+     "bois_gris",
+     "#8b8478"
+    ],
+    [
+     "tole",
+     "#9aa0a6"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "bois_clair",
+     "#c39a6b"
+    ],
+    [
+     "rouge",
+     "#c0392b"
+    ],
+    [
+     "tole_rouge",
+     "#8f3a33"
+    ],
+    [
+     "orange",
+     "#e4772e"
+    ],
+    [
+     "tole_verte",
+     "#4f6b52"
+    ],
+    [
+     "jaune",
+     "#f2c14e"
+    ],
+    [
+     "vert",
+     "#3f8f5a"
+    ],
+    [
+     "bleu",
+     "#2a6fdb"
+    ]
+   ]
+  },
+  {
+   "id": "caravanserail",
+   "name": "Caravansérail",
+   "cat": "commerce",
+   "cost": 3800000,
+   "desc": "Hôtellerie fortifiée de pierre autour d'une cour à arcades.",
+   "source": "Caravansérails de la route de la soie (Zein-o-din, Iran)",
+   "region": "moyen_orient",
+   "era": "traditionnel",
+   "emplois": 18,
+   "logements": 0,
+   "visiteurs": 200,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "serveur",
+     2
+    ],
+    [
+     "cuisinier",
+     1
+    ],
+    [
+     "eleveur",
+     1
+    ]
+   ],
+   "role": "hotel",
+   "zone": "C",
+   "sans_vitres": true,
+   "glb": "res://assets/modeles/bible/caravanserail.glb",
+   "w": 47,
+   "d": 47,
+   "h": 11.0,
+   "tris": 610,
+   "palette": [
+    [
+     "brique_claire",
+     "#c87f5d"
+    ],
+    [
+     "terre",
+     "#b9825a"
+    ],
+    [
+     "sable",
+     "#e3d3a8"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "eau",
+     "#3fa7d6"
+    ],
+    [
+     "ombre",
+     "#c9bdab"
+    ],
+    [
+     "bleu",
+     "#2a6fdb"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ]
+   ]
+  },
+  {
+   "id": "maison_badgir",
+   "name": "Maison à tours du vent",
+   "cat": "logement",
+   "cost": 760000,
+   "desc": "Maison de terre à cour, coiffée de deux badgirs qui rafraîchissent les pièces.",
+   "source": "Maisons de Yazd (Iran) et d'Al Bastakiya (Dubaï)",
+   "region": "moyen_orient",
+   "era": "traditionnel",
+   "emplois": 0,
+   "logements": 1,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "maison",
+   "zone": "R",
+   "sans_vitres": true,
+   "glb": "res://assets/modeles/bible/maison_badgir.glb",
+   "w": 18,
+   "d": 17,
+   "h": 13.6,
+   "tris": 152,
+   "palette": [
+    [
+     "ocre",
+     "#d39b5a"
+    ],
+    [
+     "terre",
+     "#b9825a"
+    ],
+    [
+     "ombre",
+     "#c9bdab"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ]
+   ]
+  },
+  {
+   "id": "maison_tour_yemen",
+   "name": "Maison-tour yéménite",
+   "cat": "logement",
+   "cost": 980000,
+   "desc": "Maison-tour de six niveaux en brique crue, frises blanches et vitraux qamariya.",
+   "source": "Vieille ville de Sanaa et Shibam (Yémen)",
+   "region": "moyen_orient",
+   "era": "traditionnel",
+   "emplois": 0,
+   "logements": 3,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "maison",
+   "zone": "R",
+   "glb": "res://assets/modeles/bible/maison_tour_yemen.glb",
+   "w": 12,
+   "d": 12,
+   "h": 20.7,
+   "tris": 998,
+   "palette": [
+    [
+     "pierre_grise",
+     "#9c988f"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "brique_sombre",
+     "#7e3b2c"
+    ],
+    [
+     "enduit_blanc",
+     "#f4f2ec"
+    ]
+   ]
+  },
+  {
+   "id": "tulou",
+   "name": "Tulou",
+   "cat": "logement",
+   "cost": 3500000,
+   "desc": "Grande maison ronde de terre où vit tout un clan, cour centrale et temple.",
+   "source": "Tulous Hakka du Fujian (Tianluokeng)",
+   "region": "asie_est",
+   "era": "traditionnel",
+   "emplois": 0,
+   "logements": 24,
+   "visiteurs": 0,
+   "variantes": 2,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "maison",
+   "zone": "R",
+   "sans_vitres": true,
+   "glb": "res://assets/modeles/bible/tulou.glb",
+   "w": 45,
+   "d": 45,
+   "h": 14.0,
+   "tris": 590,
+   "palette": [
+    [
+     "terre",
+     "#b9825a"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "ardoise",
+     "#5b5f66"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "pierre_grise",
+     "#9c988f"
+    ],
+    [
+     "bois_rouge",
+     "#8e3b2e"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ]
+   ]
+  },
+  {
+   "id": "hanok",
+   "name": "Hanok",
+   "cat": "logement",
+   "cost": 690000,
+   "desc": "Maison coréenne de bois sur socle de pierre, toit de tuiles aux bords relevés.",
+   "source": "Hanoks de Bukchon (Séoul)",
+   "region": "asie_est",
+   "era": "traditionnel",
+   "emplois": 0,
+   "logements": 1,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "maison",
+   "zone": "R",
+   "glb": "res://assets/modeles/bible/hanok.glb",
+   "w": 22,
+   "d": 13,
+   "h": 7.0,
+   "tris": 234,
+   "palette": [
+    [
+     "pierre_grise",
+     "#9c988f"
+    ],
+    [
+     "enduit_blanc",
+     "#f4f2ec"
+    ],
+    [
+     "bois_rouge",
+     "#8e3b2e"
+    ],
+    [
+     "verre_clair",
+     "#8fb8d8"
+    ],
+    [
+     "ardoise",
+     "#5b5f66"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ]
+   ]
+  },
+  {
+   "id": "chateau_himeji",
+   "name": "Château japonais",
+   "cat": "loisirs",
+   "cost": 22000000,
+   "desc": "Donjon blanc à cinq toits recourbés sur une base de pierre talutée.",
+   "source": "Château de Himeji (Japon)",
+   "region": "asie_est",
+   "era": "traditionnel",
+   "emplois": 20,
+   "logements": 0,
+   "visiteurs": 2500,
+   "variantes": 1,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "agent_public",
+     3
+    ],
+    [
+     "vendeur",
+     1
+    ]
+   ],
+   "role": "monument",
+   "glb": "res://assets/modeles/bible/chateau_himeji.glb",
+   "w": 36,
+   "d": 30,
+   "h": 38.4,
+   "tris": 436,
+   "palette": [
+    [
+     "pierre_grise",
+     "#9c988f"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "enduit_blanc",
+     "#f4f2ec"
+    ],
+    [
+     "noir",
+     "#2a2b2e"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "ardoise",
+     "#5b5f66"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "or",
+     "#d7b04a"
+    ]
+   ]
+  },
+  {
+   "id": "temple_hindou",
+   "name": "Temple hindou",
+   "cat": "services",
+   "cost": 3400000,
+   "desc": "Temple de grès à tour-sanctuaire shikhara et mandapa à colonnes.",
+   "source": "Temples de Khajuraho (Inde)",
+   "region": "asie_sud",
+   "era": "antique",
+   "emplois": 3,
+   "logements": 0,
+   "visiteurs": 900,
+   "variantes": 1,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "agent_public",
+     2
+    ]
+   ],
+   "role": "culte",
+   "sans_vitres": true,
+   "glb": "res://assets/modeles/bible/temple_hindou.glb",
+   "w": 28,
+   "d": 38,
+   "h": 32.4,
+   "tris": 238,
+   "palette": [
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "ocre",
+     "#d39b5a"
+    ],
+    [
+     "or",
+     "#d7b04a"
+    ],
+    [
+     "ombre",
+     "#c9bdab"
+    ]
+   ]
+  },
+  {
+   "id": "stupa_boudha",
+   "name": "Stupa",
+   "cat": "services",
+   "cost": 2000000,
+   "desc": "Dôme blanc sur terrasses, flèche dorée et yeux de Bouddha.",
+   "source": "Stupa de Boudhanath (Katmandou, Népal)",
+   "region": "asie_sud",
+   "era": "antique",
+   "emplois": 2,
+   "logements": 0,
+   "visiteurs": 1500,
+   "variantes": 1,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "agent_public",
+     1
+    ]
+   ],
+   "role": "culte",
+   "sans_vitres": true,
+   "glb": "res://assets/modeles/bible/stupa_boudha.glb",
+   "w": 42,
+   "d": 42,
+   "h": 25.8,
+   "tris": 304,
+   "palette": [
+    [
+     "enduit_blanc",
+     "#f4f2ec"
+    ],
+    [
+     "or",
+     "#d7b04a"
+    ],
+    [
+     "noir",
+     "#2a2b2e"
+    ],
+    [
+     "rouge",
+     "#c0392b"
+    ],
+    [
+     "jaune",
+     "#f2c14e"
+    ],
+    [
+     "vert",
+     "#3f8f5a"
+    ],
+    [
+     "bleu",
+     "#2a6fdb"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ]
+   ]
+  },
+  {
+   "id": "haveli",
+   "name": "Haveli",
+   "cat": "logement",
+   "cost": 1400000,
+   "desc": "Demeure de grès à balcons-jharokhas en encorbellement et cour intérieure.",
+   "source": "Havelis de Jaisalmer (Rajasthan)",
+   "region": "asie_sud",
+   "era": "traditionnel",
+   "emplois": 0,
+   "logements": 3,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "villa",
+   "zone": "R",
+   "glb": "res://assets/modeles/bible/haveli.glb",
+   "w": 19,
+   "d": 18,
+   "h": 16.6,
+   "tris": 1180,
+   "palette": [
+    [
+     "ocre",
+     "#d39b5a"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ]
+   ]
+  },
+  {
+   "id": "wat_thai",
+   "name": "Temple thaï",
+   "cat": "services",
+   "cost": 3000000,
+   "desc": "Wat à toits superposés rouge et vert, pignons dorés et chedi blanc.",
+   "source": "Wat Phra Singh (Chiang Mai, Thaïlande)",
+   "region": "asie_sud",
+   "era": "traditionnel",
+   "emplois": 3,
+   "logements": 0,
+   "visiteurs": 1000,
+   "variantes": 1,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "agent_public",
+     2
+    ]
+   ],
+   "role": "culte",
+   "glb": "res://assets/modeles/bible/wat_thai.glb",
+   "w": 21,
+   "d": 42,
+   "h": 16.6,
+   "tris": 270,
+   "palette": [
+    [
+     "enduit_blanc",
+     "#f4f2ec"
+    ],
+    [
+     "or",
+     "#d7b04a"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "bois_rouge",
+     "#8e3b2e"
+    ],
+    [
+     "pierre",
+     "#b9b0a0"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "vert",
+     "#3f8f5a"
+    ]
+   ]
+  },
+  {
+   "id": "longhouse_borneo",
+   "name": "Maison longue",
+   "cat": "logement",
+   "cost": 980000,
+   "desc": "Maison longue sur pilotis de bois de fer, véranda commune et toit de feuilles.",
+   "source": "Rumah panjang des Iban (Sarawak, Bornéo)",
+   "region": "asie_sud",
+   "era": "traditionnel",
+   "emplois": 0,
+   "logements": 10,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "maison",
+   "zone": "R",
+   "sans_vitres": true,
+   "glb": "res://assets/modeles/bible/longhouse_borneo.glb",
+   "w": 48,
+   "d": 15,
+   "h": 9.8,
+   "tris": 436,
+   "palette": [
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "bois",
+     "#8a6142"
+    ],
+    [
+     "bois_clair",
+     "#c39a6b"
+    ],
+    [
+     "pierre",
+     "#b9b0a0"
+    ],
+    [
+     "chaume",
+     "#c9a861"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ]
+   ]
+  },
+  {
+   "id": "tongkonan",
+   "name": "Tongkonan",
+   "cat": "logement",
+   "cost": 640000,
+   "desc": "Maison toraja sur pilotis au toit en forme de proue, façade sculptée rouge et noire.",
+   "source": "Tongkonan du pays toraja (Sulawesi, Indonésie)",
+   "region": "asie_sud",
+   "era": "traditionnel",
+   "emplois": 0,
+   "logements": 1,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "maison",
+   "zone": "R",
+   "sans_vitres": true,
+   "glb": "res://assets/modeles/bible/tongkonan.glb",
+   "w": 11,
+   "d": 21,
+   "h": 9.6,
+   "tris": 146,
+   "palette": [
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "bois_rouge",
+     "#8e3b2e"
+    ],
+    [
+     "jaune",
+     "#f2c14e"
+    ],
+    [
+     "noir",
+     "#2a2b2e"
+    ],
+    [
+     "bois_gris",
+     "#8b8478"
+    ],
+    [
+     "chaume",
+     "#c9a861"
+    ]
+   ]
+  },
+  {
+   "id": "mission_espagnole",
+   "name": "Mission espagnole",
+   "cat": "services",
+   "cost": 2800000,
+   "desc": "Église de mission en adobe blanc, clocher-mur à arcades et cloître.",
+   "source": "Missions de Californie (San Carlos Borromeo, Carmel)",
+   "region": "ameriques",
+   "era": "traditionnel",
+   "emplois": 2,
+   "logements": 0,
+   "visiteurs": 300,
+   "variantes": 2,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "agent_public",
+     1
+    ]
+   ],
+   "role": "culte",
+   "glb": "res://assets/modeles/bible/mission_espagnole.glb",
+   "w": 36,
+   "d": 34,
+   "h": 19.6,
+   "tris": 335,
+   "palette": [
+    [
+     "enduit_blanc",
+     "#f4f2ec"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "tuile",
+     "#c8553d"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "ombre",
+     "#c9bdab"
+    ]
+   ]
+  },
+  {
+   "id": "pyramide_maya",
+   "name": "Pyramide maya",
+   "cat": "loisirs",
+   "cost": 15000000,
+   "desc": "Pyramide à neuf degrés, escalier central et temple au sommet.",
+   "source": "El Castillo, Chichén Itzá (Mexique)",
+   "region": "ameriques",
+   "era": "antique",
+   "emplois": 10,
+   "logements": 0,
+   "visiteurs": 4000,
+   "variantes": 1,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "agent_public",
+     2
+    ],
+    [
+     "vendeur",
+     1
+    ]
+   ],
+   "role": "monument",
+   "sans_vitres": true,
+   "glb": "res://assets/modeles/bible/pyramide_maya.glb",
+   "w": 59,
+   "d": 59,
+   "h": 29.4,
+   "tris": 122,
+   "palette": [
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "pierre_grise",
+     "#9c988f"
+    ],
+    [
+     "ombre",
+     "#c9bdab"
+    ]
+   ]
+  },
+  {
+   "id": "saloon_western",
+   "name": "Saloon",
+   "cat": "commerce",
+   "cost": 420000,
+   "desc": "Saloon de bois à fausse façade, galerie couverte et balcon.",
+   "source": "Rues des villes minières de l'Ouest (Virginia City, Nevada)",
+   "region": "ameriques",
+   "era": "classique",
+   "emplois": 6,
+   "logements": 1,
+   "visiteurs": 250,
+   "variantes": 4,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "serveur",
+     3
+    ],
+    [
+     "cuisinier",
+     1
+    ]
+   ],
+   "role": "cafe",
+   "zone": "C",
+   "glb": "res://assets/modeles/bible/saloon_western.glb",
+   "w": 15,
+   "d": 22,
+   "h": 10.0,
+   "tris": 236,
+   "palette": [
+    [
+     "bois",
+     "#8a6142"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "tole",
+     "#9aa0a6"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "bois_rouge",
+     "#8e3b2e"
+    ],
+    [
+     "jaune",
+     "#f2c14e"
+    ],
+    [
+     "bois_gris",
+     "#8b8478"
+    ]
+   ]
+  },
+  {
+   "id": "eglise_chiloe",
+   "name": "Église en bois de Chiloé",
+   "cat": "services",
+   "cost": 1600000,
+   "desc": "Église de bois peinte aux tavaillons, portique et tour-clocher à trois étages.",
+   "source": "Églises de Chiloé (Chili), patrimoine mondial",
+   "region": "ameriques",
+   "era": "classique",
+   "emplois": 1,
+   "logements": 0,
+   "visiteurs": 250,
+   "variantes": 3,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "agent_public",
+     1
+    ]
+   ],
+   "role": "culte",
+   "glb": "res://assets/modeles/bible/eglise_chiloe.glb",
+   "w": 15,
+   "d": 35,
+   "h": 21.8,
+   "tris": 308,
+   "palette": [
+    [
+     "jaune",
+     "#f2c14e"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "bois_gris",
+     "#8b8478"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "bleu",
+     "#2a6fdb"
+    ]
+   ]
+  },
+  {
+   "id": "favela_colline",
+   "name": "Maisons de favela",
+   "cat": "logement",
+   "cost": 600000,
+   "desc": "Empilement de petites maisons de brique et d'enduit coloré à toits plats.",
+   "source": "Favelas de Rio de Janeiro (Santa Marta)",
+   "region": "ameriques",
+   "era": "contemporain",
+   "emplois": 0,
+   "logements": 8,
+   "visiteurs": 0,
+   "variantes": 3,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "maison",
+   "zone": "R",
+   "glb": "res://assets/modeles/bible/favela_colline.glb",
+   "w": 22,
+   "d": 18,
+   "h": 11.8,
+   "tris": 398,
+   "palette": [
+    [
+     "enduit_jaune",
+     "#ecd59a"
+    ],
+    [
+     "beton_sombre",
+     "#8c8a85"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "bleu",
+     "#2a6fdb"
+    ],
+    [
+     "brique_claire",
+     "#c87f5d"
+    ],
+    [
+     "enduit_bleu",
+     "#c9dbe3"
+    ],
+    [
+     "enduit_rose",
+     "#e9c2b0"
+    ],
+    [
+     "enduit_vert",
+     "#cfdcc0"
+    ],
+    [
+     "ocre",
+     "#d39b5a"
+    ],
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ]
+   ]
+  },
+  {
+   "id": "wharenui",
+   "name": "Wharenui",
+   "cat": "services",
+   "cost": 900000,
+   "desc": "Maison de réunion maorie à pignon sculpté et bargeboards rouges.",
+   "source": "Wharenui des marae (Te Papa, Waitangi, Nouvelle-Zélande)",
+   "region": "oceanie",
+   "era": "traditionnel",
+   "emplois": 1,
+   "logements": 0,
+   "visiteurs": 300,
+   "variantes": 1,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "agent_public",
+     1
+    ]
+   ],
+   "role": "salle_fetes",
+   "glb": "res://assets/modeles/bible/wharenui.glb",
+   "w": 14,
+   "d": 28,
+   "h": 8.6,
+   "tris": 128,
+   "palette": [
+    [
+     "bois_rouge",
+     "#8e3b2e"
+    ],
+    [
+     "noir",
+     "#2a2b2e"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "bois_gris",
+     "#8b8478"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ]
+   ]
+  },
+  {
+   "id": "fare_polynesien",
+   "name": "Faré sur pilotis",
+   "cat": "commerce",
+   "cost": 1200000,
+   "desc": "Bungalows de luxe sur l'eau, toits de pandanus et pontons de bois.",
+   "source": "Bungalows sur pilotis de Bora Bora",
+   "region": "oceanie",
+   "era": "contemporain",
+   "emplois": 12,
+   "logements": 0,
+   "visiteurs": 40,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "serveur",
+     2
+    ],
+    [
+     "cuisinier",
+     1
+    ],
+    [
+     "employe",
+     1
+    ]
+   ],
+   "role": "hotel",
+   "zone": "C",
+   "glb": "res://assets/modeles/bible/fare_polynesien.glb",
+   "w": 36,
+   "d": 30,
+   "h": 7.7,
+   "tris": 346,
+   "palette": [
+    [
+     "eau",
+     "#3fa7d6"
+    ],
+    [
+     "bois_gris",
+     "#8b8478"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "bois_clair",
+     "#c39a6b"
+    ],
+    [
+     "verre_clair",
+     "#8fb8d8"
+    ],
+    [
+     "chaume",
+     "#c9a861"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ]
+   ]
+  },
+  {
+   "id": "chateau_fort_enceinte",
+   "name": "Château fort",
+   "cat": "loisirs",
+   "cost": 18000000,
+   "desc": "Enceinte crénelée à tours rondes, donjon carré et pont-levis.",
+   "source": "Châteaux forts de Carcassonne et de Pierrefonds",
+   "region": "europe",
+   "era": "traditionnel",
+   "emplois": 14,
+   "logements": 0,
+   "visiteurs": 2000,
+   "variantes": 1,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "agent_public",
+     3
+    ],
+    [
+     "vendeur",
+     1
+    ]
+   ],
+   "role": "monument",
+   "sans_vitres": true,
+   "glb": "res://assets/modeles/bible/chateau_fort_enceinte.glb",
+   "w": 52,
+   "d": 47,
+   "h": 23.0,
+   "tris": 1032,
+   "palette": [
+    [
+     "eau",
+     "#3fa7d6"
+    ],
+    [
+     "pelouse",
+     "#6aa84f"
+    ],
+    [
+     "pierre_grise",
+     "#9c988f"
+    ],
+    [
+     "ardoise",
+     "#5b5f66"
+    ],
+    [
+     "pierre",
+     "#b9b0a0"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "ombre",
+     "#c9bdab"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ]
+   ]
+  },
+  {
+   "id": "abbaye_cistercienne",
+   "name": "Abbaye cistercienne",
+   "cat": "services",
+   "cost": 9000000,
+   "desc": "Église dépouillée, cloître et bâtiments conventuels de pierre blonde.",
+   "source": "Abbaye de Sénanque (Provence) et de Fontenay (Bourgogne)",
+   "region": "mediterranee",
+   "era": "traditionnel",
+   "emplois": 8,
+   "logements": 0,
+   "visiteurs": 800,
+   "variantes": 1,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "agent_public",
+     2
+    ],
+    [
+     "agriculteur",
+     1
+    ],
+    [
+     "vendeur",
+     1
+    ]
+   ],
+   "role": "culte",
+   "glb": "res://assets/modeles/bible/abbaye_cistercienne.glb",
+   "w": 37,
+   "d": 39,
+   "h": 21.1,
+   "tris": 632,
+   "palette": [
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "pierre",
+     "#b9b0a0"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "pierre_grise",
+     "#9c988f"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "pelouse",
+     "#6aa84f"
+    ],
+    [
+     "tuile",
+     "#c8553d"
+    ],
+    [
+     "ombre",
+     "#c9bdab"
+    ]
+   ]
+  },
+  {
+   "id": "temple_dorique",
+   "name": "Temple grec",
+   "cat": "loisirs",
+   "cost": 12000000,
+   "desc": "Temple dorique de marbre, péristyle de colonnes et fronton.",
+   "source": "Parthénon (Athènes) et temples de Paestum",
+   "region": "mediterranee",
+   "era": "antique",
+   "emplois": 6,
+   "logements": 0,
+   "visiteurs": 3000,
+   "variantes": 1,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "agent_public",
+     2
+    ],
+    [
+     "vendeur",
+     1
+    ]
+   ],
+   "role": "monument",
+   "sans_vitres": true,
+   "glb": "res://assets/modeles/bible/temple_dorique.glb",
+   "w": 23,
+   "d": 41,
+   "h": 15.4,
+   "tris": 820,
+   "palette": [
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "enduit_blanc",
+     "#f4f2ec"
+    ],
+    [
+     "tuile",
+     "#c8553d"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ]
+   ]
+  },
+  {
+   "id": "amphitheatre_romain",
+   "name": "Amphithéâtre romain",
+   "cat": "loisirs",
+   "cost": 40000000,
+   "desc": "Arène ovale à trois niveaux d'arcades de pierre, gradins et piste de sable.",
+   "source": "Arènes de Nîmes et Colisée de Rome",
+   "region": "mediterranee",
+   "era": "antique",
+   "emplois": 40,
+   "logements": 0,
+   "visiteurs": 20000,
+   "variantes": 1,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "agent_public",
+     3
+    ],
+    [
+     "comedien",
+     1
+    ],
+    [
+     "vendeur",
+     1
+    ]
+   ],
+   "role": "theatre",
+   "sans_vitres": true,
+   "glb": "res://assets/modeles/bible/amphitheatre_romain.glb",
+   "w": 68,
+   "d": 56,
+   "h": 20.0,
+   "tris": 850,
+   "palette": [
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "pierre",
+     "#b9b0a0"
+    ],
+    [
+     "pierre_grise",
+     "#9c988f"
+    ],
+    [
+     "ombre",
+     "#c9bdab"
+    ],
+    [
+     "sable",
+     "#e3d3a8"
+    ]
+   ]
+  },
+  {
+   "id": "aqueduc_romain",
+   "name": "Aqueduc romain",
+   "cat": "loisirs",
+   "cost": 8000000,
+   "desc": "Pont-aqueduc à trois rangs d'arches de pierre blonde.",
+   "source": "Pont du Gard (Gard)",
+   "region": "mediterranee",
+   "era": "antique",
+   "emplois": 3,
+   "logements": 0,
+   "visiteurs": 1500,
+   "variantes": 1,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "agent_public",
+     1
+    ],
+    [
+     "vendeur",
+     1
+    ]
+   ],
+   "role": "monument",
+   "sans_vitres": true,
+   "glb": "res://assets/modeles/bible/aqueduc_romain.glb",
+   "w": 62,
+   "d": 9,
+   "h": 40.0,
+   "tris": 1144,
+   "palette": [
+    [
+     "eau",
+     "#3fa7d6"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "pierre",
+     "#b9b0a0"
+    ],
+    [
+     "ombre",
+     "#c9bdab"
+    ]
+   ]
+  }
+ ]
+}

@@ -1,0 +1,1865 @@
+{
+ "categories": [
+  {
+   "id": "urbain",
+   "nom": "Mobilier urbain"
+  },
+  {
+   "id": "eclairage",
+   "nom": "Éclairage"
+  },
+  {
+   "id": "monuments",
+   "nom": "Fontaines et statues"
+  },
+  {
+   "id": "clotures",
+   "nom": "Clôtures et murets"
+  },
+  {
+   "id": "panneaux",
+   "nom": "Panneaux et réseaux"
+  },
+  {
+   "id": "marche",
+   "nom": "Marché"
+  },
+  {
+   "id": "jeux",
+   "nom": "Jeux et sport"
+  },
+  {
+   "id": "plage",
+   "nom": "Plage"
+  },
+  {
+   "id": "ferme",
+   "nom": "Ferme"
+  },
+  {
+   "id": "cultures",
+   "nom": "Cultures"
+  },
+  {
+   "id": "animaux",
+   "nom": "Animaux"
+  },
+  {
+   "id": "eau",
+   "nom": "Bateaux et pontons"
+  },
+  {
+   "id": "rochers",
+   "nom": "Rochers et bois"
+  }
+ ],
+ "decors": [
+  {
+   "id": "banc_bois",
+   "nom": "Banc public : lattes de bois sur pieds de fonte",
+   "cat": "urbain",
+   "triangles": 204,
+   "taille": [
+    1.8,
+    0.55,
+    0.85
+   ]
+  },
+  {
+   "id": "banc_vert",
+   "nom": "Banc de parc à lattes peintes en vert",
+   "cat": "urbain",
+   "triangles": 228,
+   "taille": [
+    1.9,
+    0.55,
+    0.86
+   ]
+  },
+  {
+   "id": "banc_pierre",
+   "nom": "Banc de pierre massif",
+   "cat": "urbain",
+   "triangles": 36,
+   "taille": [
+    1.8,
+    0.5,
+    0.48
+   ]
+  },
+  {
+   "id": "banc_moderne",
+   "nom": "Banc contemporain : bloc de béton et assise en bois",
+   "cat": "urbain",
+   "triangles": 24,
+   "taille": [
+    2.0,
+    0.55,
+    0.44
+   ]
+  },
+  {
+   "id": "table_pique_nique",
+   "nom": "Table de pique-nique en bois et ses deux bancs",
+   "cat": "urbain",
+   "triangles": 168,
+   "taille": [
+    1.9,
+    1.62,
+    0.82
+   ]
+  },
+  {
+   "id": "poubelle",
+   "nom": "Corbeille de rue sur son poteau",
+   "cat": "urbain",
+   "triangles": 92,
+   "taille": [
+    0.45,
+    0.5,
+    1.0
+   ]
+  },
+  {
+   "id": "poubelles_tri",
+   "nom": "Trois bacs de tri",
+   "cat": "urbain",
+   "triangles": 108,
+   "taille": [
+    1.82,
+    0.63,
+    1.05
+   ]
+  },
+  {
+   "id": "conteneur",
+   "nom": "Conteneur à ordures sur roues (1 100 l)",
+   "cat": "urbain",
+   "triangles": 248,
+   "taille": [
+    1.36,
+    1.1,
+    1.3
+   ]
+  },
+  {
+   "id": "abribus",
+   "nom": "Abribus vitré : banc, toit et plan du réseau",
+   "cat": "urbain",
+   "triangles": 188,
+   "taille": [
+    4.7,
+    1.5,
+    2.9
+   ]
+  },
+  {
+   "id": "borne_incendie",
+   "nom": "Poteau d'incendie rouge",
+   "cat": "urbain",
+   "triangles": 144,
+   "taille": [
+    0.28,
+    0.28,
+    0.84
+   ]
+  },
+  {
+   "id": "potelet",
+   "nom": "Potelet de trottoir",
+   "cat": "urbain",
+   "triangles": 84,
+   "taille": [
+    0.14,
+    0.14,
+    1.05
+   ]
+  },
+  {
+   "id": "potelets",
+   "nom": "Rangée de cinq potelets (4 m)",
+   "cat": "urbain",
+   "triangles": 300,
+   "taille": [
+    4.12,
+    0.14,
+    1.05
+   ]
+  },
+  {
+   "id": "boite_aux_lettres",
+   "nom": "Boîte aux lettres jaune sur pied",
+   "cat": "urbain",
+   "triangles": 72,
+   "taille": [
+    0.5,
+    0.42,
+    1.52
+   ]
+  },
+  {
+   "id": "cabine_telephone",
+   "nom": "Cabine téléphonique rouge à petits carreaux",
+   "cat": "urbain",
+   "triangles": 432,
+   "taille": [
+    1.06,
+    1.06,
+    2.6
+   ]
+  },
+  {
+   "id": "colonne_affichage",
+   "nom": "Colonne d'affichage verte et ses affiches",
+   "cat": "urbain",
+   "triangles": 238,
+   "taille": [
+    1.66,
+    1.66,
+    3.7
+   ]
+  },
+  {
+   "id": "parcmetre",
+   "nom": "Horodateur de stationnement",
+   "cat": "urbain",
+   "triangles": 48,
+   "taille": [
+    0.4,
+    0.32,
+    1.59
+   ]
+  },
+  {
+   "id": "arceaux_velo",
+   "nom": "Arceaux à vélos et deux vélos garés",
+   "cat": "urbain",
+   "triangles": 516,
+   "taille": [
+    2.05,
+    1.83,
+    1.02
+   ]
+  },
+  {
+   "id": "jardiniere",
+   "nom": "Bac à fleurs en bois (2 m)",
+   "cat": "urbain",
+   "triangles": 304,
+   "taille": [
+    2.02,
+    0.6,
+    0.85
+   ]
+  },
+  {
+   "id": "horloge",
+   "nom": "Horloge de rue à double cadran",
+   "cat": "urbain",
+   "triangles": 178,
+   "taille": [
+    0.72,
+    0.4,
+    3.76
+   ]
+  },
+  {
+   "id": "panneau_publicite",
+   "nom": "Panneau publicitaire 4 × 3 sur pied",
+   "cat": "urbain",
+   "triangles": 112,
+   "taille": [
+    4.2,
+    0.79,
+    6.22
+   ]
+  },
+  {
+   "id": "terrasse_cafe",
+   "nom": "Table de café, deux chaises et un parasol",
+   "cat": "urbain",
+   "triangles": 304,
+   "taille": [
+    2.6,
+    2.6,
+    2.4
+   ]
+  },
+  {
+   "id": "lampadaire",
+   "nom": "Lampadaire routier : mât de 8 m, crosse, lanterne vers -Y",
+   "cat": "eclairage",
+   "triangles": 120,
+   "taille": [
+    0.3,
+    2.19,
+    7.99
+   ]
+  },
+  {
+   "id": "lampadaire_double",
+   "nom": "Lampadaire à deux crosses",
+   "cat": "eclairage",
+   "triangles": 144,
+   "taille": [
+    0.32,
+    4.1,
+    9.05
+   ]
+  },
+  {
+   "id": "reverbere",
+   "nom": "Réverbère ancien en fonte et sa lanterne",
+   "cat": "eclairage",
+   "triangles": 174,
+   "taille": [
+    0.7,
+    0.52,
+    4.48
+   ]
+  },
+  {
+   "id": "lampadaire_boule",
+   "nom": "Lampadaire de parc à boule (3,5 m)",
+   "cat": "eclairage",
+   "triangles": 76,
+   "taille": [
+    0.5,
+    0.48,
+    3.83
+   ]
+  },
+  {
+   "id": "lanterne_pierre",
+   "nom": "Tōrō : lanterne de pierre de jardin japonais",
+   "cat": "eclairage",
+   "triangles": 114,
+   "taille": [
+    0.95,
+    1.1,
+    1.73
+   ]
+  },
+  {
+   "id": "fontaine",
+   "nom": "Fontaine ronde : bassin de pierre, colonne et vasque",
+   "cat": "monuments",
+   "triangles": 424,
+   "taille": [
+    4.4,
+    4.4,
+    2.95
+   ]
+  },
+  {
+   "id": "fontaine_wallace",
+   "nom": "Fontaine à boire en fonte verte",
+   "cat": "monuments",
+   "triangles": 286,
+   "taille": [
+    0.9,
+    0.9,
+    2.57
+   ]
+  },
+  {
+   "id": "borne_fontaine",
+   "nom": "Borne-fontaine pour boire",
+   "cat": "monuments",
+   "triangles": 88,
+   "taille": [
+    0.5,
+    0.63,
+    1.08
+   ]
+  },
+  {
+   "id": "statue",
+   "nom": "Statue en bronze sur son piédestal",
+   "cat": "monuments",
+   "triangles": 168,
+   "taille": [
+    1.6,
+    1.6,
+    4.57
+   ]
+  },
+  {
+   "id": "statue_equestre",
+   "nom": "Cavalier en bronze sur un grand piédestal",
+   "cat": "monuments",
+   "triangles": 380,
+   "taille": [
+    2.4,
+    4.0,
+    5.94
+   ]
+  },
+  {
+   "id": "buste",
+   "nom": "Buste sur une colonne",
+   "cat": "monuments",
+   "triangles": 124,
+   "taille": [
+    0.7,
+    0.7,
+    2.07
+   ]
+  },
+  {
+   "id": "monument_morts",
+   "nom": "Monument aux morts : stèle, obélisque et grille",
+   "cat": "monuments",
+   "triangles": 182,
+   "taille": [
+    3.0,
+    3.0,
+    6.1
+   ]
+  },
+  {
+   "id": "obelisque",
+   "nom": "Petit obélisque de granit",
+   "cat": "monuments",
+   "triangles": 30,
+   "taille": [
+    1.4,
+    1.4,
+    6.1
+   ]
+  },
+  {
+   "id": "cloture_bois",
+   "nom": "Palissade de jardin blanche",
+   "cat": "clotures",
+   "triangles": 248,
+   "taille": [
+    2.09,
+    0.12,
+    1.05
+   ],
+   "ligne": 2.0
+  },
+  {
+   "id": "cloture_ranch",
+   "nom": "Clôture de pâture : poteaux et trois lisses en bois gris",
+   "cat": "clotures",
+   "triangles": 60,
+   "taille": [
+    2.12,
+    0.15,
+    1.2
+   ],
+   "ligne": 2.0
+  },
+  {
+   "id": "cloture_barbelee",
+   "nom": "Piquets et fils (clôture de champ)",
+   "cat": "clotures",
+   "triangles": 56,
+   "taille": [
+    2.1,
+    0.09,
+    1.15
+   ],
+   "ligne": 2.0
+  },
+  {
+   "id": "grillage",
+   "nom": "Grillage vert sur poteaux",
+   "cat": "clotures",
+   "triangles": 64,
+   "taille": [
+    2.05,
+    0.06,
+    1.55
+   ],
+   "ligne": 2.0
+  },
+  {
+   "id": "muret_pierre",
+   "nom": "Muret de pierres sèches (2 m)",
+   "cat": "clotures",
+   "triangles": 216,
+   "taille": [
+    2.0,
+    0.55,
+    0.83
+   ],
+   "ligne": 2.0
+  },
+  {
+   "id": "mur_brique",
+   "nom": "Mur de briques et son chaperon (2 m)",
+   "cat": "clotures",
+   "triangles": 60,
+   "taille": [
+    2.04,
+    0.32,
+    1.68
+   ],
+   "ligne": 2.0
+  },
+  {
+   "id": "haie",
+   "nom": "Haie taillée de buis ou de troène (2 m)",
+   "cat": "clotures",
+   "triangles": 92,
+   "taille": [
+    2.01,
+    0.81,
+    1.51
+   ],
+   "ligne": 2.0
+  },
+  {
+   "id": "barriere_metal",
+   "nom": "Barrière de ville en métal (2 m)",
+   "cat": "clotures",
+   "triangles": 240,
+   "taille": [
+    1.98,
+    0.5,
+    1.03
+   ],
+   "ligne": 2.0
+  },
+  {
+   "id": "glissiere",
+   "nom": "Glissière de sécurité routière (2 m)",
+   "cat": "clotures",
+   "triangles": 48,
+   "taille": [
+    2.08,
+    0.17,
+    0.75
+   ],
+   "ligne": 2.0
+  },
+  {
+   "id": "palissade_bambou",
+   "nom": "Palissade de bambous (Asie, 2 m)",
+   "cat": "clotures",
+   "triangles": 352,
+   "taille": [
+    2.0,
+    0.15,
+    1.75
+   ],
+   "ligne": 2.0
+  },
+  {
+   "id": "portail_ferme",
+   "nom": "Barrière de ferme en bois à cinq lisses",
+   "cat": "clotures",
+   "triangles": 108,
+   "taille": [
+    3.98,
+    0.18,
+    1.4
+   ]
+  },
+  {
+   "id": "panneau_stop",
+   "nom": "Stop",
+   "cat": "panneaux",
+   "triangles": 60,
+   "taille": [
+    0.75,
+    0.33,
+    2.35
+   ]
+  },
+  {
+   "id": "panneau_cedez",
+   "nom": "Cédez le passage",
+   "cat": "panneaux",
+   "triangles": 36,
+   "taille": [
+    0.9,
+    0.11,
+    2.45
+   ]
+  },
+  {
+   "id": "panneau_vitesse",
+   "nom": "Limitation à 50",
+   "cat": "panneaux",
+   "triangles": 132,
+   "taille": [
+    0.64,
+    0.11,
+    2.3
+   ]
+  },
+  {
+   "id": "panneau_danger",
+   "nom": "Danger (triangle rouge)",
+   "cat": "panneaux",
+   "triangles": 48,
+   "taille": [
+    0.84,
+    0.11,
+    2.42
+   ]
+  },
+  {
+   "id": "panneau_parking",
+   "nom": "Parking (P blanc sur fond bleu)",
+   "cat": "panneaux",
+   "triangles": 80,
+   "taille": [
+    0.6,
+    0.1,
+    2.3
+   ]
+  },
+  {
+   "id": "panneau_direction",
+   "nom": "Panneau de direction à deux flèches",
+   "cat": "panneaux",
+   "triangles": 76,
+   "taille": [
+    2.6,
+    0.1,
+    2.9
+   ]
+  },
+  {
+   "id": "panneau_entree",
+   "nom": "Panneau d'entrée d'agglomération",
+   "cat": "panneaux",
+   "triangles": 76,
+   "taille": [
+    1.6,
+    0.11,
+    2.1
+   ]
+  },
+  {
+   "id": "borne_km",
+   "nom": "Borne kilométrique de route",
+   "cat": "panneaux",
+   "triangles": 40,
+   "taille": [
+    0.42,
+    0.23,
+    0.84
+   ]
+  },
+  {
+   "id": "balise",
+   "nom": "Balise de bord de route",
+   "cat": "panneaux",
+   "triangles": 36,
+   "taille": [
+    0.1,
+    0.11,
+    1.0
+   ]
+  },
+  {
+   "id": "feu_tricolore",
+   "nom": "Feu tricolore sur son mât",
+   "cat": "panneaux",
+   "triangles": 116,
+   "taille": [
+    0.32,
+    0.28,
+    3.35
+   ]
+  },
+  {
+   "id": "poteau_electrique",
+   "nom": "Poteau électrique en bois avec traverse et isolateurs",
+   "cat": "panneaux",
+   "triangles": 120,
+   "taille": [
+    1.8,
+    0.27,
+    9.18
+   ]
+  },
+  {
+   "id": "pylone",
+   "nom": "Pylône à haute tension",
+   "cat": "panneaux",
+   "triangles": 446,
+   "taille": [
+    15.0,
+    6.24,
+    32.03
+   ]
+  },
+  {
+   "id": "etal_fruits",
+   "nom": "Étal de fruits et légumes sous un auvent rayé",
+   "cat": "marche",
+   "triangles": 920,
+   "taille": [
+    3.0,
+    1.45,
+    2.3
+   ]
+  },
+  {
+   "id": "tente_marche",
+   "nom": "Tente blanche de marché (3 × 3 m)",
+   "cat": "marche",
+   "triangles": 144,
+   "taille": [
+    3.1,
+    3.1,
+    3.1
+   ]
+  },
+  {
+   "id": "parasol",
+   "nom": "Grand parasol de marché ou de terrasse",
+   "cat": "marche",
+   "triangles": 104,
+   "taille": [
+    3.0,
+    3.0,
+    2.65
+   ]
+  },
+  {
+   "id": "caisses",
+   "nom": "Pile de cagettes",
+   "cat": "marche",
+   "triangles": 48,
+   "taille": [
+    1.61,
+    0.53,
+    0.45
+   ]
+  },
+  {
+   "id": "tonneaux",
+   "nom": "Trois tonneaux de bois cerclés",
+   "cat": "marche",
+   "triangles": 324,
+   "taille": [
+    1.29,
+    1.22,
+    0.85
+   ]
+  },
+  {
+   "id": "charrette",
+   "nom": "Charrette à bras en bois",
+   "cat": "marche",
+   "triangles": 212,
+   "taille": [
+    1.5,
+    3.03,
+    1.1
+   ]
+  },
+  {
+   "id": "stand_glaces",
+   "nom": "Triporteur à glaces",
+   "cat": "marche",
+   "triangles": 268,
+   "taille": [
+    1.51,
+    1.95,
+    2.29
+   ]
+  },
+  {
+   "id": "balancoire",
+   "nom": "Portique à deux balançoires",
+   "cat": "jeux",
+   "triangles": 156,
+   "taille": [
+    3.2,
+    1.71,
+    2.4
+   ]
+  },
+  {
+   "id": "toboggan",
+   "nom": "Toboggan à plate-forme et échelle",
+   "cat": "jeux",
+   "triangles": 188,
+   "taille": [
+    0.9,
+    3.42,
+    2.61
+   ]
+  },
+  {
+   "id": "tourniquet",
+   "nom": "Tourniquet d'aire de jeux",
+   "cat": "jeux",
+   "triangles": 168,
+   "taille": [
+    2.0,
+    2.0,
+    1.07
+   ]
+  },
+  {
+   "id": "jeu_ressort",
+   "nom": "Jeu à ressort en forme de cheval",
+   "cat": "jeux",
+   "triangles": 76,
+   "taille": [
+    0.4,
+    0.86,
+    0.91
+   ]
+  },
+  {
+   "id": "bac_a_sable",
+   "nom": "Bac à sable bordé de rondins (3 × 3 m)",
+   "cat": "jeux",
+   "triangles": 112,
+   "taille": [
+    3.2,
+    3.2,
+    0.39
+   ]
+  },
+  {
+   "id": "cabane_jeux",
+   "nom": "Cabane perchée avec filet d'escalade",
+   "cat": "jeux",
+   "triangles": 176,
+   "taille": [
+    2.1,
+    2.86,
+    3.28
+   ]
+  },
+  {
+   "id": "cage_foot",
+   "nom": "But de football à 7 (5 × 2 m)",
+   "cat": "jeux",
+   "triangles": 86,
+   "taille": [
+    5.1,
+    1.29,
+    2.07
+   ]
+  },
+  {
+   "id": "panier_basket",
+   "nom": "Panier de basket sur poteau",
+   "cat": "jeux",
+   "triangles": 168,
+   "taille": [
+    1.8,
+    1.47,
+    3.95
+   ]
+  },
+  {
+   "id": "ping_pong",
+   "nom": "Table de ping-pong en béton",
+   "cat": "jeux",
+   "triangles": 60,
+   "taille": [
+    2.74,
+    1.6,
+    0.91
+   ]
+  },
+  {
+   "id": "parasol_plage",
+   "nom": "Parasol de plage rayé, planté dans le sable",
+   "cat": "plage",
+   "triangles": 28,
+   "taille": [
+    2.2,
+    2.2,
+    2.35
+   ]
+  },
+  {
+   "id": "transat",
+   "nom": "Chaise longue en toile",
+   "cat": "plage",
+   "triangles": 60,
+   "taille": [
+    0.6,
+    1.67,
+    0.94
+   ]
+  },
+  {
+   "id": "cabine_plage",
+   "nom": "Cabine de plage rayée",
+   "cat": "plage",
+   "triangles": 128,
+   "taille": [
+    1.7,
+    1.7,
+    2.75
+   ]
+  },
+  {
+   "id": "maitre_nageur",
+   "nom": "Chaise haute de surveillant de baignade",
+   "cat": "plage",
+   "triangles": 188,
+   "taille": [
+    1.09,
+    1.1,
+    3.17
+   ]
+  },
+  {
+   "id": "botte_ronde",
+   "nom": "Botte ronde de foin (Ø 1,5 m), couchée",
+   "cat": "ferme",
+   "triangles": 80,
+   "taille": [
+    1.22,
+    1.5,
+    1.5
+   ]
+  },
+  {
+   "id": "botte_enrubannee",
+   "nom": "Botte ronde enrubannée de film blanc",
+   "cat": "ferme",
+   "triangles": 72,
+   "taille": [
+    1.22,
+    1.52,
+    1.52
+   ]
+  },
+  {
+   "id": "botte_debout",
+   "nom": "Botte ronde posée debout",
+   "cat": "ferme",
+   "triangles": 44,
+   "taille": [
+    1.5,
+    1.5,
+    1.2
+   ]
+  },
+  {
+   "id": "botte_carree",
+   "nom": "Petite botte de paille rectangulaire",
+   "cat": "ferme",
+   "triangles": 36,
+   "taille": [
+    0.9,
+    0.46,
+    0.39
+   ]
+  },
+  {
+   "id": "pile_bottes",
+   "nom": "Pile de grosses bottes carrées",
+   "cat": "ferme",
+   "triangles": 180,
+   "taille": [
+    3.7,
+    2.35,
+    2.68
+   ]
+  },
+  {
+   "id": "meule",
+   "nom": "Meule de foin traditionnelle",
+   "cat": "ferme",
+   "triangles": 98,
+   "taille": [
+    3.23,
+    3.4,
+    4.2
+   ]
+  },
+  {
+   "id": "tracteur",
+   "nom": "Tracteur moderne vert à cabine",
+   "cat": "ferme",
+   "triangles": 392,
+   "taille": [
+    2.2,
+    3.0,
+    2.45
+   ]
+  },
+  {
+   "id": "tracteur_rouge",
+   "nom": "Tracteur rouge",
+   "cat": "ferme",
+   "triangles": 392,
+   "taille": [
+    2.2,
+    3.0,
+    2.45
+   ]
+  },
+  {
+   "id": "tracteur_ancien",
+   "nom": "Vieux tracteur sans cabine",
+   "cat": "ferme",
+   "triangles": 384,
+   "taille": [
+    1.87,
+    2.55,
+    1.66
+   ]
+  },
+  {
+   "id": "remorque_foin",
+   "nom": "Plateau chargé de bottes de paille",
+   "cat": "ferme",
+   "triangles": 440,
+   "taille": [
+    2.42,
+    6.11,
+    2.59
+   ]
+  },
+  {
+   "id": "moissonneuse",
+   "nom": "Moissonneuse-batteuse et sa barre de coupe",
+   "cat": "ferme",
+   "triangles": 360,
+   "taille": [
+    7.65,
+    7.3,
+    3.7
+   ]
+  },
+  {
+   "id": "charrue",
+   "nom": "Charrue à socs",
+   "cat": "ferme",
+   "triangles": 164,
+   "taille": [
+    1.22,
+    3.05,
+    0.79
+   ]
+  },
+  {
+   "id": "abreuvoir",
+   "nom": "Abreuvoir galvanisé (2 m)",
+   "cat": "ferme",
+   "triangles": 36,
+   "taille": [
+    2.0,
+    0.7,
+    0.65
+   ]
+  },
+  {
+   "id": "ratelier",
+   "nom": "Râtelier à foin",
+   "cat": "ferme",
+   "triangles": 320,
+   "taille": [
+    2.4,
+    1.4,
+    1.31
+   ]
+  },
+  {
+   "id": "epouvantail",
+   "nom": "Épouvantail au chapeau de paille",
+   "cat": "ferme",
+   "triangles": 168,
+   "taille": [
+    1.49,
+    0.6,
+    1.98
+   ]
+  },
+  {
+   "id": "ruches",
+   "nom": "Trois ruches en bois",
+   "cat": "ferme",
+   "triangles": 156,
+   "taille": [
+    2.6,
+    0.56,
+    1.0
+   ]
+  },
+  {
+   "id": "tas_bois",
+   "nom": "Tas de bûches",
+   "cat": "ferme",
+   "triangles": 600,
+   "taille": [
+    2.08,
+    0.81,
+    0.92
+   ]
+  },
+  {
+   "id": "grumes",
+   "nom": "Grumes",
+   "cat": "ferme",
+   "triangles": 240,
+   "taille": [
+    1.75,
+    6.01,
+    1.09
+   ]
+  },
+  {
+   "id": "brouette",
+   "nom": "Brouette",
+   "cat": "ferme",
+   "triangles": 108,
+   "taille": [
+    0.64,
+    1.75,
+    0.62
+   ]
+  },
+  {
+   "id": "puits",
+   "nom": "Puits en pierre avec son toit",
+   "cat": "ferme",
+   "triangles": 194,
+   "taille": [
+    1.9,
+    1.8,
+    2.6
+   ]
+  },
+  {
+   "id": "bidons_lait",
+   "nom": "Bidons de lait sur un quai en bois",
+   "cat": "ferme",
+   "triangles": 264,
+   "taille": [
+    1.4,
+    0.8,
+    1.18
+   ]
+  },
+  {
+   "id": "poulailler",
+   "nom": "Petit poulailler sur pilotis",
+   "cat": "ferme",
+   "triangles": 92,
+   "taille": [
+    1.4,
+    2.16,
+    2.01
+   ]
+  },
+  {
+   "id": "citerne",
+   "nom": "Cuve à eau ou à fioul sur berceau",
+   "cat": "ferme",
+   "triangles": 96,
+   "taille": [
+    1.5,
+    3.2,
+    1.95
+   ]
+  },
+  {
+   "id": "silo_grain",
+   "nom": "Silo à grain en tôle ondulée",
+   "cat": "ferme",
+   "triangles": 568,
+   "taille": [
+    5.2,
+    5.2,
+    8.8
+   ]
+  },
+  {
+   "id": "citrouilles",
+   "nom": "Carré de citrouilles (1 m²)",
+   "cat": "cultures",
+   "triangles": 134,
+   "taille": [
+    0.99,
+    1.0,
+    0.42
+   ]
+  },
+  {
+   "id": "choux",
+   "nom": "Rang de choux (1 m)",
+   "cat": "cultures",
+   "triangles": 120,
+   "taille": [
+    0.98,
+    0.31,
+    0.34
+   ]
+  },
+  {
+   "id": "tomates",
+   "nom": "Rang de tomates sur tuteurs (1 m)",
+   "cat": "cultures",
+   "triangles": 396,
+   "taille": [
+    0.99,
+    0.28,
+    1.4
+   ]
+  },
+  {
+   "id": "serre_tunnel",
+   "nom": "Serre tunnel en plastique (6 × 20 m)",
+   "cat": "cultures",
+   "triangles": 746,
+   "taille": [
+    6.04,
+    20.06,
+    2.83
+   ]
+  },
+  {
+   "id": "pommier",
+   "nom": "Pommier de verger, chargé de pommes",
+   "cat": "cultures",
+   "triangles": 372,
+   "taille": [
+    3.06,
+    3.18,
+    3.8
+   ]
+  },
+  {
+   "id": "vigne_piquets",
+   "nom": "Fin de rang de vigne : piquet de tête et fils",
+   "cat": "cultures",
+   "triangles": 40,
+   "taille": [
+    1.8,
+    0.09,
+    1.58
+   ]
+  },
+  {
+   "id": "vache_pie_noire",
+   "nom": "Vache prim'holstein, pie noire",
+   "cat": "animaux",
+   "triangles": 324,
+   "taille": [
+    0.73,
+    2.49,
+    1.58
+   ],
+   "anime": 1
+  },
+  {
+   "id": "vache_broute",
+   "nom": "Vache pie noire qui broute, tête dans l'herbe",
+   "cat": "animaux",
+   "triangles": 324,
+   "taille": [
+    0.73,
+    2.53,
+    1.39
+   ],
+   "anime": 1
+  },
+  {
+   "id": "vache_rousse",
+   "nom": "Vache montbéliarde, pie rouge à tête blanche",
+   "cat": "animaux",
+   "triangles": 324,
+   "taille": [
+    0.73,
+    2.49,
+    1.58
+   ],
+   "anime": 1
+  },
+  {
+   "id": "vache_broute_rousse",
+   "nom": "Vache rousse qui broute",
+   "cat": "animaux",
+   "triangles": 240,
+   "taille": [
+    0.72,
+    2.53,
+    1.38
+   ],
+   "anime": 1
+  },
+  {
+   "id": "vache_blanche",
+   "nom": "Vache charolaise, toute crème",
+   "cat": "animaux",
+   "triangles": 252,
+   "taille": [
+    0.76,
+    2.61,
+    1.66
+   ],
+   "anime": 1
+  },
+  {
+   "id": "veau",
+   "nom": "Veau",
+   "cat": "animaux",
+   "triangles": 288,
+   "taille": [
+    0.44,
+    1.49,
+    0.88
+   ],
+   "anime": 1
+  },
+  {
+   "id": "zebu",
+   "nom": "Zébu à bosse (Afrique, Inde)",
+   "cat": "animaux",
+   "triangles": 272,
+   "taille": [
+    0.68,
+    2.36,
+    1.57
+   ],
+   "anime": 1
+  },
+  {
+   "id": "yack",
+   "nom": "Yack à longs poils (Himalaya)",
+   "cat": "animaux",
+   "triangles": 264,
+   "taille": [
+    0.8,
+    2.49,
+    1.58
+   ],
+   "anime": 1
+  },
+  {
+   "id": "cheval",
+   "nom": "Cheval bai à crinière noire",
+   "cat": "animaux",
+   "triangles": 224,
+   "taille": [
+    0.54,
+    2.54,
+    2.2
+   ],
+   "anime": 1
+  },
+  {
+   "id": "cheval_blanc",
+   "nom": "Cheval gris clair qui broute",
+   "cat": "animaux",
+   "triangles": 224,
+   "taille": [
+    0.54,
+    2.44,
+    1.57
+   ],
+   "anime": 1
+  },
+  {
+   "id": "cheval_noir",
+   "nom": "Cheval noir",
+   "cat": "animaux",
+   "triangles": 224,
+   "taille": [
+    0.54,
+    2.54,
+    2.2
+   ],
+   "anime": 1
+  },
+  {
+   "id": "poney",
+   "nom": "Poney alezan",
+   "cat": "animaux",
+   "triangles": 224,
+   "taille": [
+    0.38,
+    1.78,
+    1.54
+   ],
+   "anime": 1
+  },
+  {
+   "id": "ane",
+   "nom": "Âne gris aux grandes oreilles",
+   "cat": "animaux",
+   "triangles": 224,
+   "taille": [
+    0.42,
+    1.98,
+    1.87
+   ],
+   "anime": 1
+  },
+  {
+   "id": "brebis",
+   "nom": "Brebis blanche à tête noire",
+   "cat": "animaux",
+   "triangles": 172,
+   "taille": [
+    0.66,
+    1.27,
+    1.04
+   ],
+   "anime": 1
+  },
+  {
+   "id": "mouton_broute",
+   "nom": "Mouton qui broute",
+   "cat": "animaux",
+   "triangles": 184,
+   "taille": [
+    0.64,
+    1.36,
+    1.03
+   ],
+   "anime": 1
+  },
+  {
+   "id": "agneau",
+   "nom": "Agneau",
+   "cat": "animaux",
+   "triangles": 172,
+   "taille": [
+    0.37,
+    0.74,
+    0.63
+   ],
+   "anime": 1
+  },
+  {
+   "id": "chevre",
+   "nom": "Chèvre à barbiche et cornes recourbées",
+   "cat": "animaux",
+   "triangles": 204,
+   "taille": [
+    0.32,
+    1.21,
+    1.22
+   ],
+   "anime": 1
+  },
+  {
+   "id": "cochon",
+   "nom": "Cochon rose",
+   "cat": "animaux",
+   "triangles": 200,
+   "taille": [
+    0.61,
+    1.49,
+    0.85
+   ],
+   "anime": 1
+  },
+  {
+   "id": "poule_blanche",
+   "nom": "Poule blanche",
+   "cat": "animaux",
+   "triangles": 100,
+   "taille": [
+    0.25,
+    0.5,
+    0.56
+   ],
+   "anime": 1
+  },
+  {
+   "id": "poule_rousse",
+   "nom": "Poule rousse",
+   "cat": "animaux",
+   "triangles": 100,
+   "taille": [
+    0.25,
+    0.5,
+    0.56
+   ],
+   "anime": 1
+  },
+  {
+   "id": "canard",
+   "nom": "Canard colvert",
+   "cat": "animaux",
+   "triangles": 64,
+   "taille": [
+    0.23,
+    0.53,
+    0.31
+   ],
+   "anime": 1
+  },
+  {
+   "id": "chien",
+   "nom": "Chien de ferme",
+   "cat": "animaux",
+   "triangles": 180,
+   "taille": [
+    0.26,
+    1.09,
+    0.81
+   ],
+   "anime": 1
+  },
+  {
+   "id": "dromadaire",
+   "nom": "Dromadaire à une bosse (désert)",
+   "cat": "animaux",
+   "triangles": 184,
+   "taille": [
+    0.68,
+    2.64,
+    2.48
+   ],
+   "anime": 1
+  },
+  {
+   "id": "lama",
+   "nom": "Lama des Andes",
+   "cat": "animaux",
+   "triangles": 176,
+   "taille": [
+    0.45,
+    1.39,
+    1.96
+   ],
+   "anime": 1
+  },
+  {
+   "id": "renne",
+   "nom": "Renne de Laponie et ses bois",
+   "cat": "animaux",
+   "triangles": 216,
+   "taille": [
+    1.03,
+    1.82,
+    2.16
+   ],
+   "anime": 1
+  },
+  {
+   "id": "barque",
+   "nom": "Barque à rames (4 m)",
+   "cat": "eau",
+   "triangles": 134,
+   "taille": [
+    3.64,
+    4.0,
+    0.67
+   ],
+   "eau": 1
+  },
+  {
+   "id": "kayak",
+   "nom": "Kayak de mer (4,5 m)",
+   "cat": "eau",
+   "triangles": 166,
+   "taille": [
+    2.28,
+    4.5,
+    0.54
+   ],
+   "eau": 1
+  },
+  {
+   "id": "voilier",
+   "nom": "Petit voilier de plaisance (7 m)",
+   "cat": "eau",
+   "triangles": 124,
+   "taille": [
+    2.4,
+    7.01,
+    10.1
+   ],
+   "eau": 1
+  },
+  {
+   "id": "voilier_ancre",
+   "nom": "Voilier au mouillage, voiles roulées",
+   "cat": "eau",
+   "triangles": 122,
+   "taille": [
+    2.6,
+    8.0,
+    11.65
+   ],
+   "eau": 1
+  },
+  {
+   "id": "bateau_peche",
+   "nom": "Chalutier côtier",
+   "cat": "eau",
+   "triangles": 202,
+   "taille": [
+    3.6,
+    11.0,
+    7.8
+   ],
+   "eau": 1
+  },
+  {
+   "id": "bateau_moteur",
+   "nom": "Vedette à moteur (6 m)",
+   "cat": "eau",
+   "triangles": 86,
+   "taille": [
+    2.2,
+    6.25,
+    2.15
+   ],
+   "eau": 1
+  },
+  {
+   "id": "pedalo",
+   "nom": "Pédalo à deux places",
+   "cat": "eau",
+   "triangles": 156,
+   "taille": [
+    1.9,
+    2.7,
+    1.15
+   ],
+   "eau": 1
+  },
+  {
+   "id": "bouee",
+   "nom": "Bouée de mouillage rouge",
+   "cat": "eau",
+   "triangles": 88,
+   "taille": [
+    0.8,
+    0.77,
+    1.1
+   ],
+   "eau": 1
+  },
+  {
+   "id": "balise_verte",
+   "nom": "Balise de chenal verte (tribord)",
+   "cat": "eau",
+   "triangles": 74,
+   "taille": [
+    1.0,
+    1.0,
+    2.65
+   ],
+   "eau": 1
+  },
+  {
+   "id": "balise_rouge",
+   "nom": "Balise de chenal rouge (bâbord)",
+   "cat": "eau",
+   "triangles": 88,
+   "taille": [
+    1.0,
+    1.0,
+    2.65
+   ],
+   "eau": 1
+  },
+  {
+   "id": "ponton",
+   "nom": "Ponton de bois sur pilotis",
+   "cat": "eau",
+   "triangles": 668,
+   "taille": [
+    2.11,
+    8.24,
+    2.56
+   ],
+   "berge": 1
+  },
+  {
+   "id": "ponton_court",
+   "nom": "Petit embarcadère (3 m), une échelle",
+   "cat": "eau",
+   "triangles": 312,
+   "taille": [
+    1.6,
+    3.24,
+    2.25
+   ],
+   "berge": 1
+  },
+  {
+   "id": "bitte",
+   "nom": "Bitte d'amarrage de quai",
+   "cat": "eau",
+   "triangles": 56,
+   "taille": [
+    0.6,
+    0.6,
+    0.6
+   ]
+  },
+  {
+   "id": "casiers",
+   "nom": "Casiers et filets de pêcheur sur le quai",
+   "cat": "eau",
+   "triangles": 152,
+   "taille": [
+    2.34,
+    0.7,
+    1.06
+   ]
+  },
+  {
+   "id": "phare",
+   "nom": "Petit phare de jetée blanc et rouge",
+   "cat": "eau",
+   "triangles": 352,
+   "taille": [
+    2.66,
+    2.8,
+    9.1
+   ]
+  },
+  {
+   "id": "rocher_plat",
+   "nom": "Dalle rocheuse affleurante (4 m)",
+   "cat": "rochers",
+   "triangles": 40,
+   "taille": [
+    4.27,
+    3.88,
+    1.43
+   ]
+  },
+  {
+   "id": "rocher_moussu",
+   "nom": "Rocher couvert de mousse sur le dessus",
+   "cat": "rochers",
+   "triangles": 20,
+   "taille": [
+    2.56,
+    2.62,
+    1.29
+   ]
+  },
+  {
+   "id": "bloc_granit",
+   "nom": "Gros bloc de granit erratique (4 m)",
+   "cat": "rochers",
+   "triangles": 40,
+   "taille": [
+    3.97,
+    4.38,
+    2.33
+   ]
+  },
+  {
+   "id": "eboulis",
+   "nom": "Éboulis : pierres de toutes tailles",
+   "cat": "rochers",
+   "triangles": 280,
+   "taille": [
+    4.4,
+    4.36,
+    0.75
+   ]
+  },
+  {
+   "id": "rochers_cote",
+   "nom": "Rochers de bord de mer, noircis en bas",
+   "cat": "rochers",
+   "triangles": 60,
+   "taille": [
+    4.27,
+    2.95,
+    1.81
+   ]
+  },
+  {
+   "id": "rocher_rouge",
+   "nom": "Rocher de grès rouge (déserts, canyons)",
+   "cat": "rochers",
+   "triangles": 40,
+   "taille": [
+    4.36,
+    3.07,
+    2.78
+   ]
+  },
+  {
+   "id": "falaise_bloc",
+   "nom": "Pan de roche dressé",
+   "cat": "rochers",
+   "triangles": 64,
+   "taille": [
+    4.14,
+    3.96,
+    5.57
+   ]
+  },
+  {
+   "id": "menhir",
+   "nom": "Menhir (pierre dressée de 4 m)",
+   "cat": "rochers",
+   "triangles": 60,
+   "taille": [
+    1.51,
+    1.23,
+    4.42
+   ]
+  },
+  {
+   "id": "dolmen",
+   "nom": "Dolmen : table de pierre sur trois montants",
+   "cat": "rochers",
+   "triangles": 48,
+   "taille": [
+    3.6,
+    2.71,
+    2.46
+   ]
+  },
+  {
+   "id": "cairn",
+   "nom": "Cairn de randonneurs",
+   "cat": "rochers",
+   "triangles": 120,
+   "taille": [
+    0.74,
+    0.88,
+    1.33
+   ]
+  },
+  {
+   "id": "galets",
+   "nom": "Galets ronds de rivière (2 m)",
+   "cat": "rochers",
+   "triangles": 180,
+   "taille": [
+    1.65,
+    1.7,
+    0.17
+   ]
+  },
+  {
+   "id": "souche",
+   "nom": "Souche d'arbre coupé et ses racines",
+   "cat": "rochers",
+   "triangles": 88,
+   "taille": [
+    1.74,
+    1.67,
+    0.59
+   ]
+  },
+  {
+   "id": "tronc_mort",
+   "nom": "Tronc couché, gagné par la mousse (6 m)",
+   "cat": "rochers",
+   "triangles": 80,
+   "taille": [
+    6.02,
+    1.32,
+    1.24
+   ]
+  }
+ ]
+}

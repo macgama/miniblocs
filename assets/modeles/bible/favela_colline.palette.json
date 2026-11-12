@@ -1,0 +1,50 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "enduit_jaune": {
+   "index": 0,
+   "origine": "#ecd59a"
+  },
+  "beton_sombre": {
+   "index": 1,
+   "origine": "#8c8a85"
+  },
+  "blanc": {
+   "index": 2,
+   "origine": "#f7f7f5"
+  },
+  "vitre": {
+   "index": 3,
+   "origine": "#33495e"
+  },
+  "bleu": {
+   "index": 4,
+   "origine": "#2a6fdb"
+  },
+  "brique_claire": {
+   "index": 5,
+   "origine": "#c87f5d"
+  },
+  "enduit_bleu": {
+   "index": 6,
+   "origine": "#c9dbe3"
+  },
+  "enduit_rose": {
+   "index": 7,
+   "origine": "#e9c2b0"
+  },
+  "enduit_vert": {
+   "index": 8,
+   "origine": "#cfdcc0"
+  },
+  "ocre": {
+   "index": 9,
+   "origine": "#d39b5a"
+  },
+  "beton_clair": {
+   "index": 10,
+   "origine": "#d4d1ca"
+  }
+ }
+}

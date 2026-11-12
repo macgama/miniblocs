@@ -16,6 +16,7 @@ FAMILLES = [
     ("industrie", "Industrie et énergie", "Ateliers, usines, entrepôts, énergie, chantiers et infrastructures."),
     ("fermes", "Fermes et agriculture", "Fermes, granges, étables, silos, serres, moulins et bâtiments agricoles."),
     ("commerces", "Commerces, loisirs et hôtels", "Boutiques, marchés, grandes surfaces, restaurants, hôtels, bureaux, loisirs."),
+    ("monde", "Styles du monde et monuments", "Terre d'Afrique et du Moyen-Orient, temples et maisons d'Asie, Amériques, Océanie, monuments anciens."),
 ]
 
 CATS = {"logement": "Logement", "commerce": "Commerce", "industrie": "Industrie",
@@ -35,6 +36,8 @@ région et son époque (les filtres du panneau), et plusieurs variantes de coule
 ![Les bâtiments publics posés dans le jeu](bible-blender/jeu-publics.jpg)
 
 ![La nuit, les fenêtres des immeubles s'allument](bible-blender/jeu-nuit.jpg)
+
+![Fermes et serres un matin de brume](bible-blender/jeu-fermes.jpg)
 
 ## Comment ça marche
 

@@ -1,0 +1,58 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "pelouse": {
+   "index": 0,
+   "origine": "#6aa84f"
+  },
+  "pierre_claire": {
+   "index": 1,
+   "origine": "#d8d0bf"
+  },
+  "blanc": {
+   "index": 2,
+   "origine": "#f7f7f5"
+  },
+  "vitre": {
+   "index": 3,
+   "origine": "#33495e"
+  },
+  "cadre": {
+   "index": 4,
+   "origine": "#f4f1ea"
+  },
+  "bois_sombre": {
+   "index": 5,
+   "origine": "#5a3e2b"
+  },
+  "bois_clair": {
+   "index": 6,
+   "origine": "#c39a6b"
+  },
+  "ardoise": {
+   "index": 7,
+   "origine": "#5b5f66"
+  },
+  "sous_toit": {
+   "index": 8,
+   "origine": "#6a5040"
+  },
+  "bois": {
+   "index": 9,
+   "origine": "#8a6142"
+  },
+  "pierre_grise": {
+   "index": 10,
+   "origine": "#9c988f"
+  },
+  "vert": {
+   "index": 11,
+   "origine": "#3f8f5a"
+  },
+  "rouge": {
+   "index": 12,
+   "origine": "#c0392b"
+  }
+ }
+}

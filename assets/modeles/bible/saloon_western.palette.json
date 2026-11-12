@@ -1,0 +1,46 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "bois": {
+   "index": 0,
+   "origine": "#8a6142"
+  },
+  "blanc": {
+   "index": 1,
+   "origine": "#f7f7f5"
+  },
+  "vitre": {
+   "index": 2,
+   "origine": "#33495e"
+  },
+  "cadre": {
+   "index": 3,
+   "origine": "#f4f1ea"
+  },
+  "bois_sombre": {
+   "index": 4,
+   "origine": "#5a3e2b"
+  },
+  "tole": {
+   "index": 5,
+   "origine": "#9aa0a6"
+  },
+  "sous_toit": {
+   "index": 6,
+   "origine": "#6a5040"
+  },
+  "bois_rouge": {
+   "index": 7,
+   "origine": "#8e3b2e"
+  },
+  "jaune": {
+   "index": 8,
+   "origine": "#f2c14e"
+  },
+  "bois_gris": {
+   "index": 9,
+   "origine": "#8b8478"
+  }
+ }
+}

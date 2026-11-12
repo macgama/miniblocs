@@ -1,0 +1,22 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "pelouse": {
+   "index": 0,
+   "origine": "#6aa84f"
+  },
+  "verre_nuit": {
+   "index": 1,
+   "origine": "#1d2d3c"
+  },
+  "metal": {
+   "index": 2,
+   "origine": "#7d8288"
+  },
+  "blanc": {
+   "index": 3,
+   "origine": "#f7f7f5"
+  }
+ }
+}

@@ -1,0 +1,26 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "beton_clair": {
+   "index": 0,
+   "origine": "#d4d1ca"
+  },
+  "pelouse": {
+   "index": 1,
+   "origine": "#6aa84f"
+  },
+  "metal": {
+   "index": 2,
+   "origine": "#7d8288"
+  },
+  "verre_bleu": {
+   "index": 3,
+   "origine": "#4f6d8f"
+  },
+  "blanc": {
+   "index": 4,
+   "origine": "#f7f7f5"
+  }
+ }
+}

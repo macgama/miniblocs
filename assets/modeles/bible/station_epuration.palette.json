@@ -1,0 +1,50 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "beton_clair": {
+   "index": 0,
+   "origine": "#d4d1ca"
+  },
+  "terre": {
+   "index": 1,
+   "origine": "#b9825a"
+  },
+  "metal": {
+   "index": 2,
+   "origine": "#7d8288"
+  },
+  "eau": {
+   "index": 3,
+   "origine": "#3fa7d6"
+  },
+  "beton_sombre": {
+   "index": 4,
+   "origine": "#8c8a85"
+  },
+  "bardage_vert": {
+   "index": 5,
+   "origine": "#5d7d5a"
+  },
+  "cadre": {
+   "index": 6,
+   "origine": "#f4f1ea"
+  },
+  "verre_ciel": {
+   "index": 7,
+   "origine": "#6d97b8"
+  },
+  "tole": {
+   "index": 8,
+   "origine": "#9aa0a6"
+  },
+  "tole_verte": {
+   "index": 9,
+   "origine": "#4f6b52"
+  },
+  "zinc": {
+   "index": 10,
+   "origine": "#7e8890"
+  }
+ }
+}

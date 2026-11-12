@@ -1,0 +1,30 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "brique": {
+   "index": 0,
+   "origine": "#a9583f"
+  },
+  "tuile": {
+   "index": 1,
+   "origine": "#c8553d"
+  },
+  "sous_toit": {
+   "index": 2,
+   "origine": "#6a5040"
+  },
+  "brique_sombre": {
+   "index": 3,
+   "origine": "#7e3b2c"
+  },
+  "noir": {
+   "index": 4,
+   "origine": "#2a2b2e"
+  },
+  "bois_gris": {
+   "index": 5,
+   "origine": "#8b8478"
+  }
+ }
+}

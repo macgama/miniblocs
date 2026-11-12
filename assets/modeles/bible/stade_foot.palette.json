@@ -1,0 +1,50 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "pelouse": {
+   "index": 0,
+   "origine": "#6aa84f"
+  },
+  "vert": {
+   "index": 1,
+   "origine": "#3f8f5a"
+  },
+  "marquage": {
+   "index": 2,
+   "origine": "#f2f2ee"
+  },
+  "blanc": {
+   "index": 3,
+   "origine": "#f7f7f5"
+  },
+  "rouge": {
+   "index": 4,
+   "origine": "#c0392b"
+  },
+  "beton_clair": {
+   "index": 5,
+   "origine": "#d4d1ca"
+  },
+  "tole": {
+   "index": 6,
+   "origine": "#9aa0a6"
+  },
+  "sous_toit": {
+   "index": 7,
+   "origine": "#6a5040"
+  },
+  "verre_bleu": {
+   "index": 8,
+   "origine": "#4f6d8f"
+  },
+  "bleu": {
+   "index": 9,
+   "origine": "#2a6fdb"
+  },
+  "metal": {
+   "index": 10,
+   "origine": "#7d8288"
+  }
+ }
+}

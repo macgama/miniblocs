@@ -1,0 +1,34 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "eau": {
+   "index": 0,
+   "origine": "#3fa7d6"
+  },
+  "bois_gris": {
+   "index": 1,
+   "origine": "#8b8478"
+  },
+  "bois_sombre": {
+   "index": 2,
+   "origine": "#5a3e2b"
+  },
+  "bois_clair": {
+   "index": 3,
+   "origine": "#c39a6b"
+  },
+  "verre_clair": {
+   "index": 4,
+   "origine": "#8fb8d8"
+  },
+  "chaume": {
+   "index": 5,
+   "origine": "#c9a861"
+  },
+  "sous_toit": {
+   "index": 6,
+   "origine": "#6a5040"
+  }
+ }
+}

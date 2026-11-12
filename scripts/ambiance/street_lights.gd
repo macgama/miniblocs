@@ -24,6 +24,8 @@ var transport: TransportSystem
 ## Position de chaque tête de lampadaire (repère du monde).
 var heads := PackedVector3Array()
 var night := 0.0
+## Quartiers sans courant (tempête) : Vector4(x, y, z, rayon). Leurs lampadaires n'éclairent plus.
+var dark_zones: Array[Vector4] = []
 
 var _multimesh: MultiMesh
 var _mm_instance: MultiMeshInstance3D
@@ -187,7 +189,7 @@ func _process(delta: float) -> void:
 	var r2 := LIGHT_RADIUS * LIGHT_RADIUS
 	for i in heads.size():
 		var d2 := heads[i].distance_squared_to(focus)
-		if d2 < r2:
+		if d2 < r2 and not _in_dark(heads[i]):
 			near.append(Vector2(d2, i))
 	near.sort_custom(func(a: Vector2, b: Vector2) -> bool: return a.x < b.x)
 	for k in _lights.size():
@@ -198,3 +200,10 @@ func _process(delta: float) -> void:
 			l.visible = true
 		else:
 			l.visible = false
+
+
+func _in_dark(p: Vector3) -> bool:
+	for z in dark_zones:
+		if Vector2(p.x - z.x, p.z - z.z).length() < z.w:
+			return true
+	return false

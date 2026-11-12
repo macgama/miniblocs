@@ -1,0 +1,46 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "terre": {
+   "index": 0,
+   "origine": "#b9825a"
+  },
+  "pierre_claire": {
+   "index": 1,
+   "origine": "#d8d0bf"
+  },
+  "vitre": {
+   "index": 2,
+   "origine": "#33495e"
+  },
+  "vert": {
+   "index": 3,
+   "origine": "#3f8f5a"
+  },
+  "cadre": {
+   "index": 4,
+   "origine": "#f4f1ea"
+  },
+  "bois_sombre": {
+   "index": 5,
+   "origine": "#5a3e2b"
+  },
+  "tuile": {
+   "index": 6,
+   "origine": "#c8553d"
+  },
+  "sous_toit": {
+   "index": 7,
+   "origine": "#6a5040"
+  },
+  "brique": {
+   "index": 8,
+   "origine": "#a9583f"
+  },
+  "pierre_grise": {
+   "index": 9,
+   "origine": "#9c988f"
+  }
+ }
+}

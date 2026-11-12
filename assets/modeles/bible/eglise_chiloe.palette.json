@@ -1,0 +1,30 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "jaune": {
+   "index": 0,
+   "origine": "#f2c14e"
+  },
+  "blanc": {
+   "index": 1,
+   "origine": "#f7f7f5"
+  },
+  "vitre": {
+   "index": 2,
+   "origine": "#33495e"
+  },
+  "bois_gris": {
+   "index": 3,
+   "origine": "#8b8478"
+  },
+  "sous_toit": {
+   "index": 4,
+   "origine": "#6a5040"
+  },
+  "bleu": {
+   "index": 5,
+   "origine": "#2a6fdb"
+  }
+ }
+}

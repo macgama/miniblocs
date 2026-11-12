@@ -1,0 +1,42 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "beton_clair": {
+   "index": 0,
+   "origine": "#d4d1ca"
+  },
+  "metal": {
+   "index": 1,
+   "origine": "#7d8288"
+  },
+  "bardage": {
+   "index": 2,
+   "origine": "#a4aab0"
+  },
+  "tole": {
+   "index": 3,
+   "origine": "#9aa0a6"
+  },
+  "sous_toit": {
+   "index": 4,
+   "origine": "#6a5040"
+  },
+  "chaume": {
+   "index": 5,
+   "origine": "#c9a861"
+  },
+  "vert": {
+   "index": 6,
+   "origine": "#3f8f5a"
+  },
+  "verre_nuit": {
+   "index": 7,
+   "origine": "#1d2d3c"
+  },
+  "noir": {
+   "index": 8,
+   "origine": "#2a2b2e"
+  }
+ }
+}

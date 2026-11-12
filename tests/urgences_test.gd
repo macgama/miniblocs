@@ -219,23 +219,34 @@ func _city_tests() -> void:
 	_check(not urg._cover_mesh.visible, "couverture masquée")
 
 	print("Événements de la ville :")
-	var ev := _fake_events()
-	root.add_child(ev)
+	# Le vrai Evenements (/root/Evenements) existe dans le jeu ; sinon un faux.
+	var real := root.get_node_or_null("Evenements") as Evenements
+	var ev: Node = real
+	if real == null:
+		ev = _fake_events()
+		root.add_child(ev)
 	# Dans le jeu, l'autoload existe dès le départ ; ici on le branche à la main.
 	urg._connect_events()
 	var eid: int = ev.call("declarer", {"type": "incendie", "position": Vector3(-200, y, 6), "gravite": 2, "besoin": ["pompiers"]})
 	_check(urg.incidents.has(eid), "incendie déclaré par Evenements : pris en charge")
-	_check(int(ev.get("taken")) == eid, "prendre_en_charge appelé")
-	_check((urg.incidents[eid].units as Array).size() == 2, "gravité 2 : deux engins de pompiers")
+	if real != null:
+		_check(String(real.incident(eid).get("etat", "")) == "pris", "prendre_en_charge appelé")
+	else:
+		_check(int(ev.get("taken")) == eid, "prendre_en_charge appelé")
+	_check(urg.incidents.has(eid) and (urg.incidents[eid].units as Array).size() == 2, "gravité 2 : deux engins de pompiers")
 	for i in 6000:
 		tf.step(0.1)
 		urg.step(0.1)
 		if not urg.incidents.has(eid):
 			break
-	_check(int(ev.get("solved")) == eid, "resoudre appelé après le travail sur place")
+	if real != null:
+		_check(String(real.incident(eid).get("etat", "")) == "resolu", "resoudre appelé après le travail sur place")
+	else:
+		_check(int(ev.get("solved")) == eid, "resoudre appelé après le travail sur place")
 	var lid := urg.random_call("malaise", Vector3(0, y, 0))
 	_check(lid < 0 or urg.incidents.has(lid), "appel au hasard (passe par Evenements quand il existe)")
-	ev.free()
+	if real == null:
+		ev.free()
 
 	print("Sauvegarde :")
 	var d := urg.to_dict()

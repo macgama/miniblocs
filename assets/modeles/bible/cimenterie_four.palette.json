@@ -1,0 +1,30 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "beton_clair": {
+   "index": 0,
+   "origine": "#d4d1ca"
+  },
+  "metal": {
+   "index": 1,
+   "origine": "#7d8288"
+  },
+  "tole": {
+   "index": 2,
+   "origine": "#9aa0a6"
+  },
+  "beton_sombre": {
+   "index": 3,
+   "origine": "#8c8a85"
+  },
+  "blanc": {
+   "index": 4,
+   "origine": "#f7f7f5"
+  },
+  "rouge": {
+   "index": 5,
+   "origine": "#c0392b"
+  }
+ }
+}

@@ -1,0 +1,34 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "pierre_claire": {
+   "index": 0,
+   "origine": "#d8d0bf"
+  },
+  "blanc": {
+   "index": 1,
+   "origine": "#f7f7f5"
+  },
+  "rouge": {
+   "index": 2,
+   "origine": "#c0392b"
+  },
+  "jaune": {
+   "index": 3,
+   "origine": "#f2c14e"
+  },
+  "bleu": {
+   "index": 4,
+   "origine": "#2a6fdb"
+  },
+  "vert": {
+   "index": 5,
+   "origine": "#3f8f5a"
+  },
+  "metal": {
+   "index": 6,
+   "origine": "#7d8288"
+  }
+ }
+}

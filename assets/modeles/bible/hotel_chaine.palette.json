@@ -1,0 +1,66 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "asphalte": {
+   "index": 0,
+   "origine": "#55585e"
+  },
+  "marquage": {
+   "index": 1,
+   "origine": "#f2f2ee"
+  },
+  "enduit_blanc": {
+   "index": 2,
+   "origine": "#f4f2ec"
+  },
+  "metal": {
+   "index": 3,
+   "origine": "#7d8288"
+  },
+  "vitre": {
+   "index": 4,
+   "origine": "#33495e"
+  },
+  "cadre": {
+   "index": 5,
+   "origine": "#f4f1ea"
+  },
+  "verre_clair": {
+   "index": 6,
+   "origine": "#8fb8d8"
+  },
+  "bleu": {
+   "index": 7,
+   "origine": "#2a6fdb"
+  },
+  "orange": {
+   "index": 8,
+   "origine": "#e4772e"
+  },
+  "vert": {
+   "index": 9,
+   "origine": "#3f8f5a"
+  },
+  "rouge": {
+   "index": 10,
+   "origine": "#c0392b"
+  },
+  "jaune": {
+   "index": 11,
+   "origine": "#f2c14e"
+  },
+  "beton_clair": {
+   "index": 12,
+   "origine": "#d4d1ca"
+  },
+  "beton_sombre": {
+   "index": 13,
+   "origine": "#8c8a85"
+  },
+  "blanc": {
+   "index": 14,
+   "origine": "#f7f7f5"
+  }
+ }
+}

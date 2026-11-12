@@ -50,6 +50,12 @@ const SECTIONS := [
 		["Personnaliser (fiche d'un bâtiment)", "couleurs, toit, étages, pente, variante ; « Ouvrir l'intérieur » le refait en murs fins, meublé et visitable"],
 		["Banque (6) · Atelier (7)", "tes modèles étiquetés (type, style, époque, couleur) à reposer ou échanger ; l'atelier : terrain plat sans habitants ni argent"],
 	]],
+	["Événements", [
+		["I", "panneau Infos : événements en cours et à venir, journal, organiser une fête ou un marché, dégâts à réparer, stades et classement"],
+		["Fil d'actualité (haut de l'écran)", "clic sur une nouvelle pour aller sur place"],
+		["Incendie, tempête, épidémie à la main", "panneau Infos, onglet Organiser, puis clic sur la carte (Échap pour annuler)"],
+		["Catastrophes", "panneau Admin (F10), section Événements : les couper ou régler leur fréquence"],
+	]],
 	["Transports publics", [
 		["L", "panneau Lignes : arrêts, stations de métro, gares, ports, aéroports, dépôts de marchandises, parkings et lignes (case Fret pour les trains et les bateaux)"],
 	]],

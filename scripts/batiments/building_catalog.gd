@@ -123,6 +123,7 @@ static func all_types() -> Dictionary:
 		_all.merge(EspacesPublics.entries())
 		_all.merge(ProductionTypes.entries())
 		_all.merge(CommercesTypes.entries())
+		_all.merge(Stades.entries())
 		_all.merge(StyleBuilder.generate())
 		_all.merge(BibleGlb.entries())
 		for id in Creations.items:
@@ -200,6 +201,8 @@ static func build_mesh(id: String, material: Material = null, details := true, v
 		return k.to_mesh(material)
 	if t.has("blocks"):
 		return Creations.build_mesh(t)
+	if t.has("glb") and t.has("stade"):
+		return Stades.build_mesh(t)
 	if t.has("glb"):
 		return BibleGlb.build_mesh(id, material, details, variant)
 	if t.has("boutique_eco"):

@@ -37,7 +37,8 @@ func _run() -> void:
 		n_types += 1
 		var t := BuildingCatalog.get_type(id)
 		var m := BuildingCatalog.build_mesh(id)
-		if m.get_surface_count() != 1:
+		# Les stades (modèles Blender) gardent leurs matériaux : plusieurs surfaces.
+		if m.get_surface_count() == 0 or (m.get_surface_count() != 1 and not t.has("stade")):
 			all_ok = false
 			push_error("modèle vide : " + id)
 			continue

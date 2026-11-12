@@ -261,6 +261,11 @@ func _run() -> void:
 	_check(has_body, "les blocs ont une collision")
 	var bnode: Node = bs._nodes[id]
 	_check(bnode.get_child(0) is StaticBody3D, "les bâtiments ont une collision")
+	# Finitions low-poly : plus de détail de près, version légère au loin.
+	var fin := BuildingCatalog.build_mesh("colombages__maison")
+	var leger := BuildingCatalog.build_mesh("colombages__maison", null, false)
+	_check(fin.surface_get_array_len(0) > leger.surface_get_array_len(0) * 2, "finitions : toits en rangs, appuis, soubassement")
+	_check(bnode.get_node_or_null("Loin") != null and (bnode as MeshInstance3D).visibility_range_end < 1000.0, "version légère au loin")
 	_check(world.modifications.has(Vector2i(-120, -100)), "pas d'arbres sous les blocs")
 
 	print("Espaces publics :")

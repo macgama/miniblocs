@@ -128,7 +128,50 @@ func appliquer_etat(d: Dictionary) -> void:
 
 # --- Corps low-poly -------------------------------------------------------------
 
+## Apparence du corps (Silhouettes.apparence) ; vide = personnage par défaut
+## avec le haut de la couleur `couleur`.
+var apparence: Dictionary = {}
+
+
+## Change de corps (par exemple pour incarner un habitant). {} = par défaut.
+func prendre_apparence(look: Dictionary) -> void:
+	apparence = look
+	var cap := 0.0
+	if _corps != null:
+		cap = _corps.rotation.y
+		_corps.free()
+		_corps = null
+	_jambes.clear()
+	_bras.clear()
+	_construire_corps()
+	_corps.rotation.y = cap
+
+
 func _construire_corps() -> void:
+	if Silhouettes.disponible():
+		var look := apparence
+		if look.is_empty():
+			look = Silhouettes.apparence(1, 32.0, "H", "europe", 1)
+			look.haut = couleur
+			look.coiffure = "court"
+			look.habit = ""
+			look.manches = 1.0
+			look.jambes = 1.0
+			look.echelle = TAILLE / 1.74
+		_corps = Node3D.new()
+		_corps.name = "Corps"
+		add_child(_corps)
+		var fig := Silhouettes.creer(look, true)
+		# Le personnage regarde vers −Z (comme la caméra), les modèles vers +Z.
+		fig.rotation.y = PI
+		_corps.add_child(fig)
+		var rig := Silhouettes.os(fig)
+		_jambes.append(rig.jambe_g)
+		_jambes.append(rig.jambe_d)
+		_bras.append(rig.bras_g)
+		_bras.append(rig.bras_d)
+		_couche(_corps)
+		return
 	_corps = Node3D.new()
 	_corps.name = "Corps"
 	add_child(_corps)
@@ -153,6 +196,14 @@ func _construire_corps() -> void:
 	_bloc(_corps, Vector3(0.0, 1.76, 0.02), Vector3(0.28, 0.07, 0.3), Color("4a3426"))
 	# Petit nez : on voit de quel côté il regarde.
 	_bloc(_corps, Vector3(0.0, 1.58, -0.14), Vector3(0.05, 0.06, 0.04), peau.darkened(0.1))
+
+
+## Corps sur la couche que la caméra 1re personne n'affiche pas.
+func _couche(n: Node) -> void:
+	if n is VisualInstance3D:
+		(n as VisualInstance3D).layers = COUCHE_CORPS
+	for c in n.get_children():
+		_couche(c)
 
 
 func _bloc(parent: Node3D, pos: Vector3, taille: Vector3, col: Color) -> void:

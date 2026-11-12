@@ -1467,6 +1467,8 @@ func incarnate(pid: int) -> bool:
 	_incarne = pid
 	if not vue_sol.vue_changee.is_connected(_on_vue):
 		vue_sol.vue_changee.connect(_on_vue)
+	if vue_sol.personnage != null:
+		vue_sol.personnage.prendre_apparence(Silhouettes.apparence_habitant(self, pid))
 	vue_sol.set_vue(VueSol.Vue.TROISIEME)
 	var p: Dictionary = persons[pid]
 	message.emit("Tu es %s. ZQSD pour marcher, V pour revenir à la vue de dessus." % CycleVie.full_name(p))
@@ -1478,6 +1480,8 @@ func _on_vue(v: int) -> void:
 	if v == VueSol.Vue.DESSUS and _incarne >= 0:
 		var pid := _incarne
 		_incarne = -1
+		if vue_sol != null and vue_sol.personnage != null:
+			vue_sol.personnage.prendre_apparence({})
 		if persons.has(pid):
 			message.emit("%s reprend sa journée." % CycleVie.full_name(persons[pid]))
 		plan_changed(pid)

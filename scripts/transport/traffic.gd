@@ -443,6 +443,28 @@ func walker_count() -> int:
 	return c
 
 
+## Piéton d'ambiance : personnage arrondi (Silhouettes) au hasard, ou bloc
+## si les modèles ne sont pas importés.
+func _walker_body() -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	mi.material_override = _material
+	_walker_look(mi)
+	return mi
+
+
+func _walker_look(mi: MeshInstance3D) -> void:
+	if not Silhouettes.disponible():
+		mi.mesh = _mesh("walker_%d" % (rng.randi() % 5))
+		return
+	var regions := ["europe", "mediterranee", "afrique", "moyen_orient", "asie_sud", "asie_est", "ameriques", "oceanie"]
+	var graine := rng.randi()
+	var age := rng.randf_range(14.0, 85.0) if rng.randf() < 0.88 else rng.randf_range(4.0, 14.0)
+	var look := Silhouettes.apparence(graine, age, "F" if rng.randf() < 0.5 else "H", regions[graine % regions.size()], graine)
+	var fig := Silhouettes.creer(look)
+	mi.add_child(fig)
+	mi.set_meta("fig", fig)
+
+
 ## Fait apparaître un piéton sur un trottoir au hasard.
 func spawn_walker() -> bool:
 	sidewalk_length()
@@ -456,9 +478,7 @@ func spawn_walker() -> bool:
 		"s": rng.randf() * float(e.len), "trail": PackedVector3Array(), "wagons": [], "speed": 0.0, "lane": 0.0, "lane_idx": 0,
 		"factor": 1.0, "own_speed": rng.randf_range(1.1, 1.6), "max_speed": INF, "model": "", "gaps": [],
 		"sidewalk": 1.0 if rng.randf() < 0.5 else -1.0, "cross": 0, "uid": _uid, "half": 0.3, "rear": 0.3}
-	var mi := MeshInstance3D.new()
-	mi.material_override = _material
-	mi.mesh = _mesh("walker_%d" % (rng.randi() % 5))
+	var mi := _walker_body()
 	add_child(mi)
 	v.body = mi
 	vehicles.append(v)
@@ -1132,6 +1152,8 @@ func _place(v: Dictionary) -> void:
 	var body: Node3D = v.body
 	body.position = pos
 	body.basis = Basis.looking_at(look, Vector3.UP)
+	if body.has_meta("fig"):
+		Silhouettes.marcher(body.get_meta("fig"), float(v.s) * 2.6, 1.0)
 	if not (v.wagons as Array).is_empty():
 		var gaps: Array = v.gaps
 		var trail: PackedVector3Array = v.trail
@@ -1188,8 +1210,10 @@ func _make_body(v: Dictionary) -> void:
 	add_child(mi)
 	v.body = mi
 	if model == "":
-		var key := "walker_%d" % (rng.randi() % 5) if mode == TransportTypes.Mode.PATH else "boat"
-		mi.mesh = _mesh(key)
+		if mode == TransportTypes.Mode.PATH:
+			_walker_look(mi)
+		else:
+			mi.mesh = _mesh("boat")
 		v.own_speed = rng.randf_range(1.1, 1.6) if mode == TransportTypes.Mode.PATH else 0.0
 		return
 	var t := VehicleCatalog.get_type(model)

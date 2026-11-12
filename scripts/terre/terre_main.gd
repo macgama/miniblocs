@@ -17,6 +17,9 @@ var _tool_class := {}
 
 var _status_timer := 0.0
 var transit_panel: StationPanel
+## Habitants : vie, foyers, travail, école, loisirs et budget (touche H).
+var population: Population
+var habitants_panel: HabitantsPanel
 var _hover := Vector2i.ZERO
 var _hover_valid := false
 
@@ -40,6 +43,7 @@ func _ready() -> void:
 	hud.tool_selected.connect(_on_tool_selected)
 	_setup_landscape()
 	_setup_transit()
+	_setup_population()
 	hud.traffic_toggled.connect(func(on: bool) -> void: transport.traffic.set_enabled(on))
 	hud.traffic_filter_changed.connect(func(era: String, region: String) -> void:
 		transport.traffic.set_filters(era, region)
@@ -113,7 +117,7 @@ func _ready() -> void:
 			hud.show_message("Partie chargée : %s." % _game_title())
 		else:
 			hud.show_message("Chargement impossible : " + last_error))
-	for sig in [world.terrain_edited, transport.network_changed, buildings.changed, zones.changed, blocks.changed, transport.stations.lines_changed, transport.junctions.changed]:
+	for sig in [world.terrain_edited, transport.network_changed, buildings.changed, zones.changed, blocks.changed, transport.stations.lines_changed, transport.junctions.changed, population.changed]:
 		(sig as Signal).connect(func(_a = null) -> void: _unsaved = true)
 	hud.city_requested.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/main.tscn"))
 	hud.globe_requested.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/globe.tscn"))
@@ -153,7 +157,7 @@ func save_sections() -> Dictionary:
 	return {"terrain": world.to_dict(), "transport": transport.to_dict(), "batiments": buildings.to_dict(),
 		"zones": zones.to_dict(), "blocs": blocks.to_dict(), "ambiance": ambiance.to_dict(),
 		"creations": Creations.to_dict(Creations.used_by(buildings)),
-		"personnage": ($VueSol as VueSol).to_dict()}
+		"personnage": ($VueSol as VueSol).to_dict(), "habitants": population.to_dict()}
 
 
 ## Sauvegarde dans la partie en cours (ou une nouvelle). title : nom d'une nouvelle partie.
@@ -171,7 +175,7 @@ func save_game(slot := "", title := "") -> bool:
 		"mode": ["bac_a_sable", "entre_amis", "mondiale"][int(GameStart.mode)],
 		"camera": {"x": snappedf(rig.position.x, 0.01), "z": snappedf(rig.position.z, 0.01),
 			"distance": snappedf(rig._target_distance, 0.01), "angle": snappedf(rig.rotation_degrees.y, 0.01)},
-		"resume": {"batiments": t.count, "logements": t.logements, "emplois": t.emplois,
+		"resume": {"habitants": population.persons.size(), "batiments": t.count, "logements": t.logements, "emplois": t.emplois,
 			"reseau": TransportSystem._km(_network_length()),
 			"blocs": blocks.blocks.size(), "cases_modifiees": world.modifications.size()},
 	}
@@ -202,6 +206,7 @@ func load_game(slot := "") -> bool:
 	Creations.adopt(sec.get("creations", {}))
 	buildings.from_dict(sec.get("batiments", {}))
 	zones.from_dict(sec.get("zones", {}))
+	population.from_dict(sec.get("habitants", {}))
 	blocks.from_dict(sec.get("blocs", {}))
 	ambiance.from_dict(sec.get("ambiance", {}))
 	($VueSol as VueSol).from_dict(sec.get("personnage", {}))
@@ -221,6 +226,27 @@ func load_game(slot := "") -> bool:
 	if last_error != "":
 		hud.show_message("Partie chargée avec des pertes : " + last_error)
 	return true
+
+
+## Habitants (simulation) et leur panneau.
+func _setup_population() -> void:
+	population = Population.new()
+	population.name = "Habitants"
+	add_child(population)
+	population.world = world
+	population.buildings = buildings
+	population.transport = transport
+	population.ambiance = ambiance
+	population.message.connect(func(t: String) -> void: hud.show_message(t))
+	buildings.changed.connect(func() -> void: population._sync_buildings.call_deferred())
+	habitants_panel = HabitantsPanel.new()
+	habitants_panel.name = "PanneauHabitants"
+	add_child(habitants_panel)
+	habitants_panel.setup(population)
+	habitants_panel.focus_requested.connect(func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
+	hud.habitants_requested.connect(func() -> void: habitants_panel.toggle())
 
 
 ## Panneau des transports publics : stations et lignes.
@@ -381,6 +407,7 @@ func _on_tool_selected(t: int) -> void:
 
 func _on_origin_changed(lat: float, lon: float) -> void:
 	# Nouvelle région : réseau vierge.
+	population.clear()
 	transport.clear()
 	buildings.clear()
 	zones.clear()
@@ -426,7 +453,7 @@ func _process(delta: float) -> void:
 		if world.water.status != "":
 			s += "   ·   " + world.water.status
 		hud.set_status(s)
-		hud.set_network_info(transport.summary())
+		hud.set_network_info(transport.summary() + "   ·   " + population.summary())
 		build_panel.set_money("Caisse : illimitée" if buildings.unlimited_money else "Caisse : " + BuildingSystem.format_money(buildings.money))
 		build_panel.set_summary(buildings.summary())
 		build_panel.set_zone_info(zones.summary())

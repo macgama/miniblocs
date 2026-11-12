@@ -361,6 +361,12 @@ Le mode Terre a maintenant une **horloge** : le Soleil et la Lune sont à leur v
 
 Détails et limites : [docs/ambiance.md](docs/ambiance.md).
 
+## Démo : le low-poly poussé au maximum
+
+Une ferme entièrement générée en code (longère à colombages et toit de chaume, grange, puits, charrette, potager, champ de blé au vent, mare, brume du matin, soir aux lanternes) pour voir jusqu'où le style peut aller. Ouvre `scenes/demo_ferme.tscn` et appuie sur **F6** ; **1** à **4** changent la lumière, **C** le point de vue. Détails et ce qui est généralisable à tous les bâtiments : [docs/demo-low-poly.md](docs/demo-low-poly.md).
+
+![Démo ferme low-poly](docs/apercu-ferme-cour.jpg)
+
 ## Comment ça marche
 
 - **Routes** : se tracent en L entre le point de départ et la souris. Le marquage s'adapte aux routes voisines (lignes droites, virages, carrefours).
@@ -467,7 +473,7 @@ godot --headless --path . --script res://tests/terre_test.gd
 
 Vérifie les conversions de coordonnées, le décodage des tuiles, la génération des blocs, les rivières (calcul sur une vallée, lecture d'OpenStreetMap, lit creusé, surface d'eau, ponts), le terrassement et la sauvegarde. Il affiche `TERRE TEST OK`. De même, `tests/globe_test.gd` affiche `GLOBE TEST OK`, `tests/transport_test.gd` affiche `TRANSPORT TEST OK` et `tests/batiments_test.gd` affiche `BATIMENTS TEST OK`.
 
-`tests/parcours_test.gd` joue une partie comme un joueur, avec de vraies touches (globe, outils 1-9, B, L, T, V, F1, F5, Continuer) et affiche `PARCOURS TEST OK`. `tests/habitants_test.gd` vérifie les habitants (école, emplois, emploi du temps, budget, bus, sauvegarde, panneau) et affiche `HABITANTS TEST OK`. `tests/sauvegarde_test.gd` vérifie le format des parties (écriture, relecture, section abîmée, import de l'ancienne sauvegarde) et affiche `SAUVEGARDE TEST OK`. `tests/interface_test.gd` vérifie les menus (icônes, barre de catégories, panneaux un à la fois, vignettes, fiche d'un bâtiment) et affiche `INTERFACE TEST OK`.
+`tests/parcours_test.gd` joue une partie comme un joueur, avec de vraies touches (globe, outils 1-9, B, L, T, V, F1, F5, Continuer) et affiche `PARCOURS TEST OK`. `tests/habitants_test.gd` vérifie les habitants (école, emplois, emploi du temps, budget, bus, sauvegarde, panneau) et affiche `HABITANTS TEST OK`. `tests/sauvegarde_test.gd` vérifie le format des parties (écriture, relecture, section abîmée, import de l'ancienne sauvegarde) et affiche `SAUVEGARDE TEST OK`. `tests/interface_test.gd` vérifie les menus (icônes, barre de catégories, panneaux un à la fois, vignettes, fiche d'un bâtiment) et affiche `INTERFACE TEST OK`. `tests/demo_ferme_test.gd` vérifie la démo low-poly (kit de modelage, objets, lumières, vues) et affiche `DEMO TEST OK`.
 
 ```bash
 godot --headless --path . --script res://tests/perf_bench.gd [-- --big] [--reseau]

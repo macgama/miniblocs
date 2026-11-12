@@ -61,6 +61,36 @@ Un seul modèle dans la vitrine : `godot --path . res://scenes/vitrine_modeles.t
 "C:\Program Files\Blender Foundation\Blender 5.2\blender.exe" --background --factory-startup --python tools/blender/batiments/maison_frank.py -- --out assets/modeles/batiments/maison_frank.glb --apercu apercu.png --azimuts -8,40
 ```
 
+## Stades de la Super League suisse (saison 2026-2027)
+
+Un stade par club de la saison 2026-2027 (le Letzigrund est partagé par le FC Zurich et Grasshopper). Le stade de la Tuilière a son propre script ; les dix autres sont faits par un **générateur de stades** (`tools/blender/batiments/stade_generique.py`) qui lit une fiche JSON par stade dans `tools/blender/stades/` : dimensions, tribunes (un ou deux niveaux), couleurs des sièges, toit (métal, clair, panneaux solaires, ondulé), façade (lamelles, bandes, ouverte), piste d'athlétisme, socle commercial et bâtiments voisins. Chaque fiche cite ses sources (Wikipédia, photos libres de Wikimedia Commons).
+
+![Les dix stades faits par le générateur](apercu-stades-super-league.jpg)
+
+| Fichier | Stade | Club | Places | Triangles |
+| --- | --- | --- | --- | --- |
+| `stade_bale` | Parc Saint-Jacques, Bâle | FC Bâle | 38 512 | 1 502 |
+| `stade_berne` | Wankdorf, Berne | BSC Young Boys | 31 783 | 1 542 |
+| `stade_geneve` | Stade de Genève, Lancy | Servette FC | 30 084 | 908 |
+| `stade_letzigrund` | Letzigrund, Zurich | FC Zurich, Grasshopper | 26 104 | 1 168 |
+| `stade_saint_gall` | Kybunpark, Saint-Gall | FC Saint-Gall | 19 568 | 1 206 |
+| `stade_lucerne` | Swissporarena, Lucerne | FC Lucerne | 17 000 | 1 222 |
+| `stade_sion` | Tourbillon, Sion | FC Sion | 14 850 | 332 |
+| `stade_tuiliere` | Tuilière, Lausanne | FC Lausanne-Sport | 12 544 | 486 |
+| `stade_thoune` | Stockhorn Arena, Thoune | FC Thoune | 10 398 | 1 398 |
+| `stade_lugano` | AIL Arena, Lugano | FC Lugano | 8 793 | 1 316 |
+| `stade_vaduz` | Rheinpark, Vaduz | FC Vaduz | 6 441 | 318 |
+
+Les formes sont simplifiées et certaines mesures sont estimées d'après les photos (profondeur des tribunes, hauteur du toit, position des tours voisines). L'AIL Arena (2026) n'a pas encore de photo libre : ses volumes et couleurs sont approximatifs.
+
+Refaire tous les stades :
+
+```bash
+for f in tools/blender/stades/*.json; do "C:/Program Files/Blender Foundation/Blender 5.2/blender.exe" --background --factory-startup --python tools/blender/batiments/stade_generique.py -- --desc "$f" --out "assets/modeles/batiments/$(basename "$f" .json).glb"; done
+```
+
+Voir un seul stade dans la vitrine : `godot --path . res://scenes/vitrine_modeles.tscn -- --modele stade_berne`.
+
 ## Outils et ressources gratuits
 
 Seulement des licences compatibles avec un jeu vendu sur Steam.

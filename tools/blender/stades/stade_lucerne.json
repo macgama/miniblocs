@@ -1,0 +1,61 @@
+{
+  "nom": "stade_lucerne",
+  "titre": "Swissporarena (Thermoplan Arena), Lucerne — FC Lucerne",
+  "capacite": 17000,
+  "sources": [
+    "Wikipédia (fr et en), consulté le 12 novembre 2026",
+    "photo libre de Wikimedia Commons (Swissporarena_luftaufnahme_cropped.jpg)"
+  ],
+  "notes": "Bol fermé aux angles arrondis, façade à lamelles dorées, deux tours d'habitation voisines.",
+  "famille": "anneau",
+  "anneau": {
+    "demi_longueur": 58,
+    "demi_largeur": 40,
+    "rayon_angle": 14
+  },
+  "tribunes": {
+    "profondeur": 28,
+    "hauteur": 17,
+    "niveaux": 1,
+    "sieges": [
+      "#1f5fa8"
+    ],
+    "soubassement": 4
+  },
+  "toit": {
+    "hauteur": 21,
+    "dessus": "metal",
+    "couleur": "#6f6a62",
+    "debut": 3,
+    "debord": 1.2
+  },
+  "facade": {
+    "type": "lamelles",
+    "couleurs": [
+      "#c9a96e",
+      "#b8955a"
+    ],
+    "pas": 3,
+    "saillie": 0.5
+  },
+  "batiments": [
+    {
+      "x": 120,
+      "y": 28,
+      "l": 26,
+      "p": 26,
+      "h": 88,
+      "couleur": "#e6e2da",
+      "vitre": true
+    },
+    {
+      "x": 120,
+      "y": -38,
+      "l": 26,
+      "p": 26,
+      "h": 77,
+      "couleur": "#e6e2da",
+      "vitre": true
+    }
+  ]
+}

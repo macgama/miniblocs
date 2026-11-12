@@ -1,0 +1,55 @@
+{
+  "nom": "stade_berne",
+  "titre": "Stade du Wankdorf, Berne — BSC Young Boys",
+  "capacite": 31783,
+  "sources": [
+    "Wikipédia (fr et en), consulté le 12 novembre 2026",
+    "photo libre de Wikimedia Commons (Stadedesuiss2.jpg)"
+  ],
+  "notes": "Bol fermé à deux niveaux, sièges jaunes et noirs, grand toit solaire, gazon synthétique, bloc de commerces et bureaux accolé.",
+  "famille": "anneau",
+  "synthetique": true,
+  "anneau": {
+    "demi_longueur": 59,
+    "demi_largeur": 41,
+    "rayon_angle": 2
+  },
+  "tribunes": {
+    "profondeur": 36,
+    "hauteur": 24,
+    "niveaux": 2,
+    "sieges": [
+      "#f2c200",
+      "#1b1b1b"
+    ],
+    "groupe": 1,
+    "soubassement": 5
+  },
+  "toit": {
+    "hauteur": 28,
+    "dessus": "solaire",
+    "debut": 3,
+    "debord": 1.5,
+    "epaisseur": 2.0
+  },
+  "facade": {
+    "type": "lamelles",
+    "couleurs": [
+      "#3d4248",
+      "#4a5057"
+    ],
+    "pas": 4,
+    "saillie": 0.4
+  },
+  "batiments": [
+    {
+      "x": 0,
+      "y": 104,
+      "l": 170,
+      "p": 40,
+      "h": 22,
+      "couleur": "#9aa3ab",
+      "vitre": true
+    }
+  ]
+}

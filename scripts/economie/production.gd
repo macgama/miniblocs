@@ -202,7 +202,7 @@ func _has_access(bid: int) -> bool:
 	if not s.has("acc"):
 		var b: Dictionary = buildings.buildings[bid]
 		var t := BuildingCatalog.get_type(String(b.t))
-		s.acc = (t.get("access", []) as Array).is_empty() or not buildings.find_access(String(b.t), buildings._rect_of(b), int(b.r)).is_empty()
+		s.acc = (t.get("access", []) as Array).is_empty() or not buildings.find_access(String(b.t), buildings._rect_of(b), int(b.r), float(b.get("a", 0.0))).is_empty()
 	return bool(s.acc)
 
 

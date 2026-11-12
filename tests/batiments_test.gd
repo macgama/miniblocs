@@ -105,6 +105,15 @@ func _run() -> void:
 		for z in range(rect.position.y, rect.end.y):
 			flat = flat and world.cell_height(Vector2i(x, z)) == float(b.h)
 	_check(flat, "emprise de 12 × 10 cases aplanie à %.1f m" % b.h)
+	# La parcelle monte vers l'Est, mais le bâtiment se cale sur la route.
+	var acc := bs.find_access("maison", rect, 3)
+	var road_y := float((acc.pos as Vector3).y)
+	_check(absf(float(b.h) - road_y) <= world.height_step / 2.0 + 0.01, "rez-de-chaussée à la hauteur de la route (%.1f m, route %.2f m)" % [b.h, road_y])
+	var parvis := true
+	for c in bs.path_cells(acc.door, acc.pos):
+		if not rect.has_point(c) and not transport.is_cell_occupied(c):
+			parvis = parvis and world.cell_height(c) == float(b.h)
+	_check(parvis, "chemin de la porte à la route au même niveau")
 	_check(bs.building_at(Vector2i(12, 0)) == id and bs.occupancy.size() == 120, "120 cases occupées")
 	_check(bs.money < money0 and money0 - bs.money >= BuildingCatalog.cost("maison"), "prix payé : %s" % BuildingSystem.format_money(money0 - bs.money))
 	_check(scene.get_node("Batiments").get_child_count() > 3, "modèle 3D ajouté")
@@ -301,6 +310,29 @@ func _run() -> void:
 	Creations.adopt(JSON.parse_string(JSON.stringify(crea_save)))
 	_check(BuildingCatalog.get_type(crea_id).get("name") == "Ma cabane", "création retrouvée depuis la sauvegarde")
 
+	print("Le long d'une voie en biais :")
+	var money_before_diag := bs.money
+	# Le terrain monte vers l'Est : route presque Nord-Sud, à 15°.
+	var ya1 := world.cell_height(Vector2i(60, 40))
+	var ya2 := world.cell_height(Vector2i(81, 120))
+	var diag := transport.build_segment("route", Vector3(60, ya1, 40), Vector3(81.44, ya2, 120))
+	_check(diag.ok, "route à 15° posée (%s)" % diag.get("reason", ""))
+	var snap := bs.road_snap("maison", Vector2i(80, 80))
+	_check(not snap.is_empty() and absf(absf(float(snap.get("a", 0.0))) - deg_to_rad(15.0)) < 0.05, "maison tournée parallèle à la route (%.0f°)" % rad_to_deg(float(snap.get("a", 0.0))))
+	var sid := bs.place("maison", snap.center, snap.r, 0, snap.a)
+	_check(sid > 0, "maison posée en biais")
+	var sb: Dictionary = bs.buildings.get(sid, {})
+	var sacc := bs.find_access("maison", bs._rect_of(sb), int(sb.r), float(sb.a))
+	_check(not sacc.is_empty() and float(sacc.dist) < 4.0 + BuildingSystem.SETBACK + 1.5, "porte au bord de la route (%.1f m de l'axe)" % float(sacc.get("dist", -1.0)))
+	var ncells := 0
+	for c in bs.occupancy:
+		if int(bs.occupancy[c]) == sid:
+			ncells += 1
+	_check(ncells >= 110 and ncells <= 150, "emprise tournée : %d cases occupées (12 × 10 m)" % ncells)
+	_check(not bs.check_place("maison", snap.center, snap.r, false, snap.a).ok, "pas deux maisons au même endroit en biais")
+	nb = bs.buildings.size()
+	bs.money = money_before_diag
+
 	print("Sauvegarde :")
 	_check(world.save_world({"transport": transport.to_dict(), "batiments": bs.to_dict(), "zones": zs.to_dict(), "blocs": be.to_dict()}), "sauvegarde")
 	world.set_origin(45.8326, 6.8652)
@@ -314,6 +346,7 @@ func _run() -> void:
 	be.from_dict(world.loaded_data.get("blocs", {}))
 	_check(be.blocks.size() == nblocks and be.blocks.get(k0) == 0, "blocs restaurés")
 	_check(bs.buildings.size() == nb and bs.building_at(Vector2i(12, 0)) == id, "bâtiments restaurés")
+	_check(absf(float(bs.buildings[sid].get("a", 0.0)) - float(snap.a)) < 0.001 and bs.building_at(snap.center) == sid, "maison en biais restaurée avec son angle")
 	_check(bs.money == before + roundi(paid * BuildingSystem.REFUND) - 45 * 80 * ZoneSystem.PRICE_M2, "caisse restaurée")
 	bs.unlimited_money = true
 	_check(bs.place("maison", Vector2i(12, 20), 3) > id3, "les nouveaux identifiants continuent après les anciens")

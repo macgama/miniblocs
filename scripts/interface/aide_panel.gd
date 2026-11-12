@@ -29,7 +29,7 @@ const SECTIONS := [
 	["Construire (panneau de droite)", [
 		["B", "afficher ou masquer le panneau Construire (catégories en icônes, bâtiments en vignettes)"],
 		["Clic gauche", "poser le bâtiment choisi"],
-		["R", "tourner le bâtiment d'un quart de tour"],
+		["R", "tourner le bâtiment d'un quart de tour (sinon il se cale tout seul le long de la route la plus proche, même courbe, à sa hauteur)"],
 		["Ctrl + Z", "annuler (éditeur libre : blocs, murs et étages)"],
 		["R (éditeur libre)", "tourner l'escalier, la pente, la porte ou la fenêtre d'un quart de tour"],
 		["Enregistrer + clic glissé", "éditeur libre : ta construction devient un bâtiment de « Mes créations »"],

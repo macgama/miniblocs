@@ -21,6 +21,9 @@ enum Mode { NONE, PLACE, DEMOLISH }
 const MAX_RELIEF := 12.0
 ## Distance maximale entre la porte et une voie pour être desservi (m).
 const ACCESS_MAX := 10.0
+## Recul de la porte par rapport au bord de la chaussée, quand le bâtiment se
+## cale le long d'une voie (m).
+const SETBACK := 1.5
 ## Largeur du talus autour de l'emprise (cases).
 const APRON := 2
 ## Coût du terrassement par case et par mètre de hauteur déplacée (€).
@@ -41,6 +44,13 @@ var mode: Mode = Mode.NONE
 var type_id := "maison"
 var rot := 0
 var manual_rot := false
+## Le long d'une voie courbe ou en biais : petit angle en plus du quart de
+## tour (radians, ±45°) et case centrale calée sur le bord de la voie.
+var angle := 0.0
+## Caler automatiquement le bâtiment le long de la voie la plus proche
+## (désactivé par R, qui reprend la main sur l'orientation).
+var snap_to_road := true
+var _place_center := Vector2i.ZERO
 ## Règles du bac à sable.
 var require_access := true
 var unlimited_money := false
@@ -201,18 +211,94 @@ static func rect_center(rect: Rect2i) -> Vector3:
 
 
 ## Point juste devant la porte.
-static func door_point(id: String, rect: Rect2i, r: int) -> Vector3:
+static func door_point(id: String, rect: Rect2i, r: int, a := 0.0) -> Vector3:
 	var t := BuildingCatalog.get_type(id)
-	return rect_center(rect) + front_dir(r) * (float(t.d) / 2.0 + 0.5)
+	return rect_center(rect) + front_dir(r).rotated(Vector3.UP, a) * (float(t.d) / 2.0 + 0.5)
+
+
+## Cases couvertes par le bâtiment (emprise tournée de a radians en plus du quart de tour r).
+static func cells_for(id: String, center: Vector2i, r: int, a := 0.0) -> Array:
+	var rect := rect_for(id, center, r)
+	var out := []
+	if absf(a) < 0.001:
+		for x in range(rect.position.x, rect.end.x):
+			for z in range(rect.position.y, rect.end.y):
+				out.append(Vector2i(x, z))
+		return out
+	var c := rect_center(rect)
+	var hx := rect.size.x / 2.0
+	var hz := rect.size.y / 2.0
+	var ca := cos(a)
+	var sa := sin(a)
+	var reach := ceili(sqrt(hx * hx + hz * hz)) + 1
+	for x in range(floori(c.x) - reach, floori(c.x) + reach + 1):
+		for z in range(floori(c.z) - reach, floori(c.z) + reach + 1):
+			var dx := x + 0.5 - c.x
+			var dz := z + 0.5 - c.z
+			# Repère du bâtiment (rotation inverse autour de Y).
+			var lx := dx * ca - dz * sa
+			var lz := dx * sa + dz * ca
+			if absf(lx) <= hx + 0.35 and absf(lz) <= hz + 0.35:
+				out.append(Vector2i(x, z))
+	return out
+
+
+## Calage le long de la voie la plus proche du curseur : {center, r, a} ou {}.
+## La façade regarde la voie, parallèle à elle au point le plus proche, et la
+## porte est à SETBACK mètres du bord de la chaussée.
+func road_snap(id: String, cursor: Vector2i) -> Dictionary:
+	if transport == null:
+		return {}
+	var t := BuildingCatalog.get_type(id)
+	var modes := []
+	for type in t.get("access", []):
+		modes.append(TransportTypes.mode_of(type))
+	if modes.is_empty():
+		return {}
+	var q := Vector2(cursor.x + 0.5, cursor.y + 0.5)
+	var reach := float(t.d) + 12.0
+	var best := {}
+	for eid in transport.edges_near(Vector3(q.x, 0, q.y), reach + 20.0):
+		var e: Dictionary = transport.network.edges[eid]
+		if not TransportTypes.mode_of(e.t) in modes:
+			continue
+		var pts: PackedVector3Array = e.pts
+		for i in pts.size() - 1:
+			var pa := Vector2(pts[i].x, pts[i].z)
+			var pb := Vector2(pts[i + 1].x, pts[i + 1].z)
+			var ab := pb - pa
+			if ab.length_squared() < 1e-6:
+				continue
+			var u := clampf((q - pa).dot(ab) / ab.length_squared(), 0.0, 1.0)
+			var p := pa + ab * u
+			var dist := q.distance_to(p) - float(e.get("width", 4.0)) / 2.0
+			if dist <= reach and (best.is_empty() or dist < best.dist):
+				best = {"dist": dist, "p": p, "tan": ab.normalized(), "w": float(e.get("width", 4.0))}
+	if best.is_empty():
+		return {}
+	var tan: Vector2 = best.tan
+	var n := Vector2(-tan.y, tan.x)
+	if n.dot(q - (best.p as Vector2)) < 0.0:
+		n = -n
+	# Façade vers la voie : direction −n. Lacet ψ tel que Basis(UP, ψ)·(0, 0, −1) = −n.
+	var psi := atan2(n.x, n.y)
+	var r := posmod(roundi(-psi / (PI / 2.0)), 4)
+	var a := wrapf(psi + r * PI / 2.0, -PI, PI)
+	var want: Vector2 = (best.p as Vector2) + n * (float(best.w) / 2.0 + SETBACK + float(t.d) / 2.0)
+	# Case centrale dont le centre d'emprise est le plus proche du point voulu.
+	var off := rect_center(rect_for(id, Vector2i.ZERO, r))
+	var center := Vector2i(roundi(want.x - off.x), roundi(want.y - off.z))
+	return {"center": center, "r": r, "a": a}
+
 
 
 # --- Vérification ---------------------------------------------------------------------
 
 ## Accès : voie desservante la plus proche de la porte. {} si aucune.
-func find_access(id: String, rect: Rect2i, r: int) -> Dictionary:
+func find_access(id: String, rect: Rect2i, r: int, a := 0.0) -> Dictionary:
 	if transport == null:
 		return {}
-	var door := door_point(id, rect, r)
+	var door := door_point(id, rect, r, a)
 	var best := {}
 	for type in BuildingCatalog.get_type(id).get("access", []):
 		# "route" ou "chemin" : toute classe de voie de ce mode (rue, avenue…).
@@ -231,10 +317,11 @@ func find_access(id: String, rect: Rect2i, r: int) -> Dictionary:
 
 ## Analyse complète d'une pose : {ok, reason, rect, h, cost, access, earth}.
 ## grown : bâtiment poussé dans une zone (accès toujours exigé, rien à payer).
-func check_place(id: String, center: Vector2i, r: int, grown := false) -> Dictionary:
+func check_place(id: String, center: Vector2i, r: int, grown := false, a := 0.0) -> Dictionary:
 	var t := BuildingCatalog.get_type(id)
 	var rect := rect_for(id, center, r)
-	var res := {"ok": false, "reason": "", "rect": rect, "h": 0.0, "cost": 0, "access": {}, "earth": 0.0}
+	var cells := cells_for(id, center, r, a)
+	var res := {"ok": false, "reason": "", "rect": rect, "h": 0.0, "cost": 0, "access": {}, "earth": 0.0, "cells": cells, "a": a}
 	if t.is_empty() or world == null:
 		res.reason = "Type de bâtiment inconnu."
 		return res
@@ -242,42 +329,55 @@ func check_place(id: String, center: Vector2i, r: int, grown := false) -> Dictio
 	var hi := -INF
 	var sum := 0.0
 	var n := 0
-	for x in range(rect.position.x, rect.end.x):
-		for z in range(rect.position.y, rect.end.y):
-			var c := Vector2i(x, z)
-			if occupancy.has(c):
-				res.reason = "Il y a déjà un bâtiment ici."
-				return res
-			if transport != null and transport.is_cell_occupied(c):
-				res.reason = "Une voie passe sur l'emplacement."
-				return res
-			if extra_blocker.is_valid() and extra_blocker.call(c):
-				res.reason = "Des blocs sont construits ici."
-				return res
-			var h := world.cell_height(c)
-			if is_nan(h):
-				res.reason = "Relief encore en chargement."
-				return res
-			if h < 0.0:
-				res.reason = "On ne construit pas dans la mer."
-				return res
-			lo = minf(lo, h)
-			hi = maxf(hi, h)
-			sum += h
-			n += 1
-			# Le biome (10 m de résolution) est lu une case sur trois.
-			if x % 3 == 0 and z % 3 == 0 and world.cell_biome(c) == 80:
-				res.reason = "On ne construit pas sur un lac ou une rivière."
-				return res
+	for cc in cells:
+		var c: Vector2i = cc
+		var x := c.x
+		var z := c.y
+		if occupancy.has(c):
+			res.reason = "Il y a déjà un bâtiment ici."
+			return res
+		if transport != null and transport.is_cell_occupied(c):
+			res.reason = "Une voie passe sur l'emplacement."
+			return res
+		if extra_blocker.is_valid() and extra_blocker.call(c):
+			res.reason = "Des blocs sont construits ici."
+			return res
+		var h := world.cell_height(c)
+		if is_nan(h):
+			res.reason = "Relief encore en chargement."
+			return res
+		if h < 0.0:
+			res.reason = "On ne construit pas dans la mer."
+			return res
+		lo = minf(lo, h)
+		hi = maxf(hi, h)
+		sum += h
+		n += 1
+		# Le biome (10 m de résolution) est lu une case sur trois.
+		if x % 3 == 0 and z % 3 == 0 and world.cell_biome(c) == 80:
+			res.reason = "On ne construit pas sur un lac ou une rivière."
+			return res
 	if hi - lo > MAX_RELIEF:
 		res.reason = "Terrain trop pentu : %.0f m de dénivelé (maximum %.0f m)." % [hi - lo, MAX_RELIEF]
 		return res
 	var target := snappedf(sum / n, world.height_step)
+	# Desservi par une voie : le rez-de-chaussée se cale à la hauteur de la
+	# chaussée devant la porte (la parcelle est terrassée), pas en contrebas.
+	res.access = find_access(id, rect, r, a)
+	if not res.access.is_empty():
+		var road_h := snappedf(float((res.access.pos as Vector3).y), world.height_step)
+		if maxf(absf(hi - road_h), absf(lo - road_h)) <= MAX_RELIEF:
+			target = road_h
 	res.h = target
 	var earth := 0.0
-	for x in range(rect.position.x, rect.end.x):
-		for z in range(rect.position.y, rect.end.y):
-			earth += absf(world.cell_height(Vector2i(x, z)) - target)
+	for c in cells:
+		earth += absf(world.cell_height(c) - target)
+	if not res.access.is_empty():
+		for c in path_cells(res.access.door, res.access.pos):
+			if not c in cells:
+				var hc := world.cell_height(c)
+				if not is_nan(hc):
+					earth += absf(hc - target)
 	res.earth = earth
 	res.cost = BuildingCatalog.cost(id) + roundi(earth * EARTH_COST)
 	if extra_check.is_valid() and not grown:
@@ -286,14 +386,13 @@ func check_place(id: String, center: Vector2i, r: int, grown := false) -> Dictio
 		if String(ex.get("reason", "")) != "":
 			res.reason = String(ex.reason)
 			return res
-	res.access = find_access(id, rect, r)
 	if grown:
 		res.cost = 0
 	var needs_access := not (t.get("access", []) as Array).is_empty()
 	if (require_access or grown) and needs_access and res.access.is_empty():
 		var names: Array[String] = []
-		for a in t.get("access", []):
-			names.append(String(TransportTypes.get_type(a).get("name", a)).to_lower())
+		for acc_type in t.get("access", []):
+			names.append(String(TransportTypes.get_type(acc_type).get("name", acc_type)).to_lower())
 		res.reason = "Il faut une %s à moins de %d m de la porte." % [" ou un ".join(names), int(ACCESS_MAX)]
 		return res
 	if not grown and not unlimited_money and res.cost > money:
@@ -319,19 +418,21 @@ func best_rotation(id: String, center: Vector2i) -> int:
 
 ## Pose un bâtiment centré sur une case. Renvoie son id, ou -1 (raison dans message).
 ## zone > 0 : le bâtiment pousse dans cette zone (gratuit, sans message).
-func place(id: String, center: Vector2i, r: int, zone := 0) -> int:
-	var res := check_place(id, center, r, zone > 0)
+func place(id: String, center: Vector2i, r: int, zone := 0, a := 0.0) -> int:
+	var res := check_place(id, center, r, zone > 0, a)
 	if not res.ok:
 		if zone == 0:
 			message.emit(res.reason)
 		return -1
-	_terrace(res.rect, res.h)
+	_terrace(res.cells, res.h)
+	if not (res.access as Dictionary).is_empty():
+		_terrace_path(res.access.door, res.access.pos, res.h)
 	if not unlimited_money:
 		money -= int(res.cost)
 	var bid := next_id
 	next_id += 1
 	var rect: Rect2i = res.rect
-	_add({"id": bid, "t": id, "x": rect.position.x, "z": rect.position.y, "r": r, "h": res.h, "cost": res.cost, "zone": zone})
+	_add({"id": bid, "t": id, "x": rect.position.x, "z": rect.position.y, "r": r, "a": a, "h": res.h, "cost": res.cost, "zone": zone})
 	if zone == 0:
 		message.emit("%s construit pour %s." % [BuildingCatalog.get_type(id).name, format_money(res.cost)])
 	last_change_rect = rect.grow(3)
@@ -344,9 +445,8 @@ func demolish(bid: int) -> void:
 		return
 	var b: Dictionary = buildings[bid]
 	var rect := _rect_of(b)
-	for x in range(rect.position.x, rect.end.x):
-		for z in range(rect.position.y, rect.end.y):
-			occupancy.erase(Vector2i(x, z))
+	for c in _cells_of(b):
+		occupancy.erase(c)
 	if _nodes.has(bid):
 		(_nodes[bid] as Node).queue_free()
 		_nodes.erase(bid)
@@ -369,18 +469,26 @@ func _rect_of(b: Dictionary) -> Rect2i:
 	return Rect2i(Vector2i(int(b.x), int(b.z)), BuildingCatalog.footprint(b.t, int(b.r)))
 
 
+## Case centrale (celle passée à place()) d'un bâtiment posé.
+func _center_of(b: Dictionary) -> Vector2i:
+	return Vector2i(int(b.x), int(b.z)) + BuildingCatalog.footprint(b.t, int(b.r)) / 2
+
+
+func _cells_of(b: Dictionary) -> Array:
+	return cells_for(b.t, _center_of(b), int(b.r), float(b.get("a", 0.0)))
+
+
 func _add(b: Dictionary) -> void:
 	var bid := int(b.id)
 	buildings[bid] = b
 	var rect := _rect_of(b)
-	for x in range(rect.position.x, rect.end.x):
-		for z in range(rect.position.y, rect.end.y):
-			occupancy[Vector2i(x, z)] = bid
+	for c in _cells_of(b):
+		occupancy[c] = bid
 	var mi := MeshInstance3D.new()
 	mi.name = "Batiment_%d" % bid
 	mi.mesh = mesh_for(b.t)
 	mi.position = rect_center(rect) + Vector3(0, float(b.h), 0)
-	mi.rotation.y = -int(b.r) * PI / 2.0
+	mi.rotation.y = -int(b.r) * PI / 2.0 + float(b.get("a", 0.0))
 	mi.visibility_range_end = 1400.0
 	# Collision : le personnage de la vue au sol ne traverse pas le bâtiment.
 	var body := StaticBody3D.new()
@@ -406,23 +514,62 @@ func _add(b: Dictionary) -> void:
 
 
 ## Aplanit l'emprise et adoucit un talus autour (sans toucher aux voies ni aux autres bâtiments).
-func _terrace(rect: Rect2i, target: float) -> void:
-	var cells := {}
-	for x in range(rect.position.x - APRON, rect.end.x + APRON):
-		for z in range(rect.position.y - APRON, rect.end.y + APRON):
-			var c := Vector2i(x, z)
-			var inside := rect.has_point(c)
-			if inside:
-				cells[c] = target
-				continue
+## Cases du chemin d'accès (3 m de large) entre la porte et la voie.
+func path_cells(door: Vector3, road: Vector3) -> Array:
+	var out := {}
+	var a := Vector2(door.x, door.z)
+	var b := Vector2(road.x, road.z)
+	var d := b - a
+	var n := maxi(1, ceili(d.length() / 0.5))
+	var side := Vector2(-d.y, d.x).normalized() if d.length() > 0.01 else Vector2.ZERO
+	for i in n + 1:
+		var p := a + d * (float(i) / n)
+		for k in [-1.0, 0.0, 1.0]:
+			var q: Vector2 = p + side * k
+			var c := Vector2i(floori(q.x), floori(q.y))
 			if occupancy.has(c) or (transport != null and transport.is_cell_occupied(c)):
 				continue
-			var h := world.cell_height(c)
-			if is_nan(h):
-				continue
-			var ring := maxi(maxi(rect.position.x - x, x - rect.end.x + 1), maxi(rect.position.y - z, z - rect.end.y + 1))
-			var u := float(ring) / float(APRON + 1)
-			cells[c] = snappedf(lerpf(target, h, u), world.height_step)
+			out[c] = true
+	return out.keys()
+
+
+## Parvis : le chemin de la porte à la voie, au niveau du bâtiment.
+func _terrace_path(door: Vector3, road: Vector3, target: float) -> void:
+	var cells := path_cells(door, road)
+	for c in cells:
+		world.modifications[c] = target
+	world.mark_cells_dirty(cells)
+
+
+func _terrace(footprint: Array, target: float) -> void:
+	var cells := {}
+	# Anneaux de talus autour de l'emprise (distance en cases, 8 voisins).
+	var ring := {}
+	for c in footprint:
+		ring[c] = 0
+	var front: Array = footprint.duplicate()
+	for k in range(1, APRON + 1):
+		var nxt := []
+		for c in front:
+			for dx in [-1, 0, 1]:
+				for dz in [-1, 0, 1]:
+					var n: Vector2i = c + Vector2i(dx, dz)
+					if not ring.has(n):
+						ring[n] = k
+						nxt.append(n)
+		front = nxt
+	for cc in ring:
+		var c: Vector2i = cc
+		if int(ring[c]) == 0:
+			cells[c] = target
+			continue
+		if occupancy.has(c) or (transport != null and transport.is_cell_occupied(c)):
+			continue
+		var h := world.cell_height(c)
+		if is_nan(h):
+			continue
+		var u := float(ring[c]) / float(APRON + 1)
+		cells[c] = snappedf(lerpf(target, h, u), world.height_step)
 	# Les cases de l'emprise sont toujours enregistrées : pas d'arbres dessous.
 	for c in cells:
 		world.modifications[c] = cells[c]
@@ -455,7 +602,7 @@ func _unhandled_input(event: InputEvent) -> void:
 				demolish(_hover_building)
 				_refresh()
 			return
-		if place(type_id, _cursor, rot) >= 0:
+		if place(type_id, _place_center, rot, 0, angle) >= 0:
 			_refresh()
 	elif event is InputEventKey:
 		var key := event as InputEventKey
@@ -494,9 +641,16 @@ func _refresh() -> void:
 		return
 	if mode != Mode.PLACE or not _cursor_valid:
 		return
+	_place_center = _cursor
+	angle = 0.0
 	if not manual_rot:
 		rot = best_rotation(type_id, _cursor)
-	_check = check_place(type_id, _cursor, rot)
+		var snap := road_snap(type_id, _cursor) if snap_to_road else {}
+		if not snap.is_empty():
+			_place_center = snap.center
+			rot = snap.r
+			angle = snap.a
+	_check = check_place(type_id, _place_center, rot, false, angle)
 	var rect: Rect2i = _check.rect
 	var h: float = _check.h
 	if h == 0.0:
@@ -504,11 +658,12 @@ func _refresh() -> void:
 	var center := rect_center(rect)
 	_ghost.visible = true
 	_ghost.position = center + Vector3(0, h + 0.05, 0)
-	_ghost.rotation.y = -rot * PI / 2.0
+	_ghost.rotation.y = -rot * PI / 2.0 + angle
 	_ghost.material_override = _ok_mat if _check.ok else _bad_mat
 	_plate.visible = true
 	(_plate.mesh as BoxMesh).size = Vector3(rect.size.x + 0.1, 0.4, rect.size.y + 0.1)
 	_plate.position = center + Vector3(0, h + 0.05, 0)
+	_plate.rotation.y = angle
 	_plate.material_override = _ok_mat if _check.ok else _bad_mat
 	var acc: Dictionary = _check.access
 	if not acc.is_empty():
@@ -531,7 +686,7 @@ func _refresh() -> void:
 		txt += "\n" + String(_check.info)
 	if not _check.ok:
 		txt += "\n✗ " + String(_check.reason)
-	txt += "\nClic : poser · R : tourner%s · clic droit ou Échap : arrêter" % ("" if manual_rot else " (orientation auto vers la route)")
+	txt += "\nClic : poser · R : tourner%s · clic droit ou Échap : arrêter" % ("" if manual_rot else " (calé le long de la route)" if angle != 0.0 or _place_center != _cursor else " (orientation auto vers la route)")
 	info_changed.emit(txt)
 
 
@@ -575,7 +730,7 @@ func totals() -> Dictionary:
 			out[k] += int(t.get(k, 0))
 		var bid := int(b.id)
 		if not _access_cache.has(bid):
-			_access_cache[bid] = (t.get("access", []) as Array).is_empty() or not find_access(b.t, _rect_of(b), int(b.r)).is_empty()
+			_access_cache[bid] = (t.get("access", []) as Array).is_empty() or not find_access(b.t, _rect_of(b), int(b.r), float(b.get("a", 0.0))).is_empty()
 		if not _access_cache[bid]:
 			out.non_desservis += 1
 	return out
@@ -604,7 +759,7 @@ func summary() -> String:
 func to_dict() -> Dictionary:
 	var list := []
 	for b in buildings.values():
-		list.append({"id": b.id, "t": b.t, "x": b.x, "z": b.z, "r": b.r, "h": b.h, "cost": b.get("cost", 0), "zone": b.get("zone", 0)})
+		list.append({"id": b.id, "t": b.t, "x": b.x, "z": b.z, "r": b.r, "a": b.get("a", 0.0), "h": b.h, "cost": b.get("cost", 0), "zone": b.get("zone", 0)})
 	return {"version": 1, "next_id": next_id, "money": money, "require_access": require_access,
 		"unlimited_money": unlimited_money, "buildings": list}
 
@@ -619,7 +774,7 @@ func from_dict(data: Dictionary) -> void:
 		if BuildingCatalog.get_type(String(b.t)).is_empty():
 			continue
 		_add({"id": int(b.id), "t": String(b.t), "x": int(b.x), "z": int(b.z), "r": int(b.r),
-			"h": float(b.h), "cost": int(b.get("cost", 0)), "zone": int(b.get("zone", 0))})
+			"a": float(b.get("a", 0.0)), "h": float(b.h), "cost": int(b.get("cost", 0)), "zone": int(b.get("zone", 0))})
 		next_id = maxi(next_id, int(b.id) + 1)
 	last_change_rect = Rect2i()
 	changed.emit()

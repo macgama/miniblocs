@@ -64,7 +64,7 @@ var impots := 1.0
 var salaires := 1.0
 ## Vitesse du temps (indice de DayNight.SPEEDS) et de la vie (Population.LIFE_SPEEDS).
 var vitesse_temps: int = 2
-var vitesse_vie: int = 0
+var vitesse_vie: int = Population.DEFAULT_LIFE_SPEED
 ## Mines, carrières et puits s'épuisent ; forêts et poissons s'abîment si on exploite trop.
 var epuisement := true
 ## "tout" : tout le catalogue d'office ; "progression" : par paliers de population.
@@ -215,7 +215,7 @@ func from_dict(d: Dictionary) -> void:
 	impots = clampf(float(d.get("impots", 1.0)), 0.0, IMPOTS_MAX)
 	salaires = clampf(float(d.get("salaires", 1.0)), SALAIRES_MIN, SALAIRES_MAX)
 	vitesse_temps = clampi(int(d.get("vitesse_temps", DayNight.DEFAULT_SPEED)), 0, DayNight.SPEEDS.size() - 1)
-	vitesse_vie = clampi(int(d.get("vitesse_vie", 0)), 0, Population.LIFE_SPEEDS.size() - 1)
+	vitesse_vie = clampi(int(d.get("vitesse_vie", Population.DEFAULT_LIFE_SPEED)), 0, Population.LIFE_SPEEDS.size() - 1)
 	epuisement = bool(d.get("epuisement", true))
 	deblocage = "progression" if String(d.get("deblocage", "tout")) == "progression" else "tout"
 	createur = String(d.get("createur", ""))

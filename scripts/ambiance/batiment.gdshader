@@ -173,7 +173,10 @@ void fragment() {
 			float ceiling_lamp = 0.0;
 			bool inside = interieurs && vn < -0.02 && abs(N.y) < 0.5;
 			if (inside) {
-				room = to_linear(piece(V, N, ly, world_pos, NODE_POSITION_WORLD, key, ceiling_lamp));
+				// Dans le repère du bâtiment (il peut être tourné de n'importe quel angle).
+				mat3 to_local = transpose(mat3(MODEL_MATRIX));
+				vec3 lp = to_local * (world_pos - NODE_POSITION_WORLD);
+				room = to_linear(piece(normalize(to_local * V), normalize(to_local * N), ly, lp, NODE_POSITION_WORLD, key, ceiling_lamp));
 			}
 			// Fenêtres condamnées des bâtiments abandonnés.
 			float boarded = step(hash(key + 3.0), abandon * 0.7 - 0.15);

@@ -81,4 +81,7 @@ func _run() -> void:
 	pop.select_building(school)
 	rig.position = Vector3(-30, y, 0)
 	await _shot(dir.path_join("apercu-menus-fiche.png"))
+	# 4. Lignes (panneau de droite, ne doit pas sortir de l'écran).
+	scene.transit_panel.set_open(true)
+	await _shot(dir.path_join("apercu-menus-lignes.png"))
 	quit()

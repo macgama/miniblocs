@@ -33,11 +33,7 @@ func setup(p: Production, o: RessourcesOverlay, f: Node3D) -> void:
 func _build() -> void:
 	layer = 6
 	_panel = PanelContainer.new()
-	_panel.anchor_left = 1.0
-	_panel.anchor_right = 1.0
-	_panel.offset_left = UiStyle.SIDE_LEFT
-	_panel.offset_right = UiStyle.SIDE_RIGHT
-	_panel.offset_top = UiStyle.SIDE_TOP
+	UiStyle.place_right(_panel)
 	_panel.custom_minimum_size = Vector2(W, 0)
 	UiStyle.style_panel(_panel)
 	_panel.visible = false

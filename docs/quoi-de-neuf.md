@@ -20,6 +20,9 @@ Tout est dans `main`, et les 9 tests automatiques passent (`sh tests/tous.sh`).
 **Bâtiments**
 - 15 styles de plus, des espaces publics, et « Mes créations » : ce que tu bâtis dans l'éditeur libre devient un bâtiment réutilisable (#22).
 
+**Les habitants au travail** (touche **K**)
+- On voit les métiers : en zoomant, les commerces, écoles, hôpitaux et usines s'ouvrent en coupe. Le boulanger pétrit, l'enseignant écrit au tableau devant ses élèves, le médecin ausculte. Il y a 56 gestes avec outils et postes de travail, et les nouveaux métiers reçoivent des gestes tout seuls. Les métiers d'extérieur se voient dehors. Les bâtiments ont une enseigne Ouvert / Fermé, un rideau de fer et une pancarte « Manque de personnel ». Sans personnel, l'école ferme et les élèves restent à la maison, les clients vont ailleurs et l'hôpital ne soigne plus (voir docs/metiers.md).
+
 **Vue au sol** (touche **V**)
 - Collisions avec les arbres et les véhicules, et tunnels praticables à pied (#23).
 

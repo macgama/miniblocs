@@ -130,6 +130,10 @@ var _incarne := -1
 var _player_id := ""
 ## Personnage principal du joueur (né en ville, ses choix).
 var principal: PersonnagePrincipal
+## Personnel des bâtiments : fermés faute d'employés, sous-effectif (scripts/metiers).
+var effectif: Effectif
+## Clic sur un employé visible (vue métiers) : Callable(écran, caméra) -> pid ou -1.
+var extra_person_pick: Callable
 ## Vue au sol (pour incarner un habitant).
 var vue_sol: VueSol
 
@@ -137,6 +141,7 @@ var vue_sol: VueSol
 func _init() -> void:
 	vie = CycleVie.new(self)
 	principal = PersonnagePrincipal.new(self)
+	effectif = Effectif.new(self)
 
 
 func _ready() -> void:
@@ -657,13 +662,41 @@ func _match_all() -> void:
 		if st == "retraite" and int(p.job) >= 0:
 			_leave_job(p)
 		elif st == "chomeur" and not jobs.is_empty():
-			var best := _nearest(home_of(p), jobs)
+			# D'abord les bâtiments fermés faute du métier indispensable (Effectif) :
+			# l'école cherche un enseignant, l'hôpital un médecin…
+			var met := ""
+			var best := -1
+			if effectif != null:
+				var urgents := []
+				for b in jobs:
+					if effectif.ferme(b):
+						urgents.append(b)
+				if not urgents.is_empty():
+					best = _nearest(home_of(p), urgents)
+					var req := Effectif.requis_de(String(known[best].t)) if best >= 0 else []
+					if not req.is_empty():
+						met = String(req[0])
+			if best < 0:
+				best = _nearest(home_of(p), jobs)
 			if best >= 0:
-				_join_job(p, best)
+				_join_job(p, best, met)
+				if effectif != null:
+					effectif.oublier(best)
 				if free_jobs(best) <= 0:
 					jobs.erase(best)
 		elif (st == "bebe" or st == "eleve") and int(p.job) >= 0:
 			_leave_job(p)
+	_apres_embauches()
+
+
+## Les embauches ont pu ouvrir ou fermer des bâtiments : les trajets vers les
+## commerces et loisirs, et l'accès aux soins, sont à recalculer.
+func _apres_embauches(force := false) -> void:
+	if effectif != null and effectif.actualiser(force):
+		_venue_cache.clear()
+		vie.clear_cache()
+		if passants != null:
+			passants._plans.clear()
 
 
 func _nearest(from_bid: int, list: Array) -> int:
@@ -946,6 +979,11 @@ func _nearest_cat(p: Dictionary, cat: String) -> int:
 	return _cached_nearest(home_of(p), "cat:" + cat)
 
 
+## Fermé faute de personnel (voir Effectif) ?
+func _ferme(bid: int) -> bool:
+	return effectif != null and effectif.ferme(bid)
+
+
 ## Bâtiment le plus proche d'un logement pour un loisir (ou "cat:<catégorie>"), mis en cache.
 func _cached_nearest(home: int, what: String) -> int:
 	var per_home: Dictionary = _venue_cache.get(home, {})
@@ -954,11 +992,11 @@ func _cached_nearest(home: int, what: String) -> int:
 	var list := []
 	if what == "cat:commerce":
 		for bid in known:
-			if (known[bid].serves as Array).has("shopping"):
+			if (known[bid].serves as Array).has("shopping") and not _ferme(bid):
 				list.append(bid)
 	else:
 		for bid in known:
-			if (known[bid].serves as Array).has(what):
+			if (known[bid].serves as Array).has(what) and not _ferme(bid):
 				list.append(bid)
 	var best := _nearest(home, list) if not list.is_empty() else -1
 	per_home[what] = best
@@ -1087,6 +1125,12 @@ func _base_plan(p: Dictionary, n: Dictionary) -> Array:
 					[sleep, 24.0, "dort", home, "Dort"]]
 		"eleve":
 			sleep = 21.0 if age_of(p) < 11.0 else 22.5
+			if int(p.sch) >= 0 and n.wd >= 1 and n.wd <= 5 and not _school_holidays(n) and _ferme(int(p.sch)):
+				plan.append([0.0, 7.5, "dort", home, "Dort"])
+				plan.append([7.5, 16.5, "maison", home, "À la maison : école fermée (%s)" % String(effectif.etat(int(p.sch)).raison)])
+				plan.append([16.5, sleep, "maison", home, "À la maison"])
+				plan.append([sleep, 24.0, "dort", home, "Dort"])
+				return plan
 			if int(p.sch) >= 0 and n.wd >= 1 and n.wd <= 5 and not _school_holidays(n):
 				dest = int(p.sch)
 				start = 8.5
@@ -1248,6 +1292,20 @@ func satisfaction(p: Dictionary) -> Dictionary:
 		var part := float(found) / (p.hob as Array).size()
 		s += 15.0 * part - 5.0
 		why.append("%s loisirs : %d sur %d possibles en ville" % ["+" if part >= 0.5 else "−", found, (p.hob as Array).size()])
+	# Personnel des bâtiments du quotidien (école, commerce, hôpital).
+	if int(p.sch) >= 0 and _ferme(int(p.sch)):
+		s -= 15.0
+		why.append("− école fermée faute d'enseignant")
+	var shop := _nearest_cat(p, "commerce")
+	if shop >= 0 and effectif != null and effectif.manque(shop):
+		s -= 5.0
+		why.append("− longues files au commerce (manque de personnel)")
+	elif shop < 0 and not known.is_empty():
+		for bid in known:
+			if (known[bid].serves as Array).has("shopping"):
+				s -= 8.0
+				why.append("− les commerces sont fermés faute de personnel")
+				break
 	var dest := int(p.job) if int(p.job) >= 0 else int(p.sch)
 	if dest >= 0:
 		var c := commute(p, home_of(p), dest)
@@ -1612,6 +1670,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if order_pick < 0 and passants != null:
 		var who := passants.pick(mb.position, cam)
+		if who < 0 and extra_person_pick.is_valid():
+			who = int(extra_person_pick.call(mb.position, cam))
 		if who >= 0:
 			person_clicked.emit(who)
 			get_viewport().set_input_as_handled()
@@ -1730,5 +1790,6 @@ func from_dict(d: Dictionary) -> void:
 			if (p.cv as Array).is_empty():
 				vie.log_event(p, "naissance", "Naît loin d'ici", -1, float(p.nj))
 	select_building(-1)
+	_apres_embauches(true)
 	follow_changed.emit()
 	changed.emit()

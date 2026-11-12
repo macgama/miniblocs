@@ -66,6 +66,14 @@ const SECTIONS := [
 		["Ton personnage", "il naît dans une famille de ta ville ; une carte te demande ses grands choix (couple, mariage, enfants, études, emploi, retraite), le temps se met en pause"],
 		["Prendre sa place (fiche)", "incarner l'habitant en vue au sol (3e personne) ; V pour revenir, il reprend sa journée"],
 	]],
+	["Métiers", [
+		["K", "vue métiers : zoome près d'un commerce, d'une école, d'un hôpital… il s'ouvre en coupe et on voit les employés à leur poste (le boulanger pétrit, le prof écrit au tableau, le médecin ausculte) ; K la coupe, K la remet"],
+		["Maj + K", "ouvrir les bâtiments en coupe quand on zoome, ou non (les employés d'extérieur restent visibles)"],
+		["Dehors", "agriculteurs aux champs, bûcherons, carriers, pêcheurs, marchands, policiers de garde, pompiers près de leur camion"],
+		["Ouvert / Fermé", "enseigne sur la façade et rideau de fer selon le personnel présent ; pancarte orange « Manque de personnel », rouge « Fermé : pas d'enseignant »…"],
+		["Sans personnel", "école fermée : les élèves restent à la maison ; commerce fermé : les clients vont ailleurs ; hôpital fermé : la santé baisse ; production selon les postes pourvus"],
+		["Clic sur un employé", "sa fiche : ce qu'il fait en ce moment, et le personnel du bâtiment"],
+	]],
 	["Production", [
 		["P", "panneau Production : carte des ressources (clic sur une ressource pour la voir sur le terrain), stocks, sites"],
 		["Construire → Production", "extraction (forêt, ferme, élevage, pêche, carrière, sablière, argile, mine, puits) et transformation (scierie, moulin, boulangerie industrielle, aciérie, raffinerie…)"],

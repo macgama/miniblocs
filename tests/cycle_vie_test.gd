@@ -110,6 +110,10 @@ func _run() -> void:
 	var f_before := float(pop.vie.health(pop.persons[adult]).f)
 	var hosp := bs.place("hopital", Vector2i(30, 250), 3)
 	pop._sync_buildings()
+	# Un hôpital ne soigne que s'il a du personnel (Effectif) : on y embauche un médecin.
+	if pop.effectif.ferme(hosp):
+		pop._join_job(pop.persons[adult], hosp, "medecin")
+		pop._apres_embauches(true)
 	var f_after := float(pop.vie.health(pop.persons[adult]).f)
 	_check(hosp > 0 and f_after < f_before, "un hôpital proche réduit le risque (%.2f → %.2f)" % [f_before, f_after])
 	var e_before := pop.vie.life_expectancy(pop.persons[adult])

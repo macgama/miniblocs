@@ -36,6 +36,8 @@ var _hover_valid := false
 ## Intérieurs : meubles, pièces, usage des bâtiments en murs fins (onglet Intérieur).
 var mobilier: Mobilier
 var occupants: Occupants
+## Habitants au travail visibles (scripts/metiers, touche K).
+var metiers_vivants: MetiersVivants
 var interieur_panel: InterieurPanel
 
 
@@ -602,6 +604,12 @@ func _setup_mobilier() -> void:
 	occupants.name = "Occupants"
 	add_child(occupants)
 	occupants.setup(mobilier, population, get_viewport().get_camera_3d() if get_viewport().get_camera_3d() != null else $CameraRig/Camera3D)
+	# Habitants au travail : vue en coupe, gestes, enseignes, personnel (K).
+	metiers_vivants = MetiersVivants.new()
+	metiers_vivants.name = "MetiersVivants"
+	add_child(metiers_vivants)
+	metiers_vivants.setup(population, buildings, ambiance, rig)
+	metiers_vivants.occupants = occupants
 	interieur_panel = InterieurPanel.new()
 	interieur_panel.setup(mobilier, func() -> void: _select_building_tool())
 	build_panel.interieur_builder = interieur_panel.build

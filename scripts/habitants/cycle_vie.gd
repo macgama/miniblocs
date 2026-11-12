@@ -415,7 +415,13 @@ func hospital_distance(bid: int) -> float:
 		for other in pop.known:
 			var keys := Metiers.keys_of(String(pop.known[other].t))
 			if keys.has("hopital") or keys.has("clinique") or keys.has("sante") or keys.has("medecin"):
-				best = minf(best, o.distance_to(pop.known[other].pos))
+				# Sans médecin ni infirmier, personne n'y est soigné ; en sous-effectif,
+				# c'est comme s'il était deux fois plus loin (Effectif).
+				var eff := pop.effectif
+				if eff != null and eff.ferme(other):
+					continue
+				var k := 2.0 if eff != null and eff.manque(other) else 1.0
+				best = minf(best, o.distance_to(pop.known[other].pos) * k)
 	_hospital[bid] = best
 	return best
 

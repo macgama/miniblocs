@@ -25,6 +25,7 @@ signal plan_level_step(delta: int)
 signal plan_cutaway_toggled(on: bool)
 signal plan_copy_level(count: int)
 signal plan_roof(kind: String)
+signal plan_wall_levels(count: int)
 
 var _panel: PanelContainer
 var _list: VBoxContainer
@@ -60,6 +61,7 @@ var _block_mode := "plans"
 var _level_label: Label
 var _level_text := "Rez-de-chaussée"
 var _copy_count := 1
+var _wall_levels := 1
 var _cutaway := true
 var _opening := "porte"
 
@@ -421,6 +423,22 @@ func _show_plan_tools() -> void:
 	up.pressed.connect(func() -> void: plan_level_step.emit(1))
 	lrow.add_child(up)
 	_add(lrow)
+	# Hauteur des murs et des pièces : plusieurs étages d'un coup.
+	var hrow := HBoxContainer.new()
+	var hl := Label.new()
+	hl.text = "Murs et pièces sur"
+	hrow.add_child(hl)
+	var hspin := SpinBox.new()
+	hspin.min_value = 1
+	hspin.max_value = 60
+	hspin.value = _wall_levels
+	hspin.suffix = "étage(s)"
+	hspin.tooltip_text = "Les outils Mur et Pièce montent les murs (et les planchers des pièces) sur ce nombre d'étages d'un coup, à partir de l'étage actif."
+	hspin.value_changed.connect(func(v: float) -> void:
+		_wall_levels = int(v)
+		plan_wall_levels.emit(int(v)))
+	hrow.add_child(hspin)
+	_add(hrow)
 	var crow := HBoxContainer.new()
 	var cut := CheckBox.new()
 	cut.text = "Vue en coupe"

@@ -153,7 +153,7 @@ func _emit_help() -> void:
 		Tool.CAPTURE:
 			info_changed.emit("Enregistrer une création : clic glissé autour de ta construction (toutes les hauteurs sont prises) · Échap : arrêter")
 			return
-	var price := BlocFormes.price(BlocFormes.encode(material, shape))
+	var price := ReglagesPartie.prix(BlocFormes.price(BlocFormes.encode(material, shape)))
 	info_changed.emit("%s · %s (%s) · clic : poser · R : tourner · clic droit : retirer · Ctrl+Z : annuler · Échap : arrêter" % [t, mat.name, BuildingSystem.format_money(price)])
 
 
@@ -225,7 +225,7 @@ func check_block(k: Vector3i) -> String:
 
 
 func _price(code: int) -> int:
-	return BlocFormes.price(code)
+	return ReglagesPartie.prix(BlocFormes.price(code))
 
 
 ## Code du bloc à poser en k avec la forme, la teinte et l'orientation courantes.

@@ -38,6 +38,7 @@ const SECTIONS := [
 		["Murs et étages (éditeur libre)", "murs de 20 cm posés sur les lignes de la grille, pièces, sols, escaliers, portes et fenêtres, peinture d'un côté de mur ou de toute une pièce"],
 		["Page haut / Page bas", "étage actif (jusqu'à 59 étages et 5 sous-sols, le terrain est creusé) ; les étages du dessus sont masqués pendant l'édition"],
 		["Copier l'étage ↑", "recopie l'étage actif au-dessus, autant de fois que voulu (immeubles)"],
+		["Murs et pièces sur N étages", "réglage du panneau : un trait de Mur ou un rectangle de Pièce monte sur plusieurs étages d'un coup"],
 		["Toit (murs et étages)", "deux pans, quatre pans ou plat, posé en blocs sur le dernier étage"],
 		["Filtres", "région, époque et recherche par nom dans les listes de bâtiments"],
 	]],
@@ -72,6 +73,7 @@ const SECTIONS := [
 		["F9", "recharger la partie en cours"],
 		["Charger", "liste des parties : charger, supprimer, sauvegarder sous un autre nom"],
 		["Globe", "revenir au globe pour changer de lieu"],
+		["F10 ou icône réglages", "panneau Admin : argent de départ, caisse, argent illimité, coût des constructions, accès à une voie, impôts, salaires, vitesses, épuisement des ressources, déblocage des bâtiments (seulement pour l'admin de la partie)"],
 		["F1", "afficher ou masquer cette aide"],
 	]],
 ]

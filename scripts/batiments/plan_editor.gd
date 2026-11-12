@@ -88,6 +88,8 @@ var rot_offset := 0
 var level := 0
 ## Masquer les étages au-dessus de l'étage actif pendant l'édition.
 var cutaway := true
+## Murs et pièces posés sur ce nombre d'étages d'un coup (à partir de l'étage actif).
+var wall_levels := 1
 
 ## id -> {id, y0, walls, floors, stairs, dug}
 var plans: Dictionary = {}
@@ -229,13 +231,13 @@ func _emit_help() -> void:
 	var t := ""
 	match tool:
 		Tool.WALL:
-			t = "Mur de 20 cm (%s, %s le mètre) : clic glissé d'un coin de case à l'autre" % [mat.name, BuildingSystem.format_money(wall_price(material))]
+			t = "Mur de 20 cm (%s, %s le mètre) : clic glissé d'un coin de case à l'autre" % [mat.name, BuildingSystem.format_money(ReglagesPartie.prix(wall_price(material)))]
 		Tool.ROOM:
 			t = "Pièce : clic glissé en rectangle (quatre murs en %s et le plancher)" % mat.name
 		Tool.FLOOR:
 			t = "Sol : clic glissé en rectangle (%s)" % mat.name
 		Tool.OPENING:
-			t = "%s : clic près d'un mur (%s)" % [OPENINGS[opening].name, BuildingSystem.format_money(int(OPENINGS[opening].price))]
+			t = "%s : clic près d'un mur (%s)" % [OPENINGS[opening].name, BuildingSystem.format_money(ReglagesPartie.prix(int(OPENINGS[opening].price)))]
 		Tool.PAINT:
 			t = "Peinture (%s) : clic sur un côté de mur ou un sol · glissé : toute la pièce" % mat.name
 		Tool.STAIRS:
@@ -277,13 +279,15 @@ static func floor_price(m: int) -> int:
 const STAIR_PRICE := 1500
 
 
+## Les prix des murs et étages sont des prix de base : le coût de la partie
+## (ReglagesPartie.cout_construction) s'applique au moment de payer.
 func _can_pay(amount: int) -> bool:
-	return buildings == null or buildings.unlimited_money or buildings.money >= amount
+	return buildings == null or buildings.unlimited_money or buildings.money >= ReglagesPartie.prix(amount)
 
 
 func _pay(amount: int) -> void:
 	if buildings != null and not buildings.unlimited_money:
-		buildings.money -= amount
+		buildings.money -= ReglagesPartie.prix(amount)
 
 
 # --- Plans --------------------------------------------------------------------------
@@ -520,7 +524,7 @@ func add_walls(id: String, keys: Array, code := -1) -> int:
 		return 0
 	var cost := todo.size() * wall_price(BlocFormes.mat_of(code))
 	if not _can_pay(cost):
-		message.emit("Pas assez d'argent : %s nécessaires." % BuildingSystem.format_money(cost))
+		message.emit("Pas assez d'argent : %s nécessaires." % BuildingSystem.format_money(ReglagesPartie.prix(cost)))
 		return 0
 	var before: Variant = _snapshot(id)
 	if id == "" or not plans.has(id):
@@ -560,7 +564,7 @@ func add_floors(id: String, rect: Rect2i, e: int, code := -1, replace := false) 
 		return 0
 	var cost := todo.size() * floor_price(BlocFormes.mat_of(code))
 	if not _can_pay(cost):
-		message.emit("Pas assez d'argent : %s nécessaires." % BuildingSystem.format_money(cost))
+		message.emit("Pas assez d'argent : %s nécessaires." % BuildingSystem.format_money(ReglagesPartie.prix(cost)))
 		return 0
 	var before: Variant = _snapshot(id)
 	for k in todo:
@@ -572,21 +576,25 @@ func add_floors(id: String, rect: Rect2i, e: int, code := -1, replace := false) 
 	return todo.size()
 
 
-## Pièce : le contour en murs et le plancher (une seule étape d'annulation).
-func add_room(id: String, rect: Rect2i, e: int) -> bool:
+## Pièce : le contour en murs et le plancher (une seule étape d'annulation),
+## sur n étages à partir de e.
+func add_room(id: String, rect: Rect2i, e: int, n := 1) -> bool:
 	var p: Dictionary = plans[id]
 	var wcode := _wall_code()
-	var fcode := BlocFormes.encode(BASEMENT_MAT if e < 0 else FLOOR_MAT)
 	var walls := []
-	for k in room_walls(rect, e):
-		if not p.walls.has(k):
-			walls.append(k)
 	var floors := []
-	for x in range(rect.position.x, rect.end.x):
-		for z in range(rect.position.y, rect.end.y):
-			var k := Vector3i(x, e, z)
-			if not p.floors.has(k):
-				floors.append(k)
+	var fcodes := {}
+	for ee in range(e, mini(e + maxi(n, 1), MAX_LEVEL + 1)):
+		fcodes[ee] = BlocFormes.encode(BASEMENT_MAT if ee < 0 else FLOOR_MAT)
+		for k in room_walls(rect, ee):
+			if not p.walls.has(k):
+				walls.append(k)
+		for x in range(rect.position.x, rect.end.x):
+			for z in range(rect.position.y, rect.end.y):
+				var k := Vector3i(x, ee, z)
+				if not p.floors.has(k):
+					floors.append(k)
+	var fcode := BlocFormes.encode(BASEMENT_MAT if e < 0 else FLOOR_MAT)
 	for x in range(rect.position.x - 1, rect.end.x + 1):
 		for z in range(rect.position.y - 1, rect.end.y + 1):
 			var inside := rect.has_point(Vector2i(x, z))
@@ -599,13 +607,13 @@ func add_room(id: String, rect: Rect2i, e: int) -> bool:
 		return false
 	var cost := walls.size() * wall_price(material) + floors.size() * floor_price(BlocFormes.mat_of(fcode))
 	if not _can_pay(cost):
-		message.emit("Pas assez d'argent : %s nécessaires." % BuildingSystem.format_money(cost))
+		message.emit("Pas assez d'argent : %s nécessaires." % BuildingSystem.format_money(ReglagesPartie.prix(cost)))
 		return false
 	var before: Variant = _snapshot(id)
 	for k in walls:
 		p.walls[k] = {"a": wcode, "b": wcode, "o": "", "om": 0, "op": false}
 	for k in floors:
-		p.floors[k] = {"t": fcode, "u": BlocFormes.encode(CEILING_MAT)}
+		p.floors[k] = {"t": int(fcodes.get((k as Vector3i).y, fcode)), "u": BlocFormes.encode(CEILING_MAT)}
 	_pay(cost)
 	_push_undo(id, before, cost)
 	_after_change(id)
@@ -626,7 +634,7 @@ func set_opening_at(id: String, k: Vector4i, kind: String) -> bool:
 	elif String(p.walls[k].o) == kind:
 		return false
 	if not _can_pay(cost):
-		message.emit("Pas assez d'argent : %s nécessaires." % BuildingSystem.format_money(cost))
+		message.emit("Pas assez d'argent : %s nécessaires." % BuildingSystem.format_money(ReglagesPartie.prix(cost)))
 		return false
 	var before: Variant = _snapshot(id)
 	if not p.walls.has(k):
@@ -734,7 +742,7 @@ func add_stairs(id: String, c: Vector2i, e: int, r: int) -> bool:
 			return false
 	var cost := STAIR_PRICE
 	if not _can_pay(cost):
-		message.emit("Pas assez d'argent : %s nécessaires." % BuildingSystem.format_money(cost))
+		message.emit("Pas assez d'argent : %s nécessaires." % BuildingSystem.format_money(ReglagesPartie.prix(cost)))
 		return false
 	var before: Variant = _snapshot(id)
 	var m := material if BlocMateriaux.LIST[material].fam != "nature" else 2
@@ -896,7 +904,7 @@ func copy_level_up(id: String, e: int, n := 1) -> int:
 		message.emit("L'étage du dessus est déjà construit.")
 		return 0
 	if not _can_pay(cost):
-		message.emit("Pas assez d'argent : %s nécessaires." % BuildingSystem.format_money(cost))
+		message.emit("Pas assez d'argent : %s nécessaires." % BuildingSystem.format_money(ReglagesPartie.prix(cost)))
 		return 0
 	var before: Variant = _snapshot(id)
 	for k in add_w:
@@ -1057,10 +1065,29 @@ func _eff_level() -> int:
 func pick(origin: Vector3, dir: Vector3) -> Dictionary:
 	var ground: Variant = world.pick_point(origin, dir) if world != null else null
 	var id := ""
+	# Bâtiment visé à l'étage actif : on coupe le rayon à la hauteur de cet
+	# étage pour chaque bâtiment (le sol sous le curseur est loin quand on
+	# construit en hauteur).
 	if _active != "" and plans.has(_active):
 		var pa: Variant = _plane_hit(origin, dir, base_y(_active, level))
 		if pa != null and (_bbox[_active] as Rect2i).grow(8).has_point(Vector2i(floori(pa.x), floori(pa.z))):
 			id = _active
+	if id == "" and level != 0:
+		var bd := INF
+		for pid in plans:
+			var ph: Variant = _plane_hit(origin, dir, base_y(pid, level))
+			if ph == null:
+				continue
+			var r: Rect2i = _bbox[pid]
+			if r.grow(4).has_point(Vector2i(floori(ph.x), floori(ph.z))):
+				var d := (origin as Vector3).distance_to(ph)
+				if d < bd:
+					bd = d
+					id = pid
+		if id != "" and _active != id:
+			_active = id
+			_apply_cutaway()
+			_emit_level()
 	if id == "" and ground != null:
 		var gp: Vector3 = ground
 		id = plan_at(Vector2i(floori(gp.x), floori(gp.z)), 3)
@@ -1216,7 +1243,7 @@ func _release(a: Dictionary, b: Dictionary) -> void:
 	var rect := _cell_rect(a.cell, b.cell)
 	match tool:
 		Tool.WALL:
-			var keys := wall_line(a.vertex, b.vertex, a.e)
+			var keys := _stack(wall_line(a.vertex, b.vertex, a.e))
 			if keys.is_empty():
 				return
 			var id := _plan_for(a)
@@ -1224,7 +1251,7 @@ func _release(a: Dictionary, b: Dictionary) -> void:
 				_drop_if_empty(id)
 		Tool.ROOM:
 			var id2 := _plan_for(a)
-			if not add_room(id2, rect, a.e):
+			if not add_room(id2, rect, a.e, wall_levels):
 				_drop_if_empty(id2)
 		Tool.FLOOR:
 			var id3 := _plan_for(a)
@@ -1248,6 +1275,17 @@ func _release(a: Dictionary, b: Dictionary) -> void:
 				erase_at(a.id, _erase_target(a))
 			else:
 				erase_rect(a.id, rect, a.e)
+
+
+## Les mêmes murs sur wall_levels étages, à partir de l'étage des clés.
+func _stack(keys: Array) -> Array:
+	var out := []
+	for i in maxi(wall_levels, 1):
+		for k in keys:
+			var kw: Vector4i = k
+			if kw.y + i <= MAX_LEVEL:
+				out.append(Vector4i(kw.x, kw.y + i, kw.z, kw.w))
+	return out
 
 
 static func _cell_rect(a: Vector2i, b: Vector2i) -> Rect2i:
@@ -1290,14 +1328,14 @@ func _update_ghost() -> void:
 				var v: Vector2i = h.vertex
 				boxes.append(AABB(Vector3(v.x - 0.15, by, v.y - 0.15), Vector3(0.3, H - SLAB, 0.3)))
 			for k in keys:
-				boxes.append(_wall_aabb(k, by))
+				boxes.append(_wall_aabb(k, by, wall_levels))
 			if _drag:
-				info = "Mur de %d m · %s" % [keys.size(), BuildingSystem.format_money(keys.size() * wall_price(material))]
+				info = "Mur de %d m%s · %s" % [keys.size(), _levels_txt(), BuildingSystem.format_money(ReglagesPartie.prix(keys.size() * wall_levels * wall_price(material)))]
 		Tool.ROOM:
 			for k in room_walls(rect, a.e):
-				boxes.append(_wall_aabb(k, by))
+				boxes.append(_wall_aabb(k, by, wall_levels))
 			boxes.append(AABB(Vector3(rect.position.x, by - SLAB, rect.position.y), Vector3(rect.size.x, SLAB, rect.size.y)))
-			info = "Pièce de %d × %d m (%d m²)" % [rect.size.x, rect.size.y, rect.size.x * rect.size.y]
+			info = "Pièce de %d × %d m (%d m²)%s" % [rect.size.x, rect.size.y, rect.size.x * rect.size.y, _levels_txt()]
 		Tool.FLOOR, Tool.PAINT, Tool.ERASE:
 			var wk: Variant = _near_wall(h, 0.35) if not _drag and tool != Tool.FLOOR else null
 			if wk != null:
@@ -1329,10 +1367,20 @@ func _update_ghost() -> void:
 		info_changed.emit(info)
 
 
-func _wall_aabb(k: Vector4i, by: float) -> AABB:
+func _wall_aabb(k: Vector4i, by: float, n := 1) -> AABB:
+	var hh := H * n - SLAB
 	if k.w == 0:
-		return AABB(Vector3(k.x, by, k.z - HALF), Vector3(1, H - SLAB, 2 * HALF))
-	return AABB(Vector3(k.x - HALF, by, k.z), Vector3(2 * HALF, H - SLAB, 1))
+		return AABB(Vector3(k.x, by, k.z - HALF), Vector3(1, hh, 2 * HALF))
+	return AABB(Vector3(k.x - HALF, by, k.z), Vector3(2 * HALF, hh, 1))
+
+
+func _levels_txt() -> String:
+	return "" if wall_levels <= 1 else " sur %d étages" % wall_levels
+
+
+func set_wall_levels(n: int) -> void:
+	wall_levels = clampi(n, 1, MAX_LEVEL + 1)
+	_update_ghost()
 
 
 static func _boxes_mesh(boxes: Array) -> ArrayMesh:

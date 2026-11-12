@@ -68,6 +68,9 @@ var _loading_label: Label
 var _place_label: Label
 var _detail_label: Label
 var _mode: OptionButton
+## Réglages de la nouvelle partie (bouton « Réglages de la partie »).
+var _settings_label: Label
+var _settings_panel: AdminPanel
 var _start_btn: Button
 var _random_btn: Button
 var _filtered: Array = []
@@ -402,6 +405,24 @@ func start_game() -> void:
 	get_tree().change_scene_to_file("res://scenes/terre.tscn")
 
 
+## Panneau des réglages de la nouvelle partie (le même que le panneau Admin).
+func open_settings(ui: CanvasLayer) -> void:
+	if _settings_panel != null:
+		return
+	GameStart.mode = _mode.selected as GameStart.Mode
+	_settings_panel = AdminPanel.new(ReglagesPartie.prochaine, true, true)
+	_settings_panel.settings_changed.connect(_update_settings_label)
+	_settings_panel.closed.connect(func() -> void:
+		_settings_panel = null
+		_update_settings_label())
+	ui.add_child(_settings_panel)
+
+
+func _update_settings_label() -> void:
+	if _settings_label and ReglagesPartie.prochaine != null:
+		_settings_label.text = "Réglages : " + ReglagesPartie.prochaine.summary()
+
+
 ## Ouvre une partie sauvegardée dans la scène Terre.
 func load_saved_game(slot_id: String) -> void:
 	var m := SaveGame.read_manifest(slot_id)
@@ -537,6 +558,20 @@ func _build_ui() -> void:
 	_mode.set_item_disabled(1, true)
 	_mode.set_item_disabled(2, true)
 	rv.add_child(_mode)
+	if ReglagesPartie.prochaine == null:
+		ReglagesPartie.prochaine = ReglagesPartie.load_defaults()
+	var set_row := HBoxContainer.new()
+	rv.add_child(set_row)
+	_settings_label = _panel_label("", 12, 0.8)
+	_settings_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	set_row.add_child(_settings_label)
+	var set_btn := Button.new()
+	set_btn.text = "Réglages…"
+	set_btn.icon = Icones.get_icon("admin", 18)
+	set_btn.tooltip_text = "Réglages de la partie : argent de départ, coûts, règles, économie, temps, ressources, déblocage"
+	set_btn.pressed.connect(func() -> void: open_settings(ui))
+	set_row.add_child(set_btn)
+	_update_settings_label()
 	_start_btn = Button.new()
 	_start_btn.text = "Commencer la partie"
 	_start_btn.custom_minimum_size = Vector2(0, 44)

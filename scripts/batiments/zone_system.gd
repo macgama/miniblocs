@@ -113,7 +113,7 @@ func set_paint(k: String) -> void:
 	kind = k
 	_drag = false
 	_update_box()
-	info_changed.emit("Zone %s : clic gauche glissé pour peindre un rectangle (%d € le m²) · clic droit ou Échap : arrêter" % [String(KINDS[k].name).to_lower(), PRICE_M2])
+	info_changed.emit("Zone %s : clic gauche glissé pour peindre un rectangle (%s le m²) · clic droit ou Échap : arrêter" % [String(KINDS[k].name).to_lower(), BuildingSystem.format_money(ReglagesPartie.prix(PRICE_M2))])
 
 
 func set_remove() -> void:
@@ -157,7 +157,7 @@ func add_zone(k: String, rect: Rect2i) -> int:
 		return -1
 	# Les zones existantes recouvertes sont retirées de ce rectangle.
 	remove_area(rect, false)
-	var cost := rect.size.x * rect.size.y * PRICE_M2
+	var cost := ReglagesPartie.prix(rect.size.x * rect.size.y * PRICE_M2)
 	if buildings != null and not buildings.unlimited_money:
 		if cost > buildings.money:
 			message.emit("Pas assez d'argent pour ce zonage : %s." % BuildingSystem.format_money(cost))
@@ -521,7 +521,7 @@ func _update_box() -> void:
 	_box.material_override = m
 	if _drag and mode == Mode.PAINT:
 		info_changed.emit("Zone %s : %d × %d m · %s%s" % [String(KINDS[kind].name).to_lower(), size.x, size.y,
-			BuildingSystem.format_money(size.x * size.y * PRICE_M2), "  ·  trop grande" if too_big else ""])
+			BuildingSystem.format_money(ReglagesPartie.prix(size.x * size.y * PRICE_M2)), "  ·  trop grande" if too_big else ""])
 
 
 # --- Souris -------------------------------------------------------------------------

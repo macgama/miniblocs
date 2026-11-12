@@ -87,14 +87,18 @@ Les plantes vivent au rythme du **vrai calendrier du lieu** (la date de l'horlog
 - **Neige** : elle tient au sol quand la météo du jeu fait tomber de la neige, et fond quand il fait plus de 0 °C. Elle blanchit le dessus des cases, les branches des sapins et les rochers, et recouvre l'herbe.
 - **Champs** : chaque culture suit son calendrier. Le blé est semé en octobre, lève l'hiver, verdit au printemps, dore en juin-juillet, est moissonné fin juillet (chaume), puis le champ est labouré. Le colza fleurit en jaune en avril, le maïs pousse l'été et sèche en octobre, le tournesol fleurit en juillet, le riz mûrit en septembre, la prairie est fauchée en juin. Deux nouvelles textures : **chaume** et **levée** (jeunes pousses en rangs).
 
-![Les champs en avril, juillet et août](apercu-saisons-champs.jpg)
+![Les champs en avril, juillet et août, puis la Beauce en juillet](apercu-saisons-champs.jpg)
+
+![Forêt de Rambouillet le 20 octobre, puis le 15 janvier après une chute de neige](apercu-saisons-rambouillet.jpg)
 
 ### Les quatre âges des arbres
 
-**Jeune pousse → jeune arbre → adulte → arbre mort**, au vrai rythme : un chêne est adulte à 80 ans et vit 300 ans, un bouleau 30 et 90 ans, un sapin 60 et 300 ans, un palmier 15 et 80 ans (table `Plantes.VIE`). Le jeune arbre grandit peu à peu jusqu'à sa taille réelle. L'arbre mort (tronc gris, branches cassées) reste debout 12 ans, puis **une nouvelle pousse repart au même endroit**.
+**Jeune pousse → jeune arbre → adulte → arbre mort**, avec les vraies durées de vie : un chêne est adulte à 80 ans et vit 300 ans, un bouleau 30 et 90 ans, un sapin 60 et 300 ans, un palmier 15 et 80 ans (table `Plantes.VIE`).
+
+Les arbres vieillissent **à la même vitesse que les habitants** : le réglage Admin (F10) « vitesse de la vie » vaut pour les deux. Avec « 1 an = 1 mois », un chêne planté aujourd'hui est adulte dans 80 mois de jeu ; en « Réaliste », il faut 80 vraies années. Les saisons, elles, suivent toujours le calendrier. Le jeune arbre grandit peu à peu jusqu'à sa taille réelle. L'arbre mort (tronc gris, branches cassées) reste debout 12 ans, puis **une nouvelle pousse repart au même endroit**.
 
 - Au début d'une partie, la forêt a des arbres de **tous les âges** (chaque arbre tire son âge au hasard, toujours le même pour un lieu).
-- Les arbres plantés au **pinceau** commencent en **jeune pousse**, à la date du jeu (le jour de plantation est sauvegardé).
+- Les arbres plantés au **pinceau** commencent en **jeune pousse** (le jour de plantation est sauvegardé).
 - Les jeunes pousses n'ont pas de collision en vue au sol.
 
 ## Tester dans Godot 4.7

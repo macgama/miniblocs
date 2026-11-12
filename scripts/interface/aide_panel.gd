@@ -55,7 +55,10 @@ const SECTIONS := [
 		["H", "panneau Habitants : la ville en chiffres, la liste des habitants, le budget de la ville"],
 		["Clic sur un bâtiment (outil 1)", "fiche du bâtiment : logements, employés, élèves, qui y vit et qui s'y trouve en ce moment"],
 		["Clic sur un nom", "profil : âge, foyer, travail ou école, loisirs, budget et journée heure par heure"],
-		["Vitesse de la vie", "réglage du panneau : vieillissement réaliste, rapide (1 an = 1 mois) ou très rapide (1 an = 1 jour)"],
+		["Vitesse de la vie", "réglage du panneau : 1 an de vie = 1 jour de jeu par défaut, ou rapide (1 an = 1 mois), ou réaliste"],
+		["Fiche d'un habitant", "sa vie en frise et son CV (écoles, diplômes, emplois, couple, enfants, santé, médailles), sa famille cliquable, même après sa mort"],
+		["☆ Suivre (fiche d'un habitant)", "suivre un habitant façon Sims : repère au-dessus de lui, caméra qui l'accompagne, nouvelles de sa vie"],
+		["F", "habitant suivi : la caméra le suit ou reste libre (bouger la caméra la libère aussi)"],
 	]],
 	["Production", [
 		["P", "panneau Production : carte des ressources (clic sur une ressource pour la voir sur le terrain), stocks, sites"],
@@ -66,7 +69,7 @@ const SECTIONS := [
 	["Temps et vue", [
 		["T", "mettre le temps en pause / reprendre"],
 		["Maj + T", "vitesse suivante du temps (la marée suit l'heure et la Lune : voir la barre d'état)"],
-		["Ctrl + T, ou clic sur le Soleil de l'horloge", "jour permanent : l'image reste de jour pour construire, l'heure, les habitants et la production continuent"],
+		["Ctrl + T, ou clic sur le Soleil de l'horloge", "jour permanent : l'image reste de jour pour construire, l'heure, les habitants et la production continuent (automatique quand Construire ou l'éditeur libre est ouvert)"],
 		["V", "vue suivante : dessus, 3e personne, 1re personne"],
 		["ZQSD, Maj, Espace", "marcher, courir, sauter (vue au sol)"],
 		["E ou clic gauche", "ouvrir ou fermer une porte, une porte de garage (vue au sol), y compris dans les murs fins"],

@@ -19,6 +19,7 @@
 
 Pour construire sans être gêné par la nuit : l'image reste de jour, mais **le temps continue** (l'heure de l'horloge, les habitants, l'école et le travail, la production, la météo).
 
+- **Tout seul en construction** : dès que Construire ou l'éditeur libre est ouvert, l'image passe en jour permanent ; la nuit revient à la fermeture. Ctrl + T pendant la construction rend la vraie nuit jusqu'à la fermeture. La case « Jour permanent tout seul… » du panneau Horloge coupe ce comportement.
 - Le jour, le Soleil suit l'heure comme d'habitude.
 - Le soir, quand le Soleil descend sous 20°, il s'arrête sur cette lumière d'après-midi jusqu'à minuit, puis glisse en 1 à 2 secondes vers la lumière du matin, qu'il garde jusqu'à ce que le vrai Soleil le rattrape.
 - Pas de lampadaires ni de fenêtres allumées pendant ce temps, puisque l'image est de jour.

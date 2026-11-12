@@ -18,9 +18,13 @@ extends Node3D
 signal changed
 signal message(text: String)
 signal building_selected(bid: int)
+## L'habitant suivi a changé (CycleVie.followed).
+signal follow_changed
 
 const LIFE_SPEEDS := [1.0, 12.0, 365.0]
 const LIFE_SPEED_NAMES := ["Réaliste (1 an = 1 an)", "Rapide (1 an = 1 mois)", "Très rapide (1 an = 1 jour)"]
+## Par défaut : 1 an de vie = 1 jour de jeu (choix de Gaël).
+const DEFAULT_LIFE_SPEED := 2
 const RETIREMENT_AGE := 64
 const ADULT_AGE := 18
 const SCHOOL_AGE := 3
@@ -40,6 +44,7 @@ const CHARGES := 1.45 # salaire net → coût employeur
 const ENTRETIEN := 0.0008 # part du prix des bâtiments publics par mois
 const PENSION := 1450.0
 const ALLOCATION := 1050.0 # chômage
+const BOURSE := 500.0 # étudiant (bourse, petits boulots)
 const LOYER_MAISON := 1050.0
 const LOYER_APPART := 720.0
 const COURSES := 260.0 # par personne
@@ -65,7 +70,7 @@ var next_pid := 1
 var next_hid := 1
 ## Horloge de la vie, en jours (avance avec le temps du jeu × life_speed).
 var life_clock := 0.0
-var life_speed_index := 0
+var life_speed_index := DEFAULT_LIFE_SPEED
 var arrivals := true
 ## Dernier instant de jeu vu (secondes Unix) et numéro du dernier jour traité.
 var last_unix := -1.0
@@ -101,6 +106,20 @@ var _press := Vector2.ZERO
 var _arrival_news := Vector2i.ZERO
 var _news_timer := 0.0
 var _now := {}
+## Cycle de vie : CV, familles, santé, défunts, habitant suivi.
+var vie: CycleVie
+## Caméra de la partie (pour suivre un habitant) et suivi caméra actif.
+var rig: Node3D
+var follow_camera := true
+var _follow_marker: MeshInstance3D
+var _follow_label: Label3D
+var _follow_timer := 0.0
+var _follow_target := Vector3.ZERO
+var _follow_set := Vector3.INF
+
+
+func _init() -> void:
+	vie = CycleVie.new(self)
 
 
 func _ready() -> void:
@@ -135,6 +154,32 @@ func _ready() -> void:
 	_marker_label.outline_size = 8
 	_marker_label.visible = false
 	add_child(_marker_label)
+	_follow_marker = MeshInstance3D.new()
+	var cone := CylinderMesh.new()
+	cone.top_radius = 1.6
+	cone.bottom_radius = 0.0
+	cone.height = 3.2
+	cone.radial_segments = 4
+	_follow_marker.mesh = cone
+	var fm := StandardMaterial3D.new()
+	fm.albedo_color = Color("ffd166")
+	fm.emission_enabled = true
+	fm.emission = Color("ffb703")
+	fm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	_follow_marker.material_override = fm
+	_follow_marker.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_follow_marker.visible = false
+	add_child(_follow_marker)
+	_follow_label = Label3D.new()
+	_follow_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_follow_label.no_depth_test = true
+	_follow_label.fixed_size = true
+	_follow_label.pixel_size = 0.0007
+	_follow_label.font_size = 28
+	_follow_label.outline_size = 8
+	_follow_label.modulate = Color("ffe08a")
+	_follow_label.visible = false
+	add_child(_follow_label)
 
 
 func clear() -> void:
@@ -152,7 +197,9 @@ func clear() -> void:
 	last_unix = -1.0
 	last_day = -1
 	ledger = {"mois": {}, "precedent": {}, "jours": 0}
+	vie.clear()
 	select_building(-1)
+	follow_changed.emit()
 	changed.emit()
 
 
@@ -217,7 +264,8 @@ func advance(dt: float, realtime := false) -> void:
 			_immigrate(hours)
 		_match_all()
 	var d := int(now().day)
-	if last_day < 0:
+	# Horloge remise en arrière (date changée, partie chargée) : on repart de là.
+	if last_day < 0 or d < last_day:
 		last_day = d
 	var n := 0
 	while last_day < d and n < 3:
@@ -288,6 +336,7 @@ func _sync_buildings() -> void:
 	if added or not gone.is_empty():
 		_venue_cache.clear()
 		_transit_cache.clear()
+		vie.clear_cache()
 		_match_all()
 		changed.emit()
 	if _selected >= 0 and not known.has(_selected):
@@ -300,10 +349,11 @@ func _remove_building(bid: int) -> void:
 	var n_left := 0
 	for hid in by_home.get(bid, []).duplicate():
 		n_left += (households[hid].m as Array).size()
-		_remove_household(hid)
+		_remove_household(hid, "Quitte la ville : logement démoli")
 	by_home.erase(bid)
 	for pid in by_job.get(bid, []):
 		if persons.has(pid):
+			vie.log_event(persons[pid], "fin_emploi", "Perd son emploi : %s est démoli" % building_name(bid), bid)
 			persons[pid].job = -1
 			persons[pid].met = ""
 	by_job.erase(bid)
@@ -418,6 +468,7 @@ func spawn_household(bid: int, kind := "") -> int:
 	h.car = mini(n_adults, 2) if rng.randf() < 0.82 else 0
 	if info.house == false and h.car > 1 and rng.randf() < 0.5:
 		h.car = 1
+	vie.on_arrival(hid, kind)
 	return hid
 
 
@@ -428,26 +479,33 @@ func _add_person(hid: int, sex: String, age: float, role: String, surname: Strin
 	var p := {"id": pid, "f": hid, "p": Prenoms.first_name(rng, String(h.reg), sex), "n": surname, "s": sex,
 		"nj": life_clock - age * 365.25, "r": role, "job": -1, "met": "", "sch": -1, "hob": []}
 	p.hob = Metiers.pick_hobbies(rng, age)
+	CycleVie.ensure(p)
 	persons[pid] = p
 	(h.m as Array).append(pid)
 	return pid
 
 
-func _remove_household(hid: int) -> void:
+## archive : raison du départ gardée dans la fiche des habitants ("" : pas de fiche).
+func _remove_household(hid: int, archive := "Quitte la ville") -> void:
 	if not households.has(hid):
 		return
 	var h: Dictionary = households[hid]
 	for pid in (h.m as Array).duplicate():
-		_remove_person(pid, false)
+		_remove_person(pid, false, archive)
 	var list: Array = by_home.get(int(h.b), [])
 	list.erase(hid)
 	households.erase(hid)
 
 
-func _remove_person(pid: int, check_household := true) -> void:
+func _remove_person(pid: int, check_household := true, archive := "") -> void:
 	if not persons.has(pid):
 		return
 	var p: Dictionary = persons[pid]
+	if archive != "":
+		vie.archive_person(p, "depart", archive)
+	if vie.followed == pid:
+		vie.followed = -1
+		follow_changed.emit()
 	_leave_job(p)
 	_leave_school(p)
 	persons.erase(pid)
@@ -460,12 +518,15 @@ func _remove_person(pid: int, check_household := true) -> void:
 				if persons[m].r == "adulte" or age_of(persons[m]) >= ADULT_AGE:
 					adults += 1
 			if adults == 0:
-				_remove_household(int(p.f))
+				_remove_household(int(p.f), "Quitte la ville avec sa famille")
 
 
-func _leave_job(p: Dictionary) -> void:
+## reason : étape notée dans le CV ("" : rien).
+func _leave_job(p: Dictionary, reason := "") -> void:
 	if int(p.job) >= 0:
 		(by_job.get(int(p.job), []) as Array).erase(int(p.id))
+		if reason != "":
+			vie.log_event(p, "fin_emploi", reason, int(p.job))
 	p.job = -1
 	p.met = ""
 
@@ -491,10 +552,13 @@ func stage(p: Dictionary) -> String:
 		return "eleve"
 	if a >= RETIREMENT_AGE:
 		return "retraite"
+	if float(p.get("etu", -1.0)) > life_clock:
+		return "etudiant"
 	return "actif" if int(p.job) >= 0 else "chomeur"
 
 
-const STAGE_NAMES := {"bebe": "Bébé", "eleve": "Élève", "actif": "Actif·ve", "chomeur": "Sans emploi", "retraite": "Retraité·e"}
+const STAGE_NAMES := {"bebe": "Bébé", "eleve": "Élève", "etudiant": "Étudiant·e", "actif": "Actif·ve", "chomeur": "Sans emploi",
+	"retraite": "Retraité·e"}
 
 
 func stage_label(p: Dictionary) -> String:
@@ -504,6 +568,8 @@ func stage_label(p: Dictionary) -> String:
 		return "Élève (%s)" % lvl if int(p.sch) >= 0 else "Enfant sans école"
 	if st == "actif":
 		return Metiers.job(String(p.met)).name
+	if st == "etudiant":
+		return "Étudiant%s (%s)" % [CycleVie.g(p, "", "e"), CycleVie.DIPLOMES.get(String(p.get("etd", "")), "université")]
 	return STAGE_NAMES[st]
 
 
@@ -547,8 +613,19 @@ func _match_all() -> void:
 					_join_school(p, best)
 					if free_seats(best) <= 0:
 						schools.erase(best)
+			if int(p.sch) >= 0:
+				var lvl := Metiers.school_level(age_years(p))
+				if String(p.get("niv", "")) != lvl:
+					p.niv = lvl
+					const ENTRE := {"maternelle": "Entre à l'école maternelle", "élémentaire": "Entre à l'école élémentaire",
+						"collège": "Entre au collège", "lycée": "Entre au lycée"}
+					vie.log_event(p, "ecole", "%s (%s)" % [ENTRE.get(lvl, "Entre à l'école"), building_name(int(p.sch))], int(p.sch))
 		elif int(p.sch) >= 0:
 			_leave_school(p)
+		if st == "retraite" and not bool(p.get("ret", false)):
+			p.ret = true
+			vie.log_event(p, "retraite", "Prend sa retraite%s" % (" (%s)" % String(Metiers.job(String(p.met)).name).to_lower()
+				if int(p.job) >= 0 else ""), int(p.job))
 		if st == "retraite" and int(p.job) >= 0:
 			_leave_job(p)
 		elif st == "chomeur" and not jobs.is_empty():
@@ -588,12 +665,24 @@ func _join_school(p: Dictionary, bid: int) -> void:
 
 
 func _join_job(p: Dictionary, bid: int, metier := "") -> void:
+	var had := int(p.job) >= 0
 	_leave_job(p)
 	p.job = bid
-	p.met = metier if metier != "" else Metiers.pick_job(rng, String(known[bid].t))
+	if metier == "":
+		# Les diplômes ouvrent les métiers les mieux payés (deux tirages, on garde le meilleur).
+		metier = Metiers.pick_job(rng, String(known[bid].t))
+		var dip := String(p.get("dip", ""))
+		var other := Metiers.pick_job(rng, String(known[bid].t))
+		var better := int(Metiers.job(other).salaire) > int(Metiers.job(metier).salaire)
+		if (dip in ["licence", "master"] and better) or (dip in ["", "brevet"] and not better):
+			metier = other
+	p.met = metier
 	if not by_job.has(bid):
 		by_job[bid] = []
 	(by_job[bid] as Array).append(int(p.id))
+	var j := Metiers.job(String(p.met))
+	vie.log_event(p, "emploi", "%s %s à %s (%s net par mois)" % ["Change de travail : devient" if had else "Devient",
+		String(j.name).to_lower(), building_name(bid), HabitantsPanel.money(float(j.salaire) * ReglagesPartie.actuel.salaires)], bid)
 
 
 ## Chaque nouveau jour : économie, naissances, décès, départs de chez les parents.
@@ -601,44 +690,8 @@ func _new_day() -> void:
 	_pay_day()
 	_board_commuters()
 	var years := life_speed() / 365.25 # années de vie écoulées en un jour de jeu
-	var births := []
-	var deaths := []
-	var leaving := []
-	for pid in persons:
-		var p: Dictionary = persons[pid]
-		var a := age_of(p)
-		if a >= 70.0:
-			var q := clampf(0.012 * exp((a - 70.0) / 9.0), 0.0, 0.6)
-			if rng.randf() < q * years:
-				deaths.append(pid)
-				continue
-		if p.r == "enfant" and a >= 19.0 and a < 32.0 and rng.randf() < 0.3 * years:
-			leaving.append(pid)
-		if p.s == "F" and p.r == "adulte" and a >= 20.0 and a < 43.0 and rng.randf() < 0.08 * years:
-			births.append(pid)
-	for pid in deaths:
-		var p: Dictionary = persons[pid]
-		message.emit("%s %s est décédé·e à %d ans." % [p.p, p.n, age_years(p)])
-		_remove_person(pid)
-	for pid in births:
-		if not persons.has(pid):
-			continue
-		var mom: Dictionary = persons[pid]
-		var h: Dictionary = households[int(mom.f)]
-		var adults := 0
-		var kids := 0
-		for m in h.m:
-			if persons[m].r == "adulte":
-				adults += 1
-			elif age_of(persons[m]) < 6.0:
-				kids += 1
-		if adults < 2 or kids >= 2 or (h.m as Array).size() >= 7:
-			continue
-		var baby := _add_person(int(h.id), "F" if rng.randf() < 0.49 else "H", 0.0, "enfant", String(mom.n))
-		message.emit("Naissance : %s %s, chez %s." % [persons[baby].p, persons[baby].n, building_name(int(h.b))])
-	for pid in leaving:
-		if persons.has(pid):
-			_move_out(pid)
+	vie.daily(years)
+	vie.flush_digest()
 	changed.emit()
 
 
@@ -662,7 +715,12 @@ func _move_out(pid: int) -> void:
 	(old.m as Array).erase(pid)
 	p.f = hid
 	p.r = "adulte"
-	message.emit("%s %s quitte ses parents et s'installe à %s." % [p.p, p.n, building_name(bid)])
+	vie.log_event(p, "demenage", "Quitte ses parents et s'installe à %s" % building_name(bid), bid)
+	if int(households[hid].car) > 0:
+		if not bool(p.get("perm", false)):
+			p.perm = true
+			vie.log_event(p, "permis", "Obtient le permis de conduire")
+		vie.log_event(p, "voiture", "Achète sa première voiture")
 
 
 # --- Économie -------------------------------------------------------------------
@@ -681,6 +739,8 @@ func income_of(p: Dictionary) -> float:
 			return PENSION
 		"chomeur":
 			return ALLOCATION
+		"etudiant":
+			return BOURSE
 	return 0.0
 
 
@@ -758,7 +818,7 @@ func _pay_day() -> void:
 		var who: Dictionary = persons[h.m[0]] if not (h.m as Array).is_empty() else {}
 		if not who.is_empty():
 			message.emit("Le foyer %s, endetté, quitte la ville." % String(who.n))
-		_remove_household(hid)
+		_remove_household(hid, "Quitte la ville : le foyer est trop endetté")
 	ledger.jours = int(ledger.jours) + 1
 	if int(ledger.jours) >= 30:
 		ledger.precedent = ledger.mois
@@ -975,6 +1035,10 @@ func day_plan(p: Dictionary, n: Dictionary = {}) -> Array:
 		var back := end + float(c.min) / 60.0
 		plan.append([end, back, "trajet", home, "Rentre %s" % c.mode])
 		t = back
+	elif st == "etudiant" and n.wd >= 1 and n.wd <= 5 and not _school_holidays(n):
+		plan.append([t, 8.5, "maison", home, "À la maison"])
+		plan.append([8.5, 17.5, "etudes", -1, "En cours à l'université (hors de la ville)"])
+		t = 17.5
 	elif st == "chomeur" and n.wd >= 1 and n.wd <= 5:
 		plan.append([t, 12.0, "maison", home, "Cherche un emploi"])
 		t = 12.0
@@ -1082,6 +1146,9 @@ func satisfaction(p: Dictionary) -> Dictionary:
 				why.append("− pas de place à l'école")
 		"retraite":
 			s += 10.0
+		"etudiant":
+			s += 10.0
+			why.append("+ fait des études")
 	var found := 0
 	for hb in p.hob:
 		if Metiers.LOISIRS[hb].lieux.is_empty() or venue_for(p, hb) >= 0:
@@ -1186,7 +1253,7 @@ func traffic_demand() -> Dictionary:
 # --- Chiffres ---------------------------------------------------------------------
 
 func stats() -> Dictionary:
-	var out := {"habitants": persons.size(), "foyers": households.size(), "bebe": 0, "eleve": 0, "actif": 0,
+	var out := {"habitants": persons.size(), "foyers": households.size(), "bebe": 0, "eleve": 0, "etudiant": 0, "actif": 0,
 		"chomeur": 0, "retraite": 0, "sans_ecole": 0, "logements": 0, "emplois": 0, "places": 0, "satisfaction": 0}
 	var sat := 0
 	for pid in persons:
@@ -1260,6 +1327,64 @@ func _physics_process(delta: float) -> void:
 	if _label_timer <= 0.0 and _selected >= 0:
 		_label_timer = 1.0
 		_update_label()
+	_update_follow(delta)
+
+
+# --- Habitant suivi (façon Sims) ----------------------------------------------------
+
+func follow(pid: int) -> void:
+	vie.follow(pid)
+	follow_camera = vie.followed >= 0
+	_follow_set = Vector3.INF
+	_follow_timer = 0.0
+
+
+func followed() -> int:
+	return vie.followed
+
+
+## Repère au-dessus de l'habitant suivi ; la caméra l'accompagne (sauf si le joueur la déplace).
+func _update_follow(delta: float) -> void:
+	var pid := vie.followed
+	var on := pid >= 0 and persons.has(pid)
+	_follow_marker.visible = on
+	_follow_label.visible = on
+	if not on:
+		return
+	_follow_timer -= delta
+	if _follow_timer <= 0.0:
+		_follow_timer = 0.25
+		_now = {}
+		_follow_target = vie.position_of(pid)
+		var p: Dictionary = persons[pid]
+		var a := activity(p)
+		_follow_label.text = "★ %s %s, %d ans\n%s" % [p.p, p.n, age_years(p), a.text]
+	var top := _follow_target + Vector3(0, 14.0, 0)
+	if known.has(int(activity(persons[pid]).bid)):
+		top.y = _follow_target.y + BuildingCatalog.approx_height(String(known[int(activity(persons[pid]).bid)].t)) + 4.0
+	_follow_marker.position = _follow_marker.position.lerp(top, minf(1.0, delta * 6.0)) if _follow_marker.position != Vector3.ZERO else top
+	_follow_marker.rotate_y(delta * 1.5)
+	# Le repère grossit quand la caméra s'éloigne, pour rester visible.
+	var cam := get_viewport().get_camera_3d() if is_inside_tree() else null
+	var k := 1.0
+	if cam != null:
+		k = clampf(cam.global_position.distance_to(_follow_marker.position) / 60.0, 1.0, 12.0)
+	var b := _follow_marker.basis.orthonormalized()
+	_follow_marker.basis = b.scaled(Vector3.ONE * k)
+	_follow_label.position = _follow_marker.position + Vector3(0, 3.5 * k, 0)
+	if rig == null or not follow_camera:
+		return
+	# Le joueur a déplacé la caméra : on le laisse faire.
+	if _follow_set != Vector3.INF and Vector2(rig.position.x - _follow_set.x, rig.position.z - _follow_set.z).length() > 0.5:
+		follow_camera = false
+		_follow_set = Vector3.INF
+		message.emit("Caméra libre. Clique sur la caméra de la fiche (ou F) pour suivre à nouveau.")
+		follow_changed.emit()
+		return
+	var f := minf(1.0, delta * 3.0)
+	rig.position.x = lerpf(rig.position.x, _follow_target.x, f)
+	rig.position.z = lerpf(rig.position.z, _follow_target.z, f)
+	_follow_set = rig.position
 
 
 ## Un outil est-il actif ? Dans ce cas le clic ne sert pas à choisir un bâtiment.
@@ -1320,8 +1445,9 @@ func to_dict() -> Dictionary:
 	var ps := []
 	for pid in persons:
 		var p: Dictionary = persons[pid]
-		ps.append([pid, p.f, p.p, p.n, p.s, snappedf(float(p.nj), 0.001), p.r, p.job, p.met, p.sch, ",".join(p.hob)])
-	return {"version": 1, "next_pid": next_pid, "next_hid": next_hid, "life_clock": life_clock,
+		ps.append([pid, p.f, p.p, p.n, p.s, snappedf(float(p.nj), 0.001), p.r, p.job, p.met, p.sch, ",".join(p.hob),
+			CycleVie.pack(p)])
+	return {"version": 2, "vie": vie.to_dict(), "next_pid": next_pid, "next_hid": next_hid, "life_clock": life_clock,
 		"life_speed": life_speed_index, "arrivals": arrivals, "last_day": last_day, "ledger": ledger,
 		"money_frac": _money_frac, "foyers": hs, "habitants": ps}
 
@@ -1371,6 +1497,9 @@ func from_dict(d: Dictionary) -> void:
 				hob.append(k)
 		var p := {"id": pid, "f": hid, "p": String(e[2]), "n": String(e[3]), "s": String(e[4]), "nj": float(e[5]),
 			"r": String(e[6]), "job": -1, "met": "", "sch": -1, "hob": hob}
+		if (e as Array).size() > 11 and e[11] is Dictionary:
+			CycleVie.unpack(p, e[11])
+		CycleVie.ensure(p)
 		persons[pid] = p
 		(households[hid].m as Array).append(pid)
 		var job := int(e[7])
@@ -1386,6 +1515,16 @@ func from_dict(d: Dictionary) -> void:
 	# Foyers vides (données abîmées) : retirés.
 	for hid in households.keys():
 		if (households[hid].m as Array).is_empty():
-			_remove_household(hid)
+			_remove_household(hid, "")
+	vie.from_dict(d.get("vie", {}))
+	# Ancienne sauvegarde (sans familles) : couples et parents devinés dans chaque foyer.
+	if int(d.get("version", 1)) < 2:
+		for hid in households:
+			vie.link_household(hid)
+		for pid in persons:
+			var p: Dictionary = persons[pid]
+			if (p.cv as Array).is_empty():
+				vie.log_event(p, "naissance", "Naît loin d'ici", -1, float(p.nj))
 	select_building(-1)
+	follow_changed.emit()
 	changed.emit()

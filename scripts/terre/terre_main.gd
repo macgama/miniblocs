@@ -368,6 +368,7 @@ func _setup_population() -> void:
 	population.buildings = buildings
 	population.transport = transport
 	population.ambiance = ambiance
+	population.rig = rig
 	population.message.connect(func(t: String) -> void: hud.show_message(t))
 	# Pas de bâtiment, personne dans les rues : la circulation suit les habitants.
 	transport.traffic.demand = population.traffic_demand
@@ -545,6 +546,12 @@ func _setup_plans() -> void:
 			hud.show_message("Vise d'abord un bâtiment avec un outil Murs et étages.")
 			return
 		plans.add_roof(plans.active_id(), kind))
+	build_panel.plan_reseat.connect(func() -> void:
+		if plans.active_id() == "":
+			hud.show_message("Vise d'abord un bâtiment avec un outil Murs et étages.")
+			return
+		var d := plans.reseat(plans.active_id())
+		hud.show_message("Bâtiment déjà au ras du sol." if d == 0.0 else "Bâtiment %s de %s m : porte de plain-pied." % ["descendu" if d < 0.0 else "monté", str(absf(d)).replace(".", ",")]))
 
 
 ## Intérieurs : meubles posés case par case, mobilier généré, bâtiments meublés,
@@ -730,6 +737,9 @@ var _snap_pending := true
 
 func _process(delta: float) -> void:
 	_autosave(delta)
+	# Jour permanent automatique pendant la construction.
+	ambiance.set_construction(build_panel.is_open() or blocks.tool != BlockEditor.Tool.NONE
+		or (plans != null and plans.tool != PlanEditor.Tool.NONE))
 	world.update_tide(ambiance.unix_time)
 	world.update_saison(ambiance.unix_time, ambiance.weather)
 	# Le pivot de la caméra suit le relief sous lui.

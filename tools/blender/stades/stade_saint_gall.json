@@ -1,0 +1,49 @@
+{
+  "nom": "stade_saint_gall",
+  "titre": "Kybunpark, Saint-Gall — FC Saint-Gall",
+  "capacite": 19568,
+  "sources": [
+    "Wikipédia (fr et en), consulté le 12 novembre 2026",
+    "photo libre de Wikimedia Commons (AFG_ARENA_St._Gallen)"
+  ],
+  "notes": "Bol fermé posé sur un centre commercial, sièges rouges et blancs, façade claire à bandeau rouge.",
+  "famille": "anneau",
+  "anneau": {
+    "demi_longueur": 58,
+    "demi_largeur": 40,
+    "rayon_angle": 3
+  },
+  "tribunes": {
+    "profondeur": 30,
+    "hauteur": 18,
+    "niveaux": 1,
+    "sieges": [
+      "#c8202f",
+      "#f2f2f2"
+    ],
+    "groupe": 2,
+    "soubassement": 4
+  },
+  "toit": {
+    "hauteur": 22,
+    "dessus": "metal",
+    "couleur": "#6a6f76",
+    "debut": 3,
+    "debord": 1.2
+  },
+  "facade": {
+    "type": "bandes",
+    "couleurs": [
+      "#f1f1f1",
+      "#d0102b",
+      "#f1f1f1"
+    ],
+    "nb_bandes": 3
+  },
+  "socle": {
+    "hauteur": 7,
+    "longueur": 190,
+    "largeur": 160,
+    "couleur": "#b9b5ad"
+  }
+}

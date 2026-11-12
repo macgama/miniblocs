@@ -1,0 +1,158 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "enduit": {
+   "index": 0,
+   "origine": "#f1e6d2"
+  },
+  "enduit_chaud": {
+   "index": 1,
+   "origine": "#f2d0a9"
+  },
+  "pierre": {
+   "index": 2,
+   "origine": "#b9b0a0"
+  },
+  "brique": {
+   "index": 3,
+   "origine": "#a9583f"
+  },
+  "bois": {
+   "index": 4,
+   "origine": "#8a6142"
+  },
+  "bois_sombre": {
+   "index": 5,
+   "origine": "#5a3e2b"
+  },
+  "tuile": {
+   "index": 6,
+   "origine": "#c8553d"
+  },
+  "ardoise": {
+   "index": 7,
+   "origine": "#5b5f66"
+  },
+  "chaume": {
+   "index": 8,
+   "origine": "#c9a861"
+  },
+  "vitre": {
+   "index": 9,
+   "origine": "#33495e"
+  },
+  "cadre": {
+   "index": 10,
+   "origine": "#f4f1ea"
+  },
+  "porte": {
+   "index": 11,
+   "origine": "#6b4a33"
+  },
+  "volet": {
+   "index": 12,
+   "origine": "#4f7a5a"
+  },
+  "socle": {
+   "index": 13,
+   "origine": "#8f8a80"
+  },
+  "beton": {
+   "index": 14,
+   "origine": "#b9b6ae"
+  },
+  "metal": {
+   "index": 15,
+   "origine": "#7d8288"
+  },
+  "ombre": {
+   "index": 16,
+   "origine": "#c9bdab"
+  },
+  "tuile_ombre": {
+   "index": 17,
+   "origine": "#8f3a29"
+  },
+  "tuile_faitage": {
+   "index": 18,
+   "origine": "#a8452f"
+  },
+  "eau": {
+   "index": 19,
+   "origine": "#3fa7d6"
+  },
+  "eau_bord": {
+   "index": 20,
+   "origine": "#7cc8e6"
+  },
+  "margelle": {
+   "index": 21,
+   "origine": "#e4ddd0"
+  },
+  "dalle": {
+   "index": 22,
+   "origine": "#cfc8b9"
+  },
+  "asphalte": {
+   "index": 23,
+   "origine": "#4a4d52"
+  },
+  "bordure": {
+   "index": 24,
+   "origine": "#b7b3aa"
+  },
+  "marquage": {
+   "index": 25,
+   "origine": "#f2f2ee"
+  },
+  "mur_garage": {
+   "index": 26,
+   "origine": "#e8e2d6"
+  },
+  "porte_garage": {
+   "index": 27,
+   "origine": "#dcd8cf"
+  },
+  "porte_garage_rainure": {
+   "index": 28,
+   "origine": "#b9b5ac"
+  },
+  "toit_plat": {
+   "index": 29,
+   "origine": "#6b6e73"
+  },
+  "bois_terrasse": {
+   "index": 30,
+   "origine": "#a0704a"
+  },
+  "bois_terrasse_b": {
+   "index": 31,
+   "origine": "#8f6340"
+  },
+  "poteau": {
+   "index": 32,
+   "origine": "#5a3e2b"
+  },
+  "lampadaire": {
+   "index": 33,
+   "origine": "#3a3d42"
+  },
+  "lampe": {
+   "index": 34,
+   "origine": "#fff3c4"
+  },
+  "transat": {
+   "index": 35,
+   "origine": "#f4f1ea"
+  },
+  "coussin": {
+   "index": 36,
+   "origine": "#2f6f8f"
+  },
+  "gravier": {
+   "index": 37,
+   "origine": "#bdb6a6"
+  }
+ }
+}

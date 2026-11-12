@@ -66,15 +66,15 @@ def construit(b):
                couleur_dessus=SOL_TERRASSE)
 
     # Ouvertures du rez-de-chaussée.
-    b.plaque((-2.3, -2.33, 1.1), (0, -1), 0.9, 2.2, PORTE)
-    b.vitrage((-3.45, -3.5, 1.5), (0, -1), 0.35, 1.8, 1, 4)
+    b.porte_relief(-2.3, -2.3, (0, -1), 0, 0.0, 0.9, 2.2, PORTE, "cadre")
+    b.vitrage_relief((-3.45, -3.5, 1.5), (0, -1), 0.35, 1.8, 1, 4)
     b.bande_arc(bow_c[0], bow_c[1], bow_r + 0.03, 0.35, 2.6, 225, 315, 24,
                 lp.MAT_CARREAUX, 0.47, 2.25 / 4)
     for y in (-2.4, 0.2):
-        b.vitrage((-5.5, y, 1.5), (-1, 0), 0.35, 1.8, 1, 4)
+        b.vitrage_relief((-5.5, y, 1.5), (-1, 0), 0.35, 1.8, 1, 4)
     for x in (-4.0, -1.5, 1.0, 3.6):
-        b.vitrage((x, 4.0, 1.6), (0, 1), 1.4, 1.4, 3, 3)
-    b.vitrage((5.5, 1.5, 1.6), (1, 0), 1.4, 1.4, 3, 3)
+        b.vitrage_relief((x, 4.0, 1.6), (0, 1), 1.4, 1.4, 3, 3)
+    b.vitrage_relief((5.5, 1.5, 1.6), (1, 0), 1.4, 1.4, 3, 3)
 
     # Garde-corps en grille de la terrasse (suit la courbe du bow-window).
     trace = [(-5.55, -0.8), (-5.55, -3.55), (0.2, -3.55)]
@@ -88,10 +88,10 @@ def construit(b):
     # --- 1er étage ------------------------------------------------------------
     b.boite((1.9, 1.3, Z1 + ETAGE / 2), (5.8, 4.4, ETAGE), BLANC)    # corps (x -1..4.8)
     hublot(b, 3.0, -0.9, Z1 + 1.55, 0.28)
-    b.plaque((0.55, -0.93, Z1 + 1.05), (0, -1), 0.8, 2.1, PORTE)
+    b.porte_relief(0.55, -0.9, (0, -1), 0, Z1, 0.8, 2.1, PORTE, "cadre")
     for x in (0.5, 3.2):
-        b.vitrage((x, 3.5, Z1 + 1.5), (0, 1), 1.4, 1.3, 3, 3)
-    b.vitrage((4.8, 1.8, Z1 + 1.5), (1, 0), 1.2, 1.3, 3, 3)
+        b.vitrage_relief((x, 3.5, Z1 + 1.5), (0, 1), 1.4, 1.3, 3, 3)
+    b.vitrage_relief((4.8, 1.8, Z1 + 1.5), (1, 0), 1.2, 1.3, 3, 3)
     # Auvent au-dessus de la porte, arrondi devant.
     b.boite((0.35, -1.45, Z2 + DALLE / 2), (3.1, 1.1, DALLE), BLANC_OMBRE, dessous=True)
     # Toit-terrasse du corps et garde-corps à barreaux fins, arrondi à droite.

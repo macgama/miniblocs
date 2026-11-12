@@ -1,0 +1,42 @@
+{
+  "nom": "stade_lugano",
+  "titre": "AIL Arena (Lugano Arena), Lugano — FC Lugano",
+  "capacite": 8793,
+  "sources": [
+    "Wikipédia (fr et en), consulté le 12 novembre 2026"
+  ],
+  "notes": "Stade neuf de 2026, toutes les places couvertes. Aucune photo libre trouvée : volumes et couleurs (noir et blanc du club) approximatifs.",
+  "famille": "anneau",
+  "anneau": {
+    "demi_longueur": 57,
+    "demi_largeur": 39,
+    "rayon_angle": 2
+  },
+  "tribunes": {
+    "profondeur": 20,
+    "hauteur": 11,
+    "niveaux": 1,
+    "sieges": [
+      "#1b1b1b",
+      "#f2f2f2"
+    ],
+    "groupe": 2,
+    "soubassement": 4
+  },
+  "toit": {
+    "hauteur": 15,
+    "dessus": "metal",
+    "couleur": "#3a3d42",
+    "debut": 2.5,
+    "debord": 1
+  },
+  "facade": {
+    "type": "lamelles",
+    "couleurs": [
+      "#f0f0ee",
+      "#2b2d31"
+    ],
+    "pas": 3,
+    "saillie": 0.4
+  }
+}

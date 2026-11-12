@@ -103,6 +103,12 @@ Dans le mode Terre, la barre du bas propose **5 Route**, **6 Rail**, **7 Chemin*
 
 ![Pont et talus au-dessus d'une vallée](docs/apercu-transport-pont.png)
 
+### Raccords des voies
+
+![Carrefour en biais : trottoirs arrondis aux angles](docs/apercu-raccords.png)
+
+Quand deux tronçons se suivent presque en ligne droite (moins de 30° d'écart), ils se rejoignent bord à bord, sans joint. Leur chaussée, leurs trottoirs et leurs marquages sont coupés en onglet. Dans un virage plus serré et dans les carrefours, le plateau suit les bordures. Les trottoirs tournent à chaque angle en arc de cercle, d'une branche à la voisine. Aucun lampadaire ne se retrouve sur un plateau de carrefour.
+
 ### Carrefours : feux, stop, cédez-le-passage, priorité à droite
 
 ![Carrefour à feux : le camion attend au rouge derrière la ligne d'arrêt](docs/apercu-feux.png)

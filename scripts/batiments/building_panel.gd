@@ -27,6 +27,7 @@ signal plan_cutaway_toggled(on: bool)
 signal plan_copy_level(count: int)
 signal plan_roof(kind: String)
 signal plan_wall_levels(count: int)
+signal plan_reseat
 ## Échelle des étages : clic sur un étage.
 signal plan_level_set(level: int)
 
@@ -569,6 +570,12 @@ func _show_plan_tools() -> void:
 		var rid: String = r[0]
 		rb.pressed.connect(func() -> void: plan_roof.emit(rid))
 		rrow.add_child(rb)
+	var seat := Button.new()
+	seat.text = "Au ras du sol"
+	seat.tooltip_text = "Remet le bâtiment visé de plain-pied : rez-de-chaussée à la hauteur du sol ou de la route voisine (toit compris)."
+	seat.add_theme_font_size_override("font_size", 12)
+	seat.pressed.connect(func() -> void: plan_reseat.emit())
+	rrow.add_child(seat)
 	_add(rrow)
 
 

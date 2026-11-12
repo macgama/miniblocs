@@ -26,11 +26,18 @@ var _filter := ""
 var _search := ""
 var _tick := 0.0
 var _popups: Array = []
+## Carte de l'habitant suivi (en bas à gauche, même panneau fermé).
+var _card: PanelContainer
+var _card_text: Label
+var _card_cam: Button
+var _card_tick := 0.0
 
 
 func setup(p: Population) -> void:
 	pop = p
 	_build()
+	_build_card()
+	pop.follow_changed.connect(_refresh_card)
 	pop.building_selected.connect(func(bid: int) -> void:
 		if bid >= 0:
 			_panel.visible = true
@@ -105,6 +112,10 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	if k and k.pressed and not k.echo and k.physical_keycode == KEY_H and not k.shift_pressed and not k.ctrl_pressed:
 		toggle()
 		get_viewport().set_input_as_handled()
+	elif k and k.pressed and not k.echo and k.physical_keycode == KEY_F and not k.shift_pressed and not k.ctrl_pressed \
+			and pop.followed() >= 0:
+		_toggle_camera()
+		get_viewport().set_input_as_handled()
 
 
 func show_view(v: String, arg := -1, remember := true) -> void:
@@ -131,6 +142,10 @@ func go_back() -> void:
 
 
 func _process(delta: float) -> void:
+	_card_tick -= delta
+	if _card_tick <= 0.0 and _card.visible:
+		_card_tick = 0.5
+		_refresh_card()
 	if not is_open():
 		return
 	_tick += delta
@@ -170,6 +185,8 @@ func refresh() -> void:
 		"profil":
 			if pop.persons.has(view_arg):
 				_view_profile(view_arg)
+			elif pop.vie.archive.has(view_arg):
+				_view_archive(view_arg)
 			else:
 				_title.text = "Habitant parti"
 				_text("Cet habitant n'est plus dans la ville.", true)
@@ -212,11 +229,20 @@ func _link(t: String, cb: Callable, tip := "") -> Button:
 
 
 func _person_link(pid: int, extra := "") -> void:
+	if not pop.persons.has(pid):
+		var f: Dictionary = pop.vie.archive.get(pid, {})
+		if f.is_empty():
+			return
+		var dead: bool = String(f.fin) == "deces"
+		var t2 := "%s %s%s%s" % [f.p, f.n, (", mort%s à %d ans" % [CycleVie.g(f, "", "e"), floori(pop.vie.age_of(f))]) if dead
+			else " · a quitté la ville", (" · " + extra) if extra != "" else ""]
+		_link(("† " if dead else "→ ") + t2, func() -> void: show_view("profil", pid)).add_theme_color_override("font_color", Color(0.75, 0.8, 0.85))
+		return
 	var p: Dictionary = pop.persons[pid]
 	var t := "%s %s, %d ans · %s" % [p.p, p.n, pop.age_years(p), pop.stage_label(p)]
 	if extra != "":
 		t += " · " + extra
-	_link(("♀ " if p.s == "F" else "♂ ") + t, func() -> void: show_view("profil", pid))
+	_link(("★ " if pop.followed() == pid else ("♀ " if p.s == "F" else "♂ ")) + t, func() -> void: show_view("profil", pid))
 
 
 func _building_link(prefix: String, bid: int) -> void:
@@ -272,7 +298,8 @@ func _view_city() -> void:
 	_text("Clique un bâtiment de la carte (outil 1 · Observer) pour voir qui y vit, y travaille ou y étudie.", true, 12)
 	_section("Population")
 	var adults: int = s.actif + s.chomeur
-	for row in [["bebe", "Bébés (0-2 ans)"], ["eleve", "Élèves (3-17 ans)"], ["actif", "Actifs avec emploi"], ["chomeur", "Sans emploi"], ["retraite", "Retraités (64 ans et plus)"]]:
+	for row in [["bebe", "Bébés (0-2 ans)"], ["eleve", "Élèves (3-17 ans)"], ["etudiant", "Étudiants (université hors de la ville)"],
+			["actif", "Actifs avec emploi"], ["chomeur", "Sans emploi"], ["retraite", "Retraités (64 ans et plus)"]]:
 		var key: String = row[0]
 		var cnt: int = s[key]
 		_link("%s : %d" % [row[1], cnt], func() -> void:
@@ -281,6 +308,20 @@ func _view_city() -> void:
 	_text("Chômage : %s · enfants sans école : %d" % ["—" if adults == 0 else "%d %%" % roundi(100.0 * s.chomeur / adults), s.sans_ecole])
 	_text("Logements : %d occupés sur %d · emplois : %d pourvus sur %d · places d'école : %d sur %d" % [
 		s.foyers, s.logements, s.actif, s.emplois, s.eleve - s.sans_ecole, s.places], true)
+	_section("La vie en ville")
+	var t: Dictionary = pop.vie.totals
+	_text("Naissances : %d · décès : %d%s" % [int(t.naissances), int(t.deces),
+		(" · âge moyen au décès : %d ans" % roundi(float(t.age_deces) / int(t.deces))) if int(t.deces) > 0 else ""])
+	_text("Couples formés : %d · mariages : %d · PACS : %d · séparations : %d · départs : %d" % [int(t.couples), int(t.mariages),
+		int(t.pacs), int(t.separations), int(t.departs)], true, 12)
+	if pop.followed() >= 0:
+		var fp: Dictionary = pop.persons[pop.followed()]
+		_link("★ Tu suis %s %s" % [fp.p, fp.n], func() -> void: show_view("profil", pop.followed()))
+	else:
+		_text("Ouvre la fiche d'un habitant et clique « ☆ Suivre » pour vivre sa vie de près.", true, 12)
+	_link("Défunts et anciens habitants : %d" % pop.vie.archive.size(), func() -> void:
+		_filter = "defunts"
+		show_view("liste"), "Leurs fiches restent consultables")
 	_section("Budget de la ville (par mois)")
 	var b := pop.city_budget()
 	for k in b.recettes:
@@ -310,6 +351,10 @@ func _view_city() -> void:
 	for i in Population.LIFE_SPEED_NAMES.size():
 		pick.add_item(Population.LIFE_SPEED_NAMES[i], i)
 	pick.select(pop.life_speed_index)
+	pick.fit_to_longest_item = false
+	pick.clip_text = true
+	pick.custom_minimum_size = Vector2(180, 0)
+	pick.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	pick.tooltip_text = "Vieillissement, naissances et décès. Les horaires suivent toujours l'horloge du jeu."
 	pick.item_selected.connect(func(i: int) -> void: pop.life_speed_index = i)
 	_popups.append(pick)
@@ -331,9 +376,9 @@ func _view_list() -> void:
 	var row := HBoxContainer.new()
 	var pick := OptionButton.new()
 	pick.focus_mode = Control.FOCUS_NONE
-	var keys := ["", "bebe", "eleve", "actif", "chomeur", "retraite"]
+	var keys := ["", "bebe", "eleve", "etudiant", "actif", "chomeur", "retraite", "defunts"]
 	for i in keys.size():
-		pick.add_item("Tout le monde" if keys[i] == "" else String(Population.STAGE_NAMES[keys[i]]), i)
+		pick.add_item("Tout le monde" if keys[i] == "" else ("Défunts et partis" if keys[i] == "defunts" else String(Population.STAGE_NAMES[keys[i]])), i)
 		if keys[i] == _filter:
 			pick.select(i)
 	pick.item_selected.connect(func(i: int) -> void:
@@ -352,6 +397,21 @@ func _view_list() -> void:
 	var shown := 0
 	var total := 0
 	var needle := _search.to_lower()
+	if _filter == "defunts":
+		var ids: Array = pop.vie.archive.keys()
+		for i in range(ids.size() - 1, -1, -1):
+			var f: Dictionary = pop.vie.archive[ids[i]]
+			if needle != "" and not ("%s %s" % [f.p, f.n]).to_lower().contains(needle):
+				continue
+			total += 1
+			if shown < 150:
+				_person_link(int(ids[i]))
+				shown += 1
+		if total == 0:
+			_text("Personne n'est encore mort ni parti.", true)
+		elif total > shown:
+			_text("… et %d autres (affine la recherche)." % (total - shown), true)
+		return
 	for pid in pop.persons:
 		var p: Dictionary = pop.persons[pid]
 		if _filter != "" and pop.stage(p) != _filter:
@@ -498,6 +558,7 @@ func _view_profile(pid: int) -> void:
 	var h: Dictionary = pop.households[int(p.f)]
 	var age := pop.age_years(p)
 	_title.text = "%s %s" % [p.p, p.n]
+	_follow_row(pid)
 	_text("%s · %d ans · %s" % ["Femme" if p.s == "F" and age >= 18 else ("Fille" if p.s == "F" else ("Homme" if age >= 18 else "Garçon")),
 		age, pop.stage_label(p)], false, 14)
 	var a := pop.activity(p)
@@ -582,18 +643,221 @@ func _view_profile(pid: int) -> void:
 		var l := _text("%s%s  %s" % ["▶ " if now_mark else "   ", _hours(float(seg[0]), float(seg[1])), seg[4]], not now_mark, 12)
 		if now_mark:
 			l.add_theme_color_override("font_color", Color("ffd166"))
+	_life_sections(p)
+
+
+# --- Cycle de vie : suivi, famille, santé, CV ----------------------------------------
+
+func _follow_row(pid: int) -> void:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+	_body.add_child(row)
+	var on := pop.followed() == pid
+	var b := Button.new()
+	b.text = "★ Suivi%s" % CycleVie.g(pop.persons[pid], "", "e") if on else "☆ Suivre"
+	b.focus_mode = Control.FOCUS_NONE
+	b.tooltip_text = "Suivre cet habitant façon Sims : repère au-dessus de lui, caméra qui l'accompagne, nouvelles de sa vie."
+	b.toggle_mode = true
+	b.button_pressed = on
+	b.pressed.connect(func() -> void:
+		pop.follow(-1 if on else pid)
+		refresh())
+	row.add_child(b)
+	if on:
+		var c := Button.new()
+		c.text = _camera_text(pop.persons[pid])
+		c.focus_mode = Control.FOCUS_NONE
+		c.pressed.connect(func() -> void:
+			_toggle_camera()
+			refresh())
+		row.add_child(c)
+
+
+func _camera_text(p: Dictionary) -> String:
+	return "Caméra : %s (F)" % (CycleVie.g(p, "le suit", "la suit") if pop.follow_camera else "libre")
+
+
+func _toggle_camera() -> void:
+	pop.follow_camera = not pop.follow_camera
+	pop._follow_set = Vector3.INF
+	_refresh_card()
+
+
+func _build_card() -> void:
+	_card = PanelContainer.new()
+	UiStyle.style_panel(_card, 0.88, 10, 8)
+	# En haut à gauche, sous la barre du haut (le panneau Habitants est à droite).
+	_card.offset_left = 12.0
+	_card.offset_top = 80.0
+	_card.custom_minimum_size = Vector2(300, 0)
+	_card.visible = false
+	add_child(_card)
+	var v := VBoxContainer.new()
+	_card.add_child(v)
+	_card_text = Label.new()
+	_card_text.add_theme_font_size_override("font_size", 13)
+	_card_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_card_text.custom_minimum_size = Vector2(284, 0)
+	v.add_child(_card_text)
+	var row := HBoxContainer.new()
+	v.add_child(row)
+	var sheet := Button.new()
+	sheet.text = "Fiche"
+	sheet.focus_mode = Control.FOCUS_NONE
+	sheet.pressed.connect(func() -> void:
+		set_open(true)
+		show_view("profil", pop.followed()))
+	row.add_child(sheet)
+	_card_cam = Button.new()
+	_card_cam.focus_mode = Control.FOCUS_NONE
+	_card_cam.pressed.connect(_toggle_camera)
+	row.add_child(_card_cam)
+	var stop := Button.new()
+	stop.text = "Ne plus suivre"
+	stop.focus_mode = Control.FOCUS_NONE
+	stop.pressed.connect(func() -> void:
+		pop.follow(-1)
+		if is_open():
+			refresh())
+	row.add_child(stop)
+
+
+func _refresh_card() -> void:
+	if _card == null:
+		return
+	var pid := pop.followed()
+	_card.visible = pid >= 0 and pop.persons.has(pid)
+	if not _card.visible:
+		return
+	var p: Dictionary = pop.persons[pid]
+	_card_text.text = "★ %s %s, %d ans · %s\n%s" % [p.p, p.n, pop.age_years(p), pop.stage_label(p), pop.activity(p).text]
+	_card_cam.text = _camera_text(p)
+
+
+## Sections communes aux vivants et aux défunts : en bref, santé, famille, CV.
+func _life_sections(p: Dictionary) -> void:
+	var vie := pop.vie
+	var pid := int(p.id)
+	var alive := pop.persons.has(pid)
+	_section("En bref")
+	var bits := ["Diplôme : %s" % CycleVie.DIPLOMES.get(String(p.get("dip", "")), "aucun")]
+	bits.append("permis de conduire" if bool(p.get("perm", false)) else "pas de permis")
+	if int(p.get("sp", 0)) > 0:
+		bits.append("%d distinction%s sportive%s" % [int(p.sp), "s" if int(p.sp) > 1 else "", "s" if int(p.sp) > 1 else ""])
+	_text(" · ".join(bits))
+	if float(p.get("gain", 0.0)) > 0.0:
+		_text("Revenus gagnés depuis son arrivée : %s" % money(float(p.gain)), true, 12)
+	if alive:
+		_section("Santé")
+		var hl := vie.health(p)
+		var mal := String(p.get("mal", ""))
+		_text("%s · espérance de vie estimée : %d ans" % ["Malade : %s" % CycleVie.MALADIES[mal].name if mal != "" else "En bonne santé",
+			roundi(vie.life_expectancy(p))])
+		_text("  " + "\n  ".join(hl.why), true, 12)
+	_section("Famille")
+	var shown := 0
+	for par in vie.parents_of(p):
+		_person_link(par, _relation(p, vie.person(par)))
+		shown += 1
+		for gp in vie.parents_of(vie.person(par)):
+			_person_link(gp, _relation(p, vie.person(gp)))
+			shown += 1
+	if int(p.get("cj", -1)) >= 0 and not vie.person(int(p.cj)).is_empty():
+		_person_link(int(p.cj), _relation(p, vie.person(int(p.cj))))
+		shown += 1
+	var exes := {}
+	for e in p.get("cv", []):
+		if String(e[1]) in ["separation", "veuvage"] and int(e[3]) >= 0 and int(e[3]) != int(p.get("cj", -1)):
+			exes[int(e[3])] = String(e[1])
+	for x in exes:
+		var ex := vie.person(x)
+		if not ex.is_empty():
+			_person_link(x, (CycleVie.g(ex, "son ex-conjoint", "son ex-conjointe") if exes[x] == "separation"
+				else CycleVie.g(ex, "son conjoint (décédé)", "sa conjointe (décédée)")))
+			shown += 1
+	for k in vie.children_of(pid):
+		_person_link(k, _relation(p, vie.person(k)))
+		shown += 1
+		for gk in vie.children_of(k):
+			_person_link(gk, _relation(p, vie.person(gk)))
+			shown += 1
+	for sib in vie.siblings_of(p):
+		_person_link(sib, _relation(p, vie.person(sib)))
+		shown += 1
+	if shown == 0:
+		_text("Pas de famille connue en ville.", true)
+	_section("Sa vie")
+	var fr := FriseVie.new()
+	fr.custom_minimum_size = Vector2(W - 30, 46)
+	_body.add_child(fr)
+	fr.setup(vie, p)
+	var leg := HFlowContainer.new()
+	leg.custom_minimum_size = Vector2(W - 30, 0)
+	_body.add_child(leg)
+	var seen := {}
+	for ph in vie.phases_of(p):
+		var k := String(ph[2])
+		if seen.has(k):
+			continue
+		seen[k] = true
+		var sw := ColorRect.new()
+		sw.color = CycleVie.PHASES[k]
+		sw.custom_minimum_size = Vector2(10, 10)
+		sw.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		leg.add_child(sw)
+		var l := Label.new()
+		l.text = CycleVie.PHASE_NAMES[k] + "  "
+		l.add_theme_font_size_override("font_size", 11)
+		leg.add_child(l)
+	var cv: Array = p.get("cv", [])
+	for i in range(cv.size() - 1, -1, -1):
+		var e: Array = cv[i]
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 6)
+		_body.add_child(row)
+		var dot := ColorRect.new()
+		dot.color = CycleVie.CODES.get(String(e[1]), Color.WHITE)
+		if String(e[1]) == "deces":
+			dot.color = Color.WHITE
+		dot.custom_minimum_size = Vector2(8, 8)
+		dot.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		row.add_child(dot)
+		var at := floori(maxf((float(e[0]) - float(p.nj)) / 365.25, 0.0))
+		var l := Label.new()
+		l.text = "%d an%s · %s" % [at, "s" if at > 1 else "", e[2]]
+		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		l.custom_minimum_size = Vector2(W - 48, 0)
+		l.add_theme_font_size_override("font_size", 12)
+		row.add_child(l)
+		var ref := int(e[3])
+		if String(e[1]) in ["couple", "mariage", "pacs", "separation", "enfant", "veuvage", "deuil", "heritage"] and ref >= 0 \
+				and not vie.person(ref).is_empty():
+			var go := Button.new()
+			go.text = "↗"
+			go.flat = true
+			go.focus_mode = Control.FOCUS_NONE
+			go.tooltip_text = "Voir la fiche"
+			go.pressed.connect(func() -> void: show_view("profil", ref))
+			row.add_child(go)
+
+
+func _view_archive(pid: int) -> void:
+	var f: Dictionary = pop.vie.archive[pid]
+	var dead: bool = String(f.fin) == "deces"
+	_title.text = "%s%s %s" % ["† " if dead else "", f.p, f.n]
+	var age := floori(pop.vie.age_of(f))
+	if dead:
+		_text("%s · mort%s %s à %d ans" % ["Femme" if String(f.s) == "F" else "Homme", CycleVie.g(f, "", "e"), f.cause, age], false, 14)
+		_text("Dernier logement : %s%s" % [f.lieu, (" · dernier métier : %s" % f.met) if String(f.met) != "" else ""], true)
+		_text("Sa fiche reste consultable (un cimetière viendra plus tard dans le catalogue).", true, 12)
+	else:
+		_text("%s · %s à %d ans" % [f.p, String(f.cause).to_lower(), age], false, 14)
+		_text("Dernier logement : %s" % f.lieu, true)
+	_life_sections(f)
 
 
 func _relation(p: Dictionary, q: Dictionary) -> String:
-	var pa: bool = p.r == "adulte"
-	var qa: bool = q.r == "adulte"
-	if pa and qa:
-		return "conjointe" if q.s == "F" else "conjoint"
-	if pa and not qa:
-		return "sa fille" if q.s == "F" else "son fils"
-	if not pa and qa:
-		return "sa mère" if q.s == "F" else "son père"
-	return "sa sœur" if q.s == "F" else "son frère"
+	return pop.vie.relation(p, q)
 
 
 static func _hours(a: float, b: float) -> String:

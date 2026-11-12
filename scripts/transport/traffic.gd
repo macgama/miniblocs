@@ -538,8 +538,9 @@ func _spawn_free(v: Dictionary) -> bool:
 		if int(o.route[o.leg]) == eid and int(o.node) == int(v.node) and absf(float(o.s) - float(v.s)) < 16.0:
 			return false
 		# Ni au milieu d'un véhicule qui arrive au même nœud.
-		if int(o.node) != int(v.node) and network.other_end(int(o.route[o.leg]), int(o.node)) == int(v.node) \
-				and network.edges.has(int(o.route[o.leg])) and float(network.edges[int(o.route[o.leg])].len) - float(o.s) < 25.0:
+		if int(o.node) != int(v.node) and network.edges.has(int(o.route[o.leg])) \
+				and network.other_end(int(o.route[o.leg]), int(o.node)) == int(v.node) \
+				and float(network.edges[int(o.route[o.leg])].len) - float(o.s) < 25.0:
 			return false
 	return true
 
@@ -982,6 +983,10 @@ func _release(v: Dictionary) -> void:
 
 
 func _place(v: Dictionary) -> void:
+	# Tronçon remplacé pendant un arrêt (voie coupée par une nouvelle) : le
+	# véhicule disparaîtra au prochain départ.
+	if int(v.leg) >= (v.route as Array).size() or not network.edges.has(int(v.route[v.leg])):
+		return
 	var eid: int = v.route[v.leg]
 	var e: Dictionary = network.edges[eid]
 	var forward: bool = e.a == v.node

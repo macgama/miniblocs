@@ -69,7 +69,9 @@ func rebuild() -> void:
 	for id in network.edges:
 		var tr: Vector2 = trims.get(id, Vector2.ZERO)
 		var joints := joint_rights(network, id)
-		var key := [tr, joints[0], joints[1]]
+		var e0: Dictionary = network.edges[id]
+		var clear := Vector2(crosswalk_clear(network, id, e0.a, trims), crosswalk_clear(network, id, e0.b, trims))
+		var key := [tr, joints[0], joints[1], clear]
 		if _edge_meshes.has(id) and _edge_keys.get(id) == key:
 			continue
 		var e: Dictionary = network.edges[id]
@@ -80,7 +82,7 @@ func rebuild() -> void:
 			mi.material_override = _material
 			add_child(mi)
 			_edge_meshes[id] = mi
-		mi.mesh = build_mesh(e.t, e.w, e.pts, e.st, ground, tr.x, tr.y, joints[0], joints[1])
+		mi.mesh = build_mesh(e.t, e.w, e.pts, e.st, ground, tr.x, tr.y, joints[0], joints[1], clear.x, clear.y)
 		_edge_keys[id] = key
 	# Plateaux de carrefour : seuls ceux dont les tronçons ou les rognages ont changé.
 	for id in _node_keys.keys():
@@ -176,6 +178,20 @@ static func joint_rights(net: TransportNetwork, eid: int) -> Array:
 	return out
 
 
+## Passage piéton au bout nid du tronçon eid (carrefour d'au moins 3 routes,
+## rue ou avenue assez longue) : longueur à laisser sans marquage, sinon 0.
+static func crosswalk_clear(net: TransportNetwork, eid: int, nid: int, trims: Dictionary) -> float:
+	var e: Dictionary = net.edges[eid]
+	if net.degree(nid) < 3 or net.node_mode(nid) != TransportTypes.Mode.ROAD:
+		return 0.0
+	if String(TransportTypes.get_type(e.t).get("side_kind", "")) != "trottoir":
+		return 0.0
+	var tr: Vector2 = trims.get(eid, Vector2.ZERO)
+	if float(e.len) - tr.x - tr.y <= JunctionControl.CROSS_W * 2.0 + 6.0:
+		return 0.0
+	return JunctionControl.CROSS_W + 0.6
+
+
 ## Longueur à retirer au début (x) et à la fin (y) de chaque tronçon pour
 ## laisser la place au plateau du carrefour.
 static func compute_trims(net: TransportNetwork) -> Dictionary:
@@ -225,30 +241,12 @@ func _junction_mesh(nid: int, trims: Dictionary) -> ArrayMesh:
 ## Plateau de carrefour : chaussée jusqu'aux bordures, et trottoirs qui
 ## tournent à chaque angle entre deux branches voisines (courbe de raccord).
 static func junction_mesh(net: TransportNetwork, nid: int, trims: Dictionary) -> ArrayMesh:
-	var mode := net.node_mode(nid)
-	if mode != TransportTypes.Mode.ROAD and mode != TransportTypes.Mode.PATH:
+	var arms := _junction_arms(net, nid, trims)
+	if arms.is_empty():
 		return null
-	var adj: Array = net.adjacency.get(nid, [])
-	if adj.size() < 2 or is_smooth_joint(net, nid):
-		return null
-	# Bout de chaque branche : point, direction sortante, demi-largeurs.
-	var arms: Array = []
 	var col := ASPHALT
-	for eid in adj:
-		var e: Dictionary = net.edges[eid]
-		var tr: Vector2 = trims.get(eid, Vector2.ZERO)
-		var s: float = tr.x if e.a == nid else float(e.len) - tr.y
-		if net.struct_at(eid, s) == TransportTypes.Struct.TUNNEL:
-			return null
-		var ty := TransportTypes.get_type(e.t)
-		if mode == TransportTypes.Mode.PATH:
-			col = ty.get("color", SIDEWALK)
-		var dir := net.leave_dir(eid, nid)
-		var hw := net.half_width(eid)
-		var walk := float(ty.get("side", 0.0)) if String(ty.get("side_kind", "")) == "trottoir" else 0.0
-		arms.append({"p": net.point_at(eid, s), "d": dir, "r": Vector3(-dir.z, 0, dir.x), "hw": hw, "kerb": hw - walk,
-			"ang": atan2(dir.z, dir.x)})
-	arms.sort_custom(func(x: Dictionary, y: Dictionary) -> bool: return float(x.ang) < float(y.ang))
+	if net.node_mode(nid) == TransportTypes.Mode.PATH:
+		col = TransportTypes.get_type(net.edges[net.adjacency[nid][0]].t).get("color", SIDEWALK)
 	var center := net.node_pos(nid)
 	var c3 := Vector3(center.x, center.y + 0.085, center.z)
 	var kit := MeshKit.new()
@@ -289,8 +287,117 @@ static func junction_mesh(net: TransportNetwork, nid: int, trims: Dictionary) ->
 	for i in kerb_ring.size():
 		var a := kerb_ring[i]
 		var b := kerb_ring[(i + 1) % kerb_ring.size()]
-		kit.tri(c3, a + Vector3(0, 0.085, 0), b + Vector3(0, 0.085, 0), col)
+		kit.tri(c3, a + Vector3(0, 0.085, 0), b + Vector3(0, 0.085, 0), col, true)
 	return kit.commit()
+
+
+## Bouts des branches d'un plateau de carrefour, triés par angle :
+## {p, d (direction sortante), r, hw, kerb (demi-largeur de chaussée)}. [] si pas de plateau.
+static func _junction_arms(net: TransportNetwork, nid: int, trims: Dictionary) -> Array:
+	var mode := net.node_mode(nid)
+	if mode != TransportTypes.Mode.ROAD and mode != TransportTypes.Mode.PATH:
+		return []
+	var adj: Array = net.adjacency.get(nid, [])
+	if adj.size() < 2 or is_smooth_joint(net, nid):
+		return []
+	var arms: Array = []
+	for eid in adj:
+		var e: Dictionary = net.edges[eid]
+		var tr: Vector2 = trims.get(eid, Vector2.ZERO)
+		var s: float = tr.x if e.a == nid else float(e.len) - tr.y
+		var stc := net.struct_at(eid, s)
+		if stc == TransportTypes.Struct.TUNNEL:
+			return []
+		var ty := TransportTypes.get_type(e.t)
+		var dir := net.leave_dir(eid, nid)
+		var hw := net.half_width(eid)
+		var walk := float(ty.get("side", 0.0)) if String(ty.get("side_kind", "")) == "trottoir" else 0.0
+		arms.append({"p": net.point_at(eid, s), "d": dir, "r": Vector3(-dir.z, 0, dir.x), "hw": hw, "kerb": hw - walk,
+			"ang": atan2(dir.z, dir.x), "bridge": stc == TransportTypes.Struct.BRIDGE})
+	arms.sort_custom(func(x: Dictionary, y: Dictionary) -> bool: return float(x.ang) < float(y.ang))
+	return arms
+
+
+## Contour extérieur du plateau (bords des branches et arrondis des angles).
+static func junction_outline(net: TransportNetwork, nid: int, trims: Dictionary) -> PackedVector3Array:
+	var arms := _junction_arms(net, nid, trims)
+	var out := PackedVector3Array()
+	var n := arms.size()
+	for i in n:
+		var A: Dictionary = arms[i]
+		var B: Dictionary = arms[(i + 1) % n]
+		var oa: Vector3 = A.p + A.r * float(A.hw)
+		var ob: Vector3 = B.p - B.r * float(B.hw)
+		var oc := _corner(oa, A.d, ob, B.d)
+		out.append(A.p - A.r * float(A.hw))
+		for q in 9:
+			out.append(_bez(oa, oc, ob, float(q) / 8.0))
+	return out
+
+
+## Cases sous un plateau de carrefour au sol : cellule -> hauteur de la
+## chaussée (marge de 0,6 m comme sous les tronçons). {} sur un pont.
+static func junction_cells(net: TransportNetwork, nid: int, trims: Dictionary) -> Dictionary:
+	var arms := _junction_arms(net, nid, trims)
+	for A in arms:
+		if A.bridge:
+			return {}
+	var ring := junction_outline(net, nid, trims)
+	if ring.size() < 3:
+		return {}
+	var center := net.node_pos(nid)
+	var poly := PackedVector2Array()
+	var lo := Vector2(INF, INF)
+	var hi := Vector2(-INF, -INF)
+	for p in ring:
+		var q := Vector2(p.x, p.z)
+		# Marge : on pousse le contour de 0,6 m vers l'extérieur.
+		var away := q - Vector2(center.x, center.z)
+		if away.length_squared() > 1e-6:
+			q += away.normalized() * 0.6
+		poly.append(q)
+		lo = Vector2(minf(lo.x, q.x), minf(lo.y, q.y))
+		hi = Vector2(maxf(hi.x, q.x), maxf(hi.y, q.y))
+	var out := {}
+	for x in range(floori(lo.x), floori(hi.x) + 1):
+		for z in range(floori(lo.y), floori(hi.y) + 1):
+			var q := Vector2(x + 0.5, z + 0.5)
+			if not Geometry2D.is_point_in_polygon(q, poly):
+				continue
+			out[Vector2i(x, z)] = _fan_height(center, ring, q)
+	return out
+
+
+## Hauteur du plateau en q : interpolation dans l'éventail centre / contour.
+static func _fan_height(center: Vector3, ring: PackedVector3Array, q: Vector2) -> float:
+	var c := Vector2(center.x, center.z)
+	var best := center.y
+	var best_d := INF
+	for i in ring.size():
+		var a := ring[i]
+		var b := ring[(i + 1) % ring.size()]
+		var a2 := Vector2(a.x, a.z)
+		var b2 := Vector2(b.x, b.z)
+		var bary := _bary(q, c, a2, b2)
+		if bary.x >= -0.01 and bary.y >= -0.01 and bary.z >= -0.01:
+			return bary.x * center.y + bary.y * a.y + bary.z * b.y
+		var d := q.distance_squared_to((a2 + b2) * 0.5)
+		if d < best_d:
+			best_d = d
+			best = (a.y + b.y) * 0.5
+	return best
+
+
+static func _bary(p: Vector2, a: Vector2, b: Vector2, c: Vector2) -> Vector3:
+	var v0 := b - a
+	var v1 := c - a
+	var v2 := p - a
+	var den := v0.x * v1.y - v1.x * v0.y
+	if absf(den) < 1e-9:
+		return Vector3(-1, -1, -1)
+	var v := (v2.x * v1.y - v1.x * v2.y) / den
+	var w := (v0.x * v2.y - v2.x * v0.y) / den
+	return Vector3(1.0 - v - w, v, w)
 
 
 ## Point de contrôle de l'angle : intersection des deux bords prolongés vers
@@ -320,7 +427,7 @@ static func _bez(a: Vector3, c: Vector3, b: Vector3, t: float) -> Vector3:
 ## retirée au début et à la fin (place laissée aux carrefours).
 static func build_mesh(type_id: String, spec: Dictionary, pts: PackedVector3Array, st: PackedByteArray,
 		ground_fn: Callable, trim_a: float = 0.0, trim_b: float = 0.0,
-		right_a := Vector3.ZERO, right_b := Vector3.ZERO) -> ArrayMesh:
+		right_a := Vector3.ZERO, right_b := Vector3.ZERO, clear_a := 0.0, clear_b := 0.0) -> ArrayMesh:
 	var ty := TransportTypes.get_type(type_id)
 	var k := MeshKit.new()
 	if ty.is_empty() or pts.size() < 2:
@@ -361,11 +468,16 @@ static func build_mesh(type_id: String, spec: Dictionary, pts: PackedVector3Arra
 		return k.commit()
 
 	var acc_len := 0.0
+	var total_len := 0.0
+	for i in n - 1:
+		total_len += pts[i].distance_to(pts[i + 1])
 	for i in n - 1:
 		var seg_len := pts[i].distance_to(pts[i + 1])
 		var sa := st[i]
 		var sb := st[i + 1]
 		var dash_on := fmod(acc_len, 6.0) < 3.0
+		# Pas de marquage sur les passages piétons (clear_a / clear_b depuis les bouts).
+		var marks := acc_len + seg_len * 0.5 >= clear_a and total_len - acc_len - seg_len * 0.5 >= clear_b
 		acc_len += seg_len
 		if sa == S.TUNNEL or sb == S.TUNNEL:
 			# Tracé du métro, en pointillés sur le sol, pour le voir de dessus.
@@ -385,7 +497,7 @@ static func build_mesh(type_id: String, spec: Dictionary, pts: PackedVector3Arra
 		var skirt := 1.2 if bridge else 0.8
 		match mode:
 			TransportTypes.Mode.ROAD:
-				_road_section(k, type_id, spec, a, b, ra, rb, bridge, skirt, dash_on)
+				_road_section(k, type_id, spec, a, b, ra, rb, bridge, skirt, dash_on, marks)
 			TransportTypes.Mode.RAIL:
 				_rail_section(k, type_id, spec, a, b, ra, rb, bridge, skirt, hw)
 			TransportTypes.Mode.PATH:
@@ -538,7 +650,7 @@ static func _ground(ground_fn: Callable, p: Vector3, top: float) -> float:
 ## Profil en travers d'une route : bords (trottoirs, accotements ou bandes
 ## d'arrêt d'urgence), voies de circulation, marquages, terre-plein central.
 static func _road_section(k: MeshKit, type_id: String, spec: Dictionary, a: Vector3, b: Vector3,
-		ra: Vector3, rb: Vector3, bridge: bool, skirt: float, dash_on: bool) -> void:
+		ra: Vector3, rb: Vector3, bridge: bool, skirt: float, dash_on: bool, marks := true) -> void:
 	var ty := TransportTypes.get_type(type_id)
 	var lanes: int = spec.lanes
 	var lw: float = spec.lane_w
@@ -566,6 +678,8 @@ static func _road_section(k: MeshKit, type_id: String, spec: Dictionary, a: Vect
 		_:
 			k.strip(a, b, ra, rb, -hw, -outer, 0.08, ASPHALT_SIDE, skirt, skirt_col)
 			k.strip(a, b, ra, rb, outer, hw, 0.08, ASPHALT_SIDE, skirt, skirt_col)
+	if not marks:
+		return
 	# Lignes de rive (continues) au bord de la chaussée.
 	for e in [-outer, outer]:
 		var o: float = e
@@ -645,11 +759,12 @@ class MeshKit:
 	var colors := PackedColorArray()
 	var idx := PackedInt32Array()
 
-	func tri(a: Vector3, b: Vector3, c: Vector3, col: Color) -> void:
+	## flat_up : normale verticale (éclairage uniforme d'un plateau en pente douce).
+	func tri(a: Vector3, b: Vector3, c: Vector3, col: Color, flat_up := false) -> void:
 		var nrm := (b - a).cross(c - a)
 		if nrm.y < 0.0:
 			nrm = -nrm
-		nrm = nrm.normalized() if nrm.length_squared() > 1e-12 else Vector3.UP
+		nrm = nrm.normalized() if nrm.length_squared() > 1e-12 and not flat_up else Vector3.UP
 		var base := verts.size()
 		verts.append_array([a, b, c])
 		normals.append_array([nrm, nrm, nrm])

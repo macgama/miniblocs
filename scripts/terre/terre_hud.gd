@@ -143,7 +143,12 @@ func _ready() -> void:
 	help.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
 	help.add_theme_constant_override("outline_size", 4)
 	help.add_theme_font_size_override("font_size", 13)
-	layout.add_child(help)
+	help.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var help_row := HBoxContainer.new()
+	layout.add_child(help_row)
+	help_row.add_child(help)
+	# Sources des données, sur la même ligne (la barre d'outils prend toute la largeur).
+	help_row.add_child(_build_credit())
 
 	_build_spec_panel(layout)
 
@@ -188,21 +193,20 @@ func _ready() -> void:
 	transit.pressed.connect(func() -> void: transit_requested.emit())
 	bar.add_child(transit)
 
-	var fill := Control.new()
-	fill.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	bottom.add_child(fill)
+
+
+func _build_credit() -> Label:
 	var credit := Label.new()
-	credit.text = "Relief : Mapzen\nBiomes : © ESA\nRivières : © OSM"
+	credit.text = "Relief : Mapzen   ·   Biomes : © ESA   ·   Rivières : © OSM"
 	credit.tooltip_text = "Relief : Mapzen Terrain Tiles (AWS Open Data) — SRTM, GMTED, ETOPO1, EU-DEM\nBiomes : © ESA WorldCover 2021, données Copernicus Sentinel (CC BY 4.0)\nRivières : © contributeurs OpenStreetMap (ODbL) si disponible, sinon calculées sur le relief"
 	credit.mouse_filter = Control.MOUSE_FILTER_PASS
 	credit.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	credit.size_flags_vertical = Control.SIZE_SHRINK_END
+	credit.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	credit.add_theme_font_size_override("font_size", 11)
 	credit.add_theme_color_override("font_color", Color(1, 1, 1, 0.75))
 	credit.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
 	credit.add_theme_constant_override("outline_size", 3)
-	bottom.add_child(credit)
+	return credit
 
 
 var _veh_era := ""

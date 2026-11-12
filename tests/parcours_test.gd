@@ -1,6 +1,6 @@
 extends SceneTree
 ## Parcours complet comme un joueur, avec de vraies touches (sans réseau) :
-## globe -> partie -> outils 1-9 -> B, L, T, V, F1 -> voie, bâtiment -> F5 -> globe
+## globe -> partie -> outils 0-9, J -> B, L, T, V, F1 -> voie, bâtiment -> F5 -> globe
 ## -> Continuer -> la partie revient. Vérifie aussi qu'aucune touche n'en déclenche deux.
 ## Usage : godot --headless --path . --script res://tests/parcours_test.gd
 
@@ -68,9 +68,10 @@ func _run() -> void:
 	var hud = game.hud
 	var world: TerrainWorld = game.world
 	print("Touches :")
-	for i in 9:
-		await _key(KEY_1 + i)
-		_check(hud._buttons[i].button_pressed, "touche %d : outil « %s »" % [i + 1, TerreHud.TOOLS[i].name])
+	for i in TerreHud.TOOLS.size():
+		var k: Key = TerreHud.TOOLS[i].key
+		await _key(k)
+		_check(hud._buttons[i].button_pressed, "touche %s : outil « %s »" % [OS.get_keycode_string(k), TerreHud.TOOLS[i].name])
 	await _key(KEY_1)
 
 	var panel_vis: bool = game.build_panel._panel.visible

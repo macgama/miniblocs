@@ -6,8 +6,8 @@ extends CanvasLayer
 
 signal focus_requested(pos: Vector3)
 
-const W := 430.0
-const H := 520.0
+const W := 348.0
+const H := 560.0
 
 var pop: Population
 var _panel: PanelContainer
@@ -37,19 +37,21 @@ func setup(p: Population) -> void:
 func _build() -> void:
 	layer = 6
 	_panel = PanelContainer.new()
-	_panel.offset_left = 350
-	_panel.offset_top = 200
+	# À droite, à la place commune des panneaux (un seul ouvert à la fois).
+	_panel.anchor_left = 1.0
+	_panel.anchor_right = 1.0
+	_panel.offset_left = UiStyle.SIDE_LEFT
+	_panel.offset_right = UiStyle.SIDE_RIGHT
+	_panel.offset_top = UiStyle.SIDE_TOP
 	_panel.custom_minimum_size = Vector2(W, 0)
+	UiStyle.style_panel(_panel)
 	_panel.visible = false
 	add_child(_panel)
 	var outer := VBoxContainer.new()
 	_panel.add_child(outer)
 	var head := HBoxContainer.new()
 	outer.add_child(head)
-	_back = Button.new()
-	_back.text = "←"
-	_back.tooltip_text = "Retour"
-	_back.focus_mode = Control.FOCUS_NONE
+	_back = UiStyle.icon_button("retour", "Retour", "", 18, 32)
 	_back.pressed.connect(go_back)
 	head.add_child(_back)
 	_title = Label.new()
@@ -57,17 +59,15 @@ func _build() -> void:
 	_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_title.clip_text = true
 	head.add_child(_title)
-	var x := Button.new()
-	x.text = "✕"
-	x.tooltip_text = "Fermer (H)"
-	x.focus_mode = Control.FOCUS_NONE
+	var x := UiStyle.icon_button("fermer", "Fermer", "H", 18, 32)
 	x.pressed.connect(func() -> void: set_open(false))
 	head.add_child(x)
 	var tabs := HBoxContainer.new()
 	outer.add_child(tabs)
-	for spec in [["Ville", "ville"], ["Habitants", "liste"]]:
+	for spec in [["Ville", "ville", "budget"], ["Habitants", "liste", "habitants"]]:
 		var b := Button.new()
 		b.text = spec[0]
+		b.icon = Icones.get_icon(spec[2], 18)
 		b.focus_mode = Control.FOCUS_NONE
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var v: String = spec[1]
@@ -230,6 +230,35 @@ func _building_link(prefix: String, bid: int) -> void:
 		pop.select_building(bid), "Voir le bâtiment et y aller")
 
 
+## Jauge de la fiche : « Logements  ▓▓▓▓░  12/12 ».
+func _gauge(parent: Control, label: String, value: int, total: int) -> void:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	parent.add_child(row)
+	var l := Label.new()
+	l.text = label
+	l.custom_minimum_size = Vector2(74, 0)
+	l.add_theme_font_size_override("font_size", 13)
+	row.add_child(l)
+	var bar := ProgressBar.new()
+	bar.max_value = maxi(total, 1)
+	bar.value = value
+	bar.show_percentage = false
+	bar.custom_minimum_size = Vector2(90, 10)
+	bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	bar.add_theme_stylebox_override("background", UiStyle.flat_box(Color(1, 1, 1, 0.12), 5, 0))
+	var fill := UiStyle.flat_box(UiStyle.GOOD if value < total or total == 0 else Color("6fcf8b"), 5, 0)
+	bar.add_theme_stylebox_override("fill", fill)
+	row.add_child(bar)
+	var v := Label.new()
+	v.text = "%d/%d" % [value, total]
+	v.custom_minimum_size = Vector2(52, 0)
+	v.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	v.add_theme_font_size_override("font_size", 13)
+	row.add_child(v)
+
+
 static func money(v: float) -> String:
 	return BuildingSystem.format_money(roundi(v))
 
@@ -346,13 +375,36 @@ func _view_building(bid: int) -> void:
 	var t := BuildingCatalog.get_type(String(info.t))
 	var cat := BuildingCatalog.category(String(info.cat))
 	_text("%s · %s" % [String(cat.get("name", info.cat)), String(t.get("desc", ""))], true, 12)
+	var here := pop.present_in(bid)
+	# Fiche : icône de la catégorie, jauges d'occupation, bouton « Aller voir ».
+	var card := HBoxContainer.new()
+	card.add_theme_constant_override("separation", 10)
+	_body.add_child(card)
+	var ic := TextureRect.new()
+	ic.texture = Icones.get_icon(String(BuildingPanel.CAT_ICONS.get(String(info.cat), "construire")), 40, UiStyle.ACCENT)
+	ic.stretch_mode = TextureRect.STRETCH_KEEP_CENTERED
+	ic.custom_minimum_size = Vector2(52, 52)
+	card.add_child(ic)
+	var gauges := VBoxContainer.new()
+	gauges.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	gauges.add_theme_constant_override("separation", 4)
+	card.add_child(gauges)
+	if int(info.log) > 0:
+		_gauge(gauges, "Logements", (pop.by_home.get(bid, []) as Array).size(), int(info.log))
+	if int(info.emp) > 0:
+		_gauge(gauges, "Employés", (pop.by_job.get(bid, []) as Array).size(), int(info.emp))
+	if int(info.seats) > 0:
+		_gauge(gauges, "Élèves", (pop.by_school.get(bid, []) as Array).size(), int(info.seats))
+	var now_l := Label.new()
+	now_l.text = "En ce moment : %d personne%s" % [here.size(), "s" if here.size() > 1 else ""]
+	now_l.add_theme_font_size_override("font_size", 13)
+	gauges.add_child(now_l)
 	var go := Button.new()
 	go.text = "Aller voir"
+	go.icon = Icones.get_icon("lieu", 18)
 	go.focus_mode = Control.FOCUS_NONE
 	go.pressed.connect(func() -> void: focus_requested.emit(info.pos))
 	_body.add_child(go)
-	var here := pop.present_in(bid)
-	_text("En ce moment : %d personne%s dans le bâtiment." % [here.size(), "s" if here.size() > 1 else ""], false, 14)
 	if int(info.log) > 0:
 		var homes: Array = pop.by_home.get(bid, [])
 		var n := 0

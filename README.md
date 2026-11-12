@@ -12,7 +12,11 @@ Prototype de city builder en vue de dessus, style low-poly, mode bac à sable. F
 
 ## Commandes
 
-Dans le jeu, **F1** (ou le bouton **Aide**) affiche toutes les commandes.
+Dans le jeu, **F1** (ou le bouton **?** en haut à gauche) affiche toutes les commandes.
+
+L'écran a une barre en haut (lieu, partie, heure et vitesse du temps, chiffres de la ville) et une barre de catégories en bas, avec des icônes : Observer, Terrain, Voies, Paysage, Construire, Lignes, Habitants, Circulation, Véhicules, Vue. Les outils de la catégorie choisie s'affichent juste au-dessus. Détails : [docs/interface.md](docs/interface.md).
+
+![Barre de catégories et outils des voies](docs/apercu-menus-voies.png)
 
 | Action | Touches |
 | --- | --- |
@@ -26,7 +30,7 @@ Dans le jeu, **F1** (ou le bouton **Aide**) affiche toutes les commandes.
 | Habitants | **H** (la ville en chiffres, liste des habitants, budget) ; clic sur un bâtiment avec l'outil 1 |
 | Temps | **T** pause, **Maj + T** vitesse suivante |
 | Vue au sol | **V** (dessus, 3e personne, 1re personne) |
-| Sauvegarder / recharger | **F5** / **F9** ; boutons **Sauver**, **Charger** (liste des parties), **Globe** en haut à gauche |
+| Sauvegarder / recharger | **F5** / **F9** ; icônes Sauver, Charger (liste des parties) et Globe en haut à gauche |
 | Aide | **F1** |
 
 L'interface s'adapte à la taille de la fenêtre (elle est dessinée pour 1600 × 900 puis agrandie ou réduite).
@@ -266,11 +270,27 @@ L'onglet **Espaces publics** regroupe :
 
 L'onglet **Éditeur libre** permet de construire ce que tu veux avec des blocs de 1 m × 1 m × 1 m, posés sur le relief ou les uns contre les autres.
 
-![Une maison en blocs](docs/apercu-blocs.png)
+![Une maison réaliste construite avec l'éditeur libre](docs/apercu-maison-realiste.png)
 
-- **Outils** : **Bloc** (un clic = un bloc, sur le sol ou sur la face visée d'un autre bloc), **Rectangle** (clic glissé : dalle, plancher, toit plat), **Mur** (clic glissé en ligne, hauteur réglable) et **Gomme** (clic sur un bloc, ou glissé pour effacer un étage).
+- **Outils** : **Poser** (un clic = un élément de la forme choisie, sur le sol ou sur la face visée d'un autre bloc), **Rectangle** (clic glissé : dalle, plancher, toit plat), **Mur** (clic glissé en ligne, hauteur réglable) et **Gomme** (clic sur un bloc, ou glissé pour effacer un étage).
 - **Clic droit** court : retirer le bloc visé. **Ctrl+Z** : annuler. **Échap** : arrêter.
-- **14 matériaux** : brique, pierre, bois, planches, béton, enduits, tuile, ardoise, métal, verre (transparent), herbe, sable, feuillage. Chaque bloc a un prix payé par la caisse (moitié rendue quand on le retire).
+- **58 matériaux texturés**, dessinés par le jeu (aucun fichier image) et rangés par famille (menu **Matériau**) :
+  - murs : briques, pierre de taille, moellons, granit, grès, marbre, parpaing, béton brut, crépis de couleur, colombage, torchis, terre crue ;
+  - toits : tuile canal, tuile plate, tuile vernissée, ardoise, bardeaux, chaume, tôle ondulée, zinc ;
+  - sols : parquets, carrelage, damier, tomettes, moquette, pavés ;
+  - bois : rondins, bardages, bois peint, bambou ;
+  - métal et verre : métal, fer forgé, cuivre, or, verre clair, verre fumé, vitrail ;
+  - nature : herbe, sable, gravier, terre, neige, feuillage.
+- **Teinte** : 16 couleurs de peinture, appliquées à n'importe quel matériau (porte rouge, volets verts…).
+- **Formes** :
+  - bloc, demi-bloc (visé sur le haut d'une face : demi-bloc du haut), escalier, revêtement de 10 cm, cloison, poteau, colonne, poutre, vitre ou panneau, garde-corps ;
+  - toits : pente à 45°, pente douce en deux moitiés, arêtier, noue ;
+  - portes et fenêtres : fenêtre à croisillons, fenêtre à volets, baie vitrée, fenêtre de toit, porte à panneaux (2 m), porte-fenêtre, porte de garage (à assembler avec l'outil Mur).
+- **Orientation** : escaliers, pentes, portes et fenêtres se tournent tout seuls selon la direction de la caméra ; **R** ajoute un quart de tour.
+- **Ouvrir une porte** : en vue au sol (V), **E** ou **clic gauche** en regardant la porte. Les portes de garage s'ouvrent d'un bloc.
+- Chaque élément a un prix (matériau × forme), payé par la caisse ; la moitié est rendue quand on le retire.
+
+![Le panneau : formes, portes et fenêtres, matériaux texturés](docs/apercu-editeur-materiaux.png)
 - Pas de bloc sous terre, sur une voie ou dans un bâtiment. Inversement, ni bâtiment ni voie ne peuvent passer sur des blocs.
 - **Mes créations** : écris un nom, clique sur **Enregistrer** puis fais un clic glissé autour de ta construction (toutes les hauteurs sont prises). Elle devient un bâtiment de l'onglet **Mes créations**, que tu poses ailleurs comme n'importe quel bâtiment (fantôme, rotation R, terrassement, prix). La bibliothèque est commune à toutes tes parties, et chaque sauvegarde garde une copie des créations qu'elle utilise. La croix ✕ retire une création de la liste (les exemplaires posés restent).
 - La taille des blocs est une constante (`BlockEditor.SIZE`) : on pourra passer à 50 cm pour plus de détails.
@@ -378,7 +398,11 @@ Détails et limites : [docs/ambiance.md](docs/ambiance.md).
 | `scripts/terre/water.gdshader` | Eau animée (rivières, lacs, mer) : vagues, reflets, écume |
 | `scripts/terre/elevation_tiles.gd` | Téléchargement, cache et lecture des tuiles d'altitude |
 | `scripts/terre/terrain_world.gd` | Blocs de 64 × 64 cases autour de la caméra, outils, sauvegarde |
-| `scripts/terre/terre_hud.gd` | Interface du mode Terre |
+| `scripts/terre/terre_hud.gd` | Interface du mode Terre : barre du haut, barre de catégories, plateau d'outils |
+| `scripts/interface/icones.gd` | Les 61 icônes SVG du jeu, rendues à la taille voulue |
+| `scripts/interface/ui_style.gd` | Style commun des menus (panneaux, boutons à icône, pastilles de touche) |
+| `scripts/interface/vignettes.gd` | Vignettes des bâtiments du panneau Construire |
+| `scripts/interface/aide_panel.gd` | Fenêtre d'aide (F1) |
 | `tests/terre_test.gd` | Test automatique du mode Terre (sans réseau) |
 | `tests/globe_test.gd` | Test automatique du globe (sans réseau) |
 | `scripts/transport/transport_types.gd` | Catalogue des types de voies (largeur, pente maxi, vitesse…) |
@@ -404,6 +428,9 @@ Détails et limites : [docs/ambiance.md](docs/ambiance.md).
 | `scripts/catalogue/styles.gd` | Bible : régions, époques, archétypes et les 43 styles d'architecture |
 | `scripts/catalogue/style_builder.gd` | Fabrique les bâtiments de la bible (emprise, chiffres, modèle 3D) d'après style + archétype |
 | `scripts/catalogue/espaces_publics.gd` | Places, parcs, monuments et mobilier urbain |
+| `scripts/batiments/bloc_materiaux.gd` | Matériaux de l'éditeur libre, textures dessinées par le jeu, teintes |
+| `scripts/batiments/bloc_formes.gd` | Formes de l'éditeur libre : demi-blocs, escaliers, pentes, portes, fenêtres… |
+| `scripts/batiments/bloc_mesher.gd` | Maillage texturé des blocs (deux surfaces : opaque et verre) |
 | `scripts/catalogue/creations.gd` | Mes créations : constructions de l'éditeur libre enregistrées comme bâtiments |
 | `tests/batiments_test.gd` | Test automatique des bâtiments (sans réseau) |
 | `scripts/habitants/population.gd` | Habitants : foyers, étapes de la vie, écoles, emplois, emploi du temps, trajets, économie, sauvegarde |
@@ -412,7 +439,7 @@ Détails et limites : [docs/ambiance.md](docs/ambiance.md).
 | `scripts/habitants/prenoms.gd` | Prénoms et noms par région du monde |
 | `tests/habitants_test.gd` | Test des habitants (école, emplois, journée, budget, transports, sauvegarde, panneau) |
 | `tests/habitants_vitrine.gd` | Petit quartier et captures du panneau Habitants |
-| `tests/batiments_vitrine.gd` | Pose tout le catalogue (ou fait pousser un quartier avec `--zones`, ou construit une maison en blocs avec `--blocs`) et prend une capture. `--styles japonais,chinois` ou `--arch culte` filtrent la bible, `--zone-style` choisit le style du zonage, `--cat espaces` une catégorie |
+| `tests/batiments_vitrine.gd` | Pose tout le catalogue (ou fait pousser un quartier avec `--zones`, ou construit une maison en blocs avec `--blocs`) et prend une capture. `--styles japonais,chinois` ou `--arch culte` filtrent la bible, `--zone-style` choisit le style du zonage, `--cat espaces` une catégorie, `--maison` construit la maison de démonstration de l'éditeur libre |
 
 ## Sauvegarde des parties
 
@@ -440,7 +467,7 @@ godot --headless --path . --script res://tests/terre_test.gd
 
 Vérifie les conversions de coordonnées, le décodage des tuiles, la génération des blocs, les rivières (calcul sur une vallée, lecture d'OpenStreetMap, lit creusé, surface d'eau, ponts), le terrassement et la sauvegarde. Il affiche `TERRE TEST OK`. De même, `tests/globe_test.gd` affiche `GLOBE TEST OK`, `tests/transport_test.gd` affiche `TRANSPORT TEST OK` et `tests/batiments_test.gd` affiche `BATIMENTS TEST OK`.
 
-`tests/parcours_test.gd` joue une partie comme un joueur, avec de vraies touches (globe, outils 1-9, B, L, T, V, F1, F5, Continuer) et affiche `PARCOURS TEST OK`. `tests/habitants_test.gd` vérifie les habitants (école, emplois, emploi du temps, budget, bus, sauvegarde, panneau) et affiche `HABITANTS TEST OK`. `tests/sauvegarde_test.gd` vérifie le format des parties (écriture, relecture, section abîmée, import de l'ancienne sauvegarde) et affiche `SAUVEGARDE TEST OK`.
+`tests/parcours_test.gd` joue une partie comme un joueur, avec de vraies touches (globe, outils 1-9, B, L, T, V, F1, F5, Continuer) et affiche `PARCOURS TEST OK`. `tests/habitants_test.gd` vérifie les habitants (école, emplois, emploi du temps, budget, bus, sauvegarde, panneau) et affiche `HABITANTS TEST OK`. `tests/sauvegarde_test.gd` vérifie le format des parties (écriture, relecture, section abîmée, import de l'ancienne sauvegarde) et affiche `SAUVEGARDE TEST OK`. `tests/interface_test.gd` vérifie les menus (icônes, barre de catégories, panneaux un à la fois, vignettes, fiche d'un bâtiment) et affiche `INTERFACE TEST OK`.
 
 ```bash
 godot --headless --path . --script res://tests/perf_bench.gd [-- --big] [--reseau]

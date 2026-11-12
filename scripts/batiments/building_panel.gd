@@ -1,7 +1,8 @@
 class_name BuildingPanel
 extends CanvasLayer
-## Panneau « Construire » (à droite de l'écran) : catégories, catalogue,
-## démolition et règles du bac à sable. B : afficher ou masquer.
+## Panneau « Construire » (à droite de l'écran) : catégories en icônes,
+## bâtiments en vignettes, démolition et règles du bac à sable.
+## B ou le bouton Construire de la barre du bas : afficher ou masquer.
 
 signal building_chosen(id: String)
 signal demolish_chosen
@@ -11,6 +12,8 @@ signal zone_remove_chosen
 signal growth_toggled(on: bool)
 signal block_tool_chosen(tool: int)
 signal block_material_chosen(material: int)
+signal block_shape_chosen(shape: int)
+signal block_tint_chosen(tint: int)
 signal wall_height_changed(height: int)
 signal zone_style_chosen(style: String)
 signal capture_name_changed(name: String)
@@ -31,6 +34,10 @@ var _zone_label: Label
 var _growth := true
 var _block_label: Label
 var _block_material := 0
+var _block_shape := 0
+var _block_tint := 0
+var _mat_family := ""
+var _icons := {}
 var _wall_height := 3
 var _region := ""
 var _era := ""
@@ -38,29 +45,58 @@ var _search := ""
 var _zone_style := ""
 var _filters: HFlowContainer
 var _capture_name := ""
+var _cat_title: Label
+var _rules_box: VBoxContainer
+var _vignettes: Vignettes
+
+## Icône de chaque onglet.
+const CAT_ICONS := {"logement": "logement", "commerce": "commerce", "industrie": "industrie",
+	"services": "services", "loisirs": "loisirs", "sport": "sport", "espaces": "publics",
+	"zones": "zonage", "blocs": "editeur", "creations": "creations"}
 
 
 func _ready() -> void:
 	_item_group.allow_unpress = true
+	_vignettes = Vignettes.new()
+	_vignettes.name = "Vignettes"
+	add_child(_vignettes)
 	_panel = PanelContainer.new()
 	_panel.anchor_left = 1.0
 	_panel.anchor_right = 1.0
-	_panel.offset_left = -372
-	_panel.offset_right = -12
-	_panel.offset_top = 12
+	_panel.anchor_bottom = 1.0
+	_panel.offset_left = UiStyle.SIDE_LEFT
+	_panel.offset_right = UiStyle.SIDE_RIGHT
+	_panel.offset_top = UiStyle.SIDE_TOP
+	_panel.offset_bottom = -112
+	_panel.visible = false
+	UiStyle.style_panel(_panel)
 	add_child(_panel)
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 6)
 	_panel.add_child(box)
 
+	var head := HBoxContainer.new()
+	box.add_child(head)
+	var hi := TextureRect.new()
+	hi.texture = Icones.get_icon("construire", 24, UiStyle.ACCENT)
+	hi.stretch_mode = TextureRect.STRETCH_KEEP_CENTERED
+	head.add_child(hi)
 	var title := Label.new()
-	title.text = "Construire   (B : masquer)"
-	title.add_theme_font_size_override("font_size", 17)
-	box.add_child(title)
+	title.text = "Construire"
+	title.add_theme_font_size_override("font_size", 18)
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	head.add_child(title)
 	_money_label = Label.new()
-	box.add_child(_money_label)
+	_money_label.add_theme_color_override("font_color", UiStyle.TEXT_DIM)
+	head.add_child(_money_label)
+	var close := UiStyle.icon_button("fermer", "Fermer", "B", 18, 32)
+	close.pressed.connect(func() -> void: set_open(false))
+	head.add_child(close)
 
-	var cats := HFlowContainer.new()
+	var cats := GridContainer.new()
+	cats.columns = 5
+	cats.add_theme_constant_override("h_separation", 4)
+	cats.add_theme_constant_override("v_separation", 4)
 	box.add_child(cats)
 	var cat_group := ButtonGroup.new()
 	var tabs: Array = BuildingCatalog.CATEGORIES.duplicate()
@@ -68,15 +104,18 @@ func _ready() -> void:
 	tabs.append({"id": "blocs", "name": "Éditeur libre", "color": Color("8ecae6")})
 	tabs.append({"id": Creations.CATEGORY, "name": "Mes créations", "color": Color("f4a261")})
 	for c in tabs:
-		var b := Button.new()
-		b.text = c.name
+		var b := UiStyle.icon_button(String(CAT_ICONS.get(c.id, "construire")), c.name, "", 26, 46)
+		b.custom_minimum_size = Vector2(70, 46)
 		b.toggle_mode = true
 		b.button_group = cat_group
-		b.add_theme_color_override("font_pressed_color", c.color.lightened(0.3))
 		var id: String = c.id
 		b.pressed.connect(func() -> void: show_category(id))
 		cats.add_child(b)
 		_cat_buttons[id] = b
+	_cat_title = Label.new()
+	_cat_title.add_theme_font_size_override("font_size", 15)
+	_cat_title.add_theme_color_override("font_color", UiStyle.ACCENT)
+	box.add_child(_cat_title)
 
 	# Filtres de la bible : région du monde, époque, recherche par nom.
 	_filters = HFlowContainer.new()
@@ -111,37 +150,52 @@ func _ready() -> void:
 	_filters.add_child(search)
 
 	var scroll := ScrollContainer.new()
-	scroll.custom_minimum_size = Vector2(0, 300)
+	scroll.custom_minimum_size = Vector2(0, 200)
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	box.add_child(scroll)
 	_list = VBoxContainer.new()
 	_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.add_child(_list)
 
+	var foot := HBoxContainer.new()
+	box.add_child(foot)
 	_demolish_button = Button.new()
 	_demolish_button.text = "Démolir un bâtiment"
+	_demolish_button.icon = Icones.get_icon("demolir", 20)
+	_demolish_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_demolish_button.toggle_mode = true
 	_demolish_button.button_group = _item_group
 	_demolish_button.pressed.connect(func() -> void: demolish_chosen.emit())
-	box.add_child(_demolish_button)
+	foot.add_child(_demolish_button)
+	var rules := Button.new()
+	rules.text = "Règles"
+	rules.icon = Icones.get_icon("details", 20)
+	rules.tooltip_text = "Règles du bac à sable : accès à une voie, argent illimité"
+	rules.toggle_mode = true
+	rules.toggled.connect(func(on: bool) -> void: _rules_box.visible = on)
+	foot.add_child(rules)
 
-	box.add_child(HSeparator.new())
-	var rules := Label.new()
-	rules.text = "Règles du bac à sable"
-	box.add_child(rules)
+	_rules_box = VBoxContainer.new()
+	_rules_box.visible = false
+	box.add_child(_rules_box)
+	var rl := Label.new()
+	rl.text = "Règles du bac à sable"
+	_rules_box.add_child(rl)
 	_access_box = CheckBox.new()
 	_access_box.text = "Accès à une voie obligatoire"
 	_access_box.button_pressed = true
 	_access_box.toggled.connect(func(_on: bool) -> void: _emit_rules())
-	box.add_child(_access_box)
+	_rules_box.add_child(_access_box)
 	_money_box = CheckBox.new()
 	_money_box.text = "Argent illimité"
 	_money_box.toggled.connect(func(_on: bool) -> void: _emit_rules())
-	box.add_child(_money_box)
+	_rules_box.add_child(_money_box)
 
 	_summary_label = Label.new()
 	_summary_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_summary_label.add_theme_font_size_override("font_size", 12)
+	_summary_label.add_theme_color_override("font_color", UiStyle.TEXT_DIM)
 	box.add_child(_summary_label)
 
 	show_category(_category)
@@ -159,6 +213,9 @@ func set_rules(require_access: bool, unlimited_money: bool) -> void:
 func show_category(cat: String) -> void:
 	_category = cat
 	(_cat_buttons[cat] as Button).button_pressed = true
+	_cat_title.text = (_cat_buttons[cat] as Button).tooltip_text
+	if _vignettes:
+		_vignettes.cancel_all()
 	for b in _item_buttons:
 		b.queue_free()
 	_item_buttons.clear()
@@ -173,24 +230,19 @@ func show_category(cat: String) -> void:
 		return
 	_filters.visible = true
 	var shown := 0
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 6)
+	grid.add_theme_constant_override("v_separation", 6)
+	_list.add_child(grid)
+	_item_buttons.append(grid)
 	for id in BuildingCatalog.ids_in(cat, _region, _era):
 		var t := BuildingCatalog.get_type(id)
 		if _search != "" and not (String(t.name) + " " + String(t.desc)).to_lower().contains(_search):
 			continue
 		shown += 1
-		var b := Button.new()
-		b.text = "%s  ·  %d × %d m  ·  %s" % [t.name, t.w, t.d, BuildingSystem.format_short(BuildingCatalog.cost(id))]
-		b.tooltip_text = "%s\n%s\nPrix : %s (hors terrassement)" % [b.text, t.desc, BuildingSystem.format_money(BuildingCatalog.cost(id))]
-		# Noms longs (« Maisons de ville (village méditerranéen) ») : coupés « … », complets dans l'infobulle.
-		b.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-		b.clip_text = true
-		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		b.toggle_mode = true
-		b.button_group = _item_group
-		var type_id: String = id
-		b.pressed.connect(func() -> void: building_chosen.emit(type_id))
-		_list.add_child(b)
-		_item_buttons.append(b)
+		grid.add_child(_card(id, String(CAT_ICONS.get(cat, "construire"))))
+	_cat_title.text += "  ·  %d" % shown
 	if shown == 0:
 		var none := Label.new()
 		none.text = "Aucun bâtiment pour ces filtres."
@@ -265,7 +317,7 @@ func _show_zones() -> void:
 
 func _show_blocks() -> void:
 	_filters.visible = false
-	var tools := [["Bloc", BlockEditor.Tool.BLOCK, "Un clic = un bloc, contre le sol ou contre un autre bloc."],
+	var tools := [["Poser", BlockEditor.Tool.BLOCK, "Un clic = un élément de la forme choisie, contre le sol ou contre un autre bloc. R : tourner."],
 		["Rectangle", BlockEditor.Tool.RECT, "Clic glissé : dalle, plancher ou toit plat."],
 		["Mur", BlockEditor.Tool.WALL, "Clic glissé en ligne : mur de la hauteur choisie."],
 		["Gomme", BlockEditor.Tool.ERASE, "Clic sur un bloc, ou glissé pour effacer un étage."]]
@@ -295,36 +347,113 @@ func _show_blocks() -> void:
 	hrow.add_child(spin)
 	_list.add_child(hrow)
 	_item_buttons.append(hrow)
+	# Formes : blocs, toits, ouvertures.
+	var shape_group := ButtonGroup.new()
+	for fam in [["formes", "Formes"], ["toits", "Toits"], ["ouvertures", "Portes et fenêtres"]]:
+		var fl := Label.new()
+		fl.text = fam[1]
+		fl.add_theme_font_size_override("font_size", 12)
+		_list.add_child(fl)
+		_item_buttons.append(fl)
+		var srow := HFlowContainer.new()
+		_list.add_child(srow)
+		_item_buttons.append(srow)
+		for sh in BlocFormes.ORDER:
+			var info: Dictionary = BlocFormes.INFO[sh]
+			if info.fam != fam[0]:
+				continue
+			var sb := Button.new()
+			sb.text = info.name
+			sb.tooltip_text = info.desc
+			sb.toggle_mode = true
+			sb.button_group = shape_group
+			sb.add_theme_font_size_override("font_size", 12)
+			sb.button_pressed = sh == _block_shape
+			var shid: int = sh
+			sb.pressed.connect(func() -> void:
+				_block_shape = shid
+				block_shape_chosen.emit(shid))
+			srow.add_child(sb)
+	# Matériaux (textures), par famille.
+	var frow := HBoxContainer.new()
+	var flab := Label.new()
+	flab.text = "Matériau :"
+	frow.add_child(flab)
+	var fam_opt := OptionButton.new()
+	for f in BlocMateriaux.FAMILIES:
+		fam_opt.add_item(f.name)
+		fam_opt.set_item_metadata(fam_opt.item_count - 1, f.id)
+		if f.id == _mat_family:
+			fam_opt.select(fam_opt.item_count - 1)
+	fam_opt.item_selected.connect(func(i: int) -> void:
+		_mat_family = String(fam_opt.get_item_metadata(i))
+		show_category("blocs"))
+	frow.add_child(fam_opt)
+	_list.add_child(frow)
+	_item_buttons.append(frow)
 	var grid := GridContainer.new()
-	grid.columns = 7
+	grid.columns = 8
 	_list.add_child(grid)
 	_item_buttons.append(grid)
 	var mat_group := ButtonGroup.new()
 	for i in BlockEditor.MATERIALS.size():
 		var m: Dictionary = BlockEditor.MATERIALS[i]
+		if _mat_family != "" and m.fam != _mat_family:
+			continue
 		var b := Button.new()
-		b.custom_minimum_size = Vector2(40, 34)
+		b.custom_minimum_size = Vector2(38, 38)
 		b.toggle_mode = true
 		b.button_group = mat_group
 		b.tooltip_text = "%s · %d € le bloc" % [m.name, m.price]
-		var col: Color = m.color
-		for state in ["normal", "hover", "pressed", "hover_pressed"]:
-			var sb := StyleBoxFlat.new()
-			sb.bg_color = Color(col.r, col.g, col.b, 1.0)
-			sb.set_corner_radius_all(4)
-			if state.contains("pressed"):
-				sb.set_border_width_all(3)
-				sb.border_color = Color.WHITE
-			elif state == "hover":
-				sb.set_border_width_all(2)
-				sb.border_color = Color(1, 1, 1, 0.6)
-			b.add_theme_stylebox_override(state, sb)
+		b.icon = _material_icon(i)
+		b.expand_icon = true
+		b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		for state in ["pressed", "hover_pressed"]:
+			var sbx := StyleBoxFlat.new()
+			sbx.bg_color = Color(1, 1, 1, 0.9)
+			sbx.set_corner_radius_all(4)
+			b.add_theme_stylebox_override(state, sbx)
 		b.button_pressed = i == _block_material
 		var mi := i
 		b.pressed.connect(func() -> void:
 			_block_material = mi
 			block_material_chosen.emit(mi))
 		grid.add_child(b)
+	# Teintes.
+	var tl := Label.new()
+	tl.text = "Teinte (peinture) :"
+	tl.add_theme_font_size_override("font_size", 12)
+	_list.add_child(tl)
+	_item_buttons.append(tl)
+	var trow := HFlowContainer.new()
+	_list.add_child(trow)
+	_item_buttons.append(trow)
+	var tint_group := ButtonGroup.new()
+	for ti in BlocMateriaux.TINTS.size():
+		var tb := Button.new()
+		tb.custom_minimum_size = Vector2(22, 22)
+		tb.toggle_mode = true
+		tb.button_group = tint_group
+		tb.tooltip_text = BlocMateriaux.TINT_NAMES[ti]
+		var col: Color = BlocMateriaux.TINTS[ti]
+		for state in ["normal", "hover", "pressed", "hover_pressed"]:
+			var sbt := StyleBoxFlat.new()
+			sbt.bg_color = col
+			sbt.set_corner_radius_all(11)
+			if ti == 0:
+				sbt.bg_color = Color(0.85, 0.85, 0.85)
+				sbt.set_border_width_all(2)
+				sbt.border_color = Color(0.4, 0.4, 0.4)
+			if state.contains("pressed"):
+				sbt.set_border_width_all(3)
+				sbt.border_color = Color.WHITE
+			tb.add_theme_stylebox_override(state, sbt)
+		tb.button_pressed = ti == _block_tint
+		var tid := ti
+		tb.pressed.connect(func() -> void:
+			_block_tint = tid
+			block_tint_chosen.emit(tid))
+		trow.add_child(tb)
 	# Enregistrer une construction comme bâtiment de « Mes créations ».
 	_list.add_child(HSeparator.new())
 	var crow := HBoxContainer.new()
@@ -351,6 +480,21 @@ func _show_blocks() -> void:
 	_block_label.text = "Clic droit : retirer un bloc · Ctrl+Z : annuler"
 	_list.add_child(_block_label)
 	_item_buttons.append(_block_label)
+
+
+func _material_icon(i: int) -> Texture2D:
+	if not _icons.has(i):
+		var img: Image = BlocMateriaux.image(i).duplicate()
+		img.clear_mipmaps()
+		img.resize(32, 32, Image.INTERPOLATE_BILINEAR)
+		if BlocMateriaux.is_glass(i):
+			# Le verre sur un fond sombre pour qu'il se voie.
+			var bg := Image.create(32, 32, false, Image.FORMAT_RGBA8)
+			bg.fill(Color(0.25, 0.3, 0.35))
+			bg.blend_rect(img, Rect2i(0, 0, 32, 32), Vector2i.ZERO)
+			img = bg
+		_icons[i] = ImageTexture.create_from_image(img)
+	return _icons[i]
 
 
 func _show_creations() -> void:
@@ -398,6 +542,68 @@ func set_zone_info(text: String) -> void:
 		_zone_label.text = text
 
 
+## Carte d'un bâtiment : vignette, nom, taille et prix. Clic : le poser.
+func _card(id: String, fallback_icon: String) -> Button:
+	var t := BuildingCatalog.get_type(id)
+	var b := Button.new()
+	b.custom_minimum_size = Vector2(168, 150)
+	b.toggle_mode = true
+	b.button_group = _item_group
+	b.focus_mode = Control.FOCUS_NONE
+	b.tooltip_text = "%s · %d × %d m · %s\n%s\nPrix : %s (hors terrassement)" % [t.name, t.w, t.d,
+		BuildingSystem.format_short(BuildingCatalog.cost(id)), t.desc, BuildingSystem.format_money(BuildingCatalog.cost(id))]
+	var sel := UiStyle.flat_box(Color(1, 0.82, 0.4, 0.16), 10, 6)
+	sel.border_color = UiStyle.ACCENT
+	sel.set_border_width_all(2)
+	b.add_theme_stylebox_override("normal", UiStyle.flat_box(Color(1, 1, 1, 0.05), 10, 6))
+	b.add_theme_stylebox_override("hover", UiStyle.flat_box(Color(1, 1, 1, 0.11), 10, 6))
+	b.add_theme_stylebox_override("pressed", sel)
+	b.add_theme_stylebox_override("hover_pressed", sel)
+	var type_id := id
+	b.pressed.connect(func() -> void: building_chosen.emit(type_id))
+	var box := VBoxContainer.new()
+	box.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT, Control.PRESET_MODE_MINSIZE, 6)
+	box.add_theme_constant_override("separation", 2)
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	b.add_child(box)
+	var pic := TextureRect.new()
+	pic.custom_minimum_size = Vector2(156, 92)
+	pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	pic.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	pic.texture = Icones.get_icon(fallback_icon, 48, Color(1, 1, 1, 0.35))
+	box.add_child(pic)
+	if _vignettes:
+		_vignettes.request(id, pic)
+	var name_l := Label.new()
+	name_l.text = String(t.name)
+	name_l.clip_text = true
+	name_l.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	name_l.custom_minimum_size = Vector2(156, 0)
+	name_l.add_theme_font_size_override("font_size", 13)
+	name_l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(name_l)
+	var meta := Label.new()
+	meta.text = "%d × %d m  ·  %s" % [t.w, t.d, BuildingSystem.format_short(BuildingCatalog.cost(id))]
+	meta.add_theme_font_size_override("font_size", 12)
+	meta.add_theme_color_override("font_color", UiStyle.TEXT_DIM)
+	meta.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(meta)
+	return b
+
+
+func is_open() -> bool:
+	return _panel.visible
+
+
+func set_open(on: bool) -> void:
+	_panel.visible = on
+
+
+func toggle() -> void:
+	set_open(not _panel.visible)
+
+
 func set_growth(on: bool) -> void:
 	_growth = on
 
@@ -410,7 +616,7 @@ func clear_selection() -> void:
 
 
 func set_money(text: String) -> void:
-	_money_label.text = text
+	_money_label.text = text.replace("Caisse : ", "")
 
 
 func set_summary(text: String) -> void:
@@ -420,4 +626,4 @@ func set_summary(text: String) -> void:
 func _unhandled_key_input(event: InputEvent) -> void:
 	var key := event as InputEventKey
 	if key and key.pressed and not key.echo and key.physical_keycode == KEY_B:
-		_panel.visible = not _panel.visible
+		toggle()

@@ -31,8 +31,9 @@ var _tip: Label
 
 func _ready() -> void:
 	_panel = PanelContainer.new()
-	_panel.offset_left = 12
-	_panel.offset_top = 230
+	_panel.offset_left = 10
+	_panel.offset_top = UiStyle.SIDE_TOP
+	UiStyle.style_panel(_panel)
 	_panel.custom_minimum_size = Vector2(250, 0)
 	add_child(_panel)
 	var box := VBoxContainer.new()

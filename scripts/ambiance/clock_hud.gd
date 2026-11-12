@@ -1,86 +1,118 @@
 class_name ClockHud
 extends CanvasLayer
-## Petit panneau en bas à droite : heure du lieu, date, lever et coucher du
+## Horloge au centre de la barre du haut : heure du lieu, date, lever et coucher du
 ## Soleil, phase de la Lune, vitesse du temps et réglage de l'heure.
 ## Touche T : pause / reprise. Touche Maj+T : vitesse suivante.
 
 const MONTHS := ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."]
 
+const SPEED_ICONS := ["pause", "play", "fast", "faster", "fastest"]
+
 var clock: DayNight
 var _time_label: Label
+var _date_label: Label
+var _sky_icon: TextureRect
 var _info_label: Label
 var _slider: HSlider
 var _weather_pick: OptionButton
 var _speed_buttons: Array[Button] = []
+var _details: PanelContainer
 var _updating := false
+var _night := false
 
 
 func _ready() -> void:
 	layer = 2
 	var anchor := Control.new()
-	# En haut au centre, entre le panneau du lieu (gauche) et Construire (droite).
+	# Au centre de la barre du haut (TerreHud), entre la partie et les chiffres de la ville.
 	anchor.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	anchor.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(anchor)
-	var panel := PanelContainer.new()
-	# Décalée à droite du centre : la barre de titre (Sauver, Charger…) occupe la gauche.
-	panel.position = Vector2(-120, 8)
-	panel.custom_minimum_size = Vector2(440, 0)
-	anchor.add_child(panel)
-	var box := VBoxContainer.new()
-	panel.add_child(box)
+	var row := HBoxContainer.new()
+	row.name = "Horloge"
+	row.add_theme_constant_override("separation", 8)
+	row.position = Vector2(-235, 18)
+	row.custom_minimum_size = Vector2(470, 42)
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	anchor.add_child(row)
 
-	var top := HBoxContainer.new()
-	box.add_child(top)
-	var prev := Button.new()
-	prev.text = "◀"
-	prev.tooltip_text = "Reculer d'un mois"
-	prev.pressed.connect(func() -> void: clock.shift_days(-30))
-	top.add_child(prev)
+	_sky_icon = TextureRect.new()
+	_sky_icon.texture = Icones.get_icon("soleil", 22, UiStyle.ACCENT)
+	_sky_icon.stretch_mode = TextureRect.STRETCH_KEEP_CENTERED
+	_sky_icon.custom_minimum_size = Vector2(24, 0)
+	row.add_child(_sky_icon)
 	_time_label = Label.new()
-	_time_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_time_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_time_label.add_theme_font_size_override("font_size", 18)
-	top.add_child(_time_label)
-	var next := Button.new()
-	next.text = "▶"
-	next.tooltip_text = "Avancer d'un mois"
-	next.pressed.connect(func() -> void: clock.shift_days(30))
-	top.add_child(next)
+	_time_label.add_theme_font_size_override("font_size", 20)
+	_time_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(_time_label)
+	_date_label = Label.new()
+	_date_label.add_theme_font_size_override("font_size", 13)
+	_date_label.add_theme_color_override("font_color", UiStyle.TEXT_DIM)
+	_date_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_date_label.custom_minimum_size = Vector2(130, 0)
+	_date_label.clip_text = true
+	_date_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	row.add_child(_date_label)
 
+	var speeds := PanelContainer.new()
+	speeds.add_theme_stylebox_override("panel", UiStyle.flat_box(Color(0, 0, 0, 0.3), 9, 3))
+	row.add_child(speeds)
+	var sbox := HBoxContainer.new()
+	sbox.add_theme_constant_override("separation", 2)
+	speeds.add_child(sbox)
+	var group := ButtonGroup.new()
+	for i in DayNight.SPEEDS.size():
+		var b := UiStyle.icon_button(SPEED_ICONS[mini(i, SPEED_ICONS.size() - 1)], DayNight.SPEED_NAMES[i], "", 16, 32)
+		b.custom_minimum_size = Vector2(32, 30)
+		b.tooltip_text = "%s (T : pause, Maj + T : vitesse suivante)" % DayNight.SPEED_NAMES[i]
+		b.toggle_mode = true
+		b.button_group = group
+		var idx := i
+		b.pressed.connect(func() -> void: clock.set_speed(idx))
+		sbox.add_child(b)
+		_speed_buttons.append(b)
+	var more := UiStyle.icon_button("details", "Soleil, Lune, heure, date et météo")
+	more.custom_minimum_size = Vector2(34, 34)
+	more.toggle_mode = true
+	more.toggled.connect(func(on: bool) -> void: _details.visible = on)
+	row.add_child(more)
+
+	# Détails (bouton « … ») : soleil, lune, fuseau, curseur de l'heure, mois, météo.
+	_details = PanelContainer.new()
+	_details.position = Vector2(-235, 74)
+	_details.custom_minimum_size = Vector2(470, 0)
+	_details.visible = false
+	UiStyle.style_panel(_details)
+	anchor.add_child(_details)
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 6)
+	_details.add_child(box)
 	_info_label = Label.new()
 	_info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_info_label.add_theme_font_size_override("font_size", 12)
 	_info_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_info_label.custom_minimum_size = Vector2(420, 0)
+	_info_label.custom_minimum_size = Vector2(440, 0)
 	box.add_child(_info_label)
-
+	var hrow := HBoxContainer.new()
+	box.add_child(hrow)
+	var prev := UiStyle.icon_button("precedent", "Reculer d'un mois", "", 18, 32)
+	prev.pressed.connect(func() -> void: clock.shift_days(-30))
+	hrow.add_child(prev)
 	_slider = HSlider.new()
 	_slider.min_value = 0.0
 	_slider.max_value = 24.0
 	_slider.step = 0.25
 	_slider.tooltip_text = "Heure du jour"
 	_slider.focus_mode = Control.FOCUS_NONE
+	_slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_slider.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_slider.value_changed.connect(func(v: float) -> void:
 		if not _updating:
 			clock.set_local_hour(v))
-	box.add_child(_slider)
-
-	var speeds := HBoxContainer.new()
-	speeds.alignment = BoxContainer.ALIGNMENT_CENTER
-	box.add_child(speeds)
-	var group := ButtonGroup.new()
-	for i in DayNight.SPEEDS.size():
-		var b := Button.new()
-		b.text = DayNight.SPEED_NAMES[i]
-		b.toggle_mode = true
-		b.button_group = group
-		b.focus_mode = Control.FOCUS_NONE
-		b.add_theme_font_size_override("font_size", 12)
-		var idx := i
-		b.pressed.connect(func() -> void: clock.set_speed(idx))
-		speeds.add_child(b)
-		_speed_buttons.append(b)
+	hrow.add_child(_slider)
+	var next := UiStyle.icon_button("suivant", "Avancer d'un mois", "", 18, 32)
+	next.pressed.connect(func() -> void: clock.shift_days(30))
+	hrow.add_child(next)
 	_weather_pick = OptionButton.new()
 	_weather_pick.focus_mode = Control.FOCUS_NONE
 	_weather_pick.add_theme_font_size_override("font_size", 12)
@@ -89,7 +121,7 @@ func _ready() -> void:
 	_weather_pick.tooltip_text = "Automatique : le temps suit le climat réel du lieu et la saison."
 	_weather_pick.item_selected.connect(func(i: int) -> void:
 		clock.weather.mode = i as Meteo.Mode)
-	speeds.add_child(_weather_pick)
+	box.add_child(_weather_pick)
 	clock.time_changed.connect(refresh)
 	refresh()
 
@@ -119,8 +151,12 @@ func refresh() -> void:
 		return
 	var d := clock.local_datetime()
 	var h := clock.local_hour()
-	var icon := "☀" if clock.sun_horiz.x > 0.0 else "☾"
-	_time_label.text = "%s  %s   ·   %d %s %d" % [icon, format_hour(h), d.day, MONTHS[int(d.month) - 1], d.year]
+	var night := clock.sun_horiz.x <= 0.0
+	if night != _night:
+		_night = night
+		_sky_icon.texture = Icones.get_icon("lune" if night else "soleil", 22, UiStyle.ACCENT)
+	_time_label.text = format_hour(h)
+	_date_label.text = "%d %s %d" % [d.day, MONTHS[int(d.month) - 1], d.year]
 	var rs := clock.rise_set()
 	var sun_txt: String
 	if rs.x == -1.0:
@@ -135,6 +171,8 @@ func refresh() -> void:
 	if clock.weather != null:
 		var w := clock.weather
 		_info_label.text += "\n%s · %d °C" % [w.describe(), roundi(w.temperature)]
+		_date_label.text += " · %d °C" % roundi(w.temperature)
+		_date_label.tooltip_text = w.describe()
 		if _weather_pick.selected != int(w.mode):
 			_weather_pick.select(int(w.mode))
 	_updating = true

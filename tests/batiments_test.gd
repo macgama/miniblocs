@@ -219,6 +219,40 @@ func _run() -> void:
 	var m1 := bs.money
 	_check(be.remove_blocks([k0]) == 1 and bs.money == m1 + 60, "bloc retiré, moitié du prix rendue")
 	_check(be.undo() and be.blocks.has(k0) and bs.money == m1, "Ctrl+Z remet le bloc")
+	# Formes, matériaux, portes.
+	var F := BlocFormes
+	var code := F.encode(42, F.S.STAIRS, 3, 7, false, false)
+	_check(F.mat_of(code) == 42 and F.shape_of(code) == F.S.STAIRS and F.rot_of(code) == 3 and F.tint_of(code) == 7, "code d'un bloc : matériau, forme, rotation, teinte")
+	_check(F.encode(5) == 5 and F.is_full(5), "les anciens blocs restent des blocs pleins")
+	_check(BlockEditor.MATERIALS.size() >= 50 and BlocMateriaux.texture_array().get_layers() == BlockEditor.MATERIALS.size() + 1, "%d matériaux texturés" % BlockEditor.MATERIALS.size())
+	var all_shapes := true
+	for sh in F.INFO:
+		for r in 4:
+			var mm := BlocMesher.new()
+			F.emit(mm, F.encode(1, sh, r, 3), Vector3.ZERO, func(_o: Vector3i) -> int: return -1)
+			all_shapes = all_shapes and not mm.is_empty() and mm.to_mesh().get_surface_count() >= 1
+	_check(all_shapes, "%d formes × 4 orientations se dessinent" % F.INFO.size())
+	var gd := world.cell_height(Vector2i(-110, -100))
+	var kd := Vector3i(-110, roundi(gd / BlockEditor.UNIT_Y), -100)
+	var m2 := bs.money
+	_check(be.place_blocks([kd], F.encode(2, F.S.DOOR, 0, 4)) == 2, "une porte prend deux cases")
+	_check(bs.money == m2 - F.price(F.encode(2, F.S.DOOR)), "porte payée une fois")
+	_check(be.toggle_open(kd + Vector3i(0, BlockEditor.HU, 0)) and F.is_open(be.blocks[kd]) and F.is_open(be.blocks[kd + Vector3i(0, BlockEditor.HU, 0)]), "la porte s'ouvre (les deux moitiés)")
+	_check(be.interact_ray(Vector3(-109.5, gd + 1.0, -103.0), Vector3(0, 0, 1)) and not F.is_open(be.blocks[kd]), "E en vue au sol : la porte se ferme")
+	_check(be.remove_blocks([kd + Vector3i(0, BlockEditor.HU, 0)]) == 2 and not be.blocks.has(kd), "retirer le haut retire toute la porte")
+	_check(be.undo() and be.blocks.has(kd) and be.blocks.has(kd + Vector3i(0, BlockEditor.HU, 0)), "Ctrl+Z remet la porte")
+	be.remove_blocks([kd])
+	var garage: Array = [Vector3i(-112, kd.y, -95), Vector3i(-111, kd.y, -95), Vector3i(-110, kd.y, -95)]
+	_check(be.place_blocks(garage, F.encode(9, F.S.GARAGE)) == 3 and be.toggle_open(garage[0]) and F.is_open(be.blocks[garage[2]]), "porte de garage : tous les éléments s'ouvrent ensemble")
+	be.remove_blocks(garage)
+	m2 = bs.money
+	_check(be.place_blocks([kd], F.encode(7, F.S.SLAB)) == 1 and bs.money == m2 - roundi(110 * 0.5), "demi-bloc à moitié prix")
+	be.remove_blocks([kd])
+	be.material = 3
+	be.shape = F.S.SLAB
+	_check(F.shape_of(be.current_code({"upper": true})) == F.S.SLAB_TOP, "visée sur le haut d'une face : demi-bloc du haut")
+	be.shape = 0
+	be.material = 0
 	await process_frame
 	_check(be._chunks.size() >= 1, "blocs dessinés")
 	var has_body := false

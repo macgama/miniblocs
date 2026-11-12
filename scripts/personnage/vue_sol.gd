@@ -11,6 +11,8 @@ extends Node3D
 ## - Échap : libérer la souris (clic dans la vue pour la reprendre)
 
 signal vue_changee(vue: int)
+## E ou clic gauche en vue au sol : ouvrir une porte, etc. (rayon depuis la caméra).
+signal interaction(origine: Vector3, direction: Vector3)
 
 enum Vue { DESSUS, TROISIEME, PREMIERE }
 
@@ -220,6 +222,9 @@ func _input(event: InputEvent) -> void:
 		if k.pressed and k.keycode == KEY_ESCAPE:
 			_capturer(false)
 			get_viewport().set_input_as_handled()
+		elif k.pressed and not k.echo and not typing and k.physical_keycode == KEY_E:
+			_interagir()
+			get_viewport().set_input_as_handled()
 		elif k.keycode >= KEY_0 and k.keycode <= KEY_9 or k.physical_keycode >= KEY_0 and k.physical_keycode <= KEY_9:
 			# Pas de changement d'outil de construction pendant la marche.
 			get_viewport().set_input_as_handled()
@@ -232,11 +237,24 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 	elif event is InputEventMouseButton:
 		var mb := event as InputEventMouseButton
-		if mb.pressed and mb.button_index == MOUSE_BUTTON_WHEEL_UP:
+		if mb.pressed and mb.button_index == MOUSE_BUTTON_LEFT:
+			_interagir()
+		elif mb.pressed and mb.button_index == MOUSE_BUTTON_WHEEL_UP:
 			zoomer(-1)
 		elif mb.pressed and mb.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 			zoomer(1)
 		get_viewport().set_input_as_handled()
+
+
+func _interagir() -> void:
+	if camera == null:
+		return
+	var o := camera.global_position
+	var d := -camera.global_transform.basis.z
+	# En 3e personne, on part de la tête du personnage, dans la direction visée.
+	if vue == Vue.TROISIEME and personnage != null:
+		o = personnage.global_position + Vector3(0, 1.6, 0)
+	interaction.emit(o, d)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -363,35 +381,11 @@ func _construire_ui() -> void:
 	_ui.name = "InterfaceVue"
 	_ui.layer = 2
 	add_child(_ui)
-	var panneau := PanelContainer.new()
-	# En haut au centre, sous l'horloge : la gauche et la droite sont prises par les autres panneaux.
-	panneau.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	panneau.position = Vector2(-120, 158)
-	panneau.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	_ui.add_child(panneau)
-	var boite := HBoxContainer.new()
-	panneau.add_child(boite)
-	var titre := Label.new()
-	titre.text = "Vue (V) :"
-	boite.add_child(titre)
-	var ligne := HBoxContainer.new()
-	boite.add_child(ligne)
-	var groupe := ButtonGroup.new()
-	for v in [Vue.DESSUS, Vue.TROISIEME, Vue.PREMIERE]:
-		var b := Button.new()
-		b.text = ["Dessus", "3e pers.", "1re pers."][v]
-		b.toggle_mode = true
-		b.button_group = groupe
-		b.focus_mode = Control.FOCUS_NONE
-		b.tooltip_text = NOMS[v]
-		b.pressed.connect(func() -> void: set_vue(v))
-		ligne.add_child(b)
-		_boutons.append(b)
-
+	# Le choix de la vue est dans la barre du bas (bouton Vue, touche V) : voir TerreHud.
 	_aide = Label.new()
 	_aide.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	_aide.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	_aide.position.y = 214
+	_aide.position.y = 104
 	_aide.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_aide.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
 	_aide.add_theme_constant_override("outline_size", 5)

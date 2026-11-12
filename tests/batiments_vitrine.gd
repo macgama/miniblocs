@@ -32,7 +32,9 @@ func _run() -> void:
 	var yaw := 30.0
 	var focus := Vector2(0, 0)
 	var zoning := args.has("--zones")
-	var bloc_mode := args.has("--blocs")
+	var bloc_mode := args.has("--blocs") or args.has("--maison")
+	var maison := args.has("--maison")
+	var pitch := -1.0
 	var only_styles: PackedStringArray = []
 	var only_archs: PackedStringArray = []
 	var zone_style := ""
@@ -52,6 +54,8 @@ func _run() -> void:
 			only_cat = args[i + 1]
 		if args[i] == "--zone-style" and i + 1 < args.size():
 			zone_style = args[i + 1]
+		if args[i] == "--pitch" and i + 1 < args.size():
+			pitch = args[i + 1].to_float()
 		if args[i] == "--focus" and i + 1 < args.size():
 			var p := args[i + 1].split(",")
 			focus = Vector2(p[0].to_float(), p[1].to_float())
@@ -73,14 +77,26 @@ func _run() -> void:
 			scene.get_node("Zones").current_style = zone_style
 			await _zoning(scene, world, transport, bs)
 		else:
-			_blocks_house(scene, world)
+			if maison:
+				_maison(scene, world)
+			else:
+				_blocks_house(scene, world)
 			scene.get_node("Blocs").set_tool(BlockEditor.Tool.BLOCK)
 		var rig0 = scene.get_node("CameraRig")
 		rig0.position = Vector3(focus.x, 42.0, focus.y)
 		rig0._distance = dist
 		rig0._target_distance = dist
 		rig0.rotation_degrees.y = yaw
+		if pitch > 0.0 and "pitch_degrees" in rig0:
+			rig0.pitch_degrees = pitch
 		scene.get_node("PanneauConstruction").show_category("zones" if zoning else "blocs")
+		if maison:
+			scene.get_node("PanneauConstruction").visible = not args.has("--sans-panneau")
+			if args.has("--defiler"):
+				for i in 3:
+					await process_frame
+				for sc in scene.get_node("PanneauConstruction").find_children("*", "ScrollContainer", true, false):
+					(sc as ScrollContainer).scroll_vertical = 260
 		for i in 90:
 			await process_frame
 		root.get_viewport().get_texture().get_image().save_png(shot)
@@ -167,6 +183,109 @@ func _zoning(scene: Node, world: TerrainWorld, transport: TransportSystem, bs: B
 
 
 ## Petite maison en blocs : plancher, murs de brique, fenêtres, toit en tuiles, un arbre.
+## Maison réaliste : formes, textures, portes et fenêtres de l'éditeur libre.
+func _maison(scene: Node, world: TerrainWorld) -> void:
+	var be: BlockEditor = scene.get_node("Blocs")
+	var F := BlocFormes
+	var S := BlocFormes.S
+	var hu := BlockEditor.HU
+	var g := world.cell_height(Vector2i(4, 3))
+	var y := roundi(maxf(g, 0.0) / BlockEditor.UNIT_Y) + hu
+	var put := func(keys: Array, code: int) -> void: be.place_blocks(keys, code)
+	# Socle en pierre de taille qui suit le sol.
+	var base: Array = []
+	for x in range(-1, 11):
+		for z in range(-2, 9):
+			var gy := roundi(maxf(world.cell_height(Vector2i(x, z)), 0.0) / BlockEditor.UNIT_Y)
+			var k := Vector3i(x, gy, z)
+			while k.y < y:
+				base.append(k)
+				k.y += hu
+	put.call(base, F.encode(16))
+	put.call(be.drag_keys(Vector3i(1, y, 1), Vector3i(8, y, 6), BlockEditor.Tool.RECT), F.encode(35))
+	var ring: Array = []
+	for x in range(0, 10):
+		for z in range(0, 8):
+			if x == 0 or x == 9 or z == 0 or z == 7:
+				ring.append(Vector3i(x, y, z))
+	put.call(ring, F.encode(16))
+	# Murs en crépi ocre, chaînages d'angle en pierre.
+	var walls: Array = []
+	var corners: Array = []
+	for x in range(0, 10):
+		for z in range(0, 8):
+			if x == 0 or x == 9 or z == 0 or z == 7:
+				for h in range(1, 4):
+					var k := Vector3i(x, y + h * hu, z)
+					if (x == 0 or x == 9) and (z == 0 or z == 7):
+						corners.append(k)
+					else:
+						walls.append(k)
+	var holes := {}
+	var openings := [
+		[Vector3i(4, y + hu, 0), F.encode(2, S.DOOR, 0, 4)],
+		[Vector3i(2, y + 2 * hu, 0), F.encode(58, S.WINDOW_SHUTTERS, 0, 8)],
+		[Vector3i(7, y + 2 * hu, 0), F.encode(58, S.WINDOW_SHUTTERS, 0, 8)],
+		[Vector3i(0, y + 2 * hu, 3), F.encode(58, S.WINDOW, 3)],
+		[Vector3i(0, y + 2 * hu, 5), F.encode(58, S.WINDOW, 3)],
+		[Vector3i(9, y + hu, 3), F.encode(9, S.DOOR_GLASS, 1, 3)],
+		[Vector3i(3, y + hu, 7), F.encode(9, S.BAY, 2, 3)], [Vector3i(4, y + hu, 7), F.encode(9, S.BAY, 2, 3)],
+		[Vector3i(3, y + 2 * hu, 7), F.encode(9, S.BAY, 2, 3)], [Vector3i(4, y + 2 * hu, 7), F.encode(9, S.BAY, 2, 3)],
+	]
+	for o in openings:
+		holes[o[0]] = true
+		if F.cells(F.shape_of(o[1])) == 2:
+			holes[o[0] + Vector3i(0, hu, 0)] = true
+	put.call(walls.filter(func(k: Vector3i) -> bool: return not holes.has(k)), F.encode(27))
+	put.call(corners, F.encode(16))
+	for o in openings:
+		put.call([o[0]], o[1])
+	# Toit à deux pans en tuiles, débord de 1 m, pignons en crépi.
+	for i in 4:
+		var lv := y + (4 + i) * hu
+		var front: Array = []
+		var back: Array = []
+		for x in range(-1, 11):
+			front.append(Vector3i(x, lv, i - 1 + 1))
+			back.append(Vector3i(x, lv, 7 - i))
+		put.call(front, F.encode(7, S.SLOPE, 0))
+		put.call(back, F.encode(7, S.SLOPE, 2))
+		var gable: Array = []
+		for z in range(i + 1, 7 - i):
+			gable.append(Vector3i(0, lv, z))
+			gable.append(Vector3i(9, lv, z))
+		put.call(gable, F.encode(27))
+	be.remove_blocks([Vector3i(6, y + 5 * hu, 1)])
+	put.call([Vector3i(6, y + 5 * hu, 1)], F.encode(7, S.SKYLIGHT, 0))
+	# Cheminée en brique.
+	var chim: Array = []
+	for h in range(4, 10):
+		var k := Vector3i(7, y + h * hu, 5)
+		if be.blocks.has(k):
+			be.remove_blocks([k])
+		chim.append(k)
+	put.call(chim, F.encode(0))
+	# Perron : marches, colonnes et auvent en zinc.
+	put.call([Vector3i(2, y, -1), Vector3i(3, y, -1), Vector3i(5, y, -1), Vector3i(6, y, -1)], F.encode(16))
+	put.call([Vector3i(4, y, -1)], F.encode(16, S.STAIRS, 0))
+	for x in [3, 5]:
+		put.call([Vector3i(x, y + hu, -1), Vector3i(x, y + 2 * hu, -1)], F.encode(5, S.COLUMN))
+	put.call(be.drag_keys(Vector3i(2, y + 3 * hu, -1), Vector3i(6, y + 3 * hu, -1), BlockEditor.Tool.RECT), F.encode(46, S.SLAB))
+	# Clôture blanche.
+	var fence: Array = []
+	for x in range(-2, 12):
+		if x == 4:
+			continue
+		var gy := roundi(maxf(world.cell_height(Vector2i(x, -4)), 0.0) / BlockEditor.UNIT_Y)
+		fence.append(Vector3i(x, gy, -4))
+	put.call(fence, F.encode(58, S.FENCE, 0))
+	# Allée en pavés.
+	for z in range(-4, -1):
+		var gy := roundi(maxf(world.cell_height(Vector2i(4, z)), 0.0) / BlockEditor.UNIT_Y)
+		put.call([Vector3i(4, gy, z)], F.encode(21, S.FLOOR_THIN))
+	be.toggle_open(Vector3i(9, y + hu, 3))
+
+
 func _blocks_house(scene: Node, world: TerrainWorld) -> void:
 	var be: BlockEditor = scene.get_node("Blocs")
 	var g := world.cell_height(Vector2i(0, 0))

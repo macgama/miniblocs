@@ -26,24 +26,38 @@ func setup(s: StationSystem) -> void:
 func _build() -> void:
 	layer = 5
 	_panel = PanelContainer.new()
-	_panel.anchor_top = 0.0
-	_panel.offset_left = 10
-	_panel.offset_top = 250
-	_panel.custom_minimum_size = Vector2(330, 0)
+	# À droite, à la place commune des panneaux (un seul ouvert à la fois).
+	_panel.anchor_left = 1.0
+	_panel.anchor_right = 1.0
+	_panel.offset_left = UiStyle.SIDE_LEFT
+	_panel.offset_right = UiStyle.SIDE_RIGHT
+	_panel.offset_top = UiStyle.SIDE_TOP
+	_panel.custom_minimum_size = Vector2(360, 0)
 	_panel.visible = false
+	UiStyle.style_panel(_panel)
 	add_child(_panel)
 	var scroll := ScrollContainer.new()
-	scroll.custom_minimum_size = Vector2(330, 430)
+	scroll.custom_minimum_size = Vector2(360, 560)
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	_panel.add_child(scroll)
 	var box := VBoxContainer.new()
 	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	box.add_theme_constant_override("separation", 4)
 	scroll.add_child(box)
+	var head := HBoxContainer.new()
+	box.add_child(head)
+	var ti := TextureRect.new()
+	ti.texture = Icones.get_icon("lignes", 24, UiStyle.ACCENT)
+	ti.stretch_mode = TextureRect.STRETCH_KEEP_CENTERED
+	head.add_child(ti)
 	var title := Label.new()
-	title.text = "Transports publics   (L : masquer)"
-	title.add_theme_font_size_override("font_size", 16)
-	box.add_child(title)
+	title.text = "Transports publics"
+	title.add_theme_font_size_override("font_size", 18)
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	head.add_child(title)
+	var close := UiStyle.icon_button("fermer", "Fermer", "L", 18, 32)
+	close.pressed.connect(toggle)
+	head.add_child(close)
 	var hint := Label.new()
 	hint.text = "1. Pose des stations sur tes voies.\n2. Nouvelle ligne : clique les stations dans l'ordre.\n3. Choisis le véhicule et leur nombre.\nFret : dépôts de marchandises pour les camions ; case « Fret » pour les trains et les bateaux."
 	hint.add_theme_font_size_override("font_size", 12)
@@ -82,6 +96,10 @@ func _tool_button(text: String) -> Button:
 func clear_selection() -> void:
 	for b in _buttons:
 		b.set_pressed_no_signal(false)
+
+
+func set_open(on: bool) -> void:
+	_panel.visible = on
 
 
 func toggle() -> void:

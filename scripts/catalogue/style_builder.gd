@@ -128,6 +128,8 @@ static func _size(s: Dictionary, arch: String) -> Vector2i:
 
 
 static func floors_of(s: Dictionary, arch: String) -> int:
+	if s.has("perso_etages"):
+		return int(s.perso_etages)
 	var era: String = s.era
 	match arch:
 		"maison":
@@ -158,6 +160,8 @@ static func floors_of(s: Dictionary, arch: String) -> int:
 
 static func build(k: BlocMesh, t: Dictionary) -> void:
 	var s: Dictionary = Styles.STYLES[t.style]
+	if not k.perso.is_empty():
+		s = Personnalisation.style_with(s, k.perso)
 	var arch: String = t.arch
 	var w := float(t.w)
 	var d := float(t.d)
@@ -165,6 +169,8 @@ static func build(k: BlocMesh, t: Dictionary) -> void:
 	rng.seed = hash(String(t.style) + arch)
 	var p := _palette(s, rng)
 	_variante(k, s, p, String(t.style), arch)
+	if not k.perso.is_empty():
+		Personnalisation.apply_palette(p, k.perso)
 	match arch:
 		"culte":
 			_culte(k, s, p, w, d)

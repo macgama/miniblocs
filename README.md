@@ -329,6 +329,18 @@ L'onglet **Intérieur** (icône fauteuil) du panneau Construire aménage les bâ
 ![Vue au sol dans le séjour de la maison rustique](docs/interieurs_sol.png)
 ![La bible des meubles : un style par rangée](docs/interieurs_bible.png)
 
+### Personnaliser un bâtiment, banque de modèles et atelier
+
+- **Personnaliser** : clic sur un bâtiment du catalogue (outil 1), puis « Personnaliser » sur sa fiche. On change les couleurs (murs, toit, boiseries, volets, porte, vitres) dans le nuancier du style ou en couleur libre, la forme du toit (deux pans, quatre pans, terrasse, mansarde, bords relevés, appentis, chaume), le nombre d'étages, la pente du toit et la variante. Seul ce bâtiment change ; un bouton applique le même réglage à tous les bâtiments du même modèle. Tout est gardé dans la partie.
+- **Ouvrir l'intérieur** (maisons, immeubles, boutiques, restaurants, bureaux, ateliers, écoles) : le bâtiment est reconstruit en murs fins à sa place, avec ses couleurs (matériaux les plus proches), découpé en pièces (entrée et escalier, séjour, cuisine, chambres, salle de bains ; salle de vente et réserve pour une boutique, logement au-dessus) et meublé dans un style proche du sien. On y entre (V), on le meuble (onglet Intérieur) et on peut déplacer ses murs. Les petits ornements du modèle (corniches, cheminée) disparaissent.
+- **Banque de modèles** (mode Créer, touche 6) : chaque bâtiment personnalisé ou en murs fins s'enregistre avec un nom et des étiquettes (type, style, région, époque, couleurs, étages, pièces, taille). On cherche, on filtre, on repose. « Exporter » crée un fichier à envoyer, « Importer » lit ceux reçus (dossier d'échange). Chaque modèle est rangé comme un objet du Steam Workshop (un dossier avec `modele.json` et `apercu.png`), pour le partage entre joueurs quand le jeu sera sur Steam.
+- **Atelier** (bouton du globe, ou touche 7 en mode Créer) : un terrain plat, sans habitants ni argent ni météo, pour créer et retoucher des bâtiments, puis les ranger dans la banque. Depuis une partie, elle est sauvegardée avant d'ouvrir l'atelier, et « Quitter » (7) y ramène. L'atelier garde ce qu'on y a laissé.
+
+![Une rue de Maisons à pignon personnalisées, la dernière ouverte en murs fins](docs/personnaliser_rue.png)
+![Le panneau Personnaliser](docs/personnaliser_panneau.png)
+![Une Maison à pignon ouverte : pièces et meubles](docs/personnaliser_coupe.png)
+![L'atelier et sa banque de modèles](docs/personnaliser_atelier.png)
+
 ### Éditeur libre : construire bloc par bloc
 
 L'onglet **Éditeur libre** permet de construire ce que tu veux avec des blocs de 1 m × 1 m × 1 m, posés sur le relief ou les uns contre les autres.
@@ -412,7 +424,7 @@ Le mode Terre a maintenant une **horloge** : le Soleil et la Lune sont à leur v
 
 - **La nuit**, des **lampadaires** s'allument le long des routes et des chemins (posés tout seuls), et les **fenêtres** des bâtiments s'éclairent, plus ou moins selon l'heure.
 - **Panneau Horloge** (en bas à droite) : heure et date du lieu, lever et coucher du Soleil, phase de la Lune. Barre pour choisir l'heure, ◀ ▶ pour changer de mois (et donc de saison).
-- **T** : pause / reprise. **Maj + T** : vitesse suivante (temps réel, 1 min/s, 10 min/s, 1 h/s).
+- **T** : pause / reprise. **Maj + T** : vitesse suivante (temps réel, 1 min/s, 10 min/s, 100 min/s).
 - **Heure officielle du lieu**, avec les vrais fuseaux horaires du monde et l'heure d'été.
 - **Météo** selon le climat réel du lieu et la saison : nuages, pluie, neige, brouillard, orages avec éclairs. La liste « Météo » du panneau Horloge permet de forcer un temps.
 - **Phares** des véhicules allumés la nuit et par mauvais temps.
@@ -513,6 +525,14 @@ Une ferme entièrement générée en code (longère à colombages et toit de cha
 | `scripts/interieurs/interieur_panel.gd` | Onglet « Intérieur » du panneau Construire |
 | `tests/interieurs_test.gd` | Test des intérieurs (bible, pose, aménagement, habitants, sauvegarde, panneau) |
 | `tests/interieurs_vitrine.gd` | Bâtiments meublés en coupe et captures (`--vue dessus`, `proche`, `sol`, `bible`, `panneau`, `--style japonais`) |
+| `scripts/atelier/personnalisation.gd` | Personnalisation d'un bâtiment du catalogue (couleurs, toit, étages) |
+| `scripts/atelier/perso_panel.gd` | Panneau « Personnaliser » |
+| `scripts/atelier/conversion.gd` | « Ouvrir l'intérieur » : bâtiment du catalogue refait en murs fins, découpé en pièces, meublé |
+| `scripts/atelier/banque_modeles.gd` | Banque de modèles : enregistrer, étiqueter, chercher, poser, exporter, importer |
+| `scripts/atelier/banque_panel.gd` | Onglet « Banque de modèles » |
+| `scripts/atelier/banque_pose.gd` | Outil de pose d'un modèle en murs fins |
+| `tests/atelier_test.gd` | Test de la personnalisation, de l'ouverture des intérieurs, de la banque et de l'atelier |
+| `tests/atelier_vitrine.gd` | Captures : rue personnalisée, panneau, maison ouverte, atelier (`--vue rue`, `panneau`, `coupe`, `atelier`) |
 | `scripts/habitants/population.gd` | Habitants : foyers, étapes de la vie, écoles, emplois, emploi du temps, trajets, économie, sauvegarde |
 | `scripts/habitants/habitants_panel.gd` | Panneau « Habitants » (touche H) : ville, liste, bâtiment, profil |
 | `scripts/habitants/metiers.gd` | Métiers (salaires, horaires), métiers par bâtiment, loisirs et leurs lieux, classes |

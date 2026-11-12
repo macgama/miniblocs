@@ -173,6 +173,9 @@ func clear() -> void:
 func set_clip(r: Rect2i, y: float) -> void:
 	if r == clip_rect and (y == clip_y or (is_inf(y) and is_inf(clip_y))):
 		return
+	# Tous les morceaux affichés sont redessinés : aucun ne reste coupé.
+	for ck in _chunks:
+		_dirty[ck] = true
 	for rr in [clip_rect, r]:
 		var rect: Rect2i = rr
 		if rect.size == Vector2i.ZERO:
@@ -220,8 +223,32 @@ func check_block(k: Vector3i) -> String:
 		if buildings.occupancy.has(cell):
 			return "Un bâtiment occupe cette case."
 		if buildings.transport != null and buildings.transport.is_cell_occupied(cell):
-			return "Une voie passe ici."
+			# Au-dessus du gabarit, un débord de toit ou une passerelle peut enjamber la voie.
+			if k.y * UNIT_Y < _voie_clearance(cell, g) - 0.001:
+				return "Une voie passe ici."
 	return ""
+
+
+## Hauteur libre au-dessus de la chaussée (gabarit routier) et des trottoirs/abords.
+const VOIE_CLEARANCE := 4.5
+const ABORDS_CLEARANCE := 2.5
+
+
+## Hauteur minimale d'un bloc posé au-dessus d'une case occupée par une voie.
+func _voie_clearance(cell: Vector2i, g: float) -> float:
+	var need := maxf(g, 0.0) + ABORDS_CLEARANCE
+	var tr: TransportSystem = buildings.transport
+	var at := Vector3(cell.x + 0.5, 0.0, cell.y + 0.5)
+	for eid in tr.edges_near(at, 30.0):
+		var e: Dictionary = tr.network.edges[eid]
+		var hit := tr.network.nearest_on_edge(eid, at)
+		var half := float(e.get("width", 4.0)) / 2.0
+		var y := float((hit.pos as Vector3).y)
+		if float(hit.dist) <= half:
+			need = maxf(need, y + VOIE_CLEARANCE)
+		elif float(hit.dist) <= half + 3.0:
+			need = maxf(need, y + ABORDS_CLEARANCE)
+	return need
 
 
 func _price(code: int) -> int:

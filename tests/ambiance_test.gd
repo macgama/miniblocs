@@ -290,7 +290,7 @@ func _run() -> void:
 	var t0 := dn.unix_time
 	for i in 10:
 		await process_frame
-	_check(dn.unix_time > t0, "Le temps avance à 1 h/s")
+	_check(dn.unix_time > t0, "Le temps avance à 100 min/s")
 	dn.toggle_pause()
 	_check(dn.speed_index == 0, "T : pause")
 

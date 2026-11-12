@@ -123,6 +123,29 @@ func _run() -> void:
 	_check(placed > 0 and be.blocks.size() == nb0 + placed, "toit à deux pans posé en blocs (%d blocs)" % placed)
 	var top_y2 := roundi((pe.base_y(id, 3) + PlanEditor.H) / BlockEditor.UNIT_Y)
 	_check(be.blocks.has(Vector3i(39, top_y2, 39)), "débord d'une case au coin du toit")
+	var placed4 := pe.add_roof(id, "quatre_pans")
+	_check(placed4 > 0 and be.blocks.size() == nb0 + placed4, "quatre pans à la place des deux pans : l'ancien toit est remplacé (%d blocs)" % placed4)
+	var expect := 0
+	for k in be.blocks:
+		var kb: Vector3i = k
+		if kb.y >= top_y2 and kb.x >= 39 and kb.x <= 46 and kb.z >= 39 and kb.z <= 45:
+			expect += 1
+	_check(expect == placed4 and be.blocks.has(Vector3i(42, top_y2, 39)) and be.blocks.has(Vector3i(42, top_y2, 45)), "pans avant et arrière complets")
+	# Vue en coupe puis outil rangé : tous les morceaux de toit réapparaissent.
+	pe._active = id
+	pe.level = 0
+	pe.set_tool(PlanEditor.Tool.WALL)
+	for i in 3:
+		await process_frame
+	pe.set_tool(PlanEditor.Tool.NONE)
+	for i in 3:
+		await process_frame
+	var shown := 0
+	for ck in be._chunks:
+		var cm: Mesh = (be._chunks[ck] as MeshInstance3D).mesh
+		if cm != null and cm.get_surface_count() > 0:
+			shown += 1
+	_check(shown == be._chunks.size(), "après la vue en coupe, tout le toit est redessiné")
 
 	print("Construire en hauteur :")
 	pe._active = ""
@@ -145,6 +168,31 @@ func _run() -> void:
 	var road2 := transport.build_segment("route", Vector3(70.5, yr2, 20.0), Vector3(70.5, yr2, 60.0))
 	var gl := pe.ground_level(Vector2i(74, 40))
 	_check(road2.ok and absf(gl - transport.network.nearest_on_edge(transport.edges_near(Vector3(74.5, 0, 40.5), 30.0)[0], Vector3(74.5, 0, 40.5)).pos.y) < 0.26, "près d'une route, le rez-de-chaussée se cale sur la chaussée (%.1f m)" % gl)
+	# Maison collée à la route : le débord du toit côté route doit passer (toit fermé).
+	var rx := 71
+	while transport.is_cell_occupied(Vector2i(rx, 52)):
+		rx += 1
+	var idr := pe.new_plan(pe.ground_level(Vector2i(rx, 52)))
+	pe.add_room(idr, Rect2i(rx, 50, 6, 5), 0)
+	var y2r := roundi((pe.base_y(idr, 0) + PlanEditor.H) / BlockEditor.UNIT_Y)
+	var nbr := be.blocks.size()
+	var pr := pe.add_roof(idr, "quatre_pans")
+	_check(pr > 0 and be.blocks.size() == nbr + pr, "toit d'une maison au bord de la route posé en entier (%d blocs)" % pr)
+	var front_ok := true
+	for z in range(50, 55):
+		if not be.blocks.has(Vector3i(rx - 1, y2r, z)):
+			front_ok = false
+	_check(front_ok, "le débord du toit enjambe le trottoir : pas de trou entre le mur et le toit")
+	_check(be.check_block(Vector3i(70, roundi((yr2 + 2.0) / BlockEditor.UNIT_Y), 52)) != "", "pas de bloc bas au-dessus de la chaussée")
+	_check(be.check_block(Vector3i(70, roundi((yr2 + 5.0) / BlockEditor.UNIT_Y), 52)) == "", "un bloc au-dessus du gabarit (4,5 m) peut enjamber la route")
+	# Débord impossible (un bloc le gêne) : toit au ras des murs, mais fermé.
+	var idk := pe.new_plan(pe.ground_level(Vector2i(92, 92)))
+	pe.add_room(idk, Rect2i(90, 90, 4, 4), 0)
+	var y2k := roundi((pe.base_y(idk, 0) + PlanEditor.H) / BlockEditor.UNIT_Y)
+	be.place_blocks([Vector3i(91, y2k - 1, 89)], BlocFormes.encode(5))
+	var nbk := be.blocks.size()
+	var pk := pe.add_roof(idk, "quatre_pans")
+	_check(pk > 0 and be.blocks.size() == nbk + pk and be.blocks.has(Vector3i(90, y2k, 90)) and not be.blocks.has(Vector3i(89, y2k, 89)), "débord gêné : toit posé au ras des murs, sans trou (%d blocs)" % pk)
 	_check(not bs.check_place("maison", Vector2i(43, 43), 0).ok, "pas de bâtiment dans le bâtiment")
 	var id2 := pe.new_plan(pe.ground_level(Vector2i(80, 40)))
 	_check(not pe.add_room(id2, Rect2i(44, 42, 2, 2), 0), "pas un bâtiment dans un autre")

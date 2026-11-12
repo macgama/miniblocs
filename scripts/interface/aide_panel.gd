@@ -13,7 +13,7 @@ const SECTIONS := [
 		["Clic molette glissé en haut / en bas, ou Ctrl + molette", "incliner : jusqu'à une vue rasante pour voir le relief jusqu'à l'horizon (10 km)"],
 	]],
 	["Barre du bas", [
-		["Tab · Gérer / Créer", "Gérer : la ville (terrain, voies, zonage, catalogue, lignes, habitants). Créer : construire un bâtiment soi-même (murs et étages, blocs, intérieur, Mes créations), la ville en pause ; touches 1 à 5 et échelle des étages"],
+		["Tab · Gérer / Créer", "Gérer : la ville (terrain, voies, zonage, catalogue, lignes, habitants). Créer : construire un bâtiment soi-même (murs et étages, blocs, intérieur, Mes créations, banque, atelier), la ville en pause ; touches 1 à 7 et échelle des étages"],
 		["Catégories", "Observer, Terrain, Voies, Paysage : un clic ouvre leurs outils juste au-dessus ; Construire, Lignes, Habitants ouvrent leur panneau à droite (un seul à la fois)"],
 		["Circulation, Véhicules, Vue", "afficher la circulation, choisir l'époque et la région des véhicules, changer de vue"],
 		["1", "observer : survoler une case pour voir son altitude et son biome (et le nom de la rivière)"],
@@ -47,6 +47,8 @@ const SECTIONS := [
 		["Bâtiments meublés", "maison, immeuble, école, boutique, bureaux, café : posés meublés, dans le style choisi, prêts à visiter (V)"],
 		["Meubler / Fonction / Catalogue", "meubler une pièce selon sa fonction, choisir la fonction, ou poser un meuble de la bible case par case (R tourne, clic droit retire, Ctrl + Z)"],
 		["E sur un meuble (vue au sol)", "son nom, son style et ce qu'il apporte : confort, attractivité, valeur"],
+		["Personnaliser (fiche d'un bâtiment)", "couleurs, toit, étages, pente, variante ; « Ouvrir l'intérieur » le refait en murs fins, meublé et visitable"],
+		["Banque (6) · Atelier (7)", "tes modèles étiquetés (type, style, époque, couleur) à reposer ou échanger ; l'atelier : terrain plat sans habitants ni argent"],
 	]],
 	["Transports publics", [
 		["L", "panneau Lignes : arrêts, stations de métro, gares, ports, aéroports, dépôts de marchandises, parkings et lignes (case Fret pour les trains et les bateaux)"],
@@ -55,10 +57,14 @@ const SECTIONS := [
 		["H", "panneau Habitants : la ville en chiffres, la liste des habitants, le budget de la ville"],
 		["Clic sur un bâtiment (outil 1)", "fiche du bâtiment : logements, employés, élèves, qui y vit et qui s'y trouve en ce moment"],
 		["Clic sur un nom", "profil : âge, foyer, travail ou école, loisirs, budget et journée heure par heure"],
-		["Vitesse de la vie", "réglage du panneau : 1 an de vie = 1 jour de jeu par défaut, ou rapide (1 an = 1 mois), ou réaliste"],
+		["Vitesse de la vie", "réglage du panneau : 1 an de vie = 1 mois de jeu par défaut, ou très rapide (1 an = 1 jour), ou réaliste"],
 		["Fiche d'un habitant", "sa vie en frise et son CV (écoles, diplômes, emplois, couple, enfants, santé, médailles), sa famille cliquable, même après sa mort"],
 		["☆ Suivre (fiche d'un habitant)", "suivre un habitant façon Sims : repère au-dessus de lui, caméra qui l'accompagne, nouvelles de sa vie"],
 		["F", "habitant suivi : la caméra le suit ou reste libre (bouger la caméra la libère aussi)"],
+		["Clic sur un passant", "les habitants près de la caméra marchent, roulent ou pédalent vers leur travail, l'école, le sport : un clic ouvre sa fiche"],
+		["Donner un ordre (fiche)", "sa journée (aller à…, rentrer, travail, loisir, courses, visite, dormir) ou ses choix de vie (emploi, déménagement, rencontre, mariage, enfant, séparation, retraite) ; Échap annule « Aller à… »"],
+		["Ton personnage", "il naît dans une famille de ta ville ; une carte te demande ses grands choix (couple, mariage, enfants, études, emploi, retraite), le temps se met en pause"],
+		["Prendre sa place (fiche)", "incarner l'habitant en vue au sol (3e personne) ; V pour revenir, il reprend sa journée"],
 	]],
 	["Production", [
 		["P", "panneau Production : carte des ressources (clic sur une ressource pour la voir sur le terrain), stocks, sites"],

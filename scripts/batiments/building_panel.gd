@@ -69,7 +69,7 @@ var _opening := "porte"
 ## Mode Créer (atelier) : seuls l'éditeur libre, l'intérieur et Mes créations
 ## sont proposés. Mode Gérer : catalogue et zonage, sans l'éditeur libre.
 var workshop := false
-const WORKSHOP_TABS := ["blocs", "creations", "interieur"]
+const WORKSHOP_TABS := ["blocs", "creations", "interieur", "banque"]
 var _head_icon: TextureRect
 var _head_title: Label
 var _cats_grid: GridContainer
@@ -82,10 +82,12 @@ var _ladder_level := 0
 ## Icône de chaque onglet.
 const CAT_ICONS := {"logement": "logement", "commerce": "commerce", "industrie": "industrie", "production": "ressources",
 	"services": "services", "loisirs": "loisirs", "sport": "sport", "espaces": "publics",
-	"zones": "zonage", "blocs": "editeur", "creations": "creations", "interieur": "interieur"}
+	"zones": "zonage", "blocs": "editeur", "creations": "creations", "interieur": "interieur", "banque": "banque"}
 
 ## Onglet Intérieur : fonction (BuildingPanel) qui remplit la liste (voir InterieurPanel).
 var interieur_builder: Callable
+## Onglet Banque de modèles (voir BanquePanel).
+var banque_builder: Callable
 
 
 func _ready() -> void:
@@ -136,6 +138,7 @@ func _ready() -> void:
 	tabs.append({"id": "blocs", "name": "Éditeur libre", "color": Color("8ecae6")})
 	tabs.append({"id": Creations.CATEGORY, "name": "Mes créations", "color": Color("f4a261")})
 	tabs.append({"id": "interieur", "name": "Intérieur : meubles, pièces, bâtiments meublés", "color": Color("c9a0dc")})
+	tabs.append({"id": "banque", "name": "Banque de modèles : bâtiments personnalisés et meublés", "color": Color("9fe3b0")})
 	for c in tabs:
 		var b := UiStyle.icon_button(String(CAT_ICONS.get(c.id, "construire")), c.name, "", 26, 46)
 		b.custom_minimum_size = Vector2(70, 46)
@@ -287,6 +290,11 @@ func show_category(cat: String) -> void:
 		_filters.visible = false
 		if interieur_builder.is_valid():
 			interieur_builder.call(self)
+		return
+	if cat == "banque":
+		_filters.visible = false
+		if banque_builder.is_valid():
+			banque_builder.call(self)
 		return
 	_filters.visible = true
 	var shown := 0

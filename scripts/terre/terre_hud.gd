@@ -70,9 +70,11 @@ const CATEGORIES := [
 	{"id": "blocs", "name": "Blocs", "icon": "editeur", "key": "3", "panel": true, "mode": "creer"},
 	{"id": "interieur", "name": "Intérieur", "icon": "interieur", "key": "4", "panel": true, "mode": "creer"},
 	{"id": "creations", "name": "Mes créations", "icon": "creations", "key": "5", "panel": true, "mode": "creer"},
+	{"id": "banque", "name": "Banque", "icon": "banque", "key": "6", "panel": true, "mode": "creer"},
+	{"id": "atelier", "name": "Atelier", "icon": "atelier", "key": "7", "panel": true, "mode": "creer"},
 ]
 ## Touches 2 à 5 du mode Créer.
-const CREATE_KEYS := {KEY_2: "murs", KEY_3: "blocs", KEY_4: "interieur", KEY_5: "creations"}
+const CREATE_KEYS := {KEY_2: "murs", KEY_3: "blocs", KEY_4: "interieur", KEY_5: "creations", KEY_6: "banque", KEY_7: "atelier"}
 ## Icône de chaque outil de TOOLS.
 const TOOL_ICONS := ["observer", "aplanir", "monter", "creuser", "route", "rail", "chemin", "eau", "demolir", "carrefour", "paysage"]
 ## Nom court sous l'icône (le nom complet est dans l'infobulle).
@@ -632,6 +634,21 @@ func _update_categories() -> void:
 	_tray_tools.visible = tools.size() > 1
 	_tray_sep.visible = _tray_tools.visible and spec_on
 	_tray.visible = _tray_tools.visible or spec_on
+
+
+## Texte du bandeau du mode Créer (l'atelier a le sien).
+func set_create_banner(text: String) -> void:
+	if _mode_badge and _mode_badge.get_child_count() > 0:
+		(_mode_badge.get_child(0) as Label).text = text
+
+
+## Change le nom et l'infobulle d'une tuile de la barre du bas.
+func set_category_label(id: String, text: String, tip := "") -> void:
+	var b := _cat_buttons.get(id) as Button
+	if b:
+		b.text = text
+		if tip != "":
+			b.tooltip_text = tip
 
 
 ## Panneaux ouverts (Construire, Lignes, Habitants) : leur catégorie est allumée.

@@ -17,6 +17,8 @@ signal changed
 ## Un bâtiment vient d'apparaître (pose, zonage ou chargement) / de disparaître.
 signal added(bid: int)
 signal removed(bid: int)
+## La personnalisation d'un bâtiment posé a changé.
+signal perso_changed(bid: int)
 
 enum Mode { NONE, PLACE, DEMOLISH }
 
@@ -138,19 +140,53 @@ static func _tint(c: Color) -> StandardMaterial3D:
 	return m
 
 
-func mesh_for(id: String, variant := 0) -> ArrayMesh:
-	var key := id if variant == 0 else "%s#%d" % [id, variant]
+func mesh_for(id: String, variant := 0, perso: Dictionary = {}) -> ArrayMesh:
+	var key := _mesh_key(id, variant, perso)
 	if not _meshes.has(key):
-		_meshes[key] = BuildingCatalog.build_mesh(id, _material, true, variant)
+		_meshes[key] = BuildingCatalog.build_mesh(id, _material, true, variant, perso)
 	return _meshes[key]
 
 
 ## Version légère (sans finitions) d'un modèle, pour le lointain.
-func mesh_far_for(id: String, variant := 0) -> ArrayMesh:
-	var key := id if variant == 0 else "%s#%d" % [id, variant]
+func mesh_far_for(id: String, variant := 0, perso: Dictionary = {}) -> ArrayMesh:
+	var key := _mesh_key(id, variant, perso)
 	if not _meshes_far.has(key):
-		_meshes_far[key] = BuildingCatalog.build_mesh(id, _material, false, variant)
+		_meshes_far[key] = BuildingCatalog.build_mesh(id, _material, false, variant, perso)
 	return _meshes_far[key]
+
+
+static func _mesh_key(id: String, variant: int, perso: Dictionary) -> String:
+	var key := id if variant == 0 else "%s#%d" % [id, variant]
+	if not perso.is_empty():
+		key += "|" + JSON.stringify(perso, "", true)
+	return key
+
+
+## Personnalisation d'un bâtiment posé ({} : celui du catalogue).
+func perso_of(bid: int) -> Dictionary:
+	return (buildings[bid].get("perso", {}) as Dictionary) if buildings.has(bid) else {}
+
+
+## Change la personnalisation (et la variante si v >= 0) d'un bâtiment posé.
+func set_perso(bid: int, perso: Dictionary, v := -1) -> void:
+	if not buildings.has(bid):
+		return
+	var b: Dictionary = buildings[bid]
+	if perso.is_empty():
+		b.erase("perso")
+	else:
+		b["perso"] = perso.duplicate()
+	if v >= 0:
+		b["v"] = v
+	if _nodes.has(bid):
+		removed.emit(bid)
+		var old: Node = _nodes[bid]
+		_nodes.erase(bid)
+		old.queue_free()
+		remove_child(old)
+	_spawn(b)
+	perso_changed.emit(bid)
+	changed.emit()
 
 
 ## Nœud 3D d'un bâtiment (null s'il n'existe pas).
@@ -173,11 +209,18 @@ static func variant_for(id: String, x: int, z: int) -> int:
 
 # --- Outils -------------------------------------------------------------------------
 
-func set_place(id: String) -> void:
+## Personnalisation donnée à chaque bâtiment posé par l'outil (modèle de la banque).
+var place_perso: Dictionary = {}
+var place_variant := -1
+
+
+func set_place(id: String, perso: Dictionary = {}, v := -1) -> void:
 	mode = Mode.PLACE
 	type_id = id
 	manual_rot = false
-	_ghost.mesh = mesh_for(id)
+	place_perso = perso.duplicate()
+	place_variant = v
+	_ghost.mesh = mesh_for(id, maxi(v, 0), perso)
 	_refresh()
 	var t := BuildingCatalog.get_type(id)
 	info_changed.emit("%s (%d × %d m) : clic pour poser · R : tourner · clic droit ou Échap : arrêter" % [t.name, t.w, t.d])
@@ -492,6 +535,34 @@ func demolish(bid: int) -> void:
 	changed.emit()
 
 
+## Retire un bâtiment sans remboursement ni message (il est remplacé, par
+## exemple reconstruit en murs fins).
+func remove_quietly(bid: int) -> void:
+	if not buildings.has(bid):
+		return
+	var b: Dictionary = buildings[bid]
+	for c in _cells_of(b):
+		occupancy.erase(c)
+	if _nodes.has(bid):
+		removed.emit(bid)
+		(_nodes[bid] as Node).queue_free()
+		_nodes.erase(bid)
+	buildings.erase(bid)
+	if _hover_building == bid:
+		_hover_building = -1
+	last_change_rect = _rect_of(b).grow(3)
+	changed.emit()
+
+
+## Remet un bâtiment retiré par remove_quietly (même id, mêmes données).
+func restore(b: Dictionary) -> void:
+	if buildings.has(int(b.id)):
+		return
+	_add(b)
+	last_change_rect = _rect_of(b).grow(3)
+	changed.emit()
+
+
 func building_at(c: Vector2i) -> int:
 	return int(occupancy.get(c, -1))
 
@@ -517,10 +588,18 @@ func _add(b: Dictionary) -> void:
 		occupancy[c] = bid
 	if not b.has("v"):
 		b["v"] = variant_for(String(b.t), int(b.x), int(b.z))
+	_spawn(b)
+
+
+## Nœud 3D (maillage, collision, version lointaine) d'un bâtiment.
+func _spawn(b: Dictionary) -> void:
+	var bid := int(b.id)
+	var rect := _rect_of(b)
 	var v := int(b.v)
+	var perso: Dictionary = b.get("perso", {})
 	var mi := MeshInstance3D.new()
 	mi.name = "Batiment_%d" % bid
-	mi.mesh = mesh_for(b.t, v)
+	mi.mesh = mesh_for(b.t, v, perso)
 	mi.position = rect_center(rect) + Vector3(0, float(b.h), 0)
 	mi.rotation.y = -int(b.r) * PI / 2.0 + float(b.get("a", 0.0))
 	mi.visibility_range_end = 1400.0
@@ -539,7 +618,7 @@ func _add(b: Dictionary) -> void:
 		mi.visibility_range_end = LOIN
 		var far := MeshInstance3D.new()
 		far.name = "Loin"
-		far.mesh = mesh_far_for(b.t, v)
+		far.mesh = mesh_far_for(b.t, v, perso)
 		far.visibility_range_begin = LOIN
 		far.visibility_range_end = 1400.0
 		mi.add_child(far)
@@ -637,7 +716,10 @@ func _unhandled_input(event: InputEvent) -> void:
 				demolish(_hover_building)
 				_refresh()
 			return
-		if place(type_id, _place_center, rot, 0, angle) >= 0:
+		var nb := place(type_id, _place_center, rot, 0, angle)
+		if nb >= 0:
+			if not place_perso.is_empty() or place_variant >= 0:
+				set_perso(nb, place_perso, place_variant)
 			_refresh()
 	elif event is InputEventKey:
 		var key := event as InputEventKey
@@ -796,7 +878,7 @@ func to_dict() -> Dictionary:
 	for b in buildings.values():
 		var e := {"id": b.id, "t": b.t, "x": b.x, "z": b.z, "r": b.r, "a": b.get("a", 0.0), "h": b.h, "cost": b.get("cost", 0), "zone": b.get("zone", 0)}
 		# Variante du modèle, date de construction et fin du chantier (BatimentsVie).
-		for key in ["v", "ne", "fin"]:
+		for key in ["v", "ne", "fin", "perso"]:
 			if b.has(key):
 				e[key] = b[key]
 		list.append(e)
@@ -819,6 +901,9 @@ func from_dict(data: Dictionary) -> void:
 			"ne": float(b.get("ne", 0.0)), "fin": float(b.get("fin", 0.0))}
 		if b.has("v"):
 			e["v"] = int(b.v)
+		var pd = b.get("perso", {})
+		if pd is Dictionary and not (pd as Dictionary).is_empty():
+			e["perso"] = Personnalisation.clean(pd)
 		_add(e)
 		next_id = maxi(next_id, int(b.id) + 1)
 	last_change_rect = Rect2i()

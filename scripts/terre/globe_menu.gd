@@ -423,6 +423,13 @@ func _update_settings_label() -> void:
 		_settings_label.text = "Réglages : " + ReglagesPartie.prochaine.summary()
 
 
+## Ouvre l'atelier (retour au globe en le quittant).
+func open_atelier() -> void:
+	GameStart.atelier = true
+	GameStart.retour_slot = ""
+	get_tree().change_scene_to_file("res://scenes/terre.tscn")
+
+
 ## Ouvre une partie sauvegardée dans la scène Terre.
 func load_saved_game(slot_id: String) -> void:
 	var m := SaveGame.read_manifest(slot_id)
@@ -599,6 +606,12 @@ func _build_ui() -> void:
 	all_btn.text = "Parties…"
 	all_btn.pressed.connect(func() -> void: _open_saves(ui))
 	srow.add_child(all_btn)
+	var atelier_btn := Button.new()
+	atelier_btn.text = "Atelier"
+	atelier_btn.icon = Icones.get_icon("atelier", 18)
+	atelier_btn.tooltip_text = "Créer et personnaliser des bâtiments sur un terrain plat, sans habitants ni argent, et les ranger dans la banque de modèles."
+	atelier_btn.pressed.connect(open_atelier)
+	srow.add_child(atelier_btn)
 
 	var proto := Button.new()
 	proto.text = "Ville prototype"

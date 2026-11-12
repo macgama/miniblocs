@@ -89,6 +89,24 @@ func build(bp: BuildingPanel) -> void:
 		mob.message.emit("%d meuble%s posé%s dans %s." % [n, "s" if n > 1 else "", "s" if n > 1 else "", mob.plan_name(id)]))
 	urow.add_child(all)
 	bp.add_control(urow)
+	var brow := HBoxContainer.new()
+	var bname := LineEdit.new()
+	bname.placeholder_text = "Nom du modèle"
+	bname.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	brow.add_child(bname)
+	var bsave := Button.new()
+	bsave.text = "Enregistrer dans la banque"
+	bsave.icon = Icones.get_icon("banque", 18)
+	bsave.tooltip_text = "Range le bâtiment visé (murs, pièces, meubles, toit) dans ta banque de modèles, pour le reposer ou l'échanger."
+	bsave.pressed.connect(func() -> void:
+		var id := mob.focus_id()
+		if id == "":
+			mob.message.emit("Vise d'abord un bâtiment en murs fins.")
+			return
+		var r := BanqueModeles.save_plan(mob, id, bname.text, bp.get_viewport())
+		mob.message.emit(("Modèle « %s » enregistré dans la banque." % String(r.nom)) if r.ok else String(r.error)))
+	brow.add_child(bsave)
+	bp.add_control(brow)
 	# --- Style ---------------------------------------------------------------------
 	var srow := HBoxContainer.new()
 	srow.add_child(_label("Style :", 12))

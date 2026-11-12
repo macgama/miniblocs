@@ -184,10 +184,11 @@ static func footprint(id: String, rot: int) -> Vector2i:
 const VARIANTES := 4
 
 
-static func build_mesh(id: String, material: Material = null, details := true, variant := 0) -> ArrayMesh:
+static func build_mesh(id: String, material: Material = null, details := true, variant := 0, perso: Dictionary = {}) -> ArrayMesh:
 	var k := BlocMesh.new()
 	k.details = details
 	k.variant = variant
+	k.perso = perso
 	var t := get_type(id)
 	var w := float(t.get("w", 4))
 	var d := float(t.get("d", 4))

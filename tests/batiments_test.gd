@@ -186,6 +186,7 @@ func _run() -> void:
 			bs.demolish(bid)
 	_check(bs.buildings.size() == nj0, "zone de style retirée")
 	await process_frame
+	zs._rebuild_dirty_views(INF) # le jeu étale ce travail sur plusieurs images
 	_check(zs._views.size() == 2, "calques de zone dessinés")
 	var nb := bs.buildings.size()
 

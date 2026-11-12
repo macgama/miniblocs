@@ -11,6 +11,7 @@ const CATEGORIES := [
 	{"id": "logement", "name": "Logement", "color": Color("e9c46a")},
 	{"id": "commerce", "name": "Commerce", "color": Color("4ea8de")},
 	{"id": "industrie", "name": "Industrie", "color": Color("b08968")},
+	{"id": "production", "name": "Production et ressources", "color": Color("d4a373")},
 	{"id": "services", "name": "Services publics", "color": Color("e76f51")},
 	{"id": "loisirs", "name": "Loisirs", "color": Color("80b918")},
 	{"id": "sport", "name": "Sport", "color": Color("9d4edd")},
@@ -120,6 +121,7 @@ static func all_types() -> Dictionary:
 			t["style"] = ""
 			_all[id] = t
 		_all.merge(EspacesPublics.entries())
+		_all.merge(ProductionTypes.entries())
 		_all.merge(StyleBuilder.generate())
 		for id in Creations.items:
 			_all[id] = Creations.catalog_entry(id)
@@ -189,6 +191,10 @@ static func build_mesh(id: String, material: Material = null, details := true) -
 		return k.to_mesh(material)
 	if t.has("blocks"):
 		return Creations.build_mesh(t)
+	if t.has("prod"):
+		ProductionTypes.build(k, id, t)
+		k.fit_xz(w, d)
+		return k.to_mesh(material)
 	if t.has("arch"):
 		StyleBuilder.build(k, t)
 		k.fit_xz(w, d)

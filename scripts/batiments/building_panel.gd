@@ -64,7 +64,7 @@ var _cutaway := true
 var _opening := "porte"
 
 ## Icône de chaque onglet.
-const CAT_ICONS := {"logement": "logement", "commerce": "commerce", "industrie": "industrie",
+const CAT_ICONS := {"logement": "logement", "commerce": "commerce", "industrie": "industrie", "production": "ressources",
 	"services": "services", "loisirs": "loisirs", "sport": "sport", "espaces": "publics",
 	"zones": "zonage", "blocs": "editeur", "creations": "creations"}
 

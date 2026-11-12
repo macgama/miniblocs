@@ -16,6 +16,8 @@ signal traffic_filter_changed(era: String, region: String)
 ## Bouton « Lignes » : panneau des transports publics.
 signal transit_requested
 signal habitants_requested
+## Panneau « Production » (touche P) : ressources, stocks, sites.
+signal production_requested
 signal spec_edited(type_id: String, spec: Dictionary)
 signal curve_toggled(on: bool)
 
@@ -56,6 +58,7 @@ const CATEGORIES := [
 	{"id": "construire", "name": "Construire", "icon": "construire", "key": "B", "panel": true},
 	{"id": "lignes", "name": "Lignes", "icon": "lignes", "key": "L", "panel": true},
 	{"id": "habitants", "name": "Habitants", "icon": "habitants", "key": "H", "panel": true},
+	{"id": "production", "name": "Production", "icon": "ressources", "key": "P", "panel": true},
 ]
 ## Icône de chaque outil de TOOLS.
 const TOOL_ICONS := ["observer", "aplanir", "monter", "creuser", "route", "rail", "chemin", "eau", "demolir", "carrefour", "paysage"]
@@ -371,6 +374,7 @@ func _on_category(id: String) -> void:
 			"construire": build_requested.emit()
 			"lignes": transit_requested.emit()
 			"habitants": habitants_requested.emit()
+			"production": production_requested.emit()
 		_update_categories()
 		return
 	var tools: Array = c.tools

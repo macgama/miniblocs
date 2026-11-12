@@ -817,7 +817,8 @@ func _place(v: Dictionary) -> void:
 	var right := Vector3(-flat.z, 0, flat.x)
 	var surface := 0.08 if int(v.mode) != TransportTypes.Mode.RAIL else 0.47
 	if int(v.mode) == TransportTypes.Mode.WATER:
-		surface = 0.0
+		# En mer (voie posée au niveau 0), le bateau suit la marée.
+		surface = Maree.level if absf(p.y) < 0.05 else 0.0
 	var offsets := TransportTypes.lane_offsets(e.t, e.w)
 	var lane: float = offsets[mini(int(v.lane_idx), offsets.size() - 1)] if not offsets.is_empty() else 0.0
 	if int(v.mode) == TransportTypes.Mode.PATH:

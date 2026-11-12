@@ -400,6 +400,7 @@ var _snap_pending := true
 
 func _process(delta: float) -> void:
 	_autosave(delta)
+	world.update_tide(ambiance.unix_time)
 	# Le pivot de la caméra suit le relief sous lui.
 	var h := world.cell_height(Vector2i(floori(rig.position.x), floori(rig.position.z)))
 	if not is_nan(h):
@@ -420,6 +421,8 @@ func _process(delta: float) -> void:
 		if t.failed_count() > 0:
 			s += "   ·   %d tuile(s) introuvable(s) (pas de réseau ?)" % t.failed_count()
 		s += "   ·   Cases modifiées : %d" % world.modifications.size()
+		if Maree.amplitude(world.origin_lat, world.origin_lon) > 0.0:
+			s += "   ·   " + Maree.describe(ambiance.unix_time, world.origin_lat, world.origin_lon)
 		if world.water.status != "":
 			s += "   ·   " + world.water.status
 		hud.set_status(s)

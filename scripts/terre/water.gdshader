@@ -17,9 +17,13 @@ uniform float alpha_shallow = 0.5;
 uniform float alpha_deep = 0.86;
 // Houle (m) : la surface monte et descend (la mer). 0 = surface plate.
 uniform float wave_height = 0.0;
-// Ressac : ne dessine que l'écume qui roule vers le rivage (bande côtière
-// posée sur la mer ; r = proximité du rivage, 1 au bord de la plage).
+// Ressac : ne dessine que l'écume qui roule vers le rivage. Nappe posée sur
+// l'estran et devant les côtes ; UV.x = hauteur du sol, UV.y = proximité
+// d'une côte haute (1 au contact). Rien n'est dessiné là où la marée a
+// découvert le sol.
 uniform bool surf_only = false;
+// Niveau de la marée (m) : la nappe d'écume monte et descend avec la mer.
+uniform float tide = 0.0;
 
 varying vec3 world_pos;
 
@@ -29,6 +33,9 @@ float swell(vec2 p, float t) {
 }
 
 void vertex() {
+	if (surf_only) {
+		VERTEX.y += tide;
+	}
 	world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 	if (wave_height > 0.0) {
 		VERTEX.y += swell(world_pos.xz, TIME) * wave_height * 0.6;
@@ -54,13 +61,16 @@ vec2 wave_slope(vec2 p, float t) {
 void fragment() {
 	if (surf_only) {
 		// Vagues d'écume qui arrivent sur la plage, en bandes irrégulières.
-		float near = COLOR.r;
+		// Eau peu profonde (moins de 80 cm) ou côte haute toute proche.
+		float depth = tide - UV.x;
+		float covered = smoothstep(-0.03, 0.08, depth);
+		float near = max(1.0 - clamp(depth / 0.8, 0.0, 1.0), UV.y) * covered;
 		float wobble = sin(world_pos.x * 0.21 + world_pos.z * 0.17) * 0.35 + sin(world_pos.z * 0.43 - world_pos.x * 0.11) * 0.2;
 		float band = sin(near * 7.0 - TIME * 1.3 + wobble);
 		float f = smoothstep(0.6, 0.95, band) * smoothstep(0.05, 0.5, near) + smoothstep(0.75, 1.0, near) * 0.85;
 		ALBEDO = foam_color;
 		ROUGHNESS = 0.7;
-		ALPHA = clamp(f, 0.0, 0.9);
+		ALPHA = clamp(f, 0.0, 0.9) * covered;
 	} else {
 	vec2 p = world_pos.xz * wave_scale;
 	vec2 g = wave_slope(p, TIME) * wave_strength;

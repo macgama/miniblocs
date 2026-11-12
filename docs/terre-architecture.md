@@ -75,7 +75,12 @@ Code : `scripts/terre/terrain_world.gd` (`_compute_surf_mesh`, plages dans `_com
 - **Houle** : le grand plan de mer est subdivisé (96 × 96) et ses sommets montent et descendent (somme de sinus, ± 7 cm).
 - **Ressac** : dans chaque bloc, on calcule pour chaque case de mer sa distance à la terre (cases sèches seulement, pas les lacs). Les cases à 4 m ou moins reçoivent une bande d'écume (child « Ressac ») ; le shader y fait rouler des bandes vers la plage, plus une écume fixe tout au bord.
 - **Plages** : une case de terre devient « Plage » si elle est entre 0 et 2,5 m, peu pentue, et touche la mer (ou est à 1 m au plus), et si son biome est naturel (prairie, buissons, champs, sol nu, mangrove, zone humide). Villes, forêts et rochers restent tels quels.
-- **Marées** : pas faites. Le niveau de la mer (0 m) sert partout (eau, ponts, plages) ; une marée demanderait de rendre ce niveau variable dans le temps.
+- **Marées** (`scripts/terre/maree.gd`, classe `Maree`) : niveau = demi-marnage × facteur vives-eaux × cos(2 × angle horaire de la Lune − retard). Deux pleines mers par jour lunaire, vives-eaux à la nouvelle et à la pleine lune (± 30 %), demi-marnage selon la mer (0 m Caspienne, 0,15 m Méditerranée, 1,8 m Atlantique européen, 2,5 m Manche, 1 m ailleurs). Le 0 m des tuiles reste le niveau moyen.
+  - `TerrainWorld.update_tide(unix)` (appelé chaque image par terre_main avec l'heure du jeu) déplace le plan de la mer et passe le niveau au shader du ressac (`tide`). Aucun bloc n'est recalculé.
+  - Le ressac couvre l'estran (sol entre la plus basse et la plus haute mer) ; chaque sommet porte la hauteur du sol en UV.x, et le shader ne dessine l'eau que là où la marée la recouvre, avec de l'écume là où elle fait moins de 80 cm.
+  - `Maree.high_water` (plus haute mer du lieu) : `RoutePlanner` met le tablier des ponts sur la mer à 3 m au-dessus. Les bateaux en mer suivent `Maree.level`.
+  - Rien à sauvegarder : la marée se déduit de l'heure, déjà sauvée par l'ambiance.
+  - Limites : le retard de la pleine mer sur la Lune est le même partout (il varie de plusieurs heures selon les côtes en vrai), et les voies d'eau tracées sur un estran peu profond peuvent s'échouer à marée basse sans que les bateaux s'arrêtent.
 
 ## Limites connues
 

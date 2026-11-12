@@ -103,3 +103,11 @@ Un parking est une station de type `parking` (nœud du réseau routier, emprise 
 ## Fret
 
 Une ligne a un drapeau `fret` (toujours vrai pour les lignes de camions entre dépôts, au choix pour les trains et les bateaux). `StationSystem.models_for(kind, stops, fret)` ne garde alors que les modèles pour lesquels `VehicleCatalog.is_freight()` est vrai ; les lignes de voyageurs, elles, n'en proposent plus. À chaque arrivée en station, `Traffic` émet `line_arrived(line_id, model)` et la ligne ajoute `VehicleCatalog.capacity_t(model)` à ses `tonnes` (sauvegardées).
+
+## Métro
+
+La classe `metro` (mode rail) a une clé `underground` (14 m) : `RoutePlanner` vise alors `sol - 14 m` au lieu du sol, tous les points deviennent du tunnel et aucun terrassement n'est fait. `TransportView` dessine le tracé en pointillés bleus sur le sol. La station `station_metro` (genre `metro`) a ses quais à la profondeur de la voie et une bouche d'entrée posée à la hauteur du sol.
+
+## Itinéraires
+
+`StationSystem.planner` (`TransitPlanner`) : `plan(a, b)` fait un Dijkstra sur les stations. Un arc est soit un trajet sur une ligne de voyageurs entre deux de ses arrêts (attente moyenne = demi-intervalle, temps de chaque saut = longueur réelle des tronçons / min(vitesse du modèle, vitesse de la voie) × 1,15 + arrêt de 12 s), soit une correspondance à pied (≤ 250 m, + 120 s de pénalité au changement). Marche : 1,3 m/s avec un détour de 30 %. Le résultat (`legs` : étapes `marche` ou `ligne`) est comparé à la marche seule. Le cache par ligne est vidé à chaque changement de lignes ou du réseau. `board(trip, n)` ajoute `n` voyageurs aux lignes empruntées (`passengers`, sauvegardé) ; `describe(trip)` donne un résumé lisible.

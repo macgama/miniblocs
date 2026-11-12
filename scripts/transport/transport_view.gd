@@ -20,6 +20,7 @@ const BALLAST := Color("8a7f72")
 const SLEEPER := Color("5b4636")
 const STEEL := Color("c6cbd1")
 const DARK := Color("1d1f22")
+const METRO_TRACE := Color("3a86ff")
 
 ## Callable(x, z) -> hauteur du sol (pour les piles de pont).
 var ground: Callable
@@ -257,6 +258,14 @@ static func build_mesh(type_id: String, spec: Dictionary, pts: PackedVector3Arra
 		var dash_on := fmod(acc_len, 6.0) < 3.0
 		acc_len += seg_len
 		if sa == S.TUNNEL or sb == S.TUNNEL:
+			# Tracé du métro, en pointillés sur le sol, pour le voir de dessus.
+			if ty.has("underground") and ground_fn.is_valid() and dash_on:
+				var ga: float = ground_fn.call(pts[i].x, pts[i].z)
+				var gb: float = ground_fn.call(pts[i + 1].x, pts[i + 1].z)
+				if not is_nan(ga) and not is_nan(gb):
+					var a0 := Vector3(pts[i].x, maxf(ga, 0.0) + 0.16, pts[i].z)
+					var b0 := Vector3(pts[i + 1].x, maxf(gb, 0.0) + 0.16, pts[i + 1].z)
+					k.strip(a0, b0, right[i], right[i + 1], -0.6, 0.6, 0.0, METRO_TRACE, 0.0, METRO_TRACE)
 			continue
 		var bridge := sa == S.BRIDGE or sb == S.BRIDGE
 		var a := pts[i]

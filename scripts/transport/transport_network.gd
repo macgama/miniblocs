@@ -184,6 +184,18 @@ func tangent_at(id: int, s: float) -> Vector3:
 	return t.normalized() if t.length_squared() > 1e-8 else Vector3.FORWARD
 
 
+## Direction horizontale vers l'extérieur du nœud node_id, au point s du
+## tronçon (sur une courbe, elle diffère de leave_dir, prise au nœud).
+func out_dir_at(edge_id: int, node_id: int, s: float) -> Vector3:
+	var e: Dictionary = edges[edge_id]
+	var from_a: bool = e.a == node_id
+	var t := tangent_at(edge_id, s + 0.05 if from_a else s - 0.05)
+	if not from_a:
+		t = -t
+	t.y = 0.0
+	return t.normalized() if t.length_squared() > 1e-8 else leave_dir(edge_id, node_id)
+
+
 func struct_at(id: int, s: float) -> int:
 	var e: Dictionary = edges[id]
 	var i := _index_at(e.d, clampf(s, 0.0, e.len))

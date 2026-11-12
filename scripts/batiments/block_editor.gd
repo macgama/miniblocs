@@ -71,6 +71,9 @@ var _right_press := Vector2.ZERO
 var _bounds := AABB()
 var _shape_ghost: MeshInstance3D
 var _ghost_key := ""
+## Vue en coupe (murs et étages) : blocs masqués au-dessus de clip_y dans clip_rect.
+var clip_rect := Rect2i()
+var clip_y := INF
 
 
 func _ready() -> void:
@@ -164,6 +167,25 @@ func clear() -> void:
 	_dirty.clear()
 	_bounds = AABB()
 	changed.emit()
+
+
+## Masque les blocs au-dessus de y (m) dans le rectangle de cases r (vue en coupe).
+func set_clip(r: Rect2i, y: float) -> void:
+	if r == clip_rect and (y == clip_y or (is_inf(y) and is_inf(clip_y))):
+		return
+	for rr in [clip_rect, r]:
+		var rect: Rect2i = rr
+		if rect.size == Vector2i.ZERO:
+			continue
+		for cx in range(floori(float(rect.position.x) / CHUNK), floori(float(rect.end.x) / CHUNK) + 1):
+			for cz in range(floori(float(rect.position.y) / CHUNK), floori(float(rect.end.y) / CHUNK) + 1):
+				_dirty[Vector2i(cx, cz)] = true
+	clip_rect = r
+	clip_y = y
+
+
+func _clipped(k: Vector3i) -> bool:
+	return clip_rect.size != Vector2i.ZERO and k.y * UNIT_Y >= clip_y - 0.01 and clip_rect.has_point(Vector2i(k.x, k.z))
 
 
 # --- Blocs --------------------------------------------------------------------------
@@ -761,6 +783,8 @@ func _build_chunk(ck: Vector2i, keys: Array) -> void:
 	var mesher := BlocMesher.new()
 	for k in keys:
 		var kk: Vector3i = k
+		if _clipped(kk):
+			continue
 		BlocFormes.emit(mesher, blocks[kk], Vector3(kk.x * SIZE, kk.y * UNIT_Y, kk.z * SIZE),
 			func(o: Vector3i) -> int: return int(blocks.get(kk + o, -1)))
 	var mesh := mesher.to_mesh()

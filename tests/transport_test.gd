@@ -712,8 +712,39 @@ func _joint_tests() -> void:
 	_check(not TransportView.is_smooth_joint(net, c) and sw > 20, "raccord en angle : trottoirs arrondis (%d sommets)" % sw)
 
 
+## Une rue en courbe (touche C) qui arrive dans un carrefour : les bords du
+## plateau tombent exactement sur ceux du tronçon courbe.
+func _curve_junction_tests() -> void:
+	var net := TransportNetwork.new()
+	var M := TransportTypes.Mode.ROAD
+	var c := net.add_node(Vector3(0, 0, 0), M)
+	for d in [Vector3(1, 0, 0), Vector3(-1, 0, 0), Vector3(0, 0, -1)]:
+		var n := net.add_node(d * 80.0, M)
+		net.add_edge(c, n, "avenue", _line(Vector3.ZERO, d * 80.0), _flat(51))
+	var curve := RoutePlanner.bezier(Vector2(0, 0), Vector2(0, 40), Vector2(50, 50), 60)
+	var cp := PackedVector3Array()
+	for q in curve:
+		cp.append(Vector3(q.x, 0, q.y))
+	var far := net.add_node(cp[cp.size() - 1], M)
+	var ce := net.add_edge(c, far, "rue", cp, _flat(cp.size()))
+	var trims := TransportView.compute_trims(net)
+	var tr: Vector2 = trims[ce]
+	var e: Dictionary = net.edges[ce]
+	var part := TransportNetwork.slice_polyline(e.pts, e.st, e.d, tr.x, float(e.len) - tr.y)
+	var sp: PackedVector3Array = part[0]
+	var rights := TransportView._rights(sp)
+	var hw := net.half_width(ce)
+	var arms := TransportView._junction_arms(net, c, trims)
+	var gap := INF
+	for A in arms:
+		if (A.p as Vector3).distance_to(sp[0]) < 0.01:
+			gap = maxf((A.p + A.r * hw).distance_to(sp[0] + rights[0] * hw), (A.p - A.r * hw).distance_to(sp[0] - rights[0] * hw))
+	_check(gap < 0.05, "rue en courbe dans un carrefour : trottoirs raccordés au plateau (écart %.2f m)" % gap)
+
+
 func _junction_tests() -> void:
 	_joint_tests()
+	_curve_junction_tests()
 	var net := TransportNetwork.new()
 	var M := TransportTypes.Mode.ROAD
 	var c := net.add_node(Vector3(0, 0, 0), M)

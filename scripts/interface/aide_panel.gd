@@ -29,9 +29,13 @@ const SECTIONS := [
 		["B", "afficher ou masquer le panneau Construire (catégories en icônes, bâtiments en vignettes)"],
 		["Clic gauche", "poser le bâtiment choisi"],
 		["R", "tourner le bâtiment d'un quart de tour"],
-		["Ctrl + Z", "annuler (éditeur libre bloc par bloc)"],
+		["Ctrl + Z", "annuler (éditeur libre : blocs, murs et étages)"],
 		["R (éditeur libre)", "tourner l'escalier, la pente, la porte ou la fenêtre d'un quart de tour"],
 		["Enregistrer + clic glissé", "éditeur libre : ta construction devient un bâtiment de « Mes créations »"],
+		["Murs et étages (éditeur libre)", "murs de 20 cm posés sur les lignes de la grille, pièces, sols, escaliers, portes et fenêtres, peinture d'un côté de mur ou de toute une pièce"],
+		["Page haut / Page bas", "étage actif (jusqu'à 59 étages et 5 sous-sols, le terrain est creusé) ; les étages du dessus sont masqués pendant l'édition"],
+		["Copier l'étage ↑", "recopie l'étage actif au-dessus, autant de fois que voulu (immeubles)"],
+		["Toit (murs et étages)", "deux pans, quatre pans ou plat, posé en blocs sur le dernier étage"],
 		["Filtres", "région, époque et recherche par nom dans les listes de bâtiments"],
 	]],
 	["Transports publics", [
@@ -48,7 +52,7 @@ const SECTIONS := [
 		["Maj + T", "vitesse suivante du temps (la marée suit l'heure et la Lune : voir la barre d'état)"],
 		["V", "vue suivante : dessus, 3e personne, 1re personne"],
 		["ZQSD, Maj, Espace", "marcher, courir, sauter (vue au sol)"],
-		["E ou clic gauche", "ouvrir ou fermer une porte, une porte de garage (vue au sol)"],
+		["E ou clic gauche", "ouvrir ou fermer une porte, une porte de garage (vue au sol), y compris dans les murs fins"],
 		["Échap", "libérer la souris (vue au sol)"],
 	]],
 	["Partie (barre du haut)", [

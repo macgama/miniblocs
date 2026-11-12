@@ -5,6 +5,9 @@ extends CanvasLayer
 ## moment) et le profil complet d'un habitant. Tout nom est cliquable.
 
 signal focus_requested(pos: Vector3)
+## Boutons de la fiche d'un bâtiment : personnaliser (catalogue), aménager (murs fins).
+signal customize_requested(bid: int)
+signal furnish_requested(bid: int)
 
 const W := 348.0
 const H := 560.0
@@ -402,7 +405,25 @@ func _view_building(bid: int) -> void:
 	go.icon = Icones.get_icon("lieu", 18)
 	go.focus_mode = Control.FOCUS_NONE
 	go.pressed.connect(func() -> void: focus_requested.emit(info.pos))
-	_body.add_child(go)
+	var acts := HBoxContainer.new()
+	acts.add_child(go)
+	if info.has("plan"):
+		var fu := Button.new()
+		fu.text = "Aménager"
+		fu.icon = Icones.get_icon("interieur", 18)
+		fu.focus_mode = Control.FOCUS_NONE
+		fu.tooltip_text = "Meubles, pièces, murs : ouvre l'onglet Intérieur sur ce bâtiment (et l'enregistrer dans la banque de modèles)."
+		fu.pressed.connect(func() -> void: furnish_requested.emit(bid))
+		acts.add_child(fu)
+	elif Personnalisation.can_customize(String(info.t)):
+		var cu := Button.new()
+		cu.text = "Personnaliser"
+		cu.icon = Icones.get_icon("peinture", 18)
+		cu.focus_mode = Control.FOCUS_NONE
+		cu.tooltip_text = "Couleurs, toit, étages ; ouvrir l'intérieur ; enregistrer dans la banque de modèles."
+		cu.pressed.connect(func() -> void: customize_requested.emit(bid))
+		acts.add_child(cu)
+	_body.add_child(acts)
 	if int(info.log) > 0:
 		var homes: Array = pop.by_home.get(bid, [])
 		var n := 0

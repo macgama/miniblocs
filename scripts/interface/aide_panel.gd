@@ -13,7 +13,7 @@ const SECTIONS := [
 		["Clic molette glissé en haut / en bas, ou Ctrl + molette", "incliner : jusqu'à une vue rasante pour voir le relief jusqu'à l'horizon (10 km)"],
 	]],
 	["Barre du bas", [
-		["Tab · Gérer / Créer", "Gérer : la ville (terrain, voies, zonage, catalogue, lignes, habitants). Créer : construire un bâtiment soi-même (murs et étages, blocs, intérieur, Mes créations), la ville en pause ; touches 1 à 5 et échelle des étages"],
+		["Tab · Gérer / Créer", "Gérer : la ville (terrain, voies, zonage, catalogue, lignes, habitants). Créer : construire un bâtiment soi-même (murs et étages, blocs, intérieur, Mes créations, banque, atelier), la ville en pause ; touches 1 à 7 et échelle des étages"],
 		["Catégories", "Observer, Terrain, Voies, Paysage : un clic ouvre leurs outils juste au-dessus ; Construire, Lignes, Habitants ouvrent leur panneau à droite (un seul à la fois)"],
 		["Circulation, Véhicules, Vue", "afficher la circulation, choisir l'époque et la région des véhicules, changer de vue"],
 		["1", "observer : survoler une case pour voir son altitude et son biome (et le nom de la rivière)"],
@@ -47,6 +47,8 @@ const SECTIONS := [
 		["Bâtiments meublés", "maison, immeuble, école, boutique, bureaux, café : posés meublés, dans le style choisi, prêts à visiter (V)"],
 		["Meubler / Fonction / Catalogue", "meubler une pièce selon sa fonction, choisir la fonction, ou poser un meuble de la bible case par case (R tourne, clic droit retire, Ctrl + Z)"],
 		["E sur un meuble (vue au sol)", "son nom, son style et ce qu'il apporte : confort, attractivité, valeur"],
+		["Personnaliser (fiche d'un bâtiment)", "couleurs, toit, étages, pente, variante ; « Ouvrir l'intérieur » le refait en murs fins, meublé et visitable"],
+		["Banque (6) · Atelier (7)", "tes modèles étiquetés (type, style, époque, couleur) à reposer ou échanger ; l'atelier : terrain plat sans habitants ni argent"],
 	]],
 	["Transports publics", [
 		["L", "panneau Lignes : arrêts, stations de métro, gares, ports, aéroports, dépôts de marchandises, parkings et lignes (case Fret pour les trains et les bateaux)"],

@@ -202,7 +202,7 @@ func _has_access(bid: int) -> bool:
 	if not s.has("acc"):
 		var b: Dictionary = buildings.buildings[bid]
 		var t := BuildingCatalog.get_type(String(b.t))
-		s.acc = (t.get("access", []) as Array).is_empty() or not buildings.find_access(String(b.t), buildings._rect_of(b), int(b.r)).is_empty()
+		s.acc = (t.get("access", []) as Array).is_empty() or not buildings.find_access(String(b.t), buildings._rect_of(b), int(b.r), float(b.get("a", 0.0))).is_empty()
 	return bool(s.acc)
 
 
@@ -281,7 +281,8 @@ func step_hours(h: float) -> void:
 				continue
 			var good := String(Ressources.naturelle(s.res).good)
 			var amount := float(prod.res[s.res]) * float(s.rich) * float(s.get("vit", 1.0)) * staff * frac
-			if float(s.reserve) >= 0.0:
+			var depletes := ReglagesPartie.actuel.epuisement
+			if depletes and float(s.reserve) >= 0.0:
 				if float(s.reserve) <= 0.0:
 					s.status = "Gisement épuisé"
 					continue
@@ -291,7 +292,7 @@ func step_hours(h: float) -> void:
 				s.status = "Stock de %s plein" % Ressources.good_name(good).to_lower()
 				continue
 			amount = minf(amount, space)
-			if float(s.reserve) >= 0.0:
+			if depletes and float(s.reserve) >= 0.0:
 				s.reserve = float(s.reserve) - amount
 				if float(s.reserve) <= 0.0:
 					s.reserve = 0.0
@@ -441,7 +442,9 @@ func _regrow() -> void:
 		if String(s.get("res", "")) == "" or not Ressources.naturelle(s.res).get("repousse", false):
 			continue
 		var v := float(s.get("vit", 1.0))
-		v += REPOUSSE * v * (1.0 - v) - PRELEVEMENT * v * w
+		# Sans épuisement (réglage Admin), l'exploitation n'abîme pas la ressource.
+		var take := PRELEVEMENT * v * w if ReglagesPartie.actuel.epuisement else 0.0
+		v += REPOUSSE * v * (1.0 - v) - take
 		s.vit = clampf(v, VITALITE_MIN, 1.0)
 
 
@@ -481,7 +484,7 @@ func new_day() -> void:
 		for bid in sites:
 			for pid in population.by_job.get(bid, []):
 				if population.persons.has(pid):
-					wages += float(Metiers.job(String(population.persons[pid].met)).salaire) * CHARGES / DAYS_PER_MONTH
+					wages += float(Metiers.job(String(population.persons[pid].met)).salaire) * ReglagesPartie.actuel.salaires * CHARGES / DAYS_PER_MONTH
 	_regrow()
 	_book("Ventes aux habitants", gain_local)
 	_book("Exportations", gain_export)

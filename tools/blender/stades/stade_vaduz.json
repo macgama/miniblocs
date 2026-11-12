@@ -1,0 +1,55 @@
+{
+  "nom": "stade_vaduz",
+  "titre": "Rheinpark Stadion, Vaduz (Liechtenstein) — FC Vaduz",
+  "capacite": 6441,
+  "sources": [
+    "Wikipédia (fr et en), consulté le 12 novembre 2026",
+    "photo libre de Wikimedia Commons (Rheinpark Stadium, 2022)"
+  ],
+  "notes": "Quatre tribunes séparées et couvertes, angles ouverts, sièges rouges et bleus.",
+  "famille": "separees",
+  "degagement": 5,
+  "tribunes": {
+    "S": {
+      "profondeur": 16,
+      "hauteur": 9,
+      "toit": 12.5,
+      "sieges": [
+        "#1d3c8f",
+        "#c8102e",
+        "#1d3c8f"
+      ],
+      "couleur_toit": "#9aa0a6"
+    },
+    "N": {
+      "profondeur": 12,
+      "hauteur": 6,
+      "toit": 9.5,
+      "sieges": [
+        "#1d3c8f",
+        "#c8102e"
+      ],
+      "couleur_toit": "#9aa0a6"
+    },
+    "O": {
+      "profondeur": 10,
+      "hauteur": 5,
+      "toit": 8,
+      "longueur": 60,
+      "sieges": [
+        "#c8102e"
+      ],
+      "couleur_toit": "#9aa0a6"
+    },
+    "E": {
+      "profondeur": 10,
+      "hauteur": 5,
+      "toit": 8,
+      "longueur": 60,
+      "sieges": [
+        "#c8102e"
+      ],
+      "couleur_toit": "#9aa0a6"
+    }
+  }
+}

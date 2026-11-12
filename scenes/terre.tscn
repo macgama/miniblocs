@@ -32,7 +32,7 @@ tonemap_white = 2.0
 ssao_enabled = true
 fog_enabled = true
 fog_light_color = Color(0.76, 0.84, 0.92, 1)
-fog_density = 0.0004
+fog_density = 0.00018
 fog_sky_affect = 0.0
 
 [node name="Terre" type="Node3D"]
@@ -52,12 +52,13 @@ directional_shadow_max_distance = 220.0
 script = ExtResource("2_cam")
 move_speed = 30.0
 min_distance = 6.0
-max_distance = 200.0
+max_distance = 900.0
 bounds = Rect2(-5000, -5000, 10000, 10000)
 
 [node name="Camera3D" type="Camera3D" parent="CameraRig"]
 fov = 50.0
-far = 1500.0
+near = 0.1
+far = 14000.0
 
 [node name="Terrain" type="Node3D" parent="."]
 script = ExtResource("3_world")

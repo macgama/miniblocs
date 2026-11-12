@@ -925,7 +925,7 @@ func _may_enter(v: Dictionary, nid: int, eid: int, exit_eid: int, dist: float) -
 				return true
 			# À l'orange, on passe seulement si on ne peut plus s'arrêter.
 			return c == JunctionControl.ORANGE and float(v.speed) > 4.0 and dist < float(v.speed) * 0.8
-		"stop", "cedez", "giratoire":
+		"stop", "cedez", "giratoire", "insertion":
 			if junctions.is_major(nid, eid):
 				return true
 			if junctions.kind(nid) == "stop" and (waited < 1.2 or dist > 1.2):

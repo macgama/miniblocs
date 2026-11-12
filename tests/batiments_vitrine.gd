@@ -7,6 +7,8 @@ extends SceneTree
 ## --styles a,b,c : seulement les bâtiments de ces styles (bible, voir Styles.STYLES).
 ## --arch culte,palais : seulement ces archétypes. --zone-style japonais : style du zonage.
 ## --cat espaces : seulement une catégorie.
+## --chantiers : bâtiments en chantier (avancement --avancement 0.4). --usure 0.8 / --abandon 1 : vieillissement.
+## --habite : abords et fumée des maisons comme si elles étaient habitées.
 ## --zones : un quartier né du zonage (routes en grille, zones R/C/I) au lieu du catalogue.
 
 
@@ -33,9 +35,10 @@ func _run() -> void:
 	var yaw := 30.0
 	var focus := Vector2(0, 0)
 	var zoning := args.has("--zones")
-	var bloc_mode := args.has("--blocs") or args.has("--maison") or args.has("--murs")
+	var bloc_mode := args.has("--blocs") or args.has("--maison") or args.has("--murs") or args.has("--courbe")
 	var maison := args.has("--maison") or args.has("--murs")
 	var murs := args.has("--murs")
+	var courbe := args.has("--courbe")
 	var coupe := -100
 	var pitch := -1.0
 	var heure := -1.0
@@ -76,6 +79,7 @@ func _run() -> void:
 	if args.has("--fxaa"):
 		root.msaa_3d = Viewport.MSAA_DISABLED
 		root.screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA
+	BatimentsVie.chantiers = args.has("--chantiers")
 	var scene: Node = load("res://scenes/terre.tscn").instantiate()
 	var world: TerrainWorld = scene.get_node("Terrain")
 	var transport: TransportSystem = scene.get_node("Transport")
@@ -93,13 +97,15 @@ func _run() -> void:
 			scene.get_node("Zones").current_style = zone_style
 			await _zoning(scene, world, transport, bs)
 		else:
-			if murs:
+			if courbe:
+				_courbe(scene, world, transport, bs)
+			elif murs:
 				_murs(scene, world, coupe)
 			elif maison:
 				_maison(scene, world)
 			else:
 				_blocks_house(scene, world)
-			if not murs:
+			if not murs and not courbe:
 				scene.get_node("Blocs").set_tool(BlockEditor.Tool.BLOCK)
 		var rig0 = scene.get_node("CameraRig")
 		rig0.position = Vector3(focus.x, 42.0, focus.y)
@@ -166,12 +172,15 @@ func _run() -> void:
 			print("non posé : ", id, " ", bs.check_place(id, Vector2i(int(x + fp.x / 2.0), int(cz)), r).reason)
 		x += fp.x + 4.0
 	print(bs.summary())
+	_vie(scene, bs, args)
 
 	var rig = scene.get_node("CameraRig")
 	rig.position = Vector3(focus.x, 42.0, focus.y)
 	rig._distance = dist
 	rig._target_distance = dist
 	rig.rotation_degrees.y = yaw
+	if pitch > 0.0 and "pitch_degrees" in rig:
+		rig.pitch_degrees = pitch
 	if heure >= 0.0:
 		scene.get_node("Ambiance").set_speed(0)
 		scene.get_node("Ambiance").set_local_hour(heure)
@@ -183,6 +192,43 @@ func _run() -> void:
 	root.get_viewport().get_texture().get_image().save_png(shot)
 	print("Capture : ", shot)
 	quit(0)
+
+
+## Options de vie des bâtiments : avancement des chantiers, usure, abords.
+func _vie(scene: Node, bs: BuildingSystem, args: PackedStringArray) -> void:
+	var vie: BatimentsVie = scene.get_node("VieBatiments")
+	var usure := -1.0
+	var abandon := 0.0
+	var avancement := -1.0
+	for i in args.size():
+		if args[i] == "--usure" and i + 1 < args.size():
+			usure = args[i + 1].to_float()
+		if args[i] == "--abandon" and i + 1 < args.size():
+			abandon = args[i + 1].to_float()
+		if args[i] == "--avancement" and i + 1 < args.size():
+			avancement = args[i + 1].to_float()
+	BatimentsVie.vie = usure < 0.0
+	var amb: DayNight = scene.get_node("Ambiance")
+	for i in args.size():
+		if args[i] == "--heure" and i + 1 < args.size():
+			amb.set_speed(0)
+			amb.set_local_hour(args[i + 1].to_float())
+	var n := 0
+	for bid in bs.buildings:
+		var b: Dictionary = bs.buildings[bid]
+		var mi := bs.node_of(bid)
+		if avancement >= 0.0 and b.has("chantier"):
+			# Avancements variés autour de la valeur demandée.
+			var p := clampf(avancement + (n % 5) * 0.12 - 0.24, 0.02, 0.95)
+			var dur := float(b.fin) - float(b.ne)
+			b.ne = amb.unix_time - dur * p
+			b.fin = float(b.ne) + dur
+		if usure >= 0.0:
+			BatimentsVie.apply_wear(mi, roundi(usure * 5.0), roundi((abandon if n % 2 == 0 else 0.0) * 4.0))
+		if args.has("--habite") and vie._etat.has(bid):
+			vie._set_abords(bid, mi, vie._etat[bid], true)
+			vie._set_fumee(bid, mi, vie._etat[bid], true)
+		n += 1
 
 
 ## Quartier en grille : 3 rues Nord-Sud, 3 rues Est-Ouest, zones R, C et I.
@@ -207,6 +253,34 @@ func _zoning(scene: Node, world: TerrainWorld, transport: TransportSystem, bs: B
 	await process_frame
 	print(bs.summary())
 	print(zs.summary())
+
+
+## Route en arc de cercle et bâtiments calés le long, des deux côtés.
+func _courbe(_scene: Node, world: TerrainWorld, transport: TransportSystem, bs: BuildingSystem) -> void:
+	var rad := 70.0
+	var prev := Vector3.ZERO
+	for i in 13:
+		var th := deg_to_rad(200.0 + i * 12.0)
+		var p := Vector3(cos(th) * rad, 0, sin(th) * rad + 60.0)
+		p.y = world.cell_height(Vector2i(floori(p.x), floori(p.z)))
+		if i > 0:
+			transport.build_segment("route", prev, p)
+		prev = p
+	var types := ["maison", "ecole", "maison", "immeuble", "maison", "cafe", "maison"]
+	var k := 0
+	for side in [1.0, -1.0]:
+		for i in 7:
+			var th := deg_to_rad(214.0 + i * 18.0)
+			var rr: float = rad + side * 16.0
+			var c := Vector2i(floori(cos(th) * rr), floori(sin(th) * rr + 60.0))
+			var id: String = types[k % types.size()] if side > 0 else "maison"
+			k += 1
+			var snap := bs.road_snap(id, c)
+			if snap.is_empty():
+				continue
+			var placed := bs.place(id, snap.center, snap.r, 0, snap.a)
+			if placed < 0:
+				print("non posé : ", id, " ", bs.check_place(id, snap.center, snap.r, false, snap.a).reason)
 
 
 ## Murs fins et étages : une maison de deux niveaux avec sous-sol et toit,

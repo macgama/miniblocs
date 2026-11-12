@@ -1,0 +1,256 @@
+class_name ReglagesPartie
+extends RefCounted
+## Réglages d'une partie (panneau Admin, F10) : argent, coûts, règles, économie,
+## temps, ressources et déblocage des bâtiments.
+##
+## - Choisis à la création de la partie (globe, bouton « Réglages de la partie »),
+##   puis modifiables en cours de partie par l'admin.
+## - Qui est admin : en bac à sable, le joueur ; entre amis, le créateur de la
+##   carte ; sur la carte mondiale, le développeur seulement.
+## - Gardés dans la sauvegarde (section « reglages »). Les réglages par défaut des
+##   nouvelles parties sont dans user://reglages_defaut.json (« Garder par défaut »).
+## - Chaque joueur a sa propre caisse : argent_depart est ce que reçoit chaque
+##   joueur en arrivant sur la carte (en solo, la caisse de la partie).
+
+const VERSION := 1
+const DEFAULTS_FILE := "user://reglages_defaut.json"
+
+## Bornes des réglages.
+const ARGENT_MAX := 10_000_000_000
+const COUT_MIN := 0.5
+const COUT_MAX := 5.0
+const IMPOTS_MAX := 3.0
+const SALAIRES_MIN := 0.5
+const SALAIRES_MAX := 2.0
+
+## Déblocage des bâtiments au fil de la partie : paliers de population (record
+## atteint, une démolition ne rebloque rien) et prix maximal débloqué.
+const PALIERS := [
+	{"nom": "Hameau", "habitants": 0, "prix_max": 1_500_000},
+	{"nom": "Village", "habitants": 100, "prix_max": 5_000_000},
+	{"nom": "Bourg", "habitants": 500, "prix_max": 15_000_000},
+	{"nom": "Ville", "habitants": 2000, "prix_max": 40_000_000},
+	{"nom": "Grande ville", "habitants": 10000, "prix_max": -1},
+]
+## Toujours débloqués : les écoles (il en faut tôt) et les sites de production
+## de base, sinon une ville qui démarre ne peut pas vivre.
+const TOUJOURS := ["ecole"]
+
+## Préréglages : un clic remplit tout le panneau.
+const PRESETS := {
+	"facile": {"nom": "Facile", "argent_depart": 100_000_000, "argent_illimite": false, "cout_construction": 0.5,
+		"acces_route": true, "impots": 1.5, "salaires": 1.0, "epuisement": false, "deblocage": "tout"},
+	"normal": {"nom": "Normal", "argent_depart": 20_000_000, "argent_illimite": false, "cout_construction": 1.0,
+		"acces_route": true, "impots": 1.0, "salaires": 1.0, "epuisement": true, "deblocage": "tout"},
+	"difficile": {"nom": "Difficile", "argent_depart": 5_000_000, "argent_illimite": false, "cout_construction": 2.0,
+		"acces_route": true, "impots": 0.75, "salaires": 1.25, "epuisement": true, "deblocage": "progression"},
+	"libre": {"nom": "Bac à sable libre", "argent_depart": 20_000_000, "argent_illimite": true, "cout_construction": 1.0,
+		"acces_route": false, "impots": 1.0, "salaires": 1.0, "epuisement": false, "deblocage": "tout"},
+}
+
+## Réglages de la partie en cours (lus par tous les systèmes).
+static var actuel := ReglagesPartie.new()
+## Réglages choisis sur le globe pour la prochaine nouvelle partie (null = par défaut).
+static var prochaine: ReglagesPartie = null
+
+var argent_depart: int = 20_000_000
+var argent_illimite := false
+## Multiplicateur de tous les prix de construction (bâtiments, terrassement, zonage, blocs, murs).
+var cout_construction := 1.0
+var acces_route := true
+## Multiplicateur des impôts touchés par la ville (taxe foncière, impôts des entreprises).
+var impots := 1.0
+## Multiplicateur des salaires (habitants, agents de la ville, production).
+var salaires := 1.0
+## Vitesse du temps (indice de DayNight.SPEEDS) et de la vie (Population.LIFE_SPEEDS).
+var vitesse_temps: int = 2
+var vitesse_vie: int = 0
+## Mines, carrières et puits s'épuisent ; forêts et poissons s'abîment si on exploite trop.
+var epuisement := true
+## "tout" : tout le catalogue d'office ; "progression" : par paliers de population.
+var deblocage := "tout"
+## Joueur qui a créé la partie (SaveGame.player_id()) : l'admin des cartes entre amis.
+var createur := ""
+## Plus grande population atteinte (pour les paliers).
+var record_habitants := 0
+
+
+static func preset(id: String) -> ReglagesPartie:
+	var r := ReglagesPartie.new()
+	r.apply_preset(id)
+	return r
+
+
+func apply_preset(id: String) -> void:
+	var p: Dictionary = PRESETS.get(id, PRESETS.normal)
+	for k in p:
+		if k != "nom":
+			set(k, p[k])
+
+
+## Nom du préréglage qui correspond exactement à ces réglages, ou "Personnalisé".
+func preset_name() -> String:
+	for id in PRESETS:
+		var p: Dictionary = PRESETS[id]
+		var same := true
+		for k in p:
+			if k != "nom" and get(k) != p[k]:
+				same = false
+				break
+		if same:
+			return String(p.nom)
+	return "Personnalisé"
+
+
+func duplicate_settings() -> ReglagesPartie:
+	var r := ReglagesPartie.new()
+	r.from_dict(to_dict())
+	return r
+
+
+# --- Qui est admin ------------------------------------------------------------------
+
+## Le joueur de cette machine est-il le développeur ? Pour l'instant : jeu lancé
+## depuis l'éditeur Godot, ou avec l'option « -- --dev ». Le serveur de la carte
+## mondiale fera la vraie vérification.
+static func est_developpeur() -> bool:
+	return OS.has_feature("editor") or OS.get_cmdline_user_args().has("--dev")
+
+
+## Ce joueur peut-il changer les réglages de cette partie ?
+static func peut_administrer(mode: int, createur_id: String, joueur: String, developpeur: bool) -> bool:
+	match mode:
+		GameStart.Mode.BAC_A_SABLE:
+			return true
+		GameStart.Mode.ENTRE_AMIS:
+			return createur_id == "" or createur_id == joueur
+		GameStart.Mode.MONDIALE:
+			return developpeur
+	return false
+
+
+## Raccourci pour la partie en cours et le joueur de cette machine.
+static func admin_ici() -> bool:
+	return peut_administrer(int(GameStart.mode), actuel.createur, SaveGame.player_id(), est_developpeur())
+
+
+static func qui_est_admin(mode: int) -> String:
+	match mode:
+		GameStart.Mode.ENTRE_AMIS:
+			return "Carte entre amis : seul le créateur de la carte peut changer ces réglages."
+		GameStart.Mode.MONDIALE:
+			return "Carte mondiale : seul le développeur peut changer ces réglages."
+	return "Bac à sable : tu es l'admin de ta partie."
+
+
+# --- Prix et déblocage --------------------------------------------------------------
+
+## Prix après le multiplicateur de coût de la partie en cours.
+static func prix(v: int) -> int:
+	return roundi(float(v) * actuel.cout_construction)
+
+
+func palier_atteint() -> int:
+	var best := 0
+	for i in PALIERS.size():
+		if record_habitants >= int(PALIERS[i].habitants):
+			best = i
+	return best
+
+
+## Premier palier où ce bâtiment est débloqué.
+static func palier_requis(id: String) -> int:
+	var t := BuildingCatalog.get_type(id)
+	if String(t.get("cat", "")) == "production":
+		return 0
+	for k in Metiers.keys_of(id):
+		if TOUJOURS.has(k):
+			return 0
+	var c := BuildingCatalog.cost(id)
+	for i in PALIERS.size():
+		var m := int(PALIERS[i].prix_max)
+		if m < 0 or c <= m:
+			return i
+	return PALIERS.size() - 1
+
+
+func est_debloque(id: String) -> bool:
+	return deblocage != "progression" or palier_requis(id) <= palier_atteint()
+
+
+## Raison du blocage, ou "".
+func raison_blocage(id: String) -> String:
+	if est_debloque(id):
+		return ""
+	var p: Dictionary = PALIERS[palier_requis(id)]
+	return "Débloqué au palier « %s » (%d habitants)." % [p.nom, int(p.habitants)]
+
+
+## Note la population ; renvoie le nom du nouveau palier atteint, ou "".
+func note_population(n: int) -> String:
+	if n <= record_habitants:
+		return ""
+	var before := palier_atteint()
+	record_habitants = n
+	var after := palier_atteint()
+	return String(PALIERS[after].nom) if after > before else ""
+
+
+# --- Fichier --------------------------------------------------------------------------
+
+func to_dict() -> Dictionary:
+	return {"version": VERSION, "argent_depart": argent_depart, "argent_illimite": argent_illimite,
+		"cout_construction": cout_construction, "acces_route": acces_route, "impots": impots,
+		"salaires": salaires, "vitesse_temps": vitesse_temps, "vitesse_vie": vitesse_vie,
+		"epuisement": epuisement, "deblocage": deblocage, "createur": createur,
+		"record_habitants": record_habitants}
+
+
+func from_dict(d: Dictionary) -> void:
+	var n := PRESETS.normal as Dictionary
+	argent_depart = clampi(int(d.get("argent_depart", n.argent_depart)), 0, ARGENT_MAX)
+	argent_illimite = bool(d.get("argent_illimite", n.argent_illimite))
+	cout_construction = clampf(float(d.get("cout_construction", 1.0)), COUT_MIN, COUT_MAX)
+	acces_route = bool(d.get("acces_route", true))
+	impots = clampf(float(d.get("impots", 1.0)), 0.0, IMPOTS_MAX)
+	salaires = clampf(float(d.get("salaires", 1.0)), SALAIRES_MIN, SALAIRES_MAX)
+	vitesse_temps = clampi(int(d.get("vitesse_temps", DayNight.DEFAULT_SPEED)), 0, DayNight.SPEEDS.size() - 1)
+	vitesse_vie = clampi(int(d.get("vitesse_vie", 0)), 0, Population.LIFE_SPEEDS.size() - 1)
+	epuisement = bool(d.get("epuisement", true))
+	deblocage = "progression" if String(d.get("deblocage", "tout")) == "progression" else "tout"
+	createur = String(d.get("createur", ""))
+	record_habitants = maxi(0, int(d.get("record_habitants", 0)))
+
+
+## Réglages par défaut des nouvelles parties (fichier du joueur, sinon « Normal »).
+static func load_defaults() -> ReglagesPartie:
+	var r := preset("normal")
+	if FileAccess.file_exists(DEFAULTS_FILE):
+		var data = JSON.parse_string(FileAccess.get_file_as_string(DEFAULTS_FILE))
+		if data is Dictionary:
+			r.from_dict(data)
+	r.createur = ""
+	r.record_habitants = 0
+	return r
+
+
+func save_as_defaults() -> bool:
+	var d := to_dict()
+	d.erase("createur")
+	d.erase("record_habitants")
+	var f := FileAccess.open(DEFAULTS_FILE, FileAccess.WRITE)
+	if f == null:
+		return false
+	f.store_string(JSON.stringify(d, "\t"))
+	return true
+
+
+## Résumé en une ligne (globe, infobulles).
+func summary() -> String:
+	var money := "argent illimité" if argent_illimite else BuildingSystem.format_short(argent_depart) + " au départ"
+	return "%s · %s · coûts ×%s · %s" % [preset_name(), money, _fmt(cout_construction),
+		"déblocage par paliers" if deblocage == "progression" else "tout débloqué"]
+
+
+static func _fmt(x: float) -> String:
+	return String.num(x, 2).replace(".", ",")

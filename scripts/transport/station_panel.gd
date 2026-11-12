@@ -27,11 +27,7 @@ func _build() -> void:
 	layer = 5
 	_panel = PanelContainer.new()
 	# À droite, à la place commune des panneaux (un seul ouvert à la fois).
-	_panel.anchor_left = 1.0
-	_panel.anchor_right = 1.0
-	_panel.offset_left = UiStyle.SIDE_LEFT
-	_panel.offset_right = UiStyle.SIDE_RIGHT
-	_panel.offset_top = UiStyle.SIDE_TOP
+	UiStyle.place_right(_panel)
 	_panel.custom_minimum_size = Vector2(360, 0)
 	_panel.visible = false
 	UiStyle.style_panel(_panel)
@@ -61,6 +57,8 @@ func _build() -> void:
 	var hint := Label.new()
 	hint.text = "1. Pose des stations sur tes voies.\n2. Nouvelle ligne : clique les stations dans l'ordre.\n3. Choisis le véhicule et leur nombre.\nFret : dépôts de marchandises pour les camions ; case « Fret » pour les trains et les bateaux."
 	hint.add_theme_font_size_override("font_size", 12)
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	hint.custom_minimum_size = Vector2(340, 0)
 	hint.add_theme_color_override("font_color", Color(1, 1, 1, 0.75))
 	box.add_child(hint)
 	var grid := GridContainer.new()
@@ -89,6 +87,11 @@ func _tool_button(text: String) -> Button:
 	b.toggle_mode = true
 	b.button_group = _group
 	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	b.clip_text = true
+	b.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	b.custom_minimum_size = Vector2(160, 0)
+	b.add_theme_font_size_override("font_size", 14)
+	b.tooltip_text = text
 	_buttons.append(b)
 	return b
 
@@ -152,7 +155,7 @@ func _refresh_lines() -> void:
 		name_.text = stations.line_summary(lid)
 		name_.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		name_.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		name_.custom_minimum_size = Vector2(240, 0)
+		name_.custom_minimum_size = Vector2(280, 0)
 		name_.add_theme_font_size_override("font_size", 13)
 		head.add_child(name_)
 		_summaries[lid] = name_
@@ -167,7 +170,8 @@ func _refresh_lines() -> void:
 		var pick := OptionButton.new()
 		pick.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		pick.fit_to_longest_item = false
-		pick.custom_minimum_size = Vector2(220, 0)
+		pick.custom_minimum_size = Vector2(150, 0)
+		pick.clip_text = true
 		var models := stations.models_for(line.kind, line.stops, bool(line.get("fret", false)))
 		for i in models.size():
 			var t := VehicleCatalog.get_type(models[i])

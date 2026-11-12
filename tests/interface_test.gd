@@ -157,6 +157,19 @@ func _run() -> void:
 		stack.append_array(n.get_children())
 	_check(bars >= 1, "fiche : jauge des logements")
 
+	print("Panneaux dans l'écran :")
+	var view := root.get_visible_rect()
+	for id in ["construire", "lignes", "habitants", "production"]:
+		var panel = {"construire": game.build_panel, "lignes": game.transit_panel, "habitants": game.habitants_panel, "production": game.production_panel}[id]
+		if panel == null:
+			continue
+		panel.set_open(true)
+		await _frames(3)
+		var r: Rect2 = panel._panel.get_global_rect()
+		_check(r.position.x >= 0.0 and r.end.x <= view.size.x + 0.5, "%s : dans l'écran (%d → %d sur %d px)" % [id, int(r.position.x), int(r.end.x), int(view.size.x)])
+		panel.set_open(false)
+		await _frames(1)
+
 	game.queue_free()
 	await _frames(2)
 	print("INTERFACE TEST OK" if ok else "INTERFACE TEST ÉCHEC")

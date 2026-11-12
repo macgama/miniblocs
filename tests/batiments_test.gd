@@ -44,7 +44,8 @@ func _run() -> void:
 		var bb := m.get_aabb()
 		var fits: bool = bb.position.x >= -t.w / 2.0 - 0.7 and bb.end.x <= t.w / 2.0 + 0.7 \
 			and bb.position.z >= -t.d / 2.0 - 0.7 and bb.end.z <= t.d / 2.0 + 0.7 and bb.position.y >= -0.01
-		if not fits:
+		# Pales d'éolienne ou de moulin (bible Blender) : elles survolent les voisins.
+		if not fits and int(t.get("survol", 0)) == 0:
 			all_ok = false
 			push_error("%s dépasse de son emprise %d × %d : %s" % [id, t.w, t.d, bb])
 		if BuildingCatalog.cost(id) <= 0 or BuildingCatalog.category(t.cat).is_empty():

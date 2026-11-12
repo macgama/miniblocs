@@ -1,0 +1,34 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "bardage_rouge": {
+   "index": 0,
+   "origine": "#a2423a"
+  },
+  "noir": {
+   "index": 1,
+   "origine": "#2a2b2e"
+  },
+  "blanc": {
+   "index": 2,
+   "origine": "#f7f7f5"
+  },
+  "bois_sombre": {
+   "index": 3,
+   "origine": "#5a3e2b"
+  },
+  "vitre": {
+   "index": 4,
+   "origine": "#33495e"
+  },
+  "beton_clair": {
+   "index": 5,
+   "origine": "#d4d1ca"
+  },
+  "zinc": {
+   "index": 6,
+   "origine": "#7e8890"
+  }
+ }
+}

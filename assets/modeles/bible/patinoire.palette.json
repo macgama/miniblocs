@@ -1,0 +1,26 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "bardage_bleu": {
+   "index": 0,
+   "origine": "#4f6f91"
+  },
+  "blanc": {
+   "index": 1,
+   "origine": "#f7f7f5"
+  },
+  "verre_ciel": {
+   "index": 2,
+   "origine": "#6d97b8"
+  },
+  "zinc": {
+   "index": 3,
+   "origine": "#7e8890"
+  },
+  "verre_nuit": {
+   "index": 4,
+   "origine": "#1d2d3c"
+  }
+ }
+}

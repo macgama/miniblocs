@@ -604,7 +604,7 @@ func _spawn(b: Dictionary) -> void:
 	mi.rotation.y = -int(b.r) * PI / 2.0 + float(b.get("a", 0.0))
 	mi.visibility_range_end = 1400.0
 	# Modèle Blender (stades) : il garde ses matériaux, ni usure ni chantier.
-	if BuildingCatalog.get_type(b.t).has("glb"):
+	if BuildingCatalog.get_type(b.t).has("glb") and BuildingCatalog.get_type(b.t).has("stade"):
 		mi.set_meta("glb", true)
 	# Collision : le personnage de la vue au sol ne traverse pas le bâtiment.
 	var body := StaticBody3D.new()

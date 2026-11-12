@@ -1,0 +1,2641 @@
+{
+ "famille": "publics",
+ "batiments": [
+  {
+   "id": "eglise_romane",
+   "name": "Église romane",
+   "cat": "services",
+   "cost": 3200000,
+   "desc": "Église de village en pierre, nef, abside et clocher carré.",
+   "source": "Églises romanes de Bourgogne et du Brionnais (XIe-XIIe s.)",
+   "region": "europe",
+   "era": "traditionnel",
+   "emplois": 2,
+   "logements": 0,
+   "visiteurs": 150,
+   "variantes": 2,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "agent_public",
+     1
+    ]
+   ],
+   "role": "culte",
+   "glb": "res://assets/modeles/bible/eglise_romane.glb",
+   "w": 17,
+   "d": 29,
+   "h": 19.3,
+   "tris": 426,
+   "palette": [
+    [
+     "pierre",
+     "#b9b0a0"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "verre_nuit",
+     "#1d2d3c"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "pierre_grise",
+     "#9c988f"
+    ],
+    [
+     "tuile",
+     "#c8553d"
+    ],
+    [
+     "tuile_ombre",
+     "#8f3a29"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ]
+   ]
+  },
+  {
+   "id": "cathedrale_gothique",
+   "name": "Cathédrale gothique",
+   "cat": "services",
+   "cost": 60000000,
+   "desc": "Nef haute, bas-côtés, transept, deux tours à flèche et rosace.",
+   "source": "D'après la cathédrale Notre-Dame de Chartres et celle de Reims, très simplifiées",
+   "region": "europe",
+   "era": "traditionnel",
+   "emplois": 12,
+   "logements": 0,
+   "visiteurs": 2500,
+   "variantes": 1,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "agent_public",
+     3
+    ]
+   ],
+   "role": "culte",
+   "glb": "res://assets/modeles/bible/cathedrale_gothique.glb",
+   "w": 41,
+   "d": 71,
+   "h": 62.0,
+   "tris": 963,
+   "palette": [
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "pierre",
+     "#b9b0a0"
+    ],
+    [
+     "verre_nuit",
+     "#1d2d3c"
+    ],
+    [
+     "ardoise",
+     "#5b5f66"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ]
+   ]
+  },
+  {
+   "id": "chapelle_alpine",
+   "name": "Chapelle alpine",
+   "cat": "services",
+   "cost": 650000,
+   "desc": "Petite chapelle blanche à clocheton, toit de bardeaux.",
+   "source": "Chapelles du Valais et des Grisons",
+   "region": "europe",
+   "era": "traditionnel",
+   "emplois": 1,
+   "logements": 0,
+   "visiteurs": 40,
+   "variantes": 2,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "agent_public",
+     1
+    ]
+   ],
+   "role": "culte",
+   "glb": "res://assets/modeles/bible/chapelle_alpine.glb",
+   "w": 9,
+   "d": 16,
+   "h": 13.5,
+   "tris": 203,
+   "palette": [
+    [
+     "pierre_grise",
+     "#9c988f"
+    ],
+    [
+     "enduit_blanc",
+     "#f4f2ec"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "pierre",
+     "#b9b0a0"
+    ],
+    [
+     "bois_gris",
+     "#8b8478"
+    ],
+    [
+     "tuile_ombre",
+     "#8f3a29"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "noir",
+     "#2a2b2e"
+    ],
+    [
+     "zinc",
+     "#7e8890"
+    ]
+   ]
+  },
+  {
+   "id": "eglise_baroque",
+   "name": "Église baroque à bulbe",
+   "cat": "services",
+   "cost": 7500000,
+   "desc": "Église claire à pilastres et clocher à bulbe de cuivre.",
+   "source": "Églises baroques de Bavière et du Tyrol (Wieskirche, Saint-Oswald de Seefeld)",
+   "region": "europe",
+   "era": "classique",
+   "emplois": 3,
+   "logements": 0,
+   "visiteurs": 400,
+   "variantes": 2,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "agent_public",
+     2
+    ]
+   ],
+   "role": "culte",
+   "glb": "res://assets/modeles/bible/eglise_baroque.glb",
+   "w": 17,
+   "d": 44,
+   "h": 36.1,
+   "tris": 578,
+   "palette": [
+    [
+     "enduit_jaune",
+     "#ecd59a"
+    ],
+    [
+     "enduit_blanc",
+     "#f4f2ec"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "bois_rouge",
+     "#8e3b2e"
+    ],
+    [
+     "tuile",
+     "#c8553d"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "noir",
+     "#2a2b2e"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "cuivre",
+     "#5f9e8a"
+    ]
+   ]
+  },
+  {
+   "id": "temple_protestant",
+   "name": "Temple réformé",
+   "cat": "services",
+   "cost": 2400000,
+   "desc": "Temple sobre en molasse, grandes fenêtres et clocher à flèche.",
+   "source": "Temples vaudois et neuchâtelois (XVIIIe-XIXe s.)",
+   "region": "europe",
+   "era": "classique",
+   "emplois": 1,
+   "logements": 0,
+   "visiteurs": 200,
+   "variantes": 2,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "agent_public",
+     1
+    ]
+   ],
+   "role": "culte",
+   "glb": "res://assets/modeles/bible/temple_protestant.glb",
+   "w": 15,
+   "d": 25,
+   "h": 31.4,
+   "tris": 310,
+   "palette": [
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "pierre",
+     "#b9b0a0"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "vert",
+     "#3f8f5a"
+    ],
+    [
+     "tuile",
+     "#c8553d"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "noir",
+     "#2a2b2e"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "ardoise",
+     "#5b5f66"
+    ],
+    [
+     "or",
+     "#d7b04a"
+    ]
+   ]
+  },
+  {
+   "id": "eglise_orthodoxe",
+   "name": "Église orthodoxe",
+   "cat": "services",
+   "cost": 9000000,
+   "desc": "Église blanche à cinq bulbes dorés et bleus.",
+   "source": "D'après les églises russes à cinq coupoles (cathédrale de la Dormition de Vladimir)",
+   "region": "europe",
+   "era": "traditionnel",
+   "emplois": 3,
+   "logements": 0,
+   "visiteurs": 500,
+   "variantes": 2,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "agent_public",
+     2
+    ]
+   ],
+   "role": "culte",
+   "glb": "res://assets/modeles/bible/eglise_orthodoxe.glb",
+   "w": 21,
+   "d": 28,
+   "h": 29.8,
+   "tris": 859,
+   "palette": [
+    [
+     "enduit_blanc",
+     "#f4f2ec"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "verre_nuit",
+     "#1d2d3c"
+    ],
+    [
+     "or",
+     "#d7b04a"
+    ],
+    [
+     "bois_rouge",
+     "#8e3b2e"
+    ],
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "zinc",
+     "#7e8890"
+    ],
+    [
+     "bleu",
+     "#2a6fdb"
+    ]
+   ]
+  },
+  {
+   "id": "mosquee",
+   "name": "Mosquée",
+   "cat": "services",
+   "cost": 14000000,
+   "desc": "Salle de prière à grande coupole, demi-coupoles et deux minarets.",
+   "source": "D'après les mosquées ottomanes de Sinan (Süleymaniye, Istanbul), simplifiée",
+   "region": "moyen_orient",
+   "era": "traditionnel",
+   "emplois": 4,
+   "logements": 0,
+   "visiteurs": 900,
+   "variantes": 1,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "agent_public",
+     2
+    ]
+   ],
+   "role": "culte",
+   "glb": "res://assets/modeles/bible/mosquee.glb",
+   "w": 37,
+   "d": 47,
+   "h": 43.0,
+   "tris": 1170,
+   "palette": [
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "pierre",
+     "#b9b0a0"
+    ],
+    [
+     "verre_nuit",
+     "#1d2d3c"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "zinc",
+     "#7e8890"
+    ],
+    [
+     "or",
+     "#d7b04a"
+    ]
+   ]
+  },
+  {
+   "id": "synagogue",
+   "name": "Synagogue",
+   "cat": "services",
+   "cost": 6000000,
+   "desc": "Façade néo-mauresque à arcs, deux tourelles à petites coupoles.",
+   "source": "D'après la synagogue Beth Yaacov de Genève et les synagogues néo-mauresques du XIXe s.",
+   "region": "europe",
+   "era": "classique",
+   "emplois": 2,
+   "logements": 0,
+   "visiteurs": 300,
+   "variantes": 2,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "agent_public",
+     1
+    ]
+   ],
+   "role": "culte",
+   "glb": "res://assets/modeles/bible/synagogue.glb",
+   "w": 19,
+   "d": 25,
+   "h": 17.8,
+   "tris": 498,
+   "palette": [
+    [
+     "brique_claire",
+     "#c87f5d"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "zinc",
+     "#7e8890"
+    ],
+    [
+     "cuivre",
+     "#5f9e8a"
+    ]
+   ]
+  },
+  {
+   "id": "pagode",
+   "name": "Pagode à cinq toits",
+   "cat": "services",
+   "cost": 5500000,
+   "desc": "Pagode de bois à cinq étages de toits débordants.",
+   "source": "D'après la pagode du Hōryū-ji (Nara, Japon)",
+   "region": "asie_est",
+   "era": "traditionnel",
+   "emplois": 2,
+   "logements": 0,
+   "visiteurs": 350,
+   "variantes": 1,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "agent_public",
+     1
+    ]
+   ],
+   "role": "culte",
+   "sans_vitres": 1,
+   "glb": "res://assets/modeles/bible/pagode.glb",
+   "w": 17,
+   "d": 17,
+   "h": 30.2,
+   "tris": 366,
+   "palette": [
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "bois_rouge",
+     "#8e3b2e"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "ardoise",
+     "#5b5f66"
+    ],
+    [
+     "or",
+     "#d7b04a"
+    ]
+   ]
+  },
+  {
+   "id": "mairie_village",
+   "name": "Mairie de village",
+   "cat": "services",
+   "cost": 1800000,
+   "desc": "Mairie-école à fronton, horloge et drapeau.",
+   "source": "Mairies-écoles françaises de la IIIe République",
+   "region": "europe",
+   "era": "classique",
+   "emplois": 6,
+   "logements": 0,
+   "visiteurs": 0,
+   "variantes": 3,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "agent_public",
+     4
+    ],
+    [
+     "cadre",
+     1
+    ]
+   ],
+   "role": "mairie",
+   "glb": "res://assets/modeles/bible/mairie_village.glb",
+   "w": 20,
+   "d": 14,
+   "h": 10.9,
+   "tris": 635,
+   "palette": [
+    [
+     "pierre_grise",
+     "#9c988f"
+    ],
+    [
+     "enduit",
+     "#f1e6d2"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "volet",
+     "#4f7a5a"
+    ],
+    [
+     "porte",
+     "#6b4a33"
+    ],
+    [
+     "pierre",
+     "#b9b0a0"
+    ],
+    [
+     "ardoise",
+     "#5b5f66"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "noir",
+     "#2a2b2e"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "bleu",
+     "#2a6fdb"
+    ]
+   ]
+  },
+  {
+   "id": "hotel_de_ville",
+   "name": "Hôtel de ville à beffroi",
+   "cat": "services",
+   "cost": 18000000,
+   "desc": "Grand hôtel de ville à arcades et beffroi de 55 m.",
+   "source": "D'après l'hôtel de ville et le beffroi d'Arras (Pas-de-Calais)",
+   "region": "europe",
+   "era": "traditionnel",
+   "emplois": 60,
+   "logements": 0,
+   "visiteurs": 0,
+   "variantes": 1,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "agent_public",
+     6
+    ],
+    [
+     "cadre",
+     2
+    ],
+    [
+     "employe",
+     2
+    ]
+   ],
+   "role": "mairie",
+   "glb": "res://assets/modeles/bible/hotel_de_ville.glb",
+   "w": 45,
+   "d": 22,
+   "h": 53.8,
+   "tris": 1212,
+   "palette": [
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "pierre",
+     "#b9b0a0"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "ardoise",
+     "#5b5f66"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "noir",
+     "#2a2b2e"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "verre_nuit",
+     "#1d2d3c"
+    ],
+    [
+     "zinc",
+     "#7e8890"
+    ]
+   ]
+  },
+  {
+   "id": "palais_justice",
+   "name": "Palais de justice",
+   "cat": "services",
+   "cost": 22000000,
+   "desc": "Palais néo-classique à colonnade, fronton et grand perron.",
+   "source": "D'après le palais de justice de Lyon (« les 24 colonnes ») et celui de Paris",
+   "region": "europe",
+   "era": "classique",
+   "emplois": 80,
+   "logements": 0,
+   "visiteurs": 0,
+   "variantes": 1,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "cadre",
+     4
+    ],
+    [
+     "employe",
+     4
+    ],
+    [
+     "agent_public",
+     2
+    ],
+    [
+     "policier",
+     1
+    ]
+   ],
+   "role": "palais",
+   "glb": "res://assets/modeles/bible/palais_justice.glb",
+   "w": 44,
+   "d": 44,
+   "h": 18.1,
+   "tris": 1177,
+   "palette": [
+    [
+     "pierre_grise",
+     "#9c988f"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "pierre",
+     "#b9b0a0"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "zinc",
+     "#7e8890"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ]
+   ]
+  },
+  {
+   "id": "palais_federal",
+   "name": "Parlement à coupole",
+   "cat": "services",
+   "cost": 90000000,
+   "desc": "Grand palais de grès vert avec coupole centrale et deux ailes.",
+   "source": "D'après le Palais fédéral de Berne (1902)",
+   "region": "europe",
+   "era": "classique",
+   "emplois": 300,
+   "logements": 0,
+   "visiteurs": 0,
+   "variantes": 1,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "cadre",
+     5
+    ],
+    [
+     "employe",
+     4
+    ],
+    [
+     "agent_public",
+     3
+    ]
+   ],
+   "role": "palais",
+   "glb": "res://assets/modeles/bible/palais_federal.glb",
+   "w": 97,
+   "d": 41,
+   "h": 43.3,
+   "tris": 2545,
+   "palette": [
+    [
+     "granit",
+     "#7f7d78"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "cuivre",
+     "#5f9e8a"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "pierre_grise",
+     "#9c988f"
+    ]
+   ]
+  },
+  {
+   "id": "poste",
+   "name": "Bureau de poste",
+   "cat": "services",
+   "cost": 1500000,
+   "desc": "Bureau de poste en pierre, guichets au rez-de-chaussée.",
+   "source": "Bureaux de poste suisses et français des années 1920-1930",
+   "region": "europe",
+   "era": "classique",
+   "emplois": 10,
+   "logements": 0,
+   "visiteurs": 200,
+   "variantes": 3,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "agent_public",
+     3
+    ],
+    [
+     "chauffeur",
+     2
+    ]
+   ],
+   "glb": "res://assets/modeles/bible/poste.glb",
+   "w": 21,
+   "d": 16,
+   "h": 11.1,
+   "tris": 454,
+   "palette": [
+    [
+     "granit",
+     "#7f7d78"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "pierre",
+     "#b9b0a0"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "jaune",
+     "#f2c14e"
+    ],
+    [
+     "noir",
+     "#2a2b2e"
+    ],
+    [
+     "tuile",
+     "#c8553d"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ]
+   ]
+  },
+  {
+   "id": "bibliotheque",
+   "name": "Médiathèque",
+   "cat": "services",
+   "cost": 12000000,
+   "desc": "Médiathèque contemporaine, grand volume de verre et lames de bois.",
+   "source": "D'après les médiathèques françaises des années 2000 (Bordeaux, Lyon)",
+   "region": "europe",
+   "era": "contemporain",
+   "emplois": 20,
+   "logements": 0,
+   "visiteurs": 600,
+   "variantes": 2,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "agent_public",
+     3
+    ],
+    [
+     "employe",
+     1
+    ]
+   ],
+   "glb": "res://assets/modeles/bible/bibliotheque.glb",
+   "w": 35,
+   "d": 25,
+   "h": 16.8,
+   "tris": 278,
+   "palette": [
+    [
+     "bois_clair",
+     "#c39a6b"
+    ],
+    [
+     "verre_ciel",
+     "#6d97b8"
+    ],
+    [
+     "noir",
+     "#2a2b2e"
+    ],
+    [
+     "verre_nuit",
+     "#1d2d3c"
+    ],
+    [
+     "bois_rouge",
+     "#8e3b2e"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "beton_sombre",
+     "#8c8a85"
+    ]
+   ]
+  },
+  {
+   "id": "musee_classique",
+   "name": "Musée des beaux-arts",
+   "cat": "loisirs",
+   "cost": 30000000,
+   "desc": "Musée néo-classique à portique ionique et salles éclairées par le toit.",
+   "source": "D'après le British Museum (Londres) et le musée des Beaux-Arts de Lille",
+   "region": "europe",
+   "era": "classique",
+   "emplois": 40,
+   "logements": 0,
+   "visiteurs": 1500,
+   "variantes": 1,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "agent_public",
+     3
+    ],
+    [
+     "vendeur",
+     1
+    ],
+    [
+     "cadre",
+     1
+    ]
+   ],
+   "role": "musee",
+   "glb": "res://assets/modeles/bible/musee_classique.glb",
+   "w": 48,
+   "d": 46,
+   "h": 16.4,
+   "tris": 521,
+   "palette": [
+    [
+     "pierre_grise",
+     "#9c988f"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "pierre",
+     "#b9b0a0"
+    ],
+    [
+     "verre_nuit",
+     "#1d2d3c"
+    ],
+    [
+     "zinc",
+     "#7e8890"
+    ],
+    [
+     "verre_ciel",
+     "#6d97b8"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ]
+   ]
+  },
+  {
+   "id": "musee_contemporain",
+   "name": "Musée d'art contemporain",
+   "cat": "loisirs",
+   "cost": 40000000,
+   "desc": "Boîtes blanches empilées et décalées, bandeaux de verre.",
+   "source": "D'après le New Museum de New York (SANAA, 2007)",
+   "region": "ameriques",
+   "era": "contemporain",
+   "emplois": 35,
+   "logements": 0,
+   "visiteurs": 1200,
+   "variantes": 1,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "agent_public",
+     3
+    ],
+    [
+     "vendeur",
+     1
+    ],
+    [
+     "cadre",
+     1
+    ]
+   ],
+   "role": "musee",
+   "glb": "res://assets/modeles/bible/musee_contemporain.glb",
+   "w": 26,
+   "d": 23,
+   "h": 38.1,
+   "tris": 124,
+   "palette": [
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "verre_ciel",
+     "#6d97b8"
+    ],
+    [
+     "noir",
+     "#2a2b2e"
+    ],
+    [
+     "verre_clair",
+     "#8fb8d8"
+    ]
+   ]
+  },
+  {
+   "id": "opera",
+   "name": "Opéra",
+   "cat": "loisirs",
+   "cost": 120000000,
+   "desc": "Façade à loggia et colonnes, coupole et grande cage de scène.",
+   "source": "D'après l'Opéra Garnier (Paris, 1875), très simplifié",
+   "region": "europe",
+   "era": "classique",
+   "emplois": 150,
+   "logements": 0,
+   "visiteurs": 2000,
+   "variantes": 1,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "comedien",
+     4
+    ],
+    [
+     "agent_public",
+     1
+    ],
+    [
+     "serveur",
+     1
+    ]
+   ],
+   "role": "theatre",
+   "glb": "res://assets/modeles/bible/opera.glb",
+   "w": 54,
+   "d": 72,
+   "h": 43.0,
+   "tris": 1144,
+   "palette": [
+    [
+     "pierre_grise",
+     "#9c988f"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "pierre",
+     "#b9b0a0"
+    ],
+    [
+     "verre_nuit",
+     "#1d2d3c"
+    ],
+    [
+     "or",
+     "#d7b04a"
+    ],
+    [
+     "cuivre",
+     "#5f9e8a"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ]
+   ]
+  },
+  {
+   "id": "theatre",
+   "name": "Théâtre municipal",
+   "cat": "loisirs",
+   "cost": 15000000,
+   "desc": "Théâtre à l'italienne de ville moyenne, fronton et cage de scène.",
+   "source": "Théâtres municipaux du XIXe s. (Lausanne, Besançon)",
+   "region": "europe",
+   "era": "classique",
+   "emplois": 25,
+   "logements": 0,
+   "visiteurs": 700,
+   "variantes": 2,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "comedien",
+     3
+    ],
+    [
+     "agent_public",
+     1
+    ],
+    [
+     "serveur",
+     1
+    ]
+   ],
+   "role": "theatre",
+   "glb": "res://assets/modeles/bible/theatre.glb",
+   "w": 27,
+   "d": 38,
+   "h": 23.1,
+   "tris": 576,
+   "palette": [
+    [
+     "pierre_grise",
+     "#9c988f"
+    ],
+    [
+     "enduit_jaune",
+     "#ecd59a"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "bois_rouge",
+     "#8e3b2e"
+    ],
+    [
+     "pierre",
+     "#b9b0a0"
+    ],
+    [
+     "noir",
+     "#2a2b2e"
+    ],
+    [
+     "zinc",
+     "#7e8890"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ]
+   ]
+  },
+  {
+   "id": "cinema_multiplexe",
+   "name": "Cinéma multiplexe",
+   "cat": "loisirs",
+   "cost": 18000000,
+   "desc": "Douze salles, hall vitré et enseigne lumineuse.",
+   "source": "Multiplexes de périphérie (Pathé, UGC, Kinepolis)",
+   "region": "europe",
+   "era": "contemporain",
+   "emplois": 30,
+   "logements": 0,
+   "visiteurs": 2500,
+   "variantes": 2,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "agent_cinema",
+     4
+    ],
+    [
+     "vendeur",
+     1
+    ],
+    [
+     "cadre",
+     1
+    ]
+   ],
+   "role": "cinema",
+   "glb": "res://assets/modeles/bible/cinema_multiplexe.glb",
+   "w": 59,
+   "d": 49,
+   "h": 16.9,
+   "tris": 140,
+   "palette": [
+    [
+     "bardage",
+     "#a4aab0"
+    ],
+    [
+     "noir",
+     "#2a2b2e"
+    ],
+    [
+     "beton_sombre",
+     "#8c8a85"
+    ],
+    [
+     "verre_bleu",
+     "#4f6d8f"
+    ],
+    [
+     "rouge",
+     "#c0392b"
+    ],
+    [
+     "jaune",
+     "#f2c14e"
+    ]
+   ]
+  },
+  {
+   "id": "salle_fetes",
+   "name": "Salle des fêtes",
+   "cat": "loisirs",
+   "cost": 2200000,
+   "desc": "Salle polyvalente de village avec scène et buvette.",
+   "source": "Salles polyvalentes de communes rurales",
+   "region": "europe",
+   "era": "moderne",
+   "emplois": 3,
+   "logements": 0,
+   "visiteurs": 400,
+   "variantes": 3,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "agent_public",
+     1
+    ],
+    [
+     "serveur",
+     1
+    ]
+   ],
+   "glb": "res://assets/modeles/bible/salle_fetes.glb",
+   "w": 30,
+   "d": 20,
+   "h": 9.1,
+   "tris": 154,
+   "palette": [
+    [
+     "enduit_rose",
+     "#e9c2b0"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "verre_nuit",
+     "#1d2d3c"
+    ],
+    [
+     "tole",
+     "#9aa0a6"
+    ],
+    [
+     "tuile",
+     "#c8553d"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ]
+   ]
+  },
+  {
+   "id": "ecole_ferry",
+   "name": "École de village",
+   "cat": "services",
+   "cost": 3000000,
+   "desc": "École Jules Ferry : corps central, deux ailes (filles et garçons) et préau.",
+   "source": "Écoles de la IIIe République (lois Jules Ferry, 1881-1882)",
+   "region": "europe",
+   "era": "classique",
+   "emplois": 8,
+   "logements": 0,
+   "visiteurs": 120,
+   "variantes": 3,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "enseignant",
+     4
+    ],
+    [
+     "atsem",
+     1
+    ],
+    [
+     "agent_public",
+     1
+    ]
+   ],
+   "role": "ecole",
+   "glb": "res://assets/modeles/bible/ecole_ferry.glb",
+   "w": 43,
+   "d": 25,
+   "h": 10.7,
+   "tris": 828,
+   "palette": [
+    [
+     "asphalte",
+     "#55585e"
+    ],
+    [
+     "pierre_grise",
+     "#9c988f"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "pierre",
+     "#b9b0a0"
+    ],
+    [
+     "bleu",
+     "#2a6fdb"
+    ],
+    [
+     "brique_claire",
+     "#c87f5d"
+    ],
+    [
+     "ardoise",
+     "#5b5f66"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "tuile",
+     "#c8553d"
+    ]
+   ]
+  },
+  {
+   "id": "college",
+   "name": "Collège",
+   "cat": "services",
+   "cost": 14000000,
+   "desc": "Collège des années 1970 : barres de béton et bandes vitrées.",
+   "source": "Collèges « Pailleron » et constructions scolaires industrialisées",
+   "region": "europe",
+   "era": "moderne",
+   "emplois": 50,
+   "logements": 0,
+   "visiteurs": 600,
+   "variantes": 3,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "enseignant",
+     8
+    ],
+    [
+     "agent_public",
+     2
+    ]
+   ],
+   "role": "ecole",
+   "glb": "res://assets/modeles/bible/college.glb",
+   "w": 63,
+   "d": 35,
+   "h": 11.0,
+   "tris": 196,
+   "palette": [
+    [
+     "asphalte",
+     "#55585e"
+    ],
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "verre_ciel",
+     "#6d97b8"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "verre_nuit",
+     "#1d2d3c"
+    ],
+    [
+     "orange",
+     "#e4772e"
+    ],
+    [
+     "beton_sombre",
+     "#8c8a85"
+    ],
+    [
+     "bardage_bleu",
+     "#4f6f91"
+    ],
+    [
+     "tole",
+     "#9aa0a6"
+    ]
+   ]
+  },
+  {
+   "id": "lycee",
+   "name": "Lycée",
+   "cat": "services",
+   "cost": 28000000,
+   "desc": "Lycée en U autour d'une cour, briques et grandes fenêtres.",
+   "source": "Lycées urbains de l'entre-deux-guerres (lycée Claude-Bernard, Paris)",
+   "region": "europe",
+   "era": "classique",
+   "emplois": 110,
+   "logements": 0,
+   "visiteurs": 1200,
+   "variantes": 2,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "enseignant",
+     9
+    ],
+    [
+     "agent_public",
+     2
+    ],
+    [
+     "cadre",
+     1
+    ]
+   ],
+   "role": "ecole",
+   "glb": "res://assets/modeles/bible/lycee.glb",
+   "w": 67,
+   "d": 47,
+   "h": 26.3,
+   "tris": 1158,
+   "palette": [
+    [
+     "asphalte",
+     "#55585e"
+    ],
+    [
+     "pierre_grise",
+     "#9c988f"
+    ],
+    [
+     "brique_claire",
+     "#c87f5d"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "ardoise",
+     "#5b5f66"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "noir",
+     "#2a2b2e"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ]
+   ]
+  },
+  {
+   "id": "universite",
+   "name": "Université",
+   "cat": "services",
+   "cost": 80000000,
+   "desc": "Bâtiment principal néo-Renaissance à coupole et deux cours.",
+   "source": "D'après le bâtiment principal de l'EPF de Zurich (Semper, 1864)",
+   "region": "europe",
+   "era": "classique",
+   "emplois": 400,
+   "logements": 0,
+   "visiteurs": 3000,
+   "variantes": 1,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "enseignant",
+     6
+    ],
+    [
+     "ingenieur",
+     2
+    ],
+    [
+     "employe",
+     2
+    ],
+    [
+     "cadre",
+     1
+    ]
+   ],
+   "role": "ecole",
+   "glb": "res://assets/modeles/bible/universite.glb",
+   "w": 93,
+   "d": 56,
+   "h": 37.5,
+   "tris": 2542,
+   "palette": [
+    [
+     "granit",
+     "#7f7d78"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "pierre",
+     "#b9b0a0"
+    ],
+    [
+     "zinc",
+     "#7e8890"
+    ],
+    [
+     "cuivre",
+     "#5f9e8a"
+    ]
+   ]
+  },
+  {
+   "id": "creche",
+   "name": "Crèche",
+   "cat": "services",
+   "cost": 1900000,
+   "desc": "Crèche et école maternelle colorée, toits à un pan et jardin.",
+   "source": "Crèches contemporaines en bois (Suisse romande, Vorarlberg)",
+   "region": "europe",
+   "era": "contemporain",
+   "emplois": 10,
+   "logements": 0,
+   "visiteurs": 60,
+   "variantes": 3,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "atsem",
+     4
+    ],
+    [
+     "enseignant",
+     1
+    ]
+   ],
+   "role": "ecole",
+   "glb": "res://assets/modeles/bible/creche.glb",
+   "w": 29,
+   "d": 21,
+   "h": 5.6,
+   "tris": 204,
+   "palette": [
+    [
+     "pelouse",
+     "#6aa84f"
+    ],
+    [
+     "jaune",
+     "#f2c14e"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "verre_ciel",
+     "#6d97b8"
+    ],
+    [
+     "zinc",
+     "#7e8890"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "bois_clair",
+     "#c39a6b"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "orange",
+     "#e4772e"
+    ],
+    [
+     "vert",
+     "#3f8f5a"
+    ]
+   ]
+  },
+  {
+   "id": "hopital_regional",
+   "name": "Hôpital régional",
+   "cat": "services",
+   "cost": 120000000,
+   "desc": "Socle de soins, tour d'hospitalisation de 9 étages et urgences.",
+   "source": "Hôpitaux régionaux des années 1970-1990 (CHUV Lausanne, CHU de province)",
+   "region": "europe",
+   "era": "moderne",
+   "emplois": 900,
+   "logements": 0,
+   "visiteurs": 1500,
+   "variantes": 1,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "medecin",
+     2
+    ],
+    [
+     "infirmier",
+     5
+    ],
+    [
+     "aide_soignant",
+     3
+    ]
+   ],
+   "role": "hopital",
+   "glb": "res://assets/modeles/bible/hopital_regional.glb",
+   "w": 73,
+   "d": 55,
+   "h": 44.1,
+   "tris": 314,
+   "palette": [
+    [
+     "asphalte",
+     "#55585e"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "verre_ciel",
+     "#6d97b8"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "verre_nuit",
+     "#1d2d3c"
+    ],
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "beton_sombre",
+     "#8c8a85"
+    ],
+    [
+     "vert",
+     "#3f8f5a"
+    ],
+    [
+     "rouge",
+     "#c0392b"
+    ]
+   ]
+  },
+  {
+   "id": "clinique",
+   "name": "Clinique",
+   "cat": "services",
+   "cost": 18000000,
+   "desc": "Clinique privée de trois étages, façade claire et loggias.",
+   "source": "Cliniques de quartier contemporaines",
+   "region": "europe",
+   "era": "contemporain",
+   "emplois": 120,
+   "logements": 0,
+   "visiteurs": 200,
+   "variantes": 2,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "medecin",
+     2
+    ],
+    [
+     "infirmier",
+     4
+    ],
+    [
+     "aide_soignant",
+     2
+    ]
+   ],
+   "role": "hopital",
+   "glb": "res://assets/modeles/bible/clinique.glb",
+   "w": 37,
+   "d": 21,
+   "h": 14.4,
+   "tris": 560,
+   "palette": [
+    [
+     "enduit_blanc",
+     "#f4f2ec"
+    ],
+    [
+     "bois_clair",
+     "#c39a6b"
+    ],
+    [
+     "verre_ciel",
+     "#6d97b8"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "verre_nuit",
+     "#1d2d3c"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "verre_clair",
+     "#8fb8d8"
+    ],
+    [
+     "beton_sombre",
+     "#8c8a85"
+    ],
+    [
+     "vert",
+     "#3f8f5a"
+    ]
+   ]
+  },
+  {
+   "id": "caserne_pompiers",
+   "name": "Centre de secours",
+   "cat": "services",
+   "cost": 9000000,
+   "desc": "Caserne moderne : six portes, bureaux, tour de manœuvre.",
+   "source": "Centres d'incendie et de secours (SDIS) des années 2000",
+   "region": "europe",
+   "era": "contemporain",
+   "emplois": 40,
+   "logements": 0,
+   "visiteurs": 0,
+   "variantes": 1,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "pompier",
+     1
+    ]
+   ],
+   "role": "pompiers",
+   "glb": "res://assets/modeles/bible/caserne_pompiers.glb",
+   "w": 50,
+   "d": 44,
+   "h": 20.6,
+   "tris": 422,
+   "palette": [
+    [
+     "asphalte",
+     "#55585e"
+    ],
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "rouge",
+     "#c0392b"
+    ],
+    [
+     "beton_sombre",
+     "#8c8a85"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "verre_ciel",
+     "#6d97b8"
+    ],
+    [
+     "noir",
+     "#2a2b2e"
+    ]
+   ]
+  },
+  {
+   "id": "gendarmerie",
+   "name": "Gendarmerie",
+   "cat": "services",
+   "cost": 6500000,
+   "desc": "Brigade de gendarmerie : bureaux et logements de fonction.",
+   "source": "Casernes de gendarmerie françaises",
+   "region": "europe",
+   "era": "moderne",
+   "emplois": 25,
+   "logements": 8,
+   "visiteurs": 0,
+   "variantes": 2,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "policier",
+     1
+    ]
+   ],
+   "role": "police",
+   "glb": "res://assets/modeles/bible/gendarmerie.glb",
+   "w": 25,
+   "d": 30,
+   "h": 11.4,
+   "tris": 698,
+   "palette": [
+    [
+     "enduit",
+     "#f1e6d2"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "verre_ciel",
+     "#6d97b8"
+    ],
+    [
+     "bleu",
+     "#2a6fdb"
+    ],
+    [
+     "tuile",
+     "#c8553d"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "enduit_jaune",
+     "#ecd59a"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "volet",
+     "#4f7a5a"
+    ],
+    [
+     "porte",
+     "#6b4a33"
+    ]
+   ]
+  },
+  {
+   "id": "commissariat",
+   "name": "Hôtel de police",
+   "cat": "services",
+   "cost": 16000000,
+   "desc": "Commissariat central : quatre étages, accueil vitré, garage.",
+   "source": "Hôtels de police contemporains",
+   "region": "europe",
+   "era": "contemporain",
+   "emplois": 120,
+   "logements": 0,
+   "visiteurs": 0,
+   "variantes": 1,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "policier",
+     1
+    ]
+   ],
+   "role": "police",
+   "glb": "res://assets/modeles/bible/commissariat.glb",
+   "w": 39,
+   "d": 21,
+   "h": 14.9,
+   "tris": 510,
+   "palette": [
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "noir",
+     "#2a2b2e"
+    ],
+    [
+     "verre_ciel",
+     "#6d97b8"
+    ],
+    [
+     "verre_bleu",
+     "#4f6d8f"
+    ],
+    [
+     "bleu",
+     "#2a6fdb"
+    ],
+    [
+     "beton_sombre",
+     "#8c8a85"
+    ]
+   ]
+  },
+  {
+   "id": "patinoire",
+   "name": "Patinoire couverte",
+   "cat": "sport",
+   "cost": 24000000,
+   "desc": "Halle voûtée avec piste de 60 × 30 m et gradins.",
+   "source": "D'après la patinoire de Malley (Lausanne) et les patinoires municipales",
+   "region": "europe",
+   "era": "moderne",
+   "emplois": 15,
+   "logements": 0,
+   "visiteurs": 1500,
+   "variantes": 2,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "coach",
+     3
+    ],
+    [
+     "agent_public",
+     1
+    ]
+   ],
+   "role": "patinoire",
+   "glb": "res://assets/modeles/bible/patinoire.glb",
+   "w": 53,
+   "d": 80,
+   "h": 18.0,
+   "tris": 72,
+   "palette": [
+    [
+     "bardage_bleu",
+     "#4f6f91"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "verre_ciel",
+     "#6d97b8"
+    ],
+    [
+     "zinc",
+     "#7e8890"
+    ],
+    [
+     "verre_nuit",
+     "#1d2d3c"
+    ]
+   ]
+  },
+  {
+   "id": "salle_omnisport",
+   "name": "Salle omnisport",
+   "cat": "sport",
+   "cost": 7000000,
+   "desc": "Gymnase triple : terrain de handball, gradins, toit à sheds.",
+   "source": "Salles omnisports municipales",
+   "region": "europe",
+   "era": "moderne",
+   "emplois": 6,
+   "logements": 0,
+   "visiteurs": 500,
+   "variantes": 3,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "coach",
+     1
+    ]
+   ],
+   "role": "gymnase",
+   "glb": "res://assets/modeles/bible/salle_omnisport.glb",
+   "w": 50,
+   "d": 42,
+   "h": 12.7,
+   "tris": 144,
+   "palette": [
+    [
+     "bardage",
+     "#a4aab0"
+    ],
+    [
+     "tole",
+     "#9aa0a6"
+    ],
+    [
+     "verre_ciel",
+     "#6d97b8"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "verre_nuit",
+     "#1d2d3c"
+    ],
+    [
+     "orange",
+     "#e4772e"
+    ],
+    [
+     "beton_sombre",
+     "#8c8a85"
+    ]
+   ]
+  },
+  {
+   "id": "piscine_couverte",
+   "name": "Piscine couverte",
+   "cat": "sport",
+   "cost": 22000000,
+   "desc": "Halle vitrée avec bassin olympique de 50 m et toboggan.",
+   "source": "Centres aquatiques et piscines olympiques couvertes",
+   "region": "europe",
+   "era": "contemporain",
+   "emplois": 20,
+   "logements": 0,
+   "visiteurs": 1200,
+   "variantes": 2,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "coach",
+     4
+    ],
+    [
+     "caissier",
+     1
+    ]
+   ],
+   "role": "piscine",
+   "glb": "res://assets/modeles/bible/piscine_couverte.glb",
+   "w": 71,
+   "d": 40,
+   "h": 14.0,
+   "tris": 190,
+   "palette": [
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "verre_ciel",
+     "#6d97b8"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "verre_nuit",
+     "#1d2d3c"
+    ],
+    [
+     "orange",
+     "#e4772e"
+    ]
+   ]
+  },
+  {
+   "id": "halle_tennis",
+   "name": "Tennis couvert",
+   "cat": "sport",
+   "cost": 3500000,
+   "desc": "Halle gonflable sur arceaux, deux courts en résine.",
+   "source": "Halles de tennis de clubs",
+   "region": "europe",
+   "era": "contemporain",
+   "emplois": 3,
+   "logements": 0,
+   "visiteurs": 60,
+   "variantes": 2,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "coach",
+     1
+    ]
+   ],
+   "role": "gymnase",
+   "glb": "res://assets/modeles/bible/halle_tennis.glb",
+   "w": 38,
+   "d": 49,
+   "h": 11.0,
+   "tris": 76,
+   "palette": [
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "bardage_vert",
+     "#5d7d5a"
+    ],
+    [
+     "bois_clair",
+     "#c39a6b"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "porte",
+     "#6b4a33"
+    ],
+    [
+     "zinc",
+     "#7e8890"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ]
+   ]
+  },
+  {
+   "id": "gare_village",
+   "name": "Gare de village",
+   "cat": "services",
+   "cost": 2000000,
+   "desc": "Bâtiment voyageurs à deux niveaux, marquise et halle à marchandises.",
+   "source": "Gares des compagnies PLM et des CFF (fin XIXe s.)",
+   "region": "europe",
+   "era": "classique",
+   "emplois": 6,
+   "logements": 0,
+   "visiteurs": 300,
+   "variantes": 3,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "agent_gare",
+     1
+    ]
+   ],
+   "role": "gare",
+   "glb": "res://assets/modeles/bible/gare_village.glb",
+   "w": 31,
+   "d": 17,
+   "h": 10.1,
+   "tris": 638,
+   "palette": [
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "brique_claire",
+     "#c87f5d"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "vert",
+     "#3f8f5a"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "ardoise",
+     "#5b5f66"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "noir",
+     "#2a2b2e"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "zinc",
+     "#7e8890"
+    ],
+    [
+     "bois_rouge",
+     "#8e3b2e"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "tuile",
+     "#c8553d"
+    ]
+   ]
+  },
+  {
+   "id": "gare_ville",
+   "name": "Grande gare",
+   "cat": "services",
+   "cost": 95000000,
+   "desc": "Bâtiment voyageurs à horloge et grande halle voûtée sur les quais.",
+   "source": "D'après la gare de l'Est (Paris) et la gare de Lausanne",
+   "region": "europe",
+   "era": "classique",
+   "emplois": 150,
+   "logements": 0,
+   "visiteurs": 8000,
+   "variantes": 1,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "agent_gare",
+     3
+    ],
+    [
+     "vendeur",
+     1
+    ],
+    [
+     "cadre",
+     1
+    ]
+   ],
+   "role": "gare",
+   "glb": "res://assets/modeles/bible/gare_ville.glb",
+   "w": 83,
+   "d": 68,
+   "h": 25.0,
+   "tris": 1411,
+   "palette": [
+    [
+     "granit",
+     "#7f7d78"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "pierre",
+     "#b9b0a0"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "ardoise",
+     "#5b5f66"
+    ],
+    [
+     "zinc",
+     "#7e8890"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "verre_ciel",
+     "#6d97b8"
+    ],
+    [
+     "noir",
+     "#2a2b2e"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ]
+   ]
+  },
+  {
+   "id": "phare",
+   "name": "Phare",
+   "cat": "services",
+   "cost": 4000000,
+   "desc": "Tour à bandes rouges et blanches, lanterne et maison du gardien.",
+   "source": "D'après les phares de Bretagne (phare du Créac'h, Ouessant)",
+   "region": "europe",
+   "era": "classique",
+   "emplois": 2,
+   "logements": 1,
+   "visiteurs": 0,
+   "variantes": 2,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "agent_public",
+     1
+    ]
+   ],
+   "glb": "res://assets/modeles/bible/phare.glb",
+   "w": 16,
+   "d": 10,
+   "h": 35.5,
+   "tris": 288,
+   "palette": [
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "rouge",
+     "#c0392b"
+    ],
+    [
+     "noir",
+     "#2a2b2e"
+    ],
+    [
+     "verre_clair",
+     "#8fb8d8"
+    ],
+    [
+     "enduit_blanc",
+     "#f4f2ec"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "bleu",
+     "#2a6fdb"
+    ],
+    [
+     "ardoise",
+     "#5b5f66"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ]
+   ]
+  },
+  {
+   "id": "chateau_eau_champignon",
+   "name": "Château d'eau champignon",
+   "cat": "services",
+   "cost": 2500000,
+   "desc": "Réservoir de béton en forme de champignon sur un fût de 30 m.",
+   "source": "Châteaux d'eau en béton des années 1960-1970 (France, Suède)",
+   "region": "europe",
+   "era": "moderne",
+   "emplois": 1,
+   "logements": 0,
+   "visiteurs": 0,
+   "variantes": 1,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "agent_public",
+     1
+    ]
+   ],
+   "role": "chateau_eau",
+   "sans_vitres": 1,
+   "glb": "res://assets/modeles/bible/chateau_eau_champignon.glb",
+   "w": 20,
+   "d": 20,
+   "h": 37.6,
+   "tris": 144,
+   "palette": [
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "beton_sombre",
+     "#8c8a85"
+    ]
+   ]
+  }
+ ]
+}

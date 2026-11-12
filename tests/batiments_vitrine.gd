@@ -6,7 +6,7 @@ extends SceneTree
 ## --blocs : une maison construite bloc par bloc.
 ## --styles a,b,c : seulement les bâtiments de ces styles (bible, voir Styles.STYLES).
 ## --arch culte,palais : seulement ces archétypes. --zone-style japonais : style du zonage.
-## --cat espaces : seulement une catégorie.
+## --cat espaces : seulement une catégorie. --famille publics : seulement une famille de la bible Blender.
 ## --chantiers : bâtiments en chantier (avancement --avancement 0.4). --usure 0.8 / --abandon 1 : vieillissement.
 ## --habite : abords et fumée des maisons comme si elles étaient habitées.
 ## --zones : un quartier né du zonage (routes en grille, zones R/C/I) au lieu du catalogue.
@@ -46,6 +46,7 @@ func _run() -> void:
 	var only_archs: PackedStringArray = []
 	var zone_style := ""
 	var only_cat := ""
+	var only_famille := ""
 	for i in args.size():
 		if args[i] == "--screenshot" and i + 1 < args.size():
 			shot = args[i + 1]
@@ -59,6 +60,8 @@ func _run() -> void:
 			only_archs = args[i + 1].split(",")
 		if args[i] == "--cat" and i + 1 < args.size():
 			only_cat = args[i + 1]
+		if args[i] == "--famille" and i + 1 < args.size():
+			only_famille = args[i + 1]
 		if args[i] == "--zone-style" and i + 1 < args.size():
 			zone_style = args[i + 1]
 		if args[i] == "--heure" and i + 1 < args.size():
@@ -147,6 +150,8 @@ func _run() -> void:
 		if not only_archs.is_empty() and not String(tt.get("arch", "")) in only_archs:
 			continue
 		if only_cat != "" and String(tt.cat) != only_cat:
+			continue
+		if only_famille != "" and String(tt.get("famille", "")) != only_famille:
 			continue
 		ids.append(id)
 	var rows := [[0.0, -1.0], [0.0, 1.0], [150.0, -1.0], [150.0, 1.0]]

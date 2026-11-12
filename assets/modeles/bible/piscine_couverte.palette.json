@@ -1,0 +1,26 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "beton_clair": {
+   "index": 0,
+   "origine": "#d4d1ca"
+  },
+  "verre_ciel": {
+   "index": 1,
+   "origine": "#6d97b8"
+  },
+  "blanc": {
+   "index": 2,
+   "origine": "#f7f7f5"
+  },
+  "verre_nuit": {
+   "index": 3,
+   "origine": "#1d2d3c"
+  },
+  "orange": {
+   "index": 4,
+   "origine": "#e4772e"
+  }
+ }
+}

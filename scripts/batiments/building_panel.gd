@@ -335,6 +335,8 @@ func _show_zones() -> void:
 	style_opt.set_item_metadata(0, "")
 	style_opt.add_item("Mélange de tous les styles")
 	style_opt.set_item_metadata(1, "mix")
+	style_opt.add_item("Bâtiments Blender (bible)")
+	style_opt.set_item_metadata(2, ZoneSystem.STYLE_BIBLE)
 	for sid in Styles.STYLES:
 		var st: Dictionary = Styles.STYLES[sid]
 		style_opt.add_item("%s (%s, %s)" % [st.name, Styles.region_name(st.region), Styles.era_name(st.era).to_lower()])

@@ -1,0 +1,46 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "enduit": {
+   "index": 0,
+   "origine": "#f1e6d2"
+  },
+  "cadre": {
+   "index": 1,
+   "origine": "#f4f1ea"
+  },
+  "verre_ciel": {
+   "index": 2,
+   "origine": "#6d97b8"
+  },
+  "bleu": {
+   "index": 3,
+   "origine": "#2a6fdb"
+  },
+  "tuile": {
+   "index": 4,
+   "origine": "#c8553d"
+  },
+  "sous_toit": {
+   "index": 5,
+   "origine": "#6a5040"
+  },
+  "enduit_jaune": {
+   "index": 6,
+   "origine": "#ecd59a"
+  },
+  "vitre": {
+   "index": 7,
+   "origine": "#33495e"
+  },
+  "volet": {
+   "index": 8,
+   "origine": "#4f7a5a"
+  },
+  "porte": {
+   "index": 9,
+   "origine": "#6b4a33"
+  }
+ }
+}

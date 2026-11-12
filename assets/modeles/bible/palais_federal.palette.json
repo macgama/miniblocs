@@ -1,0 +1,30 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "granit": {
+   "index": 0,
+   "origine": "#7f7d78"
+  },
+  "pierre_claire": {
+   "index": 1,
+   "origine": "#d8d0bf"
+  },
+  "vitre": {
+   "index": 2,
+   "origine": "#33495e"
+  },
+  "cuivre": {
+   "index": 3,
+   "origine": "#5f9e8a"
+  },
+  "sous_toit": {
+   "index": 4,
+   "origine": "#6a5040"
+  },
+  "pierre_grise": {
+   "index": 5,
+   "origine": "#9c988f"
+  }
+ }
+}

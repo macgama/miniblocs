@@ -88,7 +88,7 @@ func _on_removed(bid: int) -> void:
 
 func _chantier_possible(b: Dictionary) -> bool:
 	var t := BuildingCatalog.get_type(String(b.t))
-	return not t.has("blocks") and not t.has("glb")
+	return not t.has("blocks") and not t.has("stade")
 
 
 ## Durée du chantier d'un type (secondes de jeu).

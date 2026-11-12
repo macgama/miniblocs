@@ -173,12 +173,35 @@ func _show(i: int, spot: Dictionary, pid: int, child: bool, id: String) -> void:
 		add_child(mi)
 		_pool.append(mi)
 	var mi2 := _pool[i]
-	mi2.mesh = figure_mesh(String(spot.pose), pid)
 	var s := 0.72 if child else 1.0
+	if Silhouettes.disponible():
+		# Personnage arrondi (taille réelle selon l'âge) porté par la place.
+		mi2.mesh = null
+		_silhouette(mi2, pid, String(spot.pose))
+		s = 1.0
+	else:
+		mi2.mesh = figure_mesh(String(spot.pose), pid)
 	mi2.transform = Transform3D(Basis(Vector3.UP, float(spot.yaw)).scaled(Vector3(s, s, s)), spot.pos)
 	mi2.set_meta("plan", id)
 	mi2.set_meta("e", int(spot.e))
 	mi2.visible = true
+
+
+## Le personnage de l'habitant pid, dans la bonne pose, sous la place mi.
+func _silhouette(mi: MeshInstance3D, pid: int, pose: String) -> void:
+	var fig: Node3D = mi.get_meta("silhouette") if mi.has_meta("silhouette") else null
+	if fig != null and (int(fig.get_meta("pid", -1)) != pid or int(fig.get_meta("age", -1)) != int(population.age_of(population.persons[pid]))):
+		fig.queue_free()
+		fig = null
+	if fig == null:
+		fig = Silhouettes.pour_habitant(population, pid)
+		fig.set_meta("age", int(population.age_of(population.persons[pid])))
+		mi.add_child(fig)
+		mi.set_meta("silhouette", fig)
+		fig.set_meta("pose", "")
+	if String(fig.get_meta("pose")) != pose:
+		Silhouettes.poser(fig, pose)
+		fig.set_meta("pose", pose)
 
 
 func _hide_from(n: int) -> void:

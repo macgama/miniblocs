@@ -1,0 +1,38 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "beton_sombre": {
+   "index": 0,
+   "origine": "#8c8a85"
+  },
+  "rouge": {
+   "index": 1,
+   "origine": "#c0392b"
+  },
+  "tole_rouge": {
+   "index": 2,
+   "origine": "#8f3a33"
+  },
+  "metal": {
+   "index": 3,
+   "origine": "#7d8288"
+  },
+  "tole": {
+   "index": 4,
+   "origine": "#9aa0a6"
+  },
+  "bardage": {
+   "index": 5,
+   "origine": "#a4aab0"
+  },
+  "sous_toit": {
+   "index": 6,
+   "origine": "#6a5040"
+  },
+  "noir": {
+   "index": 7,
+   "origine": "#2a2b2e"
+  }
+ }
+}

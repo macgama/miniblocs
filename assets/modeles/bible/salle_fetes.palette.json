@@ -1,0 +1,38 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "enduit_rose": {
+   "index": 0,
+   "origine": "#e9c2b0"
+  },
+  "cadre": {
+   "index": 1,
+   "origine": "#f4f1ea"
+  },
+  "vitre": {
+   "index": 2,
+   "origine": "#33495e"
+  },
+  "verre_nuit": {
+   "index": 3,
+   "origine": "#1d2d3c"
+  },
+  "tole": {
+   "index": 4,
+   "origine": "#9aa0a6"
+  },
+  "tuile": {
+   "index": 5,
+   "origine": "#c8553d"
+  },
+  "sous_toit": {
+   "index": 6,
+   "origine": "#6a5040"
+  },
+  "beton_clair": {
+   "index": 7,
+   "origine": "#d4d1ca"
+  }
+ }
+}

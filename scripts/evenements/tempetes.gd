@@ -142,7 +142,7 @@ func _effets(e: Dictionary, t: float) -> void:
 		if not keys.is_empty():
 			var bid: int = keys[ev.rng.randi() % keys.size()]
 			var tt := BuildingCatalog.get_type(String(ev.buildings.buildings[bid].t))
-			if not tt.has("glb") and String(tt.get("cat", "")) != "espaces" and not ev.buildings.en_chantier(bid):
+			if not tt.has("stade") and String(tt.get("cat", "")) != "espaces" and not ev.buildings.en_chantier(bid):
 				var old := float(ev.degats.get(bid, {}).get("d", 0.0))
 				ev.set_degats(bid, old + ev.rng.randf_range(0.08, 0.25), "tempete", true)
 				d.toits = int(d.toits) + 1

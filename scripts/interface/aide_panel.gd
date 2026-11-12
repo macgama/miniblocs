@@ -73,10 +73,18 @@ const SECTIONS := [
 		["Prendre sa place (fiche)", "incarner l'habitant en vue au sol (3e personne) ; V pour revenir, il reprend sa journée"],
 	]],
 	["Production", [
-		["P", "panneau Production : carte des ressources (clic sur une ressource pour la voir sur le terrain), stocks, sites"],
-		["Construire → Production", "extraction (forêt, ferme, élevage, pêche, carrière, sablière, argile, mine, puits) et transformation (scierie, moulin, boulangerie industrielle, aciérie, raffinerie…)"],
+		["P", "panneau Production : carte des ressources, marchandises de la ville, sites (stock et caisse de chaque entreprise), camions de livraison"],
+		["Construire → Production", "fermes (céréales, légumes, betteraves, lin, lait, élevage), forêt, pêche, carrières, mines, puits ; usines (moulin, laiterie, sucrerie, agroalimentaire, brasserie, verrerie, papeterie, chimie, textile, hygiène, pharmacie, électronique, automobile…) ; entreprise de transport routier"],
+		["Livraisons", "chaque site a son stock ; des camions conduits par des chauffeurs-livreurs (lundi-vendredi) livrent le plus proche qui en a besoin. Sans chauffeur ou sans route : rayons vides et habitants mécontents. Les entrepôts servent de relais ; le reste vient par import (route qui sort de la carte, dépôt, gare, port)"],
 		["Survol d'une case", "les ressources les plus riches de la case s'affichent dans la fiche du terrain"],
 		["Règles", "il faut des habitants pour les emplois, une voie d'accès, des commerces pour vendre, un dépôt, une gare ou un port pour exporter"],
+	]],
+	["Urgences", [
+		["U", "panneau Urgences : appels en cours (clic : y aller), casernes et véhicules, bilan des temps d'intervention, carte de couverture"],
+		["Construire → Services", "caserne de pompiers (FPT, VSAV, grande échelle), commissariat (police, ou gendarmerie dans une ville de moins de 2 000 habitants), hôpital (ambulances, SMUR)"],
+		["Sur la route", "gyrophares et sirène deux-tons : ils passent les feux au ralenti, les autres se rangent à droite, ils doublent par la voie d'en face quand elle est libre"],
+		["Équipages", "un véhicule ne part que si son équipage est de garde aujourd'hui (employés du bâtiment) ; l'ambulance passe par l'hôpital avant de rentrer"],
+		["Appel d'essai ici", "bouton du panneau : un appel au hasard près de la caméra, pour voir partir les secours"],
 	]],
 	["Temps et vue", [
 		["T", "mettre le temps en pause / reprendre"],

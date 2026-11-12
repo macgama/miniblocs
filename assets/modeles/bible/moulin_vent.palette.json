@@ -1,0 +1,34 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "brique": {
+   "index": 0,
+   "origine": "#a9583f"
+  },
+  "bois_sombre": {
+   "index": 1,
+   "origine": "#5a3e2b"
+  },
+  "chaume": {
+   "index": 2,
+   "origine": "#c9a861"
+  },
+  "cadre": {
+   "index": 3,
+   "origine": "#f4f1ea"
+  },
+  "vert": {
+   "index": 4,
+   "origine": "#3f8f5a"
+  },
+  "blanc": {
+   "index": 5,
+   "origine": "#f7f7f5"
+  },
+  "vitre": {
+   "index": 6,
+   "origine": "#33495e"
+  }
+ }
+}

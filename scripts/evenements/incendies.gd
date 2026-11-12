@@ -72,7 +72,7 @@ func _facteur(b: Dictionary, winter: bool) -> float:
 		k *= 3.0
 	if int(t.get("logements", 0)) > 0 and winter:
 		k *= 1.6
-	if t.has("glb") or cat == "espaces":
+	if t.has("stade") or cat == "espaces":
 		k *= 0.1
 	return k
 

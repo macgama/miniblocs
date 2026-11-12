@@ -69,6 +69,12 @@ var vitesse_vie: int = Population.DEFAULT_LIFE_SPEED
 var epuisement := true
 ## "tout" : tout le catalogue d'office ; "progression" : par paliers de population.
 var deblocage := "tout"
+## Fêtes de quartier, marchés et matchs organisés tout seuls par la ville.
+var evenements_auto := true
+## Incendies, tempêtes et épidémies au hasard (on peut toujours en déclencher à la main).
+var catastrophes := true
+## Fréquence des catastrophes (0,25 : rares ; 1 : normales ; 3 : fréquentes).
+var frequence_catastrophes := 1.0
 ## Joueur qui a créé la partie (SaveGame.player_id()) : l'admin des cartes entre amis.
 var createur := ""
 ## Plus grande population atteinte (pour les paliers).
@@ -203,7 +209,8 @@ func to_dict() -> Dictionary:
 		"cout_construction": cout_construction, "acces_route": acces_route, "impots": impots,
 		"salaires": salaires, "vitesse_temps": vitesse_temps, "vitesse_vie": vitesse_vie,
 		"epuisement": epuisement, "deblocage": deblocage, "createur": createur,
-		"record_habitants": record_habitants}
+		"record_habitants": record_habitants, "evenements_auto": evenements_auto, "catastrophes": catastrophes,
+		"frequence_catastrophes": frequence_catastrophes}
 
 
 func from_dict(d: Dictionary) -> void:
@@ -220,6 +227,9 @@ func from_dict(d: Dictionary) -> void:
 	deblocage = "progression" if String(d.get("deblocage", "tout")) == "progression" else "tout"
 	createur = String(d.get("createur", ""))
 	record_habitants = maxi(0, int(d.get("record_habitants", 0)))
+	evenements_auto = bool(d.get("evenements_auto", true))
+	catastrophes = bool(d.get("catastrophes", true))
+	frequence_catastrophes = clampf(float(d.get("frequence_catastrophes", 1.0)), 0.25, 3.0)
 
 
 ## Réglages par défaut des nouvelles parties (fichier du joueur, sinon « Normal »).

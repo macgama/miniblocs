@@ -18,6 +18,8 @@ signal transit_requested
 signal habitants_requested
 ## Panneau « Production » (touche P) : ressources, stocks, sites.
 signal production_requested
+## Panneau Infos : événements de la ville (touche I).
+signal infos_requested
 ## Bouton Admin de la barre du haut, ou F10 : réglages de la partie.
 signal admin_requested
 signal spec_edited(type_id: String, spec: Dictionary)
@@ -66,6 +68,7 @@ const CATEGORIES := [
 	{"id": "lignes", "name": "Lignes", "icon": "lignes", "key": "L", "panel": true},
 	{"id": "habitants", "name": "Habitants", "icon": "habitants", "key": "H", "panel": true},
 	{"id": "production", "name": "Production", "icon": "ressources", "key": "P", "panel": true},
+	{"id": "infos", "name": "Infos", "icon": "infos", "key": "I", "panel": true},
 	{"id": "murs", "name": "Murs et étages", "icon": "mur", "key": "2", "panel": true, "mode": "creer"},
 	{"id": "blocs", "name": "Blocs", "icon": "editeur", "key": "3", "panel": true, "mode": "creer"},
 	{"id": "interieur", "name": "Intérieur", "icon": "interieur", "key": "4", "panel": true, "mode": "creer"},
@@ -562,6 +565,7 @@ func _on_category(id: String) -> void:
 			"lignes": transit_requested.emit()
 			"habitants": habitants_requested.emit()
 			"production": production_requested.emit()
+			"infos": infos_requested.emit()
 		_update_categories()
 		return
 	if create_mode and id == "observer":

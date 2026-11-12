@@ -603,6 +603,9 @@ func _spawn(b: Dictionary) -> void:
 	mi.position = rect_center(rect) + Vector3(0, float(b.h), 0)
 	mi.rotation.y = -int(b.r) * PI / 2.0 + float(b.get("a", 0.0))
 	mi.visibility_range_end = 1400.0
+	# Modèle Blender (stades) : il garde ses matériaux, ni usure ni chantier.
+	if BuildingCatalog.get_type(b.t).has("glb"):
+		mi.set_meta("glb", true)
 	# Collision : le personnage de la vue au sol ne traverse pas le bâtiment.
 	var body := StaticBody3D.new()
 	var shape := CollisionShape3D.new()
@@ -614,7 +617,7 @@ func _spawn(b: Dictionary) -> void:
 	body.add_child(shape)
 	mi.add_child(body)
 	# Au loin, la version sans finitions (5 fois moins de triangles).
-	if BlocMesh.details_enabled and not BuildingCatalog.get_type(b.t).has("blocks"):
+	if BlocMesh.details_enabled and not BuildingCatalog.get_type(b.t).has("blocks") and not mi.has_meta("glb"):
 		mi.visibility_range_end = LOIN
 		var far := MeshInstance3D.new()
 		far.name = "Loin"

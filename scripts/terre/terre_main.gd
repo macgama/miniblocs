@@ -34,6 +34,10 @@ var _hover_valid := false
 var mobilier: Mobilier
 var occupants: Occupants
 var interieur_panel: InterieurPanel
+## Événements : fêtes, marchés, matchs, incendies, tempêtes, épidémies (touche I).
+var evenements: Evenements
+var evenements_panel: EvenementsPanel
+var actualites: Actualites
 
 
 func _ready() -> void:
@@ -72,6 +76,7 @@ func _ready() -> void:
 	_setup_mobilier()
 	_setup_production()
 	_setup_vie()
+	_setup_evenements()
 	_setup_create_mode()
 	hud.traffic_toggled.connect(func(on: bool) -> void: transport.traffic.set_enabled(on))
 	hud.traffic_filter_changed.connect(func(era: String, region: String) -> void:
@@ -161,7 +166,7 @@ func _ready() -> void:
 			hud.show_message("Partie chargée : %s." % _game_title())
 		else:
 			hud.show_message("Chargement impossible : " + last_error))
-	for sig in [world.terrain_edited, transport.network_changed, buildings.changed, zones.changed, blocks.changed, plans.changed, transport.stations.lines_changed, transport.junctions.changed, population.changed, production.changed, mobilier.changed]:
+	for sig in [world.terrain_edited, transport.network_changed, buildings.changed, zones.changed, blocks.changed, plans.changed, transport.stations.lines_changed, transport.junctions.changed, population.changed, production.changed, mobilier.changed, evenements.changed]:
 		(sig as Signal).connect(func(_a = null) -> void: _unsaved = true)
 	hud.build_requested.connect(func() -> void: build_panel.toggle())
 	var vue := get_node_or_null("VueSol")
@@ -212,7 +217,7 @@ func save_sections() -> Dictionary:
 		"zones": zones.to_dict(), "blocs": blocks.to_dict(), "plans": plans.to_dict(), "ambiance": ambiance.to_dict(),
 		"creations": Creations.to_dict(Creations.used_by(buildings)),
 		"personnage": ($VueSol as VueSol).to_dict(), "habitants": population.to_dict(), "mobilier": mobilier.to_dict(),
-		"production": production.to_dict(), "reglages": _settings_snapshot().to_dict()}
+		"production": production.to_dict(), "reglages": _settings_snapshot().to_dict(), "evenements": evenements.to_dict()}
 
 
 ## Sauvegarde dans la partie en cours (ou une nouvelle). title : nom d'une nouvelle partie.
@@ -269,6 +274,8 @@ func load_game(slot := "") -> bool:
 	population.from_dict(sec.get("habitants", {}))
 	production.from_dict(sec.get("production", {}))
 	ambiance.from_dict(sec.get("ambiance", {}))
+	# Après les bâtiments et les habitants : dégâts, ruines, malades, matchs.
+	evenements.from_dict(sec.get("evenements", {}))
 	($VueSol as VueSol).from_dict(sec.get("personnage", {}))
 	_load_settings(sec.get("reglages", {}), m)
 	build_panel.set_growth(zones.growth)
@@ -394,6 +401,40 @@ func _setup_vie() -> void:
 	vie_batiments.name = "VieBatiments"
 	add_child(vie_batiments)
 	vie_batiments.setup(buildings, ambiance, population)
+
+
+## Événements de la ville et leur panneau (I), fil d'actualité en haut de l'écran.
+## Le nœud Evenements vit sous la racine (/root/Evenements) pour les services d'urgence.
+func _setup_evenements() -> void:
+	evenements = Evenements.new()
+	evenements.setup(buildings, population, transport, ambiance, world, rig)
+	Evenements.instance = evenements
+	get_tree().root.add_child.call_deferred(evenements)
+	tree_exiting.connect(func() -> void:
+		if is_instance_valid(evenements):
+			evenements.queue_free())
+	evenements.actualite.connect(func(_n: Dictionary) -> void: _unsaved = true)
+	evenements_panel = EvenementsPanel.new()
+	evenements_panel.name = "PanneauInfos"
+	add_child(evenements_panel)
+	evenements_panel.setup(evenements)
+	var go := func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z
+	evenements_panel.focus_requested.connect(go)
+	evenements_panel.tool_requested.connect(func() -> void: _select_building_tool())
+	evenements.outil_change.connect(func(t: String) -> void:
+		var names := {"marche": "Marché : clique où poser les étals (clic droit : annuler).",
+			"fete": "Fête de quartier : clique où poser les tables et la scène (clic droit : annuler).",
+			"incendie": "Incendie : clique sur un bâtiment (clic droit : annuler)."}
+		hud.set_tool_info(String(names.get(t, ""))))
+	actualites = Actualites.new()
+	actualites.name = "FilActualite"
+	add_child(actualites)
+	actualites.setup(evenements)
+	actualites.focus_requested.connect(go)
+	actualites.open_requested.connect(func() -> void: evenements_panel.set_open(true))
+	hud.infos_requested.connect(func() -> void: evenements_panel.toggle())
 
 
 ## Production : sites, stocks, carte des ressources sur le terrain et panneau (P).
@@ -834,6 +875,8 @@ func _on_tool_selected(t: int) -> void:
 func _on_origin_changed(lat: float, lon: float) -> void:
 	# Nouvelle région : réseau vierge, paliers de déblocage à zéro.
 	ReglagesPartie.actuel.record_habitants = 0
+	if evenements != null:
+		evenements.clear()
 	population.clear()
 	production.clear()
 	resource_overlay.show_resource(resource_overlay.res)
@@ -914,7 +957,7 @@ var _open_before := {}
 ## Construire, Lignes et Habitants partagent la même place à droite : quand
 ## l'un s'ouvre, les autres se ferment. Leur bouton de la barre du bas s'allume.
 func _exclusive_panels() -> void:
-	var panels := {"construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "perso": perso_panel}
+	var panels := {"construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "perso": perso_panel, "infos": evenements_panel}
 	var opened := ""
 	for id in panels:
 		var p = panels[id]

@@ -122,6 +122,7 @@ static func all_types() -> Dictionary:
 			_all[id] = t
 		_all.merge(EspacesPublics.entries())
 		_all.merge(ProductionTypes.entries())
+		_all.merge(Stades.entries())
 		_all.merge(StyleBuilder.generate())
 		for id in Creations.items:
 			_all[id] = Creations.catalog_entry(id)
@@ -198,6 +199,8 @@ static func build_mesh(id: String, material: Material = null, details := true, v
 		return k.to_mesh(material)
 	if t.has("blocks"):
 		return Creations.build_mesh(t)
+	if t.has("glb"):
+		return Stades.build_mesh(t)
 	if t.has("prod"):
 		ProductionTypes.build(k, id, t)
 		k.fit_xz(w, d)

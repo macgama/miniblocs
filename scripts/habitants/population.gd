@@ -113,6 +113,8 @@ var _news_timer := 0.0
 var _now := {}
 ## Cycle de vie : CV, familles, santé, défunts, habitant suivi.
 var vie: CycleVie
+## Fonctions (p, n, plan) -> plan qui changent la journée d'un habitant (événements).
+var plan_hooks: Array[Callable] = []
 ## Caméra de la partie (pour suivre un habitant) et suivi caméra actif.
 var rig: Node3D
 var follow_camera := true
@@ -1000,6 +1002,9 @@ func day_plan(p: Dictionary, n: Dictionary = {}) -> Array:
 	if n.is_empty():
 		n = now()
 	var plan := _base_plan(p, n)
+	# Événements de la ville (malades, marché, fête, match) : voir Evenements.
+	for hook in plan_hooks:
+		plan = hook.call(p, n, plan)
 	if p.has("ord"):
 		var o: Dictionary = p.ord
 		if int(o.d) == int(n.day):

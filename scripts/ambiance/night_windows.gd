@@ -36,14 +36,18 @@ static func set_shared(param: String, value: Variant) -> void:
 
 ## Matériau d'un bâtiment usé : usure en paliers de 0 à 5, abandon de 0 à 4.
 ## (0, 0) = le matériau commun.
-static func variant_material(usure_q: int, abandon_q: int) -> ShaderMaterial:
-	if usure_q <= 0 and abandon_q <= 0:
+static func variant_material(usure_q: int, abandon_q: int, degats_q := 0, bache_q := 0, panne := false) -> ShaderMaterial:
+	if usure_q <= 0 and abandon_q <= 0 and degats_q <= 0 and bache_q <= 0 and not panne:
 		return building_material()
-	var key := "%d|%d" % [usure_q, abandon_q]
+	var key := "%d|%d|%d|%d|%d" % [usure_q, abandon_q, degats_q, bache_q, int(panne)]
 	if not _variants.has(key):
 		var m := building_material().duplicate() as ShaderMaterial
 		m.set_shader_parameter("usure", usure_q / 5.0)
 		m.set_shader_parameter("abandon", abandon_q / 4.0)
+		# Dégâts d'un incendie (paliers 0 à 4), bâches de tempête (0 à 2), panne de courant.
+		m.set_shader_parameter("degats", degats_q / 4.0)
+		m.set_shader_parameter("bache", bache_q / 2.0)
+		m.set_shader_parameter("panne", 1.0 if panne else 0.0)
 		_variants[key] = m
 	return _variants[key]
 

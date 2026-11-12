@@ -84,4 +84,24 @@ func _run() -> void:
 	# 4. Lignes (panneau de droite, ne doit pas sortir de l'écran).
 	scene.transit_panel.set_open(true)
 	await _shot(dir.path_join("apercu-menus-lignes.png"))
+	scene.transit_panel.set_open(false)
+	# 5. Mode Créer : barre de l'atelier, outils de plan, échelle des étages.
+	var plans: PlanEditor = scene.plans
+	var gy := world.cell_height(Vector2i(-60, -20))
+	var pid := plans.new_plan(gy)
+	plans.add_room(pid, Rect2i(-66, -26, 10, 8), 0, 2)
+	plans.add_walls(pid, PlanEditor.wall_line(Vector2i(-66, -26), Vector2i(-56, -26), 2))
+	plans.add_walls(pid, PlanEditor.wall_line(Vector2i(-66, -26), Vector2i(-66, -18), 2))
+	rig.position = Vector3(-61, gy, -22)
+	rig._target_distance = 60.0
+	hud._request_mode(true)
+	plans._active = pid
+	plans.set_level(2)
+	for i in 30:
+		await process_frame
+	await _shot(dir.path_join("apercu-mode-creer.png"))
+	# 6. Retour en mode Gérer : la barre de la ville.
+	hud._request_mode(false)
+	rig._target_distance = 150.0
+	await _shot(dir.path_join("apercu-mode-gerer.png"))
 	quit()

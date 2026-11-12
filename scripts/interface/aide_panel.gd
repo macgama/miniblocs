@@ -13,6 +13,7 @@ const SECTIONS := [
 		["Clic molette glissé en haut / en bas, ou Ctrl + molette", "incliner : jusqu'à une vue rasante pour voir le relief jusqu'à l'horizon (10 km)"],
 	]],
 	["Barre du bas", [
+		["Tab · Gérer / Créer", "Gérer : la ville (terrain, voies, zonage, catalogue, lignes, habitants). Créer : construire un bâtiment soi-même (murs et étages, blocs, intérieur, Mes créations), la ville en pause ; touches 1 à 5 et échelle des étages"],
 		["Catégories", "Observer, Terrain, Voies, Paysage : un clic ouvre leurs outils juste au-dessus ; Construire, Lignes, Habitants ouvrent leur panneau à droite (un seul à la fois)"],
 		["Circulation, Véhicules, Vue", "afficher la circulation, choisir l'époque et la région des véhicules, changer de vue"],
 		["1", "observer : survoler une case pour voir son altitude et son biome (et le nom de la rivière)"],
@@ -36,7 +37,7 @@ const SECTIONS := [
 		["R (éditeur libre)", "tourner l'escalier, la pente, la porte ou la fenêtre d'un quart de tour"],
 		["Enregistrer + clic glissé", "éditeur libre : ta construction devient un bâtiment de « Mes créations »"],
 		["Murs et étages (éditeur libre)", "murs de 20 cm posés sur les lignes de la grille, pièces, sols, escaliers, portes et fenêtres, peinture d'un côté de mur ou de toute une pièce"],
-		["Page haut / Page bas", "étage actif (jusqu'à 59 étages et 5 sous-sols, le terrain est creusé) ; les étages du dessus sont masqués pendant l'édition"],
+		["Page haut / Page bas, ou l'échelle des étages", "étage actif (jusqu'à 59 étages et 5 sous-sols, le terrain est creusé) ; les étages du dessus sont masqués pendant l'édition"],
 		["Copier l'étage ↑", "recopie l'étage actif au-dessus, autant de fois que voulu (immeubles)"],
 		["Murs et pièces sur N étages", "réglage du panneau : un trait de Mur ou un rectangle de Pièce monte sur plusieurs étages d'un coup"],
 		["Toit (murs et étages)", "deux pans, quatre pans ou plat, posé en blocs sur le dernier étage"],

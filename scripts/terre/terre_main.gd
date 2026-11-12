@@ -72,6 +72,7 @@ func _ready() -> void:
 	_setup_mobilier()
 	_setup_production()
 	_setup_vie()
+	_setup_create_mode()
 	hud.traffic_toggled.connect(func(on: bool) -> void: transport.traffic.set_enabled(on))
 	hud.traffic_filter_changed.connect(func(era: String, region: String) -> void:
 		transport.traffic.set_filters(era, region)
@@ -515,7 +516,10 @@ func _setup_plans() -> void:
 	buildings.extra_blocker = func(c: Vector2i) -> bool: return blocks.columns.has(c) or plans.cells.has(c)
 	plans.info_changed.connect(func(t: String) -> void: hud.set_tool_info(t))
 	plans.message.connect(func(t: String) -> void: hud.show_message(t))
-	plans.level_changed.connect(func(t: String) -> void: build_panel.set_level_label(t))
+	plans.level_changed.connect(func(t: String) -> void:
+		build_panel.set_level_label(t)
+		hud.set_level_text(t)
+		_refresh_ladder())
 	build_panel.plan_tool_chosen.connect(func(t: int) -> void:
 		_select_building_tool()
 		plans.set_material(blocks.material)
@@ -565,6 +569,67 @@ func _setup_mobilier() -> void:
 	interieur_panel = InterieurPanel.new()
 	interieur_panel.setup(mobilier, func() -> void: _select_building_tool())
 	build_panel.interieur_builder = interieur_panel.build
+
+
+# --- Mode Créer : la construction libre à part de la gestion de la ville ---------
+
+## Vitesse du temps avant le mode Créer (la ville s'y met en pause).
+var _speed_before_create := -1
+
+
+func _setup_create_mode() -> void:
+	hud.mode_changed.connect(set_create_mode)
+	hud.create_requested.connect(_on_create_requested)
+	hud.level_step_requested.connect(func(d: int) -> void: plans.step_level(d))
+	build_panel.plan_level_set.connect(func(e: int) -> void: plans.set_level(e))
+	plans.changed.connect(_refresh_ladder)
+	hud.set_level_text(PlanEditor.level_name(plans.level))
+
+
+## Passe en mode Créer (atelier, ville en pause) ou revient en mode Gérer.
+func set_create_mode(on: bool) -> void:
+	if hud.create_mode != on:
+		hud.set_create_mode(on)
+	if on:
+		_select_building_tool()
+		if _speed_before_create < 0:
+			_speed_before_create = ambiance.speed_index
+		ambiance.set_speed(0)
+		_on_create_requested("murs")
+		hud.set_create_category("murs")
+	else:
+		_select_building_tool()
+		build_panel.set_workshop(false)
+		build_panel.set_open(false)
+		if _speed_before_create >= 0:
+			ambiance.set_speed(_speed_before_create)
+			_speed_before_create = -1
+
+
+## Barre du bas du mode Créer : Murs et étages, Blocs, Intérieur, Mes créations.
+func _on_create_requested(id: String) -> void:
+	_select_building_tool()
+	if id == "":
+		build_panel.set_open(false)
+		return
+	build_panel.set_workshop(true)
+	match id:
+		"murs": build_panel.set_block_mode("plans")
+		"blocs": build_panel.set_block_mode("blocs")
+		"interieur": build_panel.show_category("interieur")
+		"creations": build_panel.show_category(Creations.CATEGORY)
+	build_panel.set_open(true)
+	if id == "murs":
+		# On commence avec l'outil Mur en main.
+		plans.set_material(blocks.material)
+		plans.set_tint(blocks.tint)
+		plans.set_tool(PlanEditor.Tool.WALL)
+	_refresh_ladder()
+
+
+## Échelle des étages : niveaux du bâtiment visé (ou vide) et étage actif.
+func _refresh_ladder() -> void:
+	build_panel.set_ladder(plans.level_counts(plans.active_id()), plans.level)
 
 
 ## Un outil de construction prend la main : on range ceux du terrain et des voies.
@@ -726,6 +791,9 @@ func _exclusive_panels() -> void:
 				_open_before[id] = false
 	for id in panels:
 		hud.set_panel_open(id, _open_before[id])
+	# Mode Créer : panneau fermé (B, croix) = plus de catégorie allumée.
+	if hud.create_mode and not build_panel.is_open() and hud.create_category() != "":
+		hud.set_create_category("")
 
 
 ## Chiffres de la ville dans la barre du haut : caisse, habitants, satisfaction, chômage.

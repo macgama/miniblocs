@@ -211,6 +211,28 @@ func step_level(d: int) -> void:
 		_emit_help()
 
 
+## Va directement à un étage (échelle des étages du mode Créer).
+func set_level(e: int) -> void:
+	step_level(e - level)
+
+
+## Murs par étage du bâtiment : {étage: nombre de murs} (un étage avec seulement
+## un plancher compte 0 mur).
+func level_counts(id: String) -> Dictionary:
+	var out := {}
+	if not plans.has(id):
+		return out
+	var p: Dictionary = plans[id]
+	for k in p.floors:
+		var e: int = (k as Vector3i).y
+		if not out.has(e):
+			out[e] = 0
+	for k in p.walls:
+		var e: int = (k as Vector4i).y
+		out[e] = int(out.get(e, 0)) + 1
+	return out
+
+
 static func level_name(e: int) -> String:
 	if e == 0:
 		return "Rez-de-chaussée"

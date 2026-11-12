@@ -41,6 +41,20 @@ godot --headless --path . --script res://tests/modeles_glb_test.gd
 
 Il doit afficher `MODELES GLB TEST OK` (chaque `.glb` s'importe, moins de 3 000 triangles, texture de 256 px au plus, posé au sol, taille réaliste).
 
+## Bâtiments recréés d'après une image
+
+Un bâtiment particulier a son propre script dans `tools/blender/batiments/`, qui réutilise les briques du générateur : boîtes, cylindres et portions de cylindre, dalles, vitrages à petits carreaux (texture répétée), garde-corps en grille ou à barreaux fins (texture semi-transparente), hublots.
+
+| Script | Bâtiment | Triangles |
+| --- | --- | --- |
+| `maison_frank.py` | Villa moderniste d'après une maison de Josef Frank (années 1930) : bow-window, tours cylindriques, terrasses | 558 |
+
+![Maison Frank et maison test dans la vitrine](apercu-glb-maison_frank.png)
+
+```bash
+"C:\Program Files\Blender Foundation\Blender 5.2\blender.exe" --background --factory-startup --python tools/blender/batiments/maison_frank.py -- --out assets/modeles/batiments/maison_frank.glb --apercu apercu.png --azimuts -8,40
+```
+
 ## Outils et ressources gratuits
 
 Seulement des licences compatibles avec un jeu vendu sur Steam.

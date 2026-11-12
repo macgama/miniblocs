@@ -107,6 +107,19 @@ class Palette:
 
 
 # --- Construction -------------------------------------------------------------
+# Matériaux : 0 = palette (presque tout), 1 = vitrage à petits carreaux,
+# 2 = grille ajourée (garde-corps, treillage), textures de 32 × 32 px répétées.
+MAT_PALETTE, MAT_CARREAUX, MAT_GRILLE = 0, 1, 2
+
+
+def arc(cx, cy, r, a0, a1, n):
+    """Points d'un arc (angles en degrés), n segments pour un tour complet."""
+    segs = max(1, int(round(n * abs(a1 - a0) / 360.0)))
+    return [(cx + r * math.cos(math.radians(a0 + (a1 - a0) * i / segs)),
+             cy + r * math.sin(math.radians(a0 + (a1 - a0) * i / segs)))
+            for i in range(segs + 1)]
+
+
 class Batisseur:
     """Accumule des faces colorées dans un seul bmesh."""
 
@@ -115,14 +128,72 @@ class Batisseur:
         self.uv = self.bm.loops.layers.uv.new("UVMap")
         self.palette = palette
 
-    def face(self, pts, couleur):
+    def face(self, pts, couleur, lisse=False):
         verts = [self.bm.verts.new(p) for p in pts]
         f = self.bm.faces.new(verts)
-        f.smooth = False
+        f.smooth = lisse
+        f.material_index = MAT_PALETTE
         u, v = self.palette.uv(self.palette.index(couleur))
         for loop in f.loops:
             loop[self.uv].uv = (u, v)
         return f
+
+    def quad_motif(self, pts, mat, ru, rv):
+        """Quadrilatère avec une texture répétée ru × rv fois (carreaux, grille)."""
+        verts = [self.bm.verts.new(p) for p in pts]
+        f = self.bm.faces.new(verts)
+        f.smooth = False
+        f.material_index = mat
+        for loop, uv in zip(f.loops, [(0, 0), (ru, 0), (ru, rv), (0, rv)]):
+            loop[self.uv].uv = uv
+        return f
+
+    def cylindre(self, cx, cy, z0, z1, r, couleur, n=16, a0=0.0, a1=360.0,
+                 dessus=True, couleur_dessus=None):
+        """Cylindre (ou portion entre les angles a0 et a1, en degrés ; 0 = +X,
+        -90 = façade avant). Côtés lisses, dessus plat."""
+        pts = arc(cx, cy, r, a0, a1, n)
+        plein = abs(a1 - a0) >= 360.0
+        if plein:
+            pts = pts[:-1]
+        m = len(pts) if plein else len(pts) - 1
+        for i in range(m):
+            (xa, ya), (xb, yb) = pts[i], pts[(i + 1) % len(pts)]
+            self.face([(xa, ya, z0), (xb, yb, z0), (xb, yb, z1), (xa, ya, z1)], couleur, lisse=True)
+        if dessus:
+            poly = pts if plein else [(cx, cy)] + pts
+            self.face([(x, y, z1) for x, y in poly], couleur_dessus or couleur)
+
+    def bande_arc(self, cx, cy, r, z0, z1, a0, a1, n, mat, maille_u, maille_v):
+        """Bande verticale courbe texturée (vitrage à carreaux, garde-corps)."""
+        pts = arc(cx, cy, r, a0, a1, n)
+        for (xa, ya), (xb, yb) in zip(pts, pts[1:]):
+            lg = math.hypot(xb - xa, yb - ya)
+            self.quad_motif([(xa, ya, z0), (xb, yb, z0), (xb, yb, z1), (xa, ya, z1)],
+                            mat, lg / maille_u, (z1 - z0) / maille_v)
+
+    def bande_ligne(self, points, z0, z1, mat, maille_u, maille_v):
+        """Bande verticale le long d'une ligne brisée [(x, y), …]."""
+        for (xa, ya), (xb, yb) in zip(points, points[1:]):
+            lg = math.hypot(xb - xa, yb - ya)
+            self.quad_motif([(xa, ya, z0), (xb, yb, z0), (xb, yb, z1), (xa, ya, z1)],
+                            mat, lg / maille_u, (z1 - z0) / maille_v)
+
+    def vitrage(self, centre, normale, largeur, hauteur, cols, lignes):
+        """Fenêtre à petits carreaux posée sur un mur droit (normale ±X ou ±Y)."""
+        cx, cy, cz = centre
+        nx, ny = normale
+        l, h = largeur / 2.0, hauteur / 2.0
+        cx, cy = cx + nx * 0.03, cy + ny * 0.03
+        if ny != 0:
+            s = 1 if ny < 0 else -1
+            pts = [(cx - s * l, cy, cz - h), (cx + s * l, cy, cz - h),
+                   (cx + s * l, cy, cz + h), (cx - s * l, cy, cz + h)]
+        else:
+            s = 1 if nx > 0 else -1
+            pts = [(cx, cy - s * l, cz - h), (cx, cy + s * l, cz - h),
+                   (cx, cy + s * l, cz + h), (cx, cy - s * l, cz + h)]
+        self.quad_motif(pts, MAT_CARREAUX, cols, lignes)
 
     def boite(self, centre, taille, couleur, dessous=False, couleur_dessus=None):
         cx, cy, cz = centre
@@ -171,8 +242,8 @@ class Batisseur:
                 self.plaque(p, normale, largeur / 2, hauteur + 0.1, d["volets"])
 
 
-def construit(d, palette):
-    b = Batisseur(palette)
+def construit(d, palette, b=None):
+    b = b or Batisseur(palette)
     L = float(d.get("largeur", 8.0))       # le long de X (façade)
     P = float(d.get("profondeur", 6.0))    # le long de Y
     etages = int(d.get("etages", 2))
@@ -264,21 +335,69 @@ def construit(d, palette):
     return b.bm
 
 
-def materiau(palette, nom):
+def _texture_motif(nom, fonction, alpha=False, taille=32):
+    """Petite image procédurale : fonction(x, y) -> (r, g, b, a), y vers le haut."""
+    img = bpy.data.images.new(nom, taille, taille, alpha=alpha)
+    px = [0.0] * (taille * taille * 4)
+    for y in range(taille):
+        for x in range(taille):
+            o = (y * taille + x) * 4
+            px[o:o + 4] = fonction(x, y, taille)
+    img.pixels = px
+    img.pack()
+    return img
+
+
+def _carreaux(x, y, t):
+    """Vitrage : petit bois clair sur le bord de chaque carreau, vitre sombre."""
+    bord = 2
+    if x < bord or x >= t - bord or y < bord or y >= t - bord:
+        return [0.93, 0.92, 0.89, 1.0]
+    k = 0.10 + 0.06 * (y / t)  # léger reflet du ciel vers le haut
+    return [k, k * 1.25, k * 1.5, 1.0]
+
+
+def _grille(x, y, t):
+    """Grille ajourée : barreaux blancs sur les bords, presque transparent au
+    centre (un léger voile garde la grille lisible de loin, une fois réduite)."""
+    bord = 3
+    if x < bord or x >= t - bord or y < bord or y >= t - bord:
+        return [0.95, 0.95, 0.93, 1.0]
+    return [0.95, 0.95, 0.93, 0.12]
+
+
+def _materiau_texture(nom, image, closest, transparent=False, rugosite=0.9):
     mat = bpy.data.materials.new(nom)
     mat.use_nodes = True
     nt = mat.node_tree
     bsdf = nt.nodes.get("Principled BSDF")
-    bsdf.inputs["Roughness"].default_value = 0.9
+    bsdf.inputs["Roughness"].default_value = rugosite
     tex = nt.nodes.new("ShaderNodeTexImage")
-    tex.image = palette.image(nom + "_palette")
-    tex.interpolation = "Closest"
+    tex.image = image
+    tex.interpolation = "Closest" if closest else "Linear"
     nt.links.new(tex.outputs["Color"], bsdf.inputs["Base Color"])
+    if transparent:
+        # Alpha progressif (alphaMode BLEND) : les barreaux fins restent
+        # visibles de loin au lieu de disparaître comme avec un seuil.
+        nt.links.new(tex.outputs["Alpha"], bsdf.inputs["Alpha"])
+        mat.use_backface_culling = False
     return mat
 
 
-def apercu(obj, chemin):
-    """Petite image Workbench (rapide, sans GPU spécial) pour vérifier."""
+def materiaux(palette, nom):
+    """Les trois matériaux, dans l'ordre MAT_PALETTE, MAT_CARREAUX, MAT_GRILLE.
+    Seuls ceux réellement utilisés par des faces sont exportés."""
+    return [
+        _materiau_texture(nom, palette.image(nom + "_palette"), closest=True),
+        _materiau_texture(nom + "_carreaux", _texture_motif(nom + "_carreaux_tex", _carreaux),
+                          closest=False, rugosite=0.25),
+        _materiau_texture(nom + "_grille", _texture_motif(nom + "_grille_tex", _grille, alpha=True),
+                          closest=False, transparent=True),
+    ]
+
+
+def apercu(obj, chemin, azimut=-37.0, hauteur=0.55):
+    """Petite image Workbench (rapide) pour vérifier. azimut en degrés depuis -Y."""
     scene = bpy.context.scene
     dims = obj.dimensions
     r = max(dims.x, dims.y, dims.z) * 1.9
@@ -286,7 +405,8 @@ def apercu(obj, chemin):
     cam = bpy.data.objects.new("cam", cam_data)
     scene.collection.objects.link(cam)
     cible = Vector((0, 0, dims.z * 0.45))
-    pos = Vector((r * 0.75, -r, r * 0.55))
+    a = math.radians(azimut)
+    pos = Vector((-r * math.sin(a), -r * math.cos(a), r * hauteur))
     cam.location = pos
     cam.rotation_euler = (cible - pos).to_track_quat("-Z", "Y").to_euler()
     scene.camera = cam
@@ -294,14 +414,14 @@ def apercu(obj, chemin):
     scene.display.shading.light = "STUDIO"
     scene.display.shading.color_type = "TEXTURE"
     scene.display.shading.show_shadows = True
-    scene.render.resolution_x = 800
-    scene.render.resolution_y = 600
+    scene.render.resolution_x = 1000
+    scene.render.resolution_y = 750
     scene.render.film_transparent = False
     scene.render.filepath = os.path.abspath(chemin)
     bpy.ops.render.render(write_still=True)
 
 
-def main():
+def lire_options():
     argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
     opts = {}
     i = 0
@@ -311,20 +431,22 @@ def main():
             i += 2
         else:
             i += 1
-    with open(opts["desc"], encoding="utf-8") as f:
-        d = json.load(f)
-    nom = d.get("nom", os.path.splitext(os.path.basename(opts["out"]))[0])
+    return opts
 
-    bpy.ops.wm.read_factory_settings(use_empty=True)
-    palette = Palette()
-    bm = construit(d, palette)
+
+def exporte(batisseur, nom, opts):
+    """Transforme le bmesh en objet, exporte le .glb (opts["out"]) et, si
+    demandé, un .blend (opts["blend"]) et des aperçus (opts["apercu"], un
+    chemin ; opts["azimuts"], ex. "-37,20" pour plusieurs vues)."""
+    bm = batisseur.bm
     bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-5)
     mesh = bpy.data.meshes.new(nom)
     bm.to_mesh(mesh)
     bm.free()
     obj = bpy.data.objects.new(nom, mesh)
     bpy.context.scene.collection.objects.link(obj)
-    mesh.materials.append(materiau(palette, nom))
+    for m in materiaux(batisseur.palette, nom):
+        mesh.materials.append(m)
 
     tris = sum(len(p.vertices) - 2 for p in mesh.polygons)
     print("BATIMENT %s : %d faces, %d triangles, %.1f x %.1f x %.1f m" % (
@@ -343,8 +465,25 @@ def main():
     if "blend" in opts:
         bpy.ops.wm.save_as_mainfile(filepath=os.path.abspath(opts["blend"]))
     if "apercu" in opts:
-        apercu(obj, opts["apercu"])
-        print("APERCU OK", opts["apercu"])
+        azimuts = [float(a) for a in opts.get("azimuts", "-37").split(",")]
+        base, ext = os.path.splitext(opts["apercu"])
+        for k, az in enumerate(azimuts):
+            chemin = opts["apercu"] if k == 0 else "%s_%d%s" % (base, k, ext)
+            apercu(obj, chemin, az)
+            print("APERCU OK", chemin)
+    return obj
 
 
-main()
+def main():
+    opts = lire_options()
+    with open(opts["desc"], encoding="utf-8") as f:
+        d = json.load(f)
+    nom = d.get("nom", os.path.splitext(os.path.basename(opts["out"]))[0])
+    bpy.ops.wm.read_factory_settings(use_empty=True)
+    b = Batisseur(Palette())
+    b.bm = construit(d, b.palette, b)
+    exporte(b, nom, opts)
+
+
+if __name__ == "__main__":
+    main()

@@ -230,6 +230,30 @@ func _run() -> void:
 	dn.set_jour_permanent(false)
 	dn.set_local_hour(23.5)
 	_check(dn.night > 0.95, "Jour permanent coupé : la nuit revient")
+	# Jour permanent automatique quand Construire est ouvert.
+	var bp: BuildingPanel = scene.get_node("PanneauConstruction")
+	bp.set_open(true)
+	await process_frame
+	_check(dn.jour_actif() and dn.night < 0.01, "Construire ouvert à 23 h 30 : jour permanent tout seul")
+	dn.toggle_jour_permanent()
+	await process_frame
+	_check(not dn.jour_actif() and dn.night > 0.95, "Ctrl + T pendant la construction : retour à la nuit")
+	bp.set_open(false)
+	await process_frame
+	bp.set_open(true)
+	await process_frame
+	_check(dn.jour_actif(), "Construire rouvert : de nouveau le jour")
+	bp.set_open(false)
+	await process_frame
+	_check(not dn.jour_actif() and dn.night > 0.95, "Construire fermé : la nuit revient")
+	dn.set_jour_auto(false)
+	bp.set_open(true)
+	await process_frame
+	_check(not dn.jour_actif(), "Jour automatique coupé : Construire ne change plus la lumière")
+	_check(dn.to_dict().get("jour_auto") == false, "Sauvegarde : le choix du jour automatique est gardé")
+	bp.set_open(false)
+	dn.set_jour_auto(true)
+	await process_frame
 	dn.set_local_hour(12.0)
 
 	# Météo forcée.

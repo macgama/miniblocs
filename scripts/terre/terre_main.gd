@@ -730,6 +730,9 @@ var _snap_pending := true
 
 func _process(delta: float) -> void:
 	_autosave(delta)
+	# Jour permanent automatique pendant la construction.
+	ambiance.set_construction(build_panel.is_open() or blocks.tool != BlockEditor.Tool.NONE
+		or (plans != null and plans.tool != PlanEditor.Tool.NONE))
 	world.update_tide(ambiance.unix_time)
 	# Le pivot de la caméra suit le relief sous lui.
 	var h := world.cell_height(Vector2i(floori(rig.position.x), floori(rig.position.z)))

@@ -250,6 +250,8 @@ func _setup_population() -> void:
 	population.transport = transport
 	population.ambiance = ambiance
 	population.message.connect(func(t: String) -> void: hud.show_message(t))
+	# Pas de bâtiment, personne dans les rues : la circulation suit les habitants.
+	transport.traffic.demand = population.traffic_demand
 	buildings.changed.connect(func() -> void: population._sync_buildings.call_deferred())
 	habitants_panel = HabitantsPanel.new()
 	habitants_panel.name = "PanneauHabitants"

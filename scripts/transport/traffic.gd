@@ -77,6 +77,10 @@ var _busy: Dictionary = {}
 var parkings: Dictionary = {}
 ## Tronçons à trottoirs (cache) et leur longueur totale.
 var _sidewalks: Array[int] = []
+## Si défini : Callable() -> {mode: nombre, "walkers": nombre}. Plafonne la
+## circulation d'ambiance d'après les habitants (pas de bâtiment, personne dans
+## les rues). Les bus d'ambiance disparaissent : seuls roulent ceux des lignes.
+var demand: Callable
 var _sidewalk_len := -1.0
 
 
@@ -277,6 +281,8 @@ func pick_model(cls: String) -> String:
 	var per_cat: Dictionary = {}
 	for id in ids:
 		var c: String = VehicleCatalog.get_type(id).cat
+		if demand.is_valid() and c == "bus":
+			continue
 		per_cat[c] = int(per_cat.get(c, 0)) + 1
 	var total := 0.0
 	for c in per_cat:
@@ -288,6 +294,8 @@ func pick_model(cls: String) -> String:
 		cat = c
 		if x <= 0.0:
 			break
+	if per_cat.is_empty():
+		return ids[rng.randi() % ids.size()]
 	var in_cat: Array[String] = []
 	for id in ids:
 		if VehicleCatalog.get_type(id).cat == cat:
@@ -311,10 +319,13 @@ func _process(delta: float) -> void:
 	_spawn_timer -= delta
 	if _spawn_timer <= 0.0:
 		_spawn_timer = 0.25
+		var dem: Dictionary = demand.call() if demand.is_valid() else {}
 		for mode in DENSITY:
 			var want := mini(int(DENSITY[mode][1]), floori(network.total_length(mode) * float(DENSITY[mode][0])))
 			if mode == TransportTypes.Mode.RAIL or mode == TransportTypes.Mode.WATER:
 				want = maxi(want, 1 if network.total_length(mode) > 60.0 else 0)
+			if demand.is_valid():
+				want = mini(want, int(dem.get(mode, 0)))
 			var have := count_mode(mode)
 			if have < want:
 				spawn(mode)
@@ -325,6 +336,8 @@ func _process(delta: float) -> void:
 						vehicles.remove_at(i)
 						break
 		var want_w := mini(int(SIDEWALK_DENSITY[1]), floori(sidewalk_length() * float(SIDEWALK_DENSITY[0])))
+		if demand.is_valid():
+			want_w = mini(want_w, int(dem.get("walkers", 0)))
 		var have_w := walker_count()
 		if have_w < want_w:
 			spawn_walker()

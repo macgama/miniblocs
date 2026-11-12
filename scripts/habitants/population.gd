@@ -1060,6 +1060,80 @@ func satisfaction(p: Dictionary) -> Dictionary:
 	return {"value": clampi(roundi(s), 0, 100), "why": why}
 
 
+# --- Circulation -------------------------------------------------------------------
+
+## Agents à l'écran par personne qui se déplace (les autres sont « hors champ »).
+const STREET_SHARE := 1.0
+## Demi-fenêtre autour de l'heure pendant laquelle un trajet compte (h).
+const WINDOW := 0.33
+## Trains et bateaux d'ambiance : un par tant d'emplois occupés.
+const JOBS_PER_TRAIN := 300
+const JOBS_PER_BOAT := 400
+var _demand := {}
+var _demand_ms := -100000
+var _demand_n := -1
+
+
+## Combien de voitures, de cyclistes et de piétons sont dehors en ce moment,
+## d'après l'emploi du temps des habitants (échantillon de 300 personnes).
+## Sans habitant, personne dans les rues. Pour Traffic.demand.
+func traffic_demand() -> Dictionary:
+	var ms := Time.get_ticks_msec()
+	if ms - _demand_ms < 1500 and persons.size() == _demand_n:
+		return _demand
+	_demand_ms = ms
+	_demand_n = persons.size()
+	var cars := 0.0
+	var bikes := 0.0
+	var walk := 0.0
+	var jobs := 0
+	for bid in by_job:
+		jobs += (by_job[bid] as Array).size()
+	if not persons.is_empty():
+		_now = now()
+		var ids := persons.keys()
+		var n := mini(ids.size(), 300)
+		var step := float(ids.size()) / n
+		for k in n:
+			var p: Dictionary = persons[ids[int(k * step)]]
+			var h: Dictionary = households.get(int(p.f), {})
+			var has_car := int(h.get("car", 0)) > 0 and age_of(p) >= ADULT_AGE
+			var hour: float = _now.h
+			# Dehors si un trajet tombe à moins de 20 min (on flâne, on attend,
+			# on se gare), ou pendant les courses et les loisirs.
+			for seg in day_plan(p, _now):
+				var kind := String(seg[2])
+				if kind == "trajet" and float(seg[1]) > hour - WINDOW and float(seg[0]) < hour + WINDOW:
+					var dest := int(p.sch) if int(p.sch) >= 0 else int(p.job)
+					var mode := String(commute(p, home_of(p), dest).mode)
+					if mode.begins_with("en voiture"):
+						cars += 1.0
+					elif mode.begins_with("à vélo"):
+						bikes += 1.0
+					else:
+						walk += 1.0
+					break
+				if (kind == "courses" or kind == "loisir") and hour >= float(seg[0]) and hour < float(seg[1]):
+					if has_car and int(p.id) % 2 == 1:
+						cars += 0.25
+					else:
+						walk += 0.4
+					break
+		var scale := float(ids.size()) / n * STREET_SHARE
+		cars *= scale
+		bikes *= scale
+		walk *= scale
+	# Livraisons et artisans : un utilitaire pour 40 emplois occupés en journée.
+	var hour := float(now().h)
+	if hour >= 7.0 and hour < 19.0:
+		cars += jobs / 40.0
+	var road := roundi(cars + bikes * 0.5)
+	_demand = {TransportTypes.Mode.ROAD: road, TransportTypes.Mode.PATH: roundi(walk * 0.5 + bikes * 0.5),
+		TransportTypes.Mode.RAIL: jobs / JOBS_PER_TRAIN, TransportTypes.Mode.WATER: jobs / JOBS_PER_BOAT,
+		"walkers": roundi(walk)}
+	return _demand
+
+
 # --- Chiffres ---------------------------------------------------------------------
 
 func stats() -> Dictionary:

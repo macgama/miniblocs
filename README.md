@@ -312,6 +312,22 @@ L'onglet **Éditeur libre** a deux modes : **Murs et étages** (par défaut) et 
 
 ![Vue en coupe du rez-de-chaussée : cuisine carrelée, salon en parquet, escalier](docs/apercu-murs-interieur.png)
 
+### Intérieurs : meubles, pièces et bâtiments meublés
+
+L'onglet **Intérieur** (icône fauteuil) du panneau Construire aménage les bâtiments en murs fins :
+
+- **Bâtiments meublés, prêts à visiter** : maison familiale, petit immeuble (4 niveaux), école, boutique, bureaux, café. Un clic les pose avec leurs pièces, portes, fenêtres, escaliers, toit et tous leurs meubles, dans le style choisi. On y entre en vue au sol (**V**) et les portes s'ouvrent avec **E**.
+- **Meubler une pièce** : un clic dans une pièce la meuble selon sa fonction (séjour, cuisine, chambre, chambre d'enfant, salle de bain, entrée, bureau, salle de classe, boutique, salle de restaurant, réserve). La fonction est devinée (taille, carrelage, place dans le bâtiment) ou choisie avec l'outil **Fonction**. **Meubler tout** aménage tout le bâtiment.
+- **Pose libre, à la manière des Sims** : chaque meuble du catalogue se pose case par case, comme les blocs (**R** tourne, clic droit retire, **Ctrl+Z** annule, **Page haut / Page bas** change d'étage). Trois couches : au sol (tapis), les meubles, au mur (cadres, étagères, appliques). Un meuble ne traverse pas un mur et ne bouche pas un escalier.
+- **La bible des meubles** : 79 types de meubles et d'objets × 32 styles du monde et de toutes les époques (romain, égyptien, Louis XV, victorien, rustique, provençal, marocain, persan, majlis, Afrique de l'Ouest, swahili, japonais, chinois, coréen, indien, balinais, mexicain, andin, polynésien, far west, art déco, mid-century, années 70, scandinave, industriel, contemporain, luxe, futuriste…), soit plus de 2 000 meubles, filtrables par pièce, par style et par nom.
+- **Les meubles comptent** : chaque meuble apporte du confort, de l'attractivité et de la valeur. Le panneau montre les logements, lits, emplois et places d'un bâtiment, ce qui manque (pas de lit, pas de cuisine…), sa valeur et son loyer. Le confort change la satisfaction des habitants, l'attractivité attire les clients des boutiques et des cafés, la valeur pèse sur le loyer et la taxe foncière.
+- **Les habitants y vivent** : ils emménagent dans les logements meublés, travaillent dans les boutiques, bureaux et écoles meublés, et on les voit dans les pièces à leurs heures : couchés dans leur lit la nuit, assis au séjour ou à table, au bureau, au tableau, à la caisse, à leur pupitre.
+
+![Bâtiments meublés vus en coupe : maison, immeuble, école, boutique, bureaux, café](docs/interieurs_dessus.png)
+![Les habitants dans leur maison en fin de journée](docs/interieurs_proche.png)
+![Vue au sol dans le séjour de la maison rustique](docs/interieurs_sol.png)
+![La bible des meubles : un style par rangée](docs/interieurs_bible.png)
+
 ### Éditeur libre : construire bloc par bloc
 
 L'onglet **Éditeur libre** permet de construire ce que tu veux avec des blocs de 1 m × 1 m × 1 m, posés sur le relief ou les uns contre les autres.
@@ -488,6 +504,14 @@ Une ferme entièrement générée en code (longère à colombages et toit de cha
 | `scripts/catalogue/creations.gd` | Mes créations : constructions de l'éditeur libre enregistrées comme bâtiments |
 | `tests/batiments_test.gd` | Test automatique des bâtiments (sans réseau) |
 | `tests/plans_test.gd` | Test des murs fins, étages, sous-sols, toit et sauvegarde (sans réseau) |
+| `scripts/interieurs/meubles.gd` | La bible des meubles : types, pièces, styles du monde |
+| `scripts/interieurs/meubles_modeles.gd` | Modèles low-poly des meubles |
+| `scripts/interieurs/mobilier.gd` | Meubles dans les bâtiments en murs fins : pose, pièces et fonctions, aménagement automatique, effets, sauvegarde |
+| `scripts/interieurs/gabarits.gd` | Bâtiments meublés prêts à visiter |
+| `scripts/interieurs/occupants.gd` | Les habitants dans les pièces, à leurs heures |
+| `scripts/interieurs/interieur_panel.gd` | Onglet « Intérieur » du panneau Construire |
+| `tests/interieurs_test.gd` | Test des intérieurs (bible, pose, aménagement, habitants, sauvegarde, panneau) |
+| `tests/interieurs_vitrine.gd` | Bâtiments meublés en coupe et captures (`--vue dessus`, `proche`, `sol`, `bible`, `panneau`, `--style japonais`) |
 | `scripts/habitants/population.gd` | Habitants : foyers, étapes de la vie, écoles, emplois, emploi du temps, trajets, économie, sauvegarde |
 | `scripts/habitants/habitants_panel.gd` | Panneau « Habitants » (touche H) : ville, liste, bâtiment, profil |
 | `scripts/habitants/metiers.gd` | Métiers (salaires, horaires), métiers par bâtiment, loisirs et leurs lieux, classes |

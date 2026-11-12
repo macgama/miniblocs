@@ -67,7 +67,10 @@ var _opening := "porte"
 ## Icône de chaque onglet.
 const CAT_ICONS := {"logement": "logement", "commerce": "commerce", "industrie": "industrie", "production": "ressources",
 	"services": "services", "loisirs": "loisirs", "sport": "sport", "espaces": "publics",
-	"zones": "zonage", "blocs": "editeur", "creations": "creations"}
+	"zones": "zonage", "blocs": "editeur", "creations": "creations", "interieur": "interieur"}
+
+## Onglet Intérieur : fonction (BuildingPanel) qui remplit la liste (voir InterieurPanel).
+var interieur_builder: Callable
 
 
 func _ready() -> void:
@@ -114,6 +117,7 @@ func _ready() -> void:
 	tabs.append({"id": "zones", "name": "Zonage", "color": Color("ffd166")})
 	tabs.append({"id": "blocs", "name": "Éditeur libre", "color": Color("8ecae6")})
 	tabs.append({"id": Creations.CATEGORY, "name": "Mes créations", "color": Color("f4a261")})
+	tabs.append({"id": "interieur", "name": "Intérieur : meubles, pièces, bâtiments meublés", "color": Color("c9a0dc")})
 	for c in tabs:
 		var b := UiStyle.icon_button(String(CAT_ICONS.get(c.id, "construire")), c.name, "", 26, 46)
 		b.custom_minimum_size = Vector2(70, 46)
@@ -224,6 +228,11 @@ func show_category(cat: String) -> void:
 	if cat == Creations.CATEGORY:
 		_show_creations()
 		return
+	if cat == "interieur":
+		_filters.visible = false
+		if interieur_builder.is_valid():
+			interieur_builder.call(self)
+		return
 	_filters.visible = true
 	var shown := 0
 	var grid := GridContainer.new()
@@ -319,6 +328,19 @@ func set_level_label(text: String) -> void:
 	_level_text = text
 	if is_instance_valid(_level_label):
 		_level_label.text = text
+
+
+## Ajoute un contrôle à la liste de l'onglet (il disparaît au changement d'onglet).
+func add_control(c: Control) -> void:
+	_add(c)
+
+
+func item_group() -> ButtonGroup:
+	return _item_group
+
+
+func category() -> String:
+	return _category
 
 
 func _add(c: Control) -> void:

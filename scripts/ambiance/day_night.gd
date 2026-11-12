@@ -3,7 +3,7 @@ extends Node
 ## Cycle jour/nuit du mode Terre.
 ##
 ## - Une horloge de jeu (date et heure réelles, en UTC) avance à la vitesse
-##   choisie : pause, temps réel, 1 min/s, 10 min/s ou 1 h/s.
+##   choisie : pause, temps réel, 1 min/s, 10 min/s ou 100 min/s.
 ## - Le Soleil et la Lune sont placés à leur vraie position dans le ciel pour la
 ##   latitude et la longitude du lieu choisi sur le globe (saisons, nuits
 ##   polaires, phases de la Lune comprises).
@@ -15,8 +15,8 @@ extends Node
 signal time_changed
 
 ## Vitesses proposées (secondes de jeu par seconde réelle).
-const SPEEDS := [0.0, 1.0, 60.0, 600.0, 3600.0]
-const SPEED_NAMES := ["Pause", "Réel", "1 min/s", "10 min/s", "1 h/s"]
+const SPEEDS := [0.0, 1.0, 60.0, 600.0, 6000.0]
+const SPEED_NAMES := ["Pause", "Réel", "1 min/s", "10 min/s", "100 min/s"]
 const DEFAULT_SPEED := 2
 const START_HOUR := 10.0
 

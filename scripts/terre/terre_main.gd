@@ -369,6 +369,7 @@ func _setup_population() -> void:
 	population.transport = transport
 	population.ambiance = ambiance
 	population.rig = rig
+	population.vue_sol = $VueSol as VueSol
 	population.message.connect(func(t: String) -> void: hud.show_message(t))
 	# Pas de bâtiment, personne dans les rues : la circulation suit les habitants.
 	transport.traffic.demand = population.traffic_demand

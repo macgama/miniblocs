@@ -363,7 +363,7 @@ func separated_crossing_near(p: Vector3, radius: float) -> Dictionary:
 					if d >= best_d:
 						continue
 					var ha := lerpf(pa[i].y, pa[i + 1].y, a0.distance_to(x) / maxf(a0.distance_to(a1), 1e-6))
-					var nr := network.nearest_on_edge(rd, Vector3(x.x, 0, x.y))
+					var nr: Dictionary = network.nearest_on_edge(rd, Vector3(x.x, 0, x.y))
 					var hr: float = (nr.pos as Vector3).y
 					var tun: bool = network.struct_at(rd, float(nr.s)) == TransportTypes.Struct.TUNNEL \
 						or network.struct_at(ma, float(pa_s(ea, i, a0, x))) == TransportTypes.Struct.TUNNEL
@@ -390,8 +390,8 @@ func make_interchange(p: Vector3) -> Dictionary:
 	var ma: int = xc.main
 	var rd: int = xc.road
 	var x: Vector2 = xc.x
-	var ha := network.nearest_on_edge(ma, Vector3(x.x, 0, x.y))
-	var hr := network.nearest_on_edge(rd, Vector3(x.x, 0, x.y))
+	var ha: Dictionary = network.nearest_on_edge(ma, Vector3(x.x, 0, x.y))
+	var hr: Dictionary = network.nearest_on_edge(rd, Vector3(x.x, 0, x.y))
 	var ea: Dictionary = network.edges[ma]
 	var er: Dictionary = network.edges[rd]
 	var sa: float = ha.s
@@ -400,10 +400,10 @@ func make_interchange(p: Vector3) -> Dictionary:
 		return {"ok": false, "reason": "Autoroute trop courte : il faut au moins %d m de chaque côté du pont pour les bretelles." % roundi(RAMP_ALONG + 20.0)}
 	if sr < RAMP_ROAD + 10.0 or float(er.len) - sr < RAMP_ROAD + 10.0:
 		return {"ok": false, "reason": "Route trop courte : il faut au moins %d m de chaque côté de l'autoroute." % roundi(RAMP_ROAD + 10.0)}
-	var t3 := network.tangent_at(ma, sa)
+	var t3: Vector3 = network.tangent_at(ma, sa)
 	var d := Vector2(t3.x, t3.z).normalized()
 	var right := Vector2(-d.y, d.x)
-	var r3 := network.tangent_at(rd, sr)
+	var r3: Vector3 = network.tangent_at(rd, sr)
 	var rdir := Vector2(r3.x, r3.z).normalized()
 	if absf(rdir.dot(d)) > cos(deg_to_rad(40.0)):
 		return {"ok": false, "reason": "La route croise l'autoroute trop en biais pour un échangeur (au moins 40°)."}
@@ -908,7 +908,7 @@ func evaluate(id: String, s: Dictionary, path: PackedVector2Array) -> Dictionary
 				bounds.append({"s0": float(c.along) - half, "s1": float(c.along) + half, "hi": eh - CLEARANCE - 0.8,
 					"st": TransportTypes.Struct.TUNNEL})
 			need = maxf(need, CLEARANCE + 0.8 + absf(float(c.dy)))
-		var fplan := RoutePlanner.plan(id, path, h0, h1, ground_height, water_surface, bounds)
+		var fplan: Dictionary = RoutePlanner.plan(id, path, h0, h1, ground_height, water_surface, bounds)
 		fplan.snap_a = sa
 		fplan.snap_b = sb
 		fplan.crossings = []
@@ -1092,7 +1092,7 @@ func _find_overlap(mode: int, width: float, pts: PackedVector3Array, st: PackedB
 		var p: Vector3 = sd.pos
 		var other := network.node_half_width(sd.node) if int(sd.node) >= 0 else network.half_width(sd.edge)
 		# Une bretelle longe l'autoroute sur une centaine de mètres avant de s'en écarter.
-		var ramp := TransportTypes.is_ramp(type_id) and _snap_takes_ramps(sd)
+		var ramp: bool = TransportTypes.is_ramp(type_id) and _snap_takes_ramps(sd)
 		allowed.append([Vector2(p.x, p.z), 260.0 if ramp else (hw + other) * 2.5 + 2.0, ramp])
 	for c in crossings:
 		var cp: Vector3 = c.pos

@@ -273,7 +273,7 @@ func _analyse(nid: int) -> Dictionary:
 		auto = "giratoire"
 		major = ring
 	# Bretelles : la voie principale garde la priorité.
-	var main := TransportView.merge_through(network, nid)
+	var main: Array = network.merge_through(nid)
 	if not main.is_empty():
 		overrides.erase(nid)
 		mode = "auto"

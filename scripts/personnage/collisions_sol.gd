@@ -209,8 +209,8 @@ func _ajouter_arbres(corps: StaticBody3D, zone: Rect2) -> void:
 				tronc.height = 2.6 * echelle
 				var col := CollisionShape3D.new()
 				col.shape = tronc
-				# Le cône fait 3,6 m × échelle, centré : sa base est 1,8 m × échelle plus bas.
-				col.position = p - corps.position + Vector3(0.0, -1.8 * echelle + tronc.height * 0.5, 0.0)
+				# Les arbres (Plantes.gd) ont leur origine au pied du tronc.
+				col.position = p - corps.position + Vector3(0.0, tronc.height * 0.5, 0.0)
 				corps.add_child(col)
 
 

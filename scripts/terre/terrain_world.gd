@@ -40,6 +40,8 @@ const WATER_SURFACE_DROP := 0.15
 @export var build_budget_ms: float = 6.0
 ## Calcule les blocs sur les autres cœurs du processeur (fluidité en se déplaçant).
 @export var threaded := true
+## Textures du sol (herbe, roche, sable, champs…), voir Sols.gd.
+@export var textures_sol := true
 @export var camera_path: NodePath
 @export var focus_path: NodePath
 
@@ -97,6 +99,11 @@ var _hover_valid := false
 var _drag_start := Vector2i.ZERO
 var _dragging := false
 var _view_radius := 200.0
+## Herbes, fleurs et cultures : seulement dans les blocs à moins de cette
+## distance (m) du point suivi (on ne les voit pas de plus loin, et un champ
+## en compte une par case).
+const DETAILS_RADIUS := 150.0
+var _center := Vector3.ZERO
 ## Rayon d'affichage imposé (m), par ex. en vue au sol. 0 = selon la distance de la caméra.
 var view_radius_override := 0.0
 # Conversion mètres locaux -> pixels globaux, mise à jour à chaque changement d'origine.
@@ -123,6 +130,9 @@ func _ready() -> void:
 
 	_material = ShaderMaterial.new()
 	_material.shader = preload("res://scripts/terre/terrain.gdshader")
+	_material.set_shader_parameter("sols", Sols.texture())
+	_material.set_shader_parameter("avec_textures", textures_sol)
+	_material.set_shader_parameter("premiere_couleur", Sols.PREMIERE_COULEUR)
 
 	_water = MeshInstance3D.new()
 	var plane := PlaneMesh.new()
@@ -303,15 +313,11 @@ enum Kind { MER, LAC, GLACIER, ROCHE, FORET, BROUSSAILLES, PRAIRIE, CHAMPS, DESE
 const KIND_NAMES: Array[String] = ["Mer", "Lac / rivière", "Glacier", "Roche", "Forêt", "Broussailles",
 	"Prairie", "Champs", "Désert", "Marais", "Mangrove", "Toundra", "Plage", "Neige", "Alpage",
 	"Rivière", "Ruisseau", "Étang", "Lac / canal"]
-## Probabilité d'un arbre / d'un buisson sur une case, par type.
-const TREE_BY_KIND: Array[float] = [0, 0, 0, 0, 0.10, 0.025, 0.004, 0, 0, 0.01, 0.08, 0, 0, 0, 0, 0, 0, 0, 0]
-const BUSH_BY_KIND: Array[float] = [0, 0, 0, 0, 0.03, 0.05, 0, 0, 0, 0, 0, 0.02, 0, 0, 0.01, 0, 0, 0, 0]
+## La végétation de chaque biome est décrite dans Plantes.gd.
 ## Plages : altitude maximale (m) et biomes qui deviennent du sable au bord de la mer
 ## (broussailles, prairie, champs, désert, toundra, plage).
 const BEACH_MAX := 2.5
 const BEACH_KINDS := (1 << 5) | (1 << 6) | (1 << 7) | (1 << 8) | (1 << 11) | (1 << 12)
-## Densité des arbres plantés au pinceau.
-const PLANTED_TREES := 0.3
 
 
 ## Hauteurs affichées (comme cell_height) de toutes les cases d'un rectangle,
@@ -493,6 +499,23 @@ func _process(_delta: float) -> void:
 	_water.position.z = snappedf(center.z, cs)
 	water.update_focus(center.x, center.z)
 
+	_center = center
+	# Petites plantes : les blocs qui s'approchent les reçoivent (recalcul),
+	# ceux qui s'éloignent les perdent (sans recalcul).
+	for k: Vector2i in chunks:
+		var mk: Node = chunks[k]
+		var d := _chunk_distance(k, center)
+		var det: bool = mk.get_meta("details", false)
+		if not det and d < DETAILS_RADIUS and not _jobs.has(k):
+			_dirty[k] = true
+		elif det and d > DETAILS_RADIUS + cs * 2.0:
+			for ch in mk.get_children():
+				var cat: int = ch.get_meta("categorie", -1)
+				if cat == Plantes.Cat.HERBE or cat == Plantes.Cat.CULTURE:
+					mk.remove_child(ch)
+					ch.queue_free()
+			mk.set_meta("details", false)
+
 	var cc := Vector2i(floori(center.x / cs), floori(center.z / cs))
 	var r := ceili(_view_radius / cs)
 	var wanted: Array[Vector2i] = []
@@ -667,7 +690,9 @@ func _prepare_chunk(k: Vector2i) -> Dictionary:
 		"pxs": pxs, "pys": pys, "win": tiles.grab_window(pxs, pys),
 		"bio": land.sample_grid(lats, lons), "wid": wid, "mod_idx": mod_idx, "mod_h": mod_h,
 		"pwater": _collect_cells(water_cells, rect), "paint": _collect_cells(biome_paint, rect),
-		"trees": _collect_cells(tree_paint, rect)}
+		"trees": _collect_cells(tree_paint, rect),
+		"climat": Plantes.climat(origin_lat, origin_lon), "amer": Plantes.ameriques(origin_lon),
+		"details": _chunk_distance(k, _center) < DETAILS_RADIUS}
 
 
 ## Cases d'un dictionnaire creux tombant dans rect : [indices locaux, valeurs].
@@ -763,6 +788,15 @@ static func _compute_chunk(job: Dictionary) -> void:
 	colors.resize(w * w)
 	var kinds := PackedByteArray()
 	kinds.resize(w * w)
+	# Texture du sol (Sols.gd) : couche + 32 si les rangs du champ sont tournés.
+	var couches := PackedByteArray()
+	couches.resize(w * w)
+	var k0: Vector2i = job.k * cs - Vector2i.ONE
+	var climat: int = job.climat
+	var memo_champs := {}
+	job.memo_champs = memo_champs
+	var der_cle := Vector2i(1 << 40, 0)
+	var der_couche := 0
 	for j in range(1, w - 1):
 		for i in range(1, w - 1):
 			var n := i + j * w
@@ -789,6 +823,14 @@ static func _compute_chunk(job: Dictionary) -> void:
 			elif has_marks and paint[n] != 255 and wet[n] != 1:
 				kind = paint[n]
 			kinds[n] = kind
+			var couche: int = Sols.DESSUS[kind]
+			if couche < 0:
+				var cle := Vector2i((k0.x + i) >> 4, (k0.y + j) >> 4)
+				if cle != der_cle:
+					der_cle = cle
+					der_couche = Sols.champ(k0 + Vector2i(i, j), climat, memo_champs).x
+				couche = der_couche
+			couches[n] = couche
 			if kind == Kind.PRAIRIE:
 				colors[n] = _prairie_colors[clampi(floori(hc / 2.0), 0, 200)]
 			else:
@@ -798,6 +840,7 @@ static func _compute_chunk(job: Dictionary) -> void:
 	var normals := PackedVector3Array()
 	var cols := PackedColorArray()
 	var idx := PackedInt32Array()
+	var uvs := PackedVector2Array()
 
 	# Dessus des cases : les cases voisines identiques d'une même ligne sont fusionnées.
 	for j in range(1, cs + 1):
@@ -805,12 +848,14 @@ static func _compute_chunk(job: Dictionary) -> void:
 		while i <= cs:
 			var hv := h[i + j * w]
 			var col := colors[i + j * w]
+			var cou := couches[i + j * w]
 			var e := i
-			while e + 1 <= cs and h[e + 1 + j * w] == hv and colors[e + 1 + j * w] == col:
+			while e + 1 <= cs and h[e + 1 + j * w] == hv and colors[e + 1 + j * w] == col and couches[e + 1 + j * w] == cou:
 				e += 1
 			_quad(verts, normals, cols, idx,
 				Vector3(i - 1, hv, j - 1), Vector3(e, hv, j - 1),
 				Vector3(e, hv, j), Vector3(i - 1, hv, j), Vector3.UP, col)
+			_uv4(uvs, cou & 31, cou >> 5)
 			i = e + 1
 
 	# Murs entre une case et sa voisine Est (i+1) : orientés vers la case la plus basse.
@@ -827,6 +872,7 @@ static func _compute_chunk(job: Dictionary) -> void:
 			var n := Vector3.RIGHT if a > b else Vector3.LEFT
 			_quad(verts, normals, cols, idx,
 				Vector3(x, hi, j - 1), Vector3(x, hi, j), Vector3(x, lo, j), Vector3(x, lo, j - 1), n, col)
+			_uv4(uvs, Sols.FLANC[kinds[i + j * w] if a > b else kinds[i + 1 + j * w]], 0)
 
 	# Murs entre une case et sa voisine Sud (j+1), fusionnés le long de la ligne.
 	for j in range(1, cs + 1):
@@ -847,6 +893,7 @@ static func _compute_chunk(job: Dictionary) -> void:
 			var n := Vector3.BACK if a > b else Vector3.FORWARD
 			_quad(verts, normals, cols, idx,
 				Vector3(i - 1, hi, z), Vector3(e, hi, z), Vector3(e, lo, z), Vector3(i - 1, lo, z), n, col)
+			_uv4(uvs, Sols.FLANC[kinds[i + j * w] if a > b else kinds[i + (j + 1) * w]], 0)
 			i = e + 1
 
 	var arrays := []
@@ -854,6 +901,7 @@ static func _compute_chunk(job: Dictionary) -> void:
 	arrays[Mesh.ARRAY_VERTEX] = verts
 	arrays[Mesh.ARRAY_NORMAL] = normals
 	arrays[Mesh.ARRAY_COLOR] = cols
+	arrays[Mesh.ARRAY_TEX_UV] = uvs
 	arrays[Mesh.ARRAY_INDEX] = idx
 	job.arrays = arrays
 	job.h = h
@@ -1075,6 +1123,15 @@ static func _quad(verts: PackedVector3Array, normals: PackedVector3Array, cols: 
 	idx.push_back(base + 3)
 
 
+## UV des 4 sommets d'une face du terrain : (couche de texture, rangs tournés).
+static func _uv4(uvs: PackedVector2Array, couche: int, tourne: int) -> void:
+	var uv := Vector2(couche, tourne)
+	uvs.push_back(uv)
+	uvs.push_back(uv)
+	uvs.push_back(uv)
+	uvs.push_back(uv)
+
+
 ## Couleurs de base (linéaires) par type de case ; la prairie et la mer varient avec l'altitude.
 static var _base_colors: PackedColorArray = _make_base_colors()
 
@@ -1120,6 +1177,7 @@ static func _color_for_id(kind: int, h: float) -> Color:
 
 
 
+## Maillages de secours (cône, boule) si les .glb des plantes ne sont pas importés.
 func _build_vegetation_meshes() -> void:
 	var cone := CylinderMesh.new()
 	cone.top_radius = 0.0
@@ -1141,56 +1199,95 @@ func _build_vegetation_meshes() -> void:
 	_bush_mesh = bush
 
 
-## Choisit les arbres et buissons low-poly selon le biome, de façon déterministe
+## Choisit les plantes de chaque case (Plantes.gd : biome, climat, altitude ;
+## Sols.gd : culture de la parcelle pour les champs), de façon déterministe
 ## (le même lieu donne toujours la même forêt). Calcul pur, sans lire la scène.
 static func _compute_vegetation(job: Dictionary, h: PackedFloat32Array, kinds: PackedByteArray, modified: PackedByteArray) -> void:
 	var k: Vector2i = job.k
 	var cs: int = job.cs
 	var w := cs + 2
+	var climat: int = job.climat
+	var amer: bool = job.amer
+	var details: bool = job.details
 	var cells: Array[Vector2i] = []
 	var xforms: Array[Transform3D] = []
-	var cols: Array[Color] = []
-	var is_tree := PackedByteArray()
-	var tree_green := Color("2a6a2a")
-	var meadow_green := Color("367a30")
-	var bush_green := Color("587a33")
+	var teintes := PackedColorArray()
+	var especes := PackedInt32Array()
 	var tree_mark: PackedByteArray = job.tree_mark
+	var memo: Dictionary = job.get("memo_champs", {})
+	Plantes.densite(0, 0)
+	var totaux: PackedFloat32Array = Plantes._totaux
 	for j in range(1, cs + 1):
 		for i in range(1, cs + 1):
 			var n := i + j * w
 			var kind := kinds[n]
-			var td: float = TREE_BY_KIND[kind]
-			var bd: float = BUSH_BY_KIND[kind]
 			var mark: int = tree_mark[n]
-			if mark == 1:
+			if mark == 1 or modified[n] != 0:
 				continue
-			if mark == 2 and kind != Kind.CANAL:
-				td = maxf(td, PLANTED_TREES)
-			if (td == 0.0 and bd == 0.0) or modified[n] != 0:
-				continue
+			if mark != 2:
+				if kind == Kind.CHAMPS:
+					if not details:
+						continue
+				elif totaux[kind * 8 + climat] == 0.0:
+					continue
 			var c := Vector2i(k.x * cs + i - 1, k.y * cs + j - 1)
 			var r := absi(hash(c))
 			var u := float(r & 0xffff) / 65535.0
-			if u >= td + bd:
+			if mark != 2 and kind != Kind.CHAMPS and u >= totaux[kind * 8 + climat]:
 				continue
-			var jx := float((r >> 16) & 0xff) / 255.0 * 0.6 + 0.2
-			var jz := float((r >> 24) & 0x7f) / 127.0 * 0.6 + 0.2
-			var sc := 0.7 + float((r >> 8) & 0xff) / 255.0 * 0.6
-			var shade := 0.85 + float((r >> 4) & 0x3f) / 63.0 * 0.3
-			var basis := Basis(Vector3.UP, float(r & 0xff)).scaled(Vector3(sc, sc, sc))
-			cells.append(c)
-			if u < td:
-				xforms.append(Transform3D(basis, Vector3(i - 1 + jx, h[n] + 1.8 * sc, j - 1 + jz)))
-				cols.append((tree_green if kind != Kind.PRAIRIE else meadow_green) * shade)
-				is_tree.append(1)
+			var v := float(absi(hash(c * 7 + Vector2i(3, 1))) & 0xffff) / 65535.0
+			var e := -1
+			var culture := false
+			if mark == 2 and kind != Kind.CANAL and u < Plantes.DENSITE_PLANTES:
+				e = Plantes.arbre_plante(climat, h[n], v)
+			elif kind == Kind.CHAMPS:
+				if not details:
+					continue
+				var cu: Array = Sols.CULTURES[Sols.champ(c, climat, memo).y]
+				if cu[2] != "" and u < cu[3]:
+					e = Plantes.id(cu[2])
+					culture = true
 			else:
-				xforms.append(Transform3D(basis, Vector3(i - 1 + jx, h[n] + 0.3 * sc, j - 1 + jz)))
-				cols.append(bush_green * shade)
-				is_tree.append(0)
-	job.veg = {"cells": cells, "xforms": xforms, "cols": cols, "tree": is_tree}
+				e = Plantes.choisir(kind, climat, h[n], amer, u, v)
+			if e < 0:
+				continue
+			var cat := Plantes.categorie(e)
+			if not details and cat == Plantes.Cat.HERBE:
+				continue
+			var pos: Vector3
+			var basis: Basis
+			if culture:
+				# Cultures : alignées en rangs, dans le sens de la parcelle.
+				var tourne := Sols.rangs_tournes(c)
+				var vigne := Plantes.nom(e) == "vigne"
+				if vigne and posmod(c.x if tourne else c.y, 2) != 0:
+					continue
+				var jx := 0.5 + (v - 0.5) * 0.1
+				var jz := 0.5 + (u - 0.5) * 0.1
+				if vigne:
+					jx = 0.0 if tourne else 0.5
+					jz = 0.5 if tourne else 0.0
+				pos = Vector3(i - 1 + jx, h[n], j - 1 + jz)
+				var sc := 0.9 + v * 0.2
+				basis = Basis(Vector3.UP, PI / 2.0 if tourne else 0.0).scaled(Vector3(sc, sc, sc))
+			else:
+				var jx := float((r >> 16) & 0xff) / 255.0 * 0.6 + 0.2
+				var jz := float((r >> 24) & 0x7f) / 127.0 * 0.6 + 0.2
+				var sc := (0.7 + v * 0.6) if cat == Plantes.Cat.ARBRE else (0.8 + v * 0.4)
+				basis = Basis(Vector3.UP, float(r & 0xff)).scaled(Vector3(sc, sc, sc))
+				pos = Vector3(i - 1 + jx, h[n], j - 1 + jz)
+			# Teinte : un peu plus clair ou foncé, un peu plus jaune ou bleu.
+			var shade := 0.88 + float((r >> 4) & 0x3f) / 63.0 * 0.24
+			var dh := 0.0 if cat == Plantes.Cat.ROCHER else (float((r >> 10) & 0x3f) / 63.0 - 0.5) * 0.12
+			cells.append(c)
+			xforms.append(Transform3D(basis, pos))
+			teintes.append(Color(shade * (1.0 + dh), shade, shade * (1.0 - dh)))
+			especes.append(e)
+	job.veg = {"cells": cells, "xforms": xforms, "cols": teintes, "especes": especes}
 
 
-## Fil principal : retire la végétation sous les voies (tree_blocker) et la pose.
+## Fil principal : retire la végétation sous les voies (tree_blocker) et la pose,
+## un MultiMesh par espèce (plus sa version lointaine pour les arbres).
 func _plant_vegetation(mi: MeshInstance3D, job: Dictionary) -> void:
 	for child in mi.get_children():
 		mi.remove_child(child)
@@ -1198,42 +1295,80 @@ func _plant_vegetation(mi: MeshInstance3D, job: Dictionary) -> void:
 	var veg: Dictionary = job.veg
 	var cells: Array[Vector2i] = veg.cells
 	var xforms: Array[Transform3D] = veg.xforms
-	var cols: Array[Color] = veg.cols
-	var is_tree: PackedByteArray = veg.tree
-	var trees: Array[Transform3D] = []
-	var tree_cols: Array[Color] = []
-	var bushes: Array[Transform3D] = []
-	var bush_cols: Array[Color] = []
+	var cols: PackedColorArray = veg.cols
+	var especes: PackedInt32Array = veg.especes
+	var groupes := {} # espèce -> [Array[Transform3D], PackedColorArray]
+	var arbres: Array[Transform3D] = []
 	var check := tree_blocker.is_valid()
 	for n in cells.size():
 		if check and tree_blocker.call(cells[n]):
 			continue
-		if is_tree[n] == 1:
-			trees.append(xforms[n])
-			tree_cols.append(cols[n])
-		else:
-			bushes.append(xforms[n])
-			bush_cols.append(cols[n])
-	_add_multimesh(mi, _tree_mesh, trees, tree_cols)
+		var e := especes[n]
+		if not groupes.has(e):
+			var liste: Array[Transform3D] = []
+			groupes[e] = [liste, PackedColorArray()]
+		(groupes[e][0] as Array).append(xforms[n])
+		groupes[e][1].append(cols[n])
+		if Plantes.categorie(e) == Plantes.Cat.ARBRE:
+			arbres.append(xforms[n])
+	for e: int in groupes:
+		var cat := Plantes.categorie(e)
+		var liste: Array[Transform3D] = groupes[e][0]
+		var teintes: PackedColorArray = groupes[e][1]
+		var m := Plantes.mesh(e)
+		if m == null:
+			# Secours : l'ancien cône ou la boule, en vert.
+			var secours := _tree_mesh if cat == Plantes.Cat.ARBRE else _bush_mesh
+			var verts := PackedColorArray()
+			for t in teintes:
+				verts.append(Color("2a6a2a") * t.r)
+			var inst0 := _pose_multimesh(mi, secours, liste, verts, 0.0, null)
+			inst0.set_meta("categorie", cat)
+			continue
+		var proche := _pose_multimesh(mi, m, liste, teintes, Plantes.vent(e), Plantes.materiau())
+		proche.name = Plantes.nom(e)
+		proche.set_meta("categorie", cat)
+		proche.visibility_range_end = Plantes.DISTANCE[cat]
+		proche.visibility_range_end_margin = 8.0
+		if cat == Plantes.Cat.HERBE or cat == Plantes.Cat.CULTURE:
+			proche.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		if Plantes.a_version_loin(e):
+			var ml := Plantes.mesh(e, true)
+			if ml:
+				var loin := _pose_multimesh(mi, ml, liste, teintes, 0.0, Plantes.materiau())
+				loin.name = Plantes.nom(e) + "_loin"
+				loin.set_meta("categorie", cat)
+				loin.set_meta("loin", true)
+				loin.visibility_range_begin = Plantes.DISTANCE[cat]
+				loin.visibility_range_begin_margin = 8.0
 	# Gardé pour les collisions des troncs (vue au sol).
-	mi.set_meta("arbres", trees)
-	_add_multimesh(mi, _bush_mesh, bushes, bush_cols)
+	mi.set_meta("arbres", arbres)
+	mi.set_meta("details", job.details)
 
 
-static func _add_multimesh(parent: Node3D, mesh: Mesh, xforms: Array[Transform3D], cols: Array[Color]) -> void:
-	if xforms.is_empty():
-		return
+## Un MultiMeshInstance3D enfant de parent. Avec un matériau de plantes, la
+## teinte et le vent passent par INSTANCE_CUSTOM ; sinon par la couleur.
+static func _pose_multimesh(parent: Node3D, mesh: Mesh, xforms: Array[Transform3D], cols: PackedColorArray,
+		vent: float, mat: Material) -> MultiMeshInstance3D:
 	var mm := MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
-	mm.use_colors = true
+	mm.use_colors = mat == null
+	mm.use_custom_data = mat != null
 	mm.mesh = mesh
 	mm.instance_count = xforms.size()
 	for n in xforms.size():
 		mm.set_instance_transform(n, xforms[n])
-		mm.set_instance_color(n, cols[n])
+		if mat:
+			var c := cols[n]
+			mm.set_instance_custom_data(n, Color(c.r, c.g, c.b, vent))
+		else:
+			mm.set_instance_color(n, cols[n])
 	var inst := MultiMeshInstance3D.new()
 	inst.multimesh = mm
+	if mat:
+		inst.material_override = mat
 	parent.add_child(inst)
+	return inst
 
 
 # --- Souris et outils ------------------------------------------------------

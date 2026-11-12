@@ -22,6 +22,10 @@ var transit_panel: StationPanel
 ## Habitants : vie, foyers, travail, école, loisirs et budget (touche H).
 var population: Population
 var habitants_panel: HabitantsPanel
+## Ressources naturelles et chaînes de production (touche P).
+var production: Production
+var production_panel: ProductionPanel
+var resource_overlay: RessourcesOverlay
 var _hover := Vector2i.ZERO
 var _hover_valid := false
 
@@ -47,6 +51,7 @@ func _ready() -> void:
 	_setup_landscape()
 	_setup_transit()
 	_setup_population()
+	_setup_production()
 	hud.traffic_toggled.connect(func(on: bool) -> void: transport.traffic.set_enabled(on))
 	hud.traffic_filter_changed.connect(func(era: String, region: String) -> void:
 		transport.traffic.set_filters(era, region)
@@ -132,7 +137,7 @@ func _ready() -> void:
 			hud.show_message("Partie chargée : %s." % _game_title())
 		else:
 			hud.show_message("Chargement impossible : " + last_error))
-	for sig in [world.terrain_edited, transport.network_changed, buildings.changed, zones.changed, blocks.changed, plans.changed, transport.stations.lines_changed, transport.junctions.changed, population.changed]:
+	for sig in [world.terrain_edited, transport.network_changed, buildings.changed, zones.changed, blocks.changed, plans.changed, transport.stations.lines_changed, transport.junctions.changed, population.changed, production.changed]:
 		(sig as Signal).connect(func(_a = null) -> void: _unsaved = true)
 	hud.build_requested.connect(func() -> void: build_panel.toggle())
 	var vue := get_node_or_null("VueSol")
@@ -177,7 +182,8 @@ func save_sections() -> Dictionary:
 	return {"terrain": world.to_dict(), "transport": transport.to_dict(), "batiments": buildings.to_dict(),
 		"zones": zones.to_dict(), "blocs": blocks.to_dict(), "plans": plans.to_dict(), "ambiance": ambiance.to_dict(),
 		"creations": Creations.to_dict(Creations.used_by(buildings)),
-		"personnage": ($VueSol as VueSol).to_dict(), "habitants": population.to_dict()}
+		"personnage": ($VueSol as VueSol).to_dict(), "habitants": population.to_dict(),
+		"production": production.to_dict()}
 
 
 ## Sauvegarde dans la partie en cours (ou une nouvelle). title : nom d'une nouvelle partie.
@@ -227,6 +233,7 @@ func load_game(slot := "") -> bool:
 	buildings.from_dict(sec.get("batiments", {}))
 	zones.from_dict(sec.get("zones", {}))
 	population.from_dict(sec.get("habitants", {}))
+	production.from_dict(sec.get("production", {}))
 	blocks.from_dict(sec.get("blocs", {}))
 	plans.from_dict(sec.get("plans", {}))
 	ambiance.from_dict(sec.get("ambiance", {}))
@@ -270,6 +277,29 @@ func _setup_population() -> void:
 		rig.position.x = pos.x
 		rig.position.z = pos.z)
 	hud.habitants_requested.connect(func() -> void: habitants_panel.toggle())
+
+
+## Production : sites, stocks, carte des ressources sur le terrain et panneau (P).
+func _setup_production() -> void:
+	production = Production.new()
+	production.name = "Production"
+	add_child(production)
+	production.setup(world, buildings, population, transport, ambiance)
+	production.message.connect(func(t: String) -> void: hud.show_message(t))
+	resource_overlay = RessourcesOverlay.new()
+	resource_overlay.name = "CarteRessources"
+	resource_overlay.world = world
+	resource_overlay.carte = production.carte
+	resource_overlay.focus = rig
+	add_child(resource_overlay)
+	production_panel = ProductionPanel.new()
+	production_panel.name = "PanneauProduction"
+	add_child(production_panel)
+	production_panel.setup(production, resource_overlay, rig)
+	production_panel.focus_requested.connect(func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
+	hud.production_requested.connect(func() -> void: production_panel.toggle())
 
 
 ## Panneau des transports publics : stations et lignes.
@@ -473,6 +503,8 @@ func _on_tool_selected(t: int) -> void:
 func _on_origin_changed(lat: float, lon: float) -> void:
 	# Nouvelle région : réseau vierge.
 	population.clear()
+	production.clear()
+	resource_overlay.show_resource(resource_overlay.res)
 	transport.clear()
 	buildings.clear()
 	zones.clear()
@@ -519,7 +551,7 @@ func _process(delta: float) -> void:
 		if world.water.status != "":
 			s += "   ·   " + world.water.status
 		hud.set_status(s)
-		hud.set_network_info(transport.summary() + "   ·   " + population.summary())
+		hud.set_network_info(transport.summary() + "   ·   " + population.summary() + "   ·   " + production.summary())
 		build_panel.set_money("Caisse : illimitée" if buildings.unlimited_money else "Caisse : " + BuildingSystem.format_money(buildings.money))
 		build_panel.set_summary(buildings.summary())
 		build_panel.set_zone_info(zones.summary())
@@ -539,7 +571,7 @@ var _open_before := {}
 ## Construire, Lignes et Habitants partagent la même place à droite : quand
 ## l'un s'ouvre, les autres se ferment. Leur bouton de la barre du bas s'allume.
 func _exclusive_panels() -> void:
-	var panels := {"construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel}
+	var panels := {"construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel}
 	var opened := ""
 	for id in panels:
 		var p = panels[id]
@@ -583,4 +615,16 @@ func _refresh_cell_info() -> void:
 	txt += "\nHauteur %.1f m (réelle %.1f m)   ·   %.5f, %.5f" % [h, real, ll.x, ll.y]
 	if world.modifications.has(_hover):
 		txt += "   ·   modifiée"
+	# Ressources sous la case (les plus riches).
+	var rich := production.carte.all_at(_hover)
+	var best: Array = []
+	for res in rich:
+		if float(rich[res]) >= 0.15:
+			best.append([res, float(rich[res])])
+	best.sort_custom(func(a: Array, b: Array) -> bool: return a[1] > b[1])
+	if not best.is_empty():
+		var parts: Array[String] = []
+		for e in best.slice(0, 3):
+			parts.append("%s %d %%" % [String(Ressources.naturelle(e[0]).name).to_lower(), roundi(e[1] * 100.0)])
+		txt += "\nRessources : " + ", ".join(parts)
 	hud.set_cell_info(txt)

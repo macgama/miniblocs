@@ -309,7 +309,9 @@ static func _junction_arms(net: TransportNetwork, nid: int, trims: Dictionary) -
 		if stc == TransportTypes.Struct.TUNNEL:
 			return []
 		var ty := TransportTypes.get_type(e.t)
-		var dir := net.leave_dir(eid, nid)
+		# Direction au bout rogné (pas au nœud) : sur une courbe, les bords du
+		# plateau tombent ainsi exactement sur ceux du tronçon.
+		var dir := net.out_dir_at(eid, nid, s)
 		var hw := net.half_width(eid)
 		var walk := float(ty.get("side", 0.0)) if String(ty.get("side_kind", "")) == "trottoir" else 0.0
 		arms.append({"p": net.point_at(eid, s), "d": dir, "r": Vector3(-dir.z, 0, dir.x), "hw": hw, "kerb": hw - walk,

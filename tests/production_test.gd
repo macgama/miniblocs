@@ -1,7 +1,8 @@
 extends SceneTree
-## Test des ressources et de la production : carte des ressources, vraies
+## Test des ressources et de l'économie locale : carte des ressources, vraies
 ## régions minières, pose des sites, chaînes (bois → planches, céréales →
-## farine → pain), ventes aux habitants, export, sauvegarde.
+## farine → pain) livrées par camion avec des chauffeurs-livreurs, commerces,
+## rayons vides, import et export, comptes des entreprises, sauvegarde.
 ## Usage : godot --headless --path . --script res://tests/production_test.gd
 
 var ok := true
@@ -131,14 +132,29 @@ func _run() -> void:
 	_check(shop > 0 and not homes.has(-1), "supérette et 9 immeubles")
 	var depot: Dictionary = transport.stations.place("depot", Vector3(470, 0, 6))
 	_check(not depot.is_empty() and prod.export_stations() == 1, "dépôt de marchandises pour l'export")
+	var boulanger := _place(bs, "boulangerie", 90, false)
+	var carrier := _place(bs, "transporteur", -40, false)
+	_check(boulanger > 0 and carrier > 0, "boulangerie de quartier et entreprise de transport routier")
+	# Une supérette sur une route isolée : aucun camion ne peut l'atteindre.
+	var yi := world.cell_height(Vector2i(0, 400))
+	_check(transport.build_segment("route", Vector3(-120, yi, 400), Vector3(120, yi, 400)).ok, "route isolée")
+	var lost := bs.place("superette", Vector2i(0, 414), bs.best_rotation("superette", Vector2i(0, 414)))
+	_check(lost > 0, "supérette sur la route isolée")
 	await process_frame
 	prod._sync()
-	_check(prod.sites.size() == 5, "5 sites de production (%d)" % prod.sites.size())
+	var n_prod := 0
+	for k in prod.sites:
+		if String(prod.sites[k].kind) in ["extraction", "transformation"]:
+			n_prod += 1
+	_check(n_prod == 5, "5 sites de production (%d)" % n_prod)
+	_check(String(prod.sites[shop].kind) == "commerce" and String(prod.sites[carrier].kind) == "logistique", "supérette = commerce, transporteur = logistique")
+	_check(prod.node_of(shop) >= 0 and prod.node_of(lost) >= 0, "les commerces ont un quai sur la route")
+	_check(not prod.gateways().is_empty(), "porte d'import et d'export : le dépôt")
 	_check(float(prod.sites[forest].rich) > 0.8 and String(prod.sites[forest].res) == "bois", "la forêt est mesurée sous l'exploitation")
 
 	print("Sans habitants, rien ne se produit :")
 	prod.step_hours(24.0)
-	_check(prod.stock.is_empty(), "stock vide")
+	_check(prod.total_stock().is_empty(), "stock vide")
 	_check(String(prod.sites[forest].status).begins_with("Personne"), "statut : personne n'y travaille")
 
 	print("Habitants et emplois :")
@@ -149,26 +165,71 @@ func _run() -> void:
 	_check(staff > 0, "bûcherons embauchés : %d / 12" % staff)
 	var jobs_ok := true
 	for pid in pop.by_job.get(forest, []):
-		jobs_ok = jobs_ok and ["bucheron", "conducteur_engins"].has(String(pop.persons[pid].met))
+		jobs_ok = jobs_ok and ["bucheron", "conducteur_engins", "chauffeur"].has(String(pop.persons[pid].met))
 	_check(jobs_ok, "métiers de l'exploitation forestière")
 
-	print("Production :")
-	var money0 := bs.money
-	amb.unix_time = _at("2026-03-10", 0.5)
-	prod.last_unix = -1.0
+	print("Sans chauffeur-livreur, rien ne roule :")
+	var saved_met := {}
+	for pid in pop.persons:
+		if String(pop.persons[pid].met) == "chauffeur":
+			saved_met[pid] = "chauffeur"
+			pop.persons[pid].met = "ouvrier"
+	amb.unix_time = _at("2026-03-10", 0.5) # un mardi
+	prod.clock = -1.0
 	prod.last_day = prod._day_of(amb.unix_time)
-	for d in 4:
-		amb.unix_time += 86400.0
-		prod.advance(86400.0)
-	_check(float(prod.stock.get("bois", 0.0)) > 0.0 or float(prod.yesterday.conso.get("bois", 0.0)) > 0.0, "du bois a été coupé")
+	for h in 12:
+		amb.unix_time += 3600.0
+		prod.advance(3600.0)
+	_check(prod.missions.is_empty(), "aucune livraison sans chauffeur")
+	_check(String(prod.site_info(shop).status).contains("chauffeur"), "supérette : %s" % prod.site_info(shop).status)
+	_check(float(prod.stock_of(farm, "cereales")) > 0.0, "les céréales restent à la ferme (%s)" % Ressources.format_t(prod.stock_of(farm, "cereales")))
+	for pid in saved_met:
+		pop.persons[pid].met = "chauffeur"
+	var ds := prod.driver_stats()
+	_check(int(ds.total) >= 1, "chauffeurs-livreurs en ville : %d" % int(ds.total))
+
+	print("Économie locale :")
+	var money0 := bs.money
+	var max_trucks := 0
+	var max_missions := 0
+	for h in 24 * 8:
+		amb.unix_time += 3600.0
+		prod.advance(3600.0)
+		transport.traffic.step(0.5)
+		max_trucks = maxi(max_trucks, transport.traffic.delivery_count())
+		max_missions = maxi(max_missions, prod.missions.size())
+	var yd: Dictionary = prod.yesterday
+	_check(max_missions > 0 and max_trucks > 0, "livraisons en cours (jusqu'à %d) et camions visibles sur la route (jusqu'à %d)" % [max_missions, max_trucks])
 	_check(float(prod.yesterday.prod.get("planches", 0.0)) > 0.0, "la scierie fait des planches (%.1f t hier)" % float(prod.yesterday.prod.get("planches", 0.0)))
 	_check(float(prod.yesterday.prod.get("cereales", 0.0)) > 0.0, "la ferme récolte des céréales (%.2f t hier)" % float(prod.yesterday.prod.get("cereales", 0.0)))
-	_check(float(prod.yesterday.prod.get("farine", 0.0)) > 0.0 and float(prod.yesterday.prod.get("pain", 0.0)) > 0.0, "farine puis pain")
-	_check(float(prod.yesterday.vente.get("pain", 0.0)) > 0.0, "les habitants achètent le pain (%s hier)" % Ressources.format_t(float(prod.yesterday.vente.get("pain", 0.0))))
-	_check(float(prod.yesterday.export.get("planches", 0.0)) > 0.0, "le surplus de planches part à l'export")
-	_check(float(prod.ledger.mois.get("Ventes aux habitants", 0.0)) > 0.0 and float(prod.ledger.mois.get("Salaires de la production", 0.0)) < 0.0,
-		"comptes : ventes et salaires")
-	_check(bs.money != money0, "la caisse bouge (%s)" % BuildingSystem.format_money(bs.money - money0))
+	_check(prod.stock_of(sawmill, "bois") > 0.0 or float(yd.conso.get("bois", 0.0)) > 0.0, "le bois arrive à la scierie par camion")
+	_check(prod.stock_of(mill, "cereales") > 0.0 or float(yd.conso.get("cereales", 0.0)) > 0.0, "les céréales arrivent au moulin")
+	_check(prod.stock_of(shop, "pain") > 0.0 or float(yd.vente.get("pain", 0.0)) > 0.0, "le pain de la boulangerie industrielle arrive à la supérette")
+	_check(prod.stock_of(boulanger, "farine") > 0.0 or prod.stock_of(boulanger, "pain") > 0.0, "le boulanger reçoit sa farine et cuit son pain")
+	_check(float(yd.vente.get("pain", 0.0)) > 0.0, "les habitants achètent le pain (%s hier)" % Ressources.format_t(float(yd.vente.get("pain", 0.0))))
+	_check(float(yd.import.get("laitages", 0.0)) + float(prod.today.import.get("laitages", 0.0)) > 0.0 or prod.stock_of(shop, "laitages") > 0.0,
+		"les laitages sans ferme laitière arrivent par import")
+	var exported := 0.0
+	for g in yd.export:
+		exported += float(yd.export[g])
+	for g in prod.today.export:
+		exported += float(prod.today.export[g])
+	_check(exported > 0.0 or prod.ledger.mois.has("Exportations") or prod.ledger.precedent.has("Exportations"), "le surplus part à l'export par camion")
+	_check(String(prod.site_info(lost).status).contains("Rayons vides") and String(prod.site_info(lost).status).contains("Aucun fournisseur"),
+		"supérette isolée : %s" % prod.site_info(lost).status)
+	_check(float(prod.sites[farm].cash) > 0.0, "la ferme gagne de l'argent (%s)" % BuildingSystem.format_money(roundi(float(prod.sites[farm].cash))))
+	_check(float(prod.sites[shop].mois.get("Ventes aux habitants", 0.0)) > 0.0 and float(prod.sites[shop].mois.get("Salaires", 0.0)) < 0.0,
+		"comptes de la supérette : ventes et salaires")
+	var tax := float(prod.ledger.mois.get("Impôt sur les bénéfices (pour la ville)", 0.0))
+	_check(tax > 0.0, "la ville touche l'impôt sur les bénéfices (%s)" % BuildingSystem.format_money(roundi(tax)))
+	_check(bs.money != money0, "la caisse de la ville bouge (%s)" % BuildingSystem.format_money(bs.money - money0))
+	var why_all := []
+	for pid in pop.persons:
+		why_all.append_array(pop.satisfaction(pop.persons[pid]).why)
+	var shops_reason := false
+	for w in why_all:
+		shops_reason = shops_reason or String(w).contains("commerces") or String(w).contains("rayons vides")
+	_check(shops_reason, "la satisfaction des habitants dépend des commerces")
 
 	print("Gisement non renouvelable :")
 	var gx := float(best_i % 16) * 100.0 - 800.0 + 50.0
@@ -212,22 +273,30 @@ func _run() -> void:
 	_check(overlay.mesh != null and overlay.mesh.get_surface_count() == 1, "carte du bois dessinée sur le terrain")
 	overlay.show_resource("")
 	var panel: ProductionPanel = scene.production_panel
-	for view in ["ressources", "stocks", "sites"]:
+	for view in ["ressources", "stocks", "sites", "camions"]:
 		panel.set_open(true)
 		panel.show_view(view)
 	_check(panel.is_open(), "panneau Production : ressources, stocks, sites")
 	panel.set_open(false)
 
 	print("Sauvegarde :")
+	for h in 30:
+		if not prod.missions.is_empty():
+			break
+		amb.unix_time += 3600.0
+		prod.advance(3600.0)
+	var n_sites := prod.sites.size()
+	var n_missions := prod.missions.size()
 	var d := prod.to_dict()
 	var json := JSON.parse_string(JSON.stringify(d)) as Dictionary
-	var stock_before := prod.stock.duplicate()
+	var stock_before: Dictionary = prod.total_stock()
 	var reserve_before := float(prod.sites[mine].reserve) if mine > 0 else 0.0
 	prod.from_dict(json)
 	var same := true
 	for g in stock_before:
-		same = same and absf(float(prod.stock.get(g, 0.0)) - float(stock_before[g])) < 0.01
-	_check(same and prod.sites.size() == 6, "stocks et sites relus (%d sites)" % prod.sites.size())
+		same = same and absf(float(prod.total_stock().get(g, 0.0)) - float(stock_before[g])) < 0.01
+	_check(same and prod.sites.size() == n_sites, "stocks et sites relus (%d sites)" % prod.sites.size())
+	_check(n_missions > 0 and prod.missions.size() == n_missions, "livraisons en cours relues (%d)" % n_missions)
 	if mine > 0:
 		_check(absf(float(prod.sites[mine].reserve) - reserve_before) < 1.0, "réserve de la mine relue")
 	_check(scene.save_sections().has("production"), "section « production » dans la sauvegarde")

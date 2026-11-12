@@ -336,7 +336,84 @@ func ground_level(c: Vector2i) -> float:
 	var g := world.cell_height(c) if world != null else 0.0
 	if is_nan(g):
 		g = 0.0
-	return ceilf((maxf(g, 0.0) + SLAB) / 0.5) * 0.5
+	# Le plancher du rez-de-chaussée affleure le sol (le terrain est creusé
+	# sous la dalle) : la porte est de plain-pied. Près d'une voie, on se
+	# cale sur la chaussée.
+	var road := _road_height(c)
+	if not is_nan(road) and absf(road - g) <= 3.0:
+		g = road
+	return roundf(maxf(g, 0.0) / 0.5) * 0.5
+
+
+## Remet un bâtiment de plain-pied (rez-de-chaussée au niveau du sol ou de
+## la voie voisine, devant sa façade la plus basse). Les blocs posés dessus
+## (toit) suivent. Renvoie le déplacement en mètres.
+func reseat(id: String) -> float:
+	if not plans.has(id):
+		return 0.0
+	var p: Dictionary = plans[id]
+	var r: Rect2i = _bbox[id]
+	_restore_terrain(id)
+	# Niveau du sol devant les portes extérieures du rez-de-chaussée ;
+	# sans porte, le point le plus bas autour de l'emprise.
+	var g := INF
+	for k in p.walls:
+		var kw: Vector4i = k
+		var kind := String(p.walls[kw].o)
+		if kw.y != 0 or kind == "" or float(OPENINGS[kind].s) > 0.0:
+			continue
+		for c in wall_cells(kw):
+			if not p.floors.has(Vector3i(c.x, 0, c.y)):
+				g = minf(g, ground_level(c))
+	if is_inf(g):
+		for x in range(r.position.x - 1, r.end.x + 1):
+			for z in [r.position.y - 1, r.end.y]:
+				g = minf(g, ground_level(Vector2i(x, z)))
+		for z in range(r.position.y, r.end.y):
+			for x in [r.position.x - 1, r.end.x]:
+				g = minf(g, ground_level(Vector2i(x, z)))
+	if is_inf(g):
+		g = float(p.y0)
+	var d := g - float(p.y0)
+	if absf(d) < 0.01:
+		_sync_terrain(id)
+		return 0.0
+	var old_y0 := float(p.y0)
+	p.y0 = g
+	# Les blocs au-dessus du rez-de-chaussée (toit) suivent.
+	if blocks != null:
+		var dy := roundi(d / BlockEditor.UNIT_Y)
+		var lo := old_y0 - SLAB
+		var moved := {}
+		for k in blocks.blocks.keys():
+			var kb: Vector3i = k
+			if r.grow(2).has_point(Vector2i(kb.x, kb.z)) and kb.y * BlockEditor.UNIT_Y >= lo:
+				moved[kb] = blocks.blocks[kb]
+				blocks._drop_block(kb)
+		for k in moved:
+			var kb2: Vector3i = k
+			blocks._put_block(kb2 + Vector3i(0, dy, 0), moved[k])
+		blocks.changed.emit()
+	_after_change(id)
+	return d
+
+
+## Hauteur de la chaussée la plus proche (moins de 12 m), NAN s'il n'y en a pas.
+func _road_height(c: Vector2i) -> float:
+	if buildings == null or buildings.transport == null:
+		return NAN
+	var tr: TransportSystem = buildings.transport
+	var p := Vector3(c.x + 0.5, 0.0, c.y + 0.5)
+	var best := NAN
+	var bd := 12.0
+	for eid in tr.edges_near(p, 30.0):
+		var e: Dictionary = tr.network.edges[eid]
+		var hit := tr.network.nearest_on_edge(eid, p)
+		var d := float(hit.dist) - float(e.get("width", 4.0)) / 2.0
+		if d < bd:
+			bd = d
+			best = float((hit.pos as Vector3).y)
+	return best
 
 
 ## Bâtiment le plus proche dont l'emprise (agrandie de margin cases) contient c.

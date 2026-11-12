@@ -27,6 +27,8 @@ signal plan_cutaway_toggled(on: bool)
 signal plan_copy_level(count: int)
 signal plan_roof(kind: String)
 signal plan_wall_levels(count: int)
+## Échelle des étages : clic sur un étage.
+signal plan_level_set(level: int)
 
 var _panel: PanelContainer
 var _list: VBoxContainer
@@ -63,6 +65,18 @@ var _copy_count := 1
 var _wall_levels := 1
 var _cutaway := true
 var _opening := "porte"
+## Mode Créer (atelier) : seuls l'éditeur libre, l'intérieur et Mes créations
+## sont proposés. Mode Gérer : catalogue et zonage, sans l'éditeur libre.
+var workshop := false
+const WORKSHOP_TABS := ["blocs", "creations", "interieur"]
+var _head_icon: TextureRect
+var _head_title: Label
+var _cats_grid: GridContainer
+var _foot: HBoxContainer
+## Échelle des étages : {étage: murs} du bâtiment visé, et l'étage actif.
+var _ladder_box: VBoxContainer
+var _ladder_counts := {}
+var _ladder_level := 0
 
 ## Icône de chaque onglet.
 const CAT_ICONS := {"logement": "logement", "commerce": "commerce", "industrie": "industrie", "production": "ressources",
@@ -95,11 +109,13 @@ func _ready() -> void:
 	hi.texture = Icones.get_icon("construire", 24, UiStyle.ACCENT)
 	hi.stretch_mode = TextureRect.STRETCH_KEEP_CENTERED
 	head.add_child(hi)
+	_head_icon = hi
 	var title := Label.new()
 	title.text = "Construire"
 	title.add_theme_font_size_override("font_size", 18)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	head.add_child(title)
+	_head_title = title
 	_money_label = Label.new()
 	_money_label.add_theme_color_override("font_color", UiStyle.TEXT_DIM)
 	head.add_child(_money_label)
@@ -112,6 +128,7 @@ func _ready() -> void:
 	cats.add_theme_constant_override("h_separation", 4)
 	cats.add_theme_constant_override("v_separation", 4)
 	box.add_child(cats)
+	_cats_grid = cats
 	var cat_group := ButtonGroup.new()
 	var tabs: Array = BuildingCatalog.CATEGORIES.duplicate()
 	tabs.append({"id": "zones", "name": "Zonage", "color": Color("ffd166")})
@@ -175,6 +192,7 @@ func _ready() -> void:
 
 	var foot := HBoxContainer.new()
 	box.add_child(foot)
+	_foot = foot
 	_demolish_button = Button.new()
 	_demolish_button.text = "Démolir un bâtiment"
 	_demolish_button.icon = Icones.get_icon("demolir", 20)
@@ -197,6 +215,42 @@ func _ready() -> void:
 	box.add_child(_summary_label)
 
 	show_category(_category)
+	set_workshop(false)
+
+
+## Passe le panneau en atelier (mode Créer) ou en catalogue (mode Gérer).
+func set_workshop(on: bool, cat := "") -> void:
+	workshop = on
+	for id in _cat_buttons:
+		(_cat_buttons[id] as Button).visible = WORKSHOP_TABS.has(id) == on
+	# En atelier, la barre du bas choisit l'onglet : pas besoin de la grille.
+	_cats_grid.visible = not on
+	_foot.visible = not on
+	_head_title.text = "Atelier" if on else "Construire"
+	_head_icon.texture = Icones.get_icon("editeur" if on else "construire", 24, UiStyle.CREATE if on else UiStyle.ACCENT)
+	_cat_title.add_theme_color_override("font_color", UiStyle.CREATE if on else UiStyle.ACCENT)
+	if on:
+		if cat != "":
+			show_category(cat)
+		elif not WORKSHOP_TABS.has(_category):
+			show_category("blocs")
+	elif WORKSHOP_TABS.has(_category):
+		show_category("logement")
+
+
+## Murs et étages (« plans ») ou blocs de 1 m, depuis la barre du bas en mode Créer.
+func set_block_mode(m: String) -> void:
+	if _block_mode != m:
+		_block_mode = m
+		block_tool_chosen.emit(BlockEditor.Tool.NONE)
+	show_category("blocs")
+
+
+## Échelle des étages : murs par étage du bâtiment visé et étage actif.
+func set_ladder(counts: Dictionary, current: int) -> void:
+	_ladder_counts = counts
+	_ladder_level = current
+	_fill_ladder()
 
 
 ## Le bouton « Règles » n'est là que pour qui peut administrer la partie.
@@ -378,6 +432,10 @@ func _show_blocks() -> void:
 				show_category("blocs"))
 		mrow.add_child(mb)
 	_add(mrow)
+	# Mode Créer : la barre du bas choisit déjà entre murs et blocs.
+	mrow.visible = not workshop
+	if workshop:
+		_cat_title.text = "Murs et étages" if _block_mode == "plans" else "Blocs de 1 m"
 	if _block_mode == "plans":
 		_show_plan_tools()
 	else:
@@ -393,42 +451,50 @@ func _show_blocks() -> void:
 
 
 func _show_plan_tools() -> void:
-	var tools := [["Mur", PlanEditor.Tool.WALL, "Clic glissé d'un coin de case à l'autre : mur de 20 cm sur la ligne."],
-		["Pièce", PlanEditor.Tool.ROOM, "Clic glissé en rectangle : quatre murs et le plancher."],
-		["Sol", PlanEditor.Tool.FLOOR, "Clic glissé en rectangle : plancher, terrasse, balcon."],
-		["Escalier", PlanEditor.Tool.STAIRS, "Clic : escalier de 4 cases vers l'étage du dessus (R : tourner)."],
-		["Peinture", PlanEditor.Tool.PAINT, "Clic sur un côté de mur ou un sol ; glissé : toute la pièce, dans le matériau et la teinte choisis."],
-		["Gomme", PlanEditor.Tool.ERASE, "Clic sur un mur, un sol ou un escalier ; glissé : tout un rectangle de l'étage."]]
-	var row := HFlowContainer.new()
+	var tools := [["Mur", "mur", PlanEditor.Tool.WALL, "Clic glissé d'un coin de case à l'autre : mur de 20 cm sur la ligne."],
+		["Pièce", "piece", PlanEditor.Tool.ROOM, "Clic glissé en rectangle : quatre murs et le plancher."],
+		["Sol", "sol", PlanEditor.Tool.FLOOR, "Clic glissé en rectangle : plancher, terrasse, balcon."],
+		["Escalier", "escalier", PlanEditor.Tool.STAIRS, "Clic : escalier de 4 cases vers l'étage du dessus (R : tourner)."],
+		["Peinture", "peinture", PlanEditor.Tool.PAINT, "Clic sur un côté de mur ou un sol ; glissé : toute la pièce, dans le matériau et la teinte choisis."],
+		["Gomme", "gomme", PlanEditor.Tool.ERASE, "Clic sur un mur, un sol ou un escalier ; glissé : tout un rectangle de l'étage."]]
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 2)
 	for t in tools:
-		var b := Button.new()
-		b.text = t[0]
-		b.tooltip_text = t[2]
+		var b := UiStyle.tile_button(t[1], t[0], "", Vector2(56, 58), 24)
+		b.add_theme_font_size_override("font_size", 11)
+		UiStyle.tint_pressed(b, UiStyle.CREATE, UiStyle.CREATE_INK)
+		b.tooltip_text = t[3]
 		b.toggle_mode = true
 		b.button_group = _item_group
-		var tool_id: int = t[1]
+		var tool_id: int = t[2]
 		b.pressed.connect(func() -> void: plan_tool_chosen.emit(tool_id))
 		row.add_child(b)
 	_add(row)
-	# Étage actif.
-	var lrow := HBoxContainer.new()
-	var down := Button.new()
-	down.text = "▼"
-	down.tooltip_text = "Étage du dessous (Page bas) : jusqu'à 5 sous-sols"
+	# Échelle des étages : on voit tous les niveaux, un clic pour y aller.
+	var lhead := HBoxContainer.new()
+	var lt := _small_label("ÉTAGES")
+	lt.add_theme_color_override("font_color", UiStyle.TEXT_DIM)
+	lt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	lhead.add_child(lt)
+	_level_label = _small_label(_level_text)
+	_level_label.add_theme_color_override("font_color", UiStyle.CREATE)
+	lhead.add_child(_level_label)
+	var down := UiStyle.icon_button("bas", "Étage du dessous : jusqu'à 5 sous-sols", "Page bas", 16, 26)
 	down.pressed.connect(func() -> void: plan_level_step.emit(-1))
-	lrow.add_child(down)
-	_level_label = Label.new()
-	_level_label.text = _level_text
-	_level_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_level_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_level_label.clip_text = true
-	lrow.add_child(_level_label)
-	var up := Button.new()
-	up.text = "▲"
-	up.tooltip_text = "Étage du dessus (Page haut) : jusqu'à 59 étages"
+	lhead.add_child(down)
+	var up := UiStyle.icon_button("haut", "Étage du dessus : jusqu'à 59 étages", "Page haut", 16, 26)
 	up.pressed.connect(func() -> void: plan_level_step.emit(1))
-	lrow.add_child(up)
-	_add(lrow)
+	lhead.add_child(up)
+	_add(lhead)
+	var lscroll := ScrollContainer.new()
+	lscroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	lscroll.custom_minimum_size = Vector2(0, 150)
+	_ladder_box = VBoxContainer.new()
+	_ladder_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_ladder_box.add_theme_constant_override("separation", 3)
+	lscroll.add_child(_ladder_box)
+	_add(lscroll)
+	_fill_ladder()
 	# Hauteur des murs et des pièces : plusieurs étages d'un coup.
 	var hrow := HBoxContainer.new()
 	var hl := Label.new()
@@ -439,6 +505,7 @@ func _show_plan_tools() -> void:
 	hspin.max_value = 60
 	hspin.value = _wall_levels
 	hspin.suffix = "étage(s)"
+	hspin.custom_minimum_size = Vector2(120, 0)
 	hspin.tooltip_text = "Les outils Mur et Pièce montent les murs (et les planchers des pièces) sur ce nombre d'étages d'un coup, à partir de l'étage actif."
 	hspin.value_changed.connect(func(v: float) -> void:
 		_wall_levels = int(v)
@@ -495,6 +562,54 @@ func _show_plan_tools() -> void:
 		rb.pressed.connect(func() -> void: plan_roof.emit(rid))
 		rrow.add_child(rb)
 	_add(rrow)
+
+
+## Remplit l'échelle : « Ajouter un étage » en haut, puis chaque niveau du toit
+## au sous-sol, l'étage actif en bleu.
+func _fill_ladder() -> void:
+	if not is_instance_valid(_ladder_box):
+		return
+	for c in _ladder_box.get_children():
+		c.queue_free()
+	var top := maxi(_ladder_level, 0)
+	var bottom := mini(_ladder_level, 0)
+	for e in _ladder_counts:
+		top = maxi(top, int(e))
+		bottom = mini(bottom, int(e))
+	var add := Button.new()
+	add.text = "Ajouter un étage"
+	add.icon = Icones.get_icon("plus", 16, UiStyle.CREATE)
+	add.tooltip_text = "Monter à l'étage au-dessus du dernier pour y tracer les murs"
+	add.focus_mode = Control.FOCUS_NONE
+	var dashed := UiStyle.flat_box(Color(0, 0, 0, 0), 8, 5)
+	dashed.border_color = Color(UiStyle.CREATE, 0.5)
+	dashed.set_border_width_all(1)
+	add.add_theme_stylebox_override("normal", dashed)
+	add.add_theme_color_override("font_color", UiStyle.CREATE)
+	var target := mini(top + 1, PlanEditor.MAX_LEVEL)
+	if _ladder_counts.is_empty():
+		target = mini(_ladder_level + 1, PlanEditor.MAX_LEVEL)
+	add.pressed.connect(func() -> void: plan_level_set.emit(target))
+	_ladder_box.add_child(add)
+	for e in range(top, bottom - 1, -1):
+		var b := Button.new()
+		var n: int = int(_ladder_counts.get(e, -1))
+		var what := "vide" if n < 0 else ("plancher" if n == 0 else "%d mur%s" % [n, "s" if n > 1 else ""])
+		b.text = "%s  ·  %s" % [PlanEditor.level_name(e), what]
+		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		b.toggle_mode = true
+		b.focus_mode = Control.FOCUS_NONE
+		b.add_theme_font_size_override("font_size", 13)
+		b.add_theme_stylebox_override("normal", UiStyle.flat_box(Color(1, 1, 1, 0.05), 8, 5))
+		b.add_theme_stylebox_override("hover", UiStyle.flat_box(Color(1, 1, 1, 0.12), 8, 5))
+		b.add_theme_stylebox_override("pressed", UiStyle.flat_box(UiStyle.CREATE, 8, 5))
+		b.add_theme_stylebox_override("hover_pressed", UiStyle.flat_box(UiStyle.CREATE.lightened(0.15), 8, 5))
+		b.add_theme_color_override("font_pressed_color", UiStyle.CREATE_INK)
+		b.add_theme_color_override("font_hover_pressed_color", UiStyle.CREATE_INK)
+		b.set_pressed_no_signal(e == _ladder_level)
+		var lv := e
+		b.pressed.connect(func() -> void: plan_level_set.emit(lv))
+		_ladder_box.add_child(b)
 
 
 func _show_block_tools() -> void:

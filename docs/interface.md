@@ -15,6 +15,19 @@ Direction « A » choisie par Gaël le 12 novembre 2026 parmi trois maquettes : 
 
 ![Construire : catégories en icônes, bâtiments en vignettes](apercu-menus-construire.png)
 
+## Gérer et Créer (touche Tab)
+
+La barre du bas a deux modes, choisis avec l'interrupteur à gauche ou la touche Tab :
+
+- **Gérer** (ambre) : la ville. Observer, Terrain, Voies, Paysage, Construire (catalogue et zonage), Lignes, Habitants, Production, Circulation, Véhicules, Vue.
+- **Créer** (bleu) : construire soi-même. Observer (1), Murs et étages (2), Blocs (3), Intérieur (4), Mes créations (5), l'étage actif avec ▼ ▲ (Page bas / Page haut) et Vue. La ville se met en pause ; une pastille bleue le rappelle en haut.
+
+En mode Créer, le panneau de droite devient l'« Atelier » : outils de plan en icônes (mur, pièce, sol, escalier, peinture, gomme) et **échelle des étages** (« Ajouter un étage », puis chaque niveau du toit au sous-sol avec son nombre de murs ; un clic pour y aller).
+
+Code : `TerreHud.set_create_mode()`, signaux `mode_changed`, `create_requested`, `level_step_requested` ; `terre_main.set_create_mode()` et `_on_create_requested()` ; `BuildingPanel.set_workshop()` et `set_ladder()` ; `PlanEditor.set_level()` et `level_counts()`. Un écran Atelier séparé (sans simulation) viendra en plus, ouvert depuis le mode Créer.
+
+![Mode Créer](apercu-mode-creer.png)
+
 ## Construire en vignettes
 
 Les onglets sont des icônes (le nom est dans l'infobulle et au-dessus de la liste). Chaque bâtiment est une carte : vignette, nom, taille, prix. Les vignettes sont rendues une par image dans un petit `SubViewport` (`scripts/interface/vignettes.gd`), en vue de trois quarts, puis gardées en mémoire. Sans affichage (tests `--headless`), l'icône de la catégorie reste à la place.

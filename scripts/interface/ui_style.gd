@@ -8,6 +8,9 @@ const ACCENT_INK := Color("2a2414")
 const TEXT := Color("eef3ee")
 const TEXT_DIM := Color("b7c4bb")
 const GOOD := Color("9fe3b0")
+## Mode Créer (construction libre) : accent bleu, pour ne pas le confondre avec la ville.
+const CREATE := Color("7cc7ff")
+const CREATE_INK := Color("0e2233")
 const PANEL_BG := Color(0.08, 0.10, 0.09, 0.88)
 ## Panneaux de droite (Construire, Lignes, Habitants) : même place, un à la fois.
 const SIDE_LEFT := -392.0
@@ -69,6 +72,14 @@ static func style_icon_button(b: Button) -> void:
 	b.add_theme_color_override("icon_hover_color", Color.WHITE)
 	b.add_theme_color_override("icon_pressed_color", ACCENT_INK)
 	b.add_theme_color_override("icon_hover_pressed_color", ACCENT_INK)
+
+
+## Bouton enfoncé dans une autre couleur (bleu du mode Créer, par exemple).
+static func tint_pressed(b: Button, bg: Color, ink: Color) -> void:
+	b.add_theme_stylebox_override("pressed", flat_box(bg))
+	b.add_theme_stylebox_override("hover_pressed", flat_box(bg.lightened(0.15)))
+	for k in ["font_pressed_color", "font_hover_pressed_color", "icon_pressed_color", "icon_hover_pressed_color"]:
+		b.add_theme_color_override(k, ink)
 
 
 ## Grand bouton de catégorie ou d'outil : icône au-dessus, nom dessous, touche en haut à droite.

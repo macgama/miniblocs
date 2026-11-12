@@ -28,6 +28,7 @@ L'écran a une barre en haut (lieu, partie, heure et vitesse du temps, chiffres 
 | Panneau Construire | **B** (bâtiments, zonage, éditeur libre ; **R** tourne le bâtiment, **Ctrl + Z** annule ; **Page haut / Page bas** : étage actif en mode Murs et étages) |
 | Transports publics | **L** (stations, gares, ports, aéroports, lignes) |
 | Habitants | **H** (la ville en chiffres, liste des habitants, budget) ; clic sur un bâtiment avec l'outil 1 |
+| Habitants au travail | **K** vue métiers (zoome sur un commerce, une école, un hôpital : il s'ouvre en coupe), **Maj + K** coupe automatique oui/non |
 | Temps | **T** pause, **Maj + T** vitesse suivante |
 | Vue au sol | **V** (dessus, 3e personne, 1re personne) |
 | Sauvegarder / recharger | **F5** / **F9** ; icônes Sauver, Charger (liste des parties) et Globe en haut à gauche |
@@ -56,6 +57,8 @@ La touche **0** ouvre le panneau **Paysage**. Clic gauche glissé avec un pincea
 - **Lac / canal** : creuse et remplit d'eau animée. L'eau garde le niveau du premier clic, donc un canal qui monte est creusé plus profond, comme un vrai canal. Les routes posées par-dessus passent sur un pont, et les bateaux peuvent y naviguer. **Combler l'eau** rebouche.
 - **Peindre un biome** : forêt (qui se remplit d'arbres), prairie, champs, broussailles, désert, plage, roche, neige, marais, toundra.
 - **Planter** ou **arracher** des arbres.
+
+Les plantes (46 espèces modélisées dans Blender : arbres, arbustes, herbes, fleurs, cultures, rochers) et les textures du sol (herbe, roche, sable, champs en patchwork…) changent selon le biome, le climat et l'altitude, et vivent au fil des saisons (feuilles d'automne, neige, moissons) et des âges (de la jeune pousse à l'arbre mort) : voir [docs/plantes-et-sols.md](docs/plantes-et-sols.md).
 
 Tout est sauvegardé avec la partie.
 
@@ -303,6 +306,7 @@ L'onglet **Éditeur libre** a deux modes : **Murs et étages** (par défaut) et 
 - **Peinture** : chaque côté d'un mur a son matériau et sa teinte (crépi dehors, plâtre ou carrelage dedans). Un clic peint un côté de mur ou un sol ; un clic glissé peint toute une pièce (un matériau de sol peint les sols, les autres peignent les murs).
 - **Étages** : **Page haut / Page bas** (ou ▲ ▼ dans le panneau) changent l'étage actif, de 5 sous-sols à 59 étages, 3 m par étage. Les étages du dessus sont masqués pendant l'édition (**Vue en coupe**), toit compris. Sous le rez-de-chaussée et les sous-sols, le terrain est creusé tout seul, et rebouché si on efface.
 - **Escalier** : 4 cases de long, 12 marches, vers l'étage du dessus (la trémie est ouverte toute seule) ; **R** le tourne.
+- **De plain-pied** : le plancher du rez-de-chaussée affleure le sol, ou la chaussée si une route passe à moins de 12 m ; la porte est donc au niveau du trottoir. **Au ras du sol** remet un bâtiment déjà construit à ce niveau (le toit suit).
 - **Murs et pièces sur N étages** : un réglage du panneau fait monter un trait de Mur ou un rectangle de Pièce sur plusieurs étages d'un coup, à partir de l'étage actif.
 - **Copier l'étage ↑** recopie l'étage actif au-dessus, autant de fois que demandé : un immeuble de 12 étages se fait en quelques clics.
 - **Toit** : deux pans, quatre pans ou plat, posé en blocs sur le dernier étage (le matériau de toit choisi, ou de la tuile), avec un débord d'un mètre et des pignons. On le retouche ensuite avec les blocs.
@@ -325,6 +329,18 @@ L'onglet **Intérieur** (icône fauteuil) du panneau Construire aménage les bâ
 ![Les habitants dans leur maison en fin de journée](docs/interieurs_proche.png)
 ![Vue au sol dans le séjour de la maison rustique](docs/interieurs_sol.png)
 ![La bible des meubles : un style par rangée](docs/interieurs_bible.png)
+
+### Personnaliser un bâtiment, banque de modèles et atelier
+
+- **Personnaliser** : clic sur un bâtiment du catalogue (outil 1), puis « Personnaliser » sur sa fiche. On change les couleurs (murs, toit, boiseries, volets, porte, vitres) dans le nuancier du style ou en couleur libre, la forme du toit (deux pans, quatre pans, terrasse, mansarde, bords relevés, appentis, chaume), le nombre d'étages, la pente du toit et la variante. Seul ce bâtiment change ; un bouton applique le même réglage à tous les bâtiments du même modèle. Tout est gardé dans la partie.
+- **Ouvrir l'intérieur** (maisons, immeubles, boutiques, restaurants, bureaux, ateliers, écoles) : le bâtiment est reconstruit en murs fins à sa place, avec ses couleurs (matériaux les plus proches), découpé en pièces (entrée et escalier, séjour, cuisine, chambres, salle de bains ; salle de vente et réserve pour une boutique, logement au-dessus) et meublé dans un style proche du sien. On y entre (V), on le meuble (onglet Intérieur) et on peut déplacer ses murs. Les petits ornements du modèle (corniches, cheminée) disparaissent.
+- **Banque de modèles** (mode Créer, touche 6) : chaque bâtiment personnalisé ou en murs fins s'enregistre avec un nom et des étiquettes (type, style, région, époque, couleurs, étages, pièces, taille). On cherche, on filtre, on repose. « Exporter » crée un fichier à envoyer, « Importer » lit ceux reçus (dossier d'échange). Chaque modèle est rangé comme un objet du Steam Workshop (un dossier avec `modele.json` et `apercu.png`), pour le partage entre joueurs quand le jeu sera sur Steam.
+- **Atelier** (bouton du globe, ou touche 7 en mode Créer) : un terrain plat, sans habitants ni argent ni météo, pour créer et retoucher des bâtiments, puis les ranger dans la banque. Depuis une partie, elle est sauvegardée avant d'ouvrir l'atelier, et « Quitter » (7) y ramène. L'atelier garde ce qu'on y a laissé.
+
+![Une rue de Maisons à pignon personnalisées, la dernière ouverte en murs fins](docs/personnaliser_rue.png)
+![Le panneau Personnaliser](docs/personnaliser_panneau.png)
+![Une Maison à pignon ouverte : pièces et meubles](docs/personnaliser_coupe.png)
+![L'atelier et sa banque de modèles](docs/personnaliser_atelier.png)
 
 ### Éditeur libre : construire bloc par bloc
 
@@ -409,7 +425,7 @@ Le mode Terre a maintenant une **horloge** : le Soleil et la Lune sont à leur v
 
 - **La nuit**, des **lampadaires** s'allument le long des routes et des chemins (posés tout seuls), et les **fenêtres** des bâtiments s'éclairent, plus ou moins selon l'heure.
 - **Panneau Horloge** (en bas à droite) : heure et date du lieu, lever et coucher du Soleil, phase de la Lune. Barre pour choisir l'heure, ◀ ▶ pour changer de mois (et donc de saison).
-- **T** : pause / reprise. **Maj + T** : vitesse suivante (temps réel, 1 min/s, 10 min/s, 1 h/s).
+- **T** : pause / reprise. **Maj + T** : vitesse suivante (temps réel, 1 min/s, 10 min/s, 100 min/s).
 - **Heure officielle du lieu**, avec les vrais fuseaux horaires du monde et l'heure d'été.
 - **Météo** selon le climat réel du lieu et la saison : nuages, pluie, neige, brouillard, orages avec éclairs. La liste « Météo » du panneau Horloge permet de forcer un temps.
 - **Phares** des véhicules allumés la nuit et par mauvais temps.
@@ -510,12 +526,27 @@ Une ferme entièrement générée en code (longère à colombages et toit de cha
 | `scripts/interieurs/interieur_panel.gd` | Onglet « Intérieur » du panneau Construire |
 | `tests/interieurs_test.gd` | Test des intérieurs (bible, pose, aménagement, habitants, sauvegarde, panneau) |
 | `tests/interieurs_vitrine.gd` | Bâtiments meublés en coupe et captures (`--vue dessus`, `proche`, `sol`, `bible`, `panneau`, `--style japonais`) |
+| `scripts/atelier/personnalisation.gd` | Personnalisation d'un bâtiment du catalogue (couleurs, toit, étages) |
+| `scripts/atelier/perso_panel.gd` | Panneau « Personnaliser » |
+| `scripts/atelier/conversion.gd` | « Ouvrir l'intérieur » : bâtiment du catalogue refait en murs fins, découpé en pièces, meublé |
+| `scripts/atelier/banque_modeles.gd` | Banque de modèles : enregistrer, étiqueter, chercher, poser, exporter, importer |
+| `scripts/atelier/banque_panel.gd` | Onglet « Banque de modèles » |
+| `scripts/atelier/banque_pose.gd` | Outil de pose d'un modèle en murs fins |
+| `tests/atelier_test.gd` | Test de la personnalisation, de l'ouverture des intérieurs, de la banque et de l'atelier |
+| `tests/atelier_vitrine.gd` | Captures : rue personnalisée, panneau, maison ouverte, atelier (`--vue rue`, `panneau`, `coupe`, `atelier`) |
 | `scripts/habitants/population.gd` | Habitants : foyers, étapes de la vie, écoles, emplois, emploi du temps, trajets, économie, sauvegarde |
 | `scripts/habitants/habitants_panel.gd` | Panneau « Habitants » (touche H) : ville, liste, bâtiment, profil |
 | `scripts/habitants/metiers.gd` | Métiers (salaires, horaires), métiers par bâtiment, loisirs et leurs lieux, classes |
 | `scripts/habitants/prenoms.gd` | Prénoms et noms par région du monde |
 | `tests/habitants_test.gd` | Test des habitants (école, emplois, journée, budget, transports, sauvegarde, panneau) |
 | `tests/habitants_vitrine.gd` | Petit quartier et captures du panneau Habitants |
+| `scripts/metiers/gestes.gd` | Gestes de métier (pétrir, écrire au tableau, ausculter…) : texte, animation, outil, poste ; gestes devinés pour les nouveaux métiers |
+| `scripts/metiers/figurine.gd` | Habitant articulé qui fait les gestes (personnage arrondi de Blender, ou en blocs), tenues de métier |
+| `scripts/metiers/accessoires.gd` | Outils en main et postes de travail low-poly (four, pétrin, tableau, lits, caisses, machines…) |
+| `scripts/metiers/effectif.gd` | Personnel des bâtiments : fermé faute d'employés, sous-effectif, ouvert maintenant, conséquences |
+| `scripts/metiers/metiers_vivants.gd` | Vue métiers (K) : bâtiments en coupe, employés dehors, enseignes, rideaux de fer, pancartes, clic sur un employé |
+| `tests/metiers_test.gd` | Test des métiers visibles et des conséquences du manque de personnel |
+| `tests/metiers_vitrine.gd` | Captures : boulangerie, école, hôpital, ferme, supérette la nuit (`--seulement boulangerie`…) |
 | `tests/batiments_vitrine.gd` | Pose tout le catalogue (ou fait pousser un quartier avec `--zones`, ou construit une maison en blocs avec `--blocs`) et prend une capture. `--styles japonais,chinois` ou `--arch culte` filtrent la bible, `--zone-style` choisit le style du zonage, `--cat espaces` une catégorie, `--maison` construit la maison de démonstration de l'éditeur libre, `--courbe` des bâtiments calés le long d'une route courbe, `--murs` une maison et un immeuble en murs fins (`--coupe 0` : vue en coupe du rez-de-chaussée) |
 
 ## Sauvegarde des parties

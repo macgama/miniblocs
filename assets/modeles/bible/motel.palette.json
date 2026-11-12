@@ -1,0 +1,70 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "asphalte": {
+   "index": 0,
+   "origine": "#55585e"
+  },
+  "enduit_rose": {
+   "index": 1,
+   "origine": "#e9c2b0"
+  },
+  "blanc": {
+   "index": 2,
+   "origine": "#f7f7f5"
+  },
+  "vitre": {
+   "index": 3,
+   "origine": "#33495e"
+  },
+  "cadre": {
+   "index": 4,
+   "origine": "#f4f1ea"
+  },
+  "bleu": {
+   "index": 5,
+   "origine": "#2a6fdb"
+  },
+  "vert": {
+   "index": 6,
+   "origine": "#3f8f5a"
+  },
+  "beton_clair": {
+   "index": 7,
+   "origine": "#d4d1ca"
+  },
+  "beton_sombre": {
+   "index": 8,
+   "origine": "#8c8a85"
+  },
+  "verre_clair": {
+   "index": 9,
+   "origine": "#8fb8d8"
+  },
+  "tole": {
+   "index": 10,
+   "origine": "#9aa0a6"
+  },
+  "sous_toit": {
+   "index": 11,
+   "origine": "#6a5040"
+  },
+  "eau": {
+   "index": 12,
+   "origine": "#3fa7d6"
+  },
+  "metal": {
+   "index": 13,
+   "origine": "#7d8288"
+  },
+  "jaune": {
+   "index": 14,
+   "origine": "#f2c14e"
+  },
+  "rouge": {
+   "index": 15,
+   "origine": "#c0392b"
+  }
+ }
+}

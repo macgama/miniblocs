@@ -1,0 +1,22 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "pierre_claire": {
+   "index": 0,
+   "origine": "#d8d0bf"
+  },
+  "ocre": {
+   "index": 1,
+   "origine": "#d39b5a"
+  },
+  "or": {
+   "index": 2,
+   "origine": "#d7b04a"
+  },
+  "ombre": {
+   "index": 3,
+   "origine": "#c9bdab"
+  }
+ }
+}

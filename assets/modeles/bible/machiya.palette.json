@@ -1,0 +1,30 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "bois_sombre": {
+   "index": 0,
+   "origine": "#5a3e2b"
+  },
+  "bois": {
+   "index": 1,
+   "origine": "#8a6142"
+  },
+  "ardoise": {
+   "index": 2,
+   "origine": "#5b5f66"
+  },
+  "tuile_ombre": {
+   "index": 3,
+   "origine": "#8f3a29"
+  },
+  "sous_toit": {
+   "index": 4,
+   "origine": "#6a5040"
+  },
+  "enduit_blanc": {
+   "index": 5,
+   "origine": "#f4f2ec"
+  }
+ }
+}

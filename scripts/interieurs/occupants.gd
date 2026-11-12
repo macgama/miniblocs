@@ -38,6 +38,10 @@ var _meshes: Dictionary = {}
 var _timer := 0.0
 ## Ce qui est affiché : [{pid, plan, e, pose, pos}] (tests, vitrine).
 var shown: Array = []
+## Employés à leur poste : figurines animées qui font les gestes de leur métier
+## (scripts/metiers). pid → Figurine.
+var figurines: Dictionary = {}
+var _t := 0.0
 
 
 func setup(m: Mobilier, pop: Population, cam: Camera3D) -> void:
@@ -47,6 +51,11 @@ func setup(m: Mobilier, pop: Population, cam: Camera3D) -> void:
 
 
 func _process(delta: float) -> void:
+	_t += delta
+	for pid in figurines:
+		var f: Figurine = figurines[pid]
+		if f.visible:
+			f.animer(_t)
 	_timer -= delta
 	if _timer > 0.0:
 		_sync_visibility()
@@ -60,12 +69,16 @@ func refresh() -> void:
 	shown.clear()
 	if mob == null or population == null or mob.pe == null:
 		_hide_from(0)
+		for fp in figurines:
+			(figurines[fp] as Node).queue_free()
+		figurines.clear()
 		return
 	var cam := get_viewport().get_camera_3d() if is_inside_tree() else null
 	if cam == null:
 		cam = camera
 	var cam_pos := cam.global_position if cam != null else Vector3.ZERO
 	var used := 0
+	var figs_vues := {}
 	for id in mob.pe.plans:
 		if used >= MAX_FIGURES:
 			break
@@ -102,10 +115,39 @@ func refresh() -> void:
 				continue
 			var child := population.age_of(p) < 12.0
 			_show(used, spot, int(pid), child, id)
+			if (kind == "travail" or kind == "enseigne") and String(spot.pose) != "couche":
+				_figurine(used, spot, int(pid), String(p.met), id, figs_vues)
 			shown.append({"pid": pid, "plan": id, "e": int(spot.e), "pose": String(spot.pose), "pos": spot.pos, "kind": String(spot.kind), "activity": kind})
 			used += 1
 	_hide_from(used)
+	for fp in figurines.keys():
+		if not figs_vues.has(fp):
+			(figurines[fp] as Node).queue_free()
+			figurines.erase(fp)
 	_sync_visibility()
+
+
+## Un employé à son poste : figurine animée à la place de la silhouette figée.
+func _figurine(i: int, spot: Dictionary, pid: int, met: String, id: String, vues: Dictionary) -> void:
+	var f: Figurine = figurines.get(pid)
+	if f == null:
+		f = Figurine.creer(pid, met, population.age_of(population.persons[pid]) < 12.0, population)
+		add_child(f)
+		figurines[pid] = f
+	var unix := population.ambiance.unix_time if population.ambiance != null else 0.0
+	var g := Gestes.courant(pid, met, unix)
+	var assis := String(spot.pose) == "assis"
+	if f.geste != g or f.assise != (assis or Gestes.assis(g)):
+		f.regler(g, assis)
+	f.va_et_vient = 0.0
+	f.hauteur_assise = 0.0
+	f.transform = Transform3D(Basis(Vector3.UP, float(spot.yaw)), spot.pos)
+	f.set_meta("plan", id)
+	f.set_meta("e", int(spot.e))
+	f.visible = true
+	_pool[i].set_meta("fig", true)
+	_pool[i].visible = false
+	vues[pid] = true
 
 
 ## Places de tous les meubles du bâtiment : [{kind, pos, yaw, e, pose}].
@@ -173,12 +215,36 @@ func _show(i: int, spot: Dictionary, pid: int, child: bool, id: String) -> void:
 		add_child(mi)
 		_pool.append(mi)
 	var mi2 := _pool[i]
-	mi2.mesh = figure_mesh(String(spot.pose), pid)
 	var s := 0.72 if child else 1.0
+	if Silhouettes.disponible():
+		# Personnage arrondi (taille réelle selon l'âge) porté par la place.
+		mi2.mesh = null
+		_silhouette(mi2, pid, String(spot.pose))
+		s = 1.0
+	else:
+		mi2.mesh = figure_mesh(String(spot.pose), pid)
 	mi2.transform = Transform3D(Basis(Vector3.UP, float(spot.yaw)).scaled(Vector3(s, s, s)), spot.pos)
 	mi2.set_meta("plan", id)
 	mi2.set_meta("e", int(spot.e))
+	mi2.set_meta("fig", false)
 	mi2.visible = true
+
+
+## Le personnage de l'habitant pid, dans la bonne pose, sous la place mi.
+func _silhouette(mi: MeshInstance3D, pid: int, pose: String) -> void:
+	var fig: Node3D = mi.get_meta("silhouette") if mi.has_meta("silhouette") else null
+	if fig != null and (int(fig.get_meta("pid", -1)) != pid or int(fig.get_meta("age", -1)) != int(population.age_of(population.persons[pid]))):
+		fig.queue_free()
+		fig = null
+	if fig == null:
+		fig = Silhouettes.pour_habitant(population, pid)
+		fig.set_meta("age", int(population.age_of(population.persons[pid])))
+		mi.add_child(fig)
+		mi.set_meta("silhouette", fig)
+		fig.set_meta("pose", "")
+	if String(fig.get_meta("pose")) != pose:
+		Silhouettes.poser(fig, pose)
+		fig.set_meta("pose", pose)
 
 
 func _hide_from(n: int) -> void:
@@ -196,7 +262,11 @@ func _sync_visibility() -> void:
 		if id == "":
 			continue
 		var ref: Node3D = (mob.pe._nodes.get(id, {}) as Dictionary).get(int(mi.get_meta("e", 0)))
-		mi.visible = ref == null or ref.visible
+		mi.visible = (ref == null or ref.visible) and not bool(mi.get_meta("fig", false))
+	for pid in figurines:
+		var f: Figurine = figurines[pid]
+		var ref2: Node3D = (mob.pe._nodes.get(String(f.get_meta("plan", "")), {}) as Dictionary).get(int(f.get_meta("e", 0)))
+		f.visible = ref2 == null or ref2.visible
 
 
 ## Silhouette low-poly : debout (pieds en 0), assis (bassin sur l'assise en 0),

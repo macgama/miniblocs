@@ -1,0 +1,18 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "terre": {
+   "index": 0,
+   "origine": "#b9825a"
+  },
+  "terre_battue": {
+   "index": 1,
+   "origine": "#c46a3b"
+  },
+  "bois_sombre": {
+   "index": 2,
+   "origine": "#5a3e2b"
+  }
+ }
+}

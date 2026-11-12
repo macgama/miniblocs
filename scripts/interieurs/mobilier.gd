@@ -102,6 +102,8 @@ var room_fns: Dictionary = {}
 var usages: Dictionary = {}
 ## id du plan -> style dominant (dernier style utilisé pour meubler)
 var styles: Dictionary = {}
+## Noms donnés aux bâtiments (id -> nom), par ex. celui du modèle d'origine.
+var names: Dictionary = {}
 
 var _occ: Dictionary = {} # id -> {Vector4i(x, e, z, couche): clé du meuble}
 var _nodes: Dictionary = {} # id -> {e: Node3D}
@@ -158,6 +160,7 @@ func clear() -> void:
 	room_fns.clear()
 	usages.clear()
 	styles.clear()
+	names.clear()
 	_occ.clear()
 	_undo.clear()
 	_stats_cache.clear()
@@ -302,6 +305,16 @@ func blocked_cells(id: String, e: int) -> Dictionary:
 
 
 ## Pièces d'un étage : [{cells: [Vector2i], key: Vector2i, area, fn, guessed}].
+## Nombre de pièces de tous les étages.
+func rooms_count(id: String) -> int:
+	var n := 0
+	if pe == null or not pe.plans.has(id):
+		return 0
+	for e in pe.levels_of(id):
+		n += rooms(id, int(e)).size()
+	return n
+
+
 func rooms(id: String, e: int) -> Array:
 	var out := []
 	if pe == null or not pe.plans.has(id):
@@ -1257,7 +1270,18 @@ func stats(id: String) -> Dictionary:
 	return out
 
 
+func set_name_of(id: String, nm: String) -> void:
+	if nm.strip_edges() == "":
+		names.erase(id)
+	else:
+		names[id] = nm.strip_edges()
+	_stats_cache.erase(id)
+	changed.emit()
+
+
 func plan_name(id: String) -> String:
+	if names.has(id):
+		return String(names[id])
 	var u := usage_of(id)
 	var num := id.trim_prefix("plan_")
 	var s := stats(id)
@@ -1554,6 +1578,12 @@ func _anchor(h: Dictionary) -> Vector2i:
 	return Vector2i(floori(p.x - f.x * 0.5 + 0.5), floori(p.z - f.y * 0.5 + 0.5))
 
 
+## Vise un bâtiment (fiche des habitants, conversion, banque).
+func focus_plan(id: String) -> void:
+	_focus = id
+	plan_selected.emit(id)
+
+
 func focus_id() -> String:
 	if pe != null and pe.active_id() != "":
 		return pe.active_id()
@@ -1663,9 +1693,12 @@ func to_dict() -> Dictionary:
 		for key in room_fns.get(id, {}):
 			var kf: Vector3i = key
 			fns.append_array([kf.x, kf.y, kf.z, String(room_fns[id][kf])])
-		if its.is_empty() and fns.is_empty() and not usages.has(id):
+		if its.is_empty() and fns.is_empty() and not usages.has(id) and not names.has(id):
 			continue
-		out.append({"id": id, "usage": usage_of(id), "style": String(styles.get(id, "")), "meubles": its, "pieces": fns})
+		var e := {"id": id, "usage": usage_of(id), "style": String(styles.get(id, "")), "meubles": its, "pieces": fns}
+		if names.has(id):
+			e["nom"] = String(names[id])
+		out.append(e)
 	return {"version": 1, "style": style, "plans": out}
 
 
@@ -1685,6 +1718,8 @@ func from_dict(data: Dictionary) -> void:
 		var st := String(pd.get("style", ""))
 		if Meubles.STYLES.has(st):
 			styles[id] = st
+		if String(pd.get("nom", "")) != "":
+			names[id] = String(pd.nom)
 		var its: Array = pd.get("meubles", [])
 		var i := 0
 		while i + 5 < its.size():

@@ -1,0 +1,54 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "asphalte": {
+   "index": 0,
+   "origine": "#55585e"
+  },
+  "marquage": {
+   "index": 1,
+   "origine": "#f2f2ee"
+  },
+  "beton_clair": {
+   "index": 2,
+   "origine": "#d4d1ca"
+  },
+  "beton_sombre": {
+   "index": 3,
+   "origine": "#8c8a85"
+  },
+  "verre_ciel": {
+   "index": 4,
+   "origine": "#6d97b8"
+  },
+  "verre_clair": {
+   "index": 5,
+   "origine": "#8fb8d8"
+  },
+  "verre_bleu": {
+   "index": 6,
+   "origine": "#4f6d8f"
+  },
+  "blanc": {
+   "index": 7,
+   "origine": "#f7f7f5"
+  },
+  "metal": {
+   "index": 8,
+   "origine": "#7d8288"
+  },
+  "orange": {
+   "index": 9,
+   "origine": "#e4772e"
+  },
+  "bleu": {
+   "index": 10,
+   "origine": "#2a6fdb"
+  },
+  "bardage_bleu": {
+   "index": 11,
+   "origine": "#4f6f91"
+  }
+ }
+}

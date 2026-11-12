@@ -18,6 +18,12 @@ signal transit_requested
 signal habitants_requested
 ## Panneau « Production » (touche P) : ressources, stocks, sites.
 signal production_requested
+## Bouton « Décors » (touche G) : bancs, clôtures, animaux, bateaux, rochers…
+signal decors_requested
+## Panneau Infos : événements de la ville (touche I).
+signal infos_requested
+## Panneau « Urgences » (touche U) : appels, casernes, couverture.
+signal urgences_requested
 ## Bouton Admin de la barre du haut, ou F10 : réglages de la partie.
 signal admin_requested
 signal spec_edited(type_id: String, spec: Dictionary)
@@ -56,8 +62,9 @@ const FIRST_TRANSPORT_TOOL := 4
 const LANDSCAPE_TOOL := 10
 
 ## Catégories de la barre du bas : outils (indices dans TOOLS) ou panneaux.
+## « mode » : barre où elles paraissent, Gérer (la ville) ou Créer (construction libre).
 const CATEGORIES := [
-	{"id": "observer", "name": "Observer", "icon": "observer", "key": "1", "tools": [0]},
+	{"id": "observer", "name": "Observer", "icon": "observer", "key": "1", "tools": [0], "mode": "both"},
 	{"id": "terrain", "name": "Terrain", "icon": "terrain", "key": "2-4", "tools": [1, 2, 3]},
 	{"id": "voies", "name": "Voies", "icon": "route", "key": "5-9", "tools": [4, 5, 6, 7, 9, 8]},
 	{"id": "paysage", "name": "Paysage", "icon": "paysage", "key": "0", "tools": [10]},
@@ -65,17 +72,36 @@ const CATEGORIES := [
 	{"id": "lignes", "name": "Lignes", "icon": "lignes", "key": "L", "panel": true},
 	{"id": "habitants", "name": "Habitants", "icon": "habitants", "key": "H", "panel": true},
 	{"id": "production", "name": "Production", "icon": "ressources", "key": "P", "panel": true},
+	{"id": "decors", "name": "Décors", "icon": "decors", "key": "G", "panel": true},
+	{"id": "infos", "name": "Infos", "icon": "infos", "key": "I", "panel": true},
+	{"id": "urgences", "name": "Urgences", "icon": "services", "key": "U", "panel": true},
+	{"id": "murs", "name": "Murs et étages", "icon": "mur", "key": "2", "panel": true, "mode": "creer"},
+	{"id": "blocs", "name": "Blocs", "icon": "editeur", "key": "3", "panel": true, "mode": "creer"},
+	{"id": "interieur", "name": "Intérieur", "icon": "interieur", "key": "4", "panel": true, "mode": "creer"},
+	{"id": "creations", "name": "Mes créations", "icon": "creations", "key": "5", "panel": true, "mode": "creer"},
+	{"id": "banque", "name": "Banque", "icon": "banque", "key": "6", "panel": true, "mode": "creer"},
+	{"id": "atelier", "name": "Atelier", "icon": "atelier", "key": "7", "panel": true, "mode": "creer"},
 ]
+## Touches 2 à 5 du mode Créer.
+const CREATE_KEYS := {KEY_2: "murs", KEY_3: "blocs", KEY_4: "interieur", KEY_5: "creations", KEY_6: "banque", KEY_7: "atelier"}
 ## Icône de chaque outil de TOOLS.
 const TOOL_ICONS := ["observer", "aplanir", "monter", "creuser", "route", "rail", "chemin", "eau", "demolir", "carrefour", "paysage"]
 ## Nom court sous l'icône (le nom complet est dans l'infobulle).
 const TOOL_SHORT := ["Observer", "Aplanir", "Monter", "Creuser", "Route", "Rail", "Chemin", "Voie d'eau", "Démolir", "Carrefour", "Paysage"]
 const VIEW_NAMES := ["Dessus", "3e pers.", "1re pers."]
+## Taille des boutons de la barre du bas (assez étroite pour laisser la carte de la case à gauche).
+const DOCK_TILE := Vector2(70, 70)
 
 ## Bouton « Construire » de la barre du bas (le panneau s'ouvre à droite).
 signal build_requested
 ## Bouton « Vue » : vue suivante (dessus, 3e personne, 1re personne).
 signal view_requested
+## Interrupteur Gérer / Créer (touche Tab) : la ville, ou la construction libre.
+signal mode_changed(create: bool)
+## Mode Créer : catégorie choisie ("murs", "blocs", "interieur", "creations").
+signal create_requested(id: String)
+## Mode Créer : flèches de l'étage (−1 ou +1).
+signal level_step_requested(delta: int)
 
 var coords_edit: LineEdit
 var _place_label: Label
@@ -97,6 +123,14 @@ var _chips := {}
 var _view_button: Button
 var _admin_button: Button
 var _current_tool := 0
+## Mode Créer (construction libre) : la barre du bas ne montre que l'atelier.
+var create_mode := false
+var _create_cat := ""
+var _mode_buttons := {}
+var _gerer_only: Array[Control] = []
+var _creer_only: Array[Control] = []
+var _level_label: Label
+var _mode_badge: PanelContainer
 ## Dernier outil choisi dans chaque catégorie (clic sur la catégorie = on y revient).
 var _last_tool := {"terrain": 1, "voies": 4}
 # Panneau de réglage de la voie à poser.
@@ -134,6 +168,7 @@ func _ready() -> void:
 
 	_build_cell_card()
 	_build_bottom()
+	_build_mode_badge()
 
 	var credit := _build_credit()
 	credit.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
@@ -352,10 +387,16 @@ func _build_bottom() -> void:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 4)
 	dock.add_child(row)
+	row.add_child(_build_mode_switch())
+	row.add_child(UiStyle.vsep())
 	for c in CATEGORIES:
 		if c.id == "construire":
-			row.add_child(UiStyle.vsep())
-		var b := UiStyle.tile_button(c.icon, c.name, c.key)
+			var s := UiStyle.vsep()
+			row.add_child(s)
+			_gerer_only.append(s)
+		var b := UiStyle.tile_button(c.icon, c.name, c.key, DOCK_TILE)
+		if c.get("mode", "gerer") == "creer":
+			UiStyle.tint_pressed(b, UiStyle.CREATE, UiStyle.CREATE_INK)
 		b.tooltip_text = "%s (%s)" % [c.name, c.key]
 		# Toutes allumables : outil en cours ou panneau ouvert (état remis par _update_categories / set_panel_open).
 		b.toggle_mode = true
@@ -363,8 +404,16 @@ func _build_bottom() -> void:
 		b.pressed.connect(func() -> void: _on_category(id))
 		row.add_child(b)
 		_cat_buttons[id] = b
-	row.add_child(UiStyle.vsep())
-	var traffic := UiStyle.tile_button("circulation", "Circulation")
+	var fsep := UiStyle.vsep()
+	row.add_child(fsep)
+	_creer_only.append(fsep)
+	var floor_box := _build_floor_widget()
+	row.add_child(floor_box)
+	_creer_only.append(floor_box)
+	var tsep := UiStyle.vsep()
+	row.add_child(tsep)
+	_gerer_only.append(tsep)
+	var traffic := UiStyle.tile_button("circulation", "Circulation", "", DOCK_TILE)
 	traffic.tooltip_text = "Afficher ou masquer la circulation"
 	traffic.toggle_mode = true
 	traffic.button_pressed = true
@@ -374,22 +423,167 @@ func _build_bottom() -> void:
 		traffic.add_theme_color_override(k, UiStyle.GOOD)
 	traffic.toggled.connect(func(on: bool) -> void: traffic_toggled.emit(on))
 	row.add_child(traffic)
-	row.add_child(_build_vehicle_menu())
-	_view_button = UiStyle.tile_button("vue", "Dessus", "V")
+	_gerer_only.append(traffic)
+	var veh := _build_vehicle_menu()
+	row.add_child(veh)
+	_gerer_only.append(veh)
+	row.add_child(UiStyle.vsep())
+	_view_button = UiStyle.tile_button("vue", "Dessus", "V", DOCK_TILE)
 	_view_button.tooltip_text = "Vue suivante : dessus, 3e personne, 1re personne (V)"
 	_view_button.pressed.connect(func() -> void: view_requested.emit())
 	row.add_child(_view_button)
 
 
+## Interrupteur Gérer / Créer, à gauche de la barre du bas.
+func _build_mode_switch() -> Control:
+	var box := VBoxContainer.new()
+	box.alignment = BoxContainer.ALIGNMENT_CENTER
+	box.add_theme_constant_override("separation", 3)
+	var group := ButtonGroup.new()
+	for m in [["gerer", "Gérer", "zonage", "Gérer la ville : terrain, voies, zonage, catalogue, lignes, habitants (Tab)"],
+			["creer", "Créer", "editeur", "Créer un bâtiment : murs et étages, blocs, intérieur ; la ville se met en pause (Tab)"]]:
+		var b := Button.new()
+		b.text = m[1]
+		b.icon = Icones.get_icon(m[2], 18)
+		b.tooltip_text = m[3]
+		b.toggle_mode = true
+		b.button_group = group
+		b.custom_minimum_size = Vector2(84, 30)
+		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		b.add_theme_font_size_override("font_size", 13)
+		b.add_theme_constant_override("icon_max_width", 18)
+		UiStyle.style_icon_button(b)
+		if m[0] == "creer":
+			UiStyle.tint_pressed(b, UiStyle.CREATE, UiStyle.CREATE_INK)
+		var on: bool = m[0] == "creer"
+		b.pressed.connect(func() -> void: _request_mode(on))
+		box.add_child(b)
+		_mode_buttons[m[0]] = b
+	(_mode_buttons.gerer as Button).button_pressed = true
+	var tab := UiStyle.key_label("Tab")
+	tab.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	tab.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(tab)
+	return box
+
+
+## Mode Créer : l'étage où l'on construit, avec ses flèches (Page bas / Page haut).
+func _build_floor_widget() -> Control:
+	var box := VBoxContainer.new()
+	box.alignment = BoxContainer.ALIGNMENT_CENTER
+	box.custom_minimum_size = Vector2(170, 0)
+	var cap := Label.new()
+	cap.text = "ÉTAGE"
+	cap.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	cap.add_theme_font_size_override("font_size", 11)
+	cap.add_theme_color_override("font_color", UiStyle.TEXT_DIM)
+	box.add_child(cap)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 4)
+	box.add_child(row)
+	var down := UiStyle.icon_button("bas", "Étage du dessous", "Page bas", 18, 32)
+	down.pressed.connect(func() -> void: level_step_requested.emit(-1))
+	row.add_child(down)
+	_level_label = Label.new()
+	_level_label.text = "Rez-de-chaussée"
+	_level_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_level_label.custom_minimum_size = Vector2(98, 0)
+	_level_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_level_label.add_theme_font_size_override("font_size", 15)
+	row.add_child(_level_label)
+	var up := UiStyle.icon_button("haut", "Étage du dessus", "Page haut", 18, 32)
+	up.pressed.connect(func() -> void: level_step_requested.emit(1))
+	row.add_child(up)
+	return box
+
+
+## Pastille du haut en mode Créer : on sait toujours où l'on est.
+func _build_mode_badge() -> void:
+	_mode_badge = PanelContainer.new()
+	_mode_badge.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	_mode_badge.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_mode_badge.offset_top = 74
+	_mode_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var sb := UiStyle.flat_box(UiStyle.CREATE, 14, 4)
+	sb.content_margin_left = 14
+	sb.content_margin_right = 14
+	_mode_badge.add_theme_stylebox_override("panel", sb)
+	var l := Label.new()
+	l.text = "Mode Créer : la ville est en pause  ·  Tab : retour à la ville"
+	l.add_theme_font_size_override("font_size", 14)
+	l.add_theme_color_override("font_color", UiStyle.CREATE_INK)
+	_mode_badge.add_child(l)
+	_mode_badge.visible = false
+	add_child(_mode_badge)
+
+
+func _request_mode(on: bool) -> void:
+	if on == create_mode:
+		return
+	set_create_mode(on)
+	mode_changed.emit(on)
+
+
+## Passe la barre du bas en mode Créer ou Gérer (sans prévenir).
+func set_create_mode(on: bool) -> void:
+	create_mode = on
+	if _mode_buttons.is_empty():
+		return
+	(_mode_buttons.creer as Button).set_pressed_no_signal(on)
+	(_mode_buttons.gerer as Button).set_pressed_no_signal(not on)
+	if on and _current_tool != 0:
+		_buttons[0].button_pressed = true
+		_set_current_tool(0)
+		tool_selected.emit(0)
+	if not on:
+		_create_cat = ""
+	_mode_badge.visible = on
+	_message_label.offset_top = 110 if on else 76
+	_update_categories()
+
+
+## Mode Créer : catégorie allumée ("" : aucune).
+func set_create_category(id: String) -> void:
+	_create_cat = id
+	_update_categories()
+
+
+func create_category() -> String:
+	return _create_cat
+
+
+## Mode Créer : nom de l'étage actif sous les flèches.
+func set_level_text(text: String) -> void:
+	if _level_label:
+		_level_label.text = text.get_slice("  ·", 0)
+
+
 func _on_category(id: String) -> void:
 	var c := _category(id)
+	if c.get("mode", "gerer") == "creer":
+		_create_cat = "" if _create_cat == id else id
+		create_requested.emit(_create_cat)
+		_update_categories()
+		return
 	if c.get("panel", false):
 		match id:
 			"construire": build_requested.emit()
 			"lignes": transit_requested.emit()
 			"habitants": habitants_requested.emit()
 			"production": production_requested.emit()
+			"decors": decors_requested.emit()
+			"infos": infos_requested.emit()
+			"urgences": urgences_requested.emit()
 		_update_categories()
+		return
+	if create_mode and id == "observer":
+		# Mode Créer : Observer range l'outil de l'atelier.
+		if _create_cat != "":
+			_create_cat = ""
+			create_requested.emit("")
+		_buttons[0].button_pressed = true
+		_set_current_tool(0)
+		tool_selected.emit(0)
 		return
 	var tools: Array = c.tools
 	var t: int = tools[0]
@@ -431,8 +625,17 @@ func _update_categories() -> void:
 		return
 	var cat := _category_of_tool(_current_tool)
 	for c in CATEGORIES:
-		if not c.get("panel", false):
-			(_cat_buttons[c.id] as Button).set_pressed_no_signal(c.id == cat)
+		var mode: String = c.get("mode", "gerer")
+		var b := _cat_buttons[c.id] as Button
+		b.visible = mode == "both" or (mode == "creer") == create_mode
+		if mode == "creer":
+			b.set_pressed_no_signal(c.id == _create_cat)
+		elif not c.get("panel", false):
+			b.set_pressed_no_signal(c.id == cat and (not create_mode or _create_cat == ""))
+	for n in _gerer_only:
+		n.visible = not create_mode
+	for n in _creer_only:
+		n.visible = create_mode
 	var tools: Array = _category(cat).get("tools", [])
 	for i in _buttons.size():
 		_buttons[i].visible = tools.size() > 1 and tools.has(i)
@@ -443,6 +646,21 @@ func _update_categories() -> void:
 	_tray_tools.visible = tools.size() > 1
 	_tray_sep.visible = _tray_tools.visible and spec_on
 	_tray.visible = _tray_tools.visible or spec_on
+
+
+## Texte du bandeau du mode Créer (l'atelier a le sien).
+func set_create_banner(text: String) -> void:
+	if _mode_badge and _mode_badge.get_child_count() > 0:
+		(_mode_badge.get_child(0) as Label).text = text
+
+
+## Change le nom et l'infobulle d'une tuile de la barre du bas.
+func set_category_label(id: String, text: String, tip := "") -> void:
+	var b := _cat_buttons.get(id) as Button
+	if b:
+		b.text = text
+		if tip != "":
+			b.tooltip_text = tip
 
 
 ## Panneaux ouverts (Construire, Lignes, Habitants) : leur catégorie est allumée.
@@ -497,7 +715,7 @@ func _build_vehicle_menu() -> MenuButton:
 	mb.text = "Véhicules ▾"
 	mb.icon = Icones.get_icon("vehicules", 30)
 	mb.tooltip_text = "Époque et région des véhicules qui circulent"
-	mb.custom_minimum_size = Vector2(82, 70)
+	mb.custom_minimum_size = DOCK_TILE
 	mb.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	mb.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
 	mb.add_theme_font_size_override("font_size", 13)
@@ -698,6 +916,20 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	var key := event as InputEventKey
 	if key == null or not key.pressed or key.echo:
 		return
+	if key.keycode == KEY_TAB and not key.ctrl_pressed and not key.alt_pressed:
+		_request_mode(not create_mode)
+		get_viewport().set_input_as_handled()
+		return
+	if create_mode:
+		var kc := key.physical_keycode if key.physical_keycode != KEY_NONE else key.keycode
+		if CREATE_KEYS.has(kc):
+			_on_category(CREATE_KEYS[kc])
+			get_viewport().set_input_as_handled()
+			return
+		if kc == KEY_1:
+			_on_category("observer")
+			get_viewport().set_input_as_handled()
+			return
 	for i in TOOLS.size():
 		if key.keycode == TOOLS[i].key or key.physical_keycode == TOOLS[i].key:
 			_buttons[i].button_pressed = true

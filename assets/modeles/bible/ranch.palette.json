@@ -1,0 +1,38 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "bardage": {
+   "index": 0,
+   "origine": "#a4aab0"
+  },
+  "blanc": {
+   "index": 1,
+   "origine": "#f7f7f5"
+  },
+  "vitre": {
+   "index": 2,
+   "origine": "#33495e"
+  },
+  "bleu": {
+   "index": 3,
+   "origine": "#2a6fdb"
+  },
+  "cadre": {
+   "index": 4,
+   "origine": "#f4f1ea"
+  },
+  "rouge": {
+   "index": 5,
+   "origine": "#c0392b"
+  },
+  "ardoise": {
+   "index": 6,
+   "origine": "#5b5f66"
+  },
+  "sous_toit": {
+   "index": 7,
+   "origine": "#6a5040"
+  }
+ }
+}

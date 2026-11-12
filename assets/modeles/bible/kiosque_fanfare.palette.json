@@ -1,0 +1,26 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "pierre_claire": {
+   "index": 0,
+   "origine": "#d8d0bf"
+  },
+  "bois_clair": {
+   "index": 1,
+   "origine": "#c39a6b"
+  },
+  "vert": {
+   "index": 2,
+   "origine": "#3f8f5a"
+  },
+  "zinc": {
+   "index": 3,
+   "origine": "#7e8890"
+  },
+  "or": {
+   "index": 4,
+   "origine": "#d7b04a"
+  }
+ }
+}

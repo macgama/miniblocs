@@ -1,0 +1,54 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "terre_battue": {
+   "index": 0,
+   "origine": "#c46a3b"
+  },
+  "bois_gris": {
+   "index": 1,
+   "origine": "#8b8478"
+  },
+  "tole": {
+   "index": 2,
+   "origine": "#9aa0a6"
+  },
+  "sous_toit": {
+   "index": 3,
+   "origine": "#6a5040"
+  },
+  "bois_clair": {
+   "index": 4,
+   "origine": "#c39a6b"
+  },
+  "rouge": {
+   "index": 5,
+   "origine": "#c0392b"
+  },
+  "tole_rouge": {
+   "index": 6,
+   "origine": "#8f3a33"
+  },
+  "orange": {
+   "index": 7,
+   "origine": "#e4772e"
+  },
+  "tole_verte": {
+   "index": 8,
+   "origine": "#4f6b52"
+  },
+  "jaune": {
+   "index": 9,
+   "origine": "#f2c14e"
+  },
+  "vert": {
+   "index": 10,
+   "origine": "#3f8f5a"
+  },
+  "bleu": {
+   "index": 11,
+   "origine": "#2a6fdb"
+  }
+ }
+}

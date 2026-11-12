@@ -1,0 +1,38 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "pierre_grise": {
+   "index": 0,
+   "origine": "#9c988f"
+  },
+  "pierre_claire": {
+   "index": 1,
+   "origine": "#d8d0bf"
+  },
+  "enduit_blanc": {
+   "index": 2,
+   "origine": "#f4f2ec"
+  },
+  "noir": {
+   "index": 3,
+   "origine": "#2a2b2e"
+  },
+  "vitre": {
+   "index": 4,
+   "origine": "#33495e"
+  },
+  "ardoise": {
+   "index": 5,
+   "origine": "#5b5f66"
+  },
+  "sous_toit": {
+   "index": 6,
+   "origine": "#6a5040"
+  },
+  "or": {
+   "index": 7,
+   "origine": "#d7b04a"
+  }
+ }
+}

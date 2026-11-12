@@ -1,0 +1,54 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "enduit_jaune": {
+   "index": 0,
+   "origine": "#ecd59a"
+  },
+  "cadre": {
+   "index": 1,
+   "origine": "#f4f1ea"
+  },
+  "vitre": {
+   "index": 2,
+   "origine": "#33495e"
+  },
+  "bleu": {
+   "index": 3,
+   "origine": "#2a6fdb"
+  },
+  "metal": {
+   "index": 4,
+   "origine": "#7d8288"
+  },
+  "bois_rouge": {
+   "index": 5,
+   "origine": "#8e3b2e"
+  },
+  "pierre_claire": {
+   "index": 6,
+   "origine": "#d8d0bf"
+  },
+  "rouge": {
+   "index": 7,
+   "origine": "#c0392b"
+  },
+  "tuile": {
+   "index": 8,
+   "origine": "#c8553d"
+  },
+  "sous_toit": {
+   "index": 9,
+   "origine": "#6a5040"
+  },
+  "brique": {
+   "index": 10,
+   "origine": "#a9583f"
+  },
+  "pierre_grise": {
+   "index": 11,
+   "origine": "#9c988f"
+  }
+ }
+}

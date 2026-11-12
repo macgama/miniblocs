@@ -5,10 +5,16 @@ Tout est dans `main`, et les 9 tests automatiques passent (`sh tests/tous.sh`).
 ## Nouveautés
 
 **Le monde**
+- Décors (touche **G**) : 160 modèles Blender (mobilier urbain, clôtures, marché, jeux, plage, ferme, animaux, bateaux et pontons, rochers). Ils viennent seuls (bottes de foin après la moisson, troupeaux qui se promènent dans les prés, poteaux et balises le long des routes, pontons et barques au bord des lacs) et se posent à la main, en rangée ou au pinceau (voir docs/decors.md).
+- Saisons et âges des plantes : feuillage d'automne et arbres nus l'hiver selon le vrai calendrier du lieu, neige qui tient selon la météo, champs semés, mûrs puis moissonnés, et 4 âges des arbres (jeune pousse, jeune arbre, adulte, arbre mort qui laisse repousser une pousse) au rythme de la vie des habitants (réglage Admin « vitesse de la vie ») (voir docs/plantes-et-sols.md).
+- Plantes et textures du sol : 46 plantes low-poly faites dans Blender (arbres, arbustes, fleurs, cultures, rochers) selon le biome et le climat, sols texturés et champs en patchwork (voir docs/plantes-et-sols.md).
 - Rivières, ruisseaux et lacs avec de l'eau animée, et des ponts au-dessus (#21). Région jouable de 40 × 40 km, les rivières se chargent autour de la caméra (#26).
 - Mer et côtes : houle, ressac et plages de sable (#29).
 - Paysage (outil **0**) : collines, lissage, lacs et canaux, peinture de biomes, plantation et arrachage d'arbres au pinceau (#24).
 - Ambiance : jour et nuit, vrais Soleil et Lune, lampadaires et fenêtres allumées (#14). Météo selon le climat réel et heure locale du lieu (#18).
+
+**Événements** (touche **I**)
+- Marchés du samedi, fêtes de quartier, matchs dans les 11 stades avec des clubs inventés, incendies qui se propagent, tempêtes (arbres tombés, toits, coupures, crues) et épidémies, avec un fil d'actualité cliquable en haut de l'écran (voir docs/evenements.md).
 
 **Transports**
 - Carrefours (outil **J**) : feux, stop, cédez-le-passage, priorité à droite (#25). **Maj + clic** les transforme en giratoire (#27).
@@ -17,6 +23,9 @@ Tout est dans `main`, et les 9 tests automatiques passent (`sh tests/tous.sh`).
 
 **Bâtiments**
 - 15 styles de plus, des espaces publics, et « Mes créations » : ce que tu bâtis dans l'éditeur libre devient un bâtiment réutilisable (#22).
+
+**Les habitants au travail** (touche **K**)
+- On voit les métiers : en zoomant, les commerces, écoles, hôpitaux et usines s'ouvrent en coupe. Le boulanger pétrit, l'enseignant écrit au tableau devant ses élèves, le médecin ausculte. Il y a 56 gestes avec outils et postes de travail, et les nouveaux métiers reçoivent des gestes tout seuls. Les métiers d'extérieur se voient dehors. Les bâtiments ont une enseigne Ouvert / Fermé, un rideau de fer et une pancarte « Manque de personnel ». Sans personnel, l'école ferme et les élèves restent à la maison, les clients vont ailleurs et l'hôpital ne soigne plus (voir docs/metiers.md).
 
 **Vue au sol** (touche **V**)
 - Collisions avec les arbres et les véhicules, et tunnels praticables à pied (#23).

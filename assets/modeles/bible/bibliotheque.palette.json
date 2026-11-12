@@ -1,0 +1,34 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "bois_clair": {
+   "index": 0,
+   "origine": "#c39a6b"
+  },
+  "verre_ciel": {
+   "index": 1,
+   "origine": "#6d97b8"
+  },
+  "noir": {
+   "index": 2,
+   "origine": "#2a2b2e"
+  },
+  "verre_nuit": {
+   "index": 3,
+   "origine": "#1d2d3c"
+  },
+  "bois_rouge": {
+   "index": 4,
+   "origine": "#8e3b2e"
+  },
+  "blanc": {
+   "index": 5,
+   "origine": "#f7f7f5"
+  },
+  "beton_sombre": {
+   "index": 6,
+   "origine": "#8c8a85"
+  }
+ }
+}

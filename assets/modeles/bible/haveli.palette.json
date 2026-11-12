@@ -1,0 +1,26 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "ocre": {
+   "index": 0,
+   "origine": "#d39b5a"
+  },
+  "pierre_claire": {
+   "index": 1,
+   "origine": "#d8d0bf"
+  },
+  "vitre": {
+   "index": 2,
+   "origine": "#33495e"
+  },
+  "cadre": {
+   "index": 3,
+   "origine": "#f4f1ea"
+  },
+  "bois_sombre": {
+   "index": 4,
+   "origine": "#5a3e2b"
+  }
+ }
+}

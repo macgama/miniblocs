@@ -1,0 +1,46 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "enduit_blanc": {
+   "index": 0,
+   "origine": "#f4f2ec"
+  },
+  "bois_clair": {
+   "index": 1,
+   "origine": "#c39a6b"
+  },
+  "verre_ciel": {
+   "index": 2,
+   "origine": "#6d97b8"
+  },
+  "cadre": {
+   "index": 3,
+   "origine": "#f4f1ea"
+  },
+  "verre_nuit": {
+   "index": 4,
+   "origine": "#1d2d3c"
+  },
+  "blanc": {
+   "index": 5,
+   "origine": "#f7f7f5"
+  },
+  "beton_clair": {
+   "index": 6,
+   "origine": "#d4d1ca"
+  },
+  "verre_clair": {
+   "index": 7,
+   "origine": "#8fb8d8"
+  },
+  "beton_sombre": {
+   "index": 8,
+   "origine": "#8c8a85"
+  },
+  "vert": {
+   "index": 9,
+   "origine": "#3f8f5a"
+  }
+ }
+}

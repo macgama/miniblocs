@@ -26,6 +26,9 @@ var habitants_panel: HabitantsPanel
 var production: Production
 var production_panel: ProductionPanel
 var resource_overlay: RessourcesOverlay
+## Services d'urgence : pompiers, ambulances, police sur les routes (touche U).
+var urgences: Urgences
+var urgences_panel: UrgencesPanel
 ## Chantiers, usure des bâtiments, abords et fumée des maisons habitées.
 var vie_batiments: BatimentsVie
 var _hover := Vector2i.ZERO
@@ -33,7 +36,16 @@ var _hover_valid := false
 ## Intérieurs : meubles, pièces, usage des bâtiments en murs fins (onglet Intérieur).
 var mobilier: Mobilier
 var occupants: Occupants
+## Habitants au travail visibles (scripts/metiers, touche K).
+var metiers_vivants: MetiersVivants
 var interieur_panel: InterieurPanel
+## Décors : mobilier urbain, clôtures, animaux, bateaux, rochers (touche G).
+var decors: DecorSystem
+var decors_panel: DecorPanel
+## Événements : fêtes, marchés, matchs, incendies, tempêtes, épidémies (touche I).
+var evenements: Evenements
+var evenements_panel: EvenementsPanel
+var actualites: Actualites
 
 
 func _ready() -> void:
@@ -71,7 +83,11 @@ func _ready() -> void:
 	_setup_population()
 	_setup_mobilier()
 	_setup_production()
+	_setup_urgences()
 	_setup_vie()
+	_setup_decors()
+	_setup_evenements()
+	_setup_create_mode()
 	hud.traffic_toggled.connect(func(on: bool) -> void: transport.traffic.set_enabled(on))
 	hud.traffic_filter_changed.connect(func(era: String, region: String) -> void:
 		transport.traffic.set_filters(era, region)
@@ -160,7 +176,7 @@ func _ready() -> void:
 			hud.show_message("Partie chargée : %s." % _game_title())
 		else:
 			hud.show_message("Chargement impossible : " + last_error))
-	for sig in [world.terrain_edited, transport.network_changed, buildings.changed, zones.changed, blocks.changed, plans.changed, transport.stations.lines_changed, transport.junctions.changed, population.changed, production.changed, mobilier.changed]:
+	for sig in [world.terrain_edited, transport.network_changed, buildings.changed, zones.changed, blocks.changed, plans.changed, transport.stations.lines_changed, transport.junctions.changed, population.changed, production.changed, mobilier.changed, evenements.changed, decors.changed]:
 		(sig as Signal).connect(func(_a = null) -> void: _unsaved = true)
 	hud.build_requested.connect(func() -> void: build_panel.toggle())
 	var vue := get_node_or_null("VueSol")
@@ -169,6 +185,8 @@ func _ready() -> void:
 		vue.vue_changee.connect(func(v: int) -> void: hud.set_view(v))
 	hud.city_requested.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/main.tscn"))
 	hud.globe_requested.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/globe.tscn"))
+	if GameStart.atelier:
+		_prepare_atelier()
 	if GameStart.chosen:
 		world.set_origin(GameStart.lat, GameStart.lon)
 	_on_origin_changed(world.origin_lat, world.origin_lon)
@@ -180,6 +198,8 @@ func _ready() -> void:
 			hud.show_message("Partie chargée : %s." % _game_title())
 		else:
 			hud.show_message("Chargement impossible : " + last_error)
+	if GameStart.atelier:
+		_start_atelier.call_deferred()
 
 
 # --- Sauvegarde -------------------------------------------------------------------
@@ -207,7 +227,7 @@ func save_sections() -> Dictionary:
 		"zones": zones.to_dict(), "blocs": blocks.to_dict(), "plans": plans.to_dict(), "ambiance": ambiance.to_dict(),
 		"creations": Creations.to_dict(Creations.used_by(buildings)),
 		"personnage": ($VueSol as VueSol).to_dict(), "habitants": population.to_dict(), "mobilier": mobilier.to_dict(),
-		"production": production.to_dict(), "reglages": _settings_snapshot().to_dict()}
+		"production": production.to_dict(), "urgences": urgences.to_dict(), "reglages": _settings_snapshot().to_dict(), "evenements": evenements.to_dict(), "decors": decors.to_dict()}
 
 
 ## Sauvegarde dans la partie en cours (ou une nouvelle). title : nom d'une nouvelle partie.
@@ -263,7 +283,11 @@ func load_game(slot := "") -> bool:
 	mobilier.from_dict(sec.get("mobilier", {}))
 	population.from_dict(sec.get("habitants", {}))
 	production.from_dict(sec.get("production", {}))
+	decors.from_dict(sec.get("decors", {}))
+	urgences.from_dict(sec.get("urgences", {}))
 	ambiance.from_dict(sec.get("ambiance", {}))
+	# Après les bâtiments et les habitants : dégâts, ruines, malades, matchs.
+	evenements.from_dict(sec.get("evenements", {}))
 	($VueSol as VueSol).from_dict(sec.get("personnage", {}))
 	_load_settings(sec.get("reglages", {}), m)
 	build_panel.set_growth(zones.growth)
@@ -367,6 +391,8 @@ func _setup_population() -> void:
 	population.buildings = buildings
 	population.transport = transport
 	population.ambiance = ambiance
+	population.rig = rig
+	population.vue_sol = $VueSol as VueSol
 	population.message.connect(func(t: String) -> void: hud.show_message(t))
 	# Pas de bâtiment, personne dans les rues : la circulation suit les habitants.
 	transport.traffic.demand = population.traffic_demand
@@ -387,6 +413,40 @@ func _setup_vie() -> void:
 	vie_batiments.name = "VieBatiments"
 	add_child(vie_batiments)
 	vie_batiments.setup(buildings, ambiance, population)
+
+
+## Événements de la ville et leur panneau (I), fil d'actualité en haut de l'écran.
+## Le nœud Evenements vit sous la racine (/root/Evenements) pour les services d'urgence.
+func _setup_evenements() -> void:
+	evenements = Evenements.new()
+	evenements.setup(buildings, population, transport, ambiance, world, rig)
+	Evenements.instance = evenements
+	get_tree().root.add_child.call_deferred(evenements)
+	tree_exiting.connect(func() -> void:
+		if is_instance_valid(evenements):
+			evenements.queue_free())
+	evenements.actualite.connect(func(_n: Dictionary) -> void: _unsaved = true)
+	evenements_panel = EvenementsPanel.new()
+	evenements_panel.name = "PanneauInfos"
+	add_child(evenements_panel)
+	evenements_panel.setup(evenements)
+	var go := func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z
+	evenements_panel.focus_requested.connect(go)
+	evenements_panel.tool_requested.connect(func() -> void: _select_building_tool())
+	evenements.outil_change.connect(func(t: String) -> void:
+		var names := {"marche": "Marché : clique où poser les étals (clic droit : annuler).",
+			"fete": "Fête de quartier : clique où poser les tables et la scène (clic droit : annuler).",
+			"incendie": "Incendie : clique sur un bâtiment (clic droit : annuler)."}
+		hud.set_tool_info(String(names.get(t, ""))))
+	actualites = Actualites.new()
+	actualites.name = "FilActualite"
+	add_child(actualites)
+	actualites.setup(evenements)
+	actualites.focus_requested.connect(go)
+	actualites.open_requested.connect(func() -> void: evenements_panel.set_open(true))
+	hud.infos_requested.connect(func() -> void: evenements_panel.toggle())
 
 
 ## Production : sites, stocks, carte des ressources sur le terrain et panneau (P).
@@ -410,6 +470,23 @@ func _setup_production() -> void:
 		rig.position.x = pos.x
 		rig.position.z = pos.z)
 	hud.production_requested.connect(func() -> void: production_panel.toggle())
+
+
+## Urgences : casernes, appels, véhicules prioritaires et panneau (U).
+func _setup_urgences() -> void:
+	urgences = Urgences.new()
+	urgences.name = "Urgences"
+	add_child(urgences)
+	urgences.setup(buildings, transport, population)
+	urgences.message.connect(func(t: String) -> void: hud.show_message(t))
+	urgences_panel = UrgencesPanel.new()
+	urgences_panel.name = "PanneauUrgences"
+	add_child(urgences_panel)
+	urgences_panel.setup(urgences, rig)
+	urgences_panel.focus_requested.connect(func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
+	hud.urgences_requested.connect(func() -> void: urgences_panel.toggle())
 
 
 ## Panneau des transports publics : stations et lignes.
@@ -487,6 +564,8 @@ func toggle_help() -> void:
 
 
 func _autosave(delta: float) -> void:
+	if GameStart.atelier:
+		return
 	_autosave_timer += delta
 	if _autosave_timer < AUTOSAVE_INTERVAL:
 		return
@@ -515,7 +594,10 @@ func _setup_plans() -> void:
 	buildings.extra_blocker = func(c: Vector2i) -> bool: return blocks.columns.has(c) or plans.cells.has(c)
 	plans.info_changed.connect(func(t: String) -> void: hud.set_tool_info(t))
 	plans.message.connect(func(t: String) -> void: hud.show_message(t))
-	plans.level_changed.connect(func(t: String) -> void: build_panel.set_level_label(t))
+	plans.level_changed.connect(func(t: String) -> void:
+		build_panel.set_level_label(t)
+		hud.set_level_text(t)
+		_refresh_ladder())
 	build_panel.plan_tool_chosen.connect(func(t: int) -> void:
 		_select_building_tool()
 		plans.set_material(blocks.material)
@@ -541,6 +623,12 @@ func _setup_plans() -> void:
 			hud.show_message("Vise d'abord un bâtiment avec un outil Murs et étages.")
 			return
 		plans.add_roof(plans.active_id(), kind))
+	build_panel.plan_reseat.connect(func() -> void:
+		if plans.active_id() == "":
+			hud.show_message("Vise d'abord un bâtiment avec un outil Murs et étages.")
+			return
+		var d := plans.reseat(plans.active_id())
+		hud.show_message("Bâtiment déjà au ras du sol." if d == 0.0 else "Bâtiment %s de %s m : porte de plain-pied." % ["descendu" if d < 0.0 else "monté", str(absf(d)).replace(".", ",")]))
 
 
 ## Intérieurs : meubles posés case par case, mobilier généré, bâtiments meublés,
@@ -562,15 +650,194 @@ func _setup_mobilier() -> void:
 	occupants.name = "Occupants"
 	add_child(occupants)
 	occupants.setup(mobilier, population, get_viewport().get_camera_3d() if get_viewport().get_camera_3d() != null else $CameraRig/Camera3D)
+	# Habitants au travail : vue en coupe, gestes, enseignes, personnel (K).
+	metiers_vivants = MetiersVivants.new()
+	metiers_vivants.name = "MetiersVivants"
+	add_child(metiers_vivants)
+	metiers_vivants.setup(population, buildings, ambiance, rig)
+	metiers_vivants.occupants = occupants
 	interieur_panel = InterieurPanel.new()
 	interieur_panel.setup(mobilier, func() -> void: _select_building_tool())
 	build_panel.interieur_builder = interieur_panel.build
+	_setup_atelier_tools()
+
+
+# --- Personnaliser, banque de modèles, atelier ---------------------------------------
+
+var perso_panel: PersoPanel
+var banque_pose: BanquePose
+var banque_panel: BanquePanel
+
+
+func _setup_atelier_tools() -> void:
+	perso_panel = PersoPanel.new()
+	perso_panel.name = "PanneauPersonnaliser"
+	add_child(perso_panel)
+	perso_panel.setup(buildings, mobilier)
+	perso_panel.opened_interior.connect(func(id: String) -> void:
+		mobilier.focus_plan(id))
+	banque_pose = BanquePose.new()
+	banque_pose.name = "PoseModele"
+	add_child(banque_pose)
+	banque_pose.world = world
+	banque_pose.camera = $CameraRig/Camera3D
+	banque_pose.mob = mobilier
+	banque_pose.bs = buildings
+	banque_pose.message.connect(func(t: String) -> void:
+		hud.set_tool_info(t)
+		if t != "" and not t.begins_with("Poser"):
+			hud.show_message(t))
+	banque_panel = BanquePanel.new()
+	banque_panel.setup(buildings, mobilier, banque_pose, func() -> void: _select_building_tool())
+	build_panel.banque_builder = banque_panel.build
+	habitants_panel.customize_requested.connect(func(bid: int) -> void:
+		habitants_panel.set_open(false)
+		perso_panel.edit(bid))
+	habitants_panel.furnish_requested.connect(func(bid: int) -> void:
+		var info: Dictionary = population.known.get(bid, {})
+		habitants_panel.set_open(false)
+		if not hud.create_mode:
+			set_create_mode(true)
+		mobilier.focus_plan(String(info.get("plan", "")))
+		hud.set_create_category("interieur")
+		_on_create_requested("interieur"))
+
+
+## Avant le chargement : l'atelier est un terrain plat, hors ligne.
+func _prepare_atelier() -> void:
+	world.tiles.offline_generator = func(_t: Vector2i) -> PackedFloat32Array:
+		var a := PackedFloat32Array()
+		a.resize(256 * 256)
+		a.fill(40.0)
+		return a
+	# Sol bâti (WorldCover 50) : ni arbres ni herbes hautes.
+	world.land.offline_generator = func(_lat: float, _lon: float) -> int: return 50
+	GameStart.chosen = true
+	GameStart.lat = GameStart.ATELIER_LAT
+	GameStart.lon = GameStart.ATELIER_LON
+	GameStart.place_name = "Atelier"
+	GameStart.slot_id = GameStart.ATELIER_SLOT
+	GameStart.load_slot = GameStart.ATELIER_SLOT if SaveGame.exists(GameStart.ATELIER_SLOT) else ""
+
+
+## Après le chargement : argent illimité, pas d'accès routier exigé, temps
+## arrêté, mode Créer, tuile « Quitter ».
+func _start_atelier() -> void:
+	buildings.unlimited_money = true
+	buildings.require_access = false
+	ambiance.set_speed(0)
+	ambiance.weather.mode = Meteo.Mode.SOLEIL
+	set_create_mode(true)
+	hud.set_category_label("atelier", "Quitter", "Quitter l'atelier et revenir à la partie (l'atelier est gardé tel quel) (7)")
+	hud.set_create_banner("Atelier : terrain plat, sans habitants ni argent  ·  7 : quitter")
+	hud.show_message("Atelier : crée, personnalise, meuble, puis range tes bâtiments dans la banque (6).")
+
+
+## Tuile Atelier : y aller depuis la partie (après l'avoir sauvegardée), ou en revenir.
+func _toggle_atelier() -> void:
+	if GameStart.atelier:
+		save_game(GameStart.ATELIER_SLOT, "Atelier")
+		GameStart.atelier = false
+		if GameStart.retour_slot != "" and SaveGame.exists(GameStart.retour_slot):
+			GameStart.chosen = true
+			GameStart.lat = GameStart.retour_lat
+			GameStart.lon = GameStart.retour_lon
+			GameStart.place_name = GameStart.retour_nom
+			GameStart.load_slot = GameStart.retour_slot
+			GameStart.slot_id = GameStart.retour_slot
+			get_tree().change_scene_to_file("res://scenes/terre.tscn")
+		else:
+			GameStart.slot_id = ""
+			get_tree().change_scene_to_file("res://scenes/globe.tscn")
+		return
+	if not save_game():
+		hud.show_message("Sauvegarde impossible, l'atelier attendra : " + last_error)
+		return
+	GameStart.retour_slot = GameStart.slot_id
+	GameStart.retour_lat = world.origin_lat
+	GameStart.retour_lon = world.origin_lon
+	GameStart.retour_nom = GameStart.place_name
+	GameStart.atelier = true
+	get_tree().change_scene_to_file("res://scenes/terre.tscn")
+
+
+# --- Mode Créer : la construction libre à part de la gestion de la ville ---------
+
+## Vitesse du temps avant le mode Créer (la ville s'y met en pause).
+var _speed_before_create := -1
+
+
+func _setup_create_mode() -> void:
+	hud.mode_changed.connect(set_create_mode)
+	hud.create_requested.connect(_on_create_requested)
+	hud.level_step_requested.connect(func(d: int) -> void: plans.step_level(d))
+	build_panel.plan_level_set.connect(func(e: int) -> void: plans.set_level(e))
+	plans.changed.connect(_refresh_ladder)
+	hud.set_level_text(PlanEditor.level_name(plans.level))
+
+
+## Passe en mode Créer (atelier, ville en pause) ou revient en mode Gérer.
+func set_create_mode(on: bool) -> void:
+	if GameStart.atelier and not on:
+		# L'atelier n'a pas de ville à gérer.
+		hud.set_create_mode(true)
+		hud.show_message("Tu es dans l'atelier : « Quitter » (7) ramène à la partie.")
+		return
+	if hud.create_mode != on:
+		hud.set_create_mode(on)
+	if on:
+		_select_building_tool()
+		if _speed_before_create < 0:
+			_speed_before_create = ambiance.speed_index
+		ambiance.set_speed(0)
+		_on_create_requested("murs")
+		hud.set_create_category("murs")
+	else:
+		_select_building_tool()
+		build_panel.set_workshop(false)
+		build_panel.set_open(false)
+		if _speed_before_create >= 0:
+			ambiance.set_speed(_speed_before_create)
+			_speed_before_create = -1
+
+
+## Barre du bas du mode Créer : Murs et étages, Blocs, Intérieur, Mes créations.
+func _on_create_requested(id: String) -> void:
+	_select_building_tool()
+	if id == "":
+		build_panel.set_open(false)
+		return
+	build_panel.set_workshop(true)
+	match id:
+		"murs": build_panel.set_block_mode("plans")
+		"blocs": build_panel.set_block_mode("blocs")
+		"interieur": build_panel.show_category("interieur")
+		"creations": build_panel.show_category(Creations.CATEGORY)
+		"banque": build_panel.show_category(BanquePanel.CATEGORY)
+		"atelier":
+			build_panel.set_open(false)
+			_toggle_atelier()
+			return
+	build_panel.set_open(true)
+	if id == "murs":
+		# On commence avec l'outil Mur en main.
+		plans.set_material(blocks.material)
+		plans.set_tint(blocks.tint)
+		plans.set_tool(PlanEditor.Tool.WALL)
+	_refresh_ladder()
+
+
+## Échelle des étages : niveaux du bâtiment visé (ou vide) et étage actif.
+func _refresh_ladder() -> void:
+	build_panel.set_ladder(plans.level_counts(plans.active_id()), plans.level)
 
 
 ## Un outil de construction prend la main : on range ceux du terrain et des voies.
 func _select_building_tool(from_transit := false) -> void:
 	world.set_tool(TerrainWorld.Tool.INSPECT)
 	landscape.set_shown(false)
+	if decors_panel:
+		decors_panel.set_shown(false)
 	transport.stations.set_inactive()
 	if transit_panel and not from_transit:
 		transit_panel.clear_selection()
@@ -581,7 +848,34 @@ func _select_building_tool(from_transit := false) -> void:
 	blocks.set_inactive()
 	plans.set_inactive()
 	mobilier.set_inactive()
+	if banque_pose:
+		banque_pose.stop()
 	hud.select_tool_silently(0)
+
+
+## Décors (DecorSystem) et leur panneau (touche G).
+func _setup_decors() -> void:
+	decors = DecorSystem.new()
+	decors.name = "Decors"
+	add_child(decors)
+	decors.setup(world, transport, buildings, ambiance)
+	decors.message.connect(func(t: String) -> void: hud.show_message(t))
+	decors.info_changed.connect(func(t: String) -> void: hud.set_tool_info(t))
+	decors_panel = DecorPanel.new()
+	decors_panel.name = "PanneauDecors"
+	decors_panel.decors = decors
+	add_child(decors_panel)
+	hud.decors_requested.connect(toggle_decors)
+	decors_panel.bascule_demandee.connect(toggle_decors)
+
+
+## Ouvre ou ferme le panneau des décors (les autres outils sont rangés).
+func toggle_decors() -> void:
+	if decors_panel.visible:
+		decors_panel.set_shown(false)
+		return
+	_select_building_tool()
+	decors_panel.set_shown(true)
 
 
 ## Panneau « Paysage » : pinceaux de terrain (outil 0).
@@ -606,6 +900,10 @@ func _setup_landscape() -> void:
 
 func _on_tool_selected(t: int) -> void:
 	landscape.set_shown(t == TerreHud.LANDSCAPE_TOOL)
+	if decors_panel:
+		decors_panel.set_shown(false)
+	if banque_pose:
+		banque_pose.stop()
 	transport.stations.set_inactive()
 	transit_panel.clear_selection()
 	buildings.set_inactive()
@@ -641,8 +939,11 @@ func _on_tool_selected(t: int) -> void:
 func _on_origin_changed(lat: float, lon: float) -> void:
 	# Nouvelle région : réseau vierge, paliers de déblocage à zéro.
 	ReglagesPartie.actuel.record_habitants = 0
+	if evenements != null:
+		evenements.clear()
 	population.clear()
 	production.clear()
+	urgences.clear()
 	resource_overlay.show_resource(resource_overlay.res)
 	transport.clear()
 	buildings.clear()
@@ -663,9 +964,19 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 var _snap_pending := true
 
 
+## Horloge de la vie (jours) : les arbres vieillissent comme les habitants, selon
+## le réglage Admin « vitesse de la vie » (réglage Admin).
+func _horloge_vie() -> float:
+	return population.life_clock if population != null else NAN
+
+
 func _process(delta: float) -> void:
 	_autosave(delta)
+	# Jour permanent automatique pendant la construction.
+	ambiance.set_construction(build_panel.is_open() or blocks.tool != BlockEditor.Tool.NONE
+		or (plans != null and plans.tool != PlanEditor.Tool.NONE))
 	world.update_tide(ambiance.unix_time)
+	world.update_saison(ambiance.unix_time, ambiance.weather, _horloge_vie())
 	# Le pivot de la caméra suit le relief sous lui.
 	var h := world.cell_height(Vector2i(floori(rig.position.x), floori(rig.position.z)))
 	if not is_nan(h):
@@ -711,7 +1022,7 @@ var _open_before := {}
 ## Construire, Lignes et Habitants partagent la même place à droite : quand
 ## l'un s'ouvre, les autres se ferment. Leur bouton de la barre du bas s'allume.
 func _exclusive_panels() -> void:
-	var panels := {"construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel}
+	var panels := {"construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "urgences": urgences_panel, "perso": perso_panel, "infos": evenements_panel}
 	var opened := ""
 	for id in panels:
 		var p = panels[id]
@@ -726,6 +1037,9 @@ func _exclusive_panels() -> void:
 				_open_before[id] = false
 	for id in panels:
 		hud.set_panel_open(id, _open_before[id])
+	# Mode Créer : panneau fermé (B, croix) = plus de catégorie allumée.
+	if hud.create_mode and not build_panel.is_open() and hud.create_category() != "":
+		hud.set_create_category("")
 
 
 ## Chiffres de la ville dans la barre du haut : caisse, habitants, satisfaction, chômage.

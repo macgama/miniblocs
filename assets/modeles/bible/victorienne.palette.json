@@ -1,0 +1,42 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "blanc": {
+   "index": 0,
+   "origine": "#f7f7f5"
+  },
+  "enduit_bleu": {
+   "index": 1,
+   "origine": "#c9dbe3"
+  },
+  "vitre": {
+   "index": 2,
+   "origine": "#33495e"
+  },
+  "cadre": {
+   "index": 3,
+   "origine": "#f4f1ea"
+  },
+  "bois_rouge": {
+   "index": 4,
+   "origine": "#8e3b2e"
+  },
+  "pierre": {
+   "index": 5,
+   "origine": "#b9b0a0"
+  },
+  "ardoise": {
+   "index": 6,
+   "origine": "#5b5f66"
+  },
+  "sous_toit": {
+   "index": 7,
+   "origine": "#6a5040"
+  },
+  "enduit_rose": {
+   "index": 8,
+   "origine": "#e9c2b0"
+  }
+ }
+}

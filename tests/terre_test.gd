@@ -183,6 +183,27 @@ func _run() -> void:
 		print(world.water.status, " (", Time.get_ticks_msec() - t0, " ms)")
 		if shot != "":
 			var rig = scene.get_node("CameraRig")
+			var date_i := args.find("--date")
+			if date_i >= 0 and date_i + 1 < args.size():
+				# Saison voulue (AAAA-MM-JJ, midi UTC) ; --neige : il neige depuis des heures.
+				var dn: DayNight = scene.ambiance
+				dn.unix_time = Time.get_unix_time_from_datetime_string(args[date_i + 1] + "T12:00:00")
+				if "--neige" in args:
+					dn.weather.mode = Meteo.Mode.NEIGE
+				var t1 := Time.get_ticks_msec()
+				while Time.get_ticks_msec() - t1 < 60_000:
+					await process_frame
+					if world.missing_chunk_count() == 0 and world._dirty.is_empty() and Time.get_ticks_msec() - t1 > 3000:
+						break
+				if "--neige" in args:
+					# Il a neigé : le ciel se dégage pour la photo.
+					dn.weather.mode = Meteo.Mode.SOLEIL
+					for i in 90:
+						await process_frame
+					world.neige = 1.0
+					world._saison_neige = -1.0
+					await process_frame
+				print("Saison : jour %.0f, neige %.2f" % [fposmod(world.temps_jours, 365.2425), world.neige])
 			if "--water" in args:
 				# Vise le cours d'eau (d'au moins 3 m) le plus proche du centre.
 				var best := INF
@@ -376,11 +397,17 @@ func _run() -> void:
 	_check(trees > 100, "arbres plantés dans la forêt (%d)" % trees)
 	var south: MeshInstance3D = world.chunks.get(Vector2i(0, 1))
 	var south_trees := 0
+	var south_crops := 0
 	if south:
 		for ch in south.get_children():
-			if ch is MultiMeshInstance3D:
-				south_trees += 1
+			if ch is MultiMeshInstance3D and not ch.has_meta("loin"):
+				var cat: int = ch.get_meta("categorie", -1)
+				if cat == Plantes.Cat.ARBRE or cat == Plantes.Cat.ARBUSTE:
+					south_trees += 1
+				elif cat == Plantes.Cat.CULTURE:
+					south_crops += (ch as MultiMeshInstance3D).multimesh.instance_count
 	_check(south != null and south_trees == 0, "pas d'arbres dans les champs")
+	_check(south_crops > 100, "cultures dans les champs (%d)" % south_crops)
 	world.tree_blocker = func(c: Vector2i) -> bool: return true
 	world.mark_cells_dirty([Vector2i(10, -10)])
 	for i in 120:
@@ -503,13 +530,16 @@ func _run() -> void:
 	world.apply_brush(Vector2i(100, 30))
 	_check(world.cell_kind_at(Vector2i(100, 30)) == "Désert", "peindre un désert (%s)" % world.cell_kind_at(Vector2i(100, 30)))
 	# (le rendu sans écran ne relit pas les positions des arbres : on compte par bloc)
+	# Arbres et arbustes seulement (pas les cultures ni les herbes, pas les versions lointaines).
 	var count_trees := func(kk: Vector2i) -> int:
 		var ch: MeshInstance3D = world.chunks.get(kk)
 		var total := 0
 		if ch:
 			for g in ch.get_children():
-				if g is MultiMeshInstance3D and not g.is_queued_for_deletion():
-					total += (g as MultiMeshInstance3D).multimesh.instance_count
+				if g is MultiMeshInstance3D and not g.is_queued_for_deletion() and not g.has_meta("loin"):
+					var cat: int = g.get_meta("categorie", -1)
+					if cat == Plantes.Cat.ARBRE or cat == Plantes.Cat.ARBUSTE:
+						total += (g as MultiMeshInstance3D).multimesh.instance_count
 		return total
 	var fields_before: int = count_trees.call(Vector2i(1, 0))
 	var forest_before: int = count_trees.call(Vector2i(1, -1))

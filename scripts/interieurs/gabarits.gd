@@ -136,13 +136,23 @@ static func size_of(kind: String, r: int) -> Vector2i:
 ## Construit et meuble le gabarit kind, coin −x −z en origin, tourné de r.
 ## Rend {ok, id, cost, error}.
 static func build(mob: Mobilier, kind: String, origin: Vector2i, r: int, style: String) -> Dictionary:
-	var pe := mob.pe
-	if pe == null or not KINDS.has(kind):
+	if mob.pe == null or not KINDS.has(kind):
 		return {"ok": false, "error": "gabarit inconnu"}
-	var g: Dictionary = KINDS[kind]
+	var g: Dictionary = (KINDS[kind] as Dictionary).duplicate()
+	g["levels"] = levels_of(kind)
+	return build_spec(mob, g, origin, r, style)
+
+
+## Construit et meuble un bâtiment décrit comme un gabarit : spec {w, d,
+## levels, usage, roof, budget} et, en option, wall_mat, roof_mat (matériaux
+## de BlocMateriaux) et wall_tint.
+static func build_spec(mob: Mobilier, g: Dictionary, origin: Vector2i, r: int, style: String) -> Dictionary:
+	var pe := mob.pe
+	if pe == null:
+		return {"ok": false, "error": "pas d'éditeur de murs"}
 	var w := int(g.w)
 	var d := int(g.d)
-	var sz := size_of(kind, r)
+	var sz := Vector2i(w, d) if r % 2 == 0 else Vector2i(d, w)
 	# Terrain libre et hauteur du rez-de-chaussée : au-dessus du point le plus haut.
 	var y0 := -INF
 	for x in range(-1, sz.x + 1):
@@ -166,12 +176,13 @@ static func build(mob: Mobilier, kind: String, origin: Vector2i, r: int, style: 
 		wall_mat = 4
 	elif era == 4 and region in ["europe", "monde", "ameriques", "oceanie"]:
 		wall_mat = 5
+	wall_mat = int(g.get("wall_mat", wall_mat))
 	var old_mat := pe.material
 	var old_tint := pe.tint
-	pe.set_tint(0)
+	pe.set_tint(int(g.get("wall_tint", 0)))
 	pe.set_material(wall_mat)
 	var id := pe.new_plan(y0)
-	var lv := levels_of(kind)
+	var lv: Array = g.levels
 	var fns := []
 	for e in lv.size():
 		var L: Dictionary = lv[e]
@@ -209,7 +220,8 @@ static func build(mob: Mobilier, kind: String, origin: Vector2i, r: int, style: 
 						pe.plans[id].floors[k].t = BlocFormes.encode(pe.material)
 	pe._after_change(id)
 	# Toit.
-	pe.set_material(int(ROOFS.get(region, 7)) if era < 5 else 46)
+	pe.set_tint(int(g.get("roof_tint", 0)))
+	pe.set_material(int(g.get("roof_mat", int(ROOFS.get(region, 7)) if era < 5 else 46)))
 	pe.add_roof(id, String(g.roof))
 	pe.set_material(old_mat)
 	pe.set_tint(old_tint)

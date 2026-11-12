@@ -1,0 +1,22 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "terre": {
+   "index": 0,
+   "origine": "#b9825a"
+  },
+  "pierre_grise": {
+   "index": 1,
+   "origine": "#9c988f"
+  },
+  "chaume": {
+   "index": 2,
+   "origine": "#c9a861"
+  },
+  "bois_sombre": {
+   "index": 3,
+   "origine": "#5a3e2b"
+  }
+ }
+}

@@ -1,0 +1,42 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "enduit_blanc": {
+   "index": 0,
+   "origine": "#f4f2ec"
+  },
+  "bois_sombre": {
+   "index": 1,
+   "origine": "#5a3e2b"
+  },
+  "vitre": {
+   "index": 2,
+   "origine": "#33495e"
+  },
+  "vert": {
+   "index": 3,
+   "origine": "#3f8f5a"
+  },
+  "cadre": {
+   "index": 4,
+   "origine": "#f4f1ea"
+  },
+  "bois": {
+   "index": 5,
+   "origine": "#8a6142"
+  },
+  "bois_clair": {
+   "index": 6,
+   "origine": "#c39a6b"
+  },
+  "tuile": {
+   "index": 7,
+   "origine": "#c8553d"
+  },
+  "sous_toit": {
+   "index": 8,
+   "origine": "#6a5040"
+  }
+ }
+}

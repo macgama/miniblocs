@@ -1,0 +1,38 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "beton_clair": {
+   "index": 0,
+   "origine": "#d4d1ca"
+  },
+  "bardage_bleu": {
+   "index": 1,
+   "origine": "#4f6f91"
+  },
+  "verre_ciel": {
+   "index": 2,
+   "origine": "#6d97b8"
+  },
+  "tole": {
+   "index": 3,
+   "origine": "#9aa0a6"
+  },
+  "blanc": {
+   "index": 4,
+   "origine": "#f7f7f5"
+  },
+  "cadre": {
+   "index": 5,
+   "origine": "#f4f1ea"
+  },
+  "verre_nuit": {
+   "index": 6,
+   "origine": "#1d2d3c"
+  },
+  "beton_sombre": {
+   "index": 7,
+   "origine": "#8c8a85"
+  }
+ }
+}

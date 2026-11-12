@@ -1,0 +1,22 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "pierre_claire": {
+   "index": 0,
+   "origine": "#d8d0bf"
+  },
+  "enduit_blanc": {
+   "index": 1,
+   "origine": "#f4f2ec"
+  },
+  "tuile": {
+   "index": 2,
+   "origine": "#c8553d"
+  },
+  "sous_toit": {
+   "index": 3,
+   "origine": "#6a5040"
+  }
+ }
+}

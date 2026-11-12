@@ -4,7 +4,8 @@ extends SceneTree
 ## Fonctionne sans réseau (relief synthétique).
 ## Usage : godot --headless --path . --script res://tests/ambiance_test.gd
 ## Captures (avec affichage) : -- --screenshot prefixe [--distance 140]
-##   donne prefixe-jour.png, prefixe-coucher.png, prefixe-nuit.png
+##   donne prefixe-jour.png, prefixe-coucher.png, prefixe-nuit.png,
+##   prefixe-nuit-jour-permanent.png
 
 var ok := true
 
@@ -197,6 +198,64 @@ func _run() -> void:
 			lit += 1
 	_check(lit == 0, "Le jour, les lampadaires sont éteints")
 
+	# Jour permanent : l'image reste de jour, l'horloge continue.
+	dn.set_jour_permanent(true)
+	dn.set_local_hour(23.5)
+	_check(absf(dn.local_hour() - 23.5) < 0.01 and dn.real_sun_elev < 0.0, "Jour permanent : l'horloge reste à 23 h 30, le vrai Soleil est couché")
+	_check(dn.night < 0.01 and dn.sun.visible and dn.sun.shadow_enabled and dn.sun_horiz.x >= DayNight.JOUR_MIN_ELEV - 0.5,
+		"Jour permanent à 23 h 30 : plein jour (Soleil affiché à %.0f°)" % dn.sun_horiz.x)
+	_check(float(NightWindows.building_material().get_shader_parameter("night")) < 0.01, "Jour permanent : fenêtres comme le jour")
+	dn.set_local_hour(3.0)
+	_check(dn.night < 0.01 and dn.sun_horiz.y < 180.0, "Jour permanent à 3 h : lumière du matin (Soleil à l'Est, %.0f°)" % dn.sun_horiz.y)
+	dn.set_local_hour(12.0)
+	_check(absf(dn.display_time() - dn.unix_time) < 1.0, "Jour permanent à midi : le Soleil suit l'heure")
+	dn.set_local_hour(22.0)
+	dn.set_speed(4)
+	var tj := dn.unix_time
+	for i in 30:
+		await process_frame
+	_check(dn.unix_time > tj and dn.night < 0.01, "Jour permanent : le temps avance et il fait toujours jour")
+	dn.set_speed(0)
+	var saved_jp := dn.to_dict()
+	dn.set_jour_permanent(false)
+	dn.from_dict(JSON.parse_string(JSON.stringify(saved_jp)))
+	_check(dn.jour_permanent, "Sauvegarde : le jour permanent est retrouvé")
+	# Nuit polaire au Svalbard en décembre : on prend la lumière d'un autre jour.
+	var t_jp := dn.unix_time
+	dn.unix_time = _utc(2026, 12, 21, 12)
+	dn.set_place(78.2, 15.6)
+	_check(dn.night < 0.05 and dn.sun_horiz.x >= 19.5, "Jour permanent en nuit polaire : il fait jour (Soleil à %.0f°)" % dn.sun_horiz.x)
+	dn.set_place(48.8584, 2.2945)
+	dn.unix_time = t_jp
+	dn.set_jour_permanent(false)
+	dn.set_local_hour(23.5)
+	_check(dn.night > 0.95, "Jour permanent coupé : la nuit revient")
+	# Jour permanent automatique quand Construire est ouvert.
+	var bp: BuildingPanel = scene.get_node("PanneauConstruction")
+	bp.set_open(true)
+	await process_frame
+	_check(dn.jour_actif() and dn.night < 0.01, "Construire ouvert à 23 h 30 : jour permanent tout seul")
+	dn.toggle_jour_permanent()
+	await process_frame
+	_check(not dn.jour_actif() and dn.night > 0.95, "Ctrl + T pendant la construction : retour à la nuit")
+	bp.set_open(false)
+	await process_frame
+	bp.set_open(true)
+	await process_frame
+	_check(dn.jour_actif(), "Construire rouvert : de nouveau le jour")
+	bp.set_open(false)
+	await process_frame
+	_check(not dn.jour_actif() and dn.night > 0.95, "Construire fermé : la nuit revient")
+	dn.set_jour_auto(false)
+	bp.set_open(true)
+	await process_frame
+	_check(not dn.jour_actif(), "Jour automatique coupé : Construire ne change plus la lumière")
+	_check(dn.to_dict().get("jour_auto") == false, "Sauvegarde : le choix du jour automatique est gardé")
+	bp.set_open(false)
+	dn.set_jour_auto(true)
+	await process_frame
+	dn.set_local_hour(12.0)
+
 	# Météo forcée.
 	dn.weather.mode = Meteo.Mode.PLUIE
 	dn.weather.settle(dn.unix_time, dn.local_hour())
@@ -231,7 +290,7 @@ func _run() -> void:
 	var t0 := dn.unix_time
 	for i in 10:
 		await process_frame
-	_check(dn.unix_time > t0, "Le temps avance à 1 h/s")
+	_check(dn.unix_time > t0, "Le temps avance à 100 min/s")
 	dn.toggle_pause()
 	_check(dn.speed_index == 0, "T : pause")
 
@@ -272,6 +331,15 @@ func _run() -> void:
 			var path := "%s-%s.png" % [shot, item[0]]
 			root.get_viewport().get_texture().get_image().save_png(path)
 			print("Capture : ", path)
+		# La même nuit en jour permanent.
+		dn.set_jour_permanent(true)
+		dn.set_local_hour(23.4)
+		for i in 40:
+			await process_frame
+		var pj := "%s-nuit-jour-permanent.png" % shot
+		root.get_viewport().get_texture().get_image().save_png(pj)
+		print("Capture : ", pj)
+		dn.set_jour_permanent(false)
 		# Le ciel au ras du sol : Lune, étoiles, lueur du couchant.
 		rig.pitch_degrees = 8.0
 		rig._distance = 60.0

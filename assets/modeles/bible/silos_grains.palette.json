@@ -1,0 +1,18 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "beton_clair": {
+   "index": 0,
+   "origine": "#d4d1ca"
+  },
+  "tole": {
+   "index": 1,
+   "origine": "#9aa0a6"
+  },
+  "sous_toit": {
+   "index": 2,
+   "origine": "#6a5040"
+  }
+ }
+}

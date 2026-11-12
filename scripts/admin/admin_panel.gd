@@ -33,6 +33,10 @@ var _salaires_l: Label
 var _temps: OptionButton
 var _vie: OptionButton
 var _epuisement: CheckBox
+var _ev_auto: CheckBox
+var _catas: CheckBox
+var _freq: OptionButton
+const FREQS := [0.25, 1.0, 3.0]
 var _status: Label
 
 
@@ -177,6 +181,19 @@ func _ready() -> void:
 	_epuisement = _check("Épuisement des ressources (mines, puits, forêts et poissons surexploités)")
 	g.add_child(_epuisement)
 
+	# Événements de la ville.
+	g = _section(right, "Événements", "infos")
+	_ev_auto = _check("Fêtes, marchés et matchs organisés tout seuls")
+	g.add_child(_ev_auto)
+	_catas = _check("Catastrophes au hasard (incendies, tempêtes, épidémies)")
+	g.add_child(_catas)
+	_freq = OptionButton.new()
+	for n in ["Rares", "Normales", "Fréquentes"]:
+		_freq.add_item(n)
+	_freq.disabled = not editable
+	_freq.item_selected.connect(func(_i: int) -> void: _changed())
+	_row(g, "Fréquence des catastrophes", _freq)
+
 	# Pied.
 	var foot := HBoxContainer.new()
 	foot.add_theme_constant_override("separation", 8)
@@ -298,6 +315,13 @@ func _fill() -> void:
 	_temps.select(reglages.vitesse_temps)
 	_vie.select(reglages.vitesse_vie)
 	_epuisement.button_pressed = reglages.epuisement
+	_ev_auto.button_pressed = reglages.evenements_auto
+	_catas.button_pressed = reglages.catastrophes
+	var fi := 1
+	for i in FREQS.size():
+		if absf(float(FREQS[i]) - reglages.frequence_catastrophes) < 0.01:
+			fi = i
+	_freq.select(fi)
 	_filling = false
 	_update_labels()
 
@@ -315,6 +339,9 @@ func _changed() -> void:
 	reglages.vitesse_temps = maxi(0, _temps.selected)
 	reglages.vitesse_vie = maxi(0, _vie.selected)
 	reglages.epuisement = _epuisement.button_pressed
+	reglages.evenements_auto = _ev_auto.button_pressed
+	reglages.catastrophes = _catas.button_pressed
+	reglages.frequence_catastrophes = float(FREQS[maxi(0, _freq.selected)])
 	_emit()
 
 

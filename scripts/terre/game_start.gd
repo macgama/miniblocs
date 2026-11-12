@@ -19,3 +19,15 @@ static var mode: Mode = Mode.BAC_A_SABLE
 static var load_slot := ""
 ## Partie en cours (où « Sauver » écrit), ou "" si pas encore sauvegardée.
 static var slot_id := ""
+
+## Atelier : terrain plat, sans simulation, pour créer et personnaliser des
+## bâtiments (et les ranger dans la banque de modèles).
+static var atelier := false
+## Partie à rouvrir en quittant l'atelier ("" : retour au globe).
+static var retour_slot := ""
+static var retour_lat := 0.0
+static var retour_lon := 0.0
+static var retour_nom := ""
+const ATELIER_SLOT := "atelier"
+const ATELIER_LAT := 45.0
+const ATELIER_LON := 5.0

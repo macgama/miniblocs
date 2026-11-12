@@ -1,0 +1,34 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "asphalte": {
+   "index": 0,
+   "origine": "#55585e"
+  },
+  "blanc": {
+   "index": 1,
+   "origine": "#f7f7f5"
+  },
+  "rouge": {
+   "index": 2,
+   "origine": "#c0392b"
+  },
+  "tole": {
+   "index": 3,
+   "origine": "#9aa0a6"
+  },
+  "verre_bleu": {
+   "index": 4,
+   "origine": "#4f6d8f"
+  },
+  "metal": {
+   "index": 5,
+   "origine": "#7d8288"
+  },
+  "bleu": {
+   "index": 6,
+   "origine": "#2a6fdb"
+  }
+ }
+}

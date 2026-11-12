@@ -1,0 +1,26 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "pierre_grise": {
+   "index": 0,
+   "origine": "#9c988f"
+  },
+  "bois_sombre": {
+   "index": 1,
+   "origine": "#5a3e2b"
+  },
+  "enduit_blanc": {
+   "index": 2,
+   "origine": "#f4f2ec"
+  },
+  "chaume": {
+   "index": 3,
+   "origine": "#c9a861"
+  },
+  "sous_toit": {
+   "index": 4,
+   "origine": "#6a5040"
+  }
+ }
+}

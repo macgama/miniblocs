@@ -1,0 +1,42 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "granit": {
+   "index": 0,
+   "origine": "#7f7d78"
+  },
+  "pierre_claire": {
+   "index": 1,
+   "origine": "#d8d0bf"
+  },
+  "vitre": {
+   "index": 2,
+   "origine": "#33495e"
+  },
+  "bleu": {
+   "index": 3,
+   "origine": "#2a6fdb"
+  },
+  "cadre": {
+   "index": 4,
+   "origine": "#f4f1ea"
+  },
+  "ardoise": {
+   "index": 5,
+   "origine": "#5b5f66"
+  },
+  "tuile_ombre": {
+   "index": 6,
+   "origine": "#8f3a29"
+  },
+  "sous_toit": {
+   "index": 7,
+   "origine": "#6a5040"
+  },
+  "pierre_grise": {
+   "index": 8,
+   "origine": "#9c988f"
+  }
+ }
+}

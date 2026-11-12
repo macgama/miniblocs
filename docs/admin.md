@@ -19,6 +19,8 @@ commencer la partie.
 | Impôts (×0 à ×3) | taxe foncière et impôts des entreprises touchés par la ville |
 | Salaires (×0,5 à ×2) | salaires des habitants, des agents de la ville et de la production |
 | Vitesse du temps, de la vie | vitesse de l'horloge (comme T / Maj+T) et du vieillissement |
+| Événements automatiques | marchés du samedi, fêtes de quartier, matchs au stade |
+| Catastrophes (Rares, Normales, Fréquentes) | incendies, tempêtes et épidémies au hasard ; décoché : seulement à la main (panneau Infos) |
 | Épuisement des ressources | sans épuisement : mines et puits inépuisables, forêts et poissons ne s'abîment pas |
 
 Préréglages : **Facile**, **Normal** (les règles d'avant : 20 M€, prix ×1), **Difficile**,

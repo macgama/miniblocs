@@ -1,0 +1,58 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "pierre_claire": {
+   "index": 0,
+   "origine": "#d8d0bf"
+  },
+  "blanc": {
+   "index": 1,
+   "origine": "#f7f7f5"
+  },
+  "vitre": {
+   "index": 2,
+   "origine": "#33495e"
+  },
+  "metal": {
+   "index": 3,
+   "origine": "#7d8288"
+  },
+  "bois_rouge": {
+   "index": 4,
+   "origine": "#8e3b2e"
+  },
+  "pierre": {
+   "index": 5,
+   "origine": "#b9b0a0"
+  },
+  "noir": {
+   "index": 6,
+   "origine": "#2a2b2e"
+  },
+  "rouge": {
+   "index": 7,
+   "origine": "#c0392b"
+  },
+  "bois_sombre": {
+   "index": 8,
+   "origine": "#5a3e2b"
+  },
+  "bois_clair": {
+   "index": 9,
+   "origine": "#c39a6b"
+  },
+  "ardoise": {
+   "index": 10,
+   "origine": "#5b5f66"
+  },
+  "zinc": {
+   "index": 11,
+   "origine": "#7e8890"
+  },
+  "sous_toit": {
+   "index": 12,
+   "origine": "#6a5040"
+  }
+ }
+}

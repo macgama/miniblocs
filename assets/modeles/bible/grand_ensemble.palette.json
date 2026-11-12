@@ -1,0 +1,34 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "enduit_blanc": {
+   "index": 0,
+   "origine": "#f4f2ec"
+  },
+  "vitre": {
+   "index": 1,
+   "origine": "#33495e"
+  },
+  "cadre": {
+   "index": 2,
+   "origine": "#f4f1ea"
+  },
+  "verre_nuit": {
+   "index": 3,
+   "origine": "#1d2d3c"
+  },
+  "beton_sombre": {
+   "index": 4,
+   "origine": "#8c8a85"
+  },
+  "enduit_rose": {
+   "index": 5,
+   "origine": "#e9c2b0"
+  },
+  "beton_clair": {
+   "index": 6,
+   "origine": "#d4d1ca"
+  }
+ }
+}

@@ -56,9 +56,47 @@ Méthode prévue : comme pour `tools/build_biome_map.py`, un script `tools/` pr�
 2. Épuisement : oui pour les mines, le pétrole et le gaz. Le bois et le poisson repoussent si on n'exploite pas trop : à plein régime, la ressource baisse et se stabilise vers 60 % ; laissée tranquille, elle revient à 100 % en quelques mois de jeu.
 3. Clients : les habitants et l'export. L'export passe par les dépôts, gares et ports, et par les voies qui sortent de la carte : 200 t par jour pour une route, 800 t pour un rail, 1 200 t pour une voie d'eau qui arrive à moins de 300 m du bord.
 
+## Économie locale (2026-11-12)
+
+Les marchandises ne « téléportent » plus : elles roulent en camion sur tes routes.
+
+- **Un stock par site** : chaque ferme, usine, commerce et entrepôt a son propre stock (onglet **Sites** du panneau P). Un site d'extraction garde au plus 5 jours de production ; une usine fait venir 3 jours d'intrants ; un commerce garde 4 jours de ventes en rayon.
+- **Livraisons automatiques** : toutes les 15 minutes de jeu, la ville regarde qui manque de quoi (les plus pressés d'abord) et envoie un camion depuis le fournisseur le plus proche **par la route** qui en a en stock. Un camion prend aussi ce que le même client attend du même fournisseur.
+- **Chauffeurs-livreurs** : chaque camion est conduit par un habitant au métier de chauffeur-livreur, à son poste (lundi-vendredi, 6 h-15 h). Il travaille chez le fournisseur, chez le client, dans un entrepôt ou dans la nouvelle **entreprise de transport routier** (20 emplois, surtout des chauffeurs). Pas de chauffeur libre : la livraison attend, et les rayons se vident.
+- **Camions visibles** : un camion par livraison, choisi selon la marchandise et la charge : fourgon (≈ 4 t), camion porteur (≈ 11 t), semi-remorque (≈ 22 t), citerne (lait, carburant, chimie), benne (sable, pierre, minerais, céréales) ou grumier (bois). Il part de son dépôt, charge, livre, puis rentre. Au plus 60 camions affichés à la fois ; au temps réel, le camion arrive à peu près quand la marchandise est livrée ; en accéléré, la livraison est comptée avant que le camion à l'écran n'ait fini sa route.
+- **Entrepôts relais** : le surplus d'un site (au-delà de 60 % de son stock maximal, si personne n'en commande) part vers l'entrepôt le plus proche (20 000 t), où les autres viennent se servir.
+- **Import et export** : ce que personne ne produit sur la carte arrive par camion depuis une porte d'import (route qui sort par le bord, dépôt de marchandises, gare ou port), à 125 % du prix de gros. Le surplus sans entrepôt part à l'export (80 % du prix). Limite par jour : 150 t par station, 200 t par route qui sort de la carte (800 t rail, 1 200 t eau), plus le fret de tes lignes.
+- **Commerces** : les habitants font leurs courses chaque jour dans les commerces ouverts les plus proches de chez eux (jusqu'à 3, à moins de 6 km). Rayon vide : satisfaction en baisse (« rayons vides près de chez lui », plus fort pour le pain, les laitages, les légumes, l'épicerie, les boissons, l'hygiène, la viande, les médicaments et le carburant). Tout est là : « + commerces bien approvisionnés ». Le boulanger de quartier cuit son pain avec de la farine livrée (et fait venir du pain s'il n'a pas de farine). Les cafés et restaurants se font livrer boissons, pain, viande et légumes pour servir leurs clients.
+- **Entreprises** : chaque site a sa caisse et ses comptes du mois : ventes aux habitants ou aux autres entreprises, achats, import, export, salaires, gazole (0,6 €/km), courses payées à un transporteur extérieur (1,8 €/km + 20 €). **Ta caisse (la ville) touche seulement un impôt de 25 % sur les bénéfices** (× réglage Impôts du panneau Admin), en plus de la cotisation foncière par emploi déjà comptée dans le budget de la ville.
+
+### Chaînes de la vie courante
+
+| Besoin | Chaîne | Commerce |
+|---|---|---|
+| Pain | ferme céréalière → moulin → boulangerie industrielle (ou farine → boulanger) | boulangerie, supérette, supermarché, marché |
+| Viande | élevage → abattoir | supérette, supermarché, marché |
+| Poisson | port de pêche | supermarché, marché |
+| Lait, fromages, yaourts | ferme laitière → laiterie | supérette, supermarché, marché |
+| Fruits et légumes | maraîchage et vergers | supérette, supermarché, marché |
+| Épicerie | farine + sucre (betteraves → sucrerie) + légumes + laitages → usine agroalimentaire | supérette, supermarché, station-service |
+| Boissons | céréales + sucre + verre (sable → verrerie) → brasserie | supérette, supermarché, station-service, cafés |
+| Hygiène | produits chimiques (gaz → usine chimique) + papier (bois → papeterie) + plastiques → usine d'hygiène | supérette, supermarché, pharmacie, grand magasin |
+| Médicaments | chimie + sucre → laboratoire pharmaceutique | pharmacie |
+| Vêtements | lin et coton + plastiques → usine textile | boutique de vêtements, supermarché, grand magasin |
+| Meubles | bois → scierie → menuiserie | magasin de meubles, grand magasin |
+| Électroménager, outils | acier + planches + cuivre → usine de biens | magasin d'électronique, supermarché |
+| Électronique | cuivre + plastiques + verre → usine d'électronique | magasin d'électronique, supermarché |
+| Carburant | pétrole → raffinerie (qui fait aussi les plastiques) | station-service, supermarché |
+| Voitures | acier + aluminium (bauxite → aluminerie) + plastiques + électronique + verre → usine automobile | concession automobile |
+
+Nouveaux bâtiments : 4 fermes (maraîchage, betteraves, lin et coton, lait), 13 usines, l'entreprise de transport routier, et 6 commerces (station-service, pharmacie, boutique de vêtements, magasin d'électronique et d'électroménager, magasin de meubles, concession automobile). Les prix et rendements sont des ordres de grandeur ; l'équilibre (qui gagne de l'argent, qui en perd) reste à affiner en jouant.
+
+Code : `scripts/economie/production.gd` (sites, livraisons, courses, comptes), `ressources.gd` (marchandises, commerces, consommation), `production_types.gd` et `commerces_types.gd` (bâtiments), `Traffic.add_delivery_vehicle` (camions). Sauvegarde : section `production`, version 2 (les parties d'avant gardent leur stock, rangé dans les entrepôts ou chez les producteurs).
+
 ## Étapes suivantes proposées
 
-- Étape 2 : les marchandises voyagent vraiment. Chaque site a son stock, les camions, trains et bateaux de fret chargent et livrent, et la distance coûte.
+- Trains et bateaux de fret qui chargent eux-mêmes aux gares et aux ports (aujourd'hui, ils ajoutent de la capacité d'import et d'export).
+- Faillite des entreprises qui perdent trop d'argent ; prix qui suivent l'offre et la demande.
 - Les bâtiments consomment des matériaux à la construction (briques, ciment, planches, acier).
 - Champs visibles autour des fermes, forêt qui recule sous l'exploitation et repousse.
 - Énergie : centrales à charbon, au gaz, hydrauliques, éoliennes et solaires (Global Wind Atlas, Global Solar Atlas).
@@ -67,3 +105,9 @@ Méthode prévue : comme pour `tools/build_biome_map.py`, un script `tools/` pr�
 ![Sites de production](apercu-production-sites.png)
 
 ![Carte du bois et panneau Production](apercu-production-carte-bois.png)
+
+![Camion de livraison devant la boulangerie](apercu-economie-camion.png)
+
+![Panneau Production, onglet Camions](apercu-economie-camions.png)
+
+![Panneau Production, sites et entreprises](apercu-economie-sites.png)

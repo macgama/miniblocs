@@ -21,6 +21,10 @@ const SLEEPER := Color("5b4636")
 const STEEL := Color("c6cbd1")
 const DARK := Color("1d1f22")
 const METRO_TRACE := Color("3a86ff")
+const STONE := Color("b39b78")
+## Longueur des travées des viaducs (m).
+const VIADUCT_SPAN := 18.0
+const VIADUCT_SPAN_LGV := 40.0
 
 ## Callable(x, z) -> hauteur du sol (pour les piles de pont).
 var ground: Callable
@@ -288,13 +292,17 @@ static func build_mesh(type_id: String, spec: Dictionary, pts: PackedVector3Arra
 			k.strip(a, b, ra, rb, -hw - 0.3, -hw, 1.0, CONCRETE, 0.95, CONCRETE)
 			k.strip(a, b, ra, rb, hw, hw + 0.3, 1.0, CONCRETE, 0.95, CONCRETE)
 
-	# Piles de pont tous les ~20 m, et entrées de tunnel.
+	# Viaducs ferroviaires (piles régulières et arches de pierre), sinon piles
+	# de pont tous les ~20 m ; puis entrées de tunnel.
+	var viaduct := mode == TransportTypes.Mode.RAIL and not ty.has("underground")
+	if viaduct:
+		_viaducts(k, type_id, pts, st, right, w, ground_fn)
 	var acc2 := 0.0
 	var next_pier := 10.0
 	for i in n:
 		if i > 0:
 			acc2 += Vector2(pts[i].x - pts[i - 1].x, pts[i].z - pts[i - 1].z).length()
-		if st[i] == S.BRIDGE and acc2 >= next_pier:
+		if st[i] == S.BRIDGE and acc2 >= next_pier and not viaduct:
 			next_pier = acc2 + 20.0
 			var top := pts[i].y - 1.2
 			var gh: float = NAN
@@ -321,6 +329,104 @@ static func build_mesh(type_id: String, spec: Dictionary, pts: PackedVector3Arra
 			# Ouverture sombre, tournée vers l'extérieur du tunnel.
 			k.oriented_box(p - fwd * 0.7 + Vector3(0, ph * 0.5, 0), r, Vector3(w + 0.1, ph, 0.2), DARK)
 	return k.commit()
+
+
+## Viaducs du rail : chaque passage en pont est découpé en travées égales.
+## Lignes classiques, tram et crémaillère : piles et arches en pierre
+## (travées de 8 à 18 m selon la hauteur) ; LGV : travées jusqu'à 40 m sur
+## piles de béton.
+static func _viaducts(k: MeshKit, type_id: String, pts: PackedVector3Array, st: PackedByteArray,
+		right: PackedVector3Array, w: float, ground_fn: Callable) -> void:
+	var S := TransportTypes.Struct
+	var n := pts.size()
+	var acc := PackedFloat32Array()
+	acc.resize(n)
+	for i in range(1, n):
+		acc[i] = acc[i - 1] + Vector2(pts[i].x - pts[i - 1].x, pts[i].z - pts[i - 1].z).length()
+	var stone := type_id != "lgv"
+	var span := VIADUCT_SPAN if stone else VIADUCT_SPAN_LGV
+	var col := STONE if stone else CONCRETE.darkened(0.08)
+	var i := 0
+	while i < n:
+		if st[i] != S.BRIDGE:
+			i += 1
+			continue
+		var j := i
+		while j + 1 < n and st[j + 1] == S.BRIDGE:
+			j += 1
+		var d0 := acc[maxi(0, i - 1)]
+		var d1 := acc[mini(n - 1, j + 1)]
+		var L := d1 - d0
+		# Travées à la mesure de la hauteur : arches basses sur un petit vallon,
+		# grandes arches sur une vallée profonde.
+		var hmax := 0.0
+		for q in range(i, j + 1):
+			hmax = maxf(hmax, pts[q].y - 1.2 - _ground(ground_fn, pts[q], pts[q].y) - 2.0)
+		var sp := clampf(hmax * 0.8, 8.0, span) if stone else clampf(hmax * 2.0, 25.0, span)
+		var m := maxi(1, roundi(L / sp))
+		var piers: Array[float] = [d0]
+		for q in range(1, m):
+			piers.append(d0 + L * float(q) / float(m))
+		piers.append(d1)
+		var thick := 2.2 if stone else 2.6
+		# Piles (pas aux culées, à chaque bout).
+		for q in range(1, piers.size() - 1):
+			var at := _sample(pts, acc, piers[q])
+			var top: float = (at[0] as Vector3).y - 1.2
+			var gh := _ground(ground_fn, at[0], top)
+			var h := top - gh
+			if h <= 0.3:
+				continue
+			var c: Vector3 = at[0]
+			var r: Vector3 = right[int(at[1])]
+			# Fruit : la pile s'élargit vers le bas.
+			var base_t := thick + h * 0.03
+			k.oriented_box(Vector3(c.x, gh + h * 0.25, c.z), r, Vector3(w + 0.8 + h * 0.02, h * 0.5, base_t), col.darkened(0.06))
+			k.oriented_box(Vector3(c.x, gh + h * 0.75, c.z), r, Vector3(w + 0.6, h * 0.5, thick), col)
+		if stone:
+			# Arches : tympans pleins entre l'intrados (demi-cercle) et le tablier.
+			for q in piers.size() - 1:
+				var a0 := piers[q] + (thick * 0.5 if q > 0 else 0.0)
+				var a1 := piers[q + 1] - (thick * 0.5 if q < piers.size() - 2 else 0.0)
+				var ls := a1 - a0
+				if ls < 3.0:
+					continue
+				var rad := ls * 0.5
+				var slices := maxi(6, roundi(ls / 1.5))
+				for z in slices:
+					var x := (float(z) + 0.5) / float(slices) * ls
+					var at2 := _sample(pts, acc, a0 + x)
+					var c2: Vector3 = at2[0]
+					var top2 := c2.y - 1.2
+					var u := x - rad
+					var crown := top2 - 0.9
+					var y_arch := crown - (rad - sqrt(maxf(0.0, rad * rad - u * u)))
+					var gh2 := _ground(ground_fn, c2, top2)
+					y_arch = maxf(y_arch, gh2)
+					var hh := top2 - y_arch
+					if hh > 0.05:
+						k.oriented_box(Vector3(c2.x, y_arch + hh * 0.5, c2.z), right[int(at2[1])], Vector3(w + 0.4, hh, ls / float(slices) + 0.05), col.lightened(0.04))
+		i = j + 1
+
+
+## Point du tracé à la distance (à plat) d depuis le début : [Vector3, index].
+static func _sample(pts: PackedVector3Array, acc: PackedFloat32Array, d: float) -> Array:
+	for i in range(1, pts.size()):
+		if acc[i] >= d:
+			var seg := acc[i] - acc[i - 1]
+			var t := 0.0 if seg <= 0.0 else (d - acc[i - 1]) / seg
+			return [pts[i - 1].lerp(pts[i], clampf(t, 0.0, 1.0)), i - 1]
+	return [pts[pts.size() - 1], pts.size() - 1]
+
+
+## Hauteur du sol sous un point (un peu enterrée), bornée sous le tablier.
+static func _ground(ground_fn: Callable, p: Vector3, top: float) -> float:
+	var gh: float = NAN
+	if ground_fn.is_valid():
+		gh = ground_fn.call(p.x, p.z)
+	if is_nan(gh):
+		gh = top - 12.0
+	return minf(gh, top) - 2.0
 
 
 ## Profil en travers d'une route : bords (trottoirs, accotements ou bandes
@@ -401,6 +507,14 @@ static func _rail_section(k: MeshKit, type_id: String, spec: Dictionary, a: Vect
 		for r in [-g, g]:
 			var o: float = r
 			k.strip(ca, cb, ra, rb, o - 0.05, o + 0.05, 0.42, STEEL, 0.1, STEEL.darkened(0.3))
+		if ty.get("rack", false):
+			# Crémaillère : rail denté au milieu de la voie.
+			k.strip(ca, cb, ra, rb, -0.09, 0.09, 0.5, STEEL.darkened(0.15), 0.18, STEEL.darkened(0.4))
+			var seg := ca.distance_to(cb)
+			var teeth := maxi(1, floori(seg / 0.6))
+			for q in teeth:
+				var c: Vector3 = ca.lerp(cb, (float(q) + 0.5) / float(teeth))
+				k.oriented_box(c + Vector3(0, 0.55, 0), rm, Vector3(0.22, 0.1, 0.16), STEEL.darkened(0.35))
 
 
 ## Vecteur « droite » horizontal en chaque point du tracé.

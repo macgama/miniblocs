@@ -32,7 +32,7 @@ const TYPES := {
 		"desc": "Deux quais bas de part et d'autre des voies de tram."},
 	"station_metro": {"name": "Station de métro", "mode": RAIL, "kind": "metro", "classes": ["metro"], "len": 80.0,
 		"desc": "Quais souterrains et bouche de métro en surface, sur une voie de métro."},
-	"gare": {"name": "Gare", "mode": RAIL, "kind": "train", "classes": ["train", "lgv"], "len": 160.0,
+	"gare": {"name": "Gare", "mode": RAIL, "kind": "train", "classes": ["train", "lgv", "cremaillere"], "len": 160.0,
 		"desc": "Quais, marquise et bâtiment voyageurs, sur une ligne classique ou une LGV."},
 	"port": {"name": "Port", "mode": WATER, "kind": "bateau", "classes": [], "len": 60.0,
 		"desc": "Jetée, grue et gare maritime, sur une voie d'eau."},
@@ -616,7 +616,8 @@ func models_for(kind: String, stops: Array = [], fret := false) -> Array[String]
 			if st.type == "heliport":
 				heli_only = true
 			if st.type == "gare":
-				rail_cls = _class_at({"node": int(st.node), "edge": -1})
+				if _class_at({"node": int(st.node), "edge": -1}) == "cremaillere":
+					rail_cls = "cremaillere"
 	for id in VehicleCatalog.TYPES:
 		var t := VehicleCatalog.get_type(id)
 		if t.get("hidden", false):
@@ -637,7 +638,9 @@ func models_for(kind: String, stops: Array = [], fret := false) -> Array[String]
 				if String(t.get("rail", "")) != "metro":
 					continue
 			"train":
-				if t.cat != "train" or String(t.get("rail", "")) == "metro":
+				# Les gares d'une ligne de montagne n'accueillent que les trains à crémaillère.
+				var rack := rail_cls == "cremaillere"
+				if t.cat != "train" or String(t.get("rail", "")) == "metro" or (String(t.get("rail", "")) == "cremaillere") != rack:
 					continue
 			"bateau":
 				if t.cat != "bateau":

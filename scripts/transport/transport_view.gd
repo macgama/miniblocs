@@ -136,7 +136,7 @@ func junction_count() -> int:
 
 ## Deux tronçons de même mode qui se suivent presque en ligne droite : pas de
 ## plateau, les deux maillages se rejoignent bord à bord (onglet).
-const SMOOTH_JOINT := 150.0
+const SMOOTH_JOINT := TransportNetwork.SMOOTH_JOINT
 
 
 static func is_smooth_joint(net: TransportNetwork, nid: int) -> bool:
@@ -152,6 +152,48 @@ static func is_smooth_joint(net: TransportNetwork, nid: int) -> bool:
 	return rad_to_deg(acos(clampf(d0.dot(d1), -1.0, 1.0))) >= SMOOTH_JOINT
 
 
+static func merge_through(net: TransportNetwork, nid: int) -> Array:
+	return net.merge_through(nid)
+
+
+static func is_merge(net: TransportNetwork, nid: int) -> bool:
+	return net.is_merge(nid)
+
+
+## Voie qui continue tout droit à travers le nœud (raccord simple ou voie
+## principale d'une insertion) : [tronçon, tronçon] ou [].
+static func through_pair(net: TransportNetwork, nid: int) -> Array:
+	if is_smooth_joint(net, nid):
+		return net.adjacency[nid]
+	return merge_through(net, nid)
+
+
+## Longueur de bretelle cachée sous la chaussée principale : jusqu'à ce que
+## son bord rejoigne le bord de l'autoroute (la bretelle « sort » de la BAU).
+static func ramp_trim(net: TransportNetwork, nid: int, eid: int, main: Array) -> float:
+	var e: Dictionary = net.edges[eid]
+	var hw_main := maxf(net.half_width(main[0]), net.half_width(main[1]))
+	var need := hw_main + net.half_width(eid) - 0.3
+	var length: float = e.len
+	# Tronçon principal du côté où part la bretelle ; on compare les points à
+	# même distance du nœud (la bretelle s'écarte en biais, presque parallèle).
+	var dr := net.leave_dir(eid, nid)
+	var m: int = main[0] if net.leave_dir(main[0], nid).dot(dr) >= net.leave_dir(main[1], nid).dot(dr) else main[1]
+	var em: Dictionary = net.edges[m]
+	var mlen: float = em.len
+	var s := 0.0
+	while s < length * 0.8:
+		var p := net.point_at(eid, s if e.a == nid else length - s)
+		var sm := minf(s, mlen)
+		var q := net.point_at(m, sm if em.a == nid else mlen - sm)
+		var t := net.tangent_at(m, sm if em.a == nid else mlen - sm)
+		var t2 := Vector2(t.x, t.z).normalized()
+		if absf((p.x - q.x) * t2.y - (p.z - q.z) * t2.x) >= need:
+			return s
+		s += 1.0
+	return length * 0.8
+
+
 ## Vecteur « droite » imposé au début et à la fin d'un tronçon quand il continue
 ## un autre tronçon (bissectrice, allongée pour garder la largeur) ; ZERO sinon.
 static func joint_rights(net: TransportNetwork, eid: int) -> Array:
@@ -159,10 +201,10 @@ static func joint_rights(net: TransportNetwork, eid: int) -> Array:
 	var out := [Vector3.ZERO, Vector3.ZERO]
 	for end in 2:
 		var nid: int = e.a if end == 0 else e.b
-		if not is_smooth_joint(net, nid):
+		var pair := through_pair(net, nid)
+		if not pair.has(eid):
 			continue
-		var adj: Array = net.adjacency[nid]
-		var other: int = adj[0] if adj[1] == eid else adj[1]
+		var other: int = pair[0] if pair[1] == eid else pair[1]
 		var d1 := net.leave_dir(eid, nid)
 		var d2 := net.leave_dir(other, nid)
 		var travel := d1 if end == 0 else -d1
@@ -204,6 +246,20 @@ static func compute_trims(net: TransportNetwork) -> Dictionary:
 			continue
 		var adj: Array = net.adjacency.get(nid, [])
 		if adj.size() < 2 or is_smooth_joint(net, nid):
+			continue
+		var main := merge_through(net, nid)
+		if not main.is_empty():
+			for eid in adj:
+				if main.has(eid):
+					continue
+				var er: Dictionary = net.edges[eid]
+				var tr := ramp_trim(net, nid, eid, main)
+				var vr: Vector2 = out.get(eid, Vector2.ZERO)
+				if er.a == nid:
+					vr.x = tr
+				if er.b == nid:
+					vr.y = tr
+				out[eid] = vr
 			continue
 		var trim := junction_trim(net, nid)
 		for eid in adj:
@@ -300,7 +356,7 @@ static func _junction_arms(net: TransportNetwork, nid: int, trims: Dictionary) -
 	if mode != TransportTypes.Mode.ROAD and mode != TransportTypes.Mode.PATH:
 		return []
 	var adj: Array = net.adjacency.get(nid, [])
-	if adj.size() < 2 or is_smooth_joint(net, nid):
+	if adj.size() < 2 or is_smooth_joint(net, nid) or is_merge(net, nid):
 		return []
 	var arms: Array = []
 	for eid in adj:
@@ -660,7 +716,8 @@ static func _road_section(k: MeshKit, type_id: String, spec: Dictionary, a: Vect
 	var lw: float = spec.lane_w
 	var med := TransportTypes.median_of(type_id, spec)
 	var side: float = ty.side
-	var carriage := lanes * lw
+	var single := bool(ty.get("single", false))
+	var carriage := lanes * lw * (0.5 if single else 1.0)
 	var inner := med * 0.5
 	var outer := inner + carriage
 	var hw := outer + side
@@ -668,6 +725,8 @@ static func _road_section(k: MeshKit, type_id: String, spec: Dictionary, a: Vect
 	# Chaussées (les deux sens) et terre-plein.
 	k.strip(a, b, ra, rb, -outer, -inner, 0.08, ASPHALT, 0.0, ASPHALT)
 	k.strip(a, b, ra, rb, inner, outer, 0.08, ASPHALT, 0.0, ASPHALT)
+	if single:
+		lanes = 1
 	if med > 0.0:
 		if ty.center == "barrier":
 			k.strip(a, b, ra, rb, -inner, inner, 0.08, ASPHALT_SIDE, 0.0, ASPHALT_SIDE)
@@ -689,7 +748,9 @@ static func _road_section(k: MeshKit, type_id: String, spec: Dictionary, a: Vect
 		var o: float = e
 		k.strip(a, b, ra, rb, o - 0.08, o + 0.08, 0.1, MARKING, 0.0, MARKING)
 	# Axe : tirets (rue, départementale) ou ligne continue (avenue sans terre-plein).
-	if med <= 0.0:
+	if ty.center == "none":
+		pass
+	elif med <= 0.0:
 		if ty.center == "dashed":
 			if dash_on:
 				k.strip(a, b, ra, rb, -0.07, 0.07, 0.1, MARKING, 0.0, MARKING)

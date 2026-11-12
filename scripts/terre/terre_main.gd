@@ -731,6 +731,7 @@ var _snap_pending := true
 func _process(delta: float) -> void:
 	_autosave(delta)
 	world.update_tide(ambiance.unix_time)
+	world.update_saison(ambiance.unix_time, ambiance.weather)
 	# Le pivot de la caméra suit le relief sous lui.
 	var h := world.cell_height(Vector2i(floori(rig.position.x), floori(rig.position.z)))
 	if not is_nan(h):

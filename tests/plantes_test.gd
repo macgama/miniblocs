@@ -78,6 +78,37 @@ func _initialize() -> void:
 	_check(Sols.culture(Vector2i(-5, -7), 1) == Sols.culture(Vector2i(-5, -7), 1), "parcelles stables (coordonnées négatives)")
 	for cu in Sols.CULTURES:
 		_check(cu[2] == "" or Plantes.id(cu[2]) >= 0, "culture %s : plante connue" % cu[0])
+	print("Étapes de vie :")
+	var chene := Plantes.id("chene")
+	var etapes := []
+	for age in [1.0, 40.0, 150.0, 305.0]:
+		etapes.append(Plantes.etape(chene, age)[2])
+	_check(etapes == [0, 1, 2, 3], "chêne : pousse à 1 an, jeune à 40, adulte à 150, mort à 305 ans")
+	_check(Plantes.etape(chene, 80.0)[0] == chene and absf(Plantes.etape(chene, 80.0)[1] - 1.0) < 0.01, "chêne adulte (taille réelle) à 80 ans")
+	_check(Plantes.nom(Plantes.etape(Plantes.id("sapin"), 2.0)[0]) == "pousse_conifere", "jeune pousse de sapin = pousse de conifère")
+	_check(Plantes.nom(Plantes.etape(Plantes.id("palmier"), 85.0)[0]) == "mort_palmier", "palmier mort")
+	var jeunes: bool = Plantes.etape(chene, 20.0)[1] < Plantes.etape(chene, 50.0)[1]
+	_check(jeunes, "un jeune arbre grandit")
+	for nom_vie in Plantes.VIE:
+		_check(Plantes.id(nom_vie) >= 0 and Plantes.vivace(Plantes.id(nom_vie)), "%s : 4 étapes" % nom_vie)
+	for m in ["pousse_feuillu", "pousse_conifere", "pousse_palmier", "mort_feuillu", "mort_conifere", "mort_palmier"]:
+		_check(Plantes.mesh(Plantes.id(m)) != null, "modèle %s" % m)
+	print("Saisons :")
+	var T := Plantes.Climat.TEMPERE
+	_check(Plantes.saison(15.0, 48.0, T).feuilles < 0.05 and Plantes.saison(196.0, 48.0, T).feuilles > 0.95, "Paris : arbres nus en janvier, feuillus en juillet")
+	_check(Plantes.saison(196.0, -35.0, T).feuilles < 0.05, "hémisphère sud : arbres nus en juillet")
+	_check(Plantes.saison(285.0, 48.0, T).automne > 0.5, "feuilles rousses en octobre")
+	_check(Plantes.saison(15.0, 0.0, Plantes.Climat.TROPICAL).feuilles == 1.0, "tropiques : toujours verts")
+	var juillet := Sols.etat_cultures(196.0, 48.0)
+	var aout := Sols.etat_cultures(228.0, 48.0)
+	var avril := Sols.etat_cultures(105.0, 48.0)
+	var octobre := Sols.etat_cultures(288.0, 48.0)
+	_check(juillet.maturite[1] > 0.9 and juillet.taille[1] > 0.9, "blé doré en juillet")
+	_check(avril.maturite[1] < 0.1 and avril.taille[1] > 0.3, "blé vert en avril")
+	_check(aout.taille[1] == 0.0 and aout.couche[1] == Sols.CHAUME, "blé moissonné en août : chaume")
+	_check(octobre.couche[1] == Sols.LABOUR, "labour en octobre avant les semis")
+	_check(avril.maturite[2] > 0.9, "colza en fleur en avril")
+	_check(Sols.etat_cultures(105.0, -30.0).taille[1] == 0.0 or Sols.etat_cultures(105.0, -30.0).couche[1] != Sols.CULTURES[1][1], "hémisphère sud : six mois de décalage")
 	var tex := Sols.texture()
 	_check(tex.get_layers() == Sols.COUCHES.size() and tex.get_width() == 256, "texture du sol : %d couches de %d px" % [tex.get_layers(), tex.get_width()])
 	var herbe := (load(Sols.DOSSIER + "herbe.png") as Texture2D).get_image()

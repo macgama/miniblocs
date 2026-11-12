@@ -56,6 +56,13 @@ var water_cells: Dictionary = {}
 var biome_paint: Dictionary = {}
 ## Vector2i -> float : 1 = arbre planté, 0 = arbres arrachés.
 var tree_paint: Dictionary = {}
+## Date du jeu en jours depuis 1970 (update_saison) : saisons.
+var temps_jours := 20620.0
+## Horloge de la vie en jours (Population.life_clock) : les arbres vieillissent à la
+## même vitesse que les habitants (réglage Admin « vitesse de la vie »).
+var horloge_vie := 0.0
+## Neige tombée au sol (0 à 1), d'après la météo du jeu.
+var neige := 0.0
 ## Rayon du pinceau des outils de paysage (cases).
 var brush_radius := 3
 ## Biome posé par l'outil BIOME (indice Kind).
@@ -133,6 +140,9 @@ func _ready() -> void:
 	_material.set_shader_parameter("sols", Sols.texture())
 	_material.set_shader_parameter("avec_textures", textures_sol)
 	_material.set_shader_parameter("premiere_couleur", Sols.PREMIERE_COULEUR)
+	var ete := Sols.etat_cultures(172.0, 48.0)
+	_material.set_shader_parameter("couche_culture", ete.couche)
+	_material.set_shader_parameter("maturite_culture", ete.maturite)
 
 	_water = MeshInstance3D.new()
 	var plane := PlaneMesh.new()
@@ -263,6 +273,56 @@ static func water_depth(q: float, bio: int, width: float, step: float) -> float:
 	if width > 0.0:
 		return step * (1.0 if width < 3.0 else 2.0)
 	return 0.0
+
+
+var _saison_unix := NAN
+var _saison_jour := -1000.0
+var _saison_annee := 0
+var _saison_maj_ms := 0
+var _saison_neige := -1.0
+
+
+## Saisons, champs et neige selon la date du jeu (unix, UTC) et la météo
+## (Meteo, peut être null). Le vrai calendrier du lieu et son hémisphère.
+func update_saison(unix: float, meteo: Meteo, vie_jours := NAN) -> void:
+	temps_jours = unix / 86400.0
+	if not is_nan(vie_jours):
+		horloge_vie = vie_jours
+	var dt_h := 0.0 if is_nan(_saison_unix) else (unix - _saison_unix) / 3600.0
+	_saison_unix = unix
+	if meteo != null:
+		var t := meteo.temperature
+		if absf(dt_h) > 48.0 or dt_h < 0.0:
+			# Saut dans le temps : on repart d'une neige plausible.
+			neige = clampf(-t / 4.0, 0.0, 1.0) if t < 0.0 else 0.0
+			if meteo.precip * meteo.snow > 0.2:
+				neige = maxf(neige, 0.6)
+		else:
+			neige += meteo.precip * meteo.snow * dt_h / 4.0
+			if t > 0.5:
+				neige -= dt_h * (0.02 + 0.015 * t)
+		neige = clampf(neige, 0.0, 1.0)
+	var annee := floori(horloge_vie / 365.25)
+	if annee != _saison_annee and Time.get_ticks_msec() - _saison_maj_ms > 20000:
+		# Une année de vie de plus : les arbres grandissent, meurent, repoussent
+		# (au plus toutes les 20 s, même en temps accéléré).
+		_saison_maj_ms = Time.get_ticks_msec()
+		for k in chunks:
+			_dirty[k] = true
+		_saison_annee = annee
+	var jour := fposmod(temps_jours, 365.2425)
+	if absf(jour - _saison_jour) < 0.05 and absf(neige - _saison_neige) < 0.005:
+		return
+	_saison_jour = jour
+	_saison_neige = neige
+	var cl := Plantes.climat(origin_lat, origin_lon)
+	var s := Plantes.saison(jour, origin_lat, cl)
+	var cu := Sols.etat_cultures(jour, origin_lat)
+	Plantes.applique_saison(s, neige, cu)
+	_material.set_shader_parameter("couche_culture", cu.couche)
+	_material.set_shader_parameter("maturite_culture", cu.maturite)
+	_material.set_shader_parameter("herbe_seche", s.herbe_seche)
+	_material.set_shader_parameter("neige", neige)
 
 
 ## Hauteur actuelle de la surface de la mer (marée comprise).
@@ -692,7 +752,7 @@ func _prepare_chunk(k: Vector2i) -> Dictionary:
 		"pwater": _collect_cells(water_cells, rect), "paint": _collect_cells(biome_paint, rect),
 		"trees": _collect_cells(tree_paint, rect),
 		"climat": Plantes.climat(origin_lat, origin_lon), "amer": Plantes.ameriques(origin_lon),
-		"details": _chunk_distance(k, _center) < DETAILS_RADIUS}
+		"details": _chunk_distance(k, _center) < DETAILS_RADIUS, "vie": horloge_vie}
 
 
 ## Cases d'un dictionnaire creux tombant dans rect : [indices locaux, valeurs].
@@ -781,14 +841,20 @@ static func _compute_chunk(job: Dictionary) -> void:
 		paint[job.paint[0][m]] = int(job.paint[1][m])
 	var tree_mark := PackedByteArray() # 0 = rien, 1 = arrachés, 2 = plantés
 	tree_mark.resize(w * w)
+	var tree_day := {} # case locale -> jour de plantation (arbres plantés au pinceau)
 	for m in (job.trees[0] as PackedInt32Array).size():
-		tree_mark[job.trees[0][m]] = 2 if job.trees[1][m] > 0.5 else 1
+		var tv: float = job.trees[1][m]
+		tree_mark[job.trees[0][m]] = 2 if tv > 0.5 else 1
+		if tv >= 2.0:
+			tree_day[job.trees[0][m]] = tv - 2.0
+	job.tree_day = tree_day
 
 	var colors := PackedColorArray()
 	colors.resize(w * w)
 	var kinds := PackedByteArray()
 	kinds.resize(w * w)
-	# Texture du sol (Sols.gd) : couche + 32 si les rangs du champ sont tournés.
+	# Texture du sol (Sols.gd) : couche (Sols.CHAMP + culture pour les champs)
+	# + 128 si les rangs du champ sont tournés.
 	var couches := PackedByteArray()
 	couches.resize(w * w)
 	var k0: Vector2i = job.k * cs - Vector2i.ONE
@@ -855,7 +921,7 @@ static func _compute_chunk(job: Dictionary) -> void:
 			_quad(verts, normals, cols, idx,
 				Vector3(i - 1, hv, j - 1), Vector3(e, hv, j - 1),
 				Vector3(e, hv, j), Vector3(i - 1, hv, j), Vector3.UP, col)
-			_uv4(uvs, cou & 31, cou >> 5)
+			_uv4(uvs, cou & 127, cou >> 7)
 			i = e + 1
 
 	# Murs entre une case et sa voisine Est (i+1) : orientés vers la case la plus basse.
@@ -1215,6 +1281,9 @@ static func _compute_vegetation(job: Dictionary, h: PackedFloat32Array, kinds: P
 	var especes := PackedInt32Array()
 	var tree_mark: PackedByteArray = job.tree_mark
 	var memo: Dictionary = job.get("memo_champs", {})
+	var tree_day: Dictionary = job.get("tree_day", {})
+	var annees: float = job.get("vie", 0.0) / 365.25
+	var cultures := PackedInt32Array()
 	Plantes.densite(0, 0)
 	var totaux: PackedFloat32Array = Plantes._totaux
 	for j in range(1, cs + 1):
@@ -1238,12 +1307,14 @@ static func _compute_vegetation(job: Dictionary, h: PackedFloat32Array, kinds: P
 			var v := float(absi(hash(c * 7 + Vector2i(3, 1))) & 0xffff) / 65535.0
 			var e := -1
 			var culture := false
+			var cu_n := -1
 			if mark == 2 and kind != Kind.CANAL and u < Plantes.DENSITE_PLANTES:
 				e = Plantes.arbre_plante(climat, h[n], v)
 			elif kind == Kind.CHAMPS:
 				if not details:
 					continue
-				var cu: Array = Sols.CULTURES[Sols.champ(c, climat, memo).y]
+				cu_n = Sols.champ(c, climat, memo).y
+				var cu: Array = Sols.CULTURES[cu_n]
 				if cu[2] != "" and u < cu[3]:
 					e = Plantes.id(cu[2])
 					culture = true
@@ -1251,6 +1322,24 @@ static func _compute_vegetation(job: Dictionary, h: PackedFloat32Array, kinds: P
 				e = Plantes.choisir(kind, climat, h[n], amer, u, v)
 			if e < 0:
 				continue
+			if not culture:
+				cu_n = -1
+			# Arbres : 4 étapes de vie (Plantes.etape). Les arbres sauvages ont tous
+			# les âges et repoussent sur place ; ceux plantés au pinceau partent
+			# du jour de leur plantation.
+			var modele := e
+			var echelle := 1.0
+			if Plantes.vivace(e):
+				var cy := Plantes.cycle(e)
+				var age: float
+				if tree_day.has(n):
+					age = fposmod(annees - float(tree_day[n]) / 365.25, cy)
+				else:
+					var ph := float(absi(hash(c * 13 + Vector2i(5, 9))) & 0xffff) / 65535.0
+					age = fposmod(annees + ph * cy, cy)
+				var et: Array = Plantes.etape(e, age)
+				modele = et[0]
+				echelle = et[1]
 			var cat := Plantes.categorie(e)
 			if not details and cat == Plantes.Cat.HERBE:
 				continue
@@ -1273,7 +1362,7 @@ static func _compute_vegetation(job: Dictionary, h: PackedFloat32Array, kinds: P
 			else:
 				var jx := float((r >> 16) & 0xff) / 255.0 * 0.6 + 0.2
 				var jz := float((r >> 24) & 0x7f) / 127.0 * 0.6 + 0.2
-				var sc := (0.7 + v * 0.6) if cat == Plantes.Cat.ARBRE else (0.8 + v * 0.4)
+				var sc := ((0.85 + v * 0.3) if cat == Plantes.Cat.ARBRE else (0.8 + v * 0.4)) * echelle
 				basis = Basis(Vector3.UP, float(r & 0xff)).scaled(Vector3(sc, sc, sc))
 				pos = Vector3(i - 1 + jx, h[n], j - 1 + jz)
 			# Teinte : un peu plus clair ou foncé, un peu plus jaune ou bleu.
@@ -1282,8 +1371,9 @@ static func _compute_vegetation(job: Dictionary, h: PackedFloat32Array, kinds: P
 			cells.append(c)
 			xforms.append(Transform3D(basis, pos))
 			teintes.append(Color(shade * (1.0 + dh), shade, shade * (1.0 - dh)))
-			especes.append(e)
-	job.veg = {"cells": cells, "xforms": xforms, "cols": teintes, "especes": especes}
+			especes.append(modele)
+			cultures.append(cu_n)
+	job.veg = {"cells": cells, "xforms": xforms, "cols": teintes, "especes": especes, "cultures": cultures}
 
 
 ## Fil principal : retire la végétation sous les voies (tree_blocker) et la pose,
@@ -1297,24 +1387,29 @@ func _plant_vegetation(mi: MeshInstance3D, job: Dictionary) -> void:
 	var xforms: Array[Transform3D] = veg.xforms
 	var cols: PackedColorArray = veg.cols
 	var especes: PackedInt32Array = veg.especes
-	var groupes := {} # espèce -> [Array[Transform3D], PackedColorArray]
+	var cultures: PackedInt32Array = veg.get("cultures", PackedInt32Array())
+	var groupes := {} # espèce + 1000 × (culture + 1) -> [Array[Transform3D], PackedColorArray]
 	var arbres: Array[Transform3D] = []
 	var check := tree_blocker.is_valid()
 	for n in cells.size():
 		if check and tree_blocker.call(cells[n]):
 			continue
 		var e := especes[n]
-		if not groupes.has(e):
+		var g := e + 1000 * (cultures[n] + 1 if n < cultures.size() else 0)
+		if not groupes.has(g):
 			var liste: Array[Transform3D] = []
-			groupes[e] = [liste, PackedColorArray()]
-		(groupes[e][0] as Array).append(xforms[n])
-		groupes[e][1].append(cols[n])
-		if Plantes.categorie(e) == Plantes.Cat.ARBRE:
+			groupes[g] = [liste, PackedColorArray()]
+		(groupes[g][0] as Array).append(xforms[n])
+		groupes[g][1].append(cols[n])
+		# Collisions des troncs (vue au sol), sauf pour les jeunes pousses.
+		if Plantes.categorie(e) == Plantes.Cat.ARBRE and not Plantes.nom(e).begins_with("pousse_"):
 			arbres.append(xforms[n])
-	for e: int in groupes:
+	for g: int in groupes:
+		var e := g % 1000
+		var cu := g / 1000 - 1
 		var cat := Plantes.categorie(e)
-		var liste: Array[Transform3D] = groupes[e][0]
-		var teintes: PackedColorArray = groupes[e][1]
+		var liste: Array[Transform3D] = groupes[g][0]
+		var teintes: PackedColorArray = groupes[g][1]
 		var m := Plantes.mesh(e)
 		if m == null:
 			# Secours : l'ancien cône ou la boule, en vert.
@@ -1327,6 +1422,8 @@ func _plant_vegetation(mi: MeshInstance3D, job: Dictionary) -> void:
 			continue
 		var proche := _pose_multimesh(mi, m, liste, teintes, Plantes.vent(e), Plantes.materiau())
 		proche.name = Plantes.nom(e)
+		if cu >= 0:
+			proche.set_instance_shader_parameter("culture", cu)
 		proche.set_meta("categorie", cat)
 		proche.visibility_range_end = Plantes.DISTANCE[cat]
 		proche.visibility_range_end_margin = 8.0
@@ -1594,9 +1691,11 @@ func apply_brush(center: Vector2i) -> int:
 					biome_paint[c] = float(paint_kind)
 					count += 1
 		Tool.PLANT, Tool.CLEAR_TREES:
-			var v := 1.0 if current_tool == Tool.PLANT else 0.0
+			# Plantés : jour de vie de la plantation + 2 (l'arbre part de la jeune pousse).
+			var v := horloge_vie + 2.0 if current_tool == Tool.PLANT else 0.0
 			for c in cells:
-				if float(tree_paint.get(c, -1.0)) != v:
+				var avant := float(tree_paint.get(c, -1.0))
+				if avant != v and not (v >= 2.0 and avant >= 2.0):
 					tree_paint[c] = v
 					count += 1
 	if count > 0:

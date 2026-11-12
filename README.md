@@ -57,7 +57,7 @@ La touche **0** ouvre le panneau **Paysage**. Clic gauche glissé avec un pincea
 - **Peindre un biome** : forêt (qui se remplit d'arbres), prairie, champs, broussailles, désert, plage, roche, neige, marais, toundra.
 - **Planter** ou **arracher** des arbres.
 
-Les plantes (46 espèces modélisées dans Blender : arbres, arbustes, herbes, fleurs, cultures, rochers) et les textures du sol (herbe, roche, sable, champs en patchwork…) changent selon le biome, le climat et l'altitude : voir [docs/plantes-et-sols.md](docs/plantes-et-sols.md).
+Les plantes (46 espèces modélisées dans Blender : arbres, arbustes, herbes, fleurs, cultures, rochers) et les textures du sol (herbe, roche, sable, champs en patchwork…) changent selon le biome, le climat et l'altitude, et vivent au fil des saisons (feuilles d'automne, neige, moissons) et des âges (de la jeune pousse à l'arbre mort) : voir [docs/plantes-et-sols.md](docs/plantes-et-sols.md).
 
 Tout est sauvegardé avec la partie.
 

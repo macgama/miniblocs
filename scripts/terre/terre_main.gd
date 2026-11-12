@@ -69,12 +69,16 @@ func _ready() -> void:
 			"toutes les régions" if region == "" else Styles.region_name(region)]))
 	transport.info_changed.connect(func(t: String) -> void: hud.set_tool_info(t))
 	transport.message.connect(func(t: String) -> void: hud.show_message(t))
-	transport.spec_changed.connect(func(id: String, s: Dictionary) -> void: hud.show_spec(id, s, transport.curve_mode))
+	transport.spec_changed.connect(func(id: String, s: Dictionary) -> void: hud.show_spec(id, s, transport.curve_mode, transport.level))
 	hud.spec_edited.connect(func(id: String, s: Dictionary) -> void:
 		_tool_class[TransportTypes.mode_of(id)] = id
 		transport.set_spec(id, s)
-		hud.show_spec(id, transport.spec, transport.curve_mode))
+		hud.show_spec(id, transport.spec, transport.curve_mode, transport.level))
 	hud.curve_toggled.connect(func(on: bool) -> void: transport.set_curve(on))
+	hud.level_changed.connect(func(l: String) -> void:
+		transport.set_level(l)
+		hud.show_message(String(TransportSystem.LEVEL_NAMES[l]) + "."))
+	hud.junction_action_changed.connect(func(act: String) -> void: transport.set_junction_tool(act))
 	buildings.info_changed.connect(func(t: String) -> void: hud.set_tool_info(t))
 	buildings.message.connect(func(t: String) -> void: hud.show_message(t))
 	build_panel.building_chosen.connect(func(id: String) -> void:
@@ -517,6 +521,7 @@ func _on_tool_selected(t: int) -> void:
 	else:
 		hud.show_spec("", {}, false)
 		transport.set_junction_tool()
+		hud.show_junction_panel(transport.junction_action)
 
 
 func _on_origin_changed(lat: float, lon: float) -> void:

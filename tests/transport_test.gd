@@ -565,6 +565,9 @@ func _run() -> void:
 	_check(int(sv2.lines[ml.id].get("passengers", 0)) == 12 and sv2.line_summary(ml.id).contains("12 voyageurs"), "voyageurs comptés : " + sv2.line_summary(ml.id))
 	_check(pl.stations_near(Vector3(360, 0, -300), 50.0, "metro").has(int(ms1.get("id", -1))), "stations proches par genre")
 
+	print("Ponts, tunnels et échangeurs :")
+	await _ramp_tests(tr)
+
 	print("Démolition et sauvegarde :")
 	var edges_before := tr.network.edges.size()
 	tr.demolish(int(p1.edges[0]))
@@ -683,6 +686,125 @@ func _run() -> void:
 
 
 ## Carrefours sur un réseau synthétique : régimes, feux, files d'attente.
+## Croisements imposés (pont, tunnel), autoroute coupée sans carrefour,
+## bretelles et échangeur en losange.
+func _ramp_tests(tr: TransportSystem) -> void:
+	var net := tr.network
+	var rx := tr.build_segment("rue", Vector3(480, 0, 200), Vector3(700, 0, 200))
+	tr.set_level("dessous")
+	var ry := tr.build_segment("rue", Vector3(550, 0, 100), Vector3(550, 0, 300))
+	_check(rx.ok and ry.ok and int(ry.junctions) == 0 and float(ry.tunnel_len) > 0.0 and int(ry.passes) == 1,
+		"passer dessous : tunnel sous la rue, sans carrefour (%s)" % (tr._describe(ry, true) if ry.ok else String(ry.reason)))
+	var low := INF
+	for q in ry.get("pts", PackedVector3Array()):
+		if absf(q.z - 200.0) < 3.0:
+			low = minf(low, q.y)
+	_check(low < 20.0 - TransportSystem.CLEARANCE, "le tunnel passe assez bas (%.1f m)" % low)
+	tr.set_level("dessus")
+	var ro := tr.build_segment("rue", Vector3(620, 0, 100), Vector3(620, 0, 300))
+	var high := -INF
+	for q in ro.get("pts", PackedVector3Array()):
+		if absf(q.z - 200.0) < 3.0:
+			high = maxf(high, q.y)
+	_check(ro.ok and int(ro.junctions) == 0 and float(ro.bridge_len) > 0.0 and high >= 20.0 + TransportSystem.CLEARANCE,
+		"passer dessus : pont au-dessus de la rue (%.1f m)" % high)
+	var cramped := tr.evaluate("rue", {}, PackedVector2Array([Vector2(500, 188), Vector2(500, 212)]))
+	_check(not cramped.ok and String(cramped.reason).begins_with("Pas assez de longueur"), "pont refusé sans place pour les rampes : " + String(cramped.get("reason", "")))
+	tr.set_level("auto")
+	var flat_x := tr.evaluate("rue", {}, PackedVector2Array([Vector2(660, 100), Vector2(660, 300)]))
+	_check(flat_x.ok and int(flat_x.passes) == 0, "en automatique, deux rues se croisent à niveau")
+
+	var hw := tr.build_segment("autoroute", Vector3(0, 0, -550), Vector3(700, 0, -550))
+	var dep := tr.build_segment("departementale", Vector3(350, 0, -700), Vector3(350, 0, -400))
+	var top := -INF
+	for q in dep.get("pts", PackedVector3Array()):
+		if absf(q.z + 550.0) < 3.0:
+			top = maxf(top, q.y)
+	_check(hw.ok and dep.ok and int(dep.junctions) == 0 and int(dep.passes) == 1 and top >= 20.0 + TransportSystem.CLEARANCE,
+		"une départementale qui coupe l'autoroute passe dessus, sans carrefour (%s)" % dep.get("reason", "%.1f m" % top))
+	var direct := tr.evaluate("rue", {}, PackedVector2Array([Vector2(200, -640), Vector2(200, -552)]))
+	_check(not direct.ok and String(direct.reason).contains("bretelle"), "pas de rue raccordée directement à l'autoroute")
+	_check(not tr.make_interchange(Vector3(600, 0, 200)).ok, "pas d'échangeur sans autoroute")
+	var xres := tr.make_interchange(Vector3(352, 0, -548))
+	var ramps := 0
+	for eid in net.edges:
+		if net.edges[eid].t == "bretelle":
+			ramps += 1
+	_check(xres.ok and ramps == 4, "échangeur en losange : 4 bretelles (%s)" % xres.get("reason", "ok"))
+	var merges: Array[int] = []
+	for nid in net.nodes:
+		if net.is_merge(nid):
+			merges.append(nid)
+	var trims := TransportView.compute_trims(net)
+	var plateau := 0
+	var hidden := INF
+	for m in merges:
+		if TransportView.junction_mesh(net, m, trims) != null:
+			plateau += 1
+		for eid in net.adjacency[m]:
+			if net.edges[eid].t == "bretelle":
+				var tv: Vector2 = trims.get(eid, Vector2.ZERO)
+				hidden = minf(hidden, tv.x if net.edges[eid].a == m else tv.y)
+	_check(merges.size() == 2 and plateau == 0, "insertions sur l'autoroute sans plateau de carrefour (%d)" % merges.size())
+	_check(hidden > 30.0, "les bretelles sortent de la bande d'arrêt d'urgence en biais (%.0f m)" % hidden)
+	_check(merges.size() == 2 and tr.junctions.kind(merges[0]) == "insertion" and tr.junctions.is_major(merges[0], net.adjacency[merges[0]][0]) != TransportTypes.is_ramp(net.edges[net.adjacency[merges[0]][0]].t),
+		"l'autoroute garde la priorité, la bretelle cède le passage")
+	var west := -1
+	var east := -1
+	var north := -1
+	var south := -1
+	for nid in net.nodes:
+		var q := net.node_pos(nid)
+		if q.distance_to(Vector3(0, q.y, -550)) < 1.0:
+			west = nid
+		if q.distance_to(Vector3(700, q.y, -550)) < 1.0:
+			east = nid
+		if q.distance_to(Vector3(350, q.y, -700)) < 1.0:
+			north = nid
+		if q.distance_to(Vector3(350, q.y, -400)) < 1.0:
+			south = nid
+	var bad_turns := 0
+	var via_ramp := 0
+	for pair in [[west, south], [west, north], [east, north], [east, south], [north, east], [north, west], [south, west], [south, east]]:
+		var cur: int = pair[0]
+		var prev := -1
+		var used := false
+		for eid in net.find_route(pair[0], pair[1]):
+			if prev >= 0 and net.is_merge(cur) and (-net.leave_dir(prev, cur)).dot(net.leave_dir(eid, cur)) <= 0.0:
+				bad_turns += 1
+			used = used or net.edges[eid].t == "bretelle"
+			prev = eid
+			cur = net.other_end(eid, cur)
+		if used and cur == pair[1]:
+			via_ramp += 1
+	_check(via_ramp == 8 and bad_turns == 0, "on entre et on sort dans les deux sens, sans demi-tour sur l'autoroute (%d trajets sur 8)" % via_ramp)
+	var straight := net.find_route(west, east)
+	var on_ramp := false
+	for eid in straight:
+		on_ramp = on_ramp or net.edges[eid].t == "bretelle"
+	_check(straight.size() >= 1 and not on_ramp, "tout droit sur l'autoroute sans passer par les bretelles")
+	tr.traffic.enabled = false
+	tr.traffic.clear()
+	var wrong := 0
+	var seen := {}
+	for i in 1500:
+		if tr.traffic.vehicles.size() < 30:
+			tr.traffic.spawn(TransportTypes.Mode.ROAD)
+		tr.traffic.step(0.1)
+		for v in tr.traffic.vehicles:
+			if int(v.mode) != TransportTypes.Mode.ROAD or int(v.leg) >= (v.route as Array).size():
+				continue
+			var e: Dictionary = net.edges.get(v.route[v.leg], {})
+			if e.get("t", "") == "bretelle":
+				seen[int(v.uid)] = true
+				if int(v.node) != int(e.a):
+					wrong += 1
+	_check(seen.size() >= 3 and wrong == 0, "des véhicules prennent les bretelles dans le bon sens (%d véhicules)" % seen.size())
+	tr.traffic.clear()
+	await process_frame
+	_check(tr.view.edge_mesh_count() == net.edges.size(), "bretelles dessinées")
+
+
 func _joint_tests() -> void:
 	var net := TransportNetwork.new()
 	var M := TransportTypes.Mode.ROAD

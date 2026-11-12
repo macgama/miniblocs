@@ -86,8 +86,11 @@ static func min_radius(xz: PackedVector2Array) -> float:
 ## (NAN = pas d'eau douce) : la voie l'enjambe par un pont.
 ## Renvoie : ok, reason, type, pts, st, length, max_grade, min_radius,
 ## bridge_len, tunnel_len.
+## bounds (optionnel) : passages imposés au-dessus ou au-dessous d'une autre
+## voie, [{s0, s1 (distances le long du tracé), lo, hi (hauteurs permises),
+## st (structure imposée)}] ; les rampes d'accès suivent la pente maximale.
 static func plan(type_id: String, path: PackedVector2Array, h0: float, h1: float, ground: Callable,
-		water: Callable = Callable()) -> Dictionary:
+		water: Callable = Callable(), bounds: Array = []) -> Dictionary:
 	type_id = TransportTypes.resolve(type_id)
 	var ty := TransportTypes.get_type(type_id)
 	var res := {"type": type_id, "ok": false, "reason": "", "pts": PackedVector3Array(), "st": PackedByteArray(),
@@ -201,16 +204,31 @@ static func plan(type_id: String, path: PackedVector2Array, h0: float, h1: float
 	# Plancher : le tablier passe au-dessus des rivières (les rampes suivent).
 	var floor_h := PackedFloat32Array()
 	floor_h.resize(n)
+	var ceil_h := PackedFloat32Array()
+	ceil_h.resize(n)
+	ceil_h.fill(INF)
+	var forced := PackedInt32Array()
+	forced.resize(n)
+	forced.fill(-1)
 	for i in n:
 		floor_h[i] = -INF if is_nan(ws[i]) else ws[i] + RIVER_CLEARANCE
-		p[i] = maxf(p[i], floor_h[i])
+	for bd in bounds:
+		for i in n:
+			var si := float(i) * ds
+			if si < float(bd.s0) or si > float(bd.s1):
+				continue
+			floor_h[i] = maxf(floor_h[i], float(bd.get("lo", -INF)))
+			ceil_h[i] = minf(ceil_h[i], float(bd.get("hi", INF)))
+			forced[i] = int(bd.get("st", -1))
+	for i in n:
+		p[i] = minf(maxf(p[i], floor_h[i]), ceil_h[i])
 	p[0] = h0
 	p[n - 1] = h1
-	for _pass in 4:
+	for _pass in 6:
 		for i in range(1, n):
-			p[i] = maxf(clampf(p[i], p[i - 1] - step_max, p[i - 1] + step_max), floor_h[i])
+			p[i] = minf(maxf(clampf(p[i], p[i - 1] - step_max, p[i - 1] + step_max), floor_h[i]), ceil_h[i])
 		for i in range(n - 2, -1, -1):
-			p[i] = maxf(clampf(p[i], p[i + 1] - step_max, p[i + 1] + step_max), floor_h[i])
+			p[i] = minf(maxf(clampf(p[i], p[i + 1] - step_max, p[i + 1] + step_max), floor_h[i]), ceil_h[i])
 		p[0] = h0
 		p[n - 1] = h1
 
@@ -226,6 +244,10 @@ static func plan(type_id: String, path: PackedVector2Array, h0: float, h1: float
 		else:
 			st[i] = TransportTypes.Struct.GROUND
 	_clean_runs(st, maxi(2, roundi(8.0 / ds)))
+	# Passages imposés : pont au-dessus de l'autre voie, tunnel dessous.
+	for i in n:
+		if forced[i] >= 0:
+			st[i] = forced[i]
 	# Au-dessus d'une rivière, toujours un pont (avec un appui de chaque côté).
 	for i in n:
 		if not is_nan(ws[i]):

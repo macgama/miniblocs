@@ -21,6 +21,11 @@ enum Tool { NONE, BUILD, DEMOLISH, JUNCTION }
 ## à niveau) ; au-dessus de CLEARANCE, l'une passe sous l'autre.
 const JUNCTION_DY := 1.5
 const CLEARANCE := 4.5
+## Passage aux croisements : automatique (carrefour, ou pont pour couper une
+## autoroute), toujours dessus (pont) ou toujours dessous (tunnel).
+const LEVELS: Array[String] = ["auto", "dessus", "dessous"]
+const LEVEL_NAMES := {"auto": "Croisements : automatique", "dessus": "Croisements : passer dessus (pont)",
+	"dessous": "Croisements : passer dessous (tunnel)"}
 
 @export var world_path: NodePath
 @export var camera_path: NodePath
@@ -40,6 +45,8 @@ var tool: Tool = Tool.NONE
 var type_id := "departementale"
 var spec: Dictionary = TransportTypes.default_spec("departementale")
 var curve_mode := false
+## Passage imposé aux croisements (voir LEVELS).
+var level := "auto"
 ## Réglages retenus pour chaque classe (on les retrouve en revenant dessus).
 var _specs: Dictionary = {}
 
@@ -267,14 +274,27 @@ func set_curve(on: bool) -> void:
 	_emit_help()
 
 
+func set_level(l: String) -> void:
+	if not LEVELS.has(l):
+		return
+	level = l
+	_update_preview()
+	_emit_help()
+
+
+func cycle_level() -> String:
+	set_level(LEVELS[(LEVELS.find(level) + 1) % LEVELS.size()])
+	return level
+
+
 func _emit_help() -> void:
 	if tool != Tool.BUILD:
 		return
 	var ty := TransportTypes.get_type(type_id)
 	var how := "clic de départ, clic de direction, clic d'arrivée" if curve_mode else "clic pour commencer, clic pour chaque point"
-	info_changed.emit("%s (%s) : %s · C : %s · Échap / clic droit : arrêter · Maj : angles de 15°\n%s" % [
+	info_changed.emit("%s (%s) : %s · C : %s · N : %s · Échap / clic droit : arrêter · Maj : angles de 15°\n%s" % [
 		ty.name, "courbe" if curve_mode else "droite", how, "passer en ligne droite" if curve_mode else "passer en courbe",
-		TransportTypes.describe(type_id, spec)])
+		String(LEVEL_NAMES[level]).to_lower(), TransportTypes.describe(type_id, spec)])
 
 
 func set_demolish() -> void:
@@ -283,12 +303,147 @@ func set_demolish() -> void:
 	info_changed.emit("Démolir : clic sur un tronçon pour le supprimer (le terrain reste terrassé).")
 
 
-## Outil « Carrefour » : un clic sur un carrefour change son régime
-## (automatique, feux, stop, cédez-le-passage, priorité à droite).
-func set_junction_tool() -> void:
+## Outil « Carrefour », trois actions : changer le régime d'un carrefour
+## (automatique, feux, stop, cédez-le-passage, priorité à droite), le
+## transformer en giratoire, ou construire un échangeur sur une autoroute.
+const JUNCTION_ACTIONS: Array[String] = ["regime", "giratoire", "echangeur"]
+const JUNCTION_HELP := {
+	"regime": "Carrefour : clic sur un carrefour pour changer son régime (automatique → feux → stop → cédez-le-passage → priorité à droite) · Maj + clic : giratoire.",
+	"giratoire": "Giratoire : clic sur un carrefour d'au moins trois routes pour le transformer en rond-point.",
+	"echangeur": "Échangeur : clic là où une route passe au-dessus (ou au-dessous) d'une autoroute ; quatre bretelles la relient à la route.",
+}
+var junction_action := "regime"
+
+
+func set_junction_tool(action := "") -> void:
 	tool = Tool.JUNCTION
+	if JUNCTION_ACTIONS.has(action):
+		junction_action = action
 	cancel()
-	info_changed.emit("Carrefour : clic sur un carrefour pour changer son régime (automatique → feux → stop → cédez-le-passage → priorité à droite) · Maj + clic : le transformer en giratoire.")
+	info_changed.emit(String(JUNCTION_HELP[junction_action]))
+
+
+# --- Échangeurs -----------------------------------------------------------------------------
+
+## Distance entre le pont de l'échangeur et le départ des bretelles, le long de
+## l'autoroute, et le long de la route (m).
+const RAMP_ALONG := 200.0
+const RAMP_ROAD := 80.0
+
+
+## Croisement dénivelé entre une autoroute (ou voie express) et une route, près
+## de p : {main, road, x (Vector2), dy} ou {}.
+func separated_crossing_near(p: Vector3, radius: float) -> Dictionary:
+	var best := {}
+	var best_d := radius
+	var near := edges_near(p, radius + 40.0)
+	for ma in near:
+		var ea: Dictionary = network.edges[ma]
+		if not TransportTypes.takes_ramps(ea.t):
+			continue
+		for rd in near:
+			var er: Dictionary = network.edges[rd]
+			if rd == ma or TransportTypes.mode_of(er.t) != TransportTypes.Mode.ROAD:
+				continue
+			if TransportTypes.is_separated(er.t) or TransportTypes.is_ramp(er.t) or TransportTypes.is_ring(er.t):
+				continue
+			var pa: PackedVector3Array = ea.pts
+			var pr: PackedVector3Array = er.pts
+			for i in pa.size() - 1:
+				var a0 := Vector2(pa[i].x, pa[i].z)
+				var a1 := Vector2(pa[i + 1].x, pa[i + 1].z)
+				if a0.distance_to(Vector2(p.x, p.z)) > radius + 40.0:
+					continue
+				for j in pr.size() - 1:
+					var hit: Variant = Geometry2D.segment_intersects_segment(a0, a1, Vector2(pr[j].x, pr[j].z), Vector2(pr[j + 1].x, pr[j + 1].z))
+					if hit == null:
+						continue
+					var x: Vector2 = hit
+					var d := x.distance_to(Vector2(p.x, p.z))
+					if d >= best_d:
+						continue
+					var ha := lerpf(pa[i].y, pa[i + 1].y, a0.distance_to(x) / maxf(a0.distance_to(a1), 1e-6))
+					var nr := network.nearest_on_edge(rd, Vector3(x.x, 0, x.y))
+					var hr: float = (nr.pos as Vector3).y
+					var tun: bool = network.struct_at(rd, float(nr.s)) == TransportTypes.Struct.TUNNEL \
+						or network.struct_at(ma, float(pa_s(ea, i, a0, x))) == TransportTypes.Struct.TUNNEL
+					if absf(hr - ha) < CLEARANCE - 0.5 and not tun:
+						continue
+					best_d = d
+					best = {"main": ma, "road": rd, "x": x, "dy": hr - ha}
+	return best
+
+
+## Distance le long du tronçon e du point x, situé sur son segment i.
+static func pa_s(e: Dictionary, i: int, a0: Vector2, x: Vector2) -> float:
+	var d: PackedFloat32Array = e.d
+	return float(d[i]) + a0.distance_to(x)
+
+
+## Échangeur en losange là où une route passe au-dessus ou au-dessous d'une
+## autoroute : deux sorties et deux entrées (bretelles à sens unique) qui
+## rejoignent la route de part et d'autre. Renvoie {ok, reason, ramps}.
+func make_interchange(p: Vector3) -> Dictionary:
+	var xc := separated_crossing_near(p, 60.0)
+	if xc.is_empty():
+		return {"ok": false, "reason": "Pas d'échangeur possible ici : il faut une route qui passe au-dessus ou au-dessous d'une autoroute (ou d'une voie express). Pose la route en travers de l'autoroute, elle passe dessus toute seule."}
+	var ma: int = xc.main
+	var rd: int = xc.road
+	var x: Vector2 = xc.x
+	var ha := network.nearest_on_edge(ma, Vector3(x.x, 0, x.y))
+	var hr := network.nearest_on_edge(rd, Vector3(x.x, 0, x.y))
+	var ea: Dictionary = network.edges[ma]
+	var er: Dictionary = network.edges[rd]
+	var sa: float = ha.s
+	var sr: float = hr.s
+	if sa < RAMP_ALONG + 20.0 or float(ea.len) - sa < RAMP_ALONG + 20.0:
+		return {"ok": false, "reason": "Autoroute trop courte : il faut au moins %d m de chaque côté du pont pour les bretelles." % roundi(RAMP_ALONG + 20.0)}
+	if sr < RAMP_ROAD + 10.0 or float(er.len) - sr < RAMP_ROAD + 10.0:
+		return {"ok": false, "reason": "Route trop courte : il faut au moins %d m de chaque côté de l'autoroute." % roundi(RAMP_ROAD + 10.0)}
+	var t3 := network.tangent_at(ma, sa)
+	var d := Vector2(t3.x, t3.z).normalized()
+	var right := Vector2(-d.y, d.x)
+	var r3 := network.tangent_at(rd, sr)
+	var rdir := Vector2(r3.x, r3.z).normalized()
+	if absf(rdir.dot(d)) > cos(deg_to_rad(40.0)):
+		return {"ok": false, "reason": "La route croise l'autoroute trop en biais pour un échangeur (au moins 40°)."}
+	# Côté droit de l'autoroute dans le sens +d : la route y part vers sr + sgn·RAMP_ROAD.
+	var sgn := 1.0 if rdir.dot(right) > 0.0 else -1.0
+	var a0 := _xz(network.point_at(ma, sa - RAMP_ALONG))
+	var a1 := _xz(network.point_at(ma, sa + RAMP_ALONG))
+	var d0 := _xz(network.tangent_at(ma, sa - RAMP_ALONG)).normalized()
+	var d1 := _xz(network.tangent_at(ma, sa + RAMP_ALONG)).normalized()
+	var p_right := _xz(network.point_at(rd, sr + sgn * RAMP_ROAD))
+	var p_left := _xz(network.point_at(rd, sr - sgn * RAMP_ROAD))
+	var k := RAMP_ALONG * 0.6
+	# Sortie et entrée de chaque sens (on roule à droite).
+	var paths := [
+		RoutePlanner.bezier(a0, a0 + d0 * k, p_right), # sortie, sens +d
+		RoutePlanner.bezier(p_right, a1 - d1 * k, a1), # entrée, sens +d
+		RoutePlanner.bezier(a1, a1 - d1 * k, p_left), # sortie, sens -d
+		RoutePlanner.bezier(p_left, a0 + d0 * k, a0), # entrée, sens -d
+	]
+	# On vérifie tout avant de construire.
+	var keep_level := level
+	level = "auto"
+	for path in paths:
+		var pl := evaluate("bretelle", {}, path)
+		if not pl.ok:
+			level = keep_level
+			return {"ok": false, "reason": "Échangeur impossible : " + String(pl.reason)}
+	var ramps: Array[int] = []
+	for path in paths:
+		var res := build_path("bretelle", {}, path)
+		if not res.ok:
+			level = keep_level
+			return {"ok": false, "reason": "Échangeur incomplet : " + String(res.reason), "ramps": ramps}
+		ramps.append_array(res.edges)
+	level = keep_level
+	return {"ok": true, "ramps": ramps}
+
+
+static func _xz(v: Vector3) -> Vector2:
+	return Vector2(v.x, v.z)
 
 
 ## Transforme un carrefour en giratoire : chaque branche est coupée sur un
@@ -303,8 +458,10 @@ func make_roundabout(nid: int) -> Dictionary:
 	var hw := 0.0
 	for eid in adj:
 		var e: Dictionary = network.edges[eid]
-		if TransportTypes.is_oneway(e.t):
+		if TransportTypes.is_ring(e.t):
 			return {"ok": false, "reason": "C'est déjà un giratoire."}
+		if TransportTypes.is_ramp(e.t) or TransportTypes.is_separated(e.t):
+			return {"ok": false, "reason": "Pas de giratoire sur une autoroute ou une bretelle."}
 		if TransportTypes.mode_of(e.t) != TransportTypes.Mode.ROAD:
 			return {"ok": false, "reason": "Seulement entre des routes."}
 		hw = maxf(hw, network.half_width(eid))
@@ -363,7 +520,7 @@ func _refresh_islands() -> void:
 		var alive := false
 		for eid in network.edges:
 			var e: Dictionary = network.edges[eid]
-			if TransportTypes.is_oneway(e.t) and network.nearest_on_edge(eid, c).dist < float(g.r) + 6.0:
+			if TransportTypes.is_ring(e.t) and network.nearest_on_edge(eid, c).dist < float(g.r) + 6.0:
 				alive = true
 				break
 		if alive:
@@ -485,13 +642,20 @@ func _unhandled_input(event: InputEvent) -> void:
 				demolish(_highlight_edge)
 			return
 		if tool == Tool.JUNCTION:
+			if junction_action == "echangeur":
+				var xres := make_interchange(_cursor)
+				message.emit("Échangeur construit : 2 sorties et 2 entrées." if xres.ok else String(xres.reason))
+				return
 			var nid := junction_at(_cursor)
-			if nid >= 0 and mb.shift_pressed:
+			if nid >= 0 and (mb.shift_pressed or junction_action == "giratoire"):
 				var res := make_roundabout(nid)
 				message.emit("Giratoire de %d m de rayon construit." % roundi(res.radius) if res.ok else String(res.reason))
 				return
 			if nid < 0:
-				message.emit("Pas de carrefour ici (il faut au moins trois routes qui se rejoignent).")
+				if not separated_crossing_near(_cursor, 40.0).is_empty():
+					message.emit("Ici, la route passe au-dessus de l'autoroute : choisis « Échangeur » pour la relier par des bretelles.")
+				else:
+					message.emit("Pas de carrefour ici (il faut au moins trois routes qui se rejoignent).")
 			else:
 				junctions.cycle(nid)
 				info_changed.emit(junctions.describe(nid) + " · clic : régime suivant")
@@ -507,6 +671,11 @@ func _unhandled_input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 		elif key.keycode == KEY_C and tool == Tool.BUILD:
 			set_curve(not curve_mode)
+			spec_changed.emit(type_id, spec)
+			get_viewport().set_input_as_handled()
+		elif key.keycode == KEY_N and tool == Tool.BUILD:
+			cycle_level()
+			message.emit(String(LEVEL_NAMES[level]) + ".")
 			spec_changed.emit(type_id, spec)
 			get_viewport().set_input_as_handled()
 
@@ -604,8 +773,10 @@ func _update_cursor(screen: Vector2) -> void:
 			info_changed.emit("Démolir : %s de %d m · clic pour supprimer" % [TransportTypes.get_type(e.t).name, roundi(e.len)])
 	elif tool == Tool.JUNCTION:
 		var nid := junction_at(_cursor) if _cursor_valid else -1
-		if nid >= 0:
-			info_changed.emit(junctions.describe(nid) + " · clic : régime suivant · Maj + clic : giratoire")
+		if junction_action == "echangeur":
+			pass
+		elif nid >= 0:
+			info_changed.emit(junctions.describe(nid) + (" · clic : giratoire" if junction_action == "giratoire" else " · clic : régime suivant · Maj + clic : giratoire"))
 	else:
 		_update_preview()
 	_update_marker()
@@ -655,6 +826,9 @@ func _describe(p: Dictionary, built: bool) -> String:
 		s += " · pont %d m" % roundi(p.bridge_len)
 	if float(p.tunnel_len) > 0.0:
 		s += " · tunnel %d m" % roundi(p.tunnel_len)
+	if int(p.get("passes", 0)) > 0:
+		s += " · passe %s de %d voie%s" % ["au-dessus ou dessous" if level == "auto" else ("au-dessus" if level == "dessus" else "dessous"),
+			p.passes, "s" if int(p.passes) > 1 else ""]
 	if built and int(p.get("junctions", 0)) > 0:
 		s += " · %d carrefour%s" % [p.junctions, "s" if int(p.junctions) > 1 else ""]
 	return s
@@ -703,6 +877,12 @@ func evaluate(id: String, s: Dictionary, path: PackedVector2Array) -> Dictionary
 		return plan
 	if not plan.ok:
 		return plan
+	if not TransportTypes.is_ramp(id) and not TransportTypes.is_separated(id):
+		for snap in [sa, sb]:
+			if not (snap as Dictionary).is_empty() and _snap_takes_ramps(snap):
+				plan.ok = false
+				plan.reason = "On ne se raccorde pas directement à une autoroute : pose une bretelle (classe « Bretelle ») ou un échangeur (outil J)."
+				return plan
 	if is_blocked(id, plan.pts, plan.st):
 		plan.ok = false
 		plan.reason = "Un bâtiment se trouve sur le tracé."
@@ -710,8 +890,46 @@ func evaluate(id: String, s: Dictionary, path: PackedVector2Array) -> Dictionary
 	var pts: PackedVector3Array = plan.pts
 	var st: PackedByteArray = plan.st
 	var crossings := _find_crossings(mode, pts, st)
-	plan.crossings = crossings
 	var w := TransportTypes.width_of(id, s)
+	# Passages dessus / dessous : on recalcule le profil avec des hauteurs imposées.
+	var forced := _forced_crossings(id, crossings, sa, sb)
+	plan.passes = forced.size()
+	if not forced.is_empty():
+		var bounds := []
+		var need := 0.0
+		for f in forced:
+			var c: Dictionary = f[0]
+			var half: float = (w * 0.5 + float(c.hw)) / maxf(sin(float(c.angle)), 0.3) + 2.0
+			var eh: float = (c.pos as Vector3).y
+			if f[1] == "dessus":
+				bounds.append({"s0": float(c.along) - half, "s1": float(c.along) + half, "lo": eh + CLEARANCE + 0.4,
+					"st": TransportTypes.Struct.BRIDGE})
+			else:
+				bounds.append({"s0": float(c.along) - half, "s1": float(c.along) + half, "hi": eh - CLEARANCE - 0.8,
+					"st": TransportTypes.Struct.TUNNEL})
+			need = maxf(need, CLEARANCE + 0.8 + absf(float(c.dy)))
+		var fplan := RoutePlanner.plan(id, path, h0, h1, ground_height, water_surface, bounds)
+		fplan.snap_a = sa
+		fplan.snap_b = sb
+		fplan.crossings = []
+		fplan.passes = forced.size()
+		if not fplan.ok:
+			return fplan
+		var grade := float(TransportTypes.get_type(id).max_grade)
+		if float(fplan.max_grade) > grade * 1.05 + 0.002:
+			fplan.ok = false
+			fplan.reason = "Pas assez de longueur pour passer %s : il faut environ %d m de rampe de chaque côté (pente maxi %s %%)." % [
+				"dessus" if forced[0][1] == "dessus" else "dessous", ceili(need / grade), TransportTypes._num(grade * 100.0)]
+			return fplan
+		plan = fplan
+		pts = plan.pts
+		st = plan.st
+		if is_blocked(id, pts, st):
+			plan.ok = false
+			plan.reason = "Un bâtiment se trouve sur le tracé."
+			return plan
+		crossings = _find_crossings(mode, pts, st)
+	plan.crossings = crossings
 	for c in crossings:
 		if not c.same_mode and not c.compatible and absf(c.dy) < CLEARANCE:
 			plan.ok = false
@@ -719,15 +937,40 @@ func evaluate(id: String, s: Dictionary, path: PackedVector2Array) -> Dictionary
 			return plan
 		if absf(c.dy) >= JUNCTION_DY and absf(c.dy) < CLEARANCE:
 			plan.ok = false
-			plan.reason = "Croisement à %s m de hauteur : trop haut pour un carrefour, trop bas pour passer dessus (%s m minimum)." % [
+			plan.reason = "Croisement à %s m de hauteur : trop haut pour un carrefour, trop bas pour passer dessus (%s m minimum). Touche N : forcer un pont ou un tunnel." % [
 				TransportTypes._num(snappedf(absf(c.dy), 0.1)), TransportTypes._num(CLEARANCE)]
 			return plan
-	var clash := _find_overlap(mode, w, pts, st, sa, sb, crossings)
+	var clash := _find_overlap(mode, w, pts, st, sa, sb, crossings, id)
 	if not clash.is_empty():
 		plan.ok = false
 		plan.reason = "Chevauche %s. Raccorde-toi dessus (clic sur la voie) ou croise-la franchement." % String(clash.name).to_lower()
 		plan.clash = clash.pos
 	return plan
+
+
+## Croisements à franchir par un pont ou un tunnel : [[croisement, "dessus" ou
+## "dessous"], …]. Mode automatique : seulement les autoroutes et voies express
+## (jamais de carrefour à niveau dessus). Les raccords aux extrémités comptent pas.
+func _forced_crossings(id: String, crossings: Array, sa: Dictionary, sb: Dictionary) -> Array:
+	var out := []
+	for c in crossings:
+		if absf(float(c.dy)) >= CLEARANCE:
+			continue
+		var cp: Vector3 = c.pos
+		var near_end := false
+		for snap in [sa, sb]:
+			var sd: Dictionary = snap
+			if not sd.is_empty() and Vector2(cp.x - sd.pos.x, cp.z - sd.pos.z).length() < 4.0:
+				near_end = true
+		if near_end:
+			continue
+		var how := level
+		if how == "auto":
+			if not (TransportTypes.is_separated(id) or TransportTypes.is_separated(String(c.type))):
+				continue
+			how = "dessous" if float(c.dy) < -1.0 else "dessus"
+		out.append([c, how])
+	return out
 
 
 func _rebuild_hash() -> void:
@@ -835,7 +1078,7 @@ func _find_crossings(mode: int, pts: PackedVector3Array, st: PackedByteArray) ->
 ## Cherche un endroit où la nouvelle voie recouvrirait une voie existante sans
 ## la croiser ni s'y raccorder. Renvoie {"pos", "name"} ou {}.
 func _find_overlap(mode: int, width: float, pts: PackedVector3Array, st: PackedByteArray,
-		sa: Dictionary, sb: Dictionary, crossings: Array) -> Dictionary:
+		sa: Dictionary, sb: Dictionary, crossings: Array, type_id := "") -> Dictionary:
 	if mode == TransportTypes.Mode.WATER:
 		return {}
 	_rebuild_hash()
@@ -848,7 +1091,9 @@ func _find_overlap(mode: int, width: float, pts: PackedVector3Array, st: PackedB
 			continue
 		var p: Vector3 = sd.pos
 		var other := network.node_half_width(sd.node) if int(sd.node) >= 0 else network.half_width(sd.edge)
-		allowed.append([Vector2(p.x, p.z), (hw + other) * 2.5 + 2.0])
+		# Une bretelle longe l'autoroute sur une centaine de mètres avant de s'en écarter.
+		var ramp := TransportTypes.is_ramp(type_id) and _snap_takes_ramps(sd)
+		allowed.append([Vector2(p.x, p.z), 260.0 if ramp else (hw + other) * 2.5 + 2.0, ramp])
 	for c in crossings:
 		var cp: Vector3 = c.pos
 		var r: float = (hw + float(c.hw)) / maxf(sin(float(c.angle)), 0.25) + 1.5
@@ -859,10 +1104,14 @@ func _find_overlap(mode: int, width: float, pts: PackedVector3Array, st: PackedB
 			continue
 		var q := Vector2(pts[i].x, pts[i].z)
 		var ok_zone := false
+		var ramp_zone := false
 		for zone in allowed:
 			if q.distance_to(zone[0]) < float(zone[1]):
-				ok_zone = true
-				break
+				if zone.size() > 2 and zone[2]:
+					ramp_zone = true
+				else:
+					ok_zone = true
+					break
 		if ok_zone:
 			continue
 		for item in _query(q - Vector2.ONE * reach, q + Vector2.ONE * reach):
@@ -870,6 +1119,8 @@ func _find_overlap(mode: int, width: float, pts: PackedVector3Array, st: PackedB
 			var j: int = item[1]
 			var e: Dictionary = network.edges[eid]
 			if TransportTypes.mode_of(e.t) == TransportTypes.Mode.WATER:
+				continue
+			if ramp_zone and (TransportTypes.takes_ramps(e.t) or TransportTypes.is_ramp(e.t)):
 				continue
 			var est: PackedByteArray = e.st
 			if est[j] == TransportTypes.Struct.TUNNEL:
@@ -888,6 +1139,16 @@ func _find_overlap(mode: int, width: float, pts: PackedVector3Array, st: PackedB
 				continue
 			return {"pos": pts[i], "name": TransportTypes.get_type(e.t).name}
 	return {}
+
+
+## L'accroche est-elle sur une autoroute ou une voie express (ou un de ses nœuds) ?
+func _snap_takes_ramps(sd: Dictionary) -> bool:
+	if int(sd.get("node", -1)) >= 0:
+		for eid in network.adjacency.get(int(sd.node), []):
+			if TransportTypes.takes_ramps(network.edges[eid].t):
+				return true
+		return false
+	return int(sd.get("edge", -1)) >= 0 and TransportTypes.takes_ramps(network.edges[int(sd.edge)].t)
 
 
 # --- Pose et démolition ------------------------------------------------------------------

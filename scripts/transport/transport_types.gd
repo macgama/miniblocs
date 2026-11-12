@@ -47,6 +47,8 @@ const GAUGE := 1.435
 ## kmh : vitesse de référence · r_min : rayon de courbure minimal (m)
 ## max_grade : pente maximale · smooth : rayon de lissage du profil (m)
 ## bridge_gap / tunnel_depth : écart avec le sol au-delà duquel on fait un pont / un tunnel (m)
+## oneway : sens unique · single : une seule voie (lane_w est alors sa largeur)
+## ramps : reçoit des bretelles · separated : jamais de carrefour à niveau (on passe dessus)
 const CLASSES := {
 	"rue": {
 		"name": "Rue de desserte", "mode": Mode.ROAD, "kmh": 30.0,
@@ -77,12 +79,22 @@ const CLASSES := {
 		"lanes": [2, 3, 2], "lane_w": [3.5, 3.5, 3.5], "median": 2.6, "median_from": 1,
 		"side": 2.5, "side_kind": "bau", "center": "barrier",
 		"r_min": 400.0, "max_grade": 0.06, "smooth": 30.0, "bridge_gap": 5.0, "tunnel_depth": 8.0,
+		"ramps": true, "separated": true,
 	},
 	"autoroute": {
 		"name": "Autoroute", "mode": Mode.ROAD, "kmh": 130.0,
 		"lanes": [2, 4, 2], "lane_w": [3.5, 3.5, 3.5], "median": 3.0, "median_from": 1,
 		"side": 3.0, "side_kind": "bau", "center": "barrier",
 		"r_min": 665.0, "max_grade": 0.05, "smooth": 40.0, "bridge_gap": 5.0, "tunnel_depth": 8.0,
+		"ramps": true, "separated": true,
+	},
+	# Bretelle d'échangeur (ICTAAL) : sens unique, une voie de 3,50 à 4,00 m,
+	# accotements de 1 m ; s'insère sur l'autoroute sans carrefour.
+	"bretelle": {
+		"name": "Bretelle d'autoroute (sens unique)", "mode": Mode.ROAD, "kmh": 70.0, "oneway": true, "single": true,
+		"lanes": [1, 1, 1], "lane_w": [3.5, 4.0, 3.5], "median": 0.0, "median_from": 9,
+		"side": 1.0, "side_kind": "accotement", "center": "none",
+		"r_min": 50.0, "max_grade": 0.07, "smooth": 12.0, "bridge_gap": 5.0, "tunnel_depth": 8.0,
 	},
 	"tram": {
 		"name": "Tramway", "mode": Mode.RAIL, "kmh": 50.0,
@@ -139,7 +151,7 @@ const ALIASES := {"route": "departementale", "rail": "train", "chemin": "voie_ve
 
 ## Classes proposées par chaque outil, dans l'ordre d'affichage.
 const BY_MODE := {
-	Mode.ROAD: ["rue", "avenue", "departementale", "voie_express", "autoroute"],
+	Mode.ROAD: ["rue", "avenue", "departementale", "voie_express", "autoroute", "bretelle"],
 	Mode.RAIL: ["tram", "train", "lgv", "cremaillere", "metro"],
 	Mode.PATH: ["trottoir", "piste_cyclable", "voie_verte"],
 	Mode.WATER: ["canal", "chenal"],
@@ -163,6 +175,25 @@ static func mode_of(id: String) -> int:
 
 static func is_oneway(id: String) -> bool:
 	return bool(get_type(id).get("oneway", false))
+
+
+## Anneau de giratoire (prioritaire, îlot central).
+static func is_ring(id: String) -> bool:
+	return resolve(id) == "giratoire"
+
+
+static func is_ramp(id: String) -> bool:
+	return resolve(id) == "bretelle"
+
+
+## Classe qui reçoit des bretelles (autoroute, voie express).
+static func takes_ramps(id: String) -> bool:
+	return bool(get_type(id).get("ramps", false))
+
+
+## Classe jamais coupée à niveau : les autres voies passent dessus ou dessous.
+static func is_separated(id: String) -> bool:
+	return bool(get_type(id).get("separated", false))
 
 
 static func speed_of(id: String) -> float:
@@ -210,6 +241,8 @@ static func width_of(id: String, spec: Dictionary) -> float:
 	var s := normalize(id, spec)
 	match int(c.get("mode", -1)):
 		Mode.ROAD:
+			if c.get("single", false):
+				return s.lanes * s.lane_w + 2.0 * float(c.side)
 			return 2.0 * s.lanes * s.lane_w + median_of(id, s) + 2.0 * float(c.side)
 		Mode.RAIL:
 			return float(s.tracks - 1) * float(c.spacing) + 3.0 + 2.0 * float(c.side)
@@ -225,6 +258,10 @@ static func lane_offsets(id: String, spec: Dictionary) -> Array[float]:
 	var out: Array[float] = []
 	match int(c.get("mode", -1)):
 		Mode.ROAD:
+			if c.get("single", false):
+				for i in int(s.lanes):
+					out.append(float(s.lane_w) * (s.lanes * 0.5 - i - 0.5))
+				return out
 			if c.get("oneway", false):
 				# Sens unique : toutes les voies dans le même sens, de droite à gauche.
 				var n := int(s.lanes) * 2
@@ -252,7 +289,10 @@ static func describe(id: String, spec: Dictionary) -> String:
 	parts.append("largeur totale %s m" % _num(width_of(id, s)))
 	match int(c.mode):
 		Mode.ROAD:
-			parts.append("2 × %d voie%s de %s m" % [s.lanes, "s" if s.lanes > 1 else "", _num(s.lane_w)])
+			if c.get("single", false):
+				parts.append("sens unique, %d voie%s de %s m" % [s.lanes, "s" if s.lanes > 1 else "", _num(s.lane_w)])
+			else:
+				parts.append("2 × %d voie%s de %s m" % [s.lanes, "s" if s.lanes > 1 else "", _num(s.lane_w)])
 			if median_of(id, s) > 0.0:
 				parts.append("terre-plein %s m" % _num(median_of(id, s)))
 			var side_names := {"trottoir": "trottoirs", "accotement": "accotements", "bau": "bandes d'arrêt d'urgence"}

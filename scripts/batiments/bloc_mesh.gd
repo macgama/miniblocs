@@ -141,6 +141,27 @@ func box(cx: float, y0: float, cz: float, sx: float, sy: float, sz: float, col: 
 		var wz := (sz + 0.2 if deep else 0.36)
 		box(cx, y0 - 0.1, cz, wx, 0.1, wz, sill)
 		box(cx, y0 + sy, cz, (0.26 if deep else sx + 0.12), 0.08, (sz + 0.12 if deep else 0.26), sill.darkened(0.08))
+		# Encadrement en relief et petits bois : la vitre paraît en creux.
+		var fr := Color("ece8df")
+		var t := 0.13
+		var w := sz if deep else sx
+		var fd := 0.26
+		if deep:
+			box(cx, y0, cz - w / 2.0 - t / 2.0, fd, sy, t, fr)
+			box(cx, y0, cz + w / 2.0 + t / 2.0, fd, sy, t, fr)
+			box(cx, y0 + sy - 0.02, cz, fd, 0.1, w + 2.0 * t, fr)
+		else:
+			box(cx - w / 2.0 - t / 2.0, y0, cz, t, sy, fd, fr)
+			box(cx + w / 2.0 + t / 2.0, y0, cz, t, sy, fd, fr)
+			box(cx, y0 + sy - 0.02, cz, w + 2.0 * t, 0.1, fd, fr)
+		if w >= 0.7 and sy >= 0.9:
+			var md := 0.15
+			if deep:
+				box(cx, y0, cz, md, sy, 0.07, fr)
+				box(cx, y0 + sy * 0.6, cz, md, 0.07, w, fr)
+			else:
+				box(cx, y0, cz, 0.07, sy, md, fr)
+				box(cx, y0 + sy * 0.6, cz, w, 0.07, md, fr)
 	# Soubassement de pierre sous les grands volumes posés au sol.
 	if _fine() and y0 <= 0.05 and sy >= 2.4 and minf(sx, sz) >= 3.0:
 		var plinth := col.darkened(0.3).lerp(Color("8a8378"), 0.45)
@@ -233,8 +254,8 @@ func _slope(p0: Vector3, p1: Vector3, q0: Vector3, q1: Vector3, n: Vector3, col:
 	var slope_len := ((p0 + p1) * 0.5).distance_to((q0 + q1) * 0.5)
 	if slope_len < 0.3:
 		return
-	var rows := clampi(int(round(slope_len / (0.75 if chaume else 0.45))), 1, 22)
-	var lip := 0.2 if chaume else 0.06
+	var rows := clampi(int(round(slope_len / (0.75 if chaume else 0.55))), 1, 22)
+	var lip := 0.2 if chaume else 0.1
 	var down := ((p0 + p1) * 0.5 - (q0 + q1) * 0.5).normalized()
 	var seg_len := 1.4 if chaume else 1.3
 	for r in rows:

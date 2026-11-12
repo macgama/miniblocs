@@ -86,6 +86,14 @@ Tout est calculé, sans aucune géométrie. Le jour, on devine la pièce derriè
 - `interieurs = false` revient aux vitres simples.
 - `day_interior` règle la visibilité des pièces en plein jour.
 
+## Relief sur tous les bâtiments
+
+![Relief de près](apercu-relief-pres.jpg)
+
+- **Fenêtres en creux** (`BlocMesh.box`, toutes les vitres du jeu, catalogue de base compris) : encadrement clair en relief, petits bois en croix, appui et linteau.
+- **Tuiles** en rangs plus marqués (0,55 m, rebord de 10 cm).
+- **Modénature** des styles anciens sans colombages (`StyleKit._modenature`) : bandeaux entre les étages, chaînes d'angle, corniche à deux ressauts sous le toit, encadrement et panneaux de porte.
+
 ## Coût
 
 | Ajout | Effet sur le rendu |

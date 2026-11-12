@@ -53,6 +53,9 @@ static func flags(s: Dictionary, sid: String, arch: String) -> Dictionary:
 		"solaire": era == "contemporain" and house,
 		"reservoir": sid == "art_deco" and arch in ["immeuble", "tour"],
 		"balcons": era in ["moderne", "contemporain"] and arch in ["immeuble", "tour"] and sid not in ["verre"],
+		# Modénature : bandeaux d'étage, chaînes d'angle, corniche, encadrement de porte.
+		"modenature": trad and not bool(s.get("timber", false)) and String(s.roof) != "thatch"
+			and sid not in ["pueblo", "sahel", "swahili", "maghreb", "egypte_antique", "far_west"],
 		"perron": arch in ["maison", "grande_maison", "rangee", "immeuble", "boutique", "restaurant", "ecole", "bureaux"],
 	}
 	for key in f:
@@ -70,6 +73,8 @@ static func build(k: BlocMesh, s: Dictionary, p: Dictionary, arch: String, bw: f
 	var pitch := float(s.get("pitch", 0.5)) * float(p.get("pente", 1.0))
 	if f.croix:
 		_croix(k, p, bw, fz, y0, top, fh, vr)
+	if f.modenature and absf((top - y0) - floors * fh) < 0.05:
+		_modenature(k, s, p, arch, bw, bd, cz, y0, top, floors, fh, roof)
 	if f.perron and y0 < 0.05:
 		var pierre := Color("a39d92")
 		if arch == "rangee":
@@ -140,6 +145,44 @@ static func build(k: BlocMesh, s: Dictionary, p: Dictionary, arch: String, bw: f
 				k.box(x, y + 0.05, fz - 1.15, 3.2, 1.0, 0.1, rail)
 				k.box(x - 1.55, y + 0.05, fz - 0.6, 0.1, 1.0, 1.1, rail)
 				k.box(x + 1.55, y + 0.05, fz - 0.6, 0.1, 1.0, 1.1, rail)
+
+
+## Bandeaux d'étage, chaînes d'angle, corniche et encadrement de porte, en relief.
+static func _modenature(k: BlocMesh, s: Dictionary, p: Dictionary, arch: String, bw: float, bd: float, cz: float,
+		y0: float, top: float, floors: int, fh: float, roof: String) -> void:
+	var wall: Color = p.wall
+	var pierre := wall.lightened(0.35).lerp(Color("e9e5dc"), 0.5)
+	if wall.get_luminance() > 0.78:
+		pierre = wall.darkened(0.12).lerp(Color("cfc9bd"), 0.4)
+	# Bandeaux entre les étages.
+	for i in range(1, floors):
+		k.box(0, y0 + i * fh - 0.12, cz, bw + 0.14, 0.2, bd + 0.14, pierre)
+	# Chaînes d'angle.
+	for sx in [-1.0, 1.0]:
+		for sz in [-1.0, 1.0]:
+			k.box(sx * (bw / 2.0 - 0.2), y0 + 0.45, cz + sz * (bd / 2.0 - 0.2), 0.52, top - y0 - 0.45, 0.52, pierre)
+	# Corniche sous le toit.
+	var c := pierre.darkened(0.05)
+	k.box(0, top - 0.32, cz, bw + 0.3, 0.16, bd + 0.3, c)
+	k.box(0, top - 0.16, cz, bw + 0.42, 0.16, bd + 0.42, c.lightened(0.05))
+	# Encadrement de la porte (et des portes d'une rangée).
+	var fz := cz - bd / 2.0
+	var doors: Array[float] = [0.0]
+	var dw := 1.4
+	if arch == "rangee":
+		doors.clear()
+		dw = 1.1
+		for i in range(1, 4):
+			doors.append(-bw / 2.0 + (i - 0.5) * bw / 4.0)
+	if arch == "gare":
+		return
+	for x in doors:
+		k.box(x - dw / 2.0 - 0.09, y0, fz - 0.12, 0.18, 2.55, 0.3, pierre)
+		k.box(x + dw / 2.0 + 0.09, y0, fz - 0.12, 0.18, 2.55, 0.3, pierre)
+		k.box(x, y0 + 2.45, fz - 0.14, dw + 0.5, 0.28, 0.34, pierre)
+		# Panneaux de la porte.
+		k.box(x, y0 + 0.25, fz - 0.17, dw * 0.7, 0.9, 0.04, Color(p.door).darkened(0.15))
+		k.box(x, y0 + 1.3, fz - 0.17, dw * 0.7, 0.85, 0.04, Color(p.door).darkened(0.15))
 
 
 ## Volets ouverts et jardinières autour des fenêtres d'une façade ±Z

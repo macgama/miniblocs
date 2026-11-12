@@ -539,12 +539,16 @@ func daily(years: float) -> void:
 		if int(p.cj) > pid and pop.persons.has(int(p.cj)):
 			var q: Dictionary = pop.persons[int(p.cj)]
 			var together: bool = int(q.f) == int(p.f)
-			if together and String(p.un) == "couple" and pop.rng.randf() < 0.12 * years:
+			var chosen := _player_choice(p) or _player_choice(q)
+			if chosen:
+				pass
+			elif together and String(p.un) == "couple" and pop.rng.randf() < 0.12 * years:
 				unions.append(pid)
 			elif pop.rng.randf() < (0.012 if String(p.un) == "mariage" else 0.03) * years:
 				breakups.append(pid)
 		if String(p.s) == "F" and a >= 20.0 and a < 43.0 and int(p.cj) >= 0 and pop.persons.has(int(p.cj)) \
-				and int(pop.persons[int(p.cj)].f) == int(p.f) and pop.rng.randf() < 0.11 * years:
+				and int(pop.persons[int(p.cj)].f) == int(p.f) and not _player_choice(p) \
+				and not _player_choice(pop.persons[int(p.cj)]) and pop.rng.randf() < 0.11 * years:
 			births.append(pid)
 		if String(p.r) == "enfant" and a >= 19.0 and a < 32.0 and float(p.etu) < 0.0 and pop.rng.randf() < 0.3 * years:
 			leaving.append(pid)
@@ -565,6 +569,8 @@ func daily(years: float) -> void:
 		if pop.persons.has(pid) and String(pop.persons[pid].r) == "enfant":
 			pop._move_out(pid)
 	tidy()
+	if pop.principal.enabled:
+		pop.principal.yearly(years)
 
 
 ## Foyers vidés par les déménagements : retirés ; foyers sans adulte : le plus âgé devient adulte.
@@ -588,6 +594,12 @@ func tidy() -> void:
 					pop._remove_household(hid, "")
 
 
+## Personnage principal d'un joueur : ses grands choix (couple, mariage, enfant,
+## séparation, changement de travail, études) viennent du joueur, pas du hasard.
+static func _player_choice(p: Dictionary) -> bool:
+	return String(p.get("joueur", "")) != ""
+
+
 ## École : brevet à 15 ans, bac à 18 ans, puis études supérieures (hors de la ville).
 func _school_milestones(p: Dictionary, a0: float, a: float) -> void:
 	if a0 < 15.0 and a >= 15.0 and String(p.niv) in ["collège", "lycée"]:
@@ -598,7 +610,9 @@ func _school_milestones(p: Dictionary, a0: float, a: float) -> void:
 		if String(p.niv) == "lycée" and String(p.dip) == "brevet" and pop.rng.randf() < 0.85:
 			p.dip = "bac"
 			log_event(p, "diplome", "Obtient le baccalauréat")
-			if pop.rng.randf() < 0.6:
+			if _player_choice(p):
+				pop.principal.ask_studies(p)
+			elif pop.rng.randf() < 0.6:
 				var r := pop.rng.randf()
 				var sup := "licence"
 				var dur := 3.0
@@ -645,7 +659,7 @@ func _adult_year(p: Dictionary, a: float, years: float) -> void:
 		var r := pop.rng.randf()
 		if r < 0.015 * years:
 			pop._leave_job(p, "Perd son emploi (%s)" % pop.building_name(int(p.job)))
-		elif r < 0.065 * years:
+		elif r < 0.065 * years and not _player_choice(p):
 			var jobs := []
 			for bid in pop.known:
 				if bid != int(p.job) and pop.free_jobs(bid) > 0:
@@ -699,44 +713,67 @@ func _meetings(singles: Array, years: float) -> void:
 	for pid in singles:
 		if taken.has(pid) or not pop.persons.has(pid) or pop.rng.randf() >= 0.3 * years:
 			continue
-		var p: Dictionary = pop.persons[pid]
-		var a := pop.age_of(p)
-		var same_sex := pop.rng.randf() < 0.07
-		var best := -1
-		var best_score := -1.0
-		var best_where := ""
-		for i in mini(40, singles.size()):
-			var oid: int = singles[pop.rng.randi() % singles.size()]
-			if oid == pid or taken.has(oid) or not pop.persons.has(oid):
-				continue
-			var q: Dictionary = pop.persons[oid]
-			if (String(q.s) == String(p.s)) != same_sex or absf(pop.age_of(q) - a) > 10.0 or int(q.f) == int(p.f) or _related(p, q):
-				continue
-			var score := pop.rng.randf()
-			var where := "par des amis"
-			if int(p.job) >= 0 and int(p.job) == int(q.job):
-				score += 2.0
-				where = "au travail (%s)" % pop.building_name(int(p.job))
-			else:
-				for hb in p.hob:
-					if (q.hob as Array).has(hb):
-						score += 1.5
-						where = "en pratiquant le même loisir (%s)" % String(Metiers.LOISIRS[hb].name).to_lower()
-						break
-				var hp := pop.home_of(p)
-				var hq := pop.home_of(q)
-				if where == "par des amis" and pop.known.has(hp) and pop.known.has(hq) \
-						and (pop.known[hp].pos as Vector3).distance_to(pop.known[hq].pos) < 400.0:
-					score += 1.0
-					where = "dans le quartier"
-			if score > best_score:
-				best_score = score
-				best = oid
-				best_where = where
-		if best >= 0:
+		# Le personnage principal d'un joueur choisit lui-même (Ordres « Chercher l'âme sœur »).
+		if String(pop.persons[pid].get("joueur", "")) != "":
+			continue
+		var pick := _best_partner(pop.persons[pid], singles, taken)
+		if not pick.is_empty():
 			taken[pid] = true
-			taken[best] = true
-			_couple(p, pop.persons[best], best_where)
+			taken[int(pick.id)] = true
+			_couple(pop.persons[pid], pop.persons[int(pick.id)], String(pick.where))
+
+
+## Ordre « Chercher l'âme sœur » : une rencontre tout de suite, si possible.
+func find_partner(p: Dictionary, singles: Array) -> bool:
+	var pick := _best_partner(p, singles, {}, true)
+	if pick.is_empty():
+		return false
+	_couple(p, pop.persons[int(pick.id)], String(pick.where))
+	return true
+
+
+## Meilleur partenaire parmi un échantillon de célibataires : {id, where} ou {}.
+func _best_partner(p: Dictionary, singles: Array, taken: Dictionary, all := false) -> Dictionary:
+	var pid := int(p.id)
+	var a := pop.age_of(p)
+	var same_sex := pop.rng.randf() < 0.07
+	var best := -1
+	var best_score := -1.0
+	var best_where := ""
+	var tries := singles.size() if all else mini(40, singles.size())
+	for i in tries:
+		var oid: int = singles[i] if all else singles[pop.rng.randi() % singles.size()]
+		if oid == pid or taken.has(oid) or not pop.persons.has(oid):
+			continue
+		var q: Dictionary = pop.persons[oid]
+		if String(q.get("joueur", "")) != "" or int(q.cj) >= 0:
+			continue
+		if (String(q.s) == String(p.s)) != same_sex or absf(pop.age_of(q) - a) > 10.0 or int(q.f) == int(p.f) or _related(p, q):
+			continue
+		var score := pop.rng.randf()
+		var where := "par des amis"
+		if int(p.job) >= 0 and int(p.job) == int(q.job):
+			score += 2.0
+			where = "au travail (%s)" % pop.building_name(int(p.job))
+		else:
+			for hb in p.hob:
+				if (q.hob as Array).has(hb):
+					score += 1.5
+					where = "en pratiquant le même loisir (%s)" % String(Metiers.LOISIRS[hb].name).to_lower()
+					break
+			var hp := pop.home_of(p)
+			var hq := pop.home_of(q)
+			if where == "par des amis" and pop.known.has(hp) and pop.known.has(hq) \
+					and (pop.known[hp].pos as Vector3).distance_to(pop.known[hq].pos) < 400.0:
+				score += 1.0
+				where = "dans le quartier"
+		if score > best_score:
+			best_score = score
+			best = oid
+			best_where = where
+	if best < 0:
+		return {}
+	return {"id": best, "where": best_where}
 
 
 func _couple(p: Dictionary, q: Dictionary, where: String) -> void:
@@ -857,8 +894,9 @@ func _new_household(bid: int, region: String, savings: float) -> int:
 	return hid
 
 
-func _union(p: Dictionary, q: Dictionary) -> void:
-	var kind := "mariage" if pop.rng.randf() < 0.6 else "pacs"
+func _union(p: Dictionary, q: Dictionary, kind := "") -> void:
+	if kind == "":
+		kind = "mariage" if pop.rng.randf() < 0.6 else "pacs"
 	p.un = kind
 	q.un = kind
 	if kind == "mariage":
@@ -899,15 +937,17 @@ func _separate(p: Dictionary, q: Dictionary) -> void:
 		pop.households[nh].car = 1
 
 
-func _birth(mom_id: int) -> void:
+## Naissance chez une mère ; renvoie l'id du bébé ou -1.
+## asked : demandé par le joueur (on accepte jusqu'à 3 petits de moins de 6 ans).
+func _birth(mom_id: int, asked := false) -> int:
 	var mom: Dictionary = pop.persons[mom_id]
 	var h: Dictionary = pop.households[int(mom.f)]
 	var small := 0
 	for m in h.m:
 		if pop.age_of(pop.persons[m]) < 6.0:
 			small += 1
-	if small >= 2 or (h.m as Array).size() >= 7:
-		return
+	if small >= (3 if asked else 2) or (h.m as Array).size() >= (9 if asked else 7):
+		return -1
 	var dad: Dictionary = pop.persons.get(int(mom.cj), {})
 	var surname := String(dad.n) if not dad.is_empty() and pop.rng.randf() < 0.8 else String(mom.n)
 	var sex := "F" if pop.rng.randf() < 0.49 else "H"
@@ -923,6 +963,7 @@ func _birth(mom_id: int) -> void:
 	for par in [mom, dad]:
 		if not par.is_empty():
 			log_event(par, "enfant", "Naissance de %s %s" % [g(baby, "son fils", "sa fille"), baby.p], baby_id)
+	return baby_id
 
 
 ## Décès : CV, deuil des proches, héritage, logement transmis.
@@ -948,11 +989,16 @@ func die(pid: int, cause := "") -> void:
 			kids_alive.append(k)
 			log_event(pop.persons[k], "deuil", "Décès de %s %s" % [relation(pop.persons[k], p), full_name(p)], pid)
 	var was_followed := followed == pid
+	var was_mine := pop.principal.is_mine(p)
 	archive_person(p, "deces", cause)
 	pop._remove_person(pid, false)
 	if not h.is_empty() and pop.households.has(hid):
 		_inherit(hid, p, kids_alive)
-	if was_followed:
+	if was_mine:
+		pop.principal.on_death(p)
+		followed = -1
+		pop.follow_changed.emit()
+	elif was_followed:
 		_follow_heir(p, kids_alive)
 
 
@@ -1181,6 +1227,12 @@ static func pack(p: Dictionary) -> Dictionary:
 		d.perm = true
 	if bool(p.get("ret", false)):
 		d.ret = true
+	if bool(p.get("retr", false)):
+		d.retr = true
+	if String(p.get("joueur", "")) != "":
+		d.joueur = p.joueur
+	if p.has("ord"):
+		d.ord = p.ord
 	if int(p.get("sp", 0)) > 0:
 		d.sp = int(p.sp)
 	if float(p.get("gain", 0.0)) > 0.0:
@@ -1200,6 +1252,13 @@ static func unpack(p: Dictionary, d: Dictionary) -> void:
 	p.etu = float(d.get("etu", -1.0))
 	p.perm = bool(d.get("perm", false))
 	p.ret = bool(d.get("ret", false))
+	p.retr = bool(d.get("retr", false))
+	if String(d.get("joueur", "")) != "":
+		p.joueur = String(d.joueur)
+	if d.get("ord") is Dictionary:
+		var o: Dictionary = d.ord
+		p.ord = {"k": String(o.get("k", "")), "b": int(o.get("b", -1)), "d": int(o.get("d", -1)), "t": float(o.get("t", 0.0)),
+			"dur": float(o.get("dur", 2.0)), "txt": String(o.get("txt", "")), "kind": String(o.get("kind", "loisir"))}
 	p.sp = int(d.get("sp", 0))
 	p.gain = float(d.get("gain", 0.0))
 	var cv := []

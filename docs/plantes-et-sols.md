@@ -76,10 +76,35 @@ Python 3 avec numpy et Pillow (`pip install numpy pillow`). Toutes les textures 
 
 Dans le jeu, `TerrainWorld.textures_sol = false` revient à l'ancien sol uni.
 
+## Saisons, âges et neige
+
+Les plantes vivent au rythme du **vrai calendrier du lieu** (la date de l'horloge du jeu) et de son hémisphère : en Australie, c'est l'été en janvier.
+
+![Juin, octobre, janvier sous la neige, et les quatre âges des arbres](apercu-saisons-vitrine.jpg)
+
+- **Feuillus** (chêne, hêtre, bouleau, peuplier, saule, vigne, buissons) : vert tendre au printemps, roux, jaunes ou rouges en automne (chaque arbre à son rythme), puis nus l'hiver. Les **conifères**, oliviers, palmiers et plantes du désert restent verts. Sous les tropiques, pas d'hiver.
+- **Herbe** : elle jaunit l'hiver, et l'été en Méditerranée. Les **fleurs** (coquelicots, marguerites, lavande, gentianes…) ne sont là qu'au printemps et en été.
+- **Neige** : elle tient au sol quand la météo du jeu fait tomber de la neige, et fond quand il fait plus de 0 °C. Elle blanchit le dessus des cases, les branches des sapins et les rochers, et recouvre l'herbe.
+- **Champs** : chaque culture suit son calendrier. Le blé est semé en octobre, lève l'hiver, verdit au printemps, dore en juin-juillet, est moissonné fin juillet (chaume), puis le champ est labouré. Le colza fleurit en jaune en avril, le maïs pousse l'été et sèche en octobre, le tournesol fleurit en juillet, le riz mûrit en septembre, la prairie est fauchée en juin. Deux nouvelles textures : **chaume** et **levée** (jeunes pousses en rangs).
+
+![Les champs en avril, juillet et août, puis la Beauce en juillet](apercu-saisons-champs.jpg)
+
+![Forêt de Rambouillet le 20 octobre, puis le 15 janvier après une chute de neige](apercu-saisons-rambouillet.jpg)
+
+### Les quatre âges des arbres
+
+**Jeune pousse → jeune arbre → adulte → arbre mort**, avec les vraies durées de vie : un chêne est adulte à 80 ans et vit 300 ans, un bouleau 30 et 90 ans, un sapin 60 et 300 ans, un palmier 15 et 80 ans (table `Plantes.VIE`).
+
+Les arbres vieillissent **à la même vitesse que les habitants** : le réglage Admin (F10) « vitesse de la vie » vaut pour les deux. Avec « 1 an = 1 mois », un chêne planté aujourd'hui est adulte dans 80 mois de jeu ; en « Réaliste », il faut 80 vraies années. Les saisons, elles, suivent toujours le calendrier. Le jeune arbre grandit peu à peu jusqu'à sa taille réelle. L'arbre mort (tronc gris, branches cassées) reste debout 12 ans, puis **une nouvelle pousse repart au même endroit**.
+
+- Au début d'une partie, la forêt a des arbres de **tous les âges** (chaque arbre tire son âge au hasard, toujours le même pour un lieu).
+- Les arbres plantés au **pinceau** commencent en **jeune pousse** (le jour de plantation est sauvegardé).
+- Les jeunes pousses n'ont pas de collision en vue au sol.
+
 ## Tester dans Godot 4.7
 
 1. Ouvre le projet dans Godot (les `.glb` et les textures s'importent tout seuls).
-2. **Vitrine** : double-clique sur `scenes/vitrine_plantes.tscn`, puis **F6**. Touches **1**, **2**, **3** : ensemble, forêts, champs. Molette : zoom. Clic gauche glissé : tourner. Espace : arrêter la rotation.
+2. **Vitrine** : double-clique sur `scenes/vitrine_plantes.tscn`, puis **F6**. Touches **1**, **2**, **3**, **4** : ensemble, forêts, champs, âges des arbres. **M** (ou **Maj + M**) : mois suivant (ou précédent). **N** : neige. Molette : zoom. Clic gauche glissé : tourner. Espace : arrêter la rotation.
 3. **En jeu** : lance le jeu (F5), choisis un lieu sur le globe et zoome. Quelques lieux parlants :
    - Beauce (champs) : `48.33, 1.62`
    - forêt de Rambouillet : `48.65, 1.80`
@@ -88,6 +113,7 @@ Dans le jeu, `TerrainWorld.textures_sol = false` revient à l'ancien sol uni.
    - Sahara : `25.0, 10.0` ; Arizona (cactus) : `32.3, -111.0`
    - Amazonie : `-3.0, -60.0` ; savane du Kenya : `-2.5, 37.5`
 4. Les plantes bougent doucement avec le vent ; en vue au sol (**V**), on voit les fleurs, l'herbe et les rangs de cultures.
+5. **Saisons en jeu** : dans le panneau de l'horloge, avance le temps (Maj + T) pour voir passer les mois ; choisis la météo **Neige** pour voir la neige tenir au sol et sur les sapins.
 
 Tests automatiques :
 
@@ -101,6 +127,5 @@ Il doit afficher `PLANTES TEST OK` (chaque espèce a son modèle, léger et pos�
 ## Prochaines étapes possibles
 
 - Haies et murets entre les parcelles (bocage normand, Bretagne).
-- Saisons : feuillage d'automne, arbres nus et neige l'hiver, champs moissonnés l'été.
 - Poser les textures de routes sur les voies, et la carte de normales sur l'eau.
 - D'autres essences selon les régions : cyprès, cèdres, bananiers, bambous, cerisiers.

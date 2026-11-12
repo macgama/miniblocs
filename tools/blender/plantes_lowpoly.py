@@ -55,9 +55,21 @@ PALETTE = [
     ("tournesol", "#f2c02a"), ("tournesol_coeur", "#5a3a1e"), ("vigne", "#5a8a3a"), ("raisin", "#4e2a52"),
     ("piquet", "#8a7a62"), ("chou", "#7aa86a"), ("riz", "#8ab84a"), ("terre", "#6a5038"),
     ("roche", "#8e8a82"), ("roche_claire", "#a8a49a"), ("roche_sombre", "#6e6a64"), ("sable_roche", "#b8a07a"),
-    ("oyat", "#a8b06a"), ("epine", "#d8d0b0"), ("baie", "#a02838"), ("feuille_morte", "#a8743a"),
+    ("oyat", "#a8b06a"), ("bois_mort", "#a39a8c"), ("bois_mort_sombre", "#6e675e"), ("feuille_morte", "#a8743a"),
 ]
 assert len(PALETTE) <= 64
+
+# Rôle de chaque couleur pour les saisons (lu par le shader des plantes dans
+# palette_roles.png) : 0 bois, roche et le reste, 1 feuillage caduc (roussit à
+# l'automne, tombe l'hiver), 2 feuillage persistant, 3 herbe (jaunit l'hiver ou
+# l'été sec), 4 fleur (seulement à la floraison).
+ROLES = {
+    "chene": 1, "hetre": 1, "bouleau_f": 1, "peuplier": 1, "buisson": 1, "saule_nain": 1, "vigne": 1, "chou": 0,
+    "sapin": 2, "pin": 2, "pin_parasol": 2, "palmier": 2, "acacia": 2, "olivier": 2, "tropical": 2,
+    "tropical_clair": 2, "paletuvier": 2, "cactus": 2, "cactus_raquette": 2, "agave": 2, "lichen": 2, "mousse": 2,
+    "herbe": 3, "herbe_seche": 3, "roseau": 3, "fougere": 3, "oyat": 3, "tige": 3, "buisson_sec": 3,
+    "rouge": 4, "blanc": 4, "jaune": 4, "lavande": 4, "bleu": 4, "rose": 4,
+}
 
 
 class Palette(bl.Palette):
@@ -672,6 +684,59 @@ def loin_palmier(p):
         p.palme((2.2, 0, 11.5), a, 5.0, 1.4, 0.9, "palmier", segs=1)
 
 
+# --- Étapes de vie : jeunes pousses et arbres morts ---------------------------------
+# Les arbres jeunes et adultes sont le modèle de l'espèce, mis à l'échelle par
+# le jeu. Les pousses et les arbres morts ont leurs propres modèles, par famille.
+
+def pousse_feuillu(p):
+    """Jeune pousse d'arbre à feuilles (≈ 1,2 m) : tige fine et quelques bouquets."""
+    p.cylindre((0, 0, -0.05), (0.05, 0, 1.0), 0.025, 0.012, 4, "tronc_clair", haut=False)
+    for (x, y, z, r) in [(0.05, 0, 1.05, 0.22), (-0.12, 0.08, 0.75, 0.16), (0.14, -0.06, 0.6, 0.14)]:
+        p.nouvelle_forme()
+        p.boule((x, y, z), r, r, r * 0.8, "hetre", alea=0.25)
+
+
+def pousse_conifere(p):
+    """Jeune sapin (≈ 1 m)."""
+    p.cylindre((0, 0, -0.05), (0, 0, 0.2), 0.03, 0.03, 4, "tronc_sombre", haut=False)
+    p.cone((0, 0, 0.15), 0.38, 0.55, 6, "sapin")
+    p.cone((0, 0, 0.5), 0.26, 0.5, 6, "sapin")
+
+
+def pousse_palmier(p):
+    """Jeune palmier (≈ 1 m) : une touffe de palmes."""
+    for i in range(5):
+        a = math.tau * i / 5
+        p.palme((0, 0, 0.05), a, 0.9, 0.3, -0.6, "palmier", segs=2)
+
+
+def mort_feuillu(p):
+    """Arbre mort : tronc gris, branches nues et cassées."""
+    p.cylindre((0, 0, -0.2), (0, 0, 5.5), 0.42, 0.25, 6, "bois_mort")
+    p.cylindre((0, 0, 5.4), (0.2, 0.1, 7.0), 0.22, 0.12, 5, "bois_mort", haut=True)
+    for (x, y, z0, z1) in [(2.4, 0.5, 3.8, 6.6), (-2.0, 1.2, 4.2, 7.2), (0.4, -2.3, 4.6, 6.9), (-1.0, -1.4, 3.0, 4.6)]:
+        p.cylindre((0, 0, z0), (x, y, z1), 0.13, 0.05, 4, "bois_mort", haut=False)
+        p.cylindre((x * 0.7, y * 0.7, z0 + (z1 - z0) * 0.7), (x * 0.9 + 0.5, y * 0.9 - 0.3, z1 + 0.6), 0.05, 0.02, 3, "bois_mort_sombre", haut=False)
+
+
+def mort_conifere(p):
+    """Conifère mort : grand fût gris et moignons de branches."""
+    p.cylindre((0, 0, -0.2), (0, 0, 13.0), 0.32, 0.08, 6, "bois_mort")
+    for i in range(7):
+        z = 3.0 + i * 1.4
+        a = i * 2.4
+        l = 1.6 - i * 0.15
+        p.cylindre((0, 0, z), (math.cos(a) * l, math.sin(a) * l, z - 0.3), 0.05, 0.02, 3, "bois_mort_sombre", haut=False)
+
+
+def mort_palmier(p):
+    """Palmier mort : stipe cassé, quelques palmes sèches pendantes."""
+    p.cylindre((0, 0, -0.2), (0.6, 0, 7.5), 0.3, 0.26, 5, "palmier_tronc")
+    for i in range(3):
+        a = math.tau * i / 3 + 0.5
+        p.palme((0.6, 0, 7.4), a, 2.2, 0.8, 1.6, "herbe_seche", segs=2)
+
+
 # Nom -> (fonction, catégorie). Les noms sont ceux des fichiers .glb.
 PLANTES = {
     # Arbres
@@ -708,6 +773,9 @@ PLANTES = {
     "tropical_loin": loin_feuillu(17.0, 6.5, 6.0, "tropical", "ecorce_grise"),
     "paletuvier_loin": loin_feuillu(3.0, 2.8, 4.0, "paletuvier"),
     "saule_loin": loin_feuillu(3.0, 4.0, 6.0, "bouleau_f"),
+    # Étapes de vie
+    "pousse_feuillu": pousse_feuillu, "pousse_conifere": pousse_conifere, "pousse_palmier": pousse_palmier,
+    "mort_feuillu": mort_feuillu, "mort_conifere": mort_conifere, "mort_palmier": mort_palmier,
 }
 
 
@@ -773,6 +841,23 @@ def main():
             continue
         p = construit(nom, palette)
         total += exporte(p, nom, dossier, opts.get("apercu") if seul else None)
+    # Les rôles des couleurs pour les saisons, même découpage que la palette.
+    cote = bl.PALETTE_TAILLE * bl.PIXELS_PAR_CASE
+    roles = bpy.data.images.new("palette_roles", cote, cote, alpha=False)
+    roles.colorspace_settings.name = "Non-Color"
+    px = [0.0] * (cote * cote * 4)
+    for i, (nom_c, _h) in enumerate(PALETTE):
+        v = ROLES.get(nom_c, 0) / 4.0
+        col, lig = i % bl.PALETTE_TAILLE, i // bl.PALETTE_TAILLE
+        for dy in range(bl.PIXELS_PAR_CASE):
+            y = cote - 1 - (lig * bl.PIXELS_PAR_CASE + dy)
+            for dx in range(bl.PIXELS_PAR_CASE):
+                o = (y * cote + col * bl.PIXELS_PAR_CASE + dx) * 4
+                px[o:o + 4] = [v, v, v, 1.0]
+    roles.pixels = px
+    roles.filepath_raw = os.path.abspath(os.path.join(dossier, "palette_roles.png"))
+    roles.file_format = "PNG"
+    roles.save()
     # La palette, aussi en image à part (pour la retoucher dans Krita).
     img = palette_image(palette)
     img.filepath_raw = os.path.abspath(os.path.join(dossier, "palette_plantes.png"))

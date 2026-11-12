@@ -20,11 +20,16 @@ signal message(text: String)
 signal building_selected(bid: int)
 ## L'habitant suivi a changé (CycleVie.followed).
 signal follow_changed
+## Clic sur un habitant visible dans la rue.
+signal person_clicked(pid: int)
+## Questions du personnage principal (PersonnagePrincipal.questions).
+signal questions_changed
 
 const LIFE_SPEEDS := [1.0, 12.0, 365.0]
-const LIFE_SPEED_NAMES := ["Réaliste (1 an = 1 an)", "Rapide (1 an = 1 mois)", "Très rapide (1 an = 1 jour)"]
-## Par défaut : 1 an de vie = 1 jour de jeu (choix de Gaël).
-const DEFAULT_LIFE_SPEED := 2
+const LIFE_SPEED_NAMES := ["Réaliste (1 an = 1 an)", "Normale (1 an = 1 mois)", "Très rapide (1 an = 1 jour)"]
+## Par défaut : 1 an de vie = 1 mois de jeu (choix de Gaël) : une vie de 80 ans dure
+## environ 13 h de jeu à 100 min/s, et une année de partie (2 h) fait vieillir de 12 ans.
+const DEFAULT_LIFE_SPEED := 1
 const RETIREMENT_AGE := 64
 const ADULT_AGE := 18
 const SCHOOL_AGE := 3
@@ -116,10 +121,22 @@ var _follow_label: Label3D
 var _follow_timer := 0.0
 var _follow_target := Vector3.ZERO
 var _follow_set := Vector3.INF
+## Habitants visibles près de la caméra.
+var passants: Passants
+## Ordre « Aller à… » en attente d'un clic sur un bâtiment (habitant, ou -1).
+var order_pick := -1
+## Habitant incarné en vue au sol (-1 : aucun).
+var _incarne := -1
+var _player_id := ""
+## Personnage principal du joueur (né en ville, ses choix).
+var principal: PersonnagePrincipal
+## Vue au sol (pour incarner un habitant).
+var vue_sol: VueSol
 
 
 func _init() -> void:
 	vie = CycleVie.new(self)
+	principal = PersonnagePrincipal.new(self)
 
 
 func _ready() -> void:
@@ -180,6 +197,10 @@ func _ready() -> void:
 	_follow_label.modulate = Color("ffe08a")
 	_follow_label.visible = false
 	add_child(_follow_label)
+	passants = Passants.new()
+	passants.name = "Passants"
+	add_child(passants)
+	passants.setup(self)
 
 
 func clear() -> void:
@@ -198,6 +219,11 @@ func clear() -> void:
 	last_day = -1
 	ledger = {"mois": {}, "precedent": {}, "jours": 0}
 	vie.clear()
+	if passants != null:
+		passants.clear()
+	order_pick = -1
+	_incarne = -1
+	principal.clear()
 	select_building(-1)
 	follow_changed.emit()
 	changed.emit()
@@ -263,6 +289,8 @@ func advance(dt: float, realtime := false) -> void:
 		if arrivals:
 			_immigrate(hours)
 		_match_all()
+		if principal.enabled and principal.mine() < 0 and not households.is_empty():
+			principal.try_birth()
 	var d := int(now().day)
 	# Horloge remise en arrière (date changée, partie chargée) : on repart de là.
 	if last_day < 0 or d < last_day:
@@ -550,7 +578,7 @@ func stage(p: Dictionary) -> String:
 		return "bebe"
 	if a < ADULT_AGE:
 		return "eleve"
-	if a >= RETIREMENT_AGE:
+	if a >= RETIREMENT_AGE or bool(p.get("retr", false)):
 		return "retraite"
 	if float(p.get("etu", -1.0)) > life_clock:
 		return "etudiant"
@@ -967,9 +995,70 @@ func _on_leave(p: Dictionary, n: Dictionary) -> bool:
 
 
 ## Programme de la journée : liste de [début, fin, genre, bâtiment, texte] (heures locales).
+## Un ordre du joueur (p.ord) remplace une partie de la journée.
 func day_plan(p: Dictionary, n: Dictionary = {}) -> Array:
 	if n.is_empty():
 		n = now()
+	var plan := _base_plan(p, n)
+	if p.has("ord"):
+		var o: Dictionary = p.ord
+		if int(o.d) == int(n.day):
+			plan = _apply_order(p, plan, o)
+		elif int(o.d) < int(n.day):
+			p.erase("ord")
+	return plan
+
+
+## Journée modifiée par un ordre : programme normal jusqu'à l'heure de l'ordre,
+## trajet, temps sur place, retour à la maison, soirée.
+func _apply_order(p: Dictionary, plan: Array, o: Dictionary) -> Array:
+	var home := home_of(p)
+	var t0 := float(o.t)
+	var target := int(o.b)
+	var kind := String(o.get("kind", "loisir"))
+	var where := home
+	var sleep := 22.5
+	for seg in plan:
+		if t0 >= float(seg[0]) and t0 < float(seg[1]):
+			where = int(seg[3])
+		if String(seg[2]) == "dort" and float(seg[0]) > 12.0:
+			sleep = float(seg[0])
+	if not known.has(where):
+		where = home
+	var out := []
+	for seg in plan:
+		if float(seg[0]) >= t0:
+			break
+		var s2: Array = (seg as Array).duplicate()
+		s2[1] = minf(float(s2[1]), t0)
+		out.append(s2)
+	var t := t0
+	if where != target and known.has(target):
+		var c := commute(p, where, target)
+		var arr := minf(t + maxf(float(c.min), 1.0) / 60.0, 24.0)
+		out.append([t, arr, "trajet", target, "En route %s (sur ton ordre)" % c.mode])
+		t = arr
+	var end := minf(t + float(o.get("dur", 2.0)), 24.0)
+	if kind == "dort":
+		end = 24.0
+	elif kind == "maison":
+		end = maxf(sleep, t)
+	if end > t:
+		out.append([t, end, kind, target, String(o.txt)])
+	t = end
+	if t < 24.0 and target != home and known.has(home):
+		var c2 := commute(p, target, home)
+		var back := minf(t + maxf(float(c2.min), 1.0) / 60.0, 24.0)
+		out.append([t, back, "trajet", home, "Rentre %s" % c2.mode])
+		t = back
+	if t < 24.0:
+		if t < sleep:
+			out.append([t, sleep, "maison", home, "À la maison"])
+		out.append([maxf(t, sleep), 24.0, "dort", home, "Dort"])
+	return out
+
+
+func _base_plan(p: Dictionary, n: Dictionary) -> Array:
 	var home := home_of(p)
 	var st := stage(p)
 	var plan := []
@@ -1078,6 +1167,8 @@ func day_plan(p: Dictionary, n: Dictionary = {}) -> Array:
 
 ## Activité en ce moment : {kind, bid, text}.
 func activity(p: Dictionary) -> Dictionary:
+	if int(p.id) == _incarne:
+		return {"kind": "incarne", "bid": -1, "text": "Dirigé%s par toi (vue au sol)" % CycleVie.g(p, "", "e")}
 	if _now.is_empty():
 		_now = now()
 	var h: float = _now.h
@@ -1243,6 +1334,10 @@ func traffic_demand() -> Dictionary:
 	var hour := float(now().h)
 	if hour >= 7.0 and hour < 19.0:
 		cars += jobs / 40.0
+	# Les habitants dessinés près de la caméra remplacent une partie des figurants.
+	if passants != null:
+		cars = maxf(0.0, cars - passants.count_mode("voiture"))
+		walk = maxf(0.0, walk - passants.count_mode("pied"))
 	var road := roundi(cars + bikes * 0.5)
 	_demand = {TransportTypes.Mode.ROAD: road, TransportTypes.Mode.PATH: roundi(walk * 0.5 + bikes * 0.5),
 		TransportTypes.Mode.RAIL: jobs / JOBS_PER_TRAIN, TransportTypes.Mode.WATER: jobs / JOBS_PER_BOAT,
@@ -1330,6 +1425,89 @@ func _physics_process(delta: float) -> void:
 	_update_follow(delta)
 
 
+# --- Ordres, déménagements, joueur -------------------------------------------------
+
+func player_id() -> String:
+	if _player_id == "":
+		_player_id = SaveGame.player_id()
+	return _player_id
+
+
+## Le programme d'un habitant a changé (ordre, déménagement) : on le recalcule.
+func plan_changed(pid: int) -> void:
+	_now = {}
+	if passants != null:
+		passants.forget(pid)
+	changed.emit()
+
+
+func incarnated() -> int:
+	return _incarne
+
+
+## Prendre la place d'un habitant en vue au sol (3e personne). Retour en vue de
+## dessus (V) : il reprend sa journée.
+func incarnate(pid: int) -> bool:
+	if vue_sol == null or not persons.has(pid) or rig == null:
+		return false
+	if Ordres.protected(self, persons[pid]):
+		message.emit("C'est le personnage principal d'un autre joueur.")
+		return false
+	var pos := vie.position_of(pid)
+	# Il sort sur le trottoir le plus proche.
+	if transport != null:
+		var snap := transport.network.find_snap(pos, TransportTypes.Mode.ROAD, 80.0)
+		if not snap.is_empty():
+			var sp: Vector3 = snap.pos
+			var away := Vector3(pos.x - sp.x, 0.0, pos.z - sp.z)
+			var hw := transport.network.half_width(int(snap.edge)) if int(snap.edge) >= 0 else 4.0
+			pos = sp + (away.normalized() if away.length_squared() > 0.01 else Vector3.RIGHT) * (hw + 1.2)
+	follow_camera = false
+	rig.global_position = Vector3(pos.x, rig.global_position.y, pos.z)
+	_incarne = pid
+	if not vue_sol.vue_changee.is_connected(_on_vue):
+		vue_sol.vue_changee.connect(_on_vue)
+	vue_sol.set_vue(VueSol.Vue.TROISIEME)
+	var p: Dictionary = persons[pid]
+	message.emit("Tu es %s. ZQSD pour marcher, V pour revenir à la vue de dessus." % CycleVie.full_name(p))
+	plan_changed(pid)
+	return true
+
+
+func _on_vue(v: int) -> void:
+	if v == VueSol.Vue.DESSUS and _incarne >= 0:
+		var pid := _incarne
+		_incarne = -1
+		if persons.has(pid):
+			message.emit("%s reprend sa journée." % CycleVie.full_name(persons[pid]))
+		plan_changed(pid)
+
+
+## Tout le foyer déménage dans un logement libre.
+func move_household(hid: int, bid: int) -> void:
+	var h: Dictionary = households[hid]
+	var old := int(h.b)
+	(by_home.get(old, []) as Array).erase(hid)
+	h.b = bid
+	if not by_home.has(bid):
+		by_home[bid] = []
+	(by_home[bid] as Array).append(hid)
+	_venue_cache.clear()
+	for m in h.m:
+		vie.log_event(persons[m], "demenage", "Déménage avec son foyer à %s" % building_name(bid), bid)
+		plan_changed(m)
+	changed.emit()
+
+
+## Ordre donné depuis l'interface (message dans le jeu).
+func give_order(pid: int, id: String, arg: Variant = null) -> Dictionary:
+	if not persons.has(pid):
+		return {"ok": false, "text": "Habitant introuvable."}
+	var r := Ordres.give(self, persons[pid], id, arg)
+	message.emit(String(r.text))
+	return r
+
+
 # --- Habitant suivi (façon Sims) ----------------------------------------------------
 
 func follow(pid: int) -> void:
@@ -1411,6 +1589,12 @@ func _tools_busy() -> bool:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	var key := event as InputEventKey
+	if key and key.pressed and key.physical_keycode == KEY_ESCAPE and order_pick >= 0:
+		order_pick = -1
+		message.emit("Ordre annulé.")
+		get_viewport().set_input_as_handled()
+		return
 	var mb := event as InputEventMouseButton
 	if mb == null or mb.button_index != MOUSE_BUTTON_LEFT or world == null or buildings == null:
 		return
@@ -1422,12 +1606,27 @@ func _unhandled_input(event: InputEvent) -> void:
 	var cam := get_viewport().get_camera_3d()
 	if cam == null:
 		return
+	if order_pick < 0 and passants != null:
+		var who := passants.pick(mb.position, cam)
+		if who >= 0:
+			person_clicked.emit(who)
+			get_viewport().set_input_as_handled()
+			return
 	var hit: Variant = world.pick_cell(cam.project_ray_origin(mb.position), cam.project_ray_normal(mb.position))
 	if hit == null:
 		return
 	var bid := buildings.building_at(hit)
 	if bid < 0 and extra_pick.is_valid():
 		bid = int(extra_pick.call(hit))
+	if order_pick >= 0:
+		if bid >= 0:
+			if not known.has(bid):
+				_sync_buildings()
+			var who := order_pick
+			order_pick = -1
+			give_order(who, "aller", bid)
+			get_viewport().set_input_as_handled()
+		return
 	if bid >= 0:
 		if not known.has(bid):
 			_sync_buildings()
@@ -1447,7 +1646,7 @@ func to_dict() -> Dictionary:
 		var p: Dictionary = persons[pid]
 		ps.append([pid, p.f, p.p, p.n, p.s, snappedf(float(p.nj), 0.001), p.r, p.job, p.met, p.sch, ",".join(p.hob),
 			CycleVie.pack(p)])
-	return {"version": 2, "vie": vie.to_dict(), "next_pid": next_pid, "next_hid": next_hid, "life_clock": life_clock,
+	return {"version": 2, "vie": vie.to_dict(), "principal": principal.to_dict(), "next_pid": next_pid, "next_hid": next_hid, "life_clock": life_clock,
 		"life_speed": life_speed_index, "arrivals": arrivals, "last_day": last_day, "ledger": ledger,
 		"money_frac": _money_frac, "foyers": hs, "habitants": ps}
 
@@ -1517,6 +1716,7 @@ func from_dict(d: Dictionary) -> void:
 		if (households[hid].m as Array).is_empty():
 			_remove_household(hid, "")
 	vie.from_dict(d.get("vie", {}))
+	principal.from_dict(d.get("principal", {}))
 	# Ancienne sauvegarde (sans familles) : couples et parents devinés dans chaque foyer.
 	if int(d.get("version", 1)) < 2:
 		for hid in households:

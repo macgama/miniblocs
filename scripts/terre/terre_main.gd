@@ -378,6 +378,7 @@ func _setup_population() -> void:
 	population.transport = transport
 	population.ambiance = ambiance
 	population.rig = rig
+	population.vue_sol = $VueSol as VueSol
 	population.message.connect(func(t: String) -> void: hud.show_message(t))
 	# Pas de bâtiment, personne dans les rues : la circulation suit les habitants.
 	transport.traffic.demand = population.traffic_demand
@@ -878,12 +879,19 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 var _snap_pending := true
 
 
+## Horloge de la vie (jours) : les arbres vieillissent comme les habitants, selon
+## le réglage Admin « vitesse de la vie » (réglage Admin).
+func _horloge_vie() -> float:
+	return population.life_clock if population != null else NAN
+
+
 func _process(delta: float) -> void:
 	_autosave(delta)
 	# Jour permanent automatique pendant la construction.
 	ambiance.set_construction(build_panel.is_open() or blocks.tool != BlockEditor.Tool.NONE
 		or (plans != null and plans.tool != PlanEditor.Tool.NONE))
 	world.update_tide(ambiance.unix_time)
+	world.update_saison(ambiance.unix_time, ambiance.weather, _horloge_vie())
 	# Le pivot de la caméra suit le relief sous lui.
 	var h := world.cell_height(Vector2i(floori(rig.position.x), floori(rig.position.z)))
 	if not is_nan(h):

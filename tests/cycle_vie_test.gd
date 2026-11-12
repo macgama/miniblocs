@@ -50,8 +50,8 @@ func _run() -> void:
 	amb.unix_time = _at("2026-03-10", 10.0)
 
 	print("Réglage par défaut :")
-	_check(Population.LIFE_SPEEDS[Population.DEFAULT_LIFE_SPEED] == 365.0, "par défaut, 1 an de vie = 1 jour de jeu")
-	_check(ReglagesPartie.new().vitesse_vie == Population.DEFAULT_LIFE_SPEED, "réglage de partie par défaut : 1 an = 1 jour")
+	_check(Population.LIFE_SPEEDS[Population.DEFAULT_LIFE_SPEED] == 12.0, "par défaut, 1 an de vie = 1 mois de jeu")
+	_check(ReglagesPartie.new().vitesse_vie == Population.DEFAULT_LIFE_SPEED, "réglage de partie par défaut : 1 an = 1 mois")
 
 	print("Une ville :")
 	bs.unlimited_money = true

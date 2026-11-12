@@ -48,7 +48,7 @@ const CODES := {
 	"separation": Color("b5485d"), "enfant": Color("ffd166"), "veuvage": Color("6c6f75"), "deuil": Color("6c6f75"),
 	"heritage": Color("e9c46a"), "loisir": Color("4cc9f0"), "sport": Color("ffbe0b"), "permis": Color("90e0ef"),
 	"voiture": Color("90e0ef"), "maladie": Color("ef476f"), "guerison": Color("06d6a0"), "deces": Color("000000"),
-	"depart": Color("8a8f98"),
+	"depart": Color("8a8f98"), "urgence": Color("e63946"),
 }
 ## Étapes comptées dans les nouvelles du jour.
 const DIGEST := {"naissance": ["naissance", "naissances"], "deces": ["décès", "décès"], "couple": ["couple", "couples"],

@@ -391,6 +391,9 @@ func _run() -> void:
 	_check(not tr.make_roundabout(gres.nodes[0]).ok, "pas de giratoire sur un giratoire")
 	tr.traffic.enabled = false
 	tr.traffic.clear()
+	# Tirage fixé ici : le nombre de véhicules qui passent par les bretelles ne
+	# dépend plus des tirages faits plus haut (ni de la taille du catalogue).
+	tr.traffic.rng.seed = 3
 	var wrong := 0
 	var on_ring := {}
 	for i in 1200:

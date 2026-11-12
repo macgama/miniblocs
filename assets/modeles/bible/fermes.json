@@ -1,0 +1,1451 @@
+{
+ "famille": "fermes",
+ "batiments": [
+  {
+   "id": "ferme_cour_carree",
+   "name": "Ferme à cour carrée",
+   "cat": "industrie",
+   "cost": 1600000,
+   "desc": "Logis, granges et étables de briques fermant une cour, porche d'entrée.",
+   "source": "Fermes picardes et flamandes à cour fermée",
+   "region": "europe",
+   "era": "traditionnel",
+   "emplois": 4,
+   "logements": 1,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "agriculteur",
+     1
+    ]
+   ],
+   "role": "ferme",
+   "zone": "I",
+   "glb": "res://assets/modeles/bible/ferme_cour_carree.glb",
+   "w": 37,
+   "d": 37,
+   "h": 9.2,
+   "tris": 386,
+   "palette": [
+    [
+     "terre",
+     "#b9825a"
+    ],
+    [
+     "brique",
+     "#a9583f"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "bois_rouge",
+     "#8e3b2e"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "tuile",
+     "#c8553d"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "bois_clair",
+     "#c39a6b"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ]
+   ]
+  },
+  {
+   "id": "ferme_jurassienne",
+   "name": "Ferme jurassienne",
+   "cat": "industrie",
+   "cost": 1100000,
+   "desc": "Grande ferme sous un seul toit très large, logis, étable et grange réunis.",
+   "source": "Fermes du Jura suisse et du Haut-Doubs (tuyé)",
+   "region": "europe",
+   "era": "traditionnel",
+   "emplois": 3,
+   "logements": 1,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "eleveur",
+     2
+    ],
+    [
+     "agriculteur",
+     1
+    ]
+   ],
+   "role": "ferme",
+   "zone": "I",
+   "glb": "res://assets/modeles/bible/ferme_jurassienne.glb",
+   "w": 28,
+   "d": 24,
+   "h": 12.0,
+   "tris": 198,
+   "palette": [
+    [
+     "pierre_grise",
+     "#9c988f"
+    ],
+    [
+     "enduit",
+     "#f1e6d2"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "vert",
+     "#3f8f5a"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "pierre",
+     "#b9b0a0"
+    ],
+    [
+     "bois",
+     "#8a6142"
+    ],
+    [
+     "zinc",
+     "#7e8890"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "bois_gris",
+     "#8b8478"
+    ]
+   ]
+  },
+  {
+   "id": "ferme_bavaroise",
+   "name": "Ferme bavaroise",
+   "cat": "industrie",
+   "cost": 1300000,
+   "desc": "Einhof alpin : logis blanc à balcons fleuris, grange de bois dans le prolongement.",
+   "source": "Fermes de Haute-Bavière et du Tyrol",
+   "region": "europe",
+   "era": "traditionnel",
+   "emplois": 3,
+   "logements": 1,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "eleveur",
+     2
+    ],
+    [
+     "agriculteur",
+     1
+    ]
+   ],
+   "role": "ferme",
+   "zone": "I",
+   "glb": "res://assets/modeles/bible/ferme_bavaroise.glb",
+   "w": 18,
+   "d": 33,
+   "h": 8.6,
+   "tris": 238,
+   "palette": [
+    [
+     "enduit_blanc",
+     "#f4f2ec"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "vert",
+     "#3f8f5a"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "bois",
+     "#8a6142"
+    ],
+    [
+     "bois_clair",
+     "#c39a6b"
+    ],
+    [
+     "tuile",
+     "#c8553d"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ]
+   ]
+  },
+  {
+   "id": "cortijo",
+   "name": "Cortijo andalou",
+   "cat": "industrie",
+   "cost": 1400000,
+   "desc": "Ferme blanchie autour d'un patio, tour de guet et tuiles canal.",
+   "source": "Cortijos de la campagne de Séville et de Cordoue",
+   "region": "mediterranee",
+   "era": "traditionnel",
+   "emplois": 4,
+   "logements": 1,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "agriculteur",
+     1
+    ]
+   ],
+   "role": "ferme",
+   "zone": "I",
+   "glb": "res://assets/modeles/bible/cortijo.glb",
+   "w": 31,
+   "d": 31,
+   "h": 10.7,
+   "tris": 198,
+   "palette": [
+    [
+     "enduit_blanc",
+     "#f4f2ec"
+    ],
+    [
+     "tuile",
+     "#c8553d"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "ocre",
+     "#d39b5a"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "vert",
+     "#3f8f5a"
+    ]
+   ]
+  },
+  {
+   "id": "hacienda",
+   "name": "Hacienda",
+   "cat": "industrie",
+   "cost": 2000000,
+   "desc": "Maison de maître à arcades, chapelle et dépendances autour d'une grande cour.",
+   "source": "Haciendas du Yucatán et du centre du Mexique",
+   "region": "ameriques",
+   "era": "classique",
+   "emplois": 10,
+   "logements": 2,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "agriculteur",
+     3
+    ],
+    [
+     "eleveur",
+     1
+    ],
+    [
+     "cadre",
+     1
+    ]
+   ],
+   "role": "ferme",
+   "zone": "I",
+   "glb": "res://assets/modeles/bible/hacienda.glb",
+   "w": 40,
+   "d": 32,
+   "h": 12.7,
+   "tris": 472,
+   "palette": [
+    [
+     "ocre",
+     "#d39b5a"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "enduit_blanc",
+     "#f4f2ec"
+    ],
+    [
+     "terre",
+     "#b9825a"
+    ],
+    [
+     "tuile",
+     "#c8553d"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ]
+   ]
+  },
+  {
+   "id": "grange_americaine",
+   "name": "Grange américaine",
+   "cat": "industrie",
+   "cost": 600000,
+   "desc": "Grande grange rouge à toit gambrel, portes à croix blanches et silo.",
+   "source": "Granges du Midwest et du Wisconsin",
+   "region": "ameriques",
+   "era": "classique",
+   "emplois": 2,
+   "logements": 0,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "eleveur",
+     2
+    ],
+    [
+     "agriculteur",
+     1
+    ]
+   ],
+   "role": "elevage",
+   "zone": "I",
+   "glb": "res://assets/modeles/bible/grange_americaine.glb",
+   "w": 23,
+   "d": 27,
+   "h": 17.3,
+   "tris": 224,
+   "palette": [
+    [
+     "bardage_rouge",
+     "#a2423a"
+    ],
+    [
+     "noir",
+     "#2a2b2e"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "zinc",
+     "#7e8890"
+    ]
+   ]
+  },
+  {
+   "id": "etable_moderne",
+   "name": "Stabulation laitière",
+   "cat": "industrie",
+   "cost": 1800000,
+   "desc": "Stabulation libre de 120 vaches, côtés ouverts à filets brise-vent, fosse à lisier.",
+   "source": "Exploitations laitières de Normandie et de Bretagne",
+   "region": "europe",
+   "era": "contemporain",
+   "emplois": 4,
+   "logements": 0,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "eleveur",
+     2
+    ],
+    [
+     "agriculteur",
+     1
+    ]
+   ],
+   "role": "elevage",
+   "zone": "I",
+   "glb": "res://assets/modeles/bible/etable_moderne.glb",
+   "w": 93,
+   "d": 34,
+   "h": 13.0,
+   "tris": 520,
+   "palette": [
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "bardage_vert",
+     "#5d7d5a"
+    ],
+    [
+     "metal",
+     "#7d8288"
+    ],
+    [
+     "tole",
+     "#9aa0a6"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "bois_gris",
+     "#8b8478"
+    ],
+    [
+     "verre_clair",
+     "#8fb8d8"
+    ],
+    [
+     "beton_sombre",
+     "#8c8a85"
+    ],
+    [
+     "terre",
+     "#b9825a"
+    ],
+    [
+     "bardage",
+     "#a4aab0"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "verre_ciel",
+     "#6d97b8"
+    ],
+    [
+     "bleu",
+     "#2a6fdb"
+    ],
+    [
+     "bardage_bleu",
+     "#4f6f91"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ]
+   ]
+  },
+  {
+   "id": "bergerie",
+   "name": "Bergerie",
+   "cat": "industrie",
+   "cost": 450000,
+   "desc": "Bergerie de pierre sèche à toit de lauzes et enclos.",
+   "source": "Bergeries des Causses et du Larzac",
+   "region": "mediterranee",
+   "era": "traditionnel",
+   "emplois": 2,
+   "logements": 0,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "eleveur",
+     2
+    ],
+    [
+     "agriculteur",
+     1
+    ]
+   ],
+   "role": "elevage",
+   "zone": "I",
+   "glb": "res://assets/modeles/bible/bergerie.glb",
+   "w": 27,
+   "d": 23,
+   "h": 6.6,
+   "tris": 142,
+   "palette": [
+    [
+     "pierre",
+     "#b9b0a0"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "noir",
+     "#2a2b2e"
+    ],
+    [
+     "pierre_grise",
+     "#9c988f"
+    ],
+    [
+     "tuile_ombre",
+     "#8f3a29"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ]
+   ]
+  },
+  {
+   "id": "poulailler",
+   "name": "Poulailler industriel",
+   "cat": "industrie",
+   "cost": 900000,
+   "desc": "Long bâtiment avicole de 100 m, ventilateurs en pignon et silos d'aliment.",
+   "source": "Poulaillers label de Bretagne et des Landes",
+   "region": "europe",
+   "era": "contemporain",
+   "emplois": 2,
+   "logements": 0,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "eleveur",
+     2
+    ],
+    [
+     "agriculteur",
+     1
+    ]
+   ],
+   "role": "elevage",
+   "zone": "I",
+   "glb": "res://assets/modeles/bible/poulailler.glb",
+   "w": 109,
+   "d": 17,
+   "h": 7.8,
+   "tris": 204,
+   "palette": [
+    [
+     "bardage_vert",
+     "#5d7d5a"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "tole",
+     "#9aa0a6"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "metal",
+     "#7d8288"
+    ],
+    [
+     "noir",
+     "#2a2b2e"
+    ],
+    [
+     "zinc",
+     "#7e8890"
+    ]
+   ]
+  },
+  {
+   "id": "porcherie",
+   "name": "Porcherie",
+   "cat": "industrie",
+   "cost": 1100000,
+   "desc": "Deux bâtiments d'engraissement, cheminées d'aération et fosse couverte.",
+   "source": "Élevages porcins de Bretagne et du Danemark",
+   "region": "europe",
+   "era": "contemporain",
+   "emplois": 3,
+   "logements": 0,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "eleveur",
+     2
+    ],
+    [
+     "agriculteur",
+     1
+    ]
+   ],
+   "role": "elevage",
+   "zone": "I",
+   "glb": "res://assets/modeles/bible/porcherie.glb",
+   "w": 75,
+   "d": 33,
+   "h": 5.8,
+   "tris": 424,
+   "palette": [
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "tole",
+     "#9aa0a6"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "metal",
+     "#7d8288"
+    ],
+    [
+     "beton_sombre",
+     "#8c8a85"
+    ]
+   ]
+  },
+  {
+   "id": "haras",
+   "name": "Haras",
+   "cat": "industrie",
+   "cost": 3200000,
+   "desc": "Écuries de pierre en U, horloge, manège couvert et carrière de sable.",
+   "source": "Haras national du Pin (Orne) et de Haras de Cluny",
+   "region": "europe",
+   "era": "classique",
+   "emplois": 12,
+   "logements": 0,
+   "visiteurs": 60,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "eleveur",
+     3
+    ],
+    [
+     "coach",
+     1
+    ]
+   ],
+   "role": "elevage",
+   "zone": "I",
+   "sans_vitres": 1,
+   "glb": "res://assets/modeles/bible/haras.glb",
+   "w": 88,
+   "d": 43,
+   "h": 10.7,
+   "tris": 468,
+   "palette": [
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "brique",
+     "#a9583f"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "ardoise",
+     "#5b5f66"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "noir",
+     "#2a2b2e"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "bois",
+     "#8a6142"
+    ],
+    [
+     "sable",
+     "#e3d3a8"
+    ]
+   ]
+  },
+  {
+   "id": "serres_tunnels",
+   "name": "Serres tunnels",
+   "cat": "industrie",
+   "cost": 300000,
+   "desc": "Six tunnels maraîchers en plastique sur arceaux.",
+   "source": "Maraîchage sous abri (Bretagne, Provence)",
+   "region": "europe",
+   "era": "contemporain",
+   "emplois": 4,
+   "logements": 0,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "agriculteur",
+     1
+    ]
+   ],
+   "role": "ferme_cereales",
+   "zone": "I",
+   "sans_vitres": 1,
+   "glb": "res://assets/modeles/bible/serres_tunnels.glb",
+   "w": 55,
+   "d": 42,
+   "h": 3.8,
+   "tris": 156,
+   "palette": [
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "verre_clair",
+     "#8fb8d8"
+    ],
+    [
+     "bois_gris",
+     "#8b8478"
+    ],
+    [
+     "tole",
+     "#9aa0a6"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ]
+   ]
+  },
+  {
+   "id": "serre_verre",
+   "name": "Serre de verre",
+   "cat": "industrie",
+   "cost": 4500000,
+   "desc": "Serre Venlo de 1 ha pour tomates : toits de verre en dents de scie.",
+   "source": "Serres horticoles du Westland (Pays-Bas)",
+   "region": "europe",
+   "era": "contemporain",
+   "emplois": 20,
+   "logements": 0,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "agriculteur",
+     4
+    ],
+    [
+     "magasinier",
+     1
+    ]
+   ],
+   "role": "ferme_cereales",
+   "zone": "I",
+   "glb": "res://assets/modeles/bible/serre_verre.glb",
+   "w": 112,
+   "d": 79,
+   "h": 12.0,
+   "tris": 454,
+   "palette": [
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "verre_clair",
+     "#8fb8d8"
+    ],
+    [
+     "verre_ciel",
+     "#6d97b8"
+    ],
+    [
+     "bardage",
+     "#a4aab0"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "tole",
+     "#9aa0a6"
+    ],
+    [
+     "bardage_vert",
+     "#5d7d5a"
+    ]
+   ]
+  },
+  {
+   "id": "silos_grains",
+   "name": "Silos à grains",
+   "cat": "industrie",
+   "cost": 3800000,
+   "desc": "Batterie de silos de béton, tour d'élévation et hangar de réception.",
+   "source": "Silos de coopératives agricoles de Beauce et de la Brie",
+   "region": "europe",
+   "era": "moderne",
+   "emplois": 8,
+   "logements": 0,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "magasinier",
+     3
+    ],
+    [
+     "chauffeur",
+     2
+    ],
+    [
+     "agriculteur",
+     1
+    ]
+   ],
+   "role": "entrepot",
+   "zone": "I",
+   "sans_vitres": 1,
+   "glb": "res://assets/modeles/bible/silos_grains.glb",
+   "w": 46,
+   "d": 31,
+   "h": 40.6,
+   "tris": 374,
+   "palette": [
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "tole",
+     "#9aa0a6"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ]
+   ]
+  },
+  {
+   "id": "moulin_vent",
+   "name": "Moulin à vent",
+   "cat": "industrie",
+   "cost": 900000,
+   "desc": "Moulin hollandais octogonal à calotte tournante et quatre ailes de toile.",
+   "source": "D'après les moulins de Kinderdijk (Pays-Bas)",
+   "region": "europe",
+   "era": "traditionnel",
+   "emplois": 2,
+   "logements": 0,
+   "visiteurs": 0,
+   "variantes": 2,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "meunier",
+     1
+    ]
+   ],
+   "role": "moulin",
+   "glb": "res://assets/modeles/bible/moulin_vent.glb",
+   "w": 16,
+   "d": 16,
+   "h": 27.2,
+   "tris": 100,
+   "survol": 1,
+   "palette": [
+    [
+     "brique",
+     "#a9583f"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "chaume",
+     "#c9a861"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "vert",
+     "#3f8f5a"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ]
+   ]
+  },
+  {
+   "id": "moulin_eau",
+   "name": "Moulin à eau",
+   "cat": "industrie",
+   "cost": 1000000,
+   "desc": "Moulin de pierre au bord du bief, grande roue à aubes.",
+   "source": "Moulins du Périgord et de Bourgogne",
+   "region": "europe",
+   "era": "traditionnel",
+   "emplois": 2,
+   "logements": 1,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "meunier",
+     1
+    ]
+   ],
+   "role": "moulin",
+   "glb": "res://assets/modeles/bible/moulin_eau.glb",
+   "w": 22,
+   "d": 20,
+   "h": 12.7,
+   "tris": 372,
+   "palette": [
+    [
+     "pierre",
+     "#b9b0a0"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "bois_rouge",
+     "#8e3b2e"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "tuile",
+     "#c8553d"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "eau",
+     "#3fa7d6"
+    ],
+    [
+     "bois",
+     "#8a6142"
+    ]
+   ]
+  },
+  {
+   "id": "chai",
+   "name": "Château viticole",
+   "cat": "industrie",
+   "cost": 6000000,
+   "desc": "Demeure bordelaise à tourelles, chai à barriques et cuverie.",
+   "source": "Châteaux du Médoc (Pichon-Baron, Cos d'Estournel)",
+   "region": "europe",
+   "era": "classique",
+   "emplois": 15,
+   "logements": 1,
+   "visiteurs": 80,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "agriculteur",
+     4
+    ],
+    [
+     "operateur",
+     1
+    ],
+    [
+     "vendeur",
+     1
+    ]
+   ],
+   "role": "ferme",
+   "zone": "I",
+   "glb": "res://assets/modeles/bible/chai.glb",
+   "w": 51,
+   "d": 38,
+   "h": 16.0,
+   "tris": 554,
+   "palette": [
+    [
+     "pierre",
+     "#b9b0a0"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "ardoise",
+     "#5b5f66"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "tuile",
+     "#c8553d"
+    ],
+    [
+     "zinc",
+     "#7e8890"
+    ]
+   ]
+  },
+  {
+   "id": "cave_cooperative",
+   "name": "Cave coopérative",
+   "cat": "industrie",
+   "cost": 3500000,
+   "desc": "Cave Art déco des années 1930 : grand fronton, cuves de béton et quai de réception.",
+   "source": "Caves coopératives du Languedoc (Vignerons de Tavel, Lézignan)",
+   "region": "mediterranee",
+   "era": "classique",
+   "emplois": 15,
+   "logements": 0,
+   "visiteurs": 60,
+   "variantes": 4,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "operateur",
+     2
+    ],
+    [
+     "agriculteur",
+     2
+    ],
+    [
+     "vendeur",
+     1
+    ]
+   ],
+   "role": "usine",
+   "zone": "I",
+   "glb": "res://assets/modeles/bible/cave_cooperative.glb",
+   "w": 33,
+   "d": 33,
+   "h": 12.0,
+   "tris": 210,
+   "palette": [
+    [
+     "enduit_rose",
+     "#e9c2b0"
+    ],
+    [
+     "enduit_blanc",
+     "#f4f2ec"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "bois_rouge",
+     "#8e3b2e"
+    ],
+    [
+     "tuile",
+     "#c8553d"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ]
+   ]
+  },
+  {
+   "id": "hangar_agricole",
+   "name": "Hangar agricole",
+   "cat": "industrie",
+   "cost": 250000,
+   "desc": "Hangar ouvert sur charpente métallique, tracteur et bottes de foin.",
+   "source": "Hangars de stockage des exploitations céréalières",
+   "region": "europe",
+   "era": "contemporain",
+   "emplois": 1,
+   "logements": 0,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "agriculteur",
+     1
+    ]
+   ],
+   "role": "ferme_cereales",
+   "zone": "I",
+   "sans_vitres": 1,
+   "glb": "res://assets/modeles/bible/hangar_agricole.glb",
+   "w": 34,
+   "d": 20,
+   "h": 8.1,
+   "tris": 284,
+   "palette": [
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "metal",
+     "#7d8288"
+    ],
+    [
+     "bardage",
+     "#a4aab0"
+    ],
+    [
+     "tole",
+     "#9aa0a6"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "chaume",
+     "#c9a861"
+    ],
+    [
+     "vert",
+     "#3f8f5a"
+    ],
+    [
+     "verre_nuit",
+     "#1d2d3c"
+    ],
+    [
+     "noir",
+     "#2a2b2e"
+    ]
+   ]
+  },
+  {
+   "id": "ferme_alpage",
+   "name": "Ferme d'alpage",
+   "cat": "industrie",
+   "cost": 700000,
+   "desc": "Chalet d'alpage bas et large, fromagerie et étable sous un toit de tavillons.",
+   "source": "Alpages de la Gruyère (Fribourg)",
+   "region": "europe",
+   "era": "traditionnel",
+   "emplois": 3,
+   "logements": 1,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "eleveur",
+     2
+    ],
+    [
+     "artisan",
+     1
+    ]
+   ],
+   "role": "elevage",
+   "zone": "I",
+   "glb": "res://assets/modeles/bible/ferme_alpage.glb",
+   "w": 28,
+   "d": 18,
+   "h": 8.7,
+   "tris": 80,
+   "palette": [
+    [
+     "pierre_grise",
+     "#9c988f"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "bois_clair",
+     "#c39a6b"
+    ],
+    [
+     "bois_gris",
+     "#8b8478"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ]
+   ]
+  },
+  {
+   "id": "rizerie_bali",
+   "name": "Grenier à riz",
+   "cat": "industrie",
+   "cost": 180000,
+   "desc": "Lumbung de bambou sur pilotis, toit de chaume en forme de selle.",
+   "source": "Greniers à riz (lumbung) de Bali et de Lombok",
+   "region": "asie_sud",
+   "era": "traditionnel",
+   "emplois": 2,
+   "logements": 0,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "agriculteur",
+     1
+    ]
+   ],
+   "role": "ferme_cereales",
+   "zone": "I",
+   "sans_vitres": 1,
+   "glb": "res://assets/modeles/bible/rizerie_bali.glb",
+   "w": 8,
+   "d": 8,
+   "h": 7.6,
+   "tris": 82,
+   "palette": [
+    [
+     "pierre_grise",
+     "#9c988f"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "bois",
+     "#8a6142"
+    ],
+    [
+     "chaume",
+     "#c9a861"
+    ]
+   ]
+  }
+ ]
+}

@@ -5,13 +5,15 @@ courants du monde entier, et branchés dans le catalogue de construction du jeu 
 catégorie). Chaque bâtiment a son prix, ses emplois et leurs métiers, ses logements ou ses visiteurs, sa
 région et son époque (les filtres du panneau), et plusieurs variantes de couleur.
 
-79 bâtiments à ce jour : 39 bâtiments publics, 40 résidences.
+123 bâtiments à ce jour : 39 bâtiments publics, 40 résidences, 23 industrie et énergie, 21 fermes et agriculture.
 
 ![Un quartier né du zonage avec le style « Bâtiments Blender »](bible-blender/jeu-zonage.jpg)
 
 ![Les bâtiments publics posés dans le jeu](bible-blender/jeu-publics.jpg)
 
 ![La nuit, les fenêtres des immeubles s'allument](bible-blender/jeu-nuit.jpg)
+
+![Fermes et serres un matin de brume](bible-blender/jeu-fermes.jpg)
 
 ## Comment ça marche
 
@@ -168,3 +170,65 @@ Maisons traditionnelles du monde, maisons et villas modernes, immeubles et tours
 | **Gratte-ciel résidentiel** — Tour de verre de 45 étages, couronnement lumineux. | Logement | 33 × 33 m, 173 m de haut | 160 M€ | 320 logements | Tours résidentielles new-yorkaises et de Dubaï (années 2010) |
 | **Immeuble en bois** — Immeuble de sept étages en bois, loggias et toiture végétalisée. | Logement | 31 × 18 m, 21,7 m de haut | 12 M€ | 42 logements | Immeubles bois-béton contemporains (Mjøstårnet, Bordeaux Hypérion) |
 | **Tour de Hong Kong** — Tour fine de quarante étages en croix, fenêtres serrées et climatiseurs. | Logement | 33 × 33 m, 116,6 m de haut | 70 M€ | 400 logements | Tours de logements publics de Hong Kong (Harmony, Concord) |
+
+## Industrie et énergie (23)
+
+Ateliers, usines, entrepôts, énergie, chantiers et infrastructures.
+
+![Industrie et énergie](bible-blender/planche-industrie.jpg)
+
+| Bâtiment | Catégorie | Emprise | Prix | Emplois / logements | D'après |
+| --- | --- | --- | --- | --- | --- |
+| **Atelier d'artisan** — Petit atelier en briques avec grande porte, logement à l'étage. | Industrie | 15 × 13 m, 9,8 m de haut | 450 k€ | 6 emplois | Ateliers de faubourg (Paris XIe, Lyon Croix-Rousse) |
+| **Menuiserie de village** — Hangar de bois, scie, tas de planches et cheminée d'aspiration. | Industrie | 28 × 26 m, 11,1 m de haut | 900 k€ | 8 emplois | Menuiseries et charpenteries de village |
+| **Scierie du Jura** — Grand hangar ouvert, grumes empilées, séchoir et silo à copeaux. | Industrie | 52 × 36 m, 13,3 m de haut | 2,6 M€ | 18 emplois | Scieries des Vosges et du Jura |
+| **Filature en briques** — Usine du XIXe s. à quatre étages, toits en sheds et grande cheminée. | Industrie | 72 × 49 m, 48 m de haut | 9 M€ | 180 emplois | Filatures de Roubaix et de Manchester (La Manufacture, Motte-Bossut) |
+| **Usine automobile** — Halls d'assemblage, atelier de peinture, parking des voitures neuves. | Industrie | 152 × 113 m, 30 m de haut | 120 M€ | 2500 emplois | Usines de Sochaux, de Wolfsburg et de Flins |
+| **Plateforme logistique** — Immense entrepôt de 200 × 80 m, trente quais et parking de semi-remorques. | Industrie | 202 × 118 m, 13,9 m de haut | 28 M€ | 300 emplois | Plateformes logistiques de la vallée du Rhône et du « Delta » de l'A1 |
+| **Brasserie** — Brasserie de briques, salle de brassage aux cuves de cuivre et tour du malt. | Industrie | 35 × 30 m, 30,6 m de haut | 8 M€ | 60 emplois | Brasseries Carlsberg (Copenhague) et Cardinal (Fribourg) |
+| **Haut fourneau** — Haut fourneau, cowpers, halle de coulée et convoyeurs de minerai. | Industrie | 122 × 92 m, 64 m de haut | 400 M€ | 1200 emplois | D'après le site de Belval (Esch-sur-Alzette) et le haut fourneau U4 d'Uckange |
+| **Raffinerie de pétrole** — Colonnes de distillation, torchère, réservoirs et passerelles de tuyaux. | Industrie | 162 × 145 m, 73 m de haut | 900 M€ | 800 emplois | Raffineries de Donges et de Fos-sur-Mer |
+| **Cimenterie** — Tour de préchauffage, four rotatif, silos à ciment et carrière de calcaire. | Industrie | 112 × 72 m, 90 m de haut | 180 M€ | 150 emplois | Cimenteries Holcim d'Eclépens et Vicat de Montalieu |
+| **Briqueterie** — Four Hoffmann allongé, séchoirs à claire-voie et haute cheminée carrée. | Industrie | 54 × 45 m, 42 m de haut | 6,5 M€ | 40 emplois | Briqueteries du Nord et de Ziegelei Hundisburg |
+| **Centrale thermique** — Salle des machines, chaudières, deux tours de refroidissement et cheminée de 200 m. | Industrie | 207 × 152 m, 200 m de haut | 1200 M€ | 400 emplois | Centrales de Bouchain, Cordemais et de Neurath |
+| **Centrale nucléaire** — Deux réacteurs sous dômes, salle des turbines et deux tours aéroréfrigérantes. | Industrie | 262 × 222 m, 165 m de haut | 9000 M€ | 1500 emplois | D'après la centrale de Gösgen (Soleure) et les centrales françaises de 1 300 MW |
+| **Usine hydroélectrique** — Usine au fil de l'eau : quatre turbines sous une halle Art déco, conduites forcées. | Industrie | 72 × 56 m, 31 m de haut | 60 M€ | 40 emplois | D'après l'usine hydroélectrique de Chancy-Pougny et les usines du Rhône |
+| **Éolienne** — Mât de 100 m, nacelle et trois pales de 60 m. | Industrie | 12 × 12 m, 159 m de haut | 3,2 M€ | 1 emplois | Éoliennes terrestres de 3 MW (Vestas V117, Enercon E-115) |
+| **Centrale solaire** — Champ de panneaux photovoltaïques sur 2 ha, onduleurs et clôture. | Industrie | 152 × 135 m, 3 m de haut | 25 M€ | 3 emplois | Parcs solaires au sol de la vallée du Rhône |
+| **Station d'épuration** — Bassins ronds de décantation, aération et bâtiment des boues. | Industrie | 112 × 82 m, 11,6 m de haut | 35 M€ | 25 emplois | Stations d'épuration municipales (Vidy à Lausanne, Achères) |
+| **Usine d'incinération** — Valorisation des déchets : fosse, chaudières, cheminée et façade de lames colorées. | Industrie | 72 × 43 m, 80,1 m de haut | 150 M€ | 90 emplois | D'après l'usine Tridel (Lausanne) et Amager Bakke (Copenhague) |
+| **Centre de données** — Hangar sans fenêtres, toit couvert de groupes froids, générateurs de secours. | Industrie | 92 × 72 m, 15,2 m de haut | 220 M€ | 60 emplois | Centres de données de Marcoussis et de la région de Francfort |
+| **Terminal à conteneurs** — Quai, portiques géants, piles de conteneurs colorés et bâtiment des douanes. | Industrie | 182 × 122 m, 42,5 m de haut | 350 M€ | 600 emplois | Ports du Havre, d'Anvers et de Rotterdam |
+| **Dépôt de bus** — Grande halle de remisage, atelier d'entretien et station de lavage. | Industrie | 102 × 72 m, 11,5 m de haut | 30 M€ | 200 emplois | Dépôts de bus de la RATP et des transports lausannois |
+| **Garage automobile** — Atelier de réparation avec trois portes, station de lavage et enseigne. | Industrie | 28 × 27 m, 7,6 m de haut | 1,2 M€ | 8 emplois | Garages de quartier |
+| **Hangar d'aviation** — Hangar voûté de 80 m d'ouverture pour la maintenance des avions. | Industrie | 97 × 63 m, 30,1 m de haut | 40 M€ | 150 emplois | Hangars d'Orly (Freyssinet, 1923) et de l'aéroport de Zurich |
+
+## Fermes et agriculture (21)
+
+Fermes, granges, étables, silos, serres, moulins et bâtiments agricoles.
+
+![Fermes et agriculture](bible-blender/planche-fermes.jpg)
+
+| Bâtiment | Catégorie | Emprise | Prix | Emplois / logements | D'après |
+| --- | --- | --- | --- | --- | --- |
+| **Ferme à cour carrée** — Logis, granges et étables de briques fermant une cour, porche d'entrée. | Industrie | 37 × 37 m, 9,2 m de haut | 1,6 M€ | 4 emplois, 1 logement | Fermes picardes et flamandes à cour fermée |
+| **Ferme jurassienne** — Grande ferme sous un seul toit très large, logis, étable et grange réunis. | Industrie | 28 × 24 m, 12 m de haut | 1,1 M€ | 3 emplois, 1 logement | Fermes du Jura suisse et du Haut-Doubs (tuyé) |
+| **Ferme bavaroise** — Einhof alpin : logis blanc à balcons fleuris, grange de bois dans le prolongement. | Industrie | 18 × 33 m, 8,6 m de haut | 1,3 M€ | 3 emplois, 1 logement | Fermes de Haute-Bavière et du Tyrol |
+| **Cortijo andalou** — Ferme blanchie autour d'un patio, tour de guet et tuiles canal. | Industrie | 31 × 31 m, 10,7 m de haut | 1,4 M€ | 4 emplois, 1 logement | Cortijos de la campagne de Séville et de Cordoue |
+| **Hacienda** — Maison de maître à arcades, chapelle et dépendances autour d'une grande cour. | Industrie | 40 × 32 m, 12,7 m de haut | 2 M€ | 10 emplois, 2 logements | Haciendas du Yucatán et du centre du Mexique |
+| **Grange américaine** — Grande grange rouge à toit gambrel, portes à croix blanches et silo. | Industrie | 23 × 27 m, 17,3 m de haut | 600 k€ | 2 emplois | Granges du Midwest et du Wisconsin |
+| **Stabulation laitière** — Stabulation libre de 120 vaches, côtés ouverts à filets brise-vent, fosse à lisier. | Industrie | 93 × 34 m, 13 m de haut | 1,8 M€ | 4 emplois | Exploitations laitières de Normandie et de Bretagne |
+| **Bergerie** — Bergerie de pierre sèche à toit de lauzes et enclos. | Industrie | 27 × 23 m, 6,6 m de haut | 450 k€ | 2 emplois | Bergeries des Causses et du Larzac |
+| **Poulailler industriel** — Long bâtiment avicole de 100 m, ventilateurs en pignon et silos d'aliment. | Industrie | 109 × 17 m, 7,8 m de haut | 900 k€ | 2 emplois | Poulaillers label de Bretagne et des Landes |
+| **Porcherie** — Deux bâtiments d'engraissement, cheminées d'aération et fosse couverte. | Industrie | 75 × 33 m, 5,8 m de haut | 1,1 M€ | 3 emplois | Élevages porcins de Bretagne et du Danemark |
+| **Haras** — Écuries de pierre en U, horloge, manège couvert et carrière de sable. | Industrie | 88 × 43 m, 10,7 m de haut | 3,2 M€ | 12 emplois | Haras national du Pin (Orne) et de Haras de Cluny |
+| **Serres tunnels** — Six tunnels maraîchers en plastique sur arceaux. | Industrie | 55 × 42 m, 3,8 m de haut | 300 k€ | 4 emplois | Maraîchage sous abri (Bretagne, Provence) |
+| **Serre de verre** — Serre Venlo de 1 ha pour tomates : toits de verre en dents de scie. | Industrie | 112 × 79 m, 12 m de haut | 4,5 M€ | 20 emplois | Serres horticoles du Westland (Pays-Bas) |
+| **Silos à grains** — Batterie de silos de béton, tour d'élévation et hangar de réception. | Industrie | 46 × 31 m, 40,6 m de haut | 3,8 M€ | 8 emplois | Silos de coopératives agricoles de Beauce et de la Brie |
+| **Moulin à vent** — Moulin hollandais octogonal à calotte tournante et quatre ailes de toile. | Industrie | 16 × 16 m, 27,2 m de haut | 900 k€ | 2 emplois | D'après les moulins de Kinderdijk (Pays-Bas) |
+| **Moulin à eau** — Moulin de pierre au bord du bief, grande roue à aubes. | Industrie | 22 × 20 m, 12,7 m de haut | 1 M€ | 2 emplois, 1 logement | Moulins du Périgord et de Bourgogne |
+| **Château viticole** — Demeure bordelaise à tourelles, chai à barriques et cuverie. | Industrie | 51 × 38 m, 16 m de haut | 6 M€ | 15 emplois, 1 logement | Châteaux du Médoc (Pichon-Baron, Cos d'Estournel) |
+| **Cave coopérative** — Cave Art déco des années 1930 : grand fronton, cuves de béton et quai de réception. | Industrie | 33 × 33 m, 12 m de haut | 3,5 M€ | 15 emplois | Caves coopératives du Languedoc (Vignerons de Tavel, Lézignan) |
+| **Hangar agricole** — Hangar ouvert sur charpente métallique, tracteur et bottes de foin. | Industrie | 34 × 20 m, 8,1 m de haut | 250 k€ | 1 emplois | Hangars de stockage des exploitations céréalières |
+| **Ferme d'alpage** — Chalet d'alpage bas et large, fromagerie et étable sous un toit de tavillons. | Industrie | 28 × 18 m, 8,7 m de haut | 700 k€ | 3 emplois, 1 logement | Alpages de la Gruyère (Fribourg) |
+| **Grenier à riz** — Lumbung de bambou sur pilotis, toit de chaume en forme de selle. | Industrie | 8 × 8 m, 7,6 m de haut | 180 k€ | 2 emplois | Greniers à riz (lumbung) de Bali et de Lombok |

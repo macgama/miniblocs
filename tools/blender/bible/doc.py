@@ -36,6 +36,8 @@ région et son époque (les filtres du panneau), et plusieurs variantes de coule
 
 ![La nuit, les fenêtres des immeubles s'allument](bible-blender/jeu-nuit.jpg)
 
+![Fermes et serres un matin de brume](bible-blender/jeu-fermes.jpg)
+
 ## Comment ça marche
 
 1. **Blender, sans interface** : `tools/blender/bible/generer.py` construit chaque bâtiment avec le kit

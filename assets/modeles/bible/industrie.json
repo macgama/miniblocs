@@ -1,0 +1,1683 @@
+{
+ "famille": "industrie",
+ "batiments": [
+  {
+   "id": "atelier_artisan",
+   "name": "Atelier d'artisan",
+   "cat": "industrie",
+   "cost": 450000,
+   "desc": "Petit atelier en briques avec grande porte, logement à l'étage.",
+   "source": "Ateliers de faubourg (Paris XIe, Lyon Croix-Rousse)",
+   "region": "europe",
+   "era": "classique",
+   "emplois": 6,
+   "logements": 0,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "artisan",
+     4
+    ],
+    [
+     "vendeur",
+     1
+    ]
+   ],
+   "role": "atelier",
+   "zone": "I",
+   "glb": "res://assets/modeles/bible/atelier_artisan.glb",
+   "w": 15,
+   "d": 13,
+   "h": 9.8,
+   "tris": 178,
+   "palette": [
+    [
+     "pierre_grise",
+     "#9c988f"
+    ],
+    [
+     "brique",
+     "#a9583f"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "jaune",
+     "#f2c14e"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "vert",
+     "#3f8f5a"
+    ],
+    [
+     "pierre",
+     "#b9b0a0"
+    ],
+    [
+     "tuile",
+     "#c8553d"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ]
+   ]
+  },
+  {
+   "id": "menuiserie_village",
+   "name": "Menuiserie de village",
+   "cat": "industrie",
+   "cost": 900000,
+   "desc": "Hangar de bois, scie, tas de planches et cheminée d'aspiration.",
+   "source": "Menuiseries et charpenteries de village",
+   "region": "europe",
+   "era": "moderne",
+   "emplois": 8,
+   "logements": 0,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "menuisier",
+     3
+    ],
+    [
+     "ouvrier",
+     1
+    ]
+   ],
+   "role": "menuiserie",
+   "zone": "I",
+   "glb": "res://assets/modeles/bible/menuiserie_village.glb",
+   "w": 28,
+   "d": 26,
+   "h": 11.1,
+   "tris": 142,
+   "palette": [
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "bois",
+     "#8a6142"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "verre_ciel",
+     "#6d97b8"
+    ],
+    [
+     "jaune",
+     "#f2c14e"
+    ],
+    [
+     "tole",
+     "#9aa0a6"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "zinc",
+     "#7e8890"
+    ],
+    [
+     "bois_clair",
+     "#c39a6b"
+    ]
+   ]
+  },
+  {
+   "id": "scierie_jura",
+   "name": "Scierie du Jura",
+   "cat": "industrie",
+   "cost": 2600000,
+   "desc": "Grand hangar ouvert, grumes empilées, séchoir et silo à copeaux.",
+   "source": "Scieries des Vosges et du Jura",
+   "region": "europe",
+   "era": "moderne",
+   "emplois": 18,
+   "logements": 0,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "ouvrier",
+     3
+    ],
+    [
+     "conducteur_engins",
+     1
+    ],
+    [
+     "bucheron",
+     1
+    ]
+   ],
+   "role": "scierie",
+   "zone": "I",
+   "glb": "res://assets/modeles/bible/scierie_jura.glb",
+   "w": 52,
+   "d": 36,
+   "h": 13.3,
+   "tris": 366,
+   "palette": [
+    [
+     "terre",
+     "#b9825a"
+    ],
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "metal",
+     "#7d8288"
+    ],
+    [
+     "tole",
+     "#9aa0a6"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "bardage_vert",
+     "#5d7d5a"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "verre_ciel",
+     "#6d97b8"
+    ],
+    [
+     "zinc",
+     "#7e8890"
+    ],
+    [
+     "bois",
+     "#8a6142"
+    ]
+   ]
+  },
+  {
+   "id": "usine_textile",
+   "name": "Filature en briques",
+   "cat": "industrie",
+   "cost": 9000000,
+   "desc": "Usine du XIXe s. à quatre étages, toits en sheds et grande cheminée.",
+   "source": "Filatures de Roubaix et de Manchester (La Manufacture, Motte-Bossut)",
+   "region": "europe",
+   "era": "classique",
+   "emplois": 180,
+   "logements": 0,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "ouvrier",
+     7
+    ],
+    [
+     "ingenieur",
+     1
+    ],
+    [
+     "magasinier",
+     1
+    ],
+    [
+     "cadre",
+     1
+    ]
+   ],
+   "role": "usine",
+   "zone": "I",
+   "glb": "res://assets/modeles/bible/usine_textile.glb",
+   "w": 72,
+   "d": 49,
+   "h": 48.0,
+   "tris": 2102,
+   "palette": [
+    [
+     "brique",
+     "#a9583f"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "ardoise",
+     "#5b5f66"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "verre_ciel",
+     "#6d97b8"
+    ],
+    [
+     "brique_sombre",
+     "#7e3b2c"
+    ]
+   ]
+  },
+  {
+   "id": "usine_automobile",
+   "name": "Usine automobile",
+   "cat": "industrie",
+   "cost": 120000000,
+   "desc": "Halls d'assemblage, atelier de peinture, parking des voitures neuves.",
+   "source": "Usines de Sochaux, de Wolfsburg et de Flins",
+   "region": "europe",
+   "era": "moderne",
+   "emplois": 2500,
+   "logements": 0,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "ouvrier",
+     7
+    ],
+    [
+     "ingenieur",
+     2
+    ],
+    [
+     "magasinier",
+     1
+    ],
+    [
+     "cadre",
+     1
+    ]
+   ],
+   "role": "usine",
+   "zone": "I",
+   "glb": "res://assets/modeles/bible/usine_automobile.glb",
+   "w": 152,
+   "d": 113,
+   "h": 30.0,
+   "tris": 422,
+   "palette": [
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "bardage",
+     "#a4aab0"
+    ],
+    [
+     "tole",
+     "#9aa0a6"
+    ],
+    [
+     "verre_ciel",
+     "#6d97b8"
+    ],
+    [
+     "bardage_bleu",
+     "#4f6f91"
+    ],
+    [
+     "verre_bleu",
+     "#4f6d8f"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "verre_nuit",
+     "#1d2d3c"
+    ],
+    [
+     "beton_sombre",
+     "#8c8a85"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "asphalte",
+     "#55585e"
+    ],
+    [
+     "rouge",
+     "#c0392b"
+    ],
+    [
+     "bleu",
+     "#2a6fdb"
+    ],
+    [
+     "noir",
+     "#2a2b2e"
+    ]
+   ]
+  },
+  {
+   "id": "entrepot_logistique",
+   "name": "Plateforme logistique",
+   "cat": "industrie",
+   "cost": 28000000,
+   "desc": "Immense entrepôt de 200 × 80 m, trente quais et parking de semi-remorques.",
+   "source": "Plateformes logistiques de la vallée du Rhône et du « Delta » de l'A1",
+   "region": "europe",
+   "era": "contemporain",
+   "emplois": 300,
+   "logements": 0,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "magasinier",
+     6
+    ],
+    [
+     "chauffeur",
+     4
+    ]
+   ],
+   "role": "entrepot",
+   "zone": "I",
+   "glb": "res://assets/modeles/bible/entrepot_logistique.glb",
+   "w": 202,
+   "d": 118,
+   "h": 13.9,
+   "tris": 334,
+   "palette": [
+    [
+     "asphalte",
+     "#55585e"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "bardage_bleu",
+     "#4f6f91"
+    ],
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "noir",
+     "#2a2b2e"
+    ],
+    [
+     "tole",
+     "#9aa0a6"
+    ],
+    [
+     "verre_bleu",
+     "#4f6d8f"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "verre_nuit",
+     "#1d2d3c"
+    ],
+    [
+     "beton_sombre",
+     "#8c8a85"
+    ]
+   ]
+  },
+  {
+   "id": "brasserie",
+   "name": "Brasserie",
+   "cat": "industrie",
+   "cost": 8000000,
+   "desc": "Brasserie de briques, salle de brassage aux cuves de cuivre et tour du malt.",
+   "source": "Brasseries Carlsberg (Copenhague) et Cardinal (Fribourg)",
+   "region": "europe",
+   "era": "classique",
+   "emplois": 60,
+   "logements": 0,
+   "visiteurs": 80,
+   "variantes": 4,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "operateur",
+     3
+    ],
+    [
+     "ouvrier",
+     3
+    ],
+    [
+     "magasinier",
+     1
+    ],
+    [
+     "vendeur",
+     1
+    ]
+   ],
+   "role": "usine",
+   "zone": "I",
+   "glb": "res://assets/modeles/bible/brasserie.glb",
+   "w": 35,
+   "d": 30,
+   "h": 30.6,
+   "tris": 1124,
+   "palette": [
+    [
+     "brique_claire",
+     "#c87f5d"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "ardoise",
+     "#5b5f66"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "cuivre",
+     "#5f9e8a"
+    ],
+    [
+     "zinc",
+     "#7e8890"
+    ],
+    [
+     "brique_sombre",
+     "#7e3b2c"
+    ]
+   ]
+  },
+  {
+   "id": "haut_fourneau",
+   "name": "Haut fourneau",
+   "cat": "industrie",
+   "cost": 400000000,
+   "desc": "Haut fourneau, cowpers, halle de coulée et convoyeurs de minerai.",
+   "source": "D'après le site de Belval (Esch-sur-Alzette) et le haut fourneau U4 d'Uckange",
+   "region": "europe",
+   "era": "moderne",
+   "emplois": 1200,
+   "logements": 0,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "siderurgiste",
+     6
+    ],
+    [
+     "ouvrier",
+     2
+    ],
+    [
+     "ingenieur",
+     1
+    ]
+   ],
+   "role": "acierie",
+   "zone": "I",
+   "sans_vitres": 1,
+   "glb": "res://assets/modeles/bible/haut_fourneau.glb",
+   "w": 122,
+   "d": 92,
+   "h": 64.0,
+   "tris": 444,
+   "palette": [
+    [
+     "beton_sombre",
+     "#8c8a85"
+    ],
+    [
+     "rouge",
+     "#c0392b"
+    ],
+    [
+     "tole_rouge",
+     "#8f3a33"
+    ],
+    [
+     "metal",
+     "#7d8288"
+    ],
+    [
+     "tole",
+     "#9aa0a6"
+    ],
+    [
+     "bardage",
+     "#a4aab0"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "noir",
+     "#2a2b2e"
+    ]
+   ]
+  },
+  {
+   "id": "raffinerie_petrole",
+   "name": "Raffinerie de pétrole",
+   "cat": "industrie",
+   "cost": 900000000,
+   "desc": "Colonnes de distillation, torchère, réservoirs et passerelles de tuyaux.",
+   "source": "Raffineries de Donges et de Fos-sur-Mer",
+   "region": "europe",
+   "era": "moderne",
+   "emplois": 800,
+   "logements": 0,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "operateur",
+     4
+    ],
+    [
+     "ingenieur",
+     1
+    ]
+   ],
+   "role": "raffinerie",
+   "zone": "I",
+   "glb": "res://assets/modeles/bible/raffinerie_petrole.glb",
+   "w": 162,
+   "d": 145,
+   "h": 73.0,
+   "tris": 1634,
+   "palette": [
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "metal",
+     "#7d8288"
+    ],
+    [
+     "jaune",
+     "#f2c14e"
+    ],
+    [
+     "rouge",
+     "#c0392b"
+    ],
+    [
+     "orange",
+     "#e4772e"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "verre_ciel",
+     "#6d97b8"
+    ],
+    [
+     "verre_nuit",
+     "#1d2d3c"
+    ],
+    [
+     "beton_sombre",
+     "#8c8a85"
+    ]
+   ]
+  },
+  {
+   "id": "cimenterie_four",
+   "name": "Cimenterie",
+   "cat": "industrie",
+   "cost": 180000000,
+   "desc": "Tour de préchauffage, four rotatif, silos à ciment et carrière de calcaire.",
+   "source": "Cimenteries Holcim d'Eclépens et Vicat de Montalieu",
+   "region": "europe",
+   "era": "moderne",
+   "emplois": 150,
+   "logements": 0,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "operateur",
+     2
+    ],
+    [
+     "ouvrier",
+     2
+    ]
+   ],
+   "role": "cimenterie",
+   "zone": "I",
+   "sans_vitres": 1,
+   "glb": "res://assets/modeles/bible/cimenterie_four.glb",
+   "w": 112,
+   "d": 72,
+   "h": 90.0,
+   "tris": 1584,
+   "palette": [
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "metal",
+     "#7d8288"
+    ],
+    [
+     "tole",
+     "#9aa0a6"
+    ],
+    [
+     "beton_sombre",
+     "#8c8a85"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "rouge",
+     "#c0392b"
+    ]
+   ]
+  },
+  {
+   "id": "briqueterie_hoffmann",
+   "name": "Briqueterie",
+   "cat": "industrie",
+   "cost": 6500000,
+   "desc": "Four Hoffmann allongé, séchoirs à claire-voie et haute cheminée carrée.",
+   "source": "Briqueteries du Nord et de Ziegelei Hundisburg",
+   "region": "europe",
+   "era": "classique",
+   "emplois": 40,
+   "logements": 0,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "ouvrier",
+     3
+    ],
+    [
+     "operateur",
+     1
+    ]
+   ],
+   "role": "briqueterie",
+   "zone": "I",
+   "sans_vitres": 1,
+   "glb": "res://assets/modeles/bible/briqueterie_hoffmann.glb",
+   "w": 54,
+   "d": 45,
+   "h": 42.0,
+   "tris": 202,
+   "palette": [
+    [
+     "brique",
+     "#a9583f"
+    ],
+    [
+     "tuile",
+     "#c8553d"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "brique_sombre",
+     "#7e3b2c"
+    ],
+    [
+     "noir",
+     "#2a2b2e"
+    ],
+    [
+     "bois_gris",
+     "#8b8478"
+    ]
+   ]
+  },
+  {
+   "id": "centrale_charbon",
+   "name": "Centrale thermique",
+   "cat": "industrie",
+   "cost": 1200000000,
+   "desc": "Salle des machines, chaudières, deux tours de refroidissement et cheminée de 200 m.",
+   "source": "Centrales de Bouchain, Cordemais et de Neurath",
+   "region": "europe",
+   "era": "moderne",
+   "emplois": 400,
+   "logements": 0,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "operateur",
+     4
+    ],
+    [
+     "ingenieur",
+     2
+    ],
+    [
+     "ouvrier",
+     1
+    ]
+   ],
+   "role": "usine",
+   "zone": "I",
+   "glb": "res://assets/modeles/bible/centrale_charbon.glb",
+   "w": 207,
+   "d": 152,
+   "h": 200.0,
+   "tris": 464,
+   "palette": [
+    [
+     "beton_sombre",
+     "#8c8a85"
+    ],
+    [
+     "bardage",
+     "#a4aab0"
+    ],
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "tole",
+     "#9aa0a6"
+    ],
+    [
+     "bardage_bleu",
+     "#4f6f91"
+    ],
+    [
+     "rouge",
+     "#c0392b"
+    ],
+    [
+     "noir",
+     "#2a2b2e"
+    ]
+   ]
+  },
+  {
+   "id": "centrale_nucleaire",
+   "name": "Centrale nucléaire",
+   "cat": "industrie",
+   "cost": 9000000000,
+   "desc": "Deux réacteurs sous dômes, salle des turbines et deux tours aéroréfrigérantes.",
+   "source": "D'après la centrale de Gösgen (Soleure) et les centrales françaises de 1 300 MW",
+   "region": "europe",
+   "era": "moderne",
+   "emplois": 1500,
+   "logements": 0,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "ingenieur",
+     3
+    ],
+    [
+     "operateur",
+     4
+    ],
+    [
+     "agent_public",
+     1
+    ]
+   ],
+   "role": "usine",
+   "zone": "I",
+   "glb": "res://assets/modeles/bible/centrale_nucleaire.glb",
+   "w": 262,
+   "d": 222,
+   "h": 165.0,
+   "tris": 908,
+   "palette": [
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "bardage_bleu",
+     "#4f6f91"
+    ],
+    [
+     "verre_ciel",
+     "#6d97b8"
+    ],
+    [
+     "tole",
+     "#9aa0a6"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "verre_nuit",
+     "#1d2d3c"
+    ],
+    [
+     "beton_sombre",
+     "#8c8a85"
+    ]
+   ]
+  },
+  {
+   "id": "barrage_usine",
+   "name": "Usine hydroélectrique",
+   "cat": "industrie",
+   "cost": 60000000,
+   "desc": "Usine au fil de l'eau : quatre turbines sous une halle Art déco, conduites forcées.",
+   "source": "D'après l'usine hydroélectrique de Chancy-Pougny et les usines du Rhône",
+   "region": "europe",
+   "era": "classique",
+   "emplois": 40,
+   "logements": 0,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "operateur",
+     2
+    ],
+    [
+     "ingenieur",
+     1
+    ]
+   ],
+   "role": "usine",
+   "zone": "I",
+   "glb": "res://assets/modeles/bible/barrage_usine.glb",
+   "w": 72,
+   "d": 56,
+   "h": 31.0,
+   "tris": 254,
+   "palette": [
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "verre_ciel",
+     "#6d97b8"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "cuivre",
+     "#5f9e8a"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "metal",
+     "#7d8288"
+    ],
+    [
+     "beton_sombre",
+     "#8c8a85"
+    ]
+   ]
+  },
+  {
+   "id": "eolienne",
+   "name": "Éolienne",
+   "cat": "industrie",
+   "cost": 3200000,
+   "desc": "Mât de 100 m, nacelle et trois pales de 60 m.",
+   "source": "Éoliennes terrestres de 3 MW (Vestas V117, Enercon E-115)",
+   "region": "europe",
+   "era": "contemporain",
+   "emplois": 1,
+   "logements": 0,
+   "visiteurs": 0,
+   "variantes": 1,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "ingenieur",
+     1
+    ]
+   ],
+   "role": "usine",
+   "sans_vitres": 1,
+   "glb": "res://assets/modeles/bible/eolienne.glb",
+   "w": 12,
+   "d": 12,
+   "h": 159.0,
+   "tris": 78,
+   "survol": 1,
+   "palette": [
+    [
+     "blanc",
+     "#f7f7f5"
+    ]
+   ]
+  },
+  {
+   "id": "centrale_solaire",
+   "name": "Centrale solaire",
+   "cat": "industrie",
+   "cost": 25000000,
+   "desc": "Champ de panneaux photovoltaïques sur 2 ha, onduleurs et clôture.",
+   "source": "Parcs solaires au sol de la vallée du Rhône",
+   "region": "europe",
+   "era": "contemporain",
+   "emplois": 3,
+   "logements": 0,
+   "visiteurs": 0,
+   "variantes": 1,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "ingenieur",
+     1
+    ],
+    [
+     "ouvrier",
+     1
+    ]
+   ],
+   "role": "usine",
+   "glb": "res://assets/modeles/bible/centrale_solaire.glb",
+   "w": 152,
+   "d": 135,
+   "h": 3.0,
+   "tris": 240,
+   "palette": [
+    [
+     "pelouse",
+     "#6aa84f"
+    ],
+    [
+     "verre_nuit",
+     "#1d2d3c"
+    ],
+    [
+     "metal",
+     "#7d8288"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ]
+   ]
+  },
+  {
+   "id": "station_epuration",
+   "name": "Station d'épuration",
+   "cat": "industrie",
+   "cost": 35000000,
+   "desc": "Bassins ronds de décantation, aération et bâtiment des boues.",
+   "source": "Stations d'épuration municipales (Vidy à Lausanne, Achères)",
+   "region": "europe",
+   "era": "moderne",
+   "emplois": 25,
+   "logements": 0,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "operateur",
+     2
+    ],
+    [
+     "agent_public",
+     1
+    ]
+   ],
+   "role": "usine",
+   "zone": "I",
+   "glb": "res://assets/modeles/bible/station_epuration.glb",
+   "w": 112,
+   "d": 82,
+   "h": 11.6,
+   "tris": 702,
+   "palette": [
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "terre",
+     "#b9825a"
+    ],
+    [
+     "metal",
+     "#7d8288"
+    ],
+    [
+     "eau",
+     "#3fa7d6"
+    ],
+    [
+     "beton_sombre",
+     "#8c8a85"
+    ],
+    [
+     "bardage_vert",
+     "#5d7d5a"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "verre_ciel",
+     "#6d97b8"
+    ],
+    [
+     "tole",
+     "#9aa0a6"
+    ],
+    [
+     "tole_verte",
+     "#4f6b52"
+    ],
+    [
+     "zinc",
+     "#7e8890"
+    ]
+   ]
+  },
+  {
+   "id": "incinerateur",
+   "name": "Usine d'incinération",
+   "cat": "industrie",
+   "cost": 150000000,
+   "desc": "Valorisation des déchets : fosse, chaudières, cheminée et façade de lames colorées.",
+   "source": "D'après l'usine Tridel (Lausanne) et Amager Bakke (Copenhague)",
+   "region": "europe",
+   "era": "contemporain",
+   "emplois": 90,
+   "logements": 0,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "operateur",
+     4
+    ],
+    [
+     "chauffeur",
+     2
+    ],
+    [
+     "ingenieur",
+     1
+    ]
+   ],
+   "role": "usine",
+   "zone": "I",
+   "glb": "res://assets/modeles/bible/incinerateur.glb",
+   "w": 72,
+   "d": 43,
+   "h": 80.1,
+   "tris": 208,
+   "palette": [
+    [
+     "bardage",
+     "#a4aab0"
+    ],
+    [
+     "tole",
+     "#9aa0a6"
+    ],
+    [
+     "bardage_bleu",
+     "#4f6f91"
+    ],
+    [
+     "bardage_vert",
+     "#5d7d5a"
+    ],
+    [
+     "orange",
+     "#e4772e"
+    ],
+    [
+     "jaune",
+     "#f2c14e"
+    ],
+    [
+     "metal",
+     "#7d8288"
+    ]
+   ]
+  },
+  {
+   "id": "data_center",
+   "name": "Centre de données",
+   "cat": "industrie",
+   "cost": 220000000,
+   "desc": "Hangar sans fenêtres, toit couvert de groupes froids, générateurs de secours.",
+   "source": "Centres de données de Marcoussis et de la région de Francfort",
+   "region": "europe",
+   "era": "contemporain",
+   "emplois": 60,
+   "logements": 0,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "ingenieur",
+     3
+    ],
+    [
+     "employe",
+     1
+    ],
+    [
+     "magasinier",
+     1
+    ]
+   ],
+   "role": "usine",
+   "zone": "I",
+   "glb": "res://assets/modeles/bible/data_center.glb",
+   "w": 92,
+   "d": 72,
+   "h": 15.2,
+   "tris": 316,
+   "palette": [
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "bardage",
+     "#a4aab0"
+    ],
+    [
+     "verre_bleu",
+     "#4f6d8f"
+    ],
+    [
+     "noir",
+     "#2a2b2e"
+    ],
+    [
+     "metal",
+     "#7d8288"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "verre_nuit",
+     "#1d2d3c"
+    ]
+   ]
+  },
+  {
+   "id": "terminal_conteneurs",
+   "name": "Terminal à conteneurs",
+   "cat": "industrie",
+   "cost": 350000000,
+   "desc": "Quai, portiques géants, piles de conteneurs colorés et bâtiment des douanes.",
+   "source": "Ports du Havre, d'Anvers et de Rotterdam",
+   "region": "europe",
+   "era": "contemporain",
+   "emplois": 600,
+   "logements": 0,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "magasinier",
+     4
+    ],
+    [
+     "conducteur_engins",
+     4
+    ],
+    [
+     "chauffeur",
+     2
+    ],
+    [
+     "cadre",
+     1
+    ]
+   ],
+   "role": "entrepot",
+   "zone": "I",
+   "glb": "res://assets/modeles/bible/terminal_conteneurs.glb",
+   "w": 182,
+   "d": 122,
+   "h": 42.5,
+   "tris": 838,
+   "palette": [
+    [
+     "asphalte",
+     "#55585e"
+    ],
+    [
+     "rouge",
+     "#c0392b"
+    ],
+    [
+     "orange",
+     "#e4772e"
+    ],
+    [
+     "jaune",
+     "#f2c14e"
+    ],
+    [
+     "vert",
+     "#3f8f5a"
+    ],
+    [
+     "bleu",
+     "#2a6fdb"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "bardage_rouge",
+     "#a2423a"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "verre_ciel",
+     "#6d97b8"
+    ],
+    [
+     "verre_nuit",
+     "#1d2d3c"
+    ],
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "beton_sombre",
+     "#8c8a85"
+    ]
+   ]
+  },
+  {
+   "id": "depot_bus",
+   "name": "Dépôt de bus",
+   "cat": "industrie",
+   "cost": 30000000,
+   "desc": "Grande halle de remisage, atelier d'entretien et station de lavage.",
+   "source": "Dépôts de bus de la RATP et des transports lausannois",
+   "region": "europe",
+   "era": "contemporain",
+   "emplois": 200,
+   "logements": 0,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "chauffeur",
+     6
+    ],
+    [
+     "artisan",
+     2
+    ],
+    [
+     "cadre",
+     1
+    ]
+   ],
+   "role": "entrepot",
+   "zone": "I",
+   "glb": "res://assets/modeles/bible/depot_bus.glb",
+   "w": 102,
+   "d": 72,
+   "h": 11.5,
+   "tris": 254,
+   "palette": [
+    [
+     "asphalte",
+     "#55585e"
+    ],
+    [
+     "bardage_bleu",
+     "#4f6f91"
+    ],
+    [
+     "tole",
+     "#9aa0a6"
+    ],
+    [
+     "jaune",
+     "#f2c14e"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "verre_ciel",
+     "#6d97b8"
+    ],
+    [
+     "verre_nuit",
+     "#1d2d3c"
+    ],
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "beton_sombre",
+     "#8c8a85"
+    ],
+    [
+     "vert",
+     "#3f8f5a"
+    ]
+   ]
+  },
+  {
+   "id": "garage_auto",
+   "name": "Garage automobile",
+   "cat": "industrie",
+   "cost": 1200000,
+   "desc": "Atelier de réparation avec trois portes, station de lavage et enseigne.",
+   "source": "Garages de quartier",
+   "region": "europe",
+   "era": "moderne",
+   "emplois": 8,
+   "logements": 0,
+   "visiteurs": 40,
+   "variantes": 4,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "artisan",
+     4
+    ],
+    [
+     "vendeur",
+     1
+    ]
+   ],
+   "role": "atelier",
+   "zone": "I",
+   "glb": "res://assets/modeles/bible/garage_auto.glb",
+   "w": 28,
+   "d": 27,
+   "h": 7.6,
+   "tris": 122,
+   "palette": [
+    [
+     "asphalte",
+     "#55585e"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "rouge",
+     "#c0392b"
+    ],
+    [
+     "tole",
+     "#9aa0a6"
+    ],
+    [
+     "verre_bleu",
+     "#4f6d8f"
+    ],
+    [
+     "metal",
+     "#7d8288"
+    ],
+    [
+     "bleu",
+     "#2a6fdb"
+    ]
+   ]
+  },
+  {
+   "id": "hangar_avions",
+   "name": "Hangar d'aviation",
+   "cat": "industrie",
+   "cost": 40000000,
+   "desc": "Hangar voûté de 80 m d'ouverture pour la maintenance des avions.",
+   "source": "Hangars d'Orly (Freyssinet, 1923) et de l'aéroport de Zurich",
+   "region": "europe",
+   "era": "classique",
+   "emplois": 150,
+   "logements": 0,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "ingenieur",
+     3
+    ],
+    [
+     "artisan",
+     4
+    ],
+    [
+     "magasinier",
+     1
+    ]
+   ],
+   "role": "atelier",
+   "zone": "I",
+   "glb": "res://assets/modeles/bible/hangar_avions.glb",
+   "w": 97,
+   "d": 63,
+   "h": 30.1,
+   "tris": 170,
+   "palette": [
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "metal",
+     "#7d8288"
+    ],
+    [
+     "verre_ciel",
+     "#6d97b8"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "verre_nuit",
+     "#1d2d3c"
+    ],
+    [
+     "beton_sombre",
+     "#8c8a85"
+    ]
+   ]
+  }
+ ]
+}

@@ -669,6 +669,50 @@ class Kit:
                 y = cy - P / 2 + 0.3 + j * (P - 0.6) / max(ny_ - 1, 1)
                 self.boite(x, y, 0, r * 2, r * 2, h, c)
 
+    def toit_profil(self, cx, cy, z, longueur, profil, c, axe="x", bouts=None):
+        """Toit extrudé d'après un profil [(b, h), …] (b en travers du faîtage,
+        de -l/2 à +l/2 ; h au-dessus de z) : toit à la Mansart américain
+        (gambrel), arrondi, à redans… Les bouts prennent la couleur `bouts`."""
+        m = self._map(cx, cy, axe)
+        hl = longueur / 2
+        ref = m(0, 0, z)
+        for (ba, ha), (bb, hb) in zip(profil, profil[1:]):
+            self.f([m(-hl, ba, z + ha), m(hl, ba, z + ha), m(hl, bb, z + hb), m(-hl, bb, z + hb)], c, ref)
+        for s in (-1, 1):
+            self.f([m(s * hl, b, z + h) for b, h in profil], bouts or c, vers=_sub(m(s, 0, 0), m(0, 0, 0)))
+
+    def pales(self, x, y, z, r, n, c, angle0=0.0, largeur=None, plan="xz"):
+        """Pales (éolienne, moulin) dans le plan vertical face à -Y, autour de (x, y, z)."""
+        larg = largeur or r * 0.08
+        for i in range(n):
+            a = angle0 + 2 * math.pi * i / n
+            dx, dz = math.cos(a), math.sin(a)
+            px, pz = -dz, dx
+            pts = [(x + px * larg * 0.5, y, z + pz * larg * 0.5), (x + dx * r + px * larg * 0.5, y, z + dz * r + pz * larg * 0.5),
+                   (x + dx * r - px * larg * 0.5, y, z + dz * r - pz * larg * 0.5), (x - px * larg * 0.5, y, z - pz * larg * 0.5)]
+            self.f(pts, c, vers=(0, -1, 0))
+            self.f([(px_, py_ + 0.05, pz_) for px_, py_, pz_ in pts], c, vers=(0, 1, 0))
+
+    def cuve(self, x, y, r, h, c="blanc", toit="dome"):
+        """Réservoir cylindrique (raffinerie, cave, station d'épuration)."""
+        self.cyl(x, y, 0, h, r, c, n=14, dessus=toit == "plat")
+        if toit == "dome":
+            self.dome(x, y, h, r, c, n=14, anneaux=2, h=r * 0.25)
+        elif toit == "cone":
+            self.tronc_cone(x, y, h, r * 0.3, r, 0, c, n=14)
+
+    def tour_refroidissement(self, x, y, r, h, c="beton_clair", n=16):
+        """Tour aéroréfrigérante hyperboloïde (profil en sablier)."""
+        prof = [(1.0, 0.0), (0.82, 0.3), (0.66, 0.65), (0.68, 0.85), (0.74, 1.0)]
+        ref = (x, y, h * 0.5)
+        for (ra, ta), (rb, tb) in zip(prof, prof[1:]):
+            pa = lp.arc(x, y, r * ra, 0, 360, n)[:-1]
+            pb = lp.arc(x, y, r * rb, 0, 360, n)[:-1]
+            for i in range(n):
+                j = (i + 1) % n
+                self.f([(pa[i][0], pa[i][1], ta * h), (pa[j][0], pa[j][1], ta * h), (pb[j][0], pb[j][1], tb * h),
+                        (pb[i][0], pb[i][1], tb * h)], c, ref)
+
     # --- Fin ---------------------------------------------------------------------
     def centre_et_bornes(self):
         """Recentre le modèle sur son emprise (X, Y) et renvoie (dx, dy, dz)."""

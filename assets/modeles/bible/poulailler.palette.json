@@ -1,0 +1,34 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "bardage_vert": {
+   "index": 0,
+   "origine": "#5d7d5a"
+  },
+  "vitre": {
+   "index": 1,
+   "origine": "#33495e"
+  },
+  "tole": {
+   "index": 2,
+   "origine": "#9aa0a6"
+  },
+  "sous_toit": {
+   "index": 3,
+   "origine": "#6a5040"
+  },
+  "metal": {
+   "index": 4,
+   "origine": "#7d8288"
+  },
+  "noir": {
+   "index": 5,
+   "origine": "#2a2b2e"
+  },
+  "zinc": {
+   "index": 6,
+   "origine": "#7e8890"
+  }
+ }
+}

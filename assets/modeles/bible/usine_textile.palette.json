@@ -1,0 +1,42 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "brique": {
+   "index": 0,
+   "origine": "#a9583f"
+  },
+  "pierre_claire": {
+   "index": 1,
+   "origine": "#d8d0bf"
+  },
+  "vitre": {
+   "index": 2,
+   "origine": "#33495e"
+  },
+  "cadre": {
+   "index": 3,
+   "origine": "#f4f1ea"
+  },
+  "bois_sombre": {
+   "index": 4,
+   "origine": "#5a3e2b"
+  },
+  "ardoise": {
+   "index": 5,
+   "origine": "#5b5f66"
+  },
+  "sous_toit": {
+   "index": 6,
+   "origine": "#6a5040"
+  },
+  "verre_ciel": {
+   "index": 7,
+   "origine": "#6d97b8"
+  },
+  "brique_sombre": {
+   "index": 8,
+   "origine": "#7e3b2c"
+  }
+ }
+}

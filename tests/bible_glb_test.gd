@@ -23,8 +23,8 @@ func _initialize() -> void:
 		par_cat[t.cat] = int(par_cat.get(t.cat, 0)) + 1
 		_verifie_fiche(id, t, erreurs)
 		_verifie_maillage(id, t, vitres, erreurs)
-		if not BuildingCatalog.all_types().has(id):
-			erreurs.append("%s absent du catalogue" % id)
+		if not BuildingCatalog.get_type(id).has("glb"):
+			erreurs.append("%s absent du catalogue ou caché par un autre bâtiment du même id" % id)
 	_verifie_variantes(entrees, erreurs)
 	_verifie_metiers(erreurs)
 	for e in erreurs:
@@ -74,15 +74,20 @@ func _verifie_maillage(id: String, t: Dictionary, vitres: Array[Color], erreurs:
 	var b := m.get_aabb()
 	if absf(b.position.y) > 0.05:
 		erreurs.append("%s : ne repose pas sur le sol (%.2f)" % [id, b.position.y])
-	if b.position.x < -float(t.w) / 2.0 - 0.05 or b.end.x > float(t.w) / 2.0 + 0.05 \
-			or b.position.z < -float(t.d) / 2.0 - 0.05 or b.end.z > float(t.d) / 2.0 + 0.05:
+	var deborde := b.position.x < -float(t.w) / 2.0 - 0.05 or b.end.x > float(t.w) / 2.0 + 0.05 \
+			or b.position.z < -float(t.d) / 2.0 - 0.05 or b.end.z > float(t.d) / 2.0 + 0.05
+	# Les pales d'une éolienne survolent les cases voisines (champ "survol").
+	if deborde and int(t.get("survol", 0)) == 0:
 		erreurs.append("%s : déborde de son emprise %d × %d (%s)" % [id, t.w, t.d, str(b)])
 	# Des vitres que le shader reconnaît (fenêtres allumées la nuit).
 	var cols: PackedColorArray = arr[Mesh.ARRAY_COLOR]
 	var fenetres := false
 	for c in cols:
 		for g in vitres:
-			if absf(c.r - g.r) + absf(c.g - g.g) + absf(c.b - g.b) < 0.09:
+			# Même règle que batiment.gdshader : même teinte, clarté entre 0,68 et 1,06.
+			var k := (c.r * g.r + c.g * g.g + c.b * g.b) / maxf(g.r * g.r + g.g * g.g + g.b * g.b, 0.0001)
+			var e := Color(c.r - g.r * k, c.g - g.g * k, c.b - g.b * k)
+			if k > 0.68 and k < 1.06 and maxf(maxf(absf(e.r), absf(e.g)), absf(e.b)) < 0.025:
 				fenetres = true
 				break
 		if fenetres:

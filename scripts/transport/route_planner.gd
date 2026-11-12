@@ -156,17 +156,23 @@ static func plan(type_id: String, path: PackedVector2Array, h0: float, h1: float
 		res.ok = true
 		return res
 
-	# Hauteur souhaitée : le sol, ou au-dessus de la mer.
+	# Hauteur souhaitée : le sol, ou au-dessus de la mer (le métro : sous le sol).
+	var depth := float(ty.get("underground", 0.0))
 	var want := PackedFloat32Array()
 	want.resize(n)
 	for i in n:
+		if depth > 0.0:
+			want[i] = g[i] - depth
+			continue
 		want[i] = g[i] if g[i] >= SEA_LEVEL else SEA_LEVEL + SEA_CLEARANCE
 		if not is_nan(ws[i]):
 			want[i] = maxf(want[i], ws[i] + RIVER_CLEARANCE)
+	if depth > 0.0:
+		ws.fill(NAN)
 	if is_nan(h0):
-		h0 = maxf(g[0], SEA_LEVEL + 0.5)
+		h0 = g[0] - depth if depth > 0.0 else maxf(g[0], SEA_LEVEL + 0.5)
 	if is_nan(h1):
-		h1 = maxf(g[n - 1], SEA_LEVEL + 0.5)
+		h1 = g[n - 1] - depth if depth > 0.0 else maxf(g[n - 1], SEA_LEVEL + 0.5)
 
 	var grade: float = ty.max_grade
 	var need := absf(h1 - h0) / length
@@ -212,7 +218,7 @@ static func plan(type_id: String, path: PackedVector2Array, h0: float, h1: float
 	var tunnel_depth: float = ty.tunnel_depth
 	for i in n:
 		var diff := p[i] - g[i]
-		if g[i] < SEA_LEVEL or diff > bridge_gap:
+		if (g[i] < SEA_LEVEL and depth <= 0.0) or diff > bridge_gap:
 			st[i] = TransportTypes.Struct.BRIDGE
 		elif diff < -tunnel_depth:
 			st[i] = TransportTypes.Struct.TUNNEL

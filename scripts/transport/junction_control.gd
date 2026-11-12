@@ -20,6 +20,8 @@ const MODE_NAMES := {
 const GREEN := 14.0
 const AMBER := 3.0
 const ALL_RED := 2.0
+## Passage piéton : largeur de la bande (m), devant la ligne d'arrêt.
+const CROSS_W := 3.0
 const RED := 0
 const ORANGE := 1
 const VERT := 2
@@ -34,6 +36,8 @@ var _trims: Dictionary = {}
 var _visuals: Dictionary = {} # id de nœud -> Node3D
 var _heads: Array = [] # [{nid, eid, lamps: [rouge, orange, vert], state}]
 var _mats: Dictionary = {}
+## Passages piétons occupés : Vector2i(nœud, tronçon) -> nombre de piétons qui traversent.
+var crossing: Dictionary = {}
 
 
 func _init() -> void:
@@ -105,6 +109,28 @@ func trim(eid: int, nid: int) -> float:
 	var v: Vector2 = _trims.get(eid, Vector2.ZERO)
 	var e: Dictionary = network.edges[eid]
 	return v.x if e.a == nid else v.y
+
+
+## Passage piéton sur la branche eid du carrefour nid : routes à trottoirs
+## seulement, et si le tronçon est assez long.
+func has_crosswalk(nid: int, eid: int) -> bool:
+	if not _info.has(nid) or not network.edges.has(eid):
+		return false
+	var e: Dictionary = network.edges[eid]
+	if String(TransportTypes.get_type(e.t).get("side_kind", "")) != "trottoir":
+		return false
+	var other := network.other_end(eid, nid)
+	return float(e.len) - trim(eid, nid) - trim(eid, other) > CROSS_W * 2.0 + 6.0
+
+
+## Distance entre le centre du carrefour et la ligne d'arrêt (derrière le passage piéton).
+func stop_dist(eid: int, nid: int) -> float:
+	return trim(eid, nid) + (CROSS_W + 0.6 if has_crosswalk(nid, eid) else 0.6)
+
+
+## Un piéton traverse-t-il la branche eid du carrefour nid ?
+func crosswalk_busy(nid: int, eid: int) -> bool:
+	return int(crossing.get(Vector2i(nid, eid), 0)) > 0
 
 
 func is_major(nid: int, eid: int) -> bool:
@@ -277,6 +303,9 @@ func _rebuild_visuals() -> void:
 		add_child(root)
 		_visuals[nid] = root
 		var k := kind(nid)
+		for eid in network.adjacency.get(nid, []):
+			if has_crosswalk(nid, eid):
+				_crosswalk(root, nid, eid)
 		if k == "droite":
 			continue
 		for eid in network.adjacency.get(nid, []):
@@ -285,9 +314,34 @@ func _rebuild_visuals() -> void:
 			_approach_signs(root, nid, eid, k)
 
 
+## Bandes blanches du passage piéton, sur toute la chaussée.
+func _crosswalk(root: Node3D, nid: int, eid: int) -> void:
+	var e: Dictionary = network.edges[eid]
+	var d := trim(eid, nid) + CROSS_W * 0.5
+	var base := network.point_at(eid, d if e.a == nid else float(e.len) - d)
+	var out := network.leave_dir(eid, nid)
+	var right := Vector3(-out.z, 0, out.x)
+	var road := network.half_width(eid) - float(TransportTypes.get_type(e.t).get("side", 1.5))
+	var n := maxi(2, floori(road * 2.0 / 1.0))
+	var mm := MultiMeshInstance3D.new()
+	var mesh := MultiMesh.new()
+	mesh.transform_format = MultiMesh.TRANSFORM_3D
+	var bm := BoxMesh.new()
+	bm.size = Vector3(0.5, 0.03, CROSS_W - 0.4)
+	mesh.mesh = bm
+	mesh.instance_count = n
+	var basis := Basis.looking_at(out, Vector3.UP)
+	for i in n:
+		var lat := -road + (float(i) + 0.5) * road * 2.0 / float(n)
+		mesh.set_instance_transform(i, Transform3D(basis, base + right * lat + Vector3(0, 0.1, 0)))
+	mm.multimesh = mesh
+	mm.material_override = _mats.white
+	root.add_child(mm)
+
+
 func _approach_signs(root: Node3D, nid: int, eid: int, k: String) -> void:
 	var e: Dictionary = network.edges[eid]
-	var tr := trim(eid, nid)
+	var tr := stop_dist(eid, nid) - 0.6
 	var s := tr if e.a == nid else float(e.len) - tr
 	var base := network.point_at(eid, s)
 	var out := network.leave_dir(eid, nid) # vers l'extérieur du carrefour

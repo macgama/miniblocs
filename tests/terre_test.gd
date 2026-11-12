@@ -206,6 +206,27 @@ func _run() -> void:
 					print("Route : ", built.get("ok"), " ", built.get("reason", ""))
 					for i in 60:
 						await process_frame
+			var tide_i := args.find("--tide")
+			if tide_i >= 0:
+				# Marée « high » ou « low » en plein jour, temps ensoleillé.
+				var want_high: bool = args[tide_i + 1] == "high"
+				var amb: DayNight = scene.ambiance
+				amb.weather.mode = Meteo.Mode.SOLEIL
+				var best_t := amb.unix_time
+				var best_l := -INF if want_high else INF
+				for i in 6 * 24 * 3:
+					var tt := amb.unix_time + i * 600.0
+					var hour := fposmod((tt / 3600.0) + amb.utc_offset(), 24.0)
+					if hour < 10.0 or hour > 16.0:
+						continue
+					var l := Maree.level_at(tt, world.origin_lat, world.origin_lon)
+					if (want_high and l > best_l) or (not want_high and l < best_l):
+						best_l = l
+						best_t = tt
+				amb.unix_time = best_t
+				print("Marée : %.1f m" % best_l)
+				for i in 60:
+					await process_frame
 			if "--far" in args:
 				# Va à 14 km à l'Est : relief, biomes et rivières doivent suivre.
 				rig.position.x = 14000.0
@@ -283,8 +304,62 @@ func _run() -> void:
 	if coast_chunk:
 		var surf_node := coast_chunk.get_node_or_null("Ressac") as MeshInstance3D
 		_check(surf_node != null and surf_node.material_override.get_shader_parameter("surf_only") == true, "écume du ressac le long du rivage")
+		if surf_node:
+			# La nappe d'écume couvre aussi l'estran : du sol sous le niveau moyen
+			# et du sol au-dessus (que la marée haute recouvre).
+			var uvs: PackedVector2Array = (surf_node.mesh as ArrayMesh).surface_get_arrays(0)[Mesh.ARRAY_TEX_UV]
+			var lo := INF
+			var hi := -INF
+			for uv in uvs:
+				lo = minf(lo, uv.x)
+				hi = maxf(hi, uv.x)
+			_check(lo < 0.0 and hi > 0.0, "le ressac couvre l'estran (sol de %.1f à %.1f m)" % [lo, hi])
 	else:
 		print("  --  bloc du rivage pas chargé : ressac non vérifié")
+
+	print("Marées :")
+	_check(Maree.amplitude(43.3, 5.37) < 0.3, "presque pas de marée à Marseille")
+	_check(Maree.amplitude(48.65, -2.0) > 2.0, "grandes marées à Saint-Malo")
+	_check(Maree.amplitude(42.0, 50.0) == 0.0, "pas de marée dans la mer Caspienne")
+	# Deux pleines mers par jour lunaire (24 h 50) à Saint-Malo, le 12/11/2026.
+	var t0 := 1794441600.0
+	var highs := 0
+	var prev := Maree.level_at(t0 - 600.0, 48.65, -2.0)
+	var cur := Maree.level_at(t0, 48.65, -2.0)
+	var top := -INF
+	var bottom := INF
+	for i in range(1, 150):
+		var nxt := Maree.level_at(t0 + i * 600.0, 48.65, -2.0)
+		if cur > prev and cur >= nxt:
+			highs += 1
+		top = maxf(top, cur)
+		bottom = minf(bottom, cur)
+		prev = cur
+		cur = nxt
+	_check(highs == 2, "deux pleines mers en 24 h 50 (%d)" % highs)
+	_check(top > 1.5 and bottom < -1.5, "la mer monte et descend (%.1f à %.1f m)" % [bottom, top])
+	# Vives-eaux (pleine lune) plus fortes que mortes-eaux (quartier).
+	var springs := 0.0
+	var neaps := 0.0
+	for d in 30:
+		var f := Maree.spring_factor(t0 + d * 86400.0)
+		springs = maxf(springs, f)
+		neaps = maxf(neaps, 2.0 - f)
+	_check(springs > 1.2 and 2.0 - neaps < 0.8, "vives-eaux et mortes-eaux dans le mois")
+	world.update_tide(t0)
+	var l0 := Maree.level
+	var sea_y := world._water.position.y
+	var t_low := t0
+	for i in 80:
+		if Maree.level_at(t0 + i * 600.0, world.origin_lat, world.origin_lon) < l0 - 1.0:
+			t_low = t0 + i * 600.0
+			break
+	world.update_tide(t_low)
+	_check(absf(world._water.position.y - (TerrainWorld.WATER_LEVEL + Maree.level)) < 0.001 and world._water.position.y < sea_y, "le plan de la mer suit la marée")
+	_check(world.sea_level() < l0 - 0.9 and (world._surf_material.get_shader_parameter("tide") as float) == Maree.level, "marée basse : la mer et l'écume descendent (%.1f m)" % world.sea_level())
+	_check(Maree.high_water == Maree.max_level(world.origin_lat, world.origin_lon) and Maree.high_water > 1.0, "plus haute mer connue pour les ponts (%.1f m)" % Maree.high_water)
+	_check(TerrainWorld.is_estran(-1.0, 80, 2.3) and not TerrainWorld.is_estran(-4.0, 80, 2.3) and not TerrainWorld.is_estran(-1.0, 40, 2.3), "estran : découvert à marée basse, pas les polders cultivés")
+	world.update_tide(t0)
 	print("Biomes :")
 	_check(world.cell_kind_at(Vector2i(5, -20)) == "Forêt", "forêt au Nord (%s)" % world.cell_kind_at(Vector2i(5, -20)))
 	_check(world.cell_kind_at(Vector2i(5, 20)) == "Champs", "champs au Sud (%s)" % world.cell_kind_at(Vector2i(5, 20)))

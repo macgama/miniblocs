@@ -31,13 +31,22 @@ var _card: PanelContainer
 var _card_text: Label
 var _card_cam: Button
 var _card_tick := 0.0
+## Question posée au joueur pour son personnage principal (en haut au centre).
+var _ask: PanelContainer
+var _ask_text: Label
+var _ask_buttons: HFlowContainer
 
 
 func setup(p: Population) -> void:
 	pop = p
 	_build()
 	_build_card()
+	_build_ask()
 	pop.follow_changed.connect(_refresh_card)
+	pop.questions_changed.connect(_refresh_ask)
+	pop.person_clicked.connect(func(pid: int) -> void:
+		_panel.visible = true
+		show_view("profil", pid))
 	pop.building_selected.connect(func(bid: int) -> void:
 		if bid >= 0:
 			_panel.visible = true
@@ -154,7 +163,7 @@ func _process(delta: float) -> void:
 	if view == "liste" or _tick < (1.0 if view != "ville" else 3.0):
 		return
 	for o in _popups:
-		if is_instance_valid(o) and (o as OptionButton).get_popup().visible:
+		if is_instance_valid(o) and (o.call("get_popup") as PopupMenu).visible:
 			return
 	if true:
 		_tick = 0.0
@@ -314,6 +323,12 @@ func _view_city() -> void:
 		(" · âge moyen au décès : %d ans" % roundi(float(t.age_deces) / int(t.deces))) if int(t.deces) > 0 else ""])
 	_text("Couples formés : %d · mariages : %d · PACS : %d · séparations : %d · départs : %d" % [int(t.couples), int(t.mariages),
 		int(t.pacs), int(t.separations), int(t.departs)], true, 12)
+	var me := pop.principal.mine()
+	if me >= 0:
+		var mp: Dictionary = pop.persons[me]
+		_link("★ Ton personnage : %s, %d ans" % [CycleVie.full_name(mp), pop.age_years(mp)], func() -> void: show_view("profil", me))
+	elif pop.principal.enabled:
+		_text("Ton personnage naîtra dans la première famille installée en ville (un couple avec une femme de 18 à 45 ans).", true, 12)
 	if pop.followed() >= 0:
 		var fp: Dictionary = pop.persons[pop.followed()]
 		_link("★ Tu suis %s %s" % [fp.p, fp.n], func() -> void: show_view("profil", pop.followed()))
@@ -643,6 +658,7 @@ func _view_profile(pid: int) -> void:
 		var l := _text("%s%s  %s" % ["▶ " if now_mark else "   ", _hours(float(seg[0]), float(seg[1])), seg[4]], not now_mark, 12)
 		if now_mark:
 			l.add_theme_color_override("font_color", Color("ffd166"))
+	_orders_section(pid)
 	_life_sections(p)
 
 
@@ -663,6 +679,18 @@ func _follow_row(pid: int) -> void:
 		pop.follow(-1 if on else pid)
 		refresh())
 	row.add_child(b)
+	var inc := Button.new()
+	inc.text = "Prendre sa place (vue au sol)"
+	inc.focus_mode = Control.FOCUS_NONE
+	inc.disabled = Ordres.protected(pop, pop.persons[pid]) or pop.age_of(pop.persons[pid]) < 3.0
+	inc.tooltip_text = "L'incarner en 3e personne et le diriger toi-même (V pour revenir)."
+	inc.pressed.connect(func() -> void:
+		if pop.incarnate(pid):
+			set_open(false))
+	row.add_child(inc)
+	if pop.principal.is_mine(pop.persons[pid]):
+		_text("★ Ton personnage principal : c'est toi qui décides de ses grands choix.", false, 12).add_theme_color_override(
+			"font_color", Color("ffd166"))
 	if on:
 		var c := Button.new()
 		c.text = _camera_text(pop.persons[pid])
@@ -720,6 +748,54 @@ func _build_card() -> void:
 		if is_open():
 			refresh())
 	row.add_child(stop)
+
+
+func _build_ask() -> void:
+	_ask = PanelContainer.new()
+	UiStyle.style_panel(_ask, 0.94, 12, 12)
+	_ask.anchor_left = 0.5
+	_ask.anchor_right = 0.5
+	_ask.offset_left = -300.0
+	_ask.offset_right = 300.0
+	_ask.offset_top = 110.0
+	_ask.visible = false
+	add_child(_ask)
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 8)
+	_ask.add_child(v)
+	var head := Label.new()
+	head.text = "★ Ton personnage"
+	head.add_theme_color_override("font_color", Color("ffd166"))
+	head.add_theme_font_size_override("font_size", 15)
+	v.add_child(head)
+	_ask_text = Label.new()
+	_ask_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_ask_text.custom_minimum_size = Vector2(570, 0)
+	_ask_text.add_theme_font_size_override("font_size", 15)
+	v.add_child(_ask_text)
+	_ask_buttons = HFlowContainer.new()
+	_ask_buttons.add_theme_constant_override("h_separation", 8)
+	_ask_buttons.add_theme_constant_override("v_separation", 6)
+	v.add_child(_ask_buttons)
+
+
+func _refresh_ask() -> void:
+	var qs: Array = pop.principal.questions
+	_ask.visible = not qs.is_empty()
+	if qs.is_empty():
+		return
+	var q: Dictionary = qs[0]
+	_ask_text.text = String(q.text) + ("" if qs.size() == 1 else "\n(%d autres questions ensuite)" % (qs.size() - 1))
+	for c in _ask_buttons.get_children():
+		c.queue_free()
+	var opts: Array = q.options
+	for i in opts.size():
+		var b := Button.new()
+		b.text = String(opts[i][0])
+		b.focus_mode = Control.FOCUS_NONE
+		var qid := int(q.id)
+		b.pressed.connect(func() -> void: pop.principal.answer(qid, i))
+		_ask_buttons.add_child(b)
 
 
 func _refresh_card() -> void:
@@ -839,6 +915,64 @@ func _life_sections(p: Dictionary) -> void:
 			go.tooltip_text = "Voir la fiche"
 			go.pressed.connect(func() -> void: show_view("profil", ref))
 			row.add_child(go)
+
+
+## Ordres : journée (aller quelque part, loisir, visite…) et choix de vie.
+func _orders_section(pid: int) -> void:
+	var p: Dictionary = pop.persons[pid]
+	_section("Donner un ordre")
+	if Ordres.protected(pop, p):
+		_text("C'est le personnage principal d'un autre joueur : lui seul décide de sa vie.", true)
+		return
+	if p.has("ord") and int(p.ord.d) == int(pop.now().day):
+		_text("Ordre en cours : %s" % p.ord.txt, false, 12).add_theme_color_override("font_color", Color("ffd166"))
+	for kind in ["jour", "vie"]:
+		_text("Sa journée" if kind == "jour" else "Ses choix de vie", true, 12)
+		var flow := HFlowContainer.new()
+		flow.custom_minimum_size = Vector2(W - 30, 0)
+		flow.add_theme_constant_override("h_separation", 4)
+		flow.add_theme_constant_override("v_separation", 4)
+		_body.add_child(flow)
+		for e in Ordres.LISTE:
+			if e.type != kind:
+				continue
+			var id: String = e.id
+			var why := Ordres.check(pop, p, id)
+			var b: Button
+			if id == "loisir" or id == "visite":
+				var mb := MenuButton.new()
+				mb.flat = false
+				var pm := mb.get_popup()
+				var choices: Dictionary = Ordres.hobby_venues(pop, p) if id == "loisir" else Ordres.visit_targets(pop, p)
+				var keys := choices.keys()
+				for i in keys.size():
+					var label := ""
+					if id == "loisir":
+						label = "%s · %s" % [Metiers.LOISIRS[keys[i]].name, pop.building_name(int(choices[keys[i]]))]
+					else:
+						var q: Dictionary = pop.persons[keys[i]]
+						label = "%s %s (%s)" % [q.p, q.n, choices[keys[i]]]
+					pm.add_item(label, i)
+				pm.id_pressed.connect(func(i: int) -> void:
+					pop.give_order(pid, id, keys[i])
+					refresh())
+				_popups.append(mb)
+				b = mb
+			else:
+				b = Button.new()
+				b.pressed.connect(func() -> void:
+					if id == "aller":
+						pop.order_pick = pid
+						pop.message.emit("Clique un bâtiment de la carte où envoyer %s %s (Échap : annuler)." % [p.p, p.n])
+						return
+					pop.give_order(pid, id)
+					refresh())
+			b.text = String(e.name).replace("…", "") if id in ["loisir", "visite"] else String(e.name)
+			b.focus_mode = Control.FOCUS_NONE
+			b.add_theme_font_size_override("font_size", 12)
+			b.disabled = why != ""
+			b.tooltip_text = why
+			flow.add_child(b)
 
 
 func _view_archive(pid: int) -> void:

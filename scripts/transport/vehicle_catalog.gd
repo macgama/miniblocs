@@ -133,7 +133,7 @@ const TYPES := {
 		"col": Color("1d3557"), "col2": Color("f1faee"), "desc": "40 tonnes sur les autoroutes."},
 	"porteur": {"name": "Camion porteur de livraison", "cat": "utilitaire", "mode": ROAD, "era": "contemporain", "region": "monde", "year": 2018,
 		"L": 10.0, "W": 2.55, "H": 3.7, "kmh": 90, "places": 2, "shape": "camion", "cab": "avant", "cargo": "caisse",
-		"col": Color("f1faee"), "col2": Color("2a9d8f"), "desc": "19 tonnes : magasins, usines et entrepôts en ville."},
+		"col": Color("f1faee"), "col2": Color("2a9d8f"), "livraison": true, "desc": "19 tonnes : magasins, usines et entrepôts en ville."},
 	"camion_us": {"name": "Camion américain à long capot", "cat": "utilitaire", "mode": ROAD, "era": "moderne", "region": "ameriques", "year": 1985,
 		"L": 21.0, "W": 2.6, "H": 4.1, "kmh": 105, "places": 2, "shape": "camion", "cab": "capot", "cargo": "caisse", "stacks": true,
 		"col": Color("c1121f"), "col2": Color("dee2e6"), "desc": "Cheminées chromées et cabine couchette."},
@@ -147,11 +147,46 @@ const TYPES := {
 		"L": 16.5, "W": 2.55, "H": 4.0, "kmh": 90, "places": 2, "shape": "camion", "cab": "avant", "cargo": "conteneur",
 		"col": Color("2a9d8f"), "col2": Color("c0392b"), "desc": "Du port à l'entrepôt."},
 	"pompiers": {"name": "Camion de pompiers", "cat": "utilitaire", "mode": ROAD, "era": "contemporain", "region": "monde", "year": 2012,
-		"L": 9.0, "W": 2.5, "H": 3.3, "kmh": 110, "places": 6, "shape": "camion", "cab": "avant", "cargo": "pompiers",
+		"L": 9.0, "W": 2.5, "H": 3.3, "kmh": 110, "places": 6, "shape": "camion", "cab": "avant", "cargo": "pompiers", "urgence": "pompiers",
 		"col": Color("d00000"), "col2": Color("d00000"), "desc": "Grande échelle et gyrophares."},
 	"ambulance": {"name": "Ambulance", "cat": "utilitaire", "mode": ROAD, "era": "contemporain", "region": "monde", "year": 2015,
-		"L": 6.0, "W": 2.1, "H": 2.8, "kmh": 140, "places": 4, "shape": "camion", "cab": "capot", "cargo": "ambulance", "r": 0.38,
+		"L": 6.0, "W": 2.1, "H": 2.8, "kmh": 140, "places": 4, "shape": "camion", "cab": "capot", "cargo": "ambulance", "r": 0.38, "urgence": "ambulance",
 		"col": Color("f4f4f4"), "col2": Color("f4f4f4"), "desc": "Cellule sanitaire et bandes rouges."},
+	# --- Services d'urgence (urgence : service qui l'envoie ; beacon : gyrophares) ---
+	"fpt": {"name": "Fourgon pompe-tonne", "cat": "utilitaire", "mode": ROAD, "era": "contemporain", "region": "europe", "year": 2015,
+		"L": 8.2, "W": 2.5, "H": 3.2, "kmh": 110, "places": 6, "shape": "camion", "cab": "avant", "cargo": "fpt", "urgence": "pompiers",
+		"col": Color("d00000"), "col2": Color("d00000"), "desc": "Le premier engin parti sur un feu : eau, tuyaux et échelle à coulisse."},
+	"vsav": {"name": "VSAV des pompiers", "cat": "utilitaire", "mode": ROAD, "era": "contemporain", "region": "europe", "year": 2018,
+		"L": 5.9, "W": 2.05, "H": 2.7, "kmh": 140, "places": 4, "shape": "voiture", "r": 0.37, "bh": 0.85, "hood": 0.12, "trunk": 0.0, "sf": 0.6, "sb": 0.0, "top": 0.96, "panel": true,
+		"urgence": "ambulance", "beacon": true, "stripe": Color("ffd60a"), "col": Color("d00000"),
+		"desc": "Véhicule de secours et d'assistance aux victimes, rouge à bandes jaunes."},
+	"smur": {"name": "Véhicule du SMUR", "cat": "voiture", "mode": ROAD, "era": "contemporain", "region": "europe", "year": 2019,
+		"L": 4.6, "W": 1.9, "H": 1.7, "kmh": 190, "places": 4, "shape": "voiture", "r": 0.37, "bh": 0.65, "hood": 0.2, "trunk": 0.04, "sf": 0.5, "sb": 0.2, "top": 0.86,
+		"urgence": "ambulance", "beacon": true, "stripe": Color("e63946"), "stripe2": Color("ffd60a"), "col": Color("f4f4f4"),
+		"desc": "Le médecin urgentiste du SAMU, qui rejoint l'ambulance sur place."},
+	"police_nationale": {"name": "Voiture de la Police nationale", "cat": "voiture", "mode": ROAD, "era": "contemporain", "region": "europe", "year": 2019,
+		"L": 4.3, "W": 1.8, "H": 1.48, "kmh": 190, "places": 5, "shape": "voiture", "bh": 0.55, "hood": 0.22, "trunk": 0.1, "sf": 0.6, "sb": 0.35, "top": 0.82,
+		"urgence": "police", "beacon": true, "stripe": Color("1d3557"), "stripe2": Color("e63946"), "col": Color("f4f4f4"),
+		"desc": "Blanche à bandes bleue et rouge, gyrophares bleus sur le toit."},
+	"gendarmerie": {"name": "Voiture de la Gendarmerie", "cat": "voiture", "mode": ROAD, "era": "contemporain", "region": "europe", "year": 2019,
+		"L": 4.4, "W": 1.8, "H": 1.55, "kmh": 190, "places": 5, "shape": "voiture", "bh": 0.6, "hood": 0.22, "trunk": 0.06, "sf": 0.55, "sb": 0.3, "top": 0.84,
+		"urgence": "police", "beacon": true, "stripe": Color("f4f4f4"), "stripe2": Color("ffd60a"), "col": Color("1d3557"),
+		"desc": "Bleu nuit à bandes blanches : la sécurité des campagnes et des petites villes."},
+	"fourgon_police": {"name": "Fourgon de police", "cat": "utilitaire", "mode": ROAD, "era": "contemporain", "region": "europe", "year": 2016,
+		"L": 5.4, "W": 2.0, "H": 2.5, "kmh": 150, "places": 9, "shape": "voiture", "r": 0.36, "bh": 0.8, "hood": 0.12, "trunk": 0.0, "sf": 0.6, "sb": 0.0, "top": 0.96, "panel": true,
+		"urgence": "police", "beacon": true, "stripe": Color("1d3557"), "stripe2": Color("e63946"), "col": Color("f4f4f4"),
+		"desc": "Pour les patrouilles à plusieurs."},
+	"police_us": {"name": "Voiture de police américaine", "cat": "voiture", "mode": ROAD, "era": "contemporain", "region": "ameriques", "year": 2016,
+		"L": 5.1, "W": 1.95, "H": 1.55, "kmh": 210, "places": 5, "shape": "voiture", "bh": 0.6, "hood": 0.25, "trunk": 0.18, "sf": 0.45, "sb": 0.4, "top": 0.86,
+		"urgence": "police", "beacon": true, "beacon_red": true, "doors": Color("f4f4f4"), "col": Color("1b1b1b"),
+		"desc": "Noire aux portes blanches, rampe lumineuse rouge et bleue."},
+	"police_japon": {"name": "Voiture de police japonaise", "cat": "voiture", "mode": ROAD, "era": "contemporain", "region": "asie_est", "year": 2014,
+		"L": 4.9, "W": 1.8, "H": 1.47, "kmh": 180, "places": 5, "shape": "voiture", "bh": 0.55, "hood": 0.24, "trunk": 0.18, "sf": 0.6, "sb": 0.5, "top": 0.82,
+		"urgence": "police", "beacon": true, "beacon_red": true, "upper": Color("f4f4f4"), "col": Color("1b1b1b"),
+		"desc": "Bas de caisse noir, haut blanc, gyrophare rouge."},
+	"ambulance_us": {"name": "Ambulance américaine", "cat": "utilitaire", "mode": ROAD, "era": "contemporain", "region": "ameriques", "year": 2015,
+		"L": 7.0, "W": 2.4, "H": 3.0, "kmh": 130, "places": 4, "shape": "camion", "cab": "capot", "cargo": "ambulance", "r": 0.42, "urgence": "ambulance",
+		"col": Color("f4f4f4"), "col2": Color("f4f4f4"), "desc": "Cellule carrée à bande rouge sur un châssis de pick-up."},
 	"camion_decore": {"name": "Camion décoré d'Asie du Sud", "cat": "utilitaire", "mode": ROAD, "era": "moderne", "region": "asie_sud", "year": 1980,
 		"L": 9.0, "W": 2.4, "H": 3.6, "kmh": 70, "places": 2, "shape": "camion", "cab": "capot", "cargo": "decore",
 		"col": Color("f1c40f"), "col2": Color("e63946"), "desc": "Peint de motifs et de couleurs vives."},
@@ -653,6 +688,7 @@ static func _car(k: VehicleMesh, t: Dictionary, col: Color) -> void:
 		k.taper(0, belt, H, cz0 + sf * 0.2, cz1 - sb * 0.2, wb, W * top, sf * 0.8, sb * 0.8, VehicleMesh.GLASS)
 		k.taper(0, H - 0.02, H + 0.05, cz0 + sf, cz1 - sb, W * top, W * top * 0.97, 0.03, 0.03, col)
 	_lights(k, L, W, y0 + bh * 0.55)
+	_livery(k, t, L, W, H, y0, yb, cz0, cz1, top)
 	var wz := L / 2 - L * 0.17
 	k.axle(W / 2 - 0.14, -wz, r)
 	k.axle(W / 2 - 0.14, wz, r)
@@ -675,6 +711,91 @@ static func _car(k: VehicleMesh, t: Dictionary, col: Color) -> void:
 			k.box(s * (W / 2 - 0.05), yb, bz, 0.1, 0.4, bl, col)
 		k.box(0, yb, L / 2 - 0.05, W, 0.4, 0.1, col)
 		k.box(0, yb - 0.02, bz, W - 0.2, 0.04, bl, DARK)
+
+
+## Habillage des véhicules de service : bandes sur les flancs (stripe, stripe2),
+## portes d'une autre couleur (doors), haut de caisse peint (upper) et rampe de
+## gyrophares (beacon) sur le toit.
+static func _livery(k: VehicleMesh, t: Dictionary, L: float, W: float, H: float, y0: float, yb: float,
+		cz0: float, cz1: float, top: float) -> void:
+	var bh := yb - y0
+	if t.has("upper"):
+		var belt := yb + (H - yb) * 0.2
+		k.box(0, yb - bh * 0.25, 0, W * 1.005, bh * 0.25 + 0.02, L * 0.96, t.upper)
+		k.box(0, H - 0.01, (cz0 + cz1) / 2 + (float(t.get("sf", 0.5)) - float(t.get("sb", 0.4))) * 0.5,
+			W * top * 0.99, 0.07, (cz1 - cz0) - float(t.get("sf", 0.5)) - float(t.get("sb", 0.4)), t.upper)
+		k.box(0, yb, (cz0 + cz1) / 2, W * 0.95, belt - yb, cz1 - cz0, t.upper)
+	if t.has("doors"):
+		k.box(0, y0 + 0.08, (cz0 + cz1) / 2, W * 1.01, bh - 0.06, (cz1 - cz0) * 0.85, t.doors)
+	if t.has("stripe"):
+		k.box(0, y0 + bh * 0.42, 0, W * 1.01, 0.16, L * 0.98, t.stripe)
+	if t.has("stripe2"):
+		k.box(0, y0 + bh * 0.42 - 0.08, 0, W * 1.012, 0.06, L * 0.98, t.stripe2)
+	if t.get("beacon", false):
+		for p in beacons(t):
+			var bp: Vector3 = p
+			k.box(bp.x, bp.y - 0.06, bp.z, 0.34, 0.12, 0.22, beacon_color(t, bp.x))
+		var b0: Vector3 = beacons(t)[0]
+		k.box(0, b0.y - 0.08, b0.z, W * top * 0.85, 0.05, 0.26, DARK)
+
+
+## Couleur d'un gyrophare : bleu en Europe, rouge et bleu (rouge à gauche)
+## pour les modèles beacon_red.
+static func beacon_color(t: Dictionary, x: float) -> Color:
+	if t.get("beacon_red", false) and x < 0.0:
+		return Color("e63946")
+	return Color("3a86ff")
+
+
+## Positions (repère du véhicule) des gyrophares d'un modèle d'urgence.
+## La circulation y fait clignoter des feux pendant les interventions.
+static func beacons(t: Dictionary) -> Array[Vector3]:
+	var out: Array[Vector3] = []
+	if t.is_empty() or not t.has("urgence"):
+		return out
+	var L := float(t.L)
+	var W := float(t.W)
+	var H := float(t.H)
+	if String(t.shape) == "voiture":
+		var cz0 := -L / 2 + L * float(t.get("hood", 0.22))
+		var z := cz0 + float(t.get("sf", 0.5)) + 0.35
+		for s in [-1.0, 1.0]:
+			out.append(Vector3(s * W * 0.22, H + 0.17, z))
+	else:
+		var r := float(t.get("r", 0.5))
+		var hood: bool = t.get("cab", "avant") == "capot"
+		var cab_h := minf(H, 2.4 + r * 1.6) if hood else minf(H, 3.0 + (r - 0.5))
+		var hood_len := clampf(L * 0.12, 0.9, 2.2) if hood else 0.0
+		var z := -L / 2 + hood_len + 0.5
+		var y := cab_h + 0.12
+		if String(t.get("cargo", "")) == "ambulance":
+			y = H + 0.12
+		for s in [-1.0, 1.0]:
+			out.append(Vector3(s * W * 0.25, y, z))
+	return out
+
+
+## Service d'urgence d'un modèle ("pompiers", "ambulance", "police" ou "").
+static func service_of(id: String) -> String:
+	return String(get_type(id).get("urgence", ""))
+
+
+## Modèles d'un service, filtrés par époque et région comme la circulation
+## (avec repli sur tous les modèles du service si le filtre n'en laisse aucun).
+static func for_service(service: String, era := "", region := "") -> Array[String]:
+	var out: Array[String] = []
+	for pass_i in 3:
+		for id in TYPES:
+			if String(TYPES[id].get("urgence", "")) != service:
+				continue
+			if pass_i == 0 and not matches(id, era, region):
+				continue
+			if pass_i == 1 and not matches(id, "", region):
+				continue
+			out.append(id)
+		if not out.is_empty():
+			return out
+	return out
 
 
 static func _old_car(k: VehicleMesh, t: Dictionary, col: Color) -> void:
@@ -777,6 +898,16 @@ static func _truck(k: VehicleMesh, t: Dictionary, col: Color, col2: Color) -> vo
 				k.box(s * 0.4, H - 0.4, bz, 0.08, 0.12, bl + 2.5, Color("dee2e6"))
 			for i in 12:
 				k.box(0, H - 0.38, bz - bl / 2 - 1.0 + (bl + 2.0) * i / 11.0, 0.8, 0.06, 0.05, Color("dee2e6"))
+			k.box(0, cab_h, cz0 + 0.5, W * 0.6, 0.15, 0.25, Color("4361ee"))
+		"fpt":
+			k.box(0, by, bz, W, H - by - 0.3, bl, col)
+			for i in 3:
+				k.box(0, by + 0.35, bz - bl * 0.33 + bl * 0.33 * i, W + 0.04, 1.2, bl * 0.28, Color("adb5bd"))
+			k.box(0, by + 0.05, bz, W + 0.05, 0.12, bl, Color("ffd60a"))
+			for s in [-1.0, 1.0]:
+				k.box(s * 0.35, H - 0.3, bz, 0.07, 0.1, bl * 0.9, Color("dee2e6"))
+			for i in 7:
+				k.box(0, H - 0.28, bz - bl * 0.45 + bl * 0.9 * i / 6.0, 0.7, 0.05, 0.05, Color("dee2e6"))
 			k.box(0, cab_h, cz0 + 0.5, W * 0.6, 0.15, 0.25, Color("4361ee"))
 		"ambulance":
 			k.box(0, by - 0.4, bz, W, H - by + 0.4, bl, col2)

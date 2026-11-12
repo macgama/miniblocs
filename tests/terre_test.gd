@@ -183,6 +183,27 @@ func _run() -> void:
 		print(world.water.status, " (", Time.get_ticks_msec() - t0, " ms)")
 		if shot != "":
 			var rig = scene.get_node("CameraRig")
+			var date_i := args.find("--date")
+			if date_i >= 0 and date_i + 1 < args.size():
+				# Saison voulue (AAAA-MM-JJ, midi UTC) ; --neige : il neige depuis des heures.
+				var dn: DayNight = scene.ambiance
+				dn.unix_time = Time.get_unix_time_from_datetime_string(args[date_i + 1] + "T12:00:00")
+				if "--neige" in args:
+					dn.weather.mode = Meteo.Mode.NEIGE
+				var t1 := Time.get_ticks_msec()
+				while Time.get_ticks_msec() - t1 < 60_000:
+					await process_frame
+					if world.missing_chunk_count() == 0 and world._dirty.is_empty() and Time.get_ticks_msec() - t1 > 3000:
+						break
+				if "--neige" in args:
+					# Il a neigé : le ciel se dégage pour la photo.
+					dn.weather.mode = Meteo.Mode.SOLEIL
+					for i in 90:
+						await process_frame
+					world.neige = 1.0
+					world._saison_neige = -1.0
+					await process_frame
+				print("Saison : jour %.0f, neige %.2f" % [fposmod(world.temps_jours, 365.2425), world.neige])
 			if "--water" in args:
 				# Vise le cours d'eau (d'au moins 3 m) le plus proche du centre.
 				var best := INF

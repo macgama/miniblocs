@@ -26,6 +26,8 @@ var habitants_panel: HabitantsPanel
 var production: Production
 var production_panel: ProductionPanel
 var resource_overlay: RessourcesOverlay
+## Chantiers, usure des bâtiments, abords et fumée des maisons habitées.
+var vie_batiments: BatimentsVie
 var _hover := Vector2i.ZERO
 var _hover_valid := false
 
@@ -58,6 +60,7 @@ func _ready() -> void:
 	_setup_transit()
 	_setup_population()
 	_setup_production()
+	_setup_vie()
 	hud.traffic_toggled.connect(func(on: bool) -> void: transport.traffic.set_enabled(on))
 	hud.traffic_filter_changed.connect(func(era: String, region: String) -> void:
 		transport.traffic.set_filters(era, region)
@@ -285,6 +288,14 @@ func _setup_population() -> void:
 		rig.position.x = pos.x
 		rig.position.z = pos.z)
 	hud.habitants_requested.connect(func() -> void: habitants_panel.toggle())
+
+
+## Vie des bâtiments : chantiers, usure, abords des maisons habitées, fumée.
+func _setup_vie() -> void:
+	vie_batiments = BatimentsVie.new()
+	vie_batiments.name = "VieBatiments"
+	add_child(vie_batiments)
+	vie_batiments.setup(buildings, ambiance, population)
 
 
 ## Production : sites, stocks, carte des ressources sur le terrain et panneau (P).

@@ -58,6 +58,8 @@ func _run() -> void:
 		_check(Icones.has_icon(BuildingPanel.CAT_ICONS[id]), "icône de l'onglet %s" % id)
 
 	Creations.persist = false
+	# Bâtiments prêts tout de suite (les chantiers sont testés dans batiments_test).
+	BatimentsVie.chantiers = false
 	var game: Node = load("res://scenes/terre.tscn").instantiate()
 	var world: TerrainWorld = game.get_node("Terrain")
 	root.add_child(game)

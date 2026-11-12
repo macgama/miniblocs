@@ -7,6 +7,8 @@ extends SceneTree
 ## --styles a,b,c : seulement les bâtiments de ces styles (bible, voir Styles.STYLES).
 ## --arch culte,palais : seulement ces archétypes. --zone-style japonais : style du zonage.
 ## --cat espaces : seulement une catégorie.
+## --chantiers : bâtiments en chantier (avancement --avancement 0.4). --usure 0.8 / --abandon 1 : vieillissement.
+## --habite : abords et fumée des maisons comme si elles étaient habitées.
 ## --zones : un quartier né du zonage (routes en grille, zones R/C/I) au lieu du catalogue.
 
 
@@ -77,6 +79,7 @@ func _run() -> void:
 	if args.has("--fxaa"):
 		root.msaa_3d = Viewport.MSAA_DISABLED
 		root.screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA
+	BatimentsVie.chantiers = args.has("--chantiers")
 	var scene: Node = load("res://scenes/terre.tscn").instantiate()
 	var world: TerrainWorld = scene.get_node("Terrain")
 	var transport: TransportSystem = scene.get_node("Transport")
@@ -169,12 +172,15 @@ func _run() -> void:
 			print("non posé : ", id, " ", bs.check_place(id, Vector2i(int(x + fp.x / 2.0), int(cz)), r).reason)
 		x += fp.x + 4.0
 	print(bs.summary())
+	_vie(scene, bs, args)
 
 	var rig = scene.get_node("CameraRig")
 	rig.position = Vector3(focus.x, 42.0, focus.y)
 	rig._distance = dist
 	rig._target_distance = dist
 	rig.rotation_degrees.y = yaw
+	if pitch > 0.0 and "pitch_degrees" in rig:
+		rig.pitch_degrees = pitch
 	if heure >= 0.0:
 		scene.get_node("Ambiance").set_speed(0)
 		scene.get_node("Ambiance").set_local_hour(heure)
@@ -186,6 +192,43 @@ func _run() -> void:
 	root.get_viewport().get_texture().get_image().save_png(shot)
 	print("Capture : ", shot)
 	quit(0)
+
+
+## Options de vie des bâtiments : avancement des chantiers, usure, abords.
+func _vie(scene: Node, bs: BuildingSystem, args: PackedStringArray) -> void:
+	var vie: BatimentsVie = scene.get_node("VieBatiments")
+	var usure := -1.0
+	var abandon := 0.0
+	var avancement := -1.0
+	for i in args.size():
+		if args[i] == "--usure" and i + 1 < args.size():
+			usure = args[i + 1].to_float()
+		if args[i] == "--abandon" and i + 1 < args.size():
+			abandon = args[i + 1].to_float()
+		if args[i] == "--avancement" and i + 1 < args.size():
+			avancement = args[i + 1].to_float()
+	BatimentsVie.vie = usure < 0.0
+	var amb: DayNight = scene.get_node("Ambiance")
+	for i in args.size():
+		if args[i] == "--heure" and i + 1 < args.size():
+			amb.set_speed(0)
+			amb.set_local_hour(args[i + 1].to_float())
+	var n := 0
+	for bid in bs.buildings:
+		var b: Dictionary = bs.buildings[bid]
+		var mi := bs.node_of(bid)
+		if avancement >= 0.0 and b.has("chantier"):
+			# Avancements variés autour de la valeur demandée.
+			var p := clampf(avancement + (n % 5) * 0.12 - 0.24, 0.02, 0.95)
+			var dur := float(b.fin) - float(b.ne)
+			b.ne = amb.unix_time - dur * p
+			b.fin = float(b.ne) + dur
+		if usure >= 0.0:
+			BatimentsVie.apply_wear(mi, roundi(usure * 5.0), roundi((abandon if n % 2 == 0 else 0.0) * 4.0))
+		if args.has("--habite") and vie._etat.has(bid):
+			vie._set_abords(bid, mi, vie._etat[bid], true)
+			vie._set_fumee(bid, mi, vie._etat[bid], true)
+		n += 1
 
 
 ## Quartier en grille : 3 rues Nord-Sud, 3 rues Est-Ouest, zones R, C et I.

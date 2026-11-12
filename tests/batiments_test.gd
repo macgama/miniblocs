@@ -277,6 +277,61 @@ func _run() -> void:
 	_check(bnode.get_node_or_null("Loin") != null and (bnode as MeshInstance3D).visibility_range_end < 1000.0, "version légère au loin")
 	_check(world.modifications.has(Vector2i(-120, -100)), "pas d'arbres sous les blocs")
 
+	print("Détails, variantes, vie des bâtiments :")
+	var anc: Dictionary = fin.get_meta("ancres", {})
+	_check((anc.get("fumee", []) as Array).size() >= 1, "cheminée avec point de fumée (colombages)")
+	var v1 := BuildingCatalog.build_mesh("colombages__maison", null, true, 1)
+	var c0: PackedColorArray = fin.surface_get_arrays(0)[Mesh.ARRAY_COLOR]
+	var c1: PackedColorArray = v1.surface_get_arrays(0)[Mesh.ARRAY_COLOR]
+	_check(c0 != c1, "deux variantes du même type ne sont pas identiques")
+	_check(BuildingCatalog.variants_of("colombages__maison") == BuildingCatalog.VARIANTES and BuildingCatalog.variants_of("maison") == 1, "variantes pour les types de la bible")
+	var shop := BuildingCatalog.build_mesh("colombages__boutique")
+	var shop_far := BuildingCatalog.build_mesh("colombages__boutique", null, false)
+	_check(shop.surface_get_array_len(0) > shop_far.surface_get_array_len(0) * 2, "boutique : enseigne, auvent rayé, volets")
+	_check(Abords.mesh_for("colombages__maison", null) != null and Abords.mesh_for("sahel__maison", null) == null, "abords pour les maisons (pas pour les cases rondes)")
+	var vie: BatimentsVie = scene.get_node("VieBatiments")
+	bs.require_access = false
+	var unl := bs.unlimited_money
+	bs.unlimited_money = true
+	BatimentsVie.chantiers = true
+	var chid := bs.place("colombages__grande_maison", Vector2i(-200, 300), 0)
+	_check(chid > 0 and bs.en_chantier(chid), "un bâtiment neuf commence par un chantier")
+	var cnode := bs.node_of(chid)
+	_check(cnode.get_node_or_null("Echafaudage") != null and cnode.get_node_or_null("Palissade") != null, "échafaudages et palissade")
+	var tid := bs.place("international__immeuble", Vector2i(-160, 300), 0)
+	if tid < 0:
+		print("    immeuble : ", bs.check_place("international__immeuble", Vector2i(-160, 300), 0).reason)
+	_check(bs.node_of(tid).get_node_or_null("Grue") != null, "grue sur les grands chantiers")
+	_check(BatimentsVie.duree_chantier("international__immeuble") > BatimentsVie.duree_chantier("colombages__maison"), "un immeuble se construit plus lentement qu'une maison")
+	var amb: DayNight = scene.get_node("Ambiance")
+	amb.unix_time += BatimentsVie.duree_chantier("colombages__grande_maison") * 0.5
+	vie._update_chantiers()
+	var half := vie.progress(chid)
+	_check(half > 0.3 and half < 0.7 and bs.en_chantier(chid), "chantier à mi-parcours (%d %%)" % roundi(half * 100))
+	amb.unix_time += BatimentsVie.duree_chantier("international__immeuble")
+	vie._update_chantiers()
+	await process_frame
+	_check(not bs.en_chantier(chid) and not bs.en_chantier(tid), "chantiers terminés")
+	_check(cnode.get_node_or_null("Echafaudage") == null and cnode.material_override == null, "échafaudages démontés")
+	var saved := bs.to_dict()
+	var row: Dictionary = (saved.buildings as Array).filter(func(e: Dictionary) -> bool: return int(e.id) == chid)[0]
+	_check(row.has("v") and row.has("ne") and row.has("fin"), "variante et date de construction sauvegardées")
+	BatimentsVie.apply_wear(cnode, 4, 3)
+	_check(cnode.material_override != null and float((cnode.material_override as ShaderMaterial).get_shader_parameter("abandon")) > 0.5, "matériau d'un bâtiment usé et abandonné")
+	BatimentsVie.apply_wear(cnode, 0, 0)
+	_check(cnode.material_override == null, "bâtiment neuf : matériau commun")
+	vie._set_abords(chid, cnode, vie._etat[chid], true)
+	vie._set_fumee(chid, cnode, vie._etat[chid], true)
+	_check(cnode.get_node_or_null("Abords") != null and cnode.get_node_or_null("Fumee") != null, "maison habitée : abords et fumée")
+	vie._set_abords(chid, cnode, vie._etat[chid], false)
+	vie._set_fumee(chid, cnode, vie._etat[chid], false)
+	await process_frame
+	_check(cnode.get_node_or_null("Abords") == null and cnode.get_node_or_null("Fumee") == null, "maison vide : plus d'abords ni de fumée")
+	bs.demolish(chid)
+	bs.demolish(tid)
+	bs.require_access = true
+	bs.unlimited_money = unl
+
 	print("Espaces publics :")
 	_check(BuildingCatalog.ids_in("espaces").size() >= 25, "%d places, parcs, monuments et mobilier" % BuildingCatalog.ids_in("espaces").size())
 	var bench := bs.check_place("banc", Vector2i(-250, -200), 0)

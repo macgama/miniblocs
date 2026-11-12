@@ -32,7 +32,7 @@ uniform bool interieurs = true;
 uniform float room_width = 3.4;
 uniform float room_depth = 4.0;
 // Lumière du jour dans les pièces (0 = vitres opaques le jour).
-uniform float day_interior = 0.32;
+uniform float day_interior = 0.26;
 
 uniform float usure = 0.0;
 uniform float abandon = 0.0;
@@ -197,7 +197,8 @@ void fragment() {
 			if (inside) {
 				ALBEDO *= 0.45;
 				vec3 lit = room * (0.55 + ceiling_lamp * 0.5) * glow;
-				vec3 day = room * day_interior * (1.0 - night) * (1.0 - abandon * 0.7);
+				// Le jour, la pièce se devine derrière la vitre teintée.
+				vec3 day = mix(room, to_linear(c) * 1.6, 0.45) * day_interior * (1.0 - night) * (1.0 - abandon * 0.7);
 				vec3 dark = room * 0.025;
 				EMISSION = mix(day + dark * night, lit * glow_energy * flicker, night * on) * mullion * (1.0 - fresnel * 0.85);
 			} else if (night > 0.001) {

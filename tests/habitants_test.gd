@@ -204,6 +204,47 @@ func _run() -> void:
 	_check(panel._body.get_child_count() > 1, "liste des habitants")
 	panel.set_open(false)
 
+	print("Transports publics :")
+	var road_ok := true
+	var rig: Node3D = scene.get_node("CameraRig")
+	for k in 8:
+		rig.position = Vector3(0, y, 550 + k * 500)
+		for w in 400:
+			if not is_nan(world.cell_height(Vector2i(0, 800 + k * 500))) and not is_nan(world.cell_height(Vector2i(0, 300 + k * 500))):
+				break
+			await process_frame
+		var seg := transport.build_segment("route", Vector3(0, y, 300 + k * 500), Vector3(0, y, 800 + k * 500))
+		if not seg.ok:
+			road_ok = false
+			print("    route : ", seg.get("reason", ""))
+	for i in 30:
+		await process_frame
+	_check(road_ok, "route de 4 km vers une zone d'activités")
+	var far := bs.place("usine", Vector2i(-30, 4050), 1)
+	if far < 0:
+		print("    usine : ", bs.check_place("usine", Vector2i(-30, 4050), 1).reason)
+	pop._sync_buildings()
+	var stop_a: Dictionary = transport.stations.place("arret_bus", Vector3(-6, 0, -100))
+	var stop_b: Dictionary = transport.stations.place("arret_bus", Vector3(-6, 0, 4030))
+	var line: Dictionary = transport.stations.create_line([stop_a.get("id", -1), stop_b.get("id", -1)], "", 3) if stop_a.ok and stop_b.ok else {"ok": false}
+	_check(far > 0 and line.ok, "usine à 4 km et ligne de bus jusqu'à elle")
+	var rider := {}
+	for pid in pop.persons:
+		var p: Dictionary = pop.persons[pid]
+		if pop.stage(p) == "chomeur" or (pop.stage(p) == "actif" and int(pop.households[int(p.f)].car) == 0):
+			rider = p
+			break
+	if rider.is_empty():
+		for pid in pop.persons:
+			if pop.stage(pop.persons[pid]) == "actif" and int(pid) % 2 == 0:
+				rider = pop.persons[pid]
+				break
+	pop._join_job(rider, far)
+	var c := pop.commute(rider, pop.home_of(rider), far)
+	_check(String(c.mode).contains("bus") and c.has("detail"), "%s va à l'usine %s : %s" % [rider.p, c.mode, c.get("detail", "")])
+	pop._board_commuters()
+	_check(int(transport.stations.lines[line.id].get("passengers", 0)) >= 2, "voyageurs comptés sur la ligne : %d" % int(transport.stations.lines[line.id].get("passengers", 0)))
+
 	print("Démolition :")
 	bs.demolish(school)
 	pop._sync_buildings()

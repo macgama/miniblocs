@@ -23,6 +23,7 @@ Dans le jeu, **F1** (ou le bouton **Aide**) affiche toutes les commandes.
 | Tracer une voie | un clic par point, **C** courbe, **Maj** angles de 15°, **Échap** / clic droit pour finir |
 | Panneau Construire | **B** (bâtiments, zonage, éditeur libre ; **R** tourne le bâtiment, **Ctrl + Z** annule un bloc) |
 | Transports publics | **L** (stations, gares, ports, aéroports, lignes) |
+| Habitants | **H** (la ville en chiffres, liste des habitants, budget) ; clic sur un bâtiment avec l'outil 1 |
 | Temps | **T** pause, **Maj + T** vitesse suivante |
 | Vue au sol | **V** (dessus, 3e personne, 1re personne) |
 | Sauvegarder / recharger | **F5** / **F9** ; boutons **Sauver**, **Charger** (liste des parties), **Globe** en haut à gauche |
@@ -257,6 +258,25 @@ L'onglet **Éditeur libre** permet de construire ce que tu veux avec des blocs d
 - **Mes créations** : écris un nom, clique sur **Enregistrer** puis fais un clic glissé autour de ta construction (toutes les hauteurs sont prises). Elle devient un bâtiment de l'onglet **Mes créations**, que tu poses ailleurs comme n'importe quel bâtiment (fantôme, rotation R, terrassement, prix). La bibliothèque est commune à toutes tes parties, et chaque sauvegarde garde une copie des créations qu'elle utilise. La croix ✕ retire une création de la liste (les exemplaires posés restent).
 - La taille des blocs est une constante (`BlockEditor.SIZE`) : on pourra passer à 50 cm pour plus de détails.
 
+## Habitants : une vie pour chaque personnage
+
+Chaque logement accueille un **foyer** (personne seule, couple, famille, famille monoparentale, retraités) dont les membres ont un prénom et un nom selon le style du logement ou la région du monde, un âge, des loisirs et un budget. Les foyers emménagent peu à peu quand le temps avance.
+
+- **Étapes de la vie** : bébé (0-2 ans, chez l'assistante maternelle quand les parents travaillent), élève (3-17 ans, de la petite section à la terminale), adulte (emploi ou recherche d'emploi), retraité (64 ans). Naissances, décès, jeunes qui quittent leurs parents. La **vitesse de la vie** se règle : réaliste, rapide (1 an = 1 mois) ou très rapide (1 an = 1 jour).
+- **École** : chaque enfant est inscrit dans l'école la plus proche qui a de la place. S'il y a 12 enfants dans une école, ce sont 12 profils qui y vont, et ils y sont bien pendant les heures de classe (pas le mercredi après-midi, ni le week-end, ni en juillet-août).
+- **Travail** : chaque emploi d'un bâtiment reçoit un métier (enseignant, boulanger, caissier, ouvrier, infirmier, pompier…) avec son salaire et ses horaires (semaine, lundi-samedi, gardes un jour sur deux…).
+- **Trajets** : à pied, à vélo, en voiture, ou en **transports publics** quand une ligne est plus rapide (itinéraires du jeu, voyageurs comptés chaque jour sur les lignes).
+- **Journée** : dormir, trajet, école ou travail, courses, loisir (football, cinéma, café, promenade au parc…) dans le lieu le plus proche, retour à la maison.
+- **Économie (débuts)** : chaque foyer a ses revenus (salaire, pension, allocation), son loyer, ses courses, ses voitures et son épargne ; un foyer trop endetté quitte la ville. La ville touche la taxe foncière, les impôts des entreprises et la dotation de l'État, et paie ses agents (ATSEM, agents municipaux, pompiers) et l'entretien des bâtiments publics. Le solde est versé chaque jour dans la caisse.
+
+Touche **H** : la ville en chiffres, la liste des habitants (filtre et recherche) et le budget. Un **clic sur un bâtiment** (outil 1 · Observer) montre qui y vit, y travaille, y étudie et qui s'y trouve en ce moment ; un clic sur un nom ouvre le **profil** (foyer, travail ou école, trajet, loisirs, budget, journée heure par heure).
+
+![Une école et ses élèves](docs/apercu-habitants-ecole.png)
+
+![Profil d'un élève](docs/apercu-habitants-profil.png)
+
+Détails : [docs/habitants.md](docs/habitants.md).
+
 ## Vue au sol : marcher à la 3e ou à la 1re personne
 
 Dans le mode Terre, appuie sur **V** (ou les boutons **Dessus / 3e pers. / 1re pers.** en haut au centre) : un personnage apparaît au sol, au centre de la vue de gestion.
@@ -369,6 +389,12 @@ Détails et limites : [docs/ambiance.md](docs/ambiance.md).
 | `scripts/catalogue/espaces_publics.gd` | Places, parcs, monuments et mobilier urbain |
 | `scripts/catalogue/creations.gd` | Mes créations : constructions de l'éditeur libre enregistrées comme bâtiments |
 | `tests/batiments_test.gd` | Test automatique des bâtiments (sans réseau) |
+| `scripts/habitants/population.gd` | Habitants : foyers, étapes de la vie, écoles, emplois, emploi du temps, trajets, économie, sauvegarde |
+| `scripts/habitants/habitants_panel.gd` | Panneau « Habitants » (touche H) : ville, liste, bâtiment, profil |
+| `scripts/habitants/metiers.gd` | Métiers (salaires, horaires), métiers par bâtiment, loisirs et leurs lieux, classes |
+| `scripts/habitants/prenoms.gd` | Prénoms et noms par région du monde |
+| `tests/habitants_test.gd` | Test des habitants (école, emplois, journée, budget, transports, sauvegarde, panneau) |
+| `tests/habitants_vitrine.gd` | Petit quartier et captures du panneau Habitants |
 | `tests/batiments_vitrine.gd` | Pose tout le catalogue (ou fait pousser un quartier avec `--zones`, ou construit une maison en blocs avec `--blocs`) et prend une capture. `--styles japonais,chinois` ou `--arch culte` filtrent la bible, `--zone-style` choisit le style du zonage, `--cat espaces` une catégorie |
 
 ## Sauvegarde des parties
@@ -397,7 +423,7 @@ godot --headless --path . --script res://tests/terre_test.gd
 
 Vérifie les conversions de coordonnées, le décodage des tuiles, la génération des blocs, les rivières (calcul sur une vallée, lecture d'OpenStreetMap, lit creusé, surface d'eau, ponts), le terrassement et la sauvegarde. Il affiche `TERRE TEST OK`. De même, `tests/globe_test.gd` affiche `GLOBE TEST OK`, `tests/transport_test.gd` affiche `TRANSPORT TEST OK` et `tests/batiments_test.gd` affiche `BATIMENTS TEST OK`.
 
-`tests/parcours_test.gd` joue une partie comme un joueur, avec de vraies touches (globe, outils 1-9, B, L, T, V, F1, F5, Continuer) et affiche `PARCOURS TEST OK`. `tests/sauvegarde_test.gd` vérifie le format des parties (écriture, relecture, section abîmée, import de l'ancienne sauvegarde) et affiche `SAUVEGARDE TEST OK`.
+`tests/parcours_test.gd` joue une partie comme un joueur, avec de vraies touches (globe, outils 1-9, B, L, T, V, F1, F5, Continuer) et affiche `PARCOURS TEST OK`. `tests/habitants_test.gd` vérifie les habitants (école, emplois, emploi du temps, budget, bus, sauvegarde, panneau) et affiche `HABITANTS TEST OK`. `tests/sauvegarde_test.gd` vérifie le format des parties (écriture, relecture, section abîmée, import de l'ancienne sauvegarde) et affiche `SAUVEGARDE TEST OK`.
 
 ```bash
 godot --headless --path . --script res://tests/perf_bench.gd [-- --big] [--reseau]

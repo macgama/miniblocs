@@ -463,6 +463,8 @@ func _view_profile(pid: int) -> void:
 			_text("Classe : %s (%s)" % [Metiers.school_class(age), Metiers.school_level(age)])
 			var c := pop.commute(p, int(h.b), int(p.sch))
 			_text("Trajet : %d min %s" % [int(c.min), c.mode], true)
+			if c.has("detail"):
+				_text("Itinéraire : " + String(c.detail), true, 12)
 			_text("Lundi, mardi, jeudi, vendredi de 8 h 30 à 16 h 30, mercredi matin.", true, 12)
 		else:
 			_text("Aucune place libre dans une école : construis une école (B → Services publics).", true)
@@ -478,6 +480,8 @@ func _view_profile(pid: int) -> void:
 			_text("Horaires : %s, %s" % [_hours(float(j.h[0]), float(j.h[1])), JOURS.get(String(j.j), "")], true)
 			var c := pop.commute(p, int(h.b), int(p.job))
 			_text("Trajet : %d min %s (%.1f km)" % [int(c.min), c.mode, float(c.m) / 1000.0], true)
+			if c.has("detail"):
+				_text("Itinéraire : " + String(c.detail), true, 12)
 		else:
 			_text("Cherche un emploi (allocation %s par mois). Construis des commerces, bureaux, usines ou services." % money(Population.ALLOCATION), true)
 	elif st == "retraite":

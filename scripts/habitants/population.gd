@@ -31,7 +31,6 @@ const ARRIVAL_RATE := 0.6
 ## Distance à pied, à vélo (m).
 const WALK_MAX := 1200.0
 const BIKE_MAX := 4000.0
-const TRANSIT_REACH := 600.0
 
 # --- Économie (euros par mois) ---
 const TAXE_FONCIERE := 95.0 # par foyer
@@ -88,7 +87,6 @@ var _step_acc := 0.0
 var _last_step_ms := 0
 var _venue_cache: Dictionary = {}
 var _transit_cache: Dictionary = {}
-var _transit_lines := -1
 var _selected := -1
 var _marker: MeshInstance3D
 var _marker_label: Label3D
@@ -565,6 +563,7 @@ func _join_job(p: Dictionary, bid: int, metier := "") -> void:
 ## Chaque nouveau jour : économie, naissances, décès, départs de chez les parents.
 func _new_day() -> void:
 	_pay_day()
+	_board_commuters()
 	var years := life_speed() / 365.25 # années de vie écoulées en un jour de jeu
 	var births := []
 	var deaths := []
@@ -738,52 +737,74 @@ func commute(p: Dictionary, from_bid: int, to_bid: int) -> Dictionary:
 	var h: Dictionary = households.get(int(p.f), {})
 	if d <= WALK_MAX or age < 10.0:
 		return {"mode": "à pied", "min": maxi(2, roundi(d / 80.0)), "m": d}
-	var line := _transit_between(a, b)
-	if d <= BIKE_MAX and (int(p.id) % 3 == 0 or int(h.get("car", 0)) == 0) and age < 75.0:
-		return {"mode": "à vélo", "min": maxi(3, roundi(d / 250.0)), "m": d}
-	if line != "" and (int(h.get("car", 0)) == 0 or int(p.id) % 2 == 0 or age < ADULT_AGE):
-		return {"mode": line, "min": 6 + roundi(d / 330.0), "m": d}
-	if int(h.get("car", 0)) > 0 and age >= ADULT_AGE:
-		return {"mode": "en voiture", "min": maxi(3, roundi(d / 500.0) + 3), "m": d}
-	if d <= BIKE_MAX:
-		return {"mode": "à vélo", "min": maxi(3, roundi(d / 250.0)), "m": d}
+	var tc := _transit_between(a, b)
+	var cars := int(h.get("car", 0)) > 0 and age >= ADULT_AGE
+	var bike := d <= BIKE_MAX and age < 75.0 and (int(p.id) % 3 == 0 or not cars)
+	var bike_min := maxi(3, roundi(d / 250.0))
+	var car_min := maxi(3, roundi(d / 500.0) + 3)
+	# Les amoureux de la voiture la prennent ; les autres choisissent le plus rapide.
+	if cars and int(p.id) % 2 == 1:
+		return {"mode": "en voiture", "min": car_min, "m": d}
+	if not tc.is_empty() and (not bike or int(tc.min) <= bike_min):
+		return {"mode": tc.mode, "min": tc.min, "m": d, "detail": tc.detail, "trip": tc.trip}
+	if bike:
+		return {"mode": "à vélo", "min": bike_min, "m": d}
+	if cars:
+		return {"mode": "en voiture", "min": car_min, "m": d}
 	return {"mode": "à pied (long trajet)", "min": roundi(d / 80.0), "m": d}
 
 
-## Nom d'une ligne de transport public qui relie les deux points, ou "".
-func _transit_between(a: Vector3, b: Vector3) -> String:
+## Trajet en transports publics plus rapide que la marche (planificateur des
+## lignes : marche, lignes, correspondances), ou {} : {mode, min, detail, trip}.
+func _transit_between(a: Vector3, b: Vector3) -> Dictionary:
 	if transport == null or transport.stations == null or transport.stations.lines.is_empty():
-		return ""
+		return {}
+	var st := transport.stations
+	if not st.lines_changed.is_connected(_on_lines_changed):
+		st.lines_changed.connect(_on_lines_changed)
 	var key := [a, b]
-	if _transit_cache.has(key) and _transit_lines == transport.stations.lines.size():
+	if _transit_cache.has(key):
 		return _transit_cache[key]
-	if _transit_lines != transport.stations.lines.size():
-		_transit_cache.clear()
-		_transit_lines = transport.stations.lines.size()
-	var res := _find_transit(a, b)
+	var res := {}
+	if st.planner != null:
+		var trip: Dictionary = st.planner.plan(a, b)
+		var first_line := ""
+		var n_lines := 0
+		for leg in trip.get("legs", []):
+			if String(leg.type) == "ligne":
+				n_lines += 1
+				if first_line == "":
+					first_line = "en %s (%s)" % [String(leg.kind), String(leg.name)]
+		if bool(trip.get("ok", false)) and n_lines > 0:
+			res = {"mode": first_line + (" + %d correspondance%s" % [n_lines - 1, "s" if n_lines > 2 else ""] if n_lines > 1 else ""),
+				"min": maxi(1, roundi(float(trip.total_s) / 60.0)), "detail": st.planner.describe(trip), "trip": trip}
 	_transit_cache[key] = res
 	return res
 
 
-func _find_transit(a: Vector3, b: Vector3) -> String:
-	var st := transport.stations
-	for lid in st.lines:
-		var line: Dictionary = st.lines[lid]
-		if bool(line.get("fret", false)):
+func _on_lines_changed() -> void:
+	_transit_cache.clear()
+
+
+## Compte chaque jour les voyageurs des lignes : un aller et un retour par trajet.
+func _board_commuters() -> void:
+	if transport == null or transport.stations == null or transport.stations.planner == null or transport.stations.lines.is_empty():
+		return
+	var n := now()
+	var counts := {}
+	var trips := {}
+	for pid in persons:
+		var p: Dictionary = persons[pid]
+		var dest := int(p.sch) if stage(p) == "eleve" else int(p.job)
+		if dest < 0 or (stage(p) == "actif" and not _works_today(p, n)):
 			continue
-		var near_a := false
-		var near_b := false
-		for sid in line.stops:
-			if not st.stations.has(sid):
-				continue
-			var sp: Vector3 = st.stations[sid].pos
-			if Vector2(sp.x - a.x, sp.z - a.z).length() < TRANSIT_REACH:
-				near_a = true
-			if Vector2(sp.x - b.x, sp.z - b.z).length() < TRANSIT_REACH:
-				near_b = true
-		if near_a and near_b:
-			return "en %s (%s)" % [String(line.kind), String(line.name)]
-	return ""
+		var c := commute(p, home_of(p), dest)
+		if c.has("trip"):
+			var k := Vector2i(home_of(p), dest)
+			counts[k] = int(counts.get(k, 0)) + 2
+			trips[k] = c.trip
+	for k in counts:
+		transport.stations.planner.board(trips[k], counts[k])
 
 
 ## Lieu d'un loisir le plus proche du logement, ou -1 (à la maison).

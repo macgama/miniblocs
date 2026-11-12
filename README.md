@@ -260,11 +260,27 @@ L'onglet **Espaces publics** regroupe :
 
 L'onglet **Éditeur libre** permet de construire ce que tu veux avec des blocs de 1 m × 1 m × 1 m, posés sur le relief ou les uns contre les autres.
 
-![Une maison en blocs](docs/apercu-blocs.png)
+![Une maison réaliste construite avec l'éditeur libre](docs/apercu-maison-realiste.png)
 
-- **Outils** : **Bloc** (un clic = un bloc, sur le sol ou sur la face visée d'un autre bloc), **Rectangle** (clic glissé : dalle, plancher, toit plat), **Mur** (clic glissé en ligne, hauteur réglable) et **Gomme** (clic sur un bloc, ou glissé pour effacer un étage).
+- **Outils** : **Poser** (un clic = un élément de la forme choisie, sur le sol ou sur la face visée d'un autre bloc), **Rectangle** (clic glissé : dalle, plancher, toit plat), **Mur** (clic glissé en ligne, hauteur réglable) et **Gomme** (clic sur un bloc, ou glissé pour effacer un étage).
 - **Clic droit** court : retirer le bloc visé. **Ctrl+Z** : annuler. **Échap** : arrêter.
-- **14 matériaux** : brique, pierre, bois, planches, béton, enduits, tuile, ardoise, métal, verre (transparent), herbe, sable, feuillage. Chaque bloc a un prix payé par la caisse (moitié rendue quand on le retire).
+- **58 matériaux texturés**, dessinés par le jeu (aucun fichier image) et rangés par famille (menu **Matériau**) :
+  - murs : briques, pierre de taille, moellons, granit, grès, marbre, parpaing, béton brut, crépis de couleur, colombage, torchis, terre crue ;
+  - toits : tuile canal, tuile plate, tuile vernissée, ardoise, bardeaux, chaume, tôle ondulée, zinc ;
+  - sols : parquets, carrelage, damier, tomettes, moquette, pavés ;
+  - bois : rondins, bardages, bois peint, bambou ;
+  - métal et verre : métal, fer forgé, cuivre, or, verre clair, verre fumé, vitrail ;
+  - nature : herbe, sable, gravier, terre, neige, feuillage.
+- **Teinte** : 16 couleurs de peinture, appliquées à n'importe quel matériau (porte rouge, volets verts…).
+- **Formes** :
+  - bloc, demi-bloc (visé sur le haut d'une face : demi-bloc du haut), escalier, revêtement de 10 cm, cloison, poteau, colonne, poutre, vitre ou panneau, garde-corps ;
+  - toits : pente à 45°, pente douce en deux moitiés, arêtier, noue ;
+  - portes et fenêtres : fenêtre à croisillons, fenêtre à volets, baie vitrée, fenêtre de toit, porte à panneaux (2 m), porte-fenêtre, porte de garage (à assembler avec l'outil Mur).
+- **Orientation** : escaliers, pentes, portes et fenêtres se tournent tout seuls selon la direction de la caméra ; **R** ajoute un quart de tour.
+- **Ouvrir une porte** : en vue au sol (V), **E** ou **clic gauche** en regardant la porte. Les portes de garage s'ouvrent d'un bloc.
+- Chaque élément a un prix (matériau × forme), payé par la caisse ; la moitié est rendue quand on le retire.
+
+![Le panneau : formes, portes et fenêtres, matériaux texturés](docs/apercu-editeur-materiaux.png)
 - Pas de bloc sous terre, sur une voie ou dans un bâtiment. Inversement, ni bâtiment ni voie ne peuvent passer sur des blocs.
 - **Mes créations** : écris un nom, clique sur **Enregistrer** puis fais un clic glissé autour de ta construction (toutes les hauteurs sont prises). Elle devient un bâtiment de l'onglet **Mes créations**, que tu poses ailleurs comme n'importe quel bâtiment (fantôme, rotation R, terrassement, prix). La bibliothèque est commune à toutes tes parties, et chaque sauvegarde garde une copie des créations qu'elle utilise. La croix ✕ retire une création de la liste (les exemplaires posés restent).
 - La taille des blocs est une constante (`BlockEditor.SIZE`) : on pourra passer à 50 cm pour plus de détails.
@@ -398,6 +414,9 @@ Détails et limites : [docs/ambiance.md](docs/ambiance.md).
 | `scripts/catalogue/styles.gd` | Bible : régions, époques, archétypes et les 43 styles d'architecture |
 | `scripts/catalogue/style_builder.gd` | Fabrique les bâtiments de la bible (emprise, chiffres, modèle 3D) d'après style + archétype |
 | `scripts/catalogue/espaces_publics.gd` | Places, parcs, monuments et mobilier urbain |
+| `scripts/batiments/bloc_materiaux.gd` | Matériaux de l'éditeur libre, textures dessinées par le jeu, teintes |
+| `scripts/batiments/bloc_formes.gd` | Formes de l'éditeur libre : demi-blocs, escaliers, pentes, portes, fenêtres… |
+| `scripts/batiments/bloc_mesher.gd` | Maillage texturé des blocs (deux surfaces : opaque et verre) |
 | `scripts/catalogue/creations.gd` | Mes créations : constructions de l'éditeur libre enregistrées comme bâtiments |
 | `tests/batiments_test.gd` | Test automatique des bâtiments (sans réseau) |
 | `scripts/habitants/population.gd` | Habitants : foyers, étapes de la vie, écoles, emplois, emploi du temps, trajets, économie, sauvegarde |
@@ -406,7 +425,7 @@ Détails et limites : [docs/ambiance.md](docs/ambiance.md).
 | `scripts/habitants/prenoms.gd` | Prénoms et noms par région du monde |
 | `tests/habitants_test.gd` | Test des habitants (école, emplois, journée, budget, transports, sauvegarde, panneau) |
 | `tests/habitants_vitrine.gd` | Petit quartier et captures du panneau Habitants |
-| `tests/batiments_vitrine.gd` | Pose tout le catalogue (ou fait pousser un quartier avec `--zones`, ou construit une maison en blocs avec `--blocs`) et prend une capture. `--styles japonais,chinois` ou `--arch culte` filtrent la bible, `--zone-style` choisit le style du zonage, `--cat espaces` une catégorie |
+| `tests/batiments_vitrine.gd` | Pose tout le catalogue (ou fait pousser un quartier avec `--zones`, ou construit une maison en blocs avec `--blocs`) et prend une capture. `--styles japonais,chinois` ou `--arch culte` filtrent la bible, `--zone-style` choisit le style du zonage, `--cat espaces` une catégorie, `--maison` construit la maison de démonstration de l'éditeur libre |
 
 ## Sauvegarde des parties
 

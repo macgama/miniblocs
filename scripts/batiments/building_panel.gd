@@ -11,6 +11,8 @@ signal zone_remove_chosen
 signal growth_toggled(on: bool)
 signal block_tool_chosen(tool: int)
 signal block_material_chosen(material: int)
+signal block_shape_chosen(shape: int)
+signal block_tint_chosen(tint: int)
 signal wall_height_changed(height: int)
 signal zone_style_chosen(style: String)
 signal capture_name_changed(name: String)
@@ -31,6 +33,10 @@ var _zone_label: Label
 var _growth := true
 var _block_label: Label
 var _block_material := 0
+var _block_shape := 0
+var _block_tint := 0
+var _mat_family := ""
+var _icons := {}
 var _wall_height := 3
 var _region := ""
 var _era := ""
@@ -265,7 +271,7 @@ func _show_zones() -> void:
 
 func _show_blocks() -> void:
 	_filters.visible = false
-	var tools := [["Bloc", BlockEditor.Tool.BLOCK, "Un clic = un bloc, contre le sol ou contre un autre bloc."],
+	var tools := [["Poser", BlockEditor.Tool.BLOCK, "Un clic = un élément de la forme choisie, contre le sol ou contre un autre bloc. R : tourner."],
 		["Rectangle", BlockEditor.Tool.RECT, "Clic glissé : dalle, plancher ou toit plat."],
 		["Mur", BlockEditor.Tool.WALL, "Clic glissé en ligne : mur de la hauteur choisie."],
 		["Gomme", BlockEditor.Tool.ERASE, "Clic sur un bloc, ou glissé pour effacer un étage."]]
@@ -295,36 +301,113 @@ func _show_blocks() -> void:
 	hrow.add_child(spin)
 	_list.add_child(hrow)
 	_item_buttons.append(hrow)
+	# Formes : blocs, toits, ouvertures.
+	var shape_group := ButtonGroup.new()
+	for fam in [["formes", "Formes"], ["toits", "Toits"], ["ouvertures", "Portes et fenêtres"]]:
+		var fl := Label.new()
+		fl.text = fam[1]
+		fl.add_theme_font_size_override("font_size", 12)
+		_list.add_child(fl)
+		_item_buttons.append(fl)
+		var srow := HFlowContainer.new()
+		_list.add_child(srow)
+		_item_buttons.append(srow)
+		for sh in BlocFormes.ORDER:
+			var info: Dictionary = BlocFormes.INFO[sh]
+			if info.fam != fam[0]:
+				continue
+			var sb := Button.new()
+			sb.text = info.name
+			sb.tooltip_text = info.desc
+			sb.toggle_mode = true
+			sb.button_group = shape_group
+			sb.add_theme_font_size_override("font_size", 12)
+			sb.button_pressed = sh == _block_shape
+			var shid: int = sh
+			sb.pressed.connect(func() -> void:
+				_block_shape = shid
+				block_shape_chosen.emit(shid))
+			srow.add_child(sb)
+	# Matériaux (textures), par famille.
+	var frow := HBoxContainer.new()
+	var flab := Label.new()
+	flab.text = "Matériau :"
+	frow.add_child(flab)
+	var fam_opt := OptionButton.new()
+	for f in BlocMateriaux.FAMILIES:
+		fam_opt.add_item(f.name)
+		fam_opt.set_item_metadata(fam_opt.item_count - 1, f.id)
+		if f.id == _mat_family:
+			fam_opt.select(fam_opt.item_count - 1)
+	fam_opt.item_selected.connect(func(i: int) -> void:
+		_mat_family = String(fam_opt.get_item_metadata(i))
+		show_category("blocs"))
+	frow.add_child(fam_opt)
+	_list.add_child(frow)
+	_item_buttons.append(frow)
 	var grid := GridContainer.new()
-	grid.columns = 7
+	grid.columns = 8
 	_list.add_child(grid)
 	_item_buttons.append(grid)
 	var mat_group := ButtonGroup.new()
 	for i in BlockEditor.MATERIALS.size():
 		var m: Dictionary = BlockEditor.MATERIALS[i]
+		if _mat_family != "" and m.fam != _mat_family:
+			continue
 		var b := Button.new()
-		b.custom_minimum_size = Vector2(40, 34)
+		b.custom_minimum_size = Vector2(38, 38)
 		b.toggle_mode = true
 		b.button_group = mat_group
 		b.tooltip_text = "%s · %d € le bloc" % [m.name, m.price]
-		var col: Color = m.color
-		for state in ["normal", "hover", "pressed", "hover_pressed"]:
-			var sb := StyleBoxFlat.new()
-			sb.bg_color = Color(col.r, col.g, col.b, 1.0)
-			sb.set_corner_radius_all(4)
-			if state.contains("pressed"):
-				sb.set_border_width_all(3)
-				sb.border_color = Color.WHITE
-			elif state == "hover":
-				sb.set_border_width_all(2)
-				sb.border_color = Color(1, 1, 1, 0.6)
-			b.add_theme_stylebox_override(state, sb)
+		b.icon = _material_icon(i)
+		b.expand_icon = true
+		b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		for state in ["pressed", "hover_pressed"]:
+			var sbx := StyleBoxFlat.new()
+			sbx.bg_color = Color(1, 1, 1, 0.9)
+			sbx.set_corner_radius_all(4)
+			b.add_theme_stylebox_override(state, sbx)
 		b.button_pressed = i == _block_material
 		var mi := i
 		b.pressed.connect(func() -> void:
 			_block_material = mi
 			block_material_chosen.emit(mi))
 		grid.add_child(b)
+	# Teintes.
+	var tl := Label.new()
+	tl.text = "Teinte (peinture) :"
+	tl.add_theme_font_size_override("font_size", 12)
+	_list.add_child(tl)
+	_item_buttons.append(tl)
+	var trow := HFlowContainer.new()
+	_list.add_child(trow)
+	_item_buttons.append(trow)
+	var tint_group := ButtonGroup.new()
+	for ti in BlocMateriaux.TINTS.size():
+		var tb := Button.new()
+		tb.custom_minimum_size = Vector2(22, 22)
+		tb.toggle_mode = true
+		tb.button_group = tint_group
+		tb.tooltip_text = BlocMateriaux.TINT_NAMES[ti]
+		var col: Color = BlocMateriaux.TINTS[ti]
+		for state in ["normal", "hover", "pressed", "hover_pressed"]:
+			var sbt := StyleBoxFlat.new()
+			sbt.bg_color = col
+			sbt.set_corner_radius_all(11)
+			if ti == 0:
+				sbt.bg_color = Color(0.85, 0.85, 0.85)
+				sbt.set_border_width_all(2)
+				sbt.border_color = Color(0.4, 0.4, 0.4)
+			if state.contains("pressed"):
+				sbt.set_border_width_all(3)
+				sbt.border_color = Color.WHITE
+			tb.add_theme_stylebox_override(state, sbt)
+		tb.button_pressed = ti == _block_tint
+		var tid := ti
+		tb.pressed.connect(func() -> void:
+			_block_tint = tid
+			block_tint_chosen.emit(tid))
+		trow.add_child(tb)
 	# Enregistrer une construction comme bâtiment de « Mes créations ».
 	_list.add_child(HSeparator.new())
 	var crow := HBoxContainer.new()
@@ -351,6 +434,21 @@ func _show_blocks() -> void:
 	_block_label.text = "Clic droit : retirer un bloc · Ctrl+Z : annuler"
 	_list.add_child(_block_label)
 	_item_buttons.append(_block_label)
+
+
+func _material_icon(i: int) -> Texture2D:
+	if not _icons.has(i):
+		var img: Image = BlocMateriaux.image(i).duplicate()
+		img.clear_mipmaps()
+		img.resize(32, 32, Image.INTERPOLATE_BILINEAR)
+		if BlocMateriaux.is_glass(i):
+			# Le verre sur un fond sombre pour qu'il se voie.
+			var bg := Image.create(32, 32, false, Image.FORMAT_RGBA8)
+			bg.fill(Color(0.25, 0.3, 0.35))
+			bg.blend_rect(img, Rect2i(0, 0, 32, 32), Vector2i.ZERO)
+			img = bg
+		_icons[i] = ImageTexture.create_from_image(img)
+	return _icons[i]
 
 
 func _show_creations() -> void:

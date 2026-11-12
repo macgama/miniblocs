@@ -67,7 +67,9 @@ func rebuild() -> void:
 			_edge_meshes.erase(id)
 			_edge_keys.erase(id)
 	for id in network.edges:
-		var key: Vector2 = trims.get(id, Vector2.ZERO)
+		var tr: Vector2 = trims.get(id, Vector2.ZERO)
+		var joints := joint_rights(network, id)
+		var key := [tr, joints[0], joints[1]]
 		if _edge_meshes.has(id) and _edge_keys.get(id) == key:
 			continue
 		var e: Dictionary = network.edges[id]
@@ -78,7 +80,7 @@ func rebuild() -> void:
 			mi.material_override = _material
 			add_child(mi)
 			_edge_meshes[id] = mi
-		mi.mesh = build_mesh(e.t, e.w, e.pts, e.st, ground, key.x, key.y)
+		mi.mesh = build_mesh(e.t, e.w, e.pts, e.st, ground, tr.x, tr.y, joints[0], joints[1])
 		_edge_keys[id] = key
 	# Plateaux de carrefour : seuls ceux dont les tronçons ou les rognages ont changé.
 	for id in _node_keys.keys():
@@ -128,6 +130,52 @@ func junction_count() -> int:
 	return _node_meshes.size()
 
 
+## Deux tronçons de même mode qui se suivent presque en ligne droite : pas de
+## plateau, les deux maillages se rejoignent bord à bord (onglet).
+const SMOOTH_JOINT := 150.0
+
+
+static func is_smooth_joint(net: TransportNetwork, nid: int) -> bool:
+	var adj: Array = net.adjacency.get(nid, [])
+	if adj.size() != 2 or adj[0] == adj[1]:
+		return false
+	var e0: Dictionary = net.edges[adj[0]]
+	var e1: Dictionary = net.edges[adj[1]]
+	if TransportTypes.mode_of(e0.t) != TransportTypes.mode_of(e1.t):
+		return false
+	var d0 := net.leave_dir(adj[0], nid)
+	var d1 := net.leave_dir(adj[1], nid)
+	return rad_to_deg(acos(clampf(d0.dot(d1), -1.0, 1.0))) >= SMOOTH_JOINT
+
+
+## Vecteur « droite » imposé au début et à la fin d'un tronçon quand il continue
+## un autre tronçon (bissectrice, allongée pour garder la largeur) ; ZERO sinon.
+static func joint_rights(net: TransportNetwork, eid: int) -> Array:
+	var e: Dictionary = net.edges[eid]
+	var out := [Vector3.ZERO, Vector3.ZERO]
+	for end in 2:
+		var nid: int = e.a if end == 0 else e.b
+		if not is_smooth_joint(net, nid):
+			continue
+		var adj: Array = net.adjacency[nid]
+		var other: int = adj[0] if adj[1] == eid else adj[1]
+		var d1 := net.leave_dir(eid, nid)
+		var d2 := net.leave_dir(other, nid)
+		var travel := d1 if end == 0 else -d1
+		var t := (d1 - d2) if end == 0 else (d2 - d1)
+		t.y = 0.0
+		if t.length_squared() < 1e-8:
+			continue
+		t = t.normalized()
+		var r := Vector3(-t.z, 0.0, t.x)
+		var own := Vector3(-travel.z, 0.0, travel.x)
+		var c := r.dot(own)
+		if c < 0.2:
+			continue
+		out[end] = (r / c).snapped(Vector3.ONE * 0.0001)
+	return out
+
+
 ## Longueur à retirer au début (x) et à la fin (y) de chaque tronçon pour
 ## laisser la place au plateau du carrefour.
 static func compute_trims(net: TransportNetwork) -> Dictionary:
@@ -137,7 +185,7 @@ static func compute_trims(net: TransportNetwork) -> Dictionary:
 		if mode != TransportTypes.Mode.ROAD and mode != TransportTypes.Mode.PATH:
 			continue
 		var adj: Array = net.adjacency.get(nid, [])
-		if adj.size() < 2:
+		if adj.size() < 2 or is_smooth_joint(net, nid):
 			continue
 		var trim := junction_trim(net, nid)
 		for eid in adj:
@@ -171,54 +219,108 @@ static func junction_trim(net: TransportNetwork, nid: int) -> float:
 
 
 func _junction_mesh(nid: int, trims: Dictionary) -> ArrayMesh:
-	var mode := network.node_mode(nid)
+	return junction_mesh(network, nid, trims)
+
+
+## Plateau de carrefour : chaussée jusqu'aux bordures, et trottoirs qui
+## tournent à chaque angle entre deux branches voisines (courbe de raccord).
+static func junction_mesh(net: TransportNetwork, nid: int, trims: Dictionary) -> ArrayMesh:
+	var mode := net.node_mode(nid)
 	if mode != TransportTypes.Mode.ROAD and mode != TransportTypes.Mode.PATH:
 		return null
-	var adj: Array = network.adjacency.get(nid, [])
-	if adj.size() < 2:
+	var adj: Array = net.adjacency.get(nid, [])
+	if adj.size() < 2 or is_smooth_joint(net, nid):
 		return null
-	var corners := PackedVector2Array()
-	var heights := {}
+	# Bout de chaque branche : point, direction sortante, demi-largeurs.
+	var arms: Array = []
 	var col := ASPHALT
 	for eid in adj:
-		var e: Dictionary = network.edges[eid]
-		if mode == TransportTypes.Mode.PATH:
-			col = TransportTypes.get_type(e.t).get("color", SIDEWALK)
+		var e: Dictionary = net.edges[eid]
 		var tr: Vector2 = trims.get(eid, Vector2.ZERO)
 		var s: float = tr.x if e.a == nid else float(e.len) - tr.y
-		var p := network.point_at(eid, s)
-		if network.struct_at(eid, s) == TransportTypes.Struct.TUNNEL:
+		if net.struct_at(eid, s) == TransportTypes.Struct.TUNNEL:
 			return null
-		var dir := network.leave_dir(eid, nid)
-		var right := Vector3(-dir.z, 0, dir.x)
-		var hw := network.half_width(eid)
-		for side in [-1.0, 1.0]:
-			var c: Vector3 = p + right * hw * side
-			var k := Vector2(c.x, c.z)
-			corners.append(k)
-			heights[k] = c.y
-	var hull := Geometry2D.convex_hull(corners)
-	if hull.size() < 3:
-		return null
-	var center := network.node_pos(nid)
-	var kit := MeshKit.new()
+		var ty := TransportTypes.get_type(e.t)
+		if mode == TransportTypes.Mode.PATH:
+			col = ty.get("color", SIDEWALK)
+		var dir := net.leave_dir(eid, nid)
+		var hw := net.half_width(eid)
+		var walk := float(ty.get("side", 0.0)) if String(ty.get("side_kind", "")) == "trottoir" else 0.0
+		arms.append({"p": net.point_at(eid, s), "d": dir, "r": Vector3(-dir.z, 0, dir.x), "hw": hw, "kerb": hw - walk,
+			"ang": atan2(dir.z, dir.x)})
+	arms.sort_custom(func(x: Dictionary, y: Dictionary) -> bool: return float(x.ang) < float(y.ang))
+	var center := net.node_pos(nid)
 	var c3 := Vector3(center.x, center.y + 0.085, center.z)
-	for i in hull.size() - 1:
-		var a := hull[i]
-		var b := hull[i + 1]
-		var ya: float = heights.get(a, center.y)
-		var yb: float = heights.get(b, center.y)
-		kit.tri(c3, Vector3(a.x, ya + 0.085, a.y), Vector3(b.x, yb + 0.085, b.y), col)
-		# Bord du plateau (cache le petit vide entre le plateau et le sol).
-		kit.quad(Vector3(a.x, ya + 0.085, a.y), Vector3(b.x, yb + 0.085, b.y),
-			Vector3(b.x, yb - 0.6, b.y), Vector3(a.x, ya - 0.6, a.y), col.darkened(0.2))
+	var kit := MeshKit.new()
+	var kerb_ring := PackedVector3Array()
+	var n := arms.size()
+	for i in n:
+		var A: Dictionary = arms[i]
+		var B: Dictionary = arms[(i + 1) % n]
+		# Côté +r de la branche A et côté -r de la branche B.
+		var ka: Vector3 = A.p + A.r * float(A.kerb)
+		var kb: Vector3 = B.p - B.r * float(B.kerb)
+		var oa: Vector3 = A.p + A.r * float(A.hw)
+		var ob: Vector3 = B.p - B.r * float(B.hw)
+		var kc := _corner(ka, A.d, kb, B.d)
+		var oc := _corner(oa, A.d, ob, B.d)
+		kerb_ring.append(A.p - A.r * float(A.kerb))
+		var steps := 8
+		var prev_k := ka
+		var prev_o := oa
+		for q in range(0, steps + 1):
+			var t := float(q) / float(steps)
+			var k := _bez(ka, kc, kb, t)
+			var o := _bez(oa, oc, ob, t)
+			kerb_ring.append(k)
+			if q > 0:
+				var walk := float(A.hw) > float(A.kerb) + 0.01 or float(B.hw) > float(B.kerb) + 0.01
+				if walk:
+					var up := Vector3(0, 0.22, 0)
+					kit.quad(prev_k + up, k + up, o + up, prev_o + up, SIDEWALK)
+					# Bordure du trottoir, côté chaussée.
+					kit.quad(prev_k + Vector3(0, 0.085, 0), k + Vector3(0, 0.085, 0), k + up, prev_k + up, KERB)
+				# Bord extérieur (cache le vide entre le plateau et le sol).
+				var top := Vector3(0, 0.22 if walk else 0.085, 0)
+				kit.quad(prev_o + top, o + top, o + Vector3(0, -0.6, 0), prev_o + Vector3(0, -0.6, 0), KERB if walk else col.darkened(0.2))
+			prev_k = k
+			prev_o = o
+	# Chaussée : éventail depuis le centre jusqu'aux bordures.
+	for i in kerb_ring.size():
+		var a := kerb_ring[i]
+		var b := kerb_ring[(i + 1) % kerb_ring.size()]
+		kit.tri(c3, a + Vector3(0, 0.085, 0), b + Vector3(0, 0.085, 0), col)
 	return kit.commit()
+
+
+## Point de contrôle de l'angle : intersection des deux bords prolongés vers
+## le centre, sinon le milieu (branches alignées ou angle rentrant).
+static func _corner(pa: Vector3, da: Vector3, pb: Vector3, db: Vector3) -> Vector3:
+	var mid := (pa + pb) * 0.5
+	var den := da.x * db.z - da.z * db.x
+	if absf(den) < 0.05:
+		return mid
+	var w := pb - pa
+	# pa - t·da = pb - u·db  →  t·(-da) + u·db = w
+	var t := (w.x * db.z - w.z * db.x) / -den
+	var u := (-da.x * w.z + da.z * w.x) / -den
+	if t < 0.0 or u < 0.0 or t > 60.0 or u > 60.0:
+		return mid
+	var c := pa - da * t
+	c.y = mid.y
+	return c
+
+
+static func _bez(a: Vector3, c: Vector3, b: Vector3, t: float) -> Vector3:
+	var u := 1.0 - t
+	return a * (u * u) + c * (2.0 * u * t) + b * (t * t)
 
 
 ## Maillage d'un tracé (tronçons et aperçu de pose). trim_a / trim_b : longueur
 ## retirée au début et à la fin (place laissée aux carrefours).
 static func build_mesh(type_id: String, spec: Dictionary, pts: PackedVector3Array, st: PackedByteArray,
-		ground_fn: Callable, trim_a: float = 0.0, trim_b: float = 0.0) -> ArrayMesh:
+		ground_fn: Callable, trim_a: float = 0.0, trim_b: float = 0.0,
+		right_a := Vector3.ZERO, right_b := Vector3.ZERO) -> ArrayMesh:
 	var ty := TransportTypes.get_type(type_id)
 	var k := MeshKit.new()
 	if ty.is_empty() or pts.size() < 2:
@@ -240,6 +342,10 @@ static func build_mesh(type_id: String, spec: Dictionary, pts: PackedVector3Arra
 	var hw := w * 0.5
 	var n := pts.size()
 	var right := _rights(pts)
+	if right_a != Vector3.ZERO and trim_a <= 0.0:
+		right[0] = right_a
+	if right_b != Vector3.ZERO and trim_b <= 0.0:
+		right[n - 1] = right_b
 	var S := TransportTypes.Struct
 
 	if mode == TransportTypes.Mode.WATER:

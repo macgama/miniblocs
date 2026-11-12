@@ -92,6 +92,8 @@ var known: Dictionary = {}
 var extra_buildings: Callable
 ## Bâtiment en plus sous une case (fiche au clic) : fonction (Vector2i) -> bid ou -1.
 var extra_pick: Callable
+## Satisfaction venue d'ailleurs (commerces de l'économie locale) : f(p) -> [delta, raisons].
+var extra_satisfaction: Callable
 
 var _arrival_acc: Dictionary = {}
 var _money_frac := 0.0
@@ -1173,6 +1175,11 @@ func satisfaction(p: Dictionary) -> Dictionary:
 		var bonus := clampf((c - 50.0) / 4.0, -12.0, 12.0)
 		s += bonus
 		why.append("%s logement %s (confort %d)" % ["+" if bonus >= 0.0 else "−", "confortable" if c >= 50 else "peu confortable", c])
+	if extra_satisfaction.is_valid():
+		var ex: Array = extra_satisfaction.call(p)
+		if ex.size() >= 2:
+			s += float(ex[0])
+			why.append_array(ex[1])
 	return {"value": clampi(roundi(s), 0, 100), "why": why}
 
 

@@ -113,7 +113,7 @@ func set_enabled(on: bool) -> void:
 func clear(ambient_only := false) -> void:
 	var keep: Array[Dictionary] = []
 	for v in vehicles:
-		if ambient_only and v.has("line"):
+		if ambient_only and (v.has("line") or v.has("delivery")):
 			keep.append(v)
 		else:
 			_free_vehicle(v)
@@ -149,6 +149,84 @@ func add_line_vehicle(line_id: int, model: String, stops: Array[int], k: int, de
 	vehicles.append(v)
 	_place(v)
 	return true
+
+
+## Camion de livraison de l'économie locale : part du nœud start, puis
+## s'arrête à chaque étape (chargement, déchargement) et disparaît après la
+## dernière. Une étape est {"n": nœud} ou {"e": tronçon, "s": distance depuis
+## son nœud a} : le camion s'arrête alors au bord de la route, devant la porte.
+## tag : numéro de la livraison (Production).
+func add_delivery_vehicle(tag: int, model: String, start: int, halts: Array) -> bool:
+	if halts.is_empty() or not network.nodes.has(start):
+		return false
+	var v := {"mode": TransportTypes.Mode.ROAD, "node": start, "route": [] as Array[int], "leg": 0, "s": 0.0,
+		"trail": PackedVector3Array(), "wagons": [], "speed": 0.0, "lane": 0.6, "lane_idx": 0, "factor": 1.0, "own_speed": 0.0,
+		"max_speed": INF, "model": model, "gaps": [], "delivery": tag, "halts": halts, "halt_i": -1, "dwell": 0.5}
+	if not _next_delivery_stop(v):
+		return false
+	_make_body(v)
+	vehicles.append(v)
+	_place(v)
+	return true
+
+
+## Camions de livraison sur la route.
+func delivery_count() -> int:
+	var c := 0
+	for v in vehicles:
+		if v.has("delivery"):
+			c += 1
+	return c
+
+
+func _next_delivery_stop(v: Dictionary) -> bool:
+	var halts: Array = v.halts
+	while int(v.halt_i) + 1 < halts.size():
+		v.halt_i = int(v.halt_i) + 1
+		var h: Dictionary = halts[int(v.halt_i)]
+		var here := int(v.node)
+		v.erase("halt_leg")
+		if h.has("n"):
+			var target := int(h.n)
+			if target == here or not network.nodes.has(target):
+				continue
+			var r := network.find_route(here, target)
+			if r.is_empty():
+				continue
+			v.route = r
+		else:
+			var eid := int(h.e)
+			if not network.edges.has(eid):
+				continue
+			var e: Dictionary = network.edges[eid]
+			# On entre dans le tronçon par le bout le plus court à atteindre.
+			var best: Array[int] = []
+			var best_len := INF
+			var from_a := true
+			for end in [int(e.a), int(e.b)]:
+				var r: Array[int] = []
+				if end != here:
+					r = network.find_route(here, end)
+					if r.is_empty():
+						continue
+				var l := 0.0
+				for x in r:
+					l += float(network.edges[x].len)
+				l += float(h.s) if end == int(e.a) else float(e.len) - float(h.s)
+				if l < best_len:
+					best_len = l
+					best = r
+					from_a = end == int(e.a)
+			if best_len == INF:
+				continue
+			best.append(eid)
+			v.route = best
+			v.halt_leg = best.size() - 1
+			v.halt_s = clampf(float(h.s) if from_a else float(e.len) - float(h.s), 2.0, maxf(float(e.len) - 2.0, 2.0))
+		v.leg = 0
+		v.s = 0.0
+		return true
+	return false
 
 
 ## Aéronef de ligne : path_fn(line_id, de, vers) donne le trajet en 3D.
@@ -307,7 +385,7 @@ func pick_model(cls: String) -> String:
 func count_mode(mode: int) -> int:
 	var c := 0
 	for v in vehicles:
-		if int(v.mode) == mode and not v.has("line") and not v.has("sidewalk"):
+		if int(v.mode) == mode and not v.has("line") and not v.has("sidewalk") and not v.has("delivery"):
 			c += 1
 	return c
 
@@ -331,7 +409,7 @@ func _process(delta: float) -> void:
 				spawn(mode)
 			elif have > want:
 				for i in vehicles.size():
-					if int(vehicles[i].mode) == mode and not vehicles[i].has("line"):
+					if int(vehicles[i].mode) == mode and not vehicles[i].has("line") and not vehicles[i].has("delivery"):
 						_free_vehicle(vehicles[i])
 						vehicles.remove_at(i)
 						break
@@ -616,7 +694,7 @@ func parked_count() -> int:
 ## (pas de demi-tour dessus).
 func _maybe_park(v: Dictionary, start: int, avoid := -1) -> Array[int]:
 	var none: Array[int] = []
-	if parkings.is_empty() or int(v.mode) != TransportTypes.Mode.ROAD or v.has("line") or not (v.wagons as Array).is_empty():
+	if parkings.is_empty() or int(v.mode) != TransportTypes.Mode.ROAD or (v.has("line") or v.has("delivery")) or not (v.wagons as Array).is_empty():
 		return none
 	if String(v.model) == "" or not PARKERS.has(String(VehicleCatalog.get_type(v.model).get("cat", ""))):
 		return none
@@ -691,6 +769,8 @@ func _free_spot(v: Dictionary) -> void:
 func _new_route(v: Dictionary) -> bool:
 	if v.has("line"):
 		return _next_stop(v)
+	if v.has("delivery"):
+		return _next_delivery_stop(v)
 	if v.has("sidewalk"):
 		return _sidewalk_next(v)
 	var start: int = v.node
@@ -740,6 +820,15 @@ func _advance(v: Dictionary, delta: float) -> bool:
 	if mode == TransportTypes.Mode.ROAD or mode == TransportTypes.Mode.RAIL:
 		if not _drive(v, eid, e0, spd, delta):
 			return false
+		# Camion de livraison arrivé devant la porte : il charge ou décharge.
+		if v.has("halt_leg") and int(v.leg) == int(v.halt_leg) and float(v.halt_s) - float(v.s) < 0.4:
+			v.s = float(v.halt_s)
+			v.erase("halt_leg")
+			v.dwell = DWELL * 2.0
+			v.speed = 0.0
+			v.halt_done = true
+			_place(v)
+			return true
 	elif v.has("sidewalk"):
 		if _walk(v, eid, e0, spd, delta):
 			_place(v)
@@ -761,6 +850,17 @@ func _advance(v: Dictionary, delta: float) -> bool:
 				if not _next_stop(v):
 					return false
 				v.dwell = DWELL
+				_place(v)
+				return true
+			if v.has("delivery"):
+				# Étape sur un nœud : chargement ou déchargement au bout de la route ;
+				# étape devant une porte : déjà faite en chemin. Puis étape suivante.
+				var at_node := not bool(v.get("halt_done", false))
+				v.halt_done = false
+				if not _next_delivery_stop(v):
+					return false
+				if at_node:
+					v.dwell = DWELL * 2.0
 				_place(v)
 				return true
 			if v.has("park_at"):
@@ -840,7 +940,7 @@ func _room(v: Dictionary, eid: int, e: Dictionary, s: float) -> float:
 	var route: Array[int] = v.route
 	if int(v.leg) + 1 >= route.size():
 		# Véhicule ambiant sans suite connue : il attend au nœud qu'on lui en trouve une.
-		return INF if v.has("line") or v.has("park_at") else float(e.len) - s - 0.01
+		return INF if (v.has("line") or v.has("delivery")) or v.has("park_at") else float(e.len) - s - 0.01
 	var nxt: int = route[int(v.leg) + 1]
 	if not network.edges.has(nxt):
 		return INF
@@ -856,14 +956,16 @@ func _room(v: Dictionary, eid: int, e: Dictionary, s: float) -> float:
 func _drive(v: Dictionary, eid: int, e: Dictionary, cruise: float, delta: float) -> bool:
 	var s := float(v.s)
 	var stuck := float(v.get("stuck", 0.0))
-	var ghost: bool = v.has("line") and stuck > STUCK_LINE
+	var ghost: bool = (v.has("line") or v.has("delivery")) and stuck > STUCK_LINE
 	var route: Array[int] = v.route
 	# Destination suivante choisie à l'avance : le véhicule voit qui est devant
 	# lui à la sortie du nœud et respecte le carrefour.
-	if not v.has("line") and not v.has("park_at") and int(v.leg) + 1 >= route.size() and float(e.len) - s < 40.0:
+	if not (v.has("line") or v.has("delivery")) and not v.has("park_at") and int(v.leg) + 1 >= route.size() and float(e.len) - s < 40.0:
 		_extend_route(v)
 		route = v.route
 	var limit := INF if ghost else _room(v, eid, e, s)
+	if v.has("halt_leg") and int(v.leg) == int(v.halt_leg):
+		limit = minf(limit, maxf(float(v.halt_s) - s, 0.0))
 	var nid := network.other_end(eid, v.node)
 	if int(v.mode) == TransportTypes.Mode.ROAD and junctions != null and junctions.is_controlled(nid) \
 			and int(v.leg) + 1 < route.size() and int(v.get("granted", -1)) != nid and not ghost:
@@ -892,7 +994,7 @@ func _drive(v: Dictionary, eid: int, e: Dictionary, cruise: float, delta: float)
 	if adv < 0.05 * delta:
 		v.wait = float(v.get("wait", 0.0)) + delta
 		v.stuck = stuck + delta
-		if not v.has("line") and float(v.stuck) > STUCK:
+		if not (v.has("line") or v.has("delivery")) and float(v.stuck) > STUCK:
 			return false
 	else:
 		v.wait = 0.0
@@ -1072,7 +1174,7 @@ func _make_body(v: Dictionary) -> void:
 	var first_edge: Dictionary = network.edges[(v.route as Array[int])[0]]
 	var cls: String = first_edge.t
 	var model := ""
-	if v.has("line"):
+	if v.has("line") or v.has("delivery"):
 		model = v.model
 		v.factor = 1.0
 		v.lane_idx = 0
@@ -1105,7 +1207,7 @@ func _make_body(v: Dictionary) -> void:
 	v.max_speed = float(t.kmh) / 3.6
 	v.half = float(t.L) / 2.0
 	v.rear = v.half
-	v.speed = 0.0 if v.has("line") else v.max_speed * 0.5
+	v.speed = 0.0 if (v.has("line") or v.has("delivery")) else v.max_speed * 0.5
 	if mode == TransportTypes.Mode.PATH:
 		v.own_speed = v.max_speed * rng.randf_range(0.6, 0.9)
 	# Voitures attelées : écart (en mètres de trace) entre chaque caisse et la tête.

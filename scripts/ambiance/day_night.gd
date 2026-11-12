@@ -67,7 +67,15 @@ var brume := 0.0
 ## trop bas (hiver polaire), on prend la lumière d'un jour plus proche de
 ## l'équinoxe.
 signal jour_permanent_changed(on: bool)
+## Jour permanent choisi par le joueur (toujours, même hors construction).
 var jour_permanent := false
+## Jour permanent automatique quand Construire ou l'éditeur libre est ouvert
+## (réglable dans le panneau Horloge, gardé dans la sauvegarde).
+var jour_auto := true
+## Construire ou l'éditeur libre est ouvert (réglé par terre_main).
+var _construction := false
+## Le joueur a coupé le jour automatique pendant cette séance de construction.
+var _auto_off := false
 ## Hauteur minimale du Soleil affiché en jour permanent (degrés).
 const JOUR_MIN_ELEV := 20.0
 ## Écart (secondes) entre l'instant affiché (Soleil, Lune, ciel) et l'horloge.
@@ -272,17 +280,55 @@ func toggle_pause() -> void:
 		set_speed(0)
 
 
+## Vrai si l'image est en jour permanent (choisi, ou automatique en construction).
+func jour_actif() -> bool:
+	return jour_permanent or (jour_auto and _construction and not _auto_off)
+
+
+## Allume ou éteint le jour permanent (bouton Soleil, Ctrl + T). L'éteindre
+## pendant la construction coupe aussi le jour automatique jusqu'à la
+## fermeture de Construire.
 func set_jour_permanent(on: bool) -> void:
-	if on == jour_permanent:
-		return
-	jour_permanent = on
-	_snap = true
-	_apply()
-	jour_permanent_changed.emit(on)
+	var before := jour_actif()
+	if on:
+		_auto_off = false
+		if not jour_actif():
+			jour_permanent = true
+	else:
+		jour_permanent = false
+		if _construction:
+			_auto_off = true
+	_changed_jour(before)
 
 
 func toggle_jour_permanent() -> void:
-	set_jour_permanent(not jour_permanent)
+	set_jour_permanent(not jour_actif())
+
+
+func set_jour_auto(on: bool) -> void:
+	var before := jour_actif()
+	jour_auto = on
+	_changed_jour(before)
+
+
+## Construire ou l'éditeur libre s'ouvre ou se ferme.
+func set_construction(on: bool) -> void:
+	if on == _construction:
+		return
+	var before := jour_actif()
+	_construction = on
+	if not on:
+		_auto_off = false
+	_changed_jour(before)
+
+
+func _changed_jour(before: bool) -> void:
+	if jour_actif() != before:
+		_snap = true
+		_apply()
+		jour_permanent_changed.emit(jour_actif())
+	else:
+		time_changed.emit()
 
 
 ## Instant utilisé pour le Soleil, la Lune et le ciel (= l'horloge, sauf en
@@ -293,7 +339,7 @@ func display_time() -> float:
 
 ## Écart voulu entre l'instant affiché et l'horloge.
 func _target_shift() -> float:
-	if not jour_permanent:
+	if not jour_actif():
 		return 0.0
 	var off := utc_offset() * 3600.0
 	var day := int(floorf((unix_time + off) / 86400.0))
@@ -594,7 +640,7 @@ func _adapt_shadows() -> void:
 # --- Sauvegarde -----------------------------------------------------------------
 
 func to_dict() -> Dictionary:
-	return {"unix": unix_time, "vitesse": speed_index, "meteo": weather.to_dict(), "jour_permanent": jour_permanent}
+	return {"unix": unix_time, "vitesse": speed_index, "meteo": weather.to_dict(), "jour_permanent": jour_permanent, "jour_auto": jour_auto}
 
 
 func from_dict(d: Dictionary) -> void:
@@ -604,10 +650,11 @@ func from_dict(d: Dictionary) -> void:
 		speed_index = clampi(int(d.vitesse), 0, SPEEDS.size() - 1)
 	if d.has("meteo"):
 		weather.from_dict(d.meteo)
-	var jp := bool(d.get("jour_permanent", false))
-	if jp != jour_permanent:
-		jour_permanent = jp
-		jour_permanent_changed.emit(jp)
+	var before := jour_actif()
+	jour_permanent = bool(d.get("jour_permanent", false))
+	jour_auto = bool(d.get("jour_auto", true))
+	if jour_actif() != before:
+		jour_permanent_changed.emit(jour_actif())
 	_rise_set_day = -1
 	_jp_day = -2147483648
 	_snap = true

@@ -15,6 +15,7 @@ var _time_label: Label
 var _date_label: Label
 var _sky_icon: Button
 var _jour_check: CheckButton
+var _auto_check: CheckButton
 var _info_label: Label
 var _slider: HSlider
 var _weather_pick: OptionButton
@@ -132,6 +133,12 @@ func _ready() -> void:
 	_jour_check.add_theme_font_size_override("font_size", 12)
 	_jour_check.toggled.connect(func(on: bool) -> void: clock.set_jour_permanent(on))
 	box.add_child(_jour_check)
+	_auto_check = CheckButton.new()
+	_auto_check.text = "Jour permanent tout seul quand Construire ou l'éditeur libre est ouvert"
+	_auto_check.focus_mode = Control.FOCUS_NONE
+	_auto_check.add_theme_font_size_override("font_size", 12)
+	_auto_check.toggled.connect(func(on: bool) -> void: clock.set_jour_auto(on))
+	box.add_child(_auto_check)
 	clock.time_changed.connect(refresh)
 	refresh()
 
@@ -165,10 +172,12 @@ func refresh() -> void:
 	if night != _night:
 		_night = night
 		_sky_icon.icon = Icones.get_icon("lune" if night else "soleil", 22, UiStyle.ACCENT)
-	_sky_icon.set_pressed_no_signal(clock.jour_permanent)
-	_jour_check.set_pressed_no_signal(clock.jour_permanent)
+	var jour := clock.jour_actif()
+	_sky_icon.set_pressed_no_signal(jour)
+	_jour_check.set_pressed_no_signal(jour)
+	_auto_check.set_pressed_no_signal(clock.jour_auto)
 	_sky_icon.tooltip_text = ("Jour permanent activé : l'image reste de jour, le temps continue. Clic pour revenir à la vraie nuit (Ctrl + T)"
-		if clock.jour_permanent else "Jour permanent : garder l'image de jour pour construire, le temps continue (Ctrl + T)")
+		if jour else "Jour permanent : garder l'image de jour pour construire, le temps continue (Ctrl + T)")
 	_time_label.text = format_hour(h)
 	_date_label.text = "%d %s %d" % [d.day, MONTHS[int(d.month) - 1], d.year]
 	var rs := clock.rise_set()
@@ -182,7 +191,7 @@ func refresh() -> void:
 	var off := clock.utc_offset()
 	_info_label.text = "%s · soleil %d° · %s · %s" % [
 		sun_txt, roundi(clock.real_sun_elev), moon_phase_name(Astro.moon_age(clock.unix_time)), format_offset(off)]
-	if clock.jour_permanent:
+	if clock.jour_actif():
 		_info_label.text += " · jour permanent"
 	if clock.weather != null:
 		var w := clock.weather

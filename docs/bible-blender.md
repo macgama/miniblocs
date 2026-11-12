@@ -5,7 +5,7 @@ courants du monde entier, et branchés dans le catalogue de construction du jeu 
 catégorie). Chaque bâtiment a son prix, ses emplois et leurs métiers, ses logements ou ses visiteurs, sa
 région et son époque (les filtres du panneau), et plusieurs variantes de couleur.
 
-167 bâtiments à ce jour : 39 bâtiments publics, 40 résidences, 23 industrie et énergie, 21 fermes et agriculture, 44 commerces, loisirs et hôtels.
+198 bâtiments à ce jour : 39 bâtiments publics, 40 résidences, 23 industrie et énergie, 21 fermes et agriculture, 44 commerces, loisirs et hôtels, 31 styles du monde et monuments.
 
 ![Un quartier né du zonage avec le style « Bâtiments Blender »](bible-blender/jeu-zonage.jpg)
 
@@ -285,3 +285,43 @@ Boutiques, marchés, grandes surfaces, restaurants, hôtels, bureaux, loisirs.
 | **Skatepark à bowl** — Bowl de béton, rampes, rails et gradins graffés. | Sport | 38 × 28 m, 2,6 m de haut | 600 k€ | 200 visiteurs | Skateparks municipaux (Bercy, Marseille Prado) |
 | **Stade de football** — Stade de 30 000 places, tribunes couvertes et pylônes d'éclairage. | Sport | 137 × 105 m, 43 m de haut | 85 M€ | 160 emplois | Stades à l'anglaise (Anfield, Geoffroy-Guichard) |
 | **Club-house de golf** — Club-house de bois et pierre à véranda, green d'entraînement et voiturettes. | Sport | 54 × 42 m, 10,9 m de haut | 4,5 M€ | 26 emplois | Club-houses de golf écossais et américains |
+
+## Styles du monde et monuments (31)
+
+Terre d'Afrique et du Moyen-Orient, temples et maisons d'Asie, Amériques, Océanie, monuments anciens.
+
+![Styles du monde et monuments](bible-blender/planche-monde.jpg)
+
+| Bâtiment | Catégorie | Emprise | Prix | Emplois / logements | D'après |
+| --- | --- | --- | --- | --- | --- |
+| **Grande mosquée de terre** — Mosquée de banco aux contreforts pointus et poutres de rônier saillantes. | Services publics | 46 × 36 m, 23 m de haut | 4,8 M€ | 4 emplois | Grande mosquée de Djenné (Mali) |
+| **Kasbah** — Forteresse familiale de pisé à quatre tours d'angle crénelées. | Logement | 23 × 23 m, 15,7 m de haut | 1,8 M€ | 4 logements | Ksar d'Aït-Ben-Haddou (Maroc) |
+| **Case obus** — Case de terre en forme d'ogive, striée de reliefs pour grimper au sommet. | Logement | 22 × 15 m, 8 m de haut | 120 k€ | 1 logement | Cases obus des Musgum (Cameroun) |
+| **Maison swahilie** — Maison de corail blanchi à terrasse, porte sculptée et barza en façade. | Logement | 15 × 16 m, 11,1 m de haut | 520 k€ | 2 logements | Vieille ville de Lamu (Kenya) et Stone Town (Zanzibar) |
+| **Village de greniers dogon** — Greniers carrés de terre coiffés de chapeaux de paille, au pied de la falaise. | Production | 20 × 16 m, 5,2 m de haut | 160 k€ | 4 emplois | Greniers des villages dogon (falaise de Bandiagara, Mali) |
+| **Église monolithe** — Église en croix grecque taillée dans la roche, au fond d'une fosse. | Services publics | 32 × 32 m, 8,8 m de haut | 2,6 M€ | 2 emplois | Bete Giyorgis, Lalibela (Éthiopie) |
+| **Marché couvert africain** — Étals sous toits de tôle ondulée, parasols et ballots colorés. | Commerce | 38 × 28 m, 3,5 m de haut | 900 k€ | 40 emplois | Marché de Kejetia (Kumasi, Ghana) |
+| **Caravansérail** — Hôtellerie fortifiée de pierre autour d'une cour à arcades. | Commerce | 47 × 47 m, 11 m de haut | 3,8 M€ | 18 emplois | Caravansérails de la route de la soie (Zein-o-din, Iran) |
+| **Maison à tours du vent** — Maison de terre à cour, coiffée de deux badgirs qui rafraîchissent les pièces. | Logement | 18 × 17 m, 13,6 m de haut | 760 k€ | 1 logement | Maisons de Yazd (Iran) et d'Al Bastakiya (Dubaï) |
+| **Maison-tour yéménite** — Maison-tour de six niveaux en brique crue, frises blanches et vitraux qamariya. | Logement | 12 × 12 m, 20,7 m de haut | 980 k€ | 3 logements | Vieille ville de Sanaa et Shibam (Yémen) |
+| **Tulou** — Grande maison ronde de terre où vit tout un clan, cour centrale et temple. | Logement | 45 × 45 m, 14 m de haut | 3,5 M€ | 24 logements | Tulous Hakka du Fujian (Tianluokeng) |
+| **Hanok** — Maison coréenne de bois sur socle de pierre, toit de tuiles aux bords relevés. | Logement | 22 × 13 m, 7 m de haut | 690 k€ | 1 logement | Hanoks de Bukchon (Séoul) |
+| **Château japonais** — Donjon blanc à cinq toits recourbés sur une base de pierre talutée. | Loisirs | 36 × 30 m, 38,4 m de haut | 22 M€ | 20 emplois | Château de Himeji (Japon) |
+| **Temple hindou** — Temple de grès à tour-sanctuaire shikhara et mandapa à colonnes. | Services publics | 28 × 38 m, 32,4 m de haut | 3,4 M€ | 3 emplois | Temples de Khajuraho (Inde) |
+| **Stupa** — Dôme blanc sur terrasses, flèche dorée et yeux de Bouddha. | Services publics | 42 × 42 m, 25,8 m de haut | 2 M€ | 2 emplois | Stupa de Boudhanath (Katmandou, Népal) |
+| **Haveli** — Demeure de grès à balcons-jharokhas en encorbellement et cour intérieure. | Logement | 19 × 18 m, 16,6 m de haut | 1,4 M€ | 3 logements | Havelis de Jaisalmer (Rajasthan) |
+| **Temple thaï** — Wat à toits superposés rouge et vert, pignons dorés et chedi blanc. | Services publics | 21 × 42 m, 16,6 m de haut | 3 M€ | 3 emplois | Wat Phra Singh (Chiang Mai, Thaïlande) |
+| **Maison longue** — Maison longue sur pilotis de bois de fer, véranda commune et toit de feuilles. | Logement | 48 × 15 m, 9,8 m de haut | 980 k€ | 10 logements | Rumah panjang des Iban (Sarawak, Bornéo) |
+| **Tongkonan** — Maison toraja sur pilotis au toit en forme de proue, façade sculptée rouge et noire. | Logement | 11 × 21 m, 9,6 m de haut | 640 k€ | 1 logement | Tongkonan du pays toraja (Sulawesi, Indonésie) |
+| **Mission espagnole** — Église de mission en adobe blanc, clocher-mur à arcades et cloître. | Services publics | 36 × 34 m, 19,6 m de haut | 2,8 M€ | 2 emplois | Missions de Californie (San Carlos Borromeo, Carmel) |
+| **Pyramide maya** — Pyramide à neuf degrés, escalier central et temple au sommet. | Loisirs | 59 × 59 m, 29,4 m de haut | 15 M€ | 10 emplois | El Castillo, Chichén Itzá (Mexique) |
+| **Saloon** — Saloon de bois à fausse façade, galerie couverte et balcon. | Commerce | 15 × 22 m, 10 m de haut | 420 k€ | 6 emplois, 1 logement | Rues des villes minières de l'Ouest (Virginia City, Nevada) |
+| **Église en bois de Chiloé** — Église de bois peinte aux tavaillons, portique et tour-clocher à trois étages. | Services publics | 15 × 35 m, 21,8 m de haut | 1,6 M€ | 1 emplois | Églises de Chiloé (Chili), patrimoine mondial |
+| **Maisons de favela** — Empilement de petites maisons de brique et d'enduit coloré à toits plats. | Logement | 22 × 18 m, 11,8 m de haut | 600 k€ | 8 logements | Favelas de Rio de Janeiro (Santa Marta) |
+| **Wharenui** — Maison de réunion maorie à pignon sculpté et bargeboards rouges. | Services publics | 14 × 28 m, 8,6 m de haut | 900 k€ | 1 emplois | Wharenui des marae (Te Papa, Waitangi, Nouvelle-Zélande) |
+| **Faré sur pilotis** — Bungalows de luxe sur l'eau, toits de pandanus et pontons de bois. | Commerce | 36 × 30 m, 7,7 m de haut | 1,2 M€ | 12 emplois | Bungalows sur pilotis de Bora Bora |
+| **Château fort** — Enceinte crénelée à tours rondes, donjon carré et pont-levis. | Loisirs | 52 × 47 m, 23 m de haut | 18 M€ | 14 emplois | Châteaux forts de Carcassonne et de Pierrefonds |
+| **Abbaye cistercienne** — Église dépouillée, cloître et bâtiments conventuels de pierre blonde. | Services publics | 37 × 39 m, 21,1 m de haut | 9 M€ | 8 emplois | Abbaye de Sénanque (Provence) et de Fontenay (Bourgogne) |
+| **Temple grec** — Temple dorique de marbre, péristyle de colonnes et fronton. | Loisirs | 23 × 41 m, 15,4 m de haut | 12 M€ | 6 emplois | Parthénon (Athènes) et temples de Paestum |
+| **Amphithéâtre romain** — Arène ovale à trois niveaux d'arcades de pierre, gradins et piste de sable. | Loisirs | 68 × 56 m, 20 m de haut | 40 M€ | 40 emplois | Arènes de Nîmes et Colisée de Rome |
+| **Aqueduc romain** — Pont-aqueduc à trois rangs d'arches de pierre blonde. | Loisirs | 62 × 9 m, 40 m de haut | 8 M€ | 3 emplois | Pont du Gard (Gard) |

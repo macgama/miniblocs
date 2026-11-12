@@ -1,0 +1,38 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "enduit_blanc": {
+   "index": 0,
+   "origine": "#f4f2ec"
+  },
+  "or": {
+   "index": 1,
+   "origine": "#d7b04a"
+  },
+  "noir": {
+   "index": 2,
+   "origine": "#2a2b2e"
+  },
+  "rouge": {
+   "index": 3,
+   "origine": "#c0392b"
+  },
+  "jaune": {
+   "index": 4,
+   "origine": "#f2c14e"
+  },
+  "vert": {
+   "index": 5,
+   "origine": "#3f8f5a"
+  },
+  "bleu": {
+   "index": 6,
+   "origine": "#2a6fdb"
+  },
+  "blanc": {
+   "index": 7,
+   "origine": "#f7f7f5"
+  }
+ }
+}

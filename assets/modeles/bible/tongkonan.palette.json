@@ -1,0 +1,30 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "bois_sombre": {
+   "index": 0,
+   "origine": "#5a3e2b"
+  },
+  "bois_rouge": {
+   "index": 1,
+   "origine": "#8e3b2e"
+  },
+  "jaune": {
+   "index": 2,
+   "origine": "#f2c14e"
+  },
+  "noir": {
+   "index": 3,
+   "origine": "#2a2b2e"
+  },
+  "bois_gris": {
+   "index": 4,
+   "origine": "#8b8478"
+  },
+  "chaume": {
+   "index": 5,
+   "origine": "#c9a861"
+  }
+ }
+}

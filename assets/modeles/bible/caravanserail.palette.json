@@ -1,0 +1,38 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "brique_claire": {
+   "index": 0,
+   "origine": "#c87f5d"
+  },
+  "terre": {
+   "index": 1,
+   "origine": "#b9825a"
+  },
+  "sable": {
+   "index": 2,
+   "origine": "#e3d3a8"
+  },
+  "pierre_claire": {
+   "index": 3,
+   "origine": "#d8d0bf"
+  },
+  "eau": {
+   "index": 4,
+   "origine": "#3fa7d6"
+  },
+  "ombre": {
+   "index": 5,
+   "origine": "#c9bdab"
+  },
+  "bleu": {
+   "index": 6,
+   "origine": "#2a6fdb"
+  },
+  "bois_sombre": {
+   "index": 7,
+   "origine": "#5a3e2b"
+  }
+ }
+}

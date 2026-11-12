@@ -16,6 +16,8 @@ uniform vec3 glow_cool : source_color = vec3(0.8, 0.88, 1.0);
 uniform float glow_energy = 2.4;
 uniform float cell_width = 2.6;
 uniform float roughness_value = 0.95;
+// Vrai avec le renderer Compatibilité (OpenGL).
+uniform bool compat = false;
 
 varying flat vec3 face_corner;
 varying vec3 world_pos;
@@ -57,21 +59,28 @@ void fragment() {
 		SPECULAR = 0.7;
 		if (night > 0.001) {
 			float floor_id = floor(world_pos.y / 3.0);
-#if CURRENT_RENDERER == RENDERER_COMPATIBILITY
-			// OpenGL prend le dernier sommet du triangle pour les valeurs « flat » :
-			// les deux triangles d'une face ne s'accordent pas. On allume alors
-			// par étage et par façade.
-			float along = 0.0;
-			float frame = 0.5;
-			vec3 key = floor(NODE_POSITION_WORLD) + floor(world_normal * 3.0 + 0.5) * 17.0 + vec3(0.0, floor_id * 13.0, 0.0);
-#else
-			// Découpe en fenêtres le long de la face (depuis son coin).
-			vec3 off = world_pos - face_corner;
-			float along = length(off.xz);
-			float frame = fract(along / cell_width);
-			float cell = floor(along / cell_width);
-			vec3 key = floor(face_corner * 2.0) + vec3(cell * 7.0, floor_id * 13.0, 0.0);
-#endif
+			// Choix du renderer à l'exécution (uniforme `compat`, réglée par
+			// NightWindows) plutôt qu'avec le préprocesseur : CURRENT_RENDERER
+			// n'existe qu'à partir de Godot 4.4, et en 4.3 le shader ne
+			// compilait pas (bâtiments tout blancs).
+			float along;
+			float frame;
+			vec3 key;
+			if (compat) {
+				// OpenGL prend le dernier sommet du triangle pour les valeurs « flat » :
+				// les deux triangles d'une face ne s'accordent pas. On allume alors
+				// par étage et par façade.
+				along = 0.0;
+				frame = 0.5;
+				key = floor(NODE_POSITION_WORLD) + floor(world_normal * 3.0 + 0.5) * 17.0 + vec3(0.0, floor_id * 13.0, 0.0);
+			} else {
+				// Découpe en fenêtres le long de la face (depuis son coin).
+				vec3 off = world_pos - face_corner;
+				along = length(off.xz);
+				frame = fract(along / cell_width);
+				float cell = floor(along / cell_width);
+				key = floor(face_corner * 2.0) + vec3(cell * 7.0, floor_id * 13.0, 0.0);
+			}
 			float h = hash(key);
 			float on = step(h, lit_ratio);
 			// Petits montants sombres entre deux fenêtres d'un bandeau.

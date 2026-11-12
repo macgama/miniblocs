@@ -70,6 +70,7 @@ const SECTIONS := [
 		["F9", "recharger la partie en cours"],
 		["Charger", "liste des parties : charger, supprimer, sauvegarder sous un autre nom"],
 		["Globe", "revenir au globe pour changer de lieu"],
+		["F10 ou icône réglages", "panneau Admin : argent de départ, caisse, argent illimité, coût des constructions, accès à une voie, impôts, salaires, vitesses, épuisement des ressources, déblocage des bâtiments (seulement pour l'admin de la partie)"],
 		["F1", "afficher ou masquer cette aide"],
 	]],
 ]

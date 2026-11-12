@@ -640,7 +640,7 @@ func _book(cat: String, amount: float) -> void:
 func income_of(p: Dictionary) -> float:
 	match stage(p):
 		"actif":
-			return float(Metiers.job(String(p.met)).salaire)
+			return float(Metiers.job(String(p.met)).salaire) * ReglagesPartie.actuel.salaires
 		"retraite":
 			return PENSION
 		"chomeur":
@@ -665,7 +665,8 @@ func household_budget(hid: int) -> Dictionary:
 func city_budget() -> Dictionary:
 	var rec := {"Taxe foncière": 0.0, "Impôts des entreprises": 0.0, "Dotation de l'État": 0.0}
 	var dep := {"Salaires des agents de la ville": 0.0, "Entretien des bâtiments publics": 0.0}
-	rec["Taxe foncière"] = TAXE_FONCIERE * households.size()
+	var reg := ReglagesPartie.actuel
+	rec["Taxe foncière"] = TAXE_FONCIERE * reg.impots * households.size()
 	rec["Dotation de l'État"] = DOTATION * persons.size()
 	for bid in by_job:
 		if not known.has(bid):
@@ -676,9 +677,9 @@ func city_budget() -> Dictionary:
 			if bool(j.get("etat", false)):
 				continue
 			if info.public or bool(j.get("public", false)):
-				dep["Salaires des agents de la ville"] += float(Metiers.job(String(persons[pid].met)).salaire) * CHARGES
+				dep["Salaires des agents de la ville"] += float(Metiers.job(String(persons[pid].met)).salaire) * reg.salaires * CHARGES
 			else:
-				rec["Impôts des entreprises"] += CFE
+				rec["Impôts des entreprises"] += CFE * reg.impots
 	for bid in known:
 		if known[bid].public:
 			dep["Entretien des bâtiments publics"] += float(known[bid].cost) * ENTRETIEN

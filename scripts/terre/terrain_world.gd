@@ -70,6 +70,8 @@ var tiles: ElevationTiles
 var land: LandCover
 ## Rivières et ruisseaux (OpenStreetMap ou calculés depuis le relief).
 var water: WaterMap
+## Relief lointain simplifié, au-delà des blocs détaillés (voir HorizonTerrain).
+var horizon: HorizonTerrain
 ## Optionnel : Callable(c: Vector2i) -> bool. Vrai = pas d'arbre sur cette case
 ## (ex. une route posée sur un terrain plat).
 var tree_blocker: Callable
@@ -158,6 +160,11 @@ func _ready() -> void:
 	_selection.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_selection.visible = false
 	add_child(_selection)
+
+	horizon = HorizonTerrain.new()
+	horizon.name = "Horizon"
+	horizon.world = self
+	add_child(horizon)
 
 	set_origin(origin_lat, origin_lon)
 

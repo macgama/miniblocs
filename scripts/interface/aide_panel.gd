@@ -9,7 +9,8 @@ const SECTIONS := [
 		["ZQSD ou flèches", "déplacer (WASD en QWERTY)"],
 		["Clic droit glissé", "faire glisser la carte"],
 		["Molette", "zoomer"],
-		["A / E, ou clic molette glissé", "tourner (Q / E en QWERTY)"],
+		["A / E, ou clic molette glissé à gauche / à droite", "tourner (Q / E en QWERTY)"],
+		["Clic molette glissé en haut / en bas, ou Ctrl + molette", "incliner : jusqu'à une vue rasante pour voir le relief jusqu'à l'horizon (10 km)"],
 	]],
 	["Barre du bas", [
 		["Catégories", "Observer, Terrain, Voies, Paysage : un clic ouvre leurs outils juste au-dessus ; Construire, Lignes, Habitants ouvrent leur panneau à droite (un seul à la fois)"],
@@ -28,7 +29,7 @@ const SECTIONS := [
 	["Construire (panneau de droite)", [
 		["B", "afficher ou masquer le panneau Construire (catégories en icônes, bâtiments en vignettes)"],
 		["Clic gauche", "poser le bâtiment choisi"],
-		["R", "tourner le bâtiment d'un quart de tour"],
+		["R", "tourner le bâtiment d'un quart de tour (sinon il se cale tout seul le long de la route la plus proche, même courbe, à sa hauteur)"],
 		["Ctrl + Z", "annuler (éditeur libre : blocs, murs et étages)"],
 		["R (éditeur libre)", "tourner l'escalier, la pente, la porte ou la fenêtre d'un quart de tour"],
 		["Enregistrer + clic glissé", "éditeur libre : ta construction devient un bâtiment de « Mes créations »"],

@@ -26,6 +26,8 @@ var habitants_panel: HabitantsPanel
 var production: Production
 var production_panel: ProductionPanel
 var resource_overlay: RessourcesOverlay
+## Chantiers, usure des bâtiments, abords et fumée des maisons habitées.
+var vie_batiments: BatimentsVie
 var _hover := Vector2i.ZERO
 var _hover_valid := false
 
@@ -35,6 +37,12 @@ func _ready() -> void:
 	# Région jouable : REGION_SIZE de côté autour du point de départ.
 	var half := GameStart.REGION_SIZE * 0.5
 	rig.bounds = Rect2(-half, -half, GameStart.REGION_SIZE, GameStart.REGION_SIZE)
+	# Caméra rasante : elle reste au-dessus du relief (détaillé, sinon lointain).
+	rig.ground_height = func(x: float, z: float) -> float:
+		var g := world.raw_height(x, z)
+		if is_nan(g):
+			g = world.horizon.height_at(x, z)
+		return NAN if is_nan(g) else maxf(g, 0.0)
 	world.origin_changed.connect(_on_origin_changed)
 	world.hovered_cell_changed.connect(func(c: Vector2i, valid: bool) -> void:
 		_hover = c
@@ -52,6 +60,7 @@ func _ready() -> void:
 	_setup_transit()
 	_setup_population()
 	_setup_production()
+	_setup_vie()
 	hud.traffic_toggled.connect(func(on: bool) -> void: transport.traffic.set_enabled(on))
 	hud.traffic_filter_changed.connect(func(era: String, region: String) -> void:
 		transport.traffic.set_filters(era, region)
@@ -200,7 +209,8 @@ func save_game(slot := "", title := "") -> bool:
 		"lieu": {"lat": world.origin_lat, "lon": world.origin_lon, "nom": GameStart.place_name},
 		"mode": ["bac_a_sable", "entre_amis", "mondiale"][int(GameStart.mode)],
 		"camera": {"x": snappedf(rig.position.x, 0.01), "z": snappedf(rig.position.z, 0.01),
-			"distance": snappedf(rig._target_distance, 0.01), "angle": snappedf(rig.rotation_degrees.y, 0.01)},
+			"distance": snappedf(rig._target_distance, 0.01), "angle": snappedf(rig.rotation_degrees.y, 0.01),
+			"inclinaison": snappedf(rig.get_target_pitch(), 0.1)},
 		"resume": {"habitants": population.persons.size(), "batiments": t.count, "logements": t.logements, "emplois": t.emplois,
 			"reseau": TransportSystem._km(_network_length()),
 			"blocs": blocks.blocks.size(), "cases_modifiees": world.modifications.size()},
@@ -246,6 +256,7 @@ func load_game(slot := "") -> bool:
 		rig.position.z = float(cam.get("z", 0.0))
 		rig._target_distance = float(cam.get("distance", rig._target_distance))
 		rig.rotation_degrees.y = float(cam.get("angle", 0.0))
+		rig.set_pitch(float(cam.get("inclinaison", rig.get_target_pitch())), true)
 		_snap_pending = true
 	GameStart.slot_id = slot
 	_unsaved = false
@@ -277,6 +288,14 @@ func _setup_population() -> void:
 		rig.position.x = pos.x
 		rig.position.z = pos.z)
 	hud.habitants_requested.connect(func() -> void: habitants_panel.toggle())
+
+
+## Vie des bâtiments : chantiers, usure, abords des maisons habitées, fumée.
+func _setup_vie() -> void:
+	vie_batiments = BatimentsVie.new()
+	vie_batiments.name = "VieBatiments"
+	add_child(vie_batiments)
+	vie_batiments.setup(buildings, ambiance, population)
 
 
 ## Production : sites, stocks, carte des ressources sur le terrain et panneau (P).

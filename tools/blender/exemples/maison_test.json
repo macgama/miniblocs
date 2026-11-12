@@ -1,0 +1,18 @@
+{
+  "nom": "maison_test",
+  "largeur": 8.0,
+  "profondeur": 6.0,
+  "etages": 2,
+  "hauteur_etage": 2.8,
+  "socle": 0.3,
+  "mur": "enduit_chaud",
+  "toit": {"forme": "deux_pans", "pente": 40, "debord": 0.45, "couleur": "tuile"},
+  "cheminee": {"x": 2.2, "y": 1.2, "couleur": "brique"},
+  "fenetres": {
+    "largeur": 0.9,
+    "hauteur": 1.2,
+    "volets": "volet",
+    "par_facade": {"avant": 3, "arriere": 3, "gauche": 1, "droite": 1}
+  },
+  "porte": {"largeur": 1.0, "hauteur": 2.1, "couleur": "porte"}
+}

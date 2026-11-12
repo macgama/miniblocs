@@ -105,6 +105,15 @@ func _run() -> void:
 		for z in range(rect.position.y, rect.end.y):
 			flat = flat and world.cell_height(Vector2i(x, z)) == float(b.h)
 	_check(flat, "emprise de 12 × 10 cases aplanie à %.1f m" % b.h)
+	# La parcelle monte vers l'Est, mais le bâtiment se cale sur la route.
+	var acc := bs.find_access("maison", rect, 3)
+	var road_y := float((acc.pos as Vector3).y)
+	_check(absf(float(b.h) - road_y) <= world.height_step / 2.0 + 0.01, "rez-de-chaussée à la hauteur de la route (%.1f m, route %.2f m)" % [b.h, road_y])
+	var parvis := true
+	for c in bs.path_cells(acc.door, acc.pos):
+		if not rect.has_point(c) and not transport.is_cell_occupied(c):
+			parvis = parvis and world.cell_height(c) == float(b.h)
+	_check(parvis, "chemin de la porte à la route au même niveau")
 	_check(bs.building_at(Vector2i(12, 0)) == id and bs.occupancy.size() == 120, "120 cases occupées")
 	_check(bs.money < money0 and money0 - bs.money >= BuildingCatalog.cost("maison"), "prix payé : %s" % BuildingSystem.format_money(money0 - bs.money))
 	_check(scene.get_node("Batiments").get_child_count() > 3, "modèle 3D ajouté")
@@ -268,6 +277,61 @@ func _run() -> void:
 	_check(bnode.get_node_or_null("Loin") != null and (bnode as MeshInstance3D).visibility_range_end < 1000.0, "version légère au loin")
 	_check(world.modifications.has(Vector2i(-120, -100)), "pas d'arbres sous les blocs")
 
+	print("Détails, variantes, vie des bâtiments :")
+	var anc: Dictionary = fin.get_meta("ancres", {})
+	_check((anc.get("fumee", []) as Array).size() >= 1, "cheminée avec point de fumée (colombages)")
+	var v1 := BuildingCatalog.build_mesh("colombages__maison", null, true, 1)
+	var c0: PackedColorArray = fin.surface_get_arrays(0)[Mesh.ARRAY_COLOR]
+	var c1: PackedColorArray = v1.surface_get_arrays(0)[Mesh.ARRAY_COLOR]
+	_check(c0 != c1, "deux variantes du même type ne sont pas identiques")
+	_check(BuildingCatalog.variants_of("colombages__maison") == BuildingCatalog.VARIANTES and BuildingCatalog.variants_of("maison") == 1, "variantes pour les types de la bible")
+	var shop := BuildingCatalog.build_mesh("colombages__boutique")
+	var shop_far := BuildingCatalog.build_mesh("colombages__boutique", null, false)
+	_check(shop.surface_get_array_len(0) > shop_far.surface_get_array_len(0) * 2, "boutique : enseigne, auvent rayé, volets")
+	_check(Abords.mesh_for("colombages__maison", null) != null and Abords.mesh_for("sahel__maison", null) == null, "abords pour les maisons (pas pour les cases rondes)")
+	var vie: BatimentsVie = scene.get_node("VieBatiments")
+	bs.require_access = false
+	var unl := bs.unlimited_money
+	bs.unlimited_money = true
+	BatimentsVie.chantiers = true
+	var chid := bs.place("colombages__grande_maison", Vector2i(-200, 300), 0)
+	_check(chid > 0 and bs.en_chantier(chid), "un bâtiment neuf commence par un chantier")
+	var cnode := bs.node_of(chid)
+	_check(cnode.get_node_or_null("Echafaudage") != null and cnode.get_node_or_null("Palissade") != null, "échafaudages et palissade")
+	var tid := bs.place("international__immeuble", Vector2i(-160, 300), 0)
+	if tid < 0:
+		print("    immeuble : ", bs.check_place("international__immeuble", Vector2i(-160, 300), 0).reason)
+	_check(bs.node_of(tid).get_node_or_null("Grue") != null, "grue sur les grands chantiers")
+	_check(BatimentsVie.duree_chantier("international__immeuble") > BatimentsVie.duree_chantier("colombages__maison"), "un immeuble se construit plus lentement qu'une maison")
+	var amb: DayNight = scene.get_node("Ambiance")
+	amb.unix_time += BatimentsVie.duree_chantier("colombages__grande_maison") * 0.5
+	vie._update_chantiers()
+	var half := vie.progress(chid)
+	_check(half > 0.3 and half < 0.7 and bs.en_chantier(chid), "chantier à mi-parcours (%d %%)" % roundi(half * 100))
+	amb.unix_time += BatimentsVie.duree_chantier("international__immeuble")
+	vie._update_chantiers()
+	await process_frame
+	_check(not bs.en_chantier(chid) and not bs.en_chantier(tid), "chantiers terminés")
+	_check(cnode.get_node_or_null("Echafaudage") == null and cnode.material_override == null, "échafaudages démontés")
+	var saved := bs.to_dict()
+	var row: Dictionary = (saved.buildings as Array).filter(func(e: Dictionary) -> bool: return int(e.id) == chid)[0]
+	_check(row.has("v") and row.has("ne") and row.has("fin"), "variante et date de construction sauvegardées")
+	BatimentsVie.apply_wear(cnode, 4, 3)
+	_check(cnode.material_override != null and float((cnode.material_override as ShaderMaterial).get_shader_parameter("abandon")) > 0.5, "matériau d'un bâtiment usé et abandonné")
+	BatimentsVie.apply_wear(cnode, 0, 0)
+	_check(cnode.material_override == null, "bâtiment neuf : matériau commun")
+	vie._set_abords(chid, cnode, vie._etat[chid], true)
+	vie._set_fumee(chid, cnode, vie._etat[chid], true)
+	_check(cnode.get_node_or_null("Abords") != null and cnode.get_node_or_null("Fumee") != null, "maison habitée : abords et fumée")
+	vie._set_abords(chid, cnode, vie._etat[chid], false)
+	vie._set_fumee(chid, cnode, vie._etat[chid], false)
+	await process_frame
+	_check(cnode.get_node_or_null("Abords") == null and cnode.get_node_or_null("Fumee") == null, "maison vide : plus d'abords ni de fumée")
+	bs.demolish(chid)
+	bs.demolish(tid)
+	bs.require_access = true
+	bs.unlimited_money = unl
+
 	print("Espaces publics :")
 	_check(BuildingCatalog.ids_in("espaces").size() >= 25, "%d places, parcs, monuments et mobilier" % BuildingCatalog.ids_in("espaces").size())
 	var bench := bs.check_place("banc", Vector2i(-250, -200), 0)
@@ -301,6 +365,29 @@ func _run() -> void:
 	Creations.adopt(JSON.parse_string(JSON.stringify(crea_save)))
 	_check(BuildingCatalog.get_type(crea_id).get("name") == "Ma cabane", "création retrouvée depuis la sauvegarde")
 
+	print("Le long d'une voie en biais :")
+	var money_before_diag := bs.money
+	# Le terrain monte vers l'Est : route presque Nord-Sud, à 15°.
+	var ya1 := world.cell_height(Vector2i(60, 40))
+	var ya2 := world.cell_height(Vector2i(81, 120))
+	var diag := transport.build_segment("route", Vector3(60, ya1, 40), Vector3(81.44, ya2, 120))
+	_check(diag.ok, "route à 15° posée (%s)" % diag.get("reason", ""))
+	var snap := bs.road_snap("maison", Vector2i(80, 80))
+	_check(not snap.is_empty() and absf(absf(float(snap.get("a", 0.0))) - deg_to_rad(15.0)) < 0.05, "maison tournée parallèle à la route (%.0f°)" % rad_to_deg(float(snap.get("a", 0.0))))
+	var sid := bs.place("maison", snap.center, snap.r, 0, snap.a)
+	_check(sid > 0, "maison posée en biais")
+	var sb: Dictionary = bs.buildings.get(sid, {})
+	var sacc := bs.find_access("maison", bs._rect_of(sb), int(sb.r), float(sb.a))
+	_check(not sacc.is_empty() and float(sacc.dist) < 4.0 + BuildingSystem.SETBACK + 1.5, "porte au bord de la route (%.1f m de l'axe)" % float(sacc.get("dist", -1.0)))
+	var ncells := 0
+	for c in bs.occupancy:
+		if int(bs.occupancy[c]) == sid:
+			ncells += 1
+	_check(ncells >= 110 and ncells <= 150, "emprise tournée : %d cases occupées (12 × 10 m)" % ncells)
+	_check(not bs.check_place("maison", snap.center, snap.r, false, snap.a).ok, "pas deux maisons au même endroit en biais")
+	nb = bs.buildings.size()
+	bs.money = money_before_diag
+
 	print("Sauvegarde :")
 	_check(world.save_world({"transport": transport.to_dict(), "batiments": bs.to_dict(), "zones": zs.to_dict(), "blocs": be.to_dict()}), "sauvegarde")
 	world.set_origin(45.8326, 6.8652)
@@ -314,6 +401,7 @@ func _run() -> void:
 	be.from_dict(world.loaded_data.get("blocs", {}))
 	_check(be.blocks.size() == nblocks and be.blocks.get(k0) == 0, "blocs restaurés")
 	_check(bs.buildings.size() == nb and bs.building_at(Vector2i(12, 0)) == id, "bâtiments restaurés")
+	_check(absf(float(bs.buildings[sid].get("a", 0.0)) - float(snap.a)) < 0.001 and bs.building_at(snap.center) == sid, "maison en biais restaurée avec son angle")
 	_check(bs.money == before + roundi(paid * BuildingSystem.REFUND) - 45 * 80 * ZoneSystem.PRICE_M2, "caisse restaurée")
 	bs.unlimited_money = true
 	_check(bs.place("maison", Vector2i(12, 20), 3) > id3, "les nouveaux identifiants continuent après les anciens")

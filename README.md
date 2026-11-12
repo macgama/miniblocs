@@ -266,6 +266,12 @@ L'onglet **Espaces publics** regroupe :
 
 ![Espaces publics](docs/apercu-espaces-publics.png)
 
+### Poser le long d'une route
+
+Près d'une route (ou d'un chemin pour les bâtiments qui en demandent un), le bâtiment se cale tout seul : façade parallèle à la route au point le plus proche, même dans un virage, porte à 1,5 m du bord de la chaussée. Le rez-de-chaussée se met à la hauteur de la route, et un parvis de 3 m de large relie la porte à la chaussée (terrassement compris dans le prix). **R** reprend la main : quarts de tour sur la grille, sans calage.
+
+![Bâtiments calés le long d'une route courbe](docs/apercu-route-courbe.png)
+
 ### Éditeur libre : murs, étages et intérieurs
 
 L'onglet **Éditeur libre** a deux modes : **Murs et étages** (par défaut) et **Blocs**. Les cases du terrain font 1 m, mais un vrai mur fait 20 cm : en mode Murs et étages, les murs se posent **sur les lignes de la grille**, entre deux cases. Une pièce de 4 × 4 cases garde donc 4 m de côté, et une cloison ne mange aucune case.
@@ -465,7 +471,7 @@ Une ferme entièrement générée en code (longère à colombages et toit de cha
 | `scripts/habitants/prenoms.gd` | Prénoms et noms par région du monde |
 | `tests/habitants_test.gd` | Test des habitants (école, emplois, journée, budget, transports, sauvegarde, panneau) |
 | `tests/habitants_vitrine.gd` | Petit quartier et captures du panneau Habitants |
-| `tests/batiments_vitrine.gd` | Pose tout le catalogue (ou fait pousser un quartier avec `--zones`, ou construit une maison en blocs avec `--blocs`) et prend une capture. `--styles japonais,chinois` ou `--arch culte` filtrent la bible, `--zone-style` choisit le style du zonage, `--cat espaces` une catégorie, `--maison` construit la maison de démonstration de l'éditeur libre, `--murs` une maison et un immeuble en murs fins (`--coupe 0` : vue en coupe du rez-de-chaussée) |
+| `tests/batiments_vitrine.gd` | Pose tout le catalogue (ou fait pousser un quartier avec `--zones`, ou construit une maison en blocs avec `--blocs`) et prend une capture. `--styles japonais,chinois` ou `--arch culte` filtrent la bible, `--zone-style` choisit le style du zonage, `--cat espaces` une catégorie, `--maison` construit la maison de démonstration de l'éditeur libre, `--courbe` des bâtiments calés le long d'une route courbe, `--murs` une maison et un immeuble en murs fins (`--coupe 0` : vue en coupe du rez-de-chaussée) |
 
 ## Sauvegarde des parties
 

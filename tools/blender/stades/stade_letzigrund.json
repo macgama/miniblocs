@@ -1,0 +1,42 @@
+{
+  "nom": "stade_letzigrund",
+  "titre": "Stade du Letzigrund, Zurich — FC Zurich et Grasshopper Club",
+  "capacite": 26104,
+  "sources": [
+    "Wikipédia (fr et en), consulté le 12 novembre 2026",
+    "photo libre de Wikimedia Commons (Letzigrund_2024_2.jpg)"
+  ],
+  "notes": "Piste d'athlétisme (meeting Weltklasse), tribunes basses, toit sombre ondulé porté par des poteaux, façade ouverte.",
+  "famille": "anneau",
+  "piste": true,
+  "anneau": {
+    "demi_longueur": 88,
+    "demi_largeur": 47,
+    "rayon_angle": 46,
+    "pas": 18
+  },
+  "tribunes": {
+    "profondeur": 26,
+    "hauteur": 13,
+    "niveaux": 1,
+    "sieges": [
+      "#7d1e1e",
+      "#26272b"
+    ],
+    "groupe": 2,
+    "soubassement": 3
+  },
+  "toit": {
+    "hauteur": 21,
+    "ondulation": 2.5,
+    "periode": 70,
+    "dessus": "metal",
+    "couleur": "#2c2e33",
+    "debut": 6,
+    "debord": 1
+  },
+  "facade": {
+    "type": "ouverte",
+    "pas_poteaux": 16
+  }
+}

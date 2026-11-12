@@ -22,6 +22,26 @@ var details := false
 var roof_style := ""
 ## Interrupteur général des finitions (comparaisons, machines modestes).
 static var details_enabled := true
+## Variante du modèle (0 = modèle de base) : couleurs, volets, cheminée… changent
+## d'une variante à l'autre pour que deux bâtiments du même type diffèrent.
+var variant := 0
+## Points remarquables du modèle (repère local), gardés dans le maillage
+## (métadonnée « ancres ») : "fumee" = sommets des cheminées.
+var anchors := {}
+
+
+func anchor(kind: String, p: Vector3) -> void:
+	if not anchors.has(kind):
+		anchors[kind] = []
+	(anchors[kind] as Array).append(p)
+
+
+## Quadrilatère quelconque dont la normale est calculée (côté `outward`).
+func panel(a: Vector3, b: Vector3, c: Vector3, d: Vector3, outward: Vector3, col: Color) -> void:
+	var n := (b - a).cross(d - a).normalized()
+	if n.dot(outward) < 0.0:
+		n = -n
+	quad(a, b, c, d, n, col)
 
 
 func _fine() -> bool:
@@ -409,6 +429,11 @@ func fit_xz(w: float, d: float) -> void:
 		verts[i] = Vector3((v.x - off.x) * sx, v.y, (v.z - off.y) * sz)
 		var n := normals[i]
 		normals[i] = Vector3(n.x / sx, n.y, n.z / sz).normalized()
+	for kind in anchors:
+		var list: Array = anchors[kind]
+		for j in list.size():
+			var a: Vector3 = list[j]
+			list[j] = Vector3((a.x - off.x) * sx, a.y, (a.z - off.y) * sz)
 
 
 func to_mesh(material: Material = null) -> ArrayMesh:
@@ -424,4 +449,6 @@ func to_mesh(material: Material = null) -> ArrayMesh:
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
 	if material:
 		mesh.surface_set_material(0, material)
+	if not anchors.is_empty():
+		mesh.set_meta("ancres", anchors)
 	return mesh

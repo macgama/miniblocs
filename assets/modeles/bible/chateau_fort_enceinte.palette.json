@@ -1,0 +1,42 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "eau": {
+   "index": 0,
+   "origine": "#3fa7d6"
+  },
+  "pelouse": {
+   "index": 1,
+   "origine": "#6aa84f"
+  },
+  "pierre_grise": {
+   "index": 2,
+   "origine": "#9c988f"
+  },
+  "ardoise": {
+   "index": 3,
+   "origine": "#5b5f66"
+  },
+  "pierre": {
+   "index": 4,
+   "origine": "#b9b0a0"
+  },
+  "bois_sombre": {
+   "index": 5,
+   "origine": "#5a3e2b"
+  },
+  "ombre": {
+   "index": 6,
+   "origine": "#c9bdab"
+  },
+  "pierre_claire": {
+   "index": 7,
+   "origine": "#d8d0bf"
+  },
+  "sous_toit": {
+   "index": 8,
+   "origine": "#6a5040"
+  }
+ }
+}

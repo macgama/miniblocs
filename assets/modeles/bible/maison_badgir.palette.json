@@ -1,0 +1,22 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "ocre": {
+   "index": 0,
+   "origine": "#d39b5a"
+  },
+  "terre": {
+   "index": 1,
+   "origine": "#b9825a"
+  },
+  "ombre": {
+   "index": 2,
+   "origine": "#c9bdab"
+  },
+  "bois_sombre": {
+   "index": 3,
+   "origine": "#5a3e2b"
+  }
+ }
+}

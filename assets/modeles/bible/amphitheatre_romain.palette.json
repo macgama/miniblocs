@@ -1,0 +1,26 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "pierre_claire": {
+   "index": 0,
+   "origine": "#d8d0bf"
+  },
+  "pierre": {
+   "index": 1,
+   "origine": "#b9b0a0"
+  },
+  "pierre_grise": {
+   "index": 2,
+   "origine": "#9c988f"
+  },
+  "ombre": {
+   "index": 3,
+   "origine": "#c9bdab"
+  },
+  "sable": {
+   "index": 4,
+   "origine": "#e3d3a8"
+  }
+ }
+}

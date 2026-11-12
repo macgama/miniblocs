@@ -1,0 +1,30 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "pierre_grise": {
+   "index": 0,
+   "origine": "#9c988f"
+  },
+  "enduit_blanc": {
+   "index": 1,
+   "origine": "#f4f2ec"
+  },
+  "bois_rouge": {
+   "index": 2,
+   "origine": "#8e3b2e"
+  },
+  "verre_clair": {
+   "index": 3,
+   "origine": "#8fb8d8"
+  },
+  "ardoise": {
+   "index": 4,
+   "origine": "#5b5f66"
+  },
+  "sous_toit": {
+   "index": 5,
+   "origine": "#6a5040"
+  }
+ }
+}

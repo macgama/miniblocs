@@ -185,8 +185,7 @@ static func build_mesh(id: String, material: Material = null) -> ArrayMesh:
 		k.fit_xz(w, d)
 		return k.to_mesh(material)
 	if t.has("blocks"):
-		Creations.build(k, t)
-		return k.to_mesh(material)
+		return Creations.build_mesh(t)
 	if t.has("arch"):
 		StyleBuilder.build(k, t)
 		k.fit_xz(w, d)

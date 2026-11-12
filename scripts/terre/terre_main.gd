@@ -84,6 +84,13 @@ func _ready() -> void:
 		if blocks.tool == BlockEditor.Tool.NONE:
 			_select_building_tool()
 			blocks.set_tool(BlockEditor.Tool.BLOCK))
+	build_panel.block_shape_chosen.connect(func(sh: int) -> void:
+		blocks.set_shape(sh)
+		if blocks.tool == BlockEditor.Tool.NONE or blocks.tool == BlockEditor.Tool.ERASE or blocks.tool == BlockEditor.Tool.CAPTURE:
+			_select_building_tool()
+			blocks.set_tool(BlockEditor.Tool.BLOCK))
+	($VueSol as VueSol).interaction.connect(func(o: Vector3, d: Vector3) -> void: blocks.interact_ray(o, d, 4.0))
+	build_panel.block_tint_chosen.connect(func(t: int) -> void: blocks.set_tint(t))
 	build_panel.capture_name_changed.connect(func(n: String) -> void: blocks.capture_name = n)
 	build_panel.creation_deleted.connect(func(id: String) -> void: Creations.remove(id))
 	blocks.captured.connect(func(res: Dictionary) -> void:

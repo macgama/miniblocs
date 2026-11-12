@@ -11,6 +11,8 @@ extends Node3D
 ## - Échap : libérer la souris (clic dans la vue pour la reprendre)
 
 signal vue_changee(vue: int)
+## E ou clic gauche en vue au sol : ouvrir une porte, etc. (rayon depuis la caméra).
+signal interaction(origine: Vector3, direction: Vector3)
 
 enum Vue { DESSUS, TROISIEME, PREMIERE }
 
@@ -220,6 +222,9 @@ func _input(event: InputEvent) -> void:
 		if k.pressed and k.keycode == KEY_ESCAPE:
 			_capturer(false)
 			get_viewport().set_input_as_handled()
+		elif k.pressed and not k.echo and not typing and k.physical_keycode == KEY_E:
+			_interagir()
+			get_viewport().set_input_as_handled()
 		elif k.keycode >= KEY_0 and k.keycode <= KEY_9 or k.physical_keycode >= KEY_0 and k.physical_keycode <= KEY_9:
 			# Pas de changement d'outil de construction pendant la marche.
 			get_viewport().set_input_as_handled()
@@ -232,11 +237,24 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 	elif event is InputEventMouseButton:
 		var mb := event as InputEventMouseButton
-		if mb.pressed and mb.button_index == MOUSE_BUTTON_WHEEL_UP:
+		if mb.pressed and mb.button_index == MOUSE_BUTTON_LEFT:
+			_interagir()
+		elif mb.pressed and mb.button_index == MOUSE_BUTTON_WHEEL_UP:
 			zoomer(-1)
 		elif mb.pressed and mb.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 			zoomer(1)
 		get_viewport().set_input_as_handled()
+
+
+func _interagir() -> void:
+	if camera == null:
+		return
+	var o := camera.global_position
+	var d := -camera.global_transform.basis.z
+	# En 3e personne, on part de la tête du personnage, dans la direction visée.
+	if vue == Vue.TROISIEME and personnage != null:
+		o = personnage.global_position + Vector3(0, 1.6, 0)
+	interaction.emit(o, d)
 
 
 func _unhandled_input(event: InputEvent) -> void:

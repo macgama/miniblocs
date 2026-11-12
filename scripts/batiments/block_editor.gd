@@ -31,22 +31,8 @@ const CHUNK := 16
 const MAX_FILL := 4096
 const REFUND := 0.5
 
-const MATERIALS := [
-	{"name": "Brique", "color": Color("b8573f"), "price": 120},
-	{"name": "Pierre", "color": Color("9a9a94"), "price": 150},
-	{"name": "Bois", "color": Color("8a5a36"), "price": 80},
-	{"name": "Planches", "color": Color("c9a27e"), "price": 70},
-	{"name": "Béton", "color": Color("b9b6ae"), "price": 100},
-	{"name": "Enduit blanc", "color": Color("f1ece2"), "price": 90},
-	{"name": "Enduit jaune", "color": Color("f2d491"), "price": 90},
-	{"name": "Tuile", "color": Color("b5523b"), "price": 110},
-	{"name": "Ardoise", "color": Color("4f5560"), "price": 130},
-	{"name": "Métal", "color": Color("7d8590"), "price": 180},
-	{"name": "Verre", "color": Color(0.62, 0.83, 0.92, 0.45), "price": 200, "glass": true},
-	{"name": "Herbe", "color": Color("6aa84f"), "price": 20},
-	{"name": "Sable", "color": Color("e6d59c"), "price": 20},
-	{"name": "Feuillage", "color": Color("3f7d3a"), "price": 30},
-]
+## Matériaux : voir BlocMateriaux (textures dessinées par le jeu).
+const MATERIALS := BlocMateriaux.LIST
 
 @export var world_path: NodePath
 @export var camera_path: NodePath
@@ -61,6 +47,11 @@ var material := 0
 var wall_height := 3
 ## Nom donné à la prochaine création enregistrée (outil Enregistrer).
 var capture_name := ""
+## Forme posée (BlocFormes.S), teinte (BlocMateriaux.TINTS) et quart de tour
+## ajouté à l'orientation automatique (touche R).
+var shape := 0
+var tint := 0
+var rot_offset := 0
 
 ## Vector3i(x, y2, z) -> matériau
 var blocks: Dictionary = {}
@@ -69,8 +60,6 @@ var columns: Dictionary = {}
 
 var _chunks: Dictionary = {} # Vector2i -> MeshInstance3D
 var _dirty: Dictionary = {}
-var _opaque_mat: StandardMaterial3D
-var _glass_mat: StandardMaterial3D
 var _ghost: MeshInstance3D
 var _ghost_ok: StandardMaterial3D
 var _ghost_bad: StandardMaterial3D
@@ -80,6 +69,8 @@ var _drag := false
 var _drag_start := {}
 var _right_press := Vector2.ZERO
 var _bounds := AABB()
+var _shape_ghost: MeshInstance3D
+var _ghost_key := ""
 
 
 func _ready() -> void:
@@ -91,18 +82,12 @@ func _ready() -> void:
 		buildings = get_node_or_null(buildings_path) as BuildingSystem
 	if buildings != null:
 		buildings.extra_blocker = func(c: Vector2i) -> bool: return columns.has(c)
-	_opaque_mat = StandardMaterial3D.new()
-	_opaque_mat.vertex_color_use_as_albedo = true
-	_opaque_mat.vertex_color_is_srgb = true
-	_opaque_mat.roughness = 0.9
-	_glass_mat = StandardMaterial3D.new()
-	_glass_mat.vertex_color_use_as_albedo = true
-	_glass_mat.vertex_color_is_srgb = true
-	_glass_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	_glass_mat.roughness = 0.1
-	_glass_mat.metallic_specular = 0.9
 	_ghost_ok = BuildingSystem._tint(Color(1, 1, 1, 0.35))
 	_ghost_bad = BuildingSystem._tint(Color(1, 0.3, 0.25, 0.45))
+	_shape_ghost = MeshInstance3D.new()
+	_shape_ghost.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_shape_ghost.visible = false
+	add_child(_shape_ghost)
 	_ghost = MeshInstance3D.new()
 	_ghost.mesh = BoxMesh.new()
 	_ghost.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -130,9 +115,24 @@ func set_inactive() -> void:
 
 func set_material(m: int) -> void:
 	material = clampi(m, 0, MATERIALS.size() - 1)
+	_ghost_key = ""
 	_update_ghost()
 	if tool != Tool.NONE:
 		_emit_help()
+
+
+func set_shape(sh: int) -> void:
+	shape = sh
+	_ghost_key = ""
+	_update_ghost()
+	if tool != Tool.NONE:
+		_emit_help()
+
+
+func set_tint(t: int) -> void:
+	tint = clampi(t, 0, BlocMateriaux.TINTS.size() - 1)
+	_ghost_key = ""
+	_update_ghost()
 
 
 func _emit_help() -> void:
@@ -140,7 +140,7 @@ func _emit_help() -> void:
 	var t := ""
 	match tool:
 		Tool.BLOCK:
-			t = "Bloc"
+			t = BlocFormes.shape_name(shape)
 		Tool.RECT:
 			t = "Rectangle : clic glissé pour une dalle"
 		Tool.WALL:
@@ -150,7 +150,8 @@ func _emit_help() -> void:
 		Tool.CAPTURE:
 			info_changed.emit("Enregistrer une création : clic glissé autour de ta construction (toutes les hauteurs sont prises) · Échap : arrêter")
 			return
-	info_changed.emit("%s · %s (%d € le bloc) · clic : poser · clic droit : retirer · Ctrl+Z : annuler · Échap : arrêter" % [t, mat.name, mat.price])
+	var price := BlocFormes.price(BlocFormes.encode(material, shape))
+	info_changed.emit("%s · %s (%s) · clic : poser · R : tourner · clic droit : retirer · Ctrl+Z : annuler · Échap : arrêter" % [t, mat.name, BuildingSystem.format_money(price)])
 
 
 func clear() -> void:
@@ -201,8 +202,44 @@ func check_block(k: Vector3i) -> String:
 	return ""
 
 
-func _price(m: int) -> int:
-	return int(MATERIALS[m].price)
+func _price(code: int) -> int:
+	return BlocFormes.price(code)
+
+
+## Code du bloc à poser en k avec la forme, la teinte et l'orientation courantes.
+func current_code(target := {}) -> int:
+	var sh := shape
+	if sh == BlocFormes.S.SLAB and target.get("upper", false):
+		sh = BlocFormes.S.SLAB_TOP
+	var r := (_auto_rot() + rot_offset) % 4
+	return BlocFormes.encode(material, sh, r, tint)
+
+
+func _auto_rot() -> int:
+	if camera == null:
+		return 0
+	return BlocFormes.rot_facing(-camera.global_transform.basis.z)
+
+
+## Cases occupées par un bloc posé en k (une porte prend deux cases).
+static func expand(k: Vector3i, code: int) -> Dictionary:
+	var out := {k: code}
+	if BlocFormes.cells(BlocFormes.shape_of(code)) == 2:
+		var top := BlocFormes.encode(BlocFormes.mat_of(code), BlocFormes.shape_of(code), BlocFormes.rot_of(code),
+			BlocFormes.tint_of(code), BlocFormes.is_open(code), true)
+		out[k + Vector3i(0, HU, 0)] = top
+	return out
+
+
+## L'autre moitié d'une porte (ou null).
+func partner(k: Vector3i) -> Variant:
+	if not blocks.has(k):
+		return null
+	var code: int = blocks[k]
+	if BlocFormes.cells(BlocFormes.shape_of(code)) != 2:
+		return null
+	var o := k - Vector3i(0, HU, 0) if BlocFormes.is_top(code) else k + Vector3i(0, HU, 0)
+	return o if blocks.has(o) else null
 
 
 func _can_pay(amount: int) -> bool:
@@ -215,35 +252,47 @@ func _pay(amount: int) -> void:
 
 
 ## Pose plusieurs blocs d'un coup (une seule étape d'annulation). Renvoie le nombre posé.
+## m : code du bloc (BlocFormes.encode) ; un simple indice de matériau donne un bloc plein.
 func place_blocks(keys: Array, m: int) -> int:
 	var ok_keys: Array = []
+	var codes := {}
 	var taken := {}
 	var reason := ""
-	for k in keys:
-		if taken.has(k):
-			continue
-		var r := check_block(k)
-		if r == "":
+	for k0 in keys:
+		var parts := expand(k0, m)
+		var all_ok := true
+		for k in parts:
+			if taken.has(k):
+				all_ok = false
+				break
+			var r := check_block(k)
+			if r != "":
+				all_ok = false
+				if reason == "":
+					reason = r
+				break
 			# Pas deux blocs qui se chevauchent dans la même opération.
-			var clash := false
 			for d in range(-(HU - 1), HU):
-				clash = clash or taken.has(Vector3i(k.x, k.y + d, k.z))
-			if not clash:
+				if taken.has(Vector3i(k.x, k.y + d, k.z)):
+					all_ok = false
+		if all_ok:
+			for k in parts:
 				ok_keys.append(k)
+				codes[k] = parts[k]
 				taken[k] = true
-		elif reason == "":
-			reason = r
 	if ok_keys.is_empty():
 		if reason != "":
 			message.emit(reason)
 		return 0
-	var cost := ok_keys.size() * _price(m)
+	var cost := 0
+	for k in ok_keys:
+		cost += _price(codes[k])
 	if not _can_pay(cost):
 		message.emit("Pas assez d'argent : %s nécessaires." % BuildingSystem.format_money(cost))
 		return 0
 	_pay(cost)
 	for k in ok_keys:
-		_put_block(k, m)
+		_put_block(k, codes[k])
 	_undo.append({"added": ok_keys, "removed": {}})
 	_after_edit(ok_keys)
 	return ok_keys.size()
@@ -253,7 +302,13 @@ func place_blocks(keys: Array, m: int) -> int:
 func remove_blocks(keys: Array) -> int:
 	var removed := {}
 	var back := 0
+	var all_keys: Array = []
 	for k in keys:
+		all_keys.append(k)
+		var o: Variant = partner(k)
+		if o != null:
+			all_keys.append(o)
+	for k in all_keys:
 		if blocks.has(k) and not removed.has(k):
 			removed[k] = blocks[k]
 			back += roundi(_price(blocks[k]) * REFUND)
@@ -335,9 +390,55 @@ func _after_edit(keys: Array) -> void:
 
 func count_by_material() -> Dictionary:
 	var out := {}
-	for m in blocks.values():
+	for c in blocks.values():
+		var m := BlocFormes.mat_of(c)
 		out[m] = int(out.get(m, 0)) + 1
 	return out
+
+
+## Ouvre ou ferme la porte (ou la porte de garage entière) en k. Renvoie vrai si fait.
+func toggle_open(k: Vector3i) -> bool:
+	if not blocks.has(k):
+		return false
+	var code: int = blocks[k]
+	var sh := BlocFormes.shape_of(code)
+	if not BlocFormes.openable(sh):
+		return false
+	var open := not BlocFormes.is_open(code)
+	var todo: Array = [k]
+	var seen := {k: true}
+	var keys: Array = []
+	while not todo.is_empty() and keys.size() < 256:
+		var c: Vector3i = todo.pop_back()
+		keys.append(c)
+		var o: Variant = partner(c)
+		var nb: Array = [] if o == null else [o]
+		if sh == BlocFormes.S.GARAGE:
+			nb.append_array([c + Vector3i(1, 0, 0), c - Vector3i(1, 0, 0), c + Vector3i(0, 0, 1), c - Vector3i(0, 0, 1),
+				c + Vector3i(0, HU, 0), c - Vector3i(0, HU, 0)])
+		for n in nb:
+			if not seen.has(n) and blocks.has(n) and BlocFormes.shape_of(blocks[n]) == sh:
+				seen[n] = true
+				todo.append(n)
+	for c in keys:
+		blocks[c] = BlocFormes.with_open(blocks[c], open)
+		_mark(Vector2i(c.x, c.z))
+	changed.emit()
+	return true
+
+
+## Ouvre la porte visée (vue au sol), à moins de max_dist mètres.
+func interact_ray(origin: Vector3, dir: Vector3, max_dist := 4.0) -> bool:
+	var hit := raycast_block(origin, dir.normalized())
+	if hit.is_empty() or float(hit.dist) > max_dist:
+		# On tolère un peu plus loin pour une porte de garage ou un clic imprécis.
+		return false
+	var k: Vector3i = hit.key
+	if toggle_open(k):
+		message.emit("%s %s." % [BlocFormes.shape_name(BlocFormes.shape_of(blocks[k])),
+			"ouverte" if BlocFormes.is_open(blocks[k]) else "fermée"])
+		return true
+	return false
 
 
 func summary() -> String:
@@ -421,7 +522,9 @@ func target_from_ray(origin: Vector3, dir: Vector3) -> Dictionary:
 	if not b.is_empty() and b.dist <= gd + 0.05:
 		var k: Vector3i = b.key
 		var n: Vector3i = b.normal
-		return {"place": k + n, "hit": k}
+		var hp: Vector3 = origin + dir * float(b.dist)
+		var frac := (hp.y - k.y * UNIT_Y) / (HU * UNIT_Y)
+		return {"place": k + n, "hit": k, "upper": n.y == 0 and frac > 0.5}
 	if ground == null:
 		return {}
 	var gp: Vector3 = ground
@@ -486,7 +589,7 @@ func _unhandled_input(event: InputEvent) -> void:
 				_drag_start = _target.duplicate()
 				_drag_start.place = _cap_key(_target)
 			elif tool == Tool.BLOCK:
-				place_blocks([_target.place], material)
+				place_blocks([_target.place], current_code(_target))
 				_update_target(mb.position)
 			elif tool == Tool.ERASE and _target.get("hit") == null:
 				return
@@ -506,7 +609,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			elif not _target.is_empty():
 				var a2: Vector3i = _drag_start.place
 				var b2: Vector3i = _target.place
-				place_blocks(drag_keys(a2, Vector3i(b2.x, a2.y, b2.z), tool), material)
+				place_blocks(drag_keys(a2, Vector3i(b2.x, a2.y, b2.z), tool), current_code(_drag_start))
 			_update_target(mb.position)
 	elif event is InputEventKey:
 		var key := event as InputEventKey
@@ -518,6 +621,11 @@ func _unhandled_input(event: InputEvent) -> void:
 				_update_ghost()
 			else:
 				set_inactive()
+			get_viewport().set_input_as_handled()
+		elif key.physical_keycode == KEY_R and not key.ctrl_pressed:
+			rot_offset = (rot_offset + 1) % 4
+			_ghost_key = ""
+			_update_ghost()
 			get_viewport().set_input_as_handled()
 		elif key.keycode == KEY_Z and key.ctrl_pressed:
 			if undo():
@@ -548,9 +656,30 @@ func _update_target(screen: Vector2) -> void:
 
 
 func _update_ghost() -> void:
+	_shape_ghost.visible = false
 	if tool == Tool.NONE or _target.is_empty():
 		_ghost.visible = false
 		return
+	if tool == Tool.BLOCK and not _drag:
+		var code := current_code(_target)
+		var k: Vector3i = _target.place
+		var ok := true
+		for part in expand(k, code):
+			ok = ok and check_block(part) == ""
+		if ok:
+			var gk := str(code)
+			if gk != _ghost_key:
+				_ghost_key = gk
+				var gm := BlocMesher.new()
+				BlocFormes.emit(gm, code, Vector3.ZERO, func(_o: Vector3i) -> int: return -1)
+				if BlocFormes.cells(BlocFormes.shape_of(code)) == 2:
+					BlocFormes.emit(gm, expand(k, code)[k + Vector3i(0, HU, 0)], Vector3(0, HU * UNIT_Y, 0), func(_o: Vector3i) -> int: return -1)
+				_shape_ghost.mesh = gm.to_mesh()
+				_shape_ghost.material_override = BlocMateriaux.ghost_material()
+			_shape_ghost.position = Vector3(k.x * SIZE, k.y * UNIT_Y, k.z * SIZE)
+			_shape_ghost.visible = true
+			_ghost.visible = false
+			return
 	var keys: Array
 	var ok := true
 	if tool == Tool.ERASE:
@@ -596,13 +725,13 @@ func _update_ghost() -> void:
 			info_changed.emit("Sélection %d × %d m · relâche pour enregistrer" % [roundi(hi.x - lo.x), roundi(hi.z - lo.z)])
 		return
 	elif ok:
-		var c: Color = mat.color
+		var c: Color = BlocMateriaux.color(material) * BlocMateriaux.tint_color(tint)
 		_ghost_ok.albedo_color = Color(c.r, c.g, c.b, 0.55)
 		_ghost.material_override = _ghost_ok
 	else:
 		_ghost.material_override = _ghost_bad
 	if _drag and tool != Tool.ERASE:
-		info_changed.emit("%d blocs · %s" % [keys.size(), BuildingSystem.format_money(keys.size() * int(mat.price))])
+		info_changed.emit("%d blocs · %s" % [keys.size(), BuildingSystem.format_money(keys.size() * _price(current_code(_drag_start)))])
 
 
 # --- Affichage ----------------------------------------------------------------------
@@ -622,14 +751,6 @@ func _process(_delta: float) -> void:
 	_dirty.clear()
 
 
-const _FACES := [
-	[Vector3i(1, 0, 0), Vector3.RIGHT],
-	[Vector3i(-1, 0, 0), Vector3.LEFT],
-	[Vector3i(0, 0, 1), Vector3.BACK],
-	[Vector3i(0, 0, -1), Vector3.FORWARD],
-]
-
-
 func _build_chunk(ck: Vector2i, keys: Array) -> void:
 	var mi: MeshInstance3D = _chunks.get(ck)
 	if keys.is_empty():
@@ -637,48 +758,12 @@ func _build_chunk(ck: Vector2i, keys: Array) -> void:
 			mi.queue_free()
 			_chunks.erase(ck)
 		return
-	var solid := BlocMesh.new()
-	var glass := BlocMesh.new()
-	var hy := HU * UNIT_Y
+	var mesher := BlocMesher.new()
 	for k in keys:
-		var m: int = blocks[k]
-		var mat: Dictionary = MATERIALS[m]
-		var is_glass := bool(mat.get("glass", false))
-		var kit := glass if is_glass else solid
-		# Légère variation par bloc pour lire chaque cube.
-		var col: Color = (mat.color as Color).darkened(float(absi(hash(k)) % 7) * 0.012)
-		var x0: float = k.x * SIZE
-		var z0: float = k.z * SIZE
-		var y0: float = k.y * UNIT_Y
-		var x1: float = x0 + SIZE
-		var z1: float = z0 + SIZE
-		var y1: float = y0 + hy
-		if not _hides(k + Vector3i(0, HU, 0), is_glass):
-			kit.quad(Vector3(x0, y1, z0), Vector3(x1, y1, z0), Vector3(x1, y1, z1), Vector3(x0, y1, z1), Vector3.UP, col)
-		if not _hides(k - Vector3i(0, HU, 0), is_glass):
-			kit.quad(Vector3(x0, y0, z0), Vector3(x1, y0, z0), Vector3(x1, y0, z1), Vector3(x0, y0, z1), Vector3.DOWN, col.darkened(0.2))
-		for f in _FACES:
-			var off: Vector3i = f[0]
-			if _hides(k + off, is_glass):
-				continue
-			var n: Vector3 = f[1]
-			var side := col.darkened(0.08 if n.x != 0.0 else 0.03)
-			var cx := x1 if off.x > 0 else x0
-			var cz := z1 if off.z > 0 else z0
-			if off.x != 0:
-				kit.quad(Vector3(cx, y0, z0), Vector3(cx, y0, z1), Vector3(cx, y1, z1), Vector3(cx, y1, z0), n, side)
-			else:
-				kit.quad(Vector3(x0, y0, cz), Vector3(x1, y0, cz), Vector3(x1, y1, cz), Vector3(x0, y1, cz), n, side)
-	var mesh := solid.to_mesh(_opaque_mat)
-	if not glass.verts.is_empty():
-		var arrays := []
-		arrays.resize(Mesh.ARRAY_MAX)
-		arrays[Mesh.ARRAY_VERTEX] = glass.verts
-		arrays[Mesh.ARRAY_NORMAL] = glass.normals
-		arrays[Mesh.ARRAY_COLOR] = glass.colors
-		arrays[Mesh.ARRAY_INDEX] = glass.indices
-		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
-		mesh.surface_set_material(mesh.get_surface_count() - 1, _glass_mat)
+		var kk: Vector3i = k
+		BlocFormes.emit(mesher, blocks[kk], Vector3(kk.x * SIZE, kk.y * UNIT_Y, kk.z * SIZE),
+			func(o: Vector3i) -> int: return int(blocks.get(kk + o, -1)))
+	var mesh := mesher.to_mesh()
 	if mi == null:
 		mi = MeshInstance3D.new()
 		mi.name = "Blocs_%d_%d" % [ck.x, ck.y]
@@ -690,18 +775,10 @@ func _build_chunk(ck: Vector2i, keys: Array) -> void:
 		c.queue_free()
 	if mesh.get_surface_count() > 0:
 		var body := StaticBody3D.new()
-		var shape := CollisionShape3D.new()
-		shape.shape = mesh.create_trimesh_shape()
-		body.add_child(shape)
+		var cs := CollisionShape3D.new()
+		cs.shape = mesh.create_trimesh_shape()
+		body.add_child(cs)
 		mi.add_child(body)
-
-
-## Vrai si un voisin exactement aligné cache cette face.
-func _hides(n: Vector3i, is_glass: bool) -> bool:
-	if not blocks.has(n):
-		return false
-	var other_glass := bool(MATERIALS[blocks[n]].get("glass", false))
-	return other_glass == is_glass
 
 
 # --- Sauvegarde ---------------------------------------------------------------------
@@ -710,7 +787,7 @@ func to_dict() -> Dictionary:
 	var flat := []
 	for k in blocks:
 		flat.append_array([k.x, k.y, k.z, blocks[k]])
-	return {"version": 1, "size": SIZE, "blocks": flat}
+	return {"version": 2, "size": SIZE, "blocks": flat}
 
 
 func from_dict(data: Dictionary) -> void:
@@ -719,7 +796,7 @@ func from_dict(data: Dictionary) -> void:
 	var i := 0
 	while i + 3 < flat.size():
 		var m := int(flat[i + 3])
-		if m >= 0 and m < MATERIALS.size():
+		if m >= 0 and BlocFormes.mat_of(m) < MATERIALS.size() and BlocFormes.INFO.has(BlocFormes.shape_of(m)):
 			_put_block(Vector3i(int(flat[i]), int(flat[i + 1]), int(flat[i + 2])), m)
 		i += 4
 	changed.emit()

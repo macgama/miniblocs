@@ -28,6 +28,7 @@ const SECTIONS := [
 		["Clic gauche", "poser le bâtiment choisi"],
 		["R", "tourner le bâtiment d'un quart de tour"],
 		["Ctrl + Z", "annuler (éditeur libre bloc par bloc)"],
+		["R (éditeur libre)", "tourner l'escalier, la pente, la porte ou la fenêtre d'un quart de tour"],
 		["Enregistrer + clic glissé", "éditeur libre : ta construction devient un bâtiment de « Mes créations »"],
 		["Filtres", "région, époque et recherche par nom dans les listes de bâtiments"],
 	]],
@@ -45,6 +46,7 @@ const SECTIONS := [
 		["Maj + T", "vitesse suivante du temps (la marée suit l'heure et la Lune : voir la barre d'état)"],
 		["V", "vue suivante : dessus, 3e personne, 1re personne"],
 		["ZQSD, Maj, Espace", "marcher, courir, sauter (vue au sol)"],
+		["E ou clic gauche", "ouvrir ou fermer une porte, une porte de garage (vue au sol)"],
 		["Échap", "libérer la souris (vue au sol)"],
 	]],
 	["Partie", [

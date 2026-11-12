@@ -89,7 +89,7 @@ static func capture(editor: BlockEditor, rect: Rect2i, name: String) -> Dictiona
 	for k in picked:
 		var m: int = editor.blocks[k]
 		flat.append_array([k.x - lo.x, k.y - lo_y, k.z - lo.y, m])
-		price += int(BlockEditor.MATERIALS[m].price)
+		price += BlocFormes.price(m)
 	var id := "crea_%d_%d" % [int(Time.get_unix_time_from_system()), randi() % 100000]
 	var nm := name.strip_edges()
 	if nm == "":
@@ -130,44 +130,23 @@ static func _register(id: String) -> void:
 	BuildingCatalog.all_types()[id] = catalog_entry(id)
 
 
-## Maillage d'une création (repère du catalogue : centré, sol en y = 0, façade vers −Z).
-static func build(k: BlocMesh, t: Dictionary) -> void:
+## Maillage d'une création (repère du catalogue : centré, sol en y = 0, façade
+## vers −Z), avec les mêmes textures et formes que dans l'éditeur.
+static func build_mesh(t: Dictionary) -> ArrayMesh:
 	var flat: Array = t.blocks
 	var w := float(t.w)
 	var d := float(t.d)
-	var hy := BlockEditor.HU * BlockEditor.UNIT_Y
-	var s := BlockEditor.SIZE
 	var occupied := {}
 	var i := 0
 	while i + 3 < flat.size():
 		occupied[Vector3i(int(flat[i]), int(flat[i + 1]), int(flat[i + 2]))] = int(flat[i + 3])
 		i += 4
+	var mesher := BlocMesher.new()
 	for key in occupied:
 		var kk: Vector3i = key
-		var mat: Dictionary = BlockEditor.MATERIALS[occupied[kk]]
-		var col: Color = mat.color
-		col.a = 1.0
-		if mat.get("glass", false):
-			col = Color(0.55, 0.75, 0.86)
-		var x0 := kk.x * s - w / 2.0
-		var z0 := kk.z * s - d / 2.0
-		var y0 := kk.y * BlockEditor.UNIT_Y
-		var x1 := x0 + s
-		var z1 := z0 + s
-		var y1 := y0 + hy
-		var hu := BlockEditor.HU
-		if not occupied.has(kk + Vector3i(0, hu, 0)):
-			k.quad(Vector3(x0, y1, z0), Vector3(x1, y1, z0), Vector3(x1, y1, z1), Vector3(x0, y1, z1), Vector3.UP, col)
-		if kk.y > 0 and not occupied.has(kk - Vector3i(0, hu, 0)):
-			k.quad(Vector3(x0, y0, z0), Vector3(x1, y0, z0), Vector3(x1, y0, z1), Vector3(x0, y0, z1), Vector3.DOWN, col.darkened(0.2))
-		if not occupied.has(kk + Vector3i(1, 0, 0)):
-			k.quad(Vector3(x1, y0, z0), Vector3(x1, y0, z1), Vector3(x1, y1, z1), Vector3(x1, y1, z0), Vector3.RIGHT, col.darkened(0.08))
-		if not occupied.has(kk - Vector3i(1, 0, 0)):
-			k.quad(Vector3(x0, y0, z0), Vector3(x0, y0, z1), Vector3(x0, y1, z1), Vector3(x0, y1, z0), Vector3.LEFT, col.darkened(0.08))
-		if not occupied.has(kk + Vector3i(0, 0, 1)):
-			k.quad(Vector3(x0, y0, z1), Vector3(x1, y0, z1), Vector3(x1, y1, z1), Vector3(x0, y1, z1), Vector3.BACK, col.darkened(0.03))
-		if not occupied.has(kk - Vector3i(0, 0, 1)):
-			k.quad(Vector3(x0, y0, z0), Vector3(x1, y0, z0), Vector3(x1, y1, z0), Vector3(x0, y1, z0), Vector3.FORWARD, col.darkened(0.03))
+		var base := Vector3(kk.x * BlockEditor.SIZE - w / 2.0, kk.y * BlockEditor.UNIT_Y, kk.z * BlockEditor.SIZE - d / 2.0)
+		BlocFormes.emit(mesher, occupied[kk], base, func(o: Vector3i) -> int: return int(occupied.get(kk + o, -1)))
+	return mesher.to_mesh()
 
 
 # --- Sauvegarde ---------------------------------------------------------------------

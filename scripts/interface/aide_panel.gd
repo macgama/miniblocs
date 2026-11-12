@@ -47,6 +47,12 @@ const SECTIONS := [
 		["Clic sur un nom", "profil : âge, foyer, travail ou école, loisirs, budget et journée heure par heure"],
 		["Vitesse de la vie", "réglage du panneau : vieillissement réaliste, rapide (1 an = 1 mois) ou très rapide (1 an = 1 jour)"],
 	]],
+	["Production", [
+		["P", "panneau Production : carte des ressources (clic sur une ressource pour la voir sur le terrain), stocks, sites"],
+		["Construire → Production", "extraction (forêt, ferme, élevage, pêche, carrière, sablière, argile, mine, puits) et transformation (scierie, moulin, boulangerie industrielle, aciérie, raffinerie…)"],
+		["Survol d'une case", "les ressources les plus riches de la case s'affichent dans la fiche du terrain"],
+		["Règles", "il faut des habitants pour les emplois, une voie d'accès, des commerces pour vendre, un dépôt, une gare ou un port pour exporter"],
+	]],
 	["Temps et vue", [
 		["T", "mettre le temps en pause / reprendre"],
 		["Maj + T", "vitesse suivante du temps (la marée suit l'heure et la Lune : voir la barre d'état)"],

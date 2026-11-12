@@ -55,6 +55,9 @@ var next_id := 1
 var last_change_rect := Rect2i()
 ## Si défini, Callable(case: Vector2i) -> bool : case prise par autre chose (blocs libres).
 var extra_blocker: Callable
+## Règle de pose en plus (production : richesse du sol) : (id, rect) ->
+## {"reason": refus ou "", "info": texte ajouté à l'aide de pose}.
+var extra_check: Callable
 
 var _nodes: Dictionary = {} # id -> MeshInstance3D
 var _meshes: Dictionary = {} # type -> ArrayMesh
@@ -277,6 +280,12 @@ func check_place(id: String, center: Vector2i, r: int, grown := false) -> Dictio
 			earth += absf(world.cell_height(Vector2i(x, z)) - target)
 	res.earth = earth
 	res.cost = BuildingCatalog.cost(id) + roundi(earth * EARTH_COST)
+	if extra_check.is_valid() and not grown:
+		var ex: Dictionary = extra_check.call(id, rect)
+		res["info"] = String(ex.get("info", ""))
+		if String(ex.get("reason", "")) != "":
+			res.reason = String(ex.reason)
+			return res
 	res.access = find_access(id, rect, r)
 	if grown:
 		res.cost = 0
@@ -518,6 +527,8 @@ func _refresh() -> void:
 	if _check.earth > 0.0:
 		txt += " dont terrassement %s" % format_money(roundi(_check.earth * EARTH_COST))
 	txt += " · " + ("desservi par une %s" % String(TransportTypes.get_type(acc.type).name).to_lower() if not acc.is_empty() else "aucune voie à proximité")
+	if String(_check.get("info", "")) != "":
+		txt += "\n" + String(_check.info)
 	if not _check.ok:
 		txt += "\n✗ " + String(_check.reason)
 	txt += "\nClic : poser · R : tourner%s · clic droit ou Échap : arrêter" % ("" if manual_rot else " (orientation auto vers la route)")

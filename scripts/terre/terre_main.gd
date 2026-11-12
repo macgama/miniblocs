@@ -37,6 +37,12 @@ var interieur_panel: InterieurPanel
 
 
 func _ready() -> void:
+	# Nouvelle partie : réglages choisis sur le globe (ou ceux par défaut du joueur).
+	if GameStart.load_slot == "":
+		var r := ReglagesPartie.prochaine if ReglagesPartie.prochaine != null else ReglagesPartie.load_defaults()
+		ReglagesPartie.actuel = r.duplicate_settings()
+		ReglagesPartie.actuel.createur = SaveGame.player_id()
+		ReglagesPartie.prochaine = null
 	_setup_plans()
 	# Région jouable : REGION_SIZE de côté autour du point de départ.
 	var half := GameStart.REGION_SIZE * 0.5
@@ -130,10 +136,8 @@ func _ready() -> void:
 		blocks._emit_help())
 	build_panel.growth_toggled.connect(func(on: bool) -> void: zones.growth = on)
 	build_panel.zone_style_chosen.connect(func(st: String) -> void: zones.current_style = st)
-	build_panel.rules_changed.connect(func(access: bool, unlimited: bool) -> void:
-		buildings.require_access = access
-		buildings.unlimited_money = unlimited
-		buildings._refresh())
+	build_panel.admin_requested.connect(toggle_admin)
+	hud.admin_requested.connect(toggle_admin)
 	hud.save_requested.connect(func() -> void:
 		if save_game():
 			hud.show_message("Partie sauvegardée : %s." % _game_title())
@@ -164,6 +168,7 @@ func _ready() -> void:
 	if GameStart.chosen:
 		world.set_origin(GameStart.lat, GameStart.lon)
 	_on_origin_changed(world.origin_lat, world.origin_lon)
+	_apply_settings(true)
 	if GameStart.load_slot != "":
 		var slot := GameStart.load_slot
 		GameStart.load_slot = ""
@@ -198,7 +203,7 @@ func save_sections() -> Dictionary:
 		"zones": zones.to_dict(), "blocs": blocks.to_dict(), "plans": plans.to_dict(), "ambiance": ambiance.to_dict(),
 		"creations": Creations.to_dict(Creations.used_by(buildings)),
 		"personnage": ($VueSol as VueSol).to_dict(), "habitants": population.to_dict(), "mobilier": mobilier.to_dict(),
-		"production": production.to_dict()}
+		"production": production.to_dict(), "reglages": _settings_snapshot().to_dict()}
 
 
 ## Sauvegarde dans la partie en cours (ou une nouvelle). title : nom d'une nouvelle partie.
@@ -256,7 +261,7 @@ func load_game(slot := "") -> bool:
 	production.from_dict(sec.get("production", {}))
 	ambiance.from_dict(sec.get("ambiance", {}))
 	($VueSol as VueSol).from_dict(sec.get("personnage", {}))
-	build_panel.set_rules(buildings.require_access, buildings.unlimited_money)
+	_load_settings(sec.get("reglages", {}), m)
 	build_panel.set_growth(zones.growth)
 	var cam: Dictionary = m.get("camera", {})
 	if not cam.is_empty():
@@ -273,6 +278,80 @@ func load_game(slot := "") -> bool:
 	if last_error != "":
 		hud.show_message("Partie chargée avec des pertes : " + last_error)
 	return true
+
+
+# --- Réglages de la partie (panneau Admin) ---------------------------------------
+
+var _admin: AdminPanel
+## Vitesses appliquées en dernier (on ne les réimpose que si l'admin les change).
+var _applied_speeds := Vector2i(-1, -1)
+
+
+## Réglages à jour des valeurs changées ailleurs (touche T, panneau Habitants…).
+func _settings_snapshot() -> ReglagesPartie:
+	var r := ReglagesPartie.actuel
+	r.acces_route = buildings.require_access
+	r.argent_illimite = buildings.unlimited_money
+	r.vitesse_vie = population.life_speed_index
+	if ambiance.speed_index > 0:
+		r.vitesse_temps = ambiance.speed_index
+	_applied_speeds = Vector2i(r.vitesse_temps, r.vitesse_vie)
+	return r
+
+
+## Applique les réglages aux systèmes. speeds : imposer aussi les vitesses.
+func _apply_settings(speeds := false) -> void:
+	var r := ReglagesPartie.actuel
+	buildings.require_access = r.acces_route
+	buildings.unlimited_money = r.argent_illimite
+	var sp := Vector2i(r.vitesse_temps, r.vitesse_vie)
+	if speeds or sp != _applied_speeds:
+		ambiance.set_speed(r.vitesse_temps)
+		population.life_speed_index = r.vitesse_vie
+		_applied_speeds = sp
+	buildings._refresh()
+	build_panel.refresh()
+	var admin := ReglagesPartie.admin_ici()
+	build_panel.set_admin(admin)
+	hud.set_admin_visible(admin)
+
+
+## Réglages d'une partie chargée. Ancienne sauvegarde sans section : réglages
+## par défaut, avec les règles gardées par les bâtiments.
+func _load_settings(d: Dictionary, manifest: Dictionary) -> void:
+	var r := ReglagesPartie.load_defaults()
+	if d.is_empty():
+		r.acces_route = buildings.require_access
+		r.argent_illimite = buildings.unlimited_money
+		r.vitesse_vie = population.life_speed_index
+		r.vitesse_temps = maxi(1, ambiance.speed_index)
+	else:
+		r.from_dict(d)
+	if r.createur == "":
+		r.createur = String(manifest.get("auteur", ""))
+	ReglagesPartie.actuel = r
+	_applied_speeds = Vector2i(ambiance.speed_index, population.life_speed_index)
+	_apply_settings(false)
+
+
+## Ouvre ou ferme le panneau Admin (F10), si ce joueur est admin de la partie.
+func toggle_admin() -> void:
+	if _admin != null:
+		_admin.close_panel()
+		return
+	if not ReglagesPartie.admin_ici():
+		hud.show_message(ReglagesPartie.qui_est_admin(int(GameStart.mode)))
+		return
+	_admin = AdminPanel.new(_settings_snapshot(), false, true, buildings.money)
+	_admin.closed.connect(func() -> void: _admin = null)
+	_admin.settings_changed.connect(func() -> void:
+		_apply_settings(false)
+		_unsaved = true)
+	_admin.caisse_set.connect(func(v: int) -> void:
+		buildings.money = v
+		_unsaved = true
+		hud.show_message("Caisse mise à %s." % BuildingSystem.format_money(v)))
+	_windows_layer().add_child(_admin)
 
 
 ## Habitants (simulation) et leur panneau.
@@ -555,7 +634,8 @@ func _on_tool_selected(t: int) -> void:
 
 
 func _on_origin_changed(lat: float, lon: float) -> void:
-	# Nouvelle région : réseau vierge.
+	# Nouvelle région : réseau vierge, paliers de déblocage à zéro.
+	ReglagesPartie.actuel.record_habitants = 0
 	population.clear()
 	production.clear()
 	resource_overlay.show_resource(resource_overlay.res)
@@ -647,6 +727,10 @@ func _exclusive_panels() -> void:
 func _refresh_stats() -> void:
 	var money := "Illimitée" if buildings.unlimited_money else BuildingSystem.format_money(buildings.money)
 	var s := population.stats()
+	var palier := ReglagesPartie.actuel.note_population(int(s.habitants))
+	if palier != "" and ReglagesPartie.actuel.deblocage == "progression":
+		hud.show_message("Palier « %s » atteint : de nouveaux bâtiments sont débloqués !" % palier)
+		build_panel.refresh()
 	var adults: int = int(s.actif) + int(s.chomeur)
 	var unemployment := "—" if adults == 0 else "%d %%" % roundi(100.0 * int(s.chomeur) / adults)
 	hud.set_stats(money, int(s.habitants), int(s.satisfaction), unemployment)

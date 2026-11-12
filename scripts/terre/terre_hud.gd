@@ -18,6 +18,8 @@ signal transit_requested
 signal habitants_requested
 ## Panneau « Production » (touche P) : ressources, stocks, sites.
 signal production_requested
+## Bouton Admin de la barre du haut, ou F10 : réglages de la partie.
+signal admin_requested
 signal spec_edited(type_id: String, spec: Dictionary)
 signal curve_toggled(on: bool)
 
@@ -89,6 +91,7 @@ var _tray_sep: Control
 var _coords_panel: PanelContainer
 var _chips := {}
 var _view_button: Button
+var _admin_button: Button
 var _current_tool := 0
 ## Dernier outil choisi dans chaque catégorie (clic sur la catégorie = on y revient).
 var _last_tool := {"terrain": 1, "voies": 4}
@@ -174,11 +177,14 @@ func _build_top_bar() -> void:
 	for spec in [["globe", "Revenir au globe pour changer de lieu", "", globe_requested],
 			["sauver", "Sauvegarder la partie", "F5", save_requested],
 			["charger", "Parties sauvegardées (F9 : recharger la partie en cours)", "F9", load_requested],
-			["aide", "Toutes les commandes", "F1", help_requested]]:
+			["aide", "Toutes les commandes", "F1", help_requested],
+			["admin", "Admin : réglages de la partie (argent, coûts, règles, temps, déblocage)", "F10", admin_requested]]:
 		var b := UiStyle.icon_button(spec[0], spec[1], spec[2])
 		var sig: Signal = spec[3]
 		b.pressed.connect(func() -> void: sig.emit())
 		row.add_child(b)
+		if spec[0] == "admin":
+			_admin_button = b
 
 	# Centre : l'horloge (ClockHud, calque au-dessus) s'y pose.
 	var middle := Control.new()
@@ -438,6 +444,12 @@ func set_panel_open(id: String, on: bool) -> void:
 		b.set_pressed_no_signal(on)
 
 
+## Le bouton Admin n'est montré qu'à qui peut administrer la partie.
+func set_admin_visible(on: bool) -> void:
+	if _admin_button:
+		_admin_button.visible = on
+
+
 func set_view(v: int) -> void:
 	if _view_button:
 		_view_button.text = VIEW_NAMES[clampi(v, 0, 2)]
@@ -651,6 +663,8 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		save_requested.emit()
 	elif key.keycode == KEY_F9:
 		quick_load_requested.emit()
+	elif key.keycode == KEY_F10:
+		admin_requested.emit()
 
 
 ## Enfonce le bouton d'un outil sans prévenir (un autre système a pris la main).

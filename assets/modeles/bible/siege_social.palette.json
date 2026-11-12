@@ -1,0 +1,26 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "pelouse": {
+   "index": 0,
+   "origine": "#6aa84f"
+  },
+  "verre_ciel": {
+   "index": 1,
+   "origine": "#6d97b8"
+  },
+  "blanc": {
+   "index": 2,
+   "origine": "#f7f7f5"
+  },
+  "bois_sombre": {
+   "index": 3,
+   "origine": "#5a3e2b"
+  },
+  "vert": {
+   "index": 4,
+   "origine": "#3f8f5a"
+  }
+ }
+}

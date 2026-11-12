@@ -1,0 +1,46 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "sable": {
+   "index": 0,
+   "origine": "#e3d3a8"
+  },
+  "beton_clair": {
+   "index": 1,
+   "origine": "#d4d1ca"
+  },
+  "verre_ciel": {
+   "index": 2,
+   "origine": "#6d97b8"
+  },
+  "verre_clair": {
+   "index": 3,
+   "origine": "#8fb8d8"
+  },
+  "eau": {
+   "index": 4,
+   "origine": "#3fa7d6"
+  },
+  "jaune": {
+   "index": 5,
+   "origine": "#f2c14e"
+  },
+  "rouge": {
+   "index": 6,
+   "origine": "#c0392b"
+  },
+  "metal": {
+   "index": 7,
+   "origine": "#7d8288"
+  },
+  "bleu": {
+   "index": 8,
+   "origine": "#2a6fdb"
+  },
+  "vert": {
+   "index": 9,
+   "origine": "#3f8f5a"
+  }
+ }
+}

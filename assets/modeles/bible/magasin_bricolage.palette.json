@@ -1,0 +1,50 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "asphalte": {
+   "index": 0,
+   "origine": "#55585e"
+  },
+  "marquage": {
+   "index": 1,
+   "origine": "#f2f2ee"
+  },
+  "bardage": {
+   "index": 2,
+   "origine": "#a4aab0"
+  },
+  "beton_sombre": {
+   "index": 3,
+   "origine": "#8c8a85"
+  },
+  "vert": {
+   "index": 4,
+   "origine": "#3f8f5a"
+  },
+  "metal": {
+   "index": 5,
+   "origine": "#7d8288"
+  },
+  "verre_clair": {
+   "index": 6,
+   "origine": "#8fb8d8"
+  },
+  "blanc": {
+   "index": 7,
+   "origine": "#f7f7f5"
+  },
+  "beton_clair": {
+   "index": 8,
+   "origine": "#d4d1ca"
+  },
+  "bois_clair": {
+   "index": 9,
+   "origine": "#c39a6b"
+  },
+  "brique": {
+   "index": 10,
+   "origine": "#a9583f"
+  }
+ }
+}

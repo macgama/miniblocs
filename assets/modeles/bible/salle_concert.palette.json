@@ -1,0 +1,34 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "pierre_claire": {
+   "index": 0,
+   "origine": "#d8d0bf"
+  },
+  "bardage": {
+   "index": 1,
+   "origine": "#a4aab0"
+  },
+  "rouge": {
+   "index": 2,
+   "origine": "#c0392b"
+  },
+  "verre_clair": {
+   "index": 3,
+   "origine": "#8fb8d8"
+  },
+  "metal": {
+   "index": 4,
+   "origine": "#7d8288"
+  },
+  "noir": {
+   "index": 5,
+   "origine": "#2a2b2e"
+  },
+  "blanc": {
+   "index": 6,
+   "origine": "#f7f7f5"
+  }
+ }
+}

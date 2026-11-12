@@ -1,0 +1,50 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "enduit_vert": {
+   "index": 0,
+   "origine": "#cfdcc0"
+  },
+  "cadre": {
+   "index": 1,
+   "origine": "#f4f1ea"
+  },
+  "vitre": {
+   "index": 2,
+   "origine": "#33495e"
+  },
+  "metal": {
+   "index": 3,
+   "origine": "#7d8288"
+  },
+  "blanc": {
+   "index": 4,
+   "origine": "#f7f7f5"
+  },
+  "zinc": {
+   "index": 5,
+   "origine": "#7e8890"
+  },
+  "rouge": {
+   "index": 6,
+   "origine": "#c0392b"
+  },
+  "jaune": {
+   "index": 7,
+   "origine": "#f2c14e"
+  },
+  "enduit_rose": {
+   "index": 8,
+   "origine": "#e9c2b0"
+  },
+  "orange": {
+   "index": 9,
+   "origine": "#e4772e"
+  },
+  "sous_toit": {
+   "index": 10,
+   "origine": "#6a5040"
+  }
+ }
+}

@@ -1,0 +1,42 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "terre": {
+   "index": 0,
+   "origine": "#b9825a"
+  },
+  "ocre": {
+   "index": 1,
+   "origine": "#d39b5a"
+  },
+  "bois_sombre": {
+   "index": 2,
+   "origine": "#5a3e2b"
+  },
+  "rouge": {
+   "index": 3,
+   "origine": "#c0392b"
+  },
+  "jaune": {
+   "index": 4,
+   "origine": "#f2c14e"
+  },
+  "bleu": {
+   "index": 5,
+   "origine": "#2a6fdb"
+  },
+  "orange": {
+   "index": 6,
+   "origine": "#e4772e"
+  },
+  "pierre_claire": {
+   "index": 7,
+   "origine": "#d8d0bf"
+  },
+  "vitre": {
+   "index": 8,
+   "origine": "#33495e"
+  }
+ }
+}

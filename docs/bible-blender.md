@@ -5,7 +5,7 @@ courants du monde entier, et branchés dans le catalogue de construction du jeu 
 catégorie). Chaque bâtiment a son prix, ses emplois et leurs métiers, ses logements ou ses visiteurs, sa
 région et son époque (les filtres du panneau), et plusieurs variantes de couleur.
 
-123 bâtiments à ce jour : 39 bâtiments publics, 40 résidences, 23 industrie et énergie, 21 fermes et agriculture.
+167 bâtiments à ce jour : 39 bâtiments publics, 40 résidences, 23 industrie et énergie, 21 fermes et agriculture, 44 commerces, loisirs et hôtels.
 
 ![Un quartier né du zonage avec le style « Bâtiments Blender »](bible-blender/jeu-zonage.jpg)
 
@@ -232,3 +232,56 @@ Fermes, granges, étables, silos, serres, moulins et bâtiments agricoles.
 | **Hangar agricole** — Hangar ouvert sur charpente métallique, tracteur et bottes de foin. | Industrie | 34 × 20 m, 8,1 m de haut | 250 k€ | 1 emplois | Hangars de stockage des exploitations céréalières |
 | **Ferme d'alpage** — Chalet d'alpage bas et large, fromagerie et étable sous un toit de tavillons. | Industrie | 28 × 18 m, 8,7 m de haut | 700 k€ | 3 emplois, 1 logement | Alpages de la Gruyère (Fribourg) |
 | **Grenier à riz** — Lumbung de bambou sur pilotis, toit de chaume en forme de selle. | Industrie | 8 × 8 m, 7,6 m de haut | 180 k€ | 2 emplois | Greniers à riz (lumbung) de Bali et de Lombok |
+
+## Commerces, loisirs et hôtels (44)
+
+Boutiques, marchés, grandes surfaces, restaurants, hôtels, bureaux, loisirs.
+
+![Commerces, loisirs et hôtels](bible-blender/planche-commerces.jpg)
+
+| Bâtiment | Catégorie | Emprise | Prix | Emplois / logements | D'après |
+| --- | --- | --- | --- | --- | --- |
+| **Boulangerie de village** — Boulangerie à devanture de bois peint, logement du boulanger à l'étage. | Commerce | 11 × 14 m, 9,6 m de haut | 380 k€ | 4 emplois, 1 logement | Devantures de boulangeries parisiennes et de bourgs |
+| **Boucherie-charcuterie** — Boutique à carrelage blanc et rouge, rideau de fer, appartement au-dessus. | Commerce | 10 × 14 m, 12,2 m de haut | 360 k€ | 4 emplois, 1 logement | Boucheries de quartier (Lyon, Paris) |
+| **Épicerie de quartier** — Petite épicerie d'angle, étals de fruits sous le store vert. | Commerce | 12 × 13 m, 6,7 m de haut | 300 k€ | 3 emplois | Épiceries et primeurs de quartier |
+| **Pharmacie** — Officine à grande vitrine et croix verte lumineuse. | Commerce | 13 × 15 m, 7,1 m de haut | 420 k€ | 5 emplois | Pharmacies d'officine françaises |
+| **Librairie** — Librairie à devanture vert bouteille et ses rayonnages en vitrine. | Commerce | 11 × 13 m, 11,9 m de haut | 350 k€ | 3 emplois, 1 logement | Librairies indépendantes (Shakespeare and Company) |
+| **Fleuriste** — Boutique de fleurs pastel, seaux de bouquets sur le trottoir. | Commerce | 10 × 12 m, 4,6 m de haut | 260 k€ | 2 emplois | Fleuristes de quartier |
+| **Kiosque Davioud** — Kiosque vert à coupole, colonne Morris et présentoirs de magazines. | Commerce | 9 × 6 m, 4,8 m de haut | 60 k€ | 1 emplois | Kiosques Davioud des boulevards parisiens |
+| **Halle de marché** — Halle métallique à verrière haute, étals sous une grande nef. | Commerce | 41 × 29 m, 14,1 m de haut | 2,4 M€ | 30 emplois | Halles Baltard, marché couvert de Saint-Quentin |
+| **Souk couvert** — Rue d'échoppes sous voûtes de terre, portes à arcs et tissus tendus. | Commerce | 33 × 18 m, 6,2 m de haut | 1,8 M€ | 40 emplois | Souks de Marrakech et bazar de Téhéran |
+| **Supermarché** — Supermarché de périphérie à auvent, parking et chariots. | Commerce | 53 × 60 m, 8,1 m de haut | 5,5 M€ | 55 emplois | Supermarchés de zone commerciale |
+| **Hypermarché** — Immense boîte de tôle, galerie marchande, station de lavage et parking géant. | Commerce | 99 × 101 m, 11,5 m de haut | 18 M€ | 280 emplois | Hypermarchés des années 1970 (Sainte-Geneviève-des-Bois) |
+| **Centre commercial** — Galerie couverte à verrière centrale, deux niveaux de boutiques et cinéma. | Commerce | 113 × 95 m, 21 m de haut | 42 M€ | 650 emplois | Malls régionaux (Westfield, Les Quatre Temps) |
+| **Grand magasin** — Grand magasin de six niveaux, façade ornée et coupole de verre colorée. | Commerce | 49 × 37 m, 38 m de haut | 28 M€ | 420 emplois | Galeries Lafayette Haussmann, Le Printemps |
+| **Magasin de bricolage** — Hangar orange de bricolage, cour des matériaux et jardinerie sous serre. | Commerce | 86 × 71 m, 12,9 m de haut | 9 M€ | 120 emplois | Grandes surfaces de bricolage (Leroy Merlin, Castorama) |
+| **Concession automobile** — Showroom vitré, atelier et voitures neuves en exposition. | Commerce | 42 × 35 m, 12 m de haut | 4,2 M€ | 35 emplois | Concessions automobiles de zone commerciale |
+| **Station-service** — Auvent sur pompes, boutique et totem de prix. | Commerce | 36 × 32 m, 7 m de haut | 2,2 M€ | 6 emplois | Stations-service de nationale |
+| **Restauration rapide** — Restaurant rapide à toit plat, drive en boucle et totem lumineux. | Commerce | 32 × 28 m, 12,4 m de haut | 1,6 M€ | 24 emplois | Restaurants rapides de bord de route |
+| **Bistrot** — Café-bistrot d'angle à terrasse, stores rouges et chaises de rotin. | Commerce | 15 × 17 m, 15,9 m de haut | 520 k€ | 8 emplois, 2 logements | Cafés parisiens (Café de Flore, Les Deux Magots) |
+| **Pizzeria** — Trattoria à façade terracotta, pergola de vigne et four à bois. | Commerce | 13 × 19 m, 8,8 m de haut | 480 k€ | 7 emplois, 1 logement | Trattorias de Naples et du Trastevere |
+| **Izakaya** — Bistrot japonais de bois sombre, lanternes rouges et noren à l'entrée. | Commerce | 10 × 15 m, 7,3 m de haut | 560 k€ | 6 emplois, 1 logement | Ruelles d'izakaya de Shinjuku (Omoide Yokocho) |
+| **Diner américain** — Wagon-restaurant en inox aux bandeaux colorés et grande enseigne. | Commerce | 28 × 25 m, 6,8 m de haut | 620 k€ | 10 emplois | Diners de la côte Est (Mickey's Diner, Saint Paul) |
+| **Rangée de boutiques** — Quatre boutiques sous arcades avec appartements, enseignes variées. | Commerce | 31 × 16 m, 12,4 m de haut | 1,9 M€ | 14 emplois, 6 logements | Rues commerçantes de centre-bourg |
+| **Shophouse** — Compartiment chinois étroit : boutique au rez, galerie couverte, volets à lamelles. | Commerce | 9 × 21 m, 11,9 m de haut | 820 k€ | 4 emplois, 2 logements | Shophouses de Penang, Singapour et Hội An |
+| **Auberge de montagne** — Hôtel-chalet à balcons fleuris et restaurant panoramique. | Commerce | 27 × 19 m, 15,3 m de haut | 2,8 M€ | 22 emplois | Hôtels-chalets de Zermatt et de Megève |
+| **Palace Belle Époque** — Grand hôtel de bord de mer, coupoles d'angle, marquise et terrasses. | Commerce | 59 × 35 m, 35 m de haut | 24 M€ | 240 emplois | Hôtel Negresco (Nice), Carlton (Cannes) |
+| **Hôtel de chaîne** — Hôtel économique de cinq niveaux, façade rythmée de couleurs et parking. | Commerce | 43 × 33 m, 17,6 m de haut | 6,5 M€ | 30 emplois | Hôtels de chaîne de périphérie et de gare |
+| **Tour hôtelière** — Gratte-ciel d'hôtel en voile de verre bleu, socle de congrès et spa. | Commerce | 52 × 37 m, 150 m de haut | 95 M€ | 900 emplois | Tours hôtelières de Dubaï et de Shanghai |
+| **Motel** — Motel en L le long de la route : portes sur coursive, piscine et enseigne néon. | Commerce | 46 × 32 m, 9,4 m de haut | 1,4 M€ | 8 emplois | Motels de la Route 66 |
+| **Ryokan** — Auberge japonaise de bois, toits de tuiles grises, bains et jardin. | Commerce | 36 × 32 m, 9,3 m de haut | 5,2 M€ | 24 emplois | Ryokans de Kyoto et onsen de Hakone |
+| **Immeuble de bureaux** — Bureaux de six étages en bandes vitrées, rez commercial. | Commerce | 35 × 21 m, 23,6 m de haut | 14 M€ | 320 emplois | Immeubles tertiaires de quartier d'affaires |
+| **Tour de bureaux** — Tour de verre de quarante étages, couronne lumineuse et socle en retrait. | Commerce | 52 × 52 m, 184 m de haut | 120 M€ | 3500 emplois | Tours de La Défense (Tour First, Tour Saint-Gobain) |
+| **Banque** — Siège de banque en pierre à portique de colonnes et hall vitré. | Commerce | 33 × 34 m, 18,1 m de haut | 9 M€ | 140 emplois | Sièges bancaires de la fin du XIXe (Crédit Lyonnais, Banque de France) |
+| **Siège social** — Campus de bureaux à anneau vitré autour d'un jardin intérieur. | Commerce | 92 × 92 m, 12,6 m de haut | 60 M€ | 1800 emplois | Sièges en anneau (Apple Park, Cupertino) |
+| **Bowling** — Salle de bowling à grande quille sur le toit, bar et billards. | Loisirs | 47 × 44 m, 11 m de haut | 4,8 M€ | 18 emplois | Bowlings américains des années 1960 |
+| **Casino** — Casino de station balnéaire, façade à colonnes, verrière et jardins. | Loisirs | 66 × 44 m, 27,2 m de haut | 30 M€ | 420 emplois | Casino de Monte-Carlo |
+| **Discothèque** — Boîte de nuit cubique noire, enseigne néon et entrée surveillée. | Loisirs | 32 × 35 m, 8,8 m de haut | 2,6 M€ | 20 emplois | Clubs de zone industrielle reconvertis |
+| **Salle de concert** — Grande salle de concerts à toile tendue rouge et parvis. | Loisirs | 72 × 71 m, 21 m de haut | 34 M€ | 90 emplois | Zéniths de France (Paris, Strasbourg) |
+| **Parc aquatique** — Bassins à vagues sous dôme vitré, toboggans géants et plages. | Loisirs | 82 × 66 m, 16,8 m de haut | 22 M€ | 120 emplois | Aqualands et centres aquatiques (Aquaboulevard) |
+| **Grande roue** — Roue de fête foraine de 40 m, nacelles colorées et guichet. | Loisirs | 40 × 16 m, 39,2 m de haut | 3,8 M€ | 8 emplois | Grande roue de la Concorde, Prater de Vienne |
+| **Carrousel** — Manège de chevaux de bois sous chapiteau rayé. | Loisirs | 15 × 15 m, 8 m de haut | 450 k€ | 2 emplois | Carrousels forains (jardin des Tuileries) |
+| **Kiosque à musique en fonte** — Kiosque octogonal à colonnettes de fonte et toit en pavillon. | Loisirs | 13 × 13 m, 8,6 m de haut | 180 k€ | 150 visiteurs | Kiosques des jardins publics (Vichy, Nancy) |
+| **Skatepark à bowl** — Bowl de béton, rampes, rails et gradins graffés. | Sport | 38 × 28 m, 2,6 m de haut | 600 k€ | 200 visiteurs | Skateparks municipaux (Bercy, Marseille Prado) |
+| **Stade de football** — Stade de 30 000 places, tribunes couvertes et pylônes d'éclairage. | Sport | 137 × 105 m, 43 m de haut | 85 M€ | 160 emplois | Stades à l'anglaise (Anfield, Geoffroy-Guichard) |
+| **Club-house de golf** — Club-house de bois et pierre à véranda, green d'entraînement et voiturettes. | Sport | 54 × 42 m, 10,9 m de haut | 4,5 M€ | 26 emplois | Club-houses de golf écossais et américains |

@@ -1,0 +1,42 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "enduit_rose": {
+   "index": 0,
+   "origine": "#e9c2b0"
+  },
+  "blanc": {
+   "index": 1,
+   "origine": "#f7f7f5"
+  },
+  "vitre": {
+   "index": 2,
+   "origine": "#33495e"
+  },
+  "metal": {
+   "index": 3,
+   "origine": "#7d8288"
+  },
+  "vert": {
+   "index": 4,
+   "origine": "#3f8f5a"
+  },
+  "bois_clair": {
+   "index": 5,
+   "origine": "#c39a6b"
+  },
+  "rouge": {
+   "index": 6,
+   "origine": "#c0392b"
+  },
+  "orange": {
+   "index": 7,
+   "origine": "#e4772e"
+  },
+  "beton_sombre": {
+   "index": 8,
+   "origine": "#8c8a85"
+  }
+ }
+}

@@ -1,0 +1,58 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "enduit_chaud": {
+   "index": 0,
+   "origine": "#f2d0a9"
+  },
+  "blanc": {
+   "index": 1,
+   "origine": "#f7f7f5"
+  },
+  "vitre": {
+   "index": 2,
+   "origine": "#33495e"
+  },
+  "bleu": {
+   "index": 3,
+   "origine": "#2a6fdb"
+  },
+  "pierre_claire": {
+   "index": 4,
+   "origine": "#d8d0bf"
+  },
+  "metal": {
+   "index": 5,
+   "origine": "#7d8288"
+  },
+  "rouge": {
+   "index": 6,
+   "origine": "#c0392b"
+  },
+  "vert": {
+   "index": 7,
+   "origine": "#3f8f5a"
+  },
+  "jaune": {
+   "index": 8,
+   "origine": "#f2c14e"
+  },
+  "tuile": {
+   "index": 9,
+   "origine": "#c8553d"
+  },
+  "sous_toit": {
+   "index": 10,
+   "origine": "#6a5040"
+  },
+  "brique": {
+   "index": 11,
+   "origine": "#a9583f"
+  },
+  "pierre_grise": {
+   "index": 12,
+   "origine": "#9c988f"
+  }
+ }
+}

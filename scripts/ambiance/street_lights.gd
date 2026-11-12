@@ -92,6 +92,8 @@ static func lamp_mesh(pole_mat: Material, head_mat: Material) -> ArrayMesh:
 ## Renvoie la liste des transformations (poteau au sol, bras tourné vers la voie).
 static func layout(net: TransportNetwork) -> Array[Transform3D]:
 	var out: Array[Transform3D] = []
+	# Pas de lampadaire sur les plateaux de carrefour ni sur les passages piétons.
+	var trims := TransportView.compute_trims(net)
 	for id in net.edges:
 		var e: Dictionary = net.edges[id]
 		var mode := TransportTypes.mode_of(e.t)
@@ -112,6 +114,9 @@ static func layout(net: TransportNetwork) -> Array[Transform3D]:
 		var start := (length - (count - 1) * spacing) / 2.0
 		for i in count:
 			var s := start + i * spacing
+			var tr: Vector2 = trims.get(id, Vector2.ZERO)
+			if (tr.x > 0.0 and s < tr.x + 4.0) or (tr.y > 0.0 and s > length - tr.y - 4.0):
+				continue
 			if net.struct_at(id, s) == TransportTypes.Struct.TUNNEL:
 				continue
 			var p := net.point_at(id, s)

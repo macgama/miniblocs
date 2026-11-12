@@ -595,6 +595,13 @@ func _run() -> void:
 			tr.build_segment("tram", Vector3(30, 0, 195), Vector3(210, 0, 195)),
 			tr.build_segment("autoroute", Vector3(30, 0, 260), Vector3(260, 0, 260), {"lanes": 3}),
 		]
+		# Raccords : rue en trois morceaux (bord à bord, puis en angle) et carrefour en biais.
+		demo2.append(tr.build_segment("rue", Vector3(280, 0, 420), Vector3(320, 0, 380)))
+		demo2.append(tr.build_segment("rue", Vector3(320, 0, 380), Vector3(345, 0, 345)))
+		demo2.append(tr.build_segment("rue", Vector3(345, 0, 345), Vector3(395, 0, 335)))
+		demo2.append(tr.build_segment("avenue", Vector3(280, 0, 470), Vector3(420, 0, 470)))
+		demo2.append(tr.build_segment("rue", Vector3(350, 0, 470), Vector3(390, 0, 530)))
+		demo2.append(tr.build_segment("rue", Vector3(350, 0, 470), Vector3(330, 0, 420)))
 		for d in demo2:
 			print("  vitrine : ", tr._describe(d, true) if d.ok else d.reason)
 		# Arrêts et lignes de la vitrine.
@@ -639,7 +646,37 @@ func _run() -> void:
 
 
 ## Carrefours sur un réseau synthétique : régimes, feux, files d'attente.
+func _joint_tests() -> void:
+	var net := TransportNetwork.new()
+	var M := TransportTypes.Mode.ROAD
+	var a := net.add_node(Vector3(0, 0, 0), M)
+	var b := net.add_node(Vector3(40, 0, 0), M)
+	var c := net.add_node(Vector3(78, 0, 10), M)
+	var d := net.add_node(Vector3(90, 0, 50), M)
+	var e1 := net.add_edge(a, b, "rue", _line(Vector3(0, 0, 0), Vector3(40, 0, 0)), _flat(51))
+	var e2 := net.add_edge(b, c, "rue", _line(Vector3(40, 0, 0), Vector3(78, 0, 10)), _flat(51))
+	var e3 := net.add_edge(c, d, "rue", _line(Vector3(78, 0, 10), Vector3(90, 0, 50)), _flat(51))
+	var trims := TransportView.compute_trims(net)
+	_check(TransportView.is_smooth_joint(net, b) and not trims.has(e1) and TransportView.junction_mesh(net, b, trims) == null, "deux tronçons presque alignés : pas de plateau")
+	var j1 := TransportView.joint_rights(net, e1)
+	var j2 := TransportView.joint_rights(net, e2)
+	_check((j1[1] as Vector3).is_equal_approx(j2[0]) and (j1[1] as Vector3).length() > 1.0, "bords communs au raccord (onglet)")
+	var hw := net.half_width(e1)
+	var end1: Vector3 = net.node_pos(b) + (j1[1] as Vector3) * hw
+	var end2: Vector3 = net.node_pos(b) + (j2[0] as Vector3) * hw
+	_check(end1.distance_to(end2) < 0.01, "trottoirs continus d'un tronçon à l'autre")
+	var jm := TransportView.junction_mesh(net, c, trims)
+	var sw := 0
+	if jm != null:
+		for col in jm.surface_get_arrays(0)[Mesh.ARRAY_COLOR]:
+			var cc: Color = col
+			if absf(cc.r - TransportView.SIDEWALK.r) + absf(cc.g - TransportView.SIDEWALK.g) + absf(cc.b - TransportView.SIDEWALK.b) < 0.02:
+				sw += 1
+	_check(not TransportView.is_smooth_joint(net, c) and sw > 20, "raccord en angle : trottoirs arrondis (%d sommets)" % sw)
+
+
 func _junction_tests() -> void:
+	_joint_tests()
 	var net := TransportNetwork.new()
 	var M := TransportTypes.Mode.ROAD
 	var c := net.add_node(Vector3(0, 0, 0), M)

@@ -132,3 +132,8 @@ Un piéton qui arrive au milieu du passage traverse avec la probabilité `CROSS_
 Pendant la traversée, `JunctionControl.crossing[Vector2i(nœud, tronçon)]` est compté, et `Traffic._may_enter` refuse l'entrée par cette branche comme la sortie vers elle.
 
 `VehicleCatalog.bike_on_road(id, cls)` ajoute les vélos (mode chemin) au catalogue des rues et avenues (`BIKE_ROADS`) ; dans le trafic, ils prennent la voie de droite (`lane_idx` 3, ramené au nombre de voies), décalés de 30 % de sa largeur vers le bord.
+
+## Raccords des tronçons
+
+- **Nœud de degré 2 « lisse »** (`TransportView.is_smooth_joint`) : les deux tronçons sont du même mode et forment un angle de `SMOOTH_JOINT` (150°) ou plus entre leurs directions sortantes. Le nœud n'a alors ni rognage ni plateau. `joint_rights(net, eid)` donne pour chaque bout le vecteur « droite » de la bissectrice, divisé par le cosinus du demi-angle pour garder la largeur. `build_mesh` l'impose au premier ou au dernier point, et les deux maillages partagent exactement leurs bords.
+- **Autres nœuds** : `junction_mesh` trie les branches par angle. Entre deux branches voisines, il trace une courbe de Bézier quadratique pour la bordure et une pour le bord extérieur. Le point de contrôle est l'intersection des deux bords prolongés, ou leur milieu. Entre ces courbes, il pose une bande de trottoir avec sa bordure si l'une des branches a des trottoirs. La chaussée est un éventail du centre jusqu'aux bordures.

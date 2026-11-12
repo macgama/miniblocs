@@ -41,6 +41,8 @@ godot --headless --path . --script res://tests/modeles_glb_test.gd
 
 Il doit afficher `MODELES GLB TEST OK` (chaque `.glb` s'importe, moins de 3 000 triangles, texture de 256 px au plus, posé au sol, taille réaliste).
 
+Les **plantes** (arbres, herbes, cultures…) ont leur propre script, `tools/blender/plantes_lowpoly.py` : voir [plantes-et-sols.md](plantes-et-sols.md).
+
 ## Bâtiments recréés d'après une image
 
 Un bâtiment particulier a son propre script dans `tools/blender/batiments/`, qui réutilise les briques du générateur : boîtes, cylindres et portions de cylindre, dalles, vitrages à petits carreaux (texture répétée), garde-corps en grille ou à barreaux fins (texture semi-transparente), hublots.

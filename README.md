@@ -131,6 +131,26 @@ L'outil **J Carrefour** change le régime d'un clic (automatique → feux → st
 
 ![Giratoire sur deux départementales](docs/apercu-giratoire.png)
 
+L'outil **J Carrefour** a trois boutons dans la barre du bas : **Régime**, **Rond-point** (un clic sur un carrefour suffit, sans Maj) et **Échangeur**.
+
+### Ponts, tunnels et échangeurs d'autoroute
+
+![Échangeur en losange : deux sorties et deux entrées](docs/apercu-echangeur.png)
+
+Les ponts et les tunnels se posent tout seuls quand le relief l'exige. Quand ta voie croise une autre voie, la touche **N** (ou la liste « Croisement » à côté du bouton Courbe) choisit ce qui se passe :
+
+| Réglage | Au croisement |
+| --- | --- |
+| Automatique | Carrefour à niveau. Une autoroute ou une voie express n'est jamais coupée : on passe dessus par un pont (ou dessous si on arrive plus bas). |
+| Passer dessus | Pont au-dessus de l'autre voie, avec 4,5 m de hauteur libre. Les rampes suivent la pente maximale de la classe. |
+| Passer dessous | Tunnel sous l'autre voie, avec des tranchées d'accès de chaque côté. |
+
+S'il n'y a pas la place pour les rampes avant le croisement, le tracé est refusé et le message donne la longueur qu'il faut.
+
+**Bretelles** : la classe **Bretelle d'autoroute** (outil Route) est une voie à sens unique de 3,50 m. Elle part de l'autoroute en biais, sans carrefour : elle longe la bande d'arrêt d'urgence puis s'en écarte. Le sens de circulation est celui du tracé. Pour une sortie, on part de l'autoroute ; pour une entrée, on part de la route et on finit sur l'autoroute. On s'insère en cédant le passage, et on ne fait jamais demi-tour par-dessus le terre-plein. Une rue ne peut pas se raccorder directement à une autoroute.
+
+**Échangeur tout prêt** : pose une route en travers d'une autoroute (elle passe dessus toute seule), puis outil **J > Échangeur** et clic sur le pont. Quatre bretelles se posent en losange : une sortie et une entrée dans chaque sens. Il faut au moins 220 m d'autoroute de part et d'autre du pont et 90 m de route.
+
 Les véhicules **gardent leurs distances** (files d'attente), **freinent et accélèrent**, s'arrêtent à la ligne au rouge, marquent le stop, laissent passer les prioritaires et ne s'engagent pas si la sortie est bouchée. Les feux marchent par phases : deux branches face à face ont le vert ensemble, puis orange, rouge intégral et phase suivante.
 
 ### Stations et lignes de transport en commun

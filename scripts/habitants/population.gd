@@ -704,14 +704,10 @@ func household_budget(hid: int) -> Dictionary:
 func city_budget() -> Dictionary:
 	var rec := {"Taxe foncière": 0.0, "Impôts des entreprises": 0.0, "Dotation de l'État": 0.0}
 	var dep := {"Salaires des agents de la ville": 0.0, "Entretien des bâtiments publics": 0.0}
-<<<<<<< HEAD
+	var reg := ReglagesPartie.actuel
 	for hid in households:
 		var hb := int(households[hid].b)
-		rec["Taxe foncière"] += TAXE_FONCIERE * (float(known[hb].get("tf", 1.0)) if known.has(hb) else 1.0)
-=======
-	var reg := ReglagesPartie.actuel
-	rec["Taxe foncière"] = TAXE_FONCIERE * reg.impots * households.size()
->>>>>>> origin/main
+		rec["Taxe foncière"] += TAXE_FONCIERE * reg.impots * (float(known[hb].get("tf", 1.0)) if known.has(hb) else 1.0)
 	rec["Dotation de l'État"] = DOTATION * persons.size()
 	for bid in by_job:
 		if not known.has(bid):

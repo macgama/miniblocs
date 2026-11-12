@@ -546,12 +546,17 @@ func _view_building(bid: int) -> void:
 	if int(info.emp) > 0:
 		var staff: Array = pop.by_job.get(bid, [])
 		_section("Employés : %d sur %d postes" % [staff.size(), int(info.emp)])
+		if pop.effectif != null and pop.effectif.concerne(bid):
+			_text(pop.effectif.resume(bid), true, 13)
+			for c in pop.effectif.consequences(bid):
+				_text("  " + String(c), true, 12)
 		var shown := 0
 		for pid in staff:
 			if shown >= 120:
 				_text("… et %d autres." % (staff.size() - shown), true)
 				break
-			_person_link(pid, String(pop.activity(pop.persons[pid]).text))
+			var g := Gestes.de_personne(pop, pid)
+			_person_link(pid, String(pop.activity(pop.persons[pid]).text) + ((" · " + g) if g != "" else ""))
 			shown += 1
 		if staff.is_empty():
 			_text("Aucun employé : il faut des habitants sans emploi en ville.", true)
@@ -578,8 +583,13 @@ func _view_profile(pid: int) -> void:
 		age, pop.stage_label(p)], false, 14)
 	var a := pop.activity(p)
 	_text("Maintenant : %s" % a.text, false, 14)
+	var geste := Gestes.de_personne(pop, pid)
+	if geste != "":
+		_text("À son poste, %s %s." % [String(p.p), geste], true, 13)
 	if int(a.bid) >= 0 and pop.known.has(int(a.bid)):
 		_building_link("Où : ", int(a.bid))
+		if pop.effectif != null and pop.effectif.concerne(int(a.bid)) and String(a.kind) == "travail":
+			_text("Personnel : " + pop.effectif.resume(int(a.bid)), true, 12)
 	var sat := pop.satisfaction(p)
 	_text("Satisfaction : %d / 100" % int(sat.value))
 	if not (sat.why as Array).is_empty():

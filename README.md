@@ -28,6 +28,7 @@ L'écran a une barre en haut (lieu, partie, heure et vitesse du temps, chiffres 
 | Panneau Construire | **B** (bâtiments, zonage, éditeur libre ; **R** tourne le bâtiment, **Ctrl + Z** annule ; **Page haut / Page bas** : étage actif en mode Murs et étages) |
 | Transports publics | **L** (stations, gares, ports, aéroports, lignes) |
 | Habitants | **H** (la ville en chiffres, liste des habitants, budget) ; clic sur un bâtiment avec l'outil 1 |
+| Habitants au travail | **K** vue métiers (zoome sur un commerce, une école, un hôpital : il s'ouvre en coupe), **Maj + K** coupe automatique oui/non |
 | Temps | **T** pause, **Maj + T** vitesse suivante |
 | Vue au sol | **V** (dessus, 3e personne, 1re personne) |
 | Sauvegarder / recharger | **F5** / **F9** ; icônes Sauver, Charger (liste des parties) et Globe en haut à gauche |
@@ -539,6 +540,13 @@ Une ferme entièrement générée en code (longère à colombages et toit de cha
 | `scripts/habitants/prenoms.gd` | Prénoms et noms par région du monde |
 | `tests/habitants_test.gd` | Test des habitants (école, emplois, journée, budget, transports, sauvegarde, panneau) |
 | `tests/habitants_vitrine.gd` | Petit quartier et captures du panneau Habitants |
+| `scripts/metiers/gestes.gd` | Gestes de métier (pétrir, écrire au tableau, ausculter…) : texte, animation, outil, poste ; gestes devinés pour les nouveaux métiers |
+| `scripts/metiers/figurine.gd` | Habitant articulé qui fait les gestes (personnage arrondi de Blender, ou en blocs), tenues de métier |
+| `scripts/metiers/accessoires.gd` | Outils en main et postes de travail low-poly (four, pétrin, tableau, lits, caisses, machines…) |
+| `scripts/metiers/effectif.gd` | Personnel des bâtiments : fermé faute d'employés, sous-effectif, ouvert maintenant, conséquences |
+| `scripts/metiers/metiers_vivants.gd` | Vue métiers (K) : bâtiments en coupe, employés dehors, enseignes, rideaux de fer, pancartes, clic sur un employé |
+| `tests/metiers_test.gd` | Test des métiers visibles et des conséquences du manque de personnel |
+| `tests/metiers_vitrine.gd` | Captures : boulangerie, école, hôpital, ferme, supérette la nuit (`--seulement boulangerie`…) |
 | `tests/batiments_vitrine.gd` | Pose tout le catalogue (ou fait pousser un quartier avec `--zones`, ou construit une maison en blocs avec `--blocs`) et prend une capture. `--styles japonais,chinois` ou `--arch culte` filtrent la bible, `--zone-style` choisit le style du zonage, `--cat espaces` une catégorie, `--maison` construit la maison de démonstration de l'éditeur libre, `--courbe` des bâtiments calés le long d'une route courbe, `--murs` une maison et un immeuble en murs fins (`--coupe 0` : vue en coupe du rez-de-chaussée) |
 
 ## Sauvegarde des parties

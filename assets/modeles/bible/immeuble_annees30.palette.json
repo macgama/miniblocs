@@ -1,0 +1,42 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "granit": {
+   "index": 0,
+   "origine": "#7f7d78"
+  },
+  "brique_claire": {
+   "index": 1,
+   "origine": "#c87f5d"
+  },
+  "blanc": {
+   "index": 2,
+   "origine": "#f7f7f5"
+  },
+  "vitre": {
+   "index": 3,
+   "origine": "#33495e"
+  },
+  "cadre": {
+   "index": 4,
+   "origine": "#f4f1ea"
+  },
+  "noir": {
+   "index": 5,
+   "origine": "#2a2b2e"
+  },
+  "pierre": {
+   "index": 6,
+   "origine": "#b9b0a0"
+  },
+  "beton_clair": {
+   "index": 7,
+   "origine": "#d4d1ca"
+  },
+  "beton_sombre": {
+   "index": 8,
+   "origine": "#8c8a85"
+  }
+ }
+}

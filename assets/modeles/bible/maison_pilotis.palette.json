@@ -1,0 +1,30 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "bois_sombre": {
+   "index": 0,
+   "origine": "#5a3e2b"
+  },
+  "bois": {
+   "index": 1,
+   "origine": "#8a6142"
+  },
+  "cadre": {
+   "index": 2,
+   "origine": "#f4f1ea"
+  },
+  "pierre": {
+   "index": 3,
+   "origine": "#b9b0a0"
+  },
+  "tuile": {
+   "index": 4,
+   "origine": "#c8553d"
+  },
+  "sous_toit": {
+   "index": 5,
+   "origine": "#6a5040"
+  }
+ }
+}

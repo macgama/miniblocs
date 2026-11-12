@@ -137,11 +137,17 @@ static func keys_of(type_id: String) -> Array:
 	var out := [type_id]
 	if t.has("arch"):
 		out.append(String(t.arch))
+	if t.has("role"):
+		out.append(String(t.role))
 	out.append(String(t.get("cat", "")))
 	return out
 
 
 static func jobs_for(type_id: String) -> Array:
+	# Bâtiments de la bible Blender : répartition propre au bâtiment.
+	var t := BuildingCatalog.get_type(type_id)
+	if t.has("metiers") and not (t.metiers as Array).is_empty():
+		return t.metiers
 	for k in keys_of(type_id):
 		if PAR_BATIMENT.has(k):
 			return PAR_BATIMENT[k]
@@ -177,7 +183,7 @@ static func venue_matches(hobby: String, type_id: String) -> bool:
 			# Les « commerces » sans clients (bureaux) ne comptent pas.
 			if String(t.get("cat", "")) == s.substr(4) and (s != "cat:commerce" or int(t.get("visiteurs", 0)) > 0):
 				return true
-		elif s == type_id or s == String(t.get("arch", "")):
+		elif s == type_id or s == String(t.get("arch", "")) or s == String(t.get("role", "")):
 			return true
 	return false
 

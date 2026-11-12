@@ -1,0 +1,26 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "blanc": {
+   "index": 0,
+   "origine": "#f7f7f5"
+  },
+  "noir": {
+   "index": 1,
+   "origine": "#2a2b2e"
+  },
+  "verre_bleu": {
+   "index": 2,
+   "origine": "#4f6d8f"
+  },
+  "beton_sombre": {
+   "index": 3,
+   "origine": "#8c8a85"
+  },
+  "bois_clair": {
+   "index": 4,
+   "origine": "#c39a6b"
+  }
+ }
+}

@@ -1,0 +1,54 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "ocre": {
+   "index": 0,
+   "origine": "#d39b5a"
+  },
+  "blanc": {
+   "index": 1,
+   "origine": "#f7f7f5"
+  },
+  "vitre": {
+   "index": 2,
+   "origine": "#33495e"
+  },
+  "cadre": {
+   "index": 3,
+   "origine": "#f4f1ea"
+  },
+  "vert": {
+   "index": 4,
+   "origine": "#3f8f5a"
+  },
+  "chaume": {
+   "index": 5,
+   "origine": "#c9a861"
+  },
+  "tuile_ombre": {
+   "index": 6,
+   "origine": "#8f3a29"
+  },
+  "sous_toit": {
+   "index": 7,
+   "origine": "#6a5040"
+  },
+  "brique": {
+   "index": 8,
+   "origine": "#a9583f"
+  },
+  "pierre_grise": {
+   "index": 9,
+   "origine": "#9c988f"
+  },
+  "pierre": {
+   "index": 10,
+   "origine": "#b9b0a0"
+  },
+  "bois_sombre": {
+   "index": 11,
+   "origine": "#5a3e2b"
+  }
+ }
+}

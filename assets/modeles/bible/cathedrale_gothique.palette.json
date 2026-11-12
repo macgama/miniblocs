@@ -1,0 +1,30 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "pierre_claire": {
+   "index": 0,
+   "origine": "#d8d0bf"
+  },
+  "pierre": {
+   "index": 1,
+   "origine": "#b9b0a0"
+  },
+  "verre_nuit": {
+   "index": 2,
+   "origine": "#1d2d3c"
+  },
+  "ardoise": {
+   "index": 3,
+   "origine": "#5b5f66"
+  },
+  "sous_toit": {
+   "index": 4,
+   "origine": "#6a5040"
+  },
+  "bois_sombre": {
+   "index": 5,
+   "origine": "#5a3e2b"
+  }
+ }
+}

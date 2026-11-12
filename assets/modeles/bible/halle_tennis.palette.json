@@ -1,0 +1,38 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "blanc": {
+   "index": 0,
+   "origine": "#f7f7f5"
+  },
+  "bardage_vert": {
+   "index": 1,
+   "origine": "#5d7d5a"
+  },
+  "bois_clair": {
+   "index": 2,
+   "origine": "#c39a6b"
+  },
+  "cadre": {
+   "index": 3,
+   "origine": "#f4f1ea"
+  },
+  "vitre": {
+   "index": 4,
+   "origine": "#33495e"
+  },
+  "porte": {
+   "index": 5,
+   "origine": "#6b4a33"
+  },
+  "zinc": {
+   "index": 6,
+   "origine": "#7e8890"
+  },
+  "sous_toit": {
+   "index": 7,
+   "origine": "#6a5040"
+  }
+ }
+}

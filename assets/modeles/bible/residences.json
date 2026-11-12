@@ -1,0 +1,2316 @@
+{
+ "famille": "residences",
+ "batiments": [
+  {
+   "id": "chalet_bernois",
+   "name": "Chalet de l'Oberland",
+   "cat": "logement",
+   "cost": 780000,
+   "desc": "Grand chalet de bois sur socle de pierre, toit à faible pente et balcons.",
+   "source": "Chalets de l'Oberland bernois (Gstaad, Grindelwald)",
+   "region": "europe",
+   "era": "traditionnel",
+   "emplois": 0,
+   "logements": 2,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "maison",
+   "zone": "R",
+   "glb": "res://assets/modeles/bible/chalet_bernois.glb",
+   "w": 17,
+   "d": 15,
+   "h": 11.4,
+   "tris": 366,
+   "palette": [
+    [
+     "pierre_grise",
+     "#9c988f"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "bois",
+     "#8a6142"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "vert",
+     "#3f8f5a"
+    ],
+    [
+     "bois_clair",
+     "#c39a6b"
+    ],
+    [
+     "bois_gris",
+     "#8b8478"
+    ],
+    [
+     "tuile_ombre",
+     "#8f3a29"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ]
+   ]
+  },
+  {
+   "id": "chalet_valaisan",
+   "name": "Chalet valaisan",
+   "cat": "logement",
+   "cost": 520000,
+   "desc": "Chalet de mélèze bruni sur rez de pierre blanchie, toit de lauzes.",
+   "source": "Maisons d'Evolène et du val d'Hérens (Valais)",
+   "region": "europe",
+   "era": "traditionnel",
+   "emplois": 0,
+   "logements": 1,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "maison",
+   "zone": "R",
+   "glb": "res://assets/modeles/bible/chalet_valaisan.glb",
+   "w": 12,
+   "d": 12,
+   "h": 10.1,
+   "tris": 162,
+   "palette": [
+    [
+     "enduit_blanc",
+     "#f4f2ec"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "pierre_grise",
+     "#9c988f"
+    ],
+    [
+     "tuile_ombre",
+     "#8f3a29"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ]
+   ]
+  },
+  {
+   "id": "maison_normande",
+   "name": "Maison normande",
+   "cat": "logement",
+   "cost": 420000,
+   "desc": "Maison à colombages, torchis blanc et toit de chaume à forte pente.",
+   "source": "Chaumières du pays d'Auge (Normandie)",
+   "region": "europe",
+   "era": "traditionnel",
+   "emplois": 0,
+   "logements": 1,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "maison",
+   "zone": "R",
+   "glb": "res://assets/modeles/bible/maison_normande.glb",
+   "w": 16,
+   "d": 11,
+   "h": 9.9,
+   "tris": 558,
+   "palette": [
+    [
+     "brique",
+     "#a9583f"
+    ],
+    [
+     "enduit_blanc",
+     "#f4f2ec"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "pierre",
+     "#b9b0a0"
+    ],
+    [
+     "chaume",
+     "#c9a861"
+    ],
+    [
+     "tuile_ombre",
+     "#8f3a29"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "pierre_grise",
+     "#9c988f"
+    ]
+   ]
+  },
+  {
+   "id": "maison_alsacienne",
+   "name": "Maison alsacienne",
+   "cat": "logement",
+   "cost": 560000,
+   "desc": "Maison à colombages ocre, pignon sur rue et toit pentu à tuiles plates.",
+   "source": "Maisons de Riquewihr et de Colmar (Alsace)",
+   "region": "europe",
+   "era": "traditionnel",
+   "emplois": 0,
+   "logements": 1,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "maison",
+   "zone": "R",
+   "glb": "res://assets/modeles/bible/maison_alsacienne.glb",
+   "w": 13,
+   "d": 14,
+   "h": 14.1,
+   "tris": 778,
+   "palette": [
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "bois_rouge",
+     "#8e3b2e"
+    ],
+    [
+     "ocre",
+     "#d39b5a"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "vert",
+     "#3f8f5a"
+    ],
+    [
+     "tuile",
+     "#c8553d"
+    ],
+    [
+     "tuile_ombre",
+     "#8f3a29"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ]
+   ]
+  },
+  {
+   "id": "mas_provencal",
+   "name": "Mas provençal",
+   "cat": "logement",
+   "cost": 690000,
+   "desc": "Mas en pierre enduite ocre, tuiles canal, volets bleu lavande.",
+   "source": "Mas du Luberon et des Alpilles (Provence)",
+   "region": "mediterranee",
+   "era": "traditionnel",
+   "emplois": 0,
+   "logements": 1,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "maison",
+   "zone": "R",
+   "glb": "res://assets/modeles/bible/mas_provencal.glb",
+   "w": 22,
+   "d": 11,
+   "h": 8.6,
+   "tris": 308,
+   "palette": [
+    [
+     "ocre",
+     "#d39b5a"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "bleu",
+     "#2a6fdb"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "tuile",
+     "#c8553d"
+    ],
+    [
+     "tuile_ombre",
+     "#8f3a29"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "enduit_chaud",
+     "#f2d0a9"
+    ],
+    [
+     "pierre_grise",
+     "#9c988f"
+    ]
+   ]
+  },
+  {
+   "id": "longere_bretonne",
+   "name": "Longère bretonne",
+   "cat": "logement",
+   "cost": 380000,
+   "desc": "Longue maison de granit, ardoises et cheminées aux pignons.",
+   "source": "Longères du Finistère (Bretagne)",
+   "region": "europe",
+   "era": "traditionnel",
+   "emplois": 0,
+   "logements": 1,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "maison",
+   "zone": "R",
+   "glb": "res://assets/modeles/bible/longere_bretonne.glb",
+   "w": 19,
+   "d": 9,
+   "h": 7.3,
+   "tris": 232,
+   "palette": [
+    [
+     "granit",
+     "#7f7d78"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "bleu",
+     "#2a6fdb"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "ardoise",
+     "#5b5f66"
+    ],
+    [
+     "tuile_ombre",
+     "#8f3a29"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "pierre_grise",
+     "#9c988f"
+    ]
+   ]
+  },
+  {
+   "id": "maison_basque",
+   "name": "Maison basque",
+   "cat": "logement",
+   "cost": 640000,
+   "desc": "Etxe blanche aux colombages rouges, toit dissymétrique.",
+   "source": "Fermes labourdines (Ainhoa, Espelette)",
+   "region": "europe",
+   "era": "traditionnel",
+   "emplois": 0,
+   "logements": 2,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "maison",
+   "zone": "R",
+   "glb": "res://assets/modeles/bible/maison_basque.glb",
+   "w": 16,
+   "d": 16,
+   "h": 9.1,
+   "tris": 356,
+   "palette": [
+    [
+     "enduit_blanc",
+     "#f4f2ec"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "bois_rouge",
+     "#8e3b2e"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "tuile",
+     "#c8553d"
+    ],
+    [
+     "tuile_ombre",
+     "#8f3a29"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ]
+   ]
+  },
+  {
+   "id": "cottage_anglais",
+   "name": "Cottage anglais",
+   "cat": "logement",
+   "cost": 610000,
+   "desc": "Cottage de pierre dorée, toit de chaume épais et souches de cheminée.",
+   "source": "Cottages des Cotswolds (Angleterre)",
+   "region": "europe",
+   "era": "traditionnel",
+   "emplois": 0,
+   "logements": 1,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "maison",
+   "zone": "R",
+   "glb": "res://assets/modeles/bible/cottage_anglais.glb",
+   "w": 15,
+   "d": 11,
+   "h": 8.9,
+   "tris": 184,
+   "palette": [
+    [
+     "ocre",
+     "#d39b5a"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "vert",
+     "#3f8f5a"
+    ],
+    [
+     "chaume",
+     "#c9a861"
+    ],
+    [
+     "tuile_ombre",
+     "#8f3a29"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "brique",
+     "#a9583f"
+    ],
+    [
+     "pierre_grise",
+     "#9c988f"
+    ],
+    [
+     "pierre",
+     "#b9b0a0"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ]
+   ]
+  },
+  {
+   "id": "maison_canal",
+   "name": "Maison de canal",
+   "cat": "logement",
+   "cost": 1400000,
+   "desc": "Haute maison de brique étroite à pignon à redents et poulie de levage.",
+   "source": "Grachtenhuizen d'Amsterdam (XVIIe s.)",
+   "region": "europe",
+   "era": "traditionnel",
+   "emplois": 0,
+   "logements": 3,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "maison",
+   "zone": "R",
+   "glb": "res://assets/modeles/bible/maison_canal.glb",
+   "w": 10,
+   "d": 18,
+   "h": 17.0,
+   "tris": 182,
+   "palette": [
+    [
+     "pierre_grise",
+     "#9c988f"
+    ],
+    [
+     "brique_sombre",
+     "#7e3b2c"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "vert",
+     "#3f8f5a"
+    ],
+    [
+     "pierre",
+     "#b9b0a0"
+    ],
+    [
+     "tuile",
+     "#c8553d"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ]
+   ]
+  },
+  {
+   "id": "maison_scandinave",
+   "name": "Maison scandinave",
+   "cat": "logement",
+   "cost": 450000,
+   "desc": "Maison de bois peinte au rouge de Falun, encadrements blancs.",
+   "source": "Maisons rurales suédoises (Dalécarlie)",
+   "region": "europe",
+   "era": "traditionnel",
+   "emplois": 0,
+   "logements": 1,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "maison",
+   "zone": "R",
+   "glb": "res://assets/modeles/bible/maison_scandinave.glb",
+   "w": 13,
+   "d": 12,
+   "h": 8.8,
+   "tris": 222,
+   "palette": [
+    [
+     "pierre_grise",
+     "#9c988f"
+    ],
+    [
+     "bardage_rouge",
+     "#a2423a"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "pierre",
+     "#b9b0a0"
+    ],
+    [
+     "noir",
+     "#2a2b2e"
+    ],
+    [
+     "tuile_ombre",
+     "#8f3a29"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "bois_gris",
+     "#8b8478"
+    ]
+   ]
+  },
+  {
+   "id": "isba",
+   "name": "Isba",
+   "cat": "logement",
+   "cost": 300000,
+   "desc": "Maison de rondins, fenêtres à encadrements sculptés peints.",
+   "source": "Isbas du nord de la Russie (Kiji, Souzdal)",
+   "region": "europe",
+   "era": "traditionnel",
+   "emplois": 0,
+   "logements": 1,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "maison",
+   "zone": "R",
+   "glb": "res://assets/modeles/bible/isba.glb",
+   "w": 12,
+   "d": 12,
+   "h": 7.1,
+   "tris": 210,
+   "palette": [
+    [
+     "pierre_grise",
+     "#9c988f"
+    ],
+    [
+     "bois",
+     "#8a6142"
+    ],
+    [
+     "bleu",
+     "#2a6fdb"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "pierre",
+     "#b9b0a0"
+    ],
+    [
+     "bois_gris",
+     "#8b8478"
+    ],
+    [
+     "tuile_ombre",
+     "#8f3a29"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ]
+   ]
+  },
+  {
+   "id": "trullo",
+   "name": "Trullo",
+   "cat": "logement",
+   "cost": 350000,
+   "desc": "Maisonnettes blanchies à la chaux coiffées de cônes de pierre sèche.",
+   "source": "Trulli d'Alberobello (Pouilles, UNESCO)",
+   "region": "mediterranee",
+   "era": "traditionnel",
+   "emplois": 0,
+   "logements": 1,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "maison",
+   "zone": "R",
+   "glb": "res://assets/modeles/bible/trullo.glb",
+   "w": 12,
+   "d": 10,
+   "h": 6.2,
+   "tris": 266,
+   "palette": [
+    [
+     "enduit_blanc",
+     "#f4f2ec"
+    ],
+    [
+     "pierre_grise",
+     "#9c988f"
+    ],
+    [
+     "vert",
+     "#3f8f5a"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ]
+   ]
+  },
+  {
+   "id": "maison_cycladique",
+   "name": "Maison des Cyclades",
+   "cat": "logement",
+   "cost": 520000,
+   "desc": "Cubes blanchis à la chaux, terrasse, petite coupole et volets bleus.",
+   "source": "Maisons d'Oia (Santorin) et de Mykonos",
+   "region": "mediterranee",
+   "era": "traditionnel",
+   "emplois": 0,
+   "logements": 1,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "maison",
+   "zone": "R",
+   "glb": "res://assets/modeles/bible/maison_cycladique.glb",
+   "w": 11,
+   "d": 10,
+   "h": 8.0,
+   "tris": 168,
+   "palette": [
+    [
+     "enduit_blanc",
+     "#f4f2ec"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "bleu",
+     "#2a6fdb"
+    ]
+   ]
+  },
+  {
+   "id": "riad",
+   "name": "Riad",
+   "cat": "logement",
+   "cost": 900000,
+   "desc": "Maison à patio aux murs ocre, terrasses et petites ouvertures.",
+   "source": "Riads de la médina de Marrakech",
+   "region": "moyen_orient",
+   "era": "traditionnel",
+   "emplois": 0,
+   "logements": 1,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "villa",
+   "zone": "R",
+   "glb": "res://assets/modeles/bible/riad.glb",
+   "w": 16,
+   "d": 17,
+   "h": 7.6,
+   "tris": 172,
+   "palette": [
+    [
+     "terre",
+     "#b9825a"
+    ],
+    [
+     "ocre",
+     "#d39b5a"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "bleu",
+     "#2a6fdb"
+    ]
+   ]
+  },
+  {
+   "id": "minka",
+   "name": "Minka",
+   "cat": "logement",
+   "cost": 650000,
+   "desc": "Ferme japonaise à grand toit de chaume en croupe et galerie de bois.",
+   "source": "Minka de Shirakawa-gō et des maisons rurales japonaises",
+   "region": "asie_est",
+   "era": "traditionnel",
+   "emplois": 0,
+   "logements": 1,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "maison",
+   "zone": "R",
+   "sans_vitres": 1,
+   "glb": "res://assets/modeles/bible/minka.glb",
+   "w": 18,
+   "d": 13,
+   "h": 10.9,
+   "tris": 112,
+   "palette": [
+    [
+     "pierre_grise",
+     "#9c988f"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "enduit_blanc",
+     "#f4f2ec"
+    ],
+    [
+     "chaume",
+     "#c9a861"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ]
+   ]
+  },
+  {
+   "id": "machiya",
+   "name": "Machiya",
+   "cat": "logement",
+   "cost": 820000,
+   "desc": "Maison de ville de Kyoto : façade de lattes de bois, auvent et tuiles grises.",
+   "source": "Kyō-machiya du quartier de Gion (Kyoto)",
+   "region": "asie_est",
+   "era": "traditionnel",
+   "emplois": 0,
+   "logements": 1,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "maison",
+   "zone": "R",
+   "sans_vitres": 1,
+   "glb": "res://assets/modeles/bible/machiya.glb",
+   "w": 11,
+   "d": 18,
+   "h": 7.9,
+   "tris": 82,
+   "palette": [
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "bois",
+     "#8a6142"
+    ],
+    [
+     "ardoise",
+     "#5b5f66"
+    ],
+    [
+     "tuile_ombre",
+     "#8f3a29"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "enduit_blanc",
+     "#f4f2ec"
+    ]
+   ]
+  },
+  {
+   "id": "siheyuan",
+   "name": "Siheyuan",
+   "cat": "logement",
+   "cost": 1600000,
+   "desc": "Maison à cour carrée de Pékin : quatre ailes de briques grises et toits courbes.",
+   "source": "Siheyuan des hutong de Pékin",
+   "region": "asie_est",
+   "era": "traditionnel",
+   "emplois": 0,
+   "logements": 2,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "villa",
+   "zone": "R",
+   "glb": "res://assets/modeles/bible/siheyuan.glb",
+   "w": 22,
+   "d": 24,
+   "h": 5.1,
+   "tris": 272,
+   "palette": [
+    [
+     "pierre_grise",
+     "#9c988f"
+    ],
+    [
+     "bois_rouge",
+     "#8e3b2e"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "ardoise",
+     "#5b5f66"
+    ],
+    [
+     "tuile_ombre",
+     "#8f3a29"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ]
+   ]
+  },
+  {
+   "id": "maison_pilotis",
+   "name": "Maison thaïe sur pilotis",
+   "cat": "logement",
+   "cost": 280000,
+   "desc": "Maison de teck sur pilotis, toits pentus aux pignons recourbés.",
+   "source": "Maisons traditionnelles du centre de la Thaïlande",
+   "region": "asie_sud",
+   "era": "traditionnel",
+   "emplois": 0,
+   "logements": 1,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "maison",
+   "zone": "R",
+   "sans_vitres": 1,
+   "glb": "res://assets/modeles/bible/maison_pilotis.glb",
+   "w": 13,
+   "d": 13,
+   "h": 9.3,
+   "tris": 200,
+   "palette": [
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "bois",
+     "#8a6142"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "pierre",
+     "#b9b0a0"
+    ],
+    [
+     "tuile",
+     "#c8553d"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ]
+   ]
+  },
+  {
+   "id": "cases_rondes",
+   "name": "Cases rondes",
+   "cat": "logement",
+   "cost": 120000,
+   "desc": "Trois cases de terre aux toits de paille coniques autour d'une cour.",
+   "source": "Cases traditionnelles d'Afrique de l'Ouest (pays dogon, Sénégal)",
+   "region": "afrique",
+   "era": "traditionnel",
+   "emplois": 0,
+   "logements": 1,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "maison",
+   "zone": "R",
+   "glb": "res://assets/modeles/bible/cases_rondes.glb",
+   "w": 17,
+   "d": 15,
+   "h": 5.3,
+   "tris": 192,
+   "palette": [
+    [
+     "terre",
+     "#b9825a"
+    ],
+    [
+     "chaume",
+     "#c9a861"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ]
+   ]
+  },
+  {
+   "id": "pueblo_adobe",
+   "name": "Maison d'adobe",
+   "cat": "logement",
+   "cost": 480000,
+   "desc": "Volumes d'adobe arrondis en gradins, poutres saillantes (vigas).",
+   "source": "Taos Pueblo et maisons de Santa Fe (Nouveau-Mexique)",
+   "region": "ameriques",
+   "era": "traditionnel",
+   "emplois": 0,
+   "logements": 2,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "maison",
+   "zone": "R",
+   "glb": "res://assets/modeles/bible/pueblo_adobe.glb",
+   "w": 17,
+   "d": 13,
+   "h": 7.1,
+   "tris": 216,
+   "palette": [
+    [
+     "terre",
+     "#b9825a"
+    ],
+    [
+     "bleu",
+     "#2a6fdb"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "bois",
+     "#8a6142"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ]
+   ]
+  },
+  {
+   "id": "victorienne",
+   "name": "Maison victorienne",
+   "cat": "logement",
+   "cost": 1900000,
+   "desc": "« Painted lady » à bow-window, tourelle et façade pastel.",
+   "source": "Painted Ladies d'Alamo Square (San Francisco)",
+   "region": "ameriques",
+   "era": "classique",
+   "emplois": 0,
+   "logements": 2,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "maison",
+   "zone": "R",
+   "glb": "res://assets/modeles/bible/victorienne.glb",
+   "w": 12,
+   "d": 19,
+   "h": 14.0,
+   "tris": 276,
+   "palette": [
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "enduit_bleu",
+     "#c9dbe3"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "bois_rouge",
+     "#8e3b2e"
+    ],
+    [
+     "pierre",
+     "#b9b0a0"
+    ],
+    [
+     "ardoise",
+     "#5b5f66"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "enduit_rose",
+     "#e9c2b0"
+    ]
+   ]
+  },
+  {
+   "id": "maison_coloniale",
+   "name": "Maison coloniale",
+   "cat": "logement",
+   "cost": 1200000,
+   "desc": "Maison à étage symétrique, colonnes blanches et grand porche.",
+   "source": "Maisons néo-coloniales de Nouvelle-Angleterre et du Sud des États-Unis",
+   "region": "ameriques",
+   "era": "classique",
+   "emplois": 0,
+   "logements": 1,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "villa",
+   "zone": "R",
+   "glb": "res://assets/modeles/bible/maison_coloniale.glb",
+   "w": 19,
+   "d": 20,
+   "h": 10.6,
+   "tris": 545,
+   "palette": [
+    [
+     "brique",
+     "#a9583f"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "noir",
+     "#2a2b2e"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "pierre",
+     "#b9b0a0"
+    ],
+    [
+     "ardoise",
+     "#5b5f66"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "pierre_grise",
+     "#9c988f"
+    ]
+   ]
+  },
+  {
+   "id": "ranch",
+   "name": "Maison ranch",
+   "cat": "logement",
+   "cost": 520000,
+   "desc": "Maison de plain-pied tout en longueur, toit bas et garage attenant.",
+   "source": "Ranch houses américaines des années 1950",
+   "region": "ameriques",
+   "era": "moderne",
+   "emplois": 0,
+   "logements": 1,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "maison",
+   "zone": "R",
+   "glb": "res://assets/modeles/bible/ranch.glb",
+   "w": 28,
+   "d": 13,
+   "h": 4.5,
+   "tris": 168,
+   "palette": [
+    [
+     "bardage",
+     "#a4aab0"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "bleu",
+     "#2a6fdb"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "rouge",
+     "#c0392b"
+    ],
+    [
+     "ardoise",
+     "#5b5f66"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ]
+   ]
+  },
+  {
+   "id": "queenslander",
+   "name": "Maison du Queensland",
+   "cat": "logement",
+   "cost": 640000,
+   "desc": "Maison de bois sur pilotis, véranda tout autour et toit de tôle.",
+   "source": "Queenslanders de Brisbane (Australie)",
+   "region": "oceanie",
+   "era": "classique",
+   "emplois": 0,
+   "logements": 1,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "maison",
+   "zone": "R",
+   "glb": "res://assets/modeles/bible/queenslander.glb",
+   "w": 15,
+   "d": 18,
+   "h": 8.8,
+   "tris": 462,
+   "palette": [
+    [
+     "bois_gris",
+     "#8b8478"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "vert",
+     "#3f8f5a"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "pierre",
+     "#b9b0a0"
+    ],
+    [
+     "tole_rouge",
+     "#8f3a33"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ]
+   ]
+  },
+  {
+   "id": "pavillon",
+   "name": "Pavillon",
+   "cat": "logement",
+   "cost": 310000,
+   "desc": "Pavillon de lotissement : crépi clair, tuiles, garage accolé.",
+   "source": "Maisons de lotissement françaises des années 1980-2000",
+   "region": "europe",
+   "era": "moderne",
+   "emplois": 0,
+   "logements": 1,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "maison",
+   "zone": "R",
+   "glb": "res://assets/modeles/bible/pavillon.glb",
+   "w": 18,
+   "d": 11,
+   "h": 8.1,
+   "tris": 220,
+   "palette": [
+    [
+     "socle",
+     "#8f8a80"
+    ],
+    [
+     "enduit_chaud",
+     "#f2d0a9"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "volet",
+     "#4f7a5a"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "porte",
+     "#6b4a33"
+    ],
+    [
+     "pierre",
+     "#b9b0a0"
+    ],
+    [
+     "tuile",
+     "#c8553d"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ]
+   ]
+  },
+  {
+   "id": "maison_contemporaine",
+   "name": "Maison contemporaine",
+   "cat": "logement",
+   "cost": 820000,
+   "desc": "Deux cubes décalés, toit plat, grandes baies et bardage de bois.",
+   "source": "Maisons d'architecte des années 2010",
+   "region": "europe",
+   "era": "contemporain",
+   "emplois": 0,
+   "logements": 1,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "villa",
+   "zone": "R",
+   "glb": "res://assets/modeles/bible/maison_contemporaine.glb",
+   "w": 17,
+   "d": 13,
+   "h": 7.3,
+   "tris": 166,
+   "palette": [
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "noir",
+     "#2a2b2e"
+    ],
+    [
+     "verre_bleu",
+     "#4f6d8f"
+    ],
+    [
+     "beton_sombre",
+     "#8c8a85"
+    ],
+    [
+     "bois_clair",
+     "#c39a6b"
+    ]
+   ]
+  },
+  {
+   "id": "villa_moderniste",
+   "name": "Villa moderniste",
+   "cat": "logement",
+   "cost": 2400000,
+   "desc": "Boîte blanche sur pilotis, fenêtres en bandeau et solarium sur le toit.",
+   "source": "D'après la villa Savoye (Le Corbusier, Poissy, 1931)",
+   "region": "europe",
+   "era": "classique",
+   "emplois": 0,
+   "logements": 1,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "villa",
+   "zone": "R",
+   "glb": "res://assets/modeles/bible/villa_moderniste.glb",
+   "w": 22,
+   "d": 22,
+   "h": 9.6,
+   "tris": 371,
+   "palette": [
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "vert",
+     "#3f8f5a"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "enduit_rose",
+     "#e9c2b0"
+    ],
+    [
+     "enduit_bleu",
+     "#c9dbe3"
+    ]
+   ]
+  },
+  {
+   "id": "villa_mid_century",
+   "name": "Villa californienne",
+   "cat": "logement",
+   "cost": 2900000,
+   "desc": "Pavillon de verre et d'acier à toit plat très débordant.",
+   "source": "Case Study Houses (Los Angeles, années 1950)",
+   "region": "ameriques",
+   "era": "moderne",
+   "emplois": 0,
+   "logements": 1,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "villa",
+   "zone": "R",
+   "glb": "res://assets/modeles/bible/villa_mid_century.glb",
+   "w": 26,
+   "d": 17,
+   "h": 3.7,
+   "tris": 180,
+   "palette": [
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "verre_ciel",
+     "#6d97b8"
+    ],
+    [
+     "noir",
+     "#2a2b2e"
+    ],
+    [
+     "pierre_grise",
+     "#9c988f"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ]
+   ]
+  },
+  {
+   "id": "maison_bois",
+   "name": "Maison ossature bois",
+   "cat": "logement",
+   "cost": 450000,
+   "desc": "Maison passive en bois clair, toit à deux pans et panneaux solaires.",
+   "source": "Maisons passives du Vorarlberg et de Scandinavie",
+   "region": "europe",
+   "era": "contemporain",
+   "emplois": 0,
+   "logements": 1,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "maison",
+   "zone": "R",
+   "glb": "res://assets/modeles/bible/maison_bois.glb",
+   "w": 14,
+   "d": 11,
+   "h": 8.5,
+   "tris": 92,
+   "palette": [
+    [
+     "bois_clair",
+     "#c39a6b"
+    ],
+    [
+     "noir",
+     "#2a2b2e"
+    ],
+    [
+     "verre_bleu",
+     "#4f6d8f"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "verre_nuit",
+     "#1d2d3c"
+    ]
+   ]
+  },
+  {
+   "id": "maisons_en_bande",
+   "name": "Maisons en bande",
+   "cat": "logement",
+   "cost": 1300000,
+   "desc": "Quatre maisons de brique mitoyennes avec bow-windows.",
+   "source": "Terraced houses de l'époque victorienne (Londres, Manchester)",
+   "region": "europe",
+   "era": "classique",
+   "emplois": 0,
+   "logements": 4,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "maison",
+   "zone": "R",
+   "glb": "res://assets/modeles/bible/maisons_en_bande.glb",
+   "w": 27,
+   "d": 14,
+   "h": 8.9,
+   "tris": 376,
+   "palette": [
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "brique",
+     "#a9583f"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "bleu",
+     "#2a6fdb"
+    ],
+    [
+     "pierre",
+     "#b9b0a0"
+    ],
+    [
+     "pierre_grise",
+     "#9c988f"
+    ],
+    [
+     "rouge",
+     "#c0392b"
+    ],
+    [
+     "vert",
+     "#3f8f5a"
+    ],
+    [
+     "noir",
+     "#2a2b2e"
+    ],
+    [
+     "ardoise",
+     "#5b5f66"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ]
+   ]
+  },
+  {
+   "id": "immeuble_haussmannien",
+   "name": "Immeuble haussmannien",
+   "cat": "logement",
+   "cost": 9000000,
+   "desc": "Pierre de taille, balcons filants aux 2e et 5e étages, toit mansardé en zinc.",
+   "source": "Immeubles du baron Haussmann (Paris, 1853-1870)",
+   "region": "europe",
+   "era": "classique",
+   "emplois": 0,
+   "logements": 18,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "immeuble",
+   "zone": "R",
+   "glb": "res://assets/modeles/bible/immeuble_haussmannien.glb",
+   "w": 23,
+   "d": 18,
+   "h": 25.1,
+   "tris": 924,
+   "palette": [
+    [
+     "pierre",
+     "#b9b0a0"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "vert",
+     "#3f8f5a"
+    ],
+    [
+     "noir",
+     "#2a2b2e"
+    ],
+    [
+     "zinc",
+     "#7e8890"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "brique_claire",
+     "#c87f5d"
+    ],
+    [
+     "pierre_grise",
+     "#9c988f"
+    ]
+   ]
+  },
+  {
+   "id": "immeuble_annees30",
+   "name": "Immeuble Art déco",
+   "cat": "logement",
+   "cost": 6500000,
+   "desc": "Immeuble de briques et béton, bow-windows d'angle et attique en retrait.",
+   "source": "Immeubles des années 1930 (Boulogne-Billancourt, Genève, Tel-Aviv)",
+   "region": "europe",
+   "era": "classique",
+   "emplois": 0,
+   "logements": 14,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "immeuble",
+   "zone": "R",
+   "glb": "res://assets/modeles/bible/immeuble_annees30.glb",
+   "w": 21,
+   "d": 18,
+   "h": 18.7,
+   "tris": 550,
+   "palette": [
+    [
+     "granit",
+     "#7f7d78"
+    ],
+    [
+     "brique_claire",
+     "#c87f5d"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "noir",
+     "#2a2b2e"
+    ],
+    [
+     "pierre",
+     "#b9b0a0"
+    ],
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "beton_sombre",
+     "#8c8a85"
+    ]
+   ]
+  },
+  {
+   "id": "brownstone",
+   "name": "Brownstone",
+   "cat": "logement",
+   "cost": 3600000,
+   "desc": "Maison de ville new-yorkaise en grès brun, perron et corniche saillante.",
+   "source": "Brownstones de Brooklyn et Harlem (New York)",
+   "region": "ameriques",
+   "era": "classique",
+   "emplois": 0,
+   "logements": 4,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "immeuble",
+   "zone": "R",
+   "glb": "res://assets/modeles/bible/brownstone.glb",
+   "w": 10,
+   "d": 22,
+   "h": 13.7,
+   "tris": 218,
+   "palette": [
+    [
+     "brique_sombre",
+     "#7e3b2c"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "pierre",
+     "#b9b0a0"
+    ],
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "beton_sombre",
+     "#8c8a85"
+    ],
+    [
+     "noir",
+     "#2a2b2e"
+    ]
+   ]
+  },
+  {
+   "id": "plattenbau",
+   "name": "Barre préfabriquée",
+   "cat": "logement",
+   "cost": 16000000,
+   "desc": "Bloc de panneaux de béton préfabriqués, onze étages, loggias.",
+   "source": "Plattenbau WBS 70 (Berlin-Marzahn, Halle-Neustadt)",
+   "region": "europe",
+   "era": "moderne",
+   "emplois": 0,
+   "logements": 88,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "immeuble",
+   "zone": "R",
+   "glb": "res://assets/modeles/bible/plattenbau.glb",
+   "w": 63,
+   "d": 16,
+   "h": 31.7,
+   "tris": 2784,
+   "palette": [
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "beton_sombre",
+     "#8c8a85"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "enduit_jaune",
+     "#ecd59a"
+    ]
+   ]
+  },
+  {
+   "id": "grand_ensemble",
+   "name": "Barre de grand ensemble",
+   "cat": "logement",
+   "cost": 22000000,
+   "desc": "Longue barre HLM de quatorze étages, façades rythmées et halls traversants.",
+   "source": "Grands ensembles des années 1960 (Sarcelles, La Courneuve)",
+   "region": "europe",
+   "era": "moderne",
+   "emplois": 0,
+   "logements": 120,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "immeuble",
+   "zone": "R",
+   "glb": "res://assets/modeles/bible/grand_ensemble.glb",
+   "w": 93,
+   "d": 14,
+   "h": 38.6,
+   "tris": 332,
+   "palette": [
+    [
+     "enduit_blanc",
+     "#f4f2ec"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "verre_nuit",
+     "#1d2d3c"
+    ],
+    [
+     "beton_sombre",
+     "#8c8a85"
+    ],
+    [
+     "enduit_rose",
+     "#e9c2b0"
+    ],
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ]
+   ]
+  },
+  {
+   "id": "unite_habitation",
+   "name": "Unité d'habitation",
+   "cat": "logement",
+   "cost": 40000000,
+   "desc": "Grand paquebot de béton brut sur pilotis, loggias colorées, toit-terrasse.",
+   "source": "D'après la Cité radieuse (Le Corbusier, Marseille, 1952)",
+   "region": "europe",
+   "era": "moderne",
+   "emplois": 0,
+   "logements": 160,
+   "visiteurs": 100,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "immeuble",
+   "zone": "R",
+   "glb": "res://assets/modeles/bible/unite_habitation.glb",
+   "w": 113,
+   "d": 25,
+   "h": 52.0,
+   "tris": 2420,
+   "palette": [
+    [
+     "beton_sombre",
+     "#8c8a85"
+    ],
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "rouge",
+     "#c0392b"
+    ],
+    [
+     "jaune",
+     "#f2c14e"
+    ],
+    [
+     "vert",
+     "#3f8f5a"
+    ],
+    [
+     "bleu",
+     "#2a6fdb"
+    ]
+   ]
+  },
+  {
+   "id": "tour_residence",
+   "name": "Tour résidentielle",
+   "cat": "logement",
+   "cost": 45000000,
+   "desc": "Tour de vingt-quatre étages, balcons filants vitrés et socle commercial.",
+   "source": "Tours de logements contemporaines (Paris rive gauche, Lyon Confluence)",
+   "region": "europe",
+   "era": "contemporain",
+   "emplois": 0,
+   "logements": 150,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "tour",
+   "zone": "R",
+   "glb": "res://assets/modeles/bible/tour_residence.glb",
+   "w": 33,
+   "d": 29,
+   "h": 79.1,
+   "tris": 442,
+   "palette": [
+    [
+     "pierre_grise",
+     "#9c988f"
+    ],
+    [
+     "verre_bleu",
+     "#4f6d8f"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "verre_nuit",
+     "#1d2d3c"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "pelouse",
+     "#6aa84f"
+    ],
+    [
+     "verre_ciel",
+     "#6d97b8"
+    ],
+    [
+     "beton_sombre",
+     "#8c8a85"
+    ]
+   ]
+  },
+  {
+   "id": "tour_verre",
+   "name": "Gratte-ciel résidentiel",
+   "cat": "logement",
+   "cost": 160000000,
+   "desc": "Tour de verre de 45 étages, couronnement lumineux.",
+   "source": "Tours résidentielles new-yorkaises et de Dubaï (années 2010)",
+   "region": "ameriques",
+   "era": "contemporain",
+   "emplois": 0,
+   "logements": 320,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "tour",
+   "zone": "R",
+   "glb": "res://assets/modeles/bible/tour_verre.glb",
+   "w": 33,
+   "d": 33,
+   "h": 173.0,
+   "tris": 276,
+   "palette": [
+    [
+     "verre_nuit",
+     "#1d2d3c"
+    ],
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "beton_sombre",
+     "#8c8a85"
+    ],
+    [
+     "verre_bleu",
+     "#4f6d8f"
+    ],
+    [
+     "zinc",
+     "#7e8890"
+    ],
+    [
+     "verre_clair",
+     "#8fb8d8"
+    ]
+   ]
+  },
+  {
+   "id": "immeuble_bois",
+   "name": "Immeuble en bois",
+   "cat": "logement",
+   "cost": 12000000,
+   "desc": "Immeuble de sept étages en bois, loggias et toiture végétalisée.",
+   "source": "Immeubles bois-béton contemporains (Mjøstårnet, Bordeaux Hypérion)",
+   "region": "europe",
+   "era": "contemporain",
+   "emplois": 0,
+   "logements": 42,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "immeuble",
+   "zone": "R",
+   "glb": "res://assets/modeles/bible/immeuble_bois.glb",
+   "w": 31,
+   "d": 18,
+   "h": 21.7,
+   "tris": 960,
+   "palette": [
+    [
+     "bois_clair",
+     "#c39a6b"
+    ],
+    [
+     "noir",
+     "#2a2b2e"
+    ],
+    [
+     "verre_bleu",
+     "#4f6d8f"
+    ],
+    [
+     "verre_nuit",
+     "#1d2d3c"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "verre_clair",
+     "#8fb8d8"
+    ],
+    [
+     "pelouse",
+     "#6aa84f"
+    ]
+   ]
+  },
+  {
+   "id": "tour_hong_kong",
+   "name": "Tour de Hong Kong",
+   "cat": "logement",
+   "cost": 70000000,
+   "desc": "Tour fine de quarante étages en croix, fenêtres serrées et climatiseurs.",
+   "source": "Tours de logements publics de Hong Kong (Harmony, Concord)",
+   "region": "asie_est",
+   "era": "moderne",
+   "emplois": 0,
+   "logements": 400,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "tour",
+   "zone": "R",
+   "glb": "res://assets/modeles/bible/tour_hong_kong.glb",
+   "w": 33,
+   "d": 33,
+   "h": 116.6,
+   "tris": 2218,
+   "palette": [
+    [
+     "enduit_blanc",
+     "#f4f2ec"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "enduit_bleu",
+     "#c9dbe3"
+    ],
+    [
+     "beton_sombre",
+     "#8c8a85"
+    ]
+   ]
+  }
+ ]
+}

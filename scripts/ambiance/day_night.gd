@@ -60,6 +60,25 @@ static var rendu_pousse := true
 ## Brume du matin (0 à 1), calculée à chaque image.
 var brume := 0.0
 
+## Jour permanent (Ctrl + T, ou clic sur le Soleil de l'horloge) : l'image reste
+## de jour pour construire, mais l'horloge, les habitants et la production
+## continuent. Le jour, le Soleil suit l'heure ; le soir, il s'arrête sur
+## l'après-midi, puis repart du matin à minuit. Quand le Soleil du jour reste
+## trop bas (hiver polaire), on prend la lumière d'un jour plus proche de
+## l'équinoxe.
+signal jour_permanent_changed(on: bool)
+var jour_permanent := false
+## Hauteur minimale du Soleil affiché en jour permanent (degrés).
+const JOUR_MIN_ELEV := 20.0
+## Écart (secondes) entre l'instant affiché (Soleil, Lune, ciel) et l'horloge.
+var _shift := 0.0
+var _snap := true
+var _jp_day := -2147483648
+## Fenêtre de lumière du jour : (heure de début, heure de fin, décalage en jours).
+var _jp_window := Vector3(0.0, 24.0, 0.0)
+## Hauteur du vrai Soleil (degrés), même en jour permanent.
+var real_sun_elev := 0.0
+
 
 func _ready() -> void:
 	sun = get_node_or_null(sun_path) as DirectionalLight3D
@@ -206,6 +225,8 @@ func set_place(a: float, o: float) -> void:
 	lat = a
 	lon = o
 	_rise_set_day = -1
+	_jp_day = -2147483648
+	_snap = true
 	if weather != null:
 		weather.set_place(a, o)
 	_apply()
@@ -228,12 +249,14 @@ func set_local_hour(h: float) -> void:
 	var local := unix_time + off
 	var midnight := floorf(local / 86400.0) * 86400.0
 	unix_time = midnight + clampf(h, 0.0, 23.999) * 3600.0 - off
+	_snap = true
 	_apply()
 
 
 ## Avance ou recule la date d'un nombre de jours (même heure).
 func shift_days(days: int) -> void:
 	unix_time += days * 86400.0
+	_snap = true
 	_apply()
 
 
@@ -247,6 +270,79 @@ func toggle_pause() -> void:
 		set_speed(DEFAULT_SPEED)
 	else:
 		set_speed(0)
+
+
+func set_jour_permanent(on: bool) -> void:
+	if on == jour_permanent:
+		return
+	jour_permanent = on
+	_snap = true
+	_apply()
+	jour_permanent_changed.emit(on)
+
+
+func toggle_jour_permanent() -> void:
+	set_jour_permanent(not jour_permanent)
+
+
+## Instant utilisé pour le Soleil, la Lune et le ciel (= l'horloge, sauf en
+## jour permanent).
+func display_time() -> float:
+	return unix_time + _shift
+
+
+## Écart voulu entre l'instant affiché et l'horloge.
+func _target_shift() -> float:
+	if not jour_permanent:
+		return 0.0
+	var off := utc_offset() * 3600.0
+	var day := int(floorf((unix_time + off) / 86400.0))
+	if day != _jp_day:
+		_jp_day = day
+		_jp_window = day_window(unix_time)
+	var h := local_hour()
+	var hd := clampf(h, _jp_window.x, _jp_window.y)
+	return _jp_window.z * 86400.0 + (hd - h) * 3600.0
+
+
+## Heures du jour (locales) où le Soleil est assez haut pour bien voir :
+## Vector3(début, fin, décalage en jours). Calculé une fois par jour.
+func day_window(t: float) -> Vector3:
+	# Le jour même si le Soleil y monte à 12° au moins ; sinon le jour le plus
+	# proche où il monte à 20°, sinon à 12°.
+	var w := _window_for(t, 12.0)
+	if w.y >= w.x:
+		return Vector3(w.x, w.y, 0.0)
+	for need in [20.0, 12.0]:
+		for k in [7, -7, 14, -14, 30, -30, 45, -45, 60, -60, 75, -75, 91, -91, 105, -105, 120, -120, 150, -150, 182]:
+			w = _window_for(t + float(k) * 86400.0, need)
+			if w.y >= w.x:
+				return Vector3(w.x, w.y, float(k))
+	return Vector3(12.0, 12.0, 182.0)
+
+
+## Heures (locales) du jour de `t` où le Soleil dépasse JOUR_MIN_ELEV (ou la
+## moitié de sa hauteur maximale, s'il monte peu). Renvoie début > fin si le
+## Soleil ne monte pas jusqu'à `need` degrés ce jour-là.
+func _window_for(t: float, need: float) -> Vector2:
+	var off := Fuseaux.utc_offset(lat, lon, t) * 3600.0
+	var midnight := floorf((t + off) / 86400.0) * 86400.0 - off
+	var elevs := PackedFloat32Array()
+	var best := -90.0
+	for i in 96:
+		var e := Astro.sun_horizontal(midnight + i * 900.0, lat, lon).x
+		elevs.append(e)
+		best = maxf(best, e)
+	if best < need:
+		return Vector2(1.0, 0.0)
+	var limit := minf(JOUR_MIN_ELEV, best * 0.5)
+	var a := 24.0
+	var b := -1.0
+	for i in 96:
+		if elevs[i] >= limit:
+			a = minf(a, i * 0.25)
+			b = maxf(b, i * 0.25)
+	return Vector2(a, b)
 
 
 func local_datetime() -> Dictionary:
@@ -266,6 +362,11 @@ func _process(delta: float) -> void:
 	var s: float = SPEEDS[speed_index]
 	if s > 0.0:
 		unix_time += delta * s
+	# Jour permanent, à minuit : le Soleil repart du matin en glissant (1 à 2 s)
+	# au lieu de sauter.
+	var target := _target_shift()
+	if absf(target - _shift) > 1800.0 and not _snap:
+		_shift = lerpf(_shift, target, clampf(delta * 3.0, 0.0, 1.0))
 	weather.update_weather(delta, unix_time, local_hour())
 	_apply()
 	_adapt_shadows()
@@ -320,13 +421,19 @@ static func night_factor(elev: float) -> float:
 
 
 func _apply() -> void:
-	sun_horiz = Astro.sun_horizontal(unix_time, lat, lon)
-	moon_horiz = Astro.moon_horizontal(unix_time, lat, lon)
+	var target := _target_shift()
+	if _snap or absf(target - _shift) <= 1800.0:
+		_shift = target
+	_snap = false
+	var t := display_time()
+	sun_horiz = Astro.sun_horizontal(t, lat, lon)
+	real_sun_elev = sun_horiz.x if _shift == 0.0 else Astro.sun_horizontal(unix_time, lat, lon).x
+	moon_horiz = Astro.moon_horizontal(t, lat, lon)
 	sun_dir = Astro.direction(sun_horiz)
 	moon_dir = Astro.direction(moon_horiz)
 	var elev := sun_horiz.x
 	night = night_factor(elev)
-	var illum := Astro.moon_illumination(unix_time)
+	var illum := Astro.moon_illumination(t)
 
 	# Météo : nuages qui voilent le Soleil, pluie et brouillard qui assombrissent.
 	var cover := weather.cover if weather != null else 0.0
@@ -369,7 +476,7 @@ func _apply() -> void:
 		sky_material.set_shader_parameter("moon_dir", moon_dir)
 		sky_material.set_shader_parameter("moon_visible", smoothstep(-1.0, 1.0, moon_horiz.x) * lerpf(0.55, 1.0, night))
 		sky_material.set_shader_parameter("stars", smoothstep(0.55, 1.0, night))
-		sky_material.set_shader_parameter("star_basis", _star_basis())
+		sky_material.set_shader_parameter("star_basis", _star_basis(t))
 		if weather != null:
 			sky_material.set_shader_parameter("cloud_cover", weather.cover)
 			sky_material.set_shader_parameter("cloud_dark", clampf(weather.precip * 0.8 + weather.storm * 0.4, 0.0, 1.0))
@@ -458,8 +565,8 @@ static func _aim(light: DirectionalLight3D, toward: Vector3) -> void:
 
 ## Rotation du ciel étoilé : les étoiles tournent autour du pôle céleste
 ## (hauteur = latitude), une fois par jour sidéral.
-func _star_basis() -> Basis:
-	var n := Astro.days_j2000(unix_time)
+func _star_basis(t: float) -> Basis:
+	var n := Astro.days_j2000(t)
 	var lst := deg_to_rad(Astro.local_sidereal(n, lon))
 	# Axe du pôle Nord céleste dans le repère local (Nord = −Z).
 	var phi := deg_to_rad(lat)
@@ -487,7 +594,7 @@ func _adapt_shadows() -> void:
 # --- Sauvegarde -----------------------------------------------------------------
 
 func to_dict() -> Dictionary:
-	return {"unix": unix_time, "vitesse": speed_index, "meteo": weather.to_dict()}
+	return {"unix": unix_time, "vitesse": speed_index, "meteo": weather.to_dict(), "jour_permanent": jour_permanent}
 
 
 func from_dict(d: Dictionary) -> void:
@@ -497,5 +604,11 @@ func from_dict(d: Dictionary) -> void:
 		speed_index = clampi(int(d.vitesse), 0, SPEEDS.size() - 1)
 	if d.has("meteo"):
 		weather.from_dict(d.meteo)
+	var jp := bool(d.get("jour_permanent", false))
+	if jp != jour_permanent:
+		jour_permanent = jp
+		jour_permanent_changed.emit(jp)
 	_rise_set_day = -1
+	_jp_day = -2147483648
+	_snap = true
 	_apply()

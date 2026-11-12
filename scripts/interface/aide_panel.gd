@@ -65,6 +65,7 @@ const SECTIONS := [
 	["Temps et vue", [
 		["T", "mettre le temps en pause / reprendre"],
 		["Maj + T", "vitesse suivante du temps (la marée suit l'heure et la Lune : voir la barre d'état)"],
+		["Ctrl + T, ou clic sur le Soleil de l'horloge", "jour permanent : l'image reste de jour pour construire, l'heure, les habitants et la production continuent"],
 		["V", "vue suivante : dessus, 3e personne, 1re personne"],
 		["ZQSD, Maj, Espace", "marcher, courir, sauter (vue au sol)"],
 		["E ou clic gauche", "ouvrir ou fermer une porte, une porte de garage (vue au sol), y compris dans les murs fins"],

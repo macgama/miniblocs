@@ -15,6 +15,17 @@
 - **Météo** (voir plus bas) : nuages, pluie, neige, brouillard et orages selon le climat réel du lieu et la saison.
 - **Phares** : la nuit, et par brouillard ou forte pluie, les véhicules allument leurs phares (blancs à l'avant) et leurs feux (rouges à l'arrière). Les plus proches de la caméra éclairent la route devant eux.
 
+## Jour permanent
+
+Pour construire sans être gêné par la nuit : l'image reste de jour, mais **le temps continue** (l'heure de l'horloge, les habitants, l'école et le travail, la production, la météo).
+
+- Le jour, le Soleil suit l'heure comme d'habitude.
+- Le soir, quand le Soleil descend sous 20°, il s'arrête sur cette lumière d'après-midi jusqu'à minuit, puis glisse en 1 à 2 secondes vers la lumière du matin, qu'il garde jusqu'à ce que le vrai Soleil le rattrape.
+- Pas de lampadaires ni de fenêtres allumées pendant ce temps, puisque l'image est de jour.
+- Nuit polaire ou Soleil trop bas en hiver (moins de 12° à midi) : on prend la lumière du jour le plus proche où le Soleil monte à 20°.
+- L'icône de l'horloge garde la vraie heure du ciel : la Lune quand il fait nuit pour de vrai, enfoncée quand le jour permanent est actif.
+- Réglage gardé dans la sauvegarde. C'est un choix d'affichage de chaque joueur, pas un réglage de partie.
+
 ## Météo
 
 - **Climat du lieu** :
@@ -39,6 +50,7 @@
 | Choisir l'heure | Glisser la barre du panneau Horloge |
 | Changer de saison | Boutons ◀ ▶ (un mois avant ou après) |
 | Choisir la météo | Liste « Météo » du panneau Horloge |
+| Jour permanent | **Ctrl + T**, clic sur le Soleil (ou la Lune) de l'horloge, ou case « Jour permanent » du panneau Horloge |
 
 L'heure, la date et la vitesse sont gardées par **Sauver / Charger**.
 

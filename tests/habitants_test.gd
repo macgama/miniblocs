@@ -52,6 +52,13 @@ func _run() -> void:
 	bs.unlimited_money = true
 	var y := world.cell_height(Vector2i(0, 0))
 	_check(transport.build_segment("route", Vector3(0, y, -300), Vector3(0, y, 300)).ok, "route")
+	var tr := transport.traffic
+	_check(tr.demand.is_valid(), "la circulation est pilotée par les habitants")
+	amb.unix_time = _at("2026-03-10", 8.0)
+	for i in 120:
+		await process_frame
+	_check(tr.count_mode(TransportTypes.Mode.ROAD) == 0 and tr.walker_count() == 0, "route sans bâtiment : ni voiture ni piéton (8 h du matin)")
+	amb.unix_time = _at("2026-03-10", 10.0)
 	var school := bs.place("ecole", Vector2i(-30, 0), 1)
 	var homes := []
 	for i in 6:
@@ -130,6 +137,26 @@ func _run() -> void:
 		if a.kind == "dort" or a.kind == "travail":
 			sleeping += 1
 	_check(sleeping == pop.persons.size(), "3 h du matin : tout le monde dort (ou travaille de nuit)")
+	amb.unix_time = _at("2026-03-10", 10.0)
+	pop._now = {}
+
+	print("Circulation :")
+	amb.unix_time = _at("2026-03-10", 8.2)
+	pop._demand_ms = -100000
+	var rush: Dictionary = pop.traffic_demand()
+	_check(int(rush[TransportTypes.Mode.ROAD]) > 0 and int(rush.walkers) > 0, "8 h 12 : %d voitures et %d piétons dehors d'après les habitants" % [rush[TransportTypes.Mode.ROAD], rush.walkers])
+	for i in 200:
+		await process_frame
+	_check(tr.count_mode(TransportTypes.Mode.ROAD) > 0, "les premiers véhicules arrivent avec les habitants (%d)" % tr.count_mode(TransportTypes.Mode.ROAD))
+	amb.unix_time = _at("2026-03-10", 3.0)
+	pop._demand_ms = -100000
+	var night: Dictionary = pop.traffic_demand()
+	_check(int(night[TransportTypes.Mode.ROAD]) < int(rush[TransportTypes.Mode.ROAD]) and int(night.walkers) == 0, "3 h du matin : rues presque vides (%d voitures)" % night[TransportTypes.Mode.ROAD])
+	var bus_ambient := false
+	for v in tr.vehicles:
+		if not v.has("line") and String(v.model) != "" and VehicleCatalog.get_type(v.model).cat == "bus":
+			bus_ambient = true
+	_check(not bus_ambient, "pas de bus sans ligne")
 	amb.unix_time = _at("2026-03-10", 10.0)
 	pop._now = {}
 

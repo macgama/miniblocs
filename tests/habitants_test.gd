@@ -31,6 +31,8 @@ func _at(date: String, hour: float) -> float:
 
 func _run() -> void:
 	Creations.persist = false
+	# Bâtiments prêts tout de suite (les chantiers sont testés dans batiments_test).
+	BatimentsVie.chantiers = false
 	var scene: Node = load("res://scenes/terre.tscn").instantiate()
 	var world: TerrainWorld = scene.get_node("Terrain")
 	var transport: TransportSystem = scene.get_node("Transport")

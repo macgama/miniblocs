@@ -21,6 +21,54 @@ static func building_material() -> ShaderMaterial:
 	return _material
 
 
+static var _chantier: ShaderMaterial
+## Variantes d'usure : "u|a" -> matériau (usure et abandon en paliers).
+static var _variants := {}
+
+
+## Règle un paramètre partagé (nuit, part des fenêtres allumées) sur le
+## matériau des bâtiments et toutes ses variantes d'usure.
+static func set_shared(param: String, value: Variant) -> void:
+	building_material().set_shader_parameter(param, value)
+	for m: ShaderMaterial in _variants.values():
+		m.set_shader_parameter(param, value)
+
+
+## Matériau d'un bâtiment usé : usure en paliers de 0 à 5, abandon de 0 à 4.
+## (0, 0) = le matériau commun.
+static func variant_material(usure_q: int, abandon_q: int) -> ShaderMaterial:
+	if usure_q <= 0 and abandon_q <= 0:
+		return building_material()
+	var key := "%d|%d" % [usure_q, abandon_q]
+	if not _variants.has(key):
+		var m := building_material().duplicate() as ShaderMaterial
+		m.set_shader_parameter("usure", usure_q / 5.0)
+		m.set_shader_parameter("abandon", abandon_q / 4.0)
+		_variants[key] = m
+	return _variants[key]
+
+
+## Matériau propre à un chantier (sa hauteur construite lui est propre).
+static func chantier_copy() -> ShaderMaterial:
+	return chantier_material().duplicate() as ShaderMaterial
+
+
+## Matériau des bâtiments en chantier : le même, mais les faces arrière sont
+## dessinées (on voit l'intérieur brut au-dessus de la partie construite).
+## Fenêtres éteintes : personne n'habite encore là.
+static func chantier_material() -> ShaderMaterial:
+	if _chantier == null:
+		var base := building_material()
+		var sh := Shader.new()
+		sh.code = (base.shader as Shader).code.replace("shader_type spatial;", "shader_type spatial;\nrender_mode cull_disabled;")
+		_chantier = ShaderMaterial.new()
+		_chantier.shader = sh
+		for key in ["window_colors", "window_count", "compat"]:
+			_chantier.set_shader_parameter(key, base.get_shader_parameter(key))
+		_chantier.set_shader_parameter("interieurs", false)
+	return _chantier
+
+
 ## Couleurs de vitres reconnues comme fenêtres (32 au maximum).
 static func window_colors() -> Array[Color]:
 	var out: Array[Color] = []

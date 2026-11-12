@@ -14,6 +14,9 @@ extends Node3D
 signal info_changed(text: String)
 signal message(text: String)
 signal changed
+## Un bâtiment vient d'apparaître (pose, zonage ou chargement) / de disparaître.
+signal added(bid: int)
+signal removed(bid: int)
 
 enum Mode { NONE, PLACE, DEMOLISH }
 
@@ -125,17 +128,37 @@ static func _tint(c: Color) -> StandardMaterial3D:
 	return m
 
 
-func mesh_for(id: String) -> ArrayMesh:
-	if not _meshes.has(id):
-		_meshes[id] = BuildingCatalog.build_mesh(id, _material)
-	return _meshes[id]
+func mesh_for(id: String, variant := 0) -> ArrayMesh:
+	var key := id if variant == 0 else "%s#%d" % [id, variant]
+	if not _meshes.has(key):
+		_meshes[key] = BuildingCatalog.build_mesh(id, _material, true, variant)
+	return _meshes[key]
 
 
 ## Version légère (sans finitions) d'un modèle, pour le lointain.
-func mesh_far_for(id: String) -> ArrayMesh:
-	if not _meshes_far.has(id):
-		_meshes_far[id] = BuildingCatalog.build_mesh(id, _material, false)
-	return _meshes_far[id]
+func mesh_far_for(id: String, variant := 0) -> ArrayMesh:
+	var key := id if variant == 0 else "%s#%d" % [id, variant]
+	if not _meshes_far.has(key):
+		_meshes_far[key] = BuildingCatalog.build_mesh(id, _material, false, variant)
+	return _meshes_far[key]
+
+
+## Nœud 3D d'un bâtiment (null s'il n'existe pas).
+func node_of(bid: int) -> MeshInstance3D:
+	return _nodes.get(bid, null) as MeshInstance3D
+
+
+## Le bâtiment est-il encore en chantier (voir BatimentsVie) ?
+func en_chantier(bid: int) -> bool:
+	return buildings.has(bid) and bool(buildings[bid].get("chantier", false))
+
+
+## Variante du modèle d'un bâtiment posé : stable pour un emplacement donné.
+static func variant_for(id: String, x: int, z: int) -> int:
+	var n := BuildingCatalog.variants_of(id)
+	if n <= 1:
+		return 0
+	return posmod(hash(Vector2i(x, z)), n)
 
 
 # --- Outils -------------------------------------------------------------------------
@@ -171,6 +194,8 @@ func rotate_quarter() -> void:
 
 
 func clear() -> void:
+	for bid in _nodes.keys():
+		removed.emit(bid)
 	for n in _nodes.values():
 		(n as Node).queue_free()
 	_nodes.clear()
@@ -348,6 +373,7 @@ func demolish(bid: int) -> void:
 		for z in range(rect.position.y, rect.end.y):
 			occupancy.erase(Vector2i(x, z))
 	if _nodes.has(bid):
+		removed.emit(bid)
 		(_nodes[bid] as Node).queue_free()
 		_nodes.erase(bid)
 	buildings.erase(bid)
@@ -376,9 +402,12 @@ func _add(b: Dictionary) -> void:
 	for x in range(rect.position.x, rect.end.x):
 		for z in range(rect.position.y, rect.end.y):
 			occupancy[Vector2i(x, z)] = bid
+	if not b.has("v"):
+		b["v"] = variant_for(String(b.t), int(b.x), int(b.z))
+	var v := int(b.v)
 	var mi := MeshInstance3D.new()
 	mi.name = "Batiment_%d" % bid
-	mi.mesh = mesh_for(b.t)
+	mi.mesh = mesh_for(b.t, v)
 	mi.position = rect_center(rect) + Vector3(0, float(b.h), 0)
 	mi.rotation.y = -int(b.r) * PI / 2.0
 	mi.visibility_range_end = 1400.0
@@ -397,12 +426,13 @@ func _add(b: Dictionary) -> void:
 		mi.visibility_range_end = LOIN
 		var far := MeshInstance3D.new()
 		far.name = "Loin"
-		far.mesh = mesh_far_for(b.t)
+		far.mesh = mesh_far_for(b.t, v)
 		far.visibility_range_begin = LOIN
 		far.visibility_range_end = 1400.0
 		mi.add_child(far)
 	add_child(mi)
 	_nodes[bid] = mi
+	added.emit(bid)
 
 
 ## Aplanit l'emprise et adoucit un talus autour (sans toucher aux voies ni aux autres bâtiments).
@@ -604,7 +634,12 @@ func summary() -> String:
 func to_dict() -> Dictionary:
 	var list := []
 	for b in buildings.values():
-		list.append({"id": b.id, "t": b.t, "x": b.x, "z": b.z, "r": b.r, "h": b.h, "cost": b.get("cost", 0), "zone": b.get("zone", 0)})
+		var e := {"id": b.id, "t": b.t, "x": b.x, "z": b.z, "r": b.r, "h": b.h, "cost": b.get("cost", 0), "zone": b.get("zone", 0)}
+		# Variante du modèle, date de construction et fin du chantier (BatimentsVie).
+		for key in ["v", "ne", "fin"]:
+			if b.has(key):
+				e[key] = b[key]
+		list.append(e)
 	return {"version": 1, "next_id": next_id, "money": money, "require_access": require_access,
 		"unlimited_money": unlimited_money, "buildings": list}
 
@@ -618,8 +653,13 @@ func from_dict(data: Dictionary) -> void:
 	for b in data.get("buildings", []):
 		if BuildingCatalog.get_type(String(b.t)).is_empty():
 			continue
-		_add({"id": int(b.id), "t": String(b.t), "x": int(b.x), "z": int(b.z), "r": int(b.r),
-			"h": float(b.h), "cost": int(b.get("cost", 0)), "zone": int(b.get("zone", 0))})
+		var e := {"id": int(b.id), "t": String(b.t), "x": int(b.x), "z": int(b.z), "r": int(b.r),
+			"h": float(b.h), "cost": int(b.get("cost", 0)), "zone": int(b.get("zone", 0)),
+			# Sans date (anciennes parties) : bâti depuis longtemps, pas de chantier.
+			"ne": float(b.get("ne", 0.0)), "fin": float(b.get("fin", 0.0))}
+		if b.has("v"):
+			e["v"] = int(b.v)
+		_add(e)
 		next_id = maxi(next_id, int(b.id) + 1)
 	last_change_rect = Rect2i()
 	changed.emit()

@@ -391,9 +391,8 @@ func _apply() -> void:
 		if rendu_pousse:
 			_rendu_pousse_apply(k, elev)
 
-	var mat := NightWindows.building_material()
-	mat.set_shader_parameter("night", night)
-	mat.set_shader_parameter("lit_ratio", NightWindows.lit_ratio_at(local_hour()))
+	NightWindows.set_shared("night", night)
+	NightWindows.set_shared("lit_ratio", NightWindows.lit_ratio_at(local_hour()))
 	# Lampadaires et phares : la nuit, et aussi par brouillard ou grosse pluie.
 	var dark := maxf(night, smoothstep(0.4, 0.9, wet) * 0.7)
 	if street != null:

@@ -18,6 +18,13 @@ signal wall_height_changed(height: int)
 signal zone_style_chosen(style: String)
 signal capture_name_changed(name: String)
 signal creation_deleted(id: String)
+## Mode « Murs et étages » de l'éditeur libre.
+signal plan_tool_chosen(tool: int)
+signal plan_opening_chosen(kind: String)
+signal plan_level_step(delta: int)
+signal plan_cutaway_toggled(on: bool)
+signal plan_copy_level(count: int)
+signal plan_roof(kind: String)
 
 var _panel: PanelContainer
 var _list: VBoxContainer
@@ -48,6 +55,13 @@ var _capture_name := ""
 var _cat_title: Label
 var _rules_box: VBoxContainer
 var _vignettes: Vignettes
+## "blocs" (blocs de 1 m) ou "plans" (murs fins, étages, intérieurs).
+var _block_mode := "plans"
+var _level_label: Label
+var _level_text := "Rez-de-chaussée"
+var _copy_count := 1
+var _cutaway := true
+var _opening := "porte"
 
 ## Icône de chaque onglet.
 const CAT_ICONS := {"logement": "logement", "commerce": "commerce", "industrie": "industrie",
@@ -315,8 +329,155 @@ func _show_zones() -> void:
 	_item_buttons.append(_zone_label)
 
 
+func block_mode() -> String:
+	return _block_mode
+
+
+func set_level_label(text: String) -> void:
+	_level_text = text
+	if is_instance_valid(_level_label):
+		_level_label.text = text
+
+
+func _add(c: Control) -> void:
+	_list.add_child(c)
+	_item_buttons.append(c)
+
+
+func _small_label(text: String) -> Label:
+	var l := Label.new()
+	l.text = text
+	l.add_theme_font_size_override("font_size", 12)
+	return l
+
+
 func _show_blocks() -> void:
 	_filters.visible = false
+	# Deux façons de construire : blocs de 1 m, ou murs fins et étages.
+	var mrow := HBoxContainer.new()
+	var mode_group := ButtonGroup.new()
+	for md in [["plans", "Murs et étages", "Murs de 20 cm posés sur les lignes de la grille, pièces, étages, sous-sols, portes et fenêtres, escaliers, toit automatique."],
+			["blocs", "Blocs", "Blocs de 1 m façon jeu de cubes : formes, pentes, portes et fenêtres en blocs, pour le massif et les détails."]]:
+		var mb := Button.new()
+		mb.text = md[1]
+		mb.tooltip_text = md[2]
+		mb.toggle_mode = true
+		mb.button_group = mode_group
+		mb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		mb.button_pressed = md[0] == _block_mode
+		var mid: String = md[0]
+		mb.pressed.connect(func() -> void:
+			if _block_mode != mid:
+				_block_mode = mid
+				# Changer de mode range l'outil en cours.
+				block_tool_chosen.emit(BlockEditor.Tool.NONE)
+				show_category("blocs"))
+		mrow.add_child(mb)
+	_add(mrow)
+	if _block_mode == "plans":
+		_show_plan_tools()
+	else:
+		_show_block_tools()
+	_show_materials()
+	if _block_mode == "blocs":
+		_show_capture()
+	_block_label = Label.new()
+	_block_label.add_theme_font_size_override("font_size", 12)
+	_block_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_block_label.text = "Clic droit : retirer · Ctrl+Z : annuler"
+	_add(_block_label)
+
+
+func _show_plan_tools() -> void:
+	var tools := [["Mur", PlanEditor.Tool.WALL, "Clic glissé d'un coin de case à l'autre : mur de 20 cm sur la ligne."],
+		["Pièce", PlanEditor.Tool.ROOM, "Clic glissé en rectangle : quatre murs et le plancher."],
+		["Sol", PlanEditor.Tool.FLOOR, "Clic glissé en rectangle : plancher, terrasse, balcon."],
+		["Escalier", PlanEditor.Tool.STAIRS, "Clic : escalier de 4 cases vers l'étage du dessus (R : tourner)."],
+		["Peinture", PlanEditor.Tool.PAINT, "Clic sur un côté de mur ou un sol ; glissé : toute la pièce, dans le matériau et la teinte choisis."],
+		["Gomme", PlanEditor.Tool.ERASE, "Clic sur un mur, un sol ou un escalier ; glissé : tout un rectangle de l'étage."]]
+	var row := HFlowContainer.new()
+	for t in tools:
+		var b := Button.new()
+		b.text = t[0]
+		b.tooltip_text = t[2]
+		b.toggle_mode = true
+		b.button_group = _item_group
+		var tool_id: int = t[1]
+		b.pressed.connect(func() -> void: plan_tool_chosen.emit(tool_id))
+		row.add_child(b)
+	_add(row)
+	# Étage actif.
+	var lrow := HBoxContainer.new()
+	var down := Button.new()
+	down.text = "▼"
+	down.tooltip_text = "Étage du dessous (Page bas) : jusqu'à 5 sous-sols"
+	down.pressed.connect(func() -> void: plan_level_step.emit(-1))
+	lrow.add_child(down)
+	_level_label = Label.new()
+	_level_label.text = _level_text
+	_level_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_level_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_level_label.clip_text = true
+	lrow.add_child(_level_label)
+	var up := Button.new()
+	up.text = "▲"
+	up.tooltip_text = "Étage du dessus (Page haut) : jusqu'à 59 étages"
+	up.pressed.connect(func() -> void: plan_level_step.emit(1))
+	lrow.add_child(up)
+	_add(lrow)
+	var crow := HBoxContainer.new()
+	var cut := CheckBox.new()
+	cut.text = "Vue en coupe"
+	cut.tooltip_text = "Masquer les étages au-dessus de l'étage actif pendant l'édition."
+	cut.button_pressed = _cutaway
+	cut.toggled.connect(func(on: bool) -> void:
+		_cutaway = on
+		plan_cutaway_toggled.emit(on))
+	crow.add_child(cut)
+	var copy := Button.new()
+	copy.text = "Copier l'étage ↑"
+	copy.tooltip_text = "Recopie l'étage actif (murs, ouvertures, sols, escaliers) au-dessus, autant de fois que demandé."
+	copy.pressed.connect(func() -> void: plan_copy_level.emit(_copy_count))
+	crow.add_child(copy)
+	var spin := SpinBox.new()
+	spin.min_value = 1
+	spin.max_value = 50
+	spin.value = _copy_count
+	spin.tooltip_text = "Nombre d'étages à créer"
+	spin.value_changed.connect(func(v: float) -> void: _copy_count = int(v))
+	crow.add_child(spin)
+	_add(crow)
+	# Ouvertures.
+	_add(_small_label("Portes et fenêtres (clic près d'un mur ; clic droit : retirer)"))
+	var orow := HFlowContainer.new()
+	for k in PlanEditor.OPENING_ORDER:
+		var o: Dictionary = PlanEditor.OPENINGS[k]
+		var ob := Button.new()
+		ob.text = o.name
+		ob.tooltip_text = "%s · %s" % [o.desc, BuildingSystem.format_money(int(o.price))]
+		ob.toggle_mode = true
+		ob.button_group = _item_group
+		ob.add_theme_font_size_override("font_size", 12)
+		var kid: String = k
+		ob.pressed.connect(func() -> void:
+			_opening = kid
+			plan_opening_chosen.emit(kid))
+		orow.add_child(ob)
+	_add(orow)
+	# Toit sur le dernier étage.
+	_add(_small_label("Toit sur le dernier étage (en blocs, matériau de toit choisi ou tuile)"))
+	var rrow := HFlowContainer.new()
+	for r in [["deux_pans", "Deux pans"], ["quatre_pans", "Quatre pans"], ["plat", "Toit plat"]]:
+		var rb := Button.new()
+		rb.text = r[1]
+		rb.add_theme_font_size_override("font_size", 12)
+		var rid: String = r[0]
+		rb.pressed.connect(func() -> void: plan_roof.emit(rid))
+		rrow.add_child(rb)
+	_add(rrow)
+
+
+func _show_block_tools() -> void:
 	var tools := [["Poser", BlockEditor.Tool.BLOCK, "Un clic = un élément de la forme choisie, contre le sol ou contre un autre bloc. R : tourner."],
 		["Rectangle", BlockEditor.Tool.RECT, "Clic glissé : dalle, plancher ou toit plat."],
 		["Mur", BlockEditor.Tool.WALL, "Clic glissé en ligne : mur de la hauteur choisie."],
@@ -374,6 +535,9 @@ func _show_blocks() -> void:
 				_block_shape = shid
 				block_shape_chosen.emit(shid))
 			srow.add_child(sb)
+
+
+func _show_materials() -> void:
 	# Matériaux (textures), par famille.
 	var frow := HBoxContainer.new()
 	var flab := Label.new()
@@ -454,6 +618,9 @@ func _show_blocks() -> void:
 			_block_tint = tid
 			block_tint_chosen.emit(tid))
 		trow.add_child(tb)
+
+
+func _show_capture() -> void:
 	# Enregistrer une construction comme bâtiment de « Mes créations ».
 	_list.add_child(HSeparator.new())
 	var crow := HBoxContainer.new()
@@ -474,12 +641,6 @@ func _show_blocks() -> void:
 	crow.add_child(cap)
 	_list.add_child(crow)
 	_item_buttons.append(crow)
-	_block_label = Label.new()
-	_block_label.add_theme_font_size_override("font_size", 12)
-	_block_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_block_label.text = "Clic droit : retirer un bloc · Ctrl+Z : annuler"
-	_list.add_child(_block_label)
-	_item_buttons.append(_block_label)
 
 
 func _material_icon(i: int) -> Texture2D:

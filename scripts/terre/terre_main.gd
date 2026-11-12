@@ -10,6 +10,8 @@ extends Node3D
 @onready var zones: ZoneSystem = $Zones
 @onready var blocks: BlockEditor = $Blocs
 @onready var ambiance: DayNight = $Ambiance
+## Murs fins, étages, sous-sols et intérieurs (mode « Murs et étages » de l'éditeur libre).
+var plans: PlanEditor
 
 const TRANSPORT_TOOLS := ["departementale", "train", "voie_verte", "canal"]
 ## Dernière classe choisie pour chaque outil de transport.
@@ -25,6 +27,7 @@ var _hover_valid := false
 
 
 func _ready() -> void:
+	_setup_plans()
 	# Région jouable : REGION_SIZE de côté autour du point de départ.
 	var half := GameStart.REGION_SIZE * 0.5
 	rig.bounds = Rect2(-half, -half, GameStart.REGION_SIZE, GameStart.REGION_SIZE)
@@ -81,7 +84,8 @@ func _ready() -> void:
 		blocks.set_tool(t))
 	build_panel.block_material_chosen.connect(func(m: int) -> void:
 		blocks.set_material(m)
-		if blocks.tool == BlockEditor.Tool.NONE:
+		plans.set_material(m)
+		if blocks.tool == BlockEditor.Tool.NONE and plans.tool == PlanEditor.Tool.NONE and build_panel.block_mode() == "blocs":
 			_select_building_tool()
 			blocks.set_tool(BlockEditor.Tool.BLOCK))
 	build_panel.block_shape_chosen.connect(func(sh: int) -> void:
@@ -89,8 +93,12 @@ func _ready() -> void:
 		if blocks.tool == BlockEditor.Tool.NONE or blocks.tool == BlockEditor.Tool.ERASE or blocks.tool == BlockEditor.Tool.CAPTURE:
 			_select_building_tool()
 			blocks.set_tool(BlockEditor.Tool.BLOCK))
-	($VueSol as VueSol).interaction.connect(func(o: Vector3, d: Vector3) -> void: blocks.interact_ray(o, d, 4.0))
-	build_panel.block_tint_chosen.connect(func(t: int) -> void: blocks.set_tint(t))
+	($VueSol as VueSol).interaction.connect(func(o: Vector3, d: Vector3) -> void:
+		if not blocks.interact_ray(o, d, 4.0):
+			plans.interact_ray(o, d, 3.0))
+	build_panel.block_tint_chosen.connect(func(t: int) -> void:
+		blocks.set_tint(t)
+		plans.set_tint(t))
 	build_panel.capture_name_changed.connect(func(n: String) -> void: blocks.capture_name = n)
 	build_panel.creation_deleted.connect(func(id: String) -> void: Creations.remove(id))
 	blocks.captured.connect(func(res: Dictionary) -> void:
@@ -124,7 +132,7 @@ func _ready() -> void:
 			hud.show_message("Partie chargée : %s." % _game_title())
 		else:
 			hud.show_message("Chargement impossible : " + last_error))
-	for sig in [world.terrain_edited, transport.network_changed, buildings.changed, zones.changed, blocks.changed, transport.stations.lines_changed, transport.junctions.changed, population.changed]:
+	for sig in [world.terrain_edited, transport.network_changed, buildings.changed, zones.changed, blocks.changed, plans.changed, transport.stations.lines_changed, transport.junctions.changed, population.changed]:
 		(sig as Signal).connect(func(_a = null) -> void: _unsaved = true)
 	hud.build_requested.connect(func() -> void: build_panel.toggle())
 	var vue := get_node_or_null("VueSol")
@@ -167,7 +175,7 @@ func _game_title() -> String:
 ## Sections de la sauvegarde : uniquement ce que le joueur a créé ou changé.
 func save_sections() -> Dictionary:
 	return {"terrain": world.to_dict(), "transport": transport.to_dict(), "batiments": buildings.to_dict(),
-		"zones": zones.to_dict(), "blocs": blocks.to_dict(), "ambiance": ambiance.to_dict(),
+		"zones": zones.to_dict(), "blocs": blocks.to_dict(), "plans": plans.to_dict(), "ambiance": ambiance.to_dict(),
 		"creations": Creations.to_dict(Creations.used_by(buildings)),
 		"personnage": ($VueSol as VueSol).to_dict(), "habitants": population.to_dict()}
 
@@ -220,6 +228,7 @@ func load_game(slot := "") -> bool:
 	zones.from_dict(sec.get("zones", {}))
 	population.from_dict(sec.get("habitants", {}))
 	blocks.from_dict(sec.get("blocs", {}))
+	plans.from_dict(sec.get("plans", {}))
 	ambiance.from_dict(sec.get("ambiance", {}))
 	($VueSol as VueSol).from_dict(sec.get("personnage", {}))
 	build_panel.set_rules(buildings.require_access, buildings.unlimited_money)
@@ -353,6 +362,46 @@ func _autosave(delta: float) -> void:
 	_unsaved = keep != ""
 
 
+## Murs et étages : outils, étage actif, copie d'étage, toit.
+func _setup_plans() -> void:
+	plans = PlanEditor.new()
+	plans.name = "Plans"
+	plans.world_path = NodePath("../Terrain")
+	plans.camera_path = NodePath("../CameraRig/Camera3D")
+	plans.buildings_path = NodePath("../Batiments")
+	plans.blocks_path = NodePath("../Blocs")
+	add_child(plans)
+	# Ni route ni bâtiment dans un bâtiment en murs fins.
+	buildings.extra_blocker = func(c: Vector2i) -> bool: return blocks.columns.has(c) or plans.cells.has(c)
+	plans.info_changed.connect(func(t: String) -> void: hud.set_tool_info(t))
+	plans.message.connect(func(t: String) -> void: hud.show_message(t))
+	plans.level_changed.connect(func(t: String) -> void: build_panel.set_level_label(t))
+	build_panel.plan_tool_chosen.connect(func(t: int) -> void:
+		_select_building_tool()
+		plans.set_material(blocks.material)
+		plans.set_tint(blocks.tint)
+		plans.set_tool(t))
+	build_panel.plan_opening_chosen.connect(func(k: String) -> void:
+		plans.set_opening(k)
+		if plans.tool != PlanEditor.Tool.OPENING:
+			_select_building_tool()
+			plans.set_tool(PlanEditor.Tool.OPENING))
+	build_panel.plan_level_step.connect(func(d: int) -> void: plans.step_level(d))
+	build_panel.plan_cutaway_toggled.connect(func(on: bool) -> void: plans.set_cutaway(on))
+	build_panel.plan_copy_level.connect(func(n: int) -> void:
+		if plans.active_id() == "":
+			hud.show_message("Vise d'abord un bâtiment avec un outil Murs et étages.")
+			return
+		if plans.copy_level_up(plans.active_id(), plans.level, n) > 0:
+			hud.show_message("%s recopié sur %d étage%s." % [PlanEditor.level_name(plans.level), n, "s" if n > 1 else ""])
+			plans.step_level(n))
+	build_panel.plan_roof.connect(func(kind: String) -> void:
+		if plans.active_id() == "":
+			hud.show_message("Vise d'abord un bâtiment avec un outil Murs et étages.")
+			return
+		plans.add_roof(plans.active_id(), kind))
+
+
 ## Un outil de construction prend la main : on range ceux du terrain et des voies.
 func _select_building_tool(from_transit := false) -> void:
 	world.set_tool(TerrainWorld.Tool.INSPECT)
@@ -365,6 +414,7 @@ func _select_building_tool(from_transit := false) -> void:
 	buildings.set_inactive()
 	zones.set_inactive()
 	blocks.set_inactive()
+	plans.set_inactive()
 	hud.select_tool_silently(0)
 
 
@@ -395,6 +445,7 @@ func _on_tool_selected(t: int) -> void:
 	buildings.set_inactive()
 	zones.set_inactive()
 	blocks.set_inactive()
+	plans.set_inactive()
 	build_panel.clear_selection()
 	if t == TerreHud.LANDSCAPE_TOOL:
 		transport.set_inactive()
@@ -426,6 +477,7 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 	buildings.clear()
 	zones.clear()
 	blocks.clear()
+	plans.clear()
 	GameStart.lat = lat
 	GameStart.lon = lon
 	# Nouvelle région : nouvelle partie (load_game() remet son identifiant après).
@@ -471,7 +523,7 @@ func _process(delta: float) -> void:
 		build_panel.set_money("Caisse : illimitée" if buildings.unlimited_money else "Caisse : " + BuildingSystem.format_money(buildings.money))
 		build_panel.set_summary(buildings.summary())
 		build_panel.set_zone_info(zones.summary())
-		build_panel.set_block_info(blocks.summary())
+		build_panel.set_block_info(plans.summary() if build_panel.block_mode() == "plans" else blocks.summary())
 		_stats_timer -= 0.3
 		if _stats_timer <= 0.0:
 			_stats_timer = 1.0

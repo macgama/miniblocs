@@ -58,7 +58,13 @@ Tout est sauvegardé avec la partie.
 
 ### Mer et côtes
 
-La mer a une **houle** douce (la surface monte et descend), un **ressac** : des bandes d'écume qui roulent vers le rivage sur une bande de 4 m, et des **plages de sable** là où la terre basse (moins de 2,5 m) et peu pentue touche la mer. Les falaises et les rochers restent tels quels. Les marées ne sont pas encore faites.
+La mer a une **houle** douce (la surface monte et descend), un **ressac** : des bandes d'écume qui roulent vers le rivage sur une bande de 4 m, et des **plages de sable** là où la terre basse (moins de 2,5 m) et peu pentue touche la mer. Les falaises et les rochers restent tels quels.
+
+**Marées** : la mer monte et descend avec la vraie Lune, deux fois par jour (pleine mer environ toutes les 12 h 25), plus fort à la pleine et à la nouvelle lune (vives-eaux). Le marnage dépend du lieu : presque rien en Méditerranée, jusqu'à 6 m en Manche. À marée basse, l'estran se découvre (sable, cuvettes qui restent en eau) et l'écume suit le bord de l'eau. Les ponts sur la mer passent au-dessus des plus hautes mers et les bateaux flottent avec la marée. Le niveau actuel s'affiche dans la barre d'état (« Marée : +1,2 m, montante ») ; pour voir la marée bouger, accélère le temps (Maj+T).
+
+| Marée basse | Marée haute |
+| --- | --- |
+| ![Marée basse à Saint-Malo](docs/apercu-maree-basse.png) | ![Marée haute à Saint-Malo](docs/apercu-maree-haute.png) |
 
 ### Rivières, ruisseaux et lacs
 
@@ -91,7 +97,7 @@ Dans le mode Terre, la barre du bas propose **5 Route**, **6 Rail**, **7 Chemin*
 - **Aperçu** vert (possible) ou rouge avec la raison : pente trop forte, virage trop serré, chevauchement, croisement à mauvaise hauteur…
 - **Relief** : la voie monte et descend avec le terrain dans la limite de sa pente. Le jeu fait la plate-forme, des **talus** en pente douce (1 pour 1,5) jusqu'au terrain naturel, les **ponts** (creux, mer) et les **tunnels** (collines).
 - **Carrefours sans superposition** : clique sur une voie existante pour t'y raccrocher (carrefour en T) ou croise-la : le carrefour se crée tout seul, les voies s'arrêtent à son bord et un plateau les relie. Une voie qui en recouvre une autre sans s'y raccorder est refusée. Route et rail (ou chemin) se croisent par un passage à niveau.
-- **Véhicules** : ils viennent d'un **catalogue de 133 modèles** (voir plus bas), tirés au hasard parmi ceux qui peuvent rouler sur chaque voie : tramways sur les voies de tram, TGV sur les LGV, vélos et piétons sur les chemins, péniches sur les canaux, paquebots dans les chenaux. Bouton **Circulation** pour les masquer, menu **Véhicules ▾** pour choisir l'**époque** et la **région** de ce qui circule (par exemple : XIXe – 1945, Amériques).
+- **Véhicules** : ils viennent d'un **catalogue de 139 modèles** (voir plus bas), tirés au hasard parmi ceux qui peuvent rouler sur chaque voie : tramways sur les voies de tram, TGV sur les LGV, vélos et piétons sur les chemins, péniches sur les canaux, paquebots dans les chenaux. Bouton **Circulation** pour les masquer, menu **Véhicules ▾** pour choisir l'**époque** et la **région** de ce qui circule (par exemple : XIXe – 1945, Amériques).
 - **Sauver / Charger** gardent le réseau avec le terrain.
 
 ![Pont et talus au-dessus d'une vallée](docs/apercu-transport-pont.png)
@@ -128,6 +134,23 @@ Bouton **Lignes (L)** (ou touche **L**) : le panneau des transports publics.
 
 Tout est gardé par **Sauver / Charger**.
 
+### Métro souterrain
+
+![Tracé bleu d'une ligne de métro et bouche de station](docs/apercu-metro.png)
+
+Dans l'outil **Rail**, choisis la voie **Métro** : elle est creusée à **14 m sous le sol** (tout en tunnel, sans terrassement en surface) et son tracé apparaît en **pointillés bleus** sur le sol. Les rues et les bâtiments passent au-dessus sans carrefour. Dans le panneau **Lignes**, pose des **stations de métro** sur la voie (quais souterrains de 80 m, bouche d'entrée en surface) et relie-les par une ligne : métro des débuts (1900), métro sur pneus, métro contemporain ou métro automatique.
+
+### Montagne : crémaillère et viaducs
+
+![Viaduc ferroviaire en pierre à arches au-dessus d'une vallée](docs/apercu-viaduc.png)
+
+- **Chemin de fer à crémaillère** (outil **Rail**) : il monte jusqu'à **25 %** de pente, là où une ligne classique s'arrête à 2,5 %. Un rail denté court au milieu de la voie. Trois trains : locomotive à vapeur de 1891, rame électrique rouge des années 50, rame panoramique moderne. Une gare posée sur la crémaillère n'accueille que ces trains.
+- **Viaducs** : quand une voie ferrée franchit une vallée, le pont est découpé en travées égales. Lignes classiques, tram et crémaillère ont des **piles en pierre avec fruit et des arches en plein cintre** (travées de 8 à 18 m selon la hauteur) ; la LGV a de grandes travées (jusqu’à 40 m) sur piles de béton. Les routes gardent leurs piles de béton.
+
+### Itinéraires des habitants
+
+Le jeu sait calculer le meilleur trajet d'un point à un autre : marche jusqu'à une station (800 m au plus), une ou plusieurs lignes de bus, tram, métro, train, bateau ou avion (correspondances à pied jusqu'à 250 m), puis marche jusqu'à l'arrivée. Il compte la vitesse des véhicules et des voies, l'attente moyenne (plus il y a de véhicules sur une ligne, moins on attend) et l'arrêt en station, et garde la marche seule quand elle est plus rapide. Les lignes de fret ne prennent pas de voyageurs. Chaque ligne affiche son **nombre de voyageurs** dans le panneau. Ce sont les habitants simulés qui s'en serviront pour aller à l'école, au travail ou à leurs loisirs.
+
 ### Fret : marchandises par la route, le rail et l'eau
 
 - **Dépôt de marchandises** (panneau **Lignes**) : entrepôt, quai de chargement et conteneurs au bord d'une route. Une ligne entre deux dépôts fait rouler des **camions** (camionnettes, semi-remorques, citernes, grumiers, porte-conteneurs… ou charrettes pour les époques anciennes).
@@ -146,7 +169,7 @@ Le panneau **Lignes (L)** propose aussi le **Parking** : 26 places en épi droit
 
 ![Voitures, bus, deux-roues et attelages du monde entier](docs/apercu-vehicules.png)
 
-133 modèles low-poly fabriqués en code, à l'échelle réelle, avec leur vitesse et leur nombre de places. Ils utilisent les **époques et régions de la bible** des bâtiments (Antiquité → futuriste, Europe, Amériques, Afrique, Moyen-Orient, Asie de l'Est, Asie du Sud…) :
+139 modèles low-poly fabriqués en code, à l'échelle réelle, avec leur vitesse et leur nombre de places. Ils utilisent les **époques et régions de la bible** des bâtiments (Antiquité → futuriste, Europe, Amériques, Afrique, Moyen-Orient, Asie de l'Est, Asie du Sud…) :
 
 | Catégorie | Exemples |
 | --- | --- |
@@ -327,6 +350,7 @@ Détails et limites : [docs/ambiance.md](docs/ambiance.md).
 | `scripts/transport/transport_view.gd` | Modèles low-poly des voies, ponts et tunnels |
 | `scripts/transport/traffic.gd` | Véhicules qui circulent (modèles tirés du catalogue, filtre époque / région), files d'attente, freinage, passage des carrefours |
 | `scripts/transport/junction_control.gd` | Régime des carrefours (feux et leurs phases, stop, cédez-le-passage, priorité à droite), signalisation |
+| `scripts/transport/transit_planner.gd` | Itinéraires des habitants : marche, lignes, correspondances, temps estimés, voyageurs par ligne |
 | `scripts/transport/station_system.gd` | Stations (arrêts, gares, ports, héliports, aérodromes, aéroports), lignes, trajets des avions, sauvegarde |
 | `scripts/transport/station_panel.gd` | Panneau « Transports publics » (touche L) |
 | `scripts/transport/vehicle_catalog.gd` | Catalogue des 133 véhicules : catégories, époques, régions, chiffres, modèles low-poly |

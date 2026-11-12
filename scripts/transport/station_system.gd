@@ -30,7 +30,9 @@ const TYPES := {
 		"desc": "Abri et poteau au bord d'une route."},
 	"arret_tram": {"name": "Arrêt de tram", "mode": RAIL, "kind": "tram", "classes": ["tram"], "len": 36.0,
 		"desc": "Deux quais bas de part et d'autre des voies de tram."},
-	"gare": {"name": "Gare", "mode": RAIL, "kind": "train", "classes": ["train", "lgv"], "len": 160.0,
+	"station_metro": {"name": "Station de métro", "mode": RAIL, "kind": "metro", "classes": ["metro"], "len": 80.0,
+		"desc": "Quais souterrains et bouche de métro en surface, sur une voie de métro."},
+	"gare": {"name": "Gare", "mode": RAIL, "kind": "train", "classes": ["train", "lgv", "cremaillere"], "len": 160.0,
 		"desc": "Quais, marquise et bâtiment voyageurs, sur une ligne classique ou une LGV."},
 	"port": {"name": "Port", "mode": WATER, "kind": "bateau", "classes": [], "len": 60.0,
 		"desc": "Jetée, grue et gare maritime, sur une voie d'eau."},
@@ -45,8 +47,8 @@ const TYPES := {
 	"aeroport": {"name": "Aéroport", "mode": AIR, "kind": "avion", "len": 1000.0, "width": 45.0, "flat": 20.0,
 		"desc": "Piste de 1 000 × 45 m, aire de stationnement, aérogare et tour de contrôle."},
 }
-const ORDER := ["arret_bus", "arret_tram", "gare", "port", "heliport", "aerodrome", "aeroport", "depot", "parking"]
-const KIND_NAMES := {"bus": "Bus", "tram": "Tramway", "train": "Train", "bateau": "Bateau", "avion": "Avion", "parking": "Parking", "camion": "Camions"}
+const ORDER := ["arret_bus", "arret_tram", "station_metro", "gare", "port", "heliport", "aerodrome", "aeroport", "depot", "parking"]
+const KIND_NAMES := {"bus": "Bus", "tram": "Tramway", "metro": "Métro", "train": "Train", "bateau": "Bateau", "avion": "Avion", "parking": "Parking", "camion": "Camions"}
 ## Noms des lignes de marchandises.
 const FREIGHT_NAMES := {"train": "Fret ferroviaire", "bateau": "Fret par bateau", "camion": "Camions"}
 ## Genres de ligne qui peuvent transporter des marchandises.
@@ -71,6 +73,8 @@ var camera: Camera3D
 var stations: Dictionary = {}
 var lines: Dictionary = {}
 var next_id := 1
+## Itinéraires des habitants (marche + lignes) : planner.plan(a, b).
+var planner: TransitPlanner
 
 var tool: Tool = Tool.NONE
 var place_type := "arret_bus"
@@ -99,6 +103,7 @@ func setup(t: TransportSystem) -> void:
 	network.changed.connect(_on_network_changed)
 	traffic.restarted.connect(respawn_all)
 	traffic.line_arrived.connect(_on_line_arrived)
+	planner = TransitPlanner.new(self)
 	_material = StandardMaterial3D.new()
 	_material.vertex_color_use_as_albedo = true
 	_material.vertex_color_is_srgb = true
@@ -611,7 +616,8 @@ func models_for(kind: String, stops: Array = [], fret := false) -> Array[String]
 			if st.type == "heliport":
 				heli_only = true
 			if st.type == "gare":
-				rail_cls = _class_at({"node": int(st.node), "edge": -1})
+				if _class_at({"node": int(st.node), "edge": -1}) == "cremaillere":
+					rail_cls = "cremaillere"
 	for id in VehicleCatalog.TYPES:
 		var t := VehicleCatalog.get_type(id)
 		if t.get("hidden", false):
@@ -628,8 +634,13 @@ func models_for(kind: String, stops: Array = [], fret := false) -> Array[String]
 			"tram":
 				if String(t.get("rail", "")) != "tram":
 					continue
+			"metro":
+				if String(t.get("rail", "")) != "metro":
+					continue
 			"train":
-				if t.cat != "train":
+				# Les gares d'une ligne de montagne n'accueillent que les trains à crémaillère.
+				var rack := rail_cls == "cremaillere"
+				if t.cat != "train" or String(t.get("rail", "")) == "metro" or (String(t.get("rail", "")) == "cremaillere") != rack:
 					continue
 			"bateau":
 				if t.cat != "bateau":
@@ -645,7 +656,7 @@ func models_for(kind: String, stops: Array = [], fret := false) -> Array[String]
 
 
 func _default_model(kind: String, models: Array[String]) -> String:
-	var prefer := {"bus": "bus_urbain", "tram": "tram_moderne", "train": "regional", "bateau": "bateau_bus", "avion": "court_courrier", "camion": "semi"}
+	var prefer := {"bus": "bus_urbain", "tram": "tram_moderne", "metro": "metro", "train": "regional", "bateau": "bateau_bus", "avion": "court_courrier", "camion": "semi"}
 	if not models.is_empty() and VehicleCatalog.is_freight(models[0]) and kind != "camion":
 		prefer = {"train": "electrique_fret", "bateau": "peniche"}
 	var era := traffic.era_filter
@@ -754,6 +765,8 @@ func line_summary(id: int) -> String:
 	var txt := "%s : %s" % [l.name, " ↔ ".join(names)]
 	if bool(l.get("fret", false)):
 		txt += "  ·  %s transportées" % format_tonnes(float(l.get("tonnes", 0.0)))
+	elif int(l.get("passengers", 0)) > 0:
+		txt += "  ·  %d voyageur%s" % [int(l.passengers), "s" if int(l.passengers) > 1 else ""]
 	return txt
 
 
@@ -787,6 +800,8 @@ func _rects(type_id: String, hw := 0.0) -> Array:
 			return [[-half, half, hw + 0.2, hw + 1.0 + SPOT_D * 2.0 + AISLE + 0.5]]
 		"depot":
 			return [[-half, half, hw + 0.2, hw + 26.0]]
+		"station_metro":
+			return [[-3.0, 3.0, hw + 1.5, hw + 6.0]]
 		"gare":
 			return [[-half, half, hw + 0.2, hw + 32.0], [-half, half, -hw - 6.4, -hw - 0.2]]
 	return []
@@ -883,6 +898,7 @@ func _refresh_station(id: int) -> void:
 	mi.material_override = _material
 	root.add_child(mi)
 	var t := get_type(s.type)
+	var label_dy := 0.0
 	if int(t.mode) == AIR:
 		mi.mesh = _air_mesh(s.type)
 		# Au-dessus des cases du terrain (évite le scintillement).
@@ -890,6 +906,16 @@ func _refresh_station(id: int) -> void:
 	else:
 		var hw := network.node_half_width(int(s.node))
 		mi.mesh = _network_mesh(s.type, hw)
+		if s.type == "station_metro":
+			# Bouche de métro au niveau du sol, au-dessus des quais.
+			var gy := transport.ground_height(s.pos.x, s.pos.z)
+			var dy := (0.0 if is_nan(gy) else gy) - float(s.pos.y)
+			var ent := MeshInstance3D.new()
+			ent.mesh = _cached("metro_entree", func() -> ArrayMesh: return StationSystem.build_metro_entrance())
+			ent.material_override = _material
+			ent.position = Vector3(hw + 3.75, dy, 0)
+			root.add_child(ent)
+			label_dy = dy
 		if s.type == "gare":
 			var gid := _gare_building()
 			if gid != "":
@@ -906,7 +932,7 @@ func _refresh_station(id: int) -> void:
 	label.font_size = 64
 	label.pixel_size = 0.04 if int(t.mode) != AIR else 0.12
 	label.outline_size = 12
-	label.position = Vector3(0, 9.0 if int(t.mode) != AIR else 40.0, 0)
+	label.position = Vector3(0, (9.0 if int(t.mode) != AIR else 40.0) + label_dy, 0)
 	label.no_depth_test = false
 	root.add_child(label)
 
@@ -949,6 +975,24 @@ static func _shelter(k: VehicleMesh, x: float, z: float, len: float, side: float
 	k.box(back, 0.35, z, 0.06, 2.0, len, Color(0.6, 0.75, 0.85))
 	k.box(x + side * 0.4, 2.55, z, 1.9, 0.12, len + 0.3, col)
 	k.box(back - side * 0.35, 0.15, z, 0.45, 0.5, len * 0.7, Color("8d6e63"))
+
+
+## Bouche de métro : escalier qui descend, garde-corps et totem « M ».
+static func build_metro_entrance() -> ArrayMesh:
+	var k := VehicleMesh.new()
+	k.box(0, -0.4, 0, 4.5, 0.45, 6.0, CONCRETE)
+	k.box(0, -0.35, 0.3, 2.4, 0.42, 4.6, Color("2b2d42"))
+	for i in 6:
+		k.box(0, -0.35 + 0.05, -1.8 + i * 0.8, 2.3, 0.04, 0.12, Color("6c757d"))
+	for side in [-1.0, 1.0]:
+		k.box(side * 1.35, 0.0, 0.3, 0.12, 1.0, 4.6, Color("3d5a80"))
+	k.box(0, 0.0, 2.7, 2.8, 1.0, 0.12, Color("3d5a80"))
+	k.box(1.9, 0.0, -2.6, 0.14, 3.0, 0.14, ROOF)
+	k.box(1.9, 3.0, -2.6, 0.18, 0.9, 0.9, Color("ffd60a"))
+	k.box(1.98, 3.15, -2.6, 0.04, 0.6, 0.12, Color("1b1b1b"))
+	k.box(1.98, 3.6, -2.75, 0.04, 0.15, 0.3, Color("1b1b1b"))
+	k.box(1.98, 3.6, -2.45, 0.04, 0.15, 0.3, Color("1b1b1b"))
+	return k.to_mesh()
 
 
 ## Modèle d'une station du réseau (repère : voie le long de Z, côté droit en +X).
@@ -1003,6 +1047,11 @@ static func build_network_mesh(type_id: String, hw: float) -> ArrayMesh:
 			k.box(hw + 0.9, 2.4, -len / 2.0 + 1.0, 0.08, 0.6, 0.6, Color("ffb703"))
 			for i in 5:
 				k.box(hw - 1.6, 0.02, -len / 2.0 + 1.5 + i * 2.6, 3.0, 0.03, 0.3, Color("f6c90e"))
+		"station_metro":
+			for side in [-1.0, 1.0]:
+				k.box(side * (hw + 2.3), 0.0, 0, 4.2, 0.9, len, CONCRETE)
+				k.box(side * (hw + 0.45), 0.9, 0, 0.3, 0.01, len, WHITE)
+				k.box(side * (hw + 4.6), 0.0, 0, 0.3, 5.0, len, Color("e9ecef"))
 		"arret_tram":
 			for side in [-1.0, 1.0]:
 				k.box(side * (hw + 1.8), 0.0, 0, 3.2, 0.32, len, CONCRETE)
@@ -1109,7 +1158,8 @@ func to_dict() -> Dictionary:
 	for lid in lines:
 		var l: Dictionary = lines[lid]
 		ls.append({"id": lid, "name": l.name, "kind": l.kind, "stops": l.stops, "model": l.model, "count": l.count, "color": (l.color as Color).to_html(false),
-			"fret": bool(l.get("fret", false)), "tonnes": snappedf(float(l.get("tonnes", 0.0)), 0.1)})
+			"fret": bool(l.get("fret", false)), "tonnes": snappedf(float(l.get("tonnes", 0.0)), 0.1),
+			"passengers": int(l.get("passengers", 0))})
 	return {"next_id": next_id, "stations": ss, "lines": ls}
 
 
@@ -1141,7 +1191,7 @@ func from_dict(data: Dictionary) -> void:
 			continue
 		lines[id] = {"id": id, "name": String(l.name), "kind": String(l.kind), "stops": stops, "model": String(l.model),
 			"fret": bool(l.get("fret", String(l.kind) == "camion")), "tonnes": float(l.get("tonnes", 0.0)),
-			"count": int(l.count), "color": Color(String(l.get("color", "e63946")))}
+			"passengers": int(l.get("passengers", 0)), "count": int(l.count), "color": Color(String(l.get("color", "e63946")))}
 		next_id = maxi(next_id, id + 1)
 	next_id = maxi(next_id, int(data.get("next_id", 1)))
 	respawn_all()

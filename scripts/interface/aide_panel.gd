@@ -14,7 +14,7 @@ const SECTIONS := [
 	["Outils (barre du bas)", [
 		["1", "observer : survoler une case pour voir son altitude et son biome (et le nom de la rivière)"],
 		["2 · 3 · 4", "aplanir, monter de 1 m, creuser de 1 m (clic gauche glissé)"],
-		["5 · 6 · 7 · 8", "route, rail, chemin, voie d'eau : un clic par point"],
+		["5 · 6 · 7 · 8", "route, rail (tram, train, LGV, crémaillère, métro), chemin, voie d'eau : un clic par point"],
 		["C", "voie en courbe (pendant le tracé)"],
 		["Maj", "angles par pas de 15° (pendant le tracé)"],
 		["9", "démolir une voie"],
@@ -32,7 +32,7 @@ const SECTIONS := [
 		["Filtres", "région, époque et recherche par nom dans les listes de bâtiments"],
 	]],
 	["Transports publics", [
-		["L", "panneau Lignes : stations, gares, ports, aéroports, dépôts de marchandises, parkings et lignes (case Fret pour les trains et les bateaux)"],
+		["L", "panneau Lignes : arrêts, stations de métro, gares, ports, aéroports, dépôts de marchandises, parkings et lignes (case Fret pour les trains et les bateaux)"],
 	]],
 	["Habitants", [
 		["H", "panneau Habitants : la ville en chiffres, la liste des habitants, le budget de la ville"],
@@ -42,7 +42,7 @@ const SECTIONS := [
 	]],
 	["Temps et vue", [
 		["T", "mettre le temps en pause / reprendre"],
-		["Maj + T", "vitesse suivante du temps"],
+		["Maj + T", "vitesse suivante du temps (la marée suit l'heure et la Lune : voir la barre d'état)"],
 		["V", "vue suivante : dessus, 3e personne, 1re personne"],
 		["ZQSD, Maj, Espace", "marcher, courir, sauter (vue au sol)"],
 		["Échap", "libérer la souris (vue au sol)"],

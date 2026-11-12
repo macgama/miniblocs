@@ -3,8 +3,9 @@ extends Node3D
 ## (texture du sol + plantes du biome), puis une rangée de champs.
 ## Ouvre scenes/vitrine_plantes.tscn et appuie sur F6.
 ## Molette : zoom. Clic gauche glissé : tourner. Espace : arrêter / relancer la rotation.
-## Touches 1 à 3 : vues (ensemble, forêts, champs).
-## Capture : godot --path . res://scenes/vitrine_plantes.tscn -- --screenshot plantes.png [--vue 2]
+## Touches 1 à 4 : vues (ensemble, forêts, champs, âges des arbres).
+## M / Maj+M : mois suivant / précédent. N : neige.
+## Capture : godot --path . res://scenes/vitrine_plantes.tscn -- --screenshot plantes.png [--vue 2] [--mois 10] [--neige]
 
 const TAILLE := 14.0 # côté d'une parcelle de biome (m)
 const CHAMP := 10.0
@@ -36,6 +37,15 @@ var _sol_cols := PackedColorArray()
 var _sol_uvs := PackedVector2Array()
 var _groupes := {} # espèce -> [Array[Transform3D], PackedColorArray]
 var _rng := RandomNumberGenerator.new()
+var _mois := 6
+var _neige := false
+var _sol_mat: ShaderMaterial
+var _texte: Label
+## Âges montrés dans la rangée des étapes de vie (part de l'âge adulte).
+const AGES := [0.04, 0.5, 2.0, -1.0]
+const ARBRES_AGES := ["chene", "bouleau", "sapin", "palmier"]
+const MOIS := ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août",
+	"septembre", "octobre", "novembre", "décembre"]
 
 
 func _ready() -> void:
@@ -55,7 +65,7 @@ func _ready() -> void:
 		var cu: Array = Sols.CULTURES[CHAMPS[n]]
 		var x0 := n * (CHAMP + 1.0)
 		var tourne := n % 2 == 1
-		_parcelle(x0, zc, CHAMP, CHAMP, cu[1], Color("d2c06a"), tourne)
+		_parcelle(x0, zc, CHAMP, CHAMP, Sols.CHAMP + CHAMPS[n], Color("d2c06a"), tourne)
 		if cu[2] == "":
 			continue
 		var e := Plantes.id(cu[2])
@@ -69,7 +79,17 @@ func _ready() -> void:
 				var p := Vector3(x0 + i + 0.5, 0, zc + j + 0.5)
 				if vigne:
 					p += Vector3(-0.5, 0, 0) if tourne else Vector3(0, 0, -0.5)
-				_ajoute(e, p, PI / 2.0 if tourne else 0.0, _rng.randf_range(0.9, 1.1))
+				_ajoute(e, p, PI / 2.0 if tourne else 0.0, _rng.randf_range(0.9, 1.1), CHAMPS[n])
+	# Étapes de vie : jeune pousse, jeune arbre, adulte, arbre mort.
+	var za := zc + CHAMP + 40.0
+	_parcelle(0.0, za - 6.0, ARBRES_AGES.size() * 30.0, 12.0, 0, Color("5d9e47"), false)
+	for a in ARBRES_AGES.size():
+		var e := Plantes.id(ARBRES_AGES[a])
+		for n in AGES.size():
+			var vie: Array = Plantes.VIE[ARBRES_AGES[a]]
+			var age: float = vie[0] * AGES[n] if AGES[n] >= 0.0 else vie[1] + 1.0
+			var et: Array = Plantes.etape(e, age)
+			_ajoute(et[0], Vector3(5.0 + a * 30.0 + n * 7.0, 0, za), 0.4 * a, et[1])
 	_construit()
 	var largeur := colonnes * (TAILLE + 2.0)
 	_centre = Vector3(largeur / 2.0, 2.0, zc / 2.0 + 4.0)
@@ -78,6 +98,17 @@ func _ready() -> void:
 	_cam.far = 2000
 	add_child(_cam)
 	var args := OS.get_cmdline_user_args()
+	_texte = Label.new()
+	_texte.position = Vector2(16, 12)
+	_texte.add_theme_font_size_override("font_size", 22)
+	_texte.add_theme_color_override("font_outline_color", Color.BLACK)
+	_texte.add_theme_constant_override("outline_size", 6)
+	add_child(_texte)
+	var im := args.find("--mois")
+	if im >= 0 and im + 1 < args.size():
+		_mois = clampi(int(args[im + 1]), 1, 12)
+	_neige = args.has("--neige")
+	_saison()
 	var iv := args.find("--vue")
 	if iv >= 0 and iv + 1 < args.size():
 		_vue(int(args[iv + 1]))
@@ -94,19 +125,36 @@ func _vue(n: int) -> void:
 		2:
 			_yaw = 15.0; _pitch = 18.0; _dist = 42.0; _centre = Vector3(24.0, 4.0, 7.0)
 		3:
-			_yaw = 0.0; _pitch = 50.0; _dist = 42.0; _centre = Vector3(49.0, 0.0, 37.0)
+			_yaw = 0.0; _pitch = 55.0; _dist = 85.0; _centre = Vector3(49.0, 0.0, 39.0)
+		4:
+			_yaw = 0.0; _pitch = 9.0; _dist = 78.0; _centre = Vector3(58.0, 6.0, 84.0)
 
 
-func _ajoute(e: int, p: Vector3, angle: float, sc: float) -> void:
+## Applique le mois (et la neige) aux plantes et au sol, comme en jeu à 48° N.
+func _saison() -> void:
+	var jour := (_mois - 0.5) * 30.44
+	var s := Plantes.saison(jour, 48.0, Plantes.Climat.TEMPERE)
+	var cu := Sols.etat_cultures(jour, 48.0)
+	var n := 0.85 if _neige else 0.0
+	Plantes.applique_saison(s, n, cu)
+	_sol_mat.set_shader_parameter("couche_culture", cu.couche)
+	_sol_mat.set_shader_parameter("maturite_culture", cu.maturite)
+	_sol_mat.set_shader_parameter("herbe_seche", s.herbe_seche)
+	_sol_mat.set_shader_parameter("neige", n)
+	_texte.text = "%s%s   (M : mois, N : neige, 1-4 : vues)" % [MOIS[_mois - 1], " – neige" if _neige else ""]
+
+
+func _ajoute(e: int, p: Vector3, angle: float, sc: float, culture := -1) -> void:
 	if e < 0:
 		return
-	if not _groupes.has(e):
+	var g := e + 1000 * (culture + 1)
+	if not _groupes.has(g):
 		var l: Array[Transform3D] = []
-		_groupes[e] = [l, PackedColorArray()]
-	_groupes[e][0].append(Transform3D(Basis(Vector3.UP, angle).scaled(Vector3.ONE * sc), p))
+		_groupes[g] = [l, PackedColorArray()]
+	_groupes[g][0].append(Transform3D(Basis(Vector3.UP, angle).scaled(Vector3.ONE * sc), p))
 	var s := _rng.randf_range(0.9, 1.1)
 	var dh := _rng.randf_range(-0.05, 0.05)
-	_groupes[e][1].append(Color(s * (1.0 + dh), s, s * (1.0 - dh)))
+	_groupes[g][1].append(Color(s * (1.0 + dh), s, s * (1.0 - dh)))
 
 
 func _parcelle(x0: float, z0: float, lx: float, lz: float, couche: int, couleur: Color, tourne: bool) -> void:
@@ -141,13 +189,15 @@ func _construit() -> void:
 	mat.set_shader_parameter("premiere_couleur", Sols.PREMIERE_COULEUR)
 	mat.set_shader_parameter("grid_strength", 0.12)
 	sol.material_override = mat
+	_sol_mat = mat
 	add_child(sol)
-	for e: int in _groupes:
+	for g: int in _groupes:
+		var e := g % 1000
 		var mesh := Plantes.mesh(e)
 		if mesh == null:
 			continue
-		var liste: Array[Transform3D] = _groupes[e][0]
-		var cols: PackedColorArray = _groupes[e][1]
+		var liste: Array[Transform3D] = _groupes[g][0]
+		var cols: PackedColorArray = _groupes[g][1]
 		var mm := MultiMesh.new()
 		mm.transform_format = MultiMesh.TRANSFORM_3D
 		mm.use_custom_data = true
@@ -161,6 +211,8 @@ func _construit() -> void:
 		inst.multimesh = mm
 		inst.material_override = Plantes.materiau()
 		add_child(inst)
+		if g >= 1000:
+			inst.set_instance_shader_parameter("culture", g / 1000 - 1)
 
 
 func _decor() -> void:
@@ -226,7 +278,13 @@ func _unhandled_input(e: InputEvent) -> void:
 		var k := (e as InputEventKey).keycode
 		if k == KEY_SPACE:
 			_tourne = not _tourne
-		elif k >= KEY_1 and k <= KEY_3:
+		elif k == KEY_M:
+			_mois = posmod(_mois - 1 + (-1 if (e as InputEventKey).shift_pressed else 1), 12) + 1
+			_saison()
+		elif k == KEY_N:
+			_neige = not _neige
+			_saison()
+		elif k >= KEY_1 and k <= KEY_4:
 			_tourne = false
 			_vue(k - KEY_0)
 			_place_camera()

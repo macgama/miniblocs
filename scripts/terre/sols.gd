@@ -13,11 +13,18 @@ const DOSSIER := "res://assets/textures/sol/"
 ## dans tools/textures/textures_terrain.py).
 const COUCHES: Array[String] = ["herbe", "sous_bois", "broussailles", "sable", "roche", "neige",
 	"glace", "vase", "toundra", "galets", "falaise",
-	"labour", "ble", "colza", "mais", "vigne", "tournesol", "legumes", "riz", "pre_fauche"]
+	"labour", "ble", "colza", "mais", "vigne", "tournesol", "legumes", "riz", "pre_fauche",
+	"chaume", "levee"]
 ## Les couches à partir de celle-ci sont en vraie couleur (champs).
 const PREMIERE_COULEUR := 11
 const HERBE := 0
 const FALAISE := 10
+const LABOUR := 11
+const CHAUME := 20
+const LEVEE := 21
+## Couche « culture n » envoyée au terrain : CHAMP + n. Le shader remplace par la
+## couche du moment (labour, levée, culture, chaume : voir etat_cultures()).
+const CHAMP := 64
 
 ## Texture du dessus par type de case (ordre de TerrainWorld.Kind).
 ## -1 = champ : la texture dépend de la parcelle (voir culture()).
@@ -84,7 +91,8 @@ static func culture(c: Vector2i, climat: int) -> int:
 	return 0
 
 
-## Couche de texture d'un champ (+ 32 si rangs tournés) et culture, mémorisées
+## Couche d'un champ pour le terrain (CHAMP + culture, + 128 si rangs tournés)
+## et culture, mémorisées
 ## par carré de 16 m (les bords de parcelles tombent toujours sur ce pas).
 ## memo : Dictionary propre à un calcul (pas partagé entre fils).
 static func champ(c: Vector2i, climat: int, memo: Dictionary) -> Vector2i:
@@ -92,7 +100,7 @@ static func champ(c: Vector2i, climat: int, memo: Dictionary) -> Vector2i:
 	var r: Variant = memo.get(cle)
 	if r == null:
 		var cu := culture(c, climat)
-		r = Vector2i(CULTURES[cu][1] + (32 if rangs_tournes(c) else 0), cu)
+		r = Vector2i(CHAMP + cu + (128 if rangs_tournes(c) else 0), cu)
 		memo[cle] = r
 	return r
 
@@ -105,6 +113,81 @@ static func rangs_tournes(c: Vector2i) -> bool:
 	if 1 + m % 3 == 1:
 		return (_hash(p) >> 8) & 1 == 1
 	return p.w == 0
+
+
+# --- Les champs au fil de l'année ---------------------------------------------------
+# Pour chaque culture (ordre de CULTURES), mois par mois (janvier à décembre) :
+# taille des plantes (0 = rien), maturité (0 = vert, 1 = mûr : blé doré, colza
+# en fleur, maïs sec…) et sol visible (L labour, V levée, C la culture, H chaume).
+const _L := -1
+const _V := -2
+const _C := -3
+const _H := -4
+const CALENDRIER := [
+	# labour
+	[[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		[_L, _L, _L, _L, _L, _L, _L, _L, _L, _L, _L, _L]],
+	# blé d'hiver : semé en octobre, vert au printemps, doré en juillet, moissonné.
+	[[.2, .2, .3, .5, .8, 1, 1, 0, 0, 0, .1, .15], [0, 0, 0, 0, 0, .3, 1, 1, 0, 0, 0, 0],
+		[_V, _V, _C, _C, _C, _C, _C, _H, _L, _L, _V, _V]],
+	# colza : en fleur (jaune) en avril, récolté en juillet.
+	[[.3, .3, .5, .8, 1, 1, 0, 0, .1, .2, .3, .3], [0, 0, 0, 1, .5, .2, 0, 0, 0, 0, 0, 0],
+		[_V, _V, _C, _C, _C, _C, _H, _L, _V, _V, _V, _V]],
+	# maïs : semé fin avril, haut l'été, sec en octobre.
+	[[0, 0, 0, 0, .1, .4, .8, 1, 1, 1, 0, 0], [0, 0, 0, 0, 0, 0, 0, .2, .6, 1, 0, 0],
+		[_L, _L, _L, _L, _V, _C, _C, _C, _C, _C, _H, _L]],
+	# vigne
+	[[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+		[_C, _C, _C, _C, _C, _C, _C, _C, _C, _C, _C, _C]],
+	# tournesol : en fleur en juillet.
+	[[0, 0, 0, 0, .15, .5, 1, 1, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, .8, .5, 0, 0, 0],
+		[_L, _L, _L, _L, _V, _C, _C, _C, _C, _H, _L, _L]],
+	# légumes
+	[[0, 0, .2, .4, .7, 1, 1, 1, 1, .8, .3, 0], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+		[_L, _L, _V, _C, _C, _C, _C, _C, _C, _C, _V, _L]],
+	# riz : mûr en septembre.
+	[[0, 0, 0, .2, .5, .8, 1, 1, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, .4, 1, 0, 0, 0],
+		[_L, _L, _L, _V, _C, _C, _C, _C, _C, _H, _L, _L]],
+	# prairie de fauche : fauchée en juin.
+	[[.6, .6, .7, .9, 1, .3, .6, .8, .9, .9, .7, .6], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+		[_C, _C, _C, _C, _C, _C, _C, _C, _C, _C, _C, _C]],
+]
+
+
+## État des champs un jour de l'année (0 = 1er janvier) à cette latitude
+## (hémisphère sud : six mois de décalage). Pour chaque culture :
+## taille des plantes, maturité (0 vert → 1 mûr) et couche de sol visible.
+static func etat_cultures(jour: float, lat: float) -> Dictionary:
+	var j := fposmod(jour + (182.6 if lat < 0.0 else 0.0), 365.25)
+	# Mois en cours (le 15 = valeur du mois), mélangé avec le suivant.
+	var m := j / 30.4375 - 0.5
+	var m0 := posmod(floori(m), 12)
+	var m1 := (m0 + 1) % 12
+	var f := m - floorf(m)
+	var taille := PackedFloat32Array()
+	var maturite := PackedFloat32Array()
+	var couche := PackedInt32Array()
+	for n in CALENDRIER.size():
+		var cal: Array = CALENDRIER[n]
+		var t0: float = cal[0][m0]
+		var t1: float = cal[0][m1]
+		# Moisson (ou fauche) et semis vers la fin du mois : on coupe net,
+		# la pousse repart de zéro.
+		var t := lerpf(t0, t1, f)
+		if t1 == 0.0 and t0 > 0.0:
+			t = t0 * (1.0 - smoothstep(0.45, 0.55, f))
+		elif t0 == 0.0 and t1 > 0.0:
+			t = t1 * smoothstep(0.5, 1.0, f)
+		taille.append(t)
+		maturite.append(lerpf(cal[1][m0], cal[1][m1], f))
+		var s: int = cal[2][m0 if f < 0.5 else m1]
+		var cl: int = CULTURES[n][1]
+		match s:
+			_L: cl = LABOUR
+			_V: cl = LEVEE
+			_H: cl = CHAUME
+		couche.append(cl)
+	return {"taille": taille, "maturite": maturite, "couche": couche}
 
 
 static var _texture: Texture2DArray

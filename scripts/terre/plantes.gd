@@ -36,7 +36,11 @@ const ESPECES := [
 	["legumes", Cat.CULTURE, false],
 	["rocher", Cat.ROCHER, false], ["gros_rocher", Cat.ROCHER, false], ["cailloux", Cat.ROCHER, false],
 	["rocher_desert", Cat.ROCHER, false],
+	# Étapes de vie : jeunes pousses et arbres morts, par famille d'arbres.
+	["pousse_feuillu", Cat.ARBRE, false], ["pousse_conifere", Cat.ARBRE, false], ["pousse_palmier", Cat.ARBRE, false],
+	["mort_feuillu", Cat.ARBRE, false], ["mort_conifere", Cat.ARBRE, false], ["mort_palmier", Cat.ARBRE, false],
 ]
+const PALETTE_ROLES := "res://assets/modeles/plantes/palette_roles.png"
 
 ## Distance (m) au-delà de laquelle une catégorie disparaît (arbres : passent à
 ## leur version lointaine). Mesurée depuis le centre du bloc de 64 m.
@@ -254,6 +258,85 @@ static func arbre_plante(c: int, alt: float, v: float) -> int:
 	return _pioche(t[0][1], t[0][2], v)
 
 
+# --- Étapes de vie -------------------------------------------------------------------
+# Quatre étapes : jeune pousse, jeune arbre, adulte, arbre mort. Au vrai rythme :
+# [âge adulte (ans), durée de vie (ans), famille 0 feuillu / 1 conifère / 2 palmier].
+# Un arbre mort reste debout MORT_ANS ans, puis une pousse repart au même endroit.
+const VIE := {
+	"chene": [80.0, 300.0, 0], "hetre": [80.0, 250.0, 0], "bouleau": [30.0, 90.0, 0],
+	"peuplier": [25.0, 80.0, 0], "sapin": [60.0, 300.0, 1], "epicea": [60.0, 250.0, 1],
+	"meleze": [50.0, 300.0, 1], "pin": [50.0, 200.0, 1], "pin_parasol": [60.0, 200.0, 1],
+	"olivier": [40.0, 500.0, 0], "palmier": [15.0, 80.0, 2], "acacia": [20.0, 100.0, 0],
+	"baobab": [100.0, 1000.0, 0], "tropical": [50.0, 300.0, 0], "paletuvier": [20.0, 100.0, 0],
+	"saule": [20.0, 70.0, 0],
+}
+const MORT_ANS := 12.0
+## Part de l'âge adulte passée en jeune pousse.
+const POUSSE := 0.08
+enum Etape { POUSSE, JEUNE, ADULTE, MORT }
+const ETAPE_NOMS: Array[String] = ["jeune pousse", "jeune arbre", "adulte", "arbre mort"]
+const _POUSSES := ["pousse_feuillu", "pousse_conifere", "pousse_palmier"]
+const _MORTS := ["mort_feuillu", "mort_conifere", "mort_palmier"]
+
+
+## Cette espèce passe-t-elle par les 4 étapes de vie ?
+static func vivace(espece: int) -> bool:
+	return VIE.has(nom(espece))
+
+
+## Durée d'un cycle complet (de la pousse à la pousse suivante), en années.
+static func cycle(espece: int) -> float:
+	var v: Array = VIE[nom(espece)]
+	return v[1] + MORT_ANS
+
+
+## Étape d'un arbre de cet âge (années depuis la pousse, dans le cycle) :
+## [modèle à afficher (numéro d'espèce), échelle, étape].
+static func etape(espece: int, age: float) -> Array:
+	var v: Array = VIE[nom(espece)]
+	var adulte: float = v[0]
+	var vie: float = v[1]
+	var fam: int = v[2]
+	if age < adulte * POUSSE:
+		return [id(_POUSSES[fam]), 0.5 + 0.5 * age / (adulte * POUSSE), Etape.POUSSE]
+	if age < adulte:
+		return [espece, lerpf(0.12, 1.0, pow(age / adulte, 0.85)), Etape.JEUNE]
+	if age < vie:
+		return [espece, 1.0 + 0.15 * (age - adulte) / (vie - adulte), Etape.ADULTE]
+	return [id(_MORTS[fam]), 1.0, Etape.MORT]
+
+
+# --- Saisons -------------------------------------------------------------------------
+
+## Réglages des saisons pour un jour de l'année (0 = 1er janvier), à une latitude
+## et un climat donnés. Hémisphère sud : six mois de décalage.
+## feuilles : part des feuillages caducs présents (0 l'hiver) ; automne : feuilles
+## rousses ; printemps : vert tendre ; herbe_seche : herbe jaunie (hiver, ou été
+## méditerranéen) ; fleurs : floraison.
+static func saison(jour: float, lat: float, c: int) -> Dictionary:
+	var j := fposmod(jour + (182.6 if lat < 0.0 else 0.0), 365.25)
+	if c == Climat.TROPICAL:
+		return {"feuilles": 1.0, "automne": 0.0, "printemps": 0.0, "herbe_seche": 0.15, "fleurs": 1.0}
+	# Décalages (jours) : le printemps vient plus tôt au Sud, l'automne plus tard.
+	var dp := 0.0
+	var da := 0.0
+	if c == Climat.BOREAL:
+		dp = 18.0
+		da = -22.0
+	elif c == Climat.MEDITERRANEEN or c == Climat.SUBTROPICAL:
+		dp = -18.0
+		da = 12.0
+	var feuilles := smoothstep(95.0 + dp, 130.0 + dp, j) * (1.0 - smoothstep(292.0 + da, 326.0 + da, j))
+	var automne := smoothstep(255.0 + da, 292.0 + da, j)
+	var printemps := smoothstep(95.0 + dp, 118.0 + dp, j) * (1.0 - smoothstep(140.0 + dp, 170.0 + dp, j))
+	var hiver := 1.0 - smoothstep(55.0 + dp, 105.0 + dp, j) + smoothstep(305.0 + da, 345.0 + da, j)
+	var herbe := clampf(hiver, 0.0, 1.0) * 0.7
+	if c == Climat.MEDITERRANEEN or c == Climat.SUBTROPICAL:
+		herbe = maxf(herbe * 0.4, smoothstep(170.0, 200.0, j) * (1.0 - smoothstep(245.0, 280.0, j)))
+	var fleurs := smoothstep(100.0 + dp, 120.0 + dp, j) * (1.0 - smoothstep(205.0 + da * 0.5, 235.0 + da * 0.5, j))
+	return {"feuilles": feuilles, "automne": automne, "printemps": printemps, "herbe_seche": herbe, "fleurs": fleurs}
+
+
 # --- Maillages et matériau (fil principal) ------------------------------------------
 
 static var _meshes: Dictionary = {}
@@ -312,8 +395,22 @@ static func materiau() -> ShaderMaterial:
 	m.shader = preload("res://scripts/terre/plante.gdshader")
 	if ResourceLoader.exists(PALETTE):
 		m.set_shader_parameter("palette", load(PALETTE))
+	if ResourceLoader.exists(PALETTE_ROLES):
+		m.set_shader_parameter("roles", load(PALETTE_ROLES))
 	_materiaux["plantes"] = m
+	applique_saison(saison(172.0, 48.0, Climat.TEMPERE), 0.0, Sols.etat_cultures(172.0, 48.0))
 	return m
+
+
+## Règle le matériau des plantes : saison (voir saison()), neige au sol (0 à 1)
+## et état des cultures (Sols.etat_cultures).
+static func applique_saison(s: Dictionary, neige: float, cultures: Dictionary) -> void:
+	var m := materiau()
+	for cle in s:
+		m.set_shader_parameter(cle, s[cle])
+	m.set_shader_parameter("neige", neige)
+	m.set_shader_parameter("taille_culture", cultures.taille)
+	m.set_shader_parameter("maturite_culture", cultures.maturite)
 
 
 ## Coefficient du vent pour une espèce : balancement (m) en haut de la plante,

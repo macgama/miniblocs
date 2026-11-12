@@ -301,6 +301,23 @@ def pre_fauche(rng):
     return c
 
 
+def chaume(rng):
+    """Chaume après la moisson : tiges coupées claires en rangs, sol entre."""
+    r = rangs(12, 0.6)
+    tiges = bruit_valeur(256, rng) > 0.55
+    sol = melange(uni("#8a7458"), uni("#a08a6a"), fbm(rng, 16, 3))
+    c = melange(sol, uni("#cdb978"), r * 0.6 + tiges * 0.35)
+    return melange(c, uni("#a89a6a"), (fbm(rng, 6, 3) - 0.5) * 0.6)
+
+
+def levee(rng):
+    """Levée : la culture sort de terre, petites pousses vertes sur les rangs."""
+    sillon = rangs(6, 0.55)
+    sol = melange(uni("#6a4e3a"), uni("#9a7a5a"), sillon * 0.8 + (fbm(rng, 32, 3) - 0.5) * 0.6)
+    pousses = (bruit_valeur(128, rng) > 0.6) * rangs(12, 0.25)
+    return melange(sol, uni("#6a9a3a"), pousses * 0.9)
+
+
 # --- Routes (vraie couleur) ------------------------------------------------------------
 
 def asphalte(rng):
@@ -377,6 +394,7 @@ SOLS = [  # ordre = couche de la texture du terrain (voir Sols.gd)
     ("galets", galets), ("falaise", falaise),
     ("labour", labour), ("ble", ble), ("colza", colza), ("mais", mais), ("vigne", vigne),
     ("tournesol", tournesol), ("legumes", legumes), ("riz", riz), ("pre_fauche", pre_fauche),
+    ("chaume", chaume), ("levee", levee),
 ]
 ROUTES = [("asphalte", asphalte), ("paves", paves), ("chemin", chemin), ("gravier", gravier),
           ("ballast", ballast), ("dalles", dalles)]

@@ -5,6 +5,7 @@ Tout est dans `main`, et les 9 tests automatiques passent (`sh tests/tous.sh`).
 ## Nouveautés
 
 **Le monde**
+- Décors (touche **G**) : 160 modèles Blender (mobilier urbain, clôtures, marché, jeux, plage, ferme, animaux, bateaux et pontons, rochers). Ils viennent seuls (bottes de foin après la moisson, troupeaux qui se promènent dans les prés, poteaux et balises le long des routes, pontons et barques au bord des lacs) et se posent à la main, en rangée ou au pinceau (voir docs/decors.md).
 - Saisons et âges des plantes : feuillage d'automne et arbres nus l'hiver selon le vrai calendrier du lieu, neige qui tient selon la météo, champs semés, mûrs puis moissonnés, et 4 âges des arbres (jeune pousse, jeune arbre, adulte, arbre mort qui laisse repousser une pousse) au rythme de la vie des habitants (réglage Admin « vitesse de la vie ») (voir docs/plantes-et-sols.md).
 - Plantes et textures du sol : 46 plantes low-poly faites dans Blender (arbres, arbustes, fleurs, cultures, rochers) selon le biome et le climat, sols texturés et champs en patchwork (voir docs/plantes-et-sols.md).
 - Rivières, ruisseaux et lacs avec de l'eau animée, et des ponts au-dessus (#21). Région jouable de 40 × 40 km, les rivières se chargent autour de la caméra (#26).

@@ -1830,7 +1830,7 @@ func add_roof(id: String, kind: String, roof_mat := -1) -> int:
 	if lv.is_empty():
 		return 0
 	var etop: int = lv[-1]
-	# Emprise du dernier étage (sols et murs).
+	# Emprise du dernier étage : ses sols et l'intérieur de ses murs.
 	var lo := Vector2i(1 << 30, 1 << 30)
 	var hi := Vector2i(-(1 << 30), -(1 << 30))
 	for k in p.floors:
@@ -1838,20 +1838,65 @@ func add_roof(id: String, kind: String, roof_mat := -1) -> int:
 		if kf.y == etop:
 			lo = Vector2i(mini(lo.x, kf.x), mini(lo.y, kf.z))
 			hi = Vector2i(maxi(hi.x, kf.x), maxi(hi.y, kf.z))
-	if lo.x > hi.x:
-		message.emit("Le dernier étage n'a pas de plancher : pose d'abord des pièces.")
+	for k in p.walls:
+		var kw: Vector4i = k
+		if kw.y != etop:
+			continue
+		# Cases que le mur borde (de part et d'autre de sa ligne, bornées ensuite).
+		var a := Vector2i(kw.x, kw.z)
+		var b := Vector2i(kw.x + 1, kw.z) if kw.w == 0 else Vector2i(kw.x, kw.z + 1)
+		lo = Vector2i(mini(lo.x, mini(a.x, b.x)), mini(lo.y, mini(a.y, b.y)))
+		hi = Vector2i(maxi(hi.x, maxi(a.x, b.x) - 1), maxi(hi.y, maxi(a.y, b.y) - 1))
+	if lo.x > hi.x or lo.y > hi.y:
+		message.emit("Le dernier étage est vide : pose d'abord des pièces.")
 		return 0
 	if roof_mat < 0:
 		roof_mat = material if BlocMateriaux.LIST[material].fam == "toits" else 7
 	var wall_mat := _main_wall_material(id, etop)
 	var y2 := roundi((base_y(id, etop) + H) / BlockEditor.UNIT_Y)
-	var hu := BlockEditor.HU
-	# Débord d'une case tout autour.
-	var x0 := lo.x - 1
-	var x1 := hi.x + 1
-	var z0 := lo.y - 1
-	var z1 := hi.y + 1
+	# Un toit déjà posé sur ce bâtiment est remplacé (on peut changer de forme).
+	var old := []
+	for k in blocks.blocks:
+		var kb: Vector3i = k
+		if kb.x >= lo.x - 1 and kb.x <= hi.x + 1 and kb.z >= lo.y - 1 and kb.z <= hi.y + 1 and kb.y >= y2:
+			old.append(kb)
+	if not old.is_empty():
+		blocks.remove_blocks(old)
+	# Débord d'une case tout autour, sauf s'il bute (voie trop basse, bâtiment voisin) :
+	# le toit est alors posé au ras des murs pour rester fermé.
+	var groups := {}
+	for over in [1, 0]:
+		groups = _roof_groups(kind, lo, hi, over, y2, roof_mat, wall_mat)
+		if _roof_fits(groups):
+			break
 	var placed := 0
+	var wanted := 0
+	for code in groups:
+		wanted += (groups[code] as Array).size()
+		placed += blocks.place_blocks(groups[code], code)
+	if placed < wanted:
+		message.emit("Toit incomplet : %d blocs sur %d (voie, bâtiment ou caisse insuffisante)." % [placed, wanted])
+		return placed
+	if placed > 0:
+		message.emit("Toit posé : %d blocs (Gomme de l'éditeur de blocs pour le retirer)." % placed)
+	return placed
+
+
+func _roof_fits(groups: Dictionary) -> bool:
+	for code in groups:
+		for key in groups[code]:
+			if blocks.check_block(key) != "":
+				return false
+	return true
+
+
+## Blocs du toit (code -> [clés]) avec un débord de over cases autour de l'emprise lo..hi.
+func _roof_groups(kind: String, lo: Vector2i, hi: Vector2i, over: int, y2: int, roof_mat: int, wall_mat: int) -> Dictionary:
+	var hu := BlockEditor.HU
+	var x0 := lo.x - over
+	var x1 := hi.x + over
+	var z0 := lo.y - over
+	var z1 := hi.y + over
 	var groups := {} # code -> [clés]
 	var add := func(key: Vector3i, code: int) -> void:
 		if not groups.has(code):
@@ -1918,11 +1963,7 @@ func add_roof(id: String, kind: String, roof_mat := -1) -> int:
 					for l in layers:
 						var gk := Vector3i(gq, y2 + l * hu, z0 + j) if along_x else Vector3i(x0 + j, y2 + l * hu, gq)
 						add.call(gk, BlocFormes.encode(wall_mat))
-	for code in groups:
-		placed += blocks.place_blocks(groups[code], code)
-	if placed > 0:
-		message.emit("Toit posé : %d blocs (Gomme de l'éditeur de blocs pour le retirer)." % placed)
-	return placed
+	return groups
 
 
 func _main_wall_material(id: String, e: int) -> int:

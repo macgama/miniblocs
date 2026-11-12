@@ -84,6 +84,19 @@ static func culture(c: Vector2i, climat: int) -> int:
 	return 0
 
 
+## Couche de texture d'un champ (+ 32 si rangs tournés) et culture, mémorisées
+## par carré de 16 m (les bords de parcelles tombent toujours sur ce pas).
+## memo : Dictionary propre à un calcul (pas partagé entre fils).
+static func champ(c: Vector2i, climat: int, memo: Dictionary) -> Vector2i:
+	var cle := Vector2i(c.x >> 4, c.y >> 4)
+	var r: Variant = memo.get(cle)
+	if r == null:
+		var cu := culture(c, climat)
+		r = Vector2i(CULTURES[cu][1] + (32 if rangs_tournes(c) else 0), cu)
+		memo[cle] = r
+	return r
+
+
 ## Rangs tournés de 90° (dans l'axe Z) dans cette parcelle ? Les rangs suivent
 ## la longueur des bandes ; un carré entier tire le sens au hasard.
 static func rangs_tournes(c: Vector2i) -> bool:

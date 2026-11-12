@@ -107,6 +107,8 @@ const DENSITE_FORET := 0.036
 const DENSITE_PLANTES := 0.15
 
 static var _tables: Dictionary = {}
+## Probabilité totale qu'il pousse quelque chose, par kind * 8 + climat (tri rapide).
+static var _totaux := PackedFloat32Array()
 static var _pret := false
 
 
@@ -145,7 +147,27 @@ static func _prepare() -> void:
 			[0.04, [["herbe", 1]]], [0.012, [["cailloux", 3], ["rocher", 1]]]])
 		_ajoute(K.PLAGE, c, [[0.006 if chaud else 0.0, [["palmier", 1]]],
 			[0.03 if not chaud else 0.006, [["oyat", 1]]], [0.003, [["cailloux", 1]]]])
+	_totaux.resize(32 * 8)
+	for cle: int in _tables:
+		var tot := 0.0
+		for couche in _tables[cle]:
+			tot += couche[0]
+		_totaux[cle] = tot
+	var tot_d := 0.0
+	for couche in _desert_amerique:
+		tot_d += couche[0]
+	var tot_a := 0.0
+	for couche in _desert_ailleurs:
+		tot_a += couche[0]
+	for c in 8:
+		_totaux[TerrainWorld.Kind.DESERT * 8 + c] = maxf(tot_d, tot_a)
 	_pret = true
+
+
+## Probabilité qu'il pousse quelque chose sur une case de ce biome (0 = rien).
+static func densite(kind: int, c: int) -> float:
+	_prepare()
+	return _totaux[kind * 8 + c]
 
 
 static func _ajoute(kind: int, c: int, couches: Array) -> void:

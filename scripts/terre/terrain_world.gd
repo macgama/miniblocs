@@ -99,6 +99,11 @@ var _hover_valid := false
 var _drag_start := Vector2i.ZERO
 var _dragging := false
 var _view_radius := 200.0
+## Herbes, fleurs et cultures : seulement dans les blocs à moins de cette
+## distance (m) du point suivi (on ne les voit pas de plus loin, et un champ
+## en compte une par case).
+const DETAILS_RADIUS := 150.0
+var _center := Vector3.ZERO
 ## Rayon d'affichage imposé (m), par ex. en vue au sol. 0 = selon la distance de la caméra.
 var view_radius_override := 0.0
 # Conversion mètres locaux -> pixels globaux, mise à jour à chaque changement d'origine.
@@ -494,6 +499,23 @@ func _process(_delta: float) -> void:
 	_water.position.z = snappedf(center.z, cs)
 	water.update_focus(center.x, center.z)
 
+	_center = center
+	# Petites plantes : les blocs qui s'approchent les reçoivent (recalcul),
+	# ceux qui s'éloignent les perdent (sans recalcul).
+	for k: Vector2i in chunks:
+		var mk: Node = chunks[k]
+		var d := _chunk_distance(k, center)
+		var det: bool = mk.get_meta("details", false)
+		if not det and d < DETAILS_RADIUS and not _jobs.has(k):
+			_dirty[k] = true
+		elif det and d > DETAILS_RADIUS + cs * 2.0:
+			for ch in mk.get_children():
+				var cat: int = ch.get_meta("categorie", -1)
+				if cat == Plantes.Cat.HERBE or cat == Plantes.Cat.CULTURE:
+					mk.remove_child(ch)
+					ch.queue_free()
+			mk.set_meta("details", false)
+
 	var cc := Vector2i(floori(center.x / cs), floori(center.z / cs))
 	var r := ceili(_view_radius / cs)
 	var wanted: Array[Vector2i] = []
@@ -669,7 +691,8 @@ func _prepare_chunk(k: Vector2i) -> Dictionary:
 		"bio": land.sample_grid(lats, lons), "wid": wid, "mod_idx": mod_idx, "mod_h": mod_h,
 		"pwater": _collect_cells(water_cells, rect), "paint": _collect_cells(biome_paint, rect),
 		"trees": _collect_cells(tree_paint, rect),
-		"climat": Plantes.climat(origin_lat, origin_lon), "amer": Plantes.ameriques(origin_lon)}
+		"climat": Plantes.climat(origin_lat, origin_lon), "amer": Plantes.ameriques(origin_lon),
+		"details": _chunk_distance(k, _center) < DETAILS_RADIUS}
 
 
 ## Cases d'un dictionnaire creux tombant dans rect : [indices locaux, valeurs].
@@ -770,6 +793,10 @@ static func _compute_chunk(job: Dictionary) -> void:
 	couches.resize(w * w)
 	var k0: Vector2i = job.k * cs - Vector2i.ONE
 	var climat: int = job.climat
+	var memo_champs := {}
+	job.memo_champs = memo_champs
+	var der_cle := Vector2i(1 << 40, 0)
+	var der_couche := 0
 	for j in range(1, w - 1):
 		for i in range(1, w - 1):
 			var n := i + j * w
@@ -798,8 +825,11 @@ static func _compute_chunk(job: Dictionary) -> void:
 			kinds[n] = kind
 			var couche: int = Sols.DESSUS[kind]
 			if couche < 0:
-				var c := k0 + Vector2i(i, j)
-				couche = Sols.CULTURES[Sols.culture(c, climat)][1] + (32 if Sols.rangs_tournes(c) else 0)
+				var cle := Vector2i((k0.x + i) >> 4, (k0.y + j) >> 4)
+				if cle != der_cle:
+					der_cle = cle
+					der_couche = Sols.champ(k0 + Vector2i(i, j), climat, memo_champs).x
+				couche = der_couche
 			couches[n] = couche
 			if kind == Kind.PRAIRIE:
 				colors[n] = _prairie_colors[clampi(floori(hc / 2.0), 0, 200)]
@@ -1178,11 +1208,15 @@ static func _compute_vegetation(job: Dictionary, h: PackedFloat32Array, kinds: P
 	var w := cs + 2
 	var climat: int = job.climat
 	var amer: bool = job.amer
+	var details: bool = job.details
 	var cells: Array[Vector2i] = []
 	var xforms: Array[Transform3D] = []
 	var teintes := PackedColorArray()
 	var especes := PackedInt32Array()
 	var tree_mark: PackedByteArray = job.tree_mark
+	var memo: Dictionary = job.get("memo_champs", {})
+	Plantes.densite(0, 0)
+	var totaux: PackedFloat32Array = Plantes._totaux
 	for j in range(1, cs + 1):
 		for i in range(1, cs + 1):
 			var n := i + j * w
@@ -1190,16 +1224,26 @@ static func _compute_vegetation(job: Dictionary, h: PackedFloat32Array, kinds: P
 			var mark: int = tree_mark[n]
 			if mark == 1 or modified[n] != 0:
 				continue
+			if mark != 2:
+				if kind == Kind.CHAMPS:
+					if not details:
+						continue
+				elif totaux[kind * 8 + climat] == 0.0:
+					continue
 			var c := Vector2i(k.x * cs + i - 1, k.y * cs + j - 1)
 			var r := absi(hash(c))
 			var u := float(r & 0xffff) / 65535.0
+			if mark != 2 and kind != Kind.CHAMPS and u >= totaux[kind * 8 + climat]:
+				continue
 			var v := float(absi(hash(c * 7 + Vector2i(3, 1))) & 0xffff) / 65535.0
 			var e := -1
 			var culture := false
 			if mark == 2 and kind != Kind.CANAL and u < Plantes.DENSITE_PLANTES:
 				e = Plantes.arbre_plante(climat, h[n], v)
 			elif kind == Kind.CHAMPS:
-				var cu: Array = Sols.CULTURES[Sols.culture(c, climat)]
+				if not details:
+					continue
+				var cu: Array = Sols.CULTURES[Sols.champ(c, climat, memo).y]
 				if cu[2] != "" and u < cu[3]:
 					e = Plantes.id(cu[2])
 					culture = true
@@ -1208,6 +1252,8 @@ static func _compute_vegetation(job: Dictionary, h: PackedFloat32Array, kinds: P
 			if e < 0:
 				continue
 			var cat := Plantes.categorie(e)
+			if not details and cat == Plantes.Cat.HERBE:
+				continue
 			var pos: Vector3
 			var basis: Basis
 			if culture:
@@ -1297,6 +1343,7 @@ func _plant_vegetation(mi: MeshInstance3D, job: Dictionary) -> void:
 				loin.visibility_range_begin_margin = 8.0
 	# Gardé pour les collisions des troncs (vue au sol).
 	mi.set_meta("arbres", arbres)
+	mi.set_meta("details", job.details)
 
 
 ## Un MultiMeshInstance3D enfant de parent. Avec un matériau de plantes, la

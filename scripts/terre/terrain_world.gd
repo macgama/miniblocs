@@ -85,6 +85,8 @@ var _material: ShaderMaterial
 var _water: MeshInstance3D
 var _water_material: ShaderMaterial
 var _surf_material: ShaderMaterial
+## Plus haute mer possible au lieu de la partie (m), voir Maree.
+var _tide_max := 0.0
 var _selection: MeshInstance3D
 var _camera: Camera3D
 var _focus: Node3D
@@ -180,6 +182,8 @@ func set_origin(lat: float, lon: float) -> void:
 	_px0 = Geo.lon_to_pixel_x(lon, z)
 	_px_per_m = Geo.lon_to_pixel_x(Geo.local_to_lon(lat, lon, 1000.0), z) - _px0
 	_px_per_m /= 1000.0
+	_tide_max = Maree.max_level(lat, lon)
+	Maree.high_water = _tide_max
 	if water:
 		# Relief synthétique (tests) : pas de vraies rivières par-dessus.
 		water.offline = tiles.offline_generator.is_valid()
@@ -242,6 +246,21 @@ static func water_depth(q: float, bio: int, width: float, step: float) -> float:
 	if width > 0.0:
 		return step * (1.0 if width < 3.0 else 2.0)
 	return 0.0
+
+
+## Hauteur actuelle de la surface de la mer (marée comprise).
+func sea_level() -> float:
+	return WATER_LEVEL + Maree.level
+
+
+## Fait monter ou descendre la mer selon l'heure du jeu (unix, UTC).
+func update_tide(unix: float) -> void:
+	var l := Maree.level_at(unix, origin_lat, origin_lon)
+	if is_equal_approx(l, Maree.level) and _water.position.y == WATER_LEVEL + l:
+		return
+	Maree.level = l
+	_water.position.y = WATER_LEVEL + l
+	_surf_material.set_shader_parameter("tide", l)
 
 
 ## Hauteur de la surface de l'eau douce (rivière, ruisseau, lac) sur la case
@@ -418,7 +437,16 @@ func cell_kind_at(c: Vector2i) -> String:
 		var wk := stream_kind_id(water.width_at(c.x + 0.5, c.y + 0.5), h)
 		if wk >= 0:
 			return KIND_NAMES[wk]
+	if is_estran(h, bio, _tide_max):
+		return "Estran (découvert à marée basse)"
 	return cell_kind(h, cell_slope(c), bio)
+
+
+## Estran : sol sous le niveau moyen de la mer que la marée basse découvre.
+## Seulement pour un sol naturel (eau, sol nu, zone humide, mangrove) : un
+## polder cultivé reste un champ.
+static func is_estran(h: float, code: int, tide_max: float) -> bool:
+	return h < 0.0 and h >= -tide_max and code in [0, 60, 80, 90, 95]
 
 
 ## Type de case pour un cours d'eau de largeur w (m), -1 s'il n'y en a pas.
@@ -628,7 +656,7 @@ func _prepare_chunk(k: Vector2i) -> Dictionary:
 			for i in w:
 				wid[i + j * w] = water.width_at(x0 + i - 1 + 0.5, z0 + j - 1 + 0.5)
 	var rect := Rect2i(x0 - 1, z0 - 1, w, w)
-	return {"k": k, "gen": _generation, "cs": cs, "step": height_step,
+	return {"k": k, "gen": _generation, "cs": cs, "step": height_step, "tide_max": _tide_max,
 		"pxs": pxs, "pys": pys, "win": tiles.grab_window(pxs, pys),
 		"bio": land.sample_grid(lats, lons), "wid": wid, "mod_idx": mod_idx, "mod_h": mod_h,
 		"pwater": _collect_cells(water_cells, rect), "paint": _collect_cells(biome_paint, rect),
@@ -823,7 +851,7 @@ static func _compute_chunk(job: Dictionary) -> void:
 	job.arrays = arrays
 	job.h = h
 	job.water_arrays = _compute_water_mesh(cs, wet, surf, wid) if any_wet else []
-	job.surf_arrays = _compute_surf_mesh(cs, h, wet)
+	job.surf_arrays = _compute_surf_mesh(cs, h, wet, job.tide_max)
 	# Une case peinte (biome ou arbres) garde sa végétation même terrassée.
 	if has_marks:
 		for n in w * w:
@@ -833,14 +861,17 @@ static func _compute_chunk(job: Dictionary) -> void:
 	_compute_vegetation(job, h, kinds, modified)
 
 
-## Ressac : une bande d'écume posée sur la mer le long du rivage (4 m de large).
-## Pour chaque sommet, r = 1 au contact de la terre, 0 à 4 cases du rivage.
+## Ressac : une nappe d'écume posée sur la mer le long du rivage, qui suit la
+## marée. Elle couvre l'estran (cases que la mer couvre et découvre) et une
+## bande de 4 m devant les côtes hautes. Pour chaque sommet, UV.x = hauteur du
+## sol (le shader n'affiche que là où la mer le recouvre, et mousse là où l'eau
+## est peu profonde) et UV.y = proximité d'une côte haute (1 au contact).
 const SURF_WIDTH := 4
 
 
-static func _compute_surf_mesh(cs: int, h: PackedFloat32Array, wet: PackedByteArray) -> Array:
+static func _compute_surf_mesh(cs: int, h: PackedFloat32Array, wet: PackedByteArray, tide_max: float) -> Array:
 	var w := cs + 2
-	# Distance au rivage (en cases, plafonnée), calculée dans le bloc et sa marge.
+	# Distance (en cases, plafonnée) à la terre que la mer n'atteint jamais.
 	var dist := PackedByteArray()
 	dist.resize(w * w)
 	var any_land := false
@@ -848,7 +879,8 @@ static func _compute_surf_mesh(cs: int, h: PackedFloat32Array, wet: PackedByteAr
 	for n in w * w:
 		# Seule la terre ferme arrête la mer (pas les lacs ni les rivières).
 		var wn := wet[n]
-		dist[n] = 0 if wn == 0 else 255
+		var high := wn == 0 and h[n] > tide_max
+		dist[n] = 0 if high else 255
 		any_land = any_land or wn == 0
 		any_sea = any_sea or wn == 2
 	# Pas de rivage dans le bloc : rien à calculer (cas de presque tous les blocs).
@@ -870,23 +902,34 @@ static func _compute_surf_mesh(cs: int, h: PackedFloat32Array, wet: PackedByteAr
 				dist[n] = best
 	var verts := PackedVector3Array()
 	var normals := PackedVector3Array()
-	var cols := PackedColorArray()
+	var uvs := PackedVector2Array()
 	var idx := PackedInt32Array()
 	var y := WATER_LEVEL + 0.02
+	var shallow := -tide_max - 1.0
 	for j in range(1, cs + 1):
 		for i in range(1, cs + 1):
 			var n := i + j * w
-			if wet[n] != 2 or dist[n] > SURF_WIDTH:
+			var wn := wet[n]
+			if wn == 1 or dist[n] == 0:
+				continue
+			var hn := h[n]
+			if wn == 2:
+				if hn < shallow and dist[n] > SURF_WIDTH:
+					continue
+			elif hn > tide_max:
 				continue
 			var base := verts.size()
 			for corner: Vector2i in [Vector2i(i - 1, j - 1), Vector2i(i, j - 1), Vector2i(i, j), Vector2i(i - 1, j)]:
 				var d := 255
+				var hs := 0.0
 				for ddx in 2:
 					for ddz in 2:
-						d = mini(d, dist[corner.x + ddx + (corner.y + ddz) * w])
+						var m := corner.x + ddx + (corner.y + ddz) * w
+						d = mini(d, dist[m])
+						hs += h[m]
 				verts.push_back(Vector3(corner.x, y, corner.y))
 				normals.push_back(Vector3.UP)
-				cols.push_back(Color(clampf(1.0 - float(d) / SURF_WIDTH, 0.0, 1.0), 0.0, 0.0, 1.0))
+				uvs.push_back(Vector2(hs * 0.25, clampf(1.0 - float(d) / SURF_WIDTH, 0.0, 1.0)))
 			idx.append_array([base, base + 1, base + 2, base, base + 2, base + 3])
 	if verts.is_empty():
 		return []
@@ -894,7 +937,7 @@ static func _compute_surf_mesh(cs: int, h: PackedFloat32Array, wet: PackedByteAr
 	arrays.resize(Mesh.ARRAY_MAX)
 	arrays[Mesh.ARRAY_VERTEX] = verts
 	arrays[Mesh.ARRAY_NORMAL] = normals
-	arrays[Mesh.ARRAY_COLOR] = cols
+	arrays[Mesh.ARRAY_TEX_UV] = uvs
 	arrays[Mesh.ARRAY_INDEX] = idx
 	return arrays
 
@@ -1265,7 +1308,7 @@ func pick_point(origin: Vector3, dir: Vector3) -> Variant:
 		var h := cell_height(c)
 		if is_nan(h):
 			h = -1.0e6
-		var top := maxf(h, WATER_LEVEL)
+		var top := maxf(h, sea_level())
 		if p.y <= top:
 			return Vector3(p.x, top, p.z)
 		t += clampf((p.y - top) * 0.5, 0.15, 25.0)
@@ -1297,7 +1340,7 @@ func _update_selection() -> void:
 		_selection.visible = false
 		return
 	_selection.visible = true
-	var top := maxf(h, WATER_LEVEL)
+	var top := maxf(h, sea_level())
 	(_selection.mesh as BoxMesh).size = Vector3(r.size.x + 0.04, 0.6, r.size.y + 0.04)
 	_selection.position = Vector3(r.position.x + r.size.x / 2.0, top, r.position.y + r.size.y / 2.0)
 

@@ -58,7 +58,13 @@ Tout est sauvegardé avec la partie.
 
 ### Mer et côtes
 
-La mer a une **houle** douce (la surface monte et descend), un **ressac** : des bandes d'écume qui roulent vers le rivage sur une bande de 4 m, et des **plages de sable** là où la terre basse (moins de 2,5 m) et peu pentue touche la mer. Les falaises et les rochers restent tels quels. Les marées ne sont pas encore faites.
+La mer a une **houle** douce (la surface monte et descend), un **ressac** : des bandes d'écume qui roulent vers le rivage sur une bande de 4 m, et des **plages de sable** là où la terre basse (moins de 2,5 m) et peu pentue touche la mer. Les falaises et les rochers restent tels quels.
+
+**Marées** : la mer monte et descend avec la vraie Lune, deux fois par jour (pleine mer environ toutes les 12 h 25), plus fort à la pleine et à la nouvelle lune (vives-eaux). Le marnage dépend du lieu : presque rien en Méditerranée, jusqu'à 6 m en Manche. À marée basse, l'estran se découvre (sable, cuvettes qui restent en eau) et l'écume suit le bord de l'eau. Les ponts sur la mer passent au-dessus des plus hautes mers et les bateaux flottent avec la marée. Le niveau actuel s'affiche dans la barre d'état (« Marée : +1,2 m, montante ») ; pour voir la marée bouger, accélère le temps (Maj+T).
+
+| Marée basse | Marée haute |
+| --- | --- |
+| ![Marée basse à Saint-Malo](docs/apercu-maree-basse.png) | ![Marée haute à Saint-Malo](docs/apercu-maree-haute.png) |
 
 ### Rivières, ruisseaux et lacs
 

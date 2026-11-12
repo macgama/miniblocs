@@ -36,7 +36,7 @@ const SECTIONS := [
 	]],
 	["Temps et vue", [
 		["T", "mettre le temps en pause / reprendre"],
-		["Maj + T", "vitesse suivante du temps"],
+		["Maj + T", "vitesse suivante du temps (la marée suit l'heure et la Lune : voir la barre d'état)"],
 		["V", "vue suivante : dessus, 3e personne, 1re personne"],
 		["ZQSD, Maj, Espace", "marcher, courir, sauter (vue au sol)"],
 		["Échap", "libérer la souris (vue au sol)"],

@@ -160,7 +160,8 @@ static func plan(type_id: String, path: PackedVector2Array, h0: float, h1: float
 	var want := PackedFloat32Array()
 	want.resize(n)
 	for i in n:
-		want[i] = g[i] if g[i] >= SEA_LEVEL else SEA_LEVEL + SEA_CLEARANCE
+		# Au-dessus de la mer : assez haut même à la plus haute marée.
+		want[i] = g[i] if g[i] >= SEA_LEVEL else SEA_LEVEL + Maree.high_water + SEA_CLEARANCE
 		if not is_nan(ws[i]):
 			want[i] = maxf(want[i], ws[i] + RIVER_CLEARANCE)
 	if is_nan(h0):

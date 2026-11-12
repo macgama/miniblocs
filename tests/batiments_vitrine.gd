@@ -2,6 +2,7 @@ extends SceneTree
 ## Vitrine : pose tout le catalogue le long de deux routes et prend une capture.
 ## Usage (avec affichage) :
 ##   godot --path . --script res://tests/batiments_vitrine.gd -- --screenshot vitrine.png [--distance 220] [--yaw 30] [--zones]
+## --sans-finitions : sans les finitions low-poly (teintes par face, toits en rangs…). --fxaa : anticrénelage d'écran.
 ## --blocs : une maison construite bloc par bloc.
 ## --styles a,b,c : seulement les bâtiments de ces styles (bible, voir Styles.STYLES).
 ## --arch culte,palais : seulement ces archétypes. --zone-style japonais : style du zonage.
@@ -32,8 +33,10 @@ func _run() -> void:
 	var yaw := 30.0
 	var focus := Vector2(0, 0)
 	var zoning := args.has("--zones")
-	var bloc_mode := args.has("--blocs") or args.has("--maison")
-	var maison := args.has("--maison")
+	var bloc_mode := args.has("--blocs") or args.has("--maison") or args.has("--murs")
+	var maison := args.has("--maison") or args.has("--murs")
+	var murs := args.has("--murs")
+	var coupe := -100
 	var pitch := -1.0
 	var only_styles: PackedStringArray = []
 	var only_archs: PackedStringArray = []
@@ -56,10 +59,18 @@ func _run() -> void:
 			zone_style = args[i + 1]
 		if args[i] == "--pitch" and i + 1 < args.size():
 			pitch = args[i + 1].to_float()
+		if args[i] == "--coupe" and i + 1 < args.size():
+			coupe = args[i + 1].to_int()
 		if args[i] == "--focus" and i + 1 < args.size():
 			var p := args[i + 1].split(",")
 			focus = Vector2(p[0].to_float(), p[1].to_float())
 
+	# --sans-finitions : rendu d'avant les finitions low-poly (comparaison).
+	BlocMesh.details_enabled = not args.has("--sans-finitions")
+	# --fxaa : anticrénelage d'écran (le MSAA du rendu logiciel laisse des pixels parasites).
+	if args.has("--fxaa"):
+		root.msaa_3d = Viewport.MSAA_DISABLED
+		root.screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA
 	var scene: Node = load("res://scenes/terre.tscn").instantiate()
 	var world: TerrainWorld = scene.get_node("Terrain")
 	var transport: TransportSystem = scene.get_node("Transport")
@@ -77,11 +88,14 @@ func _run() -> void:
 			scene.get_node("Zones").current_style = zone_style
 			await _zoning(scene, world, transport, bs)
 		else:
-			if maison:
+			if murs:
+				_murs(scene, world, coupe)
+			elif maison:
 				_maison(scene, world)
 			else:
 				_blocks_house(scene, world)
-			scene.get_node("Blocs").set_tool(BlockEditor.Tool.BLOCK)
+			if not murs:
+				scene.get_node("Blocs").set_tool(BlockEditor.Tool.BLOCK)
 		var rig0 = scene.get_node("CameraRig")
 		rig0.position = Vector3(focus.x, 42.0, focus.y)
 		rig0._distance = dist
@@ -92,6 +106,8 @@ func _run() -> void:
 		scene.get_node("PanneauConstruction").show_category("zones" if zoning else "blocs")
 		if maison:
 			scene.get_node("PanneauConstruction").visible = not args.has("--sans-panneau")
+			if murs and not args.has("--sans-panneau"):
+				scene.get_node("PanneauConstruction").set_open(true)
 			if args.has("--defiler"):
 				for i in 3:
 					await process_frame
@@ -180,6 +196,79 @@ func _zoning(scene: Node, world: TerrainWorld, transport: TransportSystem, bs: B
 	await process_frame
 	print(bs.summary())
 	print(zs.summary())
+
+
+## Murs fins et étages : une maison de deux niveaux avec sous-sol et toit,
+## et un immeuble de 12 étages. coupe ≥ 0 : vue en coupe à cet étage de la maison.
+func _murs(scene: Node, world: TerrainWorld, coupe: int) -> void:
+	var pe: PlanEditor = scene.get_node("Plans")
+	var id := pe.new_plan(pe.ground_level(Vector2i(2, 2)))
+	pe.set_material(27) # Crépi ocre
+	pe.add_room(id, Rect2i(0, 0, 10, 8), 0)
+	pe.add_walls(id, PlanEditor.wall_line(Vector2i(6, 0), Vector2i(6, 8), 0))
+	pe.add_walls(id, PlanEditor.wall_line(Vector2i(0, 5), Vector2i(6, 5), 0))
+	pe.set_material(57)
+	pe.set_opening_at(id, Vector4i(2, 0, 0, 0), "porte")
+	for x in [4, 8]:
+		pe.set_opening_at(id, Vector4i(x, 0, 0, 0), "fenetre")
+	pe.set_opening_at(id, Vector4i(1, 0, 8, 0), "fenetre")
+	pe.set_opening_at(id, Vector4i(7, 0, 8, 0), "porte_fenetre")
+	pe.set_opening_at(id, Vector4i(8, 0, 8, 0), "baie")
+	pe.set_opening_at(id, Vector4i(6, 0, 3, 1), "passage")
+	pe.set_opening_at(id, Vector4i(3, 0, 5, 0), "porte")
+	pe.toggle_door(id, Vector4i(3, 0, 5, 0))
+	pe.set_opening_at(id, Vector4i(0, 0, 2, 1), "fenetre_haute")
+	pe.set_opening_at(id, Vector4i(10, 0, 4, 1), "fenetre")
+	# Intérieur : carrelage dans la cuisine, murs intérieurs blancs, parquet foncé au salon.
+	pe.set_material(37)
+	pe.paint_rect(id, Rect2i(0, 5, 6, 3), 0)
+	pe.set_material(36)
+	pe.paint_rect(id, Rect2i(6, 0, 4, 8), 0)
+	pe.set_material(55)
+	pe.tint = 0
+	for k in pe.plans[id].walls.keys():
+		var kw: Vector4i = k
+		var cs := PlanEditor.wall_cells(kw)
+		var r := Rect2i(0, 0, 10, 8)
+		if r.has_point(cs[0]) and r.has_point(cs[1]):
+			pe.paint_wall(id, kw, "a")
+			pe.paint_wall(id, kw, "b")
+	pe.add_stairs(id, Vector2i(5, 1), 0, 0)
+	pe.copy_level_up(id, 0, 1)
+	# À l'étage, la porte d'entrée devient une fenêtre.
+	pe.set_material(57)
+	pe.set_opening_at(id, Vector4i(2, 1, 0, 0), "fenetre")
+	pe.plans[id].stairs.erase(Vector3i(5, 1, 1))
+	pe.set_material(4)
+	pe.add_room(id, Rect2i(1, 1, 5, 4), -1)
+	pe.set_material(7)
+	pe.add_roof(id, "deux_pans")
+	# Immeuble : un étage type recopié 11 fois, toit plat.
+	var id2 := pe.new_plan(pe.ground_level(Vector2i(24, 4)))
+	pe.set_material(23) # Béton brut
+	pe.add_room(id2, Rect2i(20, -2, 8, 10), 0)
+	pe.set_material(9)
+	for x in range(20, 28):
+		pe.set_opening_at(id2, Vector4i(x, 0, -2, 0), "vitrine" if x != 23 else "porte_vitree")
+	for z in range(-2, 8):
+		pe.set_opening_at(id2, Vector4i(28, 0, z, 1), "vitrine")
+	pe.add_stairs(id2, Vector2i(21, 3), 0, 0)
+	pe.copy_level_up(id2, 0, 1)
+	pe.set_material(57)
+	for x in range(20, 28):
+		pe.set_opening_at(id2, Vector4i(x, 1, -2, 0), "fenetre")
+		pe.set_opening_at(id2, Vector4i(x, 1, 8, 0), "fenetre")
+	for z in range(-2, 8):
+		pe.set_opening_at(id2, Vector4i(28, 1, z, 1), "fenetre")
+	pe.copy_level_up(id2, 1, 10)
+	pe.set_material(4)
+	pe.add_roof(id2, "plat")
+	pe.flush()
+	if coupe > -100:
+		pe._active = id
+		pe.level = coupe
+		pe.set_tool(PlanEditor.Tool.WALL)
+		pe.flush()
 
 
 ## Petite maison en blocs : plancher, murs de brique, fenêtres, toit en tuiles, un arbre.

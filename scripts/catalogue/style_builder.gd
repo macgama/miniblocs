@@ -343,7 +343,9 @@ static func _roof(k: BlocMesh, s: Dictionary, p: Dictionary, kind: String, cx: f
 		"hip":
 			k.hip(cx, y, cz, sx + 1.0, sz + 1.0, short / 2.0 * pitch, col)
 		"thatch":
+			k.roof_style = "chaume"
 			k.hip(cx, y, cz, sx + 1.6, sz + 1.6, short * 0.6, col)
+			k.roof_style = ""
 		"curved":
 			# Avant-toit large et peu pentu, puis toit plus raide : bords relevés.
 			k.hip(cx, y, cz, sx + 3.0, sz + 3.0, 0.6, col.darkened(0.08))

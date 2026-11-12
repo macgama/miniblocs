@@ -175,8 +175,11 @@ static func footprint(id: String, rot: int) -> Vector2i:
 
 
 ## Fabrique le modèle low-poly d'un type (repère local : sol en y = 0, façade vers −Z).
-static func build_mesh(id: String, material: Material = null) -> ArrayMesh:
+## `details` : finitions low-poly (toits en rangs, teintes par face…) ; sans
+## elles, c'est la version légère utilisée au loin.
+static func build_mesh(id: String, material: Material = null, details := true) -> ArrayMesh:
 	var k := BlocMesh.new()
+	k.details = details
 	var t := get_type(id)
 	var w := float(t.get("w", 4))
 	var d := float(t.get("d", 4))

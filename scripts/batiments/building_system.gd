@@ -58,6 +58,9 @@ var extra_blocker: Callable
 
 var _nodes: Dictionary = {} # id -> MeshInstance3D
 var _meshes: Dictionary = {} # type -> ArrayMesh
+var _meshes_far: Dictionary = {} # type -> ArrayMesh sans finitions (vu de loin)
+## Distance (m) au-delà de laquelle un bâtiment passe à sa version légère.
+const LOIN := 320.0
 var _material: Material
 var _ghost: MeshInstance3D
 var _plate: MeshInstance3D
@@ -123,6 +126,13 @@ func mesh_for(id: String) -> ArrayMesh:
 	if not _meshes.has(id):
 		_meshes[id] = BuildingCatalog.build_mesh(id, _material)
 	return _meshes[id]
+
+
+## Version légère (sans finitions) d'un modèle, pour le lointain.
+func mesh_far_for(id: String) -> ArrayMesh:
+	if not _meshes_far.has(id):
+		_meshes_far[id] = BuildingCatalog.build_mesh(id, _material, false)
+	return _meshes_far[id]
 
 
 # --- Outils -------------------------------------------------------------------------
@@ -373,6 +383,15 @@ func _add(b: Dictionary) -> void:
 	shape.position = bb.get_center()
 	body.add_child(shape)
 	mi.add_child(body)
+	# Au loin, la version sans finitions (5 fois moins de triangles).
+	if BlocMesh.details_enabled and not BuildingCatalog.get_type(b.t).has("blocks"):
+		mi.visibility_range_end = LOIN
+		var far := MeshInstance3D.new()
+		far.name = "Loin"
+		far.mesh = mesh_far_for(b.t)
+		far.visibility_range_begin = LOIN
+		far.visibility_range_end = 1400.0
+		mi.add_child(far)
 	add_child(mi)
 	_nodes[bid] = mi
 

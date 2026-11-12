@@ -22,6 +22,10 @@ Code : `scripts/habitants/`. Section de sauvegarde : `"habitants"` (voir `Popula
 
 Ce découpage est prêt pour faire marcher de vrais piétons : chaque étape de trajet a un départ, une arrivée et un mode (à pied, vélo, voiture, ligne de transport public avec l'itinéraire de `TransitPlanner`).
 
+## Circulation
+
+`Population.traffic_demand()` plafonne la circulation d'ambiance (`Traffic.demand`) : sur un échantillon de 300 habitants, on compte ceux dont un trajet tombe à moins de 20 minutes de l'heure actuelle (selon leur mode : voiture, vélo, à pied ou transports publics, qui commencent à pied) et ceux qui sont aux courses ou à un loisir. S'y ajoutent les livraisons (un utilitaire pour 40 emplois occupés, de 7 h à 19 h), et un train ou un bateau d'ambiance pour 300 ou 400 emplois. Sans habitant, la demande est nulle : pas de voiture, de vélo ni de piéton. Les bus d'ambiance sont retirés, seuls roulent ceux des lignes.
+
 ## Économie (euros par mois)
 
 | Foyer | |

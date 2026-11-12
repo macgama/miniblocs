@@ -25,7 +25,7 @@ L'écran a une barre en haut (lieu, partie, heure et vitesse du temps, chiffres 
 | Tourner la caméra | A / E (Q / E en QWERTY), ou clic molette maintenu + glisser |
 | Outils (barre du bas) | 1 Observer · 2 Aplanir · 3 Monter · 4 Creuser · 5 Route · 6 Rail · 7 Chemin · 8 Voie d'eau · 9 Démolir |
 | Tracer une voie | un clic par point, **C** courbe, **Maj** angles de 15°, **Échap** / clic droit pour finir |
-| Panneau Construire | **B** (bâtiments, zonage, éditeur libre ; **R** tourne le bâtiment, **Ctrl + Z** annule un bloc) |
+| Panneau Construire | **B** (bâtiments, zonage, éditeur libre ; **R** tourne le bâtiment, **Ctrl + Z** annule ; **Page haut / Page bas** : étage actif en mode Murs et étages) |
 | Transports publics | **L** (stations, gares, ports, aéroports, lignes) |
 | Habitants | **H** (la ville en chiffres, liste des habitants, budget) ; clic sur un bâtiment avec l'outil 1 |
 | Temps | **T** pause, **Maj + T** vitesse suivante |
@@ -266,6 +266,23 @@ L'onglet **Espaces publics** regroupe :
 
 ![Espaces publics](docs/apercu-espaces-publics.png)
 
+### Éditeur libre : murs, étages et intérieurs
+
+L'onglet **Éditeur libre** a deux modes : **Murs et étages** (par défaut) et **Blocs**. Les cases du terrain font 1 m, mais un vrai mur fait 20 cm : en mode Murs et étages, les murs se posent **sur les lignes de la grille**, entre deux cases. Une pièce de 4 × 4 cases garde donc 4 m de côté, et une cloison ne mange aucune case.
+
+![Une maison et un immeuble en murs fins](docs/apercu-murs-etages.png)
+
+- **Mur** : clic glissé d'un coin de case à l'autre. **Pièce** : clic glissé en rectangle, qui pose les quatre murs et le plancher d'un coup. **Sol** : plancher, terrasse ou balcon.
+- **Portes et fenêtres** dans les murs : porte, porte vitrée, porte-fenêtre, passage, fenêtre à croisillons, fenêtre haute, baie vitrée, vitrine. Un clic près d'un mur ; clic droit pour retirer l'ouverture. En vue au sol, **E** ouvre ou ferme les portes.
+- **Peinture** : chaque côté d'un mur a son matériau et sa teinte (crépi dehors, plâtre ou carrelage dedans). Un clic peint un côté de mur ou un sol ; un clic glissé peint toute une pièce (un matériau de sol peint les sols, les autres peignent les murs).
+- **Étages** : **Page haut / Page bas** (ou ▲ ▼ dans le panneau) changent l'étage actif, de 5 sous-sols à 59 étages, 3 m par étage. Les étages du dessus sont masqués pendant l'édition (**Vue en coupe**), toit compris. Sous le rez-de-chaussée et les sous-sols, le terrain est creusé tout seul, et rebouché si on efface.
+- **Escalier** : 4 cases de long, 12 marches, vers l'étage du dessus (la trémie est ouverte toute seule) ; **R** le tourne.
+- **Copier l'étage ↑** recopie l'étage actif au-dessus, autant de fois que demandé : un immeuble de 12 étages se fait en quelques clics.
+- **Toit** : deux pans, quatre pans ou plat, posé en blocs sur le dernier étage (le matériau de toit choisi, ou de la tuile), avec un débord d'un mètre et des pignons. On le retouche ensuite avec les blocs.
+- Mêmes règles que le reste : chaque mètre de mur, de sol, chaque ouverture a un prix ; **Ctrl+Z** annule ; ni voie ni bâtiment dans un bâtiment en murs fins.
+
+![Vue en coupe du rez-de-chaussée : cuisine carrelée, salon en parquet, escalier](docs/apercu-murs-interieur.png)
+
 ### Éditeur libre : construire bloc par bloc
 
 L'onglet **Éditeur libre** permet de construire ce que tu veux avec des blocs de 1 m × 1 m × 1 m, posés sur le relief ou les uns contre les autres.
@@ -303,6 +320,7 @@ Chaque logement accueille un **foyer** (personne seule, couple, famille, famille
 - **École** : chaque enfant est inscrit dans l'école la plus proche qui a de la place. S'il y a 12 enfants dans une école, ce sont 12 profils qui y vont, et ils y sont bien pendant les heures de classe (pas le mercredi après-midi, ni le week-end, ni en juillet-août).
 - **Travail** : chaque emploi d'un bâtiment reçoit un métier (enseignant, boulanger, caissier, ouvrier, infirmier, pompier…) avec son salaire et ses horaires (semaine, lundi-samedi, gardes un jour sur deux…).
 - **Trajets** : à pied, à vélo, en voiture, ou en **transports publics** quand une ligne est plus rapide (itinéraires du jeu, voyageurs comptés chaque jour sur les lignes).
+- **Rues** : sans bâtiment, personne dans les rues. Les premiers piétons, vélos et voitures arrivent avec les premiers habitants, et leur nombre suit leurs trajets de l'heure (pointe le matin et le soir, rues vides la nuit) et les emplois (livraisons). Les bus ne roulent que sur les lignes créées par le joueur.
 - **Journée** : dormir, trajet, école ou travail, courses, loisir (football, cinéma, café, promenade au parc…) dans le lieu le plus proche, retour à la maison.
 - **Économie (débuts)** : chaque foyer a ses revenus (salaire, pension, allocation), son loyer, ses courses, ses voitures et son épargne ; un foyer trop endetté quitte la ville. La ville touche la taxe foncière, les impôts des entreprises et la dotation de l'État, et paie ses agents (ATSEM, agents municipaux, pompiers) et l'entretien des bâtiments publics. Le solde est versé chaque jour dans la caisse.
 
@@ -360,6 +378,12 @@ Le mode Terre a maintenant une **horloge** : le Soleil et la Lune sont à leur v
 ![La nuit](docs/apercu-nuit.png)
 
 Détails et limites : [docs/ambiance.md](docs/ambiance.md).
+
+## Démo : le low-poly poussé au maximum
+
+Une ferme entièrement générée en code (longère à colombages et toit de chaume, grange, puits, charrette, potager, champ de blé au vent, mare, brume du matin, soir aux lanternes) pour voir jusqu'où le style peut aller. Ouvre `scenes/demo_ferme.tscn` et appuie sur **F6** ; **1** à **4** changent la lumière, **C** le point de vue. Détails et ce qui est généralisable à tous les bâtiments : [docs/demo-low-poly.md](docs/demo-low-poly.md).
+
+![Démo ferme low-poly](docs/apercu-ferme-cour.jpg)
 
 ## Comment ça marche
 
@@ -424,6 +448,7 @@ Détails et limites : [docs/ambiance.md](docs/ambiance.md).
 | `scripts/batiments/building_system.gd` | Pose, règles, terrassement, démolition et sauvegarde des bâtiments |
 | `scripts/batiments/building_panel.gd` | Panneau « Construire » |
 | `scripts/batiments/zone_system.gd` | Zonage : zones peintes, demande, croissance le long des routes |
+| `scripts/batiments/plan_editor.gd` | Éditeur libre, mode Murs et étages : murs de 20 cm sur les lignes, ouvertures, sols, escaliers, étages et sous-sols, vue en coupe, toit automatique |
 | `scripts/batiments/block_editor.gd` | Éditeur libre bloc par bloc : outils, matériaux, annulation, rendu par blocs de 16 × 16 m |
 | `scripts/catalogue/styles.gd` | Bible : régions, époques, archétypes et les 43 styles d'architecture |
 | `scripts/catalogue/style_builder.gd` | Fabrique les bâtiments de la bible (emprise, chiffres, modèle 3D) d'après style + archétype |
@@ -433,13 +458,14 @@ Détails et limites : [docs/ambiance.md](docs/ambiance.md).
 | `scripts/batiments/bloc_mesher.gd` | Maillage texturé des blocs (deux surfaces : opaque et verre) |
 | `scripts/catalogue/creations.gd` | Mes créations : constructions de l'éditeur libre enregistrées comme bâtiments |
 | `tests/batiments_test.gd` | Test automatique des bâtiments (sans réseau) |
+| `tests/plans_test.gd` | Test des murs fins, étages, sous-sols, toit et sauvegarde (sans réseau) |
 | `scripts/habitants/population.gd` | Habitants : foyers, étapes de la vie, écoles, emplois, emploi du temps, trajets, économie, sauvegarde |
 | `scripts/habitants/habitants_panel.gd` | Panneau « Habitants » (touche H) : ville, liste, bâtiment, profil |
 | `scripts/habitants/metiers.gd` | Métiers (salaires, horaires), métiers par bâtiment, loisirs et leurs lieux, classes |
 | `scripts/habitants/prenoms.gd` | Prénoms et noms par région du monde |
 | `tests/habitants_test.gd` | Test des habitants (école, emplois, journée, budget, transports, sauvegarde, panneau) |
 | `tests/habitants_vitrine.gd` | Petit quartier et captures du panneau Habitants |
-| `tests/batiments_vitrine.gd` | Pose tout le catalogue (ou fait pousser un quartier avec `--zones`, ou construit une maison en blocs avec `--blocs`) et prend une capture. `--styles japonais,chinois` ou `--arch culte` filtrent la bible, `--zone-style` choisit le style du zonage, `--cat espaces` une catégorie, `--maison` construit la maison de démonstration de l'éditeur libre |
+| `tests/batiments_vitrine.gd` | Pose tout le catalogue (ou fait pousser un quartier avec `--zones`, ou construit une maison en blocs avec `--blocs`) et prend une capture. `--styles japonais,chinois` ou `--arch culte` filtrent la bible, `--zone-style` choisit le style du zonage, `--cat espaces` une catégorie, `--maison` construit la maison de démonstration de l'éditeur libre, `--murs` une maison et un immeuble en murs fins (`--coupe 0` : vue en coupe du rez-de-chaussée) |
 
 ## Sauvegarde des parties
 
@@ -467,7 +493,7 @@ godot --headless --path . --script res://tests/terre_test.gd
 
 Vérifie les conversions de coordonnées, le décodage des tuiles, la génération des blocs, les rivières (calcul sur une vallée, lecture d'OpenStreetMap, lit creusé, surface d'eau, ponts), le terrassement et la sauvegarde. Il affiche `TERRE TEST OK`. De même, `tests/globe_test.gd` affiche `GLOBE TEST OK`, `tests/transport_test.gd` affiche `TRANSPORT TEST OK` et `tests/batiments_test.gd` affiche `BATIMENTS TEST OK`.
 
-`tests/parcours_test.gd` joue une partie comme un joueur, avec de vraies touches (globe, outils 1-9, B, L, T, V, F1, F5, Continuer) et affiche `PARCOURS TEST OK`. `tests/habitants_test.gd` vérifie les habitants (école, emplois, emploi du temps, budget, bus, sauvegarde, panneau) et affiche `HABITANTS TEST OK`. `tests/sauvegarde_test.gd` vérifie le format des parties (écriture, relecture, section abîmée, import de l'ancienne sauvegarde) et affiche `SAUVEGARDE TEST OK`. `tests/interface_test.gd` vérifie les menus (icônes, barre de catégories, panneaux un à la fois, vignettes, fiche d'un bâtiment) et affiche `INTERFACE TEST OK`.
+`tests/parcours_test.gd` joue une partie comme un joueur, avec de vraies touches (globe, outils 1-9, B, L, T, V, F1, F5, Continuer) et affiche `PARCOURS TEST OK`. `tests/habitants_test.gd` vérifie les habitants (école, emplois, emploi du temps, budget, bus, sauvegarde, panneau) et affiche `HABITANTS TEST OK`. `tests/sauvegarde_test.gd` vérifie le format des parties (écriture, relecture, section abîmée, import de l'ancienne sauvegarde) et affiche `SAUVEGARDE TEST OK`. `tests/interface_test.gd` vérifie les menus (icônes, barre de catégories, panneaux un à la fois, vignettes, fiche d'un bâtiment) et affiche `INTERFACE TEST OK`. `tests/demo_ferme_test.gd` vérifie la démo low-poly (kit de modelage, objets, lumières, vues) et affiche `DEMO TEST OK`.
 
 ```bash
 godot --headless --path . --script res://tests/perf_bench.gd [-- --big] [--reseau]

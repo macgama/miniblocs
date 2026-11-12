@@ -235,7 +235,7 @@
    ]
   },
   {
-   "id": "usine_textile",
+   "id": "filature_briques",
    "name": "Filature en briques",
    "cat": "industrie",
    "cost": 9000000,
@@ -270,7 +270,7 @@
    ],
    "role": "usine",
    "zone": "I",
-   "glb": "res://assets/modeles/bible/usine_textile.glb",
+   "glb": "res://assets/modeles/bible/filature_briques.glb",
    "w": 72,
    "d": 49,
    "h": 48.0,
@@ -491,7 +491,7 @@
    ]
   },
   {
-   "id": "brasserie",
+   "id": "brasserie_biere",
    "name": "Brasserie",
    "cat": "industrie",
    "cost": 8000000,
@@ -526,7 +526,7 @@
    ],
    "role": "usine",
    "zone": "I",
-   "glb": "res://assets/modeles/bible/brasserie.glb",
+   "glb": "res://assets/modeles/bible/brasserie_biere.glb",
    "w": 35,
    "d": 30,
    "h": 30.6,

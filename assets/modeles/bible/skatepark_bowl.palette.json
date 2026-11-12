@@ -1,0 +1,30 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "beton_clair": {
+   "index": 0,
+   "origine": "#d4d1ca"
+  },
+  "beton_sombre": {
+   "index": 1,
+   "origine": "#8c8a85"
+  },
+  "enduit_bleu": {
+   "index": 2,
+   "origine": "#c9dbe3"
+  },
+  "enduit_rose": {
+   "index": 3,
+   "origine": "#e9c2b0"
+  },
+  "metal": {
+   "index": 4,
+   "origine": "#7d8288"
+  },
+  "jaune": {
+   "index": 5,
+   "origine": "#f2c14e"
+  }
+ }
+}

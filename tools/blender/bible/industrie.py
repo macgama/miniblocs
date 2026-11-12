@@ -67,7 +67,7 @@ def scierie(k):
         k.boite(-12, -10 + r * 1.6, 0, 18, 1.4, 1.4 - r * 0.3, "bois")
 
 
-@batiment(F, "usine_textile", "Filature en briques", "industrie", 9_000_000,
+@batiment(F, "filature_briques", "Filature en briques", "industrie", 9_000_000,
           "Usine du XIXe s. à quatre étages, toits en sheds et grande cheminée.",
           "Filatures de Roubaix et de Manchester (La Manufacture, Motte-Bossut)", era="classique", emplois=180,
           metiers=[["ouvrier", 7], ["ingenieur", 1], ["magasinier", 1], ["cadre", 1]], role="usine", zone="I")
@@ -121,7 +121,7 @@ def logistique(k):
         k.boite(-30 + i * 8, -50, 0.04, 2.5, 16, 3.8, "blanc")
 
 
-@batiment(F, "brasserie", "Brasserie", "industrie", 8_000_000,
+@batiment(F, "brasserie_biere", "Brasserie", "industrie", 8_000_000,
           "Brasserie de briques, salle de brassage aux cuves de cuivre et tour du malt.",
           "Brasseries Carlsberg (Copenhague) et Cardinal (Fribourg)", era="classique", emplois=60,
           visiteurs=80, metiers=[["operateur", 3], ["ouvrier", 3], ["magasinier", 1], ["vendeur", 1]],

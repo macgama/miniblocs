@@ -1,0 +1,30 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "beton_clair": {
+   "index": 0,
+   "origine": "#d4d1ca"
+  },
+  "verre_bleu": {
+   "index": 1,
+   "origine": "#4f6d8f"
+  },
+  "cadre": {
+   "index": 2,
+   "origine": "#f4f1ea"
+  },
+  "verre_clair": {
+   "index": 3,
+   "origine": "#8fb8d8"
+  },
+  "beton_sombre": {
+   "index": 4,
+   "origine": "#8c8a85"
+  },
+  "bardage": {
+   "index": 5,
+   "origine": "#a4aab0"
+  }
+ }
+}

@@ -1,0 +1,3428 @@
+{
+ "famille": "commerces",
+ "batiments": [
+  {
+   "id": "boulangerie_village",
+   "name": "Boulangerie de village",
+   "cat": "commerce",
+   "cost": 380000,
+   "desc": "Boulangerie à devanture de bois peint, logement du boulanger à l'étage.",
+   "source": "Devantures de boulangeries parisiennes et de bourgs",
+   "region": "europe",
+   "era": "classique",
+   "emplois": 4,
+   "logements": 1,
+   "visiteurs": 200,
+   "variantes": 4,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "boulanger",
+     2
+    ],
+    [
+     "vendeur",
+     1
+    ]
+   ],
+   "role": "boulangerie",
+   "zone": "C",
+   "glb": "res://assets/modeles/bible/boulangerie_village.glb",
+   "w": 11,
+   "d": 14,
+   "h": 9.6,
+   "tris": 162,
+   "palette": [
+    [
+     "enduit_jaune",
+     "#ecd59a"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "bleu",
+     "#2a6fdb"
+    ],
+    [
+     "metal",
+     "#7d8288"
+    ],
+    [
+     "bois_rouge",
+     "#8e3b2e"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "rouge",
+     "#c0392b"
+    ],
+    [
+     "tuile",
+     "#c8553d"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "brique",
+     "#a9583f"
+    ],
+    [
+     "pierre_grise",
+     "#9c988f"
+    ]
+   ]
+  },
+  {
+   "id": "boucherie_charcuterie",
+   "name": "Boucherie-charcuterie",
+   "cat": "commerce",
+   "cost": 360000,
+   "desc": "Boutique à carrelage blanc et rouge, rideau de fer, appartement au-dessus.",
+   "source": "Boucheries de quartier (Lyon, Paris)",
+   "region": "europe",
+   "era": "classique",
+   "emplois": 4,
+   "logements": 1,
+   "visiteurs": 150,
+   "variantes": 4,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "boucher",
+     3
+    ],
+    [
+     "vendeur",
+     1
+    ]
+   ],
+   "role": "boucherie",
+   "zone": "C",
+   "glb": "res://assets/modeles/bible/boucherie_charcuterie.glb",
+   "w": 10,
+   "d": 14,
+   "h": 12.2,
+   "tris": 292,
+   "palette": [
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "metal",
+     "#7d8288"
+    ],
+    [
+     "bois_rouge",
+     "#8e3b2e"
+    ],
+    [
+     "pierre_grise",
+     "#9c988f"
+    ],
+    [
+     "ardoise",
+     "#5b5f66"
+    ],
+    [
+     "zinc",
+     "#7e8890"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ]
+   ]
+  },
+  {
+   "id": "epicerie_quartier",
+   "name": "Épicerie de quartier",
+   "cat": "commerce",
+   "cost": 300000,
+   "desc": "Petite épicerie d'angle, étals de fruits sous le store vert.",
+   "source": "Épiceries et primeurs de quartier",
+   "region": "europe",
+   "era": "moderne",
+   "emplois": 3,
+   "logements": 0,
+   "visiteurs": 250,
+   "variantes": 4,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "vendeur",
+     2
+    ],
+    [
+     "caissier",
+     1
+    ]
+   ],
+   "role": "epicerie",
+   "zone": "C",
+   "glb": "res://assets/modeles/bible/epicerie_quartier.glb",
+   "w": 12,
+   "d": 13,
+   "h": 6.7,
+   "tris": 198,
+   "palette": [
+    [
+     "enduit_rose",
+     "#e9c2b0"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "metal",
+     "#7d8288"
+    ],
+    [
+     "vert",
+     "#3f8f5a"
+    ],
+    [
+     "bois_clair",
+     "#c39a6b"
+    ],
+    [
+     "rouge",
+     "#c0392b"
+    ],
+    [
+     "orange",
+     "#e4772e"
+    ],
+    [
+     "beton_sombre",
+     "#8c8a85"
+    ]
+   ]
+  },
+  {
+   "id": "pharmacie_officine",
+   "name": "Pharmacie",
+   "cat": "commerce",
+   "cost": 420000,
+   "desc": "Officine à grande vitrine et croix verte lumineuse.",
+   "source": "Pharmacies d'officine françaises",
+   "region": "europe",
+   "era": "moderne",
+   "emplois": 5,
+   "logements": 0,
+   "visiteurs": 220,
+   "variantes": 4,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "vendeur",
+     2
+    ],
+    [
+     "cadre",
+     1
+    ]
+   ],
+   "role": "pharmacie",
+   "zone": "C",
+   "glb": "res://assets/modeles/bible/pharmacie_officine.glb",
+   "w": 13,
+   "d": 15,
+   "h": 7.1,
+   "tris": 170,
+   "palette": [
+    [
+     "enduit_blanc",
+     "#f4f2ec"
+    ],
+    [
+     "metal",
+     "#7d8288"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "verre_clair",
+     "#8fb8d8"
+    ],
+    [
+     "vert",
+     "#3f8f5a"
+    ],
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "beton_sombre",
+     "#8c8a85"
+    ]
+   ]
+  },
+  {
+   "id": "librairie",
+   "name": "Librairie",
+   "cat": "commerce",
+   "cost": 350000,
+   "desc": "Librairie à devanture vert bouteille et ses rayonnages en vitrine.",
+   "source": "Librairies indépendantes (Shakespeare and Company)",
+   "region": "europe",
+   "era": "classique",
+   "emplois": 3,
+   "logements": 1,
+   "visiteurs": 120,
+   "variantes": 4,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "vendeur",
+     2
+    ]
+   ],
+   "role": "librairie",
+   "zone": "C",
+   "glb": "res://assets/modeles/bible/librairie.glb",
+   "w": 11,
+   "d": 13,
+   "h": 11.9,
+   "tris": 128,
+   "palette": [
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "metal",
+     "#7d8288"
+    ],
+    [
+     "vert",
+     "#3f8f5a"
+    ],
+    [
+     "pierre_grise",
+     "#9c988f"
+    ],
+    [
+     "or",
+     "#d7b04a"
+    ],
+    [
+     "ardoise",
+     "#5b5f66"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ]
+   ]
+  },
+  {
+   "id": "fleuriste",
+   "name": "Fleuriste",
+   "cat": "commerce",
+   "cost": 260000,
+   "desc": "Boutique de fleurs pastel, seaux de bouquets sur le trottoir.",
+   "source": "Fleuristes de quartier",
+   "region": "europe",
+   "era": "moderne",
+   "emplois": 2,
+   "logements": 0,
+   "visiteurs": 90,
+   "variantes": 4,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "vendeur",
+     2
+    ]
+   ],
+   "role": "fleuriste",
+   "zone": "C",
+   "glb": "res://assets/modeles/bible/fleuriste.glb",
+   "w": 10,
+   "d": 12,
+   "h": 4.6,
+   "tris": 210,
+   "palette": [
+    [
+     "enduit_vert",
+     "#cfdcc0"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "metal",
+     "#7d8288"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "zinc",
+     "#7e8890"
+    ],
+    [
+     "rouge",
+     "#c0392b"
+    ],
+    [
+     "jaune",
+     "#f2c14e"
+    ],
+    [
+     "enduit_rose",
+     "#e9c2b0"
+    ],
+    [
+     "orange",
+     "#e4772e"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ]
+   ]
+  },
+  {
+   "id": "kiosque_presse",
+   "name": "Kiosque Davioud",
+   "cat": "commerce",
+   "cost": 60000,
+   "desc": "Kiosque vert à coupole, colonne Morris et présentoirs de magazines.",
+   "source": "Kiosques Davioud des boulevards parisiens",
+   "region": "europe",
+   "era": "classique",
+   "emplois": 1,
+   "logements": 0,
+   "visiteurs": 80,
+   "variantes": 1,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "vendeur",
+     1
+    ]
+   ],
+   "role": "kiosque",
+   "zone": "C",
+   "sans_vitres": true,
+   "glb": "res://assets/modeles/bible/kiosque_presse.glb",
+   "w": 9,
+   "d": 6,
+   "h": 4.8,
+   "tris": 164,
+   "palette": [
+    [
+     "vert",
+     "#3f8f5a"
+    ],
+    [
+     "or",
+     "#d7b04a"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "tole_verte",
+     "#4f6b52"
+    ],
+    [
+     "jaune",
+     "#f2c14e"
+    ]
+   ]
+  },
+  {
+   "id": "halle_marche",
+   "name": "Halle de marché",
+   "cat": "commerce",
+   "cost": 2400000,
+   "desc": "Halle métallique à verrière haute, étals sous une grande nef.",
+   "source": "Halles Baltard, marché couvert de Saint-Quentin",
+   "region": "europe",
+   "era": "classique",
+   "emplois": 30,
+   "logements": 0,
+   "visiteurs": 1500,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "vendeur",
+     4
+    ],
+    [
+     "boucher",
+     1
+    ],
+    [
+     "boulanger",
+     1
+    ],
+    [
+     "magasinier",
+     1
+    ]
+   ],
+   "role": "marche",
+   "zone": "C",
+   "glb": "res://assets/modeles/bible/halle_marche.glb",
+   "w": 41,
+   "d": 29,
+   "h": 14.1,
+   "tris": 240,
+   "palette": [
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "brique",
+     "#a9583f"
+    ],
+    [
+     "vert",
+     "#3f8f5a"
+    ],
+    [
+     "verre_ciel",
+     "#6d97b8"
+    ],
+    [
+     "zinc",
+     "#7e8890"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "verre_clair",
+     "#8fb8d8"
+    ]
+   ]
+  },
+  {
+   "id": "souk_couvert",
+   "name": "Souk couvert",
+   "cat": "commerce",
+   "cost": 1800000,
+   "desc": "Rue d'échoppes sous voûtes de terre, portes à arcs et tissus tendus.",
+   "source": "Souks de Marrakech et bazar de Téhéran",
+   "region": "moyen_orient",
+   "era": "traditionnel",
+   "emplois": 40,
+   "logements": 0,
+   "visiteurs": 1800,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "vendeur",
+     4
+    ],
+    [
+     "artisan",
+     2
+    ]
+   ],
+   "role": "marche",
+   "zone": "C",
+   "glb": "res://assets/modeles/bible/souk_couvert.glb",
+   "w": 33,
+   "d": 18,
+   "h": 6.2,
+   "tris": 392,
+   "palette": [
+    [
+     "terre",
+     "#b9825a"
+    ],
+    [
+     "ocre",
+     "#d39b5a"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "rouge",
+     "#c0392b"
+    ],
+    [
+     "jaune",
+     "#f2c14e"
+    ],
+    [
+     "bleu",
+     "#2a6fdb"
+    ],
+    [
+     "orange",
+     "#e4772e"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ]
+   ]
+  },
+  {
+   "id": "supermarche_moderne",
+   "name": "Supermarché",
+   "cat": "commerce",
+   "cost": 5500000,
+   "desc": "Supermarché de périphérie à auvent, parking et chariots.",
+   "source": "Supermarchés de zone commerciale",
+   "region": "europe",
+   "era": "moderne",
+   "emplois": 55,
+   "logements": 0,
+   "visiteurs": 2200,
+   "variantes": 4,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "caissier",
+     4
+    ],
+    [
+     "vendeur",
+     3
+    ],
+    [
+     "magasinier",
+     2
+    ],
+    [
+     "boucher",
+     1
+    ],
+    [
+     "boulanger",
+     1
+    ],
+    [
+     "cadre",
+     1
+    ]
+   ],
+   "role": "supermarche",
+   "zone": "C",
+   "glb": "res://assets/modeles/bible/supermarche_moderne.glb",
+   "w": 53,
+   "d": 60,
+   "h": 8.1,
+   "tris": 324,
+   "palette": [
+    [
+     "asphalte",
+     "#55585e"
+    ],
+    [
+     "marquage",
+     "#f2f2ee"
+    ],
+    [
+     "bardage",
+     "#a4aab0"
+    ],
+    [
+     "beton_sombre",
+     "#8c8a85"
+    ],
+    [
+     "metal",
+     "#7d8288"
+    ],
+    [
+     "verre_clair",
+     "#8fb8d8"
+    ],
+    [
+     "rouge",
+     "#c0392b"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ]
+   ]
+  },
+  {
+   "id": "hypermarche",
+   "name": "Hypermarché",
+   "cat": "commerce",
+   "cost": 18000000,
+   "desc": "Immense boîte de tôle, galerie marchande, station de lavage et parking géant.",
+   "source": "Hypermarchés des années 1970 (Sainte-Geneviève-des-Bois)",
+   "region": "europe",
+   "era": "moderne",
+   "emplois": 280,
+   "logements": 0,
+   "visiteurs": 9000,
+   "variantes": 3,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "caissier",
+     6
+    ],
+    [
+     "vendeur",
+     5
+    ],
+    [
+     "magasinier",
+     3
+    ],
+    [
+     "chauffeur",
+     1
+    ],
+    [
+     "boucher",
+     1
+    ],
+    [
+     "boulanger",
+     1
+    ],
+    [
+     "cadre",
+     1
+    ]
+   ],
+   "role": "supermarche",
+   "zone": "C",
+   "glb": "res://assets/modeles/bible/hypermarche.glb",
+   "w": 99,
+   "d": 101,
+   "h": 11.5,
+   "tris": 434,
+   "palette": [
+    [
+     "asphalte",
+     "#55585e"
+    ],
+    [
+     "marquage",
+     "#f2f2ee"
+    ],
+    [
+     "bardage",
+     "#a4aab0"
+    ],
+    [
+     "beton_sombre",
+     "#8c8a85"
+    ],
+    [
+     "bardage_bleu",
+     "#4f6f91"
+    ],
+    [
+     "verre_bleu",
+     "#4f6d8f"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "metal",
+     "#7d8288"
+    ],
+    [
+     "verre_clair",
+     "#8fb8d8"
+    ],
+    [
+     "bleu",
+     "#2a6fdb"
+    ],
+    [
+     "jaune",
+     "#f2c14e"
+    ]
+   ]
+  },
+  {
+   "id": "centre_commercial",
+   "name": "Centre commercial",
+   "cat": "commerce",
+   "cost": 42000000,
+   "desc": "Galerie couverte à verrière centrale, deux niveaux de boutiques et cinéma.",
+   "source": "Malls régionaux (Westfield, Les Quatre Temps)",
+   "region": "europe",
+   "era": "contemporain",
+   "emplois": 650,
+   "logements": 0,
+   "visiteurs": 20000,
+   "variantes": 3,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "vendeur",
+     6
+    ],
+    [
+     "caissier",
+     3
+    ],
+    [
+     "serveur",
+     2
+    ],
+    [
+     "cuisinier",
+     1
+    ],
+    [
+     "magasinier",
+     1
+    ],
+    [
+     "agent_cinema",
+     1
+    ],
+    [
+     "cadre",
+     1
+    ]
+   ],
+   "role": "centre_commercial",
+   "zone": "C",
+   "glb": "res://assets/modeles/bible/centre_commercial.glb",
+   "w": 113,
+   "d": 95,
+   "h": 21.0,
+   "tris": 398,
+   "palette": [
+    [
+     "asphalte",
+     "#55585e"
+    ],
+    [
+     "marquage",
+     "#f2f2ee"
+    ],
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "beton_sombre",
+     "#8c8a85"
+    ],
+    [
+     "verre_ciel",
+     "#6d97b8"
+    ],
+    [
+     "verre_clair",
+     "#8fb8d8"
+    ],
+    [
+     "verre_bleu",
+     "#4f6d8f"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "metal",
+     "#7d8288"
+    ],
+    [
+     "orange",
+     "#e4772e"
+    ],
+    [
+     "bleu",
+     "#2a6fdb"
+    ],
+    [
+     "bardage_bleu",
+     "#4f6f91"
+    ]
+   ]
+  },
+  {
+   "id": "grand_magasin",
+   "name": "Grand magasin",
+   "cat": "commerce",
+   "cost": 28000000,
+   "desc": "Grand magasin de six niveaux, façade ornée et coupole de verre colorée.",
+   "source": "Galeries Lafayette Haussmann, Le Printemps",
+   "region": "europe",
+   "era": "classique",
+   "emplois": 420,
+   "logements": 0,
+   "visiteurs": 12000,
+   "variantes": 2,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "vendeur",
+     6
+    ],
+    [
+     "caissier",
+     2
+    ],
+    [
+     "magasinier",
+     1
+    ],
+    [
+     "cadre",
+     1
+    ],
+    [
+     "serveur",
+     1
+    ]
+   ],
+   "role": "grand_magasin",
+   "zone": "C",
+   "glb": "res://assets/modeles/bible/grand_magasin.glb",
+   "w": 49,
+   "d": 37,
+   "h": 38.0,
+   "tris": 2590,
+   "palette": [
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "or",
+     "#d7b04a"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "metal",
+     "#7d8288"
+    ],
+    [
+     "pierre",
+     "#b9b0a0"
+    ],
+    [
+     "noir",
+     "#2a2b2e"
+    ],
+    [
+     "cuivre",
+     "#5f9e8a"
+    ],
+    [
+     "ardoise",
+     "#5b5f66"
+    ],
+    [
+     "zinc",
+     "#7e8890"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "verre_ciel",
+     "#6d97b8"
+    ]
+   ]
+  },
+  {
+   "id": "magasin_bricolage",
+   "name": "Magasin de bricolage",
+   "cat": "commerce",
+   "cost": 9000000,
+   "desc": "Hangar orange de bricolage, cour des matériaux et jardinerie sous serre.",
+   "source": "Grandes surfaces de bricolage (Leroy Merlin, Castorama)",
+   "region": "europe",
+   "era": "contemporain",
+   "emplois": 120,
+   "logements": 0,
+   "visiteurs": 3500,
+   "variantes": 4,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "vendeur",
+     4
+    ],
+    [
+     "caissier",
+     2
+    ],
+    [
+     "magasinier",
+     3
+    ],
+    [
+     "chauffeur",
+     1
+    ]
+   ],
+   "role": "bricolage",
+   "zone": "C",
+   "glb": "res://assets/modeles/bible/magasin_bricolage.glb",
+   "w": 86,
+   "d": 71,
+   "h": 12.9,
+   "tris": 482,
+   "palette": [
+    [
+     "asphalte",
+     "#55585e"
+    ],
+    [
+     "marquage",
+     "#f2f2ee"
+    ],
+    [
+     "bardage",
+     "#a4aab0"
+    ],
+    [
+     "beton_sombre",
+     "#8c8a85"
+    ],
+    [
+     "vert",
+     "#3f8f5a"
+    ],
+    [
+     "metal",
+     "#7d8288"
+    ],
+    [
+     "verre_clair",
+     "#8fb8d8"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "bois_clair",
+     "#c39a6b"
+    ],
+    [
+     "brique",
+     "#a9583f"
+    ]
+   ]
+  },
+  {
+   "id": "concession_voitures",
+   "name": "Concession automobile",
+   "cat": "commerce",
+   "cost": 4200000,
+   "desc": "Showroom vitré, atelier et voitures neuves en exposition.",
+   "source": "Concessions automobiles de zone commerciale",
+   "region": "europe",
+   "era": "contemporain",
+   "emplois": 35,
+   "logements": 0,
+   "visiteurs": 200,
+   "variantes": 4,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "vendeur",
+     3
+    ],
+    [
+     "ouvrier",
+     2
+    ],
+    [
+     "cadre",
+     1
+    ]
+   ],
+   "role": "concession",
+   "zone": "C",
+   "glb": "res://assets/modeles/bible/concession_voitures.glb",
+   "w": 42,
+   "d": 35,
+   "h": 12.0,
+   "tris": 320,
+   "palette": [
+    [
+     "asphalte",
+     "#55585e"
+    ],
+    [
+     "verre_bleu",
+     "#4f6d8f"
+    ],
+    [
+     "beton_sombre",
+     "#8c8a85"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "bardage",
+     "#a4aab0"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "verre_ciel",
+     "#6d97b8"
+    ],
+    [
+     "rouge",
+     "#c0392b"
+    ],
+    [
+     "tole",
+     "#9aa0a6"
+    ],
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "verre_nuit",
+     "#1d2d3c"
+    ],
+    [
+     "bleu",
+     "#2a6fdb"
+    ],
+    [
+     "noir",
+     "#2a2b2e"
+    ],
+    [
+     "jaune",
+     "#f2c14e"
+    ],
+    [
+     "metal",
+     "#7d8288"
+    ]
+   ]
+  },
+  {
+   "id": "station_carburant",
+   "name": "Station-service",
+   "cat": "commerce",
+   "cost": 2200000,
+   "desc": "Auvent sur pompes, boutique et totem de prix.",
+   "source": "Stations-service de nationale",
+   "region": "europe",
+   "era": "moderne",
+   "emplois": 6,
+   "logements": 0,
+   "visiteurs": 900,
+   "variantes": 4,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "caissier",
+     2
+    ],
+    [
+     "vendeur",
+     1
+    ]
+   ],
+   "role": "station_service",
+   "zone": "C",
+   "glb": "res://assets/modeles/bible/station_carburant.glb",
+   "w": 36,
+   "d": 32,
+   "h": 7.0,
+   "tris": 312,
+   "palette": [
+    [
+     "asphalte",
+     "#55585e"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "rouge",
+     "#c0392b"
+    ],
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "metal",
+     "#7d8288"
+    ],
+    [
+     "verre_clair",
+     "#8fb8d8"
+    ],
+    [
+     "beton_sombre",
+     "#8c8a85"
+    ],
+    [
+     "noir",
+     "#2a2b2e"
+    ]
+   ]
+  },
+  {
+   "id": "fastfood_drive",
+   "name": "Restauration rapide",
+   "cat": "commerce",
+   "cost": 1600000,
+   "desc": "Restaurant rapide à toit plat, drive en boucle et totem lumineux.",
+   "source": "Restaurants rapides de bord de route",
+   "region": "europe",
+   "era": "contemporain",
+   "emplois": 24,
+   "logements": 0,
+   "visiteurs": 1200,
+   "variantes": 4,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "cuisinier",
+     2
+    ],
+    [
+     "serveur",
+     2
+    ],
+    [
+     "caissier",
+     1
+    ]
+   ],
+   "role": "restaurant",
+   "zone": "C",
+   "glb": "res://assets/modeles/bible/fastfood_drive.glb",
+   "w": 32,
+   "d": 28,
+   "h": 12.4,
+   "tris": 110,
+   "palette": [
+    [
+     "asphalte",
+     "#55585e"
+    ],
+    [
+     "brique",
+     "#a9583f"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "verre_clair",
+     "#8fb8d8"
+    ],
+    [
+     "metal",
+     "#7d8288"
+    ],
+    [
+     "rouge",
+     "#c0392b"
+    ],
+    [
+     "beton_sombre",
+     "#8c8a85"
+    ],
+    [
+     "jaune",
+     "#f2c14e"
+    ],
+    [
+     "bois_clair",
+     "#c39a6b"
+    ]
+   ]
+  },
+  {
+   "id": "bistrot_parisien",
+   "name": "Bistrot",
+   "cat": "commerce",
+   "cost": 520000,
+   "desc": "Café-bistrot d'angle à terrasse, stores rouges et chaises de rotin.",
+   "source": "Cafés parisiens (Café de Flore, Les Deux Magots)",
+   "region": "europe",
+   "era": "classique",
+   "emplois": 8,
+   "logements": 2,
+   "visiteurs": 300,
+   "variantes": 4,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "serveur",
+     3
+    ],
+    [
+     "cuisinier",
+     1
+    ]
+   ],
+   "role": "cafe",
+   "zone": "C",
+   "glb": "res://assets/modeles/bible/bistrot_parisien.glb",
+   "w": 15,
+   "d": 17,
+   "h": 15.9,
+   "tris": 618,
+   "palette": [
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "metal",
+     "#7d8288"
+    ],
+    [
+     "bois_rouge",
+     "#8e3b2e"
+    ],
+    [
+     "pierre",
+     "#b9b0a0"
+    ],
+    [
+     "noir",
+     "#2a2b2e"
+    ],
+    [
+     "rouge",
+     "#c0392b"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "bois_clair",
+     "#c39a6b"
+    ],
+    [
+     "ardoise",
+     "#5b5f66"
+    ],
+    [
+     "zinc",
+     "#7e8890"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ]
+   ]
+  },
+  {
+   "id": "pizzeria",
+   "name": "Pizzeria",
+   "cat": "commerce",
+   "cost": 480000,
+   "desc": "Trattoria à façade terracotta, pergola de vigne et four à bois.",
+   "source": "Trattorias de Naples et du Trastevere",
+   "region": "mediterranee",
+   "era": "traditionnel",
+   "emplois": 7,
+   "logements": 1,
+   "visiteurs": 220,
+   "variantes": 4,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "cuisinier",
+     2
+    ],
+    [
+     "serveur",
+     2
+    ]
+   ],
+   "role": "restaurant",
+   "zone": "C",
+   "glb": "res://assets/modeles/bible/pizzeria.glb",
+   "w": 13,
+   "d": 19,
+   "h": 8.8,
+   "tris": 264,
+   "palette": [
+    [
+     "terre",
+     "#b9825a"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "vert",
+     "#3f8f5a"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "tuile",
+     "#c8553d"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "brique",
+     "#a9583f"
+    ],
+    [
+     "pierre_grise",
+     "#9c988f"
+    ]
+   ]
+  },
+  {
+   "id": "izakaya",
+   "name": "Izakaya",
+   "cat": "commerce",
+   "cost": 560000,
+   "desc": "Bistrot japonais de bois sombre, lanternes rouges et noren à l'entrée.",
+   "source": "Ruelles d'izakaya de Shinjuku (Omoide Yokocho)",
+   "region": "asie_est",
+   "era": "traditionnel",
+   "emplois": 6,
+   "logements": 1,
+   "visiteurs": 180,
+   "variantes": 4,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "cuisinier",
+     2
+    ],
+    [
+     "serveur",
+     2
+    ]
+   ],
+   "role": "restaurant",
+   "zone": "C",
+   "glb": "res://assets/modeles/bible/izakaya.glb",
+   "w": 10,
+   "d": 15,
+   "h": 7.3,
+   "tris": 126,
+   "palette": [
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "bois_clair",
+     "#c39a6b"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "bleu",
+     "#2a6fdb"
+    ],
+    [
+     "rouge",
+     "#c0392b"
+    ],
+    [
+     "tuile",
+     "#c8553d"
+    ],
+    [
+     "ardoise",
+     "#5b5f66"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ]
+   ]
+  },
+  {
+   "id": "diner_americain",
+   "name": "Diner américain",
+   "cat": "commerce",
+   "cost": 620000,
+   "desc": "Wagon-restaurant en inox aux bandeaux colorés et grande enseigne.",
+   "source": "Diners de la côte Est (Mickey's Diner, Saint Paul)",
+   "region": "ameriques",
+   "era": "moderne",
+   "emplois": 10,
+   "logements": 0,
+   "visiteurs": 350,
+   "variantes": 4,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "cuisinier",
+     2
+    ],
+    [
+     "serveur",
+     3
+    ]
+   ],
+   "role": "restaurant",
+   "zone": "C",
+   "glb": "res://assets/modeles/bible/diner_americain.glb",
+   "w": 28,
+   "d": 25,
+   "h": 6.8,
+   "tris": 118,
+   "palette": [
+    [
+     "asphalte",
+     "#55585e"
+    ],
+    [
+     "metal",
+     "#7d8288"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "verre_clair",
+     "#8fb8d8"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "rouge",
+     "#c0392b"
+    ],
+    [
+     "jaune",
+     "#f2c14e"
+    ]
+   ]
+  },
+  {
+   "id": "boutiques_rue",
+   "name": "Rangée de boutiques",
+   "cat": "commerce",
+   "cost": 1900000,
+   "desc": "Quatre boutiques sous arcades avec appartements, enseignes variées.",
+   "source": "Rues commerçantes de centre-bourg",
+   "region": "europe",
+   "era": "classique",
+   "emplois": 14,
+   "logements": 6,
+   "visiteurs": 600,
+   "variantes": 4,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "vendeur",
+     4
+    ],
+    [
+     "caissier",
+     1
+    ],
+    [
+     "serveur",
+     1
+    ]
+   ],
+   "role": "boutiques",
+   "zone": "C",
+   "glb": "res://assets/modeles/bible/boutiques_rue.glb",
+   "w": 31,
+   "d": 16,
+   "h": 12.4,
+   "tris": 416,
+   "palette": [
+    [
+     "enduit_chaud",
+     "#f2d0a9"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "bleu",
+     "#2a6fdb"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "metal",
+     "#7d8288"
+    ],
+    [
+     "rouge",
+     "#c0392b"
+    ],
+    [
+     "vert",
+     "#3f8f5a"
+    ],
+    [
+     "jaune",
+     "#f2c14e"
+    ],
+    [
+     "tuile",
+     "#c8553d"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "brique",
+     "#a9583f"
+    ],
+    [
+     "pierre_grise",
+     "#9c988f"
+    ]
+   ]
+  },
+  {
+   "id": "shophouse",
+   "name": "Shophouse",
+   "cat": "commerce",
+   "cost": 820000,
+   "desc": "Compartiment chinois étroit : boutique au rez, galerie couverte, volets à lamelles.",
+   "source": "Shophouses de Penang, Singapour et Hội An",
+   "region": "asie_sud",
+   "era": "classique",
+   "emplois": 4,
+   "logements": 2,
+   "visiteurs": 180,
+   "variantes": 4,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "vendeur",
+     2
+    ],
+    [
+     "cuisinier",
+     1
+    ]
+   ],
+   "role": "boutiques",
+   "zone": "C",
+   "glb": "res://assets/modeles/bible/shophouse.glb",
+   "w": 9,
+   "d": 21,
+   "h": 11.9,
+   "tris": 158,
+   "palette": [
+    [
+     "enduit_bleu",
+     "#c9dbe3"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "vert",
+     "#3f8f5a"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "bois_rouge",
+     "#8e3b2e"
+    ],
+    [
+     "tuile",
+     "#c8553d"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ]
+   ]
+  },
+  {
+   "id": "auberge_montagne",
+   "name": "Auberge de montagne",
+   "cat": "commerce",
+   "cost": 2800000,
+   "desc": "Hôtel-chalet à balcons fleuris et restaurant panoramique.",
+   "source": "Hôtels-chalets de Zermatt et de Megève",
+   "region": "europe",
+   "era": "traditionnel",
+   "emplois": 22,
+   "logements": 0,
+   "visiteurs": 120,
+   "variantes": 4,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "serveur",
+     3
+    ],
+    [
+     "cuisinier",
+     2
+    ],
+    [
+     "employe",
+     1
+    ]
+   ],
+   "role": "hotel",
+   "zone": "C",
+   "glb": "res://assets/modeles/bible/auberge_montagne.glb",
+   "w": 27,
+   "d": 19,
+   "h": 15.3,
+   "tris": 706,
+   "palette": [
+    [
+     "pierre_grise",
+     "#9c988f"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "bois",
+     "#8a6142"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "vert",
+     "#3f8f5a"
+    ],
+    [
+     "bois_clair",
+     "#c39a6b"
+    ],
+    [
+     "bois_gris",
+     "#8b8478"
+    ],
+    [
+     "tuile_ombre",
+     "#8f3a29"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ]
+   ]
+  },
+  {
+   "id": "palace_belle_epoque",
+   "name": "Palace Belle Époque",
+   "cat": "commerce",
+   "cost": 24000000,
+   "desc": "Grand hôtel de bord de mer, coupoles d'angle, marquise et terrasses.",
+   "source": "Hôtel Negresco (Nice), Carlton (Cannes)",
+   "region": "mediterranee",
+   "era": "classique",
+   "emplois": 240,
+   "logements": 0,
+   "visiteurs": 500,
+   "variantes": 2,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "serveur",
+     4
+    ],
+    [
+     "cuisinier",
+     2
+    ],
+    [
+     "employe",
+     2
+    ],
+    [
+     "cadre",
+     1
+    ]
+   ],
+   "role": "hotel",
+   "zone": "C",
+   "glb": "res://assets/modeles/bible/palace_belle_epoque.glb",
+   "w": 59,
+   "d": 35,
+   "h": 35.0,
+   "tris": 2420,
+   "palette": [
+    [
+     "enduit_blanc",
+     "#f4f2ec"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "verre_clair",
+     "#8fb8d8"
+    ],
+    [
+     "pierre",
+     "#b9b0a0"
+    ],
+    [
+     "noir",
+     "#2a2b2e"
+    ],
+    [
+     "enduit_rose",
+     "#e9c2b0"
+    ],
+    [
+     "or",
+     "#d7b04a"
+    ],
+    [
+     "ardoise",
+     "#5b5f66"
+    ],
+    [
+     "zinc",
+     "#7e8890"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "verre_ciel",
+     "#6d97b8"
+    ]
+   ]
+  },
+  {
+   "id": "hotel_chaine",
+   "name": "Hôtel de chaîne",
+   "cat": "commerce",
+   "cost": 6500000,
+   "desc": "Hôtel économique de cinq niveaux, façade rythmée de couleurs et parking.",
+   "source": "Hôtels de chaîne de périphérie et de gare",
+   "region": "europe",
+   "era": "contemporain",
+   "emplois": 30,
+   "logements": 0,
+   "visiteurs": 200,
+   "variantes": 4,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "employe",
+     3
+    ],
+    [
+     "serveur",
+     1
+    ],
+    [
+     "cuisinier",
+     1
+    ]
+   ],
+   "role": "hotel",
+   "zone": "C",
+   "glb": "res://assets/modeles/bible/hotel_chaine.glb",
+   "w": 43,
+   "d": 33,
+   "h": 17.6,
+   "tris": 746,
+   "palette": [
+    [
+     "asphalte",
+     "#55585e"
+    ],
+    [
+     "marquage",
+     "#f2f2ee"
+    ],
+    [
+     "enduit_blanc",
+     "#f4f2ec"
+    ],
+    [
+     "metal",
+     "#7d8288"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "verre_clair",
+     "#8fb8d8"
+    ],
+    [
+     "bleu",
+     "#2a6fdb"
+    ],
+    [
+     "orange",
+     "#e4772e"
+    ],
+    [
+     "vert",
+     "#3f8f5a"
+    ],
+    [
+     "rouge",
+     "#c0392b"
+    ],
+    [
+     "jaune",
+     "#f2c14e"
+    ],
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "beton_sombre",
+     "#8c8a85"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ]
+   ]
+  },
+  {
+   "id": "tour_hotel",
+   "name": "Tour hôtelière",
+   "cat": "commerce",
+   "cost": 95000000,
+   "desc": "Gratte-ciel d'hôtel en voile de verre bleu, socle de congrès et spa.",
+   "source": "Tours hôtelières de Dubaï et de Shanghai",
+   "region": "moyen_orient",
+   "era": "contemporain",
+   "emplois": 900,
+   "logements": 0,
+   "visiteurs": 1500,
+   "variantes": 2,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "serveur",
+     4
+    ],
+    [
+     "cuisinier",
+     2
+    ],
+    [
+     "employe",
+     2
+    ],
+    [
+     "cadre",
+     1
+    ]
+   ],
+   "role": "hotel",
+   "zone": "C",
+   "glb": "res://assets/modeles/bible/tour_hotel.glb",
+   "w": 52,
+   "d": 37,
+   "h": 150.0,
+   "tris": 196,
+   "palette": [
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "pelouse",
+     "#6aa84f"
+    ],
+    [
+     "metal",
+     "#7d8288"
+    ],
+    [
+     "verre_bleu",
+     "#4f6d8f"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ]
+   ]
+  },
+  {
+   "id": "motel",
+   "name": "Motel",
+   "cat": "commerce",
+   "cost": 1400000,
+   "desc": "Motel en L le long de la route : portes sur coursive, piscine et enseigne néon.",
+   "source": "Motels de la Route 66",
+   "region": "ameriques",
+   "era": "moderne",
+   "emplois": 8,
+   "logements": 0,
+   "visiteurs": 60,
+   "variantes": 4,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "employe",
+     2
+    ],
+    [
+     "serveur",
+     1
+    ]
+   ],
+   "role": "hotel",
+   "zone": "C",
+   "glb": "res://assets/modeles/bible/motel.glb",
+   "w": 46,
+   "d": 32,
+   "h": 9.4,
+   "tris": 312,
+   "palette": [
+    [
+     "asphalte",
+     "#55585e"
+    ],
+    [
+     "enduit_rose",
+     "#e9c2b0"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "bleu",
+     "#2a6fdb"
+    ],
+    [
+     "vert",
+     "#3f8f5a"
+    ],
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "beton_sombre",
+     "#8c8a85"
+    ],
+    [
+     "verre_clair",
+     "#8fb8d8"
+    ],
+    [
+     "tole",
+     "#9aa0a6"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "eau",
+     "#3fa7d6"
+    ],
+    [
+     "metal",
+     "#7d8288"
+    ],
+    [
+     "jaune",
+     "#f2c14e"
+    ],
+    [
+     "rouge",
+     "#c0392b"
+    ]
+   ]
+  },
+  {
+   "id": "ryokan",
+   "name": "Ryokan",
+   "cat": "commerce",
+   "cost": 5200000,
+   "desc": "Auberge japonaise de bois, toits de tuiles grises, bains et jardin.",
+   "source": "Ryokans de Kyoto et onsen de Hakone",
+   "region": "asie_est",
+   "era": "traditionnel",
+   "emplois": 24,
+   "logements": 0,
+   "visiteurs": 80,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "serveur",
+     3
+    ],
+    [
+     "cuisinier",
+     2
+    ],
+    [
+     "employe",
+     1
+    ]
+   ],
+   "role": "hotel",
+   "zone": "C",
+   "glb": "res://assets/modeles/bible/ryokan.glb",
+   "w": 36,
+   "d": 32,
+   "h": 9.3,
+   "tris": 266,
+   "palette": [
+    [
+     "pelouse",
+     "#6aa84f"
+    ],
+    [
+     "pierre_grise",
+     "#9c988f"
+    ],
+    [
+     "bois_clair",
+     "#c39a6b"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "verre_clair",
+     "#8fb8d8"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "pierre",
+     "#b9b0a0"
+    ],
+    [
+     "ardoise",
+     "#5b5f66"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "eau",
+     "#3fa7d6"
+    ]
+   ]
+  },
+  {
+   "id": "immeuble_bureaux",
+   "name": "Immeuble de bureaux",
+   "cat": "commerce",
+   "cost": 14000000,
+   "desc": "Bureaux de six étages en bandes vitrées, rez commercial.",
+   "source": "Immeubles tertiaires de quartier d'affaires",
+   "region": "europe",
+   "era": "moderne",
+   "emplois": 320,
+   "logements": 0,
+   "visiteurs": 0,
+   "variantes": 4,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "employe",
+     5
+    ],
+    [
+     "cadre",
+     3
+    ],
+    [
+     "ingenieur",
+     1
+    ]
+   ],
+   "role": "bureaux",
+   "zone": "C",
+   "glb": "res://assets/modeles/bible/immeuble_bureaux.glb",
+   "w": 35,
+   "d": 21,
+   "h": 23.6,
+   "tris": 122,
+   "palette": [
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "verre_bleu",
+     "#4f6d8f"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "verre_clair",
+     "#8fb8d8"
+    ],
+    [
+     "beton_sombre",
+     "#8c8a85"
+    ],
+    [
+     "bardage",
+     "#a4aab0"
+    ]
+   ]
+  },
+  {
+   "id": "tour_bureaux",
+   "name": "Tour de bureaux",
+   "cat": "commerce",
+   "cost": 120000000,
+   "desc": "Tour de verre de quarante étages, couronne lumineuse et socle en retrait.",
+   "source": "Tours de La Défense (Tour First, Tour Saint-Gobain)",
+   "region": "europe",
+   "era": "contemporain",
+   "emplois": 3500,
+   "logements": 0,
+   "visiteurs": 0,
+   "variantes": 2,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "employe",
+     5
+    ],
+    [
+     "cadre",
+     4
+    ],
+    [
+     "ingenieur",
+     2
+    ]
+   ],
+   "role": "bureaux",
+   "zone": "C",
+   "glb": "res://assets/modeles/bible/tour_bureaux.glb",
+   "w": 52,
+   "d": 52,
+   "h": 184.0,
+   "tris": 306,
+   "palette": [
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "verre_bleu",
+     "#4f6d8f"
+    ],
+    [
+     "metal",
+     "#7d8288"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "verre_clair",
+     "#8fb8d8"
+    ]
+   ]
+  },
+  {
+   "id": "banque_classique",
+   "name": "Banque",
+   "cat": "commerce",
+   "cost": 9000000,
+   "desc": "Siège de banque en pierre à portique de colonnes et hall vitré.",
+   "source": "Sièges bancaires de la fin du XIXe (Crédit Lyonnais, Banque de France)",
+   "region": "europe",
+   "era": "classique",
+   "emplois": 140,
+   "logements": 0,
+   "visiteurs": 300,
+   "variantes": 2,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "employe",
+     4
+    ],
+    [
+     "cadre",
+     2
+    ]
+   ],
+   "role": "banque",
+   "zone": "C",
+   "glb": "res://assets/modeles/bible/banque_classique.glb",
+   "w": 33,
+   "d": 34,
+   "h": 18.1,
+   "tris": 1489,
+   "palette": [
+    [
+     "pierre_grise",
+     "#9c988f"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "pierre",
+     "#b9b0a0"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "or",
+     "#d7b04a"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "zinc",
+     "#7e8890"
+    ]
+   ]
+  },
+  {
+   "id": "siege_social",
+   "name": "Siège social",
+   "cat": "commerce",
+   "cost": 60000000,
+   "desc": "Campus de bureaux à anneau vitré autour d'un jardin intérieur.",
+   "source": "Sièges en anneau (Apple Park, Cupertino)",
+   "region": "ameriques",
+   "era": "contemporain",
+   "emplois": 1800,
+   "logements": 0,
+   "visiteurs": 0,
+   "variantes": 1,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "ingenieur",
+     4
+    ],
+    [
+     "cadre",
+     3
+    ],
+    [
+     "employe",
+     3
+    ],
+    [
+     "cuisinier",
+     1
+    ]
+   ],
+   "role": "bureaux",
+   "zone": "C",
+   "glb": "res://assets/modeles/bible/siege_social.glb",
+   "w": 92,
+   "d": 92,
+   "h": 12.6,
+   "tris": 436,
+   "palette": [
+    [
+     "pelouse",
+     "#6aa84f"
+    ],
+    [
+     "verre_ciel",
+     "#6d97b8"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "vert",
+     "#3f8f5a"
+    ]
+   ]
+  },
+  {
+   "id": "bowling",
+   "name": "Bowling",
+   "cat": "loisirs",
+   "cost": 4800000,
+   "desc": "Salle de bowling à grande quille sur le toit, bar et billards.",
+   "source": "Bowlings américains des années 1960",
+   "region": "ameriques",
+   "era": "moderne",
+   "emplois": 18,
+   "logements": 0,
+   "visiteurs": 600,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "serveur",
+     3
+    ],
+    [
+     "vendeur",
+     1
+    ],
+    [
+     "cuisinier",
+     1
+    ]
+   ],
+   "role": "bowling",
+   "zone": "C",
+   "glb": "res://assets/modeles/bible/bowling.glb",
+   "w": 47,
+   "d": 44,
+   "h": 11.0,
+   "tris": 320,
+   "palette": [
+    [
+     "asphalte",
+     "#55585e"
+    ],
+    [
+     "marquage",
+     "#f2f2ee"
+    ],
+    [
+     "enduit_bleu",
+     "#c9dbe3"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "verre_clair",
+     "#8fb8d8"
+    ],
+    [
+     "metal",
+     "#7d8288"
+    ],
+    [
+     "rouge",
+     "#c0392b"
+    ],
+    [
+     "beton_sombre",
+     "#8c8a85"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "jaune",
+     "#f2c14e"
+    ]
+   ]
+  },
+  {
+   "id": "casino",
+   "name": "Casino",
+   "cat": "loisirs",
+   "cost": 30000000,
+   "desc": "Casino de station balnéaire, façade à colonnes, verrière et jardins.",
+   "source": "Casino de Monte-Carlo",
+   "region": "mediterranee",
+   "era": "classique",
+   "emplois": 420,
+   "logements": 0,
+   "visiteurs": 3000,
+   "variantes": 2,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "serveur",
+     4
+    ],
+    [
+     "employe",
+     3
+    ],
+    [
+     "cuisinier",
+     1
+    ],
+    [
+     "cadre",
+     1
+    ],
+    [
+     "policier",
+     1
+    ]
+   ],
+   "role": "casino",
+   "zone": "C",
+   "glb": "res://assets/modeles/bible/casino.glb",
+   "w": 66,
+   "d": 44,
+   "h": 27.2,
+   "tris": 2238,
+   "palette": [
+    [
+     "pelouse",
+     "#6aa84f"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "or",
+     "#d7b04a"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "pierre",
+     "#b9b0a0"
+    ],
+    [
+     "verre_clair",
+     "#8fb8d8"
+    ],
+    [
+     "cuivre",
+     "#5f9e8a"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "zinc",
+     "#7e8890"
+    ],
+    [
+     "verre_ciel",
+     "#6d97b8"
+    ],
+    [
+     "eau",
+     "#3fa7d6"
+    ]
+   ]
+  },
+  {
+   "id": "discotheque",
+   "name": "Discothèque",
+   "cat": "loisirs",
+   "cost": 2600000,
+   "desc": "Boîte de nuit cubique noire, enseigne néon et entrée surveillée.",
+   "source": "Clubs de zone industrielle reconvertis",
+   "region": "europe",
+   "era": "contemporain",
+   "emplois": 20,
+   "logements": 0,
+   "visiteurs": 900,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "serveur",
+     4
+    ],
+    [
+     "employe",
+     1
+    ],
+    [
+     "policier",
+     1
+    ]
+   ],
+   "role": "discotheque",
+   "zone": "C",
+   "glb": "res://assets/modeles/bible/discotheque.glb",
+   "w": 32,
+   "d": 35,
+   "h": 8.8,
+   "tris": 158,
+   "palette": [
+    [
+     "asphalte",
+     "#55585e"
+    ],
+    [
+     "noir",
+     "#2a2b2e"
+    ],
+    [
+     "beton_sombre",
+     "#8c8a85"
+    ],
+    [
+     "bleu",
+     "#2a6fdb"
+    ],
+    [
+     "verre_nuit",
+     "#1d2d3c"
+    ],
+    [
+     "enduit_rose",
+     "#e9c2b0"
+    ],
+    [
+     "jaune",
+     "#f2c14e"
+    ],
+    [
+     "verre_bleu",
+     "#4f6d8f"
+    ],
+    [
+     "metal",
+     "#7d8288"
+    ]
+   ]
+  },
+  {
+   "id": "salle_concert",
+   "name": "Salle de concert",
+   "cat": "loisirs",
+   "cost": 34000000,
+   "desc": "Grande salle de concerts à toile tendue rouge et parvis.",
+   "source": "Zéniths de France (Paris, Strasbourg)",
+   "region": "europe",
+   "era": "contemporain",
+   "emplois": 90,
+   "logements": 0,
+   "visiteurs": 6000,
+   "variantes": 2,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "agent_cinema",
+     3
+    ],
+    [
+     "serveur",
+     2
+    ],
+    [
+     "comedien",
+     2
+    ],
+    [
+     "employe",
+     1
+    ]
+   ],
+   "role": "theatre",
+   "zone": "C",
+   "glb": "res://assets/modeles/bible/salle_concert.glb",
+   "w": 72,
+   "d": 71,
+   "h": 21.0,
+   "tris": 164,
+   "palette": [
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "bardage",
+     "#a4aab0"
+    ],
+    [
+     "rouge",
+     "#c0392b"
+    ],
+    [
+     "verre_clair",
+     "#8fb8d8"
+    ],
+    [
+     "metal",
+     "#7d8288"
+    ],
+    [
+     "noir",
+     "#2a2b2e"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ]
+   ]
+  },
+  {
+   "id": "parc_aquatique",
+   "name": "Parc aquatique",
+   "cat": "loisirs",
+   "cost": 22000000,
+   "desc": "Bassins à vagues sous dôme vitré, toboggans géants et plages.",
+   "source": "Aqualands et centres aquatiques (Aquaboulevard)",
+   "region": "europe",
+   "era": "contemporain",
+   "emplois": 120,
+   "logements": 0,
+   "visiteurs": 4000,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "coach",
+     4
+    ],
+    [
+     "vendeur",
+     1
+    ],
+    [
+     "serveur",
+     1
+    ],
+    [
+     "aide_soignant",
+     1
+    ]
+   ],
+   "role": "piscine",
+   "zone": "C",
+   "glb": "res://assets/modeles/bible/parc_aquatique.glb",
+   "w": 82,
+   "d": 66,
+   "h": 16.8,
+   "tris": 228,
+   "palette": [
+    [
+     "sable",
+     "#e3d3a8"
+    ],
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "verre_ciel",
+     "#6d97b8"
+    ],
+    [
+     "verre_clair",
+     "#8fb8d8"
+    ],
+    [
+     "eau",
+     "#3fa7d6"
+    ],
+    [
+     "jaune",
+     "#f2c14e"
+    ],
+    [
+     "rouge",
+     "#c0392b"
+    ],
+    [
+     "metal",
+     "#7d8288"
+    ],
+    [
+     "bleu",
+     "#2a6fdb"
+    ],
+    [
+     "vert",
+     "#3f8f5a"
+    ]
+   ]
+  },
+  {
+   "id": "grande_roue",
+   "name": "Grande roue",
+   "cat": "loisirs",
+   "cost": 3800000,
+   "desc": "Roue de fête foraine de 40 m, nacelles colorées et guichet.",
+   "source": "Grande roue de la Concorde, Prater de Vienne",
+   "region": "europe",
+   "era": "classique",
+   "emplois": 8,
+   "logements": 0,
+   "visiteurs": 1200,
+   "variantes": 2,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "agent_cinema",
+     2
+    ],
+    [
+     "vendeur",
+     1
+    ]
+   ],
+   "role": "manege",
+   "zone": "C",
+   "sans_vitres": true,
+   "glb": "res://assets/modeles/bible/grande_roue.glb",
+   "w": 40,
+   "d": 16,
+   "h": 39.2,
+   "tris": 314,
+   "palette": [
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "rouge",
+     "#c0392b"
+    ],
+    [
+     "jaune",
+     "#f2c14e"
+    ],
+    [
+     "bleu",
+     "#2a6fdb"
+    ],
+    [
+     "vert",
+     "#3f8f5a"
+    ],
+    [
+     "metal",
+     "#7d8288"
+    ]
+   ]
+  },
+  {
+   "id": "carrousel",
+   "name": "Carrousel",
+   "cat": "loisirs",
+   "cost": 450000,
+   "desc": "Manège de chevaux de bois sous chapiteau rayé.",
+   "source": "Carrousels forains (jardin des Tuileries)",
+   "region": "europe",
+   "era": "classique",
+   "emplois": 2,
+   "logements": 0,
+   "visiteurs": 300,
+   "variantes": 2,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "vendeur",
+     1
+    ]
+   ],
+   "role": "manege",
+   "zone": "C",
+   "sans_vitres": true,
+   "glb": "res://assets/modeles/bible/carrousel.glb",
+   "w": 15,
+   "d": 15,
+   "h": 8.0,
+   "tris": 316,
+   "palette": [
+    [
+     "bois_rouge",
+     "#8e3b2e"
+    ],
+    [
+     "or",
+     "#d7b04a"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "bois_clair",
+     "#c39a6b"
+    ],
+    [
+     "rouge",
+     "#c0392b"
+    ]
+   ]
+  },
+  {
+   "id": "kiosque_fanfare",
+   "name": "Kiosque à musique en fonte",
+   "cat": "loisirs",
+   "cost": 180000,
+   "desc": "Kiosque octogonal à colonnettes de fonte et toit en pavillon.",
+   "source": "Kiosques des jardins publics (Vichy, Nancy)",
+   "region": "europe",
+   "era": "classique",
+   "emplois": 0,
+   "logements": 0,
+   "visiteurs": 150,
+   "variantes": 2,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "kiosque_musique",
+   "zone": "C",
+   "sans_vitres": true,
+   "glb": "res://assets/modeles/bible/kiosque_fanfare.glb",
+   "w": 13,
+   "d": 13,
+   "h": 8.6,
+   "tris": 164,
+   "palette": [
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "bois_clair",
+     "#c39a6b"
+    ],
+    [
+     "vert",
+     "#3f8f5a"
+    ],
+    [
+     "zinc",
+     "#7e8890"
+    ],
+    [
+     "or",
+     "#d7b04a"
+    ]
+   ]
+  },
+  {
+   "id": "skatepark_bowl",
+   "name": "Skatepark à bowl",
+   "cat": "sport",
+   "cost": 600000,
+   "desc": "Bowl de béton, rampes, rails et gradins graffés.",
+   "source": "Skateparks municipaux (Bercy, Marseille Prado)",
+   "region": "europe",
+   "era": "contemporain",
+   "emplois": 0,
+   "logements": 0,
+   "visiteurs": 200,
+   "variantes": 2,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "role": "skatepark",
+   "zone": "C",
+   "sans_vitres": true,
+   "glb": "res://assets/modeles/bible/skatepark_bowl.glb",
+   "w": 38,
+   "d": 28,
+   "h": 2.6,
+   "tris": 114,
+   "palette": [
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "beton_sombre",
+     "#8c8a85"
+    ],
+    [
+     "enduit_bleu",
+     "#c9dbe3"
+    ],
+    [
+     "enduit_rose",
+     "#e9c2b0"
+    ],
+    [
+     "metal",
+     "#7d8288"
+    ],
+    [
+     "jaune",
+     "#f2c14e"
+    ]
+   ]
+  },
+  {
+   "id": "stade_foot",
+   "name": "Stade de football",
+   "cat": "sport",
+   "cost": 85000000,
+   "desc": "Stade de 30 000 places, tribunes couvertes et pylônes d'éclairage.",
+   "source": "Stades à l'anglaise (Anfield, Geoffroy-Guichard)",
+   "region": "europe",
+   "era": "moderne",
+   "emplois": 160,
+   "logements": 0,
+   "visiteurs": 30000,
+   "variantes": 2,
+   "access": [
+    "route"
+   ],
+   "metiers": [
+    [
+     "coach",
+     3
+    ],
+    [
+     "agent_public",
+     2
+    ],
+    [
+     "vendeur",
+     2
+    ],
+    [
+     "serveur",
+     1
+    ],
+    [
+     "policier",
+     1
+    ]
+   ],
+   "role": "foot",
+   "zone": "C",
+   "glb": "res://assets/modeles/bible/stade_foot.glb",
+   "w": 137,
+   "d": 105,
+   "h": 43.0,
+   "tris": 270,
+   "palette": [
+    [
+     "pelouse",
+     "#6aa84f"
+    ],
+    [
+     "vert",
+     "#3f8f5a"
+    ],
+    [
+     "marquage",
+     "#f2f2ee"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "rouge",
+     "#c0392b"
+    ],
+    [
+     "beton_clair",
+     "#d4d1ca"
+    ],
+    [
+     "tole",
+     "#9aa0a6"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "verre_bleu",
+     "#4f6d8f"
+    ],
+    [
+     "bleu",
+     "#2a6fdb"
+    ],
+    [
+     "metal",
+     "#7d8288"
+    ]
+   ]
+  },
+  {
+   "id": "club_house_golf",
+   "name": "Club-house de golf",
+   "cat": "sport",
+   "cost": 4500000,
+   "desc": "Club-house de bois et pierre à véranda, green d'entraînement et voiturettes.",
+   "source": "Club-houses de golf écossais et américains",
+   "region": "europe",
+   "era": "moderne",
+   "emplois": 26,
+   "logements": 0,
+   "visiteurs": 200,
+   "variantes": 4,
+   "access": [
+    "route",
+    "chemin"
+   ],
+   "metiers": [
+    [
+     "coach",
+     2
+    ],
+    [
+     "serveur",
+     2
+    ],
+    [
+     "cuisinier",
+     1
+    ],
+    [
+     "agriculteur",
+     1
+    ]
+   ],
+   "role": "golf",
+   "zone": "C",
+   "glb": "res://assets/modeles/bible/club_house_golf.glb",
+   "w": 54,
+   "d": 42,
+   "h": 10.9,
+   "tris": 434,
+   "palette": [
+    [
+     "pelouse",
+     "#6aa84f"
+    ],
+    [
+     "pierre_claire",
+     "#d8d0bf"
+    ],
+    [
+     "blanc",
+     "#f7f7f5"
+    ],
+    [
+     "vitre",
+     "#33495e"
+    ],
+    [
+     "cadre",
+     "#f4f1ea"
+    ],
+    [
+     "bois_sombre",
+     "#5a3e2b"
+    ],
+    [
+     "bois_clair",
+     "#c39a6b"
+    ],
+    [
+     "ardoise",
+     "#5b5f66"
+    ],
+    [
+     "sous_toit",
+     "#6a5040"
+    ],
+    [
+     "bois",
+     "#8a6142"
+    ],
+    [
+     "pierre_grise",
+     "#9c988f"
+    ],
+    [
+     "vert",
+     "#3f8f5a"
+    ],
+    [
+     "rouge",
+     "#c0392b"
+    ]
+   ]
+  }
+ ]
+}

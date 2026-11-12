@@ -1,0 +1,46 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "asphalte": {
+   "index": 0,
+   "origine": "#55585e"
+  },
+  "blanc": {
+   "index": 1,
+   "origine": "#f7f7f5"
+  },
+  "rouge": {
+   "index": 2,
+   "origine": "#c0392b"
+  },
+  "beton_clair": {
+   "index": 3,
+   "origine": "#d4d1ca"
+  },
+  "cadre": {
+   "index": 4,
+   "origine": "#f4f1ea"
+  },
+  "vitre": {
+   "index": 5,
+   "origine": "#33495e"
+  },
+  "metal": {
+   "index": 6,
+   "origine": "#7d8288"
+  },
+  "verre_clair": {
+   "index": 7,
+   "origine": "#8fb8d8"
+  },
+  "beton_sombre": {
+   "index": 8,
+   "origine": "#8c8a85"
+  },
+  "noir": {
+   "index": 9,
+   "origine": "#2a2b2e"
+  }
+ }
+}

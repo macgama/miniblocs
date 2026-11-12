@@ -1,0 +1,26 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "pierre_claire": {
+   "index": 0,
+   "origine": "#d8d0bf"
+  },
+  "verre_bleu": {
+   "index": 1,
+   "origine": "#4f6d8f"
+  },
+  "metal": {
+   "index": 2,
+   "origine": "#7d8288"
+  },
+  "blanc": {
+   "index": 3,
+   "origine": "#f7f7f5"
+  },
+  "verre_clair": {
+   "index": 4,
+   "origine": "#8fb8d8"
+  }
+ }
+}

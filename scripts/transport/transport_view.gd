@@ -152,20 +152,12 @@ static func is_smooth_joint(net: TransportNetwork, nid: int) -> bool:
 	return rad_to_deg(acos(clampf(d0.dot(d1), -1.0, 1.0))) >= SMOOTH_JOINT
 
 
-static func merge_through(net: TransportNetwork, nid: int) -> Array:
-	return net.merge_through(nid)
-
-
-static func is_merge(net: TransportNetwork, nid: int) -> bool:
-	return net.is_merge(nid)
-
-
 ## Voie qui continue tout droit à travers le nœud (raccord simple ou voie
 ## principale d'une insertion) : [tronçon, tronçon] ou [].
 static func through_pair(net: TransportNetwork, nid: int) -> Array:
 	if is_smooth_joint(net, nid):
 		return net.adjacency[nid]
-	return merge_through(net, nid)
+	return net.merge_through(nid)
 
 
 ## Longueur de bretelle cachée sous la chaussée principale : jusqu'à ce que
@@ -177,16 +169,16 @@ static func ramp_trim(net: TransportNetwork, nid: int, eid: int, main: Array) ->
 	var length: float = e.len
 	# Tronçon principal du côté où part la bretelle ; on compare les points à
 	# même distance du nœud (la bretelle s'écarte en biais, presque parallèle).
-	var dr := net.leave_dir(eid, nid)
+	var dr: Vector3 = net.leave_dir(eid, nid)
 	var m: int = main[0] if net.leave_dir(main[0], nid).dot(dr) >= net.leave_dir(main[1], nid).dot(dr) else main[1]
 	var em: Dictionary = net.edges[m]
 	var mlen: float = em.len
 	var s := 0.0
 	while s < length * 0.8:
-		var p := net.point_at(eid, s if e.a == nid else length - s)
+		var p: Vector3 = net.point_at(eid, s if e.a == nid else length - s)
 		var sm := minf(s, mlen)
-		var q := net.point_at(m, sm if em.a == nid else mlen - sm)
-		var t := net.tangent_at(m, sm if em.a == nid else mlen - sm)
+		var q: Vector3 = net.point_at(m, sm if em.a == nid else mlen - sm)
+		var t: Vector3 = net.tangent_at(m, sm if em.a == nid else mlen - sm)
 		var t2 := Vector2(t.x, t.z).normalized()
 		if absf((p.x - q.x) * t2.y - (p.z - q.z) * t2.x) >= need:
 			return s
@@ -247,7 +239,7 @@ static func compute_trims(net: TransportNetwork) -> Dictionary:
 		var adj: Array = net.adjacency.get(nid, [])
 		if adj.size() < 2 or is_smooth_joint(net, nid):
 			continue
-		var main := merge_through(net, nid)
+		var main: Array = net.merge_through(nid)
 		if not main.is_empty():
 			for eid in adj:
 				if main.has(eid):
@@ -356,7 +348,7 @@ static func _junction_arms(net: TransportNetwork, nid: int, trims: Dictionary) -
 	if mode != TransportTypes.Mode.ROAD and mode != TransportTypes.Mode.PATH:
 		return []
 	var adj: Array = net.adjacency.get(nid, [])
-	if adj.size() < 2 or is_smooth_joint(net, nid) or is_merge(net, nid):
+	if adj.size() < 2 or is_smooth_joint(net, nid) or net.is_merge(nid):
 		return []
 	var arms: Array = []
 	for eid in adj:

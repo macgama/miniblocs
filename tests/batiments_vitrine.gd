@@ -33,9 +33,10 @@ func _run() -> void:
 	var yaw := 30.0
 	var focus := Vector2(0, 0)
 	var zoning := args.has("--zones")
-	var bloc_mode := args.has("--blocs") or args.has("--maison") or args.has("--murs")
+	var bloc_mode := args.has("--blocs") or args.has("--maison") or args.has("--murs") or args.has("--courbe")
 	var maison := args.has("--maison") or args.has("--murs")
 	var murs := args.has("--murs")
+	var courbe := args.has("--courbe")
 	var coupe := -100
 	var pitch := -1.0
 	var heure := -1.0
@@ -93,13 +94,15 @@ func _run() -> void:
 			scene.get_node("Zones").current_style = zone_style
 			await _zoning(scene, world, transport, bs)
 		else:
-			if murs:
+			if courbe:
+				_courbe(scene, world, transport, bs)
+			elif murs:
 				_murs(scene, world, coupe)
 			elif maison:
 				_maison(scene, world)
 			else:
 				_blocks_house(scene, world)
-			if not murs:
+			if not murs and not courbe:
 				scene.get_node("Blocs").set_tool(BlockEditor.Tool.BLOCK)
 		var rig0 = scene.get_node("CameraRig")
 		rig0.position = Vector3(focus.x, 42.0, focus.y)
@@ -207,6 +210,34 @@ func _zoning(scene: Node, world: TerrainWorld, transport: TransportSystem, bs: B
 	await process_frame
 	print(bs.summary())
 	print(zs.summary())
+
+
+## Route en arc de cercle et bâtiments calés le long, des deux côtés.
+func _courbe(_scene: Node, world: TerrainWorld, transport: TransportSystem, bs: BuildingSystem) -> void:
+	var rad := 70.0
+	var prev := Vector3.ZERO
+	for i in 13:
+		var th := deg_to_rad(200.0 + i * 12.0)
+		var p := Vector3(cos(th) * rad, 0, sin(th) * rad + 60.0)
+		p.y = world.cell_height(Vector2i(floori(p.x), floori(p.z)))
+		if i > 0:
+			transport.build_segment("route", prev, p)
+		prev = p
+	var types := ["maison", "ecole", "maison", "immeuble", "maison", "cafe", "maison"]
+	var k := 0
+	for side in [1.0, -1.0]:
+		for i in 7:
+			var th := deg_to_rad(214.0 + i * 18.0)
+			var rr: float = rad + side * 16.0
+			var c := Vector2i(floori(cos(th) * rr), floori(sin(th) * rr + 60.0))
+			var id: String = types[k % types.size()] if side > 0 else "maison"
+			k += 1
+			var snap := bs.road_snap(id, c)
+			if snap.is_empty():
+				continue
+			var placed := bs.place(id, snap.center, snap.r, 0, snap.a)
+			if placed < 0:
+				print("non posé : ", id, " ", bs.check_place(id, snap.center, snap.r, false, snap.a).reason)
 
 
 ## Murs fins et étages : une maison de deux niveaux avec sous-sol et toit,

@@ -48,6 +48,15 @@ const PARKERS := ["voiture", "utilitaire", "deux_roues"]
 ## Distance (m) en deçà de laquelle un véhicule prioritaire qui arrive fait attendre.
 const YIELD_DIST := 32.0
 
+## Véhicules d'urgence (Urgences) : vitesse au-dessus de la limite, vitesse
+## de franchissement d'un carrefour, distance où les autres se rangent, fenêtre
+## libre en face pour doubler, blocage avant de passer outre (s).
+const SIREN_SPEED := 1.3
+const SIREN_JUNCTION := 8.0
+const SIREN_YIELD := 55.0
+const SIREN_CLEAR := 70.0
+const SIREN_GHOST := 6.0
+
 ## Émis quand la circulation est réactivée : les lignes remettent leurs véhicules.
 signal restarted
 ## Émis quand un véhicule de ligne arrive à une station (chargement, déchargement).
@@ -82,6 +91,15 @@ var _sidewalks: Array[int] = []
 ## les rues). Les bus d'ambiance disparaissent : seuls roulent ceux des lignes.
 var demand: Callable
 var _sidewalk_len := -1.0
+## Véhicules à sirène par file : clé de file -> positions s (pour se ranger).
+var _siren_keys: Dictionary = {}
+## Carrefours qu'un véhicule à sirène va franchir : personne d'autre ne s'y engage.
+var _siren_nodes: Dictionary = {}
+## Son des sirènes (deux-tons), joué par les véhicules en intervention.
+var siren_sound := true
+var _siren_stream: AudioStreamWAV
+var _beacon_mats: Dictionary = {}
+var _blink := 0.0
 
 
 func _init() -> void:
@@ -113,7 +131,7 @@ func set_enabled(on: bool) -> void:
 func clear(ambient_only := false) -> void:
 	var keep: Array[Dictionary] = []
 	for v in vehicles:
-		if ambient_only and v.has("line"):
+		if ambient_only and (v.has("line") or v.has("urgence") or v.has("delivery")):
 			keep.append(v)
 		else:
 			_free_vehicle(v)
@@ -149,6 +167,84 @@ func add_line_vehicle(line_id: int, model: String, stops: Array[int], k: int, de
 	vehicles.append(v)
 	_place(v)
 	return true
+
+
+## Camion de livraison de l'économie locale : part du nœud start, puis
+## s'arrête à chaque étape (chargement, déchargement) et disparaît après la
+## dernière. Une étape est {"n": nœud} ou {"e": tronçon, "s": distance depuis
+## son nœud a} : le camion s'arrête alors au bord de la route, devant la porte.
+## tag : numéro de la livraison (Production).
+func add_delivery_vehicle(tag: int, model: String, start: int, halts: Array) -> bool:
+	if halts.is_empty() or not network.nodes.has(start):
+		return false
+	var v := {"mode": TransportTypes.Mode.ROAD, "node": start, "route": [] as Array[int], "leg": 0, "s": 0.0,
+		"trail": PackedVector3Array(), "wagons": [], "speed": 0.0, "lane": 0.6, "lane_idx": 0, "factor": 1.0, "own_speed": 0.0,
+		"max_speed": INF, "model": model, "gaps": [], "delivery": tag, "halts": halts, "halt_i": -1, "dwell": 0.5}
+	if not _next_delivery_stop(v):
+		return false
+	_make_body(v)
+	vehicles.append(v)
+	_place(v)
+	return true
+
+
+## Camions de livraison sur la route.
+func delivery_count() -> int:
+	var c := 0
+	for v in vehicles:
+		if v.has("delivery"):
+			c += 1
+	return c
+
+
+func _next_delivery_stop(v: Dictionary) -> bool:
+	var halts: Array = v.halts
+	while int(v.halt_i) + 1 < halts.size():
+		v.halt_i = int(v.halt_i) + 1
+		var h: Dictionary = halts[int(v.halt_i)]
+		var here := int(v.node)
+		v.erase("halt_leg")
+		if h.has("n"):
+			var target := int(h.n)
+			if target == here or not network.nodes.has(target):
+				continue
+			var r := network.find_route(here, target)
+			if r.is_empty():
+				continue
+			v.route = r
+		else:
+			var eid := int(h.e)
+			if not network.edges.has(eid):
+				continue
+			var e: Dictionary = network.edges[eid]
+			# On entre dans le tronçon par le bout le plus court à atteindre.
+			var best: Array[int] = []
+			var best_len := INF
+			var from_a := true
+			for end in [int(e.a), int(e.b)]:
+				var r: Array[int] = []
+				if end != here:
+					r = network.find_route(here, end)
+					if r.is_empty():
+						continue
+				var l := 0.0
+				for x in r:
+					l += float(network.edges[x].len)
+				l += float(h.s) if end == int(e.a) else float(e.len) - float(h.s)
+				if l < best_len:
+					best_len = l
+					best = r
+					from_a = end == int(e.a)
+			if best_len == INF:
+				continue
+			best.append(eid)
+			v.route = best
+			v.halt_leg = best.size() - 1
+			v.halt_s = clampf(float(h.s) if from_a else float(e.len) - float(h.s), 2.0, maxf(float(e.len) - 2.0, 2.0))
+		v.leg = 0
+		v.s = 0.0
+		return true
+	return false
 
 
 ## Aéronef de ligne : path_fn(line_id, de, vers) donne le trajet en 3D.
@@ -262,13 +358,24 @@ func set_filters(era: String, region: String) -> void:
 func pool_for(cls: String) -> Array[String]:
 	if _pool_cache.has(cls):
 		return _pool_cache[cls]
-	var ids := VehicleCatalog.for_track(cls, era_filter, region_filter)
+	var ids := _no_service(VehicleCatalog.for_track(cls, era_filter, region_filter))
 	if ids.is_empty():
-		ids = VehicleCatalog.for_track(cls, era_filter, "")
+		ids = _no_service(VehicleCatalog.for_track(cls, era_filter, ""))
 	if ids.is_empty():
-		ids = VehicleCatalog.for_track(cls)
+		ids = _no_service(VehicleCatalog.for_track(cls))
 	_pool_cache[cls] = ids
 	return ids
+
+
+## Les véhicules d'urgence ne roulent pas en ambiance : ils partent de leur
+## caserne quand on les appelle (Urgences). De même, le camion porteur de
+## livraison ne roule que pour une vraie livraison (Production).
+static func _no_service(ids: Array[String]) -> Array[String]:
+	var out: Array[String] = []
+	for id in ids:
+		if VehicleCatalog.service_of(id) == "" and not bool(VehicleCatalog.get_type(id).get("livraison", false)):
+			out.append(id)
+	return out
 
 
 ## Tire un modèle au hasard ; sur route, les voitures dominent.
@@ -307,7 +414,7 @@ func pick_model(cls: String) -> String:
 func count_mode(mode: int) -> int:
 	var c := 0
 	for v in vehicles:
-		if int(v.mode) == mode and not v.has("line") and not v.has("sidewalk"):
+		if int(v.mode) == mode and not v.has("line") and not v.has("sidewalk") and not v.has("urgence") and not v.has("delivery"):
 			c += 1
 	return c
 
@@ -331,7 +438,7 @@ func _process(delta: float) -> void:
 				spawn(mode)
 			elif have > want:
 				for i in vehicles.size():
-					if int(vehicles[i].mode) == mode and not vehicles[i].has("line"):
+					if int(vehicles[i].mode) == mode and not vehicles[i].has("line") and not vehicles[i].has("urgence") and not vehicles[i].has("delivery"):
 						_free_vehicle(vehicles[i])
 						vehicles.remove_at(i)
 						break
@@ -354,6 +461,7 @@ func _process(delta: float) -> void:
 func step(delta: float) -> void:
 	if junctions != null:
 		junctions.tick(delta)
+	_blink += delta
 	_build_index()
 	var i := 0
 	while i < vehicles.size():
@@ -414,6 +522,28 @@ func walker_count() -> int:
 	return c
 
 
+## Piéton d'ambiance : personnage arrondi (Silhouettes) au hasard, ou bloc
+## si les modèles ne sont pas importés.
+func _walker_body() -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	mi.material_override = _material
+	_walker_look(mi)
+	return mi
+
+
+func _walker_look(mi: MeshInstance3D) -> void:
+	if not Silhouettes.disponible():
+		mi.mesh = _mesh("walker_%d" % (rng.randi() % 5))
+		return
+	var regions := ["europe", "mediterranee", "afrique", "moyen_orient", "asie_sud", "asie_est", "ameriques", "oceanie"]
+	var graine := rng.randi()
+	var age := rng.randf_range(14.0, 85.0) if rng.randf() < 0.88 else rng.randf_range(4.0, 14.0)
+	var look := Silhouettes.apparence(graine, age, "F" if rng.randf() < 0.5 else "H", regions[graine % regions.size()], graine)
+	var fig := Silhouettes.creer(look)
+	mi.add_child(fig)
+	mi.set_meta("fig", fig)
+
+
 ## Fait apparaître un piéton sur un trottoir au hasard.
 func spawn_walker() -> bool:
 	sidewalk_length()
@@ -427,9 +557,7 @@ func spawn_walker() -> bool:
 		"s": rng.randf() * float(e.len), "trail": PackedVector3Array(), "wagons": [], "speed": 0.0, "lane": 0.0, "lane_idx": 0,
 		"factor": 1.0, "own_speed": rng.randf_range(1.1, 1.6), "max_speed": INF, "model": "", "gaps": [],
 		"sidewalk": 1.0 if rng.randf() < 0.5 else -1.0, "cross": 0, "uid": _uid, "half": 0.3, "rear": 0.3}
-	var mi := MeshInstance3D.new()
-	mi.material_override = _material
-	mi.mesh = _mesh("walker_%d" % (rng.randi() % 5))
+	var mi := _walker_body()
 	add_child(mi)
 	v.body = mi
 	vehicles.append(v)
@@ -616,7 +744,7 @@ func parked_count() -> int:
 ## (pas de demi-tour dessus).
 func _maybe_park(v: Dictionary, start: int, avoid := -1) -> Array[int]:
 	var none: Array[int] = []
-	if parkings.is_empty() or int(v.mode) != TransportTypes.Mode.ROAD or v.has("line") or not (v.wagons as Array).is_empty():
+	if parkings.is_empty() or int(v.mode) != TransportTypes.Mode.ROAD or (v.has("line") or v.has("delivery")) or not (v.wagons as Array).is_empty():
 		return none
 	if String(v.model) == "" or not PARKERS.has(String(VehicleCatalog.get_type(v.model).get("cat", ""))):
 		return none
@@ -689,8 +817,12 @@ func _free_spot(v: Dictionary) -> void:
 
 
 func _new_route(v: Dictionary) -> bool:
+	if v.has("urgence"):
+		return false
 	if v.has("line"):
 		return _next_stop(v)
+	if v.has("delivery"):
+		return _next_delivery_stop(v)
 	if v.has("sidewalk"):
 		return _sidewalk_next(v)
 	var start: int = v.node
@@ -728,6 +860,13 @@ func _advance(v: Dictionary, delta: float) -> bool:
 		v.dwell = float(v.dwell) - delta
 		_place(v)
 		return true
+	if v.has("urgence"):
+		_beacons_tick(v)
+		if v.get("on_site", false):
+			v.speed = 0.0
+			v.pull = minf(1.0, float(v.get("pull", 0.0)) + delta)
+			_place(v)
+			return true
 	var route: Array[int] = v.route
 	if v.leg >= route.size():
 		return false
@@ -736,10 +875,21 @@ func _advance(v: Dictionary, delta: float) -> bool:
 		return false
 	var e0: Dictionary = network.edges[eid]
 	var spd: float = v.own_speed if float(v.own_speed) > 0.0 else minf(TransportTypes.speed_of(e0.t), float(v.max_speed)) * float(v.factor)
+	if v.get("siren", false):
+		spd = minf(TransportTypes.speed_of(e0.t) * SIREN_SPEED, float(v.max_speed))
 	var mode := int(v.mode)
 	if mode == TransportTypes.Mode.ROAD or mode == TransportTypes.Mode.RAIL:
 		if not _drive(v, eid, e0, spd, delta):
 			return false
+		# Camion de livraison arrivé devant la porte : il charge ou décharge.
+		if v.has("halt_leg") and int(v.leg) == int(v.halt_leg) and float(v.halt_s) - float(v.s) < 0.4:
+			v.s = float(v.halt_s)
+			v.erase("halt_leg")
+			v.dwell = DWELL * 2.0
+			v.speed = 0.0
+			v.halt_done = true
+			_place(v)
+			return true
 	elif v.has("sidewalk"):
 		if _walk(v, eid, e0, spd, delta):
 			_place(v)
@@ -755,12 +905,29 @@ func _advance(v: Dictionary, delta: float) -> bool:
 		v.granted = -1
 		v.cross = 0
 		if v.leg >= route.size():
+			if v.has("urgence"):
+				v.leg = route.size() - 1
+				v.node = network.other_end(eid, v.node)
+				v.s = float(network.edges[eid].len)
+				_arrive(v)
+				return true
 			if v.has("line"):
 				# Arrivée en station : arrêt, puis départ vers la suivante.
 				line_arrived.emit(int(v.line), String(v.model))
 				if not _next_stop(v):
 					return false
 				v.dwell = DWELL
+				_place(v)
+				return true
+			if v.has("delivery"):
+				# Étape sur un nœud : chargement ou déchargement au bout de la route ;
+				# étape devant une porte : déjà faite en chemin. Puis étape suivante.
+				var at_node := not bool(v.get("halt_done", false))
+				v.halt_done = false
+				if not _next_delivery_stop(v):
+					return false
+				if at_node:
+					v.dwell = DWELL * 2.0
 				_place(v)
 				return true
 			if v.has("park_at"):
@@ -775,6 +942,11 @@ func _advance(v: Dictionary, delta: float) -> bool:
 		var e: Dictionary = network.edges[eid]
 		if e.a != v.node and e.b != v.node:
 			return false
+	if v.has("urgence") and int(v.leg) == route.size() - 1:
+		var left := float(v.get("stop_s", INF)) - float(v.s)
+		# Arrivé, ou arrêté juste derrière les secours déjà sur place.
+		if left <= 0.05 or (left < 35.0 and float(v.get("wait", 0.0)) > 1.5):
+			_arrive(v)
 	_release_if_clear(v)
 	_place(v)
 	return true
@@ -795,6 +967,8 @@ func _key(eid: int, forward: bool, lane_idx: int) -> int:
 
 func _build_index() -> void:
 	_index.clear()
+	_siren_keys.clear()
+	_siren_nodes.clear()
 	for v in vehicles:
 		var mode := int(v.mode)
 		if mode != TransportTypes.Mode.ROAD and mode != TransportTypes.Mode.RAIL:
@@ -811,6 +985,14 @@ func _build_index() -> void:
 		if not _index.has(k):
 			_index[k] = []
 		(_index[k] as Array).append(v)
+		if v.get("siren", false) and not v.get("on_site", false):
+			for lane in _lane_count(eid):
+				var ks := _key(eid, network.edges[eid].a == v.node, lane)
+				if not _siren_keys.has(ks):
+					_siren_keys[ks] = []
+				(_siren_keys[ks] as Array).append(float(v.s))
+			if float(network.edges[eid].len) - float(v.s) < SIREN_CLEAR:
+				_siren_nodes[network.other_end(eid, v.node)] = int(v.uid)
 
 
 ## Véhicule le plus proche devant la position s dans une file : [véhicule, s] ou [].
@@ -838,9 +1020,12 @@ func _room(v: Dictionary, eid: int, e: Dictionary, s: float) -> float:
 	if not lead.is_empty():
 		return float(lead[1]) - float(lead[0].get("rear", 2.0)) - front - MIN_GAP
 	var route: Array[int] = v.route
+	if v.has("urgence") and int(v.leg) + 1 >= route.size():
+		# Arrêt sur les lieux (ou devant la caserne), derrière qui serait devant.
+		return minf(float(v.get("stop_s", e.len)) - s, INF)
 	if int(v.leg) + 1 >= route.size():
 		# Véhicule ambiant sans suite connue : il attend au nœud qu'on lui en trouve une.
-		return INF if v.has("line") or v.has("park_at") else float(e.len) - s - 0.01
+		return INF if (v.has("line") or v.has("delivery")) or v.has("park_at") else float(e.len) - s - 0.01
 	var nxt: int = route[int(v.leg) + 1]
 	if not network.edges.has(nxt):
 		return INF
@@ -856,16 +1041,35 @@ func _room(v: Dictionary, eid: int, e: Dictionary, s: float) -> float:
 func _drive(v: Dictionary, eid: int, e: Dictionary, cruise: float, delta: float) -> bool:
 	var s := float(v.s)
 	var stuck := float(v.get("stuck", 0.0))
-	var ghost: bool = v.has("line") and stuck > STUCK_LINE
+	var ghost: bool = (v.has("line") or v.has("delivery")) and stuck > STUCK_LINE
+	var siren: bool = v.get("siren", false)
+	if v.has("urgence") and stuck > (SIREN_GHOST if siren else STUCK_LINE):
+		ghost = true
 	var route: Array[int] = v.route
 	# Destination suivante choisie à l'avance : le véhicule voit qui est devant
 	# lui à la sortie du nœud et respecte le carrefour.
-	if not v.has("line") and not v.has("park_at") and int(v.leg) + 1 >= route.size() and float(e.len) - s < 40.0:
+	if not (v.has("line") or v.has("delivery")) and not v.has("park_at") and not v.has("urgence") and int(v.leg) + 1 >= route.size() and float(e.len) - s < 40.0:
 		_extend_route(v)
 		route = v.route
 	var limit := INF if ghost else _room(v, eid, e, s)
+	if v.has("halt_leg") and int(v.leg) == int(v.halt_leg):
+		limit = minf(limit, maxf(float(v.halt_s) - s, 0.0))
 	var nid := network.other_end(eid, v.node)
-	if int(v.mode) == TransportTypes.Mode.ROAD and junctions != null and junctions.is_controlled(nid) \
+	if siren and not ghost:
+		limit = _siren_limit(v, eid, e, s, limit, delta)
+	if v.has("urgence") and not v.get("on_site", false):
+		v.pull = maxf(0.0, float(v.get("pull", 0.0)) - delta)
+		if not siren or ghost:
+			v.pass = maxf(0.0, float(v.get("pass", 0.0)) - delta)
+	elif not siren and v.has("urgence") == false and int(v.mode) == TransportTypes.Mode.ROAD:
+		cruise = _yield_to_siren(v, eid, e, s, cruise, delta)
+	if siren and int(v.mode) == TransportTypes.Mode.ROAD and junctions != null and junctions.is_controlled(nid) \
+			and int(v.leg) + 1 < route.size():
+		# Sirène : on ne s'arrête pas aux feux ni aux stops, on ralentit seulement.
+		var to_line := float(e.len) - junctions.stop_dist(eid, nid) - s
+		if to_line < 25.0:
+			cruise = minf(cruise, SIREN_JUNCTION + maxf(to_line, 0.0) * 0.6)
+	elif int(v.mode) == TransportTypes.Mode.ROAD and junctions != null and junctions.is_controlled(nid) \
 			and int(v.leg) + 1 < route.size() and int(v.get("granted", -1)) != nid and not ghost:
 		var stop_s := float(e.len) - junctions.stop_dist(eid, nid) - float(v.get("half", 2.0))
 		var dist := stop_s - s
@@ -892,7 +1096,7 @@ func _drive(v: Dictionary, eid: int, e: Dictionary, cruise: float, delta: float)
 	if adv < 0.05 * delta:
 		v.wait = float(v.get("wait", 0.0)) + delta
 		v.stuck = stuck + delta
-		if not v.has("line") and float(v.stuck) > STUCK:
+		if not (v.has("line") or v.has("delivery")) and not v.has("urgence") and float(v.stuck) > STUCK:
 			return false
 	else:
 		v.wait = 0.0
@@ -903,6 +1107,9 @@ func _drive(v: Dictionary, eid: int, e: Dictionary, cruise: float, delta: float)
 ## Le véhicule v, arrêté (ou presque) à la ligne de la branche eid, peut-il
 ## s'engager dans le carrefour nid pour sortir par exit_eid ?
 func _may_enter(v: Dictionary, nid: int, eid: int, exit_eid: int, dist: float) -> bool:
+	# Un véhicule à sirène arrive : tout le monde le laisse passer.
+	if _siren_nodes.has(nid) and int(_siren_nodes[nid]) != int(v.get("uid", -1)):
+		return false
 	# Piétons sur le passage, devant ou à la sortie : on les laisse traverser.
 	if junctions.crosswalk_busy(nid, eid) or junctions.crosswalk_busy(nid, exit_eid):
 		return false
@@ -1023,6 +1230,15 @@ func _place(v: Dictionary) -> void:
 		lane *= float(v.lane)
 	elif v.has("bike"):
 		lane += float(TransportTypes.normalize(e.t, e.w).get("lane_w", 3.0)) * 0.3
+	if int(v.mode) == TransportTypes.Mode.ROAD and not offsets.is_empty():
+		var lw := float(TransportTypes.normalize(e.t, e.w).get("lane_w", 3.0))
+		# Se ranger à droite (sirène derrière, ou arrêt sur les lieux).
+		lane += float(v.get("pull", 0.0)) * lw * 0.45
+		# Doubler : voie d'en face (double sens) ou voie de gauche (sens unique).
+		var pass_k := float(v.get("pass", 0.0))
+		if pass_k > 0.0:
+			var left: float = offsets.min() if (offsets.min() < 0.0) else -offsets[0]
+			lane = lerpf(lane, left, pass_k)
 	var look := t
 	if v.has("sidewalk"):
 		# Au milieu du trottoir, ou sur le passage piéton pendant la traversée.
@@ -1039,6 +1255,8 @@ func _place(v: Dictionary) -> void:
 	var body: Node3D = v.body
 	body.position = pos
 	body.basis = Basis.looking_at(look, Vector3.UP)
+	if body.has_meta("fig"):
+		Silhouettes.marcher(body.get_meta("fig"), float(v.s) * 2.6, 1.0)
 	if not (v.wagons as Array).is_empty():
 		var gaps: Array = v.gaps
 		var trail: PackedVector3Array = v.trail
@@ -1072,7 +1290,7 @@ func _make_body(v: Dictionary) -> void:
 	var first_edge: Dictionary = network.edges[(v.route as Array[int])[0]]
 	var cls: String = first_edge.t
 	var model := ""
-	if v.has("line"):
+	if v.has("line") or v.has("urgence") or v.has("delivery"):
 		model = v.model
 		v.factor = 1.0
 		v.lane_idx = 0
@@ -1095,8 +1313,10 @@ func _make_body(v: Dictionary) -> void:
 	add_child(mi)
 	v.body = mi
 	if model == "":
-		var key := "walker_%d" % (rng.randi() % 5) if mode == TransportTypes.Mode.PATH else "boat"
-		mi.mesh = _mesh(key)
+		if mode == TransportTypes.Mode.PATH:
+			_walker_look(mi)
+		else:
+			mi.mesh = _mesh("boat")
 		v.own_speed = rng.randf_range(1.1, 1.6) if mode == TransportTypes.Mode.PATH else 0.0
 		return
 	var t := VehicleCatalog.get_type(model)
@@ -1105,7 +1325,7 @@ func _make_body(v: Dictionary) -> void:
 	v.max_speed = float(t.kmh) / 3.6
 	v.half = float(t.L) / 2.0
 	v.rear = v.half
-	v.speed = 0.0 if v.has("line") else v.max_speed * 0.5
+	v.speed = 0.0 if (v.has("line") or v.has("urgence") or v.has("delivery")) else v.max_speed * 0.5
 	if mode == TransportTypes.Mode.PATH:
 		v.own_speed = v.max_speed * rng.randf_range(0.6, 0.9)
 	# Voitures attelées : écart (en mètres de trace) entre chaque caisse et la tête.
@@ -1190,3 +1410,317 @@ func _mesh(key: String) -> ArrayMesh:
 	var m := k.commit()
 	_meshes[key] = m
 	return m
+
+
+# --- Véhicules d'urgence (pompiers, ambulances, police) ------------------------------
+
+## Fait partir un véhicule d'urgence. start et goal : {edge, s} (s mesuré depuis
+## l'extrémité a du tronçon). siren : gyrophares et sirène, priorité partout.
+## on_arrive(v) est appelé à l'arrivée ; le véhicule attend alors sur place
+## (on_site) jusqu'au prochain reroute_emergency ou remove_emergency.
+## Renvoie le véhicule (dictionnaire) ou {} si aucun itinéraire.
+func add_emergency(model: String, start: Dictionary, goal: Dictionary, siren: bool, on_arrive: Callable) -> Dictionary:
+	if network == null or VehicleCatalog.get_type(model).is_empty():
+		return {}
+	var plan := _plan_emergency(start, goal)
+	if plan.is_empty():
+		return {}
+	var v := {"mode": TransportTypes.Mode.ROAD, "node": plan.node, "route": plan.route, "leg": 0, "s": plan.s,
+		"trail": PackedVector3Array(), "wagons": [], "speed": 0.0, "lane": 0.0, "lane_idx": 0, "factor": 1.0,
+		"own_speed": 0.0, "max_speed": INF, "model": model, "gaps": [], "urgence": true, "siren": siren,
+		"stop_s": plan.stop_s, "on_arrive": on_arrive, "pull": 0.0, "pass": 0.0}
+	_make_body(v)
+	_add_beacons(v)
+	vehicles.append(v)
+	_place(v)
+	return v
+
+
+## Nouvelle destination pour un véhicule d'urgence déjà sur la route (retour à
+## la caserne, transport vers l'hôpital…). Demi-tour permis.
+func reroute_emergency(v: Dictionary, goal: Dictionary, siren: bool, on_arrive: Callable) -> bool:
+	if not vehicles.has(v):
+		return false
+	var route: Array[int] = v.route
+	var eid: int = route[clampi(int(v.leg), 0, route.size() - 1)]
+	if not network.edges.has(eid):
+		return false
+	var e: Dictionary = network.edges[eid]
+	var s_a := float(v.s) if e.a == v.node else float(e.len) - float(v.s)
+	var plan := _plan_emergency({"edge": eid, "s": s_a}, goal)
+	if plan.is_empty():
+		return false
+	_release(v)
+	v.node = plan.node
+	v.route = plan.route
+	v.leg = 0
+	v.s = plan.s
+	v.stop_s = plan.stop_s
+	v.siren = siren
+	v.on_arrive = on_arrive
+	v.on_site = false
+	v.stuck = 0.0
+	v.granted = -1
+	_siren_audio(v)
+	_place(v)
+	return true
+
+
+## Retire un véhicule d'urgence (rentré au garage).
+func remove_emergency(v: Dictionary) -> void:
+	var i := vehicles.find(v)
+	if i < 0:
+		return
+	_free_vehicle(v)
+	vehicles.remove_at(i)
+
+
+## Véhicules d'urgence en circulation.
+func emergency_vehicles() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for v in vehicles:
+		if v.has("urgence"):
+			out.append(v)
+	return out
+
+
+## Position du véhicule dans le monde.
+func vehicle_position(v: Dictionary) -> Vector3:
+	if v.has("body") and is_instance_valid(v.body):
+		return (v.body as Node3D).global_position
+	return Vector3.ZERO
+
+
+## Meilleur itinéraire d'un point d'un tronçon à un point d'un autre, dans un
+## sens ou dans l'autre : {node, s, route, stop_s} ou {}.
+func _plan_emergency(start: Dictionary, goal: Dictionary) -> Dictionary:
+	var se := int(start.get("edge", -1))
+	var ge := int(goal.get("edge", -1))
+	if not network.edges.has(se) or not network.edges.has(ge):
+		return {}
+	var es: Dictionary = network.edges[se]
+	var eg: Dictionary = network.edges[ge]
+	var best := {}
+	var best_cost := INF
+	var routes := {}
+	for toward_b in [true, false]:
+		var from_node: int = es.a if toward_b else es.b
+		var exit_node: int = es.b if toward_b else es.a
+		var s0 := float(start.s) if toward_b else float(es.len) - float(start.s)
+		s0 = clampf(s0, 0.0, float(es.len))
+		if TransportTypes.get_type(es.t).get("oneway", false) and not toward_b:
+			continue
+		for entry in [eg.a, eg.b]:
+			if TransportTypes.get_type(eg.t).get("oneway", false) and entry != eg.a:
+				continue
+			var stop := float(goal.s) if entry == eg.a else float(eg.len) - float(goal.s)
+			stop = clampf(stop, 0.5, float(eg.len) - 0.5)
+			if se == ge and from_node == entry and stop >= s0 - 0.5:
+				var cost0 := stop - s0
+				if cost0 < best_cost:
+					best_cost = cost0
+					best = {"node": from_node, "s": s0, "route": [se] as Array[int], "stop_s": maxf(stop, s0 + 0.1)}
+				continue
+			var path: Array[int] = []
+			if exit_node != entry:
+				var key := Vector2i(exit_node, entry)
+				if not routes.has(key):
+					routes[key] = network.find_route(exit_node, entry)
+				path = routes[key]
+				if path.is_empty():
+					continue
+			var cost := float(es.len) - s0 + stop
+			for pe in path:
+				cost += float(network.edges[pe].len)
+			if cost < best_cost:
+				best_cost = cost
+				var r: Array[int] = [se]
+				r.append_array(path)
+				r.append(ge)
+				best = {"node": from_node, "s": s0, "route": r, "stop_s": stop}
+	return best
+
+
+func _arrive(v: Dictionary) -> void:
+	if v.get("on_site", false):
+		return
+	v.on_site = true
+	v.speed = 0.0
+	_release(v)
+	var cb: Callable = v.get("on_arrive", Callable())
+	if cb.is_valid():
+		cb.call(v)
+
+
+## Sirène : on suit le véhicule de devant, sauf si on peut le doubler par la
+## voie d'en face (libre sur SIREN_CLEAR mètres) ; renvoie la place devant.
+func _siren_limit(v: Dictionary, eid: int, e: Dictionary, s: float, limit: float, delta: float) -> float:
+	var forward: bool = e.a == v.node
+	var half := float(v.get("half", 2.0))
+	var lead := _leader(_key(eid, forward, int(v.lane_idx)), s, v)
+	var gap := INF
+	if not lead.is_empty() and not (lead[0] as Dictionary).has("urgence"):
+		gap = float(lead[1]) - float(lead[0].get("rear", 2.0)) - s - half
+	var passing := float(v.get("pass", 0.0))
+	# Quelqu'un encore à côté de nous dans notre voie : on reste à gauche.
+	var alongside := false
+	if passing > 0.0:
+		for o in _index.get(_key(eid, forward, int(v.lane_idx)), []):
+			if not is_same(o, v) and float(o.s) <= s + half + 2.0 and float(o.s) >= s - half - float(o.get("rear", 2.0)) - 3.0:
+				alongside = true
+				break
+	var want := gap < 30.0 or alongside
+	if want and passing < 1.0 and not alongside and float(e.len) - s < gap + 20.0:
+		want = false # pas la place de finir de doubler sur ce tronçon
+	if want and not _oncoming_clear(eid, e, forward, s):
+		want = false
+	if want:
+		v.pass = minf(1.0, passing + delta * 1.5)
+	else:
+		v.pass = maxf(0.0, passing - delta * 1.2)
+	if float(v.pass) > 0.5:
+		var route: Array[int] = v.route
+		if int(v.leg) + 1 >= route.size():
+			return float(v.get("stop_s", e.len)) - s
+		return INF
+	return limit
+
+
+## La voie d'en face est-elle libre devant nous ? (sens unique : toujours.)
+func _oncoming_clear(eid: int, e: Dictionary, forward: bool, s: float) -> bool:
+	if TransportTypes.get_type(e.t).get("oneway", false):
+		return true
+	var L := float(e.len)
+	for lane in _lane_count(eid):
+		for o in _index.get(_key(eid, not forward, lane), []):
+			var pos := L - float(o.s)
+			if pos > s - 4.0 and pos < s + SIREN_CLEAR:
+				return false
+	return true
+
+
+## Véhicule ordinaire : une sirène arrive derrière ? On ralentit et on se range.
+func _yield_to_siren(v: Dictionary, eid: int, e: Dictionary, s: float, cruise: float, delta: float) -> float:
+	var k := _key(eid, e.a == v.node, int(v.lane_idx))
+	var behind := false
+	for ss in _siren_keys.get(k, []):
+		if float(ss) < s and s - float(ss) < SIREN_YIELD:
+			behind = true
+			break
+	var pull := float(v.get("pull", 0.0))
+	if behind:
+		v.pull = minf(1.0, pull + delta * 0.8)
+		return minf(cruise, 4.0)
+	if pull > 0.0:
+		v.pull = maxf(0.0, pull - delta * 0.5)
+	return cruise
+
+
+func _beacon_mat(c: Color) -> StandardMaterial3D:
+	var key := c.to_html()
+	if not _beacon_mats.has(key):
+		var m := StandardMaterial3D.new()
+		m.albedo_color = c
+		m.emission_enabled = true
+		m.emission = c
+		m.emission_energy_multiplier = 3.0
+		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		_beacon_mats[key] = m
+	return _beacon_mats[key]
+
+
+## Feux des gyrophares (allumés en alternance) et lumière portée.
+func _add_beacons(v: Dictionary) -> void:
+	var t := VehicleCatalog.get_type(String(v.model))
+	var nodes: Array = []
+	var box := BoxMesh.new()
+	box.size = Vector3(0.38, 0.16, 0.26)
+	for p in VehicleCatalog.beacons(t):
+		var bp: Vector3 = p
+		var mi := MeshInstance3D.new()
+		mi.mesh = box
+		mi.material_override = _beacon_mat(VehicleCatalog.beacon_color(t, bp.x))
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		mi.position = bp + Vector3(0, 0.02, 0)
+		(v.body as Node3D).add_child(mi)
+		nodes.append(mi)
+	v.beacon_nodes = nodes
+	if not nodes.is_empty():
+		var light := OmniLight3D.new()
+		light.omni_range = 9.0
+		light.light_energy = 2.0
+		light.shadow_enabled = false
+		light.position = (nodes[0] as Node3D).position + Vector3(0, 0.4, 0)
+		(v.body as Node3D).add_child(light)
+		v.beacon_light = light
+	_siren_audio(v)
+	_beacons_tick(v)
+
+
+func _beacons_tick(v: Dictionary) -> void:
+	var nodes: Array = v.get("beacon_nodes", [])
+	var on: bool = v.get("siren", false) or v.get("on_site", false)
+	var phase := fmod(_blink * 3.0 + float(v.get("uid", 0)) * 0.37, 2.0)
+	for i in nodes.size():
+		var n: Node3D = nodes[i]
+		n.visible = on and ((phase < 1.0) == (i % 2 == 0) or nodes.size() == 1)
+	if v.has("beacon_light"):
+		var l: OmniLight3D = v.beacon_light
+		l.visible = on
+		if on and not nodes.is_empty():
+			var lit: MeshInstance3D = nodes[0] if phase < 1.0 else nodes[nodes.size() - 1]
+			l.light_color = (lit.material_override as StandardMaterial3D).albedo_color
+
+
+## Sirène deux-tons (435 et 488 Hz, comme en France), fabriquée une seule fois.
+func siren_stream() -> AudioStreamWAV:
+	if _siren_stream != null:
+		return _siren_stream
+	var rate := 22050
+	var n := rate * 6 / 5
+	var data := PackedByteArray()
+	data.resize(n * 2)
+	var ph := 0.0
+	for i in n:
+		var f := 435.0 if i < n / 2 else 488.0
+		ph += TAU * f / rate
+		var x := sin(ph) * 0.8 + sin(ph * 3.0) * 0.2
+		data.encode_s16(i * 2, int(clampf(x * 0.45, -1.0, 1.0) * 32767.0))
+	var w := AudioStreamWAV.new()
+	w.format = AudioStreamWAV.FORMAT_16_BITS
+	w.mix_rate = rate
+	w.stereo = false
+	w.data = data
+	w.loop_mode = AudioStreamWAV.LOOP_FORWARD
+	w.loop_begin = 0
+	w.loop_end = n
+	_siren_stream = w
+	return w
+
+
+func _siren_audio(v: Dictionary) -> void:
+	if not v.has("body"):
+		return
+	var on: bool = siren_sound and v.get("siren", false)
+	var player: AudioStreamPlayer3D = v.get("siren_player", null)
+	if on and player == null:
+		player = AudioStreamPlayer3D.new()
+		player.stream = siren_stream()
+		player.unit_size = 12.0
+		player.max_distance = 350.0
+		player.volume_db = -8.0
+		(v.body as Node3D).add_child(player)
+		v.siren_player = player
+	if player != null:
+		if on and not player.playing and player.is_inside_tree():
+			player.play(randf() * 1.2)
+		elif not on and player.playing:
+			player.stop()
+
+
+## Coupe ou remet le son des sirènes.
+func set_siren_sound(on: bool) -> void:
+	siren_sound = on
+	for v in vehicles:
+		if v.has("urgence"):
+			_siren_audio(v)

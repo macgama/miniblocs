@@ -1,0 +1,26 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "enduit_blanc": {
+   "index": 0,
+   "origine": "#f4f2ec"
+  },
+  "pierre_grise": {
+   "index": 1,
+   "origine": "#9c988f"
+  },
+  "vert": {
+   "index": 2,
+   "origine": "#3f8f5a"
+  },
+  "pierre_claire": {
+   "index": 3,
+   "origine": "#d8d0bf"
+  },
+  "vitre": {
+   "index": 4,
+   "origine": "#33495e"
+  }
+ }
+}

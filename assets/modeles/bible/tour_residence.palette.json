@@ -1,0 +1,38 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "pierre_grise": {
+   "index": 0,
+   "origine": "#9c988f"
+  },
+  "verre_bleu": {
+   "index": 1,
+   "origine": "#4f6d8f"
+  },
+  "cadre": {
+   "index": 2,
+   "origine": "#f4f1ea"
+  },
+  "verre_nuit": {
+   "index": 3,
+   "origine": "#1d2d3c"
+  },
+  "blanc": {
+   "index": 4,
+   "origine": "#f7f7f5"
+  },
+  "pelouse": {
+   "index": 5,
+   "origine": "#6aa84f"
+  },
+  "verre_ciel": {
+   "index": 6,
+   "origine": "#6d97b8"
+  },
+  "beton_sombre": {
+   "index": 7,
+   "origine": "#8c8a85"
+  }
+ }
+}

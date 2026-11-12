@@ -14,6 +14,9 @@ shader_type spatial;
 // - usure : façades délavées, coulures, mousse sur les toits, un peu de lierre ;
 // - abandon : lierre qui grimpe, fenêtres éteintes ou condamnées ;
 // - chantier_h : le bâtiment n'est dessiné que jusqu'à cette hauteur (chantier).
+// - degats : suie et façades noircies après un incendie (Evenements) ;
+// - bache : bâches bleues sur le toit abîmé par une tempête ;
+// - panne : coupure d'électricité, aucune fenêtre allumée.
 
 uniform float night = 0.0;
 uniform float lit_ratio = 0.6;
@@ -37,6 +40,9 @@ uniform float day_interior = 0.26;
 uniform float usure = 0.0;
 uniform float abandon = 0.0;
 uniform float chantier_h = 10000.0;
+uniform float degats = 0.0;
+uniform float bache = 0.0;
+uniform float panne = 0.0;
 
 varying flat vec3 face_corner;
 varying vec3 world_pos;
@@ -181,7 +187,7 @@ void fragment() {
 			// Fenêtres condamnées des bâtiments abandonnés.
 			float boarded = step(hash(key + 3.0), abandon * 0.7 - 0.15);
 			float h = hash(key);
-			float on = step(h, lit_ratio) * (1.0 - step(0.3, abandon));
+			float on = step(h, lit_ratio) * (1.0 - step(0.3, abandon)) * (1.0 - panne) * (1.0 - step(0.45, degats));
 			// Petits montants sombres entre deux fenêtres d'un bandeau.
 			float mullion = 1.0;
 			if (!compat) {
@@ -242,6 +248,29 @@ void fragment() {
 			}
 			alb = mix(alb, alb * vec3(0.82, 0.8, 0.77), abandon * 0.6);
 			ALBEDO = alb;
+		}
+	}
+	if (FRONT_FACING && (degats > 0.001 || bache > 0.001)) {
+		vec3 wp2 = world_pos;
+		float up2 = world_normal.y;
+		if (degats > 0.001) {
+			// Suie : traînées noires qui montent des fenêtres, toit charbonneux.
+			float ns = vnoise(wp2 * vec3(0.9, 0.35, 0.9)) * 0.7 + vnoise(wp2 * 2.3) * 0.3;
+			float soot = smoothstep(1.0 - degats * 1.1, 1.05 - degats * 0.7, ns);
+			soot = max(soot, degats * smoothstep(0.2, 0.9, up2) * 0.9);
+			ALBEDO = mix(ALBEDO, vec3(0.025, 0.022, 0.02), clamp(soot, 0.0, 1.0) * 0.92);
+			EMISSION *= 1.0 - clamp(degats * 1.4, 0.0, 1.0);
+			ROUGHNESS = mix(ROUGHNESS, 1.0, degats);
+		}
+		if (bache > 0.001 && up2 > 0.3 && ly > 2.5) {
+			// Bâches bleues tendues sur les pans abîmés.
+			vec2 q = floor(wp2.xz / 2.6);
+			float pick = hash(vec3(q.x, 7.0, q.y));
+			if (pick < bache * 0.55) {
+				float fold = 0.85 + 0.15 * step(0.5, fract(wp2.x * 0.9 + wp2.z * 0.4));
+				ALBEDO = to_linear(vec3(0.12, 0.33, 0.72)) * fold;
+				ROUGHNESS = 0.55;
+			}
 		}
 	}
 }

@@ -31,7 +31,9 @@ const STYLE_ARCHS := {
 	"I": {"atelier": 4, "entrepot": 3, "usine": 2, "ferme": 1},
 }
 ## Style des nouvelles zones : "" = modèles classiques MiniBlocs, "mix" = tous
-## les styles mélangés, sinon un style de Styles.STYLES.
+## les styles mélangés, STYLE_BIBLE = bâtiments Blender de la bible (champ
+## "zone" de leur fiche), sinon un style de Styles.STYLES.
+const STYLE_BIBLE := "bible_blender"
 var current_style := ""
 
 ## Prix du zonage (€ par m²).
@@ -340,6 +342,15 @@ func _grow_in(z: Dictionary, need := INF) -> int:
 
 ## Types qui poussent dans une zone de type k avec le style donné (poids).
 static func types_for(k: String, style: String) -> Dictionary:
+	if style == STYLE_BIBLE:
+		var bible := {}
+		var entrees := BibleGlb.entries()
+		for id in entrees:
+			if String(entrees[id].get("zone", "")) == k:
+				# Les petites maisons poussent plus souvent que les grandes tours.
+				var lg := int(entrees[id].get("logements", 0))
+				bible[id] = int(entrees[id].get("poids", 4 if lg <= 2 else (2 if lg <= 40 else 1)))
+		return bible if not bible.is_empty() else KINDS[k].types
 	if style == "" or not STYLE_ARCHS.has(k):
 		return KINDS[k].types
 	var out := {}

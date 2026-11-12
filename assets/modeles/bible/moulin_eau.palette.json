@@ -1,0 +1,46 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "pierre": {
+   "index": 0,
+   "origine": "#b9b0a0"
+  },
+  "pierre_claire": {
+   "index": 1,
+   "origine": "#d8d0bf"
+  },
+  "vitre": {
+   "index": 2,
+   "origine": "#33495e"
+  },
+  "bois_rouge": {
+   "index": 3,
+   "origine": "#8e3b2e"
+  },
+  "cadre": {
+   "index": 4,
+   "origine": "#f4f1ea"
+  },
+  "bois_sombre": {
+   "index": 5,
+   "origine": "#5a3e2b"
+  },
+  "tuile": {
+   "index": 6,
+   "origine": "#c8553d"
+  },
+  "sous_toit": {
+   "index": 7,
+   "origine": "#6a5040"
+  },
+  "eau": {
+   "index": 8,
+   "origine": "#3fa7d6"
+  },
+  "bois": {
+   "index": 9,
+   "origine": "#8a6142"
+  }
+ }
+}

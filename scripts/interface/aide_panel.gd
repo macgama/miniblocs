@@ -50,6 +50,12 @@ const SECTIONS := [
 		["Personnaliser (fiche d'un bâtiment)", "couleurs, toit, étages, pente, variante ; « Ouvrir l'intérieur » le refait en murs fins, meublé et visitable"],
 		["Banque (6) · Atelier (7)", "tes modèles étiquetés (type, style, époque, couleur) à reposer ou échanger ; l'atelier : terrain plat sans habitants ni argent"],
 	]],
+	["Événements", [
+		["I", "panneau Infos : événements en cours et à venir, journal, organiser une fête ou un marché, dégâts à réparer, stades et classement"],
+		["Fil d'actualité (haut de l'écran)", "clic sur une nouvelle pour aller sur place"],
+		["Incendie, tempête, épidémie à la main", "panneau Infos, onglet Organiser, puis clic sur la carte (Échap pour annuler)"],
+		["Catastrophes", "panneau Admin (F10), section Événements : les couper ou régler leur fréquence"],
+	]],
 	["Transports publics", [
 		["L", "panneau Lignes : arrêts, stations de métro, gares, ports, aéroports, dépôts de marchandises, parkings et lignes (case Fret pour les trains et les bateaux)"],
 	]],
@@ -67,8 +73,9 @@ const SECTIONS := [
 		["Prendre sa place (fiche)", "incarner l'habitant en vue au sol (3e personne) ; V pour revenir, il reprend sa journée"],
 	]],
 	["Production", [
-		["P", "panneau Production : carte des ressources (clic sur une ressource pour la voir sur le terrain), stocks, sites"],
-		["Construire → Production", "extraction (forêt, ferme, élevage, pêche, carrière, sablière, argile, mine, puits) et transformation (scierie, moulin, boulangerie industrielle, aciérie, raffinerie…)"],
+		["P", "panneau Production : carte des ressources, marchandises de la ville, sites (stock et caisse de chaque entreprise), camions de livraison"],
+		["Construire → Production", "fermes (céréales, légumes, betteraves, lin, lait, élevage), forêt, pêche, carrières, mines, puits ; usines (moulin, laiterie, sucrerie, agroalimentaire, brasserie, verrerie, papeterie, chimie, textile, hygiène, pharmacie, électronique, automobile…) ; entreprise de transport routier"],
+		["Livraisons", "chaque site a son stock ; des camions conduits par des chauffeurs-livreurs (lundi-vendredi) livrent le plus proche qui en a besoin. Sans chauffeur ou sans route : rayons vides et habitants mécontents. Les entrepôts servent de relais ; le reste vient par import (route qui sort de la carte, dépôt, gare, port)"],
 		["Survol d'une case", "les ressources les plus riches de la case s'affichent dans la fiche du terrain"],
 		["Règles", "il faut des habitants pour les emplois, une voie d'accès, des commerces pour vendre, un dépôt, une gare ou un port pour exporter"],
 	]],
@@ -77,6 +84,13 @@ const SECTIONS := [
 		["Poser", "clic : un décor ; glisser : une rangée, ou une clôture d'un point à l'autre ; R / Maj+R : tourner"],
 		["Pinceau, Gomme", "semer au hasard (troupeau, bottes de foin, rochers) ; la gomme efface aussi les décors automatiques"],
 		["Automatiques", "bancs et poteaux le long des routes, bottes de foin après la moisson, troupeaux qui broutent, pontons et bateaux, rochers (case à cocher du panneau)"],
+	]],
+	["Urgences", [
+		["U", "panneau Urgences : appels en cours (clic : y aller), casernes et véhicules, bilan des temps d'intervention, carte de couverture"],
+		["Construire → Services", "caserne de pompiers (FPT, VSAV, grande échelle), commissariat (police, ou gendarmerie dans une ville de moins de 2 000 habitants), hôpital (ambulances, SMUR)"],
+		["Sur la route", "gyrophares et sirène deux-tons : ils passent les feux au ralenti, les autres se rangent à droite, ils doublent par la voie d'en face quand elle est libre"],
+		["Équipages", "un véhicule ne part que si son équipage est de garde aujourd'hui (employés du bâtiment) ; l'ambulance passe par l'hôpital avant de rentrer"],
+		["Appel d'essai ici", "bouton du panneau : un appel au hasard près de la caméra, pour voir partir les secours"],
 	]],
 	["Temps et vue", [
 		["T", "mettre le temps en pause / reprendre"],

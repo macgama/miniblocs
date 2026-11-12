@@ -1,0 +1,26 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "bois_rouge": {
+   "index": 0,
+   "origine": "#8e3b2e"
+  },
+  "or": {
+   "index": 1,
+   "origine": "#d7b04a"
+  },
+  "blanc": {
+   "index": 2,
+   "origine": "#f7f7f5"
+  },
+  "bois_clair": {
+   "index": 3,
+   "origine": "#c39a6b"
+  },
+  "rouge": {
+   "index": 4,
+   "origine": "#c0392b"
+  }
+ }
+}

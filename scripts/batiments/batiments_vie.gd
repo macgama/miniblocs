@@ -87,7 +87,8 @@ func _on_removed(bid: int) -> void:
 
 
 func _chantier_possible(b: Dictionary) -> bool:
-	return not BuildingCatalog.get_type(String(b.t)).has("blocks")
+	var t := BuildingCatalog.get_type(String(b.t))
+	return not t.has("blocks") and not t.has("stade")
 
 
 ## Durée du chantier d'un type (secondes de jeu).
@@ -406,11 +407,28 @@ func _update_vie() -> void:
 		_set_fumee(bid, mi, e, habite)
 
 
-## Matériau d'usure d'un bâtiment (et de sa version lointaine).
+## Matériau d'usure d'un bâtiment (et de sa version lointaine). Les dégâts
+## laissés par les événements (métadonnées « ev_degats », « ev_bache »,
+## « ev_panne » posées par Evenements) s'y ajoutent.
 static func apply_wear(mi: MeshInstance3D, usure_q: int, abandon_q: int) -> void:
+	mi.set_meta("usure_q", usure_q)
+	mi.set_meta("abandon_q", abandon_q)
+	refresh_material(mi)
+
+
+## Recalcule le matériau d'un bâtiment (usure + dégâts des événements).
+## Les modèles Blender (.glb) gardent leurs propres matériaux.
+static func refresh_material(mi: MeshInstance3D) -> void:
+	if mi == null or mi.has_meta("glb"):
+		return
+	var u := int(mi.get_meta("usure_q", 0))
+	var a := int(mi.get_meta("abandon_q", 0))
+	var dq := int(mi.get_meta("ev_degats", 0))
+	var bq := int(mi.get_meta("ev_bache", 0))
+	var pn := bool(mi.get_meta("ev_panne", false))
 	var m: Material = null
-	if usure_q > 0 or abandon_q > 0:
-		m = NightWindows.variant_material(usure_q, abandon_q)
+	if u > 0 or a > 0 or dq > 0 or bq > 0 or pn:
+		m = NightWindows.variant_material(u, a, dq, bq, pn)
 	mi.material_override = m
 	var far := mi.get_node_or_null("Loin") as MeshInstance3D
 	if far != null:

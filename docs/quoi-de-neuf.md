@@ -13,6 +13,9 @@ Tout est dans `main`, et les 9 tests automatiques passent (`sh tests/tous.sh`).
 - Paysage (outil **0**) : collines, lissage, lacs et canaux, peinture de biomes, plantation et arrachage d'arbres au pinceau (#24).
 - Ambiance : jour et nuit, vrais Soleil et Lune, lampadaires et fenêtres allumées (#14). Météo selon le climat réel et heure locale du lieu (#18).
 
+**Événements** (touche **I**)
+- Marchés du samedi, fêtes de quartier, matchs dans les 11 stades avec des clubs inventés, incendies qui se propagent, tempêtes (arbres tombés, toits, coupures, crues) et épidémies, avec un fil d'actualité cliquable en haut de l'écran (voir docs/evenements.md).
+
 **Transports**
 - Carrefours (outil **J**) : feux, stop, cédez-le-passage, priorité à droite (#25). **Maj + clic** les transforme en giratoire (#27).
 - Transports publics (touche **L**) : arrêts de bus et de tram, gares, ports, aéroports et lignes (#17). Parkings (#28).

@@ -1,0 +1,34 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "bardage": {
+   "index": 0,
+   "origine": "#a4aab0"
+  },
+  "tole": {
+   "index": 1,
+   "origine": "#9aa0a6"
+  },
+  "bardage_bleu": {
+   "index": 2,
+   "origine": "#4f6f91"
+  },
+  "bardage_vert": {
+   "index": 3,
+   "origine": "#5d7d5a"
+  },
+  "orange": {
+   "index": 4,
+   "origine": "#e4772e"
+  },
+  "jaune": {
+   "index": 5,
+   "origine": "#f2c14e"
+  },
+  "metal": {
+   "index": 6,
+   "origine": "#7d8288"
+  }
+ }
+}

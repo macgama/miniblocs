@@ -1,0 +1,42 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "asphalte": {
+   "index": 0,
+   "origine": "#55585e"
+  },
+  "noir": {
+   "index": 1,
+   "origine": "#2a2b2e"
+  },
+  "beton_sombre": {
+   "index": 2,
+   "origine": "#8c8a85"
+  },
+  "bleu": {
+   "index": 3,
+   "origine": "#2a6fdb"
+  },
+  "verre_nuit": {
+   "index": 4,
+   "origine": "#1d2d3c"
+  },
+  "enduit_rose": {
+   "index": 5,
+   "origine": "#e9c2b0"
+  },
+  "jaune": {
+   "index": 6,
+   "origine": "#f2c14e"
+  },
+  "verre_bleu": {
+   "index": 7,
+   "origine": "#4f6d8f"
+  },
+  "metal": {
+   "index": 8,
+   "origine": "#7d8288"
+  }
+ }
+}

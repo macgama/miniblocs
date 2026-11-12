@@ -1,0 +1,38 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "enduit_bleu": {
+   "index": 0,
+   "origine": "#c9dbe3"
+  },
+  "blanc": {
+   "index": 1,
+   "origine": "#f7f7f5"
+  },
+  "vitre": {
+   "index": 2,
+   "origine": "#33495e"
+  },
+  "vert": {
+   "index": 3,
+   "origine": "#3f8f5a"
+  },
+  "pierre_claire": {
+   "index": 4,
+   "origine": "#d8d0bf"
+  },
+  "bois_rouge": {
+   "index": 5,
+   "origine": "#8e3b2e"
+  },
+  "tuile": {
+   "index": 6,
+   "origine": "#c8553d"
+  },
+  "sous_toit": {
+   "index": 7,
+   "origine": "#6a5040"
+  }
+ }
+}

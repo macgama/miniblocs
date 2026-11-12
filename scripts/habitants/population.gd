@@ -97,6 +97,8 @@ var known: Dictionary = {}
 var extra_buildings: Callable
 ## Bâtiment en plus sous une case (fiche au clic) : fonction (Vector2i) -> bid ou -1.
 var extra_pick: Callable
+## Satisfaction venue d'ailleurs (commerces de l'économie locale) : f(p) -> [delta, raisons].
+var extra_satisfaction: Callable
 
 var _arrival_acc: Dictionary = {}
 var _money_frac := 0.0
@@ -113,6 +115,8 @@ var _news_timer := 0.0
 var _now := {}
 ## Cycle de vie : CV, familles, santé, défunts, habitant suivi.
 var vie: CycleVie
+## Fonctions (p, n, plan) -> plan qui changent la journée d'un habitant (événements).
+var plan_hooks: Array[Callable] = []
 ## Caméra de la partie (pour suivre un habitant) et suivi caméra actif.
 var rig: Node3D
 var follow_camera := true
@@ -325,7 +329,7 @@ func _info_of(b: Dictionary) -> Dictionary:
 	return {"t": String(b.t), "cat": String(t.get("cat", "")), "serves": serves, "log": int(t.get("logements", 0)),
 		"emp": int(t.get("emplois", 0)), "seats": seats, "pos": BuildingSystem.rect_center(rect) + Vector3(0, float(b.get("h", 0.0)), 0),
 		"rect": rect, "public": String(t.get("cat", "")) == "services", "cost": int(b.get("cost", BuildingCatalog.cost(String(b.t)))),
-		"house": t.get("arch", String(b.t)) in ["maison", "villa", "grande_maison", "ferme"],
+		"house": t.get("arch", t.get("role", String(b.t))) in ["maison", "villa", "grande_maison", "ferme"],
 		"region": String(t.get("region", "monde"))}
 
 
@@ -1000,6 +1004,9 @@ func day_plan(p: Dictionary, n: Dictionary = {}) -> Array:
 	if n.is_empty():
 		n = now()
 	var plan := _base_plan(p, n)
+	# Événements de la ville (malades, marché, fête, match) : voir Evenements.
+	for hook in plan_hooks:
+		plan = hook.call(p, n, plan)
 	if p.has("ord"):
 		var o: Dictionary = p.ord
 		if int(o.d) == int(n.day):
@@ -1264,6 +1271,11 @@ func satisfaction(p: Dictionary) -> Dictionary:
 		var bonus := clampf((c - 50.0) / 4.0, -12.0, 12.0)
 		s += bonus
 		why.append("%s logement %s (confort %d)" % ["+" if bonus >= 0.0 else "−", "confortable" if c >= 50 else "peu confortable", c])
+	if extra_satisfaction.is_valid():
+		var ex: Array = extra_satisfaction.call(p)
+		if ex.size() >= 2:
+			s += float(ex[0])
+			why.append_array(ex[1])
 	return {"value": clampi(roundi(s), 0, 100), "why": why}
 
 
@@ -1467,6 +1479,8 @@ func incarnate(pid: int) -> bool:
 	_incarne = pid
 	if not vue_sol.vue_changee.is_connected(_on_vue):
 		vue_sol.vue_changee.connect(_on_vue)
+	if vue_sol.personnage != null:
+		vue_sol.personnage.prendre_apparence(Silhouettes.apparence_habitant(self, pid))
 	vue_sol.set_vue(VueSol.Vue.TROISIEME)
 	var p: Dictionary = persons[pid]
 	message.emit("Tu es %s. ZQSD pour marcher, V pour revenir à la vue de dessus." % CycleVie.full_name(p))
@@ -1478,6 +1492,8 @@ func _on_vue(v: int) -> void:
 	if v == VueSol.Vue.DESSUS and _incarne >= 0:
 		var pid := _incarne
 		_incarne = -1
+		if vue_sol != null and vue_sol.personnage != null:
+			vue_sol.personnage.prendre_apparence({})
 		if persons.has(pid):
 			message.emit("%s reprend sa journée." % CycleVie.full_name(persons[pid]))
 		plan_changed(pid)

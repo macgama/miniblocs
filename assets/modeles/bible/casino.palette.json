@@ -1,0 +1,50 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "pelouse": {
+   "index": 0,
+   "origine": "#6aa84f"
+  },
+  "pierre_claire": {
+   "index": 1,
+   "origine": "#d8d0bf"
+  },
+  "or": {
+   "index": 2,
+   "origine": "#d7b04a"
+  },
+  "vitre": {
+   "index": 3,
+   "origine": "#33495e"
+  },
+  "pierre": {
+   "index": 4,
+   "origine": "#b9b0a0"
+  },
+  "verre_clair": {
+   "index": 5,
+   "origine": "#8fb8d8"
+  },
+  "cuivre": {
+   "index": 6,
+   "origine": "#5f9e8a"
+  },
+  "sous_toit": {
+   "index": 7,
+   "origine": "#6a5040"
+  },
+  "zinc": {
+   "index": 8,
+   "origine": "#7e8890"
+  },
+  "verre_ciel": {
+   "index": 9,
+   "origine": "#6d97b8"
+  },
+  "eau": {
+   "index": 10,
+   "origine": "#3fa7d6"
+  }
+ }
+}

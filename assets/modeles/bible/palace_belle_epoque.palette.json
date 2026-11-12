@@ -1,0 +1,58 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "enduit_blanc": {
+   "index": 0,
+   "origine": "#f4f2ec"
+  },
+  "pierre_claire": {
+   "index": 1,
+   "origine": "#d8d0bf"
+  },
+  "vitre": {
+   "index": 2,
+   "origine": "#33495e"
+  },
+  "cadre": {
+   "index": 3,
+   "origine": "#f4f1ea"
+  },
+  "verre_clair": {
+   "index": 4,
+   "origine": "#8fb8d8"
+  },
+  "pierre": {
+   "index": 5,
+   "origine": "#b9b0a0"
+  },
+  "noir": {
+   "index": 6,
+   "origine": "#2a2b2e"
+  },
+  "enduit_rose": {
+   "index": 7,
+   "origine": "#e9c2b0"
+  },
+  "or": {
+   "index": 8,
+   "origine": "#d7b04a"
+  },
+  "ardoise": {
+   "index": 9,
+   "origine": "#5b5f66"
+  },
+  "zinc": {
+   "index": 10,
+   "origine": "#7e8890"
+  },
+  "sous_toit": {
+   "index": 11,
+   "origine": "#6a5040"
+  },
+  "verre_ciel": {
+   "index": 12,
+   "origine": "#6d97b8"
+  }
+ }
+}

@@ -1,0 +1,34 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "pierre_grise": {
+   "index": 0,
+   "origine": "#9c988f"
+  },
+  "bois_sombre": {
+   "index": 1,
+   "origine": "#5a3e2b"
+  },
+  "vitre": {
+   "index": 2,
+   "origine": "#33495e"
+  },
+  "cadre": {
+   "index": 3,
+   "origine": "#f4f1ea"
+  },
+  "bois_clair": {
+   "index": 4,
+   "origine": "#c39a6b"
+  },
+  "bois_gris": {
+   "index": 5,
+   "origine": "#8b8478"
+  },
+  "sous_toit": {
+   "index": 6,
+   "origine": "#6a5040"
+  }
+ }
+}

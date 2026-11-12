@@ -19,12 +19,15 @@ var edges: Dictionary = {}
 ## id de nœud -> Array d'id de tronçons
 var adjacency: Dictionary = {}
 var next_id := 1
+## Tronçons coupés (arbre tombé, inondation…) : id -> raison. Les itinéraires les évitent.
+var closed_edges: Dictionary = {}
 
 
 func clear() -> void:
 	nodes.clear()
 	edges.clear()
 	adjacency.clear()
+	closed_edges.clear()
 	next_id = 1
 	changed.emit()
 
@@ -99,6 +102,7 @@ func remove_edge(id: int) -> void:
 		return
 	var e: Dictionary = edges[id]
 	edges.erase(id)
+	closed_edges.erase(id)
 	for n in [e.a, e.b]:
 		var adj: Array = adjacency.get(n, [])
 		adj.erase(id)
@@ -349,6 +353,8 @@ func find_route(from: int, to: int) -> Array[int]:
 		open.erase(cur)
 		closed[cur] = true
 		for eid in adjacency.get(cur.x, []):
+			if closed_edges.has(eid):
+				continue
 			var nxt := other_end(eid, cur.x)
 			if edges[eid].a != cur.x and TransportTypes.is_oneway(edges[eid].t):
 				continue

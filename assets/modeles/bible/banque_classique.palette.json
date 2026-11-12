@@ -1,0 +1,38 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "pierre_grise": {
+   "index": 0,
+   "origine": "#9c988f"
+  },
+  "pierre_claire": {
+   "index": 1,
+   "origine": "#d8d0bf"
+  },
+  "pierre": {
+   "index": 2,
+   "origine": "#b9b0a0"
+  },
+  "vitre": {
+   "index": 3,
+   "origine": "#33495e"
+  },
+  "sous_toit": {
+   "index": 4,
+   "origine": "#6a5040"
+  },
+  "or": {
+   "index": 5,
+   "origine": "#d7b04a"
+  },
+  "bois_sombre": {
+   "index": 6,
+   "origine": "#5a3e2b"
+  },
+  "zinc": {
+   "index": 7,
+   "origine": "#7e8890"
+  }
+ }
+}

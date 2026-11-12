@@ -1,0 +1,46 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "terre": {
+   "index": 0,
+   "origine": "#b9825a"
+  },
+  "beton_clair": {
+   "index": 1,
+   "origine": "#d4d1ca"
+  },
+  "metal": {
+   "index": 2,
+   "origine": "#7d8288"
+  },
+  "tole": {
+   "index": 3,
+   "origine": "#9aa0a6"
+  },
+  "sous_toit": {
+   "index": 4,
+   "origine": "#6a5040"
+  },
+  "bardage_vert": {
+   "index": 5,
+   "origine": "#5d7d5a"
+  },
+  "cadre": {
+   "index": 6,
+   "origine": "#f4f1ea"
+  },
+  "verre_ciel": {
+   "index": 7,
+   "origine": "#6d97b8"
+  },
+  "zinc": {
+   "index": 8,
+   "origine": "#7e8890"
+  },
+  "bois": {
+   "index": 9,
+   "origine": "#8a6142"
+  }
+ }
+}

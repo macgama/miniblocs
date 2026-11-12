@@ -391,6 +391,9 @@ func _run() -> void:
 	_check(not tr.make_roundabout(gres.nodes[0]).ok, "pas de giratoire sur un giratoire")
 	tr.traffic.enabled = false
 	tr.traffic.clear()
+	# Tirage fixé ici : le nombre de véhicules qui passent par les bretelles ne
+	# dépend plus des tirages faits plus haut (ni de la taille du catalogue).
+	tr.traffic.rng.seed = 3
 	var wrong := 0
 	var on_ring := {}
 	for i in 1200:
@@ -785,6 +788,9 @@ func _ramp_tests(tr: TransportSystem) -> void:
 	_check(straight.size() >= 1 and not on_ramp, "tout droit sur l'autoroute sans passer par les bretelles")
 	tr.traffic.enabled = false
 	tr.traffic.clear()
+	# Tirage fixé ici aussi : le résultat ne dépend pas du nombre d'images
+	# passées avant (le trafic tire au sort à chaque image quand il roule).
+	tr.traffic.rng.seed = 3
 	var wrong := 0
 	var seen := {}
 	for i in 1500:

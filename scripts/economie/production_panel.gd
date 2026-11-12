@@ -1,7 +1,8 @@
 class_name ProductionPanel
 extends CanvasLayer
 ## Panneau « Production » (touche P) : carte des ressources de la région,
-## stocks de la ville (production, ventes, export), sites de production.
+## marchandises de la ville, sites (usines, commerces, entrepôts, avec leur
+## stock et leur caisse) et camions de livraison.
 
 signal focus_requested(pos: Vector3)
 
@@ -56,7 +57,7 @@ func _build() -> void:
 	head.add_child(x)
 	var tabs := HBoxContainer.new()
 	outer.add_child(tabs)
-	for spec in [["Ressources", "ressources", "ressources"], ["Stocks", "stocks", "budget"], ["Sites", "sites", "industrie"]]:
+	for spec in [["Ressources", "ressources", "ressources"], ["Stocks", "stocks", "budget"], ["Sites", "sites", "industrie"], ["Camions", "camions", "vehicules"]]:
 		var b := Button.new()
 		b.text = spec[0]
 		b.icon = Icones.get_icon(spec[2], 18)
@@ -124,6 +125,8 @@ func refresh() -> void:
 			_view_stocks()
 		"sites":
 			_view_sites()
+		"camions":
+			_view_trucks()
 		_:
 			_view_resources()
 
@@ -278,32 +281,39 @@ static func _swatch(c: Color) -> Texture2D:
 # --- Vue « Stocks » --------------------------------------------------------------------------
 
 func _view_stocks() -> void:
-	_title.text = "Production · stocks de la ville"
-	_text("Capacité : %s par marchandise (un entrepôt ajoute %s)." % [Ressources.format_t(prod.capacity()),
-		Ressources.format_t(Production.STOCK_ENTREPOT)], true)
+	_title.text = "Production · marchandises de la ville"
+	_text("Chaque usine, ferme, commerce et entrepôt a son propre stock. Les camions livrent le plus proche qui en a besoin. Entrepôts : %s de place en tout." % \
+		Ressources.format_t(prod.capacity()), true)
 	var n := prod.export_stations()
 	var ex := prod.edge_exits()
 	var exits := 0
 	for m in ex:
 		exits += int(ex[m])
 	var cap := prod.export_capacity()
-	if cap <= 0.0:
-		_text("Pas d'export : pose un dépôt de marchandises, une gare ou un port (panneau Lignes, L), ou prolonge une route, un rail ou une voie d'eau jusqu'au bord de la carte.", false)
+	if cap <= 0.0 or prod.gateways().is_empty():
+		_text("Ni import ni export : pose un dépôt de marchandises, une gare ou un port (panneau Lignes, L), ou prolonge une route jusqu'au bord de la carte. Sans cela, ce que la ville ne produit pas manque en rayon.", false)
 	else:
-		_text("Export : %s par jour (%d station%s, %d sortie%s par le bord de la carte, fret de tes lignes)." % [Ressources.format_t(cap),
+		_text("Import et export : %s par jour chacun (%d station%s, %d sortie%s par le bord de la carte, fret de tes lignes)." % [Ressources.format_t(cap),
 			n, "s" if n > 1 else "", exits, "s" if exits > 1 else ""], true)
 	if not prod.has_shops():
-		_text("Aucun commerce : les habitants ne peuvent rien acheter (pose une supérette ou un supermarché).", false)
+		_text("Aucun commerce : les habitants ne peuvent rien acheter (pose une supérette, une boulangerie, un supermarché…).", false)
 	_section("Marchandises (hier)")
 	var any := false
 	var y: Dictionary = prod.yesterday
+	var stock := prod.total_stock()
+	var road := prod.in_transit()
+	var top := 1.0
+	for g in stock:
+		top = maxf(top, float(stock[g]))
 	for g in Ressources.MARCHANDISES:
-		var s := float(prod.stock.get(g, 0.0))
-		var p := float(y.prod.get(g, 0.0))
-		var c := float(y.conso.get(g, 0.0))
-		var v := float(y.vente.get(g, 0.0))
-		var e := float(y.export.get(g, 0.0))
-		if s < 0.0005 and p + c + v + e < 0.0005:
+		var st := float(stock.get(g, 0.0))
+		var r := float(road.get(g, 0.0))
+		var vals := {}
+		var sum := 0.0
+		for f in ["prod", "conso", "vente", "export", "import", "livre"]:
+			vals[f] = float(y.get(f, {}).get(g, 0.0))
+			sum += float(vals[f])
+		if st + r < 0.0005 and sum < 0.0005:
 			continue
 		any = true
 		var row := HBoxContainer.new()
@@ -311,81 +321,146 @@ func _view_stocks() -> void:
 		var l := Label.new()
 		l.text = Ressources.good_name(g)
 		l.custom_minimum_size = Vector2(130, 0)
+		l.clip_text = true
 		l.add_theme_font_size_override("font_size", 13)
 		row.add_child(l)
-		_bar(row, s / prod.capacity(), Color("d4a373"))
+		_bar(row, st / top, Color("d4a373"))
 		var q := Label.new()
-		q.text = Ressources.format_t(s)
+		q.text = Ressources.format_t(st)
 		q.custom_minimum_size = Vector2(70, 0)
 		q.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		q.add_theme_font_size_override("font_size", 13)
 		row.add_child(q)
 		var parts: Array[String] = []
-		if p > 0.0:
-			parts.append("+%s produits" % Ressources.format_t(p))
-		if c > 0.0:
-			parts.append("−%s transformés" % Ressources.format_t(c))
-		if v > 0.0:
-			parts.append("−%s vendus" % Ressources.format_t(v))
-		if e > 0.0:
-			parts.append("−%s exportés" % Ressources.format_t(e))
+		const WORDS := {"prod": "+%s produits", "conso": "−%s transformés", "vente": "−%s vendus", "livre": "%s livrés",
+			"import": "+%s importés", "export": "−%s exportés"}
+		for f in WORDS:
+			if float(vals[f]) > 0.0:
+				parts.append(String(WORDS[f]) % Ressources.format_t(float(vals[f])))
+		if r > 0.0:
+			parts.append("%s sur la route" % Ressources.format_t(r))
 		if not parts.is_empty():
 			_text("    " + " · ".join(parts), true, 11)
 	if not any:
 		_text("Rien en stock pour l'instant.", true)
-	_section("Comptes du mois")
+	_section("Comptes du mois (toutes les entreprises)")
 	var m: Dictionary = prod.ledger.mois
 	if m.is_empty():
 		_text("Pas encore de vente ni de salaire.", true)
-	var total := 0.0
 	for k in m:
-		total += float(m[k])
 		_text("%s : %s" % [k, BuildingSystem.format_money(roundi(float(m[k])))])
-	if not m.is_empty():
-		_text("Solde : %s (%d jour%s)" % [BuildingSystem.format_money(roundi(total)), int(prod.ledger.jours), "s" if int(prod.ledger.jours) > 1 else ""], false, 14)
+	_text("Ta caisse (la ville) touche seulement l'impôt sur les bénéfices des entreprises (%d %% × réglage Impôts)." % roundi(Production.IMPOT_BENEFICES * 100.0), true, 11)
 
 
 # --- Vue « Sites » ----------------------------------------------------------------------------
 
+const KIND_ORDER := ["extraction", "transformation", "commerce", "entrepot", "logistique"]
+const KIND_NAMES := {"extraction": "Fermes, forêts, mines", "transformation": "Usines", "commerce": "Commerces",
+	"entrepot": "Entrepôts", "logistique": "Transport routier"}
+
+
 func _view_sites() -> void:
-	_title.text = "Production · sites"
+	_title.text = "Production · sites et entreprises"
 	if prod.sites.is_empty():
-		_text("Aucun site de production. Ouvre Construire (B) → Production : exploitation forestière, ferme céréalière, mine, scierie, moulin…", true)
+		_text("Aucun site. Ouvre Construire (B) → Production : ferme, mine, scierie, moulin… et Commerce : boulangerie, supérette, station-service…", true)
 		return
 	var ids := prod.sites.keys()
 	ids.sort()
-	for bid in ids:
-		var info := prod.site_info(bid)
-		if info.is_empty():
-			continue
-		var b := Button.new()
-		b.flat = true
-		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		b.focus_mode = Control.FOCUS_NONE
-		b.text = "%s  ↗" % info.name
-		b.add_theme_font_size_override("font_size", 14)
-		b.add_theme_color_override("font_color", Color("a8dadc"))
-		var pos: Vector3 = info.pos
-		b.pressed.connect(func() -> void: focus_requested.emit(pos))
-		_body.add_child(b)
-		var row := HBoxContainer.new()
-		_body.add_child(row)
-		var l := Label.new()
-		l.text = "Activité"
-		l.custom_minimum_size = Vector2(74, 0)
-		l.add_theme_font_size_override("font_size", 12)
-		row.add_child(l)
-		_bar(row, float(info.eff), UiStyle.GOOD)
-		var w := Label.new()
-		w.text = "%d/%d emplois" % [info.workers, info.jobs]
-		w.add_theme_font_size_override("font_size", 12)
-		row.add_child(w)
-		_text(String(info.status), true, 12)
-		var extra := String(info.recipe)
-		if info.has("res"):
-			extra = "%s : richesse %d %%" % [info.res, roundi(float(info.rich) * 100.0)]
-			if info.has("reserve"):
-				extra += " · reste %s" % Ressources.format_t(float(info.reserve))
-			if info.has("vit"):
-				extra += " · ressource à %d %% (repousse si on exploite moins)" % roundi(float(info.vit) * 100.0)
+	for kind in KIND_ORDER:
+		var first := true
+		for bid in ids:
+			if String(prod.sites[bid].kind) != kind:
+				continue
+			var info := prod.site_info(bid)
+			if info.is_empty():
+				continue
+			if first:
+				_section(KIND_NAMES[kind])
+				first = false
+			_site_card(info)
+
+
+func _site_card(info: Dictionary) -> void:
+	var b := Button.new()
+	b.flat = true
+	b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	b.focus_mode = Control.FOCUS_NONE
+	b.text = "%s  ↗" % info.name
+	b.add_theme_font_size_override("font_size", 14)
+	b.add_theme_color_override("font_color", Color("a8dadc"))
+	var pos: Vector3 = info.pos
+	b.pressed.connect(func() -> void: focus_requested.emit(pos))
+	_body.add_child(b)
+	var row := HBoxContainer.new()
+	_body.add_child(row)
+	var l := Label.new()
+	l.text = "Activité"
+	l.custom_minimum_size = Vector2(74, 0)
+	l.add_theme_font_size_override("font_size", 12)
+	row.add_child(l)
+	_bar(row, float(info.eff), UiStyle.GOOD)
+	var w := Label.new()
+	w.text = "%d/%d emplois" % [info.workers, info.jobs]
+	w.add_theme_font_size_override("font_size", 12)
+	row.add_child(w)
+	var st := _text(String(info.status), true, 12)
+	if String(info.status).contains("vides") or String(info.status).contains("attente") or String(info.status).contains("Aucun"):
+		st.add_theme_color_override("font_color", Color("ff9f80"))
+	var extra := String(info.recipe)
+	if info.has("res"):
+		extra = "%s : richesse %d %%" % [info.res, roundi(float(info.rich) * 100.0)]
+		if info.has("reserve"):
+			extra += " · reste %s" % Ressources.format_t(float(info.reserve))
+		if info.has("vit"):
+			extra += " · ressource à %d %% (repousse si on exploite moins)" % roundi(float(info.vit) * 100.0)
+	if extra != "":
 		_text(extra, true, 11)
+	var stock: Dictionary = info.stock
+	if not stock.is_empty() or not (info.inc as Dictionary).is_empty():
+		var parts: Array[String] = []
+		for g in stock:
+			parts.append("%s %s" % [Ressources.good_name(g).to_lower(), Ressources.format_t(float(stock[g]))])
+		var txt := "Stock : " + (", ".join(parts) if not parts.is_empty() else "vide")
+		var inc: Array[String] = []
+		for g in info.inc:
+			inc.append("%s %s" % [Ressources.good_name(g).to_lower(), Ressources.format_t(float(info.inc[g]))])
+		if not inc.is_empty():
+			txt += " · en route : " + ", ".join(inc)
+		_text(txt, true, 11)
+	var month := 0.0
+	for k in info.mois:
+		month += float(info.mois[k])
+	var c := _text("Caisse : %s · ce mois : %s%s" % [BuildingSystem.format_money(roundi(float(info.cash))), BuildingSystem.format_money(roundi(month)),
+		(" · %d chauffeur%s" % [int(info.drivers), "s" if int(info.drivers) > 1 else ""]) if int(info.drivers) > 0 else ""], true, 11)
+	c.add_theme_color_override("font_color", UiStyle.GOOD if float(info.cash) >= 0.0 else Color("ff9f80"))
+
+
+# --- Vue « Camions » ----------------------------------------------------------------------------
+
+func _view_trucks() -> void:
+	_title.text = "Production · camions de livraison"
+	var ds := prod.driver_stats()
+	_text("Chauffeurs-livreurs : %d en ville, %d au travail en ce moment, %d libres, %d en tournée." % [int(ds.total), int(ds.au_travail),
+		int(ds.libres), int(ds.en_tournee)], false)
+	if int(ds.total) == 0:
+		_text("Personne ne livre : pose une entreprise de transport routier (Construire → Production) ou un entrepôt, et des logements pour que des habitants y travaillent. Les fermes et usines ont aussi souvent un chauffeur.", false)
+	elif int(ds.attente) > 0:
+		_text("%d livraison%s attend%s un chauffeur libre. Les chauffeurs travaillent du lundi au vendredi, de %dh à %dh." % [int(ds.attente),
+			"s" if int(ds.attente) > 1 else "", "ent" if int(ds.attente) > 1 else "", int(Metiers.job("chauffeur").h[0]), int(Metiers.job("chauffeur").h[1])], true)
+	_section("Tournées en cours")
+	var list := prod.missions.values()
+	list.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return float(a.t_end) < float(b.t_end))
+	var now := prod.clock
+	if list.is_empty():
+		_text("Aucun camion sur la route.", true)
+	for m in list:
+		var goods: Array[String] = []
+		for g in m.cargo:
+			goods.append("%s %s" % [Ressources.format_t(float(m.cargo[g])), Ressources.good_name(g).to_lower()])
+		var who := ""
+		if prod.population != null and prod.population.persons.has(int(m.driver)):
+			who = String(prod.population.persons[int(m.driver)].n)
+		var state := "livré, retour au dépôt" if bool(m.done) else "livraison dans %d min" % maxi(roundi((float(m.t_unload) - now) / 60.0), 0)
+		_text("%s → %s" % [prod.place_name(int(m.from), int(m.gw)), prod.place_name(int(m.to), int(m.gw))], false, 13)
+		_text("    %s · %s · %s, %s · %.1f km" % [", ".join(goods), String(VehicleCatalog.get_type(String(m.model)).get("name", m.model)),
+			who, state, float(m.km)], true, 11)

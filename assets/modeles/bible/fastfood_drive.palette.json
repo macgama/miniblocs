@@ -1,0 +1,42 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "asphalte": {
+   "index": 0,
+   "origine": "#55585e"
+  },
+  "brique": {
+   "index": 1,
+   "origine": "#a9583f"
+  },
+  "cadre": {
+   "index": 2,
+   "origine": "#f4f1ea"
+  },
+  "verre_clair": {
+   "index": 3,
+   "origine": "#8fb8d8"
+  },
+  "metal": {
+   "index": 4,
+   "origine": "#7d8288"
+  },
+  "rouge": {
+   "index": 5,
+   "origine": "#c0392b"
+  },
+  "beton_sombre": {
+   "index": 6,
+   "origine": "#8c8a85"
+  },
+  "jaune": {
+   "index": 7,
+   "origine": "#f2c14e"
+  },
+  "bois_clair": {
+   "index": 8,
+   "origine": "#c39a6b"
+  }
+ }
+}

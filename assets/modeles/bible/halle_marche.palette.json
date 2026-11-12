@@ -1,0 +1,34 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "pierre_claire": {
+   "index": 0,
+   "origine": "#d8d0bf"
+  },
+  "brique": {
+   "index": 1,
+   "origine": "#a9583f"
+  },
+  "vert": {
+   "index": 2,
+   "origine": "#3f8f5a"
+  },
+  "verre_ciel": {
+   "index": 3,
+   "origine": "#6d97b8"
+  },
+  "zinc": {
+   "index": 4,
+   "origine": "#7e8890"
+  },
+  "sous_toit": {
+   "index": 5,
+   "origine": "#6a5040"
+  },
+  "verre_clair": {
+   "index": 6,
+   "origine": "#8fb8d8"
+  }
+ }
+}

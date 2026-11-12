@@ -1,0 +1,30 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "blanc": {
+   "index": 0,
+   "origine": "#f7f7f5"
+  },
+  "vert": {
+   "index": 1,
+   "origine": "#3f8f5a"
+  },
+  "vitre": {
+   "index": 2,
+   "origine": "#33495e"
+  },
+  "beton_clair": {
+   "index": 3,
+   "origine": "#d4d1ca"
+  },
+  "enduit_rose": {
+   "index": 4,
+   "origine": "#e9c2b0"
+  },
+  "enduit_bleu": {
+   "index": 5,
+   "origine": "#c9dbe3"
+  }
+ }
+}

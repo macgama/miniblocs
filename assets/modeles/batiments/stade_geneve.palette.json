@@ -1,0 +1,134 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "enduit": {
+   "index": 0,
+   "origine": "#f1e6d2"
+  },
+  "enduit_chaud": {
+   "index": 1,
+   "origine": "#f2d0a9"
+  },
+  "pierre": {
+   "index": 2,
+   "origine": "#b9b0a0"
+  },
+  "brique": {
+   "index": 3,
+   "origine": "#a9583f"
+  },
+  "bois": {
+   "index": 4,
+   "origine": "#8a6142"
+  },
+  "bois_sombre": {
+   "index": 5,
+   "origine": "#5a3e2b"
+  },
+  "tuile": {
+   "index": 6,
+   "origine": "#c8553d"
+  },
+  "ardoise": {
+   "index": 7,
+   "origine": "#5b5f66"
+  },
+  "chaume": {
+   "index": 8,
+   "origine": "#c9a861"
+  },
+  "vitre": {
+   "index": 9,
+   "origine": "#33495e"
+  },
+  "cadre": {
+   "index": 10,
+   "origine": "#f4f1ea"
+  },
+  "porte": {
+   "index": 11,
+   "origine": "#6b4a33"
+  },
+  "volet": {
+   "index": 12,
+   "origine": "#4f7a5a"
+  },
+  "socle": {
+   "index": 13,
+   "origine": "#8f8a80"
+  },
+  "beton": {
+   "index": 14,
+   "origine": "#b9b6ae"
+  },
+  "metal": {
+   "index": 15,
+   "origine": "#7d8288"
+  },
+  "ombre": {
+   "index": 16,
+   "origine": "#c9bdab"
+  },
+  "tuile_ombre": {
+   "index": 17,
+   "origine": "#8f3a29"
+  },
+  "tuile_faitage": {
+   "index": 18,
+   "origine": "#a8452f"
+  },
+  "#4a8a35": {
+   "index": 19,
+   "origine": "#4a8a35"
+  },
+  "#5aa040": {
+   "index": 20,
+   "origine": "#5aa040"
+  },
+  "#4d9236": {
+   "index": 21,
+   "origine": "#4d9236"
+  },
+  "#f4f4f0": {
+   "index": 22,
+   "origine": "#f4f4f0"
+  },
+  "#d6d2c9": {
+   "index": 23,
+   "origine": "#d6d2c9"
+  },
+  "#7a1f2b": {
+   "index": 24,
+   "origine": "#7a1f2b"
+  },
+  "#6e6d69": {
+   "index": 25,
+   "origine": "#6e6d69"
+  },
+  "#f2f2f0": {
+   "index": 26,
+   "origine": "#f2f2f0"
+  },
+  "#8c8f94": {
+   "index": 27,
+   "origine": "#8c8f94"
+  },
+  "#c9ced3": {
+   "index": 28,
+   "origine": "#c9ced3"
+  },
+  "#e6e9ec": {
+   "index": 29,
+   "origine": "#e6e9ec"
+  },
+  "#f0f0f0": {
+   "index": 30,
+   "origine": "#f0f0f0"
+  },
+  "#2b2d31": {
+   "index": 31,
+   "origine": "#2b2d31"
+  }
+ }
+}

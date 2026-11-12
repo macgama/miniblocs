@@ -17,6 +17,19 @@ const SIDE_TOP := 78.0
 const DOCK_HEIGHT := 100.0
 
 
+## Place un panneau à droite, à la place commune (Construire, Lignes, Habitants,
+## Production). Il grandit vers la gauche et coupe ce qui dépasse : il ne sort
+## jamais de l'écran, même si un texte est trop long.
+static func place_right(p: Control) -> void:
+	p.anchor_left = 1.0
+	p.anchor_right = 1.0
+	p.offset_left = SIDE_LEFT
+	p.offset_right = SIDE_RIGHT
+	p.offset_top = SIDE_TOP
+	p.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	p.clip_contents = true
+
+
 static func panel_box(alpha := 0.88, radius := 12, margin := 10) -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Color(PANEL_BG, alpha)

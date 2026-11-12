@@ -75,12 +75,8 @@ func _ready() -> void:
 	_vignettes.name = "Vignettes"
 	add_child(_vignettes)
 	_panel = PanelContainer.new()
-	_panel.anchor_left = 1.0
-	_panel.anchor_right = 1.0
+	UiStyle.place_right(_panel)
 	_panel.anchor_bottom = 1.0
-	_panel.offset_left = UiStyle.SIDE_LEFT
-	_panel.offset_right = UiStyle.SIDE_RIGHT
-	_panel.offset_top = UiStyle.SIDE_TOP
 	_panel.offset_bottom = -112
 	_panel.visible = false
 	UiStyle.style_panel(_panel)

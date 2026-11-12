@@ -1,0 +1,54 @@
+{
+  "nom": "stade_bale",
+  "titre": "Parc Saint-Jacques (St. Jakob-Park), Bâle — FC Bâle",
+  "capacite": 38512,
+  "sources": [
+    "Wikipédia (fr et en), consulté le 12 novembre 2026",
+    "photo libre de Wikimedia Commons (vue aérienne StJakobParkB.JPG)"
+  ],
+  "notes": "Bol fermé à deux niveaux, façade claire en panneaux, tour vitrée voisine (position approximative).",
+  "famille": "anneau",
+  "anneau": {
+    "demi_longueur": 59,
+    "demi_largeur": 41,
+    "rayon_angle": 3
+  },
+  "tribunes": {
+    "profondeur": 40,
+    "hauteur": 27,
+    "niveaux": 2,
+    "sieges": [
+      "#c8102e",
+      "#1d3c8f"
+    ],
+    "groupe": 2,
+    "soubassement": 5
+  },
+  "toit": {
+    "hauteur": 31,
+    "dessus": "metal",
+    "couleur": "#4b525c",
+    "debut": 4,
+    "debord": 1.5,
+    "epaisseur": 2.2
+  },
+  "facade": {
+    "type": "bandes",
+    "couleurs": [
+      "#eef0f2",
+      "#d8dee6"
+    ],
+    "nb_bandes": 4
+  },
+  "batiments": [
+    {
+      "x": -125,
+      "y": 75,
+      "l": 22,
+      "p": 22,
+      "h": 60,
+      "couleur": "#9fb7b0",
+      "vitre": true
+    }
+  ]
+}

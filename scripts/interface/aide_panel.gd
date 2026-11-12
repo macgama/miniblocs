@@ -9,7 +9,8 @@ const SECTIONS := [
 		["ZQSD ou flèches", "déplacer (WASD en QWERTY)"],
 		["Clic droit glissé", "faire glisser la carte"],
 		["Molette", "zoomer"],
-		["A / E, ou clic molette glissé", "tourner (Q / E en QWERTY)"],
+		["A / E, ou clic molette glissé à gauche / à droite", "tourner (Q / E en QWERTY)"],
+		["Clic molette glissé en haut / en bas, ou Ctrl + molette", "incliner : jusqu'à une vue rasante pour voir le relief jusqu'à l'horizon (10 km)"],
 	]],
 	["Barre du bas", [
 		["Catégories", "Observer, Terrain, Voies, Paysage : un clic ouvre leurs outils juste au-dessus ; Construire, Lignes, Habitants ouvrent leur panneau à droite (un seul à la fois)"],

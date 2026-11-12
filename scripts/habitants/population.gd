@@ -81,6 +81,13 @@ var by_school: Dictionary = {}
 ## Bâtiments connus : bid -> {t, cat, log, emp, seats, pos, public}
 var known: Dictionary = {}
 
+## Bâtiments en plus de ceux du catalogue (intérieurs en murs fins) :
+## fonction qui rend { bid : fiche } (mêmes champs que _info_of, plus name,
+## conf, attr, valeur, loyer, tf). Voir Mobilier.population_info().
+var extra_buildings: Callable
+## Bâtiment en plus sous une case (fiche au clic) : fonction (Vector2i) -> bid ou -1.
+var extra_pick: Callable
+
 var _arrival_acc: Dictionary = {}
 var _money_frac := 0.0
 var _step_acc := 0.0
@@ -250,9 +257,13 @@ func _info_of(b: Dictionary) -> Dictionary:
 func _sync_buildings() -> void:
 	if buildings == null:
 		return
+	var extra := _extras()
 	var gone := []
 	for bid in known:
-		if not buildings.buildings.has(bid) or String(buildings.buildings[bid].t) != String(known[bid].t):
+		if known[bid].has("plan"):
+			if not extra.has(bid):
+				gone.append(bid)
+		elif not buildings.buildings.has(bid) or String(buildings.buildings[bid].t) != String(known[bid].t):
 			gone.append(bid)
 	for bid in gone:
 		_remove_building(bid)
@@ -261,6 +272,18 @@ func _sync_buildings() -> void:
 		if not known.has(bid):
 			known[bid] = _info_of(buildings.buildings[bid])
 			added = true
+	# Bâtiments en murs fins : leur fiche suit leurs meubles (lits, postes, pupitres…).
+	for bid in extra:
+		var info: Dictionary = extra[bid]
+		if not known.has(bid):
+			known[bid] = info
+			added = true
+		else:
+			var old: Dictionary = known[bid]
+			if int(old.log) != int(info.log) or int(old.emp) != int(info.emp) or int(old.seats) != int(info.seats) \
+					or String(old.t) != String(info.t) or old.serves != info.serves or int(old.get("attr", 0)) != int(info.attr):
+				added = true
+			known[bid] = info
 	if added or not gone.is_empty():
 		_venue_cache.clear()
 		_transit_cache.clear()
@@ -309,9 +332,17 @@ func free_seats(bid: int) -> int:
 	return int(known[bid].seats) - (by_school.get(bid, []) as Array).size()
 
 
+func _extras() -> Dictionary:
+	if extra_buildings.is_valid():
+		return extra_buildings.call()
+	return {}
+
+
 func building_name(bid: int) -> String:
 	if not known.has(bid):
 		return "—"
+	if known[bid].has("name"):
+		return String(known[bid].name)
 	return String(BuildingCatalog.get_type(String(known[bid].t)).get("name", known[bid].t))
 
 
@@ -537,6 +568,10 @@ func _nearest(from_bid: int, list: Array) -> int:
 	var best_d := INF
 	for bid in list:
 		var d := o.distance_squared_to(known[bid].pos)
+		# Un lieu attrayant (meubles, vitrines) attire de plus loin.
+		var attr := float(known[bid].get("attr", 0))
+		if attr > 0.0:
+			d /= pow(1.0 + attr / 50.0, 2.0)
 		if d < best_d:
 			best_d = d
 			best = bid
@@ -656,6 +691,9 @@ func household_budget(hid: int) -> Dictionary:
 		inc += income_of(persons[pid])
 	var house: bool = known.has(int(h.b)) and bool(known[int(h.b)].house)
 	var rent := LOYER_MAISON if house else LOYER_APPART
+	# Logement aménagé : le loyer suit sa valeur.
+	if known.has(int(h.b)) and float(known[int(h.b)].get("loyer", 0.0)) > 0.0:
+		rent = float(known[int(h.b)].loyer)
 	var food := COURSES * (h.m as Array).size()
 	var cars := VOITURE * int(h.car)
 	return {"revenus": inc, "loyer": rent, "courses": food, "voitures": cars, "solde": inc - rent - food - cars}
@@ -665,7 +703,9 @@ func household_budget(hid: int) -> Dictionary:
 func city_budget() -> Dictionary:
 	var rec := {"Taxe foncière": 0.0, "Impôts des entreprises": 0.0, "Dotation de l'État": 0.0}
 	var dep := {"Salaires des agents de la ville": 0.0, "Entretien des bâtiments publics": 0.0}
-	rec["Taxe foncière"] = TAXE_FONCIERE * households.size()
+	for hid in households:
+		var hb := int(households[hid].b)
+		rec["Taxe foncière"] += TAXE_FONCIERE * (float(known[hb].get("tf", 1.0)) if known.has(hb) else 1.0)
 	rec["Dotation de l'État"] = DOTATION * persons.size()
 	for bid in by_job:
 		if not known.has(bid):
@@ -1057,6 +1097,13 @@ func satisfaction(p: Dictionary) -> Dictionary:
 	if households.has(int(p.f)) and float(households[int(p.f)].ep) < 0.0:
 		s -= 15.0
 		why.append("− foyer endetté")
+	# Confort du logement aménagé (meubles, cuisine, salle de bains…).
+	var home := home_of(p)
+	if known.has(home) and known[home].has("conf"):
+		var c := int(known[home].conf)
+		var bonus := clampf((c - 50.0) / 4.0, -12.0, 12.0)
+		s += bonus
+		why.append("%s logement %s (confort %d)" % ["+" if bonus >= 0.0 else "−", "confortable" if c >= 50 else "peu confortable", c])
 	return {"value": clampi(roundi(s), 0, 100), "why": why}
 
 
@@ -1227,6 +1274,12 @@ func _tools_busy() -> bool:
 	var blocks := get_node_or_null("../Blocs") as BlockEditor
 	if blocks != null and blocks.tool != BlockEditor.Tool.NONE:
 		return true
+	var plans := get_node_or_null("../Plans") as PlanEditor
+	if plans != null and plans.tool != PlanEditor.Tool.NONE:
+		return true
+	var mob := get_node_or_null("../Mobilier") as Mobilier
+	if mob != null and mob.tool != Mobilier.Tool.NONE:
+		return true
 	return false
 
 
@@ -1246,6 +1299,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	if hit == null:
 		return
 	var bid := buildings.building_at(hit)
+	if bid < 0 and extra_pick.is_valid():
+		bid = int(extra_pick.call(hit))
 	if bid >= 0:
 		if not known.has(bid):
 			_sync_buildings()
@@ -1291,6 +1346,9 @@ func from_dict(d: Dictionary) -> void:
 	if buildings != null:
 		for bid in buildings.buildings:
 			known[int(bid)] = _info_of(buildings.buildings[bid])
+		var extra := _extras()
+		for bid in extra:
+			known[int(bid)] = extra[bid]
 	for e in d.get("foyers", []):
 		var bid := int(e[1])
 		if not known.has(bid):

@@ -66,6 +66,7 @@ const SVG := {
 	"lune": "<path d=\"M15 3a9 9 0 1 0 6 15.5A7.5 7.5 0 0 1 15 3Z\" fill=\"currentColor\" fill-opacity=\".35\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linejoin=\"round\"/>",
 	"soleil": "<circle cx=\"12\" cy=\"12\" r=\"4.5\" fill=\"currentColor\"/><path d=\"M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\"/>",
 	"retour": "<path d=\"M10 5 3 12l7 7M3 12h18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>",
+	"interieur": "<path d=\"M5 11V8a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v3\" fill=\"currentColor\" fill-opacity=\".3\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linejoin=\"round\"/><path d=\"M3 12.5a2 2 0 0 1 4 0V15h10v-2.5a2 2 0 0 1 4 0V18H3Z\" fill=\"currentColor\" fill-opacity=\".3\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linejoin=\"round\"/><path d=\"M5 18v2.5M19 18v2.5\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"/>",
 	"tourner": "<path d=\"M20 12a8 8 0 1 1-2.6-5.9\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"/><path d=\"M20 3v5h-5\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>",
 }
 

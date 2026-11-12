@@ -88,6 +88,8 @@ var rot_offset := 0
 var level := 0
 ## Masquer les étages au-dessus de l'étage actif pendant l'édition.
 var cutaway := true
+## Vue en coupe demandée par un autre outil (meubles de l'intérieur).
+var cut_override := false
 
 ## id -> {id, y0, walls, floors, stairs, dug}
 var plans: Dictionary = {}
@@ -1357,7 +1359,7 @@ static func _boxes_mesh(boxes: Array) -> ArrayMesh:
 # --- Vue en coupe -------------------------------------------------------------------
 
 func _apply_cutaway() -> void:
-	var cut := cutaway and tool != Tool.NONE and _active != "" and plans.has(_active)
+	var cut := cutaway and (tool != Tool.NONE or cut_override) and _active != "" and plans.has(_active)
 	for id in _nodes:
 		for e in _nodes[id]:
 			var n: Node3D = _nodes[id][e]

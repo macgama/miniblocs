@@ -289,6 +289,15 @@ const TYPES := {
 	"regional": {"name": "Train régional électrique", "cat": "train", "mode": RAIL, "rail": "train", "era": "contemporain", "region": "europe", "year": 2010,
 		"L": 18.0, "W": 2.95, "H": 4.2, "kmh": 160, "places": 220, "shape": "automotrice", "style": "nez", "consist": ["regional_voiture", "regional_voiture", "regional_queue"],
 		"col": Color("f4f4f4"), "col2": Color("0096c7"), "desc": "Rame à plancher bas, portes larges."},
+	"cremaillere_vapeur": {"name": "Locomotive à crémaillère", "cat": "train", "mode": RAIL, "rail": "cremaillere", "era": "classique", "region": "europe", "year": 1891,
+		"L": 7.0, "W": 2.6, "H": 3.8, "kmh": 12, "places": 0, "shape": "vapeur", "style": "debuts", "consist": ["voiture_diligence", "voiture_diligence"],
+		"col": Color("2d6a4f"), "col2": Color("9b2226"), "desc": "Chaudière inclinée, roue dentée sur la crémaillère : elle pousse ses voitures dans la pente."},
+	"cremaillere_electrique": {"name": "Train à crémaillère électrique", "cat": "train", "mode": RAIL, "rail": "cremaillere", "era": "moderne", "region": "europe", "year": 1954,
+		"L": 16.0, "W": 2.6, "H": 3.7, "kmh": 20, "places": 120, "shape": "automotrice", "style": "autorail", "consist": ["regional_voiture"],
+		"col": Color("9b2226"), "col2": Color("f4f1de"), "desc": "Rame rouge des trains de montagne, jusqu'à 25 % de pente."},
+	"cremaillere_moderne": {"name": "Rame à crémaillère moderne", "cat": "train", "mode": RAIL, "rail": "cremaillere", "era": "contemporain", "region": "europe", "year": 2023,
+		"L": 17.0, "W": 2.65, "H": 3.8, "kmh": 30, "places": 180, "shape": "automotrice", "style": "nez", "consist": ["regional_queue"],
+		"col": Color("f4f4f4"), "col2": Color("d00000"), "desc": "Panoramique et silencieuse, pour monter aux glaciers."},
 	"metro_1900": {"name": "Métro des débuts", "cat": "train", "mode": RAIL, "rail": "metro", "era": "classique", "region": "europe", "year": 1900,
 		"L": 13.5, "W": 2.4, "H": 3.4, "kmh": 50, "places": 100, "shape": "automotrice", "style": "metro", "consist": ["metro_voiture", "metro_voiture"],
 		"col": Color("2d6a4f"), "col2": Color("9b2226"), "desc": "Caisses vert bouteille et filet rouge, les premières lignes souterraines."},
@@ -507,9 +516,11 @@ static func for_track(class_id: String, era := "", region := "") -> Array[String
 				continue
 			if cls == "metro" and r != "metro":
 				continue
-			if cls == "lgv" and (r == "tram" or r == "metro"):
+			if cls == "cremaillere" and r != "cremaillere":
 				continue
-			if cls != "tram" and cls != "lgv" and cls != "metro" and r != "train":
+			if cls == "lgv" and r != "train":
+				continue
+			if cls != "tram" and cls != "lgv" and cls != "metro" and cls != "cremaillere" and r != "train":
 				continue
 		elif mode == PATH and cls == "trottoir" and t.cat == "deux_roues" and String(t.get("kind", "")) != "trottinette":
 			continue

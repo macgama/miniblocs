@@ -487,6 +487,33 @@ func _run() -> void:
 	_check(VehicleCatalog.for_track("metro").has("metro_pneus") and not VehicleCatalog.for_track("train").has("metro"), "le métro roule sur les voies de métro seulement")
 	tr.traffic.enabled = true
 
+	print("Crémaillère et viaducs :")
+	var rack_train := _p("train", 40, 30, 200, 30, g)
+	var rack := _p("cremaillere", 40, 30, 200, 30, g)
+	_check(not rack_train.ok and rack.ok and float(rack.max_grade) > 0.15, "la crémaillère gravit %d %% là où le train refuse" % roundi(float(rack.get("max_grade", 0.0)) * 100.0))
+	_check(VehicleCatalog.for_track("cremaillere").size() == 3 and not VehicleCatalog.for_track("train").has("cremaillere_vapeur") and not VehicleCatalog.for_track("cremaillere").has("regional"), "trains à crémaillère sur leur voie seulement")
+	var via := _p("train", -220, 120, 20, 120, g)
+	_check(via.ok and float(via.bridge_len) > 20.0, "viaduc ferroviaire au-dessus de la vallée (%d m)" % roundi(via.get("bridge_len", 0.0)))
+	var vm := TransportView.build_mesh("train", {}, via.pts, via.st, g)
+	var vr := TransportView.build_mesh("departementale", {}, via.pts, via.st, g)
+	var stone_n := 0
+	var cols: PackedColorArray = vm.surface_get_arrays(0)[Mesh.ARRAY_COLOR] if vm.get_surface_count() > 0 else PackedColorArray()
+	var stones := []
+	for base_c in [TransportView.STONE, TransportView.STONE.darkened(0.06), TransportView.STONE.lightened(0.04)]:
+		stones.append(base_c)
+		stones.append(base_c.darkened(0.1))
+	for vc in cols:
+		for sc in stones:
+			if absf(vc.r - sc.r) + absf(vc.g - sc.g) + absf(vc.b - sc.b) < 0.02:
+				stone_n += 1
+				break
+	_check(stone_n > 200, "viaduc en pierre avec piles et arches (%d sommets de pierre)" % stone_n)
+	_check(vr.get_surface_count() > 0, "les ponts routiers gardent leurs piles de béton")
+	var rk := tr.build_segment("cremaillere", Vector3(40, 0, 30), Vector3(200, 0, 30))
+	_check(rk.ok, "voie à crémaillère posée (%s)" % rk.get("reason", "ok"))
+	var vb := tr.build_segment("train", Vector3(-220, 0, 120), Vector3(20, 0, 120))
+	_check(vb.ok, "viaduc construit (%s)" % vb.get("reason", "ok"))
+
 	print("Itinéraires :")
 	var pl := sv2.planner
 	var trip := pl.plan(Vector3(340, 0, -300), Vector3(660, 0, -300))
@@ -597,6 +624,8 @@ func _run() -> void:
 		rig._distance = cam_args[2]
 		rig._target_distance = cam_args[2]
 		rig.rotation_degrees.y = cam_args[3]
+		if cam_args.size() > 4:
+			rig.pitch_degrees = cam_args[4]
 		for i in 90:
 			await process_frame
 		var im := root.get_viewport().get_texture().get_image()

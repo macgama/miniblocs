@@ -14,7 +14,7 @@ const SECTIONS := [
 	["Outils (barre du bas)", [
 		["1", "observer : survoler une case pour voir son altitude et son biome (et le nom de la rivière)"],
 		["2 · 3 · 4", "aplanir, monter de 1 m, creuser de 1 m (clic gauche glissé)"],
-		["5 · 6 · 7 · 8", "route, rail, chemin, voie d'eau : un clic par point"],
+		["5 · 6 · 7 · 8", "route, rail (tram, train, LGV, crémaillère, métro), chemin, voie d'eau : un clic par point"],
 		["C", "voie en courbe (pendant le tracé)"],
 		["Maj", "angles par pas de 15° (pendant le tracé)"],
 		["9", "démolir une voie"],

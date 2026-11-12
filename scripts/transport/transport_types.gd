@@ -94,6 +94,11 @@ const CLASSES := {
 		"tracks": [1, 2, 1], "spacing": 4.2, "side": 1.5,
 		"r_min": 600.0, "max_grade": 0.025, "smooth": 40.0, "bridge_gap": 4.0, "tunnel_depth": 6.0,
 	},
+	"cremaillere": {
+		"name": "Chemin de fer à crémaillère", "mode": Mode.RAIL, "kmh": 25.0, "rack": true,
+		"tracks": [1, 2, 1], "spacing": 3.6, "side": 1.0,
+		"r_min": 60.0, "max_grade": 0.25, "smooth": 10.0, "bridge_gap": 4.0, "tunnel_depth": 6.0,
+	},
 	"metro": {
 		"name": "Métro (souterrain)", "mode": Mode.RAIL, "kmh": 80.0, "underground": 14.0,
 		"tracks": [2, 2, 2], "spacing": 3.4, "side": 1.0,
@@ -135,7 +140,7 @@ const ALIASES := {"route": "departementale", "rail": "train", "chemin": "voie_ve
 ## Classes proposées par chaque outil, dans l'ordre d'affichage.
 const BY_MODE := {
 	Mode.ROAD: ["rue", "avenue", "departementale", "voie_express", "autoroute"],
-	Mode.RAIL: ["tram", "train", "lgv", "metro"],
+	Mode.RAIL: ["tram", "train", "lgv", "cremaillere", "metro"],
 	Mode.PATH: ["trottoir", "piste_cyclable", "voie_verte"],
 	Mode.WATER: ["canal", "chenal"],
 }

@@ -111,3 +111,9 @@ La classe `metro` (mode rail) a une clé `underground` (14 m) : `RoutePlanner` v
 ## Itinéraires
 
 `StationSystem.planner` (`TransitPlanner`) : `plan(a, b)` fait un Dijkstra sur les stations. Un arc est soit un trajet sur une ligne de voyageurs entre deux de ses arrêts (attente moyenne = demi-intervalle, temps de chaque saut = longueur réelle des tronçons / min(vitesse du modèle, vitesse de la voie) × 1,15 + arrêt de 12 s), soit une correspondance à pied (≤ 250 m, + 120 s de pénalité au changement). Marche : 1,3 m/s avec un détour de 30 %. Le résultat (`legs` : étapes `marche` ou `ligne`) est comparé à la marche seule. Le cache par ligne est vidé à chaque changement de lignes ou du réseau. `board(trip, n)` ajoute `n` voyageurs aux lignes empruntées (`passengers`, sauvegardé) ; `describe(trip)` donne un résumé lisible.
+
+## Crémaillère et viaducs
+
+Classe `cremaillere` (rail, 25 km/h, pente maxi 25 %, rayon mini 60 m, clé `rack`) : `TransportView._rail_section` y ajoute le rail denté. Les véhicules ont `"rail": "cremaillere"` ; `VehicleCatalog.for_track` et `StationSystem.models_for` (gare dont la voie est une crémaillère) séparent ces trains des autres.
+
+`TransportView._viaducts` remplace les piles génériques pour le rail : chaque suite de points `BRIDGE` est découpée en travées égales (en pierre : 0,8 × la hauteur entre 8 m et `VIADUCT_SPAN` 18 m ; LGV : 2 × la hauteur entre 25 m et `VIADUCT_SPAN_LGV` 40 m), avec une pile à fruit à chaque appui intérieur et, en pierre, des tympans pleins sous le tablier au-dessus d'un intrados en demi-cercle.

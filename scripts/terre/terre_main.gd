@@ -170,6 +170,8 @@ func _ready() -> void:
 		vue.vue_changee.connect(func(v: int) -> void: hud.set_view(v))
 	hud.city_requested.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/main.tscn"))
 	hud.globe_requested.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/globe.tscn"))
+	if GameStart.atelier:
+		_prepare_atelier()
 	if GameStart.chosen:
 		world.set_origin(GameStart.lat, GameStart.lon)
 	_on_origin_changed(world.origin_lat, world.origin_lon)
@@ -181,6 +183,8 @@ func _ready() -> void:
 			hud.show_message("Partie chargée : %s." % _game_title())
 		else:
 			hud.show_message("Chargement impossible : " + last_error)
+	if GameStart.atelier:
+		_start_atelier.call_deferred()
 
 
 # --- Sauvegarde -------------------------------------------------------------------
@@ -489,6 +493,8 @@ func toggle_help() -> void:
 
 
 func _autosave(delta: float) -> void:
+	if GameStart.atelier:
+		return
 	_autosave_timer += delta
 	if _autosave_timer < AUTOSAVE_INTERVAL:
 		return
@@ -576,6 +582,106 @@ func _setup_mobilier() -> void:
 	interieur_panel = InterieurPanel.new()
 	interieur_panel.setup(mobilier, func() -> void: _select_building_tool())
 	build_panel.interieur_builder = interieur_panel.build
+	_setup_atelier_tools()
+
+
+# --- Personnaliser, banque de modèles, atelier ---------------------------------------
+
+var perso_panel: PersoPanel
+var banque_pose: BanquePose
+var banque_panel: BanquePanel
+
+
+func _setup_atelier_tools() -> void:
+	perso_panel = PersoPanel.new()
+	perso_panel.name = "PanneauPersonnaliser"
+	add_child(perso_panel)
+	perso_panel.setup(buildings, mobilier)
+	perso_panel.opened_interior.connect(func(id: String) -> void:
+		mobilier.focus_plan(id))
+	banque_pose = BanquePose.new()
+	banque_pose.name = "PoseModele"
+	add_child(banque_pose)
+	banque_pose.world = world
+	banque_pose.camera = $CameraRig/Camera3D
+	banque_pose.mob = mobilier
+	banque_pose.bs = buildings
+	banque_pose.message.connect(func(t: String) -> void:
+		hud.set_tool_info(t)
+		if t != "" and not t.begins_with("Poser"):
+			hud.show_message(t))
+	banque_panel = BanquePanel.new()
+	banque_panel.setup(buildings, mobilier, banque_pose, func() -> void: _select_building_tool())
+	build_panel.banque_builder = banque_panel.build
+	habitants_panel.customize_requested.connect(func(bid: int) -> void:
+		habitants_panel.set_open(false)
+		perso_panel.edit(bid))
+	habitants_panel.furnish_requested.connect(func(bid: int) -> void:
+		var info: Dictionary = population.known.get(bid, {})
+		habitants_panel.set_open(false)
+		if not hud.create_mode:
+			set_create_mode(true)
+		mobilier.focus_plan(String(info.get("plan", "")))
+		hud.set_create_category("interieur")
+		_on_create_requested("interieur"))
+
+
+## Avant le chargement : l'atelier est un terrain plat, hors ligne.
+func _prepare_atelier() -> void:
+	world.tiles.offline_generator = func(_t: Vector2i) -> PackedFloat32Array:
+		var a := PackedFloat32Array()
+		a.resize(256 * 256)
+		a.fill(40.0)
+		return a
+	# Sol bâti (WorldCover 50) : ni arbres ni herbes hautes.
+	world.land.offline_generator = func(_lat: float, _lon: float) -> int: return 50
+	GameStart.chosen = true
+	GameStart.lat = GameStart.ATELIER_LAT
+	GameStart.lon = GameStart.ATELIER_LON
+	GameStart.place_name = "Atelier"
+	GameStart.slot_id = GameStart.ATELIER_SLOT
+	GameStart.load_slot = GameStart.ATELIER_SLOT if SaveGame.exists(GameStart.ATELIER_SLOT) else ""
+
+
+## Après le chargement : argent illimité, pas d'accès routier exigé, temps
+## arrêté, mode Créer, tuile « Quitter ».
+func _start_atelier() -> void:
+	buildings.unlimited_money = true
+	buildings.require_access = false
+	ambiance.set_speed(0)
+	ambiance.weather.mode = Meteo.Mode.SOLEIL
+	set_create_mode(true)
+	hud.set_category_label("atelier", "Quitter", "Quitter l'atelier et revenir à la partie (l'atelier est gardé tel quel) (7)")
+	hud.set_create_banner("Atelier : terrain plat, sans habitants ni argent  ·  7 : quitter")
+	hud.show_message("Atelier : crée, personnalise, meuble, puis range tes bâtiments dans la banque (6).")
+
+
+## Tuile Atelier : y aller depuis la partie (après l'avoir sauvegardée), ou en revenir.
+func _toggle_atelier() -> void:
+	if GameStart.atelier:
+		save_game(GameStart.ATELIER_SLOT, "Atelier")
+		GameStart.atelier = false
+		if GameStart.retour_slot != "" and SaveGame.exists(GameStart.retour_slot):
+			GameStart.chosen = true
+			GameStart.lat = GameStart.retour_lat
+			GameStart.lon = GameStart.retour_lon
+			GameStart.place_name = GameStart.retour_nom
+			GameStart.load_slot = GameStart.retour_slot
+			GameStart.slot_id = GameStart.retour_slot
+			get_tree().change_scene_to_file("res://scenes/terre.tscn")
+		else:
+			GameStart.slot_id = ""
+			get_tree().change_scene_to_file("res://scenes/globe.tscn")
+		return
+	if not save_game():
+		hud.show_message("Sauvegarde impossible, l'atelier attendra : " + last_error)
+		return
+	GameStart.retour_slot = GameStart.slot_id
+	GameStart.retour_lat = world.origin_lat
+	GameStart.retour_lon = world.origin_lon
+	GameStart.retour_nom = GameStart.place_name
+	GameStart.atelier = true
+	get_tree().change_scene_to_file("res://scenes/terre.tscn")
 
 
 # --- Mode Créer : la construction libre à part de la gestion de la ville ---------
@@ -595,6 +701,11 @@ func _setup_create_mode() -> void:
 
 ## Passe en mode Créer (atelier, ville en pause) ou revient en mode Gérer.
 func set_create_mode(on: bool) -> void:
+	if GameStart.atelier and not on:
+		# L'atelier n'a pas de ville à gérer.
+		hud.set_create_mode(true)
+		hud.show_message("Tu es dans l'atelier : « Quitter » (7) ramène à la partie.")
+		return
 	if hud.create_mode != on:
 		hud.set_create_mode(on)
 	if on:
@@ -625,6 +736,11 @@ func _on_create_requested(id: String) -> void:
 		"blocs": build_panel.set_block_mode("blocs")
 		"interieur": build_panel.show_category("interieur")
 		"creations": build_panel.show_category(Creations.CATEGORY)
+		"banque": build_panel.show_category(BanquePanel.CATEGORY)
+		"atelier":
+			build_panel.set_open(false)
+			_toggle_atelier()
+			return
 	build_panel.set_open(true)
 	if id == "murs":
 		# On commence avec l'outil Mur en main.
@@ -653,6 +769,8 @@ func _select_building_tool(from_transit := false) -> void:
 	blocks.set_inactive()
 	plans.set_inactive()
 	mobilier.set_inactive()
+	if banque_pose:
+		banque_pose.stop()
 	hud.select_tool_silently(0)
 
 
@@ -678,6 +796,8 @@ func _setup_landscape() -> void:
 
 func _on_tool_selected(t: int) -> void:
 	landscape.set_shown(t == TerreHud.LANDSCAPE_TOOL)
+	if banque_pose:
+		banque_pose.stop()
 	transport.stations.set_inactive()
 	transit_panel.clear_selection()
 	buildings.set_inactive()
@@ -786,7 +906,7 @@ var _open_before := {}
 ## Construire, Lignes et Habitants partagent la même place à droite : quand
 ## l'un s'ouvre, les autres se ferment. Leur bouton de la barre du bas s'allume.
 func _exclusive_panels() -> void:
-	var panels := {"construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel}
+	var panels := {"construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "perso": perso_panel}
 	var opened := ""
 	for id in panels:
 		var p = panels[id]

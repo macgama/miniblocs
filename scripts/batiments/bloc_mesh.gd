@@ -25,6 +25,8 @@ static var details_enabled := true
 ## Variante du modèle (0 = modèle de base) : couleurs, volets, cheminée… changent
 ## d'une variante à l'autre pour que deux bâtiments du même type diffèrent.
 var variant := 0
+## Personnalisation d'un bâtiment posé (Personnalisation) : couleurs, toit, étages…
+var perso: Dictionary = {}
 ## Points remarquables du modèle (repère local), gardés dans le maillage
 ## (métadonnée « ancres ») : "fumee" = sommets des cheminées.
 var anchors := {}

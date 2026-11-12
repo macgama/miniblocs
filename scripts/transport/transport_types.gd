@@ -94,6 +94,11 @@ const CLASSES := {
 		"tracks": [1, 2, 1], "spacing": 4.2, "side": 1.5,
 		"r_min": 600.0, "max_grade": 0.025, "smooth": 40.0, "bridge_gap": 4.0, "tunnel_depth": 6.0,
 	},
+	"metro": {
+		"name": "Métro (souterrain)", "mode": Mode.RAIL, "kmh": 80.0, "underground": 14.0,
+		"tracks": [2, 2, 2], "spacing": 3.4, "side": 1.0,
+		"r_min": 150.0, "max_grade": 0.05, "smooth": 20.0, "bridge_gap": 4.0, "tunnel_depth": 4.0,
+	},
 	"lgv": {
 		"name": "Ligne à grande vitesse", "mode": Mode.RAIL, "kmh": 300.0,
 		"tracks": [2, 2, 2], "spacing": 4.5, "side": 1.5,
@@ -130,7 +135,7 @@ const ALIASES := {"route": "departementale", "rail": "train", "chemin": "voie_ve
 ## Classes proposées par chaque outil, dans l'ordre d'affichage.
 const BY_MODE := {
 	Mode.ROAD: ["rue", "avenue", "departementale", "voie_express", "autoroute"],
-	Mode.RAIL: ["tram", "train", "lgv"],
+	Mode.RAIL: ["tram", "train", "lgv", "metro"],
 	Mode.PATH: ["trottoir", "piste_cyclable", "voie_verte"],
 	Mode.WATER: ["canal", "chenal"],
 }

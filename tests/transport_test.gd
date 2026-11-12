@@ -465,7 +465,48 @@ func _run() -> void:
 	var tonnes := float(sv2.lines.get(truck_l.get("id", -1), {}).get("tonnes", 0.0))
 	_check(tonnes > 0.0, "les camions livrent : %s" % StationSystem.format_tonnes(tonnes))
 	_check(sv2.line_summary(truck_l.id).contains("transportées"), "tonnage affiché : " + sv2.line_summary(truck_l.id))
+
+	print("Métro :")
+	var mods_before := world.modifications.size()
+	var m1 := tr.build_segment("metro", Vector3(300, 0, -300), Vector3(700, 0, -300))
+	var all_tunnel: bool = m1.ok
+	if m1.ok:
+		for i in range(2, (m1.st as PackedByteArray).size() - 2):
+			all_tunnel = all_tunnel and (m1.st as PackedByteArray)[i] == TransportTypes.Struct.TUNNEL
+	_check(m1.ok and all_tunnel and absf((m1.pts as PackedVector3Array)[10].y - (20.0 - 14.0)) < 0.5, "voie de métro souterraine à 14 m sous le sol (%s)" % m1.get("reason", "ok"))
+	_check(world.modifications.size() == mods_before, "pas de terrassement en surface pour le métro")
+	var road_over := tr.build_segment("rue", Vector3(500, 0, -340), Vector3(500, 0, -260))
+	_check(road_over.ok and int(road_over.junctions) == 0, "une rue passe au-dessus du métro sans carrefour")
+	var ms1 := sv2.place("station_metro", Vector3(360, 0, -300))
+	var ms2 := sv2.place("station_metro", Vector3(640, 0, -300))
+	_check(ms1.ok and ms2.ok, "deux stations de métro (%s / %s)" % [ms1.get("reason", "ok"), ms2.get("reason", "ok")])
+	var ml := sv2.create_line([ms1.get("id", -1), ms2.get("id", -1)], "", 2)
+	_check(ml.ok and sv2.lines[ml.id].kind == "metro" and String(sv2.lines[ml.id].model).begins_with("metro"), "ligne de métro (%s)" % sv2.lines.get(ml.get("id", -1), {}).get("model", "?"))
+	var mm := sv2.models_for("metro")
+	_check(mm.size() >= 4 and not sv2.models_for("train").has("metro") and not mm.has("tgv"), "rames de métro de 1900 à demain (%d modèles)" % mm.size())
+	_check(VehicleCatalog.for_track("metro").has("metro_pneus") and not VehicleCatalog.for_track("train").has("metro"), "le métro roule sur les voies de métro seulement")
 	tr.traffic.enabled = true
+
+	print("Itinéraires :")
+	var pl := sv2.planner
+	var trip := pl.plan(Vector3(340, 0, -300), Vector3(660, 0, -300))
+	var uses_metro := false
+	for leg in trip.legs:
+		uses_metro = uses_metro or (String(leg.type) == "ligne" and int(leg.line) == int(ml.get("id", -1)))
+	_check(trip.ok and uses_metro and float(trip.total_s) < float(trip.walk_only_s), "le métro est plus rapide que la marche : " + pl.describe(trip))
+	_check(String(trip.legs[0].type) == "marche" and String(trip.legs[-1].type) == "marche", "le trajet commence et finit à pied")
+	var short := pl.plan(Vector3(360, 0, -320), Vector3(390, 0, -320))
+	_check(short.legs.size() == 1 and String(short.legs[0].type) == "marche", "trajet court : à pied (%s)" % short.reason)
+	var far := pl.plan(Vector3(5000, 0, 5000), Vector3(5200, 0, 5000))
+	_check(far.legs.size() == 1 and String(far.reason).contains("Pas de station"), "loin de tout : à pied")
+	var truck_trip := pl.plan(Vector3(150, 0, 238), Vector3(212, 0, 300))
+	var no_freight := true
+	for leg in truck_trip.legs:
+		no_freight = no_freight and not (String(leg.type) == "ligne" and bool(sv2.lines[int(leg.line)].get("fret", false)))
+	_check(no_freight, "les habitants ne prennent pas les lignes de fret")
+	pl.board(trip, 12)
+	_check(int(sv2.lines[ml.id].get("passengers", 0)) == 12 and sv2.line_summary(ml.id).contains("12 voyageurs"), "voyageurs comptés : " + sv2.line_summary(ml.id))
+	_check(pl.stations_near(Vector3(360, 0, -300), 50.0, "metro").has(int(ms1.get("id", -1))), "stations proches par genre")
 
 	print("Démolition et sauvegarde :")
 	var edges_before := tr.network.edges.size()
@@ -479,8 +520,13 @@ func _run() -> void:
 	tr.from_dict(world.loaded_data.get("transport", {}))
 	_check(tr.network.edges.size() == edges_before - 1 and world.modifications.size() == mods, "réseau et terrassement restaurés")
 	_check(tr.roundabouts.size() == 1 and tr.junctions.kind(gres.nodes[0]) == "giratoire", "giratoire restauré")
-	_check(tr.stations.stations.size() == n_stations + 3 and tr.stations.lines.size() == n_lines, "stations et lignes restaurées (%d stations, %d lignes)" % [tr.stations.stations.size(), tr.stations.lines.size()])
+	_check(tr.stations.stations.size() == n_stations + 5 and tr.stations.lines.size() == n_lines + 1, "stations et lignes restaurées (%d stations, %d lignes)" % [tr.stations.stations.size(), tr.stations.lines.size()])
 	_check(tr.traffic.parkings.size() == 1, "parking restauré")
+	var pax := 0
+	for lid in tr.stations.lines:
+		pax += int(tr.stations.lines[lid].get("passengers", 0))
+	_check(pax == 12, "voyageurs restaurés")
+	_check(tr.stations.planner.plan(Vector3(340, 0, -300), Vector3(660, 0, -300)).legs.size() >= 3, "itinéraires après chargement")
 	var fret_ok := false
 	for lid in tr.stations.lines:
 		if tr.stations.lines[lid].kind == "camion":

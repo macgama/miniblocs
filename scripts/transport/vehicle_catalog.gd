@@ -289,7 +289,16 @@ const TYPES := {
 	"regional": {"name": "Train régional électrique", "cat": "train", "mode": RAIL, "rail": "train", "era": "contemporain", "region": "europe", "year": 2010,
 		"L": 18.0, "W": 2.95, "H": 4.2, "kmh": 160, "places": 220, "shape": "automotrice", "style": "nez", "consist": ["regional_voiture", "regional_voiture", "regional_queue"],
 		"col": Color("f4f4f4"), "col2": Color("0096c7"), "desc": "Rame à plancher bas, portes larges."},
-	"metro": {"name": "Métro", "cat": "train", "mode": RAIL, "rail": "train", "era": "contemporain", "region": "monde", "year": 2005,
+	"metro_1900": {"name": "Métro des débuts", "cat": "train", "mode": RAIL, "rail": "metro", "era": "classique", "region": "europe", "year": 1900,
+		"L": 13.5, "W": 2.4, "H": 3.4, "kmh": 50, "places": 100, "shape": "automotrice", "style": "metro", "consist": ["metro_voiture", "metro_voiture"],
+		"col": Color("2d6a4f"), "col2": Color("9b2226"), "desc": "Caisses vert bouteille et filet rouge, les premières lignes souterraines."},
+	"metro_pneus": {"name": "Métro sur pneus", "cat": "train", "mode": RAIL, "rail": "metro", "era": "moderne", "region": "europe", "year": 1967,
+		"L": 15.0, "W": 2.4, "H": 3.5, "kmh": 70, "places": 130, "shape": "automotrice", "style": "metro", "consist": ["metro_voiture", "metro_voiture", "metro_voiture", "metro_voiture"],
+		"col": Color("e9ecef"), "col2": Color("1d4ed8"), "desc": "Roule sur pneus, freine et accélère fort entre les stations."},
+	"metro_auto": {"name": "Métro automatique", "cat": "train", "mode": RAIL, "rail": "metro", "era": "futuriste", "region": "asie_est", "year": 2030,
+		"L": 16.0, "W": 2.8, "H": 3.6, "kmh": 100, "places": 160, "shape": "automotrice", "style": "metro", "consist": ["metro_voiture", "metro_voiture", "metro_voiture", "metro_voiture", "metro_voiture"],
+		"col": Color("f8f9fa"), "col2": Color("06d6a0"), "desc": "Sans conducteur, portes palières, une rame toutes les 85 secondes."},
+	"metro": {"name": "Métro", "cat": "train", "mode": RAIL, "rail": "metro", "era": "contemporain", "region": "monde", "year": 2005,
 		"L": 15.0, "W": 2.6, "H": 3.6, "kmh": 80, "places": 140, "shape": "automotrice", "style": "metro", "consist": ["metro_voiture", "metro_voiture", "metro_voiture"],
 		"col": Color("dee2e6"), "col2": Color("e63946"), "desc": "Rames courtes à quatre portes par côté."},
 	"tgv": {"name": "Train à grande vitesse", "cat": "train", "mode": RAIL, "rail": "lgv", "era": "contemporain", "region": "europe", "year": 1990,
@@ -496,9 +505,11 @@ static func for_track(class_id: String, era := "", region := "") -> Array[String
 			var r: String = t.get("rail", "train")
 			if cls == "tram" and r != "tram":
 				continue
-			if cls == "lgv" and r == "tram":
+			if cls == "metro" and r != "metro":
 				continue
-			if cls != "tram" and cls != "lgv" and r != "train":
+			if cls == "lgv" and (r == "tram" or r == "metro"):
+				continue
+			if cls != "tram" and cls != "lgv" and cls != "metro" and r != "train":
 				continue
 		elif mode == PATH and cls == "trottoir" and t.cat == "deux_roues" and String(t.get("kind", "")) != "trottinette":
 			continue

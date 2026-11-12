@@ -78,10 +78,18 @@ func _run() -> void:
 	amb.set_speed(0)
 	amb.unix_time = _at("2026-03-10", 10.0)
 
+	# Les services d'urgence (scene.urgences) écoutent les incidents : on les
+	# débranche le temps de tester les secours simulés, puis on les rebranche.
+	var branches := []
+	for sig in ["incident_declare", "incident_aggrave", "incident_resolu"]:
+		for c in ev.get_signal_connection_list(sig):
+			branches.append([sig, c.callable])
+			ev.disconnect(sig, c.callable)
+
 	print("Stades dans le catalogue :")
 	var stades := 0
 	for id in BuildingCatalog.ids_in("sport"):
-		if BuildingCatalog.get_type(id).has("glb"):
+		if BuildingCatalog.get_type(id).has("glb") and BuildingCatalog.get_type(id).has("stade"):
 			stades += 1
 	_check(stades == 11, "11 stades modélisés dans Blender dans la catégorie Sport (%d)" % stades)
 	var sm := BuildingCatalog.build_mesh("stade_vaduz")
@@ -306,6 +314,20 @@ func _run() -> void:
 	_check(scene.actualites.count() > 0, "fil d'actualité en haut de l'écran")
 	ev.set_outil("incendie")
 	_check(ev.poser("incendie", Vector2i(-200, -200)) == false, "outil incendie : rien sans bâtiment")
+
+	print("Avec les services d'urgence :")
+	for b in branches:
+		ev.connect(String(b[0]), b[1])
+	var urg: Urgences = scene.urgences
+	_check(ev.secours_branches(), "les services d'urgence écoutent les incidents")
+	var cible := -1
+	for bid in bs.buildings:
+		if not ev.incendies.brule(bid) and String(BuildingCatalog.get_type(String(bs.buildings[bid].t)).get("cat", "")) != "espaces":
+			cible = bid
+			break
+	var fid9 := ev.incendies.start_fire(cible, "manuel")
+	var inc9 := int(ev.events[fid9].data.inc) if fid9 >= 0 else -1
+	_check(inc9 >= 0 and urg.incidents.has(inc9), "un incendie arrive chez les pompiers (même id d'incident)")
 
 	print("EVENEMENTS TEST OK" if ok else "EVENEMENTS TEST ÉCHEC")
 	quit(0 if ok else 1)

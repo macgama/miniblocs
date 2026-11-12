@@ -33,6 +33,7 @@ HX, HY = 56.5, 38.0          # bord de la pelouse (4 m de dégagement)
 
 BETON = "#d6d2c9"
 BETON_SOMBRE = "#6e6d69"
+VOILE = "#8f8d88"            # béton des grands voiles d'angle
 SOUBASSEMENT = "#3c4046"
 SIEGES = "#2459a8"
 SIEGES_OMBRE = "#1d4a8c"
@@ -133,45 +134,50 @@ def toit(b):
                             BANDEAU, (sens * mx, sens * (my + 5), 0))
 
 
-def voile_biais(b, a, c, epaisseur=0.8, recul=7.0, entree=(9.0, 4.2)):
-    """Angle coupé en biais : grand voile triangulaire en béton dans le plan du
-    pan coupé (a -> c, au bord du toit), base au sol en retrait, sommet sous le
-    toit, donc incliné vers l'extérieur. Passage des spectateurs en bas."""
-    ax, ay = a
-    cx, cy = c
-    mx, my = (ax + cx) / 2, (ay + cy) / 2
-    # Normale horizontale vers l'intérieur (vers le centre du stade).
-    tx, ty = cx - ax, cy - ay
+def voile_biais(b, a, c, base_a, base_c, haut_facade_a, haut_lateral_c,
+                epaisseur=0.8, entree=(9.0, 4.2)):
+    """Angle coupé en biais (photo de Gaël) : un grand voile triangulaire en
+    béton ferme l'angle. Sa base va, au sol, du bout de la façade principale
+    (base_a) au coin de la tribune latérale (base_c) ; son sommet touche le
+    milieu du pan coupé du toit (a -> c), donc il penche vers l'extérieur.
+    Les triangles restants entre le voile et le toit sont fermés : vitrage
+    côté façade, mur sombre côté tribune. Entrée des spectateurs en bas."""
+    mx, my = (a[0] + c[0]) / 2, (a[1] + c[1]) / 2
+    sommet = (mx, my, TOIT_BAS)
+    tx, ty = base_c[0] - base_a[0], base_c[1] - base_a[1]
     lg = math.hypot(tx, ty)
     tx, ty = tx / lg, ty / lg
-    nx, ny = -ty, tx
+    nx, ny = -ty, tx                      # normale horizontale vers l'intérieur
     if nx * -mx + ny * -my < 0:
         nx, ny = -nx, -ny
-    retrait = 0.08 * lg   # la base est un peu plus courte que le haut
-    base_a = (ax + tx * retrait + nx * recul, ay + ty * retrait + ny * recul, 0.0)
-    base_c = (cx - tx * retrait + nx * recul, cy - ty * retrait + ny * recul, 0.0)
-    sommet = (mx + nx * 0.6, my + ny * 0.6, TOIT_BAS)
-    # Normale de la face avant : vers le dehors et un peu vers le bas.
-    dehors = (-nx, -ny, -recul / TOIT_BAS)
+    ba = (base_a[0], base_a[1], 0.0)
+    bc = (base_c[0], base_c[1], 0.0)
+    dehors = (-nx, -ny, -0.3)
 
     def decale(p, k):
         return (p[0] + nx * epaisseur * k, p[1] + ny * epaisseur * k, p[2])
 
-    b.face_orientee([base_a, base_c, sommet], BETON_SOMBRE, dehors)
-    b.face_orientee([decale(base_a, 1), decale(base_c, 1), decale(sommet, 1)], BETON_SOMBRE,
+    b.face_orientee([ba, bc, sommet], VOILE, dehors)
+    b.face_orientee([decale(ba, 1), decale(bc, 1), decale(sommet, 1)], VOILE,
                     tuple(-v for v in dehors))
-    for p, q in ((base_a, sommet), (sommet, base_c)):
-        vx, vy = (p[0] + q[0]) / 2 - mx, (p[1] + q[1]) / 2 - my
-        b.face_orientee([p, q, decale(q, 1), decale(p, 1)], BETON, (vx, vy, 0.3))
+    for p, q in ((ba, sommet), (sommet, bc)):
+        vx, vy = (p[0] + q[0]) / 2 - (ba[0] + bc[0]) / 2, (p[1] + q[1]) / 2 - (ba[1] + bc[1]) / 2
+        b.face_orientee([p, q, decale(q, 1), decale(p, 1)], BETON, (vx - nx, vy - ny, 0.3))
+    # Fermetures entre le voile et le toit.
+    a_haut = (a[0], a[1], TOIT_BAS)
+    c_haut = (c[0], c[1], TOIT_BAS)
+    for tri in ([haut_facade_a, a_haut, sommet], [haut_facade_a, sommet, ba]):
+        b.face_orientee(tri, VERRE_B, (-nx, -ny, 0))
+    for tri in ([haut_lateral_c, sommet, c_haut], [haut_lateral_c, bc, sommet]):
+        b.face_orientee(tri, SOUBASSEMENT, (-nx, -ny, 0))
     # Entrée : ouverture sombre en bas, au milieu du voile.
     largeur, hauteur = entree
-    t = hauteur / TOIT_BAS
-    centre = (base_a[0] + base_c[0]) / 2, (base_a[1] + base_c[1]) / 2
+    cx0, cy0 = (ba[0] + bc[0]) / 2, (ba[1] + bc[1]) / 2
     pts = []
     for du, z in ((-1, 0.0), (1, 0.0), (1, hauteur), (-1, hauteur)):
         k = z / TOIT_BAS
-        px = centre[0] + (sommet[0] - centre[0]) * k + tx * du * largeur / 2 - nx * 0.05
-        py = centre[1] + (sommet[1] - centre[1]) * k + ty * du * largeur / 2 - ny * 0.05
+        px = cx0 + (sommet[0] - cx0) * k + tx * du * largeur / 2 - nx * 0.05
+        py = cy0 + (sommet[1] - cy0) * k + ty * du * largeur / 2 - ny * 0.05
         pts.append((px, py, z))
     b.face_orientee(pts, "#25272b", dehors)
 
@@ -238,8 +244,14 @@ def construit(b):
     toit(b)
     # Angles coupés en biais, chacun avec son grand voile de béton incliné.
     for sx in (-1, 1):
-        voile_biais(b, (sx * (XE - BISEAU), YS), (sx * XE, YS + BISEAU))
-        voile_biais(b, (sx * (XE - BISEAU), YN), (sx * XE, YN - BISEAU))
+        # Côté tribune principale (-Y) : façade jusqu'à d = 30,8, tribune
+        # latérale jusqu'à d = 20 (x = ±76,5), arrêtée à y = -HY.
+        voile_biais(b, (sx * (XE - BISEAU), YS), (sx * XE, YS + BISEAU),
+                    (sx * HX, -(HY + 30.8)), (sx * (HX + 20), -HY),
+                    (sx * HX, -(HY + 30.8), TOIT_BAS), (sx * (HX + 20), -HY, 10.0))
+        voile_biais(b, (sx * (XE - BISEAU), YN), (sx * XE, YN - BISEAU),
+                    (sx * HX, HY + 20), (sx * (HX + 20), HY),
+                    (sx * HX, HY + 20, 10.0), (sx * (HX + 20), HY, 10.0))
 
 
 def main():

@@ -49,7 +49,7 @@ Un bâtiment particulier a son propre script dans `tools/blender/batiments/`, qu
 | Script | Bâtiment | Triangles |
 | --- | --- | --- |
 | `maison_frank.py` | Villa moderniste d'après une maison de Josef Frank (années 1930) : bow-window, tours cylindriques, terrasses | 558 |
-| `stade_tuiliere.py` | Stade de la Tuilière, Lausanne (2020) : 12 544 places, terrain 105 × 68 m, tribune principale à façade de verre à facettes, trois tribunes ouvertes, toit en porte-à-faux couvert de panneaux solaires, angles coupés en biais avec un grand voile de béton incliné et l'entrée des spectateurs. Sources en tête du script. | 486 |
+| `stade_tuiliere.py` | Stade de la Tuilière, Lausanne (2020) : 12 544 places, terrain 105 × 68 m, tribune principale à façade de verre à facettes, trois tribunes ouvertes, toit en porte-à-faux couvert de panneaux solaires, angles coupés en biais avec un grand voile de béton incliné et l'entrée des spectateurs. Sources en tête du script. | 502 |
 
 ![Maison Frank et maison test dans la vitrine](apercu-glb-maison_frank.png)
 
@@ -76,7 +76,7 @@ Un stade par club de la saison 2026-2027 (le Letzigrund est partagé par le FC Z
 | `stade_saint_gall` | Kybunpark, Saint-Gall | FC Saint-Gall | 19 568 | 1 206 |
 | `stade_lucerne` | Swissporarena, Lucerne | FC Lucerne | 17 000 | 1 222 |
 | `stade_sion` | Tourbillon, Sion | FC Sion | 14 850 | 332 |
-| `stade_tuiliere` | Tuilière, Lausanne | FC Lausanne-Sport | 12 544 | 486 |
+| `stade_tuiliere` | Tuilière, Lausanne | FC Lausanne-Sport | 12 544 | 502 |
 | `stade_thoune` | Stockhorn Arena, Thoune | FC Thoune | 10 398 | 1 398 |
 | `stade_lugano` | AIL Arena, Lugano | FC Lugano | 8 793 | 1 316 |
 | `stade_vaduz` | Rheinpark, Vaduz | FC Vaduz | 6 441 | 318 |

@@ -79,7 +79,7 @@ def epicerie(k):
     k.toit_plat(0, 0, 6.0, 9, 9, "beton_sombre", acrotere=0.4, c_acrotere="enduit_rose")
 
 
-@batiment(F, "pharmacie", "Pharmacie", "commerce", 420_000,
+@batiment(F, "pharmacie_officine", "Pharmacie", "commerce", 420_000,
           "Officine à grande vitrine et croix verte lumineuse.",
           "Pharmacies d'officine françaises", era="moderne", emplois=5, visiteurs=220,
           metiers=[["vendeur", 2], ["cadre", 1]], role="pharmacie", zone="C")
@@ -269,7 +269,7 @@ def bricolage(k):
         k.boite(30, 20 + i * 4.5, 0, 9, 3, 1.4 + i * 0.4, ("bois_clair", "beton_clair", "brique")[i])
 
 
-@batiment(F, "concession_auto", "Concession automobile", "commerce", 4_200_000,
+@batiment(F, "concession_voitures", "Concession automobile", "commerce", 4_200_000,
           "Showroom vitré, atelier et voitures neuves en exposition.",
           "Concessions automobiles de zone commerciale", era="contemporain", emplois=35, visiteurs=200,
           metiers=[["vendeur", 3], ["ouvrier", 2], ["cadre", 1]], role="concession", zone="C")
@@ -291,7 +291,7 @@ def concession_auto(k):
     k.boite(18, -15, 9, 3, 0.3, 3, "rouge")
 
 
-@batiment(F, "station_service", "Station-service", "commerce", 2_200_000,
+@batiment(F, "station_carburant", "Station-service", "commerce", 2_200_000,
           "Auvent sur pompes, boutique et totem de prix.",
           "Stations-service de nationale", era="moderne", emplois=6, visiteurs=900,
           metiers=[["caissier", 2], ["vendeur", 1]], role="station_service", zone="C")

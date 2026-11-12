@@ -234,7 +234,7 @@
    ]
   },
   {
-   "id": "pharmacie",
+   "id": "pharmacie_officine",
    "name": "Pharmacie",
    "cat": "commerce",
    "cost": 420000,
@@ -261,7 +261,7 @@
    ],
    "role": "pharmacie",
    "zone": "C",
-   "glb": "res://assets/modeles/bible/pharmacie.glb",
+   "glb": "res://assets/modeles/bible/pharmacie_officine.glb",
    "w": 13,
    "d": 15,
    "h": 7.1,
@@ -1110,7 +1110,7 @@
    ]
   },
   {
-   "id": "concession_auto",
+   "id": "concession_voitures",
    "name": "Concession automobile",
    "cat": "commerce",
    "cost": 4200000,
@@ -1141,7 +1141,7 @@
    ],
    "role": "concession",
    "zone": "C",
-   "glb": "res://assets/modeles/bible/concession_auto.glb",
+   "glb": "res://assets/modeles/bible/concession_voitures.glb",
    "w": 42,
    "d": 35,
    "h": 12.0,
@@ -1210,7 +1210,7 @@
    ]
   },
   {
-   "id": "station_service",
+   "id": "station_carburant",
    "name": "Station-service",
    "cat": "commerce",
    "cost": 2200000,
@@ -1237,7 +1237,7 @@
    ],
    "role": "station_service",
    "zone": "C",
-   "glb": "res://assets/modeles/bible/station_service.glb",
+   "glb": "res://assets/modeles/bible/station_carburant.glb",
    "w": 36,
    "d": 32,
    "h": 7.0,

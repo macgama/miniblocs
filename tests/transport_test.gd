@@ -793,6 +793,21 @@ func _ramp_tests(tr: TransportSystem) -> void:
 	tr.traffic.rng.seed = 3
 	var wrong := 0
 	var seen := {}
+	# Véhicules envoyés exprès par l'échangeur (le trafic d'ambiance part au
+	# hasard sur tout le réseau du test), puis trafic au hasard.
+	var trips := [[west, south], [west, north], [east, north], [east, south], [north, east], [south, west]]
+	for trip in trips:
+		if not tr.traffic.spawn(TransportTypes.Mode.ROAD):
+			continue
+		var tv: Dictionary = tr.traffic.vehicles[tr.traffic.vehicles.size() - 1]
+		var tr_route: Array[int] = net.find_route(trip[0], trip[1])
+		if tr_route.is_empty() or not (tv.wagons as Array).is_empty():
+			continue
+		tv.node = trip[0]
+		tv.route = tr_route
+		tv.leg = 0
+		tv.s = 0.0
+		tv.speed = 0.0
 	for i in 1500:
 		if tr.traffic.vehicles.size() < 30:
 			tr.traffic.spawn(TransportTypes.Mode.ROAD)

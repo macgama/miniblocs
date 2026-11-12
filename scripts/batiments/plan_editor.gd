@@ -231,13 +231,13 @@ func _emit_help() -> void:
 	var t := ""
 	match tool:
 		Tool.WALL:
-			t = "Mur de 20 cm (%s, %s le mètre) : clic glissé d'un coin de case à l'autre" % [mat.name, BuildingSystem.format_money(wall_price(material))]
+			t = "Mur de 20 cm (%s, %s le mètre) : clic glissé d'un coin de case à l'autre" % [mat.name, BuildingSystem.format_money(ReglagesPartie.prix(wall_price(material)))]
 		Tool.ROOM:
 			t = "Pièce : clic glissé en rectangle (quatre murs en %s et le plancher)" % mat.name
 		Tool.FLOOR:
 			t = "Sol : clic glissé en rectangle (%s)" % mat.name
 		Tool.OPENING:
-			t = "%s : clic près d'un mur (%s)" % [OPENINGS[opening].name, BuildingSystem.format_money(int(OPENINGS[opening].price))]
+			t = "%s : clic près d'un mur (%s)" % [OPENINGS[opening].name, BuildingSystem.format_money(ReglagesPartie.prix(int(OPENINGS[opening].price)))]
 		Tool.PAINT:
 			t = "Peinture (%s) : clic sur un côté de mur ou un sol · glissé : toute la pièce" % mat.name
 		Tool.STAIRS:
@@ -279,13 +279,15 @@ static func floor_price(m: int) -> int:
 const STAIR_PRICE := 1500
 
 
+## Les prix des murs et étages sont des prix de base : le coût de la partie
+## (ReglagesPartie.cout_construction) s'applique au moment de payer.
 func _can_pay(amount: int) -> bool:
-	return buildings == null or buildings.unlimited_money or buildings.money >= amount
+	return buildings == null or buildings.unlimited_money or buildings.money >= ReglagesPartie.prix(amount)
 
 
 func _pay(amount: int) -> void:
 	if buildings != null and not buildings.unlimited_money:
-		buildings.money -= amount
+		buildings.money -= ReglagesPartie.prix(amount)
 
 
 # --- Plans --------------------------------------------------------------------------
@@ -522,7 +524,7 @@ func add_walls(id: String, keys: Array, code := -1) -> int:
 		return 0
 	var cost := todo.size() * wall_price(BlocFormes.mat_of(code))
 	if not _can_pay(cost):
-		message.emit("Pas assez d'argent : %s nécessaires." % BuildingSystem.format_money(cost))
+		message.emit("Pas assez d'argent : %s nécessaires." % BuildingSystem.format_money(ReglagesPartie.prix(cost)))
 		return 0
 	var before: Variant = _snapshot(id)
 	if id == "" or not plans.has(id):
@@ -562,7 +564,7 @@ func add_floors(id: String, rect: Rect2i, e: int, code := -1, replace := false) 
 		return 0
 	var cost := todo.size() * floor_price(BlocFormes.mat_of(code))
 	if not _can_pay(cost):
-		message.emit("Pas assez d'argent : %s nécessaires." % BuildingSystem.format_money(cost))
+		message.emit("Pas assez d'argent : %s nécessaires." % BuildingSystem.format_money(ReglagesPartie.prix(cost)))
 		return 0
 	var before: Variant = _snapshot(id)
 	for k in todo:
@@ -605,7 +607,7 @@ func add_room(id: String, rect: Rect2i, e: int, n := 1) -> bool:
 		return false
 	var cost := walls.size() * wall_price(material) + floors.size() * floor_price(BlocFormes.mat_of(fcode))
 	if not _can_pay(cost):
-		message.emit("Pas assez d'argent : %s nécessaires." % BuildingSystem.format_money(cost))
+		message.emit("Pas assez d'argent : %s nécessaires." % BuildingSystem.format_money(ReglagesPartie.prix(cost)))
 		return false
 	var before: Variant = _snapshot(id)
 	for k in walls:
@@ -632,7 +634,7 @@ func set_opening_at(id: String, k: Vector4i, kind: String) -> bool:
 	elif String(p.walls[k].o) == kind:
 		return false
 	if not _can_pay(cost):
-		message.emit("Pas assez d'argent : %s nécessaires." % BuildingSystem.format_money(cost))
+		message.emit("Pas assez d'argent : %s nécessaires." % BuildingSystem.format_money(ReglagesPartie.prix(cost)))
 		return false
 	var before: Variant = _snapshot(id)
 	if not p.walls.has(k):
@@ -740,7 +742,7 @@ func add_stairs(id: String, c: Vector2i, e: int, r: int) -> bool:
 			return false
 	var cost := STAIR_PRICE
 	if not _can_pay(cost):
-		message.emit("Pas assez d'argent : %s nécessaires." % BuildingSystem.format_money(cost))
+		message.emit("Pas assez d'argent : %s nécessaires." % BuildingSystem.format_money(ReglagesPartie.prix(cost)))
 		return false
 	var before: Variant = _snapshot(id)
 	var m := material if BlocMateriaux.LIST[material].fam != "nature" else 2
@@ -902,7 +904,7 @@ func copy_level_up(id: String, e: int, n := 1) -> int:
 		message.emit("L'étage du dessus est déjà construit.")
 		return 0
 	if not _can_pay(cost):
-		message.emit("Pas assez d'argent : %s nécessaires." % BuildingSystem.format_money(cost))
+		message.emit("Pas assez d'argent : %s nécessaires." % BuildingSystem.format_money(ReglagesPartie.prix(cost)))
 		return 0
 	var before: Variant = _snapshot(id)
 	for k in add_w:
@@ -1328,7 +1330,7 @@ func _update_ghost() -> void:
 			for k in keys:
 				boxes.append(_wall_aabb(k, by, wall_levels))
 			if _drag:
-				info = "Mur de %d m%s · %s" % [keys.size(), _levels_txt(), BuildingSystem.format_money(keys.size() * wall_levels * wall_price(material))]
+				info = "Mur de %d m%s · %s" % [keys.size(), _levels_txt(), BuildingSystem.format_money(ReglagesPartie.prix(keys.size() * wall_levels * wall_price(material)))]
 		Tool.ROOM:
 			for k in room_walls(rect, a.e):
 				boxes.append(_wall_aabb(k, by, wall_levels))

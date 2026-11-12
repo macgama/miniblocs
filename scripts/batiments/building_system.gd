@@ -212,7 +212,7 @@ func clear() -> void:
 	buildings.clear()
 	occupancy.clear()
 	next_id = 1
-	money = START_MONEY
+	money = ReglagesPartie.actuel.argent_depart
 	_hover_building = -1
 	last_change_rect = Rect2i()
 	changed.emit()
@@ -404,7 +404,12 @@ func check_place(id: String, center: Vector2i, r: int, grown := false, a := 0.0)
 				if not is_nan(hc):
 					earth += absf(hc - target)
 	res.earth = earth
-	res.cost = BuildingCatalog.cost(id) + roundi(earth * EARTH_COST)
+	res.cost = ReglagesPartie.prix(BuildingCatalog.cost(id) + roundi(earth * EARTH_COST))
+	if not grown:
+		var lock := ReglagesPartie.actuel.raison_blocage(id)
+		if lock != "":
+			res.reason = lock
+			return res
 	if extra_check.is_valid() and not grown:
 		var ex: Dictionary = extra_check.call(id, rect)
 		res["info"] = String(ex.get("info", ""))
@@ -710,7 +715,7 @@ func _refresh() -> void:
 	var t := BuildingCatalog.get_type(type_id)
 	var txt := "%s (%d × %d m) · %s" % [t.name, t.w, t.d, format_money(int(_check.cost))]
 	if _check.earth > 0.0:
-		txt += " dont terrassement %s" % format_money(roundi(_check.earth * EARTH_COST))
+		txt += " dont terrassement %s" % format_money(ReglagesPartie.prix(roundi(_check.earth * EARTH_COST)))
 	txt += " · " + ("desservi par une %s" % String(TransportTypes.get_type(acc.type).name).to_lower() if not acc.is_empty() else "aucune voie à proximité")
 	if String(_check.get("info", "")) != "":
 		txt += "\n" + String(_check.info)

@@ -520,7 +520,7 @@ func _view_profile(pid: int) -> void:
 		_section("Travail")
 		if int(p.job) >= 0:
 			var j := Metiers.job(String(p.met))
-			_text("%s · %s net par mois%s" % [j.name, money(float(j.salaire)),
+			_text("%s · %s net par mois%s" % [j.name, money(float(j.salaire) * ReglagesPartie.actuel.salaires),
 				" (payé par l'État)" if bool(j.get("etat", false)) else (" (payé par la ville)" if bool(j.get("public", false)) else "")])
 			_building_link("Lieu : ", int(p.job))
 			const JOURS := {"semaine": "du lundi au vendredi", "lunsam": "du lundi au samedi", "marsam": "du mardi au samedi",

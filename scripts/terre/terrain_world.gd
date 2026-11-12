@@ -84,6 +84,7 @@ var _generation := 0
 var _material: ShaderMaterial
 var _water: MeshInstance3D
 var _water_material: ShaderMaterial
+var _surf_material: ShaderMaterial
 var _selection: MeshInstance3D
 var _camera: Camera3D
 var _focus: Node3D
@@ -122,6 +123,9 @@ func _ready() -> void:
 	_water = MeshInstance3D.new()
 	var plane := PlaneMesh.new()
 	plane.size = Vector2.ONE * (max_view_radius * 2.0 + 256.0)
+	# Assez de sommets pour la houle (un tous les ~12 m).
+	plane.subdivide_width = 96
+	plane.subdivide_depth = 96
 	_water.mesh = plane
 	var water_shader := preload("res://scripts/terre/water.gdshader")
 	var wm := ShaderMaterial.new()
@@ -129,7 +133,12 @@ func _ready() -> void:
 	wm.set_shader_parameter("foam_amount", 0.0)
 	wm.set_shader_parameter("fixed_depth", 1.0)
 	wm.set_shader_parameter("wave_scale", 0.6)
+	wm.set_shader_parameter("wave_height", 0.12)
 	_water.material_override = wm
+	_surf_material = ShaderMaterial.new()
+	_surf_material.shader = water_shader
+	_surf_material.set_shader_parameter("surf_only", true)
+	_surf_material.render_priority = 1
 	_water_material = ShaderMaterial.new()
 	_water_material.shader = water_shader
 	_water.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -271,6 +280,10 @@ const KIND_NAMES: Array[String] = ["Mer", "Lac / rivière", "Glacier", "Roche", 
 ## Probabilité d'un arbre / d'un buisson sur une case, par type.
 const TREE_BY_KIND: Array[float] = [0, 0, 0, 0, 0.10, 0.025, 0.004, 0, 0, 0.01, 0.08, 0, 0, 0, 0, 0, 0, 0, 0]
 const BUSH_BY_KIND: Array[float] = [0, 0, 0, 0, 0.03, 0.05, 0, 0, 0, 0, 0, 0.02, 0, 0, 0.01, 0, 0, 0, 0]
+## Plages : altitude maximale (m) et biomes qui deviennent du sable au bord de la mer
+## (broussailles, prairie, champs, désert, toundra, plage).
+const BEACH_MAX := 2.5
+const BEACH_KINDS := (1 << 5) | (1 << 6) | (1 << 7) | (1 << 8) | (1 << 11) | (1 << 12)
 ## Densité des arbres plantés au pinceau.
 const PLANTED_TREES := 0.3
 
@@ -395,6 +408,12 @@ func cell_kind_at(c: Vector2i) -> String:
 	if biome_paint.has(c):
 		return KIND_NAMES[int(biome_paint[c])]
 	var bio := cell_biome(c)
+	if h >= 0.0 and h <= BEACH_MAX and not water_cells.has(c) and (BEACH_KINDS >> cell_kind_id(h, 0.0, bio)) & 1 == 1:
+		var near_sea := h <= 1.0
+		for d in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1), Vector2i(1, 1), Vector2i(-1, -1), Vector2i(1, -1), Vector2i(-1, 1)]:
+			near_sea = near_sea or cell_height(c + d) < 0.0
+		if near_sea and cell_slope(c) < 2.0:
+			return KIND_NAMES[Kind.PLAGE]
 	if not modifications.has(c) and bio != 80:
 		var wk := stream_kind_id(water.width_at(c.x + 0.5, c.y + 0.5), h)
 		if wk >= 0:
@@ -724,6 +743,12 @@ static func _compute_chunk(job: Dictionary) -> void:
 				var sk := stream_kind_id(wid[n], hc)
 				if sk >= 0:
 					kind = sk
+			# Plages : terre basse au bord de la mer (ou à moins de 1 m d'altitude).
+			if wet[n] == 0 and hc >= 0.0 and hc <= BEACH_MAX and s < 2.0:
+				var near_sea := wet[n - 1] == 2 or wet[n + 1] == 2 or wet[n - w] == 2 or wet[n + w] == 2 \
+					or wet[n - w - 1] == 2 or wet[n - w + 1] == 2 or wet[n + w - 1] == 2 or wet[n + w + 1] == 2
+				if (near_sea or hc <= 1.0) and (BEACH_KINDS >> cell_kind_id(hc, 0.0, code)) & 1 == 1:
+					kind = Kind.PLAGE
 			if any_wet and player_water[n] == 1:
 				kind = Kind.CANAL
 			elif has_marks and paint[n] != 255 and wet[n] != 1:
@@ -798,6 +823,7 @@ static func _compute_chunk(job: Dictionary) -> void:
 	job.arrays = arrays
 	job.h = h
 	job.water_arrays = _compute_water_mesh(cs, wet, surf, wid) if any_wet else []
+	job.surf_arrays = _compute_surf_mesh(cs, h, wet)
 	# Une case peinte (biome ou arbres) garde sa végétation même terrassée.
 	if has_marks:
 		for n in w * w:
@@ -805,6 +831,72 @@ static func _compute_chunk(job: Dictionary) -> void:
 				modified[n] = 0
 	job.tree_mark = tree_mark
 	_compute_vegetation(job, h, kinds, modified)
+
+
+## Ressac : une bande d'écume posée sur la mer le long du rivage (4 m de large).
+## Pour chaque sommet, r = 1 au contact de la terre, 0 à 4 cases du rivage.
+const SURF_WIDTH := 4
+
+
+static func _compute_surf_mesh(cs: int, h: PackedFloat32Array, wet: PackedByteArray) -> Array:
+	var w := cs + 2
+	# Distance au rivage (en cases, plafonnée), calculée dans le bloc et sa marge.
+	var dist := PackedByteArray()
+	dist.resize(w * w)
+	var any_land := false
+	var any_sea := false
+	for n in w * w:
+		# Seule la terre ferme arrête la mer (pas les lacs ni les rivières).
+		var wn := wet[n]
+		dist[n] = 0 if wn == 0 else 255
+		any_land = any_land or wn == 0
+		any_sea = any_sea or wn == 2
+	# Pas de rivage dans le bloc : rien à calculer (cas de presque tous les blocs).
+	if not any_land or not any_sea:
+		return []
+	for _pass in SURF_WIDTH:
+		for j in w:
+			for i in w:
+				var n := i + j * w
+				if dist[n] == 0:
+					continue
+				var best: int = dist[n]
+				for dj in range(-1, 2):
+					for di in range(-1, 2):
+						var ii := i + di
+						var jj := j + dj
+						if ii >= 0 and jj >= 0 and ii < w and jj < w:
+							best = mini(best, dist[ii + jj * w] + 1)
+				dist[n] = best
+	var verts := PackedVector3Array()
+	var normals := PackedVector3Array()
+	var cols := PackedColorArray()
+	var idx := PackedInt32Array()
+	var y := WATER_LEVEL + 0.02
+	for j in range(1, cs + 1):
+		for i in range(1, cs + 1):
+			var n := i + j * w
+			if wet[n] != 2 or dist[n] > SURF_WIDTH:
+				continue
+			var base := verts.size()
+			for corner: Vector2i in [Vector2i(i - 1, j - 1), Vector2i(i, j - 1), Vector2i(i, j), Vector2i(i - 1, j)]:
+				var d := 255
+				for ddx in 2:
+					for ddz in 2:
+						d = mini(d, dist[corner.x + ddx + (corner.y + ddz) * w])
+				verts.push_back(Vector3(corner.x, y, corner.y))
+				normals.push_back(Vector3.UP)
+				cols.push_back(Color(clampf(1.0 - float(d) / SURF_WIDTH, 0.0, 1.0), 0.0, 0.0, 1.0))
+			idx.append_array([base, base + 1, base + 2, base, base + 2, base + 3])
+	if verts.is_empty():
+		return []
+	var arrays := []
+	arrays.resize(Mesh.ARRAY_MAX)
+	arrays[Mesh.ARRAY_VERTEX] = verts
+	arrays[Mesh.ARRAY_NORMAL] = normals
+	arrays[Mesh.ARRAY_COLOR] = cols
+	arrays[Mesh.ARRAY_INDEX] = idx
+	return arrays
 
 
 ## Surface d'eau douce du bloc : un carré par case d'eau, à la hauteur de sa
@@ -902,6 +994,16 @@ func _apply_chunk(job: Dictionary) -> void:
 		wmi.material_override = _water_material
 		wmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		mi.add_child(wmi)
+	var sa: Array = job.surf_arrays
+	if not sa.is_empty():
+		var smesh := ArrayMesh.new()
+		smesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, sa)
+		var smi := MeshInstance3D.new()
+		smi.name = "Ressac"
+		smi.mesh = smesh
+		smi.material_override = _surf_material
+		smi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		mi.add_child(smi)
 	chunk_rebuilt.emit(k)
 
 

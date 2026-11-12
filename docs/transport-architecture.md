@@ -73,7 +73,7 @@ Choix simples pour l'instant (questions 1 et 2 toujours ouvertes) : pas de voyag
 | --- | --- |
 | **1. Fait** | Graphe commun, route / rail / chemin / voie d'eau sur le vrai relief, ponts, tunnels, terrassement, carrefours, véhicules d'ambiance, sauvegarde. |
 | **2. Fait** | Classes réglementaires (largeurs, rayons, pentes), courbes, plateaux de carrefour, refus des chevauchements, talus. |
-| **Catalogue. Fait** | 131 véhicules de toutes époques et régions, branchés sur la circulation avec filtre époque / région. |
+| **Catalogue. Fait** | 133 véhicules de toutes époques et régions, branchés sur la circulation avec filtre époque / région. |
 | **3 et 4. Fait (version simple)** | Stations : arrêts de bus et de tram, gares, ports, héliports, aérodromes, aéroports. Lignes : stations dans l'ordre, véhicule du catalogue, nombre de véhicules, navette avec arrêts ; avions qui décollent et atterrissent. |
 | 2 bis | Ponts et tunnels forcés à la main (échangeurs, sauts-de-mouton), bretelles, ronds-points, aiguillages dessinés. |
 | 3 | **Stations** : arrêts de bus, gares, ports, héliports et **aéroports** (pistes, couloirs aériens entre aéroports, avions). |
@@ -99,3 +99,7 @@ Choix simples pour l'instant (questions 1 et 2 toujours ouvertes) : pas de voyag
 ## Parkings
 
 Un parking est une station de type `parking` (nœud du réseau routier, emprise à droite de la route). `StationSystem._sync_parkings()` donne à `Traffic.parkings` la position de chaque place (`Transform3D`) et leur occupation. Un véhicule ambiant (voiture, utilitaire, deux-roues) a 35 % de chances, à chaque nouvelle destination, de viser une place libre : la place est réservée, il roule jusqu'au nœud du parking, se gare (`parked`, hors des files) puis repart quand la voie est libre.
+
+## Fret
+
+Une ligne a un drapeau `fret` (toujours vrai pour les lignes de camions entre dépôts, au choix pour les trains et les bateaux). `StationSystem.models_for(kind, stops, fret)` ne garde alors que les modèles pour lesquels `VehicleCatalog.is_freight()` est vrai ; les lignes de voyageurs, elles, n'en proposent plus. À chaque arrivée en station, `Traffic` émet `line_arrived(line_id, model)` et la ligne ajoute `VehicleCatalog.capacity_t(model)` à ses `tonnes` (sauvegardées).

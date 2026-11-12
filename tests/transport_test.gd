@@ -434,6 +434,37 @@ func _run() -> void:
 	_check(max_parked >= 4 and twice == 0, "des voitures se garent (jusqu'à %d à la fois, une par place)" % max_parked)
 	_check(left >= 2, "et repartent (%d départs)" % left)
 	tr.traffic.clear()
+
+	print("Fret :")
+	var sv2 := tr.stations
+	var d1 := sv2.place("depot", Vector3(150, 0, 238))
+	var d2 := sv2.place("depot", Vector3(212, 0, 300))
+	_check(d1.ok and d2.ok, "deux dépôts de marchandises (%s / %s)" % [d1.get("reason", "ok"), d2.get("reason", "ok")])
+	var truck_l := sv2.create_line([d1.get("id", -1), d2.get("id", -1)], "", 3)
+	var tline: Dictionary = sv2.lines.get(truck_l.get("id", -1), {})
+	_check(truck_l.ok and bool(tline.get("fret", false)) and VehicleCatalog.is_freight(String(tline.get("model", ""))), "ligne de camions (%s, %s)" % [tline.get("name", "?"), tline.get("model", "?")])
+	var fret_trains := sv2.models_for("train", [], true)
+	var voyageurs := sv2.models_for("train", [], false)
+	_check(fret_trains.has("diesel_fret") and fret_trains.has("electrique_fret") and fret_trains.has("vapeur_marchandises") and not fret_trains.has("tgv") and not voyageurs.has("diesel_fret"),
+		"trains de fret séparés des trains de voyageurs (%d / %d)" % [fret_trains.size(), voyageurs.size()])
+	_check(sv2.models_for("bateau", [], true).has("porte_conteneurs") and sv2.models_for("bateau", [], true).has("peniche"), "cargos et péniches pour le fret par bateau")
+	var train_line := -1
+	for lid in sv2.lines:
+		if sv2.lines[lid].kind == "train":
+			train_line = lid
+	if train_line >= 0:
+		sv2.set_fret(train_line, true)
+		_check(String(sv2.lines[train_line].name).begins_with("Fret ferroviaire") and VehicleCatalog.is_freight(sv2.lines[train_line].model), "case Fret : la ligne de train passe au fret (%s)" % sv2.lines[train_line].model)
+		sv2.set_fret(train_line, false)
+	tr.traffic.enabled = true
+	sv2.respawn_all()
+	tr.traffic.enabled = false
+	for i in 1500:
+		tr.traffic.step(0.1)
+	tr.traffic.enabled = true
+	var tonnes := float(sv2.lines.get(truck_l.get("id", -1), {}).get("tonnes", 0.0))
+	_check(tonnes > 0.0, "les camions livrent : %s" % StationSystem.format_tonnes(tonnes))
+	_check(sv2.line_summary(truck_l.id).contains("transportées"), "tonnage affiché : " + sv2.line_summary(truck_l.id))
 	tr.traffic.enabled = true
 
 	print("Démolition et sauvegarde :")
@@ -448,8 +479,13 @@ func _run() -> void:
 	tr.from_dict(world.loaded_data.get("transport", {}))
 	_check(tr.network.edges.size() == edges_before - 1 and world.modifications.size() == mods, "réseau et terrassement restaurés")
 	_check(tr.roundabouts.size() == 1 and tr.junctions.kind(gres.nodes[0]) == "giratoire", "giratoire restauré")
-	_check(tr.stations.stations.size() == n_stations + 1 and tr.stations.lines.size() == n_lines - 1, "stations et lignes restaurées (%d stations, %d lignes)" % [tr.stations.stations.size(), tr.stations.lines.size()])
+	_check(tr.stations.stations.size() == n_stations + 3 and tr.stations.lines.size() == n_lines, "stations et lignes restaurées (%d stations, %d lignes)" % [tr.stations.stations.size(), tr.stations.lines.size()])
 	_check(tr.traffic.parkings.size() == 1, "parking restauré")
+	var fret_ok := false
+	for lid in tr.stations.lines:
+		if tr.stations.lines[lid].kind == "camion":
+			fret_ok = bool(tr.stations.lines[lid].fret) and float(tr.stations.lines[lid].tonnes) > 0.0
+	_check(fret_ok, "ligne de fret et tonnage restaurés")
 
 	var place := ""
 	for i in args.size():

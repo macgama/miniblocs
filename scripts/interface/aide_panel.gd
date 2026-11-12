@@ -32,7 +32,7 @@ const SECTIONS := [
 		["Filtres", "région, époque et recherche par nom dans les listes de bâtiments"],
 	]],
 	["Transports publics", [
-		["L", "panneau Lignes : stations, gares, ports, aéroports, parkings et lignes"],
+		["L", "panneau Lignes : stations, gares, ports, aéroports, dépôts de marchandises, parkings et lignes (case Fret pour les trains et les bateaux)"],
 	]],
 	["Temps et vue", [
 		["T", "mettre le temps en pause / reprendre"],

@@ -271,6 +271,12 @@ const TYPES := {
 	"diesel_fret": {"name": "Locomotive diesel de fret", "cat": "train", "mode": RAIL, "rail": "train", "era": "moderne", "region": "ameriques", "year": 1970,
 		"L": 20.0, "W": 3.1, "H": 4.6, "kmh": 110, "places": 0, "shape": "diesel", "style": "capot", "consist": ["wagon_couvert", "wagon_citerne", "wagon_conteneurs", "wagon_tremie", "wagon_conteneurs", "wagon_grumes"],
 		"col": Color("f77f00"), "col2": DARK, "desc": "Longs convois de marchandises."},
+	"vapeur_marchandises": {"name": "Train de marchandises à vapeur", "cat": "train", "mode": RAIL, "rail": "train", "era": "classique", "region": "europe", "year": 1905,
+		"L": 12.0, "W": 2.9, "H": 4.2, "kmh": 60, "places": 0, "shape": "vapeur", "style": "pacific", "consist": ["tender", "wagon_couvert", "wagon_tremie", "wagon_grumes", "wagon_couvert", "wagon_tremie"],
+		"col": Color("2b2d42"), "col2": Color("6b705c"), "desc": "Lourd et lent, il tire charbon, bois et céréales."},
+	"electrique_fret": {"name": "Locomotive électrique de fret", "cat": "train", "mode": RAIL, "rail": "train", "era": "contemporain", "region": "europe", "year": 2005,
+		"L": 19.0, "W": 3.0, "H": 4.3, "kmh": 140, "places": 0, "shape": "electrique", "consist": ["wagon_conteneurs", "wagon_conteneurs", "wagon_conteneurs", "wagon_citerne", "wagon_citerne", "wagon_conteneurs"],
+		"col": Color("2d6a4f"), "col2": Color("f1faee"), "desc": "Conteneurs et citernes entre ports et plateformes logistiques."},
 	"diesel_desert": {"name": "Train de voyageurs du désert", "cat": "train", "mode": RAIL, "rail": "train", "era": "moderne", "region": "afrique", "year": 1975,
 		"L": 17.0, "W": 3.0, "H": 4.2, "kmh": 100, "places": 0, "shape": "diesel", "style": "cabine", "consist": ["voiture_corail", "voiture_corail", "wagon_couvert"],
 		"col": Color("dda15e"), "col2": Color("6b2737"), "desc": "Locomotive diesel à cabines, couleur sable."},
@@ -419,6 +425,48 @@ static func era_name(id: String) -> String:
 
 static func region_name(id: String) -> String:
 	return Styles.region_name(id)
+
+
+## Vrai si le modèle transporte des marchandises (camions, charrettes, trains
+## de fret, cargos, péniches…).
+static func is_freight(id: String) -> bool:
+	var t := get_type(id)
+	match String(t.get("cat", "")):
+		"utilitaire":
+			return String(t.get("cargo", "caisse")) in ["caisse", "benne", "citerne", "grumes", "conteneur"]
+		"attelage":
+			return String(t.get("kind", "")) == "charrette"
+		"train":
+			for w in t.get("consist", []):
+				var wt := get_type(w)
+				if String(wt.get("shape", "")) == "fret" and String(wt.get("kind", "")) != "tender":
+					return true
+			return false
+		"bateau":
+			return String(t.get("kind", "")) in ["cargo", "peniche"] or id in ["boutre", "jonque", "drakkar"]
+	return false
+
+
+## Charge utile approximative (tonnes) d'un véhicule de fret.
+static func capacity_t(id: String) -> float:
+	var t := get_type(id)
+	var l := float(t.get("L", 5.0))
+	match String(t.get("cat", "")):
+		"utilitaire":
+			return snappedf(maxf(1.0, (l - 3.0) * 1.6), 0.5)
+		"attelage":
+			return 0.5
+		"train":
+			var n := 0
+			for w in t.get("consist", []):
+				if String(get_type(w).get("shape", "")) == "fret" and String(get_type(w).get("kind", "")) != "tender":
+					n += 1
+			return n * 50.0
+		"bateau":
+			if String(t.get("kind", "")) == "peniche":
+				return 1000.0
+			return snappedf(l * l * 2.5, 10.0)
+	return 0.0
 
 
 static func ids_in(cat: String, include_hidden := false) -> Array[String]:

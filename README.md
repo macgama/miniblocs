@@ -56,6 +56,10 @@ Tout est sauvegardé avec la partie.
 
 ![Panneau Paysage : lac, canal et désert peints dans les Vosges](docs/apercu-paysage.png)
 
+### Mer et côtes
+
+La mer a une **houle** douce (la surface monte et descend), un **ressac** : des bandes d'écume qui roulent vers le rivage sur une bande de 4 m, et des **plages de sable** là où la terre basse (moins de 2,5 m) et peu pentue touche la mer. Les falaises et les rochers restent tels quels. Les marées ne sont pas encore faites.
+
 ### Rivières, ruisseaux et lacs
 
 Les cours d'eau sont de vraies cases d'eau creusées dans le relief (berges d'une ou deux marches), avec une eau animée : vagues, reflets, écume le long des berges et petites cascades quand le lit descend d'une marche. Les lacs viennent d'ESA WorldCover. Les rivières viennent d'OpenStreetMap (avec leur nom, même les ruisseaux de 1 m) quand le jeu peut joindre le service Overpass ; sinon le jeu les **calcule sur le vrai relief** en faisant « couler la pluie » : elles suivent les vraies vallées et s'élargissent vers l'aval. Les routes, rails et chemins posés au-dessus passent automatiquement **sur un pont**.
@@ -87,7 +91,7 @@ Dans le mode Terre, la barre du bas propose **5 Route**, **6 Rail**, **7 Chemin*
 - **Aperçu** vert (possible) ou rouge avec la raison : pente trop forte, virage trop serré, chevauchement, croisement à mauvaise hauteur…
 - **Relief** : la voie monte et descend avec le terrain dans la limite de sa pente. Le jeu fait la plate-forme, des **talus** en pente douce (1 pour 1,5) jusqu'au terrain naturel, les **ponts** (creux, mer) et les **tunnels** (collines).
 - **Carrefours sans superposition** : clique sur une voie existante pour t'y raccrocher (carrefour en T) ou croise-la : le carrefour se crée tout seul, les voies s'arrêtent à son bord et un plateau les relie. Une voie qui en recouvre une autre sans s'y raccorder est refusée. Route et rail (ou chemin) se croisent par un passage à niveau.
-- **Véhicules** : ils viennent d'un **catalogue de 131 modèles** (voir plus bas), tirés au hasard parmi ceux qui peuvent rouler sur chaque voie : tramways sur les voies de tram, TGV sur les LGV, vélos et piétons sur les chemins, péniches sur les canaux, paquebots dans les chenaux. Bouton **Circulation** pour les masquer, menu **Véhicules ▾** pour choisir l'**époque** et la **région** de ce qui circule (par exemple : XIXe – 1945, Amériques).
+- **Véhicules** : ils viennent d'un **catalogue de 133 modèles** (voir plus bas), tirés au hasard parmi ceux qui peuvent rouler sur chaque voie : tramways sur les voies de tram, TGV sur les LGV, vélos et piétons sur les chemins, péniches sur les canaux, paquebots dans les chenaux. Bouton **Circulation** pour les masquer, menu **Véhicules ▾** pour choisir l'**époque** et la **région** de ce qui circule (par exemple : XIXe – 1945, Amériques).
 - **Sauver / Charger** gardent le réseau avec le terrain.
 
 ![Pont et talus au-dessus d'une vallée](docs/apercu-transport-pont.png)
@@ -124,6 +128,14 @@ Bouton **Lignes (L)** (ou touche **L**) : le panneau des transports publics.
 
 Tout est gardé par **Sauver / Charger**.
 
+### Fret : marchandises par la route, le rail et l'eau
+
+- **Dépôt de marchandises** (panneau **Lignes**) : entrepôt, quai de chargement et conteneurs au bord d'une route. Une ligne entre deux dépôts fait rouler des **camions** (camionnettes, semi-remorques, citernes, grumiers, porte-conteneurs… ou charrettes pour les époques anciennes).
+- **Trains et bateaux** : la case **Fret** d'une ligne de train ou de bateau la passe aux marchandises. Les trains deviennent des trains de fret (vapeur 1905, diesel américain, électrique moderne) et les bateaux des péniches, cargos ou porte-conteneurs.
+- Chaque ligne de fret compte les **tonnes transportées** : chaque véhicule qui arrive à une station décharge sa charge utile (environ 22 t pour un semi-remorque, 50 t par wagon, 1 000 t pour une péniche).
+
+![Dépôt de marchandises au bord d'une départementale](docs/apercu-fret.png)
+
 ### Parkings
 
 Le panneau **Lignes (L)** propose aussi le **Parking** : 26 places en épi droit au bord d'une rue, d'une avenue ou d'une départementale. Une partie des voitures, utilitaires et deux-roues de passage y vont, se garent sur une place libre de 40 s à 2 min 40, puis repartent quand la voie est libre.
@@ -134,7 +146,7 @@ Le panneau **Lignes (L)** propose aussi le **Parking** : 26 places en épi droit
 
 ![Voitures, bus, deux-roues et attelages du monde entier](docs/apercu-vehicules.png)
 
-131 modèles low-poly fabriqués en code, à l'échelle réelle, avec leur vitesse et leur nombre de places. Ils utilisent les **époques et régions de la bible** des bâtiments (Antiquité → futuriste, Europe, Amériques, Afrique, Moyen-Orient, Asie de l'Est, Asie du Sud…) :
+133 modèles low-poly fabriqués en code, à l'échelle réelle, avec leur vitesse et leur nombre de places. Ils utilisent les **époques et régions de la bible** des bâtiments (Antiquité → futuriste, Europe, Amériques, Afrique, Moyen-Orient, Asie de l'Est, Asie du Sud…) :
 
 | Catégorie | Exemples |
 | --- | --- |
@@ -317,7 +329,7 @@ Détails et limites : [docs/ambiance.md](docs/ambiance.md).
 | `scripts/transport/junction_control.gd` | Régime des carrefours (feux et leurs phases, stop, cédez-le-passage, priorité à droite), signalisation |
 | `scripts/transport/station_system.gd` | Stations (arrêts, gares, ports, héliports, aérodromes, aéroports), lignes, trajets des avions, sauvegarde |
 | `scripts/transport/station_panel.gd` | Panneau « Transports publics » (touche L) |
-| `scripts/transport/vehicle_catalog.gd` | Catalogue des 131 véhicules : catégories, époques, régions, chiffres, modèles low-poly |
+| `scripts/transport/vehicle_catalog.gd` | Catalogue des 133 véhicules : catégories, époques, régions, chiffres, modèles low-poly |
 | `scripts/transport/vehicle_mesh.gd` | Formes des véhicules (roues, coques, ailes, voiles, chevaux…) en plus de BlocMesh |
 | `tests/vehicules_vitrine.gd` | Aligne une ou plusieurs catégories du catalogue et prend une capture |
 | `scripts/transport/transport_system.gd` | Outils de pose et de démolition dans le mode Terre |

@@ -3,9 +3,11 @@ extends Node3D
 ## Ouvre scenes/vitrine_modeles.tscn et appuie sur F6 : les modèles sont posés
 ## côte à côte sur une pelouse, la caméra tourne autour.
 ## Molette : zoom. Clic gauche glissé : tourner. Espace : arrêter / relancer la rotation.
+## C : couleurs au hasard (variantes, voir CouleursModele). X : couleurs d'origine.
 ## Capture en ligne de commande :
 ##   godot --path . res://scenes/vitrine_modeles.tscn -- --screenshot vitrine_glb.png [--modele stade_tuiliere]
 ## --modele nom : seulement ce modèle (nom du fichier sans .glb).
+## --variante 7 : capture avec des couleurs au hasard (graine 7).
 
 const DOSSIER := "res://assets/modeles/batiments"
 const ECART := 4.0
@@ -16,6 +18,9 @@ var _pitch := 28.0
 var _dist := 22.0
 var _centre := Vector3.ZERO
 var _tourne := true
+var _poses: Array[Node3D] = []
+var _chemins: Array[String] = []
+var _rng := RandomNumberGenerator.new()
 
 
 func _ready() -> void:
@@ -38,6 +43,8 @@ func _ready() -> void:
 				continue
 			var n := sc.instantiate() as Node3D
 			add_child(n)
+			_poses.append(n)
+			_chemins.append(DOSSIER.path_join(f))
 			var lar := _largeur(n)
 			n.position.x = x + lar / 2.0
 			x += lar + ECART
@@ -51,6 +58,10 @@ func _ready() -> void:
 	_cam.fov = 40
 	add_child(_cam)
 	_place_camera()
+	var iv := args.find("--variante")
+	if iv >= 0 and iv + 1 < args.size():
+		_rng.seed = args[iv + 1].to_int()
+		_variantes()
 	var i := args.find("--screenshot")
 	if i >= 0 and i + 1 < args.size():
 		_capture(args[i + 1])
@@ -124,6 +135,19 @@ func _unhandled_input(e: InputEvent) -> void:
 		_place_camera()
 	elif e is InputEventKey and e.pressed and (e as InputEventKey).keycode == KEY_SPACE:
 		_tourne = not _tourne
+	elif e is InputEventKey and e.pressed and (e as InputEventKey).keycode == KEY_C:
+		_variantes()
+	elif e is InputEventKey and e.pressed and (e as InputEventKey).keycode == KEY_X:
+		for n in _poses:
+			for c in n.find_children("*", "MeshInstance3D", true, false):
+				var mi := c as MeshInstance3D
+				for s in mi.mesh.get_surface_count():
+					mi.set_surface_override_material(s, null)
+
+
+func _variantes() -> void:
+	for k in _poses.size():
+		CouleursModele.variante_au_hasard(_poses[k], _chemins[k], _rng)
 
 
 func _capture(chemin: String) -> void:

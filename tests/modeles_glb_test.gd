@@ -21,6 +21,7 @@ func _initialize() -> void:
 			if f.ends_with(".glb"):
 				nb += 1
 				_verifie(DOSSIER.path_join(f), erreurs)
+	_verifie_couleurs(erreurs)
 	for e in erreurs:
 		push_error("ÉCHEC : " + e)
 	var ok := erreurs.is_empty() and nb > 0
@@ -64,6 +65,35 @@ func _verifie(chemin: String, erreurs: Array[String]) -> void:
 		erreurs.append("%s : ne repose pas sur le sol (bas à %.2f m)" % [chemin, boite.position.y])
 	if boite.size.y < 1.0 or boite.size.y > 400.0 or boite.size.x < 1.0:
 		erreurs.append("%s : taille irréaliste %s" % [chemin, str(boite.size)])
+
+
+## Chaque modèle a sa carte de palette, et la recoloration change bien la texture.
+func _verifie_couleurs(erreurs: Array[String]) -> void:
+	var d := DirAccess.open(DOSSIER)
+	if d == null:
+		return
+	for f in d.get_files():
+		if f.ends_with(".glb") and CouleursModele.carte(DOSSIER.path_join(f)).is_empty():
+			erreurs.append("%s : pas de carte de palette (.palette.json)" % f)
+	var chemin := DOSSIER.path_join("maison_test.glb")
+	var maison := (load(chemin) as PackedScene).instantiate()
+	var faits := CouleursModele.recolore(maison, chemin, {"enduit_chaud": Color(1, 0, 1)})
+	var trouve := false
+	for n in maison.find_children("*", "MeshInstance3D", true, false):
+		var mi := n as MeshInstance3D
+		for s in mi.mesh.get_surface_count():
+			var m := mi.get_surface_override_material(s) as BaseMaterial3D
+			if m and m.albedo_texture:
+				var img := m.albedo_texture.get_image()
+				for y in img.get_height():
+					for x in img.get_width():
+						if img.get_pixel(x, y).is_equal_approx(Color(1, 0, 1)):
+							trouve = true
+	maison.free()
+	if faits != 1 or not trouve:
+		erreurs.append("recoloration de maison_test sans effet (%d couleur(s))" % faits)
+	else:
+		print("recoloration OK (enduit_chaud -> magenta)")
 
 
 func _meshes(n: Node) -> Array[MeshInstance3D]:

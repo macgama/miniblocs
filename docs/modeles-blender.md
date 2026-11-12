@@ -22,7 +22,7 @@ Option `--blend fichier.blend` : garde aussi le fichier Blender pour le retouche
 - **Façade principale** vers -Y dans Blender, donc +Z dans Godot.
 - **Une texture palette** de 64 × 64 px (8 × 8 couleurs franches) : chaque face prend la couleur d'une case. En plus, trois motifs de 32 × 32 px répétés seulement si le bâtiment en a besoin : vitrage à petits carreaux, grille ajourée, panneaux solaires.
 - **Relief** (par défaut) : fenêtres en creux dans un encadrement en saillie, croisées, appuis de pierre, volets en saillie, porte avec marche, chaînes d'angle, bandeau entre les étages, corniche, toit en rangs de tuiles et faîtage. `"relief": false` dans le JSON redonne la version plate.
-- **Budget** : la maison test fait 1 056 triangles avec relief (176 sans), 3 000 au maximum pour un grand monument. Le test le vérifie.
+- **Budget** : la maison test fait 1 050 triangles avec relief (176 sans), 3 000 au maximum pour un grand monument. Le test le vérifie.
 
 ## Tester dans Godot 4.7
 
@@ -42,13 +42,26 @@ godot --headless --path . --script res://tests/modeles_glb_test.gd
 
 Il doit afficher `MODELES GLB TEST OK` (chaque `.glb` s'importe, moins de 3 000 triangles, texture de 256 px au plus, posé au sol, taille réaliste).
 
+## Changer les couleurs (variantes)
+
+Chaque face d'un modèle prend sa couleur dans la palette de 64 couleurs. Deux façons d'en changer :
+
+- **Dans la fiche ou le script** : remplacer un nom de couleur par un autre ou par `#rrggbb` (par ex. `"mur": "#c9e4f0"`), puis relancer Blender.
+- **Dans le jeu, sans refaire le modèle** : chaque `.glb` est accompagné de `<nom>.palette.json` (la case de chaque couleur). `CouleursModele.recolore(noeud, chemin_glb, {"enduit_chaud": Color("c9e4f0"), "volet": Color("8a3b2e")})` remplace ces couleurs sur la copie posée dans la scène. `CouleursModele.variante_au_hasard(...)` tire une variante plausible : murs pastel, toit en teintes de tuile ou d'ardoise, volets, portes et sièges dans des teintes franches. Le terrain des stades n'est jamais recoloré.
+
+Dans la vitrine : **C** donne de nouvelles couleurs au hasard, **X** remet les couleurs d'origine.
+
+![Variantes de couleurs](apercu-glb-variantes.jpg)
+
+Pour un export du jeu, ajouter `*.json` au filtre « fichiers non-ressources » du préréglage d'export, pour que les cartes de palette soient incluses.
+
 ## Bâtiments recréés d'après une image
 
 Un bâtiment particulier a son propre script dans `tools/blender/batiments/`, qui réutilise les briques du générateur : boîtes, cylindres et portions de cylindre, dalles, vitrages à petits carreaux (texture répétée), garde-corps en grille ou à barreaux fins (texture semi-transparente), hublots.
 
 | Script | Bâtiment | Triangles |
 | --- | --- | --- |
-| `maison_frank.py` | Villa moderniste d'après une maison de Josef Frank (années 1930) : bow-window, tours cylindriques, terrasses | 558 |
+| `maison_frank.py` | Villa moderniste d'après une maison de Josef Frank (années 1930) : bow-window, tours cylindriques, terrasses, fenêtres en creux avec appuis | 984 |
 | `stade_tuiliere.py` | Stade de la Tuilière, Lausanne (2020) : 12 544 places, terrain 105 × 68 m, tribune principale à façade de verre à facettes, trois tribunes ouvertes, toit en porte-à-faux couvert de panneaux solaires, angles coupés en biais avec un grand voile de béton incliné et l'entrée des spectateurs. Sources en tête du script. | 502 |
 
 ![Maison Frank et maison test dans la vitrine](apercu-glb-maison_frank.png)

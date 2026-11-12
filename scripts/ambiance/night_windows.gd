@@ -17,6 +17,7 @@ static func building_material() -> ShaderMaterial:
 			arr.append(Vector3(c.r, c.g, c.b))
 		_material.set_shader_parameter("window_colors", arr)
 		_material.set_shader_parameter("window_count", arr.size())
+		_material.set_shader_parameter("compat", RenderingServer.get_rendering_device() == null)
 	return _material
 
 

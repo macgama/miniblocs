@@ -77,3 +77,22 @@ L'heure, la date et la vitesse sont gardées par **Sauver / Charger**.
 - Neige qui blanchit le sol et les toits, sol mouillé qui brille sous la pluie.
 - Bruits de pluie et de tonnerre.
 - Simulation liée à l'heure (trajets domicile-travail, horaires d'ouverture) : à décider avec le game design.
+
+## Rendu poussé (lumière et brume)
+
+Inspiré de la démo low-poly ([demo-low-poly.md](demo-low-poly.md)), activé par défaut (`DayNight.rendu_pousse`) :
+
+- **Tons ACES** et exposition ajustée (jour un peu plus lumineux, nuit relevée) : couleurs plus riches et contrastées.
+- **Heures dorées** : quand le Soleil est bas (sous 22°), sa lumière est plus chaude et un peu plus forte.
+- **Ombres aux bords doux** (taille apparente du Soleil) et occlusion ambiante (SSAO) plus marquée.
+- **Perspective aérienne** : le lointain prend la couleur du ciel.
+- **Brume au ras du sol** : environ un matin sur deux, du lever du Soleil à 3 h après, et toujours par temps de brouillard. Elle reste sous 5 m au-dessus du sol (les toits et les arbres en sortent), et la pluie la dissipe.
+- **Rayons de soleil** (brume volumétrique, rendu Forward+) en vue au sol seulement.
+
+Vue d'ensemble, avant à gauche, après à droite (matin brumeux, puis fin d'après-midi) :
+
+![Matin](apercu-lumiere-matin.jpg)
+
+![Fin d'après-midi](apercu-lumiere-apres-midi.jpg)
+
+Comparer : `godot --path . --script res://tests/batiments_vitrine.gd -- --zones --heure 9 --screenshot a.png [--rendu-simple]`.

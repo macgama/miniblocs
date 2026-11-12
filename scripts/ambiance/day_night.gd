@@ -53,6 +53,13 @@ var moon_light := 0.0
 var _rise_set := Vector2.ZERO
 var _rise_set_day := -1
 
+## Rendu « poussé » (voir docs/demo-low-poly.md) : tons ACES, ombres douces,
+## lumière dorée aux heures basses, brume au ras du sol le matin et par
+## brouillard, rayons de soleil dans la brume. false = rendu d'avant.
+static var rendu_pousse := true
+## Brume du matin (0 à 1), calculée à chaque image.
+var brume := 0.0
+
 
 func _ready() -> void:
 	sun = get_node_or_null(sun_path) as DirectionalLight3D
@@ -101,6 +108,8 @@ func _ready() -> void:
 		env.glow_bloom = 0.0
 		env.glow_blend_mode = Environment.GLOW_BLEND_MODE_SOFTLIGHT
 		env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+		if rendu_pousse:
+			_rendu_pousse_init()
 
 	weather = Meteo.new()
 	weather.name = "Meteo"
@@ -128,6 +137,61 @@ func _ready() -> void:
 
 	_start_today()
 	_apply()
+
+
+## Réglages fixes du rendu poussé (les réglages qui varient sont dans _apply).
+func _rendu_pousse_init() -> void:
+	env.tonemap_mode = Environment.TONE_MAPPER_ACES
+	env.tonemap_white = 6.0
+	env.ssao_enabled = true
+	env.ssao_radius = 1.6
+	env.ssao_intensity = 2.2
+	env.ssao_power = 1.5
+	env.fog_aerial_perspective = 0.35
+	env.fog_sky_affect = 0.15
+	env.adjustment_enabled = true
+	env.adjustment_contrast = 1.05
+	env.adjustment_saturation = 1.08
+	env.volumetric_fog_length = 180.0
+	env.volumetric_fog_detail_spread = 2.0
+	env.volumetric_fog_anisotropy = 0.6
+	if sun != null:
+		# Ombres aux bords doux (la taille apparente du Soleil).
+		sun.light_angular_distance = 0.6
+
+
+## Brume du matin (0 à 1) : un jour sur deux environ, du lever à 3 h après,
+## et toujours par temps de brouillard.
+func brume_du_matin() -> float:
+	var rs := rise_set()
+	var b := 0.0
+	if rs.x >= 0.0:
+		var h := local_hour()
+		var day := int(floorf((unix_time + utc_offset() * 3600.0) / 86400.0))
+		var chance := fposmod(sin(day * 12.9898) * 43758.5453, 1.0)
+		if chance < 0.55:
+			b = (1.0 - smoothstep(rs.x + 0.5, rs.x + 3.0, h)) * smoothstep(rs.x - 2.0, rs.x - 0.5, h)
+			b *= lerpf(0.6, 1.0, chance / 0.55)
+	if weather != null:
+		b = maxf(b, weather.fog)
+		# Le vent et la pluie dissipent la brume au sol.
+		b *= lerpf(1.0, 0.3, weather.precip)
+	return clampf(b, 0.0, 1.0)
+
+
+## Altitude du sol sous la caméra (pour poser la brume au ras du sol).
+func _sol_camera() -> float:
+	var cam := get_viewport().get_camera_3d() if is_inside_tree() else null
+	if cam == null or world == null:
+		return 0.0
+	var p := cam.global_position
+	var f := -cam.global_basis.z
+	# Point visé au sol (approché) : là où regarde la caméra.
+	if f.y < -0.05:
+		var g := world.cell_height(Vector2i(int(floor(p.x)), int(floor(p.z))))
+		var t := (p.y - g) / -f.y
+		p += f * minf(t, 2000.0)
+	return world.cell_height(Vector2i(int(floor(p.x)), int(floor(p.z))))
 
 
 ## Démarre aujourd'hui (date de l'ordinateur), à 10 h, heure du lieu.
@@ -275,6 +339,11 @@ func _apply() -> void:
 			_aim(sun, sun_dir)
 		sun.light_color = sun_color_at(elev)
 		sun.light_energy = 1.05 * day * dim
+		if rendu_pousse:
+			# Heures dorées : soleil plus chaud et un peu plus fort quand il est bas.
+			var golden := 1.0 - smoothstep(4.0, 22.0, elev)
+			sun.light_color = sun.light_color.lerp(Color(1.0, 0.72, 0.45), golden * 0.45 * day)
+			sun.light_energy = (1.15 + 0.35 * golden) * day * dim
 		sun.shadow_enabled = day > 0.05
 		sun.shadow_opacity = lerpf(1.0, 0.2, cover)
 
@@ -319,6 +388,8 @@ func _apply() -> void:
 		env.glow_intensity = lerpf(0.25, 1.1, night)
 		env.glow_strength = lerpf(0.8, 1.15, night)
 		env.tonemap_exposure = lerpf(1.0, 1.35, night)
+		if rendu_pousse:
+			_rendu_pousse_apply(k, elev)
 
 	var mat := NightWindows.building_material()
 	mat.set_shader_parameter("night", night)
@@ -330,6 +401,34 @@ func _apply() -> void:
 	if headlights != null:
 		headlights.set_on(smoothstep(0.2, 0.6, dark))
 	time_changed.emit()
+
+
+## Partie variable du rendu poussé : exposition, brume au sol, rayons.
+func _rendu_pousse_apply(k: Array, elev: float) -> void:
+	env.tonemap_exposure = lerpf(1.08, 2.1, night)
+	env.glow_bloom = 0.03
+	brume = brume_du_matin()
+	var sol := _sol_camera()
+	var vue_sol := _vue_sol != null and int(_vue_sol.get("vue")) != 0
+	if brume > 0.01:
+		# Quantité de brume = 1 - exp(-(fog_height - y) × densité) : environ 45 %
+		# au sol, rien au-dessus de 5 m. Sa couleur n'est pas éclairée : on la
+		# règle sur la lumière du moment (blanc doré au lever, gris le jour).
+		env.fog_height = sol + 1.0 + 4.0 * brume
+		env.fog_height_density = 0.15 * brume
+		var lum := Color(0.95, 0.88, 0.8).lerp(Color(0.86, 0.88, 0.91), clampf(elev / 15.0, 0.0, 1.0))
+		lum = lum * lerpf(0.3, 1.0, smoothstep(-4.0, 8.0, elev))
+		env.fog_light_color = Color(lum.r, lum.g, lum.b, 1.0)
+		env.fog_sun_scatter = 0.35
+	else:
+		env.fog_height = -10000.0
+		env.fog_height_density = 0.0
+		env.fog_sun_scatter = 0.15
+	# Rayons de soleil dans la brume (Forward+ seulement), en vue au sol
+	# uniquement : vue de haut, la brume volumétrique ne fait qu'assombrir.
+	env.volumetric_fog_enabled = vue_sol
+	env.volumetric_fog_density = 0.0015 + 0.008 * brume
+	env.volumetric_fog_albedo = Color(1.0, 0.95, 0.88)
 
 
 ## Brouillard demandé par la météo (densité de l'environnement).

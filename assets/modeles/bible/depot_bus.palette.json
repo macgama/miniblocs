@@ -1,0 +1,50 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "asphalte": {
+   "index": 0,
+   "origine": "#55585e"
+  },
+  "bardage_bleu": {
+   "index": 1,
+   "origine": "#4f6f91"
+  },
+  "tole": {
+   "index": 2,
+   "origine": "#9aa0a6"
+  },
+  "jaune": {
+   "index": 3,
+   "origine": "#f2c14e"
+  },
+  "blanc": {
+   "index": 4,
+   "origine": "#f7f7f5"
+  },
+  "cadre": {
+   "index": 5,
+   "origine": "#f4f1ea"
+  },
+  "verre_ciel": {
+   "index": 6,
+   "origine": "#6d97b8"
+  },
+  "verre_nuit": {
+   "index": 7,
+   "origine": "#1d2d3c"
+  },
+  "beton_clair": {
+   "index": 8,
+   "origine": "#d4d1ca"
+  },
+  "beton_sombre": {
+   "index": 9,
+   "origine": "#8c8a85"
+  },
+  "vert": {
+   "index": 10,
+   "origine": "#3f8f5a"
+  }
+ }
+}

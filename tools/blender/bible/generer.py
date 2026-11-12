@@ -47,13 +47,15 @@ def genere(fiche, vignettes=None):
     # Emprise en cases : le modèle plus une marge d'un mètre de chaque côté
     # (sauf demande contraire), arrondie au mètre.
     marge = float(fiche.get("marge", 1.0))
-    entree = {k2: v for k2, v in fiche.items() if k2 not in ("fabrique", "couleurs", "marge")}
+    entree = {k2: v for k2, v in fiche.items() if k2 not in ("fabrique", "couleurs", "marge", "emprise")}
     entree.update({
         "glb": "res://assets/modeles/bible/%s.glb" % fiche["id"],
         "w": int(math.ceil(dx + 2 * marge - 0.01)),
         "d": int(math.ceil(dy + 2 * marge - 0.01)),
         "h": round(dz, 1),
         "tris": tris,
+        # Emprise imposée (éolienne : les pales survolent les cases voisines).
+        **({"w": fiche["emprise"][0], "d": fiche["emprise"][1], "survol": 1} if "emprise" in fiche else {}),
         # Palette dans l'ordre des cases : le jeu colore les sommets avec.
         "palette": [[nom, "#%02x%02x%02x" % tuple(round(c * 255) for c in k.b.palette.couleurs[i])]
                     for nom, i in sorted(k.b.palette.cases.items(), key=lambda e: e[1])],

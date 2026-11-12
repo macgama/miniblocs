@@ -1,0 +1,10 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "blanc": {
+   "index": 0,
+   "origine": "#f7f7f5"
+  }
+ }
+}

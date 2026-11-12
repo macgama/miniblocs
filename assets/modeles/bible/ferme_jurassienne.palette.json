@@ -1,0 +1,54 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "pierre_grise": {
+   "index": 0,
+   "origine": "#9c988f"
+  },
+  "enduit": {
+   "index": 1,
+   "origine": "#f1e6d2"
+  },
+  "pierre_claire": {
+   "index": 2,
+   "origine": "#d8d0bf"
+  },
+  "vitre": {
+   "index": 3,
+   "origine": "#33495e"
+  },
+  "vert": {
+   "index": 4,
+   "origine": "#3f8f5a"
+  },
+  "cadre": {
+   "index": 5,
+   "origine": "#f4f1ea"
+  },
+  "bois_sombre": {
+   "index": 6,
+   "origine": "#5a3e2b"
+  },
+  "pierre": {
+   "index": 7,
+   "origine": "#b9b0a0"
+  },
+  "bois": {
+   "index": 8,
+   "origine": "#8a6142"
+  },
+  "zinc": {
+   "index": 9,
+   "origine": "#7e8890"
+  },
+  "sous_toit": {
+   "index": 10,
+   "origine": "#6a5040"
+  },
+  "bois_gris": {
+   "index": 11,
+   "origine": "#8b8478"
+  }
+ }
+}

@@ -1,0 +1,26 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "blanc": {
+   "index": 0,
+   "origine": "#f7f7f5"
+  },
+  "verre_clair": {
+   "index": 1,
+   "origine": "#8fb8d8"
+  },
+  "bois_gris": {
+   "index": 2,
+   "origine": "#8b8478"
+  },
+  "tole": {
+   "index": 3,
+   "origine": "#9aa0a6"
+  },
+  "sous_toit": {
+   "index": 4,
+   "origine": "#6a5040"
+  }
+ }
+}

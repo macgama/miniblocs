@@ -1,0 +1,34 @@
+{
+ "taille": 8,
+ "pixels_par_case": 8,
+ "couleurs": {
+  "beton_clair": {
+   "index": 0,
+   "origine": "#d4d1ca"
+  },
+  "cadre": {
+   "index": 1,
+   "origine": "#f4f1ea"
+  },
+  "vitre": {
+   "index": 2,
+   "origine": "#33495e"
+  },
+  "tole": {
+   "index": 3,
+   "origine": "#9aa0a6"
+  },
+  "sous_toit": {
+   "index": 4,
+   "origine": "#6a5040"
+  },
+  "metal": {
+   "index": 5,
+   "origine": "#7d8288"
+  },
+  "beton_sombre": {
+   "index": 6,
+   "origine": "#8c8a85"
+  }
+ }
+}

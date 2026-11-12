@@ -18,8 +18,14 @@ signal transit_requested
 signal habitants_requested
 ## Panneau « Production » (touche P) : ressources, stocks, sites.
 signal production_requested
+## Bouton Admin de la barre du haut, ou F10 : réglages de la partie.
+signal admin_requested
 signal spec_edited(type_id: String, spec: Dictionary)
 signal curve_toggled(on: bool)
+## Passage aux croisements choisi : "auto", "dessus" ou "dessous".
+signal level_changed(level: String)
+## Action de l'outil Carrefour : "regime", "giratoire" ou "echangeur".
+signal junction_action_changed(action: String)
 
 const PLACES := [
 	{"name": "Tour Eiffel", "lat": 48.85826, "lon": 2.29450},
@@ -89,6 +95,7 @@ var _tray_sep: Control
 var _coords_panel: PanelContainer
 var _chips := {}
 var _view_button: Button
+var _admin_button: Button
 var _current_tool := 0
 ## Dernier outil choisi dans chaque catégorie (clic sur la catégorie = on y revient).
 var _last_tool := {"terrain": 1, "voies": 4}
@@ -101,6 +108,10 @@ var _lane_w: SpinBox
 var _tracks: SpinBox
 var _width: SpinBox
 var _curve: Button
+var _level_pick: OptionButton
+const LEVEL_IDS := ["auto", "dessus", "dessous"]
+var _junction_panel: HBoxContainer
+var _junction_buttons: Dictionary = {}
 var _spec_rows: Dictionary = {}
 var _filling := false
 
@@ -174,11 +185,14 @@ func _build_top_bar() -> void:
 	for spec in [["globe", "Revenir au globe pour changer de lieu", "", globe_requested],
 			["sauver", "Sauvegarder la partie", "F5", save_requested],
 			["charger", "Parties sauvegardées (F9 : recharger la partie en cours)", "F9", load_requested],
-			["aide", "Toutes les commandes", "F1", help_requested]]:
+			["aide", "Toutes les commandes", "F1", help_requested],
+			["admin", "Admin : réglages de la partie (argent, coûts, règles, temps, déblocage)", "F10", admin_requested]]:
 		var b := UiStyle.icon_button(spec[0], spec[1], spec[2])
 		var sig: Signal = spec[3]
 		b.pressed.connect(func() -> void: sig.emit())
 		row.add_child(b)
+		if spec[0] == "admin":
+			_admin_button = b
 
 	# Centre : l'horloge (ClockHud, calque au-dessus) s'y pose.
 	var middle := Control.new()
@@ -425,7 +439,7 @@ func _update_categories() -> void:
 	# Ordre du plateau : celui de la catégorie (Carrefour avant Démolir).
 	for k in tools.size():
 		_tray_tools.move_child(_buttons[tools[k]], k)
-	var spec_on := _spec_panel != null and _spec_panel.visible
+	var spec_on := (_spec_panel != null and _spec_panel.visible) or (_junction_panel != null and _junction_panel.visible)
 	_tray_tools.visible = tools.size() > 1
 	_tray_sep.visible = _tray_tools.visible and spec_on
 	_tray.visible = _tray_tools.visible or spec_on
@@ -436,6 +450,12 @@ func set_panel_open(id: String, on: bool) -> void:
 	var b := _cat_buttons.get(id) as Button
 	if b and b.button_pressed != on:
 		b.set_pressed_no_signal(on)
+
+
+## Le bouton Admin n'est montré qu'à qui peut administrer la partie.
+func set_admin_visible(on: bool) -> void:
+	if _admin_button:
+		_admin_button.visible = on
 
 
 func set_view(v: int) -> void:
@@ -547,6 +567,42 @@ func _build_spec_panel(parent: Control) -> void:
 		if not _filling:
 			curve_toggled.emit(on))
 	row.add_child(_curve)
+	_level_pick = OptionButton.new()
+	_level_pick.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_level_pick.tooltip_text = "Aux croisements avec une autre voie (N) : carrefour automatique, ou toujours un pont, ou toujours un tunnel"
+	for t in ["Croisement : auto", "Passer dessus (pont)", "Passer dessous (tunnel)"]:
+		_level_pick.add_item(t)
+	_level_pick.item_selected.connect(func(i: int) -> void:
+		if not _filling:
+			level_changed.emit(LEVEL_IDS[i]))
+	row.add_child(_level_pick)
+	# Outil Carrefour : régime, giratoire ou échangeur.
+	_junction_panel = HBoxContainer.new()
+	_junction_panel.visible = false
+	_junction_panel.add_theme_constant_override("separation", 6)
+	parent.add_child(_junction_panel)
+	var group := ButtonGroup.new()
+	for it in [["regime", "Régime", "Changer le régime d'un carrefour : feux, stop, cédez-le-passage, priorité à droite"],
+			["giratoire", "Rond-point", "Transformer un carrefour en giratoire (aussi : Maj + clic)"],
+			["echangeur", "Échangeur", "Relier une route à l'autoroute qu'elle enjambe : 2 sorties et 2 entrées"]]:
+		var jb := Button.new()
+		jb.text = it[1]
+		jb.tooltip_text = it[2]
+		jb.toggle_mode = true
+		jb.button_group = group
+		jb.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		var action: String = it[0]
+		jb.pressed.connect(func() -> void: junction_action_changed.emit(action))
+		_junction_panel.add_child(jb)
+		_junction_buttons[action] = jb
+
+
+## Affiche les actions de l'outil Carrefour ("" : les cacher).
+func show_junction_panel(action: String) -> void:
+	_junction_panel.visible = action != ""
+	if _junction_buttons.has(action):
+		(_junction_buttons[action] as Button).set_pressed_no_signal(true)
+	_update_categories()
 
 
 func _spin(row: Control, key: String, label: String, lo: float, hi: float, step: float) -> SpinBox:
@@ -579,7 +635,8 @@ func _emit_spec() -> void:
 
 
 ## Affiche le panneau de réglage pour une classe de voie (null : le cacher).
-func show_spec(type_id: String, spec: Dictionary, curve: bool) -> void:
+func show_spec(type_id: String, spec: Dictionary, curve: bool, level := "auto") -> void:
+	_junction_panel.visible = false
 	if type_id == "":
 		_spec_panel.visible = false
 		_update_categories()
@@ -614,6 +671,8 @@ func show_spec(type_id: String, spec: Dictionary, curve: bool) -> void:
 		_width.max_value = c.width[1]
 		_width.value = spec.width
 	_curve.button_pressed = curve
+	_level_pick.select(maxi(0, LEVEL_IDS.find(level)))
+	_level_pick.visible = int(c.mode) != TransportTypes.Mode.WATER
 	_spec_panel.visible = true
 	_filling = false
 	_update_categories()
@@ -651,6 +710,8 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		save_requested.emit()
 	elif key.keycode == KEY_F9:
 		quick_load_requested.emit()
+	elif key.keycode == KEY_F10:
+		admin_requested.emit()
 
 
 ## Enfonce le bouton d'un outil sans prévenir (un autre système a pris la main).

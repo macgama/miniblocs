@@ -124,6 +124,19 @@ func _run() -> void:
 	var top_y2 := roundi((pe.base_y(id, 3) + PlanEditor.H) / BlockEditor.UNIT_Y)
 	_check(be.blocks.has(Vector3i(39, top_y2, 39)), "débord d'une case au coin du toit")
 
+	print("Construire en hauteur :")
+	pe._active = ""
+	pe.level = 2
+	var aim := Vector3(43.5, pe.base_y(id, 2), 42.5)
+	var eye := aim + Vector3(-30, 25, -30)
+	var hv := pe.pick(eye, (aim - eye).normalized())
+	_check(String(hv.get("id", "")) == id and int(hv.get("e", -1)) == 2 and hv.get("cell") == Vector2i(43, 42), "visée au 2e étage même quand le sol sous le curseur est loin")
+	pe.set_wall_levels(3)
+	_check(pe._stack(PlanEditor.wall_line(Vector2i(50, 40), Vector2i(53, 40), 4)).size() == 9, "un mur de 3 m tracé sur 3 étages = 9 murs")
+	_check(pe.add_room(id, Rect2i(41, 41, 2, 2), 4, 3) and pe.levels_of(id).has(6) and p.floors.has(Vector3i(41, 6, 41)), "pièce montée du 4e au 6e étage d'un coup")
+	pe.set_wall_levels(1)
+	pe.level = 0
+
 	print("Règles :")
 	var yr := world.cell_height(Vector2i(42, 30))
 	var road := transport.build_segment("route", Vector3(42.5, yr, 30.0), Vector3(42.5, yr, 50.0))

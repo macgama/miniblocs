@@ -21,6 +21,7 @@ parties/
     batiments.json.zst     bâtiments, caisse, règles du bac à sable
     zones.json.zst         zones R / C / I
     blocs.json.zst         éditeur libre bloc par bloc
+    mobilier.json.zst      meubles, fonctions des pièces, usage et style des bâtiments en murs fins
     ambiance.json.zst      heure et vitesse du temps
   sauvegarde-auto/         sauvegarde automatique (toutes les 5 min s'il y a eu des changements)
 ```

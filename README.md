@@ -131,6 +131,26 @@ L'outil **J Carrefour** change le régime d'un clic (automatique → feux → st
 
 ![Giratoire sur deux départementales](docs/apercu-giratoire.png)
 
+L'outil **J Carrefour** a trois boutons dans la barre du bas : **Régime**, **Rond-point** (un clic sur un carrefour suffit, sans Maj) et **Échangeur**.
+
+### Ponts, tunnels et échangeurs d'autoroute
+
+![Échangeur en losange : deux sorties et deux entrées](docs/apercu-echangeur.png)
+
+Les ponts et les tunnels se posent tout seuls quand le relief l'exige. Quand ta voie croise une autre voie, la touche **N** (ou la liste « Croisement » à côté du bouton Courbe) choisit ce qui se passe :
+
+| Réglage | Au croisement |
+| --- | --- |
+| Automatique | Carrefour à niveau. Une autoroute ou une voie express n'est jamais coupée : on passe dessus par un pont (ou dessous si on arrive plus bas). |
+| Passer dessus | Pont au-dessus de l'autre voie, avec 4,5 m de hauteur libre. Les rampes suivent la pente maximale de la classe. |
+| Passer dessous | Tunnel sous l'autre voie, avec des tranchées d'accès de chaque côté. |
+
+S'il n'y a pas la place pour les rampes avant le croisement, le tracé est refusé et le message donne la longueur qu'il faut.
+
+**Bretelles** : la classe **Bretelle d'autoroute** (outil Route) est une voie à sens unique de 3,50 m. Elle part de l'autoroute en biais, sans carrefour : elle longe la bande d'arrêt d'urgence puis s'en écarte. Le sens de circulation est celui du tracé. Pour une sortie, on part de l'autoroute ; pour une entrée, on part de la route et on finit sur l'autoroute. On s'insère en cédant le passage, et on ne fait jamais demi-tour par-dessus le terre-plein. Une rue ne peut pas se raccorder directement à une autoroute.
+
+**Échangeur tout prêt** : pose une route en travers d'une autoroute (elle passe dessus toute seule), puis outil **J > Échangeur** et clic sur le pont. Quatre bretelles se posent en losange : une sortie et une entrée dans chaque sens. Il faut au moins 220 m d'autoroute de part et d'autre du pont et 90 m de route.
+
 Les véhicules **gardent leurs distances** (files d'attente), **freinent et accélèrent**, s'arrêtent à la ligne au rouge, marquent le stop, laissent passer les prioritaires et ne s'engagent pas si la sortie est bouchée. Les feux marchent par phases : deux branches face à face ont le vert ensemble, puis orange, rouge intégral et phase suivante.
 
 ### Stations et lignes de transport en commun
@@ -266,6 +286,12 @@ L'onglet **Espaces publics** regroupe :
 
 ![Espaces publics](docs/apercu-espaces-publics.png)
 
+### Poser le long d'une route
+
+Près d'une route (ou d'un chemin pour les bâtiments qui en demandent un), le bâtiment se cale tout seul : façade parallèle à la route au point le plus proche, même dans un virage, porte à 1,5 m du bord de la chaussée. Le rez-de-chaussée se met à la hauteur de la route, et un parvis de 3 m de large relie la porte à la chaussée (terrassement compris dans le prix). **R** reprend la main : quarts de tour sur la grille, sans calage.
+
+![Bâtiments calés le long d'une route courbe](docs/apercu-route-courbe.png)
+
 ### Éditeur libre : murs, étages et intérieurs
 
 L'onglet **Éditeur libre** a deux modes : **Murs et étages** (par défaut) et **Blocs**. Les cases du terrain font 1 m, mais un vrai mur fait 20 cm : en mode Murs et étages, les murs se posent **sur les lignes de la grille**, entre deux cases. Une pièce de 4 × 4 cases garde donc 4 m de côté, et une cloison ne mange aucune case.
@@ -277,11 +303,28 @@ L'onglet **Éditeur libre** a deux modes : **Murs et étages** (par défaut) et 
 - **Peinture** : chaque côté d'un mur a son matériau et sa teinte (crépi dehors, plâtre ou carrelage dedans). Un clic peint un côté de mur ou un sol ; un clic glissé peint toute une pièce (un matériau de sol peint les sols, les autres peignent les murs).
 - **Étages** : **Page haut / Page bas** (ou ▲ ▼ dans le panneau) changent l'étage actif, de 5 sous-sols à 59 étages, 3 m par étage. Les étages du dessus sont masqués pendant l'édition (**Vue en coupe**), toit compris. Sous le rez-de-chaussée et les sous-sols, le terrain est creusé tout seul, et rebouché si on efface.
 - **Escalier** : 4 cases de long, 12 marches, vers l'étage du dessus (la trémie est ouverte toute seule) ; **R** le tourne.
+- **Murs et pièces sur N étages** : un réglage du panneau fait monter un trait de Mur ou un rectangle de Pièce sur plusieurs étages d'un coup, à partir de l'étage actif.
 - **Copier l'étage ↑** recopie l'étage actif au-dessus, autant de fois que demandé : un immeuble de 12 étages se fait en quelques clics.
 - **Toit** : deux pans, quatre pans ou plat, posé en blocs sur le dernier étage (le matériau de toit choisi, ou de la tuile), avec un débord d'un mètre et des pignons. On le retouche ensuite avec les blocs.
 - Mêmes règles que le reste : chaque mètre de mur, de sol, chaque ouverture a un prix ; **Ctrl+Z** annule ; ni voie ni bâtiment dans un bâtiment en murs fins.
 
 ![Vue en coupe du rez-de-chaussée : cuisine carrelée, salon en parquet, escalier](docs/apercu-murs-interieur.png)
+
+### Intérieurs : meubles, pièces et bâtiments meublés
+
+L'onglet **Intérieur** (icône fauteuil) du panneau Construire aménage les bâtiments en murs fins :
+
+- **Bâtiments meublés, prêts à visiter** : maison familiale, petit immeuble (4 niveaux), école, boutique, bureaux, café. Un clic les pose avec leurs pièces, portes, fenêtres, escaliers, toit et tous leurs meubles, dans le style choisi. On y entre en vue au sol (**V**) et les portes s'ouvrent avec **E**.
+- **Meubler une pièce** : un clic dans une pièce la meuble selon sa fonction (séjour, cuisine, chambre, chambre d'enfant, salle de bain, entrée, bureau, salle de classe, boutique, salle de restaurant, réserve). La fonction est devinée (taille, carrelage, place dans le bâtiment) ou choisie avec l'outil **Fonction**. **Meubler tout** aménage tout le bâtiment.
+- **Pose libre, à la manière des Sims** : chaque meuble du catalogue se pose case par case, comme les blocs (**R** tourne, clic droit retire, **Ctrl+Z** annule, **Page haut / Page bas** change d'étage). Trois couches : au sol (tapis), les meubles, au mur (cadres, étagères, appliques). Un meuble ne traverse pas un mur et ne bouche pas un escalier.
+- **La bible des meubles** : 79 types de meubles et d'objets × 32 styles du monde et de toutes les époques (romain, égyptien, Louis XV, victorien, rustique, provençal, marocain, persan, majlis, Afrique de l'Ouest, swahili, japonais, chinois, coréen, indien, balinais, mexicain, andin, polynésien, far west, art déco, mid-century, années 70, scandinave, industriel, contemporain, luxe, futuriste…), soit plus de 2 000 meubles, filtrables par pièce, par style et par nom.
+- **Les meubles comptent** : chaque meuble apporte du confort, de l'attractivité et de la valeur. Le panneau montre les logements, lits, emplois et places d'un bâtiment, ce qui manque (pas de lit, pas de cuisine…), sa valeur et son loyer. Le confort change la satisfaction des habitants, l'attractivité attire les clients des boutiques et des cafés, la valeur pèse sur le loyer et la taxe foncière.
+- **Les habitants y vivent** : ils emménagent dans les logements meublés, travaillent dans les boutiques, bureaux et écoles meublés, et on les voit dans les pièces à leurs heures : couchés dans leur lit la nuit, assis au séjour ou à table, au bureau, au tableau, à la caisse, à leur pupitre.
+
+![Bâtiments meublés vus en coupe : maison, immeuble, école, boutique, bureaux, café](docs/interieurs_dessus.png)
+![Les habitants dans leur maison en fin de journée](docs/interieurs_proche.png)
+![Vue au sol dans le séjour de la maison rustique](docs/interieurs_sol.png)
+![La bible des meubles : un style par rangée](docs/interieurs_bible.png)
 
 ### Éditeur libre : construire bloc par bloc
 
@@ -459,13 +502,21 @@ Une ferme entièrement générée en code (longère à colombages et toit de cha
 | `scripts/catalogue/creations.gd` | Mes créations : constructions de l'éditeur libre enregistrées comme bâtiments |
 | `tests/batiments_test.gd` | Test automatique des bâtiments (sans réseau) |
 | `tests/plans_test.gd` | Test des murs fins, étages, sous-sols, toit et sauvegarde (sans réseau) |
+| `scripts/interieurs/meubles.gd` | La bible des meubles : types, pièces, styles du monde |
+| `scripts/interieurs/meubles_modeles.gd` | Modèles low-poly des meubles |
+| `scripts/interieurs/mobilier.gd` | Meubles dans les bâtiments en murs fins : pose, pièces et fonctions, aménagement automatique, effets, sauvegarde |
+| `scripts/interieurs/gabarits.gd` | Bâtiments meublés prêts à visiter |
+| `scripts/interieurs/occupants.gd` | Les habitants dans les pièces, à leurs heures |
+| `scripts/interieurs/interieur_panel.gd` | Onglet « Intérieur » du panneau Construire |
+| `tests/interieurs_test.gd` | Test des intérieurs (bible, pose, aménagement, habitants, sauvegarde, panneau) |
+| `tests/interieurs_vitrine.gd` | Bâtiments meublés en coupe et captures (`--vue dessus`, `proche`, `sol`, `bible`, `panneau`, `--style japonais`) |
 | `scripts/habitants/population.gd` | Habitants : foyers, étapes de la vie, écoles, emplois, emploi du temps, trajets, économie, sauvegarde |
 | `scripts/habitants/habitants_panel.gd` | Panneau « Habitants » (touche H) : ville, liste, bâtiment, profil |
 | `scripts/habitants/metiers.gd` | Métiers (salaires, horaires), métiers par bâtiment, loisirs et leurs lieux, classes |
 | `scripts/habitants/prenoms.gd` | Prénoms et noms par région du monde |
 | `tests/habitants_test.gd` | Test des habitants (école, emplois, journée, budget, transports, sauvegarde, panneau) |
 | `tests/habitants_vitrine.gd` | Petit quartier et captures du panneau Habitants |
-| `tests/batiments_vitrine.gd` | Pose tout le catalogue (ou fait pousser un quartier avec `--zones`, ou construit une maison en blocs avec `--blocs`) et prend une capture. `--styles japonais,chinois` ou `--arch culte` filtrent la bible, `--zone-style` choisit le style du zonage, `--cat espaces` une catégorie, `--maison` construit la maison de démonstration de l'éditeur libre, `--murs` une maison et un immeuble en murs fins (`--coupe 0` : vue en coupe du rez-de-chaussée) |
+| `tests/batiments_vitrine.gd` | Pose tout le catalogue (ou fait pousser un quartier avec `--zones`, ou construit une maison en blocs avec `--blocs`) et prend une capture. `--styles japonais,chinois` ou `--arch culte` filtrent la bible, `--zone-style` choisit le style du zonage, `--cat espaces` une catégorie, `--maison` construit la maison de démonstration de l'éditeur libre, `--courbe` des bâtiments calés le long d'une route courbe, `--murs` une maison et un immeuble en murs fins (`--coupe 0` : vue en coupe du rez-de-chaussée) |
 
 ## Sauvegarde des parties
 

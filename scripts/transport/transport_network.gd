@@ -257,6 +257,47 @@ func find_snap(p: Vector3, mode: int, margin: float) -> Dictionary:
 	return {}
 
 
+## Angle (degrés) au-delà duquel deux tronçons se suivent « tout droit ».
+const SMOOTH_JOINT := 150.0
+## Bretelles : angle maximal avec la voie principale (insertion ou sortie).
+const MERGE_ANGLE := 40.0
+
+
+## Insertion ou sortie d'autoroute : deux tronçons d'une classe à bretelles dans
+## le prolongement l'un de l'autre, et en plus seulement des bretelles presque
+## parallèles. Renvoie les deux tronçons de la voie principale, ou [].
+func merge_through(nid: int) -> Array:
+	var adj: Array = adjacency.get(nid, [])
+	if adj.size() < 3:
+		return []
+	var main: Array = []
+	for eid in adj:
+		var t: String = edges[eid].t
+		if TransportTypes.is_ramp(t):
+			continue
+		if not TransportTypes.takes_ramps(t):
+			return []
+		main.append(eid)
+	if main.size() != 2 or main[0] == main[1]:
+		return []
+	var d0 := leave_dir(main[0], nid)
+	var d1 := leave_dir(main[1], nid)
+	if rad_to_deg(acos(clampf(d0.dot(d1), -1.0, 1.0))) < SMOOTH_JOINT:
+		return []
+	var lim := cos(deg_to_rad(MERGE_ANGLE))
+	for eid in adj:
+		if main.has(eid):
+			continue
+		var d := leave_dir(eid, nid)
+		if maxf(d.dot(d0), d.dot(d1)) < lim:
+			return []
+	return main
+
+
+func is_merge(nid: int) -> bool:
+	return not merge_through(nid).is_empty()
+
+
 ## Direction (horizontale) par laquelle un tronçon quitte un nœud.
 func leave_dir(edge_id: int, node_id: int) -> Vector3:
 	var e: Dictionary = edges[edge_id]
@@ -280,43 +321,68 @@ func other_end(edge_id: int, node_id: int) -> int:
 
 ## Plus court chemin (A*) entre deux nœuds. Renvoie la liste des tronçons à
 ## parcourir, dans l'ordre, ou [] si les nœuds ne sont pas reliés.
+## On cherche sur les couples (nœud, tronçon d'arrivée) pour respecter les
+## mouvements interdits : sens uniques, et aux bretelles d'autoroute, pas de
+## demi-tour par-dessus le terre-plein.
 func find_route(from: int, to: int) -> Array[int]:
 	var result: Array[int] = []
 	if from == to or not nodes.has(from) or not nodes.has(to):
 		return result
 	var goal := node_pos(to)
-	var g := {from: 0.0}
-	var came := {} # nœud -> tronçon par lequel on y arrive
-	var open := {from: node_pos(from).distance_to(goal)}
+	var start := Vector2i(from, -1)
+	var g := {start: 0.0}
+	var came := {} # état -> [état précédent, tronçon]
+	var open := {start: node_pos(from).distance_to(goal)}
 	var closed := {}
+	var merges := {}
+	var found: Variant = null
 	while not open.is_empty():
-		var cur := -1
+		var cur: Vector2i = start
 		var best := INF
-		for n in open:
-			if open[n] < best:
-				best = open[n]
-				cur = n
-		if cur == to:
+		for k in open:
+			if open[k] < best:
+				best = open[k]
+				cur = k
+		if cur.x == to:
+			found = cur
 			break
 		open.erase(cur)
 		closed[cur] = true
-		for eid in adjacency.get(cur, []):
-			var nxt := other_end(eid, cur)
-			if closed.has(nxt) or (edges[eid].a != cur and TransportTypes.is_oneway(edges[eid].t)):
+		for eid in adjacency.get(cur.x, []):
+			var nxt := other_end(eid, cur.x)
+			if edges[eid].a != cur.x and TransportTypes.is_oneway(edges[eid].t):
+				continue
+			if cur.y >= 0 and not _turn_ok(cur.x, cur.y, eid, merges):
+				continue
+			var st := Vector2i(nxt, eid)
+			if closed.has(st):
 				continue
 			var cost: float = g[cur] + float(edges[eid].len)
-			if cost < float(g.get(nxt, INF)):
-				g[nxt] = cost
-				came[nxt] = eid
-				open[nxt] = cost + node_pos(nxt).distance_to(goal)
-	if not came.has(to):
+			if cost < float(g.get(st, INF)):
+				g[st] = cost
+				came[st] = [cur, eid]
+				open[st] = cost + node_pos(nxt).distance_to(goal)
+	if found == null:
 		return result
-	var n := to
-	while n != from:
-		var eid: int = came[n]
-		result.push_front(eid)
-		n = other_end(eid, n)
+	var k: Vector2i = found
+	while k != start:
+		var c: Array = came[k]
+		result.push_front(int(c[1]))
+		k = c[0]
 	return result
+
+
+## Mouvement autorisé au nœud nid, en arrivant par in_eid et en repartant par
+## out_eid ? Aux insertions d'autoroute, on ne tourne pas de plus de 90°.
+func _turn_ok(nid: int, in_eid: int, out_eid: int, cache: Dictionary) -> bool:
+	if not cache.has(nid):
+		cache[nid] = is_merge(nid)
+	if not cache[nid]:
+		return true
+	if in_eid == out_eid:
+		return false
+	var arrive := -leave_dir(in_eid, nid)
+	return arrive.dot(leave_dir(out_eid, nid)) > 0.0
 
 
 ## Nœuds atteignables depuis start (même composante connexe).

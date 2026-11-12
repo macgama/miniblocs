@@ -371,6 +371,8 @@ func _view_building(bid: int) -> void:
 	var t := BuildingCatalog.get_type(String(info.t))
 	var cat := BuildingCatalog.category(String(info.cat))
 	_text("%s · %s" % [String(cat.get("name", info.cat)), String(t.get("desc", ""))], true, 12)
+	if info.has("conf"):
+		_text("Intérieur aménagé · confort %d · attractivité %d · valeur %s" % [int(info.conf), int(info.attr), BuildingSystem.format_money(int(info.valeur))], true, 12)
 	var here := pop.present_in(bid)
 	# Fiche : icône de la catégorie, jauges d'occupation, bouton « Aller voir ».
 	var card := HBoxContainer.new()
@@ -520,7 +522,7 @@ func _view_profile(pid: int) -> void:
 		_section("Travail")
 		if int(p.job) >= 0:
 			var j := Metiers.job(String(p.met))
-			_text("%s · %s net par mois%s" % [j.name, money(float(j.salaire)),
+			_text("%s · %s net par mois%s" % [j.name, money(float(j.salaire) * ReglagesPartie.actuel.salaires),
 				" (payé par l'État)" if bool(j.get("etat", false)) else (" (payé par la ville)" if bool(j.get("public", false)) else "")])
 			_building_link("Lieu : ", int(p.job))
 			const JOURS := {"semaine": "du lundi au vendredi", "lunsam": "du lundi au samedi", "marsam": "du mardi au samedi",

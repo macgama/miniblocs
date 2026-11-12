@@ -28,7 +28,7 @@ const LEGACY_PATH := "user://terre_save.json"
 const PLAYER_FILE := "user://joueur.cfg"
 ## Version de chaque section écrite par ce jeu.
 const SECTION_VERSIONS := {"terrain": 2, "transport": 1, "batiments": 1, "zones": 1, "blocs": 1, "ambiance": 1,
-	"creations": 1, "personnage": 1}
+	"creations": 1, "personnage": 1, "reglages": ReglagesPartie.VERSION}
 
 
 # --- Identifiants ---------------------------------------------------------------

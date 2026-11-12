@@ -164,6 +164,7 @@ static func build(k: BlocMesh, t: Dictionary) -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash(String(t.style) + arch)
 	var p := _palette(s, rng)
+	_variante(k, s, p, String(t.style), arch)
 	match arch:
 		"culte":
 			_culte(k, s, p, w, d)
@@ -205,6 +206,30 @@ static func _palette(s: Dictionary, rng: RandomNumberGenerator) -> Dictionary:
 		"door": Color("5a3a22"),
 		"ground": Color("b9b6ae") if s.era in ["moderne", "contemporain", "futuriste", "classique"] else Color("a89b80"),
 	}
+
+
+## Variante : la variante 0 garde le modèle de base ; les autres changent les
+## teintes des murs et du toit, le nombre de fenêtres et la pente du toit.
+## Les couleurs des petits détails (volets, enseigne) dépendent aussi de la variante.
+static func _variante(k: BlocMesh, s: Dictionary, p: Dictionary, sid: String, arch: String) -> void:
+	var vr := RandomNumberGenerator.new()
+	vr.seed = hash("%s|%s|%d" % [sid, arch, k.variant])
+	p["vr"] = vr
+	p["style_id"] = sid
+	p["arch"] = arch
+	var volets: Array = StyleKit.VOLETS.get(String(s.region), StyleKit.VOLETS["europe"])
+	p["volet"] = Color(volets[vr.randi() % volets.size()])
+	p["enseigne"] = Color(StyleKit.ENSEIGNES[vr.randi() % StyleKit.ENSEIGNES.size()])
+	if k.variant == 0:
+		return
+	var walls: Array = s.walls
+	var roofs: Array = s.roofs
+	var wall := Color(walls[vr.randi() % walls.size()])
+	var f := vr.randf_range(0.95, 1.04)
+	p["wall"] = Color(minf(wall.r * f, 1.0), minf(wall.g * f, 1.0), minf(wall.b * f, 1.0))
+	p["roof"] = Color(roofs[vr.randi() % roofs.size()]).darkened(vr.randf_range(-0.06, 0.08))
+	p["dn"] = vr.randi_range(-1, 1)
+	p["pente"] = vr.randf_range(0.85, 1.15)
 
 
 ## Hauteur d'étage du style.
@@ -270,7 +295,10 @@ static func _generic(k: BlocMesh, s: Dictionary, p: Dictionary, arch: String, w:
 		k.box(0, y0 + 0.3, cz - bd / 2.0 - 0.05, bw * 0.8, 2.4, 0.2, Color(p.glass).darkened(0.2))
 		var awn: Color = Color(p.trim) if not bool(s.get("neon", false)) else Color("e63946")
 		if era != "futuriste":
-			k.box(0, y0 + 2.9, cz - bd / 2.0 - 0.6, bw * 0.9, 0.2, 1.2, awn)
+			if k._fine() and not bool(s.get("neon", false)):
+				StyleKit.auvent(k, 0, y0 + 2.5, cz - bd / 2.0 - 0.1, bw * 0.9, 1.3, Color(p.enseigne), Color("f2ede1"))
+			else:
+				k.box(0, y0 + 2.9, cz - bd / 2.0 - 0.6, bw * 0.9, 0.2, 1.2, awn)
 	# Porte.
 	k.box(0, y0, cz - bd / 2.0 - 0.06, 1.4 if arch != "gare" else 6.0, 2.4 if arch != "gare" else 5.0, 0.2, p.door)
 	# Rangée : séparations entre les maisons.
@@ -287,6 +315,9 @@ static func _generic(k: BlocMesh, s: Dictionary, p: Dictionary, arch: String, w:
 	_roof(k, s, p, roof, 0, top, cz, tw, td, arch)
 	# Ornements du style.
 	_ornaments(k, s, p, arch, bw, bd, cz, y0, top, tw, td, rng)
+	# Petits détails modelés du style (volets, cheminées, gouttières, enseignes…).
+	if k._fine():
+		StyleKit.build(k, s, p, arch, bw, bd, cz, y0, top, tw, td, roof, floors, fh)
 	# Annexes.
 	if arch == "gratte_ciel":
 		k.cylinder(0, top + 2.0, cz, 0.3, 0.1, 18.0 if era != "futuriste" else 40.0, 6, Color("d9d9d9"))
@@ -319,7 +350,7 @@ static func _windows(k: BlocMesh, s: Dictionary, p: Dictionary, era: String, cx:
 		"moderne", "contemporain", "futuriste":
 			k.window_bands(cx, cz, bw, bd, y0, floors, fh, p.glass)
 		_:
-			var n := maxi(1, int(bw / 3.0))
+			var n := maxi(1, int(bw / 3.0) + int(p.get("dn", 0)))
 			var nd := maxi(1, int(bd / 3.5))
 			var wh := 1.4 if era == "classique" else 1.1
 			var col: Color = Color(p.glass).darkened(0.1)
@@ -331,11 +362,16 @@ static func _windows(k: BlocMesh, s: Dictionary, p: Dictionary, era: String, cx:
 				k.windows_col(cx + bw / 2.0, cz, bd * 0.85, y, nd, 1.0, wh, col)
 				if s.get("balcony", false) and i >= 1:
 					k.box(cx, y - 0.45, cz - bd / 2.0 - 0.45, bw, 0.12, 0.9, Color(p.trim))
+					if k._fine():
+						StyleKit.garde_corps(k, cx, y - 0.33, cz - bd / 2.0 - 0.88, bw, Color(p.trim))
+				if k._fine():
+					StyleKit.fenetres(k, s, p, cx, cz - bd / 2.0, bw * 0.9, y, n, wh, i, -1.0)
+					StyleKit.fenetres(k, s, p, cx, cz + bd / 2.0, bw * 0.9, y, n, wh, i, 1.0)
 
 
 static func _roof(k: BlocMesh, s: Dictionary, p: Dictionary, kind: String, cx: float, y: float, cz: float, sx: float, sz: float, arch: String) -> void:
 	var col: Color = p.roof
-	var pitch := float(s.get("pitch", 0.5))
+	var pitch := float(s.get("pitch", 0.5)) * float(p.get("pente", 1.0))
 	var short := minf(sx, sz)
 	match kind:
 		"gable":

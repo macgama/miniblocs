@@ -1,12 +1,13 @@
 class_name BuildingPanel
 extends CanvasLayer
 ## Panneau « Construire » (à droite de l'écran) : catégories en icônes,
-## bâtiments en vignettes, démolition et règles du bac à sable.
+## bâtiments en vignettes, démolition ; « Règles » ouvre le panneau Admin.
 ## B ou le bouton Construire de la barre du bas : afficher ou masquer.
 
 signal building_chosen(id: String)
 signal demolish_chosen
-signal rules_changed(require_access: bool, unlimited_money: bool)
+## Bouton « Règles » : ouvrir le panneau Admin (réglages de la partie).
+signal admin_requested
 signal zone_chosen(kind: String)
 signal zone_remove_chosen
 signal growth_toggled(on: bool)
@@ -25,13 +26,12 @@ signal plan_level_step(delta: int)
 signal plan_cutaway_toggled(on: bool)
 signal plan_copy_level(count: int)
 signal plan_roof(kind: String)
+signal plan_wall_levels(count: int)
 
 var _panel: PanelContainer
 var _list: VBoxContainer
 var _money_label: Label
 var _summary_label: Label
-var _access_box: CheckBox
-var _money_box: CheckBox
 var _cat_buttons: Dictionary = {}
 var _item_group := ButtonGroup.new()
 var _item_buttons: Array[Control] = []
@@ -53,20 +53,24 @@ var _zone_style := ""
 var _filters: HFlowContainer
 var _capture_name := ""
 var _cat_title: Label
-var _rules_box: VBoxContainer
+var _rules_button: Button
 var _vignettes: Vignettes
 ## "blocs" (blocs de 1 m) ou "plans" (murs fins, étages, intérieurs).
 var _block_mode := "plans"
 var _level_label: Label
 var _level_text := "Rez-de-chaussée"
 var _copy_count := 1
+var _wall_levels := 1
 var _cutaway := true
 var _opening := "porte"
 
 ## Icône de chaque onglet.
 const CAT_ICONS := {"logement": "logement", "commerce": "commerce", "industrie": "industrie", "production": "ressources",
 	"services": "services", "loisirs": "loisirs", "sport": "sport", "espaces": "publics",
-	"zones": "zonage", "blocs": "editeur", "creations": "creations"}
+	"zones": "zonage", "blocs": "editeur", "creations": "creations", "interieur": "interieur"}
+
+## Onglet Intérieur : fonction (BuildingPanel) qui remplit la liste (voir InterieurPanel).
+var interieur_builder: Callable
 
 
 func _ready() -> void:
@@ -113,6 +117,7 @@ func _ready() -> void:
 	tabs.append({"id": "zones", "name": "Zonage", "color": Color("ffd166")})
 	tabs.append({"id": "blocs", "name": "Éditeur libre", "color": Color("8ecae6")})
 	tabs.append({"id": Creations.CATEGORY, "name": "Mes créations", "color": Color("f4a261")})
+	tabs.append({"id": "interieur", "name": "Intérieur : meubles, pièces, bâtiments meublés", "color": Color("c9a0dc")})
 	for c in tabs:
 		var b := UiStyle.icon_button(String(CAT_ICONS.get(c.id, "construire")), c.name, "", 26, 46)
 		b.custom_minimum_size = Vector2(70, 46)
@@ -178,29 +183,12 @@ func _ready() -> void:
 	_demolish_button.button_group = _item_group
 	_demolish_button.pressed.connect(func() -> void: demolish_chosen.emit())
 	foot.add_child(_demolish_button)
-	var rules := Button.new()
-	rules.text = "Règles"
-	rules.icon = Icones.get_icon("details", 20)
-	rules.tooltip_text = "Règles du bac à sable : accès à une voie, argent illimité"
-	rules.toggle_mode = true
-	rules.toggled.connect(func(on: bool) -> void: _rules_box.visible = on)
-	foot.add_child(rules)
-
-	_rules_box = VBoxContainer.new()
-	_rules_box.visible = false
-	box.add_child(_rules_box)
-	var rl := Label.new()
-	rl.text = "Règles du bac à sable"
-	_rules_box.add_child(rl)
-	_access_box = CheckBox.new()
-	_access_box.text = "Accès à une voie obligatoire"
-	_access_box.button_pressed = true
-	_access_box.toggled.connect(func(_on: bool) -> void: _emit_rules())
-	_rules_box.add_child(_access_box)
-	_money_box = CheckBox.new()
-	_money_box.text = "Argent illimité"
-	_money_box.toggled.connect(func(_on: bool) -> void: _emit_rules())
-	_rules_box.add_child(_money_box)
+	_rules_button = Button.new()
+	_rules_button.text = "Règles"
+	_rules_button.icon = Icones.get_icon("admin", 20)
+	_rules_button.tooltip_text = "Règles de la partie : argent, coûts, accès à une voie, déblocage… (panneau Admin, F10)"
+	_rules_button.pressed.connect(func() -> void: admin_requested.emit())
+	foot.add_child(_rules_button)
 
 	_summary_label = Label.new()
 	_summary_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -211,13 +199,15 @@ func _ready() -> void:
 	show_category(_category)
 
 
-func _emit_rules() -> void:
-	rules_changed.emit(_access_box.button_pressed, _money_box.button_pressed)
+## Le bouton « Règles » n'est là que pour qui peut administrer la partie.
+func set_admin(on: bool) -> void:
+	_rules_button.visible = on
 
 
-func set_rules(require_access: bool, unlimited_money: bool) -> void:
-	_access_box.set_pressed_no_signal(require_access)
-	_money_box.set_pressed_no_signal(unlimited_money)
+## Réglages changés (coûts, déblocage) : on redessine la liste.
+func refresh() -> void:
+	if _category != "zones" and _category != "blocs":
+		show_category(_category)
 
 
 func show_category(cat: String) -> void:
@@ -237,6 +227,11 @@ func show_category(cat: String) -> void:
 		return
 	if cat == Creations.CATEGORY:
 		_show_creations()
+		return
+	if cat == "interieur":
+		_filters.visible = false
+		if interieur_builder.is_valid():
+			interieur_builder.call(self)
 		return
 	_filters.visible = true
 	var shown := 0
@@ -335,6 +330,19 @@ func set_level_label(text: String) -> void:
 		_level_label.text = text
 
 
+## Ajoute un contrôle à la liste de l'onglet (il disparaît au changement d'onglet).
+func add_control(c: Control) -> void:
+	_add(c)
+
+
+func item_group() -> ButtonGroup:
+	return _item_group
+
+
+func category() -> String:
+	return _category
+
+
 func _add(c: Control) -> void:
 	_list.add_child(c)
 	_item_buttons.append(c)
@@ -421,6 +429,22 @@ func _show_plan_tools() -> void:
 	up.pressed.connect(func() -> void: plan_level_step.emit(1))
 	lrow.add_child(up)
 	_add(lrow)
+	# Hauteur des murs et des pièces : plusieurs étages d'un coup.
+	var hrow := HBoxContainer.new()
+	var hl := Label.new()
+	hl.text = "Murs et pièces sur"
+	hrow.add_child(hl)
+	var hspin := SpinBox.new()
+	hspin.min_value = 1
+	hspin.max_value = 60
+	hspin.value = _wall_levels
+	hspin.suffix = "étage(s)"
+	hspin.tooltip_text = "Les outils Mur et Pièce montent les murs (et les planchers des pièces) sur ce nombre d'étages d'un coup, à partir de l'étage actif."
+	hspin.value_changed.connect(func(v: float) -> void:
+		_wall_levels = int(v)
+		plan_wall_levels.emit(int(v)))
+	hrow.add_child(hspin)
+	_add(hrow)
 	var crow := HBoxContainer.new()
 	var cut := CheckBox.new()
 	cut.text = "Vue en coupe"
@@ -668,7 +692,7 @@ func _show_creations() -> void:
 		var t := BuildingCatalog.get_type(id)
 		var row := HBoxContainer.new()
 		var b := Button.new()
-		b.text = "%s  ·  %d × %d m  ·  %s" % [t.name, t.w, t.d, BuildingSystem.format_short(BuildingCatalog.cost(id))]
+		b.text = "%s  ·  %d × %d m  ·  %s" % [t.name, t.w, t.d, BuildingSystem.format_short(ReglagesPartie.prix(BuildingCatalog.cost(id)))]
 		b.tooltip_text = String(t.desc)
 		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -707,8 +731,13 @@ func _card(id: String, fallback_icon: String) -> Button:
 	b.toggle_mode = true
 	b.button_group = _item_group
 	b.focus_mode = Control.FOCUS_NONE
+	var price := ReglagesPartie.prix(BuildingCatalog.cost(id))
+	var lock := ReglagesPartie.actuel.raison_blocage(id)
 	b.tooltip_text = "%s · %d × %d m · %s\n%s\nPrix : %s (hors terrassement)" % [t.name, t.w, t.d,
-		BuildingSystem.format_short(BuildingCatalog.cost(id)), t.desc, BuildingSystem.format_money(BuildingCatalog.cost(id))]
+		BuildingSystem.format_short(price), t.desc, BuildingSystem.format_money(price)]
+	if lock != "":
+		b.tooltip_text += "\n" + lock
+		b.modulate = Color(1, 1, 1, 0.45)
 	var sel := UiStyle.flat_box(Color(1, 0.82, 0.4, 0.16), 10, 6)
 	sel.border_color = UiStyle.ACCENT
 	sel.set_border_width_all(2)
@@ -741,7 +770,9 @@ func _card(id: String, fallback_icon: String) -> Button:
 	name_l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.add_child(name_l)
 	var meta := Label.new()
-	meta.text = "%d × %d m  ·  %s" % [t.w, t.d, BuildingSystem.format_short(BuildingCatalog.cost(id))]
+	meta.text = "%d × %d m  ·  %s" % [t.w, t.d, BuildingSystem.format_short(price)]
+	if lock != "":
+		meta.text = "Verrouillé · %d hab." % int(ReglagesPartie.PALIERS[ReglagesPartie.palier_requis(id)].habitants)
 	meta.add_theme_font_size_override("font_size", 12)
 	meta.add_theme_color_override("font_color", UiStyle.TEXT_DIM)
 	meta.mouse_filter = Control.MOUSE_FILTER_IGNORE

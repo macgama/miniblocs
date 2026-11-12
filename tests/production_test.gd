@@ -51,6 +51,8 @@ func _run() -> void:
 		if not Ressources.SOUS_SOL.has(p[0]):
 			_check(false, "province de ressource inconnue : %s" % p[1])
 
+	# Bâtiments prêts tout de suite (les chantiers sont testés dans batiments_test).
+	BatimentsVie.chantiers = false
 	var scene: Node = load("res://scenes/terre.tscn").instantiate()
 	var world: TerrainWorld = scene.get_node("Terrain")
 	var transport: TransportSystem = scene.get_node("Transport")

@@ -262,13 +262,23 @@ func set_filters(era: String, region: String) -> void:
 func pool_for(cls: String) -> Array[String]:
 	if _pool_cache.has(cls):
 		return _pool_cache[cls]
-	var ids := VehicleCatalog.for_track(cls, era_filter, region_filter)
+	var ids := _no_service(VehicleCatalog.for_track(cls, era_filter, region_filter))
 	if ids.is_empty():
-		ids = VehicleCatalog.for_track(cls, era_filter, "")
+		ids = _no_service(VehicleCatalog.for_track(cls, era_filter, ""))
 	if ids.is_empty():
-		ids = VehicleCatalog.for_track(cls)
+		ids = _no_service(VehicleCatalog.for_track(cls))
 	_pool_cache[cls] = ids
 	return ids
+
+
+## Les véhicules d'urgence ne roulent pas en ambiance : ils partent de leur
+## caserne quand on les appelle (Urgences).
+static func _no_service(ids: Array[String]) -> Array[String]:
+	var out: Array[String] = []
+	for id in ids:
+		if VehicleCatalog.service_of(id) == "":
+			out.append(id)
+	return out
 
 
 ## Tire un modèle au hasard ; sur route, les voitures dominent.

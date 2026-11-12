@@ -245,6 +245,19 @@ func _run() -> void:
 	_check(dn.weather.mode == Meteo.Mode.NEIGE, "Sauvegarde : la météo choisie est retrouvée")
 	dn.weather.mode = Meteo.Mode.SOLEIL
 
+	# Rendu poussé : tons ACES, brume au ras du sol par brouillard, pas en plein midi.
+	_check(not DayNight.rendu_pousse or dn.env.tonemap_mode == Environment.TONE_MAPPER_ACES, "Rendu poussé : tons ACES")
+	dn.weather.mode = Meteo.Mode.BROUILLARD
+	dn.set_local_hour(9.0)
+	dn.weather.settle(dn.unix_time, dn.local_hour())
+	dn._apply()
+	_check(dn.brume > 0.3 and dn.env.fog_height_density > 0.0, "Brouillard : brume au ras du sol (%.2f)" % dn.brume)
+	dn.weather.mode = Meteo.Mode.SOLEIL
+	dn.set_local_hour(13.0)
+	dn.weather.settle(dn.unix_time, dn.local_hour())
+	dn._apply()
+	_check(dn.brume < 0.05 and dn.env.fog_height_density == 0.0, "Plein midi au soleil : pas de brume au sol")
+
 	if shot != "" and not args.has("--meteo"):
 		var rig = scene.get_node("CameraRig")
 		rig.position = Vector3(-40, y, -10)

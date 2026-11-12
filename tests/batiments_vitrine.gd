@@ -38,6 +38,7 @@ func _run() -> void:
 	var murs := args.has("--murs")
 	var coupe := -100
 	var pitch := -1.0
+	var heure := -1.0
 	var only_styles: PackedStringArray = []
 	var only_archs: PackedStringArray = []
 	var zone_style := ""
@@ -57,6 +58,8 @@ func _run() -> void:
 			only_cat = args[i + 1]
 		if args[i] == "--zone-style" and i + 1 < args.size():
 			zone_style = args[i + 1]
+		if args[i] == "--heure" and i + 1 < args.size():
+			heure = args[i + 1].to_float()
 		if args[i] == "--pitch" and i + 1 < args.size():
 			pitch = args[i + 1].to_float()
 		if args[i] == "--coupe" and i + 1 < args.size():
@@ -67,6 +70,8 @@ func _run() -> void:
 
 	# --sans-finitions : rendu d'avant les finitions low-poly (comparaison).
 	BlocMesh.details_enabled = not args.has("--sans-finitions")
+	# --rendu-simple : lumière d'avant (sans ACES, brume au sol ni ombres douces).
+	DayNight.rendu_pousse = not args.has("--rendu-simple")
 	# --fxaa : anticrénelage d'écran (le MSAA du rendu logiciel laisse des pixels parasites).
 	if args.has("--fxaa"):
 		root.msaa_3d = Viewport.MSAA_DISABLED
@@ -113,6 +118,9 @@ func _run() -> void:
 					await process_frame
 				for sc in scene.get_node("PanneauConstruction").find_children("*", "ScrollContainer", true, false):
 					(sc as ScrollContainer).scroll_vertical = 260
+		if heure >= 0.0:
+			scene.get_node("Ambiance").set_speed(0)
+			scene.get_node("Ambiance").set_local_hour(heure)
 		for i in 90:
 			await process_frame
 		root.get_viewport().get_texture().get_image().save_png(shot)
@@ -164,6 +172,9 @@ func _run() -> void:
 	rig._distance = dist
 	rig._target_distance = dist
 	rig.rotation_degrees.y = yaw
+	if heure >= 0.0:
+		scene.get_node("Ambiance").set_speed(0)
+		scene.get_node("Ambiance").set_local_hour(heure)
 	for i in 90:
 		await process_frame
 	scene.get_node("PanneauConstruction").show_category(only_cat if only_cat != "" else "sport")

@@ -49,7 +49,7 @@ func _run() -> void:
 	print("Pièce et murs :")
 	var c0 := Vector2i(40, 40)
 	var y0 := pe.ground_level(c0)
-	_check(fmod(y0, 0.5) == 0.0 and y0 >= world.cell_height(c0) + PlanEditor.SLAB, "niveau du rez-de-chaussée au-dessus du sol (%.1f m)" % y0)
+	_check(fmod(y0, 0.5) == 0.0 and absf(y0 - world.cell_height(c0)) < 0.26, "plancher du rez-de-chaussée au ras du sol : porte de plain-pied (%.1f m, sol %.1f m)" % [y0, world.cell_height(c0)])
 	var id := pe.new_plan(y0)
 	var room := Rect2i(40, 40, 6, 5)
 	var m0 := bs.money
@@ -141,6 +141,10 @@ func _run() -> void:
 	var yr := world.cell_height(Vector2i(42, 30))
 	var road := transport.build_segment("route", Vector3(42.5, yr, 30.0), Vector3(42.5, yr, 50.0))
 	_check(not road.ok, "pas de route à travers le bâtiment")
+	var yr2 := world.cell_height(Vector2i(70, 30))
+	var road2 := transport.build_segment("route", Vector3(70.5, yr2, 20.0), Vector3(70.5, yr2, 60.0))
+	var gl := pe.ground_level(Vector2i(74, 40))
+	_check(road2.ok and absf(gl - transport.network.nearest_on_edge(transport.edges_near(Vector3(74.5, 0, 40.5), 30.0)[0], Vector3(74.5, 0, 40.5)).pos.y) < 0.26, "près d'une route, le rez-de-chaussée se cale sur la chaussée (%.1f m)" % gl)
 	_check(not bs.check_place("maison", Vector2i(43, 43), 0).ok, "pas de bâtiment dans le bâtiment")
 	var id2 := pe.new_plan(pe.ground_level(Vector2i(80, 40)))
 	_check(not pe.add_room(id2, Rect2i(44, 42, 2, 2), 0), "pas un bâtiment dans un autre")
@@ -148,6 +152,19 @@ func _run() -> void:
 	bs.money = 10
 	_check(not pe.add_room(id, Rect2i(50, 40, 4, 4), 0), "refusé si la caisse est vide")
 	bs.money = 1_000_000
+
+	print("Au ras du sol :")
+	var c3 := Vector2i(60, 70)
+	var id3 := pe.new_plan(pe.ground_level(c3) + 1.0) # ancien calcul : 1 m trop haut
+	pe.add_room(id3, Rect2i(60, 70, 4, 4), 0)
+	pe.set_opening_at(id3, Vector4i(61, 0, 70, 0), "porte")
+	pe.add_roof(id3, "plat")
+	var roof_k := Vector3i(61, roundi((pe.base_y(id3, 0) + PlanEditor.H) / BlockEditor.UNIT_Y), 71)
+	var had_roof := be.blocks.has(roof_k)
+	var dd := pe.reseat(id3)
+	_check(had_roof and dd <= -1.0 and absf(float(pe.plans[id3].y0) - pe.ground_level(Vector2i(61, 69))) < 0.01, "bâtiment trop haut remis de plain-pied (%.1f m)" % dd)
+	_check(not be.blocks.has(roof_k) and be.blocks.has(roof_k + Vector3i(0, roundi(dd / BlockEditor.UNIT_Y), 0)), "le toit descend avec lui")
+	_check(pe.reseat(id3) == 0.0, "une deuxième fois : rien ne bouge")
 
 	print("Annuler, gomme :")
 	var nw: int = p.walls.size()

@@ -546,6 +546,12 @@ func _setup_plans() -> void:
 			hud.show_message("Vise d'abord un bâtiment avec un outil Murs et étages.")
 			return
 		plans.add_roof(plans.active_id(), kind))
+	build_panel.plan_reseat.connect(func() -> void:
+		if plans.active_id() == "":
+			hud.show_message("Vise d'abord un bâtiment avec un outil Murs et étages.")
+			return
+		var d := plans.reseat(plans.active_id())
+		hud.show_message("Bâtiment déjà au ras du sol." if d == 0.0 else "Bâtiment %s de %s m : porte de plain-pied." % ["descendu" if d < 0.0 else "monté", str(absf(d)).replace(".", ",")]))
 
 
 ## Intérieurs : meubles posés case par case, mobilier généré, bâtiments meublés,

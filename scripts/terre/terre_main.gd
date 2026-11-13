@@ -1262,18 +1262,22 @@ func _input(event: InputEvent) -> void:
 		_esc_busy = _tool_busy()
 
 
-func _unhandled_key_input(event: InputEvent) -> void:
+## _unhandled_input (pas _unhandled_key_input, qui passe avant) : les outils, qui
+## écoutent Échap dans leur _unhandled_input, l'ont déjà reçu ; la scène est la
+## racine, elle passe donc en dernier.
+func _unhandled_input(event: InputEvent) -> void:
 	var k := event as InputEventKey
 	if k == null or not k.pressed or k.echo or k.keycode != KEY_ESCAPE or pause_menu != null:
 		return
-	get_viewport().set_input_as_handled()
 	if _esc_busy:
 		_esc_busy = false
 		# Un outil de terrain ou de voie sans tracé en cours : retour à Observer.
 		if hud._current_tool != 0:
+			get_viewport().set_input_as_handled()
 			hud.select_tool_silently(0)
 			_on_tool_selected(0)
 		return
+	get_viewport().set_input_as_handled()
 	open_pause()
 
 

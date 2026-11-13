@@ -221,8 +221,21 @@ func recalculer() -> void:
 	_cache.clear()
 	var k := niveau()
 	var n := 0
+	# Sources des autres systèmes (lues d'abord : un bâtiment qu'ils décrivent eux-mêmes,
+	# avec sa clé "bid", n'est pas compté une seconde fois par la table EMISSIONS).
+	var autres := []
+	var decrits := {}
+	for node in get_tree().get_nodes_in_group("pollution_sources") if is_inside_tree() else []:
+		if node.has_method("pollution_sources"):
+			for s in node.pollution_sources():
+				if s is Dictionary and s.has("pos"):
+					autres.append(s)
+					if s.has("bid"):
+						decrits[int(s.bid)] = true
 	if buildings != null:
 		for bid in buildings.buildings:
+			if decrits.has(bid):
+				continue
 			if buildings.en_chantier(bid):
 				# Un chantier fait du bruit le jour.
 				var cb: Dictionary = buildings.buildings[bid]
@@ -234,12 +247,9 @@ func recalculer() -> void:
 	for s in _manuelles.values():
 		_source_dict(s, k)
 		n += 1
-	for node in get_tree().get_nodes_in_group("pollution_sources") if is_inside_tree() else []:
-		if node.has_method("pollution_sources"):
-			for s in node.pollution_sources():
-				if s is Dictionary and s.has("pos"):
-					_source_dict(s, k)
-					n += 1
+	for s in autres:
+		_source_dict(s, k)
+		n += 1
 	_environnement()
 	_cache.clear()
 	# Valeur visée de chaque bâtiment.

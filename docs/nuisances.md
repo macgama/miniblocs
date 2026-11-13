@@ -37,7 +37,7 @@ classe de la voie et la taille de la ville. Centrales nucléaires, solaires et b
 **Ce qui protège** : forêts, parcs, jardins et espaces publics filtrent l'air (jusqu'à −35 %) et étouffent le bruit (jusqu'à −25 %).
 
 **Autres systèmes** :
-- groupe `pollution_sources` avec `pollution_sources() -> Array` de `{"pos": Vector3, "rayon": m, "air", "eau", "bruit", "odeur", "salete": 0..1, "nom", "nuit": bool}` (relu à chaque calcul) ;
+- groupe `pollution_sources` avec `pollution_sources() -> Array` de `{"pos": Vector3, "rayon": m, "air", "eau", "bruit", "odeur", "salete": 0..1, "nom", "nuit": bool, "bid": int}` (relu à chaque calcul ; avec `bid`, le bâtiment n'est plus compté par la table des émissions) ;
 - ou `Nuisances.instance.ajouter_source(id, type, pos, force, rayon)` / `retirer_source(id)`, avec type `"air"`, `"eau"`, `"bruit"`, `"odeur"` ou `"salete"`.
 
 ## Calcul

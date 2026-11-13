@@ -196,7 +196,7 @@ func _run() -> void:
 	var mc := bs.place("maison_commune", Vector2i(0, -20), 0)
 	await _frames(3)
 	_check(mc >= 0 and cm.villages.size() == 1, "Maison de commune posée, village fondé")
-	_check(fd.arrives and fd.vivants().size() == ReglagesPartie.actuel.fondateurs, "%d fondateurs au campement" % fd.vivants().size())
+	_check(fd.arrives and fd.vivants().size() == ReglagesPartie.actuel.fondateurs + fd.renfort_total, "%d fondateurs au campement" % fd.vivants().size())
 
 	print("Rues :")
 	var rues_ok := true

@@ -39,6 +39,7 @@ var _telecom: CheckBox
 var _instant: CheckBox
 var _horaires: OptionButton
 var _freq: OptionButton
+var _faim: OptionButton
 var _usure: OptionButton
 var _dechets: CheckBox
 var _dechets_q: HSlider
@@ -207,6 +208,12 @@ func _ready() -> void:
 	g = _section(right, "Ressources", "ressources")
 	_epuisement = _check("Épuisement des ressources (mines, puits, forêts et poissons surexploités)")
 	g.add_child(_epuisement)
+	_faim = OptionButton.new()
+	for n in ["Aucun effet", "Normale (santé, départs)", "Mortelle (on peut mourir de faim)"]:
+		_faim.add_item(n)
+	_faim.disabled = not editable
+	_faim.item_selected.connect(func(_i: int) -> void: _changed())
+	_row(g, "Faim quand les magasins sont vides", _faim)
 
 	# Événements de la ville.
 	g = _section(right, "Événements", "infos")
@@ -375,6 +382,7 @@ func _fill() -> void:
 		if absf(float(FREQS[i]) - reglages.frequence_catastrophes) < 0.01:
 			fi = i
 	_freq.select(fi)
+	_faim.select(maxi(ReglagesPartie.FAIMS.find(reglages.faim), 0))
 	var ui := 2
 	for i in USURES.size():
 		if absf(float(USURES[i]) - reglages.usure) < 0.01:
@@ -408,6 +416,7 @@ func _changed() -> void:
 	reglages.horaires_chantiers = String(Chantiers.HORAIRES[maxi(0, _horaires.selected)])
 	_horaires.disabled = not editable or _instant.button_pressed
 	reglages.frequence_catastrophes = float(FREQS[maxi(0, _freq.selected)])
+	reglages.faim = String(ReglagesPartie.FAIMS[clampi(_faim.selected, 0, 2)])
 	reglages.usure = float(USURES[maxi(0, _usure.selected)])
 	reglages.dechets = _dechets.button_pressed
 	reglages.dechets_quantite = _dechets_q.value

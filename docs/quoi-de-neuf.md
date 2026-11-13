@@ -4,6 +4,9 @@ Tout est dans `main`, et les 9 tests automatiques passent (`sh tests/tous.sh`).
 
 ## Nouveautés
 
+**Agriculture et nourriture** (touche **Maj+F**)
+- Fermes à la façon des jeux de gestion agricole : champs tracés librement, 14 cultures selon la saison et le climat, labour, semis, engrais, moisson et bottes de paille faits par les ouvriers avec des machines visibles (achetées ou louées, gazole, usure, pannes), 7 espèces de bêtes au pré. Les habitants mangent chaque jour : sans nourriture, santé et satisfaction baissent puis ils déménagent (voir docs/agriculture.md).
+
 **Le monde**
 - Décors (touche **G**) : 160 modèles Blender (mobilier urbain, clôtures, marché, jeux, plage, ferme, animaux, bateaux et pontons, rochers). Ils viennent seuls (bottes de foin après la moisson, troupeaux qui se promènent dans les prés, poteaux et balises le long des routes, pontons et barques au bord des lacs) et se posent à la main, en rangée ou au pinceau (voir docs/decors.md).
 - Saisons et âges des plantes : feuillage d'automne et arbres nus l'hiver selon le vrai calendrier du lieu, neige qui tient selon la météo, champs semés, mûrs puis moissonnés, et 4 âges des arbres (jeune pousse, jeune arbre, adulte, arbre mort qui laisse repousser une pousse) au rythme de la vie des habitants (réglage Admin « vitesse de la vie ») (voir docs/plantes-et-sols.md).

@@ -103,6 +103,8 @@ var extra_buildings: Callable
 var extra_pick: Callable
 ## Satisfaction venue d'ailleurs (commerces de l'économie locale) : f(p) -> [delta, raisons].
 var extra_satisfaction: Callable
+## Optionnel : Callable(p) -> [facteur de mortalité, raisons] (ex. la faim, voir Repas).
+var extra_health: Callable
 ## Services publics : school_ok(p, bid_école) -> bool (trajet acceptable). Sans : toutes les écoles.
 var school_ok: Callable
 ## Attrait d'un logement pour les arrivants (bid) -> multiplicateur (Nuisances : bruit, pollution, valeur).

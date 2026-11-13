@@ -56,6 +56,10 @@ const COURSES := 260.0 # par personne
 const VOITURE := 160.0
 const DAYS_PER_MONTH := 30.44
 
+## Versement quotidien de la ville, repris par le budget communal (BudgetCommunal.pay_day).
+## Vide : la caisse reçoit directement le solde de city_budget().
+var city_pay: Callable
+
 @export var world_path: NodePath
 @export var buildings_path: NodePath
 @export var transport_path: NodePath
@@ -866,7 +870,9 @@ func _pay_day() -> void:
 		_book(k, b.recettes[k] * day)
 	for k in b.depenses:
 		_book(k, -b.depenses[k] * day)
-	if buildings != null and not buildings.unlimited_money:
+	if city_pay.is_valid():
+		city_pay.call(b, day)
+	elif buildings != null and not buildings.unlimited_money:
 		_money_frac += float(b.solde) * day
 		var whole := int(_money_frac)
 		_money_frac -= whole

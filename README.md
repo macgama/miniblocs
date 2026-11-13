@@ -334,6 +334,8 @@ L'onglet **Intérieur** (icône fauteuil) du panneau Construire aménage les bâ
 
 - **Personnaliser** : clic sur un bâtiment du catalogue (outil 1), puis « Personnaliser » sur sa fiche. On change les couleurs (murs, toit, boiseries, volets, porte, vitres) dans le nuancier du style ou en couleur libre, la forme du toit (deux pans, quatre pans, terrasse, mansarde, bords relevés, appentis, chaume), le nombre d'étages, la pente du toit et la variante. Seul ce bâtiment change ; un bouton applique le même réglage à tous les bâtiments du même modèle. Tout est gardé dans la partie.
 - **Ouvrir l'intérieur** (maisons, immeubles, boutiques, restaurants, bureaux, ateliers, écoles) : le bâtiment est reconstruit en murs fins à sa place, avec ses couleurs (matériaux les plus proches), découpé en pièces (entrée et escalier, séjour, cuisine, chambres, salle de bains ; salle de vente et réserve pour une boutique, logement au-dessus) et meublé dans un style proche du sien. On y entre (V), on le meuble (onglet Intérieur) et on peut déplacer ses murs. Les petits ornements du modèle (corniches, cheminée) disparaissent.
+- **Bâtiments modélisés dans Blender** : ils se personnalisent aussi (couleurs des murs, du toit, des encadrements, des volets, de la porte et des vitres ; la forme reste celle du modèle). Les maisons, immeubles, hôtels, boutiques, cafés, restaurants, bureaux et écoles (79 modèles) s'ouvrent en murs fins : le volume des murs et le nombre d'étages sont lus dans le modèle.
+- **Vue par étage** (mode Gérer) : **Page bas** enlève l'étage du haut de tous les bâtiments en murs fins autour de la caméra, toit compris ; **Page haut** le remet ; **Origine** montre tout. Une petite échelle s'affiche en haut de l'écran (▼ ▲ « Tout voir »). Les meubles et les habitants suivent : on voit qui dort, mange ou travaille à chaque niveau. Les bâtiments encore fermés (catalogue, Blender) s'ouvrent avec « Ouvrir l'intérieur ».
 - **Banque de modèles** (mode Créer, touche 6) : chaque bâtiment personnalisé ou en murs fins s'enregistre avec un nom et des étiquettes (type, style, région, époque, couleurs, étages, pièces, taille). On cherche, on filtre, on repose. « Exporter » crée un fichier à envoyer, « Importer » lit ceux reçus (dossier d'échange). Chaque modèle est rangé comme un objet du Steam Workshop (un dossier avec `modele.json` et `apercu.png`), pour le partage entre joueurs quand le jeu sera sur Steam.
 - **Atelier** (bouton du globe, ou touche 7 en mode Créer) : un terrain plat, sans habitants ni argent ni météo, pour créer et retoucher des bâtiments, puis les ranger dans la banque. Depuis une partie, elle est sauvegardée avant d'ouvrir l'atelier, et « Quitter » (7) y ramène. L'atelier garde ce qu'on y a laissé.
 
@@ -341,6 +343,9 @@ L'onglet **Intérieur** (icône fauteuil) du panneau Construire aménage les bâ
 ![Le panneau Personnaliser](docs/personnaliser_panneau.png)
 ![Une Maison à pignon ouverte : pièces et meubles](docs/personnaliser_coupe.png)
 ![L'atelier et sa banque de modèles](docs/personnaliser_atelier.png)
+![Maisons Blender repeintes et le panneau Personnaliser](docs/personnaliser_blender.png)
+![Vue par étage : le 2e étage des maisons Blender ouvertes](docs/personnaliser_etages.png)
+![Vue par étage, de près : les habitants à table au rez-de-chaussée](docs/personnaliser_proche.png)
 
 ### Éditeur libre : construire bloc par bloc
 
@@ -531,6 +536,7 @@ Une ferme entièrement générée en code (longère à colombages et toit de cha
 | `scripts/interieurs/mobilier.gd` | Meubles dans les bâtiments en murs fins : pose, pièces et fonctions, aménagement automatique, effets, sauvegarde |
 | `scripts/interieurs/gabarits.gd` | Bâtiments meublés prêts à visiter |
 | `scripts/interieurs/occupants.gd` | Les habitants dans les pièces, à leurs heures |
+| `scripts/interieurs/vue_etages.gd` | Vue par étage en mode Gérer (Page bas/haut, Origine) : coupe les bâtiments en murs fins autour de la caméra |
 | `scripts/interieurs/interieur_panel.gd` | Onglet « Intérieur » du panneau Construire |
 | `tests/interieurs_test.gd` | Test des intérieurs (bible, pose, aménagement, habitants, sauvegarde, panneau) |
 | `tests/interieurs_vitrine.gd` | Bâtiments meublés en coupe et captures (`--vue dessus`, `proche`, `sol`, `bible`, `panneau`, `--style japonais`) |

@@ -65,6 +65,7 @@ func _run() -> void:
 	_check(zones.add_zone("R", Rect2i(-980, 20, 30, 30)) < 0, "pas de zonage avant la fondation")
 	var m0 := bs.money
 	cm.nom_en_attente = "Valfleuri"
+	cm.drapeau_en_attente = "ch"
 	var mc := bs.place("maison_commune", Vector2i(-1000, 0), 0)
 	_check(mc > 0, "Maison de commune posée sans route")
 	_check(cm.villages.size() == 1, "un village fondé")
@@ -77,6 +78,22 @@ func _run() -> void:
 	_check(not cm.fondation_requise() and cm.raison_voie() == "", "voies débloquées")
 	_check(Avis.ville() == "Valfleuri", "la commune s'appelle Valfleuri (avis, élections)")
 	_check(scene.avis.mairie() == mc, "la mairie des manifestations est la Maison de commune")
+	_check(String(vill.drapeau) == "ch", "drapeau choisi : Suisse")
+	cm._maj_drapeaux(true)
+	var mat_node := bs.node_of(mc)
+	var fl: MeshInstance3D = mat_node.get_node_or_null("Drapeau") if mat_node else null
+	_check(fl != null and String(fl.get_meta("code", "")) == "ch", "le drapeau suisse flotte sur le mât")
+	_check(Drapeaux.existe("ch") and Drapeaux.existe("jp") and Drapeaux.existe("br") and Drapeaux.liste().size() > 240, "%d drapeaux disponibles" % Drapeaux.liste().size())
+	_check(Drapeaux.icone("fr") != null and Drapeaux.materiau("fr") != null, "icône et tissu du drapeau français")
+	var vp: VillagesPanel = scene.villages_panel
+	vp.demander_nom()
+	VillagesPanel.choisir_code(vp._dialog_drapeau, "jp")
+	vp._dialog.hide()
+	vp._valider_nom()
+	_check(cm.drapeau_en_attente == "jp", "fenêtre de fondation : drapeau japonais choisi")
+	VillagesPanel.choisir_code(vp._dialog_drapeau, "")
+	vp._valider_nom()
+	_check(cm.drapeau_en_attente == "-", "fenêtre de fondation : aucun drapeau")
 
 	print("Construire dans le territoire :")
 	bs.unlimited_money = true
@@ -118,6 +135,9 @@ func _run() -> void:
 	_check(bs.check_place("maison", Vector2i(1100, 120), 0).reason != Communes.MSG_FONDER, "on construit aussi aux Granges")
 	_check(not cm.voisins(v1, v2), "les deux villages ne se touchent pas encore")
 	_check(Avis.ville() == "Valfleuri", "le chef-lieu reste Valfleuri")
+	_check(String(cm.villages[v2].drapeau) == "", "Les Granges : sans drapeau, comme choisi")
+	cm.set_drapeau(v2, "IT")
+	_check(String(cm.villages[v2].drapeau) == "it", "Les Granges hisse le drapeau italien")
 
 	print("Croissance avec la population :")
 	cm.calculer_stats()
@@ -169,6 +189,7 @@ func _run() -> void:
 	_check(keep >= 0 and cm.villages.size() == 1, "une seule commune après la fusion")
 	_check((cm.villages[keep].annexes as Array).has(mc2) or (cm.villages[keep].annexes as Array).has(mc), "l'autre mairie devient une mairie annexe")
 	cm.renommer(keep, "Valfleuri-les-Granges")
+	cm.set_drapeau(keep, "br")
 	_check(Avis.ville() == "Valfleuri-les-Granges", "renommée")
 
 	print("Siège démoli et reconstruit :")
@@ -185,6 +206,7 @@ func _run() -> void:
 	cm.from_dict(JSON.parse_string(JSON.stringify(sec.communes)))
 	_check(cm.villages.size() == 1 and cm.proprio.size() == n_cases, "rechargé : 1 village, %d ha" % cm.proprio.size())
 	_check(String(cm.villages[keep].nom) == "Valfleuri-les-Granges", "nom rechargé")
+	_check(String(cm.villages[keep].drapeau) == "br", "drapeau rechargé")
 
 	print("Ancienne partie sans villages :")
 	cm.clear()

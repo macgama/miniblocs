@@ -204,6 +204,7 @@ func _start_chantier(bid: int) -> void:
 	# échafaudages de l'autre (ils dépassent un peu la partie construite).
 	var mat := NightWindows.chantier_copy()
 	var mat_echaf := NightWindows.chantier_copy()
+	mi.set_meta("chantier", true)
 	mi.material_override = mat
 	var far := mi.get_node_or_null("Loin") as MeshInstance3D
 	if far != null:
@@ -489,10 +490,12 @@ func _finish_chantier(bid: int) -> void:
 	if c.is_empty() or not is_instance_valid(c.mi):
 		return
 	var mi: MeshInstance3D = c.mi
+	mi.remove_meta("chantier")
 	mi.material_override = null
 	var far := mi.get_node_or_null("Loin") as MeshInstance3D
 	if far != null:
 		far.material_override = null
+	refresh_material(mi)
 	# L'usure sera réappliquée au prochain passage.
 	if _etat.has(bid):
 		_etat[bid].usure = -1.0
@@ -712,7 +715,10 @@ static func apply_wear(mi: MeshInstance3D, usure_q: int, abandon_q: int) -> void
 ## Recalcule le matériau d'un bâtiment (usure + dégâts des événements).
 ## Les modèles Blender (.glb) gardent leurs propres matériaux.
 static func refresh_material(mi: MeshInstance3D) -> void:
-	if mi == null or mi.has_meta("glb"):
+	# Pendant un chantier, le matériau « en construction » (bâtiment coupé à la
+	# hauteur déjà montée) ne doit pas être remplacé, sinon le bâtiment paraît fini
+	# (par exemple quand le chantier n'a pas encore d'électricité).
+	if mi == null or mi.has_meta("glb") or mi.has_meta("chantier"):
 		return
 	var u := int(mi.get_meta("usure_q", 0))
 	var a := int(mi.get_meta("abandon_q", 0))

@@ -60,7 +60,8 @@ const SECTIONS := [
 		["Catastrophes", "panneau Admin (F10), section Événements : les couper ou régler leur fréquence"],
 	]],
 	["Villages et territoire", [
-		["Début de partie", "choisis le nom du village, puis pose sa Maison de commune (pas besoin de route) : avant, on ne peut que regarder et modeler le paysage"],
+		["Début de partie", "sur le globe, cherche la ville de départ ; puis choisis le nom et le drapeau du village et pose sa Maison de commune (pas besoin de route) : avant, on ne peut que regarder et modeler le paysage"],
+		["Drapeau", "Maj+M, bouton Changer… à côté du drapeau d'un village : n'importe quel pays, ou aucun"],
 		["Maj+M", "panneau Villages : habitants, territoire et palier de chaque village ; Aller, Renommer, Agrandir, Céder, Fusionner"],
 		["Territoire", "carrés de 100 × 100 m autour de la mairie : 500 m au départ, il grandit tout seul avec la population (800 m à 100 hab., 1,2 km à 500, 2 km à 2 000, 3 km à 10 000)"],
 		["Agrandir / Céder", "clic sur un carré qui touche le territoire pour l'acheter, ou sur un carré vide pour le rendre ; clic droit ou Échap pour arrêter"],

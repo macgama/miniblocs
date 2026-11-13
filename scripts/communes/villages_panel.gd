@@ -19,6 +19,10 @@ var _banner: PanelContainer
 var _banner_label: Label
 var _dialog: ConfirmationDialog
 var _dialog_edit: LineEdit
+var _dialog_drapeau: OptionButton
+var _drapeau_dialog: ConfirmationDialog
+var _drapeau_choix: OptionButton
+var _drapeau_vid := -1
 var _tick := 0.0
 var _renommer := -1
 
@@ -105,6 +109,14 @@ func _build() -> void:
 		_dialog.hide()
 		_valider_nom())
 	dv.add_child(_dialog_edit)
+	var df := HBoxContainer.new()
+	var dfl := Label.new()
+	dfl.text = "Drapeau :"
+	df.add_child(dfl)
+	_dialog_drapeau = choix_drapeau()
+	_dialog_drapeau.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	df.add_child(_dialog_drapeau)
+	dv.add_child(df)
 	var dh := Label.new()
 	dh.text = "Ensuite, pose la Maison de commune (300 000 €, pas besoin de route).\nElle donne au village un territoire d'environ 500 m autour d'elle,\nqui grandira avec la population."
 	dh.add_theme_color_override("font_color", Color(1, 1, 1, 0.7))
@@ -113,6 +125,59 @@ func _build() -> void:
 	_dialog.add_child(dv)
 	_dialog.confirmed.connect(_valider_nom)
 	add_child(_dialog)
+
+	# Fenêtre « Changer de drapeau » d'un village existant.
+	_drapeau_dialog = ConfirmationDialog.new()
+	_drapeau_dialog.title = "Drapeau du village"
+	_drapeau_dialog.ok_button_text = "Hisser"
+	_drapeau_dialog.cancel_button_text = "Annuler"
+	_drapeau_choix = choix_drapeau()
+	_drapeau_choix.custom_minimum_size = Vector2(320, 0)
+	_drapeau_dialog.add_child(_drapeau_choix)
+	_drapeau_dialog.confirmed.connect(func() -> void:
+		if cm.villages.has(_drapeau_vid):
+			cm.set_drapeau(_drapeau_vid, code_choisi(_drapeau_choix))
+		refresh())
+	add_child(_drapeau_dialog)
+
+
+## Liste déroulante de tous les drapeaux (taper une lettre pour sauter au pays).
+static func choix_drapeau() -> OptionButton:
+	var o := OptionButton.new()
+	o.focus_mode = Control.FOCUS_ALL
+	o.add_item("Aucun drapeau")
+	o.set_item_metadata(0, "")
+	for e in Drapeaux.liste():
+		var ic := Drapeaux.icone(String(e[0]), 18)
+		if ic:
+			o.add_icon_item(ic, String(e[1]))
+		else:
+			o.add_item(String(e[1]))
+		o.set_item_metadata(o.item_count - 1, String(e[0]))
+	o.get_popup().max_size = Vector2i(0, 480)
+	return o
+
+
+static func choisir_code(o: OptionButton, code: String) -> void:
+	for i in o.item_count:
+		if String(o.get_item_metadata(i)) == code.to_lower():
+			o.select(i)
+			return
+	o.select(0)
+
+
+static func code_choisi(o: OptionButton) -> String:
+	return String(o.get_item_metadata(o.selected)) if o.selected >= 0 else ""
+
+
+## Ouvre la fenêtre pour changer le drapeau d'un village.
+func changer_drapeau(vid: int) -> void:
+	if not cm.villages.has(vid):
+		return
+	_drapeau_vid = vid
+	_drapeau_dialog.title = "Drapeau de %s" % cm.villages[vid].nom
+	choisir_code(_drapeau_choix, String(cm.villages[vid].get("drapeau", "")))
+	_drapeau_dialog.popup_centered()
 
 
 func is_open() -> bool:
@@ -143,6 +208,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 func demander_nom() -> void:
 	_dialog.title = "Fonder ton village" if cm.villages.is_empty() else "Fonder un nouveau village"
 	_dialog_edit.text = cm.nom_auto()
+	choisir_code(_dialog_drapeau, cm.drapeau_en_attente if cm.drapeau_en_attente != "" else Communes.drapeau_du_lieu())
 	_dialog.popup_centered()
 	_dialog_edit.grab_focus()
 	_dialog_edit.select_all()
@@ -153,6 +219,9 @@ func _valider_nom() -> void:
 	if nom == "":
 		nom = cm.nom_auto()
 	cm.nom_en_attente = nom
+	cm.drapeau_en_attente = code_choisi(_dialog_drapeau)
+	if cm.drapeau_en_attente == "":
+		cm.drapeau_en_attente = "-"
 	fonder_requested.emit(nom)
 
 
@@ -163,7 +232,7 @@ func _process(delta: float) -> void:
 	_tick += delta
 	if _tick >= 2.0:
 		_tick = 0.0
-		if _renommer >= 0:
+		if _renommer >= 0 or _drapeau_dialog.visible:
 			return
 		var keep := _scroll.scroll_vertical
 		refresh()
@@ -256,6 +325,21 @@ func _carte_village(vid: int, ids: Array) -> void:
 	var col: Color = Communes.COULEURS[int(v.couleur) % Communes.COULEURS.size()]
 	var palier := String(ReglagesPartie.PALIERS[int(s.get("palier", 0))].nom)
 	_section("%s%s" % [v.nom, "  ·  chef-lieu" if vid == cm.principal() else ""], col)
+	var dr := String(v.get("drapeau", ""))
+	var fh := HBoxContainer.new()
+	fh.add_theme_constant_override("separation", 6)
+	var ic := Drapeaux.icone(dr, 16) if dr != "" else null
+	if ic:
+		var tr := TextureRect.new()
+		tr.texture = ic
+		tr.stretch_mode = TextureRect.STRETCH_KEEP_CENTERED
+		fh.add_child(tr)
+	var fl := _text("Drapeau : " + Drapeaux.nom(dr), true, 12)
+	fl.reparent(fh)
+	fl.custom_minimum_size = Vector2.ZERO
+	fl.autowrap_mode = TextServer.AUTOWRAP_OFF
+	_button("Changer…", "Choisir le drapeau hissé sur la mairie", func() -> void: changer_drapeau(vid), fh)
+	_body.add_child(fh)
 	if _renommer == vid:
 		var h := HBoxContainer.new()
 		var e := LineEdit.new()

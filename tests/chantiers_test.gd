@@ -93,6 +93,12 @@ func _run() -> void:
 	_check(node.get_node("Fouille").visible and not node.get_node("Echafaudage").visible, "étape 1 : fouille, pas encore d'échafaudage")
 	_check(node.get_node("Engins/Pelleteuse").visible, "pelleteuse dans la fouille")
 	_check(node.get_node_or_null("PanneauChantier") != null and String((node.get_node("PanneauChantier") as Label3D).text).contains("Terrassement"), "panneau de chantier : « Terrassement »")
+	# Un bâtiment sans électricité (panne de réseau) garde l'aspect du chantier.
+	node.set_meta("res_panne", true)
+	BatimentsVie.refresh_material(node)
+	_check((node as MeshInstance3D).material_override is ShaderMaterial and (node as MeshInstance3D).material_override.get_shader_parameter("chantier_h") != null, "sans courant, le chantier reste un chantier (pas un bâtiment fini)")
+	node.remove_meta("res_panne")
+
 	var hjeu := float(bs.buildings[bid].hr) / Chantiers.rythme(vie.population)
 	var jours := (vie.fin_prevue(bid) - amb.unix_time) / 86400.0
 	_check(jours > 7.0 and jours < 40.0, "maison finie en %.0f jours de jeu (1 an de vie = 1 mois)" % jours)
@@ -227,5 +233,8 @@ func _run() -> void:
 	suivi.mettre_a_jour()
 	_check(not net.closed_edges.has(some) and fini_ok[0], "réparation finie : tronçon rouvert")
 
+	bs.unlimited_money = true
+	var mc := bs.place("maison_commune", Vector2i(-400, 400), 0)
+	_check(mc > 0 and bs.en_chantier(mc), "la Maison de commune se construit aussi par étapes (%s)" % bs.check_place("maison_commune", Vector2i(-400, 400), 0).reason)
 	print("CHANTIERS TEST OK" if ok else "CHANTIERS TEST ÉCHEC")
 	quit(0 if ok else 1)

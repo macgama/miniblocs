@@ -1,7 +1,8 @@
 extends Node3D
 ## Écran de départ : un globe 3D coloré par le vrai relief.
-## Le joueur fait tourner la Terre, choisit un lieu (clic, recherche,
-## coordonnées ou hasard), voit un aperçu du relief, puis commence sa partie.
+## Le joueur cherche la ville de son premier village (135 000 villes du monde,
+## ou des coordonnées, ou un clic sur la Terre), voit un aperçu du relief, puis
+## commence sa partie.
 
 ## Pour les tests : pas de réseau, planète synthétique.
 @export var offline := false
@@ -10,33 +11,6 @@ const GLOBE_ZOOM := 3 # 8 × 8 tuiles, assemblées en une texture de 2048 × 204
 const MIN_DIST := 1.18
 const MAX_DIST := 4.0
 
-const PLACES := [
-	["Zurich", 47.3769, 8.5417], ["Genève", 46.2044, 6.1432], ["Lausanne", 46.5197, 6.6323],
-	["Interlaken", 46.6863, 7.8632], ["Cervin (Zermatt)", 45.9763, 7.6586],
-	["Paris", 48.8566, 2.3522], ["Tour Eiffel", 48.85826, 2.2945], ["Mont Blanc", 45.8326, 6.8652],
-	["Annecy", 45.8992, 6.1294], ["Lyon", 45.7640, 4.8357], ["Marseille", 43.2965, 5.3698],
-	["Calanques de Marseille", 43.2105, 5.4489], ["Bordeaux", 44.8378, -0.5792],
-	["Dune du Pilat", 44.5895, -1.2128], ["Étretat", 49.7070, 0.2016],
-	["Mont-Saint-Michel", 48.6361, -1.5115], ["Bonifacio (Corse)", 41.3874, 9.1592],
-	["Bruxelles", 50.8503, 4.3517], ["Londres", 51.5074, -0.1278], ["Amsterdam", 52.3676, 4.9041],
-	["Berlin", 52.5200, 13.4050], ["Rome", 41.9028, 12.4964], ["Venise", 45.4408, 12.3155],
-	["Barcelone", 41.3874, 2.1686], ["Madrid", 40.4168, -3.7038], ["Lisbonne", 38.7223, -9.1393],
-	["Santorin", 36.3932, 25.4615], ["Reykjavik (Islande)", 64.1466, -21.9426],
-	["Fjord de Geiranger", 62.1008, 7.2059], ["New York", 40.7128, -74.0060],
-	["Grand Canyon", 36.0610, -112.1080], ["Yosemite", 37.7456, -119.5936],
-	["San Francisco", 37.7749, -122.4194], ["Montréal", 45.5017, -73.5673], ["Québec", 46.8139, -71.2080],
-	["Mexico", 19.4326, -99.1332], ["Rio de Janeiro", -22.9068, -43.1729],
-	["Machu Picchu", -13.1631, -72.5450], ["Buenos Aires", -34.6037, -58.3816],
-	["Patagonie (Fitz Roy)", -49.2714, -73.0431], ["Pyramides de Gizeh", 29.9792, 31.1342],
-	["Sahara (Erg Chebbi)", 31.1450, -4.0150], ["Kilimandjaro", -3.0674, 37.3556],
-	["Le Cap", -33.9249, 18.4241], ["Dakar", 14.7167, -17.4677], ["Abidjan", 5.3600, -4.0083],
-	["Antananarivo", -18.8792, 47.5079], ["Dubaï", 25.2048, 55.2708], ["Everest", 27.9881, 86.9250],
-	["Tokyo", 35.6762, 139.6503], ["Mont Fuji", 35.3606, 138.7274], ["Pékin", 39.9042, 116.4074],
-	["Baie d'Ha Long", 20.9101, 107.1839], ["Bali", -8.3405, 115.0920], ["Sydney", -33.8688, 151.2093],
-	["Uluru", -25.3444, 131.0369], ["Milford Sound (Nouvelle-Zélande)", -44.6414, 167.8974],
-	["Maui (Hawaï)", 20.7984, -156.3319], ["Bora-Bora", -16.5004, -151.7415],
-]
-
 var view_lat := 46.0
 var view_lon := 7.0
 var distance := 2.6
@@ -44,6 +18,8 @@ var selected := false
 var sel_lat := 0.0
 var sel_lon := 0.0
 var sel_name := ""
+## Pays du lieu choisi (code ISO en minuscules) : drapeau proposé au village.
+var sel_pays := ""
 
 var _target_dist := 2.6
 var _globe: MeshInstance3D
@@ -63,7 +39,6 @@ var _tween: Tween
 # Interface
 var _search: LineEdit
 var _list: ItemList
-var _coords: LineEdit
 var _loading_label: Label
 var _place_label: Label
 var _detail_label: Label
@@ -72,8 +47,11 @@ var _mode: OptionButton
 var _settings_label: Label
 var _settings_panel: AdminPanel
 var _start_btn: Button
-var _random_btn: Button
+## Résultats affichés dans la liste ({nom, pays, pays_nom, pop, lat, lon}).
 var _filtered: Array = []
+var _search_timer: Timer
+var _online_btn: Button
+var _online: HTTPRequest
 
 
 var _continue_btn: Button
@@ -176,7 +154,6 @@ func _set_planet(img: Image) -> void:
 	_globe_mat.set_shader_parameter("merc", ImageTexture.create_from_image(img))
 	_globe_mat.set_shader_parameter("has_data", true)
 	_loading_label.text = ""
-	_random_btn.disabled = false
 
 
 ## Planète de test : un continent entre 36° O et 72° E, océan ailleurs.
@@ -312,8 +289,15 @@ func fly_to(lat: float, lon: float, dist: float, instant := false) -> void:
 
 # --- Sélection --------------------------------------------------------------
 
-func select_place(lat: float, lon: float, place_name: String, instant := false) -> void:
+func select_place(lat: float, lon: float, place_name: String, instant := false, pays := "") -> void:
+	# Clic sur la Terre : la ville la plus proche donne le nom et le pays.
+	if place_name == "" and pays == "":
+		var v := Villes.plus_proche(lat, lon)
+		if not v.is_empty():
+			place_name = "Près de %s, %s" % [v.nom, v.pays_nom]
+			pays = String(v.pays)
 	selected = true
+	sel_pays = pays
 	sel_lat = lat
 	sel_lon = wrapf(lon, -180.0, 180.0)
 	sel_name = place_name
@@ -323,7 +307,6 @@ func select_place(lat: float, lon: float, place_name: String, instant := false) 
 	_marker.visible = true
 	if place_name != "":
 		fly_to(sel_lat, sel_lon, minf(_target_dist, 1.7), instant)
-	_coords.text = "%.5f, %.5f" % [sel_lat, sel_lon]
 	_place_label.text = (place_name + "\n" if place_name != "" else "") + _format_lat_lon(sel_lat, sel_lon)
 	_start_btn.disabled = false
 	var px := Geo.lon_to_pixel_x(sel_lon, ElevationTiles.ZOOM)
@@ -382,18 +365,6 @@ func _update_detail() -> void:
 	_detail_label.text = txt
 
 
-func pick_random_land() -> bool:
-	if _planet == null:
-		return false
-	for i in 2000:
-		var lat := rad_to_deg(asin(randf_range(-0.9, 0.93)))
-		var lon := randf_range(-180.0, 180.0)
-		if planet_height(lat, lon) > 5.0:
-			select_place(lat, lon, "Lieu au hasard")
-			return true
-	return false
-
-
 func start_game() -> void:
 	if not selected:
 		return
@@ -401,6 +372,7 @@ func start_game() -> void:
 	GameStart.lat = sel_lat
 	GameStart.lon = sel_lon
 	GameStart.place_name = sel_name
+	GameStart.pays = sel_pays
 	GameStart.mode = GameStart.Mode.BAC_A_SABLE
 	get_tree().change_scene_to_file("res://scenes/terre.tscn")
 
@@ -504,36 +476,34 @@ func _build_ui() -> void:
 	lv.add_theme_constant_override("separation", 8)
 	left.add_child(lv)
 	lv.add_child(_panel_label("MiniBlocs", 30))
-	lv.add_child(_panel_label("Choisis ton point de départ sur la Terre.", 15, 0.85))
+	lv.add_child(_panel_label("Cherche la ville de ton premier village.", 15, 0.85))
 	_search = LineEdit.new()
-	_search.placeholder_text = "Rechercher un lieu…"
+	_search.placeholder_text = "Nom d'une ville, ou coordonnées…"
 	_search.clear_button_enabled = true
-	_search.text_changed.connect(func(_t: String) -> void: _refresh_list())
+	_search.right_icon = Icones.get_icon("chercher", 18)
+	_search_timer = Timer.new()
+	_search_timer.one_shot = true
+	_search_timer.wait_time = 0.25
+	_search_timer.timeout.connect(_refresh_list)
+	add_child(_search_timer)
+	_search.text_changed.connect(func(_t: String) -> void: _search_timer.start())
+	_search.text_submitted.connect(func(_t: String) -> void:
+		_refresh_list()
+		if not _filtered.is_empty():
+			_choose(0))
 	lv.add_child(_search)
 	_list = ItemList.new()
-	_list.custom_minimum_size = Vector2(0, 260)
-	_list.item_selected.connect(func(i: int) -> void:
-		var p: Array = _filtered[i]
-		select_place(p[1], p[2], p[0]))
+	_list.custom_minimum_size = Vector2(0, 300)
+	_list.fixed_icon_size = Vector2i(24, 18)
+	_list.item_selected.connect(_choose)
 	lv.add_child(_list)
+	_online_btn = Button.new()
+	_online_btn.text = "Chercher en ligne (petits villages, lieux-dits…)"
+	_online_btn.tooltip_text = "Recherche OpenStreetMap (Nominatim) : tous les lieux du monde, il faut Internet"
+	_online_btn.visible = false
+	_online_btn.pressed.connect(_search_online)
+	lv.add_child(_online_btn)
 	_refresh_list()
-	lv.add_child(_panel_label("Ou des coordonnées (copiées depuis Google Maps) :", 12, 0.75))
-	var row := HBoxContainer.new()
-	lv.add_child(row)
-	_coords = LineEdit.new()
-	_coords.placeholder_text = "46.2044, 6.1432"
-	_coords.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_coords.text_submitted.connect(func(_t: String) -> void: _on_coords())
-	row.add_child(_coords)
-	var go := Button.new()
-	go.text = "Aller"
-	go.pressed.connect(_on_coords)
-	row.add_child(go)
-	_random_btn = Button.new()
-	_random_btn.text = "Lieu au hasard"
-	_random_btn.disabled = true
-	_random_btn.pressed.connect(pick_random_land)
-	lv.add_child(_random_btn)
 	lv.add_child(_panel_label("Glisser : tourner la Terre   ·   Molette : zoom   ·   Clic : choisir", 12, 0.7))
 	_loading_label = _panel_label("", 13, 0.9)
 	lv.add_child(_loading_label)
@@ -623,7 +593,7 @@ func _build_ui() -> void:
 	proto.pressed.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/main.tscn"))
 	ui.add_child(proto)
 
-	var credit := _panel_label("Relief : Mapzen Terrain Tiles (AWS Open Data) — SRTM, GMTED, ETOPO1, EU-DEM · Biomes : © ESA WorldCover 2021 (CC BY 4.0)", 11, 0.6)
+	var credit := _panel_label("Relief : Mapzen Terrain Tiles (AWS Open Data) — SRTM, GMTED, ETOPO1, EU-DEM · Biomes : © ESA WorldCover 2021 (CC BY 4.0) · Villes : GeoNames (CC BY 4.0) · Drapeaux : flag-icons (MIT)", 11, 0.6)
 	credit.autowrap_mode = TextServer.AUTOWRAP_OFF
 	credit.anchor_left = 1.0
 	credit.anchor_right = 1.0
@@ -636,20 +606,93 @@ func _build_ui() -> void:
 	ui.add_child(credit)
 
 
+## Résultats de la recherche : des coordonnées, ou les villes de l'index.
 func _refresh_list() -> void:
-	var q := _search.text.strip_edges().to_lower()
+	var q := _search.text.strip_edges()
 	_filtered.clear()
 	_list.clear()
-	for p in PLACES:
-		if q == "" or (p[0] as String).to_lower().contains(q):
-			_filtered.append(p)
-			_list.add_item(p[0])
-
-
-func _on_coords() -> void:
-	var v: Variant = Geo.parse_lat_lon(_coords.text)
-	_coords.release_focus()
-	if v == null:
-		_place_label.text = "Coordonnées non comprises. Exemple : 46.2044, 6.1432"
+	if q == "":
+		_online_btn.visible = false
 		return
-	select_place(v.x, v.y, "Coordonnées")
+	var v: Variant = Geo.parse_lat_lon(q)
+	if v != null:
+		var near := Villes.plus_proche(v.x, v.y)
+		_filtered.append({"nom": "Coordonnées %s" % _format_lat_lon(v.x, v.y), "pays": String(near.get("pays", "")),
+			"pays_nom": String(near.get("pays_nom", "")), "pop": 0, "lat": v.x, "lon": v.y, "coord": true})
+	else:
+		_filtered = Villes.chercher(q, 40)
+	for e in _filtered:
+		var i := _list.add_item(Villes.libelle(e) if not e.get("coord", false) else String(e.nom))
+		var ic := Drapeaux.icone(String(e.get("pays", "")), 18)
+		if ic != null:
+			_list.set_item_icon(i, ic)
+	if _filtered.is_empty():
+		var i := _list.add_item("Aucune ville trouvée dans l'index.")
+		_list.set_item_disabled(i, true)
+	_online_btn.visible = not offline and q.length() >= 3 and v == null
+
+
+func _choose(i: int) -> void:
+	if i < 0 or i >= _filtered.size():
+		return
+	var e: Dictionary = _filtered[i]
+	var nom := String(e.nom)
+	if not e.get("coord", false) and String(e.get("pays_nom", "")) != "":
+		nom = "%s, %s" % [e.nom, e.pays_nom]
+	select_place(float(e.lat), float(e.lon), nom, false, String(e.get("pays", "")))
+
+
+## Recherche en ligne (OpenStreetMap Nominatim) : tous les lieux, même les hameaux.
+func _search_online() -> void:
+	var q := _search.text.strip_edges()
+	if q.length() < 2:
+		return
+	if _online == null:
+		_online = HTTPRequest.new()
+		_online.timeout = 15.0
+		add_child(_online)
+		_online.request_completed.connect(_on_online)
+	_online.cancel_request()
+	_online_btn.text = "Recherche en ligne…"
+	var url := "https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=15&accept-language=fr&q=" + q.uri_encode()
+	_online.request(url, PackedStringArray(["User-Agent: MiniBlocs/0.1 (jeu video)"]))
+
+
+func _on_online(result: int, code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+	_online_btn.text = "Chercher en ligne (petits villages, lieux-dits…)"
+	if result != HTTPRequest.RESULT_SUCCESS or code != 200:
+		_list.add_item("Recherche en ligne impossible (pas d'Internet ?).")
+		return
+	var res := parse_online(body.get_string_from_utf8())
+	if res.is_empty():
+		_list.add_item("Rien trouvé en ligne.")
+		return
+	_filtered.clear()
+	_list.clear()
+	for e in res:
+		_filtered.append(e)
+		var i := _list.add_item(Villes.libelle(e))
+		var ic := Drapeaux.icone(String(e.pays), 18)
+		if ic != null:
+			_list.set_item_icon(i, ic)
+
+
+## Réponse JSON de Nominatim -> [{nom, pays, pays_nom, pop, lat, lon}].
+static func parse_online(json: String) -> Array:
+	var out := []
+	var data = JSON.parse_string(json)
+	if not data is Array:
+		return out
+	for r in data:
+		if not r is Dictionary or not r.has("lat"):
+			continue
+		var adr: Dictionary = r.get("address", {})
+		var cc := String(adr.get("country_code", "")).to_lower()
+		var nom := String(r.get("name", ""))
+		if nom == "":
+			nom = String(r.get("display_name", "")).split(",")[0]
+		var lieu := String(adr.get("state", adr.get("county", "")))
+		out.append({"nom": nom + (" (%s)" % lieu if lieu != "" and lieu != nom else ""), "pays": cc,
+			"pays_nom": Villes.nom_pays(cc) if cc != "" else String(adr.get("country", "")), "pop": 0,
+			"lat": float(r.lat), "lon": float(r.lon)})
+	return out

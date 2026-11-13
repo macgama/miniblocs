@@ -4,6 +4,9 @@ Tout est dans `main`, et les 9 tests automatiques passent (`sh tests/tous.sh`).
 
 ## Nouveautés
 
+**Globe : n'importe quelle ville, et le drapeau de son choix** (13 novembre)
+- Le globe ne propose plus de liste fixe ni de lieu au hasard : une recherche trouve n'importe laquelle des 135 000 villes du monde (noms français des grandes villes, accents facultatifs), des coordonnées, ou un hameau en ligne. Le premier village prend le drapeau du pays choisi, modifiable à la fondation et ensuite (Maj+M). La Maison de commune se construit par étapes comme les autres bâtiments.
+
 **Villages et territoire** (touche **Maj+M**, 13 novembre)
 - Une partie commence par la fondation du village : on choisit son nom, puis on pose sa Maison de commune (sans route). Le territoire, en carrés de 100 m, grandit avec la population. On peut acheter ou céder des carrés, fonder d'autres villages à 2 km au moins, et fusionner deux villages qui se touchent (voir docs/villages.md).
 

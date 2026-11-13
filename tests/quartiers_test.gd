@@ -45,7 +45,7 @@ func _run() -> void:
 	root.add_child(scene)
 	world.tiles.offline_generator = _flat_tile
 	world.land.offline_generator = func(_lat: float, _lon: float) -> int: return 30
-	world.view_radius_override = 1200.0
+	world.view_radius_override = 1500.0
 	world.set_origin(45.5, 6.4)
 	for i in 3000:
 		await process_frame
@@ -217,7 +217,7 @@ func _run() -> void:
 	p._poser(v2, 3_000_000)
 	var y2 := world.cell_height(Vector2i(1100, 60))
 	var rs := transport.build_segment("rue", Vector3(950, y2, 60), Vector3(1250, y2, 60))
-	print("    rue des Prés : ", rs.get("ok"), " ", rs.get("reason", ""), " ; maison : ", bs.check_place("maison", Vector2i(1050, 76), bs.best_rotation("maison", Vector2i(1050, 76))).get("reason", ""))
+	_check(bool(rs.get("ok", false)), "une rue aux Prés")
 	var maisons := 0
 	for x in range(1020, 1190, 30):
 		for z in [76, 44]:
@@ -228,6 +228,7 @@ func _run() -> void:
 	for i in 72:
 		pop.advance(300.0)
 	q.calculer_stats()
+	p._poser(v2, 3_000_000)
 	var tp := q.piloter(v2)
 	_check(int(q.stats[qp].hab) > 0 and tp.contains("Détecteurs") and q.a_arrete(qp, "detecteurs_fumee"), "pilote, %d habitants aux Prés : %s" % [int(q.stats[qp].hab), tp])
 	_check(q.adopter(qp, "espaces_verts") == "", "fleurissement aux Prés")

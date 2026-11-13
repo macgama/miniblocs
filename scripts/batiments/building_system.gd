@@ -500,14 +500,22 @@ func place(id: String, center: Vector2i, r: int, zone := 0, a := 0.0) -> int:
 	_terrace(res.cells, res.h)
 	if not (res.access as Dictionary).is_empty():
 		_terrace_path(res.access.door, res.access.pos, res.h)
-	if not unlimited_money:
+	# Avec un chantier, le prix se paie au fil des travaux (BatimentsVie).
+	var chantier := BatimentsVie.aura_chantier(id)
+	if not unlimited_money and not chantier:
 		money -= int(res.cost)
 	var bid := next_id
 	next_id += 1
 	var rect: Rect2i = res.rect
-	_add({"id": bid, "t": id, "x": rect.position.x, "z": rect.position.y, "r": r, "a": a, "h": res.h, "cost": res.cost, "zone": zone})
+	var e := {"id": bid, "t": id, "x": rect.position.x, "z": rect.position.y, "r": r, "a": a, "h": res.h, "cost": res.cost, "zone": zone}
+	if chantier and int(res.cost) > 0:
+		e["du"] = int(res.cost)
+	_add(e)
 	if zone == 0:
-		message.emit("%s construit pour %s." % [BuildingCatalog.get_type(id).name, format_money(res.cost)])
+		if chantier:
+			message.emit("Chantier de %s lancé : %s, payés au fil des travaux." % [BuildingCatalog.get_type(id).name, format_money(res.cost)])
+		else:
+			message.emit("%s construit pour %s." % [BuildingCatalog.get_type(id).name, format_money(res.cost)])
 	last_change_rect = rect.grow(3)
 	changed.emit()
 	return bid
@@ -525,7 +533,8 @@ func demolish(bid: int) -> void:
 		(_nodes[bid] as Node).queue_free()
 		_nodes.erase(bid)
 	buildings.erase(bid)
-	var back := roundi(float(b.get("cost", 0)) * REFUND)
+	# Chantier pas fini : seule la part déjà payée compte.
+	var back := roundi(float(int(b.get("cost", 0)) - int(b.get("du", 0))) * REFUND)
 	if not unlimited_money:
 		money += back
 	if _hover_building == bid:
@@ -757,7 +766,9 @@ func _refresh() -> void:
 		_set_hover(building_at(_cursor))
 		if _hover_building >= 0:
 			var b: Dictionary = buildings[_hover_building]
-			info_changed.emit("Démolir %s : clic (%s rendus)" % [BuildingCatalog.get_type(b.t).name, format_money(roundi(float(b.get("cost", 0)) * REFUND))])
+			var back := roundi(float(int(b.get("cost", 0)) - int(b.get("du", 0))) * REFUND)
+			var en_cours := " (chantier à %d %%)" % floori(float(b.av) * 100.0) if b.has("av") else ""
+			info_changed.emit("Démolir %s%s : clic (%s rendus)" % [BuildingCatalog.get_type(b.t).name, en_cours, format_money(back)])
 		return
 	if mode != Mode.PLACE or not _cursor_valid:
 		return
@@ -880,8 +891,8 @@ func to_dict() -> Dictionary:
 	var list := []
 	for b in buildings.values():
 		var e := {"id": b.id, "t": b.t, "x": b.x, "z": b.z, "r": b.r, "a": b.get("a", 0.0), "h": b.h, "cost": b.get("cost", 0), "zone": b.get("zone", 0)}
-		# Variante du modèle, date de construction et fin du chantier (BatimentsVie).
-		for key in ["v", "ne", "fin", "perso"]:
+		# Variante du modèle, dates, avancement et reste à payer du chantier (BatimentsVie).
+		for key in ["v", "ne", "fin", "av", "hr", "du", "perso"]:
 			if b.has(key):
 				e[key] = b[key]
 		list.append(e)
@@ -904,6 +915,11 @@ func from_dict(data: Dictionary) -> void:
 			"ne": float(b.get("ne", 0.0)), "fin": float(b.get("fin", 0.0))}
 		if b.has("v"):
 			e["v"] = int(b.v)
+		if b.has("av"):
+			e["av"] = float(b.av)
+			e["hr"] = float(b.get("hr", 0.0))
+		if int(b.get("du", 0)) > 0:
+			e["du"] = int(b.du)
 		var pd = b.get("perso", {})
 		if pd is Dictionary and not (pd as Dictionary).is_empty():
 			e["perso"] = Personnalisation.clean(pd)

@@ -71,6 +71,13 @@ const SECTIONS := [
 		["Nouveau village", "Maison de commune ou Mairie posée hors de tout territoire, à 2 km au moins d'un autre centre ; deux villages qui se touchent peuvent fusionner"],
 		["Règles", "bâtiments et zonage seulement sur le territoire ; voies, réseaux et lignes partout ; Admin (F10) → Construction pour couper ces règles"],
 	]],
+	["Pays et caisses des villes", [
+		["Maj+P", "panneau Pays : caisse du pays, impôt national, dotation par habitant, et chaque ville avec sa caisse, son solde du mois et son maire ; Gérer, Subvention, Reverser au pays"],
+		["Une caisse par ville", "chaque ville a ses impôts, ses emprunts, son entretien et sa tutelle ; la caisse affichée en haut est celle de la ville que regarde la caméra (Gérer dans Maj+P pour l'épingler)"],
+		["Qui paie ?", "ce qui se construit sur le territoire d'une ville est payé par sa caisse ; les voies et bâtiments hors des villes, par le pays ; les ventes des entreprises sont partagées selon la population"],
+		["Caisse du pays", "elle reçoit l'argent de départ et l'impôt national (10 % des impôts des villes) ; elle paie la dotation par habitant, l'entretien des voies hors des villes, les subventions et le capital des nouvelles villes (60 % de la caisse pour la première, 1 M€ pour les suivantes)"],
+		["Pays à sec", "une caisse du pays vide ne verse plus de dotation : les villes doivent alors vivre de leurs impôts"],
+	]],
 	["Budget de la commune", [
 		["M", "panneau Budget : bilan du mois, impôts votés par le maire, emprunts, entretien et état des voies"],
 		["Impôts", "taxe foncière, impôt des entreprises, impôt sur les bénéfices de 0 à 200 % : plus haut, la caisse se remplit et les habitants râlent"],

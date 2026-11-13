@@ -1648,7 +1648,8 @@ func new_day() -> void:
 		_money_frac += tax
 		var whole := int(_money_frac)
 		_money_frac -= whole
-		buildings.money += whole
+		# Plusieurs villes : réparti selon leur population (Pays).
+		Pays.crediter(buildings, whole)
 	_gate_used = {"import": 0.0, "export": 0.0}
 	_freight_seen = _freight_total()
 	var now_empty := _empty_shelves()

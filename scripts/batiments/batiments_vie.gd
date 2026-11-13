@@ -156,7 +156,9 @@ func fin_prevue(bid: int) -> float:
 func _payer_reste(b: Dictionary) -> void:
 	var du := int(b.get("du", 0))
 	if du > 0 and not buildings.unlimited_money:
+		var caisse_prev := Pays.au_rect(buildings._rect_of(b))
 		buildings.money -= du
+		Pays.retour(caisse_prev)
 	b.erase("du")
 
 
@@ -340,6 +342,8 @@ func _update_chantiers() -> void:
 			var du := int(b.get("du", 0))
 			if du > 0:
 				var part := mini(du, ceili(float(b.get("cost", 0)) * dp))
+				# Chaque chantier est payé par la caisse de sa ville (ou du pays).
+				var caisse_prev := Pays.au_rect(buildings._rect_of(b))
 				if not buildings.unlimited_money and buildings.money < part:
 					b["attente"] = true
 					dp = 0.0
@@ -348,6 +352,7 @@ func _update_chantiers() -> void:
 					if not buildings.unlimited_money:
 						buildings.money -= part
 					b["du"] = du - part
+				Pays.retour(caisse_prev)
 			b["av"] = float(b.av) + dp
 		if float(b.av) >= 0.9999:
 			done.append(bid)

@@ -656,13 +656,17 @@ func nouveau_jour() -> void:
 	var premiere := vivres > 0.0 or ravitaillement == 0
 	vivres = 0.0
 	var cout := roundi(manque * RATION)
+	# Le ravitaillement est payé par la caisse du premier village.
+	var caisse_prev := Pays.a_la_caisse(communes.principal()) if communes != null and not communes.villages.is_empty() else -1
 	if buildings != null and not buildings.unlimited_money and buildings.money < cout:
+		Pays.retour(caisse_prev)
 		if not affame:
 			message.emit("Le campement n'a plus de vivres et la caisse ne peut pas payer le ravitaillement : les fondateurs ont faim.")
 		affame = true
 		return
 	if buildings != null and not buildings.unlimited_money:
 		buildings.money -= cout
+	Pays.retour(caisse_prev)
 	ravitaillement += cout
 	affame = false
 	if premiere:

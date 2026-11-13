@@ -88,6 +88,8 @@ var communes: Communes
 var villages_panel: VillagesPanel
 var fondateurs: Fondateurs
 var fondateurs_panel: FondateursPanel
+var pays: Pays
+var pays_panel: PaysPanel
 
 
 func _ready() -> void:
@@ -141,6 +143,7 @@ func _ready() -> void:
 	_setup_avis()
 	_setup_communes()
 	_setup_fondateurs()
+	_setup_pays()
 	_setup_create_mode()
 	hud.traffic_toggled.connect(func(on: bool) -> void: transport.traffic.set_enabled(on))
 	hud.traffic_filter_changed.connect(func(era: String, region: String) -> void:
@@ -291,6 +294,7 @@ func save_sections() -> Dictionary:
 	sec["avis"] = avis.to_dict()
 	sec["communes"] = communes.to_dict()
 	sec["fondateurs"] = fondateurs.to_dict()
+	sec["pays"] = pays.to_dict()
 	return sec
 
 
@@ -339,6 +343,7 @@ func load_game(slot := "") -> bool:
 	world.from_dict(sec.terrain)
 	# Les bâtiments rechargés ne fondent pas de village : les villages ont leur section.
 	communes.ignorer = true
+	pays.capital_auto = false
 	transport.from_dict(sec.get("transport", {}))
 	Creations.adopt(sec.get("creations", {}))
 	buildings.from_dict(sec.get("batiments", {}))
@@ -371,6 +376,9 @@ func load_game(slot := "") -> bool:
 		communes.clear()
 		communes.actif = not GameStart.atelier
 		communes.adopter_ancienne_partie()
+	# Après les villages et le budget : une caisse par ville (sans section : ancienne partie).
+	pays.from_dict(sec.get("pays", {}))
+	pays.capital_auto = true
 	# Après les bâtiments, les habitants et les villages.
 	fondateurs.from_dict(sec.get("fondateurs", {}))
 	avis.from_dict(sec.get("avis", {}))
@@ -655,6 +663,25 @@ func _setup_fondateurs() -> void:
 		rig.position.x = pos.x
 		rig.position.z = pos.z)
 	hud.fondateurs_requested.connect(func() -> void: fondateurs_panel.toggle())
+
+
+## Pays (Maj+P) : une caisse par ville, la caisse du pays, subventions.
+func _setup_pays() -> void:
+	pays = Pays.new()
+	pays.name = "Pays"
+	add_child(pays)
+	pays.setup(buildings, communes, population, budget, transport.network)
+	pays.foyer = func() -> Vector2: return Vector2(rig.position.x, rig.position.z)
+	pays.message.connect(func(t: String) -> void: hud.show_message(t))
+	pays.changed.connect(func() -> void: _unsaved = true)
+	pays_panel = PaysPanel.new()
+	pays_panel.name = "PanneauPays"
+	add_child(pays_panel)
+	pays_panel.setup(pays)
+	pays_panel.focus_requested.connect(func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
+	hud.pays_requested.connect(func() -> void: pays_panel.toggle())
 
 
 ## Élections perdues avec le réglage « fin de partie ».
@@ -1423,6 +1450,8 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 		evenements.clear()
 	if avis != null:
 		avis.clear()
+	if pays != null:
+		pays.clear()
 	if communes != null:
 		communes.clear()
 	if fondateurs != null:
@@ -1499,7 +1528,7 @@ func _process(delta: float) -> void:
 			s += "   ·   " + world.water.status
 		hud.set_status(s)
 		hud.set_network_info(transport.summary() + "   ·   " + population.summary() + "   ·   " + production.summary())
-		build_panel.set_money("Caisse : illimitée" if buildings.unlimited_money else "Caisse : " + BuildingSystem.format_money(buildings.money))
+		build_panel.set_money("Caisse : illimitée" if buildings.unlimited_money else "Caisse%s : %s" % [_caisse_de(), BuildingSystem.format_money(buildings.money)])
 		build_panel.set_summary(buildings.summary())
 		build_panel.set_zone_info(zones.summary())
 		build_panel.set_block_info(plans.summary() if build_panel.block_mode() == "plans" else blocks.summary())
@@ -1518,7 +1547,7 @@ var _open_before := {}
 ## Construire, Lignes et Habitants partagent la même place à droite : quand
 ## l'un s'ouvre, les autres se ferment. Leur bouton de la barre du bas s'allume.
 func _exclusive_panels() -> void:
-	var panels := {"construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "agriculture": agri_panel, "urgences": urgences_panel, "reseaux": reseaux_panel, "dechets": dechets_panel, "trafic": trafic_panel, "budget": budget_panel, "telecom": telecom_panel, "perso": perso_panel, "infos": evenements_panel, "cartes": cartes_panel, "avis": avis_panel, "villages": villages_panel, "fondateurs": fondateurs_panel}
+	var panels := {"pays": pays_panel, "construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "agriculture": agri_panel, "urgences": urgences_panel, "reseaux": reseaux_panel, "dechets": dechets_panel, "trafic": trafic_panel, "budget": budget_panel, "telecom": telecom_panel, "perso": perso_panel, "infos": evenements_panel, "cartes": cartes_panel, "avis": avis_panel, "villages": villages_panel, "fondateurs": fondateurs_panel}
 	var opened := ""
 	for id in panels:
 		var p = panels[id]
@@ -1549,7 +1578,18 @@ func _refresh_stats() -> void:
 		build_panel.refresh()
 	var adults: int = int(s.actif) + int(s.chomeur)
 	var unemployment := "—" if adults == 0 else "%d %%" % roundi(100.0 * int(s.chomeur) / adults)
-	hud.set_stats(money, int(s.habitants), int(s.satisfaction), unemployment)
+	var tip := ""
+	if pays != null and pays.a_des_villes():
+		money = "%s : %s" % [pays.nom_de(pays.actif), money]
+		tip = "Caisse de %s, la ville que tu gères (elle suit la caméra ; Maj+P pour le pays et les autres villes). Clic : budget." % pays.nom_de(pays.actif)
+	hud.set_stats(money, int(s.habitants), int(s.satisfaction), unemployment, tip)
+
+
+## « de Beauvallon » quand il y a plusieurs caisses.
+func _caisse_de() -> String:
+	if pays == null or not pays.a_des_villes():
+		return ""
+	return " de " + pays.nom_de(pays.actif)
 
 
 func _refresh_cell_info() -> void:

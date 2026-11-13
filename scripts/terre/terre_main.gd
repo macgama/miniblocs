@@ -645,6 +645,7 @@ func _setup_fondateurs() -> void:
 	fondateurs.name = "Fondateurs"
 	add_child(fondateurs)
 	fondateurs.setup(buildings, population, communes, vie_batiments, chantiers, ambiance)
+	zones.peut_pousser = fondateurs.accepte_chantier_prive
 	fondateurs.message.connect(func(t: String) -> void: hud.show_message(t))
 	fondateurs.changed.connect(func() -> void: _unsaved = true)
 	fondateurs_panel = FondateursPanel.new()

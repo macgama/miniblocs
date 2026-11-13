@@ -15,9 +15,10 @@ extends Node
 signal time_changed
 
 ## Vitesses proposées (secondes de jeu par seconde réelle).
-const SPEEDS := [0.0, 1.0, 60.0, 600.0, 6000.0]
-const SPEED_NAMES := ["Pause", "Réel", "1 min/s", "10 min/s", "100 min/s"]
-const DEFAULT_SPEED := 2
+## Par défaut : 1 jour de jeu par minute réelle (365 jours = 365 minutes).
+const SPEEDS := [0.0, 1.0, 60.0, 600.0, 1440.0, 6000.0]
+const SPEED_NAMES := ["Pause", "Réel", "1 min/s", "10 min/s", "1 jour/min", "100 min/s"]
+const DEFAULT_SPEED := 4
 const START_HOUR := 10.0
 
 @export var sun_path: NodePath

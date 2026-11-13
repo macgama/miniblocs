@@ -327,6 +327,10 @@ func _update_chantiers() -> void:
 			done.append(bid)
 			continue
 		var b: Dictionary = buildings.buildings[bid]
+		# Arrêté faute d'argent (ses ouvriers sont partis ailleurs) : il reprend quand
+		# la caisse peut payer une semaine de travaux.
+		if b.get("attente", false) and (buildings.unlimited_money or buildings.money >= _part_semaine(b, k)):
+			b.erase("attente")
 		# Ouvriers présents (fondateurs, entreprises du bâtiment) : 0 = arrêté, 1 = équipe complète.
 		var f := Fondateurs.facteur_de(Fondateurs.cle_batiment(bid))
 		if f <= 0.0:
@@ -357,6 +361,12 @@ func _update_chantiers() -> void:
 			(c.fleche as Node3D).rotation.y = sin(_clock * 0.15 + float(bid)) * 1.3
 	for bid in done:
 		_finish_chantier(bid)
+
+
+## Prix d'une semaine de travaux (37,5 h) d'un chantier, plafonné à ce qui reste dû.
+func _part_semaine(b: Dictionary, k: float) -> int:
+	var dp := 37.5 * k / maxf(float(b.get("hr", 1.0)), 1.0)
+	return mini(int(b.get("du", 0)), ceili(float(b.get("cost", 0)) * dp))
 
 
 ## Montre l'étape du chantier : fouille, dalle, murs étage par étage derrière

@@ -633,6 +633,9 @@ func stage_label(p: Dictionary) -> String:
 ## Arrivées : les logements libres se remplissent peu à peu.
 func _immigrate(hours: float) -> void:
 	for bid in known:
+		# Les tentes libérées au campement (couples, départs) ne sont pas à louer.
+		if Fondateurs.est_campement(bid):
+			continue
 		var free := free_homes(bid)
 		if free <= 0:
 			continue

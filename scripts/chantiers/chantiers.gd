@@ -123,8 +123,23 @@ static func date_apres(t: float, heures: float, offset_h: float, h := "") -> flo
 
 # --- Durées réalistes ----------------------------------------------------------------
 
+## Ouvrages élancés dont la hauteur n'est pas faite d'étages (mât, pylône, réservoir
+## perché, phare) : [mois de travail réels, équipe complète]. Sans cette table, une
+## éolienne de 160 m comptait comme une tour de 50 étages (4 ans, 60 ouvriers).
+const OUVRAGES := {
+	"eolienne": [2.0, 12],
+	"pylone_2g": [1.0, 6], "pylone_4g": [1.0, 6], "pylone_5g": [1.0, 6],
+	"chateau_eau": [8.0, 14], "chateau_eau_champignon": [9.0, 16],
+	"phare": [8.0, 12],
+	# Panneaux posés sur des pieux battus : 2 ha en quelques mois.
+	"centrale_solaire": [3.0, 20],
+}
+
+
 ## Mois de travail réels d'une équipe pour un type de bâtiment.
 static func mois_batiment(id: String) -> float:
+	if OUVRAGES.has(id):
+		return float(OUVRAGES[id][0])
 	var t := BuildingCatalog.get_type(id)
 	var w := float(t.get("w", 8))
 	var d := float(t.get("d", 8))
@@ -184,6 +199,8 @@ static func equipe_batiment(id: String) -> int:
 
 
 static func _equipe_batiment(id: String) -> int:
+	if OUVRAGES.has(id):
+		return int(OUVRAGES[id][1])
 	var t := BuildingCatalog.get_type(id)
 	var surface := float(t.get("w", 8)) * float(t.get("d", 8))
 	if String(t.get("cat", "")) == "espaces":
@@ -198,9 +215,11 @@ static func equipe_travaux(heures_reelles: float) -> int:
 	return clampi(roundi(2.0 + sqrt(maxf(heures_reelles, 0.0)) / 4.0), 2, 16)
 
 
-## Rythme : heures réelles faites pour une heure de travail dans le jeu.
+## Rythme : heures réelles faites pour une heure de travail dans le jeu (vitesse de
+## la vie × réglage Admin « rythme des chantiers »).
 static func rythme(pop: Population) -> float:
-	return pop.life_speed() if pop != null else float(Population.LIFE_SPEEDS[Population.DEFAULT_LIFE_SPEED])
+	var vie := pop.life_speed() if pop != null else float(Population.LIFE_SPEEDS[Population.DEFAULT_LIFE_SPEED])
+	return vie * ReglagesPartie.actuel.rythme_chantiers
 
 
 # --- Étapes --------------------------------------------------------------------------

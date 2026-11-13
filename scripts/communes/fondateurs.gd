@@ -249,7 +249,7 @@ func liste_chantiers() -> Array:
 			var t := String(b.t)
 			out.append({"cle": cle_batiment(bid), "bid": int(bid), "nom": String(BuildingCatalog.get_type(t).get("name", t)),
 				"besoin": Chantiers.equipe_batiment(t), "ordre": float(b.get("ordre", b.get("ne", 0.0))),
-				"pause": bool(b.get("pause", false)), "av": float(b.get("av", 0.0))})
+				"pause": bool(b.get("pause", false)), "av": float(b.get("av", 0.0)), "attente": bool(b.get("attente", false))})
 	if suivi != null:
 		for cle in suivi.chantiers:
 			var c: Dictionary = suivi.chantiers[cle]
@@ -288,13 +288,32 @@ func repartir() -> void:
 	var dispo := total_ouvriers
 	for ch in liste_chantiers():
 		besoins[ch.cle] = int(ch.besoin)
-		if bool(ch.pause):
+		# En pause, ou arrêté faute d'argent : les ouvriers vont aux chantiers suivants.
+		if bool(ch.pause) or bool(ch.get("attente", false)):
 			repartition[ch.cle] = 0
 			continue
 		var n := mini(int(ch.besoin), dispo)
 		repartition[ch.cle] = n
 		dispo -= n
 	libres = dispo
+
+
+## Les promoteurs des zones peuvent-ils ouvrir un nouveau chantier ? Seulement
+## s'il reste des ouvriers : sinon les maisons des zones s'empilent en chantiers
+## arrêtés (des centaines au bout d'un mois) et prennent les ouvriers des
+## chantiers du joueur qui viennent après elles.
+const CHANTIERS_PRIVES_EN_ATTENTE := 2
+
+
+func accepte_chantier_prive() -> bool:
+	if not regle_active():
+		return true
+	repartir()
+	var attente := 0
+	for cle in repartition:
+		if int(repartition[cle]) == 0 and not en_pause(String(cle)):
+			attente += 1
+	return libres > 0 or attente < CHANTIERS_PRIVES_EN_ATTENTE
 
 
 # --- Commandes du joueur -------------------------------------------------------------------

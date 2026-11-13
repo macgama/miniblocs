@@ -39,6 +39,9 @@ var extra_chance: Callable
 ## Si défini, Callable(rect: Rect2i) -> String : raison qui interdit de peindre
 ## ce zonage (territoire des villages), ou "".
 var area_check: Callable
+## Optionnel : Callable() -> bool. Faux : les promoteurs attendent avant d'ouvrir un
+## nouveau chantier (Fondateurs : plus d'ouvriers libres).
+var peut_pousser: Callable
 var current_style := ""
 
 ## Prix du zonage (€ par m²).
@@ -280,6 +283,8 @@ func _process(delta: float) -> void:
 ## Une tentative de croissance dans la zone suivante. Renvoie l'id du bâtiment ou -1.
 func grow_step() -> int:
 	if zones.is_empty() or buildings == null or buildings.transport == null:
+		return -1
+	if peut_pousser.is_valid() and not bool(peut_pousser.call()):
 		return -1
 	var d := demand()
 	var ids := zones.keys()

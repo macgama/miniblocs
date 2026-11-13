@@ -50,8 +50,8 @@ func _run() -> void:
 	amb.unix_time = _at("2026-03-10", 10.0)
 
 	print("Vitesses du temps :")
-	_check(DayNight.SPEEDS.slice(2) == [60.0, 600.0, 6000.0], "1 min/s, 10 min/s, 100 min/s")
-	_check(DayNight.SPEED_NAMES[4] == "100 min/s", "nom : 100 min/s")
+	_check(DayNight.SPEEDS.slice(2) == [60.0, 600.0, 1440.0, 6000.0], "1 min/s, 10 min/s, 1 jour/min, 100 min/s")
+	_check(DayNight.SPEED_NAMES[5] == "100 min/s" and DayNight.SPEEDS[DayNight.DEFAULT_SPEED] == 1440.0, "par défaut : 1 jour de jeu par minute")
 	_check(Population.LIFE_SPEEDS[Population.DEFAULT_LIFE_SPEED] == 12.0, "vie : 1 an = 1 mois de jeu par défaut")
 
 	print("Une ville :")

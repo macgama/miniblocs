@@ -127,6 +127,8 @@ func split_edge(id: int, s: float, snap := 1.5) -> int:
 	var b: int = e.b
 	var t: String = e.t
 	var spec: Dictionary = e.w
+	# État d'usure (budget communal) : les deux morceaux le gardent.
+	var wear = e.get("u")
 	var keep_a: Dictionary = nodes[a].duplicate()
 	var keep_b: Dictionary = nodes[b].duplicate()
 	remove_edge(id)
@@ -137,8 +139,11 @@ func split_edge(id: int, s: float, snap := 1.5) -> int:
 	if not nodes.has(b):
 		nodes[b] = keep_b
 		adjacency[b] = []
-	add_edge(a, mid, t, first[0], first[1], spec)
-	add_edge(mid, b, t, second[0], second[1], spec)
+	var e1 := add_edge(a, mid, t, first[0], first[1], spec)
+	var e2 := add_edge(mid, b, t, second[0], second[1], spec)
+	if wear != null:
+		edges[e1]["u"] = wear
+		edges[e2]["u"] = wear
 	return mid
 
 
@@ -437,7 +442,10 @@ func to_dict() -> Dictionary:
 		var flat := []
 		for p in (e.pts as PackedVector3Array):
 			flat.append_array([snappedf(p.x, 0.01), snappedf(p.y, 0.01), snappedf(p.z, 0.01)])
-		es.append({"id": id, "a": e.a, "b": e.b, "t": e.t, "w": e.w, "p": flat, "s": Array(e.st as PackedByteArray)})
+		var row := {"id": id, "a": e.a, "b": e.b, "t": e.t, "w": e.w, "p": flat, "s": Array(e.st as PackedByteArray)}
+		if e.has("u"):
+			row["u"] = snappedf(float(e.u), 0.0001)
+		es.append(row)
 	return {"version": 1, "next_id": next_id, "nodes": ns, "edges": es}
 
 
@@ -466,6 +474,8 @@ func from_dict(data: Dictionary) -> void:
 		if TransportTypes.get_type(t).is_empty():
 			continue
 		var e := {"a": a, "b": b, "t": t, "pts": pts, "st": st, "w": TransportTypes.normalize(t, ed.get("w", {}))}
+		if ed.has("u"):
+			e["u"] = clampf(float(ed.u), 0.0, 1.0)
 		_measure(e)
 		edges[id] = e
 		(adjacency[a] as Array).append(id)

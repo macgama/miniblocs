@@ -36,7 +36,11 @@ var _epuisement: CheckBox
 var _ev_auto: CheckBox
 var _catas: CheckBox
 var _freq: OptionButton
+var _usure: OptionButton
 const FREQS := [0.25, 1.0, 3.0]
+## Vitesse d'usure des voies et réseaux (budget communal).
+const USURES := [0.0, 0.5, 1.0, 2.0]
+const USURE_NOMS := ["Aucune", "Lente", "Normale", "Rapide"]
 var _status: Label
 
 
@@ -160,6 +164,12 @@ func _ready() -> void:
 	_salaires = c[0]
 	_salaires_l = c[1]
 	_row(g, "Salaires", c[2])
+	_usure = OptionButton.new()
+	for n in USURE_NOMS:
+		_usure.add_item(n)
+	_usure.disabled = not editable
+	_usure.item_selected.connect(func(_i: int) -> void: _changed())
+	_row(g, "Usure des routes et réseaux", _usure)
 
 	# Temps.
 	g = _section(right, "Temps", "horloge")
@@ -322,6 +332,11 @@ func _fill() -> void:
 		if absf(float(FREQS[i]) - reglages.frequence_catastrophes) < 0.01:
 			fi = i
 	_freq.select(fi)
+	var ui := 2
+	for i in USURES.size():
+		if absf(float(USURES[i]) - reglages.usure) < 0.01:
+			ui = i
+	_usure.select(ui)
 	_filling = false
 	_update_labels()
 
@@ -342,6 +357,7 @@ func _changed() -> void:
 	reglages.evenements_auto = _ev_auto.button_pressed
 	reglages.catastrophes = _catas.button_pressed
 	reglages.frequence_catastrophes = float(FREQS[maxi(0, _freq.selected)])
+	reglages.usure = float(USURES[maxi(0, _usure.selected)])
 	_emit()
 
 

@@ -26,6 +26,8 @@ const CHANTIER_ETAGE_H := 0.75
 const VUE_ABORDS := 260.0
 const VUE_FUMEE := 380.0
 
+## Vitesse d'usure d'un bâtiment (bid) -> multiplicateur (Nuisances : quartiers dévalués).
+var extra_usure: Callable
 var buildings: BuildingSystem
 var ambiance: DayNight
 var population: Population
@@ -389,7 +391,8 @@ func _update_vie() -> void:
 		elif e.vide < 0.0:
 			e.vide = maxf(t, float(b.get("fin", t)))
 		var age := _years(maxf(t - float(b.get("ne", t)), 0.0))
-		var usure: float = e.base + age / (60.0 if occupe or not accueille else 18.0)
+		var rythme := float(extra_usure.call(bid)) if extra_usure.is_valid() else 1.0
+		var usure: float = e.base + age * rythme / (60.0 if occupe or not accueille else 18.0)
 		var abandon := 0.0
 		if e.vide >= 0.0:
 			abandon = clampf((_years(t - float(e.vide)) - 0.5) / 2.0, 0.0, 1.0)

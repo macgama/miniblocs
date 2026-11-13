@@ -46,6 +46,10 @@ var decors_panel: DecorPanel
 var evenements: Evenements
 var evenements_panel: EvenementsPanel
 var actualites: Actualites
+## Pollution de l'air et de l'eau, bruit, valeur des terrains et loyers.
+var nuisances: Nuisances
+## Panneau « Cartes » (touche M) : cartes de couleur de tous les systèmes.
+var cartes_panel: CartesPanel
 
 
 func _ready() -> void:
@@ -87,6 +91,7 @@ func _ready() -> void:
 	_setup_vie()
 	_setup_decors()
 	_setup_evenements()
+	_setup_nuisances()
 	_setup_create_mode()
 	hud.traffic_toggled.connect(func(on: bool) -> void: transport.traffic.set_enabled(on))
 	hud.traffic_filter_changed.connect(func(era: String, region: String) -> void:
@@ -227,7 +232,8 @@ func save_sections() -> Dictionary:
 		"zones": zones.to_dict(), "blocs": blocks.to_dict(), "plans": plans.to_dict(), "ambiance": ambiance.to_dict(),
 		"creations": Creations.to_dict(Creations.used_by(buildings)),
 		"personnage": ($VueSol as VueSol).to_dict(), "habitants": population.to_dict(), "mobilier": mobilier.to_dict(),
-		"production": production.to_dict(), "urgences": urgences.to_dict(), "reglages": _settings_snapshot().to_dict(), "evenements": evenements.to_dict(), "decors": decors.to_dict()}
+		"production": production.to_dict(), "urgences": urgences.to_dict(), "reglages": _settings_snapshot().to_dict(), "evenements": evenements.to_dict(), "decors": decors.to_dict(),
+		"nuisances": nuisances.to_dict()}
 
 
 ## Sauvegarde dans la partie en cours (ou une nouvelle). title : nom d'une nouvelle partie.
@@ -288,6 +294,7 @@ func load_game(slot := "") -> bool:
 	ambiance.from_dict(sec.get("ambiance", {}))
 	# Après les bâtiments et les habitants : dégâts, ruines, malades, matchs.
 	evenements.from_dict(sec.get("evenements", {}))
+	nuisances.from_dict(sec.get("nuisances", {}))
 	($VueSol as VueSol).from_dict(sec.get("personnage", {}))
 	_load_settings(sec.get("reglages", {}), m)
 	build_panel.set_growth(zones.growth)
@@ -339,6 +346,8 @@ func _apply_settings(speeds := false) -> void:
 		_applied_speeds = sp
 	buildings._refresh()
 	build_panel.refresh()
+	if nuisances != null:
+		nuisances._dirty = true
 	var admin := ReglagesPartie.admin_ici()
 	build_panel.set_admin(admin)
 	hud.set_admin_visible(admin)
@@ -447,6 +456,97 @@ func _setup_evenements() -> void:
 	actualites.focus_requested.connect(go)
 	actualites.open_requested.connect(func() -> void: evenements_panel.set_open(true))
 	hud.infos_requested.connect(func() -> void: evenements_panel.toggle())
+
+
+## Nuisances (pollution de l'air, de l'eau, bruit) et valeur des terrains, avec
+## leurs cartes de couleur dans le panneau Cartes (touche M).
+func _setup_nuisances() -> void:
+	nuisances = Nuisances.new()
+	nuisances.name = "Nuisances"
+	add_child(nuisances)
+	nuisances.setup(world, buildings, transport, population, ambiance)
+	zones.extra_chance = nuisances.chance_pousse
+	vie_batiments.extra_usure = nuisances.usure_rythme
+	tree_exiting.connect(func() -> void: Calques.vider())
+	var make := func(nom: String, deg: Gradient) -> CalqueCouleur:
+		var c := CalqueCouleur.new()
+		c.name = "Calque" + nom.capitalize()
+		c.world = world
+		c.focus = rig
+		c.degrade = deg
+		add_child(c)
+		nuisances.recalcule.connect(c.rafraichir)
+		return c
+	var nz := nuisances
+	var specs := [
+		["air", "Air", "Nuisances", "pollution de l'air, de vert (propre) à rouge (très pollué) : usines, centrales, grandes routes."],
+		["eau", "Eau", "Nuisances", "pollution de l'eau et des nappes : usines, fermes, mines, eaux usées."],
+		["bruit", "Bruit le jour", "Nuisances", "de 35 dB (vert, calme) à 80 dB (rouge) : routes, rail, aéroports, usines, stades."],
+		["nuit", "Bruit la nuit", "Nuisances", "ce qui empêche de dormir : grandes routes, rail, aéroports, bars et discothèques."],
+	]
+	for sp in specs:
+		var c: CalqueCouleur = make.call(String(sp[0]), CalqueCouleur.degrade_nuisance())
+		var key := String(sp[0])
+		c.seuil = 0.03
+		c.valeur = func(x: float, z: float) -> float: return nz.couche(key, x, z)
+		Calques.ajouter("nuisances_" + key, String(sp[1]), String(sp[2]), c.montrer, String(sp[3]))
+	var cv: CalqueCouleur = make.call("valeur", CalqueCouleur.degrade_valeur())
+	cv.alpha = Vector2(0.45, 0.6)
+	cv.valeur = func(x: float, z: float) -> float:
+		# Seulement là où la ville existe (le reste vaut le prix moyen).
+		return nz.couche("valeur", x, z) if nz._tiles.has(Vector2i(floori(x / Nuisances.CELL / Nuisances.TILE), floori(z / Nuisances.CELL / Nuisances.TILE))) else -1.0
+	Calques.ajouter("immobilier_valeur", "Valeur du terrain", "Immobilier", cv.montrer,
+		"prix du m², du rouge (bon marché) au bleu (très cher). Moyenne : %s €/m²." % BuildingSystem.format_money(roundi(Nuisances.PRIX_M2)).replace(" €", ""))
+	var cl: CalqueCouleur = make.call("loyers", CalqueCouleur.degrade_valeur())
+	cl.alpha = Vector2(0.6, 0.8)
+	cl.rects = func() -> Array:
+		var out := []
+		for bid in population.known:
+			var info: Dictionary = population.known[bid]
+			if int(info.log) <= 0 or not info.has("rect"):
+				continue
+			var c := nz.coef_foncier(bid)
+			var v := 0.5 + 0.5 * log(c) / log(3.0) if c >= 1.0 else 0.5 * (c - Nuisances.COEF_MIN) / (1.0 - Nuisances.COEF_MIN)
+			out.append([info.rect, clampf(v, 0.0, 1.0)])
+		return out
+	population.changed.connect(cl.rafraichir)
+	Calques.ajouter("immobilier_loyers", "Loyers", "Immobilier", cl.montrer,
+		"loyer de chaque logement, du rouge (bon marché) au bleu (cher). Il suit la valeur du quartier, peu à peu.")
+	cartes_panel = CartesPanel.new()
+	cartes_panel.name = "PanneauCartes"
+	cartes_panel.resume = _resume_nuisances
+	add_child(cartes_panel)
+	hud.cartes_requested.connect(func() -> void: cartes_panel.toggle())
+
+
+## Résumé de la ville sous les cartes : pollution, bruit, valeur et loyers.
+func _resume_nuisances() -> Array:
+	var out := ["Pollution : %s." % String(Nuisances.NIVEAUX_NOMS[clampi(ReglagesPartie.actuel.pollution, 0, 3)]).to_lower()]
+	if population.households.is_empty():
+		out.append("Aucun habitant pour l'instant.")
+		return out
+	var n := 0
+	var air := 0.0
+	var loud := 0
+	var coef := 0.0
+	var rent := 0.0
+	var cher := 0
+	for hid in population.households:
+		var b := int(population.households[hid].b)
+		var f := nuisances.au_point(nuisances._centre(b))
+		n += 1
+		air += float(f.air)
+		if Nuisances.decibels(float(f.nuit)) >= 55:
+			loud += 1
+		coef += nuisances.coef_foncier(b)
+		rent += nuisances.loyer(b)
+		if nuisances.taux_effort(hid) > Nuisances.TAUX_EFFORT_MAX:
+			cher += 1
+	out.append("Air pollué aux logements : %d %% en moyenne." % roundi(100.0 * air / n))
+	out.append("Foyers au bruit la nuit (55 dB ou plus) : %d sur %d." % [loud, n])
+	out.append("Terrain des logements : %s €/m² en moyenne." % BuildingSystem.format_money(roundi(Nuisances.PRIX_M2 * coef / n)).replace(" €", ""))
+	out.append("Loyer moyen : %s par mois. Foyers au loyer trop cher : %d." % [BuildingSystem.format_money(roundi(rent / n)), cher])
+	return out
 
 
 ## Production : sites, stocks, carte des ressources sur le terrain et panneau (P).
@@ -1022,7 +1122,7 @@ var _open_before := {}
 ## Construire, Lignes et Habitants partagent la même place à droite : quand
 ## l'un s'ouvre, les autres se ferment. Leur bouton de la barre du bas s'allume.
 func _exclusive_panels() -> void:
-	var panels := {"construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "urgences": urgences_panel, "perso": perso_panel, "infos": evenements_panel}
+	var panels := {"construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "urgences": urgences_panel, "perso": perso_panel, "infos": evenements_panel, "cartes": cartes_panel}
 	var opened := ""
 	for id in panels:
 		var p = panels[id]
@@ -1085,4 +1185,10 @@ func _refresh_cell_info() -> void:
 		for e in best.slice(0, 3):
 			parts.append("%s %d %%" % [String(Ressources.naturelle(e[0]).name).to_lower(), roundi(e[1] * 100.0)])
 		txt += "\nRessources : " + ", ".join(parts)
+	if nuisances != null:
+		var p := Vector3(_hover.x + 0.5, h, _hover.y + 0.5)
+		var f := nuisances.au_point(p)
+		txt += "\nAir %d %% · Eau %d %% · Bruit %d dB (nuit %d dB) · Terrain %s €/m²" % [roundi(100.0 * float(f.air)),
+			roundi(100.0 * float(f.eau)), Nuisances.decibels(float(f.bruit)), Nuisances.decibels(float(f.nuit)),
+			BuildingSystem.format_money(roundi(Nuisances.PRIX_M2 * nuisances.valeur_de(f, p))).replace(" €", "")]
 	hud.set_cell_info(txt)

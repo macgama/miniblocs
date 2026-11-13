@@ -75,6 +75,10 @@ var evenements_auto := true
 var catastrophes := true
 ## Fréquence des catastrophes (0,25 : rares ; 1 : normales ; 3 : fréquentes).
 var frequence_catastrophes := 1.0
+## Pollution de l'air, de l'eau et bruit : 0 désactivée, 1 faible, 2 normale, 3 forte.
+var pollution: int = 2
+## La pollution rend malade et raccourcit la vie (sinon : seulement gêne et valeur des terrains).
+var pollution_sante := true
 ## Joueur qui a créé la partie (SaveGame.player_id()) : l'admin des cartes entre amis.
 var createur := ""
 ## Plus grande population atteinte (pour les paliers).
@@ -210,7 +214,7 @@ func to_dict() -> Dictionary:
 		"salaires": salaires, "vitesse_temps": vitesse_temps, "vitesse_vie": vitesse_vie,
 		"epuisement": epuisement, "deblocage": deblocage, "createur": createur,
 		"record_habitants": record_habitants, "evenements_auto": evenements_auto, "catastrophes": catastrophes,
-		"frequence_catastrophes": frequence_catastrophes}
+		"frequence_catastrophes": frequence_catastrophes, "pollution": pollution, "pollution_sante": pollution_sante}
 
 
 func from_dict(d: Dictionary) -> void:
@@ -230,6 +234,8 @@ func from_dict(d: Dictionary) -> void:
 	evenements_auto = bool(d.get("evenements_auto", true))
 	catastrophes = bool(d.get("catastrophes", true))
 	frequence_catastrophes = clampf(float(d.get("frequence_catastrophes", 1.0)), 0.25, 3.0)
+	pollution = clampi(int(d.get("pollution", 2)), 0, 3)
+	pollution_sante = bool(d.get("pollution_sante", true))
 
 
 ## Réglages par défaut des nouvelles parties (fichier du joueur, sinon « Normal »).

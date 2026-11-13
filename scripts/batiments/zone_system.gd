@@ -34,6 +34,8 @@ const STYLE_ARCHS := {
 ## les styles mélangés, STYLE_BIBLE = bâtiments Blender de la bible (champ
 ## "zone" de leur fiche), sinon un style de Styles.STYLES.
 const STYLE_BIBLE := "bible_blender"
+## Chance (0..1) qu'un type pousse à un endroit : (type_id, pos: Vector3, types) -> float (Nuisances).
+var extra_chance: Callable
 var current_style := ""
 
 ## Prix du zonage (€ par m²).
@@ -333,6 +335,9 @@ func _grow_in(z: Dictionary, need := INF) -> int:
 		var center := Vector2i(floori(c3.x), floori(c3.z))
 		var brect := BuildingSystem.rect_for(type_id, center, r)
 		if not rect.encloses(brect):
+			continue
+		# Valeur du quartier : les bâtiments chers poussent là où le terrain est cher.
+		if extra_chance.is_valid() and rng.randf() > float(extra_chance.call(type_id, c3, types)):
 			continue
 		var bid := buildings.place(type_id, center, r, int(z.id))
 		if bid >= 0:

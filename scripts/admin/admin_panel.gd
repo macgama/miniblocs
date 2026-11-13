@@ -36,6 +36,8 @@ var _epuisement: CheckBox
 var _ev_auto: CheckBox
 var _catas: CheckBox
 var _freq: OptionButton
+var _pollution: OptionButton
+var _pol_sante: CheckBox
 const FREQS := [0.25, 1.0, 3.0]
 var _status: Label
 
@@ -194,6 +196,17 @@ func _ready() -> void:
 	_freq.item_selected.connect(func(_i: int) -> void: _changed())
 	_row(g, "Fréquence des catastrophes", _freq)
 
+	# Pollution et bruit.
+	g = _section(right, "Pollution et bruit", "cartes")
+	_pollution = OptionButton.new()
+	for n in ["Désactivée", "Faible", "Normale", "Forte"]:
+		_pollution.add_item(n)
+	_pollution.disabled = not editable
+	_pollution.item_selected.connect(func(_i: int) -> void: _changed())
+	_row(g, "Pollution (air, eau, bruit)", _pollution)
+	_pol_sante = _check("La pollution rend malade (santé, espérance de vie)")
+	g.add_child(_pol_sante)
+
 	# Pied.
 	var foot := HBoxContainer.new()
 	foot.add_theme_constant_override("separation", 8)
@@ -322,6 +335,8 @@ func _fill() -> void:
 		if absf(float(FREQS[i]) - reglages.frequence_catastrophes) < 0.01:
 			fi = i
 	_freq.select(fi)
+	_pollution.select(clampi(reglages.pollution, 0, 3))
+	_pol_sante.button_pressed = reglages.pollution_sante
 	_filling = false
 	_update_labels()
 
@@ -342,6 +357,8 @@ func _changed() -> void:
 	reglages.evenements_auto = _ev_auto.button_pressed
 	reglages.catastrophes = _catas.button_pressed
 	reglages.frequence_catastrophes = float(FREQS[maxi(0, _freq.selected)])
+	reglages.pollution = maxi(0, _pollution.selected)
+	reglages.pollution_sante = _pol_sante.button_pressed
 	_emit()
 
 

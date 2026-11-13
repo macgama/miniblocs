@@ -104,4 +104,8 @@ func _run() -> void:
 	hud._request_mode(false)
 	rig._target_distance = 150.0
 	await _shot(dir.path_join("apercu-mode-gerer.png"))
+	# 7. Menu « Ville » de la barre ouvert au-dessus de son bouton.
+	hud.toggle_group("ville")
+	await _shot(dir.path_join("apercu-barre-menus.png"))
+	hud.close_groups()
 	quit()

@@ -37,6 +37,7 @@ var _edge_meshes: Dictionary = {} # id de tronçon -> MeshInstance3D
 var _edge_keys: Dictionary = {} # id de tronçon -> rognages utilisés
 var _node_meshes: Dictionary = {} # id de nœud -> MeshInstance3D
 var _node_keys: Dictionary = {} # id de nœud -> ce qui a servi à dessiner son plateau
+var _trims: Dictionary = {} # rognages du dernier rebuild()
 
 
 func _init() -> void:
@@ -63,6 +64,7 @@ func setup(net: TransportNetwork, ground_fn: Callable) -> void:
 ## Reconstruit ce qui a changé (tronçons ajoutés, supprimés ou dont les carrefours ont changé).
 func rebuild() -> void:
 	var trims := compute_trims(network)
+	_trims = trims
 	for id in _edge_meshes.keys():
 		if not network.edges.has(id):
 			(_edge_meshes[id] as Node).queue_free()
@@ -73,7 +75,7 @@ func rebuild() -> void:
 		var joints := joint_rights(network, id)
 		var e0: Dictionary = network.edges[id]
 		var clear := Vector2(crosswalk_clear(network, id, e0.a, trims), crosswalk_clear(network, id, e0.b, trims))
-		var key := [tr, joints[0], joints[1], clear]
+		var key := [tr, joints[0], joints[1], clear, chantier_key(network.edges[id])]
 		if _edge_meshes.has(id) and _edge_keys.get(id) == key:
 			continue
 		var e: Dictionary = network.edges[id]
@@ -84,7 +86,10 @@ func rebuild() -> void:
 			mi.material_override = _material
 			add_child(mi)
 			_edge_meshes[id] = mi
-		mi.mesh = build_mesh(e.t, e.w, e.pts, e.st, ground, tr.x, tr.y, joints[0], joints[1], clear.x, clear.y)
+		if e.has("ch"):
+			mi.mesh = ChantiersVoies.chantier_mesh(e, float(e.ch), ground, tr.x, tr.y, joints[0], joints[1])
+		else:
+			mi.mesh = build_mesh(e.t, e.w, e.pts, e.st, ground, tr.x, tr.y, joints[0], joints[1], clear.x, clear.y)
 		_edge_keys[id] = key
 	# Plateaux de carrefour : seuls ceux dont les tronçons ou les rognages ont changé.
 	for id in _node_keys.keys():
@@ -97,6 +102,7 @@ func rebuild() -> void:
 		var key := [network.node_pos(id)]
 		for eid in network.adjacency.get(id, []):
 			key.append(network.edges[eid])
+			key.append(network.edges[eid].has("ch"))
 			key.append(trims.get(eid, Vector2.ZERO))
 		if _node_keys.has(id) and _same_key(_node_keys[id], key):
 			continue
@@ -111,6 +117,31 @@ func rebuild() -> void:
 			mi.material_override = _material
 			add_child(mi)
 			_node_meshes[id] = mi
+
+
+## Avancement d'un chantier arrondi (on ne redessine que tous les 2 %), -1 sans chantier.
+static func chantier_key(e: Dictionary) -> int:
+	return floori(float(e.ch) * 50.0) if e.has("ch") else -1
+
+
+## Redessine un seul tronçon (avancement d'un chantier), sans recalculer tout le réseau.
+func refresh_edge(id: int) -> void:
+	if not network.edges.has(id) or not _edge_meshes.has(id):
+		rebuild()
+		return
+	var e: Dictionary = network.edges[id]
+	var tr: Vector2 = _trims.get(id, Vector2.ZERO)
+	var joints := joint_rights(network, id)
+	var clear := Vector2(crosswalk_clear(network, id, e.a, _trims), crosswalk_clear(network, id, e.b, _trims))
+	var key := [tr, joints[0], joints[1], clear, chantier_key(e)]
+	if _edge_keys.get(id) == key:
+		return
+	var mi: MeshInstance3D = _edge_meshes[id]
+	if e.has("ch"):
+		mi.mesh = ChantiersVoies.chantier_mesh(e, float(e.ch), ground, tr.x, tr.y, joints[0], joints[1])
+	else:
+		mi.mesh = build_mesh(e.t, e.w, e.pts, e.st, ground, tr.x, tr.y, joints[0], joints[1], clear.x, clear.y)
+	_edge_keys[id] = key
 
 
 ## Compare deux clés de carrefour (les tronçons par identité, le reste par valeur).
@@ -293,6 +324,12 @@ func _junction_mesh(nid: int, trims: Dictionary) -> ArrayMesh:
 static func junction_mesh(net: TransportNetwork, nid: int, trims: Dictionary) -> ArrayMesh:
 	var arms := _junction_arms(net, nid, trims)
 	if arms.is_empty():
+		return null
+	# Carrefour dont toutes les voies sont encore en chantier : pas encore d'enrobé.
+	var tous_chantier := true
+	for eid in net.adjacency.get(nid, []):
+		tous_chantier = tous_chantier and net.edges[eid].has("ch")
+	if tous_chantier:
 		return null
 	var col := ASPHALT
 	if net.node_mode(nid) == TransportTypes.Mode.PATH:

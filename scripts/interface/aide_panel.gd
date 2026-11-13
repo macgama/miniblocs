@@ -50,6 +50,7 @@ const SECTIONS := [
 		["Personnaliser (fiche d'un bâtiment)", "couleurs, toit, étages, pente, variante (bâtiments Blender : couleurs) ; « Ouvrir l'intérieur » le refait en murs fins, meublé et visitable"],
 		["Page bas · Page haut · Origine", "vue par étage (mode Gérer) : enlève ou remet les étages des bâtiments en murs fins autour de la caméra, pour voir les habitants dedans"],
 		["Banque (6) · Atelier (7)", "tes modèles étiquetés (type, style, époque, couleur) à reposer ou échanger ; l'atelier : terrain plat sans habitants ni argent"],
+		["Chantiers", "bâtiments et voies se construisent étape par étape au rythme de la vie (maison ≈ 3 semaines de jeu), en semaine et en journée ; le prix se paie au fil des travaux ; panneau Admin (F10) : horaires des équipes ou construction instantanée"],
 	]],
 	["Événements", [
 		["I", "panneau Infos : événements en cours et à venir, journal, organiser une fête ou un marché, dégâts à réparer, stades et classement"],

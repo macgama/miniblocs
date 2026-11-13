@@ -20,6 +20,8 @@ var edges: Dictionary = {}
 var adjacency: Dictionary = {}
 var next_id := 1
 ## Tronçons coupés (arbre tombé, inondation…) : id -> raison. Les itinéraires les évitent.
+## Un tronçon en chantier porte "ch" (avancement 0 à 1) et "chr" (heures de
+## travail réelles, voir Chantiers) : il n'est pas praticable avant la fin.
 var closed_edges: Dictionary = {}
 
 
@@ -137,8 +139,13 @@ func split_edge(id: int, s: float, snap := 1.5) -> int:
 	if not nodes.has(b):
 		nodes[b] = keep_b
 		adjacency[b] = []
-	add_edge(a, mid, t, first[0], first[1], spec)
-	add_edge(mid, b, t, second[0], second[1], spec)
+	var e1 := add_edge(a, mid, t, first[0], first[1], spec)
+	var e2 := add_edge(mid, b, t, second[0], second[1], spec)
+	# Tronçon en chantier : les deux moitiés gardent son avancement.
+	if e.has("ch"):
+		for k in [e1, e2]:
+			edges[k]["ch"] = e.ch
+			edges[k]["chr"] = float(e.get("chr", 0.0)) * float(edges[k].len) / maxf(float(e.len), 0.01)
 	return mid
 
 
@@ -353,7 +360,7 @@ func find_route(from: int, to: int) -> Array[int]:
 		open.erase(cur)
 		closed[cur] = true
 		for eid in adjacency.get(cur.x, []):
-			if closed_edges.has(eid):
+			if closed_edges.has(eid) or edges[eid].has("ch"):
 				continue
 			var nxt := other_end(eid, cur.x)
 			if edges[eid].a != cur.x and TransportTypes.is_oneway(edges[eid].t):
@@ -398,6 +405,8 @@ func component(start: int) -> Array[int]:
 	while not stack.is_empty():
 		var n: int = stack.pop_back()
 		for eid in adjacency.get(n, []):
+			if edges[eid].has("ch"):
+				continue # en chantier : pas encore praticable
 			var o := other_end(eid, n)
 			if not seen.has(o):
 				seen[o] = true
@@ -437,7 +446,11 @@ func to_dict() -> Dictionary:
 		var flat := []
 		for p in (e.pts as PackedVector3Array):
 			flat.append_array([snappedf(p.x, 0.01), snappedf(p.y, 0.01), snappedf(p.z, 0.01)])
-		es.append({"id": id, "a": e.a, "b": e.b, "t": e.t, "w": e.w, "p": flat, "s": Array(e.st as PackedByteArray)})
+		var row := {"id": id, "a": e.a, "b": e.b, "t": e.t, "w": e.w, "p": flat, "s": Array(e.st as PackedByteArray)}
+		if e.has("ch"):
+			row["ch"] = snappedf(float(e.ch), 0.0001)
+			row["chr"] = snappedf(float(e.get("chr", 0.0)), 0.01)
+		es.append(row)
 	return {"version": 1, "next_id": next_id, "nodes": ns, "edges": es}
 
 
@@ -466,6 +479,9 @@ func from_dict(data: Dictionary) -> void:
 		if TransportTypes.get_type(t).is_empty():
 			continue
 		var e := {"a": a, "b": b, "t": t, "pts": pts, "st": st, "w": TransportTypes.normalize(t, ed.get("w", {}))}
+		if ed.has("ch"):
+			e["ch"] = float(ed.ch)
+			e["chr"] = float(ed.get("chr", 0.0))
 		_measure(e)
 		edges[id] = e
 		(adjacency[a] as Array).append(id)

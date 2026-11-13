@@ -165,7 +165,7 @@ func village_au_point(x: float, z: float) -> int:
 
 ## Village d'un bâtiment, d'après la carte tenue à jour (calculé s'il manque).
 func village_de(bid: int) -> int:
-	if bat_village.has(bid):
+	if bat_village.has(bid) and int(bat_village[bid]) >= 0:
 		return int(bat_village[bid])
 	if buildings == null or not buildings.buildings.has(bid):
 		return -1

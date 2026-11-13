@@ -187,7 +187,11 @@ func _run() -> void:
 	src.impots = -25.0
 	avis._ville_ms = -100000
 	avis._sources_ms = -100000
-	el.anticiper()
+	# Le joueur a pu perdre le scrutin précédent : il redevient maire pour ce cas
+	# (sans mairie, seule une pétition permet d'anticiper : voir mairie_test).
+	if not el.joueur_maire():
+		el.maire = {"joueur": true, "liste": "joueur", "nom": el.ma_liste(), "couleur": Elections.COULEUR_JOUEUR}
+	_check(el.anticiper(), "élections anticipées dans une ville mécontente")
 	guard = 0
 	var n_hist := el.historique.size()
 	while (el.etat == "campagne" or el.etat == "entre_tours") and guard < 24 * 20:

@@ -25,6 +25,8 @@ extends Node3D
 signal changed
 signal message(text: String)
 signal fonde(vid: int)
+## Deux villages fusionnent : garde absorbe partie (caisse, budget).
+signal fusion(garde: int, partie: int)
 
 ## Côté d'un carré de territoire (m).
 const CASE := 100
@@ -68,6 +70,8 @@ var montre := false
 var calque := false
 ## Chiffres par village (recalculés toutes les 2 s) : vid -> {hab, logements, emplois, batiments, palier}.
 var stats := {}
+## Village de chaque bâtiment (-1 : hors territoire), mis à jour avec stats.
+var bat_village := {}
 ## Chargement d'une partie en cours : les bâtiments rechargés ne fondent rien.
 var ignorer := false
 
@@ -127,6 +131,7 @@ func clear() -> void:
 	villages.clear()
 	proprio.clear()
 	stats.clear()
+	bat_village.clear()
 	next_id = 1
 	nom_en_attente = ""
 	drapeau_en_attente = ""
@@ -439,8 +444,9 @@ func raison_annexer(vid: int, k: Vector2i) -> String:
 	var m := centre_case(k)
 	if absf(m.x) > half or absf(m.y) > half:
 		return "Hors de la région de jeu."
-	if not buildings.unlimited_money and prix_case() > buildings.money:
-		return "Pas assez d'argent : %s nécessaires." % BuildingSystem.format_money(prix_case())
+	var dispo := Pays.instance.solde(vid) if Pays.instance != null else buildings.money
+	if not buildings.unlimited_money and prix_case() > dispo:
+		return "Pas assez d'argent dans la caisse de %s : %s nécessaires." % [villages[vid].nom, BuildingSystem.format_money(prix_case())]
 	return ""
 
 
@@ -451,8 +457,11 @@ func annexer(vid: int, k: Vector2i) -> String:
 		return r
 	var cost := prix_case()
 	if not buildings.unlimited_money:
+		var caisse_prev := Pays.a_la_caisse(vid)
 		buildings.money -= cost
-		BudgetCommunal.noter("Terrains annexés", -cost)
+		if BudgetCommunal.instance != null:
+			BudgetCommunal.instance.noter_pour(vid, "Terrains annexés", -cost)
+		Pays.retour(caisse_prev)
 	_ajouter_case(vid, k)
 	_sale = true
 	_sale_remplissage = true
@@ -524,8 +533,10 @@ func fusionner(a: int, b: int) -> int:
 		set_outil("")
 	_sale = true
 	_sale_remplissage = true
+	calculer_stats()
 	message.emit("%s et %s fusionnent : la commune garde le nom de %s, l'ancienne mairie de %s devient une mairie annexe." % [
 		vk.nom, vg.nom, vk.nom, vg.nom])
+	fusion.emit(keep, gone)
 	changed.emit()
 	return keep
 
@@ -609,8 +620,8 @@ func calculer_stats() -> void:
 	for vid in villages:
 		out[vid] = {"hab": 0, "foyers": 0, "logements": 0, "emplois": 0, "batiments": 0, "palier": 0,
 			"ha": (villages[vid].cases as Dictionary).size()}
+	var de := {}
 	if buildings != null:
-		var de := {}
 		for bid in buildings.buildings:
 			var c := _centre_bat(bid)
 			var vid := village_au_point(c.x, c.y)
@@ -635,6 +646,8 @@ func calculer_stats() -> void:
 	for vid in out:
 		out[vid].palier = palier_de(int(out[vid].hab))
 	stats = out
+	if buildings != null:
+		bat_village = de
 
 
 ## Le territoire suit la population (jamais de recul).

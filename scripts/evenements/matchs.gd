@@ -285,7 +285,9 @@ func on_end(e: Dictionary) -> void:
 		# Recette de la billetterie pour la ville (le club loue le stade).
 		var gain := int(d.affluence) * 3
 		if not ev.buildings.unlimited_money:
+			var caisse_prev := Pays.au_point(e.pos.x, e.pos.z)
 			ev.buildings.money += gain
+			Pays.retour(caisse_prev)
 		ev.news("Score final : %s %d – %d %s (%d spectateurs, %s de recettes)." % [String(d.home), sh, sa, String(d.away),
 			int(d.affluence), BuildingSystem.format_money(gain)], e.pos, "match", int(e.id))
 	else:

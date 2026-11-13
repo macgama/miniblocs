@@ -33,6 +33,8 @@ signal avis_requested
 signal villages_requested
 ## Bouton « Fondateurs » : fondateurs et chantiers (Maj+H).
 signal fondateurs_requested
+## Bouton « Pays » : caisses des villes et du pays (Maj+P).
+signal pays_requested
 ## Panneau « Trafic » (Maj + L) : bouchons, parkings, remplissage des lignes.
 signal trafic_requested
 ## Bouton « Déchets » (touche X).
@@ -94,6 +96,7 @@ const CATEGORIES := [
 	{"id": "avis", "name": "Avis", "icon": "urne", "key": "Y", "panel": true, "group": "ville"},
 	{"id": "villages", "name": "Villages", "icon": "village", "key": "Maj+M", "panel": true, "group": "ville"},
 	{"id": "fondateurs", "name": "Fondateurs et chantiers", "icon": "emploi", "key": "Maj+H", "panel": true, "group": "ville"},
+	{"id": "pays", "name": "Pays", "icon": "globe", "key": "Maj+P", "panel": true, "group": "ville"},
 	{"id": "trafic", "name": "Trafic", "icon": "circulation", "key": "Maj+L", "panel": true, "group": "transports"},
 	{"id": "budget", "name": "Budget", "icon": "budget", "key": "M", "panel": true, "group": "ville"},
 	{"id": "dechets", "name": "Déchets", "icon": "dechets", "key": "X", "panel": true, "group": "ville"},
@@ -760,6 +763,7 @@ func _on_category(id: String) -> void:
 			"avis": avis_requested.emit()
 			"villages": villages_requested.emit()
 			"fondateurs": fondateurs_requested.emit()
+			"pays": pays_requested.emit()
 			"trafic": trafic_requested.emit()
 			"dechets": dechets_requested.emit()
 			"cartes": cartes_requested.emit()
@@ -875,10 +879,11 @@ func set_view(v: int) -> void:
 
 
 ## Chiffres de la ville dans la barre du haut.
-func set_stats(money: String, people: int, satisfaction: int, unemployment: String) -> void:
+func set_stats(money: String, people: int, satisfaction: int, unemployment: String, caisse_tip := "") -> void:
 	if _chips.is_empty():
 		return
 	(_chips.caisse as Button).text = money
+	(_chips.caisse as Button).tooltip_text = caisse_tip if caisse_tip != "" else "Caisse de la ville (clic : budget)"
 	(_chips.habitants as Button).text = str(people)
 	(_chips.satisfaction as Button).text = "—" if people == 0 else str(satisfaction)
 	(_chips.chomage as Button).text = unemployment

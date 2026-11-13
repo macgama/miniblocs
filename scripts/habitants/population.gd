@@ -860,12 +860,18 @@ func household_budget(hid: int) -> Dictionary:
 
 
 ## Budget mensuel de la ville, estimé sur la population actuelle.
-func city_budget() -> Dictionary:
+## filtre : Callable(bid) -> bool, pour ne compter qu'une ville (Pays).
+func city_budget(filtre := Callable()) -> Dictionary:
 	var rec := {"Taxe foncière": 0.0, "Impôts des entreprises": 0.0, "Dotation de l'État": 0.0}
 	var dep := {"Salaires des agents de la ville": 0.0, "Entretien des bâtiments publics": 0.0}
 	var reg := ReglagesPartie.actuel
+	var f := filtre.is_valid()
+	var hab := 0
 	for hid in households:
 		var hb := int(households[hid].b)
+		if f and not filtre.call(hb):
+			continue
+		hab += (households[hid].m as Array).size()
 		var tf := float(known[hb].get("tf", 1.0)) if known.has(hb) else 1.0
 		# Pas de taxe foncière sous la tente (campement des fondateurs).
 		if known.has(hb) and bool(known[hb].get("camp", false)):
@@ -874,9 +880,11 @@ func city_budget() -> Dictionary:
 		if Nuisances.instance != null:
 			tf *= Nuisances.instance.coef_foncier(hb)
 		rec["Taxe foncière"] += TAXE_FONCIERE * reg.impots * tf
-	rec["Dotation de l'État"] = DOTATION * persons.size()
+	rec["Dotation de l'État"] = DOTATION * (hab if f else persons.size())
 	for bid in by_job:
 		if not known.has(bid):
+			continue
+		if f and not filtre.call(bid):
 			continue
 		var info: Dictionary = known[bid]
 		for pid in by_job[bid]:
@@ -888,7 +896,7 @@ func city_budget() -> Dictionary:
 			else:
 				rec["Impôts des entreprises"] += CFE * reg.impots
 	for bid in known:
-		if known[bid].public:
+		if known[bid].public and (not f or filtre.call(bid)):
 			dep["Entretien des bâtiments publics"] += float(known[bid].cost) * ENTRETIEN
 	var r := 0.0
 	var d := 0.0

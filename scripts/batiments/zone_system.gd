@@ -171,10 +171,14 @@ func add_zone(k: String, rect: Rect2i) -> int:
 	remove_area(rect, false)
 	var cost := ReglagesPartie.prix(rect.size.x * rect.size.y * PRICE_M2)
 	if buildings != null and not buildings.unlimited_money:
+		# Payé par la caisse de la ville du lieu (Pays).
+		var caisse_prev := Pays.au_rect(rect)
 		if cost > buildings.money:
+			Pays.retour(caisse_prev)
 			message.emit("Pas assez d'argent pour ce zonage : %s." % BuildingSystem.format_money(cost))
 			return -1
 		buildings.money -= cost
+		Pays.retour(caisse_prev)
 	var id := next_id
 	next_id += 1
 	zones[id] = {"id": id, "k": k, "x": rect.position.x, "z": rect.position.y, "w": rect.size.x, "h": rect.size.y, "s": current_style}

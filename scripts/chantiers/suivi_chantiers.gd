@@ -57,7 +57,8 @@ func commencer(cle: String, heures_reelles: float, maj := Callable(), fini := Ca
 	if du < 0:
 		du = roundi(float(cout) * (1.0 - av))
 	chantiers[cle] = {"hr": maxf(heures_reelles, 0.1), "av": clampf(av, 0.0, 1.0), "maj": maj, "fini": fini,
-		"du": du, "cout": cout, "etapes": etapes, "attente": false, "sans_ouvriers": false, "t0": now()}
+		"du": du, "cout": cout, "etapes": etapes, "attente": false, "sans_ouvriers": false, "t0": now(),
+		"payeur": Pays.instance.payeur_de_cle(cle) if Pays.instance != null else -1}
 	if Chantiers.instantanes() or av >= 1.0:
 		terminer(cle)
 		return
@@ -94,7 +95,9 @@ func terminer(cle: String) -> void:
 		return
 	var c: Dictionary = chantiers[cle]
 	chantiers.erase(cle)
+	var caisse_prev := Pays.a_la_caisse(int(c.get("payeur", -1)))
 	_payer(int(c.du))
+	Pays.retour(caisse_prev)
 	c.av = 1.0
 	if (c.maj as Callable).is_valid():
 		(c.maj as Callable).call(1.0, Chantiers.etape(c.etapes, 1.0))
@@ -169,11 +172,15 @@ func mettre_a_jour() -> void:
 		if du > 0:
 			var part := mini(du, ceili(float(c.cout) * dp))
 			var libre := buildings == null or buildings.unlimited_money
+			# Chaque chantier est payé par sa caisse (ville du lieu ou pays).
+			var caisse_prev := Pays.a_la_caisse(int(c.get("payeur", -1)))
 			if not libre and buildings.money < part:
 				c.attente = true
+				Pays.retour(caisse_prev)
 				continue
 			c.attente = false
 			_payer(part)
+			Pays.retour(caisse_prev)
 			c.du = du - part
 		c.av = float(c.av) + dp
 		if float(c.av) >= 0.9999:

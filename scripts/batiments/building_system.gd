@@ -468,9 +468,17 @@ func check_place(id: String, center: Vector2i, r: int, grown := false, a := 0.0)
 			names.append(String(TransportTypes.get_type(acc_type).get("name", acc_type)).to_lower())
 		res.reason = "Il faut une %s à moins de %d m de la porte." % [" ou un ".join(names), int(ACCESS_MAX)]
 		return res
-	if not grown and not unlimited_money and res.cost > money:
-		res.reason = "Pas assez d'argent : %s nécessaires." % format_money(res.cost)
-		return res
+	if not grown and not unlimited_money:
+		# Plusieurs villes : c'est la caisse de la ville du lieu (ou du pays) qui paie.
+		var dispo := money
+		var qui := ""
+		if Pays.instance != null and Pays.instance.a_des_villes():
+			var k := Pays.instance.payeur_du_rect(rect)
+			dispo = Pays.instance.solde(k)
+			qui = " dans la caisse de " + Pays.instance.nom_de(k)
+		if res.cost > dispo:
+			res.reason = "Pas assez d'argent%s : %s nécessaires." % [qui, format_money(res.cost)]
+			return res
 	res.ok = true
 	return res
 
@@ -503,7 +511,9 @@ func place(id: String, center: Vector2i, r: int, zone := 0, a := 0.0) -> int:
 	# Avec un chantier, le prix se paie au fil des travaux (BatimentsVie).
 	var chantier := BatimentsVie.aura_chantier(id)
 	if not unlimited_money and not chantier:
+		var caisse_prev := Pays.au_rect(res.rect)
 		money -= int(res.cost)
+		Pays.retour(caisse_prev)
 	var bid := next_id
 	next_id += 1
 	var rect: Rect2i = res.rect
@@ -545,7 +555,9 @@ func demolish(bid: int) -> void:
 	# Chantier pas fini : seule la part déjà payée compte.
 	var back := roundi(float(int(b.get("cost", 0)) - int(b.get("du", 0))) * REFUND)
 	if not unlimited_money:
+		var caisse_prev := Pays.au_rect(rect)
 		money += back
+		Pays.retour(caisse_prev)
 	if _hover_building == bid:
 		_hover_building = -1
 	message.emit("%s démoli (%s rendus)." % [BuildingCatalog.get_type(b.t).get("name", b.t), format_money(back)])

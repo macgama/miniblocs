@@ -127,6 +127,9 @@ func refresh() -> void:
 		"emprunts": _view_loans()
 		"entretien": _view_upkeep()
 		_: _view_summary()
+	# Plusieurs villes : chaque ville a son budget (Maj+P pour en changer).
+	if BudgetCommunal.multi():
+		_title.text = "%s · %s" % [Pays.instance.nom_de(budget.cle), _title.text.trim_prefix("Budget · ")]
 
 
 # --- Petits outils ---------------------------------------------------------------------

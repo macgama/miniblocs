@@ -15,6 +15,11 @@ extends Node
 ## - flux ponctuels : recette(poste, montant) / depense(poste, montant).
 ## - usure d'un réseau à soi : register(reseau, id, longueur_m), etat(), user(), reparer().
 ## Le nœud est dans le groupe "budget_communal" et dans BudgetCommunal.instance.
+##
+## Plusieurs villes (Pays) : chaque ville a son état (taux, emprunts, entretien,
+## tutelle, comptes du mois). L'état chargé est celui de `cle` (la ville choisie) ;
+## les autres attendent dans `etats`. Chaque jour, pay_day passe par toutes les
+## villes puis par le pays (clé 0), chacun avec sa caisse.
 
 signal changed
 signal message(text: String)
@@ -104,6 +109,12 @@ var _last_unix := -1.0
 ## Dernier bilan quotidien (par mois), pour le panneau.
 var dernier := {}
 var vue: UsureVue
+## Commune dont l'état est chargé (0 : le pays, ou partie sans villages).
+var cle := 0
+## États rangés des autres communes : clé -> état (voir _pack()).
+var etats := {}
+## Caisse propriétaire de chaque voie (recalculé chaque jour) : eid -> clé.
+var _proprio_voies := {}
 
 
 func _init() -> void:
@@ -154,7 +165,131 @@ func clear() -> void:
 	_money_frac = 0.0
 	dernier = {}
 	_reset_entretien()
+	cle = 0
+	etats.clear()
+	_proprio_voies.clear()
 	changed.emit()
+
+
+# --- Plusieurs villes (Pays) ---------------------------------------------------------------
+
+## Plusieurs caisses (le pays a au moins une ville) ?
+static func multi() -> bool:
+	return Pays.instance != null and Pays.instance.a_des_villes()
+
+
+func _pack() -> Dictionary:
+	return {"taux": taux, "emprunts": emprunts, "entretien": entretien, "tutelle": tutelle, "jours_rouge": jours_rouge,
+		"jours_vert": jours_vert, "mois": mois, "historique": historique, "jours_mois": jours_mois, "dernier": dernier,
+		"frac": _money_frac}
+
+
+func _unpack(d: Dictionary) -> void:
+	taux = d.get("taux", {"foncier": 1.0, "entreprises": 1.0, "benefices": 1.0})
+	emprunts = d.get("emprunts", [])
+	if d.has("entretien"):
+		entretien = d.entretien
+	else:
+		entretien = {}
+		_reset_entretien()
+	tutelle = bool(d.get("tutelle", false))
+	jours_rouge = int(d.get("jours_rouge", 0))
+	jours_vert = int(d.get("jours_vert", 0))
+	mois = d.get("mois", {})
+	historique = d.get("historique", [])
+	jours_mois = int(d.get("jours_mois", 0))
+	dernier = d.get("dernier", {})
+	_money_frac = float(d.get("frac", 0.0))
+
+
+## Charge l'état de la commune k (et range celui d'avant).
+func selectionner(k: int, signaler := false) -> void:
+	if k == cle:
+		return
+	etats[cle] = _pack()
+	cle = k
+	_unpack(etats.get(k, {}))
+	etats.erase(k)
+	if signaler:
+		changed.emit()
+
+
+## Donne l'état chargé de la commune de à la commune a (ancienne partie).
+func transferer_etat(de: int, a: int) -> void:
+	if cle != de or de == a:
+		return
+	etats[a] = _pack()
+	_unpack({})
+
+
+## Retour à une seule commune (nouvelle région).
+func oublier_communes() -> void:
+	etats.clear()
+	cle = 0
+
+
+## Village partie absorbé par garde : ses emprunts passent à garde.
+func fusionner_etats(garde: int, partie: int) -> void:
+	var sel := cle
+	selectionner(partie)
+	var reprise: Array = emprunts.duplicate(true)
+	selectionner(garde)
+	emprunts.append_array(reprise)
+	etats.erase(partie)
+	if sel != partie:
+		selectionner(sel)
+	changed.emit()
+
+
+## Inscrit un mouvement au mois de la commune k, sans toucher aux caisses.
+func noter_pour(k: int, poste: String, v: float) -> void:
+	if k == cle or not multi():
+		_book(poste, v)
+		return
+	var e: Dictionary = etats.get(k, {})
+	if e.is_empty():
+		e = {"mois": {}}
+		etats[k] = e
+	if not e.has("mois"):
+		e["mois"] = {}
+	e.mois[poste] = float(e.mois.get(poste, 0.0)) + v
+
+
+## État rangé (ou chargé) d'une commune, en lecture : tutelle, emprunts…
+func etat_de(k: int) -> Dictionary:
+	return _pack() if k == cle else etats.get(k, {})
+
+
+## Le joueur décide-t-il des réglages de cette commune (il en est le maire) ?
+func joueur_decide(k := -1) -> bool:
+	if k < 0:
+		k = cle
+	return Pays.instance == null or Pays.instance.joueur_maire(k)
+
+
+func _filtre_ville(k: int) -> Callable:
+	var cm := Communes.instance
+	return func(bid: int) -> bool: return cm != null and int(cm.bat_village.get(bid, -1)) == k
+
+
+## Caisse propriétaire d'une voie (-1 sans pays).
+func proprio_voie(eid: int) -> int:
+	if not multi():
+		return -1
+	if _proprio_voies.has(eid):
+		return int(_proprio_voies[eid])
+	var k := Pays.instance.payeur_de_voie(eid)
+	_proprio_voies[eid] = k
+	return k
+
+
+func _maj_proprio_voies() -> void:
+	_proprio_voies.clear()
+	var net := network()
+	if net == null or not multi():
+		return
+	for eid in net.edges:
+		_proprio_voies[eid] = Pays.instance.payeur_de_voie(eid)
 
 
 ## Le trafic multiplie la vitesse par speed_factors (si la version du trafic le permet).
@@ -232,69 +367,162 @@ func caisse() -> int:
 
 
 ## Comptes du mois, estimés sur l'état actuel : {recettes, depenses, total_recettes, total_depenses, solde}.
-func bilan_mensuel() -> Dictionary:
+## k : commune (-2 : celle qui est chargée ; -1 : tout, sans pays ; 0 : le pays).
+func bilan_mensuel(k := -2) -> Dictionary:
+	if k == -2:
+		k = cle if multi() else -1
+	if k == Pays.PAYS and multi():
+		return bilan_pays()
 	var rec := {}
 	var dep := {}
+	var part := 1.0
+	if k > 0 and multi():
+		part = float(Pays.instance.parts_population().get(k, 0.0))
 	if population != null:
-		var b := population.city_budget()
-		for k in b.recettes:
-			var v := float(b.recettes[k])
-			if k == "Taxe foncière":
+		var b := population.city_budget(_filtre_ville(k) if k > 0 else Callable())
+		for key in b.recettes:
+			var v := float(b.recettes[key])
+			var poste := String(key)
+			if key == "Taxe foncière":
 				v *= taux_effectif("foncier")
-			elif k == "Impôts des entreprises":
+			elif key == "Impôts des entreprises":
 				v *= taux_effectif("entreprises")
-			rec[k] = float(rec.get(k, 0.0)) + v
-		for k in b.depenses:
-			dep[k] = float(dep.get(k, 0.0)) + float(b.depenses[k])
+			elif key == "Dotation de l'État" and k > 0:
+				poste = "Dotation du pays"
+				v *= Pays.instance.facteur_dotation()
+			rec[poste] = float(rec.get(poste, 0.0)) + v
+		for key in b.depenses:
+			dep[key] = float(dep.get(key, 0.0)) + float(b.depenses[key])
+		if k > 0:
+			var impots := float(rec.get("Taxe foncière", 0.0)) + float(rec.get("Impôts des entreprises", 0.0))
+			var c := impots * Pays.instance.taux_national
+			if c > 0.0:
+				dep["Contribution au pays"] = c
 	for n in get_tree().get_nodes_in_group("budget_recettes") if is_inside_tree() else []:
 		if n != self and n.has_method("budget_recettes"):
 			var d: Dictionary = n.budget_recettes()
-			for k in d:
-				rec[k] = float(rec.get(k, 0.0)) + float(d[k])
+			for key in d:
+				rec[key] = float(rec.get(key, 0.0)) + float(d[key]) * part
 	for n in get_tree().get_nodes_in_group("budget_entretien") if is_inside_tree() else []:
 		if n != self and n.has_method("budget_entretien"):
 			var d: Dictionary = n.budget_entretien()
-			for k in d:
-				dep[k] = float(dep.get(k, 0.0)) + float(d[k])
-	for k in VOIES:
-		var c := cout_entretien(k)
+			for key in d:
+				dep[key] = float(dep.get(key, 0.0)) + float(d[key]) * part
+	_ajouter_entretien(dep, k)
+	return _totaux(rec, dep)
+
+
+## Entretien des voies et des autres réseaux, et mensualités des emprunts chargés.
+func _ajouter_entretien(dep: Dictionary, k: int) -> void:
+	for v in VOIES:
+		var c := cout_entretien(v, k if multi() else -1)
 		if c > 0.0:
-			dep["Entretien : " + String(VOIE_NOMS[k]).to_lower()] = c
+			dep["Entretien : " + String(VOIE_NOMS[v]).to_lower()] = c
+	# Autres réseaux (eau, électricité…) : partagés selon la population.
+	var part := 1.0
+	if multi():
+		part = 0.0 if k == Pays.PAYS else float(Pays.instance.parts_population().get(k, 0.0))
 	for r in reseaux_ext:
-		var c := cout_entretien_ext(r)
+		var c := cout_entretien_ext(r) * part
 		if c > 0.0:
 			dep["Entretien : réseau " + r] = c
 	var m := mensualites()
 	if m > 0.0:
 		dep["Remboursement des emprunts"] = m
+
+
+func _totaux(rec: Dictionary, dep: Dictionary) -> Dictionary:
 	var tr := 0.0
 	var td := 0.0
-	for k in rec:
-		tr += rec[k]
-	for k in dep:
-		td += dep[k]
+	for key in rec:
+		tr += rec[key]
+	for key in dep:
+		td += dep[key]
 	return {"recettes": rec, "depenses": dep, "total_recettes": tr, "total_depenses": td, "solde": tr - td}
+
+
+## Contribution d'une ville au pays et dotation qu'elle reçoit, par mois.
+func flux_ville(vid: int) -> Dictionary:
+	if population == null or not multi():
+		return {"contribution": 0.0, "dotation": 0.0}
+	var e := etat_de(vid)
+	var t: Dictionary = e.get("taux", {"foncier": 1.0, "entreprises": 1.0})
+	var tut := bool(e.get("tutelle", false))
+	var tf := float(t.get("foncier", 1.0))
+	var te := float(t.get("entreprises", 1.0))
+	if tut:
+		tf = maxf(tf, TAUX_TUTELLE)
+		te = maxf(te, TAUX_TUTELLE)
+	var b := population.city_budget(_filtre_ville(vid))
+	var impots := float(b.recettes.get("Taxe foncière", 0.0)) * tf + float(b.recettes.get("Impôts des entreprises", 0.0)) * te
+	return {"contribution": impots * Pays.instance.taux_national,
+		"dotation": float(b.recettes.get("Dotation de l'État", 0.0)) * Pays.instance.facteur_dotation()}
+
+
+## Bilan mensuel du pays : impôt national, dotations, voies hors des villes, emprunts du pays.
+func bilan_pays() -> Dictionary:
+	var rec := {}
+	var dep := {}
+	var c := 0.0
+	var d := 0.0
+	for vid in Communes.instance.villages:
+		var f := flux_ville(int(vid))
+		c += float(f.contribution)
+		d += float(f.dotation)
+	if c > 0.0:
+		rec["Impôt national"] = c
+	if d > 0.0:
+		dep["Dotations aux villes"] = d
+	var sel := cle
+	if sel != Pays.PAYS:
+		# Emprunts du pays : on charge son état le temps du calcul.
+		selectionner(Pays.PAYS)
+		_ajouter_entretien(dep, Pays.PAYS)
+		selectionner(sel)
+	else:
+		_ajouter_entretien(dep, Pays.PAYS)
+	return _totaux(rec, dep)
 
 
 ## Appelé par Population une fois par jour de jeu (à la place de son propre versement).
 func pay_day(_b: Dictionary = {}, day: float = 1.0 / DAYS_PER_MONTH) -> void:
-	var b := bilan_mensuel()
-	dernier = b
-	for k in b.recettes:
-		_book(k, float(b.recettes[k]) * day)
-	for k in b.depenses:
-		if k == "Remboursement des emprunts":
-			continue
-		_book(k, -float(b.depenses[k]) * day)
-	var flux := float(b.total_recettes) - float(b.total_depenses) + mensualites()
-	_pay(flux * day)
-	_pay_loans(day * DAYS_PER_MONTH)
+	if multi():
+		_maj_proprio_voies()
+		var p := Pays.instance
+		var sel := cle
+		# Les villes d'abord, puis le pays (clé 0, en dernier dans cles()).
+		for k in p.cles():
+			selectionner(int(k))
+			var prev := p.entrer(int(k))
+			_jour(int(k), day)
+			p.sortir(prev)
+		selectionner(sel)
+	else:
+		_jour(-1, day)
 	_wear_day()
-	_auto_repairs()
-	_check_tutelle()
 	if vue != null:
 		vue.rebuild()
 	jour_total += 1
+	changed.emit()
+
+
+## Une journée de la commune chargée (k : sa clé, -1 sans pays).
+func _jour(k: int, day: float) -> void:
+	var b := bilan_mensuel(k)
+	dernier = b
+	for key in b.recettes:
+		_book(key, float(b.recettes[key]) * day)
+	for key in b.depenses:
+		if key == "Remboursement des emprunts":
+			continue
+		_book(key, -float(b.depenses[key]) * day)
+	var flux := float(b.total_recettes) - float(b.total_depenses) + mensualites()
+	_pay(flux * day)
+	_pay_loans(day * DAYS_PER_MONTH)
+	_auto_repairs(k)
+	# Le pays n'est pas mis sous tutelle : à sec, il ne verse plus de dotation.
+	if k != Pays.PAYS or not multi():
+		_check_tutelle()
 	jours_mois += 1
 	if jours_mois >= 30:
 		historique.append(mois)
@@ -302,7 +530,6 @@ func pay_day(_b: Dictionary = {}, day: float = 1.0 / DAYS_PER_MONTH) -> void:
 			historique.pop_front()
 		mois = {}
 		jours_mois = 0
-	changed.emit()
 
 
 func _process(delta: float) -> void:
@@ -452,11 +679,12 @@ func _check_tutelle() -> void:
 
 func _set_tutelle(on: bool) -> void:
 	tutelle = on
+	var qui := ("%s : " % Pays.instance.nom_de(cle)) if multi() else ""
 	if on:
-		message.emit("Caisse dans le rouge depuis %d jours : le préfet met la ville sous tutelle. Impôts relevés à %d %%, plus d'emprunts ni de bâtiments publics." % [
+		message.emit(qui + "Caisse dans le rouge depuis %d jours : le préfet met la ville sous tutelle. Impôts relevés à %d %%, plus d'emprunts ni de bâtiments publics." % [
 			JOURS_ROUGE_TUTELLE, roundi(TAUX_TUTELLE * 100.0)])
 	else:
-		message.emit("Les comptes sont rétablis : la ville sort de la tutelle du préfet.")
+		message.emit(qui + "Les comptes sont rétablis : la ville sort de la tutelle du préfet.")
 	changed.emit()
 
 
@@ -591,18 +819,23 @@ static func poids(model: String, mode: int) -> float:
 
 
 ## Coût mensuel de l'entretien courant d'un réseau, au taux choisi.
-func cout_entretien(k: String) -> float:
-	return cout_conseille(k) * float(entretien[k].taux)
+## proprio : seulement les voies de cette caisse (-1 : toutes).
+func cout_entretien(k: String, proprio := -1) -> float:
+	return cout_conseille(k, proprio) * float(entretien[k].taux)
 
 
-func cout_conseille(k: String) -> float:
+func cout_conseille(k: String, proprio := -1) -> float:
 	var net := network()
 	if net == null:
 		return 0.0
+	if proprio == -2:
+		proprio = cle if multi() else -1
 	var c := 0.0
 	for eid in net.edges:
 		var e: Dictionary = net.edges[eid]
 		if voie_of(String(e.t)) != k:
+			continue
+		if proprio >= 0 and proprio_voie(eid) != proprio:
 			continue
 		c += float(e.len) / 1000.0 * float(COUT_KM[k]) * maxf(0.3, float(e.width) / float(LARGEUR_REF[k]))
 	return float(ReglagesPartie.prix(roundi(c)))
@@ -626,6 +859,20 @@ func reparer(eid: int, auto := false) -> bool:
 	var net := network()
 	if net == null or not net.edges.has(eid) or etat(eid) >= 0.999:
 		return false
+	# Réparation demandée à la main : c'est la caisse propriétaire de la voie qui paie.
+	if not auto and multi():
+		var o := proprio_voie(eid)
+		if o != cle:
+			if o != Pays.PAYS and not joueur_decide(o):
+				message.emit("Cette voie est à %s, dont tu n'es plus le maire : son conseil décide des travaux." % Pays.instance.nom_de(o))
+				return false
+			var sel := cle
+			selectionner(o)
+			var prev := Pays.instance.entrer(o)
+			var ok := reparer(eid, false)
+			Pays.instance.sortir(prev)
+			selectionner(sel)
+			return ok
 	var cost := prix_reparation(eid)
 	if buildings != null and not buildings.unlimited_money and buildings.money < cost:
 		if not auto:
@@ -660,7 +907,7 @@ func en_travaux(eid: int) -> bool:
 	return cv != null and is_instance_valid(cv) and cv.en_reparation(eid)
 
 
-func _auto_repairs() -> void:
+func _auto_repairs(proprio := -1) -> void:
 	var net := network()
 	if net == null:
 		return
@@ -668,18 +915,20 @@ func _auto_repairs() -> void:
 		var cfg: Dictionary = entretien[k]
 		if not bool(cfg.auto):
 			continue
-		var worst := pires(k, float(cfg.seuil), REPARATIONS_JOUR)
+		var worst := pires(k, float(cfg.seuil), REPARATIONS_JOUR, proprio)
 		for eid in worst:
 			reparer(eid, true)
 
 
 ## Tronçons d'un réseau sous un seuil d'état, du pire au moins pire.
-func pires(k: String, seuil := 1.0, n := 10) -> Array:
+func pires(k: String, seuil := 1.0, n := 10, proprio := -1) -> Array:
 	var net := network()
 	var out := []
 	if net == null:
 		return out
 	for eid in net.edges:
+		if proprio >= 0 and proprio_voie(eid) != proprio:
+			continue
 		if (k == "" or voie_of(String(net.edges[eid].t)) == k) and etat(eid) < seuil and not en_travaux(eid):
 			out.append(eid)
 	out.sort_custom(func(a: int, b: int) -> bool: return etat(a) < etat(b))
@@ -800,42 +1049,53 @@ func _avis_routes() -> Array:
 # --- Sauvegarde ----------------------------------------------------------------------------
 
 func to_dict() -> Dictionary:
-	return {"version": 1, "taux": taux.duplicate(), "emprunts": emprunts.duplicate(true), "next_loan": _next_loan,
+	var d := _etat_dict()
+	d["version"] = 2
+	d["jour_total"] = jour_total
+	d["next_loan"] = _next_loan
+	d["reseaux"] = reseaux_ext.duplicate(true)
+	d["cle"] = cle
+	var es := {}
+	for k in etats.keys():
+		var keep := _pack()
+		_unpack(etats[k])
+		es[str(k)] = _etat_dict()
+		_unpack(keep)
+	d["communes"] = es
+	return d
+
+
+## État de la commune chargée, pour la sauvegarde.
+func _etat_dict() -> Dictionary:
+	return {"taux": taux.duplicate(), "emprunts": emprunts.duplicate(true), "next_loan": _next_loan,
 		"entretien": entretien.duplicate(true), "reseaux": reseaux_ext.duplicate(true), "tutelle": tutelle,
 		"jours_rouge": jours_rouge, "jours_vert": jours_vert, "mois": mois.duplicate(), "historique": historique.duplicate(true),
-		"jours_mois": jours_mois, "jour_total": jour_total}
+		"jours_mois": jours_mois}
 
 
 func from_dict(d: Dictionary) -> void:
 	clear()
-	var t: Dictionary = d.get("taux", {})
-	for k in taux:
-		taux[k] = clampf(float(t.get(k, 1.0)), TAUX_MIN, TAUX_MAX)
-	for e in d.get("emprunts", []):
-		if e is Dictionary and e.has("restant"):
-			emprunts.append({"id": int(e.get("id", 0)), "capital": float(e.get("capital", e.restant)), "restant": float(e.restant),
-				"taux": float(e.get("taux", TAUX_BASE)), "annees": int(e.get("annees", 10)), "mensualite": float(e.get("mensualite", 0.0)),
-				"jour": int(e.get("jour", 0)), "nom": String(e.get("nom", "Prêt"))})
+	_charger_etat(d)
 	_next_loan = int(d.get("next_loan", emprunts.size() + 1))
-	var en: Dictionary = d.get("entretien", {})
-	for k in entretien:
-		if en.get(k) is Dictionary:
-			var c: Dictionary = en[k]
-			entretien[k] = {"taux": clampf(float(c.get("taux", 1.0)), 0.0, 2.0), "auto": bool(c.get("auto", true)),
-				"seuil": clampf(float(c.get("seuil", 0.35)), 0.0, 0.9)}
 	var rx: Dictionary = d.get("reseaux", {})
 	for r in rx:
 		reseaux_ext[String(r)] = {}
 		for id in rx[r]:
 			var it: Dictionary = rx[r][id]
 			reseaux_ext[String(r)][String(id)] = {"l": float(it.get("l", 0.0)), "u": clampf(float(it.get("u", 1.0)), 0.0, 1.0)}
-	tutelle = bool(d.get("tutelle", false))
-	jours_rouge = int(d.get("jours_rouge", 0))
-	jours_vert = int(d.get("jours_vert", 0))
-	mois = d.get("mois", {})
-	historique = d.get("historique", [])
-	jours_mois = int(d.get("jours_mois", 0))
 	jour_total = int(d.get("jour_total", 0))
+	# Autres communes (Pays) : chacune son état ; la commune chargée est `cle`.
+	cle = int(d.get("cle", 0))
+	var es: Dictionary = d.get("communes", {})
+	for ks in es:
+		var k := int(ks)
+		if k == cle:
+			continue
+		var keep := _pack()
+		_unpack({})
+		_charger_etat(es[ks])
+		etats[k] = _pack()
+		_unpack(keep)
 	# Voies hors d'usage : fermées comme avant la sauvegarde.
 	var net := network()
 	if net != null:
@@ -845,6 +1105,34 @@ func from_dict(d: Dictionary) -> void:
 	if vue != null:
 		vue.rebuild()
 	changed.emit()
+
+
+## Charge l'état d'une commune (taux, emprunts, entretien, tutelle, comptes).
+func _charger_etat(d: Dictionary) -> void:
+	taux = {"foncier": 1.0, "entreprises": 1.0, "benefices": 1.0}
+	emprunts = []
+	entretien = {}
+	_reset_entretien()
+	var t: Dictionary = d.get("taux", {})
+	for k in taux:
+		taux[k] = clampf(float(t.get(k, 1.0)), TAUX_MIN, TAUX_MAX)
+	for e in d.get("emprunts", []):
+		if e is Dictionary and e.has("restant"):
+			emprunts.append({"id": int(e.get("id", 0)), "capital": float(e.get("capital", e.restant)), "restant": float(e.restant),
+				"taux": float(e.get("taux", TAUX_BASE)), "annees": int(e.get("annees", 10)), "mensualite": float(e.get("mensualite", 0.0)),
+				"jour": int(e.get("jour", 0)), "nom": String(e.get("nom", "Prêt"))})
+	var en: Dictionary = d.get("entretien", {})
+	for k in entretien:
+		if en.get(k) is Dictionary:
+			var c: Dictionary = en[k]
+			entretien[k] = {"taux": clampf(float(c.get("taux", 1.0)), 0.0, 2.0), "auto": bool(c.get("auto", true)),
+				"seuil": clampf(float(c.get("seuil", 0.35)), 0.0, 0.9)}
+	tutelle = bool(d.get("tutelle", false))
+	jours_rouge = int(d.get("jours_rouge", 0))
+	jours_vert = int(d.get("jours_vert", 0))
+	mois = d.get("mois", {})
+	historique = d.get("historique", [])
+	jours_mois = int(d.get("jours_mois", 0))
 
 
 static func _pct(t: float) -> String:

@@ -166,7 +166,9 @@ func on_end(e: Dictionary) -> void:
 	if String(e.type) == "marche":
 		var gain := int(e.data.get("etals", 6)) * DROIT_PLACE
 		if not ev.buildings.unlimited_money:
+			var caisse_prev := Pays.au_point(e.pos.x, e.pos.z)
 			ev.buildings.money += gain
+			Pays.retour(caisse_prev)
 		ev.news("%s terminé : %d habitants venus, %s de droits de place." % [String(e.nom), n, BuildingSystem.format_money(gain)], e.pos, "marche", int(e.id))
 	else:
 		ev.news("%s terminée : %d habitants venus." % [String(e.nom), n], e.pos, "fete", int(e.id))

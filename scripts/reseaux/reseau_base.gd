@@ -114,7 +114,8 @@ func retirer_conso(bid: int) -> void:
 func recalculer(routes: Array = []) -> void:
 	var lines: Array = []  # PackedVector3Array
 	for id in troncons:
-		if troncons[id].ok:
+		# "hs" : hors service (panne en attente de réparation).
+		if troncons[id].ok and not troncons[id].get("hs", false):
 			lines.append(troncons[id].pts)
 	if suit_routes:
 		for r in routes:

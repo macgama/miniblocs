@@ -85,8 +85,16 @@ func _run() -> void:
 	var sat := tel.satisfaction_of(p)
 	_check(float(sat[0]) <= -10.0 and (sat[1] as Array).size() == 2, "habitant sans internet ni mobile : %d (%s)" % [int(sat[0]), ", ".join(sat[1])])
 	var chained: Array = pop.extra_satisfaction.call(p)
-	_check(float(chained[0]) <= float(sat[0]) + 0.01 and (chained[1] as Array).has("− pas d'internet à la maison"),
-		"branché sur la satisfaction de Population (sans le fil Avis)")
+	if root.get_node_or_null("Avis") != null:
+		# Avec le fil Avis, le facteur passe par avis_facteurs() : pas de double compte.
+		_check(not (chained[1] as Array).has("− pas d'internet à la maison"), "avec Avis : pas compté deux fois dans Population.extra_satisfaction")
+		var ids := []
+		for src in (root.get_node("Avis") as Avis).sources():
+			ids.append(String(src.id))
+		_check(tel.avis_facteurs().size() > 0 and ids.has(String(tel.avis_facteurs()[0].id)), "branché sur Avis (groupe avis_sources)")
+	else:
+		_check(float(chained[0]) <= float(sat[0]) + 0.01 and (chained[1] as Array).has("− pas d'internet à la maison"),
+			"branché sur la satisfaction de Population (sans le fil Avis)")
 	_check(tel.avis_facteurs().size() == 1 and tel.is_in_group("avis_sources"), "facteur proposé au fil Avis")
 
 	print("Cuivre et ADSL :")

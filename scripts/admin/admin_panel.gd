@@ -42,6 +42,7 @@ var _freq: OptionButton
 var _reseaux: CheckBox
 var _prix_serv: HSlider
 var _prix_serv_l: Label
+var _faim: OptionButton
 var _usure: OptionButton
 var _dechets: CheckBox
 var _dechets_q: HSlider
@@ -210,6 +211,12 @@ func _ready() -> void:
 	g = _section(right, "Ressources", "ressources")
 	_epuisement = _check("Épuisement des ressources (mines, puits, forêts et poissons surexploités)")
 	g.add_child(_epuisement)
+	_faim = OptionButton.new()
+	for n in ["Aucun effet", "Normale (santé, départs)", "Mortelle (on peut mourir de faim)"]:
+		_faim.add_item(n)
+	_faim.disabled = not editable
+	_faim.item_selected.connect(func(_i: int) -> void: _changed())
+	_row(g, "Faim quand les magasins sont vides", _faim)
 
 	# Événements de la ville.
 	g = _section(right, "Événements", "infos")
@@ -388,6 +395,7 @@ func _fill() -> void:
 	_freq.select(fi)
 	_reseaux.button_pressed = reglages.reseaux_obligatoires
 	_prix_serv.value = reglages.prix_services
+	_faim.select(maxi(ReglagesPartie.FAIMS.find(reglages.faim), 0))
 	var ui := 2
 	for i in USURES.size():
 		if absf(float(USURES[i]) - reglages.usure) < 0.01:
@@ -423,6 +431,7 @@ func _changed() -> void:
 	reglages.frequence_catastrophes = float(FREQS[maxi(0, _freq.selected)])
 	reglages.reseaux_obligatoires = _reseaux.button_pressed
 	reglages.prix_services = _prix_serv.value
+	reglages.faim = String(ReglagesPartie.FAIMS[clampi(_faim.selected, 0, 2)])
 	reglages.usure = float(USURES[maxi(0, _usure.selected)])
 	reglages.dechets = _dechets.button_pressed
 	reglages.dechets_quantite = _dechets_q.value

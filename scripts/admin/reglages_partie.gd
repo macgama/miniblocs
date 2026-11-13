@@ -82,6 +82,11 @@ var frequence_catastrophes := 1.0
 var reseaux_obligatoires := true
 ## Multiplicateur des factures d'eau et d'électricité payées par les habitants.
 var prix_services := 1.0
+## Faim des habitants quand les commerces d'alimentation sont vides :
+## "aucune" (pas d'effet), "normale" (moins satisfaits, santé, départs),
+## "mortelle" (en plus, on peut mourir de faim). Voir Repas.
+var faim := "normale"
+const FAIMS := ["aucune", "normale", "mortelle"]
 ## Internet et téléphone comptent : satisfaction des habitants et rendement des
 ## entreprises (sinon les antennes et la fibre ne servent qu'au décor).
 var telecom_necessaire := true
@@ -242,7 +247,7 @@ func to_dict() -> Dictionary:
 		"salaires": salaires, "vitesse_temps": vitesse_temps, "vitesse_vie": vitesse_vie,
 		"epuisement": epuisement, "deblocage": deblocage, "createur": createur,
 		"record_habitants": record_habitants, "evenements_auto": evenements_auto, "catastrophes": catastrophes,
-		"frequence_catastrophes": frequence_catastrophes, "telecom_necessaire": telecom_necessaire, "construction_instantanee": construction_instantanee,
+		"frequence_catastrophes": frequence_catastrophes, "faim": faim, "telecom_necessaire": telecom_necessaire, "construction_instantanee": construction_instantanee,
 		"horaires_chantiers": horaires_chantiers, "usure": usure, "dechets": dechets, "dechets_quantite": dechets_quantite, "pollution": pollution, "pollution_sante": pollution_sante,
 		"reseaux_obligatoires": reseaux_obligatoires, "prix_services": prix_services}
 
@@ -266,6 +271,9 @@ func from_dict(d: Dictionary) -> void:
 	frequence_catastrophes = clampf(float(d.get("frequence_catastrophes", 1.0)), 0.25, 3.0)
 	reseaux_obligatoires = bool(d.get("reseaux_obligatoires", true))
 	prix_services = clampf(float(d.get("prix_services", 1.0)), PRIX_SERVICES_MIN, PRIX_SERVICES_MAX)
+	faim = String(d.get("faim", "normale"))
+	if not FAIMS.has(faim):
+		faim = "normale"
 	telecom_necessaire = bool(d.get("telecom_necessaire", true))
 	usure = clampf(float(d.get("usure", 1.0)), 0.0, 3.0)
 	construction_instantanee = bool(d.get("construction_instantanee", false))

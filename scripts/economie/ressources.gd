@@ -69,6 +69,13 @@ const MARCHANDISES := {
 	"fibres": {"name": "Lin et coton", "prix": 1500.0},
 	"betail": {"name": "Bétail", "prix": 2500.0},
 	"lait": {"name": "Lait cru", "prix": 500.0, "camion": "liquide"},
+	"oleagineux": {"name": "Colza, tournesol et soja", "prix": 450.0, "camion": "vrac"},
+	"foin": {"name": "Foin", "prix": 150.0, "camion": "vrac"},
+	"paille": {"name": "Paille", "prix": 90.0, "camion": "vrac"},
+	"fumier": {"name": "Fumier", "prix": 15.0, "camion": "vrac"},
+	"laine": {"name": "Laine", "prix": 2000.0},
+	"oeufs": {"name": "Œufs", "prix": 2500.0, "conso": true},
+	"huile": {"name": "Huile", "prix": 1600.0, "conso": true, "camion": "liquide"},
 	"poisson": {"name": "Poisson", "prix": 3000.0, "conso": true},
 	"fruits_legumes": {"name": "Fruits et légumes", "prix": 1500.0, "conso": true},
 	"planches": {"name": "Planches", "prix": 300.0},
@@ -108,10 +115,12 @@ const IMPORT := 1.25
 ## Consommation par habitant et par jour (tonnes), ordre de grandeur français ;
 ## carburant et voitures neuves : par voiture du foyer.
 const CONSO_HABITANT := {"pain": 0.0002, "viande": 0.00016, "poisson": 0.00005, "laitages": 0.0003,
-	"fruits_legumes": 0.0004, "epicerie": 0.0003, "boissons": 0.0005, "hygiene": 0.00006,
+	"fruits_legumes": 0.0004, "epicerie": 0.0003, "oeufs": 0.00004, "huile": 0.00004, "boissons": 0.0005, "hygiene": 0.00006,
 	"vetements": 0.00001, "medicaments": 0.000005, "electronique": 0.000005, "meubles": 0.00002, "biens": 0.0001}
 const CONSO_VOITURE := {"carburant": 0.003, "voitures": 0.0003}
 ## Besoins de première nécessité : un rayon vide fâche davantage.
+## Nourriture : ce qui compte pour les repas des habitants (voir Repas).
+const NOURRITURE := ["pain", "viande", "poisson", "laitages", "fruits_legumes", "epicerie", "oeufs", "huile"]
 const ESSENTIELS := ["pain", "laitages", "fruits_legumes", "epicerie", "boissons", "hygiene", "viande", "medicaments", "carburant"]
 
 ## Commerces : ce qu'ils vendent aux habitants. Clé = type, archétype ou
@@ -121,10 +130,11 @@ const ESSENTIELS := ["pain", "laitages", "fruits_legumes", "epicerie", "boissons
 ## par jour) pour servir leurs clients.
 const COMMERCES := {
 	"boulangerie": {"vend": ["pain"], "fait": {"in": {"farine": 0.75}, "out": {"pain": 1.0}}},
-	"superette": {"vend": ["pain", "laitages", "fruits_legumes", "epicerie", "boissons", "hygiene", "viande"]},
-	"supermarche": {"vend": ["pain", "viande", "poisson", "laitages", "fruits_legumes", "epicerie", "boissons", "hygiene",
+	"superette": {"vend": ["pain", "laitages", "fruits_legumes", "epicerie", "boissons", "hygiene", "viande", "oeufs", "huile"]},
+	"supermarche": {"vend": ["pain", "viande", "poisson", "laitages", "fruits_legumes", "epicerie", "oeufs", "huile",
+		"boissons", "hygiene",
 		"vetements", "electronique", "biens", "carburant"]},
-	"marche": {"vend": ["fruits_legumes", "viande", "poisson", "laitages", "pain"]},
+	"marche": {"vend": ["fruits_legumes", "viande", "poisson", "laitages", "pain", "oeufs"]},
 	"boutique": {"vend": ["vetements"]},
 	"boutique_mode": {"vend": ["vetements"]},
 	"grand_magasin": {"vend": ["vetements", "meubles", "electronique", "biens", "hygiene"]},

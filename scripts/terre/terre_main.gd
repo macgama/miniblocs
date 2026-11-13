@@ -25,6 +25,10 @@ var habitants_panel: HabitantsPanel
 ## Ressources naturelles et chaînes de production (touche P).
 var production: Production
 var production_panel: ProductionPanel
+## Agriculture : champs, travaux, machines, élevage et repas (Maj+F).
+var agriculture: Agriculture
+var agri_panel: AgriPanel
+var agri_visuels: AgriVisuels
 var resource_overlay: RessourcesOverlay
 ## Services d'urgence : pompiers, ambulances, police sur les routes (touche U).
 var urgences: Urgences
@@ -104,6 +108,7 @@ func _ready() -> void:
 	_setup_population()
 	_setup_mobilier()
 	_setup_production()
+	_setup_agriculture()
 	_setup_budget()
 	_setup_urgences()
 	_setup_reseaux()
@@ -203,7 +208,7 @@ func _ready() -> void:
 			hud.show_message("Partie chargée : %s." % _game_title())
 		else:
 			hud.show_message("Chargement impossible : " + last_error))
-	for sig in [world.terrain_edited, transport.network_changed, buildings.changed, zones.changed, blocks.changed, plans.changed, transport.stations.lines_changed, transport.junctions.changed, population.changed, production.changed, mobilier.changed, evenements.changed, decors.changed]:
+	for sig in [world.terrain_edited, transport.network_changed, buildings.changed, zones.changed, blocks.changed, plans.changed, transport.stations.lines_changed, transport.junctions.changed, population.changed, production.changed, agriculture.changed, mobilier.changed, evenements.changed, decors.changed]:
 		(sig as Signal).connect(func(_a = null) -> void: _unsaved = true)
 	hud.build_requested.connect(func() -> void: build_panel.toggle())
 	var vue := get_node_or_null("VueSol")
@@ -254,7 +259,7 @@ func save_sections() -> Dictionary:
 		"zones": zones.to_dict(), "blocs": blocks.to_dict(), "plans": plans.to_dict(), "ambiance": ambiance.to_dict(),
 		"creations": Creations.to_dict(Creations.used_by(buildings)),
 		"personnage": ($VueSol as VueSol).to_dict(), "habitants": population.to_dict(), "mobilier": mobilier.to_dict(),
-		"production": production.to_dict(), "urgences": urgences.to_dict(), "reseaux": reseaux.to_dict(), "dechets": dechets.to_dict(), "reglages": _settings_snapshot().to_dict(), "budget": budget.to_dict(), "evenements": evenements.to_dict(), "decors": decors.to_dict(),
+		"production": production.to_dict(), "agriculture": agriculture.to_dict(), "urgences": urgences.to_dict(), "reseaux": reseaux.to_dict(), "dechets": dechets.to_dict(), "reglages": _settings_snapshot().to_dict(), "budget": budget.to_dict(), "evenements": evenements.to_dict(), "decors": decors.to_dict(),
 		"nuisances": nuisances.to_dict(), "telecom": telecom.to_dict(), "services": services.to_dict()}
 
 
@@ -311,6 +316,7 @@ func load_game(slot := "") -> bool:
 	mobilier.from_dict(sec.get("mobilier", {}))
 	population.from_dict(sec.get("habitants", {}))
 	production.from_dict(sec.get("production", {}))
+	agriculture.from_dict(sec.get("agriculture", {}))
 	budget.from_dict(sec.get("budget", {}))
 	decors.from_dict(sec.get("decors", {}))
 	urgences.from_dict(sec.get("urgences", {}))
@@ -629,6 +635,32 @@ func _setup_production() -> void:
 		rig.position.x = pos.x
 		rig.position.z = pos.z)
 	hud.production_requested.connect(func() -> void: production_panel.toggle())
+
+
+## Agriculture : champs, machines, bêtes, repas des habitants et panneau (Maj+F).
+func _setup_agriculture() -> void:
+	agriculture = Agriculture.new()
+	agriculture.name = "Agriculture"
+	add_child(agriculture)
+	agriculture.setup(world, buildings, population, production, ambiance)
+	agriculture.message.connect(func(t: String) -> void: hud.show_message(t))
+	agriculture.info_changed.connect(func(t: String) -> void: hud.set_tool_info(t))
+	agri_visuels = AgriVisuels.new()
+	agri_visuels.name = "ChampsVisibles"
+	add_child(agri_visuels)
+	agri_visuels.setup(agriculture, world)
+	agri_panel = AgriPanel.new()
+	agri_panel.name = "PanneauAgriculture"
+	add_child(agri_panel)
+	agri_panel.setup(agriculture)
+	agri_panel.focus_requested.connect(func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
+	agri_panel.outil_demande.connect(func() -> void:
+		var o := agriculture.outil
+		_select_building_tool()
+		agriculture.outil = o)
+	hud.agriculture_requested.connect(func() -> void: agri_panel.toggle())
 
 
 ## Internet et téléphone (scripts/reseaux/telecom.gd) et son panneau (Maj + O),
@@ -1090,6 +1122,8 @@ func _select_building_tool(from_transit := false) -> void:
 	blocks.set_inactive()
 	plans.set_inactive()
 	mobilier.set_inactive()
+	if agriculture and agriculture.outil != "":
+		agriculture.set_outil("")
 	if banque_pose:
 		banque_pose.stop()
 	hud.select_tool_silently(0)
@@ -1142,6 +1176,8 @@ func _setup_landscape() -> void:
 
 func _on_tool_selected(t: int) -> void:
 	landscape.set_shown(t == TerreHud.LANDSCAPE_TOOL)
+	if agriculture and agriculture.outil != "":
+		agriculture.set_outil("")
 	if telecom:
 		telecom.set_inactive()
 	if decors_panel:
@@ -1187,6 +1223,7 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 		evenements.clear()
 	population.clear()
 	production.clear()
+	agriculture.clear()
 	budget.clear()
 	urgences.clear()
 	reseaux.clear()
@@ -1271,7 +1308,7 @@ var _open_before := {}
 ## Construire, Lignes et Habitants partagent la même place à droite : quand
 ## l'un s'ouvre, les autres se ferment. Leur bouton de la barre du bas s'allume.
 func _exclusive_panels() -> void:
-	var panels := {"construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "urgences": urgences_panel, "reseaux": reseaux_panel, "dechets": dechets_panel, "budget": budget_panel, "telecom": telecom_panel, "perso": perso_panel, "infos": evenements_panel, "cartes": cartes_panel}
+	var panels := {"construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "agriculture": agri_panel, "urgences": urgences_panel, "reseaux": reseaux_panel, "dechets": dechets_panel, "budget": budget_panel, "telecom": telecom_panel, "perso": perso_panel, "infos": evenements_panel, "cartes": cartes_panel}
 	var opened := ""
 	for id in panels:
 		var p = panels[id]

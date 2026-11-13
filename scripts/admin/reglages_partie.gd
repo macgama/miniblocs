@@ -75,6 +75,8 @@ var evenements_auto := true
 var catastrophes := true
 ## Fréquence des catastrophes (0,25 : rares ; 1 : normales ; 3 : fréquentes).
 var frequence_catastrophes := 1.0
+## Vitesse d'usure des routes, rails et réseaux (0 : jamais ; 0,5 lente ; 1 normale ; 2 rapide).
+var usure := 1.0
 ## Joueur qui a créé la partie (SaveGame.player_id()) : l'admin des cartes entre amis.
 var createur := ""
 ## Chantiers : les constructions apparaissent d'un coup (bac à sable) au lieu de
@@ -191,6 +193,10 @@ func est_debloque(id: String) -> bool:
 
 ## Raison du blocage, ou "".
 func raison_blocage(id: String) -> String:
+	# Ville sous tutelle du préfet : pas de nouveau bâtiment public.
+	var tutelle := BudgetCommunal.raison_blocage(id)
+	if tutelle != "":
+		return tutelle
 	if est_debloque(id):
 		return ""
 	var p: Dictionary = PALIERS[palier_requis(id)]
@@ -216,7 +222,7 @@ func to_dict() -> Dictionary:
 		"epuisement": epuisement, "deblocage": deblocage, "createur": createur,
 		"record_habitants": record_habitants, "evenements_auto": evenements_auto, "catastrophes": catastrophes,
 		"frequence_catastrophes": frequence_catastrophes, "construction_instantanee": construction_instantanee,
-		"horaires_chantiers": horaires_chantiers}
+		"horaires_chantiers": horaires_chantiers, "usure": usure}
 
 
 func from_dict(d: Dictionary) -> void:
@@ -236,6 +242,7 @@ func from_dict(d: Dictionary) -> void:
 	evenements_auto = bool(d.get("evenements_auto", true))
 	catastrophes = bool(d.get("catastrophes", true))
 	frequence_catastrophes = clampf(float(d.get("frequence_catastrophes", 1.0)), 0.25, 3.0)
+	usure = clampf(float(d.get("usure", 1.0)), 0.0, 3.0)
 	construction_instantanee = bool(d.get("construction_instantanee", false))
 	horaires_chantiers = String(d.get("horaires_chantiers", "semaine"))
 	if not Chantiers.HORAIRES.has(horaires_chantiers):

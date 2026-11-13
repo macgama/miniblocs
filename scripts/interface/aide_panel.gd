@@ -58,6 +58,14 @@ const SECTIONS := [
 		["Incendie, tempête, épidémie à la main", "panneau Infos, onglet Organiser, puis clic sur la carte (Échap pour annuler)"],
 		["Catastrophes", "panneau Admin (F10), section Événements : les couper ou régler leur fréquence"],
 	]],
+	["Budget de la commune", [
+		["M", "panneau Budget : bilan du mois, impôts votés par le maire, emprunts, entretien et état des voies"],
+		["Impôts", "taxe foncière, impôt des entreprises, impôt sur les bénéfices de 0 à 200 % : plus haut, la caisse se remplit et les habitants râlent"],
+		["Emprunts", "de 100 k€ à 20 M€ sur 5 à 30 ans ; le taux monte avec la dette, plafond de 8 ans de recettes, remboursement anticipé possible"],
+		["Tutelle", "caisse dans le rouge 90 jours : le préfet relève les impôts à 150 %, bloque emprunts et bâtiments publics jusqu'à 30 jours sans dette"],
+		["Usure", "routes, rails, chemins et voies d'eau s'usent avec l'âge et le trafic (camions surtout) ; sous 50 % : nids-de-poule et véhicules ralentis ; à 0 % : voie fermée"],
+		["Entretien", "budget courant par réseau, réparation automatique sous un seuil, carte de l'état (vert → rouge), « Voir » et « Réparer » sur les pires tronçons ; vitesse d'usure dans l'Admin (F10)"],
+	]],
 	["Transports publics", [
 		["L", "panneau Lignes : arrêts, stations de métro, gares, ports, aéroports, dépôts de marchandises, parkings et lignes (case Fret pour les trains et les bateaux)"],
 	]],

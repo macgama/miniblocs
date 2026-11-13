@@ -17,13 +17,33 @@ const MAX_SIDE := 40
 const MAX_LEVELS := 12
 
 
+## Bâtiments modélisés dans Blender : usage selon leur rôle.
+const USAGE_GLB := {"maison": "logement", "villa": "logement", "immeuble": "logement", "tour": "logement", "hotel": "logement",
+	"boutiques": "boutique", "boulangerie": "boutique", "boucherie": "boutique", "epicerie": "boutique", "pharmacie": "boutique",
+	"librairie": "boutique", "fleuriste": "boutique", "restaurant": "restaurant", "cafe": "restaurant",
+	"bureaux": "bureaux", "banque": "bureaux", "mairie": "bureaux", "atelier": "bureaux", "menuiserie": "bureaux", "ecole": "ecole"}
+
+
 static func can_open(type_id: String) -> bool:
+	return usage_of(type_id) != ""
+
+
+## Usage des murs fins pour ce type (« » s'il ne s'ouvre pas).
+static func usage_of(type_id: String) -> String:
 	var t := BuildingCatalog.get_type(type_id)
-	return t.has("arch") and USAGE.has(String(t.arch))
+	if t.has("arch"):
+		return String(USAGE.get(String(t.arch), ""))
+	if Personnalisation.is_glb(type_id) and not BibleGlb.volume(type_id).is_empty():
+		return String(USAGE_GLB.get(String(t.get("role", "")), ""))
+	return ""
 
 
 ## Volume principal du modèle (repère local du catalogue) : {w, d, cz}.
 static func main_volume(t: Dictionary) -> Dictionary:
+	if t.has("glb") and t.has("id"):
+		var v := BibleGlb.volume(String(t.id))
+		if not v.is_empty():
+			return v
 	var w := float(t.get("w", 10))
 	var d := float(t.get("d", 10))
 	var arch := String(t.get("arch", ""))
@@ -33,12 +53,12 @@ static func main_volume(t: Dictionary) -> Dictionary:
 
 
 ## Style de meubles le plus proche du style du bâtiment.
-static func furniture_style(style_id: String) -> String:
+static func furniture_style(style_id: String, region_ := "", era_ := "") -> String:
 	if Meubles.STYLES.has(style_id):
 		return style_id
 	var s: Dictionary = Styles.STYLES.get(style_id, {})
-	var region := String(s.get("region", "europe"))
-	var era := String(s.get("era", "contemporain"))
+	var region := String(s.get("region", region_ if region_ != "" else "europe"))
+	var era := String(s.get("era", era_ if era_ != "" else "contemporain"))
 	# Même région et même époque d'abord.
 	for sid in Meubles.STYLES:
 		var m: Dictionary = Meubles.STYLES[sid]
@@ -225,18 +245,19 @@ static func open_interior(mob: Mobilier, bid: int) -> Dictionary:
 	var type_id := String(b.t)
 	if not can_open(type_id):
 		return {"ok": false, "error": "ce bâtiment ne s'ouvre pas encore (seulement maisons, immeubles, boutiques, restaurants, bureaux, ateliers, écoles)"}
-	var t := BuildingCatalog.get_type(type_id)
+	var t := BuildingCatalog.get_type(type_id).duplicate()
+	t["id"] = type_id
 	var perso: Dictionary = b.get("perso", {})
 	var vol := main_volume(t)
 	var W := maxi(4, int(round(float(vol.w))))
 	var D := maxi(4, int(round(float(vol.d))))
 	if W > MAX_SIDE or D > MAX_SIDE:
 		return {"ok": false, "error": "bâtiment trop grand pour être ouvert (%d m de côté au plus)" % MAX_SIDE}
-	var floors := int(perso.get("etages", Personnalisation.base_floors(type_id)))
+	var floors := int(perso.get("etages", vol.get("etages", Personnalisation.base_floors(type_id))))
 	var yaw := -int(b.r) * PI / 2.0 + float(b.get("a", 0.0))
 	var basis := Basis(Vector3.UP, yaw)
 	var rect := Rect2i(Vector2i(int(b.x), int(b.z)), BuildingCatalog.footprint(type_id, int(b.r)))
-	var center := BuildingSystem.rect_center(rect) + basis * Vector3(0, 0, float(vol.cz))
+	var center := BuildingSystem.rect_center(rect) + basis * Vector3(float(vol.get("cx", 0.0)), 0, float(vol.cz))
 	var f := basis * Vector3(0, 0, -1)
 	var gr := 0
 	if absf(f.x) > absf(f.z):
@@ -249,13 +270,14 @@ static func open_interior(mob: Mobilier, bid: int) -> Dictionary:
 	var pal := Personnalisation.palette(type_id, int(b.get("v", 0)))
 	var wall_c := Personnalisation.color_of(type_id, int(b.get("v", 0)), perso, "mur")
 	var roof_c := Personnalisation.color_of(type_id, int(b.get("v", 0)), perso, "toit_c")
-	if pal.is_empty():
+	if pal.is_empty() and not Personnalisation.is_glb(type_id):
 		wall_c = Color("f1ece2")
 	var style_id := String(t.get("style", ""))
 	var roof_kind := String(perso.get("toit", Personnalisation.base_roof(type_id)))
-	var usage := String(USAGE[String(t.arch)])
+	var usage := usage_of(type_id)
+	var roof := String(vol.toit) if vol.has("toit") else String(ROOF.get(roof_kind, "deux_pans"))
 	var spec := {"w": W, "d": D, "levels": levels_for(usage, W, D, floors), "usage": usage,
-		"roof": String(ROOF.get(roof_kind, "deux_pans")), "budget": 0,
+		"roof": roof, "budget": 0,
 		"wall_mat": nearest_material(wall_c, ["murs", "bois"]),
 		"roof_mat": nearest_material(roof_c, ["toits"])}
 	# Le bâtiment du catalogue laisse la place ; son prix compte pour la reconstruction.
@@ -263,7 +285,7 @@ static func open_interior(mob: Mobilier, bid: int) -> Dictionary:
 	bs.remove_quietly(bid)
 	if not bs.unlimited_money:
 		bs.money += int(saved.get("cost", 0))
-	var res := Gabarits.build_spec(mob, spec, origin, gr, furniture_style(style_id))
+	var res := Gabarits.build_spec(mob, spec, origin, gr, furniture_style(style_id, String(t.get("region", "")), String(t.get("era", ""))))
 	if not res.ok:
 		if not bs.unlimited_money:
 			bs.money -= int(saved.get("cost", 0))

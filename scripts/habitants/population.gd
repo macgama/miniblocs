@@ -56,6 +56,10 @@ const COURSES := 260.0 # par personne
 const VOITURE := 160.0
 const DAYS_PER_MONTH := 30.44
 
+## Versement quotidien de la ville, repris par le budget communal (BudgetCommunal.pay_day).
+## Vide : la caisse reçoit directement le solde de city_budget().
+var city_pay: Callable
+
 @export var world_path: NodePath
 @export var buildings_path: NodePath
 @export var transport_path: NodePath
@@ -99,6 +103,8 @@ var extra_buildings: Callable
 var extra_pick: Callable
 ## Satisfaction venue d'ailleurs (commerces de l'économie locale) : f(p) -> [delta, raisons].
 var extra_satisfaction: Callable
+## Attrait d'un logement pour les arrivants (bid) -> multiplicateur (Nuisances : bruit, pollution, valeur).
+var attrait_logement: Callable
 
 var _arrival_acc: Dictionary = {}
 var _money_frac := 0.0
@@ -620,7 +626,8 @@ func _immigrate(hours: float) -> void:
 		# Un premier foyer s'installe vite dans un logement vide.
 		if (by_home.get(bid, []) as Array).is_empty():
 			acc = maxf(acc, 1.0)
-		acc += maxf(1.0, free * ARRIVAL_RATE) * hours
+		var attrait := float(attrait_logement.call(bid)) if attrait_logement.is_valid() else 1.0
+		acc += maxf(1.0, free * ARRIVAL_RATE) * hours * attrait
 		var n := mini(int(acc), free)
 		acc -= n
 		_arrival_acc[bid] = acc
@@ -820,6 +827,9 @@ func household_budget(hid: int) -> Dictionary:
 	# Logement aménagé : le loyer suit sa valeur.
 	if known.has(int(h.b)) and float(known[int(h.b)].get("loyer", 0.0)) > 0.0:
 		rent = float(known[int(h.b)].loyer)
+	# Le loyer suit la valeur du quartier (pollution, bruit, parcs, commerces…).
+	if Nuisances.instance != null:
+		rent *= Nuisances.instance.coef_foncier(int(h.b))
 	var food := COURSES * (h.m as Array).size()
 	var cars := VOITURE * int(h.car)
 	return {"revenus": inc, "loyer": rent, "courses": food, "voitures": cars, "solde": inc - rent - food - cars}
@@ -832,7 +842,11 @@ func city_budget() -> Dictionary:
 	var reg := ReglagesPartie.actuel
 	for hid in households:
 		var hb := int(households[hid].b)
-		rec["Taxe foncière"] += TAXE_FONCIERE * reg.impots * (float(known[hb].get("tf", 1.0)) if known.has(hb) else 1.0)
+		var tf := float(known[hb].get("tf", 1.0)) if known.has(hb) else 1.0
+		# La taxe foncière suit la valeur du terrain.
+		if Nuisances.instance != null:
+			tf *= Nuisances.instance.coef_foncier(hb)
+		rec["Taxe foncière"] += TAXE_FONCIERE * reg.impots * tf
 	rec["Dotation de l'État"] = DOTATION * persons.size()
 	for bid in by_job:
 		if not known.has(bid):
@@ -866,7 +880,9 @@ func _pay_day() -> void:
 		_book(k, b.recettes[k] * day)
 	for k in b.depenses:
 		_book(k, -b.depenses[k] * day)
-	if buildings != null and not buildings.unlimited_money:
+	if city_pay.is_valid():
+		city_pay.call(b, day)
+	elif buildings != null and not buildings.unlimited_money:
 		_money_frac += float(b.solde) * day
 		var whole := int(_money_frac)
 		_money_frac -= whole

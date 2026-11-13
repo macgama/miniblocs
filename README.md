@@ -29,6 +29,7 @@ L'écran a une barre en haut (lieu, partie, heure et vitesse du temps, chiffres 
 | Transports publics | **L** (stations, gares, ports, aéroports, lignes) |
 | Habitants | **H** (la ville en chiffres, liste des habitants, budget) ; clic sur un bâtiment avec l'outil 1 |
 | Habitants au travail | **K** vue métiers (zoome sur un commerce, une école, un hôpital : il s'ouvre en coupe), **Maj + K** coupe automatique oui/non |
+| Internet et téléphone | **Maj + O** (antennes 2G / 4G / 5G, central, cuivre, fibre, calques de couverture et de débit) |
 | Temps | **T** pause, **Maj + T** vitesse suivante |
 | Vue au sol | **V** (dessus, 3e personne, 1re personne) |
 | Sauvegarder / recharger | **F5** / **F9** ; icônes Sauver, Charger (liste des parties) et Globe en haut à gauche |
@@ -334,6 +335,8 @@ L'onglet **Intérieur** (icône fauteuil) du panneau Construire aménage les bâ
 
 - **Personnaliser** : clic sur un bâtiment du catalogue (outil 1), puis « Personnaliser » sur sa fiche. On change les couleurs (murs, toit, boiseries, volets, porte, vitres) dans le nuancier du style ou en couleur libre, la forme du toit (deux pans, quatre pans, terrasse, mansarde, bords relevés, appentis, chaume), le nombre d'étages, la pente du toit et la variante. Seul ce bâtiment change ; un bouton applique le même réglage à tous les bâtiments du même modèle. Tout est gardé dans la partie.
 - **Ouvrir l'intérieur** (maisons, immeubles, boutiques, restaurants, bureaux, ateliers, écoles) : le bâtiment est reconstruit en murs fins à sa place, avec ses couleurs (matériaux les plus proches), découpé en pièces (entrée et escalier, séjour, cuisine, chambres, salle de bains ; salle de vente et réserve pour une boutique, logement au-dessus) et meublé dans un style proche du sien. On y entre (V), on le meuble (onglet Intérieur) et on peut déplacer ses murs. Les petits ornements du modèle (corniches, cheminée) disparaissent.
+- **Bâtiments modélisés dans Blender** : ils se personnalisent aussi (couleurs des murs, du toit, des encadrements, des volets, de la porte et des vitres ; la forme reste celle du modèle). Les maisons, immeubles, hôtels, boutiques, cafés, restaurants, bureaux et écoles (79 modèles) s'ouvrent en murs fins : le volume des murs et le nombre d'étages sont lus dans le modèle.
+- **Vue par étage** (mode Gérer) : **Page bas** enlève l'étage du haut de tous les bâtiments en murs fins autour de la caméra, toit compris ; **Page haut** le remet ; **Origine** montre tout. Une petite échelle s'affiche en haut de l'écran (▼ ▲ « Tout voir »). Les meubles et les habitants suivent : on voit qui dort, mange ou travaille à chaque niveau. Les bâtiments encore fermés (catalogue, Blender) s'ouvrent avec « Ouvrir l'intérieur ».
 - **Banque de modèles** (mode Créer, touche 6) : chaque bâtiment personnalisé ou en murs fins s'enregistre avec un nom et des étiquettes (type, style, région, époque, couleurs, étages, pièces, taille). On cherche, on filtre, on repose. « Exporter » crée un fichier à envoyer, « Importer » lit ceux reçus (dossier d'échange). Chaque modèle est rangé comme un objet du Steam Workshop (un dossier avec `modele.json` et `apercu.png`), pour le partage entre joueurs quand le jeu sera sur Steam.
 - **Atelier** (bouton du globe, ou touche 7 en mode Créer) : un terrain plat, sans habitants ni argent ni météo, pour créer et retoucher des bâtiments, puis les ranger dans la banque. Depuis une partie, elle est sauvegardée avant d'ouvrir l'atelier, et « Quitter » (7) y ramène. L'atelier garde ce qu'on y a laissé.
 
@@ -341,6 +344,9 @@ L'onglet **Intérieur** (icône fauteuil) du panneau Construire aménage les bâ
 ![Le panneau Personnaliser](docs/personnaliser_panneau.png)
 ![Une Maison à pignon ouverte : pièces et meubles](docs/personnaliser_coupe.png)
 ![L'atelier et sa banque de modèles](docs/personnaliser_atelier.png)
+![Maisons Blender repeintes et le panneau Personnaliser](docs/personnaliser_blender.png)
+![Vue par étage : le 2e étage des maisons Blender ouvertes](docs/personnaliser_etages.png)
+![Vue par étage, de près : les habitants à table au rez-de-chaussée](docs/personnaliser_proche.png)
 
 ### Éditeur libre : construire bloc par bloc
 
@@ -390,6 +396,19 @@ Touche **H** : la ville en chiffres, la liste des habitants (filtre et recherche
 ![Profil d'un élève](docs/apercu-habitants-profil.png)
 
 Détails : [docs/habitants.md](docs/habitants.md).
+
+## Internet et téléphone : antennes, cuivre et fibre
+
+Antennes relais 2G, 4G et 5G (portées réelles, saturation quand trop d'abonnés), central téléphonique dont le cuivre suit les routes (ADSL de plus en plus lent avec la distance), fibre posée rue par rue ou sur poteaux jusqu'aux fermes. Sans internet ni réseau mobile, les habitants sont moins satisfaits et les entreprises produisent moins (réglage Admin pour couper). Détails : [docs/telecom.md](docs/telecom.md).
+
+![Calque de couverture mobile : pylône 4G et petite antenne 5G](docs/apercu-telecom-couverture.png)
+## Budget de la commune : impôts, emprunts, entretien des voies
+
+Touche **M** : le maire vote la taxe foncière, l'impôt des entreprises et l'impôt sur les bénéfices (0 à 200 %, les habitants râlent quand c'est haut), emprunte de 100 k€ à 20 M€ sur 5 à 30 ans, et règle l'entretien de chaque réseau. Routes, rails, chemins et voies d'eau **s'usent** avec l'âge et le trafic (les camions surtout) : sous 50 %, nids-de-poule et véhicules ralentis, à 0 % la voie ferme. Les réfections sont des chantiers visibles. Caisse dans le rouge 90 jours : le préfet met la ville sous tutelle.
+
+![Nids-de-poule sur une route usée](docs/apercu-budget-nids-de-poule.jpg)
+
+Détails : [docs/budget.md](docs/budget.md).
 
 ## Vue au sol : marcher à la 3e ou à la 1re personne
 
@@ -523,6 +542,7 @@ Une ferme entièrement générée en code (longère à colombages et toit de cha
 | `scripts/interieurs/mobilier.gd` | Meubles dans les bâtiments en murs fins : pose, pièces et fonctions, aménagement automatique, effets, sauvegarde |
 | `scripts/interieurs/gabarits.gd` | Bâtiments meublés prêts à visiter |
 | `scripts/interieurs/occupants.gd` | Les habitants dans les pièces, à leurs heures |
+| `scripts/interieurs/vue_etages.gd` | Vue par étage en mode Gérer (Page bas/haut, Origine) : coupe les bâtiments en murs fins autour de la caméra |
 | `scripts/interieurs/interieur_panel.gd` | Onglet « Intérieur » du panneau Construire |
 | `tests/interieurs_test.gd` | Test des intérieurs (bible, pose, aménagement, habitants, sauvegarde, panneau) |
 | `tests/interieurs_vitrine.gd` | Bâtiments meublés en coupe et captures (`--vue dessus`, `proche`, `sol`, `bible`, `panneau`, `--style japonais`) |

@@ -63,6 +63,8 @@ signal restarted
 signal line_arrived(line_id: int, model: String)
 ## Un véhicule passe sur un nouveau tronçon (usure des voies, comptages).
 signal edge_entered(eid: int, v: Dictionary)
+## Un véhicule quitte la circulation (fin de course, ligne supprimée…).
+signal vehicle_removed(v: Dictionary)
 
 var network: TransportNetwork
 var enabled := true
@@ -469,7 +471,8 @@ func _process(delta: float) -> void:
 				spawn(mode)
 			elif have > want:
 				for i in vehicles.size():
-					if int(vehicles[i].mode) == mode and not vehicles[i].has("line") and not vehicles[i].has("urgence") and not vehicles[i].has("delivery"):
+					if int(vehicles[i].mode) == mode and not vehicles[i].has("line") and not vehicles[i].has("urgence") and not vehicles[i].has("delivery") \
+							and not vehicles[i].has("aboard"):
 						_free_vehicle(vehicles[i])
 						vehicles.remove_at(i)
 						break
@@ -1077,6 +1080,9 @@ func _drive(v: Dictionary, eid: int, e: Dictionary, cruise: float, delta: float)
 	var s := float(v.s)
 	var stuck := float(v.get("stuck", 0.0))
 	var ghost: bool = (v.has("line") or v.has("delivery")) and stuck > STUCK_LINE
+	# Quelqu'un à bord d'une voiture bloquée : elle se faufile au lieu de disparaître.
+	if v.has("aboard") and stuck > STUCK:
+		ghost = true
 	var siren: bool = v.get("siren", false)
 	if v.has("urgence") and stuck > (SIREN_GHOST if siren else STUCK_LINE):
 		ghost = true
@@ -1131,7 +1137,7 @@ func _drive(v: Dictionary, eid: int, e: Dictionary, cruise: float, delta: float)
 	if adv < 0.05 * delta:
 		v.wait = float(v.get("wait", 0.0)) + delta
 		v.stuck = stuck + delta
-		if not (v.has("line") or v.has("delivery")) and not v.has("urgence") and float(v.stuck) > STUCK:
+		if not (v.has("line") or v.has("delivery")) and not v.has("urgence") and float(v.stuck) > STUCK and not v.has("aboard"):
 			return false
 	else:
 		v.wait = 0.0
@@ -1387,6 +1393,8 @@ func _model_mesh(id: String, paint: int) -> ArrayMesh:
 
 
 func _free_vehicle(v: Dictionary) -> void:
+	if v.has("aboard"):
+		vehicle_removed.emit(v)
 	_end_cross(v)
 	_release(v)
 	_free_spot(v)

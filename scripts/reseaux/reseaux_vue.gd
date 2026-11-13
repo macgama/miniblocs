@@ -3,13 +3,14 @@ extends Node3D
 ## Ce qu'on voit des réseaux :
 ## - lignes électriques : pylônes (HT) ou poteaux (MT) et câbles, toujours visibles ;
 ##   pendant le chantier, seuls les pylônes déjà montés apparaissent ;
-## - conduites d'eau et égouts : enterrés, montrés en couleur avec le calque ;
+## - conduites d'eau, égouts, gaz : enterrés, montrés en couleur avec le calque ;
+## - pannes : câbles tombés au sol (lignes), tronçon rouge (conduites) ;
 ## - calque d'un réseau : une pastille au-dessus de chaque bâtiment (vert :
 ##   desservi, orange : rationné, rouge : coupé) et les sources en grand.
 
 var reseaux: Reseaux
 ## res -> calque affiché
-var calques := {"elec": false, "eau": false, "egout": false}
+var calques := {"elec": false, "eau": false, "egout": false, "gaz": false}
 var calques_sales := true
 
 var _mat: StandardMaterial3D
@@ -20,6 +21,9 @@ var _pastilles: MultiMeshInstance3D
 var _fantome: MeshInstance3D
 ## Calque : routes et tronçons colorés selon leur réseau (vert, orange, rouge).
 var _lignes_calque: MeshInstance3D
+## Pannes en cours : gyrophare orange de l'équipe, flaque pour une fuite.
+var _incidents_mi: MeshInstance3D
+var _incidents_cle := ""
 var _acc := 0.0
 
 
@@ -51,6 +55,10 @@ func _ready() -> void:
 	_lignes_calque.name = "LignesCalque"
 	_lignes_calque.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(_lignes_calque)
+	_incidents_mi = MeshInstance3D.new()
+	_incidents_mi.name = "Incidents"
+	_incidents_mi.material_override = _mat
+	add_child(_incidents_mi)
 	_fantome = MeshInstance3D.new()
 	_fantome.name = "Fantome"
 	_fantome.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -64,6 +72,40 @@ func _process(delta: float) -> void:
 	_acc = 0.0
 	calques_sales = false
 	_maj_pastilles()
+	_maj_incidents()
+
+
+## Repères des pannes : camionnette et cône orange ; flaque bleue pour une fuite.
+func _maj_incidents() -> void:
+	if reseaux == null:
+		return
+	var lst: Array = reseaux.incidents.incidents
+	var cle := ""
+	for inc in lst:
+		cle += "%d," % int(inc.id)
+	if cle == _incidents_cle:
+		return
+	_incidents_cle = cle
+	if lst.is_empty():
+		_incidents_mi.mesh = null
+		return
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for inc in lst:
+		var p: Vector3 = inc.p
+		if reseaux.world != null:
+			p.y = reseaux._hauteur(p)
+		var b := Basis()
+		if String(inc.kind) == "fuite":
+			_boite(st, p + Vector3(0, 0.05, 0), Vector3(7, 0.1, 5), b, Color("4cc9f0"))
+		# Camionnette de l'équipe et cônes.
+		_boite(st, p + Vector3(4, 1.1, 0), Vector3(2.0, 2.2, 4.8), b, Color("f4f1de"))
+		_boite(st, p + Vector3(4, 1.4, 0), Vector3(2.05, 0.3, 4.85), b, Color("f77f00"))
+		_boite(st, p + Vector3(4, 2.35, -0.8), Vector3(0.5, 0.3, 0.5), b, Color("ff9f1c"))
+		for k in 3:
+			_boite(st, p + Vector3(-2 + k * 2.0, 0.4, 3.0), Vector3(0.45, 0.8, 0.45), b, Color("ff6b35"))
+	st.generate_normals()
+	_incidents_mi.mesh = st.commit()
 
 
 func set_calque(res: String, on: bool) -> void:
@@ -121,11 +163,13 @@ func _refaire(res: String, id: int) -> void:
 	var mat := _mat
 	if res == "elec":
 		var av := 1.0 if bool(e.ok) else float(e.get("av", 0.0))
-		mesh = ligne_aerienne(e.pts, String(e.t), av)
+		mesh = ligne_aerienne(e.pts, String(e.t), av, bool(e.get("hs", false)))
 	elif bool(calques[res]) or (reseaux.outil == Reseaux.Outil.TRACER and String(ReseauxTypes.troncon(reseaux.type_troncon).res) == res):
 		var col: Color = ReseauxTypes.COULEURS[res]
 		if not bool(e.ok):
 			col = col.darkened(0.45)
+		if bool(e.get("hs", false)):
+			col = Color("e63946")
 		mesh = ruban(e.pts, 2.2 if String(e.t) == "collecteur" else 1.4, col, 0.4)
 		mat = _mat_calque
 	if mesh == null:
@@ -173,7 +217,7 @@ static func ruban(pts: PackedVector3Array, largeur: float, col: Color, haut := 0
 
 
 ## Pylônes ou poteaux tous les `pas` mètres, câbles entre eux. av : part montée (chantier).
-static func ligne_aerienne(pts: PackedVector3Array, type_id: String, av := 1.0) -> ArrayMesh:
+static func ligne_aerienne(pts: PackedVector3Array, type_id: String, av := 1.0, casse := false) -> ArrayMesh:
 	var tr := ReseauxTypes.troncon(type_id)
 	var pas := float(tr.get("pas", 60.0))
 	var haut := float(tr.get("haut", 10.0))
@@ -205,11 +249,21 @@ static func ligne_aerienne(pts: PackedVector3Array, type_id: String, av := 1.0) 
 			_boite(st, p + Vector3(0, haut * 0.5, 0), Vector3(0.35, haut, 0.35), bas, metal)
 			_boite(st, p + Vector3(0, haut - 0.4, 0), Vector3(2.2, 0.18, 0.18), bas, metal)
 			tetes.append([p + Vector3(0, haut - 0.25, 0) + cote * 0.95, p + Vector3(0, haut - 0.25, 0) - cote * 0.95, p + Vector3(0, haut - 0.25, 0)])
-	# Câbles entre deux pylônes montés, avec une flèche au milieu.
+	# Câbles entre deux pylônes montés, avec une flèche au milieu. En panne : la
+	# portée du milieu est tombée au sol.
+	var tombee := (montes - 1) / 2 if casse else -1
 	for i in range(maxi(montes - 1, 0)):
 		for c in 3:
 			var a: Vector3 = tetes[i][c]
 			var b: Vector3 = tetes[i + 1][c]
+			if i == tombee:
+				var sol_a: Vector3 = poses[i][0] + (b - a) * 0.35
+				var sol_b: Vector3 = poses[i + 1][0] - (b - a) * 0.35
+				sol_a.y = poses[i][0].y + 0.2
+				sol_b.y = poses[i + 1][0].y + 0.2
+				_cable(st, a, sol_a, 0.12 if ht else 0.07, cable)
+				_cable(st, b, sol_b, 0.12 if ht else 0.07, cable)
+				continue
 			var fleche := a.distance_to(b) * (0.03 if ht else 0.02)
 			var prev := a
 			for s in range(1, 5):
@@ -291,7 +345,7 @@ func _maj_pastilles() -> void:
 	for bid in r.sources:
 		list.append([bid, true])
 	mm.instance_count = list.size()
-	var k := {"elec": "e", "eau": "o", "egout": "g"}[res] as String
+	var k: String = Reseaux.CLE[res]
 	for i in list.size():
 		var bid := int(list[i][0])
 		var src: bool = list[i][1]

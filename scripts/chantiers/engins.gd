@@ -25,6 +25,15 @@ static func _mi(k: BlocMesh, nom: String) -> MeshInstance3D:
 	return mi
 
 
+## On peut monter à bord en vue au sol (voir ABord) ; l'avant regarde vers +Z.
+static func _montable(root: Node3D, nom: String, siege: Vector3) -> void:
+	root.add_to_group(ABord.GROUPE)
+	root.set_meta("nom_bord", nom)
+	root.set_meta("infos_bord", "Sur un chantier")
+	root.set_meta("avant_plus_z", true)
+	root.set_meta("siege_bord", siege)
+
+
 static func _roues(k: BlocMesh, long: float, large: float, r: float, n := 2) -> void:
 	for i in n:
 		var z := lerpf(-long / 2.0, long / 2.0, float(i) / maxf(n - 1, 1))
@@ -36,6 +45,7 @@ static func _roues(k: BlocMesh, long: float, large: float, r: float, n := 2) -> 
 static func pelleteuse() -> Node3D:
 	var root := Node3D.new()
 	root.name = "Pelleteuse"
+	_montable(root, "Pelleteuse", Vector3(-0.6, 2.75, 0.4))
 	var k := BlocMesh.new()
 	for s in [-1.0, 1.0]:
 		k.box(s * 1.05, 0.0, 0, 0.6, 0.8, 3.6, NOIR)
@@ -61,6 +71,7 @@ static func pelleteuse() -> Node3D:
 static func toupie() -> Node3D:
 	var root := Node3D.new()
 	root.name = "Toupie"
+	_montable(root, "Camion-toupie", Vector3(-0.45, 2.3, 2.6))
 	var k := BlocMesh.new()
 	k.box(0, 0.5, 0, 2.3, 0.4, 7.0, GRIS.darkened(0.2))
 	k.box(0, 0.9, 2.6, 2.4, 1.9, 1.8, BLANC)
@@ -90,6 +101,7 @@ static func camionnette() -> Node3D:
 	_roues(k, 3.2, 2.0, 0.35, 2)
 	var root := Node3D.new()
 	root.name = "Camionnette"
+	_montable(root, "Camionnette d'artisan", Vector3(-0.45, 1.6, 1.4))
 	root.add_child(_mi(k, "Corps"))
 	return root
 
@@ -105,6 +117,7 @@ static func finisseur(largeur := 3.0) -> Node3D:
 	k.box(0, 0.05, -2.3, maxf(largeur, 2.6), 0.35, 0.6, JAUNE.darkened(0.2))
 	var root := Node3D.new()
 	root.name = "Finisseur"
+	_montable(root, "Finisseur", Vector3(0.0, 2.7, -0.6))
 	root.add_child(_mi(k, "Corps"))
 	return root
 
@@ -119,6 +132,7 @@ static func rouleau() -> Node3D:
 	k.box(0, 2.9, -0.2, 1.6, 0.08, 1.5, GRIS)
 	var root := Node3D.new()
 	root.name = "Rouleau"
+	_montable(root, "Rouleau compacteur", Vector3(0.0, 2.6, -0.2))
 	root.add_child(_mi(k, "Corps"))
 	return root
 
@@ -134,6 +148,7 @@ static func benne() -> Node3D:
 	_roues(k, 5.0, 2.4, 0.5, 3)
 	var root := Node3D.new()
 	root.name = "Benne"
+	_montable(root, "Camion-benne", Vector3(-0.45, 2.3, 2.4))
 	root.add_child(_mi(k, "Corps"))
 	return root
 

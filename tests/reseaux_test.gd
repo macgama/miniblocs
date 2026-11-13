@@ -235,7 +235,7 @@ func _run() -> void:
 	res.simuler(24.0)
 	_check(float(foyer.ep) < ep0, "le foyer paie son eau et son électricité (%.2f €)" % (ep0 - float(foyer.ep)))
 	_check(float(res.compta.mois.get("Factures d'eau et d'électricité", 0.0)) > 0.0, "la ville touche les factures")
-	_check(res.budget_entretien().size() == 3, "entretien des 3 réseaux pour le budget")
+	_check(res.budget_entretien().size() == 4, "entretien des 4 réseaux pour le budget")
 
 	print("Coupure longue :")
 	src.bid = -1
@@ -274,7 +274,7 @@ func _run() -> void:
 	print("Panneau :")
 	var panel: ReseauxPanel = scene.reseaux_panel
 	panel.set_open(true)
-	for v in ["elec", "eau", "egout", "comptes"]:
+	for v in ["elec", "eau", "egout", "gaz", "comptes"]:
 		panel.show_view(v)
 	var lbl := Label.new()
 	panel.ajouter_onglet("Télécom", lbl)

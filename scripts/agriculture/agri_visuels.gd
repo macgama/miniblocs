@@ -432,6 +432,20 @@ func _fait_engin(tache: String, cult: String) -> Node3D:
 			oi.position.y = 0.6
 		oi.position.z = 3.3
 		n.add_child(oi)
+	# On peut monter à bord (vue au sol, E) : voir ABord.
+	n.add_to_group(ABord.GROUPE)
+	var nom := String(AgriDonnees.machine(moteur).get("name", "Tracteur"))
+	if outil != "":
+		nom += " et " + String(AgriDonnees.machine(outil).get("name", outil)).to_lower()
+	n.set_meta("nom_bord", nom)
+	var nom_tache := String(AgriDonnees.TACHES.get(tache, {}).get("name", tache))
+	n.set_meta("infos_bord", func() -> String:
+		var id := int(n.get_meta("champ", -1))
+		if not agri.champs.has(id):
+			return "Aux champs · " + nom_tache
+		var ch: Dictionary = agri.champs[id]
+		var fait := clampf(float(ch.get("fait", 0.0)) / maxf(Agriculture.surface(ch), 0.0001), 0.0, 1.0)
+		return "Aux champs · %s · %d %% du champ fait" % [nom_tache, roundi(fait * 100.0)])
 	return n
 
 

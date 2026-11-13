@@ -97,7 +97,7 @@ func _run() -> void:
 	p.choisir(v1)
 	var pays_av2 := p.solde(Pays.PAYS)
 	cm.nom_en_attente = "Les Granges"
-	var mc2 := bs.place("maison_commune", Vector2i(1500, 0), 0)
+	var mc2 := bs.place("maison_commune", Vector2i(1100, 0), 0)
 	var v2 := cm.village_du_batiment(mc2)
 	_check(mc2 > 0 and v2 >= 0 and v2 != v1, "Les Granges fondé")
 	var capital2 := p.solde(v2)
@@ -106,7 +106,7 @@ func _run() -> void:
 	_check(p.selection == v1, "on gère toujours Valfleuri")
 
 	print("La ville gérée suit la caméra :")
-	p.foyer = func() -> Vector2: return Vector2(1500, 0)
+	p.foyer = func() -> Vector2: return Vector2(1100, 0)
 	p._t = 0.0
 	await process_frame
 	await process_frame

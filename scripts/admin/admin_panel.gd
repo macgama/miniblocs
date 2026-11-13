@@ -38,9 +38,13 @@ var _catas: CheckBox
 var _instant: CheckBox
 var _horaires: OptionButton
 var _freq: OptionButton
+var _usure: OptionButton
 var _pollution: OptionButton
 var _pol_sante: CheckBox
 const FREQS := [0.25, 1.0, 3.0]
+## Vitesse d'usure des voies et réseaux (budget communal).
+const USURES := [0.0, 0.5, 1.0, 2.0]
+const USURE_NOMS := ["Aucune", "Lente", "Normale", "Rapide"]
 var _status: Label
 
 
@@ -173,6 +177,12 @@ func _ready() -> void:
 	_salaires = c[0]
 	_salaires_l = c[1]
 	_row(g, "Salaires", c[2])
+	_usure = OptionButton.new()
+	for n in USURE_NOMS:
+		_usure.add_item(n)
+	_usure.disabled = not editable
+	_usure.item_selected.connect(func(_i: int) -> void: _changed())
+	_row(g, "Usure des routes et réseaux", _usure)
 
 	# Temps.
 	g = _section(right, "Temps", "horloge")
@@ -348,6 +358,11 @@ func _fill() -> void:
 		if absf(float(FREQS[i]) - reglages.frequence_catastrophes) < 0.01:
 			fi = i
 	_freq.select(fi)
+	var ui := 2
+	for i in USURES.size():
+		if absf(float(USURES[i]) - reglages.usure) < 0.01:
+			ui = i
+	_usure.select(ui)
 	_pollution.select(clampi(reglages.pollution, 0, 3))
 	_pol_sante.button_pressed = reglages.pollution_sante
 	_filling = false
@@ -373,6 +388,7 @@ func _changed() -> void:
 	reglages.horaires_chantiers = String(Chantiers.HORAIRES[maxi(0, _horaires.selected)])
 	_horaires.disabled = not editable or _instant.button_pressed
 	reglages.frequence_catastrophes = float(FREQS[maxi(0, _freq.selected)])
+	reglages.usure = float(USURES[maxi(0, _usure.selected)])
 	reglages.pollution = maxi(0, _pollution.selected)
 	reglages.pollution_sante = _pol_sante.button_pressed
 	_emit()

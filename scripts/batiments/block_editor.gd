@@ -187,8 +187,29 @@ func set_clip(r: Rect2i, y: float) -> void:
 	clip_y = y
 
 
+## Coupes de la vue par étage (mode Gérer) : [[Rect2i, hauteur], …].
+var clips: Array = []
+
+
+## Remplace les coupes de la vue par étage (une par bâtiment ouvert).
+func set_clips(list: Array) -> void:
+	if list == clips:
+		return
+	for pair in clips + list:
+		var rect: Rect2i = pair[0]
+		for cx in range(floori(float(rect.position.x) / CHUNK), floori(float(rect.end.x) / CHUNK) + 1):
+			for cz in range(floori(float(rect.position.y) / CHUNK), floori(float(rect.end.y) / CHUNK) + 1):
+				_dirty[Vector2i(cx, cz)] = true
+	clips = list.duplicate(true)
+
+
 func _clipped(k: Vector3i) -> bool:
-	return clip_rect.size != Vector2i.ZERO and k.y * UNIT_Y >= clip_y - 0.01 and clip_rect.has_point(Vector2i(k.x, k.z))
+	if clip_rect.size != Vector2i.ZERO and k.y * UNIT_Y >= clip_y - 0.01 and clip_rect.has_point(Vector2i(k.x, k.z)):
+		return true
+	for pair in clips:
+		if k.y * UNIT_Y >= float(pair[1]) - 0.01 and (pair[0] as Rect2i).has_point(Vector2i(k.x, k.z)):
+			return true
+	return false
 
 
 # --- Blocs --------------------------------------------------------------------------

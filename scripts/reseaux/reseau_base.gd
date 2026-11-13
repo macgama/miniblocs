@@ -77,8 +77,9 @@ static func longueur(pts: PackedVector3Array) -> float:
 	return l
 
 
-func ajouter_source(bid: int, pos: Vector3, capacite: float) -> void:
-	sources[bid] = {"p": pos, "cap": capacite}
+## marge : demi-taille du bâtiment (m), ajoutée au rayon de raccordement.
+func ajouter_source(bid: int, pos: Vector3, capacite: float, marge := 0.0) -> void:
+	sources[bid] = {"p": pos, "cap": capacite, "x": marge}
 
 
 func retirer_source(bid: int) -> void:
@@ -90,8 +91,13 @@ func set_capacite(bid: int, cap: float) -> void:
 		sources[bid].cap = cap
 
 
-func ajouter_conso(bid: int, pos: Vector3, demande: float) -> void:
-	consos[bid] = {"p": pos, "d": demande}
+func ajouter_conso(bid: int, pos: Vector3, demande: float, marge := 0.0) -> void:
+	consos[bid] = {"p": pos, "d": demande, "x": marge}
+
+
+func set_demande(bid: int, demande: float) -> void:
+	if consos.has(bid):
+		consos[bid].d = demande
 
 
 func retirer_conso(bid: int) -> void:
@@ -101,6 +107,7 @@ func retirer_conso(bid: int) -> void:
 # --- Calcul ----------------------------------------------------------------
 
 ## routes : tracés (PackedVector3Array) qui portent la desserte locale.
+## Refait le raccordement (qui touche quoi), puis le partage (rebilan).
 func recalculer(routes: Array = []) -> void:
 	var lines: Array = []  # PackedVector3Array
 	for id in troncons:
@@ -133,15 +140,18 @@ func recalculer(routes: Array = []) -> void:
 	# Bâtiments -> tracé le plus proche
 	_comp_of_bid.clear()
 	composantes.clear()
-	var all := {}
-	for bid in sources:
-		all[bid] = sources[bid].p
-	for bid in consos:
-		all[bid] = consos[bid].p
-	for bid in all:
-		var li := _closest(grid, lines, all[bid], rayon_raccord)
-		if li >= 0:
-			_comp_of_bid[bid] = _find(parent, li)
+	for dict in [sources, consos]:
+		for bid in dict:
+			var e: Dictionary = dict[bid]
+			var li := _closest(grid, lines, e.p, rayon_raccord + float(e.get("x", 0.0)))
+			if li >= 0:
+				_comp_of_bid[bid] = _find(parent, li)
+	rebilan()
+
+
+## Refait seulement les sommes (capacités et demandes changées, mêmes raccordements).
+func rebilan() -> void:
+	composantes.clear()
 	for bid in sources:
 		var c: int = _comp_of_bid.get(bid, -1)
 		if c < 0:
@@ -177,10 +187,10 @@ func taux_servi(bid: int) -> float:
 	var c: int = _comp_of_bid.get(bid, -1)
 	if c < 0:
 		return 0.0
-	var k: Dictionary = composantes[c]
-	if k.prod <= 0.0:
+	var k: Dictionary = composantes.get(c, {})
+	if k.is_empty() or float(k.prod) <= 0.0:
 		return 0.0
-	return k.taux
+	return float(k.taux)
 
 
 func bilan() -> Dictionary:

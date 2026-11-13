@@ -368,7 +368,11 @@ func _view_upkeep() -> void:
 		var seuil := OptionButton.new()
 		for s in [20, 35, 50, 70]:
 			seuil.add_item("%d %%" % s)
-		seuil.select([0.2, 0.35, 0.5, 0.7].find(snappedf(float(cfg.seuil), 0.05)))
+		var best := 0
+		for i in 4:
+			if absf([0.2, 0.35, 0.5, 0.7][i] - float(cfg.seuil)) < absf([0.2, 0.35, 0.5, 0.7][best] - float(cfg.seuil)):
+				best = i
+		seuil.select(best)
 		seuil.item_selected.connect(func(i: int) -> void:
 			budget.set_entretien(key, "seuil", [0.2, 0.35, 0.5, 0.7][i])
 			refresh())

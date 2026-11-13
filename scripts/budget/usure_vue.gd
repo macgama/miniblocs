@@ -5,6 +5,8 @@ extends Node3D
 
 const POTHOLE_STEP := 6.0
 const MAP_LIFT := 0.35
+## Juste au-dessus de la chaussée (0,08 m) et du marquage (0,10 m).
+const HOLE_LIFT := 0.11
 
 var budget: BudgetCommunal
 var carte := false
@@ -22,9 +24,13 @@ func setup(b: BudgetCommunal) -> void:
 	var mm := MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
 	mm.use_colors = true
-	var quad := QuadMesh.new()
-	quad.size = Vector2(1.0, 1.0)
-	quad.orientation = PlaneMesh.FACE_Y
+	# Nid-de-poule : disque plat à 7 côtés (style low-poly).
+	var quad := CylinderMesh.new()
+	quad.top_radius = 0.5
+	quad.bottom_radius = 0.45
+	quad.height = 0.02
+	quad.radial_segments = 7
+	quad.rings = 1
 	var mat := StandardMaterial3D.new()
 	mat.vertex_color_use_as_albedo = true
 	mat.roughness = 1.0
@@ -103,10 +109,10 @@ func _build_holes() -> void:
 					var p := net.point_at(eid, s)
 					var tg := net.tangent_at(eid, s)
 					var side := Vector3(-tg.z, 0.0, tg.x).normalized()
-					p += side * rng.randf_range(-hw * 0.75, hw * 0.75)
+					p += side * rng.randf_range(-hw * 0.6, hw * 0.6)
 					var r := rng.randf_range(0.35, 0.9) * (0.6 + density)
 					var basis := Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3(r, 1.0, r * rng.randf_range(0.6, 1.2)))
-					xs.append(Transform3D(basis, p + Vector3.UP * 0.045))
+					xs.append(Transform3D(basis, p + Vector3.UP * HOLE_LIFT))
 					# Nids sombres, et rustines de goudron plus claires.
 					cs.append(Color(0.09, 0.08, 0.07) if rng.randf() < 0.7 else Color(0.2, 0.2, 0.21))
 				s += rng.randf_range(POTHOLE_STEP * 0.5, POTHOLE_STEP * 1.5) / (0.5 + density)

@@ -202,16 +202,18 @@ func _run() -> void:
 	m0 = bs.money
 	_check(b.reparer(eid), "réparation lancée (%s)" % BudgetPanel.money(cost))
 	await _frames(2)
-	if is_equal_approx(b.etat(eid), 1.0):
-		_check(not net.closed_edges.has(eid), "route refaite et rouverte")
-	else:
-		print("    (chantier visible en cours : la route rouvrira à la fin)")
-	_check(cost > 0 and b.mois.has("Réparations des voies"), "réparation inscrite au budget")
+	_check(b.en_travaux(eid) and String(net.closed_edges.get(eid, "")) == "travaux", "chantier de réfection visible, voie fermée pour travaux")
+	_check(not b.reparer(eid), "pas deux chantiers sur le même tronçon")
+	ChantiersVoies.instance._fin_reparation(eid)
+	_check(is_equal_approx(b.etat(eid), 1.0) and not net.closed_edges.has(eid), "fin du chantier : route refaite et rouverte")
+	_check(cost > 0 and float(b.mois.get("Réparations des voies", 0.0)) <= -float(cost), "réparation inscrite au budget")
+	ReglagesPartie.actuel.construction_instantanee = true
 	b.set_etat(eid, 0.2)
 	b.set_entretien("route", "auto", true)
 	b._auto_repairs()
 	await _frames(2)
-	_check(b.mois.get("Réparations des voies", 0.0) < -float(cost) or b.etat(eid) > 0.2, "réparation automatique sous le seuil")
+	_check(is_equal_approx(b.etat(eid), 1.0), "réparation automatique sous le seuil (construction instantanée)")
+	ReglagesPartie.actuel.construction_instantanee = false
 
 	print("Découpe et sauvegarde :")
 	for id in net.edges.keys():
@@ -265,5 +267,5 @@ func _run() -> void:
 	var aide := FileAccess.get_file_as_string("res://scripts/interface/aide_panel.gd")
 	_check(aide.contains("panneau Budget"), "aide F1 à jour")
 
-	print("TEST OK" if ok else "TEST ÉCHOUÉ")
+	print("BUDGET TEST OK" if ok else "BUDGET TEST ÉCHEC")
 	quit(0 if ok else 1)

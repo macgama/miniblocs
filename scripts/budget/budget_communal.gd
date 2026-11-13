@@ -39,7 +39,7 @@ const TAUX_BASE := 0.02
 const TAUX_RISQUE := 0.05
 ## Plafond de dette : ce nombre d'années de recettes (au moins PLAFOND_MIN).
 const PLAFOND_ANNEES := 8.0
-const PLAFOND_MIN := 2_000_000.0
+const PLAFOND_MIN := 10_000_000.0
 ## Pénalité de remboursement anticipé (part du capital restant).
 const PENALITE := 0.01
 

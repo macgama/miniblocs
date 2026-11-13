@@ -391,6 +391,14 @@ Touche **H** : la ville en chiffres, la liste des habitants (filtre et recherche
 
 Détails : [docs/habitants.md](docs/habitants.md).
 
+## Budget de la commune : impôts, emprunts, entretien des voies
+
+Touche **M** : le maire vote la taxe foncière, l'impôt des entreprises et l'impôt sur les bénéfices (0 à 200 %, les habitants râlent quand c'est haut), emprunte de 100 k€ à 20 M€ sur 5 à 30 ans, et règle l'entretien de chaque réseau. Routes, rails, chemins et voies d'eau **s'usent** avec l'âge et le trafic (les camions surtout) : sous 50 %, nids-de-poule et véhicules ralentis, à 0 % la voie ferme. Les réfections sont des chantiers visibles. Caisse dans le rouge 90 jours : le préfet met la ville sous tutelle.
+
+![Nids-de-poule sur une route usée](docs/apercu-budget-nids-de-poule.jpg)
+
+Détails : [docs/budget.md](docs/budget.md).
+
 ## Vue au sol : marcher à la 3e ou à la 1re personne
 
 Dans le mode Terre, appuie sur **V** (ou les boutons **Dessus / 3e pers. / 1re pers.** en haut au centre) : un personnage apparaît au sol, au centre de la vue de gestion.

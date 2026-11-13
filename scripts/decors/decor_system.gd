@@ -6,14 +6,13 @@ extends Node3D
 ## - le long des routes : bancs, corbeilles, bornes, boîtes aux lettres en
 ##   ville ; poteaux électriques, balises, bornes kilométriques à la campagne ;
 ##   cédez-le-passage aux carrefours ; bancs le long des chemins ;
-## - dans les champs : bottes de foin après la moisson (selon le calendrier
-##   des cultures du lieu), tracteurs, épouvantails ;
-## - dans les prés : troupeaux (vaches, chevaux, moutons, chèvres ; zébus,
-##   dromadaires, lamas ou rennes selon le climat) qui broutent et se
-##   promènent, avec leur clôture et leur abreuvoir ;
-## - au bord de l'eau : pontons, barques, voiliers, bateaux de pêche, bouées ;
-##   parasols et transats sur les plages l'été ;
-## - rochers, éboulis, souches et troncs morts en montagne, toundra, désert, forêt.
+## - au bord de l'eau, près des bâtiments du joueur : pontons, barques,
+##   voiliers, bateaux de pêche, bouées ; parasols et transats l'été ;
+## - dans la nature (Terre vierge) : rochers, éboulis, souches et troncs
+##   morts en montagne, toundra, désert, forêt ; canards sur les lacs.
+##
+## Rien d'humain loin des bâtiments du joueur. Les bêtes, bottes de foin et
+## machines des fermes sont dessinées par l'agriculture (AgriVisuels).
 ##
 ## Tout est déterministe : un même lieu a toujours les mêmes décors. Le
 ## gomme efface aussi les décors automatiques (et c'est sauvegardé).
@@ -120,6 +119,7 @@ func setup(w: TerrainWorld, t: TransportSystem, b: BuildingSystem, a: DayNight =
 	if buildings:
 		buildings.changed.connect(func() -> void:
 			_routes_sales = true
+			_sites_sales = true
 			_auto.clear()
 			_sale = true)
 	reset_lieu()
@@ -134,6 +134,7 @@ func reset_lieu() -> void:
 	_graine = hash(Vector2i(roundi(world.origin_lat * 1000.0), roundi(world.origin_lon * 1000.0)))
 	_auto.clear()
 	_routes_sales = true
+	_sites_sales = true
 	_etats.clear()
 	_sale = true
 
@@ -207,9 +208,6 @@ func _calcule_tuile(k: Vector2i) -> Variant:
 	rng.seed = hash([k, _graine])
 	var x0 := k.x * TUILE
 	var z0 := k.y * TUILE
-	var cultures := Sols.etat_cultures(_jour(), world.origin_lat)
-	var couches: PackedInt32Array = cultures.couche
-	var tailles: PackedFloat32Array = cultures.taille
 	var manque := 0
 	var spot_eau := false
 	var mois := int(_jour() / 30.44) % 12
@@ -230,29 +228,12 @@ func _calcule_tuile(k: Vector2i) -> Variant:
 			var p := Vector2(c.x + 0.5, c.y + 0.5)
 			var a := v * TAU
 			match kind:
-				TerrainWorld.Kind.CHAMPS:
-					var cu := Sols.culture(c, _climat)
-					var rangs := Sols.rangs_tournes(c)
-					var ar := (PI / 2.0 if rangs else 0.0) + (v - 0.5) * 0.3
-					var fauche: bool = cu == 8 and ete and tailles[8] < 0.75
-					if couches[cu] == Sols.CHAUME or fauche:
-						if u < 0.45:
-							var id := "botte_enrubannee" if fauche and v < 0.4 else ("botte_debout" if v > 0.85 else "botte_ronde")
-							out.append([id, p.x, 0.0, p.y, ar, 1.0])
-						elif u < 0.47:
-							out.append(["pile_bottes", p.x, 0.0, p.y, ar, 1.0])
-					elif u < 0.006 and tailles[cu] < 0.3:
-						out.append(["tracteur" if v < 0.5 else "tracteur_rouge", p.x, 0.0, p.y, ar, 1.0])
-					elif u < 0.012 and (cu == 6 or cu == 3):
-						out.append(["epouvantail", p.x, 0.0, p.y, a, 1.0])
 				TerrainWorld.Kind.ROCHE:
 					if u < 0.08:
 						out.append([["eboulis", "bloc_granit", "falaise_bloc", "eboulis"][int(v * 4)], p.x, 0.0, p.y, a, 0.7 + u * 6.0])
 				TerrainWorld.Kind.ALPAGE, TerrainWorld.Kind.TOUNDRA:
 					if u < 0.025:
 						out.append([["bloc_granit", "rocher_moussu", "rocher_plat", "eboulis"][int(v * 4)], p.x, 0.0, p.y, a, 0.6 + u * 20.0])
-					elif u < 0.027:
-						out.append(["cairn", p.x, 0.0, p.y, a, 1.0])
 				TerrainWorld.Kind.DESERT:
 					if u < 0.02:
 						var rouge := absf(world.origin_lat) < 40.0
@@ -261,7 +242,7 @@ func _calcule_tuile(k: Vector2i) -> Variant:
 					if u < 0.012:
 						out.append([["souche", "tronc_mort", "rocher_moussu", "souche"][int(v * 4)], p.x, 0.0, p.y, a, 1.0])
 				TerrainWorld.Kind.PLAGE:
-					if ete and u < 0.05 and _climat != Plantes.Climat.BOREAL:
+					if ete and u < 0.05 and _climat != Plantes.Climat.BOREAL and _habite(p):
 						out.append(["parasol_plage", p.x, 0.0, p.y, a, 1.0])
 						out.append(["transat", p.x + cos(a) * 1.6, 0.0, p.y + sin(a) * 1.6, a + 0.4, 1.0])
 						if v < 0.3:
@@ -274,10 +255,12 @@ func _calcule_tuile(k: Vector2i) -> Variant:
 				var bord := _bord_eau(c)
 				if bord.ok:
 					spot_eau = true
-					_pose_bord_eau(out, p, bord, rng)
+					if _habite(p):
+						_pose_bord_eau(out, p, bord, rng)
+					elif not bord.mer and rng.randf() < 0.5:
+						_pose_canards(out, p, bord, rng)
 	if manque > 40:
 		return null
-	_ajoute_troupeaux(out, k)
 	# Hauteurs, et rien sur les cases effacées.
 	var garde := []
 	for r: Array in out:
@@ -351,105 +334,40 @@ func _pose_bord_eau(out: Array, p: Vector2, bord: Dictionary, rng: RandomNumberG
 		out.append(["banc_bois", bc.x, 0.0, bc.y, ang + PI, 1.0])
 
 
-# --- Troupeaux -------------------------------------------------------------------
+# --- Présence humaine ---------------------------------------------------------------
 
-const PATURES := [TerrainWorld.Kind.PRAIRIE, TerrainWorld.Kind.ALPAGE, TerrainWorld.Kind.TOUNDRA, TerrainWorld.Kind.BROUSSAILLES, TerrainWorld.Kind.DESERT]
-const PARC := 96
+## La Terre est vierge : rien d'humain (ponton, barque, parasol) loin des
+## bâtiments du joueur. Les bêtes d'élevage, bottes et machines des fermes sont
+## dessinées par l'agriculture (AgriVisuels), pas ici.
+const RAYON_HABITE := 250.0
 
-
-## Les espèces d'un troupeau selon le biome et le climat : [[id, poids]...], clôture.
-func _especes(kind: int, h: float) -> Array:
-	var amer := world.origin_lon < -30.0
-	if kind == TerrainWorld.Kind.DESERT:
-		return [[["dromadaire", 1]] if not amer else [["chevre", 1]], ""]
-	if kind == TerrainWorld.Kind.TOUNDRA or _climat == Plantes.Climat.BOREAL:
-		return [[["renne", 1]], ""]
-	if kind == TerrainWorld.Kind.ALPAGE or h > 1500.0:
-		if amer and world.origin_lat < 0.0:
-			return [[["lama", 1]], ""]
-		if absf(world.origin_lon - 87.0) < 20.0 and world.origin_lat > 25.0:
-			return [[["yack", 1]], ""]
-		return [[["brebis", 3], ["mouton_broute", 3], ["agneau", 1]], ""] if h > 1900.0 else [[["vache_rousse", 2], ["vache_broute_rousse", 2], ["veau", 1]], "cloture_barbelee"]
-	if kind == TerrainWorld.Kind.BROUSSAILLES:
-		return [[["chevre", 2], ["brebis", 1]], ""]
-	if _climat == Plantes.Climat.TROPICAL or (_climat == Plantes.Climat.SUBTROPICAL and not amer):
-		return [[["zebu", 3], ["chevre", 1]], ""]
-	if _climat == Plantes.Climat.MEDITERRANEEN:
-		return [[["brebis", 3], ["mouton_broute", 2], ["chevre", 1], ["agneau", 1]], ""]
-	return []
+var _sites: Array[Vector2] = []
+var _sites_sales := true
 
 
-## Ajoute les animaux des troupeaux dont le pré touche la tuile k.
-func _ajoute_troupeaux(out: Array, k: Vector2i) -> void:
-	var rect := Rect2(k.x * TUILE, k.y * TUILE, TUILE, TUILE)
-	var p0 := Vector2i(floori(rect.position.x / PARC), floori(rect.position.y / PARC))
-	var p1 := Vector2i(floori(rect.end.x / PARC), floori(rect.end.y / PARC))
-	for px in range(p0.x, p1.x + 1):
-		for pz in range(p0.y, p1.y + 1):
-			var rng := RandomNumberGenerator.new()
-			rng.seed = hash([px, pz, _graine, 7])
-			var centre := Vector2i(px * PARC + PARC / 2, pz * PARC + PARC / 2)
-			var kind := _kind(centre)
-			if not (kind in PATURES):
-				continue
-			var proba := {TerrainWorld.Kind.PRAIRIE: 0.22, TerrainWorld.Kind.ALPAGE: 0.18, TerrainWorld.Kind.TOUNDRA: 0.06, TerrainWorld.Kind.BROUSSAILLES: 0.06, TerrainWorld.Kind.DESERT: 0.03}
-			if rng.randf() > float(proba[kind]):
-				continue
-			var h := world.cell_height(centre)
-			var esp := _especes(kind, h)
-			var cloture := "cloture_ranch"
-			if esp.is_empty():
-				# Tempéré : vaches, chevaux ou moutons.
-				var r := rng.randf()
-				if r < 0.5:
-					esp = [[["vache_pie_noire", 3], ["vache_broute", 3], ["vache_blanche", 2], ["veau", 1]], "cloture_barbelee"]
-				elif r < 0.72:
-					esp = [[["cheval", 3], ["cheval_blanc", 2], ["cheval_noir", 1], ["poney", 1], ["ane", 1]], "cloture_ranch"]
-				else:
-					esp = [[["brebis", 3], ["mouton_broute", 3], ["agneau", 2]], "cloture_barbelee"]
-			var especes: Array = esp[0]
-			cloture = esp[1]
-			var total := 0
-			for e: Array in especes:
-				total += int(e[1])
-			var n := rng.randi_range(5, 14)
-			var demi := 26.0
-			for i in n:
-				var q := Vector2(centre) + Vector2(rng.randf_range(-demi, demi), rng.randf_range(-demi, demi))
-				var t := rng.randi_range(0, total - 1)
-				var id := ""
-				for e: Array in especes:
-					t -= int(e[1])
-					if t < 0:
-						id = e[0]
-						break
-				var cq := Vector2i(floori(q.x), floori(q.y))
-				if rect.has_point(q) and _kind(cq) == kind and not _bloque(cq):
-					out.append([id, q.x, 0.0, q.y, rng.randf() * TAU, rng.randf_range(0.92, 1.08)])
-			# Abreuvoir près du centre, clôture autour du pré (sauf alpage, désert, toundra).
-			var ab := Vector2(centre) + Vector2(6, 3)
-			if cloture != "" and rect.has_point(ab):
-				out.append(["abreuvoir", ab.x, 0.0, ab.y, 0.3, 1.0])
-			if cloture != "":
-				var b := demi + 8.0
-				for cote in 4:
-					for s in range(-int(b), int(b), 2):
-						var q: Vector2
-						var ang := 0.0
-						match cote:
-							0: q = Vector2(centre) + Vector2(s + 1, -b)
-							1: q = Vector2(centre) + Vector2(s + 1, b)
-							2:
-								q = Vector2(centre) + Vector2(-b, s + 1)
-								ang = PI / 2.0
-							3:
-								q = Vector2(centre) + Vector2(b, s + 1)
-								ang = PI / 2.0
-						if cote == 0 and absi(s) < 3:
-							continue # l'entrée du pré
-						var cq := Vector2i(floori(q.x), floori(q.y))
-						if rect.has_point(q) and _kind(cq) == kind and not _bloque(cq):
-							out.append([cloture, q.x, 0.0, q.y, ang, 1.0])
+func _habite(p: Vector2) -> bool:
+	if buildings == null:
+		return false
+	if _sites_sales:
+		_sites_sales = false
+		_sites.clear()
+		for bid in buildings.buildings:
+			var e: Dictionary = buildings.buildings[bid]
+			_sites.append(Vector2(float(e.get("x", 0)), float(e.get("z", 0))))
+	for q in _sites:
+		if q.distance_squared_to(p) < RAYON_HABITE * RAYON_HABITE:
+			return true
+	return false
+
+
+## Des canards sauvages sur un lac ou un étang, sans rien d'humain.
+func _pose_canards(out: Array, p: Vector2, bord: Dictionary, rng: RandomNumberGenerator) -> void:
+	var d: Vector2 = bord.dir
+	var cp := p + d * 10.0
+	for i in rng.randi_range(2, 4):
+		var q := cp + Vector2(rng.randf_range(-2.5, 2.5), rng.randf_range(-2.5, 2.5))
+		if _kind(Vector2i(floori(q.x), floori(q.y))) in _EAUX:
+			out.append(["canard", q.x, 0.0, q.y, rng.randf() * TAU, 1.0])
 
 
 # --- Décors des voies ----------------------------------------------------------------

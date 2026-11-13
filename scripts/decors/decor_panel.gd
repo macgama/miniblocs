@@ -2,7 +2,7 @@ class_name DecorPanel
 extends CanvasLayer
 ## Panneau « Décors » (touche G) : choisir un décor du catalogue et le poser
 ## (un par un, en rangée, en clôture), le semer au pinceau, ou gommer.
-## On y coupe aussi les décors automatiques (routes, champs, prés, berges).
+## On y coupe aussi les décors automatiques (routes, bâtiments, berges, rochers).
 
 ## Touche G : ouvrir ou fermer (terre_main range alors les autres outils).
 signal bascule_demandee
@@ -103,7 +103,7 @@ func _ready() -> void:
 
 	_auto = CheckBox.new()
 	_auto.text = "Décors automatiques"
-	_auto.tooltip_text = "Bancs et poteaux le long des routes, bottes de foin, troupeaux, pontons et bateaux, rochers."
+	_auto.tooltip_text = "Bancs et poteaux le long des routes, pontons et bateaux près des bâtiments, rochers et canards sauvages."
 	_auto.button_pressed = DecorSystem.auto_actif
 	_auto.toggled.connect(func(on: bool) -> void:
 		DecorSystem.auto_actif = on

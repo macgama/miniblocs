@@ -82,6 +82,13 @@ const SECTIONS := [
 		["Pilote automatique", "Maj+P, bouton Activer sous une ville : chaque semaine elle tient son budget à l'équilibre et fait la construction la plus urgente (rue, zone résidentielle, école, aire de jeux, boulangerie, parc, pompiers, police, supérette, gymnase, hôpital, zone d'activités si le chômage dépasse 12 %), en gardant 3 mois de dépenses en réserve"],
 		["Reprendre la mairie", "gagne les municipales suivantes (campagne et promesses dans Y), ou lance des élections anticipées par pétition si la satisfaction tombe sous 40"],
 	]],
+	["Objectifs du pays", [
+		["Maj+J", "panneau Objectifs : réputation du pays (étoiles), missions en cours, rang de chaque ville, succès"],
+		["Missions", "3 missions à la fois, tirées selon tes villes (faire grandir une ville, ouvrir une école, rendre une ville heureuse, faire baisser le chômage, rembourser ses emprunts, fonder une ville, relier deux villes, créer une ligne) ; chacune a un délai et une prime versée au pays"],
+		["Rangs des villes", "Hameau, Village, Bourg, Ville, Grande ville, Métropole : il faut des habitants, des habitants contents et des services (école, pompiers, police, hôpital, transports, caisse saine) ; chaque rang rapporte une prime et ne se perd jamais"],
+		["Réputation", "de 0 à 100 : missions, rangs et succès la montent ; missions ratées, tutelle et mairies perdues la baissent ; au-dessus de 20 les emprunts coûtent moins cher (jusqu'à −1 point)"],
+		["Succès", "15 étapes à débloquer une fois pour toutes : première ville, mille habitants, pays heureux, villes reliées, mairie reprise…"],
+	]],
 	["Budget de la commune", [
 		["M", "panneau Budget : bilan du mois, impôts votés par le maire, emprunts, entretien et état des voies"],
 		["Impôts", "taxe foncière, impôt des entreprises, impôt sur les bénéfices de 0 à 200 % : plus haut, la caisse se remplit et les habitants râlent"],

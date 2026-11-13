@@ -617,6 +617,8 @@ func taux_propose(montant: float, annees: int) -> float:
 	if caisse() < 0:
 		t += 0.01
 	t += 0.005 * (DUREES.find(annees) if DUREES.has(annees) else 0)
+	# Bonne réputation du pays (Objectifs, Maj+J) : les banques prêtent moins cher.
+	t = maxf(0.005, t - Objectifs.bonus_taux())
 	return snappedf(t, 0.0005)
 
 

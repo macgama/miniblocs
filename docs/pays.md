@@ -86,3 +86,19 @@ le maire :
    - plus de place : une impasse est prolongée de 120 m, ou une rue est ouverte en travers.
 
 Les dernières décisions s'affichent sous la ville. Code : `scripts/pays/pilote_auto.gd`.
+
+## Objectifs (Maj+J)
+
+Code : `scripts/pays/objectifs.gd` (nœud `Objectifs`, section de sauvegarde « objectifs »)
+et `scripts/pays/objectifs_panel.gd`. Vérifié une fois par jour de jeu.
+
+- **Rangs des villes** : Hameau, Village (100 hab., satisfaction 50), Bourg (500, 55, école,
+  caisse saine), Ville (2 000, 55, + pompiers et police), Grande ville (10 000, 60, + hôpital
+  et une ligne), Métropole (50 000). Chaque rang verse une prime au pays et ne se perd pas.
+- **Missions** : 3 à la fois, tirées selon l'état des villes, avec un délai et une prime
+  (× coût des constructions). Ratée : réputation −3 ; abandonnée : −1.
+- **Succès** : 15, débloqués une fois pour toutes.
+- **Réputation** (0 à 100, départ 20) : au-dessus de 20, le taux des emprunts baisse
+  (jusqu'à −1 point, `Objectifs.bonus_taux()` dans `BudgetCommunal.taux_propose`).
+
+Test : `godot --headless --path . --script res://tests/objectifs_test.gd`

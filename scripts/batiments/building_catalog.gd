@@ -130,6 +130,7 @@ static func all_types() -> Dictionary:
 		_all.merge(Stades.entries())
 		_all.merge(StyleBuilder.generate())
 		_all.merge(BibleGlb.entries())
+		ReseauxTypes.adopter(_all)
 		for id in Creations.items:
 			_all[id] = Creations.catalog_entry(id)
 		Creations.ensure_loaded()

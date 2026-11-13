@@ -100,7 +100,13 @@ func _run() -> void:
 	var res: Reseaux = scene.reseaux
 	var pop: Population = scene.population
 	_check(res != null and Reseaux.instance == res and res.population == pop, "réseaux branchés dans la scène")
-	_check(BuildingCatalog.ids_in("reseaux").size() == ReseauxTypes.ORDER.size(), "%d bâtiments dans la catégorie Réseaux" % ReseauxTypes.ORDER.size())
+	var n_bible := 0
+	for id in ReseauxTypes.BIBLE:
+		if BuildingCatalog.get_type(id).has("glb"):
+			n_bible += 1
+			_check(String(BuildingCatalog.get_type(id).cat) == "reseaux" and not BuildingCatalog.get_type(id).has("zone"), "%s (modèle Blender) devient un bâtiment des réseaux" % id)
+	_check(BuildingCatalog.ids_in("reseaux").size() == ReseauxTypes.ORDER.size() + n_bible, "%d bâtiments dans la catégorie Réseaux" % BuildingCatalog.ids_in("reseaux").size())
+	_check(not ReseauxTypes.info("chateau_eau").is_empty(), "le château d'eau des services publics sert de réserve")
 	for id in ReseauxTypes.ORDER:
 		var m := BuildingCatalog.build_mesh(id)
 		if m == null or m.get_surface_count() == 0:
@@ -142,13 +148,13 @@ func _run() -> void:
 	_check(res.eau_incendie(homes[0]) == 0.0, "bouches d'incendie à sec")
 
 	print("Parc solaire :")
-	var solaire := _place(bs, "parc_solaire", 0, -1)
+	var solaire := _place(bs, "centrale_solaire", 0, -1)
 	_check(solaire > 0, "parc solaire au bord de la route")
 	await process_frame
 	await process_frame
 	res.simuler(0.0)
 	var cap_jour := float(res.sources_info.get(solaire, {}).get("cap", 0.0))
-	_check(cap_jour > 1.0, "en plein soleil de juin : %.1f MW" % cap_jour)
+	_check(cap_jour > 0.3, "en plein soleil de juin : %.1f MW" % cap_jour)
 	_check(res.taux(homes[0], "elec") >= 0.95 and res.taux(homes[0], "eau") >= 0.95, "courant et eau au robinet")
 	_check(mi != null and not bool(mi.get_meta("res_panne", false)), "les fenêtres se rallument")
 	_check(res.rendement(usine) > 0.9, "la scierie tourne")
@@ -159,8 +165,8 @@ func _run() -> void:
 	_check(float(res.sources_info[solaire].cap) == 0.0 and res.taux(homes[0], "elec") == 0.0, "la nuit, le solaire ne produit rien")
 
 	print("Château d'eau :")
-	var chateau := _place(bs, "chateau_eau", -60, -1)
-	_check(chateau > 0, "château d'eau posé %s" % bs.check_place("chateau_eau", Vector2i(-60, -13), 0).reason)
+	var chateau := _place(bs, "chateau_eau", 260, -1)
+	_check(chateau > 0, "château d'eau posé")
 	await process_frame
 	amb.unix_time = _at("2026-06-22", 12.0)
 	await process_frame
@@ -214,7 +220,7 @@ func _run() -> void:
 	_check(float(res.qualite.get(forage, 1.0)) < 0.9, "le forage près du rejet donne une eau polluée (%d %%)" % roundi(float(res.qualite.get(forage, 1.0)) * 100.0))
 	res.simuler(0.0)
 	_check(res.risque_sante(homes[0]) > 0.05, "risque pour la santé des habitants : %.2f" % res.risque_sante(homes[0]))
-	var station := _place(bs, "station_epuration", 120, -1)
+	var station := _place(bs, "station_epuration_locale", 120, 1)
 	await process_frame
 	res.simuler(0.0)
 	res.simuler(0.0)

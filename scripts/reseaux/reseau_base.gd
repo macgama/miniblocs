@@ -37,6 +37,9 @@ var consos: Dictionary = {}
 var _comp_of_bid: Dictionary = {}
 ## composante -> {"prod": float, "dem": float, "taux": float}
 var composantes: Dictionary = {}
+## Tracés du dernier calcul (tronçons en service puis routes) et leur composante.
+var lignes: Array = []
+var lignes_comp := PackedInt32Array()
 
 
 func _init(k := "") -> void:
@@ -137,6 +140,10 @@ func recalculer(routes: Array = []) -> void:
 		for p in [pts[0], pts[pts.size() - 1]]:
 			for hit in _near(grid, lines, p, SNAP):
 				_union(parent, li, hit)
+	lignes = lines
+	lignes_comp.resize(n)
+	for li in n:
+		lignes_comp[li] = _find(parent, li)
 	# Bâtiments -> tracé le plus proche
 	_comp_of_bid.clear()
 	composantes.clear()
@@ -183,6 +190,14 @@ func composante_de(bid: int) -> int:
 
 
 ## Part de la demande réellement fournie (0 = coupé, 1 = normal).
+## État d'une composante : 1 = tout servi, entre les deux = rationné, 0 = rien.
+func taux_composante(c: int) -> float:
+	var k: Dictionary = composantes.get(c, {})
+	if k.is_empty() or float(k.prod) <= 0.0:
+		return 0.0
+	return float(k.taux)
+
+
 func taux_servi(bid: int) -> float:
 	var c: int = _comp_of_bid.get(bid, -1)
 	if c < 0:

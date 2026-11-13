@@ -1062,19 +1062,22 @@ func _facturer(jours: float) -> void:
 			production._pay(bid, "Eau et électricité", -cout)
 	_book("Factures d'eau et d'électricité", recette)
 	var frais := 0.0
-	# Courant acheté au réseau national.
-	var importe := 0.0
+	# Courant acheté au réseau national, combustible des grandes centrales sous contrat.
 	for bid in elec.sources:
-		if String(ReseauxTypes.info(_type(bid)).get("source", "")) == "national":
-			var c := elec.composante_de(bid)
-			var k: Dictionary = elec.composantes.get(c, {})
-			if not k.is_empty() and float(k.prod) > 0.0:
-				var part := float(elec.sources[bid].cap) / float(k.prod)
-				importe += minf(float(k.dem), float(k.prod)) * part
-	if importe > 0.0:
-		var v := importe * 1000.0 * 24.0 * jours * PRIX_KWH_IMPORT
+		var info := ReseauxTypes.info(_type(bid))
+		var prix := PRIX_KWH_IMPORT if String(info.get("source", "")) == "national" else float(info.get("achat", 0.0))
+		if prix <= 0.0:
+			continue
+		var c := elec.composante_de(bid)
+		var k: Dictionary = elec.composantes.get(c, {})
+		if k.is_empty() or float(k.prod) <= 0.0:
+			continue
+		var mw := minf(float(k.dem), float(k.prod)) * float(elec.sources[bid].cap) / float(k.prod)
+		var v := mw * 1000.0 * 24.0 * jours * prix
+		if v <= 0.0:
+			continue
 		frais += v
-		_book("Courant acheté au réseau national", -v)
+		_book("Courant acheté au réseau national" if String(info.get("source", "")) == "national" else "Combustible des grandes centrales", -v)
 	# Centrales au combustible : la ville couvre leurs pertes (combustible, salaires).
 	if production != null:
 		for bid in elec.sources:
@@ -1225,6 +1228,19 @@ func caler(p: Vector3) -> Vector3:
 		if d < maxf(bd, float(r.sources[bid].get("x", 0.0))):
 			bd = d
 			best = Vector3(q.x, _hauteur(q), q.z)
+	if bd >= 12.0 and r.suit_routes:
+		# Sinon, le bord de route le plus proche (la desserte locale).
+		var p2 := Vector2(p.x, p.z)
+		var bd2 := 8.0
+		for pts in _routes():
+			for i in range((pts as PackedVector3Array).size() - 1):
+				var a2 := Vector2(pts[i].x, pts[i].z)
+				var b2 := Vector2(pts[i + 1].x, pts[i + 1].z)
+				var q2 := Geometry2D.get_closest_point_to_segment(p2, a2, b2)
+				var d := p2.distance_to(q2)
+				if d < bd2:
+					bd2 = d
+					best = Vector3(q2.x, _hauteur(Vector3(q2.x, 0, q2.y)), q2.y)
 	return best
 
 

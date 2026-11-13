@@ -8,7 +8,7 @@ extends SceneTree
 ##         godot --headless --path . --script res://tests/bible_glb_test.gd
 
 const MAX_TRIANGLES := 3000
-const CATS := ["logement", "commerce", "industrie", "production", "services", "loisirs", "sport"]
+const CATS := ["logement", "commerce", "industrie", "production", "reseaux", "services", "loisirs", "sport"]
 
 
 func _initialize() -> void:

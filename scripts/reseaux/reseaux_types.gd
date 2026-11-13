@@ -19,7 +19,7 @@ const RP := ["route", "chemin"]
 
 const TYPES := {
 	# --- Électricité ---------------------------------------------------------------------
-	"centrale_charbon": {"name": "Centrale au charbon", "w": 60, "d": 48, "access": ROAD, "emplois": 40, "cost": 25_000_000,
+	"centrale_charbon_locale": {"name": "Petite centrale au charbon", "w": 60, "d": 48, "access": ROAD, "emplois": 40, "cost": 25_000_000,
 		"reseau": {"res": "elec", "cap": 20.0, "source": "combustible"},
 		"prod": {"kind": "transformation", "in": {"charbon": 190.0}, "out": {}},
 		"desc": "20 MW. Chaudière, cheminée et tas de charbon livré par camion (190 t par jour). Fumées polluantes."},
@@ -31,18 +31,6 @@ const TYPES := {
 		"reseau": {"res": "elec", "cap": 8.0, "source": "combustible"},
 		"prod": {"kind": "transformation", "in": {"bois": 210.0}, "out": {}},
 		"desc": "8 MW. Brûle du bois des forêts voisines (210 t par jour)."},
-	"centrale_nucleaire": {"name": "Centrale nucléaire", "w": 220, "d": 160, "access": ROAD, "emplois": 600, "cost": 3_000_000_000,
-		"reseau": {"res": "elec", "cap": 900.0, "source": "uranium", "pres_eau": 250.0},
-		"desc": "900 MW. Réacteur, salle des machines et tours de refroidissement. Il faut de l'eau à moins de 250 m (fleuve, lac ou mer)."},
-	"centrale_hydro": {"name": "Centrale hydraulique au fil de l'eau", "w": 30, "d": 24, "access": RP, "emplois": 6, "cost": 30_000_000,
-		"reseau": {"res": "elec", "cap": 10.0, "source": "riviere", "pres_eau": 40.0},
-		"desc": "10 MW. Turbines dans le courant : à poser au bord d'une rivière (40 m au plus)."},
-	"eolienne": {"name": "Éolienne", "w": 14, "d": 14, "access": [], "emplois": 0, "cost": 3_500_000,
-		"reseau": {"res": "elec", "cap": 3.0, "source": "vent"},
-		"desc": "3 MW quand le vent souffle fort, rien par temps calme. Mât de 100 m."},
-	"parc_solaire": {"name": "Parc solaire", "w": 90, "d": 70, "access": [], "emplois": 1, "cost": 4_500_000,
-		"reseau": {"res": "elec", "cap": 5.0, "source": "soleil"},
-		"desc": "5 MW en plein soleil d'été, moins sous les nuages, rien la nuit."},
 	"poste_national": {"name": "Raccordement au réseau national", "w": 40, "d": 30, "access": ROAD, "emplois": 3, "cost": 8_000_000,
 		"reseau": {"res": "elec", "cap": 50.0, "source": "national"},
 		"desc": "Poste électrique qui achète jusqu'à 50 MW au réseau voisin, cher (0,25 € le kWh). À moins de 300 m du bord de la carte."},
@@ -54,7 +42,7 @@ const TYPES := {
 		"reseau": {"res": "eau", "cap": 1500.0, "source": "nappe", "elec": 0.04},
 		"desc": "1 500 m³ par jour pompés dans la nappe, presque partout (moins dans le désert)."},
 	# --- Égouts et épuration ---------------------------------------------------------------
-	"station_epuration": {"name": "Station d'épuration", "w": 50, "d": 36, "access": ROAD, "emplois": 6, "cost": 10_000_000,
+	"station_epuration_locale": {"name": "Station d'épuration compacte", "w": 50, "d": 36, "access": ROAD, "emplois": 6, "cost": 10_000_000,
 		"reseau": {"res": "egout", "cap": 3000.0, "source": "traitement", "elec": 0.15},
 		"desc": "Traite 3 000 m³ d'eaux usées par jour (environ 10 000 habitants) avant de les rendre à la rivière."},
 	"lagunage": {"name": "Lagunage", "w": 70, "d": 50, "access": RP, "emplois": 1, "cost": 1_800_000,
@@ -65,9 +53,42 @@ const TYPES := {
 		"desc": "Sortie d'égout dans la nature : pas cher, mais il pollue la rivière et rend malades ceux qui boivent en aval."},
 }
 
-const ORDER := ["centrale_charbon", "centrale_gaz", "centrale_biomasse", "centrale_nucleaire", "centrale_hydro",
-	"eolienne", "parc_solaire", "poste_national", "captage_eau", "forage_eau",
-	"station_epuration", "lagunage", "exutoire_egout"]
+const ORDER := ["centrale_charbon_locale", "centrale_gaz", "centrale_biomasse", "poste_national", "captage_eau", "forage_eau",
+	"station_epuration_locale", "lagunage", "exutoire_egout"]
+
+## Bâtiments de la bible Blender qui deviennent des bâtiments des réseaux
+## (ils passent dans la catégorie Réseaux et ne poussent plus dans les zones).
+## "achat" : combustible acheté sous contrat, payé par la ville (€ par kWh produit).
+const BIBLE := {
+	"centrale_charbon": {"res": "elec", "cap": 600.0, "source": "contrat", "achat": 0.05},
+	"centrale_nucleaire": {"res": "elec", "cap": 2600.0, "source": "contrat", "achat": 0.012, "pres_eau": 300.0},
+	"barrage_usine": {"res": "elec", "cap": 40.0, "source": "riviere", "pres_eau": 60.0},
+	"eolienne": {"res": "elec", "cap": 3.0, "source": "vent"},
+	"centrale_solaire": {"res": "elec", "cap": 2.0, "source": "soleil"},
+	"station_epuration": {"res": "egout", "cap": 20000.0, "source": "traitement", "elec": 0.8},
+	"chateau_eau_champignon": {"res": "eau", "cap": 0.0, "stock": 2500.0},
+}
+const BIBLE_DESC := {
+	"centrale_charbon": "600 MW. Charbon acheté par contrat et livré par train (0,05 € par kWh, payé par la ville).",
+	"centrale_nucleaire": "2 600 MW. Combustible sous contrat (0,012 € par kWh). Il faut de l'eau à moins de 300 m.",
+	"barrage_usine": "40 MW au fil de l'eau : rivière à moins de 60 m.",
+	"eolienne": "3 MW quand le vent souffle fort, rien par temps calme.",
+	"centrale_solaire": "2 MW en plein soleil, moins sous les nuages, rien la nuit.",
+	"station_epuration": "Traite 20 000 m³ d'eaux usées par jour (environ 70 000 habitants).",
+	"chateau_eau_champignon": "Réserve de 2 500 m³ en hauteur.",
+}
+
+
+## Rend fonctionnels les modèles de la bible (appelé par BuildingCatalog.all_types).
+static func adopter(all: Dictionary) -> void:
+	for id in BIBLE:
+		if not all.has(id):
+			continue
+		var t: Dictionary = all[id]
+		t["reseau"] = BIBLE[id]
+		t["cat"] = CATEGORY
+		t.erase("zone")
+		t["desc"] = "%s %s" % [BIBLE_DESC.get(id, ""), String(t.get("desc", ""))]
 
 ## Tronçons que le joueur pose (prix par mètre, entretien par mètre et par an).
 const TRONCONS := {
@@ -150,7 +171,7 @@ static func build(k: BlocMesh, id: String, t: Dictionary) -> void:
 	var w := float(t.w)
 	var d := float(t.d)
 	match id:
-		"centrale_charbon":
+		"centrale_charbon_locale":
 			k.plate(0, 0, w, d, GRAVIER)
 			k.box(-8, 0, -4, 26, 22, 20, BRIQUE)
 			k.gable(-8, 22, -4, 26.6, 20.6, 4.0, TOLE)
@@ -179,41 +200,6 @@ static func build(k: BlocMesh, id: String, t: Dictionary) -> void:
 			for i in 4:
 				for j in 2:
 					k.box(-12 + i * 3, j * 0.9, 11, 2.6, 0.9, 6.0, Color("a0704a"))
-		"centrale_nucleaire":
-			k.plate(0, 0, w, d, GRAVIER)
-			for x in [-60.0, 0.0]:
-				k.lathe(x, 0, 40, [Vector2(38, 0), Vector2(30, 50), Vector2(26, 90), Vector2(28, 120)], 16, BETON_C)
-			k.cylinder(55, 0, -20, 18, 18, 44, 16, BETON_C)
-			k.dome(55, 44, -20, 18, 12, BETON_C)
-			k.box(55, 0, 20, 50, 26, 30, BLANC)
-			k.box(55, 26, 20, 50.4, 0.8, 30.4, TOLE)
-			k.box(-20, 0, -55, 60, 12, 30, BETON)
-			k.windows_row(-20, -70.0, 50.0, 4.0, 8, 2.2, 2.6, VITRE)
-		"centrale_hydro":
-			k.plate(0, 0, w, d, BETON)
-			k.box(0, 0, 4, w, 8, 10, BETON_C)
-			k.box(0, 0, 10, w, 1.2, 4, EAU)
-			k.box(-6, 8, 4, 12, 6, 8, BRIQUE)
-			k.gable(-6, 14, 4, 12.6, 8.6, 2.4, TOLE)
-			k.windows_row(-6, 0.0, 10.0, 10.0, 3, 1.4, 2.0, VITRE)
-			for i in 4:
-				k.box(4 + i * 3, 8, 4, 0.6, 3, 9, ACIER)
-		"eolienne":
-			k.plate(0, 0, 10, 10, GRAVIER)
-			k.cylinder(0, 0, 0, 2.2, 1.2, 100.0, 10, BLANC)
-			k.box(0, 98, -1, 3.0, 3.6, 9.0, BLANC)
-			# Trois pales figées à 120°.
-			k.box(0, 99.8, -5.6, 1.4, 1.4, 0.8, BLANC)
-			k.box(0, 121.0, -5.8, 1.2, 40.0, 0.4, BLANC)
-			k.box(-17.5, 89.5, -5.8, 35.0, 1.2, 0.4, BLANC)
-		"parc_solaire":
-			k.plate(0, 0, w, d, HERBE)
-			for row in 9:
-				var z := -d * 0.5 + 6.0 + row * 7.0
-				k.box(0, 0.8, z, w - 8.0, 0.18, 3.2, PANNEAU)
-				for x in [-w * 0.4, 0.0, w * 0.4]:
-					k.box(x, 0, z, 0.2, 0.8, 0.2, ACIER)
-			k.box(w * 0.5 - 6, 0, -d * 0.5 + 4, 5, 2.6, 3, BETON_C)
 		"poste_national":
 			k.plate(0, 0, w, d, GRAVIER)
 			for i in 3:
@@ -238,7 +224,7 @@ static func build(k: BlocMesh, id: String, t: Dictionary) -> void:
 			k.gable(0, 3.2, 0, 6.4, 5.4, 1.2, TOLE)
 			k.box(0, 0, -4, 0.9, 2.2, 0.2, Color("4a4e69"))
 			k.cylinder(4.5, 0, 3.5, 0.6, 0.6, 1.4, 8, ACIER)
-		"station_epuration":
+		"station_epuration_locale":
 			k.plate(0, 0, w, d, HERBE)
 			for c in [[-12.0, 6.0], [4.0, 6.0]]:
 				k.cylinder(c[0], 0, c[1], 7.0, 7.0, 2.2, 16, BETON_C)

@@ -18,6 +18,8 @@ var _mat_calque: StandardMaterial3D
 var _troncons := {}
 var _pastilles: MultiMeshInstance3D
 var _fantome: MeshInstance3D
+## Calque : routes et tronçons colorés selon leur réseau (vert, orange, rouge).
+var _lignes_calque: MeshInstance3D
 var _acc := 0.0
 
 
@@ -45,6 +47,10 @@ func _ready() -> void:
 	_pastilles.multimesh = mm
 	_pastilles.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(_pastilles)
+	_lignes_calque = MeshInstance3D.new()
+	_lignes_calque.name = "LignesCalque"
+	_lignes_calque.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(_lignes_calque)
 	_fantome = MeshInstance3D.new()
 	_fantome.name = "Fantome"
 	_fantome.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -267,8 +273,17 @@ func _maj_pastilles() -> void:
 	var mm := _pastilles.multimesh
 	if res == "" or reseaux == null or reseaux.buildings == null:
 		mm.instance_count = 0
+		_lignes_calque.mesh = null
 		return
 	var r := reseaux.reseau(res)
+	# Taille des pastilles et des bandes selon la distance de la caméra.
+	var zoom := 1.0
+	var cam := get_viewport().get_camera_3d() if is_inside_tree() else null
+	if cam != null:
+		var rig := cam.get_parent_node_3d()
+		var dist := cam.global_position.distance_to(rig.global_position if rig != null else Vector3.ZERO)
+		zoom = clampf(dist / 200.0, 1.0, 4.0)
+	_maj_lignes(r, zoom)
 	var b := reseaux.buildings
 	var list := []
 	for bid in r.consos:
@@ -297,5 +312,33 @@ func _maj_pastilles() -> void:
 		else:
 			var t := float(reseaux.etat.get(bid, {}).get(k, 1.0))
 			col = Color("52b788") if t >= 0.95 else (Color("f4a261") if t >= 0.5 else Color("e63946"))
-		mm.set_instance_transform(i, Transform3D(Basis().scaled(Vector3(sc, 1, sc)), p + Vector3(0, hgt + 3.0, 0)))
+		mm.set_instance_transform(i, Transform3D(Basis().scaled(Vector3(sc * zoom, zoom, sc * zoom)), p + Vector3(0, hgt + 3.0 * zoom, 0)))
 		mm.set_instance_color(i, col)
+
+
+## Routes et tronçons du réseau, colorés par l'état de leur partie du réseau.
+func _maj_lignes(r: ReseauBase, zoom: float) -> void:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var n := 0
+	for i in r.lignes.size():
+		var t := r.taux_composante(r.lignes_comp[i])
+		var col := Color("52b788") if t >= 0.95 else (Color("f4a261") if t > 0.0 else Color("e63946"))
+		col.a = 0.85
+		var pts: PackedVector3Array = r.lignes[i]
+		var w := 2.5 * zoom
+		for j in range(pts.size() - 1):
+			var a := pts[j] + Vector3(0, 0.6, 0)
+			var b := pts[j + 1] + Vector3(0, 0.6, 0)
+			var d := b - a
+			d.y = 0.0
+			if d.length() < 0.01:
+				continue
+			var s := Vector3(-d.z, 0, d.x).normalized() * w * 0.5
+			st.set_color(col)
+			st.set_normal(Vector3.UP)
+			for v in [a - s, a + s, b + s, a - s, b + s, b - s]:
+				st.add_vertex(v)
+			n += 1
+	_lignes_calque.mesh = st.commit() if n > 0 else null
+	_lignes_calque.material_override = _mat_calque

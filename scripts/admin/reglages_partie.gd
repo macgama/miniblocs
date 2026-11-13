@@ -75,6 +75,9 @@ var evenements_auto := true
 var catastrophes := true
 ## Fréquence des catastrophes (0,25 : rares ; 1 : normales ; 3 : fréquentes).
 var frequence_catastrophes := 1.0
+## Élections municipales (Elections.MODES) et manifestations (scripts/avis).
+var elections := "objectifs"
+var manifestations := true
 ## Faim des habitants quand les commerces d'alimentation sont vides :
 ## "aucune" (pas d'effet), "normale" (moins satisfaits, santé, départs),
 ## "mortelle" (en plus, on peut mourir de faim). Voir Repas.
@@ -243,7 +246,7 @@ func to_dict() -> Dictionary:
 		"record_habitants": record_habitants, "evenements_auto": evenements_auto, "catastrophes": catastrophes,
 		"frequence_catastrophes": frequence_catastrophes, "faim": faim, "telecom_necessaire": telecom_necessaire, "construction_instantanee": construction_instantanee,
 		"horaires_chantiers": horaires_chantiers, "usure": usure, "dechets": dechets, "dechets_quantite": dechets_quantite, "pollution": pollution, "pollution_sante": pollution_sante,
-		"funeraire": funeraire, "cremation": cremation}
+		"elections": elections, "manifestations": manifestations, "funeraire": funeraire, "cremation": cremation}
 
 
 func from_dict(d: Dictionary) -> void:
@@ -263,6 +266,10 @@ func from_dict(d: Dictionary) -> void:
 	evenements_auto = bool(d.get("evenements_auto", true))
 	catastrophes = bool(d.get("catastrophes", true))
 	frequence_catastrophes = clampf(float(d.get("frequence_catastrophes", 1.0)), 0.25, 3.0)
+	elections = String(d.get("elections", "objectifs"))
+	if not Elections.MODES.has(elections):
+		elections = "objectifs"
+	manifestations = bool(d.get("manifestations", true))
 	faim = String(d.get("faim", "normale"))
 	if not FAIMS.has(faim):
 		faim = "normale"

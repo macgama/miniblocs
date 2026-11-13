@@ -50,6 +50,8 @@ const CREMATIONS := [-1.0, 0.1, 0.25, 0.5, 0.75, 0.95]
 var _pollution: OptionButton
 var _pol_sante: CheckBox
 const FREQS := [0.25, 1.0, 3.0]
+var _elections: OptionButton
+var _manifs: CheckBox
 ## Vitesse d'usure des voies et réseaux (budget communal).
 const USURES := [0.0, 0.5, 1.0, 2.0]
 const USURE_NOMS := ["Aucune", "Lente", "Normale", "Rapide"]
@@ -230,6 +232,16 @@ func _ready() -> void:
 	_freq.disabled = not editable
 	_freq.item_selected.connect(func(_i: int) -> void: _changed())
 	_row(g, "Fréquence des catastrophes", _freq)
+	# Vie politique (scripts/avis).
+	_elections = OptionButton.new()
+	for n in Elections.MODE_NOMS:
+		_elections.add_item(n)
+	_elections.disabled = not editable
+	_elections.tooltip_text = "Municipales tous les 6 ans de vie des habitants. Si tu perds : rien, les objectifs du gagnant, ou fin de partie."
+	_elections.item_selected.connect(func(_i: int) -> void: _changed())
+	_row(g, "Élections municipales", _elections)
+	_manifs = _check("Manifestations des habitants mécontents")
+	g.add_child(_manifs)
 
 	# Réseaux.
 	g = _section(right, "Internet et téléphone", "services")
@@ -395,6 +407,8 @@ func _fill() -> void:
 		if absf(float(FREQS[i]) - reglages.frequence_catastrophes) < 0.01:
 			fi = i
 	_freq.select(fi)
+	_elections.select(maxi(0, Elections.MODES.find(reglages.elections)))
+	_manifs.button_pressed = reglages.manifestations
 	_faim.select(maxi(ReglagesPartie.FAIMS.find(reglages.faim), 0))
 	var ui := 2
 	for i in USURES.size():
@@ -435,6 +449,8 @@ func _changed() -> void:
 	reglages.horaires_chantiers = String(Chantiers.HORAIRES[maxi(0, _horaires.selected)])
 	_horaires.disabled = not editable or _instant.button_pressed
 	reglages.frequence_catastrophes = float(FREQS[maxi(0, _freq.selected)])
+	reglages.elections = String(Elections.MODES[maxi(0, _elections.selected)])
+	reglages.manifestations = _manifs.button_pressed
 	reglages.faim = String(ReglagesPartie.FAIMS[clampi(_faim.selected, 0, 2)])
 	reglages.usure = float(USURES[maxi(0, _usure.selected)])
 	reglages.dechets = _dechets.button_pressed

@@ -27,6 +27,9 @@ Tout est dans `main`, et les 9 tests automatiques passent (`sh tests/tous.sh`).
 **Bâtiments**
 - 15 styles de plus, des espaces publics, et « Mes créations » : ce que tu bâtis dans l'éditeur libre devient un bâtiment réutilisable (#22).
 
+**Avis des habitants et élections** (touche **Y**)
+- La satisfaction est notée par thème (emploi, logement, écoles et santé, sécurité, environnement, transports, impôts, réseaux, loisirs, commerces), par quartier avec une carte de couleur, et des habitants disent ce qui ne va pas. Dès 30 habitants tu es maire : municipales tous les 6 ans de vie, campagne avec 3 promesses, listes adverses menées par des habitants, 2e tour si besoin. Les mécontents manifestent devant la mairie : négocier, ignorer (grève à la 2e fois) ou envoyer la police (voir docs/avis.md).
+
 **Les habitants au travail** (touche **K**)
 - On voit les métiers : en zoomant, les commerces, écoles, hôpitaux et usines s'ouvrent en coupe. Le boulanger pétrit, l'enseignant écrit au tableau devant ses élèves, le médecin ausculte. Il y a 56 gestes avec outils et postes de travail, et les nouveaux métiers reçoivent des gestes tout seuls. Les métiers d'extérieur se voient dehors. Les bâtiments ont une enseigne Ouvert / Fermé, un rideau de fer et une pancarte « Manque de personnel ». Sans personnel, l'école ferme et les élèves restent à la maison, les clients vont ailleurs et l'hôpital ne soigne plus (voir docs/metiers.md).
 

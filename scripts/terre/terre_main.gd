@@ -66,6 +66,10 @@ var decors_panel: DecorPanel
 ## Événements : fêtes, marchés, matchs, incendies, tempêtes, épidémies (touche I).
 var evenements: Evenements
 var evenements_panel: EvenementsPanel
+## Avis des habitants, élections, manifestations (/root/Avis, panneau Y).
+var avis: Avis
+var avis_panel: AvisPanel
+var avis_carte: AvisCarte
 var actualites: Actualites
 ## Internet et téléphone : antennes, centraux, cuivre et fibre (Maj + O, scripts/reseaux).
 var telecom: Telecom
@@ -123,6 +127,7 @@ func _ready() -> void:
 	_setup_decors()
 	_setup_evenements()
 	_setup_nuisances()
+	_setup_avis()
 	_setup_create_mode()
 	hud.traffic_toggled.connect(func(on: bool) -> void: transport.traffic.set_enabled(on))
 	hud.traffic_filter_changed.connect(func(era: String, region: String) -> void:
@@ -259,12 +264,14 @@ func _game_title() -> String:
 
 ## Sections de la sauvegarde : uniquement ce que le joueur a créé ou changé.
 func save_sections() -> Dictionary:
-	return {"terrain": world.to_dict(), "transport": transport.to_dict(), "batiments": buildings.to_dict(),
+	var sec := {"terrain": world.to_dict(), "transport": transport.to_dict(), "batiments": buildings.to_dict(),
 		"zones": zones.to_dict(), "blocs": blocks.to_dict(), "plans": plans.to_dict(), "ambiance": ambiance.to_dict(),
 		"creations": Creations.to_dict(Creations.used_by(buildings)),
 		"personnage": ($VueSol as VueSol).to_dict(), "habitants": population.to_dict(), "mobilier": mobilier.to_dict(),
 		"production": production.to_dict(), "agriculture": agriculture.to_dict(), "urgences": urgences.to_dict(), "dechets": dechets.to_dict(), "funeraire": funeraire.to_dict(), "trafic": trafic.to_dict(), "reglages": _settings_snapshot().to_dict(), "budget": budget.to_dict(), "evenements": evenements.to_dict(), "decors": decors.to_dict(),
 		"nuisances": nuisances.to_dict(), "telecom": telecom.to_dict(), "services": services.to_dict()}
+	sec["avis"] = avis.to_dict()
+	return sec
 
 
 ## Sauvegarde dans la partie en cours (ou une nouvelle). title : nom d'une nouvelle partie.
@@ -332,6 +339,7 @@ func load_game(slot := "") -> bool:
 	ambiance.from_dict(sec.get("ambiance", {}))
 	# Après les bâtiments et les habitants : dégâts, ruines, malades, matchs.
 	evenements.from_dict(sec.get("evenements", {}))
+	avis.from_dict(sec.get("avis", {}))
 	nuisances.from_dict(sec.get("nuisances", {}))
 	($VueSol as VueSol).from_dict(sec.get("personnage", {}))
 	_load_settings(sec.get("reglages", {}), m)
@@ -508,6 +516,47 @@ func _setup_evenements() -> void:
 	hud.infos_requested.connect(func() -> void: evenements_panel.toggle())
 
 
+## Avis des habitants (satisfaction par thème, quartiers, paroles), élections
+## municipales et manifestations : nœud /root/Avis, panneau Avis (Y), carte.
+func _setup_avis() -> void:
+	avis = Avis.new()
+	avis.setup(population, buildings, transport, ambiance, world, evenements)
+	Avis.instance = avis
+	get_tree().root.add_child.call_deferred(avis)
+	tree_exiting.connect(func() -> void:
+		if is_instance_valid(avis):
+			avis.queue_free())
+	avis.changed.connect(func() -> void: _unsaved = true)
+	avis_carte = AvisCarte.new()
+	add_child(avis_carte)
+	avis_carte.setup(avis)
+	avis_panel = AvisPanel.new()
+	avis_panel.name = "PanneauAvis"
+	add_child(avis_panel)
+	avis_panel.setup(avis, avis_carte)
+	avis_panel.focus_requested.connect(func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
+	avis_panel.person_requested.connect(func(pid: int) -> void:
+		habitants_panel.set_open(true)
+		habitants_panel.show_view("profil", pid))
+	hud.avis_requested.connect(func() -> void: avis_panel.toggle())
+	avis.defaite_finale.connect(_on_defaite_finale)
+
+
+## Élections perdues avec le réglage « fin de partie ».
+func _on_defaite_finale(texte: String) -> void:
+	var d := AcceptDialog.new()
+	d.title = "Fin de partie"
+	d.dialog_text = "%s\n\nTu as perdu la mairie. Tu peux continuer en bac à sable, ou revenir au globe pour une nouvelle partie." % texte
+	d.ok_button_text = "Continuer quand même"
+	d.add_button("Revenir au globe", true, "globe")
+	d.custom_action.connect(func(a: StringName) -> void:
+		if a == "globe":
+			d.hide()
+			hud.globe_requested.emit())
+	add_child(d)
+	d.popup_centered()
 ## Nuisances (pollution de l'air, de l'eau, bruit) et valeur des terrains, avec
 ## leurs cartes de couleur dans le panneau Cartes (touche N).
 func _setup_nuisances() -> void:
@@ -1243,6 +1292,8 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 	ReglagesPartie.actuel.record_habitants = 0
 	if evenements != null:
 		evenements.clear()
+	if avis != null:
+		avis.clear()
 	population.clear()
 	production.clear()
 	agriculture.clear()
@@ -1331,7 +1382,7 @@ var _open_before := {}
 ## Construire, Lignes et Habitants partagent la même place à droite : quand
 ## l'un s'ouvre, les autres se ferment. Leur bouton de la barre du bas s'allume.
 func _exclusive_panels() -> void:
-	var panels := {"construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "agriculture": agri_panel, "urgences": urgences_panel, "dechets": dechets_panel, "trafic": trafic_panel, "budget": budget_panel, "telecom": telecom_panel, "perso": perso_panel, "infos": evenements_panel, "cartes": cartes_panel}
+	var panels := {"construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "agriculture": agri_panel, "urgences": urgences_panel, "dechets": dechets_panel, "trafic": trafic_panel, "budget": budget_panel, "telecom": telecom_panel, "perso": perso_panel, "infos": evenements_panel, "cartes": cartes_panel, "avis": avis_panel}
 	var opened := ""
 	for id in panels:
 		var p = panels[id]

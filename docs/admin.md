@@ -17,6 +17,7 @@ commencer la partie.
 | Accès à une voie obligatoire | règle de pose des bâtiments |
 | Bâtiments | tout débloqué d'office, ou au fil de la partie par paliers de population |
 | Impôts (×0 à ×3) | taxe foncière et impôts des entreprises touchés par la ville |
+| Usure des routes et réseaux | Aucune, Lente, Normale, Rapide (voir [budget.md](budget.md)) |
 | Salaires (×0,5 à ×2) | salaires des habitants, des agents de la ville et de la production |
 | Vitesse du temps, de la vie | vitesse de l'horloge (comme T / Maj+T) et du vieillissement |
 | Événements automatiques | marchés du samedi, fêtes de quartier, matchs au stade |

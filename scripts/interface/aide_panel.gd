@@ -77,6 +77,17 @@ const SECTIONS := [
 		["Qui paie ?", "ce qui se construit sur le territoire d'une ville est payé par sa caisse ; les voies et bâtiments hors des villes, par le pays ; les ventes des entreprises sont partagées selon la population"],
 		["Caisse du pays", "elle reçoit l'argent de départ et l'impôt national (10 % des impôts des villes) ; elle paie la dotation par habitant, l'entretien des voies hors des villes, les subventions et le capital des nouvelles villes (60 % de la caisse pour la première, 1 M€ pour les suivantes)"],
 		["Pays à sec", "une caisse du pays vide ne verse plus de dotation : les villes doivent alors vivre de leurs impôts"],
+		["Élections", "chaque ville vote de son côté, pour son maire ; le panneau Avis (Y) montre la ville gérée"],
+		["Mairie perdue", "si une autre liste gagne (réglage Admin « Défaite : mairie perdue », par défaut), tu construis toujours dans cette ville, mais son maire décide des impôts, des emprunts et de l'entretien selon son programme ; tu ne peux plus reverser son argent au pays"],
+		["Pilote automatique", "Maj+P, bouton Activer sous une ville : chaque semaine elle tient son budget à l'équilibre et fait la construction la plus urgente (rue, zone résidentielle, école, aire de jeux, boulangerie, parc, pompiers, police, supérette, gymnase, hôpital, zone d'activités si le chômage dépasse 12 %), en gardant 3 mois de dépenses en réserve"],
+		["Reprendre la mairie", "gagne les municipales suivantes (campagne et promesses dans Y), ou lance des élections anticipées par pétition si la satisfaction tombe sous 40"],
+	]],
+	["Objectifs du pays", [
+		["Maj+J", "panneau Objectifs : réputation du pays (étoiles), missions en cours, rang de chaque ville, succès"],
+		["Missions", "3 missions à la fois, tirées selon tes villes (faire grandir une ville, ouvrir une école, rendre une ville heureuse, faire baisser le chômage, rembourser ses emprunts, fonder une ville, relier deux villes, créer une ligne) ; chacune a un délai et une prime versée au pays"],
+		["Rangs des villes", "Hameau, Village, Bourg, Ville, Grande ville, Métropole : il faut des habitants, des habitants contents et des services (école, pompiers, police, hôpital, transports, caisse saine) ; chaque rang rapporte une prime et ne se perd jamais"],
+		["Réputation", "de 0 à 100 : missions, rangs et succès la montent ; missions ratées, tutelle et mairies perdues la baissent ; au-dessus de 20 les emprunts coûtent moins cher (jusqu'à −1 point)"],
+		["Succès", "15 étapes à débloquer une fois pour toutes : première ville, mille habitants, pays heureux, villes reliées, mairie reprise…"],
 	]],
 	["Budget de la commune", [
 		["M", "panneau Budget : bilan du mois, impôts votés par le maire, emprunts, entretien et état des voies"],

@@ -53,3 +53,52 @@ Une recette globale : `Pays.crediter(buildings, euros)`. Le budget (`BudgetCommu
 un état par ville (`cle`, `etats`, `selectionner()`, `bilan_mensuel(cle)`, `bilan_pays()`).
 
 Test : `godot --headless --path . --script res://tests/pays_test.gd`
+
+## Élections dans chaque ville et mairie perdue
+
+Chaque ville a ses municipales, son maire, son historique de satisfaction (panneau
+**Avis**, touche **Y**, pour la ville gérée). Réglage Admin (F10 → Événements) **« Défaite :
+mairie perdue »** (par défaut pour les nouvelles parties) :
+
+- la liste gagnante prend la mairie : tu construis toujours dans la ville, mais impôts,
+  emprunts et entretien sont décidés par son conseil (`GestionAuto`), selon son programme :
+  contribuables (impôts 80 %), sécurité (100 %), écologie (110 %), solidarité (120 %) ;
+- chaque semaine, le maire élu ajuste ses impôts (plus hauts si la caisse est dans le
+  rouge, plus bas si elle déborde), l'entretien, emprunte ou rembourse ;
+- ses promesses deviennent des objectifs : les tenir aide sa liste, les rater t'aide ;
+- pour reprendre la mairie : gagner les municipales suivantes, ou lancer des élections
+  anticipées quand une **pétition** circule (satisfaction sous 40).
+
+## Pilote automatique
+
+Panneau Pays (Maj+P) → **Activer** sous une ville. Une fois par semaine de jeu, si tu en es
+le maire :
+
+1. budget tenu à l'équilibre (`GestionAuto`, programme « équilibre ») ;
+2. **une** construction, la plus urgente, payée par la ville en gardant une réserve de
+   3 mois de dépenses (200 k€ au moins) :
+   - pas de rue : une rue de 300 m devant la mairie ;
+   - logements presque pleins : zone résidentielle de 40 × 30 m le long d'une rue ;
+   - services selon la population : école (60 hab., ou enfants sans école), aire de jeux (40),
+     boulangerie (80), parc (150), pompiers et police (250), supérette (300), gymnase (600),
+     hôpital (2 000) ;
+   - chômage au-dessus de 12 % : zone commerciale ou industrielle ;
+   - plus de place : une impasse est prolongée de 120 m, ou une rue est ouverte en travers.
+
+Les dernières décisions s'affichent sous la ville. Code : `scripts/pays/pilote_auto.gd`.
+
+## Objectifs (Maj+J)
+
+Code : `scripts/pays/objectifs.gd` (nœud `Objectifs`, section de sauvegarde « objectifs »)
+et `scripts/pays/objectifs_panel.gd`. Vérifié une fois par jour de jeu.
+
+- **Rangs des villes** : Hameau, Village (100 hab., satisfaction 50), Bourg (500, 55, école,
+  caisse saine), Ville (2 000, 55, + pompiers et police), Grande ville (10 000, 60, + hôpital
+  et une ligne), Métropole (50 000). Chaque rang verse une prime au pays et ne se perd pas.
+- **Missions** : 3 à la fois, tirées selon l'état des villes, avec un délai et une prime
+  (× coût des constructions). Ratée : réputation −3 ; abandonnée : −1.
+- **Succès** : 15, débloqués une fois pour toutes.
+- **Réputation** (0 à 100, départ 20) : au-dessus de 20, le taux des emprunts baisse
+  (jusqu'à −1 point, `Objectifs.bonus_taux()` dans `BudgetCommunal.taux_propose`).
+
+Test : `godot --headless --path . --script res://tests/objectifs_test.gd`

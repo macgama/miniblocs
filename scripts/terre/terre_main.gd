@@ -90,6 +90,9 @@ var fondateurs: Fondateurs
 var fondateurs_panel: FondateursPanel
 var pays: Pays
 var pays_panel: PaysPanel
+var pilote: PiloteAuto
+var objectifs: Objectifs
+var objectifs_panel: ObjectifsPanel
 
 
 func _ready() -> void:
@@ -295,6 +298,8 @@ func save_sections() -> Dictionary:
 	sec["communes"] = communes.to_dict()
 	sec["fondateurs"] = fondateurs.to_dict()
 	sec["pays"] = pays.to_dict()
+	sec["pilote"] = pilote.to_dict()
+	sec["objectifs"] = objectifs.to_dict()
 	return sec
 
 
@@ -379,9 +384,12 @@ func load_game(slot := "") -> bool:
 	# Après les villages et le budget : une caisse par ville (sans section : ancienne partie).
 	pays.from_dict(sec.get("pays", {}))
 	pays.capital_auto = true
+	pilote.from_dict(sec.get("pilote", {}))
 	# Après les bâtiments, les habitants et les villages.
 	fondateurs.from_dict(sec.get("fondateurs", {}))
 	avis.from_dict(sec.get("avis", {}))
+	# Après les villages, le pays et les élections (mairies perdues).
+	objectifs.from_dict(sec.get("objectifs", {}))
 	nuisances.from_dict(sec.get("nuisances", {}))
 	($VueSol as VueSol).from_dict(sec.get("personnage", {}))
 	_load_settings(sec.get("reglages", {}), m)
@@ -675,6 +683,12 @@ func _setup_pays() -> void:
 	pays.foyer = func() -> Vector2: return Vector2(rig.position.x, rig.position.z)
 	pays.message.connect(func(t: String) -> void: hud.show_message(t))
 	pays.changed.connect(func() -> void: _unsaved = true)
+	pilote = PiloteAuto.new()
+	pilote.name = "PiloteAuto"
+	add_child(pilote)
+	pilote.setup(buildings, transport, zones, communes, population, pays, world)
+	pilote.message.connect(func(t: String) -> void: hud.show_message(t))
+	pilote.changed.connect(func() -> void: _unsaved = true)
 	pays_panel = PaysPanel.new()
 	pays_panel.name = "PanneauPays"
 	add_child(pays_panel)
@@ -683,6 +697,20 @@ func _setup_pays() -> void:
 		rig.position.x = pos.x
 		rig.position.z = pos.z)
 	hud.pays_requested.connect(func() -> void: pays_panel.toggle())
+	objectifs = Objectifs.new()
+	objectifs.name = "Objectifs"
+	add_child(objectifs)
+	objectifs.setup(communes, population, pays, buildings, transport)
+	objectifs.message.connect(func(t: String) -> void: hud.show_message(t))
+	objectifs.changed.connect(func() -> void: _unsaved = true)
+	objectifs_panel = ObjectifsPanel.new()
+	objectifs_panel.name = "PanneauObjectifs"
+	add_child(objectifs_panel)
+	objectifs_panel.setup(objectifs)
+	objectifs_panel.focus_requested.connect(func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
+	hud.objectifs_requested.connect(func() -> void: objectifs_panel.toggle())
 
 
 ## Élections perdues avec le réglage « fin de partie ».
@@ -1453,6 +1481,10 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 		avis.clear()
 	if pays != null:
 		pays.clear()
+	if pilote != null:
+		pilote.clear()
+	if objectifs != null:
+		objectifs.clear()
 	if communes != null:
 		communes.clear()
 	if fondateurs != null:
@@ -1548,7 +1580,7 @@ var _open_before := {}
 ## Construire, Lignes et Habitants partagent la même place à droite : quand
 ## l'un s'ouvre, les autres se ferment. Leur bouton de la barre du bas s'allume.
 func _exclusive_panels() -> void:
-	var panels := {"pays": pays_panel, "construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "agriculture": agri_panel, "urgences": urgences_panel, "reseaux": reseaux_panel, "dechets": dechets_panel, "trafic": trafic_panel, "budget": budget_panel, "telecom": telecom_panel, "perso": perso_panel, "infos": evenements_panel, "cartes": cartes_panel, "avis": avis_panel, "villages": villages_panel, "fondateurs": fondateurs_panel}
+	var panels := {"pays": pays_panel, "objectifs": objectifs_panel, "construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "agriculture": agri_panel, "urgences": urgences_panel, "reseaux": reseaux_panel, "dechets": dechets_panel, "trafic": trafic_panel, "budget": budget_panel, "telecom": telecom_panel, "perso": perso_panel, "infos": evenements_panel, "cartes": cartes_panel, "avis": avis_panel, "villages": villages_panel, "fondateurs": fondateurs_panel}
 	var opened := ""
 	for id in panels:
 		var p = panels[id]

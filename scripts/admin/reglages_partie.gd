@@ -88,7 +88,7 @@ var reseaux_obligatoires := true
 ## Multiplicateur des factures d'eau et d'électricité payées par les habitants.
 var prix_services := 1.0
 ## Élections municipales (Elections.MODES) et manifestations (scripts/avis).
-var elections := "objectifs"
+var elections := "mairie"
 var manifestations := true
 ## Faim des habitants quand les commerces d'alimentation sont vides :
 ## "aucune" (pas d'effet), "normale" (moins satisfaits, santé, départs),

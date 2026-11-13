@@ -41,13 +41,13 @@ const TOUJOURS := ["ecole"]
 ## Préréglages : un clic remplit tout le panneau.
 const PRESETS := {
 	"facile": {"nom": "Facile", "argent_depart": 100_000_000, "argent_illimite": false, "cout_construction": 0.5,
-		"acces_route": true, "impots": 1.5, "salaires": 1.0, "epuisement": false, "deblocage": "tout", "reseaux_obligatoires": true},
+		"acces_route": true, "impots": 1.5, "salaires": 1.0, "epuisement": false, "deblocage": "tout", "reseaux_obligatoires": true, "fondation": true, "territoire": true},
 	"normal": {"nom": "Normal", "argent_depart": 20_000_000, "argent_illimite": false, "cout_construction": 1.0,
-		"acces_route": true, "impots": 1.0, "salaires": 1.0, "epuisement": true, "deblocage": "tout", "reseaux_obligatoires": true},
+		"acces_route": true, "impots": 1.0, "salaires": 1.0, "epuisement": true, "deblocage": "tout", "reseaux_obligatoires": true, "fondation": true, "territoire": true},
 	"difficile": {"nom": "Difficile", "argent_depart": 5_000_000, "argent_illimite": false, "cout_construction": 2.0,
-		"acces_route": true, "impots": 0.75, "salaires": 1.25, "epuisement": true, "deblocage": "progression", "reseaux_obligatoires": true},
+		"acces_route": true, "impots": 0.75, "salaires": 1.25, "epuisement": true, "deblocage": "progression", "reseaux_obligatoires": true, "fondation": true, "territoire": true},
 	"libre": {"nom": "Bac à sable libre", "argent_depart": 20_000_000, "argent_illimite": true, "cout_construction": 1.0,
-		"acces_route": false, "impots": 1.0, "salaires": 1.0, "epuisement": false, "deblocage": "tout", "reseaux_obligatoires": false},
+		"acces_route": false, "impots": 1.0, "salaires": 1.0, "epuisement": false, "deblocage": "tout", "reseaux_obligatoires": false, "fondation": false, "territoire": false},
 }
 
 ## Réglages de la partie en cours (lus par tous les systèmes).
@@ -60,6 +60,11 @@ var argent_illimite := false
 ## Multiplicateur de tous les prix de construction (bâtiments, terrassement, zonage, blocs, murs).
 var cout_construction := 1.0
 var acces_route := true
+## Une partie commence par la fondation d'un village (Maison de commune) :
+## avant, ni bâtiment, ni zonage, ni voie (scripts/communes).
+var fondation := true
+## Bâtiments et zonage seulement sur le territoire de ses villages.
+var territoire := true
 ## Multiplicateur des impôts touchés par la ville (taxe foncière, impôts des entreprises).
 var impots := 1.0
 ## Multiplicateur des salaires (habitants, agents de la ville, production).
@@ -256,7 +261,8 @@ func to_dict() -> Dictionary:
 		"record_habitants": record_habitants, "evenements_auto": evenements_auto, "catastrophes": catastrophes,
 		"frequence_catastrophes": frequence_catastrophes, "faim": faim, "telecom_necessaire": telecom_necessaire, "construction_instantanee": construction_instantanee,
 		"horaires_chantiers": horaires_chantiers, "usure": usure, "dechets": dechets, "dechets_quantite": dechets_quantite, "pollution": pollution, "pollution_sante": pollution_sante,
-		"elections": elections, "manifestations": manifestations, "funeraire": funeraire, "cremation": cremation, "reseaux_obligatoires": reseaux_obligatoires, "prix_services": prix_services}
+		"elections": elections, "manifestations": manifestations, "funeraire": funeraire, "cremation": cremation, "reseaux_obligatoires": reseaux_obligatoires, "prix_services": prix_services,
+		"fondation": fondation, "territoire": territoire}
 
 
 func from_dict(d: Dictionary) -> void:
@@ -265,6 +271,8 @@ func from_dict(d: Dictionary) -> void:
 	argent_illimite = bool(d.get("argent_illimite", n.argent_illimite))
 	cout_construction = clampf(float(d.get("cout_construction", 1.0)), COUT_MIN, COUT_MAX)
 	acces_route = bool(d.get("acces_route", true))
+	fondation = bool(d.get("fondation", true))
+	territoire = bool(d.get("territoire", true))
 	impots = clampf(float(d.get("impots", 1.0)), 0.0, IMPOTS_MAX)
 	salaires = clampf(float(d.get("salaires", 1.0)), SALAIRES_MIN, SALAIRES_MAX)
 	vitesse_temps = clampi(int(d.get("vitesse_temps", DayNight.DEFAULT_SPEED)), 0, DayNight.SPEEDS.size() - 1)

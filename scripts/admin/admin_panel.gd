@@ -24,6 +24,8 @@ var _caisse: SpinBox
 var _cout: HSlider
 var _cout_l: Label
 var _acces: CheckBox
+var _fondation: CheckBox
+var _territoire: CheckBox
 var _deblocage: OptionButton
 var _paliers_l: Label
 var _impots: HSlider
@@ -160,6 +162,12 @@ func _ready() -> void:
 	_row(g, "Coût des constructions", c[2])
 	_acces = _check("Accès à une voie obligatoire pour construire")
 	g.add_child(_acces)
+	_fondation = _check("Fonder un village (Maison de commune) avant de construire")
+	_fondation.tooltip_text = "Au début de la partie, on pose d'abord la Maison de commune : avant, ni bâtiment, ni zonage, ni voie"
+	g.add_child(_fondation)
+	_territoire = _check("Bâtiments et zonage seulement sur le territoire de ses villages")
+	_territoire.tooltip_text = "Les voies, réseaux et lignes restent permis partout pour relier les villages (Maj+M : villages)"
+	g.add_child(_territoire)
 	_deblocage = OptionButton.new()
 	_deblocage.add_item("Tout débloqué d'office")
 	_deblocage.add_item("Au fil de la partie (paliers de population)")
@@ -402,6 +410,8 @@ func _fill() -> void:
 	_illimite.button_pressed = reglages.argent_illimite
 	_cout.value = reglages.cout_construction
 	_acces.button_pressed = reglages.acces_route
+	_fondation.button_pressed = reglages.fondation
+	_territoire.button_pressed = reglages.territoire
 	_deblocage.select(1 if reglages.deblocage == "progression" else 0)
 	_impots.value = reglages.impots
 	_salaires.value = reglages.salaires
@@ -449,6 +459,8 @@ func _changed() -> void:
 	reglages.argent_illimite = _illimite.button_pressed
 	reglages.cout_construction = _cout.value
 	reglages.acces_route = _acces.button_pressed
+	reglages.fondation = _fondation.button_pressed
+	reglages.territoire = _territoire.button_pressed
 	reglages.deblocage = "progression" if _deblocage.selected == 1 else "tout"
 	reglages.impots = _impots.value
 	reglages.salaires = _salaires.value

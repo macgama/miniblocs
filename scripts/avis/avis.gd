@@ -656,6 +656,12 @@ func lignes() -> int:
 func mairie() -> int:
 	if buildings == null:
 		return -1
+	# Siège du premier village (scripts/communes) s'il est construit.
+	var cm := Communes.instance
+	if cm != null and not cm.villages.is_empty():
+		var siege := int(cm.villages[cm.principal()].bid)
+		if buildings.buildings.has(siege) and not buildings.buildings[siege].get("chantier", false):
+			return siege
 	for bid in buildings.buildings:
 		var b: Dictionary = buildings.buildings[bid]
 		if not b.get("chantier", false) and Metiers.keys_of(String(b.t)).has("mairie"):
@@ -663,8 +669,12 @@ func mairie() -> int:
 	return -1
 
 
-## Nom du lieu (« Annecy, Haute-Savoie » → « Annecy »).
+## Nom de la commune : le premier village fondé (scripts/communes), sinon le
+## nom du lieu (« Annecy, Haute-Savoie » → « Annecy »).
 static func ville() -> String:
+	var v := Communes.nom_principal()
+	if v != "":
+		return v
 	var n := GameStart.place_name.strip_edges()
 	if n == "" or n == "Atelier":
 		return "MiniBlocs"

@@ -402,6 +402,12 @@ Détails : [docs/habitants.md](docs/habitants.md).
 Antennes relais 2G, 4G et 5G (portées réelles, saturation quand trop d'abonnés), central téléphonique dont le cuivre suit les routes (ADSL de plus en plus lent avec la distance), fibre posée rue par rue ou sur poteaux jusqu'aux fermes. Sans internet ni réseau mobile, les habitants sont moins satisfaits et les entreprises produisent moins (réglage Admin pour couper). Détails : [docs/telecom.md](docs/telecom.md).
 
 ![Calque de couverture mobile : pylône 4G et petite antenne 5G](docs/apercu-telecom-couverture.png)
+## Villages et territoire : fonder sa commune
+
+Une partie commence par la **fondation du village** : on lui donne un nom, puis on pose sa **Maison de commune**, n'importe où et sans route. Avant, on ne peut que regarder et modeler le paysage. Le village reçoit un **territoire** en carrés de 100 m (500 m autour de la mairie), qui **grandit avec la population** (jusqu'à 3 km pour une grande ville). On peut aussi acheter un carré voisin ou en céder un. Bâtiments et zonage restent sur le territoire, alors que voies et réseaux vont partout. Une Maison de commune posée à 2 km d'un autre village **fonde un nouveau village**, et deux villages qui se touchent peuvent **fusionner**. Touche **Maj+M** (menu Ville). Détails : [docs/villages.md](docs/villages.md).
+
+![Territoire d'un village et panneau Villages](docs/apercu-villages-territoire.jpg)
+
 ## Budget de la commune : impôts, emprunts, entretien des voies
 
 Touche **M** : le maire vote la taxe foncière, l'impôt des entreprises et l'impôt sur les bénéfices (0 à 200 %, les habitants râlent quand c'est haut), emprunte de 100 k€ à 20 M€ sur 5 à 30 ans, et règle l'entretien de chaque réseau. Routes, rails, chemins et voies d'eau **s'usent** avec l'âge et le trafic (les camions surtout) : sous 50 %, nids-de-poule et véhicules ralentis, à 0 % la voie ferme. Les réfections sont des chantiers visibles. Caisse dans le rouge 90 jours : le préfet met la ville sous tutelle.

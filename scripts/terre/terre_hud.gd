@@ -29,6 +29,8 @@ signal infos_requested
 signal urgences_requested
 ## Panneau Avis : satisfaction, élections, manifestations (Y).
 signal avis_requested
+## Bouton « Villages » : villages et territoire (Maj+M).
+signal villages_requested
 ## Panneau « Trafic » (Maj + L) : bouchons, parkings, remplissage des lignes.
 signal trafic_requested
 ## Bouton « Déchets » (touche X).
@@ -88,6 +90,7 @@ const CATEGORIES := [
 	{"id": "infos", "name": "Infos", "icon": "infos", "key": "I", "panel": true, "group": "infos"},
 	{"id": "urgences", "name": "Urgences", "icon": "services", "key": "U", "panel": true, "group": "ville"},
 	{"id": "avis", "name": "Avis", "icon": "urne", "key": "Y", "panel": true, "group": "ville"},
+	{"id": "villages", "name": "Villages", "icon": "village", "key": "Maj+M", "panel": true, "group": "ville"},
 	{"id": "trafic", "name": "Trafic", "icon": "circulation", "key": "Maj+L", "panel": true, "group": "transports"},
 	{"id": "budget", "name": "Budget", "icon": "budget", "key": "M", "panel": true, "group": "ville"},
 	{"id": "dechets", "name": "Déchets", "icon": "dechets", "key": "X", "panel": true, "group": "ville"},
@@ -752,6 +755,7 @@ func _on_category(id: String) -> void:
 			"infos": infos_requested.emit()
 			"urgences": urgences_requested.emit()
 			"avis": avis_requested.emit()
+			"villages": villages_requested.emit()
 			"trafic": trafic_requested.emit()
 			"dechets": dechets_requested.emit()
 			"cartes": cartes_requested.emit()

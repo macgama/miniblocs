@@ -53,8 +53,11 @@ const BASE_TYPES := {
 	"ferme": {"name": "Ferme", "cat": "industrie", "w": 30, "d": 26, "access": ROAD_OR_PATH,
 		"emplois": 4, "logements": 1, "desc": "Corps de ferme, grange et silo."},
 	# --- Services publics -----------------------------------------------------------
+	"maison_commune": {"name": "Maison de commune", "cat": "services", "w": 16, "d": 14, "access": [],
+		"emplois": 3, "role": "mairie", "fondateur": true,
+		"desc": "Fonde un village et son territoire. Pas besoin de route : c'est la première pierre."},
 	"mairie": {"name": "Mairie", "cat": "services", "w": 26, "d": 18, "access": ROAD,
-		"emplois": 30, "desc": "Hôtel de ville et son horloge."},
+		"emplois": 30, "fondateur": true, "desc": "Hôtel de ville et son horloge. Fonde un village hors de tout territoire."},
 	"ecole": {"name": "École", "cat": "services", "w": 38, "d": 30, "access": ROAD_OR_PATH,
 		"emplois": 25, "visiteurs": 300, "desc": "Bâtiment en L et cour de récréation."},
 	"pompiers": {"name": "Caserne de pompiers", "cat": "services", "w": 22, "d": 18, "access": ROAD,
@@ -92,7 +95,7 @@ const COSTS := {
 	"maison": 280_000, "villa": 650_000, "immeuble": 2_400_000, "tour_habitation": 14_000_000,
 	"boulangerie": 350_000, "superette": 900_000, "supermarche": 6_500_000, "bureaux": 9_000_000,
 	"atelier": 600_000, "entrepot": 2_200_000, "usine": 7_500_000, "ferme": 900_000,
-	"mairie": 4_000_000, "ecole": 6_000_000, "pompiers": 2_500_000, "police": 1_800_000,
+	"maison_commune": 300_000, "mairie": 4_000_000, "ecole": 6_000_000, "pompiers": 2_500_000, "police": 1_800_000,
 	"hopital": 25_000_000, "chateau_eau": 1_200_000,
 	"parc": 300_000, "aire_jeux": 80_000, "cafe": 450_000, "cinema": 5_000_000,
 	"foot": 1_500_000, "tennis": 120_000, "basket": 90_000, "gymnase": 3_500_000, "piscine": 2_800_000,
@@ -351,6 +354,25 @@ static func build_mesh(id: String, material: Material = null, details := true, v
 			k.box(6.0, 0, -5.05, 5.0, 5.0, 0.2, Color("f2f2f2"))
 			k.cylinder(-10.0, 0, 8.0, 2.4, 2.4, 13.0, 10, Color("c9ccd1"))
 			k.cylinder(-10.0, 13.0, 8.0, 2.5, 0.0, 2.6, 10, Color("8a8d93"))
+		"maison_commune":
+			# Petite maison commune de village : clocheton, horloge et drapeau.
+			k.plate(0, 0, w, d, Color("cfc8b6"))
+			k.box(0, 0, 1.0, 12.0, 6.4, 8.0, Color("efe4cf"))
+			k.gable(0, 6.4, 1.0, 12.8, 8.8, 3.2, ROOF_TILE)
+			k.box(0, 0, -3.05, 1.6, 2.6, 0.2, DOOR)
+			k.box(0, 2.6, -3.1, 2.2, 0.3, 0.3, Color("d8cdb6"))
+			k.windows_row(0, -3.0, 10.0, 0.9, 4, 1.1, 1.6, GLASS)
+			k.windows_row(0, -3.0, 10.0, 3.9, 4, 1.1, 1.4, GLASS)
+			k.box(0, 6.4, -1.0, 2.2, 4.6, 2.2, Color("efe4cf"))
+			k.box(0, 8.6, -2.15, 1.3, 1.3, 0.08, Color("fdfdfd"))
+			k.pyramid(0, 11.0, -1.0, 2.8, 2.8, 2.4, ROOF_DARK)
+			# Mât et drapeau tricolore devant la porte.
+			k.box(-4.5, 0, -5.5, 0.15, 7.0, 0.15, Color("d9d9d9"))
+			k.box(-4.0, 6.0, -5.5, 0.6, 0.9, 0.05, Color("1f4bb8"))
+			k.box(-3.4, 6.0, -5.5, 0.6, 0.9, 0.05, Color("f4f4f4"))
+			k.box(-2.8, 6.0, -5.5, 0.6, 0.9, 0.05, Color("d7263d"))
+			k.tree(5.5, -5.0, 0.7)
+			k.box(0, 0, -6.6, 3.0, 0.05, 1.0, Color("bdb5a3"))
 		"mairie":
 			k.plate(0, 0, w, d, Color("d8d2c4"))
 			k.box(0, 0, 1.0, 24.0, 10.0, 14.0, Color("efe6d4"))

@@ -4,6 +4,9 @@ Tout est dans `main`, et les 9 tests automatiques passent (`sh tests/tous.sh`).
 
 ## Nouveautés
 
+**Villages et territoire** (touche **Maj+M**, 13 novembre)
+- Une partie commence par la fondation du village : on choisit son nom, puis on pose sa Maison de commune (sans route). Le territoire, en carrés de 100 m, grandit avec la population. On peut acheter ou céder des carrés, fonder d'autres villages à 2 km au moins, et fusionner deux villages qui se touchent (voir docs/villages.md).
+
 **Agriculture et nourriture** (touche **Maj+F**)
 - Fermes à la façon des jeux de gestion agricole : champs tracés librement, 14 cultures selon la saison et le climat, labour, semis, engrais, moisson et bottes de paille faits par les ouvriers avec des machines visibles (achetées ou louées, gazole, usure, pannes), 7 espèces de bêtes au pré. Les habitants mangent chaque jour : sans nourriture, santé et satisfaction baissent puis ils déménagent (voir docs/agriculture.md).
 

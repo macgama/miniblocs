@@ -29,6 +29,9 @@ var resource_overlay: RessourcesOverlay
 ## Services d'urgence : pompiers, ambulances, police sur les routes (touche U).
 var urgences: Urgences
 var urgences_panel: UrgencesPanel
+## Réseaux : électricité, eau potable, égouts (touche O).
+var reseaux: Reseaux
+var reseaux_panel: ReseauxPanel
 ## Chantiers, usure des bâtiments, abords et fumée des maisons habitées.
 var vie_batiments: BatimentsVie
 var _hover := Vector2i.ZERO
@@ -84,6 +87,7 @@ func _ready() -> void:
 	_setup_mobilier()
 	_setup_production()
 	_setup_urgences()
+	_setup_reseaux()
 	_setup_vie()
 	_setup_decors()
 	_setup_evenements()
@@ -227,7 +231,7 @@ func save_sections() -> Dictionary:
 		"zones": zones.to_dict(), "blocs": blocks.to_dict(), "plans": plans.to_dict(), "ambiance": ambiance.to_dict(),
 		"creations": Creations.to_dict(Creations.used_by(buildings)),
 		"personnage": ($VueSol as VueSol).to_dict(), "habitants": population.to_dict(), "mobilier": mobilier.to_dict(),
-		"production": production.to_dict(), "urgences": urgences.to_dict(), "reglages": _settings_snapshot().to_dict(), "evenements": evenements.to_dict(), "decors": decors.to_dict()}
+		"production": production.to_dict(), "urgences": urgences.to_dict(), "reseaux": reseaux.to_dict(), "reglages": _settings_snapshot().to_dict(), "evenements": evenements.to_dict(), "decors": decors.to_dict()}
 
 
 ## Sauvegarde dans la partie en cours (ou une nouvelle). title : nom d'une nouvelle partie.
@@ -285,6 +289,7 @@ func load_game(slot := "") -> bool:
 	production.from_dict(sec.get("production", {}))
 	decors.from_dict(sec.get("decors", {}))
 	urgences.from_dict(sec.get("urgences", {}))
+	reseaux.from_dict(sec.get("reseaux", {}))
 	ambiance.from_dict(sec.get("ambiance", {}))
 	# Après les bâtiments et les habitants : dégâts, ruines, malades, matchs.
 	evenements.from_dict(sec.get("evenements", {}))
@@ -380,6 +385,24 @@ func toggle_admin() -> void:
 		_unsaved = true
 		hud.show_message("Caisse mise à %s." % BuildingSystem.format_money(v)))
 	_windows_layer().add_child(_admin)
+
+
+## Réseaux : électricité, eau, égouts, leurs tronçons et le panneau (O).
+func _setup_reseaux() -> void:
+	reseaux = Reseaux.new()
+	reseaux.name = "Reseaux"
+	add_child(reseaux)
+	reseaux.setup(world, buildings, transport, population, production, ambiance)
+	reseaux.message.connect(func(t: String) -> void: hud.show_message(t))
+	reseaux.info_changed.connect(func(t: String) -> void: hud.set_tool_info(t))
+	reseaux_panel = ReseauxPanel.new()
+	reseaux_panel.name = "PanneauReseaux"
+	add_child(reseaux_panel)
+	reseaux_panel.setup(reseaux)
+	reseaux.panneau = reseaux_panel
+	reseaux_panel.focus_requested.connect(func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
 
 
 ## Habitants (simulation) et leur panneau.
@@ -944,6 +967,7 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 	population.clear()
 	production.clear()
 	urgences.clear()
+	reseaux.clear()
 	resource_overlay.show_resource(resource_overlay.res)
 	transport.clear()
 	buildings.clear()
@@ -1022,7 +1046,7 @@ var _open_before := {}
 ## Construire, Lignes et Habitants partagent la même place à droite : quand
 ## l'un s'ouvre, les autres se ferment. Leur bouton de la barre du bas s'allume.
 func _exclusive_panels() -> void:
-	var panels := {"construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "urgences": urgences_panel, "perso": perso_panel, "infos": evenements_panel}
+	var panels := {"construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "urgences": urgences_panel, "reseaux": reseaux_panel, "perso": perso_panel, "infos": evenements_panel}
 	var opened := ""
 	for id in panels:
 		var p = panels[id]

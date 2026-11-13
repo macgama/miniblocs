@@ -292,7 +292,12 @@ func to_dict() -> Dictionary:
 		var flat := []
 		for p in (e.pts as PackedVector3Array):
 			flat.append_array([snappedf(p.x, 0.01), snappedf(p.y, 0.01), snappedf(p.z, 0.01)])
-		t[str(id)] = {"t": e.t, "ok": e.ok, "p": flat}
+		var x := {"t": e.t, "ok": e.ok, "p": flat}
+		# Champs ajoutés par les systèmes (prix payé, avancement du chantier…).
+		for k in e:
+			if not k in ["t", "ok", "pts"]:
+				x[k] = e[k]
+		t[str(id)] = x
 	return {"next": next_id, "troncons": t}
 
 
@@ -306,5 +311,9 @@ func from_dict(d: Dictionary) -> void:
 		var flat: Array = e.get("p", [])
 		for i in range(0, flat.size() - 2, 3):
 			pts.append(Vector3(flat[i], flat[i + 1], flat[i + 2]))
-		troncons[int(k)] = {"pts": pts, "t": String(e.get("t", "")), "ok": bool(e.get("ok", true))}
+		var tr := {"pts": pts, "t": String(e.get("t", "")), "ok": bool(e.get("ok", true))}
+		for f in e:
+			if not f in ["t", "ok", "p"]:
+				tr[f] = e[f]
+		troncons[int(k)] = tr
 		next_id = maxi(next_id, int(k) + 1)

@@ -125,6 +125,7 @@ const PAR_BATIMENT := {
 	"magasin_meubles": [["vendeur", 2], ["magasinier", 1], ["chauffeur", 1]],
 	# Repli par catégorie.
 	"production": [["ouvrier", 3], ["conducteur_engins", 1]],
+	"reseaux": [["operateur", 3], ["ingenieur", 1], ["agent_public", 1]],
 	"commerce": [["vendeur", 2], ["caissier", 1]],
 	"industrie": [["ouvrier", 3], ["magasinier", 1]],
 	"services": [["agent_public", 1]],

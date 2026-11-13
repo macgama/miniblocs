@@ -153,7 +153,7 @@ func step(dt: float) -> void:
 		var inc := ev.incident(int(e.get("data", {}).get("inc", -1))) if not e.is_empty() else {}
 		var pris := not inc.is_empty() and String(inc.etat) == "pris"
 		if pris:
-			f.i = maxf(float(f.i) - EXTINCTION * h, 0.05)
+			f.i = maxf(float(f.i) - EXTINCTION * h * _pression(bid), 0.05)
 		else:
 			f.i = minf(float(f.i) + CROISSANCE * h * (1.4 if tempete else 1.0), 1.0)
 		var d := float(ev.degats.get(bid, {}).get("d", f.d0)) + DEGATS_H * float(f.i) * h * (0.4 if pris else 1.0)
@@ -176,6 +176,18 @@ func step(dt: float) -> void:
 					spread.append([nb, int(f.ev)])
 	for s in spread:
 		start_fire(int(s[0]), "propagation", int(s[1]))
+
+
+## Eau aux bouches d'incendie (groupe "eau_incendie", 1 = normale) : sans eau,
+## les pompiers n'ont que la citerne de leurs camions et éteignent trois fois moins vite.
+func _pression(bid: int) -> float:
+	if not ev.is_inside_tree():
+		return 1.0
+	var e := 1.0
+	for n in ev.get_tree().get_nodes_in_group("eau_incendie"):
+		if n.has_method("eau_incendie"):
+			e = minf(e, clampf(float(n.eau_incendie(bid)), 0.0, 1.0))
+	return lerpf(0.35, 1.0, e)
 
 
 ## Bâtiments à moins de PORTEE mètres (bords des emprises).

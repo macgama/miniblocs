@@ -13,6 +13,7 @@ const CATEGORIES := [
 	{"id": "industrie", "name": "Industrie", "color": Color("b08968")},
 	{"id": "production", "name": "Production et ressources", "color": Color("d4a373")},
 	{"id": "services", "name": "Services publics", "color": Color("e76f51")},
+	{"id": "reseaux", "name": "Réseaux (électricité, eau, égouts)", "color": Color("ffd166")},
 	{"id": "loisirs", "name": "Loisirs", "color": Color("80b918")},
 	{"id": "sport", "name": "Sport", "color": Color("9d4edd")},
 	{"id": "espaces", "name": "Espaces publics", "color": Color("52b788")},
@@ -122,6 +123,7 @@ static func all_types() -> Dictionary:
 			_all[id] = t
 		_all.merge(EspacesPublics.entries())
 		_all.merge(ProductionTypes.entries())
+		_all.merge(ReseauxTypes.entries())
 		_all.merge(CommercesTypes.entries())
 		_all.merge(Stades.entries())
 		_all.merge(StyleBuilder.generate())
@@ -207,6 +209,10 @@ static func build_mesh(id: String, material: Material = null, details := true, v
 		return BibleGlb.build_mesh(id, material, details, variant)
 	if t.has("boutique_eco"):
 		CommercesTypes.build(k, id, t)
+		k.fit_xz(w, d)
+		return k.to_mesh(material)
+	if t.has("reseau"):
+		ReseauxTypes.build(k, id, t)
 		k.fit_xz(w, d)
 		return k.to_mesh(material)
 	if t.has("prod"):

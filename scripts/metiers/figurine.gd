@@ -28,7 +28,9 @@ const TENUES := {
 	"bucheron": ["c1121f", "3a4a2b", "casque"], "pecheur": ["ffb703", "ffb703", "bonnet"], "magasinier": ["90be6d", "3a3f4a", ""],
 	"chauffeur": ["577590", "3a3f4a", "casquette"], "caissier": ["e63946", "2f2f33", ""], "agent_gare": ["264653", "264653", "casquette"],
 	"coach": ["ef476f", "1d3557", ""], "cadre": ["2b2d42", "2b2d42", ""], "meunier": ["e9e4d8", "8a7a5a", "bonnet"],
-	"menuisier": ["9c6644", "3a3f4a", ""], "artisan": ["7f5539", "3a3f4a", "tablier"],
+	"menuisier": ["9c6644", "3a3f4a", ""],
+	"porteur_funeraire": ["1b1b1e", "1b1b1e", ""], "conseiller_funeraire": ["2b2d42", "2b2d42", ""],
+	"fossoyeur": ["4a5a3a", "3a3f4a", "casquette"], "gardien_cimetiere": ["3d5a80", "2b2d42", "casquette"], "jardinier": ["2d6a4f", "3a3f4a", "chapeau"], "artisan": ["7f5539", "3a3f4a", "tablier"],
 }
 
 var pid := 0
@@ -438,6 +440,12 @@ func animer(t: float) -> void:
 			bd = Vector3(-1.0 - 0.2 * maxf(-s, 0.0), -0.1, -0.5)
 			tete_yaw = 0.3 * sin(u * 0.6)
 			tete = 0.15
+		"recueil":
+			# Mains jointes devant soi, tête baissée.
+			buste = 0.06
+			bg = Vector3(-0.3, 0.0, -1.0)
+			bd = Vector3(-0.3, 0.0, -1.0)
+			tete = 0.35 + 0.03 * sin(u * 0.5)
 		"surveiller":
 			bg = Vector3(0.25, 0.1, -1.2)
 			bd = Vector3(0.25, -0.1, -1.2)

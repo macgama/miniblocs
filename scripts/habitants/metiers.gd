@@ -53,6 +53,14 @@ const METIERS := {
 	"eboueur": {"name": "Éboueur·euse (ripeur, chauffeur de benne)", "salaire": 1800, "h": [5.0, 12.0], "j": "lunsam", "public": true},
 	"agent_tri": {"name": "Agent·e de tri", "salaire": 1650, "h": [6.0, 14.0], "j": "semaine"},
 	"gardien_decheterie": {"name": "Gardien·ne de déchèterie", "salaire": 1700, "h": [9.0, 18.0], "j": "marsam", "public": true},
+	# Funéraire.
+	"conseiller_funeraire": {"name": "Conseiller·ère funéraire", "salaire": 2100, "h": [9.0, 18.0], "j": "lunsam", "tenue": "cadre", "geste": ["conseiller", "taper"]},
+	"porteur_funeraire": {"name": "Porteur·euse et chauffeur de corbillard", "salaire": 1850, "h": [8.0, 18.0], "j": "lunsam", "geste": ["conduire", "recueillement"]},
+	"thanatopracteur": {"name": "Thanatopracteur·rice", "salaire": 2600, "h": [8.0, 17.0], "j": "lunsam", "tenue": "medecin"},
+	"fossoyeur": {"name": "Fossoyeur·euse (agent·e de cimetière)", "salaire": 1750, "h": [8.0, 16.0], "j": "semaine", "public": true, "geste": ["creuser", "balayer"]},
+	"gardien_cimetiere": {"name": "Gardien·ne de cimetière", "salaire": 1750, "h": [8.0, 18.0], "j": "tous", "public": true, "geste": ["surveiller", "balayer"]},
+	"operateur_crematorium": {"name": "Opérateur·rice de crématorium", "salaire": 2000, "h": [8.0, 17.0], "j": "lunsam", "public": true, "tenue": "operateur", "geste": ["controle", "surveiller"]},
+	"jardinier": {"name": "Jardinier·ère", "salaire": 1750, "h": [7.0, 15.0], "j": "semaine", "public": true, "geste": ["balayer"]},
 	"laborantin": {"name": "Technicien·ne de laboratoire", "salaire": 2300, "h": [8.0, 17.0], "j": "semaine"},
 }
 

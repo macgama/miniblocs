@@ -128,6 +128,15 @@ const SECTIONS := [
 		["Décharge pleine", "bouton « Recouvrir » du panneau : elle devient une colline verte et pollue beaucoup moins"],
 		["Admin (F10)", "déchets oui/non, quantité par habitant ×0,5 à ×3"],
 	]],
+	["Obsèques et cimetières", [
+		["H → Funéraire", "décès, obsèques en cours et à venir, défunts qui attendent une place, places libres de chaque cimetière, corbillards"],
+		["Construire → Funéraire", "pompes funèbres (2 corbillards), cimetière de village, communal, paysager, militaire, d'Asie, musulman, juif, columbarium, crématorium"],
+		["Obsèques", "1 à 3 jours après le décès, du lundi au samedi : le corbillard prend le défunt chez lui ou à l'hôpital, passe au lieu de culte, puis va au cimetière ou au crématorium ; la famille suit en voiture"],
+		["Cimetière", "les proches se rassemblent autour de la fosse, puis la pierre tombale apparaît, fleurie quelques semaines ; clic sur une tombe : la fiche du défunt"],
+		["Plus de place", "le défunt attend à la chambre funéraire, puis il est enterré dans une commune voisine : plus cher, et la famille est mécontente"],
+		["Argent", "la famille paie les obsèques (≈ 3 800 €) ; la commune encaisse les concessions de 30 ans et la redevance du crématorium, et paie l'entretien"],
+		["Admin (F10)", "obsèques oui/non, part des crémations (selon la région de chacun, ou de 10 à 95 %)"],
+	]],
 	["Pollution, bruit et valeur", [
 		["N", "panneau Cartes : air, eau, bruit le jour et la nuit, valeur du terrain, loyers (une carte à la fois, et celles des autres systèmes)"],
 		["Survol d'une case", "air et eau pollués (%), bruit (dB, jour et nuit) et prix du terrain (€/m²) dans la fiche du terrain"],

@@ -82,6 +82,9 @@ var frequence_catastrophes := 1.0
 var reseaux_obligatoires := true
 ## Multiplicateur des factures d'eau et d'électricité payées par les habitants.
 var prix_services := 1.0
+## Internet et téléphone comptent : satisfaction des habitants et rendement des
+## entreprises (sinon les antennes et la fibre ne servent qu'au décor).
+var telecom_necessaire := true
 ## Vitesse d'usure des routes, rails et réseaux (0 : jamais ; 0,5 lente ; 1 normale ; 2 rapide).
 var usure := 1.0
 ## Déchets : production, collecte et conséquences (non : la ville reste propre toute seule).
@@ -239,7 +242,7 @@ func to_dict() -> Dictionary:
 		"salaires": salaires, "vitesse_temps": vitesse_temps, "vitesse_vie": vitesse_vie,
 		"epuisement": epuisement, "deblocage": deblocage, "createur": createur,
 		"record_habitants": record_habitants, "evenements_auto": evenements_auto, "catastrophes": catastrophes,
-		"frequence_catastrophes": frequence_catastrophes, "construction_instantanee": construction_instantanee,
+		"frequence_catastrophes": frequence_catastrophes, "telecom_necessaire": telecom_necessaire, "construction_instantanee": construction_instantanee,
 		"horaires_chantiers": horaires_chantiers, "usure": usure, "dechets": dechets, "dechets_quantite": dechets_quantite, "pollution": pollution, "pollution_sante": pollution_sante,
 		"reseaux_obligatoires": reseaux_obligatoires, "prix_services": prix_services}
 
@@ -263,6 +266,7 @@ func from_dict(d: Dictionary) -> void:
 	frequence_catastrophes = clampf(float(d.get("frequence_catastrophes", 1.0)), 0.25, 3.0)
 	reseaux_obligatoires = bool(d.get("reseaux_obligatoires", true))
 	prix_services = clampf(float(d.get("prix_services", 1.0)), PRIX_SERVICES_MIN, PRIX_SERVICES_MAX)
+	telecom_necessaire = bool(d.get("telecom_necessaire", true))
 	usure = clampf(float(d.get("usure", 1.0)), 0.0, 3.0)
 	construction_instantanee = bool(d.get("construction_instantanee", false))
 	horaires_chantiers = String(d.get("horaires_chantiers", "semaine"))

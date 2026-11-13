@@ -1210,6 +1210,12 @@ func _aide() -> void:
 
 
 ## Calage d'un point : extrémité d'un tronçon proche, centre d'un bâtiment des réseaux.
+## Onglet d'un autre système dans le panneau Réseaux (O), par exemple Télécom.
+func ajouter_onglet(titre: String, control: Control) -> void:
+	if panneau != null and panneau.has_method("ajouter_onglet"):
+		panneau.ajouter_onglet(titre, control)
+
+
 func caler(p: Vector3) -> Vector3:
 	var res := String(ReseauxTypes.troncon(type_troncon).get("res", "elec"))
 	var r := reseau(res)

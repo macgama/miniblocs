@@ -35,6 +35,7 @@ var _vie: OptionButton
 var _epuisement: CheckBox
 var _ev_auto: CheckBox
 var _catas: CheckBox
+var _telecom: CheckBox
 var _instant: CheckBox
 var _horaires: OptionButton
 var _freq: OptionButton
@@ -231,6 +232,10 @@ func _ready() -> void:
 	_prix_serv = ps[0]
 	_prix_serv_l = ps[1]
 	_row(g, "Factures d'eau et d'électricité", ps[2])
+	# Réseaux.
+	g = _section(right, "Internet et téléphone", "services")
+	_telecom = _check("Nécessaires : sans internet ni réseau mobile, les habitants sont moins satisfaits et les entreprises produisent moins")
+	g.add_child(_telecom)
 	# Déchets.
 	g = _section(left, "Déchets", "dechets")
 	_dechets = _check("Déchets à ramasser (sacs qui débordent, collecte, décharges)")
@@ -373,6 +378,7 @@ func _fill() -> void:
 	_epuisement.button_pressed = reglages.epuisement
 	_ev_auto.button_pressed = reglages.evenements_auto
 	_catas.button_pressed = reglages.catastrophes
+	_telecom.button_pressed = reglages.telecom_necessaire
 	_instant.button_pressed = reglages.construction_instantanee
 	_horaires.select(maxi(0, Chantiers.HORAIRES.find(reglages.horaires_chantiers)))
 	var fi := 1
@@ -410,6 +416,7 @@ func _changed() -> void:
 	reglages.epuisement = _epuisement.button_pressed
 	reglages.evenements_auto = _ev_auto.button_pressed
 	reglages.catastrophes = _catas.button_pressed
+	reglages.telecom_necessaire = _telecom.button_pressed
 	reglages.construction_instantanee = _instant.button_pressed
 	reglages.horaires_chantiers = String(Chantiers.HORAIRES[maxi(0, _horaires.selected)])
 	_horaires.disabled = not editable or _instant.button_pressed

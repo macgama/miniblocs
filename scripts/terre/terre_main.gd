@@ -58,6 +58,9 @@ var decors_panel: DecorPanel
 var evenements: Evenements
 var evenements_panel: EvenementsPanel
 var actualites: Actualites
+## Internet et téléphone : antennes, centraux, cuivre et fibre (Maj + O, scripts/reseaux).
+var telecom: Telecom
+var telecom_panel: TelecomPanel
 ## Pollution de l'air et de l'eau, bruit, valeur des terrains et loyers.
 var nuisances: Nuisances
 ## Panneau « Cartes » (touche N) : cartes de couleur de tous les systèmes.
@@ -102,6 +105,7 @@ func _ready() -> void:
 	_setup_budget()
 	_setup_urgences()
 	_setup_reseaux()
+	_setup_telecom()
 	_setup_dechets()
 	_setup_vie()
 	_setup_decors()
@@ -248,7 +252,7 @@ func save_sections() -> Dictionary:
 		"creations": Creations.to_dict(Creations.used_by(buildings)),
 		"personnage": ($VueSol as VueSol).to_dict(), "habitants": population.to_dict(), "mobilier": mobilier.to_dict(),
 		"production": production.to_dict(), "urgences": urgences.to_dict(), "reseaux": reseaux.to_dict(), "dechets": dechets.to_dict(), "reglages": _settings_snapshot().to_dict(), "budget": budget.to_dict(), "evenements": evenements.to_dict(), "decors": decors.to_dict(),
-		"nuisances": nuisances.to_dict()}
+		"nuisances": nuisances.to_dict(), "telecom": telecom.to_dict()}
 
 
 ## Sauvegarde dans la partie en cours (ou une nouvelle). title : nom d'une nouvelle partie.
@@ -308,6 +312,7 @@ func load_game(slot := "") -> bool:
 	decors.from_dict(sec.get("decors", {}))
 	urgences.from_dict(sec.get("urgences", {}))
 	reseaux.from_dict(sec.get("reseaux", {}))
+	telecom.from_dict(sec.get("telecom", {}))
 	dechets.from_dict(sec.get("dechets", {}))
 	ambiance.from_dict(sec.get("ambiance", {}))
 	# Après les bâtiments et les habitants : dégâts, ruines, malades, matchs.
@@ -620,6 +625,35 @@ func _setup_production() -> void:
 		rig.position.x = pos.x
 		rig.position.z = pos.z)
 	hud.production_requested.connect(func() -> void: production_panel.toggle())
+
+
+## Internet et téléphone (scripts/reseaux/telecom.gd) et son panneau (Maj + O),
+## aussi en onglet du panneau Réseaux (O) quand il existe.
+func _setup_telecom() -> void:
+	telecom = Telecom.new()
+	telecom.name = "Telecom"
+	add_child(telecom)
+	telecom.setup(world, buildings, transport, population)
+	telecom.message.connect(func(t: String) -> void: hud.show_message(t))
+	telecom.info_changed.connect(func(t: String) -> void: hud.set_tool_info(t))
+	telecom.outil_active.connect(func() -> void: _select_building_tool())
+	telecom_panel = TelecomPanel.new()
+	telecom_panel.name = "PanneauTelecom"
+	add_child(telecom_panel)
+	telecom_panel.setup(telecom)
+	world.hovered_cell_changed.connect(func(c: Vector2i, valid: bool) -> void:
+		telecom_panel.vue.survol_bid = buildings.building_at(c) if valid else -1)
+	_telecom_onglet.call_deferred()
+
+
+func _telecom_onglet() -> void:
+	var r := get_node_or_null("Reseaux")
+	if r != null and r.has_method("ajouter_onglet"):
+		var v := TelecomVue.new()
+		v.setup(telecom)
+		world.hovered_cell_changed.connect(func(c: Vector2i, valid: bool) -> void:
+			v.survol_bid = buildings.building_at(c) if valid else -1)
+		r.ajouter_onglet("Télécom", v)
 
 
 ## Budget communal : impôts votés, emprunts, entretien et usure des voies (M).
@@ -1091,6 +1125,8 @@ func _setup_landscape() -> void:
 
 func _on_tool_selected(t: int) -> void:
 	landscape.set_shown(t == TerreHud.LANDSCAPE_TOOL)
+	if telecom:
+		telecom.set_inactive()
 	if decors_panel:
 		decors_panel.set_shown(false)
 	if banque_pose:
@@ -1137,6 +1173,7 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 	budget.clear()
 	urgences.clear()
 	reseaux.clear()
+	telecom.clear()
 	dechets.clear()
 	resource_overlay.show_resource(resource_overlay.res)
 	transport.clear()
@@ -1216,7 +1253,7 @@ var _open_before := {}
 ## Construire, Lignes et Habitants partagent la même place à droite : quand
 ## l'un s'ouvre, les autres se ferment. Leur bouton de la barre du bas s'allume.
 func _exclusive_panels() -> void:
-	var panels := {"construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "urgences": urgences_panel, "reseaux": reseaux_panel, "dechets": dechets_panel, "budget": budget_panel, "perso": perso_panel, "infos": evenements_panel, "cartes": cartes_panel}
+	var panels := {"construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "urgences": urgences_panel, "reseaux": reseaux_panel, "dechets": dechets_panel, "budget": budget_panel, "telecom": telecom_panel, "perso": perso_panel, "infos": evenements_panel, "cartes": cartes_panel}
 	var opened := ""
 	for id in panels:
 		var p = panels[id]

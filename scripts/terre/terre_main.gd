@@ -29,6 +29,10 @@ var resource_overlay: RessourcesOverlay
 ## Services d'urgence : pompiers, ambulances, police sur les routes (touche U).
 var urgences: Urgences
 var urgences_panel: UrgencesPanel
+## Trafic : bouchons, stationnement, affluence des lignes (Maj + L).
+var trafic: Trafic
+var trafic_panel: TraficPanel
+var trafic_overlay: TraficOverlay
 ## Chantiers, usure des bâtiments, abords et fumée des maisons habitées.
 var vie_batiments: BatimentsVie
 var _hover := Vector2i.ZERO
@@ -84,6 +88,7 @@ func _ready() -> void:
 	_setup_mobilier()
 	_setup_production()
 	_setup_urgences()
+	_setup_trafic()
 	_setup_vie()
 	_setup_decors()
 	_setup_evenements()
@@ -227,7 +232,7 @@ func save_sections() -> Dictionary:
 		"zones": zones.to_dict(), "blocs": blocks.to_dict(), "plans": plans.to_dict(), "ambiance": ambiance.to_dict(),
 		"creations": Creations.to_dict(Creations.used_by(buildings)),
 		"personnage": ($VueSol as VueSol).to_dict(), "habitants": population.to_dict(), "mobilier": mobilier.to_dict(),
-		"production": production.to_dict(), "urgences": urgences.to_dict(), "reglages": _settings_snapshot().to_dict(), "evenements": evenements.to_dict(), "decors": decors.to_dict()}
+		"production": production.to_dict(), "urgences": urgences.to_dict(), "trafic": trafic.to_dict(), "reglages": _settings_snapshot().to_dict(), "evenements": evenements.to_dict(), "decors": decors.to_dict()}
 
 
 ## Sauvegarde dans la partie en cours (ou une nouvelle). title : nom d'une nouvelle partie.
@@ -285,6 +290,7 @@ func load_game(slot := "") -> bool:
 	production.from_dict(sec.get("production", {}))
 	decors.from_dict(sec.get("decors", {}))
 	urgences.from_dict(sec.get("urgences", {}))
+	trafic.from_dict(sec.get("trafic", {}))
 	ambiance.from_dict(sec.get("ambiance", {}))
 	# Après les bâtiments et les habitants : dégâts, ruines, malades, matchs.
 	evenements.from_dict(sec.get("evenements", {}))
@@ -473,6 +479,27 @@ func _setup_production() -> void:
 
 
 ## Urgences : casernes, appels, véhicules prioritaires et panneau (U).
+func _setup_trafic() -> void:
+	trafic = Trafic.new()
+	trafic.name = "Trafic"
+	add_child(trafic)
+	trafic.setup(transport, population)
+	population.trafic = trafic
+	trafic.message.connect(func(t: String) -> void: hud.show_message(t))
+	trafic_overlay = TraficOverlay.new()
+	trafic_overlay.name = "CarteTrafic"
+	add_child(trafic_overlay)
+	trafic_overlay.setup(trafic)
+	trafic_panel = TraficPanel.new()
+	trafic_panel.name = "PanneauTrafic"
+	add_child(trafic_panel)
+	trafic_panel.setup(trafic, trafic_overlay, transport.camera)
+	trafic_panel.focus_requested.connect(func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
+	hud.trafic_requested.connect(func() -> void: trafic_panel.toggle())
+
+
 func _setup_urgences() -> void:
 	urgences = Urgences.new()
 	urgences.name = "Urgences"
@@ -944,6 +971,7 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 	population.clear()
 	production.clear()
 	urgences.clear()
+	trafic.clear()
 	resource_overlay.show_resource(resource_overlay.res)
 	transport.clear()
 	buildings.clear()
@@ -1022,7 +1050,7 @@ var _open_before := {}
 ## Construire, Lignes et Habitants partagent la même place à droite : quand
 ## l'un s'ouvre, les autres se ferment. Leur bouton de la barre du bas s'allume.
 func _exclusive_panels() -> void:
-	var panels := {"construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "urgences": urgences_panel, "perso": perso_panel, "infos": evenements_panel}
+	var panels := {"construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "urgences": urgences_panel, "trafic": trafic_panel, "perso": perso_panel, "infos": evenements_panel}
 	var opened := ""
 	for id in panels:
 		var p = panels[id]

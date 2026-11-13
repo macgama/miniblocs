@@ -626,6 +626,9 @@ func calculer_stats() -> void:
 			for hid in population.households:
 				var h: Dictionary = population.households[hid]
 				var vid := int(de.get(int(h.b), -1))
+				# Les fondateurs sous la tente ne comptent qu'une fois logés (Fondateurs).
+				if vid >= 0 and Fondateurs.est_campement(int(h.b)):
+					continue
 				if vid >= 0:
 					out[vid].foyers += 1
 					out[vid].hab += (h.m as Array).size()

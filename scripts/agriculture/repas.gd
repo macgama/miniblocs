@@ -56,6 +56,10 @@ func apres_courses() -> void:
 	var somme := 0.0
 	var n_log := 0
 	for home in membres:
+		# Campement des fondateurs : nourri par les vivres, puis le ravitaillement (Fondateurs).
+		if Fondateurs.nourris(int(home)):
+			part_logement[home] = 1.0
+			continue
 		var veut := 0.0
 		var manque := 0.0
 		var miss: Dictionary = prod.manque_foyers.get(home, {})

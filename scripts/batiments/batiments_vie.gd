@@ -83,7 +83,7 @@ static func aura_chantier(id: String) -> bool:
 	if not chantiers or Chantiers.instantanes():
 		return false
 	var t := BuildingCatalog.get_type(id)
-	return not t.is_empty() and not t.has("blocks") and not t.has("stade")
+	return not t.is_empty() and not t.has("blocks") and not t.has("stade") and not t.get("sans_chantier", false)
 
 
 func _on_added(bid: int) -> void:
@@ -130,7 +130,7 @@ func _on_removed(bid: int) -> void:
 
 func _chantier_possible(b: Dictionary) -> bool:
 	var t := BuildingCatalog.get_type(String(b.t))
-	return not t.has("blocks") and not t.has("stade")
+	return not t.has("blocks") and not t.has("stade") and not t.get("sans_chantier", false)
 
 
 ## Durée prévue du chantier d'un type (secondes de jeu, horaires et vitesse de la vie actuels),
@@ -145,6 +145,10 @@ func duree_prevue(id: String) -> float:
 func fin_prevue(bid: int) -> float:
 	var b: Dictionary = buildings.buildings[bid]
 	var reste := (1.0 - float(b.get("av", 1.0))) * float(b.get("hr", 0.0)) / Chantiers.rythme(population)
+	# Équipe incomplète (ouvriers comptés, Fondateurs) : plus long. Sans ouvriers, au rythme normal.
+	var f := Fondateurs.facteur_de(Fondateurs.cle_batiment(bid)) if b.has("av") else 1.0
+	if f > 0.0:
+		reste /= f
 	return Chantiers.date_apres(now(), reste, offset_h())
 
 
@@ -323,8 +327,14 @@ func _update_chantiers() -> void:
 			done.append(bid)
 			continue
 		var b: Dictionary = buildings.buildings[bid]
-		if heures > 0.0:
-			var dp := heures * k / maxf(float(b.get("hr", 1.0)), 1.0)
+		# Ouvriers présents (fondateurs, entreprises du bâtiment) : 0 = arrêté, 1 = équipe complète.
+		var f := Fondateurs.facteur_de(Fondateurs.cle_batiment(bid))
+		if f <= 0.0:
+			b["sans_ouvriers"] = true
+		else:
+			b.erase("sans_ouvriers")
+		if heures > 0.0 and f > 0.0:
+			var dp := heures * k * f / maxf(float(b.get("hr", 1.0)), 1.0)
 			dp = minf(dp, 1.0 - float(b.av))
 			# Le prix se paie au fil des travaux ; sans argent, le chantier s'arrête.
 			var du := int(b.get("du", 0))
@@ -381,8 +391,16 @@ func _show_etape(bid: int) -> void:
 		c.etape = key
 		_vider_ouvriers(c)
 	var txt := "%s\n%s · %d %%\n" % [String(BuildingCatalog.get_type(String(b.t)).get("name", "Chantier")), String(e[2]), floori(float(b.av) * 100.0)]
-	if b.get("attente", false):
+	var eq: Array = Fondateurs.instance.equipe_de(Fondateurs.cle_batiment(bid)) \
+		if Fondateurs.instance != null and Fondateurs.instance.regle_active() else []
+	if b.get("pause", false):
+		txt += "En pause (Maj+H : fondateurs et chantiers)"
+	elif b.get("attente", false):
 		txt += "Arrêté : plus d'argent dans la caisse"
+	elif b.get("sans_ouvriers", false):
+		txt += "En attente d'ouvriers (Maj+H)"
+	elif not eq.is_empty() and int(eq[0]) < int(eq[1]):
+		txt += "%d ouvriers sur %d · fin vers le %s" % [int(eq[0]), int(eq[1]), Chantiers.date_texte(fin_prevue(bid), offset_h())]
 	elif not au_travail:
 		txt += "Équipe au repos · fin vers le %s" % Chantiers.date_texte(fin_prevue(bid), offset_h())
 	else:
@@ -401,7 +419,9 @@ func _animer_chantiers() -> void:
 			continue
 		var mi: MeshInstance3D = c.mi
 		var pres := cam != null and cam.global_position.distance_to(mi.global_position) < VUE_OUVRIERS
-		var veut: bool = pres and au_travail and not bool(buildings.buildings[bid].get("attente", false))
+		var bb: Dictionary = buildings.buildings[bid]
+		var veut: bool = pres and au_travail and not bool(bb.get("attente", false)) and not bool(bb.get("sans_ouvriers", false)) \
+			and not bool(bb.get("pause", false))
 		if veut and (c.ouvriers as Array).is_empty():
 			_poser_ouvriers(bid, c)
 		elif not veut and not (c.ouvriers as Array).is_empty():
@@ -507,6 +527,9 @@ func _finish_chantier(bid: int) -> void:
 		var b: Dictionary = buildings.buildings[bid]
 		b.erase("chantier")
 		b.erase("attente")
+		b.erase("sans_ouvriers")
+		b.erase("pause")
+		b.erase("ordre")
 		b.erase("av")
 		b.erase("hr")
 		b["fin"] = now()

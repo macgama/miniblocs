@@ -41,13 +41,13 @@ const TOUJOURS := ["ecole"]
 ## Préréglages : un clic remplit tout le panneau.
 const PRESETS := {
 	"facile": {"nom": "Facile", "argent_depart": 100_000_000, "argent_illimite": false, "cout_construction": 0.5,
-		"acces_route": true, "impots": 1.5, "salaires": 1.0, "epuisement": false, "deblocage": "tout", "reseaux_obligatoires": true, "fondation": true, "territoire": true},
+		"acces_route": true, "impots": 1.5, "salaires": 1.0, "epuisement": false, "deblocage": "tout", "reseaux_obligatoires": true, "fondation": true, "territoire": true, "main_oeuvre": true},
 	"normal": {"nom": "Normal", "argent_depart": 20_000_000, "argent_illimite": false, "cout_construction": 1.0,
-		"acces_route": true, "impots": 1.0, "salaires": 1.0, "epuisement": true, "deblocage": "tout", "reseaux_obligatoires": true, "fondation": true, "territoire": true},
+		"acces_route": true, "impots": 1.0, "salaires": 1.0, "epuisement": true, "deblocage": "tout", "reseaux_obligatoires": true, "fondation": true, "territoire": true, "main_oeuvre": true},
 	"difficile": {"nom": "Difficile", "argent_depart": 5_000_000, "argent_illimite": false, "cout_construction": 2.0,
-		"acces_route": true, "impots": 0.75, "salaires": 1.25, "epuisement": true, "deblocage": "progression", "reseaux_obligatoires": true, "fondation": true, "territoire": true},
+		"acces_route": true, "impots": 0.75, "salaires": 1.25, "epuisement": true, "deblocage": "progression", "reseaux_obligatoires": true, "fondation": true, "territoire": true, "main_oeuvre": true},
 	"libre": {"nom": "Bac à sable libre", "argent_depart": 20_000_000, "argent_illimite": true, "cout_construction": 1.0,
-		"acces_route": false, "impots": 1.0, "salaires": 1.0, "epuisement": false, "deblocage": "tout", "reseaux_obligatoires": false, "fondation": false, "territoire": false},
+		"acces_route": false, "impots": 1.0, "salaires": 1.0, "epuisement": false, "deblocage": "tout", "reseaux_obligatoires": false, "fondation": false, "territoire": false, "main_oeuvre": false},
 }
 
 ## Réglages de la partie en cours (lus par tous les systèmes).
@@ -119,6 +119,17 @@ var createur := ""
 var construction_instantanee := false
 ## Horaires des équipes : "semaine", "tous_les_jours" ou "continu" (Chantiers.HORAIRES).
 var horaires_chantiers := "semaine"
+## Fondateurs arrivés avec le premier village (réserve de travailleurs,
+## scripts/communes/fondateurs.gd) : 0 = aucun.
+var fondateurs: int = 100
+const FONDATEURS_MAX := 1000
+## Jours de vivres apportés par les fondateurs (ensuite, le ravitaillement du
+## campement est payé par la caisse).
+var vivres_jours: int = 90
+const VIVRES_MAX := 365
+## Les chantiers ont besoin d'ouvriers (fondateurs au campement, entreprises
+## du bâtiment) : sans eux, ils s'arrêtent.
+var main_oeuvre := true
 ## Plus grande population atteinte (pour les paliers).
 var record_habitants := 0
 
@@ -262,7 +273,7 @@ func to_dict() -> Dictionary:
 		"frequence_catastrophes": frequence_catastrophes, "faim": faim, "telecom_necessaire": telecom_necessaire, "construction_instantanee": construction_instantanee,
 		"horaires_chantiers": horaires_chantiers, "usure": usure, "dechets": dechets, "dechets_quantite": dechets_quantite, "pollution": pollution, "pollution_sante": pollution_sante,
 		"elections": elections, "manifestations": manifestations, "funeraire": funeraire, "cremation": cremation, "reseaux_obligatoires": reseaux_obligatoires, "prix_services": prix_services,
-		"fondation": fondation, "territoire": territoire}
+		"fondation": fondation, "territoire": territoire, "fondateurs": fondateurs, "vivres_jours": vivres_jours, "main_oeuvre": main_oeuvre}
 
 
 func from_dict(d: Dictionary) -> void:
@@ -273,6 +284,9 @@ func from_dict(d: Dictionary) -> void:
 	acces_route = bool(d.get("acces_route", true))
 	fondation = bool(d.get("fondation", true))
 	territoire = bool(d.get("territoire", true))
+	fondateurs = clampi(int(d.get("fondateurs", 100)), 0, FONDATEURS_MAX)
+	vivres_jours = clampi(int(d.get("vivres_jours", 90)), 0, VIVRES_MAX)
+	main_oeuvre = bool(d.get("main_oeuvre", true))
 	impots = clampf(float(d.get("impots", 1.0)), 0.0, IMPOTS_MAX)
 	salaires = clampf(float(d.get("salaires", 1.0)), SALAIRES_MIN, SALAIRES_MAX)
 	vitesse_temps = clampi(int(d.get("vitesse_temps", DayNight.DEFAULT_SPEED)), 0, DayNight.SPEEDS.size() - 1)

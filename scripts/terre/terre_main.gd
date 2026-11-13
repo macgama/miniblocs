@@ -86,6 +86,8 @@ var cartes_panel: CartesPanel
 ## Villages du joueur et leur territoire (Maj+M, scripts/communes).
 var communes: Communes
 var villages_panel: VillagesPanel
+var fondateurs: Fondateurs
+var fondateurs_panel: FondateursPanel
 
 
 func _ready() -> void:
@@ -138,6 +140,7 @@ func _ready() -> void:
 	_setup_nuisances()
 	_setup_avis()
 	_setup_communes()
+	_setup_fondateurs()
 	_setup_create_mode()
 	hud.traffic_toggled.connect(func(on: bool) -> void: transport.traffic.set_enabled(on))
 	hud.traffic_filter_changed.connect(func(era: String, region: String) -> void:
@@ -287,6 +290,7 @@ func save_sections() -> Dictionary:
 		"nuisances": nuisances.to_dict(), "telecom": telecom.to_dict(), "services": services.to_dict(), "carrieres": carrieres.to_dict()}
 	sec["avis"] = avis.to_dict()
 	sec["communes"] = communes.to_dict()
+	sec["fondateurs"] = fondateurs.to_dict()
 	return sec
 
 
@@ -367,6 +371,8 @@ func load_game(slot := "") -> bool:
 		communes.clear()
 		communes.actif = not GameStart.atelier
 		communes.adopter_ancienne_partie()
+	# Après les bâtiments, les habitants et les villages.
+	fondateurs.from_dict(sec.get("fondateurs", {}))
 	avis.from_dict(sec.get("avis", {}))
 	nuisances.from_dict(sec.get("nuisances", {}))
 	($VueSol as VueSol).from_dict(sec.get("personnage", {}))
@@ -630,6 +636,25 @@ func _setup_communes() -> void:
 		buildings.set_place("maison_commune")
 		hud.show_message("Clique où poser la Maison de commune de %s (R pour tourner, clic droit pour annuler)." % nom))
 	hud.villages_requested.connect(func() -> void: villages_panel.toggle())
+
+
+## Fondateurs du village (Maj+H) : ils arrivent avec le premier village, campent
+## près de la Maison de commune et font les premiers chantiers.
+func _setup_fondateurs() -> void:
+	fondateurs = Fondateurs.new()
+	fondateurs.name = "Fondateurs"
+	add_child(fondateurs)
+	fondateurs.setup(buildings, population, communes, vie_batiments, chantiers, ambiance)
+	fondateurs.message.connect(func(t: String) -> void: hud.show_message(t))
+	fondateurs.changed.connect(func() -> void: _unsaved = true)
+	fondateurs_panel = FondateursPanel.new()
+	fondateurs_panel.name = "PanneauFondateurs"
+	add_child(fondateurs_panel)
+	fondateurs_panel.setup(fondateurs)
+	fondateurs_panel.focus_requested.connect(func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
+	hud.fondateurs_requested.connect(func() -> void: fondateurs_panel.toggle())
 
 
 ## Élections perdues avec le réglage « fin de partie ».
@@ -1400,6 +1425,8 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 		avis.clear()
 	if communes != null:
 		communes.clear()
+	if fondateurs != null:
+		fondateurs.clear()
 	population.clear()
 	production.clear()
 	if carrieres != null:
@@ -1491,7 +1518,7 @@ var _open_before := {}
 ## Construire, Lignes et Habitants partagent la même place à droite : quand
 ## l'un s'ouvre, les autres se ferment. Leur bouton de la barre du bas s'allume.
 func _exclusive_panels() -> void:
-	var panels := {"construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "agriculture": agri_panel, "urgences": urgences_panel, "reseaux": reseaux_panel, "dechets": dechets_panel, "trafic": trafic_panel, "budget": budget_panel, "telecom": telecom_panel, "perso": perso_panel, "infos": evenements_panel, "cartes": cartes_panel, "avis": avis_panel, "villages": villages_panel}
+	var panels := {"construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "agriculture": agri_panel, "urgences": urgences_panel, "reseaux": reseaux_panel, "dechets": dechets_panel, "trafic": trafic_panel, "budget": budget_panel, "telecom": telecom_panel, "perso": perso_panel, "infos": evenements_panel, "cartes": cartes_panel, "avis": avis_panel, "villages": villages_panel, "fondateurs": fondateurs_panel}
 	var opened := ""
 	for id in panels:
 		var p = panels[id]
@@ -1515,7 +1542,8 @@ func _exclusive_panels() -> void:
 func _refresh_stats() -> void:
 	var money := "Illimitée" if buildings.unlimited_money else BuildingSystem.format_money(buildings.money)
 	var s := population.stats()
-	var palier := ReglagesPartie.actuel.note_population(int(s.habitants))
+	# Les fondateurs encore sous la tente ne font pas monter les paliers.
+	var palier := ReglagesPartie.actuel.note_population(int(s.habitants) - (fondateurs.au_campement() if fondateurs != null else 0))
 	if palier != "" and ReglagesPartie.actuel.deblocage == "progression":
 		hud.show_message("Palier « %s » atteint : de nouveaux bâtiments sont débloqués !" % palier)
 		build_panel.refresh()

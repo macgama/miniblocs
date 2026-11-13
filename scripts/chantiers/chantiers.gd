@@ -168,6 +168,36 @@ static func heures_voie(type_id: String, longueur: float, largeur: float, st: Pa
 	return maxf(h, 8.0)
 
 
+## Ouvriers d'une équipe complète sur le chantier d'un bâtiment : une maison
+## ≈ 8, la Maison de commune ≈ 10, une usine ≈ 20, un hôpital ≈ 35. Avec moins
+## d'ouvriers (réserve des fondateurs, entreprises du bâtiment), le chantier
+## avance moins vite (Fondateurs).
+static var _equipes := {}
+
+
+static func equipe_batiment(id: String) -> int:
+	if _equipes.has(id):
+		return int(_equipes[id])
+	var n := _equipe_batiment(id)
+	_equipes[id] = n
+	return n
+
+
+static func _equipe_batiment(id: String) -> int:
+	var t := BuildingCatalog.get_type(id)
+	var surface := float(t.get("w", 8)) * float(t.get("d", 8))
+	if String(t.get("cat", "")) == "espaces":
+		return clampi(roundi(2.0 + sqrt(surface) / 10.0), 2, 10)
+	var etages := maxf(1.0, ceilf(BuildingCatalog.approx_height(id) / 3.0))
+	return clampi(roundi(3.0 + sqrt(surface) / 3.0 + etages), 3, 60)
+
+
+## Ouvriers d'une équipe complète sur un chantier de voie ou de réseau, selon
+## sa quantité de travail (heures réelles) : 3 pour un petit tronçon, jusqu'à 16.
+static func equipe_travaux(heures_reelles: float) -> int:
+	return clampi(roundi(2.0 + sqrt(maxf(heures_reelles, 0.0)) / 4.0), 2, 16)
+
+
 ## Rythme : heures réelles faites pour une heure de travail dans le jeu.
 static func rythme(pop: Population) -> float:
 	return pop.life_speed() if pop != null else float(Population.LIFE_SPEEDS[Population.DEFAULT_LIFE_SPEED])

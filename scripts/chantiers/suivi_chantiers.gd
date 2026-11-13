@@ -57,7 +57,7 @@ func commencer(cle: String, heures_reelles: float, maj := Callable(), fini := Ca
 	if du < 0:
 		du = roundi(float(cout) * (1.0 - av))
 	chantiers[cle] = {"hr": maxf(heures_reelles, 0.1), "av": clampf(av, 0.0, 1.0), "maj": maj, "fini": fini,
-		"du": du, "cout": cout, "etapes": etapes, "attente": false}
+		"du": du, "cout": cout, "etapes": etapes, "attente": false, "sans_ouvriers": false, "t0": now()}
 	if Chantiers.instantanes() or av >= 1.0:
 		terminer(cle)
 		return
@@ -77,8 +77,9 @@ func reste_a_payer(cle: String) -> int:
 	return int(chantiers[cle].du) if chantiers.has(cle) else 0
 
 
+## Arrêté : plus d'argent, pas d'ouvriers (Fondateurs) ou mis en pause.
 func en_attente(cle: String) -> bool:
-	return chantiers.has(cle) and bool(chantiers[cle].attente)
+	return chantiers.has(cle) and (bool(chantiers[cle].attente) or bool(chantiers[cle].get("sans_ouvriers", false)))
 
 
 func etape(cle: String) -> Array:
@@ -118,6 +119,9 @@ func fin_prevue(cle: String) -> float:
 		return now()
 	var c: Dictionary = chantiers[cle]
 	var reste := (1.0 - float(c.av)) * float(c.hr) / Chantiers.rythme(population)
+	var f := Fondateurs.facteur_de(cle)
+	if f > 0.0:
+		reste /= f
 	return Chantiers.date_apres(now(), reste, offset_h())
 
 
@@ -155,7 +159,12 @@ func mettre_a_jour() -> void:
 	var finis := []
 	for cle in chantiers.keys():
 		var c: Dictionary = chantiers[cle]
-		var dp := minf(heures * k / float(c.hr), 1.0 - float(c.av))
+		# Ouvriers présents (fondateurs, entreprises du bâtiment) : sans eux, le chantier attend.
+		var f := Fondateurs.facteur_de(String(cle))
+		c.sans_ouvriers = f <= 0.0
+		if f <= 0.0:
+			continue
+		var dp := minf(heures * k * f / float(c.hr), 1.0 - float(c.av))
 		var du := int(c.du)
 		if du > 0:
 			var part := mini(du, ceili(float(c.cout) * dp))

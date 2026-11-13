@@ -52,6 +52,14 @@ const BASE_TYPES := {
 		"emplois": 120, "desc": "Toit en dents de scie et cheminée."},
 	"ferme": {"name": "Ferme", "cat": "industrie", "w": 30, "d": 26, "access": ROAD_OR_PATH,
 		"emplois": 4, "logements": 1, "desc": "Corps de ferme, grange et silo."},
+	"entreprise_btp": {"name": "Entreprise du bâtiment", "cat": "industrie", "w": 24, "d": 20, "access": ROAD_OR_PATH,
+		"emplois": 20, "desc": "Dépôt, bureaux et engins : ses ouvriers font avancer les chantiers du village."},
+	# Campement des fondateurs : posé tout seul à la fondation du premier village
+	# (Fondateurs), pas dans le catalogue. Tentes (foyers) et base de chantier
+	# (emplois) : leur nombre suit les fondateurs ("nlog" et "nemp" du bâtiment).
+	"campement": {"name": "Campement des fondateurs", "cat": "industrie", "w": 36, "d": 28, "access": [],
+		"cache": true, "sans_chantier": true, "campement": true,
+		"desc": "Tentes des fondateurs et base de chantier, le temps de bâtir les premières maisons."},
 	# --- Services publics -----------------------------------------------------------
 	"maison_commune": {"name": "Maison de commune", "cat": "services", "w": 16, "d": 14, "access": [],
 		"emplois": 3, "role": "mairie", "fondateur": true,
@@ -95,6 +103,7 @@ const COSTS := {
 	"maison": 280_000, "villa": 650_000, "immeuble": 2_400_000, "tour_habitation": 14_000_000,
 	"boulangerie": 350_000, "superette": 900_000, "supermarche": 6_500_000, "bureaux": 9_000_000,
 	"atelier": 600_000, "entrepot": 2_200_000, "usine": 7_500_000, "ferme": 900_000,
+	"entreprise_btp": 450_000, "campement": 0,
 	"maison_commune": 300_000, "mairie": 4_000_000, "ecole": 6_000_000, "pompiers": 2_500_000, "police": 1_800_000,
 	"hopital": 25_000_000, "chateau_eau": 1_200_000,
 	"parc": 300_000, "aire_jeux": 80_000, "cafe": 450_000, "cinema": 5_000_000,
@@ -354,6 +363,48 @@ static func build_mesh(id: String, material: Material = null, details := true, v
 			k.box(6.0, 0, -5.05, 5.0, 5.0, 0.2, Color("f2f2f2"))
 			k.cylinder(-10.0, 0, 8.0, 2.4, 2.4, 13.0, 10, Color("c9ccd1"))
 			k.cylinder(-10.0, 13.0, 8.0, 2.5, 0.0, 2.6, 10, Color("8a8d93"))
+		"entreprise_btp":
+			k.plate(0, 0, w, d, Color("9c958a"))
+			# Hangar du dépôt, bureaux de chantier, stock de matériaux et engins.
+			k.box(-4.0, 0, 3.0, 14.0, 6.5, 12.0, Color("d9c7a4"))
+			k.gable(-4.0, 6.5, 3.0, 14.6, 12.6, 1.8, Color("6c7077"), false)
+			k.box(-4.0, 0, -3.05, 6.0, 4.8, 0.2, Color("8a8d93"))
+			k.box(7.5, 0, 4.5, 6.0, 3.0, 8.0, Color("f2f2f2"))
+			k.box(7.5, 3.0, 4.5, 6.0, 2.8, 8.0, Color("f2f2f2"))
+			k.box(7.5, 5.8, 4.5, 6.3, 0.25, 8.3, Color("f77f00"))
+			k.windows_row(7.5, 0.45, 5.0, 1.0, 2, 1.2, 1.0, GLASS)
+			k.windows_row(7.5, 0.45, 5.0, 3.9, 2, 1.2, 1.0, GLASS)
+			k.box(7.5, 0, 0.45, 1.0, 2.2, 0.2, DOOR)
+			for i in 3:
+				k.box(-9.0 + i * 2.6, 0, -7.0, 2.2, 0.9 + i * 0.2, 1.4, Color("b5652d"))
+			k.box(-1.0, 0, -7.0, 3.0, 1.2, 1.2, Color("c9c9c9"))
+			k.box(4.5, 0, -6.5, 4.4, 1.6, 2.2, Color("f2b134"))
+			k.box(4.0, 1.6, -6.5, 1.6, 1.3, 1.8, Color("f2b134"))
+			k.box(7.0, 0.6, -6.5, 1.6, 0.6, 2.4, Color("6c7077"))
+			k.box(0, 0, -9.95, w * 0.9, 1.8, 0.1, Color("e9e2d4"))
+		"campement":
+			# Le campement se vide quand les fondateurs emménagent (variante 0 à 4).
+			k.plate(0, 0, w, d, Color("a89a7c"))
+			var nt := roundi(30.0 * (1.0 - clampf(float(variant), 0.0, 4.0) / 4.0))
+			var toiles := [Color("e9dfc6"), Color("c9b48a"), Color("8fa37a"), Color("d8c9a7"), Color("b88d5e")]
+			for i in nt:
+				var colonne := i % 6
+				var rang := int(i / 6.0)
+				var tx := -15.0 + colonne * 4.3
+				var tz := -10.5 + rang * 4.4
+				k.gable(tx, 0, tz, 3.0, 3.6, 2.1, toiles[(i * 7 + rang) % toiles.size()], false)
+			# Base de chantier : bungalows, grande tente-réfectoire, citerne, feu de camp.
+			k.box(13.0, 0, -9.0, 6.0, 2.6, 2.6, Color("e8eef2"))
+			k.box(13.0, 0, -5.8, 6.0, 2.6, 2.6, Color("f77f00"))
+			k.box(13.0, 2.6, -7.4, 6.4, 0.15, 6.0, Color("9aa0a6"))
+			k.box(13.0, 0, 1.5, 7.0, 2.2, 8.0, Color("f1ebdd"))
+			k.gable(13.0, 2.2, 1.5, 7.4, 8.4, 1.6, Color("f1ebdd"), false)
+			k.cylinder(14.5, 0, 9.5, 1.3, 1.3, 2.4, 10, Color("5f7f9a"))
+			k.cylinder(0, 0, 11.0, 1.1, 1.1, 0.25, 8, Color("7d7f85"))
+			k.pyramid(0, 0.25, 11.0, 0.9, 0.9, 0.9, Color("e85d04"))
+			for i in 4:
+				k.box(-11.0 + i * 0.7, 0, 11.5, 0.5, 0.5 + 0.3 * (i % 2), 2.5, Color("8b5a2b"))
+			k.box(-4.5, 0, -13.2, 0.12, 6.0, 0.12, Color("d9d9d9"))
 		"maison_commune":
 			# Petite maison commune de village : clocheton, horloge et drapeau.
 			k.plate(0, 0, w, d, Color("cfc8b6"))

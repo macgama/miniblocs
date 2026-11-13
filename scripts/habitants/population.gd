@@ -103,6 +103,8 @@ var extra_buildings: Callable
 var extra_pick: Callable
 ## Satisfaction venue d'ailleurs (commerces de l'économie locale) : f(p) -> [delta, raisons].
 var extra_satisfaction: Callable
+## Services publics : school_ok(p, bid_école) -> bool (trajet acceptable). Sans : toutes les écoles.
+var school_ok: Callable
 ## Attrait d'un logement pour les arrivants (bid) -> multiplicateur (Nuisances : bruit, pollution, valeur).
 var attrait_logement: Callable
 
@@ -651,8 +653,14 @@ func _match_all() -> void:
 		var p: Dictionary = persons[pid]
 		var st := stage(p)
 		if st == "eleve":
+			# École devenue trop loin (route coupée, déménagement) : on en cherche une autre.
+			if int(p.sch) >= 0 and school_ok.is_valid() and known.has(int(p.sch)) and not school_ok.call(p, int(p.sch)):
+				_leave_school(p)
 			if int(p.sch) < 0 and not schools.is_empty():
-				var best := _nearest(home_of(p), schools)
+				var possibles := schools
+				if school_ok.is_valid():
+					possibles = schools.filter(func(b: int) -> bool: return school_ok.call(p, b))
+				var best := _nearest(home_of(p), possibles) if not possibles.is_empty() else -1
 				if best >= 0:
 					_join_school(p, best)
 					if free_seats(best) <= 0:
@@ -1301,7 +1309,7 @@ func satisfaction(p: Dictionary) -> Dictionary:
 				why.append("+ va à l'école")
 			else:
 				s -= 20.0
-				why.append("− pas de place à l'école")
+				why.append("− pas de place dans une école proche")
 		"retraite":
 			s += 10.0
 		"etudiant":

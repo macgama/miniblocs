@@ -90,6 +90,14 @@ const SECTIONS := [
 		["Réputation", "de 0 à 100 : missions, rangs et succès la montent ; missions ratées, tutelle et mairies perdues la baissent ; au-dessus de 20 les emprunts coûtent moins cher (jusqu'à −1 point)"],
 		["Succès", "15 étapes à débloquer une fois pour toutes : première ville, mille habitants, pays heureux, villes reliées, mairie reprise…"],
 	]],
+	["Statistiques et conseiller", [
+		["Maj+I", "panneau Statistiques (menu Infos) : courbes dans le temps de chaque ville et du pays, sur 30 jours, 1 an ou toute la partie"],
+		["Chiffres suivis", "habitants, satisfaction, chômage, caisse, solde du mois, logements et emplois libres, enfants sans école, pollution de l'air ; pour tout le pays : électricité, eau, coupures, bouchons, trajet moyen, déchets"],
+		["Tableau", "chiffre du jour et évolution sur 30 jours (vert : ça s'améliore, rouge : ça se dégrade) ; clic sur une ligne pour tracer sa courbe, survol de la courbe pour lire une date"],
+		["Comparer les villes", "case sous la courbe : une couleur par ville"],
+		["Conseiller", "deuxième onglet : les problèmes du moment, du plus urgent au plus anodin, avec quoi faire et un bouton pour ouvrir le bon panneau ; un problème urgent qui apparaît s'affiche aussi en haut de l'écran"],
+		["Relevés", "un par jour de jeu, à minuit ; les plus vieux sont regroupés par 30 jours, ils restent dans la sauvegarde"],
+	]],
 	["Budget de la commune", [
 		["M", "panneau Budget : bilan du mois, impôts votés par le maire, emprunts, entretien et état des voies"],
 		["Impôts", "taxe foncière, impôt des entreprises, impôt sur les bénéfices de 0 à 200 % : plus haut, la caisse se remplit et les habitants râlent"],

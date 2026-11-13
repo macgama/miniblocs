@@ -94,6 +94,8 @@ var pilote: PiloteAuto
 var objectifs: Objectifs
 var kit: KitInstallation
 var objectifs_panel: ObjectifsPanel
+var statistiques: Statistiques
+var stats_panel: StatsPanel
 
 
 func _ready() -> void:
@@ -148,6 +150,7 @@ func _ready() -> void:
 	_setup_communes()
 	_setup_fondateurs()
 	_setup_pays()
+	_setup_statistiques()
 	_setup_create_mode()
 	hud.traffic_toggled.connect(func(on: bool) -> void: transport.traffic.set_enabled(on))
 	hud.traffic_filter_changed.connect(func(era: String, region: String) -> void:
@@ -302,6 +305,7 @@ func save_sections() -> Dictionary:
 	sec["pilote"] = pilote.to_dict()
 	sec["objectifs"] = objectifs.to_dict()
 	sec["kit"] = kit.to_dict()
+	sec["statistiques"] = statistiques.to_dict()
 	return sec
 
 
@@ -394,6 +398,7 @@ func load_game(slot := "") -> bool:
 	objectifs.from_dict(sec.get("objectifs", {}))
 	kit.from_dict(sec.get("kit", {}))
 	nuisances.from_dict(sec.get("nuisances", {}))
+	statistiques.from_dict(sec.get("statistiques", {}))
 	($VueSol as VueSol).from_dict(sec.get("personnage", {}))
 	_load_settings(sec.get("reglages", {}), m)
 	# Les chantiers repartent de l'heure de la partie chargée.
@@ -720,6 +725,33 @@ func _setup_pays() -> void:
 		rig.position.x = pos.x
 		rig.position.z = pos.z)
 	hud.objectifs_requested.connect(func() -> void: objectifs_panel.toggle())
+
+
+## Statistiques dans le temps et conseiller (Maj+I, menu Infos).
+func _setup_statistiques() -> void:
+	statistiques = Statistiques.new()
+	statistiques.name = "Statistiques"
+	add_child(statistiques)
+	statistiques.setup(population, communes, pays, budget, reseaux, trafic, dechets, nuisances, avis)
+	Statistiques.instance = statistiques
+	statistiques.releve_fait.connect(func() -> void: _unsaved = true)
+	statistiques.alerte.connect(func(t: String, _lieu: String) -> void: hud.show_message(t + " (Maj+I)"))
+	stats_panel = StatsPanel.new()
+	stats_panel.name = "PanneauStatistiques"
+	add_child(stats_panel)
+	stats_panel.setup(statistiques)
+	stats_panel.panneau_requested.connect(ouvrir_panneau)
+	hud.stats_requested.connect(func() -> void: stats_panel.toggle())
+
+
+## Ouvre un panneau par son id (boutons du conseiller).
+func ouvrir_panneau(id: String) -> void:
+	var panels := {"budget": budget_panel, "avis": avis_panel, "construire": build_panel, "trafic": trafic_panel,
+		"dechets": dechets_panel, "reseaux": reseaux_panel, "services": services_panel, "cartes": cartes_panel,
+		"lignes": transit_panel, "pays": pays_panel, "production": production_panel, "objectifs": objectifs_panel}
+	var p = panels.get(id)
+	if p != null:
+		p.set_open(true)
 
 
 ## Élections perdues avec le réglage « fin de partie ».
@@ -1592,6 +1624,7 @@ var _open_before := {}
 ## l'un s'ouvre, les autres se ferment. Leur bouton de la barre du bas s'allume.
 func _exclusive_panels() -> void:
 	var panels := {"pays": pays_panel, "objectifs": objectifs_panel, "construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "agriculture": agri_panel, "urgences": urgences_panel, "reseaux": reseaux_panel, "dechets": dechets_panel, "trafic": trafic_panel, "budget": budget_panel, "telecom": telecom_panel, "perso": perso_panel, "infos": evenements_panel, "cartes": cartes_panel, "avis": avis_panel, "villages": villages_panel, "fondateurs": fondateurs_panel}
+	var panels := {"pays": pays_panel, "construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "agriculture": agri_panel, "urgences": urgences_panel, "reseaux": reseaux_panel, "dechets": dechets_panel, "trafic": trafic_panel, "budget": budget_panel, "telecom": telecom_panel, "perso": perso_panel, "infos": evenements_panel, "cartes": cartes_panel, "avis": avis_panel, "villages": villages_panel, "fondateurs": fondateurs_panel, "stats": stats_panel}
 	var opened := ""
 	for id in panels:
 		var p = panels[id]

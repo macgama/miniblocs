@@ -107,6 +107,7 @@ var sons: AmbiancesSonores
 
 
 func _ready() -> void:
+	OptionsJeu.appliquer(get_tree())
 	# Nouvelle partie : réglages choisis sur le globe (ou ceux par défaut du joueur).
 	if GameStart.load_slot == "":
 		var r := ReglagesPartie.prochaine if ReglagesPartie.prochaine != null else ReglagesPartie.load_defaults()
@@ -290,7 +291,7 @@ var last_error := ""
 ## Des changements depuis la dernière sauvegarde (pour la sauvegarde automatique).
 var _unsaved := false
 var _autosave_timer := 0.0
-## Sauvegarde automatique toutes les 5 minutes, dans une partie à part.
+## Sauvegarde automatique (toutes les 5 minutes par défaut, Options > Jeu), dans une partie à part.
 const AUTOSAVE_SLOT := "sauvegarde-auto"
 const AUTOSAVE_INTERVAL := 300.0
 var _saves_panel: PartiesPanel
@@ -350,7 +351,38 @@ func save_game(slot := "", title := "") -> bool:
 		GameStart.slot_id = slot
 	_unsaved = false
 	_autosave_timer = 0.0
+	capture_preview(slot)
 	return true
+
+
+## Aperçu de la partie pour l'écran Charger : la vue de la caméra, sans l'interface,
+## rendue une fois dans une petite fenêtre à part (pas de clignotement à l'écran).
+func capture_preview(slot: String) -> void:
+	if DisplayServer.get_name() == "headless":
+		return
+	var cam := get_viewport().get_camera_3d()
+	if cam == null:
+		return
+	var sv := SubViewport.new()
+	sv.size = SaveGame.PREVIEW_SIZE * 2
+	sv.world_3d = get_viewport().find_world_3d()
+	sv.render_target_update_mode = SubViewport.UPDATE_ONCE
+	sv.process_mode = Node.PROCESS_MODE_ALWAYS
+	var c := Camera3D.new()
+	c.fov = cam.fov
+	c.near = cam.near
+	c.far = cam.far
+	c.environment = cam.environment
+	c.attributes = cam.attributes
+	sv.add_child(c)
+	add_child(sv)
+	c.global_transform = cam.global_transform
+	c.current = true
+	await RenderingServer.frame_post_draw
+	await RenderingServer.frame_post_draw
+	if is_instance_valid(sv):
+		SaveGame.save_preview(slot, sv.get_texture().get_image())
+		sv.queue_free()
 
 
 ## Charge une partie (par défaut la partie en cours).
@@ -1266,7 +1298,9 @@ func _windows_layer() -> CanvasLayer:
 	if _windows == null:
 		_windows = CanvasLayer.new()
 		_windows.name = "Fenetres"
-		_windows.layer = 20
+		_windows.layer = 70
+		# Les fenêtres (aide, parties) marchent aussi depuis le menu pause.
+		_windows.process_mode = Node.PROCESS_MODE_ALWAYS
 		add_child(_windows)
 	return _windows
 
@@ -1283,8 +1317,11 @@ func toggle_help() -> void:
 func _autosave(delta: float) -> void:
 	if GameStart.atelier:
 		return
+	var interval := OptionsJeu.autosave_min * 60.0
+	if interval <= 0.0:
+		return
 	_autosave_timer += delta
-	if _autosave_timer < AUTOSAVE_INTERVAL:
+	if _autosave_timer < interval:
 		return
 	_autosave_timer = 0.0
 	if not _unsaved:
@@ -1296,6 +1333,103 @@ func _autosave(delta: float) -> void:
 	GameStart.slot_id = keep
 	# La partie du joueur n'est pas à jour : on garde la marque « non sauvegardé ».
 	_unsaved = keep != ""
+
+
+# --- Menu pause (Échap) -------------------------------------------------------------
+
+var pause_menu: MenuPause
+## Échap pressé alors qu'un outil était actif : il annule l'outil, pas de pause.
+var _esc_busy := false
+
+
+## Un outil est-il en cours (Échap doit d'abord l'arrêter) ?
+func _tool_busy() -> bool:
+	if hud._current_tool != 0:
+		return true
+	if buildings.mode != BuildingSystem.Mode.NONE or zones.mode != ZoneSystem.Mode.NONE:
+		return true
+	if blocks.tool != BlockEditor.Tool.NONE or transport.tool != TransportSystem.Tool.NONE:
+		return true
+	if (plans != null and plans.tool != PlanEditor.Tool.NONE) or (mobilier != null and mobilier.tool != Mobilier.Tool.NONE):
+		return true
+	return decors != null and decors.outil != DecorSystem.Outil.AUCUN
+
+
+func _input(event: InputEvent) -> void:
+	var k := event as InputEventKey
+	if k != null and k.pressed and not k.echo and k.keycode == KEY_ESCAPE and pause_menu == null:
+		_esc_busy = _tool_busy()
+
+
+## _unhandled_input (pas _unhandled_key_input, qui passe avant) : les outils, qui
+## écoutent Échap dans leur _unhandled_input, l'ont déjà reçu ; la scène est la
+## racine, elle passe donc en dernier.
+func _unhandled_input(event: InputEvent) -> void:
+	var k := event as InputEventKey
+	if k == null or not k.pressed or k.echo or k.keycode != KEY_ESCAPE or pause_menu != null:
+		return
+	if _esc_busy:
+		_esc_busy = false
+		# Un outil de terrain ou de voie sans tracé en cours : retour à Observer.
+		if hud._current_tool != 0:
+			get_viewport().set_input_as_handled()
+			hud.select_tool_silently(0)
+			_on_tool_selected(0)
+		return
+	get_viewport().set_input_as_handled()
+	open_pause()
+
+
+func open_pause() -> void:
+	if pause_menu != null:
+		return
+	pause_menu = MenuPause.new()
+	pause_menu.unsaved = _unsaved and not GameStart.atelier
+	pause_menu.place = _game_title() if not GameStart.atelier else "Atelier"
+	pause_menu.resume_requested.connect(close_pause)
+	pause_menu.save_requested.connect(func() -> void:
+		if save_game():
+			pause_menu.set_status("Partie sauvegardée : %s." % _game_title())
+			pause_menu.unsaved = false
+		else:
+			pause_menu.set_status("Échec de la sauvegarde : " + last_error))
+	pause_menu.load_requested.connect(func() -> void:
+		open_saves_panel()
+		if _saves_panel != null:
+			_saves_panel.closed.connect(func() -> void:
+				if pause_menu != null:
+					pause_menu.unsaved = _unsaved))
+	pause_menu.help_requested.connect(toggle_help)
+	pause_menu.quit_requested.connect(_quit_from_pause)
+	add_child(pause_menu)
+	get_tree().paused = true
+
+
+func close_pause() -> void:
+	if pause_menu == null:
+		return
+	pause_menu.queue_free()
+	pause_menu = null
+	get_tree().paused = false
+
+
+func _quit_from_pause(to_desktop: bool, save_first: bool) -> void:
+	if save_first:
+		if not save_game():
+			pause_menu.set_status("Échec de la sauvegarde : " + last_error)
+			return
+		# Laisse le temps à l'aperçu d'être capturé.
+		await RenderingServer.frame_post_draw
+		await RenderingServer.frame_post_draw
+		await RenderingServer.frame_post_draw
+	get_tree().paused = false
+	if to_desktop:
+		get_tree().quit()
+		return
+	if GameStart.atelier:
+		GameStart.atelier = false
+	GameStart.slot_id = ""
+	EcranChargement.aller(MenuPrincipal.SCENE, "Retour au menu principal")
 
 
 ## Murs et étages : outils, étage actif, copie d'étage, toit.
@@ -1469,10 +1603,10 @@ func _toggle_atelier() -> void:
 			GameStart.place_name = GameStart.retour_nom
 			GameStart.load_slot = GameStart.retour_slot
 			GameStart.slot_id = GameStart.retour_slot
-			get_tree().change_scene_to_file("res://scenes/terre.tscn")
+			EcranChargement.aller("res://scenes/terre.tscn", GameStart.retour_nom)
 		else:
 			GameStart.slot_id = ""
-			get_tree().change_scene_to_file("res://scenes/globe.tscn")
+			EcranChargement.aller(MenuPrincipal.SCENE, "Retour au menu principal")
 		return
 	if not save_game():
 		hud.show_message("Sauvegarde impossible, l'atelier attendra : " + last_error)
@@ -1482,7 +1616,7 @@ func _toggle_atelier() -> void:
 	GameStart.retour_lon = world.origin_lon
 	GameStart.retour_nom = GameStart.place_name
 	GameStart.atelier = true
-	get_tree().change_scene_to_file("res://scenes/terre.tscn")
+	EcranChargement.aller("res://scenes/terre.tscn", "Atelier")
 
 
 # --- Mode Créer : la construction libre à part de la gestion de la ville ---------

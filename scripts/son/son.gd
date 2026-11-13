@@ -313,9 +313,10 @@ func _brancher(b: BaseButton) -> void:
 
 func humeur() -> String:
 	var scene := get_tree().current_scene
-	if scene != null and scene.scene_file_path.contains("globe"):
+	if scene != null and (scene.scene_file_path.contains("globe") or scene.scene_file_path.contains("menu_principal")):
 		return "menu"
-	if humeur_fn.is_valid() and is_instance_valid(humeur_fn.get_object()):
+	# Fonction posée par une scène (Terre) ou par le menu principal (lambda sans objet).
+	if humeur_fn.is_valid() and (humeur_fn.get_object() == null or is_instance_valid(humeur_fn.get_object())):
 		return String(humeur_fn.call())
 	return "jour"
 

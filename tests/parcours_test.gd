@@ -49,6 +49,20 @@ func _offline(scene: Node) -> void:
 	world.land.offline_generator = func(_lat: float, _lon: float) -> int: return 30
 
 
+## La partie s'ouvre derrière l'écran de chargement : on attend la scène Terre,
+## on coupe le réseau, puis on attend que l'écran s'efface.
+func _wait_game() -> Node:
+	var t0 := Time.get_ticks_msec()
+	while (current_scene == null or current_scene.name != "Terre") and Time.get_ticks_msec() - t0 < 30000:
+		await process_frame
+	var g: Node = current_scene
+	if g != null and g.name == "Terre":
+		_offline(g)
+	while EcranChargement.actif != null and Time.get_ticks_msec() - t0 < 60000:
+		await process_frame
+	return g
+
+
 func _run() -> void:
 	print("Globe :")
 	change_scene_to_file("res://scenes/globe.tscn")
@@ -56,11 +70,13 @@ func _run() -> void:
 	var globe: Node = current_scene
 	_check(globe != null and globe.has_method("start_game"), "le globe s'ouvre")
 	globe.select_place(45.8992, 6.1294, "Annecy (test)", true)
+	# Sans le tutoriel (testé à part) : la fenêtre de fondation s'ouvre seule.
+	if ReglagesPartie.prochaine == null:
+		ReglagesPartie.prochaine = ReglagesPartie.load_defaults()
+	ReglagesPartie.prochaine.tutoriel = false
 	globe.start_game()
-	await _frames(3)
-	var game: Node = current_scene
+	var game: Node = await _wait_game()
 	_check(game != null and game.name == "Terre", "Commencer la partie ouvre la scène Terre")
-	_offline(game)
 	game.get_node("Terrain").set_origin(45.8992, 6.1294)
 	GameStart.place_name = "Annecy (test)"
 	await _frames(40)
@@ -136,9 +152,7 @@ func _run() -> void:
 	_check(globe.has_method("load_saved_game") and globe._continue_btn != null and not globe._continue_btn.disabled, "bouton Continuer actif")
 	_check(globe._continue_btn.text.contains("Annecy (test)"), "Continuer propose la dernière partie (%s)" % globe._continue_btn.text)
 	globe.load_saved_game(slot)
-	await _frames(2)
-	game = current_scene
-	_offline(game)
+	game = await _wait_game()
 	await _frames(10)
 	var n_bat := 0
 	for b in game.buildings.buildings.values():

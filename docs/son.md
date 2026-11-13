@@ -65,7 +65,7 @@ sol). Huit nappes en boucle se mélangent en douceur (bus « Ambiance ») :
 ## Musique
 
 La musique suit l'heure de la ville (humeur donnée par la scène Terre) :
-journée, soirée, nuit ; le globe a son thème.
+journée, soirée, nuit ; l’écran titre et le globe ont leur thème. L’onglet Son des Options du menu principal règle les mêmes volumes (même fichier son.cfg).
 
 | Morceau | Moment | Instruments |
 | --- | --- | --- |

@@ -9,6 +9,12 @@ Tout est dans `main`, et les 9 tests automatiques passent (`sh tests/tous.sh`).
 - Sons des boutons, des panneaux, des constructions, des démolitions, des nouvelles, des paliers et des élections (avec un trombone triste en cas de défaite).
 - 7 morceaux selon l'heure de la ville, dont la *Valse du permis de construire*, le *Nids-de-poule blues* et *Conseil municipal (en retard)*. Panneau F2 : volumes général, musique, ambiance, effets, interface, silences entre les morceaux. Tout est synthétisé par `tools/build_sons.py`, libre de droits (voir docs/son.md).
 
+**Menu principal, options et menu pause** (14 novembre)
+- Le jeu s'ouvre sur un écran titre : une île low-poly flottante (village, rivière en cascade, terrain de foot, grande roue qui tourne). Continuer (avec l'aperçu de la dernière partie), Nouvelle partie (globe), Charger, Atelier, Options, Crédits, Quitter.
+- Chaque sauvegarde a maintenant un aperçu (vue de la caméra sans l'interface) et peut être renommée. Sauvegarde automatique réglable : jamais, 2, 5, 10 ou 15 minutes.
+- Options : graphismes (plein écran, résolution 3D, ombres, anticrénelage, rendu poussé, limite d'images), volumes (les mêmes que le panneau Son F2), sauvegarde auto, langue, touches.
+- Écran de chargement avec conseils, qui attend que le relief soit prêt. **Échap** ouvre le menu pause (le jeu s'arrête) quand aucun outil n'est en cours. Voir docs/menus.md.
+
 **Niveaux de vie des foyers** (touche **Maj+N**, 14 novembre)
 - Chaque foyer a un niveau de vie : Précaire, Modeste, Classe moyenne, Aisé, Très aisé. Il monte quand la ville couvre ses besoins (eau, courant, commerces, école, hôpital, internet, loisirs, calme, police, beau logement, quartier recherché…) et que ses revenus le permettent ; il redescend quand un besoin manque trop longtemps.
 - Plus un foyer est aisé, plus il paie de taxe foncière, plus il achète dans les commerces et dépense en sorties ; dès « Aisé », il place son épargne. Il déménage vers un logement plus cossu quand le sien le bloque.

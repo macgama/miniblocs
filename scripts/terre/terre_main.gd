@@ -31,6 +31,9 @@ var urgences: Urgences
 var urgences_panel: UrgencesPanel
 ## Chantiers, usure des bâtiments, abords et fumée des maisons habitées.
 var vie_batiments: BatimentsVie
+## Chantiers des voies et des réseaux (SuiviChantiers) et des voies (ChantiersVoies).
+var chantiers: SuiviChantiers
+var chantiers_voies: ChantiersVoies
 var _hover := Vector2i.ZERO
 var _hover_valid := false
 ## Intérieurs : meubles, pièces, usage des bâtiments en murs fins (onglet Intérieur).
@@ -297,6 +300,9 @@ func load_game(slot := "") -> bool:
 	nuisances.from_dict(sec.get("nuisances", {}))
 	($VueSol as VueSol).from_dict(sec.get("personnage", {}))
 	_load_settings(sec.get("reglages", {}), m)
+	# Les chantiers repartent de l'heure de la partie chargée.
+	vie_batiments._t_prev = ambiance.unix_time
+	chantiers._t_prev = ambiance.unix_time
 	build_panel.set_growth(zones.growth)
 	var cam: Dictionary = m.get("camera", {})
 	if not cam.is_empty():
@@ -417,11 +423,20 @@ func _setup_population() -> void:
 
 
 ## Vie des bâtiments : chantiers, usure, abords des maisons habitées, fumée.
+## Puis le suivi des chantiers de voies et de réseaux (nœud « Chantiers »).
 func _setup_vie() -> void:
 	vie_batiments = BatimentsVie.new()
 	vie_batiments.name = "VieBatiments"
 	add_child(vie_batiments)
 	vie_batiments.setup(buildings, ambiance, population)
+	chantiers = SuiviChantiers.new()
+	chantiers.name = "Chantiers"
+	add_child(chantiers)
+	chantiers.setup(buildings, ambiance, population)
+	chantiers_voies = ChantiersVoies.new()
+	chantiers_voies.name = "ChantiersVoies"
+	add_child(chantiers_voies)
+	chantiers_voies.setup(transport, chantiers)
 
 
 ## Événements de la ville et leur panneau (I), fil d'actualité en haut de l'écran.

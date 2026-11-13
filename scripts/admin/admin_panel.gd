@@ -35,6 +35,8 @@ var _vie: OptionButton
 var _epuisement: CheckBox
 var _ev_auto: CheckBox
 var _catas: CheckBox
+var _instant: CheckBox
+var _horaires: OptionButton
 var _freq: OptionButton
 var _pollution: OptionButton
 var _pol_sante: CheckBox
@@ -147,6 +149,15 @@ func _ready() -> void:
 	_deblocage.disabled = not editable
 	_deblocage.item_selected.connect(func(_i: int) -> void: _changed())
 	_row(g, "Bâtiments", _deblocage)
+	_instant = _check("Construction instantanée (pas de chantier)")
+	_instant.tooltip_text = "Bac à sable : bâtiments et voies apparaissent d'un coup au lieu de se construire étape par étape"
+	g.add_child(_instant)
+	_horaires = OptionButton.new()
+	for n in Chantiers.HORAIRES_NOMS:
+		_horaires.add_item(n)
+	_horaires.disabled = not editable
+	_horaires.item_selected.connect(func(_i: int) -> void: _changed())
+	_row(g, "Horaires des chantiers", _horaires)
 	_paliers_l = _label("", 12, UiStyle.TEXT_DIM)
 	_paliers_l.custom_minimum_size = Vector2(400, 0)
 	_paliers_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -330,6 +341,8 @@ func _fill() -> void:
 	_epuisement.button_pressed = reglages.epuisement
 	_ev_auto.button_pressed = reglages.evenements_auto
 	_catas.button_pressed = reglages.catastrophes
+	_instant.button_pressed = reglages.construction_instantanee
+	_horaires.select(maxi(0, Chantiers.HORAIRES.find(reglages.horaires_chantiers)))
 	var fi := 1
 	for i in FREQS.size():
 		if absf(float(FREQS[i]) - reglages.frequence_catastrophes) < 0.01:
@@ -356,6 +369,9 @@ func _changed() -> void:
 	reglages.epuisement = _epuisement.button_pressed
 	reglages.evenements_auto = _ev_auto.button_pressed
 	reglages.catastrophes = _catas.button_pressed
+	reglages.construction_instantanee = _instant.button_pressed
+	reglages.horaires_chantiers = String(Chantiers.HORAIRES[maxi(0, _horaires.selected)])
+	_horaires.disabled = not editable or _instant.button_pressed
 	reglages.frequence_catastrophes = float(FREQS[maxi(0, _freq.selected)])
 	reglages.pollution = maxi(0, _pollution.selected)
 	reglages.pollution_sante = _pol_sante.button_pressed

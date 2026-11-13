@@ -49,6 +49,7 @@ const SECTIONS := [
 		["E sur un meuble (vue au sol)", "son nom, son style et ce qu'il apporte : confort, attractivité, valeur"],
 		["Personnaliser (fiche d'un bâtiment)", "couleurs, toit, étages, pente, variante ; « Ouvrir l'intérieur » le refait en murs fins, meublé et visitable"],
 		["Banque (6) · Atelier (7)", "tes modèles étiquetés (type, style, époque, couleur) à reposer ou échanger ; l'atelier : terrain plat sans habitants ni argent"],
+		["Chantiers", "bâtiments et voies se construisent étape par étape au rythme de la vie (maison ≈ 3 semaines de jeu), en semaine et en journée ; le prix se paie au fil des travaux ; panneau Admin (F10) : horaires des équipes ou construction instantanée"],
 	]],
 	["Événements", [
 		["I", "panneau Infos : événements en cours et à venir, journal, organiser une fête ou un marché, dégâts à réparer, stades et classement"],

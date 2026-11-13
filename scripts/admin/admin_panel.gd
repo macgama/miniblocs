@@ -65,6 +65,8 @@ var _manifs: CheckBox
 const USURES := [0.0, 0.5, 1.0, 2.0]
 const USURE_NOMS := ["Aucune", "Lente", "Normale", "Rapide"]
 var _status: Label
+var _tutoriel: CheckBox
+var _obj_ecran: CheckBox
 
 
 func _init(r: ReglagesPartie = null, at_creation := false, can_edit := true, money := -1) -> void:
@@ -277,6 +279,11 @@ func _ready() -> void:
 	g.add_child(_manifs)
 
 	# Réseaux : électricité, eau, égouts.
+	g = _section(left, "Aide", "aide")
+	_tutoriel = _check("Tutoriel guidé (une étape à la fois, en haut à gauche)")
+	g.add_child(_tutoriel)
+	_obj_ecran = _check("Objectifs à l'écran (rang de la ville et missions du pays)")
+	g.add_child(_obj_ecran)
 	g = _section(left, "Réseaux", "reseaux")
 	_reseaux = _check("Réseaux obligatoires (sinon courant, eau et égouts partout d'office)")
 	g.add_child(_reseaux)
@@ -437,6 +444,8 @@ func _fill() -> void:
 	_fondateurs.value = reglages.fondateurs
 	_vivres.value = reglages.vivres_jours
 	_main_oeuvre.button_pressed = reglages.main_oeuvre
+	_tutoriel.button_pressed = reglages.tutoriel
+	_obj_ecran.button_pressed = reglages.objectifs_ecran
 	_deblocage.select(1 if reglages.deblocage == "progression" else 0)
 	_impots.value = reglages.impots
 	_salaires.value = reglages.salaires
@@ -490,6 +499,8 @@ func _changed() -> void:
 	reglages.fondateurs = int(_fondateurs.value)
 	reglages.vivres_jours = int(_vivres.value)
 	reglages.main_oeuvre = _main_oeuvre.button_pressed
+	reglages.tutoriel = _tutoriel.button_pressed
+	reglages.objectifs_ecran = _obj_ecran.button_pressed
 	reglages.deblocage = "progression" if _deblocage.selected == 1 else "tout"
 	reglages.impots = _impots.value
 	reglages.salaires = _salaires.value

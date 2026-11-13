@@ -182,7 +182,8 @@ func _sync() -> void:
 	for bid in buildings.buildings:
 		var t := String(buildings.buildings[bid].t)
 		var role := DechetsTypes.role_of(t)
-		if role == "" or sites.has(bid):
+		# Un bâtiment en chantier ne sert pas encore.
+		if role == "" or sites.has(bid) or buildings.en_chantier(bid):
 			continue
 		var s := {"role": role, "st": {"om": 0.0, "rec": 0.0, "verre": 0.0, "verts": 0.0, "encombrants": 0.0}, "total": 0.0,
 			"plein": false, "units": [], "mw": 0.0, "status": "", "jour": 0.0}

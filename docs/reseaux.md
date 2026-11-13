@@ -52,8 +52,9 @@ commerce… Les eaux usées valent 90 % de l'eau. Le courant suit la journée
 
 ## Conséquences
 
-- **Courant < 50 %** : fenêtres noires (méta `res_panne`), usines et commerces
-  au ralenti (`rendement`, groupe `rendement_sources` lu par Production),
+- **Courant < 50 %** : fenêtres noires (méta `res_panne`), entreprises au ralenti
+  (`rendement`, groupe `rendement_sources` lu par Production) : il reste 10 % à
+  l'usine, 30 % dans les commerces et services, 80 % aux champs et au grand air,
   −15 de satisfaction (−6 si rationné).
 - **Eau < 50 %** : −15 de satisfaction, hygiène (santé), pompiers 3 fois plus lents
   (groupe `eau_incendie`, lu par les incendies).

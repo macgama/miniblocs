@@ -878,11 +878,26 @@ func raccorde_egout(bid: int) -> bool:
 # --- Effets sur les autres systèmes ------------------------------------------------------
 
 ## Rendement d'une entreprise (Production) : sans courant ni eau, l'usine ralentit.
+const PLEIN_AIR := ["elevage", "exploitation_forestiere", "port_peche", "marche", "sabliere", "argiliere"]
+
+
 func rendement(bid: int) -> float:
 	if not etat.has(bid):
 		return 1.0
 	var s: Dictionary = etat[bid]
-	return clampf(float(s.e), 0.0, 1.0) * lerpf(0.6, 1.0, clampf(float(s.o), 0.0, 1.0))
+	var plancher := plancher_sans_courant(_type(bid))
+	return lerpf(plancher, 1.0, clampf(float(s.e), 0.0, 1.0)) * lerpf(0.6, 1.0, clampf(float(s.o), 0.0, 1.0))
+
+
+## Ce qu'une entreprise produit encore sans courant : presque tout aux champs et
+## au grand air, un peu dans les commerces (à la main), presque rien à l'usine.
+static func plancher_sans_courant(type_id: String) -> float:
+	if type_id.begins_with("ferme") or type_id in PLEIN_AIR:
+		return 0.8
+	var cat := String(BuildingCatalog.get_type(type_id).get("cat", ""))
+	if cat in ["industrie", "production"]:
+		return 0.1
+	return 0.3
 
 
 ## Pression aux bouches d'incendie (1 = normale) : sans eau, les pompiers n'ont que leurs citernes.

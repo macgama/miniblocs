@@ -144,7 +144,7 @@ func _run() -> void:
 	var p0: Dictionary = pop.persons[pop.households[pop.by_home[homes[0]][0]].m[0]]
 	var sat := res.satisfaction_of(p0)
 	_check(float(sat[0]) <= -25.0 and (sat[1] as Array).has("− pas d'électricité à la maison"), "habitants mécontents : %s" % ", ".join(sat[1]))
-	_check(res.rendement(usine) == 0.0, "la scierie est à l'arrêt sans courant")
+	_check(res.rendement(usine) < 0.15, "la scierie est presque à l'arrêt sans courant")
 	_check(res.eau_incendie(homes[0]) == 0.0, "bouches d'incendie à sec")
 
 	print("Parc solaire :")

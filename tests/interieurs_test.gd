@@ -202,7 +202,10 @@ func _run() -> void:
 		for w in sat.why:
 			has_conf = has_conf or String(w).contains("confort")
 		_check(has_conf, "le confort du logement compte dans la satisfaction")
-		_check(float(pop.household_budget(fam[0]).loyer) == float(mob.stats(placed.maison).loyer), "le loyer suit la valeur du logement (%s)" % BuildingSystem.format_money(roundi(float(mob.stats(placed.maison).loyer))))
+		# Loyer du logement aménagé × valeur du quartier (pollution, bruit, parcs : Nuisances).
+		var quartier := Nuisances.instance.coef_foncier(home_bid) if Nuisances.instance != null else 1.0
+		_check(absf(float(pop.household_budget(fam[0]).loyer) - float(mob.stats(placed.maison).loyer) * quartier) < 0.5,
+			"le loyer suit la valeur du logement (%s × quartier %.2f)" % [BuildingSystem.format_money(roundi(float(mob.stats(placed.maison).loyer))), quartier])
 	var occ: Occupants = scene.occupants
 	occ.camera = null
 	var cam: Camera3D = scene.get_node("CameraRig/Camera3D")

@@ -94,6 +94,8 @@ func _city_tests() -> void:
 	_check(fun != null and Funeraire.instance == fun, "services funéraires branchés dans la scène")
 	_check(scene.save_sections().has("funeraire"), "section « funeraire » dans la sauvegarde")
 	var pop: Population = scene.population
+	# Horloge à 1 min/s, comme avant le nouveau défaut (1 jour/min) : la journée ne bascule pas en plein test.
+	scene.ambiance.set_speed(2)
 	var tf := transport.traffic
 	for n in [tf, fun, pop, scene.dechets, scene.production]:
 		n.set_process(false)

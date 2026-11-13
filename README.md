@@ -468,7 +468,7 @@ Le mode Terre a maintenant une **horloge** : le Soleil et la Lune sont à leur v
 
 - **La nuit**, des **lampadaires** s'allument le long des routes et des chemins (posés tout seuls), et les **fenêtres** des bâtiments s'éclairent, plus ou moins selon l'heure.
 - **Panneau Horloge** (en bas à droite) : heure et date du lieu, lever et coucher du Soleil, phase de la Lune. Barre pour choisir l'heure, ◀ ▶ pour changer de mois (et donc de saison).
-- **T** : pause / reprise. **Maj + T** : vitesse suivante (temps réel, 1 min/s, 10 min/s, 100 min/s).
+- **T** : pause / reprise. **Maj + T** : vitesse suivante (temps réel, 1 min/s, 10 min/s, 1 jour/min par défaut, 100 min/s).
 - **Heure officielle du lieu**, avec les vrais fuseaux horaires du monde et l'heure d'été.
 - **Météo** selon le climat réel du lieu et la saison : nuages, pluie, neige, brouillard, orages avec éclairs. La liste « Météo » du panneau Horloge permet de forcer un temps.
 - **Phares** des véhicules allumés la nuit et par mauvais temps.
@@ -622,6 +622,8 @@ godot --headless --path . --script res://tests/terre_test.gd
 ```
 
 Vérifie les conversions de coordonnées, le décodage des tuiles, la génération des blocs, les rivières (calcul sur une vallée, lecture d'OpenStreetMap, lit creusé, surface d'eau, ponts), le terrassement et la sauvegarde. Il affiche `TERRE TEST OK`. De même, `tests/globe_test.gd` affiche `GLOBE TEST OK`, `tests/transport_test.gd` affiche `TRANSPORT TEST OK` et `tests/batiments_test.gd` affiche `BATIMENTS TEST OK`.
+
+`tests/partie_test.gd` joue une **partie complète accélérée** en mode Normal : globe, fondation, 100 fondateurs, rues, éoliennes et parc solaire, forage, lagunage, école, entreprises du bâtiment, zones, puis la ville grandit (pas de 10 minutes de jeu) jusqu'à 1 000 habitants ; il prend un emprunt si la caisse est vide, relève chaque jour habitants, caisse, chantiers, chômage, logements sans courant ou sans eau et temps par image, compte toutes les erreurs de script, puis sauvegarde et recharge la partie. Il affiche `PARTIE TEST OK` (une vingtaine de minutes). Options : `-- --jours 250 --cible 1000 --rapport partie.csv` (courbe jour par jour), `--messages` (messages du jeu datés), `--diag` (état des chantiers tous les 5 jours).
 
 `tests/parcours_test.gd` joue une partie comme un joueur, avec de vraies touches (globe, outils 1-9, B, L, T, V, F1, F5, Continuer) et affiche `PARCOURS TEST OK`. `tests/habitants_test.gd` vérifie les habitants (école, emplois, emploi du temps, budget, bus, sauvegarde, panneau) et affiche `HABITANTS TEST OK`. `tests/sauvegarde_test.gd` vérifie le format des parties (écriture, relecture, section abîmée, import de l'ancienne sauvegarde) et affiche `SAUVEGARDE TEST OK`. `tests/interface_test.gd` vérifie les menus (icônes, barre de catégories, panneaux un à la fois, vignettes, fiche d'un bâtiment) et affiche `INTERFACE TEST OK`. `tests/demo_ferme_test.gd` vérifie la démo low-poly (kit de modelage, objets, lumières, vues) et affiche `DEMO TEST OK`.
 

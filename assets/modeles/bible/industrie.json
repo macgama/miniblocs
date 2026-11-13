@@ -1099,7 +1099,7 @@
    "id": "centrale_solaire",
    "name": "Centrale solaire",
    "cat": "industrie",
-   "cost": 25000000,
+   "cost": 2500000,
    "desc": "Champ de panneaux photovoltaïques sur 2 ha, onduleurs et clôture.",
    "source": "Parcs solaires au sol de la vallée du Rhône",
    "region": "europe",

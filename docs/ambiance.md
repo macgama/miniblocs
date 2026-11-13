@@ -47,7 +47,7 @@ Pour construire sans être gêné par la nuit : l'image reste de jour, mais **le
 | Action | Comment |
 | --- | --- |
 | Pause / reprise | **T**, ou bouton **Pause** du panneau Horloge (en bas à droite) |
-| Vitesse suivante | **Maj + T**, ou boutons **Réel**, **1 min/s** (par défaut : une journée en 24 min), **10 min/s**, **100 min/s** (100 jours en 24 min, une année de partie en 2 h) |
+| Vitesse suivante | **Maj + T**, ou boutons **Réel**, **1 min/s** (une journée en 24 min, pour regarder la ville vivre), **10 min/s**, **1 jour/min** (par défaut : 365 jours = 365 minutes), **100 min/s** (100 jours en 24 min, une année de partie en 2 h) |
 | Choisir l'heure | Glisser la barre du panneau Horloge |
 | Changer de saison | Boutons ◀ ▶ (un mois avant ou après) |
 | Choisir la météo | Liste « Météo » du panneau Horloge |

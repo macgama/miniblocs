@@ -286,7 +286,7 @@ func _run() -> void:
 		_check(dn.headlights.get_child(0).multimesh.instance_count == 0, "Le jour, phares éteints")
 
 	# Le temps avance.
-	dn.set_speed(4)
+	dn.set_speed(5)
 	var t0 := dn.unix_time
 	for i in 10:
 		await process_frame

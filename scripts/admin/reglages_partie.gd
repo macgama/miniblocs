@@ -77,6 +77,10 @@ var catastrophes := true
 var frequence_catastrophes := 1.0
 ## Vitesse d'usure des routes, rails et réseaux (0 : jamais ; 0,5 lente ; 1 normale ; 2 rapide).
 var usure := 1.0
+## Déchets : production, collecte et conséquences (non : la ville reste propre toute seule).
+var dechets := true
+## Quantité de déchets produite par habitant (×0,5 à ×3).
+var dechets_quantite := 1.0
 ## Joueur qui a créé la partie (SaveGame.player_id()) : l'admin des cartes entre amis.
 var createur := ""
 ## Chantiers : les constructions apparaissent d'un coup (bac à sable) au lieu de
@@ -222,7 +226,7 @@ func to_dict() -> Dictionary:
 		"epuisement": epuisement, "deblocage": deblocage, "createur": createur,
 		"record_habitants": record_habitants, "evenements_auto": evenements_auto, "catastrophes": catastrophes,
 		"frequence_catastrophes": frequence_catastrophes, "construction_instantanee": construction_instantanee,
-		"horaires_chantiers": horaires_chantiers, "usure": usure}
+		"horaires_chantiers": horaires_chantiers, "usure": usure, "dechets": dechets, "dechets_quantite": dechets_quantite}
 
 
 func from_dict(d: Dictionary) -> void:
@@ -247,6 +251,8 @@ func from_dict(d: Dictionary) -> void:
 	horaires_chantiers = String(d.get("horaires_chantiers", "semaine"))
 	if not Chantiers.HORAIRES.has(horaires_chantiers):
 		horaires_chantiers = "semaine"
+	dechets = bool(d.get("dechets", true))
+	dechets_quantite = clampf(float(d.get("dechets_quantite", 1.0)), 0.5, 3.0)
 
 
 ## Réglages par défaut des nouvelles parties (fichier du joueur, sinon « Normal »).

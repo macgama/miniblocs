@@ -15,6 +15,14 @@ Direction « A » choisie par Gaël le 12 novembre 2026 parmi trois maquettes : 
 
 ![Construire : catégories en icônes, bâtiments en vignettes](apercu-menus-construire.png)
 
+## Une barre qui tient dans l'écran
+
+En mode Gérer, les panneaux sont rangés dans quatre menus ▴ : **Transports** (Lignes, Trafic, Circulation, Véhicules), **Ville** (Habitants, Urgences, Avis, Budget, Déchets), **Économie** (Production, Agriculture) et **Infos** (Infos, Cartes). Un clic ouvre la rangée juste au-dessus du bouton ; un clic ailleurs la referme. Le bouton du menu reste allumé tant qu'un de ses panneaux est ouvert, et les touches (L, H, P, M…) ne changent pas.
+
+La barre se place à droite de la carte de la case. Si l'écran est trop étroit, elle passe en icônes seules (`TerreHud.set_compact`, `_fit_dock`). Un nouveau panneau se range dans un menu avec `"group"` dans `TerreHud.CATEGORIES`.
+
+![Menu Ville ouvert](apercu-barre-menus.png)
+
 ## Gérer et Créer (touche Tab)
 
 La barre du bas a deux modes, choisis avec l'interrupteur à gauche ou la touche Tab :

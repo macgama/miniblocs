@@ -709,6 +709,7 @@ func _click_build() -> void:
 		return
 	message.emit(_describe(res, true))
 	edges_built.emit(res.edges)
+	Son.jouer("pose_route", -3.0, 0.08)
 	# On continue le tracé depuis le point posé, dans le prolongement.
 	var end_node: int = res.end_node
 	var pts: PackedVector3Array = res.pts

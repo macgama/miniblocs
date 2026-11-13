@@ -616,6 +616,7 @@ func emprunter(montant: float, annees: int) -> Dictionary:
 	emprunts.append(e)
 	_book("Emprunts reçus", montant)
 	_pay(montant)
+	Son.jouer("argent", -3.0)
 	message.emit("%s : %s sur %d ans à %s %% (%s par mois)." % [e.nom, BuildingSystem.format_money(int(montant)),
 		annees, _pct(t), BuildingSystem.format_money(int(e.mensualite))])
 	changed.emit()

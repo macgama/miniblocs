@@ -4,6 +4,11 @@ Tout est dans `main`, et les 9 tests automatiques passent (`sh tests/tous.sh`).
 
 ## Nouveautés
 
+**Son et musique** (touche **F2**, 13 novembre)
+- Ambiances qui suivent la caméra : oiseaux et vent dans les feuilles à la campagne, grillons et chouette la nuit, rue animée en ville, voitures près des routes, chantiers en activité (marteaux, scie, bip de recul), pluie, vent, tonnerre après les éclairs, mer, cloches à midi et coq au lever du jour. Plus la caméra monte, plus le vent domine.
+- Sons des boutons, des panneaux, des constructions, des démolitions, des nouvelles, des paliers et des élections (avec un trombone triste en cas de défaite).
+- 7 morceaux selon l'heure de la ville, dont la *Valse du permis de construire*, le *Nids-de-poule blues* et *Conseil municipal (en retard)*. Panneau F2 : volumes général, musique, ambiance, effets, interface, silences entre les morceaux. Tout est synthétisé par `tools/build_sons.py`, libre de droits (voir docs/son.md).
+
 **Une partie complète jouable, de la fondation à 1 000 habitants** (13 novembre)
 - Le temps avance par défaut d'1 jour de jeu par minute (365 jours = 365 minutes) ; Maj+T garde les vitesses plus lentes pour regarder la ville vivre.
 - Nouveau réglage Admin « Rythme des chantiers », ×3 par défaut : les premières maisons des fondateurs sortent vers le jour 15, la ville passe 1 000 habitants vers le jour 75 (environ 1 h 15 de jeu).

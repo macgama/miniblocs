@@ -1752,6 +1752,7 @@ func _siren_audio(v: Dictionary) -> void:
 		player.unit_size = 12.0
 		player.max_distance = 350.0
 		player.volume_db = -8.0
+		player.bus = "Effets" if AudioServer.get_bus_index("Effets") >= 0 else "Master"
 		(v.body as Node3D).add_child(player)
 		v.siren_player = player
 	if player != null:

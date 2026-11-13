@@ -746,11 +746,20 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		if mode == Mode.DEMOLISH:
 			if _hover_building >= 0:
+				var at := _nodes[_hover_building].global_position as Vector3 if _nodes.has(_hover_building) else Vector3.ZERO
+				var had := buildings.has(_hover_building)
 				demolish(_hover_building)
+				if had and not buildings.has(_hover_building):
+					Son.jouer_a("demolition", at)
+				else:
+					Son.jouer("ui_erreur", -4.0, 0.0, "Interface")
 				_refresh()
 			return
 		var nb := place(type_id, _place_center, rot, 0, angle)
+		if nb < 0:
+			Son.jouer("ui_erreur", -4.0, 0.0, "Interface")
 		if nb >= 0:
+			Son.jouer("pose_batiment", -2.0, 0.08)
 			if not place_perso.is_empty() or place_variant >= 0:
 				set_perso(nb, place_perso, place_variant)
 			_refresh()

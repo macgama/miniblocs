@@ -201,6 +201,12 @@ const SECTIONS := [
 		["Effets", "la pollution rend malade, le bruit et les odeurs fâchent les habitants ; arbres et parcs protègent. Le terrain prend de la valeur près des parcs, de l'eau, des commerces et des transports, en perd près des usines et des grandes routes"],
 		["Loyers", "ils suivent la valeur du quartier peu à peu, comme la taxe foncière ; un foyer au loyer trop cher déménage, les quartiers chers font pousser les bâtiments chics (zonage)"],
 	]],
+	["Son et musique", [
+		["F2, ou haut-parleur de la barre du haut", "panneau Son : volumes général, musique, ambiance, effets et interface ; silences entre les morceaux ; morceau suivant ; retirer ou écouter un morceau"],
+		["Ambiances", "on entend ce que regarde la caméra : oiseaux ou grillons à la campagne, rue animée en ville, voitures près des routes, chantiers en activité, pluie, vent, orage, mer ; en prenant de la hauteur, le vent couvre le reste"],
+		["Musique", "elle suit l'heure de la ville : morceaux de journée, de soirée et de nuit ; un thème pour le globe"],
+		["Réglages", "gardés pour toutes les parties (fichier son.cfg du joueur)"],
+	]],
 	["Temps et vue", [
 		["T", "mettre le temps en pause / reprendre"],
 		["Maj + T", "vitesse suivante du temps : par défaut 1 jour de jeu par minute ; plus lent pour regarder la ville vivre (la marée suit l'heure et la Lune : voir la barre d'état)"],

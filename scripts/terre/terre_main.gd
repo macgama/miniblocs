@@ -90,6 +90,8 @@ var fondateurs: Fondateurs
 var fondateurs_panel: FondateursPanel
 var pays: Pays
 var pays_panel: PaysPanel
+## Ambiances sonores selon la caméra (scripts/son) ; musique et volumes : /root/Son (F2).
+var sons: AmbiancesSonores
 
 
 func _ready() -> void:
@@ -145,6 +147,7 @@ func _ready() -> void:
 	_setup_fondateurs()
 	_setup_pays()
 	_setup_create_mode()
+	_setup_son()
 	hud.traffic_toggled.connect(func(on: bool) -> void: transport.traffic.set_enabled(on))
 	hud.traffic_filter_changed.connect(func(era: String, region: String) -> void:
 		transport.traffic.set_filters(era, region)
@@ -338,6 +341,7 @@ func load_game(slot := "") -> bool:
 		return false
 	var sec: Dictionary = res.sections
 	var m: Dictionary = res.manifest
+	_chargement = true
 	var lieu: Dictionary = m.get("lieu", {})
 	GameStart.place_name = String(lieu.get("nom", ""))
 	world.from_dict(sec.terrain)
@@ -397,6 +401,7 @@ func load_game(slot := "") -> bool:
 		rig.rotation_degrees.y = float(cam.get("angle", 0.0))
 		rig.set_pitch(float(cam.get("inclinaison", rig.get_target_pitch())), true)
 		_snap_pending = true
+	_chargement = false
 	GameStart.slot_id = slot
 	_unsaved = false
 	_autosave_timer = 0.0
@@ -683,6 +688,36 @@ func _setup_pays() -> void:
 		rig.position.x = pos.x
 		rig.position.z = pos.z)
 	hud.pays_requested.connect(func() -> void: pays_panel.toggle())
+
+
+## Son : ambiances selon la caméra, humeur de la musique, sons des événements.
+func _setup_son() -> void:
+	var son := Son.ici()
+	if son != null:
+		son.humeur_fn = func() -> String:
+			var h := ambiance.local_hour()
+			if ambiance.night > 0.6:
+				return "nuit"
+			return "soir" if h >= 18.0 or h < 7.0 else "jour"
+	sons = AmbiancesSonores.new()
+	sons.name = "AmbiancesSonores"
+	sons.setup(rig, ambiance, world, buildings, transport.traffic, get_node_or_null("VueSol"))
+	sons.sources_chantiers.append(vie_batiments.chantiers_bruyants)
+	sons.sources_chantiers.append(chantiers_voies.chantiers_bruyants)
+	add_child(sons)
+	evenements.incident_declare.connect(func(_i: Dictionary) -> void:
+		if not _chargement:
+			Son.jouer("alerte", -4.0))
+	evenements.actualite.connect(func(_n: Dictionary) -> void:
+		var t := Time.get_ticks_msec()
+		if not _chargement and t - _derniere_nouvelle > 4000:
+			_derniere_nouvelle = t
+			Son.jouer("ui_notification", -6.0, 0.0, "Interface"))
+
+
+## Pendant un chargement, les événements rechargés ne font pas de bruit.
+var _chargement := false
+var _derniere_nouvelle := -100000
 
 
 ## Élections perdues avec le réglage « fin de partie ».
@@ -1557,6 +1592,7 @@ func _exclusive_panels() -> void:
 			opened = id
 		_open_before[id] = on
 	if opened != "":
+		Son.jouer("ui_ouvrir", -3.0, 0.0, "Interface")
 		for id in panels:
 			if id != opened and _open_before[id]:
 				panels[id].set_open(false)
@@ -1576,6 +1612,7 @@ func _refresh_stats() -> void:
 	var palier := ReglagesPartie.actuel.note_population(int(s.habitants) - (fondateurs.au_campement() if fondateurs != null else 0))
 	if palier != "" and ReglagesPartie.actuel.deblocage == "progression":
 		hud.show_message("Palier « %s » atteint : de nouveaux bâtiments sont débloqués !" % palier)
+		Son.jouer("palier")
 		build_panel.refresh()
 	var adults: int = int(s.actif) + int(s.chomeur)
 	var unemployment := "—" if adults == 0 else "%d %%" % roundi(100.0 * int(s.chomeur) / adults)

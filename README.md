@@ -34,6 +34,7 @@ L'écran a une barre en haut (lieu, partie, heure et vitesse du temps, chiffres 
 | Vue au sol | **V** (dessus, 3e personne, 1re personne) |
 | Sauvegarder / recharger | **F5** / **F9** ; icônes Sauver, Charger (liste des parties) et Globe en haut à gauche |
 | Aide | **F1** |
+| Son et musique | **F2** (volumes général, musique, ambiance, effets, interface ; morceaux) |
 
 L'interface s'adapte à la taille de la fenêtre (elle est dessinée pour 1600 × 900 puis agrandie ou réduite).
 
@@ -481,6 +482,12 @@ Le mode Terre a maintenant une **horloge** : le Soleil et la Lune sont à leur v
 
 Détails et limites : [docs/ambiance.md](docs/ambiance.md).
 
+## Son et musique
+
+Le jeu s'entend : **ambiances** selon ce que regarde la caméra (oiseaux ou grillons à la campagne, rue animée en ville, trafic près des routes, chantiers en activité, pluie, vent, orage, mer ; en prenant de la hauteur, le vent couvre le reste), **sons** des constructions, des démolitions, des nouvelles et des élections, et **7 morceaux** qui suivent l'heure de la ville (journée, soirée, nuit, et un thème pour le globe), dont la *Valse du permis de construire* et le *Nids-de-poule blues*. **F2** (ou le haut-parleur de la barre du haut) ouvre le panneau des volumes. Tout est fabriqué par `tools/build_sons.py` (synthèse, libre de droits CC0).
+
+Détails : [docs/son.md](docs/son.md).
+
 ## Démo : le low-poly poussé au maximum
 
 Une ferme entièrement générée en code (longère à colombages et toit de chaume, grange, puits, charrette, potager, champ de blé au vent, mare, brume du matin, soir aux lanternes) pour voir jusqu'où le style peut aller. Ouvre `scenes/demo_ferme.tscn` et appuie sur **F6** ; **1** à **4** changent la lumière, **C** le point de vue. Détails et ce qui est généralisable à tous les bâtiments : [docs/demo-low-poly.md](docs/demo-low-poly.md).
@@ -625,7 +632,7 @@ Vérifie les conversions de coordonnées, le décodage des tuiles, la générati
 
 `tests/partie_test.gd` joue une **partie complète accélérée** en mode Normal : globe, fondation, 100 fondateurs, rues, éoliennes et parc solaire, forage, lagunage, école, entreprises du bâtiment, zones, puis la ville grandit (pas de 10 minutes de jeu) jusqu'à 1 000 habitants ; il prend un emprunt si la caisse est vide, relève chaque jour habitants, caisse, chantiers, chômage, logements sans courant ou sans eau et temps par image, compte toutes les erreurs de script, puis sauvegarde et recharge la partie. Il affiche `PARTIE TEST OK` (une vingtaine de minutes). Options : `-- --jours 250 --cible 1000 --rapport partie.csv` (courbe jour par jour), `--messages` (messages du jeu datés), `--diag` (état des chantiers tous les 5 jours).
 
-`tests/parcours_test.gd` joue une partie comme un joueur, avec de vraies touches (globe, outils 1-9, B, L, T, V, F1, F5, Continuer) et affiche `PARCOURS TEST OK`. `tests/habitants_test.gd` vérifie les habitants (école, emplois, emploi du temps, budget, bus, sauvegarde, panneau) et affiche `HABITANTS TEST OK`. `tests/sauvegarde_test.gd` vérifie le format des parties (écriture, relecture, section abîmée, import de l'ancienne sauvegarde) et affiche `SAUVEGARDE TEST OK`. `tests/interface_test.gd` vérifie les menus (icônes, barre de catégories, panneaux un à la fois, vignettes, fiche d'un bâtiment) et affiche `INTERFACE TEST OK`. `tests/demo_ferme_test.gd` vérifie la démo low-poly (kit de modelage, objets, lumières, vues) et affiche `DEMO TEST OK`.
+`tests/parcours_test.gd` joue une partie comme un joueur, avec de vraies touches (globe, outils 1-9, B, L, T, V, F1, F5, Continuer) et affiche `PARCOURS TEST OK`. `tests/habitants_test.gd` vérifie les habitants (école, emplois, emploi du temps, budget, bus, sauvegarde, panneau) et affiche `HABITANTS TEST OK`. `tests/sauvegarde_test.gd` vérifie le format des parties (écriture, relecture, section abîmée, import de l'ancienne sauvegarde) et affiche `SAUVEGARDE TEST OK`. `tests/interface_test.gd` vérifie les menus (icônes, barre de catégories, panneaux un à la fois, vignettes, fiche d'un bâtiment) et affiche `INTERFACE TEST OK`. `tests/son_test.gd` vérifie le son (fichiers, bus et volumes, réglages du joueur, musique selon l'heure, ambiances selon la caméra, chantiers, tonnerre, panneau F2) et affiche `TEST OK`. `tests/demo_ferme_test.gd` vérifie la démo low-poly (kit de modelage, objets, lumières, vues) et affiche `DEMO TEST OK`.
 
 ```bash
 godot --headless --path . --script res://tests/perf_bench.gd [-- --big] [--reseau]

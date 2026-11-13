@@ -859,7 +859,17 @@ func household_budget(hid: int) -> Dictionary:
 		rent = 0.0
 		food = 0.0
 	var cars := VOITURE * int(h.car)
-	return {"revenus": inc, "loyer": rent, "courses": food, "voitures": cars, "solde": inc - rent - food - cars}
+	# Niveau de vie (NiveauxVie) : courses, sorties et intérêts de l'épargne.
+	food *= NiveauxVie.coef_courses(h)
+	var adults := 0
+	for pid in h.m:
+		if String(persons[pid].r) == "adulte":
+			adults += 1
+	var outings := NiveauxVie.sorties(h, adults)
+	var interest := NiveauxVie.placements(h)
+	inc += interest
+	return {"revenus": inc, "loyer": rent, "courses": food, "voitures": cars, "sorties": outings, "placements": interest,
+		"solde": inc - rent - food - cars - outings}
 
 
 ## Budget mensuel de la ville, estimé sur la population actuelle.
@@ -882,6 +892,8 @@ func city_budget(filtre := Callable()) -> Dictionary:
 		# La taxe foncière suit la valeur du terrain.
 		if Nuisances.instance != null:
 			tf *= Nuisances.instance.coef_foncier(hb)
+		# Et le niveau de vie du foyer (logement mieux estimé).
+		tf *= NiveauxVie.coef_taxe(households[hid])
 		rec["Taxe foncière"] += TAXE_FONCIERE * reg.impots * tf
 	rec["Dotation de l'État"] = DOTATION * (hab if f else persons.size())
 	for bid in by_job:

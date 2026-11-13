@@ -84,12 +84,20 @@ const SECTIONS := [
 		["Pilote automatique", "Maj+P, bouton Activer sous une ville : chaque semaine elle tient son budget à l'équilibre et fait la construction la plus urgente (rue, zone résidentielle, école, aire de jeux, boulangerie, parc, pompiers, police, supérette, gymnase, hôpital, zone d'activités si le chômage dépasse 12 %), en gardant 3 mois de dépenses en réserve"],
 		["Reprendre la mairie", "gagne les municipales suivantes (campagne et promesses dans Y), ou lance des élections anticipées par pétition si la satisfaction tombe sous 40"],
 	]],
+	["Niveaux de vie", [
+		["Maj+N", "panneau Niveaux de vie : combien de foyers à chaque niveau, ce qui les empêche de monter (avec un conseil), les besoins de chaque niveau, la liste des foyers"],
+		["Les 5 niveaux", "Précaire, Modeste, Classe moyenne, Aisé, Très aisé ; les nouveaux arrivants commencent au plus en Classe moyenne"],
+		["Monter", "tous les besoins du niveau visé pendant quelques jours (4 à 20) et un revenu suffisant par part : eau, courant, de quoi manger, pas de dettes ; puis école, hôpital, égouts, internet, vêtements ; puis trajets courts, loisirs, calme, police, logement agréable ; enfin électronique et meubles, quartier recherché, beau logement"],
+		["Redescendre", "un besoin du niveau qui manque pendant 10 jours (coupure, rayon vide, chômage, dettes…) fait perdre un niveau"],
+		["Effets", "plus un foyer est aisé, plus il paie de taxe foncière (×0,6 à ×1,7), plus il achète dans les commerces et dépense en sorties ; dès Aisé, son épargne lui rapporte des intérêts ; il déménage vers un logement plus cossu quand le sien le bloque"],
+		["Carte", "N → Habitants → Niveaux de vie : du rouge (précaire) au bleu (très aisé)"],
+	]],
 	["Objectifs du pays", [
 		["Maj+J", "panneau Objectifs : réputation du pays (étoiles), missions en cours, rang de chaque ville, succès"],
 		["Missions", "3 missions à la fois, tirées selon tes villes (faire grandir une ville, ouvrir une école, rendre une ville heureuse, faire baisser le chômage, rembourser ses emprunts, fonder une ville, relier deux villes, créer une ligne) ; chacune a un délai et une prime versée au pays"],
 		["Rangs des villes", "Hameau, Village, Bourg, Ville, Grande ville, Métropole : il faut des habitants, des habitants contents et des services (école, pompiers, police, hôpital, transports, caisse saine) ; chaque rang rapporte une prime et ne se perd jamais"],
 		["Réputation", "de 0 à 100 : missions, rangs et succès la montent ; missions ratées, tutelle et mairies perdues la baissent ; au-dessus de 20 les emprunts coûtent moins cher (jusqu'à −1 point)"],
-		["Succès", "15 étapes à débloquer une fois pour toutes : première ville, mille habitants, pays heureux, villes reliées, mairie reprise…"],
+		["Succès", "17 étapes à débloquer une fois pour toutes : première ville, mille habitants, pays heureux, villes reliées, mairie reprise, classe moyenne, beaux quartiers…"],
 	]],
 	["Statistiques et conseiller", [
 		["Maj+I", "panneau Statistiques (menu Infos) : courbes dans le temps de chaque ville et du pays, sur 30 jours, 1 an ou toute la partie"],

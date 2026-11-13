@@ -773,7 +773,7 @@ func _on_tuto_action(id: String) -> void:
 			build_panel.set_open(true)
 			build_panel.show_category({"zones": "zones", "reseaux": "reseaux", "ecole": "services"}[id])
 		"temps":
-			ambiance.set_speed(mini(maxi(ambiance.speed_index + 1, 3), DayNight.SPEEDS.size() - 1))
+			ambiance.set_speed(mini(maxi(ambiance.speed_index + 1, DayNight.DEFAULT_SPEED), DayNight.SPEEDS.size() - 1))
 			hud.show_message("Vitesse : %s. T met en pause, Maj + T change la vitesse." % String(DayNight.SPEED_NAMES[ambiance.speed_index]).to_lower())
 		"budget":
 			budget_panel.set_open(true)

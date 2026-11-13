@@ -186,4 +186,5 @@ func _run() -> void:
 	adm.queue_free()
 
 	print("RÉSULTAT : ", "OK" if ok else "ÉCHEC")
+	print("TEST OK" if ok else "TEST ÉCHEC")
 	quit(0 if ok else 1)

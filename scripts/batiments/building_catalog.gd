@@ -18,6 +18,7 @@ const CATEGORIES := [
 	{"id": "funeraire", "name": "Funéraire", "color": Color("8d99ae")},
 	{"id": "loisirs", "name": "Loisirs", "color": Color("80b918")},
 	{"id": "sport", "name": "Sport", "color": Color("9d4edd")},
+	{"id": "parc", "name": "Parc de loisirs", "color": Color("f15bb5")},
 	{"id": "espaces", "name": "Espaces publics", "color": Color("52b788")},
 ]
 
@@ -141,6 +142,7 @@ static func all_types() -> Dictionary:
 		_all.merge(CommercesTypes.entries())
 		_all.merge(TelecomTypes.entries())
 		_all.merge(DechetsTypes.entries())
+		_all.merge(ParcTypes.entries())
 		_all.merge(FuneraireTypes.entries())
 		_all.merge(Stades.entries())
 		_all.merge(StyleBuilder.generate())
@@ -241,6 +243,10 @@ static func build_mesh(id: String, material: Material = null, details := true, v
 		return k.to_mesh(material)
 	if t.has("dechets"):
 		DechetsTypes.build(k, id, t)
+		k.fit_xz(w, d)
+		return k.to_mesh(material)
+	if t.has("parc"):
+		ParcTypes.build(k, id, t)
 		k.fit_xz(w, d)
 		return k.to_mesh(material)
 	if t.has("prod"):

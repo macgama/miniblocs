@@ -43,6 +43,8 @@ signal niveaux_vie_requested
 signal trafic_requested
 ## Bouton « Déchets » (touche X).
 signal dechets_requested
+## Bouton « Parc de loisirs » (Maj+G).
+signal parc_requested
 ## Panneau « Cartes » (touche N) : pollution, bruit, valeur des terrains, autres calques.
 signal cartes_requested
 ## Bouton « Statistiques » (menu Infos, Maj+I).
@@ -108,6 +110,7 @@ const CATEGORIES := [
 	{"id": "trafic", "name": "Trafic", "icon": "circulation", "key": "Maj+L", "panel": true, "group": "transports"},
 	{"id": "budget", "name": "Budget", "icon": "budget", "key": "M", "panel": true, "group": "ville"},
 	{"id": "dechets", "name": "Déchets", "icon": "dechets", "key": "X", "panel": true, "group": "ville"},
+	{"id": "parc", "name": "Parc de loisirs", "icon": "parc", "key": "Maj+G", "panel": true, "group": "economie"},
 	{"id": "cartes", "name": "Cartes", "icon": "cartes", "key": "N", "panel": true, "group": "infos"},
 	{"id": "stats", "name": "Statistiques et conseiller", "icon": "courbe", "key": "Maj+I", "panel": true, "group": "infos"},
 	{"id": "murs", "name": "Murs et étages", "icon": "mur", "key": "2", "panel": true, "mode": "creer"},
@@ -777,6 +780,7 @@ func _on_category(id: String) -> void:
 			"niveaux_vie": niveaux_vie_requested.emit()
 			"trafic": trafic_requested.emit()
 			"dechets": dechets_requested.emit()
+			"parc": parc_requested.emit()
 			"cartes": cartes_requested.emit()
 			"stats": stats_requested.emit()
 		_update_categories()

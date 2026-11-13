@@ -1623,8 +1623,7 @@ var _open_before := {}
 ## Construire, Lignes et Habitants partagent la même place à droite : quand
 ## l'un s'ouvre, les autres se ferment. Leur bouton de la barre du bas s'allume.
 func _exclusive_panels() -> void:
-	var panels := {"pays": pays_panel, "objectifs": objectifs_panel, "construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "agriculture": agri_panel, "urgences": urgences_panel, "reseaux": reseaux_panel, "dechets": dechets_panel, "trafic": trafic_panel, "budget": budget_panel, "telecom": telecom_panel, "perso": perso_panel, "infos": evenements_panel, "cartes": cartes_panel, "avis": avis_panel, "villages": villages_panel, "fondateurs": fondateurs_panel}
-	var panels := {"pays": pays_panel, "construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "agriculture": agri_panel, "urgences": urgences_panel, "reseaux": reseaux_panel, "dechets": dechets_panel, "trafic": trafic_panel, "budget": budget_panel, "telecom": telecom_panel, "perso": perso_panel, "infos": evenements_panel, "cartes": cartes_panel, "avis": avis_panel, "villages": villages_panel, "fondateurs": fondateurs_panel, "stats": stats_panel}
+	var panels := {"pays": pays_panel, "objectifs": objectifs_panel, "construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "agriculture": agri_panel, "urgences": urgences_panel, "reseaux": reseaux_panel, "dechets": dechets_panel, "trafic": trafic_panel, "budget": budget_panel, "telecom": telecom_panel, "perso": perso_panel, "infos": evenements_panel, "cartes": cartes_panel, "avis": avis_panel, "villages": villages_panel, "fondateurs": fondateurs_panel, "stats": stats_panel}
 	var opened := ""
 	for id in panels:
 		var p = panels[id]

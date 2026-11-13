@@ -9,13 +9,24 @@ extends Node3D
 ## - ZQSD / WASD / flèches : marcher · Maj : courir · Espace : sauter / remonter en nageant
 ## - Souris : regarder · Molette : rapprocher / éloigner la caméra (au plus près : 1re personne)
 ## - Échap : libérer la souris (clic dans la vue pour la reprendre)
+##
+## À bord d'un véhicule (conduit tout seul par la circulation ou par son système) :
+## - E près d'un véhicule : monter · E à bord : descendre
+## - Maj+E à bord : sauter dans le véhicule voisin le plus proche
+## - Maj+V (n'importe quelle vue) : monter dans le véhicule le plus proche du centre
+##   de la vue ; à bord, Maj+V remonte à la vue de dessus
+## - V à bord : 3e personne (autour du véhicule) ↔ 1re personne (place du conducteur)
 
 signal vue_changee(vue: int)
 ## E ou clic gauche en vue au sol : ouvrir une porte, etc. (rayon depuis la caméra).
 signal interaction(origine: Vector3, direction: Vector3)
+## Montée (cible non vide) ou descente (cible vide) d'un véhicule.
+signal bord_change(cible: Dictionary)
 
 enum Vue { DESSUS, TROISIEME, PREMIERE }
 
+const AIDE_SOL := "ZQSD marcher · Maj courir · Espace sauter · Souris regarder · Molette caméra · V changer de vue · E monter dans un véhicule proche · Échap libérer la souris"
+const AIDE_BORD := "E descendre · Maj+E véhicule voisin · V conducteur / extérieur · Souris regarder · Molette recul · Maj+V vue de dessus"
 const NOMS := {Vue.DESSUS: "Vue de dessus", Vue.TROISIEME: "3e personne", Vue.PREMIERE: "1re personne"}
 
 @export var world_path: NodePath
@@ -54,6 +65,19 @@ var _aide: Label
 var _viseur: Control
 var _panneau_visible := true
 
+var trafic: Traffic
+var stations: StationSystem
+## Véhicule où l'on est monté (voir ABord), {} à pied.
+var bord: Dictionary = {}
+var _bord_recul := 12.0
+var _bord_cap := 0.0 # cap lissé du véhicule (3e personne)
+var _bord_pos := Vector3.ZERO
+var _bord_vitesse := 0.0 # m/s, mesurée
+var _bord_rayon_vehicules := 40.0
+var _bord_panneau: PanelContainer
+var _bord_texte: Label
+var _bord_maj := 0.0
+
 
 func _ready() -> void:
 	world = get_node(world_path) as TerrainWorld
@@ -65,11 +89,12 @@ func _ready() -> void:
 		_brouillard_dessus = _env.fog_density
 	_brouillard_air = brouillard_sol
 	var network: TransportNetwork = null
-	var trafic: Traffic = null
 	if not transport_path.is_empty():
 		var ts := get_node(transport_path) as TransportSystem
 		network = ts.network
 		trafic = ts.traffic
+		stations = ts.stations
+		trafic.vehicle_removed.connect(_on_vehicule_retire)
 
 	personnage = Personnage.new()
 	personnage.name = "Personnage"
@@ -118,6 +143,8 @@ func set_vue(v: Vue) -> void:
 		return
 	var avant := vue
 	vue = v
+	if v == Vue.DESSUS and a_bord():
+		_quitter_bord(false)
 	if avant == Vue.DESSUS:
 		_descendre()
 	if v == Vue.DESSUS:
@@ -213,8 +240,18 @@ func _input(event: InputEvent) -> void:
 	var typing := get_viewport().gui_get_focus_owner() is LineEdit
 	if event is InputEventKey:
 		var k := event as InputEventKey
+		if k.pressed and not k.echo and not typing and k.physical_keycode == KEY_V and k.shift_pressed:
+			if a_bord():
+				set_vue(Vue.DESSUS)
+			else:
+				monter_le_plus_proche()
+			get_viewport().set_input_as_handled()
+			return
 		if k.pressed and not k.echo and not typing and k.physical_keycode == KEY_V:
-			vue_suivante()
+			if a_bord():
+				set_vue(Vue.PREMIERE if vue == Vue.TROISIEME else Vue.TROISIEME)
+			else:
+				vue_suivante()
 			get_viewport().set_input_as_handled()
 			return
 		if vue == Vue.DESSUS:
@@ -223,7 +260,13 @@ func _input(event: InputEvent) -> void:
 			_capturer(false)
 			get_viewport().set_input_as_handled()
 		elif k.pressed and not k.echo and not typing and k.physical_keycode == KEY_E:
-			_interagir()
+			if a_bord():
+				if k.shift_pressed:
+					changer_de_vehicule()
+				else:
+					descendre_du_vehicule()
+			elif not monter_pres():
+				_interagir()
 			get_viewport().set_input_as_handled()
 		elif k.keycode >= KEY_0 and k.keycode <= KEY_9 or k.physical_keycode >= KEY_0 and k.physical_keycode <= KEY_9:
 			# Pas de changement d'outil de construction pendant la marche.
@@ -237,7 +280,7 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 	elif event is InputEventMouseButton:
 		var mb := event as InputEventMouseButton
-		if mb.pressed and mb.button_index == MOUSE_BUTTON_LEFT:
+		if mb.pressed and mb.button_index == MOUSE_BUTTON_LEFT and not a_bord():
 			_interagir()
 		elif mb.pressed and mb.button_index == MOUSE_BUTTON_WHEEL_UP:
 			zoomer(-1)
@@ -273,6 +316,18 @@ func tourner(d: Vector2) -> void:
 
 ## Molette : -1 rapproche, +1 éloigne. Au plus près on passe à la 1re personne.
 func zoomer(sens: int) -> void:
+	if a_bord():
+		if vue == Vue.PREMIERE:
+			if sens > 0:
+				set_vue(Vue.TROISIEME)
+			return
+		_bord_recul *= 1.15 if sens > 0 else 1.0 / 1.15
+		var mini: float = ABord.recul(bord) * 0.35
+		if _bord_recul < mini:
+			_bord_recul = ABord.recul(bord)
+			set_vue(Vue.PREMIERE)
+		_bord_recul = minf(_bord_recul, 150.0)
+		return
 	if vue == Vue.PREMIERE:
 		if sens > 0:
 			_distance = distance_min + 0.6
@@ -287,6 +342,11 @@ func zoomer(sens: int) -> void:
 
 func _physics_process(_delta: float) -> void:
 	if vue == Vue.DESSUS:
+		return
+	if a_bord():
+		# Le personnage (caché) suit le véhicule : le relief se charge autour de lui.
+		if ABord.valide(bord, trafic):
+			personnage.global_position = (bord.node as Node3D).global_position
 		return
 	var typing := get_viewport().gui_get_focus_owner() is LineEdit
 	var a := Vector2.ZERO
@@ -355,11 +415,16 @@ func _sous_tunnel(p: Vector3) -> bool:
 
 
 func _process(delta: float) -> void:
+	if a_bord():
+		_suivre_bord(delta)
 	if vue != Vue.DESSUS:
 		_placer_camera(delta)
 
 
 func _placer_camera(delta: float) -> void:
+	if a_bord():
+		_camera_bord(delta)
+		return
 	var tete := personnage.global_position + Vector3(0.0, Personnage.YEUX, 0.0)
 	if vue == Vue.TROISIEME:
 		# Un peu au-dessus et à droite de la tête, comme par-dessus l'épaule.
@@ -389,7 +454,7 @@ func _construire_ui() -> void:
 	_aide.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_aide.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
 	_aide.add_theme_constant_override("outline_size", 5)
-	_aide.text = "ZQSD marcher · Maj courir · Espace sauter · Souris regarder · Molette caméra · V changer de vue · Échap libérer la souris"
+	_aide.text = AIDE_SOL
 	_ui.add_child(_aide)
 
 	_viseur = ColorRect.new()
@@ -406,5 +471,220 @@ func _maj_ui(annoncer: bool) -> void:
 	if _boutons.size() == 3:
 		_boutons[vue].set_pressed_no_signal(true)
 	_aide.visible = vue != Vue.DESSUS
+	_aide.text = AIDE_BORD if a_bord() else AIDE_SOL
+	if _bord_panneau:
+		_bord_panneau.visible = a_bord() and vue != Vue.DESSUS
 	if annoncer and hud and hud.has_method("show_message"):
 		hud.call("show_message", NOMS[vue] + ".")
+
+
+# --- À bord d'un véhicule -------------------------------------------------------------
+
+func a_bord() -> bool:
+	return not bord.is_empty()
+
+
+## Monte à bord de la cible (voir ABord). Renvoie vrai si réussi.
+func monter(cible: Dictionary) -> bool:
+	if not ABord.valide(cible, trafic):
+		return false
+	if a_bord():
+		_lacher_bord()
+	if vue == Vue.DESSUS:
+		set_vue(Vue.TROISIEME)
+	bord = cible
+	var v: Dictionary = cible.get("v", {})
+	if not v.is_empty():
+		v.aboard = true
+	var n: Node3D = cible.node
+	_bord_pos = n.global_position
+	_bord_vitesse = 0.0
+	_bord_cap = ABord.cap(n)
+	_bord_recul = ABord.recul(cible)
+	_cap = 0.0
+	_tangage = -0.22 if vue == Vue.TROISIEME else -0.08
+	# Personnage caché qui suit le véhicule ; pas de boîtes de collision des
+	# véhicules (la caméra passerait derrière celle de son propre véhicule).
+	_set_actif(personnage, false)
+	_bord_rayon_vehicules = collisions.rayon_vehicules
+	collisions.rayon_vehicules = -1.0
+	personnage.global_position = n.global_position
+	camera.cull_mask = 0xFFFFF
+	_bord_maj = 0.0
+	_maj_ui(false)
+	_maj_bandeau()
+	if hud and hud.has_method("show_message"):
+		hud.call("show_message", "À bord : %s." % String(cible.nom))
+	bord_change.emit(cible)
+	return true
+
+
+## E au sol : monte dans le véhicule tout proche du personnage. Vrai si monté.
+func monter_pres() -> bool:
+	var c: Dictionary = ABord.plus_proche(ABord.candidats(trafic, get_tree()), personnage.global_position + Vector3(0, 1.0, 0), ABord.PORTEE)
+	return monter(c) if not c.is_empty() else false
+
+
+## Maj+V : monte dans le véhicule le plus proche du centre de la vue (ou du personnage).
+func monter_le_plus_proche() -> bool:
+	var p := rig.global_position if vue == Vue.DESSUS else personnage.global_position
+	if vue == Vue.DESSUS:
+		var h := world.cell_height(Vector2i(floori(p.x), floori(p.z)))
+		p.y = h if not is_nan(h) else 0.0
+	var c: Dictionary = ABord.plus_proche(ABord.candidats(trafic, get_tree()), p, ABord.PORTEE_DESSUS, null, true)
+	if c.is_empty():
+		if hud and hud.has_method("show_message"):
+			hud.call("show_message", "Aucun véhicule en vue.")
+		return false
+	return monter(c)
+
+
+## Maj+E à bord : passe dans le véhicule voisin le plus proche.
+func changer_de_vehicule() -> bool:
+	var n: Node3D = bord.node
+	var c: Dictionary = ABord.plus_proche(ABord.candidats(trafic, get_tree()), n.global_position, ABord.PORTEE_VOISIN, n)
+	if c.is_empty():
+		if hud and hud.has_method("show_message"):
+			hud.call("show_message", "Aucun autre véhicule à moins de %d m." % int(ABord.PORTEE_VOISIN))
+		return false
+	return monter(c)
+
+
+## E à bord : descend à côté du véhicule (refusé en vol ou en pleine mer).
+func descendre_du_vehicule() -> bool:
+	if not a_bord():
+		return false
+	var s: Array = ABord.sortie(bord, world)
+	if not bool(s[0]):
+		if hud and hud.has_method("show_message"):
+			hud.call("show_message", String(s[2]))
+		return false
+	var cap_v: float = ABord.cap(bord.node)
+	_quitter_bord(true, s[1], cap_v)
+	return true
+
+
+## Fin du trajet à bord. poser : remet le personnage au sol en p.
+func _quitter_bord(poser: bool, p := Vector3.ZERO, cap_v := 0.0) -> void:
+	_lacher_bord()
+	bord = {}
+	collisions.rayon_vehicules = _bord_rayon_vehicules
+	if poser and vue != Vue.DESSUS:
+		_set_actif(personnage, true)
+		personnage.teleporter(p, cap_v)
+		_cap = cap_v
+		_tangage = -0.2
+		personnage.en_attente = not collisions.pret_a(p)
+		camera.cull_mask = 0xFFFFF & ~Personnage.COUCHE_CORPS if vue == Vue.PREMIERE else 0xFFFFF
+		if hud and hud.has_method("show_message"):
+			hud.call("show_message", "Descendu du véhicule.")
+	_maj_ui(false)
+	bord_change.emit({})
+
+
+func _lacher_bord() -> void:
+	var v: Dictionary = bord.get("v", {})
+	v.erase("aboard")
+
+
+## La circulation retire le véhicule où l'on est (fin de tournée, ligne supprimée).
+func _on_vehicule_retire(v: Dictionary) -> void:
+	if a_bord() and is_same(bord.get("v"), v):
+		_fin_de_course()
+
+
+func _fin_de_course() -> void:
+	var p := _bord_pos
+	var h := world.cell_height(Vector2i(floori(p.x), floori(p.z)))
+	var sol := Vector3(p.x, (maxf(h, TerrainWorld.WATER_LEVEL - 1.3) if not is_nan(h) else p.y) + 0.05, p.z)
+	var ancien := bord
+	_quitter_bord(false)
+	# Engin remplacé (nouvelle tâche aux champs) : on remonte dans son successeur.
+	if ancien.get("v", {}).is_empty():
+		var c: Dictionary = ABord.plus_proche(ABord.candidats(null, get_tree()), p, 15.0)
+		if not c.is_empty() and monter(c):
+			return
+	if vue != Vue.DESSUS:
+		_set_actif(personnage, true)
+		personnage.teleporter(sol, _bord_cap)
+		_cap = _bord_cap
+		personnage.en_attente = not collisions.pret_a(sol)
+		camera.cull_mask = 0xFFFFF & ~Personnage.COUCHE_CORPS if vue == Vue.PREMIERE else 0xFFFFF
+		_maj_ui(false)
+	if hud and hud.has_method("show_message"):
+		hud.call("show_message", "Le véhicule a terminé sa course : tu descends.")
+
+
+func _suivre_bord(delta: float) -> void:
+	if not ABord.valide(bord, trafic):
+		_fin_de_course()
+		return
+	var n: Node3D = bord.node
+	var p := n.global_position
+	if delta > 0.0:
+		var inst := Vector2(p.x - _bord_pos.x, p.z - _bord_pos.z).length() / delta
+		var v: Dictionary = bord.get("v", {})
+		if not v.is_empty() and int(v.get("mode", -1)) != TransportTypes.Mode.AIR and v.has("speed"):
+			inst = absf(float(v.speed))
+		if inst < 400.0:
+			_bord_vitesse = lerpf(_bord_vitesse, inst, clampf(delta * 3.0, 0.0, 1.0))
+	_bord_pos = p
+	_bord_maj -= delta
+	if _bord_maj <= 0.0:
+		_bord_maj = 0.25
+		_maj_bandeau()
+
+
+func _camera_bord(delta: float) -> void:
+	var n: Node3D = bord.node
+	var b: AABB = bord.box
+	var cap_v: float = ABord.cap(n)
+	if vue == Vue.TROISIEME:
+		# Derrière le véhicule, qui tourne avec lui (cap lissé), au-dessus du toit.
+		_bord_cap = lerp_angle(_bord_cap, cap_v, clampf(delta * 3.0, 0.0, 1.0))
+		var centre := n.global_transform * Vector3(b.get_center().x, b.end.y, b.get_center().z)
+		var cible := centre + Vector3(0.0, 0.6, 0.0)
+		_pivot.global_position = _pivot.global_position.lerp(cible, clampf(delta * 12.0, 0.0, 1.0)) \
+				if _pivot.global_position.distance_to(cible) < 30.0 else cible
+		_pivot.rotation = Vector3(_tangage, _bord_cap + _cap, 0.0)
+		_bras.spring_length = _bord_recul
+	else:
+		# Place du conducteur : la caméra suit le véhicule (pente, roulis compris).
+		_bord_cap = cap_v
+		var base: Basis = ABord.repere(n)
+		_pivot.global_transform = Transform3D(base * Basis.from_euler(Vector3(_tangage, _cap, 0.0)), n.global_transform * ABord.siege(bord))
+		_bras.spring_length = 0.0
+	_viseur.visible = false
+
+
+func _maj_bandeau() -> void:
+	if _bord_panneau == null:
+		_construire_bandeau()
+	if not a_bord():
+		_bord_panneau.visible = false
+		return
+	var kmh := roundi(_bord_vitesse * 3.6)
+	var act: String = ABord.activite(bord, stations)
+	_bord_texte.text = "À bord : %s\n%d km/h%s" % [String(bord.nom), kmh, ("  ·  " + act) if act != "" else ""]
+	_bord_panneau.visible = vue != Vue.DESSUS
+
+
+func _construire_bandeau() -> void:
+	_bord_panneau = PanelContainer.new()
+	_bord_panneau.name = "BandeauBord"
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.08, 0.1, 0.13, 0.78)
+	sb.set_corner_radius_all(8)
+	sb.content_margin_left = 14
+	sb.content_margin_right = 14
+	sb.content_margin_top = 8
+	sb.content_margin_bottom = 8
+	_bord_panneau.add_theme_stylebox_override("panel", sb)
+	_bord_panneau.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	_bord_panneau.position = Vector2(16, 140)
+	_bord_panneau.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_bord_texte = Label.new()
+	_bord_texte.add_theme_font_size_override("font_size", 17)
+	_bord_panneau.add_child(_bord_texte)
+	_bord_panneau.visible = false
+	_ui.add_child(_bord_panneau)

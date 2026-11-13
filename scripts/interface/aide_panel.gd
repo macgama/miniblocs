@@ -184,6 +184,14 @@ const SECTIONS := [
 		["E ou clic gauche", "ouvrir ou fermer une porte, une porte de garage (vue au sol), y compris dans les murs fins"],
 		["Échap", "libérer la souris (vue au sol)"],
 	]],
+	["À bord des véhicules", [
+		["E près d'un véhicule", "monter à bord (vue au sol) : voitures, bus, cars, trams, trains, métros, camions, bennes, corbillards, secours, bateaux, avions, tracteurs et machines agricoles, engins de chantier"],
+		["Maj + V", "monter dans le véhicule le plus proche du centre de la vue, depuis n'importe quelle vue ; à bord, revenir à la vue de dessus"],
+		["E à bord", "descendre (pas en plein vol ni en pleine mer : attendre l'atterrissage ou le port)"],
+		["Maj + E à bord", "sauter dans le véhicule voisin le plus proche (moins de 40 m)"],
+		["V à bord", "caméra extérieure (souris pour tourner autour, molette pour reculer) ou place du conducteur"],
+		["Conduite", "pour l'instant le véhicule roule tout seul : il suit sa ligne, sa tournée, sa mission ou un trajet au hasard ; le bandeau indique la vitesse, la ligne et le prochain arrêt"],
+	]],
 	["Partie (barre du haut)", [
 		["Loupe", "aller à des coordonnées ou à un lieu connu, infos techniques (tuiles, marée)"],
 		["Chiffres", "caisse, habitants, satisfaction, chômage : un clic ouvre le panneau Habitants (la satisfaction : le panneau Avis)"],

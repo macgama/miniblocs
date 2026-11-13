@@ -98,6 +98,8 @@ static func layout(net: TransportNetwork) -> Array[Transform3D]:
 	var trims := TransportView.compute_trims(net)
 	for id in net.edges:
 		var e: Dictionary = net.edges[id]
+		if e.has("ch"):
+			continue # posés à la fin du chantier
 		var mode := TransportTypes.mode_of(e.t)
 		var spacing: float
 		var scale := 1.0

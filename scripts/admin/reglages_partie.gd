@@ -81,6 +81,11 @@ var dechets := true
 var dechets_quantite := 1.0
 ## Joueur qui a créé la partie (SaveGame.player_id()) : l'admin des cartes entre amis.
 var createur := ""
+## Chantiers : les constructions apparaissent d'un coup (bac à sable) au lieu de
+## se construire étape par étape au rythme de la vie (Chantiers).
+var construction_instantanee := false
+## Horaires des équipes : "semaine", "tous_les_jours" ou "continu" (Chantiers.HORAIRES).
+var horaires_chantiers := "semaine"
 ## Plus grande population atteinte (pour les paliers).
 var record_habitants := 0
 
@@ -214,7 +219,8 @@ func to_dict() -> Dictionary:
 		"salaires": salaires, "vitesse_temps": vitesse_temps, "vitesse_vie": vitesse_vie,
 		"epuisement": epuisement, "deblocage": deblocage, "createur": createur,
 		"record_habitants": record_habitants, "evenements_auto": evenements_auto, "catastrophes": catastrophes,
-		"frequence_catastrophes": frequence_catastrophes, "dechets": dechets, "dechets_quantite": dechets_quantite}
+		"frequence_catastrophes": frequence_catastrophes, "construction_instantanee": construction_instantanee,
+		"horaires_chantiers": horaires_chantiers, "dechets": dechets, "dechets_quantite": dechets_quantite}
 
 
 func from_dict(d: Dictionary) -> void:
@@ -234,6 +240,10 @@ func from_dict(d: Dictionary) -> void:
 	evenements_auto = bool(d.get("evenements_auto", true))
 	catastrophes = bool(d.get("catastrophes", true))
 	frequence_catastrophes = clampf(float(d.get("frequence_catastrophes", 1.0)), 0.25, 3.0)
+	construction_instantanee = bool(d.get("construction_instantanee", false))
+	horaires_chantiers = String(d.get("horaires_chantiers", "semaine"))
+	if not Chantiers.HORAIRES.has(horaires_chantiers):
+		horaires_chantiers = "semaine"
 	dechets = bool(d.get("dechets", true))
 	dechets_quantite = clampf(float(d.get("dechets_quantite", 1.0)), 0.5, 3.0)
 

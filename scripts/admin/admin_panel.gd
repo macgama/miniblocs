@@ -39,6 +39,9 @@ var _instant: CheckBox
 var _horaires: OptionButton
 var _freq: OptionButton
 var _usure: OptionButton
+var _dechets: CheckBox
+var _dechets_q: HSlider
+var _dechets_q_l: Label
 var _pollution: OptionButton
 var _pol_sante: CheckBox
 const FREQS := [0.25, 1.0, 3.0]
@@ -217,6 +220,14 @@ func _ready() -> void:
 	_freq.item_selected.connect(func(_i: int) -> void: _changed())
 	_row(g, "Fréquence des catastrophes", _freq)
 
+	# Déchets.
+	g = _section(left, "Déchets", "dechets")
+	_dechets = _check("Déchets à ramasser (sacs qui débordent, collecte, décharges)")
+	g.add_child(_dechets)
+	c = _slider(0.5, 3.0, 0.25)
+	_dechets_q = c[0]
+	_dechets_q_l = c[1]
+	_row(g, "Quantité de déchets par habitant", c[2])
 	# Pollution et bruit.
 	g = _section(right, "Pollution et bruit", "cartes")
 	_pollution = OptionButton.new()
@@ -363,6 +374,8 @@ func _fill() -> void:
 		if absf(float(USURES[i]) - reglages.usure) < 0.01:
 			ui = i
 	_usure.select(ui)
+	_dechets.button_pressed = reglages.dechets
+	_dechets_q.value = reglages.dechets_quantite
 	_pollution.select(clampi(reglages.pollution, 0, 3))
 	_pol_sante.button_pressed = reglages.pollution_sante
 	_filling = false
@@ -389,6 +402,8 @@ func _changed() -> void:
 	_horaires.disabled = not editable or _instant.button_pressed
 	reglages.frequence_catastrophes = float(FREQS[maxi(0, _freq.selected)])
 	reglages.usure = float(USURES[maxi(0, _usure.selected)])
+	reglages.dechets = _dechets.button_pressed
+	reglages.dechets_quantite = _dechets_q.value
 	reglages.pollution = maxi(0, _pollution.selected)
 	reglages.pollution_sante = _pol_sante.button_pressed
 	_emit()
@@ -403,6 +418,7 @@ func _update_labels() -> void:
 	_cout_l.text = "×" + ReglagesPartie._fmt(_cout.value)
 	_impots_l.text = "×" + ReglagesPartie._fmt(_impots.value)
 	_salaires_l.text = "×" + ReglagesPartie._fmt(_salaires.value)
+	_dechets_q_l.text = "×" + ReglagesPartie._fmt(_dechets_q.value)
 	_preset_label.text = reglages.preset_name()
 	_argent.editable = editable and not _illimite.button_pressed
 	if _caisse:

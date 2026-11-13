@@ -216,4 +216,5 @@ func _unhandled_input(event: InputEvent) -> void:
 			clock.set_speed((clock.speed_index + 1) % DayNight.SPEEDS.size())
 		else:
 			clock.toggle_pause()
+		Son.jouer("ui_vitesse", -4.0, 0.0, "Interface")
 		get_viewport().set_input_as_handled()

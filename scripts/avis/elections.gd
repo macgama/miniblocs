@@ -592,6 +592,7 @@ func scrutin() -> void:
 func _elire(l: Dictionary, pct: float, txt: String, participation: float) -> void:
 	var etait_maire := joueur_maire()
 	var tour_txt := "1er tour" if tour == 1 else "2e tour"
+	Son.jouer("election_gagnee" if bool(l.joueur) else "election_perdue")
 	if bool(l.joueur):
 		maire = {"joueur": true, "liste": "joueur", "nom": l.nom, "couleur": COULEUR_JOUEUR}
 		promesses.clear()

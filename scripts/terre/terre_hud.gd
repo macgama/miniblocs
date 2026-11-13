@@ -281,6 +281,10 @@ func _build_top_bar() -> void:
 		row.add_child(b)
 		if spec[0] == "admin":
 			_admin_button = b
+		elif spec[0] == "aide":
+			var son := UiStyle.icon_button("son", "Son et musique : volumes, morceaux", "F2")
+			son.pressed.connect(func() -> void: Son.panneau())
+			row.add_child(son)
 
 	# Centre : l'horloge (ClockHud, calque au-dessus) s'y pose.
 	var middle := Control.new()

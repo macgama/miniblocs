@@ -313,6 +313,16 @@ func _placer(eid: int) -> void:
 	eng.rotation.y = atan2((f[1] as Vector3).x, (f[1] as Vector3).z)
 
 
+## Fronts de travaux où l'équipe travaille près de la caméra (pour les sons).
+func chantiers_bruyants() -> Array:
+	var out := []
+	for eid in _vus:
+		var v: Dictionary = _vus[eid]
+		if not (v.ouvriers as Array).is_empty() and v.engins != null and is_instance_valid(v.engins):
+			out.append((v.engins as Node3D).global_position)
+	return out
+
+
 func _vider_ouvriers(v: Dictionary) -> void:
 	for f in v.ouvriers:
 		if is_instance_valid(f):

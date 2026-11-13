@@ -61,6 +61,7 @@ var _saves_panel: PartiesPanel
 
 
 func _ready() -> void:
+	Son.ici()
 	_camera = Camera3D.new()
 	_camera.fov = 40.0
 	_camera.near = 0.01

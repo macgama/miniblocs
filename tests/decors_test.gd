@@ -1,8 +1,8 @@
 extends SceneTree
 ## Vérifie les décors (assets/modeles/decors/*.glb) et leur pose :
-## catalogue complet et léger, modèles posés au sol, décors automatiques
-## (bottes de foin après la moisson, troupeaux qui bougent, décors des routes,
-## carrefours), pose par le joueur (un, en ligne, au pinceau), gomme, sauvegarde.
+## catalogue complet et léger, modèles posés au sol, Terre vierge (rien
+## d'humain sans bâtiment), décors des routes et carrefours, pose par le
+## joueur (un, en ligne, au pinceau, animaux qui bougent), gomme, sauvegarde.
 ## Usage : godot --headless --path . --import   (une fois, après de nouveaux .glb)
 ##         godot --headless --path . --script res://tests/decors_test.gd
 
@@ -95,39 +95,18 @@ func _run() -> void:
 	var dec: DecorSystem = scene.decors
 	_check(dec != null and scene.decors_panel != null, "décors branchés dans la scène")
 	dec.calcule_autour(Vector3.ZERO)
-	var bottes := dec.nombre_de("botte_ronde") + dec.nombre_de("botte_enrubannee") + dec.nombre_de("botte_debout")
-	_check(bottes > 10, "août : bottes de foin dans les champs moissonnés (%d)" % bottes)
+	# Terre vierge : rien d'humain sans bâtiment du joueur (ni enclos, ni bêtes
+	# d'élevage, ni bottes de foin, ni machines ; l'agriculture s'en charge).
+	var humains := 0
+	for id in ["botte_ronde", "botte_enrubannee", "botte_debout", "pile_bottes", "tracteur", "tracteur_rouge", "epouvantail",
+			"cloture_ranch", "cloture_barbelee", "abreuvoir", "cairn", "ponton", "ponton_court", "barque", "parasol_plage"]:
+		humains += dec.nombre_de(id)
 	var animaux := 0
 	for e: Dictionary in tous:
 		if Decors.est_anime(e.id):
 			animaux += dec.nombre_de(e.id)
-	_check(animaux > 5, "troupeaux dans les prés (%d animaux)" % animaux)
-	var au_bon_endroit := true
-	for a: Dictionary in dec._animaux:
-		if (a.home as Vector2).x > 40.0 and dec._kind(Vector2i(a.home)) != TerrainWorld.Kind.PRAIRIE:
-			au_bon_endroit = false
-	_check(au_bon_endroit, "les animaux sont dans les prés, pas dans les champs")
-	var avant := []
-	for a: Dictionary in dec._animaux:
-		avant.append(a.pos)
-	for i in 400:
-		dec._anime(0.05)
-	var bouges := 0
-	for i in dec._animaux.size():
-		if (dec._animaux[i].pos as Vector2).distance_to(avant[i]) > 0.3:
-			bouges += 1
-	_check(bouges > 0, "des animaux se promènent (%d sur %d)" % [bouges, dec._animaux.size()])
-	var loin := true
-	for a: Dictionary in dec._animaux:
-		loin = loin and (a.pos as Vector2).distance_to(a.home) < 12.0
-	_check(loin, "ils restent près de leur place")
-	# En janvier, plus de bottes rondes dans les champs labourés.
-	world.temps_jours = Time.get_unix_time_from_datetime_string("2026-01-15T12:00:00") / 86400.0
-	dec._champs_timer = 0.0
-	dec._process(0.016)
-	dec.calcule_autour(Vector3.ZERO)
-	var bottes_hiver := dec.nombre_de("botte_ronde") + dec.nombre_de("botte_debout")
-	_check(bottes_hiver < bottes / 3, "janvier : les champs sont vides (%d bottes)" % bottes_hiver)
+	_check(humains == 0 and animaux == 0, "Terre vierge en août : ni enclos, ni troupeau, ni bottes (%d décors humains, %d bêtes)" % [humains, animaux])
+	_check(not dec._habite(Vector2.ZERO), "sans bâtiment, le lieu n'est pas habité")
 
 	print("Routes :")
 	var y := world.cell_height(Vector2i(0, 0))
@@ -160,6 +139,20 @@ func _run() -> void:
 	var semees := dec.nombre_poses() - n0 - 21
 	_check(semees >= 8, "pinceau : %d vaches semées" % semees)
 	dec.calcule_autour(Vector3.ZERO)
+	var avant := []
+	for a: Dictionary in dec._animaux:
+		avant.append(a.pos)
+	for i in 400:
+		dec._anime(0.05)
+	var bouges := 0
+	for i in dec._animaux.size():
+		if (dec._animaux[i].pos as Vector2).distance_to(avant[i]) > 0.3:
+			bouges += 1
+	_check(bouges > 0, "les vaches semées se promènent (%d sur %d)" % [bouges, dec._animaux.size()])
+	var loin := true
+	for a: Dictionary in dec._animaux:
+		loin = loin and (a.pos as Vector2).distance_to(a.home) < 12.0
+	_check(loin, "elles restent près de leur place")
 	_check(dec.nombre_de("fontaine") == 1 and dec.nombre_de("cloture_bois") == 20, "décors posés dessinés")
 	var sauve := dec.to_dict()
 	var retirees := dec.efface(Vector3(20, y, -60), 3.0)

@@ -11,10 +11,10 @@
    - Touches **1 à 5** : place du village, ferme, port et plage, jeux et montagne, catalogue complet avec les noms.
    - **N** : nuit (réverbères et lanternes allumés), **Espace** : rotation de la caméra. Les animaux bougent.
 3. **En jeu** (F5) :
-   - Partir de la Beauce (48.33, 1.62) en août : bottes de foin dans les champs moissonnés, tracteurs, épouvantails. En janvier, les champs sont vides.
+   - Sur une carte neuve, la Terre est vierge : ni enclos, ni troupeau, ni bottes de foin, ni ponton. Seuls des rochers, souches et canards sauvages.
    - Poser une route en campagne : poteaux électriques, balises, bornes kilométriques, cédez-le-passage aux carrefours. En ville (près des bâtiments) : bancs, poubelles, bornes à incendie.
-   - Un pré (Gruyère 46.58, 7.08 ou Normandie) : troupeaux qui se promènent avec abreuvoir et clôture.
-   - Un bord de lac (Annecy 45.899, 6.135) : pontons, barques amarrées, canards.
+   - Les bêtes, bottes de foin et machines viennent avec les fermes du joueur (agriculture, voir docs/agriculture.md).
+   - Construire près d'un lac (Annecy 45.899, 6.135) : pontons et barques amarrées apparaissent au bord de l'eau à moins de 250 m des bâtiments.
    - Touche **G** (ou l'icône Décors) : le panneau.
 
 ## Le panneau Décors (touche G)
@@ -32,7 +32,7 @@ La case **Décors automatiques** coupe tout ce qui vient seul (utile pour un ter
 - `tools/blender/decors_lowpoly.py` : la liste des décors (id, catégorie, options) ; les modèles sont des fonctions dans `tools/blender/decors/*.py` (le nom affiché vient de leur docstring). Primitives communes dans `base.py` (boîte, cylindre, poutre, profil, rocher, roue…).
 - Couleurs : une palette de 64 teintes (`palette_decors.png`) et une palette de lumières pour la nuit ; les `.glb` sont exportés sans matériau et le jeu applique un seul matériau partagé.
 - `scripts/decors/decors.gd` : le catalogue (`decors.json`), tailles, distances de vue, maillages.
-- `scripts/decors/decor_system.gd` : décors automatiques calculés par tuiles de 64 m autour de la caméra (budget 3,5 ms par image), dessinés en MultiMesh par modèle. Ils suivent le biome, le climat et la saison (cultures de `Sols`), le réseau de transport et les bâtiments. Les animaux sont animés jusqu'à 220 m.
+- `scripts/decors/decor_system.gd` : décors automatiques calculés par tuiles de 64 m autour de la caméra (budget 3,5 ms par image), dessinés en MultiMesh par modèle. Ils suivent le biome, le climat, la saison, le réseau de transport et les bâtiments du joueur : rien d'humain à plus de 250 m d'un bâtiment (Terre vierge). Les animaux posés par le joueur sont animés jusqu'à 220 m.
 - `scripts/decors/decor_panel.gd` : le panneau G.
 
 ### Refaire les modèles

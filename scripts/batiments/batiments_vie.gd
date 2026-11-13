@@ -10,8 +10,11 @@ extends Node
 ## - Maisons habitées : clôture, boîte aux lettres, potager, linge (Abords) et
 ##   fumée aux cheminées.
 ##
-## Données gardées dans chaque bâtiment (et dans la sauvegarde) : "ne" (date
-## de construction, secondes Unix du jeu), "fin" (fin du chantier).
+## Données gardées dans chaque bâtiment (et dans la sauvegarde) : "ne" (début
+## du chantier, secondes Unix du jeu), "fin" (fin prévue ou réelle), "av"
+## (avancement du chantier, 0 à 1), "hr" (heures réelles de travail du
+## chantier, voir Chantiers) et "du" (reste à payer : le prix est payé au fil
+## des travaux ; caisse vide = chantier arrêté).
 
 ## Chantiers visibles (false : les bâtiments apparaissent d'un coup).
 static var chantiers := true
@@ -19,24 +22,31 @@ static var chantiers := true
 static var vie := true
 
 const AN := 365.0 * 86400.0
-## Durée d'un chantier (heures de jeu) : base + par étage de 3 m.
-const CHANTIER_BASE_H := 1.0
-const CHANTIER_ETAGE_H := 0.75
 ## Au-delà, les détails de vie (abords, fumée) ne sont pas dessinés.
 const VUE_ABORDS := 260.0
 const VUE_FUMEE := 380.0
+## Ouvriers et engins animés seulement près de la caméra.
+const VUE_OUVRIERS := 240.0
+## Panneau de chantier (texte) visible de près.
+const VUE_PANNEAU := 90.0
 
+## Vitesse d'usure d'un bâtiment (bid) -> multiplicateur (Nuisances : quartiers dévalués).
+var extra_usure: Callable
 var buildings: BuildingSystem
 var ambiance: DayNight
 var population: Population
 
-## bid -> {"mi": nœud, "echaf": nœud, "grue": nœud, "fleche": nœud, "palissade": nœud, "H": hauteur}
+## bid -> {"mi", "echaf", "grue", "fleche", "palissade", "terre", "dalle", "engins", "ouvriers", "panneau", "H", "bb", "mat", "mat_echaf", "etape"}
 var _chantiers := {}
 ## bid -> {"abords": nœud, "fumee": [nœuds], "usure": float, "abandon": float, "vide": float}
 var _etat := {}
 var _acc_chantier := 0.0
 var _acc_vie := 0.0
 var _clock := 0.0
+## Dernière heure du jeu vue par les chantiers (pour compter les heures de travail).
+var _t_prev := -1.0
+## L'équipe est-elle au travail en ce moment (heure locale) ?
+var au_travail := false
 
 static var _bounds_cache := {}
 static var _fumee_mesh: ArrayMesh
@@ -47,6 +57,7 @@ func setup(b: BuildingSystem, a: DayNight, p: Population) -> void:
 	buildings = b
 	ambiance = a
 	population = p
+	_t_prev = now()
 	buildings.added.connect(_on_added)
 	buildings.removed.connect(_on_removed)
 	for bid in buildings.buildings:
@@ -57,10 +68,22 @@ func now() -> float:
 	return ambiance.unix_time if ambiance != null else _clock
 
 
+func offset_h() -> float:
+	return ambiance.utc_offset() if ambiance != null else 0.0
+
+
 ## Années de « vie » écoulées pour une durée de jeu (suit la vitesse de la vie des habitants).
 func _years(seconds: float) -> float:
 	var k := population.life_speed() if population != null else 1.0
 	return seconds * k / AN
+
+
+## Un bâtiment de ce type posé maintenant aura-t-il un chantier ?
+static func aura_chantier(id: String) -> bool:
+	if not chantiers or Chantiers.instantanes():
+		return false
+	var t := BuildingCatalog.get_type(id)
+	return not t.is_empty() and not t.has("blocks") and not t.has("stade")
 
 
 func _on_added(bid: int) -> void:
@@ -69,19 +92,38 @@ func _on_added(bid: int) -> void:
 	var mi := buildings.node_of(bid)
 	if mi == null:
 		return
+	if _t_prev < 0.0:
+		_t_prev = t
 	if not b.has("ne") or float(b.ne) <= 0.0:
 		var fresh := not b.has("ne")
 		b["ne"] = t
-		b["fin"] = t + duree_chantier(String(b.t)) if fresh and chantiers and _chantier_possible(b) else t
+		if fresh and aura_chantier(String(b.t)):
+			b["av"] = 0.0
+			b["hr"] = Chantiers.heures_batiment(String(b.t))
+			b["fin"] = fin_prevue(bid)
+		else:
+			b["fin"] = t
+	elif not b.has("av") and float(b.get("fin", 0.0)) > t and _chantier_possible(b):
+		# Ancienne partie (chantier daté) : on reprend où il en était.
+		var ne := float(b.ne)
+		b["av"] = clampf((t - ne) / maxf(float(b.fin) - ne, 1.0), 0.0, 0.99)
+		b["hr"] = Chantiers.heures_batiment(String(b.t))
 	_etat[bid] = {"abords": null, "fumee": [], "usure": -1, "abandon": -1, "vide": -1.0,
 		"base": posmod(hash(Vector2i(int(b.x), int(b.z))), 1000) / 1000.0 * 0.22}
-	if float(b.get("fin", 0.0)) > t:
+	if b.has("av") and float(b.av) < 1.0:
 		_start_chantier(bid)
 	else:
 		b.erase("chantier")
+		b.erase("av")
+		_payer_reste(b)
 
 
 func _on_removed(bid: int) -> void:
+	var c: Dictionary = _chantiers.get(bid, {})
+	if not c.is_empty():
+		for f in c.ouvriers:
+			if is_instance_valid(f):
+				(f as Node).queue_free()
 	_chantiers.erase(bid)
 	_etat.erase(bid)
 
@@ -91,10 +133,27 @@ func _chantier_possible(b: Dictionary) -> bool:
 	return not t.has("blocks") and not t.has("stade")
 
 
-## Durée du chantier d'un type (secondes de jeu).
-static func duree_chantier(id: String) -> float:
-	var h := BuildingCatalog.approx_height(id)
-	return (CHANTIER_BASE_H + ceilf(h / 3.0) * CHANTIER_ETAGE_H) * 3600.0
+## Durée prévue du chantier d'un type (secondes de jeu, horaires et vitesse de la vie actuels),
+## pour un chantier qui commence un lundi à 7 h 30.
+func duree_prevue(id: String) -> float:
+	var h := Chantiers.heures_batiment(id) / Chantiers.rythme(population)
+	var lundi := 4.0 * 86400.0 + 7.5 * 3600.0 # lundi 5 janvier 1970, 7 h 30
+	return Chantiers.date_apres(lundi, h, 0.0) - lundi
+
+
+## Date (secondes Unix du jeu) où le chantier devrait finir, au rythme actuel.
+func fin_prevue(bid: int) -> float:
+	var b: Dictionary = buildings.buildings[bid]
+	var reste := (1.0 - float(b.get("av", 1.0))) * float(b.get("hr", 0.0)) / Chantiers.rythme(population)
+	return Chantiers.date_apres(now(), reste, offset_h())
+
+
+## Paie d'un coup ce qui reste dû (chantier terminé ou annulé par les réglages).
+func _payer_reste(b: Dictionary) -> void:
+	var du := int(b.get("du", 0))
+	if du > 0 and not buildings.unlimited_money:
+		buildings.money -= du
+	b.erase("du")
 
 
 func _process(delta: float) -> void:
@@ -106,6 +165,8 @@ func _process(delta: float) -> void:
 	if _acc_chantier >= 0.2:
 		_acc_chantier = 0.0
 		_update_chantiers()
+	if not _chantiers.is_empty():
+		_animer_chantiers()
 	if _acc_vie >= 1.5:
 		_acc_vie = 0.0
 		_update_vie()
@@ -154,21 +215,67 @@ func _start_chantier(bid: int) -> void:
 	echaf.visibility_range_end = 1400.0
 	mi.add_child(echaf)
 	var t := BuildingCatalog.get_type(String(b.t))
+	var w := float(t.get("w", 8))
+	var d := float(t.get("d", 8))
 	var pal := MeshInstance3D.new()
 	pal.name = "Palissade"
-	pal.mesh = _palissade_mesh(float(t.get("w", 8)), float(t.get("d", 8)))
+	pal.mesh = _palissade_mesh(w, d)
 	pal.material_override = NightWindows.chantier_material()
 	pal.visibility_range_end = 900.0
 	mi.add_child(pal)
-	var c := {"mi": mi, "echaf": echaf, "palissade": pal, "grue": null, "fleche": null, "H": bb.end.y,
-		"mat": mat, "mat_echaf": mat_echaf}
+	var terre := MeshInstance3D.new()
+	terre.name = "Fouille"
+	terre.mesh = _fouille_mesh(bb, w, d)
+	terre.material_override = NightWindows.chantier_material()
+	terre.visibility_range_end = 1400.0
+	mi.add_child(terre)
+	var dalle := MeshInstance3D.new()
+	dalle.name = "Dalle"
+	var kd := BlocMesh.new()
+	kd.box(bb.get_center().x, 0.0, bb.get_center().z, bb.size.x + 0.4, 1.0, bb.size.z + 0.4, Color("a9a59c"))
+	dalle.mesh = kd.to_mesh(NightWindows.chantier_material())
+	mi.add_child(dalle)
+	var engins := Node3D.new()
+	engins.name = "Engins"
+	mi.add_child(engins)
+	var avant := -d / 2.0 - 3.2
+	var pel := EnginsChantier.pelleteuse()
+	pel.position = Vector3(bb.get_center().x + minf(bb.size.x * 0.2, 2.0), 0.15, bb.get_center().z)
+	pel.rotation.y = 0.6
+	engins.add_child(pel)
+	var benne := EnginsChantier.benne()
+	benne.position = Vector3(minf(w * 0.3, 5.0), 0, avant)
+	benne.rotation.y = PI / 2.0
+	engins.add_child(benne)
+	var tp := EnginsChantier.toupie()
+	tp.position = Vector3(-minf(w * 0.25, 4.0), 0, avant)
+	tp.rotation.y = -PI / 2.0
+	engins.add_child(tp)
+	var cam := EnginsChantier.camionnette()
+	cam.position = Vector3(minf(w * 0.25, 4.0), 0, avant)
+	cam.rotation.y = PI / 2.0
+	engins.add_child(cam)
+	var panneau := Label3D.new()
+	panneau.name = "PanneauChantier"
+	panneau.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	panneau.pixel_size = 0.018
+	panneau.font_size = 56
+	panneau.outline_size = 14
+	panneau.outline_modulate = Color(0.08, 0.08, 0.1, 0.9)
+	panneau.modulate = Color("fff3c4")
+	panneau.position = Vector3(0, 4.2, -d / 2.0 - 0.5)
+	panneau.visibility_range_end = VUE_PANNEAU
+	mi.add_child(panneau)
+	var c := {"mi": mi, "echaf": echaf, "palissade": pal, "grue": null, "fleche": null, "H": bb.end.y, "bb": bb,
+		"mat": mat, "mat_echaf": mat_echaf, "terre": terre, "dalle": dalle, "engins": engins, "panneau": panneau,
+		"ouvriers": [], "etape": "", "texte": "", "w": w, "d": d}
 	if bb.end.y > 12.0:
 		var g := _grue(bb)
 		mi.add_child(g)
 		c.grue = g
 		c.fleche = g.get_node("Fleche")
 	_chantiers[bid] = c
-	_set_clip(bid, 3.0)
+	_show_etape(bid)
 
 
 func _set_clip(bid: int, h: float) -> void:
@@ -182,34 +289,198 @@ func progress(bid: int) -> float:
 	if not buildings.buildings.has(bid):
 		return 1.0
 	var b: Dictionary = buildings.buildings[bid]
-	var ne := float(b.get("ne", 0.0))
-	var fin := float(b.get("fin", 0.0))
-	if fin <= ne:
-		return 1.0
-	return clampf((now() - ne) / (fin - ne), 0.0, 1.0)
+	return clampf(float(b.get("av", 1.0)), 0.0, 1.0)
 
 
+## Étape en cours d'un chantier : [indice, clé, nom, avancement de l'étape], ou [] si fini.
+func etape_de(bid: int) -> Array:
+	if not _chantiers.has(bid):
+		return []
+	return Chantiers.etape(Chantiers.ETAPES_BATIMENT, progress(bid))
+
+
+## Fait avancer les chantiers selon les heures de travail écoulées depuis le dernier passage.
 func _update_chantiers() -> void:
+	var t := now()
+	if _t_prev < 0.0:
+		_t_prev = t
+	if not chantiers or Chantiers.instantanes():
+		_t_prev = t
+		if not _chantiers.is_empty():
+			finish_all()
+		return
+	var off := offset_h()
+	var heures := Chantiers.heures_ouvrees(_t_prev, t, off)
+	_t_prev = t
+	var local := t + off * 3600.0
+	au_travail = Chantiers.au_travail(fposmod(local, 86400.0) / 3600.0, Chantiers.jour_semaine(local))
+	var k := Chantiers.rythme(population)
 	var done := []
 	for bid in _chantiers:
 		var c: Dictionary = _chantiers[bid]
-		if not is_instance_valid(c.mi):
+		if not is_instance_valid(c.mi) or not buildings.buildings.has(bid):
 			done.append(bid)
 			continue
-		var p := progress(bid)
-		if p >= 1.0:
+		var b: Dictionary = buildings.buildings[bid]
+		if heures > 0.0:
+			var dp := heures * k / maxf(float(b.get("hr", 1.0)), 1.0)
+			dp = minf(dp, 1.0 - float(b.av))
+			# Le prix se paie au fil des travaux ; sans argent, le chantier s'arrête.
+			var du := int(b.get("du", 0))
+			if du > 0:
+				var part := mini(du, ceili(float(b.get("cost", 0)) * dp))
+				if not buildings.unlimited_money and buildings.money < part:
+					b["attente"] = true
+					dp = 0.0
+				else:
+					b.erase("attente")
+					if not buildings.unlimited_money:
+						buildings.money -= part
+					b["du"] = du - part
+			b["av"] = float(b.av) + dp
+		if float(b.av) >= 0.9999:
 			done.append(bid)
 			continue
-		var H: float = c.H
-		# Étage par étage jusqu'à 85 %, puis le toit ; les échafaudages restent jusqu'au bout.
-		var h := 10000.0
-		if p < 0.85:
-			h = (floorf(p / 0.85 * ceilf(H / 3.0)) + 1.0) * 3.0
-		_set_clip(bid, h)
-		if c.fleche != null:
+		_show_etape(bid)
+		if c.fleche != null and au_travail:
 			(c.fleche as Node3D).rotation.y = sin(_clock * 0.15 + float(bid)) * 1.3
 	for bid in done:
 		_finish_chantier(bid)
+
+
+## Montre l'étape du chantier : fouille, dalle, murs étage par étage derrière
+## les échafaudages, toit, puis finitions ; engins et panneau selon l'étape.
+func _show_etape(bid: int) -> void:
+	var c: Dictionary = _chantiers[bid]
+	var b: Dictionary = buildings.buildings[bid]
+	var e := Chantiers.etape(Chantiers.ETAPES_BATIMENT, float(b.get("av", 0.0)))
+	var key: String = e[1]
+	var u: float = e[3]
+	var H: float = c.H
+	var h := -1.0
+	match key:
+		"murs":
+			h = (floorf(u * ceilf(H / 3.0)) + 1.0) * 3.0
+		"toit", "finitions":
+			h = 10000.0
+	_set_clip(bid, h)
+	(c.terre as Node3D).visible = key == "terrassement" or key == "fondations"
+	(c.dalle as Node3D).visible = key == "fondations"
+	if key == "fondations":
+		(c.dalle as Node3D).scale.y = maxf(0.05, u * 0.4)
+	(c.echaf as Node3D).visible = key == "murs" or key == "toit"
+	if c.grue != null:
+		(c.grue as Node3D).visible = key == "murs" or key == "toit"
+	var eng: Node3D = c.engins
+	eng.get_node("Pelleteuse").visible = key == "terrassement"
+	eng.get_node("Benne").visible = key == "terrassement"
+	eng.get_node("Toupie").visible = key == "fondations" or (key == "murs" and u < 0.3)
+	eng.get_node("Camionnette").visible = key == "finitions"
+	if key != String(c.etape):
+		c.etape = key
+		_vider_ouvriers(c)
+	var txt := "%s\n%s · %d %%\n" % [String(BuildingCatalog.get_type(String(b.t)).get("name", "Chantier")), String(e[2]), floori(float(b.av) * 100.0)]
+	if b.get("attente", false):
+		txt += "Arrêté : plus d'argent dans la caisse"
+	elif not au_travail:
+		txt += "Équipe au repos · fin vers le %s" % Chantiers.date_texte(fin_prevue(bid), offset_h())
+	else:
+		txt += "Fin vers le %s" % Chantiers.date_texte(fin_prevue(bid), offset_h())
+	if txt != String(c.texte):
+		c.texte = txt
+		(c.panneau as Label3D).text = txt
+
+
+## Ouvriers (près de la caméra, pendant les heures de travail) et engins qui bougent.
+func _animer_chantiers() -> void:
+	var cam := get_viewport().get_camera_3d() if is_inside_tree() else null
+	for bid in _chantiers:
+		var c: Dictionary = _chantiers[bid]
+		if not is_instance_valid(c.mi):
+			continue
+		var mi: MeshInstance3D = c.mi
+		var pres := cam != null and cam.global_position.distance_to(mi.global_position) < VUE_OUVRIERS
+		var veut: bool = pres and au_travail and not bool(buildings.buildings[bid].get("attente", false))
+		if veut and (c.ouvriers as Array).is_empty():
+			_poser_ouvriers(bid, c)
+		elif not veut and not (c.ouvriers as Array).is_empty():
+			_vider_ouvriers(c)
+		if veut:
+			for f in c.ouvriers:
+				(f as Figurine).animer(_clock)
+			for n in (c.engins as Node3D).get_children():
+				if (n as Node3D).visible:
+					EnginsChantier.animer(n, _clock + float(bid), true)
+
+
+func _vider_ouvriers(c: Dictionary) -> void:
+	for f in c.ouvriers:
+		if is_instance_valid(f):
+			(f as Node).queue_free()
+	(c.ouvriers as Array).clear()
+
+
+## Place les ouvriers selon l'étape : à la pioche dans la fouille, au béton sur
+## la dalle, sur les échafaudages, sur le toit, puis aux finitions.
+func _poser_ouvriers(bid: int, c: Dictionary) -> void:
+	var bb: AABB = c.bb
+	var key := String(c.etape)
+	var mi: MeshInstance3D = c.mi
+	var n := clampi(2 + int(bb.size.x * bb.size.z / 60.0), 2, 6)
+	var cx := bb.get_center().x
+	var cz := bb.get_center().z
+	var gestes := ["piocher"]
+	var y := 0.15
+	var tour := false
+	match key:
+		"fondations":
+			gestes = ["couler", "porter"]
+			y = 0.0
+		"murs":
+			gestes = ["marteler", "porter"]
+			var built := (floorf(Chantiers.etape(Chantiers.ETAPES_BATIMENT, progress(bid))[3] * ceilf(c.H / 3.0)) + 1.0) * 3.0
+			y = maxf(0.0, floorf((minf(built, c.H) - 1.5) / 2.0) * 2.0)
+			tour = true
+		"toit":
+			gestes = ["marteler"]
+			y = maxf(0.0, floorf(c.H / 2.0) * 2.0 - 2.0)
+			tour = true
+		"finitions":
+			gestes = ["porter", "balayer"]
+			y = 0.0
+	for i in n:
+		var f := Figurine.creer(-1000 - bid * 8 - i, "ouvrier")
+		f.regler(String(gestes[i % gestes.size()]))
+		var p := Vector3.ZERO
+		var u := (float(i) + 0.5) / float(n)
+		if tour:
+			# Sur le plancher des échafaudages, tout autour.
+			var per := 2.0 * (bb.size.x + bb.size.z)
+			var s := u * per
+			var x0 := bb.position.x - 0.35
+			var x1 := bb.end.x + 0.35
+			var z0 := bb.position.z - 0.35
+			var z1 := bb.end.z + 0.35
+			if s < bb.size.x:
+				p = Vector3(x0 + s, y, z0)
+			elif s < bb.size.x + bb.size.z:
+				p = Vector3(x1, y, z0 + s - bb.size.x)
+			elif s < 2.0 * bb.size.x + bb.size.z:
+				p = Vector3(x1 - (s - bb.size.x - bb.size.z), y, z1)
+			else:
+				p = Vector3(x0, y, z1 - (s - 2.0 * bb.size.x - bb.size.z))
+		elif key == "finitions":
+			p = Vector3(lerpf(-c.w * 0.35, c.w * 0.35, u), 0.0, -c.d / 2.0 + 0.9)
+		else:
+			var a := u * TAU + float(bid)
+			p = Vector3(cx + cos(a) * bb.size.x * 0.32, y, cz + sin(a) * bb.size.z * 0.32)
+		f.position = p
+		var vers := Vector3(cx, 0, cz) - Vector3(p.x, 0, p.z)
+		if key == "finitions":
+			vers = Vector3(0, 0, -1)
+		f.rotation.y = atan2(vers.x, vers.z)
+		mi.add_child(f)
+		(c.ouvriers as Array).append(f)
 
 
 func _finish_chantier(bid: int) -> void:
@@ -225,20 +496,41 @@ func _finish_chantier(bid: int) -> void:
 	# L'usure sera réappliquée au prochain passage.
 	if _etat.has(bid):
 		_etat[bid].usure = -1.0
-	for key in ["echaf", "palissade", "grue"]:
+	for key in ["echaf", "palissade", "grue", "terre", "dalle", "engins", "panneau"]:
 		if c[key] != null:
 			(c[key] as Node).queue_free()
+	_vider_ouvriers(c)
 	if buildings.buildings.has(bid):
-		buildings.buildings[bid].erase("chantier")
+		var b: Dictionary = buildings.buildings[bid]
+		b.erase("chantier")
+		b.erase("attente")
+		b.erase("av")
+		b.erase("hr")
+		b["fin"] = now()
+		_payer_reste(b)
 	# Les habitants peuvent s'installer.
 	buildings.changed.emit()
 
 
-## Termine tout de suite les chantiers en cours (tests, captures).
+## Termine tout de suite les chantiers en cours (tests, captures, construction instantanée).
 func finish_all() -> void:
 	for bid in _chantiers.keys():
-		buildings.buildings[bid]["fin"] = buildings.buildings[bid].get("ne", 0.0)
 		_finish_chantier(bid)
+
+
+## Terre retournée de la fouille, avec ses tas de déblais.
+static func _fouille_mesh(bb: AABB, w: float, d: float) -> ArrayMesh:
+	var k := BlocMesh.new()
+	var cx := bb.get_center().x
+	var cz := bb.get_center().z
+	k.box(cx, 0.0, cz, bb.size.x + 1.2, 0.12, bb.size.z + 1.2, Color("6b4f35"))
+	k.box(cx, 0.0, cz, bb.size.x - 0.6, 0.06, bb.size.z - 0.6, Color("5a412b"))
+	var rx := clampf(minf(w, d) * 0.12, 0.8, 3.0)
+	EnginsChantier.tas(k, -w / 2.0 + rx + 0.4, d / 2.0 - rx - 0.4, rx)
+	EnginsChantier.tas(k, w / 2.0 - rx - 0.4, d / 2.0 - rx * 0.8 - 0.4, rx * 0.7, Color("8a7f72"))
+	EnginsChantier.palette(k, -w / 2.0 + 1.2, -d / 2.0 + 1.4)
+	EnginsChantier.palette(k, -w / 2.0 + 2.6, -d / 2.0 + 1.4, Color("b5432f"))
+	return k.to_mesh(NightWindows.chantier_material())
 
 
 static func _scaffold_mesh(bb: AABB) -> ArrayMesh:
@@ -389,7 +681,8 @@ func _update_vie() -> void:
 		elif e.vide < 0.0:
 			e.vide = maxf(t, float(b.get("fin", t)))
 		var age := _years(maxf(t - float(b.get("ne", t)), 0.0))
-		var usure: float = e.base + age / (60.0 if occupe or not accueille else 18.0)
+		var rythme := float(extra_usure.call(bid)) if extra_usure.is_valid() else 1.0
+		var usure: float = e.base + age * rythme / (60.0 if occupe or not accueille else 18.0)
 		var abandon := 0.0
 		if e.vide >= 0.0:
 			abandon = clampf((_years(t - float(e.vide)) - 0.5) / 2.0, 0.0, 1.0)

@@ -134,6 +134,9 @@ const TYPES := {
 	"porteur": {"name": "Camion porteur de livraison", "cat": "utilitaire", "mode": ROAD, "era": "contemporain", "region": "monde", "year": 2018,
 		"L": 10.0, "W": 2.55, "H": 3.7, "kmh": 90, "places": 2, "shape": "camion", "cab": "avant", "cargo": "caisse",
 		"col": Color("f1faee"), "col2": Color("2a9d8f"), "livraison": true, "desc": "19 tonnes : magasins, usines et entrepôts en ville."},
+	"benne_om": {"name": "Benne à ordures ménagères", "cat": "utilitaire", "mode": ROAD, "era": "contemporain", "region": "monde", "year": 2018,
+		"L": 9.5, "W": 2.5, "H": 3.5, "kmh": 80, "places": 3, "shape": "camion", "cab": "avant", "cargo": "bom",
+		"col": Color("f1faee"), "col2": Color("43aa8b"), "livraison": true, "desc": "Benne-tasseuse de 26 t et ses deux ripeurs, environ 8 t d'ordures par tournée."},
 	"camion_us": {"name": "Camion américain à long capot", "cat": "utilitaire", "mode": ROAD, "era": "moderne", "region": "ameriques", "year": 1985,
 		"L": 21.0, "W": 2.6, "H": 4.1, "kmh": 105, "places": 2, "shape": "camion", "cab": "capot", "cargo": "caisse", "stacks": true,
 		"col": Color("c1121f"), "col2": Color("dee2e6"), "desc": "Cheminées chromées et cabine couchette."},
@@ -864,6 +867,15 @@ static func _truck(k: VehicleMesh, t: Dictionary, col: Color, col2: Color) -> vo
 		"caisse":
 			k.box(0, by, bz, W, H - by, bl, col2)
 			k.box(0, H - 0.05, bz, W * 1.01, 0.06, bl, col2.darkened(0.08))
+		"bom":
+			# Caisson de compaction arrondi, lève-conteneurs et marchepieds des ripeurs.
+			k.box(0, by, bz - 0.3, W, H - by - 0.1, bl - 0.8, col2)
+			k.box(0, H - 0.15, bz - 0.3, W * 0.9, 0.12, bl - 1.0, col2.lightened(0.15))
+			k.box(0, by - 0.2, L / 2 - 0.65, W * 0.96, H - by - 0.2, 1.1, col2.darkened(0.25))
+			k.box(0, by + 0.3, L / 2 - 0.05, W * 0.7, 0.9, 0.12, Color("495057"))
+			for s in [-1.0, 1.0]:
+				k.box(s * 0.75, 0.55, L / 2 + 0.05, 0.6, 0.08, 0.35, Color("adb5bd"))
+				k.box(s * (W / 2 + 0.02), by + 0.6, bz, 0.04, 0.3, bl * 0.8, Color("ffd166"))
 		"citerne":
 			var tr := (H - by) / 2.0
 			k.z_cyl(0, by + tr, bz0, L / 2, tr, tr, 12, col2)

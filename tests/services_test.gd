@@ -137,7 +137,7 @@ func _run() -> void:
 	var hh: Dictionary = pop.vie.health(p_h)
 	print("    centre : ", hc.why[0], " · hameau : ", hh.why[0])
 	_check(String(hh.why[0]).begins_with("−") and String(hh.why[0]).contains("hôpital"), "hameau : pas d'hôpital accessible")
-	_check(float(hc.f) <= float(hh.f) or sp._ferme(hosp), "risque plus faible au centre (%.2f contre %.2f)" % [float(hc.f), float(hh.f)])
+	_check(float(sp.sante(p_c).f) < float(sp.sante(p_h).f), "hôpital : risque plus faible au centre (×%.2f contre ×%.2f)" % [float(sp.sante(p_c).f), float(sp.sante(p_h).f)])
 
 	print("Petits délits :")
 	var n0 := int(scene.urgences.incidents.size())

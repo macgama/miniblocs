@@ -209,7 +209,7 @@ func _view_service(s: String) -> void:
 		if s == "ecole":
 			ligne = "%d / %d élèves" % [roundi(float(e.use)), int(e.cap)]
 		else:
-			ligne = "%d %s · %d habitants pour %d possibles" % [int(e.cap), unite, roundi(float(e.use)), roundi(float(e.cap_hab))]
+			ligne = "%d %s · %d habitants pour %d possibles" % [int(e.cap), unite if int(e.cap) > 1 else unite.trim_suffix("s"), roundi(float(e.use)), roundi(float(e.cap_hab))]
 		var etat := ""
 		if bool(e.ferme):
 			etat = " · fermé (personnel)"

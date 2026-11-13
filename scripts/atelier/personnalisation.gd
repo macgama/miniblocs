@@ -36,8 +36,36 @@ const EXTRA := ["f2ede1", "e8d8b0", "d9a066", "c2593f", "8c3b2e", "5a6b7d", "3d5
 
 
 ## Un bâtiment du catalogue se personnalise-t-il (couleurs au moins) ?
+## Les modèles faits en code (arch) et ceux modélisés dans Blender (glb), sauf
+## les stades qui gardent leurs matériaux.
 static func can_customize(type_id: String) -> bool:
-	return BuildingCatalog.get_type(type_id).has("arch")
+	var t := BuildingCatalog.get_type(type_id)
+	if t.has("arch"):
+		return true
+	return is_glb(type_id) and not BibleGlb.groupes(type_id).is_empty()
+
+
+## Bâtiment modélisé dans Blender (couleurs seulement, la forme reste celle du modèle).
+static func is_glb(type_id: String) -> bool:
+	var t := BuildingCatalog.get_type(type_id)
+	return t.has("glb") and not t.has("stade")
+
+
+## Couleurs réglables de ce type, dans l'ordre du panneau.
+static func color_keys(type_id: String) -> Array:
+	if not is_glb(type_id):
+		return COLOR_ORDER
+	var g := BibleGlb.groupes(type_id)
+	return COLOR_ORDER.filter(func(k: String) -> bool: return g.has(k))
+
+
+## Nom affiché d'une couleur réglable.
+static func color_label(type_id: String, key: String) -> String:
+	if is_glb(type_id) and key == "volets":
+		return "Volets, détails"
+	if is_glb(type_id) and key == "boiseries":
+		return "Encadrements, avant-toit"
+	return String(COLORS[key][0])
 
 
 ## Sa forme (toit, étages) se règle-t-elle ?
@@ -47,6 +75,8 @@ static func can_shape(type_id: String) -> bool:
 
 
 static func base_floors(type_id: String) -> int:
+	if is_glb(type_id):
+		return int(BibleGlb.volume(type_id).get("etages", 1))
 	var t := BuildingCatalog.get_type(type_id)
 	if not t.has("arch") or not Styles.STYLES.has(String(t.get("style", ""))):
 		return 1
@@ -103,6 +133,8 @@ static func clean(d: Dictionary) -> Dictionary:
 static func swatches(type_id: String, key: String) -> Array:
 	var t := BuildingCatalog.get_type(type_id)
 	var out: Array = []
+	if is_glb(type_id):
+		out.append(BibleGlb.couleur_cle(type_id, 0, key).to_html(false))
 	var s: Dictionary = Styles.STYLES.get(String(t.get("style", "")), {})
 	match key:
 		"mur":
@@ -134,6 +166,8 @@ static func swatches(type_id: String, key: String) -> Array:
 static func color_of(type_id: String, variant: int, perso: Dictionary, key: String) -> Color:
 	if perso.has(key):
 		return Color(String(perso[key]))
+	if is_glb(type_id):
+		return BibleGlb.couleur_cle(type_id, variant, key)
 	var p := palette(type_id, variant)
 	return Color(p.get(String(COLORS[key][1]), Color.WHITE))
 

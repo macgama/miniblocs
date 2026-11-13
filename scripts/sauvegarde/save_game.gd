@@ -233,6 +233,72 @@ static func list_saves() -> Array[Dictionary]:
 	return out
 
 
+## Image d'aperçu d'une partie (capture de la caméra au moment de la sauvegarde).
+const PREVIEW := "apercu.jpg"
+const PREVIEW_SIZE := Vector2i(384, 216)
+
+
+static func preview_path(slot_id: String) -> String:
+	return DIR.path_join(slot_id).path_join(PREVIEW)
+
+
+## Enregistre l'aperçu (réduit en 384 × 216, JPEG). Renvoie true si c'est fait.
+static func save_preview(slot_id: String, img: Image) -> bool:
+	if img == null or img.is_empty() or not DirAccess.dir_exists_absolute(DIR.path_join(slot_id)):
+		return false
+	var im := img.duplicate() as Image
+	if im.is_compressed():
+		im.decompress()
+	im.convert(Image.FORMAT_RGB8)
+	# Recadre au format 16:9 avant de réduire.
+	var r := float(PREVIEW_SIZE.x) / PREVIEW_SIZE.y
+	var w := im.get_width()
+	var h := im.get_height()
+	if float(w) / h > r:
+		var nw := int(h * r)
+		im = im.get_region(Rect2i((w - nw) / 2, 0, nw, h))
+	elif float(w) / h < r:
+		var nh := int(w / r)
+		im = im.get_region(Rect2i(0, (h - nh) / 2, w, nh))
+	im.resize(PREVIEW_SIZE.x, PREVIEW_SIZE.y, Image.INTERPOLATE_BILINEAR)
+	return im.save_jpg(preview_path(slot_id), 0.85) == OK
+
+
+## Aperçu d'une partie en texture, ou null s'il n'y en a pas.
+static func load_preview(slot_id: String) -> Texture2D:
+	var path := preview_path(slot_id)
+	if not FileAccess.file_exists(path):
+		return null
+	var img := Image.load_from_file(path)
+	if img == null or img.is_empty():
+		return null
+	return ImageTexture.create_from_image(img)
+
+
+## Renomme une partie (seulement le nom affiché : le dossier ne change pas).
+static func rename(slot_id: String, nom: String) -> bool:
+	nom = nom.strip_edges()
+	var path := DIR.path_join(slot_id).path_join(MANIFEST)
+	if nom == "" or not FileAccess.file_exists(path):
+		return false
+	var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+	if typeof(data) != TYPE_DICTIONARY:
+		return false
+	data["nom"] = nom
+	var f := FileAccess.open(path, FileAccess.WRITE)
+	if f == null:
+		return false
+	f.store_string(JSON.stringify(data, "\t", true))
+	f.close()
+	return true
+
+
+## La partie la plus récente (fiche), ou {} : c'est elle que « Continuer » reprend.
+static func latest() -> Dictionary:
+	var all := list_saves()
+	return all[0] if not all.is_empty() else {}
+
+
 static func delete(slot_id: String) -> bool:
 	var dir := DIR.path_join(slot_id)
 	var d := DirAccess.open(dir)

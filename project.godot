@@ -16,7 +16,8 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 
 config/name="MiniBlocs"
 config/description="Prototype de city builder en vue de dessus, style low-poly, mode bac à sable."
-run/main_scene="res://scenes/globe.tscn"
+run/main_scene="res://scenes/menu_principal.tscn"
+config/version="0.1"
 config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://icon.svg"
 

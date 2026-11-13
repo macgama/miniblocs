@@ -29,6 +29,7 @@ const SECTIONS := [
 		["Outil J > Échangeur", "clic sur une route qui enjambe une autoroute : 4 bretelles"],
 		["0", "paysage : colline, lisser, lac ou canal, combler l'eau, peindre un biome, planter ou arracher des arbres (pinceau rond, clic gauche glissé)"],
 		["Échap ou clic droit", "arrêter le tracé, annuler l'outil"],
+		["Échap (sans outil en cours)", "menu pause : le temps s'arrête ; sauvegarder, charger, options, menu principal, quitter"],
 	]],
 	["Construire (panneau de droite)", [
 		["B", "afficher ou masquer le panneau Construire (catégories en icônes, bâtiments en vignettes)"],

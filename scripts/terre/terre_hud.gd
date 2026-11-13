@@ -28,6 +28,8 @@ signal infos_requested
 signal urgences_requested
 ## Bouton « Déchets » (touche X).
 signal dechets_requested
+## Panneau « Cartes » (touche N) : pollution, bruit, valeur des terrains, autres calques.
+signal cartes_requested
 ## Bouton Admin de la barre du haut, ou F10 : réglages de la partie.
 signal admin_requested
 signal spec_edited(type_id: String, spec: Dictionary)
@@ -81,6 +83,7 @@ const CATEGORIES := [
 	{"id": "urgences", "name": "Urgences", "icon": "services", "key": "U", "panel": true},
 	{"id": "budget", "name": "Budget", "icon": "budget", "key": "M", "panel": true},
 	{"id": "dechets", "name": "Déchets", "icon": "dechets", "key": "X", "panel": true},
+	{"id": "cartes", "name": "Cartes", "icon": "cartes", "key": "N", "panel": true},
 	{"id": "murs", "name": "Murs et étages", "icon": "mur", "key": "2", "panel": true, "mode": "creer"},
 	{"id": "blocs", "name": "Blocs", "icon": "editeur", "key": "3", "panel": true, "mode": "creer"},
 	{"id": "interieur", "name": "Intérieur", "icon": "interieur", "key": "4", "panel": true, "mode": "creer"},
@@ -582,6 +585,7 @@ func _on_category(id: String) -> void:
 			"infos": infos_requested.emit()
 			"urgences": urgences_requested.emit()
 			"dechets": dechets_requested.emit()
+			"cartes": cartes_requested.emit()
 		_update_categories()
 		return
 	if create_mode and id == "observer":

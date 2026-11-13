@@ -125,6 +125,13 @@ func _ready() -> void:
 	add_to_group("rendement_sources")
 	add_to_group("budget_entretien")
 	add_to_group("budget_recettes")
+	# Panneau Cartes (N) : les deux calques y sont aussi.
+	Calques.ajouter("telecom_mobile", "Couverture mobile", "Internet et téléphone",
+		func(on: bool) -> void: set_calque("mobile" if on else ("" if calque == "mobile" else calque)),
+		"2G jaune, 4G bleu, 5G violet ; fibre en rose")
+	Calques.ajouter("telecom_debit", "Débit internet", "Internet et téléphone",
+		func(on: bool) -> void: set_calque("debit" if on else ("" if calque == "debit" else calque)),
+		"turquoise fibre, vert ADSL, orange box 4G / 5G, jaune lent, rouge rien")
 	_poteaux = _mesh_instance(false)
 	_calque_mesh = _mesh_instance(true)
 	_trace_mesh = _mesh_instance(true)

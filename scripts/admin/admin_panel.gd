@@ -43,6 +43,8 @@ var _usure: OptionButton
 var _dechets: CheckBox
 var _dechets_q: HSlider
 var _dechets_q_l: Label
+var _pollution: OptionButton
+var _pol_sante: CheckBox
 const FREQS := [0.25, 1.0, 3.0]
 ## Vitesse d'usure des voies et réseaux (budget communal).
 const USURES := [0.0, 0.5, 1.0, 2.0]
@@ -231,6 +233,16 @@ func _ready() -> void:
 	_dechets_q = c[0]
 	_dechets_q_l = c[1]
 	_row(g, "Quantité de déchets par habitant", c[2])
+	# Pollution et bruit.
+	g = _section(right, "Pollution et bruit", "cartes")
+	_pollution = OptionButton.new()
+	for n in ["Désactivée", "Faible", "Normale", "Forte"]:
+		_pollution.add_item(n)
+	_pollution.disabled = not editable
+	_pollution.item_selected.connect(func(_i: int) -> void: _changed())
+	_row(g, "Pollution (air, eau, bruit)", _pollution)
+	_pol_sante = _check("La pollution rend malade (santé, espérance de vie)")
+	g.add_child(_pol_sante)
 
 	# Pied.
 	var foot := HBoxContainer.new()
@@ -370,6 +382,8 @@ func _fill() -> void:
 	_usure.select(ui)
 	_dechets.button_pressed = reglages.dechets
 	_dechets_q.value = reglages.dechets_quantite
+	_pollution.select(clampi(reglages.pollution, 0, 3))
+	_pol_sante.button_pressed = reglages.pollution_sante
 	_filling = false
 	_update_labels()
 
@@ -397,6 +411,8 @@ func _changed() -> void:
 	reglages.usure = float(USURES[maxi(0, _usure.selected)])
 	reglages.dechets = _dechets.button_pressed
 	reglages.dechets_quantite = _dechets_q.value
+	reglages.pollution = maxi(0, _pollution.selected)
+	reglages.pollution_sante = _pol_sante.button_pressed
 	_emit()
 
 

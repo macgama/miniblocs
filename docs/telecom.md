@@ -56,7 +56,7 @@ la maison (60 % du débit mobile).
 - **Couverture mobile** : un disque par émetteur (2G jaune, 4G bleu, 5G violet).
 - **Débit internet** : une pastille sur chaque bâtiment (fibre, ADSL rapide,
   box 4G / 5G, lent, rien).
-- Les deux montrent les câbles posés (fibre en rose, cuivre en orange).
+- Les deux montrent les câbles posés (fibre en rose, cuivre en orange). On les trouve aussi dans le panneau Cartes (N), groupe « Internet et téléphone ».
 
 ## Conséquences
 

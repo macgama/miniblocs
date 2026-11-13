@@ -59,6 +59,21 @@ func _run() -> void:
 		ids.append(bid)
 		if not (looks[i] as Dictionary).is_empty():
 			bs.set_perso(bid, looks[i])
+	# Maisons modélisées dans Blender, de l'autre côté de la rue.
+	var glb := ["maison_normande", "maison_alsacienne", "victorienne", "maison_basque", "cottage_anglais"]
+	var glb_looks := [{}, {"mur": "e3a0a8"}, {"mur": "3d6fa8", "toit_c": "2a2a2a"}, {}, {"mur": "e9c46a", "volets": "2f6b4f"}]
+	var gids := []
+	if vue in ["blender", "etages"]:
+		var gx := -50
+		for i in glb.size():
+			var t := BuildingCatalog.get_type(String(glb[i]))
+			var gb := bs.place(String(glb[i]), Vector2i(gx + int(t.w) / 2, 7 + int(t.d) / 2), 0)
+			if gb < 0:
+				print("Pose impossible : ", glb[i], " ", bs.last_error if "last_error" in bs else "")
+			gx += int(t.w) + 2
+			gids.append(gb)
+			if gb >= 0 and not (glb_looks[i] as Dictionary).is_empty():
+				bs.set_perso(gb, glb_looks[i])
 	# Les chantiers se terminent.
 	amb.unix_time += 86400.0 * 60
 	for i in 30:
@@ -72,6 +87,58 @@ func _run() -> void:
 	if opened.ok:
 		BanqueModeles.save_plan(mob, String(opened.id), "Pignon meublé")
 	match vue:
+		"blender":
+			rig.position = Vector3(-26, 40.0, 14)
+			rig._distance = 46.0
+			rig._target_distance = 46.0
+			rig.rotation_degrees.y = 180.0
+			if "pitch_degrees" in rig:
+				rig.pitch_degrees = 38.0
+			var pp2: PersoPanel = scene.perso_panel
+			pp2.edit(int(gids[2]))
+		"etages":
+			var opened_g := []
+			for gb in gids:
+				if int(gb) >= 0:
+					var rr := Conversion.open_interior(mob, int(gb))
+					if rr.ok:
+						opened_g.append(String(rr.id))
+			mob.pe.flush()
+			mob.flush()
+			# Un dimanche midi : tout le monde est à la maison.
+			var jour := floori(amb.unix_time / 86400.0) + 1
+			while (jour + 3) % 7 != 6:
+				jour += 1
+			amb.unix_time = jour * 86400.0 + 12.5 * 3600.0
+			scene.population._sync_buildings()
+			for i in 120:
+				await process_frame
+			rig.position = Vector3(-26, 40.0, 14)
+			rig._distance = 40.0
+			rig._target_distance = 40.0
+			rig.rotation_degrees.y = 180.0
+			if "pitch_degrees" in rig:
+				rig.pitch_degrees = 55.0
+			for i in 10:
+				await process_frame
+			var ve: VueEtages = scene.vue_etages
+			ve.step(-1)
+			if "--rdc" in args:
+				while ve.etage > 0:
+					ve.step(-1)
+			if "--proche" in args and opened_g.size() > 2:
+				var bbp: Rect2i = mob.pe._bbox[opened_g[2]]
+				rig.position = Vector3(bbp.position.x + bbp.size.x / 2.0, 40.0, bbp.position.y + bbp.size.y / 2.0)
+				rig._distance = 17.0
+				rig._target_distance = 17.0
+				rig.rotation_degrees.y = 200.0
+				if "pitch_degrees" in rig:
+					rig.pitch_degrees = 58.0
+			for i in 40:
+				await process_frame
+			for sh in scene.occupants.shown:
+				print("  ", sh)
+			print("Plans ouverts : ", opened_g, " étage vu : ", ve.etage, " occupants : ", scene.occupants.shown.size() if "occupants" in scene else -1)
 		"rue", "panneau":
 			rig.position = Vector3(-6, 40.0, -10)
 			rig._distance = 52.0

@@ -1553,7 +1553,7 @@ func new_day() -> void:
 		var profit := float(s.get("jour", 0.0))
 		s.jour = 0.0
 		if profit > 0.0:
-			var x := profit * IMPOT_BENEFICES * ReglagesPartie.actuel.impots
+			var x := profit * IMPOT_BENEFICES * ReglagesPartie.actuel.impots * BudgetCommunal.facteur("benefices")
 			_pay(bid, "Impôt sur les bénéfices", -x)
 			s.jour = 0.0
 			tax += x
@@ -1567,6 +1567,7 @@ func new_day() -> void:
 	_book("Ventes aux habitants", gain_local)
 	_book("Salaires des entreprises", -wages)
 	_book("Impôt sur les bénéfices (pour la ville)", tax)
+	BudgetCommunal.noter("Impôt sur les bénéfices", tax)
 	if buildings != null and not buildings.unlimited_money:
 		_money_frac += tax
 		var whole := int(_money_frac)

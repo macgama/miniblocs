@@ -206,7 +206,7 @@ static func build_mesh(id: String, material: Material = null, details := true, v
 	if t.has("glb") and t.has("stade"):
 		return Stades.build_mesh(t)
 	if t.has("glb"):
-		return BibleGlb.build_mesh(id, material, details, variant)
+		return BibleGlb.build_mesh(id, material, details, variant, perso)
 	if t.has("boutique_eco"):
 		CommercesTypes.build(k, id, t)
 		k.fit_xz(w, d)

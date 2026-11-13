@@ -108,8 +108,10 @@ func refresh() -> void:
 	_label("Les changements ne touchent que ce bâtiment. Ils sont gardés dans la partie.", true, 12)
 	# --- Couleurs ---------------------------------------------------------------------
 	_section("Couleurs")
-	for key in Personnalisation.COLOR_ORDER:
+	for key in Personnalisation.color_keys(tid):
 		_color_row(String(key), tid, perso)
+	if Personnalisation.is_glb(tid):
+		_label("Bâtiment modélisé dans Blender : ses couleurs se changent, sa forme reste celle du modèle.", true, 11)
 	# --- Forme --------------------------------------------------------------------------
 	if Personnalisation.can_shape(tid):
 		_section("Forme")
@@ -244,7 +246,7 @@ func _same_model() -> Array:
 func _color_row(key: String, tid: String, perso: Dictionary) -> void:
 	var cur := Personnalisation.color_of(tid, _variant(), perso, key)
 	var head := HBoxContainer.new()
-	var l := _small(String(Personnalisation.COLORS[key][0]))
+	var l := _small(Personnalisation.color_label(tid, key))
 	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	head.add_child(l)
 	var pick := ColorPickerButton.new()

@@ -125,6 +125,47 @@ func _run() -> void:
 	future["version"] = 99
 	_check(BanqueModeles.import_data(future) == "", "un modèle d'une version plus récente est refusé")
 
+	print("Bâtiments Blender :")
+	var gid := "maison_normande"
+	_check(Personnalisation.can_customize(gid) and not Personnalisation.can_shape(gid), "maison Blender : couleurs réglables, forme fixe")
+	_check(Personnalisation.color_keys(gid).has("mur") and Personnalisation.color_keys(gid).has("toit_c"), "murs et toit réglables (%s)" % str(Personnalisation.color_keys(gid)))
+	var g1 := bs.place(gid, Vector2i(60, -40), 0)
+	var g2 := bs.place(gid, Vector2i(60, -20), 0)
+	_check(g1 >= 0 and g2 >= 0, "deux maisons normandes posées")
+	if g1 >= 0 and g2 >= 0:
+		bs.set_perso(g1, {"mur": "3d6fa8", "toit_c": "2f6b4f"})
+		var cols := (bs.node_of(g1).mesh as ArrayMesh).surface_get_arrays(0)[Mesh.ARRAY_COLOR] as PackedColorArray
+		var cols0 := (bs.node_of(g2).mesh as ArrayMesh).surface_get_arrays(0)[Mesh.ARRAY_COLOR] as PackedColorArray
+		_check(cols != cols0 and Personnalisation.color_of(gid, 0, bs.perso_of(g1), "mur").to_html(false) == "3d6fa8", "murs repeints en bleu")
+		var vol := BibleGlb.volume(gid)
+		_check(not vol.is_empty() and float(vol.w) > 6.0 and float(vol.w) < 16.0, "volume lu dans le modèle (%s)" % str(vol))
+		_check(Conversion.can_open(gid), "la maison Blender s'ouvre")
+		var rg := Conversion.open_interior(mob, g1)
+		_check(rg.ok and not bs.buildings.has(g1), "intérieur ouvert : %s" % str(rg))
+		if rg.ok:
+			var gp := String(rg.id)
+			_check(mob.plan_name(gp) == "Maison normande" and (mob.items.get(gp, {}) as Dictionary).size() > 8, "meublée, nom gardé")
+	var nb_open := 0
+	for id in BibleGlb.entries():
+		if Conversion.can_open(String(id)):
+			nb_open += 1
+	_check(nb_open >= 40, "%d bâtiments Blender ouvrables" % nb_open)
+	_check(not Conversion.can_open("cathedrale_gothique"), "une cathédrale ne s'ouvre pas")
+
+	print("Vue par étage :")
+	var rig: Node3D = scene.get_node("CameraRig")
+	var bb0: Rect2i = mob.pe._bbox[pid]
+	rig.global_position = Vector3(bb0.position.x + bb0.size.x / 2.0, rig.global_position.y, bb0.position.y + bb0.size.y / 2.0)
+	mob.pe.set_tool(PlanEditor.Tool.NONE)
+	var ve: VueEtages = scene.vue_etages
+	ve.step(-1)
+	mob.pe.flush()
+	_check(ve.etage == 0 and not (mob.pe._nodes[pid][1] as Node3D).visible and (mob.pe._nodes[pid][0] as Node3D).visible,
+		"Page bas : l'étage du haut disparaît")
+	_check(scene.get_node("Blocs").clips.size() >= 1, "le toit est coupé aussi")
+	ve.step(1)
+	_check(ve.etage == -1 and (mob.pe._nodes[pid][1] as Node3D).visible and scene.get_node("Blocs").clips.is_empty(), "Page haut : tout revient")
+
 	print("Panneaux :")
 	var perso: PersoPanel = scene.perso_panel
 	perso.edit(a)

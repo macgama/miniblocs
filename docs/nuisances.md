@@ -95,3 +95,9 @@ son quartier de 8 % par jour de jeu : un quartier « prend » ou « perd » de l
 
 Le registre `Calques` est une classe statique : depuis un script qui ne doit pas dépendre de ce fichier,
 `if ResourceLoader.exists("res://scripts/interface/calques.gd"): load("res://scripts/interface/calques.gd").ajouter(…)`.
+
+## Aperçus
+
+![Air pollué autour de l'aciérie](apercu-nuisances-air.png)
+![Bruit la nuit le long de l'autoroute](apercu-nuisances-bruit-nuit.png)
+![Valeur du terrain : cher près du parc et de la forêt, bon marché près des usines et de l'autoroute](apercu-nuisances-valeur.png)

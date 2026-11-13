@@ -29,6 +29,7 @@ L'écran a une barre en haut (lieu, partie, heure et vitesse du temps, chiffres 
 | Transports publics | **L** (stations, gares, ports, aéroports, lignes) |
 | Habitants | **H** (la ville en chiffres, liste des habitants, budget) ; clic sur un bâtiment avec l'outil 1 |
 | Habitants au travail | **K** vue métiers (zoome sur un commerce, une école, un hôpital : il s'ouvre en coupe), **Maj + K** coupe automatique oui/non |
+| Internet et téléphone | **Maj + O** (antennes 2G / 4G / 5G, central, cuivre, fibre, calques de couverture et de débit) |
 | Temps | **T** pause, **Maj + T** vitesse suivante |
 | Vue au sol | **V** (dessus, 3e personne, 1re personne) |
 | Sauvegarder / recharger | **F5** / **F9** ; icônes Sauver, Charger (liste des parties) et Globe en haut à gauche |
@@ -396,6 +397,11 @@ Touche **H** : la ville en chiffres, la liste des habitants (filtre et recherche
 
 Détails : [docs/habitants.md](docs/habitants.md).
 
+## Internet et téléphone : antennes, cuivre et fibre
+
+Antennes relais 2G, 4G et 5G (portées réelles, saturation quand trop d'abonnés), central téléphonique dont le cuivre suit les routes (ADSL de plus en plus lent avec la distance), fibre posée rue par rue ou sur poteaux jusqu'aux fermes. Sans internet ni réseau mobile, les habitants sont moins satisfaits et les entreprises produisent moins (réglage Admin pour couper). Détails : [docs/telecom.md](docs/telecom.md).
+
+![Calque de couverture mobile : pylône 4G et petite antenne 5G](docs/apercu-telecom-couverture.png)
 ## Budget de la commune : impôts, emprunts, entretien des voies
 
 Touche **M** : le maire vote la taxe foncière, l'impôt des entreprises et l'impôt sur les bénéfices (0 à 200 %, les habitants râlent quand c'est haut), emprunte de 100 k€ à 20 M€ sur 5 à 30 ans, et règle l'entretien de chaque réseau. Routes, rails, chemins et voies d'eau **s'usent** avec l'âge et le trafic (les camions surtout) : sous 50 %, nids-de-poule et véhicules ralentis, à 0 % la voie ferme. Les réfections sont des chantiers visibles. Caisse dans le rouge 90 jours : le préfet met la ville sous tutelle.

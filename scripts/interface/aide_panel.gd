@@ -110,6 +110,15 @@ const SECTIONS := [
 		["Équipages", "un véhicule ne part que si son équipage est de garde aujourd'hui (employés du bâtiment) ; l'ambulance passe par l'hôpital avant de rentrer"],
 		["Appel d'essai ici", "bouton du panneau : un appel au hasard près de la caméra, pour voir partir les secours"],
 	]],
+	["Internet et téléphone", [
+		["Maj + O", "panneau Internet et téléphone (aussi en onglet « Télécom » du panneau Réseaux, O) : outils des câbles, calques, bâtiment survolé, bilan"],
+		["Construire → Services", "pylône 2G (7 km), pylône 4G (2,5 km), pylône 4G + 5G, petite antenne 5G (450 m), central téléphonique, nœud de la fibre"],
+		["Cuivre", "toutes les routes reliées à un central portent le téléphone et l'ADSL : 20 Mb/s près du central, de moins en moins jusqu'à 5 km"],
+		["Fibrer une rue", "clic sur une route : la fibre (1 Gb/s) suit toute la rue ; elle doit toucher un central ou un nœud optique"],
+		["Fibre ou téléphone sur poteaux", "un clic par point, Échap ou clic droit pour finir : pour les fermes et hameaux loin des routes"],
+		["Calques", "couverture mobile (disques 2G, 4G, 5G) ou débit de chaque bâtiment (fibre, ADSL, box 4G / 5G, lent, rien)"],
+		["Conséquences", "sans internet ni réseau mobile, les habitants sont moins satisfaits et les entreprises produisent moins (bureaux surtout) ; une antenne trop chargée sature. Réglage Admin (F10) pour couper"],
+	]],
 	["Déchets", [
 		["X", "panneau Déchets : ce que la ville jette et recycle, poubelles qui débordent (clic : y aller), installations, bennes en tournée"],
 		["Construire → Déchets", "dépôt de collecte (4 bennes), déchèterie, centre de tri, usine de recyclage, compost, décharge, incinérateur (électricité)"],

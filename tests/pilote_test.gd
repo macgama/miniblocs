@@ -110,7 +110,7 @@ func _run() -> void:
 	_check(bs.buildings.size() == n_bat, "pas de bâtiment sans argent")
 
 	print("Mairie perdue :")
-	var el := scene.avis.elections_de(v1)
+	var el: Elections = scene.avis.elections_de(v1)
 	el.forcer_mode = "mairie"
 	el.maire = {"joueur": false, "nom": "Autre liste", "tendance": "ecologie"}
 	_check(pa.semaine(v1) == "", "le pilote ne décide plus pour une ville perdue")

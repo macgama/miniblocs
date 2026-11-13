@@ -170,7 +170,8 @@ func village_de(bid: int) -> int:
 	if buildings == null or not buildings.buildings.has(bid):
 		return -1
 	var v := village_du_batiment(bid)
-	bat_village[bid] = v
+	if v >= 0:
+		bat_village[bid] = v
 	return v
 
 

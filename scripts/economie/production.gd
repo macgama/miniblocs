@@ -25,6 +25,8 @@ extends Node
 
 signal changed
 signal message(text: String)
+## Une tonne extraite d'un site (les carrières creusent le terrain d'autant).
+signal extrait(bid: int, res: String, t: float)
 
 ## Stock maximal d'un entrepôt (t, toutes marchandises).
 const STOCK_ENTREPOT := 20000.0
@@ -114,6 +116,9 @@ var _dem_today: Dictionary = {}
 var _waiting_driver := 0
 ## Marchandises commandées au dernier pas de logistique.
 var _wanted: Dictionary = {}
+## Règle facultative des sites d'extraction (Carrieres) : bid -> raison qui
+## empêche d'extraire, "" si tout va bien.
+var extraction_gate: Callable
 
 
 func _init() -> void:
@@ -650,6 +655,11 @@ func step_hours(h: float) -> void:
 			continue
 		var prod: Dictionary = t.prod
 		if kind == "extraction":
+			if extraction_gate.is_valid():
+				var why: String = extraction_gate.call(bid)
+				if why != "":
+					s.status = why
+					continue
 			if String(s.res) == "":
 				s.status = "Lecture du sol…" if float(s.rich) < 0.0 else "Aucune ressource ici"
 				continue
@@ -673,6 +683,7 @@ func step_hours(h: float) -> void:
 					message.emit("%s : gisement de %s épuisé." % [t.name, Ressources.naturelle(s.res).name.to_lower()])
 			_put(bid, good, amount)
 			_flow(good, amount, "prod")
+			extrait.emit(bid, String(s.res), amount)
 			s.work = float(s.get("work", 0.0)) + staff * frac
 			s.eff = staff
 			s.status = "En activité" if staff >= 0.999 else "En activité (%d %% des emplois pourvus)" % roundi(staff * 100.0)

@@ -84,6 +84,18 @@ func deposit(res: String, lat: float, lon: float) -> float:
 	return best
 
 
+## Part d'une roche (calcaire, granite) dans le sous-sol au point (lat, lon) :
+## forte dans les grandes régions réelles, plus faible ailleurs.
+func lithologie(res: String, lat: float, lon: float) -> float:
+	var best := 0.0
+	for p in region_provinces():
+		if p.res == res:
+			best = maxf(best, GisementsMonde.weight(p, lat, lon) * (0.7 + 0.3 * _field(res, lat, lon, 8.0)))
+	if GisementsMonde.FOND.has(res):
+		best = maxf(best, float(GisementsMonde.FOND[res][0]) * (0.4 + 0.6 * _field(res + "/fond", lat, lon, 6.0)))
+	return clampf(best, 0.0, 1.0)
+
+
 # --- Échantillonnage -----------------------------------------------------------------
 
 ## Relevé du terrain sur une grille de nx × nz points espacés de `step` m, le
@@ -230,6 +242,17 @@ func evaluate(res: String, env: Dictionary) -> PackedFloat32Array:
 						if code == 90 or _near_water(env, i, j):
 							v += 0.35
 						v *= 0.4 + 0.6 * _field("argile", lats[j], lons[i], 5.0)
+				"calcaire", "granite":
+					if not water:
+						# Nature de la roche (province réelle), puis affleurement : versants,
+						# roche nue, montagne.
+						v = lithologie(res, lats[j], lons[i])
+						var aff := 0.45 + clampf(s * 1.2, 0.0, 0.4)
+						if code == 60:
+							aff += 0.15
+						if hh > 800.0:
+							aff += 0.1
+						v *= minf(aff, 1.0)
 				_:
 					if deep:
 						# Les gisements en mer ne servent qu'aux hydrocarbures.

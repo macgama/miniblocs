@@ -22,19 +22,26 @@ const TYPES := {
 	"exploitation_forestiere": {"name": "Exploitation forestière", "w": 30, "d": 24, "access": RP, "emplois": 12, "cost": 600_000,
 		"prod": {"kind": "extraction", "res": {"bois": 40.0}, "radius": 250.0, "min": 0.15},
 		"desc": "Bûcherons, débardeuses et piles de grumes. À poser dans ou près d'une forêt."},
-	"carriere": {"name": "Carrière", "w": 44, "d": 44, "access": ROAD, "emplois": 15, "cost": 1_500_000,
-		"prod": {"kind": "extraction", "res": {"pierre": 300.0}, "radius": 40.0, "min": 0.15},
-		"desc": "Fosse en gradins, concasseur et tas de granulats. Meilleure sur roche et en montagne."},
-	"sabliere": {"name": "Sablière", "w": 32, "d": 32, "access": ROAD, "emplois": 8, "cost": 800_000,
+	"carriere": {"name": "Carrière", "w": 44, "d": 30, "access": ROAD, "emplois": 15, "cost": 1_500_000,
+		"prod": {"kind": "extraction", "res": {"pierre": 300.0, "calcaire": 300.0, "granite": 90.0}, "radius": 40.0, "min": 0.15},
+		"desc": "Concasseur, cribles, tas de granulats et pont-bascule. La fosse en gradins se creuse à côté, dans le périmètre d'extraction. Granulats, calcaire ou granite selon la roche."},
+	"sabliere": {"name": "Sablière et gravière", "w": 32, "d": 24, "access": ROAD, "emplois": 8, "cost": 800_000,
 		"prod": {"kind": "extraction", "res": {"sable": 200.0}, "radius": 60.0, "min": 0.15},
-		"desc": "Sable et graviers, au bord d'une rivière, d'une plage ou dans le désert."},
-	"argiliere": {"name": "Carrière d'argile", "w": 32, "d": 32, "access": ROAD, "emplois": 8, "cost": 700_000,
+		"desc": "Crible, laveuse et tas de sable. La fosse peu profonde se creuse à côté : au bord d'une rivière, d'une plage ou dans le désert."},
+	"argiliere": {"name": "Carrière d'argile", "w": 28, "d": 22, "access": ROAD, "emplois": 8, "cost": 700_000,
 		"prod": {"kind": "extraction", "res": {"argile": 150.0}, "radius": 40.0, "min": 0.15},
-		"desc": "Argile des plaines basses et des zones humides."},
-	"mine": {"name": "Mine", "w": 40, "d": 36, "access": ROAD, "emplois": 60, "cost": 8_000_000,
+		"desc": "Hangar et tas d'argile. La fosse se creuse à côté, dans les plaines basses et les zones humides."},
+	"mine_ciel_ouvert": {"name": "Mine à ciel ouvert", "w": 50, "d": 40, "access": ROAD, "emplois": 120, "cost": 25_000_000,
+		"prod": {"kind": "extraction", "res": {"fer": 1200.0, "charbon": 1500.0, "cuivre": 800.0, "or": 150.0, "bauxite": 1000.0},
+			"radius": 80.0, "min": 0.15},
+		"desc": "Grande fosse en gradins de 10 m, pelles géantes, tombereaux et verse à stériles. Plus de minerai qu'une mine souterraine, mais il faut un gisement proche de la surface."},
+	"mine": {"name": "Mine souterraine", "w": 40, "d": 36, "access": ROAD, "emplois": 60, "cost": 8_000_000,
 		"prod": {"kind": "extraction", "res": {"fer": 400.0, "charbon": 400.0, "cuivre": 250.0, "or": 80.0, "bauxite": 300.0},
 			"radius": 60.0, "reserve": 600_000.0, "min": 0.08},
-		"desc": "Chevalement, terril et bâtiments. Extrait le meilleur minerai du sous-sol (fer, charbon, cuivre, or, bauxite)."},
+		"desc": "Chevalement, galeries et bâtiments. Extrait le meilleur minerai du sous-sol (fer, charbon, cuivre, or, bauxite) ; les stériles montent en terril à côté."},
+	"mine_sel": {"name": "Mine de sel", "w": 36, "d": 30, "access": ROAD, "emplois": 30, "cost": 6_000_000,
+		"prod": {"kind": "extraction", "res": {"sel": 500.0}, "radius": 60.0, "reserve": 1_500_000.0, "min": 0.1},
+		"desc": "Puits, salles de sel et hangar de stockage. Sel de cuisine pour l'industrie alimentaire et sel de déneigement pour les routes."},
 	"puits": {"name": "Puits de pétrole ou de gaz", "w": 16, "d": 20, "access": ROAD, "emplois": 6, "cost": 3_000_000,
 		"prod": {"kind": "extraction", "res": {"petrole": 80.0, "gaz": 60.0}, "radius": 40.0, "reserve": 400_000.0, "min": 0.08},
 		"desc": "Chevalet de pompage, citernes et torchère. Au-dessus d'un gisement de pétrole ou de gaz."},
@@ -82,8 +89,8 @@ const TYPES := {
 		"prod": {"kind": "transformation", "in": {"argile": 100.0}, "out": {"briques": 85.0}},
 		"desc": "Argile → briques et tuiles, cuites au four."},
 	"cimenterie": {"name": "Cimenterie", "w": 44, "d": 36, "access": ROAD, "emplois": 40, "cost": 15_000_000,
-		"prod": {"kind": "transformation", "in": {"pierre": 250.0}, "out": {"ciment": 160.0}},
-		"desc": "Calcaire → ciment, dans un four rotatif."},
+		"prod": {"kind": "transformation", "in": {"calcaire": 200.0, "argile": 50.0}, "out": {"ciment": 160.0}},
+		"desc": "Calcaire et argile → clinker → ciment, dans un four rotatif."},
 	"fonderie_cuivre": {"name": "Fonderie de cuivre", "w": 44, "d": 36, "access": ROAD, "emplois": 60, "cost": 20_000_000,
 		"prod": {"kind": "transformation", "in": {"minerai_cuivre": 200.0}, "out": {"cuivre": 2.0}},
 		"desc": "Minerai à 1 % → cuivre pur."},
@@ -100,8 +107,8 @@ const TYPES := {
 		"prod": {"kind": "transformation", "in": {"betteraves": 30.0}, "out": {"sucre": 4.5}},
 		"desc": "Betteraves → sucre."},
 	"usine_agro": {"name": "Usine agroalimentaire", "w": 44, "d": 34, "access": ROAD, "emplois": 60, "cost": 7_000_000,
-		"prod": {"kind": "transformation", "in": {"farine": 2.0, "sucre": 0.5, "fruits_legumes": 1.5, "laitages": 0.5}, "out": {"epicerie": 6.0}},
-		"desc": "Farine, sucre, légumes et laitages → pâtes, conserves, biscuits, plats préparés."},
+		"prod": {"kind": "transformation", "in": {"farine": 2.0, "sucre": 0.5, "fruits_legumes": 1.5, "laitages": 0.5, "sel": 0.1}, "out": {"epicerie": 6.0}},
+		"desc": "Farine, sucre, légumes, laitages et sel → pâtes, conserves, biscuits, plats préparés."},
 	"brasserie": {"name": "Brasserie et eaux minérales", "w": 36, "d": 28, "access": ROAD, "emplois": 25, "cost": 5_000_000,
 		"prod": {"kind": "transformation", "in": {"cereales": 1.0, "sucre": 0.3, "verre": 1.0}, "out": {"boissons": 8.0}},
 		"desc": "Eau de source, orge et sucre, mis en bouteilles : eaux, sodas, bières."},
@@ -140,7 +147,7 @@ const TYPES := {
 }
 ## Ordre dans le panneau : de la ressource brute au produit fini.
 const ORDER := ["exploitation_forestiere", "ferme_cereales", "ferme_maraichere", "ferme_betteraves", "ferme_fibres",
-	"elevage", "ferme_laitiere", "port_peche", "carriere", "sabliere", "argiliere", "mine", "puits",
+	"elevage", "ferme_laitiere", "port_peche", "carriere", "sabliere", "argiliere", "mine_ciel_ouvert", "mine", "mine_sel", "puits",
 	"scierie", "moulin", "fournil", "abattoir", "laiterie", "sucrerie", "usine_agro", "brasserie",
 	"briqueterie", "cimenterie", "verrerie", "papeterie", "acierie", "fonderie_cuivre", "aluminerie", "raffinerie",
 	"usine_chimique", "menuiserie", "usine_textile", "usine_hygiene", "labo_pharma", "usine_biens",
@@ -197,28 +204,63 @@ static func build(k: BlocMesh, id: String, t: Dictionary) -> void:
 				k.tree(x, 9.0, 1.3, Color("2d6a4f"))
 				k.tree(x * 0.6, 10.0, 1.1, Color("40916c"))
 		"carriere":
+			# Installations : concasseur, convoyeur, cribles, tas de granulats,
+			# pont-bascule et bureaux. La fosse est creusée à côté (Carrieres).
 			k.plate(0, 0, w, d, GRAVIER)
-			# Fosse en gradins (vue comme des terrasses de plus en plus petites).
-			for i in 3:
-				k.plate(4, 4, 28.0 - i * 7.0, 28.0 - i * 7.0, Color("a39e93").darkened(i * 0.08), 0.0, 0.12 + i * 0.05)
-			k.box(-16, 0, -14, 6, 6, 6, ACIER)
-			k.box(-16, 6, -14, 3, 3, 3, TOLE)
-			k.pyramid(-12, 0, 14, 10, 10, 6, Color("d6ccc2"))
-			k.pyramid(-17, 0, 6, 7, 7, 4, Color("bfb3a5"))
-			k.box(10, 0, -16, 6, 2.6, 3, Color("f4a261"))
+			k.box(-14, 0, -6, 7, 5, 7, ACIER)
+			k.box(-14, 5, -6, 8, 2.5, 5, Color("f4a261"))
+			k.box(-14, 7.5, -6, 3, 1.5, 3, TOLE)
+			k.box(-6, 4.5, -6, 10, 0.6, 1.2, Color("495057"))
+			k.box(1, 0, -6, 5, 6, 4, ACIER)
+			k.box(1, 6, -6, 5.6, 1.2, 4.6, TOLE)
+			k.pyramid(-6, 0, 7, 9, 9, 5, Color("d6ccc2"))
+			k.pyramid(4, 0, 7, 8, 8, 4.5, Color("bfb3a5"))
+			k.pyramid(13, 0, 7, 7, 7, 3.5, Color("e9e4c9"))
+			k.plate(14, -9, 4, 12, Color("495057"), 0.0, 0.2)
+			k.box(14, 0, -2, 3, 3, 3, Color("e9ecef"))
+			k.box(-17, 0, 9, 7, 3, 4, Color("e9ecef"))
+			k.box(-17, 3, 9, 7.4, 0.3, 4.4, Color("6c757d"))
 		"sabliere":
 			k.plate(0, 0, w, d, Color("e6d3a3"))
-			k.plate(4, 6, 16, 14, Color("6c9bc0"), 0.0, 0.1)
-			k.pyramid(-8, 0, -6, 10, 10, 5, Color("f4d58d"))
-			k.pyramid(6, 0, -8, 8, 8, 4, Color("cbbf9f"))
-			k.box(-10, 0, 8, 5, 3, 3, Color("f4a261"))
-			k.box(-4, 0, 10, 1.2, 6, 1.2, ACIER)
+			k.box(-8, 0, -4, 6, 4, 4, ACIER)
+			k.box(-8, 4, -4, 7, 1.6, 5, Color("f4a261"))
+			k.box(-2, 3.2, -4, 7, 0.5, 1.0, Color("495057"))
+			k.pyramid(5, 0, -4, 8, 8, 4, Color("f4d58d"))
+			k.pyramid(5, 0, 6, 7, 7, 3.5, Color("cbbf9f"))
+			k.plate(-8, 7, 8, 6, Color("6c9bc0"), 0.0, 0.1)
+			k.box(12, 0, 8, 4, 3, 3, Color("e9ecef"))
 		"argiliere":
 			k.plate(0, 0, w, d, Color("b07d50"))
-			k.plate(3, 4, 18, 16, Color("8a5a35"), 0.0, 0.14)
-			k.pyramid(-9, 0, -8, 9, 9, 4, Color("bc6c25"))
-			k.box(9, 0, -10, 6, 3, 4, Color("f4a261"))
-			k.box(-10, 0, 9, 8, 3.5, 6, TOLE)
+			k.pyramid(-6, 0, -4, 9, 9, 4, Color("bc6c25"))
+			k.pyramid(3, 0, 5, 7, 7, 3, Color("a0522d"))
+			k.box(8, 0, -5, 8, 3.5, 7, TOLE)
+			k.gable(8, 3.5, -5, 8.6, 7.6, 1.8, Color("6c757d"))
+			k.box(-9, 0, 7, 4, 3, 3, Color("e9ecef"))
+		"mine_ciel_ouvert":
+			k.plate(0, 0, w, d, Color("8d7f6e"))
+			# Concasseur primaire, convoyeur, silo de chargement, atelier des engins.
+			k.box(-16, 0, -8, 9, 8, 9, ACIER)
+			k.box(-16, 8, -8, 10, 3, 7, Color("f4a261"))
+			k.box(-6, 6, -8, 14, 0.8, 1.6, Color("495057"))
+			k.cylinder(4, 0, -8, 4, 4, 14, 12, Color("adb5bd"))
+			k.cylinder(4, 14, -8, 4.2, 0.6, 3, 12, Color("6c757d"))
+			k.box(14, 0, -8, 14, 9, 12, TOLE)
+			k.gable(14, 9, -8, 14.6, 12.6, 3, Color("5b5f66"))
+			k.pyramid(-12, 0, 11, 14, 12, 7, Color("6b4f3a"))
+			k.box(10, 0, 12, 10, 3.5, 6, Color("e9ecef"))
+			k.box(10, 3.5, 12, 10.4, 0.3, 6.4, Color("6c757d"))
+		"mine_sel":
+			k.plate(0, 0, w, d, Color("b7b2a8"))
+			for sx in [-1.0, 1.0]:
+				for sz in [-1.0, 1.0]:
+					k.box(-8 + sx * 2.2, 0, -5 + sz * 2.2, 0.5, 18, 0.5, ACIER)
+			k.box(-8, 18, -5, 5.4, 0.9, 5.4, ACIER)
+			k.cylinder(-8, 19, -7, 1.8, 1.8, 0.4, 10, TOLE_ROUGE)
+			k.box(-8, 0, -5, 6, 4, 6, BRIQUE)
+			# Grand hangar en dôme où l'on stocke le sel.
+			k.box(7, 0, 3, 16, 4, 18, BETON)
+			k.gable(7, 4, 3, 16.6, 18.6, 6, Color("d9d9d9"), false)
+			k.pyramid(7, 0, -11, 8, 6, 3, Color("f8f9fa"))
 		"mine":
 			k.plate(0, 0, w, d, Color("7f7a73"))
 			# Chevalement (tour en treillis) et ses molettes.

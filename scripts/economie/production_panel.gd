@@ -5,12 +5,16 @@ extends CanvasLayer
 ## stock et leur caisse) et camions de livraison.
 
 signal focus_requested(pos: Vector3)
+## Outil des carrières demandé : "perimetre" (pour le site bid) ou "sondage".
+signal outil_carriere(mode: String, bid: int)
 
 const W := 348.0
 const H := 560.0
 
 var prod: Production
 var overlay: RessourcesOverlay
+## Carrières et mines (onglet Mines), facultatif.
+var carrieres: Carrieres
 ## Point autour duquel on mesure les ressources (pivot de la caméra).
 var focus: Node3D
 var _panel: PanelContainer
@@ -57,7 +61,7 @@ func _build() -> void:
 	head.add_child(x)
 	var tabs := HBoxContainer.new()
 	outer.add_child(tabs)
-	for spec in [["Ressources", "ressources", "ressources"], ["Stocks", "stocks", "budget"], ["Sites", "sites", "industrie"], ["Camions", "camions", "vehicules"]]:
+	for spec in [["Ressources", "ressources", "ressources"], ["Stocks", "stocks", "budget"], ["Sites", "sites", "industrie"], ["Camions", "camions", "vehicules"], ["Mines", "mines", "creuser"]]:
 		var b := Button.new()
 		b.text = spec[0]
 		b.icon = Icones.get_icon(spec[2], 18)
@@ -127,6 +131,8 @@ func refresh() -> void:
 			_view_sites()
 		"camions":
 			_view_trucks()
+		"mines":
+			_view_mines()
 		_:
 			_view_resources()
 
@@ -464,3 +470,124 @@ func _view_trucks() -> void:
 		_text("%s → %s" % [prod.place_name(int(m.from), int(m.gw)), prod.place_name(int(m.to), int(m.gw))], false, 13)
 		_text("    %s · %s · %s, %s · %.1f km" % [", ".join(goods), String(VehicleCatalog.get_type(String(m.model)).get("name", m.model)),
 			who, state, float(m.km)], true, 11)
+
+
+# --- Vue « Mines » : carrières, fosses, verses, sondages ----------------------------------------
+
+func _button(t: String, cb: Callable, parent: Control = null) -> Button:
+	var b := Button.new()
+	b.text = t
+	b.focus_mode = Control.FOCUS_NONE
+	b.add_theme_font_size_override("font_size", 12)
+	b.pressed.connect(cb)
+	(parent if parent != null else _body).add_child(b)
+	return b
+
+
+func _view_mines() -> void:
+	_title.text = "Production · carrières et mines"
+	if carrieres == null:
+		_text("Carrières indisponibles.", true)
+		return
+	_text("Chaque tonne extraite creuse la fosse en gradins ; les stériles montent en verse. La réserve, c'est la roche du périmètre jusqu'à la profondeur maximale.", true, 12)
+	var top := HBoxContainer.new()
+	_body.add_child(top)
+	_button("Faire un sondage (%s)" % BuildingSystem.format_money(ReglagesPartie.prix(Carrieres.SONDAGE_PRIX)),
+		func() -> void: outil_carriere.emit("sondage", -1), top)
+	var ids := carrieres.sites.keys()
+	ids.sort()
+	if ids.is_empty():
+		_section("Sites")
+		_text("Aucune carrière ni mine. Construire (B) → Production : carrière, sablière et gravière, carrière d'argile, mine à ciel ouvert, mine souterraine, mine de sel.", true)
+	else:
+		_section("Sites")
+	for bid in ids:
+		var inf := carrieres.info(int(bid))
+		if inf.is_empty():
+			continue
+		_mine_card(inf)
+	if not carrieres.sondages.is_empty():
+		_section("Sondages")
+		var now := carrieres.ambiance.unix_time if carrieres.ambiance != null else 0.0
+		for i in range(carrieres.sondages.size() - 1, -1, -1):
+			var sd: Dictionary = carrieres.sondages[i]
+			var b := Button.new()
+			b.flat = true
+			b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+			b.focus_mode = Control.FOCUS_NONE
+			b.add_theme_font_size_override("font_size", 12)
+			var pos := Vector3(float(sd.x), 0, float(sd.z))
+			if (sd.res as Dictionary).is_empty():
+				b.text = "↗ Forage en cours, encore %.1f jour(s)" % maxf((float(sd.fin) - now) / 86400.0, 0.0)
+			else:
+				b.text = "↗ " + Carrieres.resume_sondage(sd)
+			b.pressed.connect(func() -> void: focus_requested.emit(pos))
+			_body.add_child(b)
+
+
+func _mine_card(inf: Dictionary) -> void:
+	var b := Button.new()
+	b.flat = true
+	b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	b.focus_mode = Control.FOCUS_NONE
+	b.text = "%s  ↗" % inf.name
+	b.add_theme_font_size_override("font_size", 14)
+	b.add_theme_color_override("font_color", Color("a8dadc"))
+	var pos: Vector3 = inf.pos
+	b.pressed.connect(func() -> void: focus_requested.emit(pos))
+	_body.add_child(b)
+	var st := _text(String(inf.status), true, 12)
+	if String(inf.status).begins_with("Pas de place") or String(inf.status).contains("pauvre") or String(inf.status).contains("épuisé"):
+		st.add_theme_color_override("font_color", Color("ff9f80"))
+	var line := ""
+	if inf.has("res"):
+		line = "%s : richesse %d %%" % [inf.res, roundi(float(inf.rich) * 100.0)]
+	if inf.has("reserve"):
+		line += " · reste %s" % Ressources.format_t(float(inf.reserve))
+		if float(inf.par_jour) > 0.0:
+			var days := float(inf.reserve) / float(inf.par_jour)
+			line += " (%s au rythme actuel)" % (("%.1f ans" % (days / 365.0)) if days > 365.0 else ("%d jours" % roundi(days)))
+	if line != "":
+		_text(line, true, 11)
+	if inf.has("rect"):
+		var r: Rect2i = inf.rect
+		var row := HBoxContainer.new()
+		_body.add_child(row)
+		var l := Label.new()
+		l.text = "Fosse"
+		l.custom_minimum_size = Vector2(74, 0)
+		l.add_theme_font_size_override("font_size", 12)
+		row.add_child(l)
+		_bar(row, float(inf.part), Color("c2b8a3"))
+		var w := Label.new()
+		w.text = "%d %%" % roundi(float(inf.part) * 100.0)
+		w.add_theme_font_size_override("font_size", 12)
+		row.add_child(w)
+		_text("Périmètre %d × %d m · profondeur %.0f m sur %.0f · gradin %d sur %d" % [r.size.x, r.size.y,
+			float(inf.prof), float(inf.prof_max), int(inf.gradin), int(inf.gradins)], true, 11)
+	if inf.has("verse_h"):
+		_text(("Terril" if not bool(inf.fosse) else "Verse à stériles") + " : %.0f m de haut, pleine à %d %%" % [float(inf.verse_h), roundi(float(inf.verse_part) * 100.0)], true, 11)
+	if not bool(inf.fosse):
+		return
+	var bid := int(inf.bid)
+	var acts := HBoxContainer.new()
+	_body.add_child(acts)
+	_button("Nouveau périmètre", func() -> void: outil_carriere.emit("perimetre", bid), acts)
+	if String(inf.fin) != "" or not inf.has("rect"):
+		return
+	var fin := HBoxContainer.new()
+	_body.add_child(fin)
+	var lab := Label.new()
+	lab.text = "Réaménager :"
+	lab.add_theme_font_size_override("font_size", 12)
+	fin.add_child(lab)
+	for spec in [["Plan d'eau", "lac"], ["Remblai", "remblai"], ["Laisser", "laisser"]]:
+		var kind: String = spec[1]
+		var bt := _button(spec[0], func() -> void:
+			var why := carrieres.reamenager(bid, kind)
+			if why != "":
+				carrieres.message.emit(why)
+			refresh(), fin)
+		bt.tooltip_text = {"lac": "Le fond se remplit d'eau : baignade, pêche (%s)." % BuildingSystem.format_money(Carrieres.LAC_PRIX),
+			"remblai": "La fosse est comblée et redevient prairie (%s le m³)." % BuildingSystem.format_money(int(Carrieres.REMBLAI_M3)),
+			"laisser": "On ferme le site et on laisse la fosse telle quelle (gratuit)."}[kind]

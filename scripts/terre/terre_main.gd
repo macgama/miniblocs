@@ -26,6 +26,8 @@ var habitants_panel: HabitantsPanel
 var production: Production
 var production_panel: ProductionPanel
 var resource_overlay: RessourcesOverlay
+## Carrières et mines : fosses qui se creusent, verses, sondages (P → Mines).
+var carrieres: Carrieres
 ## Services d'urgence : pompiers, ambulances, police sur les routes (touche U).
 var urgences: Urgences
 var urgences_panel: UrgencesPanel
@@ -227,7 +229,8 @@ func save_sections() -> Dictionary:
 		"zones": zones.to_dict(), "blocs": blocks.to_dict(), "plans": plans.to_dict(), "ambiance": ambiance.to_dict(),
 		"creations": Creations.to_dict(Creations.used_by(buildings)),
 		"personnage": ($VueSol as VueSol).to_dict(), "habitants": population.to_dict(), "mobilier": mobilier.to_dict(),
-		"production": production.to_dict(), "urgences": urgences.to_dict(), "reglages": _settings_snapshot().to_dict(), "evenements": evenements.to_dict(), "decors": decors.to_dict()}
+		"production": production.to_dict(), "urgences": urgences.to_dict(), "reglages": _settings_snapshot().to_dict(), "evenements": evenements.to_dict(), "decors": decors.to_dict(),
+		"carrieres": carrieres.to_dict()}
 
 
 ## Sauvegarde dans la partie en cours (ou une nouvelle). title : nom d'une nouvelle partie.
@@ -283,6 +286,7 @@ func load_game(slot := "") -> bool:
 	mobilier.from_dict(sec.get("mobilier", {}))
 	population.from_dict(sec.get("habitants", {}))
 	production.from_dict(sec.get("production", {}))
+	carrieres.from_dict(sec.get("carrieres", {}))
 	decors.from_dict(sec.get("decors", {}))
 	urgences.from_dict(sec.get("urgences", {}))
 	ambiance.from_dict(sec.get("ambiance", {}))
@@ -470,6 +474,17 @@ func _setup_production() -> void:
 		rig.position.x = pos.x
 		rig.position.z = pos.z)
 	hud.production_requested.connect(func() -> void: production_panel.toggle())
+	carrieres = Carrieres.new()
+	carrieres.name = "Carrieres"
+	add_child(carrieres)
+	carrieres.setup(world, buildings, production, transport, ambiance, rig)
+	carrieres.message.connect(func(t: String) -> void: hud.show_message(t))
+	carrieres.info_changed.connect(func(t: String) -> void: hud.set_tool_info(t))
+	carrieres.changed.connect(func() -> void: _unsaved = true)
+	production_panel.carrieres = carrieres
+	production_panel.outil_carriere.connect(func(mode: String, bid: int) -> void:
+		_select_building_tool()
+		carrieres.start_tool(mode, bid))
 
 
 ## Urgences : casernes, appels, véhicules prioritaires et panneau (U).
@@ -848,6 +863,8 @@ func _select_building_tool(from_transit := false) -> void:
 	blocks.set_inactive()
 	plans.set_inactive()
 	mobilier.set_inactive()
+	if carrieres:
+		carrieres.set_inactive()
 	if banque_pose:
 		banque_pose.stop()
 	hud.select_tool_silently(0)
@@ -859,6 +876,7 @@ func _setup_decors() -> void:
 	decors.name = "Decors"
 	add_child(decors)
 	decors.setup(world, transport, buildings, ambiance)
+	carrieres.relief_change.connect(decors._terrain_modifie)
 	decors.message.connect(func(t: String) -> void: hud.show_message(t))
 	decors.info_changed.connect(func(t: String) -> void: hud.set_tool_info(t))
 	decors_panel = DecorPanel.new()
@@ -943,6 +961,8 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 		evenements.clear()
 	population.clear()
 	production.clear()
+	if carrieres != null:
+		carrieres.clear()
 	urgences.clear()
 	resource_overlay.show_resource(resource_overlay.res)
 	transport.clear()

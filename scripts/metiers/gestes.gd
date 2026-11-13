@@ -163,7 +163,7 @@ const DEHORS := ["becher", "recolter", "nourrir", "traire", "tronconner", "empil
 
 ## Bâtiments dont les employés travaillent dehors.
 const BATIMENTS_DEHORS := ["ferme", "ferme_cereales", "elevage", "exploitation_forestiere", "carriere", "sabliere",
-	"argiliere", "port_peche", "puits", "mine", "marche"]
+	"argiliere", "port_peche", "puits", "mine", "mine_ciel_ouvert", "marche"]
 
 ## Durée d'un geste avant de passer au suivant (secondes de jeu).
 const DUREE := 600.0

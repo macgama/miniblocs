@@ -39,6 +39,8 @@ signal pays_requested
 signal objectifs_requested
 ## Bouton « Niveaux de vie » : niveau des foyers, ce qui les bloque (Maj+N).
 signal niveaux_vie_requested
+## Bouton « Quartiers » : quartiers nommés et arrêtés municipaux (Maj+Y).
+signal quartiers_requested
 ## Panneau « Trafic » (Maj + L) : bouchons, parkings, remplissage des lignes.
 signal trafic_requested
 ## Bouton « Déchets » (touche X).
@@ -107,6 +109,7 @@ const CATEGORIES := [
 	{"id": "pays", "name": "Pays", "icon": "globe", "key": "Maj+P", "panel": true, "group": "ville"},
 	{"id": "objectifs", "name": "Objectifs", "icon": "trophee", "key": "Maj+J", "panel": true, "group": "ville"},
 	{"id": "niveaux_vie", "name": "Niveaux de vie", "icon": "logement", "key": "Maj+N", "panel": true, "group": "ville"},
+	{"id": "quartiers", "name": "Quartiers et arrêtés", "icon": "pancarte", "key": "Maj+Y", "panel": true, "group": "ville"},
 	{"id": "trafic", "name": "Trafic", "icon": "circulation", "key": "Maj+L", "panel": true, "group": "transports"},
 	{"id": "budget", "name": "Budget", "icon": "budget", "key": "M", "panel": true, "group": "ville"},
 	{"id": "dechets", "name": "Déchets", "icon": "dechets", "key": "X", "panel": true, "group": "ville"},
@@ -284,6 +287,10 @@ func _build_top_bar() -> void:
 		row.add_child(b)
 		if spec[0] == "admin":
 			_admin_button = b
+		elif spec[0] == "aide":
+			var son := UiStyle.icon_button("son", "Son et musique : volumes, morceaux", "F2")
+			son.pressed.connect(func() -> void: Son.panneau())
+			row.add_child(son)
 
 	# Centre : l'horloge (ClockHud, calque au-dessus) s'y pose.
 	var middle := Control.new()
@@ -778,6 +785,7 @@ func _on_category(id: String) -> void:
 			"pays": pays_requested.emit()
 			"objectifs": objectifs_requested.emit()
 			"niveaux_vie": niveaux_vie_requested.emit()
+			"quartiers": quartiers_requested.emit()
 			"trafic": trafic_requested.emit()
 			"dechets": dechets_requested.emit()
 			"parc": parc_requested.emit()

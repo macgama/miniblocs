@@ -378,7 +378,10 @@ func _occupants(bid: int) -> Array:
 ## Part triée chez un bâtiment (0 sans centre de tri).
 func tri_rate(bid: int) -> float:
 	if _tri_cache.has(bid):
-		return float(_tri_cache[bid])
+		var rc := float(_tri_cache[bid])
+		if Quartiers.instance != null and rc > 0.0:
+			return Quartiers.instance.bonus_tri(_pos_of(bid), rc)
+		return rc
 	var r := 0.0
 	if not sites_of("tri").is_empty():
 		r = TRI_BASE
@@ -389,6 +392,9 @@ func tri_rate(bid: int) -> float:
 				r += TRI_DECHETERIE
 				break
 	_tri_cache[bid] = r
+	# Tri obligatoire dans le quartier (hors cache : l'arrêté peut changer).
+	if Quartiers.instance != null and r > 0.0:
+		return Quartiers.instance.bonus_tri(_pos_of(bid), r)
 	return r
 
 

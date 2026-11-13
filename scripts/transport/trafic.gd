@@ -281,6 +281,9 @@ func _cost(eid: int, fwd: bool, free := false) -> float:
 		return _edge_cost[key]
 	var e: Dictionary = transport.network.edges[eid]
 	var t0 := float(e.len) / maxf(1.0, TransportTypes.speed_of(e.t))
+	# Arrêtés des quartiers : zone 30, rues piétonnes (le transit fait le tour).
+	if Quartiers.instance != null:
+		t0 *= Quartiers.instance.facteur_cout_voie(eid)
 	if free:
 		return t0
 	var c := t0 * bpr(ratio_key(key))
@@ -684,8 +687,17 @@ func _compute_parking(w: float) -> void:
 		# Réparties le long de la rue, quartier par quartier.
 		var pts: PackedVector3Array = e.pts
 		var n_pts := pts.size()
+		var qr := Quartiers.instance
 		for i in n_pts:
-			_cell(cells, cell_of(pts[i])).free += float(e.len) * per_m / n_pts
+			var part := float(e.len) * per_m / n_pts
+			var cc := _cell(cells, cell_of(pts[i]))
+			# Stationnement payant (arrêté de quartier) : horodateurs le long de la rue.
+			var tarif := qr.tarif_trottoir(pts[i]) if qr != null else 0.0
+			if tarif > 0.0:
+				cc.fare = (float(cc.fare) * float(cc.paid) + tarif * part) / maxf(0.001, float(cc.paid) + part)
+				cc.paid += part
+			else:
+				cc.free += part
 	# Parkings construits (gratuits ou payants).
 	if transport.traffic != null:
 		for node in transport.traffic.parkings:
@@ -1000,7 +1012,9 @@ func flux_all() -> Dictionary:
 ## Poids lourds par heure : bus des lignes et environ 5 % de camions.
 func flux_lourds(eid: int) -> float:
 	var q := float(flow.get(eid * 2, 0.0)) + float(flow.get(eid * 2 + 1, 0.0))
-	return (q * 0.05 + float(bus_flow.get(eid, 0.0))) * hour_profile(_hour())
+	# Quartier interdit aux poids lourds : seules les livraisons restent.
+	var k := Quartiers.instance.facteur_lourds(eid) if Quartiers.instance != null else 1.0
+	return (q * 0.05 * k + float(bus_flow.get(eid, 0.0))) * hour_profile(_hour())
 
 
 # --- Sauvegarde -------------------------------------------------------------------------

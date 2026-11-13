@@ -105,6 +105,10 @@ var stats_panel: StatsPanel
 ## Tutoriel guidé et objectifs à l'écran (scripts/tutoriel).
 var tutoriel: Tutoriel
 var tuto_carte: TutorielCarte
+## Ambiances sonores selon la caméra (scripts/son) ; musique et volumes : /root/Son (F2).
+var sons: AmbiancesSonores
+var quartiers: Quartiers
+var quartiers_panel: QuartiersPanel
 
 
 func _ready() -> void:
@@ -164,7 +168,9 @@ func _ready() -> void:
 	_setup_niveaux_vie()
 	_setup_statistiques()
 	_setup_tutoriel()
+	_setup_quartiers()
 	_setup_create_mode()
+	_setup_son()
 	hud.traffic_toggled.connect(func(on: bool) -> void: transport.traffic.set_enabled(on))
 	hud.traffic_filter_changed.connect(func(era: String, region: String) -> void:
 		transport.traffic.set_filters(era, region)
@@ -323,6 +329,7 @@ func save_sections() -> Dictionary:
 	sec["statistiques"] = statistiques.to_dict()
 	sec["tutoriel"] = tutoriel.to_dict()
 	sec["parc"] = parc.to_dict()
+	sec["quartiers"] = quartiers.to_dict()
 	return sec
 
 
@@ -397,6 +404,7 @@ func load_game(slot := "") -> bool:
 		return false
 	var sec: Dictionary = res.sections
 	var m: Dictionary = res.manifest
+	_chargement = true
 	var lieu: Dictionary = m.get("lieu", {})
 	GameStart.place_name = String(lieu.get("nom", ""))
 	world.from_dict(sec.terrain)
@@ -446,6 +454,8 @@ func load_game(slot := "") -> bool:
 	# Après les villages, le pays et les élections (mairies perdues).
 	objectifs.from_dict(sec.get("objectifs", {}))
 	kit.from_dict(sec.get("kit", {}))
+	# Après les villages, le pays et les élections (quartiers d'une mairie perdue).
+	quartiers.from_dict(sec.get("quartiers", {}))
 	nuisances.from_dict(sec.get("nuisances", {}))
 	# Après les habitants : niveau de chaque foyer (ancienne partie : évalués au premier jour).
 	niveaux_vie.from_dict(sec.get("niveaux_vie", {}))
@@ -470,6 +480,7 @@ func load_game(slot := "") -> bool:
 		rig.rotation_degrees.y = float(cam.get("angle", 0.0))
 		rig.set_pitch(float(cam.get("inclinaison", rig.get_target_pitch())), true)
 		_snap_pending = true
+	_chargement = false
 	GameStart.slot_id = slot
 	_unsaved = false
 	_autosave_timer = 0.0
@@ -903,6 +914,68 @@ func _on_tuto_action(id: String) -> void:
 			objectifs_panel.set_open(true)
 
 
+## Son : ambiances selon la caméra, humeur de la musique, sons des événements.
+func _setup_son() -> void:
+	var son := Son.ici()
+	if son != null:
+		son.humeur_fn = _humeur_musique
+		# La scène partie (globe, autre partie) : la musique n'écoute plus cette ville.
+		tree_exiting.connect(func() -> void:
+			if son.humeur_fn == Callable(self, "_humeur_musique"):
+				son.humeur_fn = Callable())
+	sons = AmbiancesSonores.new()
+	sons.name = "AmbiancesSonores"
+	sons.setup(rig, ambiance, world, buildings, transport.traffic, get_node_or_null("VueSol"))
+	sons.sources_chantiers.append(vie_batiments.chantiers_bruyants)
+	sons.sources_chantiers.append(chantiers_voies.chantiers_bruyants)
+	add_child(sons)
+	evenements.incident_declare.connect(func(_i: Dictionary) -> void:
+		if not _chargement:
+			Son.jouer("alerte", -4.0))
+	evenements.actualite.connect(func(_n: Dictionary) -> void:
+		var t := Time.get_ticks_msec()
+		if not _chargement and t - _derniere_nouvelle > 4000:
+			_derniere_nouvelle = t
+			Son.jouer("ui_notification", -6.0, 0.0, "Interface"))
+
+
+## Humeur de la musique : nuit, soirée ou journée selon l'heure de la ville.
+func _humeur_musique() -> String:
+	if ambiance == null:
+		return "jour"
+	if ambiance.night > 0.6:
+		return "nuit"
+	var h := ambiance.local_hour()
+	return "soir" if h >= 18.0 or h < 7.0 else "jour"
+
+
+## Pendant un chargement, les événements rechargés ne font pas de bruit.
+var _chargement := false
+var _derniere_nouvelle := -100000
+
+
+## Quartiers et arrêtés municipaux (Maj+Y) : quartiers nommés peints sur la
+## carte, zone 30, rues piétonnes, calme la nuit, tri obligatoire…
+func _setup_quartiers() -> void:
+	quartiers = Quartiers.new()
+	quartiers.name = "Quartiers"
+	add_child(quartiers)
+	quartiers.setup(world, buildings, transport, population, communes)
+	quartiers.dechets = dechets
+	quartiers.message.connect(func(t: String) -> void: hud.show_message(t))
+	quartiers.changed.connect(func() -> void: _unsaved = true)
+	Calques.ajouter("quartiers", "Quartiers et arrêtés", "Villages", func(on: bool) -> void: quartiers.calque = on,
+		"une couleur par quartier · nom et nombre d'arrêtés au milieu · îlots de 50 m")
+	quartiers_panel = QuartiersPanel.new()
+	quartiers_panel.name = "PanneauQuartiers"
+	add_child(quartiers_panel)
+	quartiers_panel.setup(quartiers)
+	quartiers_panel.focus_requested.connect(func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
+	hud.quartiers_requested.connect(func() -> void: quartiers_panel.toggle())
+
+
 ## Élections perdues avec le réglage « fin de partie ».
 func _on_defaite_finale(texte: String) -> void:
 	var d := AcceptDialog.new()
@@ -1329,6 +1402,8 @@ func _tool_busy() -> bool:
 	if blocks.tool != BlockEditor.Tool.NONE or transport.tool != TransportSystem.Tool.NONE:
 		return true
 	if (plans != null and plans.tool != PlanEditor.Tool.NONE) or (mobilier != null and mobilier.tool != Mobilier.Tool.NONE):
+		return true
+	if quartiers != null and quartiers.outil != "":
 		return true
 	return decors != null and decors.outil != DecorSystem.Outil.AUCUN
 
@@ -1794,6 +1869,8 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 		pilote.clear()
 	if objectifs != null:
 		objectifs.clear()
+	if quartiers != null:
+		quartiers.clear()
 	if kit != null:
 		kit.clear()
 	if niveaux_vie != null:
@@ -1895,7 +1972,7 @@ var _open_before := {}
 ## Construire, Lignes et Habitants partagent la même place à droite : quand
 ## l'un s'ouvre, les autres se ferment. Leur bouton de la barre du bas s'allume.
 func _exclusive_panels() -> void:
-	var panels := {"pays": pays_panel, "objectifs": objectifs_panel, "construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "agriculture": agri_panel, "urgences": urgences_panel, "reseaux": reseaux_panel, "dechets": dechets_panel, "trafic": trafic_panel, "budget": budget_panel, "telecom": telecom_panel, "perso": perso_panel, "infos": evenements_panel, "cartes": cartes_panel, "avis": avis_panel, "villages": villages_panel, "fondateurs": fondateurs_panel, "stats": stats_panel}
+	var panels := {"pays": pays_panel, "objectifs": objectifs_panel, "quartiers": quartiers_panel, "construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "agriculture": agri_panel, "urgences": urgences_panel, "reseaux": reseaux_panel, "dechets": dechets_panel, "trafic": trafic_panel, "budget": budget_panel, "telecom": telecom_panel, "perso": perso_panel, "infos": evenements_panel, "cartes": cartes_panel, "avis": avis_panel, "villages": villages_panel, "fondateurs": fondateurs_panel, "stats": stats_panel}
 	var opened := ""
 	for id in panels:
 		var p = panels[id]
@@ -1904,6 +1981,7 @@ func _exclusive_panels() -> void:
 			opened = id
 		_open_before[id] = on
 	if opened != "":
+		Son.jouer("ui_ouvrir", -3.0, 0.0, "Interface")
 		for id in panels:
 			if id != opened and _open_before[id]:
 				panels[id].set_open(false)
@@ -1923,6 +2001,7 @@ func _refresh_stats() -> void:
 	var palier := ReglagesPartie.actuel.note_population(int(s.habitants) - (fondateurs.au_campement() if fondateurs != null else 0))
 	if palier != "" and ReglagesPartie.actuel.deblocage == "progression":
 		hud.show_message("Palier « %s » atteint : de nouveaux bâtiments sont débloqués !" % palier)
+		Son.jouer("palier")
 		build_panel.refresh()
 	var adults: int = int(s.actif) + int(s.chomeur)
 	var unemployment := "—" if adults == 0 else "%d %%" % roundi(100.0 * int(s.chomeur) / adults)

@@ -4,6 +4,14 @@ Tout est dans `main`, et les 9 tests automatiques passent (`sh tests/tous.sh`).
 
 ## Nouveautés
 
+**Quartiers et arrêtés municipaux** (touche **Maj+Y**, 14 novembre)
+- On peint ses quartiers au pinceau (îlots de 50 m) sur le territoire de sa ville et on les nomme. Dix arrêtés par quartier : zone 30, rues piétonnes, poids lourds interdits, tranquillité la nuit, tri obligatoire, détecteurs de fumée, éclairage renforcé ou éteint, stationnement payant, fleurissement. Ils coûtent (mise en place + par mois, au budget de la ville) et changent les trajets, la vitesse des voitures, le bruit, le tri, les incendies et l'avis des habitants. Mairie perdue : le conseil élu les choisit selon son programme ; le pilote automatique en ajoute aussi (voir docs/quartiers.md).
+
+**Son et musique** (touche **F2**, 13 novembre)
+- Ambiances qui suivent la caméra : oiseaux et vent dans les feuilles à la campagne, grillons et chouette la nuit, rue animée en ville, voitures près des routes, chantiers en activité (marteaux, scie, bip de recul), pluie, vent, tonnerre après les éclairs, mer, cloches à midi et coq au lever du jour. Plus la caméra monte, plus le vent domine.
+- Sons des boutons, des panneaux, des constructions, des démolitions, des nouvelles, des paliers et des élections (avec un trombone triste en cas de défaite).
+- 7 morceaux selon l'heure de la ville, dont la *Valse du permis de construire*, le *Nids-de-poule blues* et *Conseil municipal (en retard)*. Panneau F2 : volumes général, musique, ambiance, effets, interface, silences entre les morceaux. Tout est synthétisé par `tools/build_sons.py`, libre de droits (voir docs/son.md).
+
 **Menu principal, options et menu pause** (14 novembre)
 - Le jeu s'ouvre sur un écran titre : une île low-poly flottante (village, rivière en cascade, terrain de foot, grande roue qui tourne). Continuer (avec l'aperçu de la dernière partie), Nouvelle partie (globe), Charger, Atelier, Options, Crédits, Quitter.
 - Chaque sauvegarde a maintenant un aperçu (vue de la caméra sans l'interface) et peut être renommée. Sauvegarde automatique réglable : jamais, 2, 5, 10 ou 15 minutes.

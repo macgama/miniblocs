@@ -467,6 +467,16 @@ func _animer_chantiers() -> void:
 					EnginsChantier.animer(n, _clock + float(bid), true)
 
 
+## Chantiers où l'équipe travaille en ce moment près de la caméra (pour les sons).
+func chantiers_bruyants() -> Array:
+	var out := []
+	for bid in _chantiers:
+		var c: Dictionary = _chantiers[bid]
+		if not (c.ouvriers as Array).is_empty() and is_instance_valid(c.mi):
+			out.append((c.mi as Node3D).global_position)
+	return out
+
+
 func _vider_ouvriers(c: Dictionary) -> void:
 	for f in c.ouvriers:
 		if is_instance_valid(f):
@@ -538,6 +548,9 @@ func _poser_ouvriers(bid: int, c: Dictionary) -> void:
 
 
 func _finish_chantier(bid: int) -> void:
+	var fini_mi := buildings.node_of(bid)
+	if fini_mi != null and fini_mi.is_inside_tree():
+		Son.jouer_a("chantier_fini", fini_mi.global_position, -4.0, 300.0)
 	var c: Dictionary = _chantiers.get(bid, {})
 	_chantiers.erase(bid)
 	if c.is_empty() or not is_instance_valid(c.mi):

@@ -5,3 +5,4 @@ export_presets.cfg
 
 # Réglages d'import à garder (carte des biomes : pas de compression)
 !assets/*.import
+__pycache__/

@@ -570,6 +570,9 @@ func _final_at(i: int, j: int) -> Dictionary:
 	var f = _cache.get(key)
 	if f == null:
 		f = _final(_raw(i, j))
+		# Arrêtés des quartiers (zone 30, calme la nuit, fleurissement…).
+		if Quartiers.instance != null:
+			f = Quartiers.instance.moduler(f, (i + 0.5) * CELL, (j + 0.5) * CELL)
 		if _cache.size() < 200000:
 			_cache[key] = f
 	return f

@@ -262,7 +262,17 @@ func _view_liste() -> void:
 	if not j.is_empty():
 		_section("Dernières décisions")
 		for e in j.slice(maxi(0, j.size() - 6)):
-			_text("Jour %d : %s" % [int(e.jour), String(e.texte)], true, 11)
+			_text("%s : %s" % [_quand(int(e.jour)), String(e.texte)], true, 11)
+
+
+## « Aujourd'hui », « Hier », « Il y a 12 jours ».
+func _quand(j: int) -> String:
+	var d := q._jour() - j
+	if d <= 0:
+		return "Aujourd'hui"
+	if d == 1:
+		return "Hier"
+	return "Il y a %d jours" % d
 
 
 static func _ha_txt(h: float) -> String:
@@ -357,7 +367,7 @@ func _view_quartier(qid: int) -> void:
 		r.add_child(cb)
 		var cout := "Mise en place %s · %s" % [BuildingSystem.format_money(Arretes.cout_pose(aid, h)), euros_mois(Arretes.cout_mois(aid, h))]
 		if on:
-			cout = "Depuis le jour %d · %s" % [int(ar[aid]), euros_mois(Arretes.cout_mois(aid, h))]
+			cout = "En vigueur %s · %s" % [_quand(int(ar[aid])).to_lower(), euros_mois(Arretes.cout_mois(aid, h))]
 		_text("   %s" % String(a.desc), true, 11)
 		var l := _text("   %s · %s" % [" · ".join(a.effets), cout], false, 11)
 		l.add_theme_color_override("font_color", VERT if on else UiStyle.TEXT_DIM)

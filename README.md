@@ -422,6 +422,8 @@ Avec la Maison de commune arrivent **100 fondateurs** (réglable dans l'Admin, F
 
 Touche **Maj+Y** (menu Ville) : le maire **peint ses quartiers** sur la carte (îlots de 50 m), leur donne un nom, puis y prend des **arrêtés** : zone 30, rues piétonnes, interdiction des poids lourds, tranquillité la nuit, tri obligatoire, détecteurs de fumée, éclairage renforcé ou éteint, stationnement payant, fleurissement. Chacun coûte une mise en place et un montant par mois selon la surface, et agit vraiment : itinéraires et vitesse des voitures, camions, bruit, air, valeur des terrains, tri, départs de feu, recettes de stationnement, avis des habitants. Si tu perds la mairie, le conseil élu décide des arrêtés selon son programme. Détails : [docs/quartiers.md](docs/quartiers.md).
 
+![Quartiers de Valfleuri et leurs arrêtés](docs/apercu-quartiers-liste.jpg)
+
 ## Budget de la commune : impôts, emprunts, entretien des voies
 
 Touche **M** : le maire vote la taxe foncière, l'impôt des entreprises et l'impôt sur les bénéfices (0 à 200 %, les habitants râlent quand c'est haut), emprunte de 100 k€ à 20 M€ sur 5 à 30 ans, et règle l'entretien de chaque réseau. Routes, rails, chemins et voies d'eau **s'usent** avec l'âge et le trafic (les camions surtout) : sous 50 %, nids-de-poule et véhicules ralentis, à 0 % la voie ferme. Les réfections sont des chantiers visibles. Caisse dans le rouge 90 jours : le préfet met la ville sous tutelle.

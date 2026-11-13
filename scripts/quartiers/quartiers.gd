@@ -1036,8 +1036,8 @@ func _reconstruire() -> void:
 			l = Label3D.new()
 			l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 			l.fixed_size = true
-			l.pixel_size = 0.001
-			l.font_size = 34
+			l.pixel_size = 0.0007
+			l.font_size = 32
 			l.outline_size = 10
 			l.no_depth_test = true
 			add_child(l)

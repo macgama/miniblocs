@@ -5,6 +5,8 @@ rues piétonnes, tranquillité la nuit, tri obligatoire… Chaque arrêté coût
 change vraiment la vie du quartier : la circulation, le bruit, les déchets, les incendies et
 l'avis des habitants. Panneau **Quartiers et arrêtés** : touche **Maj+Y** (menu Ville).
 
+![Trois quartiers et le panneau Maj+Y](apercu-quartiers-liste.jpg)
+
 ## Tracer un quartier
 
 1. **Nouveau quartier** : il reçoit un nom proposé (Centre, Les Tilleuls, La Gare…) et le pinceau s'active.
@@ -36,6 +38,8 @@ Coûts pour 1 hectare (× le réglage Admin « coût des constructions »), mult
 
 La mise en place est payée tout de suite par la caisse de la ville du quartier ; le coût par mois
 apparaît dans son budget (M) sous « Arrêtés municipaux » (et « Économies d'éclairage »).
+
+![Un quartier et ses arrêtés](apercu-quartiers-arretes.jpg)
 
 ## Mairie perdue, conseil élu et pilote automatique
 

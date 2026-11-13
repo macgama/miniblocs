@@ -302,8 +302,8 @@ func parts_population() -> Dictionary:
 func joueur_maire(vid: int) -> bool:
 	if vid == PAYS:
 		return true
-	if Avis.instance != null and Avis.instance.has_method("joueur_maire_de"):
-		return bool(Avis.instance.call("joueur_maire_de", vid))
+	if Avis.instance != null:
+		return Avis.instance.joueur_decide_de(vid)
 	return true
 
 

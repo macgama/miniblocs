@@ -115,6 +115,9 @@ var cle := 0
 var etats := {}
 ## Caisse propriétaire de chaque voie (recalculé chaque jour) : eid -> clé.
 var _proprio_voies := {}
+## Vrai pendant que le maire élu ou le pilote automatique agit (GestionAuto) :
+## les réglages d'une ville perdue ne sont alors pas bloqués.
+var _ia := false
 
 
 func _init() -> void:
@@ -314,6 +317,28 @@ static func facteur(k: String) -> float:
 	return instance.taux_effectif(k) if instance != null else 1.0
 
 
+## Pression fiscale d'une commune (son état rangé, ou celui chargé).
+func pression_fiscale_de(k: int) -> float:
+	if k == cle or not multi():
+		return pression_fiscale()
+	var t: Dictionary = etat_de(k).get("taux", {})
+	var tut := bool(etat_de(k).get("tutelle", false))
+	var p := 0.0
+	for key in TAUX_POIDS:
+		var v := float(t.get(key, 1.0))
+		p += (maxf(v, TAUX_TUTELLE) if tut else v) * float(TAUX_POIDS[key])
+	return p * ReglagesPartie.actuel.impots
+
+
+func dette_de(k: int) -> float:
+	if k == cle or not multi():
+		return dette()
+	var d := 0.0
+	for e in etat_de(k).get("emprunts", []):
+		d += float(e.restant)
+	return d
+
+
 ## Pression fiscale ressentie : 0 = aucun impôt, 1 = normal, 2 = double.
 func pression_fiscale() -> float:
 	var p := 0.0
@@ -322,8 +347,18 @@ func pression_fiscale() -> float:
 	return p * ReglagesPartie.actuel.impots
 
 
+## Mairie perdue : le joueur ne décide plus (message et refus).
+func _bloque() -> bool:
+	if _ia or not multi() or joueur_decide():
+		return false
+	var m: Dictionary = Avis.instance.maire_de(cle) if Avis.instance != null else {}
+	message.emit("Tu n'es plus maire de %s : le conseil de « %s » décide des impôts, des emprunts et de l'entretien." % [
+		Pays.instance.nom_de(cle), String(m.get("nom", "la nouvelle liste"))])
+	return true
+
+
 func set_taux(k: String, v: float) -> void:
-	if not taux.has(k):
+	if not taux.has(k) or _bloque():
 		return
 	taux[k] = clampf(snappedf(v, 0.05), TAUX_MIN, TAUX_MAX)
 	changed.emit()
@@ -604,6 +639,8 @@ func refus_emprunt(montant: float, _annees: int) -> String:
 
 
 func emprunter(montant: float, annees: int) -> Dictionary:
+	if _bloque():
+		return {}
 	var why := refus_emprunt(montant, annees)
 	if why != "":
 		message.emit(why)
@@ -624,6 +661,8 @@ func emprunter(montant: float, annees: int) -> Dictionary:
 
 ## Remboursement anticipé : capital restant + pénalité.
 func rembourser(id: int) -> bool:
+	if _bloque():
+		return false
 	for e in emprunts:
 		if int(e.id) == id:
 			var due := float(e.restant) * (1.0 + PENALITE)
@@ -965,7 +1004,7 @@ func longueur(k: String) -> float:
 
 
 func set_entretien(k: String, champ: String, v) -> void:
-	if not entretien.has(k):
+	if not entretien.has(k) or _bloque():
 		return
 	match champ:
 		"taux": entretien[k].taux = clampf(snappedf(float(v), 0.05), 0.0, 2.0)

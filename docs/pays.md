@@ -53,3 +53,18 @@ Une recette globale : `Pays.crediter(buildings, euros)`. Le budget (`BudgetCommu
 un état par ville (`cle`, `etats`, `selectionner()`, `bilan_mensuel(cle)`, `bilan_pays()`).
 
 Test : `godot --headless --path . --script res://tests/pays_test.gd`
+
+## Élections dans chaque ville et mairie perdue
+
+Chaque ville a ses municipales, son maire, son historique de satisfaction (panneau
+**Avis**, touche **Y**, pour la ville gérée). Réglage Admin (F10 → Événements) **« Défaite :
+mairie perdue »** (par défaut pour les nouvelles parties) :
+
+- la liste gagnante prend la mairie : tu construis toujours dans la ville, mais impôts,
+  emprunts et entretien sont décidés par son conseil (`GestionAuto`), selon son programme :
+  contribuables (impôts 80 %), sécurité (100 %), écologie (110 %), solidarité (120 %) ;
+- chaque semaine, le maire élu ajuste ses impôts (plus hauts si la caisse est dans le
+  rouge, plus bas si elle déborde), l'entretien, emprunte ou rembourse ;
+- ses promesses deviennent des objectifs : les tenir aide sa liste, les rater t'aide ;
+- pour reprendre la mairie : gagner les municipales suivantes, ou lancer des élections
+  anticipées quand une **pétition** circule (satisfaction sous 40).

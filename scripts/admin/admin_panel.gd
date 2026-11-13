@@ -262,7 +262,7 @@ func _ready() -> void:
 	for n in Elections.MODE_NOMS:
 		_elections.add_item(n)
 	_elections.disabled = not editable
-	_elections.tooltip_text = "Municipales tous les 6 ans de vie des habitants. Si tu perds : rien, les objectifs du gagnant, ou fin de partie."
+	_elections.tooltip_text = "Municipales tous les 6 ans de vie des habitants, dans chaque ville. Si tu perds : rien, les objectifs du gagnant, la mairie (le nouveau conseil décide des impôts, emprunts et entretien ; tu construis toujours), ou fin de partie."
 	_elections.item_selected.connect(func(_i: int) -> void: _changed())
 	_row(g, "Élections municipales", _elections)
 	_manifs = _check("Manifestations des habitants mécontents")

@@ -77,6 +77,9 @@ const SECTIONS := [
 		["Qui paie ?", "ce qui se construit sur le territoire d'une ville est payé par sa caisse ; les voies et bâtiments hors des villes, par le pays ; les ventes des entreprises sont partagées selon la population"],
 		["Caisse du pays", "elle reçoit l'argent de départ et l'impôt national (10 % des impôts des villes) ; elle paie la dotation par habitant, l'entretien des voies hors des villes, les subventions et le capital des nouvelles villes (60 % de la caisse pour la première, 1 M€ pour les suivantes)"],
 		["Pays à sec", "une caisse du pays vide ne verse plus de dotation : les villes doivent alors vivre de leurs impôts"],
+		["Élections", "chaque ville vote de son côté, pour son maire ; le panneau Avis (Y) montre la ville gérée"],
+		["Mairie perdue", "si une autre liste gagne (réglage Admin « Défaite : mairie perdue », par défaut), tu construis toujours dans cette ville, mais son maire décide des impôts, des emprunts et de l'entretien selon son programme ; tu ne peux plus reverser son argent au pays"],
+		["Reprendre la mairie", "gagne les municipales suivantes (campagne et promesses dans Y), ou lance des élections anticipées par pétition si la satisfaction tombe sous 40"],
 	]],
 	["Budget de la commune", [
 		["M", "panneau Budget : bilan du mois, impôts votés par le maire, emprunts, entretien et état des voies"],

@@ -257,8 +257,12 @@ func _carte_ville(vid: int) -> void:
 	t.add_theme_color_override("font_color", Communes.COULEURS[int(v.couleur) % Communes.COULEURS.size()])
 	var pal := String(ReglagesPartie.PALIERS[int(st.get("palier", 0))].nom)
 	var maire := pays.joueur_maire(vid)
+	var elu := Avis.instance == null or Avis.instance.joueur_maire_de(vid)
 	_text("%s · %d habitants · %d ha · maire : %s" % [pal, int(st.get("hab", 0)), int(st.get("ha", 0)),
-		"toi" if maire else _maire_nom(vid)], true, 12)
+		"toi" if elu else _maire_nom(vid)], true, 12)
+	if not maire:
+		var lm := _text("Mairie perdue : le conseil de « %s » décide des impôts, des emprunts et de l'entretien. Tu peux toujours construire. Reprends-la aux prochaines municipales (Y)." % String(Avis.instance.maire_de(vid).get("nom", "")), false, 12)
+		lm.add_theme_color_override("font_color", Color("ffb347"))
 	var b := pays.budget
 	var e: Dictionary = b.etat_de(vid) if b != null else {}
 	var dernier: Dictionary = e.get("dernier", {})
@@ -290,8 +294,8 @@ func _carte_ville(vid: int) -> void:
 
 
 func _maire_nom(vid: int) -> String:
-	if Avis.instance != null and Avis.instance.has_method("maire_de"):
-		var m: Dictionary = Avis.instance.call("maire_de", vid)
+	if Avis.instance != null:
+		var m: Dictionary = Avis.instance.maire_de(vid)
 		return String(m.get("tete_nom", m.get("nom", "un autre")))
 	return "un autre"
 

@@ -348,8 +348,9 @@ static func theme_icone(id: String) -> String:
 static func motif(r: String) -> String:
 	var re := RegEx.create_from_string("\\s*\\([^)]*\\)")
 	var s := re.sub(r, "", true).strip_edges()
-	re = RegEx.create_from_string("\\d+ sur \\d+")
-	return re.sub(s, "n sur m", true)
+	# « loisirs : 2 sur 3 possibles en ville » → « loisirs en ville ».
+	re = RegEx.create_from_string(" ?: \\d+ sur \\d+ possibles")
+	return re.sub(s, "", true)
 
 
 ## Sondage : satisfaction moyenne, notes par thème avec leurs motifs principaux,

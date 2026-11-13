@@ -260,9 +260,12 @@ func ouvrir_campagne() -> void:
 	avis.changed.emit()
 
 
+## Le personnage principal du joueur mène sa liste s'il est majeur.
 func _tete_joueur() -> int:
 	if avis.population != null and avis.population.principal != null:
-		return avis.population.principal.mine()
+		var pid := avis.population.principal.mine()
+		if pid >= 0 and avis.population.persons.has(pid) and avis.population.age_of(avis.population.persons[pid]) >= Population.ADULT_AGE:
+			return pid
 	return -1
 
 

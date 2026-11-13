@@ -144,9 +144,8 @@ func _run() -> void:
 	var m: Dictionary = avis.manifs.liste[mid]
 	var node: Node3D = avis.manifs._nodes.get(mid, null)
 	panel.show_view("manifs")
-	amb.set_local_hour(15.2)
 	if node != null:
-		_cam(rig, node.position, 34.0, 200.0, 24.0)
+		_cam(rig, node.position, 24.0, node.rotation_degrees.y + 25.0, 20.0)
 	else:
 		_cam(rig, m.pos, 40.0, 200.0, 26.0)
 	await _shot(dir, "manif-panneau")

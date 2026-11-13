@@ -362,14 +362,15 @@ func _creer_visuels(m: Dictionary) -> void:
 	root.name = "Manifestation_%d" % int(m.id)
 	var ch: Array = m.chemin
 	root.position = Evenements.to_v3(ch[0]) if ch.size() >= 2 else (m.pos as Vector3)
-	var n := clampi(int(m.nb) / 3, 10, DESSINES_MAX)
+	var n := clampi(int(m.nb), 16, DESSINES_MAX)
 	var seed := int(m.id) * 7907
 	# Le cortège : la foule s'étire derrière la banderole (vers +Z local).
-	var foule := EvVisuels.foule(n, Vector2(7.0, 6.0 + n * 0.35), seed, Vector3(0, 0, -40))
-	foule.position = Vector3(0, 0, 3.0 + n * 0.17)
+	var foule := EvVisuels.foule(n, Vector2(6.0, 4.0 + n * 0.22), seed, Vector3(0, 0, -40))
+	foule.position = Vector3(0, 0, 3.0 + n * 0.11)
 	root.add_child(foule)
 	root.add_child(pancartes(mini(n / 3, 14), Vector2(7.0, 6.0 + n * 0.35), seed, Color(String(Avis.THEMES.get(m.theme, {}).get("couleur", "f77f00")))))
 	(root.get_child(1) as Node3D).position = foule.position
+	root.get_child(1).scale = Vector3(0.75, 1.0, 0.6)
 	root.add_child(banderole(String(m.slogan)))
 	avis.evenements.visuels.add_child(root)
 	_nodes[int(m.id)] = root
@@ -415,17 +416,21 @@ static func banderole(texte: String) -> Node3D:
 	var mi := EvVisuels._mesh_instance(k)
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	root.add_child(mi)
-	var lbl := Label3D.new()
-	lbl.text = texte
-	lbl.font_size = 64
-	lbl.pixel_size = 0.0045
-	lbl.modulate = Color("c1121f")
-	lbl.outline_size = 0
-	lbl.position = Vector3(0, 1.75, -0.05)
-	lbl.width = 1100
-	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	lbl.double_sided = true
-	root.add_child(lbl)
+	# Le slogan des deux côtés de la banderole.
+	for side in [-1.0, 1.0]:
+		var lbl := Label3D.new()
+		lbl.text = texte
+		lbl.font_size = 64
+		lbl.pixel_size = 0.0042
+		lbl.modulate = Color("c1121f")
+		lbl.outline_size = 0
+		lbl.shaded = false
+		lbl.double_sided = false
+		lbl.position = Vector3(0, 1.75, 0.04 * side)
+		lbl.rotation.y = PI if side < 0.0 else 0.0
+		lbl.width = 1150
+		lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		root.add_child(lbl)
 	for x in [-2.6, 2.6]:
 		var porteur := MeshInstance3D.new()
 		porteur.mesh = EvVisuels.random_person(RandomNumberGenerator.new())

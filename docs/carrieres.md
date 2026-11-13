@@ -54,3 +54,11 @@ Chaînes nouvelles : **calcaire + argile → ciment** (cimenterie) ; **sel** dan
 - Matériaux consommés par les chantiers (granulats, ciment, sable, granite).
 - Marais salants sur les côtes chaudes (Guérande, Camargue).
 - Bruit et poussière pris en compte par la pollution et la valeur foncière.
+
+![Carrière en gradins et sa verse](apercu-carriere-gradins.jpg)
+
+![Pelle et tombereau au travail](apercu-carriere-engins.jpg)
+
+![Tir de mine à midi](apercu-carriere-tir.jpg)
+
+![Panneau P → Mines](apercu-panneau-mines.jpg)

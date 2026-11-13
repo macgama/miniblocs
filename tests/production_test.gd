@@ -49,7 +49,7 @@ func _run() -> void:
 	_check(absf(GisementsMonde.distance_km(48.8566, 2.3522, 45.7640, 4.8357) - 392.0) < 5.0, "distance Paris-Lyon ≈ 392 km")
 	_check(GisementsMonde.near(46.5, -30.0, 100.0).is_empty(), "milieu de l'Atlantique : aucune province")
 	for p in GisementsMonde.PROVINCES:
-		if not Ressources.SOUS_SOL.has(p[0]):
+		if not (Ressources.SOUS_SOL.has(p[0]) or Ressources.ROCHES.has(p[0])):
 			_check(false, "province de ressource inconnue : %s" % p[1])
 
 	# Bâtiments prêts tout de suite (les chantiers sont testés dans batiments_test).

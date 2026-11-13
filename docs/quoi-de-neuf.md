@@ -4,6 +4,10 @@ Tout est dans `main`, et les 9 tests automatiques passent (`sh tests/tous.sh`).
 
 ## Nouveautés
 
+**Tutoriel guidé et objectifs à l'écran** (13 novembre)
+- Case « Tutoriel guidé » sur le globe (cochée par défaut) : 12 étapes, une à la fois en haut à gauche, de la fondation du village à l'école et au budget. Chaque étape se valide toute seule, avec un bouton qui fait le premier geste, « Passer » et une croix pour arrêter. F10 → Aide pour le relancer (voir docs/tutoriel.md).
+- Sous le tutoriel, les objectifs restent à l'écran : rang de la ville et ce qui manque pour monter, missions du pays avec leur progrès, les jours restants et la prime.
+
 **Équilibre : argent, emplois, courant** (13 novembre)
 - Mode Normal : 30 M€ au départ. Quand un chantier s'arrête faute d'argent, le jeu conseille d'emprunter (Budget, M).
 - Les zones les plus demandées poussent d'abord : à 1 000 habitants, environ 10 % de chômeurs au lieu d'un quart.

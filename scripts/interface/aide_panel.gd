@@ -59,6 +59,14 @@ const SECTIONS := [
 		["Incendie, tempête, épidémie à la main", "panneau Infos, onglet Organiser, puis clic sur la carte (Échap pour annuler)"],
 		["Catastrophes", "panneau Admin (F10), section Événements : les couper ou régler leur fréquence"],
 	]],
+	["Villages et territoire", [
+		["Début de partie", "choisis le nom du village, puis pose sa Maison de commune (pas besoin de route) : avant, on ne peut que regarder et modeler le paysage"],
+		["Maj+M", "panneau Villages : habitants, territoire et palier de chaque village ; Aller, Renommer, Agrandir, Céder, Fusionner"],
+		["Territoire", "carrés de 100 × 100 m autour de la mairie : 500 m au départ, il grandit tout seul avec la population (800 m à 100 hab., 1,2 km à 500, 2 km à 2 000, 3 km à 10 000)"],
+		["Agrandir / Céder", "clic sur un carré qui touche le territoire pour l'acheter, ou sur un carré vide pour le rendre ; clic droit ou Échap pour arrêter"],
+		["Nouveau village", "Maison de commune ou Mairie posée hors de tout territoire, à 2 km au moins d'un autre centre ; deux villages qui se touchent peuvent fusionner"],
+		["Règles", "bâtiments et zonage seulement sur le territoire ; voies, réseaux et lignes partout ; Admin (F10) → Construction pour couper ces règles"],
+	]],
 	["Budget de la commune", [
 		["M", "panneau Budget : bilan du mois, impôts votés par le maire, emprunts, entretien et état des voies"],
 		["Impôts", "taxe foncière, impôt des entreprises, impôt sur les bénéfices de 0 à 200 % : plus haut, la caisse se remplit et les habitants râlent"],

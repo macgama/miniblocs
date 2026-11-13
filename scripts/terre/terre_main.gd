@@ -83,6 +83,9 @@ var telecom_panel: TelecomPanel
 var nuisances: Nuisances
 ## Panneau « Cartes » (touche N) : cartes de couleur de tous les systèmes.
 var cartes_panel: CartesPanel
+## Villages du joueur et leur territoire (Maj+M, scripts/communes).
+var communes: Communes
+var villages_panel: VillagesPanel
 
 
 func _ready() -> void:
@@ -134,6 +137,7 @@ func _ready() -> void:
 	_setup_evenements()
 	_setup_nuisances()
 	_setup_avis()
+	_setup_communes()
 	_setup_create_mode()
 	hud.traffic_toggled.connect(func(on: bool) -> void: transport.traffic.set_enabled(on))
 	hud.traffic_filter_changed.connect(func(era: String, region: String) -> void:
@@ -247,6 +251,11 @@ func _ready() -> void:
 			hud.show_message("Chargement impossible : " + last_error)
 	if GameStart.atelier:
 		_start_atelier.call_deferred()
+	# Nouvelle partie : on commence par fonder le village.
+	if communes.fondation_requise():
+		get_tree().create_timer(1.5).timeout.connect(func() -> void:
+			if communes.fondation_requise() and not villages_panel._dialog.visible:
+				villages_panel.demander_nom())
 
 
 # --- Sauvegarde -------------------------------------------------------------------
@@ -277,6 +286,7 @@ func save_sections() -> Dictionary:
 		"production": production.to_dict(), "agriculture": agriculture.to_dict(), "urgences": urgences.to_dict(), "reseaux": reseaux.to_dict(), "dechets": dechets.to_dict(), "funeraire": funeraire.to_dict(), "trafic": trafic.to_dict(), "reglages": _settings_snapshot().to_dict(), "budget": budget.to_dict(), "evenements": evenements.to_dict(), "decors": decors.to_dict(),
 		"nuisances": nuisances.to_dict(), "telecom": telecom.to_dict(), "services": services.to_dict(), "carrieres": carrieres.to_dict()}
 	sec["avis"] = avis.to_dict()
+	sec["communes"] = communes.to_dict()
 	return sec
 
 
@@ -323,6 +333,8 @@ func load_game(slot := "") -> bool:
 	var lieu: Dictionary = m.get("lieu", {})
 	GameStart.place_name = String(lieu.get("nom", ""))
 	world.from_dict(sec.terrain)
+	# Les bâtiments rechargés ne fondent pas de village : les villages ont leur section.
+	communes.ignorer = true
 	transport.from_dict(sec.get("transport", {}))
 	Creations.adopt(sec.get("creations", {}))
 	buildings.from_dict(sec.get("batiments", {}))
@@ -347,6 +359,14 @@ func load_game(slot := "") -> bool:
 	ambiance.from_dict(sec.get("ambiance", {}))
 	# Après les bâtiments et les habitants : dégâts, ruines, malades, matchs.
 	evenements.from_dict(sec.get("evenements", {}))
+	communes.ignorer = false
+	if sec.has("communes"):
+		communes.from_dict(sec.communes)
+	else:
+		# Ancienne partie : un village autour de la ville déjà construite.
+		communes.clear()
+		communes.actif = not GameStart.atelier
+		communes.adopter_ancienne_partie()
 	avis.from_dict(sec.get("avis", {}))
 	nuisances.from_dict(sec.get("nuisances", {}))
 	($VueSol as VueSol).from_dict(sec.get("personnage", {}))
@@ -568,6 +588,48 @@ func _setup_avis() -> void:
 		habitants_panel.show_view("profil", pid))
 	hud.avis_requested.connect(func() -> void: avis_panel.toggle())
 	avis.defaite_finale.connect(_on_defaite_finale)
+
+
+## Villages et territoire (Maj+M) : fondation, frontières, agrandissement, règles
+## de construction (bâtiments et zonage sur le territoire, voies avant fondation).
+func _setup_communes() -> void:
+	communes = Communes.new()
+	communes.name = "Communes"
+	add_child(communes)
+	communes.setup(world, buildings, zones, population)
+	# Partie lancée depuis le globe : on commence par fonder un village.
+	communes.actif = GameStart.chosen and not GameStart.atelier
+	communes.message.connect(func(t: String) -> void: hud.show_message(t))
+	communes.changed.connect(func() -> void: _unsaved = true)
+	var prev: Callable = buildings.extra_check
+	buildings.extra_check = func(id: String, rect: Rect2i) -> Dictionary:
+		var why := communes.raison_batiment(id, rect)
+		if why != "":
+			return {"reason": why}
+		var res: Dictionary = prev.call(id, rect) if prev.is_valid() else {}
+		var ctr := Vector2(rect.position.x + rect.size.x * 0.5, rect.position.y + rect.size.y * 0.5)
+		if String(res.get("reason", "")) == "" and Communes.est_fondateur(id) and communes.village_au_point(ctr.x, ctr.y) < 0:
+			var info := "Fonde le village « %s »." % (communes.nom_en_attente if communes.nom_en_attente != "" else communes.nom_auto())
+			res["info"] = (String(res.get("info", "")) + "  " + info).strip_edges()
+		return res
+	zones.area_check = communes.raison_zone
+	transport.build_gate = communes.raison_voie
+	Calques.ajouter("territoires", "Territoires des villages", "Villages", func(on: bool) -> void: communes.calque = on,
+		"une couleur par village · muret : frontière · carrés de 100 m")
+	villages_panel = VillagesPanel.new()
+	villages_panel.name = "PanneauVillages"
+	add_child(villages_panel)
+	villages_panel.setup(communes)
+	villages_panel.focus_requested.connect(func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
+	villages_panel.fonder_requested.connect(func(nom: String) -> void:
+		if hud.create_mode:
+			set_create_mode(false)
+		_select_building_tool()
+		buildings.set_place("maison_commune")
+		hud.show_message("Clique où poser la Maison de commune de %s (R pour tourner, clic droit pour annuler)." % nom))
+	hud.villages_requested.connect(func() -> void: villages_panel.toggle())
 
 
 ## Élections perdues avec le réglage « fin de partie ».
@@ -1336,6 +1398,8 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 		evenements.clear()
 	if avis != null:
 		avis.clear()
+	if communes != null:
+		communes.clear()
 	population.clear()
 	production.clear()
 	if carrieres != null:
@@ -1427,7 +1491,7 @@ var _open_before := {}
 ## Construire, Lignes et Habitants partagent la même place à droite : quand
 ## l'un s'ouvre, les autres se ferment. Leur bouton de la barre du bas s'allume.
 func _exclusive_panels() -> void:
-	var panels := {"construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "agriculture": agri_panel, "urgences": urgences_panel, "reseaux": reseaux_panel, "dechets": dechets_panel, "trafic": trafic_panel, "budget": budget_panel, "telecom": telecom_panel, "perso": perso_panel, "infos": evenements_panel, "cartes": cartes_panel, "avis": avis_panel}
+	var panels := {"construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "agriculture": agri_panel, "urgences": urgences_panel, "reseaux": reseaux_panel, "dechets": dechets_panel, "trafic": trafic_panel, "budget": budget_panel, "telecom": telecom_panel, "perso": perso_panel, "infos": evenements_panel, "cartes": cartes_panel, "avis": avis_panel, "villages": villages_panel}
 	var opened := ""
 	for id in panels:
 		var p = panels[id]

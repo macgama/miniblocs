@@ -36,6 +36,9 @@ const STYLE_ARCHS := {
 const STYLE_BIBLE := "bible_blender"
 ## Chance (0..1) qu'un type pousse à un endroit : (type_id, pos: Vector3, types) -> float (Nuisances).
 var extra_chance: Callable
+## Si défini, Callable(rect: Rect2i) -> String : raison qui interdit de peindre
+## ce zonage (territoire des villages), ou "".
+var area_check: Callable
 var current_style := ""
 
 ## Prix du zonage (€ par m²).
@@ -159,6 +162,11 @@ func add_zone(k: String, rect: Rect2i) -> int:
 	if rect.size.x > MAX_SIDE or rect.size.y > MAX_SIDE:
 		message.emit("Zone trop grande : %d m de côté au maximum." % MAX_SIDE)
 		return -1
+	if area_check.is_valid():
+		var why := String(area_check.call(rect))
+		if why != "":
+			message.emit(why)
+			return -1
 	# Les zones existantes recouvertes sont retirées de ce rectangle.
 	remove_area(rect, false)
 	var cost := ReglagesPartie.prix(rect.size.x * rect.size.y * PRICE_M2)

@@ -1,6 +1,6 @@
 extends SceneTree
 ## Parcours complet comme un joueur, avec de vraies touches (sans réseau) :
-## globe -> partie -> outils 0-9, J -> B, L, T, V, F1 -> voie, bâtiment -> F5 -> globe
+## globe -> partie -> fondation du village -> outils 0-9, J -> B, L, T, V, F1 -> voie, bâtiment -> F5 -> globe
 ## -> Continuer -> la partie revient. Vérifie aussi qu'aucune touche n'en déclenche deux.
 ## Usage : godot --headless --path . --script res://tests/parcours_test.gd
 
@@ -67,6 +67,20 @@ func _run() -> void:
 
 	var hud = game.hud
 	var world: TerrainWorld = game.world
+	print("Fonder le village :")
+	var vp: VillagesPanel = game.villages_panel
+	for i in 400:
+		if vp._dialog.visible:
+			break
+		await process_frame
+	_check(vp._dialog.visible, "la fenêtre « Fonder ton village » s'ouvre")
+	_check(vp._dialog_edit.text == "Annecy (test)", "nom proposé : le lieu choisi")
+	await _key(KEY_ENTER)
+	await _frames(2)
+	_check(not vp._dialog.visible and game.buildings.mode == BuildingSystem.Mode.PLACE and game.buildings.type_id == "maison_commune",
+		"Entrée : la Maison de commune est en main")
+	_check(game.buildings.place("maison_commune", Vector2i(0, -40), 0) >= 0 and game.communes.villages.size() == 1, "village fondé")
+	await _key(KEY_ESCAPE)
 	print("Touches :")
 	for i in TerreHud.TOOLS.size():
 		var k: Key = TerreHud.TOOLS[i].key
@@ -126,7 +140,8 @@ func _run() -> void:
 	game = current_scene
 	_offline(game)
 	await _frames(10)
-	_check(game.name == "Terre" and game.buildings.buildings.size() == 1 and game.transport.network.edges.size() >= 1, "la partie revient avec sa route et sa maison")
+	_check(game.name == "Terre" and game.buildings.buildings.size() == 2 and game.transport.network.edges.size() >= 1, "la partie revient avec sa route, sa maison et sa Maison de commune")
+	_check(game.communes.villages.size() == 1 and not game.communes.fondation_requise(), "le village revient avec la partie")
 	_check(GameStart.slot_id == slot, "la partie en cours est la même")
 
 	SaveGame.delete(slot)

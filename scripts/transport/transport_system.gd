@@ -79,6 +79,9 @@ const HASH := 16.0
 ## Si défini, Callable(case: Vector2i) -> bool : vrai si la case est interdite
 ## aux voies (un bâtiment s'y trouve).
 var blocker: Callable
+## Si défini, Callable() -> String : raison qui interdit de tracer une voie à la
+## souris (village pas encore fondé), ou "".
+var build_gate: Callable
 
 
 func _ready() -> void:
@@ -683,6 +686,11 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _click_build() -> void:
+	if build_gate.is_valid():
+		var why := String(build_gate.call())
+		if why != "":
+			message.emit(why)
+			return
 	var mode := TransportTypes.mode_of(type_id)
 	if _start.is_empty():
 		var snap := network.find_snap(_cursor, mode, 1.0)

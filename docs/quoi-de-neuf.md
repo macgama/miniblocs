@@ -9,6 +9,11 @@ Tout est dans `main`, et les 9 tests automatiques passent (`sh tests/tous.sh`).
 - Sons des boutons, des panneaux, des constructions, des démolitions, des nouvelles, des paliers et des élections (avec un trombone triste en cas de défaite).
 - 7 morceaux selon l'heure de la ville, dont la *Valse du permis de construire*, le *Nids-de-poule blues* et *Conseil municipal (en retard)*. Panneau F2 : volumes général, musique, ambiance, effets, interface, silences entre les morceaux. Tout est synthétisé par `tools/build_sons.py`, libre de droits (voir docs/son.md).
 
+**Niveaux de vie des foyers** (touche **Maj+N**, 14 novembre)
+- Chaque foyer a un niveau de vie : Précaire, Modeste, Classe moyenne, Aisé, Très aisé. Il monte quand la ville couvre ses besoins (eau, courant, commerces, école, hôpital, internet, loisirs, calme, police, beau logement, quartier recherché…) et que ses revenus le permettent ; il redescend quand un besoin manque trop longtemps.
+- Plus un foyer est aisé, plus il paie de taxe foncière, plus il achète dans les commerces et dépense en sorties ; dès « Aisé », il place son épargne. Il déménage vers un logement plus cossu quand le sien le bloque.
+- Panneau Maj+N (répartition, ce qui bloque avec un conseil, besoins de chaque niveau, liste des foyers), carte « Niveaux de vie » (N), niveau dans la fiche des habitants (H), deux nouveaux succès (Maj+J). Voir docs/niveaux-de-vie.md.
+
 **Tutoriel guidé et objectifs à l'écran** (13 novembre)
 - Case « Tutoriel guidé » sur le globe (cochée par défaut) : 12 étapes, une à la fois en haut à gauche, de la fondation du village à l'école et au budget. Chaque étape se valide toute seule, avec un bouton qui fait le premier geste, « Passer » et une croix pour arrêter. F10 → Aide pour le relancer (voir docs/tutoriel.md).
 - Sous le tutoriel, les objectifs restent à l'écran : rang de la ville et ce qui manque pour monter, missions du pays avec leur progrès, les jours restants et la prime.

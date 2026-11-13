@@ -522,8 +522,8 @@ func _view_building(bid: int) -> void:
 				break
 			var h: Dictionary = pop.households[hid]
 			var bud := pop.household_budget(hid)
-			_text("Foyer %s · %s/mois de revenus · épargne %s" % [pop.persons[h.m[0]].n if not (h.m as Array).is_empty() else "",
-				money(bud.revenus), money(h.ep)], true, 12)
+			_text("Foyer %s · %s/mois de revenus · épargne %s%s" % [pop.persons[h.m[0]].n if not (h.m as Array).is_empty() else "",
+				money(bud.revenus), money(h.ep), (" · " + NiveauxVie.nom(NiveauxVie.niveau(h)).to_lower()) if NiveauxVie.niveau(h) >= 0 else ""], true, 12)
 			for pid in h.m:
 				_person_link(pid, String(pop.activity(pop.persons[pid]).text))
 			shown += 1
@@ -616,11 +616,18 @@ func _view_profile(pid: int) -> void:
 	if (h.m as Array).size() == 1:
 		_text("Vit seul·e.", true)
 	var bud := pop.household_budget(int(p.f))
-	_text("Budget du foyer par mois : revenus %s · loyer %s · courses %s%s" % [money(bud.revenus), money(bud.loyer), money(bud.courses),
-		(" · voiture%s %s" % ["s" if int(h.car) > 1 else "", money(bud.voitures)]) if int(h.car) > 0 else ""], true, 12)
+	_text("Budget du foyer par mois : revenus %s · loyer %s · courses %s%s%s" % [money(bud.revenus), money(bud.loyer), money(bud.courses),
+		(" · voiture%s %s" % ["s" if int(h.car) > 1 else "", money(bud.voitures)]) if int(h.car) > 0 else "",
+		(" · sorties %s" % money(float(bud.get("sorties", 0.0)))) if float(bud.get("sorties", 0.0)) > 0.0 else ""], true, 12)
 	var sol: float = bud.solde
 	_text("Reste %s%s par mois · épargne %s · %s" % ["+" if sol >= 0 else "", money(sol), money(h.ep),
 		"%d voiture%s" % [int(h.car), "s" if int(h.car) > 1 else ""] if int(h.car) > 0 else "pas de voiture"], true, 12)
+	if NiveauxVie.instance != null and NiveauxVie.instance.population == pop:
+		var nl := _text(NiveauxVie.instance.texte_foyer(int(p.f)), false, 12)
+		nl.add_theme_color_override("font_color", NiveauxVie.couleur(NiveauxVie.niveau(h)))
+		var mq := NiveauxVie.instance.texte_manques(int(p.f))
+		if mq != "":
+			_text(mq, true, 11)
 
 	var st := pop.stage(p)
 	if st == "eleve":

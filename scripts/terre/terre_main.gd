@@ -78,6 +78,9 @@ var avis_carte: AvisCarte
 var actualites: Actualites
 ## Internet et téléphone : antennes, centraux, cuivre et fibre (Maj + O, scripts/reseaux).
 var telecom: Telecom
+## Niveaux de vie des foyers (Maj+N) : besoins, montée, effets sur les impôts et les achats.
+var niveaux_vie: NiveauxVie
+var niveaux_vie_panel: NiveauxViePanel
 var telecom_panel: TelecomPanel
 ## Pollution de l'air et de l'eau, bruit, valeur des terrains et loyers.
 var nuisances: Nuisances
@@ -155,6 +158,7 @@ func _ready() -> void:
 	_setup_communes()
 	_setup_fondateurs()
 	_setup_pays()
+	_setup_niveaux_vie()
 	_setup_statistiques()
 	_setup_tutoriel()
 	_setup_create_mode()
@@ -313,6 +317,7 @@ func save_sections() -> Dictionary:
 	sec["pilote"] = pilote.to_dict()
 	sec["objectifs"] = objectifs.to_dict()
 	sec["kit"] = kit.to_dict()
+	sec["niveaux_vie"] = niveaux_vie.to_dict()
 	sec["statistiques"] = statistiques.to_dict()
 	sec["tutoriel"] = tutoriel.to_dict()
 	return sec
@@ -408,6 +413,8 @@ func load_game(slot := "") -> bool:
 	objectifs.from_dict(sec.get("objectifs", {}))
 	kit.from_dict(sec.get("kit", {}))
 	nuisances.from_dict(sec.get("nuisances", {}))
+	# Après les habitants : niveau de chaque foyer (ancienne partie : évalués au premier jour).
+	niveaux_vie.from_dict(sec.get("niveaux_vie", {}))
 	statistiques.from_dict(sec.get("statistiques", {}))
 	($VueSol as VueSol).from_dict(sec.get("personnage", {}))
 	_load_settings(sec.get("reglages", {}), m)
@@ -745,6 +752,53 @@ func _setup_pays() -> void:
 	hud.objectifs_requested.connect(func() -> void: objectifs_panel.toggle())
 
 
+## Niveaux de vie (Maj+N) : les foyers montent de « Précaire » à « Très aisé »
+## quand leurs besoins sont couverts ; carte « Niveaux de vie » dans les Cartes (N).
+func _setup_niveaux_vie() -> void:
+	niveaux_vie = NiveauxVie.new()
+	niveaux_vie.name = "NiveauxVie"
+	add_child(niveaux_vie)
+	niveaux_vie.setup(population, production, buildings, telecom)
+	niveaux_vie.message.connect(func(t: String) -> void: hud.show_message(t))
+	niveaux_vie.changed.connect(func() -> void: _unsaved = true)
+	niveaux_vie_panel = NiveauxViePanel.new()
+	niveaux_vie_panel.name = "PanneauNiveauxVie"
+	add_child(niveaux_vie_panel)
+	niveaux_vie_panel.setup(niveaux_vie)
+	niveaux_vie_panel.person_requested.connect(func(pid: int) -> void:
+		habitants_panel.set_open(true)
+		habitants_panel.show_view("profil", pid))
+	var cn := CalqueCouleur.new()
+	cn.name = "CalqueNiveauxVie"
+	cn.world = world
+	cn.focus = rig
+	cn.degrade = CalqueCouleur.degrade_valeur()
+	cn.alpha = Vector2(0.75, 0.9)
+	add_child(cn)
+	var nvx := niveaux_vie
+	cn.rects = func() -> Array:
+		var somme := {}
+		for hid in population.households:
+			var h: Dictionary = population.households[hid]
+			var n := NiveauxVie.niveau(h)
+			if n < 0:
+				continue
+			var hb := int(h.b)
+			var e: Vector2 = somme.get(hb, Vector2.ZERO)
+			somme[hb] = e + Vector2(n, 1)
+		var out := []
+		for hb in somme:
+			var info: Dictionary = population.known.get(hb, {})
+			if not info.has("rect"):
+				continue
+			var e: Vector2 = somme[hb]
+			out.append([(info.rect as Rect2i).grow(8), clampf(e.x / e.y / float(NiveauxVie.NIVEAUX.size() - 1), 0.0, 1.0)])
+		return out
+	nvx.changed.connect(cn.rafraichir)
+	Calques.ajouter("habitants_niveaux", "Niveaux de vie", "Habitants", cn.montrer,
+		"niveau moyen des foyers de chaque logement : du rouge (précaire) au bleu (très aisé). Maj+N : ce qui les empêche de monter.")
+	niveaux_vie_panel.carte_requested.connect(func() -> void: Calques.afficher("habitants_niveaux", true))
+	hud.niveaux_vie_requested.connect(func() -> void: niveaux_vie_panel.toggle())
 ## Statistiques dans le temps et conseiller (Maj+I, menu Infos).
 func _setup_statistiques() -> void:
 	statistiques = Statistiques.new()
@@ -1630,6 +1684,8 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 		objectifs.clear()
 	if kit != null:
 		kit.clear()
+	if niveaux_vie != null:
+		niveaux_vie.clear()
 	if communes != null:
 		communes.clear()
 	if fondateurs != null:

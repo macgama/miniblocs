@@ -92,6 +92,7 @@ var pays: Pays
 var pays_panel: PaysPanel
 var pilote: PiloteAuto
 var objectifs: Objectifs
+var kit: KitInstallation
 var objectifs_panel: ObjectifsPanel
 
 
@@ -300,6 +301,7 @@ func save_sections() -> Dictionary:
 	sec["pays"] = pays.to_dict()
 	sec["pilote"] = pilote.to_dict()
 	sec["objectifs"] = objectifs.to_dict()
+	sec["kit"] = kit.to_dict()
 	return sec
 
 
@@ -390,6 +392,7 @@ func load_game(slot := "") -> bool:
 	avis.from_dict(sec.get("avis", {}))
 	# Après les villages, le pays et les élections (mairies perdues).
 	objectifs.from_dict(sec.get("objectifs", {}))
+	kit.from_dict(sec.get("kit", {}))
 	nuisances.from_dict(sec.get("nuisances", {}))
 	($VueSol as VueSol).from_dict(sec.get("personnage", {}))
 	_load_settings(sec.get("reglages", {}), m)
@@ -697,6 +700,12 @@ func _setup_pays() -> void:
 		rig.position.x = pos.x
 		rig.position.z = pos.z)
 	hud.pays_requested.connect(func() -> void: pays_panel.toggle())
+	kit = KitInstallation.new()
+	kit.name = "KitInstallation"
+	add_child(kit)
+	kit.setup(buildings, communes, fondateurs, world)
+	kit.message.connect(func(t: String) -> void: hud.show_message(t))
+	kit.changed.connect(func() -> void: _unsaved = true)
 	objectifs = Objectifs.new()
 	objectifs.name = "Objectifs"
 	add_child(objectifs)
@@ -1485,6 +1494,8 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 		pilote.clear()
 	if objectifs != null:
 		objectifs.clear()
+	if kit != null:
+		kit.clear()
 	if communes != null:
 		communes.clear()
 	if fondateurs != null:

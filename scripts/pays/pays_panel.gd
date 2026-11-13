@@ -278,6 +278,12 @@ func _carte_ville(vid: int) -> void:
 	if bool(e.get("tutelle", false)):
 		var l := _text("Sous tutelle du préfet : caisse dans le rouge trop longtemps.", false, 12)
 		l.add_theme_color_override("font_color", Color("ff6b6b"))
+	var kit := KitInstallation.instance
+	if kit != null and kit.resume(vid) != "":
+		var lk := _text(kit.resume(vid), false, 12)
+		lk.add_theme_color_override("font_color", Color("ffd166") if not kit.restants(vid).is_empty() else Color(1, 1, 1, 0.6))
+		if not kit.restants(vid).is_empty():
+			_text("Choisis le type que tu veux (Construire → Réseaux, Déchets) et place-le toi-même, loin des maisons s'il pollue. Au-delà du plafond, la ville paie la différence.", true, 11)
 	var pa := PiloteAuto.instance
 	if pa != null:
 		var rp := _row()

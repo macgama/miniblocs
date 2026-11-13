@@ -79,6 +79,11 @@ var _jour := -1
 var _alerte_vivres := false
 var _reloges := 0
 var _news := 0.0
+## Ouvriers en plus envoyés par l'État avec le kit d'installation (KitInstallation),
+## ajoutés aux fondateurs à leur arrivée.
+var renfort_en_attente := 0
+## Ouvriers arrivés en renfort depuis le début de la partie.
+var renfort_total := 0
 
 
 func setup(b: BuildingSystem, p: Population, c: Communes, v: BatimentsVie, s: SuiviChantiers, a: DayNight) -> void:
@@ -110,6 +115,8 @@ func _exit_tree() -> void:
 
 func clear() -> void:
 	arrives = false
+	renfort_en_attente = 0
+	renfort_total = 0
 	camp = -1
 	membres.clear()
 	foyers_depart = 0
@@ -461,6 +468,9 @@ func _on_fonde(vid: int) -> void:
 func arriver(n: int, mairie: int) -> bool:
 	if arrives or n <= 0 or buildings == null or population == null:
 		return false
+	n += renfort_en_attente
+	renfort_total += renfort_en_attente
+	renfort_en_attente = 0
 	var cb := _planter_camp(mairie)
 	if cb < 0:
 		message.emit("Pas de place pour le campement des fondateurs près de la Maison de commune : les chantiers avancent sans eux.")
@@ -501,6 +511,42 @@ func arriver(n: int, mairie: int) -> bool:
 	population.changed.emit()
 	changed.emit()
 	return true
+
+
+## Renfort de l'État (kit d'installation d'un nouveau pays) : n ouvriers de plus
+## rejoignent le campement, avec leurs vivres. Rend le nombre arrivé.
+func renfort(n: int) -> int:
+	if n <= 0 or population == null:
+		return 0
+	if not arrives or camp < 0 or buildings == null or not buildings.buildings.has(camp):
+		renfort_en_attente += n
+		return 0
+	var rng := population.rng
+	# Place au campement avant les arrivées (logements et postes au chantier).
+	var b: Dictionary = buildings.buildings[camp]
+	b["nlog"] = int(b.get("nlog", 0)) + n
+	b["nemp"] = int(b.get("nemp", 0)) + n
+	if population.known.has(camp):
+		population.known[camp].log = int(b.nlog)
+		population.known[camp].emp = int(b.nemp)
+	var reste := n
+	var nf := 0
+	while reste > 0:
+		var tl := 2 if reste >= 2 and rng.randf() < 0.45 else 1
+		_creer_foyer(tl)
+		nf += 1
+		reste -= tl
+	foyers_depart += nf
+	renfort_total += n
+	vivres += float(n) * float(ReglagesPartie.actuel.vivres_jours)
+	affame = false
+	_alerte_vivres = false
+	_maj_camp()
+	population._apres_embauches(true)
+	repartir()
+	population.changed.emit()
+	changed.emit()
+	return n
 
 
 func _creer_foyer(taille: int) -> void:
@@ -698,7 +744,7 @@ func nouveau_jour() -> void:
 func to_dict() -> Dictionary:
 	return {"version": 1, "arrives": arrives, "camp": camp, "membres": membres.duplicate(), "foyers_depart": foyers_depart,
 		"vivres": snappedf(vivres, 0.01), "ravitaillement": ravitaillement, "affame": affame, "alerte": _alerte_vivres,
-		"pauses": pauses.keys(), "ordres": ordres.duplicate(), "jour": _jour}
+		"pauses": pauses.keys(), "ordres": ordres.duplicate(), "jour": _jour, "renfort": renfort_en_attente, "renfort_total": renfort_total}
 
 
 func from_dict(d: Dictionary) -> void:
@@ -720,5 +766,7 @@ func from_dict(d: Dictionary) -> void:
 	for k in o:
 		ordres[String(k)] = float(o[k])
 	_jour = int(d.get("jour", -1))
+	renfort_en_attente = int(d.get("renfort", 0))
+	renfort_total = int(d.get("renfort_total", 0))
 	repartir()
 	changed.emit()

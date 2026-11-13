@@ -102,3 +102,24 @@ et `scripts/pays/objectifs_panel.gd`. Vérifié une fois par jour de jeu.
   (jusqu'à −1 point, `Objectifs.bonus_taux()` dans `BudgetCommunal.taux_propose`).
 
 Test : `godot --headless --path . --script res://tests/objectifs_test.gd`
+
+## Kit d'installation de l'État
+
+La première ville fondée dans chaque pays réel (France, Suisse… d'après la ville du
+monde la plus proche de sa mairie) reçoit un kit : un **bon** par besoin vital, à poser
+soi-même, du type de son choix.
+
+| Bon | Plafond (× coût des constructions) | Exemples |
+|---|---|---|
+| Électricité | 25 M€ | biomasse, charbon local, raccordement national, éoliennes, solaire |
+| Eau potable | 8 M€ | forage et pompage, captage en rivière |
+| Égouts | 10 M€ | lagunage, station d'épuration compacte |
+| Déchets | 3 M€ | déchèterie, dépôt de collecte, décharge |
+
+- Le bon sert pour un bâtiment sur le territoire de la ville, ou hors des villes à moins de
+  3 km de sa mairie. Au-delà du plafond, la ville paie la différence.
+- Le chantier se fait avec les fondateurs ; l'État envoie **40 ouvriers** de plus (4
+  chantiers du kit ≈ 60 ouvriers, sinon les maisons des fondateurs attendraient).
+- Panneau Maj+P : bons restants sous chaque ville.
+- Code : `scripts/pays/kit_installation.gd` (`BuildingSystem.remise`), section « kit ».
+  Test : `tests/kit_test.gd`.

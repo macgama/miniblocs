@@ -79,6 +79,7 @@ const SECTIONS := [
 		["Pays à sec", "une caisse du pays vide ne verse plus de dotation : les villes doivent alors vivre de leurs impôts"],
 		["Élections", "chaque ville vote de son côté, pour son maire ; le panneau Avis (Y) montre la ville gérée"],
 		["Mairie perdue", "si une autre liste gagne (réglage Admin « Défaite : mairie perdue », par défaut), tu construis toujours dans cette ville, mais son maire décide des impôts, des emprunts et de l'entretien selon son programme ; tu ne peux plus reverser son argent au pays"],
+		["Kit de l'État", "ta première ville dans chaque pays reçoit un kit d'installation : un bâtiment offert pour l'électricité (jusqu'à 25 M€), l'eau potable (8 M€), les égouts (10 M€) et les déchets (3 M€), du type de ton choix, que tu places où tu veux sur son territoire ou à moins de 3 km de la mairie ; le chantier se fait avec les fondateurs, et l'État envoie 40 ouvriers de plus ; restant dans Maj+P"],
 		["Pilote automatique", "Maj+P, bouton Activer sous une ville : chaque semaine elle tient son budget à l'équilibre et fait la construction la plus urgente (rue, zone résidentielle, école, aire de jeux, boulangerie, parc, pompiers, police, supérette, gymnase, hôpital, zone d'activités si le chômage dépasse 12 %), en gardant 3 mois de dépenses en réserve"],
 		["Reprendre la mairie", "gagne les municipales suivantes (campagne et promesses dans Y), ou lance des élections anticipées par pétition si la satisfaction tombe sous 40"],
 	]],

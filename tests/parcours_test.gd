@@ -145,7 +145,7 @@ func _run() -> void:
 		if String(b.t) != Fondateurs.CAMPEMENT:
 			n_bat += 1
 	_check(game.name == "Terre" and n_bat == 2 and game.transport.network.edges.size() >= 1, "la partie revient avec sa route, sa maison et sa Maison de commune")
-	_check(game.fondateurs.arrives and game.fondateurs.camp >= 0 and game.fondateurs.vivants().size() == ReglagesPartie.actuel.fondateurs,
+	_check(game.fondateurs.arrives and game.fondateurs.camp >= 0 and game.fondateurs.vivants().size() == ReglagesPartie.actuel.fondateurs + game.fondateurs.renfort_total,
 		"les fondateurs et leur campement reviennent avec la partie")
 	_check(game.communes.villages.size() == 1 and not game.communes.fondation_requise(), "le village revient avec la partie")
 	_check(GameStart.slot_id == slot, "la partie en cours est la même")

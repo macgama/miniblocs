@@ -459,6 +459,11 @@ func health(p: Dictionary) -> Dictionary:
 	if mal != "" and MALADIES.has(mal):
 		f *= float(MALADIES[mal].f)
 		why.append("− %s" % MALADIES[mal].name)
+	if pop.extra_health.is_valid():
+		var ex: Array = pop.extra_health.call(p)
+		if ex.size() >= 2 and float(ex[0]) != 1.0:
+			f *= float(ex[0])
+			why.append_array(ex[1])
 	return {"f": f, "why": why}
 
 

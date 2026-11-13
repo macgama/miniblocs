@@ -99,6 +99,8 @@ var extra_buildings: Callable
 var extra_pick: Callable
 ## Satisfaction venue d'ailleurs (commerces de l'économie locale) : f(p) -> [delta, raisons].
 var extra_satisfaction: Callable
+## Optionnel : Callable(p) -> [facteur de mortalité, raisons] (ex. la faim, voir Repas).
+var extra_health: Callable
 
 var _arrival_acc: Dictionary = {}
 var _money_frac := 0.0

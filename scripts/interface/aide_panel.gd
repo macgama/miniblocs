@@ -86,6 +86,8 @@ const SECTIONS := [
 		["Livraisons", "chaque site a son stock ; des camions conduits par des chauffeurs-livreurs (lundi-vendredi) livrent le plus proche qui en a besoin. Sans chauffeur ou sans route : rayons vides et habitants mécontents. Les entrepôts servent de relais ; le reste vient par import (route qui sort de la carte, dépôt, gare, port)"],
 		["Survol d'une case", "les ressources les plus riches de la case s'affichent dans la fiche du terrain"],
 		["Règles", "il faut des habitants pour les emplois, une voie d'accès, des commerces pour vendre, un dépôt, une gare ou un port pour exporter"],
+		["Maj+F", "Agriculture : choisir une ferme, « Préparer la ferme », tracer des champs (culture au choix), acheter ou louer des machines, acheter des bêtes ; les ouvriers labourent, sèment et moissonnent selon la saison"],
+		["Repas", "les habitants mangent chaque jour dans les commerces ; s'ils manquent de nourriture : santé et satisfaction baissent, puis ils déménagent (Admin : faim aucune, normale ou mortelle)"],
 	]],
 	["Décors", [
 		["G", "panneau Décors : 160 modèles (bancs, lampadaires, fontaines, statues, clôtures, panneaux, marché, jeux, plage, ferme, animaux, bateaux, rochers)"],

@@ -36,6 +36,7 @@ var _epuisement: CheckBox
 var _ev_auto: CheckBox
 var _catas: CheckBox
 var _freq: OptionButton
+var _faim: OptionButton
 const FREQS := [0.25, 1.0, 3.0]
 var _status: Label
 
@@ -180,6 +181,12 @@ func _ready() -> void:
 	g = _section(right, "Ressources", "ressources")
 	_epuisement = _check("Épuisement des ressources (mines, puits, forêts et poissons surexploités)")
 	g.add_child(_epuisement)
+	_faim = OptionButton.new()
+	for n in ["Aucun effet", "Normale (santé, départs)", "Mortelle (on peut mourir de faim)"]:
+		_faim.add_item(n)
+	_faim.disabled = not editable
+	_faim.item_selected.connect(func(_i: int) -> void: _changed())
+	_row(g, "Faim quand les magasins sont vides", _faim)
 
 	# Événements de la ville.
 	g = _section(right, "Événements", "infos")
@@ -322,6 +329,7 @@ func _fill() -> void:
 		if absf(float(FREQS[i]) - reglages.frequence_catastrophes) < 0.01:
 			fi = i
 	_freq.select(fi)
+	_faim.select(maxi(ReglagesPartie.FAIMS.find(reglages.faim), 0))
 	_filling = false
 	_update_labels()
 
@@ -342,6 +350,7 @@ func _changed() -> void:
 	reglages.evenements_auto = _ev_auto.button_pressed
 	reglages.catastrophes = _catas.button_pressed
 	reglages.frequence_catastrophes = float(FREQS[maxi(0, _freq.selected)])
+	reglages.faim = String(ReglagesPartie.FAIMS[clampi(_faim.selected, 0, 2)])
 	_emit()
 
 

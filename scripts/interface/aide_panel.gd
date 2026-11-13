@@ -100,6 +100,14 @@ const SECTIONS := [
 		["Équipages", "un véhicule ne part que si son équipage est de garde aujourd'hui (employés du bâtiment) ; l'ambulance passe par l'hôpital avant de rentrer"],
 		["Appel d'essai ici", "bouton du panneau : un appel au hasard près de la caméra, pour voir partir les secours"],
 	]],
+	["Avis et élections", [
+		["Y, ou clic sur la satisfaction", "panneau Avis : satisfaction moyenne et sa courbe, note de chaque thème (emploi, logement, écoles et santé, environnement, transports, impôts, réseaux…) et ce qui pèse le plus"],
+		["Quartiers", "satisfaction par quartier, carte de couleur au-dessus des logements (rouge mécontent, vert content)"],
+		["Paroles", "ce que disent quelques habitants, les plus mécontents d'abord (clic : leur fiche)"],
+		["Élections", "maire dès 30 habitants, municipales tous les 6 ans de vie des habitants (dimanche, résultats à 20 h, 2e tour si besoin) ; pendant la campagne, choisis jusqu'à 3 promesses ; « Élections anticipées » pour voter le dimanche suivant"],
+		["Manifs", "sous 35 / 100 sur un thème, un cortège marche jusqu'à la mairie : négocier (argent), ignorer (grève la 2e fois) ou police (s'il y a un commissariat)"],
+		["Admin (F10) → Événements", "élections : aucune, défaite sans effet, objectifs imposés ou fin de partie ; manifestations oui / non"],
+	]],
 	["Temps et vue", [
 		["T", "mettre le temps en pause / reprendre"],
 		["Maj + T", "vitesse suivante du temps (la marée suit l'heure et la Lune : voir la barre d'état)"],
@@ -111,7 +119,7 @@ const SECTIONS := [
 	]],
 	["Partie (barre du haut)", [
 		["Loupe", "aller à des coordonnées ou à un lieu connu, infos techniques (tuiles, marée)"],
-		["Chiffres", "caisse, habitants, satisfaction, chômage : un clic ouvre le panneau Habitants"],
+		["Chiffres", "caisse, habitants, satisfaction, chômage : un clic ouvre le panneau Habitants (la satisfaction : le panneau Avis)"],
 		["… (horloge)", "lever et coucher du Soleil, Lune, curseur de l'heure, mois précédent ou suivant, météo"],
 		["F5", "sauvegarder la partie"],
 		["F9", "recharger la partie en cours"],

@@ -24,6 +24,8 @@ signal decors_requested
 signal infos_requested
 ## Panneau « Urgences » (touche U) : appels, casernes, couverture.
 signal urgences_requested
+## Panneau Avis : satisfaction, élections, manifestations (Y).
+signal avis_requested
 ## Bouton Admin de la barre du haut, ou F10 : réglages de la partie.
 signal admin_requested
 signal spec_edited(type_id: String, spec: Dictionary)
@@ -75,6 +77,7 @@ const CATEGORIES := [
 	{"id": "decors", "name": "Décors", "icon": "decors", "key": "G", "panel": true},
 	{"id": "infos", "name": "Infos", "icon": "infos", "key": "I", "panel": true},
 	{"id": "urgences", "name": "Urgences", "icon": "services", "key": "U", "panel": true},
+	{"id": "avis", "name": "Avis", "icon": "urne", "key": "Y", "panel": true},
 	{"id": "murs", "name": "Murs et étages", "icon": "mur", "key": "2", "panel": true, "mode": "creer"},
 	{"id": "blocs", "name": "Blocs", "icon": "editeur", "key": "3", "panel": true, "mode": "creer"},
 	{"id": "interieur", "name": "Intérieur", "icon": "interieur", "key": "4", "panel": true, "mode": "creer"},
@@ -241,7 +244,11 @@ func _build_top_bar() -> void:
 			["chomage", "emploi", "Chômage"]]:
 		var chip := UiStyle.stat_chip(spec[1], spec[2])
 		chip.text = "—"
-		chip.pressed.connect(func() -> void: habitants_requested.emit())
+		if spec[0] == "satisfaction":
+			chip.tooltip_text = "Satisfaction moyenne sur 100 (clic : panneau Avis, Y)"
+			chip.pressed.connect(func() -> void: avis_requested.emit())
+		else:
+			chip.pressed.connect(func() -> void: habitants_requested.emit())
 		row.add_child(chip)
 		_chips[spec[0]] = chip
 
@@ -574,6 +581,7 @@ func _on_category(id: String) -> void:
 			"decors": decors_requested.emit()
 			"infos": infos_requested.emit()
 			"urgences": urgences_requested.emit()
+			"avis": avis_requested.emit()
 		_update_categories()
 		return
 	if create_mode and id == "observer":

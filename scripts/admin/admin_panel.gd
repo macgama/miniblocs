@@ -37,6 +37,8 @@ var _ev_auto: CheckBox
 var _catas: CheckBox
 var _freq: OptionButton
 const FREQS := [0.25, 1.0, 3.0]
+var _elections: OptionButton
+var _manifs: CheckBox
 var _status: Label
 
 
@@ -193,6 +195,16 @@ func _ready() -> void:
 	_freq.disabled = not editable
 	_freq.item_selected.connect(func(_i: int) -> void: _changed())
 	_row(g, "Fréquence des catastrophes", _freq)
+	# Vie politique (scripts/avis).
+	_elections = OptionButton.new()
+	for n in Elections.MODE_NOMS:
+		_elections.add_item(n)
+	_elections.disabled = not editable
+	_elections.tooltip_text = "Municipales tous les 6 ans de vie des habitants. Si tu perds : rien, les objectifs du gagnant, ou fin de partie."
+	_elections.item_selected.connect(func(_i: int) -> void: _changed())
+	_row(g, "Élections municipales", _elections)
+	_manifs = _check("Manifestations des habitants mécontents")
+	g.add_child(_manifs)
 
 	# Pied.
 	var foot := HBoxContainer.new()
@@ -322,6 +334,8 @@ func _fill() -> void:
 		if absf(float(FREQS[i]) - reglages.frequence_catastrophes) < 0.01:
 			fi = i
 	_freq.select(fi)
+	_elections.select(maxi(0, Elections.MODES.find(reglages.elections)))
+	_manifs.button_pressed = reglages.manifestations
 	_filling = false
 	_update_labels()
 
@@ -342,6 +356,8 @@ func _changed() -> void:
 	reglages.evenements_auto = _ev_auto.button_pressed
 	reglages.catastrophes = _catas.button_pressed
 	reglages.frequence_catastrophes = float(FREQS[maxi(0, _freq.selected)])
+	reglages.elections = String(Elections.MODES[maxi(0, _elections.selected)])
+	reglages.manifestations = _manifs.button_pressed
 	_emit()
 
 

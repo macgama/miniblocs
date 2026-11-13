@@ -13,6 +13,9 @@ extends Node3D
 ## - Clic sur un passant : Population.person_clicked.
 
 const MAX_AGENTS := 300
+## Temps maximal par image pour faire apparaître de nouveaux passants (µs) : quand
+## beaucoup partent en même temps, les suivants apparaissent aux images d'après.
+const BUDGET_US := 3000
 const SIDEWALK := 1.2
 const LANE := 1.7
 
@@ -134,6 +137,7 @@ func _plan_of(pid: int, n: Dictionary) -> Array:
 
 
 func _update() -> void:
+	var t0 := Time.get_ticks_usec()
 	var n := pop.now()
 	var h: float = n.h
 	var live := {}
@@ -141,6 +145,13 @@ func _update() -> void:
 		if live.size() >= MAX_AGENTS:
 			break
 		if not pop.persons.has(pid) or pop.incarnated() == pid:
+			continue
+		var over := Time.get_ticks_usec() - t0 > BUDGET_US
+		var c: Array = _plans.get(pid, [])
+		if over and (c.is_empty() or int(c[0]) != int(n.day)):
+			# Plan du jour pas encore calculé : à une prochaine image.
+			if agents.has(pid):
+				live[pid] = true
 			continue
 		var plan := _plan_of(pid, n)
 		for i in plan.size():
@@ -153,8 +164,15 @@ func _update() -> void:
 				if pop.known.has(from) and pop.known.has(to) and from != to:
 					var mode := _mode_of(String(seg[4]))
 					var t := clampf((h - float(seg[0])) / maxf(float(seg[1]) - float(seg[0]), 0.0001), 0.0, 1.0)
-					_show(pid, from, to, mode, t)
-					live[pid] = true
+					var a: Dictionary = agents.get(pid, {})
+					var nouveau := a.is_empty() or int(a.from) != from or int(a.to) != to or String(a.mode) != mode
+					if nouveau and Time.get_ticks_usec() - t0 > BUDGET_US:
+						# Trop de départs à la fois : il apparaîtra à une prochaine image.
+						if not a.is_empty():
+							live[pid] = true
+					else:
+						_show(pid, from, to, mode, t)
+						live[pid] = true
 			break
 	for pid in agents.keys():
 		if not live.has(pid):

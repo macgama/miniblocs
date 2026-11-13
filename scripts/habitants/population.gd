@@ -1559,6 +1559,53 @@ func stats() -> Dictionary:
 	return out
 
 
+## Même résultat que stats(), calculé par morceaux d'au plus budget_us µs par appel
+## (pour la barre du haut : pas de saccade dans les grandes villes). Rend {} tant
+## que le calcul n'est pas fini ; l'appel suivant en recommence un.
+func stats_par_morceaux(budget_us := 2000) -> Dictionary:
+	var t0 := Time.get_ticks_usec()
+	if _stj.is_empty():
+		_stj = {"out": {"habitants": persons.size(), "foyers": households.size(), "bebe": 0, "eleve": 0, "etudiant": 0, "actif": 0,
+			"chomeur": 0, "retraite": 0, "sans_ecole": 0, "logements": 0, "emplois": 0, "places": 0, "satisfaction": 0},
+			"pids": persons.keys(), "i": 0, "sat": 0, "n": 0}
+	var out: Dictionary = _stj.out
+	var pids: Array = _stj.pids
+	var i := int(_stj.i)
+	while i < pids.size():
+		if persons.has(pids[i]):
+			var p: Dictionary = persons[pids[i]]
+			var st := stage(p)
+			out[st] += 1
+			if st == "eleve" and int(p.sch) < 0:
+				out.sans_ecole += 1
+		i += 1
+		if (i & 63) == 0 and Time.get_ticks_usec() - t0 > budget_us:
+			_stj.i = i
+			return {}
+	_stj.i = i
+	# Satisfaction moyenne sur les 200 premiers habitants, comme stats().
+	var k := int(_stj.get("k", 0))
+	while k < pids.size() and int(_stj.n) < 200:
+		if persons.has(pids[k]):
+			_stj.sat = int(_stj.sat) + int(satisfaction(persons[pids[k]]).value)
+			_stj.n = int(_stj.n) + 1
+		k += 1
+		_stj.k = k
+		if Time.get_ticks_usec() - t0 > budget_us:
+			return {}
+	var n := int(_stj.n)
+	out.satisfaction = roundi(float(_stj.sat) / n) if n > 0 else 0
+	for bid in known:
+		out.logements += int(known[bid].log)
+		out.emplois += int(known[bid].emp)
+		out.places += int(known[bid].seats)
+	_stj = {}
+	return out
+
+
+var _stj := {}
+
+
 func summary() -> String:
 	var adults := 0
 	var jobless := 0

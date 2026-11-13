@@ -831,9 +831,23 @@ func _shop_need(bid: int, good: String) -> float:
 ## Ce dont un site a besoin par jour : {marchandise: t}.
 func needs_of(bid: int) -> Dictionary:
 	var s: Dictionary = sites[bid]
-	var out := {}
 	if agri != null and agri.manages(bid):
 		return agri.needs(bid)
+	# Pendant une tournée de livraisons, les besoins ne changent pas : calculés une fois.
+	if _needs_cache != null:
+		var c = _needs_cache.get(bid)
+		if c == null:
+			c = _needs_calc(bid, s)
+			_needs_cache[bid] = c
+		return c
+	return _needs_calc(bid, s)
+
+
+var _needs_cache = null
+
+
+func _needs_calc(bid: int, s: Dictionary) -> Dictionary:
+	var out := {}
 	match String(s.kind):
 		"transformation":
 			var prod := ProductionTypes.prod_of(_type_of(bid))
@@ -1001,6 +1015,32 @@ func logistics(t: float) -> void:
 ## Lance les livraisons : d'abord les commandes (les plus pressées d'abord),
 ## puis le surplus vers les entrepôts et l'export.
 func _dispatch(t: float) -> void:
+	_src_cache = {}
+	_needs_cache = {}
+	_dispatch_inner(t)
+	_src_cache = null
+	_needs_cache = null
+
+
+## Pendant _dispatch : marchandise → sites qui peuvent la fournir (dans l'ordre de
+## `sites`), calculé une fois. Les stocks, eux, sont relus à chaque commande.
+var _src_cache = null
+
+
+func _sources_for(g: String) -> Array:
+	if _src_cache != null and _src_cache.has(g):
+		return _src_cache[g]
+	var out: Array = []
+	for bid in sites:
+		var kind := String(sites[bid].kind)
+		if kind == "entrepot" or (kind in ["extraction", "transformation", "elevage"] and outputs_of(bid).has(g)):
+			out.append(bid)
+	if _src_cache != null:
+		_src_cache[g] = out
+	return out
+
+
+func _dispatch_inner(t: float) -> void:
 	var free := _free_drivers(t)
 	var n_free := 0
 	for bid in free:
@@ -1065,14 +1105,11 @@ func _best_source(to: int, g: String) -> Dictionary:
 		return {}
 	var here := _pos_of(to)
 	var cands: Array = []
-	for bid in sites:
+	for bid in _sources_for(g):
 		if bid == to:
 			continue
-		var s: Dictionary = sites[bid]
-		var kind := String(s.kind)
-		if kind == "entrepot" or (kind in ["extraction", "transformation", "elevage"] and outputs_of(bid).has(g)):
-			if stock_of(bid, g) > 0.001:
-				cands.append([_pos_of(bid).distance_squared_to(here), bid])
+		if stock_of(bid, g) > 0.001:
+			cands.append([_pos_of(bid).distance_squared_to(here), bid])
 	cands.sort_custom(func(a: Array, b: Array) -> bool: return float(a[0]) < float(b[0]))
 	var best := {}
 	var best_m := INF

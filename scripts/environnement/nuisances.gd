@@ -95,6 +95,8 @@ var ambiance: DayNight
 var _tiles: Dictionary = {}
 ## Tuile → PackedByteArray (TILE × TILE) : 1 eau, 2 forêt (lu une fois).
 var _env: Dictionary = {}
+## Tuile → nombre de tuiles d'altitude chargées lors d'une lecture ratée (relief absent).
+var _env_echec: Dictionary = {}
 ## Sources posées par d'autres systèmes : id → {pos, rayon, air, eau, bruit, …}.
 var _manuelles: Dictionary = {}
 ## Valeur actuelle de chaque bâtiment (elle suit son quartier jour après jour).
@@ -114,6 +116,8 @@ var _last_ms := -100000
 var _jour := -1
 ## Dernier temps de calcul (ms), pour les tests.
 var last_ms := 0
+## Part de ce calcul faite sur le fil principal (ms).
+var last_main_ms := 0.0
 var stats := {"sources": 0, "tuiles": 0}
 
 
@@ -122,6 +126,7 @@ func _init() -> void:
 
 
 func _exit_tree() -> void:
+	_attendre_calcul()
 	if instance == self:
 		instance = null
 
@@ -142,6 +147,7 @@ func setup(w: TerrainWorld, b: BuildingSystem, t: TransportSystem, p: Population
 	if world != null:
 		world.terrain_edited.connect(func(_n: int) -> void:
 			_env.clear()
+			_env_echec.clear()
 			_dirty = true)
 		world.origin_changed.connect(func(_a: float, _b: float) -> void: clear())
 	if population != null:
@@ -162,8 +168,10 @@ func setup(w: TerrainWorld, b: BuildingSystem, t: TransportSystem, p: Population
 
 
 func clear() -> void:
+	_attendre_calcul()
 	_tiles.clear()
 	_env.clear()
+	_env_echec.clear()
 	coef_bat.clear()
 	_cible.clear()
 	_cher.clear()
@@ -197,9 +205,13 @@ func _process(delta: float) -> void:
 	_timer -= delta
 	var ms := Time.get_ticks_msec()
 	# Recalcul quand quelque chose change (au plus toutes les 2 s), sinon toutes les 30 s
-	# (trafic, sources des autres systèmes).
-	if (_dirty and ms - _last_ms > 2000) or _timer <= 0.0:
-		recalculer()
+	# (trafic, sources des autres systèmes). En jeu, l'éclaboussement des sources se fait
+	# sur un autre cœur (pas de saccade) ; recalculer() reste immédiat pour les appels directs.
+	if _job.is_empty():
+		if (_dirty and ms - _last_ms > 2000) or _timer <= 0.0:
+			_lancer_calcul()
+	else:
+		_suivre_calcul()
 	if ambiance != null and population != null:
 		var j := floori(ambiance.unix_time / 86400.0)
 		if _jour < 0:
@@ -211,16 +223,60 @@ func _process(delta: float) -> void:
 				jour_suivant()
 
 
-## Recalcule toutes les couches et la valeur visée de chaque bâtiment.
+## Recalcule toutes les couches et la valeur visée de chaque bâtiment (tout de suite).
 func recalculer() -> void:
+	_attendre_calcul()
+	var job := _preparer()
+	_calculer_sources(job)
+	_preparer_env(job)
+	_calculer_env(job)
+	_terminer(job)
+
+
+## Calcul en cours en tâche de fond : {phase, task, tiles, ops, env, n, t0, us} (vide sinon).
+var _job: Dictionary = {}
+## Pendant _preparer() : les éclaboussures sont notées ici au lieu d'être faites.
+var _ops = null
+
+
+func _lancer_calcul() -> void:
+	_job = _preparer()
+	_job.phase = 1
+	_job.task = WorkerThreadPool.add_task(_calculer_sources.bind(_job), false, "Nuisances")
+
+
+func _suivre_calcul() -> void:
+	if not WorkerThreadPool.is_task_completed(int(_job.task)):
+		return
+	WorkerThreadPool.wait_for_task_completion(int(_job.task))
+	var job := _job
+	if int(job.phase) == 1:
+		_preparer_env(job)
+		job.phase = 2
+		job.task = WorkerThreadPool.add_task(_calculer_env.bind(job), false, "Nuisances env")
+		return
+	_job = {}
+	_terminer(job)
+
+
+## Termine (et jette) un calcul de fond en cours avant un calcul immédiat.
+func _attendre_calcul() -> void:
+	if _job.is_empty():
+		return
+	WorkerThreadPool.wait_for_task_completion(int(_job.task))
+	_job = {}
+
+
+## Fil principal : lit les sources de tous les systèmes et note leurs éclaboussures.
+func _preparer() -> Dictionary:
 	var t0 := Time.get_ticks_msec()
+	var u0 := Time.get_ticks_usec()
 	_dirty = false
 	_timer = 30.0
 	_last_ms = t0
-	_tiles.clear()
-	_cache.clear()
 	var k := niveau()
 	var n := 0
+	_ops = []
 	# Sources des autres systèmes (lues d'abord : un bâtiment qu'ils décrivent eux-mêmes,
 	# avec sa clé "bid", n'est pas compté une seconde fois par la table EMISSIONS).
 	var autres := []
@@ -250,7 +306,66 @@ func recalculer() -> void:
 	for s in autres:
 		_source_dict(s, k)
 		n += 1
-	_environnement()
+	var job := {"ops": _ops, "tiles": {}, "n": n, "t0": t0, "us": Time.get_ticks_usec() - u0}
+	_ops = null
+	return job
+
+
+## N'importe quel fil : fait les éclaboussures notées dans de nouvelles tuiles.
+static func _calculer_sources(job: Dictionary) -> void:
+	var tiles: Dictionary = job.tiles
+	for o in job.ops:
+		_splat_into(tiles, int(o[0]), o[1], float(o[2]), float(o[3]), bool(o[4]))
+	job.ops = []
+
+
+## Fil principal : eau et forêts des tuiles touchées (lues une fois sur le relief).
+func _preparer_env(job: Dictionary) -> void:
+	var u0 := Time.get_ticks_usec()
+	var env := {}
+	if world != null:
+		for tk in (job.tiles as Dictionary).keys():
+			var e: PackedByteArray = _env.get(tk, PackedByteArray())
+			if e.is_empty():
+				# Relief pas encore chargé là : on ne réessaie qu'après l'arrivée d'autres tuiles d'altitude.
+				var charge := world.tiles.loaded_count() if world.tiles != null else -1
+				if int(_env_echec.get(tk, -2)) == charge:
+					continue
+				e = _lire_env(tk)
+				if e.is_empty():
+					_env_echec[tk] = charge
+					continue
+				_env_echec.erase(tk)
+				_env[tk] = e
+			env[tk] = e
+	job.env = env
+	job.us = int(job.us) + Time.get_ticks_usec() - u0
+
+
+## N'importe quel fil : vue sur l'eau et forêts (sur les tuiles déjà touchées seulement).
+static func _calculer_env(job: Dictionary) -> void:
+	var tiles: Dictionary = job.tiles
+	var envs: Dictionary = job.env
+	for tk in tiles.keys():
+		if not envs.has(tk):
+			continue
+		var env: PackedByteArray = envs[tk]
+		for j in TILE:
+			for i in TILE:
+				var v := env[i + j * TILE]
+				if v == 0:
+					continue
+				var p := Vector3((tk.x * TILE + i + 0.5) * CELL, 0, (tk.y * TILE + j + 0.5) * CELL)
+				if v == 1:
+					_splat_into(tiles, L.VUE_EAU, p, 0.12, 160.0, false)
+				elif v == 2:
+					_splat_into(tiles, L.VERT, p, 0.07, 70.0, false)
+
+
+## Fil principal : les nouvelles couches remplacent les anciennes, valeurs des bâtiments.
+func _terminer(job: Dictionary) -> void:
+	var u0 := Time.get_ticks_usec()
+	_tiles = job.tiles
 	_cache.clear()
 	# Valeur visée de chaque bâtiment.
 	_cible.clear()
@@ -271,8 +386,10 @@ func recalculer() -> void:
 				_cible[bid] = c
 				if not coef_bat.has(bid):
 					coef_bat[bid] = c
-	stats = {"sources": n, "tuiles": _tiles.size()}
-	last_ms = Time.get_ticks_msec() - t0
+	stats = {"sources": int(job.n), "tuiles": _tiles.size()}
+	last_ms = Time.get_ticks_msec() - int(job.t0)
+	## Temps passé sur le fil principal (ms) : préparation + fin.
+	last_main_ms = (int(job.us) + Time.get_ticks_usec() - u0) / 1000.0
 	recalcule.emit()
 
 
@@ -449,29 +566,6 @@ func _source_dict(s: Dictionary, k: float) -> void:
 				_splat(L.NUIT, pos, clampf(v, 0.0, 1.0) * k, r)
 
 
-## Eau (vue, pollution qui suit les cours d'eau) et forêts des tuiles touchées.
-func _environnement() -> void:
-	if world == null:
-		return
-	for tk in _tiles.keys():
-		var env: PackedByteArray = _env.get(tk, PackedByteArray())
-		if env.is_empty():
-			env = _lire_env(tk)
-			if env.is_empty():
-				continue
-			_env[tk] = env
-		for j in TILE:
-			for i in TILE:
-				var v := env[i + j * TILE]
-				if v == 0:
-					continue
-				var p := Vector3((tk.x * TILE + i + 0.5) * CELL, 0, (tk.y * TILE + j + 0.5) * CELL)
-				if v == 1:
-					_splat(L.VUE_EAU, p, 0.12, 160.0, false)
-				elif v == 2:
-					_splat(L.VERT, p, 0.07, 70.0, false)
-
-
 func _lire_env(tk: Vector2i) -> PackedByteArray:
 	var out := PackedByteArray()
 	out.resize(TILE * TILE)
@@ -498,6 +592,17 @@ func _lire_env(tk: Vector2i) -> PackedByteArray:
 func _splat(layer: int, p: Vector3, v: float, r: float, create := true) -> void:
 	if v == 0.0:
 		return
+	if _ops != null:
+		_ops.append([layer, p, v, r, create])
+		return
+	_splat_into(_tiles, layer, p, v, r, create)
+
+
+## Même calcul sur un jeu de tuiles donné (sans toucher au nœud : utilisable sur un autre fil).
+## Les cases sont parcourues ligne par ligne, tuile par tuile : mêmes sommes, dans le même ordre.
+static func _splat_into(tiles: Dictionary, layer: int, p: Vector3, v: float, r: float, create: bool) -> void:
+	if v == 0.0:
+		return
 	var cx := p.x / CELL - 0.5
 	var cz := p.z / CELL - 0.5
 	var rc := r / CELL
@@ -506,33 +611,50 @@ func _splat(layer: int, p: Vector3, v: float, r: float, create := true) -> void:
 	var j0 := floori(cz - rc)
 	var j1 := ceili(cz + rc)
 	var r2 := rc * rc
-	var cur_t := Vector2i(1 << 30, 0)
-	var arr: Array = []
-	var has := false
 	for j in range(j0, j1 + 1):
 		var dz := j - cz
-		for i in range(i0, i1 + 1):
-			var dx := i - cx
-			var d2 := dx * dx + dz * dz
-			if d2 > r2:
-				continue
-			var tk := Vector2i(floori(float(i) / TILE), floori(float(j) / TILE))
-			if tk != cur_t:
-				cur_t = tk
-				has = _tiles.has(tk)
-				if has:
-					arr = _tiles[tk]
-				elif create:
-					arr = []
-					arr.resize(TILE * TILE * NL)
-					arr.fill(0.0)
-					_tiles[tk] = arr
-					has = true
-			if not has:
-				continue
-			var w := 1.0 - sqrt(d2) / rc
-			var li := (posmod(i, TILE) + posmod(j, TILE) * TILE) * NL + layer
-			arr[li] += v * w * w
+		var dz2 := dz * dz
+		if dz2 > r2:
+			continue
+		# Bornes de la ligne (une case de marge : le test exact reste fait case par case).
+		var half := sqrt(r2 - dz2)
+		var ia := maxi(i0, floori(cx - half) - 1)
+		var ib := mini(i1, ceili(cx + half) + 1)
+		var tj := j >> 5
+		var row := (j & (TILE - 1)) * TILE
+		var i := ia
+		while i <= ib:
+			var ti := i >> 5
+			var seg_end := mini(ib, (ti << 5) + TILE - 1)
+			var tk := Vector2i(ti, tj)
+			var arr = tiles.get(tk)
+			var a := i
+			i = seg_end + 1
+			if arr == null:
+				if not create:
+					continue
+				# La tuile n'est créée que si une case est vraiment dans le cercle.
+				var dedans := false
+				for ii in range(a, seg_end + 1):
+					var dx0 := ii - cx
+					if dx0 * dx0 + dz2 <= r2:
+						dedans = true
+						break
+				if not dedans:
+					continue
+				arr = []
+				arr.resize(TILE * TILE * NL)
+				arr.fill(0.0)
+				tiles[tk] = arr
+			var tab: Array = arr
+			for ii in range(a, seg_end + 1):
+				var dx := ii - cx
+				var d2 := dx * dx + dz2
+				if d2 > r2:
+					continue
+				var w := 1.0 - sqrt(d2) / rc
+				var li := ((ii & (TILE - 1)) + row) * NL + layer
+				tab[li] += v * w * w
 
 
 # --- Lecture ---------------------------------------------------------------------------
@@ -700,9 +822,13 @@ func loyer(bid: int) -> float:
 func sante(bid: int) -> float:
 	if not ReglagesPartie.actuel.pollution_sante:
 		return 0.0
-	# Une usine vient d'ouvrir : la santé se lit sur des valeurs à jour.
-	if _dirty and Time.get_ticks_msec() - _last_ms > 250:
-		recalculer()
+	# Une usine vient d'ouvrir : le calcul repart tout de suite (sur un autre cœur, sans
+	# saccade) ; la santé suit dès qu'il est fini, quelques images plus tard.
+	if _dirty and _job.is_empty() and Time.get_ticks_msec() - _last_ms > 250:
+		if is_inside_tree():
+			_lancer_calcul()
+		else:
+			recalculer()
 	var f := au_point(_centre(bid))
 	return clampf(float(f.air) + 0.5 * float(f.eau), 0.0, 1.0)
 

@@ -96,6 +96,8 @@ const SECTIONS := [
 		["Livraisons", "chaque site a son stock ; des camions conduits par des chauffeurs-livreurs (lundi-vendredi) livrent le plus proche qui en a besoin. Sans chauffeur ou sans route : rayons vides et habitants mécontents. Les entrepôts servent de relais ; le reste vient par import (route qui sort de la carte, dépôt, gare, port)"],
 		["Survol d'une case", "les ressources les plus riches de la case s'affichent dans la fiche du terrain"],
 		["Règles", "il faut des habitants pour les emplois, une voie d'accès, des commerces pour vendre, un dépôt, une gare ou un port pour exporter"],
+		["Maj+F", "Agriculture : choisir une ferme, « Préparer la ferme », tracer des champs (culture au choix), acheter ou louer des machines, acheter des bêtes ; les ouvriers labourent, sèment et moissonnent selon la saison"],
+		["Repas", "les habitants mangent chaque jour dans les commerces ; s'ils manquent de nourriture : santé et satisfaction baissent, puis ils déménagent (Admin : faim aucune, normale ou mortelle)"],
 	]],
 	["Décors", [
 		["G", "panneau Décors : 160 modèles (bancs, lampadaires, fontaines, statues, clôtures, panneaux, marché, jeux, plage, ferme, animaux, bateaux, rochers)"],
@@ -109,6 +111,21 @@ const SECTIONS := [
 		["Sur la route", "gyrophares et sirène deux-tons : ils passent les feux au ralenti, les autres se rangent à droite, ils doublent par la voie d'en face quand elle est libre"],
 		["Équipages", "un véhicule ne part que si son équipage est de garde aujourd'hui (employés du bâtiment) ; l'ambulance passe par l'hôpital avant de rentrer"],
 		["Appel d'essai ici", "bouton du panneau : un appel au hasard près de la caméra, pour voir partir les secours"],
+	]],
+	["Trafic", [
+		["Maj+L", "panneau Trafic (bouton Trafic de la barre du bas) : comment les habitants se déplacent, temps perdu dans les bouchons et pour se garer, routes saturées, parkings, remplissage des lignes"],
+		["Bouchons", "chaque rue a une capacité (voies × débit de sa classe) ; plus elle est chargée à l'heure de pointe, plus on y roule lentement, et les habitants changent de route ou prennent le bus, le vélo"],
+		["Carte du trafic", "bouton du panneau : routes colorées du vert (fluide) au rouge (bouché), maintenant ou à l'heure de pointe ; parkings colorés selon leur remplissage"],
+		["Stationnement", "places privées des entreprises, puis le long des rues et dans les parkings (Lignes > Parking) ; sans place, on tourne et on marche ; tarif réglable par parking"],
+		["Lignes", "chaque bus, tram ou métro a ses places ; plein, on attend le suivant ; ticket réglable par ligne (1,50 € par défaut, gratuit pour les moins de 18 ans)"],
+		["Voie de bus", "Choisir une route > Voie de bus : bus et trams y passent les bouchons, les voitures perdent une voie ; Fermer à la circulation coupe la route"],
+	]],
+	["Services publics", [
+		["Maj + U", "panneau Services publics : écoles, hôpitaux, police ; habitants bien couverts, loin, saturés ou sans service ; places, lits et agents de chaque bâtiment (clic : y aller)"],
+		["Voir la couverture", "bouton du panneau (ou panneau Cartes) : chaque logement en couleur, vert bien couvert, jaune loin, orange saturé, rouge rien ; les services en bleu"],
+		["Distance", "temps de trajet par les routes et chemins : école 15 min (maternelle, élémentaire), 25 min (collège), 40 min (lycée), à pied ou en car ; hôpital 30 min en voiture ; police 10 min d'intervention. Au double, plus de couverture"],
+		["Places", "école : pupitres ; hôpital : 3 lits pour 1 000 habitants ; police : 1 agent pour 400 habitants. Sans personnel embauché, le service ne couvre rien"],
+		["Conséquences", "santé et espérance de vie (hôpital), satisfaction des habitants, petits délits (cambriolages) dans les quartiers sans police"],
 	]],
 	["Internet et téléphone", [
 		["Maj + O", "panneau Internet et téléphone (aussi en onglet « Télécom » du panneau Réseaux, O) : outils des câbles, calques, bâtiment survolé, bilan"],

@@ -61,6 +61,8 @@ const SIREN_GHOST := 6.0
 signal restarted
 ## Émis quand un véhicule de ligne arrive à une station (chargement, déchargement).
 signal line_arrived(line_id: int, model: String)
+## Un véhicule passe sur un nouveau tronçon (usure des voies, comptages).
+signal edge_entered(eid: int, v: Dictionary)
 
 var network: TransportNetwork
 var enabled := true
@@ -90,6 +92,11 @@ var _sidewalks: Array[int] = []
 ## circulation d'ambiance d'après les habitants (pas de bâtiment, personne dans
 ## les rues). Les bus d'ambiance disparaissent : seuls roulent ceux des lignes.
 var demand: Callable
+## Facteurs de vitesse par tronçon : Callable(eid: int, v: Dictionary) -> float,
+## multipliés à la vitesse de croisière (bouchons, état de la chaussée…).
+var speed_factors: Array[Callable] = []
+## Modèle de trafic (scripts/transport/trafic.gd) : charge des tronçons.
+var model: Object
 var _sidewalk_len := -1.0
 ## Véhicules à sirène par file : clé de file -> positions s (pour se ranger).
 var _siren_keys: Dictionary = {}
@@ -408,6 +415,30 @@ func pick_model(cls: String) -> String:
 		if VehicleCatalog.get_type(id).cat == cat:
 			in_cat.append(id)
 	return in_cat[rng.randi() % in_cat.size()]
+
+
+## Produit des facteurs de vitesse du tronçon eid pour le véhicule v (0,1 à 1,5).
+func speed_factor(eid: int, v: Dictionary) -> float:
+	var f := 1.0
+	for c in speed_factors:
+		if c.is_valid():
+			f *= float(c.call(eid, v))
+	return clampf(f, 0.1, 1.5)
+
+
+## Véhicules par heure sur un tronçon, les deux sens (moyenne de l'heure en cours).
+func flux(eid: int) -> float:
+	return float(model.call("flux", eid)) if model != null else 0.0
+
+
+## Tous les flux : id de tronçon -> véhicules par heure.
+func flux_all() -> Dictionary:
+	return model.call("flux_all") if model != null else {}
+
+
+## Poids lourds par heure (bus, camions) sur un tronçon.
+func flux_lourds(eid: int) -> float:
+	return float(model.call("flux_lourds", eid)) if model != null else 0.0
 
 
 ## Véhicules d'ambiance d'un mode (sans ceux des lignes).
@@ -878,6 +909,8 @@ func _advance(v: Dictionary, delta: float) -> bool:
 	if v.get("siren", false):
 		spd = minf(TransportTypes.speed_of(e0.t) * SIREN_SPEED, float(v.max_speed))
 	var mode := int(v.mode)
+	if not speed_factors.is_empty() and mode == TransportTypes.Mode.ROAD and not v.has("sidewalk"):
+		spd *= speed_factor(eid, v)
 	if mode == TransportTypes.Mode.ROAD or mode == TransportTypes.Mode.RAIL:
 		if not _drive(v, eid, e0, spd, delta):
 			return false
@@ -942,6 +975,8 @@ func _advance(v: Dictionary, delta: float) -> bool:
 		var e: Dictionary = network.edges[eid]
 		if e.a != v.node and e.b != v.node:
 			return false
+		if not v.has("sidewalk"):
+			edge_entered.emit(eid, v)
 	if v.has("urgence") and int(v.leg) == route.size() - 1:
 		var left := float(v.get("stop_s", INF)) - float(v.s)
 		# Arrivé, ou arrêté juste derrière les secours déjà sur place.

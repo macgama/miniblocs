@@ -26,6 +26,10 @@ const TRANSFER_PENALTY := 120.0
 var stations: StationSystem
 ## id de ligne -> {"hops": Array (temps entre arrêts successifs, s), "wait": s}
 var _cache: Dictionary = {}
+## Temps d'un bus sur un tronçon routier (bouchons) : Callable(eid) -> facteur ≥ 1.
+var edge_factor: Callable
+## Attente en plus quand une ligne est pleine à la pointe : id de ligne -> s.
+var extra_wait: Dictionary = {}
 
 
 func _init(s: StationSystem) -> void:
@@ -117,7 +121,7 @@ func plan(a: Vector3, b: Vector3) -> Dictionary:
 				continue
 			var stops: Array = stations.lines[lid].stops
 			var i0 := stops.find(cur)
-			var penalty := float(info.wait) + (TRANSFER_PENALTY if String(prev[cur].type) != "marche_depart" else 0.0)
+			var penalty := float(info.wait) + float(extra_wait.get(lid, 0.0)) + (TRANSFER_PENALTY if String(prev[cur].type) != "marche_depart" else 0.0)
 			for dir in [-1, 1]:
 				var ride := 0.0
 				var j := i0
@@ -231,7 +235,10 @@ func _line_info(lid: int) -> Dictionary:
 				return {}
 			for eid in route:
 				var e: Dictionary = stations.network.edges[eid]
-				t += float(e.len) / maxf(1.0, minf(vmax, TransportTypes.speed_of(e.t)))
+				var et := float(e.len) / maxf(1.0, minf(vmax, TransportTypes.speed_of(e.t)))
+				if edge_factor.is_valid() and TransportTypes.mode_of(e.t) == TransportTypes.Mode.ROAD:
+					et *= float(edge_factor.call(eid))
+				t += et
 			# Freinage, accélération et arrêt en station.
 			t = t * 1.15 + StationSystem.DWELL
 		hops.append(t)

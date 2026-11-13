@@ -25,7 +25,7 @@ commencer la partie.
 | Catastrophes (Rares, Normales, Fréquentes) | incendies, tempêtes et épidémies au hasard ; décoché : seulement à la main (panneau Infos) |
 | Épuisement des ressources | sans épuisement : mines et puits inépuisables, forêts et poissons ne s'abîment pas |
 
-Préréglages : **Facile**, **Normal** (les règles d'avant : 20 M€, prix ×1), **Difficile**,
+Préréglages : **Facile**, **Normal** (30 M€, prix ×1), **Difficile**,
 **Bac à sable libre**. « Garder par défaut » écrit `user://reglages_defaut.json`,
 proposé pour les nouvelles parties.
 

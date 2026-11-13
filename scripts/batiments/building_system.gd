@@ -73,6 +73,10 @@ var extra_blocker: Callable
 ## Règle de pose en plus (production : richesse du sol) : (id, rect) ->
 ## {"reason": refus ou "", "info": texte ajouté à l'aide de pose}.
 var extra_check: Callable
+## Optionnel : Callable(id, rect, prix) -> int, part du prix offerte (kit de l'État,
+## KitInstallation), et Callable(bid, id, rect) appelé quand elle a servi.
+var remise: Callable
+var remise_utilisee: Callable
 
 var _nodes: Dictionary = {} # id -> MeshInstance3D
 var _meshes: Dictionary = {} # type -> ArrayMesh
@@ -461,6 +465,13 @@ func check_place(id: String, center: Vector2i, r: int, grown := false, a := 0.0)
 			return res
 	if grown:
 		res.cost = 0
+	elif remise.is_valid() and not unlimited_money:
+		var off := int(remise.call(id, rect, int(res.cost)))
+		if off > 0:
+			res.cost = int(res.cost) - off
+			res["remise"] = off
+			res["info"] = ("%s · " % String(res.get("info", "")) if String(res.get("info", "")) != "" else "") + \
+				"Kit de l'État : %s offerts" % format_money(off)
 	var needs_access := not (t.get("access", []) as Array).is_empty()
 	if (require_access or grown) and needs_access and res.access.is_empty():
 		var names: Array[String] = []
@@ -521,6 +532,8 @@ func place(id: String, center: Vector2i, r: int, zone := 0, a := 0.0) -> int:
 	if chantier and int(res.cost) > 0:
 		e["du"] = int(res.cost)
 	_add(e)
+	if int(res.get("remise", 0)) > 0 and remise_utilisee.is_valid():
+		remise_utilisee.call(bid, id, rect)
 	if zone == 0:
 		if chantier:
 			message.emit("Chantier de %s lancé : %s, payés au fil des travaux." % [BuildingCatalog.get_type(id).name, format_money(res.cost)])

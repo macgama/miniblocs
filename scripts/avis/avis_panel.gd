@@ -362,13 +362,16 @@ func _view_elections() -> void:
 		return
 	if el.etat == "attente":
 		_section("Bientôt maire", "urne")
-		_text("Tu deviens maire à %d habitants (aujourd'hui : %d). Le premier mandat commence alors." % [Elections.MIN_HABITANTS,
-			avis.population.persons.size()], true)
+		_text("Tu deviens maire de %s à %d habitants (aujourd'hui : %d). Le premier mandat commence alors." % [Avis.ville(), Elections.MIN_HABITANTS,
+			avis.habitants()], true)
 		return
 	_section("Mairie de %s" % Avis.ville(), "urne")
 	var m := el.maire
 	if el.joueur_maire():
 		_text("Maire : %s (liste « %s »)" % ["toi" if el._tete_joueur() < 0 else el._tete_joueur_nom() + " (toi)", el.ma_liste()])
+	elif el.mode() == "mairie":
+		_text("Maire : %s (liste « %s »). Tu as perdu la mairie : tu peux toujours construire, mais son conseil décide des impôts, des emprunts et de l'entretien (programme : %s). Reprends-la aux prochaines municipales." % [
+			String(m.get("tete_nom", "?")), String(m.get("nom", "?")), String(GestionAuto.politique(String(m.get("tendance", ""))).nom)], false, 13, Color("ffb347"))
 	else:
 		_text("Maire : %s (liste « %s »). Tu gères la ville, mais le conseil suit son programme." % [String(m.get("tete_nom", "?")), String(m.get("nom", "?"))])
 	var j := el.jours_avant_vote()
@@ -397,10 +400,17 @@ func _view_elections() -> void:
 				UiStyle.GOOD if bool(b.tenu) else Color("ef476f"))
 	if el.etat == "campagne" or el.etat == "entre_tours":
 		_view_campagne()
-	elif el.etat == "mandat":
+	elif el.etat == "mandat" and el.joueur_maire():
 		_button("Élections anticipées (vote dimanche prochain)", "urne", func() -> void:
 			el.anticiper()
 			refresh(), "La campagne s'ouvre tout de suite, vote le prochain dimanche (au moins 2 jours)")
+	elif el.etat == "mandat" and el.petition():
+		_text("Les habitants sont mécontents du nouveau maire : une pétition réclame des élections anticipées.", false, 12, UiStyle.ACCENT)
+		_button("Lancer les élections anticipées (pétition)", "urne", func() -> void:
+			el.anticiper()
+			refresh(), "Satisfaction sous %d : la campagne s'ouvre, vote le prochain dimanche" % Elections.SEUIL_PETITION)
+	elif el.etat == "mandat" and el.mode() == "mairie":
+		_text("Pétition pour des élections anticipées : possible si la satisfaction tombe sous %d." % Elections.SEUIL_PETITION, true, 12)
 	var last := el.dernier_scrutin()
 	if not last.is_empty():
 		_section("Dernier scrutin (%s tour)" % ("1er" if int(last.tour) == 1 else "2e"), "urne")

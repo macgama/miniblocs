@@ -122,6 +122,12 @@ func refresh() -> void:
 	for c in _body.get_children():
 		_body.remove_child(c)
 		c.queue_free()
+	# Mairie perdue : le conseil élu décide, le joueur regarde.
+	if BudgetCommunal.multi() and not budget.joueur_decide():
+		var m: Dictionary = Avis.instance.maire_de(budget.cle) if Avis.instance != null else {}
+		var l := _text("Tu n'es plus maire de %s : le conseil de « %s » décide des impôts, des emprunts et de l'entretien. Reprends la mairie aux prochaines municipales (Y)." % [
+			Pays.instance.nom_de(budget.cle), String(m.get("nom", "?"))], false, 12)
+		l.add_theme_color_override("font_color", Color("ffb347"))
 	match view:
 		"impots": _view_taxes()
 		"emprunts": _view_loans()

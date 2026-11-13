@@ -27,8 +27,12 @@ const SEUIL_2E_TOUR := 10.0
 ## Plus elle est grande, plus les votes se dispersent.
 const TEMPERATURE := 5.0
 
-const MODES := ["aucune", "sans_effet", "objectifs", "fin"]
-const MODE_NOMS := ["Pas d'élections", "Défaite sans conséquence", "Défaite : objectifs imposés", "Défaite : fin de partie"]
+const MODES := ["aucune", "sans_effet", "objectifs", "mairie", "fin"]
+const MODE_NOMS := ["Pas d'élections", "Défaite sans conséquence", "Défaite : objectifs imposés", "Défaite : mairie perdue",
+	"Défaite : fin de partie"]
+## Mairie perdue : satisfaction sous laquelle les habitants signent une pétition
+## pour des élections anticipées (le joueur peut alors les lancer).
+const SEUIL_PETITION := 40
 
 ## Promesses de campagne (et objectifs imposés) : thème, mesure, test.
 const PROMESSES := {
@@ -61,6 +65,8 @@ const TENDANCES := {
 const COULEUR_JOUEUR := "ffd166"
 
 var avis: Avis
+## Ville de ces élections (−1 : toute la population, partie sans villages).
+var vid := -1
 ## "attente" (moins de 30 habitants), "mandat", "campagne", "entre_tours".
 var etat := "attente"
 var mandat_debut := -1
@@ -159,13 +165,14 @@ func jours_avant_vote() -> int:
 func demarrer_si_besoin(d: int) -> void:
 	if etat != "attente" or not actives() or avis.population == null:
 		return
-	if avis.population.persons.size() < MIN_HABITANTS:
+	var hab := avis.habitants()
+	if hab < MIN_HABITANTS:
 		return
 	etat = "mandat"
 	mandat_debut = d
 	vote_jour = dimanche(d + duree_mandat())
 	maire = {"joueur": true, "liste": "joueur", "nom": ma_liste(), "couleur": COULEUR_JOUEUR}
-	avis.dire("%s compte %d habitants : te voilà maire ! Prochaines municipales dans %d jours." % [Avis.ville(), avis.population.persons.size(), vote_jour - d])
+	avis.dire("%s compte %d habitants : te voilà maire ! Prochaines municipales dans %d jours." % [Avis.ville(), hab, vote_jour - d])
 
 
 func nouveau_jour(n: Dictionary) -> void:
@@ -197,13 +204,24 @@ func nouvelle_heure(n: Dictionary) -> void:
 func anticiper() -> bool:
 	if etat == "campagne" or etat == "entre_tours" or not actives():
 		return false
-	if avis.population == null or avis.population.persons.size() < MIN_HABITANTS:
+	if avis.population == null or avis.habitants() < MIN_HABITANTS:
+		return false
+	if not joueur_maire() and not petition():
 		return false
 	if etat == "attente":
 		demarrer_si_besoin(avis.jour())
 	vote_jour = dimanche(avis.jour() + 2)
 	ouvrir_campagne()
 	return true
+
+
+## Mairie perdue et habitants mécontents : une pétition réclame des élections
+## anticipées, que le joueur peut lancer (bouton du panneau Avis).
+func petition() -> bool:
+	if mode() != "mairie" or joueur_maire() or etat != "mandat":
+		return false
+	var m := avis.moyenne()
+	return m >= 0 and m < SEUIL_PETITION
 
 
 # --- Campagne -----------------------------------------------------------------------
@@ -225,7 +243,7 @@ func ouvrir_campagne() -> void:
 				sc += maxf(0.0, 60.0 - float(s.themes[th].note))
 		scores.append([tid, sc + float(hash(tid + str(vote_jour)) % 10)])
 	scores.sort_custom(func(a, b) -> bool: return float(a[1]) > float(b[1]))
-	var n_adv := 3 if avis.population.persons.size() >= 300 else 2
+	var n_adv := 3 if avis.habitants() >= 300 else 2
 	listes.clear()
 	var moi := {"id": "joueur", "nom": ma_liste(), "couleur": COULEUR_JOUEUR, "tendance": "", "themes": [], "promesses": [],
 		"joueur": true, "sortant": joueur_maire(), "tete": _tete_joueur(), "tete_nom": _tete_joueur_nom()}
@@ -460,10 +478,7 @@ func intentions(ls: Array = listes, graine := -1) -> Dictionary:
 	var ids := avis.echantillon(true, 500)
 	if ids.is_empty():
 		return out
-	var adults := 0
-	for pid in avis.population.persons:
-		if avis.population.age_of(avis.population.persons[pid]) >= Population.ADULT_AGE:
-			adults += 1
+	var adults := avis.electeurs()
 	var g := graine if graine >= 0 else vote_jour * 10 + tour
 	var bonus := _bonus_bilan()
 	var counts := {}
@@ -604,6 +619,11 @@ func _elire(l: Dictionary, pct: float, txt: String, participation: float) -> voi
 				for id in l.promesses:
 					objectifs.append(nouvelle_promesse(String(id)))
 				suite = " Tu restes aux commandes, mais le nouveau conseil t'impose ses objectifs (panneau Avis, Y)."
+			"mairie":
+				for id in l.promesses:
+					objectifs.append(nouvelle_promesse(String(id)))
+				suite = " Tu perds la mairie : tu peux toujours construire, mais les impôts, les emprunts et l'entretien sont décidés par le nouveau conseil. Reprends-la aux prochaines municipales (dans %d jours) ou par une pétition si les habitants sont mécontents." % duree_mandat()
+				GestionAuto.appliquer_politique(vid, String(l.tendance))
 			"fin":
 				perdu_final = true
 				suite = " Tu as perdu la mairie : fin de partie."

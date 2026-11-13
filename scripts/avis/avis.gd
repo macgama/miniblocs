@@ -21,6 +21,13 @@ extends Node
 ## avec "ville": true, f() sans argument, le même pour tous (relu toutes les
 ## quelques secondes). Delta conseillé : −15 à +10 par facteur.
 ## Thèmes : voir THEMES (un thème inconnu est accepté et affiché tel quel).
+##
+## Plusieurs villes (Pays) : chaque ville a ses élections, son maire et son
+## historique. `ville_vid` est la ville examinée (−1 : toute la population) :
+## par défaut la ville gérée (Pays.selection) ; chaque jour, chaque heure, Avis
+## passe par toutes les villes. echantillon(), sondage(), compter(),
+## logements(), chomage(), pression_fiscale(), dette(), mairie() et ville()
+## suivent cette ville.
 
 signal changed
 ## Une nouvelle de la vie politique (aussi envoyée au fil d'actualité).
@@ -58,8 +65,17 @@ var ambiance: DayNight
 var world: TerrainWorld
 var evenements: Evenements
 
+## Élections de la ville examinée (voir elections_villes).
 var elections: Elections
 var manifs: Manifestations
+## Ville examinée : −1 = toute la population (partie sans villages).
+var ville_vid := -1
+## Élections de chaque ville : vid -> Elections (−1 : partie sans villages).
+var elections_villes := {}
+## Historique des sondages de chaque ville : vid -> Array.
+var historiques := {}
+## Derniers sondages par ville : vid -> [ms, sondage].
+var _sondages := {}
 
 ## Effets passagers (promesses, manifestations, police…) :
 ## [{theme, delta, fin (unix de jeu), raison}].
@@ -85,6 +101,8 @@ var _theme_motif: Dictionary = {}
 func _init() -> void:
 	name = "Avis"
 	elections = Elections.new(self)
+	elections_villes[-1] = elections
+	historiques[-1] = historique
 	manifs = Manifestations.new(self)
 
 
@@ -112,7 +130,16 @@ func setup(pop: Population, bs: BuildingSystem, tr: TransportSystem, amb: DayNig
 
 func clear() -> void:
 	effets.clear()
-	historique.clear()
+	# L'élection « toute la population » garde son objet (d'autres le tiennent).
+	var e0: Elections = elections_villes.get(-1, elections)
+	elections_villes.clear()
+	historiques.clear()
+	_sondages.clear()
+	ville_vid = -1
+	elections = e0
+	elections_villes[-1] = elections
+	historique = []
+	historiques[-1] = historique
 	dernier = {}
 	_last_day = -1
 	_last_hour = -1
@@ -121,6 +148,103 @@ func clear() -> void:
 	elections.clear()
 	manifs.clear()
 	changed.emit()
+
+
+# --- Plusieurs villes (Pays) ---------------------------------------------------------
+
+## Plusieurs villes ?
+static func multi() -> bool:
+	return Pays.instance != null and Pays.instance.a_des_villes()
+
+
+## Ville examinée par défaut : la ville gérée (−1 sans villages).
+func ville_par_defaut() -> int:
+	return Pays.instance.selection if multi() else -1
+
+
+## Villes qui ont des élections : les villages, ou −1 sans villages.
+func villes() -> Array:
+	if not multi():
+		return [-1]
+	var ids: Array = Communes.instance.villages.keys()
+	ids.sort()
+	return ids
+
+
+## Examine la ville v (élections, historique et sondages suivent).
+func examiner(v: int) -> void:
+	if v == ville_vid and elections_villes.has(v):
+		return
+	ville_vid = v
+	elections = elections_de(v)
+	if not historiques.has(v):
+		historiques[v] = []
+	historique = historiques[v]
+	var c: Array = _sondages.get(v, [-100000, {}])
+	_sondage_ms = int(c[0])
+	dernier = c[1]
+
+
+func elections_de(v: int) -> Elections:
+	# Le chef-lieu reprend l'élection d'avant les villages (même objet, même mandat).
+	if v >= 0 and not elections_villes.has(v) and Communes.instance != null and v == Communes.instance.principal() \
+			and elections_villes.has(-1) and (elections_villes[-1] as Elections).vid == -1:
+		var e0: Elections = elections_villes[-1]
+		e0.vid = v
+		elections_villes[v] = e0
+		if historiques.has(-1) and not historiques.has(v):
+			historiques[v] = historiques[-1]
+		return e0
+	if not elections_villes.has(v):
+		var e := Elections.new(self)
+		e.vid = v
+		elections_villes[v] = e
+	return elections_villes[v]
+
+
+## Le joueur est-il maire de cette ville ?
+func joueur_maire_de(v: int) -> bool:
+	return not elections_villes.has(v) or (elections_villes[v] as Elections).joueur_maire()
+
+
+## Le joueur décide-t-il des réglages de cette ville (impôts, emprunts,
+## entretien) ? Non s'il a perdu la mairie avec le réglage « mairie perdue ».
+func joueur_decide_de(v: int) -> bool:
+	if not elections_villes.has(v):
+		return true
+	var e: Elections = elections_villes[v]
+	return e.mode() != "mairie" or e.joueur_maire()
+
+
+## Maire d'une ville : {joueur, nom (liste), tete_nom, tendance…}.
+func maire_de(v: int) -> Dictionary:
+	if not elections_villes.has(v):
+		return {"joueur": true}
+	var m: Dictionary = (elections_villes[v] as Elections).maire
+	return m if not m.is_empty() else {"joueur": true}
+
+
+## Ce bâtiment est-il dans la ville examinée ?
+func dans_ville(bid: int) -> bool:
+	if ville_vid < 0 or Communes.instance == null:
+		return true
+	return Communes.instance.village_de(bid) == ville_vid
+
+
+## Habitants de la ville examinée.
+func habitants() -> int:
+	if population == null:
+		return 0
+	if ville_vid < 0:
+		return population.persons.size()
+	return echantillon(false, 1 << 30).size()
+
+
+## Électeurs (majeurs) de la ville examinée.
+func electeurs() -> int:
+	if population == null:
+		return 0
+	return echantillon(true, 1 << 30).size()
 
 
 # --- Facteurs ---------------------------------------------------------------------
@@ -274,10 +398,15 @@ func _process(_delta: float) -> void:
 		return
 	var n := local_now()
 	var d := int(n.day)
+	if ville_vid != ville_par_defaut():
+		examiner(ville_par_defaut())
 	if _last_day < 0 or d < _last_day:
 		_last_day = d
 		_last_hour = int(float(n.h))
-		elections.demarrer_si_besoin(d)
+		for v in villes():
+			examiner(v)
+			elections.demarrer_si_besoin(d)
+		examiner(ville_par_defaut())
 		return
 	if d > _last_day:
 		_last_day = d
@@ -295,21 +424,31 @@ func _nouveau_jour(n: Dictionary) -> void:
 	for i in range(effets.size() - 1, -1, -1):
 		if float(effets[i].fin) <= t:
 			effets.remove_at(i)
-	var s := sondage(true)
-	if int(s.n) > 0:
-		var notes := {}
-		for th in s.themes:
-			notes[th] = int(s.themes[th].note)
-		historique.append({"jour": int(n.day), "valeur": int(s.valeur), "themes": notes})
-		while historique.size() > HISTORIQUE_MAX:
-			historique.remove_at(0)
-	elections.nouveau_jour(n)
+	# Chaque ville : son sondage du jour, ses élections, son maire.
+	for v in villes():
+		examiner(v)
+		var s := sondage(true)
+		if int(s.n) > 0:
+			var notes := {}
+			for th in s.themes:
+				notes[th] = int(s.themes[th].note)
+			historique.append({"jour": int(n.day), "valeur": int(s.valeur), "themes": notes})
+			while historique.size() > HISTORIQUE_MAX:
+				historique.remove_at(0)
+		elections.nouveau_jour(n)
+		# Ville perdue : le maire élu gère son budget (GestionAuto).
+		if v >= 0 and not joueur_decide_de(v):
+			GestionAuto.gerer_maire(v, maire_de(v), int(n.day))
+	examiner(ville_par_defaut())
 	manifs.nouveau_jour(n)
 	changed.emit()
 
 
 func _nouvelle_heure(n: Dictionary) -> void:
-	elections.nouvelle_heure(n)
+	for v in villes():
+		examiner(v)
+		elections.nouvelle_heure(n)
+	examiner(ville_par_defaut())
 	manifs.nouvelle_heure(n)
 
 
@@ -318,8 +457,12 @@ func _nouvelle_heure(n: Dictionary) -> void:
 ## Habitants majeurs (électeurs) et échantillon régulier de la population.
 func echantillon(adultes := false, n_max := ECHANTILLON) -> Array:
 	var ids := []
+	var cm := Communes.instance
+	var filtre := ville_vid >= 0 and cm != null
 	for pid in population.persons:
 		if adultes and population.age_of(population.persons[pid]) < Population.ADULT_AGE:
+			continue
+		if filtre and cm.village_de(population.home_of(population.persons[pid])) != ville_vid:
 			continue
 		ids.append(pid)
 	if ids.size() <= n_max:
@@ -361,11 +504,12 @@ func sondage(force := false) -> Dictionary:
 		return dernier
 	_sondage_ms = ms
 	var out := {"jour": jour(), "n": 0, "valeur": 0, "themes": {}, "quartiers": [], "logements": {}, "mecontents": 0,
-		"contents": 0, "habitants": population.persons.size() if population != null else 0}
-	if population == null or population.persons.is_empty():
+		"contents": 0, "habitants": habitants()}
+	var ids := echantillon() if population != null else []
+	if ids.is_empty():
 		dernier = out
+		_sondages[ville_vid] = [ms, out]
 		return out
-	var ids := echantillon()
 	var tot := 0.0
 	var th_sum := {}
 	var th_n := {}
@@ -398,7 +542,7 @@ func sondage(force := false) -> Dictionary:
 	var n := ids.size()
 	out.n = n
 	out.valeur = roundi(tot / n)
-	var scale := float(population.persons.size()) / n
+	var scale := float(out.habitants) / n
 	out.mecontents = roundi(out.mecontents * scale)
 	out.contents = roundi(out.contents * scale)
 	# Motifs rangés par thème (le thème d'un motif = celui où il pèse le plus).
@@ -421,6 +565,7 @@ func sondage(force := false) -> Dictionary:
 			"pos": e.pos / int(e.n)})
 	out.quartiers.sort_custom(func(a, b) -> bool: return int(a.valeur) < int(b.valeur))
 	dernier = out
+	_sondages[ville_vid] = [ms, out]
 	return out
 
 
@@ -431,7 +576,7 @@ func _raisons_par_theme(ids: Array, motifs: Dictionary) -> Dictionary:
 		var th := theme_du_motif(key)
 		if not out.has(th):
 			out[th] = []
-		(out[th] as Array).append([key, roundi(int(motifs[key]) * float(population.persons.size()) / ids.size())])
+		(out[th] as Array).append([key, roundi(int(motifs[key]) * float(habitants()) / ids.size())])
 	for th in out:
 		(out[th] as Array).sort_custom(func(a, b) -> bool: return int(a[1]) > int(b[1]))
 		out[th] = (out[th] as Array).slice(0, 4)
@@ -481,7 +626,7 @@ func _centre() -> Vector3:
 	if population == null:
 		return c
 	for bid in population.known:
-		if int(population.known[bid].log) > 0:
+		if int(population.known[bid].log) > 0 and dans_ville(bid):
 			c += population.building_pos(bid)
 			n += 1
 	return c / n if n > 0 else c
@@ -601,6 +746,8 @@ func budget_node() -> Node:
 
 func pression_fiscale() -> float:
 	var b := budget_node()
+	if ville_vid >= 0 and b is BudgetCommunal:
+		return (b as BudgetCommunal).pression_fiscale_de(ville_vid)
 	if b != null and b.has_method("pression_fiscale"):
 		return float(b.call("pression_fiscale"))
 	return ReglagesPartie.actuel.impots
@@ -608,6 +755,8 @@ func pression_fiscale() -> float:
 
 func dette() -> float:
 	var b := budget_node()
+	if ville_vid >= 0 and b is BudgetCommunal:
+		return (b as BudgetCommunal).dette_de(ville_vid)
 	if b != null and b.has_method("dette"):
 		return float(b.call("dette"))
 	return 0.0
@@ -620,7 +769,7 @@ func compter(cles: Array) -> int:
 		return 0
 	for bid in buildings.buildings:
 		var b: Dictionary = buildings.buildings[bid]
-		if b.get("chantier", false):
+		if b.get("chantier", false) or not dans_ville(bid):
 			continue
 		for k in Metiers.keys_of(String(b.t)):
 			if cles.has(k):
@@ -632,6 +781,16 @@ func compter(cles: Array) -> int:
 func chomage() -> float:
 	if population == null:
 		return 0.0
+	if ville_vid >= 0:
+		var actifs := 0
+		var sans := 0
+		for pid in echantillon(true, 1 << 30):
+			var st := population.stage(population.persons[pid])
+			if st == "actif":
+				actifs += 1
+			elif st == "chomeur":
+				sans += 1
+		return 100.0 * sans / (actifs + sans) if actifs + sans > 0 else 0.0
 	var s := population.stats()
 	var adults := int(s.actif) + int(s.chomeur)
 	return 100.0 * int(s.chomeur) / adults if adults > 0 else 0.0
@@ -642,7 +801,8 @@ func logements() -> int:
 	if population == null:
 		return 0
 	for bid in population.known:
-		n += int(population.known[bid].log)
+		if dans_ville(bid):
+			n += int(population.known[bid].log)
 	return n
 
 
@@ -659,7 +819,7 @@ func mairie() -> int:
 	# Siège du premier village (scripts/communes) s'il est construit.
 	var cm := Communes.instance
 	if cm != null and not cm.villages.is_empty():
-		var siege := int(cm.villages[cm.principal()].bid)
+		var siege := int(cm.villages[ville_vid if cm.villages.has(ville_vid) else cm.principal()].bid)
 		if buildings.buildings.has(siege) and not buildings.buildings[siege].get("chantier", false):
 			return siege
 	for bid in buildings.buildings:
@@ -672,6 +832,8 @@ func mairie() -> int:
 ## Nom de la commune : le premier village fondé (scripts/communes), sinon le
 ## nom du lieu (« Annecy, Haute-Savoie » → « Annecy »).
 static func ville() -> String:
+	if instance != null and instance.ville_vid >= 0 and Communes.instance != null and Communes.instance.villages.has(instance.ville_vid):
+		return String(Communes.instance.villages[instance.ville_vid].nom)
 	var v := Communes.nom_principal()
 	if v != "":
 		return v
@@ -693,8 +855,13 @@ func to_dict() -> Dictionary:
 	var ef := []
 	for e in effets_actifs():
 		ef.append(e.duplicate())
-	return {"version": 1, "effets": ef, "historique": historique.duplicate(true), "elections": elections.to_dict(),
-		"manifs": manifs.to_dict()}
+	var vs := {}
+	for v in elections_villes:
+		if int(v) == -1 and (elections_villes[v] as Elections).vid != -1:
+			continue  # déjà sauvée avec le chef-lieu
+		vs[str(v)] = {"elections": (elections_villes[v] as Elections).to_dict(), "historique": (historiques.get(v, []) as Array).duplicate(true)}
+	return {"version": 2, "effets": ef, "historique": historique.duplicate(true), "elections": elections.to_dict(),
+		"manifs": manifs.to_dict(), "villes": vs, "ville_vid": ville_vid}
 
 
 func from_dict(d: Dictionary) -> void:
@@ -703,13 +870,30 @@ func from_dict(d: Dictionary) -> void:
 		return
 	for e in d.get("effets", []):
 		effets.append({"theme": String(e.theme), "delta": float(e.delta), "fin": float(e.fin), "raison": String(e.raison)})
-	for h in d.get("historique", []):
-		var th := {}
-		for k in (h.get("themes", {}) as Dictionary):
-			th[String(k)] = int(h.themes[k])
-		historique.append({"jour": int(h.jour), "valeur": int(h.valeur), "themes": th})
-	elections.from_dict(d.get("elections", {}))
+	if d.has("villes"):
+		for ks in d.villes:
+			var v := int(ks)
+			var e: Dictionary = d.villes[ks]
+			elections_de(v).from_dict(e.get("elections", {}))
+			historiques[v] = _lire_historique(e.get("historique", []))
+	else:
+		# Avant le pays : une seule commune, celle du chef-lieu s'il y a des villages.
+		var v := Communes.instance.principal() if multi() else -1
+		elections_de(v).from_dict(d.get("elections", {}))
+		historiques[v] = _lire_historique(d.get("historique", []))
+	ville_vid = -2
+	examiner(ville_par_defaut())
 	manifs.from_dict(d.get("manifs", {}))
 	_last_day = jour()
 	_last_hour = int(float(local_now().h))
 	changed.emit()
+
+
+func _lire_historique(src: Array) -> Array:
+	var out := []
+	for h in src:
+		var th := {}
+		for k in (h.get("themes", {}) as Dictionary):
+			th[String(k)] = int(h.themes[k])
+		out.append({"jour": int(h.jour), "valeur": int(h.valeur), "themes": th})
+	return out

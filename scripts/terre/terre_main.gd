@@ -90,6 +90,15 @@ var fondateurs: Fondateurs
 var fondateurs_panel: FondateursPanel
 var pays: Pays
 var pays_panel: PaysPanel
+var pilote: PiloteAuto
+var objectifs: Objectifs
+var kit: KitInstallation
+var objectifs_panel: ObjectifsPanel
+var statistiques: Statistiques
+var stats_panel: StatsPanel
+## Tutoriel guidé et objectifs à l'écran (scripts/tutoriel).
+var tutoriel: Tutoriel
+var tuto_carte: TutorielCarte
 ## Ambiances sonores selon la caméra (scripts/son) ; musique et volumes : /root/Son (F2).
 var sons: AmbiancesSonores
 
@@ -146,6 +155,8 @@ func _ready() -> void:
 	_setup_communes()
 	_setup_fondateurs()
 	_setup_pays()
+	_setup_statistiques()
+	_setup_tutoriel()
 	_setup_create_mode()
 	_setup_son()
 	hud.traffic_toggled.connect(func(on: bool) -> void: transport.traffic.set_enabled(on))
@@ -260,10 +271,11 @@ func _ready() -> void:
 			hud.show_message("Chargement impossible : " + last_error)
 	if GameStart.atelier:
 		_start_atelier.call_deferred()
-	# Nouvelle partie : on commence par fonder le village.
-	if communes.fondation_requise():
+	# Nouvelle partie : on commence par fonder le village (le tutoriel le
+	# propose lui-même, après le tour de la caméra).
+	if communes.fondation_requise() and not tutoriel.actif:
 		get_tree().create_timer(1.5).timeout.connect(func() -> void:
-			if communes.fondation_requise() and not villages_panel._dialog.visible:
+			if communes.fondation_requise() and not villages_panel._dialog.visible and not tutoriel.actif:
 				villages_panel.demander_nom())
 
 
@@ -298,6 +310,11 @@ func save_sections() -> Dictionary:
 	sec["communes"] = communes.to_dict()
 	sec["fondateurs"] = fondateurs.to_dict()
 	sec["pays"] = pays.to_dict()
+	sec["pilote"] = pilote.to_dict()
+	sec["objectifs"] = objectifs.to_dict()
+	sec["kit"] = kit.to_dict()
+	sec["statistiques"] = statistiques.to_dict()
+	sec["tutoriel"] = tutoriel.to_dict()
 	return sec
 
 
@@ -383,12 +400,23 @@ func load_game(slot := "") -> bool:
 	# Après les villages et le budget : une caisse par ville (sans section : ancienne partie).
 	pays.from_dict(sec.get("pays", {}))
 	pays.capital_auto = true
+	pilote.from_dict(sec.get("pilote", {}))
 	# Après les bâtiments, les habitants et les villages.
 	fondateurs.from_dict(sec.get("fondateurs", {}))
 	avis.from_dict(sec.get("avis", {}))
+	# Après les villages, le pays et les élections (mairies perdues).
+	objectifs.from_dict(sec.get("objectifs", {}))
+	kit.from_dict(sec.get("kit", {}))
 	nuisances.from_dict(sec.get("nuisances", {}))
+	statistiques.from_dict(sec.get("statistiques", {}))
 	($VueSol as VueSol).from_dict(sec.get("personnage", {}))
 	_load_settings(sec.get("reglages", {}), m)
+	# Après les réglages : une partie d'avant le tutoriel n'en a pas.
+	if sec.has("tutoriel"):
+		tutoriel.from_dict(sec.tutoriel)
+	else:
+		tutoriel.clear()
+	ReglagesPartie.actuel.tutoriel = tutoriel.actif
 	# Les chantiers repartent de l'heure de la partie chargée.
 	vie_batiments._t_prev = ambiance.unix_time
 	chantiers._t_prev = ambiance.unix_time
@@ -479,6 +507,7 @@ func toggle_admin() -> void:
 	_admin.closed.connect(func() -> void: _admin = null)
 	_admin.settings_changed.connect(func() -> void:
 		_apply_settings(false)
+		tutoriel.set_actif(ReglagesPartie.actuel.tutoriel)
 		_unsaved = true)
 	_admin.caisse_set.connect(func(v: int) -> void:
 		buildings.money = v
@@ -680,6 +709,12 @@ func _setup_pays() -> void:
 	pays.foyer = func() -> Vector2: return Vector2(rig.position.x, rig.position.z)
 	pays.message.connect(func(t: String) -> void: hud.show_message(t))
 	pays.changed.connect(func() -> void: _unsaved = true)
+	pilote = PiloteAuto.new()
+	pilote.name = "PiloteAuto"
+	add_child(pilote)
+	pilote.setup(buildings, transport, zones, communes, population, pays, world)
+	pilote.message.connect(func(t: String) -> void: hud.show_message(t))
+	pilote.changed.connect(func() -> void: _unsaved = true)
 	pays_panel = PaysPanel.new()
 	pays_panel.name = "PanneauPays"
 	add_child(pays_panel)
@@ -688,6 +723,97 @@ func _setup_pays() -> void:
 		rig.position.x = pos.x
 		rig.position.z = pos.z)
 	hud.pays_requested.connect(func() -> void: pays_panel.toggle())
+	kit = KitInstallation.new()
+	kit.name = "KitInstallation"
+	add_child(kit)
+	kit.setup(buildings, communes, fondateurs, world)
+	kit.message.connect(func(t: String) -> void: hud.show_message(t))
+	kit.changed.connect(func() -> void: _unsaved = true)
+	objectifs = Objectifs.new()
+	objectifs.name = "Objectifs"
+	add_child(objectifs)
+	objectifs.setup(communes, population, pays, buildings, transport)
+	objectifs.message.connect(func(t: String) -> void: hud.show_message(t))
+	objectifs.changed.connect(func() -> void: _unsaved = true)
+	objectifs_panel = ObjectifsPanel.new()
+	objectifs_panel.name = "PanneauObjectifs"
+	add_child(objectifs_panel)
+	objectifs_panel.setup(objectifs)
+	objectifs_panel.focus_requested.connect(func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
+	hud.objectifs_requested.connect(func() -> void: objectifs_panel.toggle())
+
+
+## Statistiques dans le temps et conseiller (Maj+I, menu Infos).
+func _setup_statistiques() -> void:
+	statistiques = Statistiques.new()
+	statistiques.name = "Statistiques"
+	add_child(statistiques)
+	statistiques.setup(population, communes, pays, budget, reseaux, trafic, dechets, nuisances, avis)
+	Statistiques.instance = statistiques
+	statistiques.releve_fait.connect(func() -> void: _unsaved = true)
+	statistiques.alerte.connect(func(t: String, _lieu: String) -> void: hud.show_message(t + " (Maj+I)"))
+	stats_panel = StatsPanel.new()
+	stats_panel.name = "PanneauStatistiques"
+	add_child(stats_panel)
+	stats_panel.setup(statistiques)
+	stats_panel.panneau_requested.connect(ouvrir_panneau)
+	hud.stats_requested.connect(func() -> void: stats_panel.toggle())
+
+
+## Ouvre un panneau par son id (boutons du conseiller).
+func ouvrir_panneau(id: String) -> void:
+	var panels := {"budget": budget_panel, "avis": avis_panel, "construire": build_panel, "trafic": trafic_panel,
+		"dechets": dechets_panel, "reseaux": reseaux_panel, "services": services_panel, "cartes": cartes_panel,
+		"lignes": transit_panel, "pays": pays_panel, "production": production_panel, "objectifs": objectifs_panel}
+	var p = panels.get(id)
+	if p != null:
+		p.set_open(true)
+## Tutoriel guidé (une étape à la fois) et objectifs résumés à l'écran.
+func _setup_tutoriel() -> void:
+	tutoriel = Tutoriel.new()
+	tutoriel.name = "Tutoriel"
+	add_child(tutoriel)
+	tutoriel.setup(self)
+	tutoriel.message.connect(func(t: String) -> void: hud.show_message(t))
+	tutoriel.changed.connect(func() -> void: _unsaved = true)
+	tutoriel.action_requested.connect(_on_tuto_action)
+	tuto_carte = TutorielCarte.new()
+	tuto_carte.name = "CarteTutoriel"
+	add_child(tuto_carte)
+	tuto_carte.ville_courante = func() -> int: return pays.actif
+	tuto_carte.setup(tutoriel, objectifs)
+	tuto_carte.objectifs_requested.connect(func() -> void: objectifs_panel.set_open(not objectifs_panel.is_open()))
+	# Nouvelle partie lancée du globe : le tutoriel commence (s'il est coché).
+	if GameStart.load_slot == "" and GameStart.chosen and not GameStart.atelier and ReglagesPartie.actuel.tutoriel:
+		tutoriel.demarrer.call_deferred()
+	else:
+		ReglagesPartie.actuel.tutoriel = false
+
+
+## Bouton d'action de l'étape du tutoriel.
+func _on_tuto_action(id: String) -> void:
+	if hud.create_mode and id != "temps":
+		set_create_mode(false)
+	match id:
+		"fonder":
+			if not villages_panel._dialog.visible:
+				villages_panel.demander_nom()
+		"fondateurs":
+			fondateurs_panel.set_open(true)
+		"route":
+			hud.choose_tool(TerreHud.FIRST_TRANSPORT_TOOL)
+		"zones", "reseaux", "ecole":
+			build_panel.set_open(true)
+			build_panel.show_category({"zones": "zones", "reseaux": "reseaux", "ecole": "services"}[id])
+		"temps":
+			ambiance.set_speed(mini(maxi(ambiance.speed_index + 1, DayNight.DEFAULT_SPEED), DayNight.SPEEDS.size() - 1))
+			hud.show_message("Vitesse : %s. T met en pause, Maj + T change la vitesse." % String(DayNight.SPEED_NAMES[ambiance.speed_index]).to_lower())
+		"budget":
+			budget_panel.set_open(true)
+		"objectifs":
+			objectifs_panel.set_open(true)
 
 
 ## Son : ambiances selon la caméra, humeur de la musique, sons des événements.
@@ -1498,6 +1624,12 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 		avis.clear()
 	if pays != null:
 		pays.clear()
+	if pilote != null:
+		pilote.clear()
+	if objectifs != null:
+		objectifs.clear()
+	if kit != null:
+		kit.clear()
 	if communes != null:
 		communes.clear()
 	if fondateurs != null:
@@ -1583,6 +1715,8 @@ func _process(delta: float) -> void:
 			_stats_timer = 1.0
 			_refresh_stats()
 	_exclusive_panels()
+	if tuto_carte != null:
+		tuto_carte.cachee = hud.create_mode or GameStart.atelier or hud.coords_open()
 
 
 var _stats_timer := 0.0
@@ -1593,7 +1727,7 @@ var _open_before := {}
 ## Construire, Lignes et Habitants partagent la même place à droite : quand
 ## l'un s'ouvre, les autres se ferment. Leur bouton de la barre du bas s'allume.
 func _exclusive_panels() -> void:
-	var panels := {"pays": pays_panel, "construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "agriculture": agri_panel, "urgences": urgences_panel, "reseaux": reseaux_panel, "dechets": dechets_panel, "trafic": trafic_panel, "budget": budget_panel, "telecom": telecom_panel, "perso": perso_panel, "infos": evenements_panel, "cartes": cartes_panel, "avis": avis_panel, "villages": villages_panel, "fondateurs": fondateurs_panel}
+	var panels := {"pays": pays_panel, "objectifs": objectifs_panel, "construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "agriculture": agri_panel, "urgences": urgences_panel, "reseaux": reseaux_panel, "dechets": dechets_panel, "trafic": trafic_panel, "budget": budget_panel, "telecom": telecom_panel, "perso": perso_panel, "infos": evenements_panel, "cartes": cartes_panel, "avis": avis_panel, "villages": villages_panel, "fondateurs": fondateurs_panel, "stats": stats_panel}
 	var opened := ""
 	for id in panels:
 		var p = panels[id]

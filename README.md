@@ -38,6 +38,10 @@ L'écran a une barre en haut (lieu, partie, heure et vitesse du temps, chiffres 
 
 L'interface s'adapte à la taille de la fenêtre (elle est dessinée pour 1600 × 900 puis agrandie ou réduite).
 
+### Tutoriel guidé et objectifs à l'écran
+
+Une nouvelle partie commence par un tutoriel guidé (case cochée par défaut sur le globe, F10 → Aide pour le couper ou le relancer) : une étape à la fois en haut à gauche, de la fondation du village à l'école. Dessous, les objectifs restent visibles : rang de la ville et missions du pays. Détails : [docs/tutoriel.md](docs/tutoriel.md).
+
 ## Mode Terre : choisis ton lieu sur le globe, puis joue sur le vrai relief
 
 Au lancement (**F5**), un **globe 3D** coloré par les vrais biomes (forêts, champs, déserts, glaciers, lacs…) et le vrai relief s'affiche. Le joueur choisit son point de départ n'importe où sur Terre, puis joue sur une **terre vierge** (vrai relief et mers, sans routes ni bâtiments) découpée en cases de 1 m × 1 m.
@@ -245,7 +249,7 @@ Dans le mode Terre, le panneau **Construire** (à droite, **B** pour le masquer)
 - **Poser** : choisis un bâtiment dans la liste. Un fantôme suit la souris, vert si c'est possible, rouge sinon avec la raison. Clic gauche pour poser, **R** pour tourner d'un quart de tour, **clic droit** ou **Échap** pour arrêter.
 - **Orientation** : tant que tu n'appuies pas sur R, la façade se tourne toute seule vers la route la plus proche. Un trait jaune relie la porte à la voie qui la dessert.
 - **Terrassement** : le terrain est aplani sous le bâtiment, avec un petit talus autour. Refusé si le dénivelé dépasse 12 m, dans la mer, sur un lac ou une rivière, sur une voie ou sur un autre bâtiment. Une voie ne peut plus traverser un bâtiment.
-- **Règles du bac à sable** (cases à cocher dans le panneau) : **accès à une voie obligatoire** (route, ou chemin pour les parcs, terrains de sport, écoles…, à moins de 10 m de la porte) et **caisse** de départ de 20 M€ : chaque bâtiment a un prix, plus le terrassement. **Argent illimité** pour construire librement.
+- **Règles du bac à sable** (cases à cocher dans le panneau) : **accès à une voie obligatoire** (route, ou chemin pour les parcs, terrains de sport, écoles…, à moins de 10 m de la porte) et **caisse** de départ de 30 M€ en mode Normal : chaque bâtiment a un prix, plus le terrassement. **Argent illimité** pour construire librement.
 - **Démolir un bâtiment** : bouton du panneau, puis clic sur le bâtiment (la moitié du prix est rendue, le terrain reste aplani).
 - **Sauver / Charger** gardent les bâtiments, les zones, les blocs et la caisse avec le terrain et le réseau.
 
@@ -418,6 +422,14 @@ Touche **M** : le maire vote la taxe foncière, l'impôt des entreprises et l'im
 ![Nids-de-poule sur une route usée](docs/apercu-budget-nids-de-poule.jpg)
 
 Détails : [docs/budget.md](docs/budget.md).
+
+## Statistiques et conseiller
+
+Touche **Maj + I** (menu *Infos*, bouton *Statistiques*) : les **courbes dans le temps** de chaque ville et du pays (habitants, satisfaction, chômage, caisse, solde du mois, logements et emplois libres, pollution ; électricité, eau, bouchons et déchets pour tout le pays), sur 30 jours, 1 an ou toute la partie, avec la **comparaison des villes**. Le tableau donne le chiffre du jour et son évolution sur 30 jours. L'onglet **Conseiller** liste les problèmes du moment, du plus urgent au plus anodin, et propose quoi faire, avec un bouton vers le bon panneau. Il est sérieux sur le fond, un peu moins sur la forme.
+
+![Courbes des habitants de deux villes](docs/apercu-statistiques.png)
+
+Détails : [docs/statistiques.md](docs/statistiques.md).
 
 ## Trafic : bouchons, stationnement et transports en commun
 
@@ -631,6 +643,8 @@ godot --headless --path . --script res://tests/terre_test.gd
 Vérifie les conversions de coordonnées, le décodage des tuiles, la génération des blocs, les rivières (calcul sur une vallée, lecture d'OpenStreetMap, lit creusé, surface d'eau, ponts), le terrassement et la sauvegarde. Il affiche `TERRE TEST OK`. De même, `tests/globe_test.gd` affiche `GLOBE TEST OK`, `tests/transport_test.gd` affiche `TRANSPORT TEST OK` et `tests/batiments_test.gd` affiche `BATIMENTS TEST OK`.
 
 `tests/partie_test.gd` joue une **partie complète accélérée** en mode Normal : globe, fondation, 100 fondateurs, rues, éoliennes et parc solaire, forage, lagunage, école, entreprises du bâtiment, zones, puis la ville grandit (pas de 10 minutes de jeu) jusqu'à 1 000 habitants ; il prend un emprunt si la caisse est vide, relève chaque jour habitants, caisse, chantiers, chômage, logements sans courant ou sans eau et temps par image, compte toutes les erreurs de script, puis sauvegarde et recharge la partie. Il affiche `PARTIE TEST OK` (une vingtaine de minutes). Options : `-- --jours 250 --cible 1000 --rapport partie.csv` (courbe jour par jour), `--messages` (messages du jeu datés), `--diag` (état des chantiers tous les 5 jours).
+
+`tests/statistiques_test.gd` vérifie les relevés quotidiens, les courbes, le regroupement des vieux jours, le conseiller, la sauvegarde et le panneau Maj+I, et affiche `STATISTIQUES TEST OK`.
 
 `tests/parcours_test.gd` joue une partie comme un joueur, avec de vraies touches (globe, outils 1-9, B, L, T, V, F1, F5, Continuer) et affiche `PARCOURS TEST OK`. `tests/habitants_test.gd` vérifie les habitants (école, emplois, emploi du temps, budget, bus, sauvegarde, panneau) et affiche `HABITANTS TEST OK`. `tests/sauvegarde_test.gd` vérifie le format des parties (écriture, relecture, section abîmée, import de l'ancienne sauvegarde) et affiche `SAUVEGARDE TEST OK`. `tests/interface_test.gd` vérifie les menus (icônes, barre de catégories, panneaux un à la fois, vignettes, fiche d'un bâtiment) et affiche `INTERFACE TEST OK`. `tests/son_test.gd` vérifie le son (fichiers, bus et volumes, réglages du joueur, musique selon l'heure, ambiances selon la caméra, chantiers, tonnerre, panneau F2) et affiche `TEST OK`. `tests/demo_ferme_test.gd` vérifie la démo low-poly (kit de modelage, objets, lumières, vues) et affiche `DEMO TEST OK`.
 

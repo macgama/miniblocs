@@ -196,7 +196,7 @@ func _run() -> void:
 	var mc := bs.place("maison_commune", Vector2i(0, -20), 0)
 	await _frames(3)
 	_check(mc >= 0 and cm.villages.size() == 1, "Maison de commune posée, village fondé")
-	_check(fd.arrives and fd.vivants().size() == ReglagesPartie.actuel.fondateurs, "%d fondateurs au campement" % fd.vivants().size())
+	_check(fd.arrives and fd.vivants().size() == ReglagesPartie.actuel.fondateurs + fd.renfort_total, "%d fondateurs au campement" % fd.vivants().size())
 
 	print("Rues :")
 	var rues_ok := true
@@ -214,6 +214,8 @@ func _run() -> void:
 	for i in 2:
 		eol.append(_poser("eolienne", 120 + i * 50, -160, -1, 290))
 	var sol := _poser("centrale_solaire", -290, -160, -1, -60)
+	var batt := _poser("batteries", -200, -160, -1, -60)
+	_check(batt >= 0, "batteries de stockage")
 	var forage := _poser("forage_eau", -40, -160, -1, -290)
 	var rejet := _poser("lagunage", 160, 140, 1, 290)
 	var ecole := _poser("ecole", -280, 0, 1, 280)
@@ -233,7 +235,7 @@ func _run() -> void:
 			var k := "R"
 			if z == 140 and x == 10:
 				k = "I"
-			elif z == -90 and x == 10:
+			elif z == -90:
 				k = "C"
 			var id := zs.add_zone(k, Rect2i(x, z - 30, 280, 60))
 			if id >= 0:

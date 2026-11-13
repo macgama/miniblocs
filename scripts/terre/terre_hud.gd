@@ -35,12 +35,16 @@ signal villages_requested
 signal fondateurs_requested
 ## Bouton « Pays » : caisses des villes et du pays (Maj+P).
 signal pays_requested
+## Bouton « Objectifs » : missions du pays, rangs des villes, succès (Maj+J).
+signal objectifs_requested
 ## Panneau « Trafic » (Maj + L) : bouchons, parkings, remplissage des lignes.
 signal trafic_requested
 ## Bouton « Déchets » (touche X).
 signal dechets_requested
 ## Panneau « Cartes » (touche N) : pollution, bruit, valeur des terrains, autres calques.
 signal cartes_requested
+## Bouton « Statistiques » (menu Infos, Maj+I).
+signal stats_requested
 ## Bouton Admin de la barre du haut, ou F10 : réglages de la partie.
 signal admin_requested
 signal spec_edited(type_id: String, spec: Dictionary)
@@ -97,10 +101,12 @@ const CATEGORIES := [
 	{"id": "villages", "name": "Villages", "icon": "village", "key": "Maj+M", "panel": true, "group": "ville"},
 	{"id": "fondateurs", "name": "Fondateurs et chantiers", "icon": "emploi", "key": "Maj+H", "panel": true, "group": "ville"},
 	{"id": "pays", "name": "Pays", "icon": "globe", "key": "Maj+P", "panel": true, "group": "ville"},
+	{"id": "objectifs", "name": "Objectifs", "icon": "trophee", "key": "Maj+J", "panel": true, "group": "ville"},
 	{"id": "trafic", "name": "Trafic", "icon": "circulation", "key": "Maj+L", "panel": true, "group": "transports"},
 	{"id": "budget", "name": "Budget", "icon": "budget", "key": "M", "panel": true, "group": "ville"},
 	{"id": "dechets", "name": "Déchets", "icon": "dechets", "key": "X", "panel": true, "group": "ville"},
 	{"id": "cartes", "name": "Cartes", "icon": "cartes", "key": "N", "panel": true, "group": "infos"},
+	{"id": "stats", "name": "Statistiques et conseiller", "icon": "courbe", "key": "Maj+I", "panel": true, "group": "infos"},
 	{"id": "murs", "name": "Murs et étages", "icon": "mur", "key": "2", "panel": true, "mode": "creer"},
 	{"id": "blocs", "name": "Blocs", "icon": "editeur", "key": "3", "panel": true, "mode": "creer"},
 	{"id": "interieur", "name": "Intérieur", "icon": "interieur", "key": "4", "panel": true, "mode": "creer"},
@@ -768,9 +774,11 @@ func _on_category(id: String) -> void:
 			"villages": villages_requested.emit()
 			"fondateurs": fondateurs_requested.emit()
 			"pays": pays_requested.emit()
+			"objectifs": objectifs_requested.emit()
 			"trafic": trafic_requested.emit()
 			"dechets": dechets_requested.emit()
 			"cartes": cartes_requested.emit()
+			"stats": stats_requested.emit()
 		_update_categories()
 		return
 	if create_mode and id == "observer":
@@ -1146,6 +1154,18 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		quick_load_requested.emit()
 	elif key.keycode == KEY_F10:
 		admin_requested.emit()
+
+
+## Choisit un outil comme si le joueur avait appuyé sur sa touche (tutoriel).
+func choose_tool(i: int) -> void:
+	_buttons[i].button_pressed = true
+	_set_current_tool(i)
+	tool_selected.emit(i)
+
+
+## Panneau des coordonnées ouvert (en haut à gauche).
+func coords_open() -> bool:
+	return _coords_panel != null and _coords_panel.visible
 
 
 ## Enfonce le bouton d'un outil sans prévenir (un autre système a pris la main).

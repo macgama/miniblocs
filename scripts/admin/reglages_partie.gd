@@ -42,7 +42,7 @@ const TOUJOURS := ["ecole"]
 const PRESETS := {
 	"facile": {"nom": "Facile", "argent_depart": 100_000_000, "argent_illimite": false, "cout_construction": 0.5,
 		"acces_route": true, "impots": 1.5, "salaires": 1.0, "epuisement": false, "deblocage": "tout", "reseaux_obligatoires": true, "fondation": true, "territoire": true, "main_oeuvre": true},
-	"normal": {"nom": "Normal", "argent_depart": 20_000_000, "argent_illimite": false, "cout_construction": 1.0,
+	"normal": {"nom": "Normal", "argent_depart": 30_000_000, "argent_illimite": false, "cout_construction": 1.0,
 		"acces_route": true, "impots": 1.0, "salaires": 1.0, "epuisement": true, "deblocage": "tout", "reseaux_obligatoires": true, "fondation": true, "territoire": true, "main_oeuvre": true},
 	"difficile": {"nom": "Difficile", "argent_depart": 5_000_000, "argent_illimite": false, "cout_construction": 2.0,
 		"acces_route": true, "impots": 0.75, "salaires": 1.25, "epuisement": true, "deblocage": "progression", "reseaux_obligatoires": true, "fondation": true, "territoire": true, "main_oeuvre": true},
@@ -55,7 +55,7 @@ static var actuel := ReglagesPartie.new()
 ## Réglages choisis sur le globe pour la prochaine nouvelle partie (null = par défaut).
 static var prochaine: ReglagesPartie = null
 
-var argent_depart: int = 20_000_000
+var argent_depart: int = 30_000_000
 var argent_illimite := false
 ## Multiplicateur de tous les prix de construction (bâtiments, terrassement, zonage, blocs, murs).
 var cout_construction := 1.0
@@ -88,7 +88,7 @@ var reseaux_obligatoires := true
 ## Multiplicateur des factures d'eau et d'électricité payées par les habitants.
 var prix_services := 1.0
 ## Élections municipales (Elections.MODES) et manifestations (scripts/avis).
-var elections := "objectifs"
+var elections := "mairie"
 var manifestations := true
 ## Faim des habitants quand les commerces d'alimentation sont vides :
 ## "aucune" (pas d'effet), "normale" (moins satisfaits, santé, départs),
@@ -135,6 +135,11 @@ const VIVRES_MAX := 365
 ## Les chantiers ont besoin d'ouvriers (fondateurs au campement, entreprises
 ## du bâtiment) : sans eux, ils s'arrêtent.
 var main_oeuvre := true
+## Tutoriel guidé de la première partie (scripts/tutoriel) : coché sur le globe
+## ou dans l'Admin, décoché quand le joueur le finit ou l'arrête.
+var tutoriel := true
+## Objectifs résumés en haut à gauche de l'écran (rang de la ville, missions).
+var objectifs_ecran := true
 ## Plus grande population atteinte (pour les paliers).
 var record_habitants := 0
 
@@ -278,7 +283,8 @@ func to_dict() -> Dictionary:
 		"frequence_catastrophes": frequence_catastrophes, "faim": faim, "telecom_necessaire": telecom_necessaire, "construction_instantanee": construction_instantanee,
 		"horaires_chantiers": horaires_chantiers, "rythme_chantiers": rythme_chantiers, "usure": usure, "dechets": dechets, "dechets_quantite": dechets_quantite, "pollution": pollution, "pollution_sante": pollution_sante,
 		"elections": elections, "manifestations": manifestations, "funeraire": funeraire, "cremation": cremation, "reseaux_obligatoires": reseaux_obligatoires, "prix_services": prix_services,
-		"fondation": fondation, "territoire": territoire, "fondateurs": fondateurs, "vivres_jours": vivres_jours, "main_oeuvre": main_oeuvre}
+		"fondation": fondation, "territoire": territoire, "fondateurs": fondateurs, "vivres_jours": vivres_jours, "main_oeuvre": main_oeuvre,
+		"tutoriel": tutoriel, "objectifs_ecran": objectifs_ecran}
 
 
 func from_dict(d: Dictionary) -> void:
@@ -292,6 +298,8 @@ func from_dict(d: Dictionary) -> void:
 	fondateurs = clampi(int(d.get("fondateurs", 100)), 0, FONDATEURS_MAX)
 	vivres_jours = clampi(int(d.get("vivres_jours", 90)), 0, VIVRES_MAX)
 	main_oeuvre = bool(d.get("main_oeuvre", true))
+	tutoriel = bool(d.get("tutoriel", true))
+	objectifs_ecran = bool(d.get("objectifs_ecran", true))
 	impots = clampf(float(d.get("impots", 1.0)), 0.0, IMPOTS_MAX)
 	salaires = clampf(float(d.get("salaires", 1.0)), SALAIRES_MIN, SALAIRES_MAX)
 	vitesse_temps = clampi(int(d.get("vitesse_temps", DayNight.DEFAULT_SPEED)), 0, DayNight.SPEEDS.size() - 1)

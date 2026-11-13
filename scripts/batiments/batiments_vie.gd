@@ -331,8 +331,11 @@ func _update_chantiers() -> void:
 		var b: Dictionary = buildings.buildings[bid]
 		# Arrêté faute d'argent (ses ouvriers sont partis ailleurs) : il reprend quand
 		# la caisse peut payer une semaine de travaux.
-		if b.get("attente", false) and (buildings.unlimited_money or buildings.money >= _part_semaine(b, k)):
-			b.erase("attente")
+		if b.get("attente", false):
+			var caisse_a := Pays.au_rect(buildings._rect_of(b))
+			if buildings.unlimited_money or buildings.money >= _part_semaine(b, k):
+				b.erase("attente")
+			Pays.retour(caisse_a)
 		# Ouvriers présents (fondateurs, entreprises du bâtiment) : 0 = arrêté, 1 = équipe complète.
 		var f := Fondateurs.facteur_de(Fondateurs.cle_batiment(bid))
 		if f <= 0.0:
@@ -349,6 +352,8 @@ func _update_chantiers() -> void:
 				# Chaque chantier est payé par la caisse de sa ville (ou du pays).
 				var caisse_prev := Pays.au_rect(buildings._rect_of(b))
 				if not buildings.unlimited_money and buildings.money < part:
+					if not b.get("attente", false):
+						_alerte_argent(String(b.t))
 					b["attente"] = true
 					dp = 0.0
 				else:
@@ -366,6 +371,19 @@ func _update_chantiers() -> void:
 			(c.fleche as Node3D).rotation.y = sin(_clock * 0.15 + float(bid)) * 1.3
 	for bid in done:
 		_finish_chantier(bid)
+
+
+var _derniere_alerte := -1.0e12
+
+
+## Un chantier s'arrête faute d'argent : on le dit (au plus une fois par jour de jeu),
+## avec la solution.
+func _alerte_argent(type_id: String) -> void:
+	var t := now()
+	if t - _derniere_alerte < 86400.0:
+		return
+	_derniere_alerte = t
+	buildings.message.emit("Chantier de %s arrêté : la caisse est vide. Emprunte dans le Budget (M), ou attends les impôts du mois ; ses ouvriers vont aux autres chantiers." % String(BuildingCatalog.get_type(type_id).get("name", type_id)))
 
 
 ## Prix d'une semaine de travaux (37,5 h) d'un chantier, plafonné à ce qui reste dû.

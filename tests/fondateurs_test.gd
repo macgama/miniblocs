@@ -86,6 +86,9 @@ func _run() -> void:
 	print("Arrivée avec la Maison de commune :")
 	_check(not fd.arrives and pop.persons.is_empty(), "avant la fondation : personne")
 	bs.unlimited_money = true
+	# Sans le kit de l'État (testé dans kit_test) : 100 fondateurs tout juste.
+	scene.kit.pays_de = func(_v: int) -> String: return "zz"
+	scene.kit.pays_servis["zz"] = 0
 	cm.nom_en_attente = "Valfleuri"
 	var mc := bs.place("maison_commune", Vector2i(-1000, 0), 0)
 	_check(mc > 0 and bs.en_chantier(mc), "Maison de commune posée, en chantier")

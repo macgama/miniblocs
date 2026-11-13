@@ -257,8 +257,12 @@ func _carte_ville(vid: int) -> void:
 	t.add_theme_color_override("font_color", Communes.COULEURS[int(v.couleur) % Communes.COULEURS.size()])
 	var pal := String(ReglagesPartie.PALIERS[int(st.get("palier", 0))].nom)
 	var maire := pays.joueur_maire(vid)
+	var elu := Avis.instance == null or Avis.instance.joueur_maire_de(vid)
 	_text("%s · %d habitants · %d ha · maire : %s" % [pal, int(st.get("hab", 0)), int(st.get("ha", 0)),
-		"toi" if maire else _maire_nom(vid)], true, 12)
+		"toi" if elu else _maire_nom(vid)], true, 12)
+	if not maire:
+		var lm := _text("Mairie perdue : le conseil de « %s » décide des impôts, des emprunts et de l'entretien. Tu peux toujours construire. Reprends-la aux prochaines municipales (Y)." % String(Avis.instance.maire_de(vid).get("nom", "")), false, 12)
+		lm.add_theme_color_override("font_color", Color("ffb347"))
 	var b := pays.budget
 	var e: Dictionary = b.etat_de(vid) if b != null else {}
 	var dernier: Dictionary = e.get("dernier", {})
@@ -274,6 +278,30 @@ func _carte_ville(vid: int) -> void:
 	if bool(e.get("tutelle", false)):
 		var l := _text("Sous tutelle du préfet : caisse dans le rouge trop longtemps.", false, 12)
 		l.add_theme_color_override("font_color", Color("ff6b6b"))
+	var kit := KitInstallation.instance
+	if kit != null and kit.resume(vid) != "":
+		var lk := _text(kit.resume(vid), false, 12)
+		lk.add_theme_color_override("font_color", Color("ffd166") if not kit.restants(vid).is_empty() else Color(1, 1, 1, 0.6))
+		if not kit.restants(vid).is_empty():
+			_text("Choisis le type que tu veux (Construire → Réseaux, Déchets) et place-le toi-même, loin des maisons s'il pollue. Au-delà du plafond, la ville paie la différence.", true, 11)
+	var pa := PiloteAuto.instance
+	if pa != null:
+		var rp := _row()
+		var on := pa.actif(vid)
+		var lp := Label.new()
+		lp.text = "Pilote automatique : %s" % ("en marche" if on else "arrêté")
+		lp.add_theme_font_size_override("font_size", 12)
+		lp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		if on:
+			lp.add_theme_color_override("font_color", UiStyle.ACCENT)
+		rp.add_child(lp)
+		rp.add_child(_button("Arrêter" if on else "Activer", func() -> void:
+			pa.activer(vid, not on)
+			refresh(), not maire and not on,
+			"La ville tient son budget à l'équilibre et construit selon ses besoins : rues, logements, écoles, services, emplois. Une décision par semaine."))
+		var jl: Array = pa.journal.get(vid, [])
+		if on and not jl.is_empty():
+			_text("Dernière décision (jour %d) : %s" % [int(jl[-1].jour), String(jl[-1].texte)], true, 11)
 	var r := _row()
 	r.add_child(_button("Gérer", func() -> void:
 		pays.choisir(vid, true)
@@ -290,8 +318,8 @@ func _carte_ville(vid: int) -> void:
 
 
 func _maire_nom(vid: int) -> String:
-	if Avis.instance != null and Avis.instance.has_method("maire_de"):
-		var m: Dictionary = Avis.instance.call("maire_de", vid)
+	if Avis.instance != null:
+		var m: Dictionary = Avis.instance.maire_de(vid)
 		return String(m.get("tete_nom", m.get("nom", "un autre")))
 	return "un autre"
 

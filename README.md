@@ -410,6 +410,14 @@ Touche **M** : le maire vote la taxe foncière, l'impôt des entreprises et l'im
 
 Détails : [docs/budget.md](docs/budget.md).
 
+## Services publics : écoles, hôpitaux, police
+
+Touche **Maj+U** : chaque logement est relié à l'école, l'hôpital et le commissariat les plus rapides **par les routes**. Bien couvert : école à 15 min (25 min pour le collège, 40 min pour le lycée), hôpital à 30 min, police à 10 min ; au double, plus rien. Il faut aussi de la place : pupitres, 3 lits pour 1 000 habitants, 1 agent pour 400 habitants. Un élève trop loin reste sans école ; un hôpital loin ou saturé abîme la santé ; un quartier sans police a plus de cambriolages. Carte colorée dans le panneau ou dans **Cartes** (N).
+
+![Couverture des écoles : le hameau sans route reste sans école](docs/apercu-services-ecole.jpg)
+
+Détails : [docs/services.md](docs/services.md).
+
 ## Vue au sol : marcher à la 3e ou à la 1re personne
 
 Dans le mode Terre, appuie sur **V** (ou les boutons **Dessus / 3e pers. / 1re pers.** en haut au centre) : un personnage apparaît au sol, au centre de la vue de gestion.

@@ -33,6 +33,10 @@ var resource_overlay: RessourcesOverlay
 ## Services d'urgence : pompiers, ambulances, police sur les routes (touche U).
 var urgences: Urgences
 var urgences_panel: UrgencesPanel
+## Trafic : bouchons, stationnement, affluence des lignes (Maj + L).
+var trafic: Trafic
+var trafic_panel: TraficPanel
+var trafic_overlay: TraficOverlay
 var services: ServicesPublics
 var services_panel: ServicesPanel
 ## Budget de la commune : impôts, emprunts, entretien et usure des voies (touche M).
@@ -108,6 +112,7 @@ func _ready() -> void:
 	_setup_agriculture()
 	_setup_budget()
 	_setup_urgences()
+	_setup_trafic()
 	_setup_services()
 	_setup_telecom()
 	_setup_dechets()
@@ -255,7 +260,7 @@ func save_sections() -> Dictionary:
 		"zones": zones.to_dict(), "blocs": blocks.to_dict(), "plans": plans.to_dict(), "ambiance": ambiance.to_dict(),
 		"creations": Creations.to_dict(Creations.used_by(buildings)),
 		"personnage": ($VueSol as VueSol).to_dict(), "habitants": population.to_dict(), "mobilier": mobilier.to_dict(),
-		"production": production.to_dict(), "agriculture": agriculture.to_dict(), "urgences": urgences.to_dict(), "dechets": dechets.to_dict(), "reglages": _settings_snapshot().to_dict(), "budget": budget.to_dict(), "evenements": evenements.to_dict(), "decors": decors.to_dict(),
+		"production": production.to_dict(), "agriculture": agriculture.to_dict(), "urgences": urgences.to_dict(), "dechets": dechets.to_dict(), "trafic": trafic.to_dict(), "reglages": _settings_snapshot().to_dict(), "budget": budget.to_dict(), "evenements": evenements.to_dict(), "decors": decors.to_dict(),
 		"nuisances": nuisances.to_dict(), "telecom": telecom.to_dict(), "services": services.to_dict()}
 
 
@@ -316,6 +321,7 @@ func load_game(slot := "") -> bool:
 	budget.from_dict(sec.get("budget", {}))
 	decors.from_dict(sec.get("decors", {}))
 	urgences.from_dict(sec.get("urgences", {}))
+	trafic.from_dict(sec.get("trafic", {}))
 	services.from_dict(sec.get("services", {}))
 	telecom.from_dict(sec.get("telecom", {}))
 	dechets.from_dict(sec.get("dechets", {}))
@@ -685,6 +691,34 @@ func _setup_budget() -> void:
 
 
 ## Urgences : casernes, appels, véhicules prioritaires et panneau (U).
+func _setup_trafic() -> void:
+	trafic = Trafic.new()
+	trafic.name = "Trafic"
+	add_child(trafic)
+	trafic.setup(transport, population)
+	population.trafic = trafic
+	trafic.message.connect(func(t: String) -> void: hud.show_message(t))
+	trafic_overlay = TraficOverlay.new()
+	trafic_overlay.name = "CarteTrafic"
+	add_child(trafic_overlay)
+	trafic_overlay.setup(trafic)
+	trafic_panel = TraficPanel.new()
+	trafic_panel.name = "PanneauTrafic"
+	add_child(trafic_panel)
+	trafic_panel.setup(trafic, trafic_overlay, transport.camera)
+	trafic_panel.focus_requested.connect(func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
+	hud.trafic_requested.connect(func() -> void: trafic_panel.toggle())
+	_register_trafic_map.call_deferred()
+
+
+## Carte « Trafic » dans le panneau commun des cartes (touche N).
+func _register_trafic_map() -> void:
+	Calques.ajouter("trafic", "Trafic (bouchons)", "Transports", func(on: bool) -> void: trafic_overlay.set_shown(on),
+		"vert : fluide · jaune : chargé · rouge : bouché · bleu : voie de bus · violet : fermée")
+
+
 func _setup_urgences() -> void:
 	urgences = Urgences.new()
 	urgences.name = "Urgences"
@@ -1201,6 +1235,7 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 	agriculture.clear()
 	budget.clear()
 	urgences.clear()
+	trafic.clear()
 	services.clear()
 	telecom.clear()
 	dechets.clear()
@@ -1282,7 +1317,7 @@ var _open_before := {}
 ## Construire, Lignes et Habitants partagent la même place à droite : quand
 ## l'un s'ouvre, les autres se ferment. Leur bouton de la barre du bas s'allume.
 func _exclusive_panels() -> void:
-	var panels := {"construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "agriculture": agri_panel, "urgences": urgences_panel, "dechets": dechets_panel, "budget": budget_panel, "telecom": telecom_panel, "perso": perso_panel, "infos": evenements_panel, "cartes": cartes_panel}
+	var panels := {"construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "agriculture": agri_panel, "urgences": urgences_panel, "dechets": dechets_panel, "trafic": trafic_panel, "budget": budget_panel, "telecom": telecom_panel, "perso": perso_panel, "infos": evenements_panel, "cartes": cartes_panel}
 	var opened := ""
 	for id in panels:
 		var p = panels[id]

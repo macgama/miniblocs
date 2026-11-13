@@ -410,6 +410,14 @@ Touche **M** : le maire vote la taxe foncière, l'impôt des entreprises et l'im
 
 Détails : [docs/budget.md](docs/budget.md).
 
+## Trafic : bouchons, stationnement et transports en commun
+
+Touche **Maj + L** (bouton *Trafic*) : comment les habitants vont au travail et à l'école, temps perdu dans les **bouchons** et pour **se garer**, routes saturées, **parkings** (gratuits ou payants) et **remplissage des lignes** (ticket à 1,50 € par défaut). Chaque rue a une capacité ; à l'heure de pointe, les rues trop chargées ralentissent (voitures visibles comprises) et les habitants changent de route ou passent au bus, au tram, au vélo. Les bus pleins font attendre le suivant. **Voies de bus et de tram** et fermetures de routes : *Choisir une route* dans le panneau. La **carte du trafic** colore les routes du vert au rouge.
+
+![Carte du trafic à l'heure de pointe](docs/apercu-trafic-carte.jpg)
+
+Détails : [docs/trafic.md](docs/trafic.md).
+
 ## Services publics : écoles, hôpitaux, police
 
 Touche **Maj+U** : chaque logement est relié à l'école, l'hôpital et le commissariat les plus rapides **par les routes**. Bien couvert : école à 15 min (25 min pour le collège, 40 min pour le lycée), hôpital à 30 min, police à 10 min ; au double, plus rien. Il faut aussi de la place : pupitres, 3 lits pour 1 000 habitants, 1 agent pour 400 habitants. Un élève trop loin reste sans école ; un hôpital loin ou saturé abîme la santé ; un quartier sans police a plus de cambriolages. Carte colorée dans le panneau ou dans **Cartes** (N).

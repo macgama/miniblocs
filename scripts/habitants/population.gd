@@ -22,6 +22,8 @@ signal building_selected(bid: int)
 signal follow_changed
 ## Clic sur un habitant visible dans la rue.
 signal person_clicked(pid: int)
+## Un habitant meurt (il est encore dans persons, son foyer aussi) : obsèques (Funeraire).
+signal person_died(pid: int, home: int)
 ## Questions du personnage principal (PersonnagePrincipal.questions).
 signal questions_changed
 

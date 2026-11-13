@@ -92,6 +92,10 @@ var usure := 1.0
 var dechets := true
 ## Quantité de déchets produite par habitant (×0,5 à ×3).
 var dechets_quantite := 1.0
+## Obsèques, cimetières et crématorium (non : les défunts quittent la ville sans obsèques).
+var funeraire := true
+## Part des crémations (−1 : selon la région d'origine de chaque défunt).
+var cremation := -1.0
 ## Pollution de l'air, de l'eau et bruit : 0 désactivée, 1 faible, 2 normale, 3 forte.
 var pollution: int = 2
 ## La pollution rend malade et raccourcit la vie (sinon : seulement gêne et valeur des terrains).
@@ -242,7 +246,7 @@ func to_dict() -> Dictionary:
 		"record_habitants": record_habitants, "evenements_auto": evenements_auto, "catastrophes": catastrophes,
 		"frequence_catastrophes": frequence_catastrophes, "faim": faim, "telecom_necessaire": telecom_necessaire, "construction_instantanee": construction_instantanee,
 		"horaires_chantiers": horaires_chantiers, "usure": usure, "dechets": dechets, "dechets_quantite": dechets_quantite, "pollution": pollution, "pollution_sante": pollution_sante,
-		"elections": elections, "manifestations": manifestations}
+		"elections": elections, "manifestations": manifestations, "funeraire": funeraire, "cremation": cremation}
 
 
 func from_dict(d: Dictionary) -> void:
@@ -279,6 +283,8 @@ func from_dict(d: Dictionary) -> void:
 	dechets_quantite = clampf(float(d.get("dechets_quantite", 1.0)), 0.5, 3.0)
 	pollution = clampi(int(d.get("pollution", 2)), 0, 3)
 	pollution_sante = bool(d.get("pollution_sante", true))
+	funeraire = bool(d.get("funeraire", true))
+	cremation = clampf(float(d.get("cremation", -1.0)), -1.0, 1.0)
 
 
 ## Réglages par défaut des nouvelles parties (fichier du joueur, sinon « Normal »).

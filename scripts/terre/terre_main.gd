@@ -25,6 +25,10 @@ var habitants_panel: HabitantsPanel
 ## Ressources naturelles et chaînes de production (touche P).
 var production: Production
 var production_panel: ProductionPanel
+## Agriculture : champs, travaux, machines, élevage et repas (Maj+F).
+var agriculture: Agriculture
+var agri_panel: AgriPanel
+var agri_visuels: AgriVisuels
 var resource_overlay: RessourcesOverlay
 ## Services d'urgence : pompiers, ambulances, police sur les routes (touche U).
 var urgences: Urgences
@@ -33,6 +37,8 @@ var urgences_panel: UrgencesPanel
 var trafic: Trafic
 var trafic_panel: TraficPanel
 var trafic_overlay: TraficOverlay
+var services: ServicesPublics
+var services_panel: ServicesPanel
 ## Budget de la commune : impôts, emprunts, entretien et usure des voies (touche M).
 var budget: BudgetCommunal
 var budget_panel: BudgetPanel
@@ -59,6 +65,13 @@ var decors_panel: DecorPanel
 var evenements: Evenements
 var evenements_panel: EvenementsPanel
 var actualites: Actualites
+## Internet et téléphone : antennes, centraux, cuivre et fibre (Maj + O, scripts/reseaux).
+var telecom: Telecom
+var telecom_panel: TelecomPanel
+## Pollution de l'air et de l'eau, bruit, valeur des terrains et loyers.
+var nuisances: Nuisances
+## Panneau « Cartes » (touche N) : cartes de couleur de tous les systèmes.
+var cartes_panel: CartesPanel
 
 
 func _ready() -> void:
@@ -96,13 +109,17 @@ func _ready() -> void:
 	_setup_population()
 	_setup_mobilier()
 	_setup_production()
+	_setup_agriculture()
 	_setup_budget()
 	_setup_urgences()
 	_setup_trafic()
+	_setup_services()
+	_setup_telecom()
 	_setup_dechets()
 	_setup_vie()
 	_setup_decors()
 	_setup_evenements()
+	_setup_nuisances()
 	_setup_create_mode()
 	hud.traffic_toggled.connect(func(on: bool) -> void: transport.traffic.set_enabled(on))
 	hud.traffic_filter_changed.connect(func(era: String, region: String) -> void:
@@ -192,7 +209,7 @@ func _ready() -> void:
 			hud.show_message("Partie chargée : %s." % _game_title())
 		else:
 			hud.show_message("Chargement impossible : " + last_error))
-	for sig in [world.terrain_edited, transport.network_changed, buildings.changed, zones.changed, blocks.changed, plans.changed, transport.stations.lines_changed, transport.junctions.changed, population.changed, production.changed, mobilier.changed, evenements.changed, decors.changed]:
+	for sig in [world.terrain_edited, transport.network_changed, buildings.changed, zones.changed, blocks.changed, plans.changed, transport.stations.lines_changed, transport.junctions.changed, population.changed, production.changed, agriculture.changed, mobilier.changed, evenements.changed, decors.changed]:
 		(sig as Signal).connect(func(_a = null) -> void: _unsaved = true)
 	hud.build_requested.connect(func() -> void: build_panel.toggle())
 	var vue := get_node_or_null("VueSol")
@@ -243,7 +260,8 @@ func save_sections() -> Dictionary:
 		"zones": zones.to_dict(), "blocs": blocks.to_dict(), "plans": plans.to_dict(), "ambiance": ambiance.to_dict(),
 		"creations": Creations.to_dict(Creations.used_by(buildings)),
 		"personnage": ($VueSol as VueSol).to_dict(), "habitants": population.to_dict(), "mobilier": mobilier.to_dict(),
-		"production": production.to_dict(), "urgences": urgences.to_dict(), "dechets": dechets.to_dict(), "trafic": trafic.to_dict(), "reglages": _settings_snapshot().to_dict(), "budget": budget.to_dict(), "evenements": evenements.to_dict(), "decors": decors.to_dict()}
+		"production": production.to_dict(), "agriculture": agriculture.to_dict(), "urgences": urgences.to_dict(), "dechets": dechets.to_dict(), "trafic": trafic.to_dict(), "reglages": _settings_snapshot().to_dict(), "budget": budget.to_dict(), "evenements": evenements.to_dict(), "decors": decors.to_dict(),
+		"nuisances": nuisances.to_dict(), "telecom": telecom.to_dict(), "services": services.to_dict()}
 
 
 ## Sauvegarde dans la partie en cours (ou une nouvelle). title : nom d'une nouvelle partie.
@@ -299,14 +317,18 @@ func load_game(slot := "") -> bool:
 	mobilier.from_dict(sec.get("mobilier", {}))
 	population.from_dict(sec.get("habitants", {}))
 	production.from_dict(sec.get("production", {}))
+	agriculture.from_dict(sec.get("agriculture", {}))
 	budget.from_dict(sec.get("budget", {}))
 	decors.from_dict(sec.get("decors", {}))
 	urgences.from_dict(sec.get("urgences", {}))
 	trafic.from_dict(sec.get("trafic", {}))
+	services.from_dict(sec.get("services", {}))
+	telecom.from_dict(sec.get("telecom", {}))
 	dechets.from_dict(sec.get("dechets", {}))
 	ambiance.from_dict(sec.get("ambiance", {}))
 	# Après les bâtiments et les habitants : dégâts, ruines, malades, matchs.
 	evenements.from_dict(sec.get("evenements", {}))
+	nuisances.from_dict(sec.get("nuisances", {}))
 	($VueSol as VueSol).from_dict(sec.get("personnage", {}))
 	_load_settings(sec.get("reglages", {}), m)
 	# Les chantiers repartent de l'heure de la partie chargée.
@@ -361,6 +383,8 @@ func _apply_settings(speeds := false) -> void:
 		_applied_speeds = sp
 	buildings._refresh()
 	build_panel.refresh()
+	if nuisances != null:
+		nuisances._dirty = true
 	var admin := ReglagesPartie.admin_ici()
 	build_panel.set_admin(admin)
 	hud.set_admin_visible(admin)
@@ -480,6 +504,99 @@ func _setup_evenements() -> void:
 	hud.infos_requested.connect(func() -> void: evenements_panel.toggle())
 
 
+## Nuisances (pollution de l'air, de l'eau, bruit) et valeur des terrains, avec
+## leurs cartes de couleur dans le panneau Cartes (touche N).
+func _setup_nuisances() -> void:
+	nuisances = Nuisances.new()
+	nuisances.name = "Nuisances"
+	add_child(nuisances)
+	nuisances.setup(world, buildings, transport, population, ambiance)
+	zones.extra_chance = nuisances.chance_pousse
+	vie_batiments.extra_usure = nuisances.usure_rythme
+	tree_exiting.connect(func() -> void: Calques.vider())
+	var make := func(nom: String, deg: Gradient) -> CalqueCouleur:
+		var c := CalqueCouleur.new()
+		c.name = "Calque" + nom.capitalize()
+		c.world = world
+		c.focus = rig
+		c.degrade = deg
+		add_child(c)
+		nuisances.recalcule.connect(c.rafraichir)
+		return c
+	var nz := nuisances
+	var specs := [
+		["air", "Air", "Nuisances", "pollution de l'air, du jaune (un peu) au violet (très pollué), rien là où l'air est propre : usines, centrales, grandes routes."],
+		["eau", "Eau", "Nuisances", "pollution de l'eau et des nappes : usines, fermes, mines, eaux usées."],
+		["bruit", "Bruit le jour", "Nuisances", "du jaune (gênant, 40 dB) au violet (80 dB), rien là où c'est calme : routes, rail, aéroports, usines, stades."],
+		["nuit", "Bruit la nuit", "Nuisances", "ce qui empêche de dormir : grandes routes, rail, aéroports, bars et discothèques."],
+	]
+	for sp in specs:
+		var c: CalqueCouleur = make.call(String(sp[0]), CalqueCouleur.degrade_nuisance())
+		var key := String(sp[0])
+		c.seuil = 0.06
+		c.valeur = func(x: float, z: float) -> float: return nz.couche(key, x, z)
+		Calques.ajouter("nuisances_" + key, String(sp[1]), String(sp[2]), c.montrer, String(sp[3]))
+	var cv: CalqueCouleur = make.call("valeur", CalqueCouleur.degrade_valeur())
+	cv.alpha = Vector2(0.6, 0.75)
+	cv.valeur = func(x: float, z: float) -> float:
+		# Seulement là où la ville existe (le reste vaut le prix moyen).
+		return nz.couche("valeur", x, z) if nz._tiles.has(Vector2i(floori(x / Nuisances.CELL / Nuisances.TILE), floori(z / Nuisances.CELL / Nuisances.TILE))) else -1.0
+	Calques.ajouter("immobilier_valeur", "Valeur du terrain", "Immobilier", cv.montrer,
+		"prix du m², du rouge (bon marché) au bleu (très cher). Moyenne : %s €/m²." % BuildingSystem.format_money(roundi(Nuisances.PRIX_M2)).replace(" €", ""))
+	var cl: CalqueCouleur = make.call("loyers", CalqueCouleur.degrade_valeur())
+	cl.alpha = Vector2(0.75, 0.9)
+	cl.rects = func() -> Array:
+		var out := []
+		for bid in population.known:
+			var info: Dictionary = population.known[bid]
+			if int(info.log) <= 0 or not info.has("rect"):
+				continue
+			var c := nz.coef_foncier(bid)
+			var v := 0.5 + 0.5 * log(c) / log(3.0) if c >= 1.0 else 0.5 * (c - Nuisances.COEF_MIN) / (1.0 - Nuisances.COEF_MIN)
+			# La parcelle autour du bâtiment, pour que la couleur se voie.
+			out.append([(info.rect as Rect2i).grow(8), clampf(v, 0.0, 1.0)])
+		return out
+	population.changed.connect(cl.rafraichir)
+	Calques.ajouter("immobilier_loyers", "Loyers", "Immobilier", cl.montrer,
+		"loyer de chaque logement, du rouge (bon marché) au bleu (cher). Il suit la valeur du quartier, peu à peu.")
+	cartes_panel = CartesPanel.new()
+	cartes_panel.name = "PanneauCartes"
+	cartes_panel.resume = _resume_nuisances
+	cartes_panel.touche_bloquee = func() -> bool: return transport.tool == TransportSystem.Tool.BUILD
+	add_child(cartes_panel)
+	hud.cartes_requested.connect(func() -> void: cartes_panel.toggle())
+
+
+## Résumé de la ville sous les cartes : pollution, bruit, valeur et loyers.
+func _resume_nuisances() -> Array:
+	var out := ["Pollution : %s." % String(Nuisances.NIVEAUX_NOMS[clampi(ReglagesPartie.actuel.pollution, 0, 3)]).to_lower()]
+	if population.households.is_empty():
+		out.append("Aucun habitant pour l'instant.")
+		return out
+	var n := 0
+	var air := 0.0
+	var loud := 0
+	var coef := 0.0
+	var rent := 0.0
+	var cher := 0
+	for hid in population.households:
+		var b := int(population.households[hid].b)
+		var f := nuisances.au_point(nuisances._centre(b))
+		n += 1
+		air += float(f.air)
+		if Nuisances.decibels(float(f.nuit)) >= 55:
+			loud += 1
+		coef += nuisances.coef_foncier(b)
+		rent += nuisances.loyer(b)
+		if nuisances.taux_effort(hid) > Nuisances.TAUX_EFFORT_MAX:
+			cher += 1
+	out.append("Air pollué aux logements : %d %% en moyenne." % roundi(100.0 * air / n))
+	out.append("Foyers au bruit la nuit (55 dB ou plus) : %d sur %d." % [loud, n])
+	out.append("Terrain des logements : %s €/m² en moyenne." % BuildingSystem.format_money(roundi(Nuisances.PRIX_M2 * coef / n)).replace(" €", ""))
+	out.append("Loyer moyen : %s par mois. Foyers au loyer trop cher : %d." % [BuildingSystem.format_money(roundi(rent / n)), cher])
+	return out
+
+
 ## Production : sites, stocks, carte des ressources sur le terrain et panneau (P).
 func _setup_production() -> void:
 	production = Production.new()
@@ -503,6 +620,59 @@ func _setup_production() -> void:
 	hud.production_requested.connect(func() -> void: production_panel.toggle())
 
 
+## Agriculture : champs, machines, bêtes, repas des habitants et panneau (Maj+F).
+func _setup_agriculture() -> void:
+	agriculture = Agriculture.new()
+	agriculture.name = "Agriculture"
+	add_child(agriculture)
+	agriculture.setup(world, buildings, population, production, ambiance)
+	agriculture.message.connect(func(t: String) -> void: hud.show_message(t))
+	agriculture.info_changed.connect(func(t: String) -> void: hud.set_tool_info(t))
+	agri_visuels = AgriVisuels.new()
+	agri_visuels.name = "ChampsVisibles"
+	add_child(agri_visuels)
+	agri_visuels.setup(agriculture, world)
+	agri_panel = AgriPanel.new()
+	agri_panel.name = "PanneauAgriculture"
+	add_child(agri_panel)
+	agri_panel.setup(agriculture)
+	agri_panel.focus_requested.connect(func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
+	agri_panel.outil_demande.connect(func() -> void:
+		var o := agriculture.outil
+		_select_building_tool()
+		agriculture.outil = o)
+	hud.agriculture_requested.connect(func() -> void: agri_panel.toggle())
+
+
+## Internet et téléphone (scripts/reseaux/telecom.gd) et son panneau (Maj + O),
+## aussi en onglet du panneau Réseaux (O) quand il existe.
+func _setup_telecom() -> void:
+	telecom = Telecom.new()
+	telecom.name = "Telecom"
+	add_child(telecom)
+	telecom.setup(world, buildings, transport, population)
+	telecom.message.connect(func(t: String) -> void: hud.show_message(t))
+	telecom.info_changed.connect(func(t: String) -> void: hud.set_tool_info(t))
+	telecom.outil_active.connect(func() -> void: _select_building_tool())
+	telecom_panel = TelecomPanel.new()
+	telecom_panel.name = "PanneauTelecom"
+	add_child(telecom_panel)
+	telecom_panel.setup(telecom)
+	world.hovered_cell_changed.connect(func(c: Vector2i, valid: bool) -> void:
+		telecom_panel.vue.survol_bid = buildings.building_at(c) if valid else -1)
+	_telecom_onglet.call_deferred()
+
+
+func _telecom_onglet() -> void:
+	var r := get_node_or_null("Reseaux")
+	if r != null and r.has_method("ajouter_onglet"):
+		var v := TelecomVue.new()
+		v.setup(telecom)
+		world.hovered_cell_changed.connect(func(c: Vector2i, valid: bool) -> void:
+			v.survol_bid = buildings.building_at(c) if valid else -1)
+		r.ajouter_onglet("Télécom", v)
 ## Budget communal : impôts votés, emprunts, entretien et usure des voies (M).
 func _setup_budget() -> void:
 	budget = BudgetCommunal.new()
@@ -543,20 +713,10 @@ func _setup_trafic() -> void:
 	_register_trafic_map.call_deferred()
 
 
-## Carte « Trafic » dans le panneau commun des cartes (touche N), s'il existe.
+## Carte « Trafic » dans le panneau commun des cartes (touche N).
 func _register_trafic_map() -> void:
-	var show := func(on: bool) -> void: trafic_overlay.set_shown(on)
-	var node := get_tree().get_first_node_in_group("calques")
-	if node != null and node.has_method("ajouter"):
-		node.call("ajouter", "trafic", "Trafic", "transports", show)
-		return
-	var path := "res://scripts/interface/calques.gd"
-	if ResourceLoader.exists(path):
-		var script := load(path) as GDScript
-		for m in script.get_script_method_list():
-			if String(m.name) == "ajouter" and int(m.flags) & METHOD_FLAG_STATIC:
-				script.call("ajouter", "trafic", "Trafic", "transports", show)
-				return
+	Calques.ajouter("trafic", "Trafic (bouchons)", "Transports", func(on: bool) -> void: trafic_overlay.set_shown(on),
+		"vert : fluide · jaune : chargé · rouge : bouché · bleu : voie de bus · violet : fermée")
 
 
 func _setup_urgences() -> void:
@@ -575,6 +735,19 @@ func _setup_urgences() -> void:
 	hud.urgences_requested.connect(func() -> void: urgences_panel.toggle())
 
 
+## Services publics : couverture des écoles, hôpitaux et police (Maj+U, calques).
+func _setup_services() -> void:
+	services = ServicesPublics.new()
+	services.name = "ServicesPublics"
+	add_child(services)
+	services.setup(population, buildings, transport, urgences)
+	services_panel = ServicesPanel.new()
+	services_panel.name = "PanneauServices"
+	add_child(services_panel)
+	services_panel.setup(services)
+	services_panel.focus_requested.connect(func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
 ## Déchets : bacs, bennes sur les routes, décharges, tri et panneau (X).
 func _setup_dechets() -> void:
 	dechets = Dechets.new()
@@ -958,6 +1131,8 @@ func _select_building_tool(from_transit := false) -> void:
 	blocks.set_inactive()
 	plans.set_inactive()
 	mobilier.set_inactive()
+	if agriculture and agriculture.outil != "":
+		agriculture.set_outil("")
 	if banque_pose:
 		banque_pose.stop()
 	hud.select_tool_silently(0)
@@ -1010,6 +1185,10 @@ func _setup_landscape() -> void:
 
 func _on_tool_selected(t: int) -> void:
 	landscape.set_shown(t == TerreHud.LANDSCAPE_TOOL)
+	if agriculture and agriculture.outil != "":
+		agriculture.set_outil("")
+	if telecom:
+		telecom.set_inactive()
 	if decors_panel:
 		decors_panel.set_shown(false)
 	if banque_pose:
@@ -1053,9 +1232,12 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 		evenements.clear()
 	population.clear()
 	production.clear()
+	agriculture.clear()
 	budget.clear()
 	urgences.clear()
 	trafic.clear()
+	services.clear()
+	telecom.clear()
 	dechets.clear()
 	resource_overlay.show_resource(resource_overlay.res)
 	transport.clear()
@@ -1135,7 +1317,7 @@ var _open_before := {}
 ## Construire, Lignes et Habitants partagent la même place à droite : quand
 ## l'un s'ouvre, les autres se ferment. Leur bouton de la barre du bas s'allume.
 func _exclusive_panels() -> void:
-	var panels := {"construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "urgences": urgences_panel, "dechets": dechets_panel, "trafic": trafic_panel, "budget": budget_panel, "perso": perso_panel, "infos": evenements_panel}
+	var panels := {"construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "agriculture": agri_panel, "urgences": urgences_panel, "dechets": dechets_panel, "trafic": trafic_panel, "budget": budget_panel, "telecom": telecom_panel, "perso": perso_panel, "infos": evenements_panel, "cartes": cartes_panel}
 	var opened := ""
 	for id in panels:
 		var p = panels[id]
@@ -1198,4 +1380,10 @@ func _refresh_cell_info() -> void:
 		for e in best.slice(0, 3):
 			parts.append("%s %d %%" % [String(Ressources.naturelle(e[0]).name).to_lower(), roundi(e[1] * 100.0)])
 		txt += "\nRessources : " + ", ".join(parts)
+	if nuisances != null:
+		var p := Vector3(_hover.x + 0.5, h, _hover.y + 0.5)
+		var f := nuisances.au_point(p)
+		txt += "\nAir %d %% · Eau %d %% · Bruit %d dB (nuit %d dB) · Terrain %s €/m²" % [roundi(100.0 * float(f.air)),
+			roundi(100.0 * float(f.eau)), Nuisances.decibels(float(f.bruit)), Nuisances.decibels(float(f.nuit)),
+			BuildingSystem.format_money(roundi(Nuisances.PRIX_M2 * nuisances.valeur_de(f, p))).replace(" €", "")]
 	hud.set_cell_info(txt)

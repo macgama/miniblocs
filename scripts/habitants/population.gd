@@ -103,6 +103,12 @@ var extra_buildings: Callable
 var extra_pick: Callable
 ## Satisfaction venue d'ailleurs (commerces de l'économie locale) : f(p) -> [delta, raisons].
 var extra_satisfaction: Callable
+## Optionnel : Callable(p) -> [facteur de mortalité, raisons] (ex. la faim, voir Repas).
+var extra_health: Callable
+## Services publics : school_ok(p, bid_école) -> bool (trajet acceptable). Sans : toutes les écoles.
+var school_ok: Callable
+## Attrait d'un logement pour les arrivants (bid) -> multiplicateur (Nuisances : bruit, pollution, valeur).
+var attrait_logement: Callable
 
 var _arrival_acc: Dictionary = {}
 var _money_frac := 0.0
@@ -626,7 +632,8 @@ func _immigrate(hours: float) -> void:
 		# Un premier foyer s'installe vite dans un logement vide.
 		if (by_home.get(bid, []) as Array).is_empty():
 			acc = maxf(acc, 1.0)
-		acc += maxf(1.0, free * ARRIVAL_RATE) * hours
+		var attrait := float(attrait_logement.call(bid)) if attrait_logement.is_valid() else 1.0
+		acc += maxf(1.0, free * ARRIVAL_RATE) * hours * attrait
 		var n := mini(int(acc), free)
 		acc -= n
 		_arrival_acc[bid] = acc
@@ -650,8 +657,14 @@ func _match_all() -> void:
 		var p: Dictionary = persons[pid]
 		var st := stage(p)
 		if st == "eleve":
+			# École devenue trop loin (route coupée, déménagement) : on en cherche une autre.
+			if int(p.sch) >= 0 and school_ok.is_valid() and known.has(int(p.sch)) and not school_ok.call(p, int(p.sch)):
+				_leave_school(p)
 			if int(p.sch) < 0 and not schools.is_empty():
-				var best := _nearest(home_of(p), schools)
+				var possibles := schools
+				if school_ok.is_valid():
+					possibles = schools.filter(func(b: int) -> bool: return school_ok.call(p, b))
+				var best := _nearest(home_of(p), possibles) if not possibles.is_empty() else -1
 				if best >= 0:
 					_join_school(p, best)
 					if free_seats(best) <= 0:
@@ -826,6 +839,9 @@ func household_budget(hid: int) -> Dictionary:
 	# Logement aménagé : le loyer suit sa valeur.
 	if known.has(int(h.b)) and float(known[int(h.b)].get("loyer", 0.0)) > 0.0:
 		rent = float(known[int(h.b)].loyer)
+	# Le loyer suit la valeur du quartier (pollution, bruit, parcs, commerces…).
+	if Nuisances.instance != null:
+		rent *= Nuisances.instance.coef_foncier(int(h.b))
 	var food := COURSES * (h.m as Array).size()
 	var cars := VOITURE * int(h.car)
 	return {"revenus": inc, "loyer": rent, "courses": food, "voitures": cars, "solde": inc - rent - food - cars}
@@ -838,7 +854,11 @@ func city_budget() -> Dictionary:
 	var reg := ReglagesPartie.actuel
 	for hid in households:
 		var hb := int(households[hid].b)
-		rec["Taxe foncière"] += TAXE_FONCIERE * reg.impots * (float(known[hb].get("tf", 1.0)) if known.has(hb) else 1.0)
+		var tf := float(known[hb].get("tf", 1.0)) if known.has(hb) else 1.0
+		# La taxe foncière suit la valeur du terrain.
+		if Nuisances.instance != null:
+			tf *= Nuisances.instance.coef_foncier(hb)
+		rec["Taxe foncière"] += TAXE_FONCIERE * reg.impots * tf
 	rec["Dotation de l'État"] = DOTATION * persons.size()
 	for bid in by_job:
 		if not known.has(bid):
@@ -1329,7 +1349,7 @@ func satisfaction(p: Dictionary) -> Dictionary:
 				why.append("+ va à l'école")
 			else:
 				s -= 20.0
-				why.append("− pas de place à l'école")
+				why.append("− pas de place dans une école proche")
 		"retraite":
 			s += 10.0
 		"etudiant":

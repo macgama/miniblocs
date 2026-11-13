@@ -124,6 +124,7 @@ static func all_types() -> Dictionary:
 		_all.merge(EspacesPublics.entries())
 		_all.merge(ProductionTypes.entries())
 		_all.merge(CommercesTypes.entries())
+		_all.merge(TelecomTypes.entries())
 		_all.merge(DechetsTypes.entries())
 		_all.merge(Stades.entries())
 		_all.merge(StyleBuilder.generate())
@@ -211,6 +212,8 @@ static func build_mesh(id: String, material: Material = null, details := true, v
 		CommercesTypes.build(k, id, t)
 		k.fit_xz(w, d)
 		return k.to_mesh(material)
+	if t.has("telecom"):
+		TelecomTypes.build(k, id, t)
 	if t.has("dechets"):
 		DechetsTypes.build(k, id, t)
 		k.fit_xz(w, d)

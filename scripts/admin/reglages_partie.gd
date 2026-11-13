@@ -75,12 +75,24 @@ var evenements_auto := true
 var catastrophes := true
 ## Fréquence des catastrophes (0,25 : rares ; 1 : normales ; 3 : fréquentes).
 var frequence_catastrophes := 1.0
+## Faim des habitants quand les commerces d'alimentation sont vides :
+## "aucune" (pas d'effet), "normale" (moins satisfaits, santé, départs),
+## "mortelle" (en plus, on peut mourir de faim). Voir Repas.
+var faim := "normale"
+const FAIMS := ["aucune", "normale", "mortelle"]
+## Internet et téléphone comptent : satisfaction des habitants et rendement des
+## entreprises (sinon les antennes et la fibre ne servent qu'au décor).
+var telecom_necessaire := true
 ## Vitesse d'usure des routes, rails et réseaux (0 : jamais ; 0,5 lente ; 1 normale ; 2 rapide).
 var usure := 1.0
 ## Déchets : production, collecte et conséquences (non : la ville reste propre toute seule).
 var dechets := true
 ## Quantité de déchets produite par habitant (×0,5 à ×3).
 var dechets_quantite := 1.0
+## Pollution de l'air, de l'eau et bruit : 0 désactivée, 1 faible, 2 normale, 3 forte.
+var pollution: int = 2
+## La pollution rend malade et raccourcit la vie (sinon : seulement gêne et valeur des terrains).
+var pollution_sante := true
 ## Joueur qui a créé la partie (SaveGame.player_id()) : l'admin des cartes entre amis.
 var createur := ""
 ## Chantiers : les constructions apparaissent d'un coup (bac à sable) au lieu de
@@ -225,8 +237,8 @@ func to_dict() -> Dictionary:
 		"salaires": salaires, "vitesse_temps": vitesse_temps, "vitesse_vie": vitesse_vie,
 		"epuisement": epuisement, "deblocage": deblocage, "createur": createur,
 		"record_habitants": record_habitants, "evenements_auto": evenements_auto, "catastrophes": catastrophes,
-		"frequence_catastrophes": frequence_catastrophes, "construction_instantanee": construction_instantanee,
-		"horaires_chantiers": horaires_chantiers, "usure": usure, "dechets": dechets, "dechets_quantite": dechets_quantite}
+		"frequence_catastrophes": frequence_catastrophes, "faim": faim, "telecom_necessaire": telecom_necessaire, "construction_instantanee": construction_instantanee,
+		"horaires_chantiers": horaires_chantiers, "usure": usure, "dechets": dechets, "dechets_quantite": dechets_quantite, "pollution": pollution, "pollution_sante": pollution_sante}
 
 
 func from_dict(d: Dictionary) -> void:
@@ -246,6 +258,10 @@ func from_dict(d: Dictionary) -> void:
 	evenements_auto = bool(d.get("evenements_auto", true))
 	catastrophes = bool(d.get("catastrophes", true))
 	frequence_catastrophes = clampf(float(d.get("frequence_catastrophes", 1.0)), 0.25, 3.0)
+	faim = String(d.get("faim", "normale"))
+	if not FAIMS.has(faim):
+		faim = "normale"
+	telecom_necessaire = bool(d.get("telecom_necessaire", true))
 	usure = clampf(float(d.get("usure", 1.0)), 0.0, 3.0)
 	construction_instantanee = bool(d.get("construction_instantanee", false))
 	horaires_chantiers = String(d.get("horaires_chantiers", "semaine"))
@@ -253,6 +269,8 @@ func from_dict(d: Dictionary) -> void:
 		horaires_chantiers = "semaine"
 	dechets = bool(d.get("dechets", true))
 	dechets_quantite = clampf(float(d.get("dechets_quantite", 1.0)), 0.5, 3.0)
+	pollution = clampi(int(d.get("pollution", 2)), 0, 3)
+	pollution_sante = bool(d.get("pollution_sante", true))
 
 
 ## Réglages par défaut des nouvelles parties (fichier du joueur, sinon « Normal »).

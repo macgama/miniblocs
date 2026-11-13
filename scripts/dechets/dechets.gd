@@ -1010,19 +1010,19 @@ func pollution_sources() -> Array:
 		var nom := building_name(int(bid))
 		match String(s.role):
 			"decharge":
-				out.append({"pos": p, "rayon": 600.0, "air": 0.3, "eau": 0.8, "odeur": 0.8, "bruit": 0.2, "nom": nom})
+				out.append({"pos": p, "rayon": 600.0, "air": 0.3, "eau": 0.8, "odeur": 0.8, "bruit": 0.2, "nom": nom, "bid": int(bid)})
 			"decharge_fermee":
-				out.append({"pos": p, "rayon": 300.0, "eau": 0.15, "nom": nom})
+				out.append({"pos": p, "rayon": 300.0, "eau": 0.15, "nom": nom, "bid": int(bid)})
 			"incinerateur":
-				out.append({"pos": p, "rayon": 800.0, "air": 0.6, "bruit": 0.3, "nom": nom})
+				out.append({"pos": p, "rayon": 800.0, "air": 0.6, "bruit": 0.3, "nom": nom, "bid": int(bid)})
 			"depot":
-				out.append({"pos": p, "rayon": 150.0, "bruit": 0.3, "nom": nom})
+				out.append({"pos": p, "rayon": 150.0, "bruit": 0.3, "nom": nom, "bid": int(bid)})
 			"tri", "recyclage":
-				out.append({"pos": p, "rayon": 200.0, "bruit": 0.4, "odeur": 0.2, "nom": nom})
+				out.append({"pos": p, "rayon": 200.0, "bruit": 0.4, "odeur": 0.2, "nom": nom, "bid": int(bid)})
 			"compost":
-				out.append({"pos": p, "rayon": 300.0, "odeur": 0.5, "nom": nom})
+				out.append({"pos": p, "rayon": 300.0, "odeur": 0.5, "nom": nom, "bid": int(bid)})
 			"decheterie":
-				out.append({"pos": p, "rayon": 100.0, "bruit": 0.2, "nom": nom})
+				out.append({"pos": p, "rayon": 100.0, "bruit": 0.2, "nom": nom, "bid": int(bid)})
 	for bid in overflowing():
 		var f := clampf(float(bacs[bid].deb) / 100.0, 0.2, 1.0)
 		out.append({"pos": _pos_of(bid), "rayon": 60.0, "salete": f, "odeur": f * 0.5, "nom": "Sacs d'ordures non ramassés"})

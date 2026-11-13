@@ -96,6 +96,8 @@ const SECTIONS := [
 		["Livraisons", "chaque site a son stock ; des camions conduits par des chauffeurs-livreurs (lundi-vendredi) livrent le plus proche qui en a besoin. Sans chauffeur ou sans route : rayons vides et habitants mécontents. Les entrepôts servent de relais ; le reste vient par import (route qui sort de la carte, dépôt, gare, port)"],
 		["Survol d'une case", "les ressources les plus riches de la case s'affichent dans la fiche du terrain"],
 		["Règles", "il faut des habitants pour les emplois, une voie d'accès, des commerces pour vendre, un dépôt, une gare ou un port pour exporter"],
+		["Maj+F", "Agriculture : choisir une ferme, « Préparer la ferme », tracer des champs (culture au choix), acheter ou louer des machines, acheter des bêtes ; les ouvriers labourent, sèment et moissonnent selon la saison"],
+		["Repas", "les habitants mangent chaque jour dans les commerces ; s'ils manquent de nourriture : santé et satisfaction baissent, puis ils déménagent (Admin : faim aucune, normale ou mortelle)"],
 	]],
 	["Décors", [
 		["G", "panneau Décors : 160 modèles (bancs, lampadaires, fontaines, statues, clôtures, panneaux, marché, jeux, plage, ferme, animaux, bateaux, rochers)"],
@@ -118,6 +120,22 @@ const SECTIONS := [
 		["Lignes", "chaque bus, tram ou métro a ses places ; plein, on attend le suivant ; ticket réglable par ligne (1,50 € par défaut, gratuit pour les moins de 18 ans)"],
 		["Voie de bus", "Choisir une route > Voie de bus : bus et trams y passent les bouchons, les voitures perdent une voie ; Fermer à la circulation coupe la route"],
 	]],
+	["Services publics", [
+		["Maj + U", "panneau Services publics : écoles, hôpitaux, police ; habitants bien couverts, loin, saturés ou sans service ; places, lits et agents de chaque bâtiment (clic : y aller)"],
+		["Voir la couverture", "bouton du panneau (ou panneau Cartes) : chaque logement en couleur, vert bien couvert, jaune loin, orange saturé, rouge rien ; les services en bleu"],
+		["Distance", "temps de trajet par les routes et chemins : école 15 min (maternelle, élémentaire), 25 min (collège), 40 min (lycée), à pied ou en car ; hôpital 30 min en voiture ; police 10 min d'intervention. Au double, plus de couverture"],
+		["Places", "école : pupitres ; hôpital : 3 lits pour 1 000 habitants ; police : 1 agent pour 400 habitants. Sans personnel embauché, le service ne couvre rien"],
+		["Conséquences", "santé et espérance de vie (hôpital), satisfaction des habitants, petits délits (cambriolages) dans les quartiers sans police"],
+	]],
+	["Internet et téléphone", [
+		["Maj + O", "panneau Internet et téléphone (aussi en onglet « Télécom » du panneau Réseaux, O) : outils des câbles, calques, bâtiment survolé, bilan"],
+		["Construire → Services", "pylône 2G (7 km), pylône 4G (2,5 km), pylône 4G + 5G, petite antenne 5G (450 m), central téléphonique, nœud de la fibre"],
+		["Cuivre", "toutes les routes reliées à un central portent le téléphone et l'ADSL : 20 Mb/s près du central, de moins en moins jusqu'à 5 km"],
+		["Fibrer une rue", "clic sur une route : la fibre (1 Gb/s) suit toute la rue ; elle doit toucher un central ou un nœud optique"],
+		["Fibre ou téléphone sur poteaux", "un clic par point, Échap ou clic droit pour finir : pour les fermes et hameaux loin des routes"],
+		["Calques", "couverture mobile (disques 2G, 4G, 5G) ou débit de chaque bâtiment (fibre, ADSL, box 4G / 5G, lent, rien)"],
+		["Conséquences", "sans internet ni réseau mobile, les habitants sont moins satisfaits et les entreprises produisent moins (bureaux surtout) ; une antenne trop chargée sature. Réglage Admin (F10) pour couper"],
+	]],
 	["Déchets", [
 		["X", "panneau Déchets : ce que la ville jette et recycle, poubelles qui débordent (clic : y aller), installations, bennes en tournée"],
 		["Construire → Déchets", "dépôt de collecte (4 bennes), déchèterie, centre de tri, usine de recyclage, compost, décharge, incinérateur (électricité)"],
@@ -126,6 +144,12 @@ const SECTIONS := [
 		["Tri", "sans centre de tri personne ne trie ; avec lui, recyclables et verre partent en balles et en calcin vers l'usine de recyclage et les usines (verrerie, brasserie…)"],
 		["Décharge pleine", "bouton « Recouvrir » du panneau : elle devient une colline verte et pollue beaucoup moins"],
 		["Admin (F10)", "déchets oui/non, quantité par habitant ×0,5 à ×3"],
+	]],
+	["Pollution, bruit et valeur", [
+		["N", "panneau Cartes : air, eau, bruit le jour et la nuit, valeur du terrain, loyers (une carte à la fois, et celles des autres systèmes)"],
+		["Survol d'une case", "air et eau pollués (%), bruit (dB, jour et nuit) et prix du terrain (€/m²) dans la fiche du terrain"],
+		["Effets", "la pollution rend malade, le bruit et les odeurs fâchent les habitants ; arbres et parcs protègent. Le terrain prend de la valeur près des parcs, de l'eau, des commerces et des transports, en perd près des usines et des grandes routes"],
+		["Loyers", "ils suivent la valeur du quartier peu à peu, comme la taxe foncière ; un foyer au loyer trop cher déménage, les quartiers chers font pousser les bâtiments chics (zonage)"],
 	]],
 	["Temps et vue", [
 		["T", "mettre le temps en pause / reprendre"],
@@ -144,7 +168,7 @@ const SECTIONS := [
 		["F9", "recharger la partie en cours"],
 		["Charger", "liste des parties : charger, supprimer, sauvegarder sous un autre nom"],
 		["Globe", "revenir au globe pour changer de lieu"],
-		["F10 ou icône réglages", "panneau Admin : argent de départ, caisse, argent illimité, coût des constructions, accès à une voie, impôts, salaires, vitesses, épuisement des ressources, déblocage des bâtiments (seulement pour l'admin de la partie)"],
+		["F10 ou icône réglages", "panneau Admin : argent de départ, caisse, argent illimité, coût des constructions, accès à une voie, impôts, salaires, vitesses, épuisement des ressources, déblocage des bâtiments, pollution (seulement pour l'admin de la partie)"],
 		["F1", "afficher ou masquer cette aide"],
 	]],
 ]

@@ -649,6 +649,11 @@ func step_hours(h: float) -> void:
 			_bake(bid, frac, staff)
 			continue
 		var prod: Dictionary = t.prod
+		if prod.get("externe", false):
+			# Site alimenté par un autre système (centre de tri : Dechets).
+			s.eff = staff
+			s.status = String(s.get("ext_status", "En activité"))
+			continue
 		if kind == "extraction":
 			if String(s.res) == "":
 				s.status = "Lecture du sol…" if float(s.rich) < 0.0 else "Aucune ressource ici"

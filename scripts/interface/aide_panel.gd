@@ -100,6 +100,15 @@ const SECTIONS := [
 		["Équipages", "un véhicule ne part que si son équipage est de garde aujourd'hui (employés du bâtiment) ; l'ambulance passe par l'hôpital avant de rentrer"],
 		["Appel d'essai ici", "bouton du panneau : un appel au hasard près de la caméra, pour voir partir les secours"],
 	]],
+	["Déchets", [
+		["X", "panneau Déchets : ce que la ville jette et recycle, poubelles qui débordent (clic : y aller), installations, bennes en tournée"],
+		["Construire → Déchets", "dépôt de collecte (4 bennes), déchèterie, centre de tri, usine de recyclage, compost, décharge, incinérateur (électricité)"],
+		["Bacs", "chaque logement, commerce et entreprise remplit ses bacs (1,4 kg par habitant et par jour) ; plein, il déborde : sacs sur le trottoir, habitants mécontents, rue sale"],
+		["Tournées", "les bennes partent du dépôt de 5 h à 12 h (lundi-samedi) avec 3 éboueurs de service, vident les bacs porte à porte puis déchargent à l'usine"],
+		["Tri", "sans centre de tri personne ne trie ; avec lui, recyclables et verre partent en balles et en calcin vers l'usine de recyclage et les usines (verrerie, brasserie…)"],
+		["Décharge pleine", "bouton « Recouvrir » du panneau : elle devient une colline verte et pollue beaucoup moins"],
+		["Admin (F10)", "déchets oui/non, quantité par habitant ×0,5 à ×3"],
+	]],
 	["Temps et vue", [
 		["T", "mettre le temps en pause / reprendre"],
 		["Maj + T", "vitesse suivante du temps (la marée suit l'heure et la Lune : voir la barre d'état)"],

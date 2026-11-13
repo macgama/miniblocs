@@ -36,6 +36,9 @@ var _epuisement: CheckBox
 var _ev_auto: CheckBox
 var _catas: CheckBox
 var _freq: OptionButton
+var _dechets: CheckBox
+var _dechets_q: HSlider
+var _dechets_q_l: Label
 const FREQS := [0.25, 1.0, 3.0]
 var _status: Label
 
@@ -194,6 +197,15 @@ func _ready() -> void:
 	_freq.item_selected.connect(func(_i: int) -> void: _changed())
 	_row(g, "Fréquence des catastrophes", _freq)
 
+	# Déchets.
+	g = _section(right, "Déchets", "dechets")
+	_dechets = _check("Déchets à ramasser (sacs qui débordent, collecte, décharges)")
+	g.add_child(_dechets)
+	c = _slider(0.5, 3.0, 0.25)
+	_dechets_q = c[0]
+	_dechets_q_l = c[1]
+	_row(g, "Quantité de déchets par habitant", c[2])
+
 	# Pied.
 	var foot := HBoxContainer.new()
 	foot.add_theme_constant_override("separation", 8)
@@ -322,6 +334,8 @@ func _fill() -> void:
 		if absf(float(FREQS[i]) - reglages.frequence_catastrophes) < 0.01:
 			fi = i
 	_freq.select(fi)
+	_dechets.button_pressed = reglages.dechets
+	_dechets_q.value = reglages.dechets_quantite
 	_filling = false
 	_update_labels()
 
@@ -342,6 +356,8 @@ func _changed() -> void:
 	reglages.evenements_auto = _ev_auto.button_pressed
 	reglages.catastrophes = _catas.button_pressed
 	reglages.frequence_catastrophes = float(FREQS[maxi(0, _freq.selected)])
+	reglages.dechets = _dechets.button_pressed
+	reglages.dechets_quantite = _dechets_q.value
 	_emit()
 
 
@@ -354,6 +370,7 @@ func _update_labels() -> void:
 	_cout_l.text = "×" + ReglagesPartie._fmt(_cout.value)
 	_impots_l.text = "×" + ReglagesPartie._fmt(_impots.value)
 	_salaires_l.text = "×" + ReglagesPartie._fmt(_salaires.value)
+	_dechets_q_l.text = "×" + ReglagesPartie._fmt(_dechets_q.value)
 	_preset_label.text = reglages.preset_name()
 	_argent.editable = editable and not _illimite.button_pressed
 	if _caisse:

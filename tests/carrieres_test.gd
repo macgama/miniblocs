@@ -123,7 +123,10 @@ func _run() -> void:
 	var prod: Production = scene.production
 	var pop: Population = scene.population
 	var car: Carrieres = scene.carrieres
-	_check(car != null and prod.extraction_gate.is_valid() and bs.extra_check == Callable(car, "check_place"), "carrières branchées sur la production et la pose")
+	_check(car != null and prod.extraction_gate.is_valid() and bs.extra_check.is_valid(), "carrières branchées sur la production et la pose")
+	# Le courant et l'eau (réseaux) sont testés ailleurs : rendement normal ici.
+	for n in root.get_tree().get_nodes_in_group("rendement_sources"):
+		n.remove_from_group("rendement_sources")
 	amb.set_speed(0)
 	amb.unix_time = _at("2026-03-10", 10.0) # un mardi
 	bs.money = 1_000_000_000

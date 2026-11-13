@@ -445,13 +445,19 @@ func health(p: Dictionary) -> Dictionary:
 	var f := 1.0
 	var why := []
 	var home := pop.home_of(p)
-	var hd := hospital_distance(home)
-	if hd < 6000.0:
-		f *= 0.82
-		why.append("+ hôpital à %.1f km" % (hd / 1000.0))
+	# Couverture des services publics (trajet par la route et lits libres) si elle existe.
+	var sp: Dictionary = ServicesPublics.instance.sante(p) if ServicesPublics.instance != null and ServicesPublics.instance.population == pop else {}
+	if not sp.is_empty():
+		f *= float(sp.f)
+		why.append(String(sp.why))
 	else:
-		f *= 1.15
-		why.append("− pas d'hôpital proche")
+		var hd := hospital_distance(home)
+		if hd < 6000.0:
+			f *= 0.82
+			why.append("+ hôpital à %.1f km" % (hd / 1000.0))
+		else:
+			f *= 1.15
+			why.append("− pas d'hôpital proche")
 	var pol := pollution_at(home)
 	if pol > 0.05:
 		f *= 1.0 + 0.4 * pol
@@ -463,6 +469,11 @@ func health(p: Dictionary) -> Dictionary:
 	if mal != "" and MALADIES.has(mal):
 		f *= float(MALADIES[mal].f)
 		why.append("− %s" % MALADIES[mal].name)
+	if pop.extra_health.is_valid():
+		var ex: Array = pop.extra_health.call(p)
+		if ex.size() >= 2 and float(ex[0]) != 1.0:
+			f *= float(ex[0])
+			why.append_array(ex[1])
 	return {"f": f, "why": why}
 
 

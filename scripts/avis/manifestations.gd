@@ -326,10 +326,10 @@ func _rouvrir(m: Dictionary) -> void:
 func _trafic() -> Node:
 	if not avis.is_inside_tree():
 		return null
-	var n := avis.get_tree().get_first_node_in_group("trafic")
-	if n == null:
-		n = avis.get_node_or_null("/root/Trafic")
-	return n
+	for n in avis.get_tree().get_nodes_in_group("avis_sources"):
+		if n.has_method("fermer") and n.has_method("rouvrir"):
+			return n
+	return null
 
 
 ## Le cortège avance pendant la première heure, puis reste devant le lieu.

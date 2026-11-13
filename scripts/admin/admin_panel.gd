@@ -35,9 +35,11 @@ var _vie: OptionButton
 var _epuisement: CheckBox
 var _ev_auto: CheckBox
 var _catas: CheckBox
+var _telecom: CheckBox
 var _instant: CheckBox
 var _horaires: OptionButton
 var _freq: OptionButton
+var _faim: OptionButton
 var _usure: OptionButton
 var _dechets: CheckBox
 var _dechets_q: HSlider
@@ -208,6 +210,12 @@ func _ready() -> void:
 	g = _section(right, "Ressources", "ressources")
 	_epuisement = _check("Épuisement des ressources (mines, puits, forêts et poissons surexploités)")
 	g.add_child(_epuisement)
+	_faim = OptionButton.new()
+	for n in ["Aucun effet", "Normale (santé, départs)", "Mortelle (on peut mourir de faim)"]:
+		_faim.add_item(n)
+	_faim.disabled = not editable
+	_faim.item_selected.connect(func(_i: int) -> void: _changed())
+	_row(g, "Faim quand les magasins sont vides", _faim)
 
 	# Événements de la ville.
 	g = _section(right, "Événements", "infos")
@@ -232,6 +240,10 @@ func _ready() -> void:
 	_manifs = _check("Manifestations des habitants mécontents")
 	g.add_child(_manifs)
 
+	# Réseaux.
+	g = _section(right, "Internet et téléphone", "services")
+	_telecom = _check("Nécessaires : sans internet ni réseau mobile, les habitants sont moins satisfaits et les entreprises produisent moins")
+	g.add_child(_telecom)
 	# Déchets.
 	g = _section(left, "Déchets", "dechets")
 	_dechets = _check("Déchets à ramasser (sacs qui débordent, collecte, décharges)")
@@ -374,6 +386,7 @@ func _fill() -> void:
 	_epuisement.button_pressed = reglages.epuisement
 	_ev_auto.button_pressed = reglages.evenements_auto
 	_catas.button_pressed = reglages.catastrophes
+	_telecom.button_pressed = reglages.telecom_necessaire
 	_instant.button_pressed = reglages.construction_instantanee
 	_horaires.select(maxi(0, Chantiers.HORAIRES.find(reglages.horaires_chantiers)))
 	var fi := 1
@@ -383,6 +396,7 @@ func _fill() -> void:
 	_freq.select(fi)
 	_elections.select(maxi(0, Elections.MODES.find(reglages.elections)))
 	_manifs.button_pressed = reglages.manifestations
+	_faim.select(maxi(ReglagesPartie.FAIMS.find(reglages.faim), 0))
 	var ui := 2
 	for i in USURES.size():
 		if absf(float(USURES[i]) - reglages.usure) < 0.01:
@@ -411,12 +425,14 @@ func _changed() -> void:
 	reglages.epuisement = _epuisement.button_pressed
 	reglages.evenements_auto = _ev_auto.button_pressed
 	reglages.catastrophes = _catas.button_pressed
+	reglages.telecom_necessaire = _telecom.button_pressed
 	reglages.construction_instantanee = _instant.button_pressed
 	reglages.horaires_chantiers = String(Chantiers.HORAIRES[maxi(0, _horaires.selected)])
 	_horaires.disabled = not editable or _instant.button_pressed
 	reglages.frequence_catastrophes = float(FREQS[maxi(0, _freq.selected)])
 	reglages.elections = String(Elections.MODES[maxi(0, _elections.selected)])
 	reglages.manifestations = _manifs.button_pressed
+	reglages.faim = String(ReglagesPartie.FAIMS[clampi(_faim.selected, 0, 2)])
 	reglages.usure = float(USURES[maxi(0, _usure.selected)])
 	reglages.dechets = _dechets.button_pressed
 	reglages.dechets_quantite = _dechets_q.value

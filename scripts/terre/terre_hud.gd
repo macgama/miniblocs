@@ -18,6 +18,7 @@ signal transit_requested
 signal habitants_requested
 ## Panneau « Production » (touche P) : ressources, stocks, sites.
 signal production_requested
+signal agriculture_requested
 ## Panneau « Budget » (touche M) : impôts, emprunts, entretien des voies.
 signal budget_requested
 ## Bouton « Décors » (touche G) : bancs, clôtures, animaux, bateaux, rochers…
@@ -28,6 +29,8 @@ signal infos_requested
 signal urgences_requested
 ## Panneau Avis : satisfaction, élections, manifestations (Y).
 signal avis_requested
+## Panneau « Trafic » (Maj + L) : bouchons, parkings, remplissage des lignes.
+signal trafic_requested
 ## Bouton « Déchets » (touche X).
 signal dechets_requested
 ## Panneau « Cartes » (touche N) : pollution, bruit, valeur des terrains, autres calques.
@@ -80,10 +83,12 @@ const CATEGORIES := [
 	{"id": "lignes", "name": "Lignes", "icon": "lignes", "key": "L", "panel": true},
 	{"id": "habitants", "name": "Habitants", "icon": "habitants", "key": "H", "panel": true},
 	{"id": "production", "name": "Production", "icon": "ressources", "key": "P", "panel": true},
+	{"id": "agriculture", "name": "Agriculture", "icon": "agriculture", "key": "Maj+F", "panel": true},
 	{"id": "decors", "name": "Décors", "icon": "decors", "key": "G", "panel": true},
 	{"id": "infos", "name": "Infos", "icon": "infos", "key": "I", "panel": true},
 	{"id": "urgences", "name": "Urgences", "icon": "services", "key": "U", "panel": true},
 	{"id": "avis", "name": "Avis", "icon": "urne", "key": "Y", "panel": true},
+	{"id": "trafic", "name": "Trafic", "icon": "circulation", "key": "Maj+L", "panel": true},
 	{"id": "budget", "name": "Budget", "icon": "budget", "key": "M", "panel": true},
 	{"id": "dechets", "name": "Déchets", "icon": "dechets", "key": "X", "panel": true},
 	{"id": "cartes", "name": "Cartes", "icon": "cartes", "key": "N", "panel": true},
@@ -587,11 +592,13 @@ func _on_category(id: String) -> void:
 			"lignes": transit_requested.emit()
 			"habitants": habitants_requested.emit()
 			"production": production_requested.emit()
+			"agriculture": agriculture_requested.emit()
 			"budget": budget_requested.emit()
 			"decors": decors_requested.emit()
 			"infos": infos_requested.emit()
 			"urgences": urgences_requested.emit()
 			"avis": avis_requested.emit()
+			"trafic": trafic_requested.emit()
 			"dechets": dechets_requested.emit()
 			"cartes": cartes_requested.emit()
 		_update_categories()

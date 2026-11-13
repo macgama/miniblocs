@@ -126,7 +126,7 @@ func _process(delta: float) -> void:
 
 func _unhandled_key_input(event: InputEvent) -> void:
 	var k := event as InputEventKey
-	if k and k.pressed and not k.echo and k.physical_keycode == KEY_L:
+	if k and k.pressed and not k.echo and k.physical_keycode == KEY_L and not k.shift_pressed:
 		toggle()
 		get_viewport().set_input_as_handled()
 

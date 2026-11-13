@@ -45,6 +45,8 @@ var budget_panel: BudgetPanel
 ## Déchets : collecte, décharges, tri et recyclage (touche X).
 var dechets: Dechets
 var dechets_panel: DechetsPanel
+## Obsèques, cimetières, crématorium, pompes funèbres (onglet Funéraire du panneau H).
+var funeraire: Funeraire
 ## Chantiers, usure des bâtiments, abords et fumée des maisons habitées.
 var vie_batiments: BatimentsVie
 ## Chantiers des voies et des réseaux (SuiviChantiers) et des voies (ChantiersVoies).
@@ -116,6 +118,7 @@ func _ready() -> void:
 	_setup_services()
 	_setup_telecom()
 	_setup_dechets()
+	_setup_funeraire()
 	_setup_vie()
 	_setup_decors()
 	_setup_evenements()
@@ -260,7 +263,7 @@ func save_sections() -> Dictionary:
 		"zones": zones.to_dict(), "blocs": blocks.to_dict(), "plans": plans.to_dict(), "ambiance": ambiance.to_dict(),
 		"creations": Creations.to_dict(Creations.used_by(buildings)),
 		"personnage": ($VueSol as VueSol).to_dict(), "habitants": population.to_dict(), "mobilier": mobilier.to_dict(),
-		"production": production.to_dict(), "agriculture": agriculture.to_dict(), "urgences": urgences.to_dict(), "dechets": dechets.to_dict(), "trafic": trafic.to_dict(), "reglages": _settings_snapshot().to_dict(), "budget": budget.to_dict(), "evenements": evenements.to_dict(), "decors": decors.to_dict(),
+		"production": production.to_dict(), "agriculture": agriculture.to_dict(), "urgences": urgences.to_dict(), "dechets": dechets.to_dict(), "funeraire": funeraire.to_dict(), "trafic": trafic.to_dict(), "reglages": _settings_snapshot().to_dict(), "budget": budget.to_dict(), "evenements": evenements.to_dict(), "decors": decors.to_dict(),
 		"nuisances": nuisances.to_dict(), "telecom": telecom.to_dict(), "services": services.to_dict()}
 
 
@@ -325,6 +328,7 @@ func load_game(slot := "") -> bool:
 	services.from_dict(sec.get("services", {}))
 	telecom.from_dict(sec.get("telecom", {}))
 	dechets.from_dict(sec.get("dechets", {}))
+	funeraire.from_dict(sec.get("funeraire", {}))
 	ambiance.from_dict(sec.get("ambiance", {}))
 	# Après les bâtiments et les habitants : dégâts, ruines, malades, matchs.
 	evenements.from_dict(sec.get("evenements", {}))
@@ -763,6 +767,15 @@ func _setup_dechets() -> void:
 		rig.position.x = pos.x
 		rig.position.z = pos.z)
 	hud.dechets_requested.connect(func() -> void: dechets_panel.toggle())
+
+
+## Obsèques : cimetières qui se remplissent, corbillards sur les routes, crématorium.
+func _setup_funeraire() -> void:
+	funeraire = Funeraire.new()
+	funeraire.name = "Funeraire"
+	add_child(funeraire)
+	funeraire.setup(buildings, population, transport, production, ambiance)
+	funeraire.message.connect(func(t: String) -> void: hud.show_message(t))
 
 
 ## Panneau des transports publics : stations et lignes.
@@ -1239,6 +1252,7 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 	services.clear()
 	telecom.clear()
 	dechets.clear()
+	funeraire.clear()
 	resource_overlay.show_resource(resource_overlay.res)
 	transport.clear()
 	buildings.clear()

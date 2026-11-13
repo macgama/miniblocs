@@ -1011,6 +1011,7 @@ func die(pid: int, cause := "") -> void:
 	var was_followed := followed == pid
 	var was_mine := pop.principal.is_mine(p)
 	archive_person(p, "deces", cause)
+	pop.person_died.emit(pid, home)
 	pop._remove_person(pid, false)
 	if not h.is_empty() and pop.households.has(hid):
 		_inherit(hid, p, kids_alive)

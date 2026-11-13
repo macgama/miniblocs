@@ -37,6 +37,9 @@ var consos: Dictionary = {}
 var _comp_of_bid: Dictionary = {}
 ## composante -> {"prod": float, "dem": float, "taux": float}
 var composantes: Dictionary = {}
+## Tracés du dernier calcul (tronçons en service puis routes) et leur composante.
+var lignes: Array = []
+var lignes_comp := PackedInt32Array()
 
 
 func _init(k := "") -> void:
@@ -77,8 +80,9 @@ static func longueur(pts: PackedVector3Array) -> float:
 	return l
 
 
-func ajouter_source(bid: int, pos: Vector3, capacite: float) -> void:
-	sources[bid] = {"p": pos, "cap": capacite}
+## marge : demi-taille du bâtiment (m), ajoutée au rayon de raccordement.
+func ajouter_source(bid: int, pos: Vector3, capacite: float, marge := 0.0) -> void:
+	sources[bid] = {"p": pos, "cap": capacite, "x": marge}
 
 
 func retirer_source(bid: int) -> void:
@@ -90,8 +94,13 @@ func set_capacite(bid: int, cap: float) -> void:
 		sources[bid].cap = cap
 
 
-func ajouter_conso(bid: int, pos: Vector3, demande: float) -> void:
-	consos[bid] = {"p": pos, "d": demande}
+func ajouter_conso(bid: int, pos: Vector3, demande: float, marge := 0.0) -> void:
+	consos[bid] = {"p": pos, "d": demande, "x": marge}
+
+
+func set_demande(bid: int, demande: float) -> void:
+	if consos.has(bid):
+		consos[bid].d = demande
 
 
 func retirer_conso(bid: int) -> void:
@@ -101,6 +110,7 @@ func retirer_conso(bid: int) -> void:
 # --- Calcul ----------------------------------------------------------------
 
 ## routes : tracés (PackedVector3Array) qui portent la desserte locale.
+## Refait le raccordement (qui touche quoi), puis le partage (rebilan).
 func recalculer(routes: Array = []) -> void:
 	var lines: Array = []  # PackedVector3Array
 	for id in troncons:
@@ -130,18 +140,25 @@ func recalculer(routes: Array = []) -> void:
 		for p in [pts[0], pts[pts.size() - 1]]:
 			for hit in _near(grid, lines, p, SNAP):
 				_union(parent, li, hit)
+	lignes = lines
+	lignes_comp.resize(n)
+	for li in n:
+		lignes_comp[li] = _find(parent, li)
 	# Bâtiments -> tracé le plus proche
 	_comp_of_bid.clear()
 	composantes.clear()
-	var all := {}
-	for bid in sources:
-		all[bid] = sources[bid].p
-	for bid in consos:
-		all[bid] = consos[bid].p
-	for bid in all:
-		var li := _closest(grid, lines, all[bid], rayon_raccord)
-		if li >= 0:
-			_comp_of_bid[bid] = _find(parent, li)
+	for dict in [sources, consos]:
+		for bid in dict:
+			var e: Dictionary = dict[bid]
+			var li := _closest(grid, lines, e.p, rayon_raccord + float(e.get("x", 0.0)))
+			if li >= 0:
+				_comp_of_bid[bid] = _find(parent, li)
+	rebilan()
+
+
+## Refait seulement les sommes (capacités et demandes changées, mêmes raccordements).
+func rebilan() -> void:
+	composantes.clear()
 	for bid in sources:
 		var c: int = _comp_of_bid.get(bid, -1)
 		if c < 0:
@@ -173,14 +190,22 @@ func composante_de(bid: int) -> int:
 
 
 ## Part de la demande réellement fournie (0 = coupé, 1 = normal).
+## État d'une composante : 1 = tout servi, entre les deux = rationné, 0 = rien.
+func taux_composante(c: int) -> float:
+	var k: Dictionary = composantes.get(c, {})
+	if k.is_empty() or float(k.prod) <= 0.0:
+		return 0.0
+	return float(k.taux)
+
+
 func taux_servi(bid: int) -> float:
 	var c: int = _comp_of_bid.get(bid, -1)
 	if c < 0:
 		return 0.0
-	var k: Dictionary = composantes[c]
-	if k.prod <= 0.0:
+	var k: Dictionary = composantes.get(c, {})
+	if k.is_empty() or float(k.prod) <= 0.0:
 		return 0.0
-	return k.taux
+	return float(k.taux)
 
 
 func bilan() -> Dictionary:
@@ -282,7 +307,12 @@ func to_dict() -> Dictionary:
 		var flat := []
 		for p in (e.pts as PackedVector3Array):
 			flat.append_array([snappedf(p.x, 0.01), snappedf(p.y, 0.01), snappedf(p.z, 0.01)])
-		t[str(id)] = {"t": e.t, "ok": e.ok, "p": flat}
+		var x := {"t": e.t, "ok": e.ok, "p": flat}
+		# Champs ajoutés par les systèmes (prix payé, avancement du chantier…).
+		for k in e:
+			if not k in ["t", "ok", "pts"]:
+				x[k] = e[k]
+		t[str(id)] = x
 	return {"next": next_id, "troncons": t}
 
 
@@ -296,5 +326,9 @@ func from_dict(d: Dictionary) -> void:
 		var flat: Array = e.get("p", [])
 		for i in range(0, flat.size() - 2, 3):
 			pts.append(Vector3(flat[i], flat[i + 1], flat[i + 2]))
-		troncons[int(k)] = {"pts": pts, "t": String(e.get("t", "")), "ok": bool(e.get("ok", true))}
+		var tr := {"pts": pts, "t": String(e.get("t", "")), "ok": bool(e.get("ok", true))}
+		for f in e:
+			if not f in ["t", "ok", "p"]:
+				tr[f] = e[f]
+		troncons[int(k)] = tr
 		next_id = maxi(next_id, int(k) + 1)

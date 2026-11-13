@@ -39,6 +39,9 @@ var _telecom: CheckBox
 var _instant: CheckBox
 var _horaires: OptionButton
 var _freq: OptionButton
+var _reseaux: CheckBox
+var _prix_serv: HSlider
+var _prix_serv_l: Label
 var _faim: OptionButton
 var _usure: OptionButton
 var _dechets: CheckBox
@@ -243,6 +246,14 @@ func _ready() -> void:
 	_manifs = _check("Manifestations des habitants mécontents")
 	g.add_child(_manifs)
 
+	# Réseaux : électricité, eau, égouts.
+	g = _section(left, "Réseaux", "reseaux")
+	_reseaux = _check("Réseaux obligatoires (sinon courant, eau et égouts partout d'office)")
+	g.add_child(_reseaux)
+	var ps := _slider(ReglagesPartie.PRIX_SERVICES_MIN, ReglagesPartie.PRIX_SERVICES_MAX, 0.25)
+	_prix_serv = ps[0]
+	_prix_serv_l = ps[1]
+	_row(g, "Factures d'eau et d'électricité", ps[2])
 	# Réseaux.
 	g = _section(right, "Internet et téléphone", "services")
 	_telecom = _check("Nécessaires : sans internet ni réseau mobile, les habitants sont moins satisfaits et les entreprises produisent moins")
@@ -407,6 +418,8 @@ func _fill() -> void:
 		if absf(float(FREQS[i]) - reglages.frequence_catastrophes) < 0.01:
 			fi = i
 	_freq.select(fi)
+	_reseaux.button_pressed = reglages.reseaux_obligatoires
+	_prix_serv.value = reglages.prix_services
 	_elections.select(maxi(0, Elections.MODES.find(reglages.elections)))
 	_manifs.button_pressed = reglages.manifestations
 	_faim.select(maxi(ReglagesPartie.FAIMS.find(reglages.faim), 0))
@@ -449,6 +462,8 @@ func _changed() -> void:
 	reglages.horaires_chantiers = String(Chantiers.HORAIRES[maxi(0, _horaires.selected)])
 	_horaires.disabled = not editable or _instant.button_pressed
 	reglages.frequence_catastrophes = float(FREQS[maxi(0, _freq.selected)])
+	reglages.reseaux_obligatoires = _reseaux.button_pressed
+	reglages.prix_services = _prix_serv.value
 	reglages.elections = String(Elections.MODES[maxi(0, _elections.selected)])
 	reglages.manifestations = _manifs.button_pressed
 	reglages.faim = String(ReglagesPartie.FAIMS[clampi(_faim.selected, 0, 2)])
@@ -471,6 +486,7 @@ func _update_labels() -> void:
 	_cout_l.text = "×" + ReglagesPartie._fmt(_cout.value)
 	_impots_l.text = "×" + ReglagesPartie._fmt(_impots.value)
 	_salaires_l.text = "×" + ReglagesPartie._fmt(_salaires.value)
+	_prix_serv_l.text = "×" + ReglagesPartie._fmt(_prix_serv.value)
 	_dechets_q_l.text = "×" + ReglagesPartie._fmt(_dechets_q.value)
 	_preset_label.text = reglages.preset_name()
 	_argent.editable = editable and not _illimite.button_pressed

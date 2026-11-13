@@ -70,8 +70,8 @@ func _run() -> void:
 	_check(p.est_debloque("ecole"), "école toujours ouverte")
 	var big := ""
 	for id in BuildingCatalog.all_types():
-		# (les stades, immenses, toucheraient la route du test)
-		if BuildingCatalog.cost(id) > 40_000_000 and BuildingCatalog.get_type(id).get("cat", "") != "production" and not BuildingCatalog.get_type(id).has("stade"):
+		# (les stades et les centrales, immenses, toucheraient la route du test)
+		if BuildingCatalog.cost(id) > 40_000_000 and not BuildingCatalog.get_type(id).get("cat", "") in ["production", "reseaux"] and not BuildingCatalog.get_type(id).has("stade"):
 			big = id
 			break
 	_check(big != "" and not p.est_debloque(big), "grand bâtiment (%s) verrouillé au départ" % big)

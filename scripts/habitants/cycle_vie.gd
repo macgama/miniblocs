@@ -404,6 +404,11 @@ func pollution_at(bid: int) -> float:
 			var d := o.distance_to(info.pos)
 			if d < 800.0:
 				v += (1.0 - d / 800.0) * clampf(float(info.emp) / 60.0, 0.4, 2.0) * 0.5
+	# Autres risques (eau non potable, égouts…) : groupe "sante_sources".
+	if pop.is_inside_tree():
+		for n in pop.get_tree().get_nodes_in_group("sante_sources"):
+			if n.has_method("risque_sante"):
+				v += float(n.risque_sante(bid))
 	v = clampf(v, 0.0, 1.0)
 	_pollution[bid] = v
 	return v

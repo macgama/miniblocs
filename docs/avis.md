@@ -11,7 +11,7 @@ Test : `tests/avis_test.gd`. Captures : `tests/avis_vitrine.gd`.
 
 - **Touche Y** (ou clic sur le chiffre de satisfaction en haut, ou bouton « Avis » de la barre du bas) : panneau Avis.
   - **Avis** : satisfaction moyenne, sa courbe jour après jour, note de chaque thème (0 à 100, 50 = neutre) et les motifs qui pèsent le plus, effets en cours (promesses, manifestations).
-  - **Quartiers** : satisfaction par quartier (Centre-ville, Quartier Nord…), bouton « Aller voir », carte de couleur au-dessus des logements.
+  - **Quartiers** : satisfaction par quartier (Centre-ville, Quartier Nord…), bouton « Aller voir », carte de couleur au-dessus des logements (aussi dans le panneau Cartes, N).
   - **Paroles** : ce que disent quelques habitants, les plus mécontents d'abord (clic : leur fiche).
   - **Élections** : maire, date du vote, promesses et objectifs du mandat, campagne, sondage, résultats.
   - **Manifs** : manifestations en cours ou annoncées, réponses, historique.

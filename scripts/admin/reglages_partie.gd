@@ -84,6 +84,10 @@ var usure := 1.0
 var dechets := true
 ## Quantité de déchets produite par habitant (×0,5 à ×3).
 var dechets_quantite := 1.0
+## Pollution de l'air, de l'eau et bruit : 0 désactivée, 1 faible, 2 normale, 3 forte.
+var pollution: int = 2
+## La pollution rend malade et raccourcit la vie (sinon : seulement gêne et valeur des terrains).
+var pollution_sante := true
 ## Joueur qui a créé la partie (SaveGame.player_id()) : l'admin des cartes entre amis.
 var createur := ""
 ## Chantiers : les constructions apparaissent d'un coup (bac à sable) au lieu de
@@ -229,7 +233,7 @@ func to_dict() -> Dictionary:
 		"epuisement": epuisement, "deblocage": deblocage, "createur": createur,
 		"record_habitants": record_habitants, "evenements_auto": evenements_auto, "catastrophes": catastrophes,
 		"frequence_catastrophes": frequence_catastrophes, "construction_instantanee": construction_instantanee,
-		"horaires_chantiers": horaires_chantiers, "usure": usure, "dechets": dechets, "dechets_quantite": dechets_quantite,
+		"horaires_chantiers": horaires_chantiers, "usure": usure, "dechets": dechets, "dechets_quantite": dechets_quantite, "pollution": pollution, "pollution_sante": pollution_sante,
 		"elections": elections, "manifestations": manifestations}
 
 
@@ -261,6 +265,8 @@ func from_dict(d: Dictionary) -> void:
 		horaires_chantiers = "semaine"
 	dechets = bool(d.get("dechets", true))
 	dechets_quantite = clampf(float(d.get("dechets_quantite", 1.0)), 0.5, 3.0)
+	pollution = clampi(int(d.get("pollution", 2)), 0, 3)
+	pollution_sante = bool(d.get("pollution_sante", true))
 
 
 ## Réglages par défaut des nouvelles parties (fichier du joueur, sinon « Normal »).

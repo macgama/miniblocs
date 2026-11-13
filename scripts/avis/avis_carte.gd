@@ -2,8 +2,8 @@ class_name AvisCarte
 extends MultiMeshInstance3D
 ## Carte de satisfaction : un disque de couleur au-dessus de chaque logement
 ## (rouge mécontent, jaune moyen, vert content), d'après le dernier sondage.
-## Allumée depuis le panneau Avis (onglet Quartiers) ou le panneau de calques
-## commun s'il existe (res://scripts/interface/calques.gd).
+## Allumée depuis le panneau Avis (onglet Quartiers) ou le panneau Cartes
+## commun (touche N, Calques).
 
 const HAUTEUR := 14.0
 const RAYON := 5.0
@@ -36,15 +36,16 @@ func setup(a: Avis) -> void:
 	_brancher_calques()
 
 
-## Panneau de calques commun (fil pollution) : sans dépendance de compilation.
+## Panneau Cartes commun (touche N) : un seul calque à la fois.
 func _brancher_calques() -> void:
-	var path := "res://scripts/interface/calques.gd"
-	if not ResourceLoader.exists(path):
-		return
-	var c = load(path)
-	if c != null and c.has_method("ajouter"):
-		c.call("ajouter", "satisfaction", "Satisfaction", "Habitants", func(on: bool) -> void: set_on(on),
-			"rouge : mécontents, jaune : moyen, vert : contents")
+	Calques.ajouter("satisfaction", "Satisfaction", "Habitants", func(on: bool) -> void: set_on(on),
+		"rouge : mécontents, jaune : moyen, vert : contents")
+
+
+## Allumer depuis le panneau Avis passe par Calques (les autres cartes s'éteignent).
+func basculer(on: bool) -> void:
+	Calques.afficher("satisfaction", on)
+	set_on(on)
 
 
 func set_on(on: bool) -> void:

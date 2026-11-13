@@ -316,7 +316,7 @@ func _view_quartiers() -> void:
 		b.toggle_mode = true
 		b.focus_mode = Control.FOCUS_NONE
 		b.button_pressed = carte.visible
-		b.toggled.connect(func(on: bool) -> void: carte.set_on(on))
+		b.toggled.connect(func(on: bool) -> void: carte.basculer(on))
 		_body.add_child(b)
 		_text("Un disque de couleur au-dessus de chaque logement : rouge mécontent, jaune moyen, vert content.", true, 11)
 	for q in s.quartiers:

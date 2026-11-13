@@ -112,7 +112,7 @@ const SECTIONS := [
 	]],
 	["Avis et élections", [
 		["Y, ou clic sur la satisfaction", "panneau Avis : satisfaction moyenne et sa courbe, note de chaque thème (emploi, logement, écoles et santé, environnement, transports, impôts, réseaux…) et ce qui pèse le plus"],
-		["Quartiers", "satisfaction par quartier, carte de couleur au-dessus des logements (rouge mécontent, vert content)"],
+		["Quartiers", "satisfaction par quartier, carte de couleur au-dessus des logements (rouge mécontent, vert content), aussi dans le panneau Cartes (N)"],
 		["Paroles", "ce que disent quelques habitants, les plus mécontents d'abord (clic : leur fiche)"],
 		["Élections", "maire dès 30 habitants, municipales tous les 6 ans de vie des habitants (dimanche, résultats à 20 h, 2e tour si besoin) ; pendant la campagne, choisis jusqu'à 3 promesses ; « Élections anticipées » pour voter le dimanche suivant"],
 		["Manifs", "sous 35 / 100 sur un thème, un cortège marche jusqu'à la mairie : négocier (argent), ignorer (grève la 2e fois) ou police (s'il y a un commissariat)"],
@@ -126,6 +126,12 @@ const SECTIONS := [
 		["Tri", "sans centre de tri personne ne trie ; avec lui, recyclables et verre partent en balles et en calcin vers l'usine de recyclage et les usines (verrerie, brasserie…)"],
 		["Décharge pleine", "bouton « Recouvrir » du panneau : elle devient une colline verte et pollue beaucoup moins"],
 		["Admin (F10)", "déchets oui/non, quantité par habitant ×0,5 à ×3"],
+	]],
+	["Pollution, bruit et valeur", [
+		["N", "panneau Cartes : air, eau, bruit le jour et la nuit, valeur du terrain, loyers (une carte à la fois, et celles des autres systèmes)"],
+		["Survol d'une case", "air et eau pollués (%), bruit (dB, jour et nuit) et prix du terrain (€/m²) dans la fiche du terrain"],
+		["Effets", "la pollution rend malade, le bruit et les odeurs fâchent les habitants ; arbres et parcs protègent. Le terrain prend de la valeur près des parcs, de l'eau, des commerces et des transports, en perd près des usines et des grandes routes"],
+		["Loyers", "ils suivent la valeur du quartier peu à peu, comme la taxe foncière ; un foyer au loyer trop cher déménage, les quartiers chers font pousser les bâtiments chics (zonage)"],
 	]],
 	["Temps et vue", [
 		["T", "mettre le temps en pause / reprendre"],
@@ -144,7 +150,7 @@ const SECTIONS := [
 		["F9", "recharger la partie en cours"],
 		["Charger", "liste des parties : charger, supprimer, sauvegarder sous un autre nom"],
 		["Globe", "revenir au globe pour changer de lieu"],
-		["F10 ou icône réglages", "panneau Admin : argent de départ, caisse, argent illimité, coût des constructions, accès à une voie, impôts, salaires, vitesses, épuisement des ressources, déblocage des bâtiments (seulement pour l'admin de la partie)"],
+		["F10 ou icône réglages", "panneau Admin : argent de départ, caisse, argent illimité, coût des constructions, accès à une voie, impôts, salaires, vitesses, épuisement des ressources, déblocage des bâtiments, pollution (seulement pour l'admin de la partie)"],
 		["F1", "afficher ou masquer cette aide"],
 	]],
 ]

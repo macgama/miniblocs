@@ -32,6 +32,8 @@ var urgences_panel: UrgencesPanel
 ## Réseaux : électricité, eau potable, égouts (touche O).
 var reseaux: Reseaux
 var reseaux_panel: ReseauxPanel
+var services: ServicesPublics
+var services_panel: ServicesPanel
 ## Budget de la commune : impôts, emprunts, entretien et usure des voies (touche M).
 var budget: BudgetCommunal
 var budget_panel: BudgetPanel
@@ -105,6 +107,7 @@ func _ready() -> void:
 	_setup_budget()
 	_setup_urgences()
 	_setup_reseaux()
+	_setup_services()
 	_setup_telecom()
 	_setup_dechets()
 	_setup_vie()
@@ -252,7 +255,7 @@ func save_sections() -> Dictionary:
 		"creations": Creations.to_dict(Creations.used_by(buildings)),
 		"personnage": ($VueSol as VueSol).to_dict(), "habitants": population.to_dict(), "mobilier": mobilier.to_dict(),
 		"production": production.to_dict(), "urgences": urgences.to_dict(), "reseaux": reseaux.to_dict(), "dechets": dechets.to_dict(), "reglages": _settings_snapshot().to_dict(), "budget": budget.to_dict(), "evenements": evenements.to_dict(), "decors": decors.to_dict(),
-		"nuisances": nuisances.to_dict(), "telecom": telecom.to_dict()}
+		"nuisances": nuisances.to_dict(), "telecom": telecom.to_dict(), "services": services.to_dict()}
 
 
 ## Sauvegarde dans la partie en cours (ou une nouvelle). title : nom d'une nouvelle partie.
@@ -312,6 +315,7 @@ func load_game(slot := "") -> bool:
 	decors.from_dict(sec.get("decors", {}))
 	urgences.from_dict(sec.get("urgences", {}))
 	reseaux.from_dict(sec.get("reseaux", {}))
+	services.from_dict(sec.get("services", {}))
 	telecom.from_dict(sec.get("telecom", {}))
 	dechets.from_dict(sec.get("dechets", {}))
 	ambiance.from_dict(sec.get("ambiance", {}))
@@ -690,6 +694,19 @@ func _setup_urgences() -> void:
 	hud.urgences_requested.connect(func() -> void: urgences_panel.toggle())
 
 
+## Services publics : couverture des écoles, hôpitaux et police (Maj+U, calques).
+func _setup_services() -> void:
+	services = ServicesPublics.new()
+	services.name = "ServicesPublics"
+	add_child(services)
+	services.setup(population, buildings, transport, urgences)
+	services_panel = ServicesPanel.new()
+	services_panel.name = "PanneauServices"
+	add_child(services_panel)
+	services_panel.setup(services)
+	services_panel.focus_requested.connect(func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
 ## Déchets : bacs, bennes sur les routes, décharges, tri et panneau (X).
 func _setup_dechets() -> void:
 	dechets = Dechets.new()
@@ -1173,6 +1190,7 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 	budget.clear()
 	urgences.clear()
 	reseaux.clear()
+	services.clear()
 	telecom.clear()
 	dechets.clear()
 	resource_overlay.show_resource(resource_overlay.res)

@@ -22,6 +22,8 @@ signal building_selected(bid: int)
 signal follow_changed
 ## Clic sur un habitant visible dans la rue.
 signal person_clicked(pid: int)
+## Un habitant meurt (il est encore dans persons, son foyer aussi) : obsèques (Funeraire).
+signal person_died(pid: int, home: int)
 ## Questions du personnage principal (PersonnagePrincipal.questions).
 signal questions_changed
 
@@ -137,6 +139,8 @@ var _follow_target := Vector3.ZERO
 var _follow_set := Vector3.INF
 ## Habitants visibles près de la caméra.
 var passants: Passants
+## Modèle de trafic (bouchons, stationnement, affluence des lignes), ou null.
+var trafic: Trafic
 ## Ordre « Aller à… » en attente d'un clic sur un bâtiment (habitant, ou -1).
 var order_pick := -1
 ## Habitant incarné en vue au sol (-1 : aucun).
@@ -935,6 +939,10 @@ func commute(p: Dictionary, from_bid: int, to_bid: int) -> Dictionary:
 	var bike := d <= BIKE_MAX and age < 75.0 and (int(p.id) % 3 == 0 or not cars)
 	var bike_min := maxi(3, roundi(d / 250.0))
 	var car_min := maxi(3, roundi(d / 500.0) + 3)
+	if trafic != null:
+		var ct := trafic.car_trip(from_bid, to_bid, d)
+		if not ct.is_empty():
+			return _choose_mode(p, d, age, cars and bool(ct.ok), ct, tc, bike, bike_min)
 	# Les amoureux de la voiture la prennent ; les autres choisissent le plus rapide.
 	if cars and int(p.id) % 2 == 1:
 		return {"mode": "en voiture", "min": car_min, "m": d}
@@ -945,6 +953,38 @@ func commute(p: Dictionary, from_bid: int, to_bid: int) -> Dictionary:
 	if cars:
 		return {"mode": "en voiture", "min": car_min, "m": d}
 	return {"mode": "à pied (long trajet)", "min": roundi(d / 80.0), "m": d}
+
+
+## Choix du mode avec le modèle de trafic : chacun prend le trajet le moins
+## pénible (temps + coût converti en minutes), avec ses habitudes : les
+## amoureux de la voiture la gardent tant qu'elle n'est pas beaucoup plus lente.
+func _choose_mode(p: Dictionary, d: float, age: float, cars: bool, ct: Dictionary, tc: Dictionary, bike: bool, bike_min: int) -> Dictionary:
+	var best := {}
+	var best_g := INF
+	if cars:
+		var g := float(ct.min) + float(ct.cost) * Trafic.MIN_PER_EURO
+		if int(p.id) % 2 == 1:
+			g *= 0.6
+		best = {"mode": "en voiture", "min": int(ct.min), "m": d, "delay": float(ct.delay), "park": float(ct.park)}
+		best_g = g
+	if not tc.is_empty():
+		var fare := 0.0
+		if age >= ADULT_AGE:
+			for leg in (tc.trip as Dictionary).get("legs", []):
+				if String(leg.type) == "ligne":
+					fare = maxf(fare, trafic.fare_of(int(leg.line)))
+		var g2 := float(tc.min) + fare * Trafic.MIN_PER_EURO
+		if g2 < best_g:
+			best = {"mode": tc.mode, "min": tc.min, "m": d, "detail": tc.detail, "trip": tc.trip}
+			best_g = g2
+	if bike:
+		var g3 := float(bike_min) * (1.0 if int(p.id) % 3 == 0 else 1.4)
+		if g3 < best_g:
+			best = {"mode": "à vélo", "min": bike_min, "m": d}
+			best_g = g3
+	if best.is_empty():
+		return {"mode": "à pied (long trajet)", "min": roundi(d / 80.0), "m": d}
+	return best
 
 
 ## Trajet en transports publics plus rapide que la marche (planificateur des
@@ -1295,27 +1335,31 @@ func present_in(bid: int) -> Array:
 
 
 ## Satisfaction (0-100) et ce qui la fait varier.
+## « themes » : part de chaque thème de l'avis des habitants ({thème: delta},
+## voir Avis.THEMES). Les autres systèmes ajoutent leurs motifs par Avis
+## (groupe « avis_sources »), en plus de ceux-ci.
 func satisfaction(p: Dictionary) -> Dictionary:
 	var s := 60.0
 	var why := []
+	var th := {}
 	match stage(p):
 		"actif":
-			s += 15.0
+			s += _sat(th, "emploi", 15.0)
 			why.append("+ a un emploi")
 		"chomeur":
-			s -= 20.0
+			s += _sat(th, "emploi", -20.0)
 			why.append("− cherche un emploi")
 		"eleve":
 			if int(p.sch) >= 0:
-				s += 15.0
+				s += _sat(th, "services", 15.0)
 				why.append("+ va à l'école")
 			else:
-				s -= 20.0
+				s += _sat(th, "services", -20.0)
 				why.append("− pas de place dans une école proche")
 		"retraite":
-			s += 10.0
+			s += _sat(th, "emploi", 10.0)
 		"etudiant":
-			s += 10.0
+			s += _sat(th, "services", 10.0)
 			why.append("+ fait des études")
 	var found := 0
 	for hb in p.hob:
@@ -1323,44 +1367,55 @@ func satisfaction(p: Dictionary) -> Dictionary:
 			found += 1
 	if not (p.hob as Array).is_empty():
 		var part := float(found) / (p.hob as Array).size()
-		s += 15.0 * part - 5.0
+		s += _sat(th, "loisirs", 15.0 * part - 5.0)
 		why.append("%s loisirs : %d sur %d possibles en ville" % ["+" if part >= 0.5 else "−", found, (p.hob as Array).size()])
 	# Personnel des bâtiments du quotidien (école, commerce, hôpital).
 	if int(p.sch) >= 0 and _ferme(int(p.sch)):
-		s -= 15.0
+		s += _sat(th, "services", -15.0)
 		why.append("− école fermée faute d'enseignant")
 	var shop := _nearest_cat(p, "commerce")
 	if shop >= 0 and effectif != null and effectif.manque(shop):
-		s -= 5.0
+		s += _sat(th, "commerces", -5.0)
 		why.append("− longues files au commerce (manque de personnel)")
 	elif shop < 0 and not known.is_empty():
 		for bid in known:
 			if (known[bid].serves as Array).has("shopping"):
-				s -= 8.0
+				s += _sat(th, "commerces", -8.0)
 				why.append("− les commerces sont fermés faute de personnel")
 				break
 	var dest := int(p.job) if int(p.job) >= 0 else int(p.sch)
 	if dest >= 0:
 		var c := commute(p, home_of(p), dest)
 		if int(c.min) > 40:
-			s -= 10.0
+			s += _sat(th, "transports", -10.0)
 			why.append("− long trajet (%d min)" % int(c.min))
 	if households.has(int(p.f)) and float(households[int(p.f)].ep) < 0.0:
-		s -= 15.0
+		s += _sat(th, "emploi", -15.0)
 		why.append("− foyer endetté")
 	# Confort du logement aménagé (meubles, cuisine, salle de bains…).
 	var home := home_of(p)
 	if known.has(home) and known[home].has("conf"):
 		var c := int(known[home].conf)
 		var bonus := clampf((c - 50.0) / 4.0, -12.0, 12.0)
-		s += bonus
+		s += _sat(th, "logement", bonus)
 		why.append("%s logement %s (confort %d)" % ["+" if bonus >= 0.0 else "−", "confortable" if c >= 50 else "peu confortable", c])
 	if extra_satisfaction.is_valid():
 		var ex: Array = extra_satisfaction.call(p)
 		if ex.size() >= 2:
-			s += float(ex[0])
+			s += _sat(th, "commerces", float(ex[0]))
 			why.append_array(ex[1])
-	return {"value": clampi(roundi(s), 0, 100), "why": why}
+			if Avis.instance != null:
+				Avis.instance._apprendre(ex[1], "commerces")
+	# Motifs des autres systèmes (pollution, déchets, réseaux, budget…) et
+	# effets de la vie politique (promesses, manifestations).
+	if Avis.instance != null and Avis.instance.population == self:
+		s += Avis.instance.appliquer(p, th, why)
+	return {"value": clampi(roundi(s), 0, 100), "why": why, "themes": th}
+
+
+func _sat(th: Dictionary, theme: String, d: float) -> float:
+	th[theme] = float(th.get(theme, 0.0)) + d
+	return d
 
 
 # --- Circulation -------------------------------------------------------------------

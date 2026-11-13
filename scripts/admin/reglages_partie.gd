@@ -82,6 +82,9 @@ var frequence_catastrophes := 1.0
 var reseaux_obligatoires := true
 ## Multiplicateur des factures d'eau et d'électricité payées par les habitants.
 var prix_services := 1.0
+## Élections municipales (Elections.MODES) et manifestations (scripts/avis).
+var elections := "objectifs"
+var manifestations := true
 ## Faim des habitants quand les commerces d'alimentation sont vides :
 ## "aucune" (pas d'effet), "normale" (moins satisfaits, santé, départs),
 ## "mortelle" (en plus, on peut mourir de faim). Voir Repas.
@@ -96,6 +99,10 @@ var usure := 1.0
 var dechets := true
 ## Quantité de déchets produite par habitant (×0,5 à ×3).
 var dechets_quantite := 1.0
+## Obsèques, cimetières et crématorium (non : les défunts quittent la ville sans obsèques).
+var funeraire := true
+## Part des crémations (−1 : selon la région d'origine de chaque défunt).
+var cremation := -1.0
 ## Pollution de l'air, de l'eau et bruit : 0 désactivée, 1 faible, 2 normale, 3 forte.
 var pollution: int = 2
 ## La pollution rend malade et raccourcit la vie (sinon : seulement gêne et valeur des terrains).
@@ -249,7 +256,7 @@ func to_dict() -> Dictionary:
 		"record_habitants": record_habitants, "evenements_auto": evenements_auto, "catastrophes": catastrophes,
 		"frequence_catastrophes": frequence_catastrophes, "faim": faim, "telecom_necessaire": telecom_necessaire, "construction_instantanee": construction_instantanee,
 		"horaires_chantiers": horaires_chantiers, "usure": usure, "dechets": dechets, "dechets_quantite": dechets_quantite, "pollution": pollution, "pollution_sante": pollution_sante,
-		"reseaux_obligatoires": reseaux_obligatoires, "prix_services": prix_services}
+		"elections": elections, "manifestations": manifestations, "funeraire": funeraire, "cremation": cremation, "reseaux_obligatoires": reseaux_obligatoires, "prix_services": prix_services}
 
 
 func from_dict(d: Dictionary) -> void:
@@ -271,6 +278,10 @@ func from_dict(d: Dictionary) -> void:
 	frequence_catastrophes = clampf(float(d.get("frequence_catastrophes", 1.0)), 0.25, 3.0)
 	reseaux_obligatoires = bool(d.get("reseaux_obligatoires", true))
 	prix_services = clampf(float(d.get("prix_services", 1.0)), PRIX_SERVICES_MIN, PRIX_SERVICES_MAX)
+	elections = String(d.get("elections", "objectifs"))
+	if not Elections.MODES.has(elections):
+		elections = "objectifs"
+	manifestations = bool(d.get("manifestations", true))
 	faim = String(d.get("faim", "normale"))
 	if not FAIMS.has(faim):
 		faim = "normale"
@@ -284,6 +295,8 @@ func from_dict(d: Dictionary) -> void:
 	dechets_quantite = clampf(float(d.get("dechets_quantite", 1.0)), 0.5, 3.0)
 	pollution = clampi(int(d.get("pollution", 2)), 0, 3)
 	pollution_sante = bool(d.get("pollution_sante", true))
+	funeraire = bool(d.get("funeraire", true))
+	cremation = clampf(float(d.get("cremation", -1.0)), -1.0, 1.0)
 
 
 ## Réglages par défaut des nouvelles parties (fichier du joueur, sinon « Normal »).

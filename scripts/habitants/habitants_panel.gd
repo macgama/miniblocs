@@ -79,7 +79,7 @@ func _build() -> void:
 	head.add_child(x)
 	var tabs := HBoxContainer.new()
 	outer.add_child(tabs)
-	for spec in [["Ville", "ville", "budget"], ["Habitants", "liste", "habitants"]]:
+	for spec in [["Ville", "ville", "budget"], ["Habitants", "liste", "habitants"], ["Funéraire", "funeraire", "funeraire"]]:
 		var b := Button.new()
 		b.text = spec[0]
 		b.icon = Icones.get_icon(spec[2], 18)
@@ -185,6 +185,8 @@ func refresh() -> void:
 			_view_city()
 		"liste":
 			_view_list()
+		"funeraire":
+			FuneraireVue.remplir(self)
 		"batiment":
 			if pop.known.has(view_arg):
 				_view_building(view_arg)
@@ -451,6 +453,14 @@ func _view_building(bid: int) -> void:
 	_text("%s · %s" % [String(cat.get("name", info.cat)), String(t.get("desc", ""))], true, 12)
 	if info.has("conf"):
 		_text("Intérieur aménagé · confort %d · attractivité %d · valeur %s" % [int(info.conf), int(info.attr), BuildingSystem.format_money(int(info.valeur))], true, 12)
+	# Lignes ajoutées par d'autres systèmes (cimetière : tombes et défunts…).
+	for n in get_tree().get_nodes_in_group("fiche_batiment"):
+		for l in n.fiche_lignes(bid):
+			if int(l[1]) >= 0:
+				var who := int(l[1])
+				_link(String(l[0]), func() -> void: show_view("profil", who))
+			else:
+				_text(String(l[0]), false, 13)
 	var here := pop.present_in(bid)
 	# Fiche : icône de la catégorie, jauges d'occupation, bouton « Aller voir ».
 	var card := HBoxContainer.new()
@@ -993,7 +1003,13 @@ func _view_archive(pid: int) -> void:
 	if dead:
 		_text("%s · mort%s %s à %d ans" % ["Femme" if String(f.s) == "F" else "Homme", CycleVie.g(f, "", "e"), f.cause, age], false, 14)
 		_text("Dernier logement : %s%s" % [f.lieu, (" · dernier métier : %s" % f.met) if String(f.met) != "" else ""], true)
-		_text("Sa fiche reste consultable (un cimetière viendra plus tard dans le catalogue).", true, 12)
+		var sep := Funeraire.instance.sepulture_text(pid) if Funeraire.instance != null else ""
+		if sep != "":
+			_text("Repose : " + sep, false, 13)
+			var sp: Dictionary = Funeraire.instance.sepultures.get(pid, {})
+			if int(sp.get("bid", -1)) >= 0 and int(sp.get("slot", -1)) >= 0:
+				var where: Vector3 = Funeraire.instance.slot_world(int(sp.bid), int(sp.slot)).origin
+				_link("Aller sur sa tombe  ↗", func() -> void: focus_requested.emit(where), "Centrer la caméra sur la tombe")
 	else:
 		_text("%s · %s à %d ans" % [f.p, String(f.cause).to_lower(), age], false, 14)
 		_text("Dernier logement : %s" % f.lieu, true)

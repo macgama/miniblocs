@@ -51,7 +51,7 @@ var evenements_panel: EvenementsPanel
 var actualites: Actualites
 ## Pollution de l'air et de l'eau, bruit, valeur des terrains et loyers.
 var nuisances: Nuisances
-## Panneau « Cartes » (touche M) : cartes de couleur de tous les systèmes.
+## Panneau « Cartes » (touche N) : cartes de couleur de tous les systèmes.
 var cartes_panel: CartesPanel
 
 
@@ -474,7 +474,7 @@ func _setup_evenements() -> void:
 
 
 ## Nuisances (pollution de l'air, de l'eau, bruit) et valeur des terrains, avec
-## leurs cartes de couleur dans le panneau Cartes (touche M).
+## leurs cartes de couleur dans le panneau Cartes (touche N).
 func _setup_nuisances() -> void:
 	nuisances = Nuisances.new()
 	nuisances.name = "Nuisances"
@@ -494,26 +494,26 @@ func _setup_nuisances() -> void:
 		return c
 	var nz := nuisances
 	var specs := [
-		["air", "Air", "Nuisances", "pollution de l'air, de vert (propre) à rouge (très pollué) : usines, centrales, grandes routes."],
+		["air", "Air", "Nuisances", "pollution de l'air, du jaune (un peu) au violet (très pollué), rien là où l'air est propre : usines, centrales, grandes routes."],
 		["eau", "Eau", "Nuisances", "pollution de l'eau et des nappes : usines, fermes, mines, eaux usées."],
-		["bruit", "Bruit le jour", "Nuisances", "de 35 dB (vert, calme) à 80 dB (rouge) : routes, rail, aéroports, usines, stades."],
+		["bruit", "Bruit le jour", "Nuisances", "du jaune (gênant, 40 dB) au violet (80 dB), rien là où c'est calme : routes, rail, aéroports, usines, stades."],
 		["nuit", "Bruit la nuit", "Nuisances", "ce qui empêche de dormir : grandes routes, rail, aéroports, bars et discothèques."],
 	]
 	for sp in specs:
 		var c: CalqueCouleur = make.call(String(sp[0]), CalqueCouleur.degrade_nuisance())
 		var key := String(sp[0])
-		c.seuil = 0.03
+		c.seuil = 0.06
 		c.valeur = func(x: float, z: float) -> float: return nz.couche(key, x, z)
 		Calques.ajouter("nuisances_" + key, String(sp[1]), String(sp[2]), c.montrer, String(sp[3]))
 	var cv: CalqueCouleur = make.call("valeur", CalqueCouleur.degrade_valeur())
-	cv.alpha = Vector2(0.45, 0.6)
+	cv.alpha = Vector2(0.6, 0.75)
 	cv.valeur = func(x: float, z: float) -> float:
 		# Seulement là où la ville existe (le reste vaut le prix moyen).
 		return nz.couche("valeur", x, z) if nz._tiles.has(Vector2i(floori(x / Nuisances.CELL / Nuisances.TILE), floori(z / Nuisances.CELL / Nuisances.TILE))) else -1.0
 	Calques.ajouter("immobilier_valeur", "Valeur du terrain", "Immobilier", cv.montrer,
 		"prix du m², du rouge (bon marché) au bleu (très cher). Moyenne : %s €/m²." % BuildingSystem.format_money(roundi(Nuisances.PRIX_M2)).replace(" €", ""))
 	var cl: CalqueCouleur = make.call("loyers", CalqueCouleur.degrade_valeur())
-	cl.alpha = Vector2(0.6, 0.8)
+	cl.alpha = Vector2(0.75, 0.9)
 	cl.rects = func() -> Array:
 		var out := []
 		for bid in population.known:
@@ -530,6 +530,7 @@ func _setup_nuisances() -> void:
 	cartes_panel = CartesPanel.new()
 	cartes_panel.name = "PanneauCartes"
 	cartes_panel.resume = _resume_nuisances
+	cartes_panel.touche_bloquee = func() -> bool: return transport.tool == TransportSystem.Tool.BUILD
 	add_child(cartes_panel)
 	hud.cartes_requested.connect(func() -> void: cartes_panel.toggle())
 

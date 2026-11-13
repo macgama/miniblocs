@@ -1,13 +1,13 @@
 # Pollution, bruit et valeur des terrains
 
 Code : `scripts/environnement/nuisances.gd` (nœud « Nuisances », `Nuisances.instance`),
-cartes de couleur : `scripts/interface/calques.gd`, `calque_couleur.gd`, `cartes_panel.gd` (touche **M**).
+cartes de couleur : `scripts/interface/calques.gd`, `calque_couleur.gd`, `cartes_panel.gd` (touche **N**).
 Test : `tests/nuisances_test.gd`. Section de sauvegarde : `nuisances`.
 
 ## Ce que le joueur voit
 
 - **Touche M (panneau Cartes)** : une carte de couleur à la fois, posée sur le terrain autour de la caméra.
-  - Groupe *Nuisances* : **Air**, **Eau**, **Bruit le jour**, **Bruit la nuit** (vert : propre ou calme, rouge : très pollué ou bruyant).
+  - Groupe *Nuisances* : **Air**, **Eau**, **Bruit le jour**, **Bruit la nuit** (rien là où c’est propre ou calme, du jaune pâle au violet quand ça empire).
   - Groupe *Immobilier* : **Valeur du terrain** (prix du m², du rouge bon marché au bleu très cher) et **Loyers** (un aplat par logement).
   - Les autres systèmes (trafic, services publics, réseaux, avis des habitants…) ajoutent leurs propres cartes dans le même panneau.
   - En bas : air moyen aux logements, foyers au bruit la nuit, prix moyen du terrain, loyer moyen, foyers au loyer trop cher.
@@ -90,7 +90,7 @@ son quartier de 8 % par jour de jeu : un quartier « prend » ou « perd » de l
 | `coef_foncier(bid)`, `tendance(bid)` | valeur du bâtiment, > 0 si le quartier monte |
 | `loyer(bid)`, `taux_effort(hid)` | € par mois, part des revenus |
 | `gene(bid)`, `sante(bid)` | 0..1 |
-| `Calques.ajouter(id, nom, groupe, afficher, legende)` | une carte de plus dans le panneau M |
+| `Calques.ajouter(id, nom, groupe, afficher, legende)` | une carte de plus dans le panneau N |
 | `CalqueCouleur` | carte de couleur prête à l'emploi (`valeur(x, z)` ou `rects()`) |
 
 Le registre `Calques` est une classe statique : depuis un script qui ne doit pas dépendre de ce fichier,

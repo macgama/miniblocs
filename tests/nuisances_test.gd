@@ -1,7 +1,7 @@
 extends SceneTree
 ## Test de la pollution (air, eau), du bruit et de la valeur des terrains :
 ## sources (usine, routes, autoroute, autres systèmes), arbres et parcs, santé,
-## satisfaction, loyers, déménagements, zonage, réglage Admin, cartes (touche M),
+## satisfaction, loyers, déménagements, zonage, réglage Admin, cartes (touche N),
 ## sauvegarde.
 ## Usage : godot --headless --path . --script res://tests/nuisances_test.gd
 
@@ -44,6 +44,7 @@ func _run() -> void:
 	Creations.persist = false
 	BatimentsVie.chantiers = false
 	ReglagesPartie.actuel = ReglagesPartie.preset("normal")
+	ReglagesPartie.actuel.construction_instantanee = true
 	var scene: Node = load("res://scenes/terre.tscn").instantiate()
 	var world: TerrainWorld = scene.get_node("Terrain")
 	var transport: TransportSystem = scene.get_node("Transport")
@@ -183,7 +184,7 @@ func _run() -> void:
 	_check(nz.chance_pousse("villa", chic, types) > nz.chance_pousse("villa", cheap, types),
 		"les villas poussent plutôt dans le quartier cher (%.2f contre %.2f)" % [nz.chance_pousse("villa", chic, types), nz.chance_pousse("villa", cheap, types)])
 
-	print("Cartes (touche M) :")
+	print("Cartes (touche N) :")
 	var ids := []
 	for c in Calques.liste():
 		ids.append(c.id)

@@ -687,6 +687,9 @@ func loyer(bid: int) -> float:
 func sante(bid: int) -> float:
 	if not ReglagesPartie.actuel.pollution_sante:
 		return 0.0
+	# Une usine vient d'ouvrir : la santé se lit sur des valeurs à jour.
+	if _dirty and Time.get_ticks_msec() - _last_ms > 250:
+		recalculer()
 	var f := au_point(_centre(bid))
 	return clampf(float(f.air) + 0.5 * float(f.eau), 0.0, 1.0)
 

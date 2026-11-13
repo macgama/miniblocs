@@ -22,7 +22,7 @@ var valeur: Callable
 var rects: Callable
 var degrade: Gradient
 ## Opacité (min, max) selon la valeur.
-var alpha := Vector2(0.35, 0.7)
+var alpha := Vector2(0.5, 0.85)
 ## Ne rien dessiner sous ce seuil (0 : tout dessiner).
 var seuil := 0.0
 var _center := Vector2(INF, INF)
@@ -30,11 +30,11 @@ var _retry := 0.0
 var _unknown := false
 
 
-## Dégradé vert → jaune → rouge (nuisances).
+## Dégradé jaune pâle → orange → rouge → violet (nuisances : rien de dessiné là où c'est propre).
 static func degrade_nuisance() -> Gradient:
 	var g := Gradient.new()
-	g.offsets = PackedFloat32Array([0.0, 0.45, 1.0])
-	g.colors = PackedColorArray([Color("4caf50"), Color("ffd54f"), Color("e53935")])
+	g.offsets = PackedFloat32Array([0.0, 0.35, 0.7, 1.0])
+	g.colors = PackedColorArray([Color("fff59d"), Color("ff9800"), Color("e53935"), Color("6a1b9a")])
 	return g
 
 

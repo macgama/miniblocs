@@ -1,7 +1,7 @@
 class_name Calques
 extends RefCounted
 ## Registre commun des calques de carte (pollution, bruit, valeur, services…).
-## Chaque système ajoute ses calques ; le panneau Cartes (touche M) les liste par
+## Chaque système ajoute ses calques ; le panneau Cartes (touche N) les liste par
 ## groupe et n'en montre qu'un à la fois.
 ##
 ## Contrat partagé entre les systèmes :

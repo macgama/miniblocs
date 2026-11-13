@@ -1,6 +1,6 @@
 class_name CartesPanel
 extends CanvasLayer
-## Panneau « Cartes » (touche M) : les cartes de couleur de tous les systèmes
+## Panneau « Cartes » (touche N, comme « nuisances ») : les cartes de couleur de tous les systèmes
 ## (registre Calques), rangées par groupe. Une seule carte à la fois ; fermer le
 ## panneau éteint la carte. En bas, un résumé fourni par le jeu (resume).
 
@@ -8,6 +8,8 @@ const W := 330.0
 
 ## Lignes de résumé sous les cartes : Callable() -> Array de String.
 var resume: Callable
+## Touche N ignorée quand ce Callable renvoie true (outil route : N change de niveau).
+var touche_bloquee: Callable
 var _panel: PanelContainer
 var _list: VBoxContainer
 var _legend: Label
@@ -39,7 +41,7 @@ func _ready() -> void:
 	title.add_theme_font_size_override("font_size", 16)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	head.add_child(title)
-	var x := UiStyle.icon_button("fermer", "Fermer", "M", 18, 32)
+	var x := UiStyle.icon_button("fermer", "Fermer", "N", 18, 32)
 	x.pressed.connect(func() -> void: set_open(false))
 	head.add_child(x)
 	var hint := Label.new()
@@ -83,7 +85,9 @@ func toggle() -> void:
 
 func _unhandled_key_input(event: InputEvent) -> void:
 	var k := event as InputEventKey
-	if k and k.pressed and not k.echo and k.physical_keycode == KEY_M and not k.shift_pressed and not k.ctrl_pressed:
+	if k and k.pressed and not k.echo and k.physical_keycode == KEY_N and not k.shift_pressed and not k.ctrl_pressed:
+		if touche_bloquee.is_valid() and bool(touche_bloquee.call()):
+			return
 		toggle()
 		get_viewport().set_input_as_handled()
 

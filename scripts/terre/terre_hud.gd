@@ -24,7 +24,7 @@ signal decors_requested
 signal infos_requested
 ## Panneau « Urgences » (touche U) : appels, casernes, couverture.
 signal urgences_requested
-## Panneau « Cartes » (touche M) : pollution, bruit, valeur des terrains, autres calques.
+## Panneau « Cartes » (touche N) : pollution, bruit, valeur des terrains, autres calques.
 signal cartes_requested
 ## Bouton Admin de la barre du haut, ou F10 : réglages de la partie.
 signal admin_requested
@@ -77,7 +77,7 @@ const CATEGORIES := [
 	{"id": "decors", "name": "Décors", "icon": "decors", "key": "G", "panel": true},
 	{"id": "infos", "name": "Infos", "icon": "infos", "key": "I", "panel": true},
 	{"id": "urgences", "name": "Urgences", "icon": "services", "key": "U", "panel": true},
-	{"id": "cartes", "name": "Cartes", "icon": "cartes", "key": "M", "panel": true},
+	{"id": "cartes", "name": "Cartes", "icon": "cartes", "key": "N", "panel": true},
 	{"id": "murs", "name": "Murs et étages", "icon": "mur", "key": "2", "panel": true, "mode": "creer"},
 	{"id": "blocs", "name": "Blocs", "icon": "editeur", "key": "3", "panel": true, "mode": "creer"},
 	{"id": "interieur", "name": "Intérieur", "icon": "interieur", "key": "4", "panel": true, "mode": "creer"},

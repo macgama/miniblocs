@@ -47,6 +47,8 @@ var _mode: OptionButton
 var _settings_label: Label
 var _settings_panel: AdminPanel
 var _start_btn: Button
+## Case « Tutoriel guidé » (suit aussi le réglage du panneau Réglages…).
+var _tuto_check: CheckBox
 ## Résultats affichés dans la liste ({nom, pays, pays_nom, pop, lat, lon}).
 var _filtered: Array = []
 var _search_timer: Timer
@@ -393,6 +395,8 @@ func open_settings(ui: CanvasLayer) -> void:
 func _update_settings_label() -> void:
 	if _settings_label and ReglagesPartie.prochaine != null:
 		_settings_label.text = "Réglages : " + ReglagesPartie.prochaine.summary()
+	if _tuto_check and ReglagesPartie.prochaine != null:
+		_tuto_check.set_pressed_no_signal(ReglagesPartie.prochaine.tutoriel)
 
 
 ## Ouvre l'atelier (retour au globe en le quittant).
@@ -549,6 +553,16 @@ func _build_ui() -> void:
 	set_btn.pressed.connect(func() -> void: open_settings(ui))
 	set_row.add_child(set_btn)
 	_update_settings_label()
+	var tuto := CheckBox.new()
+	tuto.text = "Tutoriel guidé (conseillé pour une première partie)"
+	tuto.tooltip_text = "Une étape à la fois en haut à gauche : fonder le village, tracer une route, zoner, courant et eau… Se coupe à tout moment (F10 → Aide)."
+	tuto.focus_mode = Control.FOCUS_NONE
+	tuto.button_pressed = ReglagesPartie.prochaine.tutoriel
+	tuto.toggled.connect(func(on: bool) -> void:
+		if ReglagesPartie.prochaine != null:
+			ReglagesPartie.prochaine.tutoriel = on)
+	rv.add_child(tuto)
+	_tuto_check = tuto
 	_start_btn = Button.new()
 	_start_btn.text = "Commencer la partie"
 	_start_btn.custom_minimum_size = Vector2(0, 44)

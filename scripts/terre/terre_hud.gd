@@ -1148,6 +1148,18 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		admin_requested.emit()
 
 
+## Choisit un outil comme si le joueur avait appuyé sur sa touche (tutoriel).
+func choose_tool(i: int) -> void:
+	_buttons[i].button_pressed = true
+	_set_current_tool(i)
+	tool_selected.emit(i)
+
+
+## Panneau des coordonnées ouvert (en haut à gauche).
+func coords_open() -> bool:
+	return _coords_panel != null and _coords_panel.visible
+
+
 ## Enfonce le bouton d'un outil sans prévenir (un autre système a pris la main).
 func select_tool_silently(i: int) -> void:
 	_buttons[i].set_pressed_no_signal(true)

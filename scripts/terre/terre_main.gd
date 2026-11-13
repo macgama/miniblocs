@@ -104,6 +104,8 @@ var tutoriel: Tutoriel
 var tuto_carte: TutorielCarte
 ## Ambiances sonores selon la caméra (scripts/son) ; musique et volumes : /root/Son (F2).
 var sons: AmbiancesSonores
+var quartiers: Quartiers
+var quartiers_panel: QuartiersPanel
 
 
 func _ready() -> void:
@@ -162,6 +164,7 @@ func _ready() -> void:
 	_setup_niveaux_vie()
 	_setup_statistiques()
 	_setup_tutoriel()
+	_setup_quartiers()
 	_setup_create_mode()
 	_setup_son()
 	hud.traffic_toggled.connect(func(on: bool) -> void: transport.traffic.set_enabled(on))
@@ -321,6 +324,7 @@ func save_sections() -> Dictionary:
 	sec["niveaux_vie"] = niveaux_vie.to_dict()
 	sec["statistiques"] = statistiques.to_dict()
 	sec["tutoriel"] = tutoriel.to_dict()
+	sec["quartiers"] = quartiers.to_dict()
 	return sec
 
 
@@ -444,6 +448,8 @@ func load_game(slot := "") -> bool:
 	# Après les villages, le pays et les élections (mairies perdues).
 	objectifs.from_dict(sec.get("objectifs", {}))
 	kit.from_dict(sec.get("kit", {}))
+	# Après les villages, le pays et les élections (quartiers d'une mairie perdue).
+	quartiers.from_dict(sec.get("quartiers", {}))
 	nuisances.from_dict(sec.get("nuisances", {}))
 	# Après les habitants : niveau de chaque foyer (ancienne partie : évalués au premier jour).
 	niveaux_vie.from_dict(sec.get("niveaux_vie", {}))
@@ -942,6 +948,28 @@ var _chargement := false
 var _derniere_nouvelle := -100000
 
 
+## Quartiers et arrêtés municipaux (Maj+Y) : quartiers nommés peints sur la
+## carte, zone 30, rues piétonnes, calme la nuit, tri obligatoire…
+func _setup_quartiers() -> void:
+	quartiers = Quartiers.new()
+	quartiers.name = "Quartiers"
+	add_child(quartiers)
+	quartiers.setup(world, buildings, transport, population, communes)
+	quartiers.dechets = dechets
+	quartiers.message.connect(func(t: String) -> void: hud.show_message(t))
+	quartiers.changed.connect(func() -> void: _unsaved = true)
+	Calques.ajouter("quartiers", "Quartiers et arrêtés", "Villages", func(on: bool) -> void: quartiers.calque = on,
+		"une couleur par quartier · nom et nombre d'arrêtés au milieu · îlots de 50 m")
+	quartiers_panel = QuartiersPanel.new()
+	quartiers_panel.name = "PanneauQuartiers"
+	add_child(quartiers_panel)
+	quartiers_panel.setup(quartiers)
+	quartiers_panel.focus_requested.connect(func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
+	hud.quartiers_requested.connect(func() -> void: quartiers_panel.toggle())
+
+
 ## Élections perdues avec le réglage « fin de partie ».
 func _on_defaite_finale(texte: String) -> void:
 	var d := AcceptDialog.new()
@@ -1351,6 +1379,8 @@ func _tool_busy() -> bool:
 	if blocks.tool != BlockEditor.Tool.NONE or transport.tool != TransportSystem.Tool.NONE:
 		return true
 	if (plans != null and plans.tool != PlanEditor.Tool.NONE) or (mobilier != null and mobilier.tool != Mobilier.Tool.NONE):
+		return true
+	if quartiers != null and quartiers.outil != "":
 		return true
 	return decors != null and decors.outil != DecorSystem.Outil.AUCUN
 
@@ -1816,6 +1846,8 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 		pilote.clear()
 	if objectifs != null:
 		objectifs.clear()
+	if quartiers != null:
+		quartiers.clear()
 	if kit != null:
 		kit.clear()
 	if niveaux_vie != null:
@@ -1917,7 +1949,7 @@ var _open_before := {}
 ## Construire, Lignes et Habitants partagent la même place à droite : quand
 ## l'un s'ouvre, les autres se ferment. Leur bouton de la barre du bas s'allume.
 func _exclusive_panels() -> void:
-	var panels := {"pays": pays_panel, "objectifs": objectifs_panel, "construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "agriculture": agri_panel, "urgences": urgences_panel, "reseaux": reseaux_panel, "dechets": dechets_panel, "trafic": trafic_panel, "budget": budget_panel, "telecom": telecom_panel, "perso": perso_panel, "infos": evenements_panel, "cartes": cartes_panel, "avis": avis_panel, "villages": villages_panel, "fondateurs": fondateurs_panel, "stats": stats_panel}
+	var panels := {"pays": pays_panel, "objectifs": objectifs_panel, "quartiers": quartiers_panel, "construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "agriculture": agri_panel, "urgences": urgences_panel, "reseaux": reseaux_panel, "dechets": dechets_panel, "trafic": trafic_panel, "budget": budget_panel, "telecom": telecom_panel, "perso": perso_panel, "infos": evenements_panel, "cartes": cartes_panel, "avis": avis_panel, "villages": villages_panel, "fondateurs": fondateurs_panel, "stats": stats_panel}
 	var opened := ""
 	for id in panels:
 		var p = panels[id]

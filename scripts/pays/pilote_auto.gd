@@ -127,6 +127,12 @@ func semaine(vid: int) -> String:
 	if fait != "":
 		_noter(vid, fait)
 		changed.emit()
+	# Arrêtés utiles dans les quartiers (ou le plus cher retiré si la caisse est dans le rouge).
+	if Quartiers.instance != null:
+		var ar := Quartiers.instance.piloter(vid)
+		if ar != "":
+			_noter(vid, "Arrêté : " + ar)
+			changed.emit()
 	return fait
 
 

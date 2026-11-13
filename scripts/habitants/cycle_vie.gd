@@ -49,7 +49,7 @@ const CODES := {
 	"heritage": Color("e9c46a"), "loisir": Color("4cc9f0"), "sport": Color("ffbe0b"), "permis": Color("90e0ef"),
 	"voiture": Color("90e0ef"), "maladie": Color("ef476f"), "guerison": Color("06d6a0"), "deces": Color("000000"),
 	"depart": Color("8a8f98"), "urgence": Color("e63946"),
-	"politique": Color("ffd166"), "manifestation": Color("f77f00"),
+	"politique": Color("ffd166"), "manifestation": Color("f77f00"), "niveau": Color("2a9d8f"),
 }
 ## Étapes comptées dans les nouvelles du jour.
 const DIGEST := {"naissance": ["naissance", "naissances"], "deces": ["décès", "décès"], "couple": ["couple", "couples"],

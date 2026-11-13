@@ -4,6 +4,11 @@ Tout est dans `main`, et les 9 tests automatiques passent (`sh tests/tous.sh`).
 
 ## Nouveautés
 
+**Niveaux de vie des foyers** (touche **Maj+N**, 14 novembre)
+- Chaque foyer a un niveau de vie : Précaire, Modeste, Classe moyenne, Aisé, Très aisé. Il monte quand la ville couvre ses besoins (eau, courant, commerces, école, hôpital, internet, loisirs, calme, police, beau logement, quartier recherché…) et que ses revenus le permettent ; il redescend quand un besoin manque trop longtemps.
+- Plus un foyer est aisé, plus il paie de taxe foncière, plus il achète dans les commerces et dépense en sorties ; dès « Aisé », il place son épargne. Il déménage vers un logement plus cossu quand le sien le bloque.
+- Panneau Maj+N (répartition, ce qui bloque avec un conseil, besoins de chaque niveau, liste des foyers), carte « Niveaux de vie » (N), niveau dans la fiche des habitants (H), deux nouveaux succès (Maj+J). Voir docs/niveaux-de-vie.md.
+
 **Équilibre : argent, emplois, courant** (13 novembre)
 - Mode Normal : 30 M€ au départ. Quand un chantier s'arrête faute d'argent, le jeu conseille d'emprunter (Budget, M).
 - Les zones les plus demandées poussent d'abord : à 1 000 habitants, environ 10 % de chômeurs au lieu d'un quart.

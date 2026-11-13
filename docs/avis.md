@@ -3,6 +3,10 @@
 Code : `scripts/avis/` (`avis.gd`, `elections.gd`, `manifestations.gd`, `avis_panel.gd`, `avis_carte.gd`).
 Test : `tests/avis_test.gd`. Captures : `tests/avis_vitrine.gd`.
 
+![Panneau Avis](apercu-avis-panneau.jpg)
+![Campagne](apercu-avis-campagne.jpg)
+![Manifestation](apercu-avis-manif.jpg)
+
 ## Dans le jeu
 
 - **Touche Y** (ou clic sur le chiffre de satisfaction en haut, ou bouton « Avis » de la barre du bas) : panneau Avis.

@@ -29,6 +29,8 @@ var resource_overlay: RessourcesOverlay
 ## Services d'urgence : pompiers, ambulances, police sur les routes (touche U).
 var urgences: Urgences
 var urgences_panel: UrgencesPanel
+var services: ServicesPublics
+var services_panel: ServicesPanel
 ## Chantiers, usure des bâtiments, abords et fumée des maisons habitées.
 var vie_batiments: BatimentsVie
 var _hover := Vector2i.ZERO
@@ -84,6 +86,7 @@ func _ready() -> void:
 	_setup_mobilier()
 	_setup_production()
 	_setup_urgences()
+	_setup_services()
 	_setup_vie()
 	_setup_decors()
 	_setup_evenements()
@@ -227,7 +230,7 @@ func save_sections() -> Dictionary:
 		"zones": zones.to_dict(), "blocs": blocks.to_dict(), "plans": plans.to_dict(), "ambiance": ambiance.to_dict(),
 		"creations": Creations.to_dict(Creations.used_by(buildings)),
 		"personnage": ($VueSol as VueSol).to_dict(), "habitants": population.to_dict(), "mobilier": mobilier.to_dict(),
-		"production": production.to_dict(), "urgences": urgences.to_dict(), "reglages": _settings_snapshot().to_dict(), "evenements": evenements.to_dict(), "decors": decors.to_dict()}
+		"production": production.to_dict(), "urgences": urgences.to_dict(), "reglages": _settings_snapshot().to_dict(), "evenements": evenements.to_dict(), "decors": decors.to_dict(), "services": services.to_dict()}
 
 
 ## Sauvegarde dans la partie en cours (ou une nouvelle). title : nom d'une nouvelle partie.
@@ -285,6 +288,7 @@ func load_game(slot := "") -> bool:
 	production.from_dict(sec.get("production", {}))
 	decors.from_dict(sec.get("decors", {}))
 	urgences.from_dict(sec.get("urgences", {}))
+	services.from_dict(sec.get("services", {}))
 	ambiance.from_dict(sec.get("ambiance", {}))
 	# Après les bâtiments et les habitants : dégâts, ruines, malades, matchs.
 	evenements.from_dict(sec.get("evenements", {}))
@@ -487,6 +491,21 @@ func _setup_urgences() -> void:
 		rig.position.x = pos.x
 		rig.position.z = pos.z)
 	hud.urgences_requested.connect(func() -> void: urgences_panel.toggle())
+
+
+## Services publics : couverture des écoles, hôpitaux et police (Maj+U, calques).
+func _setup_services() -> void:
+	services = ServicesPublics.new()
+	services.name = "ServicesPublics"
+	add_child(services)
+	services.setup(population, buildings, transport, urgences)
+	services_panel = ServicesPanel.new()
+	services_panel.name = "PanneauServices"
+	add_child(services_panel)
+	services_panel.setup(services)
+	services_panel.focus_requested.connect(func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
 
 
 ## Panneau des transports publics : stations et lignes.
@@ -944,6 +963,7 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 	population.clear()
 	production.clear()
 	urgences.clear()
+	services.clear()
 	resource_overlay.show_resource(resource_overlay.res)
 	transport.clear()
 	buildings.clear()

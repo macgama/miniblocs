@@ -111,6 +111,8 @@ var extra_health: Callable
 var school_ok: Callable
 ## Attrait d'un logement pour les arrivants (bid) -> multiplicateur (Nuisances : bruit, pollution, valeur).
 var attrait_logement: Callable
+## Appelé avant les arrivées : les fondateurs du campement s'installent en premier.
+var avant_arrivees: Callable
 
 var _arrival_acc: Dictionary = {}
 var _money_frac := 0.0
@@ -309,6 +311,9 @@ func advance(dt: float, realtime := false) -> void:
 		_last_step_ms = now_ms
 		var hours := _step_acc / 3600.0
 		_step_acc = 0.0
+		# D'abord les fondateurs du campement (Fondateurs) : ils prennent les maisons finies.
+		if avant_arrivees.is_valid():
+			avant_arrivees.call()
 		if arrivals:
 			_immigrate(hours)
 		_match_all()
@@ -345,8 +350,9 @@ func _info_of(b: Dictionary) -> Dictionary:
 	for hb in Metiers.LOISIRS:
 		if Metiers.venue_matches(hb, String(b.t)):
 			serves.append(hb)
-	return {"t": String(b.t), "cat": String(t.get("cat", "")), "serves": serves, "log": int(t.get("logements", 0)),
-		"emp": int(t.get("emplois", 0)), "seats": seats, "pos": BuildingSystem.rect_center(rect) + Vector3(0, float(b.get("h", 0.0)), 0),
+	# Places propres au bâtiment (campement des fondateurs : "nlog", "nemp").
+	return {"t": String(b.t), "cat": String(t.get("cat", "")), "serves": serves, "log": int(b.get("nlog", t.get("logements", 0))),
+		"emp": int(b.get("nemp", t.get("emplois", 0))), "camp": bool(t.get("campement", false)), "seats": seats, "pos": BuildingSystem.rect_center(rect) + Vector3(0, float(b.get("h", 0.0)), 0),
 		"rect": rect, "public": String(t.get("cat", "")) == "services", "cost": int(b.get("cost", BuildingCatalog.cost(String(b.t)))),
 		"house": t.get("arch", t.get("role", String(b.t))) in ["maison", "villa", "grande_maison", "ferme"],
 		"region": String(t.get("region", "monde"))}
@@ -845,6 +851,10 @@ func household_budget(hid: int) -> Dictionary:
 	if Nuisances.instance != null:
 		rent *= Nuisances.instance.coef_foncier(int(h.b))
 	var food := COURSES * (h.m as Array).size()
+	# Sous la tente des fondateurs : ni loyer ni courses (vivres, ravitaillement, Fondateurs).
+	if known.has(int(h.b)) and bool(known[int(h.b)].get("camp", false)):
+		rent = 0.0
+		food = 0.0
 	var cars := VOITURE * int(h.car)
 	return {"revenus": inc, "loyer": rent, "courses": food, "voitures": cars, "solde": inc - rent - food - cars}
 
@@ -857,6 +867,9 @@ func city_budget() -> Dictionary:
 	for hid in households:
 		var hb := int(households[hid].b)
 		var tf := float(known[hb].get("tf", 1.0)) if known.has(hb) else 1.0
+		# Pas de taxe foncière sous la tente (campement des fondateurs).
+		if known.has(hb) and bool(known[hb].get("camp", false)):
+			tf = 0.0
 		# La taxe foncière suit la valeur du terrain.
 		if Nuisances.instance != null:
 			tf *= Nuisances.instance.coef_foncier(hb)

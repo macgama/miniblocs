@@ -406,6 +406,8 @@ Antennes relais 2G, 4G et 5G (portées réelles, saturation quand trop d'abonné
 
 Une partie commence par la **fondation du village** : on lui donne un nom, puis on pose sa **Maison de commune**, n'importe où et sans route. Avant, on ne peut que regarder et modeler le paysage. Le village reçoit un **territoire** en carrés de 100 m (500 m autour de la mairie), qui **grandit avec la population** (jusqu'à 3 km pour une grande ville). On peut aussi acheter un carré voisin ou en céder un. Bâtiments et zonage restent sur le territoire, alors que voies et réseaux vont partout. Une Maison de commune posée à 2 km d'un autre village **fonde un nouveau village**, et deux villages qui se touchent peuvent **fusionner**. Touche **Maj+M** (menu Ville). Détails : [docs/villages.md](docs/villages.md).
 
+Avec la Maison de commune arrivent **100 fondateurs** (réglable dans l'Admin, F10). Ils campent à côté et sont les **ouvriers des premiers chantiers** : chaque chantier veut une équipe complète (une maison ≈ 8 à 10 ouvriers), donc on ne peut pas tout construire à la fois. Dans le panneau **Maj+H**, on met un chantier en pause ou en premier, et on envoie des fondateurs vers n'importe quel métier (ferme, boulangerie…). Ils ont 90 jours de vivres, puis le campement coûte un ravitaillement ; dès qu'une maison est finie, ils y emménagent. Détails : [docs/fondateurs.md](docs/fondateurs.md).
+
 ![Territoire d'un village et panneau Villages](docs/apercu-villages-territoire.jpg)
 
 ## Budget de la commune : impôts, emprunts, entretien des voies

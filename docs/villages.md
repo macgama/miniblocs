@@ -2,6 +2,8 @@
 
 Code : `scripts/communes/` (`communes.gd` = `Communes`, nœud « Communes » sous la scène Terre ; `villages_panel.gd` = panneau **Maj+M**). Test : `tests/communes_test.gd`.
 
+Les fondateurs qui arrivent avec le premier village (campement, ouvriers des chantiers, Maj+H) : voir [fondateurs.md](fondateurs.md).
+
 ![Territoire d'un village et panneau Villages (Maj+M)](apercu-villages-territoire.jpg)
 
 ## Fonder son village

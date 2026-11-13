@@ -4,6 +4,9 @@ Tout est dans `main`, et les 9 tests automatiques passent (`sh tests/tous.sh`).
 
 ## Nouveautés
 
+**Les fondateurs du village** (touche **Maj+H**, 13 novembre)
+- 100 fondateurs (réglable dans l'Admin, F10) arrivent avec la Maison de commune et campent à côté. Ce sont les ouvriers des premiers chantiers : chaque chantier veut une équipe complète, donc il faut doser (pause, « En premier »). On les envoie vers n'importe quel métier, ils ont 90 jours de vivres et emménagent dans les maisons finies. Plus tard, l'Entreprise du bâtiment emploie les ouvriers (voir docs/fondateurs.md).
+
 **Globe : n'importe quelle ville, et le drapeau de son choix** (13 novembre)
 - Le globe ne propose plus de liste fixe ni de lieu au hasard : une recherche trouve n'importe laquelle des 135 000 villes du monde (noms français des grandes villes, accents facultatifs), des coordonnées, ou un hameau en ligne. Le premier village prend le drapeau du pays choisi, modifiable à la fondation et ensuite (Maj+M). La Maison de commune se construit par étapes comme les autres bâtiments.
 

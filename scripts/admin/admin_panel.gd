@@ -26,6 +26,9 @@ var _cout_l: Label
 var _acces: CheckBox
 var _fondation: CheckBox
 var _territoire: CheckBox
+var _fondateurs: SpinBox
+var _vivres: SpinBox
+var _main_oeuvre: CheckBox
 var _deblocage: OptionButton
 var _paliers_l: Label
 var _impots: HSlider
@@ -168,6 +171,17 @@ func _ready() -> void:
 	_territoire = _check("Bâtiments et zonage seulement sur le territoire de ses villages")
 	_territoire.tooltip_text = "Les voies, réseaux et lignes restent permis partout pour relier les villages (Maj+M : villages)"
 	g.add_child(_territoire)
+	_fondateurs = _spin(0, ReglagesPartie.FONDATEURS_MAX, 10, " fondateurs")
+	_fondateurs.step = 1
+	_fondateurs.tooltip_text = "Arrivent avec le premier village : la réserve de travailleurs des premiers chantiers (Maj+H)"
+	_row(g, "Fondateurs du village", _fondateurs)
+	_vivres = _spin(0, ReglagesPartie.VIVRES_MAX, 10, " jours")
+	_vivres.step = 1
+	_vivres.tooltip_text = "Vivres apportés par les fondateurs ; ensuite, le ravitaillement du campement est payé par la caisse"
+	_row(g, "Vivres de départ", _vivres)
+	_main_oeuvre = _check("Les chantiers ont besoin d'ouvriers (fondateurs, entreprises du bâtiment)")
+	_main_oeuvre.tooltip_text = "Sinon, les chantiers avancent toujours avec une équipe complète"
+	g.add_child(_main_oeuvre)
 	_deblocage = OptionButton.new()
 	_deblocage.add_item("Tout débloqué d'office")
 	_deblocage.add_item("Au fil de la partie (paliers de population)")
@@ -412,6 +426,9 @@ func _fill() -> void:
 	_acces.button_pressed = reglages.acces_route
 	_fondation.button_pressed = reglages.fondation
 	_territoire.button_pressed = reglages.territoire
+	_fondateurs.value = reglages.fondateurs
+	_vivres.value = reglages.vivres_jours
+	_main_oeuvre.button_pressed = reglages.main_oeuvre
 	_deblocage.select(1 if reglages.deblocage == "progression" else 0)
 	_impots.value = reglages.impots
 	_salaires.value = reglages.salaires
@@ -461,6 +478,9 @@ func _changed() -> void:
 	reglages.acces_route = _acces.button_pressed
 	reglages.fondation = _fondation.button_pressed
 	reglages.territoire = _territoire.button_pressed
+	reglages.fondateurs = int(_fondateurs.value)
+	reglages.vivres_jours = int(_vivres.value)
+	reglages.main_oeuvre = _main_oeuvre.button_pressed
 	reglages.deblocage = "progression" if _deblocage.selected == 1 else "tout"
 	reglages.impots = _impots.value
 	reglages.salaires = _salaires.value

@@ -521,9 +521,18 @@ func place(id: String, center: Vector2i, r: int, zone := 0, a := 0.0) -> int:
 	return bid
 
 
+## Optionnel : Callable(bid) -> String, raison qui empêche de démolir ("" : permis).
+var demolish_check: Callable
+
+
 func demolish(bid: int) -> void:
 	if not buildings.has(bid):
 		return
+	if demolish_check.is_valid():
+		var why := String(demolish_check.call(bid))
+		if why != "":
+			message.emit(why)
+			return
 	var b: Dictionary = buildings[bid]
 	var rect := _rect_of(b)
 	for c in _cells_of(b):
@@ -891,8 +900,9 @@ func to_dict() -> Dictionary:
 	var list := []
 	for b in buildings.values():
 		var e := {"id": b.id, "t": b.t, "x": b.x, "z": b.z, "r": b.r, "a": b.get("a", 0.0), "h": b.h, "cost": b.get("cost", 0), "zone": b.get("zone", 0)}
-		# Variante du modèle, dates, avancement et reste à payer du chantier (BatimentsVie).
-		for key in ["v", "ne", "fin", "av", "hr", "du", "perso"]:
+		# Variante du modèle, dates, avancement et reste à payer du chantier (BatimentsVie) ;
+		# chantier en pause ou passé en premier, places du campement (Fondateurs).
+		for key in ["v", "ne", "fin", "av", "hr", "du", "perso", "pause", "ordre", "nlog", "nemp"]:
 			if b.has(key):
 				e[key] = b[key]
 		list.append(e)
@@ -920,6 +930,13 @@ func from_dict(data: Dictionary) -> void:
 			e["hr"] = float(b.get("hr", 0.0))
 		if int(b.get("du", 0)) > 0:
 			e["du"] = int(b.du)
+		if bool(b.get("pause", false)):
+			e["pause"] = true
+		if b.has("ordre"):
+			e["ordre"] = float(b.ordre)
+		for key in ["nlog", "nemp"]:
+			if b.has(key):
+				e[key] = int(b[key])
 		var pd = b.get("perso", {})
 		if pd is Dictionary and not (pd as Dictionary).is_empty():
 			e["perso"] = Personnalisation.clean(pd)

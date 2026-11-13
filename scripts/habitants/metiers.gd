@@ -18,6 +18,9 @@ const METIERS := {
 	"ingenieur": {"name": "Ingénieur·e", "salaire": 3500, "h": [9.0, 18.0], "j": "semaine"},
 	"artisan": {"name": "Artisan·e", "salaire": 2000, "h": [8.0, 17.0], "j": "semaine"},
 	"ouvrier": {"name": "Ouvrier·ère", "salaire": 1800, "h": [6.0, 14.0], "j": "semaine"},
+	# Chantiers : les ouvriers du bâtiment font avancer les constructions (Fondateurs).
+	"ouvrier_btp": {"name": "Ouvrier·ère du bâtiment", "salaire": 1850, "h": [7.5, 16.5], "j": "semaine",
+		"tenue": "ouvrier", "geste": ["porter", "marteler", "piocher"]},
 	"agriculteur": {"name": "Agriculteur·rice", "salaire": 1600, "h": [6.0, 19.0], "j": "tous"},
 	"agent_public": {"name": "Agent·e municipal·e", "salaire": 1900, "h": [8.5, 17.0], "j": "semaine", "public": true},
 	"enseignant": {"name": "Enseignant·e", "salaire": 2400, "h": [8.0, 17.0], "j": "ecole", "public": true, "etat": true},
@@ -78,6 +81,8 @@ const PAR_BATIMENT := {
 	"gratte_ciel": [["employe", 5], ["cadre", 4], ["ingenieur", 3]],
 	"atelier": [["artisan", 7], ["ouvrier", 3]],
 	"usine": [["ouvrier", 7], ["ingenieur", 1], ["magasinier", 1], ["cadre", 1]],
+	"campement": [["ouvrier_btp", 1]],
+	"entreprise_btp": [["ouvrier_btp", 8], ["conducteur_engins", 1], ["employe", 1]],
 	"entrepot": [["magasinier", 6], ["chauffeur", 4]],
 	"ferme": [["agriculteur", 1]],
 	"mairie": [["agent_public", 4], ["cadre", 1]],

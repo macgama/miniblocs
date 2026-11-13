@@ -4,6 +4,12 @@ Tout est dans `main`, et les 9 tests automatiques passent (`sh tests/tous.sh`).
 
 ## Nouveautés
 
+**Équilibre : argent, emplois, courant** (13 novembre)
+- Mode Normal : 30 M€ au départ. Quand un chantier s'arrête faute d'argent, le jeu conseille d'emprunter (Budget, M).
+- Les zones les plus demandées poussent d'abord : à 1 000 habitants, environ 10 % de chômeurs au lieu d'un quart.
+- Raccordement au réseau national posable partout au bord d'une route, et nouvelles **Batteries de stockage** (5 MW, 20 MWh) qui gardent le surplus des éoliennes et du solaire pour la nuit.
+- Corrigé : un plantage rare pendant le calcul du terrain (plantes préparées par plusieurs threads à la fois).
+
 **Une partie complète jouable, de la fondation à 1 000 habitants** (13 novembre)
 - Le temps avance par défaut d'1 jour de jeu par minute (365 jours = 365 minutes) ; Maj+T garde les vitesses plus lentes pour regarder la ville vivre.
 - Nouveau réglage Admin « Rythme des chantiers », ×3 par défaut : les premières maisons des fondateurs sortent vers le jour 15, la ville passe 1 000 habitants vers le jour 75 (environ 1 h 15 de jeu).

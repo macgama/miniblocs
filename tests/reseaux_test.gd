@@ -118,7 +118,7 @@ func _run() -> void:
 
 	print("Règles de pose :")
 	_check(not bs.check_place("captage_eau", Vector2i(0, -40), 0).ok and String(bs.check_place("captage_eau", Vector2i(0, -40), 0).reason).contains("rivière"), "captage refusé loin de l'eau")
-	_check(String(bs.check_place("poste_national", Vector2i(0, -40), 0).reason).contains("bord"), "raccordement national refusé au milieu de la carte")
+	_check(not String(bs.check_place("poste_national", Vector2i(0, -40), 0).reason).contains("bord"), "raccordement national possible au milieu de la carte")
 
 	print("Ville sans réseau :")
 	var y := world.cell_height(Vector2i(0, 0))
@@ -163,6 +163,31 @@ func _run() -> void:
 	await process_frame
 	res.simuler(0.0)
 	_check(float(res.sources_info[solaire].cap) == 0.0 and res.taux(homes[0], "elec") == 0.0, "la nuit, le solaire ne produit rien")
+
+	print("Batteries :")
+	amb.unix_time = _at("2026-06-21", 12.0)
+	await process_frame
+	var batt := _place(bs, "batteries", 330, 1)
+	_check(batt > 0, "batteries posées au bord de la route")
+	await process_frame
+	await process_frame
+	res.simuler(0.0)
+	res.stocks[batt] = 0.0
+	for i in 4:
+		res.simuler(1.0)
+	var charge := float(res.stocks.get(batt, 0.0))
+	_check(charge > 0.0, "à midi, le surplus du solaire charge les batteries (%.1f MWh)" % charge)
+	res.stocks[batt] = 20.0
+	amb.unix_time = _at("2026-06-21", 23.5)
+	await process_frame
+	await process_frame
+	res.simuler(1.0)
+	_check(res.taux(homes[0], "elec") >= 0.95 and float(res.stocks[batt]) < 20.0, "la nuit, les batteries donnent le courant (%.1f MWh restants)" % float(res.stocks[batt]))
+	res.stocks[batt] = 0.0
+	res.simuler(1.0)
+	_check(res.taux(homes[0], "elec") == 0.0, "batteries vides : plus de courant")
+	bs.demolish(batt)
+	await process_frame
 
 	print("Château d'eau :")
 	var chateau := _place(bs, "chateau_eau", 260, -1)

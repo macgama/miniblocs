@@ -27,7 +27,8 @@ Touche **O** : panneau Réseaux (onglets Courant, Eau, Égouts, Chauffage, Compt
 | Centrale hydraulique | 10 MW | rivière à moins de 40 m |
 | Éolienne | 3 MW | selon le vent (rien sous 15 %) |
 | Parc solaire | 5 MW | selon le soleil et les nuages, rien la nuit |
-| Raccordement national | 50 MW | à moins de 300 m du bord de la carte, 0,25 € le kWh payé par la ville |
+| Raccordement national | 50 MW | partout au bord d'une route, 0,25 € le kWh payé par la ville |
+| Batteries de stockage | 5 MW, 20 MWh | se chargent avec le surplus (éoliennes, solaire) et rendent le courant la nuit ou sans vent |
 | Captage et usine d'eau potable | 6 000 m³/j | rivière ou lac à moins de 80 m, consomme 0,12 MW |
 | Forage | 1 500 m³/j | nappe (30 % dans le désert), consomme 0,04 MW |
 | Château d'eau (Services publics) | réserve 1 500 m³ | se remplit quand il y a du surplus, donne l'eau pendant une coupure |

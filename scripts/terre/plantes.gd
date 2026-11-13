@@ -114,11 +114,22 @@ static var _tables: Dictionary = {}
 ## Probabilité totale qu'il pousse quelque chose, par kind * 8 + climat (tri rapide).
 static var _totaux := PackedFloat32Array()
 static var _pret := false
+## Les blocs de terrain se calculent sur plusieurs threads : un seul prépare les
+## tables, les autres attendent (sans verrou, un thread lisait une table à moitié
+## remplie et le jeu plantait de temps en temps).
+static var _verrou := Mutex.new()
 
 
 static func _prepare() -> void:
 	if _pret:
 		return
+	_verrou.lock()
+	if not _pret:
+		_remplir()
+	_verrou.unlock()
+
+
+static func _remplir() -> void:
 	var K := TerrainWorld.Kind
 	for c: int in Climat.values():
 		var chaud := c >= Climat.SUBTROPICAL

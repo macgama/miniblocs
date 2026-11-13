@@ -681,6 +681,7 @@ func _setup_mobilier() -> void:
 
 var perso_panel: PersoPanel
 var banque_pose: BanquePose
+var vue_etages: VueEtages
 var banque_panel: BanquePanel
 
 
@@ -702,6 +703,12 @@ func _setup_atelier_tools() -> void:
 		hud.set_tool_info(t)
 		if t != "" and not t.begins_with("Poser"):
 			hud.show_message(t))
+	vue_etages = VueEtages.new()
+	vue_etages.name = "VueEtages"
+	vue_etages.pe = plans
+	vue_etages.rig = $CameraRig
+	add_child(vue_etages)
+	vue_etages.message.connect(func(t: String) -> void: hud.show_message(t))
 	banque_panel = BanquePanel.new()
 	banque_panel.setup(buildings, mobilier, banque_pose, func() -> void: _select_building_tool())
 	build_panel.banque_builder = banque_panel.build

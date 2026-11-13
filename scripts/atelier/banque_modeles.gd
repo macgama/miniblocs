@@ -125,6 +125,8 @@ static func save_building(bs: BuildingSystem, bid: int, nom: String, vp: Viewpor
 	var nm := nom.strip_edges() if nom.strip_edges() != "" else String(t.get("name", tid))
 	var cols := []
 	for key in ["mur", "toit_c"]:
+		if not key in Personnalisation.color_keys(tid):
+			continue
 		var c := Personnalisation.color_name(Personnalisation.color_of(tid, v, perso, key))
 		if not c in cols:
 			cols.append(c)
@@ -133,7 +135,7 @@ static func save_building(bs: BuildingSystem, bid: int, nom: String, vp: Viewpor
 		"format": FORMAT, "version": VERSION, "id": _new_id(nm), "nom": nm, "auteur": _author(),
 		"cree": Time.get_unix_time_from_system(), "genre": "facade",
 		"type": tid, "perso": Personnalisation.clean(perso), "v": v,
-		"etiquettes": {"type": String(t.get("arch", t.get("cat", ""))), "categorie": String(t.get("cat", "")),
+		"etiquettes": {"type": String(t.get("arch", t.get("role", t.get("cat", "")))), "categorie": String(t.get("cat", "")),
 			"style": String(t.get("style", "")), "region": String(t.get("region", "")), "epoque": String(t.get("era", "")),
 			"couleurs": cols, "etages": etages, "pieces": 0, "taille": "%d × %d m" % [int(t.get("w", 0)), int(t.get("d", 0))]},
 	}

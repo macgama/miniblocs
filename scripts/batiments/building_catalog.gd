@@ -13,6 +13,7 @@ const CATEGORIES := [
 	{"id": "industrie", "name": "Industrie", "color": Color("b08968")},
 	{"id": "production", "name": "Production et ressources", "color": Color("d4a373")},
 	{"id": "services", "name": "Services publics", "color": Color("e76f51")},
+	{"id": "dechets", "name": "Déchets et propreté", "color": Color("43aa8b")},
 	{"id": "loisirs", "name": "Loisirs", "color": Color("80b918")},
 	{"id": "sport", "name": "Sport", "color": Color("9d4edd")},
 	{"id": "espaces", "name": "Espaces publics", "color": Color("52b788")},
@@ -123,6 +124,8 @@ static func all_types() -> Dictionary:
 		_all.merge(EspacesPublics.entries())
 		_all.merge(ProductionTypes.entries())
 		_all.merge(CommercesTypes.entries())
+		_all.merge(TelecomTypes.entries())
+		_all.merge(DechetsTypes.entries())
 		_all.merge(Stades.entries())
 		_all.merge(StyleBuilder.generate())
 		_all.merge(BibleGlb.entries())
@@ -148,7 +151,7 @@ static func ids_in(cat: String, region := "", era := "") -> Array[String]:
 	var types := all_types()
 	for id in types:
 		var t: Dictionary = types[id]
-		if t.cat == cat and Styles.matches(t, region, era):
+		if t.cat == cat and Styles.matches(t, region, era) and not t.get("cache", false):
 			out.append(id)
 	return out
 
@@ -204,9 +207,15 @@ static func build_mesh(id: String, material: Material = null, details := true, v
 	if t.has("glb") and t.has("stade"):
 		return Stades.build_mesh(t)
 	if t.has("glb"):
-		return BibleGlb.build_mesh(id, material, details, variant)
+		return BibleGlb.build_mesh(id, material, details, variant, perso)
 	if t.has("boutique_eco"):
 		CommercesTypes.build(k, id, t)
+		k.fit_xz(w, d)
+		return k.to_mesh(material)
+	if t.has("telecom"):
+		TelecomTypes.build(k, id, t)
+	if t.has("dechets"):
+		DechetsTypes.build(k, id, t)
 		k.fit_xz(w, d)
 		return k.to_mesh(material)
 	if t.has("prod"):

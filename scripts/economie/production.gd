@@ -321,7 +321,20 @@ func _workers(bid: int) -> int:
 
 func _staff(bid: int) -> float:
 	var jobs := maxi(int(BuildingCatalog.get_type(_type_of(bid)).get("emplois", 1)), 1)
-	return clampf(float(_workers(bid)) / jobs, 0.0, 1.0)
+	return clampf(float(_workers(bid)) / jobs, 0.0, 1.0) * _rendement(bid)
+
+
+## Rendement venu des autres systèmes (internet, électricité…) : produit des
+## valeurs rendues par les nœuds du groupe « rendement_sources »
+## (func rendement(bid: int) -> float, 1 = normal).
+func _rendement(bid: int) -> float:
+	if not is_inside_tree():
+		return 1.0
+	var f := 1.0
+	for n in get_tree().get_nodes_in_group("rendement_sources"):
+		if n.has_method("rendement"):
+			f *= float(n.rendement(bid))
+	return f
 
 
 func _has_access(bid: int) -> bool:
@@ -649,6 +662,11 @@ func step_hours(h: float) -> void:
 			_bake(bid, frac, staff)
 			continue
 		var prod: Dictionary = t.prod
+		if prod.get("externe", false):
+			# Site alimenté par un autre système (centre de tri : Dechets).
+			s.eff = staff
+			s.status = String(s.get("ext_status", "En activité"))
+			continue
 		if kind == "extraction":
 			if String(s.res) == "":
 				s.status = "Lecture du sol…" if float(s.rich) < 0.0 else "Aucune ressource ici"
@@ -1548,7 +1566,7 @@ func new_day() -> void:
 		var profit := float(s.get("jour", 0.0))
 		s.jour = 0.0
 		if profit > 0.0:
-			var x := profit * IMPOT_BENEFICES * ReglagesPartie.actuel.impots
+			var x := profit * IMPOT_BENEFICES * ReglagesPartie.actuel.impots * BudgetCommunal.facteur("benefices")
 			_pay(bid, "Impôt sur les bénéfices", -x)
 			s.jour = 0.0
 			tax += x
@@ -1562,6 +1580,7 @@ func new_day() -> void:
 	_book("Ventes aux habitants", gain_local)
 	_book("Salaires des entreprises", -wages)
 	_book("Impôt sur les bénéfices (pour la ville)", tax)
+	BudgetCommunal.noter("Impôt sur les bénéfices", tax)
 	if buildings != null and not buildings.unlimited_money:
 		_money_frac += tax
 		var whole := int(_money_frac)

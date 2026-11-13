@@ -188,6 +188,13 @@ const SECTIONS := [
 		["Manifs", "sous 35 / 100 sur un thème, un cortège marche jusqu'à la mairie : négocier (argent), ignorer (grève la 2e fois) ou police (s'il y a un commissariat)"],
 		["Admin (F10) → Événements", "élections : aucune, défaite sans effet, objectifs imposés ou fin de partie ; manifestations oui / non"],
 	]],
+	["Quartiers et arrêtés", [
+		["Maj+Y", "panneau Quartiers (menu Ville) : les quartiers de la ville gérée, leurs habitants, leur bruit, leurs arrêtés et ce qu'ils coûtent"],
+		["Nouveau quartier, Peindre", "clic ou glisser sur la carte : îlots de 50 × 50 m, pinceau de 1 à 9 × 9 îlots ; Gomme pour retirer ; clic droit ou Échap pour arrêter ; un quartier reste dans le territoire de sa ville"],
+		["Arrêtés", "zone 30, rues piétonnes, poids lourds interdits, tranquillité la nuit, tri obligatoire, détecteurs de fumée, éclairage renforcé ou éteint, stationnement payant, fleurissement : une mise en place et un coût par mois selon la surface"],
+		["Effets", "vitesse et itinéraires des voitures, camions, bruit le jour et la nuit, air, valeur des terrains, tri des déchets, départs de feu, recettes de stationnement, avis des habitants du quartier"],
+		["Mairie perdue", "le conseil élu trace les quartiers et choisit les arrêtés selon son programme (un changement par semaine) ; le pilote automatique (Maj+P) en ajoute aussi"],
+	]],
 	["Trafic", [
 		["Maj+L", "panneau Trafic (bouton Trafic de la barre du bas) : comment les habitants se déplacent, temps perdu dans les bouchons et pour se garer, routes saturées, parkings, remplissage des lignes"],
 		["Bouchons", "chaque rue a une capacité (voies × débit de sa classe) ; plus elle est chargée à l'heure de pointe, plus on y roule lentement, et les habitants changent de route ou prennent le bus, le vélo"],

@@ -4,6 +4,9 @@ Tout est dans `main`, et les 9 tests automatiques passent (`sh tests/tous.sh`).
 
 ## Nouveautés
 
+**Quartiers et arrêtés municipaux** (touche **Maj+Y**, 14 novembre)
+- On peint ses quartiers au pinceau (îlots de 50 m) sur le territoire de sa ville et on les nomme. Dix arrêtés par quartier : zone 30, rues piétonnes, poids lourds interdits, tranquillité la nuit, tri obligatoire, détecteurs de fumée, éclairage renforcé ou éteint, stationnement payant, fleurissement. Ils coûtent (mise en place + par mois, au budget de la ville) et changent les trajets, la vitesse des voitures, le bruit, le tri, les incendies et l'avis des habitants. Mairie perdue : le conseil élu les choisit selon son programme ; le pilote automatique en ajoute aussi (voir docs/quartiers.md).
+
 **Son et musique** (touche **F2**, 13 novembre)
 - Ambiances qui suivent la caméra : oiseaux et vent dans les feuilles à la campagne, grillons et chouette la nuit, rue animée en ville, voitures près des routes, chantiers en activité (marteaux, scie, bip de recul), pluie, vent, tonnerre après les éclairs, mer, cloches à midi et coq au lever du jour. Plus la caméra monte, plus le vent domine.
 - Sons des boutons, des panneaux, des constructions, des démolitions, des nouvelles, des paliers et des élections (avec un trombone triste en cas de défaite).

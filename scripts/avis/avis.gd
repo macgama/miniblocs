@@ -54,6 +54,8 @@ const THEMES := {
 const ECHANTILLON := 400
 ## Taille d'un quartier (m).
 const QUARTIER := 250.0
+## Clé x des quartiers nommés par le maire dans un sondage (y : leur numéro).
+const QUARTIER_NOMME := 1 << 24
 const HISTORIQUE_MAX := 120
 ## Délai minimal entre deux relectures des facteurs « ville » (ms).
 const VILLE_CACHE_MS := 3000
@@ -554,6 +556,10 @@ func sondage(force := false) -> Dictionary:
 		out.logements[bid] = roundi(float(homes[bid][0]) / int(homes[bid][1]))
 		var pos := population.building_pos(bid)
 		var k := Vector2i(floori((pos.x - centre.x) / QUARTIER + 0.5), floori((pos.z - centre.z) / QUARTIER + 0.5))
+		# Quartiers nommés par le maire (Maj+Y) : ils remplacent la grille.
+		var qn := Quartiers.instance.quartier_au_point(pos.x, pos.z) if Quartiers.instance != null else -1
+		if qn >= 0:
+			k = Vector2i(QUARTIER_NOMME, qn)
 		if not q.has(k):
 			q[k] = {"somme": 0.0, "n": 0, "pos": Vector3.ZERO, "pires": {}}
 		q[k].somme += float(homes[bid][0])
@@ -561,7 +567,10 @@ func sondage(force := false) -> Dictionary:
 		q[k].pos += pos * int(homes[bid][1])
 	for k in q:
 		var e: Dictionary = q[k]
-		out.quartiers.append({"nom": nom_quartier(k), "cle": k, "valeur": roundi(float(e.somme) / int(e.n)), "n": roundi(int(e.n) * scale),
+		var nom_q := nom_quartier(k)
+		if k.x == QUARTIER_NOMME and Quartiers.instance != null and Quartiers.instance.quartiers.has(k.y):
+			nom_q = String(Quartiers.instance.quartiers[k.y].nom)
+		out.quartiers.append({"nom": nom_q, "cle": k, "valeur": roundi(float(e.somme) / int(e.n)), "n": roundi(int(e.n) * scale),
 			"pos": e.pos / int(e.n)})
 	out.quartiers.sort_custom(func(a, b) -> bool: return int(a.valeur) < int(b.valeur))
 	dernier = out

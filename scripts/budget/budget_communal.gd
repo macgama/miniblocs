@@ -443,6 +443,15 @@ func bilan_mensuel(k := -2) -> Dictionary:
 			var d: Dictionary = n.budget_entretien()
 			for key in d:
 				dep[key] = float(dep.get(key, 0.0)) + float(d[key]) * part
+	# Comptes propres à chaque ville (arrêtés des quartiers…) : groupe « budget_ville »,
+	# budget_ville(k) -> {recettes, depenses} pour la ville k (-1 : tout, 0 : le pays).
+	for n in get_tree().get_nodes_in_group("budget_ville") if is_inside_tree() else []:
+		if n != self and n.has_method("budget_ville"):
+			var bv: Dictionary = n.budget_ville(k if multi() else -1)
+			for key in bv.get("recettes", {}):
+				rec[key] = float(rec.get(key, 0.0)) + float(bv.recettes[key])
+			for key in bv.get("depenses", {}):
+				dep[key] = float(dep.get(key, 0.0)) + float(bv.depenses[key])
 	_ajouter_entretien(dep, k)
 	return _totaux(rec, dep)
 

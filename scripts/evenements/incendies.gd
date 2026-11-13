@@ -59,6 +59,9 @@ func roll_day(n: Dictionary) -> void:
 		if b.get("chantier", false) or feux.has(bid):
 			continue
 		var p := RISQUE_JOUR * f * _facteur(b, winter)
+		# Détecteurs de fumée obligatoires dans le quartier.
+		if Quartiers.instance != null and Quartiers.instance.en_vigueur("detecteurs_fumee"):
+			p *= Quartiers.instance.facteur_feu(ev.building_pos(bid))
 		if ev.rng.randf() < p:
 			# À une heure au hasard du jour : on démarre maintenant, c'est plus simple à suivre.
 			start_fire(bid, "hasard")

@@ -64,6 +64,9 @@ static func gerer_maire(vid: int, maire: Dictionary, jour: int) -> void:
 	if posmod(jour + vid, JOURS_ENTRE) != 0:
 		return
 	gerer_budget(vid, String(maire.get("tendance", "equilibre")))
+	# Arrêtés des quartiers selon son programme (un changement par semaine).
+	if Quartiers.instance != null:
+		Quartiers.instance.gerer_conseil(vid, String(maire.get("tendance", "")))
 
 
 static func gerer_budget(vid: int, tendance: String) -> void:

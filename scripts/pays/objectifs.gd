@@ -52,6 +52,8 @@ const SUCCES := {
 	"missions20": ["Bâtisseur du pays", "Réussir 20 missions."],
 	"riche": ["Coffres pleins", "50 M€ dans la caisse du pays."],
 	"reconquete": ["Retour gagnant", "Reprendre une mairie perdue."],
+	"classe_moyenne": ["La classe moyenne", "300 habitants ou plus et la moitié des foyers en Classe moyenne ou mieux (Maj+N)."],
+	"beaux_quartiers": ["Les beaux quartiers", "25 foyers Très aisés (Maj+N)."],
 }
 
 var communes: Communes
@@ -467,6 +469,12 @@ func _verifier_succes() -> void:
 		succes_debloque("mille")
 	if hab >= 10000:
 		succes_debloque("dix_mille")
+	var nvx := NiveauxVie.instance
+	if nvx != null and nvx.population == population:
+		if hab >= 300 and nvx.part_au_moins(2) >= 0.5:
+			succes_debloque("classe_moyenne")
+		if int(nvx.bilan().foyers[4]) >= 25:
+			succes_debloque("beaux_quartiers")
 	var best := 0
 	for vid in communes.villages:
 		best = maxi(best, palier_de(vid))

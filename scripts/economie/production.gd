@@ -1401,7 +1401,12 @@ func daily_needs() -> Dictionary:
 	for h in population.households.values():
 		cars += int(h.get("car", 0))
 	for g in Ressources.CONSO_HABITANT:
-		out[g] = float(Ressources.CONSO_HABITANT[g]) * people
+		out[g] = 0.0
+	# Les achats suivent le niveau de vie de chaque foyer (NiveauxVie).
+	for h in population.households.values():
+		var n := float((h.m as Array).size())
+		for g in Ressources.CONSO_HABITANT:
+			out[g] = float(out[g]) + float(Ressources.CONSO_HABITANT[g]) * n * NiveauxVie.coef_conso(h, String(g))
 	for g in Ressources.CONSO_VOITURE:
 		out[g] = float(Ressources.CONSO_VOITURE[g]) * cars
 	return out
@@ -1444,16 +1449,22 @@ func _shopping() -> float:
 	if population == null:
 		return 0.0
 	var per_home := {}
+	# Personnes pondérées par le niveau de vie (NiveauxVie) : x = nourriture, y = autres biens.
+	var weight := {}
 	for h in population.households.values():
 		var hb := int(h.b)
 		if not per_home.has(hb):
 			per_home[hb] = Vector2i.ZERO
+			weight[hb] = Vector2.ZERO
+		var n := float((h.m as Array).size())
 		per_home[hb] = (per_home[hb] as Vector2i) + Vector2i((h.m as Array).size(), int(h.get("car", 0)))
+		weight[hb] = (weight[hb] as Vector2) + Vector2(n * NiveauxVie.coef_conso(h, "pain"), n * NiveauxVie.coef_conso(h, "vetements"))
 	for home in per_home:
 		var nc: Vector2i = per_home[home]
+		var wt: Vector2 = weight[home]
 		var want := {}
 		for g in Ressources.CONSO_HABITANT:
-			want[g] = float(Ressources.CONSO_HABITANT[g]) * nc.x
+			want[g] = float(Ressources.CONSO_HABITANT[g]) * (wt.y if NiveauxVie.BIENS_COURANTS.has(g) else wt.x)
 		for g in Ressources.CONSO_VOITURE:
 			if nc.y > 0:
 				want[g] = float(Ressources.CONSO_VOITURE[g]) * nc.y

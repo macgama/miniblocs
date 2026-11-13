@@ -663,6 +663,11 @@ func step_hours(h: float) -> void:
 			_bake(bid, frac, staff)
 			continue
 		var prod: Dictionary = t.prod
+		if prod.get("externe", false):
+			# Site alimenté par un autre système (centre de tri : Dechets).
+			s.eff = staff
+			s.status = String(s.get("ext_status", "En activité"))
+			continue
 		if kind == "extraction":
 			if String(s.res) == "":
 				s.status = "Lecture du sol…" if float(s.rich) < 0.0 else "Aucune ressource ici"
@@ -1562,7 +1567,7 @@ func new_day() -> void:
 		var profit := float(s.get("jour", 0.0))
 		s.jour = 0.0
 		if profit > 0.0:
-			var x := profit * IMPOT_BENEFICES * ReglagesPartie.actuel.impots
+			var x := profit * IMPOT_BENEFICES * ReglagesPartie.actuel.impots * BudgetCommunal.facteur("benefices")
 			_pay(bid, "Impôt sur les bénéfices", -x)
 			s.jour = 0.0
 			tax += x
@@ -1576,6 +1581,7 @@ func new_day() -> void:
 	_book("Ventes aux habitants", gain_local)
 	_book("Salaires des entreprises", -wages)
 	_book("Impôt sur les bénéfices (pour la ville)", tax)
+	BudgetCommunal.noter("Impôt sur les bénéfices", tax)
 	if buildings != null and not buildings.unlimited_money:
 		_money_frac += tax
 		var whole := int(_money_frac)

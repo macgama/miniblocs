@@ -49,6 +49,10 @@ const METIERS := {
 	"pharmacien": {"name": "Pharmacien·ne", "salaire": 3600, "h": [9.0, 19.5], "j": "lunsam"},
 	"mecanicien": {"name": "Mécanicien·ne", "salaire": 1900, "h": [8.0, 18.0], "j": "lunsam"},
 	"maraicher": {"name": "Maraîcher·ère", "salaire": 1600, "h": [6.0, 17.0], "j": "lunsam"},
+	# Déchets et propreté.
+	"eboueur": {"name": "Éboueur·euse (ripeur, chauffeur de benne)", "salaire": 1800, "h": [5.0, 12.0], "j": "lunsam", "public": true},
+	"agent_tri": {"name": "Agent·e de tri", "salaire": 1650, "h": [6.0, 14.0], "j": "semaine"},
+	"gardien_decheterie": {"name": "Gardien·ne de déchèterie", "salaire": 1700, "h": [9.0, 18.0], "j": "marsam", "public": true},
 	"laborantin": {"name": "Technicien·ne de laboratoire", "salaire": 2300, "h": [8.0, 17.0], "j": "semaine"},
 }
 

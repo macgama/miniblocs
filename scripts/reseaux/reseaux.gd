@@ -293,8 +293,8 @@ func retirer(res: String, id: int) -> void:
 	if buildings != null and not buildings.unlimited_money:
 		buildings.money += back
 	var sc := _chantiers()
-	if sc != null and sc.has_method("annuler"):
-		sc.call("annuler", _cle(res, id))
+	if sc != null:
+		sc.annuler(_cle(res, id))
 	r.retirer_troncon(id)
 	_topo_sale = true
 	if vue:
@@ -324,12 +324,25 @@ func troncon_pres(p: Vector3, r: float) -> Dictionary:
 const HEURES_PAR_M := {"ligne_ht": 0.4, "ligne_mt": 0.15, "conduite_eau": 0.3, "collecteur": 0.5}
 
 
-func _chantiers() -> Node:
-	var p := get_parent()
-	if p == null:
-		return null
-	var n := p.get_node_or_null("Chantiers")
-	return n if n != null and n.has_method("commencer") else null
+## Étapes des chantiers de lignes aériennes et de canalisations enterrées.
+const ETAPES_AERIEN := [
+	[0.15, "piquetage", "Piquetage du tracé"],
+	[0.5, "fondations", "Fondations des pylônes"],
+	[0.8, "levage", "Levage des pylônes"],
+	[1.0, "cables", "Déroulage et tension des câbles"],
+]
+const ETAPES_ENTERRE := [
+	[0.15, "piquetage", "Piquetage du tracé"],
+	[0.55, "tranchee", "Tranchée"],
+	[0.85, "pose", "Pose des tuyaux"],
+	[1.0, "remblai", "Remblai et essais de pression"],
+]
+
+
+func _chantiers() -> SuiviChantiers:
+	if SuiviChantiers.instance != null and is_instance_valid(SuiviChantiers.instance) and SuiviChantiers.instance.is_inside_tree():
+		return SuiviChantiers.instance
+	return null
 
 
 static func _cle(res: String, id: int) -> String:
@@ -339,21 +352,15 @@ static func _cle(res: String, id: int) -> String:
 func _lancer_chantier(res: String, id: int) -> void:
 	var sc := _chantiers()
 	var r := reseau(res)
-	if sc == null or not r.troncons.has(id):
+	if sc == null or not r.troncons.has(id) or Chantiers.instantanes():
 		r.terminer_troncon(id)
+		r.troncons.get(id, {}).erase("av")
 		return
 	var e: Dictionary = r.troncons[id]
-	var instant := false
-	var cl = _classe("Chantiers")
-	if cl != null and cl.has_method("instantanes"):
-		instant = bool(cl.call("instantanes"))
-	if instant:
-		r.terminer_troncon(id)
-		return
 	e.ok = false
 	var heures := ReseauBase.longueur(e.pts) * float(HEURES_PAR_M.get(String(e.t), 0.3))
 	var av := float(e.get("av", 0.0))
-	sc.call("commencer", _cle(res, id), heures,
+	sc.commencer(_cle(res, id), heures,
 		func(a: float, _etape = null) -> void:
 			if r.troncons.has(id):
 				r.troncons[id]["av"] = a
@@ -367,7 +374,16 @@ func _lancer_chantier(res: String, id: int) -> void:
 				if vue:
 					vue.refaire_troncon(res, id)
 				changed.emit(),
-		av)
+		av, 0, ETAPES_AERIEN if res == "elec" else ETAPES_ENTERRE)
+
+
+## Le chantier d'un tronçon : {av, etape} ou {} s'il est en service.
+func chantier_de(res: String, id: int) -> Dictionary:
+	var sc := _chantiers()
+	var k := _cle(res, id)
+	if sc == null or not sc.en_cours(k):
+		return {}
+	return {"av": sc.avancement(k), "etape": sc.etape(k)}
 
 
 static func _classe(n: String) -> Variant:

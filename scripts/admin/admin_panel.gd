@@ -35,11 +35,20 @@ var _vie: OptionButton
 var _epuisement: CheckBox
 var _ev_auto: CheckBox
 var _catas: CheckBox
+var _instant: CheckBox
+var _horaires: OptionButton
 var _freq: OptionButton
 var _reseaux: CheckBox
 var _prix_serv: HSlider
 var _prix_serv_l: Label
+var _usure: OptionButton
+var _dechets: CheckBox
+var _dechets_q: HSlider
+var _dechets_q_l: Label
 const FREQS := [0.25, 1.0, 3.0]
+## Vitesse d'usure des voies et réseaux (budget communal).
+const USURES := [0.0, 0.5, 1.0, 2.0]
+const USURE_NOMS := ["Aucune", "Lente", "Normale", "Rapide"]
 var _status: Label
 
 
@@ -148,6 +157,15 @@ func _ready() -> void:
 	_deblocage.disabled = not editable
 	_deblocage.item_selected.connect(func(_i: int) -> void: _changed())
 	_row(g, "Bâtiments", _deblocage)
+	_instant = _check("Construction instantanée (pas de chantier)")
+	_instant.tooltip_text = "Bac à sable : bâtiments et voies apparaissent d'un coup au lieu de se construire étape par étape"
+	g.add_child(_instant)
+	_horaires = OptionButton.new()
+	for n in Chantiers.HORAIRES_NOMS:
+		_horaires.add_item(n)
+	_horaires.disabled = not editable
+	_horaires.item_selected.connect(func(_i: int) -> void: _changed())
+	_row(g, "Horaires des chantiers", _horaires)
 	_paliers_l = _label("", 12, UiStyle.TEXT_DIM)
 	_paliers_l.custom_minimum_size = Vector2(400, 0)
 	_paliers_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -163,6 +181,12 @@ func _ready() -> void:
 	_salaires = c[0]
 	_salaires_l = c[1]
 	_row(g, "Salaires", c[2])
+	_usure = OptionButton.new()
+	for n in USURE_NOMS:
+		_usure.add_item(n)
+	_usure.disabled = not editable
+	_usure.item_selected.connect(func(_i: int) -> void: _changed())
+	_row(g, "Usure des routes et réseaux", _usure)
 
 	# Temps.
 	g = _section(right, "Temps", "horloge")
@@ -198,13 +222,21 @@ func _ready() -> void:
 	_row(g, "Fréquence des catastrophes", _freq)
 
 	# Réseaux : électricité, eau, égouts.
-	g = _section(right, "Réseaux", "reseaux")
+	g = _section(left, "Réseaux", "reseaux")
 	_reseaux = _check("Réseaux obligatoires (sinon courant, eau et égouts partout d'office)")
 	g.add_child(_reseaux)
 	var ps := _slider(ReglagesPartie.PRIX_SERVICES_MIN, ReglagesPartie.PRIX_SERVICES_MAX, 0.25)
 	_prix_serv = ps[0]
 	_prix_serv_l = ps[1]
 	_row(g, "Factures d'eau et d'électricité", ps[2])
+	# Déchets.
+	g = _section(left, "Déchets", "dechets")
+	_dechets = _check("Déchets à ramasser (sacs qui débordent, collecte, décharges)")
+	g.add_child(_dechets)
+	c = _slider(0.5, 3.0, 0.25)
+	_dechets_q = c[0]
+	_dechets_q_l = c[1]
+	_row(g, "Quantité de déchets par habitant", c[2])
 
 	# Pied.
 	var foot := HBoxContainer.new()
@@ -329,6 +361,8 @@ func _fill() -> void:
 	_epuisement.button_pressed = reglages.epuisement
 	_ev_auto.button_pressed = reglages.evenements_auto
 	_catas.button_pressed = reglages.catastrophes
+	_instant.button_pressed = reglages.construction_instantanee
+	_horaires.select(maxi(0, Chantiers.HORAIRES.find(reglages.horaires_chantiers)))
 	var fi := 1
 	for i in FREQS.size():
 		if absf(float(FREQS[i]) - reglages.frequence_catastrophes) < 0.01:
@@ -336,6 +370,13 @@ func _fill() -> void:
 	_freq.select(fi)
 	_reseaux.button_pressed = reglages.reseaux_obligatoires
 	_prix_serv.value = reglages.prix_services
+	var ui := 2
+	for i in USURES.size():
+		if absf(float(USURES[i]) - reglages.usure) < 0.01:
+			ui = i
+	_usure.select(ui)
+	_dechets.button_pressed = reglages.dechets
+	_dechets_q.value = reglages.dechets_quantite
 	_filling = false
 	_update_labels()
 
@@ -355,9 +396,15 @@ func _changed() -> void:
 	reglages.epuisement = _epuisement.button_pressed
 	reglages.evenements_auto = _ev_auto.button_pressed
 	reglages.catastrophes = _catas.button_pressed
+	reglages.construction_instantanee = _instant.button_pressed
+	reglages.horaires_chantiers = String(Chantiers.HORAIRES[maxi(0, _horaires.selected)])
+	_horaires.disabled = not editable or _instant.button_pressed
 	reglages.frequence_catastrophes = float(FREQS[maxi(0, _freq.selected)])
 	reglages.reseaux_obligatoires = _reseaux.button_pressed
 	reglages.prix_services = _prix_serv.value
+	reglages.usure = float(USURES[maxi(0, _usure.selected)])
+	reglages.dechets = _dechets.button_pressed
+	reglages.dechets_quantite = _dechets_q.value
 	_emit()
 
 
@@ -371,6 +418,7 @@ func _update_labels() -> void:
 	_impots_l.text = "×" + ReglagesPartie._fmt(_impots.value)
 	_salaires_l.text = "×" + ReglagesPartie._fmt(_salaires.value)
 	_prix_serv_l.text = "×" + ReglagesPartie._fmt(_prix_serv.value)
+	_dechets_q_l.text = "×" + ReglagesPartie._fmt(_dechets_q.value)
 	_preset_label.text = reglages.preset_name()
 	_argent.editable = editable and not _illimite.button_pressed
 	if _caisse:

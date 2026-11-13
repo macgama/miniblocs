@@ -14,6 +14,8 @@ signal info_changed(text: String)
 signal message(text: String)
 signal network_changed
 signal spec_changed(type_id: String, spec: Dictionary)
+## Voie posée par le joueur (ses tronçons commencent par un chantier, voir ChantiersVoies).
+signal edges_built(edges: Array)
 
 enum Tool { NONE, BUILD, DEMOLISH, JUNCTION }
 
@@ -698,6 +700,7 @@ func _click_build() -> void:
 		message.emit(res.reason)
 		return
 	message.emit(_describe(res, true))
+	edges_built.emit(res.edges)
 	# On continue le tracé depuis le point posé, dans le prolongement.
 	var end_node: int = res.end_node
 	var pts: PackedVector3Array = res.pts

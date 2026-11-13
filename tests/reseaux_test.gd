@@ -194,8 +194,14 @@ func _run() -> void:
 	_check(res.taux(hameau, "elec") == 0.0, "le hameau n'a pas de courant")
 	var money0 := bs.money
 	var pts := res.trace_sur_relief(Vector3(0, y, 0), Vector3(0, y2, 300))
+	ReglagesPartie.actuel.construction_instantanee = false
 	var lid := res.poser("ligne_mt", pts)
 	_check(lid > 0 and bs.money < money0, "ligne MT posée et payée (%s)" % BuildingSystem.format_money(money0 - bs.money))
+	_check(not bool(res.elec.troncons[lid].ok) and not res.chantier_de("elec", lid).is_empty(), "la ligne commence par un chantier")
+	res.simuler(0.0)
+	_check(res.taux(hameau, "elec") == 0.0, "pendant le chantier, toujours pas de courant au hameau")
+	SuiviChantiers.instance.terminer(Reseaux._cle("elec", lid))
+	_check(bool(res.elec.troncons[lid].ok), "chantier terminé : ligne en service")
 	res.simuler(0.0)
 	_check(res.taux(hameau, "elec") >= 0.95, "la ligne MT apporte le courant au hameau")
 	var mesh := ReseauxVue.ligne_aerienne(pts, "ligne_mt")

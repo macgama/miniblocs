@@ -199,6 +199,11 @@ func _reseau(res: String) -> void:
 	var nb := 0
 	for id in reseaux.reseau(res).troncons:
 		nb += 1
+		var ch := reseaux.chantier_de(res, id)
+		if not ch.is_empty():
+			var et: Array = ch.etape
+			_label("Chantier : %s, %d %%%s" % [ReseauxTypes.troncon(String(reseaux.reseau(res).troncons[id].t)).get("name", ""), roundi(float(ch.av) * 100.0),
+				(" (%s)" % String(et[2]).to_lower()) if et.size() > 2 else ""], 12, Color("f4a261"))
 	_label("%d tronçon%s posé%s, %s · chaque route dessert aussi les bâtiments à moins de 30 m." % [nb, "s" if nb > 1 else "", "s" if nb > 1 else "", TransportSystem._km(float(b.lineaire))], 12, UiStyle.TEXT_DIM)
 	# Sources.
 	_label("Sources (Construire > Réseaux)" if res != "egout" else "Stations et rejets (Construire > Réseaux)", 14, UiStyle.ACCENT)

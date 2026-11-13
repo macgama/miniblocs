@@ -386,8 +386,11 @@ func on_arrival(hid: int, kind: String) -> void:
 
 # --- Santé ------------------------------------------------------------------------
 
-## Pollution (0-1) autour d'un logement : usines et industries à moins de 800 m.
+## Pollution (0-1) qui touche la santé autour d'un logement : air (et eau) du
+## module Nuisances, sinon usines et industries à moins de 800 m.
 func pollution_at(bid: int) -> float:
+	if Nuisances.instance != null:
+		return Nuisances.instance.sante(bid)
 	if _pollution.has(bid):
 		return _pollution[bid]
 	var v := 0.0
@@ -456,7 +459,7 @@ func health(p: Dictionary) -> Dictionary:
 	var pol := pollution_at(home)
 	if pol > 0.05:
 		f *= 1.0 + 0.4 * pol
-		why.append("− air pollué par les usines (%d %%)" % roundi(pol * 100.0))
+		why.append("− pollution de l'air et de l'eau (%d %%)" % roundi(pol * 100.0))
 	var sat := int(pop.satisfaction(p).value)
 	f *= 1.3 - 0.006 * sat
 	why.append("%s satisfaction %d / 100" % ["+" if sat >= 50 else "−", sat])

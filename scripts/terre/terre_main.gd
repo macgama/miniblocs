@@ -527,7 +527,8 @@ func _setup_nuisances() -> void:
 				continue
 			var c := nz.coef_foncier(bid)
 			var v := 0.5 + 0.5 * log(c) / log(3.0) if c >= 1.0 else 0.5 * (c - Nuisances.COEF_MIN) / (1.0 - Nuisances.COEF_MIN)
-			out.append([info.rect, clampf(v, 0.0, 1.0)])
+			# La parcelle autour du bâtiment, pour que la couleur se voie.
+			out.append([(info.rect as Rect2i).grow(8), clampf(v, 0.0, 1.0)])
 		return out
 	population.changed.connect(cl.rafraichir)
 	Calques.ajouter("immobilier_loyers", "Loyers", "Immobilier", cl.montrer,

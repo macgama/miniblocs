@@ -219,7 +219,7 @@ func _ready() -> void:
 	_row(g, "Fréquence des catastrophes", _freq)
 
 	# Déchets.
-	g = _section(right, "Déchets", "dechets")
+	g = _section(left, "Déchets", "dechets")
 	_dechets = _check("Déchets à ramasser (sacs qui débordent, collecte, décharges)")
 	g.add_child(_dechets)
 	c = _slider(0.5, 3.0, 0.25)

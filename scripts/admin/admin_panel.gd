@@ -43,6 +43,7 @@ var _catas: CheckBox
 var _telecom: CheckBox
 var _instant: CheckBox
 var _horaires: OptionButton
+var _rythme: OptionButton
 var _freq: OptionButton
 var _reseaux: CheckBox
 var _prix_serv: HSlider
@@ -197,6 +198,13 @@ func _ready() -> void:
 	_horaires.disabled = not editable
 	_horaires.item_selected.connect(func(_i: int) -> void: _changed())
 	_row(g, "Horaires des chantiers", _horaires)
+	_rythme = OptionButton.new()
+	for ry in ReglagesPartie.RYTHMES_CHANTIERS:
+		_rythme.add_item("Réaliste (×1)" if float(ry) == 1.0 else "× %d" % int(ry))
+	_rythme.tooltip_text = "Vitesse des chantiers (bâtiments, voies, réseaux) par rapport aux durées réelles"
+	_rythme.disabled = not editable
+	_rythme.item_selected.connect(func(_i: int) -> void: _changed())
+	_row(g, "Rythme des chantiers", _rythme)
 	_paliers_l = _label("", 12, UiStyle.TEXT_DIM)
 	_paliers_l.custom_minimum_size = Vector2(400, 0)
 	_paliers_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -440,6 +448,7 @@ func _fill() -> void:
 	_telecom.button_pressed = reglages.telecom_necessaire
 	_instant.button_pressed = reglages.construction_instantanee
 	_horaires.select(maxi(0, Chantiers.HORAIRES.find(reglages.horaires_chantiers)))
+	_rythme.select(_indice_rythme(reglages.rythme_chantiers))
 	var fi := 1
 	for i in FREQS.size():
 		if absf(float(FREQS[i]) - reglages.frequence_catastrophes) < 0.01:
@@ -492,6 +501,8 @@ func _changed() -> void:
 	reglages.telecom_necessaire = _telecom.button_pressed
 	reglages.construction_instantanee = _instant.button_pressed
 	reglages.horaires_chantiers = String(Chantiers.HORAIRES[maxi(0, _horaires.selected)])
+	reglages.rythme_chantiers = float(ReglagesPartie.RYTHMES_CHANTIERS[maxi(0, _rythme.selected)])
+	_rythme.disabled = not editable or _instant.button_pressed
 	_horaires.disabled = not editable or _instant.button_pressed
 	reglages.frequence_catastrophes = float(FREQS[maxi(0, _freq.selected)])
 	reglages.reseaux_obligatoires = _reseaux.button_pressed
@@ -545,3 +556,12 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	if k and k.pressed and not k.echo and (k.keycode == KEY_ESCAPE or k.keycode == KEY_F10):
 		get_viewport().set_input_as_handled()
 		close_panel()
+
+
+## Choix le plus proche d'un rythme de chantier (réglage d'une partie plus ancienne).
+static func _indice_rythme(v: float) -> int:
+	var best := 0
+	for i in ReglagesPartie.RYTHMES_CHANTIERS.size():
+		if absf(float(ReglagesPartie.RYTHMES_CHANTIERS[i]) - v) < absf(float(ReglagesPartie.RYTHMES_CHANTIERS[best]) - v):
+			best = i
+	return best

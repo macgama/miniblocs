@@ -4,6 +4,12 @@ Tout est dans `main`, et les 9 tests automatiques passent (`sh tests/tous.sh`).
 
 ## Nouveautés
 
+**Une partie complète jouable, de la fondation à 1 000 habitants** (13 novembre)
+- Le temps avance par défaut d'1 jour de jeu par minute (365 jours = 365 minutes) ; Maj+T garde les vitesses plus lentes pour regarder la ville vivre.
+- Nouveau réglage Admin « Rythme des chantiers », ×3 par défaut : les premières maisons des fondateurs sortent vers le jour 15, la ville passe 1 000 habitants vers le jour 75 (environ 1 h 15 de jeu).
+- Corrigés : une éolienne prenait 4 ans et 60 ouvriers (comptée comme une tour de 50 étages), le parc solaire coûtait 25 M€ (2,5 M€), les promoteurs des zones ouvraient des centaines de chantiers sans ouvriers, un chantier sans argent gardait ses ouvriers, de nouveaux arrivants s'installaient sous les tentes des fondateurs.
+- Nouveau test `tests/partie_test.gd` : une partie entière accélérée, sans aucune erreur de script, puis sauvegarde et chargement.
+
 **Les fondateurs du village** (touche **Maj+H**, 13 novembre)
 - 100 fondateurs (réglable dans l'Admin, F10) arrivent avec la Maison de commune et campent à côté. Ce sont les ouvriers des premiers chantiers : chaque chantier veut une équipe complète, donc il faut doser (pause, « En premier »). On les envoie vers n'importe quel métier, ils ont 90 jours de vivres et emménagent dans les maisons finies. Plus tard, l'Entreprise du bâtiment emploie les ouvriers (voir docs/fondateurs.md).
 

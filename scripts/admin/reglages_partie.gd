@@ -70,7 +70,7 @@ var impots := 1.0
 ## Multiplicateur des salaires (habitants, agents de la ville, production).
 var salaires := 1.0
 ## Vitesse du temps (indice de DayNight.SPEEDS) et de la vie (Population.LIFE_SPEEDS).
-var vitesse_temps: int = 2
+var vitesse_temps: int = DayNight.DEFAULT_SPEED
 var vitesse_vie: int = Population.DEFAULT_LIFE_SPEED
 ## Mines, carrières et puits s'épuisent ; forêts et poissons s'abîment si on exploite trop.
 var epuisement := true
@@ -119,6 +119,11 @@ var createur := ""
 var construction_instantanee := false
 ## Horaires des équipes : "semaine", "tous_les_jours" ou "continu" (Chantiers.HORAIRES).
 var horaires_chantiers := "semaine"
+## Rythme des chantiers : multiplie la vitesse de tous les chantiers (bâtiments,
+## voies, réseaux). 1 = durées réalistes au rythme de la vie ; 3 par défaut pour
+## que les premières maisons des fondateurs sortent en 2 à 3 semaines de jeu.
+var rythme_chantiers := 3.0
+const RYTHMES_CHANTIERS := [1.0, 2.0, 3.0, 5.0, 10.0]
 ## Fondateurs arrivés avec le premier village (réserve de travailleurs,
 ## scripts/communes/fondateurs.gd) : 0 = aucun.
 var fondateurs: int = 100
@@ -271,7 +276,7 @@ func to_dict() -> Dictionary:
 		"epuisement": epuisement, "deblocage": deblocage, "createur": createur,
 		"record_habitants": record_habitants, "evenements_auto": evenements_auto, "catastrophes": catastrophes,
 		"frequence_catastrophes": frequence_catastrophes, "faim": faim, "telecom_necessaire": telecom_necessaire, "construction_instantanee": construction_instantanee,
-		"horaires_chantiers": horaires_chantiers, "usure": usure, "dechets": dechets, "dechets_quantite": dechets_quantite, "pollution": pollution, "pollution_sante": pollution_sante,
+		"horaires_chantiers": horaires_chantiers, "rythme_chantiers": rythme_chantiers, "usure": usure, "dechets": dechets, "dechets_quantite": dechets_quantite, "pollution": pollution, "pollution_sante": pollution_sante,
 		"elections": elections, "manifestations": manifestations, "funeraire": funeraire, "cremation": cremation, "reseaux_obligatoires": reseaux_obligatoires, "prix_services": prix_services,
 		"fondation": fondation, "territoire": territoire, "fondateurs": fondateurs, "vivres_jours": vivres_jours, "main_oeuvre": main_oeuvre}
 
@@ -311,6 +316,7 @@ func from_dict(d: Dictionary) -> void:
 	usure = clampf(float(d.get("usure", 1.0)), 0.0, 3.0)
 	construction_instantanee = bool(d.get("construction_instantanee", false))
 	horaires_chantiers = String(d.get("horaires_chantiers", "semaine"))
+	rythme_chantiers = clampf(float(d.get("rythme_chantiers", 3.0)), 0.25, 20.0)
 	if not Chantiers.HORAIRES.has(horaires_chantiers):
 		horaires_chantiers = "semaine"
 	dechets = bool(d.get("dechets", true))

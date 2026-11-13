@@ -14,7 +14,8 @@ const SECTIONS := [
 	]],
 	["Barre du bas", [
 		["Tab · Gérer / Créer", "Gérer : la ville (terrain, voies, zonage, catalogue, lignes, habitants). Créer : construire un bâtiment soi-même (murs et étages, blocs, intérieur, Mes créations, banque, atelier), la ville en pause ; touches 1 à 7 et échelle des étages"],
-		["Catégories", "Observer, Terrain, Voies, Paysage : un clic ouvre leurs outils juste au-dessus ; Construire, Lignes, Habitants ouvrent leur panneau à droite (un seul à la fois)"],
+		["Catégories", "Observer, Terrain, Voies, Paysage : un clic ouvre leurs outils juste au-dessus ; Construire et Décors ouvrent leur panneau à droite (un seul à la fois)"],
+		["Menus ▴", "Transports (lignes, trafic, circulation, véhicules), Ville (habitants, urgences, avis, budget, déchets), Économie (production, agriculture), Infos (infos, cartes) : un clic ouvre la rangée de leurs panneaux ; les touches restent les mêmes"],
 		["Circulation, Véhicules, Vue", "afficher la circulation, choisir l'époque et la région des véhicules, changer de vue"],
 		["1", "observer : survoler une case pour voir son altitude et son biome (et le nom de la rivière)"],
 		["2 · 3 · 4", "aplanir, monter de 1 m, creuser de 1 m (clic gauche glissé)"],
@@ -106,7 +107,7 @@ const SECTIONS := [
 		["G", "panneau Décors : 160 modèles (bancs, lampadaires, fontaines, statues, clôtures, panneaux, marché, jeux, plage, ferme, animaux, bateaux, rochers)"],
 		["Poser", "clic : un décor ; glisser : une rangée, ou une clôture d'un point à l'autre ; R / Maj+R : tourner"],
 		["Pinceau, Gomme", "semer au hasard (troupeau, bottes de foin, rochers) ; la gomme efface aussi les décors automatiques"],
-		["Automatiques", "bancs et poteaux le long des routes, bottes de foin après la moisson, troupeaux qui broutent, pontons et bateaux, rochers (case à cocher du panneau)"],
+		["Automatiques", "bancs et poteaux le long des routes, pontons et bateaux près de vos bâtiments, rochers et canards sauvages ; ailleurs la Terre reste vierge (case à cocher du panneau)"],
 	]],
 	["Réseaux (électricité, eau, égouts, chauffage)", [
 		["O", "panneau Réseaux : production et demande, sources, bâtiments coupés, comptes ; ses onglets allument le calque du réseau (pastille verte, orange ou rouge sur chaque bâtiment)"],

@@ -80,24 +80,32 @@ const CATEGORIES := [
 	{"id": "voies", "name": "Voies", "icon": "route", "key": "5-9", "tools": [4, 5, 6, 7, 9, 8]},
 	{"id": "paysage", "name": "Paysage", "icon": "paysage", "key": "0", "tools": [10]},
 	{"id": "construire", "name": "Construire", "icon": "construire", "key": "B", "panel": true},
-	{"id": "lignes", "name": "Lignes", "icon": "lignes", "key": "L", "panel": true},
-	{"id": "habitants", "name": "Habitants", "icon": "habitants", "key": "H", "panel": true},
-	{"id": "production", "name": "Production", "icon": "ressources", "key": "P", "panel": true},
-	{"id": "agriculture", "name": "Agriculture", "icon": "agriculture", "key": "Maj+F", "panel": true},
+	{"id": "lignes", "name": "Lignes", "icon": "lignes", "key": "L", "panel": true, "group": "transports"},
+	{"id": "habitants", "name": "Habitants", "icon": "habitants", "key": "H", "panel": true, "group": "ville"},
+	{"id": "production", "name": "Production", "icon": "ressources", "key": "P", "panel": true, "group": "economie"},
+	{"id": "agriculture", "name": "Agriculture", "icon": "agriculture", "key": "Maj+F", "panel": true, "group": "economie"},
 	{"id": "decors", "name": "Décors", "icon": "decors", "key": "G", "panel": true},
-	{"id": "infos", "name": "Infos", "icon": "infos", "key": "I", "panel": true},
-	{"id": "urgences", "name": "Urgences", "icon": "services", "key": "U", "panel": true},
-	{"id": "avis", "name": "Avis", "icon": "urne", "key": "Y", "panel": true},
-	{"id": "trafic", "name": "Trafic", "icon": "circulation", "key": "Maj+L", "panel": true},
-	{"id": "budget", "name": "Budget", "icon": "budget", "key": "M", "panel": true},
-	{"id": "dechets", "name": "Déchets", "icon": "dechets", "key": "X", "panel": true},
-	{"id": "cartes", "name": "Cartes", "icon": "cartes", "key": "N", "panel": true},
+	{"id": "infos", "name": "Infos", "icon": "infos", "key": "I", "panel": true, "group": "infos"},
+	{"id": "urgences", "name": "Urgences", "icon": "services", "key": "U", "panel": true, "group": "ville"},
+	{"id": "avis", "name": "Avis", "icon": "urne", "key": "Y", "panel": true, "group": "ville"},
+	{"id": "trafic", "name": "Trafic", "icon": "circulation", "key": "Maj+L", "panel": true, "group": "transports"},
+	{"id": "budget", "name": "Budget", "icon": "budget", "key": "M", "panel": true, "group": "ville"},
+	{"id": "dechets", "name": "Déchets", "icon": "dechets", "key": "X", "panel": true, "group": "ville"},
+	{"id": "cartes", "name": "Cartes", "icon": "cartes", "key": "N", "panel": true, "group": "infos"},
 	{"id": "murs", "name": "Murs et étages", "icon": "mur", "key": "2", "panel": true, "mode": "creer"},
 	{"id": "blocs", "name": "Blocs", "icon": "editeur", "key": "3", "panel": true, "mode": "creer"},
 	{"id": "interieur", "name": "Intérieur", "icon": "interieur", "key": "4", "panel": true, "mode": "creer"},
 	{"id": "creations", "name": "Mes créations", "icon": "creations", "key": "5", "panel": true, "mode": "creer"},
 	{"id": "banque", "name": "Banque", "icon": "banque", "key": "6", "panel": true, "mode": "creer"},
 	{"id": "atelier", "name": "Atelier", "icon": "atelier", "key": "7", "panel": true, "mode": "creer"},
+]
+## Menus de la barre du bas (mode Gérer) : leurs panneaux s'ouvrent dans une
+## petite rangée au-dessus du bouton, pour que la barre tienne sur tout écran.
+const GROUPS := [
+	{"id": "transports", "name": "Transports", "icon": "lignes"},
+	{"id": "ville", "name": "Ville", "icon": "habitants"},
+	{"id": "economie", "name": "Économie", "icon": "ressources"},
+	{"id": "infos", "name": "Infos", "icon": "infos"},
 ]
 ## Touches 2 à 5 du mode Créer.
 const CREATE_KEYS := {KEY_2: "murs", KEY_3: "blocs", KEY_4: "interieur", KEY_5: "creations", KEY_6: "banque", KEY_7: "atelier"}
@@ -148,6 +156,14 @@ var _gerer_only: Array[Control] = []
 var _creer_only: Array[Control] = []
 var _level_label: Label
 var _mode_badge: PanelContainer
+## Menus de la barre : bouton et rangée de chaque groupe, menu ouvert.
+var _group_buttons := {}
+var _group_popups := {}
+var _open_group := ""
+var _dock: PanelContainer
+var _cell_card: PanelContainer
+## Barre en icônes seules (écran étroit).
+var compact := false
 ## Dernier outil choisi dans chaque catégorie (clic sur la catégorie = on y revient).
 var _last_tool := {"terrain": 1, "voies": 4}
 # Panneau de réglage de la voie à poser.
@@ -195,6 +211,8 @@ func _ready() -> void:
 	credit.offset_bottom = -6
 	add_child(credit)
 	_update_categories()
+	get_viewport().size_changed.connect(_fit_dock)
+	_fit_dock.call_deferred()
 
 
 # --- Barre du haut : lieu, partie, chiffres (l'horloge se place au centre) ---------
@@ -324,6 +342,7 @@ func _build_cell_card() -> void:
 	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	UiStyle.style_panel(card, 0.82, 12, 10)
 	add_child(card)
+	_cell_card = card
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 3)
 	card.add_child(box)
@@ -405,6 +424,7 @@ func _build_bottom() -> void:
 	dock.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	UiStyle.style_panel(dock, 0.88, 14, 8)
 	col.add_child(dock)
+	_dock = dock
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 4)
 	dock.add_child(row)
@@ -423,17 +443,20 @@ func _build_bottom() -> void:
 		b.toggle_mode = true
 		var id: String = c.id
 		b.pressed.connect(func() -> void: _on_category(id))
-		row.add_child(b)
 		_cat_buttons[id] = b
+		var gid: String = c.get("group", "")
+		if gid == "":
+			row.add_child(b)
+			continue
+		if not _group_popups.has(gid):
+			row.add_child(_build_group(gid))
+		(_group_popups[gid].get_child(0) as HBoxContainer).add_child(b)
 	var fsep := UiStyle.vsep()
 	row.add_child(fsep)
 	_creer_only.append(fsep)
 	var floor_box := _build_floor_widget()
 	row.add_child(floor_box)
 	_creer_only.append(floor_box)
-	var tsep := UiStyle.vsep()
-	row.add_child(tsep)
-	_gerer_only.append(tsep)
 	var traffic := UiStyle.tile_button("circulation", "Circulation", "", DOCK_TILE)
 	traffic.tooltip_text = "Afficher ou masquer la circulation"
 	traffic.toggle_mode = true
@@ -443,16 +466,145 @@ func _build_bottom() -> void:
 	for k in ["font_pressed_color", "font_hover_pressed_color", "icon_pressed_color", "icon_hover_pressed_color"]:
 		traffic.add_theme_color_override(k, UiStyle.GOOD)
 	traffic.toggled.connect(func(on: bool) -> void: traffic_toggled.emit(on))
-	row.add_child(traffic)
-	_gerer_only.append(traffic)
-	var veh := _build_vehicle_menu()
-	row.add_child(veh)
-	_gerer_only.append(veh)
+	# Circulation et véhicules : dans le menu Transports.
+	var trow := _group_popups.transports.get_child(0) as HBoxContainer
+	trow.add_child(UiStyle.vsep())
+	trow.add_child(traffic)
+	trow.add_child(_build_vehicle_menu())
 	row.add_child(UiStyle.vsep())
 	_view_button = UiStyle.tile_button("vue", "Dessus", "V", DOCK_TILE)
 	_view_button.tooltip_text = "Vue suivante : dessus, 3e personne, 1re personne (V)"
 	_view_button.pressed.connect(func() -> void: view_requested.emit())
 	row.add_child(_view_button)
+
+
+## Bouton d'un menu de la barre et sa rangée de panneaux (cachée).
+func _build_group(gid: String) -> Button:
+	var g: Dictionary = {}
+	for gg in GROUPS:
+		if gg.id == gid:
+			g = gg
+	var keys := []
+	for c in CATEGORIES:
+		if c.get("group", "") == gid:
+			keys.append("%s (%s)" % [c.name, c.key])
+	var b := UiStyle.tile_button(g.icon, g.name + " ▴", "", DOCK_TILE)
+	b.tooltip_text = "%s : %s" % [g.name, ", ".join(keys)]
+	b.toggle_mode = true
+	b.pressed.connect(func() -> void: toggle_group(gid))
+	_group_buttons[gid] = b
+	_gerer_only.append(b)
+	var pop := PanelContainer.new()
+	pop.name = "Menu_" + gid
+	UiStyle.style_panel(pop, 0.94, 12, 6)
+	pop.visible = false
+	var r := HBoxContainer.new()
+	r.add_theme_constant_override("separation", 4)
+	pop.add_child(r)
+	add_child(pop)
+	_group_popups[gid] = pop
+	return b
+
+
+## Ouvre (ou ferme) la rangée d'un menu, juste au-dessus de son bouton.
+func toggle_group(gid: String) -> void:
+	_open_group = "" if _open_group == gid else gid
+	_place_group_popup()
+	_refresh_groups()
+
+
+func close_groups() -> void:
+	if _open_group != "":
+		_open_group = ""
+		_place_group_popup()
+		_refresh_groups()
+
+
+func _place_group_popup() -> void:
+	for id in _group_popups:
+		(_group_popups[id] as Control).visible = id == _open_group
+	if _open_group == "":
+		return
+	var pop: PanelContainer = _group_popups[_open_group]
+	var b: Button = _group_buttons[_open_group]
+	pop.reset_size()
+	var sz := pop.get_combined_minimum_size()
+	var view := get_viewport().get_visible_rect().size
+	var x := b.global_position.x + b.size.x * 0.5 - sz.x * 0.5
+	x = clampf(x, 8.0, maxf(8.0, view.x - sz.x - 8.0))
+	pop.position = Vector2(x, _dock.global_position.y - sz.y - 6.0)
+	pop.size = sz
+
+
+## Bouton d'un menu allumé s'il est ouvert ou si l'un de ses panneaux l'est.
+func _refresh_groups() -> void:
+	for gid in _group_buttons:
+		var on: bool = gid == _open_group
+		for c in CATEGORIES:
+			if c.get("group", "") == gid and (_cat_buttons[c.id] as Button).button_pressed:
+				on = true
+		(_group_buttons[gid] as Button).set_pressed_no_signal(on)
+
+
+## Fait tenir la barre dans l'écran, à droite de la carte de la case : icônes
+## seules si la place manque. width : largeur de l'écran (tests), sinon la vraie.
+func _fit_dock(width := -1.0) -> void:
+	if _dock == null:
+		return
+	var view := width if width > 0.0 else get_viewport().get_visible_rect().size.x
+	var card_right := 10.0 + _cell_card.size.x + 10.0
+	set_compact(false)
+	var w := _dock.get_combined_minimum_size().x
+	if w > view - card_right - 10.0:
+		set_compact(true)
+		w = _dock.get_combined_minimum_size().x
+	# Centre de la barre décalé à droite si elle chevaucherait la carte.
+	var col := _dock.get_parent() as Control
+	var col_w := col.get_combined_minimum_size().x
+	var shift := maxf(0.0, card_right + w * 0.5 - view * 0.5)
+	shift = minf(shift, maxf(0.0, (view - col_w) * 0.5 - 10.0))
+	col.offset_left = shift
+	col.offset_right = shift
+	_place_group_popup()
+
+
+## Icônes seules (le nom reste dans l'infobulle) : la barre est presque deux fois plus courte.
+func set_compact(on: bool) -> void:
+	if compact == on:
+		return
+	compact = on
+	var tiles: Array = _cat_buttons.values() + _group_buttons.values() + [_view_button]
+	for b in tiles:
+		var btn := b as Button
+		if btn.get_parent() != _dock.get_child(0):
+			continue # les rangées des menus gardent leurs noms
+		if on:
+			btn.set_meta("label", btn.text)
+			btn.text = ""
+			btn.custom_minimum_size = Vector2(52, 52)
+		else:
+			btn.text = String(btn.get_meta("label", btn.text))
+			btn.custom_minimum_size = DOCK_TILE
+	for m in _mode_buttons.values():
+		var mb := m as Button
+		if on:
+			mb.set_meta("label", mb.text)
+			mb.text = ""
+			mb.custom_minimum_size = Vector2(34, 26)
+		else:
+			mb.text = String(mb.get_meta("label", mb.text))
+			mb.custom_minimum_size = Vector2(84, 30)
+
+
+func _input(event: InputEvent) -> void:
+	# Clic ailleurs : le menu ouvert se referme.
+	var mb := event as InputEventMouseButton
+	if _open_group == "" or mb == null or not mb.pressed:
+		return
+	var pop: Control = _group_popups[_open_group]
+	var b: Control = _group_buttons[_open_group]
+	if not pop.get_global_rect().has_point(mb.position) and not b.get_global_rect().has_point(mb.position):
+		close_groups()
 
 
 ## Interrupteur Gérer / Créer, à gauche de la barre du bas.
@@ -561,6 +713,7 @@ func set_create_mode(on: bool) -> void:
 	_mode_badge.visible = on
 	_message_label.offset_top = 110 if on else 76
 	_update_categories()
+	_fit_dock.call_deferred()
 
 
 ## Mode Créer : catégorie allumée ("" : aucune).
@@ -580,6 +733,7 @@ func set_level_text(text: String) -> void:
 
 
 func _on_category(id: String) -> void:
+	close_groups()
 	var c := _category(id)
 	if c.get("mode", "gerer") == "creer":
 		_create_cat = "" if _create_cat == id else id
@@ -661,6 +815,9 @@ func _update_categories() -> void:
 			b.set_pressed_no_signal(c.id == cat and (not create_mode or _create_cat == ""))
 	for n in _gerer_only:
 		n.visible = not create_mode
+	if create_mode:
+		close_groups()
+	_refresh_groups()
 	for n in _creer_only:
 		n.visible = create_mode
 	var tools: Array = _category(cat).get("tools", [])
@@ -695,6 +852,7 @@ func set_panel_open(id: String, on: bool) -> void:
 	var b := _cat_buttons.get(id) as Button
 	if b and b.button_pressed != on:
 		b.set_pressed_no_signal(on)
+		_refresh_groups()
 
 
 ## Le bouton Admin n'est montré qu'à qui peut administrer la partie.

@@ -186,6 +186,15 @@ func examiner(v: int) -> void:
 
 
 func elections_de(v: int) -> Elections:
+	# Le chef-lieu reprend l'élection d'avant les villages (même objet, même mandat).
+	if v >= 0 and not elections_villes.has(v) and Communes.instance != null and v == Communes.instance.principal() \
+			and elections_villes.has(-1) and (elections_villes[-1] as Elections).vid == -1:
+		var e0: Elections = elections_villes[-1]
+		e0.vid = v
+		elections_villes[v] = e0
+		if historiques.has(-1) and not historiques.has(v):
+			historiques[v] = historiques[-1]
+		return e0
 	if not elections_villes.has(v):
 		var e := Elections.new(self)
 		e.vid = v
@@ -219,7 +228,7 @@ func maire_de(v: int) -> Dictionary:
 func dans_ville(bid: int) -> bool:
 	if ville_vid < 0 or Communes.instance == null:
 		return true
-	return int(Communes.instance.bat_village.get(bid, -1)) == ville_vid
+	return Communes.instance.village_de(bid) == ville_vid
 
 
 ## Habitants de la ville examinée.
@@ -453,7 +462,7 @@ func echantillon(adultes := false, n_max := ECHANTILLON) -> Array:
 	for pid in population.persons:
 		if adultes and population.age_of(population.persons[pid]) < Population.ADULT_AGE:
 			continue
-		if filtre and int(cm.bat_village.get(population.home_of(population.persons[pid]), -1)) != ville_vid:
+		if filtre and cm.village_de(population.home_of(population.persons[pid])) != ville_vid:
 			continue
 		ids.append(pid)
 	if ids.size() <= n_max:
@@ -848,6 +857,8 @@ func to_dict() -> Dictionary:
 		ef.append(e.duplicate())
 	var vs := {}
 	for v in elections_villes:
+		if int(v) == -1 and (elections_villes[v] as Elections).vid != -1:
+			continue  # déjà sauvée avec le chef-lieu
 		vs[str(v)] = {"elections": (elections_villes[v] as Elections).to_dict(), "historique": (historiques.get(v, []) as Array).duplicate(true)}
 	return {"version": 2, "effets": ef, "historique": historique.duplicate(true), "elections": elections.to_dict(),
 		"manifs": manifs.to_dict(), "villes": vs, "ville_vid": ville_vid}

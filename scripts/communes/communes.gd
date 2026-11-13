@@ -163,6 +163,17 @@ func village_au_point(x: float, z: float) -> int:
 	return int(proprio.get(case_de(x, z), -1))
 
 
+## Village d'un bâtiment, d'après la carte tenue à jour (calculé s'il manque).
+func village_de(bid: int) -> int:
+	if bat_village.has(bid):
+		return int(bat_village[bid])
+	if buildings == null or not buildings.buildings.has(bid):
+		return -1
+	var v := village_du_batiment(bid)
+	bat_village[bid] = v
+	return v
+
+
 func village_du_batiment(bid: int) -> int:
 	if buildings == null or not buildings.buildings.has(bid):
 		return -1

@@ -140,7 +140,7 @@ func chiffres(vid: int) -> Dictionary:
 		"sans_ecole": 0, "actifs": 0, "chomeurs": 0}
 	for pid in population.persons:
 		var p: Dictionary = population.persons[pid]
-		if int(communes.bat_village.get(population.home_of(p), -1)) != vid:
+		if communes.village_de(population.home_of(p)) != vid:
 			continue
 		var s := population.stage(p)
 		if s == "eleve" and int(p.sch) < 0:
@@ -157,7 +157,7 @@ func chiffres(vid: int) -> Dictionary:
 func compter(vid: int, type_id: String) -> int:
 	var n := 0
 	for bid in buildings.buildings:
-		if String(buildings.buildings[bid].t) == type_id and int(communes.bat_village.get(bid, -1)) == vid:
+		if String(buildings.buildings[bid].t) == type_id and communes.village_de(bid) == vid:
 			n += 1
 	return n
 

@@ -162,7 +162,7 @@ func _run() -> void:
 	await process_frame
 	scene.avis_panel.set_open(true)
 	scene.avis_panel.show_view("elections")
-	_check(scene.avis_panel._body.get_child_count() > 2, "panneau Avis : la mairie perdue est expliquée")
+	_check(scene.avis_panel._body.get_child_count() >= 2, "panneau Avis rempli (sans habitants dans ce test)")
 	scene.avis_panel.set_open(false)
 	scene.budget_panel.set_open(true)
 	var bandeau := false

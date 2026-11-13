@@ -272,7 +272,7 @@ func joueur_decide(k := -1) -> bool:
 
 func _filtre_ville(k: int) -> Callable:
 	var cm := Communes.instance
-	return func(bid: int) -> bool: return cm != null and int(cm.bat_village.get(bid, -1)) == k
+	return func(bid: int) -> bool: return cm != null and cm.village_de(bid) == k
 
 
 ## Caisse propriétaire d'une voie (-1 sans pays).

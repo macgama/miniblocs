@@ -90,6 +90,7 @@ var fondateurs: Fondateurs
 var fondateurs_panel: FondateursPanel
 var pays: Pays
 var pays_panel: PaysPanel
+var pilote: PiloteAuto
 
 
 func _ready() -> void:
@@ -295,6 +296,7 @@ func save_sections() -> Dictionary:
 	sec["communes"] = communes.to_dict()
 	sec["fondateurs"] = fondateurs.to_dict()
 	sec["pays"] = pays.to_dict()
+	sec["pilote"] = pilote.to_dict()
 	return sec
 
 
@@ -379,6 +381,7 @@ func load_game(slot := "") -> bool:
 	# Après les villages et le budget : une caisse par ville (sans section : ancienne partie).
 	pays.from_dict(sec.get("pays", {}))
 	pays.capital_auto = true
+	pilote.from_dict(sec.get("pilote", {}))
 	# Après les bâtiments, les habitants et les villages.
 	fondateurs.from_dict(sec.get("fondateurs", {}))
 	avis.from_dict(sec.get("avis", {}))
@@ -674,6 +677,12 @@ func _setup_pays() -> void:
 	pays.foyer = func() -> Vector2: return Vector2(rig.position.x, rig.position.z)
 	pays.message.connect(func(t: String) -> void: hud.show_message(t))
 	pays.changed.connect(func() -> void: _unsaved = true)
+	pilote = PiloteAuto.new()
+	pilote.name = "PiloteAuto"
+	add_child(pilote)
+	pilote.setup(buildings, transport, zones, communes, population, pays, world)
+	pilote.message.connect(func(t: String) -> void: hud.show_message(t))
+	pilote.changed.connect(func() -> void: _unsaved = true)
 	pays_panel = PaysPanel.new()
 	pays_panel.name = "PanneauPays"
 	add_child(pays_panel)
@@ -1452,6 +1461,8 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 		avis.clear()
 	if pays != null:
 		pays.clear()
+	if pilote != null:
+		pilote.clear()
 	if communes != null:
 		communes.clear()
 	if fondateurs != null:

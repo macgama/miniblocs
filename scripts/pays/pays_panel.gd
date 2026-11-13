@@ -278,6 +278,24 @@ func _carte_ville(vid: int) -> void:
 	if bool(e.get("tutelle", false)):
 		var l := _text("Sous tutelle du préfet : caisse dans le rouge trop longtemps.", false, 12)
 		l.add_theme_color_override("font_color", Color("ff6b6b"))
+	var pa := PiloteAuto.instance
+	if pa != null:
+		var rp := _row()
+		var on := pa.actif(vid)
+		var lp := Label.new()
+		lp.text = "Pilote automatique : %s" % ("en marche" if on else "arrêté")
+		lp.add_theme_font_size_override("font_size", 12)
+		lp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		if on:
+			lp.add_theme_color_override("font_color", UiStyle.ACCENT)
+		rp.add_child(lp)
+		rp.add_child(_button("Arrêter" if on else "Activer", func() -> void:
+			pa.activer(vid, not on)
+			refresh(), not maire and not on,
+			"La ville tient son budget à l'équilibre et construit selon ses besoins : rues, logements, écoles, services, emplois. Une décision par semaine."))
+		var jl: Array = pa.journal.get(vid, [])
+		if on and not jl.is_empty():
+			_text("Dernière décision (jour %d) : %s" % [int(jl[-1].jour), String(jl[-1].texte)], true, 11)
 	var r := _row()
 	r.add_child(_button("Gérer", func() -> void:
 		pays.choisir(vid, true)

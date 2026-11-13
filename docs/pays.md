@@ -68,3 +68,21 @@ mairie perdue »** (par défaut pour les nouvelles parties) :
 - ses promesses deviennent des objectifs : les tenir aide sa liste, les rater t'aide ;
 - pour reprendre la mairie : gagner les municipales suivantes, ou lancer des élections
   anticipées quand une **pétition** circule (satisfaction sous 40).
+
+## Pilote automatique
+
+Panneau Pays (Maj+P) → **Activer** sous une ville. Une fois par semaine de jeu, si tu en es
+le maire :
+
+1. budget tenu à l'équilibre (`GestionAuto`, programme « équilibre ») ;
+2. **une** construction, la plus urgente, payée par la ville en gardant une réserve de
+   3 mois de dépenses (200 k€ au moins) :
+   - pas de rue : une rue de 300 m devant la mairie ;
+   - logements presque pleins : zone résidentielle de 40 × 30 m le long d'une rue ;
+   - services selon la population : école (60 hab., ou enfants sans école), aire de jeux (40),
+     boulangerie (80), parc (150), pompiers et police (250), supérette (300), gymnase (600),
+     hôpital (2 000) ;
+   - chômage au-dessus de 12 % : zone commerciale ou industrielle ;
+   - plus de place : une impasse est prolongée de 120 m, ou une rue est ouverte en travers.
+
+Les dernières décisions s'affichent sous la ville. Code : `scripts/pays/pilote_auto.gd`.

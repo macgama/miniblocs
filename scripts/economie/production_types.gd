@@ -66,7 +66,19 @@ const TYPES := {
 	"ferme_laitiere": {"name": "Ferme laitière", "w": 36, "d": 28, "access": RP, "emplois": 5, "cost": 1_100_000,
 		"prod": {"kind": "extraction", "res": {"paturage": 1.5}, "good": "lait", "radius": 300.0, "min": 0.2},
 		"desc": "Stabulation, salle de traite et tank à lait. Vaches dans les prés."},
+	"concession_agricole": {"name": "Concession de machines agricoles", "w": 36, "d": 28, "access": ROAD, "emplois": 6,
+		"cost": 1_800_000, "prod": {"kind": "service"},
+		"desc": "Vend, loue et répare les tracteurs et les machines : achats 10 % moins chers, réparations deux fois moins chères."},
+	"silo_cooperative": {"name": "Silo de coopérative agricole", "w": 30, "d": 24, "access": RP, "emplois": 4,
+		"cost": 2_000_000, "prod": {"kind": "entrepot"},
+		"desc": "Les fermes y apportent leurs récoltes (grain, colza, foin…) : un entrepôt pour toute la région."},
 	# --- Transformation -------------------------------------------------------------------
+	"huilerie": {"name": "Huilerie", "w": 30, "d": 24, "access": ROAD, "emplois": 10, "cost": 2_500_000,
+		"prod": {"kind": "transformation", "in": {"oleagineux": 10.0}, "out": {"huile": 4.0}},
+		"desc": "Graines de colza, de tournesol et de soja → huile."},
+	"filature": {"name": "Filature de laine", "w": 30, "d": 24, "access": ROAD, "emplois": 15, "cost": 2_000_000,
+		"prod": {"kind": "transformation", "in": {"laine": 1.0}, "out": {"fibres": 0.85}},
+		"desc": "Laine de mouton lavée, cardée et filée → fibres pour le textile."},
 	"scierie": {"name": "Scierie", "w": 36, "d": 30, "access": ROAD, "emplois": 20, "cost": 2_500_000,
 		"prod": {"kind": "transformation", "in": {"bois": 30.0}, "out": {"planches": 18.0}},
 		"desc": "Grumes → planches."},
@@ -147,8 +159,9 @@ const TYPES := {
 }
 ## Ordre dans le panneau : de la ressource brute au produit fini.
 const ORDER := ["exploitation_forestiere", "ferme_cereales", "ferme_maraichere", "ferme_betteraves", "ferme_fibres",
-	"elevage", "ferme_laitiere", "port_peche", "carriere", "sabliere", "argiliere", "mine_ciel_ouvert", "mine", "mine_sel", "puits",
-	"scierie", "moulin", "fournil", "abattoir", "laiterie", "sucrerie", "usine_agro", "brasserie",
+	"elevage", "ferme_laitiere", "silo_cooperative",
+	"concession_agricole", "port_peche", "carriere", "sabliere", "argiliere", "mine_ciel_ouvert", "mine", "mine_sel", "puits",
+	"scierie", "moulin", "fournil", "abattoir", "laiterie", "sucrerie", "huilerie", "filature", "usine_agro", "brasserie",
 	"briqueterie", "cimenterie", "verrerie", "papeterie", "acierie", "fonderie_cuivre", "aluminerie", "raffinerie",
 	"usine_chimique", "menuiserie", "usine_textile", "usine_hygiene", "labo_pharma", "usine_biens",
 	"usine_electronique", "usine_auto", "transporteur"]
@@ -423,19 +436,36 @@ static func build(k: BlocMesh, id: String, t: Dictionary) -> void:
 			for p in [Vector2(-8, 7), Vector2(-3, 10), Vector2(3, 8), Vector2(8, 11)]:
 				k.box(p.x, 0.7, p.y, 2.2, 1.1, 0.9, Color("f8f9fa"))
 				k.box(p.x + 0.3, 1.0, p.y, 0.8, 0.5, 0.92, Color("3d3d3d"))
-		"laiterie", "sucrerie", "usine_agro", "brasserie", "usine_hygiene", "labo_pharma", "usine_electronique", "usine_textile":
+		"concession_agricole":
+			k.plate(0, 0, w, d, BETON)
+			k.box(-6, 0, -4, 20, 7, 14, Color("e9ecef"))
+			k.box(-6, 7, -4, 20.4, 0.5, 14.4, Color("2a9d8f"))
+			k.box(-6, 0.5, -11.05, 14, 4.5, 0.2, VITRE)
+			for i in 3:
+				k.box(8 + i * 0.1, 0, -6 + i * 6, 3, 2.8, 4.4, [Color("2d6a4f"), Color("d62828"), Color("f4a261")][i])
+		"silo_cooperative":
+			k.plate(0, 0, w, d, BETON)
+			for i in 4:
+				k.cylinder(-9 + i * 5.5, 0, -4, 2.5, 2.5, 18, 14, Color("dee2e6"))
+				k.cylinder(-9 + i * 5.5, 18, -4, 2.6, 0.3, 2.4, 14, Color("adb5bd"))
+			k.box(0, 0, 6, 22, 9, 8, TOLE)
+			k.box(12, 0, -4, 1.4, 26, 1.4, ACIER)
+		"laiterie", "sucrerie", "usine_agro", "brasserie", "usine_hygiene", "labo_pharma", "usine_electronique", "usine_textile", \
+				"huilerie", "filature":
 			var col := {"laiterie": Color("f8f9fa"), "sucrerie": Color("e9e2d4"), "usine_agro": Color("f4e3c1"),
 				"brasserie": Color("d4a373"), "usine_hygiene": Color("dbe9ee"), "labo_pharma": Color("ffffff"),
-				"usine_electronique": Color("e9ecef"), "usine_textile": Color("e6ccb2")}[id] as Color
+				"usine_electronique": Color("e9ecef"), "usine_textile": Color("e6ccb2"), "huilerie": Color("f4e3a1"),
+				"filature": Color("e6ccb2")}[id] as Color
 			var roof := {"laiterie": Color("4ea8de"), "sucrerie": TOLE, "usine_agro": Color("e4572e"),
 				"brasserie": Color("8c4a3a"), "usine_hygiene": Color("2a9d8f"), "labo_pharma": Color("2a9d8f"),
-				"usine_electronique": Color("1d3557"), "usine_textile": Color("6c757d")}[id] as Color
+				"usine_electronique": Color("1d3557"), "usine_textile": Color("6c757d"), "huilerie": Color("e9c46a"),
+				"filature": Color("8c4a3a")}[id] as Color
 			k.plate(0, 0, w, d, BETON)
 			k.box(-2, 0, 0, w * 0.62, 8, d * 0.6, col)
 			k.box(-2, 8, 0, w * 0.62 + 0.4, 0.5, d * 0.6 + 0.4, roof)
 			k.box(-2, 0.5, -d * 0.3 - 0.05, w * 0.4, 2.6, 0.2, VITRE)
 			match id:
-				"laiterie", "brasserie", "sucrerie":
+				"laiterie", "brasserie", "sucrerie", "huilerie":
 					for i in 3:
 						k.cylinder(w * 0.36, 0, -d * 0.3 + i * 4.0, 1.6, 1.6, 9 + i, 12, Color("ced4da"))
 				"labo_pharma", "usine_electronique":

@@ -27,6 +27,8 @@ signal changed
 signal message(text: String)
 ## Une tonne extraite d'un site (les carrières creusent le terrain d'autant).
 signal extrait(bid: int, res: String, t: float)
+## Une journée vient de se terminer (courses faites, salaires payés).
+signal day_passed
 
 ## Stock maximal d'un entrepôt (t, toutes marchandises).
 const STOCK_ENTREPOT := 20000.0
@@ -81,6 +83,10 @@ var population: Population
 var transport: TransportSystem
 var ambiance: DayNight
 var carte: CarteRessources
+## Agriculture (champs, élevage) : les fermes qu'elle gère produisent par elle,
+## et elle dit ce qu'elles fournissent et ce dont elles ont besoin. Objet avec
+## manages(bid), outputs(bid), needs(bid), cap(bid, g), status_of(bid).
+var agri: Object = null
 
 ## Sites : id du bâtiment -> {kind, st (stock), inc (en route vers lui), res,
 ## rich, reserve, vit, work, eff, status, cash, mois, dem, manque…}.
@@ -192,6 +198,10 @@ func check_site(id: String, rect: Rect2i) -> Dictionary:
 		return {"info": recipe_text(id)}
 	if prod.kind == "logistique":
 		return {"info": "Ses chauffeurs-livreurs livrent toute la ville."}
+	if prod.kind == "elevage":
+		return {"info": "Élevage : achète les bêtes et nourris-les (Maj+F, Agriculture)."}
+	if prod.kind == "service" or prod.kind == "entrepot":
+		return {"info": String(BuildingCatalog.get_type(id).get("desc", ""))}
 	var best := carte.best_of((prod.res as Dictionary).keys(), rect, float(prod.get("radius", 0.0)))
 	if float(best.rich) < 0.0:
 		return {"reason": "Ressources en cours de lecture (relief et biomes)…"}
@@ -240,6 +250,12 @@ static func recipe_text(id: String) -> String:
 		return ""
 	if prod.kind == "logistique":
 		return "Chauffeurs-livreurs pour toute la ville"
+	if prod.kind == "elevage":
+		return "Élevage : bêtes, fourrage et produits (Maj+F)"
+	if prod.kind == "service":
+		return "Machines agricoles : vente, location, réparations"
+	if prod.kind == "entrepot":
+		return "Entrepôt : stocke les récoltes et les marchandises"
 	if prod.kind == "extraction":
 		var names: Array[String] = []
 		for r in prod.res:
@@ -264,6 +280,9 @@ static func kind_of(type_id: String) -> String:
 	var prod := ProductionTypes.prod_of(type_id)
 	if not prod.is_empty():
 		return String(prod.kind)
+	# Fermes de la bible (bergerie, porcherie, ferme à cour carrée…) : élevage et champs.
+	if AgriDonnees.est_ferme(type_id):
+		return "elevage"
 	var t := BuildingCatalog.get_type(type_id)
 	if type_id == "entrepot" or String(t.get("arch", "")) == "entrepot":
 		return "entrepot"
@@ -460,6 +479,8 @@ func route_between(a: int, b: int) -> Dictionary:
 func outputs_of(bid: int) -> Dictionary:
 	var s: Dictionary = sites[bid]
 	var prod := ProductionTypes.prod_of(_type_of(bid))
+	if agri != null and agri.manages(bid):
+		return agri.outputs(bid)
 	match String(s.kind):
 		"extraction":
 			if String(s.res) == "":
@@ -485,6 +506,10 @@ func cap_of(bid: int, good: String) -> float:
 			return STOCK_ENTREPOT
 		"commerce":
 			return maxf(_shop_need(bid, good) * TARGET_DAYS_SHOP * 1.5, 0.05)
+	if agri != null and agri.manages(bid):
+		var c := float(agri.cap(bid, good))
+		if c > 0.0:
+			return c
 	var out := outputs_of(bid)
 	if out.has(good):
 		return maxf(float(out[good]) * SITE_DAYS, SITE_MIN_T)
@@ -558,6 +583,18 @@ func _flow(good: String, t: float, flow: String) -> void:
 
 
 # --- Comptes des entreprises --------------------------------------------------------------
+
+## Ajoute (ou retire, t < 0) une marchandise dans le stock d'un site.
+func put(bid: int, good: String, t: float) -> void:
+	if sites.has(bid):
+		_put(bid, good, t)
+		_flow(good, t, "prod" if t > 0.0 else "conso")
+
+
+## Paie (amount < 0) ou encaisse une somme pour une entreprise.
+func pay(bid: int, poste: String, amount: float) -> void:
+	_pay(bid, poste, amount)
+
 
 ## Écrit un mouvement dans la caisse d'une entreprise (et dans les comptes de l'économie).
 func _pay(bid: int, poste: String, amount: float) -> void:
@@ -662,6 +699,17 @@ func step_hours(h: float) -> void:
 			continue
 		if staff <= 0.0:
 			s.status = "Personne n'y travaille : il faut des habitants"
+			continue
+		if agri != null and agri.manages(bid):
+			s.status = String(agri.status_of(bid))
+			s.eff = staff
+			continue
+		if kind == "elevage":
+			s.status = "Ni champ ni bête : trace ses champs ou achète ses bêtes (Agriculture, Maj+F)"
+			continue
+		if kind == "service":
+			s.status = "Ouvert" if staff >= 0.999 else "Ouvert (%d %% des emplois pourvus)" % roundi(staff * 100.0)
+			s.eff = staff
 			continue
 		if kind == "commerce":
 			_bake(bid, frac, staff)
@@ -783,6 +831,8 @@ func _shop_need(bid: int, good: String) -> float:
 func needs_of(bid: int) -> Dictionary:
 	var s: Dictionary = sites[bid]
 	var out := {}
+	if agri != null and agri.manages(bid):
+		return agri.needs(bid)
 	match String(s.kind):
 		"transformation":
 			var prod := ProductionTypes.prod_of(_type_of(bid))
@@ -960,7 +1010,8 @@ func _dispatch(t: float) -> void:
 	for bid in sites:
 		var s: Dictionary = sites[bid]
 		s.attente = ""
-		if not String(s.kind) in ["transformation", "commerce"] or not buildings.buildings.has(bid):
+		var managed: bool = agri != null and agri.manages(bid)
+		if not (String(s.kind) in ["transformation", "commerce"] or managed) or not buildings.buildings.has(bid):
 			continue
 		if _workers(bid) <= 0:
 			continue
@@ -1018,7 +1069,7 @@ func _best_source(to: int, g: String) -> Dictionary:
 			continue
 		var s: Dictionary = sites[bid]
 		var kind := String(s.kind)
-		if kind == "entrepot" or (kind in ["extraction", "transformation"] and outputs_of(bid).has(g)):
+		if kind == "entrepot" or (kind in ["extraction", "transformation", "elevage"] and outputs_of(bid).has(g)):
 			if stock_of(bid, g) > 0.001:
 				cands.append([_pos_of(bid).distance_squared_to(here), bid])
 	cands.sort_custom(func(a: Array, b: Array) -> bool: return float(a[0]) < float(b[0]))
@@ -1107,7 +1158,7 @@ func _push_surplus(t: float, free: Dictionary, n_free: int) -> void:
 		if n_free <= 0:
 			return
 		var s: Dictionary = sites[bid]
-		if not String(s.kind) in ["extraction", "transformation"] or _workers(bid) <= 0:
+		if not String(s.kind) in ["extraction", "transformation", "elevage"] or _workers(bid) <= 0:
 			continue
 		var outs := outputs_of(bid)
 		for g in outs:
@@ -1611,6 +1662,7 @@ func new_day() -> void:
 		ledger.mois = {}
 		ledger.jours = 0
 	changed.emit()
+	day_passed.emit()
 
 
 func _empty_shelves() -> int:
@@ -1630,7 +1682,7 @@ func summary() -> String:
 	var active := 0
 	var prod_sites := 0
 	for s in sites.values():
-		if String(s.kind) in ["extraction", "transformation"]:
+		if String(s.kind) in ["extraction", "transformation", "elevage"]:
 			prod_sites += 1
 			if float(s.get("eff", 0.0)) > 0.0:
 				active += 1

@@ -39,10 +39,14 @@ var _telecom: CheckBox
 var _instant: CheckBox
 var _horaires: OptionButton
 var _freq: OptionButton
+var _faim: OptionButton
 var _usure: OptionButton
 var _dechets: CheckBox
 var _dechets_q: HSlider
 var _dechets_q_l: Label
+var _funeraire: CheckBox
+var _cremation: OptionButton
+const CREMATIONS := [-1.0, 0.1, 0.25, 0.5, 0.75, 0.95]
 var _pollution: OptionButton
 var _pol_sante: CheckBox
 const FREQS := [0.25, 1.0, 3.0]
@@ -207,6 +211,12 @@ func _ready() -> void:
 	g = _section(right, "Ressources", "ressources")
 	_epuisement = _check("Épuisement des ressources (mines, puits, forêts et poissons surexploités)")
 	g.add_child(_epuisement)
+	_faim = OptionButton.new()
+	for n in ["Aucun effet", "Normale (santé, départs)", "Mortelle (on peut mourir de faim)"]:
+		_faim.add_item(n)
+	_faim.disabled = not editable
+	_faim.item_selected.connect(func(_i: int) -> void: _changed())
+	_row(g, "Faim quand les magasins sont vides", _faim)
 
 	# Événements de la ville.
 	g = _section(right, "Événements", "infos")
@@ -233,6 +243,16 @@ func _ready() -> void:
 	_dechets_q = c[0]
 	_dechets_q_l = c[1]
 	_row(g, "Quantité de déchets par habitant", c[2])
+	# Obsèques et cimetières.
+	g = _section(left, "Obsèques et cimetières", "funeraire")
+	_funeraire = _check("Obsèques, cimetières qui se remplissent, corbillards et crématorium")
+	g.add_child(_funeraire)
+	_cremation = OptionButton.new()
+	for n in ["Selon la région de chacun", "10 %", "25 %", "50 %", "75 %", "95 %"]:
+		_cremation.add_item(n)
+	_cremation.disabled = not editable
+	_cremation.item_selected.connect(func(_i: int) -> void: _changed())
+	_row(g, "Part des crémations", _cremation)
 	# Pollution et bruit.
 	g = _section(right, "Pollution et bruit", "cartes")
 	_pollution = OptionButton.new()
@@ -375,6 +395,7 @@ func _fill() -> void:
 		if absf(float(FREQS[i]) - reglages.frequence_catastrophes) < 0.01:
 			fi = i
 	_freq.select(fi)
+	_faim.select(maxi(ReglagesPartie.FAIMS.find(reglages.faim), 0))
 	var ui := 2
 	for i in USURES.size():
 		if absf(float(USURES[i]) - reglages.usure) < 0.01:
@@ -382,6 +403,12 @@ func _fill() -> void:
 	_usure.select(ui)
 	_dechets.button_pressed = reglages.dechets
 	_dechets_q.value = reglages.dechets_quantite
+	_funeraire.button_pressed = reglages.funeraire
+	var ci := 0
+	for i in CREMATIONS.size():
+		if absf(float(CREMATIONS[i]) - reglages.cremation) < 0.01:
+			ci = i
+	_cremation.select(ci)
 	_pollution.select(clampi(reglages.pollution, 0, 3))
 	_pol_sante.button_pressed = reglages.pollution_sante
 	_filling = false
@@ -408,8 +435,11 @@ func _changed() -> void:
 	reglages.horaires_chantiers = String(Chantiers.HORAIRES[maxi(0, _horaires.selected)])
 	_horaires.disabled = not editable or _instant.button_pressed
 	reglages.frequence_catastrophes = float(FREQS[maxi(0, _freq.selected)])
+	reglages.faim = String(ReglagesPartie.FAIMS[clampi(_faim.selected, 0, 2)])
 	reglages.usure = float(USURES[maxi(0, _usure.selected)])
 	reglages.dechets = _dechets.button_pressed
+	reglages.funeraire = _funeraire.button_pressed
+	reglages.cremation = float(CREMATIONS[maxi(0, _cremation.selected)])
 	reglages.dechets_quantite = _dechets_q.value
 	reglages.pollution = maxi(0, _pollution.selected)
 	reglages.pollution_sante = _pol_sante.button_pressed

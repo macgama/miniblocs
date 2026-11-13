@@ -99,6 +99,8 @@ const SECTIONS := [
 		["Carrières et mines", "le périmètre d'extraction se pose tout seul à côté des installations ; chaque tonne creuse la fosse en gradins et les stériles montent en verse (terril pour une mine souterraine). La réserve est la roche du périmètre"],
 		["P → Mines", "état des fosses (profondeur, gradins, réserve, années restantes), « Nouveau périmètre » (glisser un rectangle), sondage (15 000 €, deux jours : richesse exacte), réaménagement : plan d'eau, remblai ou fosse laissée"],
 		["Vie du site", "pelle et tombereaux de 7 h à 17 h en semaine, tir de mine à midi dans les carrières de roche et les mines à ciel ouvert"],
+		["Maj+F", "Agriculture : choisir une ferme, « Préparer la ferme », tracer des champs (culture au choix), acheter ou louer des machines, acheter des bêtes ; les ouvriers labourent, sèment et moissonnent selon la saison"],
+		["Repas", "les habitants mangent chaque jour dans les commerces ; s'ils manquent de nourriture : santé et satisfaction baissent, puis ils déménagent (Admin : faim aucune, normale ou mortelle)"],
 	]],
 	["Décors", [
 		["G", "panneau Décors : 160 modèles (bancs, lampadaires, fontaines, statues, clôtures, panneaux, marché, jeux, plage, ferme, animaux, bateaux, rochers)"],
@@ -112,6 +114,21 @@ const SECTIONS := [
 		["Sur la route", "gyrophares et sirène deux-tons : ils passent les feux au ralenti, les autres se rangent à droite, ils doublent par la voie d'en face quand elle est libre"],
 		["Équipages", "un véhicule ne part que si son équipage est de garde aujourd'hui (employés du bâtiment) ; l'ambulance passe par l'hôpital avant de rentrer"],
 		["Appel d'essai ici", "bouton du panneau : un appel au hasard près de la caméra, pour voir partir les secours"],
+	]],
+	["Trafic", [
+		["Maj+L", "panneau Trafic (bouton Trafic de la barre du bas) : comment les habitants se déplacent, temps perdu dans les bouchons et pour se garer, routes saturées, parkings, remplissage des lignes"],
+		["Bouchons", "chaque rue a une capacité (voies × débit de sa classe) ; plus elle est chargée à l'heure de pointe, plus on y roule lentement, et les habitants changent de route ou prennent le bus, le vélo"],
+		["Carte du trafic", "bouton du panneau : routes colorées du vert (fluide) au rouge (bouché), maintenant ou à l'heure de pointe ; parkings colorés selon leur remplissage"],
+		["Stationnement", "places privées des entreprises, puis le long des rues et dans les parkings (Lignes > Parking) ; sans place, on tourne et on marche ; tarif réglable par parking"],
+		["Lignes", "chaque bus, tram ou métro a ses places ; plein, on attend le suivant ; ticket réglable par ligne (1,50 € par défaut, gratuit pour les moins de 18 ans)"],
+		["Voie de bus", "Choisir une route > Voie de bus : bus et trams y passent les bouchons, les voitures perdent une voie ; Fermer à la circulation coupe la route"],
+	]],
+	["Services publics", [
+		["Maj + U", "panneau Services publics : écoles, hôpitaux, police ; habitants bien couverts, loin, saturés ou sans service ; places, lits et agents de chaque bâtiment (clic : y aller)"],
+		["Voir la couverture", "bouton du panneau (ou panneau Cartes) : chaque logement en couleur, vert bien couvert, jaune loin, orange saturé, rouge rien ; les services en bleu"],
+		["Distance", "temps de trajet par les routes et chemins : école 15 min (maternelle, élémentaire), 25 min (collège), 40 min (lycée), à pied ou en car ; hôpital 30 min en voiture ; police 10 min d'intervention. Au double, plus de couverture"],
+		["Places", "école : pupitres ; hôpital : 3 lits pour 1 000 habitants ; police : 1 agent pour 400 habitants. Sans personnel embauché, le service ne couvre rien"],
+		["Conséquences", "santé et espérance de vie (hôpital), satisfaction des habitants, petits délits (cambriolages) dans les quartiers sans police"],
 	]],
 	["Internet et téléphone", [
 		["Maj + O", "panneau Internet et téléphone (aussi en onglet « Télécom » du panneau Réseaux, O) : outils des câbles, calques, bâtiment survolé, bilan"],
@@ -130,6 +147,15 @@ const SECTIONS := [
 		["Tri", "sans centre de tri personne ne trie ; avec lui, recyclables et verre partent en balles et en calcin vers l'usine de recyclage et les usines (verrerie, brasserie…)"],
 		["Décharge pleine", "bouton « Recouvrir » du panneau : elle devient une colline verte et pollue beaucoup moins"],
 		["Admin (F10)", "déchets oui/non, quantité par habitant ×0,5 à ×3"],
+	]],
+	["Obsèques et cimetières", [
+		["H → Funéraire", "décès, obsèques en cours et à venir, défunts qui attendent une place, places libres de chaque cimetière, corbillards"],
+		["Construire → Funéraire", "pompes funèbres (2 corbillards), cimetière de village, communal, paysager, militaire, d'Asie, musulman, juif, columbarium, crématorium"],
+		["Obsèques", "1 à 3 jours après le décès, du lundi au samedi : le corbillard prend le défunt chez lui ou à l'hôpital, passe au lieu de culte, puis va au cimetière ou au crématorium ; la famille suit en voiture"],
+		["Cimetière", "les proches se rassemblent autour de la fosse, puis la pierre tombale apparaît, fleurie quelques semaines ; clic sur une tombe : la fiche du défunt"],
+		["Plus de place", "le défunt attend à la chambre funéraire, puis il est enterré dans une commune voisine : plus cher, et la famille est mécontente"],
+		["Argent", "la famille paie les obsèques (≈ 3 800 €) ; la commune encaisse les concessions de 30 ans et la redevance du crématorium, et paie l'entretien"],
+		["Admin (F10)", "obsèques oui/non, part des crémations (selon la région de chacun, ou de 10 à 95 %)"],
 	]],
 	["Pollution, bruit et valeur", [
 		["N", "panneau Cartes : air, eau, bruit le jour et la nuit, valeur du terrain, loyers (une carte à la fois, et celles des autres systèmes)"],

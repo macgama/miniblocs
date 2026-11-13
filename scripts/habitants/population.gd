@@ -22,6 +22,8 @@ signal building_selected(bid: int)
 signal follow_changed
 ## Clic sur un habitant visible dans la rue.
 signal person_clicked(pid: int)
+## Un habitant meurt (il est encore dans persons, son foyer aussi) : obsèques (Funeraire).
+signal person_died(pid: int, home: int)
 ## Questions du personnage principal (PersonnagePrincipal.questions).
 signal questions_changed
 
@@ -103,6 +105,10 @@ var extra_buildings: Callable
 var extra_pick: Callable
 ## Satisfaction venue d'ailleurs (commerces de l'économie locale) : f(p) -> [delta, raisons].
 var extra_satisfaction: Callable
+## Optionnel : Callable(p) -> [facteur de mortalité, raisons] (ex. la faim, voir Repas).
+var extra_health: Callable
+## Services publics : school_ok(p, bid_école) -> bool (trajet acceptable). Sans : toutes les écoles.
+var school_ok: Callable
 ## Attrait d'un logement pour les arrivants (bid) -> multiplicateur (Nuisances : bruit, pollution, valeur).
 var attrait_logement: Callable
 
@@ -133,6 +139,8 @@ var _follow_target := Vector3.ZERO
 var _follow_set := Vector3.INF
 ## Habitants visibles près de la caméra.
 var passants: Passants
+## Modèle de trafic (bouchons, stationnement, affluence des lignes), ou null.
+var trafic: Trafic
 ## Ordre « Aller à… » en attente d'un clic sur un bâtiment (habitant, ou -1).
 var order_pick := -1
 ## Habitant incarné en vue au sol (-1 : aucun).
@@ -651,8 +659,14 @@ func _match_all() -> void:
 		var p: Dictionary = persons[pid]
 		var st := stage(p)
 		if st == "eleve":
+			# École devenue trop loin (route coupée, déménagement) : on en cherche une autre.
+			if int(p.sch) >= 0 and school_ok.is_valid() and known.has(int(p.sch)) and not school_ok.call(p, int(p.sch)):
+				_leave_school(p)
 			if int(p.sch) < 0 and not schools.is_empty():
-				var best := _nearest(home_of(p), schools)
+				var possibles := schools
+				if school_ok.is_valid():
+					possibles = schools.filter(func(b: int) -> bool: return school_ok.call(p, b))
+				var best := _nearest(home_of(p), possibles) if not possibles.is_empty() else -1
 				if best >= 0:
 					_join_school(p, best)
 					if free_seats(best) <= 0:
@@ -925,6 +939,10 @@ func commute(p: Dictionary, from_bid: int, to_bid: int) -> Dictionary:
 	var bike := d <= BIKE_MAX and age < 75.0 and (int(p.id) % 3 == 0 or not cars)
 	var bike_min := maxi(3, roundi(d / 250.0))
 	var car_min := maxi(3, roundi(d / 500.0) + 3)
+	if trafic != null:
+		var ct := trafic.car_trip(from_bid, to_bid, d)
+		if not ct.is_empty():
+			return _choose_mode(p, d, age, cars and bool(ct.ok), ct, tc, bike, bike_min)
 	# Les amoureux de la voiture la prennent ; les autres choisissent le plus rapide.
 	if cars and int(p.id) % 2 == 1:
 		return {"mode": "en voiture", "min": car_min, "m": d}
@@ -935,6 +953,38 @@ func commute(p: Dictionary, from_bid: int, to_bid: int) -> Dictionary:
 	if cars:
 		return {"mode": "en voiture", "min": car_min, "m": d}
 	return {"mode": "à pied (long trajet)", "min": roundi(d / 80.0), "m": d}
+
+
+## Choix du mode avec le modèle de trafic : chacun prend le trajet le moins
+## pénible (temps + coût converti en minutes), avec ses habitudes : les
+## amoureux de la voiture la gardent tant qu'elle n'est pas beaucoup plus lente.
+func _choose_mode(p: Dictionary, d: float, age: float, cars: bool, ct: Dictionary, tc: Dictionary, bike: bool, bike_min: int) -> Dictionary:
+	var best := {}
+	var best_g := INF
+	if cars:
+		var g := float(ct.min) + float(ct.cost) * Trafic.MIN_PER_EURO
+		if int(p.id) % 2 == 1:
+			g *= 0.6
+		best = {"mode": "en voiture", "min": int(ct.min), "m": d, "delay": float(ct.delay), "park": float(ct.park)}
+		best_g = g
+	if not tc.is_empty():
+		var fare := 0.0
+		if age >= ADULT_AGE:
+			for leg in (tc.trip as Dictionary).get("legs", []):
+				if String(leg.type) == "ligne":
+					fare = maxf(fare, trafic.fare_of(int(leg.line)))
+		var g2 := float(tc.min) + fare * Trafic.MIN_PER_EURO
+		if g2 < best_g:
+			best = {"mode": tc.mode, "min": tc.min, "m": d, "detail": tc.detail, "trip": tc.trip}
+			best_g = g2
+	if bike:
+		var g3 := float(bike_min) * (1.0 if int(p.id) % 3 == 0 else 1.4)
+		if g3 < best_g:
+			best = {"mode": "à vélo", "min": bike_min, "m": d}
+			best_g = g3
+	if best.is_empty():
+		return {"mode": "à pied (long trajet)", "min": roundi(d / 80.0), "m": d}
+	return best
 
 
 ## Trajet en transports publics plus rapide que la marche (planificateur des
@@ -1301,7 +1351,7 @@ func satisfaction(p: Dictionary) -> Dictionary:
 				why.append("+ va à l'école")
 			else:
 				s -= 20.0
-				why.append("− pas de place à l'école")
+				why.append("− pas de place dans une école proche")
 		"retraite":
 			s += 10.0
 		"etudiant":

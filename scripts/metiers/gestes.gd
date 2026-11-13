@@ -58,6 +58,8 @@ const GESTES := {
 	"couler": {"t": "coule le métal", "a": "pousser", "o": "", "p": "creuset"},
 	"chariot": {"t": "range le stock", "a": "ranger", "o": "carton", "p": "rack"},
 	# Dehors : champs, forêt, carrière, mer.
+	"creuser": {"t": "creuse une fosse", "a": "becher", "o": "beche", "p": ""},
+	"recueillement": {"t": "se recueille", "a": "recueil", "o": "", "p": ""},
 	"becher": {"t": "travaille la terre", "a": "becher", "o": "beche", "p": "sillons"},
 	"recolter": {"t": "récolte", "a": "cueillir", "o": "panier", "p": "sillons"},
 	"nourrir": {"t": "nourrit les bêtes", "a": "jeter", "o": "seau", "p": "mangeoire"},
@@ -158,12 +160,13 @@ const PAR_CATEGORIE := {
 }
 
 ## Métiers d'extérieur : on les voit dehors, autour du bâtiment, sans vue en coupe.
-const DEHORS := ["becher", "recolter", "nourrir", "traire", "tronconner", "empiler", "piocher", "forer", "filet",
+const DEHORS := ["creuser", "becher", "recolter", "nourrir", "traire", "tronconner", "empiler", "piocher", "forer", "filet",
 	"trier_poisson", "conduire", "charger", "balayer", "lance", "entretien_camion", "surveiller"]
 
 ## Bâtiments dont les employés travaillent dehors.
 const BATIMENTS_DEHORS := ["ferme", "ferme_cereales", "elevage", "exploitation_forestiere", "carriere", "sabliere",
-	"argiliere", "port_peche", "puits", "mine", "mine_ciel_ouvert", "marche"]
+	"argiliere", "port_peche", "puits", "mine", "mine_ciel_ouvert", "marche", "cimetiere_village", "cimetiere_communal", "cimetiere_paysager",
+	"cimetiere_militaire", "cimetiere_asie", "cimetiere_musulman", "cimetiere_juif"]
 
 ## Durée d'un geste avant de passer au suivant (secondes de jeu).
 const DUREE := 600.0

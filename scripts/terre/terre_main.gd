@@ -25,18 +25,30 @@ var habitants_panel: HabitantsPanel
 ## Ressources naturelles et chaînes de production (touche P).
 var production: Production
 var production_panel: ProductionPanel
+## Agriculture : champs, travaux, machines, élevage et repas (Maj+F).
+var agriculture: Agriculture
+var agri_panel: AgriPanel
+var agri_visuels: AgriVisuels
 var resource_overlay: RessourcesOverlay
 ## Carrières et mines : fosses qui se creusent, verses, sondages (P → Mines).
 var carrieres: Carrieres
 ## Services d'urgence : pompiers, ambulances, police sur les routes (touche U).
 var urgences: Urgences
 var urgences_panel: UrgencesPanel
+## Trafic : bouchons, stationnement, affluence des lignes (Maj + L).
+var trafic: Trafic
+var trafic_panel: TraficPanel
+var trafic_overlay: TraficOverlay
+var services: ServicesPublics
+var services_panel: ServicesPanel
 ## Budget de la commune : impôts, emprunts, entretien et usure des voies (touche M).
 var budget: BudgetCommunal
 var budget_panel: BudgetPanel
 ## Déchets : collecte, décharges, tri et recyclage (touche X).
 var dechets: Dechets
 var dechets_panel: DechetsPanel
+## Obsèques, cimetières, crématorium, pompes funèbres (onglet Funéraire du panneau H).
+var funeraire: Funeraire
 ## Chantiers, usure des bâtiments, abords et fumée des maisons habitées.
 var vie_batiments: BatimentsVie
 ## Chantiers des voies et des réseaux (SuiviChantiers) et des voies (ChantiersVoies).
@@ -101,10 +113,14 @@ func _ready() -> void:
 	_setup_population()
 	_setup_mobilier()
 	_setup_production()
+	_setup_agriculture()
 	_setup_budget()
 	_setup_urgences()
+	_setup_trafic()
+	_setup_services()
 	_setup_telecom()
 	_setup_dechets()
+	_setup_funeraire()
 	_setup_vie()
 	_setup_decors()
 	_setup_evenements()
@@ -198,7 +214,7 @@ func _ready() -> void:
 			hud.show_message("Partie chargée : %s." % _game_title())
 		else:
 			hud.show_message("Chargement impossible : " + last_error))
-	for sig in [world.terrain_edited, transport.network_changed, buildings.changed, zones.changed, blocks.changed, plans.changed, transport.stations.lines_changed, transport.junctions.changed, population.changed, production.changed, mobilier.changed, evenements.changed, decors.changed]:
+	for sig in [world.terrain_edited, transport.network_changed, buildings.changed, zones.changed, blocks.changed, plans.changed, transport.stations.lines_changed, transport.junctions.changed, population.changed, production.changed, agriculture.changed, mobilier.changed, evenements.changed, decors.changed]:
 		(sig as Signal).connect(func(_a = null) -> void: _unsaved = true)
 	hud.build_requested.connect(func() -> void: build_panel.toggle())
 	var vue := get_node_or_null("VueSol")
@@ -249,8 +265,8 @@ func save_sections() -> Dictionary:
 		"zones": zones.to_dict(), "blocs": blocks.to_dict(), "plans": plans.to_dict(), "ambiance": ambiance.to_dict(),
 		"creations": Creations.to_dict(Creations.used_by(buildings)),
 		"personnage": ($VueSol as VueSol).to_dict(), "habitants": population.to_dict(), "mobilier": mobilier.to_dict(),
-		"production": production.to_dict(), "urgences": urgences.to_dict(), "dechets": dechets.to_dict(), "reglages": _settings_snapshot().to_dict(), "budget": budget.to_dict(), "evenements": evenements.to_dict(), "decors": decors.to_dict(),
-		"nuisances": nuisances.to_dict(), "telecom": telecom.to_dict(), "carrieres": carrieres.to_dict()}
+		"production": production.to_dict(), "agriculture": agriculture.to_dict(), "urgences": urgences.to_dict(), "dechets": dechets.to_dict(), "funeraire": funeraire.to_dict(), "trafic": trafic.to_dict(), "reglages": _settings_snapshot().to_dict(), "budget": budget.to_dict(), "evenements": evenements.to_dict(), "decors": decors.to_dict(),
+		"nuisances": nuisances.to_dict(), "telecom": telecom.to_dict(), "services": services.to_dict(), "carrieres": carrieres.to_dict()}
 
 
 ## Sauvegarde dans la partie en cours (ou une nouvelle). title : nom d'une nouvelle partie.
@@ -307,11 +323,15 @@ func load_game(slot := "") -> bool:
 	population.from_dict(sec.get("habitants", {}))
 	production.from_dict(sec.get("production", {}))
 	carrieres.from_dict(sec.get("carrieres", {}))
+	agriculture.from_dict(sec.get("agriculture", {}))
 	budget.from_dict(sec.get("budget", {}))
 	decors.from_dict(sec.get("decors", {}))
 	urgences.from_dict(sec.get("urgences", {}))
+	trafic.from_dict(sec.get("trafic", {}))
+	services.from_dict(sec.get("services", {}))
 	telecom.from_dict(sec.get("telecom", {}))
 	dechets.from_dict(sec.get("dechets", {}))
+	funeraire.from_dict(sec.get("funeraire", {}))
 	ambiance.from_dict(sec.get("ambiance", {}))
 	# Après les bâtiments et les habitants : dégâts, ruines, malades, matchs.
 	evenements.from_dict(sec.get("evenements", {}))
@@ -618,6 +638,32 @@ func _setup_production() -> void:
 		carrieres.start_tool(mode, bid))
 
 
+## Agriculture : champs, machines, bêtes, repas des habitants et panneau (Maj+F).
+func _setup_agriculture() -> void:
+	agriculture = Agriculture.new()
+	agriculture.name = "Agriculture"
+	add_child(agriculture)
+	agriculture.setup(world, buildings, population, production, ambiance)
+	agriculture.message.connect(func(t: String) -> void: hud.show_message(t))
+	agriculture.info_changed.connect(func(t: String) -> void: hud.set_tool_info(t))
+	agri_visuels = AgriVisuels.new()
+	agri_visuels.name = "ChampsVisibles"
+	add_child(agri_visuels)
+	agri_visuels.setup(agriculture, world)
+	agri_panel = AgriPanel.new()
+	agri_panel.name = "PanneauAgriculture"
+	add_child(agri_panel)
+	agri_panel.setup(agriculture)
+	agri_panel.focus_requested.connect(func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
+	agri_panel.outil_demande.connect(func() -> void:
+		var o := agriculture.outil
+		_select_building_tool()
+		agriculture.outil = o)
+	hud.agriculture_requested.connect(func() -> void: agri_panel.toggle())
+
+
 ## Internet et téléphone (scripts/reseaux/telecom.gd) et son panneau (Maj + O),
 ## aussi en onglet du panneau Réseaux (O) quand il existe.
 func _setup_telecom() -> void:
@@ -663,6 +709,34 @@ func _setup_budget() -> void:
 
 
 ## Urgences : casernes, appels, véhicules prioritaires et panneau (U).
+func _setup_trafic() -> void:
+	trafic = Trafic.new()
+	trafic.name = "Trafic"
+	add_child(trafic)
+	trafic.setup(transport, population)
+	population.trafic = trafic
+	trafic.message.connect(func(t: String) -> void: hud.show_message(t))
+	trafic_overlay = TraficOverlay.new()
+	trafic_overlay.name = "CarteTrafic"
+	add_child(trafic_overlay)
+	trafic_overlay.setup(trafic)
+	trafic_panel = TraficPanel.new()
+	trafic_panel.name = "PanneauTrafic"
+	add_child(trafic_panel)
+	trafic_panel.setup(trafic, trafic_overlay, transport.camera)
+	trafic_panel.focus_requested.connect(func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
+	hud.trafic_requested.connect(func() -> void: trafic_panel.toggle())
+	_register_trafic_map.call_deferred()
+
+
+## Carte « Trafic » dans le panneau commun des cartes (touche N).
+func _register_trafic_map() -> void:
+	Calques.ajouter("trafic", "Trafic (bouchons)", "Transports", func(on: bool) -> void: trafic_overlay.set_shown(on),
+		"vert : fluide · jaune : chargé · rouge : bouché · bleu : voie de bus · violet : fermée")
+
+
 func _setup_urgences() -> void:
 	urgences = Urgences.new()
 	urgences.name = "Urgences"
@@ -679,6 +753,19 @@ func _setup_urgences() -> void:
 	hud.urgences_requested.connect(func() -> void: urgences_panel.toggle())
 
 
+## Services publics : couverture des écoles, hôpitaux et police (Maj+U, calques).
+func _setup_services() -> void:
+	services = ServicesPublics.new()
+	services.name = "ServicesPublics"
+	add_child(services)
+	services.setup(population, buildings, transport, urgences)
+	services_panel = ServicesPanel.new()
+	services_panel.name = "PanneauServices"
+	add_child(services_panel)
+	services_panel.setup(services)
+	services_panel.focus_requested.connect(func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
 ## Déchets : bacs, bennes sur les routes, décharges, tri et panneau (X).
 func _setup_dechets() -> void:
 	dechets = Dechets.new()
@@ -694,6 +781,15 @@ func _setup_dechets() -> void:
 		rig.position.x = pos.x
 		rig.position.z = pos.z)
 	hud.dechets_requested.connect(func() -> void: dechets_panel.toggle())
+
+
+## Obsèques : cimetières qui se remplissent, corbillards sur les routes, crématorium.
+func _setup_funeraire() -> void:
+	funeraire = Funeraire.new()
+	funeraire.name = "Funeraire"
+	add_child(funeraire)
+	funeraire.setup(buildings, population, transport, production, ambiance)
+	funeraire.message.connect(func(t: String) -> void: hud.show_message(t))
 
 
 ## Panneau des transports publics : stations et lignes.
@@ -1064,6 +1160,8 @@ func _select_building_tool(from_transit := false) -> void:
 	mobilier.set_inactive()
 	if carrieres:
 		carrieres.set_inactive()
+	if agriculture and agriculture.outil != "":
+		agriculture.set_outil("")
 	if banque_pose:
 		banque_pose.stop()
 	hud.select_tool_silently(0)
@@ -1117,6 +1215,8 @@ func _setup_landscape() -> void:
 
 func _on_tool_selected(t: int) -> void:
 	landscape.set_shown(t == TerreHud.LANDSCAPE_TOOL)
+	if agriculture and agriculture.outil != "":
+		agriculture.set_outil("")
 	if telecom:
 		telecom.set_inactive()
 	if decors_panel:
@@ -1164,10 +1264,14 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 	production.clear()
 	if carrieres != null:
 		carrieres.clear()
+	agriculture.clear()
 	budget.clear()
 	urgences.clear()
+	trafic.clear()
+	services.clear()
 	telecom.clear()
 	dechets.clear()
+	funeraire.clear()
 	resource_overlay.show_resource(resource_overlay.res)
 	transport.clear()
 	buildings.clear()
@@ -1246,7 +1350,7 @@ var _open_before := {}
 ## Construire, Lignes et Habitants partagent la même place à droite : quand
 ## l'un s'ouvre, les autres se ferment. Leur bouton de la barre du bas s'allume.
 func _exclusive_panels() -> void:
-	var panels := {"construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "urgences": urgences_panel, "dechets": dechets_panel, "budget": budget_panel, "telecom": telecom_panel, "perso": perso_panel, "infos": evenements_panel, "cartes": cartes_panel}
+	var panels := {"construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "agriculture": agri_panel, "urgences": urgences_panel, "dechets": dechets_panel, "trafic": trafic_panel, "budget": budget_panel, "telecom": telecom_panel, "perso": perso_panel, "infos": evenements_panel, "cartes": cartes_panel}
 	var opened := ""
 	for id in panels:
 		var p = panels[id]

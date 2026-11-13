@@ -103,7 +103,7 @@ const COSTS := {
 	"maison": 280_000, "villa": 650_000, "immeuble": 2_400_000, "tour_habitation": 14_000_000,
 	"boulangerie": 350_000, "superette": 900_000, "supermarche": 6_500_000, "bureaux": 9_000_000,
 	"atelier": 600_000, "entrepot": 2_200_000, "usine": 7_500_000, "ferme": 900_000,
-	"entreprise_btp": 450_000, "campement": 0,
+	"entreprise_btp": 450_000, "campement": 20_000,
 	"maison_commune": 300_000, "mairie": 4_000_000, "ecole": 6_000_000, "pompiers": 2_500_000, "police": 1_800_000,
 	"hopital": 25_000_000, "chateau_eau": 1_200_000,
 	"parc": 300_000, "aire_jeux": 80_000, "cafe": 450_000, "cinema": 5_000_000,

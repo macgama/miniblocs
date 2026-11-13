@@ -259,7 +259,12 @@ func liste_chantiers() -> Array:
 	out.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
 		if float(a.ordre) != float(b.ordre):
 			return float(a.ordre) < float(b.ordre)
-		return String(a.cle) < String(b.cle))
+		# Même heure de départ : le premier posé d'abord (bâtiments), puis les travaux.
+		if (int(a.bid) >= 0) != (int(b.bid) >= 0):
+			return int(a.bid) >= 0
+		if int(a.bid) >= 0:
+			return int(a.bid) < int(b.bid)
+		return String(a.cle).naturalnocasecmp_to(String(b.cle)) < 0)
 	return out
 
 

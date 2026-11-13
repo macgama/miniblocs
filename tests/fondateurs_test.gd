@@ -182,17 +182,16 @@ func _run() -> void:
 	vie.finish_all()
 	await process_frame
 	pop._sync_buildings()
-	var tentes0 := (pop.by_home[fd.camp] as Array).size()
 	fd.reloger()
 	var dans_maisons := 0
 	for b in maisons:
 		dans_maisons += (pop.by_home.get(b, []) as Array).size()
 	_check(dans_maisons > 0, "%d foyers de fondateurs dans les maisons" % dans_maisons)
-	_check(fd.au_campement() < 100 and (pop.by_home.get(fd.camp, []) as Array).size() == tentes0 - dans_maisons, "le campement se vide (%d encore sous la tente)" % fd.au_campement())
+	_check(fd.au_campement() < 100 and (pop.by_home.get(fd.camp, []) as Array).size() == fd.foyers_depart - dans_maisons, "le campement se vide (%d encore sous la tente)" % fd.au_campement())
 	_check(int(pop.known[fd.camp].log) == (pop.by_home.get(fd.camp, []) as Array).size(), "moins de tentes au campement")
 	_check(int(bs.buildings[fd.camp].get("v", 0)) > 0, "le campement a perdu des tentes (variante %d)" % int(bs.buildings[fd.camp].get("v", 0)))
 	cm.calculer_stats()
-	_check(int(cm.stats[cm.principal()].hab) == 100 - fd.au_campement(), "logés, ils comptent comme habitants (%d)" % int(cm.stats[cm.principal()].hab))
+	_check(int(cm.stats[cm.principal()].hab) == pop.persons.size() - fd.au_campement(), "logés, ils comptent comme habitants (%d)" % int(cm.stats[cm.principal()].hab))
 
 	print("N'importe quel métier :")
 	var ferme := -1

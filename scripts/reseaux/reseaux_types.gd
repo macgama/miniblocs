@@ -34,7 +34,10 @@ const TYPES := {
 		"desc": "8 MW. Brûle du bois des forêts voisines (210 t par jour)."},
 	"poste_national": {"name": "Raccordement au réseau national", "w": 40, "d": 30, "access": ROAD, "emplois": 3, "cost": 8_000_000,
 		"reseau": {"res": "elec", "cap": 50.0, "source": "national"},
-		"desc": "Poste électrique qui achète jusqu'à 50 MW au réseau voisin, cher (0,25 € le kWh). À moins de 300 m du bord de la carte."},
+		"desc": "Poste électrique qui achète jusqu'à 50 MW au réseau national, cher (0,25 € le kWh). Se pose partout au bord d'une route, comme un vrai village raccordé."},
+	"batteries": {"name": "Batteries de stockage", "w": 30, "d": 20, "access": ROAD, "emplois": 1, "cost": 6_000_000,
+		"reseau": {"res": "elec", "cap": 0.0, "source": "stockage", "stock": 20.0, "puissance": 5.0},
+		"desc": "Conteneurs de batteries : 20 MWh gardés quand les éoliennes et le solaire produisent trop, rendus (5 MW au plus) la nuit ou quand le vent tombe."},
 	# --- Eau potable ---------------------------------------------------------------------
 	"captage_eau": {"name": "Captage et usine d'eau potable", "w": 34, "d": 26, "access": ROAD, "emplois": 8, "cost": 8_000_000,
 		"reseau": {"res": "eau", "cap": 6000.0, "source": "riviere", "pres_eau": 80.0, "elec": 0.12},
@@ -65,7 +68,7 @@ const TYPES := {
 		"desc": "Sortie d'égout dans la nature : pas cher, mais il pollue la rivière et rend malades ceux qui boivent en aval."},
 }
 
-const ORDER := ["centrale_charbon_locale", "centrale_gaz", "centrale_biomasse", "poste_national", "captage_eau", "forage_eau",
+const ORDER := ["centrale_charbon_locale", "centrale_gaz", "centrale_biomasse", "poste_national", "batteries", "captage_eau", "forage_eau",
 	"station_epuration_locale", "lagunage", "exutoire_egout", "poste_gaz", "chaufferie_bois", "geothermie"]
 
 ## Bâtiments de la bible Blender qui deviennent des bâtiments des réseaux
@@ -224,6 +227,15 @@ static func build(k: BlocMesh, id: String, t: Dictionary) -> void:
 				k.box(x, 13, 8, 0.4, 0.4, 12, ACIER)
 			k.box(0, 0, -10, 10, 4, 6, BETON_C)
 			k.gable(0, 4, -10, 10.4, 6.4, 1.4, ACIER)
+		"batteries":
+			k.plate(0, 0, w, d, GRAVIER)
+			# Deux rangées de conteneurs blancs, onduleurs gris, transformateur.
+			for i in 4:
+				for j in 2:
+					k.box(-10.5 + i * 6.0, 0, -4.5 + j * 8.0, 4.8, 2.6, 6.0, BLANC)
+					k.box(-10.5 + i * 6.0, 2.6, -4.5 + j * 8.0, 4.4, 0.3, 5.6, ACIER)
+			k.box(12, 0, 0, 3, 2.2, 6, ACIER)
+			k.box(12, 0, -7, 3, 3, 3, TOLE)
 		"captage_eau":
 			k.plate(0, 0, w, d, HERBE)
 			k.box(-6, 0, -4, 18, 7, 12, BETON_C)

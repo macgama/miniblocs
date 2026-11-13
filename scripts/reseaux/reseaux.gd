@@ -50,8 +50,6 @@ const PRIX_KWH_GAZ_IMPORT := 0.05
 const CHAUFFAGE_ELEC := 0.8
 ## Entretien annuel des bâtiments des réseaux (part de leur prix).
 const ENTRETIEN_BATIMENTS := 0.03
-## Bord de la carte : distance maximale pour le raccordement national (m).
-const BORD_NATIONAL := 300.0
 ## Distance de contamination d'un captage par un rejet en amont (m).
 const PORTEE_POLLUTION := 2000.0
 
@@ -218,16 +216,11 @@ func check_site(id: String, rect: Rect2i) -> Dictionary:
 		return {}
 	var txt := "%s : %s %s" % [ReseauxTypes.RES_NAMES[r.res], _fmt(float(r.cap)), ReseauxTypes.UNITES[r.res]] if float(r.get("cap", 0.0)) > 0.0 else ""
 	if r.has("stock"):
-		txt = "Réserve : %d m³" % int(r.stock)
+		txt = ("Batteries : %d MWh, %d MW" % [int(r.stock), int(r.get("puissance", 0.0))]) if String(r.res) == "elec" else "Réserve : %d m³" % int(r.stock)
 	if r.has("pres_eau"):
 		var d := distance_eau(rect, float(r.pres_eau) + 20.0)
 		if d > float(r.pres_eau):
 			return {"reason": "Il faut une rivière ou un lac à moins de %d m." % int(r.pres_eau)}
-	if String(r.get("source", "")) == "national":
-		var lim := GameStart.REGION_SIZE * 0.5 - BORD_NATIONAL
-		var c := BuildingSystem.rect_center(rect)
-		if absf(c.x) < lim and absf(c.z) < lim:
-			return {"reason": "Le raccordement national se pose à moins de %d m du bord de la carte." % int(BORD_NATIONAL)}
 	if String(r.get("source", "")) == "nappe":
 		var f := facteur_nappe(rect)
 		txt += " · nappe : %d %%" % roundi(f * 100.0)
@@ -605,6 +598,7 @@ func simuler(heures: float) -> void:
 	_maj_gaz()
 	_maj_capacites(now)
 	elec.rebilan()
+	_maj_batteries(heures)
 	_maj_eau(now, heures)
 	egout.rebilan()
 	_maj_rejets()
@@ -686,6 +680,9 @@ func _maj_capacites(now: Dictionary) -> void:
 				cap = nom * 0.85
 			"uranium", "national":
 				cap = nom
+			"stockage":
+				# Les batteries rendent du courant après le bilan (_maj_batteries).
+				cap = 0.0
 			_:
 				if _externes.has(bid):
 					# Source d'un autre système (incinérateur…) : sa puissance déclarée.
@@ -705,6 +702,52 @@ func _maj_capacites(now: Dictionary) -> void:
 			why = "en chantier"
 		elec.set_capacite(bid, cap)
 		sources_info[bid] = {"cap": cap, "max": nom, "why": why}
+
+
+## Batteries : le surplus d'électricité les charge, elles couvrent un manque
+## (dans la limite de leur puissance et de ce qu'elles ont gardé).
+func _maj_batteries(heures: float) -> void:
+	var par_comp := {}
+	for bid in stocks:
+		var info := ReseauxTypes.info(_type(bid))
+		if String(info.get("res", "")) != "elec":
+			continue
+		var c := elec.composante_de(bid)
+		if c < 0 or (buildings != null and buildings.en_chantier(bid)):
+			continue
+		if not par_comp.has(c):
+			par_comp[c] = []
+		(par_comp[c] as Array).append(bid)
+	for c in par_comp:
+		var k: Dictionary = elec.composantes.get(c, {})
+		if k.is_empty():
+			continue
+		var list: Array = par_comp[c]
+		var tot := 0.0
+		var cap_tot := 0.0
+		var p_max := 0.0
+		for bid in list:
+			var info := ReseauxTypes.info(_type(bid))
+			tot += float(stocks[bid])
+			cap_tot += float(info.get("stock", 0.0))
+			p_max += float(info.get("puissance", 0.0))
+		var bal := float(k.prod) - float(k.dem)
+		var rendu := 0.0
+		if bal > 0.0:
+			tot = minf(cap_tot, tot + minf(bal, p_max) * heures * 0.9)
+		elif bal < 0.0 and tot > 0.0:
+			rendu = minf(-bal, p_max)
+			if heures > 0.0:
+				rendu = minf(rendu, tot / heures)
+			tot = maxf(0.0, tot - rendu * heures)
+		for bid in list:
+			var cmax := float(ReseauxTypes.info(_type(bid)).get("stock", 0.0))
+			stocks[bid] = tot * (cmax / cap_tot) if cap_tot > 0.0 else 0.0
+			sources_info[bid] = {"cap": rendu * cmax / cap_tot if cap_tot > 0.0 else 0.0, "max": float(ReseauxTypes.info(_type(bid)).get("puissance", 0.0)),
+				"why": "chargées à %d %%" % roundi(tot / cap_tot * 100.0) if cap_tot > 0.0 else ""}
+		if rendu > 0.0:
+			k.prod = float(k.prod) + rendu
+			k.taux = 1.0 if float(k.dem) <= 0.0 else clampf(float(k.prod) / float(k.dem), 0.0, 1.0)
 
 
 ## Gaz et chaleur : la demande suit le froid, les sources leur combustible.
@@ -1316,10 +1359,12 @@ func bilan(res: String) -> Dictionary:
 	for bid in r.sources:
 		nom += float(sources_info.get(bid, {}).get("max", 0.0))
 	b["nominal"] = nom
-	if res == "eau":
+	if res == "eau" or res == "elec":
 		var st := 0.0
 		var stm := 0.0
 		for bid in stocks:
+			if String(ReseauxTypes.info(_type(bid)).get("res", "")) != res:
+				continue
 			st += float(stocks[bid])
 			stm += float(ReseauxTypes.info(_type(bid)).get("stock", 0.0))
 		b["stock"] = st

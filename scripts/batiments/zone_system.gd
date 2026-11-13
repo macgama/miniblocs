@@ -267,7 +267,9 @@ func _compute_demand() -> Dictionary:
 	# Commerces et industries embauchent selon la population.
 	return {
 		# Il vient toujours quelques habitants, et davantage s'il y a du travail.
-		"R": 50.0 + jobs * 1.8 - workers,
+		# 1,3 actif par emploi : environ 8 % de chômage quand la ville est à l'équilibre
+		# (avec 1,8, une ville de 1 000 habitants comptait un quart de chômeurs).
+		"R": 50.0 + jobs * 1.3 - workers,
 		"C": people * 0.2 - jobs_c,
 		"I": people * 0.25 - jobs_i,
 	}
@@ -292,15 +294,26 @@ func grow_step() -> int:
 		return -1
 	var d := demand()
 	var ids := zones.keys()
-	for n in ids.size():
-		_turn = (_turn + 1) % ids.size()
-		var z: Dictionary = zones[ids[_turn]]
-		if float(d[z.k]) <= 0.0:
-			continue
-		var bid := _grow_in(z, float(d[z.k]))
-		if bid >= 0:
-			return bid
+	# Le type de zone le plus demandé d'abord (logements, commerces ou industries),
+	# chacun à son tour parmi ses zones : les emplois suivent les habitants.
+	var kinds := d.keys().filter(func(k: String) -> bool: return float(d[k]) > 0.0)
+	kinds.sort_custom(func(a: String, b: String) -> bool: return _besoin_relatif(d, a) > _besoin_relatif(d, b))
+	for k in kinds:
+		for n in ids.size():
+			_turn = (_turn + 1) % ids.size()
+			var z: Dictionary = zones[ids[_turn]]
+			if String(z.k) != k:
+				continue
+			var bid := _grow_in(z, float(d[k]))
+			if bid >= 0:
+				return bid
 	return -1
+
+
+## Demande d'un type de zone rapportée à sa taille habituelle (un logement vaut
+## ~2,3 habitants, un emploi un actif) pour comparer R, C et I.
+static func _besoin_relatif(d: Dictionary, k: String) -> float:
+	return float(d[k]) / (PEOPLE_PER_HOME * 0.5 if k == "R" else 1.0)
 
 
 ## Cherche une place le long d'une route de la zone pour un bâtiment de son type.

@@ -42,7 +42,7 @@ const TOUJOURS := ["ecole"]
 const PRESETS := {
 	"facile": {"nom": "Facile", "argent_depart": 100_000_000, "argent_illimite": false, "cout_construction": 0.5,
 		"acces_route": true, "impots": 1.5, "salaires": 1.0, "epuisement": false, "deblocage": "tout", "reseaux_obligatoires": true, "fondation": true, "territoire": true, "main_oeuvre": true},
-	"normal": {"nom": "Normal", "argent_depart": 20_000_000, "argent_illimite": false, "cout_construction": 1.0,
+	"normal": {"nom": "Normal", "argent_depart": 30_000_000, "argent_illimite": false, "cout_construction": 1.0,
 		"acces_route": true, "impots": 1.0, "salaires": 1.0, "epuisement": true, "deblocage": "tout", "reseaux_obligatoires": true, "fondation": true, "territoire": true, "main_oeuvre": true},
 	"difficile": {"nom": "Difficile", "argent_depart": 5_000_000, "argent_illimite": false, "cout_construction": 2.0,
 		"acces_route": true, "impots": 0.75, "salaires": 1.25, "epuisement": true, "deblocage": "progression", "reseaux_obligatoires": true, "fondation": true, "territoire": true, "main_oeuvre": true},
@@ -55,7 +55,7 @@ static var actuel := ReglagesPartie.new()
 ## Réglages choisis sur le globe pour la prochaine nouvelle partie (null = par défaut).
 static var prochaine: ReglagesPartie = null
 
-var argent_depart: int = 20_000_000
+var argent_depart: int = 30_000_000
 var argent_illimite := false
 ## Multiplicateur de tous les prix de construction (bâtiments, terrassement, zonage, blocs, murs).
 var cout_construction := 1.0

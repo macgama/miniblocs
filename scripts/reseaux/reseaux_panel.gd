@@ -169,6 +169,8 @@ func _reseau(res: String) -> void:
 	_label("Servi : %d %% · %d bâtiments, %d coupés, %d rationnés" % [roundi(servi * 100.0), int(b.batiments), int(b.coupes), int(b.partiels)], 13, col)
 	if res == "eau" and float(b.get("stock_max", 0.0)) > 0.0:
 		_label("Châteaux d'eau : %d / %d m³ en réserve" % [roundi(b.stock), roundi(b.stock_max)])
+	if res == "elec" and float(b.get("stock_max", 0.0)) > 0.0:
+		_label("Batteries : %.1f / %d MWh gardés" % [float(b.stock), roundi(b.stock_max)])
 	if res == "egout" and float(b.get("rejets", 0.0)) > 0.0:
 		_label("Rejeté sans traitement : %s m³/j (pollue la rivière)" % Reseaux._fmt(b.rejets), 13, Color("f4a261"))
 	var inc := reseaux.incidents
@@ -245,7 +247,10 @@ func _reseau(res: String) -> void:
 		if res == "eau" and reseaux.qualite.has(bid) and float(reseaux.qualite[bid]) < 0.95:
 			txt += " · eau polluée (%d %% potable)" % roundi(float(reseaux.qualite[bid]) * 100.0)
 		if reseaux.stocks.has(bid):
-			txt = "%s : %d m³ en réserve" % [nm, roundi(float(reseaux.stocks[bid]))]
+			if res == "elec":
+				txt = "%s : %.1f MWh gardés, %s MW rendus" % [nm, float(reseaux.stocks[bid]), Reseaux._fmt(float(inf.get("cap", 0.0)))]
+			else:
+				txt = "%s : %d m³ en réserve" % [nm, roundi(float(reseaux.stocks[bid]))]
 		var bt := Button.new()
 		bt.text = txt
 		bt.alignment = HORIZONTAL_ALIGNMENT_LEFT

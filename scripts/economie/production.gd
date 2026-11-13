@@ -321,7 +321,20 @@ func _workers(bid: int) -> int:
 
 func _staff(bid: int) -> float:
 	var jobs := maxi(int(BuildingCatalog.get_type(_type_of(bid)).get("emplois", 1)), 1)
-	return clampf(float(_workers(bid)) / jobs, 0.0, 1.0)
+	return clampf(float(_workers(bid)) / jobs, 0.0, 1.0) * _rendement(bid)
+
+
+## Rendement venu des autres systèmes (internet, électricité…) : produit des
+## valeurs rendues par les nœuds du groupe « rendement_sources »
+## (func rendement(bid: int) -> float, 1 = normal).
+func _rendement(bid: int) -> float:
+	if not is_inside_tree():
+		return 1.0
+	var f := 1.0
+	for n in get_tree().get_nodes_in_group("rendement_sources"):
+		if n.has_method("rendement"):
+			f *= float(n.rendement(bid))
+	return f
 
 
 func _has_access(bid: int) -> bool:

@@ -35,6 +35,7 @@ var _vie: OptionButton
 var _epuisement: CheckBox
 var _ev_auto: CheckBox
 var _catas: CheckBox
+var _telecom: CheckBox
 var _freq: OptionButton
 const FREQS := [0.25, 1.0, 3.0]
 var _status: Label
@@ -194,6 +195,11 @@ func _ready() -> void:
 	_freq.item_selected.connect(func(_i: int) -> void: _changed())
 	_row(g, "Fréquence des catastrophes", _freq)
 
+	# Réseaux.
+	g = _section(right, "Internet et téléphone", "services")
+	_telecom = _check("Nécessaires : sans internet ni réseau mobile, les habitants sont moins satisfaits et les entreprises produisent moins")
+	g.add_child(_telecom)
+
 	# Pied.
 	var foot := HBoxContainer.new()
 	foot.add_theme_constant_override("separation", 8)
@@ -317,6 +323,7 @@ func _fill() -> void:
 	_epuisement.button_pressed = reglages.epuisement
 	_ev_auto.button_pressed = reglages.evenements_auto
 	_catas.button_pressed = reglages.catastrophes
+	_telecom.button_pressed = reglages.telecom_necessaire
 	var fi := 1
 	for i in FREQS.size():
 		if absf(float(FREQS[i]) - reglages.frequence_catastrophes) < 0.01:
@@ -341,6 +348,7 @@ func _changed() -> void:
 	reglages.epuisement = _epuisement.button_pressed
 	reglages.evenements_auto = _ev_auto.button_pressed
 	reglages.catastrophes = _catas.button_pressed
+	reglages.telecom_necessaire = _telecom.button_pressed
 	reglages.frequence_catastrophes = float(FREQS[maxi(0, _freq.selected)])
 	_emit()
 

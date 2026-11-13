@@ -75,6 +75,9 @@ var evenements_auto := true
 var catastrophes := true
 ## Fréquence des catastrophes (0,25 : rares ; 1 : normales ; 3 : fréquentes).
 var frequence_catastrophes := 1.0
+## Internet et téléphone comptent : satisfaction des habitants et rendement des
+## entreprises (sinon les antennes et la fibre ne servent qu'au décor).
+var telecom_necessaire := true
 ## Joueur qui a créé la partie (SaveGame.player_id()) : l'admin des cartes entre amis.
 var createur := ""
 ## Plus grande population atteinte (pour les paliers).
@@ -210,7 +213,7 @@ func to_dict() -> Dictionary:
 		"salaires": salaires, "vitesse_temps": vitesse_temps, "vitesse_vie": vitesse_vie,
 		"epuisement": epuisement, "deblocage": deblocage, "createur": createur,
 		"record_habitants": record_habitants, "evenements_auto": evenements_auto, "catastrophes": catastrophes,
-		"frequence_catastrophes": frequence_catastrophes}
+		"frequence_catastrophes": frequence_catastrophes, "telecom_necessaire": telecom_necessaire}
 
 
 func from_dict(d: Dictionary) -> void:
@@ -230,6 +233,7 @@ func from_dict(d: Dictionary) -> void:
 	evenements_auto = bool(d.get("evenements_auto", true))
 	catastrophes = bool(d.get("catastrophes", true))
 	frequence_catastrophes = clampf(float(d.get("frequence_catastrophes", 1.0)), 0.25, 3.0)
+	telecom_necessaire = bool(d.get("telecom_necessaire", true))
 
 
 ## Réglages par défaut des nouvelles parties (fichier du joueur, sinon « Normal »).

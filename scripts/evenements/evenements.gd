@@ -41,6 +41,9 @@ const TYPES := {
 	"incendie": {"nom": "Incendie", "icone": "feu", "couleur": Color("ef476f")},
 	"tempete": {"nom": "Tempête", "icone": "tempete", "couleur": Color("6ea8fe")},
 	"epidemie": {"nom": "Épidémie", "icone": "epidemie", "couleur": Color("06d6a0")},
+	# Vie politique (scripts/avis) : nouvelles seulement.
+	"politique": {"nom": "Vie politique", "icone": "urne", "couleur": Color("ffd166")},
+	"manifestation": {"nom": "Manifestation", "icone": "pancarte", "couleur": Color("f77f00")},
 }
 ## Vitesse maximale des incendies (secondes de jeu par seconde réelle).
 const FEU_MAX_VITESSE := 600.0

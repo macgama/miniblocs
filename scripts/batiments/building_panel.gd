@@ -80,7 +80,7 @@ var _ladder_counts := {}
 var _ladder_level := 0
 
 ## Icône de chaque onglet.
-const CAT_ICONS := {"logement": "logement", "commerce": "commerce", "industrie": "industrie", "production": "ressources",
+const CAT_ICONS := {"logement": "logement", "commerce": "commerce", "industrie": "industrie", "production": "ressources", "reseaux": "reseaux",
 	"services": "services", "dechets": "dechets", "funeraire": "funeraire", "loisirs": "loisirs", "sport": "sport", "espaces": "publics",
 	"zones": "zonage", "blocs": "editeur", "creations": "creations", "interieur": "interieur", "banque": "banque"}
 

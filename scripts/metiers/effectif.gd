@@ -137,10 +137,27 @@ func etat(bid: int) -> Dictionary:
 	return _etat[bid]
 
 
-## Fermé faute de personnel (les habitants ne peuvent pas y aller).
+## Fermé faute de personnel ou pour grève (les habitants ne peuvent pas y aller).
 func ferme(bid: int) -> bool:
+	if en_greve(bid):
+		return true
 	var e := etat(bid)
 	return not e.is_empty() and bool(e.ferme)
+
+
+## Grève des agents (manifestation ignorée, scripts/avis) : bid -> fin (unix de jeu).
+var greve: Dictionary = {}
+
+
+func en_greve(bid: int) -> bool:
+	if greve.is_empty() or not greve.has(bid):
+		return false
+	var t := pop.ambiance.unix_time if pop.ambiance != null else 0.0
+	if t >= float(greve[bid]):
+		greve.erase(bid)
+		signature_fermes += 1
+		return false
+	return true
 
 
 func manque(bid: int) -> bool:

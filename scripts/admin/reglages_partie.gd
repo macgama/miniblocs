@@ -22,6 +22,8 @@ const COUT_MAX := 5.0
 const IMPOTS_MAX := 3.0
 const SALAIRES_MIN := 0.5
 const SALAIRES_MAX := 2.0
+const PRIX_SERVICES_MIN := 0.0
+const PRIX_SERVICES_MAX := 3.0
 
 ## Déblocage des bâtiments au fil de la partie : paliers de population (record
 ## atteint, une démolition ne rebloque rien) et prix maximal débloqué.
@@ -39,13 +41,13 @@ const TOUJOURS := ["ecole"]
 ## Préréglages : un clic remplit tout le panneau.
 const PRESETS := {
 	"facile": {"nom": "Facile", "argent_depart": 100_000_000, "argent_illimite": false, "cout_construction": 0.5,
-		"acces_route": true, "impots": 1.5, "salaires": 1.0, "epuisement": false, "deblocage": "tout"},
+		"acces_route": true, "impots": 1.5, "salaires": 1.0, "epuisement": false, "deblocage": "tout", "reseaux_obligatoires": true},
 	"normal": {"nom": "Normal", "argent_depart": 20_000_000, "argent_illimite": false, "cout_construction": 1.0,
-		"acces_route": true, "impots": 1.0, "salaires": 1.0, "epuisement": true, "deblocage": "tout"},
+		"acces_route": true, "impots": 1.0, "salaires": 1.0, "epuisement": true, "deblocage": "tout", "reseaux_obligatoires": true},
 	"difficile": {"nom": "Difficile", "argent_depart": 5_000_000, "argent_illimite": false, "cout_construction": 2.0,
-		"acces_route": true, "impots": 0.75, "salaires": 1.25, "epuisement": true, "deblocage": "progression"},
+		"acces_route": true, "impots": 0.75, "salaires": 1.25, "epuisement": true, "deblocage": "progression", "reseaux_obligatoires": true},
 	"libre": {"nom": "Bac à sable libre", "argent_depart": 20_000_000, "argent_illimite": true, "cout_construction": 1.0,
-		"acces_route": false, "impots": 1.0, "salaires": 1.0, "epuisement": false, "deblocage": "tout"},
+		"acces_route": false, "impots": 1.0, "salaires": 1.0, "epuisement": false, "deblocage": "tout", "reseaux_obligatoires": false},
 }
 
 ## Réglages de la partie en cours (lus par tous les systèmes).
@@ -75,6 +77,14 @@ var evenements_auto := true
 var catastrophes := true
 ## Fréquence des catastrophes (0,25 : rares ; 1 : normales ; 3 : fréquentes).
 var frequence_catastrophes := 1.0
+## Réseaux obligatoires : sans courant, eau ni égouts, les bâtiments en souffrent
+## (sinon tout est desservi d'office).
+var reseaux_obligatoires := true
+## Multiplicateur des factures d'eau et d'électricité payées par les habitants.
+var prix_services := 1.0
+## Élections municipales (Elections.MODES) et manifestations (scripts/avis).
+var elections := "objectifs"
+var manifestations := true
 ## Faim des habitants quand les commerces d'alimentation sont vides :
 ## "aucune" (pas d'effet), "normale" (moins satisfaits, santé, départs),
 ## "mortelle" (en plus, on peut mourir de faim). Voir Repas.
@@ -196,6 +206,9 @@ static func palier_requis(id: String) -> int:
 	var t := BuildingCatalog.get_type(id)
 	if String(t.get("cat", "")) == "production":
 		return 0
+	# Il faut du courant et de l'eau dès le hameau (sauf les très grosses centrales).
+	if String(t.get("cat", "")) == "reseaux" and BuildingCatalog.cost(id) <= 50_000_000:
+		return 0
 	for k in Metiers.keys_of(id):
 		if TOUJOURS.has(k):
 			return 0
@@ -243,7 +256,7 @@ func to_dict() -> Dictionary:
 		"record_habitants": record_habitants, "evenements_auto": evenements_auto, "catastrophes": catastrophes,
 		"frequence_catastrophes": frequence_catastrophes, "faim": faim, "telecom_necessaire": telecom_necessaire, "construction_instantanee": construction_instantanee,
 		"horaires_chantiers": horaires_chantiers, "usure": usure, "dechets": dechets, "dechets_quantite": dechets_quantite, "pollution": pollution, "pollution_sante": pollution_sante,
-		"funeraire": funeraire, "cremation": cremation}
+		"elections": elections, "manifestations": manifestations, "funeraire": funeraire, "cremation": cremation, "reseaux_obligatoires": reseaux_obligatoires, "prix_services": prix_services}
 
 
 func from_dict(d: Dictionary) -> void:
@@ -263,6 +276,12 @@ func from_dict(d: Dictionary) -> void:
 	evenements_auto = bool(d.get("evenements_auto", true))
 	catastrophes = bool(d.get("catastrophes", true))
 	frequence_catastrophes = clampf(float(d.get("frequence_catastrophes", 1.0)), 0.25, 3.0)
+	reseaux_obligatoires = bool(d.get("reseaux_obligatoires", true))
+	prix_services = clampf(float(d.get("prix_services", 1.0)), PRIX_SERVICES_MIN, PRIX_SERVICES_MAX)
+	elections = String(d.get("elections", "objectifs"))
+	if not Elections.MODES.has(elections):
+		elections = "objectifs"
+	manifestations = bool(d.get("manifestations", true))
 	faim = String(d.get("faim", "normale"))
 	if not FAIMS.has(faim):
 		faim = "normale"

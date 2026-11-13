@@ -718,7 +718,7 @@ static func refresh_material(mi: MeshInstance3D) -> void:
 	var a := int(mi.get_meta("abandon_q", 0))
 	var dq := int(mi.get_meta("ev_degats", 0))
 	var bq := int(mi.get_meta("ev_bache", 0))
-	var pn := bool(mi.get_meta("ev_panne", false))
+	var pn := bool(mi.get_meta("ev_panne", false)) or bool(mi.get_meta("res_panne", false))
 	var m: Material = null
 	if u > 0 or a > 0 or dq > 0 or bq > 0 or pn:
 		m = NightWindows.variant_material(u, a, dq, bq, pn)

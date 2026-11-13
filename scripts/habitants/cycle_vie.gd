@@ -49,6 +49,7 @@ const CODES := {
 	"heritage": Color("e9c46a"), "loisir": Color("4cc9f0"), "sport": Color("ffbe0b"), "permis": Color("90e0ef"),
 	"voiture": Color("90e0ef"), "maladie": Color("ef476f"), "guerison": Color("06d6a0"), "deces": Color("000000"),
 	"depart": Color("8a8f98"), "urgence": Color("e63946"),
+	"politique": Color("ffd166"), "manifestation": Color("f77f00"),
 }
 ## Étapes comptées dans les nouvelles du jour.
 const DIGEST := {"naissance": ["naissance", "naissances"], "deces": ["décès", "décès"], "couple": ["couple", "couples"],
@@ -403,6 +404,11 @@ func pollution_at(bid: int) -> float:
 			var d := o.distance_to(info.pos)
 			if d < 800.0:
 				v += (1.0 - d / 800.0) * clampf(float(info.emp) / 60.0, 0.4, 2.0) * 0.5
+	# Autres risques (eau non potable, égouts…) : groupe "sante_sources".
+	if pop.is_inside_tree():
+		for n in pop.get_tree().get_nodes_in_group("sante_sources"):
+			if n.has_method("risque_sante"):
+				v += float(n.risque_sante(bid))
 	v = clampf(v, 0.0, 1.0)
 	_pollution[bid] = v
 	return v

@@ -13,6 +13,7 @@ const CATEGORIES := [
 	{"id": "industrie", "name": "Industrie", "color": Color("b08968")},
 	{"id": "production", "name": "Production et ressources", "color": Color("d4a373")},
 	{"id": "services", "name": "Services publics", "color": Color("e76f51")},
+	{"id": "reseaux", "name": "Réseaux (électricité, eau, égouts)", "color": Color("ffd166")},
 	{"id": "dechets", "name": "Déchets et propreté", "color": Color("43aa8b")},
 	{"id": "funeraire", "name": "Funéraire", "color": Color("8d99ae")},
 	{"id": "loisirs", "name": "Loisirs", "color": Color("80b918")},
@@ -124,6 +125,7 @@ static func all_types() -> Dictionary:
 			_all[id] = t
 		_all.merge(EspacesPublics.entries())
 		_all.merge(ProductionTypes.entries())
+		_all.merge(ReseauxTypes.entries())
 		_all.merge(CommercesTypes.entries())
 		_all.merge(TelecomTypes.entries())
 		_all.merge(DechetsTypes.entries())
@@ -131,6 +133,7 @@ static func all_types() -> Dictionary:
 		_all.merge(Stades.entries())
 		_all.merge(StyleBuilder.generate())
 		_all.merge(BibleGlb.entries())
+		ReseauxTypes.adopter(_all)
 		for id in Creations.items:
 			_all[id] = Creations.catalog_entry(id)
 		Creations.ensure_loaded()
@@ -212,6 +215,10 @@ static func build_mesh(id: String, material: Material = null, details := true, v
 		return BibleGlb.build_mesh(id, material, details, variant, perso)
 	if t.has("boutique_eco"):
 		CommercesTypes.build(k, id, t)
+		k.fit_xz(w, d)
+		return k.to_mesh(material)
+	if t.has("reseau"):
+		ReseauxTypes.build(k, id, t)
 		k.fit_xz(w, d)
 		return k.to_mesh(material)
 	if t.has("telecom"):

@@ -108,12 +108,27 @@ const SECTIONS := [
 		["Pinceau, Gomme", "semer au hasard (troupeau, bottes de foin, rochers) ; la gomme efface aussi les décors automatiques"],
 		["Automatiques", "bancs et poteaux le long des routes, bottes de foin après la moisson, troupeaux qui broutent, pontons et bateaux, rochers (case à cocher du panneau)"],
 	]],
+	["Réseaux (électricité, eau, égouts)", [
+		["O", "panneau Réseaux : production et demande, sources, bâtiments coupés, comptes ; ses onglets allument le calque du réseau (pastille verte, orange ou rouge sur chaque bâtiment)"],
+		["Construire > Réseaux", "centrales (charbon, gaz, bois, nucléaire, barrage, éolienne, solaire, réseau national), captage et forage d'eau, château d'eau, station d'épuration, lagunage, rejet direct"],
+		["Routes", "chaque route porte la desserte locale : un bâtiment à moins de 30 m d'une route reliée à une source est desservi"],
+		["Panneau O > ligne HT, MT, conduite, collecteur", "clic pour chaque point, clic droit ou Échap pour finir ; le tronçon a son chantier avant d'être en service"],
+		["Panneau O > Retirer", "clic sur un tronçon pour l'enlever (30 % rendus)"],
+	]],
 	["Urgences", [
 		["U", "panneau Urgences : appels en cours (clic : y aller), casernes et véhicules, bilan des temps d'intervention, carte de couverture"],
 		["Construire → Services", "caserne de pompiers (FPT, VSAV, grande échelle), commissariat (police, ou gendarmerie dans une ville de moins de 2 000 habitants), hôpital (ambulances, SMUR)"],
 		["Sur la route", "gyrophares et sirène deux-tons : ils passent les feux au ralenti, les autres se rangent à droite, ils doublent par la voie d'en face quand elle est libre"],
 		["Équipages", "un véhicule ne part que si son équipage est de garde aujourd'hui (employés du bâtiment) ; l'ambulance passe par l'hôpital avant de rentrer"],
 		["Appel d'essai ici", "bouton du panneau : un appel au hasard près de la caméra, pour voir partir les secours"],
+	]],
+	["Avis et élections", [
+		["Y, ou clic sur la satisfaction", "panneau Avis : satisfaction moyenne et sa courbe, note de chaque thème (emploi, logement, écoles et santé, environnement, transports, impôts, réseaux…) et ce qui pèse le plus"],
+		["Quartiers", "satisfaction par quartier, carte de couleur au-dessus des logements (rouge mécontent, vert content), aussi dans le panneau Cartes (N)"],
+		["Paroles", "ce que disent quelques habitants, les plus mécontents d'abord (clic : leur fiche)"],
+		["Élections", "maire dès 30 habitants, municipales tous les 6 ans de vie des habitants (dimanche, résultats à 20 h, 2e tour si besoin) ; pendant la campagne, choisis jusqu'à 3 promesses ; « Élections anticipées » pour voter le dimanche suivant"],
+		["Manifs", "sous 35 / 100 sur un thème, un cortège marche jusqu'à la mairie : négocier (argent), ignorer (grève la 2e fois) ou police (s'il y a un commissariat)"],
+		["Admin (F10) → Événements", "élections : aucune, défaite sans effet, objectifs imposés ou fin de partie ; manifestations oui / non"],
 	]],
 	["Trafic", [
 		["Maj+L", "panneau Trafic (bouton Trafic de la barre du bas) : comment les habitants se déplacent, temps perdu dans les bouchons et pour se garer, routes saturées, parkings, remplissage des lignes"],
@@ -174,7 +189,7 @@ const SECTIONS := [
 	]],
 	["Partie (barre du haut)", [
 		["Loupe", "aller à des coordonnées ou à un lieu connu, infos techniques (tuiles, marée)"],
-		["Chiffres", "caisse, habitants, satisfaction, chômage : un clic ouvre le panneau Habitants"],
+		["Chiffres", "caisse, habitants, satisfaction, chômage : un clic ouvre le panneau Habitants (la satisfaction : le panneau Avis)"],
 		["… (horloge)", "lever et coucher du Soleil, Lune, curseur de l'heure, mois précédent ou suivant, météo"],
 		["F5", "sauvegarder la partie"],
 		["F9", "recharger la partie en cours"],

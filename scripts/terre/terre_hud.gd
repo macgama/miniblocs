@@ -27,6 +27,8 @@ signal decors_requested
 signal infos_requested
 ## Panneau « Urgences » (touche U) : appels, casernes, couverture.
 signal urgences_requested
+## Panneau Avis : satisfaction, élections, manifestations (Y).
+signal avis_requested
 ## Panneau « Trafic » (Maj + L) : bouchons, parkings, remplissage des lignes.
 signal trafic_requested
 ## Bouton « Déchets » (touche X).
@@ -85,6 +87,7 @@ const CATEGORIES := [
 	{"id": "decors", "name": "Décors", "icon": "decors", "key": "G", "panel": true},
 	{"id": "infos", "name": "Infos", "icon": "infos", "key": "I", "panel": true},
 	{"id": "urgences", "name": "Urgences", "icon": "services", "key": "U", "panel": true},
+	{"id": "avis", "name": "Avis", "icon": "urne", "key": "Y", "panel": true},
 	{"id": "trafic", "name": "Trafic", "icon": "circulation", "key": "Maj+L", "panel": true},
 	{"id": "budget", "name": "Budget", "icon": "budget", "key": "M", "panel": true},
 	{"id": "dechets", "name": "Déchets", "icon": "dechets", "key": "X", "panel": true},
@@ -255,7 +258,11 @@ func _build_top_bar() -> void:
 			["chomage", "emploi", "Chômage"]]:
 		var chip := UiStyle.stat_chip(spec[1], spec[2])
 		chip.text = "—"
-		chip.pressed.connect(func() -> void: habitants_requested.emit())
+		if spec[0] == "satisfaction":
+			chip.tooltip_text = "Satisfaction moyenne sur 100 (clic : panneau Avis, Y)"
+			chip.pressed.connect(func() -> void: avis_requested.emit())
+		else:
+			chip.pressed.connect(func() -> void: habitants_requested.emit())
 		row.add_child(chip)
 		_chips[spec[0]] = chip
 
@@ -590,6 +597,7 @@ func _on_category(id: String) -> void:
 			"decors": decors_requested.emit()
 			"infos": infos_requested.emit()
 			"urgences": urgences_requested.emit()
+			"avis": avis_requested.emit()
 			"trafic": trafic_requested.emit()
 			"dechets": dechets_requested.emit()
 			"cartes": cartes_requested.emit()

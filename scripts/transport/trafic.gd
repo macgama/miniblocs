@@ -117,6 +117,7 @@ func setup(t: TransportSystem, p: Population) -> void:
 		transport.traffic.model = self
 		transport.traffic.speed_factors.append(_visible_factor)
 	add_to_group("budget_entretien")
+	add_to_group("budget_recettes")
 	add_to_group("avis_sources")
 
 
@@ -873,10 +874,9 @@ func _daily() -> void:
 func _book(poste: String, amount: float) -> void:
 	if amount <= 0.0:
 		return
+	# Suivi du panneau ; la caisse de la ville est créditée par le budget
+	# communal (groupe « budget_recettes »), jour après jour.
 	ledger.mois[poste] = float(ledger.mois.get(poste, 0.0)) + amount
-	var b: Node = get_tree().get_first_node_in_group("budget_communal") if is_inside_tree() else null
-	if b != null and b.has_method("recette"):
-		b.call("recette", poste, amount)
 
 
 ## Coût mensuel d'exploitation des lignes (groupe « budget_entretien »).
@@ -891,10 +891,16 @@ func budget_entretien() -> Dictionary:
 	return {"Exploitation des lignes": total} if total > 0.0 else {}
 
 
-## Recettes mensuelles estimées (tickets, stationnement).
+## Recettes mensuelles estimées (tickets, stationnement), versées par le budget communal.
 func budget_recettes() -> Dictionary:
-	return {"Tickets de transport": float(stats.get("fare_day", 0.0)) * 22.0,
-		"Stationnement": float(stats.get("parking_revenue_day", 0.0)) * 22.0}
+	var out := {}
+	var t := float(stats.get("fare_day", 0.0)) * 22.0
+	var p := float(stats.get("parking_revenue_day", 0.0)) * 22.0
+	if t > 0.0:
+		out["Tickets de transport"] = t
+	if p > 0.0:
+		out["Stationnement"] = p
+	return out
 
 
 # --- Avis des habitants -----------------------------------------------------------------

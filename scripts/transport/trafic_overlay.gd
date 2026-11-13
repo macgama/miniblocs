@@ -74,7 +74,8 @@ func rebuild() -> void:
 		var e: Dictionary = net.edges[eid]
 		if TransportTypes.mode_of(e.t) != TransportTypes.Mode.ROAD:
 			continue
-		var hw := net.half_width(eid) * 0.8
+		# Assez large pour se voir de haut, sans déborder en vue rapprochée.
+		var hw := maxf(net.half_width(eid) * 0.8, 3.0)
 		var c := CLOSED if net.closed_edges.has(eid) else color_for(_ratio(eid))
 		c.a = 0.82
 		_ribbon(st, e.pts, -hw, hw, c)

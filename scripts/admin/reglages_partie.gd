@@ -135,6 +135,11 @@ const VIVRES_MAX := 365
 ## Les chantiers ont besoin d'ouvriers (fondateurs au campement, entreprises
 ## du bâtiment) : sans eux, ils s'arrêtent.
 var main_oeuvre := true
+## Tutoriel guidé de la première partie (scripts/tutoriel) : coché sur le globe
+## ou dans l'Admin, décoché quand le joueur le finit ou l'arrête.
+var tutoriel := true
+## Objectifs résumés en haut à gauche de l'écran (rang de la ville, missions).
+var objectifs_ecran := true
 ## Plus grande population atteinte (pour les paliers).
 var record_habitants := 0
 
@@ -278,7 +283,8 @@ func to_dict() -> Dictionary:
 		"frequence_catastrophes": frequence_catastrophes, "faim": faim, "telecom_necessaire": telecom_necessaire, "construction_instantanee": construction_instantanee,
 		"horaires_chantiers": horaires_chantiers, "rythme_chantiers": rythme_chantiers, "usure": usure, "dechets": dechets, "dechets_quantite": dechets_quantite, "pollution": pollution, "pollution_sante": pollution_sante,
 		"elections": elections, "manifestations": manifestations, "funeraire": funeraire, "cremation": cremation, "reseaux_obligatoires": reseaux_obligatoires, "prix_services": prix_services,
-		"fondation": fondation, "territoire": territoire, "fondateurs": fondateurs, "vivres_jours": vivres_jours, "main_oeuvre": main_oeuvre}
+		"fondation": fondation, "territoire": territoire, "fondateurs": fondateurs, "vivres_jours": vivres_jours, "main_oeuvre": main_oeuvre,
+		"tutoriel": tutoriel, "objectifs_ecran": objectifs_ecran}
 
 
 func from_dict(d: Dictionary) -> void:
@@ -292,6 +298,8 @@ func from_dict(d: Dictionary) -> void:
 	fondateurs = clampi(int(d.get("fondateurs", 100)), 0, FONDATEURS_MAX)
 	vivres_jours = clampi(int(d.get("vivres_jours", 90)), 0, VIVRES_MAX)
 	main_oeuvre = bool(d.get("main_oeuvre", true))
+	tutoriel = bool(d.get("tutoriel", true))
+	objectifs_ecran = bool(d.get("objectifs_ecran", true))
 	impots = clampf(float(d.get("impots", 1.0)), 0.0, IMPOTS_MAX)
 	salaires = clampf(float(d.get("salaires", 1.0)), SALAIRES_MIN, SALAIRES_MAX)
 	vitesse_temps = clampi(int(d.get("vitesse_temps", DayNight.DEFAULT_SPEED)), 0, DayNight.SPEEDS.size() - 1)

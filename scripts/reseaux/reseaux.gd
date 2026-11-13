@@ -1,6 +1,6 @@
 class_name Reseaux
 extends Node3D
-## Réseaux de la ville : électricité, eau potable, égouts (touche O).
+## Réseaux de la ville : électricité, eau potable, égouts, gaz et chauffage (touche O).
 ##
 ## - Production : centrales (charbon, gaz et bois livrés par camion, nucléaire,
 ##   barrage, éoliennes, solaire, réseau national), captages et forages,
@@ -13,6 +13,10 @@ extends Node3D
 ## - Coupures : fenêtres noires, usines au ralenti, habitants mécontents ou
 ##   malades, pompiers sans bouches d'incendie, foyers qui partent au bout de
 ##   7 jours sans courant ou sans eau.
+## - Chauffage : réseau de gaz ou de chaleur (poste de gaz, chaufferie bois,
+##   géothermie) ; la demande suit la température. Sans lui, on se chauffe à
+##   l'électricité (pointe d'hiver), et sans les deux, on a froid.
+## - Usure, pannes, orages, canicule, sécheresse, restrictions d'eau : voir ReseauxIncidents.
 ## - Factures : chaque foyer et chaque entreprise paie son courant et son eau à
 ##   la ville ; la ville paie l'entretien, le combustible et le courant importé.
 ##
@@ -28,7 +32,9 @@ signal info_changed(text: String)
 
 static var instance: Reseaux
 
-const RES := ["elec", "eau", "egout"]
+const RES := ["elec", "eau", "egout", "gaz"]
+## Clé de chaque réseau dans `etat`.
+const CLE := {"elec": "e", "eau": "o", "egout": "g", "gaz": "c"}
 ## Jours sans courant ou sans eau avant qu'un foyer quitte son logement.
 const JOURS_DEPART := 7.0
 ## Prix payés par les habitants et les entreprises (multipliés par le réglage Admin).
@@ -37,6 +43,11 @@ const PRIX_M3_EAU := 2.1
 const PRIX_M3_ASSAINISSEMENT := 2.0
 ## Courant acheté au réseau national (payé par la ville).
 const PRIX_KWH_IMPORT := 0.25
+## Gaz et chaleur : prix payé par les habitants, prix d'achat du gaz par la ville (€ par kWh).
+const PRIX_KWH_GAZ := 0.10
+const PRIX_KWH_GAZ_IMPORT := 0.05
+## Part de la chaleur manquante produite à l'électricité (radiateurs et pompes à chaleur).
+const CHAUFFAGE_ELEC := 0.8
 ## Entretien annuel des bâtiments des réseaux (part de leur prix).
 const ENTRETIEN_BATIMENTS := 0.03
 ## Bord de la carte : distance maximale pour le raccordement national (m).
@@ -54,7 +65,15 @@ var ambiance: DayNight
 var elec := ReseauBase.new("elec")
 var eau := ReseauBase.new("eau")
 var egout := ReseauBase.new("egout")
-## bid -> {"e": taux électricité, "o": taux eau, "g": taux égouts, "q": qualité de l'eau}
+var gaz := ReseauBase.new("gaz")
+## Usure, pannes et crises.
+var incidents := ReseauxIncidents.new(self)
+## Température du moment (°C), besoin de chauffage (0-1,3) ; temperature_forcee pour les essais.
+var temperature := 15.0
+var besoin := 0.0
+var temperature_forcee := NAN
+## bid -> {"e": taux électricité, "o": taux eau, "g": taux égouts, "q": qualité de l'eau,
+##   "c": taux gaz/chaleur, "ch": logement chauffé (gaz, sinon électricité)}
 var etat: Dictionary = {}
 ## bid -> {"e": jours sans courant, "o": jours sans eau}
 var manque: Dictionary = {}
@@ -99,6 +118,11 @@ func _init() -> void:
 	elec.rayon_raccord = 30.0
 	eau.rayon_raccord = 30.0
 	egout.rayon_raccord = 30.0
+	gaz.rayon_raccord = 30.0
+
+
+func tous() -> Array:
+	return [elec, eau, egout, gaz]
 
 
 func _enter_tree() -> void:
@@ -152,8 +176,9 @@ func setup(w: TerrainWorld, b: BuildingSystem, t: TransportSystem, p: Population
 
 
 func clear() -> void:
-	for r in [elec, eau, egout]:
+	for r in tous():
 		(r as ReseauBase).clear()
+	incidents.clear()
 	etat.clear()
 	manque.clear()
 	stocks.clear()
@@ -179,6 +204,8 @@ func reseau(res: String) -> ReseauBase:
 			return elec
 		"eau":
 			return eau
+		"gaz":
+			return gaz
 	return egout
 
 
@@ -321,7 +348,7 @@ func troncon_pres(p: Vector3, r: float) -> Dictionary:
 
 # --- Chantiers (fil « chantiers visibles », branché s'il est là) ----------------------------
 
-const HEURES_PAR_M := {"ligne_ht": 0.4, "ligne_mt": 0.15, "conduite_eau": 0.3, "collecteur": 0.5}
+const HEURES_PAR_M := {"ligne_ht": 0.4, "ligne_mt": 0.15, "conduite_eau": 0.3, "collecteur": 0.5, "conduite_gaz": 0.25}
 
 
 ## Étapes des chantiers de lignes aériennes et de canalisations enterrées.
@@ -400,17 +427,19 @@ static func demande_type(type_id: String) -> Dictionary:
 	var t := BuildingCatalog.get_type(type_id)
 	var r := ReseauxTypes.info(type_id)
 	if t.is_empty() or not r.is_empty() or bool(t.get("espace", false)):
-		return {"elec": float(r.get("elec", 0.0)), "eau": 0.0, "egout": 0.0}
+		return {"elec": float(r.get("elec", 0.0)), "eau": 0.0, "egout": 0.0, "gaz": 0.0}
 	var cat := String(t.get("cat", ""))
 	var log := float(t.get("logements", 0))
 	var emp := float(t.get("emplois", 0))
 	var vis := float(t.get("visiteurs", 0))
 	var kw_emp := 0.5
 	var eau_emp := 0.05
+	var chaleur_emp := 0.8
 	match cat:
 		"industrie", "production":
 			kw_emp = 3.0
 			eau_emp = 0.5
+			chaleur_emp = 2.0
 		"commerce":
 			kw_emp = 0.9
 		"services":
@@ -422,10 +451,17 @@ static func demande_type(type_id: String) -> Dictionary:
 	var kw := log * 0.6 + emp * kw_emp + vis * 0.02
 	var m3 := log * 0.33 + emp * eau_emp + vis * 0.01
 	if kw <= 0.0 and m3 <= 0.0:
-		return {"elec": 0.0, "eau": 0.0, "egout": 0.0}
+		return {"elec": 0.0, "eau": 0.0, "egout": 0.0, "gaz": 0.0}
 	kw = maxf(kw, 0.3)
 	m3 = maxf(m3, 0.02)
-	return {"elec": kw / 1000.0, "eau": m3, "egout": m3 * 0.9}
+	# Chauffage par grand froid (kW) : 4 par logement, selon les emplois ailleurs.
+	var chaleur := log * 4.0 + emp * chaleur_emp + vis * 0.01
+	return {"elec": kw / 1000.0, "eau": m3, "egout": m3 * 0.9, "gaz": maxf(chaleur, 0.2) / 1000.0}
+
+
+## Besoin de chauffage selon la température extérieure (1 vers 0 °C, eau chaude comprise).
+static func besoin_chauffage(t: float) -> float:
+	return clampf((18.0 - t) / 22.0, 0.0, 1.2) + 0.08
 
 
 ## Courbe de la journée et de l'année pour l'électricité (1 = moyenne).
@@ -435,7 +471,7 @@ func courbe_elec(h: float, mois: int) -> float:
 	if ambiance != null and ambiance.lat < 0.0:
 		hiver = mois in [6, 7, 8]
 	if hiver:
-		f *= 1.22
+		f *= 1.08
 	return f
 
 
@@ -463,7 +499,7 @@ func _sync() -> void:
 				var rr := reseau(res)
 				if not rr.consos.has(bid):
 					rr.ajouter_conso(bid, pos, float(dem[res]), marge)
-	for r in [elec, eau, egout]:
+	for r in tous():
 		var rs := r as ReseauBase
 		for bid in rs.sources.keys():
 			if not vus.has(bid):
@@ -529,7 +565,7 @@ func _routes() -> Array:
 func recalculer_topologie() -> void:
 	_topo_sale = false
 	var routes := _routes()
-	for r in [elec, eau, egout]:
+	for r in tous():
 		(r as ReseauBase).recalculer(routes)
 	if vue:
 		vue.calques_sales = true
@@ -561,6 +597,12 @@ func simuler(heures: float) -> void:
 	if _topo_sale:
 		recalculer_topologie()
 	var now := _maintenant()
+	temperature = _temperature()
+	besoin = besoin_chauffage(temperature)
+	incidents.maj(heures, temperature)
+	if _topo_sale:
+		recalculer_topologie()
+	_maj_gaz()
 	_maj_capacites(now)
 	elec.rebilan()
 	_maj_eau(now, heures)
@@ -574,6 +616,14 @@ func simuler(heures: float) -> void:
 	if heures > 0.0:
 		_facturer(heures / 24.0)
 	changed.emit()
+
+
+func _temperature() -> float:
+	if not is_nan(temperature_forcee):
+		return temperature_forcee
+	if ambiance != null and ambiance.weather != null:
+		return ambiance.weather.temperature
+	return 15.0
 
 
 func _maintenant() -> Dictionary:
@@ -604,9 +654,14 @@ func _maj_capacites(now: Dictionary) -> void:
 	vent = clampf(0.45 + 0.35 * sin(t / 37000.0) * cos(t / 91000.0 + 1.3) + 0.4 * storm, 0.0, 1.0)
 	var elev := ambiance.real_sun_elev if ambiance != null else 45.0
 	soleil = clampf(sin(deg_to_rad(maxf(elev, 0.0))) * (1.0 - 0.75 * cover), 0.0, 1.0)
-	var courbe := courbe_elec(h, int(now.mois))
+	var courbe := courbe_elec(h, int(now.mois)) * ReseauxIncidents.facteur_clim(temperature)
+	var libre := not ReglagesPartie.actuel.reseaux_obligatoires
 	for bid in elec.consos:
-		elec.set_demande(bid, float(demande_type(_type(bid)).elec) * courbe)
+		var d := float(demande_type(_type(bid)).elec) * courbe
+		# Chaleur que le réseau de gaz ne fournit pas : radiateurs et pompes à chaleur.
+		if not libre and gaz.consos.has(bid):
+			d += float(gaz.consos[bid].d) * (1.0 - gaz.taux_servi(bid)) * CHAUFFAGE_ELEC
+		elec.set_demande(bid, d)
 	for bid in elec.sources:
 		var info := ReseauxTypes.info(_type(bid))
 		var nom := float(info.get("cap", 0.0))
@@ -636,6 +691,10 @@ func _maj_capacites(now: Dictionary) -> void:
 					# Source d'un autre système (incinérateur…) : sa puissance déclarée.
 					nom = float(_externes[bid])
 					cap = nom
+		var sec := incidents.facteur_secheresse(info)
+		if sec < 1.0:
+			cap *= sec
+			why = "sécheresse"
 		var st := _staff(bid)
 		if String(info.get("source", "")) != "combustible" and st < 1.0:
 			cap *= 0.3 + 0.7 * st
@@ -648,6 +707,41 @@ func _maj_capacites(now: Dictionary) -> void:
 		sources_info[bid] = {"cap": cap, "max": nom, "why": why}
 
 
+## Gaz et chaleur : la demande suit le froid, les sources leur combustible.
+func _maj_gaz() -> void:
+	for bid in gaz.consos:
+		gaz.set_demande(bid, float(demande_type(_type(bid)).gaz) * besoin)
+	for bid in gaz.sources:
+		var info := ReseauxTypes.info(_type(bid))
+		var nom := float(info.get("cap", 0.0))
+		var cap := nom
+		var why := ""
+		if String(info.get("source", "")) == "combustible":
+			var eff := 1.0
+			if production != null and production.sites.has(bid):
+				eff = float(production.sites[bid].get("eff", 0.0))
+				if eff < 0.999:
+					why = String(production.sites[bid].get("status", ""))
+			cap = nom * eff
+		else:
+			var st := _staff(bid)
+			if st < 1.0:
+				cap *= 0.3 + 0.7 * st
+				if st < 0.5:
+					why = "manque de personnel"
+		if float(info.get("elec", 0.0)) > 0.0:
+			var te := _taux_elec_source(bid)
+			cap *= te
+			if te < 0.99:
+				why = "manque d'électricité"
+		if buildings != null and buildings.en_chantier(bid):
+			cap = 0.0
+			why = "en chantier"
+		gaz.set_capacite(bid, cap)
+		sources_info[bid] = {"cap": cap, "max": nom, "why": why}
+	gaz.rebilan()
+
+
 func _maj_eau(_now: Dictionary, heures: float) -> void:
 	for bid in eau.sources:
 		var info := ReseauxTypes.info(_type(bid))
@@ -656,6 +750,10 @@ func _maj_eau(_now: Dictionary, heures: float) -> void:
 		var why := ""
 		if String(info.get("source", "")) == "nappe" and buildings != null and buildings.buildings.has(bid):
 			cap *= facteur_nappe(buildings._rect_of(buildings.buildings[bid]))
+		var sec := incidents.facteur_secheresse(info)
+		if sec < 1.0:
+			cap *= sec
+			why = "sécheresse"
 		if float(info.get("elec", 0.0)) > 0.0:
 			var te := _taux_elec_source(bid)
 			cap *= te
@@ -669,6 +767,11 @@ func _maj_eau(_now: Dictionary, heures: float) -> void:
 			why = "en chantier"
 		eau.set_capacite(bid, cap)
 		sources_info[bid] = {"cap": cap, "max": nom, "why": why}
+	var fe := incidents.facteur_eau(temperature)
+	for bid in eau.consos:
+		eau.set_demande(bid, float(demande_type(_type(bid)).eau) * fe)
+	for bid in egout.consos:
+		egout.set_demande(bid, float(demande_type(_type(bid)).egout) * fe)
 	for bid in egout.sources:
 		var info := ReseauxTypes.info(_type(bid))
 		var nom := float(info.get("cap", 0.0))
@@ -689,6 +792,13 @@ func _maj_eau(_now: Dictionary, heures: float) -> void:
 		egout.set_capacite(bid, cap)
 		sources_info[bid] = {"cap": cap, "max": nom, "why": why}
 	eau.rebilan()
+	# Fuites dans les rues : une part de la production se perd.
+	for c in eau.composantes:
+		var perte := incidents.perte_eau(c)
+		if perte > 0.0:
+			var kc: Dictionary = eau.composantes[c]
+			kc.prod = float(kc.prod) * (1.0 - perte)
+			kc.taux = 1.0 if float(kc.dem) <= 0.0 else clampf(float(kc.prod) / float(kc.dem), 0.0, 1.0)
 	# Châteaux d'eau : le surplus remplit la réserve, la réserve couvre un manque.
 	var par_comp := {}
 	for bid in stocks:
@@ -825,7 +935,7 @@ func _maj_etats() -> void:
 	var libre := not ReglagesPartie.actuel.reseaux_obligatoires
 	var qual_comp := {}
 	var vus := {}
-	for r in [elec, eau, egout]:
+	for r in tous():
 		for bid in (r as ReseauBase).consos:
 			vus[bid] = true
 	for bid in vus:
@@ -833,19 +943,22 @@ func _maj_etats() -> void:
 		var o := 1.0
 		var g := 1.0
 		var q := 1.0
+		var c := 1.0
 		if not libre:
 			if elec.consos.has(bid):
-				e = elec.taux_servi(bid)
+				e = 0.0 if incidents.coupe(bid) else elec.taux_servi(bid)
+			if gaz.consos.has(bid):
+				c = gaz.taux_servi(bid)
 			if eau.consos.has(bid):
 				o = eau.taux_servi(bid)
-				var c := eau.composante_de(bid)
-				if not qual_comp.has(c):
-					qual_comp[c] = qualite_de(bid)
-				q = float(qual_comp[c])
+				var ce := eau.composante_de(bid)
+				if not qual_comp.has(ce):
+					qual_comp[ce] = qualite_de(bid)
+				q = float(qual_comp[ce])
 			if egout.consos.has(bid):
 				g = egout.taux_servi(bid)
 		var avant: Dictionary = etat.get(bid, {})
-		etat[bid] = {"e": e, "o": o, "g": g, "q": q}
+		etat[bid] = {"e": e, "o": o, "g": g, "q": q, "c": c, "ch": clampf(c + (1.0 - c) * e, 0.0, 1.0)}
 		var noir := e < 0.5
 		if avant.is_empty() or (float(avant.e) < 0.5) != noir:
 			_set_noir(bid, noir)
@@ -864,8 +977,12 @@ func _set_noir(bid: int, on: bool) -> void:
 
 
 func taux(bid: int, res: String) -> float:
-	var k := {"elec": "e", "eau": "o", "egout": "g"}[res] as String
-	return float(etat.get(bid, {}).get(k, 1.0))
+	return float(etat.get(bid, {}).get(CLE.get(res, "e"), 1.0))
+
+
+## Le logement est-il chauffé (gaz ou chaleur, sinon électricité) ? 1 = oui.
+func chauffe(bid: int) -> float:
+	return float(etat.get(bid, {}).get("ch", 1.0))
 
 
 ## Raccordé aux égouts et l'eau y est traitée (pour la pollution).
@@ -914,6 +1031,8 @@ func risque_sante(bid: int) -> float:
 	r += (1.0 - float(s.q)) * 0.6 * float(s.o)
 	r += (1.0 - float(s.o)) * 0.2
 	r += (1.0 - float(s.g)) * 0.25
+	if besoin > 0.3:
+		r += (1.0 - float(s.get("ch", 1.0))) * 0.3 * minf(besoin, 1.0)
 	return clampf(r, 0.0, 1.0)
 
 
@@ -944,6 +1063,22 @@ func satisfaction_of(p: Dictionary) -> Array:
 	if float(s.q) < 0.7 and float(s.o) > 0.0:
 		d -= 8.0
 		why.append("− l'eau du robinet n'est pas potable")
+	if besoin > 0.3:
+		var ch := float(s.get("ch", 1.0))
+		if ch < 0.5 and float(s.e) < 0.5:
+			# Sans courant ni gaz : la plainte « pas d'électricité » compte déjà.
+			var i := why.find("− pas d'électricité à la maison")
+			if i >= 0:
+				why[i] = "− pas d'électricité ni de chauffage : il fait froid"
+		elif ch < 0.5:
+			d -= 12.0
+			why.append("− il fait froid dans le logement")
+		elif ch < 0.9:
+			d -= 4.0
+			why.append("− logement mal chauffé")
+	if incidents.restrictions and float(s.o) >= 0.5:
+		d -= 3.0
+		why.append("− restrictions d'eau (arrosage, piscines)")
 	if why.is_empty():
 		d += 2.0
 		why.append("+ eau et électricité sans coupure")
@@ -974,7 +1109,8 @@ func budget_entretien() -> Dictionary:
 		for bid in r.sources:
 			if buildings != null and buildings.buildings.has(bid):
 				tot += float(buildings.buildings[bid].get("cost", BuildingCatalog.cost(_type(bid)))) * ENTRETIEN_BATIMENTS / 12.0
-		out[{"elec": "Entretien du réseau électrique", "eau": "Entretien du réseau d'eau", "egout": "Entretien des égouts"}[res]] = roundf(tot)
+		out[{"elec": "Entretien du réseau électrique", "eau": "Entretien du réseau d'eau", "egout": "Entretien des égouts",
+			"gaz": "Entretien du réseau de gaz et de chaleur"}[res]] = roundf(tot)
 	return out
 
 
@@ -1017,6 +1153,7 @@ func _retirer_nuisances() -> void:
 # --- Jours : coupures longues, factures --------------------------------------------------
 
 func _nouveau_jour() -> void:
+	incidents.nouveau_jour()
 	# La santé dépend de l'eau : la pollution autour des logements est recalculée.
 	if population != null and population.vie != null:
 		population.vie.clear_cache()
@@ -1048,6 +1185,27 @@ func _nouveau_jour() -> void:
 		compta.jours = 0
 
 
+## Dépense de la ville (réparations…) : par le Budget communal s'il existe.
+func depenser(poste: String, v: float) -> void:
+	if v <= 0.0:
+		return
+	_book(poste, -v)
+	if buildings == null or buildings.unlimited_money:
+		return
+	var bc = _classe("BudgetCommunal")
+	var inst = bc.get("instance") if bc != null else null
+	if inst != null and is_instance_valid(inst) and inst.has_method("depense"):
+		inst.call("depense", poste, v)
+	else:
+		buildings.money -= roundi(v)
+
+
+## Pour les tempêtes et les crues d'autres systèmes : casse les lignes à moins de
+## `rayon` m de `pos` (les conduites aussi pour une crue). Renvoie le nombre de tronçons cassés.
+func endommager(pos: Vector3, rayon: float, cause := "tempete") -> int:
+	return incidents.endommager(pos, rayon, cause)
+
+
 func _book(poste: String, v: float) -> void:
 	var m: Dictionary = compta.mois
 	m[poste] = float(m.get(poste, 0.0)) + v
@@ -1057,6 +1215,7 @@ func _book(poste: String, v: float) -> void:
 func _facturer(jours: float) -> void:
 	var mult := ReglagesPartie.actuel.prix_services
 	var recette := 0.0
+	var recette_gaz := 0.0
 	for bid in elec.consos:
 		if buildings == null or not buildings.buildings.has(bid):
 			continue
@@ -1064,7 +1223,9 @@ func _facturer(jours: float) -> void:
 		var kwh := float(elec.consos[bid].d) * 1000.0 * 24.0 * jours * float(s.e)
 		var m3 := float(eau.consos.get(bid, {}).get("d", 0.0)) * jours * float(s.o)
 		var eu := float(egout.consos.get(bid, {}).get("d", 0.0)) * jours * float(s.g)
-		var cout := (kwh * PRIX_KWH + m3 * PRIX_M3_EAU + eu * PRIX_M3_ASSAINISSEMENT) * mult
+		var kwh_gaz := float(gaz.consos.get(bid, {}).get("d", 0.0)) * 1000.0 * 24.0 * jours * float(s.get("c", 1.0))
+		recette_gaz += kwh_gaz * PRIX_KWH_GAZ * mult
+		var cout := (kwh * PRIX_KWH + m3 * PRIX_M3_EAU + eu * PRIX_M3_ASSAINISSEMENT + kwh_gaz * PRIX_KWH_GAZ) * mult
 		if cout <= 0.0:
 			continue
 		recette += cout
@@ -1075,7 +1236,9 @@ func _facturer(jours: float) -> void:
 					population.households[hid].ep = float(population.households[hid].ep) - cout / hids.size()
 		elif production != null and production.sites.has(bid):
 			production._pay(bid, "Eau et électricité", -cout)
-	_book("Factures d'eau et d'électricité", recette)
+	_book("Factures d'eau et d'électricité", recette - recette_gaz)
+	if recette_gaz > 0.0:
+		_book("Factures de gaz et de chauffage", recette_gaz)
 	var frais := 0.0
 	# Courant acheté au réseau national, combustible des grandes centrales sous contrat.
 	for bid in elec.sources:
@@ -1093,9 +1256,22 @@ func _facturer(jours: float) -> void:
 			continue
 		frais += v
 		_book("Courant acheté au réseau national" if String(info.get("source", "")) == "national" else "Combustible des grandes centrales", -v)
-	# Centrales au combustible : la ville couvre leurs pertes (combustible, salaires).
+	# Gaz acheté au gazoduc.
+	for bid in gaz.sources:
+		if String(ReseauxTypes.info(_type(bid)).get("source", "")) != "gaz_import":
+			continue
+		var c := gaz.composante_de(bid)
+		var k: Dictionary = gaz.composantes.get(c, {})
+		if k.is_empty() or float(k.prod) <= 0.0:
+			continue
+		var mw := minf(float(k.dem), float(k.prod)) * float(gaz.sources[bid].cap) / float(k.prod)
+		var v := mw * 1000.0 * 24.0 * jours * PRIX_KWH_GAZ_IMPORT
+		if v > 0.0:
+			frais += v
+			_book("Gaz acheté au gazoduc", -v)
+	# Centrales et chaufferies au combustible : la ville couvre leurs pertes (combustible, salaires).
 	if production != null:
-		for bid in elec.sources:
+		for bid in elec.sources.keys() + gaz.sources.keys():
 			if production.sites.has(bid) and float(production.sites[bid].cash) < 0.0:
 				var v := -float(production.sites[bid].cash)
 				production.sites[bid].cash = 0.0
@@ -1122,7 +1298,7 @@ func bilan(res: String) -> Dictionary:
 	var b := r.bilan()
 	var coupes := 0
 	var partiels := 0
-	var k := {"elec": "e", "eau": "o", "egout": "g"}[res] as String
+	var k: String = CLE[res]
 	for bid in r.consos:
 		var t := float(etat.get(bid, {}).get(k, 1.0))
 		if t < 0.5:
@@ -1153,6 +1329,15 @@ func bilan(res: String) -> Dictionary:
 		for c in rejets:
 			rj += float(rejets[c])
 		b["rejets"] = rj
+	if res == "gaz":
+		var froid := 0
+		for bid in etat:
+			if besoin > 0.3 and float(etat[bid].get("ch", 1.0)) < 0.5:
+				froid += 1
+		b["froid"] = froid
+		b["temperature"] = temperature
+		b["besoin"] = besoin
+	b["incidents"] = incidents.de_reseau(res).size()
 	return b
 
 
@@ -1188,7 +1373,7 @@ func _inscrire_calques() -> void:
 			func(on: bool) -> void:
 				if vue:
 					vue.set_calque(r, on),
-			"Vert : desservi · orange : rationné · rouge : coupé")
+			"Vert : desservi · orange : rationné · rouge : coupé" if r != "gaz" else "Vert : chauffé par le réseau · orange : en partie · rouge : à l'électricité ou au froid")
 
 
 # --- Outil de pose ----------------------------------------------------------------------
@@ -1353,6 +1538,7 @@ func to_dict() -> Dictionary:
 	for bid in manque:
 		mq[str(bid)] = manque[bid]
 	return {"version": 1, "elec": elec.to_dict(), "eau": eau.to_dict(), "egout": egout.to_dict(),
+		"gaz": gaz.to_dict(), "incidents": incidents.to_dict(),
 		"stocks": st, "manque": mq, "compta": compta, "heures": snappedf(_heures_jour, 0.01)}
 
 
@@ -1363,6 +1549,8 @@ func from_dict(d: Dictionary) -> void:
 	elec.from_dict(d.get("elec", {}))
 	eau.from_dict(d.get("eau", {}))
 	egout.from_dict(d.get("egout", {}))
+	gaz.from_dict(d.get("gaz", {}))
+	incidents.from_dict(d.get("incidents", {}))
 	for k in d.get("stocks", {}):
 		stocks[int(k)] = float(d.stocks[k])
 	for k in d.get("manque", {}):

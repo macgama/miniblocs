@@ -1,8 +1,9 @@
 class_name ReseauxPanel
 extends CanvasLayer
-## Panneau « Réseaux » (touche O) : électricité, eau potable, égouts.
+## Panneau « Réseaux » (touche O) : électricité, eau potable, égouts, gaz et chauffage.
 ## Bilan production / demande, sources et leur état, bâtiments coupés, outils de
-## pose des lignes et conduites, calque de couverture, comptes du mois.
+## pose des lignes et conduites, calque de couverture, pannes en cours et
+## tronçons usés, sécheresse et restrictions d'eau, comptes du mois.
 ## D'autres réseaux (télécoms…) peuvent y ajouter leur onglet : ajouter_onglet().
 
 signal focus_requested(pos: Vector3)
@@ -51,7 +52,7 @@ func _build() -> void:
 	head.add_child(x)
 	_tabs = HBoxContainer.new()
 	outer.add_child(_tabs)
-	for spec in [["Courant", "elec"], ["Eau", "eau"], ["Égouts", "egout"], ["Comptes", "comptes"]]:
+	for spec in [["Courant", "elec"], ["Eau", "eau"], ["Égouts", "egout"], ["Chauffage", "gaz"], ["Comptes", "comptes"]]:
 		_add_tab(spec[0], spec[1])
 	_scroll = ScrollContainer.new()
 	_scroll.custom_minimum_size = Vector2(W, H)
@@ -170,15 +171,35 @@ func _reseau(res: String) -> void:
 		_label("Châteaux d'eau : %d / %d m³ en réserve" % [roundi(b.stock), roundi(b.stock_max)])
 	if res == "egout" and float(b.get("rejets", 0.0)) > 0.0:
 		_label("Rejeté sans traitement : %s m³/j (pollue la rivière)" % Reseaux._fmt(b.rejets), 13, Color("f4a261"))
+	var inc := reseaux.incidents
 	if res == "elec":
-		_label("Vent : %d %% · soleil : %d %%" % [roundi(reseaux.vent * 100.0), roundi(reseaux.soleil * 100.0)], 12, UiStyle.TEXT_DIM)
+		_label("Vent : %d %% · soleil : %d %% · %d °C" % [roundi(reseaux.vent * 100.0), roundi(reseaux.soleil * 100.0), roundi(reseaux.temperature)], 12, UiStyle.TEXT_DIM)
+		if inc.canicule:
+			_label("Canicule : la climatisation fait grimper la demande (+%d %%)." % roundi((ReseauxIncidents.facteur_clim(reseaux.temperature) - 1.0) * 100.0), 13, Color("f4a261"))
+	if res == "gaz":
+		_label("%d °C dehors : besoin de chauffage %d %%." % [roundi(reseaux.temperature), roundi(reseaux.besoin * 100.0)], 12, UiStyle.TEXT_DIM)
+		if int(b.get("froid", 0)) > 0:
+			_label("%d bâtiments ont froid (ni gaz ni assez d'électricité)." % int(b.froid), 13, Color("e63946"))
+		_label("Sans gaz ni chaleur, on se chauffe à l'électricité : la demande de courant grimpe en hiver.", 12, UiStyle.TEXT_DIM)
+	if res == "eau":
+		if inc.secheresse > 0.0:
+			_label("Sécheresse : %d jours sans pluie, rivières et nappes à %d %%." % [int(inc.jours_secs), roundi((1.0 - 0.6 * inc.secheresse) * 100.0)], 13, Color("f4a261"))
+		elif inc.jours_secs >= 5.0:
+			_label("%d jours sans pluie." % int(inc.jours_secs), 12, UiStyle.TEXT_DIM)
+		var rb := CheckBox.new()
+		rb.text = "Restrictions d'eau (−20 %, les habitants râlent un peu)"
+		rb.button_pressed = inc.restrictions
+		rb.toggled.connect(func(on: bool) -> void:
+			inc.restrictions = on
+			reseaux.message.emit("Restrictions d'eau %s." % ("en vigueur : arrosage et piscines interdits" if on else "levées")))
+		_body.add_child(rb)
 	# Outils.
 	var outils := HBoxContainer.new()
 	_body.add_child(outils)
 	for id in ReseauxTypes.troncons_de(res):
 		var tr := ReseauxTypes.troncon(id)
 		var bt := Button.new()
-		bt.text = String(tr.name).replace("Ligne ", "").replace("Conduite d'eau potable", "Conduite").replace("Collecteur d'égout", "Collecteur").capitalize()
+		bt.text = String(tr.name).replace("Ligne ", "").replace("Conduite d'eau potable", "Conduite").replace("Collecteur d'égout", "Collecteur").replace("Conduite de gaz ou de chaleur", "Conduite").capitalize()
 		bt.tooltip_text = "%s\n%s\n%s par mètre" % [tr.name, tr.desc, BuildingSystem.format_money(ReglagesPartie.prix(int(tr.prix_m)))]
 		bt.toggle_mode = true
 		bt.button_pressed = reseaux.outil == Reseaux.Outil.TRACER and reseaux.type_troncon == id
@@ -205,11 +226,13 @@ func _reseau(res: String) -> void:
 			_label("Chantier : %s, %d %%%s" % [ReseauxTypes.troncon(String(reseaux.reseau(res).troncons[id].t)).get("name", ""), roundi(float(ch.av) * 100.0),
 				(" (%s)" % String(et[2]).to_lower()) if et.size() > 2 else ""], 12, Color("f4a261"))
 	_label("%d tronçon%s posé%s, %s · chaque route dessert aussi les bâtiments à moins de 30 m." % [nb, "s" if nb > 1 else "", "s" if nb > 1 else "", TransportSystem._km(float(b.lineaire))], 12, UiStyle.TEXT_DIM)
+	_incidents(res)
 	# Sources.
 	_label("Sources (Construire > Réseaux)" if res != "egout" else "Stations et rejets (Construire > Réseaux)", 14, UiStyle.ACCENT)
 	var r := reseaux.reseau(res)
 	if r.sources.is_empty():
-		_label("Aucune pour l'instant : pose une %s dans le panneau Construire, catégorie Réseaux." % ("centrale" if res == "elec" else ("usine d'eau ou un forage" if res == "eau" else "station d'épuration")), 12, UiStyle.TEXT_DIM)
+		_label("Aucune pour l'instant : pose %s dans le panneau Construire, catégorie Réseaux." % {"elec": "une centrale", "eau": "une usine d'eau ou un forage",
+			"egout": "une station d'épuration", "gaz": "un poste de gaz, une chaufferie ou une géothermie"}[res], 12, UiStyle.TEXT_DIM)
 	for bid in r.sources:
 		var inf: Dictionary = reseaux.sources_info.get(bid, {})
 		var t := BuildingCatalog.get_type(reseaux._type(bid))
@@ -233,7 +256,7 @@ func _reseau(res: String) -> void:
 		bt.pressed.connect(func() -> void: focus_requested.emit(pos))
 		_body.add_child(bt)
 	# Bâtiments coupés.
-	var k := {"elec": "e", "eau": "o", "egout": "g"}[res] as String
+	var k: String = Reseaux.CLE[res]
 	var coupes := []
 	for bid in r.consos:
 		if float(reseaux.etat.get(bid, {}).get(k, 1.0)) < 0.5:
@@ -255,7 +278,60 @@ func _reseau(res: String) -> void:
 			_body.add_child(bt)
 		if coupes.size() > 12:
 			_label("… et %d autres." % (coupes.size() - 12), 12, UiStyle.TEXT_DIM)
-	_label("Sans courant : fenêtres noires, usines et commerces au ralenti. Sans eau : maladies, pompiers sans bouches d'incendie. Au bout de 7 jours, les foyers partent.", 12, UiStyle.TEXT_DIM)
+	_label("Sans courant : fenêtres noires, usines et commerces au ralenti. Sans eau : maladies, pompiers sans bouches d'incendie. Au bout de 7 jours, les foyers partent. Sans chauffage l'hiver : froid et maladies.", 12, UiStyle.TEXT_DIM)
+
+
+## Pannes en cours et tronçons usés (à rénover).
+func _incidents(res: String) -> void:
+	var inc := reseaux.incidents
+	var lst := inc.de_reseau(res)
+	if not lst.is_empty():
+		_label("Pannes en cours", 14, Color("e63946"))
+		for x in lst:
+			var reste := maxf(float(x.fin) - inc.now(), 0.0) / 3600.0
+			var row := HBoxContainer.new()
+			_body.add_child(row)
+			var bt := Button.new()
+			bt.text = "%s · réparé dans %d h" % [inc.decrire(x).capitalize(), ceili(reste)]
+			bt.alignment = HORIZONTAL_ALIGNMENT_LEFT
+			bt.clip_text = true
+			bt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			var pos: Vector3 = x.p
+			bt.pressed.connect(func() -> void: focus_requested.emit(pos))
+			row.add_child(bt)
+			var vite := Button.new()
+			vite.text = "Vite"
+			vite.tooltip_text = "Réparer tout de suite (heures supplémentaires) : %s" % BuildingSystem.format_money(int(x.cout) * 2)
+			var iid := int(x.id)
+			vite.pressed.connect(func() -> void:
+				inc.reparer_vite(iid)
+				refresh())
+			row.add_child(vite)
+	var uses := []
+	var rs := reseaux.reseau(res)
+	for id in rs.troncons:
+		if bool(rs.troncons[id].ok) and float(rs.troncons[id].get("u", 1.0)) < 0.6:
+			uses.append(id)
+	if uses.is_empty():
+		return
+	_label("Tronçons usés (ils cassent plus souvent)", 14, Color("f4a261"))
+	for i in mini(uses.size(), 8):
+		var tid: int = uses[i]
+		var e: Dictionary = rs.troncons[tid]
+		var row := HBoxContainer.new()
+		_body.add_child(row)
+		var l := Label.new()
+		l.text = "%s, %d m : état %d %%" % [ReseauxTypes.troncon(String(e.t)).get("name", ""), roundi(ReseauBase.longueur(e.pts)), roundi(float(e.get("u", 1.0)) * 100.0)]
+		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		l.clip_text = true
+		row.add_child(l)
+		var rb := Button.new()
+		rb.text = "Rénover"
+		rb.tooltip_text = BuildingSystem.format_money(inc.prix_renovation(res, tid))
+		rb.pressed.connect(func() -> void:
+			inc.renover(res, tid)
+			refresh())
+		row.add_child(rb)
 
 
 func _comptes() -> void:
@@ -276,9 +352,10 @@ func _comptes() -> void:
 			_label("Solde : %s" % BuildingSystem.format_money(roundi(tot)), 13, UiStyle.TEXT)
 	if not any:
 		_label("Rien encore : les factures arrivent quand le temps passe.", 12, UiStyle.TEXT_DIM)
-	_label("Prix : %s € le kWh, %s € le m³ d'eau, %s € le m³ d'assainissement (×%s, réglage Admin F10)." % [
+	_label("Prix : %s € le kWh, %s € le m³ d'eau, %s € le m³ d'assainissement, %s € le kWh de gaz ou de chaleur (×%s, réglage Admin F10)." % [
 		String.num(Reseaux.PRIX_KWH, 2).replace(".", ","), String.num(Reseaux.PRIX_M3_EAU, 2).replace(".", ","),
-		String.num(Reseaux.PRIX_M3_ASSAINISSEMENT, 2).replace(".", ","), ReglagesPartie._fmt(ReglagesPartie.actuel.prix_services)], 12, UiStyle.TEXT_DIM)
+		String.num(Reseaux.PRIX_M3_ASSAINISSEMENT, 2).replace(".", ","), String.num(Reseaux.PRIX_KWH_GAZ, 2).replace(".", ","),
+		ReglagesPartie._fmt(ReglagesPartie.actuel.prix_services)], 12, UiStyle.TEXT_DIM)
 	_label("Entretien prévu : " + ", ".join(_fmt_ent(reseaux.budget_entretien())), 12, UiStyle.TEXT_DIM)
 
 

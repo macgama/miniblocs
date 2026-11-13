@@ -1,6 +1,6 @@
-# Réseaux : électricité, eau potable, égouts
+# Réseaux : électricité, eau potable, égouts, gaz et chauffage
 
-Touche **O** : panneau Réseaux. Code dans `scripts/reseaux/`, test `tests/reseaux_test.gd`.
+Touche **O** : panneau Réseaux (onglets Courant, Eau, Égouts, Chauffage, Comptes). Code dans `scripts/reseaux/`, tests `tests/reseaux_test.gd` et `tests/reseaux_crises_test.gd`.
 
 ## Principe (inspiré des city builders, sans copier)
 
@@ -43,12 +43,55 @@ jour leurs pertes (combustible, salaires). Les autres centrales tournent à
 Les usines d'eau et les stations ont besoin de courant : sans électricité,
 plus d'eau.
 
+## Gaz et chauffage
+
+| Bâtiment | Chaleur | Particularité |
+|---|---|---|
+| Poste de livraison de gaz | 30 MW | gaz acheté 0,05 € le kWh par la ville |
+| Chaufferie bois (chauffage urbain) | 10 MW | 70 t de bois par jour livrées par camion |
+| Centrale de géothermie | 6 MW | sans combustible, consomme 0,3 MW |
+
+Tronçon : conduite de gaz ou de chaleur (180 € le mètre). Les routes portent
+aussi les conduites de rue.
+
+- Besoin de chauffage : (18 − T) / 22, entre 0 et 120 %, plus 8 % d'eau chaude.
+  Grand froid : 4 kW par logement, 0,8 kW par emploi (2 dans l'industrie).
+- Sans gaz, la chaleur qui manque est demandée au réseau électrique (× 0,8 :
+  radiateurs et pompes à chaleur) : la pointe d'hiver grimpe.
+- Quand il fait froid : sans gaz et avec du courant rationné, logement mal
+  chauffé (−4 de satisfaction) ; sans gaz ni courant, on a froid (la plainte
+  « pas d'électricité » devient « ni chauffage ») et le risque pour la santé monte.
+- Facture : 0,10 € le kWh de gaz ou de chaleur.
+
+## Usure, pannes et crises (`ReseauxIncidents`)
+
+- **Usure** : chaque tronçon perd son état sur sa durée de vie (HT 60 ans,
+  MT 40, conduite d'eau 50, collecteur 70, gaz 50), au rythme du réglage Admin
+  « usure ». Les pannes : 0,004 par km et par jour pour un tronçon neuf, jusqu'à
+  4 fois plus quand il est usé. « Rénover » le remet à neuf (35 % du prix neuf × l'usure).
+- **Pannes** : un tronçon cassé est hors service (`hs`) jusqu'à la réparation
+  (4 h + 6 h par km, ×1,5 après une tempête), payée par la ville (4 % du prix,
+  2 000 € au moins ; « Vite » : le double, tout de suite). Dans les rues : fuites
+  d'eau (−15 % de la production du réseau, 4 à 12 h) et transformateurs grillés
+  (bâtiments à moins de 60 m dans le noir, 2 à 6 h). Repères : camionnette et
+  cônes, flaque pour une fuite ; câbles tombés au sol sur une ligne cassée.
+- **Orages** : les arbres tombent sur les lignes aériennes (selon la force de l'orage).
+- **Pour les tempêtes et crues des événements** : `Reseaux.instance.endommager(pos, rayon, cause)`
+  (cause « crue » : conduites comprises).
+- **Canicule** (30 °C et plus) : courant ×(1 + 4 % par degré au-dessus de 27,
+  40 % au plus), eau ×(1 + 2,5 % par degré au-dessus de 25, 30 % au plus).
+- **Sécheresse** : après 12 jours secs (plus de 15 °C, pas de pluie), le niveau
+  monte en 30 jours : captages et barrages jusqu'à −60 %, forages −35 %, centrales
+  refroidies par une rivière −40 %. Un jour de pluie retire 4 jours secs.
+- **Restrictions d'eau** (onglet Eau) : −20 % de consommation, −3 de satisfaction.
+
 ## Demande
 
 Par bâtiment (moyennes, `Reseaux.demande_type`) : 0,6 kW et 0,33 m³/j par
 logement ; 3 kW et 0,5 m³/j par emploi d'industrie ; 0,9 kW par emploi de
 commerce… Les eaux usées valent 90 % de l'eau. Le courant suit la journée
-(pointes à 8 h et 19 h 30) et l'hiver (+22 %).
+(pointes à 8 h et 19 h 30), l'hiver (+8 % d'éclairage, plus le chauffage
+électrique), et la canicule.
 
 ## Conséquences
 
@@ -90,11 +133,12 @@ commerce… Les eaux usées valent 90 % de l'eau. Le courant suit la journée
   `electricite_sources` avec `electricite_sources() -> [{bid, mw, nom}]`.
 - Onglet dans le panneau O : `Reseaux.instance.panneau.ajouter_onglet(titre, control)`.
 - Calques : inscrits dans le panneau commun Calques (`reseau_elec`, `reseau_eau`,
-  `reseau_egout`) s'il existe ; les onglets du panneau O les allument aussi.
+  `reseau_egout`, `reseau_gaz`) s'il existe ; les onglets du panneau O les allument aussi.
 - Rejets d'eaux usées déclarés au module Nuisances (type « eau ») s'il existe.
 
 ## Sauvegarde
 
-Section `reseaux` : tronçons (tracé, type, en service, avancement du chantier,
-prix payé), réserves des châteaux d'eau, jours de coupure, comptes du mois.
+Section `reseaux` : tronçons des 4 réseaux (tracé, type, en service, avancement du chantier,
+prix payé, état d'usure, panne), réserves des châteaux d'eau, jours de coupure, comptes du mois, pannes en cours,
+jours sans pluie, restrictions.
 Sources et consommateurs sont reconstruits depuis les bâtiments.

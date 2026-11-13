@@ -66,6 +66,7 @@ func _run() -> void:
 		_place(bs, "immeuble", -60 + i * 30, -1)
 	_place(bs, "forage_eau", 100, -1)
 	_place(bs, "station_epuration_locale", 160, 1)
+	_place(bs, "poste_gaz", 220, -1)
 	# Centrale au loin, sur sa propre route, reliée par une ligne HT.
 	transport.build_segment("route", Vector3(-200, y, -520), Vector3(220, y, -520))
 	var cent := _place(bs, "centrale_charbon_locale", -60, 1, -520)
@@ -116,4 +117,31 @@ func _run() -> void:
 	scene.reseaux_panel.set_open(true)
 	scene.reseaux_panel.show_view("elec")
 	await _shot(dir.path_join("reseaux-panneau.png"))
+	# Chauffage par grand froid.
+	res.temperature_forcee = -4.0
+	res.simuler(0.0)
+	scene.reseaux_panel.show_view("gaz")
+	await _shot(dir.path_join("reseaux-chauffage.png"))
+	# Sécheresse et restrictions.
+	res.temperature_forcee = 31.0
+	res.incidents.forcer_secheresse(36.0)
+	res.incidents.restrictions = true
+	res.simuler(0.0)
+	scene.reseaux_panel.show_view("eau")
+	await _shot(dir.path_join("reseaux-secheresse.png"))
+	# Une tempête abat la ligne haute tension.
+	scene.reseaux_panel.set_open(false)
+	res.vue.set_calque("eau", false)
+	var lht: int = res.elec.troncons.keys()[0]
+	var pts: PackedVector3Array = res.elec.troncons[lht].pts
+	var mid := pts[pts.size() / 2]
+	res.endommager(mid, 30.0, "tempete")
+	res.simuler(0.0)
+	await process_frame
+	res.vue._process(2.0)
+	rig.position = Vector3(mid.x + 20, y, mid.z + 10)
+	rig._target_distance = 110.0
+	rig.set_pitch(18.0, true)
+	rig.rotation_degrees.y = -40.0
+	await _shot(dir.path_join("reseaux-panne.png"))
 	quit()

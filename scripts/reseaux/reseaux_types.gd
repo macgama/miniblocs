@@ -3,11 +3,12 @@ extends RefCounted
 ## Bâtiments des réseaux (catégorie « Réseaux » du panneau Construire) :
 ## centrales électriques, captages d'eau potable, châteaux d'eau, stations
 ## d'épuration. Même format que BuildingCatalog, plus un champ "reseau" :
-## - "res" : "elec", "eau" ou "egout" (le réseau qu'il alimente) ;
-## - "cap" : capacité (MW pour l'électricité, m³ par jour pour l'eau et les égouts) ;
+## - "res" : "elec", "eau", "egout" ou "gaz" (le réseau qu'il alimente) ;
+## - "cap" : capacité (MW pour l'électricité et la chaleur, m³ par jour pour l'eau et les égouts) ;
 ## - "stock" : réserve (m³) d'un château d'eau (ceux des Services publics, voir CHATEAU) ;
 ## - "source" : d'où vient l'énergie : "combustible" (charbon, gaz, bois livrés
-##   par camion), "soleil", "vent", "riviere", "uranium", "national", "rejet" ;
+##   par camion), "soleil", "vent", "riviere", "uranium", "national", "rejet",
+##   "gaz_import" (gaz acheté au réseau de transport), "sol" (géothermie) ;
 ## - "pres_eau" : distance maximale (m) à une rivière ou un lac (captage, barrage) ;
 ## - "elec" : courant consommé à plein régime (MW) : pompes, aérateurs…
 ## Les chiffres sont des ordres de grandeur réels, à l'échelle d'une petite
@@ -48,13 +49,24 @@ const TYPES := {
 	"lagunage": {"name": "Lagunage", "w": 70, "d": 50, "access": RP, "emplois": 1, "cost": 1_800_000,
 		"reseau": {"res": "egout", "cap": 400.0, "source": "traitement"},
 		"desc": "Bassins où les eaux usées s'épurent toutes seules (400 m³ par jour, sans électricité). Pour un village."},
+	# --- Gaz et chauffage urbain ------------------------------------------------------------
+	"poste_gaz": {"name": "Poste de livraison de gaz", "w": 16, "d": 12, "access": ROAD, "emplois": 1, "cost": 2_500_000,
+		"reseau": {"res": "gaz", "cap": 30.0, "source": "gaz_import"},
+		"desc": "Branche la ville sur le grand gazoduc : jusqu'à 30 MW de chaleur. Le gaz est acheté 0,05 € le kWh par la ville et revendu aux habitants."},
+	"chaufferie_bois": {"name": "Chaufferie bois (chauffage urbain)", "w": 30, "d": 24, "access": ROAD, "emplois": 6, "cost": 6_000_000,
+		"reseau": {"res": "gaz", "cap": 10.0, "source": "combustible"},
+		"prod": {"kind": "transformation", "in": {"bois": 70.0}, "out": {}},
+		"desc": "10 MW de chaleur envoyés par des tuyaux d'eau chaude. Brûle 70 t de bois par jour à plein régime, livré par camion."},
+	"geothermie": {"name": "Centrale de géothermie", "w": 24, "d": 20, "access": ROAD, "emplois": 3, "cost": 9_000_000,
+		"reseau": {"res": "gaz", "cap": 6.0, "source": "sol", "elec": 0.3},
+		"desc": "6 MW de chaleur puisés à 2 000 m sous terre, sans combustible. Ses pompes consomment 0,3 MW d'électricité."},
 	"exutoire_egout": {"name": "Rejet d'égout sans traitement", "w": 8, "d": 8, "access": [], "emplois": 0, "cost": 60_000,
 		"reseau": {"res": "egout", "cap": 1_000_000.0, "source": "rejet"},
 		"desc": "Sortie d'égout dans la nature : pas cher, mais il pollue la rivière et rend malades ceux qui boivent en aval."},
 }
 
 const ORDER := ["centrale_charbon_locale", "centrale_gaz", "centrale_biomasse", "poste_national", "captage_eau", "forage_eau",
-	"station_epuration_locale", "lagunage", "exutoire_egout"]
+	"station_epuration_locale", "lagunage", "exutoire_egout", "poste_gaz", "chaufferie_bois", "geothermie"]
 
 ## Bâtiments de la bible Blender qui deviennent des bâtiments des réseaux
 ## (ils passent dans la catégorie Réseaux et ne poussent plus dans les zones).
@@ -100,11 +112,13 @@ const TRONCONS := {
 		"desc": "Canalisation enterrée (visible avec le calque Eau) : relie un captage éloigné au réseau des routes."},
 	"collecteur": {"name": "Collecteur d'égout", "res": "egout", "prix_m": 450, "entretien_m": 4.0,
 		"desc": "Grand égout enterré : emmène les eaux usées jusqu'à la station d'épuration."},
+	"conduite_gaz": {"name": "Conduite de gaz ou de chaleur", "res": "gaz", "prix_m": 180, "entretien_m": 2.5,
+		"desc": "Canalisation enterrée (visible avec le calque Chauffage) : relie un poste de gaz ou une chaufferie aux rues."},
 }
 
-const RES_NAMES := {"elec": "Électricité", "eau": "Eau potable", "egout": "Égouts"}
-const UNITES := {"elec": "MW", "eau": "m³/j", "egout": "m³/j"}
-const COULEURS := {"elec": Color("ffd166"), "eau": Color("4cc9f0"), "egout": Color("a47148")}
+const RES_NAMES := {"elec": "Électricité", "eau": "Eau potable", "egout": "Égouts", "gaz": "Gaz et chauffage"}
+const UNITES := {"elec": "MW", "eau": "m³/j", "egout": "m³/j", "gaz": "MW"}
+const COULEURS := {"elec": Color("ffd166"), "eau": Color("4cc9f0"), "egout": Color("a47148"), "gaz": Color("f77f00")}
 
 
 static func entries() -> Dictionary:
@@ -245,5 +259,35 @@ static func build(k: BlocMesh, id: String, t: Dictionary) -> void:
 			k.box(0, 0, 0, 3.0, 1.6, 2.0, BETON)
 			k.cylinder(0, 0.2, -1.2, 0.7, 0.7, 0.3, 10, CHARBON)
 			k.box(0, 0.02, -3, 2.0, 0.06, 3.0, EAU_SALE)
+		"poste_gaz":
+			k.plate(0, 0, w, d, GRAVIER)
+			k.box(-4, 0, -2, 5, 2.6, 4, BETON_C)
+			k.gable(-4, 2.6, -2, 5.4, 4.4, 0.8, TOLE)
+			for i in 3:
+				k.box(1 + i * 1.6, 0.4, 2, 0.4, 0.4, 6, Color("f2c14e"))
+				k.cylinder(1 + i * 1.6, 0, 5, 0.3, 0.3, 1.6, 6, Color("f2c14e"))
+			k.box(3, 0, -3, 0.8, 1.2, 0.8, Color("c0392b"))
+			for x in [-7.5, 7.5]:
+				k.box(x, 0, 0, 0.15, 2.0, 11.5, ACIER)
+		"chaufferie_bois":
+			k.plate(0, 0, w, d, GRAVIER)
+			k.box(-4, 0, -2, 16, 10, 12, BRIQUE)
+			k.gable(-4, 10, -2, 16.6, 12.6, 2.4, TOLE)
+			k.windows_row(-4, -8.0, 14.0, 4.0, 4, 1.4, 2.0, VITRE)
+			k.cylinder(6, 0, 4, 1.1, 0.8, 24.0, 8, BETON_C)
+			for i in 3:
+				k.box(-10 + i * 5, 0, 9, 4.4, 1.6 + i * 0.4, 4, Color("a0704a"))
+			k.box(9, 0, -8, 4, 1.0, 3, ACIER)
+		"geothermie":
+			k.plate(0, 0, w, d, GRAVIER)
+			k.box(-3, 0, 2, 12, 6, 9, BLANC)
+			k.box(-3, 6, 2, 12.4, 0.4, 9.4, TOLE)
+			k.windows_row(-3, -2.5, 10.0, 2.6, 3, 1.4, 1.4, VITRE)
+			# Tête de puits et tour de forage démontable.
+			k.box(6, 0, -5, 3, 1.2, 3, ACIER)
+			k.box(6, 1.2, -5, 0.8, 1.6, 0.8, Color("c0392b"))
+			for x in [-8.0, -4.0]:
+				k.cylinder(x, 0, -6, 1.4, 1.4, 4.0, 10, BETON_C)
+			k.box(-6, 3.2, -6, 6, 0.4, 0.4, ACIER)
 		_:
 			k.box(0, 0, 0, w * 0.6, 5, d * 0.6, BETON)

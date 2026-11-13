@@ -105,12 +105,15 @@ const SECTIONS := [
 		["Pinceau, Gomme", "semer au hasard (troupeau, bottes de foin, rochers) ; la gomme efface aussi les décors automatiques"],
 		["Automatiques", "bancs et poteaux le long des routes, bottes de foin après la moisson, troupeaux qui broutent, pontons et bateaux, rochers (case à cocher du panneau)"],
 	]],
-	["Réseaux (électricité, eau, égouts)", [
+	["Réseaux (électricité, eau, égouts, chauffage)", [
 		["O", "panneau Réseaux : production et demande, sources, bâtiments coupés, comptes ; ses onglets allument le calque du réseau (pastille verte, orange ou rouge sur chaque bâtiment)"],
 		["Construire > Réseaux", "centrales (charbon, gaz, bois, nucléaire, barrage, éolienne, solaire, réseau national), captage et forage d'eau, château d'eau, station d'épuration, lagunage, rejet direct"],
 		["Routes", "chaque route porte la desserte locale : un bâtiment à moins de 30 m d'une route reliée à une source est desservi"],
 		["Panneau O > ligne HT, MT, conduite, collecteur", "clic pour chaque point, clic droit ou Échap pour finir ; le tronçon a son chantier avant d'être en service"],
 		["Panneau O > Retirer", "clic sur un tronçon pour l'enlever (30 % rendus)"],
+		["Chauffage", "poste de gaz, chaufferie bois, géothermie et conduites de gaz : la demande suit le froid ; sans gaz, on se chauffe à l'électricité (pointe d'hiver), sans les deux on a froid"],
+		["Pannes", "les tronçons s'usent (réglage Admin « usure »), cassent plus souvent, et les orages abattent les lignes ; fuites et transformateurs grillés dans les rues ; une équipe répare en quelques heures (bouton « Vite » : le double du prix) ; « Rénover » remet un tronçon usé à neuf"],
+		["Crises", "canicule (30 °C) : clim et soif font grimper la demande ; sécheresse (plus de 12 jours sans pluie) : rivières et nappes baissent ; onglet Eau : restrictions d'eau (−20 %)"],
 	]],
 	["Urgences", [
 		["U", "panneau Urgences : appels en cours (clic : y aller), casernes et véhicules, bilan des temps d'intervention, carte de couverture"],

@@ -632,11 +632,17 @@ func reparer(eid: int, auto := false) -> bool:
 			message.emit("Pas assez d'argent pour réparer (%s)." % BuildingSystem.format_money(cost))
 		return false
 	var hours := maxf(2.0, float(net.edges[eid].len) / 100.0 * HEURES_100M * (1.0 - etat(eid)))
-	var cv = _chantiers_voies()
-	if cv != null:
-		# Le chantier paie au fil des travaux ; on inscrit la dépense au budget.
+	var cv := ChantiersVoies.instance
+	if cv != null and is_instance_valid(cv) and cv.network == net:
+		if cv.en_reparation(eid):
+			return false
+		# Chantier visible (voie fermée, engins) : il paie au fil des travaux.
+		if not cv.chantier_reparation(eid, hours, cost, func() -> void:
+				set_etat(eid, 1.0)
+				if vue != null:
+					vue.rebuild()):
+			return false
 		_book("Réparations des voies", -cost)
-		cv.chantier_reparation(eid, hours, cost, func() -> void: set_etat(eid, 1.0); vue.rebuild())
 	else:
 		depense("Réparations des voies", cost)
 		set_etat(eid, 1.0)
@@ -648,15 +654,10 @@ func reparer(eid: int, auto := false) -> bool:
 	return true
 
 
-## Système de chantiers des voies, s'il existe dans cette version du jeu.
-func _chantiers_voies():
-	for c in ProjectSettings.get_global_class_list():
-		if String(c.get("class", "")) == "ChantiersVoies":
-			var s = load(String(c.path))
-			var inst = s.get("instance") if s != null else null
-			if inst != null and is_instance_valid(inst) and inst.has_method("chantier_reparation"):
-				return inst
-	return null
+## Tronçon déjà en travaux de réfection ?
+func en_travaux(eid: int) -> bool:
+	var cv := ChantiersVoies.instance
+	return cv != null and is_instance_valid(cv) and cv.en_reparation(eid)
 
 
 func _auto_repairs() -> void:
@@ -679,7 +680,7 @@ func pires(k: String, seuil := 1.0, n := 10) -> Array:
 	if net == null:
 		return out
 	for eid in net.edges:
-		if (k == "" or voie_of(String(net.edges[eid].t)) == k) and etat(eid) < seuil:
+		if (k == "" or voie_of(String(net.edges[eid].t)) == k) and etat(eid) < seuil and not en_travaux(eid):
 			out.append(eid)
 	out.sort_custom(func(a: int, b: int) -> bool: return etat(a) < etat(b))
 	return out.slice(0, n)

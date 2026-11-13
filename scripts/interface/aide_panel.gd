@@ -90,6 +90,12 @@ const SECTIONS := [
 		["Réputation", "de 0 à 100 : missions, rangs et succès la montent ; missions ratées, tutelle et mairies perdues la baissent ; au-dessus de 20 les emprunts coûtent moins cher (jusqu'à −1 point)"],
 		["Succès", "15 étapes à débloquer une fois pour toutes : première ville, mille habitants, pays heureux, villes reliées, mairie reprise…"],
 	]],
+	["Tutoriel et objectifs à l'écran", [
+		["Tutoriel guidé", "case sur le globe (cochée par défaut) : une étape à la fois en haut à gauche (caméra, fonder le village, fondateurs, route, logements, courant et eau, temps, emplois, école, budget, objectifs) ; chaque étape se valide toute seule quand tu l'as faite"],
+		["Bouton de l'étape · Passer · croix", "le bouton fait le premier geste à ta place (ouvrir le bon panneau, prendre l'outil) ; Passer saute l'étape ; la croix arrête le tutoriel"],
+		["F10 → Aide", "relancer le tutoriel (il reprend à la première étape pas faite) ou masquer les objectifs à l'écran"],
+		["Objectifs à l'écran", "sous le tutoriel : rang de la ville gérée et ce qui manque pour monter, missions du pays avec leur progrès, les jours restants et la prime ; clic sur « Objectifs » : panneau Maj+J ; ▾ replie"],
+	]],
 	["Budget de la commune", [
 		["M", "panneau Budget : bilan du mois, impôts votés par le maire, emprunts, entretien et état des voies"],
 		["Impôts", "taxe foncière, impôt des entreprises, impôt sur les bénéfices de 0 à 200 % : plus haut, la caisse se remplit et les habitants râlent"],

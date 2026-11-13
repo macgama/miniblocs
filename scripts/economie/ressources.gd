@@ -83,6 +83,7 @@ const MARCHANDISES := {
 	"papier": {"name": "Papier et carton", "prix": 800.0},
 	"chimie": {"name": "Produits chimiques", "prix": 1000.0, "camion": "liquide"},
 	"plastique": {"name": "Plastiques", "prix": 1300.0},
+	"balles_tri": {"name": "Balles de tri (papier, plastique, métal)", "prix": 120.0},
 	"hygiene": {"name": "Hygiène et entretien", "prix": 3500.0, "conso": true},
 	"vetements": {"name": "Vêtements et chaussures", "prix": 15000.0, "conso": true},
 	"medicaments": {"name": "Médicaments", "prix": 50000.0, "conso": true},

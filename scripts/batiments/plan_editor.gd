@@ -1505,12 +1505,50 @@ static func _boxes_mesh(boxes: Array) -> ArrayMesh:
 
 # --- Vue en coupe -------------------------------------------------------------------
 
+## Vue par étage (mode Gérer, VueEtages) : les bâtiments en murs fins de
+## vue_plans ne montrent que leurs étages jusqu'à vue_etage (−1 : tout).
+var vue_etage := -1
+var vue_plans: Array = []
+
+
+func set_vue_etage(e: int, ids: Array) -> void:
+	vue_etage = e
+	vue_plans = ids.duplicate() if e >= 0 else []
+	_apply_cutaway()
+
+
+## Bâtiments en murs fins dont le centre est à moins de r mètres de c.
+func plans_near(c: Vector2, r: float) -> Array:
+	var out := []
+	for id in _bbox:
+		var bb: Rect2i = _bbox[id]
+		if bb.size == Vector2i.ZERO:
+			continue
+		var m := Vector2(bb.position) + Vector2(bb.size) / 2.0
+		if m.distance_to(c) <= r + Vector2(bb.size).length() / 2.0:
+			out.append(id)
+	return out
+
+
 func _apply_cutaway() -> void:
 	var cut := cutaway and (tool != Tool.NONE or cut_override) and _active != "" and plans.has(_active)
+	var vue := vue_etage >= 0 and not cut
 	for id in _nodes:
+		var vu: bool = vue and id in vue_plans
 		for e in _nodes[id]:
 			var n: Node3D = _nodes[id][e]
-			n.visible = not (cut and id == _active and int(e) > level)
+			n.visible = not (cut and id == _active and int(e) > level) and not (vu and int(e) > vue_etage)
+	if blocks != null:
+		var list := []
+		if vue:
+			# Toit coupé à 1,2 m au-dessus du plancher de l'étage montré (ou du
+			# dernier étage des bâtiments plus bas) : on voit dans les combles.
+			for id in vue_plans:
+				if plans.has(id) and _bbox.has(id):
+					var lv := levels_of(id)
+					var ep := mini(vue_etage, int(lv.max()) if not lv.is_empty() else 0)
+					list.append([(_bbox[id] as Rect2i).grow(2), base_y(id, ep) + 1.2])
+		blocks.set_clips(list)
 	if blocks != null:
 		if cut:
 			blocks.set_clip((_bbox[_active] as Rect2i).grow(2), base_y(_active, level + 1) - SLAB)

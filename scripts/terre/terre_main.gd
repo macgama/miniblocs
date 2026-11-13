@@ -29,8 +29,17 @@ var resource_overlay: RessourcesOverlay
 ## Services d'urgence : pompiers, ambulances, police sur les routes (touche U).
 var urgences: Urgences
 var urgences_panel: UrgencesPanel
+## Budget de la commune : impôts, emprunts, entretien et usure des voies (touche M).
+var budget: BudgetCommunal
+var budget_panel: BudgetPanel
+## Déchets : collecte, décharges, tri et recyclage (touche X).
+var dechets: Dechets
+var dechets_panel: DechetsPanel
 ## Chantiers, usure des bâtiments, abords et fumée des maisons habitées.
 var vie_batiments: BatimentsVie
+## Chantiers des voies et des réseaux (SuiviChantiers) et des voies (ChantiersVoies).
+var chantiers: SuiviChantiers
+var chantiers_voies: ChantiersVoies
 var _hover := Vector2i.ZERO
 var _hover_valid := false
 ## Intérieurs : meubles, pièces, usage des bâtiments en murs fins (onglet Intérieur).
@@ -86,8 +95,10 @@ func _ready() -> void:
 	_setup_population()
 	_setup_mobilier()
 	_setup_production()
+	_setup_budget()
 	_setup_urgences()
 	_setup_telecom()
+	_setup_dechets()
 	_setup_vie()
 	_setup_decors()
 	_setup_evenements()
@@ -231,7 +242,7 @@ func save_sections() -> Dictionary:
 		"zones": zones.to_dict(), "blocs": blocks.to_dict(), "plans": plans.to_dict(), "ambiance": ambiance.to_dict(),
 		"creations": Creations.to_dict(Creations.used_by(buildings)),
 		"personnage": ($VueSol as VueSol).to_dict(), "habitants": population.to_dict(), "mobilier": mobilier.to_dict(),
-		"production": production.to_dict(), "urgences": urgences.to_dict(), "reglages": _settings_snapshot().to_dict(), "evenements": evenements.to_dict(), "decors": decors.to_dict(),
+		"production": production.to_dict(), "urgences": urgences.to_dict(), "dechets": dechets.to_dict(), "reglages": _settings_snapshot().to_dict(), "budget": budget.to_dict(), "evenements": evenements.to_dict(), "decors": decors.to_dict(),
 		"telecom": telecom.to_dict()}
 
 
@@ -288,14 +299,19 @@ func load_game(slot := "") -> bool:
 	mobilier.from_dict(sec.get("mobilier", {}))
 	population.from_dict(sec.get("habitants", {}))
 	production.from_dict(sec.get("production", {}))
+	budget.from_dict(sec.get("budget", {}))
 	decors.from_dict(sec.get("decors", {}))
 	urgences.from_dict(sec.get("urgences", {}))
 	telecom.from_dict(sec.get("telecom", {}))
+	dechets.from_dict(sec.get("dechets", {}))
 	ambiance.from_dict(sec.get("ambiance", {}))
 	# Après les bâtiments et les habitants : dégâts, ruines, malades, matchs.
 	evenements.from_dict(sec.get("evenements", {}))
 	($VueSol as VueSol).from_dict(sec.get("personnage", {}))
 	_load_settings(sec.get("reglages", {}), m)
+	# Les chantiers repartent de l'heure de la partie chargée.
+	vie_batiments._t_prev = ambiance.unix_time
+	chantiers._t_prev = ambiance.unix_time
 	build_panel.set_growth(zones.growth)
 	var cam: Dictionary = m.get("camera", {})
 	if not cam.is_empty():
@@ -414,11 +430,20 @@ func _setup_population() -> void:
 
 
 ## Vie des bâtiments : chantiers, usure, abords des maisons habitées, fumée.
+## Puis le suivi des chantiers de voies et de réseaux (nœud « Chantiers »).
 func _setup_vie() -> void:
 	vie_batiments = BatimentsVie.new()
 	vie_batiments.name = "VieBatiments"
 	add_child(vie_batiments)
 	vie_batiments.setup(buildings, ambiance, population)
+	chantiers = SuiviChantiers.new()
+	chantiers.name = "Chantiers"
+	add_child(chantiers)
+	chantiers.setup(buildings, ambiance, population)
+	chantiers_voies = ChantiersVoies.new()
+	chantiers_voies.name = "ChantiersVoies"
+	add_child(chantiers_voies)
+	chantiers_voies.setup(transport, chantiers)
 
 
 ## Événements de la ville et leur panneau (I), fil d'actualité en haut de l'écran.
@@ -505,6 +530,21 @@ func _telecom_onglet() -> void:
 		world.hovered_cell_changed.connect(func(c: Vector2i, valid: bool) -> void:
 			v.survol_bid = buildings.building_at(c) if valid else -1)
 		r.ajouter_onglet("Télécom", v)
+## Budget communal : impôts votés, emprunts, entretien et usure des voies (M).
+func _setup_budget() -> void:
+	budget = BudgetCommunal.new()
+	budget.name = "Budget"
+	add_child(budget)
+	budget.setup(buildings, transport, population, production)
+	budget.message.connect(func(t: String) -> void: hud.show_message(t))
+	budget_panel = BudgetPanel.new()
+	budget_panel.name = "PanneauBudget"
+	add_child(budget_panel)
+	budget_panel.setup(budget)
+	budget_panel.focus_requested.connect(func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
+	hud.budget_requested.connect(func() -> void: budget_panel.toggle())
 
 
 ## Urgences : casernes, appels, véhicules prioritaires et panneau (U).
@@ -522,6 +562,23 @@ func _setup_urgences() -> void:
 		rig.position.x = pos.x
 		rig.position.z = pos.z)
 	hud.urgences_requested.connect(func() -> void: urgences_panel.toggle())
+
+
+## Déchets : bacs, bennes sur les routes, décharges, tri et panneau (X).
+func _setup_dechets() -> void:
+	dechets = Dechets.new()
+	dechets.name = "Dechets"
+	add_child(dechets)
+	dechets.setup(buildings, population, transport, production, ambiance)
+	dechets.message.connect(func(t: String) -> void: hud.show_message(t))
+	dechets_panel = DechetsPanel.new()
+	dechets_panel.name = "PanneauDechets"
+	add_child(dechets_panel)
+	dechets_panel.setup(dechets)
+	dechets_panel.focus_requested.connect(func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
+	hud.dechets_requested.connect(func() -> void: dechets_panel.toggle())
 
 
 ## Panneau des transports publics : stations et lignes.
@@ -701,6 +758,7 @@ func _setup_mobilier() -> void:
 
 var perso_panel: PersoPanel
 var banque_pose: BanquePose
+var vue_etages: VueEtages
 var banque_panel: BanquePanel
 
 
@@ -722,6 +780,12 @@ func _setup_atelier_tools() -> void:
 		hud.set_tool_info(t)
 		if t != "" and not t.begins_with("Poser"):
 			hud.show_message(t))
+	vue_etages = VueEtages.new()
+	vue_etages.name = "VueEtages"
+	vue_etages.pe = plans
+	vue_etages.rig = $CameraRig
+	add_child(vue_etages)
+	vue_etages.message.connect(func(t: String) -> void: hud.show_message(t))
 	banque_panel = BanquePanel.new()
 	banque_panel.setup(buildings, mobilier, banque_pose, func() -> void: _select_building_tool())
 	build_panel.banque_builder = banque_panel.build
@@ -980,8 +1044,10 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 		evenements.clear()
 	population.clear()
 	production.clear()
+	budget.clear()
 	urgences.clear()
 	telecom.clear()
+	dechets.clear()
 	resource_overlay.show_resource(resource_overlay.res)
 	transport.clear()
 	buildings.clear()
@@ -1060,7 +1126,7 @@ var _open_before := {}
 ## Construire, Lignes et Habitants partagent la même place à droite : quand
 ## l'un s'ouvre, les autres se ferment. Leur bouton de la barre du bas s'allume.
 func _exclusive_panels() -> void:
-	var panels := {"construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "urgences": urgences_panel, "telecom": telecom_panel, "perso": perso_panel, "infos": evenements_panel}
+	var panels := {"construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "urgences": urgences_panel, "dechets": dechets_panel, "budget": budget_panel, "telecom": telecom_panel, "perso": perso_panel, "infos": evenements_panel}
 	var opened := ""
 	for id in panels:
 		var p = panels[id]

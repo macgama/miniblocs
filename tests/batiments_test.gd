@@ -117,7 +117,8 @@ func _run() -> void:
 			parvis = parvis and world.cell_height(c) == float(b.h)
 	_check(parvis, "chemin de la porte à la route au même niveau")
 	_check(bs.building_at(Vector2i(12, 0)) == id and bs.occupancy.size() == 120, "120 cases occupées")
-	_check(bs.money < money0 and money0 - bs.money >= BuildingCatalog.cost("maison"), "prix payé : %s" % BuildingSystem.format_money(money0 - bs.money))
+	# Le prix se paie au fil du chantier (BatimentsVie) : rien n'est payé à la pose.
+	_check(bs.money == money0 and int(b.get("du", 0)) >= BuildingCatalog.cost("maison"), "prix dû, payé au fil du chantier : %s" % BuildingSystem.format_money(int(b.get("du", 0))))
 	_check(scene.get_node("Batiments").get_child_count() > 3, "modèle 3D ajouté")
 
 	_check(not bs.check_place("immeuble", Vector2i(16, 4), 3).ok, "pas de bâtiment sur un autre")
@@ -146,10 +147,11 @@ func _run() -> void:
 	bs.require_access = true
 
 	var before := bs.money
-	var paid := int(bs.buildings[id3].cost)
+	# Chantier pas commencé : seule la part déjà payée est remboursée (à moitié).
+	var paid := int(bs.buildings[id3].cost) - int(bs.buildings[id3].get("du", 0))
 	bs.demolish(id3)
 	_check(not bs.buildings.has(id3) and bs.building_at(Vector2i(-60, 40)) == -1, "démolition")
-	_check(bs.money == before + roundi(paid * BuildingSystem.REFUND), "moitié du prix rendue")
+	_check(bs.money == before + roundi(paid * BuildingSystem.REFUND), "moitié de ce qui a été payé rendue")
 
 	print("Zonage :")
 	var zs: ZoneSystem = scene.get_node("Zones")
@@ -304,13 +306,14 @@ func _run() -> void:
 	if tid < 0:
 		print("    immeuble : ", bs.check_place("international__immeuble", Vector2i(-160, 300), 0).reason)
 	_check(bs.node_of(tid).get_node_or_null("Grue") != null, "grue sur les grands chantiers")
-	_check(BatimentsVie.duree_chantier("international__immeuble") > BatimentsVie.duree_chantier("colombages__maison"), "un immeuble se construit plus lentement qu'une maison")
+	_check(vie.duree_prevue("international__immeuble") > vie.duree_prevue("colombages__maison") * 1.5, "un immeuble se construit plus lentement qu'une maison (%s contre %s)" % [Chantiers.duree_texte(vie.duree_prevue("international__immeuble")), Chantiers.duree_texte(vie.duree_prevue("colombages__maison"))])
 	var amb: DayNight = scene.get_node("Ambiance")
-	amb.unix_time += BatimentsVie.duree_chantier("colombages__grande_maison") * 0.5
+	var hjeu := float(bs.buildings[chid].hr) / Chantiers.rythme(vie.population)
+	amb.unix_time = Chantiers.date_apres(amb.unix_time, hjeu * 0.5, amb.utc_offset())
 	vie._update_chantiers()
 	var half := vie.progress(chid)
-	_check(half > 0.3 and half < 0.7 and bs.en_chantier(chid), "chantier à mi-parcours (%d %%)" % roundi(half * 100))
-	amb.unix_time += BatimentsVie.duree_chantier("international__immeuble")
+	_check(half > 0.4 and half < 0.6 and bs.en_chantier(chid), "chantier à mi-parcours (%d %%)" % roundi(half * 100))
+	amb.unix_time = Chantiers.date_apres(amb.unix_time, float(bs.buildings[tid].hr) / Chantiers.rythme(vie.population) + 1.0, amb.utc_offset())
 	vie._update_chantiers()
 	await process_frame
 	_check(not bs.en_chantier(chid) and not bs.en_chantier(tid), "chantiers terminés")

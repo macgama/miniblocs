@@ -8,7 +8,9 @@ Prototype de city builder en vue de dessus, style low-poly, mode bac à sable. F
 
 1. Installe [Godot 4.3 ou plus](https://godotengine.org/download) (version standard, pas .NET).
 2. Ouvre Godot, clique sur **Importer** et choisis le fichier `project.godot` de ce dossier.
-3. Appuie sur **F5** (ou le bouton ▶) pour lancer : le globe de départ s'ouvre. Le prototype de ville reste accessible avec le bouton **Ville prototype** (ou ouvre `scenes/main.tscn` et appuie sur **F6**).
+3. Appuie sur **F5** (ou le bouton ▶) pour lancer : le **menu principal** s'ouvre (Continuer, Nouvelle partie → globe, Charger, Atelier, Options, Crédits, Quitter). Détails : [docs/menus.md](docs/menus.md). Le prototype de ville reste accessible avec le bouton **Ville prototype** du globe (ou ouvre `scenes/main.tscn` et appuie sur **F6**).
+
+![Menu principal](docs/apercu-menu-titre.png)
 
 ## Commandes
 
@@ -33,6 +35,7 @@ L'écran a une barre en haut (lieu, partie, heure et vitesse du temps, chiffres 
 | Temps | **T** pause, **Maj + T** vitesse suivante |
 | Vue au sol | **V** (dessus, 3e personne, 1re personne) |
 | Sauvegarder / recharger | **F5** / **F9** ; icônes Sauver, Charger (liste des parties) et Globe en haut à gauche |
+| Menu pause | **Échap** (quand aucun outil n'est en cours) : le temps s'arrête ; sauvegarder, charger, options, menu principal |
 | Aide | **F1** |
 
 L'interface s'adapte à la taille de la fenêtre (elle est dessinée pour 1600 × 900 puis agrandie ou réduite).

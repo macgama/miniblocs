@@ -12,6 +12,9 @@ var _info: Label
 var _load_btn: Button
 var _delete_btn: Button
 var _name_edit: LineEdit
+var _preview: TextureRect
+var _rename_btn: Button
+var _rename_edit: LineEdit
 var _saves: Array[Dictionary] = []
 var _confirm_delete := ""
 var _allow_save := false
@@ -34,7 +37,7 @@ func _ready() -> void:
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(center)
 	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(580, 440)
+	panel.custom_minimum_size = Vector2(860, 460)
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Color(0.1, 0.11, 0.13, 0.96)
 	sb.set_corner_radius_all(8)
@@ -56,17 +59,50 @@ func _ready() -> void:
 	close.pressed.connect(close_panel)
 	head.add_child(close)
 
+	# À gauche la liste, à droite l'aperçu de la partie choisie et sa fiche.
+	var body := HBoxContainer.new()
+	body.add_theme_constant_override("separation", 12)
+	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	v.add_child(body)
 	_list = ItemList.new()
-	_list.custom_minimum_size = Vector2(0, 240)
+	_list.custom_minimum_size = Vector2(420, 280)
+	_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_list.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_list.item_selected.connect(func(_i: int) -> void: _on_select())
 	_list.item_activated.connect(func(_i: int) -> void: _on_load())
-	v.add_child(_list)
+	body.add_child(_list)
+	var side := VBoxContainer.new()
+	side.custom_minimum_size = Vector2(384, 0)
+	side.add_theme_constant_override("separation", 6)
+	body.add_child(side)
+	_preview = TextureRect.new()
+	_preview.custom_minimum_size = Vector2(384, 216)
+	_preview.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_preview.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	var frame := PanelContainer.new()
+	var fsb := StyleBoxFlat.new()
+	fsb.bg_color = Color(0.05, 0.06, 0.07)
+	fsb.set_corner_radius_all(6)
+	frame.add_theme_stylebox_override("panel", fsb)
+	frame.add_child(_preview)
+	side.add_child(frame)
 	_info = Label.new()
 	_info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_info.add_theme_font_size_override("font_size", 13)
 	_info.add_theme_color_override("font_color", Color(1, 1, 1, 0.8))
-	v.add_child(_info)
+	_info.custom_minimum_size = Vector2(384, 0)
+	side.add_child(_info)
+	var rrow := HBoxContainer.new()
+	side.add_child(rrow)
+	_rename_edit = LineEdit.new()
+	_rename_edit.placeholder_text = "Nouveau nom"
+	_rename_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_rename_edit.text_submitted.connect(func(_t: String) -> void: _on_rename())
+	rrow.add_child(_rename_edit)
+	_rename_btn = Button.new()
+	_rename_btn.text = "Renommer"
+	_rename_btn.pressed.connect(_on_rename)
+	rrow.add_child(_rename_btn)
 
 	var row := HBoxContainer.new()
 	v.add_child(row)
@@ -101,9 +137,13 @@ func refresh() -> void:
 	_list.clear()
 	_confirm_delete = ""
 	for m in _saves:
-		_list.add_item("%s   ·   %s" % [String(m.get("nom", m.id)), format_date(int(m.get("modifie", 0)))])
+		var auto := String(m.id) == "sauvegarde-auto"
+		var i := _list.add_item("%s%s   ·   %s" % ["⟳ " if auto else "", String(m.get("nom", m.id)), format_date(int(m.get("modifie", 0)))])
+		if auto:
+			_list.set_item_tooltip(i, "Sauvegarde automatique : écrite toutes les quelques minutes (Options > Jeu), elle n'écrase jamais tes parties.")
 	if _saves.is_empty():
-		_info.text = "Aucune partie sauvegardée pour l'instant. En jeu : bouton Sauver ou F5."
+		_info.text = "Aucune partie sauvegardée pour l'instant. Une ville sans archives, c'est une ville sans soucis… jusqu'à la panne de courant. En jeu : F5 ou Échap > Sauvegarder."
+		_preview.texture = null
 	else:
 		_list.select(0)
 		_on_select()
@@ -131,6 +171,9 @@ func _selected() -> Dictionary:
 func _on_select() -> void:
 	_confirm_delete = ""
 	var m := _selected()
+	_preview.texture = null if m.is_empty() else SaveGame.load_preview(String(m.id))
+	if _rename_edit:
+		_rename_edit.text = "" if m.is_empty() else String(m.get("nom", ""))
 	if m.is_empty():
 		_info.text = ""
 	else:
@@ -140,6 +183,8 @@ func _on_select() -> void:
 		if not resume.is_empty():
 			txt += "\n%d bâtiments · %d logements · réseau %s · %d blocs posés" % [int(resume.get("batiments", 0)), int(resume.get("logements", 0)),
 				String(resume.get("reseau", "0 m")), int(resume.get("blocs", 0))]
+		if int(resume.get("habitants", 0)) > 0:
+			txt += "\n%d habitants" % int(resume.get("habitants", 0))
 		txt += "\nCréée le %s · %d sauvegarde%s" % [format_date(int(m.get("cree", 0))), int(m.get("sauvegardes", 1)), "s" if int(m.get("sauvegardes", 1)) > 1 else ""]
 		_info.text = txt
 	_update_buttons()
@@ -149,6 +194,8 @@ func _update_buttons() -> void:
 	var has := not _selected().is_empty()
 	_load_btn.disabled = not has
 	_delete_btn.disabled = not has
+	if _rename_btn:
+		_rename_btn.disabled = not has
 	_delete_btn.text = "Confirmer la suppression" if _confirm_delete != "" else "Supprimer"
 
 
@@ -169,6 +216,20 @@ func _on_delete() -> void:
 		return
 	SaveGame.delete(String(m.id))
 	refresh()
+
+
+func _on_rename() -> void:
+	var m := _selected()
+	if m.is_empty() or _rename_edit.text.strip_edges() == "":
+		return
+	var keep := String(m.id)
+	if SaveGame.rename(keep, _rename_edit.text):
+		refresh()
+		for i in _saves.size():
+			if String(_saves[i].id) == keep:
+				_list.select(i)
+				_on_select()
+	_rename_edit.release_focus()
 
 
 func _on_save_as() -> void:

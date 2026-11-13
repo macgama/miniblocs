@@ -92,8 +92,10 @@ func _run() -> void:
 	_check(is_equal_approx(scene.sel_lon, 2.2945) and scene.sel_pays == "fr", "coordonnées tapées (%s)" % scene.sel_pays)
 
 	scene.start_game()
-	await process_frame
-	await process_frame
+	# La partie s'ouvre derrière l'écran de chargement.
+	var t0 := Time.get_ticks_msec()
+	while (current_scene == null or current_scene.name != "Terre") and Time.get_ticks_msec() - t0 < 30000:
+		await process_frame
 	_check(GameStart.chosen and is_equal_approx(GameStart.lat, 48.8584), "choix transmis à la partie")
 	var terre := current_scene
 	_check(terre != null and terre.name == "Terre", "la scène Terre est lancée")

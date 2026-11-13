@@ -267,6 +267,17 @@ func _unhandled_input(event: InputEvent) -> void:
 			_apply_view()
 
 
+func back_to_menu() -> void:
+	get_tree().change_scene_to_file("res://scenes/menu_principal.tscn")
+
+
+func _unhandled_key_input(event: InputEvent) -> void:
+	var k := event as InputEventKey
+	if k and k.pressed and not k.echo and k.keycode == KEY_ESCAPE and _saves_panel == null and _settings_panel == null:
+		get_viewport().set_input_as_handled()
+		back_to_menu()
+
+
 ## Tourne le globe pour amener (lat, lon) face à la caméra.
 func fly_to(lat: float, lon: float, dist: float, instant := false) -> void:
 	var target_lon := view_lon + wrapf(lon - view_lon, -180.0, 180.0)
@@ -376,7 +387,9 @@ func start_game() -> void:
 	GameStart.place_name = sel_name
 	GameStart.pays = sel_pays
 	GameStart.mode = GameStart.Mode.BAC_A_SABLE
-	get_tree().change_scene_to_file("res://scenes/terre.tscn")
+	GameStart.load_slot = ""
+	GameStart.slot_id = ""
+	EcranChargement.aller("res://scenes/terre.tscn", sel_name if sel_name != "" else "Nouvelle partie")
 
 
 ## Panneau des réglages de la nouvelle partie (le même que le panneau Admin).
@@ -403,7 +416,7 @@ func _update_settings_label() -> void:
 func open_atelier() -> void:
 	GameStart.atelier = true
 	GameStart.retour_slot = ""
-	get_tree().change_scene_to_file("res://scenes/terre.tscn")
+	EcranChargement.aller("res://scenes/terre.tscn", "Atelier")
 
 
 ## Ouvre une partie sauvegardée dans la scène Terre.
@@ -417,7 +430,7 @@ func load_saved_game(slot_id: String) -> void:
 	GameStart.lon = float(lieu.get("lon", GameStart.lon))
 	GameStart.place_name = String(lieu.get("nom", ""))
 	GameStart.load_slot = slot_id
-	get_tree().change_scene_to_file("res://scenes/terre.tscn")
+	EcranChargement.aller("res://scenes/terre.tscn", String(m.get("nom", slot_id)))
 
 
 func _open_saves(ui: CanvasLayer) -> void:
@@ -596,6 +609,17 @@ func _build_ui() -> void:
 	atelier_btn.tooltip_text = "Créer et personnaliser des bâtiments sur un terrain plat, sans habitants ni argent, et les ranger dans la banque de modèles."
 	atelier_btn.pressed.connect(open_atelier)
 	srow.add_child(atelier_btn)
+
+	var back := Button.new()
+	back.text = "Menu principal"
+	back.tooltip_text = "Retour à l'écran titre (Échap)"
+	back.anchor_left = 1.0
+	back.anchor_right = 1.0
+	back.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	back.offset_right = -150
+	back.offset_top = 16
+	back.pressed.connect(back_to_menu)
+	ui.add_child(back)
 
 	var proto := Button.new()
 	proto.text = "Ville prototype"

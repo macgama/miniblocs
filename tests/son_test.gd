@@ -212,5 +212,6 @@ func _run() -> void:
 
 	scene.queue_free()
 	await _frames(3)
+	_check(not son.humeur_fn.is_valid() and son.humeur() == "jour", "partie fermée : la musique n'écoute plus l'ancienne ville")
 	print("TEST OK" if ok else "TEST ÉCHEC")
 	quit(0 if ok else 1)

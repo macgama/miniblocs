@@ -315,7 +315,7 @@ func humeur() -> String:
 	var scene := get_tree().current_scene
 	if scene != null and scene.scene_file_path.contains("globe"):
 		return "menu"
-	if humeur_fn.is_valid():
+	if humeur_fn.is_valid() and is_instance_valid(humeur_fn.get_object()):
 		return String(humeur_fn.call())
 	return "jour"
 

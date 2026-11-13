@@ -694,11 +694,11 @@ func _setup_pays() -> void:
 func _setup_son() -> void:
 	var son := Son.ici()
 	if son != null:
-		son.humeur_fn = func() -> String:
-			var h := ambiance.local_hour()
-			if ambiance.night > 0.6:
-				return "nuit"
-			return "soir" if h >= 18.0 or h < 7.0 else "jour"
+		son.humeur_fn = _humeur_musique
+		# La scène partie (globe, autre partie) : la musique n'écoute plus cette ville.
+		tree_exiting.connect(func() -> void:
+			if son.humeur_fn == Callable(self, "_humeur_musique"):
+				son.humeur_fn = Callable())
 	sons = AmbiancesSonores.new()
 	sons.name = "AmbiancesSonores"
 	sons.setup(rig, ambiance, world, buildings, transport.traffic, get_node_or_null("VueSol"))
@@ -713,6 +713,16 @@ func _setup_son() -> void:
 		if not _chargement and t - _derniere_nouvelle > 4000:
 			_derniere_nouvelle = t
 			Son.jouer("ui_notification", -6.0, 0.0, "Interface"))
+
+
+## Humeur de la musique : nuit, soirée ou journée selon l'heure de la ville.
+func _humeur_musique() -> String:
+	if ambiance == null:
+		return "jour"
+	if ambiance.night > 0.6:
+		return "nuit"
+	var h := ambiance.local_hour()
+	return "soir" if h >= 18.0 or h < 7.0 else "jour"
 
 
 ## Pendant un chargement, les événements rechargés ne font pas de bruit.

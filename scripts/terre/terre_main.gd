@@ -30,6 +30,8 @@ var agriculture: Agriculture
 var agri_panel: AgriPanel
 var agri_visuels: AgriVisuels
 var resource_overlay: RessourcesOverlay
+## Carrières et mines : fosses qui se creusent, verses, sondages (P → Mines).
+var carrieres: Carrieres
 ## Services d'urgence : pompiers, ambulances, police sur les routes (touche U).
 var urgences: Urgences
 var urgences_panel: UrgencesPanel
@@ -273,7 +275,7 @@ func save_sections() -> Dictionary:
 		"creations": Creations.to_dict(Creations.used_by(buildings)),
 		"personnage": ($VueSol as VueSol).to_dict(), "habitants": population.to_dict(), "mobilier": mobilier.to_dict(),
 		"production": production.to_dict(), "agriculture": agriculture.to_dict(), "urgences": urgences.to_dict(), "reseaux": reseaux.to_dict(), "dechets": dechets.to_dict(), "funeraire": funeraire.to_dict(), "trafic": trafic.to_dict(), "reglages": _settings_snapshot().to_dict(), "budget": budget.to_dict(), "evenements": evenements.to_dict(), "decors": decors.to_dict(),
-		"nuisances": nuisances.to_dict(), "telecom": telecom.to_dict(), "services": services.to_dict()}
+		"nuisances": nuisances.to_dict(), "telecom": telecom.to_dict(), "services": services.to_dict(), "carrieres": carrieres.to_dict()}
 	sec["avis"] = avis.to_dict()
 	return sec
 
@@ -331,6 +333,7 @@ func load_game(slot := "") -> bool:
 	mobilier.from_dict(sec.get("mobilier", {}))
 	population.from_dict(sec.get("habitants", {}))
 	production.from_dict(sec.get("production", {}))
+	carrieres.from_dict(sec.get("carrieres", {}))
 	agriculture.from_dict(sec.get("agriculture", {}))
 	budget.from_dict(sec.get("budget", {}))
 	decors.from_dict(sec.get("decors", {}))
@@ -694,6 +697,17 @@ func _setup_production() -> void:
 		rig.position.x = pos.x
 		rig.position.z = pos.z)
 	hud.production_requested.connect(func() -> void: production_panel.toggle())
+	carrieres = Carrieres.new()
+	carrieres.name = "Carrieres"
+	add_child(carrieres)
+	carrieres.setup(world, buildings, production, transport, ambiance, rig)
+	carrieres.message.connect(func(t: String) -> void: hud.show_message(t))
+	carrieres.info_changed.connect(func(t: String) -> void: hud.set_tool_info(t))
+	carrieres.changed.connect(func() -> void: _unsaved = true)
+	production_panel.carrieres = carrieres
+	production_panel.outil_carriere.connect(func(mode: String, bid: int) -> void:
+		_select_building_tool()
+		carrieres.start_tool(mode, bid))
 
 
 ## Agriculture : champs, machines, bêtes, repas des habitants et panneau (Maj+F).
@@ -1218,6 +1232,8 @@ func _select_building_tool(from_transit := false) -> void:
 	blocks.set_inactive()
 	plans.set_inactive()
 	mobilier.set_inactive()
+	if carrieres:
+		carrieres.set_inactive()
 	if agriculture and agriculture.outil != "":
 		agriculture.set_outil("")
 	if banque_pose:
@@ -1231,6 +1247,7 @@ func _setup_decors() -> void:
 	decors.name = "Decors"
 	add_child(decors)
 	decors.setup(world, transport, buildings, ambiance)
+	carrieres.relief_change.connect(decors._terrain_modifie)
 	decors.message.connect(func(t: String) -> void: hud.show_message(t))
 	decors.info_changed.connect(func(t: String) -> void: hud.set_tool_info(t))
 	decors_panel = DecorPanel.new()
@@ -1321,6 +1338,8 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 		avis.clear()
 	population.clear()
 	production.clear()
+	if carrieres != null:
+		carrieres.clear()
 	agriculture.clear()
 	budget.clear()
 	urgences.clear()

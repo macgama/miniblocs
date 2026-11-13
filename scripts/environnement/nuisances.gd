@@ -55,7 +55,7 @@ const EMISSIONS := [
 	[["incinerateur"], 0.6, 0.2, 0.3, 1, 0.3, 900.0],
 	[["papeterie", "usine_textile"], 0.45, 0.8, 0.4, 1, 0.4, 800.0],
 	[["usine"], 0.45, 0.35, 0.45, 0, 0.05, 600.0],
-	[["mine", "carriere", "sabliere", "argiliere"], 0.4, 0.5, 0.8, 0, 0.0, 700.0],
+	[["mine", "carriere", "sabliere", "argiliere", "mine_ciel_ouvert", "mine_sel"], 0.4, 0.5, 0.8, 0, 0.0, 700.0],
 	[["puits"], 0.3, 0.4, 0.3, 1, 0.3, 400.0],
 	[["sucrerie", "abattoir", "laiterie", "brasserie", "rizerie", "fournil", "moulin", "chai", "cave_cooperative"], 0.2, 0.55, 0.3, 0, 0.5, 450.0],
 	[["scierie", "menuiserie"], 0.25, 0.1, 0.55, 0, 0.0, 400.0],

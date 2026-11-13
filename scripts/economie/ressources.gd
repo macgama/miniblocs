@@ -25,6 +25,12 @@ const NATURELLES := {
 		"desc": "Bords de rivière, plages et déserts."},
 	"argile": {"name": "Argile", "color": Color("bc6c25"), "good": "argile", "renouvelable": false, "infini": true,
 		"desc": "Plaines basses et zones humides."},
+	"calcaire": {"name": "Calcaire", "color": Color("e9e4c9"), "good": "calcaire", "renouvelable": false, "infini": true,
+		"desc": "Régions calcaires réelles (Bassin parisien, Jura, Causses, Provence…), là où la roche affleure."},
+	"granite": {"name": "Granite", "color": Color("b5838d"), "good": "granite", "renouvelable": false, "infini": true,
+		"desc": "Massifs granitiques réels (Bretagne, Massif central, Vosges, Corse…), là où la roche affleure."},
+	"sel": {"name": "Sel gemme", "color": Color("f8f9fa"), "good": "sel", "renouvelable": false,
+		"desc": "Bassins salifères réels (Lorraine, Jura, Cheshire, Wieliczka, Salzkammergut…)."},
 	"fer": {"name": "Minerai de fer", "color": Color("9d0208"), "good": "minerai_fer", "renouvelable": false,
 		"desc": "Bassins ferrifères réels (Lorraine, Pilbara, Kiruna…)."},
 	"charbon": {"name": "Charbon", "color": Color("343a40"), "good": "charbon", "renouvelable": false,
@@ -41,10 +47,13 @@ const NATURELLES := {
 		"desc": "Champs gaziers réels (Lacq, Groningue, Ourengoï…)."},
 }
 ## Ordre d'affichage.
-const ORDRE := ["bois", "fertilite", "paturage", "poisson", "pierre", "sable", "argile",
+const ORDRE := ["bois", "fertilite", "paturage", "poisson", "pierre", "sable", "argile", "calcaire", "granite", "sel",
 	"fer", "charbon", "cuivre", "or", "bauxite", "petrole", "gaz"]
 ## Ressources du sous-sol (gisements placés d'après les vraies régions minières).
-const SOUS_SOL := ["fer", "charbon", "cuivre", "or", "bauxite", "petrole", "gaz"]
+const SOUS_SOL := ["fer", "charbon", "cuivre", "or", "bauxite", "sel", "petrole", "gaz"]
+## Roches de carrière : la province (calcaire, granite) donne la nature de la
+## roche, le relief dit où elle affleure.
+const ROCHES := ["calcaire", "granite"]
 ## Ce que peut extraire une mine, un puits.
 const MINERAIS := ["fer", "charbon", "cuivre", "or", "bauxite"]
 const HYDROCARBURES := ["petrole", "gaz"]
@@ -54,7 +63,10 @@ const HYDROCARBURES := ["petrole", "gaz"]
 ## camion qui la transporte (citerne, benne, grumier ; sinon camion à caisse).
 const MARCHANDISES := {
 	"bois": {"name": "Bois", "prix": 60.0, "camion": "grumes"},
-	"pierre": {"name": "Pierre", "prix": 15.0, "camion": "vrac"},
+	"pierre": {"name": "Granulats (pierre concassée)", "prix": 15.0, "camion": "vrac"},
+	"calcaire": {"name": "Calcaire", "prix": 12.0, "camion": "vrac"},
+	"granite": {"name": "Granite (pierre de taille)", "prix": 140.0},
+	"sel": {"name": "Sel", "prix": 60.0, "camion": "vrac"},
 	"sable": {"name": "Sable", "prix": 12.0, "camion": "vrac"},
 	"argile": {"name": "Argile", "prix": 10.0, "camion": "vrac"},
 	"minerai_fer": {"name": "Minerai de fer", "prix": 100.0, "camion": "vrac"},

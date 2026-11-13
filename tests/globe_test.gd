@@ -61,21 +61,35 @@ func _run() -> void:
 	scene.fly_to(0.0, 0.0, 4.0, true)
 	_check(scene.pick(Vector2(2, 2)) == null, "clic dans l'espace = rien")
 
+	# Recherche de n'importe quelle ville de la planète (index GeoNames).
+	_check(Villes.nombre() > 100000, "index des villes chargé (%d)" % Villes.nombre())
 	scene._search.text = "gen"
 	scene._refresh_list()
-	_check(scene._list.item_count == 1 and scene._filtered[0][0] == "Genève", "recherche « gen » -> Genève")
+	_check(scene._list.item_count > 5 and String(scene._filtered[0].nom) == "Genève", "recherche « gen » -> Genève d'abord (%s)" % [scene._filtered[0].nom if not scene._filtered.is_empty() else "-"])
 	scene._list.item_selected.emit(0)
-	_check(scene.selected and is_equal_approx(scene.sel_lat, 46.2044), "choisir Genève dans la liste")
+	_check(scene.selected and absf(scene.sel_lat - 46.2) < 0.05 and scene.sel_pays == "ch", "choisir Genève dans la liste (pays %s)" % scene.sel_pays)
 	_check(not scene._start_btn.disabled, "bouton Commencer actif")
 	var d: Dictionary = scene.describe_selection()
 	_check(not d.is_empty() and d.kind == "Plaine" and is_equal_approx(d.height, 500.0), "aperçu du relief (%s)" % [d])
+	var r: Array = Villes.chercher("londres")
+	_check(not r.is_empty() and r[0].nom == "London" and r[0].pays == "gb", "nom français : Londres -> London")
+	r = Villes.chercher("zurich")
+	_check(not r.is_empty() and r[0].nom == "Zürich", "accents ignorés : zurich -> Zürich")
+	r = Villes.chercher("tokyo")
+	_check(not r.is_empty() and r[0].pays == "jp", "Tokyo, Japon")
+	r = Villes.chercher("annecy")
+	_check(not r.is_empty() and r[0].pays == "fr" and r[0].pays_nom == "France", "Annecy, France")
+	r = Villes.chercher("ouagadougou")
+	_check(not r.is_empty() and r[0].pays == "bf", "Ouagadougou, Burkina Faso")
+	_check(Villes.plus_proche(46.21, 6.15).get("nom", "") == "Genève", "ville la plus proche d'un point")
+	_check(scene._random_btn == null if "_random_btn" in scene else true, "plus de lieu au hasard")
+	var on: Array = scene.parse_online('[{"lat":"45.9","lon":"6.1","name":"Hameau","address":{"country_code":"fr","state":"Auvergne-Rhône-Alpes"}}]')
+	_check(on.size() == 1 and on[0].pays == "fr" and is_equal_approx(on[0].lat, 45.9), "réponse de la recherche en ligne lue")
 
-	_check(scene.pick_random_land(), "lieu au hasard trouvé")
-	_check(scene.planet_height(scene.sel_lat, scene.sel_lon) > 5.0, "le hasard tombe sur la terre ferme")
-
-	scene._coords.text = "48,8584 2,2945"
-	scene._on_coords()
-	_check(is_equal_approx(scene.sel_lon, 2.2945), "coordonnées tapées")
+	scene._search.text = "48,8584 2,2945"
+	scene._refresh_list()
+	scene._list.item_selected.emit(0)
+	_check(is_equal_approx(scene.sel_lon, 2.2945) and scene.sel_pays == "fr", "coordonnées tapées (%s)" % scene.sel_pays)
 
 	scene.start_game()
 	await process_frame
@@ -86,6 +100,7 @@ func _run() -> void:
 	if terre:
 		var world: TerrainWorld = terre.get_node("Terrain")
 		_check(is_equal_approx(world.origin_lat, 48.8584) and is_equal_approx(world.origin_lon, 2.2945), "la région est centrée sur le lieu choisi")
+		_check(GameStart.pays == "fr" and Communes.drapeau_du_lieu() == "fr", "drapeau proposé : celui du pays choisi")
 
 	print("GLOBE TEST OK" if ok else "GLOBE TEST ÉCHEC")
 	quit(0 if ok else 1)

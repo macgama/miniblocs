@@ -75,6 +75,7 @@ func _run() -> void:
 	panel._dialog.hide()
 	var y := world.cell_height(Vector2i(-1000, 0))
 	var mc := bs.place("maison_commune", Vector2i(-1000, 0), 0)
+	cm._maj_drapeaux(true)
 	rig.position = Vector3(-1000, y, 0)
 	rig._target_distance = 42.0
 	rig.set_pitch(28.0, true)
@@ -101,6 +102,8 @@ func _run() -> void:
 
 	# 4. Deux villages, calque des territoires et outil Agrandir.
 	cm.nom_en_attente = "Les Granges"
+	cm.drapeau_en_attente = "ch"
+	BatimentsVie.chantiers = true
 	var mc2 := bs.place("maison_commune", Vector2i(1100, 0), 0)
 	print("deuxième village : ", mc2, " ", bs.check_place("maison_commune", Vector2i(1100, 0), 0).reason)
 	cm.calculer_stats()
@@ -118,5 +121,19 @@ func _run() -> void:
 	cm._survoler(cam.unproject_position(Vector3(m.x, y, m.y)))
 	panel.refresh()
 	await _shot(dir.path_join("villages-agrandir.png"), 20)
+
+	# 5. La Maison de commune des Granges en chantier (gros œuvre).
+	var vie: BatimentsVie = scene.get_node("VieBatiments")
+	Calques.afficher("territoires", false)
+	cm.set_outil("")
+	panel.set_open(false)
+	bs.buildings[mc2].av = 0.5
+	vie._update_chantiers()
+	var y2 := world.cell_height(Vector2i(1100, 0))
+	rig.position = Vector3(1100, y2, 0)
+	rig._target_distance = 48.0
+	rig.set_pitch(30.0, true)
+	rig.rotation_degrees.y = 200.0
+	await _shot(dir.path_join("villages-chantier.png"), 40)
 	print("maison commune : ", mc)
 	quit()

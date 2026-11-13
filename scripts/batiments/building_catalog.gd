@@ -366,11 +366,9 @@ static func build_mesh(id: String, material: Material = null, details := true, v
 			k.box(0, 6.4, -1.0, 2.2, 4.6, 2.2, Color("efe4cf"))
 			k.box(0, 8.6, -2.15, 1.3, 1.3, 0.08, Color("fdfdfd"))
 			k.pyramid(0, 11.0, -1.0, 2.8, 2.8, 2.4, ROOF_DARK)
-			# Mât et drapeau tricolore devant la porte.
-			k.box(-4.5, 0, -5.5, 0.15, 7.0, 0.15, Color("d9d9d9"))
-			k.box(-4.0, 6.0, -5.5, 0.6, 0.9, 0.05, Color("1f4bb8"))
-			k.box(-3.4, 6.0, -5.5, 0.6, 0.9, 0.05, Color("f4f4f4"))
-			k.box(-2.8, 6.0, -5.5, 0.6, 0.9, 0.05, Color("d7263d"))
+			# Mât devant la porte : le drapeau choisi pour le village y est hissé (Communes).
+			k.box(-4.5, 0, -5.5, 0.15, 7.2, 0.15, Color("d9d9d9"))
+			k.cylinder(-4.5, 7.2, -5.5, 0.12, 0.12, 0.12, 6, Color("d4af37"))
 			k.tree(5.5, -5.0, 0.7)
 			k.box(0, 0, -6.6, 3.0, 0.05, 1.0, Color("bdb5a3"))
 		"mairie":
@@ -384,8 +382,8 @@ static func build_mesh(id: String, material: Material = null, details := true, v
 			k.box(0, 10.0, -4.0, 4.0, 8.0, 4.0, Color("efe6d4"))
 			k.cylinder(0, 15.0, -6.1, 1.2, 1.2, 0.1, 12, Color("fdfdfd"))
 			k.pyramid(0, 18.0, -4.0, 4.6, 4.6, 4.0, Color("4f5d75"))
-			k.box(0, 0, -7.5, 0.2, 9.0, 0.2, Color("d9d9d9"))
-			k.box(0.8, 7.5, -7.5, 1.4, 1.0, 0.05, Color("2a6fdb"))
+			# Mât : le drapeau du village y est hissé (Communes).
+			k.box(0, 0, -7.5, 0.2, 9.2, 0.2, Color("d9d9d9"))
 		"ecole":
 			k.plate(0, 0, w, d, CONCRETE)
 			k.box(-4.0, 0, -8.0, 30.0, 8.0, 12.0, Color("f6d7a7"))

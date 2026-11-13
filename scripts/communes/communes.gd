@@ -19,7 +19,7 @@ extends Node3D
 ##   Communes.instance               le nœud (ou null)
 ##   village_au_point(x, z) -> int   village du point, ou -1
 ##   village_du_batiment(bid) -> int
-##   villages[vid] = {id, nom, bid, c: Vector2, rayon, annexes, fonde, couleur, cases}
+##   villages[vid] = {id, nom, drapeau, bid, c: Vector2, rayon, annexes, fonde, couleur, cases}
 ##   Communes.nom_principal()        nom du premier village ("" sans village)
 
 signal changed
@@ -58,6 +58,8 @@ var proprio := {}
 var next_id := 1
 ## Nom choisi pour le prochain village (bouton « Fonder un village »).
 var nom_en_attente := ""
+## Drapeau choisi pour le prochain village (code de pays, "" = celui du lieu).
+var drapeau_en_attente := ""
 ## Outil en main : "" , "annexer" ou "ceder" (pour outil_village).
 var outil := ""
 var outil_village := -1
@@ -127,6 +129,7 @@ func clear() -> void:
 	stats.clear()
 	next_id = 1
 	nom_en_attente = ""
+	drapeau_en_attente = ""
 	set_outil("")
 	_sale = true
 	_sale_remplissage = true
@@ -278,7 +281,11 @@ func fonder_au_point(nom: String, c: Vector2, bid := -1) -> int:
 	var fond := 0.0
 	if Avis.instance != null and Avis.instance.ambiance != null:
 		fond = Avis.instance.ambiance.unix_time
-	villages[vid] = {"id": vid, "nom": nom, "bid": bid, "c": c, "rayon": 0.0, "annexes": [],
+	var dr := drapeau_en_attente if drapeau_en_attente != "" else drapeau_du_lieu()
+	drapeau_en_attente = ""
+	if dr == "-":
+		dr = ""  # « Aucun drapeau » choisi
+	villages[vid] = {"id": vid, "nom": nom, "drapeau": dr, "bid": bid, "c": c, "rayon": 0.0, "annexes": [],
 		"fonde": fond, "couleur": (vid - 1) % COULEURS.size(), "cases": {}}
 	# Le carré du centre, même s'il touche une frontière.
 	_ajouter_case(vid, case_de(c.x, c.y))
@@ -290,6 +297,68 @@ func fonder_au_point(nom: String, c: Vector2, bid := -1) -> int:
 	fonde.emit(vid)
 	changed.emit()
 	return vid
+
+
+## Drapeau proposé : le pays du lieu choisi sur le globe, sinon celui de la
+## ville la plus proche du point de départ, sinon aucun.
+static func drapeau_du_lieu() -> String:
+	if GameStart.pays != "" and Drapeaux.existe(GameStart.pays):
+		return GameStart.pays
+	var v := Villes.plus_proche(GameStart.lat, GameStart.lon, 150.0)
+	return String(v.get("pays", ""))
+
+
+func set_drapeau(vid: int, code: String) -> void:
+	if not villages.has(vid):
+		return
+	villages[vid].drapeau = code.to_lower()
+	_maj_drapeaux(true)
+	message.emit("%s hisse le drapeau : %s." % [villages[vid].nom, Drapeaux.nom(code)])
+	changed.emit()
+
+
+## Position et taille du drapeau sur le mât de chaque bâtiment fondateur
+## (repère du modèle) : [centre, largeur].
+const MATS := {"maison_commune": [Vector3(-3.6, 6.45, -5.5), 1.6], "mairie": [Vector3(0.9, 8.25, -7.5), 1.6]}
+
+
+## Drapeau du village sur le mât de sa mairie et de ses mairies annexes.
+func _maj_drapeaux(force := false) -> void:
+	if buildings == null:
+		return
+	for vid in villages:
+		var v: Dictionary = villages[vid]
+		var code := String(v.get("drapeau", ""))
+		for bid in [int(v.bid)] + Array(v.annexes):
+			var node := buildings.node_of(int(bid))
+			if node == null or not buildings.buildings.has(int(bid)):
+				continue
+			var mat_info: Array = MATS.get(String(buildings.buildings[int(bid)].t), [])
+			var d := node.get_node_or_null("Drapeau") as MeshInstance3D
+			if mat_info.is_empty():
+				continue
+			# Pendant le chantier, le drapeau attend que le mât soit monté.
+			if buildings.en_chantier(int(bid)):
+				if d != null:
+					d.free()
+				continue
+			if d != null and String(d.get_meta("code", "")) == code and not force:
+				continue
+			if d != null:
+				d.free()
+			var m := Drapeaux.materiau(code)
+			if m == null:
+				continue
+			d = MeshInstance3D.new()
+			d.name = "Drapeau"
+			var q := QuadMesh.new()
+			var w := float(mat_info[1])
+			q.size = Vector2(w, w * 0.75)
+			d.mesh = q
+			d.material_override = m
+			d.position = mat_info[0]
+			d.set_meta("code", code)
+			node.add_child(d)
 
 
 ## Nom proposé pour un nouveau village.
@@ -585,6 +654,7 @@ func _process(delta: float) -> void:
 		_t_stats = 2.0
 		calculer_stats()
 		croissance()
+		_maj_drapeaux()
 	var show := montre or calque or outil != ""
 	if buildings != null and buildings.mode == BuildingSystem.Mode.PLACE:
 		show = true
@@ -810,7 +880,7 @@ func to_dict() -> Dictionary:
 		var cs := []
 		for k in v.cases:
 			cs.append([k.x, k.y])
-		vs.append({"id": vid, "nom": v.nom, "bid": v.bid, "cx": snappedf(v.c.x, 0.01), "cz": snappedf(v.c.y, 0.01),
+		vs.append({"id": vid, "nom": v.nom, "drapeau": v.get("drapeau", ""), "bid": v.bid, "cx": snappedf(v.c.x, 0.01), "cz": snappedf(v.c.y, 0.01),
 			"rayon": v.rayon, "annexes": v.annexes, "fonde": v.fonde, "couleur": v.couleur, "cases": cs})
 	return {"version": 1, "actif": actif, "next_id": next_id, "villages": vs}
 
@@ -824,7 +894,7 @@ func from_dict(d: Dictionary) -> void:
 		var annexes := []
 		for a in e.get("annexes", []):
 			annexes.append(int(a))
-		villages[vid] = {"id": vid, "nom": String(e.get("nom", "Village")), "bid": int(e.get("bid", -1)),
+		villages[vid] = {"id": vid, "nom": String(e.get("nom", "Village")), "drapeau": String(e.get("drapeau", "")), "bid": int(e.get("bid", -1)),
 			"c": Vector2(float(e.get("cx", 0.0)), float(e.get("cz", 0.0))), "rayon": float(e.get("rayon", 0.0)),
 			"annexes": annexes, "fonde": float(e.get("fonde", 0.0)), "couleur": int(e.get("couleur", vid - 1)), "cases": {}}
 		for k in e.get("cases", []):

@@ -8,9 +8,10 @@ Code : `scripts/communes/` (`communes.gd` = `Communes`, nœud « Communes » sou
 
 Une partie lancée depuis le globe commence par la **fondation du village** :
 
-1. Une fenêtre demande le **nom du village** (proposé : le nom du lieu choisi sur le globe).
-2. « Choisir l'emplacement » met en main la **Maison de commune** (16 × 14 m, 300 000 €, clocheton, horloge et drapeau). Elle n'a **pas besoin de route** : c'est la première pierre. **R** pour tourner, clic droit pour annuler.
-3. Dès qu'elle est posée, le village existe et reçoit son **territoire**.
+1. Une fenêtre demande le **nom du village** (proposé : le nom du lieu choisi sur le globe) et son **drapeau** : la liste propose les drapeaux de tous les pays (268, avec quelques régions, l'ONU et l'Union européenne), présélectionnée sur le pays de la ville choisie sur le globe. Taper une lettre dans la liste saute aux pays qui commencent par elle. « Aucun drapeau » laisse le mât vide.
+2. « Choisir l'emplacement » met en main la **Maison de commune** (16 × 14 m, 300 000 €, clocheton, horloge et mât). Elle n'a **pas besoin de route** : c'est la première pierre. **R** pour tourner, clic droit pour annuler.
+3. Dès qu'elle est posée, le village existe et reçoit son **territoire**. Elle se construit **par étapes** comme les autres bâtiments (terrassement, fondations, murs, toit, finitions), sauf si l'Admin a choisi la construction instantanée.
+4. Le drapeau choisi flotte sur le mât de la mairie (et des mairies annexes). Pour en changer : panneau **Maj+M**, bouton **Changer…** à côté du drapeau du village.
 
 ![La Maison de commune](apercu-villages-maison-commune.jpg)
 

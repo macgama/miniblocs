@@ -14,6 +14,8 @@ static var chosen := false
 static var lat := 48.8584
 static var lon := 2.2945
 static var place_name := ""
+## Pays du lieu choisi (code ISO en minuscules, "" si inconnu) : drapeau proposé au village.
+static var pays := ""
 static var mode: Mode = Mode.BAC_A_SABLE
 ## Partie à charger en arrivant dans la scène Terre (dossier dans user://parties), ou "".
 static var load_slot := ""

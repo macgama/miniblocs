@@ -43,7 +43,7 @@ Au lancement (**F5**), un **globe 3D** coloré par les vrais biomes (forêts, ch
 
 ![Globe de départ](docs/apercu-globe.png)
 
-- **Globe** : glisser pour tourner, molette pour zoomer, clic pour poser le point de départ. On peut aussi chercher dans la liste de lieux, coller des coordonnées (Google Maps : clic droit sur un lieu) ou cliquer sur **Lieu au hasard**.
+- **Globe** : glisser pour tourner, molette pour zoomer, clic pour poser le point de départ. La **recherche** trouve n'importe quelle ville de la planète : 135 000 villes de plus de 1 000 habitants (GeoNames), avec leur drapeau ; les accents sont facultatifs et les noms français des grandes villes marchent (Londres, Pékin, Genève). **Entrée** choisit la première. On peut aussi taper des coordonnées (Google Maps : clic droit sur un lieu), ou **Chercher en ligne** (OpenStreetMap) pour un hameau ou un lieu-dit. Le pays choisi propose le drapeau du premier village.
 - **Aperçu** : altitude du point et type de relief autour (plaine, collines, montagne, côte, mer), région de jeu de 40 × 40 km (1 600 km², soit 1,6 milliard de cases).
 - **Commencer la partie** : ouvre la région en cases de 1 m. Survole une case pour voir ses coordonnées et son altitude. Outils : **2 Aplanir**, **3 Monter +1 m**, **4 Creuser −1 m** (clic gauche glissé). Bouton **Globe** pour changer de lieu.
 - Le relief est téléchargé la première fois (Internet nécessaire), puis gardé en cache.
@@ -506,7 +506,11 @@ Une ferme entièrement générée en code (longère à colombages et toit de cha
 | `scripts/hud.gd` | Barre d'outils, statistiques, aide |
 | `tests/smoke_test.gd` | Test automatique de bout en bout |
 | `scenes/globe.tscn` | Écran de départ : globe 3D pour choisir le lieu |
-| `scripts/terre/globe_menu.gd` | Globe : rotation, clic, recherche, hasard, aperçu, lancement |
+| `scripts/terre/globe_menu.gd` | Globe : rotation, clic, recherche de ville, aperçu, lancement |
+| `scripts/terre/villes.gd` | Recherche dans l'index des villes du monde |
+| `assets/villes_monde.tsv.gz` | 135 000 villes (GeoNames, CC BY 4.0, via le paquet all-the-cities ; fabriqué par `tools/build_villes.py`) |
+| `assets/drapeaux.png`, `assets/drapeaux.json` | Atlas des 268 drapeaux (flag-icons, MIT ; fabriqué par `tools/build_drapeaux.gd`) ; `scripts/communes/drapeaux.gd` |
+| `assets/pays.json` | Noms français des pays |
 | `scripts/terre/game_start.gd` | Choix du joueur transmis à la partie (lieu, mode) |
 | `scenes/terre.tscn` | Mode Terre : relief réel en cases de 1 m |
 | `scripts/personnage/vue_sol.gd` | Bascule vue de dessus / 3e / 1re personne, caméra au sol |

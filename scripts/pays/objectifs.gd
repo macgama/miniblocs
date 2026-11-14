@@ -52,6 +52,9 @@ const SUCCES := {
 	"missions20": ["Bâtisseur du pays", "Réussir 20 missions."],
 	"riche": ["Coffres pleins", "50 M€ dans la caisse du pays."],
 	"reconquete": ["Retour gagnant", "Reprendre une mairie perdue."],
+	"deux_pays": ["Passe-frontière", "Avoir des villes dans deux pays."],
+	"sans_frontieres": ["Sans frontières", "Avoir des villes dans trois pays."],
+	"libre_echange": ["Libre-échange", "1 M€ de marchandises par mois entre tes pays."],
 	"classe_moyenne": ["La classe moyenne", "300 habitants ou plus et la moitié des foyers en Classe moyenne ou mieux (Maj+N)."],
 	"beaux_quartiers": ["Les beaux quartiers", "25 foyers Très aisés (Maj+N)."],
 }
@@ -96,6 +99,7 @@ func setup(cm: Communes, pop: Population, p: Pays, bs: BuildingSystem, ts: Trans
 
 func clear() -> void:
 	paliers.clear()
+	_frontiere = "?"
 	missions.clear()
 	historique.clear()
 	succes.clear()
@@ -339,6 +343,16 @@ func candidates() -> Array:
 					break
 			if out.size() > 0 and String(out[out.size() - 1].type) == "relier":
 				break
+	# Plusieurs pays : s'installer de l'autre côté de la frontière, puis commercer.
+	if pays.cles_nations().size() == 1 and population.persons.size() >= 400 and frontiere_proche() != "" \
+			and not en_cours.has("pays:-1"):
+		out.append({"type": "pays", "vid": -1, "cible": 2, "duree": 150, "prime": 2_000_000, "rep": 6,
+			"texte": "Fonder une ville de l'autre côté de la frontière (%s)" % Villes.nom_pays(frontiere_proche())})
+	if pays.cles_nations().size() >= 2 and Production.instance != null and not en_cours.has("commerce:-1"):
+		var c := commerce_pays()
+		var cible := maxi(50_000, snappedi(roundi(c * 1.5) + 20_000, 10_000))
+		out.append({"type": "commerce", "vid": -1, "cible": cible, "duree": 90, "prime": 1_500_000, "rep": 5,
+			"texte": "Commerce entre tes pays : %s par mois" % BuildingSystem.format_money(cible)})
 	if lignes() == 0 and population.persons.size() >= 150 and not en_cours.has("ligne:-1"):
 		out.append({"type": "ligne", "vid": -1, "cible": 1, "duree": 60, "prime": 1_000_000, "rep": 4,
 			"texte": "Créer une ligne de transport en commun (touche L)"})
@@ -388,7 +402,42 @@ func reussie(m: Dictionary) -> bool:
 			return v2.size() == 2 and relies(int(v2[0]), int(v2[1]))
 		"ligne":
 			return lignes() >= 1
+		"pays":
+			return pays.cles_nations().size() >= int(m.cible)
+		"commerce":
+			return commerce_pays() >= float(m.cible)
 	return false
+
+
+## Commerce du mois entre tes pays (€) : le mois en cours ou, s'il vient de
+## commencer, le précédent.
+func commerce_pays() -> float:
+	if Production.instance == null:
+		return 0.0
+	return maxf(float(Production.instance.commerce_total(false).pays), float(Production.instance.commerce_total(true).pays))
+
+
+var _frontiere := "?"
+
+
+## Code d'un autre pays réel à moins de 15 km du chef-lieu ("" : aucun).
+func frontiere_proche() -> String:
+	if _frontiere != "?":
+		return _frontiere
+	_frontiere = ""
+	if communes.villages.is_empty():
+		_frontiere = "?"
+		return ""
+	var c: Vector2 = communes.villages[communes.principal()].c
+	var ici := pays.code_au_point(c.x, c.y)
+	for r in [5000.0, 10000.0, 15000.0]:
+		for i in 16:
+			var a := TAU * i / 16.0
+			var code := pays.code_au_point(c.x + cos(a) * r, c.y + sin(a) * r)
+			if code != "" and code != ici:
+				_frontiere = code
+				return code
+	return ""
 
 
 ## Où en est une mission (texte court).
@@ -403,6 +452,8 @@ func progres(m: Dictionary) -> String:
 			return "chômage %.1f %%" % chomage(vid)
 		"fonder":
 			return "%d / %d villes" % [communes.villages.size(), int(m.cible)]
+		"commerce":
+			return "%s / %s par mois" % [BuildingSystem.format_money(roundi(commerce_pays())), BuildingSystem.format_money(int(m.cible))]
 	return "en cours"
 
 
@@ -511,6 +562,13 @@ func _verifier_succes() -> void:
 		succes_debloque("missions5")
 	if reussies >= 20:
 		succes_debloque("missions20")
+	var nn := pays.cles_nations().size()
+	if nn >= 2 and pays.a_des_villes():
+		succes_debloque("deux_pays")
+	if nn >= 3 and pays.a_des_villes():
+		succes_debloque("sans_frontieres")
+	if nn >= 2 and commerce_pays() >= 1_000_000:
+		succes_debloque("libre_echange")
 	var tresor := 0
 	for nk in pays.cles_nations():
 		tresor += pays.solde(int(nk))

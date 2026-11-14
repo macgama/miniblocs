@@ -94,3 +94,46 @@ static func roof_mesh(kind: String) -> ArrayMesh:
 		BlocFormes.emit(m, int(cells[kk]), Vector3(kk.x * BlockEditor.SIZE, kk.y * BlockEditor.UNIT_Y, kk.z * BlockEditor.SIZE),
 			func(off: Vector3i) -> int: return int(cells.get(kk + off, -1)))
 	return m.to_mesh()
+
+
+## Bassin, voie, gradins ou terrain à la taille du modèle (gradins un peu courts).
+static func amenagement_mesh(kind: String) -> ArrayMesh:
+	var pe := PlanEditor.new()
+	var k: Dictionary = Amenagements.KINDS[kind]
+	# Vue de face (la caméra des vignettes regarde depuis +z) : terrains et
+	# bassins en long, gradins qui montent en s'éloignant.
+	var front := String(k.fam) == "gradins" or kind == "butoir"
+	var r := 2 if front else 1
+	var s := Amenagements.default_size(kind, 0 if front else 1)
+	# Les voies et quais en tronçon court : on voit les traverses.
+	if String(k.fam) == "rails" and kind != "butoir":
+		s.x = mini(s.x, 10)
+	var p := {"y0": 0.0, "walls": {}, "floors": {}, "stairs": {}, "am": {}}
+	p.am[Vector3i(0, 0, 0)] = {"k": kind, "w": s.x, "d": s.y, "r": r, "m": -1}
+	pe.plans["v"] = p
+	var m := BlocMesher.new()
+	pe.emit_storey("v", 0, m, m, PackedVector3Array())
+	pe.free()
+	var mesh := m.to_mesh()
+	# Terrains, bassins et voies sont plats : on les incline vers la caméra.
+	if String(k.fam) != "gradins" and kind != "butoir" and kind != "aquarium":
+		mesh = _tilted(mesh, deg_to_rad(38.0))
+	return mesh
+
+
+## Copie du maillage tournée autour de l'axe x (le fond se relève).
+static func _tilted(mesh: ArrayMesh, angle: float) -> ArrayMesh:
+	var b := Basis(Vector3.RIGHT, angle)
+	var out := ArrayMesh.new()
+	for si in mesh.get_surface_count():
+		var arrays := mesh.surface_get_arrays(si)
+		var v: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+		var n: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
+		for i in v.size():
+			v[i] = b * v[i]
+			n[i] = b * n[i]
+		arrays[Mesh.ARRAY_VERTEX] = v
+		arrays[Mesh.ARRAY_NORMAL] = n
+		out.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+		out.surface_set_material(si, mesh.surface_get_material(si))
+	return out

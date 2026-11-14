@@ -80,6 +80,7 @@ func _remove(bid: int) -> void:
 			p.walls.clear()
 			p.floors.clear()
 			p.stairs.clear()
+			p["am"] = {}
 			pe._drop_if_empty(id)
 			pe._rebuild_cells()
 			pe.changed.emit()

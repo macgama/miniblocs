@@ -130,6 +130,13 @@ static func entry(d: Dictionary) -> Dictionary:
 	t["era"] = "contemporain"
 	t["style"] = ""
 	t["desc"] = "Mon modèle · %s · %d × %d m" % [fonction_name(f), int(g.w), int(g.d)]
+	# Les places des gradins comptent comme visiteurs (stade, piscine…).
+	var places := int(d.get("places", 0))
+	if places > 0:
+		t["places"] = places
+		if int(t.get("visiteurs", 0)) > 0:
+			t["visiteurs"] = maxi(int(t.visiteurs), places)
+		t["desc"] += " · %d places assises" % places
 	return t
 
 
@@ -210,6 +217,15 @@ static func geometry(d: Dictionary) -> Dictionary:
 		price += PlanEditor.floor_price(int(fa[i + 3]))
 		i += 5
 	price += (d.get("stairs", []) as Array).size() / 5 * PlanEditor.STAIR_PRICE
+	# Bassins, voies, gradins, terrains.
+	var am := Amenagements.from_array(d.get("am", []))
+	for k in am:
+		var a: Dictionary = am[k]
+		var ra := Amenagements.rect_of(k, a)
+		lo = Vector2i(mini(lo.x, ra.position.x), mini(lo.y, ra.position.y))
+		hi = Vector2i(maxi(hi.x, ra.end.x), maxi(hi.y, ra.end.y))
+		top_wall = maxi(top_wall, (k as Vector3i).y + 1)
+		price += Amenagements.price(String(a.k), int(a.w), int(a.d), int(a.r))
 	var ba: Array = d.get("blocs", [])
 	i = 0
 	var min_y := INF
@@ -276,6 +292,9 @@ static func _emit(d: Dictionary, m: BlocMesher) -> void:
 		p.stairs[Vector3i(int(sa[i]), int(sa[i + 1]), int(sa[i + 2]))] = {"r": int(sa[i + 3]), "m": int(sa[i + 4])}
 		levels[int(sa[i + 1])] = true
 		i += 5
+	p["am"] = Amenagements.from_array(d.get("am", []))
+	for k in p.am:
+		levels[(k as Vector3i).y] = true
 	pe.plans["m"] = p
 	var ramps := PackedVector3Array()
 	for e in levels:
@@ -358,6 +377,17 @@ static func place_rotated(d: Dictionary, rect: Rect2i, r: int, y0: float, mob: M
 		var c: Vector2i = cell.call(int(sa[i]), int(sa[i + 2]))
 		p.stairs[Vector3i(c.x, int(sa[i + 1]), c.y)] = {"r": (int(sa[i + 3]) + r) % 4, "m": int(sa[i + 4])}
 		i += 5
+	# Aménagements : le rectangle tourne avec le bâtiment.
+	var am := Amenagements.from_array(d.get("am", []))
+	p["am"] = {}
+	for k in am:
+		var ka: Vector3i = k
+		var a: Dictionary = am[k]
+		var c0: Vector2 = pt.call(float(ka.x), float(ka.z))
+		var c1: Vector2 = pt.call(float(ka.x + int(a.w)), float(ka.z + int(a.d)))
+		var lo2 := Vector2i(roundi(minf(c0.x, c1.x)), roundi(minf(c0.y, c1.y)))
+		var hi2 := Vector2i(roundi(maxf(c0.x, c1.x)), roundi(maxf(c0.y, c1.y)))
+		p.am[Vector3i(lo2.x, ka.y, lo2.y)] = {"k": a.k, "w": hi2.x - lo2.x, "d": hi2.y - lo2.y, "r": (int(a.r) + r) % 4, "m": int(a.m)}
 	pe._after_change(id)
 	# Toit et ajouts en blocs (leur orientation tourne avec le bâtiment).
 	var bk := []

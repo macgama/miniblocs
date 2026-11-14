@@ -86,6 +86,8 @@ const BASE_TYPES := {
 		"emplois": 6, "visiteurs": 120, "desc": "Salle et terrasse avec parasols."},
 	"cinema": {"name": "Cinéma", "cat": "loisirs", "w": 26, "d": 32, "access": ROAD,
 		"emplois": 15, "visiteurs": 600, "desc": "Quatre salles et une enseigne."},
+	"musee": {"name": "Musée", "cat": "loisirs", "w": 30, "d": 24, "access": ROAD,
+		"emplois": 12, "visiteurs": 400, "desc": "Musée à colonnade : collections, billetterie, boutique. Menu Musée (Maj+C) pour le gérer et l'aménager."},
 	# --- Sport ----------------------------------------------------------------------
 	"foot": {"name": "Terrain de football", "cat": "sport", "w": 76, "d": 115, "access": ROAD_OR_PATH,
 		"visiteurs": 500, "desc": "Terrain de 105 × 68 m et une tribune."},
@@ -107,7 +109,7 @@ const COSTS := {
 	"entreprise_btp": 450_000, "campement": 20_000,
 	"maison_commune": 300_000, "mairie": 4_000_000, "ecole": 6_000_000, "pompiers": 2_500_000, "police": 1_800_000,
 	"hopital": 25_000_000, "chateau_eau": 1_200_000,
-	"parc": 300_000, "aire_jeux": 80_000, "cafe": 450_000, "cinema": 5_000_000,
+	"parc": 300_000, "aire_jeux": 80_000, "cafe": 450_000, "cinema": 5_000_000, "musee": 6_500_000,
 	"foot": 1_500_000, "tennis": 120_000, "basket": 90_000, "gymnase": 3_500_000, "piscine": 2_800_000,
 }
 
@@ -538,6 +540,26 @@ static func build_mesh(id: String, material: Material = null, details := true, v
 			k.box(0, 3.8, -10.6, 14.0, 0.3, 1.2, Color("f2c14e"))
 			k.box(0, 6.0, -10.2, 16.0, 4.0, 0.4, Color("e63946"))
 			k.box(0, 7.2, -10.45, 12.0, 1.6, 0.1, Color("fff3b0"))
+		"musee":
+			# Musée néoclassique : perron, colonnade, fronton, verrière sur le toit.
+			var pierre := Color("ece4d2")
+			k.plate(0, 0, w, d, Color("cfc8b6"))
+			k.box(0, 0, 2.5, 28.0, 0.6, 18.0, Color("d8d0bc"))
+			k.box(0, 0.6, 2.5, 27.0, 9.0, 17.0, pierre)
+			k.box(0, 9.6, 2.5, 27.6, 0.6, 17.6, Color("d8d0bc"))
+			k.box(0, 10.2, 2.5, 10.0, 1.6, 8.0, Color("9fb8c8"))
+			for i in 3:
+				k.box(0, 0, -7.2 - i * 0.6, 14.0 + i * 1.2, 0.6 - i * 0.2, 0.6, Color("d8d0bc"))
+			for i in 6:
+				k.cylinder(-6.25 + i * 2.5, 0.6, -7.0, 0.45, 0.4, 7.8, 10, Color("f4efe4"))
+			k.box(0, 8.4, -6.6, 14.6, 1.2, 2.2, pierre)
+			k.gable(0, 9.6, -6.6, 15.0, 2.6, 2.6, Color("e6dcc6"), true)
+			k.box(0, 0.6, -6.0, 3.0, 4.2, 0.2, DOOR)
+			k.windows_row(0, -6.0, 26.0, 3.0, 8, 1.2, 3.2, GLASS)
+			k.box(0, 6.0, -7.75, 6.0, 0.9, 0.12, Color("1d3557"))
+			for x in [-12.0, 12.0]:
+				k.box(x, 0, -10.0, 1.4, 1.2, 1.4, Color("cfc7b5"))
+				k.box(x, 1.2, -10.0, 0.6, 1.8, 0.6, Color("6e4f2a"))
 		"foot":
 			k.plate(0, 4.0, w, d - 8.0, Color("4f9a3a"))
 			for i in 7:

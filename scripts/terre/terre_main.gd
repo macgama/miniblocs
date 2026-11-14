@@ -53,6 +53,8 @@ var budget_panel: BudgetPanel
 var dechets: Dechets
 var dechets_panel: DechetsPanel
 ## Parc de loisirs : attractions, visiteurs, files, billets, note (Maj+G).
+var musee: Musee
+var musee_panel: MuseePanel
 var parc: ParcLoisirs
 var parc_panel: ParcPanel
 ## Obsèques, cimetières, crématorium, pompes funèbres (onglet Funéraire du panneau H).
@@ -161,6 +163,7 @@ func _ready() -> void:
 	_setup_services()
 	_setup_telecom()
 	_setup_dechets()
+	_setup_musee()
 	_setup_parc()
 	_setup_funeraire()
 	_setup_vie()
@@ -338,6 +341,7 @@ func save_sections() -> Dictionary:
 	sec["niveaux_vie"] = niveaux_vie.to_dict()
 	sec["statistiques"] = statistiques.to_dict()
 	sec["tutoriel"] = tutoriel.to_dict()
+	sec["musee"] = musee.to_dict()
 	sec["parc"] = parc.to_dict()
 	sec["quartiers"] = quartiers.to_dict()
 	sec["parc_editeur"] = attractions.to_dict()
@@ -449,6 +453,7 @@ func load_game(slot := "") -> bool:
 	services.from_dict(sec.get("services", {}))
 	telecom.from_dict(sec.get("telecom", {}))
 	dechets.from_dict(sec.get("dechets", {}))
+	musee.from_dict(sec.get("musee", {}))
 	parc.from_dict(sec.get("parc", {}))
 	funeraire.from_dict(sec.get("funeraire", {}))
 	ambiance.from_dict(sec.get("ambiance", {}))
@@ -1287,6 +1292,26 @@ func _setup_dechets() -> void:
 	hud.dechets_requested.connect(func() -> void: dechets_panel.toggle())
 
 
+## Musées : salles à thème, œuvres, visiteurs, billetterie et panneau (Maj+C).
+func _setup_musee() -> void:
+	musee = Musee.new()
+	musee.name = "Musee"
+	add_child(musee)
+	musee.setup(mobilier, buildings, population, ambiance)
+	musee.message.connect(func(t: String) -> void: hud.show_message(t))
+	musee_panel = MuseePanel.new()
+	musee_panel.name = "PanneauMusee"
+	add_child(musee_panel)
+	musee_panel.setup(musee, func() -> void: _select_building_tool())
+	musee_panel.focus_requested.connect(func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
+	musee_panel.draw_requested.connect(func() -> void:
+		musee_panel.set_open(false)
+		set_create_mode(true))
+	hud.musee_requested.connect(func() -> void: musee_panel.toggle())
+
+
 ## Parc de loisirs : manèges, visiteurs, files d'attente, billets et panneau (Maj+G).
 func _setup_parc() -> void:
 	parc = ParcLoisirs.new()
@@ -2070,6 +2095,7 @@ func _exclusive_panels() -> void:
 	var panels := {"pays": pays_panel, "objectifs": objectifs_panel, "quartiers": quartiers_panel, "construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "agriculture": agri_panel, "urgences": urgences_panel, "reseaux": reseaux_panel, "dechets": dechets_panel, "trafic": trafic_panel, "budget": budget_panel, "telecom": telecom_panel, "perso": perso_panel, "infos": evenements_panel, "cartes": cartes_panel, "avis": avis_panel, "villages": villages_panel, "fondateurs": fondateurs_panel, "stats": stats_panel}
 	var opened := ""
 	panels.merge(_panneaux_parc())
+	panels["musee"] = musee_panel
 	for id in panels:
 		var p = panels[id]
 		var on: bool = p != null and p.is_open()

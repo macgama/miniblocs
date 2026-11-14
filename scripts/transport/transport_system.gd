@@ -674,7 +674,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		if key.keycode == KEY_ESCAPE and not _start.is_empty():
 			cancel()
 			get_viewport().set_input_as_handled()
-		elif key.keycode == KEY_C and tool == Tool.BUILD:
+		elif key.keycode == KEY_C and tool == Tool.BUILD and not key.shift_pressed:
 			set_curve(not curve_mode)
 			spec_changed.emit(type_id, spec)
 			get_viewport().set_input_as_handled()

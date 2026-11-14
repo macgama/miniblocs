@@ -39,6 +39,10 @@ static func build(kit: LpKit, e: Dictionary, xf: Transform3D) -> void:
 	kit.xf = xf
 	kit.layer = "base"
 	kit.rng.seed = hash(String(e.id))
+	if String(e.style) == MuseeObjets.STYLE:
+		MuseeModeles.build(kit, e)
+		kit.layer = "base"
+		return
 	var w := float(e.w)
 	var d := float(e.d)
 	var h := float(e.h)

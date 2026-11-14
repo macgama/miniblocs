@@ -481,6 +481,12 @@ Touche **Maj+U** : chaque logement est relié à l'école, l'hôpital et le comm
 
 Détails : [docs/services.md](docs/services.md).
 
+## Musées : salles à thème, œuvres et visiteurs
+
+Menu **Loisirs → Musée** (touche **Maj+C**) : 5 musées prêts à poser (histoire locale, beaux-arts, muséum, sciences, civilisations) ou tes propres murs, 14 fonctions de salle (galerie de peinture, sculptures, Égypte, dinosaures…), 106 objets en 12 familles (vitrines, socles, tableaux, statues, antiquités, squelettes, machines, armures, arts du monde, éclairage, parcours, accueil et boutique). La note dépend du prestige des œuvres bien rangées par thème, de l'éclairage, du confort et des services ; les visiteurs (habitants et touristes) vont d'œuvre en œuvre, paient leur billet, passent à la boutique et au café. Expositions temporaires, gratuité du 1er dimanche, fermeture le lundi. Détails : [docs/musee.md](docs/musee.md).
+
+![Musées en coupe](docs/apercu-musee-coupe.jpg)
+
 ## Vue au sol : marcher à la 3e ou à la 1re personne
 
 Dans le mode Terre, appuie sur **V** (ou les boutons **Dessus / 3e pers. / 1re pers.** en haut au centre) : un personnage apparaît au sol, au centre de la vue de gestion.

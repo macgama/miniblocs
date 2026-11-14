@@ -39,6 +39,13 @@ const SCHOOL_AGE := 3
 const DEFAULT_SCHOOL_SEATS := 250
 ## Foyers qui emménagent par heure de jeu, en part des logements libres.
 const ARRIVAL_RATE := 0.6
+## Arrivées par ville et par jour de jeu, au plus : ARRIVEES_MIN_JOUR foyers + une
+## part des foyers déjà installés (une ville ne double pas du jour au lendemain,
+## même avec des centaines de logements vides).
+const ARRIVEES_MIN_JOUR := 4.0
+const ARRIVEES_PART_JOUR := 0.03
+## Sous ce nombre de foyers, une ville se remplit librement (départ d'un village).
+const ARRIVEES_LIBRES := 40
 ## Distance à pied, à vélo (m).
 const WALK_MAX := 1200.0
 const BIKE_MAX := 4000.0
@@ -81,6 +88,8 @@ var next_pid := 1
 var next_hid := 1
 ## Horloge de la vie, en jours (avance avec le temps du jeu × life_speed).
 var life_clock := 0.0
+## Augmente à chaque arrivée, départ ou déménagement d'un habitant (caches des autres systèmes).
+var version := 0
 var life_speed_index := DEFAULT_LIFE_SPEED
 var arrivals := true
 ## Dernier instant de jeu vu (secondes Unix) et numéro du dernier jour traité.
@@ -115,10 +124,13 @@ var attrait_logement: Callable
 var avant_arrivees: Callable
 
 var _arrival_acc: Dictionary = {}
+## Arrivées encore permises par ville (id du village, -1 hors village) : foyers.
+var _quota_arrivees: Dictionary = {}
 var _money_frac := 0.0
 var _step_acc := 0.0
 var _last_step_ms := 0
 var _venue_cache: Dictionary = {}
+var _heure_attrib := -1
 var _transit_cache: Dictionary = {}
 var _selected := -1
 var _marker: MeshInstance3D
@@ -237,7 +249,8 @@ func clear() -> void:
 	by_school.clear()
 	known.clear()
 	_arrival_acc.clear()
-	_venue_cache.clear()
+	_quota_arrivees.clear()
+	_vider_lieux()
 	next_pid = 1
 	next_hid = 1
 	life_clock = 0.0
@@ -315,9 +328,15 @@ func advance(dt: float, realtime := false) -> void:
 		# D'abord les fondateurs du campement (Fondateurs) : ils prennent les maisons finies.
 		if avant_arrivees.is_valid():
 			avant_arrivees.call()
+		var avant := persons.size()
 		if arrivals:
 			_immigrate(hours)
-		_match_all()
+		# En jeu : attributions quand des foyers arrivent, sinon une fois par heure de jeu
+		# (la boucle sur tous les habitants coûte cher dans les grandes parties).
+		var heure := floori(ambiance.unix_time / 3600.0) if ambiance != null else -1
+		if not realtime or persons.size() != avant or heure != _heure_attrib:
+			_heure_attrib = heure
+			_match_all()
 		if principal.enabled and principal.mine() < 0 and not households.is_empty():
 			principal.try_birth()
 	var d := int(now().day)
@@ -392,7 +411,7 @@ func _sync_buildings() -> void:
 				added = true
 			known[bid] = info
 	if added or not gone.is_empty():
-		_venue_cache.clear()
+		_vider_lieux()
 		_transit_cache.clear()
 		vie.clear_cache()
 		_match_all()
@@ -539,6 +558,7 @@ func _add_person(hid: int, sex: String, age: float, role: String, surname: Strin
 	p.hob = Metiers.pick_hobbies(rng, age)
 	CycleVie.ensure(p)
 	persons[pid] = p
+	version += 1
 	(h.m as Array).append(pid)
 	return pid
 
@@ -567,6 +587,7 @@ func _remove_person(pid: int, check_household := true, archive := "") -> void:
 	_leave_job(p)
 	_leave_school(p)
 	persons.erase(pid)
+	version += 1
 	if households.has(int(p.f)):
 		var h: Dictionary = households[int(p.f)]
 		(h.m as Array).erase(pid)
@@ -633,6 +654,18 @@ func stage_label(p: Dictionary) -> String:
 
 ## Arrivées : les logements libres se remplissent peu à peu.
 func _immigrate(hours: float) -> void:
+	var cm := Communes.instance
+	# Quotas du pas : selon les foyers de chaque ville (ou de toute la carte sans village).
+	# Sans village (prototype, bac à sable de test) : pas de quota.
+	var quotas := cm != null and not cm.villages.is_empty()
+	var foyers := {}
+	if quotas:
+		for vid in cm.villages:
+			foyers[int(vid)] = int(cm.stats.get(vid, {}).get("foyers", 0))
+		foyers[-1] = 0
+	for v in foyers:
+		var par_jour := ARRIVEES_MIN_JOUR + ARRIVEES_PART_JOUR * float(foyers[v])
+		_quota_arrivees[v] = minf(float(_quota_arrivees.get(v, par_jour)) + par_jour * hours / 24.0, par_jour)
 	for bid in known:
 		# Les tentes libérées au campement (couples, départs) ne sont pas à louer.
 		if Fondateurs.est_campement(bid):
@@ -647,6 +680,16 @@ func _immigrate(hours: float) -> void:
 		var attrait := float(attrait_logement.call(bid)) if attrait_logement.is_valid() else 1.0
 		acc += maxf(1.0, free * ARRIVAL_RATE) * hours * attrait
 		var n := mini(int(acc), free)
+		if quotas:
+			var v := cm.village_de(bid)
+			if not _quota_arrivees.has(v):
+				v = -1
+			if v < 0 or int(foyers[v]) >= ARRIVEES_LIBRES:
+				n = mini(n, int(_quota_arrivees.get(v, 0.0)))
+				if n <= 0:
+					_arrival_acc[bid] = minf(acc, float(free))
+					continue
+				_quota_arrivees[v] = float(_quota_arrivees[v]) - n
 		acc -= n
 		_arrival_acc[bid] = acc
 		for i in n:
@@ -728,7 +771,7 @@ func _match_all() -> void:
 ## commerces et loisirs, et l'accès aux soins, sont à recalculer.
 func _apres_embauches(force := false) -> void:
 	if effectif != null and effectif.actualiser(force):
-		_venue_cache.clear()
+		_vider_lieux()
 		vie.clear_cache()
 		if passants != null:
 			passants._plans.clear()
@@ -787,8 +830,74 @@ func _new_day() -> void:
 	_board_commuters()
 	var years := life_speed() / 365.25 # années de vie écoulées en un jour de jeu
 	vie.daily(years)
+	_mobilite()
 	vie.flush_digest()
 	changed.emit()
+
+
+## Marché du travail : chaque jour, des actifs quittent un employeur au complet pour
+## un autre, proche, qui manque de monde (une usine ou une ferme qui ouvre dans une
+## ville sans chômeurs). Elle se remplit ainsi en une à deux semaines au lieu de
+## rester vide. Les métiers indispensables (enseignant, médecin…) ne partent pas.
+const MOBILITE_PART := 0.15
+const MOBILITE_ECART := 0.3
+const MOBILITE_RAYON := 4000.0
+const MOBILITE_MAX_JOUR := 250
+
+
+func _mobilite() -> void:
+	var taux := {}
+	var cibles := []
+	var donneurs := []
+	for bid in known:
+		var emp := int(known[bid].emp)
+		if emp <= 0 or Fondateurs.est_campement(bid):
+			continue
+		var t := float((by_job.get(bid, []) as Array).size()) / emp
+		taux[bid] = t
+		if emp >= 2 and t < 0.5:
+			cibles.append(bid)
+		elif t >= 0.5 + MOBILITE_ECART:
+			donneurs.append(bid)
+	if cibles.is_empty() or donneurs.is_empty():
+		return
+	cibles.sort_custom(func(a: int, b: int) -> bool: return float(taux[a]) < float(taux[b]))
+	var r2 := MOBILITE_RAYON * MOBILITE_RAYON
+	var faits := 0
+	for cible in cibles:
+		if faits >= MOBILITE_MAX_JOUR:
+			break
+		var emp := int(known[cible].emp)
+		var voulu := ceili((emp - (by_job.get(cible, []) as Array).size()) * MOBILITE_PART)
+		var pos: Vector3 = known[cible].pos
+		var proches := []
+		for d in donneurs:
+			var dd := pos.distance_squared_to(known[d].pos)
+			if dd <= r2:
+				proches.append([dd, d])
+		proches.sort_custom(func(a: Array, b: Array) -> bool: return float(a[0]) < float(b[0]))
+		for e in proches:
+			if voulu <= 0 or faits >= MOBILITE_MAX_JOUR:
+				break
+			var d := int(e[1])
+			var requis := Effectif.requis_de(String(known[d].t))
+			for pid in (by_job.get(d, []) as Array).duplicate():
+				if voulu <= 0 or float(taux[d]) < float(taux[cible]) + MOBILITE_ECART:
+					break
+				var p: Dictionary = persons[pid]
+				# Ni les métiers indispensables, ni le personnage du joueur (il choisit).
+				if requis.has(String(p.met)) or stage(p) != "actif" or String(p.get("joueur", "")) != "":
+					continue
+				if Production.instance != null and Production.instance.busy.has(int(pid)):
+					continue
+				_join_job(p, cible)
+				if effectif != null:
+					effectif.oublier(cible)
+					effectif.oublier(d)
+				taux[d] = float((by_job.get(d, []) as Array).size()) / int(known[d].emp)
+				taux[cible] = float((by_job.get(cible, []) as Array).size()) / emp
+				voulu -= 1
+				faits += 1
 
 
 ## Un jeune adulte quitte ses parents s'il trouve un logement libre.
@@ -810,6 +919,7 @@ func _move_out(pid: int) -> void:
 	(by_home[bid] as Array).append(hid)
 	(old.m as Array).erase(pid)
 	p.f = hid
+	version += 1
 	p.r = "adulte"
 	vie.log_event(p, "demenage", "Quitte ses parents et s'installe à %s" % building_name(bid), bid)
 	if int(households[hid].car) > 0:
@@ -1091,20 +1201,34 @@ func _ferme(bid: int) -> bool:
 	return effectif != null and effectif.ferme(bid)
 
 
+## Bâtiments ouverts qui servent `what`, gardés jusqu'au prochain changement
+## (bâtiments, embauches) ; avec fermes = true, aussi ceux fermés faute de personnel.
+var _lieux := {}
+
+
+func _lieux_ouverts(what: String, fermes := false) -> Array:
+	var k := what + ("+f" if fermes else "")
+	if _lieux.has(k):
+		return _lieux[k]
+	var list := []
+	for bid in known:
+		if (known[bid].serves as Array).has(what) and (fermes or not _ferme(bid)):
+			list.append(bid)
+	_lieux[k] = list
+	return list
+
+
+func _vider_lieux() -> void:
+	_venue_cache.clear()
+	_lieux.clear()
+
+
 ## Bâtiment le plus proche d'un logement pour un loisir (ou "cat:<catégorie>"), mis en cache.
 func _cached_nearest(home: int, what: String) -> int:
 	var per_home: Dictionary = _venue_cache.get(home, {})
 	if per_home.has(what):
 		return per_home[what]
-	var list := []
-	if what == "cat:commerce":
-		for bid in known:
-			if (known[bid].serves as Array).has("shopping") and not _ferme(bid):
-				list.append(bid)
-	else:
-		for bid in known:
-			if (known[bid].serves as Array).has(what) and not _ferme(bid):
-				list.append(bid)
+	var list := _lieux_ouverts("shopping" if what == "cat:commerce" else what)
 	var best := _nearest(home, list) if not list.is_empty() else -1
 	per_home[what] = best
 	_venue_cache[home] = per_home
@@ -1414,12 +1538,9 @@ func satisfaction(p: Dictionary) -> Dictionary:
 	if shop >= 0 and effectif != null and effectif.manque(shop):
 		s += _sat(th, "commerces", -5.0)
 		why.append("− longues files au commerce (manque de personnel)")
-	elif shop < 0 and not known.is_empty():
-		for bid in known:
-			if (known[bid].serves as Array).has("shopping"):
-				s += _sat(th, "commerces", -8.0)
-				why.append("− les commerces sont fermés faute de personnel")
-				break
+	elif shop < 0 and not _lieux_ouverts("shopping", true).is_empty():
+		s += _sat(th, "commerces", -8.0)
+		why.append("− les commerces sont fermés faute de personnel")
 	var dest := int(p.job) if int(p.job) >= 0 else int(p.sch)
 	if dest >= 0:
 		var c := commute(p, home_of(p), dest)
@@ -1728,10 +1849,11 @@ func move_household(hid: int, bid: int) -> void:
 	var old := int(h.b)
 	(by_home.get(old, []) as Array).erase(hid)
 	h.b = bid
+	version += 1
 	if not by_home.has(bid):
 		by_home[bid] = []
 	(by_home[bid] as Array).append(hid)
-	_venue_cache.clear()
+	# Le lieu le plus proche d'un logement ne dépend pas de qui l'habite : rien à recalculer.
 	for m in h.m:
 		vie.log_event(persons[m], "demenage", "Déménage avec son foyer à %s" % building_name(bid), bid)
 		plan_changed(m)
@@ -1901,8 +2023,9 @@ func from_dict(d: Dictionary) -> void:
 	by_job.clear()
 	by_school.clear()
 	known.clear()
-	_venue_cache.clear()
+	_vider_lieux()
 	_arrival_acc.clear()
+	_quota_arrivees.clear()
 	next_pid = int(d.get("next_pid", 1))
 	next_hid = int(d.get("next_hid", 1))
 	life_clock = float(d.get("life_clock", 0.0))
@@ -1943,6 +2066,7 @@ func from_dict(d: Dictionary) -> void:
 			CycleVie.unpack(p, e[11])
 		CycleVie.ensure(p)
 		persons[pid] = p
+		version += 1
 		(households[hid].m as Array).append(pid)
 		var job := int(e[7])
 		if known.has(job):

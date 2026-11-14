@@ -125,6 +125,7 @@ func setup(p: Population, b: BuildingSystem, t: TransportSystem, u: Urgences = n
 		transport.network_changed.connect(func() -> void:
 			_dij.clear()
 			_accroche.clear()
+			_ecole_ok.clear()
 			marquer())
 	add_to_group("avis_sources")
 	_inscrire_calques()
@@ -151,12 +152,14 @@ func clear() -> void:
 	_dij.clear()
 	_accroche.clear()
 	_pos_cache.clear()
+	_ecole_ok.clear()
 	delits = {"total": 0, "sans_police": 0, "mois": 0, "mois_debut": -1}
 	_dirty = true
 
 
 func marquer() -> void:
 	_dirty = true
+	_ecole_ok.clear()
 
 
 func _avis_present() -> bool:
@@ -360,10 +363,28 @@ func minutes(home: int, lieu: int, service: String) -> float:
 	return _minutes_depuis(home, Vector3.INF, lieu, service)
 
 
-func _minutes_depuis(home: int, pos: Vector3, lieu: int, service: String) -> float:
+## Temps minimal (min) pour d mètres à vol d'oiseau : borne basse du vrai trajet.
+static func _minutes_min(d: float, service: String) -> float:
+	d = maxf(d, 0.0)
+	match service:
+		"ecole":
+			return minf(d / MARCHE, d / VOITURE + ATTENTE_CAR)
+		"hopital":
+			return d / VOITURE + 3.0
+		"police":
+			return d / PATROUILLE + 2.0
+	return INF
+
+
+## memo : accroches du point pos déjà cherchées (mode -> accroche), partagé entre lieux.
+func _minutes_depuis(home: int, pos: Vector3, lieu: int, service: String, memo := {}) -> float:
 	var p := _pos(home) if home >= 0 else pos
 	var acc := func(mode: String) -> Dictionary:
-		return _accroche_de(home, mode) if home >= 0 else _accroche_pos(pos, mode)
+		if home >= 0:
+			return _accroche_de(home, mode)
+		if not memo.has(mode):
+			memo[mode] = _accroche_pos(pos, mode)
+		return memo[mode]
 	match service:
 		"ecole":
 			var pied := _distance(acc.call("pied"), p, lieu, "pied") / MARCHE
@@ -390,7 +411,17 @@ func ecole_possible(p: Dictionary, school: int) -> bool:
 	if not population.known.has(home):
 		return true
 	var lvl := Metiers.school_level(population.age_years(p))
-	return minutes(home, school, "ecole") <= float(SEUIL_NIVEAU.get(lvl, 15.0)) * 2.0
+	# Gardé jusqu'au prochain changement de la ville ou du réseau (la population
+	# revérifie chaque élève à chaque attribution).
+	var key := "%d:%d:%s" % [home, school, lvl]
+	if _ecole_ok.has(key):
+		return _ecole_ok[key]
+	var ok := minutes(home, school, "ecole") <= float(SEUIL_NIVEAU.get(lvl, 15.0)) * 2.0
+	_ecole_ok[key] = ok
+	return ok
+
+
+var _ecole_ok := {}
 
 
 # --- Calcul de la couverture --------------------------------------------------------
@@ -565,15 +596,29 @@ func _couverture_pos(pos: Vector3, service: String) -> float:
 	if _pos_cache.has(key):
 		return _pos_cache[key]
 	var best := 0.0
-	for l in lieux(service):
+	var seuil2 := float(SEUIL[service]) * 2.0
+	# Lieux, charges et accroches calculés une fois (plusieurs villes : beaucoup de lieux).
+	var lx: Array = _pos_cache.get("lieux:" + service, [])
+	if not _pos_cache.has("lieux:" + service):
+		lx = lieux(service)
+		_pos_cache["lieux:" + service] = lx
+	var charges: Dictionary = _pos_cache.get("charges:" + service, {})
+	if not _pos_cache.has("charges:" + service):
+		for e in (resume.get(service, {}) as Dictionary).get("lieux", []):
+			charges[int(e.bid)] = float(e.charge)
+		_pos_cache["charges:" + service] = charges
+	var acc := {}
+	for l in lx:
 		if service != "ecole" and _ferme(l):
 			continue
-		var q := qualite_temps(_minutes_depuis(-1, pos, l, service), float(SEUIL[service]))
+		# Trop loin à vol d'oiseau (50 m de marge) : le trajet par le réseau l'est aussi.
+		var lp := _pos(l)
+		if _minutes_min(Vector2(pos.x - lp.x, pos.z - lp.z).length() - 50.0, service) >= seuil2:
+			continue
+		var q := qualite_temps(_minutes_depuis(-1, pos, l, service, acc), float(SEUIL[service]))
 		var cap := capacite_hab(l, service)
-		var res: Dictionary = resume.get(service, {})
-		for e in res.get("lieux", []):
-			if int(e.bid) == l and float(e.charge) > 1.0 and service != "ecole":
-				q /= float(e.charge)
+		if float(charges.get(l, 0.0)) > 1.0 and service != "ecole":
+			q /= float(charges[l])
 		if service == "ecole" and population.free_seats(l) <= 0:
 			q *= 0.5
 		if cap <= 0.0:

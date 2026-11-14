@@ -97,6 +97,7 @@ const TRAJET_MAX := 35
 const CHANCE_DEMENAGER := 0.15
 ## Foyers évalués par image (le calcul complet est étalé).
 const PAR_IMAGE := 400
+const BUDGET_US := 4000
 
 var population: Population
 var production: Production
@@ -406,9 +407,12 @@ func _process(_delta: float) -> void:
 		_dernier_jour = d
 		_queue = population.households.keys()
 	if not _queue.is_empty():
-		var n := mini(PAR_IMAGE, _queue.size())
-		for i in n:
+		# PAR_IMAGE foyers au plus, et pas plus de BUDGET_US par image (grandes parties).
+		var t0 := Time.get_ticks_usec()
+		var n := 0
+		while not _queue.is_empty() and n < PAR_IMAGE and Time.get_ticks_usec() - t0 < BUDGET_US:
 			var hid := int(_queue.pop_back())
+			n += 1
 			if population.households.has(hid):
 				evaluer(hid, true)
 		if _queue.is_empty():

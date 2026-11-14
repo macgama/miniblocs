@@ -3,7 +3,9 @@ extends Node
 ## Pilote automatique d'une ville (panneau Pays, Maj+P → « Pilote auto ») :
 ## à la demande du joueur, la ville se gère et se construit toute seule.
 ##
-## Une fois par semaine de jeu, pour chaque ville pilotée dont le joueur est le maire :
+## Chaque jour de jeu, pour chaque ville pilotée dont le joueur est le maire : une construction si besoin ;
+## une fois par semaine, aussi le budget et les arrêtés ; une manifestation est
+## reçue (négociation) si la caisse le permet :
 ##   1. le budget est tenu à l'équilibre (GestionAuto, programme « équilibre ») ;
 ##   2. une seule construction, la plus urgente, si la caisse peut la payer en
 ##      gardant une réserve (3 mois de dépenses, 200 k€ au moins) :
@@ -11,7 +13,9 @@ extends Node
 ##      - logements presque pleins : une zone résidentielle le long d'une rue ;
 ##      - services selon la population (BESOINS) : école dès 60 habitants (ou
 ##        des enfants sans école), aire de jeux, boulangerie, parc, pompiers,
-##        police, supérette, gymnase, deuxième école, hôpital ;
+##        police, supérette, antenne 4G, central téléphonique, collecte des
+##        déchets (dépôt de camions-bennes et décharge), gymnase,
+##        deuxième école, hôpital ;
 ##      - chômage au-dessus de 12 % : une zone d'activités (commerces ou ateliers) ;
 ##      - plus de place le long des rues : la rue la plus proche est prolongée.
 ## Les bâtiments vont le long des rues de la ville, sur son territoire.
@@ -27,7 +31,9 @@ const CHOMAGE_MAX := 12.0
 ## Services : [type, habitants à partir desquels il en faut un, nombre voulu par tranche].
 const BESOINS := [
 	["ecole", 60, 1500], ["aire_jeux", 40, 0], ["boulangerie", 80, 0], ["parc", 150, 0], ["pompiers", 250, 0],
-	["police", 250, 0], ["superette", 300, 0], ["gymnase", 600, 0], ["hopital", 2000, 0],
+	["police", 250, 4000], ["superette", 300, 0], ["pylone_4g", 150, 0], ["central_telephonique", 400, 0],
+	["depot_collecte", 200, 6000], ["decharge", 200, 0],
+	["gymnase", 600, 0], ["hopital", 2000, 0],
 ]
 
 var buildings: BuildingSystem
@@ -106,6 +112,9 @@ func _jour() -> int:
 func _process(_delta: float) -> void:
 	if population == null or actifs.is_empty():
 		return
+	if Time.get_ticks_msec() - _manifs_ms > 2000:
+		_manifs_ms = Time.get_ticks_msec()
+		repondre_manifestations()
 	var d := _jour()
 	if d == _dernier_jour:
 		return
@@ -116,6 +125,32 @@ func _process(_delta: float) -> void:
 			continue
 		if posmod(d + int(vid), JOURS_ENTRE) == 0:
 			semaine(int(vid))
+		elif pays.joueur_maire(int(vid)):
+			# Entre deux semaines : une construction par jour si la ville en a besoin.
+			var fait := construire(int(vid))
+			if fait != "":
+				_noter(int(vid), fait)
+				changed.emit()
+
+
+var _manifs_ms := -100000
+
+
+## Manifestation dans une ville pilotée : le pilote reçoit les manifestants
+## (négociation payée par la ville) s'il en a les moyens, sinon il laisse faire.
+func repondre_manifestations() -> void:
+	var av := Avis.instance
+	if av == null or av.manifs == null:
+		return
+	for id in av.manifs.liste.keys():
+		var m: Dictionary = av.manifs.liste[id]
+		var vid := int(m.get("vid", -1))
+		if String(m.etat) == "finie" or String(m.reponse) != "" or not actif(vid) or not pays.joueur_maire(vid):
+			continue
+		if dispo(vid) >= av.manifs.cout_negociation(m):
+			if av.manifs.repondre(int(id), "negocier") == "":
+				_noter(vid, "Manifestation : la mairie a reçu les manifestants (%s)." % BuildingSystem.format_money(av.manifs.cout_negociation(m)))
+				changed.emit()
 
 
 ## La semaine d'une ville pilotée : budget puis une construction.

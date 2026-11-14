@@ -125,6 +125,41 @@ func _run() -> void:
 		"rangs, missions, succès et réputation rechargés")
 	_check(scene.save_sections().has("objectifs"), "section « objectifs » dans la sauvegarde")
 
+	print("Défi du jour :")
+	var jour_reel := ["2026-11-14"]
+	o.date_du_jour = func() -> String: return String(jour_reel[0])
+	o.suivre_defi()
+	_check(String(o.defi.get("date", "")) == "2026-11-14" and String(o.defi.texte) != "" and int(o.defi.prime) > 0, "défi du 14 : %s" % String(o.defi.get("texte", "")))
+	var texte14 := String(o.defi.texte)
+	o.defi = {}
+	o.suivre_defi()
+	_check(String(o.defi.texte) == texte14, "même date, même défi (pour tous les joueurs)")
+	# Défi « voies » forcé : 600 m de route le réussissent.
+	o.defi.type = "voies"
+	o.defi.cible = 500.0
+	o.defi.depart = o._voies_m()
+	o.defi.vu = o.defi.depart
+	o.defi.acc = 0.0
+	var caisse := p.solde(p.nation_choisie())
+	_check(transport.build_segment("route", Vector3(-1300, y, 300), Vector3(-700, y, 300)).ok, "600 m de route")
+	o.suivre_defi()
+	_check(bool(o.defi.fait) and o.serie == 1 and p.solde(p.nation_choisie()) == caisse + int(o.defi.prime), "défi réussi : prime versée, série de 1 jour")
+	jour_reel[0] = "2026-11-15"
+	o.suivre_defi()
+	_check(String(o.defi.date) == "2026-11-15" and not bool(o.defi.fait) and o.serie == 1, "le lendemain : nouveau défi, la série tient")
+	var dd := o.to_dict()
+	jour_reel[0] = "2026-11-17"
+	o.suivre_defi()
+	_check(o.serie == 0, "un jour sans défi réussi : série remise à zéro")
+	o.from_dict(JSON.parse_string(JSON.stringify(dd)))
+	_check(o.serie == 1 and String(o.defi.date) == "2026-11-15", "défi et série rechargés")
+	var ancien := dd.duplicate(true)
+	ancien.erase("rangs")
+	ancien.paliers = {str(v1): 4}
+	o.from_dict(JSON.parse_string(JSON.stringify(ancien)))
+	_check(String(Objectifs.PALIERS[o.palier_de(v1)].nom) == "Grande ville", "ancienne partie : Grande ville le reste (rang Ville moyenne ajouté)")
+	o.from_dict(JSON.parse_string(JSON.stringify(dd)))
+
 	print("Panneau :")
 	var panel: ObjectifsPanel = scene.objectifs_panel
 	for v in ["missions", "villes", "succes"]:

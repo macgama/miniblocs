@@ -438,6 +438,8 @@ Avec la Maison de commune arrivent **100 fondateurs** (réglable dans l'Admin, F
 
 ![Territoire d'un village et panneau Villages](docs/apercu-villages-territoire.jpg)
 
+**Plusieurs pays** : chaque ville appartient au pays réel où elle se trouve (près de Bâle : France, Suisse ou Allemagne). Tu diriges chacun de tes pays avec sa caisse, son impôt national, sa dotation et sa **douane** ; le premier village d'un nouveau pays reçoit une aide d'installation et le kit de l'État. Le commerce entre tes villes et entre tes pays est compté (panneau **Maj+P**). Chaque jour, un **défi du jour** (le même pour tous, d'après la vraie date) rapporte une prime qui grandit avec ta série de jours réussis (**Maj+J**). Détails : [docs/pays.md](docs/pays.md).
+
 ## Quartiers et arrêtés municipaux
 
 Touche **Maj+Y** (menu Ville) : le maire **peint ses quartiers** sur la carte (îlots de 50 m), leur donne un nom, puis y prend des **arrêtés** : zone 30, rues piétonnes, interdiction des poids lourds, tranquillité la nuit, tri obligatoire, détecteurs de fumée, éclairage renforcé ou éteint, stationnement payant, fleurissement. Chacun coûte une mise en place et un montant par mois selon la surface, et agit vraiment : itinéraires et vitesse des voitures, camions, bruit, air, valeur des terrains, tri, départs de feu, recettes de stationnement, avis des habitants. Si tu perds la mairie, le conseil élu décide des arrêtés selon son programme. Détails : [docs/quartiers.md](docs/quartiers.md).
@@ -691,6 +693,12 @@ godot --headless --path . --fixed-fps 60 --script res://tests/perf_ville.gd -- -
 ```
 
 Banc d'essai d'une **ville habitée** (1 000 puis 5 000 habitants, 1 jour par minute) : temps par image, pire saccade, mémoire, sauvegarde et chargement ; `--max-ms 20` le transforme en test chiffré. Résultats et méthode : [docs/performances.md](docs/performances.md).
+
+```bash
+godot --headless --path . --script res://tests/partie_pays.gd -- --jours 40 --echelle 0.5
+```
+
+Banc d'une **partie à plusieurs villes et pays** (8 villes autour de Bâle, France, Suisse, Allemagne, reliées par la route) : croissance, caisses, chômage, satisfaction, commerce entre villes et entre pays, images en temps réel, sauvegarde. Résultats et équilibrages : [docs/partie-pays.md](docs/partie-pays.md).
 
 Banc d'essai des performances sur une région de 10 × 10 km : chargement du terrain, survol de 4 km, grande ville en grille (routes, zonage, circulation), sauvegarde et chargement. Affiche les temps par image et `PERF BENCH OK`. `--reseau` utilise le vrai relief d'Annecy, `--big` une ville deux fois plus grande.
 

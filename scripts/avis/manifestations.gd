@@ -155,7 +155,7 @@ func annoncer(theme: String, tout_de_suite := false) -> int:
 	next_id += 1
 	var sl: Array = SLOGANS.get(theme, SLOGANS.politique)
 	var m := {"id": id, "theme": theme, "nb": nb.n, "jour": day, "debut": debut, "fin": debut + duree * 3600.0, "bid": bid, "pos": pos,
-		"etat": "prevue", "reponse": "", "incident": -1, "part": nb.part, "edge": -1, "chemin": [], "slogan": String(sl[id % sl.size()])}
+		"etat": "prevue", "vid": avis.ville_vid, "reponse": "", "incident": -1, "part": nb.part, "edge": -1, "chemin": [], "slogan": String(sl[id % sl.size()])}
 	liste[id] = m
 	dernier[theme] = day
 	_index()
@@ -460,11 +460,15 @@ func repondre(id: int, reponse: String) -> String:
 	match reponse:
 		"negocier":
 			var cout := cout_negociation(m)
-			if avis.evenements != null and not avis.evenements._payer(cout, "negocier"):
+			# Payé par la ville qui manifeste.
+			var pk := Pays.a_la_caisse(int(m.get("vid", -1)))
+			var paye := avis.evenements == null or avis.evenements._payer(cout, "negocier")
+			Pays.retour(pk)
+			if not paye:
 				return "Pas assez d'argent pour négocier (%s)." % BuildingSystem.format_money(cout)
 			m.reponse = "negocier"
 			colere[th] = 0
-			avis.ajouter_effet(th, 6.0, 30.0, "la mairie a écouté les manifestants")
+			avis.ajouter_effet(th, 6.0, 30.0, "la mairie a écouté les manifestants", int(m.get("vid", -1)))
 			avis.dire("La mairie reçoit les manifestants et s'engage sur « %s » (%s). Le cortège se disperse." % [Avis.theme_nom(th).to_lower(),
 				BuildingSystem.format_money(cout)], m.pos)
 			finir(id, "negocier")
@@ -488,7 +492,7 @@ func repondre(id: int, reponse: String) -> String:
 func _ignorer(m: Dictionary) -> void:
 	var th := String(m.theme)
 	colere[th] = int(colere.get(th, 0)) + 1
-	avis.ajouter_effet(th, -4.0, 20.0, "la mairie a ignoré la manifestation")
+	avis.ajouter_effet(th, -4.0, 20.0, "la mairie a ignoré la manifestation", int(m.get("vid", -1)))
 	if int(colere[th]) >= 2:
 		colere[th] = 0
 		var n := greve(1.0)
@@ -525,7 +529,7 @@ func on_incident_resolu(inc_id: int) -> void:
 	for id in liste:
 		var m: Dictionary = liste[id]
 		if int(m.incident) == inc_id and String(m.etat) != "finie":
-			avis.ajouter_effet("politique", -5.0, 20.0, "manifestation dispersée par la police")
+			avis.ajouter_effet("politique", -5.0, 20.0, "manifestation dispersée par la police", int(m.get("vid", -1)))
 			var fin := avis.now() + 30.0 * 86400.0
 			for pid in m.part:
 				rancune[int(pid)] = fin
@@ -634,7 +638,7 @@ func from_dict(d: Dictionary) -> void:
 			avis.population.effectif.greve[int(k)] = float(d.greve[k])
 	for o in d.get("liste", []):
 		var m: Dictionary = (o as Dictionary).duplicate(true)
-		for key in ["id", "nb", "jour", "bid", "incident", "edge"]:
+		for key in ["id", "nb", "jour", "bid", "incident", "edge", "vid"]:
 			m[key] = int(m.get(key, -1))
 		m.debut = float(m.debut)
 		m.fin = float(m.fin)

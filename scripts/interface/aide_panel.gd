@@ -83,7 +83,10 @@ const SECTIONS := [
 		["Élections", "chaque ville vote de son côté, pour son maire ; le panneau Avis (Y) montre la ville gérée"],
 		["Mairie perdue", "si une autre liste gagne (réglage Admin « Défaite : mairie perdue », par défaut), tu construis toujours dans cette ville, mais son maire décide des impôts, des emprunts et de l'entretien selon son programme ; tu ne peux plus reverser son argent au pays"],
 		["Kit de l'État", "ta première ville dans chaque pays reçoit un kit d'installation : un bâtiment offert pour l'électricité (jusqu'à 25 M€), l'eau potable (8 M€), les égouts (10 M€) et les déchets (3 M€), du type de ton choix, que tu places où tu veux sur son territoire ou à moins de 3 km de la mairie ; le chantier se fait avec les fondateurs, et l'État envoie 40 ouvriers de plus ; restant dans Maj+P"],
-		["Pilote automatique", "Maj+P, bouton Activer sous une ville : chaque semaine elle tient son budget à l'équilibre et fait la construction la plus urgente (rue, zone résidentielle, école, aire de jeux, boulangerie, parc, pompiers, police, supérette, gymnase, hôpital, zone d'activités si le chômage dépasse 12 %), en gardant 3 mois de dépenses en réserve"],
+		["Pilote automatique", "Maj+P, bouton Activer sous une ville : chaque jour elle fait la construction la plus urgente (rue, zone résidentielle, école, aire de jeux, boulangerie, parc, pompiers, police, antenne 4G, collecte des déchets et décharge, supérette, central téléphonique, gymnase, hôpital, zone d'activités si le chômage dépasse 12 %), en gardant 3 mois de dépenses en réserve ; chaque semaine elle tient son budget à l'équilibre ; elle reçoit les manifestants si la caisse le permet"],
+		["Plusieurs pays", "chaque ville appartient au pays réel où elle se trouve ; chacun de tes pays a sa caisse, son impôt national, sa dotation et sa douane (Maj+P, boutons des pays) ; un nouveau pays reçoit une aide d'installation et paie le capital de sa première ville"],
+		["Commerce et douane", "les ventes des entreprises entre tes villes et entre tes pays sont comptées chaque mois (Maj+P) ; entre deux pays, l'acheteur paie la douane au pays qui importe (5 % par défaut, de 0 à 30 %)"],
+		["Marché du travail", "une entreprise qui manque de monde recrute chaque jour des actifs chez les employeurs proches qui sont au complet (sauf enseignants, médecins… et ton personnage) : une usine neuve se remplit en une à deux semaines"],
 		["Reprendre la mairie", "gagne les municipales suivantes (campagne et promesses dans Y), ou lance des élections anticipées par pétition si la satisfaction tombe sous 40"],
 	]],
 	["Niveaux de vie", [
@@ -97,9 +100,10 @@ const SECTIONS := [
 	["Objectifs du pays", [
 		["Maj+J", "panneau Objectifs : réputation du pays (étoiles), missions en cours, rang de chaque ville, succès"],
 		["Missions", "3 missions à la fois, tirées selon tes villes (faire grandir une ville, ouvrir une école, rendre une ville heureuse, faire baisser le chômage, rembourser ses emprunts, fonder une ville, relier deux villes, créer une ligne) ; chacune a un délai et une prime versée au pays"],
-		["Rangs des villes", "Hameau, Village, Bourg, Ville, Grande ville, Métropole : il faut des habitants, des habitants contents et des services (école, pompiers, police, hôpital, transports, caisse saine) ; chaque rang rapporte une prime et ne se perd jamais"],
+		["Rangs des villes", "Hameau, Village, Bourg, Ville, Ville moyenne, Grande ville, Métropole : il faut des habitants, des habitants contents et des services (école, pompiers, police, hôpital, transports, caisse saine) ; chaque rang rapporte une prime et ne se perd jamais"],
 		["Réputation", "de 0 à 100 : missions, rangs et succès la montent ; missions ratées, tutelle et mairies perdues la baissent ; au-dessus de 20 les emprunts coûtent moins cher (jusqu'à −1 point)"],
-		["Succès", "17 étapes à débloquer une fois pour toutes : première ville, mille habitants, pays heureux, villes reliées, mairie reprise, classe moyenne, beaux quartiers…"],
+		["Défi du jour", "un petit objectif qui change chaque jour (vraie date), le même pour tous : sa prime grandit avec ta série de jours réussis d'affilée (jusqu'à ×2)"],
+		["Succès", "18 étapes à débloquer une fois pour toutes : première ville, mille habitants, pays heureux, villes reliées, mairie reprise, classe moyenne, beaux quartiers…"],
 	]],
 	["Statistiques et conseiller", [
 		["Maj+I", "panneau Statistiques (menu Infos) : courbes dans le temps de chaque ville et du pays, sur 30 jours, 1 an ou toute la partie"],

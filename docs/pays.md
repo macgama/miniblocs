@@ -32,6 +32,29 @@ Pays l'épingle (elle ne suit plus la caméra).
 Le panneau Pays permet aussi de verser une **subvention** à une ville ou de faire
 **reverser** de l'argent d'une ville au pays (seulement si tu en es le maire).
 
+## Plusieurs pays
+
+Chaque ville appartient au **pays réel** de son lieu (pays de la ville du monde la plus
+proche, gardé par carré de 1 km). Le premier pays est celui de la première ville
+(clé 0) ; les suivants ont les clés `Pays.NATION_BASE + n`. Le joueur les dirige tous :
+
+- chaque pays a sa caisse, son impôt national, sa dotation par habitant et sa **douane**
+  (5 % par défaut, de 0 à 30 %) ;
+- un nouveau pays reçoit une **aide d'installation** de 5 M€ (× coût des constructions),
+  qui paie la Maison de commune puis le capital de sa première ville (60 % du reste) ;
+- hors des villes, les voies et bâtiments sont payés par le pays du lieu
+  (`Pays.payeur_au_point`) ;
+- **commerce** : chaque vente d'une entreprise à une autre ville (livraison, entrepôt) est
+  comptée par ville et par pays (`Production.commerce_ville`, `commerce_nation`,
+  `commerce_total`) ; entre deux pays, l'acheteur paie la douane au pays qui importe,
+  versée le soir ; l'impôt sur les bénéfices va à la ville de l'entreprise ;
+- panneau Maj+P : un bouton par pays, villes rangées sous leur pays, exportations,
+  importations et douane ;
+- une ancienne partie (un seul pays) se recharge avec toutes ses villes dans le premier pays.
+
+Test : `godot --headless --path . --script res://tests/nations_test.gd`. Banc d'une
+partie à 8 villes et 3 pays : [partie-pays.md](partie-pays.md).
+
 ## Fusion et anciennes parties
 
 - Deux villes qui fusionnent mettent leurs caisses et leurs emprunts en commun.
@@ -71,19 +94,22 @@ mairie perdue »** (par défaut pour les nouvelles parties) :
 
 ## Pilote automatique
 
-Panneau Pays (Maj+P) → **Activer** sous une ville. Une fois par semaine de jeu, si tu en es
-le maire :
+Panneau Pays (Maj+P) → **Activer** sous une ville. Si tu en es le maire, chaque jour de jeu
+une construction si la ville en a besoin, et une fois par semaine :
 
 1. budget tenu à l'équilibre (`GestionAuto`, programme « équilibre ») ;
-2. **une** construction, la plus urgente, payée par la ville en gardant une réserve de
+2. **une** construction (comme les autres jours), la plus urgente, payée par la ville en gardant une réserve de
    3 mois de dépenses (200 k€ au moins) :
    - pas de rue : une rue de 300 m devant la mairie ;
    - logements presque pleins : zone résidentielle de 40 × 30 m le long d'une rue ;
    - services selon la population : école (60 hab., ou enfants sans école), aire de jeux (40),
-     boulangerie (80), parc (150), pompiers et police (250), supérette (300), gymnase (600),
+     boulangerie (80), parc (150), pompiers et police (250), supérette (300), antenne 4G (150), dépôt de collecte et décharge (200), central téléphonique (400), gymnase (600),
      hôpital (2 000) ;
    - chômage au-dessus de 12 % : zone commerciale ou industrielle ;
    - plus de place : une impasse est prolongée de 120 m, ou une rue est ouverte en travers.
+3. une manifestation dans la ville est reçue (négociation payée par la ville) si la caisse le
+   permet ; les effets de la vie politique (manifestations, promesses, nouveau mandat) ne touchent
+   que leur ville.
 
 Les dernières décisions s'affichent sous la ville. Code : `scripts/pays/pilote_auto.gd`.
 
@@ -93,11 +119,18 @@ Code : `scripts/pays/objectifs.gd` (nœud `Objectifs`, section de sauvegarde « 
 et `scripts/pays/objectifs_panel.gd`. Vérifié une fois par jour de jeu.
 
 - **Rangs des villes** : Hameau, Village (100 hab., satisfaction 50), Bourg (500, 55, école,
-  caisse saine), Ville (2 000, 55, + pompiers et police), Grande ville (10 000, 60, + hôpital
-  et une ligne), Métropole (50 000). Chaque rang verse une prime au pays et ne se perd pas.
+  caisse saine), Ville (2 000, 55, + pompiers et police), Ville moyenne (5 000, 58, + hôpital),
+  Grande ville (10 000, 60, + une ligne), Métropole (50 000). Chaque rang verse une prime au pays
+  et ne se perd pas.
 - **Missions** : 3 à la fois, tirées selon l'état des villes, avec un délai et une prime
   (× coût des constructions). Ratée : réputation −3 ; abandonnée : −1.
-- **Succès** : 15, débloqués une fois pour toutes.
+- **Succès** : débloqués une fois pour toutes (dont « Fidèle au poste » : 7 défis du jour d'affilée).
+- **Défi du jour** : un petit objectif tiré d'après la vraie date, le même pour tous ce jour-là
+  (accueillir 3 % d'habitants en plus, vendre des marchandises entre tes villes, construire un
+  parc ou une école…, poser 500 m de voies, gagner 3 points de satisfaction dans ta plus grande
+  ville). Prime de 100 k€ (× coût), +10 % par jour de série réussi d'affilée (jusqu'à ×2), et
+  +1 de réputation. Une journée sans défi réussi remet la série à zéro. Affiché dans le résumé
+  des objectifs et dans Maj+J.
 - **Réputation** (0 à 100, départ 20) : au-dessus de 20, le taux des emprunts baisse
   (jusqu'à −1 point, `Objectifs.bonus_taux()` dans `BudgetCommunal.taux_propose`).
 

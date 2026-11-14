@@ -193,6 +193,12 @@ func _view_missions() -> void:
 		_section("Missions du pays")
 		_text("Fonde ta première ville (une Maison de commune, Maj+M) : le pays te confiera alors ses missions.")
 		return
+	if not obj.defi.is_empty():
+		_section("Défi du jour" + (" · série de %d jour%s" % [obj.serie, "s" if obj.serie > 1 else ""] if obj.serie > 0 else ""))
+		_text(String(obj.defi.texte), false, 14)
+		_bar(obj.progres_defi())
+		_text(("Réussi ! Prime de %s versée." if bool(obj.defi.fait) else "Prime : %s. Un nouveau défi chaque jour ; réussis-en plusieurs d'affilée pour une plus grosse prime.")
+			% BuildingSystem.format_money(int(obj.defi.prime)), true, 12)
 	_section("Missions en cours (%d / %d)" % [obj.missions.size(), Objectifs.MISSIONS_MAX])
 	if obj.missions.is_empty():
 		_text("Pas de mission pour le moment : de nouvelles arrivent chaque jour.", true)

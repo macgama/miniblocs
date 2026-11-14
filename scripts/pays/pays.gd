@@ -23,6 +23,14 @@ extends Node
 ##   Pays.retour(p)
 ## Les recettes globales (ventes, billets…) passent par Pays.crediter(bs, v),
 ## qui les répartit entre les villes selon leur population.
+##
+## Plusieurs pays (choix de Gaël, 2026-11-14 : « un pays par pays réel ») :
+## chaque ville appartient au pays réel de son lieu (France, Suisse,
+## Allemagne…). Le joueur dirige chacun de ces pays : une caisse, un impôt
+## national, une dotation et une douane par pays. Le premier pays a la clé
+## PAYS (0, comme avant) ; les suivants NATION_BASE + n. Un nouveau pays reçoit
+## de son gouvernement une aide d'installation (DEPART_NATION). Les livraisons
+## entre entreprises de deux pays paient la douane du pays qui importe.
 
 signal changed
 signal message(text: String)
@@ -40,6 +48,13 @@ const PART_PREMIERE := 0.6
 const SUBVENTIONS := [100_000, 500_000, 1_000_000, 5_000_000]
 ## Partie d'avant le pays : part de l'argent gardée par le pays.
 const PART_PAYS_ANCIENNE := 0.2
+## Clés des pays suivants (le premier pays garde la clé PAYS = 0).
+const NATION_BASE := 1_000_000
+## Aide d'installation du gouvernement d'un nouveau pays (× coût des constructions).
+const DEPART_NATION := 5_000_000
+## Douane par défaut : part de la valeur des marchandises qui entrent d'un autre de tes pays.
+const TAUX_DOUANE := 0.05
+const TAUX_DOUANE_MAX := 0.30
 
 static var instance: Pays
 
@@ -62,6 +77,14 @@ var epingle := false
 ## Impôt national (0 à TAUX_NATIONAL_MAX) et multiplicateur de la dotation (0 à 2).
 var taux_national := TAUX_NATIONAL
 var dotation := 1.0
+## Pays dirigés : clé de caisse -> {code, nom, taux_national, dotation, douane}.
+## Pour le pays PAYS, taux_national et dotation sont les variables ci-dessus.
+var nations := {}
+## Pays de chaque ville : vid -> clé du pays.
+var ville_nation := {}
+## Pour les tests : Callable(Vector2 position) -> code du pays, à la place de la géographie.
+var pays_de: Callable
+var _codes_cache := {}
 ## Dernières opérations entre caisses : {jour, de, a, montant, motif}.
 var journal: Array = []
 ## Point regardé par la caméra (x, z), fourni par la scène.
@@ -103,6 +126,9 @@ func clear() -> void:
 	nom = ""
 	taux_national = TAUX_NATIONAL
 	dotation = 1.0
+	nations.clear()
+	ville_nation.clear()
+	_codes_cache.clear()
 	journal.clear()
 	if budget != null:
 		budget.oublier_communes()
@@ -116,33 +142,185 @@ func a_des_villes() -> bool:
 	return communes != null and not communes.villages.is_empty()
 
 
-## Clés des caisses : les villes puis le pays.
+## Clés des caisses : les villes puis les pays (le premier pays en dernier).
 func cles() -> Array:
 	var out := []
 	if communes != null:
 		var ids: Array = communes.villages.keys()
 		ids.sort()
 		out.append_array(ids)
-	out.append(PAYS)
+	var ns := cles_nations()
+	ns.reverse()
+	out.append_array(ns)
 	return out
 
 
+## La clé est-elle celle d'un pays (et pas d'une ville) ?
+static func est_nation(k: int) -> bool:
+	return k == PAYS or k >= NATION_BASE
+
+
+static func est_ville(k: int) -> bool:
+	return k > 0 and k < NATION_BASE
+
+
+## Clés des pays dirigés, le premier d'abord (au moins PAYS).
+func cles_nations() -> Array:
+	var out := [PAYS]
+	var ks: Array = nations.keys()
+	ks.sort()
+	for k in ks:
+		if int(k) != PAYS:
+			out.append(int(k))
+	return out
+
+
+func plusieurs_nations() -> bool:
+	return cles_nations().size() > 1
+
+
+## Pays d'une ville (ou le pays lui-même).
+func nation_de(k: int) -> int:
+	if est_nation(k):
+		return k
+	return int(ville_nation.get(k, PAYS))
+
+
+func nation_du_batiment(bid: int) -> int:
+	return nation_de(payeur_du_batiment(bid))
+
+
+## Villes d'un pays.
+func villes_de(nk: int) -> Array:
+	var out := []
+	if communes == null:
+		return out
+	var ids: Array = communes.villages.keys()
+	ids.sort()
+	for vid in ids:
+		if nation_de(int(vid)) == nk:
+			out.append(int(vid))
+	return out
+
+
+## Pays de la ville choisie (celui que règle le panneau Pays).
+func nation_choisie() -> int:
+	return nation_de(selection)
+
+
+func code_de(nk: int) -> String:
+	return String(nations.get(nk, {}).get("code", ""))
+
+
+func nation_du_code(code: String) -> int:
+	for k in nations:
+		if String(nations[k].get("code", "")) == code:
+			return int(k)
+	return -1
+
+
 func nom_de(k: int) -> String:
-	if k == PAYS:
-		return nom_pays()
+	if est_nation(k):
+		return nom_nation(k)
 	if communes != null and communes.villages.has(k):
 		return String(communes.villages[k].nom)
 	return "?"
 
 
 func nom_pays() -> String:
-	if nom.strip_edges() != "":
+	return nom_nation(PAYS)
+
+
+func nom_nation(nk: int) -> String:
+	if nk == PAYS and nom.strip_edges() != "":
 		return nom.strip_edges()
-	if communes != null and not communes.villages.is_empty():
+	var n := String(nations.get(nk, {}).get("nom", "")).strip_edges()
+	if n != "":
+		return n
+	var code := code_de(nk)
+	if code != "":
+		var np := Villes.nom_pays(code)
+		if np != "" and np.to_lower() != code:
+			return np
+		return Drapeaux.nom(code)
+	if nk == PAYS and communes != null and not communes.villages.is_empty():
 		var dr := String(communes.villages[communes.principal()].get("drapeau", ""))
 		if dr != "":
 			return Drapeaux.nom(dr)
-	return "Mon pays"
+	return "Mon pays" if nk == PAYS else "Pays %d" % (nk - NATION_BASE + 1)
+
+
+func renommer_nation(nk: int, n: String) -> void:
+	if nk == PAYS:
+		nom = n.strip_edges()
+	elif nations.has(nk):
+		nations[nk]["nom"] = n.strip_edges()
+	changed.emit()
+
+
+## Code du pays réel au point (x, z) : la ville du monde la plus proche (mis en cache par km²).
+func code_au_point(x: float, z: float) -> String:
+	if pays_de.is_valid():
+		return String(pays_de.call(Vector2(x, z))).to_lower()
+	var cell := Vector2i(floori(x / 1000.0), floori(z / 1000.0))
+	if _codes_cache.has(cell):
+		return String(_codes_cache[cell])
+	var code := ""
+	var w: TerrainWorld = communes.world if communes != null else null
+	var olat := w.origin_lat if w != null else GameStart.lat
+	var olon := w.origin_lon if w != null else GameStart.lon
+	var lat := Geo.local_to_lat(olat, z)
+	var lon := Geo.local_to_lon(olat, olon, x)
+	var v := Villes.plus_proche(lat, lon, 60.0)
+	if not v.is_empty():
+		code = String(v.get("pays", "")).to_lower()
+	if code == "":
+		code = GameStart.pays.to_lower()
+	_codes_cache[cell] = code
+	return code
+
+
+## Code du pays réel d'une ville (d'après son centre).
+func code_de_ville(vid: int) -> String:
+	if communes == null or not communes.villages.has(vid):
+		return ""
+	var c: Vector2 = communes.villages[vid].c
+	return code_au_point(c.x, c.y)
+
+
+## Pays qui paie hors des villes au point (x, z) : celui du lieu s'il est à toi,
+## sinon celui de la ville la plus proche.
+func nation_au_point(x: float, z: float) -> int:
+	if nations.size() <= 1:
+		return PAYS
+	var nk := nation_du_code(code_au_point(x, z))
+	if nk >= 0:
+		return nk
+	var best := PAYS
+	var best_d := INF
+	if communes != null:
+		for vid in communes.villages:
+			var d: float = (communes.villages[vid].c as Vector2).distance_squared_to(Vector2(x, z))
+			if d < best_d:
+				best_d = d
+				best = nation_de(int(vid))
+	return best
+
+
+func taux_de(nk: int) -> float:
+	if nk == PAYS:
+		return taux_national
+	return float(nations.get(nk, {}).get("taux_national", TAUX_NATIONAL))
+
+
+func dotation_de(nk: int) -> float:
+	if nk == PAYS:
+		return dotation
+	return float(nations.get(nk, {}).get("dotation", 1.0))
+
+
+func douane_de(nk: int) -> float:
+	return float(nations.get(nk, {}).get("douane", TAUX_DOUANE))
 
 
 ## Argent d'une caisse.
@@ -169,7 +347,7 @@ func payeur_au_point(x: float, z: float) -> int:
 	if communes == null:
 		return PAYS
 	var v := communes.village_au_point(x, z)
-	return v if v >= 0 else PAYS
+	return v if v >= 0 else nation_au_point(x, z)
 
 
 func payeur_du_batiment(bid: int) -> int:
@@ -178,7 +356,10 @@ func payeur_du_batiment(bid: int) -> int:
 	var v := int(communes.bat_village.get(bid, -2))
 	if v == -2:
 		v = communes.village_du_batiment(bid)
-	return v if v >= 0 else PAYS
+	if v >= 0:
+		return v
+	var c := communes._centre_bat(bid)
+	return nation_au_point(c.x, c.y)
 
 
 func payeur_du_rect(rect: Rect2i) -> int:
@@ -300,7 +481,7 @@ func parts_population() -> Dictionary:
 
 ## Le joueur décide-t-il dans cette ville (il en est le maire) ?
 func joueur_maire(vid: int) -> bool:
-	if vid == PAYS:
+	if est_nation(vid):
 		return true
 	if Avis.instance != null:
 		return Avis.instance.joueur_decide_de(vid)
@@ -311,7 +492,7 @@ func joueur_maire(vid: int) -> bool:
 
 ## Choisit la ville gérée (caisse affichée, budget M). epingler : ne suit plus la caméra.
 func choisir(k: int, epingler := false) -> void:
-	if k != PAYS and (communes == null or not communes.villages.has(k)):
+	if not est_nation(k) and (communes == null or not communes.villages.has(k)):
 		return
 	epingle = epingler
 	selection = k
@@ -334,9 +515,9 @@ func _process(delta: float) -> void:
 	if communes == null:
 		return
 	# Ville disparue (fusion) ou aucune ville encore : on revient à une caisse valable.
-	if selection != PAYS and not communes.villages.has(selection):
+	if not est_nation(selection) and not communes.villages.has(selection):
 		choisir(communes.principal() if a_des_villes() else PAYS)
-	elif selection == PAYS and a_des_villes():
+	elif est_nation(selection) and a_des_villes():
 		choisir(communes.principal())
 	if epingle or not foyer.is_valid() or not a_des_villes():
 		return
@@ -374,7 +555,7 @@ func _noter(k: int, poste: String, v: float) -> void:
 
 ## Le pays verse une subvention à une ville.
 func subventionner(vid: int, montant: int) -> String:
-	var why := virer(PAYS, vid, montant, "Subvention")
+	var why := virer(nation_de(vid), vid, montant, "Subvention")
 	if why == "":
 		message.emit("Le pays verse %s de subvention à %s." % [BuildingSystem.format_money(montant), nom_de(vid)])
 	else:
@@ -388,7 +569,7 @@ func reverser(vid: int, montant: int) -> String:
 	if not joueur_maire(vid):
 		why = "Tu n'es plus maire de %s : son conseil refuse de reverser de l'argent au pays." % nom_de(vid)
 	else:
-		why = virer(vid, PAYS, montant, "Reversement")
+		why = virer(vid, nation_de(vid), montant, "Reversement")
 	if why == "":
 		message.emit("%s reverse %s au pays." % [nom_de(vid), BuildingSystem.format_money(montant)])
 	else:
@@ -397,36 +578,101 @@ func reverser(vid: int, montant: int) -> String:
 
 
 ## Prime versée au pays (objectifs, missions).
-func prime(montant: int, motif: String) -> void:
+## nk : le pays qui la reçoit, ou une ville (son pays) ; -1 : le pays de la ville choisie.
+func prime(montant: int, motif: String, nk := -1) -> void:
 	if montant <= 0 or illimite():
 		return
-	_poser(PAYS, solde(PAYS) + montant)
-	_noter(PAYS, motif, montant)
+	nk = nation_choisie() if nk < 0 else nation_de(nk)
+	_poser(nk, solde(nk) + montant)
+	_noter(nk, motif, montant)
 	changed.emit()
 
 
-func set_taux_national(v: float) -> void:
-	taux_national = clampf(snappedf(v, 0.01), 0.0, TAUX_NATIONAL_MAX)
+## Recette d'un pays (douane…), sans message.
+func encaisser(nk: int, montant: float, motif: String) -> void:
+	if illimite() or absf(montant) < 0.5:
+		return
+	_poser(nk, solde(nk) + roundi(montant))
+	_noter(nk, motif, roundi(montant))
+
+
+## Réglages d'un pays (nk = -1 : le pays de la ville choisie).
+func set_taux_national(v: float, nk := -1) -> void:
+	nk = nation_choisie() if nk < 0 else nk
+	v = clampf(snappedf(v, 0.01), 0.0, TAUX_NATIONAL_MAX)
+	if nk == PAYS:
+		taux_national = v
+	elif nations.has(nk):
+		nations[nk]["taux_national"] = v
 	changed.emit()
 
 
-func set_dotation(v: float) -> void:
-	dotation = clampf(snappedf(v, 0.05), 0.0, 2.0)
+func set_dotation(v: float, nk := -1) -> void:
+	nk = nation_choisie() if nk < 0 else nk
+	v = clampf(snappedf(v, 0.05), 0.0, 2.0)
+	if nk == PAYS:
+		dotation = v
+	elif nations.has(nk):
+		nations[nk]["dotation"] = v
 	changed.emit()
 
 
-## Multiplicateur de la dotation réellement versée : rien si le pays est à sec.
-func facteur_dotation() -> float:
-	if not illimite() and solde(PAYS) <= 0:
+func set_douane(v: float, nk := -1) -> void:
+	nk = nation_choisie() if nk < 0 else nk
+	_assurer_nation(nk)
+	nations[nk]["douane"] = clampf(snappedf(v, 0.01), 0.0, TAUX_DOUANE_MAX)
+	changed.emit()
+
+
+## Multiplicateur de la dotation réellement versée par le pays nk : rien s'il est à sec.
+func facteur_dotation(nk := PAYS) -> float:
+	if not illimite() and solde(nk) <= 0:
 		return 0.0
-	return dotation
+	return dotation_de(nk)
+
+
+## Douane entre deux villes (ou pays) : taux payé à l'arrivée, 0 dans un même pays.
+func douane_entre(de: int, a: int) -> float:
+	var nd := nation_de(de)
+	var na := nation_de(a)
+	if nd == na:
+		return 0.0
+	return douane_de(na)
+
+
+func _assurer_nation(nk: int) -> void:
+	if not nations.has(nk):
+		nations[nk] = {"code": "", "nom": "", "taux_national": TAUX_NATIONAL, "dotation": 1.0, "douane": TAUX_DOUANE}
+
+
+## Pays d'une ville qui vient d'être fondée : celui du lieu, créé s'il le faut.
+## Renvoie [clé, nouveau pays ?].
+func _nation_pour(vid: int) -> Array:
+	var code := code_de_ville(vid)
+	if nations.is_empty():
+		_assurer_nation(PAYS)
+		nations[PAYS]["code"] = code
+		return [PAYS, false]
+	var nk := nation_du_code(code)
+	if nk >= 0:
+		return [nk, false]
+	nk = NATION_BASE + 1
+	while nations.has(nk):
+		nk += 1
+	_assurer_nation(nk)
+	nations[nk]["code"] = code
+	if not illimite() and capital_auto:
+		var aide := ReglagesPartie.prix(DEPART_NATION)
+		_poser(nk, solde(nk) + aide)
+		_noter(nk, "Aide d'installation du gouvernement", aide)
+	return [nk, true]
 
 
 # --- Villes fondées et fusionnées ------------------------------------------------------------
 
 ## Capital de départ d'une nouvelle ville, payé par le pays.
-func capital_pour(premiere: bool) -> int:
-	var dispo := maxi(0, solde(PAYS))
+func capital_pour(premiere: bool, nk := PAYS) -> int:
+	var dispo := maxi(0, solde(nk))
 	if premiere:
 		return roundi(dispo * PART_PREMIERE)
 	return mini(dispo, ReglagesPartie.prix(CAPITAL_VILLE))
@@ -438,22 +684,40 @@ func _on_fonde(vid: int) -> void:
 	if not comptes.has(vid) and actif != vid:
 		comptes[vid] = 0
 	var premiere := communes.villages.size() == 1
+	var c0: Vector2 = communes.villages[vid].c
+	var payeur_avant := nation_au_point(c0.x, c0.y)
+	var np := _nation_pour(vid)
+	var nk := int(np[0])
+	ville_nation[vid] = nk
+	var premiere_du_pays := villes_de(nk).size() == 1
+	if bool(np[1]):
+		# Le bâtiment fondateur payé à la pose par un autre de tes pays : le nouveau le rembourse.
+		var bf := int(communes.villages[vid].bid)
+		if bf >= 0 and buildings.buildings.has(bf) and not illimite() and payeur_avant != nk:
+			var bb: Dictionary = buildings.buildings[bf]
+			var paye := int(bb.get("cost", 0)) - int(bb.get("du", 0))
+			if paye > 0:
+				_poser(payeur_avant, solde(payeur_avant) + paye)
+				_poser(nk, solde(nk) - paye)
+		message.emit("Nouveau pays : %s. Son gouvernement t'accueille avec %s ; tu le diriges aussi (Maj+P), avec sa caisse, son impôt et sa douane." % [
+			nom_nation(nk), BuildingSystem.format_money(solde(nk))])
 	# Le bâtiment fondateur est payé par le pays, même s'il se construit peu à peu.
 	var bid := int(communes.villages[vid].bid)
 	if bid >= 0 and buildings.buildings.has(bid) and not illimite():
 		var b: Dictionary = buildings.buildings[bid]
 		var du := int(b.get("du", 0))
 		if du > 0:
-			_poser(PAYS, solde(PAYS) - du)
-			_noter(PAYS, "Bâtiment fondateur de " + nom_de(vid), -du)
+			_poser(nk, solde(nk) - du)
+			_noter(nk, "Bâtiment fondateur de " + nom_de(vid), -du)
 			b["du"] = 0
-	var c := capital_pour(premiere)
+	var c := capital_pour(premiere_du_pays, nk)
 	if c > 0 and not illimite():
-		virer(PAYS, vid, c, "Capital de départ")
-		message.emit("Le pays verse %s à %s pour ses débuts. Chaque ville a sa propre caisse (Maj+P : le pays)." % [
-			BuildingSystem.format_money(c), nom_de(vid)])
+		virer(nk, vid, c, "Capital de départ")
+		message.emit("%s verse %s à %s pour ses débuts. Chaque ville a sa propre caisse (Maj+P : le pays)." % [
+			nom_nation(nk), BuildingSystem.format_money(c), nom_de(vid)])
 	if premiere:
 		choisir(vid)
+	changed.emit()
 
 
 func _on_fusion(garde: int, partie: int) -> void:
@@ -462,6 +726,7 @@ func _on_fusion(garde: int, partie: int) -> void:
 		activer(garde)
 	_poser(garde, solde(garde) + v)
 	comptes.erase(partie)
+	ville_nation.erase(partie)
 	if budget != null:
 		budget.fusionner_etats(garde, partie)
 	if selection == partie:
@@ -498,8 +763,15 @@ func to_dict() -> Dictionary:
 	var cs := {}
 	for k in cles():
 		cs[str(k)] = solde(k)
-	return {"version": 1, "nom": nom, "comptes": cs, "selection": selection, "epingle": epingle,
-		"taux_national": taux_national, "dotation": dotation, "journal": journal.duplicate(true)}
+	var ns := {}
+	for k in nations:
+		ns[str(k)] = (nations[k] as Dictionary).duplicate()
+	var vn := {}
+	for vid in ville_nation:
+		vn[str(vid)] = int(ville_nation[vid])
+	return {"version": 2, "nom": nom, "comptes": cs, "selection": selection, "epingle": epingle,
+		"taux_national": taux_national, "dotation": dotation, "journal": journal.duplicate(true),
+		"nations": ns, "villes_pays": vn}
 
 
 ## Chargement (après les villages et le budget). Sans section : ancienne partie.
@@ -512,17 +784,31 @@ func from_dict(d: Dictionary) -> void:
 		actif = PAYS
 		selection = PAYS
 		epingle = false
+		nations.clear()
+		ville_nation.clear()
 		if a_des_villes():
 			adopter_ancienne_partie()
+			_nations_anciennes()
 		changed.emit()
 		return
 	comptes.clear()
 	actif = PAYS
 	nom = String(d.get("nom", ""))
+	nations.clear()
+	ville_nation.clear()
+	_codes_cache.clear()
+	var ns: Dictionary = d.get("nations", {})
+	for ks in ns:
+		nations[int(ks)] = (ns[ks] as Dictionary).duplicate()
+	var vn: Dictionary = d.get("villes_pays", {})
+	for ks in vn:
+		if communes != null and communes.villages.has(int(ks)):
+			ville_nation[int(ks)] = int(vn[ks])
+	_nations_anciennes()
 	var cs: Dictionary = d.get("comptes", {})
 	for ks in cs:
 		var k := int(ks)
-		if k == PAYS or (communes != null and communes.villages.has(k)):
+		if est_nation(k) or (communes != null and communes.villages.has(k)):
 			comptes[k] = int(cs[ks])
 	buildings.money = int(comptes.get(PAYS, 0))
 	comptes.erase(PAYS)
@@ -534,3 +820,15 @@ func from_dict(d: Dictionary) -> void:
 	choisir(sel if (communes != null and communes.villages.has(sel)) else (communes.principal() if a_des_villes() else PAYS),
 		bool(d.get("epingle", false)))
 	changed.emit()
+
+
+## Partie d'avant les pays multiples : un seul pays (celui de la première ville).
+func _nations_anciennes() -> void:
+	if not a_des_villes():
+		return
+	if not nations.has(PAYS):
+		_assurer_nation(PAYS)
+		nations[PAYS]["code"] = code_de_ville(communes.principal())
+	for vid in communes.villages:
+		if not ville_nation.has(vid):
+			ville_nation[vid] = PAYS

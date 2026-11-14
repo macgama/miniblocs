@@ -224,9 +224,9 @@ func check_site(id: String, rect: Rect2i) -> Dictionary:
 	if String(r.get("source", "")) == "nappe":
 		var f := facteur_nappe(rect)
 		txt += " · nappe : %d %%" % roundi(f * 100.0)
-	if ReseauxTypes.TYPES.get(id, {}).has("prod"):
+	if ReseauxTypes.TYPES.get(BuildingCatalog.base_of(id), {}).has("prod"):
 		var g: Array[String] = []
-		var prod: Dictionary = ReseauxTypes.TYPES[id].prod
+		var prod: Dictionary = ReseauxTypes.TYPES[BuildingCatalog.base_of(id)].prod
 		for k in prod.in:
 			g.append("%s de %s" % [Ressources.format_t(float(prod.in[k])), Ressources.good_name(k).to_lower()])
 		txt += " · brûle " + ", ".join(g) + " par jour (livré par camion)"
@@ -1075,7 +1075,8 @@ func rendement(bid: int) -> float:
 ## Ce qu'une entreprise produit encore sans courant : presque tout aux champs et
 ## au grand air, un peu dans les commerces (à la main), presque rien à l'usine.
 static func plancher_sans_courant(type_id: String) -> float:
-	if type_id.begins_with("ferme") or type_id in PLEIN_AIR:
+	var base_id := BuildingCatalog.base_of(type_id)
+	if base_id.begins_with("ferme") or base_id in PLEIN_AIR:
 		return 0.8
 	var cat := String(BuildingCatalog.get_type(type_id).get("cat", ""))
 	if cat in ["industrie", "production"]:

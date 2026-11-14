@@ -1637,11 +1637,18 @@ func _stair_hole(p: Dictionary, k: Vector3i) -> bool:
 
 
 func _build_storey(id: String, e: int) -> void:
-	var p: Dictionary = plans[id]
-	var by := base_y(id, e)
 	var m := BlocMesher.new()
 	var sm := BlocMesher.new()
 	var ramps := PackedVector3Array()
+	emit_storey(id, e, m, sm, ramps)
+	_storey_nodes(id, e, m, sm, ramps)
+
+
+## Géométrie d'un étage (planchers, murs, poteaux, escaliers) dans m et sm.
+## Sert aussi hors de la scène, pour cuire un modèle de la banque (ModelesJeu).
+func emit_storey(id: String, e: int, m: BlocMesher, sm: BlocMesher, ramps: PackedVector3Array) -> void:
+	var p: Dictionary = plans[id]
+	var by := base_y(id, e)
 	# Planchers.
 	for k in p.floors:
 		var kf: Vector3i = k
@@ -1692,7 +1699,9 @@ func _build_storey(id: String, e: int) -> void:
 		if ks.y != e:
 			continue
 		_emit_stairs(sm, ramps, ks, p.stairs[k], by)
-	# Nœuds.
+
+
+func _storey_nodes(id: String, e: int, m: BlocMesher, sm: BlocMesher, ramps: PackedVector3Array) -> void:
 	var nodes: Dictionary = _nodes.get(id, {})
 	_nodes[id] = nodes
 	var node: Node3D = nodes.get(e)

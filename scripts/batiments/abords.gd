@@ -13,6 +13,8 @@ static var _cache := {}
 ## La maison de ce type a-t-elle des abords ? Renvoie la façade (z) ou NAN.
 static func facade_of(id: String) -> float:
 	var t := BuildingCatalog.get_type(id)
+	if t.has("modele") or t.has("creation"):
+		return NAN
 	var d := float(t.get("d", 0))
 	match String(t.get("arch", "")):
 		"maison", "grande_maison":

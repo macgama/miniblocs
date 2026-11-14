@@ -195,6 +195,8 @@ const LOISIRS := {
 static func keys_of(type_id: String) -> Array:
 	var t := BuildingCatalog.get_type(type_id)
 	var out := [type_id]
+	if t.has("base"):
+		out.append(String(t.base))
 	if t.has("arch"):
 		out.append(String(t.arch))
 	if t.has("role"):

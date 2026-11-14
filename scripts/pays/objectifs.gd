@@ -100,6 +100,7 @@ func setup(cm: Communes, pop: Population, p: Pays, bs: BuildingSystem, ts: Trans
 func clear() -> void:
 	paliers.clear()
 	_frontiere = "?"
+	_cache.clear()
 	missions.clear()
 	historique.clear()
 	succes.clear()
@@ -122,6 +123,7 @@ func _process(_delta: float) -> void:
 	if d == _dernier_jour:
 		return
 	_dernier_jour = d
+	_cache.clear()
 	nouveau_jour()
 
 
@@ -183,24 +185,50 @@ func palier_de(vid: int) -> int:
 	return int(paliers.get(vid, 0))
 
 
+## Chiffres recalculés au plus toutes les CACHE_MS (le résumé à l'écran les lit chaque seconde).
+const CACHE_MS := 5000
+var _cache := {}
+
+
+func _en_cache(cle: String) -> Variant:
+	var c: Array = _cache.get(cle, [])
+	if not c.is_empty() and Time.get_ticks_msec() - int(c[0]) < CACHE_MS:
+		return c[1]
+	return null
+
+
+func _garder(cle: String, v: Variant) -> Variant:
+	_cache[cle] = [Time.get_ticks_msec(), v]
+	return v
+
+
 func satisfaction(vid: int) -> int:
 	var av := Avis.instance
 	if av == null:
 		return 50
+	var c = _en_cache("sat:%d" % vid)
+	if c != null:
+		return int(c)
 	var garde := av.ville_vid
 	av.examiner(vid)
 	var m := av.moyenne()
 	av.examiner(garde)
-	return m
+	return int(_garder("sat:%d" % vid, m))
 
 
 func compter(vid: int, type_id: String) -> int:
-	var n := 0
-	for bid in buildings.buildings:
-		var b: Dictionary = buildings.buildings[bid]
-		if String(b.t) == type_id and not b.get("chantier", false) and communes.village_de(bid) == vid:
-			n += 1
-	return n
+	var c = _en_cache("compte")
+	if c == null or int(c.n) != buildings.buildings.size():
+		# Un seul passage sur les bâtiments pour toutes les villes et tous les types.
+		var par := {}
+		for bid in buildings.buildings:
+			var b: Dictionary = buildings.buildings[bid]
+			if b.get("chantier", false):
+				continue
+			var k := "%d:%s" % [communes.village_de(bid), String(b.t)]
+			par[k] = int(par.get(k, 0)) + 1
+		c = _garder("compte", {"n": buildings.buildings.size(), "par": par})
+	return int(c.par.get("%d:%s" % [vid, type_id], 0))
 
 
 func lignes() -> int:
@@ -285,18 +313,22 @@ static func _noeud_pres(net: TransportNetwork, c: Vector2) -> int:
 
 
 func chomage(vid: int) -> float:
-	var actifs := 0
-	var sans := 0
-	for pid in population.persons:
-		var p: Dictionary = population.persons[pid]
-		if communes.village_de(population.home_of(p)) != vid:
-			continue
-		var s := population.stage(p)
-		if s == "actif":
-			actifs += 1
-		elif s == "chomeur":
-			sans += 1
-	return 100.0 * sans / (actifs + sans) if actifs + sans > 0 else 0.0
+	var c = _en_cache("chomage")
+	if c == null:
+		# Un seul passage sur les habitants pour toutes les villes.
+		var par := {}
+		for pid in population.persons:
+			var p: Dictionary = population.persons[pid]
+			var s := population.stage(p)
+			if s != "actif" and s != "chomeur":
+				continue
+			var v := communes.village_de(population.home_of(p))
+			var e: Array = par.get(v, [0, 0])
+			e[0 if s == "actif" else 1] += 1
+			par[v] = e
+		c = _garder("chomage", par)
+	var e: Array = c.get(vid, [0, 0])
+	return 100.0 * e[1] / (e[0] + e[1]) if e[0] + e[1] > 0 else 0.0
 
 
 ## Missions possibles aujourd'hui (pas déjà en cours).

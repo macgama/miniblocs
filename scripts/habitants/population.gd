@@ -44,6 +44,8 @@ const ARRIVAL_RATE := 0.6
 ## même avec des centaines de logements vides).
 const ARRIVEES_MIN_JOUR := 4.0
 const ARRIVEES_PART_JOUR := 0.03
+## Sous ce nombre de foyers, une ville se remplit librement (départ d'un village).
+const ARRIVEES_LIBRES := 40
 ## Distance à pied, à vélo (m).
 const WALK_MAX := 1200.0
 const BIKE_MAX := 4000.0
@@ -671,11 +673,12 @@ func _immigrate(hours: float) -> void:
 			var v := cm.village_de(bid)
 			if not _quota_arrivees.has(v):
 				v = -1
-			n = mini(n, int(_quota_arrivees.get(v, 0.0)))
-			if n <= 0:
-				_arrival_acc[bid] = minf(acc, float(free))
-				continue
-			_quota_arrivees[v] = float(_quota_arrivees[v]) - n
+			if v < 0 or int(foyers[v]) >= ARRIVEES_LIBRES:
+				n = mini(n, int(_quota_arrivees.get(v, 0.0)))
+				if n <= 0:
+					_arrival_acc[bid] = minf(acc, float(free))
+					continue
+				_quota_arrivees[v] = float(_quota_arrivees[v]) - n
 		acc -= n
 		_arrival_acc[bid] = acc
 		for i in n:

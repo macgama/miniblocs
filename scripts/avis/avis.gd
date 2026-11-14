@@ -239,14 +239,14 @@ func habitants() -> int:
 		return 0
 	if ville_vid < 0:
 		return population.persons.size()
-	return echantillon(false, 1 << 30).size()
+	return (_index_ville()[0] as Array).size()
 
 
 ## Électeurs (majeurs) de la ville examinée.
 func electeurs() -> int:
 	if population == null:
 		return 0
-	return echantillon(true, 1 << 30).size()
+	return (_index_ville()[1] as Array).size()
 
 
 # --- Facteurs ---------------------------------------------------------------------
@@ -458,22 +458,58 @@ func _nouvelle_heure(n: Dictionary) -> void:
 
 ## Habitants majeurs (électeurs) et échantillon régulier de la population.
 func echantillon(adultes := false, n_max := ECHANTILLON) -> Array:
-	var ids := []
-	var cm := Communes.instance
-	var filtre := ville_vid >= 0 and cm != null
-	for pid in population.persons:
-		if adultes and population.age_of(population.persons[pid]) < Population.ADULT_AGE:
-			continue
-		if filtre and cm.village_de(population.home_of(population.persons[pid])) != ville_vid:
-			continue
-		ids.append(pid)
+	var ids: Array = _index_ville()[1 if adultes else 0]
 	if ids.size() <= n_max:
-		return ids
+		return ids.duplicate()
 	var out := []
 	var step := float(ids.size()) / n_max
 	for k in n_max:
 		out.append(ids[int(k * step)])
 	return out
+
+
+## Habitants de la ville examinée [tous, majeurs], dans l'ordre de la population.
+## Un seul passage sur la population par image pour toutes les villes.
+var _index := {}
+var _index_cle := []
+
+
+func _index_ville() -> Array:
+	var cle := [Engine.get_process_frames(), population.persons.size()]
+	if cle != _index_cle:
+		_index_cle = cle
+		_index = {}
+	var cm := Communes.instance
+	var par_ville := ville_vid >= 0 and cm != null
+	if not par_ville and _index.has("tout"):
+		return _index["tout"]
+	if par_ville and _index.has(ville_vid):
+		return _index[ville_vid]
+	var tous := []
+	var majeurs := []
+	if par_ville and not _index.has("fait"):
+		# Toutes les villes d'un coup.
+		for pid in population.persons:
+			var p: Dictionary = population.persons[pid]
+			var v := cm.village_de(population.home_of(p))
+			if not _index.has(v):
+				_index[v] = [[], []]
+			_index[v][0].append(pid)
+			if population.age_of(p) >= Population.ADULT_AGE:
+				_index[v][1].append(pid)
+		_index["fait"] = true
+		if not _index.has(ville_vid):
+			_index[ville_vid] = [tous, majeurs]
+		return _index[ville_vid]
+	if par_ville:
+		_index[ville_vid] = [tous, majeurs]
+		return _index[ville_vid]
+	for pid in population.persons:
+		tous.append(pid)
+		if population.age_of(population.persons[pid]) >= Population.ADULT_AGE:
+			majeurs.append(pid)
+	_index["tout"] = [tous, majeurs]
+	return _index["tout"]
 
 
 ## Note d'un thème (0-100) d'après le delta moyen.
@@ -581,11 +617,12 @@ func sondage(force := false) -> Dictionary:
 ## Motifs regroupés par thème : [[motif, nombre d'habitants]], 4 au plus.
 func _raisons_par_theme(ids: Array, motifs: Dictionary) -> Dictionary:
 	var out := {}
+	var hab := float(habitants())
 	for key in motifs:
 		var th := theme_du_motif(key)
 		if not out.has(th):
 			out[th] = []
-		(out[th] as Array).append([key, roundi(int(motifs[key]) * float(habitants()) / ids.size())])
+		(out[th] as Array).append([key, roundi(int(motifs[key]) * hab / ids.size())])
 	for th in out:
 		(out[th] as Array).sort_custom(func(a, b) -> bool: return int(a[1]) > int(b[1]))
 		out[th] = (out[th] as Array).slice(0, 4)
@@ -634,11 +671,20 @@ func _centre() -> Vector3:
 	var n := 0
 	if population == null:
 		return c
+	var cle := [Engine.get_process_frames(), population.known.size(), ville_vid]
+	if cle == _centre_cle:
+		return _centre_val
+	_centre_cle = cle
 	for bid in population.known:
 		if int(population.known[bid].log) > 0 and dans_ville(bid):
 			c += population.building_pos(bid)
 			n += 1
-	return c / n if n > 0 else c
+	_centre_val = c / n if n > 0 else c
+	return _centre_val
+
+
+var _centre_cle := []
+var _centre_val := Vector3.ZERO
 
 
 const DIRECTIONS := ["Est", "Nord-Est", "Nord", "Nord-Ouest", "Ouest", "Sud-Ouest", "Sud", "Sud-Est"]

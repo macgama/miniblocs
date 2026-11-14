@@ -417,6 +417,21 @@ static func _classe(n: String) -> Variant:
 
 ## Demande moyenne d'un type de bâtiment : {"elec": MW, "eau": m³/j, "egout": m³/j}.
 static func demande_type(type_id: String) -> Dictionary:
+	# Pendant un pas de simulation, le catalogue ne change pas : une fois par type.
+	if _dem_cache_on:
+		var c = _dem_cache.get(type_id)
+		if c == null:
+			c = _demande_type_calc(type_id)
+			_dem_cache[type_id] = c
+		return c
+	return _demande_type_calc(type_id)
+
+
+static var _dem_cache := {}
+static var _dem_cache_on := false
+
+
+static func _demande_type_calc(type_id: String) -> Dictionary:
 	var t := BuildingCatalog.get_type(type_id)
 	var r := ReseauxTypes.info(type_id)
 	if t.is_empty() or not r.is_empty() or bool(t.get("espace", false)):
@@ -583,6 +598,14 @@ func _process(delta: float) -> void:
 
 ## Avance de `heures` heures de jeu : capacités, partage, effets, factures.
 func simuler(heures: float) -> void:
+	_dem_cache.clear()
+	_dem_cache_on = true
+	_simuler(heures)
+	_dem_cache_on = false
+	_dem_cache.clear()
+
+
+func _simuler(heures: float) -> void:
 	if _sync_sale:
 		_sync()
 	else:

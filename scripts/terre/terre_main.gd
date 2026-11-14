@@ -52,6 +52,9 @@ var budget_panel: BudgetPanel
 ## Déchets : collecte, décharges, tri et recyclage (touche X).
 var dechets: Dechets
 var dechets_panel: DechetsPanel
+## Parc de loisirs : attractions, visiteurs, files, billets, note (Maj+G).
+var parc: ParcLoisirs
+var parc_panel: ParcPanel
 ## Obsèques, cimetières, crématorium, pompes funèbres (onglet Funéraire du panneau H).
 var funeraire: Funeraire
 ## Chantiers, usure des bâtiments, abords et fumée des maisons habitées.
@@ -154,6 +157,7 @@ func _ready() -> void:
 	_setup_services()
 	_setup_telecom()
 	_setup_dechets()
+	_setup_parc()
 	_setup_funeraire()
 	_setup_vie()
 	_setup_decors()
@@ -326,6 +330,7 @@ func save_sections() -> Dictionary:
 	sec["niveaux_vie"] = niveaux_vie.to_dict()
 	sec["statistiques"] = statistiques.to_dict()
 	sec["tutoriel"] = tutoriel.to_dict()
+	sec["parc"] = parc.to_dict()
 	sec["quartiers"] = quartiers.to_dict()
 	return sec
 
@@ -429,6 +434,7 @@ func load_game(slot := "") -> bool:
 	services.from_dict(sec.get("services", {}))
 	telecom.from_dict(sec.get("telecom", {}))
 	dechets.from_dict(sec.get("dechets", {}))
+	parc.from_dict(sec.get("parc", {}))
 	funeraire.from_dict(sec.get("funeraire", {}))
 	ambiance.from_dict(sec.get("ambiance", {}))
 	# Après les bâtiments et les habitants : dégâts, ruines, malades, matchs.
@@ -1266,6 +1272,23 @@ func _setup_dechets() -> void:
 	hud.dechets_requested.connect(func() -> void: dechets_panel.toggle())
 
 
+## Parc de loisirs : manèges, visiteurs, files d'attente, billets et panneau (Maj+G).
+func _setup_parc() -> void:
+	parc = ParcLoisirs.new()
+	parc.name = "ParcLoisirs"
+	add_child(parc)
+	parc.setup(buildings, population, transport, ambiance)
+	parc.message.connect(func(t: String) -> void: hud.show_message(t))
+	parc_panel = ParcPanel.new()
+	parc_panel.name = "PanneauParc"
+	add_child(parc_panel)
+	parc_panel.setup(parc)
+	parc_panel.focus_requested.connect(func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
+	hud.parc_requested.connect(func() -> void: parc_panel.toggle())
+
+
 ## Obsèques : cimetières qui se remplissent, corbillards sur les routes, crématorium.
 func _setup_funeraire() -> void:
 	funeraire = Funeraire.new()
@@ -1945,13 +1968,20 @@ func _process(delta: float) -> void:
 		_stats_timer -= 0.3
 		if _stats_timer <= 0.0:
 			_stats_timer = 1.0
-			_refresh_stats()
+			_stats_en_cours = true
+	# Chiffres de la barre du haut : calculés par petits morceaux (grandes villes).
+	if _stats_en_cours:
+		var st := population.stats_par_morceaux()
+		if not st.is_empty():
+			_stats_en_cours = false
+			_refresh_stats(st)
 	_exclusive_panels()
 	if tuto_carte != null:
 		tuto_carte.cachee = hud.create_mode or GameStart.atelier or hud.coords_open()
 
 
 var _stats_timer := 0.0
+var _stats_en_cours := false
 ## Panneaux de droite ouverts à l'image précédente (pour n'en garder qu'un).
 var _open_before := {}
 
@@ -1981,9 +2011,9 @@ func _exclusive_panels() -> void:
 
 
 ## Chiffres de la ville dans la barre du haut : caisse, habitants, satisfaction, chômage.
-func _refresh_stats() -> void:
+func _refresh_stats(st := {}) -> void:
 	var money := "Illimitée" if buildings.unlimited_money else BuildingSystem.format_money(buildings.money)
-	var s := population.stats()
+	var s := st if not st.is_empty() else population.stats()
 	# Les fondateurs encore sous la tente ne font pas monter les paliers.
 	var palier := ReglagesPartie.actuel.note_population(int(s.habitants) - (fondateurs.au_campement() if fondateurs != null else 0))
 	if palier != "" and ReglagesPartie.actuel.deblocage == "progression":

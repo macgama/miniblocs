@@ -662,6 +662,12 @@ Vérifie les conversions de coordonnées, le décodage des tuiles, la générati
 godot --headless --path . --script res://tests/perf_bench.gd [-- --big] [--reseau]
 ```
 
+```bash
+godot --headless --path . --fixed-fps 60 --script res://tests/perf_ville.gd -- --hab 1000,5000
+```
+
+Banc d'essai d'une **ville habitée** (1 000 puis 5 000 habitants, 1 jour par minute) : temps par image, pire saccade, mémoire, sauvegarde et chargement ; `--max-ms 20` le transforme en test chiffré. Résultats et méthode : [docs/performances.md](docs/performances.md).
+
 Banc d'essai des performances sur une région de 10 × 10 km : chargement du terrain, survol de 4 km, grande ville en grille (routes, zonage, circulation), sauvegarde et chargement. Affiche les temps par image et `PERF BENCH OK`. `--reseau` utilise le vrai relief d'Annecy, `--big` une ville deux fois plus grande.
 
 ## Pistes pour la suite

@@ -61,7 +61,8 @@ func concerne(bid: int) -> bool:
 	if not pop.known.has(bid):
 		return false
 	var info: Dictionary = pop.known[bid]
-	return int(info.emp) > 0 and String(info.cat) != "logement"
+	# Le parc de loisirs complète lui-même son personnel (saisonniers, ParcLoisirs).
+	return int(info.emp) > 0 and String(info.cat) != "logement" and String(info.cat) != "parc"
 
 
 static func requis_de(type_id: String) -> Array:

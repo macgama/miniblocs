@@ -399,7 +399,11 @@ func tri_rate(bid: int) -> float:
 
 
 func capacity_of(bid: int, f: String) -> float:
-	var o := _occupants(bid) if population != null else [0, 0, 1.0]
+	return _capacite(_occupants(bid) if population != null else [0, 0, 1.0], f)
+
+
+## Taille du bac d'un flux pour ces occupants ([habitants, emplois, facteur]).
+static func _capacite(o: Array, f: String) -> float:
 	var per := float(KG_HAB[f]) * float(o[0]) + float(KG_EMPLOI[f]) * float(o[1]) * float(o[2])
 	return maxf(per * BAC_JOURS * ReglagesPartie.actuel.dechets_quantite, BAC_MIN if f == "om" else BAC_MIN * 0.5)
 
@@ -423,7 +427,7 @@ func _produce(frac: float) -> void:
 			bacs[bid] = {"om": 0.0, "rec": 0.0, "verre": 0.0, "deb": 0.0, "last": clock, "res": 0}
 		var bac: Dictionary = bacs[bid]
 		for f in FLUX:
-			var cap := capacity_of(bid, f)
+			var cap := _capacite(o, f)
 			var v := float(bac[f]) + float(add[f])
 			if v > cap:
 				if float(bac.deb) <= 0.0:

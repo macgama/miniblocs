@@ -194,7 +194,7 @@ func compter(vid: int, type_id: String) -> int:
 	var n := 0
 	for bid in buildings.buildings:
 		var b: Dictionary = buildings.buildings[bid]
-		if String(b.t) == type_id and not b.get("chantier", false) and communes.village_de(bid) == vid:
+		if BuildingCatalog.base_of(String(b.t)) == type_id and not b.get("chantier", false) and communes.village_de(bid) == vid:
 			n += 1
 	return n
 

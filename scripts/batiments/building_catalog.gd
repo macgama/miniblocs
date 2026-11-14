@@ -151,11 +151,18 @@ static func all_types() -> Dictionary:
 		for id in Creations.items:
 			_all[id] = Creations.catalog_entry(id)
 		Creations.ensure_loaded()
+		ModelesJeu.register(_all)
 	return _all
 
 
 static func get_type(id: String) -> Dictionary:
 	return all_types().get(id, {})
+
+
+## Id du bâtiment dont celui-ci joue le rôle (modèle de l'atelier, création
+## avec une fonction), ou son propre id.
+static func base_of(id: String) -> String:
+	return String(get_type(id).get("base", id))
 
 
 static func cost(id: String) -> int:
@@ -217,6 +224,8 @@ static func build_mesh(id: String, material: Material = null, details := true, v
 	var t := get_type(id)
 	var w := float(t.get("w", 4))
 	var d := float(t.get("d", 4))
+	if t.has("modele"):
+		return ModelesJeu.build_mesh(t)
 	if t.get("espace", false):
 		EspacesPublics.build(k, id, t)
 		k.fit_xz(w, d)
@@ -612,7 +621,7 @@ static func variants_of(id: String) -> int:
 	var t := get_type(id)
 	if t.has("glb"):
 		return maxi(int(t.get("variantes", 1)), 1)
-	return VARIANTES if t.has("arch") else 1
+	return VARIANTES if t.has("arch") and not t.has("modele") and not t.has("creation") else 1
 
 
 static func approx_height(id: String) -> float:

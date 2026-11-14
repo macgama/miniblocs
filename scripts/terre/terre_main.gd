@@ -236,6 +236,7 @@ func _ready() -> void:
 		if res.ok:
 			blocks.set_tool(BlockEditor.Tool.NONE)
 			build_panel.clear_selection())
+	build_panel.block_piece_changed.connect(func(d: int, n: int) -> void: blocks.set_piece(d, n))
 	build_panel.wall_height_changed.connect(func(h: int) -> void:
 		blocks.wall_height = h
 		blocks._emit_help())
@@ -317,6 +318,7 @@ func save_sections() -> Dictionary:
 	var sec := {"terrain": world.to_dict(), "transport": transport.to_dict(), "batiments": buildings.to_dict(),
 		"zones": zones.to_dict(), "blocs": blocks.to_dict(), "plans": plans.to_dict(), "ambiance": ambiance.to_dict(),
 		"creations": Creations.to_dict(Creations.used_by(buildings)),
+		"modeles_jeu": ModelesJeu.to_dict(buildings),
 		"personnage": ($VueSol as VueSol).to_dict(), "habitants": population.to_dict(), "mobilier": mobilier.to_dict(),
 		"production": production.to_dict(), "agriculture": agriculture.to_dict(), "urgences": urgences.to_dict(), "reseaux": reseaux.to_dict(), "dechets": dechets.to_dict(), "funeraire": funeraire.to_dict(), "trafic": trafic.to_dict(), "lignes_eco": lignes_eco.to_dict(), "reglages": _settings_snapshot().to_dict(), "budget": budget.to_dict(), "evenements": evenements.to_dict(), "decors": decors.to_dict(),
 		"nuisances": nuisances.to_dict(), "telecom": telecom.to_dict(), "services": services.to_dict(), "carrieres": carrieres.to_dict()}
@@ -415,6 +417,7 @@ func load_game(slot := "") -> bool:
 	pays.capital_auto = false
 	transport.from_dict(sec.get("transport", {}))
 	Creations.adopt(sec.get("creations", {}))
+	ModelesJeu.adopt(sec.get("modeles_jeu", {}))
 	buildings.from_dict(sec.get("batiments", {}))
 	zones.from_dict(sec.get("zones", {}))
 	blocks.from_dict(sec.get("blocs", {}))

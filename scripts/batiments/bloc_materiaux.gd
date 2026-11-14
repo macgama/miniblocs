@@ -71,6 +71,65 @@ const LIST := [
 	{"name": "Plâtre", "pat": "uni", "c1": "f7f5f0", "c2": "ebe7df", "price": 70, "fam": "murs"},
 	{"name": "Fer forgé", "pat": "metal", "c1": "2f3236", "c2": "1e2023", "price": 160, "fam": "metal_verre"},
 	{"name": "Bois peint blanc", "pat": "planches_h", "c1": "f2f0ea", "c2": "cfccc4", "price": 90, "fam": "bois"},
+	# --- Ajouts (troisième version de l'atelier) -----------------------------------------
+	{"name": "Brique flamande", "pat": "flamand", "c1": "a9472f", "c2": "d6ccbb", "price": 140, "fam": "murs"},
+	{"name": "Brique anglaise", "pat": "anglais", "c1": "9c4632", "c2": "cfc6b6", "price": 140, "fam": "murs"},
+	{"name": "Brique joints alignés", "pat": "joints_alignes", "c1": "7a4a3a", "c2": "3a3532", "price": 130, "fam": "murs"},
+	{"name": "Brique jaune", "pat": "brique", "c1": "dcc07e", "c2": "efe8d8", "price": 130, "fam": "murs"},
+	{"name": "Brique vernissée", "pat": "brique_vernie", "c1": "2f5d8a", "c2": "e8e4da", "price": 220, "fam": "murs"},
+	{"name": "Calcaire", "pat": "pierre_taillee", "c1": "ddd3bc", "c2": "c4b99f", "price": 200, "fam": "murs"},
+	{"name": "Pierre bleue", "pat": "pierre_taillee", "c1": "5f6872", "c2": "4a525b", "price": 230, "fam": "murs"},
+	{"name": "Meulière", "pat": "meuliere", "c1": "c79a5e", "c2": "e9dfc8", "price": 170, "fam": "murs"},
+	{"name": "Opus incertum", "pat": "opus", "c1": "b3a68f", "c2": "e0d8c6", "price": 150, "fam": "murs"},
+	{"name": "Travertin", "pat": "travertin", "c1": "e6d8bb", "c2": "c8b48e", "price": 260, "fam": "murs"},
+	{"name": "Basalte", "pat": "granit", "c1": "3d3f42", "c2": "1f2022", "price": 240, "fam": "murs"},
+	{"name": "Pisé", "pat": "pise", "c1": "b98d5e", "c2": "9c7348", "price": 60, "fam": "murs"},
+	{"name": "Béton blanc", "pat": "beton", "c1": "e8e6e0", "c2": "cfccc4", "price": 120, "fam": "murs"},
+	{"name": "Crépi terracotta", "pat": "enduit", "c1": "c3653f", "c2": "a8522f", "price": 90, "fam": "murs"},
+	{"name": "Crépi gris", "pat": "enduit", "c1": "aaa9a3", "c2": "93928c", "price": 90, "fam": "murs"},
+	{"name": "Crépi lavande", "pat": "enduit", "c1": "b9a9cf", "c2": "a090b8", "price": 90, "fam": "murs"},
+	{"name": "Enduit à la chaux", "pat": "chaux", "c1": "f3ecdc", "c2": "ddd2bb", "price": 100, "fam": "murs"},
+	{"name": "Stuc vénitien", "pat": "marbre", "c1": "e9d3b8", "c2": "c9a888", "price": 300, "fam": "murs"},
+	{"name": "Zellige", "pat": "zellige", "c1": "2c7a6a", "c2": "e8e4da", "price": 260, "fam": "murs"},
+	{"name": "Bois brûlé", "pat": "bois_brule", "c1": "2a2624", "c2": "15120f", "price": 120, "fam": "bois"},
+	{"name": "Mélèze", "pat": "planches_v", "c1": "d3a46d", "c2": "a97c4c", "price": 100, "fam": "bois"},
+	{"name": "Bardage vert", "pat": "planches_v", "c1": "4c6e51", "c2": "36513b", "price": 90, "fam": "bois"},
+	{"name": "Bardage bleu", "pat": "planches_h", "c1": "44627f", "c2": "30485f", "price": 90, "fam": "bois"},
+	{"name": "Bois exotique", "pat": "planches_h", "c1": "7c3b24", "c2": "5a2a18", "price": 140, "fam": "bois"},
+	{"name": "Contreplaqué", "pat": "contreplaque", "c1": "d4b07a", "c2": "b38e58", "price": 60, "fam": "bois"},
+	{"name": "Rotin", "pat": "vannerie", "c1": "c9a66b", "c2": "8f6e3c", "price": 80, "fam": "bois"},
+	{"name": "Bardeaux de cèdre", "pat": "bardeaux", "c1": "a8683e", "c2": "7a4a2a", "price": 120, "fam": "toits"},
+	{"name": "Lauzes", "pat": "lauze", "c1": "8a8780", "c2": "5e5b55", "price": 180, "fam": "toits"},
+	{"name": "Tuile canal", "pat": "tuile_canal", "c1": "c46a45", "c2": "93452c", "price": 120, "fam": "toits"},
+	{"name": "Ardoise en écailles", "pat": "ecailles", "c1": "535a66", "c2": "353a42", "price": 160, "fam": "toits"},
+	{"name": "Zinc joints debout", "pat": "joints_debout", "c1": "8a949c", "c2": "6c767e", "price": 170, "fam": "toits"},
+	{"name": "Tuile noire", "pat": "tuile", "c1": "34363b", "c2": "1f2024", "price": 150, "fam": "toits"},
+	{"name": "Tuile bleue", "pat": "tuile", "c1": "3b5c8c", "c2": "2a4268", "price": 160, "fam": "toits"},
+	{"name": "Fibrociment", "pat": "fibrociment", "c1": "a5a7a2", "c2": "8b8d88", "price": 60, "fam": "toits"},
+	{"name": "Bac acier", "pat": "bac_acier", "c1": "4a4f55", "c2": "363a3f", "price": 90, "fam": "toits"},
+	{"name": "Toit végétal", "pat": "vegetal", "c1": "7d9a4a", "c2": "b3574a", "price": 150, "fam": "toits"},
+	{"name": "Terrazzo", "pat": "terrazzo", "c1": "e7e2d8", "c2": "8a7f72", "price": 180, "fam": "sols"},
+	{"name": "Carreaux de ciment", "pat": "carreaux_ciment", "c1": "e9e3d6", "c2": "2f5d6e", "price": 170, "fam": "sols"},
+	{"name": "Mosaïque", "pat": "mosaique", "c1": "3a8fc2", "c2": "e8f2f7", "price": 200, "fam": "sols"},
+	{"name": "Parquet en chevrons", "pat": "chevrons", "c1": "b98a55", "c2": "8f6436", "price": 160, "fam": "sols"},
+	{"name": "Dalles de pierre", "pat": "dalles", "c1": "b9b2a4", "c2": "8d877b", "price": 140, "fam": "sols"},
+	{"name": "Pavés autobloquants", "pat": "autobloquant", "c1": "9a8f86", "c2": "6c645e", "price": 70, "fam": "sols"},
+	{"name": "Enrobé", "pat": "enrobe", "c1": "3c3d40", "c2": "55565a", "price": 40, "fam": "sols"},
+	{"name": "Tatami", "pat": "tatami", "c1": "c9c28a", "c2": "5a6a3a", "price": 120, "fam": "sols"},
+	{"name": "Sol souple", "pat": "uni", "c1": "6b8fa8", "c2": "5f839c", "price": 60, "fam": "sols"},
+	{"name": "Moquette grise", "pat": "moquette", "c1": "7b8088", "c2": "6a6f77", "price": 60, "fam": "sols"},
+	{"name": "Acier Corten", "pat": "corten", "c1": "8f4a26", "c2": "5e2e16", "price": 260, "fam": "metal_verre"},
+	{"name": "Aluminium", "pat": "panneaux", "c1": "c2c7cc", "c2": "9aa0a6", "price": 200, "fam": "metal_verre"},
+	{"name": "Laiton", "pat": "metal", "c1": "c9a24a", "c2": "a8862f", "price": 400, "fam": "metal_verre"},
+	{"name": "Pavés de verre", "pat": "pave_verre", "c1": "b8dbe8", "c2": "eef8fc", "price": 250, "fam": "metal_verre", "glass": true},
+	{"name": "Verre dépoli", "pat": "verre_depoli", "c1": "e6eef2", "c2": "f8fbfc", "price": 230, "fam": "metal_verre", "glass": true},
+	{"name": "Eau", "pat": "eau", "c1": "2f7fb0", "c2": "8fd0ea", "price": 30, "fam": "nature", "glass": true},
+	{"name": "Glace", "pat": "verre", "c1": "cfe9f5", "c2": "f4fbff", "price": 30, "fam": "nature", "glass": true},
+	{"name": "Roche", "pat": "moellons", "c1": "7d746a", "c2": "5a534b", "price": 60, "fam": "nature"},
+	{"name": "Toile blanche", "pat": "toile", "c1": "f1eee6", "c2": "d8d3c6", "price": 40, "fam": "decor"},
+	{"name": "Toile rayée", "pat": "rayures", "c1": "c8463d", "c2": "f1eee6", "price": 50, "fam": "decor"},
+	{"name": "Feutre", "pat": "moquette", "c1": "4a5d3f", "c2": "3e4f35", "price": 50, "fam": "decor"},
+	{"name": "Cuir", "pat": "cuir", "c1": "7a4a2c", "c2": "5e3820", "price": 120, "fam": "decor"},
 ]
 
 const FAMILIES := [
@@ -81,6 +140,7 @@ const FAMILIES := [
 	{"id": "bois", "name": "Bois"},
 	{"id": "metal_verre", "name": "Métal et verre"},
 	{"id": "nature", "name": "Nature"},
+	{"id": "decor", "name": "Tissus et divers"},
 ]
 
 ## Teintes : 0 = couleur naturelle du matériau.
@@ -130,6 +190,14 @@ void fragment() {
 
 static func count() -> int:
 	return LIST.size()
+
+
+## Indice d'un matériau d'après son nom (−1 s'il n'existe pas).
+static func index_of(name: String) -> int:
+	for i in LIST.size():
+		if String(LIST[i].name) == name:
+			return i
+	return -1
 
 
 static func is_glass(m: int) -> bool:
@@ -442,6 +510,250 @@ static func _pixel(pat: String, x: int, y: int, c1: Color, c2: Color, s: int) ->
 		"damier":
 			var a := ((x / 16) + (y / 16)) % 2 == 0
 			return _shade(c1 if a else c2, 1.0 + _n(fx, fy, 0.3, s) * 0.03)
+		"flamand", "anglais", "joints_alignes":
+			# Appareils : boutisses (8 px) et panneresses (16 px), joints de 1 px.
+			var row := y / 8
+			var bw := 16
+			var off := 0
+			if pat == "flamand":
+				off = 6 if row % 2 == 1 else 0
+				var xx := posmod(x + off, 24)
+				var j := (y % 8) < 1 or xx == 0 or xx == 16
+				if j:
+					return _shade(c2, 1.0 + _n(fx, fy, 0.3, s) * 0.05)
+				var hdr := xx >= 16
+				return _shade(c1, (0.8 if hdr else 0.95) + _h(row, (x + off) / 24 * 2 + int(hdr), s) * 0.2)
+			if pat == "anglais":
+				bw = 8 if row % 2 == 1 else 16
+				off = 4 if row % 2 == 1 else 0
+			var xx2 := x + off
+			if (y % 8) < 1 or (xx2 % bw) < 1:
+				return _shade(c2, 1.0 + _n(fx, fy, 0.3, s) * 0.05)
+			var v2 := 0.86 + _h(row, xx2 / bw, s) * 0.24
+			if pat == "anglais" and row % 2 == 1:
+				v2 *= 0.88
+			return _shade(c1, v2 + _n(fx, fy, 0.2, s + 1) * 0.05)
+		"brique_vernie":
+			var bv := _bond(x, y, 16, 8, 1)
+			if bv[2]:
+				return c2
+			var g := 0.85 + _h(bv[0], bv[1], s) * 0.3
+			var hl := 0.15 if (y % 8) == 2 else 0.0
+			return _shade(c1, g + hl)
+		"meuliere":
+			var mv := _n(fx, fy, 0.12, s)
+			if absf(mv) < 0.04:
+				return _shade(c2, 0.95)
+			var c := _shade(c1, 0.9 + mv * 0.3 + (_h(x, y, s) - 0.5) * 0.12)
+			if _h(x / 2, y / 2, s + 4) > 0.9:
+				return _shade(c, 0.7)
+			return c
+		"opus":
+			# Pierres irrégulières : cellules de Voronoï plus grandes et joints larges.
+			return _pixel("moellons", x, y, c1, c2, s + 7)
+		"travertin":
+			var band := sin(fy * 0.35 + _n(fx, fy, 0.03, s) * 5.0)
+			var c := _shade(c1, 0.95 + band * 0.04 + _n(fx, fy, 0.2, s) * 0.04)
+			if _h(x, y / 2, s) > 0.93:
+				return _shade(c2, 0.9)
+			if y % 32 == 0 or (x + (y / 32) * 21) % 64 == 0:
+				return _shade(c1, 0.8)
+			return c
+		"pise":
+			var layer_h := 10.7
+			var t := fmod(fy, layer_h) / layer_h
+			var c := _shade(c1.lerp(c2, _h(int(fy / layer_h), 0, s) * 0.6), 0.95 + _n(fx, fy, 0.2, s) * 0.08)
+			if t < 0.08:
+				return _shade(c, 0.85)
+			return c
+		"chaux":
+			var c := _shade(c1, 1.0 + _n(fx * 0.5, fy * 2.0, 0.1, s) * 0.07)
+			if _n(fx, fy, 0.05, s + 2) > 0.35:
+				return c.lerp(c2, 0.4)
+			return c
+		"zellige":
+			var cell := 8
+			if x % cell == 0 or y % cell == 0:
+				return c2
+			var hv := _h(x / cell, y / cell, s)
+			var c := _shade(c1, 0.75 + hv * 0.45)
+			if (x % cell) == 2 and (y % cell) == 2:
+				return _shade(c, 1.4)
+			return c
+		"bois_brule":
+			var row := int(fy / 10.67)
+			var cr := _n(fx * 0.6, fy * 0.6, 0.25, s + row)
+			if fmod(fy, 10.67) < 1.0:
+				return c2
+			if absf(cr) < 0.05:
+				return _shade(c1, 1.6)
+			return _shade(c1, 0.85 + _h(x / 3, y / 3, s) * 0.3)
+		"contreplaque":
+			var gr := sin(fx * 0.05 + _n(fx, fy * 0.2, 0.04, s) * 9.0)
+			if x % 64 == 0 or y % 64 == 0:
+				return _shade(c2, 0.8)
+			return _shade(c1, 0.95 + gr * 0.06)
+		"vannerie":
+			var cx := x / 8
+			var cy := y / 8
+			var horiz := (cx + cy) % 2 == 0
+			var t := float((y if horiz else x) % 8) / 8.0
+			var c := _shade(c1, 0.75 + sin(t * PI) * 0.35)
+			if (x % 8 == 0 and not horiz) or (y % 8 == 0 and horiz):
+				return _shade(c2, 0.8)
+			return c
+		"bardeaux":
+			var rh := 12.8
+			var row := int(fy / rh)
+			var cw := 9.0 + _h(row, 0, s) * 4.0
+			var xx := fx + _h(row, 1, s) * 20.0
+			var col := int(xx / cw)
+			var t := fmod(fy, rh) / rh
+			if fmod(xx, cw) < 1.0 or t > 0.9:
+				return _shade(c2, 0.7)
+			return _shade(c1, 0.8 + _h(row, col, s) * 0.3 + t * 0.08)
+		"lauze":
+			var row := int(fy / 12.8)
+			var xx := fx + float(row % 3) * 9.0
+			var cw := 14.0 + _h(row, int(xx / 18.0), s) * 8.0
+			var col := int(xx / cw)
+			var t := fmod(fy, 12.8) / 12.8
+			if fmod(xx, cw) < 1.5 or t > 0.86:
+				return _shade(c2, 0.75)
+			return _shade(c1, 0.8 + _h(row, col, s + 2) * 0.3 + _n(fx, fy, 0.3, s) * 0.06)
+		"tuile_canal":
+			var cw := 12.8
+			var row := int(fy / 16.0)
+			var u := fmod(fx, cw) / cw
+			var arc := sin(u * PI)
+			var chan := int(fx / cw) % 2 == 0
+			var c := _shade(c1, (0.75 if chan else 0.6) + arc * 0.4 + _h(row, int(fx / cw), s) * 0.12)
+			if fmod(fy, 16.0) > 14.0 and chan:
+				return _shade(c2, 0.7)
+			return c
+		"ecailles":
+			var rh := 8.0
+			var cw := 10.67
+			var row := int(fy / rh)
+			var xx := fx + (cw / 2.0 if row % 2 == 1 else 0.0)
+			var u := fmod(xx, cw) / cw - 0.5
+			var t := fmod(fy, rh) / rh
+			var edge := 1.0 - sqrt(maxf(0.0, 1.0 - 4.0 * u * u))
+			if absf(t - (1.0 - edge * 0.9)) < 0.12:
+				return _shade(c2, 0.7)
+			return _shade(c1, 0.85 + _h(row, int(xx / cw), s) * 0.25)
+		"joints_debout":
+			var xm := x % 21
+			if xm == 0:
+				return _shade(c1, 1.3)
+			if xm == 1:
+				return _shade(c1, 0.75)
+			return _shade(c1, 0.95 + _n(fx, fy, 0.08, s) * 0.04)
+		"fibrociment":
+			return _shade(c1, 0.82 + sin(fx / 64.0 * TAU * 4.0) * 0.16 + _n(fx, fy, 0.2, s) * 0.04)
+		"bac_acier":
+			var xm := x % 16
+			if xm < 4:
+				return _shade(c1, 1.2 if xm < 2 else 0.8)
+			return _shade(c1, 0.95)
+		"vegetal":
+			var v := _n(fx, fy, 0.25, s)
+			if _h(x / 2, y / 2, s) > 0.93:
+				return c2
+			if _h(x / 2, y / 2, s + 1) > 0.95:
+				return Color("e9d36a")
+			return _shade(c1, 0.85 + v * 0.3)
+		"terrazzo":
+			var r := _h(x / 2, y / 2, s)
+			if r > 0.9:
+				return _shade(c2, 0.8 + _h(x, y, s) * 0.4)
+			if r > 0.84:
+				return Color("c9a27e").lerp(c1, 0.3)
+			if r < 0.04:
+				return _shade(c2, 0.55)
+			return _shade(c1, 1.0 + _n(fx, fy, 0.2, s) * 0.03)
+		"carreaux_ciment":
+			var cell := 32
+			if x % cell == 0 or y % cell == 0:
+				return _shade(c1, 0.85)
+			var u := float(x % cell) / cell - 0.5
+			var v := float(y % cell) / cell - 0.5
+			var d := absf(u) + absf(v)
+			var ring := sqrt(u * u + v * v)
+			if d < 0.18 or (ring > 0.34 and ring < 0.42) or (absf(absf(u) - absf(v)) < 0.03 and d < 0.5):
+				return c2
+			return c1
+		"mosaique":
+			var cell := 5
+			if x % cell == 0 or y % cell == 0:
+				return c2
+			var hv := _h(x / cell, y / cell, s)
+			return _shade(c1.lerp(c2, hv * 0.3), 0.8 + hv * 0.35)
+		"chevrons":
+			var bw := 8
+			var col := x / bw
+			var yy := y + (x % bw) * (1 if col % 2 == 0 else -1) + (col % 2) * 8
+			var plank := posmod(yy, 32)
+			var id := int(floor(float(yy) / 32.0))
+			if plank < 1 or x % bw == 0:
+				return _shade(c2, 0.85)
+			return _shade(c1, 0.88 + _h(col, id, s) * 0.2 + sin(float(plank) * 0.4) * 0.02)
+		"dalles":
+			var b := _bond(x, y, 32, 21, 1)
+			if b[2]:
+				return _shade(c2, 0.9)
+			return _shade(c1, 0.88 + _h(b[0], b[1], s) * 0.2 + _n(fx, fy, 0.2, s) * 0.06)
+		"autobloquant":
+			var b := _bond(x, y, 16, 8, 1)
+			var wav := (x % 8) == 4 and (y % 8) < 4
+			if b[2] or wav:
+				return _shade(c2, 0.9)
+			return _shade(c1, 0.88 + _h(b[0], b[1], s) * 0.2)
+		"enrobe":
+			var r := _h(x, y, s)
+			return _shade(c1.lerp(c2, r * r), 0.9 + _n(fx, fy, 0.3, s) * 0.08)
+		"tatami":
+			if x % 32 < 2 or y % 64 < 1:
+				return c2
+			return _shade(c1, 0.92 + sin(fy * 1.4) * 0.04 + _n(fx, fy, 0.2, s) * 0.04)
+		"corten":
+			var t := clampf(0.5 + _n(fx, fy, 0.1, s) * 1.4, 0.0, 1.0)
+			var c := c1.lerp(c2, t)
+			if _h(x, y, s) > 0.9:
+				return _shade(c, 1.2)
+			return c
+		"panneaux":
+			if x % 32 == 0 or y % 21 == 0:
+				return _shade(c2, 0.7)
+			return _shade(c1, 0.95 + _n(fx * 0.3, fy * 0.3, 0.1, s) * 0.05)
+		"pave_verre":
+			var cell := 16
+			if x % cell < 2 or y % cell < 2:
+				return Color(0.85, 0.85, 0.82, 0.95)
+			var u := float(x % cell) / cell - 0.5
+			var v := float(y % cell) / cell - 0.5
+			var g := c1.lerp(c2, clampf(1.0 - (u * u + v * v) * 3.0, 0.0, 1.0))
+			g.a = 0.6
+			return g
+		"verre_depoli":
+			var g := c1.lerp(c2, _h(x, y, s) * 0.5)
+			g.a = 0.78
+			return g
+		"eau":
+			var w := sin(fx * 0.25 + _n(fx, fy, 0.06, s) * 6.0) * 0.5 + 0.5
+			var g := c1.lerp(c2, w * 0.35)
+			g.a = 0.62
+			return g
+		"toile":
+			var c := _shade(c1, 0.97 + ((x + y) % 2) * 0.03 + _n(fx, fy, 0.1, s) * 0.03)
+			return c
+		"rayures":
+			return _shade(c1 if (x / 8) % 2 == 0 else c2, 0.97 + (y % 2) * 0.03)
+		"cuir":
+			var c := _shade(c1, 0.92 + _n(fx, fy, 0.35, s) * 0.12)
+			if _h(x, y, s) > 0.97:
+				return _shade(c2, 0.9)
+			return c
 		"colombage":
 			var beam := 5
 			var on := x < beam or x >= PX - beam or y < beam or y >= PX - beam

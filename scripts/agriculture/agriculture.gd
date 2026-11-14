@@ -458,7 +458,7 @@ func prepare_ferme(bid: int, n := 4, cote := 160) -> int:
 				faits += 1
 				break
 	var f := ferme(bid)
-	for e in AgriDonnees.FERMES[t].betes:
+	for e in AgriDonnees.FERMES[BuildingCatalog.base_of(t)].betes:
 		if _betes_total(f) == 0 or int(f.betes.get(e, 0)) == 0:
 			var place := AgriDonnees.places(t, e)
 			# Départ : un quart des places, le premier type de bête de la ferme.

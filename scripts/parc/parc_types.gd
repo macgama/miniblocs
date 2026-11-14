@@ -110,7 +110,8 @@ static func entries() -> Dictionary:
 
 
 static func spec_of(type_id: String) -> Dictionary:
-	return TYPES[type_id].parc if TYPES.has(type_id) else {}
+	var base := BuildingCatalog.base_of(type_id)
+	return TYPES[base].parc if TYPES.has(base) else {}
 
 
 static func role_of(type_id: String) -> String:
@@ -505,7 +506,8 @@ static func _nacelle(col: Color) -> BlocMesh:
 
 ## Parties mobiles d'un objet du parc (vide si rien ne bouge).
 static func build_anim(id: String) -> Node3D:
-	var spec := spec_of(id)
+	# Un modèle de l'atelier garde son apparence : pas de pièces mobiles ajoutées.
+	var spec := {} if ModelesJeu.is_model(id) else spec_of(id)
 	var root := Node3D.new()
 	root.name = "Anim"
 	match String(spec.get("anim", "")):

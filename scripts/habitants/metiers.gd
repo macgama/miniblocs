@@ -76,6 +76,12 @@ const METIERS := {
 	"technicien_attraction": {"name": "Technicien·ne de maintenance des manèges", "salaire": 2150, "h": [7.0, 16.0], "j": "tous", "tenue": "ouvrier"},
 	"agent_proprete": {"name": "Agent·e de propreté", "salaire": 1550, "h": [9.0, 20.0], "j": "tous", "geste": ["balayer"]},
 	"vendeur_parc": {"name": "Vendeur·euse de stand", "salaire": 1500, "h": [10.0, 20.0], "j": "tous", "geste": ["servir"]},
+	# Zoo (ZooSysteme).
+	"soigneur_animalier": {"name": "Soigneur·euse animalier·ère", "salaire": 1750, "h": [7.0, 17.0], "j": "tous", "tenue": "ouvrier", "geste": ["balayer", "porter"]},
+	"veterinaire_zoo": {"name": "Vétérinaire de zoo", "salaire": 3400, "h": [8.0, 18.0], "j": "tous", "tenue": "medecin"},
+	"technicien_zoo": {"name": "Technicien·ne d'entretien du zoo", "salaire": 2000, "h": [7.0, 16.0], "j": "semaine", "tenue": "ouvrier"},
+	"agent_accueil_zoo": {"name": "Agent·e d'accueil du zoo", "salaire": 1600, "h": [8.5, 19.5], "j": "tous", "geste": ["billets"]},
+	"animateur_zoo": {"name": "Animateur·rice pédagogique", "salaire": 1850, "h": [9.0, 18.0], "j": "tous", "geste": ["conseiller"]},
 	"laborantin": {"name": "Technicien·ne de laboratoire", "salaire": 2300, "h": [8.0, 17.0], "j": "semaine"},
 	"maitre_nageur": {"name": "Maître-nageur·euse sauveteur·rice", "salaire": 1800, "h": [10.0, 19.5], "j": "tous", "geste": ["surveiller"]},
 }

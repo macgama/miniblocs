@@ -49,6 +49,8 @@ signal dechets_requested
 signal parc_editeur_requested
 ## Bouton « Parc de loisirs » (Maj+G).
 signal parc_requested
+## Bouton « Zoo » (menu Loisirs, Maj+Z).
+signal zoo_requested
 ## Bouton « Musée » (menu Loisirs, Maj+C).
 signal musee_requested
 ## Panneau « Cartes » (touche N) : pollution, bruit, valeur des terrains, autres calques.
@@ -119,6 +121,7 @@ const CATEGORIES := [
 	{"id": "dechets", "name": "Déchets", "icon": "dechets", "key": "X", "panel": true, "group": "ville"},
 	{"id": "parc_editeur", "name": "Créer un parc (attractions, grands-huit, allées, décors)", "icon": "loisirs", "key": "Maj+A", "panel": true, "group": "loisirs"},
 	{"id": "parc", "name": "Parc de loisirs", "icon": "parc", "key": "Maj+G", "panel": true, "group": "loisirs"},
+	{"id": "zoo", "name": "Zoo", "icon": "zoo", "key": "Maj+Z", "panel": true, "group": "loisirs"},
 	{"id": "musee", "name": "Musée", "icon": "musee", "key": "Maj+C", "panel": true, "group": "loisirs"},
 	{"id": "cartes", "name": "Cartes", "icon": "cartes", "key": "N", "panel": true, "group": "infos"},
 	{"id": "stats", "name": "Statistiques et conseiller", "icon": "courbe", "key": "Maj+I", "panel": true, "group": "infos"},
@@ -797,6 +800,7 @@ func _on_category(id: String) -> void:
 			"dechets": dechets_requested.emit()
 			"parc_editeur": parc_editeur_requested.emit()
 			"parc": parc_requested.emit()
+			"zoo": zoo_requested.emit()
 			"musee": musee_requested.emit()
 			"cartes": cartes_requested.emit()
 			"stats": stats_requested.emit()

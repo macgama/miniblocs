@@ -241,6 +241,30 @@ func _run() -> void:
 		bs.demolish(fd.camp)
 		_check(bs.buildings.size() == nb and bs.buildings.has(fd.camp), "on ne démonte pas le campement habité")
 
+	print("Village neuf : des pionniers pour ses chantiers :")
+	cm.nom_en_attente = "Neuvy"
+	var mc2 := bs.place("maison_commune", Vector2i(1100, 0), 0)
+	await process_frame
+	await process_frame
+	var v2 := cm.village_du_batiment(mc2)
+	_check(mc2 > 0 and v2 >= 0 and v2 != cm.principal(), "deuxième village fondé (%s)" % ("Neuvy" if v2 >= 0 else bs.check_place("maison_commune", Vector2i(1100, 0), 0).get("reason", "?")))
+	if v2 >= 0:
+		var npi := int(fd.pionniers.get(v2, {}).get("n", 0))
+		_check(npi == maxi(Fondateurs.PIONNIERS_MIN, roundi(ReglagesPartie.actuel.fondateurs * Fondateurs.PIONNIERS_PART)), "%d pionniers arrivent au village neuf" % npi)
+		_check(cm.est_jeune(v2) and not cm.est_jeune(-1), "c'est un village neuf")
+		fd.repartir()
+		var eq2 := fd.equipe_de(Fondateurs.cle_batiment(mc2))
+		_check(int(eq2[1]) > 0 and int(eq2[0]) == int(eq2[1]), "sa Maison de commune a son équipe complète (%d/%d), même quand tous les ouvriers sont pris" % [int(eq2[0]), int(eq2[1])])
+		_check(int(fd.ouvriers().pionniers) == npi, "pionniers comptés parmi les ouvriers")
+		_check(fd.accepte_chantier_prive(v2), "les promoteurs peuvent bâtir au village neuf")
+		var d2: Dictionary = JSON.parse_string(JSON.stringify(fd.to_dict()))
+		_check(d2.has("pionniers") and int(d2.pionniers[str(v2)].n) == npi, "pionniers sauvegardés")
+		fd.pionniers[v2].fin = amb.unix_time - 1.0
+		fd._maj_pionniers()
+		_check(not fd.pionniers.has(v2), "leur mission finie, ils repartent")
+		fd.repartir()
+		bs.demolish(mc2)
+
 	print("Sauvegarde :")
 	var sec: Dictionary = scene.save_sections()
 	_check(sec.has("fondateurs") and bool(sec.fondateurs.arrives), "section « fondateurs »")

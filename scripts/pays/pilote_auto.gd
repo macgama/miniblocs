@@ -10,9 +10,11 @@ extends Node
 ##   2. une seule construction, la plus urgente, si la caisse peut la payer en
 ##      gardant une réserve (3 mois de dépenses, 200 k€ au moins) :
 ##      - pas de rue : une rue de 300 m devant la mairie ;
-##      - logements presque pleins : une zone résidentielle le long d'une rue ;
-##      - services selon la population (BESOINS) : école dès 60 habitants (ou
-##        des enfants sans école), aire de jeux, boulangerie, parc, pompiers,
+##      - logements presque pleins : une zone résidentielle le long d'une rue
+##        (village neuf : 10 logements d'avance, ou ses zones sont pleines ;
+##        zones de 120 m, plus nombreuses) ;
+##      - services selon la population (BESOINS) : entreprise du bâtiment dès
+##        10 habitants, école dès 60 habitants (ou des enfants sans école), aire de jeux, boulangerie, parc, pompiers,
 ##        police, supérette, antenne 4G, central téléphonique, collecte des
 ##        déchets (dépôt de camions-bennes et décharge), gymnase,
 ##        deuxième école, hôpital ;
@@ -26,10 +28,15 @@ signal message(text: String)
 const JOURS_ENTRE := 7
 const RESERVE_MIN := 200_000
 const ZONE_LONG := 40
+## Village neuf : des zones de 120 m le long des rues (sinon 40 m), pour
+## que les maisons poussent sans attendre le zonage du lendemain.
+const ZONE_LONG_NEUF := 120
 const ZONE_LARGE := 30
 const CHOMAGE_MAX := 12.0
 ## Services : [type, habitants à partir desquels il en faut un, nombre voulu par tranche].
 const BESOINS := [
+	# Ses propres ouvriers pour les chantiers (Fondateurs), dès les premiers foyers.
+	["entreprise_btp", 10, 3000],
 	["ecole", 60, 1500], ["aire_jeux", 40, 0], ["boulangerie", 80, 0], ["parc", 150, 0], ["pompiers", 250, 0],
 	["police", 250, 4000], ["superette", 300, 0], ["pylone_4g", 150, 0], ["central_telephonique", 400, 0],
 	["depot_collecte", 200, 6000], ["decharge", 200, 0],
@@ -203,6 +210,16 @@ func compter(vid: int, type_id: String) -> int:
 	return n
 
 
+## Bâtiments à logements en chantier dans la ville.
+func logements_en_chantier(vid: int) -> int:
+	var n := 0
+	for bid in buildings.buildings:
+		if buildings.en_chantier(bid) and int(BuildingCatalog.get_type(String(buildings.buildings[bid].t)).get("logements", 0)) > 0 \
+				and communes.village_de(bid) == vid:
+			n += 1
+	return n
+
+
 func zones_de(vid: int, k: String) -> int:
 	var n := 0
 	for zid in zones.zones:
@@ -234,14 +251,21 @@ func construire(vid: int) -> String:
 	var c := chiffres(vid)
 	var libres := int(c.logements) - int(c.foyers)
 	var hab := int(c.hab)
-	if libres < maxi(3, int(c.foyers) / 10) and zones_de(vid, "R") <= hab / 40 + 2:
-		var t := _zoner(vid, "R")
+	# Village neuf : des logements d'avance pour les familles qui arrivent, et une zone de plus.
+	var neuf := communes.est_jeune(vid)
+	var marge := maxi(10 if neuf else 3, int(c.foyers) / 10)
+	# Village neuf : aussi quand ses zones ne font plus pousser de logements (pleines).
+	var a_zoner := libres < marge or (neuf and logements_en_chantier(vid) < 2)
+	if a_zoner and zones_de(vid, "R") <= (hab / 25 + 4 if neuf else hab / 40 + 2):
+		var t := _zoner(vid, "R", ZONE_LONG_NEUF if neuf else ZONE_LONG)
 		if t != "":
 			return t
 	for b in BESOINS:
 		var id := String(b[0])
 		var voulu := 1 if hab >= int(b[1]) else 0
-		if int(b[2]) > 0:
+		# Un de plus par tranche, mais seulement passé le seuil : avant, ceili(1 / 1500) = 1
+		# faisait bâtir école, police et dépôt de collecte dès le premier habitant.
+		if int(b[2]) > 0 and voulu > 0:
 			voulu = maxi(voulu, ceili(float(hab) / float(b[2])))
 		if id == "ecole" and int(c.sans_ecole) > 0:
 			voulu = maxi(voulu, compter(vid, "ecole") + (1 if int(c.sans_ecole) > 15 or compter(vid, "ecole") == 0 else 0))
@@ -321,19 +345,21 @@ func _poser(vid: int, id: String) -> int:
 	return -1
 
 
-## Une zone de 40 × 30 m le long d'une rue, sur un terrain libre.
-func _zoner(vid: int, k: String) -> String:
-	for b in _bords(vid, ZONE_LARGE * 0.5 + 2.0):
-		var q: Vector3 = b[0]
-		var tg: Vector3 = b[1]
-		var le_long_x := absf(tg.x) >= absf(tg.z)
-		var w := ZONE_LONG if le_long_x else ZONE_LARGE
-		var h := ZONE_LARGE if le_long_x else ZONE_LONG
-		var rect := Rect2i(roundi(q.x) - w / 2, roundi(q.z) - h / 2, w, h)
-		if not _libre(vid, rect):
-			continue
-		if zones.add_zone(k, rect) >= 0:
-			return "Zone %s de %d × %d m." % [String(ZoneSystem.KINDS[k].name).to_lower(), w, h]
+## Une zone de 40 × 30 m (ou `longueur` × 30 m) le long d'une rue, sur un terrain libre.
+func _zoner(vid: int, k: String, longueur := ZONE_LONG) -> String:
+	var bords := _bords(vid, ZONE_LARGE * 0.5 + 2.0)
+	for l in ([longueur, ZONE_LONG] if longueur > ZONE_LONG else [ZONE_LONG]):
+		for b in bords:
+			var q: Vector3 = b[0]
+			var tg: Vector3 = b[1]
+			var le_long_x := absf(tg.x) >= absf(tg.z)
+			var w: int = l if le_long_x else ZONE_LARGE
+			var h: int = ZONE_LARGE if le_long_x else l
+			var rect := Rect2i(roundi(q.x) - w / 2, roundi(q.z) - h / 2, w, h)
+			if not _libre(vid, rect):
+				continue
+			if zones.add_zone(k, rect) >= 0:
+				return "Zone %s de %d × %d m." % [String(ZoneSystem.KINDS[k].name).to_lower(), w, h]
 	return _prolonger(vid)
 
 

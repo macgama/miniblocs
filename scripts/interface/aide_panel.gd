@@ -67,6 +67,7 @@ const SECTIONS := [
 		["Drapeau", "Maj+M, bouton Changer… à côté du drapeau d'un village : n'importe quel pays, ou aucun"],
 		["Maj+M", "panneau Villages : habitants, territoire et palier de chaque village ; Aller, Renommer, Agrandir, Céder, Fusionner"],
 		["Fondateurs", "100 fondateurs (réglable en F10) arrivent avec le premier village et campent près de la Maison de commune : ce sont les ouvriers des premiers chantiers. Vivres pour 90 jours, puis ravitaillement payé par la caisse ; ils emménagent dans les maisons finies"],
+		["Villages neufs", "un village fondé après le premier reçoit 20 pionniers pendant 60 jours pour bâtir ses logements ; tant qu'il a moins de 150 foyers, ses zones poussent avant celles des grandes villes (maisons et petits immeubles) et son premier chantier a toujours une équipe"],
 		["Maj+H", "panneau Fondateurs et chantiers : équipes de chaque chantier (pause, « En premier »), affecter les fondateurs à n'importe quel métier ou les rappeler au chantier"],
 		["Ouvriers", "un chantier veut une équipe complète (maison ≈ 8 à 10 ouvriers) : moins d'ouvriers, il avance moins vite ; aucun, il attend. Plus tard : Entreprise du bâtiment (Construire → Industrie)"],
 		["Territoire", "carrés de 100 × 100 m autour de la mairie : 500 m au départ, il grandit tout seul avec la population (800 m à 100 hab., 1,2 km à 500, 2 km à 2 000, 3 km à 10 000)"],

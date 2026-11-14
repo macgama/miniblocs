@@ -39,8 +39,9 @@ var extra_chance: Callable
 ## Si défini, Callable(rect: Rect2i) -> String : raison qui interdit de peindre
 ## ce zonage (territoire des villages), ou "".
 var area_check: Callable
-## Optionnel : Callable() -> bool. Faux : les promoteurs attendent avant d'ouvrir un
-## nouveau chantier (Fondateurs : plus d'ouvriers libres).
+## Optionnel : Callable(vid := -1) -> bool. Faux : les promoteurs attendent avant
+## d'ouvrir un nouveau chantier (Fondateurs : plus d'ouvriers libres). vid : le
+## village neuf où pousserait le bâtiment, -1 pour le reste de la carte.
 var peut_pousser: Callable
 var current_style := ""
 
@@ -328,9 +329,12 @@ func _process(delta: float) -> void:
 func grow_step() -> int:
 	if zones.is_empty() or buildings == null or buildings.transport == null:
 		return -1
+	var d := demand()
+	var neuf := _pousser_villages_neufs(d)
+	if neuf >= 0:
+		return neuf
 	if peut_pousser.is_valid() and not bool(peut_pousser.call()):
 		return -1
-	var d := demand()
 	var ids := zones.keys()
 	# Le type de zone le plus demandé d'abord (logements, commerces ou industries),
 	# chacun à son tour parmi ses zones : les emplois suivent les habitants.
@@ -348,6 +352,66 @@ func grow_step() -> int:
 	return -1
 
 
+## Villages neufs (Communes.est_jeune) : à chaque pas, un essai dans les zones de
+## l'un d'eux, chacun à son tour, avant le reste de la carte. Sans ça, leurs deux
+## ou trois zones attendent derrière les dizaines de zones des grandes villes, et
+## un village fondé à côté d'une ville comptait 8 à 185 habitants après 40 jours.
+## Les logements y poussent même si la demande de la carte est comblée (des
+## familles viennent toujours s'installer dans un village neuf), en maisons et
+## petits immeubles ; commerces et activités suivent la demande.
+func _pousser_villages_neufs(d: Dictionary) -> int:
+	var groupes := _zones_villages_neufs()
+	if groupes.is_empty():
+		return -1
+	var vids := groupes.keys()
+	vids.sort()
+	_tour_neufs = (_tour_neufs + 1) % vids.size()
+	var vid := int(vids[_tour_neufs])
+	if peut_pousser.is_valid() and not bool(peut_pousser.call(vid)):
+		return -1
+	var ids: Array = groupes[vid]
+	for k in ["R", "C", "I"]:
+		if k != "R" and float(d.get(k, 0.0)) <= 0.0:
+			continue
+		var de_k := ids.filter(func(id: int) -> bool: return String(zones[id].k) == k)
+		if de_k.is_empty():
+			continue
+		var bid := _grow_in(zones[de_k[rng.randi() % de_k.size()]], INF if k == "R" else float(d[k]), LOGEMENTS_VILLAGE_NEUF)
+		if bid >= 0:
+			return bid
+	return -1
+
+
+## Un village neuf se bâtit de maisons et de petits immeubles, pas de tours.
+const LOGEMENTS_VILLAGE_NEUF := 20
+var _tour_neufs := 0
+## Village de chaque zone (centre), recalculé quand les zones changent.
+var _village_zone := {}
+var _village_zone_cle := ""
+
+
+## Zones des villages neufs : vid -> [ids de zone].
+func _zones_villages_neufs() -> Dictionary:
+	var cm := Communes.instance
+	if cm == null or cm.villages.size() < 2:
+		return {}
+	var cle := "%d:%d" % [next_id, zones.size()]
+	if cle != _village_zone_cle:
+		_village_zone_cle = cle
+		_village_zone.clear()
+		for id in zones:
+			var c := zone_rect(zones[id]).get_center()
+			_village_zone[id] = cm.village_au_point(float(c.x), float(c.y))
+	var out := {}
+	for id in _village_zone:
+		var vid := int(_village_zone[id])
+		if vid >= 0 and zones.has(id) and cm.est_jeune(vid):
+			if not out.has(vid):
+				out[vid] = []
+			(out[vid] as Array).append(int(id))
+	return out
+
+
 ## Demande d'un type de zone rapportée à sa taille habituelle (un logement vaut
 ## ~2,3 habitants, un emploi un actif) pour comparer R, C et I.
 static func _besoin_relatif(d: Dictionary, k: String) -> float:
@@ -356,7 +420,8 @@ static func _besoin_relatif(d: Dictionary, k: String) -> float:
 
 ## Cherche une place le long d'une route de la zone pour un bâtiment de son type.
 ## need : demande du type de zone ; un gros employeur attend qu'elle suffise.
-func _grow_in(z: Dictionary, need := INF) -> int:
+## max_logements : plafond de logements par bâtiment (village neuf : pas de tour), 0 sans plafond.
+func _grow_in(z: Dictionary, need := INF, max_logements := 0) -> int:
 	var rect := zone_rect(z)
 	var net := buildings.transport.network
 	var cached: Dictionary = _roads_cache.get(int(z.id), {})
@@ -369,6 +434,13 @@ func _grow_in(z: Dictionary, need := INF) -> int:
 	if roads.is_empty():
 		return -1
 	var types := types_for(String(z.k), String(z.get("s", "")))
+	if max_logements > 0:
+		var petits := {}
+		for id in types:
+			if int(BuildingCatalog.get_type(id).get("logements", 0)) <= max_logements:
+				petits[id] = types[id]
+		if not petits.is_empty():
+			types = petits
 	for attempt in 14:
 		var type_id := _pick(types)
 		var t := BuildingCatalog.get_type(type_id)

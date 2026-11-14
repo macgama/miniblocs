@@ -236,6 +236,7 @@ func _ready() -> void:
 		if res.ok:
 			blocks.set_tool(BlockEditor.Tool.NONE)
 			build_panel.clear_selection())
+	build_panel.block_piece_changed.connect(func(d: int, n: int) -> void: blocks.set_piece(d, n))
 	build_panel.wall_height_changed.connect(func(h: int) -> void:
 		blocks.wall_height = h
 		blocks._emit_help())

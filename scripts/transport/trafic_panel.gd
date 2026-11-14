@@ -294,8 +294,13 @@ func _view_summary() -> void:
 	var m: Dictionary = trafic.ledger.mois
 	_text("Tickets : %s · Stationnement : %s" % [euros(float(m.get("Tickets de transport", 0.0))), euros(float(m.get("Stationnement", 0.0)))])
 	var ent := trafic.budget_entretien()
-	if not ent.is_empty():
-		_text("Exploitation des lignes : %s par mois" % euros(float(ent.values()[0])), true)
+	if trafic.lignes_eco != null:
+		ent = trafic.lignes_eco.budget_entretien()
+	var cout := 0.0
+	for v in ent.values():
+		cout += float(v)
+	if cout > 0.0:
+		_text("Exploitation et entretien des lignes : %s par mois (bilan de chaque ligne : panneau Lignes, L)" % euros(cout), true)
 	_section("Réglages")
 	var r := _row()
 	r.add_child(_button("Bouchons visibles", func() -> void:

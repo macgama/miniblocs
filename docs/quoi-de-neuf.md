@@ -4,6 +4,11 @@ Tout est dans `main`, et les 9 tests automatiques passent (`sh tests/tous.sh`).
 
 ## Nouveautés
 
+**Lignes rentables (ou pas) : le compte de chaque ligne** (touche **L**, 14 novembre)
+- Les bus, trams, métros, trains, bateaux, avions et camions s'achètent (prix réels selon le modèle, affiché dans la liste) et se revendent selon leur âge.
+- Chaque ligne a son bilan (bouton « Bilan ▸ ») : voyageurs ou tonnes par jour, recettes des tickets et du fret, personnel, énergie, entretien, pannes, résultat du mois et depuis la création.
+- Les véhicules vieillissent : plus d'entretien, puis des pannes après leur durée de vie (bus 12 ans, tram 30…). « Renouveler les usés » ou renouvellement automatique.
+- Le fret n'est payé que pour les marchandises que les entreprises de la région expédient ou reçoivent (voir docs/lignes-rentabilite.md).
 **Quartiers et arrêtés municipaux** (touche **Maj+Y**, 14 novembre)
 - On peint ses quartiers au pinceau (îlots de 50 m) sur le territoire de sa ville et on les nomme. Dix arrêtés par quartier : zone 30, rues piétonnes, poids lourds interdits, tranquillité la nuit, tri obligatoire, détecteurs de fumée, éclairage renforcé ou éteint, stationnement payant, fleurissement. Ils coûtent (mise en place + par mois, au budget de la ville) et changent les trajets, la vitesse des voitures, le bruit, le tri, les incendies et l'avis des habitants. Mairie perdue : le conseil élu les choisit selon son programme ; le pilote automatique en ajoute aussi (voir docs/quartiers.md).
 

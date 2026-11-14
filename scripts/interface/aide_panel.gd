@@ -201,6 +201,9 @@ const SECTIONS := [
 		["Carte du trafic", "bouton du panneau : routes colorées du vert (fluide) au rouge (bouché), maintenant ou à l'heure de pointe ; parkings colorés selon leur remplissage"],
 		["Stationnement", "places privées des entreprises, puis le long des rues et dans les parkings (Lignes > Parking) ; sans place, on tourne et on marche ; tarif réglable par parking"],
 		["Lignes", "chaque bus, tram ou métro a ses places ; plein, on attend le suivant ; ticket réglable par ligne (1,50 € par défaut, gratuit pour les moins de 18 ans)"],
+		["Bilan des lignes", "panneau Lignes (L) > Bilan ▸ : voyageurs ou tonnes par jour, recettes (tickets, fret), personnel et énergie, entretien et pannes, résultat du mois ; prix du ticket réglable ici aussi"],
+		["Véhicules", "achetés à la création de la ligne (prix réel selon le modèle, réglage Admin du coût), revendus selon leur âge ; ils vieillissent, coûtent plus d'entretien et tombent en panne après leur durée de vie (bus 12 ans, tram 30, train 35…) : « Renouveler les usés » ou case Automatique"],
+		["Fret", "les camions, trains et bateaux de fret ne sont payés (à la tonne et au km) que pour les marchandises que les entreprises de la région expédient ou reçoivent ; sans client, ils roulent à vide"],
 		["Voie de bus", "Choisir une route > Voie de bus : bus et trams y passent les bouchons, les voitures perdent une voie ; Fermer à la circulation coupe la route"],
 	]],
 	["Services publics", [

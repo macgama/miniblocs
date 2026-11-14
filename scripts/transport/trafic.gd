@@ -85,6 +85,9 @@ var stats: Dictionary = {}
 var ledger := {"mois": {}, "precedent": {}, "jours": 0}
 ## Facteur visible sur les voitures (désactivable pour comparer).
 var visible_jams := true
+## Compte d'exploitation des lignes (ExploitationLignes) : quand il est là, c'est
+## lui qui donne au budget les tickets et l'exploitation des lignes.
+var lignes_eco: Node = null
 
 var _phase := "repos"
 var _pause := 0.5
@@ -894,7 +897,7 @@ func _book(poste: String, amount: float) -> void:
 ## Coût mensuel d'exploitation des lignes (groupe « budget_entretien »).
 func budget_entretien() -> Dictionary:
 	var st := transport.stations if transport != null else null
-	if st == null:
+	if st == null or lignes_eco != null:
 		return {}
 	var total := 0.0
 	for lid in st.lines:
@@ -906,7 +909,7 @@ func budget_entretien() -> Dictionary:
 ## Recettes mensuelles estimées (tickets, stationnement), versées par le budget communal.
 func budget_recettes() -> Dictionary:
 	var out := {}
-	var t := float(stats.get("fare_day", 0.0)) * 22.0
+	var t := float(stats.get("fare_day", 0.0)) * 22.0 if lignes_eco == null else 0.0
 	var p := float(stats.get("parking_revenue_day", 0.0)) * 22.0
 	if t > 0.0:
 		out["Tickets de transport"] = t

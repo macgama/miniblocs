@@ -42,6 +42,8 @@ var reseaux_panel: ReseauxPanel
 var trafic: Trafic
 var trafic_panel: TraficPanel
 var trafic_overlay: TraficOverlay
+## Compte d'exploitation des lignes : achats, vieillissement, recettes et coûts (panneau L).
+var lignes_eco: ExploitationLignes
 var services: ServicesPublics
 var services_panel: ServicesPanel
 ## Budget de la commune : impôts, emprunts, entretien et usure des voies (touche M).
@@ -312,7 +314,7 @@ func save_sections() -> Dictionary:
 		"zones": zones.to_dict(), "blocs": blocks.to_dict(), "plans": plans.to_dict(), "ambiance": ambiance.to_dict(),
 		"creations": Creations.to_dict(Creations.used_by(buildings)),
 		"personnage": ($VueSol as VueSol).to_dict(), "habitants": population.to_dict(), "mobilier": mobilier.to_dict(),
-		"production": production.to_dict(), "agriculture": agriculture.to_dict(), "urgences": urgences.to_dict(), "reseaux": reseaux.to_dict(), "dechets": dechets.to_dict(), "funeraire": funeraire.to_dict(), "trafic": trafic.to_dict(), "reglages": _settings_snapshot().to_dict(), "budget": budget.to_dict(), "evenements": evenements.to_dict(), "decors": decors.to_dict(),
+		"production": production.to_dict(), "agriculture": agriculture.to_dict(), "urgences": urgences.to_dict(), "reseaux": reseaux.to_dict(), "dechets": dechets.to_dict(), "funeraire": funeraire.to_dict(), "trafic": trafic.to_dict(), "lignes_eco": lignes_eco.to_dict(), "reglages": _settings_snapshot().to_dict(), "budget": budget.to_dict(), "evenements": evenements.to_dict(), "decors": decors.to_dict(),
 		"nuisances": nuisances.to_dict(), "telecom": telecom.to_dict(), "services": services.to_dict(), "carrieres": carrieres.to_dict()}
 	sec["avis"] = avis.to_dict()
 	sec["communes"] = communes.to_dict()
@@ -423,6 +425,7 @@ func load_game(slot := "") -> bool:
 	urgences.from_dict(sec.get("urgences", {}))
 	reseaux.from_dict(sec.get("reseaux", {}))
 	trafic.from_dict(sec.get("trafic", {}))
+	lignes_eco.from_dict(sec.get("lignes_eco", {}))
 	services.from_dict(sec.get("services", {}))
 	telecom.from_dict(sec.get("telecom", {}))
 	dechets.from_dict(sec.get("dechets", {}))
@@ -1190,6 +1193,12 @@ func _setup_trafic() -> void:
 	trafic.setup(transport, population)
 	population.trafic = trafic
 	trafic.message.connect(func(t: String) -> void: hud.show_message(t))
+	lignes_eco = ExploitationLignes.new()
+	lignes_eco.name = "ExploitationLignes"
+	add_child(lignes_eco)
+	lignes_eco.setup(transport, trafic, population, buildings, production)
+	lignes_eco.message.connect(func(t: String) -> void: hud.show_message(t))
+	transit_panel.set_eco(lignes_eco)
 	trafic_overlay = TraficOverlay.new()
 	trafic_overlay.name = "CarteTrafic"
 	add_child(trafic_overlay)
@@ -1865,6 +1874,7 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 	urgences.clear()
 	reseaux.clear()
 	trafic.clear()
+	lignes_eco.clear()
 	services.clear()
 	telecom.clear()
 	dechets.clear()

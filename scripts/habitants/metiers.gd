@@ -79,6 +79,7 @@ const METIERS := {
 	"agent_accueil_zoo": {"name": "Agent·e d'accueil du zoo", "salaire": 1600, "h": [8.5, 19.5], "j": "tous", "geste": ["billets"]},
 	"animateur_zoo": {"name": "Animateur·rice pédagogique", "salaire": 1850, "h": [9.0, 18.0], "j": "tous", "geste": ["conseiller"]},
 	"laborantin": {"name": "Technicien·ne de laboratoire", "salaire": 2300, "h": [8.0, 17.0], "j": "semaine"},
+	"maitre_nageur": {"name": "Maître-nageur·euse sauveteur·rice", "salaire": 1800, "h": [10.0, 19.5], "j": "tous", "geste": ["surveiller"]},
 }
 
 ## Métiers proposés par bâtiment : clé = type, archétype de style ou catégorie.

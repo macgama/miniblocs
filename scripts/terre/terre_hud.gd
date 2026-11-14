@@ -45,6 +45,8 @@ signal quartiers_requested
 signal trafic_requested
 ## Bouton « Déchets » (touche X).
 signal dechets_requested
+## Bouton « Créer un parc » (Maj+A) : éditeur d'attractions, allées, décors.
+signal parc_editeur_requested
 ## Bouton « Parc de loisirs » (Maj+G).
 signal parc_requested
 ## Bouton « Zoo » (menu Loisirs, Maj+Z).
@@ -115,6 +117,7 @@ const CATEGORIES := [
 	{"id": "trafic", "name": "Trafic", "icon": "circulation", "key": "Maj+L", "panel": true, "group": "transports"},
 	{"id": "budget", "name": "Budget", "icon": "budget", "key": "M", "panel": true, "group": "ville"},
 	{"id": "dechets", "name": "Déchets", "icon": "dechets", "key": "X", "panel": true, "group": "ville"},
+	{"id": "parc_editeur", "name": "Créer un parc (attractions, grands-huit, allées, décors)", "icon": "loisirs", "key": "Maj+A", "panel": true, "group": "loisirs"},
 	{"id": "parc", "name": "Parc de loisirs", "icon": "parc", "key": "Maj+G", "panel": true, "group": "loisirs"},
 	{"id": "zoo", "name": "Zoo", "icon": "zoo", "key": "Maj+Z", "panel": true, "group": "loisirs"},
 	{"id": "cartes", "name": "Cartes", "icon": "cartes", "key": "N", "panel": true, "group": "infos"},
@@ -792,6 +795,7 @@ func _on_category(id: String) -> void:
 			"quartiers": quartiers_requested.emit()
 			"trafic": trafic_requested.emit()
 			"dechets": dechets_requested.emit()
+			"parc_editeur": parc_editeur_requested.emit()
 			"parc": parc_requested.emit()
 			"zoo": zoo_requested.emit()
 			"cartes": cartes_requested.emit()

@@ -77,6 +77,26 @@ var res: Reseaux
 var _t0_msg := 0.0
 
 
+func _offline(g: Node) -> void:
+	var w: TerrainWorld = g.get_node("Terrain")
+	w.tiles.offline_generator = _flat_tile
+	w.land.offline_generator = func(_lat: float, _lon: float) -> int: return 30
+
+
+## La partie s'ouvre derrière l'écran de chargement : on attend la scène Terre,
+## on coupe le réseau, puis on attend que l'écran s'efface.
+func _wait_game() -> Node:
+	var t0 := Time.get_ticks_msec()
+	while (current_scene == null or current_scene.name != "Terre") and Time.get_ticks_msec() - t0 < 30000:
+		await process_frame
+	var g: Node = current_scene
+	if g != null and g.name == "Terre":
+		_offline(g)
+	while EcranChargement.actif != null and Time.get_ticks_msec() - t0 < 60000:
+		await process_frame
+	return g
+
+
 func _route(a: Vector2, b: Vector2) -> bool:
 	var y := world.cell_height(Vector2i(roundi(a.x), roundi(a.y)))
 	var r: Dictionary = tr.build_segment("route", Vector3(a.x, y, a.y), Vector3(b.x, y, b.y))
@@ -159,9 +179,9 @@ func _run() -> void:
 	await _frames(5)
 	var globe: Node = current_scene
 	globe.select_place(46.2, 6.6, "Valpartie (test)", true)
+	ReglagesPartie.prochaine.tutoriel = false
 	globe.start_game()
-	await _frames(3)
-	game = current_scene
+	game = await _wait_game()
 	_check(game != null and game.name == "Terre", "la partie s'ouvre")
 	world = game.world
 	world.tiles.offline_generator = _flat_tile
@@ -312,10 +332,7 @@ func _run() -> void:
 	await _frames(3)
 	globe = current_scene
 	globe.load_saved_game(slot)
-	await _frames(2)
-	game = current_scene
-	game.world.tiles.offline_generator = _flat_tile
-	game.world.land.offline_generator = func(_lat: float, _lon: float) -> int: return 30
+	game = await _wait_game()
 	await _frames(10)
 	_check(game.buildings.buildings.size() == n_bat, "bâtiments revenus (%d / %d)" % [game.buildings.buildings.size(), n_bat])
 	# Le temps repart à la vitesse de la partie : quelques foyers peuvent déjà emménager.

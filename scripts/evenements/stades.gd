@@ -71,13 +71,13 @@ static func _milliers(n: int) -> String:
 ## Le type est-il un stade (modèle Blender ou terrain de foot) ?
 static func est_stade(type_id: String) -> bool:
 	var t := BuildingCatalog.get_type(type_id)
-	return t.has("stade") or type_id == "foot"
+	return t.has("stade") or BuildingCatalog.base_of(type_id) == "foot"
 
 
 ## Places d'un stade (terrain de foot : sa tribune).
 static func places(type_id: String) -> int:
 	var t := BuildingCatalog.get_type(type_id)
-	return int(t.get("stade", 500 if type_id == "foot" else 0))
+	return int(t.get("stade", 500 if BuildingCatalog.base_of(type_id) == "foot" else 0))
 
 
 static var _meshes := {}
@@ -146,7 +146,7 @@ static func pelouse_monde(bs: BuildingSystem, bid: int) -> Dictionary:
 	var pel := Vector2.ZERO
 	if t.has("pelouse"):
 		pel = t.pelouse
-	elif String(b.t) == "foot":
+	elif BuildingCatalog.base_of(String(b.t)) == "foot":
 		# Terrain de foot du catalogue : la longueur suit la profondeur.
 		basis = basis * Basis(Vector3.UP, PI / 2.0)
 	var length := 52.5

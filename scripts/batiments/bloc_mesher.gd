@@ -60,6 +60,15 @@ func face(pts: Array, n: Vector3, layer: int, col: Color, glass: bool) -> void:
 	_i[s] = idx
 
 
+## Décale tout ce qui a été émis (les UV restent ceux d'avant le décalage).
+func translate(off: Vector3) -> void:
+	for s in 2:
+		var v: PackedVector3Array = _v[s]
+		for i in v.size():
+			v[i] += off
+		_v[s] = v
+
+
 func to_mesh() -> ArrayMesh:
 	var mesh := ArrayMesh.new()
 	var mats := [BlocMateriaux.solid_material(), BlocMateriaux.glass_material()]

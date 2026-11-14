@@ -40,6 +40,9 @@ const EXTRA := ["f2ede1", "e8d8b0", "d9a066", "c2593f", "8c3b2e", "5a6b7d", "3d5
 ## les stades qui gardent leurs matériaux.
 static func can_customize(type_id: String) -> bool:
 	var t := BuildingCatalog.get_type(type_id)
+	# Les modèles de l'atelier et les créations ont leur propre apparence.
+	if t.has("modele") or t.has("creation"):
+		return false
 	if t.has("arch"):
 		return true
 	return is_glb(type_id) and not BibleGlb.groupes(type_id).is_empty()

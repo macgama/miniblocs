@@ -57,6 +57,15 @@ static func ids() -> Array[String]:
 ## Entrée de catalogue d'une création (même format que BuildingCatalog).
 static func catalog_entry(id: String) -> Dictionary:
 	var c: Dictionary = items[id]
+	var f := String(c.get("fonction", ""))
+	if f != "" and not BuildingCatalog.get_type(f).is_empty():
+		# Création avec une fonction : elle joue le rôle de ce bâtiment (voir ModelesJeu).
+		var t := ModelesJeu.base_fields(f, int(c.w), int(c.d))
+		t.merge({"name": c.name, "cost": ModelesJeu.price(f, int(c.w), int(c.d), int(c.cost)), "region": "monde", "era": "contemporain", "style": "", "creation": true,
+			"blocks": c.blocks, "desc": "Ma création · %s · %d × %d m" % [ModelesJeu.fonction_name(f), c.w, c.d]}, true)
+		if c.get("hidden", false):
+			t["cache"] = true
+		return t
 	return {"name": c.name, "cat": CATEGORY, "w": int(c.w), "d": int(c.d), "access": ["route", "chemin"],
 		"cost": int(c.cost), "region": "monde", "era": "contemporain", "style": "", "creation": true,
 		"blocks": c.blocks, "desc": "Ma création · %d blocs · %d × %d m" % [(c.blocks as Array).size() / 4, c.w, c.d]}
@@ -106,6 +115,7 @@ static func remove(id: String) -> void:
 	ensure_loaded()
 	if items.has(id):
 		items[id]["hidden"] = true
+		_register(id)
 		_write()
 
 
@@ -117,6 +127,17 @@ static func used_by(buildings: BuildingSystem) -> Array:
 		if items.has(t) and not t in out:
 			out.append(t)
 	return out
+
+
+## Fonction d'une création : le bâtiment du jeu dont elle prend le rôle ("" : aucune).
+static func set_fonction(id: String, fonction: String) -> void:
+	if items.has(id):
+		if fonction == "":
+			items[id].erase("fonction")
+		else:
+			items[id]["fonction"] = fonction
+		_register(id)
+		_write()
 
 
 static func rename(id: String, name: String) -> void:
@@ -170,10 +191,9 @@ static func merge_dict(data: Dictionary) -> int:
 		if items.has(id):
 			# Une création déjà connue mais retirée de la liste reste cachée.
 			continue
-			continue
 		items[id] = {"name": String(c.get("name", "Création")), "w": int(c.w), "d": int(c.d),
 			"blocks": (c.blocks as Array).map(func(v: Variant) -> int: return int(v)),
-			"cost": int(c.get("cost", 1000)), "hidden": bool(c.get("hidden", false))}
+			"cost": int(c.get("cost", 1000)), "hidden": bool(c.get("hidden", false)), "fonction": String(c.get("fonction", ""))}
 		_register(id)
 		n += 1
 	return n

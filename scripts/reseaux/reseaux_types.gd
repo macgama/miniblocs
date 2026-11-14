@@ -144,7 +144,7 @@ static func info(type_id: String) -> Dictionary:
 	var t := BuildingCatalog.get_type(type_id)
 	if t.has("reseau"):
 		return t.reseau
-	if type_id == "chateau_eau" or String(t.get("role", "")) == "chateau_eau" or String(t.get("arch", "")) == "chateau_eau":
+	if BuildingCatalog.base_of(type_id) == "chateau_eau" or String(t.get("role", "")) == "chateau_eau" or String(t.get("arch", "")) == "chateau_eau":
 		return CHATEAU
 	return {}
 

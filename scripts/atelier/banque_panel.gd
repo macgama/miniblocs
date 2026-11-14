@@ -19,6 +19,8 @@ var _type := ""
 var _style := ""
 var _era := ""
 var _color := ""
+## Modèle dont on choisit la fonction (liste ouverte sous sa carte).
+var _choosing := ""
 
 
 func setup(b: BuildingSystem, m: Mobilier, p: BanquePose, prep: Callable) -> void:
@@ -40,7 +42,9 @@ static func _label(text: String, size := 12, dim := false) -> Label:
 
 func build(bp: BuildingPanel) -> void:
 	bp.add_control(_label("Tes bâtiments personnalisés et tes bâtiments en murs fins, prêts à reposer. "
-		+ "Enregistre un bâtiment depuis « Personnaliser » (clic sur un bâtiment, outil 1) ou depuis l'onglet Intérieur.", 12, true))
+		+ "Enregistre un bâtiment depuis « Personnaliser » (clic sur un bâtiment, outil 1) ou depuis l'onglet Intérieur. "
+		+ "Choisis sa « Fonction » (maison, centrale, stade, piscine…) : il devient un vrai bâtiment du jeu, "
+		+ "dans le catalogue (B → Mes modèles), avec son prix, la rotation R, l'accès à une route et un chantier.", 12, true))
 	# --- Filtres ---------------------------------------------------------------------
 	var search := LineEdit.new()
 	search.placeholder_text = "Chercher un modèle…"
@@ -136,11 +140,23 @@ func _card(id: String, bp: BuildingPanel) -> Control:
 	col.add_child(title)
 	col.add_child(_label(BanqueModeles.describe(d), 11, true))
 	col.add_child(_label(("Murs fins, meublé, visitable" if String(d.genre) == "plan" else "Bâtiment du catalogue personnalisé") + " · par " + String(d.get("auteur", "?")), 11, true))
-	var btns := HBoxContainer.new()
+	var plan := String(d.genre) == "plan"
+	var cid := ModelesJeu.catalog_id(id)
+	if plan and not BuildingCatalog.get_type(cid).is_empty():
+		var t := BuildingCatalog.get_type(cid)
+		var fl := _label("Fonction : %s · %d × %d m · %s" % [ModelesJeu.fonction_name(ModelesJeu.fonction_of(d)), int(t.w), int(t.d),
+			BuildingSystem.format_short(ReglagesPartie.prix(BuildingCatalog.cost(cid)))], 12)
+		fl.add_theme_color_override("font_color", UiStyle.GOOD)
+		fl.tooltip_text = FonctionChoix._resume(t)
+		fl.mouse_filter = Control.MOUSE_FILTER_PASS
+		col.add_child(fl)
+	var btns := HFlowContainer.new()
 	col.add_child(btns)
 	var put := Button.new()
 	put.text = "Poser"
 	put.icon = Icones.get_icon("plus", 16)
+	put.tooltip_text = ("Comme un bâtiment du catalogue : prix, rotation R, accès à une route, chantier. Il joue le rôle de sa fonction."
+		if plan else "Pose ce bâtiment personnalisé (prix, rotation R, accès à une route, chantier).")
 	put.pressed.connect(func() -> void:
 		if prepare.is_valid():
 			prepare.call()
@@ -149,9 +165,29 @@ func _card(id: String, bp: BuildingPanel) -> Control:
 				bs.message.emit("Ce modèle utilise un bâtiment inconnu de cette version du jeu.")
 				return
 			bs.set_place(String(d.type), Personnalisation.clean(d.get("perso", {})), int(d.get("v", 0)))
+		elif not BuildingCatalog.get_type(cid).is_empty():
+			bs.set_place(cid)
 		else:
 			pose.start(id))
 	btns.add_child(put)
+	if plan:
+		var furnished := Button.new()
+		furnished.text = "Poser meublé"
+		furnished.tooltip_text = "Pose les vrais murs, pièces et meubles : on peut entrer et tout retoucher (sans rotation, sans chantier)."
+		furnished.pressed.connect(func() -> void:
+			if prepare.is_valid():
+				prepare.call()
+			pose.start(id))
+		btns.add_child(furnished)
+		var fn := Button.new()
+		fn.text = "Fonction"
+		fn.toggle_mode = true
+		fn.button_pressed = _choosing == id
+		fn.tooltip_text = "Le bâtiment du jeu dont ce modèle prend le rôle : logement, centrale électrique, stade, piscine, grand-huit…"
+		fn.pressed.connect(func() -> void:
+			_choosing = "" if _choosing == id else id
+			bp.show_category(CATEGORY))
+		btns.add_child(fn)
 	var exp := Button.new()
 	exp.text = "Exporter"
 	exp.tooltip_text = "Crée un fichier à partager dans le dossier d'échange."
@@ -164,4 +200,12 @@ func _card(id: String, bp: BuildingPanel) -> Control:
 		BanqueModeles.remove(id)
 		bp.show_category(CATEGORY))
 	btns.add_child(del)
+	if plan and _choosing == id:
+		var ch := FonctionChoix.new(ModelesJeu.fonction_of(d))
+		ch.picked.connect(func(f: String) -> void:
+			BanqueModeles.set_fonction(id, f)
+			_choosing = ""
+			bs.message.emit("« %s » joue maintenant le rôle de : %s." % [String(d.nom), ModelesJeu.fonction_name(f)])
+			bp.show_category(CATEGORY))
+		col.add_child(ch)
 	return card

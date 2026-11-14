@@ -4,6 +4,11 @@ Tout est dans `main`, et les 9 tests automatiques passent (`sh tests/tous.sh`).
 
 ## Nouveautés
 
+**Tes modèles de l'atelier deviennent de vrais bâtiments** (14 novembre)
+- Dans la Banque (Tab puis 6), chaque bâtiment en murs fins a une **Fonction** : n'importe lequel des 708 bâtiments du jeu (maison, centrale électrique, stade, piscine, ferme, grand-huit, école…). Le modèle fonctionne exactement comme lui, avec ton apparence. Les créations en blocs (Mes créations) ont aussi leur bouton Fonction.
+- Capacités à la taille du modèle : emplois, logements, visiteurs et puissance suivent sa surface par rapport au bâtiment de référence (de ×0,25 à ×4). Prix : les matériaux, et pas moins que le bâtiment de référence à la même surface.
+- Ils se posent comme les autres bâtiments : catalogue B → **Mes modèles** (et la catégorie de leur fonction), prix, R pour tourner, accès à une route, chantier. Ils voyagent avec la sauvegarde. « Poser meublé » garde l'ancien comportement (vrais murs et meubles, visitables). Voir docs/modeles-atelier.md.
+
 **Lignes rentables (ou pas) : le compte de chaque ligne** (touche **L**, 14 novembre)
 - Les bus, trams, métros, trains, bateaux, avions et camions s'achètent (prix réels selon le modèle, affiché dans la liste) et se revendent selon leur âge.
 - Chaque ligne a son bilan (bouton « Bilan ▸ ») : voyageurs ou tonnes par jour, recettes des tickets et du fret, personnel, énergie, entretien, pannes, résultat du mois et depuis la création.

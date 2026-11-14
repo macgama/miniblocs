@@ -31,6 +31,8 @@ static func can_open(type_id: String) -> bool:
 ## Usage des murs fins pour ce type (« » s'il ne s'ouvre pas).
 static func usage_of(type_id: String) -> String:
 	var t := BuildingCatalog.get_type(type_id)
+	if t.has("modele") or t.has("creation"):
+		return ""
 	if t.has("arch"):
 		return String(USAGE.get(String(t.arch), ""))
 	if Personnalisation.is_glb(type_id) and not BibleGlb.volume(type_id).is_empty():

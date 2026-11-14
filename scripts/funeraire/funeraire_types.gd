@@ -99,8 +99,9 @@ static func role_of(type_id: String) -> String:
 
 
 static func spec_of(type_id: String) -> Dictionary:
-	if TYPES.has(type_id):
-		return TYPES[type_id].funeraire
+	var base := BuildingCatalog.base_of(type_id)
+	if TYPES.has(base):
+		return TYPES[base].funeraire
 	return BuildingCatalog.get_type(type_id).get("funeraire", {})
 
 

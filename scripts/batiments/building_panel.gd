@@ -69,6 +69,8 @@ var _opening := "porte"
 ## Mode Créer (atelier) : seuls l'éditeur libre, l'intérieur et Mes créations
 ## sont proposés. Mode Gérer : catalogue et zonage, sans l'éditeur libre.
 var workshop := false
+## Création dont on choisit la fonction (onglet Mes créations).
+var _creation_choosing := ""
 const WORKSHOP_TABS := ["blocs", "creations", "interieur", "banque"]
 var _head_icon: TextureRect
 var _head_title: Label
@@ -82,7 +84,7 @@ var _ladder_level := 0
 ## Icône de chaque onglet.
 const CAT_ICONS := {"logement": "logement", "commerce": "commerce", "industrie": "industrie", "production": "ressources", "reseaux": "reseaux",
 	"services": "services", "dechets": "dechets", "funeraire": "funeraire", "loisirs": "loisirs", "sport": "sport", "parc": "parc", "espaces": "publics",
-	"zones": "zonage", "blocs": "editeur", "creations": "creations", "interieur": "interieur", "banque": "banque"}
+	"zones": "zonage", "blocs": "editeur", "creations": "creations", "interieur": "interieur", "banque": "banque", "mes_modeles": "atelier"}
 
 ## Onglet Intérieur : fonction (BuildingPanel) qui remplit la liste (voir InterieurPanel).
 var interieur_builder: Callable
@@ -134,6 +136,7 @@ func _ready() -> void:
 	_cats_grid = cats
 	var cat_group := ButtonGroup.new()
 	var tabs: Array = BuildingCatalog.CATEGORIES.duplicate()
+	tabs.append({"id": ModelesJeu.CATEGORY, "name": "Mes modèles : les bâtiments de ton atelier, avec leur fonction", "color": Color("9fe3b0")})
 	tabs.append({"id": "zones", "name": "Zonage", "color": Color("ffd166")})
 	tabs.append({"id": "blocs", "name": "Éditeur libre", "color": Color("8ecae6")})
 	tabs.append({"id": Creations.CATEGORY, "name": "Mes créations", "color": Color("f4a261")})
@@ -286,6 +289,9 @@ func show_category(cat: String) -> void:
 	if cat == Creations.CATEGORY:
 		_show_creations()
 		return
+	if cat == ModelesJeu.CATEGORY:
+		_show_models()
+		return
 	if cat == "interieur":
 		_filters.visible = false
 		if interieur_builder.is_valid():
@@ -314,6 +320,35 @@ func show_category(cat: String) -> void:
 	if shown == 0:
 		var none := Label.new()
 		none.text = "Aucun bâtiment pour ces filtres."
+		_list.add_child(none)
+		_item_buttons.append(none)
+
+
+## Mes modèles (mode Gérer) : les modèles de la banque et les créations en blocs,
+## posés comme les autres bâtiments.
+func _show_models() -> void:
+	_filters.visible = true
+	var ids: Array = ModelesJeu.ids()
+	ids.append_array(Creations.ids())
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 6)
+	grid.add_theme_constant_override("v_separation", 6)
+	_list.add_child(grid)
+	_item_buttons.append(grid)
+	var shown := 0
+	for id in ids:
+		var t := BuildingCatalog.get_type(String(id))
+		if t.is_empty() or (_search != "" and not (String(t.name) + " " + String(t.desc)).to_lower().contains(_search)):
+			continue
+		shown += 1
+		grid.add_child(_card(String(id), "atelier"))
+	_cat_title.text += "  ·  %d" % shown
+	if shown == 0:
+		var none := Label.new()
+		none.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		none.text = ("Aucun modèle pour l'instant. Dans l'Atelier, construis un bâtiment en murs et étages, puis onglet Intérieur (4) → "
+			+ "« Enregistrer dans la banque ». Dans la Banque (6), choisis sa Fonction : il apparaît ici.") if _search == "" else "Aucun modèle pour cette recherche."
 		_list.add_child(none)
 		_item_buttons.append(none)
 
@@ -834,6 +869,16 @@ func _show_creations() -> void:
 		var type_id: String = id
 		b.pressed.connect(func() -> void: building_chosen.emit(type_id))
 		row.add_child(b)
+		var fn := Button.new()
+		fn.text = "Fonction"
+		fn.toggle_mode = true
+		fn.button_pressed = _creation_choosing == type_id
+		fn.tooltip_text = "Fonction : %s.\nLe bâtiment du jeu dont cette création prend le rôle (centrale, stade, piscine…)." % (
+			ModelesJeu.fonction_name(String(Creations.items[type_id].get("fonction", ""))) if String(Creations.items[type_id].get("fonction", "")) != "" else "aucune (décor)")
+		fn.pressed.connect(func() -> void:
+			_creation_choosing = "" if _creation_choosing == type_id else type_id
+			show_category(Creations.CATEGORY))
+		row.add_child(fn)
 		var del := Button.new()
 		del.text = "✕"
 		del.tooltip_text = "Supprimer cette création de la bibliothèque (les exemplaires déjà posés restent)."
@@ -843,6 +888,20 @@ func _show_creations() -> void:
 		row.add_child(del)
 		_list.add_child(row)
 		_item_buttons.append(row)
+		if _creation_choosing == type_id:
+			var ch := FonctionChoix.new(String(Creations.items[type_id].get("fonction", "")))
+			var none := Button.new()
+			none.text = "Aucune fonction (simple décor)"
+			none.alignment = HORIZONTAL_ALIGNMENT_LEFT
+			none.pressed.connect(func() -> void: ch.picked.emit(""))
+			ch.add_child(none)
+			ch.move_child(none, 1)
+			ch.picked.connect(func(f: String) -> void:
+				Creations.set_fonction(type_id, f)
+				_creation_choosing = ""
+				show_category(Creations.CATEGORY))
+			_list.add_child(ch)
+			_item_buttons.append(ch)
 
 
 func set_block_info(text: String) -> void:

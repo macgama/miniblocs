@@ -92,17 +92,21 @@ const WET := ["cuisine", "sdb"]
 static func spec_of(kind: String) -> Dictionary:
 	if KINDS.has(kind):
 		return KINDS[kind]
+	if SpectaclesGabarits.KINDS.has(kind):
+		return SpectaclesGabarits.KINDS[kind]
 	return MuseeGabarits.KINDS.get(kind, {})
 
 
 static func has_kind(kind: String) -> bool:
-	return KINDS.has(kind) or MuseeGabarits.KINDS.has(kind)
+	return KINDS.has(kind) or MuseeGabarits.KINDS.has(kind) or SpectaclesGabarits.KINDS.has(kind)
 
 
 ## Les étages d'un gabarit (l'immeuble est généré : quatre fois le même étage).
 static func levels_of(kind: String) -> Array:
 	if MuseeGabarits.KINDS.has(kind):
 		return MuseeGabarits.levels_of(kind)
+	if SpectaclesGabarits.KINDS.has(kind):
+		return MuseeGabarits.levels_from(SpectaclesGabarits.KINDS[kind])
 	var g: Dictionary = KINDS[kind]
 	if g.levels is Array:
 		return g.levels
@@ -153,6 +157,8 @@ static func build(mob: Mobilier, kind: String, origin: Vector2i, r: int, style: 
 		return {"ok": false, "error": "gabarit inconnu"}
 	if MuseeGabarits.KINDS.has(kind):
 		return build_spec(mob, MuseeGabarits.spec(kind), origin, r, style)
+	if SpectaclesGabarits.KINDS.has(kind):
+		return build_spec(mob, SpectaclesGabarits.spec(kind), origin, r, style)
 	var g: Dictionary = spec_of(kind).duplicate()
 	g["levels"] = levels_of(kind)
 	return build_spec(mob, g, origin, r, style)

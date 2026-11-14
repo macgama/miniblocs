@@ -8,7 +8,10 @@ extends CanvasLayer
 ##   le bénéfice attendus ; un clic les réserve.
 ## - Studios : plateaux, décors et annexes ; produire un film (genre, budget,
 ##   réalisateur, tête d'affiche) ; filmographie, entrées, prix.
-## - Bâtir : tous les bâtiments de spectacle.
+## - Bâtir : tous les bâtiments de spectacle, et les salles meublées prêtes à
+##   poser (vrais murs, scène, fauteuils, foyer : SpectaclesGabarits).
+## - Aménager : les objets de scène, de salle, de sono et de tournage, à poser
+##   un par un dans un bâtiment en murs fins (et « aménager toute la salle »).
 ## - À l'affiche : l'agenda de la ville et les films du moment.
 ## - Public : ce que disent les spectateurs.
 
@@ -18,7 +21,7 @@ signal building_chosen(id: String)
 const W := 390.0
 const H := 560.0
 const TABS := [["Mes salles", "salles", "masques"], ["Programmer", "programmer", "billet"], ["Studios de cinéma", "studios", "clap"],
-	["Bâtir", "batir", "construire"], ["À l'affiche", "affiche", "tableau"], ["Public", "public", "habitants"]]
+	["Bâtir", "batir", "construire"], ["Aménager l'intérieur", "amenager", "interieur"], ["À l'affiche", "affiche", "tableau"], ["Public", "public", "habitants"]]
 const JOURS := ["dim.", "lun.", "mar.", "mer.", "jeu.", "ven.", "sam."]
 
 var spect: Spectacles
@@ -34,11 +37,25 @@ var _body: VBoxContainer
 var _scroll: ScrollContainer
 var _tab_buttons := {}
 var _tick := 0.0
+## Appelée avant de prendre un outil de l'Intérieur (range les autres outils).
+var prepare: Callable
+var famille := "scene"
+var _vignettes: Vignettes
+var _group := ButtonGroup.new()
 
 
-func setup(s: Spectacles) -> void:
+func setup(s: Spectacles, prep: Callable = Callable()) -> void:
 	spect = s
+	prepare = prep
 	_build()
+	_vignettes = Vignettes.new()
+	_vignettes.name = "VignettesSpectacles"
+	add_child(_vignettes)
+
+
+func _prep() -> void:
+	if prepare.is_valid():
+		prepare.call()
 
 
 func _build() -> void:
@@ -243,12 +260,13 @@ func refresh() -> void:
 		_body.remove_child(c)
 		c.queue_free()
 	var bid := courante()
-	_title.text = "Spectacles" if bid < 0 or view in ["studios", "batir", "affiche"] else spect.nom(bid)
+	_title.text = "Spectacles" if bid < 0 or view in ["studios", "batir", "affiche", "amenager"] else spect.nom(bid)
 	match view:
 		"salles": _vue_salles(bid)
 		"programmer": _vue_programmer(bid)
 		"studios": _vue_studios()
 		"batir": _vue_batir()
+		"amenager": _vue_amenager()
 		"affiche": _vue_affiche()
 		"public": _vue_public(bid)
 
@@ -277,11 +295,10 @@ func _vue_salles(bid: int) -> void:
 	var st: Dictionary = spect.salles[bid]
 	var s := spect.spec(bid)
 	var fam := spect.famille_of(bid)
-	var t := BuildingCatalog.get_type(spect.type_of(bid))
 	var n := spect.note(bid)
 	var l := _label("%s  %.1f / 5" % [etoiles(n), n], 18)
 	l.add_theme_color_override("font_color", UiStyle.ACCENT)
-	_label("%s · %d places%s · confort %d %% · acoustique %d %%%s" % [String(t.get("name", "")), spect.places(bid),
+	_label("%s · %d places%s · confort %d %% · acoustique %d %%%s" % [spect.type_name(bid), spect.places(bid),
 		(" · %d écrans" % int(s.get("salles", 1))) if fam == "cinema" else "", roundi(float(s.get("confort", 0.5)) * 100.0),
 		roundi(float(s.get("acoustique", 0.5)) * 100.0), " · plein air" if bool(s.get("plein_air", false)) else ""], 12, true)
 	if spect.en_chantier(bid):
@@ -602,6 +619,18 @@ func _nouveau_film(sid: int) -> void:
 # --- Bâtir ------------------------------------------------------------------------------------
 
 func _vue_batir() -> void:
+	var mob := spect.mob
+	if mob != null:
+		_titre("Salles meublées, prêtes à jouer")
+		_label("Clic sur un terrain libre, R pour tourner. Vrais murs, scène ou écran au fond, fauteuils en rangées, foyer et billetterie, loges : tout est déjà posé.", 11, true)
+		for k in SpectaclesGabarits.ORDER:
+			var g: Dictionary = SpectaclesGabarits.KINDS[k]
+			var kind := String(k)
+			var b0 := _bouton("%s · %d × %d m · %s" % [g.name, int(g.w), int(g.d), _euros(float(g.budget))], "interieur", String(g.desc), func() -> void:
+				_prep()
+				mob.set_template(kind))
+			b0.clip_text = true
+			b0.add_theme_font_size_override("font_size", 12)
 	var groupes := [["Cinémas", SpectaclesTypes.of_famille("cinema")], ["Studios de cinéma", SpectaclesTypes.of_role("studio")],
 		["Annexes des studios (à moins de 300 m)", SpectaclesTypes.of_role("annexe")], ["Salles de concert", SpectaclesTypes.of_famille("concert")],
 		["Théâtres, opéra et cirque", SpectaclesTypes.of_famille("theatre")]]
@@ -616,6 +645,128 @@ func _vue_batir() -> void:
 			b.add_theme_font_size_override("font_size", 12)
 	_titre("Ailleurs dans le catalogue")
 	_label("Le cinéma (B → Loisirs), le kiosque à musique (Espaces publics) et les théâtres des styles du monde (opéra, cinéma Art déco, amphithéâtre…) sont aussi des salles. Un modèle de l'Atelier qui prend une de ces fonctions en devient une.", 12, true)
+
+
+# --- Aménager ---------------------------------------------------------------------------------
+
+func _vue_amenager() -> void:
+	var mob := spect.mob
+	if mob == null:
+		_label("L'aménagement intérieur n'est pas disponible ici.", 12, true)
+		return
+	_label("Dans un bâtiment en murs fins (mode Créer, Tab) : donne-lui l'usage Cinéma, Théâtre, Salle de concert ou Studio de cinéma, puis pose les objets. Les fauteuils font les places, la billetterie est indispensable.", 11, true)
+	var row := HFlowContainer.new()
+	_body.add_child(row)
+	for u in ["cinema", "theatre", "concert", "studio_cine"]:
+		var uu := String(u)
+		_bouton(String(Mobilier.USAGES[uu].name), "interieur", "Le bâtiment visé devient : %s.\n%s" % [Mobilier.USAGES[uu].name, Mobilier.USAGES[uu].desc], func() -> void:
+			var id := mob.focus_id()
+			if id == "":
+				mob.message.emit("Vise d'abord un bâtiment en murs fins (survole-le avec un outil de pose, ou clic dessus avec l'outil Fonction).")
+				return
+			mob.set_usage(id, uu)
+			spect._dirty = true
+			mob.message.emit("%s : %s." % [mob.plan_name(id), Mobilier.USAGES[uu].name])
+			refresh(), row)
+	for c in row.get_children():
+		(c as Button).clip_text = false
+		(c as Button).add_theme_font_size_override("font_size", 11)
+	var tout := _bouton("Aménager toute la salle (pièce par pièce)", "interieur", "Scène, rideaux, fauteuils face à la scène, régie, foyer… dans toutes les pièces du bâtiment visé.", func() -> void:
+		var id := mob.focus_id()
+		if id == "":
+			mob.message.emit("Vise d'abord un bâtiment en murs fins.")
+			return
+		var n := mob.furnish_plan(id, "contemporain")
+		spect._dirty = true
+		mob.message.emit("%d objets posés dans %s." % [n, mob.plan_name(id)]))
+	tout.clip_text = true
+	tout.add_theme_font_size_override("font_size", 12)
+	_label("Fonction des pièces (outil Fonction : clic dans une pièce) :", 11, true)
+	var opt := OptionButton.new()
+	opt.focus_mode = Control.FOCUS_NONE
+	opt.add_theme_font_size_override("font_size", 11)
+	for f in SpectaclesObjets.SALLE_ORDER:
+		opt.add_item(SpectaclesObjets.salle_name(String(f)))
+		opt.set_item_metadata(opt.item_count - 1, f)
+		opt.set_item_tooltip(opt.item_count - 1, String(SpectaclesObjets.SALLES[f].desc))
+		if String(f) == mob.room_fn:
+			opt.select(opt.item_count - 1)
+	opt.item_selected.connect(func(i: int) -> void:
+		_prep()
+		mob.set_room_fn(String(opt.get_item_metadata(i)))
+		mob.set_tool(Mobilier.Tool.ROOM_FN))
+	_body.add_child(opt)
+	var fams := HFlowContainer.new()
+	fams.add_theme_constant_override("h_separation", 2)
+	_body.add_child(fams)
+	for f in SpectaclesObjets.FAMILLE_ORDER:
+		var fs: Dictionary = SpectaclesObjets.FAMILLES[f]
+		var b := Button.new()
+		b.icon = Icones.get_icon(String(fs.icon), 18, UiStyle.ACCENT if f == famille else Color.WHITE)
+		b.text = String(fs.name)
+		b.add_theme_font_size_override("font_size", 10)
+		b.tooltip_text = "%s\n%s" % [fs.name, fs.desc]
+		b.toggle_mode = true
+		b.button_pressed = f == famille
+		b.focus_mode = Control.FOCUS_NONE
+		var ff := String(f)
+		b.pressed.connect(func() -> void:
+			famille = ff
+			refresh())
+		fams.add_child(b)
+	_label(String(SpectaclesObjets.FAMILLES[famille].desc), 11, true)
+	var grid := GridContainer.new()
+	grid.columns = 4
+	grid.add_theme_constant_override("h_separation", 4)
+	grid.add_theme_constant_override("v_separation", 4)
+	_body.add_child(grid)
+	_vignettes.cancel_all()
+	for id in SpectaclesObjets.of_famille(famille):
+		grid.add_child(_carte(String(id)))
+	_label("R : tourner · clic droit : retirer · Page haut / bas : étage · Échap : arrêter. Les objets posés sur un plancher de scène montent sur la scène.", 11, true)
+
+
+func _carte(id: String) -> Button:
+	var mob := spect.mob
+	var e := Meubles.get_entry(id)
+	var b := Button.new()
+	b.custom_minimum_size = Vector2(84, 104)
+	b.focus_mode = Control.FOCUS_NONE
+	b.toggle_mode = true
+	b.button_group = _group
+	b.button_pressed = mob.meuble == id and mob.tool == Mobilier.Tool.PLACE
+	b.text = "%s\n%s" % [e.name, BuildingSystem.format_money(int(e.prix))]
+	b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	b.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
+	b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	b.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	b.clip_text = true
+	b.add_theme_constant_override("icon_max_width", 60)
+	b.add_theme_font_size_override("font_size", 10)
+	b.add_theme_constant_override("line_spacing", -3)
+	var tip := "%s\n%s · %d × %d m" % [e.name, Meubles.describe(id), int(e.w), int(e.d)]
+	var n := 0
+	for pl in e.get("places", []):
+		if String(pl[0]) == "assis":
+			n += 1
+	if n > 0 and String(e.get("sp", "siege")) == "siege":
+		tip += "\n%d places pour le public" % n
+	if float(e.get("estrade", 0.0)) > 0.0:
+		tip += "\nPlancher de scène : les objets posés dessus montent de %d cm." % roundi(float(e.estrade) * 100.0)
+	if int(e.get("son", 0)) > 0:
+		tip += "\nAcoustique +%d" % int(e.son)
+	if String(e.get("decor", "")) != "":
+		tip += "\nDécor de tournage (sert les films du genre)."
+	if String(e.couche) == "mur":
+		tip += "\nS'accroche sur un mur plein."
+	elif bool(e.get("suspendu", false)):
+		tip += "\nSuspendu au plafond."
+	b.tooltip_text = tip
+	_vignettes.request_mesh("spectacle:" + id, func() -> Mesh: return MeublesModeles.mesh_of(id), b, 72)
+	b.pressed.connect(func() -> void:
+		_prep()
+		mob.set_meuble(id))
+	return b
 
 
 # --- À l'affiche ------------------------------------------------------------------------------

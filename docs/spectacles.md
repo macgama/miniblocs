@@ -13,7 +13,8 @@ Le menu **Spectacles** (barre du bas, menu **Loisirs**, touche **Maj+X**) réuni
 | **Mes salles** | Note en étoiles, places, confort et acoustique, public et recettes d'hier, prix du billet, programmation automatique, nom, « Aller voir », prochaines dates (avec annulation), dernières représentations, films à l'affiche d'un cinéma, conseils |
 | **Programmer** | Les spectacles en tournée qui peuvent venir dans la salle choisie, avec le public et le bénéfice attendus pour la prochaine date libre ; réserver 1, 3 ou 6 dates. Pour un cinéma : épingler un film |
 | **Studios** | Réputation, plateaux libres, décors et annexes ; produire un film ; films en cours (préparation, tournage, montage, en salle) ; filmographie et prix |
-| **Bâtir** | Les 25 bâtiments, par famille |
+| **Bâtir** | Les 9 salles meublées prêtes à poser, puis les 25 bâtiments par famille |
+| **Aménager l'intérieur** | Donner l'usage Cinéma, Théâtre, Salle de concert ou Studio à un bâtiment en murs fins, choisir la fonction des pièces, aménager toute la salle d'un clic, ou poser les objets un par un (7 familles) |
 | **À l'affiche** | L'agenda de la ville sur 7 jours et les films du moment |
 | **Public** | Ce que disent les spectateurs, depuis l'ouverture |
 
@@ -24,6 +25,22 @@ Le menu **Spectacles** (barre du bas, menu **Loisirs**, touche **Maj+X**) réuni
 - **Salles de concert** : club de jazz (150), salle de musiques actuelles (1 100 debout), auditorium philharmonique (2 400), aréna (9 000), scène de festival en plein air (25 000, vendredis et samedis de mai à septembre). Le kiosque à musique (Espaces publics) accueille la fanfare le dimanche, gratuitement.
 - **Théâtres** : café-théâtre (90), théâtre à l'italienne (750), scène contemporaine (900), grand opéra à coupole (1 900), théâtre de verdure (700, l'été), chapiteau de cirque (1 400). Les théâtres des styles du monde (opéra haussmannien, cinéma Art déco, amphithéâtre, maison de la culture…) et ceux de la bible Blender (opéra, théâtre municipal, salle de concert, cinéma multiplexe, amphithéâtre romain) sont reconnus.
 - Un **modèle de l'Atelier** qui prend une de ces fonctions devient une salle ou un studio (ses places suivent sa surface).
+
+## L'intérieur des salles et des studios
+
+On peut aussi construire ses salles **en murs fins**, comme une maison ou un musée, et les voir de l'intérieur (vue en coupe, vue au sol).
+
+![Salles meublées vues en coupe](apercu-spectacles-interieurs.jpg)
+
+![Un théâtre de l'intérieur](apercu-spectacles-theatre.jpg)
+
+- **Salles prêtes à poser** (onglet Bâtir, ou Intérieur → Poser un bâtiment meublé) : cinéma de village (une salle, 96 places), cinéma de quartier (trois salles, 249 places), petit théâtre de poche (69), théâtre municipal (411), maison d'opéra avec fosse d'orchestre (318), club de jazz (27 places assises autour des tables), salle de musiques actuelles (700 debout), auditorium (219), studios de tournage (deux plateaux, montage, loges, ateliers). Clic sur un terrain libre, R pour tourner.
+- **Ses propres salles** : dessiner les murs en mode Créer (Tab), puis onglet **Aménager l'intérieur** : donner l'usage, choisir la fonction des pièces (salle de projection, salle de théâtre, salle d'opéra, salle de concert, auditorium, club, foyer, hall du cinéma, loges, régie, plateau de tournage, plateau fond vert, salle de montage, ateliers des costumes et des décors), puis « Aménager toute la salle ».
+- **Aménagement automatique** : la scène (ou l'écran) va contre le mur plein qui fait face aux portes du public ; les planchers de scène la couvrent, avec le rideau de fond et le grand rideau rouge ; les fauteuils se rangent face à elle avec des allées sur les côtés et au milieu ; la régie (ou le projecteur) au fond, la poursuite et les projecteurs latéraux. Une salle de concert garde une **fosse debout** derrière une barrière ; un auditorium installe l'orchestre face à son chef ; un opéra creuse une **fosse d'orchestre**.
+- **58 objets** en plus des objets de cinéma et de musique du musée (fauteuils rouges, piano, batterie, harpe, caméra ancienne, affiches, billetterie, lustre) : planchers de scène, rideaux, décors de théâtre, projecteurs, pupitres d'orchestre ; fauteuils de théâtre, inclinables, gradins, tables de cabaret ; grands écrans, projecteur numérique, enceintes, confiserie et pop-corn ; console de mixage, colonnes de son, amplis, micros, platines, contrebasse, panneaux acoustiques ; caméras, grue, travelling, fond vert, projecteurs de studio, perche, décors de film (chambre, rue, vaisseau spatial, remparts, saloon, cuve) ; loges, costumes, montage, établi ; bar du foyer, guichet, affiches.
+- **Ce qui compte** : chaque siège d'une salle (fauteuil, gradin, chaise de cabaret) est une place, et la fosse d'une salle de concert accueille 2 personnes par m² libre. Le **confort** vient des sièges et des services (bar, vestiaire, toilettes), l'**acoustique** des rideaux, enceintes, panneaux et de la régie. Sans **billetterie**, sans scène (ou sans écran et projecteur), la salle reste fermée. Les instruments et la fosse décident des genres : batterie et amplis pour le rock et la pop, platines pour l'électro et le rap, piano, harpe et orchestre pour le classique et le jazz ; une fosse d'orchestre ouvre l'opéra et le ballet.
+- **Les objets posés sur un plancher de scène montent sur la scène** (60 cm).
+- **Studio en murs fins** : chaque plateau avec une caméra tourne un film à la fois ; le fond vert sert d'effets spéciaux, la salle de montage de post-production, les ateliers de costumes et de décors d'atelier ; les décors de film posés sur un plateau (saloon, rue, remparts, vaisseau, cuve) servent les films du genre.
 
 ## Programmer une salle
 
@@ -75,5 +92,9 @@ Une soirée au spectacle dans le mois rend heureux ; de belles salles en ville a
 | `scripts/spectacles/spectacles.gd` | Salles, programmation, public, argent, cinémas et films, studios, festival, avis, sauvegarde (section `spectacles`) |
 | `scripts/spectacles/spectacles_visuels.gd` | Public devant les salles, équipe de tournage |
 | `scripts/spectacles/spectacles_panel.gd` | Le menu Spectacles (Maj+X) |
+| `scripts/spectacles/spectacles_objets.gd` | Les 58 objets de l'intérieur, fonctions des pièces, aménagement face à la scène, analyse d'une salle en murs fins |
+| `scripts/spectacles/spectacles_modeles.gd` | Modèles 3D de ces objets |
+| `scripts/spectacles/spectacles_gabarits.gd` | Les 9 salles et studios meublés prêts à poser |
+| `tests/spectacles_interieurs_test.gd` | Test de l'intérieur (objets, salles prêtes à poser, places, soirée, film, menu) |
 | `tests/spectacles_test.gd` | Test automatique |
-| `tests/spectacles_vitrine.gd` | Captures (`--vue salles|scenes|studios|soiree|panneau|programmer`) |
+| `tests/spectacles_vitrine.gd` | Captures (`--vue salles|scenes|studios|soiree|panneau|programmer`, intérieurs : `int|int_theatre|int_cinema|int_concert|int_jazz|int_studio|int_amenager`) |

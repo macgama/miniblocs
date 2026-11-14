@@ -39,8 +39,12 @@ const USAGES := {
 	"bureaux": {"name": "Bureaux", "t": "bureaux", "cat": "commerce", "desc": "Chaque poste de travail est un emploi."},
 	"restaurant": {"name": "Café-restaurant", "t": "cafe", "cat": "loisirs", "desc": "Les habitants y vont entre amis ; le bar et les tables font les emplois."},
 	"musee": {"name": "Musée", "t": "musee", "cat": "loisirs", "desc": "Les visiteurs paient leur billet à la billetterie ; gardiens, guides et agents d'accueil font les emplois (menu Musée, Maj+C)."},
+	"cinema": {"name": "Cinéma", "t": "cinema", "cat": "loisirs", "desc": "Chaque fauteuil d'une salle de projection est une place ; il faut un écran, un projecteur et une billetterie (menu Spectacles, Maj+X)."},
+	"theatre": {"name": "Théâtre", "t": "theatre", "cat": "loisirs", "desc": "Une scène, des fauteuils face à elle et une billetterie ; une fosse d'orchestre ouvre l'opéra et le ballet (menu Spectacles, Maj+X)."},
+	"concert": {"name": "Salle de concert", "t": "salle_concert", "cat": "loisirs", "desc": "Une scène et ses instruments, une fosse debout (2 personnes par m² libre) ou des fauteuils, une billetterie (menu Spectacles, Maj+X)."},
+	"studio_cine": {"name": "Studio de cinéma", "t": "studio_cinema", "cat": "loisirs", "desc": "Chaque plateau avec une caméra tourne un film à la fois ; fond vert, salle de montage et ateliers servent la production (menu Spectacles, Maj+X)."},
 }
-const USAGE_ORDER := ["logement", "ecole", "boutique", "bureaux", "restaurant", "musee"]
+const USAGE_ORDER := ["logement", "ecole", "boutique", "bureaux", "restaurant", "musee", "cinema", "theatre", "concert", "studio_cine"]
 
 ## Mobilier de chaque fonction : [types équivalents, placement, nombre, indispensable].
 ## Placements : "mur" (dos au mur), "centre", "coin", "sol" (tapis), "accroche"
@@ -156,6 +160,8 @@ static func default_style_for(region: String) -> String:
 static func fn_name(fn: String) -> String:
 	if MuseeObjets.SALLES.has(fn):
 		return MuseeObjets.salle_name(fn)
+	if SpectaclesObjets.SALLES.has(fn):
+		return SpectaclesObjets.salle_name(fn)
 	if FN_NAMES.has(fn):
 		return String(FN_NAMES[fn])
 	return Meubles.piece_name(fn)
@@ -494,6 +500,8 @@ func _guess_group(u: String, list: Array, big: Array, small: Array, out: Diction
 	match u:
 		"musee":
 			MuseeObjets.guess(self, _guess_id, big, small, assign)
+		"cinema", "theatre", "concert", "studio_cine":
+			SpectaclesObjets.guess(self, _guess_id, u, big, small, assign)
 		"ecole":
 			for r in big:
 				assign.call(r, "classe" if int(r.area) >= 16 else "bureau")
@@ -901,8 +909,11 @@ func _layout(id: String, e: int, room: Dictionary, fn: String, s: String) -> Arr
 	if fn == "classe":
 		_layout_classe(st, cells, s)
 		return st.res
+	if SpectaclesObjets.SCENES.has(fn):
+		SpectaclesObjets.layout(self, st, cells, fn)
+		return st.res
 	var area := cells.size()
-	for req in LAYOUTS.get(fn, MuseeObjets.LAYOUTS.get(fn, LAYOUTS.sejour)):
+	for req in LAYOUTS.get(fn, MuseeObjets.LAYOUTS.get(fn, SpectaclesObjets.LAYOUTS.get(fn, LAYOUTS.sejour))):
 		var types: Array = req[0]
 		var mode: String = req[1]
 		var count: int = req[2]
@@ -1276,6 +1287,14 @@ func stats(id: String) -> Dictionary:
 			out.places = int(area / 4.0)
 			out.conf = clampi(roundi(30.0 + conf_sum * 30.0 / area + float(tags.get("assise", 0)) * 2.0), 0, 100)
 			out.attr = clampi(roundi(10.0 + attr_sum * 30.0 / area), 0, 100)
+		"cinema", "theatre", "concert", "studio_cine":
+			var sa := SpectaclesObjets.analyse(self, id)
+			out.places = int(sa.places)
+			out.emplois = SpectaclesObjets.emplois(sa)
+			for m in sa.manques:
+				manques.append(m)
+			out.conf = clampi(roundi(float(sa.confort) * 100.0), 0, 100)
+			out.attr = clampi(roundi(15.0 + attr_sum * 30.0 / area + shop_windows * 3.0), 0, 100)
 		"bureaux":
 			out.emplois = int(places.get("poste", 0))
 			if out.emplois == 0:
@@ -1456,15 +1475,19 @@ func _build_level(id: String, e: int) -> void:
 		if ent.is_empty():
 			continue
 		var xf := placement(ent, Vector2i(k.x, k.z), int(it.r), by)
+		# Sur un plancher de scène (couche sol « estrade ») : le meuble monte d'autant.
+		var lift := estrade_under(id, e, ent, Vector2i(k.x, k.z), int(it.r)) if k.w == 1 else 0.0
+		xf.origin.y += lift
 		MeublesModeles.build(kit, ent, xf)
-		if k.w == 1 and float(ent.h) >= 0.3:
+		var est := float(ent.get("estrade", 0.0))
+		if (k.w == 1 and float(ent.h) >= 0.3) or (k.w == 0 and est > 0.0):
 			var fp := Meubles.footprint(ent, int(it.r))
 			var cs := CollisionShape3D.new()
 			var bs := BoxShape3D.new()
-			var hh := minf(float(ent.h), 1.2)
-			bs.size = Vector3(maxf(fp.x - 0.2, 0.3), hh, maxf(fp.y - 0.2, 0.3))
+			var hh := minf(float(ent.h), 1.2) if k.w == 1 else est
+			bs.size = Vector3(maxf(fp.x - 0.2, 0.3), hh, maxf(fp.y - 0.2, 0.3)) if k.w == 1 else Vector3(fp.x, hh, fp.y)
 			cs.shape = bs
-			cs.position = Vector3(k.x + fp.x * 0.5, by + hh * 0.5, k.z + fp.y * 0.5)
+			cs.position = Vector3(k.x + fp.x * 0.5, by + lift + hh * 0.5, k.z + fp.y * 0.5)
 			body.add_child(cs)
 	var mi := MeshInstance3D.new()
 	mi.mesh = kit.commit(MeublesModeles.materials())
@@ -1473,6 +1496,21 @@ func _build_level(id: String, e: int) -> void:
 		node.add_child(body)
 	else:
 		body.free()
+
+
+## Hauteur du plancher de scène sous un meuble (0 s'il est posé au sol).
+func estrade_under(id: String, e: int, ent: Dictionary, c: Vector2i, r: int) -> float:
+	var o := _occ_of(id)
+	var best := 0.0
+	for cc in Meubles.cells_of(ent, c, r):
+		var key: Variant = o.get(Vector4i(cc.x, e, cc.y, 0))
+		if key == null:
+			continue
+		var it: Dictionary = items.get(id, {}).get(key, {})
+		if it.is_empty():
+			continue
+		best = maxf(best, float(Meubles.get_entry(String(it.m)).get("estrade", 0.0)))
+	return best
 
 
 ## Transformation d'un meuble posé : centre de l'emprise, tourné, reculé du mur.

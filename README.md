@@ -311,6 +311,7 @@ L'onglet **Éditeur libre** a deux modes : **Murs et étages** (par défaut) et 
 ![Une maison et un immeuble en murs fins](docs/apercu-murs-etages.png)
 
 - **Mur** : clic glissé d'un coin de case à l'autre. **Pièce** : clic glissé en rectangle, qui pose les quatre murs et le plancher d'un coup. **Sol** : plancher, terrasse ou balcon.
+- **Panneau en onglets avec vignettes 3D** : **Portes** (9), **Fenêtres** (8), **Baies et vitrines** (7), **Passages** (3), **Toits** (12) et **Matériaux**. Chaque élément est montré en petite maquette avec son nom (pan de mur avec sa porte ou sa fenêtre, maison sous chaque toit) ; le matériau en cours reste rappelé au-dessus (un clic ouvre l'onglet Matériaux). En mode Blocs, mêmes onglets pour les formes : Formes, Arrondis et arcs, Toits, Détails, Portes, Fenêtres, Grandes pièces, Matériaux.
 - **27 portes et fenêtres** dans les murs : porte, porte vitrée, porte-fenêtre, porte d'entrée à imposte, porte cintrée, porte double, porte-fenêtre à balconnet, porte de garage, porte de grange, passage, arcade en plein cintre, fenêtre à croisillons, fenêtre à volets (volets côté rue), fenêtre à petits bois, fenêtre cintrée, fenêtre gothique à vitrail, œil-de-bœuf, fenêtre haute, fenêtre d'atelier, fenêtre en bandeau, baie vitrée, baie coulissante, mur-rideau, vitrine, vitrine à store, meurtrière, claustra. Un clic près d'un mur ; clic droit pour retirer l'ouverture. En vue au sol, **E** ouvre ou ferme les portes.
 - **Ouvertures larges** (porte double, garage, grange, baie coulissante, fenêtre d'atelier, bandeau, mur-rideau) : posées sur plusieurs mètres de mur alignés, elles ne font qu'une, sans poteau au milieu, et s'ouvrent d'un bloc. Volets, balconnet et store se placent tout seuls du côté de la rue (le côté sans plancher).
 - **Peinture** : chaque côté d'un mur a son matériau et sa teinte (crépi dehors, plâtre ou carrelage dedans). Un clic peint un côté de mur ou un sol ; un clic glissé peint toute une pièce (un matériau de sol peint les sols, les autres peignent les murs).
@@ -400,6 +401,8 @@ L'onglet **Éditeur libre** permet de construire ce que tu veux avec des blocs d
 ![Arrondis, détails d'architecture et nouvelles ouvertures en blocs](docs/atelier_plus_formes.png)
 ![Les 58 nouveaux matériaux](docs/atelier_plus_materiaux.png)
 ![Le panneau des matériaux en vignettes : onglet Parcs d'attractions](docs/materiaux_panneau.png)
+![Onglet Portes de l'atelier, en vignettes](docs/atelier_onglet_portes.png)
+![Onglet Toits de l'atelier, en vignettes](docs/atelier_onglet_toits.png)
 ![Matériaux du monde, des parcs, du zoo, du sport, des musées et des fêtes](docs/materiaux_monde.png)
 - Pas de bloc sous terre, sur une voie ou dans un bâtiment. Inversement, ni bâtiment ni voie ne peuvent passer sur des blocs.
 - **Mes créations** : écris un nom, clique sur **Enregistrer** puis fais un clic glissé autour de ta construction (toutes les hauteurs sont prises). Elle devient un bâtiment de l'onglet **Mes créations**, que tu poses ailleurs comme n'importe quel bâtiment (fantôme, rotation R, terrassement, prix). La bibliothèque est commune à toutes tes parties, et chaque sauvegarde garde une copie des créations qu'elle utilise. La croix ✕ retire une création de la liste (les exemplaires posés restent).
@@ -604,6 +607,7 @@ Une ferme entièrement générée en code (longère à colombages et toit de cha
 | `scripts/batiments/building_system.gd` | Pose, règles, terrassement, démolition et sauvegarde des bâtiments |
 | `scripts/batiments/building_panel.gd` | Panneau « Construire » |
 | `scripts/batiments/zone_system.gd` | Zonage : zones peintes, demande, croissance le long des routes |
+| `scripts/batiments/vignettes_atelier.gd` | Maquettes des vignettes de l'atelier (portes, fenêtres, formes, toits) et rangement des ouvertures en onglets |
 | `scripts/batiments/plan_editor.gd` | Éditeur libre, mode Murs et étages : murs de 20 cm sur les lignes, ouvertures, sols, escaliers, étages et sous-sols, vue en coupe, toit automatique |
 | `scripts/batiments/block_editor.gd` | Éditeur libre bloc par bloc : outils, matériaux, annulation, rendu par blocs de 16 × 16 m |
 | `scripts/catalogue/styles.gd` | Bible : régions, époques, archétypes et les 43 styles d'architecture |

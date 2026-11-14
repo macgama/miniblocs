@@ -47,6 +47,7 @@ func _run() -> void:
 	var vue := "pieces"
 	var famille := ""
 	var depuis := 58
+	var onglet := "materiaux"
 	for i in args.size():
 		if args[i] == "--screenshot" and i + 1 < args.size():
 			shot = args[i + 1]
@@ -54,6 +55,8 @@ func _run() -> void:
 			vue = args[i + 1]
 		if args[i] == "--famille" and i + 1 < args.size():
 			famille = args[i + 1]
+		if args[i] == "--onglet" and i + 1 < args.size():
+			onglet = args[i + 1]
 		if args[i] == "--depuis" and i + 1 < args.size():
 			depuis = int(args[i + 1])
 	root.msaa_3d = Viewport.MSAA_DISABLED
@@ -208,6 +211,11 @@ func _run() -> void:
 			scene.set_create_mode(true)
 			bp.set_open(true)
 			bp._block_mode = "blocs"
+			if onglet.begins_with("plans:"):
+				bp._block_mode = "plans"
+				bp._plan_tab = onglet.substr(6)
+			else:
+				bp._block_tab = onglet
 			bp._mat_family = famille
 			if not mats.is_empty():
 				bp._block_material = mats[0]
@@ -217,8 +225,8 @@ func _run() -> void:
 			var sc: ScrollContainer = bp._list.get_parent()
 			await process_frame
 			for c in bp._list.get_children():
-				if c is LineEdit:
-					sc.scroll_vertical = int((c as Control).position.y) - 70
+				if c is HFlowContainer and c.get_child_count() > 0 and (c.get_child(0) as Button).toggle_mode and c.get_child(0).has_meta("tab"):
+					sc.scroll_vertical = int((c as Control).position.y) - 8
 			look = Vector3(-6, 1, -5)
 			dist = 30.0
 			yaw = 0.0

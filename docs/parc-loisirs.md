@@ -90,3 +90,9 @@ besoins, note), sans en copier ni les noms ni les modèles.
 - Voitures et autocars de touristes sur les routes, parking du parc.
 - Personnel géré à la main (embauche, formation), inspections et prix annuels.
 - Le zoo, en réutilisant les visiteurs, les allées et la note.
+
+## Aller plus loin : créer son parc
+
+Le menu **Loisirs → Créer un parc (Maj + A)** ajoute les grands-huit à tracé
+libre, les attractions aquatiques, les allées et files dessinées, de nouvelles
+boutiques et les décors à thème : voir [parc-editeur.md](parc-editeur.md).

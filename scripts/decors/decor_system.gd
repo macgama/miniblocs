@@ -657,7 +657,8 @@ func _mmi_de(d: Dictionary, id: String) -> MultiMeshInstance3D:
 	var mmi := MultiMeshInstance3D.new()
 	mmi.name = id
 	mmi.multimesh = mm
-	mmi.material_override = Decors.materiau()
+	if not Decors.procedural(id):
+		mmi.material_override = Decors.materiau()
 	mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if Decors.hauteur(id) > 0.6 else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(mmi)
 	d[id] = mmi

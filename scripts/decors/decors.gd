@@ -29,6 +29,8 @@ static func _charge() -> void:
 	_donnees = d if d is Dictionary else {"categories": [], "decors": []}
 	for e: Dictionary in _donnees.decors:
 		_par_id[String(e.id)] = e
+	# Décors à thème du parc, dessinés en code (ParcThemes).
+	ParcThemes.ajoute(_donnees, _par_id)
 
 
 ## [{id, nom}] dans l'ordre du panneau.
@@ -107,6 +109,9 @@ static func distance_vue(id: String) -> float:
 static func mesh(id: String) -> Mesh:
 	if _meshes.has(id):
 		return _meshes[id]
+	if ParcThemes.est_theme(id):
+		_meshes[id] = ParcThemes.mesh(id)
+		return _meshes[id]
 	var chemin := DOSSIER + id + ".glb"
 	var m: Mesh = null
 	if ResourceLoader.exists(chemin):
@@ -129,6 +134,11 @@ static func _premier_mesh(n: Node) -> MeshInstance3D:
 		if r:
 			return r
 	return null
+
+
+## Décor dessiné en code (couleurs par sommet, son propre matériau) ?
+static func procedural(id: String) -> bool:
+	return int(info(id).get("proc", 0)) == 1
 
 
 ## Le matériau commun à tous les décors : la palette, et les lanternes qui

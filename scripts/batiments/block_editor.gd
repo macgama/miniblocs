@@ -52,6 +52,10 @@ var capture_name := ""
 var shape := 0
 var tint := 0
 var rot_offset := 0
+## Grandes pièces (coupole, tour ronde, voûte…) : diamètre ou largeur (m) et
+## nombre d'étages de 1 m (tour, cylindre) ou longueur (voûte, arche).
+var piece_d := 6
+var piece_n := 4
 
 ## Vector3i(x, y2, z) -> matériau
 var blocks: Dictionary = {}
@@ -138,6 +142,62 @@ func set_tint(t: int) -> void:
 	_update_ghost()
 
 
+func set_piece(d: int, n: int) -> void:
+	piece_d = clampi(d, BlocFormes.PIECE_MIN, BlocFormes.PIECE_MAX)
+	piece_n = clampi(n, 1, 60)
+	_ghost_key = ""
+	_update_ghost()
+	if tool != Tool.NONE:
+		_emit_help()
+
+
+## Coins des grandes pièces posées d'un clic sur la case visée : la pièce est
+## centrée sur la case ; une tour ou un cylindre est empilé sur piece_n étages,
+## une voûte ou une arche répétée sur piece_n mètres de long.
+func piece_anchors(place: Vector3i, code: int) -> Array:
+	var sh := BlocFormes.shape_of(code)
+	if not BlocFormes.is_piece(sh):
+		return [place]
+	var size := BlocFormes.size_of(code)
+	var rot := BlocFormes.rot_of(code)
+	var ext := FormesPlus.piece_extent(sh, size)
+	if rot % 2 == 1:
+		ext = Vector2i(ext.y, ext.x)
+	var a := place - Vector3i(ext.x / 2, 0, ext.y / 2)
+	var out := []
+	var kind := BlocFormes.piece_kind(sh)
+	if BlocFormes.INFO[sh].get("stack", false):
+		for i in piece_n:
+			out.append(a + Vector3i(0, i * HU, 0))
+	elif kind == "tranche":
+		var step := Vector3i(0, 0, 1) if rot % 2 == 0 else Vector3i(1, 0, 0)
+		a = place - (Vector3i(ext.x / 2, 0, 0) if rot % 2 == 0 else Vector3i(0, 0, ext.y / 2))
+		for i in piece_n:
+			out.append(a + step * i)
+	else:
+		out.append(a)
+	return out
+
+
+## Toutes les cases d'une grande pièce (ou d'une porte) qui contient le bloc k.
+func group_of(k: Vector3i) -> Array:
+	if not blocks.has(k):
+		return []
+	var code: int = blocks[k]
+	var sh := BlocFormes.shape_of(code)
+	if BlocFormes.is_piece(sh):
+		var part := BlocFormes.part_of(code)
+		var anchor := k - Vector3i(part.x, part.y * HU, part.z)
+		var out := []
+		var parts := expand(anchor, BlocFormes.encode_part(code, Vector3i.ZERO, BlocFormes.size_of(code)))
+		for pk in parts:
+			if blocks.has(pk) and int(blocks[pk]) == int(parts[pk]):
+				out.append(pk)
+		return out
+	var o: Variant = partner(k)
+	return [k] if o == null else [k, o]
+
+
 func _emit_help() -> void:
 	var mat: Dictionary = MATERIALS[material]
 	var t := ""
@@ -154,6 +214,17 @@ func _emit_help() -> void:
 			info_changed.emit("Enregistrer une création : clic glissé autour de ta construction (toutes les hauteurs sont prises) · Échap : arrêter")
 			return
 	var price := ReglagesPartie.prix(BlocFormes.price(BlocFormes.encode(material, shape)))
+	if BlocFormes.is_piece(shape):
+		var code := current_code()
+		var parts := 0
+		for a in piece_anchors(Vector3i.ZERO, code):
+			parts += expand(a, code).size()
+		price *= parts
+		t += " de %d m" % piece_d
+		if BlocFormes.INFO[shape].get("stack", false):
+			t += " sur %d m de haut" % piece_n
+		elif BlocFormes.piece_kind(shape) == "tranche":
+			t += " sur %d m de long" % piece_n
 	info_changed.emit("%s · %s (%s) · clic : poser · R : tourner · clic droit : retirer · Ctrl+Z : annuler · Échap : arrêter" % [t, mat.name, BuildingSystem.format_money(price)])
 
 
@@ -282,6 +353,8 @@ func current_code(target := {}) -> int:
 	if sh == BlocFormes.S.SLAB and target.get("upper", false):
 		sh = BlocFormes.S.SLAB_TOP
 	var r := (_auto_rot() + rot_offset) % 4
+	if BlocFormes.is_piece(sh):
+		return BlocFormes.encode_part(BlocFormes.encode(material, sh, r, tint), Vector3i.ZERO, piece_d)
 	return BlocFormes.encode(material, sh, r, tint)
 
 
@@ -293,6 +366,14 @@ func _auto_rot() -> int:
 
 ## Cases occupées par un bloc posé en k (une porte prend deux cases).
 static func expand(k: Vector3i, code: int) -> Dictionary:
+	var sh := BlocFormes.shape_of(code)
+	if BlocFormes.is_piece(sh):
+		var size := BlocFormes.size_of(code)
+		var pieces := {}
+		for part in FormesPlus.piece_parts(sh, size, BlocFormes.rot_of(code)):
+			var pp: Vector3i = part
+			pieces[k + Vector3i(pp.x, pp.y * HU, pp.z)] = BlocFormes.encode_part(code, pp, size)
+		return pieces
 	var out := {k: code}
 	if BlocFormes.cells(BlocFormes.shape_of(code)) == 2:
 		var top := BlocFormes.encode(BlocFormes.mat_of(code), BlocFormes.shape_of(code), BlocFormes.rot_of(code),
@@ -374,10 +455,10 @@ func remove_blocks(keys: Array) -> int:
 	var back := 0
 	var all_keys: Array = []
 	for k in keys:
-		all_keys.append(k)
-		var o: Variant = partner(k)
-		if o != null:
-			all_keys.append(o)
+		if blocks.has(k):
+			all_keys.append_array(group_of(k))
+		else:
+			all_keys.append(k)
 	for k in all_keys:
 		if blocks.has(k) and not removed.has(k):
 			removed[k] = blocks[k]
@@ -659,7 +740,8 @@ func _unhandled_input(event: InputEvent) -> void:
 				_drag_start = _target.duplicate()
 				_drag_start.place = _cap_key(_target)
 			elif tool == Tool.BLOCK:
-				place_blocks([_target.place], current_code(_target))
+				var code := current_code(_target)
+				place_blocks(piece_anchors(_target.place, code), code)
 				_update_target(mb.position)
 			elif tool == Tool.ERASE and _target.get("hit") == null:
 				return
@@ -732,18 +814,24 @@ func _update_ghost() -> void:
 		return
 	if tool == Tool.BLOCK and not _drag:
 		var code := current_code(_target)
-		var k: Vector3i = _target.place
+		var anchors := piece_anchors(_target.place, code)
+		var k: Vector3i = anchors[0]
 		var ok := true
-		for part in expand(k, code):
+		var all := {}
+		for a in anchors:
+			all.merge(expand(a, code))
+		for part in all:
 			ok = ok and check_block(part) == ""
+			if not ok:
+				break
 		if ok:
-			var gk := str(code)
+			var gk := "%d|%d" % [code, anchors.size()]
 			if gk != _ghost_key:
 				_ghost_key = gk
 				var gm := BlocMesher.new()
-				BlocFormes.emit(gm, code, Vector3.ZERO, func(_o: Vector3i) -> int: return -1)
-				if BlocFormes.cells(BlocFormes.shape_of(code)) == 2:
-					BlocFormes.emit(gm, expand(k, code)[k + Vector3i(0, HU, 0)], Vector3(0, HU * UNIT_Y, 0), func(_o: Vector3i) -> int: return -1)
+				for part in all:
+					var off: Vector3i = part - k
+					BlocFormes.emit(gm, all[part], Vector3(off.x * SIZE, off.y * UNIT_Y, off.z * SIZE), func(_o: Vector3i) -> int: return -1)
 				_shape_ghost.mesh = gm.to_mesh()
 				_shape_ghost.material_override = BlocMateriaux.ghost_material()
 			_shape_ghost.position = Vector3(k.x * SIZE, k.y * UNIT_Y, k.z * SIZE)

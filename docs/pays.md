@@ -32,6 +32,29 @@ Pays l'épingle (elle ne suit plus la caméra).
 Le panneau Pays permet aussi de verser une **subvention** à une ville ou de faire
 **reverser** de l'argent d'une ville au pays (seulement si tu en es le maire).
 
+## Plusieurs pays
+
+Chaque ville appartient au **pays réel** de son lieu (pays de la ville du monde la plus
+proche, gardé par carré de 1 km). Le premier pays est celui de la première ville
+(clé 0) ; les suivants ont les clés `Pays.NATION_BASE + n`. Le joueur les dirige tous :
+
+- chaque pays a sa caisse, son impôt national, sa dotation par habitant et sa **douane**
+  (5 % par défaut, de 0 à 30 %) ;
+- un nouveau pays reçoit une **aide d'installation** de 5 M€ (× coût des constructions),
+  qui paie la Maison de commune puis le capital de sa première ville (60 % du reste) ;
+- hors des villes, les voies et bâtiments sont payés par le pays du lieu
+  (`Pays.payeur_au_point`) ;
+- **commerce** : chaque vente d'une entreprise à une autre ville (livraison, entrepôt) est
+  comptée par ville et par pays (`Production.commerce_ville`, `commerce_nation`,
+  `commerce_total`) ; entre deux pays, l'acheteur paie la douane au pays qui importe,
+  versée le soir ; l'impôt sur les bénéfices va à la ville de l'entreprise ;
+- panneau Maj+P : un bouton par pays, villes rangées sous leur pays, exportations,
+  importations et douane ;
+- une ancienne partie (un seul pays) se recharge avec toutes ses villes dans le premier pays.
+
+Test : `godot --headless --path . --script res://tests/nations_test.gd`. Banc d'une
+partie à 8 villes et 3 pays : [partie-pays.md](partie-pays.md).
+
 ## Fusion et anciennes parties
 
 - Deux villes qui fusionnent mettent leurs caisses et leurs emprunts en commun.

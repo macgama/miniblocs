@@ -54,6 +54,8 @@ var dechets: Dechets
 var dechets_panel: DechetsPanel
 ## Parc de loisirs : attractions, visiteurs, files, billets, note (Maj+G).
 var musee: Musee
+var spectacles: Spectacles
+var spectacles_panel: SpectaclesPanel
 var musee_panel: MuseePanel
 var parc: ParcLoisirs
 var parc_panel: ParcPanel
@@ -168,6 +170,7 @@ func _ready() -> void:
 	_setup_telecom()
 	_setup_dechets()
 	_setup_musee()
+	_setup_spectacles()
 	_setup_parc()
 	_setup_funeraire()
 	_setup_vie()
@@ -347,6 +350,7 @@ func save_sections() -> Dictionary:
 	sec["statistiques"] = statistiques.to_dict()
 	sec["tutoriel"] = tutoriel.to_dict()
 	sec["musee"] = musee.to_dict()
+	sec["spectacles"] = spectacles.to_dict()
 	sec["parc"] = parc.to_dict()
 	sec["zoo"] = zoo.to_dict()
 	sec["quartiers"] = quartiers.to_dict()
@@ -460,6 +464,7 @@ func load_game(slot := "") -> bool:
 	telecom.from_dict(sec.get("telecom", {}))
 	dechets.from_dict(sec.get("dechets", {}))
 	musee.from_dict(sec.get("musee", {}))
+	spectacles.from_dict(sec.get("spectacles", {}))
 	parc.from_dict(sec.get("parc", {}))
 	zoo.from_dict(sec.get("zoo", {}))
 	funeraire.from_dict(sec.get("funeraire", {}))
@@ -1319,6 +1324,29 @@ func _setup_musee() -> void:
 	hud.musee_requested.connect(func() -> void: musee_panel.toggle())
 
 
+## Spectacles : cinémas, salles de concert, théâtres, studios de cinéma et leur menu (Maj+X).
+func _setup_spectacles() -> void:
+	spectacles = Spectacles.new()
+	spectacles.name = "Spectacles"
+	add_child(spectacles)
+	spectacles.setup(buildings, population, ambiance, transport)
+	spectacles.message.connect(func(t: String) -> void: hud.show_message(t))
+	spectacles_panel = SpectaclesPanel.new()
+	spectacles_panel.name = "PanneauSpectacles"
+	add_child(spectacles_panel)
+	spectacles_panel.setup(spectacles)
+	spectacles_panel.building_chosen.connect(func(id: String) -> void:
+		_select_building_tool()
+		buildings.set_place(id))
+	spectacles_panel.focus_requested.connect(func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
+	hud.spectacles_requested.connect(func() -> void:
+		if not spectacles_panel.is_open():
+			_select_building_tool()
+		spectacles_panel.toggle())
+
+
 ## Parc de loisirs : manèges, visiteurs, files d'attente, billets et panneau (Maj+G).
 func _setup_parc() -> void:
 	parc = ParcLoisirs.new()
@@ -1963,7 +1991,7 @@ func _loisirs_ouvert() -> bool:
 
 
 func _panneaux_parc() -> Dictionary:
-	return {"parc": parc_panel, "parc_editeur": parc_editeur_panel, "zoo": zoo_panel, "musee": musee_panel}
+	return {"parc": parc_panel, "parc_editeur": parc_editeur_panel, "zoo": zoo_panel, "musee": musee_panel, "spectacles": spectacles_panel}
 
 
 ## Panneau « Paysage » : pinceaux de terrain (outil 0).
@@ -2068,6 +2096,7 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 	telecom.clear()
 	dechets.clear()
 	funeraire.clear()
+	spectacles.clear()
 	resource_overlay.show_resource(resource_overlay.res)
 	transport.clear()
 	buildings.clear()

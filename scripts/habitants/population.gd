@@ -139,6 +139,7 @@ var _follow_label: Label3D
 var _follow_timer := 0.0
 var _follow_target := Vector3.ZERO
 var _follow_set := Vector3.INF
+var _follow_bid := -1
 ## Habitants visibles près de la caméra.
 var passants: Passants
 ## Modèle de trafic (bouchons, stationnement, affluence des lignes), ou null.
@@ -1559,6 +1560,53 @@ func stats() -> Dictionary:
 	return out
 
 
+## Même résultat que stats(), calculé par morceaux d'au plus budget_us µs par appel
+## (pour la barre du haut : pas de saccade dans les grandes villes). Rend {} tant
+## que le calcul n'est pas fini ; l'appel suivant en recommence un.
+func stats_par_morceaux(budget_us := 2000) -> Dictionary:
+	var t0 := Time.get_ticks_usec()
+	if _stj.is_empty():
+		_stj = {"out": {"habitants": persons.size(), "foyers": households.size(), "bebe": 0, "eleve": 0, "etudiant": 0, "actif": 0,
+			"chomeur": 0, "retraite": 0, "sans_ecole": 0, "logements": 0, "emplois": 0, "places": 0, "satisfaction": 0},
+			"pids": persons.keys(), "i": 0, "sat": 0, "n": 0}
+	var out: Dictionary = _stj.out
+	var pids: Array = _stj.pids
+	var i := int(_stj.i)
+	while i < pids.size():
+		if persons.has(pids[i]):
+			var p: Dictionary = persons[pids[i]]
+			var st := stage(p)
+			out[st] += 1
+			if st == "eleve" and int(p.sch) < 0:
+				out.sans_ecole += 1
+		i += 1
+		if (i & 63) == 0 and Time.get_ticks_usec() - t0 > budget_us:
+			_stj.i = i
+			return {}
+	_stj.i = i
+	# Satisfaction moyenne sur les 200 premiers habitants, comme stats().
+	var k := int(_stj.get("k", 0))
+	while k < pids.size() and int(_stj.n) < 200:
+		if persons.has(pids[k]):
+			_stj.sat = int(_stj.sat) + int(satisfaction(persons[pids[k]]).value)
+			_stj.n = int(_stj.n) + 1
+		k += 1
+		_stj.k = k
+		if Time.get_ticks_usec() - t0 > budget_us:
+			return {}
+	var n := int(_stj.n)
+	out.satisfaction = roundi(float(_stj.sat) / n) if n > 0 else 0
+	for bid in known:
+		out.logements += int(known[bid].log)
+		out.emplois += int(known[bid].emp)
+		out.places += int(known[bid].seats)
+	_stj = {}
+	return out
+
+
+var _stj := {}
+
+
 func summary() -> String:
 	var adults := 0
 	var jobless := 0
@@ -1728,9 +1776,11 @@ func _update_follow(delta: float) -> void:
 		var p: Dictionary = persons[pid]
 		var a := activity(p)
 		_follow_label.text = "★ %s %s, %d ans\n%s" % [p.p, p.n, age_years(p), a.text]
+		# Bâtiment où il se trouve (relu avec le texte, 4 fois par seconde).
+		_follow_bid = int(a.bid)
 	var top := _follow_target + Vector3(0, 14.0, 0)
-	if known.has(int(activity(persons[pid]).bid)):
-		top.y = _follow_target.y + BuildingCatalog.approx_height(String(known[int(activity(persons[pid]).bid)].t)) + 4.0
+	if known.has(_follow_bid):
+		top.y = _follow_target.y + BuildingCatalog.approx_height(String(known[_follow_bid].t)) + 4.0
 	_follow_marker.position = _follow_marker.position.lerp(top, minf(1.0, delta * 6.0)) if _follow_marker.position != Vector3.ZERO else top
 	_follow_marker.rotate_y(delta * 1.5)
 	# Le repère grossit quand la caméra s'éloigne, pour rester visible.

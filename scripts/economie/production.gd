@@ -356,7 +356,14 @@ func _rendement(bid: int) -> float:
 	if not is_inside_tree():
 		return 1.0
 	var r := 1.0
-	for n in get_tree().get_nodes_in_group("rendement_sources"):
+	var nodes: Array
+	if _pas > 0:
+		if _rendement_nodes == null:
+			_rendement_nodes = get_tree().get_nodes_in_group("rendement_sources")
+		nodes = _rendement_nodes
+	else:
+		nodes = get_tree().get_nodes_in_group("rendement_sources")
+	for n in nodes:
 		if n.has_method("rendement"):
 			r *= clampf(float(n.rendement(bid)), 0.0, 1.0)
 	return r
@@ -681,6 +688,12 @@ func local_time(unix: float) -> Dictionary:
 func step_hours(h: float) -> void:
 	if _dirty:
 		_sync()
+	_debut_pas()
+	_step_hours(h)
+	_fin_pas()
+
+
+func _step_hours(h: float) -> void:
 	var frac := h / 24.0
 	for bid in sites:
 		if not buildings.buildings.has(bid):
@@ -831,9 +844,23 @@ func _shop_need(bid: int, good: String) -> float:
 ## Ce dont un site a besoin par jour : {marchandise: t}.
 func needs_of(bid: int) -> Dictionary:
 	var s: Dictionary = sites[bid]
-	var out := {}
 	if agri != null and agri.manages(bid):
 		return agri.needs(bid)
+	# Pendant une tournée de livraisons, les besoins ne changent pas : calculés une fois.
+	if _needs_cache != null:
+		var c = _needs_cache.get(bid)
+		if c == null:
+			c = _needs_calc(bid, s)
+			_needs_cache[bid] = c
+		return c
+	return _needs_calc(bid, s)
+
+
+var _needs_cache = null
+
+
+func _needs_calc(bid: int, s: Dictionary) -> Dictionary:
+	var out := {}
 	match String(s.kind):
 		"transformation":
 			var prod := ProductionTypes.prod_of(_type_of(bid))
@@ -923,6 +950,33 @@ func _road_node_near(p: Vector3, radius: float) -> int:
 
 ## Chauffeurs-livreurs : {id de l'employeur: [id des habitants]}.
 func drivers() -> Dictionary:
+	# Pendant un pas de simulation (tournée, heure), les emplois ne changent pas.
+	if _pas > 0:
+		if _drivers_cache == null:
+			_drivers_cache = _drivers_calc()
+		return _drivers_cache
+	return _drivers_calc()
+
+
+## Profondeur des pas en cours (caches valables tant qu'elle est > 0).
+var _pas := 0
+var _drivers_cache = null
+var _rendement_nodes = null
+
+
+func _debut_pas() -> void:
+	_pas += 1
+
+
+func _fin_pas() -> void:
+	_pas -= 1
+	if _pas <= 0:
+		_pas = 0
+		_drivers_cache = null
+		_rendement_nodes = null
+
+
+func _drivers_calc() -> Dictionary:
 	var out := {}
 	if population == null:
 		return out
@@ -1001,6 +1055,34 @@ func logistics(t: float) -> void:
 ## Lance les livraisons : d'abord les commandes (les plus pressées d'abord),
 ## puis le surplus vers les entrepôts et l'export.
 func _dispatch(t: float) -> void:
+	_src_cache = {}
+	_needs_cache = {}
+	_debut_pas()
+	_dispatch_inner(t)
+	_fin_pas()
+	_src_cache = null
+	_needs_cache = null
+
+
+## Pendant _dispatch : marchandise → sites qui peuvent la fournir (dans l'ordre de
+## `sites`), calculé une fois. Les stocks, eux, sont relus à chaque commande.
+var _src_cache = null
+
+
+func _sources_for(g: String) -> Array:
+	if _src_cache != null and _src_cache.has(g):
+		return _src_cache[g]
+	var out: Array = []
+	for bid in sites:
+		var kind := String(sites[bid].kind)
+		if kind == "entrepot" or (kind in ["extraction", "transformation", "elevage"] and outputs_of(bid).has(g)):
+			out.append(bid)
+	if _src_cache != null:
+		_src_cache[g] = out
+	return out
+
+
+func _dispatch_inner(t: float) -> void:
 	var free := _free_drivers(t)
 	var n_free := 0
 	for bid in free:
@@ -1065,14 +1147,11 @@ func _best_source(to: int, g: String) -> Dictionary:
 		return {}
 	var here := _pos_of(to)
 	var cands: Array = []
-	for bid in sites:
+	for bid in _sources_for(g):
 		if bid == to:
 			continue
-		var s: Dictionary = sites[bid]
-		var kind := String(s.kind)
-		if kind == "entrepot" or (kind in ["extraction", "transformation", "elevage"] and outputs_of(bid).has(g)):
-			if stock_of(bid, g) > 0.001:
-				cands.append([_pos_of(bid).distance_squared_to(here), bid])
+		if stock_of(bid, g) > 0.001:
+			cands.append([_pos_of(bid).distance_squared_to(here), bid])
 	cands.sort_custom(func(a: Array, b: Array) -> bool: return float(a[0]) < float(b[0]))
 	var best := {}
 	var best_m := INF

@@ -1958,13 +1958,20 @@ func _process(delta: float) -> void:
 		_stats_timer -= 0.3
 		if _stats_timer <= 0.0:
 			_stats_timer = 1.0
-			_refresh_stats()
+			_stats_en_cours = true
+	# Chiffres de la barre du haut : calculés par petits morceaux (grandes villes).
+	if _stats_en_cours:
+		var st := population.stats_par_morceaux()
+		if not st.is_empty():
+			_stats_en_cours = false
+			_refresh_stats(st)
 	_exclusive_panels()
 	if tuto_carte != null:
 		tuto_carte.cachee = hud.create_mode or GameStart.atelier or hud.coords_open()
 
 
 var _stats_timer := 0.0
+var _stats_en_cours := false
 ## Panneaux de droite ouverts à l'image précédente (pour n'en garder qu'un).
 var _open_before := {}
 
@@ -1994,9 +2001,9 @@ func _exclusive_panels() -> void:
 
 
 ## Chiffres de la ville dans la barre du haut : caisse, habitants, satisfaction, chômage.
-func _refresh_stats() -> void:
+func _refresh_stats(st := {}) -> void:
 	var money := "Illimitée" if buildings.unlimited_money else BuildingSystem.format_money(buildings.money)
-	var s := population.stats()
+	var s := st if not st.is_empty() else population.stats()
 	# Les fondateurs encore sous la tente ne font pas monter les paliers.
 	var palier := ReglagesPartie.actuel.note_population(int(s.habitants) - (fondateurs.au_campement() if fondateurs != null else 0))
 	if palier != "" and ReglagesPartie.actuel.deblocage == "progression":

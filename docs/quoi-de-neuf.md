@@ -4,6 +4,10 @@ Tout est dans `main`, et les 9 tests automatiques passent (`sh tests/tous.sh`).
 
 ## Nouveautés
 
+**Grandes villes plus fluides** (14 novembre)
+- À 5 000 habitants, l'image moyenne passe de 54 à 12 ms et la pire saccade de 1,7 s à 0,15 s ; à 1 000 habitants, plus de blocage d'une seconde à chaque heure de jeu. Rien ne change dans les règles du jeu.
+- Pollution et valeur des terrains calculées sur un autre cœur, passants qui apparaissent en douceur, livraisons, réseaux et déchets plus rapides. Banc d'essai `tests/perf_ville.gd`, voir docs/performances.md.
+
 **Quartiers et arrêtés municipaux** (touche **Maj+Y**, 14 novembre)
 - On peint ses quartiers au pinceau (îlots de 50 m) sur le territoire de sa ville et on les nomme. Dix arrêtés par quartier : zone 30, rues piétonnes, poids lourds interdits, tranquillité la nuit, tri obligatoire, détecteurs de fumée, éclairage renforcé ou éteint, stationnement payant, fleurissement. Ils coûtent (mise en place + par mois, au budget de la ville) et changent les trajets, la vitesse des voitures, le bruit, le tri, les incendies et l'avis des habitants. Mairie perdue : le conseil élu les choisit selon son programme ; le pilote automatique en ajoute aussi (voir docs/quartiers.md).
 

@@ -406,15 +406,16 @@ func caisse() -> int:
 func bilan_mensuel(k := -2) -> Dictionary:
 	if k == -2:
 		k = cle if multi() else -1
-	if k == Pays.PAYS and multi():
-		return bilan_pays()
+	if multi() and Pays.est_nation(k):
+		return bilan_pays(k)
 	var rec := {}
 	var dep := {}
 	var part := 1.0
-	if k > 0 and multi():
+	var ville := Pays.est_ville(k) and multi()
+	if ville:
 		part = float(Pays.instance.parts_population().get(k, 0.0))
 	if population != null:
-		var b := population.city_budget(_filtre_ville(k) if k > 0 else Callable())
+		var b := population.city_budget(_filtre_ville(k) if Pays.est_ville(k) else Callable())
 		for key in b.recettes:
 			var v := float(b.recettes[key])
 			var poste := String(key)
@@ -422,15 +423,15 @@ func bilan_mensuel(k := -2) -> Dictionary:
 				v *= taux_effectif("foncier")
 			elif key == "Impôts des entreprises":
 				v *= taux_effectif("entreprises")
-			elif key == "Dotation de l'État" and k > 0:
+			elif key == "Dotation de l'État" and ville:
 				poste = "Dotation du pays"
-				v *= Pays.instance.facteur_dotation()
+				v *= Pays.instance.facteur_dotation(Pays.instance.nation_de(k))
 			rec[poste] = float(rec.get(poste, 0.0)) + v
 		for key in b.depenses:
 			dep[key] = float(dep.get(key, 0.0)) + float(b.depenses[key])
-		if k > 0:
+		if ville:
 			var impots := float(rec.get("Taxe foncière", 0.0)) + float(rec.get("Impôts des entreprises", 0.0))
-			var c := impots * Pays.instance.taux_national
+			var c := impots * Pays.instance.taux_de(Pays.instance.nation_de(k))
 			if c > 0.0:
 				dep["Contribution au pays"] = c
 	for n in get_tree().get_nodes_in_group("budget_recettes") if is_inside_tree() else []:
@@ -465,7 +466,7 @@ func _ajouter_entretien(dep: Dictionary, k: int) -> void:
 	# Autres réseaux (eau, électricité…) : partagés selon la population.
 	var part := 1.0
 	if multi():
-		part = 0.0 if k == Pays.PAYS else float(Pays.instance.parts_population().get(k, 0.0))
+		part = 0.0 if Pays.est_nation(k) else float(Pays.instance.parts_population().get(k, 0.0))
 	for r in reseaux_ext:
 		var c := cout_entretien_ext(r) * part
 		if c > 0.0:
@@ -499,17 +500,18 @@ func flux_ville(vid: int) -> Dictionary:
 		te = maxf(te, TAUX_TUTELLE)
 	var b := population.city_budget(_filtre_ville(vid))
 	var impots := float(b.recettes.get("Taxe foncière", 0.0)) * tf + float(b.recettes.get("Impôts des entreprises", 0.0)) * te
-	return {"contribution": impots * Pays.instance.taux_national,
-		"dotation": float(b.recettes.get("Dotation de l'État", 0.0)) * Pays.instance.facteur_dotation()}
+	var nk := Pays.instance.nation_de(vid)
+	return {"contribution": impots * Pays.instance.taux_de(nk),
+		"dotation": float(b.recettes.get("Dotation de l'État", 0.0)) * Pays.instance.facteur_dotation(nk)}
 
 
 ## Bilan mensuel du pays : impôt national, dotations, voies hors des villes, emprunts du pays.
-func bilan_pays() -> Dictionary:
+func bilan_pays(nk := Pays.PAYS) -> Dictionary:
 	var rec := {}
 	var dep := {}
 	var c := 0.0
 	var d := 0.0
-	for vid in Communes.instance.villages:
+	for vid in Pays.instance.villes_de(nk):
 		var f := flux_ville(int(vid))
 		c += float(f.contribution)
 		d += float(f.dotation)
@@ -518,13 +520,13 @@ func bilan_pays() -> Dictionary:
 	if d > 0.0:
 		dep["Dotations aux villes"] = d
 	var sel := cle
-	if sel != Pays.PAYS:
+	if sel != nk:
 		# Emprunts du pays : on charge son état le temps du calcul.
-		selectionner(Pays.PAYS)
-		_ajouter_entretien(dep, Pays.PAYS)
+		selectionner(nk)
+		_ajouter_entretien(dep, nk)
 		selectionner(sel)
 	else:
-		_ajouter_entretien(dep, Pays.PAYS)
+		_ajouter_entretien(dep, nk)
 	return _totaux(rec, dep)
 
 
@@ -565,7 +567,7 @@ func _jour(k: int, day: float) -> void:
 	_pay_loans(day * DAYS_PER_MONTH)
 	_auto_repairs(k)
 	# Le pays n'est pas mis sous tutelle : à sec, il ne verse plus de dotation.
-	if k != Pays.PAYS or not multi():
+	if not Pays.est_nation(k) or not multi():
 		_check_tutelle()
 	jours_mois += 1
 	if jours_mois >= 30:
@@ -914,7 +916,7 @@ func reparer(eid: int, auto := false) -> bool:
 	if not auto and multi():
 		var o := proprio_voie(eid)
 		if o != cle:
-			if o != Pays.PAYS and not joueur_decide(o):
+			if not Pays.est_nation(o) and not joueur_decide(o):
 				message.emit("Cette voie est à %s, dont tu n'es plus le maire : son conseil décide des travaux." % Pays.instance.nom_de(o))
 				return false
 			var sel := cle

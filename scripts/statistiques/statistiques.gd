@@ -196,10 +196,19 @@ func _chiffres_pays() -> Dictionary:
 	elif s.has("satisfaction") and c.habitants > 0:
 		c.satisfaction = int(s.satisfaction)
 	if pays != null:
-		c.caisse = pays.solde(Pays.PAYS) if pays.a_des_villes() else (pays.buildings.money if pays.buildings != null else 0)
+		c.caisse = 0
+		if pays.a_des_villes():
+			for nk in pays.cles_nations():
+				c.caisse += pays.solde(int(nk))
+		else:
+			c.caisse = pays.buildings.money if pays.buildings != null else 0
 	if budget != null:
-		var b := budget.bilan_mensuel(Pays.PAYS if BudgetCommunal.multi() else -1)
-		c.solde = roundi(float(b.get("solde", 0.0)))
+		if BudgetCommunal.multi():
+			c.solde = 0
+			for nk in pays.cles_nations():
+				c.solde += roundi(float(budget.bilan_mensuel(int(nk)).get("solde", 0.0)))
+		else:
+			c.solde = roundi(float(budget.bilan_mensuel(-1).get("solde", 0.0)))
 	c.logements_libres = maxi(0, int(s.get("logements", 0)) - int(s.get("foyers", 0)))
 	c.emplois_libres = maxi(0, int(s.get("emplois", 0)) - int(s.get("actif", 0)))
 	return c

@@ -243,7 +243,7 @@ func verifier_palier(vid: int) -> void:
 		paliers[vid] = i
 		var p: Dictionary = PALIERS[i]
 		var prime := ReglagesPartie.prix(int(p.prime))
-		pays.prime(prime, "Prime : %s devient %s" % [pays.nom_de(vid), String(p.nom)])
+		pays.prime(prime, "Prime : %s devient %s" % [pays.nom_de(vid), String(p.nom)], vid)
 		message.emit("%s devient « %s » ! Le pays reçoit une prime de %s." % [pays.nom_de(vid), String(p.nom), BuildingSystem.format_money(prime)])
 		ajouter_reputation(float(p.rep), "%s devient %s" % [pays.nom_de(vid), String(p.nom).to_lower()])
 
@@ -416,7 +416,7 @@ func _verifier_missions() -> void:
 		if reussie(m):
 			missions.erase(m)
 			reussies += 1
-			pays.prime(int(m.prime), "Mission réussie : " + String(m.texte))
+			pays.prime(int(m.prime), "Mission réussie : " + String(m.texte), vid if vid >= 0 else -1)
 			message.emit("Mission réussie : %s ! Le pays reçoit %s." % [String(m.texte), BuildingSystem.format_money(int(m.prime))])
 			ajouter_reputation(float(m.rep), "mission réussie")
 			_historiser(m, true)
@@ -511,7 +511,10 @@ func _verifier_succes() -> void:
 		succes_debloque("missions5")
 	if reussies >= 20:
 		succes_debloque("missions20")
-	if pays.solde(Pays.PAYS) >= 50_000_000 and not pays.illimite():
+	var tresor := 0
+	for nk in pays.cles_nations():
+		tresor += pays.solde(int(nk))
+	if tresor >= 50_000_000 and not pays.illimite():
 		succes_debloque("riche")
 
 

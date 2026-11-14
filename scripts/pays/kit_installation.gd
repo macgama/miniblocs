@@ -81,6 +81,8 @@ func code_pays(vid: int) -> String:
 		return String(pays_de.call(vid)).to_lower()
 	if communes == null or not communes.villages.has(vid):
 		return ""
+	if Pays.instance != null:
+		return Pays.instance.code_de_ville(vid)
 	var c: Vector2 = communes.villages[vid].c
 	var olat := world.origin_lat if world != null else GameStart.lat
 	var olon := world.origin_lon if world != null else GameStart.lon

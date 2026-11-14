@@ -16,6 +16,8 @@ var _body: VBoxContainer
 var _scroll: ScrollContainer
 var _tick := 0.0
 var _montant := 1
+## Pays réglé dans l'onglet « Pays » (-1 : celui de la ville gérée).
+var _nation := -1
 
 
 func setup(p: Pays) -> void:
@@ -113,7 +115,10 @@ func refresh() -> void:
 	for c in _body.get_children():
 		_body.remove_child(c)
 		c.queue_free()
-	_title.text = "Pays : " + pays.nom_pays()
+	var noms := []
+	for nk in pays.cles_nations():
+		noms.append(pays.nom_nation(int(nk)))
+	_title.text = ("Pays : " if noms.size() <= 1 else "Tes pays : ") + ", ".join(noms)
 	match view:
 		"pays": _view_pays()
 		"journal": _view_journal()
@@ -211,8 +216,9 @@ func _view_villes() -> void:
 		_text("Pas encore de ville : pose une Maison de commune pour fonder la première (Maj+M).")
 		_text("Caisse du pays : %s" % _solde_txt(Pays.PAYS), false, 15)
 		return
-	_text("Caisse du pays : %s" % _solde_txt(Pays.PAYS), false, 15)
-	_text("Chaque ville a sa propre caisse. Ce qui se construit sur son territoire est payé par elle ; ce qui se construit hors des villes est payé par le pays.", true, 11)
+	if not pays.plusieurs_nations():
+		_text("Caisse du pays : %s" % _solde_txt(Pays.PAYS), false, 15)
+	_text("Chaque ville a sa propre caisse. Ce qui se construit sur son territoire est payé par elle ; ce qui se construit hors des villes est payé par le pays du lieu.", true, 11)
 	var r := _row()
 	var choix := Label.new()
 	choix.text = "Ville gérée : %s%s" % [pays.nom_de(pays.selection), " (épinglée)" if pays.epingle else " (suit la caméra)"]
@@ -236,10 +242,11 @@ func _view_villes() -> void:
 	opt.selected = clampi(_montant, 0, Pays.SUBVENTIONS.size() - 1)
 	opt.item_selected.connect(func(i: int) -> void: _montant = i)
 	m.add_child(opt)
-	var ids: Array = cm.villages.keys()
-	ids.sort()
-	for vid in ids:
-		_carte_ville(int(vid))
+	for nk in pays.cles_nations():
+		if pays.plusieurs_nations():
+			_section("%s · caisse du pays : %s" % [pays.nom_nation(int(nk)), _solde_txt(int(nk))])
+		for vid in pays.villes_de(int(nk)):
+			_carte_ville(int(vid))
 
 
 func _solde_txt(k: int) -> String:
@@ -274,6 +281,12 @@ func _carte_ville(vid: int) -> void:
 	if b != null:
 		var f := b.flux_ville(vid)
 		_line("Dotation du pays par mois", float(f.dotation), Color(1, 1, 1, 0.8))
+		var prod := Production.instance if Production.instance != null else null
+		if prod != null:
+			var cv: Dictionary = prod.commerce_ville(vid)
+			if float(cv.ventes) > 0.0 or float(cv.achats) > 0.0:
+				_line("Ventes aux autres villes (mois dernier)", float(cv.ventes), Color(1, 1, 1, 0.8))
+				_line("Achats aux autres villes (mois dernier)", -float(cv.achats), Color(1, 1, 1, 0.8))
 		_line("Contribution au pays par mois", -float(f.contribution), Color(1, 1, 1, 0.8))
 	if bool(e.get("tutelle", false)):
 		var l := _text("Sous tutelle du préfet : caisse dans le rouge trop longtemps.", false, 12)
@@ -327,33 +340,54 @@ func _maire_nom(vid: int) -> String:
 # --- Caisse du pays ---------------------------------------------------------------------------
 
 func _view_pays() -> void:
+	var nk := _nation if pays.nations.has(_nation) or _nation == Pays.PAYS else pays.nation_choisie()
+	if pays.plusieurs_nations():
+		var rn := _row()
+		for k in pays.cles_nations():
+			var kk := int(k)
+			var bn := _button(pays.nom_nation(kk), func() -> void:
+				_nation = kk
+				refresh(), false, "Régler ce pays")
+			bn.toggle_mode = true
+			bn.button_pressed = kk == nk
+			rn.add_child(bn)
 	var r := _row()
 	var l := Label.new()
 	l.text = "Nom du pays :"
 	l.add_theme_font_size_override("font_size", 12)
 	r.add_child(l)
 	var ed := LineEdit.new()
-	ed.text = pays.nom_pays()
+	ed.text = pays.nom_nation(nk)
 	ed.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	ed.text_submitted.connect(func(t: String) -> void:
-		pays.nom = t.strip_edges()
+		pays.renommer_nation(nk, t)
 		ed.release_focus()
 		refresh())
-	ed.focus_exited.connect(func() -> void: pays.nom = ed.text.strip_edges())
+	ed.focus_exited.connect(func() -> void: pays.renommer_nation(nk, ed.text))
 	r.add_child(ed)
-	_text("Caisse du pays : %s" % _solde_txt(Pays.PAYS), false, 15)
-	if not pays.illimite() and pays.solde(Pays.PAYS) <= 0:
+	_text("Caisse du pays : %s" % _solde_txt(nk), false, 15)
+	if not pays.illimite() and pays.solde(nk) <= 0:
 		var w := _text("Le pays est à sec : il ne verse plus de dotation aux villes.", false, 12)
 		w.add_theme_color_override("font_color", Color("ff6b6b"))
 	_section("Décisions du pays")
-	_slider("Impôt national (part des impôts des villes)", pays.taux_national, 0.0, Pays.TAUX_NATIONAL_MAX, 0.01,
-		func(x: float) -> String: return "%d %%" % roundi(x * 100.0), pays.set_taux_national)
-	_slider("Dotation par habitant", pays.dotation, 0.0, 2.0, 0.05,
-		func(x: float) -> String: return "%d %%" % roundi(x * 100.0), pays.set_dotation)
-	_text("Un impôt national élevé remplit la caisse du pays mais vide celles des villes. La dotation aide les petites villes à grandir.", true, 11)
+	_slider("Impôt national (part des impôts des villes)", pays.taux_de(nk), 0.0, Pays.TAUX_NATIONAL_MAX, 0.01,
+		func(x: float) -> String: return "%d %%" % roundi(x * 100.0), func(x: float) -> void: pays.set_taux_national(x, nk))
+	_slider("Dotation par habitant", pays.dotation_de(nk), 0.0, 2.0, 0.05,
+		func(x: float) -> String: return "%d %%" % roundi(x * 100.0), func(x: float) -> void: pays.set_dotation(x, nk))
+	if pays.plusieurs_nations():
+		_slider("Douane (marchandises de tes autres pays)", pays.douane_de(nk), 0.0, Pays.TAUX_DOUANE_MAX, 0.01,
+			func(x: float) -> String: return "%d %%" % roundi(x * 100.0), func(x: float) -> void: pays.set_douane(x, nk))
+	_text("Un impôt national élevé remplit la caisse du pays mais vide celles des villes. La dotation aide les petites villes à grandir. La douane rapporte au pays, mais renchérit ce que ses entreprises achètent de l'autre côté de la frontière.", true, 11)
 	if pays.budget == null or not pays.a_des_villes():
 		return
-	var b := pays.budget.bilan_mensuel(Pays.PAYS)
+	var prod := Production.instance
+	if prod != null and pays.plusieurs_nations():
+		_section("Commerce avec tes autres pays (mois dernier)")
+		var cn: Dictionary = prod.commerce_nation(nk)
+		_line("Exportations", float(cn.ventes), Color("7bd389"))
+		_line("Importations", -float(cn.achats), Color("ff8c8c"))
+		_line("Douane encaissée", float(cn.douane), Color("7bd389"))
+	var b := pays.budget.bilan_mensuel(nk)
 	_section("Prévision par mois")
 	for k in b.recettes:
 		_line(k, float(b.recettes[k]), Color("7bd389"))

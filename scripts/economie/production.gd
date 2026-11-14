@@ -30,6 +30,8 @@ signal extrait(bid: int, res: String, t: float)
 ## Une journée vient de se terminer (courses faites, salaires payés).
 signal day_passed
 
+static var instance: Production
+
 ## Stock maximal d'un entrepôt (t, toutes marchandises).
 const STOCK_ENTREPOT := 20000.0
 ## Stock maximal d'un site pour chaque marchandise qu'il produit : tant de
@@ -104,6 +106,9 @@ var today := {}
 var yesterday := {}
 ## Comptes de toute l'économie locale : {mois: {poste: €}, precedent: {}, jours}.
 var ledger := {"mois": {}, "precedent": {}, "jours": 0}
+## Commerce entre villes et entre pays (€, roulé avec ledger) : clés
+## "v:de>a" (villes), "n:de>a" (pays), "d:pays" (douane encaissée).
+var commerce := {"mois": {}, "precedent": {}}
 ## Horloge de la logistique (unix) et jour en cours.
 var clock := -1.0
 var last_unix := -1.0
@@ -112,6 +117,9 @@ var _log_n := 0
 ## Import et export déjà faits aujourd'hui (t).
 var _gate_used := {"import": 0.0, "export": 0.0}
 var _money_frac := 0.0
+## Impôt sur les bénéfices et douane pas encore versés (centimes) : caisse -> €.
+var _impot_frac := {}
+var _douane_frac := {}
 var _freight_seen := 0.0
 var _dirty := true
 var _routes: Dictionary = {}
@@ -130,6 +138,15 @@ var extraction_gate: Callable
 func _init() -> void:
 	today = _empty_flows()
 	yesterday = _empty_flows()
+
+
+func _enter_tree() -> void:
+	instance = self
+
+
+func _exit_tree() -> void:
+	if instance == self:
+		instance = null
 
 
 static func _empty_flows() -> Dictionary:
@@ -172,6 +189,9 @@ func clear() -> void:
 	today = _empty_flows()
 	yesterday = _empty_flows()
 	ledger = {"mois": {}, "precedent": {}, "jours": 0}
+	commerce = {"mois": {}, "precedent": {}}
+	_impot_frac.clear()
+	_douane_frac.clear()
 	clock = -1.0
 	last_unix = -1.0
 	last_day = -1
@@ -1357,6 +1377,7 @@ func _unload(mid: int) -> void:
 		_pay(to, "Achats aux fournisseurs", -value)
 		_pay(from, "Ventes aux entreprises", value)
 		_book("Échanges entre entreprises", value)
+		_commerce(from, to, value)
 	# L'entrepôt rachète le surplus au prix de l'export, et revend au prix de gros.
 	if from >= 0 and to >= 0 and String(sites.get(to, {}).get("kind", "")) == "entrepot":
 		var v := 0.0
@@ -1364,6 +1385,7 @@ func _unload(mid: int) -> void:
 			v += float(m.cargo[g]) * Ressources.price(g) * Ressources.EXPORT
 		_pay(to, "Achats aux fournisseurs", -v)
 		_pay(from, "Ventes aux entreprises", v)
+		_commerce(from, to, v)
 	# Transport : gazole pour l'employeur du chauffeur, course facturée par un transporteur.
 	var base := int(m.base)
 	_pay(base, "Gazole", -float(m.km) * GAZOLE_KM)
@@ -1373,6 +1395,88 @@ func _unload(mid: int) -> void:
 		var fee := float(m.km) * FRAIS_KM + FRAIS_COURSE
 		_pay(payer, "Transport", -fee)
 		_pay(base, "Courses de livraison", fee)
+
+
+## Vente d'une entreprise à une autre : comptée entre villes et entre pays ;
+## d'un pays à l'autre, l'acheteur paie la douane au pays qui importe.
+func _commerce(from: int, to: int, value: float) -> void:
+	var p := Pays.instance
+	if p == null or not p.a_des_villes() or value <= 0.0:
+		return
+	var vf := p.payeur_du_batiment(from)
+	var vt := p.payeur_du_batiment(to)
+	if vf == vt:
+		return
+	var m: Dictionary = commerce.mois
+	var kv := "v:%d>%d" % [vf, vt]
+	m[kv] = float(m.get(kv, 0.0)) + value
+	var nf := p.nation_de(vf)
+	var nt := p.nation_de(vt)
+	if nf == nt:
+		return
+	var kn := "n:%d>%d" % [nf, nt]
+	m[kn] = float(m.get(kn, 0.0)) + value
+	var duty := value * p.douane_de(nt)
+	if duty > 0.0:
+		_pay(to, "Douane", -duty)
+		_book("Douane", -duty)
+		var kd := "d:%d" % nt
+		m[kd] = float(m.get(kd, 0.0)) + duty
+		_douane_frac[nt] = float(_douane_frac.get(nt, 0.0)) + duty
+
+
+## Comptes de commerce du mois dernier (ou du mois en cours s'il n'y en a pas encore).
+func _commerce_mois() -> Dictionary:
+	var pr: Dictionary = commerce.get("precedent", {})
+	return pr if not pr.is_empty() else commerce.get("mois", {})
+
+
+## Ventes et achats d'une ville aux autres villes (€ par mois).
+func commerce_ville(vid: int) -> Dictionary:
+	var out := {"ventes": 0.0, "achats": 0.0}
+	var m := _commerce_mois()
+	for k in m:
+		var ks := String(k)
+		if not ks.begins_with("v:"):
+			continue
+		var pr := ks.substr(2).split(">")
+		if int(pr[0]) == vid:
+			out.ventes += float(m[k])
+		if int(pr[1]) == vid:
+			out.achats += float(m[k])
+	return out
+
+
+## Exportations, importations et douane d'un pays avec tes autres pays (€ par mois).
+func commerce_nation(nk: int) -> Dictionary:
+	var out := {"ventes": 0.0, "achats": 0.0, "douane": 0.0}
+	var m := _commerce_mois()
+	for k in m:
+		var ks := String(k)
+		if ks.begins_with("n:"):
+			var pr := ks.substr(2).split(">")
+			if int(pr[0]) == nk:
+				out.ventes += float(m[k])
+			if int(pr[1]) == nk:
+				out.achats += float(m[k])
+		elif ks == "d:%d" % nk:
+			out.douane += float(m[k])
+	return out
+
+
+## Total du commerce entre villes et entre pays du mois (€) : {villes, pays, douane}.
+func commerce_total(precedent := false) -> Dictionary:
+	var m: Dictionary = commerce.precedent if precedent else commerce.mois
+	var out := {"villes": 0.0, "pays": 0.0, "douane": 0.0}
+	for k in m:
+		var ks := String(k)
+		if ks.begins_with("v:"):
+			out.villes += float(m[k])
+		elif ks.begins_with("n:"):
+			out.pays += float(m[k])
+		elif ks.begins_with("d:"):
+			out.douane += float(m[k])
+	return out
 
 
 func _cancel(mid: int) -> void:
@@ -1712,8 +1816,9 @@ func new_day() -> void:
 					w += float(Metiers.job(String(population.persons[pid].met)).salaire) * ReglagesPartie.actuel.salaires * CHARGES / DAYS_PER_MONTH
 			_pay(bid, "Salaires", -w)
 			wages += w
-	# Impôt de la ville sur les bénéfices du jour.
+	# Impôt de la ville sur les bénéfices du jour : à la ville où est l'entreprise.
 	var tax := 0.0
+	var multi := Pays.instance != null and Pays.instance.a_des_villes()
 	for bid in sites:
 		var s: Dictionary = sites[bid]
 		var profit := float(s.get("jour", 0.0))
@@ -1723,6 +1828,9 @@ func new_day() -> void:
 			_pay(bid, "Impôt sur les bénéfices", -x)
 			s.jour = 0.0
 			tax += x
+			if multi:
+				var k := Pays.instance.payeur_du_batiment(bid)
+				_impot_frac[k] = float(_impot_frac.get(k, 0.0)) + x
 		# Mois des entreprises.
 		s.jours = int(s.get("jours", 0)) + 1
 		if int(s.jours) >= 30:
@@ -1733,12 +1841,23 @@ func new_day() -> void:
 	_book("Ventes aux habitants", gain_local)
 	_book("Salaires des entreprises", -wages)
 	_book("Impôt sur les bénéfices (pour la ville)", tax)
-	BudgetCommunal.noter("Impôt sur les bénéfices", tax)
-	if buildings != null and not buildings.unlimited_money:
+	if multi:
+		# Chaque ville touche l'impôt de ses entreprises, chaque pays sa douane.
+		for k in _impot_frac:
+			var whole := int(_impot_frac[k])
+			if whole != 0:
+				_impot_frac[k] = float(_impot_frac[k]) - whole
+				Pays.instance.encaisser(int(k), whole, "Impôt sur les bénéfices")
+		for k in _douane_frac:
+			var whole := int(_douane_frac[k])
+			if whole != 0:
+				_douane_frac[k] = float(_douane_frac[k]) - whole
+				Pays.instance.encaisser(int(k), whole, "Douane")
+	elif buildings != null and not buildings.unlimited_money:
+		BudgetCommunal.noter("Impôt sur les bénéfices", tax)
 		_money_frac += tax
 		var whole := int(_money_frac)
 		_money_frac -= whole
-		# Plusieurs villes : réparti selon leur population (Pays).
 		Pays.crediter(buildings, whole)
 	_gate_used = {"import": 0.0, "export": 0.0}
 	_freight_seen = _freight_total()
@@ -1753,6 +1872,8 @@ func new_day() -> void:
 		ledger.precedent = ledger.mois
 		ledger.mois = {}
 		ledger.jours = 0
+		commerce.precedent = commerce.mois
+		commerce.mois = {}
 	changed.emit()
 	day_passed.emit()
 
@@ -1870,7 +1991,8 @@ func to_dict() -> Dictionary:
 	for home in manque_foyers:
 		mf[str(home)] = _snap_dict(manque_foyers[home], 0.00001)
 	return {"version": 2, "sites": si, "missions": mi, "next_mission": next_mission, "comptes": ledger, "veille": yesterday,
-		"freight_seen": _freight_seen, "money_frac": _money_frac, "clock": clock, "gates": _gate_used, "manque": mf}
+		"freight_seen": _freight_seen, "money_frac": _money_frac, "clock": clock, "gates": _gate_used, "manque": mf,
+		"commerce": commerce.duplicate(true)}
 
 
 func from_dict(d: Dictionary) -> void:
@@ -1930,6 +2052,8 @@ func from_dict(d: Dictionary) -> void:
 	var c: Dictionary = d.get("comptes", {})
 	if not c.is_empty():
 		ledger = {"mois": c.get("mois", {}), "precedent": c.get("precedent", {}), "jours": int(c.get("jours", 0))}
+	var co: Dictionary = d.get("commerce", {})
+	commerce = {"mois": co.get("mois", {}), "precedent": co.get("precedent", {})}
 	var v: Dictionary = d.get("veille", {})
 	if not v.is_empty():
 		yesterday = _empty_flows()

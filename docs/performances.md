@@ -26,7 +26,22 @@ des scripts (le processeur), pas de la carte graphique.
 
 ## Résultats
 
-RESULTATS
+Mesures du 14 novembre 2026 (conteneur Linux à 4 cœurs, `--headless`, 1 200 images,
+1 jour de jeu par minute). « Avant » = `main` au commit c672522.
+
+| Ville | | Image moyenne | Médiane | 95e centile | Pire image |
+|---|---|---|---|---|---|
+| 1 000 hab. | avant | 13,8 ms (73 i/s) | 5,9 ms | 24,5 ms | 775 ms |
+| 1 000 hab. | après | 5,6 ms (178 i/s) | 4,0 ms | 14,2 ms | 42 ms |
+| 5 000 hab. | avant | 54,5 ms (18 i/s) | 9,4 ms | 68,7 ms | 1 656 ms |
+| 5 000 hab. | après | 11,9 ms (84 i/s) | 8,1 ms | 34,5 ms | 153 ms |
+
+Mémoire inchangée (310 Mo à 1 000 hab., 410 Mo à 5 000). Sauvegarde : 0,15 → 0,12 s
+(1 000 hab.) et 0,55 → 0,42 s (5 000 hab.) ; chargement : environ 2,1 s et 5,5 s, inchangé.
+
+Avant, la ville se figeait près d'une seconde à chaque heure de jeu (toutes les
+2,5 s réelles) ; il reste à 5 000 habitants de petites saccades de 60 à 150 ms
+au quart d'heure de jeu (livraisons, déchets, réseaux).
 
 ## Ce qui a été changé
 
@@ -70,4 +85,6 @@ heure de jeu).
 - Livraisons : ~1 000 commandes examinées par quart d'heure à 5 000 habitants,
   même quand aucun chauffeur n'est libre (40 ms).
 - Réseaux : le pas de simulation (toutes les 0,5 s) coûte encore ~30 ms à 5 000 habitants.
+- Chargement d'une partie de 5 000 habitants : 5,5 s.
 - Construction de la ville du banc : le zonage de 1 000 bâtiments prend ~75 s.
+- Rendu (carte graphique) : à mesurer sur un vrai PC, sans `--headless`.

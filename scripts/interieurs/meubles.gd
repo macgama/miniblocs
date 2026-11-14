@@ -311,6 +311,10 @@ const STYLES := {
 			"cuisiniere": {"n": "Cuisine automatique"}, "refrigerateur": {"n": "Conservateur cryo"}, "comptoir": {"n": "Caisse sans contact"}, "tableau": {"n": "Tableau interactif"}}},
 }
 
+## Style des objets du musée (MuseeObjets) : pas décliné sur les types de meubles.
+const MUSEE_STYLE := {"name": "Musée", "region": "monde", "era": "contemporain", "prix": 1.0, "conf": 1.0,
+	"pal": {"bois": "6b4a2f", "bois2": "c9a777", "tissu": "8e1e24", "tissu2": "e9e1d3", "metal": "2b2f33", "accent": "c9a227", "pierre": "e8e2d6"}}
+
 ## Style de mobilier par défaut selon la région du monde.
 const DEFAULT_STYLE := {"europe": "contemporain", "mediterranee": "provencal", "moyen_orient": "marocain", "afrique": "afrique_moderne",
 	"asie_est": "asie_moderne", "asie_sud": "indien", "ameriques": "mid_century", "oceanie": "bord_de_mer", "monde": "contemporain"}
@@ -326,10 +330,18 @@ static func era_index(era: String) -> int:
 static func piece_name(p: String) -> String:
 	if PIECES.has(p):
 		return String(PIECES[p].name)
+	if MuseeObjets.SALLES.has(p):
+		return MuseeObjets.salle_name(p)
+	if p == "musee":
+		return "Musée"
+	if MuseeObjets.FAMILLES.has(p):
+		return String(MuseeObjets.FAMILLES[p].name)
 	return String(CATEGORY_NAMES.get(p, p))
 
 
 static func style_of(id: String) -> Dictionary:
+	if id == MuseeObjets.STYLE:
+		return MUSEE_STYLE
 	return STYLES.get(id, STYLES.contemporain)
 
 
@@ -381,6 +393,10 @@ static func _build() -> void:
 			if ei < int(er2[0]) or ei > int(er2[1]):
 				continue
 			_add(sid, st, pid, base, over)
+	# Objets du musée (vitrines, œuvres, éclairage…) : un style à part, « musee ».
+	for me in MuseeObjets.entries():
+		_all[String(me.id)] = me
+		_order.append(String(me.id))
 
 
 static func _add(sid: String, st: Dictionary, tid: String, t: Dictionary, over: Dictionary) -> void:
@@ -456,6 +472,10 @@ static func pick(type_id: String, style: String) -> String:
 ## Premier type présent dans le style parmi plusieurs équivalents (cuisinière,
 ## fourneau, foyer…) : rend l'identifiant du meuble ou "".
 static func pick_any(types: Array, style: String) -> String:
+	# Identifiants complets (« musee/vitrine_murale ») : pris tels quels.
+	for t in types:
+		if String(t).contains("/") and all().has(String(t)):
+			return String(t)
 	for t in types:
 		var id := "%s/%s" % [style, t]
 		if all().has(id):

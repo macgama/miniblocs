@@ -228,6 +228,14 @@ const SECTIONS := [
 		["Calques", "couverture mobile (disques 2G, 4G, 5G) ou débit de chaque bâtiment (fibre, ADSL, box 4G / 5G, lent, rien)"],
 		["Conséquences", "sans internet ni réseau mobile, les habitants sont moins satisfaits et les entreprises produisent moins (bureaux surtout) ; une antenne trop chargée sature. Réglage Admin (F10) pour couper"],
 	]],
+	["Musées", [
+		["Maj + C", "menu Musée (barre du bas, Loisirs) : note en étoiles, visiteurs, billet, recettes, salles, œuvres, expositions, ce que disent les visiteurs, conseils"],
+		["Bâtir", "5 musées prêts à poser (histoire locale, beaux-arts, muséum, sciences, civilisations) ou tes propres murs (mode Créer) ; « Faire du bâtiment visé un musée » ; matériaux de musée (parquet Versailles, marbre…)"],
+		["Salles", "14 fonctions (hall, galerie de peinture, sculptures, Égypte, dinosaures, sciences, boutique, café…) ; « Aménager » meuble la salle avec ses vitrines, socles et œuvres"],
+		["Objets", "106 objets en 12 familles : vitrines, socles, tableaux, statues, antiquités, fossiles, machines, histoire, arts du monde, éclairage, parcours (cordons, cartels, bornes), accueil et services"],
+		["Note", "prestige des œuvres (plus fort dans la salle de leur thème), éclairage, place, vitrines pour les objets fragiles, bancs, toilettes, billetterie, boutique, café ; une exposition temporaire attire du monde"],
+		["Visiteurs", "habitants et touristes, de 10 h à 18 h (19 h l'été), fermé le lundi ; plus nombreux le week-end, le mercredi, l'été et quand il pleut ; gratuit le 1er dimanche si tu le veux"],
+	]],
 	["Parc de loisirs", [
 		["Maj + G", "panneau du parc : note en étoiles, visiteurs, prix de l'entrée et des tours, recettes, attractions (files, fiabilité, pannes), ce que disent les visiteurs, conseils"],
 		["Construire → Parc de loisirs", "l'Entrée du parc (au bord d'une route) fonde le parc ; attractions, stands, toilettes, aires de repos et atelier se posent à moins de 250 m derrière elle, sans route"],

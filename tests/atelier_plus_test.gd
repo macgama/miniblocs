@@ -38,7 +38,22 @@ func _run() -> void:
 	BanqueModeles.persist = false
 
 	print("Matériaux :")
-	_check(BlocMateriaux.LIST.size() >= 110 and BlocMateriaux.LIST.size() <= 255, "%d matériaux (codés sur 8 bits)" % BlocMateriaux.LIST.size())
+	_check(BlocMateriaux.LIST.size() >= 350 and BlocMateriaux.LIST.size() <= 4096, "%d matériaux (codés sur 12 bits)" % BlocMateriaux.LIST.size())
+	_check(String(BlocMateriaux.LIST[115].name) == "Cuir", "les matériaux de l'atelier enrichi gardent leur place")
+	var big_m := BlocMateriaux.LIST.size() - 1
+	var bc := BlocFormes.encode(big_m, BlocFormes.S.DOOR, 3, 9, true, true)
+	_check(BlocFormes.mat_of(bc) == big_m and BlocFormes.shape_of(bc) == BlocFormes.S.DOOR and BlocFormes.rot_of(bc) == 3
+		and BlocFormes.tint_of(bc) == 9 and BlocFormes.is_open(bc), "un matériau au-delà de 255 se code et se relit (%d)" % big_m)
+	var pc := BlocFormes.encode_part(BlocFormes.encode(300, BlocFormes.S.P_DOME), Vector3i(3, 2, 5), 10)
+	_check(BlocFormes.mat_of(pc) == 300 and BlocFormes.size_of(pc) == 10 and BlocFormes.part_of(pc) == Vector3i(3, 2, 5)
+		and BlocFormes.mat_of(BlocFormes.base_code(pc)) == 300 and pc < (1 << 53), "grande pièce en matériau 300 : morceau gardé, code sûr en JSON")
+	var parsed: Variant = JSON.parse_string(JSON.stringify([pc]))
+	_check(parsed is Array and int(parsed[0]) == pc, "le code survit à la sauvegarde JSON")
+	var fam_n := {}
+	for m in BlocMateriaux.LIST:
+		fam_n[m.fam] = int(fam_n.get(m.fam, 0)) + 1
+	for fid in ["monde", "attractions", "zoo", "sport", "musee", "evenements"]:
+		_check(int(fam_n.get(fid, 0)) >= 12, "famille %s : %d matériaux" % [fid, int(fam_n.get(fid, 0))])
 	_check(String(BlocMateriaux.LIST[57].name) == "Bois peint blanc" and String(BlocMateriaux.LIST[51].name) == "Vitrail", "l'ordre des anciens matériaux ne change pas (sauvegardes)")
 	var names := {}
 	for m in BlocMateriaux.LIST:
@@ -61,6 +76,19 @@ func _run() -> void:
 		if img.get_pixel(i, 20).is_equal_approx(c0) == false:
 			varied = true
 	_check(varied, "le motif « Brique flamande » n'est pas uni")
+	# Chaque motif est vraiment dessiné (pas la couleur de repli).
+	var flat := []
+	for mi in BlocMateriaux.LIST.size():
+		var pat := String(BlocMateriaux.LIST[mi].pat)
+		if pat == "uni":
+			continue
+		var im := BlocMateriaux.image(mi)
+		var cols := {}
+		for k in 64:
+			cols[im.get_pixel((k * 7) % 64, (k * 13) % 64).to_html()] = true
+		if cols.size() < 3:
+			flat.append(pat)
+	_check(flat.is_empty(), "tous les motifs sont dessinés %s" % [flat])
 
 	print("Formes d'une case :")
 	var empty := func(_o: Vector3i) -> int: return -1

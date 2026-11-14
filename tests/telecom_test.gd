@@ -81,7 +81,8 @@ func _run() -> void:
 	# Satisfaction d'un habitant de la maison (foyer fictif).
 	var pop: Population = scene.population
 	pop.households[987654] = {"b": near}
-	var p := {"f": 987654}
+	# Un adulte de 35 ans : les autres systèmes de satisfaction lisent aussi sa date de naissance (nj).
+	var p := {"f": 987654, "nj": pop.life_clock - 35.0 * 365.25}
 	var sat := tel.satisfaction_of(p)
 	_check(float(sat[0]) <= -10.0 and (sat[1] as Array).size() == 2, "habitant sans internet ni mobile : %d (%s)" % [int(sat[0]), ", ".join(sat[1])])
 	var chained: Array = pop.extra_satisfaction.call(p)

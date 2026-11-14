@@ -113,6 +113,10 @@ func _run() -> void:
 	_check(scene.agri_panel != null and scene.agri_visuels != null, "panneau (Maj+F) et affichage des champs")
 	amb.set_speed(0)
 	amb.unix_time = _at("2026-09-28", 8.0)
+	# Temps fixe et sec : _heures() avance l'horloge sans faire tourner la météo, qui resterait
+	# figée sur le temps du chargement (pluie possible si la machine est lente : pas de labour).
+	amb.weather.mode = Meteo.Mode.SOLEIL
+	amb.weather.settle(amb.unix_time, 8.0)
 	bs.money = 2_000_000_000
 	var y := world.cell_height(Vector2i(0, 0))
 	_check(transport.build_segment("route", Vector3(-700, y, 0), Vector3(700, y, 0)).ok, "route est-ouest")

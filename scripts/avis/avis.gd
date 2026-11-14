@@ -310,11 +310,13 @@ func facteurs_ville() -> Dictionary:
 	var t := now()
 	for e in effets:
 		if float(e.fin) > t:
-			var k := "effet_%s_%s" % [e.theme, e.raison]
+			# Chaque ville a sa vie politique : l'effet ne touche que sa ville.
+			var ev := int(e.get("vid", -1))
+			var k := "effet_%s_%s_%d" % [e.theme, e.raison, ev]
 			if out.has(k):
 				out[k][1] = float(out[k][1]) + float(e.delta)
 			else:
-				out[k] = [String(e.theme), float(e.delta), [("+ " if float(e.delta) >= 0.0 else "− ") + String(e.raison)]]
+				out[k] = [String(e.theme), float(e.delta), [("+ " if float(e.delta) >= 0.0 else "− ") + String(e.raison)], ev]
 	_ville = out
 	return out
 
@@ -338,7 +340,13 @@ func appliquer(p: Dictionary, th: Dictionary, why: Array) -> float:
 			why.append_array(r[1])
 			_apprendre(r[1], String(src.theme))
 	var v := facteurs_ville()
+	var vil := -3
 	for k in v:
+		if (v[k] as Array).size() > 3 and int(v[k][3]) >= 0:
+			if vil == -3:
+				vil = Communes.instance.village_de(population.home_of(p)) if Communes.instance != null else -1
+			if vil != int(v[k][3]):
+				continue
 		var d := float(v[k][1])
 		th[v[k][0]] = float(th.get(v[k][0], 0.0)) + d
 		total += d
@@ -362,8 +370,11 @@ func _apprendre(raisons: Array, theme: String) -> void:
 
 
 ## Effet passager sur un thème pour tous les habitants.
-func ajouter_effet(theme: String, delta: float, jours: float, raison: String) -> void:
-	effets.append({"theme": theme, "delta": delta, "fin": now() + jours * 86400.0, "raison": raison})
+## vid : ville touchée (par défaut la ville examinée ; -1 = toutes).
+func ajouter_effet(theme: String, delta: float, jours: float, raison: String, vid := -2) -> void:
+	if vid == -2:
+		vid = ville_vid
+	effets.append({"theme": theme, "delta": delta, "fin": now() + jours * 86400.0, "raison": raison, "vid": vid})
 	_ville_ms = -100000
 	_sondage_ms = -100000
 	changed.emit()
@@ -924,7 +935,8 @@ func from_dict(d: Dictionary) -> void:
 	if d.is_empty():
 		return
 	for e in d.get("effets", []):
-		effets.append({"theme": String(e.theme), "delta": float(e.delta), "fin": float(e.fin), "raison": String(e.raison)})
+		effets.append({"theme": String(e.theme), "delta": float(e.delta), "fin": float(e.fin), "raison": String(e.raison),
+			"vid": int(e.get("vid", -1))})
 	if d.has("villes"):
 		for ks in d.villes:
 			var v := int(ks)

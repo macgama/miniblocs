@@ -274,7 +274,7 @@ func ouvrir_campagne() -> void:
 	if not bilan.is_empty():
 		var ok := bilan.size() - bad
 		avis.ajouter_effet("politique", 2.0 * ok - 3.0 * bad, duree_campagne() + 1.0,
-			"promesses tenues (%d sur %d)" % [ok, bilan.size()] if bad == 0 else "promesses non tenues (%d sur %d)" % [bad, bilan.size()])
+			"promesses tenues (%d sur %d)" % [ok, bilan.size()] if bad == 0 else "promesses non tenues (%d sur %d)" % [bad, bilan.size()], vid)
 	avis.changed.emit()
 
 
@@ -604,7 +604,7 @@ func _elire(l: Dictionary, pct: float, txt: String, participation: float) -> voi
 			avis.population.vie.log_event(avis.population.persons[tete], "politique", "Élu·e maire de %s (%.0f %%)" % [Avis.ville(), pct])
 		avis.dire("Municipales (%s, participation %d %%) : %s. %s maire avec %.1f %% !" % [tour_txt, roundi(participation), txt,
 			"Tu es réélu·e" if etait_maire else "Tu redeviens", pct])
-		avis.ajouter_effet("politique", 3.0, 30.0, "nouveau mandat")
+		avis.ajouter_effet("politique", 3.0, 30.0, "nouveau mandat", vid)
 	else:
 		maire = {"joueur": false, "liste": l.id, "nom": l.nom, "couleur": l.couleur, "tendance": l.tendance, "tete": int(l.tete),
 			"tete_nom": l.tete_nom}
@@ -631,7 +631,7 @@ func _elire(l: Dictionary, pct: float, txt: String, participation: float) -> voi
 				suite = " Tu restes aux commandes de la ville."
 		avis.dire("Municipales (%s, participation %d %%) : %s. %s (%s) devient maire avec %.1f %%.%s" % [tour_txt, roundi(participation),
 			txt, l.tete_nom, l.nom, pct, suite])
-		avis.ajouter_effet("politique", 3.0, 30.0, "nouveau mandat")
+		avis.ajouter_effet("politique", 3.0, 30.0, "nouveau mandat", vid)
 		if m == "fin":
 			avis.defaite_finale.emit("%s (%s) a gagné les municipales avec %.1f %%." % [l.tete_nom, l.nom, pct])
 	etat = "mandat"

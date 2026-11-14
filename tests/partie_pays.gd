@@ -296,7 +296,11 @@ func _reseaux(vid: int, hab: int) -> void:
 	if hab <= 1500 or _poser(vid, "station_epuration_locale") < 0:
 		if _poser(vid, "lagunage") < 0:
 			_poser(vid, "station_epuration_locale")
-	_poser(vid, "decheterie" if BuildingCatalog.all_types().has("decheterie") else "depot_collecte")
+	# Déchets : dépôt de collecte (camions-bennes), décharge, déchèterie.
+	for i in maxi(1, ceili(hab / 6000.0)):
+		_poser(vid, "depot_collecte")
+	_poser(vid, "decharge")
+	_poser(vid, "decheterie")
 
 
 func _run() -> void:

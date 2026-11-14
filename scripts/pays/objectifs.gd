@@ -238,13 +238,14 @@ func satisfaction(vid: int) -> int:
 func compter(vid: int, type_id: String) -> int:
 	var c = _en_cache("compte")
 	if c == null or int(c.n) != buildings.buildings.size():
-		# Un seul passage sur les bâtiments pour toutes les villes et tous les types.
+		# Un seul passage sur les bâtiments pour toutes les villes et tous les types
+		# (un modèle de l'Atelier compte comme le type de base dont il a la fonction).
 		var par := {}
 		for bid in buildings.buildings:
 			var b: Dictionary = buildings.buildings[bid]
 			if b.get("chantier", false):
 				continue
-			var k := "%d:%s" % [communes.village_de(bid), String(b.t)]
+			var k := "%d:%s" % [communes.village_de(bid), BuildingCatalog.base_of(String(b.t))]
 			par[k] = int(par.get(k, 0)) + 1
 		c = _garder("compte", {"n": buildings.buildings.size(), "par": par})
 	return int(c.par.get("%d:%s" % [vid, type_id], 0))

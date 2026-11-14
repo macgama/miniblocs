@@ -404,7 +404,7 @@ func _view_betes() -> void:
 		return
 	var t := agri._type_of(bid)
 	var f := agri.ferme(bid)
-	var places: Dictionary = AgriDonnees.FERMES.get(t, {}).get("betes", {})
+	var places: Dictionary = AgriDonnees.FERMES.get(BuildingCatalog.base_of(t), {}).get("betes", {})
 	if places.is_empty():
 		_text("Cette ferme n'a pas de bâtiment pour les bêtes. Construis un élevage, une ferme laitière (Production) ou une ferme de la bible : stabulation, porcherie, poulailler, bergerie, haras, ferme à cour carrée…", true)
 		return

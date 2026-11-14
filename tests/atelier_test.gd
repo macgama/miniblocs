@@ -177,6 +177,34 @@ func _run() -> void:
 	bp.show_category("banque")
 	await process_frame
 	_check(bp._item_buttons.size() >= 4, "onglet Banque de modèles")
+	bp._block_mode = "blocs"
+	bp.show_category("blocs")
+	await process_frame
+	var cards := []
+	var chips := []
+	var mgrid: GridContainer = null
+	var stack: Array = [bp._list]
+	while not stack.is_empty():
+		var nd: Node = stack.pop_back()
+		if nd is GridContainer and (nd as GridContainer).columns == 4 and nd.get_parent() is ScrollContainer:
+			cards = nd.get_children()
+			mgrid = nd
+		if nd is HFlowContainer and nd.get_child_count() > 0 and nd.get_child(0) is Button and (nd.get_child(0) as Button).text.begins_with("Tous "):
+			chips = nd.get_children()
+		stack.append_array(nd.get_children())
+	_check(cards.size() == BlocMateriaux.count(), "panneau des matériaux : %d vignettes" % cards.size())
+	var has_pic := cards.size() > 0 and (cards[0] as Button).icon != null \
+		and (cards[0] as Button).text == String(BlocMateriaux.LIST[0].name)
+	_check(has_pic, "chaque vignette montre l'image et le nom du matériau")
+	_check(chips.size() == BlocMateriaux.FAMILIES.size(), "onglets des familles (%d)" % chips.size())
+	if chips.size() > 3:
+		(chips[3] as Button).pressed.emit()
+		await process_frame
+		var shown := 0
+		for c in mgrid.get_children():
+			if not c.is_queued_for_deletion():
+				shown += 1
+		_check(shown > 0 and shown < BlocMateriaux.count(), "un onglet ne montre que sa famille (%d)" % shown)
 	var hud: TerreHud = scene.hud
 	_check(hud._cat_buttons.has("banque") and hud._cat_buttons.has("atelier"), "tuiles Banque et Atelier du mode Créer")
 	_check(Icones.has_icon("banque") and Icones.has_icon("atelier"), "icônes Banque et Atelier")

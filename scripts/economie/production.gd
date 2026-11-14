@@ -306,7 +306,7 @@ static func kind_of(type_id: String) -> String:
 	if AgriDonnees.est_ferme(type_id):
 		return "elevage"
 	var t := BuildingCatalog.get_type(type_id)
-	if type_id == "entrepot" or String(t.get("arch", "")) == "entrepot":
+	if BuildingCatalog.base_of(type_id) == "entrepot" or String(t.get("arch", "")) == "entrepot":
 		return "entrepot"
 	if not Ressources.commerce_of(type_id).is_empty():
 		return "commerce"

@@ -64,6 +64,22 @@ static func get_model(id: String) -> Dictionary:
 	return _items.get(id, {})
 
 
+static func has_model(id: String) -> bool:
+	ensure_loaded()
+	return _items.has(id)
+
+
+## Fonction d'un modèle en murs fins : le bâtiment du catalogue dont il prend
+## le rôle dans la partie (voir ModelesJeu).
+static func set_fonction(id: String, fonction: String) -> void:
+	ensure_loaded()
+	if not _items.has(id) or BuildingCatalog.get_type(fonction).is_empty():
+		return
+	var d: Dictionary = _items[id]
+	d["fonction"] = fonction
+	_store(d, null)
+
+
 static func count() -> int:
 	ensure_loaded()
 	return _items.size()
@@ -78,6 +94,7 @@ static func _new_id(nom: String) -> String:
 
 static func _store(data: Dictionary, preview: Image) -> void:
 	_items[String(data.id)] = data
+	ModelesJeu.refresh()
 	if not persist:
 		return
 	var dir := "%s/%s" % [ROOT, data.id]
@@ -178,7 +195,8 @@ static func save_plan(mob: Mobilier, plan_id: String, nom: String, vp: Viewport 
 	# Toit et ajouts en blocs au-dessus de l'emprise (débords compris).
 	var blocs := []
 	var area := bbox.grow(2)
-	var by := floori(y0)
+	# Hauteur des blocs en demi-mètres, comptée depuis le rez-de-chaussée.
+	var by := floori(y0 / BlockEditor.UNIT_Y)
 	if pe.blocks != null:
 		for k in pe.blocks.blocks:
 			var kb: Vector3i = k
@@ -192,7 +210,8 @@ static func save_plan(mob: Mobilier, plan_id: String, nom: String, vp: Viewport 
 	var data := {
 		"format": FORMAT, "version": VERSION, "id": _new_id(nm), "nom": nm, "auteur": _author(),
 		"cree": Time.get_unix_time_from_system(), "genre": "plan",
-		"w": bbox.size.x, "d": bbox.size.y, "dy": y0 - by,
+		"w": bbox.size.x, "d": bbox.size.y, "dy2": y0 - by * BlockEditor.UNIT_Y,
+		"fonction": String(Mobilier.USAGES.get(mob.usage_of(plan_id), Mobilier.USAGES.logement).t),
 		"walls": walls, "floors": floors, "stairs": stairs, "blocs": blocs,
 		"usage": mob.usage_of(plan_id), "style_meubles": style, "meubles": meubles, "pieces": pieces,
 		"etiquettes": {"type": mob.usage_of(plan_id), "categorie": "murs_fins", "style": style,
@@ -228,6 +247,7 @@ static func _author() -> String:
 
 static func remove(id: String) -> void:
 	ensure_loaded()
+	ModelesJeu.forget(id, _items.get(id, {}))
 	_items.erase(id)
 	if not persist:
 		return
@@ -371,7 +391,7 @@ static func _place_plan(d: Dictionary, o: Vector2i, mob: Mobilier) -> Dictionary
 	# Toit et ajouts en blocs.
 	if pe.blocks != null:
 		var ba: Array = d.get("blocs", [])
-		var by := floori(y0)
+		var by := floori(y0 / BlockEditor.UNIT_Y) if d.has("dy2") else floori(y0)
 		i = 0
 		while i + 3 < ba.size():
 			var k := Vector3i(int(ba[i]) + o.x, int(ba[i + 1]) + by, int(ba[i + 2]) + o.y)

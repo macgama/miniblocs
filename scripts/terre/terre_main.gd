@@ -236,6 +236,7 @@ func _ready() -> void:
 		if res.ok:
 			blocks.set_tool(BlockEditor.Tool.NONE)
 			build_panel.clear_selection())
+	build_panel.block_piece_changed.connect(func(d: int, n: int) -> void: blocks.set_piece(d, n))
 	build_panel.wall_height_changed.connect(func(h: int) -> void:
 		blocks.wall_height = h
 		blocks._emit_help())
@@ -317,6 +318,8 @@ func save_sections() -> Dictionary:
 	var sec := {"terrain": world.to_dict(), "transport": transport.to_dict(), "batiments": buildings.to_dict(),
 		"zones": zones.to_dict(), "blocs": blocks.to_dict(), "plans": plans.to_dict(), "ambiance": ambiance.to_dict(),
 		"creations": Creations.to_dict(Creations.used_by(buildings)),
+		"modeles_jeu": ModelesJeu.to_dict(buildings),
+		"modeles_visites": modeles_visites.to_dict(),
 		"personnage": ($VueSol as VueSol).to_dict(), "habitants": population.to_dict(), "mobilier": mobilier.to_dict(),
 		"production": production.to_dict(), "agriculture": agriculture.to_dict(), "urgences": urgences.to_dict(), "reseaux": reseaux.to_dict(), "dechets": dechets.to_dict(), "funeraire": funeraire.to_dict(), "trafic": trafic.to_dict(), "lignes_eco": lignes_eco.to_dict(), "reglages": _settings_snapshot().to_dict(), "budget": budget.to_dict(), "evenements": evenements.to_dict(), "decors": decors.to_dict(),
 		"nuisances": nuisances.to_dict(), "telecom": telecom.to_dict(), "services": services.to_dict(), "carrieres": carrieres.to_dict()}
@@ -415,12 +418,14 @@ func load_game(slot := "") -> bool:
 	pays.capital_auto = false
 	transport.from_dict(sec.get("transport", {}))
 	Creations.adopt(sec.get("creations", {}))
+	ModelesJeu.adopt(sec.get("modeles_jeu", {}))
 	buildings.from_dict(sec.get("batiments", {}))
 	zones.from_dict(sec.get("zones", {}))
 	blocks.from_dict(sec.get("blocs", {}))
 	# Murs fins et meubles avant les habitants : ils y vivent et y travaillent.
 	plans.from_dict(sec.get("plans", {}))
 	mobilier.from_dict(sec.get("mobilier", {}))
+	modeles_visites.from_dict(sec.get("modeles_visites", {}))
 	population.from_dict(sec.get("habitants", {}))
 	production.from_dict(sec.get("production", {}))
 	carrieres.from_dict(sec.get("carrieres", {}))
@@ -1569,6 +1574,12 @@ func _setup_mobilier() -> void:
 	add_child(metiers_vivants)
 	metiers_vivants.setup(population, buildings, ambiance, rig)
 	metiers_vivants.occupants = occupants
+	# Modèles de l'atelier posés comme bâtiments : leurs vrais murs et meubles.
+	modeles_visites = ModelesVisites.new()
+	modeles_visites.name = "ModelesVisites"
+	modeles_visites.bs = buildings
+	modeles_visites.mob = mobilier
+	add_child(modeles_visites)
 	interieur_panel = InterieurPanel.new()
 	interieur_panel.setup(mobilier, func() -> void: _select_building_tool())
 	build_panel.interieur_builder = interieur_panel.build
@@ -1578,6 +1589,7 @@ func _setup_mobilier() -> void:
 # --- Personnaliser, banque de modèles, atelier ---------------------------------------
 
 var perso_panel: PersoPanel
+var modeles_visites: ModelesVisites
 var banque_pose: BanquePose
 var vue_etages: VueEtages
 var banque_panel: BanquePanel

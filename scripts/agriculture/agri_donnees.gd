@@ -214,12 +214,12 @@ static func espece(id: String) -> Dictionary:
 
 ## Le type de bâtiment est-il une ferme (champs possibles) ?
 static func est_ferme(type_id: String) -> bool:
-	return FERMES.has(type_id)
+	return FERMES.has(BuildingCatalog.base_of(type_id))
 
 
 ## Places pour une espèce dans un type de ferme (0 : pas d'accueil).
 static func places(type_id: String, esp: String) -> int:
-	return int(FERMES.get(type_id, {}).get("betes", {}).get(esp, 0))
+	return int(FERMES.get(BuildingCatalog.base_of(type_id), {}).get("betes", {}).get(esp, 0))
 
 
 ## Mois de l'hémisphère nord correspondant (hémisphère sud : six mois de décalage).

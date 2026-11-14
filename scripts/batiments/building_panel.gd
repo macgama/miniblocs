@@ -16,6 +16,8 @@ signal block_material_chosen(material: int)
 signal block_shape_chosen(shape: int)
 signal block_tint_chosen(tint: int)
 signal wall_height_changed(height: int)
+## Grandes pièces : diamètre ou largeur (m), et hauteur ou longueur (m).
+signal block_piece_changed(size: int, count: int)
 signal zone_style_chosen(style: String)
 signal capture_name_changed(name: String)
 signal creation_deleted(id: String)
@@ -47,8 +49,11 @@ var _block_material := 0
 var _block_shape := 0
 var _block_tint := 0
 var _mat_family := ""
+var _mat_search := ""
 var _icons := {}
 var _wall_height := 3
+var _piece_d := 6
+var _piece_n := 4
 var _region := ""
 var _era := ""
 var _search := ""
@@ -69,6 +74,8 @@ var _opening := "porte"
 ## Mode Créer (atelier) : seuls l'éditeur libre, l'intérieur et Mes créations
 ## sont proposés. Mode Gérer : catalogue et zonage, sans l'éditeur libre.
 var workshop := false
+## Création dont on choisit la fonction (onglet Mes créations).
+var _creation_choosing := ""
 const WORKSHOP_TABS := ["blocs", "creations", "interieur", "banque"]
 var _head_icon: TextureRect
 var _head_title: Label
@@ -82,7 +89,7 @@ var _ladder_level := 0
 ## Icône de chaque onglet.
 const CAT_ICONS := {"logement": "logement", "commerce": "commerce", "industrie": "industrie", "production": "ressources", "reseaux": "reseaux",
 	"services": "services", "dechets": "dechets", "funeraire": "funeraire", "loisirs": "loisirs", "sport": "sport", "parc": "parc", "espaces": "publics",
-	"zones": "zonage", "blocs": "editeur", "creations": "creations", "interieur": "interieur", "banque": "banque"}
+	"zones": "zonage", "blocs": "editeur", "creations": "creations", "interieur": "interieur", "banque": "banque", "mes_modeles": "atelier"}
 
 ## Onglet Intérieur : fonction (BuildingPanel) qui remplit la liste (voir InterieurPanel).
 var interieur_builder: Callable
@@ -134,6 +141,7 @@ func _ready() -> void:
 	_cats_grid = cats
 	var cat_group := ButtonGroup.new()
 	var tabs: Array = BuildingCatalog.CATEGORIES.duplicate()
+	tabs.append({"id": ModelesJeu.CATEGORY, "name": "Mes modèles : les bâtiments de ton atelier, avec leur fonction", "color": Color("9fe3b0")})
 	tabs.append({"id": "zones", "name": "Zonage", "color": Color("ffd166")})
 	tabs.append({"id": "blocs", "name": "Éditeur libre", "color": Color("8ecae6")})
 	tabs.append({"id": Creations.CATEGORY, "name": "Mes créations", "color": Color("f4a261")})
@@ -286,6 +294,9 @@ func show_category(cat: String) -> void:
 	if cat == Creations.CATEGORY:
 		_show_creations()
 		return
+	if cat == ModelesJeu.CATEGORY:
+		_show_models()
+		return
 	if cat == "interieur":
 		_filters.visible = false
 		if interieur_builder.is_valid():
@@ -314,6 +325,35 @@ func show_category(cat: String) -> void:
 	if shown == 0:
 		var none := Label.new()
 		none.text = "Aucun bâtiment pour ces filtres."
+		_list.add_child(none)
+		_item_buttons.append(none)
+
+
+## Mes modèles (mode Gérer) : les modèles de la banque et les créations en blocs,
+## posés comme les autres bâtiments.
+func _show_models() -> void:
+	_filters.visible = true
+	var ids: Array = ModelesJeu.ids()
+	ids.append_array(Creations.ids())
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 6)
+	grid.add_theme_constant_override("v_separation", 6)
+	_list.add_child(grid)
+	_item_buttons.append(grid)
+	var shown := 0
+	for id in ids:
+		var t := BuildingCatalog.get_type(String(id))
+		if t.is_empty() or (_search != "" and not (String(t.name) + " " + String(t.desc)).to_lower().contains(_search)):
+			continue
+		shown += 1
+		grid.add_child(_card(String(id), "atelier"))
+	_cat_title.text += "  ·  %d" % shown
+	if shown == 0:
+		var none := Label.new()
+		none.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		none.text = ("Aucun modèle pour l'instant. Dans l'Atelier, construis un bâtiment en murs et étages, puis onglet Intérieur (4) → "
+			+ "« Enregistrer dans la banque ». Dans la Banque (6), choisis sa Fonction : il apparaît ici.") if _search == "" else "Aucun modèle pour cette recherche."
 		_list.add_child(none)
 		_item_buttons.append(none)
 
@@ -565,7 +605,7 @@ func _show_plan_tools() -> void:
 	# Toit sur le dernier étage.
 	_add(_small_label("Toit sur le dernier étage (en blocs, matériau de toit choisi ou tuile)"))
 	var rrow := HFlowContainer.new()
-	for r in [["deux_pans", "Deux pans"], ["quatre_pans", "Quatre pans"], ["plat", "Toit plat"]]:
+	for r in PlanEditor.ROOFS:
 		var rb := Button.new()
 		rb.text = r[1]
 		rb.add_theme_font_size_override("font_size", 12)
@@ -662,7 +702,7 @@ func _show_block_tools() -> void:
 	_item_buttons.append(hrow)
 	# Formes : blocs, toits, ouvertures.
 	var shape_group := ButtonGroup.new()
-	for fam in [["formes", "Formes"], ["toits", "Toits"], ["ouvertures", "Portes et fenêtres"]]:
+	for fam in BlocFormes.FAMILLES:
 		var fl := Label.new()
 		fl.text = fam[1]
 		fl.add_theme_font_size_override("font_size", 12)
@@ -687,54 +727,168 @@ func _show_block_tools() -> void:
 				_block_shape = shid
 				block_shape_chosen.emit(shid))
 			srow.add_child(sb)
+		if fam[0] == "grandes":
+			_list.add_child(_piece_row())
+			_item_buttons.append(_list.get_child(_list.get_child_count() - 1))
+
+
+## Réglages des grandes pièces : diamètre (ou largeur) et hauteur (ou longueur).
+func _piece_row() -> Control:
+	var row := HFlowContainer.new()
+	var l1 := Label.new()
+	l1.text = "Diamètre / largeur"
+	l1.add_theme_font_size_override("font_size", 12)
+	row.add_child(l1)
+	var d := SpinBox.new()
+	d.min_value = BlocFormes.PIECE_MIN
+	d.max_value = BlocFormes.PIECE_MAX
+	d.value = _piece_d
+	d.suffix = "m"
+	d.tooltip_text = "Taille de la coupole, de la tour, de la voûte… (2 à 32 m)."
+	row.add_child(d)
+	var l2 := Label.new()
+	l2.text = "Hauteur / longueur"
+	l2.add_theme_font_size_override("font_size", 12)
+	row.add_child(l2)
+	var n := SpinBox.new()
+	n.min_value = 1
+	n.max_value = 60
+	n.value = _piece_n
+	n.suffix = "m"
+	n.tooltip_text = "Hauteur d'une tour ronde ou d'un cylindre, longueur d'une voûte ou d'une arche."
+	row.add_child(n)
+	d.value_changed.connect(func(v: float) -> void:
+		_piece_d = int(v)
+		block_piece_changed.emit(_piece_d, _piece_n))
+	n.value_changed.connect(func(v: float) -> void:
+		_piece_n = int(v)
+		block_piece_changed.emit(_piece_d, _piece_n))
+	return row
 
 
 func _show_materials() -> void:
-	# Matériaux (textures), par famille.
-	var frow := HBoxContainer.new()
-	var flab := Label.new()
-	flab.text = "Matériau :"
-	frow.add_child(flab)
-	var fam_opt := OptionButton.new()
-	for f in BlocMateriaux.FAMILIES:
-		fam_opt.add_item(f.name)
-		fam_opt.set_item_metadata(fam_opt.item_count - 1, f.id)
-		if f.id == _mat_family:
-			fam_opt.select(fam_opt.item_count - 1)
-	fam_opt.item_selected.connect(func(i: int) -> void:
-		_mat_family = String(fam_opt.get_item_metadata(i))
-		show_category("blocs"))
-	frow.add_child(fam_opt)
-	_list.add_child(frow)
-	_item_buttons.append(frow)
-	var grid := GridContainer.new()
-	grid.columns = 8
-	_list.add_child(grid)
-	_item_buttons.append(grid)
-	var mat_group := ButtonGroup.new()
-	for i in BlockEditor.MATERIALS.size():
+	# Matériaux : grandes vignettes avec leur nom, onglets par famille et recherche.
+	var head := HBoxContainer.new()
+	head.add_theme_constant_override("separation", 8)
+	var cur_pic := TextureRect.new()
+	cur_pic.custom_minimum_size = Vector2(52, 52)
+	cur_pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	cur_pic.stretch_mode = TextureRect.STRETCH_SCALE
+	head.add_child(cur_pic)
+	var cur_box := VBoxContainer.new()
+	cur_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	cur_box.add_theme_constant_override("separation", 0)
+	var cur_name := Label.new()
+	cur_name.add_theme_font_size_override("font_size", 15)
+	cur_name.add_theme_color_override("font_color", UiStyle.ACCENT)
+	cur_name.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	cur_box.add_child(cur_name)
+	var cur_info := Label.new()
+	cur_info.add_theme_font_size_override("font_size", 12)
+	cur_info.add_theme_color_override("font_color", UiStyle.TEXT_DIM)
+	cur_box.add_child(cur_info)
+	head.add_child(cur_box)
+	_list.add_child(head)
+	_item_buttons.append(head)
+	var show_current := func(i: int) -> void:
 		var m: Dictionary = BlockEditor.MATERIALS[i]
-		if _mat_family != "" and m.fam != _mat_family:
-			continue
-		var b := Button.new()
-		b.custom_minimum_size = Vector2(38, 38)
-		b.toggle_mode = true
-		b.button_group = mat_group
-		b.tooltip_text = "%s · %d € le bloc" % [m.name, m.price]
-		b.icon = _material_icon(i)
-		b.expand_icon = true
-		b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		for state in ["pressed", "hover_pressed"]:
-			var sbx := StyleBoxFlat.new()
-			sbx.bg_color = Color(1, 1, 1, 0.9)
-			sbx.set_corner_radius_all(4)
-			b.add_theme_stylebox_override(state, sbx)
-		b.button_pressed = i == _block_material
-		var mi := i
-		b.pressed.connect(func() -> void:
-			_block_material = mi
-			block_material_chosen.emit(mi))
-		grid.add_child(b)
+		cur_pic.texture = _material_icon(i)
+		cur_name.text = String(m.name)
+		cur_info.text = "%s · %d € le bloc" % [_family_name(String(m.fam)), int(m.price)]
+	show_current.call(clampi(_block_material, 0, BlockEditor.MATERIALS.size() - 1))
+
+	# Recherche dans tous les matériaux.
+	var search := LineEdit.new()
+	search.placeholder_text = "Chercher un matériau (%d)…" % BlockEditor.MATERIALS.size()
+	search.clear_button_enabled = true
+	search.text = _mat_search
+	_list.add_child(search)
+	_item_buttons.append(search)
+
+	# Onglets des familles.
+	var chips := HFlowContainer.new()
+	chips.add_theme_constant_override("h_separation", 4)
+	chips.add_theme_constant_override("v_separation", 4)
+	_list.add_child(chips)
+	_item_buttons.append(chips)
+
+	# Grille des vignettes, dans sa propre zone défilante.
+	var gscroll := ScrollContainer.new()
+	gscroll.custom_minimum_size = Vector2(0, 330)
+	gscroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_list.add_child(gscroll)
+	_item_buttons.append(gscroll)
+	var grid := GridContainer.new()
+	grid.columns = 4
+	grid.add_theme_constant_override("h_separation", 4)
+	grid.add_theme_constant_override("v_separation", 4)
+	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	gscroll.add_child(grid)
+	var empty := Label.new()
+	empty.text = "Aucun matériau ne correspond."
+	empty.add_theme_color_override("font_color", UiStyle.TEXT_DIM)
+	empty.visible = false
+	_list.add_child(empty)
+	_item_buttons.append(empty)
+
+	var mat_group := ButtonGroup.new()
+	var cards: Array[Button] = []
+	var fill := func() -> void:
+		for c in grid.get_children():
+			c.queue_free()
+		cards.clear()
+		var words := _mat_search.to_lower().split(" ", false)
+		for i in BlockEditor.MATERIALS.size():
+			var m: Dictionary = BlockEditor.MATERIALS[i]
+			if _mat_family != "" and m.fam != _mat_family:
+				continue
+			if not words.is_empty():
+				var hay := (String(m.name) + " " + _family_name(String(m.fam))).to_lower()
+				var ok := true
+				for w in words:
+					if not hay.contains(w):
+						ok = false
+						break
+				if not ok:
+					continue
+			var card := _material_card(i, mat_group)
+			var mi := i
+			card.pressed.connect(func() -> void:
+				_block_material = mi
+				show_current.call(mi)
+				block_material_chosen.emit(mi))
+			grid.add_child(card)
+			cards.append(card)
+		empty.visible = cards.is_empty()
+		gscroll.visible = not cards.is_empty()
+		gscroll.scroll_vertical = 0
+
+	var counts := {"": BlockEditor.MATERIALS.size()}
+	for m in BlockEditor.MATERIALS:
+		counts[m.fam] = int(counts.get(m.fam, 0)) + 1
+	var chip_group := ButtonGroup.new()
+	for f in BlocMateriaux.FAMILIES:
+		var fid := String(f.id)
+		var chip := Button.new()
+		chip.text = "%s %d" % ["Tous" if fid == "" else String(f.name), int(counts.get(fid, 0))]
+		chip.toggle_mode = true
+		chip.button_group = chip_group
+		chip.add_theme_font_size_override("font_size", 12)
+		UiStyle.style_icon_button(chip)
+		chip.add_theme_stylebox_override("normal", UiStyle.flat_box(Color(1, 1, 1, 0.07), 12, 4))
+		chip.add_theme_stylebox_override("hover", UiStyle.flat_box(Color(1, 1, 1, 0.16), 12, 4))
+		chip.add_theme_stylebox_override("pressed", UiStyle.flat_box(UiStyle.ACCENT, 12, 4))
+		chip.add_theme_stylebox_override("hover_pressed", UiStyle.flat_box(UiStyle.ACCENT.lightened(0.15), 12, 4))
+		chip.button_pressed = fid == _mat_family
+		chip.pressed.connect(func() -> void:
+			_mat_family = fid
+			fill.call())
+		chips.add_child(chip)
+	search.text_changed.connect(func(txt: String) -> void:
+		_mat_search = txt.strip_edges()
+		fill.call())
+	fill.call()
+
 	# Teintes.
 	var tl := Label.new()
 	tl.text = "Teinte (peinture) :"
@@ -795,17 +949,66 @@ func _show_capture() -> void:
 	_item_buttons.append(crow)
 
 
+## Nom affiché d'une famille de matériaux.
+func _family_name(fid: String) -> String:
+	for f in BlocMateriaux.FAMILIES:
+		if String(f.id) == fid:
+			return String(f.name)
+	return fid
+
+
+## Vignette d'un matériau : l'image en grand, son nom dessous, cadre ambré si choisi.
+func _material_card(i: int, group: ButtonGroup) -> Button:
+	var m: Dictionary = BlockEditor.MATERIALS[i]
+	var b := Button.new()
+	b.custom_minimum_size = Vector2(80, 98)
+	b.toggle_mode = true
+	b.button_group = group
+	b.focus_mode = Control.FOCUS_NONE
+	b.tooltip_text = "%s\n%s · %d € le bloc" % [m.name, _family_name(String(m.fam)), m.price]
+	var states := {"normal": [Color(1, 1, 1, 0.05), Color(1, 1, 1, 0.0)], "hover": [Color(1, 1, 1, 0.14), Color(1, 1, 1, 0.35)],
+		"pressed": [Color(UiStyle.ACCENT, 0.22), UiStyle.ACCENT], "hover_pressed": [Color(UiStyle.ACCENT, 0.3), UiStyle.ACCENT]}
+	for st in states:
+		var sb := UiStyle.flat_box(states[st][0], 8, 3)
+		sb.set_border_width_all(2)
+		sb.border_color = states[st][1]
+		b.add_theme_stylebox_override(st, sb)
+	b.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	b.icon = _material_icon(i)
+	b.text = String(m.name)
+	b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	b.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
+	b.alignment = HORIZONTAL_ALIGNMENT_CENTER
+	b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	b.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	b.clip_text = true
+	b.add_theme_font_size_override("font_size", 10)
+	b.add_theme_constant_override("line_spacing", -3)
+	b.add_theme_constant_override("h_separation", 1)
+	for cs in ["font_color", "font_hover_color", "font_pressed_color", "font_hover_pressed_color"]:
+		b.add_theme_color_override(cs, UiStyle.ACCENT if cs.contains("pressed") else UiStyle.TEXT)
+	b.button_pressed = i == _block_material
+	return b
+
+
+## Image d'un matériau pour le panneau : 64 px, bord éclairé façon tuile, verre sur fond sombre.
 func _material_icon(i: int) -> Texture2D:
 	if not _icons.has(i):
-		var img: Image = BlocMateriaux.image(i).duplicate()
-		img.clear_mipmaps()
-		img.resize(32, 32, Image.INTERPOLATE_BILINEAR)
-		if BlocMateriaux.is_glass(i):
-			# Le verre sur un fond sombre pour qu'il se voie.
-			var bg := Image.create(32, 32, false, Image.FORMAT_RGBA8)
-			bg.fill(Color(0.25, 0.3, 0.35))
-			bg.blend_rect(img, Rect2i(0, 0, 32, 32), Vector2i.ZERO)
-			img = bg
+		var src: Image = BlocMateriaux.image(i).duplicate()
+		src.clear_mipmaps()
+		var n := src.get_width()
+		var img := Image.create(n, n, false, Image.FORMAT_RGBA8)
+		img.fill(Color(0.22, 0.27, 0.32) if BlocMateriaux.is_glass(i) else Color(0, 0, 0, 0))
+		img.blend_rect(src, Rect2i(0, 0, n, n), Vector2i.ZERO)
+		for y in n:
+			var xs: Array = range(n) if y < 3 or y >= n - 3 else [0, 1, 2, n - 3, n - 2, n - 1]
+			for x: int in xs:
+				var c := img.get_pixel(x, y)
+				var lit := x < 3 or y < 3
+				var f := 1.25 if lit else 0.7
+				if x < 3 and n - 1 - y < 3 or y < 3 and n - 1 - x < 3:
+					f = 1.0
+				img.set_pixel(x, y, Color(clampf(c.r * f, 0, 1), clampf(c.g * f, 0, 1), clampf(c.b * f, 0, 1), 1.0))
 		_icons[i] = ImageTexture.create_from_image(img)
 	return _icons[i]
 
@@ -834,6 +1037,16 @@ func _show_creations() -> void:
 		var type_id: String = id
 		b.pressed.connect(func() -> void: building_chosen.emit(type_id))
 		row.add_child(b)
+		var fn := Button.new()
+		fn.text = "Fonction"
+		fn.toggle_mode = true
+		fn.button_pressed = _creation_choosing == type_id
+		fn.tooltip_text = "Fonction : %s.\nLe bâtiment du jeu dont cette création prend le rôle (centrale, stade, piscine…)." % (
+			ModelesJeu.fonction_name(String(Creations.items[type_id].get("fonction", ""))) if String(Creations.items[type_id].get("fonction", "")) != "" else "aucune (décor)")
+		fn.pressed.connect(func() -> void:
+			_creation_choosing = "" if _creation_choosing == type_id else type_id
+			show_category(Creations.CATEGORY))
+		row.add_child(fn)
 		var del := Button.new()
 		del.text = "✕"
 		del.tooltip_text = "Supprimer cette création de la bibliothèque (les exemplaires déjà posés restent)."
@@ -843,6 +1056,20 @@ func _show_creations() -> void:
 		row.add_child(del)
 		_list.add_child(row)
 		_item_buttons.append(row)
+		if _creation_choosing == type_id:
+			var ch := FonctionChoix.new(String(Creations.items[type_id].get("fonction", "")))
+			var none := Button.new()
+			none.text = "Aucune fonction (simple décor)"
+			none.alignment = HORIZONTAL_ALIGNMENT_LEFT
+			none.pressed.connect(func() -> void: ch.picked.emit(""))
+			ch.add_child(none)
+			ch.move_child(none, 1)
+			ch.picked.connect(func(f: String) -> void:
+				Creations.set_fonction(type_id, f)
+				_creation_choosing = ""
+				show_category(Creations.CATEGORY))
+			_list.add_child(ch)
+			_item_buttons.append(ch)
 
 
 func set_block_info(text: String) -> void:

@@ -8,13 +8,23 @@ extends RefCounted
 ##   matériau (8 bits) | forme << 8 (6 bits) | rotation << 14 (2 bits)
 ##   | teinte << 16 (4 bits) | ouvert << 20 | haut << 21 (moitié haute d'une porte)
 ## Les anciens blocs (code < 256) sont des blocs pleins : les sauvegardes restent valables.
+## Grandes pièces (coupole, tour ronde, voûte…) : chaque case occupée est un bloc
+## qui porte en plus son morceau et la taille de la pièce :
+##   dx << 22 | dz << 28 | dy << 34 (6 bits chacun, en cases de 1 m) | (taille − 1) << 40
+## Matériaux au-delà de 255 : les 4 bits de poids fort vont en 46 à 49.
+## Les codes restent sous 2^53 (exacts dans les sauvegardes JSON).
 ##
 ## Repère d'une case : cube unité [0, 1]³ (1 m), rotation 0 = la pente monte
 ## vers +Z, la façade d'une fenêtre ou d'une porte regarde vers −Z.
 
 enum S { FULL, SLAB, SLAB_TOP, STAIRS, SLOPE, SLOPE_LOW, SLOPE_HIGH, CORNER_OUT, CORNER_IN,
 	PILLAR, COLUMN, BEAM, WALL_THIN, PANE, FENCE, WINDOW, WINDOW_SHUTTERS, BAY, DOOR, DOOR_GLASS,
-	GARAGE, SKYLIGHT, FLOOR_THIN }
+	GARAGE, SKYLIGHT, FLOOR_THIN,
+	# --- Ajouts (troisième version : formes arrondies, détails, grandes pièces) ---
+	ROUND_OUT, ROUND_IN, CYLINDER, HALF_ROUND, CURVE_UP, CURVE_IN, DOME_SMALL, SPHERE, CONE_SMALL, FINIAL,
+	ARCH_SMALL, ARCH_HALF, CORNICE, CRENEL, BALUSTRADE, CHIMNEY, DORMER, OCULUS, WINDOW_ARCH, WINDOW_GOTHIC,
+	WINDOW_GRID, SLIT, DOOR_ARCH, DOOR_BARN, AWNING, BALCONY, LATTICE,
+	P_DOME, P_ONION, P_CONE, P_SPIRE, P_TOWER, P_CYL, P_PYRAMID, P_VAULT, P_ARCH, P_GOTHIC, P_HALFDOME }
 
 ## name, cost (part du prix du matériau), fam (onglet du panneau), cells (hauteur
 ## en cases), open (s'ouvre), desc.
@@ -42,22 +52,109 @@ const INFO := {
 	S.DOOR_GLASS: {"name": "Porte-fenêtre", "cost": 3.5, "fam": "ouvertures", "cells": 2, "open": true, "desc": "Porte vitrée de 2 m. S'ouvre en vue au sol (E ou clic)."},
 	S.GARAGE: {"name": "Porte de garage", "cost": 2.0, "fam": "ouvertures", "open": true, "desc": "Élément de porte sectionnelle : assemble-en plusieurs (outil Mur)."},
 	S.SKYLIGHT: {"name": "Fenêtre de toit", "cost": 2.5, "fam": "ouvertures", "desc": "Pente à 45° avec une fenêtre dans le toit."},
+	# Arrondis (dans une case de 1 m).
+	S.ROUND_OUT: {"name": "Arrondi", "cost": 0.8, "fam": "arrondis", "desc": "Quart de cylindre : quatre arrondis font une tour ronde de 2 m, ou arrondissent l'angle d'un mur."},
+	S.ROUND_IN: {"name": "Arrondi creux", "cost": 0.3, "fam": "arrondis", "desc": "Angle rentrant arrondi (le complément de l'arrondi)."},
+	S.CYLINDER: {"name": "Cylindre", "cost": 0.8, "fam": "arrondis", "desc": "Cylindre de 1 m : pilier rond, tourelle, borne."},
+	S.HALF_ROUND: {"name": "Demi-rond", "cost": 0.5, "fam": "arrondis", "desc": "Demi-cylindre couché : couvre-mur, toit en berceau de 1 m, rebord."},
+	S.CURVE_UP: {"name": "Pente arrondie", "cost": 0.6, "fam": "arrondis", "desc": "Pente bombée (quart de rond) : toits arrondis, bords de coupole."},
+	S.CURVE_IN: {"name": "Pente creuse", "cost": 0.4, "fam": "arrondis", "desc": "Pente concave : toits retroussés à l'asiatique, pieds de tour."},
+	S.DOME_SMALL: {"name": "Dôme", "cost": 0.6, "fam": "arrondis", "desc": "Petit dôme de 1 m (lanterne, tourelle, kiosque)."},
+	S.SPHERE: {"name": "Boule", "cost": 0.6, "fam": "arrondis", "desc": "Boule de 1 m (décor, sommet de pilier)."},
+	S.CONE_SMALL: {"name": "Cône", "cost": 0.4, "fam": "arrondis", "desc": "Petit toit pointu de 1 m (tourelle, poivrière)."},
+	S.FINIAL: {"name": "Épi de faîtage", "cost": 0.4, "fam": "arrondis", "desc": "Pointe et boule au sommet d'un toit ou d'une tour."},
+	S.ARCH_SMALL: {"name": "Arc", "cost": 0.7, "fam": "arrondis", "desc": "Bloc percé d'un arc en plein cintre de 1 m (arcades)."},
+	S.ARCH_HALF: {"name": "Demi-arc", "cost": 0.6, "fam": "arrondis", "desc": "Moitié d'un arc de 2 m : poses-en deux face à face (R pour tourner)."},
+	# Détails d'architecture.
+	S.CORNICE: {"name": "Corniche", "cost": 0.4, "fam": "details", "desc": "Moulure en haut d'une façade (côté où tu regardes)."},
+	S.CRENEL: {"name": "Créneau", "cost": 0.6, "fam": "details", "desc": "Parapet crénelé de château fort."},
+	S.BALUSTRADE: {"name": "Balustrade", "cost": 0.6, "fam": "details", "desc": "Garde-corps à balustres tournés (terrasses, balcons classiques)."},
+	S.CHIMNEY: {"name": "Cheminée", "cost": 0.8, "fam": "details", "desc": "Souche de cheminée avec son chapeau et son conduit."},
+	S.DORMER: {"name": "Lucarne", "cost": 3.0, "fam": "details", "desc": "Lucarne à fronton et fenêtre, posée dans un pan de toit à 45°."},
+	S.AWNING: {"name": "Store", "cost": 0.8, "fam": "details", "desc": "Store rayé au-dessus d'une vitrine ou d'une fenêtre."},
+	S.BALCONY: {"name": "Balcon", "cost": 1.2, "fam": "details", "desc": "Dalle en saillie avec son garde-corps."},
+	S.LATTICE: {"name": "Claustra", "cost": 0.5, "fam": "details", "desc": "Panneau ajouré (moucharabieh, claustra en béton ou en bois)."},
+	# Ouvertures en plus.
+	S.OCULUS: {"name": "Œil-de-bœuf", "cost": 2.0, "fam": "ouvertures", "desc": "Fenêtre ronde dans un panneau de façade."},
+	S.WINDOW_ARCH: {"name": "Fenêtre cintrée", "cost": 2.5, "fam": "ouvertures", "desc": "Fenêtre à haut arrondi."},
+	S.WINDOW_GOTHIC: {"name": "Fenêtre gothique", "cost": 3.0, "fam": "ouvertures", "desc": "Fenêtre en arc brisé avec vitrail."},
+	S.WINDOW_GRID: {"name": "Fenêtre d'atelier", "cost": 2.0, "fam": "ouvertures", "desc": "Verrière à petits carreaux et fins montants (loft, usine)."},
+	S.SLIT: {"name": "Meurtrière", "cost": 0.8, "fam": "ouvertures", "desc": "Fente de tir étroite (château, tour de guet)."},
+	S.DOOR_ARCH: {"name": "Porte cintrée", "cost": 4.0, "fam": "ouvertures", "cells": 2, "open": true, "desc": "Porte de 2 m à haut arrondi. S'ouvre en vue au sol."},
+	S.DOOR_BARN: {"name": "Porte de grange", "cost": 3.0, "fam": "ouvertures", "cells": 2, "open": true, "desc": "Porte en planches avec écharpe en Z. S'ouvre en vue au sol."},
+	# Grandes pièces : plusieurs cases, taille réglable (diamètre ou largeur).
+	S.P_DOME: {"name": "Coupole", "cost": 0.6, "fam": "grandes", "piece": "rond", "desc": "Coupole en demi-sphère (église, mosquée, observatoire). Diamètre réglable."},
+	S.P_ONION: {"name": "Bulbe", "cost": 0.7, "fam": "grandes", "piece": "rond", "desc": "Coupole en bulbe (églises russes, palais indiens)."},
+	S.P_CONE: {"name": "Toit conique", "cost": 0.5, "fam": "grandes", "piece": "rond", "desc": "Toit pointu de tour ronde, avec un léger débord."},
+	S.P_SPIRE: {"name": "Flèche", "cost": 0.5, "fam": "grandes", "piece": "rond", "desc": "Flèche élancée de clocher (deux fois plus haute que large)."},
+	S.P_TOWER: {"name": "Tour ronde", "cost": 0.7, "fam": "grandes", "piece": "rond", "stack": true, "desc": "Mur rond de 35 cm, creux : donjon, phare, tour d'angle. Hauteur en étages de 1 m."},
+	S.P_CYL: {"name": "Cylindre plein", "cost": 0.8, "fam": "grandes", "piece": "rond", "stack": true, "desc": "Volume rond plein : silo, château d'eau, rotonde, colonne géante."},
+	S.P_PYRAMID: {"name": "Pyramide", "cost": 0.5, "fam": "grandes", "piece": "rond", "desc": "Pyramide lisse à base carrée (toit en pavillon, monument)."},
+	S.P_VAULT: {"name": "Voûte en berceau", "cost": 0.5, "fam": "grandes", "piece": "tranche", "desc": "Toit ou plafond en demi-cylindre (halle, gare, hangar, nef). Longueur réglable."},
+	S.P_ARCH: {"name": "Grande arche", "cost": 0.7, "fam": "grandes", "piece": "tranche", "desc": "Arc en plein cintre à poser sur deux piliers (pont, porche, aqueduc)."},
+	S.P_GOTHIC: {"name": "Arc brisé", "cost": 0.7, "fam": "grandes", "piece": "tranche", "desc": "Arc gothique en ogive (cathédrale, cloître)."},
+	S.P_HALFDOME: {"name": "Demi-coupole", "cost": 0.6, "fam": "grandes", "piece": "demi", "desc": "Quart de sphère : abside d'église, niche, kiosque à musique."},
 }
+
+## Familles de formes du panneau (ordre d'affichage).
+const FAMILLES := [["formes", "Formes"], ["arrondis", "Arrondis et arcs"], ["toits", "Toits"],
+	["details", "Détails d'architecture"], ["ouvertures", "Portes et fenêtres"], ["grandes", "Grandes pièces (taille réglable)"]]
+
+## Tailles possibles d'une grande pièce (diamètre ou largeur, en mètres).
+const PIECE_MIN := 2
+const PIECE_MAX := 32
 
 ## Ordre d'affichage dans le panneau.
 const ORDER := [S.FULL, S.SLAB, S.STAIRS, S.FLOOR_THIN, S.WALL_THIN, S.PILLAR, S.COLUMN, S.BEAM, S.PANE, S.FENCE,
 	S.SLOPE, S.SLOPE_LOW, S.SLOPE_HIGH, S.CORNER_OUT, S.CORNER_IN,
-	S.WINDOW, S.WINDOW_SHUTTERS, S.BAY, S.SKYLIGHT, S.DOOR, S.DOOR_GLASS, S.GARAGE]
+	S.WINDOW, S.WINDOW_SHUTTERS, S.BAY, S.SKYLIGHT, S.DOOR, S.DOOR_GLASS, S.GARAGE,
+	S.ROUND_OUT, S.ROUND_IN, S.CYLINDER, S.HALF_ROUND, S.CURVE_UP, S.CURVE_IN, S.DOME_SMALL, S.SPHERE, S.CONE_SMALL,
+	S.FINIAL, S.ARCH_SMALL, S.ARCH_HALF,
+	S.CORNICE, S.CRENEL, S.BALUSTRADE, S.CHIMNEY, S.DORMER, S.AWNING, S.BALCONY, S.LATTICE,
+	S.WINDOW_ARCH, S.WINDOW_GOTHIC, S.WINDOW_GRID, S.OCULUS, S.SLIT, S.DOOR_ARCH, S.DOOR_BARN,
+	S.P_DOME, S.P_ONION, S.P_CONE, S.P_SPIRE, S.P_PYRAMID, S.P_TOWER, S.P_CYL, S.P_VAULT, S.P_ARCH, S.P_GOTHIC, S.P_HALFDOME]
 
 const FRAME_TINT := 1 # cadres blancs par défaut quand le matériau est un mur
 
 
 static func encode(m: int, shape := 0, rot := 0, tint := 0, open := false, top := false) -> int:
-	return (m & 255) | ((shape & 63) << 8) | ((rot & 3) << 14) | ((tint & 15) << 16) | (int(open) << 20) | (int(top) << 21)
+	return (m & 255) | (((m >> 8) & 15) << MAT_HI) | ((shape & 63) << 8) | ((rot & 3) << 14) | ((tint & 15) << 16) | (int(open) << 20) | (int(top) << 21)
+
+
+## Bits 22 à 45 : morceau et taille d'une grande pièce.
+const PART_MASK := ((1 << 24) - 1) << 22
+## Bits 46 à 49 : poids fort du matériau (au-delà de 256 matériaux, jusqu'à 4 096).
+const MAT_HI := 46
+
+
+## Code d'un morceau de grande pièce : décalage (dx, dy, dz) depuis le coin de la pièce et taille.
+static func encode_part(code: int, part: Vector3i, size: int) -> int:
+	return (code & ~PART_MASK) | ((part.x & 63) << 22) | ((part.z & 63) << 28) | ((part.y & 63) << 34) | (((size - 1) & 63) << 40)
+
+
+static func part_of(code: int) -> Vector3i:
+	return Vector3i((code >> 22) & 63, (code >> 34) & 63, (code >> 28) & 63)
+
+
+static func size_of(code: int) -> int:
+	return ((code >> 40) & 63) + 1
+
+
+## Code sans le morceau ni la taille.
+static func base_code(code: int) -> int:
+	return code & ~PART_MASK
+
+
+static func is_piece(shape: int) -> bool:
+	return INFO.get(shape, {}).has("piece")
+
+
+static func piece_kind(shape: int) -> String:
+	return String(INFO.get(shape, {}).get("piece", ""))
 
 
 static func mat_of(code: int) -> int:
-	return code & 255
+	return (code & 255) | (((code >> MAT_HI) & 15) << 8)
 
 
 static func shape_of(code: int) -> int:
@@ -180,6 +277,9 @@ static func emit(mesher: BlocMesher, code: int, base: Vector3, neighbor: Callabl
 			_wedge(ctx, 0.0, 1.0)
 			_skylight(ctx)
 		_:
+			if shape >= S.ROUND_OUT:
+				FormesPlus.emit(ctx, code, shape, neighbor)
+				return
 			_box(ctx, 0, 0, 0, 1, 1, 1)
 
 

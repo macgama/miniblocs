@@ -45,11 +45,17 @@ func _run() -> void:
 	var args := OS.get_cmdline_user_args()
 	var shot := "atelier_plus.png"
 	var vue := "pieces"
+	var famille := ""
+	var depuis := 58
 	for i in args.size():
 		if args[i] == "--screenshot" and i + 1 < args.size():
 			shot = args[i + 1]
 		if args[i] == "--vue" and i + 1 < args.size():
 			vue = args[i + 1]
+		if args[i] == "--famille" and i + 1 < args.size():
+			famille = args[i + 1]
+		if args[i] == "--depuis" and i + 1 < args.size():
+			depuis = int(args[i + 1])
 	root.msaa_3d = Viewport.MSAA_DISABLED
 	root.screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA
 	Creations.persist = false
@@ -186,9 +192,40 @@ func _run() -> void:
 			dist = 75.0
 			yaw = 0.0
 			pitch = 34.0
+		"panneau":
+			# Panneau de droite : vignettes des matériaux, devant une petite place.
+			var mats := []
+			for j in BlocMateriaux.LIST.size():
+				if famille == "" or String(BlocMateriaux.LIST[j].fam) == famille:
+					mats.append(j)
+			for j in mini(mats.size(), 40):
+				var col := j % 8
+				var row := j / 8
+				for h in 2:
+					be.place_blocks([Vector3i(-12 + col * 3, gy + h * hu, -row * 3)], BlocFormes.encode(mats[j]))
+					be.place_blocks([Vector3i(-12 + col * 3 + 1, gy + h * hu, -row * 3)], BlocFormes.encode(mats[j]))
+			var bp: BuildingPanel = scene.get_node("PanneauConstruction")
+			scene.set_create_mode(true)
+			bp.set_open(true)
+			bp._block_mode = "blocs"
+			bp._mat_family = famille
+			if not mats.is_empty():
+				bp._block_material = mats[0]
+			bp.show_category("blocs")
+			await process_frame
+			# Faire défiler le panneau jusqu'aux matériaux.
+			var sc: ScrollContainer = bp._list.get_parent()
+			await process_frame
+			for c in bp._list.get_children():
+				if c is LineEdit:
+					sc.scroll_vertical = int((c as Control).position.y) - 70
+			look = Vector3(-6, 1, -5)
+			dist = 30.0
+			yaw = 0.0
+			pitch = 30.0
 		"materiaux":
-			var first := 58
-			var n := BlocMateriaux.LIST.size() - first
+			var first := depuis
+			var n := mini(BlocMateriaux.LIST.size() - first, 150)
 			for j in n:
 				var col := j % 15
 				var row := j / 15

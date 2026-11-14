@@ -365,14 +365,21 @@ L'onglet **Éditeur libre** permet de construire ce que tu veux avec des blocs d
 
 - **Outils** : **Poser** (un clic = un élément de la forme choisie, sur le sol ou sur la face visée d'un autre bloc), **Rectangle** (clic glissé : dalle, plancher, toit plat), **Mur** (clic glissé en ligne, hauteur réglable) et **Gomme** (clic sur un bloc, ou glissé pour effacer un étage).
 - **Clic droit** court : retirer le bloc visé. **Ctrl+Z** : annuler. **Échap** : arrêter.
-- **116 matériaux texturés**, dessinés par le jeu (aucun fichier image) et rangés par famille (menu **Matériau**) :
-  - murs : briques (appareils flamand, anglais, à joints alignés, brique jaune, brique vernissée), pierre de taille, calcaire, pierre bleue, meulière, opus incertum, travertin, moellons, granit, basalte, grès, marbre, stuc vénitien, zellige, parpaing, béton brut ou blanc, crépis de couleur, enduit à la chaux, colombage, torchis, pisé, terre crue ;
-  - toits : tuile canal, tuile plate, tuiles vernissées verte, noire et bleue, ardoise, ardoise en écailles, lauzes, bardeaux, bardeaux de cèdre, chaume, tôle ondulée, fibrociment, bac acier, zinc, zinc à joints debout, toit végétal ;
-  - sols : parquets (dont chevrons), carrelage, damier, tomettes, terrazzo, carreaux de ciment, mosaïque, dalles de pierre, pavés, pavés autobloquants, enrobé, tatami, sol souple, moquettes ;
-  - bois : rondins, bardages de couleur, mélèze, bois brûlé, bois exotique, contreplaqué, rotin, bois peint, bambou ;
-  - métal et verre : métal, fer forgé, acier Corten, aluminium, cuivre, laiton, or, verre clair, verre fumé, verre dépoli, pavés de verre, vitrail ;
-  - nature : herbe, sable, gravier, terre, roche, neige, glace, eau, feuillage ;
+- **384 matériaux texturés**, dessinés par le jeu (aucun fichier image). Le panneau les montre en **grandes vignettes avec leur nom**, rangées par **onglets de famille** (avec le nombre de matériaux) et une **recherche** (« marbre », « néon », « zèbre »…). En haut, le matériau choisi en grand avec son prix au bloc :
+  - murs : briques (appareils flamand, anglais, à joints alignés, brique jaune, vernissée, peinte, noire, brique de Chine), pierre de taille, calcaire, tuffeau, pierre de Bourgogne, grès des Vosges, granit rose, meulière, opus incertum, travertin, moellons, schiste, silex, galets, pierre sèche, pierre volcanique, marbre, stuc vénitien, zellige, parpaing, bétons (brut, blanc, rouge, matricé, ciré, sablé), une vingtaine de crépis de couleur, enduits à la chaux, colombages, torchis, pisé, terre crue ;
+  - toits : tuiles canal, plate, romane, mécanique, provençale, vernissées (verte, noire, bleue, jaune, turquoise, japonaise), ardoises, lauzes, bardeaux (bois et bitumés), chaumes (paille, palme, roseau), tôles ondulées de couleur ou rouillée, fibrociment, bac acier, zinc, cuivre, membrane EPDM, gravillons, toit végétal ;
+  - sols : parquets (chevrons, point de Hongrie, érable, noyer, teck, pin), carrelages de couleur, damiers, tomettes, terrazzo, granito, carreaux de ciment, mosaïque, marbres (Carrare, noir, vert, rose), pavés (granit, porphyre, autobloquants), calade, dalles, enrobé, tatami, moquettes, tapis persans, caillebotis ;
+  - bois : rondins, bardages et planches de couleur, mélèze, bois brûlé, bois flotté, palissade, lambris, teck, contreplaqué, rotin, osier, bambou, liège, écorce, bois laqué ;
+  - métal et verre : métal, fer forgé, Corten, aluminium, acier galvanisé, inox, chrome, bronze, laiton, cuivre, or, tôle perforée, grillage, métal déployé, verres clair, fumé, dépoli, bleu, vert, ambré, miroir, pavés de verre, vitraux, polycarbonate ;
+  - nature : herbes, prairie fleurie, mousse, sables (blanc, noir), gravier, terres, boue, roches (en strates, rouge, falaise, lave), neige, glace, eau, feuillage, feuilles mortes, paille ;
+  - **styles du monde** : adobe, banco, tadelakt, zelliges, azulejos, laques chinoises, papier shoji, bambou tressé, natte de palme, corail, pierre de Jérusalem, latérite, céramique persane, mosaïque d'or, marbre incrusté, enduits indigo, rose de Jaipur et bleu de Chefchaouen, tissus kente et wax, bois sculpté, pierre rose de Petra… ;
+  - **parcs d'attractions** : plastiques de couleur, fibre de verre, dorure de manège, pois, rayures bonbon, losanges d'arlequin, vagues, faux rochers, néons, écran LED, sols amortissants, étoiles, rayures de cirque ;
+  - **zoo et animaux** : pelages (zèbre, tigre, léopard, girafe), camouflage, foin, copeaux, paillis, terre battue, eau de bassin, grillage de volière, écailles, plumes, glace de banquise, sable du désert, gazon de savane ;
+  - **sport et stades** : pelouse rayée, gazon synthétique, terre battue, pistes en tartan, parquet de gymnase, sols sportifs, glace de patinoire, sièges de stade de couleur, piste cendrée, résine de court, tapis de lutte, skatepark, green de golf ;
+  - **musées et prestige** : parquet Versailles, velours, cimaise blanche, mur de galerie, feuille d'or, boiseries, stuc, ébène, marbres de Sienne, mosaïque romaine, damier de marbre ;
+  - **événements et fêtes** : tapis rouge, moquette d'exposition, chapiteaux rayés, bâches, confettis, podium, scène, damier de course, banderoles, fanions, plancher de bal, paillettes ;
   - tissus et divers : toile, toile rayée, feutre, cuir.
+- Les textures sont dessinées au premier lancement (quelques secondes) puis gardées dans un cache (`user://cache`) : les lancements suivants sont instantanés.
 - **Teinte** : 16 couleurs de peinture, appliquées à n'importe quel matériau (porte rouge, volets verts…).
 - **Formes** :
   - bloc, demi-bloc (visé sur le haut d'une face : demi-bloc du haut), escalier, revêtement de 10 cm, cloison, poteau, colonne, poutre, vitre ou panneau, garde-corps ;
@@ -392,6 +399,8 @@ L'onglet **Éditeur libre** permet de construire ce que tu veux avec des blocs d
 ![Les 12 toits automatiques](docs/atelier_plus_toits.png)
 ![Arrondis, détails d'architecture et nouvelles ouvertures en blocs](docs/atelier_plus_formes.png)
 ![Les 58 nouveaux matériaux](docs/atelier_plus_materiaux.png)
+![Le panneau des matériaux en vignettes : onglet Parcs d'attractions](docs/materiaux_panneau.png)
+![Matériaux du monde, des parcs, du zoo, du sport, des musées et des fêtes](docs/materiaux_monde.png)
 - Pas de bloc sous terre, sur une voie ou dans un bâtiment. Inversement, ni bâtiment ni voie ne peuvent passer sur des blocs.
 - **Mes créations** : écris un nom, clique sur **Enregistrer** puis fais un clic glissé autour de ta construction (toutes les hauteurs sont prises). Elle devient un bâtiment de l'onglet **Mes créations**, que tu poses ailleurs comme n'importe quel bâtiment (fantôme, rotation R, terrassement, prix). La bibliothèque est commune à toutes tes parties, et chaque sauvegarde garde une copie des créations qu'elle utilise. La croix ✕ retire une création de la liste (les exemplaires posés restent).
 - La taille des blocs est une constante (`BlockEditor.SIZE`) : on pourra passer à 50 cm pour plus de détails.

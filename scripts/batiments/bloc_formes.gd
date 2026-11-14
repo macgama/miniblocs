@@ -11,6 +11,7 @@ extends RefCounted
 ## Grandes pièces (coupole, tour ronde, voûte…) : chaque case occupée est un bloc
 ## qui porte en plus son morceau et la taille de la pièce :
 ##   dx << 22 | dz << 28 | dy << 34 (6 bits chacun, en cases de 1 m) | (taille − 1) << 40
+## Matériaux au-delà de 255 : les 4 bits de poids fort vont en 46 à 49.
 ## Les codes restent sous 2^53 (exacts dans les sauvegardes JSON).
 ##
 ## Repère d'une case : cube unité [0, 1]³ (1 m), rotation 0 = la pente monte
@@ -117,15 +118,18 @@ const FRAME_TINT := 1 # cadres blancs par défaut quand le matériau est un mur
 
 
 static func encode(m: int, shape := 0, rot := 0, tint := 0, open := false, top := false) -> int:
-	return (m & 255) | ((shape & 63) << 8) | ((rot & 3) << 14) | ((tint & 15) << 16) | (int(open) << 20) | (int(top) << 21)
+	return (m & 255) | (((m >> 8) & 15) << MAT_HI) | ((shape & 63) << 8) | ((rot & 3) << 14) | ((tint & 15) << 16) | (int(open) << 20) | (int(top) << 21)
 
 
-const PART_MASK := (1 << 22) - 1
+## Bits 22 à 45 : morceau et taille d'une grande pièce.
+const PART_MASK := ((1 << 24) - 1) << 22
+## Bits 46 à 49 : poids fort du matériau (au-delà de 256 matériaux, jusqu'à 4 096).
+const MAT_HI := 46
 
 
 ## Code d'un morceau de grande pièce : décalage (dx, dy, dz) depuis le coin de la pièce et taille.
 static func encode_part(code: int, part: Vector3i, size: int) -> int:
-	return (code & PART_MASK) | ((part.x & 63) << 22) | ((part.z & 63) << 28) | ((part.y & 63) << 34) | (((size - 1) & 63) << 40)
+	return (code & ~PART_MASK) | ((part.x & 63) << 22) | ((part.z & 63) << 28) | ((part.y & 63) << 34) | (((size - 1) & 63) << 40)
 
 
 static func part_of(code: int) -> Vector3i:
@@ -138,7 +142,7 @@ static func size_of(code: int) -> int:
 
 ## Code sans le morceau ni la taille.
 static func base_code(code: int) -> int:
-	return code & PART_MASK
+	return code & ~PART_MASK
 
 
 static func is_piece(shape: int) -> bool:
@@ -150,7 +154,7 @@ static func piece_kind(shape: int) -> String:
 
 
 static func mat_of(code: int) -> int:
-	return code & 255
+	return (code & 255) | (((code >> MAT_HI) & 15) << 8)
 
 
 static func shape_of(code: int) -> int:

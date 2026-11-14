@@ -49,7 +49,7 @@ const ENTREPRISES := {
 }
 ## Services posés dans les grandes villes avant de commencer : [type, habitants par bâtiment].
 const SERVICES := [["ecole", 1500], ["boulangerie", 1500], ["superette", 1200], ["parc", 2000], ["aire_jeux", 2000],
-	["pompiers", 5000], ["police", 5000], ["gymnase", 4000], ["hopital", 6000], ["entreprise_btp", 1500]]
+	["pompiers", 5000], ["police", 2500], ["central_telephonique", 3000], ["pylone_4g", 2500], ["gymnase", 4000], ["hopital", 6000], ["entreprise_btp", 1500]]
 
 var ok := true
 var _logger: Journal
@@ -192,8 +192,8 @@ func _route_longue(a: Vector2, b: Vector2) -> bool:
 	return ok_tout
 
 
-func _route(a: Vector2, b: Vector2) -> bool:
-	var r: Dictionary = tr.build_segment("route", Vector3(a.x, _h(a.x, a.y), a.y), Vector3(b.x, _h(b.x, b.y), b.y))
+func _route(a: Vector2, b: Vector2, voie := "route") -> bool:
+	var r: Dictionary = tr.build_segment(voie, Vector3(a.x, _h(a.x, a.y), a.y), Vector3(b.x, _h(b.x, b.y), b.y))
 	if not r.get("ok", false):
 		print("    route refusée ", a, " -> ", b, " : ", r.get("reason", "?"))
 	return bool(r.get("ok", false))
@@ -205,8 +205,9 @@ func _grille(c: Vector2, n: int) -> void:
 	var span := BLOC * n / 2.0
 	for k in n + 1:
 		var v := -span + k * BLOC
-		_route(Vector2(c.x + v, c.y - span), Vector2(c.x + v, c.y + span))
-		_route(Vector2(c.x - span, c.y + v), Vector2(c.x + span, c.y + v))
+		# Rues en ville (les départementales relient les villes).
+		_route(Vector2(c.x + v, c.y - span), Vector2(c.x + v, c.y + span), "rue")
+		_route(Vector2(c.x - span, c.y + v), Vector2(c.x + span, c.y + v), "rue")
 
 
 func _logements(vid: int) -> int:
@@ -643,3 +644,26 @@ func _diag_production(prod: Production, pop: Population) -> void:
 	for a in attentes:
 		print("    attente « %s » : %d sites" % [a, int(attentes[a])])
 	print("    livraisons en cours %d, portes d'import-export %d" % [prod.missions.size(), prod.gateways().size()])
+	var av := Avis.instance
+	if av == null:
+		return
+	print("Satisfaction par thème :")
+	var garde := av.ville_vid
+	for vid in cm.villages:
+		av.examiner(int(vid))
+		var sd := av.sondage(true)
+		if int(sd.n) == 0:
+			continue
+		var notes := []
+		var pires := []
+		for th in sd.themes:
+			notes.append("%s %d" % [th, int(sd.themes[th].note)])
+			for r in sd.themes[th].raisons:
+				pires.append([int(r[1]), String(r[0])])
+		pires.sort_custom(func(a: Array, b: Array) -> bool: return a[0] > b[0])
+		var txt := []
+		for r in pires.slice(0, 6):
+			txt.append("%s (%d)" % [r[1], r[0]])
+		print("    %-12s %d/100 | %s" % [String(cm.villages[vid].nom), int(sd.valeur), ", ".join(notes)])
+		print("        motifs : %s" % " ; ".join(txt))
+	av.examiner(garde)

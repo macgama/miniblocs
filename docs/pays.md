@@ -80,7 +80,7 @@ une construction si la ville en a besoin, et une fois par semaine :
    - pas de rue : une rue de 300 m devant la mairie ;
    - logements presque pleins : zone résidentielle de 40 × 30 m le long d'une rue ;
    - services selon la population : école (60 hab., ou enfants sans école), aire de jeux (40),
-     boulangerie (80), parc (150), pompiers et police (250), supérette (300), gymnase (600),
+     boulangerie (80), parc (150), pompiers et police (250), supérette (300), antenne 4G (150), central téléphonique (400), gymnase (600),
      hôpital (2 000) ;
    - chômage au-dessus de 12 % : zone commerciale ou industrielle ;
    - plus de place : une impasse est prolongée de 120 m, ou une rue est ouverte en travers.

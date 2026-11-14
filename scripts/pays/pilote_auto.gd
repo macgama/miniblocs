@@ -12,7 +12,8 @@ extends Node
 ##      - logements presque pleins : une zone résidentielle le long d'une rue ;
 ##      - services selon la population (BESOINS) : école dès 60 habitants (ou
 ##        des enfants sans école), aire de jeux, boulangerie, parc, pompiers,
-##        police, supérette, gymnase, deuxième école, hôpital ;
+##        police, supérette, antenne 4G, central téléphonique, gymnase,
+##        deuxième école, hôpital ;
 ##      - chômage au-dessus de 12 % : une zone d'activités (commerces ou ateliers) ;
 ##      - plus de place le long des rues : la rue la plus proche est prolongée.
 ## Les bâtiments vont le long des rues de la ville, sur son territoire.
@@ -28,7 +29,8 @@ const CHOMAGE_MAX := 12.0
 ## Services : [type, habitants à partir desquels il en faut un, nombre voulu par tranche].
 const BESOINS := [
 	["ecole", 60, 1500], ["aire_jeux", 40, 0], ["boulangerie", 80, 0], ["parc", 150, 0], ["pompiers", 250, 0],
-	["police", 250, 0], ["superette", 300, 0], ["gymnase", 600, 0], ["hopital", 2000, 0],
+	["police", 250, 4000], ["superette", 300, 0], ["pylone_4g", 150, 0], ["central_telephonique", 400, 0],
+	["gymnase", 600, 0], ["hopital", 2000, 0],
 ]
 
 var buildings: BuildingSystem

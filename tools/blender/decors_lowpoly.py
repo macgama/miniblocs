@@ -33,7 +33,7 @@ import bpy  # avant bmesh
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import batiment_lowpoly as bl  # noqa: E402  (lire_options, apercu)
-from decors import base, urbain, clotures, loisirs, ferme, animaux, eau, rochers  # noqa: E402
+from decors import base, urbain, clotures, loisirs, ferme, animaux, eau, rochers, zoo  # noqa: E402
 
 # Catégories, dans l'ordre du panneau du jeu.
 CATEGORIES = [
@@ -41,12 +41,13 @@ CATEGORIES = [
     ("clotures", "Clôtures et murets"), ("panneaux", "Panneaux et réseaux"), ("marche", "Marché"),
     ("jeux", "Jeux et sport"), ("plage", "Plage"), ("ferme", "Ferme"), ("cultures", "Cultures"),
     ("animaux", "Animaux"), ("eau", "Bateaux et pontons"), ("rochers", "Rochers et bois"),
+    ("zoo", "Animaux du zoo"), ("zoo_objets", "Objets des enclos"),
 ]
 
 # id -> (fonction, catégorie, options). Options : ligne (longueur d'un tronçon
 # qui se répète, en m), eau (posé sur l'eau, origine à la flottaison), berge
 # (ponton : origine sur la berge), anime (animal qui se déplace).
-U, C, L, F, A, E, R = urbain, clotures, loisirs, ferme, animaux, eau, rochers
+U, C, L, F, A, E, R, Z = urbain, clotures, loisirs, ferme, animaux, eau, rochers, zoo
 DECORS = {
     # Mobilier urbain
     "banc_bois": (U.banc_bois, "urbain", {}), "banc_vert": (U.banc_vert, "urbain", {}),
@@ -152,6 +153,46 @@ DECORS = {
     "dolmen": (R.dolmen, "rochers", {}), "cairn": (R.cairn, "rochers", {}),
     "galets": (R.galets, "rochers", {}), "souche": (R.souche, "rochers", {}),
     "tronc_mort": (R.tronc_mort, "rochers", {}),
+    # Animaux du zoo (sauvages) et objets des enclos
+    "lion": (Z.lion, "zoo", {"anime": 1}),
+    "lionne": (Z.lionne, "zoo", {"anime": 1}),
+    "elephant": (Z.elephant, "zoo", {"anime": 1}),
+    "elephanteau": (Z.elephanteau, "zoo", {"anime": 1}),
+    "girafe": (Z.girafe, "zoo", {"anime": 1}),
+    "zebre": (Z.zebre, "zoo", {"anime": 1}),
+    "rhinoceros": (Z.rhinoceros, "zoo", {"anime": 1}),
+    "hippopotame": (Z.hippopotame, "zoo", {"anime": 1}),
+    "autruche": (Z.autruche, "zoo", {"anime": 1}),
+    "suricate": (Z.suricate, "zoo", {"anime": 1}),
+    "tigre": (Z.tigre, "zoo", {"anime": 1}),
+    "panda": (Z.panda, "zoo", {"anime": 1}),
+    "panda_roux": (Z.panda_roux, "zoo", {"anime": 1}),
+    "ours_brun": (Z.ours_brun, "zoo", {"anime": 1}),
+    "ours_polaire": (Z.ours_polaire, "zoo", {"anime": 1}),
+    "gorille": (Z.gorille, "zoo", {"anime": 1}),
+    "chimpanze": (Z.chimpanze, "zoo", {"anime": 1}),
+    "orang_outan": (Z.orang_outan, "zoo", {"anime": 1}),
+    "manchot": (Z.manchot, "zoo", {"anime": 1}),
+    "otarie": (Z.otarie, "zoo", {"anime": 1}),
+    "loup": (Z.loup, "zoo", {"anime": 1}),
+    "bison": (Z.bison, "zoo", {"anime": 1}),
+    "kangourou": (Z.kangourou, "zoo", {"anime": 1}),
+    "flamant": (Z.flamant, "zoo", {"anime": 1}),
+    "crocodile": (Z.crocodile, "zoo", {"anime": 1}),
+    "tortue_geante": (Z.tortue_geante, "zoo", {"anime": 1}),
+    "koala": (Z.koala, "zoo", {"anime": 1}),
+    "lemurien": (Z.lemurien, "zoo", {"anime": 1}),
+    "tapir": (Z.tapir, "zoo", {"anime": 1}),
+    "tronc_escalade": (Z.tronc_escalade, "zoo_objets", {}),
+    "plateforme_singes": (Z.plateforme_singes, "zoo_objets", {}),
+    "mangeoire_haute": (Z.mangeoire_haute, "zoo_objets", {}),
+    "ratelier_foin": (Z.ratelier_foin, "zoo_objets", {}),
+    "balle_enrichissement": (Z.balle_enrichissement, "zoo_objets", {}),
+    "rocher_chauffant": (Z.rocher_chauffant, "zoo_objets", {}),
+    "piscine_ours": (Z.piscine_ours, "zoo_objets", {}),
+    "abri_paille": (Z.abri_paille, "zoo_objets", {}),
+    "panneau_espece": (Z.panneau_espece, "zoo_objets", {}),
+    "longue_vue": (Z.longue_vue, "zoo_objets", {}),
 }
 
 

@@ -55,6 +55,10 @@ var dechets_panel: DechetsPanel
 ## Parc de loisirs : attractions, visiteurs, files, billets, note (Maj+G).
 var parc: ParcLoisirs
 var parc_panel: ParcPanel
+## Zoo : enclos, animaux, soigneurs, visiteurs (Maj+Z, menu Loisirs).
+var zoo: ZooSysteme
+var zoo_panel: ZooPanel
+var zoo_outils: ZooOutils
 ## Obsèques, cimetières, crématorium, pompes funèbres (onglet Funéraire du panneau H).
 var funeraire: Funeraire
 ## Chantiers, usure des bâtiments, abords et fumée des maisons habitées.
@@ -161,6 +165,7 @@ func _ready() -> void:
 	_setup_funeraire()
 	_setup_vie()
 	_setup_decors()
+	_setup_zoo()
 	_setup_evenements()
 	_setup_nuisances()
 	_setup_avis()
@@ -334,6 +339,7 @@ func save_sections() -> Dictionary:
 	sec["statistiques"] = statistiques.to_dict()
 	sec["tutoriel"] = tutoriel.to_dict()
 	sec["parc"] = parc.to_dict()
+	sec["zoo"] = zoo.to_dict()
 	sec["quartiers"] = quartiers.to_dict()
 	return sec
 
@@ -440,6 +446,7 @@ func load_game(slot := "") -> bool:
 	telecom.from_dict(sec.get("telecom", {}))
 	dechets.from_dict(sec.get("dechets", {}))
 	parc.from_dict(sec.get("parc", {}))
+	zoo.from_dict(sec.get("zoo", {}))
 	funeraire.from_dict(sec.get("funeraire", {}))
 	ambiance.from_dict(sec.get("ambiance", {}))
 	# Après les bâtiments et les habitants : dégâts, ruines, malades, matchs.
@@ -1419,6 +1426,8 @@ func _tool_busy() -> bool:
 		return true
 	if quartiers != null and quartiers.outil != "":
 		return true
+	if zoo_outils != null and zoo_outils.actif():
+		return true
 	return decors != null and decors.outil != DecorSystem.Outil.AUCUN
 
 
@@ -1786,7 +1795,51 @@ func _select_building_tool(from_transit := false) -> void:
 		agriculture.set_outil("")
 	if banque_pose:
 		banque_pose.stop()
+	if zoo_outils:
+		zoo_outils.set_inactive()
 	hud.select_tool_silently(0)
+
+
+## Zoo : enclos tracés à la main, animaux, soigneurs, visiteurs, et son menu (Maj+Z).
+func _setup_zoo() -> void:
+	zoo = ZooSysteme.new()
+	zoo.name = "Zoo"
+	add_child(zoo)
+	zoo.setup(buildings, population, transport, ambiance, world, decors)
+	zoo.message.connect(func(t: String) -> void: hud.show_message(t))
+	zoo_outils = ZooOutils.new()
+	zoo_outils.name = "OutilsZoo"
+	add_child(zoo_outils)
+	zoo_outils.setup(zoo, world, decors)
+	zoo_outils.message.connect(func(t: String) -> void: hud.show_message(t))
+	zoo_outils.info_changed.connect(func(t: String) -> void: hud.set_tool_info(t))
+	zoo_panel = ZooPanel.new()
+	zoo_panel.name = "PanneauZoo"
+	add_child(zoo_panel)
+	zoo_panel.setup(zoo, zoo_outils)
+	zoo_panel.building_chosen.connect(func(id: String) -> void:
+		_select_building_tool()
+		buildings.set_place(id))
+	zoo_panel.hud_tool_requested.connect(func(t: int) -> void:
+		zoo_outils.set_inactive()
+		hud.select_tool_silently(t)
+		_on_tool_selected(t))
+	zoo_panel.decors_requested.connect(func() -> void:
+		zoo_panel.set_open(false)
+		toggle_decors())
+	zoo_panel.focus_requested.connect(func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
+	hud.zoo_requested.connect(toggle_zoo)
+
+
+## Ouvre ou ferme le menu du zoo (les autres outils sont rangés).
+func toggle_zoo() -> void:
+	if zoo_panel.is_open():
+		zoo_panel.set_open(false)
+		return
+	_select_building_tool()
+	zoo_panel.set_open(true)
 
 
 ## Décors (DecorSystem) et leur panneau (touche G).
@@ -1843,6 +1896,8 @@ func _on_tool_selected(t: int) -> void:
 		telecom.set_inactive()
 	if decors_panel:
 		decors_panel.set_shown(false)
+	if zoo_outils:
+		zoo_outils.set_inactive()
 	if banque_pose:
 		banque_pose.stop()
 	transport.stations.set_inactive()
@@ -1989,7 +2044,8 @@ func _process(delta: float) -> void:
 			_refresh_stats(st)
 	_exclusive_panels()
 	if tuto_carte != null:
-		tuto_carte.cachee = hud.create_mode or GameStart.atelier or hud.coords_open()
+		tuto_carte.cachee = hud.create_mode or GameStart.atelier or hud.coords_open() \
+			or (zoo_panel != null and zoo_panel.is_open())
 
 
 var _stats_timer := 0.0

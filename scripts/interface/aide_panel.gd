@@ -15,7 +15,7 @@ const SECTIONS := [
 	["Barre du bas", [
 		["Tab · Gérer / Créer", "Gérer : la ville (terrain, voies, zonage, catalogue, lignes, habitants). Créer : construire un bâtiment soi-même (murs et étages, blocs, intérieur, Mes créations, banque, atelier), la ville en pause ; touches 1 à 7 et échelle des étages"],
 		["Catégories", "Observer, Terrain, Voies, Paysage : un clic ouvre leurs outils juste au-dessus ; Construire et Décors ouvrent leur panneau à droite (un seul à la fois)"],
-		["Menus ▴", "Transports (lignes, trafic, circulation, véhicules), Ville (habitants, urgences, avis, budget, déchets), Économie (production, agriculture, parc de loisirs), Infos (infos, cartes) : un clic ouvre la rangée de leurs panneaux ; les touches restent les mêmes"],
+		["Menus ▴", "Transports (lignes, trafic, circulation, véhicules), Ville (habitants, urgences, avis, budget, déchets), Économie (production, agriculture), Infos (infos, cartes), Loisirs (parc, zoo) : un clic ouvre la rangée de leurs panneaux ; les touches restent les mêmes"],
 		["Circulation, Véhicules, Vue", "afficher la circulation, choisir l'époque et la région des véhicules, changer de vue"],
 		["1", "observer : survoler une case pour voir son altitude et son biome (et le nom de la rivière)"],
 		["2 · 3 · 4", "aplanir, monter de 1 m, creuser de 1 m (clic gauche glissé)"],
@@ -233,6 +233,16 @@ const SECTIONS := [
 		["Construire → Parc de loisirs", "l'Entrée du parc (au bord d'une route) fonde le parc ; attractions, stands, toilettes, aires de repos et atelier se posent à moins de 250 m derrière elle, sans route"],
 		["Visiteurs", "habitants de la ville et touristes (selon l'attrait des manèges, la note et la route) ; plus nombreux le week-end, le mercredi et l'été, moins sous la pluie"],
 		["Entretien", "les manèges s'usent et tombent en panne ; l'atelier d'entretien révise, répare et ramasse les papiers (sans lui, un dépanneur extérieur, lent et cher)"],
+	]],
+	["Zoo", [
+		["Maj + Z (Loisirs ▴ → Zoo)", "panneau du zoo en 7 onglets : Zoo (note, visiteurs, prix, comptes, personnel, conseils), Enclos, Terrain, Animaux, Bâtiments, Visiteurs, Objets"],
+		["Fonder", "poser l'Entrée du zoo au bord d'une route (onglet Bâtiments ou Construire → Zoo) ; le reste se pose à moins de 400 m"],
+		["Enclos → Tracer", "clic à chaque coin, clic sur le premier point ou Entrée pour fermer, glisser pour un rectangle, Retour arrière efface le dernier coin ; 9 barrières (bois, électrique, grillage, palissade, renforcée, volière, vitre, mur, douve) : hauteur, solidité, vue et prix"],
+		["Terrain", "pinceaux de sol (herbe, forêt, savane sèche, sable, roche, neige, marais), bassin d'eau, remblai, relief (Maj : lisser), arbres et arrachage ; rayon du pinceau réglable"],
+		["Animaux", "34 espèces (Afrique, Asie, Europe, Amériques, Océanie, pôles, mini-ferme) : clic sur l'espèce puis dans l'enclos (Maj + clic : un groupe). Chaque espèce veut sa surface, ses sols, de l'eau, un abri, son climat, un groupe à sa taille, des jouets et du calme"],
+		["Soigneurs et bâtiments", "poste de soigneurs (repas à 8 h et 15 h, nettoyage), cuisine, clinique vétérinaire, atelier (réparation des barrières), abris, belvédère, kiosque pédagogique, restaurants, toilettes"],
+		["Risques", "barrière trop basse ou usée : évasions ; fauves et proies ensemble : prédation ; enclos sale ou animaux mal soignés : maladies. Naissances quand le bien-être est bon"],
+		["Visiteurs", "chemins depuis l'entrée, vue sur les enclos (vitres et douves les meilleures), espèces rares et menacées : note, prestige et dons pour la conservation"],
 	]],
 	["Déchets", [
 		["X", "panneau Déchets : ce que la ville jette et recycle, poubelles qui débordent (clic : y aller), installations, bennes en tournée"],

@@ -51,6 +51,14 @@
   {
    "id": "rochers",
    "nom": "Rochers et bois"
+  },
+  {
+   "id": "zoo",
+   "nom": "Animaux du zoo"
+  },
+  {
+   "id": "zoo_objets",
+   "nom": "Objets des enclos"
   }
  ],
  "decors": [
@@ -1859,6 +1867,464 @@
     6.02,
     1.32,
     1.24
+   ]
+  },
+  {
+   "id": "lion",
+   "nom": "Lion à crinière",
+   "cat": "zoo",
+   "triangles": 220,
+   "taille": [
+    0.65,
+    2.8,
+    1.27
+   ],
+   "anime": 1
+  },
+  {
+   "id": "lionne",
+   "nom": "Lionne couchée au soleil",
+   "cat": "zoo",
+   "triangles": 112,
+   "taille": [
+    0.71,
+    2.6,
+    0.76
+   ],
+   "anime": 1
+  },
+  {
+   "id": "elephant",
+   "nom": "Éléphant d'Afrique et ses défenses",
+   "cat": "zoo",
+   "triangles": 244,
+   "taille": [
+    1.55,
+    5.94,
+    3.55
+   ],
+   "anime": 1
+  },
+  {
+   "id": "elephanteau",
+   "nom": "Éléphanteau",
+   "cat": "zoo",
+   "triangles": 188,
+   "taille": [
+    0.76,
+    2.78,
+    1.63
+   ],
+   "anime": 1
+  },
+  {
+   "id": "girafe",
+   "nom": "Girafe réticulée",
+   "cat": "zoo",
+   "triangles": 388,
+   "taille": [
+    0.74,
+    3.37,
+    5.2
+   ],
+   "anime": 1
+  },
+  {
+   "id": "zebre",
+   "nom": "Zèbre des plaines",
+   "cat": "zoo",
+   "triangles": 376,
+   "taille": [
+    0.52,
+    3.08,
+    2.03
+   ],
+   "anime": 1
+  },
+  {
+   "id": "rhinoceros",
+   "nom": "Rhinocéros blanc et ses deux cornes",
+   "cat": "zoo",
+   "triangles": 208,
+   "taille": [
+    1.19,
+    4.47,
+    2.24
+   ],
+   "anime": 1
+  },
+  {
+   "id": "hippopotame",
+   "nom": "Hippopotame",
+   "cat": "zoo",
+   "triangles": 228,
+   "taille": [
+    1.35,
+    4.43,
+    1.64
+   ],
+   "anime": 1
+  },
+  {
+   "id": "autruche",
+   "nom": "Autruche",
+   "cat": "zoo",
+   "triangles": 112,
+   "taille": [
+    0.68,
+    1.45,
+    2.37
+   ],
+   "anime": 1
+  },
+  {
+   "id": "suricate",
+   "nom": "Suricate debout, en sentinelle",
+   "cat": "zoo",
+   "triangles": 96,
+   "taille": [
+    0.11,
+    0.3,
+    0.39
+   ],
+   "anime": 1
+  },
+  {
+   "id": "tigre",
+   "nom": "Tigre du Bengale",
+   "cat": "zoo",
+   "triangles": 492,
+   "taille": [
+    0.55,
+    2.82,
+    1.1
+   ],
+   "anime": 1
+  },
+  {
+   "id": "panda",
+   "nom": "Panda géant qui grignote du bambou",
+   "cat": "zoo",
+   "triangles": 204,
+   "taille": [
+    0.8,
+    1.02,
+    1.35
+   ],
+   "anime": 1
+  },
+  {
+   "id": "panda_roux",
+   "nom": "Panda roux à queue annelée",
+   "cat": "zoo",
+   "triangles": 252,
+   "taille": [
+    0.23,
+    1.21,
+    0.48
+   ],
+   "anime": 1
+  },
+  {
+   "id": "ours_brun",
+   "nom": "Ours brun",
+   "cat": "zoo",
+   "triangles": 232,
+   "taille": [
+    0.81,
+    2.49,
+    1.44
+   ],
+   "anime": 1
+  },
+  {
+   "id": "ours_polaire",
+   "nom": "Ours polaire",
+   "cat": "zoo",
+   "triangles": 212,
+   "taille": [
+    0.83,
+    3.11,
+    1.37
+   ],
+   "anime": 1
+  },
+  {
+   "id": "gorille",
+   "nom": "Gorille dos argenté, appuyé sur ses poings",
+   "cat": "zoo",
+   "triangles": 176,
+   "taille": [
+    1.26,
+    1.12,
+    1.62
+   ],
+   "anime": 1
+  },
+  {
+   "id": "chimpanze",
+   "nom": "Chimpanzé assis",
+   "cat": "zoo",
+   "triangles": 124,
+   "taille": [
+    0.71,
+    0.57,
+    0.98
+   ],
+   "anime": 1
+  },
+  {
+   "id": "orang_outan",
+   "nom": "Orang-outan aux longs bras",
+   "cat": "zoo",
+   "triangles": 100,
+   "taille": [
+    1.22,
+    0.58,
+    1.14
+   ],
+   "anime": 1
+  },
+  {
+   "id": "manchot",
+   "nom": "Manchot",
+   "cat": "zoo",
+   "triangles": 144,
+   "taille": [
+    0.49,
+    0.3,
+    0.8
+   ],
+   "anime": 1
+  },
+  {
+   "id": "otarie",
+   "nom": "Otarie dressée sur ses nageoires",
+   "cat": "zoo",
+   "triangles": 120,
+   "taille": [
+    0.75,
+    1.56,
+    1.02
+   ],
+   "anime": 1
+  },
+  {
+   "id": "loup",
+   "nom": "Loup gris",
+   "cat": "zoo",
+   "triangles": 216,
+   "taille": [
+    0.32,
+    1.83,
+    1.08
+   ],
+   "anime": 1
+  },
+  {
+   "id": "bison",
+   "nom": "Bison d'Europe",
+   "cat": "zoo",
+   "triangles": 224,
+   "taille": [
+    0.95,
+    3.52,
+    2.04
+   ],
+   "anime": 1
+  },
+  {
+   "id": "kangourou",
+   "nom": "Kangourou roux",
+   "cat": "zoo",
+   "triangles": 168,
+   "taille": [
+    0.52,
+    1.53,
+    1.58
+   ],
+   "anime": 1
+  },
+  {
+   "id": "flamant",
+   "nom": "Flamant rose sur une patte",
+   "cat": "zoo",
+   "triangles": 80,
+   "taille": [
+    0.21,
+    0.66,
+    1.47
+   ],
+   "anime": 1
+  },
+  {
+   "id": "crocodile",
+   "nom": "Crocodile du Nil",
+   "cat": "zoo",
+   "triangles": 260,
+   "taille": [
+    1.16,
+    4.53,
+    0.44
+   ],
+   "anime": 1
+  },
+  {
+   "id": "tortue_geante",
+   "nom": "Tortue géante des Galápagos",
+   "cat": "zoo",
+   "triangles": 124,
+   "taille": [
+    1.08,
+    1.73,
+    0.78
+   ],
+   "anime": 1
+  },
+  {
+   "id": "koala",
+   "nom": "Koala accroché à son tronc d'eucalyptus",
+   "cat": "zoo",
+   "triangles": 140,
+   "taille": [
+    0.44,
+    0.5,
+    2.2
+   ],
+   "anime": 1
+  },
+  {
+   "id": "lemurien",
+   "nom": "Lémurien catta à queue rayée",
+   "cat": "zoo",
+   "triangles": 276,
+   "taille": [
+    0.16,
+    0.66,
+    1.11
+   ],
+   "anime": 1
+  },
+  {
+   "id": "tapir",
+   "nom": "Tapir de Malaisie, noir et blanc",
+   "cat": "zoo",
+   "triangles": 184,
+   "taille": [
+    0.59,
+    2.69,
+    1.13
+   ],
+   "anime": 1
+  },
+  {
+   "id": "tronc_escalade",
+   "nom": "Tronc d'escalade et ses branches",
+   "cat": "zoo_objets",
+   "triangles": 72,
+   "taille": [
+    1.95,
+    1.08,
+    3.34
+   ]
+  },
+  {
+   "id": "plateforme_singes",
+   "nom": "Plateforme en bois sur poteaux, cordes et filet",
+   "cat": "zoo_objets",
+   "triangles": 212,
+   "taille": [
+    6.05,
+    4.84,
+    3.61
+   ]
+  },
+  {
+   "id": "mangeoire_haute",
+   "nom": "Mangeoire perchée pour girafes, pleine de feuillage",
+   "cat": "zoo_objets",
+   "triangles": 68,
+   "taille": [
+    1.4,
+    1.4,
+    4.42
+   ]
+  },
+  {
+   "id": "ratelier_foin",
+   "nom": "Râtelier à foin (herbivores)",
+   "cat": "zoo_objets",
+   "triangles": 144,
+   "taille": [
+    2.0,
+    1.0,
+    1.38
+   ]
+  },
+  {
+   "id": "balle_enrichissement",
+   "nom": "Grosse balle d'enrichissement",
+   "cat": "zoo_objets",
+   "triangles": 80,
+   "taille": [
+    0.86,
+    0.9,
+    0.9
+   ]
+  },
+  {
+   "id": "rocher_chauffant",
+   "nom": "Rocher plat chauffant",
+   "cat": "zoo_objets",
+   "triangles": 20,
+   "taille": [
+    1.57,
+    1.83,
+    0.64
+   ]
+  },
+  {
+   "id": "piscine_ours",
+   "nom": "Bassin rocheux pour ours ou otaries",
+   "cat": "zoo_objets",
+   "triangles": 146,
+   "taille": [
+    6.21,
+    6.0,
+    0.85
+   ]
+  },
+  {
+   "id": "abri_paille",
+   "nom": "Petit abri à toit de paille",
+   "cat": "zoo_objets",
+   "triangles": 84,
+   "taille": [
+    3.2,
+    2.8,
+    2.4
+   ]
+  },
+  {
+   "id": "panneau_espece",
+   "nom": "Panneau pédagogique d'enclos",
+   "cat": "zoo_objets",
+   "triangles": 68,
+   "taille": [
+    1.2,
+    0.3,
+    1.58
+   ]
+  },
+  {
+   "id": "longue_vue",
+   "nom": "Longue-vue de belvédère",
+   "cat": "zoo_objets",
+   "triangles": 52,
+   "taille": [
+    0.2,
+    0.62,
+    1.42
    ]
   }
  ]

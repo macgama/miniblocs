@@ -11,6 +11,8 @@ extends Node3D
 ## bout à l'autre et marquent un arrêt à chaque station. Les avions décollent,
 ## volent d'un aéroport à l'autre et atterrissent.
 
+## La flotte d'une ligne change (création, modèle, nombre, fret, suppression) : achats et reventes.
+signal fleet_changed(id: int)
 signal info_changed(text: String)
 signal message(text: String)
 signal lines_changed
@@ -73,6 +75,9 @@ var camera: Camera3D
 var stations: Dictionary = {}
 var lines: Dictionary = {}
 var next_id := 1
+## Achat des véhicules (ExploitationLignes) : Callable(id de ligne ou -1, genre, modèle, nombre)
+## qui renvoie "" si la ville peut payer, sinon la raison du refus.
+var achat_ok: Callable
 ## Itinéraires des habitants (marche + lignes) : planner.plan(a, b).
 var planner: TransitPlanner
 
@@ -545,10 +550,15 @@ func create_line(stops: Array, model := "", count := 2, fret := false) -> Dictio
 		return {"ok": false, "reason": "Aucun véhicule ne peut desservir ces stations."}
 	if model == "" or not models.has(model):
 		model = _default_model(kind, models)
+	if achat_ok.is_valid():
+		var why: String = achat_ok.call(-1, kind, model, clampi(count, 1, 30))
+		if why != "":
+			return {"ok": false, "reason": why}
 	var id := next_id
 	next_id += 1
 	lines[id] = {"id": id, "name": _line_name(kind, fret), "kind": kind, "stops": clean, "fret": fret, "tonnes": 0.0,
 		"model": model, "count": clampi(count, 1, 30), "color": LINE_COLORS[(id - 1) % LINE_COLORS.size()]}
+	fleet_changed.emit(id)
 	_respawn(id)
 	lines_changed.emit()
 	return {"ok": true, "reason": "", "id": id}
@@ -575,9 +585,17 @@ func set_fret(id: int, on: bool) -> void:
 		message.emit("Aucun véhicule de ce genre pour ces stations.")
 		lines_changed.emit()
 		return
+	var new_model := _default_model(l.kind, models)
+	if achat_ok.is_valid():
+		var why: String = achat_ok.call(id, String(l.kind), new_model, int(l.count))
+		if why != "":
+			message.emit(why)
+			lines_changed.emit()
+			return
 	l.fret = on
 	l.name = _line_name(l.kind, on)
-	l.model = _default_model(l.kind, models)
+	l.model = new_model
+	fleet_changed.emit(id)
 	_respawn(id)
 	lines_changed.emit()
 
@@ -592,9 +610,23 @@ func set_line(id: int, model: String, count: int) -> void:
 	if not lines.has(id):
 		return
 	var l: Dictionary = lines[id]
+	var new_model := String(l.model)
 	if models_for(l.kind, l.stops, bool(l.get("fret", false))).has(model):
-		l.model = model
-	l.count = clampi(count, 1, 30)
+		new_model = model
+	var new_count := clampi(count, 1, 30)
+	if new_model == String(l.model) and new_count == int(l.count):
+		_respawn(id)
+		lines_changed.emit()
+		return
+	if achat_ok.is_valid():
+		var why: String = achat_ok.call(id, String(l.kind), new_model, new_count)
+		if why != "":
+			message.emit(why)
+			lines_changed.emit()
+			return
+	l.model = new_model
+	l.count = new_count
+	fleet_changed.emit(id)
 	_respawn(id)
 	lines_changed.emit()
 
@@ -602,6 +634,7 @@ func set_line(id: int, model: String, count: int) -> void:
 func remove_line(id: int) -> void:
 	lines.erase(id)
 	traffic.remove_line_vehicles(id)
+	fleet_changed.emit(id)
 	lines_changed.emit()
 
 

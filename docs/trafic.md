@@ -22,7 +22,7 @@ Panneau **Trafic** : touche **Maj + L** ou bouton *Trafic* de la barre du bas.
 | Lignes | capacité = places du véhicule (catalogue) × passages par heure ; pleine à la pointe : attente d'un ou plusieurs véhicules de plus ; les bus subissent les bouchons de leur route |
 | Voies de bus et de tram | sur un tronçon choisi : les bus et trams y passent sans bouchon, les voitures perdent une voie (les trams sur leurs rails sont déjà en site propre) |
 | Fermetures | « Fermer à la circulation » (ou `Trafic.fermer(eid, raison)`) : les itinéraires l'évitent |
-| Argent | tickets (1,50 € par défaut) et stationnement encaissés par le budget communal ; exploitation des lignes payée chaque mois (bus 3 000 €, tram 5 000 €, métro 8 000 €, train 9 000 € par véhicule) |
+| Argent | tickets (1,50 € par défaut) et stationnement encaissés par le budget communal ; les lignes ont leur propre compte (achat des véhicules, personnel, énergie, entretien, pannes) : voir [lignes-rentabilite.md](lignes-rentabilite.md) |
 | Avis | − bouchons (8 min perdues ou plus), − pas de place pour se garer, − bus bondé, + transports en commun pratiques |
 
 ## Panneau Trafic

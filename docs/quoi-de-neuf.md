@@ -4,6 +4,12 @@ Tout est dans `main`, et les 9 tests automatiques passent (`sh tests/tous.sh`).
 
 ## Nouveautés
 
+**Lignes rentables (ou pas) : le compte de chaque ligne** (touche **L**, 14 novembre)
+- Les bus, trams, métros, trains, bateaux, avions et camions s'achètent (prix réels selon le modèle, affiché dans la liste) et se revendent selon leur âge.
+- Chaque ligne a son bilan (bouton « Bilan ▸ ») : voyageurs ou tonnes par jour, recettes des tickets et du fret, personnel, énergie, entretien, pannes, résultat du mois et depuis la création.
+- Les véhicules vieillissent : plus d'entretien, puis des pannes après leur durée de vie (bus 12 ans, tram 30…). « Renouveler les usés » ou renouvellement automatique.
+- Le fret n'est payé que pour les marchandises que les entreprises de la région expédient ou reçoivent (voir docs/lignes-rentabilite.md).
+
 **Grandes villes plus fluides** (14 novembre)
 - À 5 000 habitants, l'image moyenne passe de 54 à 12 ms et la pire saccade de 1,7 s à 0,15 s ; à 1 000 habitants, plus de blocage d'une seconde à chaque heure de jeu. Rien ne change dans les règles du jeu.
 - Pollution et valeur des terrains calculées sur un autre cœur, passants qui apparaissent en douceur, livraisons, réseaux et déchets plus rapides. Banc d'essai `tests/perf_ville.gd`, voir docs/performances.md.

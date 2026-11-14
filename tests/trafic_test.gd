@@ -207,7 +207,9 @@ func _run() -> void:
 	_check(tf.is_in_group("avis_sources") and (tf.avis_facteurs()[0].f as Callable).is_valid(), "source d'avis « transports »")
 	var av: Array = tf.avis_de(driver)
 	_check(av.size() == 2, "avis d'un automobiliste : %s" % str(av[1]))
-	_check(float(tf.budget_entretien().get("Exploitation des lignes", 0.0)) == 6000.0, "exploitation : 2 bus à 3 000 € par mois")
+	var eco_ent: Dictionary = scene.lignes_eco.budget_entretien()
+	_check(tf.budget_entretien().is_empty() and float(eco_ent.get("Exploitation des lignes", 0.0)) >= 12000.0,
+		"exploitation des 2 bus comptée par le bilan des lignes : %d € par mois" % roundi(float(eco_ent.get("Exploitation des lignes", 0.0))))
 
 	print("Panneau et carte :")
 	var panel: TraficPanel = scene.trafic_panel

@@ -813,6 +813,8 @@ func _setup_pays() -> void:
 	kit.name = "KitInstallation"
 	add_child(kit)
 	kit.setup(buildings, communes, fondateurs, world)
+	# Badge « Offert par l'État » du catalogue B à jour quand un bon sert.
+	kit.changed.connect(func() -> void: build_panel.refresh.call_deferred())
 	kit.message.connect(func(t: String) -> void: hud.show_message(t))
 	kit.changed.connect(func() -> void: _unsaved = true)
 	objectifs = Objectifs.new()

@@ -1210,6 +1210,17 @@ func _card(id: String, fallback_icon: String) -> Button:
 	if lock != "":
 		b.tooltip_text += "\n" + lock
 		b.modulate = Color(1, 1, 1, 0.45)
+	# Kit de l'État : un bon de la ville paie ce bâtiment (jusqu'au plafond).
+	var kit := KitInstallation.instance
+	var kit_vid := kit.ville_avec_bon(id) if kit != null and lock == "" else -1
+	var offert := 0
+	if kit_vid >= 0:
+		var bon := KitInstallation.bon_du_type(id)
+		offert = mini(price, kit.plafond(bon))
+		var ville := String(kit.communes.villages[kit_vid].nom) if kit.communes != null and kit.communes.villages.has(kit_vid) else "ta ville"
+		b.tooltip_text += "\nOffert par l'État : le bon « %s » de %s paie jusqu'à %s.%s" % [
+			String(KitInstallation.BONS[bon][0]).to_lower(), ville, BuildingSystem.format_money(kit.plafond(bon)),
+			" Un seul bâtiment par bon : choisis bien." if offert >= price else " La ville paie le reste."]
 	var sel := UiStyle.flat_box(Color(1, 0.82, 0.4, 0.16), 10, 6)
 	sel.border_color = UiStyle.ACCENT
 	sel.set_border_width_all(2)
@@ -1233,6 +1244,15 @@ func _card(id: String, fallback_icon: String) -> Button:
 	box.add_child(pic)
 	if _vignettes:
 		_vignettes.request(id, pic)
+	if offert > 0:
+		var badge := Label.new()
+		badge.text = "Offert par l'État" if offert >= price else "Bon de l'État"
+		badge.add_theme_font_size_override("font_size", 11)
+		badge.add_theme_color_override("font_color", Color(0.1, 0.08, 0.02))
+		badge.add_theme_stylebox_override("normal", UiStyle.flat_box(Color("ffd166"), 5, 3))
+		badge.position = Vector2(4, 4)
+		badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		pic.add_child(badge)
 	var name_l := Label.new()
 	name_l.text = String(t.name)
 	name_l.clip_text = true
@@ -1243,10 +1263,12 @@ func _card(id: String, fallback_icon: String) -> Button:
 	box.add_child(name_l)
 	var meta := Label.new()
 	meta.text = "%d × %d m  ·  %s" % [t.w, t.d, BuildingSystem.format_short(price)]
+	if offert > 0:
+		meta.text = "%d × %d m  ·  %s" % [t.w, t.d, "Offert" if offert >= price else "%s à payer" % BuildingSystem.format_short(price - offert)]
 	if lock != "":
 		meta.text = "Verrouillé · %d hab." % int(ReglagesPartie.PALIERS[ReglagesPartie.palier_requis(id)].habitants)
 	meta.add_theme_font_size_override("font_size", 12)
-	meta.add_theme_color_override("font_color", UiStyle.TEXT_DIM)
+	meta.add_theme_color_override("font_color", Color("ffd166") if offert > 0 and lock == "" else UiStyle.TEXT_DIM)
 	meta.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.add_child(meta)
 	return b

@@ -225,6 +225,20 @@ func utiliser(bid: int, id: String, rect: Rect2i) -> void:
 	changed.emit()
 
 
+## Ville qui a encore un bon pour ce type de bâtiment (-1 : aucune) : la ville
+## gérée d'abord (Maj+P), sinon la première qui l'a. Sert au badge du catalogue B.
+func ville_avec_bon(id: String) -> int:
+	var bon := bon_du_type(id)
+	if bon == "":
+		return -1
+	if Pays.instance != null and a_le_bon(int(Pays.instance.selection), bon):
+		return int(Pays.instance.selection)
+	for vid in bons:
+		if a_le_bon(int(vid), bon):
+			return int(vid)
+	return -1
+
+
 ## Bons restants d'une ville, dans l'ordre.
 func restants(vid: int) -> Array:
 	var out := []

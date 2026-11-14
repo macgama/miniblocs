@@ -2,15 +2,17 @@ class_name MuseeObjets
 extends RefCounted
 ## Les « ingrédients » du musée : vitrines, socles, œuvres et objets exposés
 ## (peinture, sculpture, antiquités, histoire naturelle, sciences, histoire,
-## arts du monde), éclairage, parcours de visite, accueil, boutique et café.
+## arts du monde, transports, automobile, air et espace, marine, cinéma, sport,
+## mode, musique, jouets, préhistoire, bande dessinée, gastronomie), éclairage,
+## parcours de visite, accueil, boutique et café.
 ##
 ## Ce sont des meubles comme les autres (bible Meubles, style « musee », ids
 ## « musee/<type> ») : ils se posent case par case dans un bâtiment en murs fins
 ## avec l'outil de pose de l'Intérieur, se tournent avec R, se retirent au clic
 ## droit. Leurs champs en plus :
 ## - fam : famille (onglet du menu Musée) ;
-## - theme : thème de collection (art, antiquite, nature, sciences, histoire,
-##   monde) pour les objets exposés, "" pour le reste ;
+## - theme : thème de collection (clé de THEMES) pour les objets exposés, ""
+##   pour le reste ;
 ## - valeur : valeur d'assurance (€) ; prestige : ce qu'il apporte à la
 ##   réputation du musée ; fragile : à protéger (vitrine, cordon, gardien) ;
 ## - protege : vitrine ou cordon (protège les objets fragiles de la salle) ;
@@ -31,11 +33,25 @@ const FAMILLES := {
 	"sciences": {"name": "Sciences et techniques", "icon": "industrie", "desc": "Machines, lunettes astronomiques, avions, automobiles, robots."},
 	"histoire": {"name": "Histoire", "icon": "bouclier", "desc": "Armures, canons, carrosses, costumes, cartes et plans-reliefs."},
 	"monde": {"name": "Arts du monde", "icon": "globe", "desc": "Afrique, Asie, Amériques, Océanie."},
+	"transports": {"name": "Transports et chemins de fer", "icon": "rail", "desc": "Locomotive, vélocipèdes, motos, trains miniatures, signaux, affiches de voyage."},
+	"automobile": {"name": "Automobile", "icon": "vehicules", "desc": "Voitures de course, limousines, citadines, moteurs, pompes à essence."},
+	"espace": {"name": "Air et espace", "icon": "lune", "desc": "Module lunaire, capsule, combinaison, satellite, planeur, montgolfière."},
+	"marine": {"name": "Marine et océans", "icon": "eau", "desc": "Galion, figure de proue, scaphandre, phare, canot, aquarium."},
+	"cinema": {"name": "Cinéma et photographie", "icon": "vue", "desc": "Caméras, projecteurs, affiches, décors, costumes de film, fauteuils rouges."},
+	"sport": {"name": "Sport", "icon": "sport", "desc": "Maillots, vélos, coupes, médailles, flambeau, skis, statues de champions."},
+	"mode": {"name": "Mode et costume", "icon": "creations", "desc": "Haute couture, robes de bal, chapeaux, souliers, podium de défilé."},
+	"musique": {"name": "Musique", "icon": "son", "desc": "Piano à queue, harpe, guitares, violon, juke-box, gramophone, cor des Alpes."},
+	"jouets": {"name": "Jeux et jouets", "icon": "fete", "desc": "Maison de poupée, cheval à bascule, trains, peluches, bornes d'arcade, consoles."},
+	"prehistoire": {"name": "Préhistoire", "icon": "feu", "desc": "Grotte peinte, silex, hutte en os de mammouth, crânes, menhir."},
+	"bd": {"name": "Bande dessinée", "icon": "editeur", "desc": "Planches originales, couvertures, héros, table à dessin, coin lecture."},
+	"gastronomie": {"name": "Vin et gastronomie", "icon": "commerce", "desc": "Alambic, tonneaux, pressoir, fourneau, grands crus, chaudron à fromage."},
 	"eclairage": {"name": "Éclairage", "icon": "lampe", "desc": "Rails de spots, lustres, appliques : une œuvre dans le noir ne vaut rien."},
 	"parcours": {"name": "Parcours de visite", "icon": "chemin", "desc": "Cordons, bancs, cartels, panneaux, flèches, audioguides."},
 	"services": {"name": "Accueil et services", "icon": "billet", "desc": "Billetterie (indispensable), vestiaire, boutique, café, toilettes."},
 }
-const FAMILLE_ORDER := ["vitrines", "socles", "peinture", "sculpture", "antiquites", "nature", "sciences", "histoire", "monde", "eclairage", "parcours", "services"]
+const FAMILLE_ORDER := ["vitrines", "socles", "peinture", "sculpture", "antiquites", "nature", "sciences", "histoire", "monde",
+	"transports", "automobile", "espace", "marine", "cinema", "sport", "mode", "musique", "jouets", "prehistoire", "bd", "gastronomie",
+	"eclairage", "parcours", "services"]
 
 ## Thèmes des collections.
 const THEMES := {
@@ -45,6 +61,18 @@ const THEMES := {
 	"sciences": {"name": "Sciences et techniques"},
 	"histoire": {"name": "Histoire"},
 	"monde": {"name": "Arts du monde"},
+	"transports": {"name": "Transports"},
+	"automobile": {"name": "Automobile"},
+	"espace": {"name": "Air et espace"},
+	"marine": {"name": "Marine"},
+	"cinema": {"name": "Cinéma et photographie"},
+	"sport": {"name": "Sport"},
+	"mode": {"name": "Mode"},
+	"musique": {"name": "Musique"},
+	"jouets": {"name": "Jeux et jouets"},
+	"prehistoire": {"name": "Préhistoire"},
+	"bd": {"name": "Bande dessinée"},
+	"gastronomie": {"name": "Vin et gastronomie"},
 }
 
 ## Objets du musée. Mêmes champs que Meubles.TYPES (n, k, w, d, h, prix, attr,
@@ -141,6 +169,123 @@ const TYPES := {
 	"pirogue": {"n": "Pirogue sculptée", "k": "pirogue", "fam": "monde", "theme": "monde", "w": 1, "d": 4, "h": 1.0, "prix": 30000, "attr": 8, "valeur": 200000, "prestige": 7},
 	"kimono": {"n": "Kimono de soie", "k": "kimono", "fam": "monde", "theme": "monde", "w": 2, "d": 1, "h": 1.6, "prix": 16000, "attr": 6, "mur": true, "couche": "mur", "valeur": 120000, "prestige": 5, "fragile": true},
 	"tapis_ancien": {"n": "Tapis persan ancien", "k": "tapisserie", "c": "persan", "fam": "monde", "theme": "monde", "w": 3, "d": 1, "h": 2.0, "prix": 28000, "attr": 7, "mur": true, "couche": "mur", "valeur": 260000, "prestige": 7, "fragile": true},
+	# --- Horlogerie (sciences) --------------------------------------------------------------------------
+	"comtoise": {"n": "Horloge comtoise", "k": "comtoise", "fam": "sciences", "theme": "sciences", "w": 1, "d": 1, "h": 2.3, "prix": 14000, "attr": 5, "mur": true, "valeur": 60000, "prestige": 4},
+	"vitrine_montres": {"n": "Vitrine de montres et de mouvements", "k": "vitrine_table", "c": "montres", "fam": "sciences", "theme": "sciences", "w": 2, "d": 1, "h": 1.0, "prix": 30000, "attr": 6, "protege": true, "valeur": 700000, "prestige": 9},
+	"coucou": {"n": "Pendule à coucou", "k": "coucou", "fam": "sciences", "theme": "sciences", "w": 1, "d": 1, "h": 0.8, "prix": 4000, "attr": 4, "mur": true, "couche": "mur", "valeur": 15000, "prestige": 2},
+	# --- Transports et chemins de fer -------------------------------------------------------------------
+	"locomotive": {"n": "Locomotive à vapeur", "k": "locomotive", "fam": "transports", "theme": "transports", "w": 8, "d": 3, "h": 2.9, "prix": 450000, "attr": 32, "valeur": 3000000, "prestige": 44, "tags": ["star"]},
+	"grand_bi": {"n": "Grand-bi de 1880", "k": "grand_bi", "fam": "transports", "theme": "transports", "w": 1, "d": 2, "h": 1.7, "prix": 12000, "attr": 6, "valeur": 40000, "prestige": 4},
+	"moto_ancienne": {"n": "Motocyclette de 1920", "k": "moto", "fam": "transports", "theme": "transports", "w": 1, "d": 2, "h": 1.2, "prix": 30000, "attr": 7, "valeur": 90000, "prestige": 6},
+	"maquette_train": {"n": "Réseau de trains miniatures", "k": "maquette_train", "fam": "transports", "theme": "transports", "w": 3, "d": 2, "h": 1.2, "prix": 25000, "attr": 9, "protege": true, "valeur": 80000, "prestige": 7, "tags": ["jeu"]},
+	"horloge_gare": {"n": "Horloge de gare", "k": "horloge_gare", "fam": "transports", "theme": "transports", "w": 1, "d": 1, "h": 0.9, "prix": 5000, "attr": 4, "mur": true, "couche": "mur", "valeur": 12000, "prestige": 2},
+	"signal_ferroviaire": {"n": "Signal ferroviaire et lanterne", "k": "signal", "fam": "transports", "theme": "transports", "w": 1, "d": 1, "h": 2.6, "prix": 6000, "attr": 4, "valeur": 10000, "prestige": 2},
+	"draisienne": {"n": "Draisienne et vélocipède", "k": "draisienne", "fam": "transports", "theme": "transports", "w": 2, "d": 1, "h": 1.2, "prix": 9000, "attr": 5, "valeur": 30000, "prestige": 3},
+	"affiche_train": {"n": "Affiche de voyage en train", "k": "tableau", "c": "affiche_train", "fam": "transports", "theme": "transports", "w": 1, "d": 1, "h": 1.4, "prix": 3000, "attr": 4, "mur": true, "couche": "mur", "valeur": 8000, "prestige": 2},
+	# --- Automobile -------------------------------------------------------------------------------------
+	"voiture_course": {"n": "Voiture de course des années 1950", "k": "voiture_course", "fam": "automobile", "theme": "automobile", "w": 2, "d": 4, "h": 1.2, "prix": 180000, "attr": 16, "valeur": 4000000, "prestige": 22},
+	"limousine": {"n": "Limousine des années 1930", "k": "limousine", "fam": "automobile", "theme": "automobile", "w": 2, "d": 5, "h": 1.8, "prix": 220000, "attr": 16, "valeur": 2500000, "prestige": 20},
+	"citadine": {"n": "Petite citadine des années 1960", "k": "citadine", "fam": "automobile", "theme": "automobile", "w": 2, "d": 3, "h": 1.5, "prix": 40000, "attr": 9, "valeur": 60000, "prestige": 6},
+	"monoplace": {"n": "Monoplace de course moderne", "k": "monoplace", "fam": "automobile", "theme": "automobile", "w": 2, "d": 5, "h": 1.0, "prix": 300000, "attr": 20, "valeur": 3000000, "prestige": 26, "tags": ["star"]},
+	"moteur": {"n": "Moteur en coupe", "k": "moteur", "fam": "automobile", "theme": "automobile", "w": 1, "d": 1, "h": 1.3, "prix": 15000, "attr": 6, "valeur": 20000, "prestige": 3},
+	"pompe_essence": {"n": "Pompe à essence ancienne", "k": "pompe", "fam": "automobile", "theme": "automobile", "w": 1, "d": 1, "h": 2.1, "prix": 8000, "attr": 5, "valeur": 15000, "prestige": 2},
+	"plaques_emaillees": {"n": "Plaques émaillées publicitaires", "k": "tableau", "c": "plaques", "fam": "automobile", "theme": "automobile", "w": 2, "d": 1, "h": 1.2, "prix": 4000, "attr": 4, "mur": true, "couche": "mur", "valeur": 9000, "prestige": 2},
+	"plateau_tournant": {"n": "Plateau tournant d'exposition", "k": "plateau", "fam": "automobile", "w": 4, "d": 5, "h": 0.15, "prix": 9000, "attr": 3, "couche": "sol", "tags": ["socle"]},
+	# --- Air et espace ----------------------------------------------------------------------------------
+	"module_lunaire": {"n": "Module lunaire (réplique grandeur nature)", "k": "module_lunaire", "fam": "espace", "theme": "espace", "w": 4, "d": 4, "h": 2.9, "prix": 400000, "attr": 30, "valeur": 2000000, "prestige": 40, "tags": ["star"]},
+	"capsule": {"n": "Capsule spatiale revenue sur Terre", "k": "capsule", "fam": "espace", "theme": "espace", "w": 2, "d": 2, "h": 2.4, "prix": 260000, "attr": 20, "valeur": 5000000, "prestige": 28},
+	"combinaison": {"n": "Combinaison spatiale", "k": "combinaison", "fam": "espace", "theme": "espace", "w": 1, "d": 1, "h": 2.0, "prix": 60000, "attr": 10, "valeur": 800000, "prestige": 10, "fragile": true},
+	"satellite": {"n": "Satellite suspendu", "k": "satellite", "fam": "espace", "theme": "espace", "w": 4, "d": 2, "h": 0.02, "prix": 120000, "attr": 14, "couche": "sol", "suspendu": true, "valeur": 400000, "prestige": 14},
+	"planeur": {"n": "Planeur suspendu", "k": "planeur", "fam": "espace", "theme": "espace", "w": 6, "d": 3, "h": 0.02, "prix": 90000, "attr": 14, "couche": "sol", "suspendu": true, "valeur": 200000, "prestige": 12},
+	"montgolfiere": {"n": "Montgolfière (maquette suspendue)", "k": "montgolfiere", "fam": "espace", "theme": "espace", "w": 2, "d": 2, "h": 0.02, "prix": 20000, "attr": 8, "couche": "sol", "suspendu": true, "valeur": 30000, "prestige": 4},
+	"moteur_fusee": {"n": "Moteur de fusée", "k": "moteur_fusee", "fam": "espace", "theme": "espace", "w": 2, "d": 2, "h": 2.6, "prix": 90000, "attr": 12, "valeur": 600000, "prestige": 12},
+	"roche_lunaire": {"n": "Roche lunaire sous cloche", "k": "vitrine_cloche", "c": "roche_lunaire", "fam": "espace", "theme": "espace", "w": 1, "d": 1, "h": 1.7, "prix": 80000, "attr": 12, "protege": true, "valeur": 3000000, "prestige": 16},
+	# --- Marine et océans -------------------------------------------------------------------------------
+	"galion": {"n": "Maquette de galion", "k": "galion", "fam": "marine", "theme": "marine", "w": 2, "d": 1, "h": 1.9, "prix": 35000, "attr": 9, "protege": true, "valeur": 200000, "prestige": 8},
+	"figure_proue": {"n": "Figure de proue", "k": "figure_proue", "fam": "marine", "theme": "marine", "w": 1, "d": 2, "h": 2.2, "prix": 40000, "attr": 9, "valeur": 250000, "prestige": 8},
+	"scaphandre": {"n": "Scaphandre à casque de cuivre", "k": "scaphandre", "fam": "marine", "theme": "marine", "w": 1, "d": 1, "h": 2.0, "prix": 25000, "attr": 8, "valeur": 80000, "prestige": 6},
+	"ancre": {"n": "Ancre de marine", "k": "ancre", "fam": "marine", "theme": "marine", "w": 1, "d": 1, "h": 2.0, "prix": 8000, "attr": 4, "valeur": 15000, "prestige": 2},
+	"lentille_phare": {"n": "Lentille de phare", "k": "lentille", "fam": "marine", "theme": "marine", "w": 2, "d": 2, "h": 2.5, "prix": 70000, "attr": 12, "fragile": true, "valeur": 500000, "prestige": 12},
+	"barre_roue": {"n": "Barre à roue", "k": "barre", "fam": "marine", "theme": "marine", "w": 1, "d": 1, "h": 1.0, "prix": 4000, "attr": 4, "mur": true, "couche": "mur", "valeur": 10000, "prestige": 2},
+	"canot": {"n": "Canot de sauvetage", "k": "canot", "fam": "marine", "theme": "marine", "w": 2, "d": 5, "h": 1.4, "prix": 60000, "attr": 10, "valeur": 120000, "prestige": 8},
+	"aquarium": {"n": "Aquarium de récif", "k": "aquarium", "fam": "marine", "theme": "marine", "w": 3, "d": 1, "h": 2.0, "prix": 45000, "attr": 12, "mur": true, "valeur": 60000, "prestige": 7},
+	# --- Cinéma et photographie -------------------------------------------------------------------------
+	"camera_cinema": {"n": "Caméra de cinéma ancienne sur trépied", "k": "camera", "fam": "cinema", "theme": "cinema", "w": 1, "d": 1, "h": 1.9, "prix": 30000, "attr": 8, "valeur": 120000, "prestige": 7},
+	"projecteur_film": {"n": "Projecteur 35 mm", "k": "projecteur_film", "fam": "cinema", "theme": "cinema", "w": 1, "d": 1, "h": 1.7, "prix": 18000, "attr": 6, "valeur": 40000, "prestige": 4},
+	"affiche_film": {"n": "Affiche de film encadrée", "k": "tableau", "c": "affiche", "fam": "cinema", "theme": "cinema", "w": 1, "d": 1, "h": 1.5, "prix": 6000, "attr": 5, "mur": true, "couche": "mur", "valeur": 20000, "prestige": 3},
+	"clap": {"n": "Clap géant", "k": "clap", "fam": "cinema", "theme": "cinema", "w": 1, "d": 1, "h": 1.5, "prix": 3000, "attr": 4, "valeur": 2000, "prestige": 1},
+	"fauteuils_cine": {"n": "Rangée de fauteuils rouges de cinéma", "k": "fauteuils_cine", "fam": "cinema", "w": 3, "d": 1, "h": 1.0, "prix": 3600, "attr": 3, "confort": 3,
+		"tags": ["assise"], "places": [["assis", -0.9, 0.45, 0.0, 0.0], ["assis", 0.0, 0.45, 0.0, 0.0], ["assis", 0.9, 0.45, 0.0, 0.0]]},
+	"statuette_cinema": {"n": "Statuette dorée de récompense", "k": "vitrine_cloche", "c": "statuette", "fam": "cinema", "theme": "cinema", "w": 1, "d": 1, "h": 1.7, "prix": 50000, "attr": 10, "protege": true, "valeur": 500000, "prestige": 12},
+	"appareil_photo": {"n": "Appareil photo à soufflet", "k": "appareil_photo", "fam": "cinema", "theme": "cinema", "w": 1, "d": 1, "h": 1.6, "prix": 12000, "attr": 5, "valeur": 40000, "prestige": 4, "fragile": true},
+	"tirages_photo": {"n": "Tirages photographiques en noir et blanc", "k": "tableau", "c": "photos", "fam": "cinema", "theme": "cinema", "w": 2, "d": 1, "h": 1.2, "prix": 8000, "attr": 5, "mur": true, "couche": "mur", "valeur": 60000, "prestige": 5, "fragile": true},
+	"costume_film": {"n": "Costume de robot d'un film de science-fiction", "k": "costume_film", "fam": "cinema", "theme": "cinema", "w": 1, "d": 1, "h": 2.1, "prix": 45000, "attr": 11, "valeur": 400000, "prestige": 10},
+	"decor_film": {"n": "Décor de tournage (façade de saloon)", "k": "decor_film", "fam": "cinema", "theme": "cinema", "w": 3, "d": 1, "h": 2.8, "prix": 20000, "attr": 9, "mur": true, "valeur": 30000, "prestige": 6},
+	# --- Sport ------------------------------------------------------------------------------------------
+	"maillot": {"n": "Maillot dédicacé encadré", "k": "tableau", "c": "maillot", "fam": "sport", "theme": "sport", "w": 1, "d": 1, "h": 1.3, "prix": 6000, "attr": 5, "mur": true, "couche": "mur", "valeur": 30000, "prestige": 4},
+	"velo_course": {"n": "Vélo de course d'un grand tour", "k": "velo", "fam": "sport", "theme": "sport", "w": 1, "d": 2, "h": 1.6, "prix": 15000, "attr": 6, "valeur": 50000, "prestige": 5},
+	"coupe_sport": {"n": "Coupe du championnat sous cloche", "k": "vitrine_cloche", "c": "coupe", "fam": "sport", "theme": "sport", "w": 1, "d": 1, "h": 1.7, "prix": 40000, "attr": 10, "protege": true, "valeur": 300000, "prestige": 10},
+	"medailles": {"n": "Vitrine de médailles olympiques", "k": "vitrine_table", "c": "medailles", "fam": "sport", "theme": "sport", "w": 2, "d": 1, "h": 1.0, "prix": 30000, "attr": 8, "protege": true, "valeur": 250000, "prestige": 9},
+	"skis": {"n": "Skis, luge et piolets anciens", "k": "skis", "fam": "sport", "theme": "sport", "w": 2, "d": 1, "h": 1.9, "prix": 5000, "attr": 4, "mur": true, "couche": "mur", "valeur": 8000, "prestige": 2},
+	"flambeau": {"n": "Flambeau olympique", "k": "flambeau", "fam": "sport", "theme": "sport", "w": 1, "d": 1, "h": 1.6, "prix": 20000, "attr": 7, "protege": true, "valeur": 80000, "prestige": 6},
+	"ballons": {"n": "Vitrine de ballons historiques", "k": "vitrine_murale", "c": "ballons", "fam": "sport", "theme": "sport", "w": 2, "d": 1, "h": 2.1, "prix": 15000, "attr": 6, "mur": true, "protege": true, "valeur": 60000, "prestige": 5},
+	"champion": {"n": "Statue de champion en bronze", "k": "champion", "fam": "sport", "theme": "sport", "w": 1, "d": 1, "h": 2.4, "prix": 45000, "attr": 9, "valeur": 150000, "prestige": 8},
+	"podium_sport": {"n": "Podium des vainqueurs", "k": "podium_sport", "fam": "sport", "theme": "sport", "w": 3, "d": 1, "h": 0.9, "prix": 4000, "attr": 5, "valeur": 3000, "prestige": 2, "tags": ["jeu"]},
+	# --- Mode et costume --------------------------------------------------------------------------------
+	"robe_couture": {"n": "Robe de haute couture", "k": "robe", "c": "couture", "fam": "mode", "theme": "mode", "w": 1, "d": 1, "h": 2.0, "prix": 60000, "attr": 11, "fragile": true, "valeur": 600000, "prestige": 12},
+	"robe_bal": {"n": "Robe de bal du XVIIIe siècle", "k": "robe", "c": "bal", "fam": "mode", "theme": "mode", "w": 2, "d": 2, "h": 2.0, "prix": 80000, "attr": 12, "fragile": true, "valeur": 700000, "prestige": 13},
+	"tailleur": {"n": "Tailleur des années 1950", "k": "robe", "c": "tailleur", "fam": "mode", "theme": "mode", "w": 1, "d": 1, "h": 2.0, "prix": 35000, "attr": 8, "fragile": true, "valeur": 250000, "prestige": 7},
+	"smoking": {"n": "Costume de soirée sur mannequin", "k": "robe", "c": "smoking", "fam": "mode", "theme": "mode", "w": 1, "d": 1, "h": 2.0, "prix": 25000, "attr": 7, "fragile": true, "valeur": 120000, "prestige": 5},
+	"chapeaux": {"n": "Vitrine de chapeaux", "k": "vitrine_murale", "c": "chapeaux", "fam": "mode", "theme": "mode", "w": 2, "d": 1, "h": 2.1, "prix": 18000, "attr": 6, "mur": true, "protege": true, "valeur": 90000, "prestige": 5},
+	"chaussures": {"n": "Vitrine de souliers célèbres", "k": "vitrine_table", "c": "chaussures", "fam": "mode", "theme": "mode", "w": 2, "d": 1, "h": 1.0, "prix": 16000, "attr": 6, "protege": true, "valeur": 120000, "prestige": 5},
+	"machine_coudre": {"n": "Machine à coudre ancienne", "k": "machine_coudre", "fam": "mode", "theme": "mode", "w": 1, "d": 1, "h": 1.1, "prix": 6000, "attr": 4, "valeur": 9000, "prestige": 2},
+	"podium_defile": {"n": "Podium de défilé", "k": "podium_defile", "fam": "mode", "w": 2, "d": 5, "h": 0.4, "prix": 8000, "attr": 5, "tags": ["socle"]},
+	# --- Musique ----------------------------------------------------------------------------------------
+	"piano": {"n": "Piano à queue", "k": "piano", "fam": "musique", "theme": "musique", "w": 2, "d": 3, "h": 1.4, "prix": 90000, "attr": 12, "valeur": 400000, "prestige": 11},
+	"harpe": {"n": "Harpe de concert", "k": "harpe", "fam": "musique", "theme": "musique", "w": 1, "d": 1, "h": 1.9, "prix": 30000, "attr": 8, "fragile": true, "valeur": 90000, "prestige": 6},
+	"guitares": {"n": "Guitares électriques de légende", "k": "guitares", "fam": "musique", "theme": "musique", "w": 2, "d": 1, "h": 1.3, "prix": 40000, "attr": 10, "mur": true, "couche": "mur", "fragile": true, "valeur": 500000, "prestige": 10},
+	"violon": {"n": "Violon de maître luthier sous cloche", "k": "vitrine_cloche", "c": "violon", "fam": "musique", "theme": "musique", "w": 1, "d": 1, "h": 1.7, "prix": 120000, "attr": 12, "protege": true, "valeur": 4000000, "prestige": 18},
+	"juke_box": {"n": "Juke-box", "k": "juke_box", "fam": "musique", "theme": "musique", "w": 1, "d": 1, "h": 1.6, "prix": 12000, "attr": 7, "valeur": 25000, "prestige": 4, "confort": 1},
+	"gramophone": {"n": "Gramophone à pavillon", "k": "gramophone", "fam": "musique", "theme": "musique", "w": 1, "d": 1, "h": 1.5, "prix": 9000, "attr": 6, "fragile": true, "valeur": 30000, "prestige": 4},
+	"batterie": {"n": "Batterie d'un groupe de rock", "k": "batterie", "fam": "musique", "theme": "musique", "w": 2, "d": 2, "h": 1.4, "prix": 25000, "attr": 8, "valeur": 150000, "prestige": 6},
+	"orgue_barbarie": {"n": "Orgue de Barbarie", "k": "orgue_barbarie", "fam": "musique", "theme": "musique", "w": 1, "d": 1, "h": 1.5, "prix": 15000, "attr": 6, "valeur": 40000, "prestige": 4},
+	"cor_alpes": {"n": "Cor des Alpes", "k": "cor_alpes", "fam": "musique", "theme": "musique", "w": 1, "d": 4, "h": 1.0, "prix": 4000, "attr": 5, "valeur": 6000, "prestige": 2},
+	# --- Jeux et jouets ---------------------------------------------------------------------------------
+	"maison_poupee": {"n": "Maison de poupée", "k": "maison_poupee", "fam": "jouets", "theme": "jouets", "w": 2, "d": 1, "h": 1.7, "prix": 20000, "attr": 8, "fragile": true, "valeur": 90000, "prestige": 6},
+	"cheval_bascule": {"n": "Cheval à bascule", "k": "cheval_bascule", "fam": "jouets", "theme": "jouets", "w": 1, "d": 2, "h": 1.1, "prix": 6000, "attr": 5, "valeur": 15000, "prestige": 3},
+	"train_jouet": {"n": "Train électrique sur table", "k": "maquette_train", "c": "jouet", "fam": "jouets", "theme": "jouets", "w": 3, "d": 2, "h": 1.2, "prix": 15000, "attr": 8, "protege": true, "valeur": 40000, "prestige": 5, "tags": ["jeu"]},
+	"peluche": {"n": "Ours en peluche centenaire", "k": "peluche", "fam": "jouets", "theme": "jouets", "w": 1, "d": 1, "h": 1.3, "prix": 8000, "attr": 6, "fragile": true, "valeur": 60000, "prestige": 4},
+	"borne_arcade": {"n": "Borne d'arcade", "k": "arcade", "fam": "jouets", "theme": "jouets", "w": 1, "d": 1, "h": 1.8, "prix": 7000, "attr": 7, "valeur": 10000, "prestige": 3, "confort": 2, "tags": ["jeu", "ecran"]},
+	"consoles": {"n": "Vitrine de consoles de jeux vidéo", "k": "vitrine_murale", "c": "consoles", "fam": "jouets", "theme": "jouets", "w": 2, "d": 1, "h": 2.1, "prix": 14000, "attr": 7, "mur": true, "protege": true, "valeur": 40000, "prestige": 5},
+	"soldats_plomb": {"n": "Soldats de plomb", "k": "vitrine_table", "c": "soldats", "fam": "jouets", "theme": "jouets", "w": 2, "d": 1, "h": 1.0, "prix": 9000, "attr": 5, "protege": true, "valeur": 30000, "prestige": 3},
+	"robot_jouet": {"n": "Robot mécanique en fer-blanc", "k": "vitrine_cloche", "c": "robot_jouet", "fam": "jouets", "theme": "jouets", "w": 1, "d": 1, "h": 1.7, "prix": 8000, "attr": 6, "protege": true, "valeur": 25000, "prestige": 3},
+	"toupies": {"n": "Toupies, quilles et cubes", "k": "toupies", "fam": "jouets", "theme": "jouets", "w": 1, "d": 1, "h": 0.9, "prix": 3000, "attr": 4, "valeur": 4000, "prestige": 1, "tags": ["jeu"]},
+	# --- Préhistoire ------------------------------------------------------------------------------------
+	"paroi_grotte": {"n": "Paroi de grotte peinte", "k": "paroi_grotte", "fam": "prehistoire", "theme": "prehistoire", "w": 3, "d": 1, "h": 2.6, "prix": 60000, "attr": 14, "mur": true, "valeur": 100000, "prestige": 14, "fragile": true},
+	"silex": {"n": "Outils de silex taillé", "k": "vitrine_table", "c": "silex", "fam": "prehistoire", "theme": "prehistoire", "w": 2, "d": 1, "h": 1.0, "prix": 12000, "attr": 5, "protege": true, "valeur": 80000, "prestige": 5},
+	"chasseur": {"n": "Reconstitution d'un chasseur préhistorique", "k": "chasseur", "fam": "prehistoire", "theme": "prehistoire", "w": 1, "d": 1, "h": 1.9, "prix": 30000, "attr": 9, "valeur": 40000, "prestige": 6},
+	"hutte_mammouth": {"n": "Hutte en os de mammouth", "k": "hutte", "fam": "prehistoire", "theme": "prehistoire", "w": 3, "d": 3, "h": 2.4, "prix": 90000, "attr": 14, "valeur": 300000, "prestige": 14},
+	"cranes": {"n": "Crânes de nos ancêtres sous cloche", "k": "vitrine_cloche", "c": "cranes", "fam": "prehistoire", "theme": "prehistoire", "w": 1, "d": 1, "h": 1.7, "prix": 40000, "attr": 10, "protege": true, "valeur": 600000, "prestige": 12},
+	"foyer": {"n": "Foyer reconstitué", "k": "foyer", "fam": "prehistoire", "theme": "prehistoire", "w": 1, "d": 1, "h": 0.6, "prix": 2000, "attr": 4, "lumiere": 1, "valeur": 1000, "prestige": 1},
+	"statuette_prehisto": {"n": "Statuette de l'âge de pierre sous cloche", "k": "vitrine_cloche", "c": "venus", "fam": "prehistoire", "theme": "prehistoire", "w": 1, "d": 1, "h": 1.7, "prix": 70000, "attr": 12, "protege": true, "valeur": 2000000, "prestige": 15},
+	"menhir": {"n": "Menhir gravé", "k": "menhir", "fam": "prehistoire", "theme": "prehistoire", "w": 1, "d": 1, "h": 2.6, "prix": 30000, "attr": 8, "valeur": 100000, "prestige": 7},
+	# --- Bande dessinée et illustration -----------------------------------------------------------------
+	"planche_bd": {"n": "Planche originale de bande dessinée", "k": "tableau", "c": "planche", "fam": "bd", "theme": "bd", "w": 1, "d": 1, "h": 1.3, "prix": 15000, "attr": 6, "mur": true, "couche": "mur", "fragile": true, "valeur": 150000, "prestige": 6},
+	"grande_planche": {"n": "Couverture originale d'un album", "k": "tableau", "c": "couverture", "fam": "bd", "theme": "bd", "w": 2, "d": 1, "h": 1.5, "prix": 40000, "attr": 9, "mur": true, "couche": "mur", "fragile": true, "valeur": 800000, "prestige": 12},
+	"heros_bd": {"n": "Statue d'un héros de bande dessinée", "k": "heros", "fam": "bd", "theme": "bd", "w": 1, "d": 1, "h": 2.0, "prix": 25000, "attr": 10, "valeur": 40000, "prestige": 6},
+	"bulle": {"n": "Bulle géante « Bienvenue ! »", "k": "bulle", "fam": "bd", "theme": "bd", "w": 2, "d": 1, "h": 1.2, "prix": 2000, "attr": 4, "mur": true, "couche": "mur", "valeur": 1000, "prestige": 1},
+	"table_dessin": {"n": "Table à dessin de l'auteur", "k": "table_dessin", "fam": "bd", "theme": "bd", "w": 2, "d": 1, "h": 1.3, "prix": 12000, "attr": 6, "valeur": 50000, "prestige": 5},
+	"coin_lecture": {"n": "Coin lecture (poufs et bacs d'albums)", "k": "coin_lecture", "fam": "bd", "w": 2, "d": 2, "h": 0.9, "prix": 2500, "attr": 4, "confort": 4,
+		"tags": ["assise", "jeu"], "places": [["assis", -0.5, 0.35, 0.4, PI], ["assis", 0.5, 0.35, 0.4, PI]]},
+	"fusee_bd": {"n": "Fusée de bande dessinée à pois", "k": "fusee_bd", "fam": "bd", "theme": "bd", "w": 2, "d": 2, "h": 2.9, "prix": 50000, "attr": 14, "valeur": 60000, "prestige": 10},
+	# --- Vin et gastronomie -----------------------------------------------------------------------------
+	"alambic": {"n": "Alambic en cuivre", "k": "alambic", "fam": "gastronomie", "theme": "gastronomie", "w": 2, "d": 2, "h": 2.0, "prix": 25000, "attr": 8, "valeur": 60000, "prestige": 5},
+	"tonneaux": {"n": "Tonneaux de chêne", "k": "tonneaux", "fam": "gastronomie", "theme": "gastronomie", "w": 2, "d": 1, "h": 1.3, "prix": 6000, "attr": 5, "valeur": 8000, "prestige": 2},
+	"pressoir": {"n": "Pressoir à vin", "k": "pressoir", "fam": "gastronomie", "theme": "gastronomie", "w": 2, "d": 2, "h": 2.2, "prix": 30000, "attr": 9, "valeur": 90000, "prestige": 6},
+	"fourneau": {"n": "Fourneau de cuisine d'autrefois", "k": "fourneau", "fam": "gastronomie", "theme": "gastronomie", "w": 2, "d": 1, "h": 1.6, "prix": 15000, "attr": 6, "mur": true, "valeur": 30000, "prestige": 4},
+	"grands_crus": {"n": "Vitrine de grands crus", "k": "vitrine_murale", "c": "bouteilles", "fam": "gastronomie", "theme": "gastronomie", "w": 2, "d": 1, "h": 2.1, "prix": 30000, "attr": 7, "mur": true, "protege": true, "valeur": 400000, "prestige": 8},
+	"chaudron_fromage": {"n": "Chaudron à fromage et meules", "k": "chaudron", "fam": "gastronomie", "theme": "gastronomie", "w": 2, "d": 2, "h": 1.5, "prix": 12000, "attr": 7, "valeur": 20000, "prestige": 4},
+	"affiche_pub": {"n": "Affiche publicitaire ancienne", "k": "tableau", "c": "affiche_pub", "fam": "gastronomie", "theme": "gastronomie", "w": 1, "d": 1, "h": 1.5, "prix": 4000, "attr": 4, "mur": true, "couche": "mur", "valeur": 12000, "prestige": 2},
 	# --- Éclairage -------------------------------------------------------------------------------------
 	"rail_spots": {"n": "Rail de spots", "k": "rail_spots", "fam": "eclairage", "w": 2, "d": 1, "h": 0.02, "prix": 900, "attr": 1, "couche": "sol", "suspendu": true, "lumiere": 4, "tags": ["lumiere"]},
 	"lustre": {"n": "Lustre de cristal", "k": "lustre", "fam": "eclairage", "w": 2, "d": 2, "h": 0.02, "prix": 6500, "attr": 6, "couche": "sol", "suspendu": true, "lumiere": 6, "tags": ["lumiere"]},
@@ -191,12 +336,26 @@ const SALLES := {
 	"salle_sciences": {"name": "Salle des sciences et techniques", "theme": "sciences", "desc": "Machines, instruments, bornes interactives."},
 	"salle_histoire": {"name": "Salle d'histoire", "theme": "histoire", "desc": "Armures, canon, costumes, plan-relief, cartes."},
 	"salle_monde": {"name": "Salle des arts du monde", "theme": "monde", "desc": "Masques, totem, bouddha, samouraï, porcelaines."},
+	"salle_transports": {"name": "Halle des transports", "theme": "transports", "desc": "La locomotive au centre, vélocipèdes, motos et trains miniatures autour."},
+	"salle_automobile": {"name": "Salle de l'automobile", "theme": "automobile", "desc": "Voitures sur plateaux tournants, moteurs, pompes et plaques émaillées."},
+	"salle_espace": {"name": "Salle de l'air et de l'espace", "theme": "espace", "desc": "Module lunaire, capsule, et satellite ou planeur au plafond."},
+	"salle_marine": {"name": "Salle de la marine", "theme": "marine", "desc": "Galion, figure de proue, scaphandre, lentille de phare, aquarium."},
+	"salle_cinema": {"name": "Salle du cinéma", "theme": "cinema", "desc": "Caméras, affiches, décor de tournage, fauteuils rouges devant l'écran."},
+	"salle_sport": {"name": "Salle du sport", "theme": "sport", "desc": "Maillots, coupes, médailles, vélos et podium des vainqueurs."},
+	"salle_mode": {"name": "Galerie de la mode", "theme": "mode", "desc": "Robes sur mannequins, chapeaux, souliers, podium de défilé."},
+	"salle_musique": {"name": "Salle de la musique", "theme": "musique", "desc": "Piano à queue, harpe, guitares, violon et juke-box."},
+	"salle_jouets": {"name": "Salle des jouets", "theme": "jouets", "desc": "Maison de poupée, trains, peluches et bornes d'arcade."},
+	"salle_prehistoire": {"name": "Salle de la préhistoire", "theme": "prehistoire", "desc": "Grotte peinte, silex, hutte, chasseur, crânes."},
+	"salle_bd": {"name": "Salle de la bande dessinée", "theme": "bd", "desc": "Planches originales, héros grandeur nature, coin lecture."},
+	"salle_gastronomie": {"name": "Salle du vin et de la gastronomie", "theme": "gastronomie", "desc": "Alambic, tonneaux, pressoir, fourneau, grands crus."},
 	"salle_expo": {"name": "Salle d'exposition temporaire", "theme": "", "desc": "Cimaises et vitrines vides : l'exposition du moment s'y installe."},
 	"boutique_musee": {"name": "Boutique du musée", "theme": "", "desc": "Caisse, souvenirs, livres d'art, cartes postales."},
 	"cafe_musee": {"name": "Café du musée", "theme": "", "desc": "Comptoir et tables : on y discute des œuvres (ou du prix du café)."},
 }
 const SALLE_ORDER := ["hall_musee", "galerie_peinture", "salle_sculpture", "salle_art_moderne", "salle_antiquites", "salle_egypte", "salle_dinosaures",
-	"salle_nature", "salle_sciences", "salle_histoire", "salle_monde", "salle_expo", "boutique_musee", "cafe_musee"]
+	"salle_nature", "salle_sciences", "salle_histoire", "salle_monde", "salle_transports", "salle_automobile", "salle_espace", "salle_marine",
+	"salle_cinema", "salle_sport", "salle_mode", "salle_musique", "salle_jouets", "salle_prehistoire", "salle_bd", "salle_gastronomie",
+	"salle_expo", "boutique_musee", "cafe_musee"]
 
 ## Mobilier de chaque salle (même forme que Mobilier.LAYOUTS ; ids complets).
 const LAYOUTS := {
@@ -233,6 +392,43 @@ const LAYOUTS := {
 	"salle_monde": [[["musee/bouddha"], "mur", 1, true], [["musee/masques"], "accroche", 1, false], [["musee/totem"], "coin", 1, false],
 		[["musee/samourai"], "mur", 1, false], [["musee/vase_ming"], "remplir", 2, false], [["musee/vitrine_porcelaines"], "mur", 1, false],
 		[["musee/kimono"], "accroche", 1, false], [["musee/estampe"], "accroche", 2, false], [["musee/pirogue"], "centre", 1, false], [["musee/rail_spots"], "sol", 2, false]],
+	"salle_transports": [[["musee/locomotive"], "centre", 1, true], [["musee/grand_bi"], "mur", 1, false], [["musee/draisienne"], "mur", 1, false],
+		[["musee/moto_ancienne"], "mur", 1, false], [["musee/maquette_train"], "centre", 1, false], [["musee/signal_ferroviaire"], "coin", 2, false],
+		[["musee/horloge_gare"], "accroche", 1, false], [["musee/affiche_train"], "accroche", 3, false], [["musee/banc_musee"], "mur", 1, false], [["musee/rail_spots"], "sol", 3, false]],
+	"salle_automobile": [[["musee/plateau_tournant"], "sol", 1, false], [["musee/monoplace", "musee/voiture_course"], "centre", 1, true], [["musee/limousine"], "centre", 1, false],
+		[["musee/voiture_course", "musee/citadine"], "centre", 1, false], [["musee/citadine"], "mur", 1, false], [["musee/moteur"], "coin", 1, false],
+		[["musee/pompe_essence"], "coin", 2, false], [["musee/plaques_emaillees"], "accroche", 2, false], [["musee/rail_spots"], "sol", 3, false]],
+	"salle_espace": [[["musee/module_lunaire", "musee/capsule"], "centre", 1, true], [["musee/capsule"], "centre", 1, false], [["musee/combinaison"], "mur", 2, false],
+		[["musee/moteur_fusee"], "coin", 1, false], [["musee/roche_lunaire"], "centre", 1, false], [["musee/satellite"], "sol", 1, false],
+		[["musee/montgolfiere"], "sol", 1, false], [["musee/panneau_info"], "mur", 1, false], [["musee/projecteur"], "coin", 2, false]],
+	"salle_marine": [[["musee/galion"], "mur", 1, true], [["musee/figure_proue"], "mur", 1, false], [["musee/scaphandre"], "coin", 1, false],
+		[["musee/ancre"], "coin", 1, false], [["musee/lentille_phare"], "centre", 1, false], [["musee/canot"], "centre", 1, false],
+		[["musee/aquarium"], "mur", 1, false], [["musee/barre_roue"], "accroche", 2, false], [["musee/rail_spots"], "sol", 2, false]],
+	"salle_cinema": [[["musee/ecran_video"], "accroche", 1, true], [["musee/fauteuils_cine"], "remplir", 3, true], [["musee/camera_cinema"], "coin", 1, false],
+		[["musee/projecteur_film"], "coin", 1, false], [["musee/decor_film"], "mur", 1, false], [["musee/costume_film"], "mur", 1, false],
+		[["musee/statuette_cinema"], "coin", 1, false], [["musee/appareil_photo"], "mur", 1, false], [["musee/affiche_film"], "accroche", 3, false],
+		[["musee/tirages_photo"], "accroche", 1, false], [["musee/clap"], "coin", 1, false]],
+	"salle_sport": [[["musee/podium_sport"], "mur", 1, true], [["musee/champion"], "centre", 1, false], [["musee/velo_course"], "mur", 1, false],
+		[["musee/coupe_sport"], "centre", 1, false], [["musee/medailles"], "centre", 1, false], [["musee/flambeau"], "coin", 1, false],
+		[["musee/ballons"], "mur", 1, false], [["musee/maillot"], "accroche", 3, false], [["musee/skis"], "accroche", 1, false], [["musee/rail_spots"], "sol", 2, false]],
+	"salle_mode": [[["musee/podium_defile"], "centre", 1, true], [["musee/robe_couture"], "mur", 2, false], [["musee/robe_bal"], "coin", 1, false],
+		[["musee/tailleur"], "mur", 1, false], [["musee/smoking"], "mur", 1, false], [["musee/chapeaux"], "mur", 1, false],
+		[["musee/chaussures"], "centre", 1, false], [["musee/machine_coudre"], "coin", 1, false], [["musee/rail_spots"], "sol", 3, false]],
+	"salle_musique": [[["musee/piano"], "centre", 1, true], [["musee/harpe"], "coin", 1, false], [["musee/guitares"], "accroche", 1, false],
+		[["musee/violon"], "centre", 1, false], [["musee/juke_box"], "mur", 1, false], [["musee/gramophone"], "coin", 1, false],
+		[["musee/batterie"], "mur", 1, false], [["musee/orgue_barbarie"], "coin", 1, false], [["musee/cor_alpes"], "mur", 1, false], [["musee/rail_spots"], "sol", 2, false]],
+	"salle_jouets": [[["musee/maison_poupee"], "mur", 1, true], [["musee/train_jouet"], "centre", 1, false], [["musee/cheval_bascule"], "coin", 1, false],
+		[["musee/peluche"], "coin", 1, false], [["musee/borne_arcade"], "mur", 2, false], [["musee/consoles"], "mur", 1, false],
+		[["musee/soldats_plomb"], "centre", 1, false], [["musee/robot_jouet"], "coin", 1, false], [["musee/toupies"], "coin", 1, false]],
+	"salle_prehistoire": [[["musee/paroi_grotte"], "mur", 1, true], [["musee/hutte_mammouth"], "centre", 1, false], [["musee/chasseur"], "coin", 1, false],
+		[["musee/foyer"], "centre", 1, false], [["musee/silex"], "centre", 1, false], [["musee/cranes"], "mur", 1, false],
+		[["musee/statuette_prehisto"], "coin", 1, false], [["musee/menhir"], "coin", 1, false], [["musee/projecteur"], "coin", 1, false]],
+	"salle_bd": [[["musee/planche_bd"], "accroche", 4, true], [["musee/grande_planche"], "accroche", 1, false], [["musee/heros_bd"], "coin", 2, false],
+		[["musee/fusee_bd"], "centre", 1, false], [["musee/table_dessin"], "mur", 1, false], [["musee/coin_lecture"], "coin", 1, false],
+		[["musee/bulle"], "accroche", 1, false], [["musee/rail_spots"], "sol", 2, false]],
+	"salle_gastronomie": [[["musee/pressoir"], "centre", 1, true], [["musee/alambic"], "coin", 1, false], [["musee/tonneaux"], "mur", 2, false],
+		[["musee/fourneau"], "mur", 1, false], [["musee/grands_crus"], "mur", 1, false], [["musee/chaudron_fromage"], "coin", 1, false],
+		[["musee/affiche_pub"], "accroche", 2, false], [["musee/rail_spots"], "sol", 2, false]],
 	"salle_expo": [[["musee/cimaise"], "centre", 2, true], [["musee/vitrine_centrale"], "centre", 1, false], [["musee/vitrine_murale"], "mur", 2, false],
 		[["musee/panneau_info"], "mur", 1, false], [["musee/projecteur"], "coin", 2, false], [["musee/rail_spots"], "sol", 3, false]],
 	"boutique_musee": [[["musee/caisse_boutique"], "centre", 1, true], [["musee/livres_art"], "remplir_mur", 2, true], [["musee/souvenirs"], "remplir", 3, false],
@@ -321,7 +517,9 @@ static func guess(mob: Mobilier, id: String, big: Array, small: Array, assign: C
 					break
 			if not hall.is_empty():
 				break
-	var themes := ["galerie_peinture", "salle_antiquites", "salle_dinosaures", "salle_sciences", "salle_histoire", "salle_sculpture", "salle_monde", "salle_nature", "salle_egypte", "salle_art_moderne"]
+	var themes := ["galerie_peinture", "salle_antiquites", "salle_dinosaures", "salle_sciences", "salle_histoire", "salle_sculpture", "salle_monde", "salle_nature", "salle_egypte", "salle_art_moderne",
+		"salle_transports", "salle_cinema", "salle_musique", "salle_espace", "salle_sport", "salle_mode", "salle_marine", "salle_jouets", "salle_automobile",
+		"salle_prehistoire", "salle_bd", "salle_gastronomie"]
 	var i := 0
 	var have_shop := false
 	var have_cafe := false

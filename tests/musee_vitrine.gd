@@ -26,6 +26,7 @@ func _run() -> void:
 	var shot := "musee.png"
 	var vue := "dessus"
 	var famille := ""
+	var dist := 40.0
 	for i in args.size():
 		if args[i] == "--screenshot" and i + 1 < args.size():
 			shot = args[i + 1]
@@ -33,6 +34,8 @@ func _run() -> void:
 			vue = args[i + 1]
 		if args[i] == "--famille" and i + 1 < args.size():
 			famille = args[i + 1]
+		if args[i] == "--dist" and i + 1 < args.size():
+			dist = float(args[i + 1])
 	root.msaa_3d = Viewport.MSAA_DISABLED
 	root.screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA
 	Creations.persist = false
@@ -56,15 +59,18 @@ func _run() -> void:
 	var rig = scene.get_node("CameraRig")
 	if vue == "bible":
 		_bible(pe, mob, famille)
-		rig.position = Vector3(14, 40.0, 13)
-		rig._distance = 40.0
-		rig._target_distance = 40.0
+		rig.position = Vector3(14, 40.0, 13) if dist >= 40.0 else Vector3(9, 40.0, 6)
+		rig._distance = dist
+		rig._target_distance = dist
 		rig.rotation_degrees.y = 0.0
 		if "pitch_degrees" in rig:
 			rig.pitch_degrees = 55.0
 	else:
 		var pos := {"musee_beaux_arts": Vector2i(-30, -20), "museum_nature": Vector2i(-2, -20), "musee_civilisations": Vector2i(-30, 2),
 			"musee_sciences": Vector2i(0, 2)}
+		if vue.begins_with("themes"):
+			pos = {"cite_transports": Vector2i(-36, -24), "musee_cinema_musique": Vector2i(0, -20), "musee_mer": Vector2i(-36, 0),
+				"musee_jouets_bd": Vector2i(-8, 2), "musee_prehistoire": Vector2i(16, 2)}
 		var placed := {}
 		for k in pos:
 			var res := Gabarits.build(mob, k, pos[k], 0, "contemporain")
@@ -105,6 +111,22 @@ func _run() -> void:
 					panel.set_open(true)
 					panel.choisi = String(placed.get("musee_beaux_arts", ""))
 					panel.show_view("musee")
+			"themes":
+				rig.position = Vector3(-6, 40.0, -4)
+				rig._distance = 66.0
+				rig._target_distance = 66.0
+				rig.rotation_degrees.y = 12.0
+				if "pitch_degrees" in rig:
+					rig.pitch_degrees = 64.0
+			"themes_transports", "themes_cinema", "themes_jouets", "themes_mer":
+				var at := {"themes_transports": Vector3(-24, 40.0, -6), "themes_cinema": Vector3(12, 40.0, -6),
+					"themes_jouets": Vector3(5, 40.0, 13), "themes_mer": Vector3(-24, 40.0, 13)}
+				rig.position = at[vue]
+				rig._distance = 24.0
+				rig._target_distance = 24.0
+				rig.rotation_degrees.y = 15.0
+				if "pitch_degrees" in rig:
+					rig.pitch_degrees = 55.0
 			"proche":
 				rig.position = Vector3(-24, 40.0, -9)
 				rig._distance = 22.0
@@ -135,7 +157,7 @@ func _run() -> void:
 func _bible(pe: PlanEditor, mob: Mobilier, famille: String) -> void:
 	var ids := []
 	for e in MuseeObjets.entries():
-		if famille == "" or String(e.p[1]) == famille:
+		if famille == "" or famille.split(",").has(String(e.p[1])):
 			ids.append(String(e.id))
 	var cols := 14
 	var w := cols * 2 + 2

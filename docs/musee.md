@@ -6,15 +6,17 @@ Le menu **Musée** (barre du bas, menu **Loisirs**, touche **Maj+C**) réunit to
 
 ![La bible des objets de musée](apercu-musee-bible.jpg)
 
+![Transports, cinéma et musique, mer, jouet et BD, préhistoire](apercu-musee-themes.jpg)
+
 ## Le panneau, onglet par onglet
 
 | Onglet | Ce qu'on y fait |
 |---|---|
 | **Mon musée** | Note en étoiles et son détail, ouvert ou fermé, visiteurs et recettes d'hier, prix du billet, gratuité du 1er dimanche, nom, « Aller voir », collections, services, personnel, conseils |
-| **Bâtir** | 5 musées prêts à poser, « Dessiner mes salles » (mode Créer), « Faire du bâtiment visé un musée », « Aménager tout », matériaux de musée (parquet Versailles, marbre de Carrare, granit poli, béton ciré, grès…) |
-| **Salles** | Les 14 fonctions de salle, l'outil « Aménager une salle », la gomme, la liste des salles du musée |
-| **Objets** | 106 objets en 12 familles, avec vignettes 3D et recherche ; un clic les met en main |
-| **Expositions** | 8 expositions temporaires (pharaons, impressionnistes, dinosaures, vikings, samouraïs, Léonard, art contemporain, jouets anciens) : prix, durée, bonus |
+| **Bâtir** | 12 musées prêts à poser, « Dessiner mes salles » (mode Créer), « Faire du bâtiment visé un musée », « Aménager tout », matériaux de musée (parquet Versailles, marbre de Carrare, granit poli, béton ciré, grès…) |
+| **Salles** | Les 26 fonctions de salle, l'outil « Aménager une salle », la gomme, la liste des salles du musée |
+| **Objets** | 208 objets en 24 familles, avec vignettes 3D et recherche ; un clic les met en main |
+| **Expositions** | 19 expositions temporaires (pharaons, impressionnistes, dinosaures, vikings, samouraïs, Léonard, art contemporain, jouets, cinéma, rock, haute couture, Objectif Lune, flamme olympique, voitures de légende, paquebots, premiers artistes, héros de papier, grands crus, chemin de fer) : prix, durée, bonus |
 | **Visiteurs** | Ce que disent les visiteurs, d'où ils viennent, combien ils dépensent |
 
 ## Les ingrédients
@@ -28,6 +30,19 @@ Le menu **Musée** (barre du bas, menu **Loisirs**, touche **Maj+C**) réunit to
 - **Sciences et techniques** (10) : machine à vapeur, lunette astronomique, globe céleste, planétaire, pendule de Foucault, avion suspendu, automobile de 1900, maquette de fusée, robot, borne interactive.
 - **Histoire** (11) : armure de chevalier, panoplie, canon, carrosse, costume d'époque, uniforme de grenadier, plan-relief, carte ancienne, tapisserie, presse à imprimer, cloche de beffroi.
 - **Arts du monde** (9) : masques d'Afrique de l'Ouest, mât totémique, bouddha, armure de samouraï, vase bleu et blanc, tête de pierre polynésienne, pirogue, kimono, tapis persan.
+- **Horlogerie** (dans Sciences) : horloge comtoise, vitrine de montres, pendule à coucou.
+- **Transports et chemins de fer** (8) : locomotive à vapeur (8 × 3 m), grand-bi, motocyclette de 1920, réseau de trains miniatures, horloge de gare, signal ferroviaire, draisienne, affiche de voyage.
+- **Automobile** (8) : voiture de course des années 1950, limousine des années 1930, petite citadine, monoplace moderne, moteur en coupe, pompe à essence, plaques émaillées, plateau tournant.
+- **Air et espace** (8) : module lunaire, capsule spatiale, combinaison, satellite et planeur suspendus, montgolfière, moteur de fusée, roche lunaire.
+- **Marine et océans** (8) : galion, figure de proue, scaphandre, ancre, lentille de phare, barre à roue, canot de sauvetage, aquarium de récif.
+- **Cinéma et photographie** (10) : caméra, projecteur 35 mm, affiches, clap, fauteuils rouges, statuette dorée, appareil photo à soufflet, tirages, costume de robot, décor de saloon.
+- **Sport** (9) : maillot dédicacé, vélo de course, coupe, médailles, skis et luge, flambeau, ballons, statue de champion, podium.
+- **Mode et costume** (8) : robe de haute couture, robe de bal, tailleur, costume de soirée, chapeaux, souliers, machine à coudre, podium de défilé.
+- **Musique** (9) : piano à queue, harpe, guitares électriques, violon de maître, juke-box, gramophone, batterie, orgue de Barbarie, cor des Alpes.
+- **Jeux et jouets** (9) : maison de poupée, cheval à bascule, train électrique, ours en peluche, borne d'arcade, consoles, soldats de plomb, robot en fer-blanc, toupies.
+- **Préhistoire** (8) : paroi de grotte peinte, silex, chasseur, hutte en os de mammouth, crânes, foyer, statuette de l'âge de pierre, menhir.
+- **Bande dessinée** (7) : planches originales, couverture d'album, héros, bulle géante, table à dessin, coin lecture, fusée à pois.
+- **Vin et gastronomie** (7) : alambic, tonneaux, pressoir, fourneau, grands crus, chaudron à fromage, affiche publicitaire.
 - **Éclairage** (6) : rail de spots, lustre, applique, projecteur, colonne lumineuse, puits de lumière.
 - **Parcours** (9) : cordon, banquette, cartel, panneau explicatif, flèche, plan du musée, audioguides, écran documentaire, file d'attente.
 - **Accueil et services** (9) : billetterie, vestiaire, consignes, caisse et présentoirs de la boutique, livres d'art, cartes postales, comptoir et tables du café. Toilettes, lavabos et plantes viennent de la bible des meubles.
@@ -52,7 +67,7 @@ Le menu **Musée** (barre du bas, menu **Loisirs**, touche **Maj+C**) réunit to
 
 ## Trois façons d'avoir un musée
 
-1. **Un musée prêt à poser** (onglet Bâtir) : le petit musée d'histoire locale, le musée des beaux-arts (2 niveaux), le muséum d'histoire naturelle, le musée des sciences et techniques, le musée des civilisations.
+1. **Un musée prêt à poser** (onglet Bâtir) : le petit musée d'histoire locale, le musée des beaux-arts (2 niveaux), le muséum d'histoire naturelle, le musée des sciences et techniques, le musée des civilisations, la cité des transports, le musée du cinéma, de la musique et de la mode, le musée du sport, le musée de la mer, le musée de la préhistoire, le musée du jouet et de la bande dessinée, la maison du vin.
 2. **Tes propres murs** (mode Créer, Murs et étages) : tu choisis l'usage « Musée », tu donnes une fonction à chaque salle, puis tu aménages ou tu poses les objets un à un.
 3. **Le musée du catalogue** (Construire → Loisirs) : un bâtiment néoclassique avec une collection déjà installée. Un modèle de l'Atelier posé avec la fonction « Musée » devient aussi un musée.
 
@@ -60,9 +75,10 @@ Le menu **Musée** (barre du bas, menu **Loisirs**, touche **Maj+C**) réunit to
 
 | Fichier | Rôle |
 |---|---|
-| `scripts/musee/musee_objets.gd` | Bible des 106 objets, familles, fonctions de salle, aménagements |
+| `scripts/musee/musee_objets.gd` | Bible des 208 objets, familles, fonctions de salle, aménagements |
 | `scripts/musee/musee_modeles.gd` | Modèles 3D des objets (LpKit) |
-| `scripts/musee/musee_gabarits.gd` | Les 5 musées prêts à poser |
+| `scripts/musee/musee_gabarits.gd` | Les 12 musées prêts à poser |
+| `scripts/musee/musee_modeles_themes.gd` | Modèles des collections à thème (transports, cinéma, sport, mode…) |
 | `scripts/musee/musee.gd` | Analyse, note, visiteurs, argent, expositions, sauvegarde |
 | `scripts/musee/musee_visuels.gd` | Visiteurs dessinés dans les salles |
 | `scripts/musee/musee_panel.gd` | Le panneau Musée (Maj+C) |

@@ -63,9 +63,21 @@ const EXPOS := {
 	"samourais": {"name": "Samouraïs, l'art de la guerre", "theme": "monde", "prix": 260_000, "jours": 45, "bonus": 65.0},
 	"leonard": {"name": "Les machines du génie de la Renaissance", "theme": "sciences", "prix": 240_000, "jours": 45, "bonus": 65.0},
 	"contemporain": {"name": "Art contemporain : est-ce de l'art ?", "theme": "art", "prix": 120_000, "jours": 30, "bonus": 35.0},
-	"jouets": {"name": "Jouets d'hier et d'aujourd'hui", "theme": "histoire", "prix": 80_000, "jours": 30, "bonus": 30.0},
+	"jouets": {"name": "Jouets d'hier et d'aujourd'hui", "theme": "jouets", "prix": 80_000, "jours": 30, "bonus": 30.0},
+	"cinema": {"name": "Légendes du grand écran", "theme": "cinema", "prix": 280_000, "jours": 45, "bonus": 70.0},
+	"rock": {"name": "Rock'n'roll : soixante-dix ans de guitares", "theme": "musique", "prix": 200_000, "jours": 45, "bonus": 60.0},
+	"couture": {"name": "Haute couture, un siècle d'élégance", "theme": "mode", "prix": 260_000, "jours": 45, "bonus": 65.0},
+	"lune": {"name": "Objectif Lune", "theme": "espace", "prix": 320_000, "jours": 60, "bonus": 80.0},
+	"olympisme": {"name": "La flamme olympique", "theme": "sport", "prix": 180_000, "jours": 30, "bonus": 55.0},
+	"automobiles": {"name": "Voitures de légende", "theme": "automobile", "prix": 240_000, "jours": 45, "bonus": 65.0},
+	"paquebots": {"name": "Paquebots de légende", "theme": "marine", "prix": 160_000, "jours": 45, "bonus": 50.0},
+	"premiers_artistes": {"name": "Les premiers artistes de l'âge de pierre", "theme": "prehistoire", "prix": 150_000, "jours": 45, "bonus": 50.0},
+	"heros_papier": {"name": "Héros de papier", "theme": "bd", "prix": 90_000, "jours": 30, "bonus": 40.0},
+	"grands_crus": {"name": "Le goût des grands crus", "theme": "gastronomie", "prix": 70_000, "jours": 30, "bonus": 30.0},
+	"trains": {"name": "L'âge d'or du chemin de fer", "theme": "transports", "prix": 140_000, "jours": 45, "bonus": 50.0},
 }
-const EXPO_ORDER := ["pharaons", "impressionnistes", "dinosaures", "vikings", "samourais", "leonard", "contemporain", "jouets"]
+const EXPO_ORDER := ["pharaons", "impressionnistes", "dinosaures", "vikings", "samourais", "leonard", "contemporain", "jouets",
+	"cinema", "rock", "couture", "lune", "olympisme", "automobiles", "paquebots", "premiers_artistes", "heros_papier", "grands_crus", "trains"]
 
 ## Ce que disent les visiteurs (réaliste, avec une pointe d'humour).
 const PENSEES := {

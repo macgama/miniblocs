@@ -58,6 +58,8 @@ static func build(kit: LpKit, e: Dictionary) -> void:
 			kit.box(Vector3(0, 1.02, 0), Vector3(0.66, 0.04, 0.66), DARK)
 			if c == "dodo":
 				_dodo(kit, Vector3(0, 1.04, 0))
+			elif MuseeModelesThemes.cloche(kit, c, Vector3(0, 1.04, 0)):
+				pass
 			else:
 				kit.lathe(Vector3(0, 1.04, 0), [Vector2(0.1, 0.0), Vector2(0.14, 0.15), Vector2(0.06, 0.32)], 8, GOLD)
 			kit.layer = "verre"
@@ -95,7 +97,7 @@ static func build(kit: LpKit, e: Dictionary) -> void:
 		"tableau":
 			var fw := w - 0.25 if w > 1.0 else 0.75
 			var fh := h * 0.85
-			var gold := GOLD if c in ["classique", "portrait", "nature_morte", "paysage", "histoire"] else (DARK if c == "abstrait" else WOOD)
+			var gold := GOLD if c in ["classique", "portrait", "nature_morte", "paysage", "histoire"] else (DARK if c in ["abstrait", "affiche", "photos", "planche", "couverture", "maillot", "plaques"] else WOOD)
 			_frame(kit, Vector3(0, 1.55 if fh < 1.3 else 1.4, -0.46), fw, fh, gold, c, 1.0)
 		"triptyque":
 			kit.box(Vector3(0, 1.45, -0.46), Vector3(1.0, 1.4, 0.05), GOLD)
@@ -721,7 +723,8 @@ static func build(kit: LpKit, e: Dictionary) -> void:
 				var cap := 0.0 if sz < 0 else PI
 				_chaise(kit, Vector3(0, 0, sz), cap)
 		_:
-			kit.box(Vector3(0, h * 0.5, 0), Vector3(w - 0.2, maxf(h, 0.05), d - 0.2), STONE)
+			if not MuseeModelesThemes.build(kit, e):
+				kit.box(Vector3(0, h * 0.5, 0), Vector3(w - 0.2, maxf(h, 0.05), d - 0.2), STONE)
 
 
 # --- Morceaux réutilisés ------------------------------------------------------------------------
@@ -778,6 +781,8 @@ static func _frame(kit: LpKit, at: Vector3, fw: float, fh: float, col: Color, c:
 				kit.blob(inner + Vector3(iw * p.x, ih * p.y, 0.006), Vector3(iw * 0.08, ih * 0.13, 0.005), Color("a8865a"), Color("8a6a3a"), 0.08, 0)
 			kit.box(inner + Vector3(0, 0, 0.004), Vector3(iw, 0.008, 0.003), Color("8a5a3a"))
 		_:
+			if MuseeModelesThemes.peinture(kit, c, inner, iw, ih):
+				return
 			kit.box(inner, Vector3(iw, ih, 0.01), Color("3a3020"))
 			kit.box(inner + Vector3(0, -ih * 0.2, 0.004), Vector3(iw, ih * 0.5, 0.005), Color("5a5a30"))
 			kit.blob(inner + Vector3(-iw * 0.15, -ih * 0.05, 0.008), Vector3(0.06, 0.18, 0.01), Color("8e1e24"), Color("a83a3a"), 0.04, 0)
@@ -914,4 +919,4 @@ static func _contenu(kit: LpKit, c: String, at: Vector3, w: float, d: float, h: 
 				kit.lathe(at + Vector3(vx, 0.0, 0), [Vector2(0.05, 0.0), Vector2(0.11, 0.12), Vector2(0.06, 0.28), Vector2(0.07, 0.32)], 8, WHITE,
 					true, true, func(_i: int, r: int) -> Color: return Color("1d4e9e") if r == 1 else WHITE)
 		_:
-			pass
+			MuseeModelesThemes.contenu(kit, c, at, w, d, h)

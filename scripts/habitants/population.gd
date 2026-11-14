@@ -247,7 +247,7 @@ func clear() -> void:
 	known.clear()
 	_arrival_acc.clear()
 	_quota_arrivees.clear()
-	_venue_cache.clear()
+	_vider_lieux()
 	next_pid = 1
 	next_hid = 1
 	life_clock = 0.0
@@ -402,7 +402,7 @@ func _sync_buildings() -> void:
 				added = true
 			known[bid] = info
 	if added or not gone.is_empty():
-		_venue_cache.clear()
+		_vider_lieux()
 		_transit_cache.clear()
 		vie.clear_cache()
 		_match_all()
@@ -760,7 +760,7 @@ func _match_all() -> void:
 ## commerces et loisirs, et l'accès aux soins, sont à recalculer.
 func _apres_embauches(force := false) -> void:
 	if effectif != null and effectif.actualiser(force):
-		_venue_cache.clear()
+		_vider_lieux()
 		vie.clear_cache()
 		if passants != null:
 			passants._plans.clear()
@@ -874,7 +874,8 @@ func _mobilite() -> void:
 				if voulu <= 0 or float(taux[d]) < float(taux[cible]) + MOBILITE_ECART:
 					break
 				var p: Dictionary = persons[pid]
-				if requis.has(String(p.met)) or stage(p) != "actif":
+				# Ni les métiers indispensables, ni le personnage du joueur (il choisit).
+				if requis.has(String(p.met)) or stage(p) != "actif" or String(p.get("joueur", "")) != "":
 					continue
 				if Production.instance != null and Production.instance.busy.has(int(pid)):
 					continue
@@ -1188,20 +1189,34 @@ func _ferme(bid: int) -> bool:
 	return effectif != null and effectif.ferme(bid)
 
 
+## Bâtiments ouverts qui servent `what`, gardés jusqu'au prochain changement
+## (bâtiments, embauches) ; avec fermes = true, aussi ceux fermés faute de personnel.
+var _lieux := {}
+
+
+func _lieux_ouverts(what: String, fermes := false) -> Array:
+	var k := what + ("+f" if fermes else "")
+	if _lieux.has(k):
+		return _lieux[k]
+	var list := []
+	for bid in known:
+		if (known[bid].serves as Array).has(what) and (fermes or not _ferme(bid)):
+			list.append(bid)
+	_lieux[k] = list
+	return list
+
+
+func _vider_lieux() -> void:
+	_venue_cache.clear()
+	_lieux.clear()
+
+
 ## Bâtiment le plus proche d'un logement pour un loisir (ou "cat:<catégorie>"), mis en cache.
 func _cached_nearest(home: int, what: String) -> int:
 	var per_home: Dictionary = _venue_cache.get(home, {})
 	if per_home.has(what):
 		return per_home[what]
-	var list := []
-	if what == "cat:commerce":
-		for bid in known:
-			if (known[bid].serves as Array).has("shopping") and not _ferme(bid):
-				list.append(bid)
-	else:
-		for bid in known:
-			if (known[bid].serves as Array).has(what) and not _ferme(bid):
-				list.append(bid)
+	var list := _lieux_ouverts("shopping" if what == "cat:commerce" else what)
 	var best := _nearest(home, list) if not list.is_empty() else -1
 	per_home[what] = best
 	_venue_cache[home] = per_home
@@ -1511,12 +1526,9 @@ func satisfaction(p: Dictionary) -> Dictionary:
 	if shop >= 0 and effectif != null and effectif.manque(shop):
 		s += _sat(th, "commerces", -5.0)
 		why.append("− longues files au commerce (manque de personnel)")
-	elif shop < 0 and not known.is_empty():
-		for bid in known:
-			if (known[bid].serves as Array).has("shopping"):
-				s += _sat(th, "commerces", -8.0)
-				why.append("− les commerces sont fermés faute de personnel")
-				break
+	elif shop < 0 and not _lieux_ouverts("shopping", true).is_empty():
+		s += _sat(th, "commerces", -8.0)
+		why.append("− les commerces sont fermés faute de personnel")
 	var dest := int(p.job) if int(p.job) >= 0 else int(p.sch)
 	if dest >= 0:
 		var c := commute(p, home_of(p), dest)
@@ -1828,7 +1840,7 @@ func move_household(hid: int, bid: int) -> void:
 	if not by_home.has(bid):
 		by_home[bid] = []
 	(by_home[bid] as Array).append(hid)
-	_venue_cache.clear()
+	# Le lieu le plus proche d'un logement ne dépend pas de qui l'habite : rien à recalculer.
 	for m in h.m:
 		vie.log_event(persons[m], "demenage", "Déménage avec son foyer à %s" % building_name(bid), bid)
 		plan_changed(m)
@@ -1998,7 +2010,7 @@ func from_dict(d: Dictionary) -> void:
 	by_job.clear()
 	by_school.clear()
 	known.clear()
-	_venue_cache.clear()
+	_vider_lieux()
 	_arrival_acc.clear()
 	_quota_arrivees.clear()
 	next_pid = int(d.get("next_pid", 1))

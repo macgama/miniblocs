@@ -88,6 +88,8 @@ var next_pid := 1
 var next_hid := 1
 ## Horloge de la vie, en jours (avance avec le temps du jeu × life_speed).
 var life_clock := 0.0
+## Augmente à chaque arrivée, départ ou déménagement d'un habitant (caches des autres systèmes).
+var version := 0
 var life_speed_index := DEFAULT_LIFE_SPEED
 var arrivals := true
 ## Dernier instant de jeu vu (secondes Unix) et numéro du dernier jour traité.
@@ -556,6 +558,7 @@ func _add_person(hid: int, sex: String, age: float, role: String, surname: Strin
 	p.hob = Metiers.pick_hobbies(rng, age)
 	CycleVie.ensure(p)
 	persons[pid] = p
+	version += 1
 	(h.m as Array).append(pid)
 	return pid
 
@@ -584,6 +587,7 @@ func _remove_person(pid: int, check_household := true, archive := "") -> void:
 	_leave_job(p)
 	_leave_school(p)
 	persons.erase(pid)
+	version += 1
 	if households.has(int(p.f)):
 		var h: Dictionary = households[int(p.f)]
 		(h.m as Array).erase(pid)
@@ -915,6 +919,7 @@ func _move_out(pid: int) -> void:
 	(by_home[bid] as Array).append(hid)
 	(old.m as Array).erase(pid)
 	p.f = hid
+	version += 1
 	p.r = "adulte"
 	vie.log_event(p, "demenage", "Quitte ses parents et s'installe à %s" % building_name(bid), bid)
 	if int(households[hid].car) > 0:
@@ -1844,6 +1849,7 @@ func move_household(hid: int, bid: int) -> void:
 	var old := int(h.b)
 	(by_home.get(old, []) as Array).erase(hid)
 	h.b = bid
+	version += 1
 	if not by_home.has(bid):
 		by_home[bid] = []
 	(by_home[bid] as Array).append(hid)
@@ -2060,6 +2066,7 @@ func from_dict(d: Dictionary) -> void:
 			CycleVie.unpack(p, e[11])
 		CycleVie.ensure(p)
 		persons[pid] = p
+		version += 1
 		(households[hid].m as Array).append(pid)
 		var job := int(e[7])
 		if known.has(job):

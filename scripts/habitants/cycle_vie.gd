@@ -894,6 +894,7 @@ func move_person(p: Dictionary, to_hid: int, text := "") -> void:
 	if pop.households.has(old):
 		(pop.households[old].m as Array).erase(int(p.id))
 	p.f = to_hid
+	pop.version += 1
 	(pop.households[to_hid].m as Array).append(int(p.id))
 	pop._venue_cache.erase(int(p.id))
 	if text != "":

@@ -486,7 +486,7 @@ var _index_cle := []
 
 
 func _index_ville() -> Array:
-	var cle := [Engine.get_process_frames(), population.persons.size()]
+	var cle := [population.version, population.persons.size(), floori(population.life_clock)]
 	if cle != _index_cle:
 		_index_cle = cle
 		_index = {}

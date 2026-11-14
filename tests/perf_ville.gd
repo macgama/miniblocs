@@ -24,6 +24,7 @@ class Mesure:
 var _last_usec := 0
 var _rapport: Array[String] = []
 var _amb: DayNight
+var _prof: Script
 
 
 func _initialize() -> void:
@@ -56,6 +57,8 @@ func _mesurer(n: int) -> Mesure:
 		var now := Time.get_ticks_usec()
 		if _last_usec > 0:
 			m.wall.append((now - _last_usec) / 1000.0)
+			if _prof != null:
+				_prof.fin_image((now - _last_usec) / 1000.0)
 			if (now - _last_usec) > 100000 and _amb != null and OS.get_cmdline_user_args().has("--saccades"):
 				print("    saccade %.0f ms à %s" % [(now - _last_usec) / 1000.0, Time.get_datetime_string_from_unix_time(int(_amb.unix_time))])
 			m.process.append(Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0)
@@ -186,7 +189,9 @@ func _run() -> void:
 		if prof != null:
 			prof.reset()
 		_amb = amb
+		_prof = prof
 		var m := await _mesurer(images)
+		_prof = null
 		if prof != null:
 			prof.rapport(images)
 		var w := _stats(m.wall)
@@ -206,6 +211,27 @@ func _run() -> void:
 			echec = true
 		if detail:
 			await _detail(scene, maxi(images / 3, 120), w.moy)
+		# Sauvegarde et chargement de cette ville (partie de test, effacée ensuite).
+		var slot := "perf_ville_%d" % habitants
+		amb.set_speed(0)
+		var t2 := Time.get_ticks_usec()
+		var saved: bool = scene.save_game(slot, "Banc d'essai %d habitants" % habitants)
+		var t_save := (Time.get_ticks_usec() - t2) / 1000.0
+		var octets := 0
+		var dir := SaveGame.DIR.path_join(slot)
+		for f in DirAccess.get_files_at(dir):
+			octets += FileAccess.get_file_as_bytes(dir.path_join(f)).size()
+		t2 = Time.get_ticks_usec()
+		var loaded: bool = scene.load_game(slot)
+		var t_load := (Time.get_ticks_usec() - t2) / 1000.0
+		var ligne2 := "%5d hab | sauvegarde %6.0f ms (%s, %d Ko) | chargement %6.0f ms (%s) | %d habitants relus" % [habitants, t_save,
+			"ok" if saved else "ÉCHEC", octets / 1024, t_load, "ok" if loaded else "ÉCHEC", pop.persons.size()]
+		print(ligne2)
+		_rapport.append(ligne2)
+		if not saved or not loaded:
+			push_error("ÉCHEC : sauvegarde ou chargement de la ville de %d habitants" % habitants)
+			echec = true
+		SaveGame.delete(slot)
 		scene.queue_free()
 		for i in 5:
 			await process_frame

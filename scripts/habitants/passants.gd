@@ -24,6 +24,16 @@ var pop: Population
 var agents: Dictionary = {}
 var _routes: Dictionary = {}
 var _plans: Dictionary = {}
+var _cur: Dictionary = {}
+## Revue des candidats : ceux en trajet, heure du prochain changement, état vu.
+var _actifs: Array = []
+## Minute de la journée → habitants dont le moment change à cette minute.
+var _wake: Dictionary = {}
+var _retry: Array = []
+var _scan_day := -1
+var _scan_inc := -2
+var _scan_cand: Array = []
+var _rescan := true
 var _cand: Array = []
 var _cand_timer := 0.0
 var _net_sig := -1
@@ -45,6 +55,11 @@ func clear() -> void:
 		(agents[pid].body as Node).queue_free()
 	agents.clear()
 	_plans.clear()
+	_cur.clear()
+	_actifs.clear()
+	_wake.clear()
+	_retry.clear()
+	_rescan = true
 	_routes.clear()
 	_cand.clear()
 
@@ -52,6 +67,8 @@ func clear() -> void:
 ## L'emploi du temps d'un habitant a changé (ordre donné, déménagement…).
 func forget(pid: int) -> void:
 	_plans.erase(pid)
+	_cur.erase(pid)
+	_rescan = true
 
 
 func count_mode(kind: String) -> int:
@@ -140,44 +157,108 @@ func _update() -> void:
 	var t0 := Time.get_ticks_usec()
 	var n := pop.now()
 	var h: float = n.h
+	var day := int(n.day)
 	var live := {}
-	for pid in _cand:
+	var inc := pop.incarnated()
+	var minute := floori(h * 60.0)
+	# Revue complète des candidats quand ils changent (toutes les 0,5 s), au changement
+	# de jour, ou après un ordre ; sinon, seuls ceux qui sont en trajet et ceux dont le
+	# moment de la journée se termine maintenant sont regardés.
+	var full := _rescan or day != _scan_day or inc != _scan_inc or not is_same(_scan_cand, _cand)
+	var liste: Array
+	if full:
+		liste = _cand
+		_wake.clear()
+		_rescan = false
+		_scan_day = day
+		_scan_inc = inc
+		_scan_cand = _cand
+	else:
+		liste = _actifs.duplicate()
+		liste.append_array(_retry)
+		for m in _wake.keys():
+			if int(m) <= minute:
+				liste.append_array(_wake[m])
+				_wake.erase(m)
+	_retry = []
+	var actifs: Array = []
+	var vus := {}
+	for pid in liste:
+		if vus.has(pid):
+			continue
+		vus[pid] = true
 		if live.size() >= MAX_AGENTS:
+			# Beaucoup de monde : les suivants seront vus lors d'une revue complète.
+			_rescan = true
 			break
-		if not pop.persons.has(pid) or pop.incarnated() == pid:
+		if not pop.persons.has(pid) or inc == pid:
 			continue
 		var over := Time.get_ticks_usec() - t0 > BUDGET_US
 		var c: Array = _plans.get(pid, [])
-		if over and (c.is_empty() or int(c[0]) != int(n.day)):
+		if over and (c.is_empty() or int(c[0]) != day):
 			# Plan du jour pas encore calculé : à une prochaine image.
 			if agents.has(pid):
 				live[pid] = true
+				actifs.append(pid)
+			else:
+				_retry.append(pid)
 			continue
+		# Moment de la journée en cours : [jour, plan, début, fin, de, vers, mode] (gardé
+		# tant que l'heure reste dans ce moment, sinon recherché dans le plan du jour).
+		var cur: Array = _cur.get(pid, [])
 		var plan := _plan_of(pid, n)
-		for i in plan.size():
-			var seg: Array = plan[i]
-			if h < float(seg[0]) or h >= float(seg[1]):
+		if cur.is_empty() or int(cur[0]) != day or not is_same(cur[1], plan) or h < float(cur[2]) or h >= float(cur[3]):
+			cur = []
+			var debut := INF
+			for i in plan.size():
+				var seg: Array = plan[i]
+				if h < float(seg[0]) or h >= float(seg[1]):
+					if float(seg[0]) > h:
+						debut = minf(debut, float(seg[0]))
+					continue
+				if String(seg[2]) == "trajet" and i > 0:
+					cur = [day, plan, float(seg[0]), float(seg[1]), int(plan[i - 1][3]), int(seg[3]), _mode_of(String(seg[4]))]
+				else:
+					cur = [day, plan, float(seg[0]), float(seg[1]), -1, -1, ""]
+				break
+			if cur.is_empty():
+				# Rien à cette heure : on regardera de nouveau au début du prochain moment.
+				_cur.erase(pid)
+				if debut < INF:
+					_reveil(pid, debut)
 				continue
-			if String(seg[2]) == "trajet" and i > 0:
-				var from := int(plan[i - 1][3])
-				var to := int(seg[3])
-				if pop.known.has(from) and pop.known.has(to) and from != to:
-					var mode := _mode_of(String(seg[4]))
-					var t := clampf((h - float(seg[0])) / maxf(float(seg[1]) - float(seg[0]), 0.0001), 0.0, 1.0)
-					var a: Dictionary = agents.get(pid, {})
-					var nouveau := a.is_empty() or int(a.from) != from or int(a.to) != to or String(a.mode) != mode
-					if nouveau and Time.get_ticks_usec() - t0 > BUDGET_US:
-						# Trop de départs à la fois : il apparaîtra à une prochaine image.
-						if not a.is_empty():
-							live[pid] = true
-					else:
-						_show(pid, from, to, mode, t)
-						live[pid] = true
-			break
+			_cur[pid] = cur
+		if int(cur[4]) < 0:
+			_reveil(pid, float(cur[3]))
+			continue
+		actifs.append(pid)
+		var from := int(cur[4])
+		var to := int(cur[5])
+		if pop.known.has(from) and pop.known.has(to) and from != to:
+			var mode: String = cur[6]
+			var t := clampf((h - float(cur[2])) / maxf(float(cur[3]) - float(cur[2]), 0.0001), 0.0, 1.0)
+			var a: Dictionary = agents.get(pid, {})
+			var nouveau := a.is_empty() or int(a.from) != from or int(a.to) != to or String(a.mode) != mode
+			if nouveau and Time.get_ticks_usec() - t0 > BUDGET_US:
+				# Trop de départs à la fois : il apparaîtra à une prochaine image.
+				if not a.is_empty():
+					live[pid] = true
+			else:
+				_show(pid, from, to, mode, t)
+				live[pid] = true
+	_actifs = actifs
 	for pid in agents.keys():
 		if not live.has(pid):
 			(agents[pid].body as Node).queue_free()
 			agents.erase(pid)
+
+
+## À regarder de nouveau quand l'horloge atteint l'heure h (au plus tard à la minute).
+func _reveil(pid: int, h: float) -> void:
+	var m := floori(h * 60.0)
+	if not _wake.has(m):
+		_wake[m] = []
+	(_wake[m] as Array).append(pid)
 
 
 static func _mode_of(text: String) -> String:

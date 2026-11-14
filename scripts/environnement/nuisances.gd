@@ -822,10 +822,11 @@ func loyer(bid: int) -> float:
 func sante(bid: int) -> float:
 	if not ReglagesPartie.actuel.pollution_sante:
 		return 0.0
-	# Une usine vient d'ouvrir : le calcul repart tout de suite (sur un autre cœur, sans
-	# saccade) ; la santé suit dès qu'il est fini, quelques images plus tard.
+	# Une usine vient d'ouvrir : la santé se lit sur des valeurs à jour. Quand le temps
+	# tourne, le calcul part sur un autre cœur (pas de saccade) et la santé suit dès
+	# qu'il est fini, quelques images plus tard ; en pause, il est fait tout de suite.
 	if _dirty and _job.is_empty() and Time.get_ticks_msec() - _last_ms > 250:
-		if is_inside_tree():
+		if is_inside_tree() and ambiance != null and ambiance.speed_index > 0:
 			_lancer_calcul()
 		else:
 			recalculer()

@@ -139,6 +139,7 @@ var _follow_label: Label3D
 var _follow_timer := 0.0
 var _follow_target := Vector3.ZERO
 var _follow_set := Vector3.INF
+var _follow_bid := -1
 ## Habitants visibles près de la caméra.
 var passants: Passants
 ## Modèle de trafic (bouchons, stationnement, affluence des lignes), ou null.
@@ -1775,9 +1776,11 @@ func _update_follow(delta: float) -> void:
 		var p: Dictionary = persons[pid]
 		var a := activity(p)
 		_follow_label.text = "★ %s %s, %d ans\n%s" % [p.p, p.n, age_years(p), a.text]
+		# Bâtiment où il se trouve (relu avec le texte, 4 fois par seconde).
+		_follow_bid = int(a.bid)
 	var top := _follow_target + Vector3(0, 14.0, 0)
-	if known.has(int(activity(persons[pid]).bid)):
-		top.y = _follow_target.y + BuildingCatalog.approx_height(String(known[int(activity(persons[pid]).bid)].t)) + 4.0
+	if known.has(_follow_bid):
+		top.y = _follow_target.y + BuildingCatalog.approx_height(String(known[_follow_bid].t)) + 4.0
 	_follow_marker.position = _follow_marker.position.lerp(top, minf(1.0, delta * 6.0)) if _follow_marker.position != Vector3.ZERO else top
 	_follow_marker.rotate_y(delta * 1.5)
 	# Le repère grossit quand la caméra s'éloigne, pour rester visible.

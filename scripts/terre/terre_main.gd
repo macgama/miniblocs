@@ -56,6 +56,8 @@ var dechets_panel: DechetsPanel
 var musee: Musee
 var spectacles: Spectacles
 var spectacles_panel: SpectaclesPanel
+var club: ClubSport
+var club_panel: ClubPanel
 var musee_panel: MuseePanel
 var parc: ParcLoisirs
 var parc_panel: ParcPanel
@@ -171,6 +173,7 @@ func _ready() -> void:
 	_setup_dechets()
 	_setup_musee()
 	_setup_spectacles()
+	_setup_club()
 	_setup_parc()
 	_setup_funeraire()
 	_setup_vie()
@@ -351,6 +354,7 @@ func save_sections() -> Dictionary:
 	sec["tutoriel"] = tutoriel.to_dict()
 	sec["musee"] = musee.to_dict()
 	sec["spectacles"] = spectacles.to_dict()
+	sec["club"] = club.to_dict()
 	sec["parc"] = parc.to_dict()
 	sec["zoo"] = zoo.to_dict()
 	sec["quartiers"] = quartiers.to_dict()
@@ -465,6 +469,7 @@ func load_game(slot := "") -> bool:
 	dechets.from_dict(sec.get("dechets", {}))
 	musee.from_dict(sec.get("musee", {}))
 	spectacles.from_dict(sec.get("spectacles", {}))
+	club.from_dict(sec.get("club", {}))
 	parc.from_dict(sec.get("parc", {}))
 	zoo.from_dict(sec.get("zoo", {}))
 	funeraire.from_dict(sec.get("funeraire", {}))
@@ -1349,6 +1354,28 @@ func _setup_spectacles() -> void:
 		spectacles_panel.toggle())
 
 
+## Club de sport (football) : stade, équipe, championnat, recettes (Maj+B).
+func _setup_club() -> void:
+	club = ClubSport.new()
+	club.name = "ClubSport"
+	add_child(club)
+	club.setup(buildings, population, ambiance)
+	club.message.connect(func(t: String) -> void: hud.show_message(t))
+	club_panel = ClubPanel.new()
+	club_panel.name = "PanneauClub"
+	add_child(club_panel)
+	club_panel.setup(club)
+	club_panel.building_chosen.connect(func(_id: String) -> void:
+		club_panel.set_open(false)
+		_select_building_tool()
+		build_panel.set_open(true)
+		build_panel.show_category("sport"))
+	club_panel.focus_requested.connect(func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
+	hud.club_requested.connect(func() -> void: club_panel.toggle())
+
+
 ## Parc de loisirs : manèges, visiteurs, files d'attente, billets et panneau (Maj+G).
 func _setup_parc() -> void:
 	parc = ParcLoisirs.new()
@@ -2001,7 +2028,7 @@ func _loisirs_ouvert() -> bool:
 
 
 func _panneaux_parc() -> Dictionary:
-	return {"parc": parc_panel, "parc_editeur": parc_editeur_panel, "zoo": zoo_panel, "musee": musee_panel, "spectacles": spectacles_panel}
+	return {"parc": parc_panel, "parc_editeur": parc_editeur_panel, "zoo": zoo_panel, "musee": musee_panel, "spectacles": spectacles_panel, "club": club_panel}
 
 
 ## Panneau « Paysage » : pinceaux de terrain (outil 0).
@@ -2107,6 +2134,7 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 	dechets.clear()
 	funeraire.clear()
 	spectacles.clear()
+	club.clear()
 	resource_overlay.show_resource(resource_overlay.res)
 	transport.clear()
 	buildings.clear()

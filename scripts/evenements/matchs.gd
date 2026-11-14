@@ -136,8 +136,12 @@ func plan_day(n: Dictionary) -> void:
 	var month := int(n.month)
 	var mday := int(n.mday)
 	var wd := int(n.wd)
+	var cs := ClubSport.instance
 	for bid in stades():
 		var t := String(ev.buildings.buildings[bid].t)
+		# Le stade du club du joueur : c'est le club (ClubSport) qui fixe ses matchs.
+		if cs != null and is_instance_valid(cs) and cs.fonde() and int(cs.club.stade) == bid:
+			continue
 		if t == "foot":
 			if wd == 0 and ev.population.persons.size() >= 20:
 				var amateur := "%s amateurs" % club_de(bid).replace("FC ", "")
@@ -279,6 +283,9 @@ func on_end(e: Dictionary) -> void:
 		else:
 			sa += 1
 	d.score = [sh, sa]
+	if bool(d.get("club", false)):
+		# Match du club du joueur : résultat, classement et recettes dans ClubSport.
+		return
 	if bool(d.get("ligue", false)):
 		_record(String(d.home), sh, sa)
 		_record(String(d.away), sa, sh)
@@ -353,8 +360,8 @@ func _build_visuals(e: Dictionary) -> void:
 	ev.visuels.add_child(root)
 	e.node = root
 	var d: Dictionary = e.data
-	var hc: Array = clubs.get(String(d.home), {}).get("couleurs", ["c8102e", "f2f2f2"])
-	var ac: Array = clubs.get(String(d.away), {}).get("couleurs", ["1d3c8f", "f2f2f2"])
+	var hc: Array = d.get("cdom", clubs.get(String(d.home), {}).get("couleurs", ["c8102e", "f2f2f2"]))
+	var ac: Array = d.get("cext", clubs.get(String(d.away), {}).get("couleurs", ["1d3c8f", "f2f2f2"]))
 	if hc[0] == ac[0]:
 		ac = ["f2f2f2", "1b1b1b"]
 	var cap := maxi(Stades.places(String(ev.buildings.buildings[bid].t)), 1)

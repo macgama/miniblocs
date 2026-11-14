@@ -246,6 +246,15 @@ const SECTIONS := [
 		["Argent", "billets et bar contre cachet, technique, droits d'auteur (9 %) et salaires ; au cinéma, la moitié du billet va au distributeur, ou à tes studios si c'est ton film"],
 		["Studios", "produire un film : genre, budget (court métrage à superproduction), réalisateur, tête d'affiche ; un plateau par film ; décors, effets spéciaux, post-production et atelier à moins de 300 m améliorent le film ; 8 semaines en salle dans tout le pays puis les droits télé ; Bobine d'or chaque 20 mai"],
 	]],
+	["Club de sport", [
+		["Maj + B", "menu Club de sport (barre du bas, Loisirs) : onglets Club, Effectif, Calendrier, Classement, Transferts, Finances"],
+		["Fonder", "il faut un stade (Construire → Sport : 11 stades ou le terrain de foot) ; nom, couleurs ; la ville verse 150 000 € de départ ; le club a sa propre caisse"],
+		["Championnat", "12 clubs, 22 journées le samedi d'août à fin mai (trêve de Noël) ; Régionale → Nationale → Deuxième Ligue → Première Ligue ; les 2 premiers montent, les 2 derniers descendent"],
+		["Équipe", "formation (4-4-2, 4-3-3…), tactique, entraînement (les jeunes progressent, les vétérans baissent) ; forme, fatigue, blessures ; en Régionale, des habitants fans de foot jouent bénévolement"],
+		["Matchs", "à domicile, on voit le match au stade : joueurs aux couleurs du club, foule, tableau d'affichage, buts dans le fil d'actualité"],
+		["Argent", "billets (prix au choix : trop cher, les tribunes se vident), buvette, boutique, sponsors, droits télé, primes de classement, ventes de joueurs ; contre salaires, staff, transferts et location du stade versée à la ville"],
+		["Transferts", "marché renouvelé chaque lundi : joueurs libres ou sous contrat ; les meilleurs refusent un club trop modeste ; vendre, prolonger, mettre au repos"],
+	]],
 	["Parc de loisirs", [
 		["Maj + G", "panneau du parc : note en étoiles, visiteurs, prix de l'entrée et des tours, recettes, attractions (files, fiabilité, pannes), ce que disent les visiteurs, conseils"],
 		["Construire → Parc de loisirs", "l'Entrée du parc (au bord d'une route) fonde le parc ; attractions, stands, toilettes, aires de repos et atelier se posent à moins de 250 m derrière elle, sans route"],

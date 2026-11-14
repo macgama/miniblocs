@@ -2,7 +2,8 @@ extends SceneTree
 ## Test du kit d'installation de l'État : bons de la première ville d'un pays,
 ## renfort de fondateurs, remise sur un bâtiment des réseaux ou des déchets
 ## (une fois par bon, plafonnée), rien pour une 2e ville du même pays, nouveau
-## kit dans un autre pays (renfort au campement), sauvegarde, panneau Maj+P.
+## kit dans un autre pays (renfort au campement), sauvegarde, panneau Maj+P,
+## badge « Offert par l'État » du catalogue B.
 ## Usage : godot --headless --path . --script res://tests/kit_test.gd
 
 var ok := true
@@ -101,6 +102,17 @@ func _run() -> void:
 	_check(big == kit.plafond("egout"), "grosse station d'épuration : %s offerts, le reste payé par la ville" % BuildingSystem.format_money(big))
 	_check(kit.remise("lagunage", Rect2i(Vector2i(-1000, 9000), Vector2i(10, 10)), 1_000_000) == 0, "loin de toute ville : pas de bon")
 
+	print("Catalogue B :")
+	_check(kit.ville_avec_bon("lagunage") == v1 and kit.ville_avec_bon("forage_eau") == -1 and kit.ville_avec_bon("ecole") == -1,
+		"bon restant pour le lagunage, plus pour un forage ni pour une école")
+	var carte_lag: Button = scene.build_panel._card("lagunage", "construire")
+	var carte_for: Button = scene.build_panel._card("forage_eau", "construire")
+	var carte_eco: Button = scene.build_panel._card("ecole", "construire")
+	_check(_badge(carte_lag) and carte_lag.tooltip_text.contains("Offert par l'État"), "badge « Offert par l'État » sur le lagunage")
+	_check(not _badge(carte_for) and not _badge(carte_eco), "pas de badge sur le forage (bon utilisé) ni sur l'école")
+	for c in [carte_lag, carte_for, carte_eco]:
+		c.free()
+
 	print("Deuxième ville, même pays :")
 	cm.nom_en_attente = "Montclair"
 	var mc2 := bs.place("maison_commune", Vector2i(1100, 0), 0)
@@ -141,6 +153,16 @@ func _run() -> void:
 
 	print("RÉSULTAT : ", "OK" if ok else "ÉCHEC")
 	quit(0 if ok else 1)
+
+
+## La carte du catalogue porte-t-elle le badge du kit de l'État ?
+func _badge(n: Node) -> bool:
+	for c in n.get_children():
+		if c is Label and ((c as Label).text == "Offert par l'État" or (c as Label).text == "Bon de l'État"):
+			return true
+		if _badge(c):
+			return true
+	return false
 
 
 ## Une place libre pour ce bâtiment près d'un point.

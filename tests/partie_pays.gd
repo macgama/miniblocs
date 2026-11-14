@@ -567,6 +567,8 @@ func _run() -> void:
 		rig.position = Vector3.ZERO
 		amb.set_speed(DayNight.DEFAULT_SPEED)
 		await _frames(120)
+		if prof != null:
+			prof.reset()
 		var ims: Array[float] = []
 		var last := Time.get_ticks_usec()
 		for i in reel:
@@ -581,6 +583,8 @@ func _run() -> void:
 		moy /= ims.size()
 		print("  image moy %.1f ms (%.0f i/s), méd %.1f, p95 %.1f, pire %.0f ms, %d habitants, %d nœuds" % [moy, 1000.0 / maxf(moy, 0.01), ims[ims.size() / 2],
 			ims[int(ims.size() * 0.95)], ims[-1], pop.persons.size(), Performance.get_monitor(Performance.OBJECT_NODE_COUNT)])
+		if prof != null:
+			prof.rapport(reel)
 		amb.set_speed(0)
 
 	print("Sauvegarde et chargement :")

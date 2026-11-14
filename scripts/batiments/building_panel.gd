@@ -24,6 +24,9 @@ signal creation_deleted(id: String)
 ## Mode « Murs et étages » de l'éditeur libre.
 signal plan_tool_chosen(tool: int)
 signal plan_opening_chosen(kind: String)
+## Aménagement choisi (bassin, voie, gradins, terrain de sport).
+signal plan_amenagement_chosen(kind: String)
+signal plan_amenagement_material(on: bool)
 signal plan_level_step(delta: int)
 signal plan_cutaway_toggled(on: bool)
 signal plan_copy_level(count: int)
@@ -73,6 +76,8 @@ var _copy_count := 1
 var _wall_levels := 1
 var _cutaway := true
 var _opening := "porte"
+var _amenag := ""
+var _amenag_own_mat := false
 ## Mode Créer (atelier) : seuls l'éditeur libre, l'intérieur et Mes créations
 ## sont proposés. Mode Gérer : catalogue et zonage, sans l'éditeur libre.
 var workshop := false
@@ -713,6 +718,8 @@ func _catalog_tabs() -> Array:
 		for ot in VignettesAtelier.OPENING_TABS:
 			tabs.append([ot[0], ot[1]])
 		tabs.append(["toits", "Toits"])
+		for fam in Amenagements.FAMILLES:
+			tabs.append(["am_" + String(fam[0]), fam[1]])
 	else:
 		for fam in BlocFormes.FAMILLES:
 			if fam[0] == "ouvertures":
@@ -825,6 +832,9 @@ func _fill_catalog_tab(id: String, box: VBoxContainer) -> void:
 			seat.pressed.connect(func() -> void: plan_reseat.emit())
 			box.add_child(seat)
 			return
+		if id.begins_with("am_"):
+			_fill_amenagements(id.trim_prefix("am_"), box, grid)
+			return
 		box.add_child(_hint("Clic près d'un mur pour poser ; clic droit : retirer."))
 		box.add_child(grid)
 		for ot in VignettesAtelier.OPENING_TABS:
@@ -867,6 +877,43 @@ func _fill_catalog_tab(id: String, box: VBoxContainer) -> void:
 		grid.add_child(sb)
 	if id == "grandes":
 		box.add_child(_piece_row())
+
+
+## Bassins, rails, gradins, terrains : vignettes 3D ; un clic choisit l'outil.
+func _fill_amenagements(fam: String, box: VBoxContainer, grid: GridContainer) -> void:
+	var hints := {
+		"bassins": "Clic : taille du modèle · clic glissé : votre taille. Le terrain est creusé sous le bassin ; sur un étage, il pend dans l'étage du dessous.",
+		"rails": "Les rails suivent le grand côté du rectangle ; plus large, plusieurs voies côte à côte. Décor de l'atelier : les trains roulent sur le réseau (touche L).",
+		"gradins": "Les rangs montent vers l'arrière, dos à la caméra (R : tourner). Chaque place compte comme visiteur du bâtiment.",
+		"terrains": "Lignes réglementaires si le rectangle est assez grand, sinon le terrain est réduit. Clic : taille officielle avec ses abords.",
+	}
+	box.add_child(_hint(String(hints.get(fam, ""))))
+	var own := CheckBox.new()
+	own.text = "Avec le matériau choisi"
+	own.tooltip_text = "Carrelage du bassin, surface du terrain, marches des gradins… dans le matériau et la teinte choisis (onglet Matériaux)."
+	own.add_theme_font_size_override("font_size", 12)
+	own.button_pressed = _amenag_own_mat
+	own.toggled.connect(func(on: bool) -> void:
+		_amenag_own_mat = on
+		plan_amenagement_material.emit(on))
+	box.add_child(own)
+	box.add_child(grid)
+	for kind in Amenagements.of_family(fam):
+		var k: Dictionary = Amenagements.KINDS[kind]
+		var kid: String = kind
+		var sz: Vector2i = k.size
+		var tip := "%s\n%s\n%d × %d m · %s le m²" % [k.name, k.desc, sz.x, sz.y, BuildingSystem.format_money(int(k.price))]
+		var fn := String(k.get("fn", ""))
+		if fn != "" and not BuildingCatalog.get_type(fn).is_empty():
+			tip += "\nFonction proposée au modèle : %s" % String(BuildingCatalog.get_type(fn).name)
+		var b := _thumb_card(String(k.name), tip, "am_" + kid, func() -> Mesh: return VignettesAtelier.amenagement_mesh(kid))
+		b.toggle_mode = true
+		b.button_group = _item_group
+		b.button_pressed = kid == _amenag
+		b.pressed.connect(func() -> void:
+			_amenag = kid
+			plan_amenagement_chosen.emit(kid))
+		grid.add_child(b)
 
 
 ## Vignette de l'atelier : maquette 3D rendue à part, nom dessous.

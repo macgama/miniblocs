@@ -77,7 +77,9 @@ static func est_stade(type_id: String) -> bool:
 ## Places d'un stade (terrain de foot : sa tribune).
 static func places(type_id: String) -> int:
 	var t := BuildingCatalog.get_type(type_id)
-	return int(t.get("stade", 500 if BuildingCatalog.base_of(type_id) == "foot" else 0))
+	# Stade fait à l'atelier : les places de ses gradins (Amenagements).
+	var seats := int(t.get("places", 0)) if t.has("modele") else 0
+	return int(t.get("stade", (seats if seats > 0 else 500) if BuildingCatalog.base_of(type_id) == "foot" else 0))
 
 
 static var _meshes := {}

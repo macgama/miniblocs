@@ -29,7 +29,7 @@ signal message(text: String)
 signal changed
 signal level_changed(text: String)
 
-enum Tool { NONE, WALL, ROOM, FLOOR, OPENING, PAINT, STAIRS, ERASE }
+enum Tool { NONE, WALL, ROOM, FLOOR, OPENING, PAINT, STAIRS, ERASE, AMENAG }
 
 ## Hauteur d'un étage (m), plancher compris.
 const H := 3.0
@@ -111,6 +111,10 @@ var tool: Tool = Tool.NONE
 var material := 5
 var tint := 0
 var opening := "porte"
+## Aménagement choisi (bassin, voie, gradins, terrain : Amenagements.KINDS).
+var amenag := "piscine"
+## Les aménagements prennent le matériau choisi (sinon celui de leur modèle).
+var amenag_own_mat := false
 var rot_offset := 0
 ## Étage actif (0 = rez-de-chaussée).
 var level := 0
@@ -226,6 +230,13 @@ func set_opening(kind: String) -> void:
 		_emit_help()
 
 
+func set_amenagement(kind: String) -> void:
+	if Amenagements.has(kind):
+		amenag = kind
+	if tool != Tool.NONE:
+		_emit_help()
+
+
 func set_cutaway(on: bool) -> void:
 	cutaway = on
 	_apply_cutaway()
@@ -258,6 +269,10 @@ func level_counts(id: String) -> Dictionary:
 	for k in p.walls:
 		var e: int = (k as Vector4i).y
 		out[e] = int(out.get(e, 0)) + 1
+	for k in p.get("am", {}):
+		var e2: int = (k as Vector3i).y
+		if not out.has(e2):
+			out[e2] = 0
 	return out
 
 
@@ -295,7 +310,10 @@ func _emit_help() -> void:
 		Tool.STAIRS:
 			t = "Escalier vers l'étage du dessus (4 cases de long) : clic · R : tourner"
 		Tool.ERASE:
-			t = "Gomme : clic sur un mur, un sol, un escalier ou une ouverture · glissé : tout un rectangle"
+			t = "Gomme : clic sur un mur, un sol, un escalier, une ouverture ou un aménagement · glissé : tout un rectangle"
+		Tool.AMENAG:
+			var ds := Amenagements.default_size(amenag, _stair_rot())
+			t = "%s : clic (%d × %d m) ou clic glissé en rectangle · R : tourner" % [Amenagements.KINDS[amenag].name, ds.x, ds.y]
 	info_changed.emit("%s · %s · Page haut / Page bas : étage · clic droit : retirer · Ctrl+Z : annuler · Échap : arrêter" % [t, level_name(_eff_level())])
 
 
@@ -354,7 +372,7 @@ func new_plan(y0: float) -> String:
 		_next_id += 1
 		id = "plan_%d" % _next_id
 	_next_id += 1
-	plans[id] = {"id": id, "y0": y0, "walls": {}, "floors": {}, "stairs": {}, "dug": {}}
+	plans[id] = {"id": id, "y0": y0, "walls": {}, "floors": {}, "stairs": {}, "dug": {}, "am": {}}
 	_bbox[id] = Rect2i()
 	return id
 
@@ -468,6 +486,8 @@ func levels_of(id: String) -> Array:
 		seen[(k as Vector3i).y] = true
 	for k in p.walls:
 		seen[(k as Vector4i).y] = true
+	for k in p.get("am", {}):
+		seen[(k as Vector3i).y] = true
 	var out := seen.keys()
 	out.sort()
 	return out
@@ -494,6 +514,12 @@ func _update_bbox(id: String) -> void:
 			lo = Vector2i(mini(lo.x, cc.x), mini(lo.y, cc.y))
 			hi = Vector2i(maxi(hi.x, cc.x + 1), maxi(hi.y, cc.y + 1))
 			any = true
+	var am: Dictionary = p.get("am", {})
+	for k in am:
+		var ra := Amenagements.rect_of(k, am[k])
+		lo = Vector2i(mini(lo.x, ra.position.x), mini(lo.y, ra.position.y))
+		hi = Vector2i(maxi(hi.x, ra.end.x), maxi(hi.y, ra.end.y))
+		any = true
 	_bbox[id] = Rect2i(lo, hi - lo) if any else Rect2i()
 
 
@@ -507,12 +533,18 @@ func _rebuild_cells() -> void:
 			var kw: Vector4i = k
 			cells[Vector2i(kw.x, kw.z)] = id
 			cells[Vector2i(kw.x, kw.z) - (Vector2i(0, 1) if kw.w == 0 else Vector2i(1, 0))] = id
+		var am: Dictionary = p.get("am", {})
+		for k in am:
+			var ra := Amenagements.rect_of(k, am[k])
+			for x in range(ra.position.x, ra.end.x):
+				for z in range(ra.position.y, ra.end.y):
+					cells[Vector2i(x, z)] = id
 
 
 ## Le plan n'a plus rien : on l'oublie.
 func _drop_if_empty(id: String) -> void:
 	var p: Dictionary = plans[id]
-	if p.walls.is_empty() and p.floors.is_empty() and p.stairs.is_empty():
+	if p.walls.is_empty() and p.floors.is_empty() and p.stairs.is_empty() and (p.get("am", {}) as Dictionary).is_empty():
 		_restore_terrain(id)
 		plans.erase(id)
 		_bbox.erase(id)
@@ -892,6 +924,56 @@ func add_stairs(id: String, c: Vector2i, e: int, r: int) -> bool:
 
 
 ## Retire ce qui se trouve au point visé : ouverture (outil Ouverture), mur, escalier ou sol.
+## Rectangle d'un aménagement : celui tracé, ou (un seul clic) la taille du
+## modèle centrée sur la case.
+func amenag_rect(a: Vector2i, b: Vector2i, r: int) -> Rect2i:
+	var rect := _cell_rect(a, b)
+	if rect.size == Vector2i.ONE:
+		var ds := Amenagements.default_size(amenag, r)
+		rect = Rect2i(a - ds / 2, ds)
+	return rect
+
+
+## Pose un aménagement (bassin, voie, gradins, terrain) sur l'étage e.
+func add_amenagement(id: String, rect: Rect2i, e: int, kind: String, r := 0) -> bool:
+	if not Amenagements.has(kind) or not plans.has(id):
+		return false
+	var why := Amenagements.size_problem(kind, rect.size.x, rect.size.y)
+	if why != "":
+		message.emit(why)
+		return false
+	var p: Dictionary = plans[id]
+	if not p.has("am"):
+		p["am"] = {}
+	if Amenagements.overlaps(p.am, rect, e, null, kind):
+		message.emit("Un autre aménagement est déjà là.")
+		return false
+	for x in range(rect.position.x, rect.end.x):
+		for z in range(rect.position.y, rect.end.y):
+			var reason := check_cell(Vector2i(x, z), id)
+			if reason != "":
+				message.emit(reason)
+				return false
+	var cost := Amenagements.price(kind, rect.size.x, rect.size.y, r)
+	if not _can_pay(cost):
+		message.emit("Pas assez d'argent : %s nécessaires." % BuildingSystem.format_money(ReglagesPartie.prix(cost)))
+		return false
+	var before: Variant = _snapshot(id)
+	var m := BlocFormes.encode(material, 0, 0, tint) if amenag_own_mat else -1
+	p.am[Vector3i(rect.position.x, e, rect.position.y)] = {"k": kind, "w": rect.size.x, "d": rect.size.y, "r": r % 4, "m": m}
+	_pay(cost)
+	_push_undo(id, before, cost)
+	_after_change(id)
+	message.emit("%s · %s" % [Amenagements.describe(kind, rect.size.x, rect.size.y, r), BuildingSystem.format_money(ReglagesPartie.prix(cost))])
+	return true
+
+
+func _erase_amenag(p: Dictionary, k: Vector3i) -> int:
+	var a: Dictionary = p.am[k]
+	p.am.erase(k)
+	return roundi(Amenagements.price(String(a.k), int(a.w), int(a.d), int(a.r)) * REFUND)
+
+
 func erase_at(id: String, hit: Dictionary, only_opening := false) -> bool:
 	var p: Dictionary = plans[id]
 	var e: int = hit.e
@@ -917,7 +999,10 @@ func erase_at(id: String, hit: Dictionary, only_opening := false) -> bool:
 	else:
 		var c: Vector2i = hit.cell
 		var sk: Variant = stair_at(id, c, e)
-		if sk != null:
+		var ak: Variant = Amenagements.at(p.get("am", {}), c, e)
+		if ak != null:
+			back += _erase_amenag(p, ak)
+		elif sk != null:
 			p.stairs.erase(sk)
 			back += roundi(STAIR_PRICE * REFUND)
 		else:
@@ -963,6 +1048,12 @@ func erase_rect(id: String, rect: Rect2i, e: int) -> int:
 			back += roundi(STAIR_PRICE * REFUND)
 			p.stairs.erase(ks)
 			n += 1
+	if p.has("am"):
+		for k in p.am.keys():
+			var ka: Vector3i = k
+			if ka.y == e and Amenagements.rect_of(ka, p.am[k]).intersects(rect):
+				back += _erase_amenag(p, ka)
+				n += 1
 	if n == 0:
 		return 0
 	_pay(-back)
@@ -1111,6 +1202,7 @@ func undo() -> bool:
 			plans[id].floors.clear()
 			plans[id].stairs.clear()
 			plans[id].dug.clear()
+			plans[id]["am"] = {}
 	else:
 		plans[id] = (op.before as Dictionary).duplicate(true)
 		# Le terrain est recreusé d'après les sols (_sync_terrain).
@@ -1147,6 +1239,18 @@ func _sync_terrain(id: String) -> void:
 		if kf.y <= 0:
 			var c := Vector2i(kf.x, kf.z)
 			need[c] = minf(float(need.get(c, INF)), base_y(id, kf.y) - SLAB)
+	# Aménagements : sous la dalle, ou sous le fond des bassins.
+	var am: Dictionary = p.get("am", {})
+	for k in am:
+		var ka: Vector3i = k
+		if ka.y > 0:
+			continue
+		var low := base_y(id, ka.y) - SLAB - Amenagements.depth_below(am[k])
+		var ra := Amenagements.rect_of(ka, am[k])
+		for x in range(ra.position.x, ra.end.x):
+			for z in range(ra.position.y, ra.end.y):
+				var c2 := Vector2i(x, z)
+				need[c2] = minf(float(need.get(c2, INF)), low)
 	var touched := []
 	for c in p.dug.keys():
 		if not need.has(c):
@@ -1395,6 +1499,15 @@ func _release(a: Dictionary, b: Dictionary) -> void:
 			var id3 := _plan_for(a)
 			if add_floors(id3, rect, a.e, -1, true) == 0:
 				_drop_if_empty(id3)
+		Tool.AMENAG:
+			var r := _stair_rot()
+			var ar := amenag_rect(a.cell, b.cell, r)
+			var id4: String = a.id if a.id != "" else plan_at(ar.get_center(), 0)
+			if id4 == "":
+				id4 = new_plan(ground_level(ar.get_center()))
+				_active = id4
+			if not add_amenagement(id4, ar, a.e if a.id != "" else 0, amenag, r):
+				_drop_if_empty(id4)
 		Tool.PAINT:
 			if a.id == "":
 				return
@@ -1489,6 +1602,34 @@ func _update_ghost() -> void:
 			bx.position.y = by + float(o.s)
 			bx.size.y = float(o.t) - float(o.s)
 			boxes.append(bx.grow(0.04))
+		Tool.AMENAG:
+			var ra := _stair_rot()
+			var ar := amenag_rect(a.cell, h.cell, ra)
+			var kd: Dictionary = Amenagements.KINDS[amenag]
+			var gy := by
+			var gh := 0.3
+			match String(kd.fam):
+				"bassins":
+					gy = by - float(kd.depth) + float(kd.get("raise", 0.0))
+					gh = float(kd.depth) + 0.1
+					if kd.get("tank", false):
+						gy = by
+				"gradins":
+					gh = Amenagements.rows(amenag, ar.size.x, ar.size.y, ra) * float(kd.rise)
+				"rails":
+					gh = 0.6
+			boxes.append(AABB(Vector3(ar.position.x, gy, ar.position.y), Vector3(ar.size.x, gh, ar.size.y)))
+			# Sens de montée des gradins (et du heurtoir) : une flèche de blocs.
+			if String(kd.fam) == "gradins" or amenag == "butoir":
+				var dv: Vector2i = STAIR_DIRS[ra]
+				var cc := Vector2(ar.position) + Vector2(ar.size) / 2.0
+				for i in 3:
+					var q := cc + Vector2(dv) * (i * 0.8)
+					boxes.append(AABB(Vector3(q.x - 0.25, by + gh + 0.2, q.y - 0.25), Vector3(0.5, 0.5, 0.5)))
+			var why := Amenagements.size_problem(amenag, ar.size.x, ar.size.y)
+			bad = why != ""
+			info = why if bad else "%s · %s" % [Amenagements.describe(amenag, ar.size.x, ar.size.y, ra),
+				BuildingSystem.format_money(ReglagesPartie.prix(Amenagements.price(amenag, ar.size.x, ar.size.y, ra)))]
 		Tool.STAIRS:
 			var r := _stair_rot()
 			for i in STAIR_LEN:
@@ -1620,7 +1761,7 @@ func flush() -> void:
 
 
 func _has_floor_render(p: Dictionary, k: Vector3i) -> bool:
-	return p.floors.has(k) and not _stair_hole(p, k)
+	return p.floors.has(k) and not _stair_hole(p, k) and not Amenagements.covers_floor(p.get("am", {}), Vector2i(k.x, k.z), k.y)
 
 
 ## Case du plancher ouverte au-dessus d'un escalier (trémie).
@@ -1699,6 +1840,12 @@ func emit_storey(id: String, e: int, m: BlocMesher, sm: BlocMesher, ramps: Packe
 		if ks.y != e:
 			continue
 		_emit_stairs(sm, ramps, ks, p.stairs[k], by)
+	# Aménagements (bassins, voies, gradins, terrains).
+	var am: Dictionary = p.get("am", {})
+	for k in am:
+		var ka: Vector3i = k
+		if ka.y == e:
+			Amenagements.emit(m, ka, am[k], by)
 
 
 func _storey_nodes(id: String, e: int, m: BlocMesher, sm: BlocMesher, ramps: PackedVector3Array) -> void:
@@ -2271,7 +2418,7 @@ func to_dict() -> Dictionary:
 		for c in p.dug:
 			var rec: Array = p.dug[c]
 			d.append_array([c.x, c.y, rec[0], rec[1]])
-		out.append({"id": id, "y0": p.y0, "walls": w, "floors": f, "stairs": s, "dug": d})
+		out.append({"id": id, "y0": p.y0, "walls": w, "floors": f, "stairs": s, "dug": d, "am": Amenagements.to_array(p.get("am", {}))})
 	return {"version": 1, "h": H, "plans": out}
 
 
@@ -2281,7 +2428,8 @@ func from_dict(data: Dictionary) -> void:
 		var id := String(pd.get("id", ""))
 		if id == "":
 			continue
-		plans[id] = {"id": id, "y0": float(pd.get("y0", 0.0)), "walls": {}, "floors": {}, "stairs": {}, "dug": {}}
+		plans[id] = {"id": id, "y0": float(pd.get("y0", 0.0)), "walls": {}, "floors": {}, "stairs": {}, "dug": {},
+			"am": Amenagements.from_array(pd.get("am", []))}
 		_bbox[id] = Rect2i()
 		var p: Dictionary = plans[id]
 		var w: Array = pd.get("walls", [])

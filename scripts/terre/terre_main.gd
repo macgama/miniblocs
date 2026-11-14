@@ -1602,6 +1602,14 @@ func _setup_plans() -> void:
 		if plans.tool != PlanEditor.Tool.OPENING:
 			_select_building_tool()
 			plans.set_tool(PlanEditor.Tool.OPENING))
+	build_panel.plan_amenagement_chosen.connect(func(k: String) -> void:
+		plans.set_amenagement(k)
+		plans.set_material(blocks.material)
+		plans.set_tint(blocks.tint)
+		if plans.tool != PlanEditor.Tool.AMENAG:
+			_select_building_tool()
+			plans.set_tool(PlanEditor.Tool.AMENAG))
+	build_panel.plan_amenagement_material.connect(func(on: bool) -> void: plans.amenag_own_mat = on)
 	build_panel.plan_level_step.connect(func(d: int) -> void: plans.step_level(d))
 	build_panel.plan_cutaway_toggled.connect(func(on: bool) -> void: plans.set_cutaway(on))
 	build_panel.plan_wall_levels.connect(func(n: int) -> void: plans.set_wall_levels(n))

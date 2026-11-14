@@ -207,12 +207,20 @@ static func save_plan(mob: Mobilier, plan_id: String, nom: String, vp: Viewport 
 	var style := String(mob.styles.get(plan_id, mob.style))
 	var sty := Meubles.style_of(style)
 	var nm := nom.strip_edges() if nom.strip_edges() != "" else mob.plan_name(plan_id)
+	# Bassins, voies, gradins, terrains : ils proposent une fonction (piscine,
+	# stade, court de tennis…) si l'usage du bâtiment n'a pas été choisi.
+	var am: Dictionary = p.get("am", {})
+	var fonction := String(Mobilier.USAGES.get(mob.usage_of(plan_id), Mobilier.USAGES.logement).t)
+	var suggested := Amenagements.suggest_fonction(am)
+	if suggested != "" and not mob.usages.has(plan_id):
+		fonction = suggested
 	var data := {
 		"format": FORMAT, "version": VERSION, "id": _new_id(nm), "nom": nm, "auteur": _author(),
 		"cree": Time.get_unix_time_from_system(), "genre": "plan",
 		"w": bbox.size.x, "d": bbox.size.y, "dy2": y0 - by * BlockEditor.UNIT_Y,
-		"fonction": String(Mobilier.USAGES.get(mob.usage_of(plan_id), Mobilier.USAGES.logement).t),
+		"fonction": fonction,
 		"walls": walls, "floors": floors, "stairs": stairs, "blocs": blocs,
+		"am": Amenagements.to_array(am, o), "places": Amenagements.seats_of(am),
 		"usage": mob.usage_of(plan_id), "style_meubles": style, "meubles": meubles, "pieces": pieces,
 		"etiquettes": {"type": mob.usage_of(plan_id), "categorie": "murs_fins", "style": style,
 			"region": String(sty.get("region", "")), "epoque": String(sty.get("era", "")),
@@ -387,6 +395,7 @@ static func _place_plan(d: Dictionary, o: Vector2i, mob: Mobilier) -> Dictionary
 	while i + 4 < sa.size():
 		p.stairs[Vector3i(int(sa[i]) + o.x, int(sa[i + 1]), int(sa[i + 2]) + o.y)] = {"r": int(sa[i + 3]), "m": int(sa[i + 4])}
 		i += 5
+	p["am"] = Amenagements.from_array(d.get("am", []), o)
 	pe._after_change(id)
 	# Toit et ajouts en blocs.
 	if pe.blocks != null:

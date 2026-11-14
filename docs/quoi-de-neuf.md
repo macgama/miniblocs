@@ -4,6 +4,11 @@ Tout est dans `main`, et les 9 tests automatiques passent (`sh tests/tous.sh`).
 
 ## Nouveautés
 
+**L'Atelier s'agrandit : bassins, rails, gradins et terrains de sport** (14 novembre)
+- Quatre nouveaux onglets en mode Murs et étages, 34 modèles en vignettes 3D : 8 bassins (piscine, bassin de nage, plongeon, pataugeoire, spa, bassin d'ornement, bassin pour animaux, aquarium), 8 rails et quais (voie normale, LGV, métrique, petit train, tram, quai, quai couvert, heurtoir), 5 gradins (béton, tribune couverte, bois, antiques, talus), 13 terrains (football, city-stade, rugby, basket, handball, volley, beach-volley, tennis dur et terre battue, athlétisme, patinoire, pétanque, golf).
+- Un clic pose la taille réelle, un clic glissé votre taille ; R tourne. Le terrain est creusé sous les bassins.
+- Enregistrés dans la Banque, ils proposent une fonction (piscine, stade, tennis…) et leurs places assises font les visiteurs et la jauge des matchs. Voir docs/amenagements.md.
+
 **Tes modèles de l'atelier deviennent de vrais bâtiments** (14 novembre)
 - Dans la Banque (Tab puis 6), chaque bâtiment en murs fins a une **Fonction** : n'importe lequel des 708 bâtiments du jeu (maison, centrale électrique, stade, piscine, ferme, grand-huit, école…). Le modèle fonctionne exactement comme lui, avec ton apparence. Les créations en blocs (Mes créations) ont aussi leur bouton Fonction.
 - Capacités à la taille du modèle : emplois, logements, visiteurs et puissance suivent sa surface par rapport au bâtiment de référence (de ×0,25 à ×4). Prix : les matériaux, et pas moins que le bâtiment de référence à la même surface.

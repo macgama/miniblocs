@@ -294,8 +294,28 @@ func manques(vid: int) -> Array:
 	return out
 
 
+## Même réponse que manques(vid).is_empty(), mais le sondage (cher) n'est fait
+## que si le reste est déjà rempli.
+func peut_monter(vid: int) -> bool:
+	var i := palier_de(vid) + 1
+	if i >= PALIERS.size():
+		return true
+	var p: Dictionary = PALIERS[i]
+	var hab := int(communes.stats.get(vid, {}).get("hab", 0))
+	if hab < int(p.hab):
+		return false
+	for c in p.cond:
+		if not condition(vid, String(c)):
+			return false
+	if int(p.sat) > 0:
+		var s := satisfaction(vid) if hab > 0 else -1
+		if s < int(p.sat):
+			return false
+	return true
+
+
 func verifier_palier(vid: int) -> void:
-	while palier_de(vid) + 1 < PALIERS.size() and manques(vid).is_empty():
+	while palier_de(vid) + 1 < PALIERS.size() and peut_monter(vid):
 		var i := palier_de(vid) + 1
 		paliers[vid] = i
 		var p: Dictionary = PALIERS[i]

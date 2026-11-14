@@ -491,19 +491,60 @@ func _process(delta: float) -> void:
 	step(delta)
 
 
+## Au-delà de LOIN_M de la caméra, un véhicule fait moins d'un pixel : il roule
+## toujours, mais il n'est ni placé ni dessiné (gros gain avec plusieurs villes).
+const LOIN_M := 2000.0
+## Position de la caméra à cette image (INF : pas de caméra, tout est placé).
+var _cam_pos := Vector3.INF
+
+
 ## Fait avancer tous les véhicules de delta secondes.
 func step(delta: float) -> void:
+	var cam := get_viewport().get_camera_3d() if is_inside_tree() else null
+	_cam_pos = cam.global_position if cam != null else Vector3.INF
 	if junctions != null:
 		junctions.tick(delta)
 	_blink += delta
 	_build_index()
+	_parite = 1 - _parite
 	var i := 0
 	while i < vehicles.size():
-		if _advance(vehicles[i], delta):
+		var v: Dictionary = vehicles[i]
+		var d := delta
+		# Voitures et piétons d'ambiance hors de vue : avancés une image sur deux,
+		# du temps des deux images (même trajet, même vitesse).
+		if _cam_pos != Vector3.INF and _loin(v):
+			if (int(v.get("uid", 0)) & 1) == _parite:
+				v.dt_loin = float(v.get("dt_loin", 0.0)) + delta
+				i += 1
+				continue
+			d += float(v.get("dt_loin", 0.0))
+			v.dt_loin = 0.0
+		elif v.has("dt_loin"):
+			d += float(v.dt_loin)
+			v.erase("dt_loin")
+		if _advance(v, d):
 			i += 1
 		else:
-			_free_vehicle(vehicles[i])
+			_free_vehicle(v)
 			vehicles.remove_at(i)
+
+
+var _parite := 0
+
+
+## Véhicule d'ambiance (ni ligne, ni livraison, ni secours, ni joueur à bord) dont
+## tout le tronçon est à plus de LOIN_M de la caméra.
+func _loin(v: Dictionary) -> bool:
+	if v.has("line") or v.has("delivery") or v.has("urgence") or v.has("aboard") or not (v.wagons as Array).is_empty():
+		return false
+	var mode := int(v.mode)
+	if mode != TransportTypes.Mode.ROAD and mode != TransportTypes.Mode.PATH:
+		return false
+	var route: Array[int] = v.route
+	if int(v.leg) >= route.size() or not network.edges.has(route[v.leg]) or not network.nodes.has(int(v.node)):
+		return false
+	return network.node_pos(int(v.node)).distance_to(_cam_pos) > LOIN_M + float(network.edges[route[v.leg]].len)
 
 
 ## Crée un véhicule du mode donné sur un nœud au hasard. Renvoie vrai si réussi.
@@ -1250,6 +1291,15 @@ func _place(v: Dictionary) -> void:
 		return
 	var eid: int = v.route[v.leg]
 	var e: Dictionary = network.edges[eid]
+	if _cam_pos != Vector3.INF and v.has("body") and not v.has("urgence") and not v.has("aboard") \
+			and (v.wagons as Array).is_empty() and network.nodes.has(int(v.node)):
+		# Tout le tronçon est à moins de len du nœud de départ.
+		var loin := network.node_pos(int(v.node)).distance_to(_cam_pos) > LOIN_M + float(e.len)
+		var corps: Node3D = v.body
+		if loin:
+			corps.visible = false
+			return
+		corps.visible = true
 	var forward: bool = e.a == v.node
 	var s: float = v.s if forward else float(e.len) - float(v.s)
 	var p := network.point_at(eid, s)

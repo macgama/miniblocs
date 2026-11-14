@@ -126,6 +126,10 @@ var _routes: Dictionary = {}
 var _gates: Array = []
 var _gates_ok := false
 var _shop_lists: Dictionary = {}
+## Commerces qui vendent chaque bien : g -> [[bid, Vector2 position], …] (ordre de sites).
+var _shops_par_bien: Dictionary = {}
+## Empreinte des commerces (ids et types) au dernier _sync.
+var _shop_sig := 0
 var _dem_today: Dictionary = {}
 var _waiting_driver := 0
 ## Marchandises commandées au dernier pas de logistique.
@@ -161,9 +165,10 @@ func setup(w: TerrainWorld, b: BuildingSystem, p: Population, t: TransportSystem
 	ambiance = a
 	carte = CarteRessources.new(w)
 	buildings.extra_check = check_site
+	# Les listes de commerces par logement ne sont refaites que si les commerces
+	# changent (voir _sync), pas à chaque maison qui pousse.
 	buildings.changed.connect(func() -> void:
-		_dirty = true
-		_shop_lists.clear())
+		_dirty = true)
 	if transport != null:
 		transport.network_changed.connect(func(_a = null) -> void: _network_changed())
 	if population != null:
@@ -201,7 +206,7 @@ func clear() -> void:
 	_freight_seen = _freight_total()
 	_routes.clear()
 	_gates_ok = false
-	_shop_lists.clear()
+	_vider_commerces()
 	_dem_today.clear()
 	_dirty = true
 	changed.emit()
@@ -327,7 +332,6 @@ func _sync() -> void:
 			continue
 		if not sites.has(bid):
 			sites[bid] = _new_site(kind)
-			_shop_lists.clear()
 		var s: Dictionary = sites[bid]
 		var prod := ProductionTypes.prod_of(String(b.t))
 		if kind == "extraction" and float(s.rich) < 0.0:
@@ -338,6 +342,10 @@ func _sync() -> void:
 				var nat := Ressources.naturelle(s.res)
 				if prod.has("reserve") and not nat.get("renouvelable", false) and not nat.get("infini", false):
 					s.reserve = float(prod.reserve) * float(s.rich)
+	var sig := _empreinte_commerces()
+	if sig != _shop_sig:
+		_shop_sig = sig
+		_vider_commerces()
 
 
 static func _new_site(kind: String) -> Dictionary:
@@ -348,11 +356,26 @@ static func _new_site(kind: String) -> Dictionary:
 ## Un site disparaît (démoli) : ses livraisons en cours sont annulées.
 func _remove_site(bid: int) -> void:
 	sites.erase(bid)
-	_shop_lists.clear()
+	_vider_commerces()
 	for mid in missions.keys():
 		var m: Dictionary = missions[mid]
 		if int(m.from) == bid or int(m.to) == bid:
 			_cancel(int(mid))
+
+
+func _vider_commerces() -> void:
+	_shop_lists.clear()
+	_shops_par_bien.clear()
+
+
+## Empreinte des commerces : change quand un commerce apparaît, disparaît ou change de type.
+func _empreinte_commerces() -> int:
+	var l: Array = []
+	for bid in sites:
+		if String(sites[bid].kind) == "commerce":
+			l.append(bid)
+			l.append(_type_of(bid))
+	return hash(l)
 
 
 func _type_of(bid: int) -> String:
@@ -1597,11 +1620,31 @@ func daily_needs() -> Dictionary:
 
 ## Commerces qui vendent une marchandise, du plus proche au plus loin d'un logement.
 func _shops_for(home: int, g: String) -> Array:
+	if _dirty:
+		_sync()
 	var key := "%d:%s" % [home, g]
 	if _shop_lists.has(key):
 		return _shop_lists[key]
 	var here := population.building_pos(home)
+	var h2 := Vector2(here.x, here.z)
 	var list: Array = []
+	for e in _vendeurs(g):
+		var d := (e[1] as Vector2).distance_to(h2)
+		if d <= SHOP_MAX:
+			list.append([d, e[0]])
+	list.sort_custom(func(a: Array, b: Array) -> bool: return float(a[0]) < float(b[0]))
+	var out: Array = []
+	for e in list:
+		out.append(int(e[1]))
+	_shop_lists[key] = out
+	return out
+
+
+## Commerces qui vendent g, avec leur position (gardés jusqu'au prochain changement de commerces).
+func _vendeurs(g: String) -> Array:
+	if _shops_par_bien.has(g):
+		return _shops_par_bien[g]
+	var out: Array = []
 	for bid in sites:
 		if String(sites[bid].kind) != "commerce":
 			continue
@@ -1609,14 +1652,8 @@ func _shops_for(home: int, g: String) -> Array:
 		if not (shop.get("vend", []) as Array).has(g):
 			continue
 		var sp := _pos_of(bid)
-		var d := Vector2(sp.x, sp.z).distance_to(Vector2(here.x, here.z))
-		if d <= SHOP_MAX:
-			list.append([d, bid])
-	list.sort_custom(func(a: Array, b: Array) -> bool: return float(a[0]) < float(b[0]))
-	var out: Array = []
-	for e in list:
-		out.append(int(e[1]))
-	_shop_lists[key] = out
+		out.append([bid, Vector2(sp.x, sp.z)])
+	_shops_par_bien[g] = out
 	return out
 
 

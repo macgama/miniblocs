@@ -92,7 +92,9 @@ func _ready() -> void:
 		buildings = get_node_or_null(buildings_path) as BuildingSystem
 	if buildings != null:
 		if buildings.transport != null:
-			buildings.transport.network.changed.connect(func() -> void: _roads_cache.clear())
+			buildings.transport.network.changed.connect(func() -> void:
+				_roads_cache.clear()
+				_routes_index.clear())
 		buildings.changed.connect(func() -> void:
 			_demand_cache.clear()
 			# Seules les parties de zone autour du bâtiment changé sont redessinées.
@@ -243,6 +245,42 @@ func demand() -> Dictionary:
 var _demand_cache := {}
 ## Routes qui desservent chaque zone : id -> {rect, roads} (vidé quand le réseau change).
 var _roads_cache := {}
+## Index des routes par case de ROUTES_CASE m : Vector2i -> {eid: rang dans network.edges}.
+var _routes_index := {}
+const ROUTES_CASE := 64.0
+
+
+## Routes qui ont un point dans rect, dans l'ordre de network.edges.
+func _routes_dans(net: TransportNetwork, rect: Rect2i) -> Array:
+	if _routes_index.is_empty():
+		_routes_index[Vector2i(2147483647, 0)] = {}  # index fait, même sans route
+		var rang := 0
+		for eid in net.edges:
+			var e: Dictionary = net.edges[eid]
+			rang += 1
+			if TransportTypes.mode_of(e.t) != TransportTypes.Mode.ROAD:
+				continue
+			for p in (e.pts as PackedVector3Array):
+				var k := Vector2i(floori(p.x / ROUTES_CASE), floori(p.z / ROUTES_CASE))
+				if not _routes_index.has(k):
+					_routes_index[k] = {}
+				_routes_index[k][eid] = rang
+	var vus := {}
+	var k0 := Vector2i(floori(rect.position.x / ROUTES_CASE), floori(rect.position.y / ROUTES_CASE))
+	var k1 := Vector2i(floori(rect.end.x / ROUTES_CASE), floori(rect.end.y / ROUTES_CASE))
+	for x in range(k0.x, k1.x + 1):
+		for z in range(k0.y, k1.y + 1):
+			var c: Dictionary = _routes_index.get(Vector2i(x, z), {})
+			for eid in c:
+				if vus.has(eid) or not net.edges.has(eid):
+					continue
+				for p in (net.edges[eid].pts as PackedVector3Array):
+					if rect.has_point(Vector2i(floori(p.x), floori(p.z))):
+						vus[eid] = int(c[eid])
+						break
+	var out := vus.keys()
+	out.sort_custom(func(a: int, b: int) -> bool: return int(vus[a]) < int(vus[b]))
+	return out
 
 
 func _compute_demand() -> Dictionary:
@@ -326,15 +364,7 @@ func _grow_in(z: Dictionary, need := INF) -> int:
 	if not cached.is_empty() and cached.rect == rect:
 		roads = cached.roads
 	else:
-		var grown := rect.grow(14)
-		for eid in net.edges:
-			var e: Dictionary = net.edges[eid]
-			if TransportTypes.mode_of(e.t) != TransportTypes.Mode.ROAD:
-				continue
-			for p in (e.pts as PackedVector3Array):
-				if grown.has_point(Vector2i(floori(p.x), floori(p.z))):
-					roads.append(eid)
-					break
+		roads = _routes_dans(net, rect.grow(14))
 		_roads_cache[int(z.id)] = {"rect": rect, "roads": roads}
 	if roads.is_empty():
 		return -1

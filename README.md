@@ -710,6 +710,12 @@ godot --headless --path . --script res://tests/partie_pays.gd -- --jours 40 --ec
 
 Banc d'une **partie à plusieurs villes et pays** (8 villes autour de Bâle, France, Suisse, Allemagne, reliées par la route) : croissance, caisses, chômage, satisfaction, commerce entre villes et entre pays, images en temps réel, sauvegarde. Résultats et équilibrages : [docs/partie-pays.md](docs/partie-pays.md).
 
+```bash
+godot --headless --path . --script res://tests/partie_reel.gd -- --partie sauvegarde-auto --images 1500
+```
+
+Recharge une partie sauvegardée (par défaut celle du banc précédent) et mesure les **images en temps réel** (moyenne, médiane, pire image, images de plus de 100 ms).
+
 Banc d'essai des performances sur une région de 10 × 10 km : chargement du terrain, survol de 4 km, grande ville en grille (routes, zonage, circulation), sauvegarde et chargement. Affiche les temps par image et `PERF BENCH OK`. `--reseau` utilise le vrai relief d'Annecy, `--big` une ville deux fois plus grande.
 
 ## Pistes pour la suite

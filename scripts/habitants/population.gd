@@ -102,6 +102,8 @@ var rng := RandomNumberGenerator.new()
 # Index (recalculés) : bâtiment -> foyers, employés, élèves.
 var by_home: Dictionary = {}
 var by_job: Dictionary = {}
+## Augmente à chaque changement de by_job (embauche, départ, démolition, chargement).
+var emplois_version := 0
 var by_school: Dictionary = {}
 ## Bâtiments connus : bid -> {t, cat, log, emp, seats, pos, public}
 var known: Dictionary = {}
@@ -188,7 +190,7 @@ func _ready() -> void:
 	if not ambiance_path.is_empty():
 		ambiance = get_node_or_null(ambiance_path) as DayNight
 	if buildings != null:
-		buildings.changed.connect(func() -> void: _sync_buildings.call_deferred())
+		buildings.changed.connect(func() -> void: demander_sync())
 	_marker = MeshInstance3D.new()
 	_marker.mesh = BoxMesh.new()
 	var m := StandardMaterial3D.new()
@@ -246,6 +248,7 @@ func clear() -> void:
 	households.clear()
 	by_home.clear()
 	by_job.clear()
+	emplois_version += 1
 	by_school.clear()
 	known.clear()
 	_arrival_acc.clear()
@@ -309,14 +312,37 @@ func _process(delta: float) -> void:
 		return
 	var dt := clampf(t - last_unix, 0.0, 86400.0 * 3.0)
 	last_unix = t
+	_en_jeu = true
 	if dt > 0.0:
 		advance(dt, true)
+	_match_pas(MATCH_BUDGET_US)
 	_now = {}
+
+
+## Vrai quand le jeu avance image par image (_process) : les attributions sont alors étalées.
+var _en_jeu := false
+var _sync_demande := false
+
+
+## Bâtiments changés : une seule mise à jour à la fin de l'image, même si plusieurs
+## systèmes la demandent (bâtiments, meubles, plans).
+func demander_sync() -> void:
+	if _sync_demande:
+		return
+	_sync_demande = true
+	_sync_differe.call_deferred()
+
+
+func _sync_differe() -> void:
+	_sync_demande = false
+	_sync_buildings(true)
 
 
 ## Fait avancer la simulation de dt secondes de jeu.
 ## realtime : appelé par le jeu (les attributions sont limitées à ~3 par seconde réelle).
 func advance(dt: float, realtime := false) -> void:
+	if not realtime and not _match_en_cours.is_empty():
+		_match_pas(1 << 60)
 	life_clock += dt / 86400.0 * life_speed()
 	_step_acc += dt
 	# Arrivées et attributions toutes les 5 minutes de jeu.
@@ -336,7 +362,10 @@ func advance(dt: float, realtime := false) -> void:
 		var heure := floori(ambiance.unix_time / 3600.0) if ambiance != null else -1
 		if not realtime or persons.size() != avant or heure != _heure_attrib:
 			_heure_attrib = heure
-			_match_all()
+			if realtime:
+				_demander_match()
+			else:
+				_match_all()
 		if principal.enabled and principal.mine() < 0 and not households.is_empty():
 			principal.try_birth()
 	var d := int(now().day)
@@ -379,7 +408,8 @@ func _info_of(b: Dictionary) -> Dictionary:
 
 
 ## Met la liste des bâtiments à jour : nouveaux bâtiments, bâtiments démolis.
-func _sync_buildings() -> void:
+## etaler : en jeu, les attributions qui suivent sont étalées sur plusieurs images.
+func _sync_buildings(etaler := false) -> void:
 	if buildings == null:
 		return
 	var extra := _extras()
@@ -414,7 +444,10 @@ func _sync_buildings() -> void:
 		_vider_lieux()
 		_transit_cache.clear()
 		vie.clear_cache()
-		_match_all()
+		if etaler and _en_jeu:
+			_demander_match()
+		else:
+			_match_all()
 		changed.emit()
 	if _selected >= 0 and not known.has(_selected):
 		select_building(-1)
@@ -434,6 +467,7 @@ func _remove_building(bid: int) -> void:
 			persons[pid].job = -1
 			persons[pid].met = ""
 	by_job.erase(bid)
+	emplois_version += 1
 	for pid in by_school.get(bid, []):
 		if persons.has(pid):
 			persons[pid].sch = -1
@@ -604,6 +638,7 @@ func _remove_person(pid: int, check_household := true, archive := "") -> void:
 func _leave_job(p: Dictionary, reason := "") -> void:
 	if int(p.job) >= 0:
 		(by_job.get(int(p.job), []) as Array).erase(int(p.id))
+		emplois_version += 1
 		if reason != "":
 			vie.log_event(p, "fin_emploi", reason, int(p.job))
 	p.job = -1
@@ -701,6 +736,14 @@ func _immigrate(hours: float) -> void:
 
 ## Attribue les écoles et les emplois au plus proche (et met les retraites à jour).
 func _match_all() -> void:
+	var m := _match_debut()
+	for pid in persons:
+		_match_personne(m, persons[pid])
+	_apres_embauches()
+
+
+## Listes de départ des attributions : écoles et employeurs qui ont de la place.
+func _match_debut() -> Dictionary:
 	var schools := []
 	var jobs := []
 	for bid in known:
@@ -708,63 +751,120 @@ func _match_all() -> void:
 			schools.append(bid)
 		if free_jobs(bid) > 0:
 			jobs.append(bid)
-	for pid in persons:
-		var p: Dictionary = persons[pid]
-		var st := stage(p)
-		if st == "eleve":
-			# École devenue trop loin (route coupée, déménagement) : on en cherche une autre.
-			if int(p.sch) >= 0 and school_ok.is_valid() and known.has(int(p.sch)) and not school_ok.call(p, int(p.sch)):
-				_leave_school(p)
-			if int(p.sch) < 0 and not schools.is_empty():
-				var possibles := schools
-				if school_ok.is_valid():
-					possibles = schools.filter(func(b: int) -> bool: return school_ok.call(p, b))
-				var best := _nearest(home_of(p), possibles) if not possibles.is_empty() else -1
-				if best >= 0:
-					_join_school(p, best)
-					if free_seats(best) <= 0:
-						schools.erase(best)
-			if int(p.sch) >= 0:
-				var lvl := Metiers.school_level(age_years(p))
-				if String(p.get("niv", "")) != lvl:
-					p.niv = lvl
-					const ENTRE := {"maternelle": "Entre à l'école maternelle", "élémentaire": "Entre à l'école élémentaire",
-						"collège": "Entre au collège", "lycée": "Entre au lycée"}
-					vie.log_event(p, "ecole", "%s (%s)" % [ENTRE.get(lvl, "Entre à l'école"), building_name(int(p.sch))], int(p.sch))
-		elif int(p.sch) >= 0:
+	# urgents : bâtiments fermés faute du métier indispensable, parmi ceux qui embauchent.
+	return {"schools": schools, "jobs": jobs, "urgents": [], "sale": true}
+
+
+## Attributions d'un habitant (école, retraite, emploi).
+func _match_personne(m: Dictionary, p: Dictionary) -> void:
+	var schools: Array = m.schools
+	var jobs: Array = m.jobs
+	var urgents: Array = m.urgents
+	var st := stage(p)
+	if st == "eleve":
+		# École devenue trop loin (route coupée, déménagement) : on en cherche une autre.
+		if int(p.sch) >= 0 and school_ok.is_valid() and known.has(int(p.sch)) and not school_ok.call(p, int(p.sch)):
 			_leave_school(p)
-		if st == "retraite" and not bool(p.get("ret", false)):
-			p.ret = true
-			vie.log_event(p, "retraite", "Prend sa retraite%s" % (" (%s)" % String(Metiers.job(String(p.met)).name).to_lower()
-				if int(p.job) >= 0 else ""), int(p.job))
-		if st == "retraite" and int(p.job) >= 0:
-			_leave_job(p)
-		elif st == "chomeur" and not jobs.is_empty():
-			# D'abord les bâtiments fermés faute du métier indispensable (Effectif) :
-			# l'école cherche un enseignant, l'hôpital un médecin…
-			var met := ""
-			var best := -1
-			if effectif != null:
-				var urgents := []
+		if int(p.sch) < 0 and not schools.is_empty():
+			var possibles := schools
+			if school_ok.is_valid():
+				possibles = schools.filter(func(b: int) -> bool: return school_ok.call(p, b))
+			var best := _nearest(home_of(p), possibles) if not possibles.is_empty() else -1
+			if best >= 0:
+				_join_school(p, best)
+				if free_seats(best) <= 0:
+					schools.erase(best)
+		if int(p.sch) >= 0:
+			var lvl := Metiers.school_level(age_years(p))
+			if String(p.get("niv", "")) != lvl:
+				p.niv = lvl
+				const ENTRE := {"maternelle": "Entre à l'école maternelle", "élémentaire": "Entre à l'école élémentaire",
+					"collège": "Entre au collège", "lycée": "Entre au lycée"}
+				vie.log_event(p, "ecole", "%s (%s)" % [ENTRE.get(lvl, "Entre à l'école"), building_name(int(p.sch))], int(p.sch))
+	elif int(p.sch) >= 0:
+		_leave_school(p)
+	if st == "retraite" and not bool(p.get("ret", false)):
+		p.ret = true
+		vie.log_event(p, "retraite", "Prend sa retraite%s" % (" (%s)" % String(Metiers.job(String(p.met)).name).to_lower()
+			if int(p.job) >= 0 else ""), int(p.job))
+	if st == "retraite" and int(p.job) >= 0:
+		_leave_job(p)
+		m.sale = true
+	elif st == "chomeur" and not jobs.is_empty():
+		# D'abord les bâtiments fermés faute du métier indispensable (Effectif) :
+		# l'école cherche un enseignant, l'hôpital un médecin…
+		var met := ""
+		var best := -1
+		if effectif != null:
+			# Liste faite une fois, puis tenue à jour : ferme() refait tout le
+			# bilan du personnel à chaque embauche (très cher dans les grandes parties).
+			if m.sale:
+				m.sale = false
+				urgents.clear()
 				for b in jobs:
 					if effectif.ferme(b):
 						urgents.append(b)
-				if not urgents.is_empty():
-					best = _nearest(home_of(p), urgents)
-					var req := Effectif.requis_de(String(known[best].t)) if best >= 0 else []
-					if not req.is_empty():
-						met = String(req[0])
-			if best < 0:
-				best = _nearest(home_of(p), jobs)
-			if best >= 0:
-				_join_job(p, best, met)
-				if effectif != null:
-					effectif.oublier(best)
-				if free_jobs(best) <= 0:
-					jobs.erase(best)
-		elif (st == "bebe" or st == "eleve") and int(p.job) >= 0:
-			_leave_job(p)
-	_apres_embauches()
+			if not urgents.is_empty():
+				best = _nearest(home_of(p), urgents)
+				var req := Effectif.requis_de(String(known[best].t)) if best >= 0 else []
+				if not req.is_empty():
+					met = String(req[0])
+		if best < 0:
+			best = _nearest(home_of(p), jobs)
+		if best >= 0:
+			_join_job(p, best, met)
+			if effectif != null:
+				effectif.oublier(best)
+				if urgents.has(best) and (free_jobs(best) <= 0 or not effectif.ferme(best)):
+					urgents.erase(best)
+			if free_jobs(best) <= 0:
+				jobs.erase(best)
+	elif (st == "bebe" or st == "eleve") and int(p.job) >= 0:
+		_leave_job(p)
+		m.sale = true
+
+
+## En jeu, les attributions sont étalées sur plusieurs images (MATCH_BUDGET_US par
+## image) : avec beaucoup d'habitants, les faire d'un coup fait saccader l'image.
+const MATCH_BUDGET_US := 3000
+## Attributions en cours : {m, ids, i} ; vide quand il n'y en a pas.
+var _match_en_cours := {}
+## Une demande est arrivée pendant le passage : on en refait un derrière.
+var _match_encore := false
+
+
+func _demander_match() -> void:
+	if _match_en_cours.is_empty():
+		_match_en_cours = {"m": _match_debut(), "ids": persons.keys(), "i": 0}
+	else:
+		_match_encore = true
+
+
+func _match_pas(budget_us: int) -> void:
+	if _match_en_cours.is_empty():
+		return
+	var t0 := Time.get_ticks_usec()
+	var m: Dictionary = _match_en_cours.m
+	# Entre deux images, des bâtiments ont pu être démolis ou se remplir.
+	m.schools = (m.schools as Array).filter(func(b: int) -> bool: return known.has(b) and free_seats(b) > 0)
+	m.jobs = (m.jobs as Array).filter(func(b: int) -> bool: return known.has(b) and free_jobs(b) > 0)
+	m.urgents = (m.urgents as Array).filter(func(b: int) -> bool: return known.has(b) and free_jobs(b) > 0)
+	var ids: Array = _match_en_cours.ids
+	var i := int(_match_en_cours.i)
+	while i < ids.size():
+		var pid: int = ids[i]
+		i += 1
+		if persons.has(pid):
+			_match_personne(m, persons[pid])
+		if Time.get_ticks_usec() - t0 >= budget_us:
+			break
+	_match_en_cours.i = i
+	if i >= ids.size():
+		_match_en_cours = {}
+		_apres_embauches()
+		if _match_encore:
+			_match_encore = false
+			_demander_match()
 
 
 ## Les embauches ont pu ouvrir ou fermer des bâtiments : les trajets vers les
@@ -819,6 +919,7 @@ func _join_job(p: Dictionary, bid: int, metier := "") -> void:
 	if not by_job.has(bid):
 		by_job[bid] = []
 	(by_job[bid] as Array).append(int(p.id))
+	emplois_version += 1
 	var j := Metiers.job(String(p.met))
 	vie.log_event(p, "emploi", "%s %s à %s (%s net par mois)" % ["Change de travail : devient" if had else "Devient",
 		String(j.name).to_lower(), building_name(bid), HabitantsPanel.money(float(j.salaire) * ReglagesPartie.actuel.salaires)], bid)
@@ -2021,6 +2122,7 @@ func from_dict(d: Dictionary) -> void:
 	households.clear()
 	by_home.clear()
 	by_job.clear()
+	emplois_version += 1
 	by_school.clear()
 	known.clear()
 	_vider_lieux()
@@ -2075,6 +2177,7 @@ func from_dict(d: Dictionary) -> void:
 			if not by_job.has(job):
 				by_job[job] = []
 			(by_job[job] as Array).append(pid)
+			emplois_version += 1
 		var sch := int(e[9])
 		if known.has(sch) and int(known[sch].seats) > 0:
 			_join_school(p, sch)

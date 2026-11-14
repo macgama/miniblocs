@@ -634,7 +634,7 @@ func _setup_population() -> void:
 	population.message.connect(func(t: String) -> void: hud.show_message(t))
 	# Pas de bâtiment, personne dans les rues : la circulation suit les habitants.
 	transport.traffic.demand = population.traffic_demand
-	buildings.changed.connect(func() -> void: population._sync_buildings.call_deferred())
+	buildings.changed.connect(func() -> void: population.demander_sync())
 	habitants_panel = HabitantsPanel.new()
 	habitants_panel.name = "PanneauHabitants"
 	add_child(habitants_panel)
@@ -1638,8 +1638,8 @@ func _setup_mobilier() -> void:
 	mobilier.message.connect(func(t: String) -> void: hud.show_message(t))
 	population.extra_buildings = mobilier.population_info
 	population.extra_pick = mobilier.bid_at
-	mobilier.changed.connect(func() -> void: population._sync_buildings.call_deferred())
-	plans.changed.connect(func() -> void: population._sync_buildings.call_deferred())
+	mobilier.changed.connect(func() -> void: population.demander_sync())
+	plans.changed.connect(func() -> void: population.demander_sync())
 	occupants = Occupants.new()
 	occupants.name = "Occupants"
 	add_child(occupants)

@@ -124,7 +124,8 @@ func setup(p: Population, b: BuildingSystem, t: TransportSystem, u: Urgences = n
 	if transport != null:
 		transport.network_changed.connect(func() -> void:
 			_dij.clear()
-			_accroche.clear()
+			# Les accroches au réseau ne sont revues qu'autour des voies changées.
+			_accroches_a_revoir = true
 			_ecole_ok.clear()
 			marquer())
 	add_to_group("avis_sources")
@@ -151,6 +152,9 @@ func clear() -> void:
 	resume.clear()
 	_dij.clear()
 	_accroche.clear()
+	_accroche_p.clear()
+	_aretes_vues.clear()
+	_accroches_a_revoir = false
 	_pos_cache.clear()
 	_ecole_ok.clear()
 	delits = {"total": 0, "sans_police": 0, "mois": 0, "mois_debut": -1}
@@ -236,12 +240,79 @@ func _pos(bid: int) -> Vector3:
 
 ## Point du réseau le plus proche d'un bâtiment (mis en cache).
 func _accroche_de(bid: int, mode: String) -> Dictionary:
+	if _accroches_a_revoir:
+		_revoir_accroches()
 	var key := "%s:%d" % [mode, bid]
 	if _accroche.has(key):
 		return _accroche[key]
-	var r := _accroche_pos(_pos(bid), mode)
+	var p := _pos(bid)
+	var r := _accroche_pos(p, mode)
 	_accroche[key] = r
+	_accroche_p[key] = p
 	return r
+
+
+## Point de chaque accroche gardée (clé de _accroche -> position cherchée).
+var _accroche_p := {}
+## Empreinte de chaque voie du réseau à la dernière revue : eid -> hash(type, tracé).
+var _aretes_vues := {}
+var _accroches_a_revoir := false
+
+
+## Le réseau a changé : une accroche n'est oubliée que si sa voie a disparu ou changé,
+## ou si une voie nouvelle ou changée passe assez près pour être choisie (même
+## recherche que _accroche_pos, à la case près). Les autres restent justes.
+func _revoir_accroches() -> void:
+	_accroches_a_revoir = false
+	if transport == null:
+		_accroche.clear()
+		_accroche_p.clear()
+		return
+	var net := transport.network
+	var changees := {}
+	var boites: Array[Rect2] = []
+	var vues := {}
+	for eid in net.edges:
+		var e: Dictionary = net.edges[eid]
+		var h := hash([String(e.t), e.pts])
+		vues[eid] = h
+		if int(_aretes_vues.get(eid, h + 1)) != h:
+			changees[eid] = true
+			var pts: PackedVector3Array = e.pts
+			var r := Rect2(Vector2(pts[0].x, pts[0].z), Vector2.ZERO)
+			for q in pts:
+				r = r.expand(Vector2(q.x, q.z))
+			boites.append(r)
+	for eid in _aretes_vues:
+		if not vues.has(eid):
+			changees[eid] = true
+	var premiere := _aretes_vues.is_empty()
+	_aretes_vues = vues
+	if premiere:
+		# Pas de référence : tout est à refaire.
+		_accroche.clear()
+		_accroche_p.clear()
+		return
+	if changees.is_empty():
+		return
+	# 250 m : rayon le plus large de _accroche_pos ; + 2 cases de l'index des voies.
+	var marge := 250.0 + 2.0 * TransportSystem.HASH
+	for key in _accroche.keys():
+		var r: Dictionary = _accroche[key]
+		var oublier := not r.is_empty() and changees.has(int(r.edge))
+		if not oublier:
+			var p: Vector3 = _accroche_p.get(key, Vector3.INF)
+			if p == Vector3.INF:
+				oublier = true
+			else:
+				var zone := Rect2(Vector2(p.x - marge, p.z - marge), Vector2(marge, marge) * 2.0)
+				for b in boites:
+					if zone.intersects(b, true):
+						oublier = true
+						break
+		if oublier:
+			_accroche.erase(key)
+			_accroche_p.erase(key)
 
 
 func _accroche_pos(p: Vector3, mode: String) -> Dictionary:
@@ -475,14 +546,33 @@ func _rebuild_service(s: String, homes: Array) -> void:
 			ouverts.append(bid)
 	# 1) Chaque logement va au lieu le plus rapide.
 	var servis := {}
+	var ouv_pos := PackedVector2Array()
+	for l in ouverts:
+		var lp := _pos(l)
+		ouv_pos.append(Vector2(lp.x, lp.z))
 	for h in homes:
+		# Lieux du plus proche au plus loin à vol d'oiseau : dès que le temps minimal
+		# possible dépasse le meilleur trouvé, les suivants ne peuvent pas faire mieux.
+		# Même résultat qu'en les essayant tous (à égalité, le premier de la liste).
+		var hp := _pos(h)
+		var h2 := Vector2(hp.x, hp.z)
+		var ordre := []
+		for i in ouverts.size():
+			ordre.append([h2.distance_to(ouv_pos[i]), i])
+		ordre.sort_custom(func(a: Array, b: Array) -> bool: return float(a[0]) < float(b[0]))
 		var best := -1
+		var best_i := -1
 		var bt := INF
-		for l in ouverts:
+		for e in ordre:
+			if _minutes_min(float(e[0]) - 50.0, s) > bt:
+				break
+			var i := int(e[1])
+			var l: int = ouverts[i]
 			var t := minutes(h, l, s)
-			if t < bt:
+			if t < bt or (t == bt and bt < INF and i < best_i):
 				bt = t
 				best = l
+				best_i = i
 		out[h] = {"via": best, "min": bt, "q": 0.0, "charge": 0.0, "why": ""}
 		if best >= 0 and bt < float(SEUIL[s]) * 2.0:
 			servis[best] = float(servis.get(best, 0.0)) + float(_habitants(h))
@@ -584,14 +674,17 @@ static func couverture(pos: Vector3, service := "") -> float:
 	if instance == null or instance.population == null:
 		return 0.0
 	if service == "":
+		# Accroches au réseau du point : cherchées une fois pour les trois services.
+		var acc := {}
 		var s := 0.0
 		for t in TYPES:
-			s += instance._couverture_pos(pos, t)
+			s += instance._couverture_pos(pos, t, acc)
 		return s / TYPES.size()
 	return instance._couverture_pos(pos, service)
 
 
-func _couverture_pos(pos: Vector3, service: String) -> float:
+## acc : accroches du point au réseau (mode -> accroche), partagées entre services.
+func _couverture_pos(pos: Vector3, service: String, acc := {}) -> float:
 	var key := "%s:%d:%d" % [service, roundi(pos.x / 20.0), roundi(pos.z / 20.0)]
 	if _pos_cache.has(key):
 		return _pos_cache[key]
@@ -607,7 +700,6 @@ func _couverture_pos(pos: Vector3, service: String) -> float:
 		for e in (resume.get(service, {}) as Dictionary).get("lieux", []):
 			charges[int(e.bid)] = float(e.charge)
 		_pos_cache["charges:" + service] = charges
-	var acc := {}
 	for l in lx:
 		if service != "ecole" and _ferme(l):
 			continue

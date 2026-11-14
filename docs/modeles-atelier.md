@@ -40,9 +40,21 @@ remet en simple décor.
   bâtiments déjà posés.
 - Test : `tests/modeles_jeu_test.gd` ; vitrine : `tests/modeles_jeu_vitrine.gd -- --vue rue|banque`.
 
+## Visitable une fois posé
+
+Quand le chantier d'un modèle est fini, `ModelesVisites` (nœud « ModelesVisites » de la scène) pose
+ses vrais murs, planchers, escaliers, toit en blocs, pièces et meubles à la place du volume cuit,
+tournés comme le bâtiment (`ModelesJeu.place_rotated`). Le volume cuit ne sert plus que pendant le
+chantier, ou si les murs fins n'ont pas pu être posés (bâtiment tourné d'un angle libre).
+
+- Le bâtiment du catalogue garde le rôle de jeu : les murs fins liés (`Mobilier.linked`) ne comptent
+  pas une deuxième fois pour les habitants, et un clic dedans ouvre la fiche du bâtiment.
+- Démoli, le bâtiment emporte ses murs, ses meubles et son toit.
+- Sauvegarde : section `modeles_visites` (bâtiment → murs fins et blocs du toit).
+
 ## Limites
 
-- Un modèle posé comme bâtiment n'est pas visitable (le maillage est cuit, sans meubles). « Poser
-  meublé » (Banque) pose les vrais murs et meubles, sans rotation ni chantier.
+- Les grandes pièces en blocs de plusieurs cases (formes arrondies) ne tournent pas encore avec le
+  bâtiment.
 - Pas de pièces mobiles : un grand-huit fait maison ne bouge pas.
 - Le zonage ne fait pas encore pousser les modèles.

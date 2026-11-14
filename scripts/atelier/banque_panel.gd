@@ -155,7 +155,7 @@ func _card(id: String, bp: BuildingPanel) -> Control:
 	var put := Button.new()
 	put.text = "Poser"
 	put.icon = Icones.get_icon("plus", 16)
-	put.tooltip_text = ("Comme un bâtiment du catalogue : prix, rotation R, accès à une route, chantier. Il joue le rôle de sa fonction."
+	put.tooltip_text = ("Comme un bâtiment du catalogue : prix, rotation R, accès à une route, chantier. Il joue le rôle de sa fonction, et se visite une fois construit."
 		if plan else "Pose ce bâtiment personnalisé (prix, rotation R, accès à une route, chantier).")
 	put.pressed.connect(func() -> void:
 		if prepare.is_valid():

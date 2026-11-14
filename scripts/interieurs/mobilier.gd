@@ -117,6 +117,9 @@ var _ghost_key := ""
 var _focus := ""
 var _vis_timer := 0.0
 var _stats_cache: Dictionary = {}
+## Murs fins d'un modèle de l'atelier posé comme bâtiment : id -> bid du bâtiment
+## (c'est lui qui compte pour les habitants, voir ModelesVisites).
+var linked: Dictionary = {}
 
 
 func _ready() -> void:
@@ -1297,6 +1300,8 @@ func population_info() -> Dictionary:
 	if pe == null:
 		return out
 	for id in pe.plans:
+		if linked.has(id):
+			continue
 		var s := stats(id)
 		var u: String = s.usage
 		var bbox: Rect2i = pe._bbox.get(id, Rect2i())
@@ -1325,6 +1330,8 @@ func bid_at(c: Vector2i) -> int:
 	var id := pe.plan_at(c, 0)
 	if id == "":
 		return -1
+	if linked.has(id):
+		return int(linked[id])
 	return bid_of(id)
 
 

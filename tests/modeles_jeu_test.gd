@@ -79,6 +79,66 @@ func _run() -> void:
 		_check(Metiers.keys_of(cid).has("maison"), "les habitants le voient comme une maison")
 	bs.unlimited_money = true
 
+	print("Visitable une fois posé :")
+	var mv: ModelesVisites = scene.modeles_visites
+	var amb: DayNight = scene.get_node("Ambiance")
+	var pe: PlanEditor = mob.pe
+	var n_walls := (d.walls as Array).size() / 9
+	var n_meubles := (d.meubles as Array).size() / 6
+	var n_blocs := (d.blocs as Array).size() / 4
+	var bids := [bid]
+	for rr in 4:
+		bids.append(bs.place(cid, Vector2i(-60 + rr * 22, 70), rr))
+	amb.unix_time += 86400.0 * 90
+	for i in 40:
+		await process_frame
+	mv.sync()
+	var all_ok := true
+	for i in bids.size():
+		var b_id: int = bids[i]
+		if b_id < 0 or bs.en_chantier(b_id):
+			_check(false, "bâtiment %d posé et fini" % i)
+			all_ok = false
+			continue
+		var pid := mv.plan_of(b_id)
+		if pid == "" or not pe.plans.has(pid):
+			_check(false, "murs fins posés (bâtiment %d)" % i)
+			all_ok = false
+			continue
+		var pl: Dictionary = pe.plans[pid]
+		var rect: Rect2i = bs._rect_of(bs.buildings[b_id])
+		var bb: Rect2i = pe._bbox[pid]
+		var nm := (mob.items.get(pid, {}) as Dictionary).size()
+		var ok_i: bool = pl.walls.size() == n_walls and nm == n_meubles and (mv.links[b_id].bk as Array).size() == n_blocs * 3 \
+			and rect.encloses(bb) and not bs.node_of(b_id).visible and mob.linked.get(pid, -1) == b_id
+		if not ok_i:
+			print("    r=%d murs %d/%d meubles %d/%d blocs %d/%d emprise %s dans %s" % [int(bs.buildings[b_id].r), pl.walls.size(), n_walls, nm, n_meubles,
+				(mv.links[b_id].bk as Array).size() / 3, n_blocs, str(bb), str(rect)])
+		all_ok = all_ok and ok_i
+	_check(all_ok, "dans les 4 orientations : mêmes murs, meubles et toit, dans l'emprise, volume cuit caché")
+	mob._on_plans_changed()
+	var kept := true
+	for b_id in bids:
+		kept = kept and (mob.items.get(mv.plan_of(b_id), {}) as Dictionary).size() == n_meubles
+	_check(kept, "aucun meuble ne tombe à la vérification (orientations justes)")
+	var info := mob.population_info()
+	var counted := false
+	for k in info:
+		if mob.linked.has(String(info[k].plan)):
+			counted = true
+	_check(not counted, "les murs fins ne comptent pas une deuxième fois pour les habitants")
+	var cell_in := Vector2i(pe._bbox[mv.plan_of(bids[1])].get_center())
+	_check(mob.bid_at(cell_in) == bids[1], "un clic dans la maison montre le bâtiment")
+	var saved_links := mv.to_dict()
+	mv.from_dict(saved_links)
+	_check(mv.links.size() == bids.size() and mob.linked.size() == bids.size(), "liens relus après sauvegarde")
+	var gone_plan := mv.plan_of(bids[2])
+	var gone_bk: Array = mv.links[bids[2]].bk
+	bs.demolish(bids[2])
+	mv.sync()
+	_check(not pe.plans.has(gone_plan) and not mv.links.has(bids[2]) and not mob.items.has(gone_plan), "démoli : murs et meubles partis")
+	_check(gone_bk.is_empty() or not pe.blocks.blocks.has(Vector3i(int(gone_bk[0]), int(gone_bk[1]), int(gone_bk[2]))), "et son toit en blocs aussi")
+
 	print("Fonction : centrale électrique :")
 	BanqueModeles.set_fonction(mid, "centrale_gaz")
 	t = BuildingCatalog.get_type(cid)

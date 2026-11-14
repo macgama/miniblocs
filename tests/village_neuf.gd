@@ -11,15 +11,16 @@ extends SceneTree
 ##     résidentielles, une entreprise du bâtiment.
 ## Puis la partie tourne --jours jours (pas de 10 min, une tentative de croissance
 ## par pas). Relève tous les 5 jours les habitants, logements, chantiers et zones de
-## chaque village. Les seuils : un village neuf doit passer 15 habitants en
-## 20 jours et 100 en 40 jours (avant l'équilibrage : 36 pour Neuville et 0 pour
-## Clairbois en 40 jours).
+## chaque village. Les seuils (SEUILS) : Clairbois doit passer 15 habitants en
+## 20 jours et 100 en 40 jours, Neuville 40 en 40 jours (avant l'équilibrage :
+## 0 pour Clairbois et 36 pour Neuville en 40 jours).
 ##
 ## Usage : godot --headless --path . --script res://tests/village_neuf.gd [-- --apres 10 --jours 40 --rapport villages.csv]
 
 const NEUFS := [["Neuville", 2600, 0, true], ["Clairbois", -2600, 0, false]]
-const SEUIL_20 := 15
-const SEUIL_40 := 100
+## Seuils [20 jours, 40 jours] : le village aménagé et celui du pilote automatique
+## (qui zone peu à peu et varie beaucoup d'un lancement à l'autre).
+const SEUILS := {"Clairbois": [15, 100], "Neuville": [0, 40]}
 
 var ok := true
 var _logger: Journal
@@ -88,6 +89,7 @@ var fd: Fondateurs
 var cm: Communes
 var pa: PiloteAuto
 var pays: Pays
+var _perdus := 0
 
 
 func _offline(g: Node) -> void:
@@ -231,6 +233,14 @@ func _run() -> void:
 				k = "C"
 			zs.add_zone(k, Rect2i(x, z - 30, 280, 60))
 	var vid0 := cm.principal()
+	# Bâtiments démolis ou perdus (incendie, tempête…) : comptés pour le bilan.
+	bs.removed.connect(func(bid: int) -> void:
+		_perdus += 1)
+	# Croissance pas à pas seulement (une tentative par pas de 10 min, pas d'essais en
+	# plus selon le temps réel) et premiers tirages fixés.
+	zs.growth = false
+	zs.rng.seed = 20261114
+	pop.rng.seed = 20261114
 
 	var pas := 600.0
 	var t0 := amb.unix_time
@@ -278,7 +288,7 @@ func _run() -> void:
 			print("  " + " | ".join(txt))
 			if OS.get_cmdline_user_args().has("--diag"):
 				_diag(vids)
-	print("  temps moyen par pas : %.1f ms" % (ms_tot / maxf(n_frames, 1)))
+	print("  temps moyen par pas : %.1f ms ; %d bâtiments démolis ou perdus" % [ms_tot / maxf(n_frames, 1), _perdus])
 	if rapport != "":
 		var f := FileAccess.open(rapport, FileAccess.WRITE)
 		if f != null:
@@ -293,10 +303,11 @@ func _run() -> void:
 		var mode := "pilote automatique" if bool(v[3]) else "aménagé par le joueur"
 		print("    %-10s (%s) : %d habitants, 100 habitants %s" % [nom, mode, l.hab,
 			("au jour %d" % int(atteint[nom])) if atteint.has(nom) else "pas atteints"])
+		var seuils: Array = SEUILS[nom]
 		if jours_max >= 20:
-			_check(int(a20.get(nom, 0)) >= SEUIL_20, "%s : %d habitants après 20 jours (au moins %d)" % [nom, int(a20.get(nom, 0)), SEUIL_20])
+			_check(int(a20.get(nom, 0)) >= int(seuils[0]), "%s : %d habitants après 20 jours (au moins %d)" % [nom, int(a20.get(nom, 0)), int(seuils[0])])
 		if jours_max >= 40:
-			_check(int(l.hab) >= SEUIL_40, "%s : %d habitants après %d jours (au moins %d)" % [nom, l.hab, jours_max, SEUIL_40])
+			_check(int(l.hab) >= int(seuils[1]), "%s : %d habitants après %d jours (au moins %d)" % [nom, l.hab, jours_max, int(seuils[1])])
 	_fin()
 
 

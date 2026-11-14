@@ -14,8 +14,9 @@ extends Node
 ##        (village neuf : 10 logements d'avance, ou ses zones sont pleines ;
 ##        zones de 120 m, plus nombreuses) ;
 ##      - services selon la population (BESOINS) : entreprise du bâtiment dès
-##        10 habitants, école dès 60 habitants (ou des enfants sans école), aire de jeux, boulangerie, parc, pompiers,
-##        police, supérette, antenne 4G, central téléphonique, collecte des
+##        10 habitants (si les chantiers ont besoin d'ouvriers), école dès
+##        60 habitants (ou des enfants sans école), aire de jeux, boulangerie,
+##        parc, pompiers, police, supérette, antenne 4G, central téléphonique, collecte des
 ##        déchets (dépôt de camions-bennes et décharge), gymnase,
 ##        deuxième école, hôpital ;
 ##      - chômage au-dessus de 12 % : une zone d'activités (commerces ou ateliers) ;
@@ -35,7 +36,8 @@ const ZONE_LARGE := 30
 const CHOMAGE_MAX := 12.0
 ## Services : [type, habitants à partir desquels il en faut un, nombre voulu par tranche].
 const BESOINS := [
-	# Ses propres ouvriers pour les chantiers (Fondateurs), dès les premiers foyers.
+	# Ses propres ouvriers pour les chantiers, dès les premiers foyers (seulement quand
+	# les chantiers ont besoin d'ouvriers : Fondateurs.regle_active).
 	["entreprise_btp", 10, 3000],
 	["ecole", 60, 1500], ["aire_jeux", 40, 0], ["boulangerie", 80, 0], ["parc", 150, 0], ["pompiers", 250, 0],
 	["police", 250, 4000], ["superette", 300, 0], ["pylone_4g", 150, 0], ["central_telephonique", 400, 0],
@@ -262,6 +264,8 @@ func construire(vid: int) -> String:
 			return t
 	for b in BESOINS:
 		var id := String(b[0])
+		if id == Fondateurs.ENTREPRISE and (Fondateurs.instance == null or not Fondateurs.instance.regle_active()):
+			continue
 		var voulu := 1 if hab >= int(b[1]) else 0
 		# Un de plus par tranche, mais seulement passé le seuil : avant, ceili(1 / 1500) = 1
 		# faisait bâtir école, police et dépôt de collecte dès le premier habitant.

@@ -181,7 +181,7 @@ func _refresh_tuto() -> void:
 	var e := tuto.etape_courante()
 	if e.is_empty():
 		return
-	_etape_l.text = "Tutoriel · étape %d / %d" % [tuto.numero(), tuto.total()]
+	_etape_l.text = _entete()
 	_titre_l.text = String(e.titre)
 	_texte_l.text = String(e.texte)
 	_touches_l.text = String(e.get("touches", ""))
@@ -189,8 +189,14 @@ func _refresh_tuto() -> void:
 	_action_b.visible = e.has("action")
 	if e.has("action"):
 		_action_b.text = String(e.action[0])
-	_passer_b.visible = String(e.id) != "fin"
+	_passer_b.visible = String(e.id) != "fin" and String(e.id) != "fin_demo"
 	_refresh_progres()
+
+
+func _entete() -> String:
+	if tuto.est_demo():
+		return "Démo guidée · étape %d / %d · %s" % [tuto.numero(), tuto.total(), Demo.duree(tuto.minutes_demo())]
+	return "Tutoriel · étape %d / %d" % [tuto.numero(), tuto.total()]
 
 
 func _refresh_progres() -> void:
@@ -207,6 +213,8 @@ func _process(delta: float) -> void:
 	_tick = 0.0
 	if tuto.actif:
 		_refresh_progres()
+		if tuto.est_demo():
+			_etape_l.text = _entete()
 	_refresh_objectifs()
 
 

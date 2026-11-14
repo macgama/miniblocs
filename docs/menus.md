@@ -17,6 +17,7 @@ Une devise tirée au hasard s'affiche sous le titre.
 | Bouton | Effet |
 | --- | --- |
 | Continuer | reprend la partie la plus récente (sauvegarde auto comprise) ; sa carte avec l'aperçu est en bas à droite |
+| Démo guidée | partie d'environ 30 minutes au lieu de la démo, pas à pas, avec un bilan (voir [demo.md](demo.md)) |
 | Nouvelle partie | ouvre le globe pour choisir le lieu (Échap ou « Menu principal » pour revenir) |
 | Charger une partie | liste des parties, avec aperçu, fiche, renommer, supprimer |
 | Atelier | terrain plat pour créer des bâtiments, sans habitants ni argent |

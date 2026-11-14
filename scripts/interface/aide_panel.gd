@@ -116,6 +116,7 @@ const SECTIONS := [
 	["Tutoriel et objectifs à l'écran", [
 		["Tutoriel guidé", "case sur le globe (cochée par défaut) : une étape à la fois en haut à gauche (caméra, fonder le village, fondateurs, route, logements, courant et eau, temps, emplois, école, budget, objectifs) ; chaque étape se valide toute seule quand tu l'as faite"],
 		["Bouton de l'étape · Passer · croix", "le bouton fait le premier geste à ta place (ouvrir le bon panneau, prendre l'outil) ; Passer saute l'étape ; la croix arrête le tutoriel"],
+		["Démo guidée", "bouton du menu principal : une partie d'environ 30 minutes près d'Échallens, le tutoriel puis six chapitres (vue au sol, loisirs, fête, bus, 100 habitants) et un bilan ; la partie continue après"],
 		["F10 → Aide", "relancer le tutoriel (il reprend à la première étape pas faite) ou masquer les objectifs à l'écran"],
 		["Objectifs à l'écran", "sous le tutoriel : rang de la ville gérée et ce qui manque pour monter, missions du pays avec leur progrès, les jours restants et la prime ; clic sur « Objectifs » : panneau Maj+J ; ▾ replie"],
 	]],

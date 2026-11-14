@@ -11,6 +11,8 @@ Au début d'une partie, il n'y a encore aucun habitant. Mais les chantiers ont b
 - Chaque chantier veut une **équipe complète** : une maison ≈ 8 à 10 ouvriers, la Maison de commune ≈ 10, une usine ≈ 20, une voie ou un réseau 3 à 16 selon la longueur (`Chantiers.equipe_batiment`, `Chantiers.equipe_travaux`).
 - Les ouvriers sont les fondateurs restés à la **base de chantier** du campement, puis les employés des **Entreprises du bâtiment** (Construire → Industrie, 20 emplois, 450 000 €).
 - Ils vont aux chantiers **dans l'ordre** où ceux-ci ont commencé, chacun jusqu'à son équipe complète. Un chantier à **équipe incomplète** avance moins vite (5 ouvriers sur 10 = deux fois plus lent). Un chantier **sans ouvriers attend**, et rien n'est payé tant qu'il attend.
+- **À plusieurs villages**, le premier chantier de chaque village passe avant les autres : un village neuf n'attend pas que la grande ville ait fini tous les siens.
+- **Pionniers** : chaque village fondé après le premier reçoit une équipe de pionniers (20 % des fondateurs réglés en F10, 20 par défaut, 10 au moins) pendant 60 jours, ou jusqu'à ce qu'il compte 150 foyers. Ils ne travaillent que pour ce village, aux logements d'abord, et le panneau **Maj+H** dit combien de jours il leur reste. Voir [villages-neufs.md](villages-neufs.md).
 - Pour doser : dans le panneau **Maj+H**, chaque chantier a **Pause** (ses ouvriers vont aux suivants) et **En premier** (il est servi avant les autres).
 - Le panneau du chantier (de près) dit « En attente d'ouvriers », « En pause » ou « 6 ouvriers sur 10 ».
 

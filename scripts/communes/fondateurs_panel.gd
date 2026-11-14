@@ -163,8 +163,14 @@ func _resume() -> void:
 	var o := fd.ouvriers()
 	_section("Les fondateurs")
 	_text("%s · %d sous la tente · %d logés dans une maison" % [_n(viv.size(), "fondateur"), tente, maxi(0, viv.size() - tente)])
-	_text("Ouvriers pour les chantiers : %d (fondateurs %d, entreprises du bâtiment %d) · %s" % [fd.total_ouvriers,
-		int(o.fondateurs), int(o.entreprises), "%d sans chantier" % fd.libres if fd.libres > 0 else "tous au travail"], true, 12)
+	_text("Ouvriers pour les chantiers : %d (fondateurs %d, entreprises du bâtiment %d%s) · %s" % [fd.total_ouvriers,
+		int(o.fondateurs), int(o.entreprises), ", pionniers %d" % int(o.pionniers) if int(o.pionniers) > 0 else "",
+		"%d sans chantier" % fd.libres if fd.libres > 0 else "tous au travail"], true, 12)
+	for vid in fd.pionniers:
+		if fd.communes != null and fd.communes.villages.has(vid):
+			var jours := maxi(0, ceili((float(fd.pionniers[vid].fin) - fd.ambiance.unix_time) / 86400.0)) if fd.ambiance != null else 0
+			_text("Pionniers à %s : %d ouvriers, encore %d jours (ils ne travaillent que pour ce village)." % [
+				String(fd.communes.villages[vid].nom), int(fd.pionniers[vid].n), jours], false, 12)
 	if not fd.regle_active():
 		_text("Réglage Admin : les chantiers n'ont pas besoin d'ouvriers (ou construction instantanée).", true, 12)
 	if tente > 0:

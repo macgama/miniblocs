@@ -236,6 +236,14 @@ const SECTIONS := [
 		["Note", "prestige des œuvres (plus fort dans la salle de leur thème), éclairage, place, vitrines pour les objets fragiles, bancs, toilettes, billetterie, boutique, café ; une exposition temporaire attire du monde"],
 		["Visiteurs", "habitants et touristes, de 10 h à 18 h (19 h l'été), fermé le lundi ; plus nombreux le week-end, le mercredi, l'été et quand il pleut ; gratuit le 1er dimanche si tu le veux"],
 	]],
+	["Spectacles", [
+		["Maj + X", "menu Spectacles (barre du bas, Loisirs) : cinémas, salles de concert, théâtres et studios de cinéma ; onglets Mes salles, Programmer, Studios, Bâtir, À l'affiche, Public"],
+		["Bâtir", "25 bâtiments (Construire → Spectacles) : cinéma d'art et d'essai, multiplexe, plein air, drive-in ; club de jazz, salle de musiques actuelles, auditorium, aréna, scène de festival ; café-théâtre, théâtre à l'italienne, scène contemporaine, grand opéra, théâtre de verdure, chapiteau ; studios et annexes"],
+		["Programmer", "60 spectacles en tournée (orchestres, rock, rap, électro, chanson, Molière, Shakespeare, opéras, ballets, humour, cirque, marionnettes) avec le public et le bénéfice attendus ; ou la programmation automatique"],
+		["Public", "selon la notoriété, l'âge des habitants (goûts par genre), le jour (vendredi et samedi), la saison, le prix du billet et la note de la salle ; les stars font venir la région. En plein air : fermé l'hiver, annulé sous la pluie"],
+		["Argent", "billets et bar contre cachet, technique, droits d'auteur (9 %) et salaires ; au cinéma, la moitié du billet va au distributeur, ou à tes studios si c'est ton film"],
+		["Studios", "produire un film : genre, budget (court métrage à superproduction), réalisateur, tête d'affiche ; un plateau par film ; décors, effets spéciaux, post-production et atelier à moins de 300 m améliorent le film ; 8 semaines en salle dans tout le pays puis les droits télé ; Bobine d'or chaque 20 mai"],
+	]],
 	["Parc de loisirs", [
 		["Maj + G", "panneau du parc : note en étoiles, visiteurs, prix de l'entrée et des tours, recettes, attractions (files, fiabilité, pannes), ce que disent les visiteurs, conseils"],
 		["Construire → Parc de loisirs", "l'Entrée du parc (au bord d'une route) fonde le parc ; attractions, stands, toilettes, aires de repos et atelier se posent à moins de 250 m derrière elle, sans route"],

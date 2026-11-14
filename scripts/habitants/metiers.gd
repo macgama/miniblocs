@@ -84,6 +84,19 @@ const METIERS := {
 	"animateur_zoo": {"name": "Animateur·rice pédagogique", "salaire": 1850, "h": [9.0, 18.0], "j": "tous", "geste": ["conseiller"]},
 	"laborantin": {"name": "Technicien·ne de laboratoire", "salaire": 2300, "h": [8.0, 17.0], "j": "semaine"},
 	"maitre_nageur": {"name": "Maître-nageur·euse sauveteur·rice", "salaire": 1800, "h": [10.0, 19.5], "j": "tous", "geste": ["surveiller"]},
+	# Spectacles (scripts/spectacles).
+	"projectionniste": {"name": "Projectionniste", "salaire": 1800, "h": [13.0, 24.0], "j": "tous", "geste": ["projeter"]},
+	"musicien": {"name": "Musicien·ne", "salaire": 2400, "h": [14.0, 23.5], "j": "marsam", "geste": ["jouer"]},
+	"danseur": {"name": "Danseur·euse", "salaire": 2100, "h": [10.0, 23.0], "j": "marsam", "geste": ["jouer"]},
+	"regisseur": {"name": "Régisseur·euse de spectacle", "salaire": 2600, "h": [13.0, 24.0], "j": "marsam", "geste": ["controle", "porter"]},
+	"technicien_spectacle": {"name": "Technicien·ne son et lumière", "salaire": 2100, "h": [14.0, 24.0], "j": "marsam", "tenue": "ouvrier", "geste": ["controle", "machine"]},
+	"ouvreur": {"name": "Agent·e d'accueil de salle", "salaire": 1550, "h": [17.0, 23.5], "j": "marsam", "geste": ["billets"]},
+	"couturier": {"name": "Costumier·ère", "salaire": 1900, "h": [9.0, 18.0], "j": "semaine", "geste": ["machine"]},
+	"technicien_plateau": {"name": "Technicien·ne de plateau (cinéma)", "salaire": 2400, "h": [7.0, 19.0], "j": "semaine", "tenue": "ouvrier", "geste": ["porter", "machine"]},
+	"decorateur": {"name": "Décorateur·rice de cinéma", "salaire": 2300, "h": [7.5, 17.0], "j": "semaine", "tenue": "ouvrier", "geste": ["marteler", "raboter"]},
+	"monteur": {"name": "Monteur·euse et mixeur·euse", "salaire": 2600, "h": [9.0, 19.0], "j": "semaine", "geste": ["taper"]},
+	"producteur": {"name": "Chargé·e de production", "salaire": 3300, "h": [9.0, 19.0], "j": "semaine", "tenue": "cadre", "geste": ["taper", "conseiller"]},
+	"realisateur": {"name": "Réalisateur·rice", "salaire": 4200, "h": [8.0, 20.0], "j": "semaine", "tenue": "cadre", "geste": ["conseiller"]},
 }
 
 ## Métiers proposés par bâtiment : clé = type, archétype de style ou catégorie.
@@ -187,7 +200,7 @@ const LOISIRS := {
 	"natation": {"name": "Natation", "lieux": ["piscine"], "age": [4, 90]},
 	"musculation": {"name": "Sport en salle", "lieux": ["gymnase"], "age": [15, 75]},
 	"cinema": {"name": "Cinéma", "lieux": ["cinema"], "age": [6, 95]},
-	"theatre": {"name": "Théâtre", "lieux": ["theatre", "kiosque_musique"], "age": [10, 95]},
+	"theatre": {"name": "Théâtre", "lieux": ["theatre", "kiosque_musique", "salle_concert"], "age": [10, 95]},
 	"cafe": {"name": "Café entre amis", "lieux": ["cafe", "restaurant"], "age": [16, 95]},
 	"promenade": {"name": "Promenade", "lieux": ["parc", "jardin", "cat:espaces"], "age": [0, 100]},
 	"aire_jeux": {"name": "Aire de jeux", "lieux": ["aire_jeux", "parc"], "age": [2, 10]},

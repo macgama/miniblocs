@@ -66,6 +66,9 @@ var totals := {"naissances": 0, "deces": 0, "age_deces": 0.0, "mariages": 0, "pa
 var _digest := {}
 var _pollution := {}
 var _hospital := {}
+## Bâtiments où l'on soigne (hôpital, clinique, médecin…), dans l'ordre de pop.known.
+var _lieux_soins: Array = []
+var _lieux_soins_ok := false
 
 
 func _init(p: Population) -> void:
@@ -83,6 +86,8 @@ func clear() -> void:
 func clear_cache() -> void:
 	_pollution.clear()
 	_hospital.clear()
+	_lieux_soins = []
+	_lieux_soins_ok = false
 
 
 # --- Petits outils -----------------------------------------------------------------
@@ -419,18 +424,25 @@ func hospital_distance(bid: int) -> float:
 	if _hospital.has(bid):
 		return _hospital[bid]
 	var best := INF
-	if pop.known.has(bid):
-		var o: Vector3 = pop.known[bid].pos
+	if not _lieux_soins_ok:
+		_lieux_soins_ok = true
+		_lieux_soins = []
 		for other in pop.known:
 			var keys := Metiers.keys_of(String(pop.known[other].t))
 			if keys.has("hopital") or keys.has("clinique") or keys.has("sante") or keys.has("medecin"):
-				# Sans médecin ni infirmier, personne n'y est soigné ; en sous-effectif,
-				# c'est comme s'il était deux fois plus loin (Effectif).
-				var eff := pop.effectif
-				if eff != null and eff.ferme(other):
-					continue
-				var k := 2.0 if eff != null and eff.manque(other) else 1.0
-				best = minf(best, o.distance_to(pop.known[other].pos) * k)
+				_lieux_soins.append(other)
+	if pop.known.has(bid):
+		var o: Vector3 = pop.known[bid].pos
+		for other in _lieux_soins:
+			if not pop.known.has(other):
+				continue
+			# Sans médecin ni infirmier, personne n'y est soigné ; en sous-effectif,
+			# c'est comme s'il était deux fois plus loin (Effectif).
+			var eff := pop.effectif
+			if eff != null and eff.ferme(other):
+				continue
+			var k := 2.0 if eff != null and eff.manque(other) else 1.0
+			best = minf(best, o.distance_to(pop.known[other].pos) * k)
 	_hospital[bid] = best
 	return best
 

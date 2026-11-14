@@ -78,15 +78,57 @@ Pire image en temps réel : de 4,8 s à moins de 2,5 s ; pas moyen du banc de 1,
   réussis d'affilée (jusqu'à ×2), succès « Fidèle au poste » à 7 jours.
 - *Rang « Ville moyenne »* à 5 000 habitants, entre Ville (2 000) et Grande ville (10 000).
 
+## Image fluide à plusieurs villes
+
+Mesuré avec `tests/partie_reel.gd` sur la partie de 40 jours (8 villes, 11 800 habitants),
+1 500 images en temps réel, sans carte graphique :
+
+| | Avant | Après |
+|---|---|---|
+| Image moyenne | 109 ms (9 par seconde) | 61 ms (16 par seconde) |
+| Image médiane | 51 ms | 39 ms |
+| 95 % des images sous | 257 ms | 150 ms |
+| Pire image (minuit de jeu) | 21 s | 6 s |
+
+```bash
+godot --headless --path . --script res://tests/partie_reel.gd -- --partie sauvegarde-auto --images 1500
+```
+
+Les règles du jeu ne changent pas : mêmes calculs, faits moins souvent ou sur moins
+de choses, ou étalés sur quelques images.
+- **Courses du jour** : la liste des commerces de chaque logement était refaite à chaque
+  bâtiment qui pousse ; elle ne l'est plus que si un commerce apparaît, disparaît ou
+  change. Minuit passe de 14 s à 0,4 s.
+- **Embauches et écoles** : les bâtiments fermés faute de personnel sont listés une fois
+  par passage (avant : pour chaque chômeur, avec un bilan du personnel complet à chaque
+  embauche), et le bilan n'est refait que si un emploi a changé. En jeu, le passage sur
+  tous les habitants est étalé sur plusieurs images (3 ms par image) : un emploi peut
+  être attribué quelques images plus tard.
+- **Réseaux** (électricité, eau, égouts) : un bâtiment qui pousse est raccordé seul ;
+  les tracés ne sont recalculés que s'ils changent.
+- **Couverture des services** : quand une route change, seuls les bâtiments proches
+  cherchent de nouveau leur accès au réseau (vérifié identique sur 2 725 accès) ; chaque
+  logement essaie les lieux du plus proche au plus loin et s'arrête quand plus aucun ne
+  peut être plus rapide.
+- **Circulation** : à plus de 2 km de la caméra, un véhicule d'ambiance fait moins d'un
+  pixel : il roule toujours mais n'est plus dessiné, et il avance une image sur deux
+  (avec le temps des deux images).
+- **Croissance des zones** : routes proches de chaque zone trouvées par un index.
+- **Paliers des villes** : le sondage n'est fait que si le reste (habitants, bâtiments)
+  est déjà rempli. Vie des habitants : la liste des lieux de soins est faite une fois.
+
 ## Ce qui reste
 
-- **Images en temps réel** : 100 à 160 ms par image en moyenne sans carte graphique
-  (6 à 10 images par seconde) avec 8 villes et 5 000 habitants, contre 29 ms pour une seule
-  ville de 15 000 habitants. Les plus gros postes : circulation (~11 ms), réseaux (~10 ms),
-  zones (~10 ms), habitants. À mesurer aussi sur un vrai PC, avec la carte graphique.
+- **Minuit de jeu** : il reste un à-coup d'une à plusieurs secondes une fois par jour
+  (vie des habitants 1,2 s, sondages, statistiques, couverture des services). À étaler
+  sur plusieurs images.
+- **Images en temps réel** : la circulation (~10 ms), les réseaux (~8 ms) et les
+  habitants (~7 ms) restent les plus gros postes. À mesurer aussi sur un vrai PC, avec
+  la carte graphique.
 - **Villages neufs lents** : 8 à 185 habitants en 40 jours, même sous pilote automatique.
 - **Import bloqué** : avec deux sorties de route seulement, la capacité d'import du jour est
   vite prise (sel, acier, plastiques, bois manquants). Une gare ou un port en plus règle ça.
-- **Chauffeurs-livreurs** : 4 ou 5 entreprises attendent un chauffeur en fin de partie.
+- **Écoles pleines** : dans la partie de 40 jours, 2 200 enfants sur 3 400 n'ont pas de
+  place à l'école (le pilote automatique ne construit pas assez d'écoles).
 - **Chargement** d'une partie de 13 000 habitants : ~45 s dans le conteneur, dont 25 s
   d'attente du relief hors ligne (sans internet) ; `transport.from_dict` prend ~6,6 s.

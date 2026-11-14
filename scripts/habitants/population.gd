@@ -39,6 +39,11 @@ const SCHOOL_AGE := 3
 const DEFAULT_SCHOOL_SEATS := 250
 ## Foyers qui emménagent par heure de jeu, en part des logements libres.
 const ARRIVAL_RATE := 0.6
+## Arrivées par ville et par jour de jeu, au plus : ARRIVEES_MIN_JOUR foyers + une
+## part des foyers déjà installés (une ville ne double pas du jour au lendemain,
+## même avec des centaines de logements vides).
+const ARRIVEES_MIN_JOUR := 4.0
+const ARRIVEES_PART_JOUR := 0.03
 ## Distance à pied, à vélo (m).
 const WALK_MAX := 1200.0
 const BIKE_MAX := 4000.0
@@ -115,6 +120,8 @@ var attrait_logement: Callable
 var avant_arrivees: Callable
 
 var _arrival_acc: Dictionary = {}
+## Arrivées encore permises par ville (id du village, -1 hors village) : foyers.
+var _quota_arrivees: Dictionary = {}
 var _money_frac := 0.0
 var _step_acc := 0.0
 var _last_step_ms := 0
@@ -237,6 +244,7 @@ func clear() -> void:
 	by_school.clear()
 	known.clear()
 	_arrival_acc.clear()
+	_quota_arrivees.clear()
 	_venue_cache.clear()
 	next_pid = 1
 	next_hid = 1
@@ -633,6 +641,18 @@ func stage_label(p: Dictionary) -> String:
 
 ## Arrivées : les logements libres se remplissent peu à peu.
 func _immigrate(hours: float) -> void:
+	var cm := Communes.instance
+	# Quotas du pas : selon les foyers de chaque ville (ou de toute la carte sans village).
+	# Sans village (prototype, bac à sable de test) : pas de quota.
+	var quotas := cm != null and not cm.villages.is_empty()
+	var foyers := {}
+	if quotas:
+		for vid in cm.villages:
+			foyers[int(vid)] = int(cm.stats.get(vid, {}).get("foyers", 0))
+		foyers[-1] = 0
+	for v in foyers:
+		var par_jour := ARRIVEES_MIN_JOUR + ARRIVEES_PART_JOUR * float(foyers[v])
+		_quota_arrivees[v] = minf(float(_quota_arrivees.get(v, par_jour)) + par_jour * hours / 24.0, par_jour)
 	for bid in known:
 		# Les tentes libérées au campement (couples, départs) ne sont pas à louer.
 		if Fondateurs.est_campement(bid):
@@ -647,6 +667,15 @@ func _immigrate(hours: float) -> void:
 		var attrait := float(attrait_logement.call(bid)) if attrait_logement.is_valid() else 1.0
 		acc += maxf(1.0, free * ARRIVAL_RATE) * hours * attrait
 		var n := mini(int(acc), free)
+		if quotas:
+			var v := cm.village_de(bid)
+			if not _quota_arrivees.has(v):
+				v = -1
+			n = mini(n, int(_quota_arrivees.get(v, 0.0)))
+			if n <= 0:
+				_arrival_acc[bid] = minf(acc, float(free))
+				continue
+			_quota_arrivees[v] = float(_quota_arrivees[v]) - n
 		acc -= n
 		_arrival_acc[bid] = acc
 		for i in n:
@@ -1903,6 +1932,7 @@ func from_dict(d: Dictionary) -> void:
 	known.clear()
 	_venue_cache.clear()
 	_arrival_acc.clear()
+	_quota_arrivees.clear()
 	next_pid = int(d.get("next_pid", 1))
 	next_hid = int(d.get("next_hid", 1))
 	life_clock = float(d.get("life_clock", 0.0))

@@ -501,7 +501,7 @@ func _run() -> void:
 		for nom in noms:
 			var vid := int(vids[nom])
 			var ch := pa.chiffres(vid)
-			var sat := stats.dernier(str(vid), "satisfaction") if stats != null else -1.0
+			var sat := float(Objectifs.instance.satisfaction(vid)) if Objectifs.instance != null else -1.0
 			row.append_array([int(ch.hab), pays.solde(vid), "%.1f" % float(ch.chomage), "%.0f" % sat])
 		for nk in pays.cles_nations():
 			row.append(pays.solde(int(nk)))
@@ -515,7 +515,7 @@ func _run() -> void:
 				var vid := int(vids[nom])
 				var ch := pa.chiffres(vid)
 				detail.append("%s %d hab, %s, chôm %.0f %%, satisf %.0f" % [nom, int(ch.hab), BuildingSystem.format_money(pays.solde(vid)), float(ch.chomage),
-					stats.dernier(str(vid), "satisfaction") if stats != null else -1.0])
+					float(Objectifs.instance.satisfaction(vid)) if Objectifs.instance != null else -1.0])
 			print("      " + " | ".join(detail))
 			var dn := []
 			for nk in pays.cles_nations():
@@ -534,6 +534,7 @@ func _run() -> void:
 			f.store_string("\n".join(lignes) + "\n")
 			print("  rapport : ", rapport)
 
+	_diag_production(prod, pop)
 	print("Bilan :")
 	cm.calculer_stats()
 	var hab_fin := pop.persons.size()
@@ -548,7 +549,7 @@ func _run() -> void:
 		var ch := pa.chiffres(vid)
 		print("    %-12s %-10s %5d hab | caisse %s (plus bas %s) | chômage %.0f %% | satisfaction %.0f | ventes aux autres villes %s, achats %s" % [nom,
 			pays.nom_nation(pays.nation_de(vid)), int(ch.hab), BuildingSystem.format_money(pays.solde(vid)), BuildingSystem.format_money(int(min_caisse.get(vid, 0))),
-			float(ch.chomage), stats.dernier(str(vid), "satisfaction") if stats != null else -1.0,
+			float(ch.chomage), float(Objectifs.instance.satisfaction(vid)) if Objectifs.instance != null else -1.0,
 			BuildingSystem.format_money(roundi(float(prod.commerce_ville(vid).ventes))), BuildingSystem.format_money(roundi(float(prod.commerce_ville(vid).achats)))])
 	for nk in pays.cles_nations():
 		var cn := prod.commerce_nation(int(nk))
@@ -615,3 +616,30 @@ func _fin() -> void:
 		ok = false
 	print("PARTIE PAYS OK" if ok else "PARTIE PAYS ÉCHEC")
 	quit(0 if ok else 1)
+
+
+## Entreprises : effectif, rendement, stocks et ce qu'elles attendent.
+func _diag_production(prod: Production, pop: Population) -> void:
+	print("Entreprises :")
+	var attentes := {}
+	for bid in prod.sites:
+		var site: Dictionary = prod.sites[bid]
+		if not bs.buildings.has(bid):
+			continue
+		var t := String(bs.buildings[bid].t)
+		var emplois := int(BuildingCatalog.get_type(t).get("emplois", 0))
+		var ville := cm.village_de(bid)
+		var nom: String = String(cm.villages[ville].nom) if cm.villages.has(ville) else "hors ville"
+		var a := String(site.get("attente", ""))
+		if a != "":
+			attentes[a] = int(attentes.get(a, 0)) + 1
+		if String(site.kind) in ["extraction", "transformation", "elevage", "entrepot"]:
+			var st := []
+			for g in site.st:
+				if float(site.st[g]) >= 0.05:
+					st.append("%s %.1f t" % [g, float(site.st[g])])
+			print("    %-12s %-22s %3d/%3d employés, rendement %.2f, %s | %s" % [nom, t, prod._workers(bid), emplois, prod._rendement(bid),
+				", ".join(st) if not st.is_empty() else "stock vide", a if a != "" else String(site.get("status", ""))])
+	for a in attentes:
+		print("    attente « %s » : %d sites" % [a, int(attentes[a])])
+	print("    livraisons en cours %d, portes d'import-export %d" % [prod.missions.size(), prod.gateways().size()])

@@ -819,8 +819,73 @@ func _new_day() -> void:
 	_board_commuters()
 	var years := life_speed() / 365.25 # années de vie écoulées en un jour de jeu
 	vie.daily(years)
+	_mobilite()
 	vie.flush_digest()
 	changed.emit()
+
+
+## Marché du travail : chaque jour, des actifs quittent un employeur au complet pour
+## un autre, proche, qui manque de monde (une usine ou une ferme qui ouvre dans une
+## ville sans chômeurs). Elle se remplit ainsi en une à deux semaines au lieu de
+## rester vide. Les métiers indispensables (enseignant, médecin…) ne partent pas.
+const MOBILITE_PART := 0.15
+const MOBILITE_ECART := 0.3
+const MOBILITE_RAYON := 4000.0
+const MOBILITE_MAX_JOUR := 250
+
+
+func _mobilite() -> void:
+	var taux := {}
+	var cibles := []
+	var donneurs := []
+	for bid in known:
+		var emp := int(known[bid].emp)
+		if emp <= 0 or Fondateurs.est_campement(bid):
+			continue
+		var t := float((by_job.get(bid, []) as Array).size()) / emp
+		taux[bid] = t
+		if emp >= 2 and t < 0.5:
+			cibles.append(bid)
+		elif t >= 0.5 + MOBILITE_ECART:
+			donneurs.append(bid)
+	if cibles.is_empty() or donneurs.is_empty():
+		return
+	cibles.sort_custom(func(a: int, b: int) -> bool: return float(taux[a]) < float(taux[b]))
+	var r2 := MOBILITE_RAYON * MOBILITE_RAYON
+	var faits := 0
+	for cible in cibles:
+		if faits >= MOBILITE_MAX_JOUR:
+			break
+		var emp := int(known[cible].emp)
+		var voulu := ceili((emp - (by_job.get(cible, []) as Array).size()) * MOBILITE_PART)
+		var pos: Vector3 = known[cible].pos
+		var proches := []
+		for d in donneurs:
+			var dd := pos.distance_squared_to(known[d].pos)
+			if dd <= r2:
+				proches.append([dd, d])
+		proches.sort_custom(func(a: Array, b: Array) -> bool: return float(a[0]) < float(b[0]))
+		for e in proches:
+			if voulu <= 0 or faits >= MOBILITE_MAX_JOUR:
+				break
+			var d := int(e[1])
+			var requis := Effectif.requis_de(String(known[d].t))
+			for pid in (by_job.get(d, []) as Array).duplicate():
+				if voulu <= 0 or float(taux[d]) < float(taux[cible]) + MOBILITE_ECART:
+					break
+				var p: Dictionary = persons[pid]
+				if requis.has(String(p.met)) or stage(p) != "actif":
+					continue
+				if Production.instance != null and Production.instance.busy.has(int(pid)):
+					continue
+				_join_job(p, cible)
+				if effectif != null:
+					effectif.oublier(cible)
+					effectif.oublier(d)
+				taux[d] = float((by_job.get(d, []) as Array).size()) / int(known[d].emp)
+				taux[cible] = float((by_job.get(cible, []) as Array).size()) / emp
+				voulu -= 1
+				faits += 1
 
 
 ## Un jeune adulte quitte ses parents s'il trouve un logement libre.

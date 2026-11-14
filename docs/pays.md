@@ -71,11 +71,11 @@ mairie perdue »** (par défaut pour les nouvelles parties) :
 
 ## Pilote automatique
 
-Panneau Pays (Maj+P) → **Activer** sous une ville. Une fois par semaine de jeu, si tu en es
-le maire :
+Panneau Pays (Maj+P) → **Activer** sous une ville. Si tu en es le maire, chaque jour de jeu
+une construction si la ville en a besoin, et une fois par semaine :
 
 1. budget tenu à l'équilibre (`GestionAuto`, programme « équilibre ») ;
-2. **une** construction, la plus urgente, payée par la ville en gardant une réserve de
+2. **une** construction (comme les autres jours), la plus urgente, payée par la ville en gardant une réserve de
    3 mois de dépenses (200 k€ au moins) :
    - pas de rue : une rue de 300 m devant la mairie ;
    - logements presque pleins : zone résidentielle de 40 × 30 m le long d'une rue ;

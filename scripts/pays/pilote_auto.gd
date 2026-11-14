@@ -3,7 +3,8 @@ extends Node
 ## Pilote automatique d'une ville (panneau Pays, Maj+P → « Pilote auto ») :
 ## à la demande du joueur, la ville se gère et se construit toute seule.
 ##
-## Une fois par semaine de jeu, pour chaque ville pilotée dont le joueur est le maire :
+## Chaque jour de jeu, pour chaque ville pilotée dont le joueur est le maire : une construction si besoin ;
+## une fois par semaine, aussi le budget et les arrêtés :
 ##   1. le budget est tenu à l'équilibre (GestionAuto, programme « équilibre ») ;
 ##   2. une seule construction, la plus urgente, si la caisse peut la payer en
 ##      gardant une réserve (3 mois de dépenses, 200 k€ au moins) :
@@ -116,6 +117,12 @@ func _process(_delta: float) -> void:
 			continue
 		if posmod(d + int(vid), JOURS_ENTRE) == 0:
 			semaine(int(vid))
+		elif pays.joueur_maire(int(vid)):
+			# Entre deux semaines : une construction par jour si la ville en a besoin.
+			var fait := construire(int(vid))
+			if fait != "":
+				_noter(int(vid), fait)
+				changed.emit()
 
 
 ## La semaine d'une ville pilotée : budget puis une construction.

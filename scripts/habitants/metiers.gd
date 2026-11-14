@@ -66,6 +66,12 @@ const METIERS := {
 	"gardien_cimetiere": {"name": "Gardien·ne de cimetière", "salaire": 1750, "h": [8.0, 18.0], "j": "tous", "public": true, "geste": ["surveiller", "balayer"]},
 	"operateur_crematorium": {"name": "Opérateur·rice de crématorium", "salaire": 2000, "h": [8.0, 17.0], "j": "lunsam", "public": true, "tenue": "operateur", "geste": ["controle", "surveiller"]},
 	"jardinier": {"name": "Jardinier·ère", "salaire": 1750, "h": [7.0, 15.0], "j": "semaine", "public": true, "geste": ["balayer"]},
+	# Parc de loisirs (ParcLoisirs).
+	"operateur_attraction": {"name": "Opérateur·rice d'attraction", "salaire": 1650, "h": [9.5, 19.5], "j": "tous", "geste": ["controle", "surveiller"]},
+	"agent_accueil_parc": {"name": "Agent·e d'accueil et de billetterie", "salaire": 1600, "h": [9.0, 19.5], "j": "tous", "geste": ["billets"]},
+	"technicien_attraction": {"name": "Technicien·ne de maintenance des manèges", "salaire": 2150, "h": [7.0, 16.0], "j": "tous", "tenue": "ouvrier"},
+	"agent_proprete": {"name": "Agent·e de propreté", "salaire": 1550, "h": [9.0, 20.0], "j": "tous", "geste": ["balayer"]},
+	"vendeur_parc": {"name": "Vendeur·euse de stand", "salaire": 1500, "h": [10.0, 20.0], "j": "tous", "geste": ["servir"]},
 	"laborantin": {"name": "Technicien·ne de laboratoire", "salaire": 2300, "h": [8.0, 17.0], "j": "semaine"},
 }
 

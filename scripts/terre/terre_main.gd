@@ -50,6 +50,9 @@ var budget_panel: BudgetPanel
 ## Déchets : collecte, décharges, tri et recyclage (touche X).
 var dechets: Dechets
 var dechets_panel: DechetsPanel
+## Parc de loisirs : attractions, visiteurs, files, billets, note (Maj+G).
+var parc: ParcLoisirs
+var parc_panel: ParcPanel
 ## Obsèques, cimetières, crématorium, pompes funèbres (onglet Funéraire du panneau H).
 var funeraire: Funeraire
 ## Chantiers, usure des bâtiments, abords et fumée des maisons habitées.
@@ -152,6 +155,7 @@ func _ready() -> void:
 	_setup_services()
 	_setup_telecom()
 	_setup_dechets()
+	_setup_parc()
 	_setup_funeraire()
 	_setup_vie()
 	_setup_decors()
@@ -324,6 +328,7 @@ func save_sections() -> Dictionary:
 	sec["niveaux_vie"] = niveaux_vie.to_dict()
 	sec["statistiques"] = statistiques.to_dict()
 	sec["tutoriel"] = tutoriel.to_dict()
+	sec["parc"] = parc.to_dict()
 	sec["quartiers"] = quartiers.to_dict()
 	return sec
 
@@ -426,6 +431,7 @@ func load_game(slot := "") -> bool:
 	services.from_dict(sec.get("services", {}))
 	telecom.from_dict(sec.get("telecom", {}))
 	dechets.from_dict(sec.get("dechets", {}))
+	parc.from_dict(sec.get("parc", {}))
 	funeraire.from_dict(sec.get("funeraire", {}))
 	ambiance.from_dict(sec.get("ambiance", {}))
 	# Après les bâtiments et les habitants : dégâts, ruines, malades, matchs.
@@ -1255,6 +1261,23 @@ func _setup_dechets() -> void:
 		rig.position.x = pos.x
 		rig.position.z = pos.z)
 	hud.dechets_requested.connect(func() -> void: dechets_panel.toggle())
+
+
+## Parc de loisirs : manèges, visiteurs, files d'attente, billets et panneau (Maj+G).
+func _setup_parc() -> void:
+	parc = ParcLoisirs.new()
+	parc.name = "ParcLoisirs"
+	add_child(parc)
+	parc.setup(buildings, population, transport, ambiance)
+	parc.message.connect(func(t: String) -> void: hud.show_message(t))
+	parc_panel = ParcPanel.new()
+	parc_panel.name = "PanneauParc"
+	add_child(parc_panel)
+	parc_panel.setup(parc)
+	parc_panel.focus_requested.connect(func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
+	hud.parc_requested.connect(func() -> void: parc_panel.toggle())
 
 
 ## Obsèques : cimetières qui se remplissent, corbillards sur les routes, crématorium.

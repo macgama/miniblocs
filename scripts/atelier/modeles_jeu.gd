@@ -296,6 +296,118 @@ static func _emit(d: Dictionary, m: BlocMesher) -> void:
 	m.translate(Vector3(-lo.x - float(g.w) / 2.0, 0.0, -lo.y - float(g.d) / 2.0))
 
 
+# --- Murs fins posés (bâtiment visitable) -------------------------------------------------
+
+static func model_data(mid: String) -> Dictionary:
+	var d := BanqueModeles.get_model(mid)
+	return d if not d.is_empty() else _from_saves.get(mid, {})
+
+
+## Un quart de tour comme les bâtiments (yaw −π/2 par quart) : (x, z) -> (−z, x).
+static func _turn(v: Vector2, r: int) -> Vector2:
+	for i in r:
+		v = Vector2(-v.y, v.x)
+	return v
+
+
+## Pose les murs, planchers, escaliers, blocs, pièces et meubles d'un modèle sur
+## l'emprise rect (déjà tournée de r), au niveau y0. Rend {plan, bk}.
+static func place_rotated(d: Dictionary, rect: Rect2i, r: int, y0: float, mob: Mobilier, bid := -1) -> Dictionary:
+	var pe := mob.pe
+	var g := geometry(d)
+	var lo: Vector2i = g.lo
+	var half := Vector2(float(g.w), float(g.d)) / 2.0
+	var center := Vector2(rect.position) + Vector2(rect.size) / 2.0
+	# Point de la grille du modèle -> point du monde.
+	var pt := func(x: float, z: float) -> Vector2:
+		return center + _turn(Vector2(x - lo.x, z - lo.y) - half, r)
+	var cell := func(x: int, z: int) -> Vector2i:
+		var q: Vector2 = pt.call(x + 0.5, z + 0.5)
+		return Vector2i(floori(q.x), floori(q.y))
+	var id := pe.new_plan(y0)
+	if bid >= 0:
+		mob.linked[id] = bid
+	var p: Dictionary = pe.plans[id]
+	var wa: Array = d.get("walls", [])
+	var i := 0
+	while i + 8 < wa.size():
+		var x := int(wa[i])
+		var z := int(wa[i + 2])
+		var dir := int(wa[i + 3]) & 1
+		var a2: Vector2 = pt.call(float(x), float(z))
+		var b2: Vector2 = pt.call(float(x + (1 if dir == 0 else 0)), float(z + (0 if dir == 0 else 1)))
+		var ndir := 0 if absf(a2.y - b2.y) < 0.01 else 1
+		var k := Vector2i(roundi(minf(a2.x, b2.x)), roundi(minf(a2.y, b2.y)))
+		# Côté a : −z (mur le long de x) ou −x (le long de z).
+		var n := _turn(Vector2(0, -1) if dir == 0 else Vector2(-1, 0), r)
+		var keep := n.y < 0.0 if ndir == 0 else n.x < 0.0
+		var kind := String(wa[i + 6])
+		p.walls[Vector4i(k.x, int(wa[i + 1]), k.y, ndir)] = {
+			"a": int(wa[i + 4]) if keep else int(wa[i + 5]), "b": int(wa[i + 5]) if keep else int(wa[i + 4]),
+			"o": kind if PlanEditor.OPENINGS.has(kind) else "", "om": int(wa[i + 7]), "op": false}
+		i += 9
+	var fa: Array = d.get("floors", [])
+	i = 0
+	while i + 4 < fa.size():
+		var c: Vector2i = cell.call(int(fa[i]), int(fa[i + 2]))
+		p.floors[Vector3i(c.x, int(fa[i + 1]), c.y)] = {"t": int(fa[i + 3]), "u": int(fa[i + 4])}
+		i += 5
+	var sa: Array = d.get("stairs", [])
+	i = 0
+	while i + 4 < sa.size():
+		var c: Vector2i = cell.call(int(sa[i]), int(sa[i + 2]))
+		p.stairs[Vector3i(c.x, int(sa[i + 1]), c.y)] = {"r": (int(sa[i + 3]) + r) % 4, "m": int(sa[i + 4])}
+		i += 5
+	pe._after_change(id)
+	# Toit et ajouts en blocs (leur orientation tourne avec le bâtiment).
+	var bk := []
+	if pe.blocks != null:
+		var ba: Array = d.get("blocs", [])
+		var shift := float(g.shift)
+		i = 0
+		while i + 3 < ba.size():
+			var c: Vector2i = cell.call(int(ba[i]), int(ba[i + 2]))
+			var y2 := roundi((y0 + block_height(d, int(ba[i + 1])) + shift) / BlockEditor.UNIT_Y)
+			var k := Vector3i(c.x, y2, c.y)
+			var code := int(ba[i + 3])
+			code = (code & ~(3 << 14)) | (((BlocFormes.rot_of(code) + r) % 4) << 14)
+			if not pe.blocks.blocks.has(k):
+				pe.blocks._put_block(k, code)
+				bk.append_array([k.x, k.y, k.z])
+			i += 4
+		pe.blocks.changed.emit()
+	pe.flush()
+	# Usage, style, meubles, fonctions des pièces, nom.
+	mob.set_usage(id, String(d.get("usage", "logement")))
+	if Meubles.STYLES.has(String(d.get("style_meubles", ""))):
+		mob.styles[id] = String(d.style_meubles)
+	var ma: Array = d.get("meubles", [])
+	i = 0
+	while i + 5 < ma.size():
+		var m := String(ma[i + 4])
+		var ent := Meubles.get_entry(m)
+		if not ent.is_empty():
+			var mr := int(ma[i + 5]) % 4
+			var fp := Meubles.footprint(ent, mr)
+			var c0: Vector2 = pt.call(float(ma[i]), float(ma[i + 2]))
+			var c1: Vector2 = pt.call(float(int(ma[i]) + fp.x), float(int(ma[i + 2]) + fp.y))
+			var anchor := Vector2i(roundi(minf(c0.x, c1.x)), roundi(minf(c0.y, c1.y)))
+			mob._put(id, int(ma[i + 1]), anchor, (mr - r + 4) % 4, m)
+			mob._mark(id, int(ma[i + 1]))
+		i += 6
+	var pa: Array = d.get("pieces", [])
+	var fns := {}
+	i = 0
+	while i + 3 < pa.size():
+		var c: Vector2i = cell.call(int(pa[i]), int(pa[i + 2]))
+		fns[Vector3i(c.x, int(pa[i + 1]), c.y)] = String(pa[i + 3])
+		i += 4
+	mob.room_fns[id] = fns
+	mob.set_name_of(id, String(d.get("nom", "")))
+	mob.flush()
+	return {"plan": id, "bk": bk}
+
+
 # --- Sauvegarde de la partie ---------------------------------------------------------------
 
 ## Modèles utilisés par les bâtiments posés (copiés dans la sauvegarde).

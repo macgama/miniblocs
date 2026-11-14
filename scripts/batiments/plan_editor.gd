@@ -65,8 +65,36 @@ const OPENINGS := {
 	"fenetre_haute": {"name": "Fenêtre haute", "s": 1.5, "t": 2.1, "price": 250, "window": true, "desc": "Petite fenêtre (salle de bains, cuisine)."},
 	"baie": {"name": "Baie vitrée", "s": 0.1, "t": 2.5, "price": 650, "bay": true, "desc": "Grand vitrage du sol au plafond."},
 	"vitrine": {"name": "Vitrine", "s": 0.3, "t": 2.7, "price": 800, "bay": true, "desc": "Vitrine de magasin."},
+	# --- Ajouts (troisième version de l'atelier) ---------------------------------------
+	# « large » : posée sur plusieurs mètres de mur alignés, l'ouverture ne fait qu'une
+	# (pas de poteau entre deux morceaux). « forme » : haut cintré, brisé ou rond.
+	"porte_entree": {"name": "Porte d'entrée", "s": 0.0, "t": 2.6, "price": 900, "leaf": true, "special": "entree", "desc": "Porte à panneaux moulurés surmontée d'une imposte vitrée."},
+	"porte_cintree": {"name": "Porte cintrée", "s": 0.0, "t": 2.45, "price": 950, "leaf": true, "forme": "rond", "desc": "Porte à haut arrondi (maison de ville, église, château)."},
+	"porte_double": {"name": "Porte double", "s": 0.0, "t": 2.3, "price": 700, "leaf": true, "large": true, "special": "double", "desc": "Un battant par mètre de mur : pose-la sur 2 m pour une porte à deux battants."},
+	"porte_garage": {"name": "Porte de garage", "s": 0.0, "t": 2.3, "price": 500, "large": true, "special": "garage", "open": true, "desc": "Porte sectionnelle : pose-la sur 2 à 6 m de mur. S'ouvre en vue au sol."},
+	"porte_grange": {"name": "Porte de grange", "s": 0.0, "t": 2.6, "price": 450, "leaf": true, "large": true, "special": "grange", "desc": "Grands vantaux en planches à écharpe en Z (ferme, écurie, atelier)."},
+	"baie_coulissante": {"name": "Baie coulissante", "s": 0.02, "t": 2.3, "price": 750, "large": true, "special": "coulissante", "desc": "Grande baie vitrée à galandage, sur plusieurs mètres."},
+	"arcade": {"name": "Arcade", "s": 0.0, "t": 2.6, "price": 120, "forme": "rond", "passage": true, "desc": "Passage en plein cintre (cloître, galerie, halle)."},
+	"fenetre_cintree": {"name": "Fenêtre cintrée", "s": 0.9, "t": 2.4, "price": 500, "window": true, "forme": "rond", "desc": "Fenêtre à haut arrondi."},
+	"fenetre_gothique": {"name": "Fenêtre gothique", "s": 0.7, "t": 2.6, "price": 700, "window": true, "forme": "brise", "vitrail": true, "desc": "Fenêtre en arc brisé avec vitrail (église, cathédrale)."},
+	"oeil_de_boeuf": {"name": "Œil-de-bœuf", "s": 1.35, "t": 2.25, "price": 400, "window": true, "forme": "oeil", "desc": "Fenêtre ronde (combles, escaliers, façades classiques)."},
+	"fenetre_volets": {"name": "Fenêtre à volets", "s": 0.9, "t": 2.15, "price": 550, "window": true, "volets": true, "desc": "Fenêtre avec ses volets battants ouverts sur la façade extérieure."},
+	"fenetre_petits_bois": {"name": "Fenêtre à petits bois", "s": 0.9, "t": 2.2, "price": 450, "window": true, "special": "grille", "desc": "Fenêtre à petits carreaux (maison ancienne, cottage)."},
+	"fenetre_atelier": {"name": "Fenêtre d'atelier", "s": 0.8, "t": 2.6, "price": 500, "large": true, "special": "atelier", "desc": "Verrière métallique à petits carreaux, sur plusieurs mètres (loft, usine)."},
+	"bandeau": {"name": "Fenêtre en bandeau", "s": 1.1, "t": 2.3, "price": 450, "large": true, "special": "bandeau", "desc": "Longue bande vitrée horizontale (architecture moderne)."},
+	"mur_rideau": {"name": "Mur-rideau", "s": 0.06, "t": 2.8, "price": 900, "large": true, "special": "rideau", "desc": "Façade entièrement vitrée du sol au plafond (bureaux, tours)."},
+	"porte_balcon": {"name": "Porte-fenêtre à balconnet", "s": 0.0, "t": 2.2, "price": 900, "leaf": true, "glass": true, "full": true, "balconnet": true, "desc": "Porte-fenêtre avec garde-corps en fer forgé côté extérieur (immeuble haussmannien)."},
+	"vitrine_store": {"name": "Vitrine à store", "s": 0.3, "t": 2.5, "price": 950, "bay": true, "store": true, "desc": "Vitrine de boutique avec son store rayé côté rue."},
+	"meurtriere": {"name": "Meurtrière", "s": 0.6, "t": 2.0, "price": 150, "special": "fente", "desc": "Fente étroite (château, tour de guet)."},
+	"claustra": {"name": "Claustra", "s": 0.1, "t": 2.6, "price": 300, "special": "claustra", "desc": "Mur ajouré qui laisse passer l'air et la lumière (moucharabieh)."},
 }
-const OPENING_ORDER := ["porte", "porte_vitree", "porte_fenetre", "passage", "fenetre", "fenetre_haute", "baie", "vitrine"]
+const OPENING_ORDER := ["porte", "porte_vitree", "porte_fenetre", "porte_entree", "porte_cintree", "porte_double", "porte_balcon",
+	"porte_garage", "porte_grange", "passage", "arcade",
+	"fenetre", "fenetre_volets", "fenetre_petits_bois", "fenetre_cintree", "fenetre_gothique", "oeil_de_boeuf", "fenetre_haute",
+	"fenetre_atelier", "bandeau", "baie", "baie_coulissante", "mur_rideau", "vitrine", "vitrine_store", "meurtriere", "claustra"]
+## Vitrail des fenêtres gothiques, fer forgé des balconnets.
+const VITRAIL_MAT := 51
+const IRON_MAT := 56
 const STAIR_DIRS := [Vector2i(0, 1), Vector2i(-1, 0), Vector2i(0, -1), Vector2i(1, 0)]
 
 @export var world_path: NodePath
@@ -561,6 +589,10 @@ func _opening_material(kind: String) -> int:
 	var m: Dictionary = BlocMateriaux.LIST[material]
 	if (m.fam == "bois" or m.fam == "metal_verre") and not m.get("glass", false):
 		return BlocFormes.encode(material, 0, 0, tint)
+	if String(OPENINGS[kind].get("special", "")) in ["atelier", "rideau", "bandeau", "garage"] or OPENINGS[kind].get("balconnet", false):
+		return BlocFormes.encode(IRON_MAT if OPENINGS[kind].get("special", "") != "garage" else FRAME_MAT, 0, 0, 0)
+	if OPENINGS[kind].get("special", "") == "grange":
+		return BlocFormes.encode(34, 0, 0, 0) # bardage rouge
 	if OPENINGS[kind].get("leaf", false) and not OPENINGS[kind].get("full", false):
 		return BlocFormes.encode(DOOR_MAT, 0, 0, tint)
 	return BlocFormes.encode(FRAME_MAT, 0, 0, 0)
@@ -1026,9 +1058,14 @@ func toggle_door(id: String, k: Vector4i) -> bool:
 	if p.is_empty() or not p.walls.has(k):
 		return false
 	var w: Dictionary = p.walls[k]
-	if String(w.o) == "" or not OPENINGS[w.o].get("leaf", false):
+	if String(w.o) == "" or not (OPENINGS[w.o].get("leaf", false) or OPENINGS[w.o].get("open", false)):
 		return false
 	w.op = not bool(w.op)
+	# Une ouverture large (porte double, de garage…) s'ouvre d'un bloc.
+	if OPENINGS[w.o].get("large", false):
+		for kk in _wide_run(p, k):
+			p.walls[kk].op = w.op
+			_mark(id, (kk as Vector4i).y)
 	_mark(id, k.y)
 	changed.emit()
 	return true
@@ -1634,7 +1671,7 @@ func emit_storey(id: String, e: int, m: BlocMesher, sm: BlocMesher, ramps: Packe
 			continue
 		var w: Dictionary = p.walls[kw]
 		var ext := _wall_extent(p, kw, by)
-		_emit_wall(m, kw, w, ext.x, ext.y, by)
+		_emit_wall(m, kw, w, ext.x, ext.y, by, p)
 		var ends := [Vector2i(kw.x, kw.z), Vector2i(kw.x + 1, kw.z) if kw.w == 0 else Vector2i(kw.x, kw.z + 1)]
 		for v in ends:
 			if posts.has(v):
@@ -1655,7 +1692,7 @@ func emit_storey(id: String, e: int, m: BlocMesher, sm: BlocMesher, ramps: Packe
 		if upper.has(vv):
 			pv2[1] = minf(pv2[1], by + H - SLAB)
 		var code := int(pv2[2])
-		box(m, Vector3(vv.x - HALF, pv2[0], vv.y - HALF), Vector3(vv.x + HALF, pv2[1], vv.y + HALF), [code, code, code, code, code, code])
+		_emit_post(m, p, vv, e, by, pv2[0], pv2[1], code)
 	# Escaliers.
 	for k in p.stairs:
 		var ks: Vector3i = k
@@ -1748,7 +1785,7 @@ static func _wbox(m: BlocMesher, k: Vector4i, u0: float, u1: float, y0: float, y
 		box(m, Vector3(k.x + w0, y0, k.z + u0), Vector3(k.x + w1, y1, k.z + u1), [mats[4], mats[5], mats[2], mats[3], mats[0], mats[1]])
 
 
-func _emit_wall(m: BlocMesher, k: Vector4i, w: Dictionary, bottom: float, top: float, by: float) -> void:
+func _emit_wall(m: BlocMesher, k: Vector4i, w: Dictionary, bottom: float, top: float, by: float, p: Dictionary = {}) -> void:
 	var a := int(w.a)
 	var b := int(w.b)
 	var u0 := HALF
@@ -1769,6 +1806,10 @@ func _emit_wall(m: BlocMesher, k: Vector4i, w: Dictionary, bottom: float, top: f
 	var g6 := [gl, gl, gl, gl, gl, gl]
 	if kind == "passage":
 		return
+	if o.has("forme") or o.has("special") or o.get("volets", false) or o.get("balconnet", false) or o.get("store", false):
+		var done := OuverturesPlus.emit(self, m, k, w, o, s, t, by, p)
+		if done:
+			return
 	var jamb := 0.04 if o.get("leaf", false) else (0.03 if o.get("bay", false) else 0.06)
 	var fd := 0.05
 	# Cadre : montants, traverse haute (et appui pour les fenêtres).
@@ -1822,6 +1863,77 @@ func _emit_wall(m: BlocMesher, k: Vector4i, w: Dictionary, bottom: float, top: f
 	_wbox(m, k, lu1 - 0.1, lu1 - 0.05, s + 1.0, s + 1.05, -0.07, 0.07, [brass, brass, brass, brass, brass, brass])
 
 
+## Poteau d'angle au sommet v ; coupé à la hauteur de l'ouverture s'il est au
+## milieu d'une ouverture large (porte double, garage, mur-rideau…).
+func _emit_post(m: BlocMesher, p: Dictionary, v: Vector2i, e: int, by: float, y0: float, y1: float, code: int) -> void:
+	var mats := [code, code, code, code, code, code]
+	var gap: Variant = _post_gap(p, v, e, by)
+	if gap == null:
+		box(m, Vector3(v.x - HALF, y0, v.y - HALF), Vector3(v.x + HALF, y1, v.y + HALF), mats)
+		return
+	var g: Vector2 = gap
+	if g.x > y0 + 0.001:
+		box(m, Vector3(v.x - HALF, y0, v.y - HALF), Vector3(v.x + HALF, g.x, v.y + HALF), mats)
+	if g.y < y1 - 0.001:
+		box(m, Vector3(v.x - HALF, g.y, v.y - HALF), Vector3(v.x + HALF, y1, v.y + HALF), mats)
+
+
+## Bas et haut (m) du trou au sommet v si deux morceaux alignés d'une même
+## ouverture large s'y rejoignent, sinon null.
+func _post_gap(p: Dictionary, v: Vector2i, e: int, by: float) -> Variant:
+	if p.is_empty():
+		return null
+	var around := [Vector4i(v.x - 1, e, v.y, 0), Vector4i(v.x, e, v.y, 0), Vector4i(v.x, e, v.y - 1, 1), Vector4i(v.x, e, v.y, 1)]
+	var present := []
+	for kk in around:
+		if p.walls.has(kk):
+			present.append(kk)
+	if present.size() != 2:
+		return null
+	var k0: Vector4i = present[0]
+	var k1: Vector4i = present[1]
+	if k0.w != k1.w:
+		return null
+	var o0 := String(p.walls[k0].o)
+	if o0 == "" or o0 != String(p.walls[k1].o) or not OPENINGS[o0].get("large", false):
+		return null
+	var o: Dictionary = OPENINGS[o0]
+	return Vector2(by + float(o.s), by + float(o.t))
+
+
+## Le morceau voisin (côté −1 : début, +1 : fin) fait-il partie de la même ouverture large ?
+func _wide_joined(p: Dictionary, k: Vector4i, side: int) -> bool:
+	if p.is_empty():
+		return false
+	var v := Vector2i(k.x, k.z) if side < 0 else (Vector2i(k.x + 1, k.z) if k.w == 0 else Vector2i(k.x, k.z + 1))
+	var by := 0.0
+	return _post_gap(p, v, k.y, by) != null
+
+
+## Tous les morceaux alignés d'une ouverture large.
+func _wide_run(p: Dictionary, k: Vector4i) -> Array:
+	var out := [k]
+	var step := Vector4i(1, 0, 0, 0) if k.w == 0 else Vector4i(0, 0, 1, 0)
+	for dir in [-1, 1]:
+		var c := k
+		while _wide_joined(p, c, dir) and out.size() < 64:
+			c = c + step * dir
+			out.append(c)
+	return out
+
+
+## Côté extérieur d'un mur : −1 (côté a) ou +1 (côté b), d'après les planchers.
+func outside_sign(p: Dictionary, k: Vector4i) -> int:
+	if p.is_empty():
+		return -1
+	var cs := wall_cells(k)
+	var fa: bool = p.floors.has(Vector3i(cs[0].x, k.y, cs[0].y))
+	var fb: bool = p.floors.has(Vector3i(cs[1].x, k.y, cs[1].y))
+	if fa and not fb:
+		return 1
+	return -1
+
+
 func _emit_stairs(m: BlocMesher, ramps: PackedVector3Array, k: Vector3i, st: Dictionary, by: float) -> void:
 	var r := int(st.r) % 4
 	var code := int(st.m)
@@ -1868,7 +1980,16 @@ static func _stair_box(k: Vector3i, r: int, s0: float, s1: float, c0: float, c1:
 # --- Toit automatique ---------------------------------------------------------------
 
 ## Toit posé en blocs de l'éditeur sur le dernier étage du bâtiment :
-## "deux_pans", "quatre_pans" ou "plat". Renvoie le nombre de blocs posés.
+## "deux_pans", "quatre_pans", "plat", "un_pan", "mansarde", "terrasse",
+## "dents_de_scie", "voute", "coupole", "bulbe", "conique" ou "pyramide".
+## Renvoie le nombre de blocs posés.
+const ROOFS := [["deux_pans", "Deux pans"], ["quatre_pans", "Quatre pans"], ["plat", "Toit plat"], ["un_pan", "Un pan"],
+	["mansarde", "Mansarde"], ["terrasse", "Terrasse"], ["dents_de_scie", "Sheds"], ["voute", "Voûte"],
+	["coupole", "Coupole"], ["bulbe", "Bulbe"], ["conique", "Conique"], ["pyramide", "Pyramide"]]
+## Matériau par défaut d'un toit quand le matériau choisi n'est pas un matériau de toit.
+const ROOF_DEFAULT_MAT := {"mansarde": 8, "coupole": 47, "bulbe": 42, "conique": 8, "voute": 46, "dents_de_scie": 45, "terrasse": 23, "plat": 7}
+
+
 func add_roof(id: String, kind: String, roof_mat := -1) -> int:
 	if blocks == null or not plans.has(id):
 		return 0
@@ -1898,7 +2019,8 @@ func add_roof(id: String, kind: String, roof_mat := -1) -> int:
 		message.emit("Le dernier étage est vide : pose d'abord des pièces.")
 		return 0
 	if roof_mat < 0:
-		roof_mat = material if BlocMateriaux.LIST[material].fam == "toits" else 7
+		var fam := String(BlocMateriaux.LIST[material].fam)
+		roof_mat = material if fam == "toits" or (fam == "metal_verre" and not BlocMateriaux.is_glass(material)) else int(ROOF_DEFAULT_MAT.get(kind, 7))
 	var wall_mat := _main_wall_material(id, etop)
 	var y2 := roundi((base_y(id, etop) + H) / BlockEditor.UNIT_Y)
 	# Un toit déjà posé sur ce bâtiment est remplacé (on peut changer de forme).
@@ -1949,11 +2071,109 @@ func _roof_groups(kind: String, lo: Vector2i, hi: Vector2i, over: int, y2: int, 
 		if not groups.has(code):
 			groups[code] = []
 		groups[code].append(key)
+	var piece_kinds := {"coupole": BlocFormes.S.P_DOME, "bulbe": BlocFormes.S.P_ONION, "conique": BlocFormes.S.P_CONE, "pyramide": BlocFormes.S.P_PYRAMID}
+	if piece_kinds.has(kind):
+		# Une grande pièce centrée sur l'emprise, une dalle sur le reste.
+		var w := hi.x - lo.x + 1
+		var dd := hi.y - lo.y + 1
+		var size := clampi(mini(w, dd), BlocFormes.PIECE_MIN, BlocFormes.PIECE_MAX)
+		var sh: int = piece_kinds[kind]
+		var anchor := Vector3i(lo.x + (w - size) / 2, y2, lo.y + (dd - size) / 2)
+		var used := {}
+		for part in FormesPlus.piece_parts(sh, size, 0):
+			var pp: Vector3i = part
+			if pp.y == 0:
+				used[Vector2i(anchor.x + pp.x, anchor.z + pp.z)] = true
+		add.call(anchor, BlocFormes.encode_part(BlocFormes.encode(roof_mat, sh), Vector3i.ZERO, size))
+		for x in range(lo.x, hi.x + 1):
+			for z in range(lo.y, hi.y + 1):
+				if not used.has(Vector2i(x, z)):
+					add.call(Vector3i(x, y2, z), BlocFormes.encode(wall_mat if kind != "pyramide" else roof_mat, BlocFormes.S.SLAB))
+		return groups
 	match kind:
 		"plat":
 			for x in range(lo.x, hi.x + 1):
 				for z in range(lo.y, hi.y + 1):
 					add.call(Vector3i(x, y2, z), BlocFormes.encode(roof_mat, BlocFormes.S.SLAB))
+		"terrasse":
+			# Toit-terrasse : dalle et acrotère de 1 m dans le matériau des murs.
+			for x in range(lo.x, hi.x + 1):
+				for z in range(lo.y, hi.y + 1):
+					var edge := x == lo.x or x == hi.x or z == lo.y or z == hi.y
+					add.call(Vector3i(x, y2, z), BlocFormes.encode(wall_mat) if edge else BlocFormes.encode(roof_mat, BlocFormes.S.SLAB))
+		"voute":
+			# Voûte en berceau dans le sens de la longueur, pignons en blocs.
+			var along_x2 := (hi.x - lo.x) >= (hi.y - lo.y)
+			var span := (hi.y - lo.y + 1) if along_x2 else (hi.x - lo.x + 1)
+			var size2 := clampi(span, BlocFormes.PIECE_MIN, BlocFormes.PIECE_MAX)
+			var rot := 1 if along_x2 else 0
+			var code2 := BlocFormes.encode_part(BlocFormes.encode(roof_mat, BlocFormes.S.P_VAULT, rot), Vector3i.ZERO, size2)
+			var length := (hi.x - lo.x + 1) if along_x2 else (hi.y - lo.y + 1)
+			for q in length:
+				add.call(Vector3i(lo.x + q, y2, lo.y) if along_x2 else Vector3i(lo.x, y2, lo.y + q), code2)
+			# Pignons : colonnes de blocs sous la courbe.
+			var rr := size2 / 2.0
+			for j in size2:
+				var xc := j + 0.5 - rr
+				var hgt := sqrt(maxf(rr * rr - xc * xc, 0.0))
+				var nb := floori(hgt)
+				for l in nb:
+					for e2 in ([lo.x, hi.x] if along_x2 else [lo.y, hi.y]):
+						var gk := Vector3i(e2, y2 + (l + 1) * hu, lo.y + j) if along_x2 else Vector3i(lo.x + j, y2 + (l + 1) * hu, e2)
+						add.call(gk, BlocFormes.encode(wall_mat))
+		"un_pan", "dents_de_scie":
+			# Pente douce qui monte d'un bord à l'autre. Sheds : bandes de 4 m de
+			# pente suivies d'une rangée vitrée de 2 m de haut (lumière du nord).
+			var along_x3 := (hi.x - lo.x) >= (hi.y - lo.y)
+			var n3 := (hi.y - lo.y + 1) if along_x3 else (hi.x - lo.x + 1)
+			var saw := kind == "dents_de_scie"
+			var band := 5 if saw else n3
+			var glass := BlocFormes.encode(GLASS_MAT)
+			var r3 := 0 if along_x3 else 3
+			var span3 := range(lo.x, hi.x + 1) if along_x3 else range(lo.y, hi.y + 1)
+			var sides := [lo.x, hi.x] if along_x3 else [lo.y, hi.y]
+			for j in n3:
+				var jj := j % band
+				var row := lo.y + j if along_x3 else lo.x + j
+				var at := func(q: int, l: int) -> Vector3i:
+					return Vector3i(q, y2 + l * hu, row) if along_x3 else Vector3i(row, y2 + l * hu, q)
+				if saw and jj == 4:
+					for q in span3:
+						for l in 2:
+							add.call(at.call(q, l), glass)
+					continue
+				var sh3 := BlocFormes.S.SLOPE_LOW if jj % 2 == 0 else BlocFormes.S.SLOPE_HIGH
+				for q in span3:
+					add.call(at.call(q, jj / 2), BlocFormes.encode(roof_mat, sh3, r3))
+				# Pignons sous la pente ; sous le bord haut (dernière rangée d'un shed ou
+				# du toit), un mur plein ferme le comble.
+				var closing := j == n3 - 1
+				for gq in (span3 if closing else sides):
+					for l in jj / 2:
+						add.call(at.call(gq, l), BlocFormes.encode(wall_mat))
+		"mansarde":
+			# Brisis à 45° sur deux rangs, terrasson presque plat au-dessus.
+			var i4 := 0
+			while i4 < 2 and x0 + i4 <= x1 - i4 and z0 + i4 <= z1 - i4:
+				var ax := x0 + i4
+				var bx := x1 - i4
+				var az := z0 + i4
+				var bz := z1 - i4
+				var y4 := y2 + i4 * hu
+				for x in range(ax + 1, bx):
+					add.call(Vector3i(x, y4, az), BlocFormes.encode(roof_mat, BlocFormes.S.SLOPE, 0))
+					add.call(Vector3i(x, y4, bz), BlocFormes.encode(roof_mat, BlocFormes.S.SLOPE, 2))
+				for z in range(az + 1, bz):
+					add.call(Vector3i(ax, y4, z), BlocFormes.encode(roof_mat, BlocFormes.S.SLOPE, 3))
+					add.call(Vector3i(bx, y4, z), BlocFormes.encode(roof_mat, BlocFormes.S.SLOPE, 1))
+				add.call(Vector3i(ax, y4, az), BlocFormes.encode(roof_mat, BlocFormes.S.CORNER_OUT, 0))
+				add.call(Vector3i(bx, y4, az), BlocFormes.encode(roof_mat, BlocFormes.S.CORNER_OUT, 1))
+				add.call(Vector3i(bx, y4, bz), BlocFormes.encode(roof_mat, BlocFormes.S.CORNER_OUT, 2))
+				add.call(Vector3i(ax, y4, bz), BlocFormes.encode(roof_mat, BlocFormes.S.CORNER_OUT, 3))
+				i4 += 1
+			for x in range(x0 + i4, x1 - i4 + 1):
+				for z in range(z0 + i4, z1 - i4 + 1):
+					add.call(Vector3i(x, y2 + i4 * hu, z), BlocFormes.encode(BlocMateriaux.index_of("Zinc") if BlocMateriaux.index_of("Zinc") >= 0 else roof_mat, BlocFormes.S.SLAB))
 		"quatre_pans":
 			var i := 0
 			while x0 + i <= x1 - i and z0 + i <= z1 - i:

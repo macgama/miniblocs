@@ -16,6 +16,8 @@ signal block_material_chosen(material: int)
 signal block_shape_chosen(shape: int)
 signal block_tint_chosen(tint: int)
 signal wall_height_changed(height: int)
+## Grandes pièces : diamètre ou largeur (m), et hauteur ou longueur (m).
+signal block_piece_changed(size: int, count: int)
 signal zone_style_chosen(style: String)
 signal capture_name_changed(name: String)
 signal creation_deleted(id: String)
@@ -49,6 +51,8 @@ var _block_tint := 0
 var _mat_family := ""
 var _icons := {}
 var _wall_height := 3
+var _piece_d := 6
+var _piece_n := 4
 var _region := ""
 var _era := ""
 var _search := ""
@@ -600,7 +604,7 @@ func _show_plan_tools() -> void:
 	# Toit sur le dernier étage.
 	_add(_small_label("Toit sur le dernier étage (en blocs, matériau de toit choisi ou tuile)"))
 	var rrow := HFlowContainer.new()
-	for r in [["deux_pans", "Deux pans"], ["quatre_pans", "Quatre pans"], ["plat", "Toit plat"]]:
+	for r in PlanEditor.ROOFS:
 		var rb := Button.new()
 		rb.text = r[1]
 		rb.add_theme_font_size_override("font_size", 12)
@@ -697,7 +701,7 @@ func _show_block_tools() -> void:
 	_item_buttons.append(hrow)
 	# Formes : blocs, toits, ouvertures.
 	var shape_group := ButtonGroup.new()
-	for fam in [["formes", "Formes"], ["toits", "Toits"], ["ouvertures", "Portes et fenêtres"]]:
+	for fam in BlocFormes.FAMILLES:
 		var fl := Label.new()
 		fl.text = fam[1]
 		fl.add_theme_font_size_override("font_size", 12)
@@ -722,6 +726,43 @@ func _show_block_tools() -> void:
 				_block_shape = shid
 				block_shape_chosen.emit(shid))
 			srow.add_child(sb)
+		if fam[0] == "grandes":
+			_list.add_child(_piece_row())
+			_item_buttons.append(_list.get_child(_list.get_child_count() - 1))
+
+
+## Réglages des grandes pièces : diamètre (ou largeur) et hauteur (ou longueur).
+func _piece_row() -> Control:
+	var row := HFlowContainer.new()
+	var l1 := Label.new()
+	l1.text = "Diamètre / largeur"
+	l1.add_theme_font_size_override("font_size", 12)
+	row.add_child(l1)
+	var d := SpinBox.new()
+	d.min_value = BlocFormes.PIECE_MIN
+	d.max_value = BlocFormes.PIECE_MAX
+	d.value = _piece_d
+	d.suffix = "m"
+	d.tooltip_text = "Taille de la coupole, de la tour, de la voûte… (2 à 32 m)."
+	row.add_child(d)
+	var l2 := Label.new()
+	l2.text = "Hauteur / longueur"
+	l2.add_theme_font_size_override("font_size", 12)
+	row.add_child(l2)
+	var n := SpinBox.new()
+	n.min_value = 1
+	n.max_value = 60
+	n.value = _piece_n
+	n.suffix = "m"
+	n.tooltip_text = "Hauteur d'une tour ronde ou d'un cylindre, longueur d'une voûte ou d'une arche."
+	row.add_child(n)
+	d.value_changed.connect(func(v: float) -> void:
+		_piece_d = int(v)
+		block_piece_changed.emit(_piece_d, _piece_n))
+	n.value_changed.connect(func(v: float) -> void:
+		_piece_n = int(v)
+		block_piece_changed.emit(_piece_d, _piece_n))
+	return row
 
 
 func _show_materials() -> void:

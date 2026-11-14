@@ -311,14 +311,15 @@ L'onglet **Éditeur libre** a deux modes : **Murs et étages** (par défaut) et 
 ![Une maison et un immeuble en murs fins](docs/apercu-murs-etages.png)
 
 - **Mur** : clic glissé d'un coin de case à l'autre. **Pièce** : clic glissé en rectangle, qui pose les quatre murs et le plancher d'un coup. **Sol** : plancher, terrasse ou balcon.
-- **Portes et fenêtres** dans les murs : porte, porte vitrée, porte-fenêtre, passage, fenêtre à croisillons, fenêtre haute, baie vitrée, vitrine. Un clic près d'un mur ; clic droit pour retirer l'ouverture. En vue au sol, **E** ouvre ou ferme les portes.
+- **27 portes et fenêtres** dans les murs : porte, porte vitrée, porte-fenêtre, porte d'entrée à imposte, porte cintrée, porte double, porte-fenêtre à balconnet, porte de garage, porte de grange, passage, arcade en plein cintre, fenêtre à croisillons, fenêtre à volets (volets côté rue), fenêtre à petits bois, fenêtre cintrée, fenêtre gothique à vitrail, œil-de-bœuf, fenêtre haute, fenêtre d'atelier, fenêtre en bandeau, baie vitrée, baie coulissante, mur-rideau, vitrine, vitrine à store, meurtrière, claustra. Un clic près d'un mur ; clic droit pour retirer l'ouverture. En vue au sol, **E** ouvre ou ferme les portes.
+- **Ouvertures larges** (porte double, garage, grange, baie coulissante, fenêtre d'atelier, bandeau, mur-rideau) : posées sur plusieurs mètres de mur alignés, elles ne font qu'une, sans poteau au milieu, et s'ouvrent d'un bloc. Volets, balconnet et store se placent tout seuls du côté de la rue (le côté sans plancher).
 - **Peinture** : chaque côté d'un mur a son matériau et sa teinte (crépi dehors, plâtre ou carrelage dedans). Un clic peint un côté de mur ou un sol ; un clic glissé peint toute une pièce (un matériau de sol peint les sols, les autres peignent les murs).
 - **Étages** : **Page haut / Page bas** (ou ▲ ▼ dans le panneau) changent l'étage actif, de 5 sous-sols à 59 étages, 3 m par étage. Les étages du dessus sont masqués pendant l'édition (**Vue en coupe**), toit compris. Sous le rez-de-chaussée et les sous-sols, le terrain est creusé tout seul, et rebouché si on efface.
 - **Escalier** : 4 cases de long, 12 marches, vers l'étage du dessus (la trémie est ouverte toute seule) ; **R** le tourne.
 - **De plain-pied** : le plancher du rez-de-chaussée affleure le sol, ou la chaussée si une route passe à moins de 12 m ; la porte est donc au niveau du trottoir. **Au ras du sol** remet un bâtiment déjà construit à ce niveau (le toit suit).
 - **Murs et pièces sur N étages** : un réglage du panneau fait monter un trait de Mur ou un rectangle de Pièce sur plusieurs étages d'un coup, à partir de l'étage actif.
 - **Copier l'étage ↑** recopie l'étage actif au-dessus, autant de fois que demandé : un immeuble de 12 étages se fait en quelques clics.
-- **Toit** : deux pans, quatre pans ou plat, posé en blocs sur le dernier étage (le matériau de toit choisi, ou de la tuile), avec un débord d'un mètre et des pignons. On le retouche ensuite avec les blocs.
+- **Toit** (12 formes) : deux pans, quatre pans, plat, un pan, mansarde, terrasse avec acrotère, sheds (toit d'usine en dents de scie vitrées), voûte en berceau, coupole, bulbe, conique, pyramide. Posé en blocs sur le dernier étage (le matériau de toit choisi, sinon un matériau adapté : ardoise, cuivre, zinc…), avec un débord d'un mètre et des pignons. On le retouche ensuite avec les blocs.
 - Mêmes règles que le reste : chaque mètre de mur, de sol, chaque ouverture a un prix ; **Ctrl+Z** annule ; ni voie ni bâtiment dans un bâtiment en murs fins.
 
 ![Vue en coupe du rez-de-chaussée : cuisine carrelée, salon en parquet, escalier](docs/apercu-murs-interieur.png)
@@ -364,23 +365,33 @@ L'onglet **Éditeur libre** permet de construire ce que tu veux avec des blocs d
 
 - **Outils** : **Poser** (un clic = un élément de la forme choisie, sur le sol ou sur la face visée d'un autre bloc), **Rectangle** (clic glissé : dalle, plancher, toit plat), **Mur** (clic glissé en ligne, hauteur réglable) et **Gomme** (clic sur un bloc, ou glissé pour effacer un étage).
 - **Clic droit** court : retirer le bloc visé. **Ctrl+Z** : annuler. **Échap** : arrêter.
-- **58 matériaux texturés**, dessinés par le jeu (aucun fichier image) et rangés par famille (menu **Matériau**) :
-  - murs : briques, pierre de taille, moellons, granit, grès, marbre, parpaing, béton brut, crépis de couleur, colombage, torchis, terre crue ;
-  - toits : tuile canal, tuile plate, tuile vernissée, ardoise, bardeaux, chaume, tôle ondulée, zinc ;
-  - sols : parquets, carrelage, damier, tomettes, moquette, pavés ;
-  - bois : rondins, bardages, bois peint, bambou ;
-  - métal et verre : métal, fer forgé, cuivre, or, verre clair, verre fumé, vitrail ;
-  - nature : herbe, sable, gravier, terre, neige, feuillage.
+- **116 matériaux texturés**, dessinés par le jeu (aucun fichier image) et rangés par famille (menu **Matériau**) :
+  - murs : briques (appareils flamand, anglais, à joints alignés, brique jaune, brique vernissée), pierre de taille, calcaire, pierre bleue, meulière, opus incertum, travertin, moellons, granit, basalte, grès, marbre, stuc vénitien, zellige, parpaing, béton brut ou blanc, crépis de couleur, enduit à la chaux, colombage, torchis, pisé, terre crue ;
+  - toits : tuile canal, tuile plate, tuiles vernissées verte, noire et bleue, ardoise, ardoise en écailles, lauzes, bardeaux, bardeaux de cèdre, chaume, tôle ondulée, fibrociment, bac acier, zinc, zinc à joints debout, toit végétal ;
+  - sols : parquets (dont chevrons), carrelage, damier, tomettes, terrazzo, carreaux de ciment, mosaïque, dalles de pierre, pavés, pavés autobloquants, enrobé, tatami, sol souple, moquettes ;
+  - bois : rondins, bardages de couleur, mélèze, bois brûlé, bois exotique, contreplaqué, rotin, bois peint, bambou ;
+  - métal et verre : métal, fer forgé, acier Corten, aluminium, cuivre, laiton, or, verre clair, verre fumé, verre dépoli, pavés de verre, vitrail ;
+  - nature : herbe, sable, gravier, terre, roche, neige, glace, eau, feuillage ;
+  - tissus et divers : toile, toile rayée, feutre, cuir.
 - **Teinte** : 16 couleurs de peinture, appliquées à n'importe quel matériau (porte rouge, volets verts…).
 - **Formes** :
   - bloc, demi-bloc (visé sur le haut d'une face : demi-bloc du haut), escalier, revêtement de 10 cm, cloison, poteau, colonne, poutre, vitre ou panneau, garde-corps ;
   - toits : pente à 45°, pente douce en deux moitiés, arêtier, noue ;
-  - portes et fenêtres : fenêtre à croisillons, fenêtre à volets, baie vitrée, fenêtre de toit, porte à panneaux (2 m), porte-fenêtre, porte de garage (à assembler avec l'outil Mur).
+  - arrondis et arcs : arrondi (quatre font une tourelle de 2 m), arrondi creux, cylindre, demi-rond, pente arrondie, pente creuse (toits retroussés), dôme, boule, cône, épi de faîtage, arc de 1 m, demi-arc (deux font un arc de 2 m) ;
+  - détails d'architecture : corniche, créneau, balustrade, cheminée, lucarne, store rayé, balcon, claustra ;
+  - portes et fenêtres : fenêtre à croisillons, fenêtre à volets, fenêtre cintrée, fenêtre gothique à vitrail, fenêtre d'atelier, œil-de-bœuf, meurtrière, baie vitrée, fenêtre de toit, porte à panneaux (2 m), porte cintrée, porte de grange, porte-fenêtre, porte de garage (à assembler avec l'outil Mur) ;
+  - **grandes pièces de taille réglable** (diamètre ou largeur de 2 à 32 m, réglé dans le panneau) : coupole, bulbe, toit conique, flèche de clocher, tour ronde (creuse, hauteur réglable), cylindre plein (silo, rotonde), pyramide, voûte en berceau et grande arche (longueur réglable), arc brisé, demi-coupole (abside). Un clic pose la pièce entière, centrée sur la case visée ; un clic droit sur n'importe quel morceau la retire entière.
 - **Orientation** : escaliers, pentes, portes et fenêtres se tournent tout seuls selon la direction de la caméra ; **R** ajoute un quart de tour.
 - **Ouvrir une porte** : en vue au sol (V), **E** ou **clic gauche** en regardant la porte. Les portes de garage s'ouvrent d'un bloc.
 - Chaque élément a un prix (matériau × forme), payé par la caisse ; la moitié est rendue quand on le retire.
 
 ![Le panneau : formes, portes et fenêtres, matériaux texturés](docs/apercu-editeur-materiaux.png)
+![Grandes pièces : coupole sur tambour, tour ronde à toit conique, bulbe, flèche, pyramide, aqueduc en arches, arc brisé, voûte, demi-coupole](docs/atelier_plus_pieces.png)
+![Une chapelle : nef voûtée, fenêtres gothiques et œils-de-bœuf, porte cintrée, tour ronde et flèche](docs/atelier_plus_chapelle.png)
+![Les 27 portes et fenêtres des murs fins](docs/atelier_plus_ouvertures.png)
+![Les 12 toits automatiques](docs/atelier_plus_toits.png)
+![Arrondis, détails d'architecture et nouvelles ouvertures en blocs](docs/atelier_plus_formes.png)
+![Les 58 nouveaux matériaux](docs/atelier_plus_materiaux.png)
 - Pas de bloc sous terre, sur une voie ou dans un bâtiment. Inversement, ni bâtiment ni voie ne peuvent passer sur des blocs.
 - **Mes créations** : écris un nom, clique sur **Enregistrer** puis fais un clic glissé autour de ta construction (toutes les hauteurs sont prises). Elle devient un bâtiment de l'onglet **Mes créations**, que tu poses ailleurs comme n'importe quel bâtiment (fantôme, rotation R, terrassement, prix). La bibliothèque est commune à toutes tes parties, et chaque sauvegarde garde une copie des créations qu'elle utilise. La croix ✕ retire une création de la liste (les exemplaires posés restent).
 - La taille des blocs est une constante (`BlockEditor.SIZE`) : on pourra passer à 50 cm pour plus de détails.
@@ -589,6 +600,8 @@ Une ferme entièrement générée en code (longère à colombages et toit de cha
 | `scripts/catalogue/espaces_publics.gd` | Places, parcs, monuments et mobilier urbain |
 | `scripts/batiments/bloc_materiaux.gd` | Matériaux de l'éditeur libre, textures dessinées par le jeu, teintes |
 | `scripts/batiments/bloc_formes.gd` | Formes de l'éditeur libre : demi-blocs, escaliers, pentes, portes, fenêtres… |
+| `scripts/batiments/formes_plus.gd` | Formes ajoutées : arrondis, arcs, dômes, détails d'architecture, et les grandes pièces de taille réglable (coupole, tour ronde, voûte…) |
+| `scripts/batiments/ouvertures_plus.gd` | Ouvertures ajoutées aux murs fins : cintrées, gothiques, œil-de-bœuf, portes double, de garage et de grange, mur-rideau, volets, balconnet, store… |
 | `scripts/batiments/bloc_mesher.gd` | Maillage texturé des blocs (deux surfaces : opaque et verre) |
 | `scripts/catalogue/creations.gd` | Mes créations : constructions de l'éditeur libre enregistrées comme bâtiments |
 | `tests/batiments_test.gd` | Test automatique des bâtiments (sans réseau) |
@@ -609,6 +622,8 @@ Une ferme entièrement générée en code (longère à colombages et toit de cha
 | `scripts/atelier/banque_panel.gd` | Onglet « Banque de modèles » |
 | `scripts/atelier/banque_pose.gd` | Outil de pose d'un modèle en murs fins |
 | `tests/atelier_test.gd` | Test de la personnalisation, de l'ouverture des intérieurs, de la banque et de l'atelier |
+| `tests/atelier_plus_test.gd` | Test des ajouts de l'atelier : matériaux, formes arrondies, grandes pièces, nouvelles ouvertures, nouveaux toits, banque |
+| `tests/atelier_plus_vitrine.gd` | Captures des ajouts de l'atelier : `--vue pieces`, `formes`, `ouvertures`, `toits`, `materiaux` ou `chapelle` |
 | `tests/atelier_vitrine.gd` | Captures : rue personnalisée, panneau, maison ouverte, atelier (`--vue rue`, `panneau`, `coupe`, `atelier`) |
 | `scripts/habitants/population.gd` | Habitants : foyers, étapes de la vie, écoles, emplois, emploi du temps, trajets, économie, sauvegarde |
 | `scripts/habitants/habitants_panel.gd` | Panneau « Habitants » (touche H) : ville, liste, bâtiment, profil |

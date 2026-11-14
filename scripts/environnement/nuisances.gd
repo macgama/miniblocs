@@ -246,25 +246,37 @@ func _lancer_calcul() -> void:
 
 
 func _suivre_calcul() -> void:
+	var job := _job
+	if int(job.phase) == 3:
+		# Valeur des bâtiments étalée sur plusieurs images (grandes parties).
+		if _terminer_pas(job, BUDGET_FIN_US):
+			_job = {}
+		return
 	if not WorkerThreadPool.is_task_completed(int(_job.task)):
 		return
 	WorkerThreadPool.wait_for_task_completion(int(_job.task))
-	var job := _job
 	if int(job.phase) == 1:
 		_preparer_env(job)
 		job.phase = 2
 		job.task = WorkerThreadPool.add_task(_calculer_env.bind(job), false, "Nuisances env")
 		return
-	_job = {}
-	_terminer(job)
+	_terminer_debut(job)
+	job.phase = 3
+	if _terminer_pas(job, BUDGET_FIN_US):
+		_job = {}
 
 
 ## Termine (et jette) un calcul de fond en cours avant un calcul immédiat.
 func _attendre_calcul() -> void:
 	if _job.is_empty():
 		return
-	WorkerThreadPool.wait_for_task_completion(int(_job.task))
+	if int(_job.get("phase", 0)) != 3:
+		WorkerThreadPool.wait_for_task_completion(int(_job.task))
 	_job = {}
+
+
+## Temps du fil principal par image pour finir un calcul de fond (µs).
+const BUDGET_FIN_US := 4000
 
 
 ## Fil principal : lit les sources de tous les systèmes et note leurs éclaboussures.
@@ -364,33 +376,60 @@ static func _calculer_env(job: Dictionary) -> void:
 
 ## Fil principal : les nouvelles couches remplacent les anciennes, valeurs des bâtiments.
 func _terminer(job: Dictionary) -> void:
+	_terminer_debut(job)
+	while not _terminer_pas(job, 1 << 40):
+		pass
+
+
+## Nouvelles couches en place ; la valeur visée des bâtiments reste à recalculer.
+func _terminer_debut(job: Dictionary) -> void:
 	var u0 := Time.get_ticks_usec()
 	_tiles = job.tiles
 	_cache.clear()
-	# Valeur visée de chaque bâtiment.
-	_cible.clear()
+	var file := []
 	if buildings != null:
-		for bid in buildings.buildings:
-			var c := valeur(_centre(bid))
-			_cible[bid] = c
-			if not coef_bat.has(bid):
-				coef_bat[bid] = c
-	for bid in coef_bat.keys():
-		if not _cible.has(bid) and (population == null or not population.known.has(bid)):
-			coef_bat.erase(bid)
+		file.append_array(buildings.buildings.keys())
 	# Bâtiments en murs fins (plans) : ils sont connus des habitants seulement.
 	if population != null:
 		for bid in population.known:
-			if not _cible.has(bid):
-				var c := valeur(population.known[bid].pos)
-				_cible[bid] = c
-				if not coef_bat.has(bid):
-					coef_bat[bid] = c
+			if buildings == null or not buildings.buildings.has(bid):
+				file.append(bid)
+	job.file = file
+	job.i = 0
+	job.cible = {}
+	job.us = int(job.us) + Time.get_ticks_usec() - u0
+
+
+## Valeur visée d'une partie des bâtiments (budget en µs) ; true quand tout est fait.
+func _terminer_pas(job: Dictionary, budget_us: int) -> bool:
+	var u0 := Time.get_ticks_usec()
+	var file: Array = job.file
+	var cible: Dictionary = job.cible
+	var i := int(job.i)
+	while i < file.size() and Time.get_ticks_usec() - u0 < budget_us:
+		var bid := int(file[i])
+		i += 1
+		if buildings != null and buildings.buildings.has(bid):
+			cible[bid] = valeur(_centre(bid))
+		elif population != null and population.known.has(bid):
+			cible[bid] = valeur(population.known[bid].pos)
+	job.i = i
+	job.us = int(job.us) + Time.get_ticks_usec() - u0
+	if i < file.size():
+		return false
+	_cible = cible
+	for bid in _cible:
+		if not coef_bat.has(bid):
+			coef_bat[bid] = _cible[bid]
+	for bid in coef_bat.keys():
+		if not _cible.has(bid) and (population == null or not population.known.has(bid)):
+			coef_bat.erase(bid)
 	stats = {"sources": int(job.n), "tuiles": _tiles.size()}
 	last_ms = Time.get_ticks_msec() - int(job.t0)
 	## Temps passé sur le fil principal (ms) : préparation + fin.
-	last_main_ms = (int(job.us) + Time.get_ticks_usec() - u0) / 1000.0
+	last_main_ms = int(job.us) / 1000.0
 	recalcule.emit()
+	return true
 
 
 func _centre(bid: int) -> Vector3:

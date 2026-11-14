@@ -125,6 +125,7 @@ func setup(p: Population, b: BuildingSystem, t: TransportSystem, u: Urgences = n
 		transport.network_changed.connect(func() -> void:
 			_dij.clear()
 			_accroche.clear()
+			_ecole_ok.clear()
 			marquer())
 	add_to_group("avis_sources")
 	_inscrire_calques()
@@ -151,12 +152,14 @@ func clear() -> void:
 	_dij.clear()
 	_accroche.clear()
 	_pos_cache.clear()
+	_ecole_ok.clear()
 	delits = {"total": 0, "sans_police": 0, "mois": 0, "mois_debut": -1}
 	_dirty = true
 
 
 func marquer() -> void:
 	_dirty = true
+	_ecole_ok.clear()
 
 
 func _avis_present() -> bool:
@@ -408,7 +411,17 @@ func ecole_possible(p: Dictionary, school: int) -> bool:
 	if not population.known.has(home):
 		return true
 	var lvl := Metiers.school_level(population.age_years(p))
-	return minutes(home, school, "ecole") <= float(SEUIL_NIVEAU.get(lvl, 15.0)) * 2.0
+	# Gardé jusqu'au prochain changement de la ville ou du réseau (la population
+	# revérifie chaque élève à chaque attribution).
+	var key := "%d:%d:%s" % [home, school, lvl]
+	if _ecole_ok.has(key):
+		return _ecole_ok[key]
+	var ok := minutes(home, school, "ecole") <= float(SEUIL_NIVEAU.get(lvl, 15.0)) * 2.0
+	_ecole_ok[key] = ok
+	return ok
+
+
+var _ecole_ok := {}
 
 
 # --- Calcul de la couverture --------------------------------------------------------

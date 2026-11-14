@@ -228,6 +228,11 @@ func satisfaction(vid: int) -> int:
 	var c = _en_cache("sat:%d" % vid)
 	if c != null:
 		return int(c)
+	# Le sondage de la ville fait par l'Avis il y a moins de 30 s suffit (l'Avis
+	# refait celui de chaque ville chaque jour) : pas de nouveau sondage à chaque affichage.
+	var sd: Array = av._sondages.get(vid, [])
+	if not sd.is_empty() and Time.get_ticks_msec() - int(sd[0]) < 30000 and not (sd[1] as Dictionary).is_empty():
+		return int(_garder("sat:%d" % vid, int(sd[1].valeur) if int(sd[1].n) > 0 else -1))
 	var garde := av.ville_vid
 	av.examiner(vid)
 	var m := av.moyenne()

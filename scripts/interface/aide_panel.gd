@@ -237,7 +237,9 @@ const SECTIONS := [
 		["Visiteurs", "habitants et touristes, de 10 h à 18 h (19 h l'été), fermé le lundi ; plus nombreux le week-end, le mercredi, l'été et quand il pleut ; gratuit le 1er dimanche si tu le veux"],
 	]],
 	["Spectacles", [
-		["Maj + X", "menu Spectacles (barre du bas, Loisirs) : cinémas, salles de concert, théâtres et studios de cinéma ; onglets Mes salles, Programmer, Studios, Bâtir, À l'affiche, Public"],
+		["Maj + X", "menu Spectacles (barre du bas, Loisirs) : cinémas, salles de concert, théâtres et studios de cinéma ; onglets Mes salles, Programmer, Studios, Bâtir, Aménager l'intérieur, À l'affiche, Public"],
+		["Salles meublées", "onglet Bâtir : 9 salles en murs fins prêtes à poser (cinémas, théâtre de poche, théâtre municipal, opéra, club de jazz, salle de concert, auditorium, studios de tournage) ; clic sur un terrain libre, R pour tourner"],
+		["Aménager l'intérieur", "usage Cinéma, Théâtre, Salle de concert ou Studio pour un bâtiment en murs fins ; fonction des pièces ; la scène ou l'écran face aux portes, les fauteuils en rangées face à elle ; 58 objets (scène, rideaux, écrans, sono, caméras, fond vert…) ; chaque siège est une place, la billetterie est indispensable"],
 		["Bâtir", "25 bâtiments (Construire → Spectacles) : cinéma d'art et d'essai, multiplexe, plein air, drive-in ; club de jazz, salle de musiques actuelles, auditorium, aréna, scène de festival ; café-théâtre, théâtre à l'italienne, scène contemporaine, grand opéra, théâtre de verdure, chapiteau ; studios et annexes"],
 		["Programmer", "60 spectacles en tournée (orchestres, rock, rap, électro, chanson, Molière, Shakespeare, opéras, ballets, humour, cirque, marionnettes) avec le public et le bénéfice attendus ; ou la programmation automatique"],
 		["Public", "selon la notoriété, l'âge des habitants (goûts par genre), le jour (vendredi et samedi), la saison, le prix du billet et la note de la salle ; les stars font venir la région. En plein air : fermé l'hiver, annulé sous la pluie"],

@@ -122,7 +122,12 @@ static func spec(kind: String) -> Dictionary:
 
 ## Étages au format de Gabarits (enveloppe, cloisons, ouvertures, escaliers).
 static func levels_of(kind: String) -> Array:
-	var g: Dictionary = KINDS[kind]
+	return levels_from(KINDS[kind])
+
+
+## Étages d'une description (KINDS ici ou SpectaclesGabarits) ; "sans_fenetres" :
+## pas de fenêtres hautes ajoutées (salles noires de cinéma et de théâtre).
+static func levels_from(g: Dictionary) -> Array:
 	var w := int(g.w)
 	var d := int(g.d)
 	var out := []
@@ -150,12 +155,12 @@ static func levels_of(kind: String) -> Array:
 		for o in openings:
 			taken[Vector4i(int(o[0]), int(o[1]), int(o[2]), int(o[3]))] = true
 		# Fenêtres hautes sur les façades, une tous les 3 m.
-		for x in range(1, w - 1, 3):
+		for x in (range(1, w - 1, 3) if not bool(g.get("sans_fenetres", false)) else []):
 			for z in [0, d]:
 				var k := Vector4i(x, z, x + 1, z)
 				if not taken.has(k) and not taken.has(Vector4i(x - 1, z, x, z)) and not taken.has(Vector4i(x + 1, z, x + 2, z)):
 					openings.append([x, z, x + 1, z, "fenetre_haute"])
-		for z2 in range(2, d - 1, 3):
+		for z2 in (range(2, d - 1, 3) if not bool(g.get("sans_fenetres", false)) else []):
 			for x2 in [0, w]:
 				var k2 := Vector4i(x2, z2, x2, z2 + 1)
 				if not taken.has(k2):

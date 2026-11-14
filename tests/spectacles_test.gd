@@ -313,7 +313,7 @@ func _city_tests() -> void:
 	hud._on_category("spectacles")
 	var panel: SpectaclesPanel = scene.spectacles_panel
 	_check(panel.is_open(), "le bouton ouvre le menu Spectacles")
-	for v in ["salles", "programmer", "studios", "batir", "affiche", "public"]:
+	for v in ["salles", "programmer", "studios", "batir", "amenager", "affiche", "public"]:
 		panel.show_view(v)
 		_check(panel._body.get_child_count() > 2, "onglet %s" % v)
 	panel.choisi = smac

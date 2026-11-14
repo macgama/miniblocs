@@ -69,6 +69,10 @@ const PENSEES := {
 }
 
 var buildings: BuildingSystem
+## Bâtiments en murs fins (usages cinema, theatre, concert, studio_cine) : leur
+## numéro est Mobilier.bid_of(plan), au-delà de Mobilier.BID_BASE.
+var mob: Mobilier
+var _plans: Dictionary = {} # bid -> fiche (SpectaclesObjets.analyse + porte)
 var population: Population
 var ambiance: DayNight
 var transport: TransportSystem
@@ -118,13 +122,24 @@ func _ready() -> void:
 	add_child(visuels)
 
 
-func setup(b: BuildingSystem, p: Population, a: DayNight, t: TransportSystem = null) -> void:
+func setup(b: BuildingSystem, p: Population, a: DayNight, t: TransportSystem = null, m: Mobilier = null) -> void:
 	buildings = b
 	population = p
 	ambiance = a
 	transport = t
 	if buildings != null:
 		buildings.changed.connect(func() -> void: _dirty = true)
+	set_mobilier(m)
+
+
+func set_mobilier(m: Mobilier) -> void:
+	if mob == m:
+		return
+	mob = m
+	if mob != null:
+		mob.changed.connect(func() -> void:
+			_dirty = true
+			_plans.clear())
 
 
 func clear() -> void:
@@ -164,6 +179,17 @@ func _sync() -> void:
 		return
 	var seen_s := {}
 	var seen_st := {}
+	_plans.clear()
+	if mob != null and mob.pe != null:
+		for plan in mob.pe.plans:
+			if mob.linked.has(plan) or not SpectaclesObjets.is_usage(mob.usage_of(String(plan))):
+				continue
+			var pb := mob.bid_of(String(plan))
+			var ps := spec(pb)
+			if String(ps.role) == "salle":
+				seen_s[pb] = ps
+			else:
+				seen_st[pb] = true
 	for bid in buildings.buildings:
 		var spec := SpectaclesTypes.spec_of(String(buildings.buildings[bid].t))
 		match String(spec.get("role", "")):
@@ -217,7 +243,55 @@ func type_of(bid: int) -> String:
 	return String(buildings.buildings[bid].t)
 
 
+## Bâtiment en murs fins (et pas un bâtiment du catalogue) ?
+func is_plan(bid: int) -> bool:
+	return mob != null and bid >= Mobilier.BID_BASE and (buildings == null or not buildings.buildings.has(bid))
+
+
+func plan_id(bid: int) -> String:
+	return mob.plan_of_bid(bid) if mob != null else ""
+
+
+## Fiche d'un bâtiment en murs fins (mise en cache jusqu'au prochain changement).
+func _plan(bid: int) -> Dictionary:
+	if _plans.has(bid):
+		return _plans[bid]
+	var id := plan_id(bid)
+	if mob == null or mob.pe == null or not mob.pe.plans.has(id):
+		return {}
+	var a := SpectaclesObjets.analyse(mob, id)
+	# L'entrée : une porte vers l'extérieur au rez-de-chaussée (la plus large).
+	var p: Dictionary = mob.pe.plans[id]
+	var y := float(p.y0)
+	var best := -1
+	for k in p.floors:
+		var kv: Vector3i = k
+		if kv.y != 0:
+			continue
+		var c := Vector2i(kv.x, kv.z)
+		for d in Mobilier.DIRS:
+			var w: Dictionary = mob.wall_at(id, 0, c, d)
+			if not Mobilier.is_door(w) or p.floors.has(Vector3i((c + d).x, 0, (c + d).y)):
+				continue
+			var score := 2 if String(w.get("o", "")) in ["porte_double", "porte_entree"] else 1
+			if score > best:
+				best = score
+				a["porte"] = Vector3(c.x + 0.5 + d.x * 0.5, y, c.y + 0.5 + d.y * 0.5)
+				a["front"] = Vector3(d.x, 0, d.y)
+	_plans[bid] = a
+	return a
+
+
+## Nom du genre de bâtiment (fiche de la salle).
+func type_name(bid: int) -> String:
+	if is_plan(bid):
+		return "%s en murs fins" % String(Mobilier.USAGES.get(mob.usage_of(plan_id(bid)), {}).get("name", "Salle"))
+	return String(BuildingCatalog.get_type(type_of(bid)).get("name", ""))
+
+
 func spec(bid: int) -> Dictionary:
+	if is_plan(bid):
+		return _plan(bid)
 	return SpectaclesTypes.spec_of(type_of(bid))
 
 
@@ -271,6 +345,11 @@ func set_auto(bid: int, on: bool) -> void:
 
 
 func centre(bid: int) -> Vector3:
+	if is_plan(bid):
+		var id := plan_id(bid)
+		if mob.pe == null or not mob.pe._bbox.has(id):
+			return Vector3.ZERO
+		return BuildingSystem.rect_center(mob.pe._bbox[id]) + Vector3(0, float(mob.pe.plans[id].y0), 0)
 	if buildings == null or not buildings.buildings.has(bid):
 		return Vector3.ZERO
 	var b: Dictionary = buildings.buildings[bid]
@@ -278,10 +357,22 @@ func centre(bid: int) -> Vector3:
 
 
 func porte(bid: int) -> Vector3:
+	if is_plan(bid):
+		return _plan(bid).get("porte", centre(bid))
 	if buildings == null or not buildings.buildings.has(bid):
 		return Vector3.ZERO
 	var b: Dictionary = buildings.buildings[bid]
 	return BuildingSystem.door_point(String(b.t), buildings._rect_of(b), int(b.r), float(b.get("a", 0.0))) + Vector3(0, float(b.get("h", 0.0)), 0)
+
+
+## Direction de la façade d'entrée (vers la rue).
+func front(bid: int) -> Vector3:
+	if is_plan(bid):
+		return _plan(bid).get("front", Vector3(0, 0, -1))
+	if buildings == null or not buildings.buildings.has(bid):
+		return Vector3(0, 0, -1)
+	var b: Dictionary = buildings.buildings[bid]
+	return BuildingSystem.front_dir(int(b.r)).rotated(Vector3.UP, float(b.get("a", 0.0)))
 
 
 func en_chantier(bid: int) -> bool:
@@ -657,6 +748,9 @@ func _arrondi(x: float) -> int:
 func _ouverte(bid: int) -> bool:
 	if not salles.has(bid) or not bool(salles[bid].ouvert) or en_chantier(bid):
 		return false
+	if is_plan(bid) and not (spec(bid).get("manques", []) as Array).is_empty():
+		_warn("plan%d" % bid, "%s ne peut pas ouvrir : %s." % [nom(bid), String(spec(bid).manques[0])], 86400.0 * 3.0)
+		return false
 	if sans_personnel(bid):
 		_warn("pers%d" % bid, "%s : fermé faute de personnel. Il faut des habitants pour y travailler." % nom(bid), 86400.0 * 3.0)
 		return false
@@ -956,7 +1050,16 @@ func _menage_films(day: int) -> void:
 ## Annexes à moins de RAYON_STUDIO mètres d'un studio : {plateau: n, decors: {}, vfx, postprod, atelier}.
 func annexes(studio: int) -> Dictionary:
 	var out := {"plateau": 0, "decors": {}, "vfx": false, "postprod": false, "atelier": false}
-	if buildings == null or not buildings.buildings.has(studio):
+	if is_plan(studio):
+		# Ce qu'il y a dans le bâtiment lui-même (fond vert, montage, ateliers, décors).
+		var own: Dictionary = spec(studio).get("annexes", {})
+		out.vfx = bool(own.get("vfx", false))
+		out.postprod = bool(own.get("postprod", false))
+		out.atelier = bool(own.get("atelier", false))
+		out.decors = (own.get("decors", {}) as Dictionary).duplicate()
+	elif buildings == null or not buildings.buildings.has(studio):
+		return out
+	if buildings == null:
 		return out
 	var c := centre(studio)
 	for bid in buildings.buildings:
@@ -1282,6 +1385,8 @@ func _charges(bid: int) -> void:
 	if en_chantier(bid):
 		return
 	var emplois := int(BuildingCatalog.get_type(type_of(bid)).get("emplois", 0))
+	if is_plan(bid):
+		emplois = int(mob.stats(plan_id(bid)).emplois)
 	if emplois > 0:
 		_payer(bid, "Spectacles : salaires", float(emplois) * SALAIRE_MOYEN / 30.44)
 

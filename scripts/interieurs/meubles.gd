@@ -315,6 +315,10 @@ const STYLES := {
 const MUSEE_STYLE := {"name": "Musée", "region": "monde", "era": "contemporain", "prix": 1.0, "conf": 1.0,
 	"pal": {"bois": "6b4a2f", "bois2": "c9a777", "tissu": "8e1e24", "tissu2": "e9e1d3", "metal": "2b2f33", "accent": "c9a227", "pierre": "e8e2d6"}}
 
+## Style des objets de spectacle (SpectaclesObjets) : scènes, sièges, sono, tournage.
+const SPECTACLE_STYLE := {"name": "Spectacle", "region": "monde", "era": "contemporain", "prix": 1.0, "conf": 1.0,
+	"pal": {"bois": "3b3029", "bois2": "b08a5a", "tissu": "8e1e24", "tissu2": "e9e1d3", "metal": "2b2f33", "accent": "c9a227", "pierre": "e8e2d6"}}
+
 ## Style de mobilier par défaut selon la région du monde.
 const DEFAULT_STYLE := {"europe": "contemporain", "mediterranee": "provencal", "moyen_orient": "marocain", "afrique": "afrique_moderne",
 	"asie_est": "asie_moderne", "asie_sud": "indien", "ameriques": "mid_century", "oceanie": "bord_de_mer", "monde": "contemporain"}
@@ -334,6 +338,12 @@ static func piece_name(p: String) -> String:
 		return MuseeObjets.salle_name(p)
 	if p == "musee":
 		return "Musée"
+	if p == "spectacle":
+		return "Spectacle"
+	if SpectaclesObjets.SALLES.has(p):
+		return SpectaclesObjets.salle_name(p)
+	if SpectaclesObjets.FAMILLES.has(p):
+		return String(SpectaclesObjets.FAMILLES[p].name)
 	if MuseeObjets.FAMILLES.has(p):
 		return String(MuseeObjets.FAMILLES[p].name)
 	return String(CATEGORY_NAMES.get(p, p))
@@ -342,6 +352,8 @@ static func piece_name(p: String) -> String:
 static func style_of(id: String) -> Dictionary:
 	if id == MuseeObjets.STYLE:
 		return MUSEE_STYLE
+	if id == SpectaclesObjets.STYLE:
+		return SPECTACLE_STYLE
 	return STYLES.get(id, STYLES.contemporain)
 
 
@@ -397,6 +409,10 @@ static func _build() -> void:
 	for me in MuseeObjets.entries():
 		_all[String(me.id)] = me
 		_order.append(String(me.id))
+	# Objets de spectacle (scènes, fauteuils, sono, tournage…) : style « spectacle ».
+	for se in SpectaclesObjets.entries():
+		_all[String(se.id)] = se
+		_order.append(String(se.id))
 
 
 static func _add(sid: String, st: Dictionary, tid: String, t: Dictionary, over: Dictionary) -> void:

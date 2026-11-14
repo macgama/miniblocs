@@ -1331,12 +1331,12 @@ func _setup_spectacles() -> void:
 	spectacles = Spectacles.new()
 	spectacles.name = "Spectacles"
 	add_child(spectacles)
-	spectacles.setup(buildings, population, ambiance, transport)
+	spectacles.setup(buildings, population, ambiance, transport, mobilier)
 	spectacles.message.connect(func(t: String) -> void: hud.show_message(t))
 	spectacles_panel = SpectaclesPanel.new()
 	spectacles_panel.name = "PanneauSpectacles"
 	add_child(spectacles_panel)
-	spectacles_panel.setup(spectacles)
+	spectacles_panel.setup(spectacles, func() -> void: _select_building_tool())
 	spectacles_panel.building_chosen.connect(func(id: String) -> void:
 		_select_building_tool()
 		buildings.set_place(id))

@@ -128,6 +128,7 @@ var _money_frac := 0.0
 var _step_acc := 0.0
 var _last_step_ms := 0
 var _venue_cache: Dictionary = {}
+var _heure_attrib := -1
 var _transit_cache: Dictionary = {}
 var _selected := -1
 var _marker: MeshInstance3D
@@ -325,9 +326,15 @@ func advance(dt: float, realtime := false) -> void:
 		# D'abord les fondateurs du campement (Fondateurs) : ils prennent les maisons finies.
 		if avant_arrivees.is_valid():
 			avant_arrivees.call()
+		var avant := persons.size()
 		if arrivals:
 			_immigrate(hours)
-		_match_all()
+		# En jeu : attributions quand des foyers arrivent, sinon une fois par heure de jeu
+		# (la boucle sur tous les habitants coûte cher dans les grandes parties).
+		var heure := floori(ambiance.unix_time / 3600.0) if ambiance != null else -1
+		if not realtime or persons.size() != avant or heure != _heure_attrib:
+			_heure_attrib = heure
+			_match_all()
 		if principal.enabled and principal.mine() < 0 and not households.is_empty():
 			principal.try_birth()
 	var d := int(now().day)

@@ -35,6 +35,10 @@ const METIERS := {
 	"agent_cinema": {"name": "Agent·e de cinéma", "salaire": 1550, "h": [13.0, 23.5], "j": "tous"},
 	"coach": {"name": "Éducateur·rice sportif·ve", "salaire": 1850, "h": [9.0, 20.0], "j": "marsam"},
 	"comedien": {"name": "Comédien·ne", "salaire": 2200, "h": [14.0, 23.5], "j": "marsam"},
+	# Musées (Musee).
+	"gardien_musee": {"name": "Agent·e de surveillance de musée", "salaire": 1750, "h": [9.5, 18.5], "j": "tous", "geste": ["surveiller"]},
+	"guide_conferencier": {"name": "Guide-conférencier·ère", "salaire": 1950, "h": [10.0, 18.0], "j": "tous", "geste": ["conseiller"]},
+	"conservateur": {"name": "Conservateur·rice du patrimoine", "salaire": 3100, "h": [9.0, 18.0], "j": "semaine", "tenue": "cadre", "geste": ["taper"]},
 	"agent_gare": {"name": "Agent·e de gare", "salaire": 2100, "h": [6.0, 18.0], "j": "garde"},
 	# Production et ressources.
 	"bucheron": {"name": "Bûcheron·ne", "salaire": 1750, "h": [7.0, 16.0], "j": "semaine"},
@@ -107,6 +111,7 @@ const PAR_BATIMENT := {
 	"cafe": [["serveur", 3], ["cuisinier", 2]],
 	"restaurant": [["serveur", 3], ["cuisinier", 2]],
 	"cinema": [["agent_cinema", 1]],
+	"musee": [["gardien_musee", 5], ["agent_accueil_parc", 2], ["guide_conferencier", 2], ["conservateur", 1]],
 	"theatre": [["comedien", 1], ["agent_public", 1]],
 	"gymnase": [["coach", 1]],
 	"piscine": [["coach", 1]],

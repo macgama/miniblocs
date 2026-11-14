@@ -15,7 +15,7 @@ const SECTIONS := [
 	["Barre du bas", [
 		["Tab · Gérer / Créer", "Gérer : la ville (terrain, voies, zonage, catalogue, lignes, habitants). Créer : construire un bâtiment soi-même (murs et étages, blocs, intérieur, Mes créations, banque, atelier), la ville en pause ; touches 1 à 7 et échelle des étages"],
 		["Catégories", "Observer, Terrain, Voies, Paysage : un clic ouvre leurs outils juste au-dessus ; Construire et Décors ouvrent leur panneau à droite (un seul à la fois)"],
-		["Menus ▴", "Transports (lignes, trafic, circulation, véhicules), Ville (habitants, urgences, avis, budget, déchets), Économie (production, agriculture), Loisirs (créer un parc, panneau du parc, zoo), Infos (infos, cartes) : un clic ouvre la rangée de leurs panneaux ; les touches restent les mêmes"],
+		["Menus ▴", "Transports (lignes, trafic, circulation, véhicules), Ville (habitants, urgences, avis, budget, déchets), Économie (production, agriculture), Loisirs (créer un parc, panneau du parc, musée, zoo), Infos (infos, cartes) : un clic ouvre la rangée de leurs panneaux ; les touches restent les mêmes"],
 		["Circulation, Véhicules, Vue", "afficher la circulation, choisir l'époque et la région des véhicules, changer de vue"],
 		["1", "observer : survoler une case pour voir son altitude et son biome (et le nom de la rivière)"],
 		["2 · 3 · 4", "aplanir, monter de 1 m, creuser de 1 m (clic gauche glissé)"],
@@ -227,6 +227,14 @@ const SECTIONS := [
 		["Fibre ou téléphone sur poteaux", "un clic par point, Échap ou clic droit pour finir : pour les fermes et hameaux loin des routes"],
 		["Calques", "couverture mobile (disques 2G, 4G, 5G) ou débit de chaque bâtiment (fibre, ADSL, box 4G / 5G, lent, rien)"],
 		["Conséquences", "sans internet ni réseau mobile, les habitants sont moins satisfaits et les entreprises produisent moins (bureaux surtout) ; une antenne trop chargée sature. Réglage Admin (F10) pour couper"],
+	]],
+	["Musées", [
+		["Maj + C", "menu Musée (barre du bas, Loisirs) : note en étoiles, visiteurs, billet, recettes, salles, œuvres, expositions, ce que disent les visiteurs, conseils"],
+		["Bâtir", "5 musées prêts à poser (histoire locale, beaux-arts, muséum, sciences, civilisations) ou tes propres murs (mode Créer) ; « Faire du bâtiment visé un musée » ; matériaux de musée (parquet Versailles, marbre…)"],
+		["Salles", "14 fonctions (hall, galerie de peinture, sculptures, Égypte, dinosaures, sciences, boutique, café…) ; « Aménager » meuble la salle avec ses vitrines, socles et œuvres"],
+		["Objets", "106 objets en 12 familles : vitrines, socles, tableaux, statues, antiquités, fossiles, machines, histoire, arts du monde, éclairage, parcours (cordons, cartels, bornes), accueil et services"],
+		["Note", "prestige des œuvres (plus fort dans la salle de leur thème), éclairage, place, vitrines pour les objets fragiles, bancs, toilettes, billetterie, boutique, café ; une exposition temporaire attire du monde"],
+		["Visiteurs", "habitants et touristes, de 10 h à 18 h (19 h l'été), fermé le lundi ; plus nombreux le week-end, le mercredi, l'été et quand il pleut ; gratuit le 1er dimanche si tu le veux"],
 	]],
 	["Parc de loisirs", [
 		["Maj + G", "panneau du parc : note en étoiles, visiteurs, prix de l'entrée et des tours, recettes, attractions (files, fiabilité, pannes), ce que disent les visiteurs, conseils"],

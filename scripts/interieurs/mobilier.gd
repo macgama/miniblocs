@@ -38,8 +38,9 @@ const USAGES := {
 	"boutique": {"name": "Boutique", "t": "superette", "cat": "commerce", "desc": "Les habitants viennent y faire leurs courses ; comptoirs et rayons font les emplois."},
 	"bureaux": {"name": "Bureaux", "t": "bureaux", "cat": "commerce", "desc": "Chaque poste de travail est un emploi."},
 	"restaurant": {"name": "Café-restaurant", "t": "cafe", "cat": "loisirs", "desc": "Les habitants y vont entre amis ; le bar et les tables font les emplois."},
+	"musee": {"name": "Musée", "t": "musee", "cat": "loisirs", "desc": "Les visiteurs paient leur billet à la billetterie ; gardiens, guides et agents d'accueil font les emplois (menu Musée, Maj+C)."},
 }
-const USAGE_ORDER := ["logement", "ecole", "boutique", "bureaux", "restaurant"]
+const USAGE_ORDER := ["logement", "ecole", "boutique", "bureaux", "restaurant", "musee"]
 
 ## Mobilier de chaque fonction : [types équivalents, placement, nombre, indispensable].
 ## Placements : "mur" (dos au mur), "centre", "coin", "sol" (tapis), "accroche"
@@ -153,6 +154,8 @@ static func default_style_for(region: String) -> String:
 
 
 static func fn_name(fn: String) -> String:
+	if MuseeObjets.SALLES.has(fn):
+		return MuseeObjets.salle_name(fn)
 	if FN_NAMES.has(fn):
 		return String(FN_NAMES[fn])
 	return Meubles.piece_name(fn)
@@ -220,7 +223,7 @@ func set_room_fn(fn: String) -> void:
 
 
 func set_template(kind: String) -> void:
-	if Gabarits.KINDS.has(kind):
+	if Gabarits.has_kind(kind):
 		template = kind
 		if tool != Tool.TEMPLATE:
 			set_tool(Tool.TEMPLATE)
@@ -245,7 +248,7 @@ func _emit_help() -> void:
 		Tool.ROOM_FN:
 			t = "Fonction des pièces : clic dans une pièce pour en faire : %s" % fn_name(room_fn)
 		Tool.TEMPLATE:
-			t = "%s meublé (%s) : clic sur un terrain libre · R : tourner" % [Gabarits.KINDS[template].name, Meubles.style_of(style).name]
+			t = "%s meublé (%s) : clic sur un terrain libre · R : tourner" % [Gabarits.spec_of(template).name, Meubles.style_of(style).name]
 	info_changed.emit("%s · %s · Page haut / Page bas : étage · clic droit : retirer · Ctrl+Z : annuler · Échap : arrêter" % [t, lv])
 
 
@@ -410,8 +413,12 @@ func set_usage(id: String, u: String) -> void:
 
 
 ## Fonctions devinées des pièces de tout le bâtiment, selon son usage et leur taille.
+var _guess_id := ""
+
+
 func guess_functions(id: String) -> Dictionary:
 	var out := {} # Vector3i(case clé, étage) -> fonction
+	_guess_id = id
 	var u := usage_of(id)
 	var levels := pe.levels_of(id)
 	# Immeuble (3 niveaux ou plus) : chaque étage est un appartement.
@@ -485,6 +492,8 @@ func _guess_group(u: String, list: Array, big: Array, small: Array, out: Diction
 			out[sej] = "studio"
 		return
 	match u:
+		"musee":
+			MuseeObjets.guess(self, _guess_id, big, small, assign)
 		"ecole":
 			for r in big:
 				assign.call(r, "classe" if int(r.area) >= 16 else "bureau")
@@ -893,7 +902,7 @@ func _layout(id: String, e: int, room: Dictionary, fn: String, s: String) -> Arr
 		_layout_classe(st, cells, s)
 		return st.res
 	var area := cells.size()
-	for req in LAYOUTS.get(fn, LAYOUTS.sejour):
+	for req in LAYOUTS.get(fn, MuseeObjets.LAYOUTS.get(fn, LAYOUTS.sejour)):
 		var types: Array = req[0]
 		var mode: String = req[1]
 		var count: int = req[2]
@@ -1256,6 +1265,17 @@ func stats(id: String) -> Dictionary:
 			out.places = int(places.get("assis", 0)) + int(places.get("client", 0))
 			out.conf = clampi(roundi(30.0 + conf_sum * 30.0 / area), 0, 100)
 			out.attr = clampi(roundi(10.0 + attr_sum * 40.0 / area + shop_windows * 4.0), 0, 100)
+		"musee":
+			# Billetterie indispensable ; un gardien pour 150 m², un agent par guichet, un conservateur.
+			var guichets := int(tags.get("comptoir", 0))
+			out.emplois = 0 if guichets == 0 else guichets + ceili(area / 150.0) + 1
+			if guichets == 0:
+				manques.append("pas de billetterie : le musée ne peut pas ouvrir")
+			if not tags.has("oeuvre"):
+				manques.append("rien à voir : pas une seule œuvre exposée")
+			out.places = int(area / 4.0)
+			out.conf = clampi(roundi(30.0 + conf_sum * 30.0 / area + float(tags.get("assise", 0)) * 2.0), 0, 100)
+			out.attr = clampi(roundi(10.0 + attr_sum * 30.0 / area), 0, 100)
 		"bureaux":
 			out.emplois = int(places.get("poste", 0))
 			if out.emplois == 0:
@@ -1570,7 +1590,7 @@ func _click(h: Dictionary) -> void:
 			if res.ok:
 				_focus = String(res.id)
 				plan_selected.emit(_focus)
-				message.emit("%s meublé posé (%s)." % [Gabarits.KINDS[template].name, BuildingSystem.format_money(int(res.cost))])
+				message.emit("%s meublé posé (%s)." % [Gabarits.spec_of(template).name, BuildingSystem.format_money(int(res.cost))])
 			else:
 				message.emit("Impossible : %s." % String(res.error))
 
@@ -1620,7 +1640,7 @@ func _update_ghost() -> void:
 			_ghost.visible = true
 			info_changed.emit("%s · %s%s" % [ent.name, Meubles.describe(meuble), "" if why == "" else " · " + why])
 		Tool.TEMPLATE:
-			var g: Dictionary = Gabarits.KINDS[template]
+			var g: Dictionary = Gabarits.spec_of(template)
 			var sz := Vector2i(int(g.w), int(g.d)) if rot % 2 == 0 else Vector2i(int(g.d), int(g.w))
 			var bm := BoxMesh.new()
 			bm.size = Vector3(sz.x, 3.0, sz.y)

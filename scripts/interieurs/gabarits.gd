@@ -88,8 +88,21 @@ const ROOFS := {"europe": 7, "mediterranee": 7, "moyen_orient": 7, "afrique": 44
 const WET := ["cuisine", "sdb"]
 
 
+## Gabarit d'un genre : ceux d'ici, ou les musées prêts (MuseeGabarits).
+static func spec_of(kind: String) -> Dictionary:
+	if KINDS.has(kind):
+		return KINDS[kind]
+	return MuseeGabarits.KINDS.get(kind, {})
+
+
+static func has_kind(kind: String) -> bool:
+	return KINDS.has(kind) or MuseeGabarits.KINDS.has(kind)
+
+
 ## Les étages d'un gabarit (l'immeuble est généré : quatre fois le même étage).
 static func levels_of(kind: String) -> Array:
+	if MuseeGabarits.KINDS.has(kind):
+		return MuseeGabarits.levels_of(kind)
 	var g: Dictionary = KINDS[kind]
 	if g.levels is Array:
 		return g.levels
@@ -129,16 +142,18 @@ static func rot_rect(x: int, z: int, rw: int, rd: int, r: int, w: int, d: int) -
 
 
 static func size_of(kind: String, r: int) -> Vector2i:
-	var g: Dictionary = KINDS[kind]
+	var g: Dictionary = spec_of(kind)
 	return Vector2i(int(g.w), int(g.d)) if r % 2 == 0 else Vector2i(int(g.d), int(g.w))
 
 
 ## Construit et meuble le gabarit kind, coin −x −z en origin, tourné de r.
 ## Rend {ok, id, cost, error}.
 static func build(mob: Mobilier, kind: String, origin: Vector2i, r: int, style: String) -> Dictionary:
-	if mob.pe == null or not KINDS.has(kind):
+	if mob.pe == null or not has_kind(kind):
 		return {"ok": false, "error": "gabarit inconnu"}
-	var g: Dictionary = (KINDS[kind] as Dictionary).duplicate()
+	if MuseeGabarits.KINDS.has(kind):
+		return build_spec(mob, MuseeGabarits.spec(kind), origin, r, style)
+	var g: Dictionary = spec_of(kind).duplicate()
 	g["levels"] = levels_of(kind)
 	return build_spec(mob, g, origin, r, style)
 
@@ -210,6 +225,17 @@ static func build_spec(mob: Mobilier, g: Dictionary, origin: Vector2i, r: int, s
 			fns.append([e, rr, String(rm[4])])
 	# Sols carrelés dans les pièces d'eau.
 	pe.set_material(37 if era >= 3 else 39)
+	# Sols choisis par fonction de pièce (musées : parquet, marbre…) : {fonction: matériau}.
+	var sols: Dictionary = g.get("floors", {})
+	for f in fns:
+		if sols.has(String(f[2])):
+			var rect3: Rect2i = f[1]
+			var fm := int(sols[String(f[2])])
+			for x in range(rect3.position.x, rect3.end.x):
+				for z in range(rect3.position.y, rect3.end.y):
+					var k3 := Vector3i(x, int(f[0]), z)
+					if fm >= 0 and pe.plans[id].floors.has(k3):
+						pe.plans[id].floors[k3].t = BlocFormes.encode(fm)
 	for f in fns:
 		if String(f[2]) in WET:
 			var rect: Rect2i = f[1]

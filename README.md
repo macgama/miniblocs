@@ -321,6 +321,7 @@ L'onglet **Éditeur libre** a deux modes : **Murs et étages** (par défaut) et 
 - **Murs et pièces sur N étages** : un réglage du panneau fait monter un trait de Mur ou un rectangle de Pièce sur plusieurs étages d'un coup, à partir de l'étage actif.
 - **Copier l'étage ↑** recopie l'étage actif au-dessus, autant de fois que demandé : un immeuble de 12 étages se fait en quelques clics.
 - **Toit** (12 formes) : deux pans, quatre pans, plat, un pan, mansarde, terrasse avec acrotère, sheds (toit d'usine en dents de scie vitrées), voûte en berceau, coupole, bulbe, conique, pyramide. Posé en blocs sur le dernier étage (le matériau de toit choisi, sinon un matériau adapté : ardoise, cuivre, zinc…), avec un débord d'un mètre et des pignons. On le retouche ensuite avec les blocs.
+- **Bassins, Rails et quais, Gradins, Terrains de sport** (34 modèles en vignettes 3D) : piscines, bassin de nage, plongeon, spa, aquarium, voies ferrées et de tram, quais, heurtoir, gradins et tribune couverte, terrains de football, rugby, basket, tennis, patinoire, piste d'athlétisme… Un clic : taille réelle ; clic glissé : sa taille. Ils proposent une fonction au modèle (piscine, stade…) et leurs places assises comptent. Voir [docs/amenagements.md](docs/amenagements.md).
 - Mêmes règles que le reste : chaque mètre de mur, de sol, chaque ouverture a un prix ; **Ctrl+Z** annule ; ni voie ni bâtiment dans un bâtiment en murs fins.
 
 ![Vue en coupe du rez-de-chaussée : cuisine carrelée, salon en parquet, escalier](docs/apercu-murs-interieur.png)
@@ -709,6 +710,12 @@ godot --headless --path . --script res://tests/partie_pays.gd -- --jours 40 --ec
 ```
 
 Banc d'une **partie à plusieurs villes et pays** (8 villes autour de Bâle, France, Suisse, Allemagne, reliées par la route) : croissance, caisses, chômage, satisfaction, commerce entre villes et entre pays, images en temps réel, sauvegarde. Résultats et équilibrages : [docs/partie-pays.md](docs/partie-pays.md).
+
+```bash
+godot --headless --path . --script res://tests/partie_reel.gd -- --partie sauvegarde-auto --images 1500
+```
+
+Recharge une partie sauvegardée (par défaut celle du banc précédent) et mesure les **images en temps réel** (moyenne, médiane, pire image, images de plus de 100 ms).
 
 Banc d'essai des performances sur une région de 10 × 10 km : chargement du terrain, survol de 4 km, grande ville en grille (routes, zonage, circulation), sauvegarde et chargement. Affiche les temps par image et `PERF BENCH OK`. `--reseau` utilise le vrai relief d'Annecy, `--big` une ville deux fois plus grande.
 

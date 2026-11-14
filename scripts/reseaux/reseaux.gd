@@ -94,6 +94,8 @@ var panneau: Node
 
 var _topo_sale := true
 var _sync_sale := true
+## Des bâtiments ont été raccordés ou retirés (les tracés n'ont pas changé).
+var _raccords_sales := false
 var _acc := 0.0
 var _last_unix := -1.0
 var _jour := -1
@@ -142,9 +144,10 @@ func setup(w: TerrainWorld, b: BuildingSystem, t: TransportSystem, p: Population
 	production = prod
 	ambiance = a
 	if buildings != null:
+		# Un bâtiment de plus ou de moins : on le raccorde (voir _raccorder), les
+		# tracés restent les mêmes.
 		buildings.changed.connect(func() -> void:
-			_sync_sale = true
-			_topo_sale = true)
+			_sync_sale = true)
 		var prev: Callable = buildings.extra_check
 		buildings.extra_check = func(id: String, rect: Rect2i) -> Dictionary:
 			var mine := check_site(id, rect)
@@ -523,7 +526,7 @@ func _sync() -> void:
 		if not vus.has(bid):
 			stocks.erase(bid)
 	_sync_externes()
-	_topo_sale = true
+	_raccords_sales = true
 
 
 ## Sources d'électricité d'autres systèmes (incinérateur…) : groupe "electricite_sources".
@@ -546,13 +549,13 @@ func _sync_externes() -> void:
 		if not vus.has(bid):
 			elec.retirer_source(bid)
 			_externes.erase(bid)
-			_topo_sale = true
+			_raccords_sales = true
 	for bid in vus:
 		if not elec.sources.has(bid):
 			var b: Dictionary = buildings.buildings[bid]
 			var rect := buildings._rect_of(b)
 			elec.ajouter_source(bid, BuildingSystem.rect_center(rect), float(vus[bid]), maxf(rect.size.x, rect.size.y) * 0.5)
-			_topo_sale = true
+			_raccords_sales = true
 		_externes[bid] = float(vus[bid])
 
 
@@ -572,9 +575,21 @@ func _routes() -> Array:
 
 func recalculer_topologie() -> void:
 	_topo_sale = false
+	_raccords_sales = false
 	var routes := _routes()
 	for r in tous():
 		(r as ReseauBase).recalculer(routes)
+	if vue:
+		vue.calques_sales = true
+
+
+## Bâtiments ajoutés ou démolis, mêmes tracés : seuls eux sont raccordés.
+func _raccorder() -> void:
+	_raccords_sales = false
+	for r in tous():
+		if not (r as ReseauBase).raccorder_attente():
+			recalculer_topologie()
+			return
 	if vue:
 		vue.calques_sales = true
 
@@ -612,12 +627,16 @@ func _simuler(heures: float) -> void:
 		_sync_externes()
 	if _topo_sale:
 		recalculer_topologie()
+	elif _raccords_sales:
+		_raccorder()
 	var now := _maintenant()
 	temperature = _temperature()
 	besoin = besoin_chauffage(temperature)
 	incidents.maj(heures, temperature)
 	if _topo_sale:
 		recalculer_topologie()
+	elif _raccords_sales:
+		_raccorder()
 	_maj_gaz()
 	_maj_capacites(now)
 	elec.rebilan()

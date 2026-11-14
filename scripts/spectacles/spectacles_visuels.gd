@@ -79,11 +79,10 @@ func _placer() -> void:
 
 
 func _groupe(bid: int, n: int, rng: RandomNumberGenerator, r0: float, r1: float) -> void:
-	var b: Dictionary = spect.buildings.buildings.get(bid, {})
-	if b.is_empty():
+	if not spect.is_plan(bid) and not spect.buildings.buildings.has(bid):
 		return
 	var p := spect.porte(bid)
-	var front := BuildingSystem.front_dir(int(b.r)).rotated(Vector3.UP, float(b.get("a", 0.0)))
+	var front := spect.front(bid)
 	var side := front.cross(Vector3.UP)
 	for i in n:
 		# Sur le parvis, entre la porte et le trottoir (pas sur la chaussée).

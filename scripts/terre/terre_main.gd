@@ -56,6 +56,8 @@ var dechets_panel: DechetsPanel
 var musee: Musee
 var spectacles: Spectacles
 var spectacles_panel: SpectaclesPanel
+var club: ClubSport
+var club_panel: ClubPanel
 var musee_panel: MuseePanel
 var parc: ParcLoisirs
 var parc_panel: ParcPanel
@@ -171,6 +173,7 @@ func _ready() -> void:
 	_setup_dechets()
 	_setup_musee()
 	_setup_spectacles()
+	_setup_club()
 	_setup_parc()
 	_setup_funeraire()
 	_setup_vie()
@@ -351,6 +354,7 @@ func save_sections() -> Dictionary:
 	sec["tutoriel"] = tutoriel.to_dict()
 	sec["musee"] = musee.to_dict()
 	sec["spectacles"] = spectacles.to_dict()
+	sec["club"] = club.to_dict()
 	sec["parc"] = parc.to_dict()
 	sec["zoo"] = zoo.to_dict()
 	sec["quartiers"] = quartiers.to_dict()
@@ -465,6 +469,7 @@ func load_game(slot := "") -> bool:
 	dechets.from_dict(sec.get("dechets", {}))
 	musee.from_dict(sec.get("musee", {}))
 	spectacles.from_dict(sec.get("spectacles", {}))
+	club.from_dict(sec.get("club", {}))
 	parc.from_dict(sec.get("parc", {}))
 	zoo.from_dict(sec.get("zoo", {}))
 	funeraire.from_dict(sec.get("funeraire", {}))
@@ -634,7 +639,7 @@ func _setup_population() -> void:
 	population.message.connect(func(t: String) -> void: hud.show_message(t))
 	# Pas de bâtiment, personne dans les rues : la circulation suit les habitants.
 	transport.traffic.demand = population.traffic_demand
-	buildings.changed.connect(func() -> void: population._sync_buildings.call_deferred())
+	buildings.changed.connect(func() -> void: population.demander_sync())
 	habitants_panel = HabitantsPanel.new()
 	habitants_panel.name = "PanneauHabitants"
 	add_child(habitants_panel)
@@ -813,6 +818,8 @@ func _setup_pays() -> void:
 	kit.name = "KitInstallation"
 	add_child(kit)
 	kit.setup(buildings, communes, fondateurs, world)
+	# Badge « Offert par l'État » du catalogue B à jour quand un bon sert.
+	kit.changed.connect(func() -> void: build_panel.refresh.call_deferred())
 	kit.message.connect(func(t: String) -> void: hud.show_message(t))
 	kit.changed.connect(func() -> void: _unsaved = true)
 	objectifs = Objectifs.new()
@@ -1365,12 +1372,12 @@ func _setup_spectacles() -> void:
 	spectacles = Spectacles.new()
 	spectacles.name = "Spectacles"
 	add_child(spectacles)
-	spectacles.setup(buildings, population, ambiance, transport)
+	spectacles.setup(buildings, population, ambiance, transport, mobilier)
 	spectacles.message.connect(func(t: String) -> void: hud.show_message(t))
 	spectacles_panel = SpectaclesPanel.new()
 	spectacles_panel.name = "PanneauSpectacles"
 	add_child(spectacles_panel)
-	spectacles_panel.setup(spectacles)
+	spectacles_panel.setup(spectacles, func() -> void: _select_building_tool())
 	spectacles_panel.building_chosen.connect(func(id: String) -> void:
 		_select_building_tool()
 		buildings.set_place(id))
@@ -1381,6 +1388,28 @@ func _setup_spectacles() -> void:
 		if not spectacles_panel.is_open():
 			_select_building_tool()
 		spectacles_panel.toggle())
+
+
+## Club de sport (football) : stade, équipe, championnat, recettes (Maj+B).
+func _setup_club() -> void:
+	club = ClubSport.new()
+	club.name = "ClubSport"
+	add_child(club)
+	club.setup(buildings, population, ambiance)
+	club.message.connect(func(t: String) -> void: hud.show_message(t))
+	club_panel = ClubPanel.new()
+	club_panel.name = "PanneauClub"
+	add_child(club_panel)
+	club_panel.setup(club)
+	club_panel.building_chosen.connect(func(_id: String) -> void:
+		club_panel.set_open(false)
+		_select_building_tool()
+		build_panel.set_open(true)
+		build_panel.show_category("sport"))
+	club_panel.focus_requested.connect(func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
+	hud.club_requested.connect(func() -> void: club_panel.toggle())
 
 
 ## Parc de loisirs : manèges, visiteurs, files d'attente, billets et panneau (Maj+G).
@@ -1636,6 +1665,14 @@ func _setup_plans() -> void:
 		if plans.tool != PlanEditor.Tool.OPENING:
 			_select_building_tool()
 			plans.set_tool(PlanEditor.Tool.OPENING))
+	build_panel.plan_amenagement_chosen.connect(func(k: String) -> void:
+		plans.set_amenagement(k)
+		plans.set_material(blocks.material)
+		plans.set_tint(blocks.tint)
+		if plans.tool != PlanEditor.Tool.AMENAG:
+			_select_building_tool()
+			plans.set_tool(PlanEditor.Tool.AMENAG))
+	build_panel.plan_amenagement_material.connect(func(on: bool) -> void: plans.amenag_own_mat = on)
 	build_panel.plan_level_step.connect(func(d: int) -> void: plans.step_level(d))
 	build_panel.plan_cutaway_toggled.connect(func(on: bool) -> void: plans.set_cutaway(on))
 	build_panel.plan_wall_levels.connect(func(n: int) -> void: plans.set_wall_levels(n))
@@ -1672,8 +1709,8 @@ func _setup_mobilier() -> void:
 	mobilier.message.connect(func(t: String) -> void: hud.show_message(t))
 	population.extra_buildings = mobilier.population_info
 	population.extra_pick = mobilier.bid_at
-	mobilier.changed.connect(func() -> void: population._sync_buildings.call_deferred())
-	plans.changed.connect(func() -> void: population._sync_buildings.call_deferred())
+	mobilier.changed.connect(func() -> void: population.demander_sync())
+	plans.changed.connect(func() -> void: population.demander_sync())
 	occupants = Occupants.new()
 	occupants.name = "Occupants"
 	add_child(occupants)
@@ -2027,7 +2064,7 @@ func _loisirs_ouvert() -> bool:
 
 
 func _panneaux_parc() -> Dictionary:
-	return {"parc": parc_panel, "parc_editeur": parc_editeur_panel, "zoo": zoo_panel, "musee": musee_panel, "spectacles": spectacles_panel}
+	return {"parc": parc_panel, "parc_editeur": parc_editeur_panel, "zoo": zoo_panel, "musee": musee_panel, "spectacles": spectacles_panel, "club": club_panel}
 
 
 ## Panneau « Paysage » : pinceaux de terrain (outil 0).
@@ -2133,6 +2170,7 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 	dechets.clear()
 	funeraire.clear()
 	spectacles.clear()
+	club.clear()
 	resource_overlay.show_resource(resource_overlay.res)
 	transport.clear()
 	buildings.clear()

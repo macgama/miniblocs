@@ -53,6 +53,8 @@ La grande **Mairie** (Construire → Services) fonde aussi un village, mais elle
 - Le **premier village** est le chef-lieu : c'est son nom qu'on lit dans les élections, les manifestations et l'actualité (`Avis.ville()`), et les cortèges marchent vers sa mairie.
 - **Fusionner** : quand deux territoires se touchent, un bouton les réunit. Le village le plus peuplé garde son nom et sa mairie, et l'autre mairie devient une mairie annexe.
 
+- **Village neuf** (moins de 150 foyers, quand il y a plusieurs villages) : ses zones poussent avant celles des grandes villes, en maisons et petits immeubles ; **20 pionniers** viennent bâtir ses logements pendant 60 jours ; le premier chantier de chaque village a toujours une équipe. Détails et mesures : [villages-neufs.md](villages-neufs.md).
+
 ![Deux villages, calque des territoires et outil Agrandir (carré rouge : impossible ici)](apercu-villages-deux-villages.jpg)
 
 ## Panneau Villages (Maj+M)

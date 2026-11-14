@@ -4,6 +4,17 @@ Tout est dans `main`, et les 9 tests automatiques passent (`sh tests/tous.sh`).
 
 ## Nouveautés
 
+**Ton club de football** (menu Loisirs → Club de sport, **Maj+B**, 14 novembre)
+- Fonde ton club dans un stade de la ville (un des 11 stades ou le terrain de foot) : nom, couleurs. La ville verse 150 000 € de départ ; le club a sa propre caisse et paie la location du stade à la ville.
+- Championnat de 12 clubs, 22 journées le samedi d'août à mai, de la Régionale à la Première Ligue : les deux premiers montent, les deux derniers descendent.
+- Effectif : formation, tactique, entraînement, forme, fatigue, blessures, contrats ; en Régionale, des habitants fans de foot jouent bénévolement. Marché des transferts chaque lundi.
+- À domicile, le match se voit au stade aux couleurs du club. Recettes : billets (prix au choix), buvette, boutique, sponsors, droits télé, primes. Voir docs/club-sport.md.
+
+**L'Atelier s'agrandit : bassins, rails, gradins et terrains de sport** (14 novembre)
+- Quatre nouveaux onglets en mode Murs et étages, 34 modèles en vignettes 3D : 8 bassins (piscine, bassin de nage, plongeon, pataugeoire, spa, bassin d'ornement, bassin pour animaux, aquarium), 8 rails et quais (voie normale, LGV, métrique, petit train, tram, quai, quai couvert, heurtoir), 5 gradins (béton, tribune couverte, bois, antiques, talus), 13 terrains (football, city-stade, rugby, basket, handball, volley, beach-volley, tennis dur et terre battue, athlétisme, patinoire, pétanque, golf).
+- Un clic pose la taille réelle, un clic glissé votre taille ; R tourne. Le terrain est creusé sous les bassins.
+- Enregistrés dans la Banque, ils proposent une fonction (piscine, stade, tennis…) et leurs places assises font les visiteurs et la jauge des matchs. Voir docs/amenagements.md.
+
 **Tes modèles de l'atelier deviennent de vrais bâtiments** (14 novembre)
 - Dans la Banque (Tab puis 6), chaque bâtiment en murs fins a une **Fonction** : n'importe lequel des 708 bâtiments du jeu (maison, centrale électrique, stade, piscine, ferme, grand-huit, école…). Le modèle fonctionne exactement comme lui, avec ton apparence. Les créations en blocs (Mes créations) ont aussi leur bouton Fonction.
 - Capacités à la taille du modèle : emplois, logements, visiteurs et puissance suivent sa surface par rapport au bâtiment de référence (de ×0,25 à ×4). Prix : les matériaux, et pas moins que le bâtiment de référence à la même surface.

@@ -48,6 +48,8 @@ const ELEVES_PAR_PROF := 25
 var pop: Population
 var _etat: Dictionary = {}
 var _signature := -1
+## (pop.emplois_version, nombre de bâtiments) au dernier actualiser().
+var _vu := Vector2i(-1, -1)
 ## Signature de l'ensemble des bâtiments fermés (pour vider les caches des trajets).
 var signature_fermes := 0
 
@@ -75,6 +77,12 @@ static func requis_de(type_id: String) -> Array:
 ## Recalcule si les embauches ont changé. Rend true si l'ensemble des
 ## bâtiments fermés a changé.
 func actualiser(force := false) -> bool:
+	# Rien n'a bougé dans les emplois ni les bâtiments depuis la dernière fois :
+	# inutile de refaire l'empreinte (appelé pour chaque bâtiment, très souvent).
+	var cle := Vector2i(pop.emplois_version, pop.known.size())
+	if cle == _vu and not force:
+		return false
+	_vu = cle
 	var sig := pop.known.size() * 1000003
 	for bid in pop.by_job:
 		sig = sig * 31 + int(bid) * 7 + (pop.by_job[bid] as Array).size()

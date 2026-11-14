@@ -37,6 +37,11 @@ const RAYONS := [500.0, 800.0, 1200.0, 2000.0, 3000.0]
 const DIST_MIN := 2000.0
 ## Prix d'un carré annexé (1 ha), multiplié par le réglage « coût des constructions ».
 const PRIX_CASE := 25_000
+## Village neuf : moins de foyers que ça (≈ 350 habitants), dans une partie à
+## plusieurs villages. Ses zones poussent avant celles des grandes villes
+## (ZoneSystem), il garde toujours un chantier qui avance (Fondateurs) et le
+## pilote automatique y zone plus large (PiloteAuto).
+const JEUNE_FOYERS := 150
 const COULEURS := [Color("ffb703"), Color("8ecae6"), Color("f4845f"), Color("90be6d"), Color("c77dff"),
 	Color("f15bb5"), Color("00bbf9"), Color("fee440")]
 const NOMS_AUTO := ["Les Granges", "Beauvallon", "Saint-Clair", "Montfleury", "La Bastide", "Villeneuve",
@@ -180,6 +185,11 @@ func village_du_batiment(bid: int) -> int:
 		return -1
 	var c := _centre_bat(bid)
 	return village_au_point(c.x, c.y)
+
+
+## Village neuf (voir JEUNE_FOYERS) : seulement quand il y a plusieurs villages.
+func est_jeune(vid: int) -> bool:
+	return villages.size() >= 2 and villages.has(vid) and int(stats.get(vid, {}).get("foyers", 0)) < JEUNE_FOYERS
 
 
 ## Nom du premier village (le chef-lieu), ou "".

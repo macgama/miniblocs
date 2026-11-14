@@ -40,6 +40,13 @@ var composantes: Dictionary = {}
 ## Tracés du dernier calcul (tronçons en service puis routes) et leur composante.
 var lignes: Array = []
 var lignes_comp := PackedInt32Array()
+## Index des segments et composantes du dernier recalculer(), gardés pour raccorder
+## les nouveaux bâtiments sans tout refaire (raccorder_attente).
+var _grille := {}
+var _parent := PackedInt32Array()
+var _topo_ok := false
+## Bâtiments ajoutés ou retirés depuis : bid -> true.
+var _attente := {}
 
 
 func _init(k := "") -> void:
@@ -53,6 +60,10 @@ func clear() -> void:
 	_comp_of_bid.clear()
 	composantes.clear()
 	next_id = 1
+	_grille = {}
+	_parent = PackedInt32Array()
+	_topo_ok = false
+	_attente.clear()
 
 
 # --- Pose ------------------------------------------------------------------
@@ -83,10 +94,12 @@ static func longueur(pts: PackedVector3Array) -> float:
 ## marge : demi-taille du bâtiment (m), ajoutée au rayon de raccordement.
 func ajouter_source(bid: int, pos: Vector3, capacite: float, marge := 0.0) -> void:
 	sources[bid] = {"p": pos, "cap": capacite, "x": marge}
+	_attente[bid] = true
 
 
 func retirer_source(bid: int) -> void:
 	sources.erase(bid)
+	_attente[bid] = true
 
 
 func set_capacite(bid: int, cap: float) -> void:
@@ -96,6 +109,7 @@ func set_capacite(bid: int, cap: float) -> void:
 
 func ajouter_conso(bid: int, pos: Vector3, demande: float, marge := 0.0) -> void:
 	consos[bid] = {"p": pos, "d": demande, "x": marge}
+	_attente[bid] = true
 
 
 func set_demande(bid: int, demande: float) -> void:
@@ -105,6 +119,7 @@ func set_demande(bid: int, demande: float) -> void:
 
 func retirer_conso(bid: int) -> void:
 	consos.erase(bid)
+	_attente[bid] = true
 
 
 # --- Calcul ----------------------------------------------------------------
@@ -154,7 +169,31 @@ func recalculer(routes: Array = []) -> void:
 			var li := _closest(grid, lines, e.p, rayon_raccord + float(e.get("x", 0.0)))
 			if li >= 0:
 				_comp_of_bid[bid] = _find(parent, li)
+	_grille = grid
+	_parent = parent
+	_topo_ok = true
+	_attente.clear()
 	rebilan()
+
+
+## Raccorde seulement les bâtiments ajoutés ou retirés depuis le dernier recalculer()
+## (mêmes tracés), puis refait le partage. Même résultat que recalculer(), sans
+## refaire l'index des tracés. Rend false s'il faut un recalculer() complet.
+func raccorder_attente() -> bool:
+	if not _topo_ok:
+		return false
+	for bid in _attente:
+		_comp_of_bid.erase(bid)
+		for dict in [sources, consos]:
+			if not dict.has(bid):
+				continue
+			var e: Dictionary = dict[bid]
+			var li := _closest(_grille, lignes, e.p, rayon_raccord + float(e.get("x", 0.0)))
+			if li >= 0:
+				_comp_of_bid[bid] = _find(_parent, li)
+	_attente.clear()
+	rebilan()
+	return true
 
 
 ## Refait seulement les sommes (capacités et demandes changées, mêmes raccordements).

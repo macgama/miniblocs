@@ -3,6 +3,8 @@ extends SceneTree
 ## public, les studios et leurs décors, le menu.
 ## Usage (avec affichage) :
 ##   godot --path . --script res://tests/spectacles_vitrine.gd -- --screenshot s.png --vue salles|scenes|studios|soiree|panneau|programmer
+## Intérieurs (salles meublées en murs fins, vues en coupe) :
+##   --vue int|int_theatre|int_cinema|int_concert|int_jazz|int_studio|int_amenager
 
 
 func _initialize() -> void:
@@ -63,6 +65,9 @@ func _run() -> void:
 	var spect: Spectacles = scene.spectacles
 	spect.ignore_staff = true
 	var rig: Node3D = scene.get_node("CameraRig")
+	if vue.begins_with("int"):
+		await _interieurs(scene, spect, rig, vue, shot)
+		return
 	var y := world.cell_height(Vector2i(0, 0))
 	# Deux avenues : les salles au sud de la première, les studios au nord de la seconde.
 	transport.build_segment("route", Vector3(-330, y, 0), Vector3(330, y, 0))
@@ -139,4 +144,50 @@ func _run() -> void:
 		if int(bids[k]) > 0:
 			poses += 1
 	print("Capture : ", shot, " · ", poses, " bâtiments posés sur ", bids.size(), " · ", spect.visuels.compte(), " personnages")
+	quit(0)
+
+
+## Salles meublées prêtes à poser, vues en coupe (rez-de-chaussée sans toit).
+func _interieurs(scene: Node, spect: Spectacles, rig: Node3D, vue: String, shot: String) -> void:
+	var mob: Mobilier = scene.mobilier
+	var pe: PlanEditor = scene.get_node("Plans")
+	var pos := {"theatre_ville": Vector2i(-40, -20), "cinema_quartier": Vector2i(2, -20), "salle_musiques_actuelles_plan": Vector2i(-40, 22),
+		"club_jazz_plan": Vector2i(-4, 24), "studios_tournage": Vector2i(14, 22)}
+	var placed := {}
+	for k in pos:
+		var res := Gabarits.build(mob, String(k), pos[k], 0, "contemporain")
+		if res.ok:
+			placed[k] = String(res.id)
+		else:
+			print("  ", k, " : ", res.get("error", ""))
+	pe.flush()
+	mob.flush()
+	spect._dirty = true
+	spect._sync()
+	var blocks: BlockEditor = scene.get_node("Blocs")
+	blocks.visible = false
+	for id in pe._nodes:
+		for e in pe._nodes[id]:
+			(pe._nodes[id][e] as Node3D).visible = int(e) == 0
+	for id in mob._nodes:
+		for e in mob._nodes[id]:
+			(mob._nodes[id][e] as Node3D).visible = int(e) == 0
+	var cams := {"int": [Vector3(-6, 40, 8), 92.0, 0.0, 62.0], "int_theatre": [Vector3(-27, 40, -2), 34.0, 200.0, 50.0],
+		"int_cinema": [Vector3(17, 40, -8), 30.0, 195.0, 52.0], "int_concert": [Vector3(-29, 40, 38), 30.0, 200.0, 50.0],
+		"int_jazz": [Vector3(3, 40, 31), 15.0, 200.0, 50.0], "int_studio": [Vector3(32, 40, 37), 34.0, 200.0, 55.0],
+		"int_amenager": [Vector3(17, 40, -8), 34.0, 195.0, 55.0]}
+	var c: Array = cams.get(vue, cams.int)
+	_cam(rig, c[0], float(c[1]), float(c[2]), float(c[3]))
+	if vue == "int_amenager":
+		var panel: SpectaclesPanel = scene.spectacles_panel
+		panel.set_open(true)
+		panel.famille = "scene"
+		panel.show_view("amenager")
+	for i in 120:
+		await process_frame
+	root.get_viewport().get_texture().get_image().save_png(shot)
+	var places := 0
+	for k in placed:
+		places += int(mob.stats(String(placed[k])).places)
+	print("Capture : ", shot, " · ", placed.size(), " salles meublées · ", places, " places")
 	quit(0)

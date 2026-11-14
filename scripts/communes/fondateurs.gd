@@ -23,6 +23,13 @@ extends Node
 ##   nouvel arrivant : le campement se vide. Logés, ils comptent comme les
 ##   premiers habitants (paliers, territoire).
 ##
+## - Village neuf (le 2e, le 3e…) : une équipe de pionniers vient lancer ses
+##   chantiers (PIONNIERS_PART des fondateurs réglés, 30 par défaut) pendant
+##   PIONNIERS_JOURS jours, ou jusqu'à ce que le village ne soit plus neuf
+##   (Communes.JEUNE_FOYERS). Ils ne travaillent que pour ce village, aux
+##   logements d'abord ; ensuite, le premier chantier de chaque village passe
+##   avant les autres (repartir).
+##
 ## Sauvegarde : section « fondateurs » (terre_main.save_sections).
 
 signal changed
@@ -84,6 +91,15 @@ var _news := 0.0
 var renfort_en_attente := 0
 ## Ouvriers arrivés en renfort depuis le début de la partie.
 var renfort_total := 0
+## Pionniers des villages neufs : vid -> {"n": ouvriers, "fin": heure unix de leur départ}.
+var pionniers := {}
+## Pionniers sans chantier dans leur village (repartir) : vid -> n.
+var pionniers_libres := {}
+
+## Part des fondateurs (réglage Admin) envoyée à chaque village neuf, et pour combien de jours.
+const PIONNIERS_PART := 0.3
+const PIONNIERS_MIN := 10
+const PIONNIERS_JOURS := 60.0
 
 
 func setup(b: BuildingSystem, p: Population, c: Communes, v: BatimentsVie, s: SuiviChantiers, a: DayNight) -> void:
@@ -117,6 +133,8 @@ func clear() -> void:
 	arrives = false
 	renfort_en_attente = 0
 	renfort_total = 0
+	pionniers.clear()
+	pionniers_libres.clear()
 	camp = -1
 	membres.clear()
 	foyers_depart = 0
@@ -224,7 +242,9 @@ static func est_base_chantier(type_id: String) -> bool:
 
 ## Ouvriers disponibles : fondateurs au campement et employés des entreprises du bâtiment.
 func ouvriers() -> Dictionary:
-	var out := {"fondateurs": 0, "entreprises": 0}
+	var out := {"fondateurs": 0, "entreprises": 0, "pionniers": 0}
+	for vid in pionniers:
+		out.pionniers += int(pionniers[vid].n)
 	if population == null or buildings == null:
 		return out
 	for bid in population.by_job:
@@ -256,13 +276,14 @@ func liste_chantiers() -> Array:
 			var t := String(b.t)
 			out.append({"cle": cle_batiment(bid), "bid": int(bid), "nom": String(BuildingCatalog.get_type(t).get("name", t)),
 				"besoin": Chantiers.equipe_batiment(t), "ordre": float(b.get("ordre", b.get("ne", 0.0))),
-				"pause": bool(b.get("pause", false)), "av": float(b.get("av", 0.0)), "attente": bool(b.get("attente", false))})
+				"pause": bool(b.get("pause", false)), "av": float(b.get("av", 0.0)), "attente": bool(b.get("attente", false)),
+				"vid": communes.village_de(bid) if communes != null else -1, "log": int(BuildingCatalog.get_type(t).get("logements", 0))})
 	if suivi != null:
 		for cle in suivi.chantiers:
 			var c: Dictionary = suivi.chantiers[cle]
 			out.append({"cle": String(cle), "bid": -1, "nom": nom_travaux(String(cle)),
 				"besoin": Chantiers.equipe_travaux(float(c.hr)), "ordre": float(ordres.get(cle, c.get("t0", 0.0))),
-				"pause": pauses.has(cle), "av": float(c.av)})
+				"pause": pauses.has(cle), "av": float(c.av), "vid": int(c.get("payeur", -1))})
 	out.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
 		if float(a.ordre) != float(b.ordre):
 			return float(a.ordre) < float(b.ordre)
@@ -287,21 +308,53 @@ static func nom_travaux(cle: String) -> String:
 
 
 ## Distribue les ouvriers aux chantiers, dans l'ordre, chacun jusqu'à son équipe complète.
+## À plusieurs villages, le premier chantier de chaque village passe d'abord : un
+## village neuf n'attend pas que la grande ville ait fini tous les siens.
 func repartir() -> void:
 	repartition.clear()
 	besoins.clear()
 	var o := ouvriers()
-	total_ouvriers = int(o.fondateurs) + int(o.entreprises)
-	var dispo := total_ouvriers
-	for ch in liste_chantiers():
-		besoins[ch.cle] = int(ch.besoin)
-		# En pause, ou arrêté faute d'argent : les ouvriers vont aux chantiers suivants.
-		if bool(ch.pause) or bool(ch.get("attente", false)):
-			repartition[ch.cle] = 0
-			continue
-		var n := mini(int(ch.besoin), dispo)
-		repartition[ch.cle] = n
-		dispo -= n
+	total_ouvriers = int(o.fondateurs) + int(o.entreprises) + int(o.pionniers)
+	var dispo := int(o.fondateurs) + int(o.entreprises)
+	var liste := liste_chantiers()
+	# Les pionniers d'un village neuf ne travaillent que chez eux, aux logements
+	# d'abord (la Maison de commune et les rues passent par les autres ouvriers).
+	pionniers_libres.clear()
+	for vid in pionniers:
+		var reste := int(pionniers[vid].n)
+		for logements in [true, false]:
+			for ch in liste:
+				if reste <= 0:
+					break
+				if int(ch.get("vid", -1)) != int(vid) or (int(ch.get("log", 0)) > 0) != logements \
+						or bool(ch.pause) or bool(ch.get("attente", false)) or repartition.has(ch.cle):
+					continue
+				var n := mini(int(ch.besoin), reste)
+				repartition[ch.cle] = n
+				reste -= n
+		pionniers_libres[vid] = reste
+	var premiers := {}
+	if communes != null and communes.villages.size() >= 2:
+		var vus := {}
+		for ch in liste:
+			var vid := int(ch.get("vid", -1))
+			if vid < 0 or vus.has(vid) or bool(ch.pause) or bool(ch.get("attente", false)):
+				continue
+			vus[vid] = true
+			premiers[ch.cle] = true
+	for passe in 2:
+		for ch in liste:
+			if premiers.has(ch.cle) != (passe == 0):
+				continue
+			besoins[ch.cle] = int(ch.besoin)
+			# En pause, ou arrêté faute d'argent : les ouvriers vont aux chantiers suivants.
+			if bool(ch.pause) or bool(ch.get("attente", false)):
+				repartition[ch.cle] = 0
+				continue
+			var deja := int(repartition.get(ch.cle, 0))
+			var n := mini(int(ch.besoin) - deja, dispo)
+			repartition[ch.cle] = deja + n
+			dispo -= n
 	libres = dispo
 
 
@@ -312,7 +365,9 @@ func repartir() -> void:
 const CHANTIERS_PRIVES_EN_ATTENTE := 2
 
 
-func accepte_chantier_prive() -> bool:
+## vid : village neuf où le promoteur veut construire (ZoneSystem) ; il garde
+## toujours deux chantiers en cours, que repartir() sert en premier.
+func accepte_chantier_prive(vid := -1) -> bool:
 	if not regle_active():
 		return true
 	repartir()
@@ -320,7 +375,17 @@ func accepte_chantier_prive() -> bool:
 	for cle in repartition:
 		if int(repartition[cle]) == 0 and not en_pause(String(cle)):
 			attente += 1
-	return libres > 0 or attente < CHANTIERS_PRIVES_EN_ATTENTE
+	if libres > 0 or attente < CHANTIERS_PRIVES_EN_ATTENTE:
+		return true
+	if vid < 0 or communes == null or not communes.est_jeune(vid) or vie == null:
+		return false
+	if int(pionniers_libres.get(vid, 0)) > 0:
+		return true
+	var n := 0
+	for bid in vie._chantiers:
+		if communes.village_de(bid) == vid:
+			n += 1
+	return n < CHANTIERS_PRIVES_EN_ATTENTE
 
 
 # --- Commandes du joueur -------------------------------------------------------------------
@@ -450,6 +515,9 @@ func rappeler(bid: int, n: int) -> int:
 # --- Arrivée ---------------------------------------------------------------------------------
 
 func _on_fonde(vid: int) -> void:
+	if arrives and communes != null and not communes.ignorer and communes.villages.size() >= 2 and regle_active():
+		envoyer_pionniers(vid)
+		return
 	if arrives or communes == null or communes.ignorer or not communes.actif:
 		return
 	if ReglagesPartie.actuel.fondateurs <= 0 or communes.villages.size() != 1:
@@ -462,6 +530,30 @@ func _on_fonde(vid: int) -> void:
 		return
 	# Après la pose de la Maison de commune (on est encore dans BuildingSystem.place).
 	arriver.call_deferred(ReglagesPartie.actuel.fondateurs, bid)
+
+
+## Une équipe de pionniers part lancer les chantiers d'un village neuf.
+func envoyer_pionniers(vid: int) -> void:
+	var n := maxi(PIONNIERS_MIN, roundi(ReglagesPartie.actuel.fondateurs * PIONNIERS_PART))
+	var t := ambiance.unix_time if ambiance != null else 0.0
+	pionniers[vid] = {"n": n, "fin": t + PIONNIERS_JOURS * 86400.0}
+	repartir()
+	changed.emit()
+	message.emit("%d pionniers arrivent à %s pour lancer ses chantiers : ils y travaillent %d jours, ou jusqu'à ce que le village compte %d foyers." % [
+		n, String(communes.villages[vid].nom), roundi(PIONNIERS_JOURS), Communes.JEUNE_FOYERS])
+
+
+## Les pionniers repartent quand leur temps est fini, ou quand le village a grandi.
+func _maj_pionniers() -> void:
+	var t := ambiance.unix_time if ambiance != null else 0.0
+	for vid in pionniers.keys():
+		var parti := communes == null or not communes.villages.has(vid)
+		if not parti and (t >= float(pionniers[vid].fin) or not communes.est_jeune(int(vid))):
+			message.emit("Les pionniers de %s ont fini leur mission : le village compte sur ses propres ouvriers (entreprise du bâtiment)." % String(communes.villages[vid].nom))
+			parti = true
+		if parti:
+			pionniers.erase(vid)
+			changed.emit()
 
 
 ## Les fondateurs arrivent : campement près de la mairie, foyers, emplois au chantier.
@@ -690,6 +782,8 @@ func _process(delta: float) -> void:
 	if _acc < 0.5:
 		return
 	_acc = 0.0
+	if not pionniers.is_empty():
+		_maj_pionniers()
 	repartir()
 	var j := _jour_actuel()
 	if _jour < 0 or j < _jour:
@@ -744,7 +838,15 @@ func nouveau_jour() -> void:
 func to_dict() -> Dictionary:
 	return {"version": 1, "arrives": arrives, "camp": camp, "membres": membres.duplicate(), "foyers_depart": foyers_depart,
 		"vivres": snappedf(vivres, 0.01), "ravitaillement": ravitaillement, "affame": affame, "alerte": _alerte_vivres,
-		"pauses": pauses.keys(), "ordres": ordres.duplicate(), "jour": _jour, "renfort": renfort_en_attente, "renfort_total": renfort_total}
+		"pauses": pauses.keys(), "ordres": ordres.duplicate(), "jour": _jour, "renfort": renfort_en_attente, "renfort_total": renfort_total,
+		"pionniers": _pionniers_dict()}
+
+
+func _pionniers_dict() -> Dictionary:
+	var out := {}
+	for vid in pionniers:
+		out[str(vid)] = {"n": int(pionniers[vid].n), "fin": float(pionniers[vid].fin)}
+	return out
 
 
 func from_dict(d: Dictionary) -> void:
@@ -768,5 +870,8 @@ func from_dict(d: Dictionary) -> void:
 	_jour = int(d.get("jour", -1))
 	renfort_en_attente = int(d.get("renfort", 0))
 	renfort_total = int(d.get("renfort_total", 0))
+	var pi: Dictionary = d.get("pionniers", {})
+	for k in pi:
+		pionniers[int(k)] = {"n": int(pi[k].get("n", 0)), "fin": float(pi[k].get("fin", 0.0))}
 	repartir()
 	changed.emit()

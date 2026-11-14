@@ -129,7 +129,7 @@ func build(bp: BuildingPanel) -> void:
 		trow.add_child(b)
 	var fn_opt := OptionButton.new()
 	fn_opt.tooltip_text = "Fonction donnée par l'outil Fonction"
-	for f in Meubles.PIECE_ORDER + ["studio"]:
+	for f in Meubles.PIECE_ORDER + ["studio"] + SpectaclesObjets.SALLE_ORDER:
 		fn_opt.add_item(Mobilier.fn_name(String(f)))
 		fn_opt.set_item_metadata(fn_opt.item_count - 1, f)
 		if String(f) == mob.room_fn:

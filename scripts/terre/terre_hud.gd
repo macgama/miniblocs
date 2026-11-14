@@ -54,6 +54,8 @@ signal zoo_requested
 ## Bouton « Musée » (menu Loisirs, Maj+C).
 signal musee_requested
 signal spectacles_requested
+## Bouton « Club de sport » (menu Loisirs, Maj+B).
+signal club_requested
 ## Panneau « Cartes » (touche N) : pollution, bruit, valeur des terrains, autres calques.
 signal cartes_requested
 ## Bouton « Statistiques » (menu Infos, Maj+I).
@@ -125,6 +127,7 @@ const CATEGORIES := [
 	{"id": "zoo", "name": "Zoo", "icon": "zoo", "key": "Maj+Z", "panel": true, "group": "loisirs"},
 	{"id": "musee", "name": "Musée", "icon": "musee", "key": "Maj+C", "panel": true, "group": "loisirs"},
 	{"id": "spectacles", "name": "Spectacles (cinémas, concerts, théâtres, studios)", "icon": "masques", "key": "Maj+X", "panel": true, "group": "loisirs"},
+	{"id": "club", "name": "Club de sport (équipe, championnat, transferts)", "icon": "sport", "key": "Maj+B", "panel": true, "group": "loisirs"},
 	{"id": "cartes", "name": "Cartes", "icon": "cartes", "key": "N", "panel": true, "group": "infos"},
 	{"id": "stats", "name": "Statistiques et conseiller", "icon": "courbe", "key": "Maj+I", "panel": true, "group": "infos"},
 	{"id": "murs", "name": "Murs et étages", "icon": "mur", "key": "2", "panel": true, "mode": "creer"},
@@ -805,6 +808,7 @@ func _on_category(id: String) -> void:
 			"zoo": zoo_requested.emit()
 			"musee": musee_requested.emit()
 			"spectacles": spectacles_requested.emit()
+			"club": club_requested.emit()
 			"cartes": cartes_requested.emit()
 			"stats": stats_requested.emit()
 		_update_categories()

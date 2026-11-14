@@ -154,5 +154,7 @@ soi-même, du type de son choix.
 - Le chantier se fait avec les fondateurs ; l'État envoie **40 ouvriers** de plus (4
   chantiers du kit ≈ 60 ouvriers, sinon les maisons des fondateurs attendraient).
 - Panneau Maj+P : bons restants sous chaque ville.
+- Catalogue B : badge « Offert par l'État » (ou « Bon de l'État » si le plafond ne couvre
+  pas tout) sur les cartes qu'un bon encore libre peut payer, avec le reste à payer.
 - Code : `scripts/pays/kit_installation.gd` (`BuildingSystem.remise`), section « kit ».
   Test : `tests/kit_test.gd`.

@@ -3,6 +3,9 @@
 Première version du troisième univers de MiniBlocs : un club de football dont
 le joueur est le président. Menu **Loisirs → Club de sport**, ou **Maj+B**.
 
+![Match à domicile](apercu-club-match.jpg)
+![Menu du club](apercu-club-panneau.jpg)
+
 ## Fonder le club
 
 - Il faut un stade terminé dans la ville : un des 11 stades modélisés dans

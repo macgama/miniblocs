@@ -447,7 +447,9 @@ func _vue_calendrier() -> void:
 func _vue_classement() -> void:
 	var div := ClubDonnees.division(int(cs.ligue.get("division", 0)))
 	_label("%s, saison %s" % [div.nom, String(cs.ligue.get("saison", ""))], 14)
-	_label("Les %d premiers montent, les %d derniers descendent." % [int(div.monte), int(div.descend)], 11, true)
+	var regle := "Les %d premiers montent" % int(div.monte) if int(div.monte) > 0 else "Le premier est champion de la plus haute division"
+	regle += ", les %d derniers descendent." % int(div.descend) if int(div.descend) > 0 else " (pas de descente depuis la Régionale)."
+	_label(regle, 11, true)
 	var cl := cs.classement()
 	var grid := GridContainer.new()
 	grid.columns = 8

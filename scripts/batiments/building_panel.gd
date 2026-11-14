@@ -50,6 +50,8 @@ var _block_shape := 0
 var _block_tint := 0
 var _mat_family := ""
 var _mat_search := ""
+var _plan_tab := "portes"
+var _block_tab := "formes"
 var _icons := {}
 var _wall_height := 3
 var _piece_d := 6
@@ -491,7 +493,7 @@ func _show_blocks() -> void:
 		_show_plan_tools()
 	else:
 		_show_block_tools()
-	_show_materials()
+	_show_catalog()
 	if _block_mode == "blocs":
 		_show_capture()
 	_block_label = Label.new()
@@ -585,40 +587,6 @@ func _show_plan_tools() -> void:
 	spin.value_changed.connect(func(v: float) -> void: _copy_count = int(v))
 	crow.add_child(spin)
 	_add(crow)
-	# Ouvertures.
-	_add(_small_label("Portes et fenêtres (clic près d'un mur ; clic droit : retirer)"))
-	var orow := HFlowContainer.new()
-	for k in PlanEditor.OPENING_ORDER:
-		var o: Dictionary = PlanEditor.OPENINGS[k]
-		var ob := Button.new()
-		ob.text = o.name
-		ob.tooltip_text = "%s · %s" % [o.desc, BuildingSystem.format_money(int(o.price))]
-		ob.toggle_mode = true
-		ob.button_group = _item_group
-		ob.add_theme_font_size_override("font_size", 12)
-		var kid: String = k
-		ob.pressed.connect(func() -> void:
-			_opening = kid
-			plan_opening_chosen.emit(kid))
-		orow.add_child(ob)
-	_add(orow)
-	# Toit sur le dernier étage.
-	_add(_small_label("Toit sur le dernier étage (en blocs, matériau de toit choisi ou tuile)"))
-	var rrow := HFlowContainer.new()
-	for r in PlanEditor.ROOFS:
-		var rb := Button.new()
-		rb.text = r[1]
-		rb.add_theme_font_size_override("font_size", 12)
-		var rid: String = r[0]
-		rb.pressed.connect(func() -> void: plan_roof.emit(rid))
-		rrow.add_child(rb)
-	var seat := Button.new()
-	seat.text = "Au ras du sol"
-	seat.tooltip_text = "Remet le bâtiment visé de plain-pied : rez-de-chaussée à la hauteur du sol ou de la route voisine (toit compris)."
-	seat.add_theme_font_size_override("font_size", 12)
-	seat.pressed.connect(func() -> void: plan_reseat.emit())
-	rrow.add_child(seat)
-	_add(rrow)
 
 
 ## Remplit l'échelle : « Ajouter un étage » en haut, puis chaque niveau du toit
@@ -700,36 +668,6 @@ func _show_block_tools() -> void:
 	hrow.add_child(spin)
 	_list.add_child(hrow)
 	_item_buttons.append(hrow)
-	# Formes : blocs, toits, ouvertures.
-	var shape_group := ButtonGroup.new()
-	for fam in BlocFormes.FAMILLES:
-		var fl := Label.new()
-		fl.text = fam[1]
-		fl.add_theme_font_size_override("font_size", 12)
-		_list.add_child(fl)
-		_item_buttons.append(fl)
-		var srow := HFlowContainer.new()
-		_list.add_child(srow)
-		_item_buttons.append(srow)
-		for sh in BlocFormes.ORDER:
-			var info: Dictionary = BlocFormes.INFO[sh]
-			if info.fam != fam[0]:
-				continue
-			var sb := Button.new()
-			sb.text = info.name
-			sb.tooltip_text = info.desc
-			sb.toggle_mode = true
-			sb.button_group = shape_group
-			sb.add_theme_font_size_override("font_size", 12)
-			sb.button_pressed = sh == _block_shape
-			var shid: int = sh
-			sb.pressed.connect(func() -> void:
-				_block_shape = shid
-				block_shape_chosen.emit(shid))
-			srow.add_child(sb)
-		if fam[0] == "grandes":
-			_list.add_child(_piece_row())
-			_item_buttons.append(_list.get_child(_list.get_child_count() - 1))
 
 
 ## Réglages des grandes pièces : diamètre (ou largeur) et hauteur (ou longueur).
@@ -766,7 +704,209 @@ func _piece_row() -> Control:
 	return row
 
 
-func _show_materials() -> void:
+## Onglets de l'atelier : Portes, Fenêtres, Baies, Passages, Toits (murs fins) ou
+## familles de formes (blocs), puis Matériaux. Un seul onglet ouvert à la fois,
+## en vignettes avec leur nom.
+func _catalog_tabs() -> Array:
+	var tabs := []
+	if _block_mode == "plans":
+		for ot in VignettesAtelier.OPENING_TABS:
+			tabs.append([ot[0], ot[1]])
+		tabs.append(["toits", "Toits"])
+	else:
+		for fam in BlocFormes.FAMILLES:
+			if fam[0] == "ouvertures":
+				tabs.append(["b_portes", "Portes"])
+				tabs.append(["b_fenetres", "Fenêtres"])
+			elif fam[0] == "grandes":
+				tabs.append(["grandes", "Grandes pièces"])
+			elif fam[0] == "details":
+				tabs.append(["details", "Détails"])
+			else:
+				tabs.append([fam[0], fam[1]])
+	tabs.append(["materiaux", "Matériaux"])
+	return tabs
+
+
+func _show_catalog() -> void:
+	var tabs := _catalog_tabs()
+	var ids := []
+	for tb in tabs:
+		ids.append(tb[0])
+	var cur := _plan_tab if _block_mode == "plans" else _block_tab
+	if not cur in ids:
+		cur = ids[0]
+	var chips := HFlowContainer.new()
+	chips.add_theme_constant_override("h_separation", 4)
+	chips.add_theme_constant_override("v_separation", 4)
+	_add(chips)
+	# Matériau en cours, rappelé au-dessus des vignettes (un clic : onglet Matériaux).
+	var strip := Button.new()
+	strip.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	strip.focus_mode = Control.FOCUS_NONE
+	strip.add_theme_constant_override("icon_max_width", 22)
+	strip.add_theme_font_size_override("font_size", 12)
+	strip.add_theme_stylebox_override("normal", UiStyle.flat_box(Color(1, 1, 1, 0.04), 8, 4))
+	strip.add_theme_stylebox_override("hover", UiStyle.flat_box(Color(1, 1, 1, 0.12), 8, 4))
+	strip.tooltip_text = "Changer de matériau"
+	_add(strip)
+	var content := VBoxContainer.new()
+	content.add_theme_constant_override("separation", 6)
+	_add(content)
+	var chip_group := ButtonGroup.new()
+	var open_tab := func(id: String) -> void:
+		if _block_mode == "plans":
+			_plan_tab = id
+		else:
+			_block_tab = id
+		for c in content.get_children():
+			c.queue_free()
+		var m := clampi(_block_material, 0, BlockEditor.MATERIALS.size() - 1)
+		strip.icon = _material_icon(m)
+		strip.text = "Matériau : %s  ›" % BlockEditor.MATERIALS[m].name
+		strip.visible = id != "materiaux"
+		if id == "materiaux":
+			_show_materials(content)
+		else:
+			_fill_catalog_tab(id, content)
+		for ch in chips.get_children():
+			(ch as Button).set_pressed_no_signal(String(ch.get_meta("tab")) == id)
+	for tb in tabs:
+		var chip := _chip(String(tb[1]))
+		chip.button_group = chip_group
+		chip.set_meta("tab", tb[0])
+		var tid: String = tb[0]
+		chip.pressed.connect(func() -> void: open_tab.call(tid))
+		chips.add_child(chip)
+	strip.pressed.connect(func() -> void: open_tab.call("materiaux"))
+	open_tab.call(cur)
+
+
+func _hint(text: String) -> Label:
+	var l := _small_label(text)
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.add_theme_color_override("font_color", UiStyle.TEXT_DIM)
+	return l
+
+
+## Petit onglet arrondi (ambre quand il est choisi).
+func _chip(text: String) -> Button:
+	var chip := Button.new()
+	chip.text = text
+	chip.toggle_mode = true
+	chip.add_theme_font_size_override("font_size", 12)
+	UiStyle.style_icon_button(chip)
+	chip.add_theme_stylebox_override("normal", UiStyle.flat_box(Color(1, 1, 1, 0.07), 12, 4))
+	chip.add_theme_stylebox_override("hover", UiStyle.flat_box(Color(1, 1, 1, 0.16), 12, 4))
+	chip.add_theme_stylebox_override("pressed", UiStyle.flat_box(UiStyle.ACCENT, 12, 4))
+	chip.add_theme_stylebox_override("hover_pressed", UiStyle.flat_box(UiStyle.ACCENT.lightened(0.15), 12, 4))
+	return chip
+
+
+func _fill_catalog_tab(id: String, box: VBoxContainer) -> void:
+	var grid := GridContainer.new()
+	grid.columns = 4
+	grid.add_theme_constant_override("h_separation", 4)
+	grid.add_theme_constant_override("v_separation", 4)
+	if _block_mode == "plans":
+		if id == "toits":
+			box.add_child(_hint("Un clic pose le toit sur le dernier étage du bâtiment visé (matériau de toit choisi, sinon celui du modèle)."))
+			box.add_child(grid)
+			for r in PlanEditor.ROOFS:
+				var rid: String = r[0]
+				var rb := _thumb_card(String(r[1]), "Toit %s sur le dernier étage" % String(r[1]).to_lower(),
+					"toit_" + rid, func() -> Mesh: return VignettesAtelier.roof_mesh(rid))
+				rb.pressed.connect(func() -> void: plan_roof.emit(rid))
+				grid.add_child(rb)
+			var seat := Button.new()
+			seat.text = "Au ras du sol"
+			seat.tooltip_text = "Remet le bâtiment visé de plain-pied : rez-de-chaussée à la hauteur du sol ou de la route voisine (toit compris)."
+			seat.add_theme_font_size_override("font_size", 12)
+			seat.pressed.connect(func() -> void: plan_reseat.emit())
+			box.add_child(seat)
+			return
+		box.add_child(_hint("Clic près d'un mur pour poser ; clic droit : retirer."))
+		box.add_child(grid)
+		for ot in VignettesAtelier.OPENING_TABS:
+			if ot[0] != id:
+				continue
+			for k in ot[2]:
+				var o: Dictionary = PlanEditor.OPENINGS[k]
+				var kid: String = k
+				var ob := _thumb_card(String(o.name), "%s\n%s · %s" % [o.name, o.desc, BuildingSystem.format_money(int(o.price))],
+					"ouv_" + kid, func() -> Mesh: return VignettesAtelier.opening_mesh(kid))
+				ob.toggle_mode = true
+				ob.button_group = _item_group
+				ob.pressed.connect(func() -> void:
+					_opening = kid
+					plan_opening_chosen.emit(kid))
+				grid.add_child(ob)
+		return
+	# Blocs : formes de la famille choisie.
+	box.add_child(grid)
+	var fam := id
+	if id == "b_portes" or id == "b_fenetres":
+		fam = "ouvertures"
+	var shape_group := ButtonGroup.new()
+	for sh in BlocFormes.ORDER:
+		var info: Dictionary = BlocFormes.INFO[sh]
+		if info.fam != fam:
+			continue
+		var is_door := String(info.name).begins_with("Porte")
+		if (id == "b_portes" and not is_door) or (id == "b_fenetres" and is_door):
+			continue
+		var shid: int = sh
+		var sb := _thumb_card(String(info.name), "%s\n%s" % [info.name, info.desc],
+			"forme_%d" % shid, func() -> Mesh: return VignettesAtelier.shape_mesh(shid))
+		sb.toggle_mode = true
+		sb.button_group = shape_group
+		sb.button_pressed = sh == _block_shape
+		sb.pressed.connect(func() -> void:
+			_block_shape = shid
+			block_shape_chosen.emit(shid))
+		grid.add_child(sb)
+	if id == "grandes":
+		box.add_child(_piece_row())
+
+
+## Vignette de l'atelier : maquette 3D rendue à part, nom dessous.
+func _thumb_card(title: String, tip: String, vid: String, builder: Callable) -> Button:
+	var b := Button.new()
+	_card_look(b)
+	b.text = title
+	b.tooltip_text = tip
+	if _vignettes:
+		_vignettes.request_mesh(vid, builder, b)
+	return b
+
+
+## Allure commune des vignettes (matériaux, portes, fenêtres, formes, toits).
+func _card_look(b: Button) -> void:
+	b.custom_minimum_size = Vector2(80, 98)
+	b.focus_mode = Control.FOCUS_NONE
+	var states := {"normal": [Color(1, 1, 1, 0.05), Color(1, 1, 1, 0.0)], "hover": [Color(1, 1, 1, 0.14), Color(1, 1, 1, 0.35)],
+		"pressed": [Color(UiStyle.ACCENT, 0.22), UiStyle.ACCENT], "hover_pressed": [Color(UiStyle.ACCENT, 0.3), UiStyle.ACCENT]}
+	for st in states:
+		var sb := UiStyle.flat_box(states[st][0], 8, 3)
+		sb.set_border_width_all(2)
+		sb.border_color = states[st][1]
+		b.add_theme_stylebox_override(st, sb)
+	b.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	b.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
+	b.alignment = HORIZONTAL_ALIGNMENT_CENTER
+	b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	b.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	b.clip_text = true
+	b.add_theme_constant_override("icon_max_width", 64)
+	b.add_theme_font_size_override("font_size", 10)
+	b.add_theme_constant_override("line_spacing", -3)
+	b.add_theme_constant_override("h_separation", 1)
+	for cs in ["font_color", "font_hover_color", "font_pressed_color", "font_hover_pressed_color"]:
+		b.add_theme_color_override(cs, UiStyle.ACCENT if cs.contains("pressed") else UiStyle.TEXT)
+
+
+func _show_materials(box: VBoxContainer) -> void:
 	# Matériaux : grandes vignettes avec leur nom, onglets par famille et recherche.
 	var head := HBoxContainer.new()
 	head.add_theme_constant_override("separation", 8)
@@ -788,8 +928,7 @@ func _show_materials() -> void:
 	cur_info.add_theme_color_override("font_color", UiStyle.TEXT_DIM)
 	cur_box.add_child(cur_info)
 	head.add_child(cur_box)
-	_list.add_child(head)
-	_item_buttons.append(head)
+	box.add_child(head)
 	var show_current := func(i: int) -> void:
 		var m: Dictionary = BlockEditor.MATERIALS[i]
 		cur_pic.texture = _material_icon(i)
@@ -802,22 +941,19 @@ func _show_materials() -> void:
 	search.placeholder_text = "Chercher un matériau (%d)…" % BlockEditor.MATERIALS.size()
 	search.clear_button_enabled = true
 	search.text = _mat_search
-	_list.add_child(search)
-	_item_buttons.append(search)
+	box.add_child(search)
 
 	# Onglets des familles.
 	var chips := HFlowContainer.new()
 	chips.add_theme_constant_override("h_separation", 4)
 	chips.add_theme_constant_override("v_separation", 4)
-	_list.add_child(chips)
-	_item_buttons.append(chips)
+	box.add_child(chips)
 
 	# Grille des vignettes, dans sa propre zone défilante.
 	var gscroll := ScrollContainer.new()
 	gscroll.custom_minimum_size = Vector2(0, 330)
 	gscroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	_list.add_child(gscroll)
-	_item_buttons.append(gscroll)
+	box.add_child(gscroll)
 	var grid := GridContainer.new()
 	grid.columns = 4
 	grid.add_theme_constant_override("h_separation", 4)
@@ -828,8 +964,7 @@ func _show_materials() -> void:
 	empty.text = "Aucun matériau ne correspond."
 	empty.add_theme_color_override("font_color", UiStyle.TEXT_DIM)
 	empty.visible = false
-	_list.add_child(empty)
-	_item_buttons.append(empty)
+	box.add_child(empty)
 
 	var mat_group := ButtonGroup.new()
 	var cards: Array[Button] = []
@@ -893,11 +1028,9 @@ func _show_materials() -> void:
 	var tl := Label.new()
 	tl.text = "Teinte (peinture) :"
 	tl.add_theme_font_size_override("font_size", 12)
-	_list.add_child(tl)
-	_item_buttons.append(tl)
+	box.add_child(tl)
 	var trow := HFlowContainer.new()
-	_list.add_child(trow)
-	_item_buttons.append(trow)
+	box.add_child(trow)
 	var tint_group := ButtonGroup.new()
 	for ti in BlocMateriaux.TINTS.size():
 		var tb := Button.new()
@@ -961,32 +1094,12 @@ func _family_name(fid: String) -> String:
 func _material_card(i: int, group: ButtonGroup) -> Button:
 	var m: Dictionary = BlockEditor.MATERIALS[i]
 	var b := Button.new()
-	b.custom_minimum_size = Vector2(80, 98)
+	_card_look(b)
 	b.toggle_mode = true
 	b.button_group = group
-	b.focus_mode = Control.FOCUS_NONE
 	b.tooltip_text = "%s\n%s · %d € le bloc" % [m.name, _family_name(String(m.fam)), m.price]
-	var states := {"normal": [Color(1, 1, 1, 0.05), Color(1, 1, 1, 0.0)], "hover": [Color(1, 1, 1, 0.14), Color(1, 1, 1, 0.35)],
-		"pressed": [Color(UiStyle.ACCENT, 0.22), UiStyle.ACCENT], "hover_pressed": [Color(UiStyle.ACCENT, 0.3), UiStyle.ACCENT]}
-	for st in states:
-		var sb := UiStyle.flat_box(states[st][0], 8, 3)
-		sb.set_border_width_all(2)
-		sb.border_color = states[st][1]
-		b.add_theme_stylebox_override(st, sb)
-	b.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 	b.icon = _material_icon(i)
 	b.text = String(m.name)
-	b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	b.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
-	b.alignment = HORIZONTAL_ALIGNMENT_CENTER
-	b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	b.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	b.clip_text = true
-	b.add_theme_font_size_override("font_size", 10)
-	b.add_theme_constant_override("line_spacing", -3)
-	b.add_theme_constant_override("h_separation", 1)
-	for cs in ["font_color", "font_hover_color", "font_pressed_color", "font_hover_pressed_color"]:
-		b.add_theme_color_override(cs, UiStyle.ACCENT if cs.contains("pressed") else UiStyle.TEXT)
 	b.button_pressed = i == _block_material
 	return b
 

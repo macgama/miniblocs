@@ -178,6 +178,7 @@ func _run() -> void:
 	await process_frame
 	_check(bp._item_buttons.size() >= 4, "onglet Banque de modèles")
 	bp._block_mode = "blocs"
+	bp._block_tab = "materiaux"
 	bp.show_category("blocs")
 	await process_frame
 	var cards := []
@@ -205,6 +206,58 @@ func _run() -> void:
 			if not c.is_queued_for_deletion():
 				shown += 1
 		_check(shown > 0 and shown < BlocMateriaux.count(), "un onglet ne montre que sa famille (%d)" % shown)
+	# Onglets de l'atelier : une vignette par porte, fenêtre, forme ou toit.
+	var seen := {}
+	for ot in VignettesAtelier.OPENING_TABS:
+		for k in ot[2]:
+			seen[k] = int(seen.get(k, 0)) + 1
+	var all_once := seen.size() == PlanEditor.OPENING_ORDER.size()
+	for k in PlanEditor.OPENING_ORDER:
+		all_once = all_once and int(seen.get(k, 0)) == 1
+	_check(all_once, "chaque porte ou fenêtre est rangée dans un seul onglet (%d)" % seen.size())
+	var tab_cards := func() -> Array:
+		var out := []
+		var stk: Array = [bp._list]
+		while not stk.is_empty():
+			var nd: Node = stk.pop_back()
+			if nd is GridContainer and not nd.is_queued_for_deletion() and nd.get_parent() is VBoxContainer and nd.get_parent() != bp._list:
+				for c in nd.get_children():
+					if not c.is_queued_for_deletion():
+						out.append(c)
+			stk.append_array(nd.get_children())
+		return out
+	var counts := {}
+	bp._block_mode = "plans"
+	for tab in ["portes", "fenetres", "baies", "passages", "toits"]:
+		bp._plan_tab = tab
+		bp.show_category("blocs")
+		await process_frame
+		counts[tab] = (tab_cards.call() as Array).size()
+	_check(counts.portes == 9 and counts.fenetres == 8 and counts.toits == PlanEditor.ROOFS.size(),
+		"onglets Portes, Fenêtres, Baies, Passages, Toits en vignettes %s" % [counts])
+	bp._block_mode = "blocs"
+	var bcount := 0
+	for tab in ["formes", "arrondis", "toits", "details", "b_portes", "b_fenetres", "grandes"]:
+		bp._block_tab = tab
+		bp.show_category("blocs")
+		await process_frame
+		bcount += (tab_cards.call() as Array).size()
+	var shown_shapes := 0
+	for sh in BlocFormes.ORDER:
+		if String(BlocFormes.INFO[sh].fam) != "":
+			shown_shapes += 1
+	_check(bcount == shown_shapes, "toutes les formes de blocs ont leur vignette (%d / %d)" % [bcount, shown_shapes])
+	var empty_meshes := []
+	for k in PlanEditor.OPENING_ORDER:
+		if VignettesAtelier.opening_mesh(k).get_surface_count() == 0:
+			empty_meshes.append(k)
+	for rf in PlanEditor.ROOFS:
+		if VignettesAtelier.roof_mesh(String(rf[0])).get_surface_count() == 0:
+			empty_meshes.append(rf[0])
+	for sh in BlocFormes.ORDER:
+		if VignettesAtelier.shape_mesh(sh).get_surface_count() == 0:
+			empty_meshes.append(sh)
+	_check(empty_meshes.is_empty(), "maquettes des vignettes non vides %s" % [empty_meshes])
 	var hud: TerreHud = scene.hud
 	_check(hud._cat_buttons.has("banque") and hud._cat_buttons.has("atelier"), "tuiles Banque et Atelier du mode Créer")
 	_check(Icones.has_icon("banque") and Icones.has_icon("atelier"), "icônes Banque et Atelier")

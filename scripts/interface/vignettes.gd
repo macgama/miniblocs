@@ -71,6 +71,30 @@ func request(id: String, target: TextureRect) -> void:
 	_queue.append([id, [target]])
 
 
+## Vignette carrée d'une maquette quelconque (atelier) : builder() rend un Mesh.
+## La cible est un TextureRect (texture) ou un bouton (icône).
+func request_mesh(id: String, builder: Callable, target: Control, px := 128) -> void:
+	if _cache.has(id):
+		_apply(target, _cache[id])
+		return
+	if not _enabled:
+		return
+	for q in _queue:
+		if q[0] == id:
+			(q[1] as Array).append(target)
+			return
+	_queue.append([id, [target], builder, px])
+
+
+static func _apply(target: Object, tex: Texture2D) -> void:
+	if not is_instance_valid(target):
+		return
+	if target is TextureRect:
+		(target as TextureRect).texture = tex
+	elif target is Button:
+		(target as Button).icon = tex
+
+
 ## Oublie les demandes en attente (le panneau a changé de liste).
 func cancel_all() -> void:
 	_queue.clear()
@@ -86,13 +110,22 @@ func _render_next() -> void:
 	_busy = true
 	var job: Array = _queue.pop_front()
 	var id: String = job[0]
-	var mesh := BuildingCatalog.build_mesh(id, NightWindows.building_material())
+	var custom: bool = job.size() > 2
+	var mesh: Mesh
+	if custom:
+		mesh = (job[2] as Callable).call()
+		_viewport.size = Vector2i(int(job[3]), int(job[3]))
+	else:
+		mesh = BuildingCatalog.build_mesh(id, NightWindows.building_material())
+		_viewport.size = SIZE
 	_mesh.mesh = mesh
-	var box := mesh.get_aabb()
+	var box := mesh.get_aabb() if mesh != null else AABB(Vector3.ZERO, Vector3.ONE)
 	var c := box.get_center()
 	var extent := maxf(box.size.length(), 1.0)
 	var dir := Vector3(1.0, 0.85, 1.25).normalized()
-	_camera.size = extent * 0.62
+	if custom:
+		dir = Vector3(0.5, 0.4, 1.0).normalized()
+	_camera.size = extent * (0.6 if custom else 0.62)
 	_camera.position = c + dir * extent * 2.0
 	_camera.look_at(c, Vector3.UP)
 	_viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
@@ -102,6 +135,5 @@ func _render_next() -> void:
 		var tex := ImageTexture.create_from_image(img)
 		_cache[id] = tex
 		for t in job[1]:
-			if is_instance_valid(t):
-				(t as TextureRect).texture = tex
+			_apply(t, tex)
 	_busy = false

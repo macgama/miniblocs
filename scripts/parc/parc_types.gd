@@ -98,8 +98,8 @@ const ORDER := ["entree_parc", "carrousel_parc", "tasses_parc", "autos_tamponneu
 
 static func entries() -> Dictionary:
 	var out := {}
-	for id in ORDER:
-		var t: Dictionary = TYPES[id].duplicate()
+	for id in ORDER + ParcExtras.ORDER:
+		var t: Dictionary = (TYPES[id] if TYPES.has(id) else ParcExtras.TYPES[id]).duplicate()
 		t["cat"] = CATEGORY
 		t["region"] = "monde"
 		t["era"] = "moderne"
@@ -111,7 +111,14 @@ static func entries() -> Dictionary:
 
 static func spec_of(type_id: String) -> Dictionary:
 	var base := BuildingCatalog.base_of(type_id)
-	return TYPES[base].parc if TYPES.has(base) else {}
+	if TYPES.has(base):
+		return TYPES[base].parc
+	if ParcExtras.TYPES.has(base):
+		return ParcExtras.TYPES[base].parc
+	# Attractions de l'éditeur (atr_…) : le champ "parc" est dans leur entrée de catalogue.
+	if AttractionsPerso.is_atr(base):
+		return BuildingCatalog.get_type(base).get("parc", {})
+	return {}
 
 
 static func role_of(type_id: String) -> String:
@@ -224,6 +231,12 @@ static func cheval(k: BlocMesh, col: Color) -> void:
 static func build(k: BlocMesh, id: String, t: Dictionary) -> void:
 	var w := float(t.w)
 	var d := float(t.d)
+	if t.has("voie_famille"):
+		VoieMesh.gare(k, t)
+		return
+	if ParcExtras.TYPES.has(id):
+		ParcExtras.build(k, id, t)
+		return
 	match id:
 		"entree_parc":
 			k.plate(0, 0, w, d, PAVE)
@@ -508,6 +521,9 @@ static func _nacelle(col: Color) -> BlocMesh:
 static func build_anim(id: String) -> Node3D:
 	# Un modèle de l'atelier garde son apparence : pas de pièces mobiles ajoutées.
 	var spec := {} if ModelesJeu.is_model(id) else spec_of(id)
+	var extra := ParcExtras.build_anim(id, spec)
+	if extra != null:
+		return extra
 	var root := Node3D.new()
 	root.name = "Anim"
 	match String(spec.get("anim", "")):
@@ -713,6 +729,9 @@ static func build_anim(id: String) -> Node3D:
 ## l'image, marche : 0 (arrêt) à 1, phase : décalage propre à chaque attraction.
 static func animate(root: Node3D, id: String, t: float, dt: float, marche: float, phase := 0.0) -> void:
 	var spec := spec_of(id)
+	if String(spec.get("anim", "")) in ParcExtras.ANIMS:
+		ParcExtras.animate(root, id, t, dt, marche, phase)
+		return
 	var tt := t + phase
 	match String(spec.get("anim", "")):
 		"carrousel":

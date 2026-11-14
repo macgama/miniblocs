@@ -40,7 +40,7 @@ func _run() -> void:
 func _catalog_tests() -> void:
 	print("Catalogue :")
 	var ids := BuildingCatalog.ids_in("parc")
-	_check(ids.size() == ParcTypes.ORDER.size(), "%d objets dans la catégorie Parc de loisirs" % ids.size())
+	_check(ids.size() == ParcTypes.ORDER.size() + ParcExtras.ORDER.size(), "%d objets dans la catégorie Parc de loisirs" % ids.size())
 	_check(not BuildingCatalog.category("parc").is_empty(), "onglet Parc de loisirs dans Construire")
 	_check(Icones.has_icon("parc"), "icône du parc")
 	var n_att := 0

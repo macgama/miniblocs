@@ -123,6 +123,8 @@ func _exit_tree() -> void:
 
 
 var visuels: ParcVisuels
+## Allées et files tracées à la main (éditeur du parc), ou null.
+var allees: ParcAllees
 
 
 func _ready() -> void:
@@ -620,9 +622,20 @@ func _aller(a: Dictionary, bid: int, dest: Vector3) -> void:
 	# Petit écart pour que la foule ne marche pas en file indienne.
 	var ang := rng.randf() * TAU
 	var jit := Vector3(cos(ang), 0, sin(ang)) * rng.randf_range(3.5, 7.0)
-	if from.distance_to(hub) > 6.0 and dest.distance_to(hub) > 6.0:
-		path.append(hub + jit)
-	path.append(dest + jit * 0.15)
+	# File d'attente dessinée : on la rejoint par son bout.
+	if allees != null and bid >= 0:
+		var bout: Variant = allees.bout_file(bid)
+		if bout != null:
+			dest = bout
+	var par_allees := allees.route(from, dest) if allees != null and parcs.has(e) and allees.dans_parc(e) else PackedVector3Array()
+	if par_allees.size() >= 2:
+		var j2 := jit * 0.12
+		for i in range(1, par_allees.size()):
+			path.append(par_allees[i] + (j2 if i < par_allees.size() - 1 else Vector3.ZERO))
+	else:
+		if from.distance_to(hub) > 6.0 and dest.distance_to(hub) > 6.0:
+			path.append(hub + jit)
+		path.append(dest + jit * 0.15)
 	var long := 0.0
 	for i in path.size() - 1:
 		long += path[i].distance_to(path[i + 1])
@@ -756,6 +769,10 @@ func _proche(a: Dictionary, list: Array) -> int:
 
 ## Place dans la file : en zigzag devant l'objet.
 func _file_pos(bid: int, rang: int) -> Vector3:
+	if allees != null:
+		var p: Variant = allees.place_file(bid, rang)
+		if p != null:
+			return p
 	var f := facade(bid)
 	var side := f.cross(Vector3.UP)
 	var rangee := rang / 10

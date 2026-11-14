@@ -73,6 +73,10 @@ var interieur_panel: InterieurPanel
 ## Décors : mobilier urbain, clôtures, animaux, bateaux, rochers (touche G).
 var decors: DecorSystem
 var decors_panel: DecorPanel
+## Éditeur du parc (Maj+A) : attractions sur voie, allées et files, décors à thème.
+var attractions: AttractionsPerso
+var parc_allees: ParcAllees
+var parc_editeur_panel: ParcEditeurPanel
 ## Événements : fêtes, marchés, matchs, incendies, tempêtes, épidémies (touche I).
 var evenements: Evenements
 var evenements_panel: EvenementsPanel
@@ -164,6 +168,7 @@ func _ready() -> void:
 	_setup_evenements()
 	_setup_nuisances()
 	_setup_avis()
+	_setup_parc_editeur()
 	_setup_communes()
 	_setup_fondateurs()
 	_setup_pays()
@@ -335,6 +340,8 @@ func save_sections() -> Dictionary:
 	sec["tutoriel"] = tutoriel.to_dict()
 	sec["parc"] = parc.to_dict()
 	sec["quartiers"] = quartiers.to_dict()
+	sec["parc_editeur"] = attractions.to_dict()
+	sec["parc_allees"] = parc_allees.to_dict()
 	return sec
 
 
@@ -419,6 +426,7 @@ func load_game(slot := "") -> bool:
 	transport.from_dict(sec.get("transport", {}))
 	Creations.adopt(sec.get("creations", {}))
 	ModelesJeu.adopt(sec.get("modeles_jeu", {}))
+	AttractionsPerso.adopt(sec.get("parc_editeur", {}))
 	buildings.from_dict(sec.get("batiments", {}))
 	zones.from_dict(sec.get("zones", {}))
 	blocks.from_dict(sec.get("blocs", {}))
@@ -432,6 +440,8 @@ func load_game(slot := "") -> bool:
 	agriculture.from_dict(sec.get("agriculture", {}))
 	budget.from_dict(sec.get("budget", {}))
 	decors.from_dict(sec.get("decors", {}))
+	parc_allees.from_dict(sec.get("parc_allees", {}))
+	attractions.from_dict(sec.get("parc_editeur", {}))
 	urgences.from_dict(sec.get("urgences", {}))
 	reseaux.from_dict(sec.get("reseaux", {}))
 	trafic.from_dict(sec.get("trafic", {}))
@@ -1411,6 +1421,8 @@ var _esc_busy := false
 func _tool_busy() -> bool:
 	if hud._current_tool != 0:
 		return true
+	if attractions != null and (attractions.outil == "gare" or parc_allees.outil != ""):
+		return true
 	if buildings.mode != BuildingSystem.Mode.NONE or zones.mode != ZoneSystem.Mode.NONE:
 		return true
 	if blocks.tool != BlockEditor.Tool.NONE or transport.tool != TransportSystem.Tool.NONE:
@@ -1770,6 +1782,7 @@ func _select_building_tool(from_transit := false) -> void:
 	landscape.set_shown(false)
 	if decors_panel:
 		decors_panel.set_shown(false)
+	_ranger_parc_editeur()
 	transport.stations.set_inactive()
 	if transit_panel and not from_transit:
 		transit_panel.clear_selection()
@@ -1815,6 +1828,58 @@ func toggle_decors() -> void:
 	decors_panel.set_shown(true)
 
 
+## Éditeur du parc (Maj+A) : attractions sur voie (AttractionsPerso), allées
+## et files d'attente (ParcAllees), décors à thème (dans DecorSystem).
+func _setup_parc_editeur() -> void:
+	attractions = AttractionsPerso.new()
+	attractions.name = "AttractionsPerso"
+	add_child(attractions)
+	attractions.setup(buildings, world, parc)
+	attractions.message.connect(func(t: String) -> void: hud.show_message(t))
+	attractions.info_changed.connect(func(t: String) -> void: hud.set_tool_info(t))
+	parc_allees = ParcAllees.new()
+	parc_allees.name = "ParcAllees"
+	add_child(parc_allees)
+	parc_allees.setup(parc, world)
+	parc_allees.message.connect(func(t: String) -> void: hud.show_message(t))
+	parc_allees.info_changed.connect(func(t: String) -> void: hud.set_tool_info(t))
+	parc_editeur_panel = ParcEditeurPanel.new()
+	parc_editeur_panel.name = "PanneauParcEditeur"
+	add_child(parc_editeur_panel)
+	parc_editeur_panel.setup(attractions, parc_allees, parc)
+	var aller := func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z
+	parc_editeur_panel.focus_requested.connect(aller)
+	attractions.focus_requested.connect(aller)
+	parc_editeur_panel.poser_batiment.connect(func(id: String) -> void:
+		_select_building_tool()
+		buildings.set_place(id))
+	parc_editeur_panel.poser_decor.connect(func(id: String, o: int) -> void:
+		_select_building_tool()
+		if id != "":
+			decors.set_choix(id)
+		decors.set_outil(o as DecorSystem.Outil))
+	hud.parc_editeur_requested.connect(func() -> void:
+		if not parc_editeur_panel.is_open():
+			_select_building_tool()
+		parc_editeur_panel.toggle())
+
+
+## Un autre outil prend la main : on arrête la pose de gare et le tracé d'allées
+## (un tracé d'attraction en cours reste ouvert dans le panneau).
+func _ranger_parc_editeur() -> void:
+	if attractions == null:
+		return
+	if attractions.outil == "gare":
+		attractions.annuler()
+	parc_allees.set_inactive()
+
+
+func _panneaux_parc() -> Dictionary:
+	return {"parc": parc_panel, "parc_editeur": parc_editeur_panel}
+
+
 ## Panneau « Paysage » : pinceaux de terrain (outil 0).
 var landscape: PaysagePanel
 
@@ -1843,6 +1908,7 @@ func _on_tool_selected(t: int) -> void:
 		telecom.set_inactive()
 	if decors_panel:
 		decors_panel.set_shown(false)
+	_ranger_parc_editeur()
 	if banque_pose:
 		banque_pose.stop()
 	transport.stations.set_inactive()
@@ -2003,6 +2069,7 @@ var _open_before := {}
 func _exclusive_panels() -> void:
 	var panels := {"pays": pays_panel, "objectifs": objectifs_panel, "quartiers": quartiers_panel, "construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "agriculture": agri_panel, "urgences": urgences_panel, "reseaux": reseaux_panel, "dechets": dechets_panel, "trafic": trafic_panel, "budget": budget_panel, "telecom": telecom_panel, "perso": perso_panel, "infos": evenements_panel, "cartes": cartes_panel, "avis": avis_panel, "villages": villages_panel, "fondateurs": fondateurs_panel, "stats": stats_panel}
 	var opened := ""
+	panels.merge(_panneaux_parc())
 	for id in panels:
 		var p = panels[id]
 		var on: bool = p != null and p.is_open()

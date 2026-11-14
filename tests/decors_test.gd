@@ -56,7 +56,7 @@ func _run() -> void:
 		if t > MAX_TRIS:
 			_check(false, "%s : %d triangles (max %d)" % [e.id, t, MAX_TRIS])
 		var uv: Variant = m.surface_get_arrays(0)[Mesh.ARRAY_TEX_UV]
-		if uv == null or (uv as PackedVector2Array).is_empty():
+		if (uv == null or (uv as PackedVector2Array).is_empty()) and not Decors.procedural(e.id):
 			sans_uv.append(e.id)
 		var b := m.get_aabb()
 		if not Decors.sur_eau(e.id) and int(e.get("berge", 0)) == 0 and (b.position.y > 0.01 or b.position.y < -maxf(0.6, b.size.y * (0.65 if e.cat == "rochers" else 0.45))):

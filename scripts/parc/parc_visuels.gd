@@ -160,6 +160,8 @@ func _signature(e: int) -> String:
 		var b: Dictionary = parc.buildings.buildings.get(bid, {})
 		parts.append("%d:%d:%d:%d:%s" % [int(bid), int(b.get("x", 0)), int(b.get("z", 0)), int(b.get("r", 0)), str(parc.en_chantier(int(bid)))])
 	parts.sort()
+	if parc.allees != null:
+		parts.append("allees:%d" % parc.allees.version)
 	return ",".join(parts)
 
 
@@ -208,7 +210,10 @@ func build_decor(e: int) -> ArrayMesh:
 					ParcTypes.beam(k, Vector3(p0.x, y0 + 1.4, p0.y), Vector3(p1.x, y1 + 1.4, p1.y), 0.07, Color("2d6a4f"))
 					ParcTypes.beam(k, Vector3(p0.x, y0 + 0.75, p0.y), Vector3(p1.x, y1 + 0.75, p1.y), 0.05, Color("40916c"))
 					ParcTypes.beam(k, Vector3(p0.x, y0 + 0.15, p0.y), Vector3(p1.x, y1 + 0.15, p1.y), 0.05, Color("40916c"))
-	# Allées : du portail à la place centrale, puis vers chaque objet.
+	# Allées : du portail à la place centrale, puis vers chaque objet (sauf si
+	# le joueur a tracé les siennes dans l'éditeur du parc).
+	if parc.allees != null and parc.allees.dans_parc(e):
+		return k.to_mesh(NightWindows.building_material())
 	var hub := parc.centre(e)
 	_allee(k, parc.portail(e), hub, h0)
 	_place(k, hub, h0)

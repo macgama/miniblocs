@@ -1,8 +1,8 @@
 class_name Objectifs
 extends Node
 ## Objectifs du joueur (panneau Objectifs, touche J) :
-##   - Paliers de chaque ville : Hameau, Village, Bourg, Ville, Grande ville,
-##     Métropole. Pour monter, il faut la population ET des conditions (habitants
+##   - Paliers de chaque ville : Hameau, Village, Bourg, Ville, Ville moyenne,
+##     Grande ville, Métropole. Pour monter, il faut la population ET des conditions (habitants
 ##     satisfaits, école, pompiers et police, hôpital, transports, caisse saine).
 ##     Chaque palier gagné rapporte une prime au pays et de la réputation. Un
 ##     palier gagné n'est jamais perdu.
@@ -11,6 +11,9 @@ extends Node
 ##     ville, rembourser ses dettes, faire baisser le chômage, créer une ligne…),
 ##     avec un délai et une prime. Ratée : la réputation baisse.
 ##   - Succès : des étapes à débloquer une fois pour toutes.
+##   - Défi du jour : un petit objectif qui change chaque jour (vrai calendrier),
+##     le même pour tous les joueurs ce jour-là. Réussi, il rapporte une prime qui
+##     grandit avec la série de jours réussis d'affilée (jusqu'à ×2 à 10 jours).
 ##   - Réputation du pays (0 à 100) : missions, paliers et succès la font monter ;
 ##     missions ratées, villes sous tutelle et mairies perdues la font baisser.
 ##     Une bonne réputation fait baisser le taux des emprunts (jusqu'à −1 point).
@@ -26,6 +29,7 @@ const PALIERS := [
 	{"nom": "Village", "hab": 100, "sat": 50, "prime": 250_000, "rep": 4, "cond": []},
 	{"nom": "Bourg", "hab": 500, "sat": 55, "prime": 1_000_000, "rep": 6, "cond": ["ecole", "caisse"]},
 	{"nom": "Ville", "hab": 2000, "sat": 55, "prime": 3_000_000, "rep": 10, "cond": ["ecole", "pompiers", "police", "caisse"]},
+	{"nom": "Ville moyenne", "hab": 5000, "sat": 58, "prime": 5_000_000, "rep": 12, "cond": ["ecole", "pompiers", "police", "hopital", "caisse"]},
 	{"nom": "Grande ville", "hab": 10000, "sat": 60, "prime": 10_000_000, "rep": 15, "cond": ["ecole", "pompiers", "police", "hopital", "ligne", "caisse"]},
 	{"nom": "Métropole", "hab": 50000, "sat": 60, "prime": 30_000_000, "rep": 25, "cond": ["ecole", "pompiers", "police", "hopital", "ligne", "caisse"]},
 ]
@@ -57,6 +61,7 @@ const SUCCES := {
 	"libre_echange": ["Libre-échange", "1 M€ de marchandises par mois entre tes pays."],
 	"classe_moyenne": ["La classe moyenne", "300 habitants ou plus et la moitié des foyers en Classe moyenne ou mieux (Maj+N)."],
 	"beaux_quartiers": ["Les beaux quartiers", "25 foyers Très aisés (Maj+N)."],
+	"semaine": ["Fidèle au poste", "Réussir le défi du jour 7 jours d'affilée."],
 }
 
 var communes: Communes
@@ -78,6 +83,14 @@ var _next := 1
 var _dernier_jour := -1
 ## Mairies perdues vues la veille : vid -> true.
 var _perdues := {}
+## Défi du jour : {date, type, texte, cible, depart, vu, acc, fait, prime}.
+var defi := {}
+## Jours de défi réussis d'affilée, et date du dernier réussi.
+var serie := 0
+var serie_date := ""
+## Date du jour (AAAA-MM-JJ, vrai calendrier) ; remplaçable dans les tests.
+var date_du_jour: Callable = func() -> String: return Time.get_date_string_from_system()
+var _defi_ms := -100000
 
 
 func _enter_tree() -> void:
@@ -109,6 +122,9 @@ func clear() -> void:
 	_next = 1
 	_dernier_jour = -1
 	_perdues.clear()
+	defi = {}
+	serie = 0
+	serie_date = ""
 	changed.emit()
 
 
@@ -119,6 +135,9 @@ func jour() -> int:
 func _process(_delta: float) -> void:
 	if population == null or communes == null:
 		return
+	if Time.get_ticks_msec() - _defi_ms > 2000:
+		_defi_ms = Time.get_ticks_msec()
+		suivre_defi()
 	var d := jour()
 	if d == _dernier_jour:
 		return
@@ -565,7 +584,7 @@ func _verifier_succes() -> void:
 		succes_debloque("bourg")
 	if best >= 3:
 		succes_debloque("ville")
-	if best >= 5:
+	if best >= PALIERS.size() - 1:
 		succes_debloque("metropole")
 	var b := BudgetCommunal.instance
 	if hab >= 500 and b != null:
@@ -615,13 +634,18 @@ func to_dict() -> Dictionary:
 	for vid in paliers:
 		pl[str(vid)] = int(paliers[vid])
 	return {"version": 1, "paliers": pl, "missions": missions.duplicate(true), "historique": historique.duplicate(true),
-		"reussies": reussies, "succes": succes.duplicate(), "reputation": reputation, "next": _next}
+		"reussies": reussies, "succes": succes.duplicate(), "reputation": reputation, "next": _next,
+		"defi": defi.duplicate(true), "serie": serie, "serie_date": serie_date, "rangs": 2}
 
 
 func from_dict(d: Dictionary) -> void:
 	clear()
 	for k in (d.get("paliers", {}) as Dictionary):
-		paliers[int(k)] = int(d.paliers[k])
+		var i := int(d.paliers[k])
+		# Avant le rang « Ville moyenne » (inséré en 5e position) : décalage.
+		if int(d.get("rangs", 1)) < 2 and i >= 4:
+			i += 1
+		paliers[int(k)] = i
 	for m in d.get("missions", []):
 		var x: Dictionary = (m as Dictionary).duplicate(true)
 		for key in ["id", "vid", "cible", "debut", "fin", "prime", "duree"]:
@@ -639,9 +663,164 @@ func from_dict(d: Dictionary) -> void:
 		succes[String(k)] = int(d.succes[k])
 	reputation = clampf(float(d.get("reputation", REP_DEPART)), 0.0, 100.0)
 	_next = maxi(1, int(d.get("next", missions.size() + 1)))
+	defi = (d.get("defi", {}) as Dictionary).duplicate(true)
+	serie = int(d.get("serie", 0))
+	serie_date = String(d.get("serie_date", ""))
 	# Les mairies déjà perdues au chargement ne coûtent pas une 2e fois.
 	if Avis.instance != null and communes != null:
 		for vid in communes.villages:
 			if not Avis.instance.joueur_maire_de(int(vid)):
 				_perdues[vid] = true
 	changed.emit()
+
+
+# --- Défi du jour --------------------------------------------------------------------------
+
+const DEFI_PRIME := 100_000
+const DEFI_TYPES := ["habitants", "commerce", "construire", "voies", "satisfaction"]
+## Bâtiments que le défi « construire » peut demander.
+const DEFI_BATIMENTS := ["parc", "aire_jeux", "ecole", "boulangerie", "superette", "gymnase", "pompiers", "police"]
+
+
+## Habitants de toutes les villes.
+func habitants_total() -> int:
+	var n := 0
+	for vid in communes.villages:
+		n += _hab(int(vid))
+	return n
+
+
+func _voies_m() -> float:
+	if transport == null or transport.network == null:
+		return 0.0
+	var m := 0.0
+	for e in transport.network.edges:
+		m += float(transport.network.edges[e].len)
+	return m
+
+
+func _compter_partout(t: String) -> int:
+	var n := 0
+	for vid in communes.villages:
+		n += compter(int(vid), t)
+	return n
+
+
+func _meilleure_ville() -> int:
+	var best := -1
+	for vid in communes.villages:
+		if best < 0 or _hab(int(vid)) > _hab(best):
+			best = int(vid)
+	return best
+
+
+## Valeur suivie par le défi en cours.
+func _mesure(t: String) -> float:
+	match t:
+		"habitants":
+			return float(habitants_total())
+		"commerce":
+			var pr := Production.instance
+			return float(pr.commerce_total(false).villes) if pr != null else 0.0
+		"construire":
+			return float(_compter_partout(String(defi.get("ref", ""))))
+		"voies":
+			return _voies_m()
+		"satisfaction":
+			var v := int(defi.get("vid", -1))
+			return float(satisfaction(v)) if communes.villages.has(v) else 0.0
+	return 0.0
+
+
+## Tire le défi d'une date : le même pour tous les joueurs ce jour-là.
+func _nouveau_defi(date: String) -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash("defi:" + date)
+	var types := DEFI_TYPES.duplicate()
+	if communes.villages.size() < 2:
+		types.erase("commerce")
+	var hab := habitants_total()
+	if hab < 50:
+		types.erase("satisfaction")
+	var t := String(types[rng.randi() % types.size()])
+	defi = {"date": date, "type": t, "fait": false, "acc": 0.0}
+	var cible := 0.0
+	var texte := ""
+	match t:
+		"habitants":
+			cible = maxf(20.0, roundf(hab * 0.03))
+			texte = "Accueillir %d nouveaux habitants" % int(cible)
+		"commerce":
+			cible = maxf(5000.0, roundf(float(Production.instance.commerce_total(true).villes) * 0.05 / 1000.0) * 1000.0) if Production.instance != null else 5000.0
+			texte = "Vendre %s de marchandises entre tes villes" % BuildingSystem.format_money(int(cible))
+		"construire":
+			var b := String(DEFI_BATIMENTS[rng.randi() % DEFI_BATIMENTS.size()])
+			defi.ref = b
+			cible = 1.0
+			texte = "Construire : %s" % String(BuildingCatalog.get_type(b).get("name", b)).to_lower()
+		"voies":
+			cible = 500.0
+			texte = "Poser 500 m de routes, de rails ou de chemins"
+		"satisfaction":
+			var v := _meilleure_ville()
+			defi.vid = v
+			cible = 3.0
+			texte = "Gagner 3 points de satisfaction à %s" % pays.nom_de(v)
+	defi.cible = cible
+	defi.texte = texte
+	defi.prime = ReglagesPartie.prix(roundi(DEFI_PRIME * (1.0 + 0.1 * mini(serie, 10))))
+	defi.depart = _mesure(t)
+	defi.vu = defi.depart
+	changed.emit()
+
+
+## Progrès du défi (0 à 1).
+func progres_defi() -> float:
+	if defi.is_empty():
+		return 0.0
+	if bool(defi.fait):
+		return 1.0
+	return clampf(float(defi.acc) / maxf(float(defi.cible), 0.001), 0.0, 1.0)
+
+
+## Suivi du défi (toutes les 2 secondes) : nouveau jour, progrès, réussite.
+func suivre_defi() -> void:
+	if communes == null or communes.villages.is_empty():
+		return
+	var date := String(date_du_jour.call())
+	if String(defi.get("date", "")) != date:
+		# Série cassée si hier n'a pas été réussi.
+		if serie_date != "" and serie_date != date and serie_date != _veille(date):
+			serie = 0
+		_nouveau_defi(date)
+	if bool(defi.fait):
+		return
+	var t := String(defi.type)
+	var cur := _mesure(t)
+	if t == "commerce" and cur < float(defi.vu):
+		# Nouveau mois de comptes : on repart de zéro.
+		defi.vu = 0.0
+	if t == "satisfaction":
+		defi.acc = cur - float(defi.depart)
+	elif t == "construire" or t == "habitants" or t == "voies":
+		defi.acc = maxf(float(defi.acc), cur - float(defi.depart))
+	else:
+		defi.acc = float(defi.acc) + maxf(0.0, cur - float(defi.vu))
+	defi.vu = cur
+	if float(defi.acc) >= float(defi.cible):
+		defi.fait = true
+		serie += 1
+		serie_date = date
+		var nk := pays.nation_choisie() if pays != null else -1
+		pays.prime(int(defi.prime), "Défi du jour réussi : %s" % String(defi.texte), nk)
+		ajouter_reputation(1.0, "défi du jour")
+		message.emit("Défi du jour réussi : %s ! Prime de %s, série de %d jour%s." % [String(defi.texte),
+			BuildingSystem.format_money(int(defi.prime)), serie, "s" if serie > 1 else ""])
+		if serie >= 7:
+			succes_debloque("semaine")
+	changed.emit()
+
+
+static func _veille(date: String) -> String:
+	var u := Time.get_unix_time_from_datetime_string(date + "T12:00:00")
+	return Time.get_date_string_from_unix_time(u - 86400)

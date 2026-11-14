@@ -93,11 +93,18 @@ Code : `scripts/pays/objectifs.gd` (nœud `Objectifs`, section de sauvegarde « 
 et `scripts/pays/objectifs_panel.gd`. Vérifié une fois par jour de jeu.
 
 - **Rangs des villes** : Hameau, Village (100 hab., satisfaction 50), Bourg (500, 55, école,
-  caisse saine), Ville (2 000, 55, + pompiers et police), Grande ville (10 000, 60, + hôpital
-  et une ligne), Métropole (50 000). Chaque rang verse une prime au pays et ne se perd pas.
+  caisse saine), Ville (2 000, 55, + pompiers et police), Ville moyenne (5 000, 58, + hôpital),
+  Grande ville (10 000, 60, + une ligne), Métropole (50 000). Chaque rang verse une prime au pays
+  et ne se perd pas.
 - **Missions** : 3 à la fois, tirées selon l'état des villes, avec un délai et une prime
   (× coût des constructions). Ratée : réputation −3 ; abandonnée : −1.
-- **Succès** : 15, débloqués une fois pour toutes.
+- **Succès** : débloqués une fois pour toutes (dont « Fidèle au poste » : 7 défis du jour d'affilée).
+- **Défi du jour** : un petit objectif tiré d'après la vraie date, le même pour tous ce jour-là
+  (accueillir 3 % d'habitants en plus, vendre des marchandises entre tes villes, construire un
+  parc ou une école…, poser 500 m de voies, gagner 3 points de satisfaction dans ta plus grande
+  ville). Prime de 100 k€ (× coût), +10 % par jour de série réussi d'affilée (jusqu'à ×2), et
+  +1 de réputation. Une journée sans défi réussi remet la série à zéro. Affiché dans le résumé
+  des objectifs et dans Maj+J.
 - **Réputation** (0 à 100, départ 20) : au-dessus de 20, le taux des emprunts baisse
   (jusqu'à −1 point, `Objectifs.bonus_taux()` dans `BudgetCommunal.taux_propose`).
 

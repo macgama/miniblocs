@@ -245,6 +245,12 @@ func lignes_objectifs() -> Array:
 			out.append(["  · et %d autre%s condition%s (Maj+J)" % [m.size() - 3, "s" if m.size() > 4 else "", "s" if m.size() > 4 else ""], UiStyle.TEXT_DIM, 12])
 	else:
 		out.append(["%s : %s, le plus haut rang !" % [nom, rang], UiStyle.ACCENT, 13])
+	if not obj.defi.is_empty():
+		var fait := bool(obj.defi.fait)
+		out.append(["Défi du jour" + (" · série %d j" % obj.serie if obj.serie > 0 else ""), UiStyle.ACCENT, 13])
+		out.append(["  · " + String(obj.defi.texte), VERT if fait else UiStyle.TEXT, 12])
+		out.append(["     %s · prime %s" % ["réussi !" if fait else "%d %%" % roundi(100.0 * obj.progres_defi()),
+			BuildingSystem.format_short(int(obj.defi.prime))], VERT if fait else UiStyle.TEXT_DIM, 11])
 	if obj.missions.is_empty():
 		out.append(["Missions du pays : elles arrivent au prochain jour.", UiStyle.TEXT_DIM, 12])
 		return out

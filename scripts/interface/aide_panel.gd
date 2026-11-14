@@ -95,9 +95,10 @@ const SECTIONS := [
 	["Objectifs du pays", [
 		["Maj+J", "panneau Objectifs : réputation du pays (étoiles), missions en cours, rang de chaque ville, succès"],
 		["Missions", "3 missions à la fois, tirées selon tes villes (faire grandir une ville, ouvrir une école, rendre une ville heureuse, faire baisser le chômage, rembourser ses emprunts, fonder une ville, relier deux villes, créer une ligne) ; chacune a un délai et une prime versée au pays"],
-		["Rangs des villes", "Hameau, Village, Bourg, Ville, Grande ville, Métropole : il faut des habitants, des habitants contents et des services (école, pompiers, police, hôpital, transports, caisse saine) ; chaque rang rapporte une prime et ne se perd jamais"],
+		["Rangs des villes", "Hameau, Village, Bourg, Ville, Ville moyenne, Grande ville, Métropole : il faut des habitants, des habitants contents et des services (école, pompiers, police, hôpital, transports, caisse saine) ; chaque rang rapporte une prime et ne se perd jamais"],
 		["Réputation", "de 0 à 100 : missions, rangs et succès la montent ; missions ratées, tutelle et mairies perdues la baissent ; au-dessus de 20 les emprunts coûtent moins cher (jusqu'à −1 point)"],
-		["Succès", "17 étapes à débloquer une fois pour toutes : première ville, mille habitants, pays heureux, villes reliées, mairie reprise, classe moyenne, beaux quartiers…"],
+		["Défi du jour", "un petit objectif qui change chaque jour (vraie date), le même pour tous : sa prime grandit avec ta série de jours réussis d'affilée (jusqu'à ×2)"],
+		["Succès", "18 étapes à débloquer une fois pour toutes : première ville, mille habitants, pays heureux, villes reliées, mairie reprise, classe moyenne, beaux quartiers…"],
 	]],
 	["Statistiques et conseiller", [
 		["Maj+I", "panneau Statistiques (menu Infos) : courbes dans le temps de chaque ville et du pays, sur 30 jours, 1 an ou toute la partie"],

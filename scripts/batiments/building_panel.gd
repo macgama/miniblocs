@@ -1354,5 +1354,5 @@ func set_summary(text: String) -> void:
 
 func _unhandled_key_input(event: InputEvent) -> void:
 	var key := event as InputEventKey
-	if key and key.pressed and not key.echo and key.physical_keycode == KEY_B:
+	if key and key.pressed and not key.echo and key.physical_keycode == KEY_B and not key.shift_pressed:
 		toggle()

@@ -469,7 +469,7 @@ static func poser(p: Dictionary, o: Vector2i, q: int, ctx: Dictionary) -> Dictio
 	var dec: DecorSystem = ctx.get("decors")
 	if dec != null:
 		for r: Array in p.get("decors", []):
-			var at := tourne(Vector2(float(r[0]), float(r[1])), w, d, q) + ov
+			var at := tourne(Vector2(float(r[1]), float(r[2])), w, d, q) + ov
 			if dec.pose(String(r[0]), at.x, at.y, float(r[3]) - q * PI / 2.0, float(r[4])):
 				res.poses += 1
 	# Murs fins (sans rotation).
@@ -506,6 +506,32 @@ static func poser(p: Dictionary, o: Vector2i, q: int, ctx: Dictionary) -> Dictio
 	elif not res.ok:
 		res["reason"] = String(res.raisons[0])
 	return res
+
+
+## Carte entre amis : l'action qui demande au serveur de poser le plan p (origine o,
+## quart de tour q), avec les créations des joueurs dont ses bâtiments ont besoin.
+static func action_reseau(p: Dictionary, o: Vector2i, q: int) -> Dictionary:
+	var defs := []
+	var vus := {}
+	for b: Dictionary in p.get("batiments", []):
+		var t := String(b.get("t", ""))
+		if vus.has(t):
+			continue
+		vus[t] = true
+		var d := SectionsPartagees.definition(t)
+		if not d.is_empty():
+			defs.append(d)
+	return {"t": "site", "plan": p, "o": o, "q": q, "defs": defs}
+
+
+## Le résultat d'une pose en une phrase.
+static func bilan(res: Dictionary) -> String:
+	if not bool(res.get("ok", false)):
+		return "Impossible de poser ici : %s." % String(res.get("reason", "?"))
+	var t := "Plan posé : %d éléments pour %s." % [int(res.poses), BuildingSystem.format_money(int(res.cout))]
+	if int(res.refus) > 0:
+		t += " " + ("Refusés : %d (%s)." % [int(res.refus), ", ".join((res.raisons as Array).slice(0, 2))])
+	return t
 
 
 static func _refus(res: Dictionary, why: String) -> void:

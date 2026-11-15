@@ -278,13 +278,13 @@ func _vue_musee(key: String) -> void:
 	prix.step = 1
 	prix.value = float(st.prix)
 	prix.suffix = "€"
-	prix.value_changed.connect(func(v: float) -> void: musee.set_prix(key, v))
+	prix.value_changed.connect(func(v: float) -> void: _faire("set_prix", [key, v], key))
 	row.add_child(prix)
 	var gd := CheckBox.new()
 	gd.text = "Gratuit le 1er dimanche"
 	gd.button_pressed = bool(st.gratuit_dimanche)
 	gd.focus_mode = Control.FOCUS_NONE
-	gd.toggled.connect(func(on: bool) -> void: musee.set_gratuit_dimanche(key, on))
+	gd.toggled.connect(func(on: bool) -> void: _faire("set_gratuit_dimanche", [key, on], key))
 	row.add_child(gd)
 	_body.add_child(row)
 	var nrow := HBoxContainer.new()
@@ -292,7 +292,7 @@ func _vue_musee(key: String) -> void:
 	ne.text = musee.nom(key)
 	ne.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	ne.text_submitted.connect(func(t: String) -> void:
-		musee.renommer(key, t)
+		_faire("renommer", [key, t], key)
 		refresh())
 	nrow.add_child(ne)
 	var go := Button.new()
@@ -538,7 +538,7 @@ func _vue_expos(key: String) -> void:
 		var kk := String(k)
 		var b := _bouton("%s · %d jours · %s" % [ex2.name, int(ex2.jours), BuildingSystem.format_money(int(ex2.prix))], "tableau",
 			"Thème : %s · prestige +%d" % [MuseeObjets.theme_name(String(ex2.theme)), int(ex2.bonus)], func() -> void:
-				var why := musee.lancer_expo(key, kk)
+				var why := String(_faire("lancer_expo", [key, kk], key))
 				if why != "":
 					musee.message.emit("Impossible : %s." % why)
 				refresh())
@@ -564,3 +564,12 @@ func _vue_visiteurs(key: String) -> void:
 	var tot: Dictionary = st.total
 	_label("%d visiteurs (%d touristes) · recettes %s · dépenses %s · %d dégâts" % [int(tot.visiteurs), int(tot.touristes),
 		BuildingSystem.format_money(int(musee.recettes(tot))), BuildingSystem.format_money(int(tot.depenses)), int(tot.degats)], 12, true)
+
+
+## Carte entre amis : la décision part au serveur (le maire de la ville du musée décide,
+## renvoie "") ; en solo, elle est faite ici.
+func _faire(f: String, args: Array, key: String) -> Variant:
+	if SystemesGeres.relayer("musee", f, args, musee.centre(key)):
+		return ""
+	var r: Variant = musee.callv(f, args)
+	return r if r != null else ""

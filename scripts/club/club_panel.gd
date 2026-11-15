@@ -246,6 +246,14 @@ static func _euros(x: float) -> String:
 	return BuildingSystem.format_money(int(x))
 
 
+## Carte entre amis : la décision part au serveur, qui renvoie l'état du club (renvoie "") ;
+## en solo, elle est faite ici. stade : celui choisi pour fonder le club.
+func _faire(f: String, args: Array = [], stade := -1) -> Variant:
+	if SystemesGeres.relayer("club", f, args, SystemesGeres.point_du_club(cs, stade), {"sport": cs.sport}):
+		return ""
+	return cs.callv(f, args)
+
+
 func _resultat(why: String) -> void:
 	_msg = why
 	refresh()
@@ -322,14 +330,14 @@ func _vue_club() -> void:
 	prix.value = float(c.prix)
 	prix.suffix = "€"
 	prix.tooltip_text = "Prix de référence en %s : %d €. Plus cher : moins de monde dans les tribunes." % [div.nom, int(div.prix)]
-	prix.value_changed.connect(func(v: float) -> void: cs.set_prix(v))
+	prix.value_changed.connect(func(v: float) -> void: _faire("set_prix", [v]))
 	_ligne("Billet :", prix)
 	# Subvention.
 	var sub := HBoxContainer.new()
 	_label("Subvention de la ville :", 12, false, sub)
 	for v in [10_000, 50_000, 250_000]:
 		var vv := float(v)
-		_petit("+" + _euros(vv), "La ville verse cette somme au club.", func() -> void: _resultat(cs.subventionner(vv)), sub)
+		_petit("+" + _euros(vv), "La ville verse cette somme au club.", func() -> void: _resultat(_faire("subventionner", [vv])), sub)
 	_body.add_child(sub)
 	# Nom, couleurs, stade.
 	var nrow := HBoxContainer.new()
@@ -337,7 +345,7 @@ func _vue_club() -> void:
 	ne.text = String(c.nom)
 	ne.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	ne.text_submitted.connect(func(tx: String) -> void:
-		cs.renommer(tx)
+		_faire("renommer", [tx])
 		refresh())
 	nrow.add_child(ne)
 	var go := Button.new()
@@ -352,13 +360,13 @@ func _vue_club() -> void:
 	var cols: Array = []
 	for i in ClubDonnees.COULEURS.size():
 		cols.append([i, ClubDonnees.NOMS_COULEURS[i]])
-	_ligne("Couleurs :", _option(cols, str(ClubDonnees.COULEURS.find(c.couleurs)), func(v: Variant) -> void: cs.set_couleurs(int(v))))
+	_ligne("Couleurs :", _option(cols, str(ClubDonnees.COULEURS.find(c.couleurs)), func(v: Variant) -> void: _faire("set_couleurs", [int(v)])))
 	var st := cs.stades_possibles()
 	if st.size() > 1 or int(c.stade) < 0:
 		var items: Array = []
 		for s in st:
 			items.append([int(s.bid), "%s (%s places)" % [String(s.nom).split(" (")[0], Stades._milliers(int(s.places))]])
-		_ligne("Stade :", _option(items, str(int(c.stade)), func(v: Variant) -> void: _resultat(cs.changer_stade(int(v)))))
+		_ligne("Stade :", _option(items, str(int(c.stade)), func(v: Variant) -> void: _resultat(_faire("changer_stade", [int(v)]))))
 	if int(c.stade) < 0:
 		_bouton("Bâtir un stade", "construire", "", func() -> void: _batir_stade())
 	# Journal.
@@ -403,7 +411,7 @@ func _vue_fonder() -> void:
 		items.append([int(s.bid), "%s (%s places)" % [String(s.nom).split(" (")[0], Stades._milliers(int(s.places))]])
 	_ligne("Stade :", _option(items, str(int(_form.stade)), func(v: Variant) -> void: _form.stade = int(v)))
 	_bouton("Fonder le club", "sport", "La ville verse la subvention de départ.", func() -> void:
-		_resultat(cs.fonder(String(_form.nom), int(_form.couleurs), int(_form.stade))))
+		_resultat(_faire("fonder", [String(_form.nom), int(_form.couleurs), int(_form.stade)], int(_form.stade))))
 
 
 func _batir_stade() -> void:
@@ -431,7 +439,7 @@ func _vue_formation() -> void:
 		var n: Dictionary = ClubSports.ACADEMIE[i]
 		var cout := cs.cout_academie(i)
 		items.append([i, "%s%s%s" % [String(n.nom), "" if cout <= 0.0 else " (%s / mois)" % _euros(cout), " · bâtiment requis" if bool(n.bati) and not cs.centre_bati() else ""]])
-	_ligne("Niveau :", _option(items, str(int(cs.club.get("academie", 0))), func(v: Variant) -> void: _resultat(cs.set_academie(int(v)))))
+	_ligne("Niveau :", _option(items, str(int(cs.club.get("academie", 0))), func(v: Variant) -> void: _resultat(_faire("set_academie", [int(v)]))))
 	if cs.centre_bati():
 		_label("Un centre de formation est bâti en ville : les jeunes y progressent plus vite.", 11, true)
 	else:
@@ -451,8 +459,8 @@ func _vue_formation() -> void:
 		var row := HBoxContainer.new()
 		var id := int(p.id)
 		_label("Note de la division : %d" % int(ClubSports.division(cs.sport, int(cs.club.division)).niveau), 11, true, row)
-		_petit("Passer pro", "Premier contrat pro de trois saisons, petit salaire.", func() -> void: _resultat(cs.promouvoir(id)), row)
-		_petit("Libérer", "Il quitte le centre.", func() -> void: _resultat(cs.liberer_espoir(id)), row)
+		_petit("Passer pro", "Premier contrat pro de trois saisons, petit salaire.", func() -> void: _resultat(_faire("promouvoir", [id])), row)
+		_petit("Libérer", "Il quitte le centre.", func() -> void: _resultat(_faire("liberer_espoir", [id])), row)
 		_body.add_child(row)
 
 
@@ -478,7 +486,7 @@ func _vue_supporters() -> void:
 	abo.value = float(c.get("abo_prix", 0.0)) if float(c.get("abo_prix", 0.0)) > 0.0 else cs.abo_prix_ref()
 	abo.suffix = "€"
 	abo.tooltip_text = "Vendu en début de saison. Les abonnés paient d'avance et viennent à tous les matchs à domicile."
-	abo.value_changed.connect(func(v: float) -> void: cs.set_abo_prix(v))
+	abo.value_changed.connect(func(v: float) -> void: _faire("set_abo_prix", [v]))
 	_ligne("Abonnement :", abo)
 	_label("À ce prix : environ %s abonnés (vente à la prochaine saison)." % Stades._milliers(cs.abonnes_attendus(abo.value)), 11, true)
 	if not cs.pensees.is_empty():
@@ -496,15 +504,15 @@ func _vue_effectif() -> void:
 	var f: Array = []
 	for k in ClubSports.sport(cs.sport).formations:
 		f.append([k, k])
-	_ligne("Formation :", _option(f, String(c.formation), func(v: Variant) -> void: cs.set_formation(String(v))))
+	_ligne("Formation :", _option(f, String(c.formation), func(v: Variant) -> void: _faire("set_formation", [String(v)])))
 	var t: Array = []
 	for k in ClubDonnees.TACTIQUES:
 		t.append([k, ClubDonnees.TACTIQUES[k][2]])
-	_ligne("Tactique :", _option(t, String(c.tactique), func(v: Variant) -> void: cs.set_tactique(String(v))))
+	_ligne("Tactique :", _option(t, String(c.tactique), func(v: Variant) -> void: _faire("set_tactique", [String(v)])))
 	var e: Array = []
 	for k in ClubDonnees.ENTRAINEMENTS:
 		e.append([k, ClubDonnees.ENTRAINEMENTS[k][3]])
-	var opt := _option(e, String(c.entrainement), func(v: Variant) -> void: cs.set_entrainement(String(v)))
+	var opt := _option(e, String(c.entrainement), func(v: Variant) -> void: _faire("set_entrainement", [String(v)]))
 	opt.tooltip_text = "Intense : les jeunes progressent plus vite, mais fatigue et blessures."
 	_ligne("Entraînement :", opt)
 	var fe := cs.force_equipe()
@@ -547,10 +555,10 @@ func _carte_joueur(p: Dictionary, titulaire: bool) -> void:
 		lc.add_theme_color_override("font_color", Color("ffcf80"))
 	var id := int(p.id)
 	_petit("Repos" if not bool(p.repos) else "Aligner", "Le laisser hors du onze (ou l'aligner de nouveau).", func() -> void:
-		cs.set_repos(id, not bool(p.repos))
+		_faire("set_repos", [id, not bool(p.repos)])
 		refresh(), row)
-	_petit("Prolonger", "+2 saisons ; salaire revu selon sa note.", func() -> void: _resultat(cs.prolonger(id)), row)
-	_petit("Vendre ≈" + _euros(cs.valeur_de(p)), "Le vendre à un autre club.", func() -> void: _resultat(cs.vendre(id)), row)
+	_petit("Prolonger", "+2 saisons ; salaire revu selon sa note.", func() -> void: _resultat(_faire("prolonger", [id])), row)
+	_petit("Vendre ≈" + _euros(cs.valeur_de(p)), "Le vendre à un autre club.", func() -> void: _resultat(_faire("vendre", [id])), row)
 	_body.add_child(row)
 
 
@@ -638,7 +646,7 @@ func _vue_transferts() -> void:
 		_label("%s · %s/mois%s" % ["libre" if bool(p.get("libre", false)) else _euros(float(p.prix)) + " (" + String(p.get("club_origine", "")) + ")",
 			_euros(float(p.salaire)).replace(" €", " €"), "" if why == "" else " · " + why], 11, true, row)
 		var id := int(p.id)
-		var b := _petit("Signer", "Recruter ce joueur.", func() -> void: _resultat(cs.acheter(id)), row)
+		var b := _petit("Signer", "Recruter ce joueur.", func() -> void: _resultat(_faire("acheter", [id])), row)
 		b.disabled = why != ""
 		_body.add_child(row)
 

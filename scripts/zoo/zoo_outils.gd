@@ -211,6 +211,8 @@ func _clic(p: Vector3, maj: bool) -> void:
 			_maj_cout()
 		Outil.BARRIERE:
 			var id := zoo.enclos_a(q)
+			if id >= 0 and SystemesGeres.relayer("zoo", "changer_barriere", [id, barriere], zoo._centre_enclos(id)):
+				return
 			if id >= 0 and zoo.changer_barriere(id, barriere):
 				message.emit("« %s » : %s." % [String(zoo.enclos[id].nom), String(ZooEspeces.barriere(barriere).nom).to_lower()])
 		Outil.ANIMAL:
@@ -220,6 +222,12 @@ func _clic(p: Vector3, maj: bool) -> void:
 				return
 			var n := int((ZooEspeces.espece(espece).groupe as Array)[0]) if maj else 1
 			var faits := 0
+			# Carte entre amis : le serveur achète (et tire le sexe et l'âge au sort).
+			if SystemesGeres.client():
+				for i in n:
+					SystemesGeres.relayer("zoo", "acheter", [espece, id], zoo._centre_enclos(id))
+				enclos_choisi.emit(id)
+				return
 			for i in n:
 				if zoo.acheter(espece, id) >= 0:
 					faits += 1
@@ -236,6 +244,12 @@ func _clic(p: Vector3, maj: bool) -> void:
 			var id := zoo.enclos_a(q)
 			if id >= 0:
 				var nom := String(zoo.enclos[id].nom)
+				var pt := zoo._centre_enclos(id)
+				if SystemesGeres.client():
+					for aid in zoo.animaux_de(id):
+						SystemesGeres.relayer("zoo", "vendre", [aid], pt)
+					SystemesGeres.relayer("zoo", "retirer_enclos", [id], pt)
+					return
 				for aid in zoo.animaux_de(id):
 					zoo.vendre(aid)
 				zoo.retirer_enclos(id)
@@ -258,6 +272,11 @@ func _maj_cout() -> void:
 func _fermer() -> void:
 	if trace.size() < 3:
 		message.emit("Un enclos a au moins 3 coins.")
+		return
+	if SystemesGeres.relayer("zoo", "ajouter_enclos", [trace.duplicate(), barriere], trace[0]):
+		trace.clear()
+		_dessine()
+		_maj_aide()
 		return
 	var id := zoo.ajouter_enclos(trace, barriere)
 	trace.clear()

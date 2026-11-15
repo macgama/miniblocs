@@ -378,13 +378,10 @@ func _on_zone(rect: Rect2i) -> void:
 
 
 func _on_pose(res: Dictionary) -> void:
-	if not bool(res.get("ok", false)):
-		message.emit("Impossible de poser ici : %s." % String(res.get("reason", "?")))
+	if bool(res.get("envoye", false)):
+		message.emit("Plan envoyé au serveur de la carte : il apparaît chez tout le monde dans un instant.")
 		return
-	var t := "Plan posé : %d éléments pour %s." % [int(res.poses), BuildingSystem.format_money(int(res.cout))]
-	if int(res.refus) > 0:
-		t += " " + ("Refusés : %d (%s)." % [int(res.refus), ", ".join(res.raisons.slice(0, 2))])
-	message.emit(t)
+	message.emit(PlansSites.bilan(res))
 
 
 # --- Découvrir ---------------------------------------------------------------------------------

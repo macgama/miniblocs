@@ -58,9 +58,27 @@ discussion, **Resynchroniser** (redemande la carte entière), **Quitter la carte
 - Caisses (chaque seconde), heure et vitesse du temps, réglages de l'admin.
 - Discussion.
 
-Pas encore synchronisé : les panneaux du club, du parc de loisirs, du zoo et du musée
-(réglages, transferts, enclos…). Ils restent sur ton écran et reviennent comme le
-serveur à la prochaine resynchronisation.
+- **Sous terre** (Page bas) : pièces creusées (caves, parkings, abris, bunkers),
+  conduites posées en profondeur et leurs dévoiements, **tunnels** et métros creusés
+  à la profondeur du niveau choisi (la profondeur est gardée dans la carte).
+- **Club de sport** (Maj+B, tous les sports), **parc de loisirs**, **zoo** et **musée** :
+  ce que tu règles dans leurs panneaux (nom, billets, transferts, formation, tactique,
+  centre de formation, enclos, animaux, expositions…) part au serveur, qui le fait puis
+  renvoie à tous l'état du système. Le serveur simule ces systèmes et fait foi : les
+  matchs, le marché des transferts, les visiteurs comptés, les naissances au zoo
+  viennent de lui (envoyés dès qu'ils changent, au plus toutes les 10 s). Les visiteurs
+  qui se promènent et les animaux restent animés par ton jeu.
+  **Seul le maire de la ville** où se trouve le stade, le parc, le zoo ou le musée en
+  décide ; hors des villes, tout le monde peut.
+- **Plans de site** (menu Partage, Maj+W) : le plan part au serveur avec les créations
+  dont il a besoin ; le serveur le pose (bâtiments, allées, enclos et animaux, décors,
+  murs fins, blocs) et chacun le voit apparaître.
+- **Commerce** (Maj+S) : accords, offres, libre-échange par le maire (cours tirés d'une
+  graine commune). **Époques** : l'année de départ et le rythme de l'histoire font partie
+  des réglages de l'admin, les mêmes pour tous.
+
+Les **scénarios** se jouent seul : une carte entre amis faite à partir d'une partie de
+scénario continue la ville sans le scénario (ni score ni médaille).
 
 Les habitants, véhicules et chantiers sont simulés par chaque jeu à partir de la
 même carte : ils peuvent un peu différer d'un écran à l'autre. Les chiffres qui
@@ -140,6 +158,19 @@ godot --headless --path . -- --serveur --nouvelle --lat 45.899 --lon 6.129 --nom
   du pilote automatique et des lignes partent au serveur (action `appel`), qui vérifie
   que le joueur est maire de la ville, les fait, puis les renvoie à tous pour qu'ils
   les rejouent (`appel`, `Multijoueur.rejeu`).
+- `scripts/multijoueur/systemes_geres.gd` (`SystemesGeres`) : clubs (`club:football`,
+  `club:basket`…), `parc`, `zoo`, `musee`. Les panneaux passent par
+  `SystemesGeres.relayer` (appel marqué `etat` dans `Multijoueur.APPELS`, avec le point
+  de la carte qui dit quelle ville décide et paie) ; le serveur fait l'appel puis envoie
+  `etat` (la section de sauvegarde du système) à tous, et sinon dès qu'elle change, au
+  plus toutes les 10 s. Chez le joueur, `SystemesGeres.appliquer` charge l'état en
+  gardant l'animation locale (visiteurs, horloge, besoins des animaux) ; les clubs n'y
+  sont pas simulés (`set_process(false)`).
+- Sous terre : section partagée `souterrain` (pièces, `av` simulé) ; l'action `voie`
+  porte `prof` pour un tunnel (serveur et rejeu : `RoutePlanner.profondeur_forcee`,
+  puis `ConstructionSouterraine.appliquer_tunnel`).
+- Plans de site : action `site` (`PlansSites.action_reseau`), posée par le serveur avec
+  `PlansSites.poser`.
 - Créations des joueurs : `SectionsPartagees.definition()` (créations, modèles de
   l'Atelier, attractions) jointe à l'action `poser` et au bâtiment envoyé (`defs`).
 - En solo, rien ne change : pas de verrou, pas de relais, `payeur_force` à -1,
@@ -150,11 +181,14 @@ Test : `tests/multijoueur_test.gd` lance un vrai serveur dans un autre processus
 caisses, village, route, maisons, démolition, terrain, vitesse, discussion, zonage
 payé par la ville, ligne électrique, décor et bloc venus d'un autre joueur, numéro
 pris deux fois, création de l'éditeur libre, arrêts et ligne de bus, impôts réservés
-au maire, pilote automatique, arrêt et reprise de la carte.
+au maire, pilote automatique, cave et tunnel sous terre, musée, parc, zoo (enclos,
+zèbre) et club réglés par le serveur (réservés au maire), plan de site posé par le
+serveur, arrêt et reprise de la carte.
 
 ## Prochaines étapes
 
-1. Synchroniser les panneaux du club, du parc, du zoo et du musée (mêmes appels).
-2. Envoyer seulement les blocs de terrain changés et des morceaux de sections
-   (les grandes villes se chargent plus vite).
+1. Envoyer seulement les blocs de terrain changés et des morceaux de sections
+   (les grandes villes se chargent plus vite), et des différences pour les états du
+   club, du parc, du zoo et du musée au lieu de la section entière.
+2. Scénarios à plusieurs (objectifs communs ou course entre villes).
 3. Préparer la carte mondiale (un serveur par région, comptes de joueurs).

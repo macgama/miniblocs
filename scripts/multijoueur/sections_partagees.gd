@@ -56,6 +56,12 @@ static func specs(jeu: Node) -> Dictionary:
 			"champs": champs_reseau, "compteurs": ["fibre/next", "cuivre/next"], "ignorer": ["v"]}
 	if jeu.get("parc_allees") != null:
 		s["parc_allees"] = {"obj": jeu.parc_allees, "coll": {"allees": {"genre": "ensemble"}, "files": {"genre": "liste", "cle": "bid"}}, "ignorer": ["version"]}
+	# Construction sous terre : pièces creusées (caves, parkings, abris…) et dévoiements
+	# de conduites. Les conduites sont dans « reseaux » et « telecom », les tunnels dans
+	# les voies. « av » (avancement du chantier) est simulé par chaque jeu.
+	if jeu.get("construction_souterraine") != null:
+		s["souterrain"] = {"obj": jeu.construction_souterraine, "coll": {"pieces": {"genre": "dico", "ids": true}},
+			"champs": ["av"], "compteurs": ["next"], "ignorer": ["v"]}
 	for nom in s:
 		var o: Object = s[nom].obj
 		s[nom]["lire"] = Callable(o, "to_dict")

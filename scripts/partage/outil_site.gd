@@ -147,7 +147,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif mode == "pose" and mb.pressed:
 			_survol(hit)
 			var p := plan
-			var res := PlansSites.poser(p, origine(), rot, contexte.call() if contexte.is_valid() else {})
+			var res := {}
+			if SystemesGeres.client():
+				# Carte entre amis : le serveur pose le plan chez tout le monde.
+				Multijoueur.client.envoyer_action(PlansSites.action_reseau(p, origine(), rot))
+				res = {"ok": true, "envoye": true}
+			else:
+				res = PlansSites.poser(p, origine(), rot, contexte.call() if contexte.is_valid() else {})
 			pose_faite.emit(res)
 	elif event is InputEventKey:
 		var k := event as InputEventKey

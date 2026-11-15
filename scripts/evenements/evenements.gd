@@ -637,6 +637,16 @@ func reparer_tout() -> int:
 func detruire(bid: int, cause: String) -> void:
 	if buildings == null or not buildings.buildings.has(bid):
 		return
+	# Le campement des fondateurs n'est jamais rasé : sinon tous les fondateurs
+	# quittent la ville d'un coup et plus aucun chantier n'avance. Les tentes
+	# abîmées sont replantées sur place.
+	if Fondateurs.est_campement(bid):
+		degats.erase(bid)
+		incendies.oublie(bid)
+		_apply_look(bid)
+		buildings.message.emit("Le campement des fondateurs a souffert (%s) : ils replantent leurs tentes et reprennent le travail." % cause)
+		changed.emit()
+		return
 	var b: Dictionary = (buildings.buildings[bid] as Dictionary).duplicate(true)
 	var name := building_name(bid)
 	var rect := buildings._rect_of(b)

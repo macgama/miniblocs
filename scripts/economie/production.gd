@@ -1761,6 +1761,9 @@ func satisfaction_of(p: Dictionary) -> Array:
 	if int(ledger.get("jours", 0)) <= 0 and (yesterday.vente as Dictionary).is_empty() and manque_foyers.is_empty():
 		return [0.0, []]
 	var home := population.home_of(p)
+	# Rayons vides, mais le foyer fait ses courses ailleurs (Repas) : la plainte est là-bas.
+	if Repas.courses_ailleurs(home):
+		return [0.0, []]
 	var miss: Dictionary = manque_foyers.get(home, {})
 	if miss.is_empty():
 		return [4.0, ["+ commerces bien approvisionnés"]]

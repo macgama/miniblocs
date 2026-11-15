@@ -101,8 +101,11 @@ func _run() -> void:
 	print("     essai centrale : ", bs.check_place("eolienne", Vector2i(-20, 120), 1).get("reason", ""))
 	var pn := bs.place("eolienne", Vector2i(-20, 120), 1)
 	var fo := bs.place("forage_eau", Vector2i(-20, 180), 1)
-	print("     centrale %d, forage %d, sources %s · %s" % [pn, fo, t.sources(), t.progres()])
-	if pn < 0 or fo < 0:
+	t.verifier()
+	_check(t.id_courant() == "reseaux" and t.progres().contains("Égouts : pas encore"), "sans égouts, on attend (%s)" % t.progres())
+	var eg := bs.place("exutoire_egout", Vector2i(-20, 220), 1)
+	print("     centrale %d, forage %d, égout %d, sources %s · %s" % [pn, fo, eg, t.sources(), t.progres()])
+	if pn < 0 or fo < 0 or eg < 0:
 		t.passer()
 	t.verifier()
 	_check(t.id_courant() == "temps", "étape « temps » (%s)" % t.id_courant())

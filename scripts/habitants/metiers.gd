@@ -97,6 +97,11 @@ const METIERS := {
 	"monteur": {"name": "Monteur·euse et mixeur·euse", "salaire": 2600, "h": [9.0, 19.0], "j": "semaine", "geste": ["taper"]},
 	"producteur": {"name": "Chargé·e de production", "salaire": 3300, "h": [9.0, 19.0], "j": "semaine", "tenue": "cadre", "geste": ["taper", "conseiller"]},
 	"realisateur": {"name": "Réalisateur·rice", "salaire": 4200, "h": [8.0, 20.0], "j": "semaine", "tenue": "cadre", "geste": ["conseiller"]},
+	# Tourisme (scripts/tourisme).
+	"receptionniste": {"name": "Réceptionniste", "salaire": 1700, "h": [7.0, 23.0], "j": "tous", "geste": ["guichet", "telephoner"]},
+	"agent_etage": {"name": "Valet·femme de chambre", "salaire": 1550, "h": [8.0, 16.0], "j": "tous", "geste": ["balayer", "porter"]},
+	"animateur_vacances": {"name": "Animateur·rice de vacances", "salaire": 1600, "h": [10.0, 23.0], "j": "tous", "geste": ["expliquer", "jouer"]},
+	"conseiller_sejour": {"name": "Conseiller·ère en séjour (office de tourisme)", "salaire": 1800, "h": [9.0, 18.0], "j": "marsam", "geste": ["conseiller", "guichet"]},
 }
 
 ## Métiers proposés par bâtiment : clé = type, archétype de style ou catégorie.
@@ -123,6 +128,7 @@ const PAR_BATIMENT := {
 	"hopital": [["medecin", 2], ["infirmier", 5], ["aide_soignant", 3]],
 	"cafe": [["serveur", 3], ["cuisinier", 2]],
 	"restaurant": [["serveur", 3], ["cuisinier", 2]],
+	"hotel": [["receptionniste", 2], ["agent_etage", 3], ["serveur", 1], ["cadre", 1]],
 	"cinema": [["agent_cinema", 1]],
 	"musee": [["gardien_musee", 5], ["agent_accueil_parc", 2], ["guide_conferencier", 2], ["conservateur", 1]],
 	"theatre": [["comedien", 1], ["agent_public", 1]],

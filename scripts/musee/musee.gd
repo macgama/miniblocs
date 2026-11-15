@@ -557,6 +557,8 @@ func attendus(key: String, now: Dictionary) -> Array:
 	var px := 1.6 if _gratuit(key, now) else clampf(1.3 - prix / 40.0, 0.35, 1.3)
 	hab *= f * px
 	tour *= f * clampf(1.15 - prix / 80.0, 0.5, 1.15)
+	# Clients des hôtels de la ville (Tourisme).
+	tour += Tourisme.visites("musee", key) * clampf(1.15 - prix / 80.0, 0.5, 1.15)
 	return [hab, tour]
 
 

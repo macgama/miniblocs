@@ -15,7 +15,7 @@ const SECTIONS := [
 	["Barre du bas", [
 		["Tab · Gérer / Créer", "Gérer : la ville (terrain, voies, zonage, catalogue, lignes, habitants). Créer : construire un bâtiment soi-même (murs et étages, blocs, intérieur, Mes créations, banque, atelier), la ville en pause ; touches 1 à 7 et échelle des étages"],
 		["Catégories", "Observer, Terrain, Voies, Paysage : un clic ouvre leurs outils juste au-dessus ; Construire et Décors ouvrent leur panneau à droite (un seul à la fois)"],
-		["Menus ▴", "Transports (lignes, trafic, circulation, véhicules), Ville (habitants, urgences, avis, budget, déchets), Économie (production, agriculture), Loisirs (créer un parc, panneau du parc, musée, zoo), Infos (infos, cartes) : un clic ouvre la rangée de leurs panneaux ; les touches restent les mêmes"],
+		["Menus ▴", "Transports (lignes, trafic, circulation, véhicules), Ville (habitants, urgences, avis, budget, déchets), Économie (production, agriculture), Loisirs (créer un parc, panneau du parc, musée, zoo, spectacles, club, tourisme), Infos (infos, cartes) : un clic ouvre la rangée de leurs panneaux ; les touches restent les mêmes"],
 		["Circulation, Véhicules, Vue", "afficher la circulation, choisir l'époque et la région des véhicules, changer de vue"],
 		["1", "observer : survoler une case pour voir son altitude et son biome (et le nom de la rivière)"],
 		["2 · 3 · 4", "aplanir, monter de 1 m, creuser de 1 m (clic gauche glissé)"],
@@ -277,6 +277,14 @@ const SECTIONS := [
 		["Soigneurs et bâtiments", "poste de soigneurs (repas à 8 h et 15 h, nettoyage), cuisine, clinique vétérinaire, atelier (réparation des barrières), abris, belvédère, kiosque pédagogique, restaurants, toilettes"],
 		["Risques", "barrière trop basse ou usée : évasions ; fauves et proies ensemble : prédation ; enclos sale ou animaux mal soignés : maladies. Naissances quand le bien-être est bon"],
 		["Visiteurs", "chemins depuis l'entrée, vue sur les enclos (vitres et douves les meilleures), espèces rares et menacées : note, prestige et dons pour la conservation"],
+	]],
+	["Tourisme", [
+		["Maj + R (Loisirs ▴ → Tourisme)", "menu Tourisme : En bref (touristes en ville, arrivées, nuitées, refus, réputation, dépenses et ce que touche la caisse, conseils), Hébergements, Attractions, Publicité, Bâtir, Avis des touristes"],
+		["Pourquoi ils viennent", "l'attrait des parcs de loisirs, zoos, musées, salles de spectacle et du patrimoine (châteaux, cathédrales, temples, phares) selon leur taille et leur note, plus la variété ; l'été, le vendredi, la réputation de la ville, l'accès (gare, aéroport, port, autocars), l'office de tourisme et la publicité"],
+		["Hébergements", "Construire → Hôtels et tourisme : aire de camping-cars, camping, camping-club, gîte, chambres d'hôtes, auberge de jeunesse, hôtels de 2 à 5 étoiles, résidence, village vacances (et les hôtels de la bible) ; sans lit libre, les touristes repartent ; le prix de la nuit se règle hôtel par hôtel"],
+		["Séjour", "de 1 à 7 nuits (plus long au camping, en résidence, en village vacances, l'été et avec un office de tourisme) ; chaque jour, ils visitent les sites proches de leur hôtel, mangent au restaurant, font leurs courses et achètent des souvenirs"],
+		["Argent", "taxe de séjour par nuit (0,50 € à 4 € selon les étoiles) et impôt sur les bénéfices des hôtels pour la ville ; camping municipal et aire de camping-cars : tout pour la ville ; repas et courses font vivre les restaurants et les commerces (qu'il faut livrer)"],
+		["Réputation", "ce que pensent les touristes qui repartent : confort et prix de l'hôtel, repas trouvés, ce qu'il y avait à voir, rayons pleins, souvenirs, foule ; trop de touristes pour trop peu d'habitants agace la ville"],
 	]],
 	["Déchets", [
 		["X", "panneau Déchets : ce que la ville jette et recycle, poubelles qui débordent (clic : y aller), installations, bennes en tournée"],

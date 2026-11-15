@@ -21,6 +21,7 @@ const CATEGORIES := [
 	{"id": "parc", "name": "Parc de loisirs", "color": Color("f15bb5")},
 	{"id": "zoo", "name": "Zoo", "color": Color("c8a03a")},
 	{"id": "spectacles", "name": "Spectacles (cinéma, concerts, théâtre)", "color": Color("d64570")},
+	{"id": "tourisme", "name": "Hôtels et tourisme", "color": Color("3a86c8")},
 	{"id": "espaces", "name": "Espaces publics", "color": Color("52b788")},
 ]
 
@@ -148,6 +149,7 @@ static func all_types() -> Dictionary:
 		_all.merge(DechetsTypes.entries())
 		_all.merge(ZooTypes.entries())
 		_all.merge(SpectaclesTypes.entries())
+		_all.merge(TourismeTypes.entries())
 		_all.merge(ParcTypes.entries())
 		_all.merge(FuneraireTypes.entries())
 		_all.merge(Stades.entries())
@@ -262,6 +264,10 @@ static func build_mesh(id: String, material: Material = null, details := true, v
 		return k.to_mesh(material)
 	if t.has("spect"):
 		SpectaclesTypes.build(k, id, t)
+		k.fit_xz(w, d)
+		return k.to_mesh(material)
+	if t.has("touris"):
+		TourismeTypes.build(k, id, t)
 		k.fit_xz(w, d)
 		return k.to_mesh(material)
 	if t.has("dechets"):

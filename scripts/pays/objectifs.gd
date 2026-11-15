@@ -580,6 +580,9 @@ func abandonner(id: int) -> void:
 func succes_debloque(id: String) -> void:
 	if succes.has(id) or not SUCCES.has(id):
 		return
+	# Argent illimité : pas de succès (choix de Gaël, 2026-11-15).
+	if buildings != null and buildings.unlimited_money:
+		return
 	succes[id] = jour()
 	message.emit("Succès débloqué : « %s » — %s" % [SUCCES[id][0], SUCCES[id][1]])
 	ajouter_reputation(2.0)

@@ -2,7 +2,7 @@
 
 ## Succès
 
-**63 succès** (les 21 des Objectifs, plus 42 nouveaux, avec une touche d'humour) valent pour
+**62 succès** (les 21 des Objectifs, plus 41 nouveaux, avec une touche d'humour) valent pour
 **toutes les parties**, comme sur Steam. Ils sont gardés dans `user://succes.cfg` avec les
 compteurs qui servent à les débloquer (km de routes, incendies vus, bâtiments démolis,
 minutes à la manette…).
@@ -14,8 +14,7 @@ minutes à la manette…).
   et une vibration de la manette.
 - Les succès des **Objectifs** (Maj+J, par partie) gardent leur nom ; gagnés dans une partie,
   ils passent aussi dans le profil.
-- **Argent illimité** (Admin, F10) : tous les succès restent possibles (c'est un bac à sable),
-  sauf « Bas de laine » (500 M€ en caisse). Jouer avec l'argent illimité donne « Planche à billets ».
+- **Argent illimité** (Admin, F10) : aucun succès dans cette partie, et les compteurs n'avancent pas (les succès des Objectifs non plus). La fenêtre des succès le rappelle.
 - Pas de succès dans l'Atelier ni sur le serveur d'une carte entre amis (personne ne joue devant).
 
 Quelques-uns : *La route de nulle part* (1 km de route), *Le préfet s'invite* (mise sous

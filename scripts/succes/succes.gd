@@ -11,8 +11,8 @@ extends RefCounted
 ##   ajoutent à leur compteur (Succes.ajouter).
 ## - SteamPont reporte chaque succès sur Steam quand le jeu tourne avec GodotSteam.
 ##
-## Réglage de partie « argent illimité » : les succès restent possibles (bac à sable),
-## sauf ceux marqués "vrai_argent" (gagner de l'argent n'a pas de sens sans compter).
+## Réglage de partie « argent illimité » : aucun succès, et les compteurs n'avancent pas
+## (choix de Gaël, 2026-11-15).
 
 ## Succès débloqués depuis le lancement du jeu, dans l'ordre (notifications, tests).
 static var recents: Array = []
@@ -21,7 +21,7 @@ static var fichier := "user://succes.cfg"
 ## Pas d'écriture sur le disque (tests).
 static var persist := true
 
-## Nouveaux succès : id -> {nom, desc, icone, stat, seuil, cache, vrai_argent}.
+## Nouveaux succès : id -> {nom, desc, icone, stat, seuil, cache}.
 ## stat "" : débloqué directement par le code (Succes.debloquer).
 ## Ton : réaliste, avec une touche d'humour.
 const NOUVEAUX := [
@@ -44,8 +44,7 @@ const NOUVEAUX := [
 	{"id": "dans_le_rouge", "nom": "Dans le rouge", "desc": "Passer la caisse sous zéro. Ça arrive aux meilleurs.", "icone": "budget", "stat": "dans_le_rouge", "seuil": 1, "cache": true},
 	{"id": "sous_tutelle", "nom": "Le préfet s'invite", "desc": "Être mis sous tutelle. Il a apporté des croissants, au moins.", "icone": "budget", "stat": "tutelle", "seuil": 1, "cache": true},
 	{"id": "banquier_ami", "nom": "Mon banquier est mon ami", "desc": "Avoir 3 emprunts en cours.", "icone": "budget", "stat": "emprunts", "seuil": 3},
-	{"id": "oncle_picsou", "nom": "Bas de laine", "desc": "Avoir 500 M€ en caisse, sans argent illimité.", "icone": "budget", "stat": "caisse", "seuil": 500000000, "vrai_argent": true},
-	{"id": "planche_a_billets", "nom": "Planche à billets", "desc": "Jouer avec l'argent illimité. On ne dira rien à la Cour des comptes.", "icone": "budget", "stat": "argent_illimite", "seuil": 1, "cache": true},
+	{"id": "oncle_picsou", "nom": "Bas de laine", "desc": "Avoir 500 M€ en caisse.", "icone": "budget", "stat": "caisse", "seuil": 500000000},
 	{"id": "battu_aux_urnes", "nom": "Le peuple a parlé", "desc": "Perdre une élection. Tu peux toujours construire, mais plus décider.", "icone": "urne", "stat": "mairie_perdue", "seuil": 1, "cache": true},
 	{"id": "fete_au_village", "nom": "Fête au village", "desc": "Organiser 10 marchés ou fêtes.", "icone": "fete", "stat": "fetes", "seuil": 10},
 	# Ville vivante
@@ -173,7 +172,7 @@ static func total() -> int:
 ## Débloque un succès (une seule fois). Renvoie true s'il vient d'être débloqué.
 static func debloquer(id: String) -> bool:
 	charger()
-	if debloques.has(id) or not existe(id):
+	if debloques.has(id) or not existe(id) or argent_illimite:
 		return false
 	debloques[id] = int(Time.get_unix_time_from_system())
 	sauver()
@@ -195,6 +194,8 @@ static func stat(nom: String) -> float:
 ## Garde la plus grande valeur vue (habitants, km de route…).
 static func noter(nom: String, v: float) -> void:
 	charger()
+	if argent_illimite:
+		return
 	if v > float(stats.get(nom, 0.0)):
 		stats[nom] = v
 		_sale = true
@@ -204,14 +205,14 @@ static func noter(nom: String, v: float) -> void:
 ## Ajoute à un compteur (incendies, démolitions…).
 static func ajouter(nom: String, n := 1.0) -> void:
 	charger()
-	if n == 0.0:
+	if n == 0.0 or argent_illimite:
 		return
 	stats[nom] = float(stats.get(nom, 0.0)) + n
 	_sale = true
 	_verifier(nom)
 
 
-## Argent illimité dans la partie en cours : les succès "vrai_argent" sont bloqués.
+## Argent illimité dans la partie en cours : tous les succès sont coupés.
 static var argent_illimite := false
 
 
@@ -219,8 +220,6 @@ static func _verifier(nom: String) -> void:
 	var v := float(stats.get(nom, 0.0))
 	for s in NOUVEAUX:
 		if String(s.stat) != nom or debloques.has(String(s.id)):
-			continue
-		if bool(s.get("vrai_argent", false)) and argent_illimite:
 			continue
 		if v >= float(s.seuil):
 			debloquer(String(s.id))

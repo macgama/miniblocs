@@ -23,6 +23,8 @@ func setup(s: Node) -> void:
 	if not actif:
 		return
 	Succes.charger()
+	var b0 = _lire("buildings")
+	Succes.argent_illimite = b0 != null and bool(b0.unlimited_money)
 	var ev = _lire("evenements")
 	if ev != null:
 		ev.incident_declare.connect(_on_incident)
@@ -37,6 +39,10 @@ func setup(s: Node) -> void:
 	var cm = _lire("communes")
 	if cm != null:
 		cm.fonde.connect(func(_vid: int) -> void: noter_continent())
+
+
+func _exit_tree() -> void:
+	Succes.argent_illimite = false
 
 
 func _on_incident(inc: Dictionary) -> void:
@@ -75,7 +81,7 @@ func releve() -> void:
 	var illimite: bool = b != null and bool(b.unlimited_money)
 	Succes.argent_illimite = illimite
 	if illimite:
-		Succes.noter("argent_illimite", 1)
+		return
 	if tuto != null:
 		var hab: int = tuto.loges()
 		Succes.noter("habitants", hab)

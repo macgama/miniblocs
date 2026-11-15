@@ -100,7 +100,7 @@ low-poly et en accès anticipé : les joueurs sont plus exigeants au-dessus de 2
 
 ## Succès Steam
 
-63 succès prêts : `succes-steam.csv` (nom de l'API `MB_…`, noms et descriptions FR / EN,
+62 succès prêts : `succes-steam.csv` (nom de l'API `MB_…`, noms et descriptions FR / EN,
 caché) et `succes-icones/` (256 × 256, couleur et grisée) à recopier dans Steamworks
 (Statistiques et succès). Le jeu les reporte tout seul avec GodotSteam. Détails :
 [../succes-manette.md](../succes-manette.md).

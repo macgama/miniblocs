@@ -123,7 +123,9 @@ func _run() -> void:
 	_check(Succes.avancement("dans_le_rouge") < 0.0, "succès oui/non : pas de barre d'avancement")
 	Succes.argent_illimite = true
 	Succes.noter("caisse", 900_000_000)
-	_check(not Succes.est_debloque("oncle_picsou"), "argent illimité : pas de « Bas de laine »")
+	Succes.ajouter("demolitions", 500)
+	_check(not Succes.est_debloque("oncle_picsou") and not Succes.debloquer("premier_village") and Succes.stat("demolitions") == 0.0,
+		"argent illimité : aucun succès, les compteurs n'avancent pas")
 	Succes.argent_illimite = false
 	Succes.noter("caisse", 900_000_001)
 	_check(Succes.est_debloque("oncle_picsou"), "vrai argent : « Bas de laine »")
@@ -204,8 +206,11 @@ func _run() -> void:
 	_check(Succes.est_debloque("trois_villes"), "succès des Objectifs (Maj+J) repris dans le profil")
 	bs.unlimited_money = true
 	suivi.releve()
-	_check(Succes.est_debloque("planche_a_billets"), "argent illimité : « Planche à billets »")
+	scene.objectifs.succes_debloque("relies")
+	Succes.noter("route_m", 30000)
+	_check(not Succes.est_debloque("ponts_et_chaussees") and not scene.objectifs.succes.has("relies"), "argent illimité dans la partie : succès coupés (profil et Objectifs)")
 	bs.unlimited_money = false
+	suivi.releve()
 	scene.ambiance.set_speed(DayNight.SPEEDS.size() - 1)
 	suivi.releve()
 	_check(Succes.est_debloque("pied_au_plancher"), "vitesse maximale : « Pied au plancher »")

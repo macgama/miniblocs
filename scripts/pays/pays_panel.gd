@@ -309,7 +309,8 @@ func _carte_ville(vid: int) -> void:
 			lp.add_theme_color_override("font_color", UiStyle.ACCENT)
 		rp.add_child(lp)
 		rp.add_child(_button("Arrêter" if on else "Activer", func() -> void:
-			pa.activer(vid, not on)
+			if not Multijoueur.relayer("pilote", "activer", [vid, not on]):
+				pa.activer(vid, not on)
 			refresh(), not maire and not on,
 			"La ville tient son budget à l'équilibre et construit selon ses besoins : rues, logements, écoles, services, emplois. Une décision par semaine."))
 		var jl: Array = pa.journal.get(vid, [])

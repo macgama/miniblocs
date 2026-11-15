@@ -33,27 +33,42 @@ discussion, **Resynchroniser** (redemande la carte entière), **Quitter la carte
 | Admin | le créateur de la carte (ou, sur une carte neuve sans créateur désigné, le premier qui entre avec le code) : réglages F10, vitesse du temps (T, Maj+T), code, exclure, arrêter le serveur. |
 | Ta caisse | en arrivant : une caisse personnelle avec l'argent de départ des réglages. Quand tu fondes un village, tu en deviens le maire et ta caisse personnelle passe dans la caisse de ta ville. |
 | Construire | partout, comme en solo. Dans tes villes, c'est la caisse de la ville qui paie ; hors de tes villes (chez un ami, en pleine nature), c'est ta caisse principale qui paie, y compris le chantier au fil des travaux et le remboursement à la démolition. |
+| Mairie | seul le maire d'une ville règle son budget (M : impôts, emprunts, entretien) et son pilote automatique. Les autres peuvent construire chez lui, avec leur propre caisse. |
 | Temps | une seule heure pour tous, celle du serveur. Le menu pause ne met en pause que ton écran. |
 
-## Ce qui est synchronisé dans cette première version
+## Ce qui est synchronisé
 
 - Bâtiments : pose, démolition, personnalisation par le joueur (catalogue B),
   et tout ce que le serveur fait pousser (zones, pilote automatique, fondateurs).
+  Les **créations** de l'éditeur libre, de l'Atelier et de l'éditeur du parc partent
+  avec le bâtiment : tes amis les voient même s'ils ne les ont pas dans leur bibliothèque.
 - Villages : fondation avec la Maison de commune (même nom chez tous), maire.
 - Voies : tracé, démolition, carrefours, giratoires, échangeurs.
 - Terrain : outils Aplanir / Monter / Creuser et pinceaux du Paysage (colline,
   lisser, lac et canal, biomes, arbres), et le terrassement sous les bâtiments et les voies.
+- **Zonage**, **éditeur libre** (blocs, murs et étages, meubles et pièces), **décors**,
+  **allées et files d'attente du parc**, **réseaux** (électricité, eau, égouts, gaz,
+  fibre et cuivre) : ce que tu poses apparaît chez les autres une fraction de seconde
+  plus tard, et le prix est payé sur le serveur (ta ville, ou ta caisse hors de tes villes).
+- **Lignes de transport** : arrêts, gares et stations, création et suppression de
+  lignes, véhicules et fret (panneau des lignes).
+- **Budget de la mairie** (M) : impôts, emprunts, remboursements, entretien et
+  réparations des voies, et **pilote automatique** de la ville. **Seul le maire de la
+  ville** peut les changer ; les autres voient le budget mais leurs réglages sont refusés.
 - Caisses (chaque seconde), heure et vitesse du temps, réglages de l'admin.
 - Discussion.
 
-Pas encore synchronisé (ça reste sur ton écran, et revient comme le serveur à la
-prochaine resynchronisation) : zonage, éditeur libre (blocs, murs et étages,
-meubles), décors, lignes de transport, réseaux (électricité, eau…), panneaux de
-gestion (budget, impôts, emprunts, club, parc, zoo…). Ce sont les prochaines étapes.
+Pas encore synchronisé : les panneaux du club, du parc de loisirs, du zoo et du musée
+(réglages, transferts, enclos…). Ils restent sur ton écran et reviennent comme le
+serveur à la prochaine resynchronisation.
 
 Les habitants, véhicules et chantiers sont simulés par chaque jeu à partir de la
 même carte : ils peuvent un peu différer d'un écran à l'autre. Les chiffres qui
-comptent (bâtiments, voies, terrain, argent) viennent du serveur.
+comptent (bâtiments, voies, terrain, zones, réseaux, argent) viennent du serveur.
+
+Si deux joueurs créent au même instant un objet qui reçoit le même numéro (une zone,
+un tronçon…), le second est prévenu (« Un autre joueur a construit au même moment »)
+et n'a qu'à recommencer.
 
 ## Lancer un serveur à la main
 
@@ -111,18 +126,35 @@ godot --headless --path . -- --serveur --nouvelle --lat 45.899 --lon 6.129 --nom
   bâtiment payé hors des villes de son constructeur (`Pays.du_batiment`).
 - `scripts/multijoueur/multijoueur.gd` (`Multijoueur`) : rôle (solo, serveur, client),
   options de la ligne de commande, héberger sur ce PC (`OS.create_process`).
-- En solo, rien ne change : pas de verrou, pas de relais, `payeur_force` à -1.
+- `scripts/multijoueur/sections_partagees.gd` (`SectionsPartagees`) : zones, blocs, plans
+  (murs et étages), mobilier, décors, réseaux, télécom, allées du parc. Chaque section
+  est mise à plat (une entrée par objet, sans ce qui est simulé : chantier en cours,
+  pannes, stocks…). Le jeu du joueur compare sa section à la dernière version du
+  serveur après chaque geste (0,3 s après le dernier clic ou la dernière touche) et
+  envoie la **différence** (action `sections` : entrées mises, ôtées, et ce que le geste
+  a coûté dans ses caisses). Le serveur l'applique, fait payer la bonne caisse et
+  envoie à tous ce qui a changé chez lui (`sections`). Toutes les 5 s, le `tic` porte
+  les empreintes des sections ; deux écarts de suite → la section entière (`section_partagee`).
+  Les numéros pris en même temps par deux joueurs sont refusés au second.
+- **Appels** (`Multijoueur.relayer`, `Multijoueur.APPELS`) : les commandes du budget,
+  du pilote automatique et des lignes partent au serveur (action `appel`), qui vérifie
+  que le joueur est maire de la ville, les fait, puis les renvoie à tous pour qu'ils
+  les rejouent (`appel`, `Multijoueur.rejeu`).
+- Créations des joueurs : `SectionsPartagees.definition()` (créations, modèles de
+  l'Atelier, attractions) jointe à l'action `poser` et au bâtiment envoyé (`defs`).
+- En solo, rien ne change : pas de verrou, pas de relais, `payeur_force` à -1,
+  `Multijoueur.relayer` renvoie faux.
 
 Test : `tests/multijoueur_test.gd` lance un vrai serveur dans un autre processus
 (terrain plat, sans Internet), fait entrer deux joueurs et vérifie invitation,
-caisses, village, route, maisons, démolition, terrain, vitesse, discussion, arrêt
-et reprise de la carte.
+caisses, village, route, maisons, démolition, terrain, vitesse, discussion, zonage
+payé par la ville, ligne électrique, décor et bloc venus d'un autre joueur, numéro
+pris deux fois, création de l'éditeur libre, arrêts et ligne de bus, impôts réservés
+au maire, pilote automatique, arrêt et reprise de la carte.
 
 ## Prochaines étapes
 
-1. Synchroniser le zonage, l'éditeur libre, les décors, les lignes et les réseaux
-   (même principe : action vers le serveur, résultat vers tous).
-2. Panneaux de gestion par ville : seul le maire change les impôts, emprunts, etc.
-3. Envoyer seulement les blocs de terrain changés et des morceaux de sections
+1. Synchroniser les panneaux du club, du parc, du zoo et du musée (mêmes appels).
+2. Envoyer seulement les blocs de terrain changés et des morceaux de sections
    (les grandes villes se chargent plus vite).
-4. Préparer la carte mondiale (un serveur par région, comptes de joueurs).
+3. Préparer la carte mondiale (un serveur par région, comptes de joueurs).

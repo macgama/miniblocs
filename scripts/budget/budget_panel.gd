@@ -282,7 +282,7 @@ func _view_taxes() -> void:
 	for k in BudgetCommunal.TAUX_NOMS:
 		var key: String = k
 		_pct_slider(String(BudgetCommunal.TAUX_NOMS[k]), float(budget.taux[k]), BudgetCommunal.TAUX_MIN, BudgetCommunal.TAUX_MAX,
-			func(x: float) -> void: budget.set_taux(key, x))
+			func(x: float) -> void: _faire("set_taux", [key, x]))
 	_section("Effet")
 	_line("Taxe foncière par mois", float(b.recettes.get("Taxe foncière", 0.0)), Color("7bd389"))
 	_line("Impôt des entreprises par mois", float(b.recettes.get("Impôts des entreprises", 0.0)), Color("7bd389"))
@@ -328,7 +328,7 @@ func _view_loans() -> void:
 	if why != "":
 		_text(why, true)
 	_body.add_child(_button("Emprunter %s" % BuildingSystem.format_short(int(m)), func() -> void:
-		budget.emprunter(m, y)
+		_faire("emprunter", [m, y])
 		refresh(), why != ""))
 	_section("Emprunts en cours (%d)" % budget.emprunts.size())
 	if budget.emprunts.is_empty():
@@ -340,7 +340,7 @@ func _view_loans() -> void:
 		var id := int(e.id)
 		_body.add_child(_button("Rembourser tout de suite (%s, pénalité %d %%)" % [money(restant * (1.0 + BudgetCommunal.PENALITE)), roundi(BudgetCommunal.PENALITE * 100.0)],
 			func() -> void:
-				budget.rembourser(id)
+				_faire("rembourser", [id])
 				refresh()))
 
 
@@ -365,14 +365,14 @@ func _view_upkeep() -> void:
 		var cfg: Dictionary = budget.entretien[k]
 		_section("%s : %s, état %d %%" % [BudgetCommunal.VOIE_NOMS[k], TransportSystem._km(l), roundi(budget.etat_moyen(k) * 100.0)])
 		_pct_slider("Entretien courant (%s/mois)" % BuildingSystem.format_short(roundi(budget.cout_entretien(k))), float(cfg.taux), 0.0, 2.0,
-			func(x: float) -> void: budget.set_entretien(key, "taux", x))
+			func(x: float) -> void: _faire("set_entretien", [key, "taux", x]))
 		var r2 := _row()
 		var auto := CheckBox.new()
 		auto.text = "Réparer sous %d %%" % roundi(float(cfg.seuil) * 100.0)
 		auto.button_pressed = bool(cfg.auto)
 		auto.focus_mode = Control.FOCUS_NONE
 		auto.add_theme_font_size_override("font_size", 12)
-		auto.toggled.connect(func(on: bool) -> void: budget.set_entretien(key, "auto", on))
+		auto.toggled.connect(func(on: bool) -> void: _faire("set_entretien", [key, "auto", on]))
 		r2.add_child(auto)
 		var seuil := OptionButton.new()
 		for s in [20, 35, 50, 70]:
@@ -383,7 +383,7 @@ func _view_upkeep() -> void:
 				best = i
 		seuil.select(best)
 		seuil.item_selected.connect(func(i: int) -> void:
-			budget.set_entretien(key, "seuil", [0.2, 0.35, 0.5, 0.7][i])
+			_faire("set_entretien", [key, "seuil", [0.2, 0.35, 0.5, 0.7][i]])
 			refresh())
 		r2.add_child(seuil)
 	for res in budget.reseaux_ext:
@@ -407,14 +407,24 @@ func _view_upkeep() -> void:
 		var id := int(eid)
 		row.add_child(_button("Voir", func() -> void: focus_requested.emit(net.point_at(id, float(net.edges[id].len) * 0.5))))
 		row.add_child(_button("Réparer %s" % BuildingSystem.format_short(budget.prix_reparation(id)), func() -> void:
-			budget.reparer(id)
+			_faire("reparer", [id])
 			refresh()))
 	if not worst.is_empty():
 		_body.add_child(_button("Réparer tout ce qui est sous 50 %", func() -> void:
 			for eid in budget.pires("", 0.5, 1000):
+				if Multijoueur.relayer("budget", "reparer", [eid, true], {"ville": budget.cle}):
+					continue
 				if not budget.reparer(eid, true):
 					break
 			refresh()))
+
+
+## Un réglage du conseil municipal : sur une carte entre amis, il part au serveur
+## (seul le maire de la ville décide) et revient chez tous.
+func _faire(f: String, args: Array) -> void:
+	if Multijoueur.relayer("budget", f, args, {"ville": budget.cle}):
+		return
+	budget.callv(f, args)
 
 
 func _ext_mean(res: String) -> float:

@@ -110,6 +110,88 @@ static func attacher(jeu: Node) -> void:
 				client.attacher(jeu)
 
 
+# --- Appels : réglages et commandes rejoués par le serveur -----------------------------------
+
+## Vrai pendant qu'un jeu rejoue ce que le serveur lui envoie (rien ne repart au serveur).
+static var rejeu := false
+
+## Ce qu'un joueur peut demander au serveur (système → fonctions). « ville » : seul le
+## maire de la ville concernée décide.
+const APPELS := {
+	"budget": {"f": ["set_taux", "emprunter", "rembourser", "set_entretien", "reparer"], "ville": true},
+	"pilote": {"f": ["activer"], "ville": true},
+	"stations": {"f": ["place", "remove_station", "create_line", "set_fret", "set_line", "remove_line"]},
+}
+
+
+static func appel_permis(sys: String, f: String) -> bool:
+	return APPELS.has(sys) and f in (APPELS[sys].f as Array)
+
+
+## Ville concernée par un appel (-1 : aucune).
+static func ville_de_appel(a: Dictionary) -> int:
+	match String(a.get("sys", "")):
+		"budget":
+			return int(a.get("ville", -1))
+		"pilote":
+			var args: Array = a.get("args", [])
+			return int(args[0]) if not args.is_empty() else -1
+	return -1
+
+
+## Sur une carte entre amis, le joueur décide-t-il dans la caisse ou la ville k ?
+static func peut_decider(k: int) -> bool:
+	if role != Role.CLIENT or client_actif() == null:
+		return true
+	if Pays.est_nation(k):
+		return client.admin
+	return client.mes_villes.has(k)
+
+
+## Joueur connecté : l'appel part au serveur au lieu d'être fait ici (vrai), ou il
+## est refusé ici parce que le joueur n'est pas maire. Faux : à faire en local.
+## extra : "ville" (clé de la ville réglée), "p" (point de la carte, pour la caisse).
+static func relayer(sys: String, f: String, args: Array, extra: Dictionary = {}) -> bool:
+	if role != Role.CLIENT or rejeu or client_actif() == null or client.etat != "en_jeu":
+		return false
+	var a := {"t": "appel", "sys": sys, "f": f, "args": args}
+	a.merge(extra)
+	var v := ville_de_appel(a)
+	if bool((APPELS.get(sys, {}) as Dictionary).get("ville", false)) and v != -1 and not peut_decider(v):
+		if is_instance_valid(client.jeu):
+			client.jeu.hud.show_message("Seul le maire de %s décide de ses réglages (impôts, emprunts, entretien, pilote automatique)." % client.jeu.pays.nom_de(v))
+		return true
+	client.envoyer_action(a)
+	return true
+
+
+## Fait l'appel a dans la partie jeu (serveur, ou rejeu chez un joueur). Renvoie son résultat.
+static func executer_appel(jeu: Node, a: Dictionary) -> Variant:
+	var sys := String(a.get("sys", ""))
+	var f := String(a.get("f", ""))
+	if not appel_permis(sys, f):
+		return null
+	var args: Array = a.get("args", [])
+	match sys:
+		"budget":
+			var b: BudgetCommunal = jeu.budget
+			var ville := int(a.get("ville", b.cle))
+			var sel := b.cle
+			b.selectionner(ville)
+			var prev: int = jeu.pays.entrer(ville)
+			var r: Variant = b.callv(f, args)
+			jeu.pays.sortir(prev)
+			b.selectionner(sel)
+			b.changed.emit()
+			return r
+		"pilote":
+			return jeu.pilote.callv(f, args)
+		"stations":
+			var st: StationSystem = jeu.transport.stations
+			return jeu.transport.appliquer_reseau(func() -> Variant: return st.callv(f, args))
+	return null
+
+
 ## Section de la sauvegarde (serveur seulement).
 static func section() -> Dictionary:
 	return serveur.to_dict() if role == Role.SERVEUR and serveur != null else {}

@@ -46,7 +46,7 @@ func _ready() -> void:
 	for l in lignes():
 		g.add_child(_label(String(l[0]), 15, UiStyle.TEXT_DIM, 200.0))
 		g.add_child(_label(String(l[1]), 15, UiStyle.TEXT, 340.0))
-	v.add_child(_label("Dans le jeu complet : le parc de loisirs, le zoo, les musées et salles de spectacle déjà là, puis le club de sport et les cartes à plusieurs. Ajoute MiniBlocs à ta liste de souhaits pour suivre la suite.", 13, UiStyle.TEXT_DIM))
+	v.add_child(_label("Il reste bien plus à découvrir : parc de loisirs, zoo, musées, salles de spectacle et club de sport (menu Loisirs). Les cartes à plusieurs viendront ensuite : ajoute MiniBlocs à ta liste de souhaits pour suivre la suite.", 13, UiStyle.TEXT_DIM))
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_END
 	row.add_theme_constant_override("separation", 10)

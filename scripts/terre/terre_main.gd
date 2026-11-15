@@ -146,6 +146,10 @@ var bilan_scenario: ScenarioBilan
 var sons: AmbiancesSonores
 var quartiers: Quartiers
 var quartiers_panel: QuartiersPanel
+## Mode photo (F8) et time-lapse de la ville (Maj+F8), scripts/photo.
+var mode_photo: ModePhoto
+var timelapse: TimeLapse
+var timelapse_panel: TimeLapsePanel
 
 
 func _ready() -> void:
@@ -220,6 +224,7 @@ func _ready() -> void:
 	_setup_souterrain()
 	_setup_create_mode()
 	_setup_son()
+	_setup_photo()
 	_setup_succes()
 	hud.traffic_toggled.connect(func(on: bool) -> void: transport.traffic.set_enabled(on))
 	hud.traffic_filter_changed.connect(func(era: String, region: String) -> void:
@@ -411,6 +416,7 @@ func save_sections() -> Dictionary:
 	sec["quartiers"] = quartiers.to_dict()
 	sec["parc_editeur"] = attractions.to_dict()
 	sec["parc_allees"] = parc_allees.to_dict()
+	sec["timelapse"] = timelapse.to_dict()
 	# Serveur de carte entre amis : membres, code d'invitation, caisses personnelles.
 	if Multijoueur.role == Multijoueur.Role.SERVEUR:
 		sec["multijoueur"] = Multijoueur.section()
@@ -566,6 +572,12 @@ func load_game(slot := "") -> bool:
 	# Après les habitants : niveau de chaque foyer (ancienne partie : évalués au premier jour).
 	niveaux_vie.from_dict(sec.get("niveaux_vie", {}))
 	statistiques.from_dict(sec.get("statistiques", {}))
+	# Après les villages : une partie d'avant le time-lapse filme ses villages dès maintenant.
+	if sec.has("timelapse"):
+		timelapse.from_dict(sec.timelapse)
+	else:
+		timelapse.clear()
+		timelapse.adopter_villages()
 	journal.from_dict(sec.get("journal", {}))
 	($VueSol as VueSol).from_dict(sec.get("personnage", {}))
 	_load_settings(sec.get("reglages", {}), m)
@@ -1002,6 +1014,48 @@ func _setup_statistiques() -> void:
 	stats_panel.setup(statistiques)
 	stats_panel.panneau_requested.connect(ouvrir_panneau)
 	hud.stats_requested.connect(func() -> void: stats_panel.toggle())
+
+
+## Mode photo (F8 : temps figé, caméra libre, filtres, photo sans l'interface)
+## et time-lapse (Maj+F8 : une image par jour depuis la fondation, export vidéo).
+func _setup_photo() -> void:
+	timelapse = TimeLapse.new()
+	timelapse.name = "TimeLapse"
+	timelapse.ambiance = ambiance
+	timelapse.rig = rig
+	timelapse.world = world
+	timelapse.communes = communes
+	timelapse.population = population
+	add_child(timelapse)
+	timelapse.message.connect(func(t: String) -> void: hud.show_message(t))
+	communes.fonde.connect(func(vid: int) -> void:
+		if not _chargement and not GameStart.atelier:
+			timelapse.on_fonde(vid))
+	timelapse_panel = TimeLapsePanel.new()
+	timelapse_panel.name = "TimeLapsePanel"
+	timelapse_panel.ambiance = ambiance
+	timelapse_panel.vue_actuelle = func() -> Array:
+		var cam := get_viewport().get_camera_3d()
+		return [] if cam == null else [cam.global_transform, cam.fov]
+	add_child(timelapse_panel)
+	timelapse_panel.setup(timelapse)
+	timelapse_panel.message.connect(func(t: String) -> void: hud.show_message(t))
+	mode_photo = ModePhoto.new()
+	mode_photo.name = "ModePhoto"
+	mode_photo.rig = rig
+	mode_photo.ambiance = ambiance
+	mode_photo.ground_height = rig.ground_height
+	mode_photo.avant_entree = func() -> void:
+		mode_photo.nom_lieu = _game_title()
+		_select_building_tool()
+	add_child(mode_photo)
+	mode_photo.message.connect(func(t: String) -> void: hud.show_message(t))
+	mode_photo.timelapse_requested.connect(func() -> void: timelapse_panel.toggle())
+	mode_photo.cadrage_timelapse.connect(func(xf: Transform3D, fov: float, fmt: String) -> void:
+		var cid := timelapse.ajouter_camera("Caméra %d" % timelapse.next_cam, xf, fov, fmt)
+		if cid >= 0:
+			mode_photo._toast("Time-lapse : ce cadrage sera filmé une fois par jour de jeu, vers midi (Maj+F8 pour revoir)."))
+	hud.photo_requested.connect(func() -> void: mode_photo.entrer())
 
 
 ## Journal de la ville (F4, menu Infos) : une édition chaque matin sur la veille.

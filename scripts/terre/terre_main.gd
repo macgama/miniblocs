@@ -2477,6 +2477,7 @@ func _refresh_stats(st := {}) -> void:
 		hud.show_message("Palier « %s » atteint : de nouveaux bâtiments sont débloqués !" % palier)
 		Son.jouer("palier")
 		build_panel.refresh()
+	suivre_epoque()
 	var adults: int = int(s.actif) + int(s.chomeur)
 	var unemployment := "—" if adults == 0 else "%d %%" % roundi(100.0 * int(s.chomeur) / adults)
 	var tip := ""
@@ -2484,6 +2485,34 @@ func _refresh_stats(st := {}) -> void:
 		money = "%s : %s" % [pays.nom_de(pays.actif), money]
 		tip = "Caisse de %s, la ville que tu gères (elle suit la caméra ; Maj+P pour le pays et les autres villes). Clic : budget." % pays.nom_de(pays.actif)
 	hud.set_stats(money, int(s.habitants), int(s.satisfaction), unemployment, tip)
+
+
+## Partie historique : à chaque nouvelle année, les véhicules en circulation
+## changent et les grandes inventions sont annoncées (Epoques).
+var _annee_vue := 0
+
+
+func suivre_epoque() -> void:
+	if not Epoques.actif():
+		_annee_vue = 0
+		return
+	var y := Epoques.annee()
+	if y == _annee_vue:
+		return
+	var avant := _annee_vue
+	_annee_vue = y
+	if transport != null and transport.traffic != null:
+		transport.traffic.epoque_changee()
+	if avant == 0:
+		return
+	var nouv := Epoques.inventions_entre(avant, y)
+	if build_panel != null:
+		build_panel.refresh()
+	if nouv.is_empty():
+		return
+	var inv: Dictionary = nouv[nouv.size() - 1]
+	hud.show_message("%d : %s ! %s" % [int(inv.annee), String(inv.nom), String(inv.desc)])
+	Son.jouer("palier")
 
 
 ## « de Beauvallon » quand il y a plusieurs caisses.

@@ -375,7 +375,8 @@ func sans_objet(id: String) -> bool:
 			var f = _lire("fondateurs")
 			return r.fondateurs <= 0 or (f != null and _villages() > 0 and not bool(f.arrives))
 		"reseaux":
-			return not r.reseaux_obligatoires
+			# En 1800, personne n'attend encore le courant ni l'eau au robinet.
+			return not r.reseaux_obligatoires or not Epoques.attendu("elec")
 		"dechets":
 			return not Dechets.actif()
 	return false
@@ -516,7 +517,7 @@ func batiments_de_type(type_id: String) -> int:
 	var n := 0
 	var bs := _batiments()
 	for bid in bs:
-		if String(bs[bid].t) == type_id:
+		if String(bs[bid].t) == type_id or BuildingCatalog.base_of(String(bs[bid].t)) == type_id:
 			n += 1
 	return n
 

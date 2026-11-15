@@ -90,6 +90,7 @@ var real_sun_elev := 0.0
 
 
 func _ready() -> void:
+	Epoques.horloge = self
 	sun = get_node_or_null(sun_path) as DirectionalLight3D
 	var we := get_node_or_null(environment_path) as WorldEnvironment
 	if we != null:
@@ -393,7 +394,11 @@ func _window_for(t: float, need: float) -> Vector2:
 
 
 func local_datetime() -> Dictionary:
-	return Time.get_datetime_dict_from_unix_time(int(unix_time + utc_offset() * 3600.0))
+	var d := Time.get_datetime_dict_from_unix_time(int(unix_time + utc_offset() * 3600.0))
+	# Partie historique : le calendrier affiche l'année de l'époque (Epoques).
+	if Epoques.actif():
+		d.year = Epoques.annee()
+	return d
 
 
 ## Lever et coucher du Soleil du jour (heures locales), voir Astro.sun_rise_set.

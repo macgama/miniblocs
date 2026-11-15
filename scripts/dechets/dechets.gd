@@ -167,7 +167,8 @@ func clear() -> void:
 
 
 static func actif() -> bool:
-	return ReglagesPartie.actuel.dechets
+	# Avant la poubelle (1884), les ordures ne se ramassent pas encore (Epoques).
+	return ReglagesPartie.actuel.dechets and Epoques.attendu("dechets")
 
 
 # --- Bâtiments ------------------------------------------------------------------------------

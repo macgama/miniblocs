@@ -384,12 +384,16 @@ func _sync_stations() -> void:
 	var seen := {}
 	for bid in buildings.buildings:
 		var b: Dictionary = buildings.buildings[bid]
+		# Le bâtiment joue-t-il le rôle d'une caserne, d'un commissariat ou d'un
+		# hôpital (versions d'époque, modèles de l'Atelier) ?
 		var t := String(b.t)
+		if not BUILDING_SERVICE.has(t):
+			t = BuildingCatalog.base_of(t)
 		if not BUILDING_SERVICE.has(t):
 			continue
 		seen[bid] = true
 		var rect := buildings._rect_of(b)
-		var door := BuildingSystem.door_point(t, rect, int(b.r), float(b.get("a", 0.0)))
+		var door := BuildingSystem.door_point(String(b.t), rect, int(b.r), float(b.get("a", 0.0)))
 		var road := road_point(door, 30.0)
 		if not stations.has(bid):
 			var units: Array = []
@@ -421,7 +425,8 @@ func model_for(base: String) -> String:
 		m = String(REGION_MODELS.autre.get(base, base))
 	elif base == "police_nationale" and population != null and population.persons.size() < RURAL:
 		m = "gendarmerie"
-	return m
+	# Partie historique : le modèle de l'époque (pompe à bras, ambulance à chevaux…).
+	return Epoques.vehicule(m)
 
 
 func crew_of(model: String) -> int:

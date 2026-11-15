@@ -198,6 +198,61 @@ const TYPES := {
 	"ambulance_us": {"name": "Ambulance américaine", "cat": "utilitaire", "mode": ROAD, "era": "contemporain", "region": "ameriques", "year": 2015,
 		"L": 7.0, "W": 2.4, "H": 3.0, "kmh": 130, "places": 4, "shape": "camion", "cab": "capot", "cargo": "ambulance", "r": 0.42, "urgence": "ambulance",
 		"col": Color("f4f4f4"), "col2": Color("f4f4f4"), "desc": "Cellule carrée à bande rouge sur un châssis de pick-up."},
+	# --- Services d'autrefois (parties historiques, voir Epoques) --------------------------
+	# Ils remplacent les modèles modernes tant que ceux-ci ne sont pas inventés.
+	"pompe_a_bras": {"name": "Pompe à bras hippomobile", "cat": "attelage", "mode": ROAD, "era": "traditionnel", "region": "monde", "year": 1800,
+		"L": 3.4, "W": 1.6, "H": 1.8, "kmh": 10, "places": 4, "shape": "attelage", "kind": "pompe", "horses": 1, "col": Color("b71c1c"),
+		"urgence": "pompiers", "desc": "Le réservoir et son balancier : on pompe à huit hommes, les seaux passent de main en main."},
+	"pompe_vapeur": {"name": "Pompe à vapeur des pompiers", "cat": "attelage", "mode": ROAD, "era": "classique", "region": "monde", "year": 1860,
+		"L": 4.2, "W": 1.8, "H": 2.6, "kmh": 15, "places": 4, "shape": "attelage", "kind": "pompe_vapeur", "horses": 2, "col": Color("b71c1c"),
+		"urgence": "pompiers", "desc": "Chaudière en cuivre et cheminée : la pompe tire seule, au galop de deux chevaux."},
+	"autopompe_1920": {"name": "Autopompe des années 20", "cat": "utilitaire", "mode": ROAD, "era": "classique", "region": "monde", "year": 1920,
+		"L": 6.5, "W": 2.1, "H": 2.4, "kmh": 45, "places": 6, "shape": "camion", "cab": "capot", "cargo": "pompiers", "r": 0.45, "urgence": "pompiers",
+		"col": Color("b71c1c"), "col2": Color("b71c1c"), "desc": "Banquettes à l'air libre, échelle en bois et cloche de cuivre."},
+	"camion_pompiers_60": {"name": "Camion de pompiers des années 60", "cat": "utilitaire", "mode": ROAD, "era": "moderne", "region": "monde", "year": 1960,
+		"L": 7.5, "W": 2.4, "H": 3.0, "kmh": 80, "places": 6, "shape": "camion", "cab": "avant", "cargo": "fpt", "urgence": "pompiers",
+		"col": Color("c1121f"), "col2": Color("c1121f"), "desc": "Le fourgon pompe-tonne et son deux-tons."},
+	"ambulance_chevaux": {"name": "Ambulance à chevaux", "cat": "attelage", "mode": ROAD, "era": "traditionnel", "region": "monde", "year": 1800,
+		"L": 3.8, "W": 1.7, "H": 2.4, "kmh": 12, "places": 3, "shape": "attelage", "kind": "ambulance", "horses": 1, "col": Color("ece6d6"),
+		"urgence": "ambulance", "desc": "La voiture suspendue des « ambulances volantes » : deux brancards et un chirurgien."},
+	"ambulance_1930": {"name": "Ambulance des années 30", "cat": "utilitaire", "mode": ROAD, "era": "classique", "region": "monde", "year": 1930,
+		"L": 5.2, "W": 1.9, "H": 2.4, "kmh": 70, "places": 3, "shape": "camion", "cab": "capot", "cargo": "ambulance", "r": 0.4, "urgence": "ambulance",
+		"col": Color("e9e2c8"), "col2": Color("e9e2c8"), "desc": "Carrosserie bombée et croix rouge sur les flancs."},
+	"ambulance_1970": {"name": "Ambulance des années 70", "cat": "utilitaire", "mode": ROAD, "era": "moderne", "region": "monde", "year": 1970,
+		"L": 5.0, "W": 1.85, "H": 2.2, "kmh": 130, "places": 4, "shape": "voiture", "r": 0.35, "bh": 0.75, "hood": 0.16, "trunk": 0.0, "sf": 0.55, "sb": 0.0, "top": 0.92, "panel": true,
+		"urgence": "ambulance", "beacon": true, "stripe": Color("e63946"), "col": Color("f4f4f4"),
+		"desc": "Le break surélevé, son gyrophare bleu et son deux-tons."},
+	"gendarme_cheval": {"name": "Gendarme à cheval", "cat": "attelage", "mode": ROAD, "era": "traditionnel", "region": "monde", "year": 1800,
+		"L": 2.6, "W": 0.8, "H": 2.6, "kmh": 20, "places": 1, "shape": "attelage", "kind": "cavalier", "horses": 1, "col": Color("1d3557"),
+		"urgence": "police", "desc": "Bicorne, sabre et bottes : la maréchaussée fait sa tournée."},
+	"panier_salade": {"name": "Voiture cellulaire à chevaux", "cat": "attelage", "mode": ROAD, "era": "classique", "region": "europe", "year": 1860,
+		"L": 4.2, "W": 1.8, "H": 2.6, "kmh": 12, "places": 6, "shape": "attelage", "kind": "fourgon", "horses": 2, "col": Color("1d2b4a"),
+		"urgence": "police", "desc": "Le « panier à salade » : une caisse fermée percée de petites lucarnes."},
+	"police_1930": {"name": "Voiture de police des années 30", "cat": "voiture", "mode": ROAD, "era": "classique", "region": "monde", "year": 1930,
+		"L": 4.4, "W": 1.7, "H": 1.7, "kmh": 95, "places": 4, "shape": "ancienne", "col": Color("1b1b1b"),
+		"urgence": "police", "desc": "Traction noire et sonnerie : la brigade mobile arrive."},
+	"police_1970": {"name": "Voiture de police des années 70", "cat": "voiture", "mode": ROAD, "era": "moderne", "region": "monde", "year": 1970,
+		"L": 4.2, "W": 1.65, "H": 1.45, "kmh": 150, "places": 5, "shape": "voiture", "bh": 0.55, "hood": 0.24, "trunk": 0.14, "sf": 0.55, "sb": 0.4, "top": 0.8,
+		"urgence": "police", "beacon": true, "stripe": Color("f4f4f4"), "col": Color("1d3557"),
+		"desc": "Pie bleu et blanc, gyrophare unique sur le toit."},
+	"tombereau": {"name": "Tombereau des boueux", "cat": "attelage", "mode": ROAD, "era": "traditionnel", "region": "monde", "year": 1800,
+		"L": 3.6, "W": 1.8, "H": 1.8, "kmh": 6, "places": 2, "shape": "attelage", "kind": "tombereau", "horses": 1, "role": "ordures", "livraison": true,
+		"desc": "La caisse basculante des boueux, qui ramassent ordures et crottin à la pelle."},
+	"benne_1950": {"name": "Benne à ordures des années 50", "cat": "utilitaire", "mode": ROAD, "era": "moderne", "region": "monde", "year": 1950,
+		"L": 7.0, "W": 2.3, "H": 2.8, "kmh": 60, "places": 3, "shape": "camion", "cab": "capot", "cargo": "benne", "r": 0.45, "role": "ordures", "livraison": true,
+		"col": Color("6a994e"), "col2": Color("dde5b6"), "desc": "Benne ouverte et éboueurs sur le marchepied."},
+	"corbillard_chevaux": {"name": "Corbillard à chevaux", "cat": "attelage", "mode": ROAD, "era": "traditionnel", "region": "monde", "year": 1800,
+		"L": 4.0, "W": 1.7, "H": 2.6, "kmh": 6, "places": 2, "shape": "attelage", "kind": "corbillard", "horses": 2, "col": Color("141414"),
+		"role": "corbillard", "livraison": true, "desc": "Caisse vitrée, colonnes torsadées, plumets noirs et chevaux caparaçonnés."},
+	"corbillard_1950": {"name": "Corbillard des années 50", "cat": "utilitaire", "mode": ROAD, "era": "moderne", "region": "monde", "year": 1950,
+		"L": 5.2, "W": 1.8, "H": 1.8, "kmh": 90, "places": 2, "shape": "ancienne", "col": Color("141414"),
+		"role": "corbillard", "livraison": true, "desc": "Longue berline noire aux vitres drapées."},
+	"chasse_neige_chevaux": {"name": "Chasse-neige à chevaux", "cat": "attelage", "mode": ROAD, "era": "traditionnel", "region": "monde", "year": 1800,
+		"L": 4.0, "W": 2.4, "H": 1.6, "kmh": 5, "places": 2, "shape": "attelage", "kind": "triangle", "horses": 2, "role": "chasse_neige", "livraison": true,
+		"desc": "Le triangle de bois lesté de pierres, que les chevaux tirent dans la neige."},
+	"chasse_neige_1950": {"name": "Chasse-neige des années 50", "cat": "utilitaire", "mode": ROAD, "era": "moderne", "region": "monde", "year": 1950,
+		"L": 7.0, "W": 2.4, "H": 3.0, "kmh": 40, "places": 2, "shape": "camion", "cab": "capot", "cargo": "saleuse", "r": 0.45, "role": "chasse_neige", "livraison": true,
+		"col": Color("f77f00"), "col2": Color("dee2e6"), "desc": "Lame d'acier et sableuse à l'arrière."},
 	"camion_decore": {"name": "Camion décoré d'Asie du Sud", "cat": "utilitaire", "mode": ROAD, "era": "moderne", "region": "asie_sud", "year": 1980,
 		"L": 9.0, "W": 2.4, "H": 3.6, "kmh": 70, "places": 2, "shape": "camion", "cab": "capot", "cargo": "decore",
 		"col": Color("f1c40f"), "col2": Color("e63946"), "desc": "Peint de motifs et de couleurs vives."},
@@ -206,7 +261,10 @@ const TYPES := {
 		"col": Color("c1121f"), "col2": Color("f4f4f4"), "desc": "Grandes roues arrière pour les champs."},
 
 	# --- Bus et cars -----------------------------------------------------------------
-	"autobus_30": {"name": "Autobus à plateforme", "cat": "bus", "mode": ROAD, "era": "classique", "region": "europe", "year": 1935,
+	"autocar_60": {"name": "Autocar des années 60", "cat": "bus", "mode": ROAD, "era": "moderne", "region": "europe", "year": 1960, "role": "car", "livraison": true,
+		"L": 11.0, "W": 2.5, "H": 3.2, "kmh": 90, "places": 45, "shape": "bus", "front": "capot", "coach": true,
+		"col": Color("e9c46a"), "col2": Color("bc6c25"), "desc": "Le car des colonies de vacances, galerie à bagages sur le toit."},
+	"autobus_30": {"name": "Autobus à plateforme", "cat": "bus", "mode": ROAD, "era": "classique", "region": "europe", "year": 1935, "role": "car",
 		"L": 9.5, "W": 2.4, "H": 3.0, "kmh": 60, "places": 50, "shape": "bus", "front": "capot", "platform": true,
 		"col": Color("2d6a4f"), "col2": Color("e9e2c8"), "desc": "On saute à l'arrière sur la plateforme ouverte."},
 	"imperiale": {"name": "Bus à impériale londonien", "cat": "bus", "mode": ROAD, "era": "moderne", "region": "europe", "year": 1960,
@@ -224,7 +282,7 @@ const TYPES := {
 	"bus_articule_arriere": {"name": "Remorque de bus articulé", "cat": "wagon", "mode": ROAD, "era": "contemporain", "region": "monde", "year": 2015,
 		"L": 9.0, "W": 2.55, "H": 3.1, "kmh": 70, "places": 60, "shape": "bus", "front": "soufflet",
 		"col": Color("f4f4f4"), "col2": Color("e76f51"), "desc": "Partie arrière d'un bus articulé.", "hidden": true},
-	"autocar": {"name": "Autocar de tourisme", "cat": "bus", "mode": ROAD, "era": "contemporain", "region": "monde", "year": 2012,
+	"autocar": {"name": "Autocar de tourisme", "cat": "bus", "mode": ROAD, "era": "contemporain", "region": "monde", "year": 2012, "role": "car",
 		"L": 13.0, "W": 2.55, "H": 3.7, "kmh": 100, "places": 55, "shape": "bus", "coach": true,
 		"col": Color("f4f4f4"), "col2": Color("457b9d"), "desc": "Grandes vitres et soutes à bagages."},
 	"trolleybus": {"name": "Trolleybus", "cat": "bus", "mode": ROAD, "era": "moderne", "region": "europe", "year": 1975,
@@ -277,11 +335,13 @@ const TYPES := {
 		"L": 3.2, "W": 1.6, "H": 1.6, "kmh": 6, "places": 2, "shape": "attelage", "kind": "charrette", "horses": 1, "desc": "Foin, récoltes et marchandises."},
 	"caleche": {"name": "Calèche", "cat": "attelage", "mode": ROAD, "era": "classique", "region": "europe", "year": 1850,
 		"L": 3.6, "W": 1.6, "H": 2.0, "kmh": 15, "places": 4, "shape": "attelage", "kind": "caleche", "horses": 2, "col": DARK, "desc": "Promenade élégante, capote repliée."},
-	"diligence": {"name": "Diligence", "cat": "attelage", "mode": ROAD, "era": "classique", "region": "ameriques", "year": 1860,
+	"diligence_messageries": {"name": "Diligence des messageries", "cat": "attelage", "mode": ROAD, "era": "traditionnel", "region": "europe", "year": 1800, "role": "car", "livraison": true,
+		"L": 4.6, "W": 2.0, "H": 2.9, "kmh": 12, "places": 15, "shape": "attelage", "kind": "diligence", "horses": 4, "col": Color("c99a2e"), "desc": "Coupé, intérieur et impériale : les voyageurs et le courrier, relais après relais."},
+	"diligence": {"name": "Diligence", "cat": "attelage", "mode": ROAD, "era": "classique", "region": "ameriques", "year": 1860, "role": "car",
 		"L": 4.0, "W": 1.8, "H": 2.6, "kmh": 12, "places": 9, "shape": "attelage", "kind": "diligence", "horses": 4, "col": Color("8c2f39"), "desc": "Le courrier et les voyageurs du Far West."},
 	"chariot_bache": {"name": "Chariot bâché", "cat": "attelage", "mode": ROAD, "era": "classique", "region": "ameriques", "year": 1850,
 		"L": 4.2, "W": 1.6, "H": 2.8, "kmh": 5, "places": 4, "shape": "attelage", "kind": "bache", "horses": 2, "desc": "La maison roulante des pionniers."},
-	"omnibus_chevaux": {"name": "Omnibus à chevaux", "cat": "attelage", "mode": ROAD, "era": "classique", "region": "europe", "year": 1880,
+	"omnibus_chevaux": {"name": "Omnibus à chevaux", "cat": "attelage", "mode": ROAD, "era": "classique", "region": "europe", "year": 1828, "role": "car",
 		"L": 5.0, "W": 2.0, "H": 3.2, "kmh": 10, "places": 30, "shape": "attelage", "kind": "omnibus", "horses": 2, "col": Color("2d6a4f"), "desc": "L'ancêtre du bus, avec impériale."},
 
 	# --- Tramways ----------------------------------------------------------------------------
@@ -597,6 +657,9 @@ static func matches(id: String, era := "", region := "") -> bool:
 	var t := get_type(id)
 	if t.is_empty():
 		return false
+	# Partie historique : pas encore en service (Epoques).
+	if not Epoques.vehicule_disponible(id):
+		return false
 	if era != "" and t.era != era:
 		return false
 	if region != "" and region != "monde" and t.region != region and t.region != "monde":
@@ -763,6 +826,9 @@ static func beacon_color(t: Dictionary, x: float) -> Color:
 static func beacons(t: Dictionary) -> Array[Vector3]:
 	var out: Array[Vector3] = []
 	if t.is_empty() or not t.has("urgence"):
+		return out
+	# Pas de gyrophares avant les années 30 (cloches et chevaux).
+	if int(t.get("year", 2000)) < 1930 or (int(t.get("year", 2000)) < 1960 and not t.get("beacon", false) and String(t.shape) != "camion"):
 		return out
 	var L := float(t.L)
 	var W := float(t.W)
@@ -1157,7 +1223,70 @@ static func _cart(k: VehicleMesh, t: Dictionary, col: Color) -> void:
 	var kind: String = t.get("kind", "charrette")
 	var horses := int(t.get("horses", 1))
 	var r := 0.7
+	if kind == "cavalier":
+		# Un cavalier seul : le cheval et l'homme en selle, pas de voiture.
+		k.horse(0, 0.0, Color("3d2b1f"))
+		k.box(0, 1.28, 0.1, 0.62, 0.1, 0.7, col.darkened(0.2))
+		k.person(0, 1.38, 0.15, col)
+		k.box(0, 2.24, 0.15, 0.5, 0.14, 0.2, Color("1b1b1b"))
+		return
 	match kind:
+		"pompe":
+			k.box(0, 0.8, 0.2, W * 0.8, 0.12, L * 0.6, WOOD)
+			k.box(0, 0.92, 0.2, W * 0.6, 0.7, L * 0.45, col)
+			k.box(0, 1.65, 0.2, 0.08, 0.08, L * 0.7, WOOD.lightened(0.15))
+			k.cylinder(0, 1.62, 0.2, 0.09, 0.09, 0.5, 6, Color("c9a227"))
+			k.person(0, 0.95, -L * 0.3, Color("8a1c1c"))
+			k.axle(W / 2, -L * 0.15, 0.55, 0.08, WOOD.darkened(0.3))
+			k.axle(W / 2, L * 0.35, 0.65, 0.08, WOOD.darkened(0.3))
+		"pompe_vapeur":
+			k.box(0, 0.85, 0.2, W * 0.85, 0.14, L * 0.65, Color("2b2b2b"))
+			k.z_cyl(0, 1.45, L * 0.0, L * 0.3, 0.42, 0.42, 10, Color("c77d32"))
+			k.cylinder(0, 1.9, L * 0.15, 0.13, 0.16, 0.9, 8, Color("2b2b2b"))
+			k.box(0, 0.99, -L * 0.2, W * 0.7, 0.4, 0.6, col)
+			k.person(-0.25, 1.4, -L * 0.22, Color("1d3557"))
+			k.person(0.25, 1.4, -L * 0.22, Color("1d3557"))
+			k.axle(W / 2, -L * 0.2, 0.55, 0.08, col)
+			k.axle(W / 2, L * 0.32, 0.75, 0.08, col)
+		"ambulance":
+			k.box(0, 0.85, 0.2, W * 0.9, H - 1.15, L * 0.6, col)
+			k.box(0, H - 0.32, 0.2, W * 0.95, 0.1, L * 0.64, Color("6b4a33"))
+			for sx in [-1.0, 1.0]:
+				k.box(sx * (W * 0.45 + 0.01), 1.55, 0.2, 0.02, 0.5, 0.14, Color("c1121f"))
+				k.box(sx * (W * 0.45 + 0.01), 1.55, 0.2, 0.02, 0.14, 0.5, Color("c1121f"))
+			k.person(0, 1.15, -L * 0.32, Color("3d405b"))
+			k.axle(W / 2, -L * 0.2, 0.55, 0.08, WOOD.darkened(0.3))
+			k.axle(W / 2, L * 0.32, 0.72, 0.08, WOOD.darkened(0.3))
+		"fourgon":
+			k.box(0, 0.85, 0.2, W * 0.9, H - 1.1, L * 0.62, col)
+			for i in 3:
+				for sx in [-1.0, 1.0]:
+					k.box(sx * (W * 0.45 + 0.01), H - 0.75, -0.4 + i * 0.6, 0.02, 0.16, 0.2, Color("f0e6c8"))
+			k.box(0, H - 0.27, 0.2, W * 0.95, 0.08, L * 0.65, Color("1b1b1b"))
+			k.person(0, 1.5, -L * 0.33, Color("1d3557"))
+			k.axle(W / 2, -L * 0.2, 0.55, 0.08, Color("2b2b2b"))
+			k.axle(W / 2, L * 0.32, 0.75, 0.08, Color("2b2b2b"))
+		"tombereau":
+			k.box(0, 0.8, 0.1, W * 0.9, 0.7, L * 0.55, WOOD.darkened(0.15))
+			k.box(0, 1.45, 0.1, W * 0.8, 0.12, L * 0.5, Color("5c4b3a"))
+			k.person(0, 0.0, -L * 0.42, Color("6b4a33"), false)
+			k.axle(W / 2 + 0.05, 0.1, 0.8, 0.1, WOOD.darkened(0.35))
+		"corbillard":
+			k.box(0, 0.85, 0.2, W * 0.85, 0.25, L * 0.62, col)
+			k.box(0, 1.1, 0.2, W * 0.8, 0.95, L * 0.55, VehicleMesh.GLASS.darkened(0.3))
+			k.z_cyl(0, 1.5, 0.2 - L * 0.2, 0.2 + L * 0.2, 0.18, 0.18, 6, Color("7a5c3a"))
+			for sx in [-1.0, 1.0]:
+				for sz in [-1.0, 1.0]:
+					k.box(sx * W * 0.4, 1.1, 0.2 + sz * L * 0.27, 0.08, 1.0, 0.08, Color("c9a227"))
+					k.box(sx * W * 0.38, H - 0.3, 0.2 + sz * L * 0.27, 0.12, 0.4, 0.12, Color("1b1b1b"))
+			k.box(0, 2.05, 0.2, W * 0.9, 0.12, L * 0.62, col)
+			k.person(0, 1.2, -L * 0.35, Color("1b1b1b"))
+			k.axle(W / 2, -L * 0.2, 0.55, 0.08, Color("1b1b1b"))
+			k.axle(W / 2, L * 0.32, 0.72, 0.08, Color("1b1b1b"))
+		"triangle":
+			k.taper(0, 0.0, 0.6, -L * 0.25, L * 0.3, W, W * 0.85, 0.5, 0.0, WOOD)
+			k.box(0, 0.7, L * 0.15, W * 0.5, 0.25, 0.6, Color("8d8d8d"))
+			k.person(0, 0.7, L * 0.1, Color("6b4a33"))
 		"charrette":
 			k.box(0, 0.8, 0, W, 0.12, L * 0.7, WOOD)
 			for s in [-1.0, 1.0]:

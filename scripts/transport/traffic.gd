@@ -186,6 +186,8 @@ func add_line_vehicle(line_id: int, model: String, stops: Array[int], k: int, de
 func add_delivery_vehicle(tag: int, model: String, start: int, halts: Array) -> bool:
 	if halts.is_empty() or not network.nodes.has(start):
 		return false
+	# Partie historique : tombereau, corbillard à chevaux… (Epoques).
+	model = Epoques.vehicule(model)
 	var v := {"mode": TransportTypes.Mode.ROAD, "node": start, "route": [] as Array[int], "leg": 0, "s": 0.0,
 		"trail": PackedVector3Array(), "wagons": [], "speed": 0.0, "lane": 0.6, "lane_idx": 0, "factor": 1.0, "own_speed": 0.0,
 		"max_speed": INF, "model": model, "gaps": [], "delivery": tag, "halts": halts, "halt_i": -1, "dwell": 0.5}
@@ -372,8 +374,23 @@ func pool_for(cls: String) -> Array[String]:
 		ids = _no_service(VehicleCatalog.for_track(cls, era_filter, ""))
 	if ids.is_empty():
 		ids = _no_service(VehicleCatalog.for_track(cls))
+	# Partie historique : les vieux modèles disparaissent peu à peu des rues
+	# (plus de charrettes en 1960), s'il reste assez de modèles récents.
+	if Epoques.actif():
+		var y := Epoques.annee()
+		var recents: Array[String] = []
+		for id in ids:
+			if int(VehicleCatalog.get_type(id).get("year", 0)) >= y - 70:
+				recents.append(id)
+		if recents.size() >= 3:
+			ids = recents
 	_pool_cache[cls] = ids
 	return ids
+
+
+## Nouvelle année d'une partie historique : les modèles en circulation changent.
+func epoque_changee() -> void:
+	_pool_cache.clear()
 
 
 ## Les véhicules d'urgence ne roulent pas en ambiance : ils partent de leur
@@ -1513,6 +1530,7 @@ func _mesh(key: String) -> ArrayMesh:
 ## (on_site) jusqu'au prochain reroute_emergency ou remove_emergency.
 ## Renvoie le véhicule (dictionnaire) ou {} si aucun itinéraire.
 func add_emergency(model: String, start: Dictionary, goal: Dictionary, siren: bool, on_arrive: Callable) -> Dictionary:
+	model = Epoques.vehicule(model)
 	if network == null or VehicleCatalog.get_type(model).is_empty():
 		return {}
 	var plan := _plan_emergency(start, goal)

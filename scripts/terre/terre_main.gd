@@ -75,6 +75,9 @@ var zoo_panel: ZooPanel
 ## Tourisme : hébergements, touristes, dépenses en ville (menu Loisirs, Maj+R).
 var tourisme: Tourisme
 var tourisme_panel: TourismePanel
+## Commerce entre villes et pays : cours mondiaux, accords, crises (Économie, Maj+S).
+var commerce_mondial: CommerceMondial
+var commerce_panel: CommercePanel
 var zoo_outils: ZooOutils
 ## Obsèques, cimetières, crématorium, pompes funèbres (onglet Funéraire du panneau H).
 var funeraire: Funeraire
@@ -200,6 +203,7 @@ func _ready() -> void:
 	_setup_communes()
 	_setup_fondateurs()
 	_setup_pays()
+	_setup_commerce()
 	_setup_niveaux_vie()
 	_setup_statistiques()
 	_setup_tutoriel()
@@ -391,6 +395,7 @@ func save_sections() -> Dictionary:
 	sec["parc"] = parc.to_dict()
 	sec["zoo"] = zoo.to_dict()
 	sec["tourisme"] = tourisme.to_dict()
+	sec["commerce_mondial"] = commerce_mondial.to_dict()
 	sec["quartiers"] = quartiers.to_dict()
 	sec["parc_editeur"] = attractions.to_dict()
 	sec["parc_allees"] = parc_allees.to_dict()
@@ -517,6 +522,7 @@ func load_game(slot := "") -> bool:
 	parc.from_dict(sec.get("parc", {}))
 	zoo.from_dict(sec.get("zoo", {}))
 	tourisme.from_dict(sec.get("tourisme", {}))
+	commerce_mondial.from_dict(sec.get("commerce_mondial", {}))
 	funeraire.from_dict(sec.get("funeraire", {}))
 	ambiance.from_dict(sec.get("ambiance", {}))
 	# Après les bâtiments et les habitants : dégâts, ruines, malades, matchs.
@@ -2117,6 +2123,23 @@ func _setup_tourisme() -> void:
 	hud.tourisme_requested.connect(func() -> void: tourisme_panel.toggle())
 
 
+## Commerce : marché mondial, villes partenaires, accords, crises (Maj+S).
+func _setup_commerce() -> void:
+	commerce_mondial = CommerceMondial.new()
+	commerce_mondial.name = "CommerceMondial"
+	add_child(commerce_mondial)
+	commerce_mondial.setup(production, buildings, pays)
+	commerce_mondial.message.connect(func(t: String) -> void: hud.show_message(t))
+	commerce_mondial.actualite.connect(func(t: String) -> void:
+		if evenements != null:
+			evenements.news(t, Vector3.INF, "commerce"))
+	commerce_panel = CommercePanel.new()
+	commerce_panel.name = "PanneauCommerce"
+	add_child(commerce_panel)
+	commerce_panel.setup(commerce_mondial, pays)
+	hud.commerce_requested.connect(func() -> void: commerce_panel.toggle())
+
+
 func _setup_zoo() -> void:
 	zoo = ZooSysteme.new()
 	zoo.name = "Zoo"
@@ -2357,6 +2380,8 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 		(clubs[s] as ClubSport).clear()
 	if tourisme != null:
 		tourisme.clear()
+	if commerce_mondial != null:
+		commerce_mondial.clear()
 	resource_overlay.show_resource(resource_overlay.res)
 	transport.clear()
 	buildings.clear()

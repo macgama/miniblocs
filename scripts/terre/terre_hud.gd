@@ -58,6 +58,8 @@ signal spectacles_requested
 signal club_requested
 ## Bouton « Tourisme » (menu Loisirs, Maj+D) : hôtels, touristes, publicité.
 signal tourisme_requested
+## Bouton « Commerce » (menu Économie, Maj+S) : cours mondiaux, accords, crises.
+signal commerce_requested
 ## Panneau « Cartes » (touche N) : pollution, bruit, valeur des terrains, autres calques.
 signal cartes_requested
 ## Bouton « Statistiques » (menu Infos, Maj+I).
@@ -115,6 +117,7 @@ const CATEGORIES := [
 	{"id": "habitants", "name": "Habitants", "icon": "habitants", "key": "H", "panel": true, "group": "ville"},
 	{"id": "production", "name": "Production", "icon": "ressources", "key": "P", "panel": true, "group": "economie"},
 	{"id": "agriculture", "name": "Agriculture", "icon": "agriculture", "key": "Maj+F", "panel": true, "group": "economie"},
+	{"id": "commerce", "name": "Commerce (cours mondiaux, accords, crises)", "icon": "commerce", "key": "Maj+S", "panel": true, "group": "economie"},
 	{"id": "decors", "name": "Décors", "icon": "decors", "key": "G", "panel": true},
 	{"id": "infos", "name": "Infos", "icon": "infos", "key": "I", "panel": true, "group": "infos"},
 	{"id": "urgences", "name": "Urgences", "icon": "services", "key": "U", "panel": true, "group": "ville"},
@@ -819,6 +822,7 @@ func _on_category(id: String) -> void:
 			"spectacles": spectacles_requested.emit()
 			"club": club_requested.emit()
 			"tourisme": tourisme_requested.emit()
+			"commerce": commerce_requested.emit()
 			"cartes": cartes_requested.emit()
 			"stats": stats_requested.emit()
 			"saisons": saisons_requested.emit()

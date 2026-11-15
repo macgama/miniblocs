@@ -665,6 +665,9 @@ func douane_entre(de: int, a: int) -> float:
 	var na := nation_de(a)
 	if nd == na:
 		return 0.0
+	# Accord de libre-échange entre les deux pays (menu Commerce).
+	if CommerceMondial.instance != null and CommerceMondial.instance.libre_echange_entre(nd, na):
+		return 0.0
 	return douane_de(na)
 
 

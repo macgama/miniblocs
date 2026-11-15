@@ -47,6 +47,9 @@ var _instant: CheckBox
 var _horaires: OptionButton
 var _rythme: OptionButton
 var _freq: OptionButton
+var _crises_eco: CheckBox
+var _volatilite: OptionButton
+const VOLATILITES := [0.5, 1.0, 2.0]
 var _reseaux: CheckBox
 var _prix_serv: HSlider
 var _prix_serv_l: Label
@@ -274,6 +277,14 @@ func _ready() -> void:
 	_freq.disabled = not editable
 	_freq.item_selected.connect(func(_i: int) -> void: _changed())
 	_row(g, "Fréquence des catastrophes", _freq)
+	_crises_eco = _check("Crises économiques mondiales (choc pétrolier, krach, sécheresse…)")
+	g.add_child(_crises_eco)
+	_volatilite = OptionButton.new()
+	for n in ["Calme", "Normal", "Agité"]:
+		_volatilite.add_item(n)
+	_volatilite.disabled = not editable
+	_volatilite.item_selected.connect(func(_i: int) -> void: _changed())
+	_row(g, "Marché mondial (cours)", _volatilite)
 	# Vie politique (scripts/avis).
 	_elections = OptionButton.new()
 	for n in Elections.MODE_NOMS:
@@ -472,6 +483,12 @@ func _fill() -> void:
 		if absf(float(FREQS[i]) - reglages.frequence_catastrophes) < 0.01:
 			fi = i
 	_freq.select(fi)
+	_crises_eco.button_pressed = reglages.crises_economiques
+	var vi := 1
+	for i in VOLATILITES.size():
+		if absf(float(VOLATILITES[i]) - reglages.volatilite_marche) < 0.01:
+			vi = i
+	_volatilite.select(vi)
 	_reseaux.button_pressed = reglages.reseaux_obligatoires
 	_prix_serv.value = reglages.prix_services
 	_elections.select(maxi(0, Elections.MODES.find(reglages.elections)))
@@ -527,6 +544,8 @@ func _changed() -> void:
 	_rythme.disabled = not editable or _instant.button_pressed
 	_horaires.disabled = not editable or _instant.button_pressed
 	reglages.frequence_catastrophes = float(FREQS[maxi(0, _freq.selected)])
+	reglages.crises_economiques = _crises_eco.button_pressed
+	reglages.volatilite_marche = float(VOLATILITES[maxi(0, _volatilite.selected)])
 	reglages.reseaux_obligatoires = _reseaux.button_pressed
 	reglages.prix_services = _prix_serv.value
 	reglages.elections = String(Elections.MODES[maxi(0, _elections.selected)])

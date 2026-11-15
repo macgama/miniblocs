@@ -13,7 +13,9 @@ extends Node3D
 ## Murs fins, étages, sous-sols et intérieurs (mode « Murs et étages » de l'éditeur libre).
 var plans: PlanEditor
 
-const TRANSPORT_TOOLS := ["departementale", "train", "voie_verte", "canal"]
+## Voie posée par défaut par chaque outil (le joueur change la classe dans le panneau) :
+## une rue de village pour la route (moins de bruit et de pollution qu'une départementale).
+const TRANSPORT_TOOLS := ["rue", "train", "voie_verte", "canal"]
 ## Dernière classe choisie pour chaque outil de transport.
 var _tool_class := {}
 

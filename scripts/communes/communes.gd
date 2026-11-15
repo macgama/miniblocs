@@ -637,6 +637,23 @@ static func palier_de(hab: int) -> int:
 	return best
 
 
+## Habitants sous lesquels une commune est un hameau ou un petit village : ses
+## habitants n'attendent ni hôpital, ni police, ni internet sur place (comme
+## dans un vrai village, on va à l'hôpital et au poste de la ville voisine).
+const ATTENTES_REDUITES_MAX := 500
+
+
+## Le logement (ou bâtiment) bid est-il dans une commune de moins de 500 habitants ?
+static func attentes_reduites(bid: int) -> bool:
+	var c := instance
+	if c == null or bid < 0:
+		return false
+	var vid := c.village_de(bid)
+	if vid < 0 or not c.villages.has(vid):
+		return false
+	return int((c.stats.get(vid, {}) as Dictionary).get("hab", 0)) < ATTENTES_REDUITES_MAX
+
+
 func calculer_stats() -> void:
 	var out := {}
 	for vid in villages:

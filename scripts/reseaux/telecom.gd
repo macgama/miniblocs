@@ -455,19 +455,23 @@ func satisfaction_of(p: Dictionary) -> Array:
 	var s: Dictionary = service[home]
 	var d := 0.0
 	var why := []
+	# Hameau : pas encore d'antenne ni de fibre, personne ne s'en plaint (le bonus de la fibre reste).
+	var petit := Communes.attentes_reduites(home)
 	match qualite(home):
 		"fibre":
 			d += 4.0
 			why.append("+ fibre optique à la maison")
 		"rien":
-			d -= 9.0
-			why.append("− pas d'internet à la maison")
+			if not petit:
+				d -= 9.0
+				why.append("− pas d'internet à la maison")
 		"lent":
 			d -= 4.0
 			why.append("− internet lent (%s)" % format_debit(s.net))
 	if s.gen == "":
-		d -= 6.0
-		why.append("− pas de réseau mobile")
+		if not petit:
+			d -= 6.0
+			why.append("− pas de réseau mobile")
 	elif s.taux_mob < 0.6:
 		d -= 2.0
 		why.append("− réseau mobile saturé")

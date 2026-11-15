@@ -160,7 +160,7 @@ func _p(x: float, z: float) -> Vector3:
 
 
 func _route(a: Vector2, b: Vector2) -> bool:
-	var r: Dictionary = tr.build_segment("route", _p(a.x, a.y), _p(b.x, b.y))
+	var r: Dictionary = tr.build_segment("rue", _p(a.x, a.y), _p(b.x, b.y))
 	if not r.get("ok", false):
 		print("    route refusée ", a, " → ", b, " : ", r.get("reason", "?"))
 	return bool(r.get("ok", false))

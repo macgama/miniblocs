@@ -123,7 +123,9 @@ Corrigé grâce à ce test :
   des égouts (le kit de l'État le paie) : sans lui, tous les logements
   avaient « les égouts débordent ».
 
-Reste à équilibrer : la satisfaction d'un hameau de 100 habitants plafonne
-vers 10 à 25 % (pollution de l'air des routes départementales posées par
-l'outil Route, poubelles, pas d'hôpital, de police, d'internet), donc le rang
-de Village (50 %) reste hors de portée pendant la démo.
+Équilibrage choisi par Gaël (2026-11-15) : sous 500 habitants
+(`Communes.ATTENTES_REDUITES_MAX`), personne ne se plaint de l'absence
+d'hôpital, de police, d'internet ou de réseau mobile (on va à la ville
+voisine), et l'outil Route pose une rue de village par défaut (plus une
+départementale). Satisfaction à la fin de la démo : de 10-25 % à 42-46 % ; il
+reste surtout les poubelles (dépôt de collecte du kit) et les commerces.

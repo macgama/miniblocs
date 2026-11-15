@@ -7,7 +7,7 @@ extends Node
 ## la liste des caméras et l'index des images (date, habitants).
 ##
 ## Lecture et export (AVI, MP4 si ffmpeg est installé, séquence d'images) :
-## TimeLapsePanel (Maj+F6). Voir docs/photo.md.
+## TimeLapsePanel (Maj+F8). Voir docs/photo.md.
 
 signal message(text: String)
 signal changed
@@ -181,7 +181,7 @@ func on_fonde(vid: int) -> void:
 		return
 	var cid := camera_village(vid)
 	if cid >= 0:
-		message.emit("Time-lapse : « %s » est filmé depuis sa fondation, une image par jour (Maj+F6 pour revoir)." % String(camera(cid).nom))
+		message.emit("Time-lapse : « %s » est filmé depuis sa fondation, une image par jour (Maj+F8 pour revoir)." % String(camera(cid).nom))
 
 
 ## Ancienne partie sans time-lapse : une caméra par village, à partir d'aujourd'hui.

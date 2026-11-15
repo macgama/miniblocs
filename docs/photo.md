@@ -5,7 +5,7 @@ Code : `scripts/photo/` (`ModePhoto`, `TimeLapse`, `TimeLapsePanel`, `AviMjpeg`,
 Test : `godot --headless --path . --script res://tests/photo_test.gd`.
 Vitrine (avec affichage) : `godot --path . --script res://tests/photo_vitrine.gd -- --sortie dossier --vue timelapse|photo|filtres|export`.
 
-## Mode photo (F6, ou menu Infos → Mode photo)
+## Mode photo (F8, ou menu Infos → Mode photo)
 
 - **Temps figé** (`get_tree().paused`, case à cocher) : voitures, habitants, pluie,
   tout s'arrête. Pas sur une carte entre amis (`ModePhoto.figeable()`).
@@ -28,11 +28,11 @@ Vitrine (avec affichage) : `godot --path . --script res://tests/photo_vitrine.gd
 - **Photo** (Espace) : rendue à part dans un `SubViewport` à la taille voulue,
   avec le filtre, sans l'interface ni les guides. PNG dans
   `Images/MiniBlocs/Photos` (sinon `user://photos`).
-- H masque le panneau, Échap ou F6 quitte.
+- H masque le panneau, Échap ou F8 quitte.
 - « Filmer ce cadrage en time-lapse » : ajoute une caméra du time-lapse avec
   cette vue (format paysage, vertical ou carré selon le cadrage).
 
-## Time-lapse (Maj+F6, ou bouton du mode photo)
+## Time-lapse (Maj+F8, ou bouton du mode photo)
 
 - **Enregistrement** : une caméra fixe se pose toute seule à la fondation de
   chaque village (de biais, à 300 m de la Maison de commune), 4 caméras au plus.

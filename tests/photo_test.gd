@@ -209,10 +209,10 @@ func _scene_tests() -> void:
 	var hud: CanvasLayer = scene.hud
 	var t0 := amb.unix_time
 	var ev := InputEventKey.new()
-	ev.keycode = KEY_F6
+	ev.keycode = KEY_F8
 	ev.pressed = true
 	mp._input(ev)
-	_check(mp.actif and paused and mp.camera != null and mp.camera.current, "F6 : mode photo, temps figé, caméra libre")
+	_check(mp.actif and paused and mp.camera != null and mp.camera.current, "F8 : mode photo, temps figé, caméra libre")
 	_check(not hud.visible and mp._layer.visible, "interface du jeu cachée, panneau photo visible")
 	_check(scene.rig.process_mode == Node.PROCESS_MODE_DISABLED, "caméra de gestion arrêtée")
 	var h0 := mp.heure_affichee()
@@ -234,7 +234,7 @@ func _scene_tests() -> void:
 	mp.cadrage_timelapse.emit(mp.camera.global_transform, 50.0, "vertical")
 	_check(tl.cameras.size() == n_avant + 1 and String(tl.cameras[-1].format) == "vertical", "« Filmer ce cadrage » ajoute une caméra verticale")
 	mp._input(ev)
-	_check(not mp.actif and not paused and hud.visible, "F6 à nouveau : retour au jeu, interface revenue")
+	_check(not mp.actif and not paused and hud.visible, "F8 à nouveau : retour au jeu, interface revenue")
 	_check(absf(mp.heure_affichee() - h0) < 0.01, "lumière de l'heure du jeu revenue")
 	_check(scene.rig.process_mode != Node.PROCESS_MODE_DISABLED, "caméra de gestion relancée")
 	scene.hud._on_category("photo")
@@ -258,9 +258,9 @@ func _scene_tests() -> void:
 	var aide := false
 	for s in AidePanel.SECTIONS:
 		for l in s[1]:
-			if String(l[0]).contains("F6"):
+			if String(l[0]).contains("F8"):
 				aide = true
-	_check(aide, "F6 dans l'aide (F1)")
+	_check(aide, "F8 dans l'aide (F1)")
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(tl.dossier()))
 	scene.queue_free()
 	await process_frame

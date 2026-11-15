@@ -69,6 +69,9 @@ func _process(delta: float) -> void:
 	if Input.is_physical_key_pressed(KEY_D) or Input.is_key_pressed(KEY_RIGHT):
 		input.x += 1.0
 
+	# Manette : stick droit (ou curseur au bord de l'écran), analogique.
+	if Manette.pan != Vector2.ZERO and not typing:
+		_move_local(Manette.pan.limit_length(1.0) * move_speed * (_distance / 36.0) * delta)
 	if input != Vector2.ZERO and not typing:
 		# La vitesse augmente avec le zoom pour garder une sensation constante.
 		var speed := move_speed * (_distance / 36.0)
@@ -79,8 +82,14 @@ func _process(delta: float) -> void:
 		rot += 1.0
 	if Input.is_physical_key_pressed(KEY_E):
 		rot -= 1.0
+	rot += Manette.tourne
 	if rot != 0.0 and not typing:
-		rotation_degrees.y += rot * rotate_speed * delta
+		rotation_degrees.y += clampf(rot, -1.0, 1.0) * rotate_speed * delta
+	# Manette : gâchettes (zoom) et croix haut / bas (inclinaison).
+	if Manette.zoom != 0.0:
+		_target_distance = clampf(_target_distance * (1.0 + Manette.zoom * 1.6 * delta), min_distance, max_distance)
+	if Manette.incline != 0.0:
+		set_pitch(_target_pitch + Manette.incline * 40.0 * delta)
 
 	_distance = lerp(_distance, _target_distance, clamp(delta * 10.0, 0.0, 1.0))
 	if is_nan(_target_pitch):

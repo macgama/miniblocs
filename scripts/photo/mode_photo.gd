@@ -1,6 +1,6 @@
 class_name ModePhoto
 extends Node
-## Mode photo (F6) : le temps se fige, l'interface disparaît, une caméra libre
+## Mode photo (F8) : le temps se fige, l'interface disparaît, une caméra libre
 ## se promène partout (même au ras des toits), on choisit un filtre, l'heure du
 ## jour, le cadrage (paysage, vertical 9:16 pour TikTok, carré, cinéma) et on
 ## prend la photo en PNG, en HD ou en 4K, sans l'interface.
@@ -8,10 +8,10 @@ extends Node
 ## Caméra libre : ZQSD / WASD pour avancer, A / E (Q / E en QWERTY) pour
 ## descendre et monter, clic droit glissé pour regarder, molette pour zoomer,
 ## Maj pour aller vite, Ctrl pour aller lentement. Espace : photo. H : masquer
-## le panneau. Échap ou F6 : quitter. Voir docs/photo.md.
+## le panneau. Échap ou F8 : quitter. Voir docs/photo.md.
 
 signal message(text: String)
-## Le joueur veut le time-lapse (bouton du panneau, Maj+F6).
+## Le joueur veut le time-lapse (bouton du panneau, Maj+F8).
 signal timelapse_requested
 ## « Filmer ce cadrage en time-lapse » : la vue de la caméra libre.
 signal cadrage_timelapse(xform: Transform3D, fov: float, format: String)
@@ -301,7 +301,7 @@ func _input(event: InputEvent) -> void:
 		if actif and k != null:
 			get_viewport().set_input_as_handled()
 		return
-	if k.keycode == KEY_F6 and not k.ctrl_pressed and not k.alt_pressed:
+	if k.keycode == KEY_F8 and not k.ctrl_pressed and not k.alt_pressed:
 		if k.shift_pressed:
 			if actif:
 				quitter()

@@ -146,7 +146,7 @@ var bilan_scenario: ScenarioBilan
 var sons: AmbiancesSonores
 var quartiers: Quartiers
 var quartiers_panel: QuartiersPanel
-## Mode photo (F6) et time-lapse de la ville (Maj+F6), scripts/photo.
+## Mode photo (F8) et time-lapse de la ville (Maj+F8), scripts/photo.
 var mode_photo: ModePhoto
 var timelapse: TimeLapse
 var timelapse_panel: TimeLapsePanel
@@ -225,6 +225,7 @@ func _ready() -> void:
 	_setup_create_mode()
 	_setup_son()
 	_setup_photo()
+	_setup_succes()
 	hud.traffic_toggled.connect(func(on: bool) -> void: transport.traffic.set_enabled(on))
 	hud.traffic_filter_changed.connect(func(era: String, region: String) -> void:
 		transport.traffic.set_filters(era, region)
@@ -1015,8 +1016,8 @@ func _setup_statistiques() -> void:
 	hud.stats_requested.connect(func() -> void: stats_panel.toggle())
 
 
-## Mode photo (F6 : temps figé, caméra libre, filtres, photo sans l'interface)
-## et time-lapse (Maj+F6 : une image par jour depuis la fondation, export vidéo).
+## Mode photo (F8 : temps figé, caméra libre, filtres, photo sans l'interface)
+## et time-lapse (Maj+F8 : une image par jour depuis la fondation, export vidéo).
 func _setup_photo() -> void:
 	timelapse = TimeLapse.new()
 	timelapse.name = "TimeLapse"
@@ -1053,7 +1054,7 @@ func _setup_photo() -> void:
 	mode_photo.cadrage_timelapse.connect(func(xf: Transform3D, fov: float, fmt: String) -> void:
 		var cid := timelapse.ajouter_camera("Caméra %d" % timelapse.next_cam, xf, fov, fmt)
 		if cid >= 0:
-			mode_photo._toast("Time-lapse : ce cadrage sera filmé une fois par jour de jeu, vers midi (Maj+F6 pour revoir)."))
+			mode_photo._toast("Time-lapse : ce cadrage sera filmé une fois par jour de jeu, vers midi (Maj+F8 pour revoir)."))
 	hud.photo_requested.connect(func() -> void: mode_photo.entrer())
 
 
@@ -1218,6 +1219,42 @@ func ouvrir_bilan_demo() -> void:
 
 
 ## Son : ambiances selon la caméra, humeur de la musique, sons des événements.
+## Succès du joueur (Succes, F6) et commandes de la manette (Manette).
+var succes_suivi: SuccesSuivi
+var succes_panel: SuccesPanel
+## Ordre des outils de la barre du bas pour la croix de la manette (gauche / droite).
+const OUTILS_MANETTE := [0, 1, 2, 3, 4, 5, 6, 7, 9, 8, 10]
+
+
+func _setup_succes() -> void:
+	succes_suivi = SuccesSuivi.new()
+	succes_suivi.name = "SuccesSuivi"
+	add_child(succes_suivi)
+	succes_suivi.setup(self)
+	hud.succes_requested.connect(toggle_succes)
+	if Manette.instance != null:
+		Manette.instance.commande.connect(_on_commande_manette)
+
+
+func toggle_succes() -> void:
+	if succes_panel != null:
+		succes_panel.close_panel()
+		return
+	succes_panel = SuccesPanel.new()
+	succes_panel.closed.connect(func() -> void: succes_panel = null)
+	_windows_layer().add_child(succes_panel)
+
+
+func _on_commande_manette(nom: String) -> void:
+	if pause_menu != null or not is_inside_tree():
+		return
+	match nom:
+		"outil_suivant", "outil_precedent":
+			var i := OUTILS_MANETTE.find(hud._current_tool)
+			i = (i + (1 if nom == "outil_suivant" else -1) + OUTILS_MANETTE.size()) % OUTILS_MANETTE.size()
+			hud.choose_tool(int(OUTILS_MANETTE[maxi(i, 0)]))
+
+
 func _setup_son() -> void:
 	var son := Son.ici()
 	if son != null:
@@ -1814,6 +1851,10 @@ func _unhandled_input(event: InputEvent) -> void:
 			and Multijoueur.role == Multijoueur.Role.CLIENT:
 		get_viewport().set_input_as_handled()
 		toggle_joueurs()
+		return
+	if k != null and k.pressed and not k.echo and k.keycode == KEY_F6 and pause_menu == null:
+		get_viewport().set_input_as_handled()
+		toggle_succes()
 		return
 	if k == null or not k.pressed or k.echo or k.keycode != KEY_ESCAPE or pause_menu != null:
 		return

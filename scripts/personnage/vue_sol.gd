@@ -79,6 +79,10 @@ var _bord_texte: Label
 var _bord_maj := 0.0
 
 
+func _exit_tree() -> void:
+	Manette.au_sol = false
+
+
 func _ready() -> void:
 	world = get_node(world_path) as TerrainWorld
 	rig = get_node(rig_path) as Node3D
@@ -143,6 +147,7 @@ func set_vue(v: Vue) -> void:
 		return
 	var avant := vue
 	vue = v
+	Manette.au_sol = v != Vue.DESSUS
 	if v == Vue.DESSUS and a_bord():
 		_quitter_bord(false)
 	if avant == Vue.DESSUS:
@@ -359,9 +364,14 @@ func _physics_process(_delta: float) -> void:
 			a.x -= 1.0
 		if Input.is_physical_key_pressed(KEY_D) or Input.is_key_pressed(KEY_RIGHT):
 			a.x += 1.0
-	personnage.commande.avance = a
+	# Manette : stick gauche (marcher), stick droit (regarder), LB (courir).
+	if not typing and Manette.marche != Vector2.ZERO:
+		a += Manette.marche
+	if Manette.regard != Vector2.ZERO:
+		tourner(Manette.regard * 2.6 * _delta)
+	personnage.commande.avance = a.limit_length(1.0)
 	personnage.commande.cap = _cap
-	personnage.commande.course = not typing and Input.is_key_pressed(KEY_SHIFT)
+	personnage.commande.course = not typing and (Input.is_key_pressed(KEY_SHIFT) or Manette.course)
 	personnage.commande.saut = not typing and Input.is_physical_key_pressed(KEY_SPACE)
 	# Relief pas encore chargé sous ses pieds (marche très loin, téléchargement) : il attend.
 	if not personnage.en_attente and not collisions.pret_a(personnage.global_position):

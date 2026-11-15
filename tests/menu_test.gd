@@ -60,7 +60,7 @@ func _run() -> void:
 	var op := OptionsPanel.new()
 	root.add_child(op)
 	await _frames(2)
-	_check(op._tabs.get_tab_count() == 4, "fenêtre Options : 4 onglets (Graphismes, Son, Jeu, Touches)")
+	_check(op._tabs.get_tab_count() == 5, "fenêtre Options : 5 onglets (Graphismes, Son, Jeu, Touches, Manette)")
 	_check(op._volumes.size() == 5, "5 curseurs de volume")
 	await _key(KEY_ESCAPE)
 	_check(not is_instance_valid(op) or op.is_queued_for_deletion(), "Échap ferme les options")

@@ -12,6 +12,14 @@ const SECTIONS := [
 		["A / E, ou clic molette glissé à gauche / à droite", "tourner (Q / E en QWERTY)"],
 		["Clic molette glissé en haut / en bas, ou Ctrl + molette", "incliner : jusqu'à une vue rasante pour voir le relief jusqu'à l'horizon (10 km)"],
 	]],
+	["Manette et Steam Deck", [
+		["Stick gauche · Ⓐ", "curseur et clic (maintenir Ⓐ pour glisser : tracer, peindre) ; au bord de l'écran, la caméra suit"],
+		["Stick droit · LB / RB · LT / RT", "déplacer, tourner, zoomer la caméra"],
+		["Croix", "↑ ↓ incliner, ← → outil précédent / suivant ; dans un menu, passer d'un bouton à l'autre"],
+		["Ⓑ · ☰ · ⧉", "annuler (Échap) · menu pause · Gérer / Créer (Tab)"],
+		["Ⓧ · Ⓨ", "tourner le bâtiment (R) · vue au sol (V)"],
+		["F6", "succès : toutes tes médailles, débloquées ou non (aussi dans le menu Infos et le menu principal)"],
+	]],
 	["Barre du bas", [
 		["Tab · Gérer / Créer", "Gérer : la ville (terrain, voies, zonage, catalogue, lignes, habitants). Créer : construire un bâtiment soi-même (murs et étages, blocs, intérieur, Mes créations, banque, atelier, partage), la ville en pause ; touches 1 à 8 et échelle des étages"],
 		["Catégories", "Observer, Terrain, Voies, Paysage : un clic ouvre leurs outils juste au-dessus ; Construire et Décors ouvrent leur panneau à droite (un seul à la fois)"],
@@ -377,10 +385,10 @@ const SECTIONS := [
 		["Échap", "libérer la souris (vue au sol)"],
 	]],
 	["Mode photo et time-lapse", [
-		["F6 (ou Infos → Mode photo)", "le temps se fige, l'interface disparaît, une caméra libre part de ta vue : ZQSD avancer, A / E descendre et monter, clic droit glissé regarder, molette zoomer, Maj vite, Ctrl lent"],
+		["F8 (ou Infos → Mode photo)", "le temps se fige, l'interface disparaît, une caméra libre part de ta vue : ZQSD avancer, A / E descendre et monter, clic droit glissé regarder, molette zoomer, Maj vite, Ctrl lent"],
 		["Panneau du mode photo", "heure de la lumière (temps figé), zoom, horizon penché, flou de profondeur, 12 filtres (noir et blanc, sépia, vintage, maquette…), luminosité, contraste, saturation, vignette, grain ; cadrage écran, 16:9, vertical 9:16 (TikTok), carré, 4:5, cinéma ; HD, 2K ou 4K"],
-		["Espace · H · Échap ou F6", "prendre la photo (PNG sans l'interface, dans Images › MiniBlocs › Photos) · masquer le panneau · quitter"],
-		["Maj + F6", "time-lapse : chaque village est filmé depuis sa fondation, une image par jour de jeu vers midi ; lecture accélérée (Espace, ← →), jusqu'à 4 caméras (vue actuelle, « Filmer ce cadrage » du mode photo), export vidéo AVI (MP4 en plus si ffmpeg est installé) ou images, avec la date, les habitants et le logo"],
+		["Espace · H · Échap ou F8", "prendre la photo (PNG sans l'interface, dans Images › MiniBlocs › Photos) · masquer le panneau · quitter"],
+		["Maj + F8", "time-lapse : chaque village est filmé depuis sa fondation, une image par jour de jeu vers midi ; lecture accélérée (Espace, ← →), jusqu'à 4 caméras (vue actuelle, « Filmer ce cadrage » du mode photo), export vidéo AVI (MP4 en plus si ffmpeg est installé) ou images, avec la date, les habitants et le logo"],
 	]],
 	["À bord des véhicules", [
 		["E près d'un véhicule", "monter à bord (vue au sol) : voitures, bus, cars, trams, trains, métros, camions, bennes, corbillards, secours, bateaux, avions, tracteurs et machines agricoles, engins de chantier"],

@@ -79,6 +79,8 @@ var forcer_auto := -1
 var forcer_catastrophes := -1
 
 var fetes: FetesMarches
+## Marchés et fêtes organisés par le joueur depuis l'ouverture de la partie (démo guidée).
+var organises := 0
 var matchs: Matchs
 var incendies: Incendies
 var tempetes: Tempetes

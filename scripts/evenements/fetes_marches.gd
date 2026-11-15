@@ -127,6 +127,7 @@ func organiser(type: String, pos: Vector3) -> int:
 	var bid := ev.nearest_known(pos, 350.0)
 	var nom := "Fête organisée par la ville" if type == "fete" else "Marché organisé par la ville"
 	var id := ev.ajouter(type, nom, t, t + duree * 3600.0, pos, bid, {"etals": _nb_etals(), "joueur": true}, false)
+	ev.organises += 1
 	ev.news("%s : %s (%s)." % [nom, "c'est parti !", BuildingSystem.format_money(cout)], pos, type, id)
 	return id
 

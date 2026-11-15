@@ -926,7 +926,12 @@ func _setup_tutoriel() -> void:
 	tuto_carte.setup(tutoriel, objectifs)
 	tuto_carte.objectifs_requested.connect(func() -> void: objectifs_panel.set_open(not objectifs_panel.is_open()))
 	# Nouvelle partie lancée du globe : le tutoriel commence (s'il est coché).
-	if GameStart.load_slot == "" and GameStart.chosen and not GameStart.atelier and ReglagesPartie.actuel.tutoriel:
+	tutoriel.bilan_demande.connect(ouvrir_bilan_demo)
+	var demo := Demo.demandee
+	Demo.demandee = false
+	if GameStart.load_slot == "" and GameStart.chosen and not GameStart.atelier and demo:
+		tutoriel.demarrer_demo.call_deferred()
+	elif GameStart.load_slot == "" and GameStart.chosen and not GameStart.atelier and ReglagesPartie.actuel.tutoriel:
 		tutoriel.demarrer.call_deferred()
 	else:
 		ReglagesPartie.actuel.tutoriel = false
@@ -954,6 +959,37 @@ func _on_tuto_action(id: String) -> void:
 			budget_panel.set_open(true)
 		"objectifs":
 			objectifs_panel.set_open(true)
+		"vue_sol":
+			var vs := get_node_or_null("VueSol") as VueSol
+			if vs != null and vs.vue == VueSol.Vue.DESSUS:
+				vs.vue_suivante()
+		"loisirs":
+			build_panel.set_open(true)
+			build_panel.show_category("espaces")
+		"fete":
+			evenements_panel.set_open(true)
+			evenements_panel.show_view("organiser")
+		"ligne":
+			transit_panel.set_open(true)
+
+
+## Démo guidée : bilan de fin (DemoBilan), au-dessus du jeu.
+var bilan_demo: DemoBilan
+
+
+func ouvrir_bilan_demo() -> void:
+	if bilan_demo != null:
+		return
+	bilan_demo = DemoBilan.new(tutoriel.bilan())
+	bilan_demo.ferme.connect(func() -> void:
+		bilan_demo = null
+		hud.show_message("La démo est finie, ta ville continue : bonne route, Monsieur le Maire !"))
+	bilan_demo.menu_demande.connect(func() -> void:
+		if not save_game():
+			hud.show_message("Sauvegarde impossible : " + last_error)
+		GameStart.slot_id = ""
+		EcranChargement.aller(MenuPrincipal.SCENE, "Retour au menu principal"))
+	add_child(bilan_demo)
 
 
 ## Son : ambiances selon la caméra, humeur de la musique, sons des événements.

@@ -29,6 +29,17 @@ class Journal extends Logger:
 		pass
 
 
+## Rang (Objectifs) de la première ville : « Hameau », « Village »…
+func _rang() -> String:
+	var g = current_scene if current_scene != null else null
+	for c in root.get_children():
+		if c.get("objectifs") != null and c.get("communes") != null:
+			g = c
+	if g == null or g.communes.villages.is_empty():
+		return "-"
+	return String(Objectifs.PALIERS[g.objectifs.palier_de(g.communes.principal())].nom)
+
+
 func _initialize() -> void:
 	_logger = Journal.new()
 	OS.add_logger(_logger)
@@ -271,7 +282,7 @@ func _run() -> void:
 					print("    [j%d %s] %s" % [int((amb.unix_time - _t0_msg) / 86400.0), nom, txt]))
 	_t0_msg = amb.unix_time
 	print("La ville grandit (pas de 10 min, une tentative de croissance par pas) :")
-	var lignes := ["jour;habitants;campement;foyers;batiments;chantiers;caisse;logements;emplois;chomeurs;satisfaction;sans_courant;sans_eau;ms_image"]
+	var lignes := ["jour;habitants;campement;foyers;batiments;chantiers;caisse;logements;emplois;chomeurs;satisfaction;sans_courant;sans_eau;ms_image;rang"]
 	var pas := 600.0
 	var t0 := amb.unix_time
 	var jour := 0
@@ -305,6 +316,7 @@ func _run() -> void:
 			var st := pop.stats()
 			var ligne := "%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%.1f" % [jour, hab, fd.au_campement(), pop.households.size(), bs.buildings.size(),
 				_en_chantier(), bs.money, int(st.logements), int(st.emplois), int(st.chomeur), int(st.satisfaction), _sans("elec"), _sans("eau"), ms_tot / maxf(n_frames, 1)]
+			ligne += ";" + _rang()
 			lignes.append(ligne)
 			if jour % 5 == 0:
 				print("  ", ligne)

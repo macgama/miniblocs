@@ -8,7 +8,7 @@ Prototype de city builder en vue de dessus, style low-poly, mode bac à sable. F
 
 1. Installe [Godot 4.3 ou plus](https://godotengine.org/download) (version standard, pas .NET).
 2. Ouvre Godot, clique sur **Importer** et choisis le fichier `project.godot` de ce dossier.
-3. Appuie sur **F5** (ou le bouton ▶) pour lancer : le **menu principal** s'ouvre (Continuer, Nouvelle partie → globe, Charger, Atelier, Options, Crédits, Quitter). Détails : [docs/menus.md](docs/menus.md). Le prototype de ville reste accessible avec le bouton **Ville prototype** du globe (ou ouvre `scenes/main.tscn` et appuie sur **F6**).
+3. Appuie sur **F5** (ou le bouton ▶) pour lancer : le **menu principal** s'ouvre (Continuer, Démo guidée, Nouvelle partie → globe, Charger, Atelier, Options, Crédits, Quitter). Détails : [docs/menus.md](docs/menus.md). Le prototype de ville reste accessible avec le bouton **Ville prototype** du globe (ou ouvre `scenes/main.tscn` et appuie sur **F6**).
 
 ![Menu principal](docs/apercu-menu-titre.png)
 
@@ -43,7 +43,7 @@ L'interface s'adapte à la taille de la fenêtre (elle est dessinée pour 1600 �
 
 ### Tutoriel guidé et objectifs à l'écran
 
-Une nouvelle partie commence par un tutoriel guidé (case cochée par défaut sur le globe, F10 → Aide pour le couper ou le relancer) : une étape à la fois en haut à gauche, de la fondation du village à l'école. Dessous, les objectifs restent visibles : rang de la ville et missions du pays. Détails : [docs/tutoriel.md](docs/tutoriel.md).
+Une nouvelle partie commence par un tutoriel guidé (case cochée par défaut sur le globe, F10 → Aide pour le couper ou le relancer) : une étape à la fois en haut à gauche, de la fondation du village à l'école. Dessous, les objectifs restent visibles : rang de la ville et missions du pays. Détails : [docs/tutoriel.md](docs/tutoriel.md). Le bouton **Démo guidée** du menu principal en fait une partie d'environ 30 minutes avec un bilan : [docs/demo.md](docs/demo.md).
 
 ## Mode Terre : choisis ton lieu sur le globe, puis joue sur le vrai relief
 

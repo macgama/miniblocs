@@ -26,6 +26,8 @@ static var instance: Tutoriel
 const ROUTE_M := 50.0
 ## Habitants logés (hors campement) pour valider l'étape « temps ».
 const LOGES := 5
+## Habitants à atteindre pour finir la démo (comme le rang de Village).
+const CENT := 100
 
 ## Étapes, dans l'ordre. action : bouton de la carte (texte, id envoyé à la scène).
 const ETAPES := [
@@ -78,6 +80,46 @@ const ETAPES := [
 		"action": ["Terminer", "terminer"]},
 ]
 
+## Démo guidée (menu principal → « Démo guidée ») : les étapes du tutoriel
+## jusqu'aux objectifs, puis ces chapitres, puis le bilan. Environ 30 minutes.
+const ETAPES_DEMO := [
+	{"id": "vue_sol", "titre": "Descendre dans la rue", "demo": true,
+		"texte": "Assez vu ta ville d'en haut, comme un pigeon. Descends à hauteur d'habitant : tu peux marcher, entrer dans les bâtiments ouverts et regarder les chantiers de près. V repasse d'une vue à l'autre, et te ramène dans ton fauteuil de maire.",
+		"touches": "V : vue au sol (3e puis 1re personne) · ZQSD : marcher · souris : regarder",
+		"action": ["Descendre dans la rue", "vue_sol"]},
+	{"id": "loisirs", "titre": "Un coin pour souffler", "demo": true,
+		"texte": "Travailler, dormir, recommencer : tes habitants méritent mieux. Pose un square, une place, une aire de jeux ou un terrain de sport près des maisons. Les gens contents votent mieux (c'est ce qu'on dit).",
+		"touches": "B : Construire → Espaces publics, Loisirs ou Sport",
+		"action": ["Ouvrir les espaces publics", "loisirs"]},
+	{"id": "fete", "titre": "Une fête au village", "demo": true,
+		"texte": "Rien ne soude un village comme un marché ou une fête avec des lampions. Organise-en un : clique sur l'endroit où poser les étals ou la scène, les habitants libres viendront à pied.",
+		"touches": "I : Infos → Organiser · clic : poser · clic droit : annuler",
+		"action": ["Organiser un marché ou une fête", "fete"]},
+	{"id": "ligne", "titre": "Prendre le bus", "demo": true,
+		"texte": "Pour qu'on se passe un peu de la voiture, pose deux arrêts de bus le long de tes routes, puis trace une ligne qui les relie. Les bus partent tout seuls ; leur bilan te dira si la ligne vaut le ticket.",
+		"touches": "L : lignes et arrêts · outil Ligne : un clic par arrêt, clic droit pour finir",
+		"action": ["Ouvrir les lignes", "ligne"]},
+	{"id": "village", "titre": "Cent habitants", "demo": true,
+		"texte": "Dernier défi de la démo : loger 100 habitants. Avec une majorité contente en plus, ton hameau deviendra un Village, avec une prime du pays. Logements, emplois, services : tout compte. Accélère le temps si tu es sûr de toi.",
+		"touches": "Maj + J : ce qui manque · Maj + T : accélérer · Y : avis des habitants",
+		"action": ["Voir ce qui manque", "objectifs"]},
+	{"id": "fin_demo", "titre": "Fin de la démo", "demo": true,
+		"texte": "Bravo, Monsieur le Maire (ou Madame) : la démo s'arrête ici, mais pas ta ville. Regarde ton bilan, puis continue à jouer aussi longtemps que tu veux.",
+		"touches": "",
+		"action": ["Voir mon bilan", "bilan"]},
+]
+
+## Parcours en cours : "" (tutoriel) ou "demo" (démo guidée).
+var parcours := ""
+## Démo : secondes réelles jouées (hors pause) et chiffres de départ.
+var temps_demo := 0.0
+var demo_finie := false
+## Démo : jour de jeu du départ (Objectifs.jour()), -1 pas encore lu.
+var jour0 := -1
+## Marchés et fêtes organisés au début de l'étape « fete ».
+var _fetes0 := 0
+signal bilan_demande
+
 ## Scène Terre (pour lire l'état du jeu : communes, transport, zones…).
 var scene: Node
 var actif := false
@@ -108,6 +150,10 @@ func setup(s: Node) -> void:
 
 
 func clear() -> void:
+	parcours = ""
+	jour0 = -1
+	temps_demo = 0.0
+	demo_finie = false
 	actif = false
 	etape = 0
 	faits.clear()
@@ -122,7 +168,7 @@ func demarrer() -> void:
 	if actif:
 		return
 	actif = true
-	if etape >= ETAPES.size() or faits.size() >= ETAPES.size():
+	if etape >= etapes().size() or faits.size() >= etapes().size():
 		faits.clear()
 	etape = 0
 	_avancer_aux_etapes_libres()
@@ -144,8 +190,49 @@ func set_actif(on: bool) -> void:
 		arreter()
 
 
+## Étapes du parcours en cours.
+func etapes() -> Array:
+	if parcours != "demo":
+		return ETAPES
+	return _etapes_demo()
+
+
+static var _cache_demo: Array = []
+
+
+static func _etapes_demo() -> Array:
+	if _cache_demo.is_empty():
+		for e in ETAPES:
+			if String(e.id) != "fin":
+				_cache_demo.append(e)
+		_cache_demo.append_array(ETAPES_DEMO)
+	return _cache_demo
+
+
+func est_demo() -> bool:
+	return parcours == "demo"
+
+
+## Lance la démo guidée (nouvelle partie depuis le menu principal).
+func demarrer_demo() -> void:
+	parcours = "demo"
+	temps_demo = 0.0
+	demo_finie = false
+	jour0 = -1
+	if _lire("objectifs") != null:
+		jour0 = int(_lire("objectifs").jour())
+	actif = false
+	faits.clear()
+	demarrer()
+
+
+## Minutes jouées dans la démo.
+func minutes_demo() -> int:
+	return int(temps_demo / 60.0)
+
+
 func etape_courante() -> Dictionary:
-	return ETAPES[etape] if actif and etape < ETAPES.size() else {}
+	return etapes()[etape] if actif and etape < etapes().size() else {}
 
 
 func id_courant() -> String:
@@ -157,7 +244,7 @@ func numero() -> int:
 
 
 func total() -> int:
-	return ETAPES.size()
+	return etapes().size()
 
 
 ## Passe l'étape en cours (bouton « Passer »).
@@ -176,12 +263,21 @@ func agir() -> void:
 	if id == "terminer":
 		_suivante()
 		return
+	if id == "bilan":
+		demo_finie = true
+		bilan_demande.emit()
+		_suivante()
+		return
 	action_requested.emit(id)
 
 
 func _process(delta: float) -> void:
 	if not actif or scene == null:
 		return
+	if parcours == "demo":
+		temps_demo += delta
+		if jour0 < 0 and _lire("objectifs") != null:
+			jour0 = int(_lire("objectifs").jour())
 	_noter_panneaux()
 	_acc += delta
 	if _acc < 0.5:
@@ -195,7 +291,7 @@ func verifier() -> void:
 	if not actif:
 		return
 	var id := id_courant()
-	if id == "" or id == "fin":
+	if id == "" or id == "fin" or id == "fin_demo":
 		return
 	if est_faite(id):
 		message.emit("Tutoriel : « %s », c'est fait !" % String(etape_courante().titre))
@@ -206,7 +302,7 @@ func _suivante() -> void:
 	faits[id_courant()] = true
 	etape += 1
 	_avancer_aux_etapes_libres()
-	if etape >= ETAPES.size():
+	if etape >= etapes().size():
 		actif = false
 		if ReglagesPartie.actuel != null:
 			ReglagesPartie.actuel.tutoriel = false
@@ -217,9 +313,9 @@ func _suivante() -> void:
 
 ## Saute les étapes déjà faites ou sans objet (partie rechargée, réglages).
 func _avancer_aux_etapes_libres() -> void:
-	while etape < ETAPES.size():
-		var id := String(ETAPES[etape].id)
-		if id == "fin":
+	while etape < etapes().size():
+		var id := String(etapes()[etape].id)
+		if id == "fin" or id == "fin_demo":
 			return
 		if faits.has(id) or sans_objet(id) or (_deja_faisable(id) and est_faite(id)):
 			faits[id] = true
@@ -230,12 +326,13 @@ func _avancer_aux_etapes_libres() -> void:
 
 ## Étapes qu'on ne peut pas sauter d'office (elles demandent un geste du joueur).
 static func _deja_faisable(id: String) -> bool:
-	return not ["camera", "fondateurs", "budget", "objectifs", "temps"].has(id)
+	return not ["camera", "fondateurs", "budget", "objectifs", "temps", "vue_sol", "fete", "loisirs"].has(id)
 
 
 func _debut_etape() -> void:
 	_vus.clear()
 	_cam0.clear()
+	_fetes0 = fetes_organisees()
 	var rig = _lire("rig")
 	if rig != null:
 		_cam0 = {"p": rig.position, "d": float(rig.get("_target_distance")), "r": float(rig.rotation_degrees.y)}
@@ -306,6 +403,17 @@ func est_faite(id: String) -> bool:
 			return _vus.has("budget_panel")
 		"objectifs":
 			return _vus.has("objectifs_panel")
+		"vue_sol":
+			var vs = scene.get_node_or_null("VueSol") if scene != null else null
+			return vs != null and int(vs.vue) != 0
+		"loisirs":
+			return batiments_de_cat(["loisirs", "espaces", "sport", "parc"]) > 0
+		"fete":
+			return fetes_organisees() > _fetes0
+		"ligne":
+			return lignes() > 0
+		"village":
+			return rang() >= 1 or habitants_ville() >= CENT
 	return false
 
 
@@ -319,6 +427,12 @@ func progres() -> String:
 			return "Électricité : %s · Eau : %s" % ["oui" if s.elec else "pas encore", "oui" if s.eau else "pas encore"]
 		"temps":
 			return "Habitants logés : %d / %d" % [mini(loges(), LOGES), LOGES]
+		"ligne":
+			return "Arrêts posés : %d · lignes : %d" % [arrets(), lignes()]
+		"village":
+			var hab := habitants_ville()
+			var sat := satisfaction_ville()
+			return "Habitants : %d / %d · satisfaction : %s" % [mini(hab, CENT), CENT, ("%d %%" % sat) if sat >= 0 else "pas encore de sondage"]
 	return ""
 
 
@@ -404,20 +518,105 @@ func loges() -> int:
 	return maxi(n, 0)
 
 
+## Marchés et fêtes organisés par le joueur depuis le début de la partie.
+func fetes_organisees() -> int:
+	var ev = _lire("evenements")
+	return 0 if ev == null else int(ev.organises)
+
+
+func lignes() -> int:
+	var t = _lire("transport")
+	if t == null or t.stations == null:
+		return 0
+	return (t.stations.lines as Dictionary).size()
+
+
+func arrets() -> int:
+	var t = _lire("transport")
+	if t == null or t.stations == null:
+		return 0
+	return (t.stations.stations as Dictionary).size()
+
+
+## Ville principale (celle que la caméra regarde, sinon la première).
+func ville() -> int:
+	var c = _lire("communes")
+	if c == null or (c.villages as Dictionary).is_empty():
+		return -1
+	var p = _lire("pays")
+	var vid := int(p.actif) if p != null else -1
+	return vid if c.villages.has(vid) else int(c.principal())
+
+
+func rang() -> int:
+	var o = _lire("objectifs")
+	var vid := ville()
+	if o == null or vid < 0:
+		return 0
+	return int(o.palier_de(vid))
+
+
+func habitants_ville() -> int:
+	var o = _lire("objectifs")
+	var vid := ville()
+	if o == null or vid < 0:
+		return 0
+	return int(o._hab(vid))
+
+
+func satisfaction_ville() -> int:
+	var o = _lire("objectifs")
+	var vid := ville()
+	if o == null or vid < 0:
+		return -1
+	return int(o.satisfaction(vid))
+
+
+## Chiffres du bilan de la démo.
+func bilan() -> Dictionary:
+	var out := {"minutes": minutes_demo(), "habitants": 0, "batiments": 0, "routes_km": metres_de_route() / 1000.0,
+		"caisse": 0, "rang": "Hameau", "nom": "Ta ville", "etoiles": 0, "lignes": lignes(), "etapes": faits.size(),
+		"total": etapes().size(), "jours": 0}
+	var vid := ville()
+	var o = _lire("objectifs")
+	if vid >= 0 and o != null:
+		out.habitants = int(o._hab(vid))
+		out.rang = String(Objectifs.PALIERS[int(o.palier_de(vid))].nom)
+		out.etoiles = int(o.etoiles())
+		out.jours = maxi(int(o.jour()) - jour0, 0) if jour0 >= 0 else 0
+		if o.pays != null:
+			out.nom = String(o.pays.nom_de(vid))
+	var n := 0
+	var bs := _batiments()
+	for bid in bs:
+		if not Fondateurs.est_base_chantier(String(bs[bid].t)):
+			n += 1
+	out.batiments = n
+	var bsys = _lire("buildings")
+	if bsys != null:
+		out.caisse = int(bsys.money)
+	return out
+
+
 # --- Sauvegarde ------------------------------------------------------------------------
 
 func to_dict() -> Dictionary:
-	return {"version": 1, "actif": actif, "etape": etape, "faits": faits.keys(), "replie": replie}
+	return {"version": 1, "actif": actif, "etape": etape, "faits": faits.keys(), "replie": replie,
+		"parcours": parcours, "temps_demo": temps_demo, "demo_finie": demo_finie, "jour0": jour0}
 
 
 func from_dict(d: Dictionary) -> void:
+	parcours = String(d.get("parcours", ""))
+	temps_demo = float(d.get("temps_demo", 0.0))
+	demo_finie = bool(d.get("demo_finie", false))
+	jour0 = int(d.get("jour0", -1))
 	actif = bool(d.get("actif", false))
-	etape = clampi(int(d.get("etape", 0)), 0, ETAPES.size())
+	etape = clampi(int(d.get("etape", 0)), 0, etapes().size())
 	faits.clear()
 	for k in d.get("faits", []):
 		faits[String(k)] = true
 	replie = bool(d.get("replie", false))
-	if etape >= ETAPES.size():
+	if etape >= etapes().size():
 		actif = false
 	if actif:
 		_debut_etape()

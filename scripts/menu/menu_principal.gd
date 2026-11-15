@@ -1,7 +1,7 @@
 class_name MenuPrincipal
 extends Node3D
 ## Écran titre et menu principal : une île low-poly qui tourne doucement, et à
-## gauche le menu (Continuer, Nouvelle partie, Charger, Atelier, Options,
+## gauche le menu (Continuer, Démo guidée, Nouvelle partie, Charger, Atelier, Options,
 ## Crédits, Quitter). C'est la scène de départ du jeu.
 
 const SCENE := "res://scenes/menu_principal.tscn"
@@ -162,13 +162,14 @@ func _build_ui() -> void:
 	if not _derniere.is_empty():
 		var b := _bouton("continuer", "Continuer", "Reprendre « %s »" % String(_derniere.get("nom", _derniere.id)), continuer)
 		b.mouse_entered.connect(func() -> void: _carte.visible = true)
+	_bouton("demo", "Démo guidée", "Environ %d minutes, pas à pas : fonder un village près de %s et le faire grandir" % [Demo.DUREE_MIN, String(Demo.LIEU.nom).get_slice(",", 0)], lancer_demo)
 	_bouton("nouvelle", "Nouvelle partie", "Choisir un lieu sur le globe, n'importe où sur Terre", nouvelle_partie)
 	_bouton("charger", "Charger une partie", "Toutes les parties sauvegardées, avec leur aperçu", ouvrir_parties)
 	_bouton("atelier", "Atelier", "Créer des bâtiments sur un terrain plat, sans habitants ni argent", ouvrir_atelier)
 	_bouton("options", "Options", "Graphismes, son, sauvegarde automatique, touches", ouvrir_options)
 	_bouton("credits", "Crédits", "Qui a fait quoi, et avec quelles données", ouvrir_credits)
 	_bouton("quitter", "Quitter", "Fermer le jeu (les habitants ne t'en voudront pas… trop)", func() -> void: get_tree().quit())
-	var first: Button = _boutons.get("continuer", _boutons.nouvelle)
+	var first: Button = _boutons.get("continuer", _boutons.demo)
 	first.grab_focus.call_deferred()
 
 	# Carte « dernière partie » à droite, en bas.
@@ -259,6 +260,11 @@ func _maj_carte() -> void:
 func continuer() -> void:
 	if not _derniere.is_empty():
 		charger_partie(String(_derniere.id))
+
+
+## Démo guidée : nouvelle partie au lieu de la démo, tutoriel puis chapitres (Demo).
+func lancer_demo() -> void:
+	Demo.lancer()
 
 
 func nouvelle_partie() -> void:

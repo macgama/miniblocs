@@ -1,6 +1,7 @@
 .godot/
 *.import
-export_presets.cfg
+# Infos de build écrites par tools/export/exporter_windows.ps1 juste avant l'export
+build_info.json
 /build/
 
 # Réglages d'import à garder (carte des biomes : pas de compression)

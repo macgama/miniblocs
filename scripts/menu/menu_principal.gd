@@ -207,8 +207,8 @@ func _build_ui() -> void:
 	_maj_carte()
 
 	var version := Label.new()
-	var ver := String(ProjectSettings.get_setting("application/config/version", ""))
-	version.text = "Démo%s · Godot %s" % [" " + ver if ver != "" else "", Engine.get_version_info().string]
+	version.name = "VersionBuild"
+	version.text = VersionBuild.texte()
 	version.add_theme_font_size_override("font_size", 12)
 	version.add_theme_color_override("font_color", Color(1, 1, 1, 0.55))
 	version.anchor_top = 1.0

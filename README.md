@@ -12,6 +12,8 @@ Prototype de city builder en vue de dessus, style low-poly, mode bac à sable. F
 
 ![Menu principal](docs/apercu-menu-titre.png)
 
+**Sans Godot (Windows)** : `powershell -ExecutionPolicy Bypass -File tools\export\exporter_windows.ps1` exporte le jeu de `main` dans `Documents\MiniBlocs` (`MiniBlocs.exe` + `MiniBlocs.pck`, double-clic pour jouer). L'écran titre affiche en bas à gauche la version, le commit et la date du build. Réexport automatique quand `main` change, preset et détails : [docs/export-windows.md](docs/export-windows.md).
+
 **English** : le jeu est traduit en anglais. Menu principal → **Options → Jeu → Langue → English** (le changement est immédiat). Au premier lancement, le jeu prend la langue du système. Détails : [docs/langues.md](docs/langues.md).
 
 ## Commandes

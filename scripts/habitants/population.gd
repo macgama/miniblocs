@@ -316,6 +316,9 @@ func _process(delta: float) -> void:
 	if dt > 0.0:
 		advance(dt, true)
 	_match_pas(MATCH_BUDGET_US)
+	if not _jour_en_cours.is_empty() and vie.daily_pas(_jour_en_cours, JOUR_BUDGET_US):
+		_jour_en_cours = {}
+		_fin_du_jour()
 	_now = {}
 
 
@@ -343,6 +346,8 @@ func _sync_differe() -> void:
 func advance(dt: float, realtime := false) -> void:
 	if not realtime and not _match_en_cours.is_empty():
 		_match_pas(1 << 60)
+	if not realtime:
+		_finir_jour()
 	life_clock += dt / 86400.0 * life_speed()
 	_step_acc += dt
 	# Arrivées et attributions toutes les 5 minutes de jeu.
@@ -376,7 +381,10 @@ func advance(dt: float, realtime := false) -> void:
 	while last_day < d and n < 3:
 		last_day += 1
 		n += 1
-		_new_day()
+		if realtime:
+			_nouveau_jour_etale()
+		else:
+			_new_day()
 	if last_day < d:
 		last_day = d
 
@@ -927,13 +935,45 @@ func _join_job(p: Dictionary, bid: int, metier := "") -> void:
 
 ## Chaque nouveau jour : économie, naissances, décès, départs de chez les parents.
 func _new_day() -> void:
+	_finir_jour()
 	_pay_day()
 	_board_commuters()
 	var years := life_speed() / 365.25 # années de vie écoulées en un jour de jeu
 	vie.daily(years)
+	_fin_du_jour()
+
+
+func _fin_du_jour() -> void:
 	_mobilite()
 	vie.flush_digest()
 	changed.emit()
+
+
+## En jeu, la journée des habitants (âge, santé, rencontres…) est étalée sur
+## plusieurs images (JOUR_BUDGET_US par image) au lieu de figer l'image à minuit.
+const JOUR_BUDGET_US := 4000
+var _jour_en_cours := {}
+
+
+func _nouveau_jour_etale() -> void:
+	_finir_jour()
+	_pay_day()
+	_board_commuters()
+	var years := life_speed() / 365.25
+	if years <= 0.0:
+		_fin_du_jour()
+		return
+	_jour_en_cours = vie.daily_debut(years)
+
+
+## Termine tout de suite la journée commencée (nouveau jour, avance hors jeu).
+func _finir_jour() -> void:
+	if _jour_en_cours.is_empty():
+		return
+	var st := _jour_en_cours
+	_jour_en_cours = {}
+	vie.daily_pas(st, 1 << 60)
+	_fin_du_jour()
 
 
 ## Marché du travail : chaque jour, des actifs quittent un employeur au complet pour
@@ -2103,6 +2143,8 @@ func _unhandled_input(event: InputEvent) -> void:
 # --- Sauvegarde ---------------------------------------------------------------------
 
 func to_dict() -> Dictionary:
+	# Journée en cours (étalée sur plusieurs images) : finie avant d'enregistrer.
+	_finir_jour()
 	var hs := []
 	for hid in households:
 		var h: Dictionary = households[hid]

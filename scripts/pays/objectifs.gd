@@ -141,6 +141,9 @@ func _process(_delta: float) -> void:
 	var d := jour()
 	if d == _dernier_jour:
 		return
+	# Minuit : un seul gros bilan par image (Etalement).
+	if _dernier_jour >= 0 and not Etalement.libre():
+		return
 	_dernier_jour = d
 	_cache.clear()
 	nouveau_jour()

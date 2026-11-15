@@ -108,7 +108,7 @@ func _process(_delta: float) -> void:
 		if historique.is_empty():
 			releve()
 		return
-	if d != _dernier_jour:
+	if d != _dernier_jour and Etalement.libre():
 		_dernier_jour = d
 		releve()
 

@@ -539,57 +539,99 @@ func _fall_ill(p: Dictionary, past := false) -> void:
 func daily(years: float) -> void:
 	if years <= 0.0:
 		return
-	var deaths := []
-	var births := []
-	var leaving := []
-	var singles := []
-	var unions := []
-	var breakups := []
-	for pid in pop.persons.keys():
-		var p: Dictionary = pop.persons[pid]
-		ensure(p)
-		var a := pop.age_of(p)
-		var a0 := a - years
-		# Décès : tirage d'abord avec le risque maximal, la santé n'est calculée que si besoin.
-		var qb := base_mortality(a)
-		var r := pop.rng.randf()
-		if r < 1.0 - pow(1.0 - minf(qb * 4.0, 0.95), years):
-			var q := minf(qb * float(health(p).f), 0.95)
-			if r < 1.0 - pow(1.0 - q, years):
-				deaths.append(pid)
-				continue
-		p.gain = float(p.gain) + pop.income_of(p) * 12.0 * years
-		_school_milestones(p, a0, a)
-		# Fin des études supérieures.
-		if float(p.etu) > 0.0 and pop.life_clock >= float(p.etu):
-			p.etu = -1.0
-			if String(p.etd) != "":
-				p.dip = p.etd
-				log_event(p, "diplome", "Obtient son %s et cherche un emploi" % DIPLOMES[String(p.etd)])
-			p.etd = ""
-		if a >= 18.0:
-			_adult_year(p, a, years)
-		if (p.hob as Array).size() > 0 or a >= 3.0:
-			_hobbies(p, a, years)
-		# Rencontres, unions, séparations, naissances.
-		if a >= 20.0 and a < 78.0 and int(p.cj) < 0:
-			singles.append(pid)
-		if int(p.cj) > pid and pop.persons.has(int(p.cj)):
-			var q: Dictionary = pop.persons[int(p.cj)]
-			var together: bool = int(q.f) == int(p.f)
-			var chosen := _player_choice(p) or _player_choice(q)
-			if chosen:
-				pass
-			elif together and String(p.un) == "couple" and pop.rng.randf() < 0.12 * years:
-				unions.append(pid)
-			elif pop.rng.randf() < (0.012 if String(p.un) == "mariage" else 0.03) * years:
-				breakups.append(pid)
-		if String(p.s) == "F" and a >= 20.0 and a < 43.0 and int(p.cj) >= 0 and pop.persons.has(int(p.cj)) \
-				and int(pop.persons[int(p.cj)].f) == int(p.f) and not _player_choice(p) \
-				and not _player_choice(pop.persons[int(p.cj)]) and pop.rng.randf() < 0.11 * years:
-			births.append(pid)
-		if String(p.r) == "enfant" and a >= 19.0 and a < 32.0 and float(p.etu) < 0.0 and pop.rng.randf() < 0.3 * years:
-			leaving.append(pid)
+	var st := daily_debut(years)
+	for pid in st.ids:
+		_daily_personne(st, pid)
+	_daily_fin(st)
+
+
+## Journée étalée sur plusieurs images (en jeu) : daily_debut, puis daily_pas à
+## chaque image jusqu'à ce qu'il rende vrai. Mêmes tirages pour chaque habitant.
+func daily_debut(years: float) -> Dictionary:
+	return {"years": years, "ids": pop.persons.keys(), "i": 0, "deaths": [], "births": [], "leaving": [],
+		"singles": [], "unions": [], "breakups": []}
+
+
+func daily_pas(st: Dictionary, budget_us: int) -> bool:
+	var t0 := Time.get_ticks_usec()
+	var ids: Array = st.ids
+	var i := int(st.i)
+	while i < ids.size():
+		var pid: int = ids[i]
+		i += 1
+		if pop.persons.has(pid):
+			_daily_personne(st, pid)
+		if Time.get_ticks_usec() - t0 >= budget_us:
+			break
+	st.i = i
+	if i < ids.size():
+		return false
+	_daily_fin(st)
+	return true
+
+
+func _daily_personne(st: Dictionary, pid: int) -> void:
+	var years := float(st.years)
+	var deaths: Array = st.deaths
+	var births: Array = st.births
+	var leaving: Array = st.leaving
+	var singles: Array = st.singles
+	var unions: Array = st.unions
+	var breakups: Array = st.breakups
+	var p: Dictionary = pop.persons[pid]
+	ensure(p)
+	var a := pop.age_of(p)
+	var a0 := a - years
+	# Décès : tirage d'abord avec le risque maximal, la santé n'est calculée que si besoin.
+	var qb := base_mortality(a)
+	var r := pop.rng.randf()
+	if r < 1.0 - pow(1.0 - minf(qb * 4.0, 0.95), years):
+		var q := minf(qb * float(health(p).f), 0.95)
+		if r < 1.0 - pow(1.0 - q, years):
+			deaths.append(pid)
+			return
+	p.gain = float(p.gain) + pop.income_of(p) * 12.0 * years
+	_school_milestones(p, a0, a)
+	# Fin des études supérieures.
+	if float(p.etu) > 0.0 and pop.life_clock >= float(p.etu):
+		p.etu = -1.0
+		if String(p.etd) != "":
+			p.dip = p.etd
+			log_event(p, "diplome", "Obtient son %s et cherche un emploi" % DIPLOMES[String(p.etd)])
+		p.etd = ""
+	if a >= 18.0:
+		_adult_year(p, a, years)
+	if (p.hob as Array).size() > 0 or a >= 3.0:
+		_hobbies(p, a, years)
+	# Rencontres, unions, séparations, naissances.
+	if a >= 20.0 and a < 78.0 and int(p.cj) < 0:
+		singles.append(pid)
+	if int(p.cj) > pid and pop.persons.has(int(p.cj)):
+		var q: Dictionary = pop.persons[int(p.cj)]
+		var together: bool = int(q.f) == int(p.f)
+		var chosen := _player_choice(p) or _player_choice(q)
+		if chosen:
+			pass
+		elif together and String(p.un) == "couple" and pop.rng.randf() < 0.12 * years:
+			unions.append(pid)
+		elif pop.rng.randf() < (0.012 if String(p.un) == "mariage" else 0.03) * years:
+			breakups.append(pid)
+	if String(p.s) == "F" and a >= 20.0 and a < 43.0 and int(p.cj) >= 0 and pop.persons.has(int(p.cj)) \
+			and int(pop.persons[int(p.cj)].f) == int(p.f) and not _player_choice(p) \
+			and not _player_choice(pop.persons[int(p.cj)]) and pop.rng.randf() < 0.11 * years:
+		births.append(pid)
+	if String(p.r) == "enfant" and a >= 19.0 and a < 32.0 and float(p.etu) < 0.0 and pop.rng.randf() < 0.3 * years:
+		leaving.append(pid)
+
+
+func _daily_fin(st: Dictionary) -> void:
+	var years := float(st.years)
+	var deaths: Array = st.deaths
+	var births: Array = st.births
+	var leaving: Array = st.leaving
+	var singles: Array = st.singles
+	var unions: Array = st.unions
+	var breakups: Array = st.breakups
 	for pid in deaths:
 		if pop.persons.has(pid):
 			die(pid)

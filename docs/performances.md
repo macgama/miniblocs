@@ -88,4 +88,4 @@ heure de jeu).
 - Chargement d'une partie de 5 000 habitants : 5,5 s.
 - Construction de la ville du banc : le zonage de 1 000 bâtiments prend ~75 s.
 - Rendu (carte graphique) : à mesurer sur un vrai PC, sans `--headless`.
-- Partie à plusieurs villes et pays, et banc `tests/partie_reel.gd` (images en temps réel sur une partie sauvegardée) : voir [partie-pays.md](partie-pays.md).
+- Partie à plusieurs villes et pays, minuit étalé sur plusieurs images (`scripts/pays/etalement.gd`) et banc `tests/partie_reel.gd` (images en temps réel sur une partie sauvegardée) : voir [partie-pays.md](partie-pays.md).

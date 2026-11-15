@@ -80,6 +80,8 @@ func _ready() -> void:
 	note.custom_minimum_size = Vector2(W, 0)
 	note.text = "Steam : connecté, tes succès y sont reportés." if SteamPont.actif() \
 		else "Tes succès sont gardés sur cet ordinateur et valent pour toutes tes parties. Ils passeront sur Steam à la sortie du jeu."
+	if Succes.argent_illimite:
+		note.text = "Argent illimité dans cette partie : les succès sont coupés. " + note.text
 	v.add_child(note)
 	refresh()
 	(_onglets[filtre] as Button).grab_focus.call_deferred()

@@ -11,7 +11,7 @@ Tout est dans `main`, et les 9 tests automatiques passent (`sh tests/tous.sh`).
 - Prêt pour le **Steam Workshop** (GodotSteam) : à la sortie, publier enverra sur le Workshop et les abonnements s'installeront seuls. Voir docs/partage.md.
 
 **Succès, manette et Steam Deck** (menu principal → **Succès**, **F6** en jeu, 15 novembre)
-- 63 succès pour toutes tes parties, avec une touche d'humour : *La route de nulle part*, *Le préfet s'invite*, *Pause café*, *Maire insomniaque*, *Démolition Express*, *Tour du monde*… Barre d'avancement, succès secrets, carte « Succès débloqué ».
+- 62 succès pour toutes tes parties, avec une touche d'humour : *La route de nulle part*, *Le préfet s'invite*, *Pause café*, *Maire insomniaque*, *Démolition Express*, *Tour du monde*… Barre d'avancement, succès secrets, carte « Succès débloqué ».
 - Prêts pour Steam : le jeu les reportera sur Steam (GodotSteam) ; les noms, textes FR / EN et icônes pour Steamworks sont dans docs/steam/.
 - Tout se joue à la manette : curseur au stick gauche, caméra au stick droit, aux gâchettes et aux bosses, menus à la croix, vue au sol. Rappel des boutons à l'écran, Options → Manette.
 - Steam Deck : écran 1280 × 800 vérifié, plein écran et réglages légers au premier lancement, préréglage « Steam Deck » dans les options. Voir docs/succes-manette.md.

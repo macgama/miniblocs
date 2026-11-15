@@ -43,7 +43,7 @@ L'écran a une barre en haut (lieu, partie, heure et vitesse du temps, chiffres 
 | Aide | **F1** |
 | Carte entre amis (en ligne) | **F3** : joueurs, code d'invitation, discussion |
 | Son et musique | **F2** (volumes général, musique, ambiance, effets, interface ; morceaux) |
-| Succès | **F6** (aussi au menu principal) : 63 succès pour toutes tes parties |
+| Succès | **F6** (aussi au menu principal) : 62 succès pour toutes tes parties |
 | Manette, Steam Deck | stick gauche curseur, Ⓐ clic, Ⓑ annuler, stick droit caméra, LB/RB tourner, LT/RT zoom : [docs/succes-manette.md](docs/succes-manette.md) |
 
 L'interface s'adapte à la taille de la fenêtre (elle est dessinée pour 1600 × 900 puis agrandie ou réduite).

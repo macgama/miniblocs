@@ -88,7 +88,7 @@ const TYPES := {
 		"touris": {"role": "office"},
 		"metiers": [["conseiller_sejour", 3]],
 		"desc": "Plans de la ville, brochures et conseils : plus de touristes, qui restent plus longtemps et découvrent toutes tes attractions."},
-	"boutique_souvenirs": {"name": "Boutique de souvenirs", "w": 8, "d": 10, "access": RP, "emplois": 2, "cost": 180_000,
+	"boutique_souvenirs_ville": {"name": "Boutique de souvenirs", "w": 8, "d": 10, "access": RP, "emplois": 2, "cost": 180_000,
 		"touris": {"role": "souvenirs", "panier": 9.0},
 		"metiers": [["vendeur", 2]],
 		"desc": "Cartes postales, magnets, tour Eiffel qui clignote et tablier « J'ai survécu à mes vacances »."},
@@ -97,7 +97,7 @@ const TYPES := {
 		"desc": "Douze places de car et un abri. Les voyages organisés viennent en ville : 50 touristes d'un coup, appareil photo en main."},
 }
 const ORDER := ["aire_camping_cars", "camping", "camping_club", "gite_rural", "chambres_hotes", "auberge_jeunesse",
-	"hotel_2", "hotel_3", "hotel_4", "palace", "residence_tourisme", "village_vacances", "office_tourisme", "boutique_souvenirs", "parking_autocars"]
+	"hotel_2", "hotel_3", "hotel_4", "palace", "residence_tourisme", "village_vacances", "office_tourisme", "boutique_souvenirs_ville", "parking_autocars"]
 
 ## Bâtiments d'autres catalogues reconnus (hôtels de la bible Blender, rôle « hotel »).
 const AUTRES := {
@@ -214,6 +214,9 @@ static func build(k: BlocMesh, id: String, t: Dictionary) -> void:
 			for gx in range(-int(w * 0.5) + 6, int(w * 0.5) - 4, 8):
 				for gz in range(-int(d * 0.5) + 12, int(d * 0.5) - 3, 8):
 					if absf(gx) < 4.0 or absf(gz) < 4.0:
+						continue
+					# Piscine et restaurant du camping-club : place libre.
+					if club and absf(gx) < 22.0 and gz < -4.0:
 						continue
 					n += 1
 					if club and n % 2 == 0:
@@ -378,7 +381,7 @@ static func build(k: BlocMesh, id: String, t: Dictionary) -> void:
 			k.box(3.8, 3.95, -5.32, 0.3, 0.8, 0.05, BLANC)
 			k.box(3.8, 4.95, -5.32, 0.3, 0.25, 0.05, BLANC)
 			k.box(-3.0, 0, -5.4, 2.0, 1.4, 0.15, Color("1d3557"))
-		"boutique_souvenirs":
+		"boutique_souvenirs_ville":
 			k.plate(0, 0, w, d, Color("a39e93"))
 			k.box(0, 0, 0.5, 7.0, 4.0, 8.0, Color("f2d0a9"))
 			k.gable(0, 4.0, 0.5, 7.6, 8.6, 2.2, TUILE)

@@ -742,7 +742,7 @@ func _journee(now: Dictionary) -> void:
 				boutique = true
 				break
 		if boutique:
-			var v := float(n) * float(TourismeTypes.TYPES.boutique_souvenirs.touris.panier) * (0.5 + float(e) * 0.2) / maxf(1.0, float(souvenirs.size()) * 0.5)
+			var v := float(n) * float(TourismeTypes.TYPES.boutique_souvenirs_ville.touris.panier) * (0.5 + float(e) * 0.2) / maxf(1.0, float(souvenirs.size()) * 0.5)
 			jour.souvenirs = float(jour.souvenirs) + v
 			# Boutique privée : la ville touche l'impôt sur ses bénéfices (marge 30 %).
 			var imp := v * 0.3 * Production.IMPOT_BENEFICES * BudgetCommunal.facteur("benefices")

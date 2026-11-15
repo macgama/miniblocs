@@ -81,7 +81,7 @@ func _run() -> void:
 		bids[id] = poser.call(String(id), Vector2i(int(x), -int(float(t.d) / 2.0) - 8))
 		x += float(t.w) / 2.0
 	x = -200.0
-	for id in ["office_tourisme", "boutique_souvenirs", "cafe", "boutique_souvenirs", "parking_autocars", "musee", "superette"]:
+	for id in ["office_tourisme", "boutique_souvenirs_ville", "cafe", "boutique_souvenirs_ville", "parking_autocars", "musee", "superette"]:
 		var t := BuildingCatalog.get_type(String(id))
 		x += float(t.w) / 2.0 + 6.0
 		bids[id + str(x)] = poser.call(String(id), Vector2i(int(x), int(float(t.d) / 2.0) + 8))

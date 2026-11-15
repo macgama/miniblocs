@@ -408,7 +408,7 @@ func _vue_batir() -> void:
 	_label("Clic sur un bâtiment, puis sur la carte (au bord d'une route ; R pour tourner). Aussi dans Construire (B) → Hôtels et tourisme.", 12, true)
 	var groupes := [["Plein air", ["aire_camping_cars", "camping", "camping_club"]], ["Chez l'habitant", ["gite_rural", "chambres_hotes", "auberge_jeunesse"]],
 		["Hôtels", ["hotel_2", "hotel_3", "hotel_4", "palace"]], ["Séjours", ["residence_tourisme", "village_vacances"]],
-		["Accueil et services", ["office_tourisme", "boutique_souvenirs", "parking_autocars"]], ["Hôtels de la bible", TourismeTypes.AUTRES.keys()]]
+		["Accueil et services", ["office_tourisme", "boutique_souvenirs_ville", "parking_autocars"]], ["Hôtels de la bible", TourismeTypes.AUTRES.keys()]]
 	for g in groupes:
 		_titre(String(g[0]))
 		for id in g[1]:

@@ -48,7 +48,7 @@ func _catalog_tests() -> void:
 	var heb := 0
 	for id in TourismeTypes.ORDER:
 		var t := BuildingCatalog.get_type(String(id))
-		_check(not t.is_empty() and String(t.cat) == "tourisme", "%s dans le catalogue" % id)
+		_check(not t.is_empty() and String(t.cat) == "tourisme" and t.has("touris"), "%s dans le catalogue (id pas déjà pris)" % id)
 		var m := BuildingCatalog.build_mesh(String(id))
 		_check(m != null and m.get_surface_count() > 0, "%s a un modèle 3D" % id)
 		for j in Metiers.jobs_for(String(id)):
@@ -138,7 +138,7 @@ func _city_tests() -> void:
 	var camping: int = poser.call("camping", Vector2i(90, -30))
 	var cafe: int = poser.call("cafe", Vector2i(-40, -10))
 	var superette: int = poser.call("superette", Vector2i(-60, -10))
-	var souvenirs: int = poser.call("boutique_souvenirs", Vector2i(40, -8))
+	var souvenirs: int = poser.call("boutique_souvenirs_ville", Vector2i(40, -8))
 	var office: int = poser.call("office_tourisme", Vector2i(150, -9))
 	_check(musee_bid > 0 and hotel > 0 and camping > 0 and cafe > 0 and superette > 0 and souvenirs > 0 and office > 0,
 		"musée, hôtel, camping, café, supérette, souvenirs et office posés %s" % str([musee_bid, hotel, camping, cafe, superette, souvenirs, office]))

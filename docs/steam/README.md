@@ -24,28 +24,28 @@ français dans « French », l'anglais dans « English ».
 
 ## Images et vidéo
 
-Les fichiers sont dans les fichiers du projet, `captures/demo/` (faits par
-`tests/demo_vitrine.gd`, voir [../demo.md](../demo.md)).
+Captures et vidéo : fichiers du projet, `captures/demo/` (faits par `tests/demo_vitrine.gd`,
+voir [../demo.md](../demo.md)). Capsules et logos : dans ce dépôt, `marque/steam/`, faits par
+`tools/marque/capsules.py` avec le logo final (voir [../../marque/README.md](../../marque/README.md)).
 
 | Élément Steam | Taille | Fichier | État |
 |---|---|---|---|
-| Capsule d'en-tête | 920 × 430 | couvertures/capsule-entete-920x430.png | prêt (brouillon) |
-| Petite capsule | 462 × 174 | couvertures/capsule-petite-462x174.png | prêt (brouillon) |
-| Capsule principale | 1232 × 706 | couvertures/capsule-principale-1232x706.png | prêt (brouillon) |
-| Capsule bibliothèque | 600 × 900 | couvertures/capsule-bibliotheque-600x900.png | prêt (brouillon) |
-| Capsule verticale | 748 × 896 | — | à faire |
-| Fond de page | 1438 × 810 | — | à faire (facultatif) |
-| Héros de bibliothèque | 3840 × 1240 | — | à faire |
-| Logo de bibliothèque | 1280 × 720, fond transparent | — | à faire |
-| Captures (5 au moins) | 1920 × 1080 | 01 à 08 | prêtes |
-| Bande-annonce | 1080p | miniblocs-demo-bande-annonce.mp4 (40 s) | prête |
+| Capsule d'en-tête | 920 × 430 | marque/steam/capsule-entete-920x430.png | prête |
+| Petite capsule | 462 × 174 | marque/steam/capsule-petite-462x174.png | prête |
+| Capsule principale | 1232 × 706 | marque/steam/capsule-principale-1232x706.png | prête |
+| Capsule verticale | 748 × 896 | marque/steam/capsule-verticale-748x896.png | prête |
+| Capsule bibliothèque | 600 × 900 | marque/steam/capsule-bibliotheque-600x900.png | prête |
+| Fond de page | 1438 × 810 | marque/steam/fond-page-1438x810.png | prête (facultatif) |
+| Héros de bibliothèque | 3840 × 1240 | marque/steam/heros-bibliotheque-3840x1240.png | prêt (sans texte, comme Steam le demande) |
+| Logo de bibliothèque | 1280 × 720, fond transparent | marque/steam/logo-bibliotheque-1280x720.png | prêt |
+| Captures (5 au moins) | 1920 × 1080 | captures/demo/01 à 08 | prêtes |
+| Bande-annonce | 1080p | captures/demo/miniblocs-bande-annonce-v2.mp4 (39 s, nouveau logo) | prête |
 
 Ordre conseillé des captures : 01 village vu du ciel, 03 centre du village, 05 vue au sol,
 06 soir au village, 07 foot et quartiers, 02 campagne à l'horizon, 04 démo pendant un
 marché, 08 bilan. La première est celle qu'on voit au survol dans les listes.
 
-Les couvertures utilisent une police provisoire (DejaVu) : à refaire avec le logo final
-(Adobe Illustrator ou Photoshop est possible). Steam refuse les capsules avec des notes,
+Logo de bibliothèque : dans Steamworks, le placer en bas à gauche du héros. Steam refuse les capsules avec des notes,
 des récompenses ou des mentions comme « Nouveau » ou « En promo ».
 
 ## Contenu généré par IA (questionnaire obligatoire)

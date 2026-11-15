@@ -11,6 +11,9 @@ extends SceneTree
 ##   --proxy hôte:port   passe les téléchargements par ce proxy HTTPS
 ##   --ca fichier.crt    autorités de certification du proxy
 ##   --titre             seulement l'écran titre (00-ecran-titre.png)
+##   --grand             captures sans interface en 3840 × 2160 (grand-*.png),
+##                       pour les capsules Steam et le site (lancer avec
+##                       --resolution 3840x2160)
 ##   --film              au lieu des captures : plans de caméra pour la vidéo,
 ##                       une image JPG par image du jeu dans <dossier>/film/
 ##                       (lancer avec --fixed-fps 30, puis assembler avec ffmpeg).
@@ -22,6 +25,7 @@ var proxy_port := 0
 var ca: X509Certificate
 var film := false
 var titre := false
+var grand := false
 
 var scene: Node
 var world: TerrainWorld
@@ -60,6 +64,8 @@ func _args() -> void:
 				film = true
 			"--titre":
 				titre = true
+			"--grand":
+				grand = true
 			"--proxy":
 				proxy_hote = nxt.get_slice(":", 0)
 				proxy_port = int(nxt.get_slice(":", 1))
@@ -261,7 +267,7 @@ func _shot(nom: String, frames := 40) -> void:
 func _run() -> void:
 	_args()
 	DirAccess.make_dir_recursive_absolute(dir)
-	root.size = Vector2i(1920, 1080)
+	root.size = Vector2i(3840, 2160) if grand else Vector2i(1920, 1080)
 	if titre:
 		OptionsJeu.charger()
 		OptionsJeu.titre_fixe = true
@@ -314,6 +320,8 @@ func _run() -> void:
 	await _attendre_relief(60_000)
 	if film:
 		await _film()
+	elif grand:
+		await _captures_grandes()
 	else:
 		await _captures()
 	quit(0)
@@ -380,6 +388,28 @@ func _captures() -> void:
 	_vue(centre, 200.0, 45.0, 300.0)
 	t.agir()
 	await _shot("08-bilan-de-la-demo", 60)
+
+
+## Grandes captures sans interface (3840 × 2160) : on y découpe les capsules
+## Steam (héros de bibliothèque, capsule verticale, fond de page) et les images
+## du site.
+func _captures_grandes() -> void:
+	_ui(false)
+	amb.set_local_hour(17.5)
+	_vue(centre + Vector3(-10, 0, 10), 205.0, 36.0, 280.0)
+	await _shot("grand-village", 120)
+	_vue(centre + Vector3(-120, 0, -80), 150.0, 9.0, 260.0)
+	await _attendre_relief(30_000)
+	await _shot("grand-horizon", 90)
+	amb.set_local_hour(18.6)
+	_vue(centre + Vector3(10, 0, -10), 230.0, 22.0, 150.0)
+	await _shot("grand-centre", 90)
+	amb.set_local_hour(15.0)
+	_vue(centre + Vector3(160, 0, 60), 250.0, 35.0, 140.0)
+	await _shot("grand-foot", 90)
+	amb.set_local_hour(21.3)
+	_vue(centre + Vector3(0, 0, 10), 170.0, 30.0, 200.0)
+	await _shot("grand-soir", 90)
 
 
 var _n_image := 0

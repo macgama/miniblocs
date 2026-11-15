@@ -134,7 +134,7 @@ même endroit la fois suivante.
 
 | Partie de 40 jours, 1 500 images | Avant | Après |
 |---|---|---|
-| Pire image | 6 à 8,5 s | 1,8 s |
+| Pire image | 6 à 8,5 s | 1,8 à 3,2 s |
 | Image moyenne | 61 à 66 ms | 56 ms |
 
 Le reste de la pire image vient de la logistique des marchandises (0,6 à 1 s, calculée
@@ -154,7 +154,7 @@ le nombre d'écoles et d'élèves sans école de chaque ville à la fin.
 
 ## Ce qui reste
 
-- **Pire image** : ~1,8 s par moments (logistique des marchandises, nuisances).
+- **Pire image** : 1,8 à 3,2 s par moments (logistique des marchandises, nuisances).
 - **Images en temps réel** : la circulation (~10 ms), les réseaux (~8 ms) et les
   habitants (~7 ms) restent les plus gros postes. À mesurer aussi sur un vrai PC, avec
   la carte graphique.

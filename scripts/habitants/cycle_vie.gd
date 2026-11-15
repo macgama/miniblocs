@@ -169,6 +169,8 @@ func log_event(p: Dictionary, code: String, text: String, ref := -1, day := NAN)
 			cv.remove_at(1)
 	if DIGEST.has(code) and is_nan(day):
 		_digest[code] = int(_digest.get(code, 0)) + 1
+	if is_nan(day):
+		pop.etape_vie.emit(p, code, text, ref)
 	if int(p.id) == followed and is_nan(day):
 		var t := text
 		if t.length() > 0:

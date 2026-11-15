@@ -702,6 +702,8 @@ Vérifie les conversions de coordonnées, le décodage des tuiles, la générati
 
 `tests/statistiques_test.gd` vérifie les relevés quotidiens, les courbes, le regroupement des vieux jours, le conseiller, la sauvegarde et le panneau Maj+I, et affiche `STATISTIQUES TEST OK`.
 
+`tests/journal_test.gd` vérifie la gazette de la ville (faits notés, édition du matin, jour calme, époques, traduction anglaise, sauvegarde, panneau F4) et affiche `RÉSULTAT : OK`.
+
 `tests/parcours_test.gd` joue une partie comme un joueur, avec de vraies touches (globe, outils 1-9, B, L, T, V, F1, F5, Continuer) et affiche `PARCOURS TEST OK`. `tests/habitants_test.gd` vérifie les habitants (école, emplois, emploi du temps, budget, bus, sauvegarde, panneau) et affiche `HABITANTS TEST OK`. `tests/sauvegarde_test.gd` vérifie le format des parties (écriture, relecture, section abîmée, import de l'ancienne sauvegarde) et affiche `SAUVEGARDE TEST OK`. `tests/interface_test.gd` vérifie les menus (icônes, barre de catégories, panneaux un à la fois, vignettes, fiche d'un bâtiment) et affiche `INTERFACE TEST OK`. `tests/son_test.gd` vérifie le son (fichiers, bus et volumes, réglages du joueur, musique selon l'heure, ambiances selon la caméra, chantiers, tonnerre, panneau F2) et affiche `TEST OK`. `tests/demo_ferme_test.gd` vérifie la démo low-poly (kit de modelage, objets, lumières, vues) et affiche `DEMO TEST OK`.
 
 ```bash

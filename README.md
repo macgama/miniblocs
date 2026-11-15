@@ -741,6 +741,12 @@ godot --headless --path . --script res://tests/partie_pays.gd -- --jours 40 --ec
 Banc d'une **partie à plusieurs villes et pays** (8 villes autour de Bâle, France, Suisse, Allemagne, reliées par la route) : croissance, caisses, chômage, satisfaction, commerce entre villes et entre pays, images en temps réel, sauvegarde. Résultats et équilibrages : [docs/partie-pays.md](docs/partie-pays.md).
 
 ```bash
+godot --headless --path . --script res://tests/nouveautes_partie.gd -- [--jours 6] [--hab 600] [--periodes 1800,1850,1890,1925,1960,2000]
+```
+
+Banc d'une **longue partie historique depuis 1800** qui fait jouer ensemble époques, gazette, commerce mondial, succès, plans de site, mode photo, time-lapse, sauvegarde et un scénario : pas d'anachronisme, une gazette par jour au bon titre, services d'époque bâtis par le pilote, temps réel. Résultats : [docs/nouveautes-partie.md](docs/nouveautes-partie.md).
+
+```bash
 godot --headless --path . --script res://tests/partie_reel.gd -- --partie sauvegarde-auto --images 1500
 ```
 

@@ -188,6 +188,43 @@ static func price(id: String) -> float:
 	return float(MARCHANDISES.get(id, {}).get("prix", 0.0))
 
 
+## Marché mondial (CommerceMondial) : cours de chaque marchandise par rapport à
+## son prix de référence (× ; absent = 1), et effets des crises sur les prix à
+## l'export, à l'import et sur ce qui passe aux frontières.
+static var cours_facteurs := {}
+static var facteur_export := 1.0
+static var facteur_import := 1.0
+static var facteur_capacite := 1.0
+
+
+## Cours mondial d'une marchandise (€/t), prix de référence × marché et crises.
+static func cours(id: String) -> float:
+	return price(id) * float(cours_facteurs.get(id, 1.0))
+
+
+## Prix payé à une entreprise qui exporte (€/t).
+static func prix_export(id: String) -> float:
+	return cours(id) * EXPORT * facteur_export
+
+
+## Prix d'une marchandise importée (€/t).
+static func prix_import(id: String) -> float:
+	return cours(id) * IMPORT * facteur_import
+
+
+## Prix entre entreprises sur la carte et dans les commerces (€/t) : il suit
+## le cours mondial à moitié (les marchés locaux amortissent).
+static func prix_interieur(id: String) -> float:
+	return price(id) * (1.0 + (float(cours_facteurs.get(id, 1.0)) - 1.0) * 0.5)
+
+
+static func marche_neutre() -> void:
+	cours_facteurs = {}
+	facteur_export = 1.0
+	facteur_import = 1.0
+	facteur_capacite = 1.0
+
+
 ## Ressource naturelle d'où vient une marchandise ("" si fabriquée).
 static func source_of(good: String) -> String:
 	for id in NATURELLES:

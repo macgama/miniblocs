@@ -937,7 +937,7 @@ func _epand(bid: int, ch: Dictionary) -> void:
 	if pris2 > 0.0:
 		production.put(bid, "chimie", -pris2)
 	if t - pris2 > 0.0:
-		production.pay(bid, "Engrais", -(t - pris2) * Ressources.price("chimie") * Ressources.IMPORT)
+		production.pay(bid, "Engrais", -(t - pris2) * Ressources.prix_import("chimie"))
 	ch.azote = float(ch.azote) + kg_n
 
 

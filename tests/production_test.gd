@@ -301,6 +301,19 @@ func _run() -> void:
 		_check(absf(float(prod.sites[mine].reserve) - reserve_before) < 1.0, "réserve de la mine relue")
 	_check(scene.save_sections().has("production"), "section « production » dans la sauvegarde")
 
+	print("Accord d'exportation (menu Commerce) :")
+	var cmm: CommerceMondial = scene.commerce_mondial
+	if cmm.jour < 0:
+		cmm._initialiser(prod.last_day)
+	var pid0: int = cmm.partenaires.keys()[0]
+	cmm.signer({"id": "test", "partenaire": pid0, "sens": "export", "g": "planches", "t": 2.0, "prix": 999.0, "duree": 30, "expire": cmm.jour + 5}, Pays.PAYS)
+	var acc0: Dictionary = cmm.accords.values()[0]
+	for h in 24 * 2:
+		amb.unix_time += 3600.0
+		prod.advance(3600.0)
+	_check(float(acc0.livre) >= 1.99 and is_equal_approx(float(acc0.valeur), float(acc0.livre) * 999.0),
+		"les camions de la scierie portent les planches à la frontière au prix de l'accord : %s pour %s" % [Ressources.format_t(float(acc0.livre)), BuildingSystem.format_money(roundi(float(acc0.valeur)))])
+
 	print("PRODUCTION TEST OK" if ok else "PRODUCTION TEST ÉCHEC")
 	quit(0 if ok else 1)
 

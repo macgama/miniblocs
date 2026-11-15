@@ -170,7 +170,8 @@ func _build_ui() -> void:
 	_bouton("amis", "Entre amis", "Rejoindre la carte d'un ami avec son code, ou héberger une de tes parties", ouvrir_amis)
 	_bouton("charger", "Charger une partie", "Toutes les parties sauvegardées, avec leur aperçu", ouvrir_parties)
 	_bouton("atelier", "Atelier", "Créer des bâtiments sur un terrain plat, sans habitants ni argent", ouvrir_atelier)
-	_bouton("options", "Options", "Graphismes, son, sauvegarde automatique, touches", ouvrir_options)
+	_bouton("succes", "Succès", "%d succès débloqués sur %d, dans toutes tes parties" % [Succes.nombre(), Succes.total()], ouvrir_succes)
+	_bouton("options", "Options", "Graphismes, son, sauvegarde automatique, touches, manette", ouvrir_options)
 	_bouton("credits", "Crédits", "Qui a fait quoi, et avec quelles données", ouvrir_credits)
 	_bouton("quitter", "Quitter", "Fermer le jeu (les habitants ne t'en voudront pas… trop)", func() -> void: get_tree().quit())
 	var first: Button = _boutons.get("continuer", _boutons.demo)
@@ -328,6 +329,17 @@ func ouvrir_options() -> void:
 	_ui.add_child(o)
 
 
+func ouvrir_succes() -> void:
+	if _sub != null:
+		return
+	var p := SuccesPanel.new()
+	p.closed.connect(func() -> void:
+		_sub = null
+		(_boutons.succes as Button).grab_focus())
+	_sub = p
+	_ui.add_child(p)
+
+
 func ouvrir_credits() -> void:
 	if _sub != null:
 		return
@@ -368,7 +380,7 @@ func ouvrir_credits() -> void:
 
 func _unhandled_key_input(event: InputEvent) -> void:
 	var k := event as InputEventKey
-	if k and k.pressed and not k.echo and k.keycode == KEY_ESCAPE and _sub != null and not (_sub is OptionsPanel or _sub is PartiesPanel):
+	if k and k.pressed and not k.echo and k.keycode == KEY_ESCAPE and _sub != null and not (_sub is OptionsPanel or _sub is PartiesPanel or _sub is SuccesPanel):
 		get_viewport().set_input_as_handled()
 		_sub.queue_free()
 		_sub = null

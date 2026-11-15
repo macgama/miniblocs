@@ -4,6 +4,12 @@ Tout est dans `main`, et les 9 tests automatiques passent (`sh tests/tous.sh`).
 
 ## Nouveautés
 
+**Succès, manette et Steam Deck** (menu principal → **Succès**, **F6** en jeu, 15 novembre)
+- 63 succès pour toutes tes parties, avec une touche d'humour : *La route de nulle part*, *Le préfet s'invite*, *Pause café*, *Maire insomniaque*, *Démolition Express*, *Tour du monde*… Barre d'avancement, succès secrets, carte « Succès débloqué ».
+- Prêts pour Steam : le jeu les reportera sur Steam (GodotSteam) ; les noms, textes FR / EN et icônes pour Steamworks sont dans docs/steam/.
+- Tout se joue à la manette : curseur au stick gauche, caméra au stick droit, aux gâchettes et aux bosses, menus à la croix, vue au sol. Rappel des boutons à l'écran, Options → Manette.
+- Steam Deck : écran 1280 × 800 vérifié, plein écran et réglages légers au premier lancement, préréglage « Steam Deck » dans les options. Voir docs/succes-manette.md.
+
 **La gazette de la ville** (menu Infos → Gazette de la ville, **F4**, 15 novembre)
 - Chaque matin de jeu, un journal raconte la veille avec humour : à la une le fait le plus marquant (incendie, tempête, épidémie, match, élections, pont vers nulle part…), avec un vrai habitant comme témoin.
 - Articles, sports, brèves, carnet (naissances, mariages, décès), météo, micro-trottoir, chiffre du jour et petites annonces. Clic sur un titre : la caméra y va ; clic sur un nom : sa fiche.

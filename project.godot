@@ -21,6 +21,11 @@ run/main_scene="res://scenes/menu_principal.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://icon.svg"
 
+[autoload]
+
+ManetteAuto="*res://scripts/manette/manette.gd"
+SuccesNotif="*res://scripts/succes/succes_notif.gd"
+
 [display]
 
 window/size/viewport_width=1600

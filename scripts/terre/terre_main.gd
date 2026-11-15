@@ -210,6 +210,7 @@ func _ready() -> void:
 	_setup_souterrain()
 	_setup_create_mode()
 	_setup_son()
+	_setup_succes()
 	hud.traffic_toggled.connect(func(on: bool) -> void: transport.traffic.set_enabled(on))
 	hud.traffic_filter_changed.connect(func(era: String, region: String) -> void:
 		transport.traffic.set_filters(era, region)
@@ -1107,6 +1108,42 @@ func ouvrir_bilan_demo() -> void:
 
 
 ## Son : ambiances selon la caméra, humeur de la musique, sons des événements.
+## Succès du joueur (Succes, F6) et commandes de la manette (Manette).
+var succes_suivi: SuccesSuivi
+var succes_panel: SuccesPanel
+## Ordre des outils de la barre du bas pour la croix de la manette (gauche / droite).
+const OUTILS_MANETTE := [0, 1, 2, 3, 4, 5, 6, 7, 9, 8, 10]
+
+
+func _setup_succes() -> void:
+	succes_suivi = SuccesSuivi.new()
+	succes_suivi.name = "SuccesSuivi"
+	add_child(succes_suivi)
+	succes_suivi.setup(self)
+	hud.succes_requested.connect(toggle_succes)
+	if Manette.instance != null:
+		Manette.instance.commande.connect(_on_commande_manette)
+
+
+func toggle_succes() -> void:
+	if succes_panel != null:
+		succes_panel.close_panel()
+		return
+	succes_panel = SuccesPanel.new()
+	succes_panel.closed.connect(func() -> void: succes_panel = null)
+	_windows_layer().add_child(succes_panel)
+
+
+func _on_commande_manette(nom: String) -> void:
+	if pause_menu != null or not is_inside_tree():
+		return
+	match nom:
+		"outil_suivant", "outil_precedent":
+			var i := OUTILS_MANETTE.find(hud._current_tool)
+			i = (i + (1 if nom == "outil_suivant" else -1) + OUTILS_MANETTE.size()) % OUTILS_MANETTE.size()
+			hud.choose_tool(int(OUTILS_MANETTE[maxi(i, 0)]))
+
+
 func _setup_son() -> void:
 	var son := Son.ici()
 	if son != null:
@@ -1701,6 +1738,10 @@ func _unhandled_input(event: InputEvent) -> void:
 			and Multijoueur.role == Multijoueur.Role.CLIENT:
 		get_viewport().set_input_as_handled()
 		toggle_joueurs()
+		return
+	if k != null and k.pressed and not k.echo and k.keycode == KEY_F6 and pause_menu == null:
+		get_viewport().set_input_as_handled()
+		toggle_succes()
 		return
 	if k == null or not k.pressed or k.echo or k.keycode != KEY_ESCAPE or pause_menu != null:
 		return

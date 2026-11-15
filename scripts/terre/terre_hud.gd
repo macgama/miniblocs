@@ -60,6 +60,8 @@ signal club_requested
 signal cartes_requested
 ## Bouton « Statistiques » (menu Infos, Maj+I).
 signal stats_requested
+## Bouton « Saisons et risques » (menu Infos, Maj+R).
+signal saisons_requested
 ## Bouton Admin de la barre du haut, ou F10 : réglages de la partie.
 signal admin_requested
 signal spec_edited(type_id: String, spec: Dictionary)
@@ -130,6 +132,7 @@ const CATEGORIES := [
 	{"id": "club", "name": "Club de sport (équipe, championnat, transferts)", "icon": "sport", "key": "Maj+B", "panel": true, "group": "loisirs"},
 	{"id": "cartes", "name": "Cartes", "icon": "cartes", "key": "N", "panel": true, "group": "infos"},
 	{"id": "stats", "name": "Statistiques et conseiller", "icon": "courbe", "key": "Maj+I", "panel": true, "group": "infos"},
+	{"id": "saisons", "name": "Saisons et risques (météo, neige, crues, sécheresse)", "icon": "saisons", "key": "Maj+R", "panel": true, "group": "infos"},
 	{"id": "murs", "name": "Murs et étages", "icon": "mur", "key": "2", "panel": true, "mode": "creer"},
 	{"id": "blocs", "name": "Blocs", "icon": "editeur", "key": "3", "panel": true, "mode": "creer"},
 	{"id": "interieur", "name": "Intérieur", "icon": "interieur", "key": "4", "panel": true, "mode": "creer"},
@@ -811,6 +814,7 @@ func _on_category(id: String) -> void:
 			"club": club_requested.emit()
 			"cartes": cartes_requested.emit()
 			"stats": stats_requested.emit()
+			"saisons": saisons_requested.emit()
 		_update_categories()
 		return
 	if create_mode and id == "observer":

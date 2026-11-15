@@ -62,6 +62,14 @@ const SECTIONS := [
 		["Incendie, tempête, épidémie à la main", "panneau Infos, onglet Organiser, puis clic sur la carte (Échap pour annuler)"],
 		["Catastrophes", "panneau Admin (F10), section Événements : les couper ou régler leur fréquence"],
 	]],
+	["Saisons et risques naturels", [
+		["Maj+R", "panneau Saisons et risques (menu Infos) : saison, prévisions (3 jours, 7 avec une station météo), records ; vigilances neige, crues, sécheresse, canicule ; déneigement ; calendrier des cultures"],
+		["Neige", "elle tient sur les routes et ralentit tout le monde (secours compris), avec des accidents ; le Centre technique municipal (Construire → Services publics) envoie ses chasse-neige, les grands axes d'abord, et sale : 12 h sans neige qui tient"],
+		["Crues", "plusieurs jours de grosses pluies ou une fonte rapide des neiges : la rivière monte pendant des heures, routes coupées, maisons et champs inondés ; un bassin de rétention fait monter l'eau 25 % moins haut à 3 km"],
+		["Sécheresse", "vigilance, alerte (restrictions d'eau imposées), alerte renforcée (feux de broussailles au bord des bois), crise ; les cultures et les prés souffrent"],
+		["Canicule, gel", "3 jours à 33 °C et plus : canicule ; gelée tardive au printemps : jeunes pousses abîmées"],
+		["Provoquer", "Maj+R, onglet Risques (ou I → Organiser) : chute de neige, crue, sécheresse, canicule, feu de broussailles ; Admin (F10) : neige sur les routes oui / non"],
+	]],
 	["Villages et territoire", [
 		["Début de partie", "sur le globe, cherche la ville de départ ; puis choisis le nom et le drapeau du village et pose sa Maison de commune (pas besoin de route) : avant, on ne peut que regarder et modeler le paysage"],
 		["Drapeau", "Maj+M, bouton Changer… à côté du drapeau d'un village : n'importe quel pays, ou aucun"],

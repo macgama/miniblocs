@@ -80,7 +80,7 @@ pas le jeu en contenu pour adultes.
 
 - ~~Nom du développeur~~ : **ManiGames** (choisi le 15 novembre 2026).
 - **Accès anticipé** en 2027 (choisi le 15 novembre 2026) : la section « Accès anticipé » des fiches est à coller.
-- Prix : **19,99 € / 19,99 $** conseillé pour l'accès anticipé (voir plus bas), à confirmer par Gaël.
+- Prix : **19,99 € / 19,99 $** pour l'accès anticipé, puis 24,99 € en version complète (validé par Gaël le 15 novembre 2026).
 - Page anglaise : publiée seulement quand **toute** l'application est traduite (menus, panneaux, aide F1, tutoriel, démo, nouvelles, noms des bâtiments). Contrôle à faire avant : `python3 tools/langue/extraire.py --manquants en` doit ne plus rien lister (voir [../langues.md](../langues.md)), puis parcourir chaque écran en anglais pour repérer les textes restés en français.
 
 ## Prix conseillé

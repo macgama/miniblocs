@@ -130,9 +130,15 @@ var rue_fondation: RueFondation
 var objectifs_panel: ObjectifsPanel
 var statistiques: Statistiques
 var stats_panel: StatsPanel
+var journal: Journal
+var journal_panel: JournalPanel
 ## Tutoriel guidé et objectifs à l'écran (scripts/tutoriel).
 var tutoriel: Tutoriel
 var tuto_carte: TutorielCarte
+## Scénario en cours (menu principal → Scénarios) et sa carte à l'écran.
+var scenario: ScenarioPartie
+var scenario_carte: ScenarioCarte
+var bilan_scenario: ScenarioBilan
 ## Ambiances sonores selon la caméra (scripts/son) ; musique et volumes : /root/Son (F2).
 var sons: AmbiancesSonores
 var quartiers: Quartiers
@@ -203,7 +209,9 @@ func _ready() -> void:
 	_setup_pays()
 	_setup_niveaux_vie()
 	_setup_statistiques()
+	_setup_journal()
 	_setup_tutoriel()
+	_setup_scenario()
 	_setup_quartiers()
 	_setup_souterrain()
 	_setup_create_mode()
@@ -380,7 +388,9 @@ func save_sections() -> Dictionary:
 	sec["rue_fondation"] = rue_fondation.to_dict()
 	sec["niveaux_vie"] = niveaux_vie.to_dict()
 	sec["statistiques"] = statistiques.to_dict()
+	sec["journal"] = journal.to_dict()
 	sec["tutoriel"] = tutoriel.to_dict()
+	sec["scenario"] = scenario.to_dict()
 	sec["musee"] = musee.to_dict()
 	sec["spectacles"] = spectacles.to_dict()
 	sec["club"] = club.to_dict()
@@ -474,6 +484,7 @@ func load_game(slot := "") -> bool:
 	var m: Dictionary = res.manifest
 	Multijoueur.section_chargee = sec.get("multijoueur", {})
 	_chargement = true
+	journal.ecoute = false
 	var lieu: Dictionary = m.get("lieu", {})
 	GameStart.place_name = String(lieu.get("nom", ""))
 	world.from_dict(sec.terrain)
@@ -548,6 +559,7 @@ func load_game(slot := "") -> bool:
 	# Après les habitants : niveau de chaque foyer (ancienne partie : évalués au premier jour).
 	niveaux_vie.from_dict(sec.get("niveaux_vie", {}))
 	statistiques.from_dict(sec.get("statistiques", {}))
+	journal.from_dict(sec.get("journal", {}))
 	($VueSol as VueSol).from_dict(sec.get("personnage", {}))
 	_load_settings(sec.get("reglages", {}), m)
 	# Après les réglages : une partie d'avant le tutoriel n'en a pas.
@@ -556,6 +568,8 @@ func load_game(slot := "") -> bool:
 	else:
 		tutoriel.clear()
 	ReglagesPartie.actuel.tutoriel = tutoriel.actif
+	# Après les réglages : le scénario compare les réglages du départ à ceux-ci.
+	scenario.from_dict(sec.get("scenario", {}))
 	# Les chantiers repartent de l'heure de la partie chargée.
 	vie_batiments._t_prev = ambiance.unix_time
 	chantiers._t_prev = ambiance.unix_time
@@ -569,6 +583,7 @@ func load_game(slot := "") -> bool:
 		rig.set_pitch(float(cam.get("inclinaison", rig.get_target_pitch())), true)
 		_snap_pending = true
 	_chargement = false
+	journal.ecoute = true
 	GameStart.slot_id = slot
 	_unsaved = false
 	_autosave_timer = 0.0
@@ -982,6 +997,33 @@ func _setup_statistiques() -> void:
 	hud.stats_requested.connect(func() -> void: stats_panel.toggle())
 
 
+## Journal de la ville (F4, menu Infos) : une édition chaque matin sur la veille.
+func _setup_journal() -> void:
+	journal = Journal.new()
+	journal.name = "Journal"
+	add_child(journal)
+	journal.setup(population, evenements, avis, statistiques, buildings, transport, communes, saisons, ambiance)
+	for s in clubs:
+		journal.ecouter_club(clubs[s])
+	journal.changed.connect(func() -> void: _unsaved = true)
+	journal_panel = JournalPanel.new()
+	journal_panel.name = "PanneauJournal"
+	add_child(journal_panel)
+	journal_panel.setup(journal)
+	journal_panel.focus_requested.connect(func(pos: Vector3) -> void:
+		journal_panel.set_open(false)
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
+	journal_panel.person_requested.connect(func(pid: int) -> void:
+		journal_panel.set_open(false)
+		habitants_panel.set_open(true)
+		habitants_panel.show_view("profil", pid))
+	journal.edition_parue.connect(func(ed: Dictionary) -> void:
+		if int((ed.une as Dictionary).get("imp", 0)) >= 6 and not _chargement:
+			hud.show_message(Langue.t("%s : « %s » (F4)") % [Journal.titre_de(ed), Journal.texte(ed.une.titre)]))
+	hud.journal_requested.connect(func() -> void: journal_panel.toggle())
+
+
 ## Ouvre un panneau par son id (boutons du conseiller).
 func ouvrir_panneau(id: String) -> void:
 	var panels := {"budget": budget_panel, "avis": avis_panel, "construire": build_panel, "trafic": trafic_panel,
@@ -1052,6 +1094,48 @@ func _on_tuto_action(id: String) -> void:
 			evenements_panel.show_view("organiser")
 		"ligne":
 			transit_panel.set_open(true)
+
+
+## Scénarios et défis : suivi (ScenarioPartie), carte à l'écran, bilan de fin.
+func _setup_scenario() -> void:
+	scenario = ScenarioPartie.new()
+	scenario.name = "Scenario"
+	add_child(scenario)
+	scenario.setup(self)
+	scenario.message.connect(func(t: String) -> void: hud.show_message(t))
+	scenario.changed.connect(func() -> void: _unsaved = true)
+	scenario.termine.connect(ouvrir_bilan_scenario)
+	scenario_carte = ScenarioCarte.new()
+	scenario_carte.name = "CarteScenario"
+	add_child(scenario_carte)
+	scenario_carte.setup(scenario)
+	# Sous la carte du personnage suivi (habitants façon Sims), quand elle est là.
+	scenario_carte.decalage = func() -> float:
+		var c: Control = habitants_panel._card if habitants_panel != null else null
+		return c.size.y + 8.0 if c != null and c.is_visible_in_tree() else 0.0
+	var sid := Scenarios.demande
+	Scenarios.demande = ""
+	if sid != "" and GameStart.load_slot == "" and GameStart.chosen and not GameStart.atelier:
+		scenario.demarrer.call_deferred(sid)
+
+
+func ouvrir_bilan_scenario(r: Dictionary) -> void:
+	if bilan_scenario != null:
+		return
+	bilan_scenario = ScenarioBilan.new(r)
+	bilan_scenario.ferme.connect(func() -> void:
+		bilan_scenario = null
+		hud.show_message("Les règles du scénario sont levées : la ville est à toi."))
+	bilan_scenario.menu_demande.connect(func() -> void:
+		if not save_game():
+			hud.show_message("Sauvegarde impossible : " + last_error)
+		GameStart.slot_id = ""
+		EcranChargement.aller(MenuPrincipal.SCENE, "Retour au menu principal"))
+	bilan_scenario.rejouer_demande.connect(func() -> void:
+		if not save_game():
+			hud.show_message("Sauvegarde impossible : " + last_error)
+		Scenarios.lancer(String(r.get("id", ""))))
+	add_child(bilan_scenario)
 
 
 ## Démo guidée : bilan de fin (DemoBilan), au-dessus du jeu.
@@ -2376,6 +2460,8 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 		rue_fondation.clear()
 	if niveaux_vie != null:
 		niveaux_vie.clear()
+	if journal != null:
+		journal.clear()
 	if communes != null:
 		communes.clear()
 	if fondateurs != null:
@@ -2477,6 +2563,8 @@ func _process(delta: float) -> void:
 	_exclusive_panels()
 	if tuto_carte != null:
 		tuto_carte.cachee = hud.create_mode or GameStart.atelier or hud.coords_open() or _loisirs_ouvert()
+	if scenario_carte != null:
+		scenario_carte.cachee = hud.create_mode or GameStart.atelier or hud.coords_open() or _loisirs_ouvert()
 
 
 var _stats_timer := 0.0

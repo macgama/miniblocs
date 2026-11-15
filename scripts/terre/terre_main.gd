@@ -67,6 +67,9 @@ var parc_panel: ParcPanel
 ## Zoo : enclos, animaux, soigneurs, visiteurs (Maj+Z, menu Loisirs).
 var zoo: ZooSysteme
 var zoo_panel: ZooPanel
+## Tourisme : hébergements, touristes, dépenses en ville (menu Loisirs, Maj+R).
+var tourisme: Tourisme
+var tourisme_panel: TourismePanel
 var zoo_outils: ZooOutils
 ## Obsèques, cimetières, crématorium, pompes funèbres (onglet Funéraire du panneau H).
 var funeraire: Funeraire
@@ -182,6 +185,7 @@ func _ready() -> void:
 	_setup_vie()
 	_setup_decors()
 	_setup_zoo()
+	_setup_tourisme()
 	_setup_evenements()
 	_setup_saisons()
 	_setup_nuisances()
@@ -361,6 +365,7 @@ func save_sections() -> Dictionary:
 	sec["club"] = club.to_dict()
 	sec["parc"] = parc.to_dict()
 	sec["zoo"] = zoo.to_dict()
+	sec["tourisme"] = tourisme.to_dict()
 	sec["quartiers"] = quartiers.to_dict()
 	sec["parc_editeur"] = attractions.to_dict()
 	sec["parc_allees"] = parc_allees.to_dict()
@@ -476,6 +481,7 @@ func load_game(slot := "") -> bool:
 	club.from_dict(sec.get("club", {}))
 	parc.from_dict(sec.get("parc", {}))
 	zoo.from_dict(sec.get("zoo", {}))
+	tourisme.from_dict(sec.get("tourisme", {}))
 	funeraire.from_dict(sec.get("funeraire", {}))
 	ambiance.from_dict(sec.get("ambiance", {}))
 	# Après les bâtiments et les habitants : dégâts, ruines, malades, matchs.
@@ -1967,6 +1973,26 @@ func _select_building_tool(from_transit := false) -> void:
 
 
 ## Zoo : enclos tracés à la main, animaux, soigneurs, visiteurs, et son menu (Maj+Z).
+## Tourisme : hébergements, touristes qui visitent et dépensent (Maj+R).
+func _setup_tourisme() -> void:
+	tourisme = Tourisme.new()
+	tourisme.name = "Tourisme"
+	add_child(tourisme)
+	tourisme.setup(buildings, population, ambiance, transport)
+	tourisme.message.connect(func(t: String) -> void: hud.show_message(t))
+	tourisme_panel = TourismePanel.new()
+	tourisme_panel.name = "PanneauTourisme"
+	add_child(tourisme_panel)
+	tourisme_panel.setup(tourisme, func() -> void: _select_building_tool())
+	tourisme_panel.building_chosen.connect(func(id: String) -> void:
+		_select_building_tool()
+		buildings.set_place(id))
+	tourisme_panel.focus_requested.connect(func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
+	hud.tourisme_requested.connect(func() -> void: tourisme_panel.toggle())
+
+
 func _setup_zoo() -> void:
 	zoo = ZooSysteme.new()
 	zoo.name = "Zoo"
@@ -2091,7 +2117,7 @@ func _loisirs_ouvert() -> bool:
 
 
 func _panneaux_parc() -> Dictionary:
-	return {"parc": parc_panel, "parc_editeur": parc_editeur_panel, "zoo": zoo_panel, "musee": musee_panel, "spectacles": spectacles_panel, "club": club_panel}
+	return {"parc": parc_panel, "parc_editeur": parc_editeur_panel, "zoo": zoo_panel, "musee": musee_panel, "spectacles": spectacles_panel, "club": club_panel, "tourisme": tourisme_panel}
 
 
 ## Panneau « Paysage » : pinceaux de terrain (outil 0).
@@ -2200,6 +2226,8 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 	funeraire.clear()
 	spectacles.clear()
 	club.clear()
+	if tourisme != null:
+		tourisme.clear()
 	resource_overlay.show_resource(resource_overlay.res)
 	transport.clear()
 	buildings.clear()

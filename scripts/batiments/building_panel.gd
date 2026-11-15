@@ -95,7 +95,7 @@ var _ladder_level := 0
 
 ## Icône de chaque onglet.
 const CAT_ICONS := {"logement": "logement", "commerce": "commerce", "industrie": "industrie", "production": "ressources", "reseaux": "reseaux",
-	"services": "services", "dechets": "dechets", "funeraire": "funeraire", "loisirs": "loisirs", "sport": "sport", "parc": "parc", "zoo": "zoo", "spectacles": "masques", "espaces": "publics",
+	"services": "services", "dechets": "dechets", "funeraire": "funeraire", "loisirs": "loisirs", "sport": "sport", "parc": "parc", "zoo": "zoo", "spectacles": "masques", "tourisme": "valise", "espaces": "publics",
 	"zones": "zonage", "blocs": "editeur", "creations": "creations", "interieur": "interieur", "banque": "banque", "mes_modeles": "atelier"}
 
 ## Onglet Intérieur : fonction (BuildingPanel) qui remplit la liste (voir InterieurPanel).

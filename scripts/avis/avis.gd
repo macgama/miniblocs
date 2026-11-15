@@ -423,8 +423,20 @@ func _process(_delta: float) -> void:
 		return
 	if d > _last_day:
 		_last_day = d
-		_nouveau_jour(n)
+		if not _jour_file.is_empty():
+			_jour_pas(true)
+		_jour_debut(n)
 	var h := int(float(n.h))
+	# Sondage du jour : une ville par image (Etalement). Si l'heure passe avant la
+	# fin (temps accéléré), les villes qui restent sont faites tout de suite.
+	if not _jour_file.is_empty():
+		if h != int(_jour_file.h):
+			_jour_pas(true)
+		elif Etalement.libre():
+			_jour_pas(false)
+		if not _jour_file.is_empty():
+			manifs.step()
+			return
 	if h != _last_hour:
 		_last_hour = h
 		_nouvelle_heure(n)
@@ -432,13 +444,31 @@ func _process(_delta: float) -> void:
 
 
 func _nouveau_jour(n: Dictionary) -> void:
+	_jour_debut(n)
+	_jour_pas(true)
+
+
+## Nouveau jour en cours : {n, villes, i} ; vide sinon.
+var _jour_file := {}
+
+
+func _jour_debut(n: Dictionary) -> void:
 	# Effets passés oubliés.
 	var t := now()
 	for i in range(effets.size() - 1, -1, -1):
 		if float(effets[i].fin) <= t:
 			effets.remove_at(i)
-	# Chaque ville : son sondage du jour, ses élections, son maire.
-	for v in villes():
+	_jour_file = {"n": n, "villes": villes(), "i": 0, "h": int(float(n.h))}
+
+
+## Chaque ville : son sondage du jour, ses élections, son maire. tout : toutes les
+## villes qui restent, sinon une seule.
+func _jour_pas(tout: bool) -> void:
+	var n: Dictionary = _jour_file.n
+	var vs: Array = _jour_file.villes
+	while int(_jour_file.i) < vs.size():
+		var v: int = vs[int(_jour_file.i)]
+		_jour_file.i = int(_jour_file.i) + 1
 		examiner(v)
 		var s := sondage(true)
 		if int(s.n) > 0:
@@ -452,6 +482,12 @@ func _nouveau_jour(n: Dictionary) -> void:
 		# Ville perdue : le maire élu gère son budget (GestionAuto).
 		if v >= 0 and not joueur_decide_de(v):
 			GestionAuto.gerer_maire(v, maire_de(v), int(n.day))
+		if not tout:
+			break
+	if int(_jour_file.i) < vs.size():
+		examiner(ville_par_defaut())
+		return
+	_jour_file = {}
 	examiner(ville_par_defaut())
 	manifs.nouveau_jour(n)
 	changed.emit()

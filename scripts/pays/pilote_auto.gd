@@ -83,6 +83,7 @@ func setup(bs: BuildingSystem, ts: TransportSystem, z: ZoneSystem, cm: Communes,
 
 
 func clear() -> void:
+	_prol_curseur.clear()
 	actifs.clear()
 	journal.clear()
 	_dernier_jour = -1
@@ -125,21 +126,35 @@ func _process(_delta: float) -> void:
 		_manifs_ms = Time.get_ticks_msec()
 		repondre_manifestations()
 	var d := _jour()
-	if d == _dernier_jour:
+	if d != _dernier_jour:
+		# Jour suivant alors que des villes attendent encore : on les finit d'abord.
+		while not _file.is_empty():
+			_journee(int(_file.pop_front()), _file_jour)
+		_dernier_jour = d
+		_file = actifs.keys()
+		_file_jour = d
+	# Une ville par image au plus (minuit : Etalement).
+	if not _file.is_empty() and Etalement.libre():
+		_journee(int(_file.pop_front()), _file_jour)
+
+
+## Villes pilotées qui n'ont pas encore eu leur journée, et le jour en question.
+var _file: Array = []
+var _file_jour := -1
+
+
+func _journee(vid: int, d: int) -> void:
+	if communes == null or not communes.villages.has(vid) or not actifs.has(vid):
+		actifs.erase(vid)
 		return
-	_dernier_jour = d
-	for vid in actifs.keys():
-		if communes == null or not communes.villages.has(vid):
-			actifs.erase(vid)
-			continue
-		if posmod(d + int(vid), JOURS_ENTRE) == 0:
-			semaine(int(vid))
-		elif pays.joueur_maire(int(vid)):
-			# Entre deux semaines : une construction par jour si la ville en a besoin.
-			var fait := construire(int(vid))
-			if fait != "":
-				_noter(int(vid), fait)
-				changed.emit()
+	if posmod(d + vid, JOURS_ENTRE) == 0:
+		semaine(vid)
+	elif pays.joueur_maire(vid):
+		# Entre deux semaines : une construction par jour si la ville en a besoin.
+		var fait := construire(vid)
+		if fait != "":
+			_noter(vid, fait)
+			changed.emit()
 
 
 var _manifs_ms := -100000
@@ -276,6 +291,8 @@ func construire(vid: int) -> String:
 		if compter(vid, id) >= voulu:
 			continue
 		var prix := ReglagesPartie.prix(BuildingCatalog.cost(id))
+		if id == "ecole" and dispo(vid) < prix:
+			_financer_ecole(vid, prix)
 		if dispo(vid) < prix:
 			return ""
 		if ReglagesPartie.actuel.raison_blocage(id) != "":
@@ -290,6 +307,44 @@ func construire(vid: int) -> String:
 		if t != "":
 			return t
 	return ""
+
+
+## Une école coûte bien plus que ce qu'une commune met de côté (6 M€ pour 300 élèves) :
+## comme en vrai, l'État en paie une part et la ville emprunte le reste sur 20 ans.
+const ECOLE_PART_ETAT := 0.4
+const ECOLE_EMPRUNT_ANS := 20
+## Le pays garde au moins cette somme dans sa caisse.
+const RESERVE_PAYS := 1_000_000
+
+
+## Plan de financement d'une école qui manque : subvention du pays (jusqu'à 40 %
+## du prix), puis emprunt de la ville. Rien n'est versé si l'emprunt est refusé.
+func _financer_ecole(vid: int, prix: int) -> bool:
+	if buildings.unlimited_money or pays == null:
+		return true
+	var manque := prix - dispo(vid)
+	if manque <= 0:
+		return true
+	var nk := pays.nation_de(vid)
+	var sub := 0
+	if nk != vid:
+		sub = clampi(mini(manque, roundi(prix * ECOLE_PART_ETAT)), 0, maxi(0, pays.solde(nk) - RESERVE_PAYS))
+	var pret := manque - sub
+	var refus := [""]
+	if pret > 0:
+		GestionAuto.dans_ville(vid, func(b: BudgetCommunal) -> void: refus[0] = b.refus_emprunt(pret, ECOLE_EMPRUNT_ANS))
+		if String(refus[0]) != "" or BudgetCommunal.instance == null:
+			return false
+	if sub > 0 and pays.virer(nk, vid, sub, "Subvention pour une école") != "":
+		return false
+	if pret > 0:
+		var fait := [false]
+		GestionAuto.dans_ville(vid, func(b: BudgetCommunal) -> void: fait[0] = not b.emprunter(pret, ECOLE_EMPRUNT_ANS).is_empty())
+		if not bool(fait[0]):
+			return false
+	_noter(vid, "École financée : %s de subvention du pays, %s empruntés sur %d ans." % [
+		BuildingSystem.format_money(sub), BuildingSystem.format_money(pret), ECOLE_EMPRUNT_ANS])
+	return true
 
 
 # --- Où construire ------------------------------------------------------------------------
@@ -407,8 +462,15 @@ func _rue_mairie(vid: int) -> String:
 
 
 ## Prolonge une impasse de la ville de 120 m, sinon ouvre une rue en travers.
+## Essais de pose d'une rue par appel : chaque essai refusé coûte (relief, croisements) ;
+## une grande ville en a des centaines. On reprend la fois suivante là où on s'est arrêté.
+const PROLONGER_BUDGET_US := 25000
+var _prol_curseur := {}
+
+
 func _prolonger(vid: int) -> String:
 	var net := _net()
+	var essais := []  # [a, b, message]
 	for eid in _voies(vid):
 		var e: Dictionary = net.edges[eid]
 		for n in [int(e.a), int(e.b)]:
@@ -420,10 +482,8 @@ func _prolonger(vid: int) -> String:
 				continue
 			var a := net.node_pos(n)
 			var b := a + dir.normalized() * 120.0
-			if pays.payeur_au_point(b.x, b.z) != vid:
-				continue
-			if _route(vid, a, b):
-				return "Rue prolongée de 120 m pour faire de la place."
+			if pays.payeur_au_point(b.x, b.z) == vid:
+				essais.append([a, b, "Rue prolongée de 120 m pour faire de la place."])
 	for eid in _voies(vid):
 		var e: Dictionary = net.edges[eid]
 		var m := net.point_at(eid, float(e.len) * 0.5)
@@ -431,8 +491,26 @@ func _prolonger(vid: int) -> String:
 		var n := Vector3(-tg.z, 0.0, tg.x).normalized()
 		for side in [1.0, -1.0]:
 			var b: Vector3 = m + n * 120.0 * side
-			if pays.payeur_au_point(b.x, b.z) == vid and _route(vid, m, b):
-				return "Nouvelle rue de 120 m pour faire de la place."
+			if pays.payeur_au_point(b.x, b.z) == vid:
+				essais.append([m, b, "Nouvelle rue de 120 m pour faire de la place."])
+	if essais.is_empty():
+		return ""
+	# Les bouts de rue d'abord, puis les rues neuves ; on reprend au curseur si le dernier
+	# appel a manqué de temps.
+	var t0 := Time.get_ticks_usec()
+	var debut := int(_prol_curseur.get(vid, 0)) % essais.size()
+	var ordre := []
+	for k in essais.size():
+		ordre.append((debut + k) % essais.size())
+	for i in ordre:
+		var x: Array = essais[i]
+		if _route(vid, x[0], x[1]):
+			_prol_curseur.erase(vid)
+			return x[2]
+		if Time.get_ticks_usec() - t0 > PROLONGER_BUDGET_US:
+			_prol_curseur[vid] = int(i) + 1
+			return ""
+	_prol_curseur.erase(vid)
 	return ""
 
 

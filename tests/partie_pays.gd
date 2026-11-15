@@ -552,9 +552,9 @@ func _run() -> void:
 	for nom in noms:
 		var vid := int(vids[nom])
 		var ch := pa.chiffres(vid)
-		print("    %-12s %-10s %5d hab | caisse %s (plus bas %s) | chômage %.0f %% | satisfaction %.0f | ventes aux autres villes %s, achats %s" % [nom,
+		print("    %-12s %-10s %5d hab | caisse %s (plus bas %s) | chômage %.0f %% | %d écoles, %d élèves sans école | satisfaction %.0f | ventes aux autres villes %s, achats %s" % [nom,
 			pays.nom_nation(pays.nation_de(vid)), int(ch.hab), BuildingSystem.format_money(pays.solde(vid)), BuildingSystem.format_money(int(min_caisse.get(vid, 0))),
-			float(ch.chomage), float(Objectifs.instance.satisfaction(vid)) if Objectifs.instance != null else -1.0,
+			float(ch.chomage), pa.compter(vid, "ecole"), int(ch.sans_ecole), float(Objectifs.instance.satisfaction(vid)) if Objectifs.instance != null else -1.0,
 			BuildingSystem.format_money(roundi(float(prod.commerce_ville(vid).ventes))), BuildingSystem.format_money(roundi(float(prod.commerce_ville(vid).achats)))])
 	for nk in pays.cles_nations():
 		var cn := prod.commerce_nation(int(nk))

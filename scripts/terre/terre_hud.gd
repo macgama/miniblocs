@@ -66,6 +66,8 @@ signal stats_requested
 signal saisons_requested
 ## Bouton « Vue sous terre » (menu Infos, Page bas sous le rez-de-chaussée).
 signal souterrain_requested
+## Bouton « Mode photo » (menu Infos, F4).
+signal photo_requested
 ## Bouton Admin de la barre du haut, ou F10 : réglages de la partie.
 signal admin_requested
 signal spec_edited(type_id: String, spec: Dictionary)
@@ -138,6 +140,7 @@ const CATEGORIES := [
 	{"id": "cartes", "name": "Cartes", "icon": "cartes", "key": "N", "panel": true, "group": "infos"},
 	{"id": "stats", "name": "Statistiques et conseiller", "icon": "courbe", "key": "Maj+I", "panel": true, "group": "infos"},
 	{"id": "saisons", "name": "Saisons et risques (météo, neige, crues, sécheresse)", "icon": "saisons", "key": "Maj+R", "panel": true, "group": "infos"},
+	{"id": "photo", "name": "Mode photo et time-lapse (Maj+F4)", "icon": "appareil_photo", "key": "F4", "panel": true, "group": "infos"},
 	{"id": "souterrain", "name": "Vue sous terre (tuyaux, câbles, métro, sous-sols)", "icon": "souterrain", "key": "Page bas", "panel": true, "group": "infos"},
 	{"id": "murs", "name": "Murs et étages", "icon": "mur", "key": "2", "panel": true, "mode": "creer"},
 	{"id": "blocs", "name": "Blocs", "icon": "editeur", "key": "3", "panel": true, "mode": "creer"},
@@ -823,6 +826,7 @@ func _on_category(id: String) -> void:
 			"stats": stats_requested.emit()
 			"saisons": saisons_requested.emit()
 			"souterrain": souterrain_requested.emit()
+			"photo": photo_requested.emit()
 		_update_categories()
 		return
 	if create_mode and id == "observer":

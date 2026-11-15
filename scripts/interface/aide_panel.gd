@@ -347,6 +347,12 @@ const SECTIONS := [
 		["E ou clic gauche", "ouvrir ou fermer une porte, une porte de garage (vue au sol), y compris dans les murs fins"],
 		["Échap", "libérer la souris (vue au sol)"],
 	]],
+	["Mode photo et time-lapse", [
+		["F4 (ou Infos → Mode photo)", "le temps se fige, l'interface disparaît, une caméra libre part de ta vue : ZQSD avancer, A / E descendre et monter, clic droit glissé regarder, molette zoomer, Maj vite, Ctrl lent"],
+		["Panneau du mode photo", "heure de la lumière (temps figé), zoom, horizon penché, flou de profondeur, 12 filtres (noir et blanc, sépia, vintage, maquette…), luminosité, contraste, saturation, vignette, grain ; cadrage écran, 16:9, vertical 9:16 (TikTok), carré, 4:5, cinéma ; HD, 2K ou 4K"],
+		["Espace · H · Échap ou F4", "prendre la photo (PNG sans l'interface, dans Images › MiniBlocs › Photos) · masquer le panneau · quitter"],
+		["Maj + F4", "time-lapse : chaque village est filmé depuis sa fondation, une image par jour de jeu vers midi ; lecture accélérée (Espace, ← →), jusqu'à 4 caméras (vue actuelle, « Filmer ce cadrage » du mode photo), export vidéo AVI (MP4 en plus si ffmpeg est installé) ou images, avec la date, les habitants et le logo"],
+	]],
 	["À bord des véhicules", [
 		["E près d'un véhicule", "monter à bord (vue au sol) : voitures, bus, cars, trams, trains, métros, camions, bennes, corbillards, secours, bateaux, avions, tracteurs et machines agricoles, engins de chantier"],
 		["Maj + V", "monter dans le véhicule le plus proche du centre de la vue, depuis n'importe quelle vue ; à bord, revenir à la vue de dessus"],

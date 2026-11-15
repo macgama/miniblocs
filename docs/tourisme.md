@@ -4,7 +4,7 @@ Des touristes viennent dormir en ville, visitent les parcs de loisirs, les zoos,
 les musées, les salles de spectacle et le patrimoine, et dépensent dans les
 hébergements, les restaurants, les commerces et les boutiques de souvenirs.
 
-Menu : barre du bas → **Loisirs ▴ → Tourisme**, ou **Maj+R**.
+Menu : barre du bas → **Loisirs ▴ → Tourisme**, ou **Maj+D**.
 Bâtiments : **Construire (B) → Hôtels et tourisme**, ou l'onglet Bâtir du menu.
 
 ## Bâtiments (`scripts/tourisme/tourisme_types.gd`)

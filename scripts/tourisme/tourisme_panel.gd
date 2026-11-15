@@ -1,6 +1,6 @@
 class_name TourismePanel
 extends CanvasLayer
-## Menu « Tourisme » (barre du bas → Loisirs, ou Maj+R) :
+## Menu « Tourisme » (barre du bas → Loisirs, ou Maj+D) :
 ## - En bref : touristes en ville, arrivées, nuitées, refus, réputation, attrait,
 ##   accès, dépenses dans la ville et ce que la caisse en touche, conseils.
 ## - Hébergements : chaque hôtel, camping, gîte… (étoiles, lits, remplissage,
@@ -60,7 +60,7 @@ func _build() -> void:
 	title.add_theme_font_size_override("font_size", 16)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	head.add_child(title)
-	var x := UiStyle.icon_button("fermer", "Fermer", "Maj+R", 18, 32)
+	var x := UiStyle.icon_button("fermer", "Fermer", "Maj+D", 18, 32)
 	x.pressed.connect(func() -> void: set_open(false))
 	head.add_child(x)
 	var tabs := HBoxContainer.new()
@@ -104,7 +104,7 @@ func toggle() -> void:
 
 func _unhandled_key_input(event: InputEvent) -> void:
 	var k := event as InputEventKey
-	if k and k.pressed and not k.echo and k.physical_keycode == KEY_R and k.shift_pressed and not k.ctrl_pressed and not k.alt_pressed:
+	if k and k.pressed and not k.echo and k.physical_keycode == KEY_D and k.shift_pressed and not k.ctrl_pressed and not k.alt_pressed:
 		toggle()
 		get_viewport().set_input_as_handled()
 

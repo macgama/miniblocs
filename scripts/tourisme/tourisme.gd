@@ -666,7 +666,7 @@ func _arrivees(now: Dictionary) -> void:
 	jour.refus = int(jour.refus) + refus
 	if refus > 10:
 		_penser("complet", [], maxi(1, refus / 10))
-		_warn("lits", "Tourisme : %d touristes n'ont pas trouvé de lit en ville. Construis des hébergements (menu Tourisme, Maj+R → Bâtir)." % refus, 86400.0 * 4.0)
+		_warn("lits", "Tourisme : %d touristes n'ont pas trouvé de lit en ville. Construis des hébergements (menu Tourisme, Maj+D → Bâtir)." % refus, 86400.0 * 4.0)
 	_arrives_auj = 0
 
 

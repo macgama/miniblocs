@@ -82,6 +82,8 @@ var evenements_auto := true
 var catastrophes := true
 ## Fréquence des catastrophes (0,25 : rares ; 1 : normales ; 3 : fréquentes).
 var frequence_catastrophes := 1.0
+## La neige tient sur les routes : il faut des chasse-neige (scripts/saisons).
+var neige_routes := true
 ## Réseaux obligatoires : sans courant, eau ni égouts, les bâtiments en souffrent
 ## (sinon tout est desservi d'office).
 var reseaux_obligatoires := true
@@ -280,7 +282,7 @@ func to_dict() -> Dictionary:
 		"salaires": salaires, "vitesse_temps": vitesse_temps, "vitesse_vie": vitesse_vie,
 		"epuisement": epuisement, "deblocage": deblocage, "createur": createur,
 		"record_habitants": record_habitants, "evenements_auto": evenements_auto, "catastrophes": catastrophes,
-		"frequence_catastrophes": frequence_catastrophes, "faim": faim, "telecom_necessaire": telecom_necessaire, "construction_instantanee": construction_instantanee,
+		"frequence_catastrophes": frequence_catastrophes, "neige_routes": neige_routes, "faim": faim, "telecom_necessaire": telecom_necessaire, "construction_instantanee": construction_instantanee,
 		"horaires_chantiers": horaires_chantiers, "rythme_chantiers": rythme_chantiers, "usure": usure, "dechets": dechets, "dechets_quantite": dechets_quantite, "pollution": pollution, "pollution_sante": pollution_sante,
 		"elections": elections, "manifestations": manifestations, "funeraire": funeraire, "cremation": cremation, "reseaux_obligatoires": reseaux_obligatoires, "prix_services": prix_services,
 		"fondation": fondation, "territoire": territoire, "fondateurs": fondateurs, "vivres_jours": vivres_jours, "main_oeuvre": main_oeuvre,
@@ -311,6 +313,7 @@ func from_dict(d: Dictionary) -> void:
 	evenements_auto = bool(d.get("evenements_auto", true))
 	catastrophes = bool(d.get("catastrophes", true))
 	frequence_catastrophes = clampf(float(d.get("frequence_catastrophes", 1.0)), 0.25, 3.0)
+	neige_routes = bool(d.get("neige_routes", true))
 	reseaux_obligatoires = bool(d.get("reseaux_obligatoires", true))
 	prix_services = clampf(float(d.get("prix_services", 1.0)), PRIX_SERVICES_MIN, PRIX_SERVICES_MAX)
 	elections = String(d.get("elections", "objectifs"))

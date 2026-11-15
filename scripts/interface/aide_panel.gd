@@ -62,6 +62,14 @@ const SECTIONS := [
 		["Incendie, tempête, épidémie à la main", "panneau Infos, onglet Organiser, puis clic sur la carte (Échap pour annuler)"],
 		["Catastrophes", "panneau Admin (F10), section Événements : les couper ou régler leur fréquence"],
 	]],
+	["Saisons et risques naturels", [
+		["Maj+R", "panneau Saisons et risques (menu Infos) : saison, prévisions (3 jours, 7 avec une station météo), records ; vigilances neige, crues, sécheresse, canicule ; déneigement ; calendrier des cultures"],
+		["Neige", "elle tient sur les routes et ralentit tout le monde (secours compris), avec des accidents ; le Centre technique municipal (Construire → Services publics) envoie ses chasse-neige, les grands axes d'abord, et sale : 12 h sans neige qui tient"],
+		["Crues", "plusieurs jours de grosses pluies ou une fonte rapide des neiges : la rivière monte pendant des heures, routes coupées, maisons et champs inondés ; un bassin de rétention fait monter l'eau 25 % moins haut à 3 km"],
+		["Sécheresse", "vigilance, alerte (restrictions d'eau imposées), alerte renforcée (feux de broussailles au bord des bois), crise ; les cultures et les prés souffrent"],
+		["Canicule, gel", "3 jours à 33 °C et plus : canicule ; gelée tardive au printemps : jeunes pousses abîmées"],
+		["Provoquer", "Maj+R, onglet Risques (ou I → Organiser) : chute de neige, crue, sécheresse, canicule, feu de broussailles ; Admin (F10) : neige sur les routes oui / non"],
+	]],
 	["Villages et territoire", [
 		["Début de partie", "sur le globe, cherche la ville de départ ; puis choisis le nom et le drapeau du village et pose sa Maison de commune (pas besoin de route) : avant, on ne peut que regarder et modeler le paysage"],
 		["Drapeau", "Maj+M, bouton Changer… à côté du drapeau d'un village : n'importe quel pays, ou aucun"],
@@ -279,7 +287,7 @@ const SECTIONS := [
 		["Visiteurs", "chemins depuis l'entrée, vue sur les enclos (vitres et douves les meilleures), espèces rares et menacées : note, prestige et dons pour la conservation"],
 	]],
 	["Tourisme", [
-		["Maj + R (Loisirs ▴ → Tourisme)", "menu Tourisme : En bref (touristes en ville, arrivées, nuitées, refus, réputation, dépenses et ce que touche la caisse, conseils), Hébergements, Attractions, Publicité, Bâtir, Avis des touristes"],
+		["Maj + D (Loisirs ▴ → Tourisme)", "menu Tourisme : En bref (touristes en ville, arrivées, nuitées, refus, réputation, dépenses et ce que touche la caisse, conseils), Hébergements, Attractions, Publicité, Bâtir, Avis des touristes"],
 		["Pourquoi ils viennent", "l'attrait des parcs de loisirs, zoos, musées, salles de spectacle et du patrimoine (châteaux, cathédrales, temples, phares) selon leur taille et leur note, plus la variété ; l'été, le vendredi, la réputation de la ville, l'accès (gare, aéroport, port, autocars), l'office de tourisme et la publicité"],
 		["Hébergements", "Construire → Hôtels et tourisme : aire de camping-cars, camping, camping-club, gîte, chambres d'hôtes, auberge de jeunesse, hôtels de 2 à 5 étoiles, résidence, village vacances (et les hôtels de la bible) ; sans lit libre, les touristes repartent ; le prix de la nuit se règle hôtel par hôtel"],
 		["Séjour", "de 1 à 7 nuits (plus long au camping, en résidence, en village vacances, l'été et avec un office de tourisme) ; chaque jour, ils visitent les sites proches de leur hôtel, mangent au restaurant, font leurs courses et achètent des souvenirs"],

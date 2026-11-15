@@ -4,6 +4,13 @@ Tout est dans `main`, et les 9 tests automatiques passent (`sh tests/tous.sh`).
 
 ## Nouveautés
 
+**Saisons, neige, crues et sécheresse** (menu Infos → Saisons et risques, **Maj+R**, 15 novembre)
+- Vraies saisons selon la date et l'hémisphère (saison des pluies et saison sèche sous les tropiques), relevés de chaque jour, records, bilan à chaque changement de saison. Prévisions sur 3 jours, 7 avec une **station météo**.
+- **Neige sur les routes** : elle ralentit tout le monde (secours compris) et provoque des accidents. Le **centre technique municipal** envoie ses chasse-neige saleuses, les grands axes d'abord ; derrière eux, la route est salée 12 h. Le sel se rachète tout seul.
+- **Crues** : après plusieurs jours de grosses pluies ou une fonte des neiges, la rivière déborde pendant des heures (vigilance jaune, orange, rouge) : routes coupées, maisons et champs inondés, pompiers. Les **bassins de rétention** font monter l'eau moins haut.
+- **Sécheresse** : arrêtés vigilance, alerte (restrictions d'eau imposées), alerte renforcée (feux de broussailles au bord des bois), crise ; les cultures et les prés souffrent. **Canicule** (3 jours à 33 °C) et **gelées tardives** au printemps.
+- Calendrier des semis et des récoltes de chaque culture du lieu. Tout se provoque à la main (onglet Risques), et la neige sur les routes se coupe dans l'Admin (F10). Voir docs/saisons.md.
+
 **Ton club de football** (menu Loisirs → Club de sport, **Maj+B**, 14 novembre)
 - Fonde ton club dans un stade de la ville (un des 11 stades ou le terrain de foot) : nom, couleurs. La ville verse 150 000 € de départ ; le club a sa propre caisse et paie la location du stade à la ville.
 - Championnat de 12 clubs, 22 journées le samedi d'août à mai, de la Régionale à la Première Ligue : les deux premiers montent, les deux derniers descendent.

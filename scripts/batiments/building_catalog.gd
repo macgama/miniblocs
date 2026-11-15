@@ -147,6 +147,7 @@ static func all_types() -> Dictionary:
 		_all.merge(CommercesTypes.entries())
 		_all.merge(TelecomTypes.entries())
 		_all.merge(DechetsTypes.entries())
+		_all.merge(SaisonsTypes.entries())
 		_all.merge(ZooTypes.entries())
 		_all.merge(SpectaclesTypes.entries())
 		_all.merge(TourismeTypes.entries())
@@ -268,6 +269,10 @@ static func build_mesh(id: String, material: Material = null, details := true, v
 		return k.to_mesh(material)
 	if t.has("touris"):
 		TourismeTypes.build(k, id, t)
+		k.fit_xz(w, d)
+		return k.to_mesh(material)
+	if t.has("saisons"):
+		SaisonsTypes.build(k, id, t)
 		k.fit_xz(w, d)
 		return k.to_mesh(material)
 	if t.has("dechets"):

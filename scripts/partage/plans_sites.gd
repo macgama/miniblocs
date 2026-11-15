@@ -16,8 +16,9 @@ extends RefCounted
 ## Reposé : chaque bâtiment passe par BuildingSystem.place (prix, accès,
 ## terrassement, chantier), les enclos et les animaux se paient, les décors et
 ## les allées sont offerts. Ce qui ne trouve pas sa place est compté à part.
-## R tourne le plan d'un quart de tour, sauf s'il contient des murs fins ou des
-## blocs libres (ils ne tournent pas encore).
+## R tourne le plan d'un quart de tour : tout tourne avec lui, murs fins (murs,
+## planchers, escaliers, meubles, pièces, aménagements, toit) et blocs libres
+## (leur orientation et les grandes pièces comprises).
 ##
 ## Bibliothèque commune à toutes les parties : user://plans_sites.json.
 ## Coordonnées : en mètres depuis le coin −x −z du rectangle.
@@ -347,8 +348,9 @@ static func dependances(p: Dictionary) -> Dictionary:
 	return out
 
 
-static func peut_tourner(p: Dictionary) -> bool:
-	return (p.get("murs", []) as Array).is_empty() and (p.get("blocs", []) as Array).is_empty()
+## Tous les plans tournent (murs fins et blocs libres compris). Gardé pour les appelants.
+static func peut_tourner(_p: Dictionary) -> bool:
+	return true
 
 
 # --- Rotation --------------------------------------------------------------------------------
@@ -391,6 +393,160 @@ static func rect_batiment(b: Dictionary, p: Dictionary, o: Vector2i, q: int) -> 
 	return Rect2i(pos + o, fp2)
 
 
+## Emprise (coin −x −z, taille) des murs fins m du plan, une fois tournés de q quarts.
+static func rect_murs(m: Dictionary, p: Dictionary, q: int) -> Rect2i:
+	var pd: Dictionary = m.get("plan", {})
+	var x := float(m.get("x", 0))
+	var z := float(m.get("z", 0))
+	var c0 := tourne(Vector2(x, z), float(p.w), float(p.d), q)
+	var c1 := tourne(Vector2(x + float(pd.get("w", 1)), z + float(pd.get("d", 1))), float(p.w), float(p.d), q)
+	var lo := Vector2i(roundi(minf(c0.x, c1.x)), roundi(minf(c0.y, c1.y)))
+	var hi := Vector2i(roundi(maxf(c0.x, c1.x)), roundi(maxf(c0.y, c1.y)))
+	return Rect2i(lo, hi - lo)
+
+
+## Code d'un bloc de l'éditeur libre tourné de q quarts de tour (comme les
+## bâtiments : sa position, « debout » ou « couché », s'applique avant).
+static func code_tourne(code: int, q: int) -> int:
+	if posmod(q, 4) == 0 or BlocFormes.shape_of(code) == BlocFormes.S.FULL:
+		return code
+	return (code & ~(3 << 14)) | (posmod(BlocFormes.rot_of(code) + q, 4) << 14)
+
+
+## Blocs à plat [x, y, z, code, …] (x, z en cases depuis le coin d'une emprise
+## w × d) tournés de q quarts de tour. Une grande pièce (coupole, voûte, tour…)
+## est refaite d'un seul tenant depuis son nouveau coin, chaque case avec son morceau.
+static func tourne_blocs(arr: Array, w: float, d: float, q: int) -> Array:
+	q = posmod(q, 4)
+	if q == 0:
+		return arr.duplicate()
+	var out := []
+	var vues := {}
+	var i := 0
+	while i + 3 < arr.size():
+		var x := int(arr[i])
+		var y := int(arr[i + 1])
+		var z := int(arr[i + 2])
+		var code := int(arr[i + 3])
+		i += 4
+		var sh := BlocFormes.shape_of(code)
+		if not BlocFormes.is_piece(sh):
+			var c := tourne(Vector2(x + 0.5, z + 0.5), w, d, q)
+			out.append_array([floori(c.x), y, floori(c.y), code_tourne(code, q)])
+			continue
+		var part := BlocFormes.part_of(code)
+		var a := Vector3i(x - part.x, y - part.y * BlockEditor.HU, z - part.z)
+		var base := BlocFormes.base_code(code)
+		var cle := "%d|%d|%d|%d" % [a.x, a.y, a.z, base]
+		if vues.has(cle):
+			continue
+		vues[cle] = true
+		var size := BlocFormes.size_of(code)
+		var ext := FormesPlus.piece_extent(sh, size)
+		if BlocFormes.rot_of(code) % 2 == 1:
+			ext = Vector2i(ext.y, ext.x)
+		var c0 := tourne(Vector2(a.x, a.z), w, d, q)
+		var c1 := tourne(Vector2(a.x + ext.x, a.z + ext.y), w, d, q)
+		var na := Vector3i(roundi(minf(c0.x, c1.x)), a.y, roundi(minf(c0.y, c1.y)))
+		var parts := BlockEditor.expand(na, BlocFormes.encode_part(code_tourne(base, q), Vector3i.ZERO, size))
+		for k in parts:
+			var kk: Vector3i = k
+			out.append_array([kk.x, kk.y, kk.z, int(parts[k])])
+	return out
+
+
+## Bâtiment en murs fins (format de BanqueModeles.plan_data : coordonnées depuis le
+## coin de son emprise w × d) tourné de q quarts de tour, comme
+## ModelesJeu.place_rotated. Rend une copie ; w et d s'échangent aux quarts impairs.
+static func tourne_murs(data: Dictionary, q: int) -> Dictionary:
+	q = posmod(q, 4)
+	var out := data.duplicate(true)
+	if q == 0:
+		return out
+	var w := float(data.get("w", 1))
+	var d := float(data.get("d", 1))
+	var pt := func(x: float, z: float) -> Vector2: return tourne(Vector2(x, z), w, d, q)
+	var cell := func(x: int, z: int) -> Vector2i:
+		var c := tourne(Vector2(x + 0.5, z + 0.5), w, d, q)
+		return Vector2i(floori(c.x), floori(c.y))
+	# Murs : les deux bouts tournent ; les côtés a (−z ou −x) et b s'échangent si besoin.
+	var walls := []
+	var wa: Array = data.get("walls", [])
+	var i := 0
+	while i + 8 < wa.size():
+		var x := int(wa[i])
+		var z := int(wa[i + 2])
+		var dw := int(wa[i + 3])
+		var dir := dw & 1
+		var a2: Vector2 = pt.call(float(x), float(z))
+		var b2: Vector2 = pt.call(float(x + (1 if dir == 0 else 0)), float(z + (0 if dir == 0 else 1)))
+		var ndir := 0 if absf(a2.y - b2.y) < 0.01 else 1
+		var n := Vector2(0, -1) if dir == 0 else Vector2(-1, 0)
+		for t in q:
+			n = Vector2(-n.y, n.x)
+		var keep := n.y < 0.0 if ndir == 0 else n.x < 0.0
+		walls.append_array([roundi(minf(a2.x, b2.x)), wa[i + 1], roundi(minf(a2.y, b2.y)), (dw & ~1) | ndir,
+			wa[i + 4] if keep else wa[i + 5], wa[i + 5] if keep else wa[i + 4], wa[i + 6], wa[i + 7], wa[i + 8]])
+		i += 9
+	out["walls"] = walls
+	var floors := []
+	var fa: Array = data.get("floors", [])
+	i = 0
+	while i + 4 < fa.size():
+		var c: Vector2i = cell.call(int(fa[i]), int(fa[i + 2]))
+		floors.append_array([c.x, fa[i + 1], c.y, fa[i + 3], fa[i + 4]])
+		i += 5
+	out["floors"] = floors
+	var stairs := []
+	var sa: Array = data.get("stairs", [])
+	i = 0
+	while i + 4 < sa.size():
+		var c: Vector2i = cell.call(int(sa[i]), int(sa[i + 2]))
+		stairs.append_array([c.x, sa[i + 1], c.y, posmod(int(sa[i + 3]) + q, 4), sa[i + 4]])
+		i += 5
+	out["stairs"] = stairs
+	# Aménagements (bassins, voies, gradins) : leur rectangle tourne.
+	var am := []
+	var aa: Array = data.get("am", [])
+	i = 0
+	while i + 7 < aa.size():
+		var c0: Vector2 = pt.call(float(aa[i]), float(aa[i + 2]))
+		var c1: Vector2 = pt.call(float(aa[i]) + maxf(1.0, float(aa[i + 4])), float(aa[i + 2]) + maxf(1.0, float(aa[i + 5])))
+		var lo := Vector2i(roundi(minf(c0.x, c1.x)), roundi(minf(c0.y, c1.y)))
+		var hi := Vector2i(roundi(maxf(c0.x, c1.x)), roundi(maxf(c0.y, c1.y)))
+		am.append_array([lo.x, aa[i + 1], lo.y, aa[i + 3], hi.x - lo.x, hi.y - lo.y, posmod(int(aa[i + 6]) + q, 4), aa[i + 7]])
+		i += 8
+	out["am"] = am
+	# Meubles : leur coin −x −z change ; leur quart de tour va dans l'autre sens (yaw +r·π/2).
+	var meubles := []
+	var ma: Array = data.get("meubles", [])
+	i = 0
+	while i + 5 < ma.size():
+		var ent := Meubles.get_entry(String(ma[i + 4]))
+		var mr := int(ma[i + 5]) % 4
+		var fp := Meubles.footprint(ent, mr) if not ent.is_empty() else Vector2i.ONE
+		var c0: Vector2 = pt.call(float(ma[i]), float(ma[i + 2]))
+		var c1: Vector2 = pt.call(float(int(ma[i]) + fp.x), float(int(ma[i + 2]) + fp.y))
+		meubles.append_array([roundi(minf(c0.x, c1.x)), ma[i + 1], roundi(minf(c0.y, c1.y)), ma[i + 3], ma[i + 4], posmod(mr - q, 4)])
+		i += 6
+	out["meubles"] = meubles
+	var pieces := []
+	var pa: Array = data.get("pieces", [])
+	i = 0
+	while i + 3 < pa.size():
+		var c: Vector2i = cell.call(int(pa[i]), int(pa[i + 2]))
+		pieces.append_array([c.x, pa[i + 1], c.y, pa[i + 3]])
+		i += 4
+	out["pieces"] = pieces
+	out["blocs"] = tourne_blocs(data.get("blocs", []), w, d, q)
+	if q % 2 == 1:
+		out["w"] = data.get("d", 1)
+		out["d"] = data.get("w", 1)
+		if out.get("etiquettes") is Dictionary:
+			out.etiquettes["taille"] = "%d × %d m" % [int(out.w), int(out.d)]
+	return out
+
+
 # --- Reposer ---------------------------------------------------------------------------------
 
 ## Pose le plan avec son coin −x −z en o, tourné de q quarts de tour.
@@ -401,8 +557,6 @@ static func poser(p: Dictionary, o: Vector2i, q: int, ctx: Dictionary) -> Dictio
 		return {"ok": false, "reason": "Pas de ville ici."}
 	if bs.verrou_reseau:
 		return {"ok": false, "reason": "Les plans de site ne se posent pas encore dans une carte entre amis."}
-	if not peut_tourner(p):
-		q = 0
 	q = posmod(q, 4)
 	var manque := manquants(p)
 	var res := {"ok": true, "poses": 0, "refus": 0, "raisons": [], "cout": 0}
@@ -472,22 +626,23 @@ static func poser(p: Dictionary, o: Vector2i, q: int, ctx: Dictionary) -> Dictio
 			var at := tourne(Vector2(float(r[0]), float(r[1])), w, d, q) + ov
 			if dec.pose(String(r[0]), at.x, at.y, float(r[3]) - q * PI / 2.0, float(r[4])):
 				res.poses += 1
-	# Murs fins (sans rotation).
+	# Murs fins (tournés avec le plan).
 	var mob: Mobilier = ctx.get("mob")
 	for m: Dictionary in p.get("murs", []):
 		if mob == null:
 			_refus(res, "murs fins : pas d'éditeur ici")
 			break
-		var r := BanqueModeles._place_plan(m.plan, o + Vector2i(int(m.x), int(m.z)), mob)
+		var rm := rect_murs(m, p, q)
+		var r := BanqueModeles._place_plan(tourne_murs(m.plan, q), o + rm.position, mob)
 		if bool(r.get("ok", false)):
 			res.poses += 1
 		else:
 			_refus(res, "%s : %s" % [String((m.plan as Dictionary).get("nom", "murs fins")), String(r.get("error", "pas posé"))])
 	# Blocs libres.
 	var be: BlockEditor = ctx.get("blocks")
-	var ba: Array = p.get("blocs", [])
+	var ba: Array = tourne_blocs(p.get("blocs", []), float(w), float(d), q)
 	if be != null and not ba.is_empty():
-		var y_ref := _y_ref(ctx.get("world"), Rect2i(o, Vector2i(w, d)))
+		var y_ref := _y_ref(ctx.get("world"), Rect2i(o, taille(p, q)))
 		var i := 0
 		var n := 0
 		while i + 3 < ba.size():

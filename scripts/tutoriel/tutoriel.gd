@@ -44,6 +44,7 @@ const ETAPES := [
 		"action": ["Voir les fondateurs", "fondateurs"]},
 	{"id": "route", "titre": "Tracer une route",
 		"texte": "Les maisons veulent une route devant la porte : personne n'aime rentrer à travers champs en pantoufles. Trace une route qui part de la Maison de commune.",
+		"texte_rue": "Ta Maison de commune est arrivée avec une petite rue en T, offerte : tu peux déjà construire le long. Mais les maisons veulent une route devant la porte (personne n'aime rentrer à travers champs en pantoufles) : prolonge-la d'au moins 50 m avec l'outil Route, en partant d'un bout du T.",
 		"touches": "5 : outil Route · un clic par point · C : courbe · clic droit : finir",
 		"action": ["Prendre l'outil Route", "route"]},
 	{"id": "zone_r", "titre": "Zoner des logements",
@@ -231,6 +232,14 @@ func minutes_demo() -> int:
 	return int(temps_demo / 60.0)
 
 
+## Texte d'une étape : la variante « rue offerte » quand la Maison de commune a
+## reçu sa rue en T (RueFondation).
+static func texte_de(e: Dictionary) -> String:
+	if e.has("texte_rue") and RueFondation.metres_offerts() > 0.0:
+		return String(e.texte_rue)
+	return String(e.get("texte", ""))
+
+
 func etape_courante() -> Dictionary:
 	return etapes()[etape] if actif and etape < etapes().size() else {}
 
@@ -389,7 +398,7 @@ func est_faite(id: String) -> bool:
 		"fondateurs":
 			return _vus.has("fondateurs_panel")
 		"route":
-			return metres_de_route() >= ROUTE_M
+			return metres_traces() >= ROUTE_M
 		"zone_r":
 			return zones_de(["R"]) > 0
 		"reseaux":
@@ -425,7 +434,7 @@ func est_faite(id: String) -> bool:
 func progres() -> String:
 	match id_courant():
 		"route":
-			return "Route tracée : %d / %d m" % [mini(roundi(metres_de_route()), int(ROUTE_M)), int(ROUTE_M)]
+			return "Route tracée : %d / %d m" % [mini(roundi(metres_traces()), int(ROUTE_M)), int(ROUTE_M)]
 		"reseaux":
 			var s := sources()
 			return "Électricité : %s · Eau : %s · Égouts : %s" % ["oui" if s.elec else "pas encore", "oui" if s.eau else "pas encore",
@@ -454,6 +463,11 @@ func metres_de_route() -> float:
 		if TransportTypes.mode_of(String(e.t)) == TransportTypes.Mode.ROAD:
 			total += float(e.len)
 	return total
+
+
+## Mètres de route tracés par le joueur (sans la rue en T offerte à la fondation).
+func metres_traces() -> float:
+	return maxf(0.0, metres_de_route() - RueFondation.metres_offerts())
 
 
 func zones_de(kinds: Array) -> int:

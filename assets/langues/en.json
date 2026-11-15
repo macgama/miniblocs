@@ -9113,6 +9113,11 @@
 "⚠ %d défunt%s attend%s une place au cimetière.": "⚠ %d deceased waiting for a plot in the cemetery.",
 "⚠ %d émetteur%s saturé%s : ajoute une antenne à côté.": "⚠ %d transmitter%s saturated%s: add an antenna nearby.",
 "⚠ Plus de vivres et pas assez d'argent pour le ravitaillement : les fondateurs ont faim.": "⚠ No more food and not enough money for supplies: the founders are hungry.",
-"✔ Le circuit est complet : tu peux construire.": "✔ The circuit is complete: you can build."
+"✔ Le circuit est complet : tu peux construire.": "✔ The circuit is complete: you can build.",
+"Rue en T offerte devant chaque nouvelle Maison de commune": "Free T-shaped street in front of each new Village Hall",
+"Une petite rue de village en T, gratuite et prête tout de suite, pour poser ses premières maisons (décoche pour partir de rien)": "A small T-shaped village street, free and ready at once, to place your first houses (untick to start from nothing)",
+"Une rue en T est offerte devant la Maison de commune de %s (%d m) : pose tes premières maisons ou une zone résidentielle le long.": "A free T-shaped street has been laid in front of %s's Village Hall (%d m): place your first houses or a residential zone along it.",
+"Pas de place pour la rue offerte devant la Maison de commune (relief, eau ou voie trop proches) : trace ta première rue avec l'outil Route.": "No room for the free street in front of the Village Hall (slope, water or another road too close): draw your first street with the Road tool.",
+"Ta Maison de commune est arrivée avec une petite rue en T, offerte : tu peux déjà construire le long. Mais les maisons veulent une route devant la porte (personne n'aime rentrer à travers champs en pantoufles) : prolonge-la d'au moins 50 m avec l'outil Route, en partant d'un bout du T.": "Your Village Hall came with a small free T-shaped street: you can already build along it. But houses want a road at their door (nobody likes walking home across fields in slippers): extend it by at least 50 m with the Road tool, starting from one end of the T."
 }
 }

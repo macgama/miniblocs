@@ -40,6 +40,8 @@ func _run() -> void:
 	GameStart.place_name = "Valfleuri, Savoie"
 	ReglagesPartie.prochaine = ReglagesPartie.preset("normal")
 	ReglagesPartie.prochaine.fondateurs = 0
+	# Le pilote part de rien et trace lui-même sa première rue : pas de rue en T offerte (tests/rue_fondation_test.gd).
+	ReglagesPartie.prochaine.rue_fondation = false
 	var scene: Node = load("res://scenes/terre.tscn").instantiate()
 	var world: TerrainWorld = scene.get_node("Terrain")
 	var transport: TransportSystem = scene.get_node("Transport")

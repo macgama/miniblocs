@@ -21,6 +21,19 @@ Tant qu'aucun village n'est fondé, un bandeau en haut de l'écran le rappelle, 
 
 La grande **Mairie** (Construire → Services) fonde aussi un village, mais elle demande une route. Posée dans un village qui a déjà une mairie, la plus grande devient le **siège**, l'autre une **mairie annexe**. Si le siège est démoli, une mairie annexe prend le relais ; sans aucune mairie, le panneau l'indique (« sans mairie ») et il suffit d'en reposer une sur le territoire.
 
+### La rue en T offerte
+
+À chaque nouvelle ville, la Maison de commune arrive avec **une petite rue de village en T** (`scripts/communes/rue_fondation.gd`, `RueFondation`) :
+
+- la **barre** du T (100 m) longe la façade, à 8 m du mur : la porte de la mairie donne dessus ; la **jambe** (60 m) part du milieu, droit devant ;
+- c'est une **rue de desserte** (30 km/h, trottoirs), **gratuite** et **prête tout de suite** (pas de chantier) : on peut poser des maisons ou une zone résidentielle le long dès la fondation ;
+- une seule rue, et c'est tout : pas de réseaux, pas de raccord à une autre voie ;
+- si la façade ne laisse pas la place (pente, rivière, autre voie, bâtiment), un T plus court est essayé (80 + 45 m, puis 60 + 30 m), puis les côtés et l'arrière de la mairie ; sinon un message invite à tracer sa première rue ;
+- rien si une voie passe déjà devant la porte (village fondé au bord d'une route, ancienne partie adoptée) ;
+- en multijoueur, c'est le serveur qui la pose et l'envoie à tout le monde.
+
+Le tutoriel en tient compte : l'étape « Tracer une route » demande de **prolonger** le T de 50 m (les mètres offerts ne comptent pas).
+
 ## Le territoire
 
 - Il est fait de **carrés de 100 × 100 m** (1 ha), avec des frontières **automatiques** autour de la mairie.
@@ -71,12 +84,15 @@ Les frontières sont dessinées par un muret translucide de la couleur du villag
 
 - **Fonder un village (Maison de commune) avant de construire** : oui par défaut, non en « Bac à sable libre ».
 - **Bâtiments et zonage seulement sur le territoire de ses villages** : oui par défaut, non en « Bac à sable libre ».
+- **Rue en T offerte devant chaque nouvelle Maison de commune** : oui par défaut ; décocher pour partir de rien (`ReglagesPartie.rue_fondation`).
 
 ## Cartes en ligne (à venir avec le multijoueur)
 
 Sur la carte mondiale, chaque joueur sera maire de **sa** ville. Le territoire servira à la gestion (impôts, élections, chiffres) mais **ne bloquera pas** les autres joueurs, pour garder la règle « pas de parcelles ». Il faudra un `Communes` par joueur.
 
 ## Sauvegarde
+
+La section `rue_fondation` garde les mètres offerts par village : `{version, offertes: {vid: m}}`.
 
 La section `communes` contient `{version, actif, next_id, villages: [{id, nom, bid, cx, cz, rayon, annexes, fonde, couleur, cases: [[x, z]…]}]}`.
 

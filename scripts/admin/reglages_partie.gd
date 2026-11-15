@@ -63,6 +63,9 @@ var acces_route := true
 ## Une partie commence par la fondation d'un village (Maison de commune) :
 ## avant, ni bâtiment, ni zonage, ni voie (scripts/communes).
 var fondation := true
+## Chaque nouvelle ville reçoit une petite rue de village en T, offerte, devant sa
+## Maison de commune, pour poser ses premières maisons tout de suite (RueFondation).
+var rue_fondation := true
 ## Bâtiments et zonage seulement sur le territoire de ses villages.
 var territoire := true
 ## Multiplicateur des impôts touchés par la ville (taxe foncière, impôts des entreprises).
@@ -285,7 +288,7 @@ func to_dict() -> Dictionary:
 		"frequence_catastrophes": frequence_catastrophes, "neige_routes": neige_routes, "faim": faim, "telecom_necessaire": telecom_necessaire, "construction_instantanee": construction_instantanee,
 		"horaires_chantiers": horaires_chantiers, "rythme_chantiers": rythme_chantiers, "usure": usure, "dechets": dechets, "dechets_quantite": dechets_quantite, "pollution": pollution, "pollution_sante": pollution_sante,
 		"elections": elections, "manifestations": manifestations, "funeraire": funeraire, "cremation": cremation, "reseaux_obligatoires": reseaux_obligatoires, "prix_services": prix_services,
-		"fondation": fondation, "territoire": territoire, "fondateurs": fondateurs, "vivres_jours": vivres_jours, "main_oeuvre": main_oeuvre,
+		"fondation": fondation, "rue_fondation": rue_fondation, "territoire": territoire, "fondateurs": fondateurs, "vivres_jours": vivres_jours, "main_oeuvre": main_oeuvre,
 		"tutoriel": tutoriel, "objectifs_ecran": objectifs_ecran}
 
 
@@ -296,6 +299,7 @@ func from_dict(d: Dictionary) -> void:
 	cout_construction = clampf(float(d.get("cout_construction", 1.0)), COUT_MIN, COUT_MAX)
 	acces_route = bool(d.get("acces_route", true))
 	fondation = bool(d.get("fondation", true))
+	rue_fondation = bool(d.get("rue_fondation", true))
 	territoire = bool(d.get("territoire", true))
 	fondateurs = clampi(int(d.get("fondateurs", 100)), 0, FONDATEURS_MAX)
 	vivres_jours = clampi(int(d.get("vivres_jours", 90)), 0, VIVRES_MAX)

@@ -191,6 +191,8 @@ func _run() -> void:
 	var globe: Node = current_scene
 	globe.select_place(46.2, 6.6, "Valpartie (test)", true)
 	ReglagesPartie.prochaine.tutoriel = false
+	# Ce parcours trace lui-même son plan de rues : pas de rue en T offerte (tests/rue_fondation_test.gd).
+	ReglagesPartie.prochaine.rue_fondation = false
 	globe.start_game()
 	game = await _wait_game()
 	_check(game != null and game.name == "Terre", "la partie s'ouvre")

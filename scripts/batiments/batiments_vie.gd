@@ -156,7 +156,7 @@ func fin_prevue(bid: int) -> float:
 func _payer_reste(b: Dictionary) -> void:
 	var du := int(b.get("du", 0))
 	if du > 0 and not buildings.unlimited_money:
-		var caisse_prev := Pays.au_rect(buildings._rect_of(b))
+		var caisse_prev := Pays.du_batiment(b, buildings._rect_of(b))
 		buildings.money -= du
 		Pays.retour(caisse_prev)
 	b.erase("du")
@@ -332,7 +332,7 @@ func _update_chantiers() -> void:
 		# Arrêté faute d'argent (ses ouvriers sont partis ailleurs) : il reprend quand
 		# la caisse peut payer une semaine de travaux.
 		if b.get("attente", false):
-			var caisse_a := Pays.au_rect(buildings._rect_of(b))
+			var caisse_a := Pays.du_batiment(b, buildings._rect_of(b))
 			if buildings.unlimited_money or buildings.money >= _part_semaine(b, k):
 				b.erase("attente")
 			Pays.retour(caisse_a)
@@ -350,7 +350,7 @@ func _update_chantiers() -> void:
 			if du > 0:
 				var part := mini(du, ceili(float(b.get("cost", 0)) * dp))
 				# Chaque chantier est payé par la caisse de sa ville (ou du pays).
-				var caisse_prev := Pays.au_rect(buildings._rect_of(b))
+				var caisse_prev := Pays.du_batiment(b, buildings._rect_of(b))
 				if not buildings.unlimited_money and buildings.money < part:
 					if not b.get("attente", false):
 						_alerte_argent(String(b.t))

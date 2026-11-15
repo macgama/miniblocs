@@ -82,6 +82,11 @@ var blocker: Callable
 ## Si défini, Callable() -> String : raison qui interdit de tracer une voie à la
 ## souris (village pas encore fondé), ou "".
 var build_gate: Callable
+## Multijoueur (client) : le réseau ne change que sur ordre du serveur (appliquer_reseau) ;
+## ce que trace le joueur part par relais : Callable(action: Dictionary).
+var verrou_reseau := false
+var _par_reseau := false
+var relais: Callable
 
 
 func _ready() -> void:
@@ -389,6 +394,8 @@ static func pa_s(e: Dictionary, i: int, a0: Vector2, x: Vector2) -> float:
 ## autoroute : deux sorties et deux entrées (bretelles à sens unique) qui
 ## rejoignent la route de part et d'autre. Renvoie {ok, reason, ramps}.
 func make_interchange(p: Vector3) -> Dictionary:
+	if bloque_reseau():
+		return {"ok": false, "reason": "En ligne, les échangeurs se posent par le serveur."}
 	var xc := separated_crossing_near(p, 60.0)
 	if xc.is_empty():
 		return {"ok": false, "reason": "Pas d'échangeur possible ici : il faut une route qui passe au-dessus ou au-dessous d'une autoroute (ou d'une voie express). Pose la route en travers de l'autoroute, elle passe dessus toute seule."}
@@ -455,6 +462,8 @@ static func _xz(v: Vector3) -> Vector2:
 ## cercle autour du carrefour, et des arcs à sens unique (sens inverse des
 ## aiguilles d'une montre, vu du dessus) relient les branches. Renvoie {ok, reason}.
 func make_roundabout(nid: int) -> Dictionary:
+	if bloque_reseau():
+		return {"ok": false, "reason": "En ligne, les giratoires se posent par le serveur.", "radius": 0.0}
 	if not network.nodes.has(nid) or network.node_mode(nid) != TransportTypes.Mode.ROAD:
 		return {"ok": false, "reason": "Il faut un carrefour routier."}
 	var adj: Array = (network.adjacency[nid] as Array).duplicate()
@@ -644,27 +653,18 @@ func _unhandled_input(event: InputEvent) -> void:
 			return
 		if tool == Tool.DEMOLISH:
 			if _highlight_edge >= 0:
-				demolish(_highlight_edge)
+				if relais.is_valid():
+					relais.call({"t": "voie_demolir", "eid": _highlight_edge})
+				else:
+					demolish(_highlight_edge)
 			return
 		if tool == Tool.JUNCTION:
-			if junction_action == "echangeur":
-				var xres := make_interchange(_cursor)
-				message.emit("Échangeur construit : 2 sorties et 2 entrées." if xres.ok else String(xres.reason))
+			if relais.is_valid():
+				relais.call({"t": "carrefour", "action": junction_action, "p": _cursor, "maj": mb.shift_pressed})
 				return
-			var nid := junction_at(_cursor)
-			if nid >= 0 and (mb.shift_pressed or junction_action == "giratoire"):
-				var res := make_roundabout(nid)
-				message.emit("Giratoire de %d m de rayon construit." % roundi(res.radius) if res.ok else String(res.reason))
-				return
-			if nid < 0:
-				if not separated_crossing_near(_cursor, 40.0).is_empty():
-					message.emit("Ici, la route passe au-dessus de l'autoroute : choisis « Échangeur » pour la relier par des bretelles.")
-				else:
-					message.emit("Pas de carrefour ici (il faut au moins trois routes qui se rejoignent).")
-			else:
-				junctions.cycle(nid)
-				info_changed.emit(junctions.describe(nid) + " · clic : régime suivant")
-				message.emit(String(JunctionControl.MODE_NAMES[junctions.mode_of(nid)]) + (" : " + String(JunctionControl.MODE_NAMES[junctions.kind(nid)]).to_lower() if junctions.mode_of(nid) == "auto" else "") + ".")
+			var txt := appliquer_carrefour(junction_action, _cursor, mb.shift_pressed)
+			if txt != "":
+				message.emit(txt)
 			return
 		_click_build()
 	elif event is InputEventKey:
@@ -685,6 +685,41 @@ func _unhandled_input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 
 
+## Clic de l'outil Carrefour au point p (giratoire, échangeur, régime des feux).
+## Renvoie le message pour le joueur.
+func appliquer_carrefour(action: String, p: Vector3, maj := false) -> String:
+	if bloque_reseau():
+		return ""
+	if action == "echangeur":
+		var xres := make_interchange(p)
+		return "Échangeur construit : 2 sorties et 2 entrées." if xres.ok else String(xres.reason)
+	var nid := junction_at(p)
+	if nid >= 0 and (maj or action == "giratoire"):
+		var res := make_roundabout(nid)
+		return "Giratoire de %d m de rayon construit." % roundi(res.radius) if res.ok else String(res.reason)
+	if nid < 0:
+		if not separated_crossing_near(p, 40.0).is_empty():
+			return "Ici, la route passe au-dessus de l'autoroute : choisis « Échangeur » pour la relier par des bretelles."
+		return "Pas de carrefour ici (il faut au moins trois routes qui se rejoignent)."
+	junctions.cycle(nid)
+	info_changed.emit(junctions.describe(nid) + " · clic : régime suivant")
+	return String(JunctionControl.MODE_NAMES[junctions.mode_of(nid)]) + (" : " + String(JunctionControl.MODE_NAMES[junctions.kind(nid)]).to_lower() if junctions.mode_of(nid) == "auto" else "") + "."
+
+
+## Multijoueur : vrai sur un client quand le changement ne vient pas du serveur.
+func bloque_reseau() -> bool:
+	return verrou_reseau and not _par_reseau
+
+
+## Applique un changement reçu du serveur (le verrou du client est levé le temps de f).
+func appliquer_reseau(f: Callable) -> Variant:
+	var avant := _par_reseau
+	_par_reseau = true
+	var r: Variant = f.call()
+	_par_reseau = avant
+	return r
+
+
 func _click_build() -> void:
 	if build_gate.is_valid():
 		var why := String(build_gate.call())
@@ -701,6 +736,18 @@ func _click_build() -> void:
 	if curve_mode and _ctrl == null and (_start.dir as Vector2) == Vector2.ZERO:
 		var t := _cursor_target()
 		_ctrl = Vector2(t.x, t.z)
+		_update_preview()
+		return
+	if relais.is_valid():
+		# Multijoueur : le serveur pose la voie chez tout le monde ; on continue le
+		# tracé depuis le dernier point, dans le prolongement.
+		var path := _current_path()
+		relais.call({"t": "voie", "id": type_id, "spec": spec.duplicate(true), "path": path})
+		var n := path.size()
+		var last := path[n - 1]
+		var dir := (path[n - 1] - path[maxi(n - 2, 0)]).normalized()
+		_start = {"node": -1, "edge": -1, "pos": Vector3(last.x, ground_height(last.x, last.y), last.y), "dir": dir}
+		_ctrl = null
 		_update_preview()
 		return
 	var res := build_path(type_id, spec, _current_path())
@@ -1174,6 +1221,8 @@ func build_segment(id: String, a: Vector3, b: Vector3, s: Dictionary = {}) -> Di
 ## croisements, terrassement. Renvoie le plan avec en plus start_node,
 ## end_node, edges (créés) et junctions.
 func build_path(id: String, s: Dictionary, path: PackedVector2Array) -> Dictionary:
+	if bloque_reseau():
+		return {"ok": false, "reason": "En ligne, les voies se posent par le serveur."}
 	id = TransportTypes.resolve(id)
 	if s.is_empty():
 		s = _specs.get(id, TransportTypes.default_spec(id))
@@ -1263,7 +1312,7 @@ func _resolve(snap: Dictionary, p: Vector3, mode: int) -> int:
 
 
 func demolish(id: int) -> void:
-	if not network.edges.has(id):
+	if not network.edges.has(id) or bloque_reseau():
 		return
 	var e: Dictionary = network.edges[id]
 	var name_: String = TransportTypes.get_type(e.t).name

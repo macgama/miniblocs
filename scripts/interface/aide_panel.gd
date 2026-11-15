@@ -121,6 +121,12 @@ const SECTIONS := [
 		["F10 → Aide", "relancer le tutoriel (il reprend à la première étape pas faite) ou masquer les objectifs à l'écran"],
 		["Objectifs à l'écran", "sous le tutoriel : rang de la ville gérée et ce qui manque pour monter, missions du pays avec leur progrès, les jours restants et la prime ; clic sur « Objectifs » : panneau Maj+J ; ▾ replie"],
 	]],
+	["Carte entre amis (en ligne)", [
+		["Menu principal → Entre amis", "rejoindre la carte d'un ami (adresse du serveur, code d'invitation, pseudo) ou héberger une de tes parties sur ce PC"],
+		["F3", "joueurs connectés et villes de chacun, code d'invitation (admin), discussion, Resynchroniser, Quitter la carte"],
+		["Ta caisse", "celle de ta ville si tu en es le maire, sinon ta caisse personnelle (l'argent de départ) ; hors de tes villes, c'est toi qui paies"],
+		["Admin", "le créateur de la carte : réglages (F10), vitesse du temps (T, Maj+T), nouveau code, exclure, arrêter le serveur"],
+	]],
 	["Budget de la commune", [
 		["M", "panneau Budget : bilan du mois, impôts votés par le maire, emprunts, entretien et état des voies"],
 		["Impôts", "taxe foncière, impôt des entreprises, impôt sur les bénéfices de 0 à 200 % : plus haut, la caisse se remplit et les habitants râlent"],

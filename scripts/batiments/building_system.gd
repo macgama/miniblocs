@@ -78,6 +78,13 @@ var extra_check: Callable
 var remise: Callable
 var remise_utilisee: Callable
 
+## Multijoueur (client) : les bâtiments ne changent que sur ordre du serveur
+## (voir appliquer_reseau) ; ce que fait le joueur à la souris part par relais.
+var verrou_reseau := false
+var _par_reseau := false
+## Optionnel : Callable(action: Dictionary), envoie au serveur une pose ou une démolition.
+var relais: Callable
+
 var _nodes: Dictionary = {} # id -> MeshInstance3D
 var _meshes: Dictionary = {} # type -> ArrayMesh
 var _meshes_far: Dictionary = {} # type -> ArrayMesh sans finitions (vu de loin)
@@ -483,7 +490,7 @@ func check_place(id: String, center: Vector2i, r: int, grown := false, a := 0.0)
 		# Plusieurs villes : c'est la caisse de la ville du lieu (ou du pays) qui paie.
 		var dispo := money
 		var qui := ""
-		if Pays.instance != null and Pays.instance.a_des_villes():
+		if Pays.instance != null and (Pays.instance.a_des_villes() or Pays.payeur_force != -1):
 			var k := Pays.instance.payeur_du_rect(rect)
 			dispo = Pays.instance.solde(k)
 			qui = " dans la caisse de " + Pays.instance.nom_de(k)
@@ -511,6 +518,8 @@ func best_rotation(id: String, center: Vector2i) -> int:
 ## Pose un bâtiment centré sur une case. Renvoie son id, ou -1 (raison dans message).
 ## zone > 0 : le bâtiment pousse dans cette zone (gratuit, sans message).
 func place(id: String, center: Vector2i, r: int, zone := 0, a := 0.0) -> int:
+	if bloque_reseau():
+		return -1
 	var res := check_place(id, center, r, zone > 0, a)
 	if not res.ok:
 		if zone == 0:
@@ -531,6 +540,9 @@ func place(id: String, center: Vector2i, r: int, zone := 0, a := 0.0) -> int:
 	var e := {"id": bid, "t": id, "x": rect.position.x, "z": rect.position.y, "r": r, "a": a, "h": res.h, "cost": res.cost, "zone": zone}
 	if chantier and int(res.cost) > 0:
 		e["du"] = int(res.cost)
+	# Multijoueur : payé par la caisse du joueur, hors de ses villes.
+	if Pays.payeur_force != -1:
+		e["caisse"] = Pays.payeur_force
 	_add(e)
 	if int(res.get("remise", 0)) > 0 and remise_utilisee.is_valid():
 		remise_utilisee.call(bid, id, rect)
@@ -549,7 +561,7 @@ var demolish_check: Callable
 
 
 func demolish(bid: int) -> void:
-	if not buildings.has(bid):
+	if not buildings.has(bid) or bloque_reseau():
 		return
 	if demolish_check.is_valid():
 		var why := String(demolish_check.call(bid))
@@ -568,7 +580,7 @@ func demolish(bid: int) -> void:
 	# Chantier pas fini : seule la part déjà payée compte.
 	var back := roundi(float(int(b.get("cost", 0)) - int(b.get("du", 0))) * REFUND)
 	if not unlimited_money:
-		var caisse_prev := Pays.au_rect(rect)
+		var caisse_prev := Pays.du_batiment(b, rect)
 		money += back
 		Pays.retour(caisse_prev)
 	if _hover_building == bid:
@@ -581,7 +593,7 @@ func demolish(bid: int) -> void:
 ## Retire un bâtiment sans remboursement ni message (il est remplacé, par
 ## exemple reconstruit en murs fins).
 func remove_quietly(bid: int) -> void:
-	if not buildings.has(bid):
+	if not buildings.has(bid) or bloque_reseau():
 		return
 	var b: Dictionary = buildings[bid]
 	for c in _cells_of(b):
@@ -599,11 +611,25 @@ func remove_quietly(bid: int) -> void:
 
 ## Remet un bâtiment retiré par remove_quietly (même id, mêmes données).
 func restore(b: Dictionary) -> void:
-	if buildings.has(int(b.id)):
+	if buildings.has(int(b.id)) or bloque_reseau():
 		return
 	_add(b)
 	last_change_rect = _rect_of(b).grow(3)
 	changed.emit()
+
+
+## Multijoueur : vrai sur un client quand le changement ne vient pas du serveur.
+func bloque_reseau() -> bool:
+	return verrou_reseau and not _par_reseau
+
+
+## Applique un changement reçu du serveur (le verrou du client est levé le temps de f).
+func appliquer_reseau(f: Callable) -> Variant:
+	var avant := _par_reseau
+	_par_reseau = true
+	var r: Variant = f.call()
+	_par_reseau = avant
+	return r
 
 
 func building_at(c: Vector2i) -> int:
@@ -757,6 +783,17 @@ func _unhandled_input(event: InputEvent) -> void:
 		if not _cursor_valid:
 			return
 		get_viewport().set_input_as_handled()
+		if relais.is_valid():
+			# Multijoueur : le serveur décide, la ville change chez tout le monde.
+			if mode == Mode.DEMOLISH:
+				if _hover_building >= 0 and buildings.has(_hover_building):
+					var hb: Dictionary = buildings[_hover_building]
+					var hc := _center_of(hb)
+					relais.call({"t": "demolir", "bid": _hover_building, "c": [hc.x, hc.y]})
+			else:
+				relais.call({"t": "poser", "id": type_id, "c": [_place_center.x, _place_center.y], "r": rot, "a": angle,
+					"perso": place_perso, "v": place_variant})
+			return
 		if mode == Mode.DEMOLISH:
 			if _hover_building >= 0:
 				var at := _nodes[_hover_building].global_position as Vector3 if _nodes.has(_hover_building) else Vector3.ZERO
@@ -936,7 +973,7 @@ func to_dict() -> Dictionary:
 		var e := {"id": b.id, "t": b.t, "x": b.x, "z": b.z, "r": b.r, "a": b.get("a", 0.0), "h": b.h, "cost": b.get("cost", 0), "zone": b.get("zone", 0)}
 		# Variante du modèle, dates, avancement et reste à payer du chantier (BatimentsVie) ;
 		# chantier en pause ou passé en premier, places du campement (Fondateurs).
-		for key in ["v", "ne", "fin", "av", "hr", "du", "perso", "pause", "ordre", "nlog", "nemp"]:
+		for key in ["v", "ne", "fin", "av", "hr", "du", "perso", "pause", "ordre", "nlog", "nemp", "caisse"]:
 			if b.has(key):
 				e[key] = b[key]
 		list.append(e)
@@ -968,7 +1005,7 @@ func from_dict(data: Dictionary) -> void:
 			e["pause"] = true
 		if b.has("ordre"):
 			e["ordre"] = float(b.ordre)
-		for key in ["nlog", "nemp"]:
+		for key in ["nlog", "nemp", "caisse"]:
 			if b.has(key):
 				e[key] = int(b[key])
 		var pd = b.get("perso", {})

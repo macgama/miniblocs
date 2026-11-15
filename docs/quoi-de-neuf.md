@@ -4,6 +4,12 @@ Tout est dans `main`, et les 9 tests automatiques passent (`sh tests/tous.sh`).
 
 ## Nouveautés
 
+**Carte entre amis : premier serveur** (menu principal → **Entre amis**, **F3** en jeu, 15 novembre)
+- Héberge une de tes parties sur ton PC, ou lance le jeu en serveur sans écran (`--serveur`) sur une machine toujours allumée : la carte reste ouverte même quand tu n'es pas là.
+- Tes amis entrent avec un code d'invitation (une seule fois, ensuite ils sont membres). Tu es l'admin : réglages, vitesse du temps, nouveau code, exclure, arrêter le serveur.
+- Chacun a sa caisse : l'argent de départ, puis celle du village qu'il fonde (il en devient le maire). Hors de tes villes, c'est toi qui paies.
+- Synchronisés : bâtiments, villages, voies et carrefours, terrain et paysage, caisses, heure, discussion. Le reste (zonage, éditeur libre, réseaux, lignes, panneaux de gestion) viendra ensuite. Voir docs/multijoueur.md.
+
 **Ton club de football** (menu Loisirs → Club de sport, **Maj+B**, 14 novembre)
 - Fonde ton club dans un stade de la ville (un des 11 stades ou le terrain de foot) : nom, couleurs. La ville verse 150 000 € de départ ; le club a sa propre caisse et paie la location du stade à la ville.
 - Championnat de 12 clubs, 22 journées le samedi d'août à mai, de la Régionale à la Première Ligue : les deux premiers montent, les deux derniers descendent.

@@ -57,6 +57,11 @@ const TAUX_DOUANE := 0.05
 const TAUX_DOUANE_MAX := 0.30
 
 static var instance: Pays
+## Multijoueur : caisses personnelles des joueurs sans ville (clés JOUEUR_BASE, JOUEUR_BASE - 1…).
+const JOUEUR_BASE := -1000
+## Multijoueur (serveur) : caisse qui paie ce que fait le joueur dont on applique
+## l'action, quel que soit le lieu (-1 : la règle habituelle, la ville du lieu).
+static var payeur_force := -1
 
 var buildings: BuildingSystem
 var communes: Communes
@@ -220,6 +225,8 @@ func nation_du_code(code: String) -> int:
 
 
 func nom_de(k: int) -> String:
+	if est_caisse_joueur(k):
+		return "ta caisse personnelle"
 	if est_nation(k):
 		return nom_nation(k)
 	if communes != null and communes.villages.has(k):
@@ -344,6 +351,8 @@ func illimite() -> bool:
 
 ## Caisse qui paie ce qui se fait au point (x, z) : la ville du lieu, sinon le pays.
 func payeur_au_point(x: float, z: float) -> int:
+	if payeur_force != -1:
+		return payeur_force
 	if communes == null:
 		return PAYS
 	var v := communes.village_au_point(x, z)
@@ -376,6 +385,8 @@ func payeur_de_voie(eid: int) -> int:
 
 ## Caisse d'un chantier suivi (SuiviChantiers), d'après sa clé.
 func payeur_de_cle(cle: String) -> int:
+	if payeur_force != -1:
+		return payeur_force
 	if cle.begins_with("voie:") or cle.begins_with("reparation:"):
 		var eid := int(cle.get_slice(":", 1))
 		if network != null and network.edges.has(eid):
@@ -408,12 +419,16 @@ func sortir(p: int) -> void:
 
 ## Raccourcis sans dépendance : -1 si pas de pays.
 static func au_point(x: float, z: float) -> int:
+	if payeur_force != -1 and instance != null:
+		return instance.entrer(payeur_force)
 	if instance == null or not instance.a_des_villes():
 		return -1
 	return instance.entrer(instance.payeur_au_point(x, z))
 
 
 static func au_rect(rect: Rect2i) -> int:
+	if payeur_force != -1 and instance != null:
+		return instance.entrer(payeur_force)
 	if instance == null or not instance.a_des_villes():
 		return -1
 	return instance.entrer(instance.payeur_du_rect(rect))
@@ -426,14 +441,27 @@ static func au_batiment(bid: int) -> int:
 
 
 static func a_la_caisse(k: int) -> int:
-	if instance == null or k < 0:
+	if instance == null or (k < 0 and not est_caisse_joueur(k)):
 		return -1
 	return instance.entrer(k)
 
 
 static func retour(p: int) -> void:
-	if instance != null and p >= 0:
+	if instance != null and (p >= 0 or est_caisse_joueur(p)):
 		instance.sortir(p)
+
+
+## Caisse d'un bâtiment posé (chantier, remboursement) : celle qui l'a payé en
+## multijoueur (clé « caisse », hors de ses villes), sinon la ville du lieu.
+static func du_batiment(b: Dictionary, rect: Rect2i) -> int:
+	if b.has("caisse"):
+		return a_la_caisse(int(b.caisse))
+	return au_rect(rect)
+
+
+## Caisse personnelle d'un joueur sans ville (multijoueur).
+static func est_caisse_joueur(k: int) -> bool:
+	return k <= JOUEUR_BASE
 
 
 ## Caisse active du moment (pour la retenir, par exemple à la création d'un chantier).

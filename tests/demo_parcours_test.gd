@@ -360,9 +360,7 @@ func _run() -> void:
 		print("    réseaux payés : %s (bons du kit)" % BuildingSystem.format_money(m0 - bs.money)))
 
 	if soigneux:
-		# Un maire prévoyant : déchets et dépôt de marchandises (import).
-		print("    soigneux : collecte %d, décharge %d" % [_poser("depot_collecte", 190, -190, -120, -1),
-			_poser("decharge", 190, -190, -120, -1)])
+		# Un maire prévoyant : dépôt de marchandises (import).
 		var dp: Dictionary = tr.stations.place("depot", _p(100, -120 - 5))
 		print("    dépôt de marchandises : %s" % dp.get("reason", "ok"))
 
@@ -375,6 +373,15 @@ func _run() -> void:
 	await _etape("ecole", func() -> void:
 		_check(game.build_panel.category() == "services", "Construire → Services ouvert")
 		_check(_poser("ecole", 196, -196, 100, 1) >= 0, "école"))
+
+	await _etape("dechets", func() -> void:
+		_check(game.build_panel.category() == "dechets", "Construire → Déchets ouvert")
+		var m0 := bs.money
+		_check(_poser("depot_collecte", 190, -190, -120, -1) >= 0, "dépôt de collecte")
+		# La décharge à l'écart des maisons, au bout du territoire (500 m).
+		_route(Vector2(200, -120), Vector2(480, -120))
+		_check(_poser("decharge", 420, 200, -120, -1) >= 0, "décharge")
+		print("    déchets payés : %s (bons du kit)" % BuildingSystem.format_money(m0 - bs.money)))
 
 	await _etape("budget", func() -> void: _check(game.budget_panel.is_open(), "budget ouvert"))
 	await _etape("objectifs", func() -> void: _check(game.objectifs_panel.is_open(), "objectifs ouverts"))
@@ -428,6 +435,19 @@ func _run() -> void:
 			agrandi += 1
 	_check(t.id_courant() == "fin_demo", "cent habitants (%s, %.0f min)" % [t.progres(), t.temps_demo / 60.0])
 	_ligne("village")
+	# Le rang de Village (100 habitants et 50 % de satisfaction) : la ville est
+	# examinée chaque jour, on laisse filer le temps jusqu'au rang, dans les 45 min.
+	_avis()
+	var dernier := -1
+	var fin_rang := minf(45.0 * 60.0, t.temps_demo + 10.0 * 60.0)
+	while t.rang() < 1 and t.temps_demo < fin_rang:
+		await process_frame
+		var mn := int(t.temps_demo / 60.0)
+		if mn != dernier:
+			dernier = mn
+			_ligne("rang (en cours)")
+	_check(t.rang() >= 1, "rang de Village atteint (%.1f min, satisfaction %d)" % [t.temps_demo / 60.0, t.satisfaction_ville()])
+	_ligne("rang")
 	_avis()
 
 	print("Bilan :")
@@ -507,6 +527,38 @@ func _avis() -> void:
 		var bi: Dictionary = rb.bilan()
 		print("      bilan %s : %s · sources %s" % [r, bi, rb.sources.values()])
 		print("    réseau %s : %d logements sur %d sans service · sources %s" % [r, manque, n, (res.get(r).sources as Dictionary).keys()])
+	# Personnel des commerces (files d'attente) et collecte des déchets.
+	var eff = game.population.effectif
+	for bid in game.population.known:
+		var info: Dictionary = game.population.known[bid]
+		if String(info.cat) == "commerce" or (info.serves as Array).has("shopping"):
+			var e: Dictionary = eff.etat(bid) if eff != null else {}
+			print("    commerce %s #%d : %s" % [info.t, bid, {"embauches": e.get("embauches"), "prevus": e.get("prevus"),
+				"besoin": e.get("besoin"), "clients": e.get("clients"), "manque": e.get("manque"), "ferme": e.get("ferme")}])
+	var dch = game.get_node_or_null("Dechets")
+	if dch != null:
+		print("    déchets : %s · %d bacs qui débordent" % [dch.summary(), (dch.overflowing() as Array).size()])
+		for sid in dch.sites:
+			var mets := {}
+			for pid in game.population.by_job.get(sid, []):
+				var m := String(game.population.persons[pid].met)
+				mets[m] = int(mets.get(m, 0)) + 1
+			print("      site %s : %s · personnel %s" % [dch.sites[sid].role, dch.sites[sid].get("status", ""), mets])
+		print("      tournées : %d (aujourd'hui %d)" % [int(dch.totaux.tournees), int(dch.today.tournees)])
+	var postes := 0
+	var pourvus := 0
+	for bid in game.population.known:
+		postes += int(game.population.known[bid].get("emp", 0)) if String(game.population.known[bid].cat) != "logement" else 0
+		pourvus += (game.population.by_job.get(bid, []) as Array).size()
+	print("    emplois : %d pourvus sur %d postes" % [pourvus, postes])
+	var par_type := {}
+	for bid in game.population.known:
+		var inf: Dictionary = game.population.known[bid]
+		if int(inf.get("emp", 0)) > 0 and String(inf.cat) != "logement":
+			var k := String(inf.t)
+			var v: Array = par_type.get(k, [0, 0])
+			par_type[k] = [int(v[0]) + (game.population.by_job.get(bid, []) as Array).size(), int(v[1]) + int(inf.emp)]
+	print("    postes par type (pourvus, prévus) : %s" % par_type)
 	var mf = av.get("manifs")
 	if mf != null:
 		print("    manifestations : %s" % str(mf.get("colere")))

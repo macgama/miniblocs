@@ -46,3 +46,12 @@ Section `fondateurs` : `{version, arrives, camp, membres, foyers_depart, vivres,
 - `BatimentsVie` et `SuiviChantiers` multiplient l'avancement par ce facteur.
 - `Population.avant_arrivees` (les fondateurs s'installent avant les arrivées), `BuildingSystem.demolish_check(bid)` (raison qui empêche de démolir).
 - `Fondateurs.est_campement(bid)`, `Fondateurs.nourris(bid)`.
+
+## Fondateurs sans chantier (2026-11-15)
+
+Chaque matin, les fondateurs qui n'ont pas de chantier (`Fondateurs.libres`)
+vont d'eux-mêmes tenir les bâtiments fermés faute d'un métier indispensable :
+dépôt de collecte sans ses trois éboueurs (une benne), boulangerie sans
+boulanger, école sans enseignant… autant qu'il en faut pour ouvrir, puis les
+commerces où l'on fait la queue (`Fondateurs.depanner`, un message par
+bâtiment). On peut toujours les rappeler au chantier depuis Maj+H.

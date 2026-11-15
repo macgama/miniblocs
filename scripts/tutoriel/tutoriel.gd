@@ -67,6 +67,10 @@ const ETAPES := [
 		"texte": "Les enfants grandissent vite, et pas toujours sagement. Construis une école reliée à la route : sans elle, ta ville ne deviendra jamais un Bourg.",
 		"touches": "B : Construire → Services → École",
 		"action": ["Ouvrir les services", "ecole"]},
+	{"id": "dechets", "titre": "Ramasser les poubelles",
+		"texte": "Chaque habitant jette près d'un kilo et demi d'ordures par jour, et elles ne partent pas toutes seules. Sans collecte, les sacs s'entassent sur le trottoir et tout le village sent la poubelle. Pose un dépôt de collecte (les bennes et leurs éboueurs) et une décharge pour les recevoir, chacun près d'une route. Mets la décharge à l'écart des maisons, au bout du territoire : elle sent fort. Les bons du kit de l'État en paient une bonne partie.",
+		"touches": "B : Construire → Déchets et propreté · X : panneau des déchets",
+		"action": ["Ouvrir les déchets", "dechets"]},
 	{"id": "budget", "titre": "Surveiller la caisse",
 		"texte": "Impôts, dépenses, emprunts : tout est dans le budget. Si la caisse est à sec, un emprunt dépanne, mais il faudra le rembourser. Conseil d'ami : une caisse vide n'a jamais construit de pont.",
 		"touches": "M : budget de la ville",
@@ -273,7 +277,7 @@ func agir() -> void:
 		_suivante()
 		return
 	if id == "bilan":
-		# Le chapitre de fin compte comme fait dans le bilan (17 / 17).
+		# Le chapitre de fin compte comme fait dans le bilan (18 / 18).
 		demo_finie = true
 		faits[id_courant()] = true
 		bilan_demande.emit()
@@ -372,6 +376,8 @@ func sans_objet(id: String) -> bool:
 			return r.fondateurs <= 0 or (f != null and _villages() > 0 and not bool(f.arrives))
 		"reseaux":
 			return not r.reseaux_obligatoires
+		"dechets":
+			return not Dechets.actif()
 	return false
 
 
@@ -410,6 +416,9 @@ func est_faite(id: String) -> bool:
 			return zones_de(["C", "I"]) > 0 or batiments_de_cat(["commerce", "industrie", "production"]) > 0
 		"ecole":
 			return batiments_de_type("ecole") > 0
+		"dechets":
+			var d := collecte()
+			return bool(d.depot) and bool(d.traitement)
 		"budget":
 			return _vus.has("budget_panel")
 		"objectifs":
@@ -441,6 +450,10 @@ func progres() -> String:
 				"oui" if s.egout else "pas encore"]
 		"temps":
 			return "Habitants logés : %d / %d" % [mini(loges(), LOGES), LOGES]
+		"dechets":
+			var d := collecte()
+			return "Dépôt de collecte : %s · Décharge ou incinérateur : %s" % ["oui" if d.depot else "pas encore",
+				"oui" if d.traitement else "pas encore"]
 		"ligne":
 			return "Arrêts posés : %d · lignes : %d" % [arrets(), lignes()]
 		"village":
@@ -484,6 +497,19 @@ func zones_de(kinds: Array) -> int:
 func _batiments() -> Dictionary:
 	var b = _lire("buildings")
 	return {} if b == null else b.buildings
+
+
+## Collecte des déchets posée (chantiers compris : le joueur a fait sa part).
+func collecte() -> Dictionary:
+	var out := {"depot": false, "traitement": false}
+	var bs := _batiments()
+	for bid in bs:
+		match BuildingCatalog.base_of(String(bs[bid].t)):
+			"depot_collecte":
+				out.depot = true
+			"decharge", "usine_incineration":
+				out.traitement = true
+	return out
 
 
 func batiments_de_type(type_id: String) -> int:

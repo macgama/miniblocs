@@ -987,6 +987,7 @@ const MOBILITE_MAX_JOUR := 250
 
 
 func _mobilite() -> void:
+	_mobilite_requis()
 	var taux := {}
 	var cibles := []
 	var donneurs := []
@@ -1039,6 +1040,59 @@ func _mobilite() -> void:
 				taux[cible] = float((by_job.get(cible, []) as Array).size()) / emp
 				voulu -= 1
 				faits += 1
+
+
+## Bâtiment fermé faute du métier indispensable (dépôt sans assez d'éboueurs
+## pour une benne, école sans enseignant…) et sans chômeur pour le pourvoir :
+## il recrute chez un employeur voisin qui garde au moins la moitié de ses
+## postes, dans ce métier (reconversion). MOBILITE_REQUIS par bâtiment et par jour.
+const MOBILITE_REQUIS := 3
+
+
+func _mobilite_requis() -> void:
+	if effectif == null:
+		return
+	var r2 := MOBILITE_RAYON * MOBILITE_RAYON
+	for cible in known.keys():
+		var e := effectif.etat(cible)
+		if e.is_empty() or not bool(e.ferme) or (e.requis as Array).is_empty() or e.embauches >= int(known[cible].emp) \
+				or effectif.en_greve(cible) or Fondateurs.est_campement(cible):
+			continue
+		var met := String(e.requis[0])
+		var pos: Vector3 = known[cible].pos
+		var proches := []
+		for d in by_job:
+			if d == cible or not known.has(d) or Fondateurs.est_campement(d) or effectif.ferme(d):
+				continue
+			var emp := int(known[d].emp)
+			var n := (by_job[d] as Array).size()
+			if emp <= 0 or n <= 1 or float(n - 1) / emp < 0.5:
+				continue
+			var dd := pos.distance_squared_to(known[d].pos)
+			if dd <= r2:
+				proches.append([dd, d])
+		proches.sort_custom(func(a: Array, b: Array) -> bool: return float(a[0]) < float(b[0]))
+		var faits := 0
+		for pr in proches:
+			if faits >= MOBILITE_REQUIS or not effectif.ferme(cible) or free_jobs(cible) <= 0:
+				break
+			var d := int(pr[1])
+			var requis_d := Effectif.requis_de(String(known[d].t))
+			for pid in (by_job[d] as Array).duplicate():
+				var emp := int(known[d].emp)
+				if float((by_job[d] as Array).size() - 1) / emp < 0.5 or faits >= MOBILITE_REQUIS:
+					break
+				var p: Dictionary = persons[pid]
+				if requis_d.has(String(p.met)) or stage(p) != "actif" or String(p.get("joueur", "")) != "":
+					continue
+				if Production.instance != null and Production.instance.busy.has(int(pid)):
+					continue
+				_join_job(p, cible, met)
+				effectif.oublier(cible)
+				effectif.oublier(d)
+				faits += 1
+				if not effectif.ferme(cible):
+					break
 
 
 ## Un jeune adulte quitte ses parents s'il trouve un logement libre.
@@ -1335,6 +1389,40 @@ func venue_for(p: Dictionary, hobby: String) -> int:
 
 func _nearest_cat(p: Dictionary, cat: String) -> int:
 	return _cached_nearest(home_of(p), "cat:" + cat)
+
+
+## Clientèle des commerces : bid -> habitants dont c'est le commerce le plus
+## proche (ouvert ou non : la clientèle ne dépend pas du personnel, ce qui
+## évite de tourner en rond avec Effectif). Refait quand les bâtiments ou les
+## habitants changent, au plus toutes les CLIENTS_MS.
+const CLIENTS_MS := 3000
+var _clients := {}
+var _clients_cle := Vector3i(-1, -1, -1)
+var _clients_ms := -100000
+
+
+func clients_commerce(bid: int) -> int:
+	var cle := Vector3i(known.size(), by_home.size(), persons.size())
+	if cle != _clients_cle and (_clients_cle.x < 0 or Time.get_ticks_msec() - _clients_ms >= CLIENTS_MS or cle.x != _clients_cle.x):
+		_clients_cle = cle
+		_clients_ms = Time.get_ticks_msec()
+		_clients.clear()
+		var shops := _lieux_ouverts("shopping", true)
+		if not shops.is_empty():
+			for home in by_home:
+				# Le campement des fondateurs vit de ses vivres et du ravitaillement.
+				if Fondateurs.est_campement(int(home)):
+					continue
+				var n := 0
+				for hid in by_home[home]:
+					if households.has(hid):
+						n += (households[hid].m as Array).size()
+				if n == 0:
+					continue
+				var s := _nearest(int(home), shops)
+				if s >= 0:
+					_clients[s] = int(_clients.get(s, 0)) + n
+	return int(_clients.get(bid, 0))
 
 
 ## Fermé faute de personnel (voir Effectif) ?

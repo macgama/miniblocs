@@ -799,6 +799,7 @@ func _process(delta: float) -> void:
 ## Un jour passe : les fondateurs sous la tente mangent leurs vivres, puis le
 ## ravitaillement payé par la caisse.
 func nouveau_jour() -> void:
+	depanner()
 	var n := au_campement()
 	if n <= 0:
 		affame = false
@@ -831,6 +832,48 @@ func nouveau_jour() -> void:
 	if premiere:
 		message.emit("Vivres épuisés : le ravitaillement du campement coûte %s par jour (%d fondateurs sous la tente)." % [
 			BuildingSystem.format_money(roundi(n * RATION)), n])
+
+
+## Fondateurs sans chantier (libres) : chaque matin, ils vont tenir les
+## bâtiments fermés faute d'un métier indispensable (dépôt de collecte sans assez
+## d'éboueurs pour une benne, boulangerie sans boulanger, école sans
+## enseignant…), autant qu'il en faut pour ouvrir, puis les commerces où l'on
+## fait la queue. Renvoie le nombre affecté.
+func depanner() -> int:
+	if population == null or population.effectif == null or camp < 0 or not regle_active():
+		return 0
+	repartir()
+	var faits := 0
+	for bid in population.known.keys():
+		if libres <= 0:
+			break
+		if bid == camp or population.free_jobs(bid) <= 0:
+			continue
+		var e := population.effectif.etat(bid)
+		if e.is_empty() or population.effectif.en_greve(bid):
+			continue
+		var t := String(population.known[bid].t)
+		var n := 0
+		var met := ""
+		var pourquoi := String(e.raison)
+		if bool(e.ferme) and not (e.requis as Array).is_empty():
+			var deja := 0
+			for m in e.requis:
+				deja += int((e.par_metier as Dictionary).get(m, 0))
+			n = maxi(Effectif.requis_min_de(t) - deja, 1)
+			met = String(e.requis[0])
+		elif not bool(e.ferme) and bool(e.manque) and e.has("besoin"):
+			# Commerce ouvert mais débordé : de quoi servir sa clientèle sans queue.
+			n = ceili(int(e.besoin) * Effectif.SOUS_EFFECTIF) - int(e.embauches)
+			pourquoi = "longues files : %d clients" % int(e.get("clients", 0))
+		if n <= 0:
+			continue
+		var k := affecter(bid, mini(n, libres), met)
+		if k > 0:
+			faits += k
+			message.emit("%d fondateur%s sans chantier %s tenir %s (%s)." % [k, "s" if k > 1 else "", "vont" if k > 1 else "va",
+				population.building_name(bid), pourquoi])
+	return faits
 
 
 # --- Sauvegarde ----------------------------------------------------------------------------------

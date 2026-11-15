@@ -219,6 +219,32 @@ func _run() -> void:
 	_check(fd.rappeler(ferme, 1) == 1 and fd.au_chantier().size() == n0 - 1, "un fondateur rappelé au chantier")
 	_check(String(pop.persons[fd.au_chantier()[fd.au_chantier().size() - 1]].met) == "ouvrier_btp", "redevenu ouvrier du bâtiment")
 
+	# Un dépôt de collecte sans éboueurs : les fondateurs sans chantier y vont (trois, une benne).
+	var depot := -1
+	for c in [Vector2i(-1000, 260), Vector2i(-900, 260), Vector2i(-1100, 260), Vector2i(-1000, 60)]:
+		if depot < 0 and bs.check_place("depot_collecte", c, 0).ok:
+			depot = bs.place("depot_collecte", c, 0)
+	vie.finish_all()
+	pop._sync_buildings()
+	for pid in (pop.by_job.get(depot, []) as Array).duplicate():
+		pop._leave_job(pop.persons[pid])
+	pop._apres_embauches()
+	fd.repartir()
+	_check(depot > 0 and pop.effectif.ferme(depot), "dépôt de collecte sans éboueurs : fermé (%s)" % (String(pop.effectif.etat(depot).get("raison", "")) if depot > 0 else "—"))
+	var libres0 := fd.libres
+	var dep_k := fd.depanner()
+	var ripeurs := 0
+	for pid in pop.by_job.get(depot, []):
+		if String(pop.persons[pid].met) == "eboueur":
+			ripeurs += 1
+	if libres0 >= 3:
+		_check(dep_k >= 3 and ripeurs >= 3 and not pop.effectif.ferme(depot), "les fondateurs sans chantier le tiennent : %d éboueurs" % ripeurs)
+	else:
+		_check(dep_k == libres0, "seulement les fondateurs sans chantier (%d)" % libres0)
+	if depot > 0:
+		bs.remove_quietly(depot)
+		pop._sync_buildings()
+
 	print("Vivres puis ravitaillement :")
 	var n_tente := fd.au_campement()
 	if n_tente > 0:

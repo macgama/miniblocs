@@ -645,6 +645,9 @@ static func mensualite_de(capital: float, t: float, annees: int) -> float:
 func refus_emprunt(montant: float, _annees: int) -> String:
 	if tutelle:
 		return "Ville sous tutelle du préfet : aucun nouvel emprunt."
+	var sc := ScenarioPartie.refus_emprunt()
+	if sc != "":
+		return sc
 	if dette() + montant > plafond_dette():
 		return "Plafond de dette atteint (%s, soit %d ans de recettes)." % [
 			BuildingSystem.format_short(int(plafond_dette())), int(PLAFOND_ANNEES)]

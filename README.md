@@ -54,6 +54,8 @@ L'interface s'adapte à la taille de la fenêtre (elle est dessinée pour 1600 �
 
 Une nouvelle partie commence par un tutoriel guidé (case cochée par défaut sur le globe, F10 → Aide pour le couper ou le relancer) : une étape à la fois en haut à gauche, de la fondation du village à l'école. Dessous, les objectifs restent visibles : rang de la ville et missions du pays. Détails : [docs/tutoriel.md](docs/tutoriel.md). Le bouton **Démo guidée** du menu principal en fait une partie d'environ 30 minutes avec un bilan : [docs/demo.md](docs/demo.md).
 
+Le bouton **Scénarios et défis** du menu principal propose des parties avec un lieu, des règles et une date limite (« Reconstruire après l'inondation », « Une ville sans voiture », « Le grand hiver »…), un score, des médailles et un classement : [docs/scenarios.md](docs/scenarios.md).
+
 ## Mode Terre : choisis ton lieu sur le globe, puis joue sur le vrai relief
 
 Au lancement (**F5**), un **globe 3D** coloré par les vrais biomes (forêts, champs, déserts, glaciers, lacs…) et le vrai relief s'affiche. Le joueur choisit son point de départ n'importe où sur Terre, puis joue sur une **terre vierge** (vrai relief et mers, sans routes ni bâtiments) découpée en cases de 1 m × 1 m.
@@ -701,6 +703,8 @@ Vérifie les conversions de coordonnées, le décodage des tuiles, la générati
 `tests/partie_test.gd` joue une **partie complète accélérée** en mode Normal : globe, fondation, 100 fondateurs, rues, éoliennes et parc solaire, forage, lagunage, école, entreprises du bâtiment, zones, puis la ville grandit (pas de 10 minutes de jeu) jusqu'à 1 000 habitants ; il prend un emprunt si la caisse est vide, relève chaque jour habitants, caisse, chantiers, chômage, logements sans courant ou sans eau et temps par image, compte toutes les erreurs de script, puis sauvegarde et recharge la partie. Il affiche `PARTIE TEST OK` (une vingtaine de minutes). Options : `-- --jours 250 --cible 1000 --rapport partie.csv` (courbe jour par jour), `--messages` (messages du jeu datés), `--diag` (état des chantiers tous les 5 jours).
 
 `tests/statistiques_test.gd` vérifie les relevés quotidiens, les courbes, le regroupement des vieux jours, le conseiller, la sauvegarde et le panneau Maj+I, et affiche `STATISTIQUES TEST OK`.
+
+`tests/journal_test.gd` vérifie la gazette de la ville (faits notés, édition du matin, jour calme, époques, traduction anglaise, sauvegarde, panneau F4) et affiche `RÉSULTAT : OK`.
 
 `tests/parcours_test.gd` joue une partie comme un joueur, avec de vraies touches (globe, outils 1-9, B, L, T, V, F1, F5, Continuer) et affiche `PARCOURS TEST OK`. `tests/habitants_test.gd` vérifie les habitants (école, emplois, emploi du temps, budget, bus, sauvegarde, panneau) et affiche `HABITANTS TEST OK`. `tests/sauvegarde_test.gd` vérifie le format des parties (écriture, relecture, section abîmée, import de l'ancienne sauvegarde) et affiche `SAUVEGARDE TEST OK`. `tests/interface_test.gd` vérifie les menus (icônes, barre de catégories, panneaux un à la fois, vignettes, fiche d'un bâtiment) et affiche `INTERFACE TEST OK`. `tests/son_test.gd` vérifie le son (fichiers, bus et volumes, réglages du joueur, musique selon l'heure, ambiances selon la caméra, chantiers, tonnerre, panneau F2) et affiche `TEST OK`. `tests/demo_ferme_test.gd` vérifie la démo low-poly (kit de modelage, objets, lumières, vues) et affiche `DEMO TEST OK`.
 

@@ -131,6 +131,13 @@ const SECTIONS := [
 		["Conseiller", "deuxième onglet : les problèmes du moment, du plus urgent au plus anodin, avec quoi faire et un bouton pour ouvrir le bon panneau ; un problème urgent qui apparaît s'affiche aussi en haut de l'écran"],
 		["Relevés", "un par jour de jeu, à minuit ; les plus vieux sont regroupés par 30 jours, ils restent dans la sauvegarde"],
 	]],
+	["Gazette de la ville", [
+		["F4", "le journal du matin (menu Infos) : chaque jour de jeu, une édition qui raconte la veille avec tes vrais habitants"],
+		["À la une", "le fait le plus marquant (incendie, tempête, épidémie, pont vers nulle part, village fondé, match, élections…), avec un témoin qui donne son avis ; clic sur un titre souligné : la caméra va sur place ; clic sur un nom : sa fiche"],
+		["Colonne de droite", "météo de demain, chiffre du jour, micro-trottoir, sports en bref, brèves, carnet (naissances, mariages, décès), petites annonces"],
+		["Époques", "le nom, la devise, le prix et le ton suivent l'année de la partie : La Gazette (1800), Le Courrier (1830), Le Petit Journal (1870), L'Écho (1914), -Matin (1945), Infos (1980), Actu (2002), .info (2015)"],
+		["Archives", "flèches en haut : les 60 dernières éditions ; « Aujourd'hui » revient à la dernière"],
+	]],
 	["Tutoriel et objectifs à l'écran", [
 		["Tutoriel guidé", "case sur le globe (cochée par défaut) : une étape à la fois en haut à gauche (caméra, fonder le village, fondateurs, route, logements, courant et eau, temps, emplois, école, budget, objectifs) ; chaque étape se valide toute seule quand tu l'as faite"],
 		["Bouton de l'étape · Passer · croix", "le bouton fait le premier geste à ta place (ouvrir le bon panneau, prendre l'outil) ; Passer saute l'étape ; la croix arrête le tutoriel"],

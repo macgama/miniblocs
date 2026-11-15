@@ -942,6 +942,12 @@ func evaluate(id: String, s: Dictionary, path: PackedVector2Array) -> Dictionary
 		return plan
 	if not plan.ok:
 		return plan
+	# Scénario en cours : voies routières limitées (« Une ville sans voiture »…).
+	var sc := ScenarioPartie.refus_voie(id, _longueur(plan.pts))
+	if sc != "":
+		plan.ok = false
+		plan.reason = sc
+		return plan
 	if not TransportTypes.is_ramp(id) and not TransportTypes.is_separated(id):
 		for snap in [sa, sb]:
 			if not (snap as Dictionary).is_empty() and _snap_takes_ramps(snap):
@@ -1016,6 +1022,13 @@ func evaluate(id: String, s: Dictionary, path: PackedVector2Array) -> Dictionary
 ## Croisements à franchir par un pont ou un tunnel : [[croisement, "dessus" ou
 ## "dessous"], …]. Mode automatique : seulement les autoroutes et voies express
 ## (jamais de carrefour à niveau dessus). Les raccords aux extrémités comptent pas.
+static func _longueur(pts: PackedVector3Array) -> float:
+	var m := 0.0
+	for i in range(1, pts.size()):
+		m += pts[i].distance_to(pts[i - 1])
+	return m
+
+
 func _forced_crossings(id: String, crossings: Array, sa: Dictionary, sb: Dictionary) -> Array:
 	var out := []
 	for c in crossings:

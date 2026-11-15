@@ -130,6 +130,8 @@ var rue_fondation: RueFondation
 var objectifs_panel: ObjectifsPanel
 var statistiques: Statistiques
 var stats_panel: StatsPanel
+var journal: Journal
+var journal_panel: JournalPanel
 ## Tutoriel guidé et objectifs à l'écran (scripts/tutoriel).
 var tutoriel: Tutoriel
 var tuto_carte: TutorielCarte
@@ -206,6 +208,7 @@ func _ready() -> void:
 	_setup_pays()
 	_setup_niveaux_vie()
 	_setup_statistiques()
+	_setup_journal()
 	_setup_tutoriel()
 	_setup_scenario()
 	_setup_quartiers()
@@ -384,6 +387,7 @@ func save_sections() -> Dictionary:
 	sec["rue_fondation"] = rue_fondation.to_dict()
 	sec["niveaux_vie"] = niveaux_vie.to_dict()
 	sec["statistiques"] = statistiques.to_dict()
+	sec["journal"] = journal.to_dict()
 	sec["tutoriel"] = tutoriel.to_dict()
 	sec["scenario"] = scenario.to_dict()
 	sec["musee"] = musee.to_dict()
@@ -479,6 +483,7 @@ func load_game(slot := "") -> bool:
 	var m: Dictionary = res.manifest
 	Multijoueur.section_chargee = sec.get("multijoueur", {})
 	_chargement = true
+	journal.ecoute = false
 	var lieu: Dictionary = m.get("lieu", {})
 	GameStart.place_name = String(lieu.get("nom", ""))
 	world.from_dict(sec.terrain)
@@ -553,6 +558,7 @@ func load_game(slot := "") -> bool:
 	# Après les habitants : niveau de chaque foyer (ancienne partie : évalués au premier jour).
 	niveaux_vie.from_dict(sec.get("niveaux_vie", {}))
 	statistiques.from_dict(sec.get("statistiques", {}))
+	journal.from_dict(sec.get("journal", {}))
 	($VueSol as VueSol).from_dict(sec.get("personnage", {}))
 	_load_settings(sec.get("reglages", {}), m)
 	# Après les réglages : une partie d'avant le tutoriel n'en a pas.
@@ -576,6 +582,7 @@ func load_game(slot := "") -> bool:
 		rig.set_pitch(float(cam.get("inclinaison", rig.get_target_pitch())), true)
 		_snap_pending = true
 	_chargement = false
+	journal.ecoute = true
 	GameStart.slot_id = slot
 	_unsaved = false
 	_autosave_timer = 0.0
@@ -987,6 +994,33 @@ func _setup_statistiques() -> void:
 	stats_panel.setup(statistiques)
 	stats_panel.panneau_requested.connect(ouvrir_panneau)
 	hud.stats_requested.connect(func() -> void: stats_panel.toggle())
+
+
+## Journal de la ville (F4, menu Infos) : une édition chaque matin sur la veille.
+func _setup_journal() -> void:
+	journal = Journal.new()
+	journal.name = "Journal"
+	add_child(journal)
+	journal.setup(population, evenements, avis, statistiques, buildings, transport, communes, saisons, ambiance)
+	for s in clubs:
+		journal.ecouter_club(clubs[s])
+	journal.changed.connect(func() -> void: _unsaved = true)
+	journal_panel = JournalPanel.new()
+	journal_panel.name = "PanneauJournal"
+	add_child(journal_panel)
+	journal_panel.setup(journal)
+	journal_panel.focus_requested.connect(func(pos: Vector3) -> void:
+		journal_panel.set_open(false)
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
+	journal_panel.person_requested.connect(func(pid: int) -> void:
+		journal_panel.set_open(false)
+		habitants_panel.set_open(true)
+		habitants_panel.show_view("profil", pid))
+	journal.edition_parue.connect(func(ed: Dictionary) -> void:
+		if int((ed.une as Dictionary).get("imp", 0)) >= 6 and not _chargement:
+			hud.show_message(Langue.t("%s : « %s » (F4)") % [Journal.titre_de(ed), Journal.texte(ed.une.titre)]))
+	hud.journal_requested.connect(func() -> void: journal_panel.toggle())
 
 
 ## Ouvre un panneau par son id (boutons du conseiller).
@@ -2382,6 +2416,8 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 		rue_fondation.clear()
 	if niveaux_vie != null:
 		niveaux_vie.clear()
+	if journal != null:
+		journal.clear()
 	if communes != null:
 		communes.clear()
 	if fondateurs != null:

@@ -24,6 +24,8 @@ signal follow_changed
 signal person_clicked(pid: int)
 ## Un habitant meurt (il est encore dans persons, son foyer aussi) : obsèques (Funeraire).
 signal person_died(pid: int, home: int)
+## Une étape de vie vient d'arriver (naissance, mariage, décès, médaille…) : le journal l'écoute.
+signal etape_vie(p: Dictionary, code: String, texte: String, ref: int)
 ## Questions du personnage principal (PersonnagePrincipal.questions).
 signal questions_changed
 

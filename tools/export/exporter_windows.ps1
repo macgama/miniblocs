@@ -3,7 +3,8 @@
   Exporte MiniBlocs pour Windows (MiniBlocs.exe + MiniBlocs.pck), lançable d'un double-clic sans Godot.
 
 .DESCRIPTION
-  1. Met à jour une copie du dépôt réservée à l'export (par défaut %LOCALAPPDATA%\MiniBlocs\source),
+  1. Met à jour une copie du dépôt réservée à l'export (par défaut Documents\MiniBlocs-export\source ; pas dans %LOCALAPPDATA%,
+     que l'app Claude redirige vers son propre dossier, invisible pour la tâche planifiée),
      sur la dernière version de origin/main. Ton dossier de travail n'est jamais touché.
   2. Écrit build_info.json (version, commit, date et heure) : l'écran titre l'affiche.
   3. Importe les ressources puis exporte avec le preset « Windows Desktop » (export_presets.cfg).
@@ -23,7 +24,7 @@
 param(
     [string]$Godot = $(if ($env:MINIBLOCS_GODOT) { $env:MINIBLOCS_GODOT } else { "$env:USERPROFILE\Downloads\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64_console.exe" }),
     [string]$Destination = "$env:USERPROFILE\Documents\MiniBlocs",
-    [string]$Source = "$env:LOCALAPPDATA\MiniBlocs\source",
+    [string]$Source = "$env:USERPROFILE\Documents\MiniBlocs-export\source",
     [string]$Depot = "https://github.com/macgama/miniblocs.git",
     [string]$Branche = "main",
     [switch]$SiChangement

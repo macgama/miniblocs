@@ -5,19 +5,19 @@ Le jeu exporté tient en deux fichiers, `MiniBlocs.exe` et `MiniBlocs.pck`, pos�
 ## Refaire l'export à la main
 
 ```
-powershell -ExecutionPolicy Bypass -File "%LOCALAPPDATA%\MiniBlocs\source\tools\export\exporter_windows.ps1"
+powershell -ExecutionPolicy Bypass -File "%USERPROFILE%\Documents\MiniBlocs-export\source\tools\export\exporter_windows.ps1"
 ```
 
 (La première fois, lance-le depuis ton dossier du dépôt : `tools\export\exporter_windows.ps1`.)
 
 Le script :
 
-1. tient à jour une copie du dépôt réservée à l'export (`%LOCALAPPDATA%\MiniBlocs\source`) sur `origin/main` ; ton dossier de travail n'est jamais modifié ;
+1. tient à jour une copie du dépôt réservée à l'export (`Documents\MiniBlocs-export\source`, pas dans `%LOCALAPPDATA%` : l'app Claude y redirige les nouveaux dossiers vers son propre espace, que la tâche planifiée ne voit pas) sur `origin/main` ; ton dossier de travail n'est jamais modifié ;
 2. écrit `build_info.json` : version `0.1.<nombre de commits>`, commit, date et heure ;
 3. importe les ressources puis exporte avec le preset **Windows Desktop** de `export_presets.cfg` ;
 4. remplace `MiniBlocs.exe`, `MiniBlocs.pck` et `build_info.json` dans `Documents\MiniBlocs` (ferme le jeu avant).
 
-Options : `-SiChangement` (n'exporte que si `main` a bougé), `-Branche <nom>` (tester une branche), `-Destination <dossier>`, `-Godot <chemin du Godot_..._console.exe>` (ou la variable `MINIBLOCS_GODOT`). Journal : `%LOCALAPPDATA%\MiniBlocs\export.log`.
+Options : `-SiChangement` (n'exporte que si `main` a bougé), `-Branche <nom>` (tester une branche), `-Destination <dossier>`, `-Godot <chemin du Godot_..._console.exe>` (ou la variable `MINIBLOCS_GODOT`). Journal : `Documents\MiniBlocs-export\export.log`.
 
 ## Modèles d'export
 
@@ -26,7 +26,7 @@ Avec les modèles d'export officiels installés (`%APPDATA%\Godot\export_templat
 ## Réexport automatique quand main change
 
 ```
-powershell -ExecutionPolicy Bypass -File "%LOCALAPPDATA%\MiniBlocs\source\tools\export\installer_tache.ps1"
+powershell -ExecutionPolicy Bypass -File "%USERPROFILE%\Documents\MiniBlocs-export\source\tools\export\installer_tache.ps1"
 ```
 
 crée la tâche planifiée Windows **MiniBlocs - export** : toutes les 30 minutes et à l'ouverture de session, elle lance l'export avec `-SiChangement`. `-Retirer` la supprime.

@@ -315,10 +315,12 @@ func _ready() -> void:
 		_start_atelier.call_deferred()
 	# Nouvelle partie : on commence par fonder le village (le tutoriel le
 	# propose lui-même, après le tour de la caméra).
-	if communes.fondation_requise() and not tutoriel.actif:
+	if communes.fondation_requise() and not tutoriel.actif and Multijoueur.role != Multijoueur.Role.SERVEUR:
 		get_tree().create_timer(1.5).timeout.connect(func() -> void:
 			if communes.fondation_requise() and not villages_panel._dialog.visible and not tutoriel.actif:
 				villages_panel.demander_nom())
+	# Carte entre amis : ce jeu est le serveur, ou un joueur connecté (scripts/multijoueur).
+	Multijoueur.attacher(self)
 
 
 # --- Sauvegarde -------------------------------------------------------------------
@@ -369,6 +371,9 @@ func save_sections() -> Dictionary:
 	sec["quartiers"] = quartiers.to_dict()
 	sec["parc_editeur"] = attractions.to_dict()
 	sec["parc_allees"] = parc_allees.to_dict()
+	# Serveur de carte entre amis : membres, code d'invitation, caisses personnelles.
+	if Multijoueur.role == Multijoueur.Role.SERVEUR:
+		sec["multijoueur"] = Multijoueur.section()
 	return sec
 
 
@@ -443,6 +448,7 @@ func load_game(slot := "") -> bool:
 		return false
 	var sec: Dictionary = res.sections
 	var m: Dictionary = res.manifest
+	Multijoueur.section_chargee = sec.get("multijoueur", {})
 	_chargement = true
 	var lieu: Dictionary = m.get("lieu", {})
 	GameStart.place_name = String(lieu.get("nom", ""))
@@ -610,8 +616,12 @@ func toggle_admin() -> void:
 	_admin.settings_changed.connect(func() -> void:
 		_apply_settings(false)
 		tutoriel.set_actif(ReglagesPartie.actuel.tutoriel)
+		if Multijoueur.client_actif() != null and Multijoueur.role == Multijoueur.Role.CLIENT:
+			Multijoueur.client.reglages_changes()
 		_unsaved = true)
 	_admin.caisse_set.connect(func(v: int) -> void:
+		if Multijoueur.client_actif() != null and Multijoueur.role == Multijoueur.Role.CLIENT:
+			Multijoueur.client.envoyer_admin("caisse", {"v": v})
 		buildings.money = v
 		_unsaved = true
 		hud.show_message("Caisse mise à %s." % BuildingSystem.format_money(v)))
@@ -1548,7 +1558,8 @@ func toggle_help() -> void:
 
 
 func _autosave(delta: float) -> void:
-	if GameStart.atelier:
+	# En ligne : c'est le serveur qui sauvegarde la carte.
+	if GameStart.atelier or Multijoueur.en_ligne():
 		return
 	var interval := OptionsJeu.autosave_min * 60.0
 	if interval <= 0.0:
@@ -1605,6 +1616,11 @@ func _input(event: InputEvent) -> void:
 ## racine, elle passe donc en dernier.
 func _unhandled_input(event: InputEvent) -> void:
 	var k := event as InputEventKey
+	if k != null and k.pressed and not k.echo and k.keycode == KEY_F3 and Multijoueur.client_actif() != null \
+			and Multijoueur.role == Multijoueur.Role.CLIENT:
+		get_viewport().set_input_as_handled()
+		toggle_joueurs()
+		return
 	if k == null or not k.pressed or k.echo or k.keycode != KEY_ESCAPE or pause_menu != null:
 		return
 	if _esc_busy:
@@ -1617,6 +1633,20 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	get_viewport().set_input_as_handled()
 	open_pause()
+
+
+## Carte entre amis (F3) : joueurs, code d'invitation, discussion.
+var joueurs_panel: JoueursPanel
+
+
+func toggle_joueurs() -> void:
+	if joueurs_panel != null:
+		joueurs_panel.queue_free()
+		joueurs_panel = null
+		return
+	joueurs_panel = JoueursPanel.new(Multijoueur.client)
+	joueurs_panel.closed.connect(func() -> void: joueurs_panel = null)
+	_windows_layer().add_child(joueurs_panel)
 
 
 func open_pause() -> void:

@@ -41,6 +41,9 @@ var _rng := RandomNumberGenerator.new()
 
 
 func _ready() -> void:
+	# « -- --serveur » : ce jeu devient le serveur d'une carte entre amis, sans menu.
+	if Multijoueur.demarrage_serveur(get_tree()):
+		return
 	OptionsJeu.appliquer(get_tree())
 	OptionsJeu.musique("menu")
 	_rng.randomize()
@@ -164,6 +167,7 @@ func _build_ui() -> void:
 		b.mouse_entered.connect(func() -> void: _carte.visible = true)
 	_bouton("demo", "Démo guidée", "Environ %d minutes, pas à pas : fonder un village près de %s et le faire grandir" % [Demo.DUREE_MIN, String(Demo.LIEU.nom).get_slice(",", 0)], lancer_demo)
 	_bouton("nouvelle", "Nouvelle partie", "Choisir un lieu sur le globe, n'importe où sur Terre", nouvelle_partie)
+	_bouton("amis", "Entre amis", "Rejoindre la carte d'un ami avec son code, ou héberger une de tes parties", ouvrir_amis)
 	_bouton("charger", "Charger une partie", "Toutes les parties sauvegardées, avec leur aperçu", ouvrir_parties)
 	_bouton("atelier", "Atelier", "Créer des bâtiments sur un terrain plat, sans habitants ni argent", ouvrir_atelier)
 	_bouton("options", "Options", "Graphismes, son, sauvegarde automatique, touches", ouvrir_options)
@@ -296,6 +300,15 @@ func ouvrir_parties() -> void:
 	p.closed.connect(func() -> void:
 		_sub = null
 		_maj_carte())
+	_sub = p
+	_ui.add_child(p)
+
+
+func ouvrir_amis() -> void:
+	if _sub != null:
+		return
+	var p := MultijoueurPanel.new()
+	p.closed.connect(func() -> void: _sub = null)
 	_sub = p
 	_ui.add_child(p)
 

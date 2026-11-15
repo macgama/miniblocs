@@ -1482,13 +1482,58 @@ func set_tool(t: Tool) -> void:
 	_update_selection()
 
 
+## Multijoueur (client) : Callable(action: Dictionary) qui envoie au serveur les coups
+## d'outil et de pinceau du joueur (le terrain change ensuite chez tout le monde).
+var relais: Callable
+
+
+## Coup de pinceau du joueur : appliqué ici, ou envoyé au serveur en multijoueur.
+func _coup_de_pinceau(center: Vector2i) -> void:
+	if not relais.is_valid():
+		apply_brush(center)
+		return
+	_last_brush = center
+	if current_tool == Tool.DIG_WATER and is_nan(_stroke_level):
+		_stroke_level = _bank_height(center)
+	relais.call({"t": "pinceau", "outil": int(current_tool), "c": center, "rayon": brush_radius,
+		"hauteur": hill_height, "niveau": _stroke_level, "sorte": paint_kind, "vie": horloge_vie})
+
+
+## Coup de pinceau reçu du serveur (ou appliqué par lui) avec les réglages du joueur.
+func appliquer_pinceau(a: Dictionary) -> int:
+	var avant := [current_tool, brush_radius, hill_height, _stroke_level, paint_kind, horloge_vie]
+	current_tool = int(a.get("outil", current_tool)) as Tool
+	brush_radius = int(a.get("rayon", brush_radius))
+	hill_height = float(a.get("hauteur", hill_height))
+	_stroke_level = float(a.get("niveau", NAN))
+	paint_kind = int(a.get("sorte", paint_kind))
+	horloge_vie = float(a.get("vie", horloge_vie))
+	var n := apply_brush(a.c) if is_brush_tool() else 0
+	current_tool = avant[0]
+	brush_radius = avant[1]
+	hill_height = avant[2]
+	_stroke_level = avant[3]
+	paint_kind = avant[4]
+	horloge_vie = avant[5]
+	return n
+
+
+## Outil rectangle (aplanir, monter, creuser) reçu du serveur ou appliqué par lui.
+func appliquer_outil(outil: int, a: Vector2i, b: Vector2i) -> int:
+	var avant := current_tool
+	current_tool = outil as Tool
+	var n := apply_tool(a, b)
+	current_tool = avant
+	return n
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if _camera == null:
 		return
 	if event is InputEventMouseMotion:
 		_update_hover((event as InputEventMouseMotion).position)
 		if _dragging and is_brush_tool() and _hover_valid and _hover != _last_brush:
-			apply_brush(_hover)
+			_coup_de_pinceau(_hover)
 	elif event is InputEventMouseButton:
 		var mb := event as InputEventMouseButton
 		if mb.button_index != MOUSE_BUTTON_LEFT:
@@ -1498,7 +1543,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			if mb.pressed and _hover_valid:
 				_dragging = true
 				_stroke_level = NAN
-				apply_brush(_hover)
+				_coup_de_pinceau(_hover)
 			elif not mb.pressed:
 				_dragging = false
 				_last_brush = Vector2i(1 << 30, 0)
@@ -1509,7 +1554,11 @@ func _unhandled_input(event: InputEvent) -> void:
 			_drag_start = _hover
 		elif not mb.pressed and _dragging:
 			_dragging = false
-			apply_tool(_drag_start, _hover)
+			if relais.is_valid():
+				if current_tool != Tool.INSPECT:
+					relais.call({"t": "terrain", "outil": int(current_tool), "a": _drag_start, "b": _hover})
+			else:
+				apply_tool(_drag_start, _hover)
 		_update_selection()
 	elif event is InputEventKey:
 		var key := event as InputEventKey

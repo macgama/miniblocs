@@ -4,6 +4,12 @@ Tout est dans `main`, et les 9 tests automatiques passent (`sh tests/tous.sh`).
 
 ## Nouveautés
 
+**Carte entre amis : premier serveur** (menu principal → **Entre amis**, **F3** en jeu, 15 novembre)
+- Héberge une de tes parties sur ton PC, ou lance le jeu en serveur sans écran (`--serveur`) sur une machine toujours allumée : la carte reste ouverte même quand tu n'es pas là.
+- Tes amis entrent avec un code d'invitation (une seule fois, ensuite ils sont membres). Tu es l'admin : réglages, vitesse du temps, nouveau code, exclure, arrêter le serveur.
+- Chacun a sa caisse : l'argent de départ, puis celle du village qu'il fonde (il en devient le maire). Hors de tes villes, c'est toi qui paies.
+- Synchronisés : bâtiments, villages, voies et carrefours, terrain et paysage, caisses, heure, discussion. Le reste (zonage, éditeur libre, réseaux, lignes, panneaux de gestion) viendra ensuite. Voir docs/multijoueur.md.
+
 **Saisons, neige, crues et sécheresse** (menu Infos → Saisons et risques, **Maj+R**, 15 novembre)
 - Vraies saisons selon la date et l'hémisphère (saison des pluies et saison sèche sous les tropiques), relevés de chaque jour, records, bilan à chaque changement de saison. Prévisions sur 3 jours, 7 avec une **station météo**.
 - **Neige sur les routes** : elle ralentit tout le monde (secours compris) et provoque des accidents. Le **centre technique municipal** envoie ses chasse-neige saleuses, les grands axes d'abord ; derrière eux, la route est salée 12 h. Le sel se rachète tout seul.

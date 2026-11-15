@@ -32,6 +32,8 @@ func _run() -> void:
 			dossier = args[i + 1]
 	Creations.persist = false
 	BatimentsVie.chantiers = false
+	OptionsJeu.charger()
+	OptionsJeu.langue = "fr"
 	Langue.activer("fr")
 	Classement.chemin = "user://vitrine_scenarios_classement.json"
 	Classement.recharger()

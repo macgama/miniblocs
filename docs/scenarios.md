@@ -2,6 +2,8 @@
 
 Code : `scripts/scenarios/` — `scenarios.gd` (`Scenarios`, le catalogue et le score), `scenario_partie.gd` (`ScenarioPartie`, nœud « Scenario » sous la scène Terre), `scenario_carte.gd` (carte à l'écran), `scenario_bilan.gd` (écran de fin), `scenarios_panel.gd` (fenêtre du menu principal), `classement.gd` (`Classement`). Test : `tests/scenarios_test.gd`. Captures : `tests/scenarios_vitrine.gd`.
 
+![La fenêtre Scénarios et défis](apercu-scenarios-menu.jpg)
+
 ## Jouer
 
 Menu principal → **Scénarios et défis**. À gauche la liste (difficulté ●●○, meilleure médaille obtenue), à droite l'histoire, le lieu, la durée, les objectifs, les bonus, les règles, les seuils des médailles et le **classement** des 10 meilleurs scores. **Jouer ce scénario** lance une partie neuve au bon endroit de la Terre, avec les bons réglages.
@@ -11,6 +13,10 @@ En jeu, une **carte en haut à gauche** montre le jour (« Jour 12 sur 120 · en
 - Le scénario est **gagné** dès que **tous les objectifs sont remplis en même temps** ; il est **perdu** à la date limite.
 - L'**écran de fin** donne le détail du score, la médaille, la place au classement (on peut y changer son nom), puis : **Continuer à jouer** (la ville reste, sans les règles du scénario), **Rejouer**, **Menu principal**.
 - La partie se sauvegarde comme une autre (section `scenario`) : on peut la reprendre plus tard, le scénario continue.
+
+![La carte du scénario en jeu](apercu-scenarios-carte.jpg)
+
+![L'écran de fin](apercu-scenarios-bilan.jpg)
 
 ## Les scénarios
 

@@ -11,6 +11,8 @@ const ORANGE := Color("ffb86b")
 
 var sc: ScenarioPartie
 var cachee := false
+## Hauteur déjà prise en haut à gauche (carte du personnage suivi…) : la carte se pose dessous.
+var decalage: Callable
 var replie := false
 
 var _panel: PanelContainer
@@ -76,6 +78,7 @@ func _process(delta: float) -> void:
 	_panel.visible = vis
 	if not vis:
 		return
+	_panel.position.y = UiStyle.SIDE_TOP + (float(decalage.call()) if decalage.is_valid() else 0.0)
 	_tick += delta
 	if _tick < 1.0:
 		return
@@ -95,6 +98,8 @@ func rafraichir() -> void:
 		_jour_l.text = "Jour %d sur %d · encore %d jours" % [sc.jour(), sc.jours_max(), sc.jours_restants()]
 		_barre.value = float(sc.jour()) / maxf(float(sc.jours_max()), 1.0)
 	_replier_b.icon = Icones.get_icon("plus" if replie else "moins", 16)
+	# La carte reprend la taille de son contenu (repliée, moins de lignes).
+	_panel.reset_size.call_deferred()
 	for c in _corps.get_children():
 		_corps.remove_child(c)
 		c.queue_free()

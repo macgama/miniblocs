@@ -1074,6 +1074,10 @@ func _setup_scenario() -> void:
 	scenario_carte.name = "CarteScenario"
 	add_child(scenario_carte)
 	scenario_carte.setup(scenario)
+	# Sous la carte du personnage suivi (habitants façon Sims), quand elle est là.
+	scenario_carte.decalage = func() -> float:
+		var c: Control = habitants_panel._card if habitants_panel != null else null
+		return c.size.y + 8.0 if c != null and c.is_visible_in_tree() else 0.0
 	var sid := Scenarios.demande
 	Scenarios.demande = ""
 	if sid != "" and GameStart.load_slot == "" and GameStart.chosen and not GameStart.atelier:

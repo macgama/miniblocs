@@ -62,6 +62,7 @@ signal tourisme_requested
 signal cartes_requested
 ## Bouton « Statistiques » (menu Infos, Maj+I).
 signal stats_requested
+signal journal_requested
 ## Bouton « Saisons et risques » (menu Infos, Maj+R).
 signal saisons_requested
 ## Bouton « Vue sous terre » (menu Infos, Page bas sous le rez-de-chaussée).
@@ -137,6 +138,7 @@ const CATEGORIES := [
 	{"id": "tourisme", "name": "Tourisme (hôtels, touristes, publicité)", "icon": "valise", "key": "Maj+D", "panel": true, "group": "loisirs"},
 	{"id": "cartes", "name": "Cartes", "icon": "cartes", "key": "N", "panel": true, "group": "infos"},
 	{"id": "stats", "name": "Statistiques et conseiller", "icon": "courbe", "key": "Maj+I", "panel": true, "group": "infos"},
+	{"id": "journal", "name": "Gazette de la ville", "icon": "journal", "key": "F4", "panel": true, "group": "infos"},
 	{"id": "saisons", "name": "Saisons et risques (météo, neige, crues, sécheresse)", "icon": "saisons", "key": "Maj+R", "panel": true, "group": "infos"},
 	{"id": "souterrain", "name": "Vue sous terre (tuyaux, câbles, métro, sous-sols)", "icon": "souterrain", "key": "Page bas", "panel": true, "group": "infos"},
 	{"id": "murs", "name": "Murs et étages", "icon": "mur", "key": "2", "panel": true, "mode": "creer"},
@@ -821,6 +823,7 @@ func _on_category(id: String) -> void:
 			"tourisme": tourisme_requested.emit()
 			"cartes": cartes_requested.emit()
 			"stats": stats_requested.emit()
+			"journal": journal_requested.emit()
 			"saisons": saisons_requested.emit()
 			"souterrain": souterrain_requested.emit()
 		_update_categories()

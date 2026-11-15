@@ -29,6 +29,8 @@ extends Node
 
 signal changed
 signal message(text: String)
+## Fin d'un match du club : {sport, club, adv, dom, pour, contre, issue, buteurs, affluence, texte} (le journal l'écoute).
+signal resultat(r: Dictionary)
 
 static var instance: ClubSport
 ## sport → section (ClubSport).
@@ -1523,6 +1525,8 @@ func _apres_mon_match(j: Dictionary, m: Array) -> void:
 		txt += " (meilleur marqueur : %s, %d %s)" % [nom_joueur(joueurs[top]), int(par_joueur[top]), String(sp().unite[1])]
 	elif not noms_buteurs.is_empty():
 		txt += " (%s : %s)" % [String(sp().unite[1]) if sport != "tennis" else "victoires", ", ".join(noms_buteurs)]
+	resultat.emit({"sport": sport, "club": String(club.nom), "adv": adv, "dom": dom, "pour": pour, "contre": contre,
+		"issue": issue, "buteurs": noms_buteurs.duplicate(), "affluence": int(j.get("affluence", 0)) if dom else 0, "texte": txt})
 	if dom:
 		var aff := int(j.get("affluence", 0))
 		var payants := maxi(aff - int(club.get("abo", 0)), 0)

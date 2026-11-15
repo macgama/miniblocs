@@ -54,6 +54,8 @@ L'interface s'adapte à la taille de la fenêtre (elle est dessinée pour 1600 �
 
 Une nouvelle partie commence par un tutoriel guidé (case cochée par défaut sur le globe, F10 → Aide pour le couper ou le relancer) : une étape à la fois en haut à gauche, de la fondation du village à l'école. Dessous, les objectifs restent visibles : rang de la ville et missions du pays. Détails : [docs/tutoriel.md](docs/tutoriel.md). Le bouton **Démo guidée** du menu principal en fait une partie d'environ 30 minutes avec un bilan : [docs/demo.md](docs/demo.md).
 
+Le bouton **Scénarios et défis** du menu principal propose des parties avec un lieu, des règles et une date limite (« Reconstruire après l'inondation », « Une ville sans voiture », « Le grand hiver »…), un score, des médailles et un classement : [docs/scenarios.md](docs/scenarios.md).
+
 ## Mode Terre : choisis ton lieu sur le globe, puis joue sur le vrai relief
 
 Au lancement (**F5**), un **globe 3D** coloré par les vrais biomes (forêts, champs, déserts, glaciers, lacs…) et le vrai relief s'affiche. Le joueur choisit son point de départ n'importe où sur Terre, puis joue sur une **terre vierge** (vrai relief et mers, sans routes ni bâtiments) découpée en cases de 1 m × 1 m.

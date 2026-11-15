@@ -136,7 +136,7 @@ godot --headless --path . -- --serveur --nouvelle --lat 45.899 --lon 6.129 --nom
   envoie à tous ce qui a changé chez lui (`sections`). Toutes les 5 s, le `tic` porte
   les empreintes des sections ; deux écarts de suite → la section entière (`section_partagee`).
   Les numéros pris en même temps par deux joueurs sont refusés au second.
-- **Appels** (`Multijoueur.relayer`, `Multijoueur.APPELS`) : les commandes du budget,
+- **Appels** (`Multijoueur.relayer`, `Multijoueur.APPELS`) : les commandes du budget, du commerce (accords, libre-échange, voir docs/commerce.md),
   du pilote automatique et des lignes partent au serveur (action `appel`), qui vérifie
   que le joueur est maire de la ville, les fait, puis les renvoie à tous pour qu'ils
   les rejouent (`appel`, `Multijoueur.rejeu`).

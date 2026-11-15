@@ -930,6 +930,12 @@ func evaluate(id: String, s: Dictionary, path: PackedVector2Array) -> Dictionary
 	plan.snap_a = sa
 	plan.snap_b = sb
 	plan.crossings = []
+	# Partie historique : pas d'autoroute en 1850 ni de métro en 1820 (Epoques).
+	var epoque := Epoques.raison_voie(id)
+	if epoque != "":
+		plan.ok = false
+		plan.reason = epoque
+		return plan
 	if not sa.is_empty() and not sb.is_empty() and int(sa.node) >= 0 and sa.node == sb.node:
 		plan.ok = false
 		plan.reason = "Le départ et l'arrivée sont au même endroit."

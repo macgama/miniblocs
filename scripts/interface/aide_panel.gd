@@ -59,6 +59,12 @@ const SECTIONS := [
 		["Mes modèles (Construire, B)", "tes modèles et créations se posent comme les autres bâtiments : prix, R pour tourner, accès à une route, chantier ; chantier fini, ses vrais murs, pièces et meubles sont posés : il se visite (V)"],
 		["Chantiers", "bâtiments et voies se construisent étape par étape au rythme de la vie (maison ≈ 3 semaines de jeu), en semaine et en journée ; le prix se paie au fil des travaux ; panneau Admin (F10) : horaires des équipes ou construction instantanée"],
 	]],
+	["Époques", [
+		["Année de départ", "globe, Réglages de la partie (ou Admin F10), section Époque : partie historique de 1800 à aujourd'hui ; chaque invention arrive à sa date (train 1830, électricité 1882, autoroute 1930, 4G 2010…)"],
+		["Pas encore inventé", "vignette « Arrive en 1882 » dans Construire ; voies, stations, lignes électriques, fibre et matériaux de l'Atelier suivent aussi l'année"],
+		["Services d'époque", "maison d'école, Hôtel-Dieu, remise des pompes, gendarmerie ; pompes à bras, ambulances et corbillards à chevaux, tombereaux, rues pavées et réverbères"],
+		["Rythme de l'histoire", "Admin (F10) : 1 à 25 années d'histoire par année de jeu, ou changer l'année en cours ; les habitants n'attendent le courant qu'en 1925, l'eau courante en 1900, le téléphone en 1975"],
+	]],
 	["Événements", [
 		["I", "panneau Infos : événements en cours et à venir, journal, organiser une fête ou un marché, dégâts à réparer, stades et classement"],
 		["Fil d'actualité (haut de l'écran)", "clic sur une nouvelle pour aller sur place"],
@@ -176,6 +182,15 @@ const SECTIONS := [
 		["Ouvert / Fermé", "enseigne sur la façade et rideau de fer selon le personnel présent ; pancarte orange « Manque de personnel », rouge « Fermé : pas d'enseignant »…"],
 		["Sans personnel", "école fermée : les élèves restent à la maison ; commerce fermé : les clients vont ailleurs ; hôpital fermé : la santé baisse ; production selon les postes pourvus"],
 		["Clic sur un employé", "sa fiche : ce qu'il fait en ce moment, et le personnel du bâtiment"],
+	]],
+	["Commerce entre villes et pays", [
+		["Maj + S (Économie ▴ → Commerce)", "menu Commerce : Marché mondial (cours du jour et courbes), Offres des villes partenaires, Accords en cours, Entre tes villes et pays, Crises, Bilan"],
+		["Cours mondiaux", "chaque marchandise a un cours qui bouge chaque jour ; les marchandises d'une même famille (énergie, métaux, agriculture…) bougent ensemble. Export et import au cours du jour ; sur la carte et en rayon, les prix suivent le cours à moitié"],
+		["Villes partenaires", "de vraies villes voisines de ton lieu. Elles proposent d'acheter ou de vendre tant de tonnes par jour, à prix fixe, pendant 30 à 180 jours. Une mission commerciale (25 000 €) améliore la relation et fait venir deux offres"],
+		["Accord d'exportation", "tes camions portent la marchandise à la frontière avant tout le reste ; il faut la produire, des chauffeurs-livreurs et une route qui sort de la carte (ou un dépôt, une gare, un port). Ce qui manque chaque jour coûte 10 % de pénalité et fâche le partenaire"],
+		["Accord d'importation", "prix fixe, à l'abri des crises, et passage garanti même quand la frontière est pleine"],
+		["Entre tes villes", "la ville qui achète se fournit d'abord chez celle qui vend, au prix convenu ; sur une carte entre amis, le maire de l'autre ville doit accepter. Libre-échange entre deux de tes pays : plus de douane"],
+		["Crises économiques", "choc pétrolier, krach, sécheresse mondiale, pénurie de puces, boom de la construction, inflation, guerre commerciale, récolte record, ruée vers les métaux : elles montent, durent de 1 à 6 mois puis redescendent. F10 : crises oui ou non, marché calme, normal ou agité"],
 	]],
 	["Production", [
 		["P", "panneau Production : carte des ressources, marchandises de la ville, sites (stock et caisse de chaque entreprise), camions de livraison"],

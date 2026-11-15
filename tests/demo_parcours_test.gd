@@ -16,7 +16,7 @@ extends SceneTree
 ## Sans --proxy le relief est plat (hors ligne) ; avec, c'est le vrai relief d'Échallens.
 
 var ok := true
-var _logger: Journal
+var _logger: JournalErreurs
 var echelle := 20.0
 var proxy_hote := ""
 var proxy_port := 0
@@ -25,7 +25,7 @@ var _proxies := {}
 var soigneux := false
 
 
-class Journal extends Logger:
+class JournalErreurs extends Logger:
 	var mutex := Mutex.new()
 	var liste: Array = []
 
@@ -43,7 +43,7 @@ class Journal extends Logger:
 
 
 func _initialize() -> void:
-	_logger = Journal.new()
+	_logger = JournalErreurs.new()
 	OS.add_logger(_logger)
 	_run.call_deferred()
 	create_timer(3600.0, true, false, true).timeout.connect(func() -> void:

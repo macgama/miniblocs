@@ -8,10 +8,10 @@ extends SceneTree
 
 var ok := true
 var erreurs: Array = []
-var _logger: Journal
+var _logger: JournalErreurs
 
 
-class Journal extends Logger:
+class JournalErreurs extends Logger:
 	var mutex := Mutex.new()
 	var liste: Array = []
 
@@ -41,7 +41,7 @@ func _rang() -> String:
 
 
 func _initialize() -> void:
-	_logger = Journal.new()
+	_logger = JournalErreurs.new()
 	OS.add_logger(_logger)
 	_run.call_deferred()
 	create_timer(3000.0).timeout.connect(func() -> void:

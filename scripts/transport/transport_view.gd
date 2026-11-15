@@ -331,7 +331,7 @@ static func junction_mesh(net: TransportNetwork, nid: int, trims: Dictionary) ->
 		tous_chantier = tous_chantier and net.edges[eid].has("ch")
 	if tous_chantier:
 		return null
-	var col := ASPHALT
+	var col := couleur_chaussee()
 	if net.node_mode(nid) == TransportTypes.Mode.PATH:
 		col = TransportTypes.get_type(net.edges[net.adjacency[nid][0]].t).get("color", SIDEWALK)
 	var center := net.node_pos(nid)
@@ -736,6 +736,23 @@ static func _ground(ground_fn: Callable, p: Vector3, top: float) -> float:
 	return minf(gh, top) - 2.0
 
 
+## Chaussée de l'époque : pavés et empierrement avant 1900, pavés et premiers
+## goudrons jusqu'en 1930, enrobé ensuite (et hors partie historique).
+const PAVES := Color("7a6650")
+const GOUDRON_ANCIEN := Color("4d4c49")
+
+
+static func couleur_chaussee() -> Color:
+	if not Epoques.actif():
+		return ASPHALT
+	var y := Epoques.annee()
+	if y < 1900:
+		return PAVES
+	if y < 1930:
+		return GOUDRON_ANCIEN
+	return ASPHALT
+
+
 ## Profil en travers d'une route : bords (trottoirs, accotements ou bandes
 ## d'arrêt d'urgence), voies de circulation, marquages, terre-plein central.
 static func _road_section(k: MeshKit, type_id: String, spec: Dictionary, a: Vector3, b: Vector3,
@@ -751,9 +768,11 @@ static func _road_section(k: MeshKit, type_id: String, spec: Dictionary, a: Vect
 	var outer := inner + carriage
 	var hw := outer + side
 	var skirt_col := CONCRETE if bridge else ASPHALT.darkened(0.2)
-	# Chaussées (les deux sens) et terre-plein.
-	k.strip(a, b, ra, rb, -outer, -inner, 0.08, ASPHALT, 0.0, ASPHALT)
-	k.strip(a, b, ra, rb, inner, outer, 0.08, ASPHALT, 0.0, ASPHALT)
+	# Chaussées (les deux sens) et terre-plein : pavés et empierrement avant
+	# l'enrobé, dans une partie historique (Epoques).
+	var chaussee := couleur_chaussee()
+	k.strip(a, b, ra, rb, -outer, -inner, 0.08, chaussee, 0.0, chaussee)
+	k.strip(a, b, ra, rb, inner, outer, 0.08, chaussee, 0.0, chaussee)
 	if single:
 		lanes = 1
 	if med > 0.0:
@@ -770,7 +789,8 @@ static func _road_section(k: MeshKit, type_id: String, spec: Dictionary, a: Vect
 		_:
 			k.strip(a, b, ra, rb, -hw, -outer, 0.08, ASPHALT_SIDE, skirt, skirt_col)
 			k.strip(a, b, ra, rb, outer, hw, 0.08, ASPHALT_SIDE, skirt, skirt_col)
-	if not marks:
+	# Pas de marquage au sol avant les années 1930.
+	if not marks or (Epoques.actif() and Epoques.annee() < 1930):
 		return
 	# Lignes de rive (continues) au bord de la chaussée.
 	for e in [-outer, outer]:

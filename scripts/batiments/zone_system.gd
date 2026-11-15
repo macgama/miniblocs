@@ -477,8 +477,54 @@ func _grow_in(z: Dictionary, need := INF, max_logements := 0) -> int:
 	return -1
 
 
-## Types qui poussent dans une zone de type k avec le style donné (poids).
+## Types qui poussent dans une zone de type k avec le style donné (poids),
+## limités à ceux déjà inventés à l'époque de la partie (Epoques).
 static func types_for(k: String, style: String) -> Dictionary:
+	var out := _types_for(k, style)
+	if not Epoques.actif():
+		return out
+	var dispo := {}
+	for id in out:
+		if Epoques.batiment_disponible(id):
+			dispo[id] = out[id]
+	# Avant les modèles modernes (1950), la ville pousse dans les styles de
+	# l'époque et de la région : colombages et pierre en 1800, haussmannien et
+	# briques industrielles vers 1860, art déco vers 1925…
+	if Epoques.annee() < 1950 or dispo.is_empty():
+		dispo.merge(types_d_epoque(k), false)
+	return dispo if not dispo.is_empty() else out
+
+
+## Types de la bible des styles déjà inventés, de la région de la partie
+## (sinon de toutes les régions) ; les styles récents poussent plus souvent.
+static func types_d_epoque(k: String) -> Dictionary:
+	var out := {}
+	if not STYLE_ARCHS.has(k):
+		return out
+	var y := Epoques.annee()
+	var region := Prenoms.region_for_place(GameStart.lat, GameStart.lon)
+	for pass_i in 2:
+		for sid in Styles.STYLES:
+			var s: Dictionary = Styles.STYLES[sid]
+			if pass_i == 0 and String(s.region) != region:
+				continue
+			if String(s.era) == "antique":
+				continue
+			for arch in STYLE_ARCHS[k]:
+				var id := "%s__%s" % [sid, arch]
+				if not BuildingCatalog.all_types().has(id) or not Epoques.batiment_disponible(id):
+					continue
+				var ay := Epoques.annee_batiment(id)
+				var w := int(STYLE_ARCHS[k][arch])
+				if ay > 0 and y - ay < 80:
+					w *= 3
+				out[id] = w
+		if not out.is_empty():
+			return out
+	return out
+
+
+static func _types_for(k: String, style: String) -> Dictionary:
 	if style == STYLE_BIBLE:
 		var bible := {}
 		var entrees := BibleGlb.entries()

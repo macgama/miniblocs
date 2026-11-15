@@ -77,10 +77,10 @@ func _run() -> void:
 	print("Véhicules d'époque :")
 	var attendus := {"fpt": "pompe_a_bras", "vsav": "ambulance_chevaux", "ambulance": "ambulance_chevaux",
 		"police_nationale": "gendarme_cheval", "gendarmerie": "gendarme_cheval", "benne_om": "tombereau",
-		"corbillard": "corbillard_chevaux", "chasse_neige": "chasse_neige_chevaux", "autocar": "diligence_messageries",
-		"semi": "charrette"}
+		"corbillard": "corbillard_chevaux", "chasse_neige": "chasse_neige_chevaux", "autocar": "diligence_messageries"}
 	for m in attendus:
 		_check(Epoques.vehicule(m) == attendus[m], "%s → %s" % [m, attendus[m]])
+	_check(Epoques.ATTELAGES.utilitaire.has(Epoques.vehicule("semi")), "semi → %s (attelage de transport)" % Epoques.vehicule("semi"))
 	var rue := VehicleCatalog.for_track("rue")
 	var vieux := not rue.is_empty()
 	for id in rue:

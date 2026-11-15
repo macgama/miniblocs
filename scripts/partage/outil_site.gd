@@ -82,10 +82,7 @@ func poser(p: Dictionary) -> void:
 	rot = 0
 	mode = "pose"
 	_refaire_boites()
-	if PlansSites.peut_tourner(p):
-		message.emit("Poser « %s » (%s) : clic pour poser · R : tourner · clic droit ou Échap : arrêter" % [String(p.get("nom", "")), PlansSites.resume(p)])
-	else:
-		message.emit("Poser « %s » (%s) : clic pour poser (ce plan ne tourne pas : murs fins ou blocs) · clic droit ou Échap : arrêter" % [String(p.get("nom", "")), PlansSites.resume(p)])
+	message.emit("Poser « %s » (%s) : clic pour poser · R : tourner · clic droit ou Échap : arrêter" % [String(p.get("nom", "")), PlansSites.resume(p)])
 
 
 func stop() -> void:
@@ -163,10 +160,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			stop()
 			get_viewport().set_input_as_handled()
 		elif k.keycode == KEY_R and mode == "pose" and not k.ctrl_pressed and not k.shift_pressed:
-			if PlansSites.peut_tourner(plan):
-				rot = (rot + 1) % 4
-				_refaire_boites()
-				_dessine_plan()
+			rot = (rot + 1) % 4
+			_refaire_boites()
+			_dessine_plan()
 			get_viewport().set_input_as_handled()
 
 
@@ -217,7 +213,7 @@ func _dessine_plan() -> void:
 	_boites.visible = true
 
 
-## Emprises des bâtiments, dans le repère du coin du plan.
+## Emprises des bâtiments (et des murs fins), dans le repère du coin du plan.
 func _refaire_boites() -> void:
 	for c in _boites.get_children():
 		c.queue_free()
@@ -225,14 +221,21 @@ func _refaire_boites() -> void:
 	for b: Dictionary in plan.get("batiments", []):
 		if n >= MAX_BOITES:
 			break
-		var r := PlansSites.rect_batiment(b, plan, Vector2i.ZERO, rot)
-		var mi := MeshInstance3D.new()
-		var bm := BoxMesh.new()
 		var t := BuildingCatalog.get_type(String(b.t))
-		var hb := clampf(float(t.get("h", 6.0)) if t.has("h") else 6.0, 2.0, 30.0)
-		bm.size = Vector3(r.size.x, hb, r.size.y)
-		mi.mesh = bm
-		mi.material_override = _mat_bat
-		mi.position = Vector3(r.position.x + r.size.x / 2.0, hb / 2.0, r.position.y + r.size.y / 2.0)
-		_boites.add_child(mi)
+		_boite(PlansSites.rect_batiment(b, plan, Vector2i.ZERO, rot), clampf(float(t.get("h", 6.0)) if t.has("h") else 6.0, 2.0, 30.0))
 		n += 1
+	for m: Dictionary in plan.get("murs", []):
+		if n >= MAX_BOITES:
+			break
+		_boite(PlansSites.rect_murs(m, plan, rot), 3.0 * maxf(1.0, float((m.get("plan", {}) as Dictionary).get("etiquettes", {}).get("etages", 1))))
+		n += 1
+
+
+func _boite(r: Rect2i, hb: float) -> void:
+	var mi := MeshInstance3D.new()
+	var bm := BoxMesh.new()
+	bm.size = Vector3(r.size.x, hb, r.size.y)
+	mi.mesh = bm
+	mi.material_override = _mat_bat
+	mi.position = Vector3(r.position.x + r.size.x / 2.0, hb / 2.0, r.position.y + r.size.y / 2.0)
+	_boites.add_child(mi)

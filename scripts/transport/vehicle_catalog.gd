@@ -315,7 +315,7 @@ const TYPES := {
 		"L": 1.1, "W": 0.45, "H": 1.8, "kmh": 22, "places": 1, "shape": "velo", "kind": "trottinette", "paints": BRIGHT, "desc": "Debout, sans effort."},
 	"cyclo_pousse": {"name": "Cyclo-pousse", "cat": "deux_roues", "mode": PATH, "path": true, "era": "moderne", "region": "asie_sud", "year": 1960,
 		"L": 2.6, "W": 1.1, "H": 1.9, "kmh": 12, "places": 2, "shape": "velo", "kind": "cyclo", "col": Color("e76f51"), "desc": "Le passager devant, le cycliste derrière."},
-	"pousse_pousse": {"name": "Pousse-pousse", "cat": "deux_roues", "mode": PATH, "path": true, "era": "classique", "region": "asie_est", "year": 1900,
+	"pousse_pousse": {"name": "Pousse-pousse", "cat": "deux_roues", "mode": PATH, "path": true, "era": "classique", "region": "asie_est", "year": 1869,
 		"L": 3.0, "W": 1.1, "H": 1.9, "kmh": 8, "places": 1, "shape": "velo", "kind": "pousse", "col": Color("6b2737"), "desc": "Tiré à pied par un coureur."},
 	"scooter": {"name": "Scooter des années 60", "cat": "deux_roues", "mode": ROAD, "era": "moderne", "region": "europe", "year": 1960,
 		"L": 1.8, "W": 0.7, "H": 1.6, "kmh": 80, "places": 2, "shape": "moto", "kind": "scooter",
@@ -532,6 +532,120 @@ const TYPES := {
 		"shape": "aeronef", "kind": "helico", "col": Color("e63946"), "col2": Color("f4f4f4"), "desc": "Décolle à la verticale, se pose partout."},
 	"taxi_volant": {"name": "Taxi volant électrique", "cat": "avion", "mode": AIR, "era": "futuriste", "region": "monde", "year": 2035, "L": 6.0, "W": 7.0, "H": 2.2, "kmh": 150, "places": 2,
 		"shape": "aeronef", "kind": "multirotor", "col": Color("f8f9fa"), "col2": Color("4cc9f0"), "desc": "Huit rotors au-dessus des embouteillages."},
+	# --- XIXe siècle (parties historiques, voir Epoques) ---------------------------------------
+	# "siecle" : véhicules ajoutés pour remplir les années 1800-1900 (vitrine, test).
+	"fiacre": {"name": "Fiacre", "cat": "attelage", "mode": ROAD, "era": "traditionnel", "region": "europe", "year": 1800, "siecle": true,
+		"L": 3.6, "W": 1.7, "H": 2.4, "kmh": 12, "places": 4, "shape": "attelage", "kind": "fiacre", "horses": 1,
+		"paints": [Color("1b3a2a"), Color("1b1b1b"), Color("3d2b1f"), Color("2f3e46")],
+		"desc": "Le taxi à cheval : on le hèle sur la place, le cocher fouette depuis son siège perché."},
+	"coupe_ville": {"name": "Coupé de ville", "cat": "attelage", "mode": ROAD, "era": "classique", "region": "europe", "year": 1838, "siecle": true,
+		"L": 3.5, "W": 1.6, "H": 2.3, "kmh": 15, "places": 2, "shape": "attelage", "kind": "coupe", "horses": 1, "col": Color("14213d"),
+		"desc": "Petite caisse fermée et vitrée à l'avant, cocher en livrée : la voiture des bourgeois (le « brougham » anglais)."},
+	"cabriolet": {"name": "Cabriolet", "cat": "attelage", "mode": ROAD, "era": "traditionnel", "region": "europe", "year": 1810, "siecle": true,
+		"L": 2.6, "W": 1.6, "H": 2.1, "kmh": 18, "places": 2, "shape": "attelage", "kind": "cabriolet", "horses": 1, "col": Color("c99a2e"),
+		"desc": "Deux grandes roues, une capote de cuir et un cheval vif : le monsieur conduit lui-même."},
+	"char_a_bancs": {"name": "Char à bancs", "cat": "attelage", "mode": ROAD, "era": "traditionnel", "region": "europe", "year": 1800, "siecle": true,
+		"L": 4.4, "W": 1.8, "H": 2.4, "kmh": 10, "places": 10, "shape": "attelage", "kind": "char_bancs", "horses": 2, "role": "car", "col": Color("6b2737"),
+		"desc": "Des bancs en travers sous une bâche : la noce, la sortie du dimanche ou le marché de la ville voisine."},
+	"malle_poste": {"name": "Malle-poste", "cat": "attelage", "mode": ROAD, "era": "traditionnel", "region": "europe", "year": 1800, "siecle": true, "livraison": true,
+		"L": 4.2, "W": 1.9, "H": 2.8, "kmh": 16, "places": 4, "shape": "attelage", "kind": "malle", "horses": 4, "col": Color("1d3557"),
+		"desc": "Le courrier au grand galop, quatre voyageurs seulement : Paris-Marseille en quatre jours en 1830."},
+	"haquet_brasseur": {"name": "Haquet de brasseur", "cat": "attelage", "mode": ROAD, "era": "traditionnel", "region": "europe", "year": 1800, "siecle": true, "livraison": true,
+		"L": 4.6, "W": 1.9, "H": 2.0, "kmh": 7, "places": 2, "shape": "attelage", "kind": "haquet", "horses": 2, "col": Color("6b4a33"),
+		"desc": "Plateau bas chargé de tonneaux, deux gros percherons : la bière arrive au café."},
+	"voiture_laitier": {"name": "Voiture du laitier", "cat": "attelage", "mode": ROAD, "era": "classique", "region": "europe", "year": 1850, "siecle": true, "livraison": true,
+		"L": 3.2, "W": 1.6, "H": 1.9, "kmh": 9, "places": 1, "shape": "attelage", "kind": "laitier", "horses": 1, "col": Color("2d6a4f"),
+		"desc": "Les bidons de lait de la ferme, livrés au petit matin de porte en porte."},
+	"fardier": {"name": "Fardier", "cat": "attelage", "mode": ROAD, "era": "traditionnel", "region": "europe", "year": 1800, "siecle": true, "livraison": true,
+		"L": 5.6, "W": 2.0, "H": 2.4, "kmh": 4, "places": 1, "shape": "attelage", "kind": "fardier", "horses": 4, "col": Color("6b4a33"),
+		"desc": "Des roues de deux mètres pour porter sous l'essieu les blocs de pierre de taille et les troncs."},
+	"charrette_boeufs": {"name": "Charrette à bœufs", "cat": "attelage", "mode": ROAD, "era": "traditionnel", "region": "monde", "year": 1800, "siecle": true,
+		"L": 3.6, "W": 1.7, "H": 1.9, "kmh": 4, "places": 2, "shape": "attelage", "kind": "boeufs", "horses": 2, "bete": Color("d9cbb0"),
+		"desc": "Deux bœufs sous le joug et des roues pleines : lent mais infatigable, de la Gascogne à l'Inde."},
+	"draisienne": {"name": "Draisienne", "cat": "deux_roues", "mode": PATH, "path": true, "era": "traditionnel", "region": "europe", "year": 1817, "siecle": true,
+		"L": 1.9, "W": 0.5, "H": 1.6, "kmh": 12, "places": 1, "shape": "velo", "kind": "draisienne", "col": WOOD,
+		"desc": "Le cavalier pousse avec les pieds : l'ancêtre du vélo, inventé par le baron Drais."},
+	"velocipede": {"name": "Vélocipède", "cat": "deux_roues", "mode": PATH, "path": true, "era": "classique", "region": "europe", "year": 1867, "siecle": true,
+		"L": 1.8, "W": 0.55, "H": 1.7, "kmh": 14, "places": 1, "shape": "velo", "kind": "velocipede", "col": DARK,
+		"desc": "Des pédales sur la roue avant et des roues cerclées de fer : le « secoueur d'os » de Michaux."},
+	"bicyclette_1890": {"name": "Bicyclette de 1890", "cat": "deux_roues", "mode": PATH, "path": true, "era": "classique", "region": "europe", "year": 1888, "siecle": true,
+		"L": 1.8, "W": 0.55, "H": 1.7, "kmh": 18, "places": 1, "shape": "velo", "col": DARK,
+		"desc": "Deux roues égales, une chaîne et des pneus gonflés de Dunlop : tout le monde se met au vélo."},
+	"tram_chevaux": {"name": "Tramway à chevaux", "cat": "tram", "mode": RAIL, "rail": "tram", "era": "classique", "region": "europe", "year": 1853, "siecle": true,
+		"L": 7.0, "W": 2.0, "H": 3.4, "kmh": 10, "places": 40, "shape": "tram", "style": "chevaux", "col": Color("e9c46a"), "col2": Color("2d6a4f"),
+		"desc": "Une voiture sur rails tirée par deux chevaux, l'impériale ouverte : plus doux que l'omnibus sur les pavés."},
+	"tram_vapeur": {"name": "Tramway à vapeur", "cat": "tram", "mode": RAIL, "rail": "tram", "era": "classique", "region": "europe", "year": 1876, "siecle": true,
+		"L": 5.0, "W": 2.1, "H": 3.4, "kmh": 20, "places": 0, "shape": "tram", "style": "vapeur", "consist": ["tram_remorque_1880", "tram_remorque_1880"],
+		"col": Color("2b2d42"), "col2": Color("c1121f"), "desc": "Une petite motrice à vapeur carénée qui tire ses remorques dans la rue."},
+	"tram_remorque_1880": {"name": "Remorque de tramway 1880", "cat": "wagon", "mode": RAIL, "rail": "tram", "era": "classique", "region": "europe", "year": 1876, "siecle": true,
+		"L": 8.0, "W": 2.1, "H": 3.3, "kmh": 20, "places": 45, "shape": "tram", "style": "ancien", "col": Color("e9c46a"), "col2": Color("6b2737"),
+		"desc": "Plateformes ouvertes aux deux bouts.", "hidden": true},
+	"loco_crampton": {"name": "Locomotive Crampton", "cat": "train", "mode": RAIL, "rail": "train", "era": "classique", "region": "europe", "year": 1849, "siecle": true,
+		"L": 9.0, "W": 2.6, "H": 4.0, "kmh": 120, "places": 0, "shape": "vapeur", "style": "crampton",
+		"consist": ["tender", "voiture_compartiments", "voiture_compartiments", "voiture_compartiments", "fourgon_bagages"],
+		"col": Color("2d6a4f"), "col2": Color("c99a2e"), "desc": "Une seule roue motrice de 2,30 m tout à l'arrière : la reine des express, « prendre le Crampton »."},
+	"loco_030": {"name": "Locomotive à marchandises 030", "cat": "train", "mode": RAIL, "rail": "train", "era": "classique", "region": "europe", "year": 1855, "siecle": true,
+		"L": 8.5, "W": 2.7, "H": 4.1, "kmh": 50, "places": 0, "shape": "vapeur", "style": "marchandises",
+		"consist": ["tender", "wagon_tombereau", "wagon_tombereau", "wagon_couvert_bois", "wagon_bestiaux", "wagon_plat_1850", "wagon_couvert_bois"],
+		"col": Color("1b1b1b"), "col2": Color("6b2737"), "desc": "Trois essieux accouplés, de petites roues et beaucoup de force : charbon, vin et bestiaux."},
+	"loco_banlieue": {"name": "Locomotive-tender de banlieue", "cat": "train", "mode": RAIL, "rail": "train", "era": "classique", "region": "europe", "year": 1880, "siecle": true,
+		"L": 10.0, "W": 2.8, "H": 4.2, "kmh": 75, "places": 0, "shape": "vapeur", "style": "tank",
+		"consist": ["voiture_imperiale", "voiture_imperiale", "voiture_imperiale", "fourgon_bagages"],
+		"col": Color("1d3557"), "col2": Color("c1121f"), "desc": "Ses caisses à eau sur les flancs, pas de tender : elle repart dans l'autre sens sans faire demi-tour."},
+	"voiture_compartiments": {"name": "Voiture à compartiments", "cat": "wagon", "mode": RAIL, "era": "classique", "region": "europe", "year": 1850, "siecle": true,
+		"L": 9.0, "W": 2.6, "H": 3.6, "kmh": 100, "places": 30, "shape": "voyageurs", "style": "compartiments", "col": Color("6b2737"), "col2": Color("c99a2e"),
+		"desc": "Une porte par compartiment, pas de couloir : on monte du quai, on ne bouge plus jusqu'à l'arrêt."},
+	"voiture_imperiale": {"name": "Voiture à impériale", "cat": "wagon", "mode": RAIL, "era": "classique", "region": "europe", "year": 1863, "siecle": true,
+		"L": 10.0, "W": 2.7, "H": 4.2, "kmh": 75, "places": 80, "shape": "voyageurs", "style": "imperiale", "col": Color("2d4a3e"), "col2": Color("e9c46a"),
+		"desc": "Un étage sur le toit pour les billets bon marché : les banlieusards de Paris y prenaient la fumée."},
+	"voiture_lits_1876": {"name": "Voiture-lits en teck", "cat": "wagon", "mode": RAIL, "era": "classique", "region": "europe", "year": 1876, "siecle": true,
+		"L": 17.0, "W": 2.9, "H": 4.0, "kmh": 100, "places": 20, "shape": "voyageurs", "style": "fenetres", "col": Color("7a4a2a"), "col2": Color("d4a373"),
+		"desc": "Caisse vernie en teck et lits pliants : les premiers trains de nuit de la Compagnie des wagons-lits (1876)."},
+	"fourgon_bagages": {"name": "Fourgon à bagages", "cat": "wagon", "mode": RAIL, "era": "classique", "region": "europe", "year": 1840, "siecle": true,
+		"L": 8.0, "W": 2.6, "H": 3.6, "kmh": 100, "places": 0, "shape": "fret", "kind": "fourgon", "essieux": true, "col": Color("5c3d24"),
+		"desc": "Malles, colis et le chef de train dans sa vigie sur le toit."},
+	"wagon_tombereau": {"name": "Wagon-tombereau", "cat": "wagon", "mode": RAIL, "era": "classique", "region": "monde", "year": 1830, "siecle": true,
+		"L": 6.0, "W": 2.5, "H": 2.4, "kmh": 50, "places": 0, "shape": "fret", "kind": "tombereau", "essieux": true, "col": Color("6b4a33"),
+		"desc": "Caisse ouverte en bois chargée de charbon ou de sable."},
+	"wagon_couvert_bois": {"name": "Wagon couvert en bois", "cat": "wagon", "mode": RAIL, "era": "classique", "region": "monde", "year": 1845, "siecle": true,
+		"L": 7.0, "W": 2.6, "H": 3.5, "kmh": 50, "places": 0, "shape": "fret", "kind": "couvert", "essieux": true, "col": Color("8b3a1a"),
+		"desc": "Planches, toit bombé et porte coulissante : « Hommes 40, chevaux 8 »."},
+	"wagon_bestiaux": {"name": "Wagon à bestiaux", "cat": "wagon", "mode": RAIL, "era": "classique", "region": "monde", "year": 1850, "siecle": true,
+		"L": 7.0, "W": 2.6, "H": 3.4, "kmh": 50, "places": 0, "shape": "fret", "kind": "bestiaux", "essieux": true, "col": Color("7a5a3a"),
+		"desc": "Claire-voie pour que les bêtes respirent jusqu'aux abattoirs de la ville."},
+	"wagon_plat_1850": {"name": "Wagon plat à ranchers", "cat": "wagon", "mode": RAIL, "era": "classique", "region": "monde", "year": 1850, "siecle": true,
+		"L": 7.0, "W": 2.5, "H": 2.6, "kmh": 50, "places": 0, "shape": "fret", "kind": "plat", "essieux": true, "col": Color("5c4b3a"),
+		"desc": "Plateau et ranchers : poutres, caisses, une diligence à faire voyager."},
+	"trois_mats": {"name": "Trois-mâts marchand", "cat": "bateau", "mode": WATER, "era": "traditionnel", "region": "monde", "year": 1800, "siecle": true,
+		"L": 42.0, "W": 9.0, "H": 34.0, "kmh": 14, "places": 30, "shape": "bateau", "kind": "trois_mats", "col": Color("3d2b1f"), "col2": Color("efe6d0"),
+		"desc": "Voiles carrées sur trois mâts et sabords peints : vins, sucre, épices et coton d'un continent à l'autre."},
+	"clipper": {"name": "Clipper", "cat": "bateau", "mode": WATER, "era": "classique", "region": "ameriques", "year": 1845, "siecle": true,
+		"L": 60.0, "W": 11.0, "H": 45.0, "kmh": 30, "places": 40, "shape": "bateau", "kind": "clipper", "col": Color("1b1b1b"), "col2": Color("f8f9fa"),
+		"desc": "Coque fine et nuages de toile : le thé de Chine arrive à Londres en cent jours."},
+	"vapeur_roues": {"name": "Vapeur à roues de haute mer", "cat": "bateau", "mode": WATER, "era": "classique", "region": "europe", "year": 1838, "siecle": true,
+		"L": 64.0, "W": 11.0, "H": 30.0, "kmh": 17, "places": 150, "shape": "bateau", "kind": "vapeur_roues", "col": Color("1b1b1b"), "col2": Color("c1121f"),
+		"desc": "Deux grandes roues à aubes sur les flancs, une cheminée et des voiles au cas où : l'Atlantique en quinze jours."},
+	"steamer_helice": {"name": "Paquebot à hélice", "cat": "bateau", "mode": WATER, "era": "classique", "region": "europe", "year": 1865, "siecle": true,
+		"L": 110.0, "W": 13.0, "H": 36.0, "kmh": 26, "places": 800, "shape": "bateau", "kind": "steamer", "col": Color("1b1b1b"), "col2": Color("e76f51"),
+		"desc": "Coque de fer, hélice et deux cheminées : les émigrants partent pour New York en dix jours."},
+	"remorqueur_vapeur": {"name": "Remorqueur à vapeur", "cat": "bateau", "mode": WATER, "era": "classique", "region": "monde", "year": 1850, "siecle": true,
+		"L": 22.0, "W": 6.0, "H": 9.0, "kmh": 18, "places": 6, "shape": "bateau", "kind": "remorqueur_vapeur", "col": Color("1b1b1b"), "col2": Color("c1121f"),
+		"desc": "Petit, trapu et fumant : il fait entrer les voiliers au port quand le vent tombe."},
+	"bateau_mouche": {"name": "Bateau-mouche", "cat": "bateau", "mode": WATER, "era": "classique", "region": "europe", "year": 1867, "siecle": true,
+		"L": 26.0, "W": 4.5, "H": 5.0, "kmh": 15, "places": 150, "shape": "bateau", "kind": "mouche", "col": Color("f1faee"), "col2": Color("1d3557"),
+		"desc": "Le petit vapeur à passagers de l'Exposition universelle, sur la Seine."},
+	"gabare": {"name": "Gabare", "cat": "bateau", "mode": WATER, "era": "traditionnel", "region": "europe", "year": 1800, "siecle": true,
+		"L": 20.0, "W": 4.5, "H": 12.0, "kmh": 8, "places": 3, "shape": "bateau", "kind": "gabare", "col": Color("6f4518"), "col2": Color("d4b483"),
+		"desc": "Fond plat et voile carrée : le vin, le sel et le bois descendent la Dordogne et la Loire."},
+	"peniche_halage": {"name": "Péniche de halage", "cat": "bateau", "mode": WATER, "era": "traditionnel", "region": "europe", "year": 1820, "siecle": true,
+		"L": 30.0, "W": 5.0, "H": 3.0, "kmh": 4, "places": 2, "shape": "bateau", "kind": "halage", "col": Color("3d2b1f"), "col2": Color("2d6a4f"),
+		"desc": "Tirée depuis le chemin de halage par des chevaux ou des hommes : charbon et blé sur les canaux."},
+	"bac_traille": {"name": "Bac à traille", "cat": "bateau", "mode": WATER, "era": "traditionnel", "region": "monde", "year": 1800, "siecle": true,
+		"L": 14.0, "W": 6.0, "H": 3.0, "kmh": 3, "places": 30, "shape": "bateau", "kind": "bac", "col": Color("6b4a33"), "col2": Color("c99a2e"),
+		"desc": "Un grand plateau guidé par un câble : la charrette, les vaches et le curé passent la rivière."},
+	"dirigeable_giffard": {"name": "Dirigeable à vapeur", "cat": "avion", "mode": AIR, "era": "classique", "region": "europe", "year": 1852, "siecle": true,
+		"L": 44.0, "W": 12.0, "H": 14.0, "kmh": 10, "places": 1, "shape": "aeronef", "kind": "dirigeable", "col": Color("efe6d0"), "col2": Color("6b4a33"),
+		"desc": "Le ballon en fuseau d'Henri Giffard et sa petite machine à vapeur : 27 km, de Paris à Élancourt."},
 }
 
 
@@ -1128,6 +1242,19 @@ static func _bike(k: VehicleMesh, t: Dictionary, col: Color) -> void:
 			k.x_cyl(0, 0.22, 0.75, 0.22, 0.04, 8, steel)
 			k.rod(Vector3(0, 1.5, -0.25), Vector3(0, 0.45, 0.75), 0.06, steel)
 			k.person(0, 1.5, -0.05, Color("6b2737"))
+		"draisienne", "velocipede":
+			var avant := 0.45 if kind == "draisienne" else 0.5
+			k.x_cyl(0, 0.4, -0.7, avant, 0.06, 10, WOOD.darkened(0.3))
+			k.x_cyl(0, 0.4, 0.7, 0.4, 0.06, 10, WOOD.darkened(0.3))
+			k.rod(Vector3(0, 0.95, -0.7), Vector3(0, 0.85, 0.7), 0.09, col)
+			k.rod(Vector3(0, 0.4, -0.7), Vector3(0, 1.2, -0.75), 0.05, steel)
+			k.box(0, 1.2, -0.75, 0.5, 0.04, 0.05, steel)
+			k.box(0, 1.0, 0.1, 0.22, 0.06, 0.4, Color("3d2b1f"))
+			if kind == "draisienne":
+				k.person(0, 0.05, 0.1, Color("1d3557"), false)
+			else:
+				k.person(0, 1.0, 0.05, Color("6b2737"))
+				k.box(0.2, 0.4, -0.7, 0.1, 0.05, 0.25, steel)
 		"trottinette":
 			k.x_cyl(0, 0.1, -0.45, 0.1, 0.05, 8, VehicleMesh.TIRE)
 			k.x_cyl(0, 0.1, 0.45, 0.1, 0.05, 8, VehicleMesh.TIRE)
@@ -1327,15 +1454,109 @@ static func _cart(k: VehicleMesh, t: Dictionary, col: Color) -> void:
 			k.person(0, 1.8, -L * 0.36, Color("1b1b1b"))
 			k.axle(W / 2, -L * 0.2, 0.5, 0.08, Color("e9c46a"))
 			k.axle(W / 2, L * 0.45, 0.75, 0.08, Color("e9c46a"))
+		"fiacre", "coupe":
+			var coupe := kind == "coupe"
+			k.box(0, 0.75, 0.1, W * 0.5, 0.12, L * 0.85, Color("1b1b1b"))
+			k.box(0, 0.85, 0.35, W * 0.85, H - 1.35, L * (0.42 if coupe else 0.5), col)
+			k.box(0, 1.4, 0.35, W * 0.87, 0.55, L * (0.3 if coupe else 0.38), VehicleMesh.GLASS)
+			k.box(0, H - 0.5, 0.35, W * 0.9, 0.1, L * (0.46 if coupe else 0.54), Color("1b1b1b"))
+			if coupe:
+				k.box(0, 1.35, 0.35 - L * 0.21 - 0.02, W * 0.7, 0.55, 0.06, VehicleMesh.GLASS)
+			# Siège du cocher, perché devant.
+			k.box(0, 1.35, -L * 0.22, W * 0.7, 0.12, 0.55, col.darkened(0.2))
+			k.person(0, 1.45, -L * 0.22, Color("1b1b1b"))
+			k.box(0, 2.35, -L * 0.22, 0.32, 0.25, 0.32, Color("1b1b1b")) # haut-de-forme
+			k.box(W * 0.45, 1.7, -L * 0.05, 0.12, 0.2, 0.12, Color("f4d35e")) # lanterne
+			k.axle(W / 2, -L * 0.22, 0.5, 0.06, Color("1b1b1b"))
+			k.axle(W / 2, L * 0.32, 0.7, 0.06, Color("1b1b1b"))
+		"cabriolet":
+			k.box(0, 0.95, 0.2, W * 0.8, 0.55, 0.9, col)
+			k.taper(0, 1.5, 2.0, 0.05, 0.75, W * 0.85, W * 0.8, 0.0, 0.35, Color("1b1b1b"))
+			k.person(-0.2, 1.1, 0.25, Color("1d3557"))
+			k.box(-0.2, 2.0, 0.25, 0.3, 0.2, 0.3, Color("1b1b1b"))
+			k.person(0.25, 1.1, 0.3, Color("c77d9a"))
+			k.axle(W / 2, 0.25, 0.85, 0.06, col.darkened(0.3))
+		"char_bancs":
+			k.box(0, 0.85, 0.2, W, 0.15, L * 0.75, WOOD)
+			for s in [-1.0, 1.0]:
+				k.box(s * (W / 2 - 0.05), 1.0, 0.2, 0.08, 0.4, L * 0.75, WOOD.lightened(0.1))
+			for i in 4:
+				var z := -L * 0.25 + i * L * 0.17
+				k.box(0, 1.2, z, W * 0.9, 0.1, 0.3, WOOD.darkened(0.1))
+				k.person(-0.35, 1.2, z, BRIGHT[i % BRIGHT.size()])
+				k.person(0.35, 1.2, z, OLD_PAINTS[i % OLD_PAINTS.size()].lightened(0.2))
+			k.box(0, H - 0.2, 0.2, W * 0.95, 0.08, L * 0.7, CANVAS)
+			for s in [-1.0, 1.0]:
+				for e in [-1.0, 1.0]:
+					k.box(s * W * 0.45, 1.0, 0.2 + e * L * 0.33, 0.06, H - 1.2, 0.06, WOOD)
+			k.person(0, 1.15, -L * 0.36, Color("3d2b1f"))
+			k.axle(W / 2, -L * 0.2, 0.55, 0.08, WOOD.darkened(0.3))
+			k.axle(W / 2, L * 0.3, 0.7, 0.08, WOOD.darkened(0.3))
+		"malle":
+			k.box(0, 0.95, 0.4, W * 0.88, 1.3, L * 0.42, col)
+			k.box(0, 1.45, 0.4, W * 0.9, 0.5, L * 0.3, VehicleMesh.GLASS)
+			k.box(0, 2.25, 0.4, W * 0.9, 0.5, L * 0.44, Color("1b1b1b")) # coffre à dépêches
+			k.box(0, 0.95, -L * 0.22, W * 0.85, 0.9, 0.9, col.darkened(0.15)) # cabriolet du courrier
+			k.box(0, 1.85, -L * 0.22, W * 0.8, 0.12, 1.0, Color("1b1b1b"))
+			k.person(0, 1.05, -L * 0.22, Color("1d3557"))
+			k.box(0, 2.0, -L * 0.22 - 0.2, 0.06, 0.06, 0.8, Color("c9a227")) # cornet du postillon
+			k.axle(W / 2, -L * 0.2, 0.6, 0.08, Color("c1121f"))
+			k.axle(W / 2, L * 0.32, 0.85, 0.08, Color("c1121f"))
+		"haquet":
+			k.box(0, 0.6, 0.2, W * 0.9, 0.15, L * 0.8, WOOD)
+			for i in 6:
+				var z := -L * 0.25 + (i % 3) * 0.95
+				var x := -0.42 if i < 3 else 0.42
+				k.z_cyl(x, 1.12, z - 0.4, z + 0.4, 0.38, 0.38, 8, col)
+				k.z_cyl(x, 1.12, z - 0.05, z + 0.05, 0.4, 0.4, 8, Color("4a4a4a"))
+			k.cylinder(0, 1.55, L * 0.3, 0.38, 0.38, 0.8, 8, col)
+			k.person(0, 0.75, -L * 0.36, Color("6b4a33"), false)
+			k.box(0, 1.6, -L * 0.36, 0.5, 0.12, 0.12, Color("e9e2d4")) # tablier
+			k.axle(W / 2, -L * 0.25, 0.45, 0.08, WOOD.darkened(0.3))
+			k.axle(W / 2, L * 0.3, 0.45, 0.08, WOOD.darkened(0.3))
+		"laitier":
+			k.box(0, 0.75, 0.1, W * 0.85, 0.12, L * 0.6, col)
+			for s in [-1.0, 1.0]:
+				k.box(s * W * 0.42, 0.87, 0.1, 0.06, 0.4, L * 0.6, col)
+			for i in 6:
+				var x := (float(i % 3) - 1.0) * 0.4
+				var z := -0.25 + (i / 3) * 0.6
+				k.cylinder(x, 0.87, z, 0.16, 0.13, 0.6, 8, Color("c9ccd1"))
+				k.cylinder(x, 1.47, z, 0.08, 0.08, 0.1, 6, Color("8d99ae"))
+			k.person(0, 0.9, -L * 0.3, Color("1d3557"))
+			k.axle(W / 2, 0.15, 0.7, 0.06, WOOD.darkened(0.3))
+		"fardier":
+			k.axle(W / 2 + 0.05, L * 0.05, 1.05, 0.12, WOOD.darkened(0.35))
+			k.box(0, 1.15, L * 0.05, W * 0.9, 0.25, 0.4, WOOD.darkened(0.2))
+			k.box(0, 0.3, L * 0.05, 1.3, 0.75, 2.4, Color("d8cfbf")) # bloc de pierre suspendu
+			for s in [-1.0, 1.0]:
+				k.box(s * 0.5, 0.95, L * 0.05, 0.06, 0.25, 0.06, Color("4a4a4a"))
+			k.rod(Vector3(0, 1.2, L * 0.05), Vector3(0, 0.9, -L * 0.3), 0.18, WOOD)
+			k.person(-0.6, 0.0, -L * 0.3, Color("6b4a33"), false)
+		"boeufs":
+			k.box(0, 0.75, 0.3, W * 0.9, 0.12, L * 0.55, WOOD)
+			for s in [-1.0, 1.0]:
+				k.box(s * (W / 2 - 0.05), 0.87, 0.3, 0.08, 0.5, L * 0.55, WOOD.lightened(0.1))
+			k.taper(0, 0.87, 1.6, 0.0, L * 0.38, W * 0.85, W * 0.6, 0.2, 0.2, Color("d9b44a"))
+			k.box(0, 0.36, 0.3, 0.2, 0.2, L * 0.1, WOOD.darkened(0.3))
+			for s in [-1.0, 1.0]:
+				k.box(s * (W / 2 + 0.06), 0.0, 0.3, 0.12, 1.3, 1.3, WOOD.darkened(0.25)) # roue pleine
+			k.rod(Vector3(0, 0.8, -L * 0.1), Vector3(0, 1.0, -L / 2 - 1.2), 0.12, WOOD)
+			k.person(-0.7, 0.0, -L * 0.3, Color("e9e2d4"), false)
 	# Attelage : brancards et chevaux devant.
 	var front := -L / 2
 	for s in [-1.0, 1.0]:
 		k.rod(Vector3(s * 0.45, 0.85, front + 0.4), Vector3(s * 0.45, 1.0, front - 1.8), 0.06, WOOD)
 	var rows := maxi(1, horses / 2) if horses > 1 else 1
+	var bete: Color = t.get("bete", Color("7b4b2a"))
 	for i in rows:
 		var hz := front - 1.3 - i * 2.2
 		if horses == 1:
-			k.horse(0, hz)
+			k.horse(0, hz, bete)
+		elif t.has("bete"):
+			k.horse(-0.4, hz, bete)
+			k.horse(0.4, hz, bete.darkened(0.1))
+			k.box(0, 1.55, hz - 0.7, 1.3, 0.14, 0.18, WOOD) # joug
 		else:
 			k.horse(-0.4, hz)
 			k.horse(0.4, hz, Color("4a2f1b"))
@@ -1370,6 +1591,34 @@ static func _tram(k: VehicleMesh, t: Dictionary, col: Color, col2: Color) -> voi
 				for i in 4:
 					k.person(W / 2 + 0.15, y0 - 0.3, -L * 0.3 + i * L * 0.2, BRIGHT[i], false)
 				k.box(0, y0 + 0.1, L * 0.38, W * 0.6, 0.4, 1.2, WOOD)
+		"chevaux":
+			var y0 := 0.7
+			k.box(0, y0, 0, W, 0.15, L, WOOD.darkened(0.2))
+			k.box(0, y0, 0, W, 1.9, L * 0.7, col2)
+			k.box(0, y0 + 0.9, 0, W + 0.04, 0.8, L * 0.62, VehicleMesh.GLASS)
+			k.box(0, y0, 0, W + 0.02, 0.7, L * 0.7, col)
+			k.box(0, y0 + 1.9, 0, W + 0.15, 0.1, L * 0.9, col2.darkened(0.15))
+			# Impériale à banquettes dos à dos et escalier en colimaçon.
+			k.box(0, y0 + 2.0, 0, W * 0.3, 0.4, L * 0.75, WOOD)
+			for i in 4:
+				k.person(-0.35 + 0.7 * (i % 2), y0 + 2.05, -1.2 + 1.0 * (i / 2) + 0.4 * (i % 2), BRIGHT[i + 1])
+			for s in [-1.0, 1.0]:
+				k.box(s * (W / 2 - 0.05), y0 + 2.0, 0, 0.05, 0.55, L * 0.85, DARK)
+			k.cylinder(W * 0.3, y0, L / 2 - 0.5, 0.3, 0.3, 2.0, 6, DARK)
+			k.person(0, y0 + 0.15, -L / 2 + 0.5, Color("1d3557"), false)
+			for s in [-1.0, 1.0]:
+				k.rod(Vector3(s * 0.4, 0.8, -L / 2), Vector3(s * 0.4, 1.0, -L / 2 - 1.2), 0.06, WOOD)
+			k.horse(-0.45, -L / 2 - 2.0, Color("7b4b2a"))
+			k.horse(0.45, -L / 2 - 2.0, Color("e9e2d4").darkened(0.25))
+		"vapeur":
+			var y0 := 0.7
+			k.box(0, y0, 0, W, H - y0 - 0.4, L * 0.9, col)
+			k.box(0, y0 + 1.3, 0, W + 0.04, 0.8, L * 0.7, VehicleMesh.GLASS)
+			k.box(0, y0, 0, W + 0.03, 0.4, L * 0.9, col2)
+			k.box(0, H - 0.4, 0, W + 0.2, 0.12, L * 0.95, DARK)
+			k.cylinder(0, H - 0.3, -L * 0.15, 0.16, 0.22, 1.0, 8, DARK)
+			k.cylinder(0, H - 0.3, L * 0.2, 0.3, 0.3, 0.3, 8, Color("c9a227"))
+			k.person(0, y0 + 0.15, -L / 2 + 0.6, Color("1d3557"), false)
 		"rond":
 			k.box(0, 0.8, 0, W, H - 0.8, L - 3.0, col)
 			k.z_cyl(0, 0.8 + (H - 0.8) / 2, -L / 2, -L / 2 + 1.5, W * 0.38, W / 2, 8, col, 1.15)
@@ -1406,6 +1655,9 @@ static func _steam(k: VehicleMesh, t: Dictionary, col: Color, col2: Color) -> vo
 	var W := float(t.W)
 	var H := float(t.H)
 	var style: String = t.get("style", "pacific")
+	if style in ["crampton", "marchandises", "tank"]:
+		_steam_xixe(k, t, col, col2)
+		return
 	var cab_len := 2.0 if style != "debuts" else 1.2
 	var br := 0.75 if style != "debuts" else 0.55
 	var by := 1.9 if style != "debuts" else 1.6
@@ -1447,6 +1699,72 @@ static func _steam(k: VehicleMesh, t: Dictionary, col: Color, col2: Color) -> vo
 		k.axle(0.75, L / 2 - 0.6, 0.55, 0.12, DARK)
 	for s in [-1.0, 1.0]:
 		k.box(s * 0.95, rd, zs - (n - 1) * (rd + 0.07), 0.06, 0.12, maxf(0.5, (n - 1) * (rd * 2 + 0.15) + 0.4), Color("adb5bd"))
+
+
+## Locomotives du milieu du XIXe siècle : Crampton (une grande roue motrice
+## derrière la chaudière), 030 à marchandises (trois essieux accouplés),
+## locomotive-tender de banlieue (caisses à eau latérales, soute à charbon).
+static func _steam_xixe(k: VehicleMesh, t: Dictionary, col: Color, col2: Color) -> void:
+	var L := float(t.L)
+	var W := float(t.W)
+	var H := float(t.H)
+	var style: String = t.style
+	var cab_len := 1.6 if style != "tank" else 2.0
+	var br := 0.62 if style == "crampton" else 0.7
+	var by := 1.75 if style == "crampton" else 1.85
+	k.box(0, 0.7, 0, W * 0.6, 0.3, L * 0.98, DARK)
+	k.box(0, 0.55, -L / 2 + 0.1, W, 0.4, 0.2, col2)
+	for s in [-1.0, 1.0]:
+		k.cylinder(s * 0.45, 0.35, -L / 2 - 0.05, 0.14, 0.14, 0.05, 6, Color("adb5bd")) # tampons
+	var bz1 := L / 2 - cab_len
+	k.z_cyl(0, by, -L / 2 + 0.6, bz1, br, br, 12, col)
+	for i in 3:
+		k.z_cyl(0, by, -L / 2 + 1.4 + i * (bz1 + L / 2 - 1.4) / 3.0, -L / 2 + 1.5 + i * (bz1 + L / 2 - 1.4) / 3.0, br * 1.04, br * 1.04, 12, Color("c9a227"))
+	# Haute cheminée à couronne, dôme de cuivre, sifflet.
+	var ctop := H
+	k.cylinder(0, by + br * 0.8, -L / 2 + 0.9, 0.2, 0.24, ctop - 0.3 - (by + br * 0.8), 8, DARK)
+	k.cylinder(0, ctop - 0.3, -L / 2 + 0.9, 0.36, 0.3, 0.3, 8, Color("c9a227"))
+	k.cylinder(0, by + br * 0.85, (-L / 2 + bz1) / 2 + 0.4, 0.34, 0.28, 0.5, 8, Color("c77d32"))
+	k.cylinder(0, by + br * 0.85, bz1 - 0.4, 0.05, 0.05, 0.45, 5, Color("c9a227"))
+	k.box(0, by + br * 0.7, -L / 2 + 0.45, 0.3, 0.3, 0.2, VehicleMesh.LIGHT)
+	# Abri ouvert (cabine sommaire) ou cabine fermée de banlieue.
+	if style == "tank":
+		k.box(0, 0.9, L / 2 - cab_len / 2, W * 0.95, H - 1.3 - 0.9, cab_len, col)
+		k.box(0, H - 2.1, L / 2 - cab_len / 2, W * 0.97, 0.6, cab_len * 0.5, VehicleMesh.GLASS)
+		k.box(0, H - 1.35, L / 2 - cab_len / 2, W, 0.1, cab_len + 0.2, DARK)
+		for s in [-1.0, 1.0]:
+			k.box(s * (br + 0.25), 0.9, (bz1 - L / 2 + 1.6) / 2.0, 0.55, by + 0.2 - 0.9, bz1 + L / 2 - 1.8, col) # caisses à eau
+		k.box(0, 0.9, L / 2 - 0.3, W * 0.9, 1.6, 0.6, col.darkened(0.15))
+		k.box(0, 2.5, L / 2 - 0.3, W * 0.8, 0.2, 0.5, Color("111111"))
+	else:
+		k.box(0, 0.9, L / 2 - cab_len / 2, W * 0.9, 1.4, cab_len, col)
+		k.box(0, 2.3, L / 2 - cab_len + 0.08, W * 0.9, H - 2.6, 0.12, col)
+		k.box(0, 2.6, L / 2 - cab_len + 0.06, W * 0.6, 0.5, 0.14, VehicleMesh.GLASS)
+		k.box(0, H - 0.35, L / 2 - cab_len / 2 - 0.2, W * 0.92, 0.08, cab_len * 0.7, DARK)
+		k.person(0.3, 0.95, L / 2 - 0.6, Color("1d3557"), false)
+	match style:
+		"crampton":
+			# Petites roues porteuses devant, la grande roue motrice derrière la chaudière.
+			k.axle(0.85, -L / 2 + 1.1, 0.6, 0.12, DARK)
+			k.axle(0.85, -L / 2 + 2.6, 0.6, 0.12, DARK)
+			k.axle(0.95, bz1 - 0.2, 1.15, 0.14, col2)
+			for s in [-1.0, 1.0]:
+				k.box(s * 1.0, 1.05, -L / 2 + 2.0, 0.3, 0.4, 1.4, Color("2f2f2f")) # cylindres extérieurs
+				k.box(s * 1.08, 1.15, (bz1 - 0.2 - L / 2 + 2.6) / 2.0, 0.06, 0.1, bz1 - 0.2 + L / 2 - 2.6, Color("adb5bd"))
+				k.box(s * 1.02, 0.0, bz1 - 0.2, 0.08, 2.3, 2.4, col2.darkened(0.3)) # garde-roue
+		"marchandises", "tank":
+			var rd := 0.65 if style == "marchandises" else 0.85
+			var n := 3
+			var z0 := -L / 2 + 1.4
+			var pas := (bz1 + L / 2 - 1.8) / 3.0 if style == "marchandises" else 1.9
+			for i in n:
+				k.axle(0.85, z0 + i * pas, rd, 0.14, col2)
+			if style == "tank":
+				k.axle(0.75, L / 2 - 0.6, 0.5, 0.12, DARK)
+			for s in [-1.0, 1.0]:
+				k.box(s * 0.95, rd, z0 + pas, 0.06, 0.12, pas * 2.0 + 0.3, Color("adb5bd"))
+				k.box(s * 0.95, 0.9, z0 - 0.4, 0.3, 0.45, 1.0, Color("2f2f2f"))
+	k.anchor("fumee", Vector3(0, ctop + 0.2, -L / 2 + 0.9))
 
 
 static func _diesel(k: VehicleMesh, t: Dictionary, col: Color, col2: Color) -> void:
@@ -1579,6 +1897,35 @@ static func _coach(k: VehicleMesh, t: Dictionary, col: Color, col2: Color) -> vo
 			k.box(0, 2.35, 0, W * 1.02, 0.12, L, Color("1b1b1b"))
 			k.box(0, 2.47, 0, W * 0.8, 0.4, L * 0.8, Color("a98467"))
 			return
+		"compartiments", "imperiale":
+			k.box(0, 0.75, 0, W * 0.9, 0.25, L, DARK)
+			for s in [-1.0, 1.0]:
+				k.cylinder(s * 0.45, 0.4, -L / 2 - 0.05, 0.14, 0.14, 0.05, 6, Color("adb5bd"))
+			k.axle(0.75, -L / 2 + 1.6, 0.5, 0.12, DARK)
+			k.axle(0.75, L / 2 - 1.6, 0.5, 0.12, DARK)
+			if style == "imperiale":
+				k.axle(0.75, 0.0, 0.5, 0.12, DARK)
+			var hb := 2.2
+			k.box(0, 1.0, 0, W, hb, L - 0.2, col)
+			var n := int(L / 2.0)
+			for i in n:
+				var z := -L / 2 + 0.1 + (L - 0.2) * (i + 0.5) / n
+				for sx in [-1.0, 1.0]:
+					k.box(sx * (W / 2 + 0.02), 1.0, z, 0.04, hb - 0.2, 0.75, col2.darkened(0.25)) # portière
+					k.box(sx * (W / 2 + 0.04), 1.9, z, 0.04, 0.6, 0.55, VehicleMesh.GLASS)
+					k.box(sx * (W / 2 + 0.03), 1.75 - 0.9, z, 0.05, 0.08, 0.6, Color("adb5bd")) # marchepied
+			k.box(0, 1.0 + hb, 0, W + 0.1, 0.1, L, col.darkened(0.2))
+			k.taper(0, 1.1 + hb, 1.3 + hb, -L / 2 + 0.1, L / 2 - 0.1, W, W * 0.8, 0.0, 0.0, Color("495057"))
+			k.box(0, 1.0 + hb * 0.5, 0, W + 0.03, 0.06, L - 0.2, col2)
+			if style == "imperiale":
+				# Étage découvert sur le toit, garde-corps et escalier.
+				k.box(0, 1.3 + hb, 0, W * 0.25, 0.35, L - 1.0, WOOD)
+				for s in [-1.0, 1.0]:
+					k.box(s * (W / 2 - 0.05), 1.3 + hb, 0, 0.05, 0.7, L - 0.6, DARK)
+				for i in 6:
+					k.person(-0.4 + 0.8 * (i % 2), 1.4 + hb, -L * 0.35 + (i / 2) * L * 0.3, BRIGHT[i % BRIGHT.size()])
+				k.taper(0, 0.9, 1.3 + hb, L / 2 - 1.0, L / 2 + 0.3, 0.6, 0.6, 0.0, 0.0, DARK)
+			return
 		"maglev":
 			y0 = 0.5
 			k.box(0, 0.1, 0, W * 0.7, 0.5, L, Color("495057"))
@@ -1613,8 +1960,16 @@ static func _freight(k: VehicleMesh, t: Dictionary, col: Color) -> void:
 	var W := float(t.W)
 	var H := float(t.H)
 	var kind: String = t.get("kind", "couvert")
-	k.bogie(-L / 2 + 2.0)
-	k.bogie(L / 2 - 2.0)
+	if t.get("essieux", false):
+		# Wagon à deux essieux du XIXe siècle : châssis bas, tampons, pas de bogies.
+		k.axle(0.72, -L / 2 + 1.3, 0.48, 0.12, DARK)
+		k.axle(0.72, L / 2 - 1.3, 0.48, 0.12, DARK)
+		for s in [-1.0, 1.0]:
+			k.cylinder(s * 0.45, 0.45, -L / 2 - 0.05, 0.13, 0.13, 0.05, 6, Color("adb5bd"))
+			k.cylinder(s * 0.45, 0.45, L / 2 + 0.05, 0.13, 0.13, 0.05, 6, Color("adb5bd"))
+	else:
+		k.bogie(-L / 2 + 2.0)
+		k.bogie(L / 2 - 2.0)
 	k.box(0, 0.9, 0, W * 0.95, 0.3, L, DARK)
 	var y0 := 1.2
 	match kind:
@@ -1638,6 +1993,34 @@ static func _freight(k: VehicleMesh, t: Dictionary, col: Color) -> void:
 		"tremie":
 			k.taper(0, y0 - 0.2, H, -L / 2 + 1.2, L / 2 - 1.2, W * 0.6, W, -1.0, -1.0, col)
 			k.box(0, H - 0.05, 0, W * 0.6, 0.1, L - 2.0, col.darkened(0.2))
+		"fourgon":
+			k.box(0, y0, 0, W, H - y0 - 0.4, L, col)
+			k.taper(0, H - 0.4, H - 0.15, -L / 2, L / 2, W, W * 0.8, 0.0, 0.0, Color("495057"))
+			k.box(0, H - 0.2, L * 0.3, W * 0.7, 0.7, 1.4, col.darkened(0.1)) # vigie
+			k.box(0, H, L * 0.3, W * 0.72, 0.35, 1.0, VehicleMesh.GLASS)
+			for sx in [-1.0, 1.0]:
+				k.box(sx * (W / 2 + 0.02), y0 + 0.1, -L * 0.1, 0.04, H - y0 - 0.7, 1.8, col.lightened(0.12))
+		"tombereau":
+			k.box(0, y0, 0, W, 0.08, L, col.darkened(0.2))
+			for sx in [-1.0, 1.0]:
+				k.box(sx * (W / 2 - 0.05), y0, 0, 0.1, H - y0, L, col)
+			for sz in [-1.0, 1.0]:
+				k.box(0, y0, sz * (L / 2 - 0.05), W, H - y0, 0.1, col)
+			k.taper(0, H - 0.5, H + 0.25, -L / 2 + 0.4, L / 2 - 0.4, W - 0.3, W * 0.4, 0.4, 0.4, Color("1b1b1b"))
+		"bestiaux":
+			k.box(0, y0, 0, W, 0.4, L, col)
+			for i in 5:
+				k.box(0, y0 + 0.6 + i * 0.35, 0, W + 0.02, 0.15, L, col.lightened(0.05 * i))
+			k.box(0, y0, 0, W * 0.9, H - y0 - 0.3, L - 0.2, col.darkened(0.45))
+			k.taper(0, H - 0.3, H, -L / 2, L / 2, W + 0.1, W * 0.7, 0.0, 0.0, Color("495057"))
+		"plat":
+			k.box(0, y0, 0, W, 0.12, L, col)
+			for z in [-L / 2 + 0.3, -L / 6, L / 6, L / 2 - 0.3]:
+				for sx in [-1.0, 1.0]:
+					k.box(sx * (W / 2 - 0.08), y0, z, 0.12, 1.2, 0.12, WOOD)
+			k.box(-0.3, y0 + 0.12, -L * 0.2, 1.4, 1.0, 2.2, WOOD.lightened(0.15))
+			k.box(0.4, y0 + 0.12, L * 0.22, 1.2, 0.8, 1.6, Color("a98467"))
+			k.box(0.4, y0 + 0.92, L * 0.22, 1.0, 0.6, 1.4, WOOD)
 		"grumes":
 			for i in 5:
 				var x := (float(i % 3) - 1.0) * 0.8 + (0.4 if i >= 3 else 0.0)
@@ -1670,7 +2053,8 @@ static func _boat(k: VehicleMesh, t: Dictionary, col: Color, col2: Color) -> voi
 	var W := float(t.W)
 	var H := float(t.H)
 	var deck := Color("c8a27a")
-	match String(t.get("kind", "barque")):
+	var kind_b := String(t.get("kind", "barque"))
+	match kind_b:
 		"pirogue":
 			_hull(k, L, W, 0.35, 0.25, L * 0.3, col, Color(0, 0, 0, 0), 0.15, 0.1)
 			for i in 3:
@@ -1748,6 +2132,104 @@ static func _boat(k: VehicleMesh, t: Dictionary, col: Color, col2: Color) -> voi
 				k.cylinder(s * 1.4, 6.2, -L * 0.28, 0.5, 0.55, H - 6.2, 8, Color("111111"))
 			k.x_cyl(0, 2.0, L / 2 + 1.5, 3.0, W * 0.7, 10, col2)
 			k.x_cyl(0, 2.0, L / 2 + 1.5, 2.4, W * 0.72, 10, Color("6b2737"))
+		"trois_mats", "clipper":
+			var clip := kind_b == "clipper"
+			_hull(k, L, W, 3.0, 2.5, L * (0.28 if clip else 0.18), col, deck, 1.6, 2.0)
+			k.box(0, 1.6, 0, W + 0.04, 0.5, L * 0.8, Color("f1faee") if not clip else Color("c9a227")) # bande des sabords
+			if not clip:
+				for i in 9:
+					for sx in [-1.0, 1.0]:
+						k.box(sx * (W / 2 + 0.03), 1.65, -L * 0.3 + i * L * 0.075, 0.05, 0.4, 0.5, Color("1b1b1b"))
+			k.box(0, 3.0, L / 2 - 4.5, W * 0.85, 1.6, 8.0, col.darkened(0.1)) # dunette
+			k.rod(Vector3(0, 3.5, -L / 2 + 1.0), Vector3(0, 6.5, -L / 2 - L * 0.12), 0.35, WOOD) # beaupré
+			var mats := [[-L * 0.27, H * 0.85], [-L * 0.02, H], [L * 0.24, H * 0.82]]
+			for m in mats:
+				var mz: float = m[0]
+				var mh: float = m[1]
+				k.cylinder(0, 3.0, mz, 0.4, 0.2, mh - 3.0, 8, WOOD)
+				var etages := 4 if clip else 3
+				for e in etages:
+					var y0b := 6.0 + (mh - 7.0) * e / etages
+					var y1b := 6.0 + (mh - 7.0) * (e + 1) / etages - 0.5
+					var larg := W * (1.9 - e * 0.32) if clip else W * (1.7 - e * 0.35)
+					k.box(0, y1b + 0.3, mz, larg + 0.6, 0.18, 0.18, WOOD.darkened(0.2)) # vergue
+					k.sail_square(mz + 0.25, y0b, y1b + 0.3, larg, col2, 0.5)
+			k.sail_tri(0, Vector3(0, 4.0, -L * 0.36), Vector3(0, H * 0.7, -L * 0.29), Vector3(0, 6.0, -L / 2 - L * 0.1), col2)
+			k.sail_tri(0, Vector3(0, 5.0, L * 0.3), Vector3(0, H * 0.6, L * 0.25), Vector3(0, 5.0, L / 2 - 0.5), col2)
+		"vapeur_roues", "steamer":
+			var roues := kind_b == "vapeur_roues"
+			_hull(k, L, W, 3.2, 3.0, L * 0.15, col, deck, 1.0, 0.8)
+			k.box(0, 2.6, 0, W + 0.03, 0.4, L * 0.85, Color("f1faee"))
+			k.box(0, 3.2, L * 0.05, W * 0.7, 2.2, L * 0.45, Color("e9e2d4"))
+			k.windows_col(-W * 0.35 - 0.01, L * 0.05, L * 0.4, 4.0, 12, 0.5, 0.6, VehicleMesh.GLASS)
+			k.windows_col(W * 0.35 + 0.01, L * 0.05, L * 0.4, 4.0, 12, 0.5, 0.6, VehicleMesh.GLASS)
+			var chem := [-L * 0.02] if roues else [-L * 0.08, L * 0.12]
+			for cz in chem:
+				k.cylinder(0, 5.4, cz, 1.3, 1.2, 9.0, 10, Color("1b1b1b"))
+				k.cylinder(0, 12.4, cz, 1.32, 1.32, 2.0, 10, col2)
+				k.anchor("fumee", Vector3(0, 14.8, cz))
+			if roues:
+				for sx in [-1.0, 1.0]:
+					k.x_cyl(sx * (W / 2 + 0.9), 2.4, -L * 0.02, 4.0, 1.6, 12, col2) # tambour
+					k.box(sx * (W / 2 + 0.9), 2.4, -L * 0.02, 1.7, 0.4, 8.6, Color("f1faee"))
+			for m in [[-L * 0.32, H * 0.85], [L * 0.32, H * 0.75]]:
+				var mz: float = m[0]
+				var mh: float = m[1]
+				k.cylinder(0, 3.2, mz, 0.3, 0.16, mh - 3.2, 6, WOOD)
+				k.sail_square(mz + 0.2, mh * 0.45, mh * 0.85, W * 1.1, Color("efe6d0"), 0.4)
+			k.rod(Vector3(0, 4.0, -L / 2 + 1.0), Vector3(0, 6.0, -L / 2 - 6.0), 0.3, WOOD)
+		"remorqueur_vapeur":
+			_hull(k, L, W, 1.4, 1.6, 4.0, col, deck, 0.8, 0.4)
+			k.box(0, 1.4, 0.0, W * 0.6, 2.0, L * 0.45, col2.darkened(0.3))
+			k.box(0, 3.4, -L * 0.1, W * 0.55, 1.6, 3.0, Color("e9e2d4"))
+			k.box(0, 4.0, -L * 0.1, W * 0.57, 0.7, 2.8, VehicleMesh.GLASS)
+			k.cylinder(0, 3.4, L * 0.1, 0.7, 0.65, 5.0, 10, Color("1b1b1b"))
+			k.cylinder(0, 7.6, L * 0.1, 0.72, 0.72, 0.8, 10, col2)
+			k.anchor("fumee", Vector3(0, 8.6, L * 0.1))
+			for sx in [-1.0, 1.0]:
+				for i in 4:
+					k.box(sx * (W / 2 + 0.1), 0.6, -L * 0.3 + i * L * 0.2, 0.3, 0.6, 0.6, Color("3d2b1f")) # boudins
+			k.box(0, 1.4, L / 2 - 2.0, 1.0, 0.8, 0.8, Color("4a4a4a")) # croc de remorquage
+		"mouche":
+			_hull(k, L, W, 1.0, 0.9, 3.0, col, deck, 0.4, 0.2)
+			k.box(0, 1.0, 0, W * 0.9, 0.12, L * 0.8, col.darkened(0.1))
+			for i in 8:
+				for sx in [-1.0, 1.0]:
+					k.box(sx * (W * 0.42), 1.1, -L * 0.3 + i * L * 0.085, 0.08, 1.8, 0.08, DARK)
+			k.box(0, 2.9, 0, W * 0.95, 0.1, L * 0.75, col2) # tendelet
+			for i in 10:
+				k.person(-0.6 + 1.2 * (i % 2), 1.1, -L * 0.25 + (i / 2) * L * 0.1, BRIGHT[i % BRIGHT.size()])
+			k.cylinder(0, 1.0, L * 0.05, 0.35, 0.35, 3.6, 8, DARK)
+			k.anchor("fumee", Vector3(0, 4.8, L * 0.05))
+		"gabare":
+			_hull(k, L, W, 0.9, 0.6, 3.5, col, deck, 0.8, 0.5)
+			for i in 5:
+				k.cylinder(-0.6 + (i % 2) * 1.2, 0.9, -L * 0.2 + i * L * 0.1, 0.35, 0.35, 0.8, 8, WOOD.darkened(0.15)) # barriques
+			k.cylinder(0, 0.9, -L * 0.05, 0.18, 0.12, H - 0.9, 6, WOOD)
+			k.box(0, H * 0.9, -L * 0.05 + 0.2, W * 1.4, 0.15, 0.15, WOOD)
+			k.sail_square(-L * 0.05 + 0.3, H * 0.35, H * 0.9, W * 1.3, col2, 0.5)
+			k.rod(Vector3(0, 1.4, L / 2 - 0.5), Vector3(0, 0.0, L / 2 + 3.0), 0.12, WOOD) # gouvernail
+			k.person(0, 0.9, L / 2 - 1.2, Color("3d2b1f"), false)
+		"halage":
+			_hull(k, L, W, 1.0, 1.2, 2.5, col, Color(0, 0, 0, 0), 0.3)
+			k.box(0, 0.7, -L * 0.05, W * 0.9, 0.5, L * 0.72, Color("2b2b2b")) # charbon
+			k.box(0, 1.0, L / 2 - 3.0, W * 0.75, 1.6, 3.5, col2)
+			k.gable(0, 2.6, L / 2 - 3.0, W * 0.8, 3.7, 0.5, Color("6b4a33"), false)
+			k.cylinder(0, 1.0, -L * 0.3, 0.12, 0.1, 4.5, 6, WOOD) # mât de halage
+			k.rod(Vector3(0, 5.3, -L * 0.3), Vector3(-W * 2.5, 1.0, -L * 0.75), 0.05, Color("d4b483"))
+			k.person(0, 1.0, L / 2 - 0.8, Color("1d3557"), false)
+		"bac":
+			k.box(0, -0.4, 0, W, 0.8, L, col)
+			k.box(0, 0.4, 0, W * 0.95, 0.05, L * 0.95, Color("a98467"))
+			for sx in [-1.0, 1.0]:
+				k.box(sx * (W / 2 - 0.1), 0.4, 0, 0.12, 0.9, L, WOOD)
+			k.box(0, 0.4, -L / 2 - 0.8, W * 0.9, 0.08, 1.6, Color("a98467")) # rampes
+			k.box(0, 0.4, L / 2 + 0.8, W * 0.9, 0.08, 1.6, Color("a98467"))
+			k.box(W / 2 - 0.4, 0.4, 0, 0.3, 4.0, 0.3, WOOD)
+			k.rod(Vector3(W / 2 - 0.4, 4.2, 0), Vector3(W * 2.5, 6.0, 0), 0.06, Color("4a4a4a")) # traille
+			k.person(-0.8, 0.45, 2.0, Color("3d2b1f"), false)
+			k.person(0.8, 0.45, -2.0, Color("6b2737"), false)
+			k.horse(0.0, 0.0, Color("7b4b2a"))
 		"peniche":
 			_hull(k, L, W, 1.2, 1.4, 3.0, col, Color(0, 0, 0, 0), 0.4)
 			k.box(0, 1.2, -L * 0.05, W * 0.9, 0.7, L * 0.7, col2.darkened(0.2))

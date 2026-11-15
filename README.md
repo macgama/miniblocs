@@ -289,6 +289,7 @@ Les listes du panneau mélangent les modèles classiques et la **bible** : 43 st
 
 - **Régions** : Europe, Méditerranée, Moyen-Orient et Maghreb, Afrique, Asie de l'Est, Asie du Sud et du Sud-Est, Amériques, Océanie, Monde.
 - **Époques** : Antiquité, Traditionnel, XIXe – 1945, Moderne, Contemporain, Futuriste.
+- **Partie au XIXe siècle** (départ entre 1800 et 1900) : 34 bâtiments, 36 véhicules, gares, musiques et ambiances d'époque, voir [docs/epoques-1800.md](docs/epoques-1800.md).
 - **Exemples** : colombages, gothique (cathédrale), haussmannien, briques industrielles, scandinave (stavkirke), isba (église à bulbes, kremlin), Grèce antique (temple, amphithéâtre), méditerranéen, Maghreb (kasbah), persan, Golfe, Sahel (mosquée en terre, cases rondes), Afrique australe (kraal), Afrique moderne, chinois (pagode, Cité interdite), japonais (sanctuaire, château), Asie dense (néons), Inde (temple shikhara, palais moghol), Asie du Sud-Est (maisons sur pilotis, wat), pueblo, précolombien (pyramide), colonial, latino, Art déco, banlieue américaine, style international, tours de verre, futuriste.
 - **Deuxième vague** : chalet alpin, pignons hollandais, Tudor anglais, soviétique, Rome antique (domus, insula, Colisée, forum), Égypte antique, ottoman (grand bazar, mosquée impériale), côte swahilie, hanok coréen, khmer (temple d'Angkor), Far West (saloon, ranch), brutaliste, polynésien (faré), Queenslander australien, maori (wharenui).
 

@@ -12,6 +12,9 @@ extends Node
 ## - chantiers : un son 3D sur les chantiers en activité les plus proches.
 ## Plus la caméra monte, plus les détails s'effacent et plus le vent domine.
 ## Sons ponctuels : tonnerre après les éclairs, cloches à midi, coq au lever du jour.
+## Partie historique avant 1900 : la ville et le trafic changent de son (sabots,
+## roues cerclées, forge, crieurs ; attelages au lieu des moteurs) et, dès 1830,
+## un sifflet de locomotive à vapeur se fait entendre de temps en temps.
 
 const NAPPES := ["nature_jour", "nature_nuit", "ville_jour", "ville_nuit", "trafic", "pluie", "vent", "mer"]
 ## Volume de chaque nappe à poids 1 (dB) : équilibre du mélange.
@@ -22,6 +25,11 @@ const RAYON_TRAFIC := 90.0
 const MAX_CHANTIERS := 3
 ## Cloches et coq : au plus une fois toutes les 4 minutes réelles (temps accéléré).
 const REPOS_CLOCHES := 240.0
+## Nappes remplacées avant 1900 (partie historique).
+const NAPPES_ANCIENNES := {"ville_jour": "ville_jour_ancien", "ville_nuit": "ville_nuit_ancien",
+	"trafic": "trafic_attelages"}
+const ANNEE_ANCIENNE := 1900
+const ANNEE_VAPEUR := 1830
 
 var rig: Node3D
 var ambiance: DayNight
@@ -43,6 +51,12 @@ var _tonnerres: Array = []
 var _heure_prev := -1.0
 var _repos_cloches := 0.0
 var _repos_coq := 0.0
+var _repos_sifflet := 60.0
+## Sons de la ville d'avant 1900 en cours.
+var ancien := false
+var _epoque_pret := false
+## Année forcée (tests) : -1 = celle de la partie.
+var annee_forcee := -1
 ## Valeurs du dernier calcul (pour le test et l'aide au réglage).
 var mesure := {}
 var _rng := RandomNumberGenerator.new()
@@ -69,6 +83,7 @@ func _ready() -> void:
 		_players[id] = p
 		cible[id] = 0.0
 		actuel[id] = 0.0
+	_maj_epoque()
 	var ch := Son.flux("ambiance/chantier", true)
 	for i in MAX_CHANTIERS:
 		var p3 := AudioStreamPlayer3D.new()
@@ -86,6 +101,7 @@ func _process(delta: float) -> void:
 	_timer -= delta
 	if _timer <= 0.0:
 		_timer = 0.5
+		_maj_epoque()
 		calculer()
 		_placer_chantiers()
 	for id in NAPPES:
@@ -101,6 +117,34 @@ func _process(delta: float) -> void:
 		elif p.playing:
 			p.stop()
 	_ponctuels(delta)
+
+
+func _annee() -> int:
+	if annee_forcee >= 0:
+		return annee_forcee
+	return Epoques.annee() if Epoques.actif() else 0
+
+
+## Change les sons de ville et de trafic quand on passe le cap de 1900.
+func _maj_epoque() -> void:
+	var a := _annee()
+	var v := a > 0 and a < ANNEE_ANCIENNE
+	if v == ancien and _epoque_pret:
+		return
+	ancien = v
+	_epoque_pret = true
+	for id in NAPPES_ANCIENNES:
+		var p: AudioStreamPlayer = _players.get(id)
+		if p == null:
+			continue
+		var fichier: String = NAPPES_ANCIENNES[id] if ancien else id
+		var st := Son.flux("ambiance/" + fichier, true)
+		if st == null or st == p.stream:
+			continue
+		var jouait := p.playing
+		p.stream = st
+		if jouait:
+			p.play(_rng.randf() * maxf(st.get_length() - 1.0, 0.0))
 
 
 ## Centre de ce qu'on écoute : le point regardé (vue de dessus) ou la caméra (vue au sol).
@@ -226,6 +270,13 @@ func _placer_chantiers() -> void:
 func _ponctuels(delta: float) -> void:
 	_repos_cloches -= delta
 	_repos_coq -= delta
+	_repos_sifflet -= delta
+	if ancien and _repos_sifflet <= 0.0:
+		_repos_sifflet = _rng.randf_range(90.0, 240.0)
+		var a := _annee()
+		var pres_v := float(mesure.get("hauteur", 999.0)) < 600.0
+		if a >= ANNEE_VAPEUR and pres_v and float(mesure.get("ville", 0.0)) > 0.05:
+			Son.jouer("sifflet_vapeur", -14.0 - _rng.randf() * 6.0, 0.05, "Ambiance")
 	if ambiance == null:
 		return
 	var m := ambiance.weather

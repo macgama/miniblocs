@@ -105,7 +105,11 @@ func _run() -> void:
 		if BuildingCatalog.get_type(id).has("glb"):
 			n_bible += 1
 			_check(String(BuildingCatalog.get_type(id).cat) == "reseaux" and not BuildingCatalog.get_type(id).has("zone"), "%s (modèle Blender) devient un bâtiment des réseaux" % id)
-	_check(BuildingCatalog.ids_in("reseaux").size() == ReseauxTypes.ORDER.size() + n_bible, "%d bâtiments dans la catégorie Réseaux" % BuildingCatalog.ids_in("reseaux").size())
+	var n_siecle := 0
+	for id in EpoquesBatiments.ORDER:
+		if String(EpoquesBatiments.TYPES[id].get("cat", "")) == "reseaux":
+			n_siecle += 1
+	_check(BuildingCatalog.ids_in("reseaux").size() == ReseauxTypes.ORDER.size() + n_bible + n_siecle, "%d bâtiments dans la catégorie Réseaux" % BuildingCatalog.ids_in("reseaux").size())
 	_check(not ReseauxTypes.info("chateau_eau").is_empty(), "le château d'eau des services publics sert de réserve")
 	for id in ReseauxTypes.ORDER:
 		var m := BuildingCatalog.build_mesh(id)

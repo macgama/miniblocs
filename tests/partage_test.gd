@@ -31,6 +31,19 @@ func _flat_tile(_t: Vector2i) -> PackedFloat32Array:
 	return a
 
 
+## Tableau à plat découpé en tuples de n, triés (pour comparer sans tenir compte de l'ordre).
+func _trie(arr: Array, n: int) -> Array:
+	var out := []
+	for i in range(0, arr.size() - n + 1, n):
+		var t := []
+		for j in n:
+			var v = arr[i + j]
+			t.append(str(int(v)) if v is float or v is int else str(v))
+		out.append(",".join(t))
+	out.sort()
+	return out
+
+
 func _frames(n: int) -> void:
 	for i in n:
 		await process_frame
@@ -193,6 +206,90 @@ func _run() -> void:
 	for b: Dictionary in plan.batiments:
 		var rr := PlansSites.rect_batiment(b, plan, Vector2i.ZERO, 1)
 		_check(Rect2i(Vector2i.ZERO, PlansSites.taille(plan, 1)).encloses(rr), "%s tourné reste dans le plan" % String(b.t))
+
+	print("Murs fins et blocs libres tournés :")
+	var be: BlockEditor = ctx.blocks
+	var dm := BanqueModeles.get_model(mid)
+	_check(not (dm.walls as Array).is_empty(), "le modèle a des murs fins")
+	# Quatre quarts de tour : retour au départ.
+	var t4 := dm
+	for k in 4:
+		t4 = PlansSites.tourne_murs(t4, 1)
+	_check(_trie(t4.walls, 9) == _trie(dm.walls, 9) and _trie(t4.meubles, 6) == _trie(dm.meubles, 6)
+		and _trie(t4.blocs, 4) == _trie(dm.blocs, 4) and _trie(t4.stairs, 5) == _trie(dm.stairs, 5), "murs fins : quatre quarts de tour reviennent au départ")
+	var t1 := PlansSites.tourne_murs(dm, 1)
+	_check(int(t1.w) == int(dm.d) and int(t1.d) == int(dm.w), "murs fins : largeur et profondeur échangées")
+	# Même résultat que la pose tournée des modèles du catalogue (ModelesJeu.place_rotated).
+	var ref_rect := Rect2i(Vector2i(800, 800), Vector2i(int(dm.d), int(dm.w)))
+	var ref := ModelesJeu.place_rotated(dm, ref_rect, 1, 40.0, mob)
+	var ref_id := String(ref.plan)
+	var ref_bb: Rect2i = mob.pe._bbox.get(ref_id, Rect2i())
+	var ref_walls := []
+	for k in mob.pe.plans[ref_id].walls:
+		var kw: Vector4i = k
+		var wv: Dictionary = mob.pe.plans[ref_id].walls[k]
+		ref_walls.append_array([kw.x - ref_bb.position.x, kw.y, kw.z - ref_bb.position.y, kw.w, int(wv.a), int(wv.b)])
+	var mes_walls := []
+	var wt: Array = t1.walls
+	for i in range(0, wt.size(), 9):
+		mes_walls.append_array([int(wt[i]), int(wt[i + 1]), int(wt[i + 2]), int(wt[i + 3]), int(wt[i + 4]), int(wt[i + 5])])
+	_check(_trie(mes_walls, 6) == _trie(ref_walls, 6), "murs fins : mêmes murs (et mêmes faces) que les modèles posés tournés")
+	var ref_meubles := []
+	for key in mob.items.get(ref_id, {}):
+		var km: Vector4i = key
+		ref_meubles.append_array([km.x - ref_bb.position.x, km.y, km.z - ref_bb.position.y, String(mob.items[ref_id][key].m), int(mob.items[ref_id][key].r)])
+	var mes_meubles := []
+	var mt: Array = t1.meubles
+	for i in range(0, mt.size(), 6):
+		mes_meubles.append_array([int(mt[i]), int(mt[i + 1]), int(mt[i + 2]), String(mt[i + 4]), int(mt[i + 5])])
+	_check(_trie(mes_meubles, 5) == _trie(ref_meubles, 5), "meubles : mêmes places et mêmes sens (%d)" % (mes_meubles.size() / 5))
+	# Un site avec des murs fins libres et des blocs (pente, coupole, demi-coupole).
+	var o2 := Vector2i(600, -400)
+	_check(bool(BanqueModeles._place_plan(dm, o2 + Vector2i(4, 6), mob).get("ok", false)), "murs fins libres posés")
+	var yb := floori(world.cell_height(o2 + Vector2i(40, 5)) / BlockEditor.UNIT_Y) + 2
+	var pente := BlocFormes.encode(3, BlocFormes.S.SLOPE, 0)
+	be._put_block(Vector3i(o2.x + 40, yb, o2.y + 5), pente)
+	var coupole := BlockEditor.expand(Vector3i(o2.x + 30, yb, o2.y + 20), BlocFormes.encode_part(BlocFormes.encode(5, BlocFormes.S.P_DOME, 0), Vector3i.ZERO, 3))
+	var abside := BlockEditor.expand(Vector3i(o2.x + 40, yb, o2.y + 20), BlocFormes.encode_part(BlocFormes.encode(6, BlocFormes.S.P_HALFDOME, 0), Vector3i.ZERO, 4))
+	for k in coupole:
+		be._put_block(k, int(coupole[k]))
+	for k in abside:
+		be._put_block(k, int(abside[k]))
+	var cap2 := PlansSites.capture(ctx, Rect2i(o2, Vector2i(50, 30)), "Chapelle")
+	var plan2 := PlansSites.get_plan(String(cap2.get("id", "")))
+	_check(cap2.ok and (plan2.murs as Array).size() == 1 and (plan2.blocs as Array).size() / 4 == 1 + coupole.size() + abside.size(), "site lu : un bâtiment en murs fins et %d blocs" % ((plan2.get("blocs", []) as Array).size() / 4))
+	_check(PlansSites.peut_tourner(plan2), "ce plan tourne aussi")
+	var tb := PlansSites.tourne_blocs(plan2.blocs, 50, 30, 4)
+	_check(_trie(tb, 4) == _trie(plan2.blocs, 4), "blocs : quatre quarts de tour reviennent au départ")
+	var nplans := mob.pe.plans.size()
+	var o3 := Vector2i(600, -300)
+	var res2 := PlansSites.poser(plan2, o3, 1, ctx)
+	_check(res2.ok and int(res2.refus) == 0, "posé tourné d'un quart (%d refus %s)" % [int(res2.refus), str(res2.raisons)])
+	_check(mob.pe.plans.size() == nplans + 1, "un bâtiment en murs fins de plus")
+	var bb_neuf := Rect2i()
+	for pid in mob.pe.plans:
+		var bb: Rect2i = mob.pe._bbox.get(pid, Rect2i())
+		if Rect2i(o3, Vector2i(30, 50)).encloses(bb):
+			bb_neuf = bb
+	_check(bb_neuf.size == Vector2i(int(dm.d), int(dm.w)), "il a tourné : %s" % str(bb_neuf.size))
+	_check(bb_neuf.position == o3 + PlansSites.rect_murs(plan2.murs[0], plan2, 1).position, "à sa place dans le plan tourné")
+	# La pente : (40, 5) → (d − 5 − 1, 40) = (24, 40), quart de tour + 1.
+	var kp := Vector3i(o3.x + 24, yb, o3.y + 40)
+	_check(be.blocks.has(kp) and BlocFormes.rot_of(int(be.blocks[kp])) == 1, "la pente a tourné avec le plan")
+	var groupes := 0
+	var entieres := 0
+	for k in be.blocks:
+		var kk: Vector3i = k
+		if not Rect2i(o3, Vector2i(30, 50)).has_point(Vector2i(kk.x, kk.z)) or not BlocFormes.is_piece(BlocFormes.shape_of(int(be.blocks[k]))):
+			continue
+		if BlocFormes.part_of(int(be.blocks[k])) == Vector3i.ZERO:
+			groupes += 1
+			var g := be.group_of(kk)
+			var attendu := BlockEditor.expand(kk, int(be.blocks[k])).size()
+			if g.size() == attendu and BlocFormes.rot_of(int(be.blocks[k])) == 1:
+				entieres += 1
+	_check(groupes == 2 and entieres == 2, "coupole et demi-coupole refaites d'un seul tenant (%d/%d)" % [entieres, groupes])
+	PlansSites.remove(String(cap2.id))
 
 	print("Reposé ailleurs, chez un autre joueur :")
 	PlansSites.remove(sid)

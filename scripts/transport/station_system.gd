@@ -1005,7 +1005,8 @@ func _refresh_station(id: int) -> void:
 				b.mesh = _cached("bat:" + gid, func() -> ArrayMesh: return BuildingCatalog.build_mesh(gid))
 				b.material_override = _material
 				var bt := BuildingCatalog.get_type(gid)
-				b.rotation.y = PI / 2.0
+				# La gare de village tourne sa marquise (+Z) vers les voies.
+				b.rotation.y = -PI / 2.0 if gid == "embarcadere" else PI / 2.0
 				b.position = Vector3(hw + 7.0 + float(bt.get("d", 20)) / 2.0, 0.0, 0.0)
 				root.add_child(b)
 	var label := Label3D.new()
@@ -1020,6 +1021,11 @@ func _refresh_station(id: int) -> void:
 
 
 static func _gare_building() -> String:
+	# Partie historique : la petite gare de village avant les grandes gares en briques.
+	if Epoques.actif() and Epoques.annee() < 1880 and not BuildingCatalog.get_type("embarcadere").is_empty():
+		return "embarcadere"
+	if Epoques.actif() and Epoques.annee() < 1900 and not BuildingCatalog.get_type("briques_ind__gare").is_empty():
+		return "briques_ind__gare"
 	for id in ["haussmann__gare", "briques_ind__gare"]:
 		if not BuildingCatalog.get_type(id).is_empty():
 			return id
@@ -1040,8 +1046,15 @@ func _air_mesh(type_id: String) -> ArrayMesh:
 
 
 func _network_mesh(type_id: String, hw: float) -> ArrayMesh:
-	var key := "net:%s:%.1f" % [type_id, hw]
-	return _cached(key, func() -> ArrayMesh: return StationSystem.build_network_mesh(type_id, hw))
+	var ancien := StationSystem.style_ancien()
+	var key := "net:%s:%.1f:%s" % [type_id, hw, "1800" if ancien else "actuel"]
+	return _cached(key, func() -> ArrayMesh: return StationSystem.build_network_mesh(type_id, hw, ancien))
+
+
+## Les gares et les ports prennent l'allure du XIXe siècle dans une partie
+## historique avant 1900 (quais bas, marquise de fonte, quais de bois).
+static func style_ancien() -> bool:
+	return Epoques.actif() and Epoques.annee() < 1900
 
 
 const CONCRETE := Color("bdb8ad")
@@ -1078,9 +1091,12 @@ static func build_metro_entrance() -> ArrayMesh:
 
 
 ## Modèle d'une station du réseau (repère : voie le long de Z, côté droit en +X).
-static func build_network_mesh(type_id: String, hw: float) -> ArrayMesh:
+static func build_network_mesh(type_id: String, hw: float, ancien := false) -> ArrayMesh:
 	var k := VehicleMesh.new()
 	var len := float(get_type(type_id).len)
+	if ancien and type_id in ["gare", "port"]:
+		_network_ancien(k, type_id, hw, len)
+		return k.to_mesh()
 	match type_id:
 		"depot":
 			# Cour, entrepôt, quai de chargement et piles de conteneurs.
@@ -1168,6 +1184,53 @@ static func build_network_mesh(type_id: String, hw: float) -> ArrayMesh:
 			k.box(x - 8.0, 17.0, gz, 26.0, 1.0, 1.2, Color("f4a261"))
 			k.box(x - 14.0, 8.0, gz, 0.1, 9.0, 0.1, Color("2b2d42"))
 	return k.to_mesh()
+
+
+## Gare et port du XIXe siècle : quais bas en pierre, marquise de fonte et de
+## bois, réverbères à gaz ; quai de bois, bittes d'amarrage, magasin et grue à bras.
+static func _network_ancien(k: VehicleMesh, type_id: String, hw: float, len: float) -> void:
+	var pierre := Color("c9c1ae")
+	var fonte := Color("2f3e46")
+	var bois := Color("7a5230")
+	match type_id:
+		"gare":
+			for side in [-1.0, 1.0]:
+				k.box(side * (hw + 2.6), 0.0, 0, 4.8, 0.35, len * 0.8, pierre)
+				k.box(side * (hw + 0.35), 0.35, 0, 0.3, 0.02, len * 0.8, Color("e9e2d4"))
+				# Réverbères à gaz.
+				for i in 6:
+					var z := -len * 0.36 + i * len * 0.72 / 5.0
+					k.box(side * (hw + 4.6), 0.35, z, 0.12, 3.2, 0.12, fonte)
+					k.box(side * (hw + 4.6), 3.55, z, 0.35, 0.45, 0.35, Color("f4d35e"))
+			# Marquise de fonte et de bois sur le quai principal (côté +X).
+			for i in 7:
+				var z := -len * 0.2 + i * len * 0.4 / 6.0
+				k.box(hw + 4.2, 0.35, z, 0.18, 3.6, 0.18, fonte)
+			k.taper(hw + 3.2, 3.95, 4.5, -len * 0.22, len * 0.22, 4.4, 3.6, 0.0, 0.0, Color("6b4a33"))
+			k.box(hw + 1.0, 3.6, 0, 0.06, 0.35, len * 0.44, Color("e9e2d4")) # lambrequin
+			k.box(hw + 2.4, 0.35, -len * 0.3, 1.2, 1.0, 0.7, bois) # chariot à bagages
+			k.box(-hw - 3.0, 0.35, len * 0.25, 1.6, 0.9, 0.8, bois) # bancs
+		"port":
+			var x := hw + 8.0
+			k.box(x, -3.0, 0, 14.0, 4.4, len, pierre)
+			k.box(x - 6.6, 1.4, 0, 1.0, 0.15, len, bois) # quai de bois
+			for i in 8:
+				k.box(x - 7.0, -2.0, -len / 2.0 + 3.0 + i * (len - 6.0) / 7.0, 0.35, 3.6, 0.35, bois.darkened(0.2))
+			for i in 6:
+				k.cylinder(x - 6.0, 1.4, -len / 2.0 + 5.0 + i * (len - 10.0) / 5.0, 0.22, 0.18, 0.55, 6, fonte)
+			# Magasin en pierre et tonneaux.
+			k.box(x + 3.0, 1.4, len * 0.2, 7.0, 5.0, 16.0, Color("d9cdb4"))
+			k.gable(x + 3.0, 6.4, len * 0.2, 7.6, 16.6, 2.4, Color("b5523b"), false)
+			for i in 4:
+				k.box(x - 0.45, 1.4, len * 0.2 - 6.0 + i * 4.0, 0.12, 2.6, 1.8, bois)
+			for i in 6:
+				k.cylinder(x - 2.5 + (i % 2) * 1.0, 1.4, -len * 0.1 + (i / 2) * 1.0, 0.4, 0.4, 0.9, 8, bois)
+			# Grue à bras en bois.
+			var gz := -len * 0.25
+			k.cylinder(x - 4.0, 1.4, gz, 0.4, 0.3, 6.0, 8, bois)
+			k.rod(Vector3(x - 4.0, 6.4, gz), Vector3(x - 9.0, 8.0, gz), 0.25, bois)
+			k.rod(Vector3(x - 9.0, 8.0, gz), Vector3(x - 9.0, 3.0, gz), 0.04, Color("3d3d3d"))
+			k.box(x - 9.0, 2.2, gz, 0.9, 0.8, 0.9, bois.lightened(0.2))
 
 
 ## Modèle d'une station aérienne (repère : piste le long de Z, installations en +X).

@@ -52,8 +52,13 @@ Le dossier d'échange est `user://partage` (sous Windows :
 4. Le plan est classé tout seul : Zoo (s'il a un enclos), Parc de loisirs (attractions ou allées),
    Musée, sinon Quartier. Il se publie comme le reste.
 
-Limites : un plan qui contient des murs fins ou des blocs libres ne tourne pas encore ; les plans de
-site ne se posent pas encore dans une carte entre amis (les créations, elles, s'installent).
+Tout tourne avec R : bâtiments, allées, enclos, décors, mais aussi les murs fins (murs et leurs deux
+faces, planchers, escaliers, meubles, pièces, bassins et gradins, toit en blocs) et les blocs libres
+(leur orientation suit, les grandes pièces comme les coupoles ou les voûtes sont refaites d'un seul
+tenant). Pendant la pose, les murs fins ont aussi leur boîte fantôme.
+
+Limite : les plans de site ne se posent pas encore dans une carte entre amis (les créations, elles,
+s'installent).
 
 ## Format d'un paquet
 

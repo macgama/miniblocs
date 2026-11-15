@@ -384,6 +384,14 @@ func pool_for(cls: String) -> Array[String]:
 				recents.append(id)
 		if recents.size() >= 3:
 			ids = recents
+	else:
+		# Partie moderne : les attelages et vapeurs du XIXe siècle restent au musée.
+		var actuels: Array[String] = []
+		for id in ids:
+			if not bool(VehicleCatalog.get_type(id).get("siecle", false)):
+				actuels.append(id)
+		if not actuels.is_empty():
+			ids = actuels
 	_pool_cache[cls] = ids
 	return ids
 

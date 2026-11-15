@@ -157,6 +157,7 @@ static func all_types() -> Dictionary:
 		_all.merge(ClubTypes.entries())
 		_all.merge(StyleBuilder.generate())
 		_all.merge(EpoquesTypes.entries())
+		_all.merge(EpoquesBatiments.entries(_all))
 		_all.merge(BibleGlb.entries())
 		ReseauxTypes.adopter(_all)
 		for id in Creations.items:
@@ -237,6 +238,10 @@ static func build_mesh(id: String, material: Material = null, details := true, v
 	var d := float(t.get("d", 4))
 	if t.has("modele"):
 		return ModelesJeu.build_mesh(t)
+	if t.has("epoque_bat"):
+		EpoquesBatiments.build(k, id, t)
+		k.fit_xz(w, d)
+		return k.to_mesh(material)
 	if t.get("espace", false):
 		EspacesPublics.build(k, id, t)
 		k.fit_xz(w, d)

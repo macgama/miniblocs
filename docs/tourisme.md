@@ -34,13 +34,72 @@ Tout bâtiment de rôle « hotel » est reconnu (2 étoiles par défaut).
 Nouveaux métiers : réceptionniste, valet·femme de chambre, animateur·rice de
 vacances, conseiller·ère en séjour.
 
+## Nature : plages, lacs, forêts, sommets (tourisme v2)
+
+La nature des environs attire aussi les touristes. Rien à poser : le jeu la trouve
+tout seul dans le **vrai terrain** autour de chaque village (`scripts/tourisme/sites_naturels.gd`,
+`SitesNaturels`) : relief réel (les tuiles d'altitude de l'horizon, ~38 m) et biomes
+ESA WorldCover, sur une grille de 200 m dans un rayon de 6 km. Le relevé est refait
+tous les 30 jours de jeu, quand un village est fondé, et tant que les données ne sont
+pas toutes téléchargées. Il prend ~50 à 150 ms.
+
+| Site | Comment il est trouvé | Saison |
+|---|---|---|
+| Plage | terre basse (moins de 14 m) au bord de la mer | très forte l'été (×1,9 en août, ×0,1 l'hiver) |
+| Côte et falaises | terre haute au bord de la mer | toute l'année, plus l'été |
+| Lac | eau douce (WorldCover 80) | l'été |
+| Rivière | eau longue et étroite (moins de 500 m de large) | l'été |
+| Forêt | forêt de 120 ha au moins | toute l'année, l'automne surtout |
+| Sommet | point le plus haut à 1 km à la ronde, qui domine de 220 m au moins | l'été |
+| Glacier | glace permanente (WorldCover 70) | toute l'année |
+| Zone humide | marais, mangrove de 24 ha au moins | printemps |
+
+La mer, c'est l'eau à 0 m qui touche le bord du relevé et fait plus de 600 ha (ou tout
+ce qui est sous −1 m) : un étang côtier reste un lac. Au plus 3 sites par genre et 14
+par village ; leurs noms (« Plage des Mouettes », « Mont Chauve »…) sont stables.
+
+L'attrait d'un site naturel (ses points) = taille × saison × météo (la pluie vide les
+plages) × aménagements × sentiers × accès, moins la pollution de l'eau (carte N) :
+
+- **Accès** : une route à moins de 800 m, sinon ×0,35 (« Dommage qu'aucune route n'y mène »).
+- **Sentiers** : chaque km de voie « chemin » (outil Chemin) à moins de 700 m du site :
+  +15 % (5 km au plus) et +0,3 ★ dès 1 km.
+- **Aménagements** (Construire → Hôtels et tourisme, ou Maj+D → Bâtir → Nature), pour le
+  site du bon genre le plus proche :
+
+| Bâtiment | Sites | Effet |
+|---|---|---|
+| Poste de secours (plage surveillée) | plage, lac | ×1,7, +0,5 ★, de juin à septembre (3 maîtres-nageurs) |
+| Base nautique | plage, lac, rivière, côte | ×1,6, +0,4 ★, la ville touche 3 € par visiteur (avril–octobre) |
+| Belvédère (point de vue) | sommet, côte, lac, glacier, forêt | ×1,35, +0,4 ★ |
+| Parking de randonnée | forêt, sommet, lac, rivière, glacier, zone humide, côte | ×1,3, rend le site accessible (jusqu'à 2,5 km) |
+| Maison de la nature | forêt, zone humide, lac, rivière | ×1,5, +0,5 ★ |
+| Refuge de montagne | | hébergement de 40 lits (24 €, juin–septembre) |
+
+Les touristes en parlent (« Un canard a volé mon sandwich, sans aucun remords »), la
+variété compte (la nature est un genre de visite de plus : +12 %), le menu Tourisme →
+Attractions liste la nature des environs (taille, accès, sentiers, aménagements,
+visiteurs attendus ; clic : y aller) et les conseils proposent l'aménagement qui manque.
+
+**À voir** : des baigneurs allongés sous leurs parasols sur le sable des plages, des
+promeneurs sur les rives des lacs, en forêt et sur les sommets (selon les visites du
+jour, de 9 h à 20 h, près de la caméra).
+
+### Autocars sur les routes
+
+Les voyages organisés (parking d'autocars) roulent vraiment : chaque matin (8 h à 12 h),
+des autocars de tourisme partent de l'**entrée de la ville** (le bout de route le plus loin
+du parking), déposent leur groupe au parking, l'emmènent voir un des sites les plus
+attirants (plage, lac, musée…) puis repartent. Six au plus en même temps.
+
 ## Simulation (`scripts/tourisme/tourisme.gd`, nœud `Tourisme`, `Tourisme.instance`)
 
 Une fois par jour de jeu :
 
 1. **Sites** : chaque parc de loisirs, zoo, musée, salle de spectacle, monument
    ou lieu de culte de la bible donne des points d'attrait selon sa taille et sa
-   note. +12 % par genre de visite en plus (parc, zoo, musée…).
+   note, ainsi que chaque site naturel. +12 % par genre de visite en plus (parc, zoo,
+   musée, nature…).
 2. **Départs** du matin : l'avis des partants fait bouger la **réputation**
    (0 à 5 étoiles, 3 au départ).
 3. **Arrivées** : attrait × 14 × saison (×1,7 en août, ×0,45 en janvier) × jour
@@ -85,5 +144,10 @@ En bref, Hébergements (prix, fermer/rouvrir, comptes, personnel), Attractions
 ## Tests
 
 - `tests/tourisme_test.gd` (headless).
+- `tests/tourisme_nature_test.gd` (headless) : sites trouvés dans une grille (plage,
+  falaises, lac, rivière, forêt, sommet), puis dans une scène (lac, forêt), saisons,
+  accès, sentiers, aménagements, locations, promeneurs, autocars, panneau.
+- Captures sur le vrai terrain (réseau nécessaire) : `tests/tourisme_nature_vitrine.gd -- --vue plage|autocars|panneau [--lieu lat,lon]`
+  (Biarritz par défaut).
 - Captures : `tests/tourisme_vitrine.gd -- --vue batiments|rue|plein_air|panneau|hebergements`
   (avec affichage, par exemple `xvfb-run godot --rendering-driver opengl3 …`).

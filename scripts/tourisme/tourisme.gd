@@ -25,6 +25,12 @@ extends Node3D
 ##   (Production.repas_touristes et achats_touristes), souvenirs.
 ## - Réputation : ce que les touristes pensent de leur séjour (hébergement,
 ##   repas, attractions, prix, foule) la fait monter ou descendre.
+## - Nature (tourisme v2) : plages, côtes, lacs, rivières, forêts, sommets,
+##   glaciers et zones humides du vrai terrain (SitesNaturels) attirent aussi,
+##   selon la saison, l'accès par la route, les sentiers (voies « chemin ») et les
+##   aménagements (poste de secours, base nautique, belvédère, parking de
+##   randonnée, maison de la nature). Les autocars des voyages organisés roulent
+##   vraiment sur les routes : entrée de la ville → parking d'autocars → site.
 
 signal changed
 signal message(text: String)
@@ -51,7 +57,19 @@ const SAISON := {1: 0.45, 2: 0.55, 3: 0.7, 4: 0.9, 5: 1.0, 6: 1.15, 7: 1.6, 8: 1
 ## Jour d'arrivée (0 = dimanche).
 const JOUR := {0: 0.6, 1: 0.8, 2: 0.8, 3: 0.85, 4: 0.95, 5: 1.5, 6: 1.3}
 ## Durée moyenne du séjour selon le genre d'hébergement (multiplie la durée de base).
-const DUREE_GENRE := {"hotel": 1.0, "auberge": 1.0, "gite": 2.2, "camping": 2.4, "residence": 3.0, "village": 3.4}
+const DUREE_GENRE := {"hotel": 1.0, "auberge": 1.0, "gite": 2.2, "camping": 2.4, "residence": 3.0, "village": 3.4, "refuge": 1.3}
+## Genres de visites (bonus de variété, avis des touristes).
+const KINDS_VISITE := ["parc", "zoo", "musee", "spectacles", "patrimoine", "nature"]
+## Un site naturel sans route à moins de ce rayon (m) est difficile d'accès.
+const ACCES_ROUTE := 800.0
+## Sentiers comptés autour d'un site naturel (m) et bonus par km (au plus 5 km).
+const SENTIERS_RAYON := 700.0
+const SENTIER_KM := 0.15
+## Relevé du terrain refait tous les N jours (ou quand un village est fondé).
+const NATURE_JOURS := 30
+## Autocars dessinés sur les routes en même temps, au plus.
+const AUTOCARS_VISIBLES := 6
+const TAG_AUTOCAR := 4_000_000
 
 ## Campagnes de publicité : prix, durée (jours), effet sur les arrivées.
 const CAMPAGNES := {
@@ -93,6 +111,19 @@ const PENSEES := {
 	"train": "Venus en train, accueillis à la gare : c'est comme ça que devraient commencer les vacances.",
 	"courses": "Supermarché bien rempli : on a fait le plein de pâtes et de crème solaire.",
 	"rayons_vides": "Rayons vides à la supérette. On a fait des pâtes sans pâtes.",
+	"plage": "Sable chaud, mer turquoise et un coup de soleil en forme de maillot. Parfait.",
+	"plage_surveillee": "Plage surveillée : les enfants dans l'eau, nous sur la serviette. Enfin des vacances.",
+	"cote": "Les falaises au coucher du soleil : 200 photos et le vent qui a gardé ma casquette.",
+	"lac": "Pique-nique au bord du lac. Un canard a volé mon sandwich, sans aucun remords.",
+	"riviere": "Descente de la rivière en kayak : je suis tombé deux fois, mais avec style.",
+	"foret": "Balade en forêt : des cèpes, des écureuils et zéro réseau. Le paradis.",
+	"sommet": "Arrivés au sommet en sueur : la vue valait bien les trois heures de montée.",
+	"glacier": "Le glacier est impressionnant. Le guide dit qu'il recule : on s'est dépêchés.",
+	"marais": "Des hérons, des grenouilles et des moustiques très accueillants.",
+	"sentiers": "Sentiers bien balisés : on ne s'est perdus qu'une fois (c'était la faute de la carte).",
+	"pas_acces": "Le lac avait l'air superbe sur la carte. Dommage qu'aucune route n'y mène.",
+	"eau_sale": "L'eau était trouble et sentait bizarre. On s'est contentés de la regarder.",
+	"nature_pluie": "Randonnée sous la pluie : on a surtout vu l'intérieur de nos capuches.",
 }
 
 var buildings: BuildingSystem
@@ -124,6 +155,16 @@ var last_day := -1
 var ignore_staff := false
 var rng := RandomNumberGenerator.new()
 var visuels: TourismeVisuels
+## Sites naturels trouvés dans le terrain (SitesNaturels.scanner) et leur état du jour.
+var nature: Array = []
+var nature_jour := -1000
+var nature_ok := false
+var _nature_sig := ""
+## Pour les tests : sites naturels imposés (le terrain n'est pas relevé).
+var nature_fixe := false
+## Autocars à faire rouler aujourd'hui : [{h, site (pos)}].
+var cars_prevus: Array = []
+var _car_n := 0
 var _dirty := true
 var _warned: Dictionary = {}
 var _frac := {}
@@ -176,6 +217,11 @@ func clear() -> void:
 	historique.clear()
 	pensees.clear()
 	dernieres.clear()
+	cars_prevus.clear()
+	if not nature_fixe:
+		nature.clear()
+		nature_ok = false
+		nature_jour = -1000
 	clock = -1.0
 	last_unix = -1.0
 	last_day = -1
@@ -184,7 +230,7 @@ func clear() -> void:
 
 
 static func _empty_stats() -> Dictionary:
-	return {"arrivees": 0, "nuitees": 0, "refus": 0, "excursions": 0, "autocars": 0, "visites": 0,
+	return {"arrivees": 0, "nuitees": 0, "refus": 0, "excursions": 0, "autocars": 0, "visites": 0, "nature": 0.0,
 		"hebergement": 0.0, "restaurants": 0.0, "commerces": 0.0, "souvenirs": 0.0, "taxe": 0.0, "impots": 0.0, "ville": 0.0}
 
 
@@ -434,6 +480,7 @@ func _maj_sites() -> void:
 					continue
 				var pts := clampf(float(BuildingCatalog.cost(String(buildings.buildings[bid].t))) / 8_000_000.0, 0.15, 2.5) * (1.0 if role == "monument" else 0.6)
 				sites.append({"kind": "patrimoine", "key": int(bid), "nom": String(t.get("name", "Monument")), "pos": pos_of(int(bid)), "pts": pts, "note": 3.5})
+	_sites_nature()
 	var kinds := {}
 	attrait_total = 0.0
 	for s in sites:
@@ -447,6 +494,164 @@ func kinds_count() -> int:
 	for s in sites:
 		kinds[String(s.kind)] = true
 	return kinds.size()
+
+
+# --- Sites naturels (tourisme v2) -----------------------------------------------------------
+
+func _monde() -> TerrainWorld:
+	if buildings != null and buildings.world != null:
+		return buildings.world
+	if transport != null and transport.world != null:
+		return transport.world
+	return null
+
+
+## Centres autour desquels on cherche la nature : les villages, sinon les hébergements.
+func centres_nature() -> Array:
+	var out: Array = []
+	var co := Communes.instance
+	if co != null and is_instance_valid(co):
+		for vid in co.villages:
+			out.append(co.villages[vid].c as Vector2)
+	if out.is_empty():
+		for bid in heb:
+			var p := pos_of(int(bid))
+			out.append(Vector2(p.x, p.z))
+	if out.is_empty() and buildings != null and not buildings.buildings.is_empty():
+		out.append(Vector2.ZERO)
+	# Deux centres à moins de 4 km : un seul relevé.
+	var gardes: Array = []
+	for c in out:
+		var proche := false
+		for g in gardes:
+			if (g as Vector2).distance_to(c) < 4000.0:
+				proche = true
+				break
+		if not proche:
+			gardes.append(c)
+	return gardes.slice(0, 6)
+
+
+## Relève le terrain autour des villages (tous les NATURE_JOURS jours, ou quand un
+## village apparaît, ou tant que les données ne sont pas toutes arrivées).
+func maj_nature(force := false) -> void:
+	if nature_fixe:
+		return
+	var w := _monde()
+	if w == null:
+		return
+	var centres := centres_nature()
+	var sig := "%.4f,%.4f|" % [w.origin_lat, w.origin_lon]
+	for c in centres:
+		sig += "%d,%d;" % [roundi((c as Vector2).x / 500.0), roundi((c as Vector2).y / 500.0)]
+	if not force and nature_ok and sig == _nature_sig and last_day - nature_jour < NATURE_JOURS:
+		return
+	if centres.is_empty():
+		nature.clear()
+		return
+	var r := SitesNaturels.scanner(w, centres)
+	if not (r.sites as Array).is_empty() or bool(r.ok):
+		nature = r.sites
+	nature_ok = bool(r.ok)
+	nature_jour = last_day
+	_nature_sig = sig
+	if nature_ok:
+		var neufs: Array = []
+		for s in nature:
+			neufs.append("%s (%s)" % [String(s.nom), SitesNaturels.nom_genre(String(s.genre)).to_lower()])
+		if not neufs.is_empty() and not _warned.has("nature_vue"):
+			_warned["nature_vue"] = clock
+			message.emit("Tourisme : la nature des environs attire les visiteurs : %s." % ", ".join(neufs.slice(0, 4)))
+
+
+## Aménagements (bâtiments de rôle « nature ») qui servent un site.
+func amenagements_de(site: Dictionary) -> Array:
+	var out: Array = []
+	for bid in services("nature"):
+		var sp := TourismeTypes.spec_of(_type_of(int(bid)))
+		if not (sp.get("genres", []) as Array).has(String(site.genre)):
+			continue
+		if SitesNaturels.distance(site, pos_of(int(bid))) <= float(sp.get("portee", 1500.0)):
+			out.append(int(bid))
+	return out
+
+
+## Longueur (km) de sentiers (voies de mode chemin) près d'un site.
+func sentiers_km(site: Dictionary) -> float:
+	if transport == null or transport.network == null:
+		return 0.0
+	var m := 0.0
+	var vus := {}
+	for q in site.get("points", [site.pos]):
+		for eid in transport.edges_near(q as Vector3, SENTIERS_RAYON):
+			if vus.has(eid) or not transport.network.edges.has(eid):
+				continue
+			vus[eid] = true
+			var e: Dictionary = transport.network.edges[eid]
+			if TransportTypes.mode_of(e.t) == TransportTypes.Mode.PATH:
+				m += float(e.len)
+	return m / 1000.0
+
+
+## Une route à moins de ACCES_ROUTE m du site (ou un parking de randonnée).
+func acces_site(site: Dictionary, amenag: Array) -> bool:
+	for bid in amenag:
+		if bool(TourismeTypes.spec_of(_type_of(int(bid))).get("acces", false)):
+			return true
+	if transport == null or transport.network == null:
+		return true
+	for q in site.get("points", [site.pos]):
+		for eid in transport.edges_near(q as Vector3, ACCES_ROUTE):
+			if transport.network.edges.has(eid) and TransportTypes.mode_of(transport.network.edges[eid].t) == TransportTypes.Mode.ROAD:
+				return true
+	return false
+
+
+## L'état du jour des sites naturels, ajoutés à `sites` (kind « nature »).
+func _sites_nature() -> void:
+	if nature.is_empty():
+		return
+	var month := int(_now(clock if clock > 0.0 else (ambiance.unix_time if ambiance != null else 0.0)).month)
+	var pluie := _pluie()
+	var nu := Nuisances.instance
+	for s in nature:
+		var genre := String(s.genre)
+		var am := amenagements_de(s)
+		var bonus := 1.0
+		var note := float(s.note)
+		var surveille := false
+		var recette := 0.0
+		var vus := {}
+		for bid in am:
+			var t := _type_of(int(bid))
+			var sp := TourismeTypes.spec_of(t)
+			if vus.has(t):
+				continue # deux fois le même aménagement : pas plus d'effet
+			vus[t] = true
+			var sa: Array = sp.get("saison", [])
+			if sa.size() >= 2 and (month < int(sa[0]) or month > int(sa[1])):
+				continue
+			if not _staff_ok(int(bid)):
+				continue
+			bonus *= float(sp.get("bonus", 1.0))
+			note += float(sp.get("note", 0.0))
+			recette += float(sp.get("recette", 0.0))
+			if t == "poste_secours_plage":
+				surveille = true
+		var km := sentiers_km(s)
+		bonus *= 1.0 + SENTIER_KM * minf(km, 5.0)
+		if km >= 1.0:
+			note += 0.3
+		var acc := acces_site(s, am)
+		var pollue := 0.0
+		if nu != null and is_instance_valid(nu) and genre in ["plage", "lac", "riviere", "marais"]:
+			pollue = clampf(nu.eau(s.pos), 0.0, 1.0)
+			note -= 2.0 * pollue
+		var meteo := 1.0 - (0.6 if genre in ["plage", "lac", "riviere"] else 0.35) * pluie
+		var pts := float(s.base) * SitesNaturels.saison(genre, month) * bonus * meteo * (1.0 if acc else 0.35) * (1.0 - 0.6 * pollue)
+		sites.append({"kind": "nature", "key": String(s.key), "genre": genre, "nom": String(s.nom), "pos": s.pos, "points": s.points,
+			"pts": pts, "note": clampf(note, 0.5, 5.0), "amenag": am, "sentiers": km, "acces": acc, "surveille": surveille,
+			"recette": recette, "pollue": pollue, "taille": s.taille})
 
 
 ## Accès à la ville : routes seules 0,75 ; gare, aéroport, port et autocars en plus.
@@ -575,6 +780,7 @@ func step(_dt: float) -> void:
 	if int(now.day) > last_day:
 		last_day = int(now.day)
 		new_day(now)
+	_rouler_autocars(float(now.h))
 
 
 func _pluie() -> float:
@@ -591,6 +797,7 @@ func new_day(now: Dictionary = {}) -> void:
 	if now.is_empty():
 		now = _now(clock if clock > 0.0 else (ambiance.unix_time if ambiance != null else 0.0))
 	_cloture()
+	maj_nature()
 	_maj_sites()
 	var month := int(now.month)
 	if campagne != "" and last_day >= campagne_fin:
@@ -776,6 +983,7 @@ func _journee(now: Dictionary) -> void:
 		_pensees_sejour(int(bid), sp, faim, trouve, vis, boutique, foule, n)
 	# Voyages organisés : des autocars d'excursionnistes (sans nuitée).
 	_autocars(now)
+	_recettes_nature()
 	if pluie > 0.5 and jour.nuitees > 0:
 		_penser("pluie")
 	if not services("office").is_empty() and int(jour.nuitees) > 0:
@@ -816,6 +1024,17 @@ func _visites_depuis(p: Vector3, n: float) -> Dictionary:
 		var k := "%s:%s" % [String(st.kind), str(st.key)]
 		visites_jour[k] = float(visites_jour.get(k, 0.0)) + n * part
 		out[String(st.kind)] = float(out.get(String(st.kind), 0.0)) + part
+		if st.has("genre"):
+			var gk := "g_" + String(st.genre)
+			out[gk] = float(out.get(gk, 0.0)) + part
+			if bool(st.get("surveille", false)):
+				out["surveille"] = float(out.get("surveille", 0.0)) + part
+			if not bool(st.get("acces", true)):
+				out["pas_acces"] = float(out.get("pas_acces", 0.0)) + part
+			if float(st.get("pollue", 0.0)) > 0.3:
+				out["eau_sale"] = float(out.get("eau_sale", 0.0)) + part
+			if float(st.get("sentiers", 0.0)) >= 1.0:
+				out["sentiers"] = float(out.get("sentiers", 0.0)) + part
 		note_m += float(st.note) * part
 		dist_m += Vector2(p.x, p.z).distance_to(Vector2((st.pos as Vector3).x, (st.pos as Vector3).z)) * part
 	jour.visites = int(jour.visites) + roundi(n)
@@ -846,7 +1065,7 @@ func _satisfaction(bid: int, faim: float, trouve: float, vis: Dictionary, boutiq
 	else:
 		att = clampf(float(vis.get("note", 0.0)), 0.5, 5.0)
 		var varie := 0
-		for k in ["parc", "zoo", "musee", "spectacles", "patrimoine"]:
+		for k in KINDS_VISITE:
 			if float(vis.get(k, 0.0)) > 0.1:
 				varie += 1
 		att = clampf(att + 0.25 * maxf(0.0, float(varie) - 1.0), 0.5, 5.0)
@@ -856,6 +1075,7 @@ func _satisfaction(bid: int, faim: float, trouve: float, vis: Dictionary, boutiq
 	s -= foule * 0.8
 	if float(vis.get("loin", 0.0)) > 8000.0:
 		s -= 0.4
+	s -= 0.6 * float(vis.get("pas_acces", 0.0)) + 0.8 * float(vis.get("eau_sale", 0.0))
 	return clampf(s, 0.5, 5.0)
 
 
@@ -880,8 +1100,17 @@ func _pensees_sejour(bid: int, sp: Dictionary, faim: float, trouve: float, vis: 
 	for k in ["parc", "zoo", "musee", "spectacles", "patrimoine"]:
 		if float(vis.get(k, 0.0)) > 0.25:
 			_penser(k, [], w)
+	for g in SitesNaturels.ORDER:
+		if float(vis.get("g_" + String(g), 0.0)) > 0.2:
+			var cle := "plage_surveillee" if g == "plage" and float(vis.get("surveille", 0.0)) > 0.1 else String(g)
+			_penser(cle, [], w)
+	for k in ["sentiers", "pas_acces", "eau_sale"]:
+		if float(vis.get(k, 0.0)) > 0.1:
+			_penser(k, [], w)
+	if float(vis.get("nature", 0.0)) > 0.3 and _pluie() > 0.5:
+		_penser("nature_pluie", [], w)
 	var varie := 0
-	for k in ["parc", "zoo", "musee", "spectacles", "patrimoine"]:
+	for k in KINDS_VISITE:
 		if float(vis.get(k, 0.0)) > 0.1:
 			varie += 1
 	if varie >= 3:
@@ -897,6 +1126,25 @@ func _pensees_sejour(bid: int, sp: Dictionary, faim: float, trouve: float, vis: 
 		_penser("luxe")
 	if note(bid) >= 4.0 and faim > 0.9 and not sites.is_empty():
 		_penser("super", [], w)
+
+
+## Location de kayaks et de pédalos (bases nautiques municipales) : € par visiteur.
+func _recettes_nature() -> void:
+	for st in sites:
+		if String(st.kind) != "nature" or float(st.get("recette", 0.0)) <= 0.0:
+			continue
+		var v := float(visites_jour.get("nature:%s" % String(st.key), 0.0))
+		var r := v * float(st.recette)
+		if r <= 0.0:
+			continue
+		var bid := -1
+		for b in st.amenag:
+			if float(TourismeTypes.spec_of(_type_of(int(b))).get("recette", 0.0)) > 0.0:
+				bid = int(b)
+				break
+		_flux(bid, "Tourisme : locations des bases nautiques", r)
+		jour.ville = float(jour.ville) + r
+		jour.nature = float(jour.get("nature", 0.0)) + r
 
 
 ## Voyages organisés : autocars de 50 personnes, garés au parking d'autocars.
@@ -916,6 +1164,7 @@ func _autocars(now: Dictionary) -> void:
 	jour.excursions = int(jour.excursions) + gens
 	var p := pos_of(int(parkings[0]))
 	_visites_depuis(p, float(gens) * 1.6)
+	_prevoir_autocars(cars, int(parkings[0]))
 	var prod := Production.instance
 	if prod != null and is_instance_valid(prod):
 		var r := prod.repas_touristes(p, float(gens) * 0.8)
@@ -926,6 +1175,109 @@ func _autocars(now: Dictionary) -> void:
 	if not services("souvenirs").is_empty():
 		jour.souvenirs = float(jour.souvenirs) + float(gens) * 4.0
 	_penser("autocar", [], cars)
+
+
+# --- Autocars sur les routes ----------------------------------------------------------------
+
+func _traffic() -> Traffic:
+	if transport == null or transport.traffic == null or not transport.traffic.enabled:
+		return null
+	return transport.traffic
+
+
+## Les cars du jour arrivent le matin (8 h à 12 h), un car dessiné pour quelques vrais.
+func _prevoir_autocars(cars: int, parking: int) -> void:
+	cars_prevus.clear()
+	if _traffic() == null:
+		return
+	var n := mini(cars, AUTOCARS_VISIBLES * 2)
+	# Les sites que visitent les groupes : les plus attirants, nature comprise.
+	var cibles := sites.duplicate()
+	cibles.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return float(a.pts) > float(b.pts))
+	cibles = cibles.slice(0, 4)
+	for i in n:
+		var site: Dictionary = cibles[i % cibles.size()] if not cibles.is_empty() else {}
+		cars_prevus.append({"h": 8.0 + 4.0 * float(i) / maxf(1.0, float(n)) + rng.randf_range(0.0, 0.4), "parking": parking,
+			"site": site.get("pos", Vector3.INF), "nom": String(site.get("nom", ""))})
+
+
+func _rouler_autocars(h: float) -> void:
+	if cars_prevus.is_empty():
+		return
+	for c in cars_prevus.duplicate():
+		if float(c.h) <= h:
+			cars_prevus.erase(c)
+			lancer_autocar(int(c.parking), c.site)
+
+
+func autocars_visibles() -> int:
+	var tr := _traffic()
+	if tr == null:
+		return 0
+	var n := 0
+	for v in tr.vehicles:
+		var tag := int(v.get("delivery", -1))
+		if tag >= TAG_AUTOCAR and tag < TAG_AUTOCAR + 1_000_000:
+			n += 1
+	return n
+
+
+## Point de route le plus proche (pour s'arrêter devant un bâtiment ou un site).
+func _arret_route(p: Vector3, rayon: float) -> Dictionary:
+	if transport == null:
+		return {}
+	var best := {}
+	var best_d := INF
+	for eid in transport.edges_near(p, rayon):
+		var e: Dictionary = transport.network.edges[eid]
+		if TransportTypes.mode_of(e.t) != TransportTypes.Mode.ROAD or String(e.t) in ["autoroute", "bretelle"]:
+			continue
+		var hit: Dictionary = transport.network.nearest_on_edge(eid, p)
+		if float(hit.dist) < best_d:
+			best_d = float(hit.dist)
+			best = {"e": int(eid), "s": float(hit.get("s", 0.0)), "a": int(e.a), "b": int(e.b), "len": float(e.len)}
+	return best
+
+
+## L'entrée de la ville : le bout de route (impasse) le plus loin du parking,
+## relié à lui. Les cars viennent de là et y repartent.
+func entree_ville(depuis: int) -> int:
+	if transport == null or not transport.network.nodes.has(depuis):
+		return -1
+	var net = transport.network
+	var p0: Vector3 = net.node_pos(depuis)
+	var best := depuis
+	var best_d := -1.0
+	for nid in net.component(depuis):
+		if net.node_mode(nid) != TransportTypes.Mode.ROAD or net.degree(nid) != 1:
+			continue
+		var d := (net.node_pos(nid) as Vector3).distance_to(p0)
+		if d > best_d:
+			best_d = d
+			best = nid
+	return best
+
+
+## Un car de tourisme part de l'entrée de la ville, dépose son groupe au parking,
+## l'emmène voir un site puis repart. Faux s'il n'a pas pu partir.
+func lancer_autocar(parking: int, site: Variant = Vector3.INF) -> bool:
+	var tr := _traffic()
+	if tr == null or autocars_visibles() >= AUTOCARS_VISIBLES:
+		return false
+	var pk := _arret_route(porte(parking), 60.0)
+	if pk.is_empty():
+		return false
+	var depart := int(pk.a) if float(pk.s) <= float(pk.len) * 0.5 else int(pk.b)
+	var entree := entree_ville(depart)
+	var halts: Array = [{"e": int(pk.e), "s": float(pk.s)}]
+	if site is Vector3 and (site as Vector3).is_finite():
+		var arret := _arret_route(site, 1200.0)
+		if not arret.is_empty() and int(arret.e) != int(pk.e):
+			halts.append({"e": int(arret.e), "s": float(arret.s)})
+	if entree != depart:
+		halts.append({"n": entree})
+	_car_n = (_car_n + 1) % 1_000_000
+	return tr.add_delivery_vehicle(TAG_AUTOCAR + _car_n, "autocar", entree if entree >= 0 else depart, halts)
 
 
 ## Fin de journée : statistiques, historique, avis du jour.
@@ -1054,7 +1406,7 @@ func _penser(cle: String, args: Array = [], poids := 1) -> void:
 func conseils() -> Array:
 	var out: Array = []
 	if sites.is_empty():
-		out.append("Rien à visiter : un parc de loisirs, un zoo, un musée, une salle de spectacle ou un monument font venir les touristes.")
+		out.append("Rien à visiter : un parc de loisirs, un zoo, un musée, une salle de spectacle, un monument ou un beau site naturel (plage, lac, montagne) font venir les touristes.")
 	if heb.is_empty():
 		out.append("Aucun hébergement : les touristes viennent à la journée et repartent le soir. Un hôtel ou un camping les fait rester (et dépenser).")
 	elif int(hier.refus) > 0:
@@ -1076,6 +1428,24 @@ func conseils() -> Array:
 			out.append("%s n'est relié à aucune route : presque personne ne le trouve." % nom(int(bid)))
 		elif not ignore_staff and personnel(int(bid)) < 0.5 and bool(heb[bid].ouvert):
 			out.append("%s manque de personnel : la moitié des chambres restent fermées." % nom(int(bid)))
+	for st in sites:
+		if String(st.kind) != "nature":
+			continue
+		var g := String(st.genre)
+		if not bool(st.acces):
+			out.append("%s (%s) : aucune route à moins de %d m. Une route ou un parking de randonnée le rendrait accessible." % [String(st.nom), SitesNaturels.nom_genre(g).to_lower(), int(ACCES_ROUTE)])
+		elif (st.amenag as Array).is_empty():
+			match g:
+				"plage":
+					out.append("%s : un poste de secours (plage surveillée) ou une base nautique attirerait les familles." % String(st.nom))
+				"lac", "riviere":
+					out.append("%s : une base nautique (kayaks, pédalos) attirerait du monde, et rapporterait à la ville." % String(st.nom))
+				"sommet", "cote", "glacier":
+					out.append("%s : un belvédère et un parking de randonnée feraient venir les marcheurs." % String(st.nom))
+				"foret", "marais":
+					out.append("%s : une maison de la nature et des sentiers (outil Chemin) attireraient les promeneurs." % String(st.nom))
+		if float(st.get("pollue", 0.0)) > 0.3:
+			out.append("%s : l'eau est polluée (usines, égouts) et les baigneurs fuient. Voir la carte Pollution de l'eau (N)." % String(st.nom))
 	if reputation < 2.5:
 		out.append("Réputation en berne : soigne les repas, les prix et la variété des visites.")
 	return out

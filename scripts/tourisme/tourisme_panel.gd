@@ -17,7 +17,7 @@ const W := 390.0
 const H := 560.0
 const TABS := [["En bref", "bref", "valise"], ["Hébergements", "heb", "lit"], ["Attractions", "sites", "appareil_photo"],
 	["Publicité", "pub", "megaphone"], ["Bâtir", "batir", "construire"], ["Avis des touristes", "avis", "habitants"]]
-const KINDS := {"parc": "Parc de loisirs", "zoo": "Zoo", "musee": "Musée", "spectacles": "Spectacle", "patrimoine": "Patrimoine"}
+const KINDS := {"parc": "Parc de loisirs", "zoo": "Zoo", "musee": "Musée", "spectacles": "Spectacle", "patrimoine": "Patrimoine", "nature": "Nature"}
 
 var tour: Tourisme
 var view := "bref"
@@ -238,6 +238,8 @@ func _vue_bref() -> void:
 	_ligne("Souvenirs", _euros(float(h.souvenirs)))
 	_ligne("Total", _euros(Tourisme.depenses(h)))
 	_ligne("Pour la caisse de la ville", "%s (taxe de séjour %s, impôts %s)" % [_euros(float(h.ville)), _euros(float(h.taxe)), _euros(float(h.impots))])
+	if float(h.get("nature", 0.0)) > 0.0:
+		_ligne("Locations des bases nautiques", _euros(float(h.nature)))
 	_titre("Pourquoi ils viennent")
 	_ligne("Attrait de la ville", "%.1f points (%d sites)" % [tour.attrait_total, tour.sites.size()])
 	var acc := tour.acces()
@@ -369,18 +371,47 @@ func _vue_heb() -> void:
 func _vue_sites() -> void:
 	if tour.sites.is_empty():
 		_label("Rien à visiter pour l'instant.", 14)
-		_label("Les touristes viennent pour les parcs de loisirs (Maj+A, Maj+G), les zoos (Maj+Z), les musées (Maj+C), les salles de spectacle (Maj+X) et le patrimoine (châteaux, cathédrales, temples, phares de la bible de Construire).", 12, true)
+		_label("Les touristes viennent pour les parcs de loisirs (Maj+A, Maj+G), les zoos (Maj+Z), les musées (Maj+C), les salles de spectacle (Maj+X), le patrimoine (châteaux, cathédrales, temples, phares de la bible de Construire) et la nature des environs (plages, lacs, forêts, sommets : trouvés tout seuls dans le vrai terrain).", 12, true)
+		if not tour.nature_ok and tour._monde() != null:
+			_label("Relevé de la nature des environs en cours (relief et biomes en téléchargement)…", 11, true)
 		return
-	_label("Chaque site compte selon sa taille et sa note. Plusieurs genres de visites (parc, zoo, musée…) : +12 % d'attrait par genre en plus.", 11, true)
+	_label("Chaque site compte selon sa taille et sa note. Plusieurs genres de visites (parc, zoo, musée, nature…) : +12 % d'attrait par genre en plus.", 11, true)
 	var l := tour.sites.duplicate()
 	l.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return float(a.pts) > float(b.pts))
-	for s in l:
+	var nat := l.filter(func(x: Dictionary) -> bool: return String(x.kind) == "nature")
+	var autres := l.filter(func(x: Dictionary) -> bool: return String(x.kind) != "nature")
+	if not autres.is_empty():
+		_titre("En ville")
+	for s in autres:
 		var k := "%s:%s" % [String(s.kind), str(s.key)]
 		var v := float(tour.visites_jour.get(k, 0.0))
 		var pos: Vector3 = s.pos
 		var b := _bouton("%s · %s" % [String(KINDS.get(String(s.kind), s.kind)), String(s.nom)], "appareil_photo", "Aller voir", func() -> void: focus_requested.emit(pos))
 		b.clip_text = true
 		_label("  %.1f points · note %.1f ★ · %d clients des hôtels attendus aujourd'hui" % [float(s.pts), float(s.note), roundi(v)], 11, true)
+	if not nat.is_empty():
+		_titre("Nature des environs")
+		_label("Trouvée dans le vrai terrain. L'attrait suit la saison (la plage l'été) et la pluie. Une route à moins de %d m, des sentiers (outil Chemin) et des aménagements (onglet Bâtir → Nature) l'augmentent." % int(Tourisme.ACCES_ROUTE), 11, true)
+	for s in nat:
+		var k := "nature:%s" % String(s.key)
+		var v := float(tour.visites_jour.get(k, 0.0))
+		var pos: Vector3 = s.pos
+		var g := String(s.genre)
+		var ic := String(SitesNaturels.GENRES.get(g, {}).get("icone", "paysage"))
+		var taille := "%.1f km de côte" % float(s.taille) if g in ["plage", "cote"] else ("%d m au-dessus des environs" % int(s.taille) if g == "sommet" else ("%.1f km" % float(s.taille) if g == "riviere" else "%d ha" % int(s.taille)))
+		var b := _bouton("%s · %s" % [SitesNaturels.nom_genre(g), String(s.nom)], ic, "Aller voir", func() -> void: focus_requested.emit(pos))
+		b.clip_text = true
+		var info: Array = ["%.1f points" % float(s.pts), "note %.1f ★" % float(s.note), taille, "%d visiteurs attendus" % roundi(v)]
+		_label("  " + " · ".join(info), 11, true)
+		var plus: Array = []
+		plus.append("accès par la route" if bool(s.acces) else "aucune route proche")
+		if float(s.sentiers) > 0.05:
+			plus.append("%.1f km de sentiers" % float(s.sentiers))
+		for bid in s.amenag:
+			plus.append(String(BuildingCatalog.get_type(tour._type_of(int(bid))).get("name", "")))
+		if float(s.get("pollue", 0.0)) > 0.3:
+			plus.append("eau polluée")
+		_label("  " + " · ".join(plus), 11, true)
 
 
 # --- Publicité ----------------------------------------------------------------------------------------
@@ -408,7 +439,8 @@ func _vue_batir() -> void:
 	_label("Clic sur un bâtiment, puis sur la carte (au bord d'une route ; R pour tourner). Aussi dans Construire (B) → Hôtels et tourisme.", 12, true)
 	var groupes := [["Plein air", ["aire_camping_cars", "camping", "camping_club"]], ["Chez l'habitant", ["gite_rural", "chambres_hotes", "auberge_jeunesse"]],
 		["Hôtels", ["hotel_2", "hotel_3", "hotel_4", "palace"]], ["Séjours", ["residence_tourisme", "village_vacances"]],
-		["Accueil et services", ["office_tourisme", "boutique_souvenirs_ville", "parking_autocars"]], ["Hôtels de la bible", TourismeTypes.AUTRES.keys()]]
+		["Accueil et services", ["office_tourisme", "boutique_souvenirs_ville", "parking_autocars"]],
+		["Nature (près d'une plage, d'un lac, d'une forêt, d'un sommet)", TourismeTypes.NATURE], ["Hôtels de la bible", TourismeTypes.AUTRES.keys()]]
 	for g in groupes:
 		_titre(String(g[0]))
 		for id in g[1]:

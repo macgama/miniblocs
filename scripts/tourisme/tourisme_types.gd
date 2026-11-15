@@ -15,6 +15,10 @@ extends RefCounted
 ## - "office" : office de tourisme (plus de touristes, ils restent plus longtemps).
 ## - "souvenirs" : boutique de souvenirs (les touristes y dépensent).
 ## - "autocars" : parking d'autocars (les voyages organisés viennent).
+## - "nature" : aménagement d'un site naturel (SitesNaturels) à moins de
+##   "portee" m : "genres" (plage, lac…), "bonus" (attrait ×), "note" (+),
+##   "acces" (le site devient accessible même loin des routes), "recette"
+##   (€ par visiteur pour la ville : location de pédalos, de kayaks…), "saison".
 ## AUTRES : hôtels de la bible Blender (rôle « hotel ») reconnus comme hébergements.
 
 const CATEGORY := "tourisme"
@@ -23,7 +27,7 @@ const RP := ["route", "chemin"]
 
 const GENRES := {
 	"camping": "Camping", "hotel": "Hôtel", "gite": "Gîte et chambres d'hôtes", "auberge": "Auberge de jeunesse",
-	"residence": "Résidence de tourisme", "village": "Village vacances",
+	"residence": "Résidence de tourisme", "village": "Village vacances", "refuge": "Refuge",
 }
 
 const TYPES := {
@@ -95,9 +99,35 @@ const TYPES := {
 	"parking_autocars": {"name": "Parking d'autocars de tourisme", "w": 40, "d": 30, "access": ROAD, "emplois": 0, "cost": 250_000,
 		"touris": {"role": "autocars", "places": 12},
 		"desc": "Douze places de car et un abri. Les voyages organisés viennent en ville : 50 touristes d'un coup, appareil photo en main."},
+	# --- Nature (tourisme v2) ------------------------------------------------------------------
+	"poste_secours_plage": {"name": "Poste de secours (plage surveillée)", "w": 8, "d": 8, "access": RP, "emplois": 3, "cost": 90_000,
+		"touris": {"role": "nature", "genres": ["plage", "lac"], "bonus": 1.7, "note": 0.5, "portee": 1200.0, "saison": [6, 9]},
+		"metiers": [["maitre_nageur", 3]],
+		"desc": "Une cabane sur pilotis, un drapeau vert et trois maîtres-nageurs. Les familles viennent enfin se baigner tranquilles (de juin à septembre)."},
+	"base_nautique": {"name": "Base nautique", "w": 24, "d": 18, "access": RP, "emplois": 4, "cost": 450_000,
+		"touris": {"role": "nature", "genres": ["plage", "lac", "riviere", "cote"], "bonus": 1.6, "note": 0.4, "portee": 1500.0, "recette": 3.0, "saison": [4, 10]},
+		"metiers": [["animateur_vacances", 2], ["maitre_nageur", 2]],
+		"desc": "Kayaks, pédalos, planches et dériveurs à louer. La ville touche 3 € par visiteur ; le pédalo en forme de cygne part toujours en premier."},
+	"belvedere": {"name": "Belvédère (point de vue)", "w": 8, "d": 8, "access": RP, "emplois": 0, "cost": 60_000,
+		"touris": {"role": "nature", "genres": ["sommet", "cote", "lac", "glacier", "foret"], "bonus": 1.35, "note": 0.4, "portee": 1500.0},
+		"desc": "Une plateforme en bois, une table d'orientation et une longue-vue à 1 €. On voit jusqu'à la mer (par temps clair, et avec de l'imagination)."},
+	"parking_randonnee": {"name": "Parking de randonnée (départ de sentiers)", "w": 20, "d": 14, "access": ROAD, "emplois": 0, "cost": 80_000,
+		"touris": {"role": "nature", "genres": ["foret", "sommet", "lac", "riviere", "glacier", "marais", "cote"], "bonus": 1.3, "note": 0.2, "portee": 2500.0, "acces": true},
+		"desc": "Trente places, un panneau des sentiers balisés et une poubelle. Le site naturel le plus proche devient facile d'accès. Trace des chemins (outil Chemin) : chaque km de sentier près du site le rend plus attirant."},
+	"maison_nature": {"name": "Maison de la nature", "w": 14, "d": 12, "access": RP, "emplois": 3, "cost": 600_000,
+		"touris": {"role": "nature", "genres": ["foret", "marais", "lac", "riviere"], "bonus": 1.5, "note": 0.5, "portee": 2500.0},
+		"metiers": [["animateur_vacances", 2], ["conseiller_sejour", 1]],
+		"desc": "Expositions, sorties guidées et observatoire à oiseaux. Le guide sait reconnaître 40 chants d'oiseaux et imite très mal le hibou."},
+	"refuge_montagne": {"name": "Refuge de montagne", "w": 12, "d": 10, "access": RP, "emplois": 2, "cost": 380_000,
+		"touris": {"role": "hebergement", "genre": "refuge", "etoiles": 1, "chambres": 8, "lits": 5.0, "prix": 24.0, "restaurant": true, "saison": [6, 9]},
+		"metiers": [["cuisinier", 1], ["agent_etage", 1]],
+		"desc": "Dortoirs, soupe chaude et lever de soleil sur les sommets. Les randonneurs ronflent tous ensemble, en harmonie (de juin à septembre)."},
 }
 const ORDER := ["aire_camping_cars", "camping", "camping_club", "gite_rural", "chambres_hotes", "auberge_jeunesse",
-	"hotel_2", "hotel_3", "hotel_4", "palace", "residence_tourisme", "village_vacances", "office_tourisme", "boutique_souvenirs_ville", "parking_autocars"]
+	"hotel_2", "hotel_3", "hotel_4", "palace", "residence_tourisme", "village_vacances", "office_tourisme", "boutique_souvenirs_ville", "parking_autocars",
+	"poste_secours_plage", "base_nautique", "belvedere", "parking_randonnee", "maison_nature", "refuge_montagne"]
+## Aménagements des sites naturels.
+const NATURE := ["poste_secours_plage", "base_nautique", "belvedere", "parking_randonnee", "maison_nature", "refuge_montagne"]
 
 ## Bâtiments d'autres catalogues reconnus (hôtels de la bible Blender, rôle « hotel »).
 const AUTRES := {
@@ -401,6 +431,73 @@ static func build(k: BlocMesh, id: String, t: Dictionary) -> void:
 			k.box(0, 2.8, 11.5, 12.6, 0.2, 3.6, ENSEIGNE)
 			k.box(-17.0, 0, 12.0, 0.25, 3.5, 0.25, Color("adb5bd"))
 			k.box(-17.0, 3.5, 12.0, 2.0, 1.6, 0.2, Color("1d3557"))
+		"poste_secours_plage":
+			k.plate(0, 0, w, d, Color("e9d8a6"))
+			for x in [-2.0, 2.0]:
+				for z in [-2.0, 2.0]:
+					k.box(x, 0, z, 0.25, 2.4, 0.25, BOIS)
+			k.box(0, 2.4, 0, 5.0, 0.2, 5.0, BOIS)
+			k.box(0, 2.6, 0.5, 4.0, 2.2, 3.0, Color("e63946"))
+			k.box(0, 4.8, 0.5, 4.6, 0.2, 3.6, BLANC)
+			k.box(0, 3.1, -1.05, 2.6, 1.0, 0.1, VITRE)
+			k.box(-1.5, 0, -3.2, 1.2, 0.1, 2.6, BOIS)
+			k.box(2.8, 0, -2.8, 0.1, 6.0, 0.1, Color("adb5bd"))
+			k.box(3.3, 5.2, -2.8, 1.0, 0.7, 0.05, Color("2a9d8f"))
+		"base_nautique":
+			k.plate(0, 0, w, d, Color("c2a878"))
+			k.box(-5.0, 0, 3.0, 10.0, 3.6, 7.0, Color("f1faee"))
+			k.gable(-5.0, 3.6, 3.0, 10.6, 7.6, 1.6, Color("457b9d"))
+			k.box(-5.0, 0, -0.55, 3.0, 2.4, 0.1, PORTE)
+			k.box(-5.0, 2.6, -0.6, 6.0, 0.6, 0.1, ENSEIGNE)
+			var coques := [Color("e76f51"), Color("ffb703"), Color("2a9d8f"), Color("e63946")]
+			for i in 4:
+				k.box(4.0 + float(i % 2) * 4.0, 0.0, -4.0 + float(i / 2) * 5.0, 0.8, 0.45, 3.6, coques[i])
+			k.box(6.0, 0, 5.5, 2.4, 1.0, 2.0, Color("8ecae6"))
+			k.box(0, 0.02, -7.5, w, 0.15, 3.0, BOIS)
+		"belvedere":
+			k.plate(0, 0, w, d, Color("8d7b68"))
+			for x in [-3.0, 3.0]:
+				for z in [-3.0, 3.0]:
+					k.box(x, 0, z, 0.3, 3.0, 0.3, BOIS)
+			k.box(0, 3.0, 0, 7.0, 0.25, 7.0, BOIS)
+			for side in [-3.4, 3.4]:
+				k.box(side, 3.25, 0, 0.12, 1.0, 7.0, BOIS)
+				k.box(0, 3.25, side, 7.0, 1.0, 0.12, BOIS)
+			k.box(1.6, 3.25, -2.6, 0.15, 1.1, 0.15, Color("495057"))
+			k.box(1.6, 4.35, -2.75, 0.18, 0.18, 0.6, Color("343a40"))
+			k.box(-1.5, 3.25, -2.4, 1.4, 1.0, 0.9, Color("adb5bd"))
+			k.box(-4.0, 0, 3.0, 0.6, 3.0, 2.0, BOIS)
+		"parking_randonnee":
+			k.plate(0, 0, w, d, Color("b5a58a"))
+			for i in 5:
+				k.box(-8.0 + i * 4.0, 0.06, -2.0, 0.12, 0.02, 5.0, BLANC)
+			k.box(7.5, 0, 5.0, 0.2, 2.4, 0.2, BOIS)
+			k.box(7.5, 1.4, 5.0, 2.4, 1.6, 0.15, Color("2d6a4f"))
+			k.box(7.5, 1.7, 4.9, 1.6, 0.18, 0.05, Color("ffd166"))
+			k.box(7.5, 2.1, 4.9, 1.6, 0.18, 0.05, Color("e63946"))
+			for x in [-9.0, -3.0, 3.0]:
+				k.tree(x, 5.5, 1.0)
+			k.box(-8.5, 0, -6.0, 0.6, 0.9, 0.6, Color("2d6a4f"))
+		"maison_nature":
+			k.plate(0, 0, w, d, HERBE)
+			k.box(0, 0, 1.0, 11.0, 3.8, 7.0, Color("b08968"))
+			k.gable(0, 3.8, 1.0, 11.8, 7.8, 2.6, Color("606c38"))
+			k.box(0, 0, -2.55, 3.0, 2.6, 0.1, VITRE)
+			k.box(-3.5, 1.0, -2.55, 2.0, 1.4, 0.1, VITRE)
+			k.box(3.5, 1.0, -2.55, 2.0, 1.4, 0.1, VITRE)
+			k.box(-5.0, 0, -4.8, 0.2, 2.0, 0.2, BOIS)
+			k.box(-5.0, 1.2, -4.8, 2.0, 1.0, 0.12, Color("283618"))
+			k.tree(5.5, -4.5, 1.1)
+		"refuge_montagne":
+			k.plate(0, 0, w, d, Color("8d99ae"))
+			k.box(0, 0, 0.5, 9.0, 1.2, 7.0, Color("6c757d"))
+			k.box(0, 1.2, 0.5, 9.0, 2.8, 7.0, Color("9c6b45"))
+			k.gable(0, 4.0, 0.5, 9.8, 7.8, 3.0, ARDOISE)
+			k.box(0, 0, -3.05, 1.2, 2.2, 0.1, PORTE)
+			k.box(-2.8, 1.8, -3.05, 1.2, 1.0, 0.1, VITRE)
+			k.box(2.8, 1.8, -3.05, 1.2, 1.0, 0.1, VITRE)
+			k.box(3.2, 4.5, 2.0, 0.8, 2.2, 0.8, Color("6c757d"))
+			k.box(-3.5, 0, -4.4, 2.4, 0.8, 1.0, BOIS)
 		_:
 			k.box(0, 0, 0, w * 0.8, 6.0, d * 0.8, CREME)
 

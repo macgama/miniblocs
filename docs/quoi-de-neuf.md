@@ -4,6 +4,11 @@ Tout est dans `main`, et les 9 tests automatiques passent (`sh tests/tous.sh`).
 
 ## Nouveautés
 
+**La gazette de la ville** (menu Infos → Gazette de la ville, **F4**, 15 novembre)
+- Chaque matin de jeu, un journal raconte la veille avec humour : à la une le fait le plus marquant (incendie, tempête, épidémie, match, élections, pont vers nulle part…), avec un vrai habitant comme témoin.
+- Articles, sports, brèves, carnet (naissances, mariages, décès), météo, micro-trottoir, chiffre du jour et petites annonces. Clic sur un titre : la caméra y va ; clic sur un nom : sa fiche.
+- Le journal suit l'époque de la partie : La Gazette en 1800, L'Écho en 1914, …-Matin en 1945, ….info aujourd'hui. Traduit en anglais. Voir docs/journal.md.
+
 **Carte entre amis : premier serveur** (menu principal → **Entre amis**, **F3** en jeu, 15 novembre)
 - Héberge une de tes parties sur ton PC, ou lance le jeu en serveur sans écran (`--serveur`) sur une machine toujours allumée : la carte reste ouverte même quand tu n'es pas là.
 - Tes amis entrent avec un code d'invitation (une seule fois, ensuite ils sont membres). Tu es l'admin : réglages, vitesse du temps, nouveau code, exclure, arrêter le serveur.

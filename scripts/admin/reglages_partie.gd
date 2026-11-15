@@ -265,6 +265,10 @@ func raison_blocage(id: String) -> String:
 	var tutelle := BudgetCommunal.raison_blocage(id)
 	if tutelle != "":
 		return tutelle
+	# Scénario en cours : bâtiments interdits.
+	var sc := ScenarioPartie.refus_batiment(id)
+	if sc != "":
+		return sc
 	if est_debloque(id):
 		return ""
 	var p: Dictionary = PALIERS[palier_requis(id)]

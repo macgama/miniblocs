@@ -52,8 +52,9 @@ Les réglages d'une partie (argent, coûts, règles) restent dans l'Admin (F10).
 - **Son** : volumes Général, Musique, Effets, Ambiances, Interface. Ils sont lus et
   écrits dans `user://son.cfg`, le fichier du système de son : le panneau Son (F2)
   et cet onglet montrent toujours les mêmes valeurs.
-- **Jeu** : sauvegarde automatique, langue (français ; les autres viendront après
-  la démo), écran titre immobile, ouvrir le dossier des sauvegardes.
+- **Jeu** : sauvegarde automatique, langue (Français ou English, change tout de
+  suite ; au premier lancement, la langue du système), écran titre immobile, ouvrir
+  le dossier des sauvegardes. Voir [langues.md](langues.md).
 - **Touches** : les principales touches. Les changer viendra plus tard.
 
 ## Écran de chargement (`EcranChargement`)

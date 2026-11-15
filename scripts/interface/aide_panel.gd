@@ -12,6 +12,14 @@ const SECTIONS := [
 		["A / E, ou clic molette glissé à gauche / à droite", "tourner (Q / E en QWERTY)"],
 		["Clic molette glissé en haut / en bas, ou Ctrl + molette", "incliner : jusqu'à une vue rasante pour voir le relief jusqu'à l'horizon (10 km)"],
 	]],
+	["Manette et Steam Deck", [
+		["Stick gauche · Ⓐ", "curseur et clic (maintenir Ⓐ pour glisser : tracer, peindre) ; au bord de l'écran, la caméra suit"],
+		["Stick droit · LB / RB · LT / RT", "déplacer, tourner, zoomer la caméra"],
+		["Croix", "↑ ↓ incliner, ← → outil précédent / suivant ; dans un menu, passer d'un bouton à l'autre"],
+		["Ⓑ · ☰ · ⧉", "annuler (Échap) · menu pause · Gérer / Créer (Tab)"],
+		["Ⓧ · Ⓨ", "tourner le bâtiment (R) · vue au sol (V)"],
+		["F6", "succès : toutes tes médailles, débloquées ou non (aussi dans le menu Infos et le menu principal)"],
+	]],
 	["Barre du bas", [
 		["Tab · Gérer / Créer", "Gérer : la ville (terrain, voies, zonage, catalogue, lignes, habitants). Créer : construire un bâtiment soi-même (murs et étages, blocs, intérieur, Mes créations, banque, atelier, partage), la ville en pause ; touches 1 à 8 et échelle des étages"],
 		["Catégories", "Observer, Terrain, Voies, Paysage : un clic ouvre leurs outils juste au-dessus ; Construire et Décors ouvrent leur panneau à droite (un seul à la fois)"],

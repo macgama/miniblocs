@@ -12,6 +12,7 @@ const TOUCHES := [
 		["F2", "son et musique"],
 		["F5 / F9", "sauvegarde rapide / recharger la dernière partie"],
 		["F10", "réglages de la partie (Admin)"],
+		["F6", "succès (toutes tes parties)"],
 		["T / Maj + T", "pause du temps / vitesse suivante"],
 	]],
 	["Caméra", [
@@ -82,6 +83,7 @@ func _ready() -> void:
 	_tabs.add_child(_onglet_son())
 	_tabs.add_child(_onglet_jeu())
 	_tabs.add_child(_onglet_touches())
+	_tabs.add_child(_onglet_manette())
 	_note = Label.new()
 	_note.add_theme_font_size_override("font_size", 12)
 	_note.add_theme_color_override("font_color", UiStyle.TEXT_DIM)
@@ -195,9 +197,17 @@ func _onglet_graphismes() -> Control:
 		OptionsJeu.fps_max = 0
 		_changed()
 		_rebuild(0))
+	var b3 := Button.new()
+	b3.text = "Préréglage : Steam Deck"
+	b3.tooltip_text = "Plein écran, 3D à 80 %, ombres basses, 60 images/s : fluide et économe sur l'écran 1280 × 800."
+	b3.pressed.connect(func() -> void:
+		OptionsJeu.prereglage_steam_deck()
+		_changed()
+		_rebuild(0))
 	var row := HBoxContainer.new()
 	row.add_child(b)
 	row.add_child(b2)
+	row.add_child(b3)
 	p.add_child(row)
 	return p
 
@@ -297,9 +307,82 @@ func _onglet_touches() -> Control:
 	return scroll
 
 
+## Boutons de la manette (Xbox, PlayStation, Steam Deck : même place).
+const BOUTONS_MANETTE := [
+	["Stick gauche", "curseur (comme la souris) ; au bord de l'écran, la caméra suit"],
+	["Ⓐ", "cliquer ; maintenir pour glisser (tracer une route, peindre une zone)"],
+	["Ⓑ / ☰ Menu", "annuler, fermer (Échap) ; sinon menu pause"],
+	["Stick droit", "déplacer la caméra"],
+	["LB / RB", "tourner la caméra"],
+	["LT / RT", "dézoomer / zoomer"],
+	["Croix ↑ ↓", "incliner la caméra ; dans un menu, passer d'un bouton à l'autre"],
+	["Croix ← →", "outil précédent / suivant"],
+	["Ⓧ", "tourner le bâtiment (R)"],
+	["Ⓨ", "vue au sol (V)"],
+	["⧉ Vue", "mode Gérer / Créer (Tab)"],
+	["Clic stick gauche / droit", "aide (F1) / pause du temps (T)"],
+	["Vue au sol", "stick gauche marcher, stick droit regarder, Ⓐ sauter, Ⓧ interagir ou monter à bord, LB courir, RT cliquer"],
+]
+
+
+func _onglet_manette() -> Control:
+	var scroll := ScrollContainer.new()
+	scroll.name = "Manette"
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	var p := _page("Réglages manette")
+	p.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(p)
+	var s := HSlider.new()
+	s.min_value = 0.4
+	s.max_value = 2.5
+	s.step = 0.05
+	s.value = Manette.sensibilite
+	s.custom_minimum_size = Vector2(200, 24)
+	s.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var sl := Label.new()
+	sl.custom_minimum_size = Vector2(56, 0)
+	sl.text = "×%s" % String.num(Manette.sensibilite, 2).replace(".", ",")
+	s.value_changed.connect(func(x: float) -> void:
+		Manette.sensibilite = x
+		sl.text = "×%s" % String.num(x, 2).replace(".", ",")
+		_changed())
+	var srow := HBoxContainer.new()
+	srow.add_child(s)
+	srow.add_child(sl)
+	_ligne(p, "Vitesse du curseur", srow, "Vitesse du curseur et du regard en vue au sol.")
+	_ligne(p, "Inverser l'axe vertical", _case(Manette.inverser_y, func(b: bool) -> void: Manette.inverser_y = b),
+		"Stick droit : pousser vers le haut fait reculer la caméra (et regarder en bas au sol).")
+	_ligne(p, "Vibrations", _case(Manette.vibrations, func(b: bool) -> void: Manette.vibrations = b),
+		"Une petite vibration quand un succès tombe.")
+	_ligne(p, "Aides des boutons", _case(Manette.aides, func(b: bool) -> void: Manette.aides = b),
+		"Le rappel des boutons en bas de l'écran quand on joue à la manette.")
+	var etat := Label.new()
+	var pads := Input.get_connected_joypads()
+	etat.text = ("Manette branchée : %s" % Input.get_joy_name(pads[0])) if not pads.is_empty() else "Aucune manette branchée (USB ou Bluetooth : elle marche dès qu'on la touche)."
+	etat.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	etat.add_theme_color_override("font_color", UiStyle.TEXT_DIM)
+	p.add_child(etat)
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 16)
+	for t in BOUTONS_MANETTE:
+		var k := Label.new()
+		k.text = String(t[0])
+		k.custom_minimum_size = Vector2(170, 0)
+		k.add_theme_color_override("font_color", UiStyle.ACCENT.lightened(0.3))
+		grid.add_child(k)
+		var d := Label.new()
+		d.text = String(t[1])
+		d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		d.custom_minimum_size = Vector2(380, 0)
+		grid.add_child(d)
+	p.add_child(grid)
+	return scroll
+
+
 func _rebuild(onglet: int) -> void:
 	var old := _tabs.get_child(onglet)
-	var neuf: Control = [_onglet_graphismes, _onglet_son, _onglet_jeu, _onglet_touches][onglet].call()
+	var neuf: Control = [_onglet_graphismes, _onglet_son, _onglet_jeu, _onglet_touches, _onglet_manette][onglet].call()
 	_tabs.add_child(neuf)
 	_tabs.move_child(neuf, onglet)
 	old.queue_free()

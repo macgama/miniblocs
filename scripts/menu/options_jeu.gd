@@ -48,6 +48,9 @@ static func charger() -> void:
 		# Premier lancement : la langue du système (sauf en test, toujours en français).
 		if DisplayServer.get_name() != "headless":
 			langue = Langue.langue_systeme()
+		# Steam Deck : plein écran et réglages légers (écran 1280 × 800, batterie).
+		if SteamPont.steam_deck():
+			prereglage_steam_deck()
 		return
 	fenetre = clampi(int(cf.get_value("graphismes", "fenetre", fenetre)), 0, 2)
 	vsync = bool(cf.get_value("graphismes", "vsync", vsync))
@@ -75,7 +78,21 @@ static func sauver() -> void:
 	cf.set_value("jeu", "autosave_min", autosave_min)
 	cf.set_value("jeu", "langue", langue)
 	cf.set_value("jeu", "titre_fixe", titre_fixe)
+	cf.set_value("manette", "sensibilite", snappedf(Manette.sensibilite, 0.05))
+	cf.set_value("manette", "inverser_y", Manette.inverser_y)
+	cf.set_value("manette", "vibrations", Manette.vibrations)
+	cf.set_value("manette", "aides", Manette.aides)
 	cf.save(FICHIER)
+
+
+## Réglages pour le Steam Deck : plein écran, 3D à 80 %, ombres basses, 60 images/s.
+static func prereglage_steam_deck() -> void:
+	fenetre = 1
+	echelle_3d = 0.8
+	ombres = 0
+	anticrenelage = 0
+	rendu_pousse = false
+	fps_max = 60
 
 
 ## Charge (la première fois) et applique les options graphiques à la fenêtre.

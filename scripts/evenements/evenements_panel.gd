@@ -296,6 +296,10 @@ func _detail(e: Dictionary, now: float) -> String:
 			if float(d.get("niveau", 0.0)) > 0.0:
 				s += " · crue de %s m" % str(snappedf(float(d.niveau), 0.1)).replace(".", ",")
 			return s
+		"crue":
+			return "jusqu'à %s · eau à %s m sur %s m · %d bâtiments inondés" % [ev.heure_courte(float(e.fin)),
+				str(snappedf(float(d.get("niveau", 0.0)), 0.1)).replace(".", ","), str(snappedf(float(d.get("niveau_max", 0.0)), 0.1)).replace(".", ","),
+				(d.get("inondes", []) as Array).size()]
 		"epidemie":
 			return "%d malades en ce moment, %d en tout, %d cas graves, %d décès" % [ev.epidemies.malades_count(), int(d.total), int(d.graves), int(d.deces)]
 	return ""
@@ -328,6 +332,14 @@ func _view_organiser() -> void:
 		ev.set_outil("incendie"))
 	_button("Incendie dans un bâtiment au hasard", "feu", func() -> void: ev.declencher("incendie"))
 	_button("Tempête maintenant (4 heures)", "tempete", func() -> void: ev.declencher("tempete"))
+	if Saisons.instance != null:
+		var sa := Saisons.instance
+		_button("Crue de la rivière (vigilance rouge)", "eau", func() -> void: sa.declencher_crue(3, false),
+			"La rivière la plus proche sort de son lit pendant une douzaine d'heures, puis l'eau redescend.")
+		_button("Chute de neige (5 cm, puis 3 h de neige)", "neige", func() -> void: sa.chute_de_neige(5.0, 3.0),
+			"Les routes se couvrent de neige : la circulation ralentit, les chasse-neige du centre technique sortent.")
+		_button("Sécheresse (niveau alerte renforcée)", "soleil", func() -> void: sa.forcer_secheresse(3))
+		_button("Canicule", "thermometre", func() -> void: sa.forcer_canicule())
 	_button("Épidémie maintenant", "epidemie", func() -> void: ev.declencher("epidemie"),
 		"Grippe, gastro, rougeole ou virus respiratoire, au hasard.", ev.population != null and not ev.population.persons.is_empty())
 

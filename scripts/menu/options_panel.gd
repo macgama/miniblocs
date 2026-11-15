@@ -247,9 +247,9 @@ func _onglet_jeu() -> Control:
 		if OptionsJeu.LANGUES[i][0] == OptionsJeu.langue:
 			sel = i
 	var lo := _choix(langues, sel, func(i: int) -> void: OptionsJeu.langue = String(OptionsJeu.LANGUES[i][0]))
-	for i in range(1, OptionsJeu.LANGUES.size()):
-		lo.set_item_disabled(i, true)
-	_ligne(p, "Langue", lo, "Le jeu est en français. Les traductions viendront après la démo.")
+	# Les noms des langues restent dans leur propre langue.
+	lo.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+	_ligne(p, "Langue", lo, "Language : le jeu se traduit tout de suite.")
 	_ligne(p, "Écran titre immobile", _case(OptionsJeu.titre_fixe, func(b: bool) -> void: OptionsJeu.titre_fixe = b),
 		"La caméra de l'écran titre ne tourne plus autour du village.")
 	var dossier := Button.new()

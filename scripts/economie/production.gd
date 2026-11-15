@@ -131,6 +131,8 @@ var _shops_par_bien: Dictionary = {}
 ## Empreinte des commerces (ids et types) au dernier _sync.
 var _shop_sig := 0
 var _dem_today: Dictionary = {}
+## Demande des touristes (Tourisme) depuis les dernières courses des habitants : {bid: {marchandise: t}}.
+var _dem_touristes: Dictionary = {}
 var _waiting_driver := 0
 ## Marchandises commandées au dernier pas de logistique.
 var _wanted: Dictionary = {}
@@ -1745,12 +1747,121 @@ func _shopping() -> float:
 		if String(sites[bid].kind) != "commerce":
 			continue
 		var d: Dictionary = _dem_today.get(bid, {})
+		var dt: Dictionary = _dem_touristes.get(bid, {})
 		var dem: Dictionary = sites[bid].dem
 		var shop := Ressources.commerce_of(_type_of(bid))
 		for g in shop.get("vend", []):
-			var x := float(d.get(g, 0.0))
+			var x := float(d.get(g, 0.0)) + float(dt.get(g, 0.0))
 			dem[g] = x if not dem.has(g) else lerpf(float(dem[g]), x, 0.3)
+	_dem_touristes.clear()
 	return gain
+
+
+# --- Touristes (Tourisme) ------------------------------------------------------------------
+
+## Des touristes font des courses près d'un point : panier = {marchandise: t}.
+## Ils vont dans les commerces ouverts les plus proches (à moins de rayon m) ;
+## renvoie [argent dépensé, part du panier trouvée (0 à 1)].
+func achats_touristes(pos: Vector3, panier: Dictionary, rayon := 3000.0) -> Array:
+	if _dirty:
+		_sync()
+	var gain := 0.0
+	var voulu := 0.0
+	var trouve := 0.0
+	var p2 := Vector2(pos.x, pos.z)
+	for g in panier:
+		var left := float(panier[g])
+		if left <= 0.0:
+			continue
+		voulu += left * Ressources.price(String(g))
+		var list: Array = []
+		for e in _vendeurs(String(g)):
+			var dd := (e[1] as Vector2).distance_to(p2)
+			if dd <= rayon:
+				list.append([dd, e[0]])
+		list.sort_custom(func(a: Array, b: Array) -> bool: return float(a[0]) < float(b[0]))
+		var tries := 0
+		for e2 in list:
+			var bid := int(e2[1])
+			if tries >= 3 or left <= 0.0:
+				break
+			if not sites.has(bid) or _workers(bid) <= 0 or not _has_access(bid):
+				continue
+			tries += 1
+			var dt: Dictionary = _dem_touristes.get(bid, {})
+			dt[g] = float(dt.get(g, 0.0)) + left
+			_dem_touristes[bid] = dt
+			var take := minf(left, stock_of(bid, String(g)))
+			if take <= 0.0:
+				continue
+			_put(bid, String(g), -take)
+			_flow(String(g), take, "vente")
+			var v := take * Ressources.price(String(g)) * Ressources.DETAIL
+			_pay(bid, "Ventes aux touristes", v)
+			gain += v
+			trouve += take * Ressources.price(String(g))
+			left -= take
+	_book("Ventes aux touristes", gain)
+	return [gain, trouve / voulu if voulu > 0.0 else 1.0]
+
+
+## Des touristes déjeunent ou dînent près d'un point : n repas dans les cafés et
+## restaurants ouverts à moins de rayon m (chacun sert au plus ses « visiteurs »
+## du catalogue en plus de ses clients habituels). Renvoie [argent, repas servis].
+func repas_touristes(pos: Vector3, n: float, rayon := 3000.0) -> Array:
+	if _dirty:
+		_sync()
+	if n <= 0.0:
+		return [0.0, 0.0]
+	var p2 := Vector2(pos.x, pos.z)
+	var list: Array = []
+	for bid in sites:
+		if String(sites[bid].kind) != "commerce":
+			continue
+		var shop := Ressources.commerce_of(_type_of(bid))
+		if not shop.has("consomme"):
+			continue
+		var sp := _pos_of(int(bid))
+		var dd := Vector2(sp.x, sp.z).distance_to(p2)
+		if dd <= rayon:
+			list.append([dd, int(bid)])
+	list.sort_custom(func(a: Array, b: Array) -> bool: return float(a[0]) < float(b[0]))
+	var left := n
+	var gain := 0.0
+	for e in list:
+		if left <= 0.0:
+			break
+		var bid := int(e[1])
+		if _workers(bid) <= 0 or not _has_access(bid):
+			continue
+		var s: Dictionary = sites[bid]
+		var shop := Ressources.commerce_of(_type_of(bid))
+		var vis := float(BuildingCatalog.get_type(_type_of(bid)).get("visiteurs", 100))
+		var jour := _day_of(clock if clock > 0.0 else (ambiance.unix_time if ambiance != null else 0.0))
+		if int(s.get("tour_j", -1)) != jour:
+			s.tour_j = jour
+			s.tour_n = 0.0
+		var cap := maxf(0.0, vis * _staff(bid) - float(s.tour_n))
+		var servis := minf(left, cap)
+		if servis <= 0.0:
+			continue
+		# Il faut de quoi cuisiner : la boisson, la viande ou les légumes manquent ?
+		var ok := 1.0
+		for g in shop.consomme:
+			var need := float(shop.consomme[g]) * servis
+			var take := minf(need, stock_of(bid, String(g)))
+			if g in ["boissons", "viande", "fruits_legumes"] and need > 0.0:
+				ok = minf(ok, take / need)
+			_put(bid, String(g), -take)
+			_flow(String(g), take, "vente")
+		servis *= maxf(ok, 0.25)
+		s.tour_n = float(s.tour_n) + servis
+		var v := servis * Ressources.REPAS
+		_pay(bid, "Repas servis aux touristes", v)
+		gain += v
+		left -= servis
+	_book("Repas servis aux touristes", gain)
+	return [gain, n - maxf(left, 0.0)]
 
 
 ## Satisfaction d'un habitant liée aux commerces (Population.extra_satisfaction) : [delta, raisons].
@@ -1761,6 +1872,9 @@ func satisfaction_of(p: Dictionary) -> Array:
 	if int(ledger.get("jours", 0)) <= 0 and (yesterday.vente as Dictionary).is_empty() and manque_foyers.is_empty():
 		return [0.0, []]
 	var home := population.home_of(p)
+	# Rayons vides, mais le foyer fait ses courses ailleurs (Repas) : la plainte est là-bas.
+	if Repas.courses_ailleurs(home):
+		return [0.0, []]
 	var miss: Dictionary = manque_foyers.get(home, {})
 	if miss.is_empty():
 		return [4.0, ["+ commerces bien approvisionnés"]]

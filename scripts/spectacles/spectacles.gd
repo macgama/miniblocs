@@ -713,7 +713,8 @@ func demande(bid: int, sp: String, date: Dictionary) -> float:
 	var ref := SpectaclesProgrammes.prix_ref(sp)
 	var px := 1.6 if prix <= 0.0 else clampf(1.6 - 0.6 * prix / ref, 0.15, 1.5)
 	var nf := 0.6 + note(bid) / 5.0 * 0.6 if salles.has(bid) else 1.0
-	var pot := local + region
+	# Clients des hôtels de la ville (Tourisme) : une partie sort le soir.
+	var pot := local + region + Tourisme.visites("spectacles", bid) * 0.6
 	var deja := float((st.get("vus", {}) as Dictionary).get(sp, 0.0))
 	var fv := clampf(1.0 - deja / (pot * 5.0 + 1.0), 0.25, 1.0)
 	# Les autres salles de la même famille qui jouent ce soir-là.
@@ -953,6 +954,7 @@ func demande_cinema(bid: int, date: Dictionary) -> float:
 	var region := 0.0
 	if bool(s.get("regional", false)):
 		region = 18000.0 * 0.0045
+	region += Tourisme.visites("spectacles", bid) * 0.5
 	return (pop * 0.0045 + region) * draw * f * px * (0.6 + note(bid) / 5.0 * 0.6) / (1.0 + 0.4 * autres)
 
 

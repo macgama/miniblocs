@@ -548,7 +548,7 @@ func _build_ui() -> void:
 	rv.add_child(_detail_label)
 	_mode = OptionButton.new()
 	_mode.add_item("Bac à sable : seul, hors ligne")
-	_mode.add_item("Entre amis : sur invitation (bientôt)")
+	_mode.add_item("Entre amis : menu principal → Entre amis")
 	_mode.add_item("Carte mondiale : tous les joueurs (bientôt)")
 	_mode.set_item_disabled(1, true)
 	_mode.set_item_disabled(2, true)

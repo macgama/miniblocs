@@ -62,5 +62,6 @@ Les autres joueurs ne voient ni l'icône ni le bouton Règles.
   (accès, argent illimité).
 - Test : `tests/admin_test.gd` ; captures : `tests/admin_vitrine.gd`.
 
-À faire avec le multijoueur : une caisse par joueur (le réglage d'argent de départ est
-déjà pensé pour ça), vérification des droits côté serveur.
+Carte entre amis : chaque joueur reçoit l'argent de départ dans sa caisse personnelle,
+le serveur vérifie les droits (réglages, vitesse, code d'invitation). Voir
+[multijoueur.md](multijoueur.md).

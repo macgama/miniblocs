@@ -72,6 +72,7 @@ func _run() -> void:
 		scene.clubs[s].set_process(false)
 	var rig: Node3D = scene.get_node("CameraRig")
 	var pop: Population = scene.population
+	pop.principal.enabled = false
 	var y := world.cell_height(Vector2i(0, 0))
 	transport.build_segment("departementale", Vector3(-400, y, 0), Vector3(400, y, 0))
 	var homes := []

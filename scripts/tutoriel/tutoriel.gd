@@ -50,9 +50,9 @@ const ETAPES := [
 		"texte": "Dans Construire, onglet Zonage, choisis « Résidentielle » et glisse le long de ta route. Les maisons pousseront toutes seules… enfin, avec tes ouvriers et ton argent.",
 		"touches": "B : Construire → Zonage → Résidentielle · clic glissé",
 		"action": ["Ouvrir le zonage", "zones"]},
-	{"id": "reseaux", "titre": "Du courant et de l'eau",
-		"texte": "Une maison sans eau ni électricité, c'est du camping (et tes fondateurs en ont assez). Pose une source d'électricité (raccordement au réseau national, éolienne, solaire…) et une source d'eau (forage, ou captage près d'une rivière) près d'une route. Bonne nouvelle : la première ville du pays reçoit le kit d'installation de l'État, et ses bons paient ces bâtiments (détails : Maj+P). Les routes portent déjà les petits câbles et les tuyaux.",
-		"touches": "B : Construire → Réseaux · O : panneau des réseaux · Maj+P : bons du kit",
+	{"id": "reseaux", "titre": "Courant, eau et égouts",
+		"texte": "Une maison sans eau ni électricité, c'est du camping (et tes fondateurs en ont assez). Pose une source d'électricité (raccordement au réseau national, éolienne, solaire…), une source d'eau (forage, ou captage près d'une rivière) et de quoi traiter les égouts (lagunage, station d'épuration), près d'une route. Bonne nouvelle : la première ville du pays reçoit le kit d'installation de l'État, et ses bons paient ces bâtiments, et même un dépôt de collecte pour les poubelles (détails : Maj+P). Les routes portent déjà les petits câbles et les tuyaux.",
+		"touches": "B : Construire → Réseaux (et Déchets) · O : panneau des réseaux · Maj+P : bons du kit",
 		"action": ["Ouvrir les réseaux", "reseaux"]},
 	{"id": "temps", "titre": "Laisser le temps faire",
 		"texte": "Les chantiers avancent au rythme de la vie, en semaine et en journée, comme les vrais. Accélère le temps et attends que les premières maisons soient habitées : tes fondateurs quittent la tente dès qu'un toit est prêt.",
@@ -264,7 +264,9 @@ func agir() -> void:
 		_suivante()
 		return
 	if id == "bilan":
+		# Le chapitre de fin compte comme fait dans le bilan (17 / 17).
 		demo_finie = true
+		faits[id_courant()] = true
 		bilan_demande.emit()
 		_suivante()
 		return
@@ -392,7 +394,7 @@ func est_faite(id: String) -> bool:
 			return zones_de(["R"]) > 0
 		"reseaux":
 			var s := sources()
-			return bool(s.elec) and bool(s.eau)
+			return bool(s.elec) and bool(s.eau) and bool(s.egout)
 		"temps":
 			return loges() >= LOGES
 		"emplois":
@@ -407,7 +409,9 @@ func est_faite(id: String) -> bool:
 			var vs = scene.get_node_or_null("VueSol") if scene != null else null
 			return vs != null and int(vs.vue) != 0
 		"loisirs":
-			return batiments_de_cat(["loisirs", "espaces", "sport", "parc"]) > 0
+			# Posés par le joueur : les cafés et restaurants qui poussent dans les
+			# zones commerciales (catégorie « loisirs ») ne comptent pas.
+			return batiments_de_cat(["loisirs", "espaces", "sport", "parc"], true) > 0
 		"fete":
 			return fetes_organisees() > _fetes0
 		"ligne":
@@ -424,7 +428,8 @@ func progres() -> String:
 			return "Route tracée : %d / %d m" % [mini(roundi(metres_de_route()), int(ROUTE_M)), int(ROUTE_M)]
 		"reseaux":
 			var s := sources()
-			return "Électricité : %s · Eau : %s" % ["oui" if s.elec else "pas encore", "oui" if s.eau else "pas encore"]
+			return "Électricité : %s · Eau : %s · Égouts : %s" % ["oui" if s.elec else "pas encore", "oui" if s.eau else "pas encore",
+				"oui" if s.egout else "pas encore"]
 		"temps":
 			return "Habitants logés : %d / %d" % [mini(loges(), LOGES), LOGES]
 		"ligne":
@@ -476,21 +481,24 @@ func batiments_de_type(type_id: String) -> int:
 	return n
 
 
-func batiments_de_cat(cats: Array) -> int:
+## hors_zones : sans les bâtiments qui ont poussé tout seuls dans une zone.
+func batiments_de_cat(cats: Array, hors_zones := false) -> int:
 	var n := 0
 	var bs := _batiments()
 	for bid in bs:
 		var t := String(bs[bid].t)
 		if Fondateurs.est_base_chantier(t):
 			continue
+		if hors_zones and int(bs[bid].get("zone", 0)) > 0:
+			continue
 		if cats.has(String(BuildingCatalog.get_type(t).get("cat", ""))):
 			n += 1
 	return n
 
 
-## Sources d'électricité et d'eau posées (même en chantier).
+## Sources d'électricité, d'eau et traitement des égouts posés (même en chantier).
 func sources() -> Dictionary:
-	var out := {"elec": false, "eau": false}
+	var out := {"elec": false, "eau": false, "egout": false}
 	var bs := _batiments()
 	for bid in bs:
 		var info := ReseauxTypes.info(String(bs[bid].t))
@@ -499,6 +507,8 @@ func sources() -> Dictionary:
 			out.elec = true
 		elif res == "eau":
 			out.eau = true
+		elif res == "egout":
+			out.egout = true
 	# Sources branchées par d'autres systèmes (incinérateur…).
 	var r = _lire("reseaux")
 	if r != null and not (r.elec.sources as Dictionary).is_empty():

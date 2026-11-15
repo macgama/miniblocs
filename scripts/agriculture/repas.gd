@@ -7,7 +7,12 @@ extends RefCounted
 ## déménage ; avec le réglage Admin « Mortelle », on peut en mourir.
 ##
 ## Un foyer sans aucun commerce d'alimentation à portée fait ses courses hors
-## de la carte : il n'a pas faim, mais il est moins satisfait.
+## de la carte : il n'a pas faim, mais il est moins satisfait. De même quand
+## les rayons sont vides et que la ville ne peut pas encore les remplir (ni
+## chauffeur-livreur, ni porte d'import : dépôt, gare, port, route qui sort de
+## la carte) : comme dans un vrai village, on prend la voiture pour aller au
+## supermarché de la ville voisine. La faim ne menace donc qu'une ville qui a
+## de quoi se ravitailler, mais qui le fait mal.
 
 ## Part des repas trouvée en dessous de laquelle le foyer a faim ce jour-là.
 const SEUIL := 0.6
@@ -21,14 +26,28 @@ var agri: Node
 var faim: Dictionary = {}
 ## Part des repas trouvée hier par chaque logement : bid -> 0 à 1.
 var part_logement: Dictionary = {}
-## Logements sans commerce d'alimentation à portée.
+## Logements qui font leurs courses hors de la carte : bid -> "loin" (pas de
+## commerce d'alimentation à portée) ou "vide" (rayons vides, ville sans livraisons).
 var hors_carte: Dictionary = {}
 ## Chiffres du dernier jour : {foyers, affames, partis, morts, part}.
 var bilan := {"foyers": 0, "affames": 0, "partis": 0, "morts": 0, "part": 1.0}
 
 
+## Tests : 1 = la ville peut livrer ses commerces, 0 = elle ne le peut pas, -1 = selon la ville.
+var forcer_livraisons := -1
+
+## Repas de la partie en cours (pour Production.satisfaction_of).
+static var instance: Repas
+
+
 func _init(a: Node) -> void:
 	agri = a
+	instance = self
+
+
+## Ce logement fait ses courses dans une ville voisine faute de rayons remplis ?
+static func courses_ailleurs(home: int) -> bool:
+	return instance != null and String(instance.hors_carte.get(home, "")) == "vide"
 
 
 func clear() -> void:
@@ -55,6 +74,8 @@ func apres_courses() -> void:
 		membres[int(h.b)] = int(membres.get(int(h.b), 0)) + (h.m as Array).size()
 	var somme := 0.0
 	var n_log := 0
+	# Ville qui ne peut pas remplir ses rayons : personne pour livrer, ou rien d'où importer.
+	var sans_livraisons := (prod.drivers().is_empty() or prod.gateways().is_empty()) if forcer_livraisons < 0 else forcer_livraisons == 0
 	for home in membres:
 		# Campement des fondateurs : nourri par les vivres, puis le ravitaillement (Fondateurs).
 		if Fondateurs.nourris(int(home)):
@@ -71,10 +92,14 @@ func apres_courses() -> void:
 			if not a_portee and not prod._shops_for(home, g).is_empty():
 				a_portee = true
 		if not a_portee:
-			hors_carte[home] = true
+			hors_carte[home] = "loin"
 			part_logement[home] = 1.0
 			continue
 		var part := clampf(1.0 - manque / maxf(veut, 0.000001), 0.0, 1.0)
+		if part < SEUIL and sans_livraisons:
+			hors_carte[home] = "vide"
+			part_logement[home] = 1.0
+			continue
 		part_logement[home] = part
 		somme += part
 		n_log += 1
@@ -134,6 +159,8 @@ func satisfaction(p: Dictionary) -> Array:
 	var pop: Population = agri.population
 	var home := pop.home_of(p)
 	if hors_carte.has(home):
+		if String(hors_carte[home]) == "vide":
+			return [-5.0, ["− rayons vides : fait ses courses dans une ville voisine"]]
 		return [-4.0, ["− fait ses courses loin (pas de commerce d'alimentation près de chez lui)"]]
 	var j := jours_faim(p)
 	if j <= 0.0:

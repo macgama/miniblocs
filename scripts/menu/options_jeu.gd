@@ -17,7 +17,7 @@ const AUTOSAVE_CHOIX := [0, 2, 5, 10, 15]
 const FPS_CHOIX := [0, 30, 60, 120, 144]
 const OMBRES_TAILLES := [1024, 2048, 4096]
 const MSAA_CHOIX := [Viewport.MSAA_DISABLED, Viewport.MSAA_2X, Viewport.MSAA_4X]
-const LANGUES := [["fr", "Français"], ["en", "English (bientôt)"], ["de", "Deutsch (bientôt)"], ["es", "Español (bientôt)"]]
+const LANGUES := Langue.LANGUES
 
 ## 0 fenêtré, 1 plein écran (fenêtre sans bord), 2 plein écran exclusif.
 static var fenetre := 0
@@ -45,6 +45,9 @@ static func charger() -> void:
 	_charge = true
 	var cf := ConfigFile.new()
 	if cf.load(FICHIER) != OK:
+		# Premier lancement : la langue du système (sauf en test, toujours en français).
+		if DisplayServer.get_name() != "headless":
+			langue = Langue.langue_systeme()
 		return
 	fenetre = clampi(int(cf.get_value("graphismes", "fenetre", fenetre)), 0, 2)
 	vsync = bool(cf.get_value("graphismes", "vsync", vsync))
@@ -82,7 +85,7 @@ static func appliquer(tree: SceneTree = null) -> void:
 	if tree == null:
 		tree = Engine.get_main_loop() as SceneTree
 	DayNight.rendu_pousse = rendu_pousse
-	TranslationServer.set_locale(langue)
+	Langue.activer(langue)
 	Engine.max_fps = fps_max
 	if DisplayServer.get_name() == "headless":
 		return

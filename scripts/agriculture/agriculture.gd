@@ -61,6 +61,8 @@ var last_day := -1
 var _climat := Plantes.Climat.TEMPERE
 var _rng := RandomNumberGenerator.new()
 var repas: Repas
+## Herbe des prés (1 : normale) ; la sécheresse la fait baisser (Saisons).
+var herbe_facteur := 1.0
 
 ## Outil de tracé des champs : "" (aucun), "tracer", "effacer".
 var outil := ""
@@ -628,7 +630,7 @@ func part_au_pre(bid: int) -> float:
 	var mois := int(local_time(clock).month) if clock > 0.0 else 6
 	if not AgriDonnees.saison_herbe(mois, lat(), _climat):
 		return 0.0
-	return clampf(paturage_ha(bid) / 0.6 / ugb, 0.0, 1.0)
+	return clampf(paturage_ha(bid) / 0.6 / ugb * herbe_facteur, 0.0, 1.0)
 
 
 ## Ce que mangent les bêtes de la ferme chaque jour : {marchandise: t}.

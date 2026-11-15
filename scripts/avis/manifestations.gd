@@ -112,13 +112,22 @@ func nouveau_jour(n: Dictionary) -> void:
 			rancune.erase(pid)
 	if not actives() or not en_cours().is_empty():
 		return
-	if avis.population == null or avis.population.persons.size() < MIN_HABITANTS:
+	if avis.population == null or residents() < MIN_HABITANTS:
 		return
 	var th := pire_theme()
 	if th == "":
 		return
 	if rng.randf() < 0.6:
 		annoncer(th)
+
+
+## Habitants qui ont un vrai logement : les fondateurs sous la tente du
+## campement ne manifestent pas (ils attendent leurs maisons).
+func residents() -> int:
+	var n := avis.population.persons.size()
+	if Fondateurs.instance != null:
+		n -= Fondateurs.instance.au_campement()
+	return n
 
 
 ## Thème le plus mal noté sous le seuil, hors délai, ou "".

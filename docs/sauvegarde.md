@@ -64,7 +64,7 @@ en quelques centaines de Ko.
   automatiquement comme « Ancienne sauvegarde », puis renommée en `.bak`.
 - Une partie d'une version plus récente du jeu est refusée proprement.
 
-## Prêt pour le multijoueur (sans serveur pour l'instant)
+## Multijoueur
 
 Le format prépare les modes « entre amis » et « carte mondiale » sans rien coûter aujourd'hui :
 
@@ -76,11 +76,12 @@ Le format prépare les modes « entre amis » et « carte mondiale » sans rien 
 3. **Terrain par blocs de 64 m** : la même découpe que l'affichage. Un serveur ou un
    pair pourra n'envoyer que les blocs changés, et seulement ceux proches du joueur
    (indispensable pour la carte mondiale).
-4. **Étape suivante** (quand le multijoueur arrivera) : un journal d'actions
-   (`journal.jsonl` : « route posée de A à B par tel joueur à telle heure ») en plus
-   de l'état. L'état sert de point de départ, le journal se rejoue chez les autres
-   joueurs. Les identifiants d'objets (tronçons, bâtiments, zones) devront alors être
-   préfixés par le joueur qui les crée pour ne jamais entrer en collision.
+4. **Fait (carte entre amis)** : le serveur garde la partie ; un joueur qui entre reçoit
+   ses sections (instantané) et les enregistre comme une partie `amis-<partie_id>`.
+   Ensuite, plutôt qu'un journal rejoué chez chacun, le serveur applique les actions
+   et envoie leur résultat ; un seul serveur crée les identifiants, il n'y a donc pas
+   de collision. Le serveur ajoute une section `multijoueur` (code, membres, maires,
+   caisses personnelles), jamais envoyée aux joueurs. Voir [multijoueur.md](multijoueur.md).
 
 ## Dans le jeu
 

@@ -12,6 +12,8 @@ Prototype de city builder en vue de dessus, style low-poly, mode bac à sable. F
 
 ![Menu principal](docs/apercu-menu-titre.png)
 
+**English** : le jeu est traduit en anglais. Menu principal → **Options → Jeu → Langue → English** (le changement est immédiat). Au premier lancement, le jeu prend la langue du système. Détails : [docs/langues.md](docs/langues.md).
+
 ## Commandes
 
 Dans le jeu, **F1** (ou le bouton **?** en haut à gauche) affiche toutes les commandes.
@@ -37,9 +39,14 @@ L'écran a une barre en haut (lieu, partie, heure et vitesse du temps, chiffres 
 | Sauvegarder / recharger | **F5** / **F9** ; icônes Sauver, Charger (liste des parties) et Globe en haut à gauche |
 | Menu pause | **Échap** (quand aucun outil n'est en cours) : le temps s'arrête ; sauvegarder, charger, options, menu principal |
 | Aide | **F1** |
+| Carte entre amis (en ligne) | **F3** : joueurs, code d'invitation, discussion |
 | Son et musique | **F2** (volumes général, musique, ambiance, effets, interface ; morceaux) |
 
 L'interface s'adapte à la taille de la fenêtre (elle est dessinée pour 1600 × 900 puis agrandie ou réduite).
+
+### Carte entre amis (multijoueur)
+
+**Menu principal → Entre amis** : rejoindre la carte d'un ami (adresse du serveur, code d'invitation, pseudo) ou héberger une de tes parties. La carte tourne sur un serveur (le jeu lancé sans écran : `godot --headless --path . -- --serveur --partie <id>`), elle reste ouverte même quand son créateur n'est pas là. Chacun a sa caisse et devient maire des villages qu'il fonde ; le créateur est l'admin. Bâtiments, villages, voies, terrain, caisses, heure et discussion sont synchronisés. Détails, serveur gratuit jour et nuit et limites : [docs/multijoueur.md](docs/multijoueur.md).
 
 ### Tutoriel guidé et objectifs à l'écran
 

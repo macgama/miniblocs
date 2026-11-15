@@ -2,6 +2,12 @@
 "version": 1,
 "langue": "en",
 "textes": {
+"%s t'achète %s par jour de %s": "%s buys %s a day of %s from you",
+"%s te vend %s par jour de %s": "%s sells you %s a day of %s",
+"%s vend à %s %s/jour de %s à %s/t": "%1$s sells %3$s/day of %4$s to %2$s at %5$s/t",
+"%s achète à %s %s/jour de %s à %s/t": "%1$s buys %3$s/day of %4$s from %2$s at %5$s/t",
+"%s signe un accord pour vendre à %s %s par jour de %s pendant %d jours.": "%s signs a deal to sell %s %s a day of %s for %d days.",
+"%s signe un accord pour acheter à %s %s par jour de %s pendant %d jours.": "%1$s signs a deal to buy %3$s a day of %4$s from %2$s for %5$d days.",
 "Agité": "Volatile",
 "Calme": "Calm",
 "Crises économiques mondiales (choc pétrolier, krach, sécheresse…)": "Global economic crises (oil shock, crash, drought…)",

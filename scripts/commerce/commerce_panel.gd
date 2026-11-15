@@ -193,6 +193,8 @@ func _bouton(text: String, icon: String, tip: String, cb: Callable, parent: Cont
 	b.focus_mode = Control.FOCUS_NONE
 	b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	b.clip_text = parent != null
+	if parent != null:
+		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	b.pressed.connect(cb)
 	(parent if parent != null else _body).add_child(b)
 	return b
@@ -461,7 +463,8 @@ func _carte_offre(o: Dictionary, k: int) -> void:
 	var export := String(o.sens) == "export"
 	var g := String(o.g)
 	var t := Label.new()
-	t.text = "%s %s %s par jour de %s" % [cm.nom_partenaire(int(o.partenaire)), "t'achète" if export else "te vend", Ressources.format_t(float(o.t)), Ressources.good_name(g).to_lower()]
+	var modele := "%s t'achète %s par jour de %s" if export else "%s te vend %s par jour de %s"
+	t.text = modele % [cm.nom_partenaire(int(o.partenaire)), Ressources.format_t(float(o.t)), Ressources.good_name(g).to_lower()]
 	t.add_theme_font_size_override("font_size", 13)
 	t.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	t.custom_minimum_size = Vector2(W - 40, 0)
@@ -498,8 +501,8 @@ func _carte_offre(o: Dictionary, k: int) -> void:
 func _texte_accord(a: Dictionary) -> String:
 	var g := Ressources.good_name(String(a.g)).to_lower()
 	if String(a.genre) == "ia":
-		var quoi := "vend à" if String(a.sens) == "export" else "achète à"
-		return "%s %s %s %s/jour de %s à %s/t" % [_nom(int(a.ville)), quoi, cm.nom_partenaire(int(a.partenaire)), Ressources.format_t(float(a.t)), g, _euros(float(a.prix))]
+		var modele := "%s vend à %s %s/jour de %s à %s/t" if String(a.sens) == "export" else "%s achète à %s %s/jour de %s à %s/t"
+		return modele % [_nom(int(a.ville)), cm.nom_partenaire(int(a.partenaire)), Ressources.format_t(float(a.t)), g, _euros(float(a.prix))]
 	return "%s fournit à %s %s/jour de %s à %s/t" % [_nom(int(a.vendeur)), _nom(int(a.acheteur)), Ressources.format_t(float(a.t)), g, _euros(float(a.prix))]
 
 

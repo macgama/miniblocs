@@ -390,7 +390,7 @@ func _nouvelle_offre(pid: int, r: RandomNumberGenerator, produits: Array) -> Dic
 	else:
 		g = String(p.vend[r.randi() % (p.vend as Array).size()])
 	var taille := clampf(1.0 + log(maxf(float(p.pop), 1000.0) / 20000.0) / log(10.0), 0.5, 2.0)
-	var valeur := r.randf_range(3000.0, 18000.0) * taille
+	var valeur := r.randf_range(1500.0, 9000.0) * taille
 	var t := valeur / maxf(Ressources.cours(g), 1.0)
 	t = roundf(t) if t >= 10.0 else maxf(snappedf(t, 0.1), 0.1)
 	var bonus := (float(p.relation) - 50.0) / 400.0
@@ -449,9 +449,8 @@ func signer(offre: Dictionary, vid: int) -> String:
 	a.ville = vid
 	accords[int(a.id)] = a
 	_idx_ok = false
-	var sens_txt := "vendre à" if a.sens == "export" else "acheter à"
-	_annoncer("%s signe un accord pour %s %s %s par jour de %s pendant %d jours." % [
-		_nom_ville(vid), sens_txt, nom_partenaire(int(a.partenaire)), Ressources.format_t(float(a.t)), Ressources.good_name(String(a.g)).to_lower(), int(a.duree)])
+	var modele := "%s signe un accord pour vendre à %s %s par jour de %s pendant %d jours." if a.sens == "export" else "%s signe un accord pour acheter à %s %s par jour de %s pendant %d jours."
+	_annoncer(modele % [_nom_ville(vid), nom_partenaire(int(a.partenaire)), Ressources.format_t(float(a.t)), Ressources.good_name(String(a.g)).to_lower(), int(a.duree)])
 	changed.emit()
 	return ""
 

@@ -141,6 +141,10 @@ const TYPES := {
 	"benne_om": {"name": "Benne à ordures ménagères", "cat": "utilitaire", "mode": ROAD, "era": "contemporain", "region": "monde", "year": 2018,
 		"L": 9.5, "W": 2.5, "H": 3.5, "kmh": 80, "places": 3, "shape": "camion", "cab": "avant", "cargo": "bom",
 		"col": Color("f1faee"), "col2": Color("43aa8b"), "livraison": true, "desc": "Benne-tasseuse de 26 t et ses deux ripeurs, environ 8 t d'ordures par tournée."},
+	"chasse_neige": {"name": "Chasse-neige saleuse", "cat": "utilitaire", "mode": ROAD, "era": "contemporain", "region": "monde", "year": 2016,
+		"L": 8.6, "W": 2.5, "H": 3.4, "kmh": 60, "places": 2, "shape": "camion", "cab": "avant", "cargo": "saleuse",
+		"col": Color("f77f00"), "col2": Color("dee2e6"), "livraison": true,
+		"desc": "Camion de 19 t, lame biaise à l'avant et trémie de sel à l'arrière : il déneige et sale à 30 km/h."},
 	"camion_us": {"name": "Camion américain à long capot", "cat": "utilitaire", "mode": ROAD, "era": "moderne", "region": "ameriques", "year": 1985,
 		"L": 21.0, "W": 2.6, "H": 4.1, "kmh": 105, "places": 2, "shape": "camion", "cab": "capot", "cargo": "caisse", "stacks": true,
 		"col": Color("c1121f"), "col2": Color("dee2e6"), "desc": "Cheminées chromées et cabine couchette."},
@@ -880,6 +884,21 @@ static func _truck(k: VehicleMesh, t: Dictionary, col: Color, col2: Color) -> vo
 			for s in [-1.0, 1.0]:
 				k.box(s * 0.75, 0.55, L / 2 + 0.05, 0.6, 0.08, 0.35, Color("adb5bd"))
 				k.box(s * (W / 2 + 0.02), by + 0.6, bz, 0.04, 0.3, bl * 0.8, Color("ffd166"))
+		"saleuse":
+			# Trémie de sel en V, plateau d'épandage tournant à l'arrière, lame à l'avant.
+			var top := minf(by + 1.6, H - 0.2)
+			k.box(0, by, bz, W * 0.92, 0.25, bl * 0.95, Color("495057"))
+			k.taper(0, by + 0.25, top, bz0 + 0.3, L / 2 - 0.5, W * 0.45, W * 0.96, 0.0, 0.0, col.darkened(0.1))
+			k.box(0, top - 0.06, bz - 0.1, W * 0.9, 0.08, bl * 0.8, Color("f8f9fa"))
+			k.box(0, top, bz0 + 0.5, W * 0.96, 0.12, 0.12, Color("343a40"))
+			k.cylinder(0, by - 0.35, L / 2 - 0.15, 0.45, 0.45, 0.08, 10, Color("343a40"))
+			# Lame biaise : grande plaque orange à bord noir, bras d'attache.
+			k.taper(0, 0.15, 1.35, -L / 2 - 1.1, -L / 2 - 0.85, W * 1.35, W * 1.35, -0.15, 0.0, col)
+			k.box(0, 0.05, -L / 2 - 1.12, W * 1.35, 0.14, 0.28, Color("212529"))
+			for s in [-1.0, 1.0]:
+				k.box(s * 0.5, 0.45, -L / 2 - 0.5, 0.18, 0.25, 0.8, Color("343a40"))
+				k.box(s * (W * 0.67), 1.0, -L / 2 - 1.0, 0.06, 0.9, 0.06, Color("ffd166"))
+				k.box(s * (W / 2 - 0.25), 3.05, -L / 2 + 0.8, 0.28, 0.2, 0.28, Color("ffb703"))
 		"citerne":
 			var tr := (H - by) / 2.0
 			k.z_cyl(0, by + tr, bz0, L / 2, tr, tr, 12, col2)

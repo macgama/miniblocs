@@ -183,7 +183,7 @@ func _refresh_tuto() -> void:
 		return
 	_etape_l.text = _entete()
 	_titre_l.text = String(e.titre)
-	_texte_l.text = String(e.texte)
+	_texte_l.text = Tutoriel.texte_de(e)
 	_touches_l.text = String(e.get("touches", ""))
 	_touches_l.visible = _touches_l.text != ""
 	_action_b.visible = e.has("action")

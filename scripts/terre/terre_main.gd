@@ -126,6 +126,7 @@ var pays_panel: PaysPanel
 var pilote: PiloteAuto
 var objectifs: Objectifs
 var kit: KitInstallation
+var rue_fondation: RueFondation
 var objectifs_panel: ObjectifsPanel
 var statistiques: Statistiques
 var stats_panel: StatsPanel
@@ -374,6 +375,7 @@ func save_sections() -> Dictionary:
 	sec["pilote"] = pilote.to_dict()
 	sec["objectifs"] = objectifs.to_dict()
 	sec["kit"] = kit.to_dict()
+	sec["rue_fondation"] = rue_fondation.to_dict()
 	sec["niveaux_vie"] = niveaux_vie.to_dict()
 	sec["statistiques"] = statistiques.to_dict()
 	sec["tutoriel"] = tutoriel.to_dict()
@@ -536,6 +538,7 @@ func load_game(slot := "") -> bool:
 	# Après les villages, le pays et les élections (mairies perdues).
 	objectifs.from_dict(sec.get("objectifs", {}))
 	kit.from_dict(sec.get("kit", {}))
+	rue_fondation.from_dict(sec.get("rue_fondation", {}))
 	# Après les villages, le pays et les élections (quartiers d'une mairie perdue).
 	quartiers.from_dict(sec.get("quartiers", {}))
 	nuisances.from_dict(sec.get("nuisances", {}))
@@ -889,6 +892,13 @@ func _setup_pays() -> void:
 	kit.changed.connect(func() -> void: build_panel.refresh.call_deferred())
 	kit.message.connect(func(t: String) -> void: hud.show_message(t))
 	kit.changed.connect(func() -> void: _unsaved = true)
+	# Rue en T offerte devant chaque nouvelle Maison de commune (réglage Admin).
+	rue_fondation = RueFondation.new()
+	rue_fondation.name = "RueFondation"
+	add_child(rue_fondation)
+	rue_fondation.setup(transport, buildings, communes)
+	rue_fondation.message.connect(func(t: String) -> void: hud.show_message(t))
+	rue_fondation.changed.connect(func() -> void: _unsaved = true)
 	objectifs = Objectifs.new()
 	objectifs.name = "Objectifs"
 	add_child(objectifs)
@@ -2299,6 +2309,8 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 		quartiers.clear()
 	if kit != null:
 		kit.clear()
+	if rue_fondation != null:
+		rue_fondation.clear()
 	if niveaux_vie != null:
 		niveaux_vie.clear()
 	if communes != null:

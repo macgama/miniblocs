@@ -313,6 +313,8 @@ func _run() -> void:
 		await _frames(2)
 		game.rig.position = Vector3(0, game.rig.position.y, 0)
 		var m0 := bs.money
+		# Ce parcours trace lui-même son plan de rues : pas de rue en T offerte (tests/rue_fondation_test.gd).
+		ReglagesPartie.actuel.rue_fondation = false
 		var mc := _poser("maison_commune", -60, 60, 20, -1)
 		_check(mc >= 0, "Maison de commune posée")
 		await _frames(2)

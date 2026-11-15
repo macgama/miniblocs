@@ -1393,6 +1393,11 @@ func _near_wall(h: Dictionary, tol := 0.3) -> Variant:
 func _unhandled_input(event: InputEvent) -> void:
 	if tool == Tool.NONE or camera == null or world == null:
 		return
+	# Un clic dans le monde rend le clavier au jeu (sinon un champ de recherche
+	# du panneau garde R, F, C… pour lui).
+	if event is InputEventMouseButton and (event as InputEventMouseButton).pressed \
+			and get_viewport().gui_get_focus_owner() is LineEdit:
+		get_viewport().gui_release_focus()
 	if event is InputEventMouseMotion:
 		_update_hover((event as InputEventMouseMotion).position)
 	elif event is InputEventMouseButton:

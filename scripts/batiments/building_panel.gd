@@ -15,6 +15,8 @@ signal block_tool_chosen(tool: int)
 signal block_material_chosen(material: int)
 signal block_shape_chosen(shape: int)
 signal block_tint_chosen(tint: int)
+## Orientation de la forme : "tourner", "renverser", "coucher" ou "redresser".
+signal block_orient(action: String)
 signal wall_height_changed(height: int)
 ## Grandes pièces : diamètre ou largeur (m), et hauteur ou longueur (m).
 signal block_piece_changed(size: int, count: int)
@@ -643,7 +645,7 @@ func _fill_ladder() -> void:
 
 
 func _show_block_tools() -> void:
-	var tools := [["Poser", BlockEditor.Tool.BLOCK, "Un clic = un élément de la forme choisie, contre le sol ou contre un autre bloc. R : tourner."],
+	var tools := [["Poser", BlockEditor.Tool.BLOCK, "Un clic = un élément de la forme choisie, contre le sol ou contre un autre bloc. R : tourner, F : renverser, C : coucher."],
 		["Rectangle", BlockEditor.Tool.RECT, "Clic glissé : dalle, plancher ou toit plat."],
 		["Mur", BlockEditor.Tool.WALL, "Clic glissé en ligne : mur de la hauteur choisie."],
 		["Gomme", BlockEditor.Tool.ERASE, "Clic sur un bloc, ou glissé pour effacer un étage."]]
@@ -673,6 +675,24 @@ func _show_block_tools() -> void:
 	hrow.add_child(spin)
 	_list.add_child(hrow)
 	_item_buttons.append(hrow)
+	# Orientation de la forme posée (mêmes effets que R, F et C au clavier).
+	var orow := HFlowContainer.new()
+	var ol := Label.new()
+	ol.text = "Orientation :"
+	orow.add_child(ol)
+	for o in [["↻ Tourner (R)", "tourner", "Quart de tour à plat. Sans rien toucher, la forme se tourne face à la caméra."],
+			["⇅ Renverser (F)", "renverser", "Tête en bas : une pente devient un dessous de toit, un arrondi part vers le bas."],
+			["⤵ Coucher (C)", "coucher", "Couchée sur le côté, contre un mur : combine avec R pour choisir le côté, F pour l'autre sens."],
+			["Redresser", "redresser", "Remet la forme debout, face à la caméra."]]:
+		var ob := Button.new()
+		ob.text = o[0]
+		ob.tooltip_text = o[2]
+		ob.focus_mode = Control.FOCUS_NONE
+		var act: String = o[1]
+		ob.pressed.connect(func() -> void: block_orient.emit(act))
+		orow.add_child(ob)
+	_list.add_child(orow)
+	_item_buttons.append(orow)
 
 
 ## Réglages des grandes pièces : diamètre (ou largeur) et hauteur (ou longueur).

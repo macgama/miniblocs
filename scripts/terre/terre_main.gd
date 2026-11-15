@@ -75,6 +75,9 @@ var zoo_panel: ZooPanel
 ## Tourisme : hébergements, touristes, dépenses en ville (menu Loisirs, Maj+R).
 var tourisme: Tourisme
 var tourisme_panel: TourismePanel
+## Commerce entre villes et pays : cours mondiaux, accords, crises (Économie, Maj+S).
+var commerce_mondial: CommerceMondial
+var commerce_panel: CommercePanel
 var zoo_outils: ZooOutils
 ## Obsèques, cimetières, crématorium, pompes funèbres (onglet Funéraire du panneau H).
 var funeraire: Funeraire
@@ -135,6 +138,10 @@ var journal_panel: JournalPanel
 ## Tutoriel guidé et objectifs à l'écran (scripts/tutoriel).
 var tutoriel: Tutoriel
 var tuto_carte: TutorielCarte
+## Scénario en cours (menu principal → Scénarios) et sa carte à l'écran.
+var scenario: ScenarioPartie
+var scenario_carte: ScenarioCarte
+var bilan_scenario: ScenarioBilan
 ## Ambiances sonores selon la caméra (scripts/son) ; musique et volumes : /root/Son (F2).
 var sons: AmbiancesSonores
 var quartiers: Quartiers
@@ -199,13 +206,16 @@ func _ready() -> void:
 	_setup_nuisances()
 	_setup_avis()
 	_setup_parc_editeur()
+	_setup_partage()
 	_setup_communes()
 	_setup_fondateurs()
 	_setup_pays()
+	_setup_commerce()
 	_setup_niveaux_vie()
 	_setup_statistiques()
 	_setup_journal()
 	_setup_tutoriel()
+	_setup_scenario()
 	_setup_quartiers()
 	_setup_souterrain()
 	_setup_create_mode()
@@ -385,6 +395,7 @@ func save_sections() -> Dictionary:
 	sec["statistiques"] = statistiques.to_dict()
 	sec["journal"] = journal.to_dict()
 	sec["tutoriel"] = tutoriel.to_dict()
+	sec["scenario"] = scenario.to_dict()
 	sec["musee"] = musee.to_dict()
 	sec["spectacles"] = spectacles.to_dict()
 	sec["club"] = club.to_dict()
@@ -396,6 +407,7 @@ func save_sections() -> Dictionary:
 	sec["parc"] = parc.to_dict()
 	sec["zoo"] = zoo.to_dict()
 	sec["tourisme"] = tourisme.to_dict()
+	sec["commerce_mondial"] = commerce_mondial.to_dict()
 	sec["quartiers"] = quartiers.to_dict()
 	sec["parc_editeur"] = attractions.to_dict()
 	sec["parc_allees"] = parc_allees.to_dict()
@@ -523,6 +535,7 @@ func load_game(slot := "") -> bool:
 	parc.from_dict(sec.get("parc", {}))
 	zoo.from_dict(sec.get("zoo", {}))
 	tourisme.from_dict(sec.get("tourisme", {}))
+	commerce_mondial.from_dict(sec.get("commerce_mondial", {}))
 	funeraire.from_dict(sec.get("funeraire", {}))
 	ambiance.from_dict(sec.get("ambiance", {}))
 	# Après les bâtiments et les habitants : dégâts, ruines, malades, matchs.
@@ -562,6 +575,8 @@ func load_game(slot := "") -> bool:
 	else:
 		tutoriel.clear()
 	ReglagesPartie.actuel.tutoriel = tutoriel.actif
+	# Après les réglages : le scénario compare les réglages du départ à ceux-ci.
+	scenario.from_dict(sec.get("scenario", {}))
 	# Les chantiers repartent de l'heure de la partie chargée.
 	vie_batiments._t_prev = ambiance.unix_time
 	chantiers._t_prev = ambiance.unix_time
@@ -1086,6 +1101,48 @@ func _on_tuto_action(id: String) -> void:
 			evenements_panel.show_view("organiser")
 		"ligne":
 			transit_panel.set_open(true)
+
+
+## Scénarios et défis : suivi (ScenarioPartie), carte à l'écran, bilan de fin.
+func _setup_scenario() -> void:
+	scenario = ScenarioPartie.new()
+	scenario.name = "Scenario"
+	add_child(scenario)
+	scenario.setup(self)
+	scenario.message.connect(func(t: String) -> void: hud.show_message(t))
+	scenario.changed.connect(func() -> void: _unsaved = true)
+	scenario.termine.connect(ouvrir_bilan_scenario)
+	scenario_carte = ScenarioCarte.new()
+	scenario_carte.name = "CarteScenario"
+	add_child(scenario_carte)
+	scenario_carte.setup(scenario)
+	# Sous la carte du personnage suivi (habitants façon Sims), quand elle est là.
+	scenario_carte.decalage = func() -> float:
+		var c: Control = habitants_panel._card if habitants_panel != null else null
+		return c.size.y + 8.0 if c != null and c.is_visible_in_tree() else 0.0
+	var sid := Scenarios.demande
+	Scenarios.demande = ""
+	if sid != "" and GameStart.load_slot == "" and GameStart.chosen and not GameStart.atelier:
+		scenario.demarrer.call_deferred(sid)
+
+
+func ouvrir_bilan_scenario(r: Dictionary) -> void:
+	if bilan_scenario != null:
+		return
+	bilan_scenario = ScenarioBilan.new(r)
+	bilan_scenario.ferme.connect(func() -> void:
+		bilan_scenario = null
+		hud.show_message("Les règles du scénario sont levées : la ville est à toi."))
+	bilan_scenario.menu_demande.connect(func() -> void:
+		if not save_game():
+			hud.show_message("Sauvegarde impossible : " + last_error)
+		GameStart.slot_id = ""
+		EcranChargement.aller(MenuPrincipal.SCENE, "Retour au menu principal"))
+	bilan_scenario.rejouer_demande.connect(func() -> void:
+		if not save_game():
+			hud.show_message("Sauvegarde impossible : " + last_error)
+		Scenarios.lancer(String(r.get("id", ""))))
+	add_child(bilan_scenario)
 
 
 ## Démo guidée : bilan de fin (DemoBilan), au-dessus du jeu.
@@ -1720,6 +1777,8 @@ func _tool_busy() -> bool:
 		return true
 	if zoo_outils != null and zoo_outils.actif():
 		return true
+	if outil_site != null and outil_site.actif():
+		return true
 	return decors != null and decors.outil != DecorSystem.Outil.AUCUN
 
 
@@ -2115,6 +2174,8 @@ func set_create_mode(on: bool) -> void:
 ## Barre du bas du mode Créer : Murs et étages, Blocs, Intérieur, Mes créations.
 func _on_create_requested(id: String) -> void:
 	_select_building_tool()
+	if partage_panel != null and partage_panel.is_open() and id != "partage":
+		partage_panel.set_open(false)
 	if id == "":
 		build_panel.set_open(false)
 		return
@@ -2125,6 +2186,10 @@ func _on_create_requested(id: String) -> void:
 		"interieur": build_panel.show_category("interieur")
 		"creations": build_panel.show_category(Creations.CATEGORY)
 		"banque": build_panel.show_category(BanquePanel.CATEGORY)
+		"partage":
+			build_panel.set_open(false)
+			partage_panel.set_open(true)
+			return
 		"atelier":
 			build_panel.set_open(false)
 			_toggle_atelier()
@@ -2166,6 +2231,8 @@ func _select_building_tool(from_transit := false) -> void:
 		agriculture.set_outil("")
 	if banque_pose:
 		banque_pose.stop()
+	if outil_site:
+		outil_site.stop()
 	if zoo_outils:
 		zoo_outils.set_inactive()
 	hud.select_tool_silently(0)
@@ -2173,6 +2240,37 @@ func _select_building_tool(from_transit := false) -> void:
 
 ## Zoo : enclos tracés à la main, animaux, soigneurs, visiteurs, et son menu (Maj+Z).
 ## Tourisme : hébergements, touristes qui visitent et dépensent (Maj+R).
+## Partage des créations (Maj+W, Créer → 8) : publier, installer, plans de site.
+var partage_panel: PartagePanel
+var outil_site: OutilSite
+
+
+func _setup_partage() -> void:
+	outil_site = OutilSite.new()
+	outil_site.name = "OutilPlanSite"
+	add_child(outil_site)
+	outil_site.world = world
+	outil_site.camera = $CameraRig/Camera3D
+	outil_site.contexte = contexte_partage
+	outil_site.message.connect(func(t: String) -> void:
+		if t != "":
+			hud.show_message(t))
+	partage_panel = PartagePanel.new()
+	partage_panel.name = "PanneauPartage"
+	add_child(partage_panel)
+	partage_panel.setup(outil_site, func() -> void: _select_building_tool())
+	partage_panel.message.connect(func(t: String) -> void: hud.show_message(t))
+	# Steam : les abonnements du Workshop s'installent seuls.
+	var n := Partage.synchroniser()
+	if n > 0:
+		hud.show_message("Créations du Workshop installées : %d." % n)
+
+
+## Ce que les plans de site lisent et reposent (PlansSites).
+func contexte_partage() -> Dictionary:
+	return {"bs": buildings, "world": world, "allees": parc_allees, "zoo": zoo, "decors": decors, "mob": mobilier, "blocks": blocks}
+
+
 func _setup_tourisme() -> void:
 	tourisme = Tourisme.new()
 	tourisme.name = "Tourisme"
@@ -2190,6 +2288,23 @@ func _setup_tourisme() -> void:
 		rig.position.x = pos.x
 		rig.position.z = pos.z)
 	hud.tourisme_requested.connect(func() -> void: tourisme_panel.toggle())
+
+
+## Commerce : marché mondial, villes partenaires, accords, crises (Maj+S).
+func _setup_commerce() -> void:
+	commerce_mondial = CommerceMondial.new()
+	commerce_mondial.name = "CommerceMondial"
+	add_child(commerce_mondial)
+	commerce_mondial.setup(production, buildings, pays)
+	commerce_mondial.message.connect(func(t: String) -> void: hud.show_message(t))
+	commerce_mondial.actualite.connect(func(t: String) -> void:
+		if evenements != null:
+			evenements.news(t, Vector3.INF, "commerce"))
+	commerce_panel = CommercePanel.new()
+	commerce_panel.name = "PanneauCommerce"
+	add_child(commerce_panel)
+	commerce_panel.setup(commerce_mondial, pays)
+	hud.commerce_requested.connect(func() -> void: commerce_panel.toggle())
 
 
 func _setup_zoo() -> void:
@@ -2352,6 +2467,8 @@ func _on_tool_selected(t: int) -> void:
 	_ranger_parc_editeur()
 	if banque_pose:
 		banque_pose.stop()
+	if outil_site:
+		outil_site.stop()
 	transport.stations.set_inactive()
 	transit_panel.clear_selection()
 	buildings.set_inactive()
@@ -2434,6 +2551,8 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 		(clubs[s] as ClubSport).clear()
 	if tourisme != null:
 		tourisme.clear()
+	if commerce_mondial != null:
+		commerce_mondial.clear()
 	resource_overlay.show_resource(resource_overlay.res)
 	transport.clear()
 	buildings.clear()
@@ -2510,6 +2629,8 @@ func _process(delta: float) -> void:
 	_exclusive_panels()
 	if tuto_carte != null:
 		tuto_carte.cachee = hud.create_mode or GameStart.atelier or hud.coords_open() or _loisirs_ouvert()
+	if scenario_carte != null:
+		scenario_carte.cachee = hud.create_mode or GameStart.atelier or hud.coords_open() or _loisirs_ouvert()
 
 
 var _stats_timer := 0.0
@@ -2525,6 +2646,7 @@ func _exclusive_panels() -> void:
 	var opened := ""
 	panels.merge(_panneaux_parc())
 	panels["musee"] = musee_panel
+	panels["partage"] = partage_panel
 	for id in panels:
 		var p = panels[id]
 		var on: bool = p != null and p.is_open()
@@ -2540,7 +2662,7 @@ func _exclusive_panels() -> void:
 	for id in panels:
 		hud.set_panel_open(id, _open_before[id])
 	# Mode Créer : panneau fermé (B, croix) = plus de catégorie allumée.
-	if hud.create_mode and not build_panel.is_open() and hud.create_category() != "":
+	if hud.create_mode and not build_panel.is_open() and not (partage_panel != null and partage_panel.is_open()) and hud.create_category() != "":
 		hud.set_create_category("")
 
 
@@ -2554,6 +2676,7 @@ func _refresh_stats(st := {}) -> void:
 		hud.show_message("Palier « %s » atteint : de nouveaux bâtiments sont débloqués !" % palier)
 		Son.jouer("palier")
 		build_panel.refresh()
+	suivre_epoque()
 	var adults: int = int(s.actif) + int(s.chomeur)
 	var unemployment := "—" if adults == 0 else "%d %%" % roundi(100.0 * int(s.chomeur) / adults)
 	var tip := ""
@@ -2561,6 +2684,34 @@ func _refresh_stats(st := {}) -> void:
 		money = "%s : %s" % [pays.nom_de(pays.actif), money]
 		tip = "Caisse de %s, la ville que tu gères (elle suit la caméra ; Maj+P pour le pays et les autres villes). Clic : budget." % pays.nom_de(pays.actif)
 	hud.set_stats(money, int(s.habitants), int(s.satisfaction), unemployment, tip)
+
+
+## Partie historique : à chaque nouvelle année, les véhicules en circulation
+## changent et les grandes inventions sont annoncées (Epoques).
+var _annee_vue := 0
+
+
+func suivre_epoque() -> void:
+	if not Epoques.actif():
+		_annee_vue = 0
+		return
+	var y := Epoques.annee()
+	if y == _annee_vue:
+		return
+	var avant := _annee_vue
+	_annee_vue = y
+	if transport != null and transport.traffic != null:
+		transport.traffic.epoque_changee()
+	if avant == 0:
+		return
+	var nouv := Epoques.inventions_entre(avant, y)
+	if build_panel != null:
+		build_panel.refresh()
+	if nouv.is_empty():
+		return
+	var inv: Dictionary = nouv[nouv.size() - 1]
+	hud.show_message("%d : %s ! %s" % [int(inv.annee), String(inv.nom), String(inv.desc)])
+	Son.jouer("palier")
 
 
 ## « de Beauvallon » quand il y a plusieurs caisses.

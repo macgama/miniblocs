@@ -47,6 +47,9 @@ var _instant: CheckBox
 var _horaires: OptionButton
 var _rythme: OptionButton
 var _freq: OptionButton
+var _crises_eco: CheckBox
+var _volatilite: OptionButton
+const VOLATILITES := [0.5, 1.0, 2.0]
 var _reseaux: CheckBox
 var _prix_serv: HSlider
 var _prix_serv_l: Label
@@ -69,6 +72,11 @@ const USURE_NOMS := ["Aucune", "Lente", "Normale", "Rapide"]
 var _status: Label
 var _tutoriel: CheckBox
 var _obj_ecran: CheckBox
+## Époques (scripts/epoques).
+var _epoque: CheckBox
+var _annee: SpinBox
+var _rythme_h: OptionButton
+var _epoque_l: Label
 
 
 func _init(r: ReglagesPartie = null, at_creation := false, can_edit := true, money := -1) -> void:
@@ -249,6 +257,28 @@ func _ready() -> void:
 	_vie.item_selected.connect(func(_i: int) -> void: _changed())
 	_row(g, "Vitesse de la vie", _vie)
 
+	# Époque : année de départ, rythme de l'histoire.
+	g = _section(right, "Époque", "horloge")
+	_epoque = _check("Partie historique : les inventions arrivent avec les années")
+	_epoque.disabled = not editable
+	_epoque.toggled.connect(func(_on: bool) -> void: _changed())
+	g.add_child(_epoque)
+	_annee = _spin(Epoques.ANNEE_MIN, 2100, 1, "")
+	_annee.step = 1
+	_annee.custom_minimum_size = Vector2(110, 0)
+	_row(g, "Année de départ" if creation else "Année en cours", _annee)
+	_rythme_h = OptionButton.new()
+	for n in Epoques.RYTHME_NOMS:
+		_rythme_h.add_item(n)
+	_rythme_h.disabled = not editable
+	_rythme_h.tooltip_text = "Années d'histoire par année de jeu : ×10, on traverse un siècle en dix ans de jeu."
+	_rythme_h.item_selected.connect(func(_i: int) -> void: _changed())
+	_row(g, "Rythme de l'histoire", _rythme_h)
+	_epoque_l = _label("", 12, UiStyle.TEXT_DIM)
+	_epoque_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_epoque_l.custom_minimum_size = Vector2(360, 0)
+	g.add_child(_epoque_l)
+
 	# Ressources.
 	g = _section(right, "Ressources", "ressources")
 	_epuisement = _check("Épuisement des ressources (mines, puits, forêts et poissons surexploités)")
@@ -274,6 +304,14 @@ func _ready() -> void:
 	_freq.disabled = not editable
 	_freq.item_selected.connect(func(_i: int) -> void: _changed())
 	_row(g, "Fréquence des catastrophes", _freq)
+	_crises_eco = _check("Crises économiques mondiales (choc pétrolier, krach, sécheresse…)")
+	g.add_child(_crises_eco)
+	_volatilite = OptionButton.new()
+	for n in ["Calme", "Normal", "Agité"]:
+		_volatilite.add_item(n)
+	_volatilite.disabled = not editable
+	_volatilite.item_selected.connect(func(_i: int) -> void: _changed())
+	_row(g, "Marché mondial (cours)", _volatilite)
 	# Vie politique (scripts/avis).
 	_elections = OptionButton.new()
 	for n in Elections.MODE_NOMS:
@@ -472,6 +510,12 @@ func _fill() -> void:
 		if absf(float(FREQS[i]) - reglages.frequence_catastrophes) < 0.01:
 			fi = i
 	_freq.select(fi)
+	_crises_eco.button_pressed = reglages.crises_economiques
+	var vi := 1
+	for i in VOLATILITES.size():
+		if absf(float(VOLATILITES[i]) - reglages.volatilite_marche) < 0.01:
+			vi = i
+	_volatilite.select(vi)
 	_reseaux.button_pressed = reglages.reseaux_obligatoires
 	_prix_serv.value = reglages.prix_services
 	_elections.select(maxi(0, Elections.MODES.find(reglages.elections)))
@@ -492,6 +536,16 @@ func _fill() -> void:
 	_cremation.select(ci)
 	_pollution.select(clampi(reglages.pollution, 0, 3))
 	_pol_sante.button_pressed = reglages.pollution_sante
+	_epoque.button_pressed = Epoques.actif(reglages)
+	if Epoques.actif(reglages):
+		_annee.value = reglages.annee_depart if creation else Epoques.annee(reglages)
+	else:
+		_annee.value = Epoques.ANNEE_MIN
+	var ri := 0
+	for i in Epoques.RYTHMES.size():
+		if absf(float(Epoques.RYTHMES[i]) - reglages.rythme_histoire) < 0.01:
+			ri = i
+	_rythme_h.select(ri)
 	_filling = false
 	_update_labels()
 
@@ -527,6 +581,8 @@ func _changed() -> void:
 	_rythme.disabled = not editable or _instant.button_pressed
 	_horaires.disabled = not editable or _instant.button_pressed
 	reglages.frequence_catastrophes = float(FREQS[maxi(0, _freq.selected)])
+	reglages.crises_economiques = _crises_eco.button_pressed
+	reglages.volatilite_marche = float(VOLATILITES[maxi(0, _volatilite.selected)])
 	reglages.reseaux_obligatoires = _reseaux.button_pressed
 	reglages.prix_services = _prix_serv.value
 	reglages.elections = String(Elections.MODES[maxi(0, _elections.selected)])
@@ -539,7 +595,26 @@ func _changed() -> void:
 	reglages.dechets_quantite = _dechets_q.value
 	reglages.pollution = maxi(0, _pollution.selected)
 	reglages.pollution_sante = _pol_sante.button_pressed
+	_changer_epoque()
 	_emit()
+
+
+func _changer_epoque() -> void:
+	reglages.rythme_histoire = float(Epoques.RYTHMES[maxi(0, _rythme_h.selected)])
+	var y := int(_annee.value)
+	if not _epoque.button_pressed:
+		reglages.annee_depart = 0
+		reglages.histoire_saut = 0
+		reglages.histoire_debut = 0.0
+	elif creation or not Epoques.actif(reglages):
+		# Départ (ou passage en partie historique) : l'histoire part de cette année.
+		reglages.annee_depart = y
+		reglages.histoire_saut = 0
+		reglages.histoire_debut = 0.0
+	elif y != Epoques.annee(reglages):
+		Epoques.aller_a(y, reglages)
+	_annee.editable = editable and _epoque.button_pressed
+	_rythme_h.disabled = not editable or not _epoque.button_pressed
 
 
 func _emit() -> void:
@@ -566,6 +641,18 @@ func _update_labels() -> void:
 		t += "\nPalier atteint : %s (record %d habitants)." % [ReglagesPartie.PALIERS[reglages.palier_atteint()].nom, reglages.record_habitants]
 	_paliers_l.text = t
 	_paliers_l.visible = reglages.deblocage == "progression"
+	if _epoque_l:
+		if Epoques.actif(reglages):
+			var y := reglages.annee_depart if creation else Epoques.annee(reglages)
+			var nxt: Array[String] = []
+			for inv in Epoques.prochaines(y, 3):
+				nxt.append("%d %s" % [int(inv.annee), String(inv.nom).to_lower()])
+			_epoque_l.text = ("Bâtiments, véhicules, voies, réseaux et matériaux de l'Atelier suivent l'année. "
+				+ "À venir : %s." % (", ".join(nxt) if not nxt.is_empty() else "le futur reste à écrire"))
+		else:
+			_epoque_l.text = "Époque actuelle : tout est disponible d'office."
+		_annee.editable = editable and _epoque.button_pressed
+		_rythme_h.disabled = not editable or not _epoque.button_pressed
 
 
 func close_panel() -> void:

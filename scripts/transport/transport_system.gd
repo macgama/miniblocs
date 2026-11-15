@@ -930,11 +930,23 @@ func evaluate(id: String, s: Dictionary, path: PackedVector2Array) -> Dictionary
 	plan.snap_a = sa
 	plan.snap_b = sb
 	plan.crossings = []
+	# Partie historique : pas d'autoroute en 1850 ni de métro en 1820 (Epoques).
+	var epoque := Epoques.raison_voie(id)
+	if epoque != "":
+		plan.ok = false
+		plan.reason = epoque
+		return plan
 	if not sa.is_empty() and not sb.is_empty() and int(sa.node) >= 0 and sa.node == sb.node:
 		plan.ok = false
 		plan.reason = "Le départ et l'arrivée sont au même endroit."
 		return plan
 	if not plan.ok:
+		return plan
+	# Scénario en cours : voies routières limitées (« Une ville sans voiture »…).
+	var sc := ScenarioPartie.refus_voie(id, _longueur(plan.pts))
+	if sc != "":
+		plan.ok = false
+		plan.reason = sc
 		return plan
 	if not TransportTypes.is_ramp(id) and not TransportTypes.is_separated(id):
 		for snap in [sa, sb]:
@@ -1010,6 +1022,13 @@ func evaluate(id: String, s: Dictionary, path: PackedVector2Array) -> Dictionary
 ## Croisements à franchir par un pont ou un tunnel : [[croisement, "dessus" ou
 ## "dessous"], …]. Mode automatique : seulement les autoroutes et voies express
 ## (jamais de carrefour à niveau dessus). Les raccords aux extrémités comptent pas.
+static func _longueur(pts: PackedVector3Array) -> float:
+	var m := 0.0
+	for i in range(1, pts.size()):
+		m += pts[i].distance_to(pts[i - 1])
+	return m
+
+
 func _forced_crossings(id: String, crossings: Array, sa: Dictionary, sb: Dictionary) -> Array:
 	var out := []
 	for c in crossings:

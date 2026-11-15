@@ -85,6 +85,10 @@ var evenements_auto := true
 var catastrophes := true
 ## Fréquence des catastrophes (0,25 : rares ; 1 : normales ; 3 : fréquentes).
 var frequence_catastrophes := 1.0
+## Crises économiques mondiales (choc pétrolier, krach…) dans le menu Commerce.
+var crises_economiques := true
+## Marché mondial : 0,5 calme, 1 normal, 2 agité (amplitude des cours chaque jour).
+var volatilite_marche := 1.0
 ## La neige tient sur les routes : il faut des chasse-neige (scripts/saisons).
 var neige_routes := true
 ## Réseaux obligatoires : sans courant, eau ni égouts, les bâtiments en souffrent
@@ -147,6 +151,13 @@ var tutoriel := true
 var objectifs_ecran := true
 ## Plus grande population atteinte (pour les paliers).
 var record_habitants := 0
+## Époques (scripts/epoques) : année de départ de la partie (0 = époque
+## actuelle, rien de verrouillé), années d'histoire par année de jeu, heure
+## de l'horloge au début de l'histoire, années sautées par l'admin.
+var annee_depart: int = 0
+var rythme_histoire := 1.0
+var histoire_debut := 0.0
+var histoire_saut: int = 0
 
 
 static func preset(id: String) -> ReglagesPartie:
@@ -261,6 +272,14 @@ func raison_blocage(id: String) -> String:
 	var tutelle := BudgetCommunal.raison_blocage(id)
 	if tutelle != "":
 		return tutelle
+	# Pas encore inventé à l'époque de la partie.
+	var epoque := Epoques.raison_batiment(id, self)
+	if epoque != "":
+		return epoque
+	# Scénario en cours : bâtiments interdits.
+	var sc := ScenarioPartie.refus_batiment(id)
+	if sc != "":
+		return sc
 	if est_debloque(id):
 		return ""
 	var p: Dictionary = PALIERS[palier_requis(id)]
@@ -285,11 +304,12 @@ func to_dict() -> Dictionary:
 		"salaires": salaires, "vitesse_temps": vitesse_temps, "vitesse_vie": vitesse_vie,
 		"epuisement": epuisement, "deblocage": deblocage, "createur": createur,
 		"record_habitants": record_habitants, "evenements_auto": evenements_auto, "catastrophes": catastrophes,
-		"frequence_catastrophes": frequence_catastrophes, "neige_routes": neige_routes, "faim": faim, "telecom_necessaire": telecom_necessaire, "construction_instantanee": construction_instantanee,
+		"frequence_catastrophes": frequence_catastrophes, "crises_economiques": crises_economiques, "volatilite_marche": volatilite_marche, "neige_routes": neige_routes, "faim": faim, "telecom_necessaire": telecom_necessaire, "construction_instantanee": construction_instantanee,
 		"horaires_chantiers": horaires_chantiers, "rythme_chantiers": rythme_chantiers, "usure": usure, "dechets": dechets, "dechets_quantite": dechets_quantite, "pollution": pollution, "pollution_sante": pollution_sante,
 		"elections": elections, "manifestations": manifestations, "funeraire": funeraire, "cremation": cremation, "reseaux_obligatoires": reseaux_obligatoires, "prix_services": prix_services,
 		"fondation": fondation, "rue_fondation": rue_fondation, "territoire": territoire, "fondateurs": fondateurs, "vivres_jours": vivres_jours, "main_oeuvre": main_oeuvre,
-		"tutoriel": tutoriel, "objectifs_ecran": objectifs_ecran}
+		"tutoriel": tutoriel, "objectifs_ecran": objectifs_ecran,
+		"annee_depart": annee_depart, "rythme_histoire": rythme_histoire, "histoire_debut": histoire_debut, "histoire_saut": histoire_saut}
 
 
 func from_dict(d: Dictionary) -> void:
@@ -317,6 +337,8 @@ func from_dict(d: Dictionary) -> void:
 	evenements_auto = bool(d.get("evenements_auto", true))
 	catastrophes = bool(d.get("catastrophes", true))
 	frequence_catastrophes = clampf(float(d.get("frequence_catastrophes", 1.0)), 0.25, 3.0)
+	crises_economiques = bool(d.get("crises_economiques", true))
+	volatilite_marche = clampf(float(d.get("volatilite_marche", 1.0)), 0.0, 3.0)
 	neige_routes = bool(d.get("neige_routes", true))
 	reseaux_obligatoires = bool(d.get("reseaux_obligatoires", true))
 	prix_services = clampf(float(d.get("prix_services", 1.0)), PRIX_SERVICES_MIN, PRIX_SERVICES_MAX)
@@ -340,6 +362,14 @@ func from_dict(d: Dictionary) -> void:
 	pollution_sante = bool(d.get("pollution_sante", true))
 	funeraire = bool(d.get("funeraire", true))
 	cremation = clampf(float(d.get("cremation", -1.0)), -1.0, 1.0)
+	annee_depart = int(d.get("annee_depart", 0))
+	if annee_depart > 0:
+		annee_depart = maxi(Epoques.ANNEE_MIN, annee_depart)
+	else:
+		annee_depart = 0
+	rythme_histoire = clampf(float(d.get("rythme_histoire", 1.0)), 1.0, 25.0)
+	histoire_debut = float(d.get("histoire_debut", 0.0))
+	histoire_saut = int(d.get("histoire_saut", 0))
 
 
 ## Réglages par défaut des nouvelles parties (fichier du joueur, sinon « Normal »).
@@ -351,6 +381,8 @@ static func load_defaults() -> ReglagesPartie:
 			r.from_dict(data)
 	r.createur = ""
 	r.record_habitants = 0
+	r.histoire_debut = 0.0
+	r.histoire_saut = 0
 	return r
 
 
@@ -358,6 +390,8 @@ func save_as_defaults() -> bool:
 	var d := to_dict()
 	d.erase("createur")
 	d.erase("record_habitants")
+	d.erase("histoire_debut")
+	d.erase("histoire_saut")
 	var f := FileAccess.open(DEFAULTS_FILE, FileAccess.WRITE)
 	if f == null:
 		return false
@@ -368,8 +402,8 @@ func save_as_defaults() -> bool:
 ## Résumé en une ligne (globe, infobulles).
 func summary() -> String:
 	var money := "argent illimité" if argent_illimite else BuildingSystem.format_short(argent_depart) + " au départ"
-	return "%s · %s · coûts ×%s · %s" % [preset_name(), money, _fmt(cout_construction),
-		"déblocage par paliers" if deblocage == "progression" else "tout débloqué"]
+	return "%s · %s · coûts ×%s · %s · %s" % [preset_name(), money, _fmt(cout_construction),
+		"déblocage par paliers" if deblocage == "progression" else "tout débloqué", Epoques.resume(self)]
 
 
 static func _fmt(x: float) -> String:

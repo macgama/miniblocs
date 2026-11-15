@@ -4,6 +4,12 @@ Tout est dans `main`, et les 9 tests automatiques passent (`sh tests/tous.sh`).
 
 ## Nouveautés
 
+**Partager ses créations** (menu **Partage**, **Maj+W**, ou touche **8** en mode Créer, 15 novembre)
+- Publie tes bâtiments de l'Atelier, tes musées, tes créations en blocs, tes attractions dessinées et des plans de site entiers (parc, zoo, quartier) ; installe ceux des autres.
+- Fichiers **.mbloc** à envoyer à un ami en attendant Steam : « Recevoir » les lit dans le dossier d'échange. Une création emporte ce dont elle a besoin.
+- **Plans de site** : choisis une zone sur la carte, elle garde bâtiments, allées, enclos et animaux, décors, murs fins meublés ; repose-la ailleurs, tournée avec R.
+- Prêt pour le **Steam Workshop** (GodotSteam) : à la sortie, publier enverra sur le Workshop et les abonnements s'installeront seuls. Voir docs/partage.md.
+
 **Succès, manette et Steam Deck** (menu principal → **Succès**, **F6** en jeu, 15 novembre)
 - 63 succès pour toutes tes parties, avec une touche d'humour : *La route de nulle part*, *Le préfet s'invite*, *Pause café*, *Maire insomniaque*, *Démolition Express*, *Tour du monde*… Barre d'avancement, succès secrets, carte « Succès débloqué ».
 - Prêts pour Steam : le jeu les reportera sur Steam (GodotSteam) ; les noms, textes FR / EN et icônes pour Steamworks sont dans docs/steam/.

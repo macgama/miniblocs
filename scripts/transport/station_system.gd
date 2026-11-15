@@ -370,6 +370,9 @@ func place(type_id: String, p: Vector3, rot := 0.0, name_ := "") -> Dictionary:
 	var t := get_type(type_id)
 	if t.is_empty():
 		return {"ok": false, "reason": "Type de station inconnu."}
+	var epoque := Epoques.raison_station(type_id)
+	if epoque != "":
+		return {"ok": false, "reason": "%s : %s" % [String(t.name), epoque.to_lower()]}
 	var st := {"type": type_id, "node": -1, "name": name_}
 	if int(t.mode) == AIR:
 		var c := check_air(type_id, p, rot)
@@ -697,6 +700,9 @@ func models_for(kind: String, stops: Array = [], fret := false) -> Array[String]
 		var t := VehicleCatalog.get_type(id)
 		if t.get("hidden", false):
 			continue
+		# Partie historique : seulement les modèles déjà en service (Epoques).
+		if not Epoques.vehicule_disponible(id):
+			continue
 		if FREIGHT_KINDS.has(kind) and VehicleCatalog.is_freight(id) != (fret or kind == "camion"):
 			continue
 		match kind:
@@ -704,7 +710,8 @@ func models_for(kind: String, stops: Array = [], fret := false) -> Array[String]
 				if not (t.cat in ["utilitaire", "attelage"]):
 					continue
 			"bus":
-				if t.cat != "bus":
+				# Avant l'autobus : diligences et omnibus à chevaux.
+				if t.cat != "bus" and not (t.cat == "attelage" and int(t.get("places", 0)) >= 9):
 					continue
 			"tram":
 				if String(t.get("rail", "")) != "tram":

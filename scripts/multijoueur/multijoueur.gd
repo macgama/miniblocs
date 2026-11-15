@@ -121,6 +121,7 @@ const APPELS := {
 	"budget": {"f": ["set_taux", "emprunter", "rembourser", "set_entretien", "reparer"], "ville": true},
 	"pilote": {"f": ["activer"], "ville": true},
 	"stations": {"f": ["place", "remove_station", "create_line", "set_fret", "set_line", "remove_line"]},
+	"commerce": {"f": ["signer", "proposer", "accepter", "refuser", "resilier", "mission_commerciale", "set_libre_echange"], "ville": true},
 }
 
 
@@ -131,7 +132,7 @@ static func appel_permis(sys: String, f: String) -> bool:
 ## Ville concernée par un appel (-1 : aucune).
 static func ville_de_appel(a: Dictionary) -> int:
 	match String(a.get("sys", "")):
-		"budget":
+		"budget", "commerce":
 			return int(a.get("ville", -1))
 		"pilote":
 			var args: Array = a.get("args", [])
@@ -186,6 +187,8 @@ static func executer_appel(jeu: Node, a: Dictionary) -> Variant:
 			return r
 		"pilote":
 			return jeu.pilote.callv(f, args)
+		"commerce":
+			return jeu.commerce_mondial.callv(f, args)
 		"stations":
 			var st: StationSystem = jeu.transport.stations
 			return jeu.transport.appliquer_reseau(func() -> Variant: return st.callv(f, args))

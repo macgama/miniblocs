@@ -156,6 +156,7 @@ static func all_types() -> Dictionary:
 		_all.merge(Stades.entries())
 		_all.merge(ClubTypes.entries())
 		_all.merge(StyleBuilder.generate())
+		_all.merge(EpoquesTypes.entries())
 		_all.merge(BibleGlb.entries())
 		ReseauxTypes.adopter(_all)
 		for id in Creations.items:

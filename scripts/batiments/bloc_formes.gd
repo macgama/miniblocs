@@ -12,6 +12,8 @@ extends RefCounted
 ## qui porte en plus son morceau et la taille de la pièce :
 ##   dx << 22 | dz << 28 | dy << 34 (6 bits chacun, en cases de 1 m) | (taille − 1) << 40
 ## Matériaux au-delà de 255 : les 4 bits de poids fort vont en 46 à 49.
+## Position (bits 50 et 51) : 0 debout, 1 renversé (tête en bas), 2 couché,
+## 3 couché dans l'autre sens. Elle s'applique avant le quart de tour.
 ## Les codes restent sous 2^53 (exacts dans les sauvegardes JSON).
 ##
 ## Repère d'une case : cube unité [0, 1]³ (1 m), rotation 0 = la pente monte
@@ -161,6 +163,29 @@ static func shape_of(code: int) -> int:
 	return (code >> 8) & 63
 
 
+## Position du bloc (POSE_*) : debout, renversé ou couché.
+const POSE_SHIFT := 50
+const POSE_DEBOUT := 0
+const POSE_RENVERSE := 1
+const POSE_COUCHE := 2
+const POSE_COUCHE_INV := 3
+const POSE_NAMES := ["debout", "renversé", "couché", "couché (autre sens)"]
+
+
+static func pose_of(code: int) -> int:
+	return (code >> POSE_SHIFT) & 3
+
+
+static func with_pose(code: int, pose: int) -> int:
+	return (code & ~(3 << POSE_SHIFT)) | ((pose & 3) << POSE_SHIFT)
+
+
+## Une forme d'une seule case peut être renversée ou couchée (pas les grandes
+## pièces ni les portes sur deux cases).
+static func can_tilt(shape: int) -> bool:
+	return not is_piece(shape) and cells(shape) == 1 and shape != S.FULL
+
+
 static func rot_of(code: int) -> int:
 	return (code >> 14) & 3
 
@@ -230,7 +255,7 @@ static func emit(mesher: BlocMesher, code: int, base: Vector3, neighbor: Callabl
 	var m := mat_of(code)
 	var shape := shape_of(code)
 	var glass := BlocMateriaux.is_glass(m)
-	var ctx := {"m": mesher, "rot": rot_of(code), "base": base, "layer": BlocMateriaux.layer(m),
+	var ctx := {"m": mesher, "rot": rot_of(code), "pose": pose_of(code) if can_tilt(shape) else 0, "base": base, "layer": BlocMateriaux.layer(m),
 		"col": BlocMateriaux.tint_color(tint_of(code)), "glass": glass}
 	match shape:
 		S.FULL:
@@ -285,12 +310,26 @@ static func emit(mesher: BlocMesher, code: int, base: Vector3, neighbor: Callabl
 
 ## Point local → monde (rotation autour du centre de la case).
 static func _tp(ctx: Dictionary, p: Vector3) -> Vector3:
+	match int(ctx.get("pose", 0)):
+		POSE_RENVERSE: # demi-tour autour de l'axe X
+			p = Vector3(p.x, 1.0 - p.y, 1.0 - p.z)
+		POSE_COUCHE: # quart de tour autour de X : le haut part vers +Z
+			p = Vector3(p.x, 1.0 - p.z, p.y)
+		POSE_COUCHE_INV: # quart de tour dans l'autre sens : le haut part vers −Z
+			p = Vector3(p.x, p.z, 1.0 - p.y)
 	for i in int(ctx.rot):
 		p = Vector3(1.0 - p.z, p.y, p.x)
 	return p + (ctx.base as Vector3)
 
 
 static func _tn(ctx: Dictionary, n: Vector3) -> Vector3:
+	match int(ctx.get("pose", 0)):
+		POSE_RENVERSE:
+			n = Vector3(n.x, -n.y, -n.z)
+		POSE_COUCHE:
+			n = Vector3(n.x, -n.z, n.y)
+		POSE_COUCHE_INV:
+			n = Vector3(n.x, n.z, -n.y)
 	for i in int(ctx.rot):
 		n = Vector3(-n.z, n.y, n.x)
 	return n

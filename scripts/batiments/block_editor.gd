@@ -52,6 +52,8 @@ var capture_name := ""
 var shape := 0
 var tint := 0
 var rot_offset := 0
+## Position des formes : debout, renversé ou couché (BlocFormes.POSE_*), touches F et C.
+var pose := 0
 ## Grandes pièces (coupole, tour ronde, voûte…) : diamètre ou largeur (m) et
 ## nombre d'étages de 1 m (tour, cylindre) ou longueur (voûte, arche).
 var piece_d := 6
@@ -121,6 +123,7 @@ func set_inactive() -> void:
 
 
 func set_material(m: int) -> void:
+	_release_text_focus()
 	material = clampi(m, 0, MATERIALS.size() - 1)
 	_ghost_key = ""
 	_update_ghost()
@@ -129,6 +132,7 @@ func set_material(m: int) -> void:
 
 
 func set_shape(sh: int) -> void:
+	_release_text_focus()
 	shape = sh
 	_ghost_key = ""
 	_update_ghost()
@@ -225,7 +229,12 @@ func _emit_help() -> void:
 			t += " sur %d m de haut" % piece_n
 		elif BlocFormes.piece_kind(shape) == "tranche":
 			t += " sur %d m de long" % piece_n
-	info_changed.emit("%s · %s (%s) · clic : poser · R : tourner · clic droit : retirer · Ctrl+Z : annuler · Échap : arrêter" % [t, mat.name, BuildingSystem.format_money(price)])
+	var turn := "R : tourner"
+	if tool == Tool.BLOCK:
+		t += " (%s)" % orientation_text()
+		if BlocFormes.can_tilt(shape):
+			turn = "R : tourner · F : renverser · C : coucher"
+	info_changed.emit("%s · %s (%s) · clic : poser · %s · clic droit : retirer · Ctrl+Z : annuler · Échap : arrêter" % [t, mat.name, BuildingSystem.format_money(price), turn])
 
 
 func clear() -> void:
@@ -355,7 +364,59 @@ func current_code(target := {}) -> int:
 	var r := (_auto_rot() + rot_offset) % 4
 	if BlocFormes.is_piece(sh):
 		return BlocFormes.encode_part(BlocFormes.encode(material, sh, r, tint), Vector3i.ZERO, piece_d)
-	return BlocFormes.encode(material, sh, r, tint)
+	var code := BlocFormes.encode(material, sh, r, tint)
+	if BlocFormes.can_tilt(sh):
+		code = BlocFormes.with_pose(code, pose)
+	return code
+
+
+## Choisir une vignette après une recherche : le champ rend le clavier (R, F, C).
+func _release_text_focus() -> void:
+	if is_inside_tree() and get_viewport().gui_get_focus_owner() is LineEdit:
+		get_viewport().gui_release_focus()
+
+
+## Quart de tour suivant (touche R ou bouton du panneau).
+func rotate_step() -> void:
+	rot_offset = (rot_offset + 1) % 4
+	_orientation_changed()
+
+
+## Renverser tête en bas, ou remettre à l'endroit (touche F).
+func flip_step() -> void:
+	match pose:
+		BlocFormes.POSE_DEBOUT: pose = BlocFormes.POSE_RENVERSE
+		BlocFormes.POSE_RENVERSE: pose = BlocFormes.POSE_DEBOUT
+		BlocFormes.POSE_COUCHE: pose = BlocFormes.POSE_COUCHE_INV
+		_: pose = BlocFormes.POSE_COUCHE
+	_orientation_changed()
+
+
+## Coucher sur le côté, ou remettre debout (touche C).
+func lay_step() -> void:
+	pose = BlocFormes.POSE_DEBOUT if pose >= BlocFormes.POSE_COUCHE else BlocFormes.POSE_COUCHE
+	_orientation_changed()
+
+
+## Remettre la forme debout et dans l'orientation automatique.
+func reset_orientation() -> void:
+	rot_offset = 0
+	pose = 0
+	_orientation_changed()
+
+
+func orientation_text() -> String:
+	var t := "quart de tour %d/4" % (rot_offset + 1) if rot_offset > 0 else "face à toi"
+	if BlocFormes.can_tilt(shape) and pose != 0:
+		t += ", " + String(BlocFormes.POSE_NAMES[pose])
+	return t
+
+
+func _orientation_changed() -> void:
+	_ghost_key = ""
+	_update_ghost()
+	if tool != Tool.NONE:
+		_emit_help()
 
 
 func _auto_rot() -> int:
@@ -715,6 +776,11 @@ func drag_keys(a: Vector3i, b: Vector3i, t: Tool) -> Array:
 func _unhandled_input(event: InputEvent) -> void:
 	if tool == Tool.NONE or camera == null or world == null:
 		return
+	# Un clic dans le monde rend le clavier au jeu (sinon un champ de recherche
+	# du panneau garde R, F, C… pour lui).
+	if event is InputEventMouseButton and (event as InputEventMouseButton).pressed \
+			and get_viewport().gui_get_focus_owner() is LineEdit:
+		get_viewport().gui_release_focus()
 	if event is InputEventMouseMotion:
 		_update_target((event as InputEventMouseMotion).position)
 	elif event is InputEventMouseButton:
@@ -774,10 +840,14 @@ func _unhandled_input(event: InputEvent) -> void:
 			else:
 				set_inactive()
 			get_viewport().set_input_as_handled()
-		elif key.physical_keycode == KEY_R and not key.ctrl_pressed:
-			rot_offset = (rot_offset + 1) % 4
-			_ghost_key = ""
-			_update_ghost()
+		elif key.physical_keycode == KEY_R and not key.ctrl_pressed and not key.shift_pressed:
+			rotate_step()
+			get_viewport().set_input_as_handled()
+		elif key.physical_keycode == KEY_F and not key.ctrl_pressed and not key.shift_pressed and tool == Tool.BLOCK:
+			flip_step()
+			get_viewport().set_input_as_handled()
+		elif key.physical_keycode == KEY_C and not key.ctrl_pressed and not key.shift_pressed and tool == Tool.BLOCK:
+			lay_step()
 			get_viewport().set_input_as_handled()
 		elif key.keycode == KEY_Z and key.ctrl_pressed:
 			if undo():

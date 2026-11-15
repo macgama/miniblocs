@@ -260,6 +260,15 @@ func _ready() -> void:
 		if not blocks.interact_ray(o, d, 4.0):
 			if not plans.interact_ray(o, d, 3.0):
 				mobilier.interact_ray(o, d, 3.0))
+	build_panel.block_orient.connect(func(action: String) -> void:
+		if action == "tourner":
+			blocks.rotate_step()
+		elif action == "renverser":
+			blocks.flip_step()
+		elif action == "coucher":
+			blocks.lay_step()
+		else:
+			blocks.reset_orientation())
 	build_panel.block_tint_chosen.connect(func(t: int) -> void:
 		blocks.set_tint(t)
 		plans.set_tint(t))

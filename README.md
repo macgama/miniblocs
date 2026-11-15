@@ -360,6 +360,13 @@ L'onglet **Intérieur** (icône fauteuil) du panneau Construire aménage les bâ
 - **Banque de modèles** (mode Créer, touche 6) : chaque bâtiment personnalisé ou en murs fins s'enregistre avec un nom et des étiquettes (type, style, région, époque, couleurs, étages, pièces, taille). On cherche, on filtre, on repose. « Exporter » crée un fichier à envoyer, « Importer » lit ceux reçus (dossier d'échange). Chaque modèle est rangé comme un objet du Steam Workshop (un dossier avec `modele.json` et `apercu.png`), pour le partage entre joueurs quand le jeu sera sur Steam.
 - **Atelier** (bouton du globe, ou touche 7 en mode Créer) : un terrain plat, sans habitants ni argent ni météo, pour créer et retoucher des bâtiments, puis les ranger dans la banque. Depuis une partie, elle est sauvegardée avant d'ouvrir l'atelier, et « Quitter » (7) y ramène. L'atelier garde ce qu'on y a laissé.
 
+### Partager ses créations (Maj+W, ou touche 8 en mode Créer)
+
+- **Partager mes créations** : bâtiments de la Banque (façades personnalisées, murs fins meublés, musées), créations en blocs, attractions dessinées (grands-huit, bûches…) et plans de site. « Publier » (titre, description, étiquettes) ou « Fichier .mbloc » à envoyer à un ami. Chaque création emporte ce dont elle a besoin : un plan de site embarque ses modèles de l'Atelier, ses créations et ses attractions.
+- **Plans de site** : une zone entière de la carte (parc de loisirs, zoo, musée, quartier, jusqu'à 400 m de côté) : bâtiments, allées et files d'attente, enclos et animaux, décors, murs fins meublés, blocs libres. On la repose ailleurs (R pour tourner) avec les prix, l'accès et les chantiers habituels.
+- **Découvrir** : « Recevoir » lit les fichiers .mbloc du dossier d'échange ; Installer, Mettre à jour, Retirer, filtre par sorte et recherche.
+- **Steam Workshop** : la couche `PartageSteam` (GodotSteam) prendra le relais à la sortie sur Steam : publier enverra sur le Workshop et les abonnements s'installeront seuls. Détails : [docs/partage.md](docs/partage.md).
+
 ![Une rue de Maisons à pignon personnalisées, la dernière ouverte en murs fins](docs/personnaliser_rue.png)
 ![Le panneau Personnaliser](docs/personnaliser_panneau.png)
 ![Une Maison à pignon ouverte : pièces et meubles](docs/personnaliser_coupe.png)
@@ -651,6 +658,12 @@ Une ferme entièrement générée en code (longère à colombages et toit de cha
 | `scripts/atelier/conversion.gd` | « Ouvrir l'intérieur » : bâtiment du catalogue refait en murs fins, découpé en pièces, meublé |
 | `scripts/atelier/banque_modeles.gd` | Banque de modèles : enregistrer, étiqueter, chercher, poser, exporter, importer |
 | `scripts/atelier/banque_panel.gd` | Onglet « Banque de modèles » |
+| `scripts/partage/partage.gd` | Partage des créations : empaqueter, publier, recevoir, installer (Maj+W) |
+| `scripts/partage/paquet_partage.gd` | Paquet de partage : dossier façon Workshop et fichier .mbloc |
+| `scripts/partage/plans_sites.gd` | Plans de site : enregistrer une zone (parc, zoo, quartier) et la reposer |
+| `scripts/partage/partage_local.gd` / `partage_steam.gd` | Où vont les créations : atelier local, Steam Workshop (GodotSteam) |
+| `scripts/partage/partage_panel.gd` / `outil_site.gd` | Menu Partage et outil de zone et de pose des plans de site |
+| `tests/partage_test.gd` | Test du partage : paquets, installation, plans de site, atelier local, Steam (doublure), menu |
 | `scripts/atelier/banque_pose.gd` | Outil de pose d'un modèle en murs fins |
 | `tests/atelier_test.gd` | Test de la personnalisation, de l'ouverture des intérieurs, de la banque et de l'atelier |
 | `tests/atelier_plus_test.gd` | Test des ajouts de l'atelier : matériaux, formes arrondies, grandes pièces, nouvelles ouvertures, nouveaux toits, banque |

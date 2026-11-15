@@ -4,6 +4,12 @@ Tout est dans `main`, et les 9 tests automatiques passent (`sh tests/tous.sh`).
 
 ## Nouveautés
 
+**Partager ses créations** (menu **Partage**, **Maj+W**, ou touche **8** en mode Créer, 15 novembre)
+- Publie tes bâtiments de l'Atelier, tes musées, tes créations en blocs, tes attractions dessinées et des plans de site entiers (parc, zoo, quartier) ; installe ceux des autres.
+- Fichiers **.mbloc** à envoyer à un ami en attendant Steam : « Recevoir » les lit dans le dossier d'échange. Une création emporte ce dont elle a besoin.
+- **Plans de site** : choisis une zone sur la carte, elle garde bâtiments, allées, enclos et animaux, décors, murs fins meublés ; repose-la ailleurs, tournée avec R.
+- Prêt pour le **Steam Workshop** (GodotSteam) : à la sortie, publier enverra sur le Workshop et les abonnements s'installeront seuls. Voir docs/partage.md.
+
 **Carte entre amis : premier serveur** (menu principal → **Entre amis**, **F3** en jeu, 15 novembre)
 - Héberge une de tes parties sur ton PC, ou lance le jeu en serveur sans écran (`--serveur`) sur une machine toujours allumée : la carte reste ouverte même quand tu n'es pas là.
 - Tes amis entrent avec un code d'invitation (une seule fois, ensuite ils sont membres). Tu es l'admin : réglages, vitesse du temps, nouveau code, exclure, arrêter le serveur.

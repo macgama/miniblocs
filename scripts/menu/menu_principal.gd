@@ -1,7 +1,7 @@
 class_name MenuPrincipal
 extends Node3D
 ## Écran titre et menu principal : une île low-poly qui tourne doucement, et à
-## gauche le menu (Continuer, Démo guidée, Nouvelle partie, Charger, Atelier, Options,
+## gauche le menu (Continuer, Démo guidée, Scénarios et défis, Nouvelle partie, Charger, Atelier, Options,
 ## Crédits, Quitter). C'est la scène de départ du jeu.
 
 const SCENE := "res://scenes/menu_principal.tscn"
@@ -166,6 +166,7 @@ func _build_ui() -> void:
 		var b := _bouton("continuer", "Continuer", "Reprendre « %s »" % String(_derniere.get("nom", _derniere.id)), continuer)
 		b.mouse_entered.connect(func() -> void: _carte.visible = true)
 	_bouton("demo", "Démo guidée", "Environ %d minutes, pas à pas : fonder un village près de %s et le faire grandir" % [Demo.DUREE_MIN, String(Demo.LIEU.nom).get_slice(",", 0)], lancer_demo)
+	_bouton("scenarios", "Scénarios et défis", "Des parties avec un lieu, des règles et une date limite : crue, ville sans voiture, grand hiver… et un classement", ouvrir_scenarios)
 	_bouton("nouvelle", "Nouvelle partie", "Choisir un lieu sur le globe, n'importe où sur Terre", nouvelle_partie)
 	_bouton("amis", "Entre amis", "Rejoindre la carte d'un ami avec son code, ou héberger une de tes parties", ouvrir_amis)
 	_bouton("charger", "Charger une partie", "Toutes les parties sauvegardées, avec leur aperçu", ouvrir_parties)
@@ -304,6 +305,17 @@ func ouvrir_parties() -> void:
 	_ui.add_child(p)
 
 
+## Scénarios et défis : liste, histoire, objectifs, classement, « Jouer ».
+func ouvrir_scenarios() -> void:
+	if _sub != null:
+		return
+	var p := ScenariosPanel.new()
+	p.closed.connect(func() -> void: _sub = null)
+	p.jouer.connect(func(id: String) -> void: Scenarios.lancer(id))
+	_sub = p
+	_ui.add_child(p)
+
+
 func ouvrir_amis() -> void:
 	if _sub != null:
 		return
@@ -368,7 +380,7 @@ func ouvrir_credits() -> void:
 
 func _unhandled_key_input(event: InputEvent) -> void:
 	var k := event as InputEventKey
-	if k and k.pressed and not k.echo and k.keycode == KEY_ESCAPE and _sub != null and not (_sub is OptionsPanel or _sub is PartiesPanel):
+	if k and k.pressed and not k.echo and k.keycode == KEY_ESCAPE and _sub != null and not (_sub is OptionsPanel or _sub is PartiesPanel or _sub is ScenariosPanel):
 		get_viewport().set_input_as_handled()
 		_sub.queue_free()
 		_sub = null

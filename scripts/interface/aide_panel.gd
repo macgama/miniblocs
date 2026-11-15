@@ -125,6 +125,13 @@ const SECTIONS := [
 		["Conseiller", "deuxième onglet : les problèmes du moment, du plus urgent au plus anodin, avec quoi faire et un bouton pour ouvrir le bon panneau ; un problème urgent qui apparaît s'affiche aussi en haut de l'écran"],
 		["Relevés", "un par jour de jeu, à minuit ; les plus vieux sont regroupés par 30 jours, ils restent dans la sauvegarde"],
 	]],
+	["Gazette de la ville", [
+		["F4", "le journal du matin (menu Infos) : chaque jour de jeu, une édition qui raconte la veille avec tes vrais habitants"],
+		["À la une", "le fait le plus marquant (incendie, tempête, épidémie, pont vers nulle part, village fondé, match, élections…), avec un témoin qui donne son avis ; clic sur un titre souligné : la caméra va sur place ; clic sur un nom : sa fiche"],
+		["Colonne de droite", "météo de demain, chiffre du jour, micro-trottoir, sports en bref, brèves, carnet (naissances, mariages, décès), petites annonces"],
+		["Époques", "le nom, la devise, le prix et le ton suivent l'année de la partie : La Gazette (1800), Le Courrier (1830), Le Petit Journal (1870), L'Écho (1914), -Matin (1945), Infos (1980), Actu (2002), .info (2015)"],
+		["Archives", "flèches en haut : les 60 dernières éditions ; « Aujourd'hui » revient à la dernière"],
+	]],
 	["Tutoriel et objectifs à l'écran", [
 		["Tutoriel guidé", "case sur le globe (cochée par défaut) : une étape à la fois en haut à gauche (caméra, fonder le village, fondateurs, route, logements, courant et eau, temps, emplois, école, budget, objectifs) ; chaque étape se valide toute seule quand tu l'as faite"],
 		["Bouton de l'étape · Passer · croix", "le bouton fait le premier geste à ta place (ouvrir le bon panneau, prendre l'outil) ; Passer saute l'étape ; la croix arrête le tutoriel"],
@@ -348,10 +355,10 @@ const SECTIONS := [
 		["Échap", "libérer la souris (vue au sol)"],
 	]],
 	["Mode photo et time-lapse", [
-		["F4 (ou Infos → Mode photo)", "le temps se fige, l'interface disparaît, une caméra libre part de ta vue : ZQSD avancer, A / E descendre et monter, clic droit glissé regarder, molette zoomer, Maj vite, Ctrl lent"],
+		["F6 (ou Infos → Mode photo)", "le temps se fige, l'interface disparaît, une caméra libre part de ta vue : ZQSD avancer, A / E descendre et monter, clic droit glissé regarder, molette zoomer, Maj vite, Ctrl lent"],
 		["Panneau du mode photo", "heure de la lumière (temps figé), zoom, horizon penché, flou de profondeur, 12 filtres (noir et blanc, sépia, vintage, maquette…), luminosité, contraste, saturation, vignette, grain ; cadrage écran, 16:9, vertical 9:16 (TikTok), carré, 4:5, cinéma ; HD, 2K ou 4K"],
-		["Espace · H · Échap ou F4", "prendre la photo (PNG sans l'interface, dans Images › MiniBlocs › Photos) · masquer le panneau · quitter"],
-		["Maj + F4", "time-lapse : chaque village est filmé depuis sa fondation, une image par jour de jeu vers midi ; lecture accélérée (Espace, ← →), jusqu'à 4 caméras (vue actuelle, « Filmer ce cadrage » du mode photo), export vidéo AVI (MP4 en plus si ffmpeg est installé) ou images, avec la date, les habitants et le logo"],
+		["Espace · H · Échap ou F6", "prendre la photo (PNG sans l'interface, dans Images › MiniBlocs › Photos) · masquer le panneau · quitter"],
+		["Maj + F6", "time-lapse : chaque village est filmé depuis sa fondation, une image par jour de jeu vers midi ; lecture accélérée (Espace, ← →), jusqu'à 4 caméras (vue actuelle, « Filmer ce cadrage » du mode photo), export vidéo AVI (MP4 en plus si ffmpeg est installé) ou images, avec la date, les habitants et le logo"],
 	]],
 	["À bord des véhicules", [
 		["E près d'un véhicule", "monter à bord (vue au sol) : voitures, bus, cars, trams, trains, métros, camions, bennes, corbillards, secours, bateaux, avions, tracteurs et machines agricoles, engins de chantier"],

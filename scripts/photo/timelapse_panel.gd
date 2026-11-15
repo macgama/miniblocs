@@ -1,6 +1,6 @@
 class_name TimeLapsePanel
 extends CanvasLayer
-## Écran du time-lapse (Maj+F4, ou Infos → Mode photo → Time-lapse) : revoir la
+## Écran du time-lapse (Maj+F6, ou Infos → Mode photo → Time-lapse) : revoir la
 ## ville grandir en accéléré depuis sa fondation, gérer les caméras fixes et
 ## exporter une vidéo (AVI lisible partout, MP4 si ffmpeg est installé) ou la
 ## suite d'images, avec la date, les habitants et le logo incrustés.
@@ -344,7 +344,7 @@ func _construire() -> void:
 	nouv.add_child(_fmt)
 	var ajout := Button.new()
 	ajout.text = "Nouvelle : vue actuelle"
-	ajout.tooltip_text = "Une caméra fixe filme ce que vous voyez maintenant (fermez cet écran pour cadrer, ou utilisez le mode photo F4)."
+	ajout.tooltip_text = "Une caméra fixe filme ce que vous voyez maintenant (fermez cet écran pour cadrer, ou utilisez le mode photo F6)."
 	ajout.focus_mode = Control.FOCUS_NONE
 	ajout.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	ajout.pressed.connect(func() -> void:
@@ -544,7 +544,7 @@ func _input(event: InputEvent) -> void:
 		KEY_ESCAPE:
 			if not k.echo:
 				set_open(false)
-		KEY_F4:
+		KEY_F6:
 			if not k.echo and k.shift_pressed:
 				set_open(false)
 		KEY_SPACE:

@@ -48,7 +48,9 @@ func _ready() -> void:
 	_head_material.emission_energy_multiplier = 0.0
 	_multimesh = MultiMesh.new()
 	_multimesh.transform_format = MultiMesh.TRANSFORM_3D
-	_multimesh.mesh = lamp_mesh(pole_mat, _head_material)
+	_pole_mat = pole_mat
+	_ancien = ancien()
+	_multimesh.mesh = lamp_mesh(pole_mat, _head_material, _ancien)
 	_mm_instance = MultiMeshInstance3D.new()
 	_mm_instance.name = "Lampadaires"
 	_mm_instance.multimesh = _multimesh
@@ -70,8 +72,20 @@ func _ready() -> void:
 		transport.network_changed.connect(func() -> void: _dirty = true)
 
 
+var _pole_mat: Material
+var _ancien := false
+
+
+## Partie historique avant 1900 : réverbères en fonte et lanternes (Epoques).
+static func ancien() -> bool:
+	return Epoques.actif() and Epoques.annee() < 1900
+
+
 ## Modèle d'un lampadaire : poteau + bras (surface 0), tête lumineuse (surface 1).
-static func lamp_mesh(pole_mat: Material, head_mat: Material) -> ArrayMesh:
+## ancien : réverbère en fonte noire à lanterne vitrée (avant 1900).
+static func lamp_mesh(pole_mat: Material, head_mat: Material, ancien_ := false) -> ArrayMesh:
+	if ancien_:
+		return _reverbere(pole_mat, head_mat)
 	var k := BlocMesh.new()
 	var grey := Color("5d6168")
 	k.box(0, 0, 0, 0.36, 0.5, 0.36, grey.darkened(0.2))
@@ -80,6 +94,30 @@ static func lamp_mesh(pole_mat: Material, head_mat: Material) -> ArrayMesh:
 	var mesh := k.to_mesh(pole_mat)
 	var h := BlocMesh.new()
 	h.box(HEAD.x, 7.42, 0, 0.75, 0.22, 0.38, Color.WHITE, true)
+	var arrays := []
+	arrays.resize(Mesh.ARRAY_MAX)
+	arrays[Mesh.ARRAY_VERTEX] = h.verts
+	arrays[Mesh.ARRAY_NORMAL] = h.normals
+	arrays[Mesh.ARRAY_INDEX] = h.indices
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	mesh.surface_set_material(1, head_mat)
+	return mesh
+
+
+static func _reverbere(pole_mat: Material, head_mat: Material) -> ArrayMesh:
+	var k := BlocMesh.new()
+	var fonte := Color("26282b")
+	k.box(0, 0, 0, 0.5, 0.7, 0.5, fonte)
+	k.box(0, 0.7, 0, 0.26, 0.5, 0.26, fonte.lightened(0.05))
+	k.box(0, 1.2, 0, 0.16, 6.4, 0.16, fonte)
+	k.box(HEAD.x / 2.0, 7.65, 0, HEAD.x + 0.1, 0.1, 0.1, fonte)
+	k.box(HEAD.x, 7.62, 0, 0.08, 0.3, 0.08, fonte)
+	# Chapeau de la lanterne.
+	k.box(HEAD.x, 7.32, 0, 0.62, 0.08, 0.62, fonte)
+	k.box(HEAD.x, 7.4, 0, 0.36, 0.14, 0.36, fonte)
+	var mesh := k.to_mesh(pole_mat)
+	var h := BlocMesh.new()
+	h.box(HEAD.x, 6.8, 0, 0.42, 0.52, 0.42, Color.WHITE, true)
 	var arrays := []
 	arrays.resize(Mesh.ARRAY_MAX)
 	arrays[Mesh.ARRAY_VERTEX] = h.verts
@@ -144,6 +182,9 @@ static func layout(net: TransportNetwork) -> Array[Transform3D]:
 
 func rebuild() -> void:
 	_dirty = false
+	if _pole_mat != null and ancien() != _ancien:
+		_ancien = ancien()
+		_multimesh.mesh = lamp_mesh(_pole_mat, _head_material, _ancien)
 	var list: Array[Transform3D] = []
 	if transport != null:
 		list = layout(transport.network)

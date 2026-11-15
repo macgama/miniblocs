@@ -59,6 +59,12 @@ const SECTIONS := [
 		["Mes modèles (Construire, B)", "tes modèles et créations se posent comme les autres bâtiments : prix, R pour tourner, accès à une route, chantier ; chantier fini, ses vrais murs, pièces et meubles sont posés : il se visite (V)"],
 		["Chantiers", "bâtiments et voies se construisent étape par étape au rythme de la vie (maison ≈ 3 semaines de jeu), en semaine et en journée ; le prix se paie au fil des travaux ; panneau Admin (F10) : horaires des équipes ou construction instantanée"],
 	]],
+	["Époques", [
+		["Année de départ", "globe, Réglages de la partie (ou Admin F10), section Époque : partie historique de 1800 à aujourd'hui ; chaque invention arrive à sa date (train 1830, électricité 1882, autoroute 1930, 4G 2010…)"],
+		["Pas encore inventé", "vignette « Arrive en 1882 » dans Construire ; voies, stations, lignes électriques, fibre et matériaux de l'Atelier suivent aussi l'année"],
+		["Services d'époque", "maison d'école, Hôtel-Dieu, remise des pompes, gendarmerie ; pompes à bras, ambulances et corbillards à chevaux, tombereaux, rues pavées et réverbères"],
+		["Rythme de l'histoire", "Admin (F10) : 1 à 25 années d'histoire par année de jeu, ou changer l'année en cours ; les habitants n'attendent le courant qu'en 1925, l'eau courante en 1900, le téléphone en 1975"],
+	]],
 	["Événements", [
 		["I", "panneau Infos : événements en cours et à venir, journal, organiser une fête ou un marché, dégâts à réparer, stades et classement"],
 		["Fil d'actualité (haut de l'écran)", "clic sur une nouvelle pour aller sur place"],

@@ -324,7 +324,21 @@ func show_category(cat: String) -> void:
 	grid.add_theme_constant_override("v_separation", 6)
 	_list.add_child(grid)
 	_item_buttons.append(grid)
-	for id in BuildingCatalog.ids_in(cat, _region, _era):
+	var ids := BuildingCatalog.ids_in(cat, _region, _era)
+	# Partie historique : d'abord ce qui existe déjà, puis ce qui arrive, par année.
+	if Epoques.actif():
+		var y := Epoques.annee()
+		var cle := func(id: String) -> int:
+			var a := Epoques.annee_batiment(id)
+			return -1 if a <= y else a
+		var rangs := {}
+		for i in ids.size():
+			rangs[ids[i]] = i
+		ids.sort_custom(func(p: String, q: String) -> bool:
+			var kp: int = cle.call(p)
+			var kq: int = cle.call(q)
+			return kp < kq if kp != kq else int(rangs[p]) < int(rangs[q]))
+	for id in ids:
 		var t := BuildingCatalog.get_type(id)
 		if _search != "" and not (String(t.name) + " " + String(t.desc)).to_lower().contains(_search):
 			continue
@@ -1044,6 +1058,9 @@ func _show_materials(box: VBoxContainer) -> void:
 			var m: Dictionary = BlockEditor.MATERIALS[i]
 			if _mat_family != "" and m.fam != _mat_family:
 				continue
+			# Matériaux pas encore inventés à l'époque de la partie (béton, plastique…).
+			if not Epoques.materiau_disponible(i):
+				continue
 			if not words.is_empty():
 				var hay := (String(m.name) + " " + _family_name(String(m.fam))).to_lower()
 				var ok := true
@@ -1333,7 +1350,10 @@ func _card(id: String, fallback_icon: String) -> Button:
 	if offert > 0:
 		meta.text = "%d × %d m  ·  %s" % [t.w, t.d, "Offert" if offert >= price else "%s à payer" % BuildingSystem.format_short(price - offert)]
 	if lock != "":
-		meta.text = "Verrouillé · %d hab." % int(ReglagesPartie.PALIERS[ReglagesPartie.palier_requis(id)].habitants)
+		if not Epoques.batiment_disponible(id):
+			meta.text = "Arrive en %d" % Epoques.annee_batiment(id)
+		else:
+			meta.text = "Verrouillé · %d hab." % int(ReglagesPartie.PALIERS[ReglagesPartie.palier_requis(id)].habitants)
 	meta.add_theme_font_size_override("font_size", 12)
 	meta.add_theme_color_override("font_color", Color("ffd166") if offert > 0 and lock == "" else UiStyle.TEXT_DIM)
 	meta.mouse_filter = Control.MOUSE_FILTER_IGNORE

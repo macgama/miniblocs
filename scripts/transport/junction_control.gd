@@ -310,7 +310,8 @@ func _rebuild_visuals() -> void:
 		_visuals[nid] = root
 		var k := kind(nid)
 		for eid in network.adjacency.get(nid, []):
-			if has_crosswalk(nid, eid):
+			# Pas de bandes peintes avant les années 1930 (partie historique).
+			if has_crosswalk(nid, eid) and not (Epoques.actif() and Epoques.annee() < 1930):
 				_crosswalk(root, nid, eid)
 		if k == "droite":
 			continue

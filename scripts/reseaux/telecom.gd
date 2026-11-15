@@ -184,7 +184,8 @@ func _process(delta: float) -> void:
 
 ## Réglage Admin : internet et téléphone comptent-ils (satisfaction, entreprises) ?
 static func necessaire() -> bool:
-	return ReglagesPartie.actuel.telecom_necessaire
+	# Partie historique : le téléphone ne manque à personne avant 1975 (Epoques).
+	return ReglagesPartie.actuel.telecom_necessaire and Epoques.attendu("telecom")
 
 
 # --- Bâtiments --------------------------------------------------------------------
@@ -587,6 +588,10 @@ func _reseau(type_id: String) -> ReseauBase:
 ## Pose un câble (payé). Rend l'identifiant du tronçon, ou -1.
 func poser_cable(type_id: String, pts: PackedVector3Array) -> int:
 	if pts.size() < 2 or not CABLES.has(type_id):
+		return -1
+	var epoque := Epoques.raison_troncon(type_id)
+	if epoque != "":
+		message.emit("%s : %s" % [String(CABLES[type_id].name), epoque.to_lower()])
 		return -1
 	var cost := prix_cable(type_id, ReseauBase.longueur(pts))
 	var prof := profondeur_pose if not CABLES[type_id].aerien else NAN

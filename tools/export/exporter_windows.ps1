@@ -39,17 +39,26 @@ function Ecrire([string]$m) {
     Add-Content -Path $Journal -Value $l -Encoding UTF8
 }
 
-function Git { & git -C $Source @args; if ($LASTEXITCODE -ne 0) { throw "git $args a échoué ($LASTEXITCODE)" } }
+function Lancer-Git { & git -C $Source @args; if ($LASTEXITCODE -ne 0) { throw "git $args a échoué ($LASTEXITCODE)" } }
+
+# Godot écrit sur stderr : sous PowerShell 5.1 avec « Stop », ça lèverait une erreur. On journalise tout.
+function Lancer-Godot {
+    $ErrorActionPreference = "Continue"
+    & $Godot --headless --path $Source @args 2>&1 | ForEach-Object { "$_" } | Out-File -Append -Encoding UTF8 $Journal
+    return $LASTEXITCODE
+}
 
 if (-not (Test-Path $Godot)) { throw "Godot introuvable : $Godot (passe -Godot <chemin du .exe console> ou définis MINIBLOCS_GODOT)" }
 
 # --- 1. Copie du dépôt dédiée à l'export -------------------------------------------------------
 if (-not (Test-Path (Join-Path $Source ".git"))) {
     Ecrire "Clonage de $Depot dans $Source"
-    & git clone --quiet --branch $Branche $Depot $Source
-    if ($LASTEXITCODE -ne 0) { throw "git clone a échoué" }
+    $ErrorActionPreference = "Continue"
+    & git clone --quiet --branch $Branche $Depot $Source 2>&1 | Out-Null
+    $ErrorActionPreference = "Stop"
+    if (-not (Test-Path (Join-Path $Source ".git"))) { throw "git clone a échoué" }
 }
-Git fetch --quiet origin $Branche
+Lancer-Git fetch --quiet origin $Branche
 $commit = (& git -C $Source rev-parse --short "origin/$Branche").Trim()
 
 $infoDest = Join-Path $Destination "build_info.json"
@@ -60,8 +69,8 @@ if ($SiChangement -and (Test-Path $infoDest)) {
         exit 0
     }
 }
-Git reset --quiet --hard "origin/$Branche"
-Git clean --quiet -fdx -e .godot
+Lancer-Git reset --quiet --hard "origin/$Branche"
+Lancer-Git clean --quiet -fdx -e .godot
 
 # --- 2. Infos de build ------------------------------------------------------------------------
 $verProjet = (Select-String -Path (Join-Path $Source "project.godot") -Pattern '^config/version="(.*)"' | Select-Object -First 1).Matches.Groups[1].Value
@@ -80,7 +89,7 @@ if (Test-Path $sortie) { Remove-Item -Recurse -Force $sortie }
 New-Item -ItemType Directory -Force $sortie | Out-Null
 
 Ecrire "Import des ressources (la première fois, ça prend quelques minutes)"
-& $Godot --headless --path $Source --import 2>&1 | Out-File -Append -Encoding UTF8 $Journal
+$null = Lancer-Godot --import
 
 $verGodot = (& $Godot --version).Trim()                       # ex. 4.7.2.stable.official.ed1daf0bf
 $dossierModeles = Join-Path $env:APPDATA ("Godot\export_templates\" + (($verGodot -split '\.')[0..3] -join '.'))
@@ -88,10 +97,10 @@ $avecModeles = Test-Path (Join-Path $dossierModeles "windows_release_x86_64.exe"
 
 if ($avecModeles) {
     Ecrire "Export complet avec les modèles de $dossierModeles"
-    & $Godot --headless --path $Source --export-release "Windows Desktop" (Join-Path $sortie "MiniBlocs.exe") 2>&1 | Out-File -Append -Encoding UTF8 $Journal
+    $null = Lancer-Godot --export-release "Windows Desktop" (Join-Path $sortie "MiniBlocs.exe")
 } else {
     Ecrire "Modèles d'export absents ($dossierModeles) : export du .pck + moteur Godot renommé"
-    & $Godot --headless --path $Source --export-pack "Windows Desktop" (Join-Path $sortie "MiniBlocs.pck") 2>&1 | Out-File -Append -Encoding UTF8 $Journal
+    $null = Lancer-Godot --export-pack "Windows Desktop" (Join-Path $sortie "MiniBlocs.pck")
     $moteur = Join-Path (Split-Path $Godot -Parent) ((Split-Path $Godot -Leaf) -replace '_console\.exe$', '.exe')
     if (-not (Test-Path $moteur)) { throw "Moteur Godot (sans _console) introuvable : $moteur" }
     Copy-Item $moteur (Join-Path $sortie "MiniBlocs.exe")

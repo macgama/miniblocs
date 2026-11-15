@@ -79,6 +79,21 @@ pas le jeu en contenu pour adultes.
 ## À décider par Gaël
 
 - ~~Nom du développeur~~ : **ManiGames** (choisi le 15 novembre 2026).
-- Accès anticipé ou version complète en 2027.
-- Prix (les jeux de gestion indépendants de cette taille sont souvent entre 15 et 25 €).
-- Lancer la page anglaise seulement quand la traduction du jeu sera faite.
+- **Accès anticipé** en 2027 (choisi le 15 novembre 2026) : la section « Accès anticipé » des fiches est à coller.
+- Prix : **19,99 € / 19,99 $** conseillé pour l'accès anticipé (voir plus bas), à confirmer par Gaël.
+- Page anglaise : publiée seulement quand **toute** l'application est traduite (menus, panneaux, aide F1, tutoriel, démo, nouvelles, noms des bâtiments). Contrôle à faire avant : parcourir chaque écran en anglais et chercher les textes restés en français.
+
+## Prix conseillé
+
+Repères (prix de lancement en accès anticipé, de mémoire, à revérifier sur Steam) : Timberborn
+et Against the Storm autour de 20 €, Farthest Frontier et Foundation entre 25 et 30 €,
+Manor Lords 40 € (gros succès attendu), Cities: Skylines autour de 28 € en version complète.
+Les petits jeux de construction « cosy » (Islanders, Townscaper) sont à 5 €.
+
+MiniBlocs a énormément de contenu, mais c'est un premier jeu, par une seule personne, en
+low-poly et en accès anticipé : les joueurs sont plus exigeants au-dessus de 20 €.
+
+- **19,99 € (19,99 $)** au lancement de l'accès anticipé, avec une remise de lancement de 10 à 15 %.
+- **24,99 €** à la sortie de la version complète (ce que promet la FAQ « le prix augmentera légèrement »).
+- Laisser Steam proposer les prix régionaux (CHF, £, etc.) à partir du prix en dollars.
+- La démo reste gratuite.

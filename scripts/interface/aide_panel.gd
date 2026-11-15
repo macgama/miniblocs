@@ -305,6 +305,8 @@ const SECTIONS := [
 		["Séjour", "de 1 à 7 nuits (plus long au camping, en résidence, en village vacances, l'été et avec un office de tourisme) ; chaque jour, ils visitent les sites proches de leur hôtel, mangent au restaurant, font leurs courses et achètent des souvenirs"],
 		["Argent", "taxe de séjour par nuit (0,50 € à 4 € selon les étoiles) et impôt sur les bénéfices des hôtels pour la ville ; camping municipal et aire de camping-cars : tout pour la ville ; repas et courses font vivre les restaurants et les commerces (qu'il faut livrer)"],
 		["Réputation", "ce que pensent les touristes qui repartent : confort et prix de l'hôtel, repas trouvés, ce qu'il y avait à voir, rayons pleins, souvenirs, foule ; trop de touristes pour trop peu d'habitants agace la ville"],
+		["Nature", "plages, côtes, lacs, rivières, forêts, sommets et glaciers du vrai terrain autour des villages attirent aussi (onglet Attractions) : surtout l'été, moins sous la pluie ; une route à moins de 800 m, des sentiers (outil Chemin) et les aménagements (poste de secours, base nautique, belvédère, parking de randonnée, maison de la nature) les rendent plus attirants"],
+		["Autocars", "avec un parking d'autocars, les cars des voyages organisés arrivent le matin par l'entrée de la ville, déposent leur groupe au parking puis l'emmènent voir les sites"],
 	]],
 	["Déchets", [
 		["X", "panneau Déchets : ce que la ville jette et recycle, poubelles qui débordent (clic : y aller), installations, bennes en tournée"],

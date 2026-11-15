@@ -282,6 +282,132 @@ func _sections_partagees(a: ClientAmis, b: ClientAmis, scene: Node, vid: int) ->
 	_check(await _attendre(func() -> bool: return not scene.pilote.actif(vid), 10.0), "et arrêté")
 
 
+## Une place libre pour le bâtiment t, cherchée en local (le serveur a la même carte).
+func _place_libre(bs: BuildingSystem, t: String, x0: int, z0: int, x1: int, z1: int) -> Array:
+	var pas := 4 if BuildingCatalog.footprint(t, 0).x < 30 else 10
+	for z in range(z0, z1, pas):
+		# Une image de temps en temps : la connexion au serveur reste vivante.
+		await process_frame
+		for x in range(x0, x1, pas):
+			for r in 4:
+				if bs.check_place(t, Vector2i(x, z), r).ok:
+					return [x, z, r]
+	return []
+
+
+## Pose un bâtiment par le serveur et attend qu'il arrive. Renvoie son id, ou -1.
+func _poser_par_serveur(bs: BuildingSystem, t: String, zone: Rect2i) -> int:
+	var pl: Array = await _place_libre(bs, t, zone.position.x, zone.position.y, zone.end.x, zone.end.y)
+	if pl.is_empty():
+		print("      pas de place pour ", t)
+		return -1
+	var avant := bs.buildings.keys()
+	bs.relais.call({"t": "poser", "id": t, "c": [pl[0], pl[1]], "r": pl[2], "a": 0.0, "perso": {}, "v": -1})
+	var trouve := [-1]
+	await _attendre(func() -> bool:
+		for bid in bs.buildings:
+			if not bid in avant and String(bs.buildings[bid].t) == t:
+				trouve[0] = int(bid)
+				return true
+		return false, 10.0)
+	return trouve[0]
+
+
+func _systemes_geres(a: ClientAmis, b: ClientAmis, scene: Node, vid: int) -> void:
+	var bs: BuildingSystem = scene.buildings
+	var infos := []
+	b.info_recue.connect(func(t: String) -> void: infos.append(t))
+
+	print("Sous terre :")
+	var cst: ConstructionSouterraine = scene.construction_souterraine
+	await _attendre(func() -> bool: return false, 1.2)
+	a._input(_touche())
+	var piece := cst.creuser(Rect2i(-150, 150, 10, 10), 2, 1, "cave")
+	await process_frame
+	a.envoyer_sections()
+	var sec := await _carte_serveur(b)
+	_check(piece > 0 and (sec.get("souterrain", {}).get("pieces", {}) as Dictionary).has(str(piece)), "cave creusée par Alice sur la carte du serveur")
+	var nb_aretes: int = scene.transport.network.edges.size()
+	RoutePlanner.profondeur_forcee = 12.0
+	scene.transport.relais.call({"t": "voie", "id": "departementale", "spec": {}, "path": PackedVector2Array([Vector2(-100, 260), Vector2(100, 260)]), "prof": 12.0})
+	RoutePlanner.profondeur_forcee = NAN
+	_check(await _attendre(func() -> bool: return scene.transport.network.edges.size() > nb_aretes, 10.0), "tunnel creusé par le serveur")
+	var tunnel := false
+	for eid in scene.transport.network.edges:
+		var e: Dictionary = scene.transport.network.edges[eid]
+		if absf(float(e.get("prof", 0.0)) - 12.0) < 0.2 and (e.pts as PackedVector3Array)[0].y < 35.0:
+			tunnel = true
+	_check(tunnel, "chez Alice aussi : à 12 m sous terre")
+	sec = await _carte_serveur(b)
+	_check((sec.transport.edges as Array).any(func(e: Dictionary) -> bool: return absf(float(e.get("prof", 0.0)) - 12.0) < 0.2), "profondeur du tunnel gardée dans la carte")
+
+	print("Club, parc, zoo, musée :")
+	# Une rue au sud de la mairie pour desservir les bâtiments.
+	nb_aretes = scene.transport.network.edges.size()
+	scene.transport.relais.call({"t": "voie", "id": "departementale", "spec": {}, "path": PackedVector2Array([Vector2(-160, -60), Vector2(160, -60)])})
+	await _attendre(func() -> bool: return scene.transport.network.edges.size() > nb_aretes, 10.0)
+	await _attendre(func() -> bool: return false, 0.8)
+	var musee := await _poser_par_serveur(bs, "musee", Rect2i(-40, -110, 80, 44))
+	_check(musee >= 0, "musée posé par le serveur")
+	var cle := "bat_%d" % musee
+	await _attendre(func() -> bool: return scene.musee.musees.has(cle), 5.0)
+	print("      musée dans le village %d (Testville : %d)" % [scene.communes.village_de(musee), vid])
+	SystemesGeres.relayer("musee", "set_prix", [cle, 7.0], scene.musee.centre(cle))
+	_check(await _attendre(func() -> bool: return scene.musee.musees.has(cle) and is_equal_approx(float(scene.musee.musees[cle].prix), 7.0), 10.0), "prix du musée réglé par la maire, reçu du serveur")
+	if scene.communes.village_de(musee) == vid:
+		infos.clear()
+		var c: Vector3 = scene.musee.centre(cle)
+		b.envoyer_action({"t": "appel", "sys": "musee", "f": "set_prix", "args": [cle, 1.0], "ville": vid, "p": Vector2(c.x, c.z)})
+		_check(await _attendre(func() -> bool: return infos.any(func(t: String) -> bool: return t.begins_with("Seul le maire")), 10.0), "Bob ne règle pas le musée de Testville")
+		await _attendre(func() -> bool: return false, 1.0)
+		_check(is_equal_approx(float(scene.musee.musees[cle].prix), 7.0), "le prix reste celui d'Alice")
+	var parc := await _poser_par_serveur(bs, "entree_parc", Rect2i(-150, -110, 300, 44))
+	_check(parc >= 0, "entrée de parc posée")
+	await _attendre(func() -> bool: return scene.parc.parcs.has(parc), 5.0)
+	SystemesGeres.relayer("parc", "set_prix", [parc, 33.0, 2.0], scene.parc._center(parc))
+	SystemesGeres.relayer("parc", "renommer", [parc, "Parc des Amis"], scene.parc._center(parc))
+	_check(await _attendre(func() -> bool: return scene.parc.parcs.has(parc) and is_equal_approx(float(scene.parc.parcs[parc].prix), 33.0) and String(scene.parc.parcs[parc].nom) == "Parc des Amis", 10.0), "parc renommé et billet changé par le serveur")
+	# Zoo : un enclos et un zèbre, achetés par le serveur (sexe et âge tirés là-bas).
+	var pts := PackedVector2Array([Vector2(-150, 300), Vector2(-120, 300), Vector2(-120, 330), Vector2(-150, 330)])
+	var en0: int = scene.zoo.enclos.size()
+	SystemesGeres.relayer("zoo", "ajouter_enclos", [pts, "grillage"], pts[0])
+	_check(await _attendre(func() -> bool: return scene.zoo.enclos.size() == en0 + 1, 10.0), "enclos construit par le serveur, reçu par Alice")
+	var eid := -1
+	for id in scene.zoo.enclos:
+		eid = maxi(eid, int(id))
+	SystemesGeres.relayer("zoo", "acheter", ["zebre", eid], pts[0])
+	_check(await _attendre(func() -> bool: return scene.zoo.animaux_de(eid).size() == 1, 10.0), "zèbre acheté par le serveur")
+	SystemesGeres.relayer("zoo", "renommer_enclos", [eid, "Savane"], pts[0])
+	_check(await _attendre(func() -> bool: return String(scene.zoo.enclos[eid].nom) == "Savane", 10.0), "enclos renommé")
+	sec = await _carte_serveur(b)
+	_check((sec.get("zoo", {}).get("animaux", {}) as Dictionary).size() == 1, "le zèbre est sur la carte du serveur")
+	# Club de basket au gymnase : fondé sur le serveur ; chez Alice le club ne joue pas tout seul.
+	var salle := await _poser_par_serveur(bs, "gymnase", Rect2i(-150, -110, 300, 44))
+	_check(salle >= 0, "gymnase posé")
+	var club: ClubSport = scene.clubs["basket"]
+	SystemesGeres.relayer("club", "fonder", ["BC Amis", 1, salle], SystemesGeres.point_du_club(club, salle), {"sport": "basket"})
+	_check(await _attendre(func() -> bool: return club.fonde() and String(club.club.nom) == "BC Amis", 10.0), "club de basket fondé par le serveur, reçu par Alice")
+	_check(not club.is_processing() and not scene.club.is_processing(), "les clubs ne sont simulés que sur le serveur")
+	_check(club.joueurs.size() >= club.min_joueurs(), "effectif reçu (%d joueurs)" % club.joueurs.size())
+	SystemesGeres.relayer("club", "set_prix", [19.0], SystemesGeres.point_du_club(club), {"sport": "basket"})
+	_check(await _attendre(func() -> bool: return is_equal_approx(float(club.club.prix), 19.0), 10.0), "billet du club changé")
+
+	print("Plan de site :")
+	var deco := String(Decors.tous()[1].id)
+	var plan := {"format": PlansSites.FORMAT, "version": PlansSites.VERSION, "id": "test_site_mj", "nom": "Coin", "w": 20, "d": 20,
+		"batiments": [], "allees": [], "files": [], "enclos": [], "decors": [[deco, 4.0, 6.0, 0.0, 1.0]], "murs": [], "blocs": [1, 0, 1, 3]}
+	a.envoyer_action(PlansSites.action_reseau(plan, Vector2i(200, 300), 0))
+	var deco_ok := func() -> bool:
+		for r in scene.decors.to_dict().poses:
+			if String(r[0]) == deco and absf(float(r[1]) - 204.0) < 0.6 and absf(float(r[2]) - 306.0) < 0.6:
+				return true
+		return false
+	_check(await _attendre(deco_ok, 10.0), "décor du plan posé chez Alice par le serveur")
+	_check(await _attendre(func() -> bool: return scene.blocks.blocks.keys().any(func(k: Vector3i) -> bool: return k.x == 201 and k.z == 301), 10.0), "bloc du plan aussi")
+	await _attendre(func() -> bool: return false, 2.5)
+	_check(a.resynchros == 0, "toujours pas de resynchronisation")
+
+
 func _touche() -> InputEventKey:
 	var e := InputEventKey.new()
 	e.keycode = KEY_Z
@@ -364,7 +490,9 @@ func _en_ligne() -> void:
 	_check(await _attendre(func() -> bool: return bs.buildings.size() > nb + 1, 10.0), "la maison de Bob apparaît chez Alice")
 	var avant_bob := bs.money
 	await _attendre(func() -> bool: return false, 1.5)
-	_check(bs.money == avant_bob, "la maison de Bob n'est pas payée par la caisse d'Alice")
+	# La caisse de Testville bouge un peu toute seule (entretien, impôts au fil des jours) :
+	# on vérifie qu'elle ne paie pas la maison (≈ 250 000 €).
+	_check(avant_bob - bs.money < 50000, "la maison de Bob n'est pas payée par la caisse d'Alice (écart %s)" % BuildingSystem.format_money(avant_bob - bs.money))
 
 	print("Temps, démolition, terrain :")
 	scene.ambiance.set_speed(3)
@@ -376,9 +504,11 @@ func _en_ligne() -> void:
 	_check(absf(float(scene.world.modifications.get(Vector2i(301, 301), 0.0)) - 41.0) < 0.01, "hauteur reçue : 41 m")
 
 	await _sections_partagees(a, b, scene, vid)
+	await _systemes_geres(a, b, scene, vid)
 
 	print("Arrêt et reprise :")
 	var nbats := bs.buildings.size()
+	var types_avant := bs.buildings.values().map(func(e: Dictionary) -> String: return String(e.t))
 	a.envoyer_admin("arreter")
 	_check(await _attendre(func() -> bool: return not OS.is_process_running(_serveur_pid), 20.0), "l'admin arrête le serveur")
 	_check(await _attendre(func() -> bool: return a.etat == "deconnecte", 10.0), "Alice est prévenue")
@@ -402,6 +532,8 @@ func _en_ligne() -> void:
 	_check(a2.etat == "pret", "Alice revient sans code (membre)")
 	_check(a2.admin and a2.code_carte == CODE, "toujours admin, même code")
 	var sec: Dictionary = a2.dernier_instantane.sections
+	if (sec.batiments.buildings as Array).size() != nbats:
+		print("      reçus : ", (sec.batiments.buildings as Array).map(func(e: Dictionary) -> String: return String(e.t)), " · avant : ", types_avant)
 	_check((sec.batiments.buildings as Array).size() == nbats and (sec.communes.villages as Array).size() >= 1, "la carte a gardé ses %d bâtiments et son village" % nbats)
 	a2.deconnecter()
 	_effacer(a.slot)

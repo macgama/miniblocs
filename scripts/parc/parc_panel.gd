@@ -240,7 +240,7 @@ func _view_parc(e: int) -> void:
 	nom.text = String(p.nom)
 	nom.tooltip_text = "Nom du parc (Entrée pour valider)."
 	nom.text_submitted.connect(func(t: String) -> void:
-		parc.renommer(e, t)
+		_faire("renommer", [e, t], e)
 		nom.release_focus()
 		refresh())
 	_body.add_child(nom)
@@ -257,9 +257,9 @@ func _view_parc(e: int) -> void:
 		_text("Fermé · ouvre de %d h à %d h ce mois-ci" % [int(hr.x), int(hr.y)], true)
 	_link("Aller à l'entrée", parc._center(e))
 	_section("Billets")
-	_prix_row("Entrée", float(p.prix), 120.0, 1.0, func(v: float) -> void: parc.set_prix(e, v),
+	_prix_row("Entrée", float(p.prix), 120.0, 1.0, func(v: float) -> void: _faire("set_prix", [e, v, float(parc.parcs[e].prix_tour)], e),
 		"Prix du billet d'entrée. Trop cher, les visiteurs râlent ou font demi-tour ; pas assez, la caisse en pâtit.")
-	_prix_row("Par tour de manège", float(p.prix_tour), 15.0, 0.5, func(v: float) -> void: parc.set_prix(e, float(parc.parcs[e].prix), v),
+	_prix_row("Par tour de manège", float(p.prix_tour), 15.0, 0.5, func(v: float) -> void: _faire("set_prix", [e, float(parc.parcs[e].prix), v], e),
 		"0 € : attractions comprises dans l'entrée (comme dans les grands parcs).")
 	_text("Le parc vaut environ %d € l'entrée aux yeux des visiteurs (selon ses attractions)." % roundi(parc.valeur(e)), true)
 	var j: Dictionary = p.jour
@@ -388,3 +388,11 @@ func _view_visiteurs(e: int) -> void:
 			var k := String(keys[i])
 			var txt := String(ParcLoisirs.PENSEES.get(k, k)).replace("%s", "…").replace("%d", "…")
 			_text("%d × « %s »" % [int(pens[k]), txt], true, 12)
+
+
+## Carte entre amis : la décision part au serveur (le maire de la ville du parc décide) ;
+## en solo, elle est faite ici.
+func _faire(f: String, args: Array, e: int) -> void:
+	if SystemesGeres.relayer("parc", f, args, parc._center(e)):
+		return
+	parc.callv(f, args)

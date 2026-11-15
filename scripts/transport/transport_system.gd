@@ -742,7 +742,11 @@ func _click_build() -> void:
 		# Multijoueur : le serveur pose la voie chez tout le monde ; on continue le
 		# tracé depuis le dernier point, dans le prolongement.
 		var path := _current_path()
-		relais.call({"t": "voie", "id": type_id, "spec": spec.duplicate(true), "path": path})
+		var a := {"t": "voie", "id": type_id, "spec": spec.duplicate(true), "path": path}
+		# Tunnel creusé depuis la vue sous terre : à cette profondeur chez tous.
+		if not is_nan(RoutePlanner.profondeur_forcee):
+			a["prof"] = RoutePlanner.profondeur_forcee
+		relais.call(a)
 		var n := path.size()
 		var last := path[n - 1]
 		var dir := (path[n - 1] - path[maxi(n - 2, 0)]).normalized()

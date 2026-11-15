@@ -70,6 +70,9 @@ var _demande_section: Dictionary = {}
 ## Sections changées depuis la dernière comparaison (signal « changed » de leur système).
 var _sales: Dictionary = {}
 var _complet_t := 0.0
+## Systèmes gérés par le serveur (SystemesGeres : clubs, parc, zoo, musée).
+var geres: Dictionary = {}
+var etats_recus := 0
 ## Comparaison complète, même sans signal (s).
 const VERIF_COMPLETE := 30.0
 
@@ -310,6 +313,11 @@ func attacher(j: Node) -> void:
 			deconnecter("Tu as quitté la carte entre amis."))
 	specs = SectionsPartagees.specs(jeu)
 	_reprendre_bases()
+	# Clubs, parc, zoo, musée : le serveur les simule ; les clubs ne jouent pas ici.
+	geres = SystemesGeres.specs(jeu)
+	for nom in geres:
+		if not bool(geres[nom].get("simule", true)) and geres[nom].obj is Node:
+			(geres[nom].obj as Node).set_process(false)
 	if not get_tree().process_frame.is_connected(_apres_gestes):
 		get_tree().process_frame.connect(_apres_gestes)
 	_changer("en_jeu", "Sur la carte « %s »." % nom_carte)
@@ -323,7 +331,12 @@ func _detacher() -> void:
 	specs = {}
 	bases = {}
 	if not is_instance_valid(jeu):
+		geres = {}
 		return
+	for nom in geres:
+		if is_instance_valid(geres[nom].obj) and geres[nom].obj is Node:
+			(geres[nom].obj as Node).set_process(true)
+	geres = {}
 	jeu.buildings.verrou_reseau = false
 	jeu.buildings.relais = Callable()
 	jeu.transport.verrou_reseau = false
@@ -373,6 +386,12 @@ func appliquer(msg: Dictionary) -> void:
 			_section_entiere(String(msg.get("nom", "")), msg.get("data", {}))
 		"appel":
 			rejouer_appel(msg.get("a", {}))
+		"etat":
+			var nom := String(msg.get("nom", ""))
+			var d: Variant = msg.get("data")
+			if geres.has(nom) and d is Dictionary:
+				SystemesGeres.appliquer(geres[nom], d)
+				etats_recus += 1
 		"tic":
 			_tic(msg)
 		"reglages":
@@ -423,9 +442,16 @@ func _rejouer(a: Dictionary) -> void:
 	tr._par_reseau = true
 	match String(a.get("t", "")):
 		"voie":
+			# La profondeur du tunnel vient du serveur (pas de l'outil ouvert ici).
+			var avant_prof := RoutePlanner.profondeur_forcee
+			var prof := float(a.get("prof", NAN))
+			RoutePlanner.profondeur_forcee = prof
 			var res: Dictionary = tr.build_path(String(a.get("id", "")), a.get("spec", {}), a.get("path", PackedVector2Array()))
+			RoutePlanner.profondeur_forcee = avant_prof
 			if res.ok:
 				tr.edges_built.emit(res.edges)
+				if not is_nan(prof) and jeu.get("construction_souterraine") != null:
+					jeu.construction_souterraine.appliquer_tunnel(res.edges, prof, false)
 		"voie_demolir":
 			tr.demolish(int(a.get("eid", -1)))
 		"carrefour":

@@ -891,7 +891,16 @@ func _verifier_deplacements() -> void:
 func _on_edges_built(edges: Array) -> void:
 	if outil != Outil.TUNNEL or is_nan(RoutePlanner.profondeur_forcee):
 		return
-	var prof := RoutePlanner.profondeur_forcee
+	# Voie rejouée pour la carte entre amis : sa profondeur vient du serveur.
+	if transport != null and transport._par_reseau:
+		return
+	appliquer_tunnel(edges, RoutePlanner.profondeur_forcee)
+
+
+## Les tronçons edges sont un tunnel creusé à prof mètres : profondeur notée, prix
+## du tunnel. Aussi appelé par la carte entre amis (serveur, et chez chaque joueur
+## qui rejoue la voie : avertir faux, le serveur fait payer).
+func appliquer_tunnel(edges: Array, prof: float, avertir := true) -> void:
 	var total := 0
 	var lt := 0.0
 	for eid in edges:
@@ -904,9 +913,9 @@ func _on_edges_built(edges: Array) -> void:
 		total += c
 		if ChantiersVoies.instance != null:
 			ChantiersVoies.instance.fixer_cout(eid, c)
-		elif buildings != null and not buildings.unlimited_money:
+		elif buildings != null and not buildings.unlimited_money and avertir:
 			buildings.money -= c
-	if total > 0:
+	if total > 0 and avertir:
 		message.emit("%s : %d m de tunnel à %d m de fond, %s payés au fil des travaux." % [VOIES.get(type_voie, {"name": "Tunnel"}).name,
 			roundi(lt), roundi(prof), BuildingSystem.format_money(total)])
 	if vue != null:
@@ -1215,6 +1224,8 @@ func from_dict(d: Dictionary) -> void:
 	for id in pieces:
 		if float(pieces[id].av) < 1.0:
 			_lancer(id)
+	if vue != null:
+		vue.marquer_sale()
 	changed.emit()
 
 

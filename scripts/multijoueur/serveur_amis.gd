@@ -54,6 +54,15 @@ var _n_tic := 0
 var _id_en_cours := 0
 var _sales: Dictionary = {}
 var _complet_t := 0.0
+## Systèmes gérés depuis un panneau (SystemesGeres : clubs, parc, zoo, musée).
+var geres: Dictionary = {}
+var _geres_emp: Dictionary = {}
+var _geres_sales: Dictionary = {}
+var _geres_urgents: Dictionary = {}
+var _geres_envoi: Dictionary = {}
+var _geres_t := 0.0
+## Nombre d'états de systèmes gérés envoyés (tests).
+var envois_etats := 0
 
 
 func _init() -> void:
@@ -112,6 +121,14 @@ func demarrer(j: Node, p: int) -> String:
 		sigs.append(jeu.budget.message)
 	if jeu.pilote != null:
 		sigs.append(jeu.pilote.message)
+	geres = SystemesGeres.specs(jeu)
+	for nom in geres:
+		var o: Object = geres[nom].obj
+		_geres_emp[nom] = SystemesGeres.empreinte(SystemesGeres.lire(geres[nom]))
+		if o.has_signal("changed"):
+			o.connect("changed", func() -> void: _geres_sales[nom] = true)
+		if o.has_signal("message"):
+			sigs.append(Signal(o, "message"))
 	for sig in sigs:
 		(sig as Signal).connect(func(t: String) -> void:
 			if _en_cours:
@@ -199,6 +216,10 @@ func _process(delta: float) -> void:
 		_sections_t = 0.0
 		for nom in specs:
 			diffuser_section(nom)
+	_geres_t += delta
+	if _geres_t >= SystemesGeres.VERIF or not _geres_urgents.is_empty():
+		_geres_t = 0.0
+		diffuser_geres()
 	if _push_transport >= 0.0:
 		_push_transport -= delta
 		if _push_transport < 0.0:
@@ -414,6 +435,8 @@ static func point_de(a: Dictionary) -> Variant:
 		"carrefour":
 			var v: Vector3 = a.get("p", Vector3.ZERO)
 			return Vector2(v.x, v.z)
+		"site":
+			return Vector2(a.get("o", Vector2i.ZERO))
 	return null
 
 
@@ -479,10 +502,15 @@ func executer(pid: String, a: Dictionary) -> String:
 			else:
 				_forcer_payeur(pid, (path[0] + path[path.size() - 1]) * 0.5)
 				_rejeu = true
+				var prof := float(a.get("prof", NAN))
+				RoutePlanner.profondeur_forcee = prof
 				var res: Dictionary = tr.build_path(String(a.get("id", "")), a.get("spec", {}), path)
+				RoutePlanner.profondeur_forcee = NAN
 				_rejeu = false
 				if res.ok:
 					tr.edges_built.emit(res.edges)
+					if not is_nan(prof) and jeu.construction_souterraine != null:
+						jeu.construction_souterraine.appliquer_tunnel(res.edges, prof)
 					_a_tous({"m": "rejouer", "a": a})
 					_messages.append(tr._describe(res, true))
 				else:
@@ -509,6 +537,8 @@ func executer(pid: String, a: Dictionary) -> String:
 			refus = _sections(pid, String(a.get("nom", "")), a.get("patch", {}))
 		"appel":
 			refus = _appel(pid, a)
+		"site":
+			refus = _site(pid, a)
 		_:
 			refus = "Action inconnue du serveur : %s." % t
 	Pays.payeur_force = -1
@@ -591,11 +621,63 @@ func _appel(pid: String, a: Dictionary) -> String:
 	var r: Variant = Multijoueur.executer_appel(jeu, a)
 	_rejeu = false
 	Pays.payeur_force = -1
+	if Multijoueur.appel_etat(sys):
+		# Club, parc, zoo, musée : chacun reçoit l'état du système, tel que le serveur l'a fait.
+		_geres_urgents[SystemesGeres.nom_de_appel(a)] = true
+		_geres_sales[SystemesGeres.nom_de_appel(a)] = true
+		if r is String and String(r) != "":
+			return String(r)
+		return ""
 	_a_tous({"m": "appel", "a": a})
 	# Refus du jeu (« Pas de voie entre… ») : le joueur est prévenu.
 	if r is Dictionary and (r as Dictionary).has("ok") and not bool(r.ok):
 		return String(r.get("reason", ""))
 	return ""
+
+
+## Plan de site (menu Partage) posé par un joueur : bâtiments, allées, enclos et
+## animaux, décors, murs fins, blocs. Tout part ensuite chez chacun comme d'habitude.
+func _site(pid: String, a: Dictionary) -> String:
+	var p: Variant = a.get("plan")
+	if not p is Dictionary or not PlansSites.valide(p):
+		return "Plan de site illisible."
+	for d in a.get("defs", []):
+		if d is Dictionary:
+			SectionsPartagees.adopter(d)
+	var o: Vector2i = a.get("o", Vector2i.ZERO)
+	var q := int(a.get("q", 0))
+	var t := PlansSites.taille(p, q)
+	_forcer_payeur(pid, Vector2(o) + Vector2(t) * 0.5)
+	var res := PlansSites.poser(p, o, q, jeu.contexte_partage())
+	if not (p.get("enclos", []) as Array).is_empty():
+		_geres_urgents["zoo"] = true
+	_geres_sales["zoo"] = true
+	_geres_sales["parc"] = true
+	if not bool(res.get("ok", false)):
+		return PlansSites.bilan(res)
+	_messages.append(PlansSites.bilan(res))
+	return ""
+
+
+## Envoie à tous l'état des systèmes gérés qui ont changé (au plus toutes les
+## SystemesGeres.PERIODE secondes, tout de suite après la décision d'un joueur).
+func diffuser_geres() -> void:
+	var now := Time.get_ticks_msec() / 1000.0
+	for nom in geres:
+		var urgent := bool(_geres_urgents.get(nom, false))
+		if not urgent and (not bool(_geres_sales.get(nom, false)) or now - float(_geres_envoi.get(nom, -1000.0)) < SystemesGeres.PERIODE):
+			continue
+		_geres_sales[nom] = false
+		var d := SystemesGeres.lire(geres[nom])
+		var h := SystemesGeres.empreinte(d)
+		if h == int(_geres_emp.get(nom, 0)) and not urgent:
+			continue
+		_geres_emp[nom] = h
+		_geres_envoi[nom] = now
+		_sale = true
+		envois_etats += 1
+		_a_tous({"m": "etat", "nom": nom, "data": d})
+	_geres_urgents.clear()
 
 
 ## Hors de ses villes, c'est la caisse du joueur qui paie.

@@ -86,6 +86,9 @@ static func demarrage_serveur(tree: SceneTree) -> bool:
 
 ## Appelé à la fin du _ready de la scène Terre.
 static func attacher(jeu: Node) -> void:
+	# Scénarios : en solo seulement (une carte venue d'un scénario continue sans lui).
+	if role != Role.SOLO and jeu.get("scenario") != null and jeu.scenario.en_cours():
+		jeu.scenario.clear()
 	match role:
 		Role.SERVEUR:
 			if terrain_plat:
@@ -122,7 +125,21 @@ const APPELS := {
 	"pilote": {"f": ["activer"], "ville": true},
 	"stations": {"f": ["place", "remove_station", "create_line", "set_fret", "set_line", "remove_line"]},
 	"commerce": {"f": ["signer", "proposer", "accepter", "refuser", "resilier", "mission_commerciale", "set_libre_echange"], "ville": true},
+	# Systèmes gérés depuis un panneau (SystemesGeres) : « etat » : le serveur les fait puis
+	# envoie l'état du système (pas de rejeu chez les joueurs : tirages au sort).
+	"club": {"f": ["fonder", "changer_stade", "renommer", "set_couleurs", "set_formation", "set_tactique", "set_entrainement",
+		"set_repos", "set_prix", "acheter", "vendre", "liberer", "prolonger", "set_academie", "promouvoir", "liberer_espoir",
+		"set_abo_prix", "subventionner"], "ville": true, "etat": true},
+	"parc": {"f": ["set_prix", "renommer"], "ville": true, "etat": true},
+	"zoo": {"f": ["ajouter_enclos", "retirer_enclos", "changer_barriere", "renommer_enclos", "acheter", "vendre", "relacher",
+		"deplacer", "set_prix", "set_nom"], "ville": true, "etat": true},
+	"musee": {"f": ["renommer", "set_prix", "set_gratuit_dimanche", "lancer_expo"], "ville": true, "etat": true},
 }
+
+
+## Appel d'un système géré par le serveur (club, parc, zoo, musée) ?
+static func appel_etat(sys: String) -> bool:
+	return bool((APPELS.get(sys, {}) as Dictionary).get("etat", false))
 
 
 static func appel_permis(sys: String, f: String) -> bool:
@@ -132,7 +149,7 @@ static func appel_permis(sys: String, f: String) -> bool:
 ## Ville concernée par un appel (-1 : aucune).
 static func ville_de_appel(a: Dictionary) -> int:
 	match String(a.get("sys", "")):
-		"budget", "commerce":
+		"budget", "commerce", "club", "parc", "zoo", "musee":
 			return int(a.get("ville", -1))
 		"pilote":
 			var args: Array = a.get("args", [])
@@ -160,7 +177,10 @@ static func relayer(sys: String, f: String, args: Array, extra: Dictionary = {})
 	var v := ville_de_appel(a)
 	if bool((APPELS.get(sys, {}) as Dictionary).get("ville", false)) and v != -1 and not peut_decider(v):
 		if is_instance_valid(client.jeu):
-			client.jeu.hud.show_message("Seul le maire de %s décide de ses réglages (impôts, emprunts, entretien, pilote automatique)." % client.jeu.pays.nom_de(v))
+			if appel_etat(sys):
+				client.jeu.hud.show_message("Seul le maire de %s gère ce qui est dans sa ville (club, parc, zoo, musée)." % client.jeu.pays.nom_de(v))
+			else:
+				client.jeu.hud.show_message("Seul le maire de %s décide de ses réglages (impôts, emprunts, entretien, pilote automatique)." % client.jeu.pays.nom_de(v))
 		return true
 	client.envoyer_action(a)
 	return true
@@ -189,6 +209,16 @@ static func executer_appel(jeu: Node, a: Dictionary) -> Variant:
 			return jeu.pilote.callv(f, args)
 		"commerce":
 			return jeu.commerce_mondial.callv(f, args)
+		"club":
+			var clubs: Dictionary = jeu.clubs
+			var c: Variant = clubs.get(String(a.get("sport", "football")))
+			return (c as ClubSport).callv(f, args) if c is ClubSport else "Sport inconnu."
+		"parc":
+			return jeu.parc.callv(f, args)
+		"zoo":
+			return jeu.zoo.callv(f, args)
+		"musee":
+			return jeu.musee.callv(f, args)
 		"stations":
 			var st: StationSystem = jeu.transport.stations
 			return jeu.transport.appliquer_reseau(func() -> Variant: return st.callv(f, args))
@@ -262,6 +292,9 @@ static func copier_en_carte(slot_src: String, erreur: Array = []) -> String:
 	reg["createur"] = SaveGame.player_id()
 	reg["tutoriel"] = false
 	sec["reglages"] = reg
+	# Les scénarios (objectifs, score, médailles) se jouent seul : la carte entre amis
+	# reprend la ville telle quelle, sans le scénario.
+	sec.erase("scenario")
 	var err := SaveGame.write(slot, info, sec)
 	if err != "":
 		erreur.append(err)

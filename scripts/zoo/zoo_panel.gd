@@ -329,7 +329,7 @@ func _vue_zoo(e: int) -> void:
 	var nom := LineEdit.new()
 	nom.text = String(z.nom)
 	nom.text_submitted.connect(func(t: String) -> void:
-		zoo.set_nom(e, t)
+		_faire("set_nom", [e, t], zoo._center(e))
 		refresh())
 	_body.add_child(nom)
 	var note := float(z.note)
@@ -357,7 +357,7 @@ func _vue_zoo(e: int) -> void:
 	sp.max_value = 120
 	sp.step = 1
 	sp.value = float(z.prix)
-	sp.value_changed.connect(func(v: float) -> void: zoo.set_prix(e, v))
+	sp.value_changed.connect(func(v: float) -> void: _faire("set_prix", [e, v], zoo._center(e)))
 	prix.add_child(sp)
 	_body.add_child(prix)
 	_texte("Les visiteurs estiment le zoo à %s." % ZooSysteme._euros(zoo.valeur(e)), true, 12)
@@ -487,7 +487,7 @@ func _fiche_enclos(id: int) -> void:
 	var nom := LineEdit.new()
 	nom.text = String(en.nom)
 	nom.text_submitted.connect(func(t: String) -> void:
-		zoo.renommer_enclos(id, t)
+		_faire("renommer_enclos", [id, t], zoo._centre_enclos(id))
 		refresh())
 	_body.add_child(nom)
 	var c := zoo.contenu(id)
@@ -566,7 +566,7 @@ func _ligne_animal(aid: int) -> void:
 	v.add_theme_font_size_override("font_size", 11)
 	v.focus_mode = Control.FOCUS_NONE
 	v.pressed.connect(func() -> void:
-		zoo.vendre(aid)
+		_faire("vendre", [aid], _point_animal(aid))
 		refresh())
 	h.add_child(v)
 	if ZooEspeces.uicn_bonus(String(a.esp)) > 0.0:
@@ -576,7 +576,7 @@ func _ligne_animal(aid: int) -> void:
 		r.add_theme_font_size_override("font_size", 11)
 		r.focus_mode = Control.FOCUS_NONE
 		r.pressed.connect(func() -> void:
-			zoo.relacher(aid)
+			_faire("relacher", [aid], _point_animal(aid))
 			refresh())
 		h.add_child(r)
 	_body.add_child(h)
@@ -752,3 +752,17 @@ func _objet_bouton(id: String) -> void:
 		outils.set_outil(ZooOutils.Outil.OBJET)
 		refresh())
 	_body.add_child(b)
+
+
+## Carte entre amis : la décision part au serveur (le maire de la ville du zoo décide) ;
+## en solo, elle est faite ici.
+func _faire(f: String, args: Array, p: Variant) -> void:
+	if SystemesGeres.relayer("zoo", f, args, p):
+		return
+	zoo.callv(f, args)
+
+
+func _point_animal(aid: int) -> Variant:
+	if not zoo.animaux.has(aid) or not zoo.enclos.has(int(zoo.animaux[aid].enclos)):
+		return null
+	return zoo._centre_enclos(int(zoo.animaux[aid].enclos))

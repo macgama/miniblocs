@@ -457,6 +457,9 @@ func to_dict() -> Dictionary:
 		if e.has("ch"):
 			row["ch"] = snappedf(float(e.ch), 0.0001)
 			row["chr"] = snappedf(float(e.get("chr", 0.0)), 0.01)
+		# Tunnel creusé depuis la vue sous terre : sa profondeur.
+		if e.has("prof"):
+			row["prof"] = snappedf(float(e.prof), 0.1)
 		es.append(row)
 	return {"version": 1, "next_id": next_id, "nodes": ns, "edges": es}
 
@@ -491,6 +494,8 @@ func from_dict(data: Dictionary) -> void:
 		if ed.has("ch"):
 			e["ch"] = float(ed.ch)
 			e["chr"] = float(ed.get("chr", 0.0))
+		if ed.has("prof"):
+			e["prof"] = float(ed.prof)
 		_measure(e)
 		edges[id] = e
 		(adjacency[a] as Array).append(id)

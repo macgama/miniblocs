@@ -127,7 +127,7 @@ const CATEGORIES := [
 	{"id": "zoo", "name": "Zoo", "icon": "zoo", "key": "Maj+Z", "panel": true, "group": "loisirs"},
 	{"id": "musee", "name": "Musée", "icon": "musee", "key": "Maj+C", "panel": true, "group": "loisirs"},
 	{"id": "spectacles", "name": "Spectacles (cinémas, concerts, théâtres, studios)", "icon": "masques", "key": "Maj+X", "panel": true, "group": "loisirs"},
-	{"id": "club", "name": "Club de sport (équipe, championnat, transferts)", "icon": "sport", "key": "Maj+B", "panel": true, "group": "loisirs"},
+	{"id": "club", "name": "Club de sport (foot, basket, hand, hockey, rugby, tennis)", "icon": "sport", "key": "Maj+B", "panel": true, "group": "loisirs"},
 	{"id": "cartes", "name": "Cartes", "icon": "cartes", "key": "N", "panel": true, "group": "infos"},
 	{"id": "stats", "name": "Statistiques et conseiller", "icon": "courbe", "key": "Maj+I", "panel": true, "group": "infos"},
 	{"id": "murs", "name": "Murs et étages", "icon": "mur", "key": "2", "panel": true, "mode": "creer"},

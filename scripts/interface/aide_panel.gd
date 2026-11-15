@@ -249,8 +249,11 @@ const SECTIONS := [
 		["Studios", "produire un film : genre, budget (court métrage à superproduction), réalisateur, tête d'affiche ; un plateau par film ; décors, effets spéciaux, post-production et atelier à moins de 300 m améliorent le film ; 8 semaines en salle dans tout le pays puis les droits télé ; Bobine d'or chaque 20 mai"],
 	]],
 	["Club de sport", [
-		["Maj + B", "menu Club de sport (barre du bas, Loisirs) : onglets Club, Effectif, Calendrier, Classement, Transferts, Finances"],
-		["Fonder", "il faut un stade (Construire → Sport : 11 stades ou le terrain de foot) ; nom, couleurs ; la ville verse 150 000 € de départ ; le club a sa propre caisse"],
+		["Maj + B", "menu Club de sport (barre du bas, Loisirs) : en haut le sport (Foot, Basket, Hand, Hockey, Rugby, Tennis), puis les onglets Club, Effectif, Calendrier, Classement, Transferts, Formation, Supporters, Finances"],
+		["Fonder", "football et rugby : un stade ou un terrain de foot ; basket et handball : un gymnase, un terrain de basket ou une salle omnisports ; hockey : une patinoire ; tennis : des courts (Construire → Sport). Nom, couleurs ; la ville verse une subvention de départ ; chaque club a sa propre caisse"],
+		["Sports", "basket (samedi soir, pas de nul, prolongation), handball (vendredi soir), hockey (septembre à mars, tirs au but), rugby (dimanche, points de bonus), tennis par équipes (poule de 8 au printemps, 4 simples et 2 doubles)"],
+		["Centre de formation", "onglet Formation : école de sport, centre de formation ou académie (ces deux-là demandent le bâtiment Centre de formation) ; chaque saison, des jeunes arrivent, d'abord les enfants de la ville ; à 19 ans, ils passent pro ou partent"],
+		["Supporters", "habitants supporters (surtout ceux qui pratiquent le sport) : drapeaux aux couleurs du club devant chez eux, plus contents quand le club gagne ; abonnements vendus en début de saison ; fête en ville après un titre ou une montée"],
 		["Championnat", "12 clubs, 22 journées le samedi d'août à fin mai (trêve de Noël) ; Régionale → Nationale → Deuxième Ligue → Première Ligue ; les 2 premiers montent, les 2 derniers descendent"],
 		["Équipe", "formation (4-4-2, 4-3-3…), tactique, entraînement (les jeunes progressent, les vétérans baissent) ; forme, fatigue, blessures ; en Régionale, des habitants fans de foot jouent bénévolement"],
 		["Matchs", "à domicile, on voit le match au stade : joueurs aux couleurs du club, foule, tableau d'affichage, buts dans le fil d'actualité"],

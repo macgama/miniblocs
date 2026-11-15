@@ -57,6 +57,9 @@ var musee: Musee
 var spectacles: Spectacles
 var spectacles_panel: SpectaclesPanel
 var club: ClubSport
+## Toutes les sections du club (sport → ClubSport), football compris.
+var clubs: Dictionary = {}
+var club_supporters: ClubSupporters
 var club_panel: ClubPanel
 var musee_panel: MuseePanel
 var parc: ParcLoisirs
@@ -355,6 +358,11 @@ func save_sections() -> Dictionary:
 	sec["musee"] = musee.to_dict()
 	sec["spectacles"] = spectacles.to_dict()
 	sec["club"] = club.to_dict()
+	var autres := {}
+	for s in clubs:
+		if s != "football" and (clubs[s] as ClubSport).fonde():
+			autres[s] = (clubs[s] as ClubSport).to_dict()
+	sec["clubs_sports"] = autres
 	sec["parc"] = parc.to_dict()
 	sec["zoo"] = zoo.to_dict()
 	sec["quartiers"] = quartiers.to_dict()
@@ -470,6 +478,11 @@ func load_game(slot := "") -> bool:
 	musee.from_dict(sec.get("musee", {}))
 	spectacles.from_dict(sec.get("spectacles", {}))
 	club.from_dict(sec.get("club", {}))
+	var autres: Dictionary = sec.get("clubs_sports", {})
+	for s in clubs:
+		if s != "football":
+			(clubs[s] as ClubSport).from_dict(autres.get(s, {}))
+	club_supporters.refresh(true)
 	parc.from_dict(sec.get("parc", {}))
 	zoo.from_dict(sec.get("zoo", {}))
 	funeraire.from_dict(sec.get("funeraire", {}))
@@ -1390,22 +1403,32 @@ func _setup_spectacles() -> void:
 		spectacles_panel.toggle())
 
 
-## Club de sport (football) : stade, équipe, championnat, recettes (Maj+B).
+## Club de sport : une section par sport (football, basket, handball, hockey,
+## rugby, tennis), centre de formation, supporters en ville (Maj+B).
 func _setup_club() -> void:
-	club = ClubSport.new()
-	club.name = "ClubSport"
-	add_child(club)
-	club.setup(buildings, population, ambiance)
-	club.message.connect(func(t: String) -> void: hud.show_message(t))
+	for s in ClubSports.ORDRE:
+		var c := ClubSport.new()
+		c.sport = s
+		c.name = "ClubSport" if s == "football" else "ClubSport_%s" % s
+		add_child(c)
+		c.setup(buildings, population, ambiance)
+		c.message.connect(func(t: String) -> void: hud.show_message(t))
+		clubs[s] = c
+	club = clubs.football
+	club_supporters = ClubSupporters.new()
+	add_child(club_supporters)
+	club_supporters.setup(buildings, population)
 	club_panel = ClubPanel.new()
 	club_panel.name = "PanneauClub"
 	add_child(club_panel)
-	club_panel.setup(club)
-	club_panel.building_chosen.connect(func(_id: String) -> void:
+	club_panel.setup(club, clubs)
+	club_panel.building_chosen.connect(func(id: String) -> void:
 		club_panel.set_open(false)
 		_select_building_tool()
 		build_panel.set_open(true)
-		build_panel.show_category("sport"))
+		build_panel.show_category("sport")
+		if id != "" and BuildingCatalog.all_types().has(id):
+			buildings.set_place(id))
 	club_panel.focus_requested.connect(func(pos: Vector3) -> void:
 		rig.position.x = pos.x
 		rig.position.z = pos.z)
@@ -2170,7 +2193,8 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 	dechets.clear()
 	funeraire.clear()
 	spectacles.clear()
-	club.clear()
+	for s in clubs:
+		(clubs[s] as ClubSport).clear()
 	resource_overlay.show_resource(resource_overlay.res)
 	transport.clear()
 	buildings.clear()

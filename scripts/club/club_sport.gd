@@ -1,6 +1,12 @@
 class_name ClubSport
 extends Node
-## Club de sport (football) : le joueur en est le président.
+## Club de sport : le joueur en est le président. Un nœud par sport (section) :
+## football, basket, handball, hockey, rugby, tennis (voir ClubSports). Chaque
+## section a son équipe, son championnat et sa caisse ; ClubSport.instance est
+## la section football, ClubSport.sections toutes les sections.
+##
+## v2 : centre de formation (jeunes du coin, espoirs promus en pro),
+## abonnements, habitants supporters (humeur, drapeaux : ClubSupporters).
 ##
 ## - Fondation : un stade de la ville (modèle Blender ou terrain de foot du
 ##   catalogue), un nom, des couleurs. La ville verse une subvention de départ.
@@ -25,6 +31,8 @@ signal changed
 signal message(text: String)
 
 static var instance: ClubSport
+## sport → section (ClubSport).
+static var sections: Dictionary = {}
 
 const STEP := 3600.0
 const SUBVENTION_DEPART := 150_000.0
@@ -36,6 +44,8 @@ const LOYER_PART := 0.12
 const LOYER_MIN := 300.0
 const DUREE_MATCH := 2.0 # h, du coup d'envoi au résultat
 
+## Le sport de cette section (à fixer avant add_child).
+var sport := "football"
 var buildings: BuildingSystem
 var population: Population
 var ambiance: DayNight
@@ -44,6 +54,8 @@ var ambiance: DayNight
 var club: Dictionary = {}
 ## id → joueur du club.
 var joueurs: Dictionary = {}
+## id → jeune du centre de formation (même fiche qu'un joueur, "espoir": true).
+var espoirs: Dictionary = {}
 ## Joueurs proposés sur le marché des transferts.
 var marche: Array = []
 ## Championnat de la saison : {saison, division, clubs: {nom: fiche}, journees: [...], fini}.
@@ -59,6 +71,7 @@ var last_day := -1
 var rng := RandomNumberGenerator.new()
 ## Pour les tests : nombre d'habitants fans imposé (−1 = la vraie population).
 var fans_force := -1
+var _supporters_cache := -1
 
 
 func _init() -> void:
@@ -66,12 +79,54 @@ func _init() -> void:
 
 
 func _enter_tree() -> void:
-	instance = self
+	if sport == "football":
+		instance = self
+	sections[sport] = self
+	add_to_group("avis_sources")
 
 
 func _exit_tree() -> void:
 	if instance == self:
 		instance = null
+	if sections.get(sport, null) == self:
+		sections.erase(sport)
+
+
+## La section d'un sport (null si absente).
+static func section(s: String) -> ClubSport:
+	var c = sections.get(s, null)
+	if c == null or not is_instance_valid(c):
+		return null
+	return c
+
+
+## Le bâtiment sert-il de stade à un club du joueur (tous sports) ?
+static func lieu_pris(bid: int, sauf := "") -> String:
+	for s in sections:
+		var c := section(s)
+		if c != null and s != sauf and c.fonde() and int(c.club.get("stade", -1)) == bid:
+			return String(s)
+	return ""
+
+
+func sp() -> Dictionary:
+	return ClubSports.sport(sport)
+
+
+func _div(i: int) -> Dictionary:
+	return ClubSports.division(sport, i)
+
+
+func _adverses() -> Array:
+	return ClubSports.adverses(sport)
+
+
+func max_joueurs() -> int:
+	return int(sp().max)
+
+
+func min_joueurs() -> int:
+	return int(sp().min)
 
 
 func setup(b: BuildingSystem, p: Population, a: DayNight) -> void:
@@ -93,6 +148,7 @@ func clear() -> void:
 	ligue = {}
 	journal.clear()
 	pensees.clear()
+	espoirs.clear()
 	next_id = 1
 	clock = -1.0
 	last_unix = -1.0
@@ -176,8 +232,15 @@ func step() -> void:
 	if not fonde():
 		return
 	var j := journee_du_jour(int(now.day))
-	if not j.is_empty() and not bool(j.joue) and float(now.h) >= float(j.h) + DUREE_MATCH:
+	if not j.is_empty() and not bool(j.joue) and float(now.h) >= float(j.h) + duree_match():
 		jouer_journee(j)
+
+
+## Heures entre le coup d'envoi et le résultat.
+func duree_match() -> float:
+	if sport == "football":
+		return DUREE_MATCH
+	return ClubSports.duree(sport) / 3600.0 + 0.2
 
 
 func new_day(now: Dictionary) -> void:
@@ -186,6 +249,8 @@ func new_day(now: Dictionary) -> void:
 	var s := saison_de(int(now.year), int(now.month))
 	if String(ligue.get("saison", "")) != s:
 		nouvelle_saison(int(now.day))
+	club.humeur = float(club.get("humeur", 0.0)) * 0.97
+	_supporters_cache = -1
 	var tr: Array = ClubDonnees.ENTRAINEMENTS[String(club.entrainement)]
 	for id in joueurs:
 		var p: Dictionary = joueurs[id]
@@ -216,7 +281,14 @@ func _lieu() -> String:
 
 
 func nom_propose() -> String:
-	return "FC %s" % _lieu()
+	return ClubSports.nom_propose(sport, _lieu())
+
+
+## Subvention de départ de la ville (moins pour les petits sports).
+func subvention_depart() -> float:
+	if sport == "football":
+		return SUBVENTION_DEPART
+	return roundf(SUBVENTION_DEPART * clampf(float(sp().eco) * 1.5, 0.2, 1.0) / 1000.0) * 1000.0
 
 
 ## Stades de la ville où le club peut jouer : [{bid, nom, places}].
@@ -226,9 +298,9 @@ func stades_possibles() -> Array:
 		return out
 	for bid in buildings.buildings:
 		var b: Dictionary = buildings.buildings[bid]
-		if b.get("chantier", false) or not Stades.est_stade(String(b.t)):
+		if b.get("chantier", false) or not ClubSports.accueille(sport, String(b.t)):
 			continue
-		out.append({"bid": int(bid), "nom": String(BuildingCatalog.get_type(String(b.t)).get("name", b.t)), "places": Stades.places(String(b.t))})
+		out.append({"bid": int(bid), "nom": String(BuildingCatalog.get_type(String(b.t)).get("name", b.t)), "places": ClubSports.places_lieu(String(b.t))})
 	out.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return int(a.places) > int(b.places))
 	return out
 
@@ -244,20 +316,21 @@ func fonder(nom: String, couleurs: int, stade: int) -> String:
 	for s in stades_possibles():
 		ok = ok or int(s.bid) == stade
 	if not ok:
-		return "Il faut un stade ou un terrain de foot terminé, dans la ville."
+		return "Il faut %s dans la ville (chantier terminé)." % String(sp().lieu)
 	var now := _now(_temps())
 	last_day = int(now.day)
 	club = {"nom": nom, "couleurs": ClubDonnees.COULEURS[posmod(couleurs, ClubDonnees.COULEURS.size())].duplicate(),
 		"stade": stade, "fonde": int(now.day), "caisse": 0.0, "division": 0, "reputation": 10.0, "supporters": 120.0,
-		"prix": ClubDonnees.division(0).prix, "formation": "4-4-2", "tactique": "equilibree", "entrainement": "normal",
+		"prix": _div(0).prix, "formation": String(sp().formation), "tactique": "equilibree", "entrainement": "normal",
+		"sport": sport, "academie": 0, "humeur": 0.0, "abo": 0, "abo_prix": 0.0,
 		"sponsor": ClubDonnees.SPONSORS[posmod(hash(nom), ClubDonnees.SPONSORS.size())],
 		"finances": {}, "finances_prec": {}, "historique": [], "palmares": [], "serie": [], "auto_prix": false}
 	_effectif_depart()
 	_renouveler_marche()
 	nouvelle_saison(int(now.day))
-	_verser_ville("Subvention de départ au club de sport", -SUBVENTION_DEPART)
-	_flux("Subvention de départ de la ville", SUBVENTION_DEPART)
-	_news("Le club %s est fondé ! Il jouera en %s au %s." % [nom, ClubDonnees.division(0).nom, nom_stade()])
+	_verser_ville("Subvention de départ au club de sport", -subvention_depart())
+	_flux("Subvention de départ de la ville", subvention_depart())
+	_news("Le club %s est fondé%s ! Il jouera en %s au %s." % [nom, "" if sport == "football" else " (%s)" % String(sp().nom).to_lower(), _div(0).nom, nom_stade()])
 	changed.emit()
 	return ""
 
@@ -277,7 +350,7 @@ func nom_stade() -> String:
 func places() -> int:
 	if not fonde() or buildings == null or not buildings.buildings.has(int(club.stade)):
 		return 0
-	return Stades.places(String(buildings.buildings[int(club.stade)].t))
+	return ClubSports.places_lieu(String(buildings.buildings[int(club.stade)].t))
 
 
 func changer_stade(bid: int) -> String:
@@ -337,7 +410,7 @@ func _nouveau_joueur(poste: String, niveau: float, age: float, spread := 6.0) ->
 	next_id += 1
 	return {"id": id, "prenom": Prenoms.first_name(rng, reg, "H"), "nom": Prenoms.family_name(rng, reg), "poste": poste,
 		"ne": today() - int(age * 365.25), "note": note, "pot": pot, "forme": rng.randf_range(0.5, 0.8), "fatigue": 0.0,
-		"blesse": 0, "salaire": ClubDonnees.salaire(note), "contrat": 0, "buts": 0, "matchs": 0, "buts_saison": 0,
+		"blesse": 0, "salaire": ClubSports.salaire(sport, note), "contrat": 0, "buts": 0, "matchs": 0, "buts_saison": 0,
 		"matchs_saison": 0, "pid": -1, "repos": false, "benevole": false}
 
 
@@ -355,9 +428,9 @@ func _annee_saison() -> int:
 
 
 func _effectif_depart() -> void:
-	var niveau := float(ClubDonnees.division(0).niveau)
-	var postes := ["G", "G", "D", "D", "D", "D", "D", "D", "D", "M", "M", "M", "M", "M", "M", "M", "A", "A", "A", "A"]
-	var locaux := _habitants_footballeurs()
+	var niveau := float(_div(0).niveau)
+	var postes: Array = sp().effectif
+	var locaux := _habitants_sportifs()
 	var fin := _annee_saison() + 1
 	for i in postes.size():
 		var poste: String = postes[i]
@@ -377,17 +450,23 @@ func _effectif_depart() -> void:
 		joueurs[int(p.id)] = p
 
 
-## Habitants de 17 à 34 ans qui aiment le football (pour l'équipe amateur).
-func _habitants_footballeurs() -> Array:
+## Habitants de 17 à 34 ans qui pratiquent le sport du club (pour l'équipe amateur).
+func _habitants_sportifs(age_min := 17.0, age_max := 34.0) -> Array:
 	var out := []
 	if population == null:
 		return out
+	var pris := {}
+	for c in [joueurs, espoirs]:
+		for id in c:
+			if int(c[id].get("pid", -1)) >= 0:
+				pris[int(c[id].pid)] = true
+	var hob := ClubSports.hobby(sport)
 	for pid in population.persons:
 		var p: Dictionary = population.persons[pid]
-		if String(p.get("s", "")) != "H" or not (p.get("hob", []) as Array).has("football"):
+		if String(p.get("s", "")) != "H" or not (p.get("hob", []) as Array).has(hob) or pris.has(int(pid)):
 			continue
 		var a := population.age_of(p)
-		if a >= 17.0 and a <= 34.0:
+		if a >= age_min and a <= age_max:
 			out.append({"p": p, "age": a})
 	out.shuffle()
 	return out
@@ -399,8 +478,8 @@ func liste_joueurs(poste := "") -> Array:
 		if poste == "" or String(joueurs[id].poste) == poste:
 			out.append(joueurs[id])
 	out.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
-		var ia := ClubDonnees.ORDRE_POSTES.find(String(a.poste))
-		var ib := ClubDonnees.ORDRE_POSTES.find(String(b.poste))
+		var ia := (sp().ordre as Array).find(String(a.poste))
+		var ib := (sp().ordre as Array).find(String(b.poste))
 		if ia != ib:
 			return ia < ib
 		return float(a.note) > float(b.note))
@@ -418,8 +497,8 @@ func disponible(p: Dictionary) -> bool:
 
 ## Le onze aligné : [{id, poste (joué), hors_poste}], gardien d'abord.
 func onze() -> Array:
-	var f: Dictionary = ClubDonnees.FORMATIONS[String(club.get("formation", "4-4-2"))]
-	var besoin := {"G": 1, "D": int(f.D), "M": int(f.M), "A": int(f.A)}
+	var besoin := ClubSports.besoins(sport, String(club.get("formation", sp().formation)))
+	var ordre: Array = sp().ordre
 	var libres := []
 	for id in joueurs:
 		if disponible(joueurs[id]):
@@ -427,7 +506,7 @@ func onze() -> Array:
 	libres.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return note_eff(a) > note_eff(b))
 	var out := []
 	var pris := {}
-	for poste in ClubDonnees.ORDRE_POSTES:
+	for poste in ordre:
 		var n := int(besoin[poste])
 		for p in libres:
 			if n <= 0:
@@ -438,7 +517,7 @@ func onze() -> Array:
 				n -= 1
 		besoin[poste] = n
 	# Postes vides : les meilleurs restants, hors de leur poste.
-	for poste in ClubDonnees.ORDRE_POSTES:
+	for poste in ordre:
 		var n := int(besoin[poste])
 		for p in libres:
 			if n <= 0:
@@ -460,26 +539,33 @@ func titulaires() -> Dictionary:
 ## Force de l'équipe (même échelle que les notes), et le détail par ligne.
 func force_equipe() -> Dictionary:
 	var xi := onze()
-	var lignes := {"G": [], "D": [], "M": [], "A": []}
+	var lignes := {}
+	for k in sp().ordre:
+		lignes[k] = []
 	for o in xi:
 		var p: Dictionary = joueurs[int(o.id)]
 		var v := note_eff(p) * (0.75 if bool(o.hors_poste) else 1.0)
 		(lignes[String(o.poste)] as Array).append(v)
 	var moy := {}
+	var total := 0.0
+	var poids: Dictionary = sp().poids
 	for k in lignes:
 		var a: Array = lignes[k]
 		var s := 0.0
 		for v in a:
 			s += float(v)
 		moy[k] = s / a.size() if not a.is_empty() else 25.0
-	var total := float(moy.G) * 0.12 + float(moy.D) * 0.3 + float(moy.M) * 0.3 + float(moy.A) * 0.28
-	# Moins de onze : grosse pénalité.
-	total *= clampf(xi.size() / 11.0, 0.3, 1.0)
-	return {"force": total, "G": moy.G, "D": moy.D, "M": moy.M, "A": moy.A, "n": xi.size()}
+		total += float(moy[k]) * float(poids.get(k, 0.0))
+	# Il manque des titulaires : grosse pénalité.
+	var need := ClubSports.titulaires(sport, String(club.get("formation", sp().formation)))
+	total *= clampf(float(xi.size()) / float(maxi(need, 1)), 0.3, 1.0)
+	var out := {"force": total, "n": xi.size()}
+	out.merge(moy)
+	return out
 
 
 func set_formation(f: String) -> void:
-	if ClubDonnees.FORMATIONS.has(f):
+	if (sp().formations as Dictionary).has(f):
 		club.formation = f
 		changed.emit()
 
@@ -512,16 +598,16 @@ func set_prix(prix: float) -> void:
 
 func _renouveler_marche() -> void:
 	marche.clear()
-	var niv := float(ClubDonnees.division(int(club.get("division", 0))).niveau)
-	var postes := ["G", "D", "D", "D", "M", "M", "M", "A", "A", "A", "D", "M", "A", "G"]
+	var niv := float(_div(int(club.get("division", 0))).niveau)
+	var postes: Array = sp().marche
 	for i in postes.size():
 		var a := rng.randf_range(17.5, 34.0)
 		var p := _nouveau_joueur(postes[i], niv + rng.randf_range(-6.0, 9.0), a, 4.0)
 		var libre := rng.randf() < 0.3 or a > 31.0
 		p.libre = libre
-		p.prix = 0.0 if libre else roundf(ClubDonnees.valeur(float(p.note), a, float(p.pot)) * rng.randf_range(0.9, 1.3) / 1000.0) * 1000.0
-		p.salaire = roundf(ClubDonnees.salaire(float(p.note)) * rng.randf_range(1.0, 1.2) / 10.0) * 10.0
-		p.club_origine = "" if libre else String(ClubDonnees.ADVERSES[rng.randi() % ClubDonnees.ADVERSES.size()])
+		p.prix = 0.0 if libre else roundf(ClubSports.valeur(sport, float(p.note), a, float(p.pot)) * rng.randf_range(0.9, 1.3) / 1000.0) * 1000.0
+		p.salaire = roundf(ClubSports.salaire(sport, float(p.note)) * rng.randf_range(1.0, 1.2) / 10.0) * 10.0
+		p.club_origine = "" if libre else String(_adverses()[rng.randi() % _adverses().size()])
 		marche.append(p)
 
 
@@ -529,9 +615,9 @@ func _renouveler_marche() -> void:
 func peut_acheter(p: Dictionary) -> String:
 	if not fonde():
 		return "Fonde d'abord le club."
-	if joueurs.size() >= MAX_JOUEURS:
-		return "Effectif complet (%d joueurs)." % MAX_JOUEURS
-	var niv := float(ClubDonnees.division(int(club.division)).niveau)
+	if joueurs.size() >= max_joueurs():
+		return "Effectif complet (%d joueurs)." % max_joueurs()
+	var niv := float(_div(int(club.division)).niveau)
 	if float(p.note) > niv + 12.0 + float(club.reputation) * 0.08:
 		return "Il trouve le club trop modeste pour lui."
 	if float(club.caisse) < float(p.prix) + float(p.salaire) * 2.0:
@@ -556,14 +642,14 @@ func acheter(id: int) -> String:
 		for k in ["libre", "prix", "club_origine"]:
 			p.erase(k)
 		joueurs[int(p.id)] = p
-		_news("%s signe au club (%s, %d ans, note %d)." % [nom_joueur(p), String(ClubDonnees.POSTES[p.poste]).to_lower(), int(age(p)), int(p.note)])
+		_news("%s signe au club (%s, %d ans, note %d)." % [nom_joueur(p), String(sp().postes[p.poste]).to_lower(), int(age(p)), int(p.note)])
 		changed.emit()
 		return ""
 	return "Ce joueur n'est plus sur le marché."
 
 
 func valeur_de(p: Dictionary) -> float:
-	return ClubDonnees.valeur(float(p.note), age(p), float(p.pot))
+	return ClubSports.valeur(sport, float(p.note), age(p), float(p.pot))
 
 
 func vendre(id: int) -> String:
@@ -573,7 +659,7 @@ func vendre(id: int) -> String:
 	if bool(p.benevole) and valeur_de(p) < 5000.0:
 		return liberer(id)
 	var prix := roundf(valeur_de(p) * rng.randf_range(0.8, 1.05) / 1000.0) * 1000.0
-	var acheteur: String = ClubDonnees.ADVERSES[rng.randi() % ClubDonnees.ADVERSES.size()]
+	var acheteur: String = _adverses()[rng.randi() % _adverses().size()]
 	joueurs.erase(id)
 	_flux("Transferts (ventes)", prix)
 	_news("%s part au %s pour %s." % [nom_joueur(p), acheteur, BuildingSystem.format_money(int(prix))])
@@ -603,7 +689,7 @@ func prolonger(id: int) -> String:
 		return "À %d ans, il préfère finir sa carrière." % int(age(p))
 	p.contrat = maxi(int(p.contrat), _annee_saison() + 1) + 2
 	if not bool(p.benevole):
-		p.salaire = maxf(float(p.salaire), roundf(ClubDonnees.salaire(float(p.note)) * 1.1 / 10.0) * 10.0)
+		p.salaire = maxf(float(p.salaire), roundf(ClubSports.salaire(sport, float(p.note)) * 1.1 / 10.0) * 10.0)
 	changed.emit()
 	return ""
 
@@ -616,7 +702,9 @@ func masse_salariale() -> float:
 
 
 func staff() -> float:
-	return 1500.0 + masse_salariale() * 0.15 + float(club.get("division", 0)) * 8000.0
+	if sport == "football":
+		return 1500.0 + masse_salariale() * 0.15 + float(club.get("division", 0)) * 8000.0
+	return 600.0 + masse_salariale() * 0.15 + float(club.get("division", 0)) * 8000.0 * float(sp().eco)
 
 
 func _semaine() -> void:
@@ -641,26 +729,172 @@ func _semaine() -> void:
 		if int(p.blesse) <= 0 and rng.randf() < 0.006 * float(tr[2]):
 			p.blesse = rng.randi_range(3, 14)
 			_news("%s se blesse à l'entraînement (%d jours)." % [nom_joueur(p), int(p.blesse)])
+	_semaine_espoirs(float(tr[0]))
 	_completer_effectif()
 
 
-## Trop peu de joueurs : des jeunes du centre de formation complètent.
+## Trop peu de joueurs : les meilleurs espoirs passent pro, sinon des jeunes
+## du coin complètent.
 func _completer_effectif() -> void:
-	while joueurs.size() < MIN_JOUEURS:
-		var postes := ["G", "D", "D", "M", "M", "A"]
-		var p := _nouveau_joueur(postes[joueurs.size() % postes.size()], float(ClubDonnees.division(int(club.division)).niveau) - 8.0, rng.randf_range(17.0, 19.5))
+	while joueurs.size() < min_joueurs():
+		var best := -1
+		for id in espoirs:
+			if best < 0 or float(espoirs[id].note) > float(espoirs[best].note):
+				best = int(id)
+		if best >= 0:
+			promouvoir(best)
+			continue
+		var postes: Array = sp().jeunes
+		var p := _nouveau_joueur(postes[joueurs.size() % postes.size()], float(_div(int(club.division)).niveau) - 8.0, rng.randf_range(17.0, 19.5))
 		p.contrat = _annee_saison() + 2
 		joueurs[int(p.id)] = p
 		_news("Un jeune du centre de formation, %s, rejoint l'équipe." % nom_joueur(p))
 
 
+# --- Centre de formation ----------------------------------------------------------------------
+
+func academie() -> Dictionary:
+	return ClubSports.ACADEMIE[clampi(int(club.get("academie", 0)), 0, ClubSports.ACADEMIE.size() - 1)]
+
+
+## Coût mensuel d'un niveau (selon le sport).
+func cout_academie(niveau: int) -> float:
+	var a: Dictionary = ClubSports.ACADEMIE[clampi(niveau, 0, ClubSports.ACADEMIE.size() - 1)]
+	return roundf(float(a.cout) * clampf(float(sp().eco), 0.25, 1.0) / 100.0) * 100.0
+
+
+## Un centre de formation est-il bâti (et terminé) dans la ville ?
+func centre_bati() -> bool:
+	if buildings == null:
+		return false
+	for bid in buildings.buildings:
+		var b: Dictionary = buildings.buildings[bid]
+		if not b.get("chantier", false) and BuildingCatalog.base_of(String(b.t)) == "centre_formation":
+			return true
+	return false
+
+
+func set_academie(niveau: int) -> String:
+	if not fonde():
+		return "Fonde d'abord le club."
+	niveau = clampi(niveau, 0, ClubSports.ACADEMIE.size() - 1)
+	var a: Dictionary = ClubSports.ACADEMIE[niveau]
+	if bool(a.bati) and not centre_bati():
+		return "Il faut d'abord bâtir un centre de formation dans la ville (Construire → Sport)."
+	var avant := int(club.get("academie", 0))
+	club.academie = niveau
+	if niveau > avant:
+		_news("%s : %s ouvert (%s par mois)." % [String(club.nom), String(a.nom).to_lower(), BuildingSystem.format_money(int(cout_academie(niveau)))])
+		if espoirs.is_empty():
+			_recruter_espoirs()
+	elif niveau < avant:
+		_news("%s réduit son centre de formation : %s." % [String(club.nom), String(a.nom).to_lower()])
+	changed.emit()
+	return ""
+
+
+## Nouvelle promotion de jeunes (début de saison) : d'abord les enfants de la
+## ville qui pratiquent le sport, puis des jeunes repérés ailleurs.
+func _recruter_espoirs() -> void:
+	var a := academie()
+	var n := int(a.n)
+	if n <= 0:
+		return
+	var niveau := float(_div(int(club.division)).niveau)
+	var locaux := _habitants_sportifs(14.0, 17.5)
+	var postes: Array = sp().jeunes
+	var noms := []
+	for i in n:
+		if espoirs.size() >= 12:
+			break
+		var poste: String = postes[(espoirs.size() + i) % postes.size()]
+		var p: Dictionary
+		if not locaux.is_empty() and (i < n - 1 or rng.randf() < 0.5):
+			var h: Dictionary = locaux.pop_back()
+			p = _nouveau_joueur(poste, niveau - 20.0, float(h.age), 4.0)
+			p.prenom = String(h.p.p)
+			p.nom = String(h.p.n)
+			p.pid = int(h.p.id)
+			p.pot = clampf(float(p.note) + 14.0 + float(a.pot) + rng.randf_range(0.0, 12.0), float(p.note), 94.0)
+		else:
+			p = _nouveau_joueur(poste, niveau - 18.0, rng.randf_range(15.0, 17.0), 4.0)
+			p.pot = clampf(float(p.note) + 14.0 + float(a.pot) + rng.randf_range(0.0, 14.0), float(p.note), 96.0)
+		p.espoir = true
+		p.salaire = 0.0
+		p.contrat = 0
+		espoirs[int(p.id)] = p
+		noms.append("%s%s" % [nom_joueur(p), " (de la ville)" if int(p.pid) >= 0 else ""])
+	if not noms.is_empty():
+		_news("Centre de formation de %s : %d jeunes arrivent (%s)." % [String(club.nom), noms.size(), ", ".join(noms)])
+
+
+func _semaine_espoirs(entrainement: float) -> void:
+	var bonus := 1.0 + float(club.get("academie", 0)) * 0.2 + (0.2 if centre_bati() else 0.0)
+	for id in espoirs:
+		var p: Dictionary = espoirs[id]
+		var g := 0.42 * entrainement * bonus * clampf((float(p.pot) - float(p.note)) / 8.0, 0.0, 1.0)
+		p.note = clampf(float(p.note) + g, 20.0, 96.0)
+		p.forme = clampf(float(p.forme) + rng.randf_range(-0.04, 0.05), 0.3, 1.0)
+
+
+func liste_espoirs() -> Array:
+	var out: Array = espoirs.values()
+	out.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return float(a.pot) > float(b.pot))
+	return out
+
+
+## Le jeune signe son premier contrat pro (trois saisons, petit salaire).
+func promouvoir(id: int) -> String:
+	if not espoirs.has(id):
+		return "Ce jeune n'est plus au centre."
+	if joueurs.size() >= max_joueurs():
+		return "Effectif complet (%d joueurs)." % max_joueurs()
+	var p: Dictionary = espoirs[id]
+	espoirs.erase(id)
+	p.erase("espoir")
+	p.forme_club = true
+	p.contrat = _annee_saison() + 3
+	p.salaire = roundf(ClubSports.salaire(sport, float(p.note)) * 0.6 / 10.0) * 10.0
+	joueurs[id] = p
+	_news("%s, formé au club, signe son premier contrat pro (%d ans, note %d, potentiel %d)." % [nom_joueur(p), int(age(p)), int(p.note), int(p.pot)])
+	if int(p.pid) >= 0:
+		_penser("habitant_pro", [String(p.prenom)], 3)
+		club.humeur = clampf(float(club.get("humeur", 0.0)) + 0.15, -1.0, 1.0)
+	changed.emit()
+	return ""
+
+
+func liberer_espoir(id: int) -> String:
+	if not espoirs.has(id):
+		return "Ce jeune n'est plus au centre."
+	var p: Dictionary = espoirs[id]
+	espoirs.erase(id)
+	_news("%s quitte le centre de formation." % nom_joueur(p))
+	changed.emit()
+	return ""
+
+
+## Fin de saison : les espoirs de 19 ans et plus doivent passer pro ou partir.
+func _fin_saison_espoirs() -> void:
+	for id in espoirs.keys():
+		var p: Dictionary = espoirs[id]
+		if age(p) >= 19.0:
+			if float(p.note) >= float(_div(int(club.division)).niveau) - 6.0 and joueurs.size() < max_joueurs():
+				promouvoir(int(id))
+			else:
+				espoirs.erase(id)
+				_news("%s (%d ans) quitte le centre de formation sans contrat pro." % [nom_joueur(p), int(age(p))])
+
+
 func _mois(now: Dictionary) -> void:
 	_flux("Salaires des joueurs", -masse_salariale())
 	_flux("Staff et frais du club", -staff())
+	if int(club.get("academie", 0)) > 0:
+		_flux("Centre de formation", -cout_academie(int(club.academie)))
 	var m := int(now.month)
 	# Sponsors et droits télé : versés d'août à mai (dix mensualités).
 	if m >= 8 or m <= 5:
-		var div := ClubDonnees.division(int(club.division))
+		var div := _div(int(club.division))
 		var rep := 0.6 + float(club.reputation) / 100.0 * 0.8
 		_flux("Sponsors (%s)" % String(club.sponsor), float(div.sponsors) * rep / 10.0)
 		if float(div.tv) > 0.0:
@@ -675,14 +909,14 @@ func _mois(now: Dictionary) -> void:
 ## Clubs adverses inventés d'une division.
 func _adversaires(div: int, garder: Array) -> Dictionary:
 	var out := {}
-	var niv := float(ClubDonnees.division(div).niveau)
-	var pool := ClubDonnees.ADVERSES.duplicate()
+	var niv := float(_div(div).niveau)
+	var pool := _adverses().duplicate()
 	var r := RandomNumberGenerator.new()
 	r.seed = hash([String(club.nom), div, String(ligue.get("saison", ""))])
 	for g in garder:
 		pool.erase(g)
 	var noms := garder.duplicate()
-	while noms.size() < ClubDonnees.NB_CLUBS - 1 and not pool.is_empty():
+	while noms.size() < int(sp().nb_clubs) - 1 and not pool.is_empty():
 		var k := r.randi() % pool.size()
 		noms.append(pool[k])
 		pool.remove_at(k)
@@ -715,7 +949,7 @@ func nouvelle_saison(day: int) -> void:
 				garder.append(c)
 				k += 1
 	ligue = {"saison": s, "division": div, "clubs": {}, "journees": [], "fini": false}
-	var clubs := _adversaires(div, garder.slice(0, ClubDonnees.NB_CLUBS - 1))
+	var clubs := _adversaires(div, garder.slice(0, int(sp().nb_clubs) - 1))
 	clubs[String(club.nom)] = _fiche(String(club.nom), club.couleurs, 0.0, true)
 	ligue.clubs = clubs
 	for id in joueurs:
@@ -725,9 +959,13 @@ func nouvelle_saison(day: int) -> void:
 	club.finances = {}
 	club.serie = []
 	_calendrier(day)
+	club.abo = 0
+	if int(club.get("fonde", day)) != day:
+		_abonnements()
+	_recruter_espoirs()
 	var nj := (ligue.journees as Array).size()
 	if nj > 0:
-		_news("Saison %s : %s en %s, %d journées. Premier match le %s." % [s, String(club.nom), ClubDonnees.division(div).nom, nj, date_texte(int(ligue.journees[0].d))])
+		_news("Saison %s : %s en %s, %d journées. Premier match le %s." % [s, String(club.nom), _div(div).nom, nj, date_texte(int(ligue.journees[0].d))])
 	else:
 		_news("Le championnat %s a déjà commencé : le club s'entraîne et jouera dès la saison prochaine." % s)
 	changed.emit()
@@ -738,18 +976,23 @@ func nouvelle_saison(day: int) -> void:
 func _calendrier(day: int) -> void:
 	var d := date_of(day)
 	var y := int(d.year) if int(d.month) >= 7 else int(d.year) - 1
-	var debut := maxi(day + 2, day_of(y, 8, 8))
-	var fin := day_of(y + 1, 5, 31)
-	var treve := [day_of(y, 12, 18), day_of(y + 1, 1, 20)]
+	var S := sp()
+	var db: Array = S.debut
+	var fn: Array = S.fin
+	var debut := maxi(day + 2, _jour_saison(y, db))
+	var fin := _jour_saison(y, fn)
+	var treve := [-1, -2]
+	if not (S.treve as Array).is_empty():
+		treve = [_jour_saison(y, S.treve[0]), _jour_saison(y, S.treve[1])]
 	var samedis := []
 	var mercredis := []
 	for k in range(debut, fin + 1):
 		if k >= int(treve[0]) and k <= int(treve[1]):
 			continue
 		var wd := int(date_of(k).wd)
-		if wd == 6:
+		if wd == int(S.jour):
 			samedis.append(k)
-		elif wd == 3:
+		elif wd == int(S.jour2):
 			mercredis.append(k)
 	var noms := (ligue.clubs as Dictionary).keys()
 	noms.sort()
@@ -760,26 +1003,80 @@ func _calendrier(day: int) -> void:
 		var tmp = noms[i]
 		noms[i] = noms[k2]
 		noms[k2] = tmp
-	var rounds := ClubDonnees.round_robin(noms, true)
+	var ar := bool(S.aller_retour)
+	var rounds := ClubDonnees.round_robin(noms, ar)
 	var dates := samedis.duplicate()
 	if dates.size() < rounds.size():
 		dates.append_array(mercredis)
 		dates.sort()
-	if dates.size() < rounds.size():
+	if dates.size() < rounds.size() and ar:
 		rounds = ClubDonnees.round_robin(noms, false)
 	if dates.size() < rounds.size():
 		ligue.journees = []
 		return
-	var heure := float(ClubDonnees.division(int(ligue.division)).heure)
+	var heure := float(_div(int(ligue.division)).heure)
 	var js := []
 	for i in rounds.size():
 		var idx := int(roundf(float(i) * float(dates.size() - 1) / float(maxi(rounds.size() - 1, 1))))
 		if rounds.size() == 1:
 			idx = 0
 		var dd := int(dates[idx])
-		var h := heure if int(date_of(dd).wd) == 6 else 20.0
+		var h := heure if int(date_of(dd).wd) == int(S.jour) else (14.0 if sport == "tennis" else 20.0)
 		js.append({"n": i + 1, "d": dd, "h": h, "matchs": rounds[i], "scores": [], "joue": false, "prepare": false, "mon": {}})
 	ligue.journees = js
+
+
+## Jour d'une date [mois, jour] de la saison qui commence en juillet de l'année y.
+static func _jour_saison(y: int, md: Array) -> int:
+	return day_of(y if int(md[0]) >= 7 else y + 1, int(md[0]), int(md[1]))
+
+
+# --- Abonnements -------------------------------------------------------------------------------
+
+func nb_domicile() -> int:
+	var n := 0
+	for j in ligue.get("journees", []):
+		var m := mon_match(j)
+		if not m.is_empty() and String(m[0]) == String(club.nom):
+			n += 1
+	return n
+
+
+## Prix conseillé de l'abonnement : 70 % des billets de la saison.
+func abo_prix_ref() -> float:
+	return roundf(float(_div(int(club.get("division", 0))).prix) * maxi(nb_domicile(), 1) * 0.7)
+
+
+## Abonnés attendus à ce prix (supporters fidèles et habitants fans).
+func abonnes_attendus(prix: float) -> int:
+	var cap := places()
+	if cap <= 0 or nb_domicile() <= 0:
+		return 0
+	var ref := maxf(abo_prix_ref(), 1.0)
+	var pf := clampf(pow(ref / maxf(prix, 1.0), 1.5), 0.05, 2.0)
+	var base := float(club.get("supporters", 0.0)) * 0.35 + float(_fans_locaux()) * 0.25
+	return mini(int(cap * 0.6), int(base * pf))
+
+
+## Vente des abonnements (début de saison) : payés d'avance, places assurées.
+func _abonnements() -> void:
+	if nb_domicile() <= 0:
+		return
+	if float(club.get("abo_prix", 0.0)) <= 0.0:
+		club.abo_prix = abo_prix_ref()
+	club.abo = abonnes_attendus(float(club.abo_prix))
+	if int(club.abo) > 0:
+		_flux("Abonnements", float(club.abo) * float(club.abo_prix))
+		_news("%s : %s abonnés pour la saison (%s l'abonnement)." % [String(club.nom), Stades._milliers(int(club.abo)), BuildingSystem.format_money(int(club.abo_prix))])
+		_penser("abonne", [], 2)
+		if float(club.abo_prix) > abo_prix_ref() * 1.4:
+			_penser("abo_cher", [int(club.abo_prix)], 2)
+
+
+func set_abo_prix(v: float) -> void:
+	if fonde():
+		club.abo_prix = clampf(roundf(v), 0.0, 20_000.0)
+		changed.emit()
 
 
 func journee_du_jour(day: int) -> Dictionary:
@@ -810,8 +1107,21 @@ func _force_de(nom: String) -> float:
 	return float(ligue.clubs[nom].force) if ligue.clubs.has(nom) else 50.0
 
 
-## Tire un match : {buts: [{min, side, buteur}], score: [d, e]}.
+## Tire un match : {buts: [{min, side, buteur, pts}], score: [d, e]} et, selon
+## le sport, prol (prolongation), suffixe (« a.p. », « t.a.b. »), bonus [d, e]
+## (rugby), essais [d, e].
 func simuler(dom: String, ext: String, r: RandomNumberGenerator) -> Dictionary:
+	match String(sp().modele):
+		"basket":
+			return _sim_points(dom, ext, r, true)
+		"handball":
+			return _sim_points(dom, ext, r, false)
+		"hockey":
+			return _sim_hockey(dom, ext, r)
+		"rugby":
+			return _sim_rugby(dom, ext, r)
+		"tennis":
+			return _sim_tennis(dom, ext, r)
 	var fd := _force_de(dom)
 	var fe := _force_de(ext)
 	var ld := 1.35 * exp((fd - fe) / 10.0) * 1.1
@@ -835,17 +1145,192 @@ func simuler(dom: String, ext: String, r: RandomNumberGenerator) -> Dictionary:
 	return {"buts": buts, "score": sc}
 
 
-func _buteur(r: RandomNumberGenerator) -> String:
+## Multiplicateurs de la tactique du club : [marqués par dom, marqués par ext].
+func _tact(dom: String, ext: String, force := 1.0) -> Array:
+	var t: Array = ClubDonnees.TACTIQUES[String(club.tactique)]
+	var a := 1.0 + (float(t[0]) - 1.0) * force
+	var b := 1.0 + (float(t[1]) - 1.0) * force
+	if dom == String(club.nom):
+		return [a, b]
+	if ext == String(club.nom):
+		return [b, a]
+	return [1.0, 1.0]
+
+
+## Basket (paniers à 1, 2 ou 3 points, prolongation en cas d'égalité) ou
+## handball (buts, le nul existe).
+func _sim_points(dom: String, ext: String, r: RandomNumberGenerator, basket: bool) -> Dictionary:
+	var fd := _force_de(dom)
+	var fe := _force_de(ext)
+	var tm := _tact(dom, ext, 0.5)
+	var moy := float(sp().moy)
+	var k := 1.1 if basket else 0.42
+	var home := 3.0 if basket else 1.2
+	var sd := 9.0 if basket else 3.5
+	var plancher := 35 if basket else 12
+	var sc := [maxi(int(roundf((moy + (fd - fe) * k + home) * float(tm[0]) + r.randfn(0.0, sd))), plancher),
+		maxi(int(roundf((moy + (fe - fd) * k) * float(tm[1]) + r.randfn(0.0, sd))), plancher)]
+	var res := {"score": sc, "buts": []}
+	var fin := float(int((sp().per as Array)[0]) * int((sp().per as Array)[1]))
+	var prol := [0, 0]
+	if basket and int(sc[0]) == int(sc[1]):
+		# Prolongation (5 minutes) : on rejoue jusqu'à ce qu'il y ait un vainqueur.
+		var pd := 1.0 / (1.0 + exp(-(fd + home - fe) / 8.0))
+		prol = [r.randi_range(6, 14), r.randi_range(6, 14)]
+		if prol[0] == prol[1]:
+			if r.randf() < pd:
+				prol[0] += r.randi_range(1, 4)
+			else:
+				prol[1] += r.randi_range(1, 4)
+		res.prol = true
+		res.suffixe = "a.p."
 	var xi := onze()
-	var poids := {"G": 0.0, "D": 0.5, "M": 1.6, "A": 4.0}
+	for side in 2:
+		var nom := dom if side == 0 else ext
+		var moi := nom == String(club.nom)
+		for part in 2:
+			var reste := int(sc[side]) if part == 0 else int(prol[side])
+			while reste > 0:
+				var pts := 1
+				if basket:
+					var u := r.randf()
+					pts = 3 if u < 0.3 else (2 if u < 0.85 else 1)
+					pts = mini(pts, reste)
+				reste -= pts
+				var mn := r.randf_range(0.3, fin - 0.05) if part == 0 else fin
+				res.buts.append({"min": mn, "side": side, "pts": pts, "buteur": _buteur(r, xi) if moi else ""})
+	res.score = [int(sc[0]) + int(prol[0]), int(sc[1]) + int(prol[1])]
+	res.buts.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return float(a.min) < float(b.min))
+	return res
+
+
+## Hockey : buts (environ trois par équipe), prolongation puis tirs au but.
+func _sim_hockey(dom: String, ext: String, r: RandomNumberGenerator) -> Dictionary:
+	var fd := _force_de(dom)
+	var fe := _force_de(ext)
+	var tm := _tact(dom, ext)
+	var moy := float(sp().moy)
+	var ld := clampf(moy * exp((fd - fe) / 10.0) * 1.08 * float(tm[0]), 0.4, 8.0)
+	var le := clampf(moy * exp((fe - fd) / 10.0) * 0.93 * float(tm[1]), 0.4, 8.0)
+	var sc := [ClubDonnees.poisson(r, ld), ClubDonnees.poisson(r, le)]
+	var res := {"score": sc, "buts": []}
+	var xi := onze()
+	for side in 2:
+		var moi := (dom if side == 0 else ext) == String(club.nom)
+		for i in int(sc[side]):
+			res.buts.append({"min": r.randf_range(0.5, 59.8), "side": side, "pts": 1, "buteur": _buteur(r, xi) if moi else ""})
+	if int(sc[0]) == int(sc[1]):
+		var pd := 1.0 / (1.0 + exp(-(fd + 1.5 - fe) / 8.0))
+		var gagnant := 0 if r.randf() < pd else 1
+		var tab := r.randf() < 0.45
+		var moi2 := (dom if gagnant == 0 else ext) == String(club.nom)
+		res.buts.append({"min": 60.0, "side": gagnant, "pts": 1, "buteur": "" if tab or not moi2 else _buteur(r, xi)})
+		sc[gagnant] = int(sc[gagnant]) + 1
+		res.prol = true
+		res.suffixe = "t.a.b." if tab else "a.p."
+	res.buts.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return float(a.min) < float(b.min))
+	return res
+
+
+## Rugby : essais (5 points, transformés à 2), pénalités (3), bonus offensif
+## (trois essais de plus que l'adversaire) et défensif (défaite de 5 points ou moins).
+func _sim_rugby(dom: String, ext: String, r: RandomNumberGenerator) -> Dictionary:
+	var fd := _force_de(dom)
+	var fe := _force_de(ext)
+	var tm := _tact(dom, ext)
+	var moy := float(sp().moy)
+	var essais := [ClubDonnees.poisson(r, clampf(moy * exp((fd - fe) / 9.0) * 1.12 * float(tm[0]), 0.2, 9.0)),
+		ClubDonnees.poisson(r, clampf(moy * exp((fe - fd) / 9.0) * 0.9 * float(tm[1]), 0.2, 9.0))]
+	var pens := [ClubDonnees.poisson(r, clampf(2.2 * exp((fd - fe) / 18.0), 0.4, 6.0)),
+		ClubDonnees.poisson(r, clampf(2.0 * exp((fe - fd) / 18.0), 0.4, 6.0))]
+	var res := {"buts": [], "essais": essais}
+	var sc := [0, 0]
+	var xi := onze()
+	for side in 2:
+		var moi := (dom if side == 0 else ext) == String(club.nom)
+		for i in int(essais[side]):
+			var mn := r.randf_range(0.5, 79.0)
+			res.buts.append({"min": mn, "side": side, "pts": 5, "buteur": _buteur(r, xi) if moi else ""})
+			sc[side] += 5
+			if r.randf() < 0.72:
+				res.buts.append({"min": mn + 0.6, "side": side, "pts": 2, "buteur": ""})
+				sc[side] += 2
+		for i in int(pens[side]):
+			res.buts.append({"min": r.randf_range(0.5, 79.8), "side": side, "pts": 3, "buteur": ""})
+			sc[side] += 3
+	res.score = sc
+	var bonus := [0, 0]
+	for side in 2:
+		var o := 1 - side
+		if int(sc[side]) > int(sc[o]) and int(essais[side]) >= int(essais[o]) + 3:
+			bonus[side] = 1
+		elif int(sc[side]) < int(sc[o]) and int(sc[o]) - int(sc[side]) <= 5:
+			bonus[side] = 1
+	res.bonus = bonus
+	res.buts.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return float(a.min) < float(b.min))
+	return res
+
+
+## Forces des quatre joueurs alignés (les meilleurs d'abord).
+func _quatre(nom: String) -> Array:
+	if nom == String(club.nom):
+		var out := []
+		for o in onze():
+			out.append([note_eff(joueurs[int(o.id)]), str(int(o.id))])
+		out.sort_custom(func(a: Array, b: Array) -> bool: return float(a[0]) > float(b[0]))
+		while out.size() < 4:
+			out.append([25.0, ""])
+		return out.slice(0, 4)
+	var f := _force_de(nom)
+	return [[f + 4.0, ""], [f + 1.5, ""], [f - 1.5, ""], [f - 4.0, ""]]
+
+
+## Tennis par équipes : quatre simples (du n° 4 au n° 1) puis deux doubles ;
+## chaque partie gagnée vaut un point (score sur 6, le nul existe).
+func _sim_tennis(dom: String, ext: String, r: RandomNumberGenerator) -> Dictionary:
+	var a := _quatre(dom)
+	var b := _quatre(ext)
+	var parties := [[3, 3], [2, 2], [1, 1], [0, 0]]
+	var res := {"buts": [], "score": [0, 0]}
+	var sc := [0, 0]
+	for i in 6:
+		var fa := 0.0
+		var fb := 0.0
+		var qui_a := ""
+		var qui_b := ""
+		if i < 4:
+			fa = float(a[parties[i][0]][0])
+			fb = float(b[parties[i][1]][0])
+			qui_a = String(a[parties[i][0]][1])
+			qui_b = String(b[parties[i][1]][1])
+		else:
+			var x := 0 if i == 4 else 2
+			fa = (float(a[x][0]) + float(a[x + 1][0])) * 0.5
+			fb = (float(b[x][0]) + float(b[x + 1][0])) * 0.5
+			qui_a = String(a[x][1])
+			qui_b = String(b[x][1])
+		var p := 1.0 / (1.0 + exp(-(fa + 1.0 - fb) / 5.0))
+		var side := 0 if r.randf() < p else 1
+		sc[side] += 1
+		res.buts.append({"min": float(i + 1), "side": side, "pts": 1, "buteur": qui_a if side == 0 else qui_b})
+	res.score = sc
+	return res
+
+
+func _buteur(r: RandomNumberGenerator, xi: Array = []) -> String:
+	if xi.is_empty():
+		xi = onze()
+	if xi.is_empty():
+		return ""
+	var poids: Dictionary = sp().marqueur
 	var tot := 0.0
 	for o in xi:
-		tot += float(poids[String(o.poste)]) * float(joueurs[int(o.id)].note)
+		tot += float(poids.get(String(o.poste), 1.0)) * float(joueurs[int(o.id)].note)
 	if tot <= 0.0:
 		return ""
 	var u := r.randf() * tot
 	for o in xi:
-		u -= float(poids[String(o.poste)]) * float(joueurs[int(o.id)].note)
+		u -= float(poids.get(String(o.poste), 1.0)) * float(joueurs[int(o.id)].note)
 		if u <= 0.0:
 			return str(int(o.id))
 	return str(int(xi[-1].id))
@@ -886,11 +1371,12 @@ func affluence(adversaire: String) -> int:
 		for i in 3:
 			if String(cl[i].nom) == adversaire:
 				attrait += 0.2
-	var div := ClubDonnees.division(int(club.division))
+	var div := _div(int(club.division))
 	var prix := maxf(float(club.prix), 0.5)
 	var pf := clampf(pow(float(div.prix) / prix, 1.3), 0.12, 1.9)
 	var ext := float(club.supporters) * (1.0 + int(club.division) * 0.5)
-	return mini(cap, int((locaux + ext) * attrait * pf))
+	# Les abonnés viennent quoi qu'il arrive (ils ont payé leur place).
+	return mini(cap, maxi(int((locaux + ext) * attrait * pf), int(club.get("abo", 0))))
 
 
 func _fans_locaux() -> int:
@@ -899,9 +1385,10 @@ func _fans_locaux() -> int:
 	if population == null:
 		return 0
 	var n := 0.0
+	var hob := ClubSports.hobby(sport)
 	for pid in population.persons:
 		var p: Dictionary = population.persons[pid]
-		if (p.get("hob", []) as Array).has("football"):
+		if (p.get("hob", []) as Array).has(hob):
 			n += 0.55
 		elif population.age_of(p) >= 6.0:
 			n += 0.04 + float(club.reputation) * 0.001
@@ -918,10 +1405,14 @@ func _evenement_stade(j: Dictionary, m: Array, res: Dictionary) -> void:
 	var kick := ev.unix_at(int(j.d), float(j.h))
 	var ext: Dictionary = ligue.clubs.get(String(m[1]), {})
 	var data := {"home": String(m[0]), "away": String(m[1]), "buts": res.buts.duplicate(true), "affluence": int(j.affluence), "fans": 0,
-		"ligue": true, "score": [0, 0], "annonces": 0, "club": true, "cdom": club.couleurs, "cext": ext.get("couleurs", ["f2f2f2", "1b1b1b"])}
+		"ligue": true, "score": [0, 0], "annonces": 0, "club": true, "cdom": club.couleurs, "cext": ext.get("couleurs", ["f2f2f2", "1b1b1b"]),
+		"sport": sport, "suffixe": String(res.get("suffixe", ""))}
 	var pos := Stades.pelouse_monde(buildings, bid).centre as Vector3
-	j.ev = ev.ajouter("match", "%s, %de journée : %s – %s" % [ClubDonnees.division(int(club.division)).nom, int(j.n), String(m[0]), String(m[1])],
-		kick - Matchs.AVANT, kick + Matchs.DUREE, pos, bid, data)
+	var titre := "%s, %de journée : %s – %s" % [_div(int(club.division)).nom, int(j.n), String(m[0]), String(m[1])]
+	if sport != "football":
+		titre = "%s, %s" % [String(sp().court), titre]
+	var duree := Matchs.DUREE if sport == "football" else ClubSports.duree(sport) + 300.0
+	j.ev = ev.ajouter("match", titre, kick - Matchs.AVANT, kick + duree, pos, bid, data)
 
 
 ## Tous les matchs de la journée : résultats, classement, recettes.
@@ -942,8 +1433,10 @@ func jouer_journee(j: Dictionary) -> void:
 			res = simuler(String(m[0]), String(m[1]), r)
 		var sc: Array = res.score
 		scores.append([int(sc[0]), int(sc[1])])
-		_compter(String(m[0]), int(sc[0]), int(sc[1]))
-		_compter(String(m[1]), int(sc[1]), int(sc[0]))
+		var prol := bool(res.get("prol", false))
+		var bonus: Array = res.get("bonus", [0, 0])
+		_compter(String(m[0]), int(sc[0]), int(sc[1]), prol, int(bonus[0]))
+		_compter(String(m[1]), int(sc[1]), int(sc[0]), prol, int(bonus[1]))
 		# Les clubs adverses changent un peu selon leurs résultats.
 		for i in 2:
 			var nom := String(m[i])
@@ -958,21 +1451,26 @@ func jouer_journee(j: Dictionary) -> void:
 	changed.emit()
 
 
-func _compter(nom: String, pour: int, contre: int) -> void:
+## Points au classement selon le sport : victoire, nul, défaite, après
+## prolongation (hockey, basket), bonus (rugby).
+func _compter(nom: String, pour: int, contre: int, prol := false, bonus := 0) -> void:
 	if not ligue.clubs.has(nom):
 		return
+	var P: Dictionary = sp().points
 	var c: Dictionary = ligue.clubs[nom]
 	c.j = int(c.j) + 1
 	c.bp = int(c.bp) + pour
 	c.bc = int(c.bc) + contre
 	if pour > contre:
 		c.g = int(c.g) + 1
-		c.pts = int(c.pts) + 3
+		c.pts = int(c.pts) + int(P.get("VP", P.V) if prol else P.V)
 	elif pour == contre:
 		c.n = int(c.n) + 1
-		c.pts = int(c.pts) + 1
+		c.pts = int(c.pts) + int(P.get("N", 1))
 	else:
 		c.p = int(c.p) + 1
+		c.pts = int(c.pts) + int(P.get("DP", P.D) if prol else P.D)
+	c.pts = int(c.pts) + bonus
 
 
 func _apres_mon_match(j: Dictionary, m: Array) -> void:
@@ -991,30 +1489,44 @@ func _apres_mon_match(j: Dictionary, m: Array) -> void:
 		var p: Dictionary = joueurs[int(id)]
 		p.matchs = int(p.matchs) + 1
 		p.matchs_saison = int(p.matchs_saison) + 1
-		p.fatigue = minf(float(p.fatigue) + 0.3, 1.0)
+		p.fatigue = minf(float(p.fatigue) + 0.3 * ClubSports.fatigue_f(sport, String(club.formation)), 1.0)
 		p.forme = clampf(float(p.forme) + (0.07 if issue == "V" else (-0.05 if issue == "D" else 0.0)) + rng.randf_range(-0.05, 0.05), 0.2, 1.0)
 		if rng.randf() < 0.018 * float(tr[2]):
 			p.blesse = rng.randi_range(5, 45)
 			_news("%s se blesse pendant le match (absent %d jours)." % [nom_joueur(p), int(p.blesse)])
 	var noms_buteurs := []
+	var par_joueur := {}
 	for b in res.buts:
 		var bid := String(b.buteur)
 		if bid != "" and joueurs.has(int(bid)):
 			var p: Dictionary = joueurs[int(bid)]
-			p.buts = int(p.buts) + 1
-			p.buts_saison = int(p.buts_saison) + 1
+			var pts := int(b.get("pts", 1)) if String(sp().modele) in ["basket", "handball"] else 1
+			p.buts = int(p.buts) + pts
+			p.buts_saison = int(p.buts_saison) + pts
+			par_joueur[int(bid)] = int(par_joueur.get(int(bid), 0)) + pts
 			noms_buteurs.append(String(p.nom))
+	# Humeur des supporters de la ville.
+	club.humeur = clampf(float(club.get("humeur", 0.0)) + (0.22 if issue == "V" else (-0.18 if issue == "D" else 0.02)), -1.0, 1.0)
 	# Réputation et supporters.
 	var delta_rep := 0.8 if issue == "V" else (-0.5 if issue == "D" else 0.1)
 	club.reputation = clampf(float(club.reputation) + delta_rep, 0.0, 100.0)
 	club.supporters = maxf(float(club.supporters) * (1.02 if issue == "V" else (0.985 if issue == "D" else 1.0)) + (6.0 if issue == "V" else 0.0), 30.0)
 	var adv := String(m[1]) if dom else String(m[0])
 	var txt := "%s %d – %d %s" % [String(m[0]), int(sc[0]), int(sc[1]), String(m[1])]
-	if not noms_buteurs.is_empty():
-		txt += " (buts : %s)" % ", ".join(noms_buteurs)
+	if String(res.get("suffixe", "")) != "":
+		txt += " (%s)" % String(res.suffixe)
+	if String(sp().modele) in ["basket", "handball"] and not par_joueur.is_empty():
+		var top := -1
+		for id in par_joueur:
+			if top < 0 or int(par_joueur[id]) > int(par_joueur[top]):
+				top = int(id)
+		txt += " (meilleur marqueur : %s, %d %s)" % [nom_joueur(joueurs[top]), int(par_joueur[top]), String(sp().unite[1])]
+	elif not noms_buteurs.is_empty():
+		txt += " (%s : %s)" % [String(sp().unite[1]) if sport != "tennis" else "victoires", ", ".join(noms_buteurs)]
 	if dom:
 		var aff := int(j.get("affluence", 0))
-		var billets := aff * float(club.prix)
+		var payants := maxi(aff - int(club.get("abo", 0)), 0)
+		var billets := payants * float(club.prix)
 		var buvette := aff * BUVETTE
 		var boutique := aff * BOUTIQUE
 		_flux("Billetterie", billets)
@@ -1025,7 +1537,7 @@ func _apres_mon_match(j: Dictionary, m: Array) -> void:
 		_verser_ville("Club de sport : location du stade", loyer)
 		j.recettes = billets + buvette + boutique
 		_penser("victoire" if issue == "V" else ("defaite" if issue == "D" else "nul"), [], 3)
-		var ref := float(ClubDonnees.division(int(club.division)).prix)
+		var ref := float(_div(int(club.division)).prix)
 		if float(club.prix) > ref * 1.5:
 			_penser("cher", [int(club.prix)], 2)
 		elif float(club.prix) <= ref * 0.8:
@@ -1073,13 +1585,13 @@ func _verifier_fin() -> void:
 	ligue.fini = true
 	var cl := classement()
 	var div := int(ligue.division)
-	var d := ClubDonnees.division(div)
+	var d := _div(div)
 	var rg := rang()
 	var n := cl.size()
 	var prime := float(d.titre) * pow(0.82, rg - 1)
 	_flux("Prime de classement", prime)
 	var issue := "maintien"
-	if rg <= int(d.monte) and div < ClubDonnees.DIVISIONS.size() - 1:
+	if rg <= int(d.monte) and div < ClubSports.nb_divisions(sport) - 1:
 		issue = "montee"
 	elif rg > n - int(d.descend) and div > 0:
 		issue = "descente"
@@ -1097,17 +1609,39 @@ func _verifier_fin() -> void:
 	var txt := "Fin de saison %s : %s champion de %s. %s termine %de" % [String(ligue.saison), champion, d.nom, String(club.nom), rg]
 	match issue:
 		"montee":
-			txt += " et monte en %s !" % ClubDonnees.division(div + 1).nom
+			txt += " et monte en %s !" % _div(div + 1).nom
 			club.reputation = minf(float(club.reputation) + 8.0, 100.0)
 			club.supporters = float(club.supporters) * 1.4
+			club.humeur = 1.0
 			_penser("montee", [], 5)
 		"descente":
-			txt += " et descend en %s." % ClubDonnees.division(div - 1).nom
+			txt += " et descend en %s." % _div(div - 1).nom
 			club.reputation = maxf(float(club.reputation) - 6.0, 0.0)
+			club.humeur = -1.0
 			_penser("descente", [], 5)
 		_:
 			txt += "."
 	_news(txt)
+	if rg == 1 or issue == "montee":
+		club.humeur = 1.0
+		_fete_supporters("titre" if rg == 1 else "montee")
+
+
+## Fête des supporters en ville, le lendemain d'un titre ou d'une montée.
+func _fete_supporters(raison: String) -> void:
+	var ev := Evenements.instance
+	if ev == null or not is_instance_valid(ev) or ev.buildings != buildings or buildings == null:
+		return
+	var bid := int(club.get("stade", -1))
+	if not buildings.buildings.has(bid):
+		return
+	var day := today() + 1
+	var nom_f := "Fête des supporters : %s %s" % [String(club.nom), "champion !" if raison == "titre" else "monte !"]
+	var id := ev.ajouter("fete", nom_f, ev.unix_at(day, 16.0), ev.unix_at(day, 22.0), ev.building_pos(bid), bid,
+		{"club": String(club.nom), "couleurs": club.couleurs, "sport": sport})
+	club.fete = id
+	_penser("fete", [], 4)
+	_news("Demain à 16 h, les supporters fêtent %s autour du %s." % ["le titre" if raison == "titre" else "la montée", nom_stade()])
 
 
 ## Bilan de la saison passée (appelé au début de la suivante) : montée,
@@ -1115,11 +1649,13 @@ func _verifier_fin() -> void:
 func _fin_saison() -> void:
 	var issue := String(club.get("issue", "maintien"))
 	if issue == "montee":
-		club.division = mini(int(club.division) + 1, ClubDonnees.DIVISIONS.size() - 1)
+		club.division = mini(int(club.division) + 1, ClubSports.nb_divisions(sport) - 1)
 	elif issue == "descente":
 		club.division = maxi(int(club.division) - 1, 0)
 	club.erase("issue")
-	club.prix = maxf(float(club.prix), float(ClubDonnees.division(int(club.division)).prix) * 0.6)
+	club.prix = maxf(float(club.prix), float(_div(int(club.division)).prix) * 0.6)
+	club.abo_prix = 0.0
+	_fin_saison_espoirs()
 	var fin := _annee_saison()
 	for id in joueurs.keys():
 		var p: Dictionary = joueurs[id]
@@ -1198,6 +1734,66 @@ func bilan(prec := false) -> Dictionary:
 	return {"postes": f, "recettes": rec, "depenses": dep, "solde": rec - dep}
 
 
+# --- Supporters en ville ---------------------------------------------------------------------
+
+## L'habitant soutient-il le club ? Les pratiquants du sport surtout, et
+## d'autant plus de monde que le club est connu.
+func est_supporter(p: Dictionary) -> bool:
+	if not fonde():
+		return false
+	var h := float(posmod(hash([int(p.get("id", -1)), sport]), 1000)) / 1000.0
+	var rep := float(club.get("reputation", 10.0))
+	var part := 0.0
+	if (p.get("hob", []) as Array).has(ClubSports.hobby(sport)):
+		part = 0.45 + rep * 0.004
+	else:
+		part = 0.02 + rep * 0.0015 + int(club.get("division", 0)) * 0.01
+	return h < part
+
+
+## Habitants supporters (recompté chaque jour).
+func supporters_habitants() -> int:
+	if _supporters_cache >= 0:
+		return _supporters_cache
+	var n := 0
+	if population != null and fonde():
+		for pid in population.persons:
+			var p: Dictionary = population.persons[pid]
+			if population.age_of(p) >= 5.0 and est_supporter(p):
+				n += 1
+	_supporters_cache = n
+	return n
+
+
+func avis_facteurs() -> Array:
+	return [{"id": "club_%s" % sport, "theme": "loisirs", "f": satisfaction_of}]
+
+
+## Moral des supporters selon les résultats du club : [delta, raisons].
+func satisfaction_of(p: Dictionary) -> Array:
+	if not fonde():
+		return [0.0, []]
+	var h := float(club.get("humeur", 0.0))
+	if absf(h) < 0.25 or not est_supporter(p):
+		return [0.0, []]
+	if h > 0.0:
+		return [h * 5.0, ["+ %s gagne, les supporters sont aux anges" % String(club.nom)]]
+	return [h * 4.0, ["− %s perd, les supporters font grise mine" % String(club.nom)]]
+
+
+func humeur_texte() -> String:
+	var h := float(club.get("humeur", 0.0))
+	if h > 0.6:
+		return "euphorique"
+	if h > 0.25:
+		return "content"
+	if h < -0.6:
+		return "abattu"
+	if h < -0.25:
+		return "déçu"
+	return "partagé"
+
+
 # --- Nouvelles --------------------------------------------------------------------------------
 
 func _news(t: String) -> void:
@@ -1215,7 +1811,7 @@ func _news(t: String) -> void:
 
 
 func _penser(cle: String, args: Array = [], poids := 1) -> void:
-	var txt := String(ClubDonnees.PENSEES.get(cle, ""))
+	var txt := String(ClubDonnees.PENSEES.get(cle, ClubSports.PENSEES.get(cle, "")))
 	if txt == "":
 		return
 	if not args.is_empty():
@@ -1241,7 +1837,7 @@ func date_texte(day: int) -> String:
 func summary() -> String:
 	if not fonde():
 		return "Pas encore de club"
-	return "%s : %de de %s, caisse %s" % [String(club.nom), rang(), ClubDonnees.division(int(club.division)).nom, BuildingSystem.format_money(int(club.caisse))]
+	return "%s : %de de %s, caisse %s" % [String(club.nom), rang(), _div(int(club.division)).nom, BuildingSystem.format_money(int(club.caisse))]
 
 
 # --- Sauvegarde -------------------------------------------------------------------------------
@@ -1255,8 +1851,11 @@ func to_dict() -> Dictionary:
 	var lg := ligue.duplicate(true)
 	for j in lg.get("journees", []):
 		j.erase("ev")
+	var es := {}
+	for id in espoirs:
+		es[str(id)] = espoirs[id]
 	return {"club": club.duplicate(true), "joueurs": js, "marche": marche.duplicate(true), "ligue": lg, "journal": journal.duplicate(true),
-		"pensees": pensees.duplicate(), "next_id": next_id, "last_day": last_day}
+		"pensees": pensees.duplicate(), "next_id": next_id, "last_day": last_day, "sport": sport, "espoirs": es}
 
 
 const INT_JOUEUR := ["id", "ne", "blesse", "contrat", "buts", "matchs", "buts_saison", "matchs_saison", "pid"]
@@ -1274,7 +1873,10 @@ func from_dict(d: Dictionary) -> void:
 	if d.is_empty() or not d.has("club"):
 		return
 	club = (d.club as Dictionary).duplicate(true)
-	_ints(club, ["stade", "fonde", "division"])
+	_ints(club, ["stade", "fonde", "division", "academie", "abo", "fete"])
+	club.sport = sport
+	if not club.has("formation") or not (sp().formations as Dictionary).has(String(club.formation)):
+		club.formation = String(sp().formation)
 	for k in ["finances", "finances_prec"]:
 		if not club.has(k):
 			club[k] = {}
@@ -1287,6 +1889,10 @@ func from_dict(d: Dictionary) -> void:
 		var p: Dictionary = (d.joueurs[k] as Dictionary).duplicate(true)
 		_ints(p, INT_JOUEUR)
 		joueurs[int(k)] = p
+	for k in d.get("espoirs", {}):
+		var p: Dictionary = (d.espoirs[k] as Dictionary).duplicate(true)
+		_ints(p, INT_JOUEUR)
+		espoirs[int(k)] = p
 	for p in d.get("marche", []):
 		var q: Dictionary = (p as Dictionary).duplicate(true)
 		_ints(q, INT_JOUEUR)
@@ -1310,15 +1916,19 @@ func from_dict(d: Dictionary) -> void:
 		var mon: Dictionary = j.get("mon", {})
 		if mon.has("score"):
 			mon.score = [int(mon.score[0]), int(mon.score[1])]
+			mon.score = [int(mon.score[0]), int(mon.score[1])]
 			for b in mon.buts:
-				_ints(b, ["min", "side"])
+				_ints(b, ["side", "pts"] if sport != "football" else ["min", "side"])
+			if mon.has("bonus"):
+				mon.bonus = [int(mon.bonus[0]), int(mon.bonus[1])]
 	journal = (d.get("journal", []) as Array).duplicate(true)
 	for e in journal:
 		e.d = int(e.d)
 	for k in d.get("pensees", {}):
 		pensees[k] = int(d.pensees[k])
 	next_id = maxi(int(d.get("next_id", 1)), 1)
-	for id in joueurs:
-		next_id = maxi(next_id, int(id) + 1)
+	for c in [joueurs, espoirs]:
+		for id in c:
+			next_id = maxi(next_id, int(id) + 1)
 	last_day = int(d.get("last_day", -1))
 	changed.emit()

@@ -151,6 +151,9 @@ static func pelouse_monde(bs: BuildingSystem, bid: int) -> Dictionary:
 	elif BuildingCatalog.base_of(String(b.t)) == "foot":
 		# Terrain de foot du catalogue : la longueur suit la profondeur.
 		basis = basis * Basis(Vector3.UP, PI / 2.0)
+	elif float(t.get("d", 0)) > float(t.get("w", 0)) + 0.5:
+		# Terrain plus profond que large (basket, tennis…) : même chose.
+		basis = basis * Basis(Vector3.UP, PI / 2.0)
 	var length := 52.5
 	var width := 34.0
 	return {"centre": center + Basis(Vector3.UP, rot) * Vector3(pel.x, 0.05, pel.y), "basis": basis, "L": length, "W": width,

@@ -136,11 +136,10 @@ func plan_day(n: Dictionary) -> void:
 	var month := int(n.month)
 	var mday := int(n.mday)
 	var wd := int(n.wd)
-	var cs := ClubSport.instance
 	for bid in stades():
 		var t := String(ev.buildings.buildings[bid].t)
-		# Le stade du club du joueur : c'est le club (ClubSport) qui fixe ses matchs.
-		if cs != null and is_instance_valid(cs) and cs.fonde() and int(cs.club.stade) == bid:
+		# Le stade d'un club du joueur (foot, rugby) : c'est le club (ClubSport) qui fixe ses matchs.
+		if ClubSport.lieu_pris(bid) != "":
 			continue
 		if t == "foot":
 			if wd == 0 and ev.population.persons.size() >= 20:
@@ -213,12 +212,15 @@ func _schedule(bid: int, day: int, hour: float, nom: String, home: String, away:
 	return ev.ajouter("match", "%s : %s – %s" % [nom, home, away], kick - AVANT, kick + DUREE, pos, bid, data)
 
 
-## Le supporter va-t-il au match ? (fans de foot surtout, quelques curieux)
-func _goes(p: Dictionary, bid: int, day: int) -> bool:
+## Le supporter va-t-il au match ? (fans du sport et supporters du club surtout, quelques curieux)
+func _goes(p: Dictionary, bid: int, day: int, sport := "football") -> bool:
 	var age := ev.population.age_of(p)
 	if age < 6.0:
 		return false
-	var fan := (p.get("hob", []) as Array).has("football")
+	var fan := (p.get("hob", []) as Array).has(ClubSports.hobby(sport))
+	if not fan:
+		var cs := ClubSport.section(sport)
+		fan = cs != null and cs.fonde() and int(cs.club.stade) == bid and cs.est_supporter(p)
 	var share := 0.55 if fan else 0.06
 	var h := float(posmod(hash(Vector3i(int(p.id), bid, day)), 10000)) / 10000.0
 	return h < share
@@ -230,16 +232,22 @@ func visit_for(p: Dictionary, e: Dictionary, day: int) -> Dictionary:
 	var kick := float(e.debut) + AVANT
 	if int(floorf((kick + off) / 86400.0)) != day or not ev.population.known.has(bid):
 		return {}
-	if not _goes(p, bid, day):
+	var sport := String(e.data.get("sport", "football"))
+	if not _goes(p, bid, day, sport):
 		return {}
 	var h := (kick + off) / 3600.0 - day * 24.0
-	return {"d": day, "t": h - 1.0, "b": bid, "kind": "loisir", "dur": 2.9,
+	var dur := 2.9 if sport == "football" else ClubSports.duree(sport) / 3600.0 + 1.0
+	return {"d": day, "t": h - 1.0, "b": bid, "kind": "loisir", "dur": dur,
 		"txt": "Au match %s – %s (%s)" % [String(e.data.home), String(e.data.away), ev.building_name(bid)]}
 
 
 ## Minute du match (0 à 90), −1 avant le coup d'envoi, 91 après. Mi-temps : 45.
+## Autres sports (club du joueur) : la minute de jeu de ClubSports.chrono.
 static func minute(e: Dictionary, t: float) -> float:
 	var k := float(e.debut) + AVANT
+	var sp := String(e.get("data", {}).get("sport", "football"))
+	if sp != "football":
+		return float(ClubSports.chrono(sp, t - k).m)
 	var s := (t - k) / 60.0
 	if s < 0.0:
 		return -1.0
@@ -254,6 +262,10 @@ static func minute(e: Dictionary, t: float) -> float:
 
 static func periode(e: Dictionary, t: float) -> String:
 	var k := float(e.debut) + AVANT
+	var sp := String(e.get("data", {}).get("sport", "football"))
+	if sp != "football":
+		var c := ClubSports.chrono(sp, t - k)
+		return "mi-temps" if String(c.per) == "pause" else String(c.per)
 	var s := (t - k) / 60.0
 	if s < 0.0:
 		return "avant"
@@ -333,17 +345,35 @@ func step(t: float, delta: float) -> void:
 			if float(g.min) <= m and m >= 0.0:
 				n += 1
 				if int(g.side) == 0:
-					sh += 1
+					sh += int(g.get("pts", 1))
 				else:
-					sa += 1
+					sa += int(g.get("pts", 1))
 		d.score = [sh, sa]
 		if n > int(d.annonces):
 			var g: Dictionary = d.buts[n - 1]
 			var who := String(d.home) if int(g.side) == 0 else String(d.away)
+			var sport := String(d.get("sport", "football"))
 			if bool(d.ligue):
-				ev.news("But de %s ! %s %d – %d %s (%de)." % [who, String(d.home), sh, sa, String(d.away), int(g.min)], e.pos, "match", int(e.id))
+				var txt := _annonce(sport, who, g, sh, sa, d)
+				if txt != "":
+					ev.news(txt, e.pos, "match", int(e.id))
 			d.annonces = n
 		_animate(e, t, delta)
+
+
+## Annonce d'une action dans le fil d'actualité ("" : rien à dire).
+func _annonce(sport: String, who: String, g: Dictionary, sh: int, sa: int, d: Dictionary) -> String:
+	var sc := "%s %d – %d %s" % [String(d.home), sh, sa, String(d.away)]
+	match sport:
+		"football":
+			return "But de %s ! %s (%de)." % [who, sc, int(g.min)]
+		"hockey":
+			return "But de %s ! %s." % [who, sc]
+		"rugby":
+			return "Essai de %s ! %s." % [who, sc] if int(g.get("pts", 1)) == 5 else ""
+		"tennis":
+			return "Tennis : %s remporte le %s (%d – %d)." % [who, ClubSports.nom_periode("tennis", int(g.min) - 1), sh, sa]
+	return ""
 
 
 # --- Ce qu'on voit au stade -------------------------------------------------------------
@@ -351,6 +381,9 @@ func step(t: float, delta: float) -> void:
 func _build_visuals(e: Dictionary) -> void:
 	var bid := int(e.bid)
 	if not ev.buildings.buildings.has(bid):
+		return
+	if String(e.data.get("sport", "football")) != "football":
+		_build_visuals_sport(e)
 		return
 	var pel := Stades.pelouse_monde(ev.buildings, bid)
 	var root := Node3D.new()
@@ -424,6 +457,115 @@ func _build_visuals(e: Dictionary) -> void:
 	e.anim = {"list": list, "ball": ball, "bp": Vector2.ZERO, "bt": Vector2.ZERO, "label": lbl, "players": players, "attack": 0}
 
 
+## Match d'un autre sport (club du joueur) : terrain à la taille du sport,
+## joueurs de chaque équipe, balle ou palet, tribunes, tableau d'affichage.
+func _build_visuals_sport(e: Dictionary) -> void:
+	var bid := int(e.bid)
+	var d: Dictionary = e.data
+	var sport := String(d.sport)
+	var S := ClubSports.sport(sport)
+	var pel := Stades.pelouse_monde(ev.buildings, bid)
+	var root := Node3D.new()
+	root.name = "Match_%d" % int(e.id)
+	root.position = pel.centre
+	root.basis = pel.basis
+	ev.visuels.add_child(root)
+	e.node = root
+	var hc: Array = d.get("cdom", ["c8102e", "f2f2f2"])
+	var ac: Array = d.get("cext", ["1d3c8f", "f2f2f2"])
+	if hc[0] == ac[0]:
+		ac = ["f2f2f2", "1b1b1b"]
+	var typ := String(ev.buildings.buildings[bid].t)
+	var t := BuildingCatalog.get_type(typ)
+	var cap := maxi(ClubSports.places_lieu(typ), 1)
+	var fill := clampf(float(d.affluence) / cap, 0.02, 1.0)
+	var terrain: Vector2 = S.terrain
+	# Terrain de foot ou stade (rugby) : le terrain fait la taille de la pelouse.
+	if sport == "rugby":
+		terrain = Vector2(minf(terrain.x, 52.0), minf(terrain.y, 34.0))
+	if t.has("bol"):
+		root.add_child(EvVisuels.spectateurs(t.bol, t.tribune, fill, [hc[0], hc[0], ac[0]], int(e.id)))
+	else:
+		var f := EvVisuels.foule(clampi(int(d.affluence) / 4, 6, 40), Vector2(terrain.x * 1.6, 3), int(e.id))
+		f.position = Vector3(0, 0, -(terrain.y + 3.0))
+		root.add_child(f)
+	var players := Node3D.new()
+	players.name = "Joueurs"
+	root.add_child(players)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = int(e.id)
+	var n := int(S.sur_terrain)
+	var gk := bool(S.gardien)
+	var list := []
+	for side in 2:
+		var col: Array = hc if side == 0 else ac
+		for i in n:
+			var base := _place_joueur(i, n, gk, terrain, sport)
+			if side == 1:
+				base = Vector2(-base.x, -base.y)
+			var maillot := Color(String(col[0]))
+			if gk and i == 0:
+				maillot = Color("2ec4b6") if side == 0 else Color("ffbe0b")
+			var mi := MeshInstance3D.new()
+			mi.mesh = EvVisuels.joueur_mesh(maillot, Color(String(col[1])), EvVisuels.PEAU[rng.randi() % EvVisuels.PEAU.size()])
+			mi.position = Vector3(base.x, 0, base.y)
+			mi.visibility_range_end = 700.0
+			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			players.add_child(mi)
+			list.append({"n": mi, "base": base, "side": side, "gk": gk and i == 0})
+	var ref := MeshInstance3D.new()
+	ref.mesh = EvVisuels.joueur_mesh(Color("1b1b1b"), Color("1b1b1b"), Color("e8b996"))
+	ref.visibility_range_end = 700.0
+	players.add_child(ref)
+	list.append({"n": ref, "base": Vector2(0, terrain.y * 0.3), "side": 2, "gk": false})
+	var ball := MeshInstance3D.new()
+	if sport == "hockey":
+		var palet := CylinderMesh.new()
+		palet.top_radius = 0.12
+		palet.bottom_radius = 0.12
+		palet.height = 0.05
+		var mat := StandardMaterial3D.new()
+		mat.albedo_color = Color("111111")
+		palet.material = mat
+		ball.mesh = palet
+	else:
+		ball.mesh = EvVisuels.ballon_mesh()
+		if sport in ["basket", "handball", "tennis"]:
+			ball.scale = Vector3.ONE * (0.55 if sport == "tennis" else 1.0)
+	ball.visibility_range_end = 400.0
+	root.add_child(ball)
+	var lbl := Label3D.new()
+	lbl.name = "Tableau"
+	lbl.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	lbl.font_size = 96
+	lbl.pixel_size = 0.04 if terrain.x < 40.0 else 0.06
+	lbl.outline_size = 18
+	lbl.modulate = Color("fff3b0")
+	var trib: Vector2 = t.get("tribune", Vector2(4, 3))
+	lbl.position = Vector3(0, maxf(trib.y, 4.0) + 9.0, 0 if t.has("bol") else -(terrain.y + 4.0))
+	lbl.visibility_range_end = 1500.0
+	root.add_child(lbl)
+	e.anim = {"list": list, "ball": ball, "bp": Vector2.ZERO, "bt": Vector2.ZERO, "label": lbl, "players": players, "attack": 0,
+		"L": terrain.x, "W": terrain.y}
+
+
+## Place de départ d'un joueur sur son demi-terrain (x vers le but adverse).
+static func _place_joueur(i: int, n: int, gk: bool, terrain: Vector2, sport: String) -> Vector2:
+	if gk and i == 0:
+		return Vector2(-terrain.x * 0.92, 0)
+	if sport == "tennis":
+		return Vector2(-terrain.x * 0.85, 0)
+	var k := i - (1 if gk else 0)
+	var m := n - (1 if gk else 0)
+	var lignes := 3 if m >= 8 else (2 if m >= 4 else 1)
+	var par := ceili(float(m) / lignes)
+	var li := k / par
+	var pos := k % par
+	var x := -terrain.x * (0.75 - 0.6 * float(li) / maxf(lignes - 1, 1)) if lignes > 1 else -terrain.x * 0.35
+	var y := -terrain.y * 0.75 + terrain.y * 1.5 * (float(pos) + 0.5) / par
+	return Vector2(x, y)
+
+
 func _animate(e: Dictionary, t: float, delta: float) -> void:
 	var a: Dictionary = e.get("anim", {})
 	if a.is_empty():
@@ -432,14 +574,25 @@ func _animate(e: Dictionary, t: float, delta: float) -> void:
 		if a.is_empty():
 			return
 	var d: Dictionary = e.data
+	var sport := String(d.get("sport", "football"))
 	var per := periode(e, t)
 	var lbl: Label3D = a.label
 	var m := minute(e, t)
 	var sc: Array = d.score
-	var tag := "Coup d'envoi à %s" % ev.heure_courte(float(e.debut) + AVANT) if per == "avant" else ("Mi-temps" if per == "mi-temps" else ("Terminé" if per == "fin" else "%d'" % int(m)))
+	var tag := ""
+	if per == "avant":
+		tag = "Coup d'envoi à %s" % ev.heure_courte(float(e.debut) + AVANT)
+	elif per == "mi-temps":
+		tag = "Mi-temps" if sport == "football" or int((ClubSports.sport(sport).per as Array)[0]) == 2 else "Pause"
+	elif per == "fin":
+		tag = "Terminé" + (" (%s)" % String(d.suffixe) if String(d.get("suffixe", "")) != "" else "")
+	elif sport == "football":
+		tag = "%d'" % int(m)
+	else:
+		tag = ClubSports.chrono_texte(sport, ClubSports.chrono(sport, t - float(e.debut) - AVANT))
 	lbl.text = "%s  %d – %d  %s\n%s" % [String(d.home), int(sc[0]), int(sc[1]), String(d.away), tag]
 	var players: Node3D = a.players
-	var playing := per == "1re mi-temps" or per == "2e mi-temps"
+	var playing := per != "avant" and per != "mi-temps" and per != "fin"
 	players.visible = per != "avant" and per != "fin"
 	(a.ball as Node3D).visible = playing
 	if not players.visible:
@@ -453,9 +606,12 @@ func _animate(e: Dictionary, t: float, delta: float) -> void:
 			var side := 1.0 if int(a.attack) == 0 else -1.0
 			if ev.rng.randf() < 0.18:
 				a.attack = 1 - int(a.attack)
-			bt = Vector2(clampf(bp.x + side * ev.rng.randf_range(4.0, 22.0), -50.0, 50.0), ev.rng.randf_range(-30.0, 30.0))
+			var L := float(a.get("L", 52.5)) - 2.5
+			var W := float(a.get("W", 34.0)) - 4.0
+			var k := L / 50.0
+			bt = Vector2(clampf(bp.x + side * ev.rng.randf_range(4.0, 22.0) * k, -L, L), ev.rng.randf_range(-W, W))
 			a.bt = bt
-		bp = bp.move_toward(bt, dt * 11.0)
+		bp = bp.move_toward(bt, dt * 11.0 * maxf(float(a.get("L", 52.5)) / 52.5, 0.35))
 	else:
 		bp = Vector2.ZERO
 	a.bp = bp
@@ -466,7 +622,7 @@ func _animate(e: Dictionary, t: float, delta: float) -> void:
 		var target: Vector2
 		if not playing:
 			# Mi-temps : tout le monde rentre au vestiaire (on les cache un moment).
-			target = Vector2(0, -30.0)
+			target = Vector2(0, -(float(a.W) + 2.0) if a.has("W") else -30.0)
 		elif int(pl.side) == 2:
 			target = bp + Vector2(-8, 10)
 		elif bool(pl.gk):
@@ -474,8 +630,10 @@ func _animate(e: Dictionary, t: float, delta: float) -> void:
 		else:
 			var pull := 0.35 if (int(pl.side) == 0) == (int(a.attack) == 0) else 0.25
 			target = base.lerp(bp, pull) + Vector2(bp.x * 0.3, 0)
+			if a.has("L"):
+				target = Vector2(clampf(target.x, -float(a.L), float(a.L)), clampf(target.y, -float(a.W), float(a.W)))
 		var cur := Vector2(node.position.x, node.position.z)
-		var nxt := cur.move_toward(target, dt * 7.0)
+		var nxt := cur.move_toward(target, dt * 7.0 * maxf(float(a.get("L", 52.5)) / 52.5, 0.4))
 		var dir := nxt - cur
 		node.position = Vector3(nxt.x, 0.0, nxt.y)
 		if dir.length() > 0.001:

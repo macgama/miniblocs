@@ -278,7 +278,7 @@ func _detail(e: Dictionary, now: float) -> String:
 			if per == "avant":
 				return "Coup d'envoi à %s · %d spectateurs attendus" % [ev.heure_courte(float(e.debut) + Matchs.AVANT), int(d.affluence)]
 			return "%s %d – %d %s · %s · %d spectateurs" % [String(d.home), int(sc[0]), int(sc[1]), String(d.away),
-				"mi-temps" if per == "mi-temps" else ("%d'" % int(Matchs.minute(e, now)) if per != "fin" else "terminé"), int(d.affluence)]
+				"mi-temps" if per == "mi-temps" else (("%d'" % int(Matchs.minute(e, now)) if String(d.get("sport", "football")) == "football" else per) if per != "fin" else "terminé"), int(d.affluence)]
 		"marche", "fete":
 			return "%s · jusqu'à %s · %d habitants y vont" % [_lieu(e), ev.heure_courte(float(e.fin)), ev.fetes.habitants_venus(e)]
 		"incendie":

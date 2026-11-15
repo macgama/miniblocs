@@ -163,9 +163,19 @@ static func save_building(bs: BuildingSystem, bid: int, nom: String, vp: Viewpor
 ## Bâtiment en murs fins (murs, sols, escaliers, meubles, pièces, toit en blocs).
 static func save_plan(mob: Mobilier, plan_id: String, nom: String, vp: Viewport = null) -> Dictionary:
 	ensure_loaded()
+	var data := plan_data(mob, plan_id, nom)
+	if data.is_empty():
+		return {"ok": false, "error": "Bâtiment en murs fins introuvable."}
+	_store(data, screenshot(vp))
+	return {"ok": true, "id": data.id, "nom": data.nom}
+
+
+## Données d'un bâtiment en murs fins (même format que la banque), sans
+## l'enregistrer : aussi utilisé par les plans de site (PlansSites). {} si introuvable.
+static func plan_data(mob: Mobilier, plan_id: String, nom: String) -> Dictionary:
 	var pe := mob.pe
 	if pe == null or not pe.plans.has(plan_id):
-		return {"ok": false, "error": "Bâtiment en murs fins introuvable."}
+		return {}
 	var p: Dictionary = pe.plans[plan_id]
 	var bbox: Rect2i = pe._bbox.get(plan_id, Rect2i())
 	var o := bbox.position
@@ -228,8 +238,7 @@ static func save_plan(mob: Mobilier, plan_id: String, nom: String, vp: Viewport 
 			"taille": "%d × %d m" % [bbox.size.x, bbox.size.y], "meubles": meubles.size() / 6,
 			"confort": int(st.get("conf", 0))},
 	}
-	_store(data, screenshot(vp))
-	return {"ok": true, "id": data.id, "nom": nm}
+	return data
 
 
 static func _plan_colors(p: Dictionary) -> Array:
@@ -473,6 +482,28 @@ static func import_data(d: Dictionary) -> String:
 		return String(d.id)
 	_store(d, img)
 	return String(d.id)
+
+
+## Installe un modèle reçu par le partage (PaquetPartage). remplacer : une
+## nouvelle version du même modèle prend la place de l'ancienne. Rend l'id, ou "".
+static func install_data(d: Dictionary, img: Image = null, remplacer := false) -> String:
+	ensure_loaded()
+	if not _valid(d) or int(d.get("version", 0)) > VERSION:
+		return ""
+	var data := d.duplicate(true)
+	data.erase("apercu_png")
+	if _items.has(String(data.id)) and not remplacer:
+		return String(data.id)
+	_store(data, img)
+	return String(data.id)
+
+
+## Aperçu enregistré d'un modèle (pour le mettre dans un paquet de partage).
+static func preview_image(id: String) -> Image:
+	var path := "%s/%s/apercu.png" % [ROOT, id]
+	if not persist or not FileAccess.file_exists(path):
+		return null
+	return Image.load_from_file(path)
 
 
 ## Importe tous les fichiers .json de user://partage pas encore connus.

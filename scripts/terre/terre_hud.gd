@@ -150,6 +150,7 @@ const CATEGORIES := [
 	{"id": "creations", "name": "Mes créations", "icon": "creations", "key": "5", "panel": true, "mode": "creer"},
 	{"id": "banque", "name": "Banque", "icon": "banque", "key": "6", "panel": true, "mode": "creer"},
 	{"id": "atelier", "name": "Atelier", "icon": "atelier", "key": "7", "panel": true, "mode": "creer"},
+	{"id": "partage", "name": "Partage (publier et installer des créations, Workshop)", "icon": "partage", "key": "8", "panel": true, "mode": "creer"},
 ]
 ## Menus de la barre du bas (mode Gérer) : leurs panneaux s'ouvrent dans une
 ## petite rangée au-dessus du bouton, pour que la barre tienne sur tout écran.
@@ -161,7 +162,7 @@ const GROUPS := [
 	{"id": "infos", "name": "Infos", "icon": "infos"},
 ]
 ## Touches 2 à 5 du mode Créer.
-const CREATE_KEYS := {KEY_2: "murs", KEY_3: "blocs", KEY_4: "interieur", KEY_5: "creations", KEY_6: "banque", KEY_7: "atelier"}
+const CREATE_KEYS := {KEY_2: "murs", KEY_3: "blocs", KEY_4: "interieur", KEY_5: "creations", KEY_6: "banque", KEY_7: "atelier", KEY_8: "partage"}
 ## Icône de chaque outil de TOOLS.
 const TOOL_ICONS := ["observer", "aplanir", "monter", "creuser", "route", "rail", "chemin", "eau", "demolir", "carrefour", "paysage"]
 ## Nom court sous l'icône (le nom complet est dans l'infobulle).

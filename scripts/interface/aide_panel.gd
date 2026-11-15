@@ -13,7 +13,7 @@ const SECTIONS := [
 		["Clic molette glissé en haut / en bas, ou Ctrl + molette", "incliner : jusqu'à une vue rasante pour voir le relief jusqu'à l'horizon (10 km)"],
 	]],
 	["Barre du bas", [
-		["Tab · Gérer / Créer", "Gérer : la ville (terrain, voies, zonage, catalogue, lignes, habitants). Créer : construire un bâtiment soi-même (murs et étages, blocs, intérieur, Mes créations, banque, atelier), la ville en pause ; touches 1 à 7 et échelle des étages"],
+		["Tab · Gérer / Créer", "Gérer : la ville (terrain, voies, zonage, catalogue, lignes, habitants). Créer : construire un bâtiment soi-même (murs et étages, blocs, intérieur, Mes créations, banque, atelier, partage), la ville en pause ; touches 1 à 8 et échelle des étages"],
 		["Catégories", "Observer, Terrain, Voies, Paysage : un clic ouvre leurs outils juste au-dessus ; Construire et Décors ouvrent leur panneau à droite (un seul à la fois)"],
 		["Menus ▴", "Transports (lignes, trafic, circulation, véhicules), Ville (habitants, urgences, avis, budget, déchets), Économie (production, agriculture), Loisirs (créer un parc, panneau du parc, musée, zoo, spectacles, club, tourisme), Infos (infos, cartes) : un clic ouvre la rangée de leurs panneaux ; les touches restent les mêmes"],
 		["Circulation, Véhicules, Vue", "afficher la circulation, choisir l'époque et la région des véhicules, changer de vue"],
@@ -329,6 +329,13 @@ const SECTIONS := [
 		["Réputation", "ce que pensent les touristes qui repartent : confort et prix de l'hôtel, repas trouvés, ce qu'il y avait à voir, rayons pleins, souvenirs, foule ; trop de touristes pour trop peu d'habitants agace la ville"],
 		["Nature", "plages, côtes, lacs, rivières, forêts, sommets et glaciers du vrai terrain autour des villages attirent aussi (onglet Attractions) : surtout l'été, moins sous la pluie ; une route à moins de 800 m, des sentiers (outil Chemin) et les aménagements (poste de secours, base nautique, belvédère, parking de randonnée, maison de la nature) les rendent plus attirants"],
 		["Autocars", "avec un parking d'autocars, les cars des voyages organisés arrivent le matin par l'entrée de la ville, déposent leur groupe au parking puis l'emmènent voir les sites"],
+	]],
+	["Partage des créations", [
+		["Maj + W (ou Créer → 8)", "menu Partage : Partager mes créations, Plans de site, Découvrir les créations des autres"],
+		["Partager", "bâtiments de la Banque (façades personnalisées, murs fins meublés, musées), créations en blocs, attractions dessinées (grands-huit…), plans de site ; « Publier » (titre, description, étiquettes) ou « Fichier .mbloc » à envoyer à un ami. Une création emporte ce dont elle a besoin"],
+		["Plans de site", "nom, puis « Choisir une zone sur la carte » : clic sur un coin, glisser, relâcher (400 m au plus). Le plan garde bâtiments, allées et files du parc, enclos et animaux, décors, murs fins meublés et blocs libres. « Poser » : il suit la souris, R le tourne, clic pour poser (prix, accès, chantiers comme d'habitude)"],
+		["Découvrir", "« Recevoir » lit les fichiers .mbloc déposés dans le dossier d'échange ; Installer, Mettre à jour, Retirer ; filtre par sorte (bâtiment, musée, blocs, attraction, parc, zoo, quartier) et recherche"],
+		["Steam Workshop", "à la sortie sur Steam, « Publier » enverra sur le Workshop et les abonnements s'installeront seuls ; d'ici là, l'atelier local et les fichiers .mbloc font la même chose"],
 	]],
 	["Déchets", [
 		["X", "panneau Déchets : ce que la ville jette et recycle, poubelles qui débordent (clic : y aller), installations, bennes en tournée"],

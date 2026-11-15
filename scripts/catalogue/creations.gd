@@ -180,6 +180,29 @@ static func to_dict(only: Array = []) -> Dictionary:
 	return {"version": 1, "items": out}
 
 
+## Installe une création reçue par le partage (PaquetPartage). remplacer : une
+## nouvelle version prend la place de l'ancienne. Rend vrai si elle est connue.
+static func installer(id: String, c: Dictionary, remplacer := false) -> bool:
+	ensure_loaded()
+	if id == "" or not (c.get("blocks") is Array) or int(c.get("w", 0)) <= 0 or int(c.get("d", 0)) <= 0:
+		return false
+	if int(c.w) > MAX_SIDE or int(c.d) > MAX_SIDE:
+		return false
+	if items.has(id):
+		if not remplacer:
+			if items[id].get("hidden", false):
+				items[id]["hidden"] = false
+				_register(id)
+				_write()
+			return true
+		items.erase(id)
+	var src := c.duplicate(true)
+	src.erase("hidden")
+	merge_dict({"items": {id: src}})
+	_write()
+	return items.has(id)
+
+
 ## Ajoute les créations d'une sauvegarde (sans écraser celles déjà connues).
 static func merge_dict(data: Dictionary) -> int:
 	var n := 0

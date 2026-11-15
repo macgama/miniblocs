@@ -206,6 +206,7 @@ func _ready() -> void:
 	_setup_nuisances()
 	_setup_avis()
 	_setup_parc_editeur()
+	_setup_partage()
 	_setup_communes()
 	_setup_fondateurs()
 	_setup_pays()
@@ -1739,6 +1740,8 @@ func _tool_busy() -> bool:
 		return true
 	if zoo_outils != null and zoo_outils.actif():
 		return true
+	if outil_site != null and outil_site.actif():
+		return true
 	return decors != null and decors.outil != DecorSystem.Outil.AUCUN
 
 
@@ -2130,6 +2133,8 @@ func set_create_mode(on: bool) -> void:
 ## Barre du bas du mode Créer : Murs et étages, Blocs, Intérieur, Mes créations.
 func _on_create_requested(id: String) -> void:
 	_select_building_tool()
+	if partage_panel != null and partage_panel.is_open() and id != "partage":
+		partage_panel.set_open(false)
 	if id == "":
 		build_panel.set_open(false)
 		return
@@ -2140,6 +2145,10 @@ func _on_create_requested(id: String) -> void:
 		"interieur": build_panel.show_category("interieur")
 		"creations": build_panel.show_category(Creations.CATEGORY)
 		"banque": build_panel.show_category(BanquePanel.CATEGORY)
+		"partage":
+			build_panel.set_open(false)
+			partage_panel.set_open(true)
+			return
 		"atelier":
 			build_panel.set_open(false)
 			_toggle_atelier()
@@ -2181,6 +2190,8 @@ func _select_building_tool(from_transit := false) -> void:
 		agriculture.set_outil("")
 	if banque_pose:
 		banque_pose.stop()
+	if outil_site:
+		outil_site.stop()
 	if zoo_outils:
 		zoo_outils.set_inactive()
 	hud.select_tool_silently(0)
@@ -2188,6 +2199,37 @@ func _select_building_tool(from_transit := false) -> void:
 
 ## Zoo : enclos tracés à la main, animaux, soigneurs, visiteurs, et son menu (Maj+Z).
 ## Tourisme : hébergements, touristes qui visitent et dépensent (Maj+R).
+## Partage des créations (Maj+W, Créer → 8) : publier, installer, plans de site.
+var partage_panel: PartagePanel
+var outil_site: OutilSite
+
+
+func _setup_partage() -> void:
+	outil_site = OutilSite.new()
+	outil_site.name = "OutilPlanSite"
+	add_child(outil_site)
+	outil_site.world = world
+	outil_site.camera = $CameraRig/Camera3D
+	outil_site.contexte = contexte_partage
+	outil_site.message.connect(func(t: String) -> void:
+		if t != "":
+			hud.show_message(t))
+	partage_panel = PartagePanel.new()
+	partage_panel.name = "PanneauPartage"
+	add_child(partage_panel)
+	partage_panel.setup(outil_site, func() -> void: _select_building_tool())
+	partage_panel.message.connect(func(t: String) -> void: hud.show_message(t))
+	# Steam : les abonnements du Workshop s'installent seuls.
+	var n := Partage.synchroniser()
+	if n > 0:
+		hud.show_message("Créations du Workshop installées : %d." % n)
+
+
+## Ce que les plans de site lisent et reposent (PlansSites).
+func contexte_partage() -> Dictionary:
+	return {"bs": buildings, "world": world, "allees": parc_allees, "zoo": zoo, "decors": decors, "mob": mobilier, "blocks": blocks}
+
+
 func _setup_tourisme() -> void:
 	tourisme = Tourisme.new()
 	tourisme.name = "Tourisme"
@@ -2384,6 +2426,8 @@ func _on_tool_selected(t: int) -> void:
 	_ranger_parc_editeur()
 	if banque_pose:
 		banque_pose.stop()
+	if outil_site:
+		outil_site.stop()
 	transport.stations.set_inactive()
 	transit_panel.clear_selection()
 	buildings.set_inactive()
@@ -2561,6 +2605,7 @@ func _exclusive_panels() -> void:
 	var opened := ""
 	panels.merge(_panneaux_parc())
 	panels["musee"] = musee_panel
+	panels["partage"] = partage_panel
 	for id in panels:
 		var p = panels[id]
 		var on: bool = p != null and p.is_open()
@@ -2576,7 +2621,7 @@ func _exclusive_panels() -> void:
 	for id in panels:
 		hud.set_panel_open(id, _open_before[id])
 	# Mode Créer : panneau fermé (B, croix) = plus de catégorie allumée.
-	if hud.create_mode and not build_panel.is_open() and hud.create_category() != "":
+	if hud.create_mode and not build_panel.is_open() and not (partage_panel != null and partage_panel.is_open()) and hud.create_category() != "":
 		hud.set_create_category("")
 
 

@@ -38,11 +38,14 @@ const INVENTIONS := [
 	{"annee": 1820, "nom": "Le gaz d'éclairage", "desc": "Usines à gaz et conduites sous les rues."},
 	{"annee": 1828, "nom": "L'omnibus", "desc": "Les premières lignes de voitures publiques à chevaux."},
 	{"annee": 1830, "nom": "Le chemin de fer", "desc": "Locomotives à vapeur, gares et briques industrielles."},
+	{"annee": 1849, "nom": "Les express", "desc": "La locomotive Crampton file à 120 km/h ; voitures à compartiments et fourgons à bagages."},
 	{"annee": 1850, "nom": "L'eau et les égouts modernes", "desc": "Captages, usines d'eau et grands collecteurs ; les zoos et les grands hôtels."},
-	{"annee": 1853, "nom": "Les grands travaux", "desc": "Immeubles haussmanniens, gares monumentales, hôpitaux modernes."},
+	{"annee": 1853, "nom": "Les grands travaux", "desc": "Immeubles haussmanniens, gares monumentales, halles en fonte, tramways à chevaux."},
 	{"annee": 1860, "nom": "Le pétrole et l'acier", "desc": "Puits de pétrole, raffineries, aciéries ; pompes à vapeur des pompiers."},
 	{"annee": 1863, "nom": "Le métro", "desc": "Le premier chemin de fer souterrain."},
-	{"annee": 1880, "nom": "Le téléphone et le tramway", "desc": "Centraux téléphoniques, lignes de cuivre et tramways."},
+	{"annee": 1867, "nom": "Le vélocipède", "desc": "Pédales sur la roue avant ; les bateaux-mouches promènent les visiteurs de l'Exposition."},
+	{"annee": 1876, "nom": "Le tramway à vapeur et le wagon-lit", "desc": "Petites motrices à vapeur dans les rues, premiers trains de nuit."},
+	{"annee": 1880, "nom": "Le téléphone", "desc": "Centraux téléphoniques et lignes de cuivre ; locomotives-tenders de banlieue."},
 	{"annee": 1882, "nom": "L'électricité", "desc": "Premières centrales au charbon et lignes électriques."},
 	{"annee": 1884, "nom": "La poubelle", "desc": "Le préfet Poubelle impose les boîtes à ordures : collecte des déchets, crématoriums."},
 	{"annee": 1893, "nom": "La grande roue", "desc": "Les fêtes foraines deviennent des parcs d'attractions."},
@@ -187,10 +190,10 @@ const MOTS_BATIMENTS := [
 
 ## Voies (TransportTypes.CLASSES).
 const VOIES := {"rue": 0, "avenue": 0, "giratoire": 1906, "departementale": 0, "voie_express": 1950,
-	"autoroute": 1930, "bretelle": 1930, "tram": 1880, "train": 1830, "cremaillere": 1870, "metro": 1863,
+	"autoroute": 1930, "bretelle": 1930, "tram": 1853, "train": 1830, "cremaillere": 1870, "metro": 1863,
 	"lgv": 1964, "trottoir": 0, "piste_cyclable": 1930, "voie_verte": 1990, "canal": 0, "chenal": 0}
 ## Stations (StationSystem.TYPES).
-const STATIONS := {"arret_bus": 1828, "arret_tram": 1880, "station_metro": 1863, "gare": 1830, "port": 0,
+const STATIONS := {"arret_bus": 1828, "arret_tram": 1853, "station_metro": 1863, "gare": 1830, "port": 0,
 	"heliport": 1950, "aerodrome": 1910, "aeroport": 1930, "depot": 0, "parking": 1920}
 ## Tronçons des réseaux (ReseauxTypes.TRONCONS) et câbles (Telecom.CABLES).
 const TRONCONS := {"ligne_ht": 1910, "ligne_mt": 1882, "conduite_eau": 0, "collecteur": 0, "conduite_gaz": 1820,
@@ -217,6 +220,12 @@ const MOTS_MATERIAUX := [
 const ROLES_VEHICULES := {
 	"benne_om": "ordures", "benne": "ordures", "corbillard": "corbillard", "chasse_neige": "chasse_neige",
 	"autocar": "car",
+}
+
+## Attelages qui remplacent les voitures et les utilitaires avant le moteur.
+const ATTELAGES := {
+	"voiture": ["fiacre", "cabriolet", "coupe_ville", "caleche"],
+	"utilitaire": ["fardier", "haquet_brasseur", "voiture_laitier", "malle_poste"],
 }
 
 static var _cache_bat := {}
@@ -360,6 +369,13 @@ static func vehicule(id: String, r: ReglagesPartie = null) -> String:
 			best_y = vy
 		if best != "":
 			return best
+	# Voitures et utilitaires à moteur : un attelage du même usage (varié selon le modèle).
+	var choix: Array = []
+	for vid in ATTELAGES.get(String(t.get("cat", "")), []):
+		if int(VehicleCatalog.get_type(vid).get("year", 99999)) <= y:
+			choix.append(vid)
+	if not choix.is_empty():
+		return choix[absi(hash(id)) % choix.size()]
 	match int(t.get("mode", 0)):
 		TransportTypes.Mode.WATER:
 			return "barque"

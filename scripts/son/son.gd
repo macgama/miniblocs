@@ -27,6 +27,14 @@ const MORCEAUX := {
 	"nids_de_poule_blues": ["Nids-de-poule blues", "soir"],
 	"lampadaires": ["Lampadaires", "nuit"],
 	"heure_creuse": ["Heure creuse", "nuit"],
+	# XIXe siècle (3e valeur : morceau d'époque, joué dans les parties historiques).
+	"menuet_de_la_place": ["Menuet de la place du marché", "jour", "1800"],
+	"quadrille_des_diligences": ["Quadrille des diligences", "jour", "1800"],
+	"orgue_de_barbarie": ["L'orgue de barbarie du dimanche", "jour", "1800"],
+	"fanfare_de_la_gare": ["Fanfare pour l'inauguration de la gare", "jour", "1800"],
+	"ragtime_du_saloon": ["Ragtime du saloon", "soir", "1800"],
+	"complainte_du_canal": ["Complainte du canal", "soir", "1800"],
+	"nocturne_a_la_bougie": ["Nocturne à la bougie", "nuit", "1800"],
 }
 ## Humeurs acceptées par chaque moment (le soir mélange jour et nuit).
 const HUMEURS := {
@@ -46,6 +54,8 @@ var pauses_musique := true
 var couper_hors_focus := true
 ## Morceaux que le joueur a retirés de la liste.
 var exclus: Array = []
+## Année forcée pour la playlist (-1 : celle de la partie, 0 : époque moderne).
+var annee_forcee := -1
 ## Fonction qui donne l'humeur du moment (posée par la scène Terre).
 var humeur_fn := Callable()
 
@@ -321,14 +331,36 @@ func humeur() -> String:
 	return "jour"
 
 
+static func est_d_epoque(id: String) -> bool:
+	return MORCEAUX.has(id) and MORCEAUX[id].size() > 2
+
+
+## Année qui choisit la musique : 0 hors partie historique.
+func annee_musique() -> int:
+	if annee_forcee >= 0:
+		return annee_forcee
+	return Epoques.annee() if Epoques.actif() else 0
+
+
 ## Morceaux possibles pour une humeur (ceux que le joueur n'a pas retirés).
+## Partie historique avant 1920 : morceaux d'époque seulement ; 1920-1950 :
+## mélange ; sinon les morceaux d'époque restent hors de la playlist (on peut
+## toujours les lancer à la main dans F2).
 func liste(h: String) -> Array:
 	var ok: Array = HUMEURS.get(h, ["jour"])
+	var a := annee_musique()
+	var anciens := a > 0 and a < 1950
+	var seuls_anciens := a > 0 and a < 1920
+	var tous: Array = []
 	var out: Array = []
 	for id in MORCEAUX:
-		if not exclus.has(id) and ok.has(String(MORCEAUX[id][1])):
+		if exclus.has(id) or not ok.has(String(MORCEAUX[id][1])):
+			continue
+		tous.append(id)
+		var ep := est_d_epoque(id)
+		if (ep and anciens) or (not ep and not seuls_anciens):
 			out.append(id)
-	return out
+	return out if not out.is_empty() else tous
 
 
 func titre(id: String) -> String:

@@ -520,7 +520,12 @@ static func types_d_epoque(k: String) -> Dictionary:
 					w *= 3
 				out[id] = w
 		if not out.is_empty():
-			return out
+			break
+	# Bâtiments du XIXe siècle faits pour l'époque (longère, canuts, tulou…).
+	if y < 1950:
+		var siecle := EpoquesBatiments.pour_zone(k, region, y)
+		for id in siecle:
+			out[id] = int(siecle[id]) * (3 if y < 1914 else 1)
 	return out
 
 

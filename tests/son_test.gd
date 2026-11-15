@@ -47,12 +47,12 @@ func _flat_tile(t: Vector2i) -> PackedFloat32Array:
 func _run() -> void:
 	print("Fichiers :")
 	var manque: Array = []
-	for id in AmbiancesSonores.NAPPES + ["chantier"]:
+	for id in AmbiancesSonores.NAPPES + ["chantier"] + AmbiancesSonores.NAPPES_ANCIENNES.values():
 		if Son.flux("ambiance/" + id, true) == null:
 			manque.append("ambiance/" + id)
 	for id in ["ui_clic", "ui_ouvrir", "ui_fermer", "ui_notification", "ui_erreur", "pose_batiment", "pose_route",
 			"demolition", "chantier_fini", "argent", "palier", "election_gagnee", "election_perdue", "alerte",
-			"tonnerre_1", "tonnerre_2", "cloches", "coq"]:
+			"tonnerre_1", "tonnerre_2", "cloches", "coq", "sifflet_vapeur"]:
 		if Son.flux("effets/" + id) == null:
 			manque.append("effets/" + id)
 	for id in Son.MORCEAUX:
@@ -94,6 +94,18 @@ func _run() -> void:
 	son.exclus = ["lampadaires"]
 	_check(not son.liste("nuit").has("lampadaires"), "un morceau décoché sort de la liste")
 	son.exclus = []
+	son.annee_forcee = 0
+	_check(not son.liste("jour").has("menuet_de_la_place"), "partie moderne : pas de musique d'époque")
+	son.annee_forcee = 1850
+	var l1850 := son.liste("jour")
+	_check(l1850.has("menuet_de_la_place") and not l1850.has("premier_coup_de_pioche"), "1850 : musique d'époque seulement")
+	_check(son.liste("nuit").has("nocturne_a_la_bougie"), "1850 : nocturne la nuit")
+	son.annee_forcee = 1930
+	var l1930 := son.liste("jour")
+	_check(l1930.has("menuet_de_la_place") and l1930.has("premier_coup_de_pioche"), "1930 : les deux se mélangent")
+	son.annee_forcee = 1850
+	_check(son.liste("menu") == ["une_terre_a_batir"], "1850 : le globe garde son thème")
+	son.annee_forcee = -1
 	son.lancer("valse_du_permis_de_construire")
 	await _frames(2)
 	_check(son.morceau == "valse_du_permis_de_construire" and son._music_cur.playing, "un morceau se lance")
@@ -147,6 +159,16 @@ func _run() -> void:
 	await _frames(40)
 	var amb: AmbiancesSonores = scene.sons
 	_check(amb != null and amb._players.size() == AmbiancesSonores.NAPPES.size(), "nappes d'ambiance prêtes")
+	_check(not amb.ancien and amb._players.trafic.stream == Son.flux("ambiance/trafic", true), "partie moderne : trafic moderne")
+	amb.annee_forcee = 1850
+	amb._maj_epoque()
+	_check(amb.ancien and amb._players.trafic.stream == Son.flux("ambiance/trafic_attelages", true), "1850 : attelages au lieu des moteurs")
+	_check(amb._players.ville_jour.stream == Son.flux("ambiance/ville_jour_ancien", true), "1850 : ville d'avant le moteur")
+	amb.annee_forcee = 1925
+	amb._maj_epoque()
+	_check(not amb.ancien and amb._players.trafic.stream == Son.flux("ambiance/trafic", true), "1925 : retour aux moteurs")
+	amb.annee_forcee = -1
+	amb._maj_epoque()
 	var day: DayNight = scene.ambiance
 	day.set_local_hour(11.0)
 	day.weather.mode = Meteo.Mode.SOLEIL

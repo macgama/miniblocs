@@ -490,7 +490,9 @@ func _en_ligne() -> void:
 	_check(await _attendre(func() -> bool: return bs.buildings.size() > nb + 1, 10.0), "la maison de Bob apparaît chez Alice")
 	var avant_bob := bs.money
 	await _attendre(func() -> bool: return false, 1.5)
-	_check(bs.money == avant_bob, "la maison de Bob n'est pas payée par la caisse d'Alice")
+	# La caisse de Testville bouge un peu toute seule (entretien, impôts au fil des jours) :
+	# on vérifie qu'elle ne paie pas la maison (≈ 250 000 €).
+	_check(avant_bob - bs.money < 50000, "la maison de Bob n'est pas payée par la caisse d'Alice (écart %s)" % BuildingSystem.format_money(avant_bob - bs.money))
 
 	print("Temps, démolition, terrain :")
 	scene.ambiance.set_speed(3)

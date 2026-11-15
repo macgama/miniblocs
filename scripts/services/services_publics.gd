@@ -783,6 +783,9 @@ func _avis_hopital(p: Dictionary) -> Array:
 	if c.is_empty():
 		return [0.0, []]
 	var q := float(c.q)
+	# Hameau : on va à l'hôpital de la ville voisine sans s'en plaindre.
+	if q < 1.0 and Communes.attentes_reduites(population.home_of(p)):
+		return [0.0, []]
 	if q <= 0.0:
 		return [-8.0, ["− pas d'hôpital accessible"]]
 	if float(c.charge) > 1.0:
@@ -797,6 +800,8 @@ func _avis_police(p: Dictionary) -> Array:
 	if c.is_empty():
 		return [0.0, []]
 	var q := float(c.q)
+	if q < 1.0 and Communes.attentes_reduites(population.home_of(p)):
+		return [0.0, []]
 	if q <= 0.0:
 		return [-6.0, ["− quartier sans police"]]
 	if float(c.charge) > 1.0:

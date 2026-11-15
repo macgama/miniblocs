@@ -16,6 +16,8 @@ const RAYON := 120.0
 const REFRESH := 0.5
 
 var pe: PlanEditor
+## Vue sous terre : Page bas sous le rez-de-chaussée y descend.
+var souterrain: VueSouterraine
 var rig: Node3D
 
 ## Étage le plus haut montré (−1 : tout).
@@ -67,6 +69,10 @@ func step(d: int) -> void:
 	var c := _centre()
 	var ids := pe.plans_near(c, RAYON)
 	var top := _top_level(ids)
+	if d < 0 and souterrain != null and (ids.is_empty() or top < 1 or etage == 0):
+		show_all()
+		souterrain.entrer()
+		return
 	if ids.is_empty() or top < 1:
 		message.emit("Vue par étage : aucun bâtiment à étages en murs fins par ici. « Ouvrir l'intérieur » (Personnaliser) en crée un depuis le catalogue.")
 		return
@@ -125,6 +131,8 @@ func _editing() -> bool:
 func _unhandled_input(event: InputEvent) -> void:
 	var k := event as InputEventKey
 	if k == null or not k.pressed or k.echo or _editing():
+		return
+	if souterrain != null and souterrain.actif:
 		return
 	if k.keycode == KEY_PAGEDOWN:
 		step(-1)

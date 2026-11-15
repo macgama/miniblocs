@@ -80,6 +80,11 @@ static func min_radius(xz: PackedVector2Array) -> float:
 
 # --- Profil en long ------------------------------------------------------------------
 
+## Profondeur imposée (m sous le sol) des voies posées depuis la vue sous terre
+## (ConstructionSouterraine) ; NAN : profondeur normale du type.
+static var profondeur_forcee := NAN
+
+
 ## path : tracé en plan (au moins 2 points). h0 / h1 : hauteur imposée aux
 ## extrémités (NAN = hauteur du sol). ground : Callable(x, z) -> float.
 ## water (optionnel) : Callable(x, z) -> float, surface d'une rivière ou d'un lac
@@ -161,6 +166,9 @@ static func plan(type_id: String, path: PackedVector2Array, h0: float, h1: float
 
 	# Hauteur souhaitée : le sol, ou au-dessus de la mer (le métro : sous le sol).
 	var depth := float(ty.get("underground", 0.0))
+	# Construction depuis la vue sous terre : voie creusée à la profondeur du niveau.
+	if not is_nan(profondeur_forcee):
+		depth = profondeur_forcee
 	var want := PackedFloat32Array()
 	want.resize(n)
 	for i in n:

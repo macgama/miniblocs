@@ -169,5 +169,5 @@ func _run() -> void:
 	rf.from_dict(JSON.parse_string(JSON.stringify(sd)))
 	_check(rf.offertes.has(v1) and rf.offertes.has(v2) and rf.offertes.size() == 2, "relu : 2 villes avec leur rue")
 
-	print("RÉUSSI" if ok else "ÉCHEC")
+	print("TEST OK" if ok else "TEST ÉCHEC")
 	quit(0 if ok else 1)

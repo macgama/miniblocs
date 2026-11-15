@@ -40,6 +40,31 @@ const ETAPES_VOIE := [
 	[1.0, "marquage", "Marquage et finitions"],
 ]
 
+## Tunnel ou métro creusé depuis la vue sous terre (tunnelier ou méthode
+## traditionnelle selon la profondeur).
+const ETAPES_TUNNEL := [
+	[0.08, "sondages", "Sondages et puits d'accès"],
+	[0.60, "creusement", "Creusement (tunnelier) et voussoirs"],
+	[0.80, "radier", "Radier, étanchéité et ventilation"],
+	[0.95, "equipements", "Voies, chaussée et éclairage"],
+	[1.0, "essais", "Essais de sécurité"],
+]
+## Pièce souterraine (cave, parking, entrepôt, bunker).
+const ETAPES_PIECE := [
+	[0.10, "sondages", "Sondages et piquetage"],
+	[0.45, "terrassement", "Creusement et évacuation des déblais"],
+	[0.65, "soutenement", "Soutènement (béton projeté, ancrages)"],
+	[0.90, "gros_oeuvre", "Dalles et voiles en béton armé"],
+	[1.0, "etancheite", "Étanchéité et finitions"],
+]
+## Conduite posée en profondeur (microtunnelier, fonçage).
+const ETAPES_FONCAGE := [
+	[0.15, "puits", "Puits d'entrée et de sortie"],
+	[0.70, "foncage", "Fonçage au microtunnelier"],
+	[0.90, "pose", "Pose et raccords des tuyaux"],
+	[1.0, "essais", "Essais de pression"],
+]
+
 
 ## Les chantiers sont-ils instantanés (réglage Admin, bac à sable) ?
 static func instantanes() -> bool:

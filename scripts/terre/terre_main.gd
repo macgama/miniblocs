@@ -367,7 +367,8 @@ func save_sections() -> Dictionary:
 		"modeles_visites": modeles_visites.to_dict(),
 		"personnage": ($VueSol as VueSol).to_dict(), "habitants": population.to_dict(), "mobilier": mobilier.to_dict(),
 		"production": production.to_dict(), "agriculture": agriculture.to_dict(), "urgences": urgences.to_dict(), "reseaux": reseaux.to_dict(), "dechets": dechets.to_dict(), "funeraire": funeraire.to_dict(), "trafic": trafic.to_dict(), "lignes_eco": lignes_eco.to_dict(), "reglages": _settings_snapshot().to_dict(), "budget": budget.to_dict(), "evenements": evenements.to_dict(), "saisons": saisons.to_dict(), "decors": decors.to_dict(),
-		"nuisances": nuisances.to_dict(), "telecom": telecom.to_dict(), "services": services.to_dict(), "carrieres": carrieres.to_dict()}
+		"nuisances": nuisances.to_dict(), "telecom": telecom.to_dict(), "services": services.to_dict(), "carrieres": carrieres.to_dict(),
+		"souterrain": construction_souterraine.to_dict()}
 	sec["avis"] = avis.to_dict()
 	sec["communes"] = communes.to_dict()
 	sec["fondateurs"] = fondateurs.to_dict()
@@ -503,6 +504,7 @@ func load_game(slot := "") -> bool:
 	lignes_eco.from_dict(sec.get("lignes_eco", {}))
 	services.from_dict(sec.get("services", {}))
 	telecom.from_dict(sec.get("telecom", {}))
+	construction_souterraine.from_dict(sec.get("souterrain", {}))
 	dechets.from_dict(sec.get("dechets", {}))
 	musee.from_dict(sec.get("musee", {}))
 	spectacles.from_dict(sec.get("spectacles", {}))
@@ -1853,6 +1855,7 @@ var banque_panel: BanquePanel
 ## Vue sous terre (scripts/souterrain) : Page bas sous le rez-de-chaussée, ou
 ## menu Infos. Réseaux de rue, tronçons enterrés, tunnels, métro, sous-sols.
 var souterrain: VueSouterraine
+var construction_souterraine: ConstructionSouterraine
 
 
 func _setup_souterrain() -> void:
@@ -1872,6 +1875,22 @@ func _setup_souterrain() -> void:
 	transport.network.changed.connect(souterrain.marquer_sale)
 	buildings.changed.connect(souterrain.marquer_sale)
 	reseaux.elec.changed.connect(souterrain.marquer_sale)
+	# Construire sous terre : conduites, tunnels, pièces (scripts/souterrain).
+	construction_souterraine = ConstructionSouterraine.new()
+	construction_souterraine.name = "ConstructionSouterraine"
+	construction_souterraine.reseaux = reseaux
+	construction_souterraine.telecom = telecom
+	construction_souterraine.transport = transport
+	construction_souterraine.plans = plans
+	construction_souterraine.buildings = buildings
+	construction_souterraine.world = world
+	construction_souterraine.ranger = func() -> void: _select_building_tool()
+	souterrain.brancher_construction(construction_souterraine)
+	construction_souterraine.setup()
+	construction_souterraine.message.connect(func(t: String) -> void: hud.show_message(t))
+	construction_souterraine.changed.connect(souterrain.marquer_sale)
+	if telecom != null:
+		telecom.fibre.changed.connect(souterrain.marquer_sale)
 	hud.souterrain_requested.connect(func() -> void:
 		if souterrain.actif:
 			souterrain.sortir()
@@ -2329,6 +2348,8 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 	lignes_eco.clear()
 	services.clear()
 	telecom.clear()
+	if construction_souterraine != null:
+		construction_souterraine.clear()
 	dechets.clear()
 	funeraire.clear()
 	spectacles.clear()

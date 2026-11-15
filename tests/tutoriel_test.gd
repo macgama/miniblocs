@@ -124,6 +124,32 @@ func _run() -> void:
 		ec = bs.place("ecole", Vector2i(28, 160), 1)
 	_check(ec > 0, "école posée")
 	t.verifier()
+	_check(t.id_courant() == "dechets", "étape « dechets » (%s)" % t.id_courant())
+	_check(t.progres().contains("pas encore"), "progrès des déchets : %s" % t.progres())
+	t.agir()
+	await _frames(2)
+	_check(scene.build_panel.is_open() and scene.build_panel.category() == "dechets", "bouton : Construire → Déchets ouvert")
+	scene.build_panel.set_open(false)
+	var dep := -1
+	var dch := -1
+	# Le long de la route (x = 0, de z = 12 à 220), d'un côté puis de l'autre.
+	for z in range(30, 220, 8):
+		for x in [-24, 24, -30, 30]:
+			var c := Vector2i(x, z)
+			if dep < 0 and bs.check_place("depot_collecte", c, bs.best_rotation("depot_collecte", c)).ok:
+				dep = bs.place("depot_collecte", c, bs.best_rotation("depot_collecte", c))
+	for z in range(60, 220, 10):
+		for x in [-52, 52, -60, 60]:
+			var c := Vector2i(x, z)
+			if dch < 0 and bs.check_place("decharge", c, bs.best_rotation("decharge", c)).ok:
+				dch = bs.place("decharge", c, bs.best_rotation("decharge", c))
+	t.verifier()
+	if dep >= 0 and dch >= 0:
+		_check(t.id_courant() == "budget", "dépôt et décharge posés : étape « budget » (%s)" % t.id_courant())
+	else:
+		print("  (dépôt %d, décharge %d : pas de place ici, on passe l'étape)" % [dep, dch])
+		_check(t.collecte().depot == (dep >= 0), "collecte() voit le dépôt")
+		t.passer()
 	_check(t.id_courant() == "budget", "étape « budget » (%s)" % t.id_courant())
 	t.verifier()
 	_check(t.id_courant() == "budget", "budget pas encore ouvert : on attend")

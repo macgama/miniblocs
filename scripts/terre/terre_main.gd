@@ -1027,9 +1027,9 @@ func _on_tuto_action(id: String) -> void:
 			fondateurs_panel.set_open(true)
 		"route":
 			hud.choose_tool(TerreHud.FIRST_TRANSPORT_TOOL)
-		"zones", "reseaux", "ecole":
+		"zones", "reseaux", "ecole", "dechets":
 			build_panel.set_open(true)
-			build_panel.show_category({"zones": "zones", "reseaux": "reseaux", "ecole": "services"}[id])
+			build_panel.show_category({"zones": "zones", "reseaux": "reseaux", "ecole": "services", "dechets": "dechets"}[id])
 		"temps":
 			ambiance.set_speed(mini(maxi(ambiance.speed_index + 1, DayNight.DEFAULT_SPEED), DayNight.SPEEDS.size() - 1))
 			hud.show_message("Vitesse : %s. T met en pause, Maj + T change la vitesse." % String(DayNight.SPEED_NAMES[ambiance.speed_index]).to_lower())

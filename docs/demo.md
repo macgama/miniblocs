@@ -15,24 +15,24 @@ endroit : **Échallens (Vaud)**, un plateau agricole presque plat avec des bois
 (`Demo.LIEU`), avec les réglages **Normal** (30 M€, 100 fondateurs, réseaux
 obligatoires). Pas de globe à traverser.
 
-La carte en haut à gauche affiche « Démo guidée · étape N / 17 · 12 min ». Le
+La carte en haut à gauche affiche « Démo guidée · étape N / 18 · 12 min ». Le
 chrono compte le temps réel joué (pas le temps en pause).
 
 ## Le parcours
 
-1. Les 11 premières étapes du **tutoriel** (caméra, Maison de commune, fondateurs,
-   route, logements, courant et eau, temps, emplois, école, budget, objectifs),
-   sans l'étape « Tu es maire ! ».
+1. Les 12 premières étapes du **tutoriel** (caméra, Maison de commune, fondateurs,
+   route, logements, courant et eau, temps, emplois, école, poubelles, budget,
+   objectifs), sans l'étape « Tu es maire ! ».
 2. Les chapitres de la démo :
 
 | # | Chapitre | Il se valide quand… | Bouton |
 |---|---|---|---|
-| 12 | Descendre dans la rue | la vue au sol est active (V) | passe en vue au sol |
-| 13 | Un coin pour souffler | un espace public, un loisir ou un terrain de sport est posé | Construire → Espaces publics |
-| 14 | Une fête au village | un marché ou une fête est organisé (I → Organiser) | ouvre Infos → Organiser |
-| 15 | Prendre le bus | une ligne de transport existe (L) | ouvre les lignes |
-| 16 | Cent habitants | la ville a 100 habitants (ou le rang de Village) | ouvre Maj+J |
-| 17 | Fin de la démo | bouton « Voir mon bilan » | ouvre le bilan |
+| 13 | Descendre dans la rue | la vue au sol est active (V) | passe en vue au sol |
+| 14 | Un coin pour souffler | un espace public, un loisir ou un terrain de sport est posé | Construire → Espaces publics |
+| 15 | Une fête au village | un marché ou une fête est organisé (I → Organiser) | ouvre Infos → Organiser |
+| 16 | Prendre le bus | une ligne de transport existe (L) | ouvre les lignes |
+| 17 | Cent habitants | la ville a 100 habitants (ou le rang de Village) | ouvre Maj+J |
+| 18 | Fin de la démo | bouton « Voir mon bilan » | ouvre le bilan |
 
 ![Le bilan de fin de démo](apercu-demo-bilan.jpg)
 
@@ -129,3 +129,35 @@ d'hôpital, de police, d'internet ou de réseau mobile (on va à la ville
 voisine), et l'outil Route pose une rue de village par défaut (plus une
 départementale). Satisfaction à la fin de la démo : de 10-25 % à 42-46 % ; il
 reste surtout les poubelles (dépôt de collecte du kit) et les commerces.
+
+### Rang de Village (2026-11-15)
+
+Le test va maintenant jusqu'au **rang de Village** (100 habitants et 50 % de
+satisfaction, seuil inchangé) et échoue s'il n'est pas atteint dans les 10
+minutes qui suivent les 100 habitants. Ce qui bloquait, et ce qui a changé :
+- **Poubelles** : personne ne posait de dépôt de collecte, et même posé il
+  n'avait qu'un ou deux éboueurs (il en faut trois par benne) : aucune tournée,
+  sacs sur les trottoirs, mauvaises odeurs dans tout le village. Nouvelle étape
+  du tutoriel et de la démo, « Ramasser les poubelles » (dépôt de collecte +
+  décharge, en grande partie payés par le kit de l'État). Le dépôt compte
+  comme fermé tant qu'il n'a pas trois éboueurs (`Effectif.REQUIS_MIN`).
+- **Fondateurs sans chantier** : chaque matin, ceux qui n'ont pas de chantier
+  vont tenir les bâtiments fermés faute d'un métier indispensable (éboueurs,
+  boulanger, enseignant…), autant qu'il en faut pour ouvrir
+  (`Fondateurs.depanner`). Ailleurs, un tel bâtiment recrute chez un employeur
+  voisin qui garde la moitié de ses postes (`Population._mobilite_requis`).
+- **Files d'attente** : un commerce était « en sous-effectif » sous la moitié
+  de ses postes, quelle que soit sa clientèle ; dans un village où les emplois
+  dépassent les actifs, tous les habitants avaient « longues files au
+  commerce ». Le personnel utile suit maintenant la clientèle : un employé pour
+  25 habitants dont c'est le commerce le plus proche
+  (`Effectif.HAB_PAR_VENDEUR`, `Population.clients_commerce`), les fondateurs
+  sous la tente ne comptent pas (ils vivent de leurs vivres). Les fondateurs
+  sans chantier vont aussi renforcer un commerce où l'on fait la queue.
+
+Mesures (parcours sans réglage particulier, décharge à l'écart des maisons) :
+rang de Village atteint dans 12 parcours sur 12, entre 7 et 13 minutes de jeu
+à vitesse maximale (jour 27 à 53), satisfaction 50 à 78 % au moment du rang
+(avant : 25-46 %, rang jamais atteint). Il reste surtout les rayons vides (pas
+de livraisons sans dépôt de marchandises), le bruit et les manifestations
+ignorées.

@@ -38,10 +38,17 @@ const REQUIS := {
 	"piscine": ["coach"],
 	"supermarche": ["caissier", "vendeur"],
 	"superette": ["caissier", "vendeur"],
+	"depot_collecte": ["eboueur"],
 }
+## Nombre minimal de ces métiers pour ouvrir (une benne part avec trois éboueurs).
+const REQUIS_MIN := {"depot_collecte": 3}
 
 ## En dessous de cette part de postes pourvus : « manque de personnel ».
 const SOUS_EFFECTIF := 0.5
+## Commerces : un employé sert les courses de HAB_PAR_VENDEUR habitants. Le
+## personnel utile suit la clientèle (la boulangerie d'un village de 100
+## habitants n'a pas besoin de ses cinq postes pour éviter la queue).
+const HAB_PAR_VENDEUR := 25
 ## Élèves par enseignant au-delà desquels les classes sont surchargées.
 const ELEVES_PAR_PROF := 25
 
@@ -49,7 +56,7 @@ var pop: Population
 var _etat: Dictionary = {}
 var _signature := -1
 ## (pop.emplois_version, nombre de bâtiments) au dernier actualiser().
-var _vu := Vector2i(-1, -1)
+var _vu := Vector3i(-1, -1, -1)
 ## Signature de l'ensemble des bâtiments fermés (pour vider les caches des trajets).
 var signature_fermes := 0
 
@@ -67,6 +74,13 @@ func concerne(bid: int) -> bool:
 	return int(info.emp) > 0 and String(info.cat) != "logement" and String(info.cat) != "parc" and String(info.cat) != "zoo"
 
 
+static func requis_min_de(type_id: String) -> int:
+	for k in Metiers.keys_of(type_id):
+		if REQUIS_MIN.has(k):
+			return int(REQUIS_MIN[k])
+	return 1
+
+
 static func requis_de(type_id: String) -> Array:
 	for k in Metiers.keys_of(type_id):
 		if REQUIS.has(k):
@@ -79,11 +93,12 @@ static func requis_de(type_id: String) -> Array:
 func actualiser(force := false) -> bool:
 	# Rien n'a bougé dans les emplois ni les bâtiments depuis la dernière fois :
 	# inutile de refaire l'empreinte (appelé pour chaque bâtiment, très souvent).
-	var cle := Vector2i(pop.emplois_version, pop.known.size())
+	# (Logements habités : la clientèle des commerces en dépend.)
+	var cle := Vector3i(pop.emplois_version, pop.known.size(), pop.by_home.size())
 	if cle == _vu and not force:
 		return false
 	_vu = cle
-	var sig := pop.known.size() * 1000003
+	var sig := pop.known.size() * 1000003 + pop.by_home.size() * 7919
 	for bid in pop.by_job:
 		sig = sig * 31 + int(bid) * 7 + (pop.by_job[bid] as Array).size()
 	if sig == _signature and not force:
@@ -127,9 +142,30 @@ func _calcul(bid: int) -> Dictionary:
 				var nom := String(Metiers.job(String(m)).name).to_lower()
 				noms.append(("d'" if "aeiouéèêh".contains(nom.left(1)) else "de ") + nom)
 			raison = "pas " + " ni ".join(noms)
+		else:
+			var mini := requis_min_de(String(info.t))
+			var n := 0
+			for m in requis:
+				n += int(par_metier.get(m, 0))
+			if n < mini:
+				ferme = true
+				var nom := String(Metiers.job(String(requis[0])).name).to_lower().get_slice(" (", 0)
+				raison = "%d %s sur les %d qu'il faut" % [n, nom, mini]
 	var taux := float(staff.size()) / maxf(1.0, float(prevus))
-	return {"prevus": prevus, "embauches": staff.size(), "par_metier": par_metier, "requis": requis,
+	var out := {"prevus": prevus, "embauches": staff.size(), "par_metier": par_metier, "requis": requis,
 		"ferme": ferme, "raison": raison, "taux": taux, "manque": ferme or taux < SOUS_EFFECTIF}
+	if est_commerce(info):
+		var clients := pop.clients_commerce(bid)
+		var besoin := clampi(ceili(float(clients) / HAB_PAR_VENDEUR), 1, maxi(prevus, 1))
+		out.clients = clients
+		out.besoin = besoin
+		out.manque = ferme or staff.size() < ceili(besoin * SOUS_EFFECTIF)
+	return out
+
+
+## Commerce où l'on fait ses courses (files d'attente selon la clientèle).
+static func est_commerce(info: Dictionary) -> bool:
+	return (info.get("serves", []) as Array).has("shopping") or String(info.get("cat", "")) == "commerce"
 
 
 ## Les employés d'un bâtiment ont changé : son état sera recalculé.

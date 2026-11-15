@@ -231,6 +231,33 @@ func _run() -> void:
 	pop._now = {}
 	_check(not eff.ferme(school) and not eff.ferme(hospital) and not eff.ferme(shop), "de nouveaux employés sont embauchés : tout rouvre")
 
+	print("Files d'attente selon la clientèle :")
+	var garde := false
+	for pid in (pop.by_job.get(bakery, []) as Array).duplicate():
+		if String(pop.persons[pid].met) == "boulanger" and not garde:
+			garde = true
+			continue
+		pop._leave_job(pop.persons[pid])
+	pop._apres_embauches()
+	var eb := eff.etat(bakery)
+	_check(garde and eb.has("besoin") and int(eb.embauches) == 1, "boulangerie avec un seul boulanger : %d clients, %d employés utiles" % [
+		int(eb.get("clients", -1)), int(eb.get("besoin", -1))])
+	_check(int(eb.besoin) == clampi(ceili(float(eb.clients) / Effectif.HAB_PAR_VENDEUR), 1, int(eb.prevus)), "un employé utile pour %d clients" % Effectif.HAB_PAR_VENDEUR)
+	_check(bool(eb.manque) == (int(eb.besoin) > 2), "files d'attente seulement si la clientèle dépasse ce qu'un employé sert (%s)" % ("files" if eb.manque else "pas de file"))
+	# Cent clients pour un seul boulanger : la queue.
+	pop.clients_commerce(bakery)
+	pop._clients[bakery] = 100
+	pop._clients_ms = Time.get_ticks_msec()
+	eff.oublier(bakery)
+	var e100 := eff.etat(bakery)
+	_check(int(e100.besoin) == mini(4, int(e100.prevus)) and bool(e100.manque), "100 clients pour un boulanger : longues files (%d employés utiles)" % int(e100.besoin))
+	pop._clients.clear()
+	pop._clients_cle = Vector3i(-1, -1, -1)
+	eff.oublier(bakery)
+	_check(Effectif.requis_de("depot_collecte") == ["eboueur"] and Effectif.requis_min_de("depot_collecte") == 3, "dépôt de collecte : trois éboueurs pour ouvrir (une benne)")
+	pop._match_all()
+	pop._now = {}
+
 	print("Toutes les vues :")
 	mv.set_enabled(false)
 	_check(mv._figs.is_empty() and mv._bats.is_empty(), "K : vue métiers coupée, plus rien d'affiché")

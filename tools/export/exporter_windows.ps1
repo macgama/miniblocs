@@ -117,9 +117,11 @@ if (Get-Process -Name MiniBlocs -ErrorAction SilentlyContinue | Where-Object { $
 New-Item -ItemType Directory -Force $Destination | Out-Null
 Get-ChildItem $Destination -Filter "MiniBlocs*" | Remove-Item -Force
 Copy-Item (Join-Path $sortie "*") $Destination -Force
+try {
 @"
 MiniBlocs $version ($commit), build du $date
 Lancer : double-clic sur MiniBlocs.exe
 Refaire l'export : powershell -ExecutionPolicy Bypass -File "$PSCommandPath"
-"@ | Set-Content -Encoding UTF8 (Join-Path $Destination "LISEZMOI.txt")
+"@ | Set-Content -Encoding UTF8 (Join-Path $Destination "LISEZMOI.txt") -ErrorAction Stop
+} catch { Ecrire "LISEZMOI.txt non mis à jour (fichier ouvert ?) : $($_.Exception.Message)" }
 Ecrire "OK : $Destination\MiniBlocs.exe ($version, $(if ($avecModeles) { 'modèles officiels' } else { 'moteur renommé' }))"

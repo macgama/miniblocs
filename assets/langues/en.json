@@ -10618,5 +10618,6 @@
 "carre": "square",
 "Avoir 500 M€ en caisse.": "Have €500M in the treasury.",
 "Argent illimité dans cette partie : les succès sont coupés. ": "Unlimited money in this game: achievements are switched off. "
-}
+},
+"Pays d'accueil : %s. L'État offre à %s son kit d'installation : eau, égouts et déchets, à poser où tu veux, et un bon pour l'électricité qui attendra son invention (Maj+P pour les détails)%s.": "Host country: %s. The State offers %s its setup kit: water, sewers and waste, to place wherever you like, and an electricity voucher that will wait for its invention (Shift+P for details)%s."
 }

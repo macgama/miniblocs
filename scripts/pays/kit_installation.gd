@@ -129,8 +129,15 @@ func accorder(vid: int, code: String) -> void:
 		ouvriers = RENFORT
 		fondateurs.renfort(RENFORT)
 	var nom := String(communes.villages[vid].nom) if communes.villages.has(vid) else "ta ville"
-	message.emit("Pays d'accueil : %s. L'État offre à %s son kit d'installation : électricité, eau, égouts et déchets, à poser où tu veux (Maj+P pour les détails)%s." % [
-		nom_pays(code), nom, " et envoie %d ouvriers pour les chantiers" % ouvriers if ouvriers > 0 else ""])
+	var renfort := " et envoie %d ouvriers pour les chantiers" % ouvriers if ouvriers > 0 else ""
+	# Partie historique : avant 1925, l'électricité n'arrive pas encore en ville.
+	# Le bon reste valable pour plus tard.
+	if not Epoques.attendu("elec"):
+		message.emit("Pays d'accueil : %s. L'État offre à %s son kit d'installation : eau, égouts et déchets, à poser où tu veux, et un bon pour l'électricité qui attendra son invention (Maj+P pour les détails)%s." % [
+			nom_pays(code), nom, renfort])
+	else:
+		message.emit("Pays d'accueil : %s. L'État offre à %s son kit d'installation : électricité, eau, égouts et déchets, à poser où tu veux (Maj+P pour les détails)%s." % [
+			nom_pays(code), nom, renfort])
 	changed.emit()
 
 

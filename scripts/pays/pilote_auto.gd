@@ -221,12 +221,44 @@ func chiffres(vid: int) -> Dictionary:
 	return out
 
 
+## Bâtiments de ce type dans la ville. Un bâtiment qui en joue le rôle compte
+## aussi (maison d'école d'une partie historique, modèle de l'Atelier : base_of).
 func compter(vid: int, type_id: String) -> int:
 	var n := 0
 	for bid in buildings.buildings:
-		if String(buildings.buildings[bid].t) == type_id and communes.village_de(bid) == vid:
+		var t := String(buildings.buildings[bid].t)
+		if (t == type_id or BuildingCatalog.base_of(t) == type_id) and communes.village_de(bid) == vid:
 			n += 1
 	return n
+
+
+## Le bâtiment à construire pour un besoin : le type lui-même, ou dans une partie
+## historique le plus récent des bâtiments d'époque qui jouent son rôle (maison
+## d'école en 1800, école de la République en 1890…). "" : rien n'existe encore.
+static func type_d_epoque(id: String) -> String:
+	if Epoques.batiment_disponible(id):
+		return id
+	var types := BuildingCatalog.all_types()
+	var best := ""
+	var best_a := -1
+	for t in types:
+		# Seulement les bâtiments d'époque (année d'apparition), pas les modèles du joueur.
+		if t == id or types[t].get("cache", false) or not types[t].has("annee") or BuildingCatalog.base_of(t) != id:
+			continue
+		var a := Epoques.annee_batiment(t)
+		if Epoques.batiment_disponible(t) and a > best_a:
+			best = t
+			best_a = a
+	return best
+
+
+## Un bâtiment de ce rôle (base_of) est-il en chantier dans la ville ?
+func _en_chantier(vid: int, base: String) -> bool:
+	for bid in buildings.buildings:
+		if buildings.en_chantier(bid) and BuildingCatalog.base_of(String(buildings.buildings[bid].t)) == base \
+				and communes.village_de(bid) == vid:
+			return true
+	return false
 
 
 ## Bâtiments à logements en chantier dans la ville.
@@ -280,7 +312,10 @@ func construire(vid: int) -> String:
 		if t != "":
 			return t
 	for b in BESOINS:
-		var id := String(b[0])
+		var besoin := String(b[0])
+		var id := type_d_epoque(besoin)
+		if id == "":
+			continue
 		if id == Fondateurs.ENTREPRISE and (Fondateurs.instance == null or not Fondateurs.instance.regle_active()):
 			continue
 		var voulu := 1 if hab >= int(b[1]) else 0
@@ -288,12 +323,15 @@ func construire(vid: int) -> String:
 		# faisait bâtir école, police et dépôt de collecte dès le premier habitant.
 		if int(b[2]) > 0 and voulu > 0:
 			voulu = maxi(voulu, ceili(float(hab) / float(b[2])))
-		if id == "ecole" and int(c.sans_ecole) > 0:
+		# Une école de plus pour les enfants sans école, mais pas tant qu'une autre est
+		# en chantier : ses élèves l'attendent (sinon, avec une maison d'école à
+		# 600 k€, une nouvelle chaque jour tant que la première n'est pas finie).
+		if besoin == "ecole" and int(c.sans_ecole) > 0 and not _en_chantier(vid, "ecole"):
 			voulu = maxi(voulu, compter(vid, "ecole") + (1 if int(c.sans_ecole) > 15 or compter(vid, "ecole") == 0 else 0))
-		if compter(vid, id) >= voulu:
+		if compter(vid, besoin) >= voulu:
 			continue
 		var prix := ReglagesPartie.prix(BuildingCatalog.cost(id))
-		if id == "ecole" and dispo(vid) < prix:
+		if besoin == "ecole" and dispo(vid) < prix:
 			_financer_ecole(vid, prix)
 		if dispo(vid) < prix:
 			return ""

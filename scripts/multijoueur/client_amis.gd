@@ -52,6 +52,27 @@ var _vitesse_serveur := -1
 var _alerte_vitesse := false
 var _t_connexion := 0.0
 
+# Sections partagées (zones, éditeur libre, décors, réseaux… voir SectionsPartagees).
+## Délai après le dernier geste du joueur avant d'envoyer ce qu'il a changé (s).
+const ENVOI_APRES := 0.3
+## Vérification régulière, même sans geste (s).
+const VERIF_SECTIONS := 5.0
+var specs: Dictionary = {}
+## Section → dernière version connue du serveur, à plat (avec nos envois).
+var bases: Dictionary = {}
+var envois_sections := 0
+var _envoi_t := -1.0
+var _verif_t := 0.0
+var _argent_avant: Dictionary = {}
+var _depense: Dictionary = {}
+var _ecarts_sections: Dictionary = {}
+var _demande_section: Dictionary = {}
+## Sections changées depuis la dernière comparaison (signal « changed » de leur système).
+var _sales: Dictionary = {}
+var _complet_t := 0.0
+## Comparaison complète, même sans signal (s).
+const VERIF_COMPLETE := 30.0
+
 
 func _init() -> void:
 	name = "ClientAmis"
@@ -161,6 +182,7 @@ func _process(delta: float) -> void:
 			_recevoir(msg)
 	if etat == "en_jeu" and is_instance_valid(jeu):
 		_surveiller_vitesse()
+		_surveiller_sections(delta)
 
 
 func _recevoir(msg: Dictionary) -> void:
@@ -258,6 +280,8 @@ func _recharger() -> void:
 		rig._target_distance = dist
 		resynchros += 1
 		_ecarts = 0
+		specs = SectionsPartagees.specs(jeu)
+		_reprendre_bases()
 		jeu.hud.show_message("Carte resynchronisée avec le serveur.")
 	_appliquer_tampon()
 
@@ -284,12 +308,20 @@ func attacher(j: Node) -> void:
 	jeu.tree_exiting.connect(func() -> void:
 		if etat != "deconnecte":
 			deconnecter("Tu as quitté la carte entre amis."))
+	specs = SectionsPartagees.specs(jeu)
+	_reprendre_bases()
+	if not get_tree().process_frame.is_connected(_apres_gestes):
+		get_tree().process_frame.connect(_apres_gestes)
 	_changer("en_jeu", "Sur la carte « %s »." % nom_carte)
 	jeu.hud.show_message("Carte entre amis « %s » : F3 pour les joueurs et la discussion." % nom_carte)
 	_appliquer_tampon()
 
 
 func _detacher() -> void:
+	if get_tree() != null and get_tree().process_frame.is_connected(_apres_gestes):
+		get_tree().process_frame.disconnect(_apres_gestes)
+	specs = {}
+	bases = {}
 	if not is_instance_valid(jeu):
 		return
 	jeu.buildings.verrou_reseau = false
@@ -313,6 +345,11 @@ func _relais_batiment(a: Dictionary) -> void:
 	# Maison de commune : le nom choisi pour le village part avec.
 	if String(a.get("t", "")) == "poser" and Communes.est_fondateur(String(a.get("id", ""))):
 		a["nom"] = jeu.communes.nom_en_attente
+	# Création de l'Atelier, de l'éditeur libre ou du parc : sa définition part avec.
+	if String(a.get("t", "")) == "poser":
+		var defs := SectionsPartagees.definition(String(a.get("id", "")))
+		if not defs.is_empty():
+			a["defs"] = defs
 	envoyer_action(a)
 
 
@@ -330,6 +367,12 @@ func appliquer(msg: Dictionary) -> void:
 				var d: Variant = msg.get("data")
 				if d is Dictionary:
 					jeu.transport.from_dict(d)
+		"sections":
+			_patch_section(String(msg.get("nom", "")), msg.get("patch", {}))
+		"section_partagee":
+			_section_entiere(String(msg.get("nom", "")), msg.get("data", {}))
+		"appel":
+			rejouer_appel(msg.get("a", {}))
 		"tic":
 			_tic(msg)
 		"reglages":
@@ -355,12 +398,16 @@ func _bat(liste: Array) -> void:
 					continue
 				if e.has("village"):
 					jeu.communes.nom_en_attente = String(e.village)
+				if e.has("defs"):
+					SectionsPartagees.adopter(e.defs)
 				bs.restore(b)
 				bs.next_id = maxi(bs.next_id, bid + 1)
 			"~":
 				var b: Dictionary = e.b
 				var bid := int(b.id)
 				if bs.buildings.has(bid):
+					if e.has("defs"):
+						SectionsPartagees.adopter(e.defs)
 					bs.set_perso(bid, b.get("perso", {}), int(b.get("v", -1)))
 			"-":
 				var bid := int(e.bid)
@@ -429,6 +476,7 @@ func _tic(msg: Dictionary) -> void:
 	if pays.actif != ma_caisse:
 		pays.activer(ma_caisse)
 	jeu.buildings.unlimited_money = bool(msg.get("illimite", jeu.buildings.unlimited_money))
+	_comparer_sections(msg.get("sec", {}))
 	# Empreintes : deux tics de suite différents → on redemande la partie.
 	var sig: Dictionary = msg.get("sig", {})
 	if not sig.is_empty() and sig != empreintes_locales():
@@ -469,3 +517,164 @@ func _surveiller_vitesse() -> void:
 func reglages_changes() -> void:
 	if admin:
 		envoyer_admin("reglages", {"d": ReglagesPartie.actuel.to_dict()})
+
+
+# --- Sections partagées ---------------------------------------------------------------------
+
+func _reprendre_bases() -> void:
+	bases = {}
+	_sales = {}
+	for nom in specs:
+		var o: Object = specs[nom].obj
+		if o.has_signal("changed") and not o.is_connected("changed", _marquer_sale.bind(nom)):
+			o.connect("changed", _marquer_sale.bind(nom))
+		bases[nom] = SectionsPartagees.normaliser(SectionsPartagees.lire(specs[nom]), specs[nom])
+	_envoi_t = -1.0
+	_depense.clear()
+
+
+## Un geste du joueur (clic, touche) : on note les caisses, puis on enverra ce qui a changé.
+func _input(event: InputEvent) -> void:
+	if etat != "en_jeu" or not is_instance_valid(jeu):
+		return
+	if event is InputEventMouseButton or event is InputEventKey or (event is InputEventMouseMotion and (event as InputEventMouseMotion).button_mask != 0):
+		if _argent_avant.is_empty():
+			_argent_avant = _soldes()
+		_envoi_t = ENVOI_APRES
+
+
+func _soldes() -> Dictionary:
+	var out := {}
+	var pays: Pays = jeu.pays
+	for k in pays.cles():
+		out[int(k)] = pays.solde(k)
+	out[pays.actif] = pays.solde(pays.actif)
+	return out
+
+
+## Fin du traitement des gestes de l'image (avant la simulation) : ce qu'ils ont coûté.
+func _apres_gestes() -> void:
+	if _argent_avant.is_empty() or not is_instance_valid(jeu):
+		_argent_avant = {}
+		return
+	var apres := _soldes()
+	for k in _argent_avant:
+		var d := int(_argent_avant[k]) - int(apres.get(k, _argent_avant[k]))
+		if d != 0:
+			_depense[k] = int(_depense.get(k, 0)) + d
+	_argent_avant = {}
+
+
+func _marquer_sale(nom: String) -> void:
+	_sales[nom] = true
+
+
+func _surveiller_sections(delta: float) -> void:
+	if specs.is_empty():
+		return
+	_verif_t += delta
+	_complet_t += delta
+	if _complet_t >= VERIF_COMPLETE:
+		_complet_t = 0.0
+		for nom in specs:
+			_sales[nom] = true
+	if _envoi_t >= 0.0:
+		_envoi_t -= delta
+		if _envoi_t < 0.0:
+			envoyer_sections()
+	elif _verif_t >= VERIF_SECTIONS:
+		envoyer_sections()
+
+
+## Envoie au serveur ce que le joueur a changé dans les sections partagées.
+func envoyer_sections() -> void:
+	_verif_t = 0.0
+	_envoi_t = -1.0
+	for nom in specs:
+		_valider(nom)
+	# Une dépense sans changement à envoyer (refusée en local) ne compte pas.
+	_depense.clear()
+
+
+func _valider(nom: String) -> void:
+	if not specs.has(nom) or not bool(_sales.get(nom, true)):
+		return
+	_sales[nom] = false
+	var spec: Dictionary = specs[nom]
+	var brut := SectionsPartagees.lire(spec)
+	var cur := SectionsPartagees.normaliser(brut, spec)
+	var base: Dictionary = bases.get(nom, {})
+	var p := SectionsPartagees.difference(base, cur)
+	if SectionsPartagees.vide(p):
+		return
+	p["nouveaux"] = SectionsPartagees.nouveaux(base, p)
+	var comp := SectionsPartagees.complets(brut, p, spec)
+	if not comp.is_empty():
+		p["complets"] = comp
+	if not _depense.is_empty():
+		p["depense"] = _depense.duplicate()
+		_depense.clear()
+	bases[nom] = cur
+	envois_sections += 1
+	envoyer_action({"t": "sections", "nom": nom, "patch": p})
+
+
+## Changement d'une section venu du serveur.
+func _patch_section(nom: String, p: Variant) -> void:
+	if not specs.has(nom) or not p is Dictionary:
+		return
+	# Ce que le joueur vient de faire part d'abord (sinon il serait pris pour l'ancien état).
+	_valider(nom)
+	var spec: Dictionary = specs[nom]
+	var brut := SectionsPartagees.lire(spec)
+	var cur := SectionsPartagees.normaliser(brut, spec)
+	if not SectionsPartagees.deja_applique(cur, p, spec):
+		var d := SectionsPartagees.appliquer(brut, p, spec, (p as Dictionary).get("complets", {}))
+		_ecrire_section(spec, d)
+		cur = SectionsPartagees.normaliser(SectionsPartagees.lire(spec), spec)
+	bases[nom] = cur
+	_sales[nom] = false
+
+
+func _section_entiere(nom: String, d: Variant) -> void:
+	if not specs.has(nom) or not d is Dictionary:
+		return
+	_ecrire_section(specs[nom], d)
+	bases[nom] = SectionsPartagees.normaliser(SectionsPartagees.lire(specs[nom]), specs[nom])
+	_sales[nom] = false
+	_ecarts_sections.erase(nom)
+
+
+func _ecrire_section(spec: Dictionary, d: Dictionary) -> void:
+	var avant := Multijoueur.rejeu
+	Multijoueur.rejeu = true
+	(spec.ecrire as Callable).call(d)
+	Multijoueur.rejeu = avant
+
+
+## Empreintes des sections du serveur : deux écarts de suite → la section entière.
+func _comparer_sections(sec: Dictionary) -> void:
+	var now := Time.get_ticks_msec() / 1000.0
+	for nom in sec:
+		if not bases.has(nom):
+			continue
+		if SectionsPartagees.empreinte(bases[nom]) == int(sec[nom]):
+			_ecarts_sections.erase(nom)
+			continue
+		_ecarts_sections[nom] = int(_ecarts_sections.get(nom, 0)) + 1
+		if int(_ecarts_sections[nom]) >= 2 and now - float(_demande_section.get(nom, -1000.0)) > RESYNC_MIN:
+			_demande_section[nom] = now
+			_ecarts_sections.erase(nom)
+			_envoyer({"m": "section", "nom": nom})
+
+
+# --- Appels rejoués (budget, lignes, pilote automatique) ------------------------------------
+
+## Un réglage ou une commande fait par un joueur, rejoué ici tel que le serveur l'a fait.
+func rejouer_appel(a: Dictionary) -> void:
+	if not is_instance_valid(jeu):
+		return
+	var avant := Multijoueur.rejeu
+	Multijoueur.rejeu = true
+	Multijoueur.executer_appel(jeu, a)
+	Multijoueur.rejeu = avant

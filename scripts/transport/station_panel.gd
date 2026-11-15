@@ -190,7 +190,7 @@ func _refresh_lines() -> void:
 		x.text = "✕"
 		x.tooltip_text = "Supprimer la ligne"
 		var id_: int = lid
-		x.pressed.connect(func() -> void: stations.remove_line(id_))
+		x.pressed.connect(func() -> void: stations.ui_remove_line(id_))
 		head.add_child(x)
 		_lines_box.add_child(head)
 		var row := HBoxContainer.new()
@@ -220,10 +220,10 @@ func _refresh_lines() -> void:
 			fret.text = "Fret"
 			fret.tooltip_text = "Ligne de marchandises : trains de fret, péniches, cargos"
 			fret.button_pressed = bool(line.get("fret", false))
-			fret.toggled.connect(func(on: bool) -> void: stations.set_fret.call_deferred(id_, on))
+			fret.toggled.connect(func(on: bool) -> void: stations.ui_set_fret.call_deferred(id_, on))
 			row.add_child(fret)
-		pick.item_selected.connect(func(i: int) -> void: stations.set_line(id_, models[i], int(count.value)))
-		count.value_changed.connect(func(v: float) -> void: stations.set_line(id_, String(stations.lines[id_].model), int(v)))
+		pick.item_selected.connect(func(i: int) -> void: stations.ui_set_line(id_, models[i], int(count.value)))
+		count.value_changed.connect(func(v: float) -> void: stations.ui_set_line(id_, String(stations.lines[id_].model), int(v)))
 		_lines_box.add_child(row)
 		if eco != null:
 			_add_bilan(id_)

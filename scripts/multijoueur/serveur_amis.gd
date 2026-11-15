@@ -46,6 +46,14 @@ var _en_cours := false
 var _auteur := ""
 var _messages: Array = []
 var _arret := false
+## Sections partagées (SectionsPartagees) et leur dernière version envoyée, à plat.
+var specs: Dictionary = {}
+var ombres_sections: Dictionary = {}
+var _sections_t := 0.0
+var _n_tic := 0
+var _id_en_cours := 0
+var _sales: Dictionary = {}
+var _complet_t := 0.0
 
 
 func _init() -> void:
@@ -99,11 +107,22 @@ func demarrer(j: Node, p: int) -> String:
 		if not _rejeu:
 			_push_transport = 0.4)
 	jeu.communes.fonde.connect(_on_fonde)
-	for sig in [bs.message, jeu.transport.message, jeu.communes.message, jeu.pays.message]:
+	var sigs := [bs.message, jeu.transport.message, jeu.communes.message, jeu.pays.message, jeu.transport.stations.message]
+	if jeu.budget != null:
+		sigs.append(jeu.budget.message)
+	if jeu.pilote != null:
+		sigs.append(jeu.pilote.message)
+	for sig in sigs:
 		(sig as Signal).connect(func(t: String) -> void:
 			if _en_cours:
 				_messages.append(t))
 	_init_ombres()
+	specs = SectionsPartagees.specs(jeu)
+	for nom in specs:
+		ombres_sections[nom] = SectionsPartagees.normaliser(SectionsPartagees.lire(specs[nom]), specs[nom])
+		var o: Object = specs[nom].obj
+		if o.has_signal("changed"):
+			o.connect("changed", func() -> void: _sales[nom] = true)
 	# Le serveur ne fait ni tutoriel ni fondation à l'écran.
 	if jeu.tutoriel != null:
 		jeu.tutoriel.set_actif(false)
@@ -170,6 +189,16 @@ func _process(delta: float) -> void:
 			peer.disconnect_peer(id)
 	_traiter_file()
 	_envoyer_batiments()
+	_sections_t += delta
+	_complet_t += delta
+	if _complet_t >= 30.0:
+		_complet_t = 0.0
+		for nom in specs:
+			_sales[nom] = true
+	if _sections_t >= 2.0:
+		_sections_t = 0.0
+		for nom in specs:
+			diffuser_section(nom)
 	if _push_transport >= 0.0:
 		_push_transport -= delta
 		if _push_transport < 0.0:
@@ -239,6 +268,10 @@ func _recevoir(id: int, msg: Dictionary) -> void:
 				_a_tous({"m": "chat", "de": c.pseudo, "texte": t.substr(0, 300)})
 		"resync":
 			_envoyer_instantane(id)
+		"section":
+			var nom := String(msg.get("nom", ""))
+			if specs.has(nom):
+				_envoyer(id, {"m": "section_partagee", "nom": nom, "data": SectionsPartagees.lire(specs[nom])})
 		"admin":
 			_admin(id, c, msg)
 		"au_revoir":
@@ -399,7 +432,9 @@ func _traiter_file() -> void:
 		if not _relief_pret(point_de(e.a)) and now - float(e.t) < ATTENTE_RELIEF:
 			reste.append(e)
 			continue
+		_id_en_cours = int(e.id)
 		var txt := executer(String(e.pid), e.a)
+		_id_en_cours = 0
 		if txt != "" and connectes.has(e.id):
 			_envoyer(e.id, {"m": "info", "texte": txt})
 	_file = reste
@@ -421,6 +456,9 @@ func executer(pid: String, a: Dictionary) -> String:
 			_forcer_payeur(pid, Vector2(c.x + 0.5, c.y + 0.5))
 			if String(a.get("nom", "")) != "":
 				jeu.communes.nom_en_attente = String(a.nom).substr(0, 40)
+			var defs: Variant = a.get("defs", {})
+			if defs is Dictionary:
+				SectionsPartagees.adopter(defs)
 			var bid := bs.place(String(a.get("id", "")), c, int(a.get("r", 0)), 0, float(a.get("a", 0.0)))
 			var perso: Dictionary = a.get("perso", {})
 			if bid >= 0 and (not perso.is_empty() or int(a.get("v", -1)) >= 0):
@@ -467,6 +505,10 @@ func executer(pid: String, a: Dictionary) -> String:
 			w.appliquer_outil(int(a.get("outil", 0)), a.get("a", Vector2i.ZERO), a.get("b", Vector2i.ZERO))
 		"pinceau":
 			w.appliquer_pinceau(a)
+		"sections":
+			refus = _sections(pid, String(a.get("nom", "")), a.get("patch", {}))
+		"appel":
+			refus = _appel(pid, a)
 		_:
 			refus = "Action inconnue du serveur : %s." % t
 	Pays.payeur_force = -1
@@ -476,6 +518,84 @@ func executer(pid: String, a: Dictionary) -> String:
 	if refus != "":
 		return refus
 	return String(_messages[_messages.size() - 1]) if not _messages.is_empty() else ""
+
+
+## Changement d'une section partagée (zones, blocs, décors, réseaux…) fait par un joueur.
+func _sections(pid: String, nom: String, p: Variant) -> String:
+	if not specs.has(nom) or not p is Dictionary:
+		return "Changement inconnu du serveur (%s)." % nom
+	var spec: Dictionary = specs[nom]
+	var brut := SectionsPartagees.lire(spec)
+	var plat := SectionsPartagees.normaliser(brut, spec)
+	if not SectionsPartagees.conflits(plat, p, spec).is_empty():
+		# Un autre joueur vient de prendre le même numéro : ce joueur reçoit la section du serveur.
+		if _id_en_cours != 0:
+			_envoyer(_id_en_cours, {"m": "section_partagee", "nom": nom, "data": brut})
+		return "Un autre joueur a construit au même moment : ton dernier changement n'est pas passé, recommence."
+	var d := SectionsPartagees.appliquer(brut, p, spec, (p as Dictionary).get("complets", {}))
+	(spec.ecrire as Callable).call(d)
+	_payer_depense(pid, (p as Dictionary).get("depense", {}))
+	_sales[nom] = true
+	diffuser_section(nom)
+	return ""
+
+
+## Ce que le changement a coûté chez le joueur : sa ville paie, ou sa caisse hors de ses villes.
+func _payer_depense(pid: String, dep: Variant) -> void:
+	if not dep is Dictionary or jeu.buildings.unlimited_money:
+		return
+	var pays: Pays = jeu.pays
+	for k in dep:
+		var v := int(dep[k])
+		if v == 0:
+			continue
+		var cible := int(k) if carte.maire_de(int(k)) == pid else carte.caisse_principale(pid)
+		pays._poser(cible, pays.solde(cible) - v)
+
+
+## Envoie à tous ce qui a changé dans une section depuis le dernier envoi.
+func diffuser_section(nom: String) -> void:
+	if not bool(_sales.get(nom, true)):
+		return
+	_sales[nom] = false
+	var spec: Dictionary = specs[nom]
+	var brut := SectionsPartagees.lire(spec)
+	var plat := SectionsPartagees.normaliser(brut, spec)
+	var p := SectionsPartagees.difference(ombres_sections.get(nom, {}), plat)
+	if SectionsPartagees.vide(p):
+		return
+	var comp := SectionsPartagees.complets(brut, p, spec)
+	if not comp.is_empty():
+		p["complets"] = comp
+	ombres_sections[nom] = plat
+	_sale = true
+	_a_tous({"m": "sections", "nom": nom, "patch": p})
+
+
+## Réglage ou commande d'un joueur (budget, lignes, pilote automatique) : fait ici, puis
+## rejoué chez tous.
+func _appel(pid: String, a: Dictionary) -> String:
+	var sys := String(a.get("sys", ""))
+	if not Multijoueur.appel_permis(sys, String(a.get("f", ""))):
+		return "Commande inconnue du serveur."
+	var v := Multijoueur.ville_de_appel(a)
+	if bool((Multijoueur.APPELS[sys] as Dictionary).get("ville", false)):
+		var ok := carte.est_admin(pid) if Pays.est_nation(v) else carte.maire_de(v) == pid
+		if not ok:
+			return "Seul le maire de %s décide de ses réglages." % jeu.pays.nom_de(v)
+	if a.get("p") is Vector2:
+		_forcer_payeur(pid, a.p)
+	elif sys == "stations":
+		Pays.payeur_force = carte.caisse_principale(pid)
+	_rejeu = sys == "stations"
+	var r: Variant = Multijoueur.executer_appel(jeu, a)
+	_rejeu = false
+	Pays.payeur_force = -1
+	_a_tous({"m": "appel", "a": a})
+	# Refus du jeu (« Pas de voie entre… ») : le joueur est prévenu.
+	if r is Dictionary and (r as Dictionary).has("ok") and not bool(r.ok):
+		return String(r.get("reason", ""))
+	return ""
 
 
 ## Hors de ses villes, c'est la caisse du joueur qui paie.
@@ -522,6 +642,9 @@ func _envoyer_batiments() -> void:
 			"+", "~":
 				if bs.buildings.has(bid):
 					var e := {"o": ev[0], "b": batiment_pour_envoi(bs.buildings[bid])}
+					var defs := SectionsPartagees.definition(String(bs.buildings[bid].t))
+					if not defs.is_empty():
+						e["defs"] = defs
 					# Bâtiment fondateur d'un village : son nom, pour que chacun fonde le même.
 					for vid in jeu.communes.villages:
 						if int(jeu.communes.villages[vid].bid) == bid:
@@ -584,6 +707,14 @@ func _envoyer_tic() -> void:
 			caisses[kp] = pays.solde(kp)
 	var base := {"m": "tic", "t": jeu.ambiance.unix_time, "v": jeu.ambiance.speed_index, "caisses": caisses,
 		"sig": empreintes(), "illimite": jeu.buildings.unlimited_money}
+	# Toutes les 5 secondes : empreintes des sections partagées (à jour, envoyées juste avant).
+	_n_tic += 1
+	if _n_tic % 5 == 0:
+		var sec := {}
+		for nom in specs:
+			diffuser_section(nom)
+			sec[nom] = SectionsPartagees.empreinte(ombres_sections[nom])
+		base["sec"] = sec
 	for id in connectes:
 		if bool(connectes[id].ok):
 			var msg := base.duplicate()

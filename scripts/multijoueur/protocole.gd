@@ -6,13 +6,15 @@ extends RefCounted
 ## sans objets) puis compressé (Zstandard). Tout passe par un seul canal fiable et
 ## ordonné : un message arrive toujours après ceux envoyés avant lui.
 ##
-## Jeu → serveur : bonjour, action, chat, resync, au_revoir.
+## Jeu → serveur : bonjour, action (dont « sections » et « appel »), chat, resync,
+## section (une section partagée entière), au_revoir.
 ## Serveur → jeu : bienvenue, refus, instantane (en morceaux), bat (bâtiments posés,
-## retirés, changés), rejouer (voies), terrain (cases), section, tic (heure,
+## retirés, changés), rejouer (voies), terrain (cases), section, sections (différence
+## d'une section partagée), section_partagee, appel (rejoué chez tous), tic (heure,
 ## caisses, empreintes), info, chat, joueurs, reponse.
 
 ## Version du protocole : un jeu et un serveur de versions différentes refusent de se parler.
-const VERSION := 1
+const VERSION := 2
 const PORT_DEFAUT := 24680
 const JOUEURS_MAX := 32
 ## Taille d'un morceau d'instantané (octets compressés).

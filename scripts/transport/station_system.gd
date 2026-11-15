@@ -198,6 +198,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			return
 		match tool:
 			Tool.PLACE:
+				if demander("place", [place_type, _cursor, _rot], _cursor):
+					message.emit("%s : pose demandée au serveur de la carte." % get_type(place_type).name)
+					return
 				var res := place(place_type, _cursor, _rot)
 				message.emit(res.reason if not res.ok else "%s posé : %s." % [get_type(place_type).name, stations[res.id].name])
 			Tool.LINE:
@@ -217,6 +220,8 @@ func _unhandled_input(event: InputEvent) -> void:
 				var sid2 := station_at(_cursor)
 				if sid2 >= 0:
 					var n: String = stations[sid2].name
+					if demander("remove_station", [sid2], stations[sid2].pos):
+						return
 					remove_station(sid2)
 					message.emit("%s supprimé." % n)
 	elif event is InputEventKey:
@@ -401,6 +406,38 @@ func place(type_id: String, p: Vector3, rot := 0.0, name_ := "") -> Dictionary:
 	return {"ok": true, "reason": "", "id": id}
 
 
+## Carte entre amis : le geste du joueur part au serveur (vrai), qui le fait et le
+## renvoie à tous. p : point de la carte (la caisse qui paie).
+func demander(f: String, args: Array, p: Variant = null) -> bool:
+	var extra := {}
+	if p is Vector3:
+		extra["p"] = Vector2(p.x, p.z)
+	return Multijoueur.relayer("stations", f, args, extra)
+
+
+## Gestes du panneau des lignes (relayés au serveur sur une carte entre amis).
+func ui_remove_line(id: int) -> void:
+	if not demander("remove_line", [id], _point_ligne(id)):
+		remove_line(id)
+
+
+func ui_set_line(id: int, model: String, count: int) -> void:
+	if not demander("set_line", [id, model, count], _point_ligne(id)):
+		set_line(id, model, count)
+
+
+func ui_set_fret(id: int, on: bool) -> void:
+	if not demander("set_fret", [id, on], _point_ligne(id)):
+		set_fret(id, on)
+
+
+func _point_ligne(id: int) -> Variant:
+	if not lines.has(id) or (lines[id].stops as Array).is_empty():
+		return null
+	var s0 := int(lines[id].stops[0])
+	return stations[s0].pos if stations.has(s0) else null
+
+
 func _auto_name(type_id: String) -> String:
 	var n := 1
 	for sid in stations:
@@ -513,6 +550,11 @@ static func parking_spots(pos: Vector3, fwd: Vector3, hw: float) -> Array:
 # --- Lignes ---------------------------------------------------------------------------------
 
 func finish_line() -> Dictionary:
+	if _pending.size() >= 2 and stations.has(_pending[0]) and demander("create_line", [_pending.duplicate()], stations[_pending[0]].pos):
+		_pending.clear()
+		message.emit("Ligne demandée au serveur de la carte.")
+		set_line_tool()
+		return {"ok": true, "reason": "", "id": -1}
 	var res := create_line(_pending)
 	_pending.clear()
 	if res.ok:

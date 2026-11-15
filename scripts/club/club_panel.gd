@@ -1,6 +1,8 @@
 class_name ClubPanel
 extends CanvasLayer
 ## Menu « Club de sport » (barre du bas → Loisirs, ou Maj+B).
+## En haut, le sport : football, basket, handball, hockey, rugby, tennis ;
+## chaque sport a son club (sa section), ses onglets ci-dessous.
 ## - Club : fonder le club (nom, couleurs, stade), puis le tableau de bord :
 ##   division, rang, caisse, supporters, prochain match, billet, subvention.
 ## - Effectif : formation, tactique, entraînement, les joueurs (note, forme,
@@ -8,6 +10,8 @@ extends CanvasLayer
 ## - Calendrier : les journées, les résultats.
 ## - Classement : le championnat de la saison.
 ## - Transferts : le marché (renouvelé chaque lundi).
+## - Formation : centre de formation (niveau, coût), espoirs, promotions.
+## - Supporters : habitants supporters, humeur, abonnements, drapeaux en ville.
 ## - Finances : recettes et dépenses de la saison, historique, palmarès, supporters.
 
 signal focus_requested(pos: Vector3)
@@ -16,9 +20,13 @@ signal building_chosen(id: String)
 const W := 400.0
 const H := 560.0
 const TABS := [["Club", "club", "sport"], ["Effectif", "effectif", "habitants"], ["Calendrier", "calendrier", "horloge"],
-	["Classement", "classement", "trophee"], ["Transferts", "transferts", "emploi"], ["Finances", "finances", "budget"]]
+	["Classement", "classement", "trophee"], ["Transferts", "transferts", "emploi"], ["Formation", "formation", "ecole"],
+	["Supporters", "supporters", "fete"], ["Finances", "finances", "budget"]]
 
 var cs: ClubSport
+## sport → section.
+var sections: Dictionary = {}
+var _sport_buttons := {}
 var view := "club"
 var _form := {"nom": "", "couleurs": 0, "stade": -1}
 var _panel: PanelContainer
@@ -30,10 +38,26 @@ var _tick := 0.0
 var _msg := ""
 
 
-func setup(c: ClubSport) -> void:
+func setup(c: ClubSport, toutes: Dictionary = {}) -> void:
 	cs = c
+	sections = toutes if not toutes.is_empty() else {c.sport: c}
 	_build()
-	cs.changed.connect(func() -> void: _tick = 10.0)
+	for s in sections:
+		var sec: ClubSport = sections[s]
+		sec.changed.connect(func() -> void:
+			if sec == cs:
+				_tick = 10.0)
+
+
+## Change de sport (de section).
+func choisir_sport(s: String) -> void:
+	if not sections.has(s):
+		return
+	cs = sections[s]
+	_form = {"nom": "", "couleurs": 0, "stade": -1}
+	_msg = ""
+	refresh()
+	_scroll.scroll_vertical = 0
 
 
 func _build() -> void:
@@ -61,6 +85,24 @@ func _build() -> void:
 	var x := UiStyle.icon_button("fermer", "Fermer", "Maj+B", 18, 32)
 	x.pressed.connect(func() -> void: set_open(false))
 	head.add_child(x)
+	var sports := HBoxContainer.new()
+	sports.add_theme_constant_override("separation", 2)
+	outer.add_child(sports)
+	for s in ClubSports.ORDRE:
+		if not sections.has(s):
+			continue
+		var sb := Button.new()
+		sb.text = String(ClubSports.sport(s).court)
+		sb.tooltip_text = String(ClubSports.sport(s).nom)
+		sb.toggle_mode = true
+		sb.focus_mode = Control.FOCUS_NONE
+		sb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		sb.add_theme_font_size_override("font_size", 11)
+		sb.clip_text = true
+		var ss: String = s
+		sb.pressed.connect(func() -> void: choisir_sport(ss))
+		sports.add_child(sb)
+		_sport_buttons[s] = sb
 	var tabs := HBoxContainer.new()
 	tabs.add_theme_constant_override("separation", 2)
 	outer.add_child(tabs)
@@ -214,10 +256,15 @@ func refresh() -> void:
 		return
 	for v in _tab_buttons:
 		(_tab_buttons[v] as Button).set_pressed_no_signal(v == view)
+	for s in _sport_buttons:
+		var b: Button = _sport_buttons[s]
+		b.set_pressed_no_signal(s == cs.sport)
+		var sec: ClubSport = sections[s]
+		b.text = String(ClubSports.sport(s).court) + (" ●" if sec.fonde() else "")
 	for c in _body.get_children():
 		_body.remove_child(c)
 		c.queue_free()
-	_title.text = String(cs.club.nom) if cs.fonde() else "Club de sport"
+	_title.text = String(cs.club.nom) if cs.fonde() else "Club de sport · %s" % String(ClubSports.sport(cs.sport).court)
 	if _msg != "":
 		var l := _label(_msg, 12)
 		l.add_theme_color_override("font_color", Color("ff9f80"))
@@ -231,6 +278,8 @@ func refresh() -> void:
 		"calendrier": _vue_calendrier()
 		"classement": _vue_classement()
 		"transferts": _vue_transferts()
+		"formation": _vue_formation()
+		"supporters": _vue_supporters()
 		"finances": _vue_finances()
 
 
@@ -241,7 +290,7 @@ func _vue_club() -> void:
 		_vue_fonder()
 		return
 	var c: Dictionary = cs.club
-	var div := ClubDonnees.division(int(c.division))
+	var div := ClubSports.division(cs.sport, int(c.division))
 	var l := _label("%s · %de sur %d" % [div.nom, cs.rang(), (cs.ligue.get("clubs", {}) as Dictionary).size()], 18)
 	l.add_theme_color_override("font_color", UiStyle.ACCENT)
 	_label("Couleurs : %s · sponsor maillot : %s" % [ClubDonnees.NOMS_COULEURS[ClubDonnees.COULEURS.find(c.couleurs)] if ClubDonnees.COULEURS.has(c.couleurs) else "—", String(c.sponsor)], 12, true)
@@ -257,7 +306,7 @@ func _vue_club() -> void:
 	var j := cs.prochaine_journee()
 	_titre("Prochain match")
 	if j.is_empty():
-		_label("Pas de match prévu : intersaison. Le championnat reprend en août." if bool(cs.ligue.get("fini", false)) or (cs.ligue.get("journees", []) as Array).is_empty() else "—", 12, true)
+		_label("Pas de match prévu : intersaison. Le championnat reprend en %s." % _mois_debut() if bool(cs.ligue.get("fini", false)) or (cs.ligue.get("journees", []) as Array).is_empty() else "—", 12, true)
 	else:
 		var m := cs.mon_match(j)
 		var dom := not m.is_empty() and String(m[0]) == String(c.nom)
@@ -325,12 +374,14 @@ func _vue_club() -> void:
 
 
 func _vue_fonder() -> void:
-	_label("Fonder un club de football", 16)
-	_label("Tu en es le président : effectif, tactique, transferts, billetterie. Le club commence en Régionale avec des joueurs du coin, puis peut monter jusqu'en Première Ligue. Il a sa propre caisse ; la ville verse %s au départ et touche la location du stade à chaque match." % _euros(ClubSport.SUBVENTION_DEPART), 12, true)
+	var S := ClubSports.sport(cs.sport)
+	_label("Fonder un club de %s" % String(S.nom).to_lower(), 16)
+	_label("Tu en es le président : effectif, tactique, transferts, billetterie, centre de formation. Le club commence en %s avec des joueurs du coin, puis peut monter jusqu'en %s. Il a sa propre caisse ; la ville verse %s au départ et touche la location du lieu à chaque match." % [
+		ClubSports.division(cs.sport, 0).nom, ClubSports.division(cs.sport, ClubSports.nb_divisions(cs.sport) - 1).nom, _euros(cs.subvention_depart())], 12, true)
 	var st := cs.stades_possibles()
 	if st.is_empty():
-		_label("Il faut d'abord un stade ou un terrain de foot dans la ville (Construire → Sport).", 13)
-		_bouton("Bâtir un stade", "construire", "Ouvre le catalogue sur les stades.", func() -> void: _batir_stade())
+		_label("Il faut d'abord %s dans la ville (Construire → Sport)." % String(S.lieu), 13)
+		_bouton("Bâtir : %s" % String(BuildingCatalog.get_type(String(S.batir)).get("name", "")).split(" (")[0].to_lower(), "construire", "Ouvre le catalogue Sport.", func() -> void: _batir_stade())
 		return
 	if String(_form.nom) == "":
 		_form.nom = cs.nom_propose()
@@ -356,7 +407,86 @@ func _vue_fonder() -> void:
 
 
 func _batir_stade() -> void:
-	building_chosen.emit("foot")
+	building_chosen.emit(String(ClubSports.sport(cs.sport).batir))
+
+
+func _mois_debut() -> String:
+	const M := ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"]
+	return M[int(ClubSports.sport(cs.sport).debut[0]) - 1]
+
+
+func _unite(n: int) -> String:
+	var u: Array = ClubSports.sport(cs.sport).unite
+	return String(u[0] if n <= 1 else u[1])
+
+
+# --- Centre de formation ----------------------------------------------------------------------
+
+func _vue_formation() -> void:
+	var a := cs.academie()
+	_label("Centre de formation : %s" % String(a.nom), 16)
+	_label(String(a.desc), 12, true)
+	var items: Array = []
+	for i in ClubSports.ACADEMIE.size():
+		var n: Dictionary = ClubSports.ACADEMIE[i]
+		var cout := cs.cout_academie(i)
+		items.append([i, "%s%s%s" % [String(n.nom), "" if cout <= 0.0 else " (%s / mois)" % _euros(cout), " · bâtiment requis" if bool(n.bati) and not cs.centre_bati() else ""]])
+	_ligne("Niveau :", _option(items, str(int(cs.club.get("academie", 0))), func(v: Variant) -> void: _resultat(cs.set_academie(int(v)))))
+	if cs.centre_bati():
+		_label("Un centre de formation est bâti en ville : les jeunes y progressent plus vite.", 11, true)
+	else:
+		_label("Pas encore de centre de formation en ville : les niveaux 2 et 3 en demandent un.", 11, true)
+		_bouton("Bâtir un centre de formation", "construire", "Ouvre le catalogue Sport.", func() -> void: building_chosen.emit("centre_formation"))
+	_label("Chaque début de saison, de nouveaux jeunes arrivent, d'abord les enfants de la ville qui pratiquent le sport. À 19 ans, un espoir signe pro ou s'en va.", 11, true)
+	var es := cs.liste_espoirs()
+	_titre("Espoirs (%d)" % es.size())
+	if es.is_empty():
+		_label("Aucun jeune au centre pour le moment." if int(cs.club.get("academie", 0)) > 0 else "Ouvre une école de sport pour accueillir des jeunes.", 12, true)
+	var S := ClubSports.sport(cs.sport)
+	for p in es:
+		var l := _label("%s · %s · %d ans · note %d · potentiel %d%s" % [ClubSport.nom_joueur(p), String(S.postes[String(p.poste)]).to_lower(),
+			int(cs.age(p)), int(p.note), int(p.pot), " · de la ville" if int(p.pid) >= 0 else ""], 12)
+		if float(p.pot) >= float(ClubSports.division(cs.sport, int(cs.club.division)).niveau) + 8.0:
+			l.add_theme_color_override("font_color", UiStyle.GOOD)
+		var row := HBoxContainer.new()
+		var id := int(p.id)
+		_label("Note de la division : %d" % int(ClubSports.division(cs.sport, int(cs.club.division)).niveau), 11, true, row)
+		_petit("Passer pro", "Premier contrat pro de trois saisons, petit salaire.", func() -> void: _resultat(cs.promouvoir(id)), row)
+		_petit("Libérer", "Il quitte le centre.", func() -> void: _resultat(cs.liberer_espoir(id)), row)
+		_body.add_child(row)
+
+
+# --- Supporters -------------------------------------------------------------------------------
+
+func _vue_supporters() -> void:
+	var c: Dictionary = cs.club
+	_label("Supporters : %s · humeur : %s" % [Stades._milliers(int(c.supporters)), cs.humeur_texte()], 16)
+	_label("Habitants de la ville qui soutiennent le club : %s (surtout ceux qui pratiquent le %s). Ils vont aux matchs, sortent les drapeaux quand ça gagne et sont plus contents de leur ville quand le club va bien (et moins quand il perd)." % [
+		Stades._milliers(cs.supporters_habitants()), String(ClubSports.sport(cs.sport).court).to_lower()], 12, true)
+	var drap := 0
+	var parent := get_parent()
+	if parent != null and "club_supporters" in parent and parent.club_supporters != null:
+		drap = int(parent.club_supporters.par_sport.get(cs.sport, 0))
+	_label("Drapeaux aux couleurs du club dans les rues : %d" % drap, 12)
+	_titre("Abonnements")
+	var n := cs.nb_domicile()
+	_label("%s abonnés cette saison · %d matchs à domicile · prix conseillé : %s" % [Stades._milliers(int(c.get("abo", 0))), n, _euros(cs.abo_prix_ref())], 12)
+	var abo := SpinBox.new()
+	abo.min_value = 0
+	abo.max_value = 20000
+	abo.step = 5
+	abo.value = float(c.get("abo_prix", 0.0)) if float(c.get("abo_prix", 0.0)) > 0.0 else cs.abo_prix_ref()
+	abo.suffix = "€"
+	abo.tooltip_text = "Vendu en début de saison. Les abonnés paient d'avance et viennent à tous les matchs à domicile."
+	abo.value_changed.connect(func(v: float) -> void: cs.set_abo_prix(v))
+	_ligne("Abonnement :", abo)
+	_label("À ce prix : environ %s abonnés (vente à la prochaine saison)." % Stades._milliers(cs.abonnes_attendus(abo.value)), 11, true)
+	if not cs.pensees.is_empty():
+		_titre("Ce que disent les supporters")
+		var ks := cs.pensees.keys()
+		ks.sort_custom(func(x: String, y: String) -> bool: return int(cs.pensees[x]) > int(cs.pensees[y]))
+		for k in ks.slice(0, 8):
+			_label(String(k), 11, true)
 
 
 # --- Effectif ---------------------------------------------------------------------------------
@@ -364,7 +494,7 @@ func _batir_stade() -> void:
 func _vue_effectif() -> void:
 	var c: Dictionary = cs.club
 	var f: Array = []
-	for k in ClubDonnees.FORMATIONS:
+	for k in ClubSports.sport(cs.sport).formations:
 		f.append([k, k])
 	_ligne("Formation :", _option(f, String(c.formation), func(v: Variant) -> void: cs.set_formation(String(v))))
 	var t: Array = []
@@ -378,7 +508,12 @@ func _vue_effectif() -> void:
 	opt.tooltip_text = "Intense : les jeunes progressent plus vite, mais fatigue et blessures."
 	_ligne("Entraînement :", opt)
 	var fe := cs.force_equipe()
-	_label("Force %d · gardien %d · défense %d · milieu %d · attaque %d" % [int(fe.force), int(fe.G), int(fe.D), int(fe.M), int(fe.A)], 12)
+	var S := ClubSports.sport(cs.sport)
+	var parts := ["Force %d" % int(fe.force)]
+	for k in S.ordre:
+		if fe.has(k) and (S.ordre as Array).size() > 1:
+			parts.append("%s %d" % [String(S.postes[k]).to_lower() + "s", int(fe[k])])
+	_label(" · ".join(parts), 12)
 	_label("%d joueurs · salaires %s par mois · ★ = titulaire" % [cs.joueurs.size(), _euros(cs.masse_salariale())], 11, true)
 	var fins := 0
 	for id in cs.joueurs:
@@ -387,8 +522,8 @@ func _vue_effectif() -> void:
 	if fins > 0:
 		_label("%d contrat%s se termine%s en juin : prolonge ceux que tu veux garder." % [fins, "s" if fins > 1 else "", "nt" if fins > 1 else ""], 12)
 	var xi := cs.titulaires()
-	for poste in ClubDonnees.ORDRE_POSTES:
-		_titre(String(ClubDonnees.POSTES[poste]) + "s")
+	for poste in S.ordre:
+		_titre(String(S.postes[poste]) + "s")
 		for p in cs.liste_joueurs(poste):
 			_carte_joueur(p, xi.has(int(p.id)))
 
@@ -405,9 +540,9 @@ func _carte_joueur(p: Dictionary, titulaire: bool) -> void:
 		l.add_theme_color_override("font_color", UiStyle.GOOD)
 	var row := HBoxContainer.new()
 	var fin := int(p.contrat) <= cs._annee_saison() + 1
-	var lc := _label("%s · %s · %d m, %d buts%s" % ["bénévole" if bool(p.benevole) else _euros(float(p.salaire)) + "/mois",
+	var lc := _label("%s · %s · %d m, %d %s%s" % ["bénévole" if bool(p.benevole) else _euros(float(p.salaire)) + "/mois",
 		"fin de contrat en juin %d" % int(p.contrat) if fin else "contrat jusqu'en %d" % int(p.contrat),
-		int(p.matchs_saison), int(p.buts_saison), " · habitant" if int(p.pid) >= 0 else ""], 11, not fin, row)
+		int(p.matchs_saison), int(p.buts_saison), _unite(int(p.buts_saison)), (" · formé au club" if bool(p.get("forme_club", false)) else "") + (" · habitant" if int(p.pid) >= 0 else "")], 11, not fin, row)
 	if fin:
 		lc.add_theme_color_override("font_color", Color("ffcf80"))
 	var id := int(p.id)
@@ -423,7 +558,7 @@ func _carte_joueur(p: Dictionary, titulaire: bool) -> void:
 
 func _vue_calendrier() -> void:
 	var js: Array = cs.ligue.get("journees", [])
-	_label("Saison %s · %s" % [String(cs.ligue.get("saison", "")), ClubDonnees.division(int(cs.ligue.get("division", 0))).nom], 14)
+	_label("Saison %s · %s" % [String(cs.ligue.get("saison", "")), ClubSports.division(cs.sport, int(cs.ligue.get("division", 0))).nom], 14)
 	if js.is_empty():
 		_label("Pas de calendrier cette saison : le club jouera dès la prochaine (août).", 12, true)
 		return
@@ -435,7 +570,8 @@ func _vue_calendrier() -> void:
 			var dom := String(m[0]) == String(cs.club.nom)
 			var pour := int(sc[0]) if dom else int(sc[1])
 			var contre := int(sc[1]) if dom else int(sc[0])
-			txt += "  %d – %d  %s" % [int(sc[0]), int(sc[1]), "V" if pour > contre else ("N" if pour == contre else "D")]
+			txt += "  %d – %d%s  %s" % [int(sc[0]), int(sc[1]), " (%s)" % String(j.mon.suffixe) if String(j.mon.get("suffixe", "")) != "" else "",
+				"V" if pour > contre else ("N" if pour == contre else "D")]
 			var l := _label(txt, 12)
 			l.add_theme_color_override("font_color", UiStyle.GOOD if pour > contre else (UiStyle.TEXT if pour == contre else Color("ff9f80")))
 		else:
@@ -445,7 +581,7 @@ func _vue_calendrier() -> void:
 # --- Classement -------------------------------------------------------------------------------
 
 func _vue_classement() -> void:
-	var div := ClubDonnees.division(int(cs.ligue.get("division", 0)))
+	var div := ClubSports.division(cs.sport, int(cs.ligue.get("division", 0)))
 	_label("%s, saison %s" % [div.nom, String(cs.ligue.get("saison", ""))], 14)
 	var regle := "Les %d premiers montent" % int(div.monte) if int(div.monte) > 0 else "Le premier est champion de la plus haute division"
 	regle += ", les %d derniers descendent." % int(div.descend) if int(div.descend) > 0 else " (pas de descente depuis la Régionale)."
@@ -482,19 +618,19 @@ func _vue_classement() -> void:
 	var b := cs.liste_joueurs()
 	b.sort_custom(func(x: Dictionary, y: Dictionary) -> bool: return int(x.buts_saison) > int(y.buts_saison))
 	if not b.is_empty() and int(b[0].buts_saison) > 0:
-		_titre("Buteurs du club")
+		_titre("Meilleurs marqueurs du club" if cs.sport != "tennis" else "Meilleurs joueurs du club")
 		for p in b.slice(0, 5):
 			if int(p.buts_saison) > 0:
-				_label("%s : %d but%s" % [ClubSport.nom_joueur(p), int(p.buts_saison), "s" if int(p.buts_saison) > 1 else ""], 12)
+				_label("%s : %d %s" % [ClubSport.nom_joueur(p), int(p.buts_saison), _unite(int(p.buts_saison))], 12)
 
 
 # --- Transferts -------------------------------------------------------------------------------
 
 func _vue_transferts() -> void:
-	_label("Caisse du club : %s · %d / %d joueurs" % [_euros(float(cs.club.caisse)), cs.joueurs.size(), ClubSport.MAX_JOUEURS], 13)
+	_label("Caisse du club : %s · %d / %d joueurs" % [_euros(float(cs.club.caisse)), cs.joueurs.size(), cs.max_joueurs()], 13)
 	_label("Le marché change chaque lundi. Signer coûte le transfert et deux mois de salaire en prime.", 11, true)
 	for p in cs.marche:
-		var l := _label("%s · %s · %d ans · note %d (pot. %d)" % [ClubSport.nom_joueur(p), ClubDonnees.POSTES[String(p.poste)], int(cs.age(p)), int(p.note), int(p.pot)], 12)
+		var l := _label("%s · %s · %d ans · note %d (pot. %d)" % [ClubSport.nom_joueur(p), ClubSports.sport(cs.sport).postes[String(p.poste)], int(cs.age(p)), int(p.note), int(p.pot)], 12)
 		var why := cs.peut_acheter(p)
 		if why != "":
 			l.add_theme_color_override("font_color", UiStyle.TEXT_DIM)
@@ -529,7 +665,7 @@ func _vue_finances() -> void:
 	if not h.is_empty():
 		_titre("Historique")
 		for e in h:
-			_label("%s · %s · %de (%d pts)%s" % [String(e.saison), ClubDonnees.division(int(e.division)).nom, int(e.rang), int(e.pts),
+			_label("%s · %s · %de (%d pts)%s" % [String(e.saison), ClubSports.division(cs.sport, int(e.division)).nom, int(e.rang), int(e.pts),
 				" · montée" if String(e.issue) == "montee" else (" · descente" if String(e.issue) == "descente" else "")], 12)
 	var pal: Array = cs.club.get("palmares", [])
 	if not pal.is_empty():

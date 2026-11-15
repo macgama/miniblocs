@@ -154,6 +154,7 @@ static func all_types() -> Dictionary:
 		_all.merge(ParcTypes.entries())
 		_all.merge(FuneraireTypes.entries())
 		_all.merge(Stades.entries())
+		_all.merge(ClubTypes.entries())
 		_all.merge(StyleBuilder.generate())
 		_all.merge(BibleGlb.entries())
 		ReseauxTypes.adopter(_all)
@@ -261,6 +262,10 @@ static func build_mesh(id: String, material: Material = null, details := true, v
 		return k.to_mesh(material)
 	if t.has("zoo"):
 		ZooTypes.build(k, id, t)
+		k.fit_xz(w, d)
+		return k.to_mesh(material)
+	if t.has("club_bat"):
+		ClubTypes.build(k, id, t)
 		k.fit_xz(w, d)
 		return k.to_mesh(material)
 	if t.has("spect"):

@@ -203,6 +203,9 @@ const LOISIRS := {
 	"football": {"name": "Football", "lieux": ["foot"], "age": [5, 55]},
 	"tennis": {"name": "Tennis", "lieux": ["tennis"], "age": [6, 80]},
 	"basket": {"name": "Basket", "lieux": ["basket", "gymnase"], "age": [8, 50]},
+	"handball": {"name": "Handball", "lieux": ["gymnase"], "age": [8, 45]},
+	"hockey": {"name": "Hockey sur glace", "lieux": ["patinoire"], "age": [6, 50]},
+	"rugby": {"name": "Rugby", "lieux": ["foot"], "age": [6, 45]},
 	"natation": {"name": "Natation", "lieux": ["piscine"], "age": [4, 90]},
 	"musculation": {"name": "Sport en salle", "lieux": ["gymnase"], "age": [15, 75]},
 	"cinema": {"name": "Cinéma", "lieux": ["cinema"], "age": [6, 95]},
@@ -282,9 +285,17 @@ static func venue_matches(hobby: String, type_id: String) -> bool:
 
 
 ## Tire 1 à 3 loisirs adaptés à l'âge.
+## Loisirs ajoutés avec le club multisport : tirés sans consommer le
+## générateur (les habitants déjà prévus restent les mêmes).
+const LOISIRS_EN_PLUS := {"rugby": 6, "handball": 4, "hockey": 3}
+
+
 static func pick_hobbies(rng: RandomNumberGenerator, age: float) -> Array:
 	var ok := []
+	var extra := posmod(hash(rng.state), 100)
 	for k in LOISIRS:
+		if LOISIRS_EN_PLUS.has(k):
+			continue
 		var a: Array = LOISIRS[k].age
 		if age >= float(a[0]) and age <= float(a[1]):
 			ok.append(k)
@@ -294,6 +305,13 @@ static func pick_hobbies(rng: RandomNumberGenerator, age: float) -> Array:
 		var i := rng.randi() % ok.size()
 		out.append(ok[i])
 		ok.remove_at(i)
+	var seuil := 0
+	for k in LOISIRS_EN_PLUS:
+		var lo := seuil
+		seuil += int(LOISIRS_EN_PLUS[k])
+		var ag: Array = LOISIRS[k].age
+		if extra >= lo and extra < seuil and age >= float(ag[0]) and age <= float(ag[1]):
+			out.append(k)
 	return out
 
 

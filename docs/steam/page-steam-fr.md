@@ -16,7 +16,7 @@ sont en balisage Steam (BBCode) : on les copie tels quels. La version anglaise e
 | Modes | Solo (le multijoueur viendra plus tard : ne pas cocher pour l'instant) |
 | Contrôleur | Non (clavier + souris) |
 | Langues | Français (interface, sous-titres) ; anglais à cocher quand la traduction sera dans le jeu |
-| Site / réseaux | à ajouter |
+| Site / réseaux | https://www.manigames.online (YouTube, Discord, TikTok à ajouter) |
 
 ## Description courte
 

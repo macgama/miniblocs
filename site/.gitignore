@@ -1,0 +1,4 @@
+# Gros fichiers refaits par tools/site/construire.py --medias (captures de la démo dans les fichiers du projet)
+public/media/
+public/presse/captures/
+public/presse/*.zip

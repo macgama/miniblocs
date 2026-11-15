@@ -19,6 +19,7 @@ Note: the English store page should only go live once the game itself is transla
 | Modes | Single-player (multiplayer comes later: do not tick yet) |
 | Controller | No (keyboard + mouse) |
 | Languages | French (interface, subtitles); tick English once the translation ships |
+| Website | https://www.manigames.online |
 
 ## Short description
 

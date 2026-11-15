@@ -12,6 +12,8 @@ Prototype de city builder en vue de dessus, style low-poly, mode bac à sable. F
 
 ![Menu principal](docs/apercu-menu-titre.png)
 
+**English** : le jeu est traduit en anglais. Menu principal → **Options → Jeu → Langue → English** (le changement est immédiat). Au premier lancement, le jeu prend la langue du système. Détails : [docs/langues.md](docs/langues.md).
+
 ## Commandes
 
 Dans le jeu, **F1** (ou le bouton **?** en haut à gauche) affiche toutes les commandes.

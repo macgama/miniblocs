@@ -39,7 +39,8 @@ const HALF := 0.1
 const SLAB := 0.2
 ## Profondeur des fondations sous les murs du rez-de-chaussée.
 const FOUNDATION := 2.0
-const MIN_LEVEL := -5
+## Sous-sols jusqu'à −20 (60 m) : caves, parkings, bunkers.
+const MIN_LEVEL := -20
 const MAX_LEVEL := 59
 const STAIR_LEN := 4
 const STAIR_STEPS := 12

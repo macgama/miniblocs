@@ -203,6 +203,7 @@ func _ready() -> void:
 	_setup_statistiques()
 	_setup_tutoriel()
 	_setup_quartiers()
+	_setup_souterrain()
 	_setup_create_mode()
 	_setup_son()
 	hud.traffic_toggled.connect(func(on: bool) -> void: transport.traffic.set_enabled(on))
@@ -1828,6 +1829,36 @@ var modeles_visites: ModelesVisites
 var banque_pose: BanquePose
 var vue_etages: VueEtages
 var banque_panel: BanquePanel
+
+
+## Vue sous terre (scripts/souterrain) : Page bas sous le rez-de-chaussée, ou
+## menu Infos. Réseaux de rue, tronçons enterrés, tunnels, métro, sous-sols.
+var souterrain: VueSouterraine
+
+
+func _setup_souterrain() -> void:
+	souterrain = VueSouterraine.new()
+	souterrain.name = "VueSouterraine"
+	souterrain.world = world
+	souterrain.transport = transport
+	souterrain.buildings = buildings
+	souterrain.reseaux = reseaux
+	souterrain.telecom = telecom
+	souterrain.plans = plans
+	souterrain.rig = rig
+	souterrain.camera = $CameraRig/Camera3D
+	add_child(souterrain)
+	souterrain.message.connect(func(t: String) -> void: hud.show_message(t))
+	vue_etages.souterrain = souterrain
+	transport.network.changed.connect(souterrain.marquer_sale)
+	buildings.changed.connect(souterrain.marquer_sale)
+	reseaux.elec.changed.connect(souterrain.marquer_sale)
+	hud.souterrain_requested.connect(func() -> void:
+		if souterrain.actif:
+			souterrain.sortir()
+		else:
+			vue_etages.show_all()
+			souterrain.entrer())
 
 
 func _setup_atelier_tools() -> void:

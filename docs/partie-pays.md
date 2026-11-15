@@ -117,18 +117,49 @@ de choses, ou étalés sur quelques images.
 - **Paliers des villes** : le sondage n'est fait que si le reste (habitants, bâtiments)
   est déjà rempli. Vie des habitants : la liste des lieux de soins est faite une fois.
 
+## Minuit étalé
+
+Une fois par jour de jeu, plusieurs systèmes faisaient leurs calculs dans la même image
+(vie des habitants, sondages et élections, objectifs, statistiques, pilote automatique) :
+l'image de minuit durait 6 à 8 s avec 8 villes. Ils passent maintenant chacun leur tour,
+au plus un par image (`scripts/pays/etalement.gd`) ; la vie des habitants (naissances,
+unions, décès…) est elle-même découpée en tranches de 4 ms, et les sondages ville par
+ville. Les règles ne changent pas : un calcul du jour peut arriver quelques images plus
+tard (une fraction de seconde). Une sauvegarde ou une avance rapide termine d'abord la
+journée en cours.
+
+Le pilote automatique essayait aussi, pour une grande ville sans place, des centaines de
+rues neuves dans la même image (7 s) ; il s'arrête maintenant après 25 ms et reprend au
+même endroit la fois suivante.
+
+| Partie de 40 jours, 1 500 images | Avant | Après |
+|---|---|---|
+| Pire image | 6 à 8,5 s | 1,8 s |
+| Image moyenne | 61 à 66 ms | 56 ms |
+
+Le reste de la pire image vient de la logistique des marchandises (0,6 à 1 s, calculée
+heure par heure du jeu) et du calcul des nuisances (~1 s, toutes les 30 s).
+
+## Écoles du pilote automatique
+
+Une école coûte 6 M€ (300 places) et les villes n'avaient que 0,5 à 1,2 M€ : le pilote
+automatique ne pouvait jamais la payer. Maintenant, quand une ville gérée en automatique
+manque d'argent pour une école, son pays verse une subvention (jusqu'à 40 % du prix, en
+gardant 1 M€ dans la caisse du pays) et la ville emprunte le reste sur 20 ans (si la
+banque accepte). C'est noté dans le journal du pilote (« École financée : … »).
+
+Résultat sur la partie de 40 jours (échelle 0,5) : **181 élèves sans école** sur les
+8 villes, contre 2 200 avant (14 écoles, de 1 à 5 par ville). Le banc affiche maintenant
+le nombre d'écoles et d'élèves sans école de chaque ville à la fin.
+
 ## Ce qui reste
 
-- **Minuit de jeu** : il reste un à-coup d'une à plusieurs secondes une fois par jour
-  (vie des habitants 1,2 s, sondages, statistiques, couverture des services). À étaler
-  sur plusieurs images.
+- **Pire image** : ~1,8 s par moments (logistique des marchandises, nuisances).
 - **Images en temps réel** : la circulation (~10 ms), les réseaux (~8 ms) et les
   habitants (~7 ms) restent les plus gros postes. À mesurer aussi sur un vrai PC, avec
   la carte graphique.
 - **Villages neufs lents** : 8 à 185 habitants en 40 jours, même sous pilote automatique.
 - **Import bloqué** : avec deux sorties de route seulement, la capacité d'import du jour est
   vite prise (sel, acier, plastiques, bois manquants). Une gare ou un port en plus règle ça.
-- **Écoles pleines** : dans la partie de 40 jours, 2 200 enfants sur 3 400 n'ont pas de
-  place à l'école (le pilote automatique ne construit pas assez d'écoles).
 - **Chargement** d'une partie de 13 000 habitants : ~45 s dans le conteneur, dont 25 s
   d'attente du relief hors ligne (sans internet) ; `transport.from_dict` prend ~6,6 s.

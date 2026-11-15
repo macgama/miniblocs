@@ -147,6 +147,7 @@ func _journee(vid: int, d: int) -> void:
 	if communes == null or not communes.villages.has(vid) or not actifs.has(vid):
 		actifs.erase(vid)
 		return
+	_en_journee = true
 	if posmod(d + vid, JOURS_ENTRE) == 0:
 		semaine(vid)
 	elif pays.joueur_maire(vid):
@@ -155,6 +156,7 @@ func _journee(vid: int, d: int) -> void:
 		if fait != "":
 			_noter(vid, fait)
 			changed.emit()
+	_en_journee = false
 
 
 var _manifs_ms := -100000
@@ -462,13 +464,16 @@ func _rue_mairie(vid: int) -> String:
 
 
 ## Prolonge une impasse de la ville de 120 m, sinon ouvre une rue en travers.
-## Essais de pose d'une rue par appel : chaque essai refusé coûte (relief, croisements) ;
-## une grande ville en a des centaines. On reprend la fois suivante là où on s'est arrêté.
+## Essais de pose d'une rue par jour du pilote : chaque essai refusé coûte (relief,
+## croisements) et une grande ville en a des centaines. On reprend le lendemain là où on
+## s'est arrêté. Hors de la journée du pilote (appel direct), on essaie tout, comme avant.
 const PROLONGER_BUDGET_US := 25000
+var _en_journee := false
 var _prol_curseur := {}
 
 
 func _prolonger(vid: int) -> String:
+	var budget_us := PROLONGER_BUDGET_US if _en_journee else -1
 	var net := _net()
 	var essais := []  # [a, b, message]
 	for eid in _voies(vid):
@@ -507,7 +512,7 @@ func _prolonger(vid: int) -> String:
 		if _route(vid, x[0], x[1]):
 			_prol_curseur.erase(vid)
 			return x[2]
-		if Time.get_ticks_usec() - t0 > PROLONGER_BUDGET_US:
+		if budget_us >= 0 and Time.get_ticks_usec() - t0 > budget_us:
 			_prol_curseur[vid] = int(i) + 1
 			return ""
 	_prol_curseur.erase(vid)

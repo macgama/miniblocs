@@ -23,10 +23,10 @@ const NEUFS := [["Neuville", 2600, 0, true], ["Clairbois", -2600, 0, false]]
 const SEUILS := {"Clairbois": [15, 100], "Neuville": [0, 40]}
 
 var ok := true
-var _logger: Journal
+var _logger: JournalErreurs
 
 
-class Journal extends Logger:
+class JournalErreurs extends Logger:
 	var mutex := Mutex.new()
 	var liste: Array = []
 
@@ -44,7 +44,7 @@ class Journal extends Logger:
 
 
 func _initialize() -> void:
-	_logger = Journal.new()
+	_logger = JournalErreurs.new()
 	OS.add_logger(_logger)
 	_run.call_deferred()
 	create_timer(3600.0).timeout.connect(func() -> void:

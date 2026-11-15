@@ -44,6 +44,13 @@ const TYPES := {
 	# Vie politique (scripts/avis) : nouvelles seulement.
 	"politique": {"nom": "Vie politique", "icone": "urne", "couleur": Color("ffd166")},
 	"manifestation": {"nom": "Manifestation", "icone": "pancarte", "couleur": Color("f77f00")},
+	# Saisons et risques naturels (scripts/saisons) : crue = événement, le reste = nouvelles.
+	"crue": {"nom": "Crue", "icone": "eau", "couleur": Color("4f8fbf")},
+	"neige": {"nom": "Neige", "icone": "neige", "couleur": Color("bde0fe")},
+	"secheresse": {"nom": "Sécheresse", "icone": "soleil", "couleur": Color("e9c46a")},
+	"canicule": {"nom": "Canicule", "icone": "thermometre", "couleur": Color("f77f00")},
+	"gel": {"nom": "Gel", "icone": "neige", "couleur": Color("a2d2ff")},
+	"saison": {"nom": "Saison", "icone": "saisons", "couleur": Color("90be6d")},
 }
 ## Vitesse maximale des incendies (secondes de jeu par seconde réelle).
 const FEU_MAX_VITESSE := 600.0
@@ -86,6 +93,9 @@ var incendies: Incendies
 var tempetes: Tempetes
 var epidemies: Epidemies
 var visuels: Node3D
+## Modules des autres fils pour leurs types d'événement : type -> objet avec
+## on_start(e) et on_end(e) (ex. "crue" : Saisons).
+var modules: Dictionary = {}
 
 var _last_unix := NAN
 var _last_day := -1
@@ -272,6 +282,9 @@ func _start(e: Dictionary) -> void:
 			matchs.on_start(e)
 		"tempete":
 			tempetes.on_start(e)
+		_:
+			if modules.has(String(e.type)):
+				modules[String(e.type)].on_start(e)
 	changed.emit()
 
 
@@ -296,6 +309,9 @@ func finir(id: int) -> void:
 				tempetes.on_end(e)
 			"epidemie":
 				epidemies.on_end(e)
+			_:
+				if modules.has(String(e.type)):
+					modules[String(e.type)].on_end(e)
 	_end_visuals(e)
 	_forget_plans()
 	changed.emit()

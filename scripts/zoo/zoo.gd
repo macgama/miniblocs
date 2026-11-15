@@ -1078,6 +1078,8 @@ func attendus(e: int, now: Dictionary) -> Array:
 	if not relie(e):
 		route = 0.08
 	var t := a * TOURISTES_ATTRAIT * note_f * saison * jour * meteo * prix * route
+	# Clients des hôtels de la ville (Tourisme).
+	t += Tourisme.visites("zoo", e) * meteo * clampf(prix, 0.4, 1.2)
 	var hab := 0.0
 	if population != null:
 		hab = float(population.persons.size()) * HABITANTS_JOUR * saison * jour * meteo * prix * note_f

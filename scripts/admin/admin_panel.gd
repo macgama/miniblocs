@@ -40,6 +40,7 @@ var _vie: OptionButton
 var _epuisement: CheckBox
 var _ev_auto: CheckBox
 var _catas: CheckBox
+var _neige_routes: CheckBox
 var _telecom: CheckBox
 var _instant: CheckBox
 var _horaires: OptionButton
@@ -259,8 +260,10 @@ func _ready() -> void:
 	g = _section(right, "Événements", "infos")
 	_ev_auto = _check("Fêtes, marchés et matchs organisés tout seuls")
 	g.add_child(_ev_auto)
-	_catas = _check("Catastrophes au hasard (incendies, tempêtes, épidémies)")
+	_catas = _check("Catastrophes au hasard (incendies, tempêtes, épidémies, crues, feux de broussailles)")
 	g.add_child(_catas)
+	_neige_routes = _check("Neige sur les routes (chasse-neige et sel à prévoir)")
+	g.add_child(_neige_routes)
 	_freq = OptionButton.new()
 	for n in ["Rares", "Normales", "Fréquentes"]:
 		_freq.add_item(n)
@@ -454,6 +457,7 @@ func _fill() -> void:
 	_epuisement.button_pressed = reglages.epuisement
 	_ev_auto.button_pressed = reglages.evenements_auto
 	_catas.button_pressed = reglages.catastrophes
+	_neige_routes.button_pressed = reglages.neige_routes
 	_telecom.button_pressed = reglages.telecom_necessaire
 	_instant.button_pressed = reglages.construction_instantanee
 	_horaires.select(maxi(0, Chantiers.HORAIRES.find(reglages.horaires_chantiers)))
@@ -509,6 +513,7 @@ func _changed() -> void:
 	reglages.epuisement = _epuisement.button_pressed
 	reglages.evenements_auto = _ev_auto.button_pressed
 	reglages.catastrophes = _catas.button_pressed
+	reglages.neige_routes = _neige_routes.button_pressed
 	reglages.telecom_necessaire = _telecom.button_pressed
 	reglages.construction_instantanee = _instant.button_pressed
 	reglages.horaires_chantiers = String(Chantiers.HORAIRES[maxi(0, _horaires.selected)])

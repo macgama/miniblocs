@@ -423,6 +423,8 @@ func attendus(e: int, now: Dictionary) -> Array:
 	var acces := 1.0 if _relie(e) else 0.15
 	var f := note_f * saison * jour * meteo * prix
 	var touristes := TOURISTES_ATTRAIT * a * f * acces
+	# Clients des hôtels de la ville (Tourisme).
+	touristes += Tourisme.visites("parc", e) * meteo * clampf(prix, 0.4, 1.2)
 	var hab := 0.0
 	if population != null:
 		hab = float(population.persons.size()) * HABITANTS_JOUR * f * clampf(a / 10.0, 0.3, 1.5)

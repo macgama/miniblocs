@@ -43,6 +43,8 @@ const INDICATEURS := [
 	{"id": "trajet", "nom": "Trajet moyen", "unite": "min", "fmt": "dec", "sens": -1, "portee": "pays", "icone": "circulation"},
 	{"id": "dechets", "nom": "Poubelles qui débordent", "unite": "", "fmt": "int", "sens": -1, "portee": "pays", "icone": "dechets"},
 	{"id": "recyclage", "nom": "Déchets recyclés", "unite": "%", "fmt": "pct", "sens": 1, "portee": "pays", "icone": "dechets"},
+	{"id": "touristes", "nom": "Touristes en ville", "unite": "", "fmt": "int", "sens": 1, "portee": "pays", "icone": "valise"},
+	{"id": "nuitees", "nom": "Nuitées de la veille", "unite": "", "fmt": "int", "sens": 1, "portee": "pays", "icone": "lit"},
 ]
 
 var population: Population
@@ -211,6 +213,10 @@ func _chiffres_pays() -> Dictionary:
 			c.solde = roundi(float(budget.bilan_mensuel(-1).get("solde", 0.0)))
 	c.logements_libres = maxi(0, int(s.get("logements", 0)) - int(s.get("foyers", 0)))
 	c.emplois_libres = maxi(0, int(s.get("emplois", 0)) - int(s.get("actif", 0)))
+	var tour := Tourisme.instance
+	if tour != null and is_instance_valid(tour) and not tour.heb.is_empty():
+		c.touristes = tour.clients_total()
+		c.nuitees = int(tour.hier.get("nuitees", 0))
 	return c
 
 

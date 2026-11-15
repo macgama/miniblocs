@@ -51,6 +51,9 @@ var budget: BudgetCommunal
 var budget_panel: BudgetPanel
 ## Déchets : collecte, décharges, tri et recyclage (touche X).
 var dechets: Dechets
+## Saisons, neige et déneigement, crues, sécheresse, canicule (Maj+R).
+var saisons: Saisons
+var saisons_panel: SaisonsPanel
 var dechets_panel: DechetsPanel
 ## Parc de loisirs : attractions, visiteurs, files, billets, note (Maj+G).
 var musee: Musee
@@ -64,6 +67,9 @@ var parc_panel: ParcPanel
 ## Zoo : enclos, animaux, soigneurs, visiteurs (Maj+Z, menu Loisirs).
 var zoo: ZooSysteme
 var zoo_panel: ZooPanel
+## Tourisme : hébergements, touristes, dépenses en ville (menu Loisirs, Maj+R).
+var tourisme: Tourisme
+var tourisme_panel: TourismePanel
 var zoo_outils: ZooOutils
 ## Obsèques, cimetières, crématorium, pompes funèbres (onglet Funéraire du panneau H).
 var funeraire: Funeraire
@@ -179,7 +185,9 @@ func _ready() -> void:
 	_setup_vie()
 	_setup_decors()
 	_setup_zoo()
+	_setup_tourisme()
 	_setup_evenements()
+	_setup_saisons()
 	_setup_nuisances()
 	_setup_avis()
 	_setup_parc_editeur()
@@ -342,7 +350,7 @@ func save_sections() -> Dictionary:
 		"modeles_jeu": ModelesJeu.to_dict(buildings),
 		"modeles_visites": modeles_visites.to_dict(),
 		"personnage": ($VueSol as VueSol).to_dict(), "habitants": population.to_dict(), "mobilier": mobilier.to_dict(),
-		"production": production.to_dict(), "agriculture": agriculture.to_dict(), "urgences": urgences.to_dict(), "reseaux": reseaux.to_dict(), "dechets": dechets.to_dict(), "funeraire": funeraire.to_dict(), "trafic": trafic.to_dict(), "lignes_eco": lignes_eco.to_dict(), "reglages": _settings_snapshot().to_dict(), "budget": budget.to_dict(), "evenements": evenements.to_dict(), "decors": decors.to_dict(),
+		"production": production.to_dict(), "agriculture": agriculture.to_dict(), "urgences": urgences.to_dict(), "reseaux": reseaux.to_dict(), "dechets": dechets.to_dict(), "funeraire": funeraire.to_dict(), "trafic": trafic.to_dict(), "lignes_eco": lignes_eco.to_dict(), "reglages": _settings_snapshot().to_dict(), "budget": budget.to_dict(), "evenements": evenements.to_dict(), "saisons": saisons.to_dict(), "decors": decors.to_dict(),
 		"nuisances": nuisances.to_dict(), "telecom": telecom.to_dict(), "services": services.to_dict(), "carrieres": carrieres.to_dict()}
 	sec["avis"] = avis.to_dict()
 	sec["communes"] = communes.to_dict()
@@ -359,6 +367,7 @@ func save_sections() -> Dictionary:
 	sec["club"] = club.to_dict()
 	sec["parc"] = parc.to_dict()
 	sec["zoo"] = zoo.to_dict()
+	sec["tourisme"] = tourisme.to_dict()
 	sec["quartiers"] = quartiers.to_dict()
 	sec["parc_editeur"] = attractions.to_dict()
 	sec["parc_allees"] = parc_allees.to_dict()
@@ -478,10 +487,12 @@ func load_game(slot := "") -> bool:
 	club.from_dict(sec.get("club", {}))
 	parc.from_dict(sec.get("parc", {}))
 	zoo.from_dict(sec.get("zoo", {}))
+	tourisme.from_dict(sec.get("tourisme", {}))
 	funeraire.from_dict(sec.get("funeraire", {}))
 	ambiance.from_dict(sec.get("ambiance", {}))
 	# Après les bâtiments et les habitants : dégâts, ruines, malades, matchs.
 	evenements.from_dict(sec.get("evenements", {}))
+	saisons.from_dict(sec.get("saisons", {}))
 	communes.ignorer = false
 	if sec.has("communes"):
 		communes.from_dict(sec.communes)
@@ -711,6 +722,27 @@ func _setup_evenements() -> void:
 	hud.infos_requested.connect(func() -> void: evenements_panel.toggle())
 
 
+## Saisons et risques naturels : relevés et prévisions, neige sur les routes et
+## chasse-neige, crues, sécheresse, canicule, gel ; panneau Maj+R (menu Infos).
+func _setup_saisons() -> void:
+	saisons = Saisons.new()
+	add_child(saisons)
+	saisons.setup(world, ambiance, transport, buildings, population, evenements, agriculture)
+	saisons.message.connect(func(t: String) -> void: hud.show_message(t))
+	saisons.changed.connect(func() -> void: _unsaved = true)
+	saisons_panel = SaisonsPanel.new()
+	saisons_panel.name = "PanneauSaisons"
+	add_child(saisons_panel)
+	saisons_panel.setup(saisons)
+	saisons_panel.focus_requested.connect(func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
+	saisons_panel.build_requested.connect(func(id: String) -> void:
+		_select_building_tool()
+		buildings.set_place(id))
+	hud.saisons_requested.connect(func() -> void: saisons_panel.toggle())
+
+
 ## Avis des habitants (satisfaction par thème, quartiers, paroles), élections
 ## municipales et manifestations : nœud /root/Avis, panneau Avis (Y), carte.
 func _setup_avis() -> void:
@@ -916,7 +948,8 @@ func _setup_statistiques() -> void:
 func ouvrir_panneau(id: String) -> void:
 	var panels := {"budget": budget_panel, "avis": avis_panel, "construire": build_panel, "trafic": trafic_panel,
 		"dechets": dechets_panel, "reseaux": reseaux_panel, "services": services_panel, "cartes": cartes_panel,
-		"lignes": transit_panel, "pays": pays_panel, "production": production_panel, "objectifs": objectifs_panel}
+		"lignes": transit_panel, "pays": pays_panel, "production": production_panel, "objectifs": objectifs_panel,
+		"saisons": saisons_panel}
 	var p = panels.get(id)
 	if p != null:
 		p.set_open(true)
@@ -1970,6 +2003,26 @@ func _select_building_tool(from_transit := false) -> void:
 
 
 ## Zoo : enclos tracés à la main, animaux, soigneurs, visiteurs, et son menu (Maj+Z).
+## Tourisme : hébergements, touristes qui visitent et dépensent (Maj+R).
+func _setup_tourisme() -> void:
+	tourisme = Tourisme.new()
+	tourisme.name = "Tourisme"
+	add_child(tourisme)
+	tourisme.setup(buildings, population, ambiance, transport)
+	tourisme.message.connect(func(t: String) -> void: hud.show_message(t))
+	tourisme_panel = TourismePanel.new()
+	tourisme_panel.name = "PanneauTourisme"
+	add_child(tourisme_panel)
+	tourisme_panel.setup(tourisme, func() -> void: _select_building_tool())
+	tourisme_panel.building_chosen.connect(func(id: String) -> void:
+		_select_building_tool()
+		buildings.set_place(id))
+	tourisme_panel.focus_requested.connect(func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
+	hud.tourisme_requested.connect(func() -> void: tourisme_panel.toggle())
+
+
 func _setup_zoo() -> void:
 	zoo = ZooSysteme.new()
 	zoo.name = "Zoo"
@@ -2094,7 +2147,7 @@ func _loisirs_ouvert() -> bool:
 
 
 func _panneaux_parc() -> Dictionary:
-	return {"parc": parc_panel, "parc_editeur": parc_editeur_panel, "zoo": zoo_panel, "musee": musee_panel, "spectacles": spectacles_panel, "club": club_panel}
+	return {"parc": parc_panel, "parc_editeur": parc_editeur_panel, "zoo": zoo_panel, "musee": musee_panel, "spectacles": spectacles_panel, "club": club_panel, "tourisme": tourisme_panel}
 
 
 ## Panneau « Paysage » : pinceaux de terrain (outil 0).
@@ -2167,6 +2220,8 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 	ReglagesPartie.actuel.record_habitants = 0
 	if evenements != null:
 		evenements.clear()
+	if saisons != null:
+		saisons.clear()
 	if avis != null:
 		avis.clear()
 	if pays != null:
@@ -2201,6 +2256,8 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 	funeraire.clear()
 	spectacles.clear()
 	club.clear()
+	if tourisme != null:
+		tourisme.clear()
 	resource_overlay.show_resource(resource_overlay.res)
 	transport.clear()
 	buildings.clear()
@@ -2288,7 +2345,7 @@ var _open_before := {}
 ## Construire, Lignes et Habitants partagent la même place à droite : quand
 ## l'un s'ouvre, les autres se ferment. Leur bouton de la barre du bas s'allume.
 func _exclusive_panels() -> void:
-	var panels := {"pays": pays_panel, "objectifs": objectifs_panel, "quartiers": quartiers_panel, "construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "agriculture": agri_panel, "urgences": urgences_panel, "reseaux": reseaux_panel, "dechets": dechets_panel, "trafic": trafic_panel, "budget": budget_panel, "telecom": telecom_panel, "perso": perso_panel, "infos": evenements_panel, "cartes": cartes_panel, "avis": avis_panel, "villages": villages_panel, "fondateurs": fondateurs_panel, "stats": stats_panel}
+	var panels := {"pays": pays_panel, "objectifs": objectifs_panel, "quartiers": quartiers_panel, "construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "agriculture": agri_panel, "urgences": urgences_panel, "reseaux": reseaux_panel, "dechets": dechets_panel, "trafic": trafic_panel, "budget": budget_panel, "telecom": telecom_panel, "perso": perso_panel, "infos": evenements_panel, "cartes": cartes_panel, "avis": avis_panel, "villages": villages_panel, "fondateurs": fondateurs_panel, "stats": stats_panel, "saisons": saisons_panel}
 	var opened := ""
 	panels.merge(_panneaux_parc())
 	panels["musee"] = musee_panel

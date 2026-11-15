@@ -109,6 +109,9 @@ var _nuisances_ids: Array = []
 enum Outil { AUCUN, TRACER, GOMME }
 var outil: Outil = Outil.AUCUN
 var type_troncon := "ligne_ht"
+## Profondeur (m) des tronçons posés depuis la vue sous terre ; NAN : profondeur
+## normale du type (ConstructionSouterraine la règle pendant la pose).
+var profondeur_pose := NAN
 var _trace: PackedVector3Array = PackedVector3Array()
 var _curseur := Vector3.INF
 var _press := Vector2.ZERO
@@ -289,6 +292,13 @@ func poser(type_id: String, pts: PackedVector3Array, payer := true) -> int:
 		return -1
 	var l := ReseauBase.longueur(pts)
 	var prix := ReseauxTypes.prix_troncon(type_id, l)
+	# Posé depuis la vue sous terre : plus cher en profondeur (blindage, fonçage).
+	var prof := profondeur_pose
+	if not is_nan(prof):
+		if String(tr.res) == "elec":
+			prof = NAN
+		else:
+			prix = roundi(prix * ConstructionSouterraine.facteur_profondeur(prof))
 	if payer and buildings != null and not buildings.unlimited_money:
 		if buildings.money < prix:
 			message.emit("Pas assez d'argent : %s nécessaires." % BuildingSystem.format_money(prix))
@@ -297,6 +307,8 @@ func poser(type_id: String, pts: PackedVector3Array, payer := true) -> int:
 	var r := reseau(String(tr.res))
 	var id := r.poser_troncon(pts, type_id, true)
 	r.troncons[id]["cost"] = prix
+	if not is_nan(prof):
+		r.troncons[id]["prof"] = snappedf(prof, 0.1)
 	_lancer_chantier(String(tr.res), id)
 	_topo_sale = true
 	if vue:
@@ -382,6 +394,11 @@ func _lancer_chantier(res: String, id: int) -> void:
 	var e: Dictionary = r.troncons[id]
 	e.ok = false
 	var heures := ReseauBase.longueur(e.pts) * float(HEURES_PAR_M.get(String(e.t), 0.3))
+	var etapes: Array = ETAPES_AERIEN if res == "elec" else ETAPES_ENTERRE
+	if e.has("prof"):
+		heures *= ConstructionSouterraine.facteur_heures(float(e.prof))
+		if float(e.prof) > ConstructionSouterraine.PROF_TRANCHEE_MAX:
+			etapes = Chantiers.ETAPES_FONCAGE
 	var av := float(e.get("av", 0.0))
 	sc.commencer(_cle(res, id), heures,
 		func(a: float, _etape = null) -> void:
@@ -397,7 +414,7 @@ func _lancer_chantier(res: String, id: int) -> void:
 				if vue:
 					vue.refaire_troncon(res, id)
 				changed.emit(),
-		av, 0, ETAPES_AERIEN if res == "elec" else ETAPES_ENTERRE)
+		av, 0, etapes)
 
 
 ## Le chantier d'un tronçon : {av, etape} ou {} s'il est en service.
@@ -1486,10 +1503,13 @@ func _aide() -> void:
 	match outil:
 		Outil.TRACER:
 			var tr := ReseauxTypes.troncon(type_troncon)
-			var t := "%s : clic pour chaque point, clic droit ou Échap pour finir. %s / m." % [tr.name, BuildingSystem.format_money(ReglagesPartie.prix(int(tr.prix_m)))]
+			var f := 1.0 if is_nan(profondeur_pose) or String(tr.res) == "elec" else ConstructionSouterraine.facteur_profondeur(profondeur_pose)
+			var t := "%s : clic pour chaque point, clic droit ou Échap pour finir. %s / m." % [tr.name, BuildingSystem.format_money(roundi(ReglagesPartie.prix(int(tr.prix_m)) * f))]
+			if f != 1.0:
+				t += " (à %s m de fond : %s)" % [TransportTypes._num(snappedf(profondeur_pose, 0.1)), ConstructionSouterraine.methode_conduite(profondeur_pose)]
 			if _trace.size() > 0 and _curseur.is_finite():
 				var l := _trace[_trace.size() - 1].distance_to(_curseur)
-				t += "  Tronçon : %d m, %s." % [roundi(l), BuildingSystem.format_money(ReseauxTypes.prix_troncon(type_troncon, l))]
+				t += "  Tronçon : %d m, %s." % [roundi(l), BuildingSystem.format_money(roundi(ReseauxTypes.prix_troncon(type_troncon, l) * f))]
 			info_changed.emit(t)
 		Outil.GOMME:
 			info_changed.emit("Clic sur une ligne, une conduite ou un égout pour le retirer (30 % rendus).")

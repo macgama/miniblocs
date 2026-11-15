@@ -95,8 +95,11 @@ var _plans_marques: Array = []
 var _ui: CanvasLayer
 var _box: PanelContainer
 var _label: Label
+var _colonne: VBoxContainer
+## Outils pour construire sous terre (conduites, tunnels, pièces), branchés par terre_main.
+var construction: ConstructionSouterraine
 ## Compteurs du dernier dessin (tests) : "rues", "troncons", "branchements",
-## "tunnels", "stations", "sous_sols", "plans".
+## "tunnels", "stations", "sous_sols", "plans", "pieces".
 var compte := {}
 
 
@@ -166,6 +169,8 @@ func sortir() -> void:
 		(_mi[k] as MeshInstance3D).visible = false
 	_demarquer_plans()
 	_box.visible = false
+	if construction != null:
+		construction.desactiver()
 
 
 ## d = −1 descend d'un niveau, +1 remonte (au-dessus de −1 : retour à la surface).
@@ -185,6 +190,8 @@ func step(d: int) -> void:
 	niveau = n
 	_sale = true
 	_maj()
+	if construction != null:
+		construction.niveau_change()
 
 
 func set_niveau(n: int) -> void:
@@ -195,9 +202,12 @@ func set_niveau(n: int) -> void:
 		entrer()
 	if not actif:
 		return
+	var avant := niveau
 	niveau = clampi(n, 1, NIVEAU_MAX)
 	_sale = true
 	_maj()
+	if construction != null and niveau != avant:
+		construction.niveau_change()
 
 
 static func niveau_nom(n: int) -> String:
@@ -277,6 +287,12 @@ func _unhandled_input(event: InputEvent) -> void:
 	var k := event as InputEventKey
 	if k == null or not k.pressed or k.echo:
 		return
+	# Un outil de construction en main : Échap arrête le tracé, puis range l'outil.
+	if construction != null and construction.outil != ConstructionSouterraine.Outil.AUCUN \
+			and (k.keycode == KEY_ESCAPE or k.keycode == KEY_HOME):
+		construction.echap()
+		get_viewport().set_input_as_handled()
+		return
 	match k.keycode:
 		KEY_PAGEDOWN:
 			step(-1)
@@ -294,7 +310,7 @@ func _maj() -> void:
 	_centre_fait = _centre()
 	_label.text = "%s  ·  niveau %d / %d" % [niveau_nom(niveau), niveau, NIVEAU_MAX]
 	_box.visible = true
-	compte = {"rues": 0, "troncons": 0, "branchements": 0, "tunnels": 0, "stations": 0, "sous_sols": 0, "plans": 0}
+	compte = {"rues": 0, "troncons": 0, "branchements": 0, "tunnels": 0, "stations": 0, "sous_sols": 0, "plans": 0, "pieces": 0}
 	var plein := SurfaceTool.new()
 	plein.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var verre := SurfaceTool.new()
@@ -306,6 +322,8 @@ func _maj() -> void:
 	_dessiner_branchements(plein)
 	_dessiner_tunnels(plein, verre)
 	_dessiner_sous_sols(plein, verre, repere)
+	if construction != null:
+		compte.pieces = construction.dessiner(plein, verre, niveau)
 	_poser(_mi.plein, plein, _mat_plein)
 	_poser(_mi.verre, verre, _mat_verre)
 	_poser(_mi.repere, repere, _mat_repere)
@@ -494,7 +512,9 @@ func _dessiner_troncons(plein: SurfaceTool) -> void:
 			var spec: Dictionary = TRONCONS.get(tid, TRONCONS.get(rb.kind, {}))
 			if spec.is_empty() or (tid.begins_with("ligne_")):
 				continue
-			if not visible_au(niveau, float(spec.d) + float(spec.s) / 2.0):
+			# Profondeur choisie à la pose depuis la vue (ConstructionSouterraine), sinon celle du type.
+			var prof := float(t.get("prof", spec.d))
+			if not visible_au(niveau, prof + float(spec.s) / 2.0):
 				continue
 			var pts: PackedVector3Array = t.pts
 			var proche := false
@@ -510,7 +530,7 @@ func _dessiner_troncons(plein: SurfaceTool) -> void:
 			elif not t.get("ok", true):
 				col = col.lerp(Color.WHITE, 0.55)
 			compte.troncons += 1
-			_tuyau_long(plein, _decaler(_simplifier(pts), 0.0, -float(spec.d)), float(spec.s) * LOUPE, col)
+			_tuyau_long(plein, _decaler(_simplifier(pts), 0.0, -prof), float(spec.s) * LOUPE, col)
 
 
 # --- Branchements des bâtiments ---------------------------------------------------
@@ -856,6 +876,7 @@ func _construire_ui() -> void:
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", 4)
 	_box.add_child(col)
+	_colonne = col
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 6)
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -898,6 +919,14 @@ static func _couleur_legende(k: String) -> Color:
 		"tunnel": return Color(TUNNEL, 1.0)
 		"cave": return Color(CAVE, 1.0)
 	return COULEURS.get(k, GRIS)
+
+
+## Branche les outils de construction : leur barre s'ajoute sous la légende.
+func brancher_construction(c: ConstructionSouterraine) -> void:
+	construction = c
+	c.vue = self
+	add_child(c)
+	c.construire_barre(_colonne)
 
 
 func _btn(text: String, tip: String) -> Button:

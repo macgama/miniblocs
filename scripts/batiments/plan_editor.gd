@@ -131,6 +131,12 @@ var plans: Dictionary = {}
 ## Vector2i -> id : cases occupées (bloquent les voies et les bâtiments).
 var cells: Dictionary = {}
 
+## Cases des pièces creusées sous terre (plans "st", ConstructionSouterraine) :
+## elles ne bloquent rien en surface.
+var cells_st: Dictionary = {}
+## Vrai pendant la vue sous terre : les nouveaux plans sont creusés sous terre
+## (pas de trou dans le relief, pas de gêne pour les rues et bâtiments du dessus).
+var sous_terre := false
 var _nodes: Dictionary = {} # id -> {étage: Node3D}
 var _dirty: Dictionary = {} # id -> {étage: true}
 var _bbox: Dictionary = {} # id -> Rect2i
@@ -367,13 +373,15 @@ func base_y(id: String, e: int) -> float:
 	return float(plans[id].y0) + e * H
 
 
-func new_plan(y0: float) -> String:
+func new_plan(y0: float, souterrain := false) -> String:
 	var id := "plan_%d" % _next_id
 	while plans.has(id):
 		_next_id += 1
 		id = "plan_%d" % _next_id
 	_next_id += 1
 	plans[id] = {"id": id, "y0": y0, "walls": {}, "floors": {}, "stairs": {}, "dug": {}, "am": {}}
+	if souterrain or (sous_terre and level < 0):
+		plans[id]["st"] = true
 	_bbox[id] = Rect2i()
 	return id
 
@@ -464,10 +472,12 @@ func _road_height(c: Vector2i) -> float:
 
 
 ## Bâtiment le plus proche dont l'emprise (agrandie de margin cases) contient c.
-func plan_at(c: Vector2i, margin := 2) -> String:
+func plan_at(c: Vector2i, margin := 2, avec_souterrains := true) -> String:
 	var best := ""
 	var bd := INF
 	for id in _bbox:
+		if not avec_souterrains and est_souterrain(id):
+			continue
 		var r: Rect2i = _bbox[id]
 		if r.size == Vector2i.ZERO:
 			continue
@@ -478,6 +488,11 @@ func plan_at(c: Vector2i, margin := 2) -> String:
 				bd = d
 				best = id
 	return best
+
+
+## Plan creusé sous terre (cave, bunker… de la vue sous terre) ?
+func est_souterrain(id: String) -> bool:
+	return plans.has(id) and bool(plans[id].get("st", false))
 
 
 func levels_of(id: String) -> Array:
@@ -526,8 +541,11 @@ func _update_bbox(id: String) -> void:
 
 func _rebuild_cells() -> void:
 	cells.clear()
+	cells_st.clear()
+	var tout := cells
 	for id in plans:
 		var p: Dictionary = plans[id]
+		cells = cells_st if p.get("st", false) else tout
 		for k in p.floors:
 			cells[Vector2i(k.x, k.z)] = id
 		for k in p.walls:
@@ -540,6 +558,7 @@ func _rebuild_cells() -> void:
 			for x in range(ra.position.x, ra.end.x):
 				for z in range(ra.position.y, ra.end.y):
 					cells[Vector2i(x, z)] = id
+	cells = tout
 
 
 ## Le plan n'a plus rien : on l'oublie.
@@ -601,6 +620,11 @@ static func room_walls(r: Rect2i, e: int) -> Array:
 
 ## Raison pour laquelle la case est interdite ("" si possible).
 func check_cell(c: Vector2i, id: String) -> String:
+	if est_souterrain(id):
+		# Sous terre : rues et bâtiments du dessus ne gênent pas.
+		if cells_st.has(c) and cells_st[c] != id:
+			return "Une autre pièce souterraine est déjà ici."
+		return ""
 	if buildings != null:
 		if buildings.occupancy.has(c):
 			return "Un bâtiment occupe cette case."
@@ -744,7 +768,7 @@ func add_floors(id: String, rect: Rect2i, e: int, code := -1, replace := false) 
 
 ## Pièce : le contour en murs et le plancher (une seule étape d'annulation),
 ## sur n étages à partir de e.
-func add_room(id: String, rect: Rect2i, e: int, n := 1) -> bool:
+func add_room(id: String, rect: Rect2i, e: int, n := 1, payer := true) -> bool:
 	var p: Dictionary = plans[id]
 	var wcode := _wall_code()
 	var walls := []
@@ -772,6 +796,8 @@ func add_room(id: String, rect: Rect2i, e: int, n := 1) -> bool:
 		message.emit("Pièce trop grande.")
 		return false
 	var cost := walls.size() * wall_price(material) + floors.size() * floor_price(BlocFormes.mat_of(fcode))
+	if not payer:
+		cost = 0
 	if not _can_pay(cost):
 		message.emit("Pas assez d'argent : %s nécessaires." % BuildingSystem.format_money(ReglagesPartie.prix(cost)))
 		return false
@@ -1234,6 +1260,10 @@ func _sync_terrain(id: String) -> void:
 	if world == null or not plans.has(id):
 		return
 	var p: Dictionary = plans[id]
+	if p.get("st", false):
+		# Creusé sous terre : le relief reste intact au-dessus.
+		_restore_terrain(id)
+		return
 	var need := {}
 	for k in p.floors:
 		var kf: Vector3i = k
@@ -1333,7 +1363,7 @@ func pick(origin: Vector3, dir: Vector3) -> Dictionary:
 			_emit_level()
 	if id == "" and ground != null:
 		var gp: Vector3 = ground
-		id = plan_at(Vector2i(floori(gp.x), floori(gp.z)), 3)
+		id = plan_at(Vector2i(floori(gp.x), floori(gp.z)), 3, level < 0)
 		if id != "" and _active != id:
 			_active = id
 			_apply_cutaway()
@@ -2424,7 +2454,10 @@ func to_dict() -> Dictionary:
 		for c in p.dug:
 			var rec: Array = p.dug[c]
 			d.append_array([c.x, c.y, rec[0], rec[1]])
-		out.append({"id": id, "y0": p.y0, "walls": w, "floors": f, "stairs": s, "dug": d, "am": Amenagements.to_array(p.get("am", {}))})
+		var pd := {"id": id, "y0": p.y0, "walls": w, "floors": f, "stairs": s, "dug": d, "am": Amenagements.to_array(p.get("am", {}))}
+		if p.get("st", false):
+			pd["st"] = true
+		out.append(pd)
 	return {"version": 1, "h": H, "plans": out}
 
 
@@ -2436,6 +2469,8 @@ func from_dict(data: Dictionary) -> void:
 			continue
 		plans[id] = {"id": id, "y0": float(pd.get("y0", 0.0)), "walls": {}, "floors": {}, "stairs": {}, "dug": {},
 			"am": Amenagements.from_array(pd.get("am", []))}
+		if pd.get("st", false):
+			plans[id]["st"] = true
 		_bbox[id] = Rect2i()
 		var p: Dictionary = plans[id]
 		var w: Array = pd.get("walls", [])

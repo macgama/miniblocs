@@ -62,10 +62,89 @@ pose seulement les gros tronçons (panneau O) entre les centrales, usines d'eau,
 stations d'épuration et le réseau des rues. La vue sous terre montre ce
 principe : les tuyaux suivent les rues, chaque bâtiment s'y branche.
 
+## Construire sous terre
+
+Code : `scripts/souterrain/construction_souterraine.gd` (classe
+`ConstructionSouterraine`), branché par `terre_main._setup_souterrain()`.
+Test : `tests/construction_souterraine_test.gd` (captures : `-- --dossier /chemin`).
+
+La barre sous la légende construit **au niveau affiché** (Page bas / Page haut :
+l'outil en main suit le niveau).
+
+![Construire sous terre](apercu-construction-souterraine.png)
+
+### Poser (conduites et tunnels)
+
+- **Eau, Égout, Gaz, Fibre** : le traceur du panneau O (ou du Télécom), mais à la
+  profondeur du niveau. Au −1, la conduite garde sa profondeur habituelle ; plus
+  bas, elle passe au milieu du niveau (10,5 m au −4). Prix et durée selon la
+  profondeur (`facteur_profondeur`) :
+
+  | Profondeur | Méthode | Prix |
+  |---|---|---|
+  | jusqu'à 2 m | tranchée | × 1 |
+  | 2 à 6 m | tranchée blindée | × 1 à × 2 |
+  | plus de 6 m | microtunnelier (fonçage) | × 2,5 puis + 8 % par mètre |
+
+- **Métro, Tunnel (rue), Tunnel (2×2), Tunnel ferroviaire** : l'outil des voies,
+  avec les voies à `niveau × 3 − 1` m (14 m au −5). Pas au-dessus du −3. Partant
+  d'une voie de surface, le tracé descend en rampe (pente maxi du type). Prix
+  du tunnel au mètre, payé au fil des travaux (étapes : sondages, tunnelier,
+  radier, équipements, essais) ; les rampes et parties au sol restent gratuites
+  comme en surface :
+
+  | Voie | Prix au mètre de tunnel |
+  |---|---|
+  | Métro double voie | 60 000 € |
+  | Tunnel routier urbain | 45 000 € |
+  | Tunnel 2 × 2 voies (deux tubes) | 110 000 € |
+  | Tunnel ferroviaire | 70 000 € |
+
+  À moins de 10 m (tranchée couverte) : − 40 % ; à plus de 20 m : + 1 % par mètre.
+  Repères réels : métro au tunnelier 50 à 80 k€/m hors stations.
+
+### Creuser (pièces)
+
+Choisir l'usage et la hauteur (1 à 3 niveaux), puis **Creuser** et glisser un
+rectangle. Le chantier creuse, soutient, coule les dalles et les voiles (on le
+voit avancer dans la vue), payé au fil des travaux. À la fin, la pièce devient un
+**sous-sol de l'Atelier** (plan « st ») en béton brut : les outils **Murs, Porte,
+Escalier, Gomme** de la barre (ceux de l'Atelier, au niveau affiché) l'aménagent.
+Une pièce collée à une autre rejoint le même sous-sol.
+
+| Usage | Prix au m² et par niveau | Durée | Capacité |
+|---|---|---|---|
+| Cave | 1 100 € | 1,2 h/m² | stockage (m³) |
+| Parking | 1 300 € | 1 h/m² | 1 place / 25 m² |
+| Entrepôt | 1 000 € | 1 h/m² | stockage (m³) |
+| Local technique | 1 500 € | 1,4 h/m² | — |
+| Bunker (abri) | 2 800 € | 2,5 h/m² | 1 place / m² |
+
++ 6 % par niveau de profondeur, + 50 % sous un bâtiment (reprise en sous-œuvre).
+On ne creuse pas au −1 sous une voie (réseaux de la rue), dans la cave d'un
+bâtiment du catalogue, dans un tunnel, ni à travers une conduite (la déplacer
+d'abord). Le bilan (places de parking, places à l'abri, stockage) s'affiche
+sous la barre.
+
+Les plans souterrains ne creusent pas le relief et ne bloquent rien en surface
+(`PlanEditor.cells_st` au lieu de `cells`) : on construit librement au-dessus.
+
+### Déplacer, supprimer
+
+- **Déplacer** : clic sur une conduite enterrée, puis clic à la nouvelle place ;
+  elle est reposée au niveau affiché. C'est un dévoiement : la nouvelle est
+  construite (et payée) pendant que l'ancienne reste en service, puis
+  l'ancienne est retirée à la fin des travaux.
+- **Supprimer** : une pièce (comblée, sans remboursement), une conduite (30 %
+  rendus, comme au panneau O) ou un tunnel du niveau affiché.
+
 ## Limites et suites possibles
 
-- C'est une vue : poser une conduite ou creuser un niveau directement sous terre
-  viendra ensuite (les fantômes des outils ne sont pas sur la couche de la vue).
+- En ligne (carte entre amis), les tunnels ne se creusent pas encore depuis la
+  vue sous terre ; les pièces et conduites ne sont pas encore synchronisées.
+- Les places à l'abri et les parkings souterrains sont comptés (bilan) mais ne
+  servent pas encore aux catastrophes ni au stationnement.
+- Les lignes électriques (aériennes) ne se posent pas depuis la vue.
 - Les caves du catalogue ne se visitent pas (dessinées en volumes).
 - Rayon montré : 450 m autour du point visé (`RAYON`), refait quand la caméra
   s'éloigne de plus d'un quart du rayon ou que les voies, bâtiments ou réseaux

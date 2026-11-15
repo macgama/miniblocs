@@ -97,8 +97,10 @@ func _sync() -> void:
 			if float(e.get("chr", 0.0)) <= 0.0:
 				e["chr"] = heures(eid)
 			var id: int = eid
+			# Prix payé au fil des travaux : seulement les tunnels creusés depuis
+			# la vue sous terre (ConstructionSouterraine) en ont un.
 			suivi.commencer(cle(id), float(e.chr), func(av: float, et: Array) -> void: _maj(id, av, et),
-				func() -> void: _fini(id), float(e.ch))
+				func() -> void: _fini(id), float(e.ch), int(e.get("cout", 0)), _etapes(e))
 	for eid in _vus.keys():
 		if not network.edges.has(eid) or not network.edges[eid].has("ch"):
 			_oublier(eid)
@@ -132,6 +134,30 @@ func _oublier(eid: int) -> void:
 	if not v.is_empty():
 		if is_instance_valid(v.engins):
 			(v.engins as Node).queue_free()
+
+
+## Étapes du chantier : celles d'un tunnel creusé, sinon celles d'une voie.
+static func _etapes(e: Dictionary) -> Array:
+	return Chantiers.ETAPES_TUNNEL if e.has("prof") else Chantiers.ETAPES_VOIE
+
+
+## Fixe le prix d'un tronçon qui vient d'être posé (payé au fil des travaux, ou
+## tout de suite si le chantier est déjà fini). Renvoie ce qui a été payé tout de suite.
+func fixer_cout(eid: int, cout: int) -> int:
+	if not network.edges.has(eid):
+		return 0
+	var e: Dictionary = network.edges[eid]
+	e["cout"] = cout
+	var k := cle(eid)
+	if suivi != null and suivi.en_cours(k):
+		var c: Dictionary = suivi.chantiers[k]
+		c.cout = cout
+		c.du = roundi(float(cout) * (1.0 - float(c.av)))
+		c.etapes = _etapes(e)
+		return 0
+	if suivi != null and suivi.buildings != null and not suivi.buildings.unlimited_money:
+		suivi.buildings.money -= cout
+	return cout
 
 
 ## Avancement d'un tronçon (1 s'il est ouvert).

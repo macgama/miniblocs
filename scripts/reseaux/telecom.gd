@@ -63,6 +63,8 @@ const COULEURS_NET := {"fibre": Color("2dd4bf"), "adsl": Color("80ed99"), "lent"
 enum Outil { AUCUN, FIBRE_RUE, FIBRE, FIBRE_AERIENNE, CUIVRE_AERIEN, RETIRER }
 const OUTIL_CABLE := {Outil.FIBRE: "fibre", Outil.FIBRE_AERIENNE: "fibre_aerienne", Outil.CUIVRE_AERIEN: "cuivre_aerien"}
 
+## Profondeur (m) des câbles posés depuis la vue sous terre ; NAN : normale.
+var profondeur_pose := NAN
 var world: TerrainWorld
 var buildings: BuildingSystem
 var transport: TransportSystem
@@ -587,12 +589,17 @@ func poser_cable(type_id: String, pts: PackedVector3Array) -> int:
 	if pts.size() < 2 or not CABLES.has(type_id):
 		return -1
 	var cost := prix_cable(type_id, ReseauBase.longueur(pts))
+	var prof := profondeur_pose if not CABLES[type_id].aerien else NAN
+	if not is_nan(prof):
+		cost = roundi(cost * ConstructionSouterraine.facteur_profondeur(prof))
 	if buildings != null and not buildings.unlimited_money:
 		if buildings.money < cost:
 			message.emit("Pas assez d'argent : il faut %s." % BuildingSystem.format_money(cost))
 			return -1
 		buildings.money -= cost
 	var id := _reseau(type_id).poser_troncon(pts, type_id)
+	if not is_nan(prof):
+		_reseau(type_id).troncons[id]["prof"] = snappedf(prof, 0.1)
 	message.emit("%s : %s posés pour %s." % [CABLES[type_id].name, _km(ReseauBase.longueur(pts)), BuildingSystem.format_money(cost)])
 	marquer()
 	return id
@@ -917,8 +924,11 @@ func _dessiner_trace() -> void:
 		_bande(st, pts[i] + Vector3(0, 1.0, 0), pts[i + 1] + Vector3(0, 1.0, 0), 1.5, col)
 	_trace_mesh.mesh = st.commit() if pts.size() >= 2 else null
 	var l := ReseauBase.longueur(pts)
+	var f := 1.0
+	if not is_nan(profondeur_pose) and not CABLES[OUTIL_CABLE[outil]].aerien:
+		f = ConstructionSouterraine.facteur_profondeur(profondeur_pose)
 	info_changed.emit("%s : %s, %s. Échap ou clic droit pour finir." % [CABLES[OUTIL_CABLE[outil]].name, _km(l),
-		BuildingSystem.format_money(prix_cable(OUTIL_CABLE[outil], l))])
+		BuildingSystem.format_money(roundi(prix_cable(OUTIL_CABLE[outil], l) * f))])
 
 
 # --- Sauvegarde -------------------------------------------------------------------

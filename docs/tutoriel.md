@@ -15,7 +15,7 @@ Une partie neuve lancée depuis le globe commence par un **tutoriel guidé**, si
 | 3 | Tes fondateurs | le panneau Maj+H a été ouvert (sautée s'il n'y a pas de fondateurs) |
 | 4 | Tracer une route | 50 m de route sont tracés |
 | 5 | Zoner des logements | une zone résidentielle est posée |
-| 6 | Du courant et de l'eau | une source d'électricité et une source d'eau sont posées (sautée si les réseaux ne sont pas obligatoires) |
+| 6 | Courant, eau et égouts | une source d'électricité, une source d'eau et un traitement des égouts (lagunage, station, ou rejet) sont posés (sautée si les réseaux ne sont pas obligatoires) |
 | 7 | Laisser le temps faire | 5 habitants ont un vrai toit (les fondateurs sous la tente ne comptent pas) |
 | 8 | Du travail pour tous | une zone commerciale ou industrielle, ou un bâtiment qui emploie |
 | 9 | Une école | une école est posée |

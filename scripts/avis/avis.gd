@@ -614,9 +614,13 @@ func sondage(force := false) -> Dictionary:
 		for th in s.themes:
 			th_sum[th] = float(th_sum.get(th, 0.0)) + float(s.themes[th])
 			th_n[th] = int(th_n.get(th, 0)) + 1
+		# Un motif compte une fois par habitant (quatre manifestations ignorées : un seul mécontent).
+		var vus := {}
 		for r in s.why:
-			var txt := String(r)
-			var key := motif(txt)
+			var key := motif(String(r))
+			if vus.has(key):
+				continue
+			vus[key] = true
 			motifs[key] = int(motifs.get(key, 0)) + 1
 		var home := population.home_of(p)
 		if home >= 0:

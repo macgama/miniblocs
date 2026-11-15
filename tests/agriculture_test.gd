@@ -275,6 +275,20 @@ func _run() -> void:
 			homes_ok += 1
 	_check(pop.households.size() > 0 and homes_ok > 0, "%d foyers, %d avec un commerce à portée" % [pop.households.size(), homes_ok])
 	ReglagesPartie.actuel.faim = "normale"
+	# Ville sans livraisons possibles : rayons vides, mais on fait ses courses ailleurs.
+	agri.repas.forcer_livraisons = 0
+	prod.manque_foyers.clear()
+	for h in pop.households.values():
+		var miss0 := {}
+		for g in Ressources.NOURRITURE:
+			miss0[g] = 1.0
+		prod.manque_foyers[int(h.b)] = miss0
+	agri.repas.apres_courses()
+	_check(agri.repas.faim.is_empty() and Repas.courses_ailleurs(int(pop.households.values()[0].b)),
+		"sans chauffeur ni import : courses dans une ville voisine, personne n'a faim")
+	agri.repas.clear()
+	# Ville qui pourrait se ravitailler, mais le fait mal : la faim.
+	agri.repas.forcer_livraisons = 1
 	var faim_vue := false
 	var departs := 0
 	var foyers0 := pop.households.size()
@@ -296,6 +310,7 @@ func _run() -> void:
 	_check(faim_vue, "« a faim depuis … » dans la satisfaction")
 	_check(departs > 0 and pop.households.size() < foyers0, "des foyers affamés quittent la ville (%d habitants partis)" % departs)
 	ReglagesPartie.actuel.faim = "aucune"
+	agri.repas.forcer_livraisons = -1
 	agri.repas.clear()
 	prod.manque_foyers.clear()
 	agri.repas.apres_courses()

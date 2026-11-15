@@ -80,3 +80,50 @@ Le script imprime « FILM DÉBUT image N » : la vidéo utile commence à N / 30
 - Chapitres : ajouter une entrée à `Tutoriel.ETAPES_DEMO` (avec `"demo": true`),
   un cas dans `Tutoriel.est_faite()` et, pour son bouton, dans
   `terre_main._on_tuto_action()`.
+
+## Test de bout en bout
+
+`tests/demo_parcours_test.gd` joue la démo comme un joueur : bouton « Démo
+guidée » du menu → écran de chargement → partie à Échallens (Normal, 100
+fondateurs + 40 ouvriers du kit, vrais chantiers) → chaque étape avec le bouton
+de la carte puis le geste demandé, sans jamais « Passer » → le temps tourne à
+la vitesse du jeu (accéléré par `Engine.time_scale`, le chrono de la démo compte
+donc les minutes du joueur) → bilan → « Menu principal » → « Continuer ».
+
+```
+godot --headless --path . --script res://tests/demo_parcours_test.gd [-- --echelle 20 --rapport parcours.csv]
+```
+
+Options : `--proxy hôte:port --ca fichier.crt` (vrai relief téléchargé),
+`--soigneux` (maire prévoyant : déchets, dépôt de marchandises, négocie avec
+les manifestants), `--aleas` (incendies, tempêtes et crues au hasard, coupés
+sinon pour que le test reste reproductible). À la fin : ce que disent les
+habitants (thèmes, motifs), les réseaux, les bâtiments.
+
+Mesures (novembre 2026, gestes instantanés) : 100 habitants vers le jour 38-45,
+soit 10 à 11 minutes de jeu à vitesse maximale ; un vrai joueur, qui lit les
+cartes et pose ses routes à la souris, met plutôt 25 à 35 minutes.
+
+Corrigé grâce à ce test :
+- un incendie, une tempête ou une crue rasait le campement des fondateurs : les
+  140 fondateurs quittaient la ville d'un coup et plus aucun chantier
+  n'avançait. Le campement est maintenant replanté sur place ;
+- le chapitre « Un coin pour souffler » se validait tout seul dès qu'un café
+  poussait dans la zone commerciale ;
+- le bilan affichait 16 / 17 étapes même démo finie ;
+- les fondateurs sous la tente manifestaient dès le premier jour (seuil de 50
+  habitants compté avec eux) ;
+- un motif de l'avis était compté autant de fois qu'il apparaissait (« 690
+  habitants » sur 138) ;
+- un village sans livraisons possibles (ni chauffeur-livreur, ni dépôt, gare,
+  port ou route qui sort de la carte) mourait de faim devant une boulangerie
+  vide : les foyers font maintenant leurs courses dans une ville voisine
+  (« rayons vides : fait ses courses dans une ville voisine », −5) ;
+- l'étape du tutoriel « Courant, eau et égouts » demande aussi un traitement
+  des égouts (le kit de l'État le paie) : sans lui, tous les logements
+  avaient « les égouts débordent ».
+
+Reste à équilibrer : la satisfaction d'un hameau de 100 habitants plafonne
+vers 10 à 25 % (pollution de l'air des routes départementales posées par
+l'outil Route, poubelles, pas d'hôpital, de police, d'internet), donc le rang
+de Village (50 %) reste hors de portée pendant la démo.

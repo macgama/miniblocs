@@ -52,10 +52,10 @@ const SERVICES := [["ecole", 1500], ["boulangerie", 1500], ["superette", 1200], 
 	["pompiers", 5000], ["police", 2500], ["central_telephonique", 3000], ["pylone_4g", 2500], ["gymnase", 4000], ["hopital", 6000], ["entreprise_btp", 1500]]
 
 var ok := true
-var _logger: Journal
+var _logger: JournalErreurs
 
 
-class Journal extends Logger:
+class JournalErreurs extends Logger:
 	var mutex := Mutex.new()
 	var liste: Array = []
 
@@ -73,7 +73,7 @@ class Journal extends Logger:
 
 
 func _initialize() -> void:
-	_logger = Journal.new()
+	_logger = JournalErreurs.new()
 	OS.add_logger(_logger)
 	_run.call_deferred()
 	create_timer(4.0 * 3600.0).timeout.connect(func() -> void:

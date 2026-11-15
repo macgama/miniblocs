@@ -182,3 +182,47 @@ static func plus_proche(lat: float, lon: float, max_km := 40.0) -> Dictionary:
 	if best < 0 or sqrt(best_d) * 111.0 > max_km:
 		return {}
 	return _entree(best)
+
+
+## Vraies villes voisines d'un point (commerce) : les n plus importantes entre
+## min_km et max_km (population divisée par la distance puissance 1,25), une par nom,
+## puis deux petites villes proches.
+static func voisines(lat: float, lon: float, min_km: float, max_km: float, n: int) -> Array:
+	if not charger():
+		return []
+	var cl := cos(deg_to_rad(lat))
+	var dmax := max_km / 111.0
+	var cands: Array = []
+	for i in _lats.size():
+		var dla := _lats[i] - lat
+		if absf(dla) > dmax:
+			continue
+		var dlo := wrapf(_lons[i] - lon, -180.0, 180.0) * cl
+		var km := sqrt(dla * dla + dlo * dlo) * 111.0
+		if km < min_km or km > max_km or _pops[i] < 5000:
+			continue
+		cands.append([float(_pops[i]) / pow(km, 1.25), i, km])
+	cands.sort_custom(func(a: Array, b: Array) -> bool: return float(a[0]) > float(b[0]))
+	var out: Array = []
+	var vus := {}
+	for c in cands:
+		var e := _entree(int(c[1]))
+		if vus.has(e.nom):
+			continue
+		vus[e.nom] = true
+		e["km"] = roundf(float(c[2]))
+		out.append(e)
+		if out.size() >= maxi(n - 2, 1):
+			break
+	# Et deux petites villes proches (bourgs agricoles, villes de la vallée).
+	cands.sort_custom(func(a: Array, b: Array) -> bool: return float(a[2]) < float(b[2]))
+	for c in cands:
+		if out.size() >= n:
+			break
+		var e := _entree(int(c[1]))
+		if vus.has(e.nom) or int(e.pop) >= 30000:
+			continue
+		vus[e.nom] = true
+		e["km"] = roundf(float(c[2]))
+		out.append(e)
+	return out

@@ -290,6 +290,10 @@ func poser(type_id: String, pts: PackedVector3Array, payer := true) -> int:
 	var tr := ReseauxTypes.troncon(type_id)
 	if tr.is_empty() or pts.size() < 2:
 		return -1
+	var epoque := Epoques.raison_troncon(type_id)
+	if payer and epoque != "":
+		message.emit("%s : %s" % [tr.name, epoque.to_lower()])
+		return -1
 	var l := ReseauBase.longueur(pts)
 	var prix := ReseauxTypes.prix_troncon(type_id, l)
 	# Posé depuis la vue sous terre : plus cher en profondeur (blindage, fonçage).
@@ -1035,6 +1039,10 @@ func qualite_de(bid: int) -> float:
 
 func _maj_etats() -> void:
 	var libre := not ReglagesPartie.actuel.reseaux_obligatoires
+	var att_e := Epoques.attendu("elec")
+	var att_o := Epoques.attendu("eau")
+	var att_g := Epoques.attendu("egout")
+	var att_c := Epoques.attendu("gaz")
 	var qual_comp := {}
 	var vus := {}
 	for r in tous():
@@ -1047,18 +1055,22 @@ func _maj_etats() -> void:
 		var q := 1.0
 		var c := 1.0
 		if not libre:
+			# Partie historique : un réseau pas encore répandu ne manque à
+			# personne (bougies, puits, fosses, poêles), mais il sert s'il existe.
 			if elec.consos.has(bid):
 				e = 0.0 if incidents.coupe(bid) else elec.taux_servi(bid)
+				if not att_e:
+					e = maxf(e, 1.0)
 			if gaz.consos.has(bid):
-				c = gaz.taux_servi(bid)
+				c = gaz.taux_servi(bid) if att_c else 1.0
 			if eau.consos.has(bid):
-				o = eau.taux_servi(bid)
+				o = eau.taux_servi(bid) if att_o else 1.0
 				var ce := eau.composante_de(bid)
 				if not qual_comp.has(ce):
 					qual_comp[ce] = qualite_de(bid)
 				q = float(qual_comp[ce])
 			if egout.consos.has(bid):
-				g = egout.taux_servi(bid)
+				g = egout.taux_servi(bid) if att_g else 1.0
 		var avant: Dictionary = etat.get(bid, {})
 		etat[bid] = {"e": e, "o": o, "g": g, "q": q, "c": c, "ch": clampf(c + (1.0 - c) * e, 0.0, 1.0)}
 		var noir := e < 0.5

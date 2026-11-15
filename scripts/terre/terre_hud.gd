@@ -58,6 +58,8 @@ signal spectacles_requested
 signal club_requested
 ## Bouton « Tourisme » (menu Loisirs, Maj+D) : hôtels, touristes, publicité.
 signal tourisme_requested
+## Bouton « Commerce » (menu Économie, Maj+S) : cours mondiaux, accords, crises.
+signal commerce_requested
 ## Panneau « Cartes » (touche N) : pollution, bruit, valeur des terrains, autres calques.
 signal cartes_requested
 ## Bouton « Statistiques » (menu Infos, Maj+I).
@@ -118,6 +120,7 @@ const CATEGORIES := [
 	{"id": "habitants", "name": "Habitants", "icon": "habitants", "key": "H", "panel": true, "group": "ville"},
 	{"id": "production", "name": "Production", "icon": "ressources", "key": "P", "panel": true, "group": "economie"},
 	{"id": "agriculture", "name": "Agriculture", "icon": "agriculture", "key": "Maj+F", "panel": true, "group": "economie"},
+	{"id": "commerce", "name": "Commerce (cours mondiaux, accords, crises)", "icon": "commerce", "key": "Maj+S", "panel": true, "group": "economie"},
 	{"id": "decors", "name": "Décors", "icon": "decors", "key": "G", "panel": true},
 	{"id": "infos", "name": "Infos", "icon": "infos", "key": "I", "panel": true, "group": "infos"},
 	{"id": "urgences", "name": "Urgences", "icon": "services", "key": "U", "panel": true, "group": "ville"},
@@ -150,6 +153,7 @@ const CATEGORIES := [
 	{"id": "creations", "name": "Mes créations", "icon": "creations", "key": "5", "panel": true, "mode": "creer"},
 	{"id": "banque", "name": "Banque", "icon": "banque", "key": "6", "panel": true, "mode": "creer"},
 	{"id": "atelier", "name": "Atelier", "icon": "atelier", "key": "7", "panel": true, "mode": "creer"},
+	{"id": "partage", "name": "Partage (publier et installer des créations, Workshop)", "icon": "partage", "key": "8", "panel": true, "mode": "creer"},
 ]
 ## Menus de la barre du bas (mode Gérer) : leurs panneaux s'ouvrent dans une
 ## petite rangée au-dessus du bouton, pour que la barre tienne sur tout écran.
@@ -161,7 +165,7 @@ const GROUPS := [
 	{"id": "infos", "name": "Infos", "icon": "infos"},
 ]
 ## Touches 2 à 5 du mode Créer.
-const CREATE_KEYS := {KEY_2: "murs", KEY_3: "blocs", KEY_4: "interieur", KEY_5: "creations", KEY_6: "banque", KEY_7: "atelier"}
+const CREATE_KEYS := {KEY_2: "murs", KEY_3: "blocs", KEY_4: "interieur", KEY_5: "creations", KEY_6: "banque", KEY_7: "atelier", KEY_8: "partage"}
 ## Icône de chaque outil de TOOLS.
 const TOOL_ICONS := ["observer", "aplanir", "monter", "creuser", "route", "rail", "chemin", "eau", "demolir", "carrefour", "paysage"]
 ## Nom court sous l'icône (le nom complet est dans l'infobulle).
@@ -824,6 +828,7 @@ func _on_category(id: String) -> void:
 			"spectacles": spectacles_requested.emit()
 			"club": club_requested.emit()
 			"tourisme": tourisme_requested.emit()
+			"commerce": commerce_requested.emit()
 			"cartes": cartes_requested.emit()
 			"stats": stats_requested.emit()
 			"journal": journal_requested.emit()

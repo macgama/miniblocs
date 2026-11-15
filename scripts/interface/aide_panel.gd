@@ -13,7 +13,7 @@ const SECTIONS := [
 		["Clic molette glissé en haut / en bas, ou Ctrl + molette", "incliner : jusqu'à une vue rasante pour voir le relief jusqu'à l'horizon (10 km)"],
 	]],
 	["Barre du bas", [
-		["Tab · Gérer / Créer", "Gérer : la ville (terrain, voies, zonage, catalogue, lignes, habitants). Créer : construire un bâtiment soi-même (murs et étages, blocs, intérieur, Mes créations, banque, atelier), la ville en pause ; touches 1 à 7 et échelle des étages"],
+		["Tab · Gérer / Créer", "Gérer : la ville (terrain, voies, zonage, catalogue, lignes, habitants). Créer : construire un bâtiment soi-même (murs et étages, blocs, intérieur, Mes créations, banque, atelier, partage), la ville en pause ; touches 1 à 8 et échelle des étages"],
 		["Catégories", "Observer, Terrain, Voies, Paysage : un clic ouvre leurs outils juste au-dessus ; Construire et Décors ouvrent leur panneau à droite (un seul à la fois)"],
 		["Menus ▴", "Transports (lignes, trafic, circulation, véhicules), Ville (habitants, urgences, avis, budget, déchets), Économie (production, agriculture), Loisirs (créer un parc, panneau du parc, musée, zoo, spectacles, club, tourisme), Infos (infos, cartes) : un clic ouvre la rangée de leurs panneaux ; les touches restent les mêmes"],
 		["Circulation, Véhicules, Vue", "afficher la circulation, choisir l'époque et la région des véhicules, changer de vue"],
@@ -58,6 +58,12 @@ const SECTIONS := [
 		["Fonction d'un modèle (Banque, Mes créations)", "le bâtiment du jeu dont ton modèle prend le rôle : maison, centrale électrique, stade, piscine, grand-huit… Il fonctionne comme lui (capacités à sa taille) avec ton apparence"],
 		["Mes modèles (Construire, B)", "tes modèles et créations se posent comme les autres bâtiments : prix, R pour tourner, accès à une route, chantier ; chantier fini, ses vrais murs, pièces et meubles sont posés : il se visite (V)"],
 		["Chantiers", "bâtiments et voies se construisent étape par étape au rythme de la vie (maison ≈ 3 semaines de jeu), en semaine et en journée ; le prix se paie au fil des travaux ; panneau Admin (F10) : horaires des équipes ou construction instantanée"],
+	]],
+	["Époques", [
+		["Année de départ", "globe, Réglages de la partie (ou Admin F10), section Époque : partie historique de 1800 à aujourd'hui ; chaque invention arrive à sa date (train 1830, électricité 1882, autoroute 1930, 4G 2010…)"],
+		["Pas encore inventé", "vignette « Arrive en 1882 » dans Construire ; voies, stations, lignes électriques, fibre et matériaux de l'Atelier suivent aussi l'année"],
+		["Services d'époque", "maison d'école, Hôtel-Dieu, remise des pompes, gendarmerie ; pompes à bras, ambulances et corbillards à chevaux, tombereaux, rues pavées et réverbères"],
+		["Rythme de l'histoire", "Admin (F10) : 1 à 25 années d'histoire par année de jeu, ou changer l'année en cours ; les habitants n'attendent le courant qu'en 1925, l'eau courante en 1900, le téléphone en 1975"],
 	]],
 	["Événements", [
 		["I", "panneau Infos : événements en cours et à venir, journal, organiser une fête ou un marché, dégâts à réparer, stades et classement"],
@@ -176,6 +182,15 @@ const SECTIONS := [
 		["Ouvert / Fermé", "enseigne sur la façade et rideau de fer selon le personnel présent ; pancarte orange « Manque de personnel », rouge « Fermé : pas d'enseignant »…"],
 		["Sans personnel", "école fermée : les élèves restent à la maison ; commerce fermé : les clients vont ailleurs ; hôpital fermé : la santé baisse ; production selon les postes pourvus"],
 		["Clic sur un employé", "sa fiche : ce qu'il fait en ce moment, et le personnel du bâtiment"],
+	]],
+	["Commerce entre villes et pays", [
+		["Maj + S (Économie ▴ → Commerce)", "menu Commerce : Marché mondial (cours du jour et courbes), Offres des villes partenaires, Accords en cours, Entre tes villes et pays, Crises, Bilan"],
+		["Cours mondiaux", "chaque marchandise a un cours qui bouge chaque jour ; les marchandises d'une même famille (énergie, métaux, agriculture…) bougent ensemble. Export et import au cours du jour ; sur la carte et en rayon, les prix suivent le cours à moitié"],
+		["Villes partenaires", "de vraies villes voisines de ton lieu. Elles proposent d'acheter ou de vendre tant de tonnes par jour, à prix fixe, pendant 30 à 180 jours. Une mission commerciale (25 000 €) améliore la relation et fait venir deux offres"],
+		["Accord d'exportation", "tes camions portent la marchandise à la frontière avant tout le reste ; il faut la produire, des chauffeurs-livreurs et une route qui sort de la carte (ou un dépôt, une gare, un port). Ce qui manque chaque jour coûte 10 % de pénalité et fâche le partenaire"],
+		["Accord d'importation", "prix fixe, à l'abri des crises, et passage garanti même quand la frontière est pleine"],
+		["Entre tes villes", "la ville qui achète se fournit d'abord chez celle qui vend, au prix convenu ; sur une carte entre amis, le maire de l'autre ville doit accepter. Libre-échange entre deux de tes pays : plus de douane"],
+		["Crises économiques", "choc pétrolier, krach, sécheresse mondiale, pénurie de puces, boom de la construction, inflation, guerre commerciale, récolte record, ruée vers les métaux : elles montent, durent de 1 à 6 mois puis redescendent. F10 : crises oui ou non, marché calme, normal ou agité"],
 	]],
 	["Production", [
 		["P", "panneau Production : carte des ressources, marchandises de la ville, sites (stock et caisse de chaque entreprise), camions de livraison"],
@@ -314,6 +329,13 @@ const SECTIONS := [
 		["Réputation", "ce que pensent les touristes qui repartent : confort et prix de l'hôtel, repas trouvés, ce qu'il y avait à voir, rayons pleins, souvenirs, foule ; trop de touristes pour trop peu d'habitants agace la ville"],
 		["Nature", "plages, côtes, lacs, rivières, forêts, sommets et glaciers du vrai terrain autour des villages attirent aussi (onglet Attractions) : surtout l'été, moins sous la pluie ; une route à moins de 800 m, des sentiers (outil Chemin) et les aménagements (poste de secours, base nautique, belvédère, parking de randonnée, maison de la nature) les rendent plus attirants"],
 		["Autocars", "avec un parking d'autocars, les cars des voyages organisés arrivent le matin par l'entrée de la ville, déposent leur groupe au parking puis l'emmènent voir les sites"],
+	]],
+	["Partage des créations", [
+		["Maj + W (ou Créer → 8)", "menu Partage : Partager mes créations, Plans de site, Découvrir les créations des autres"],
+		["Partager", "bâtiments de la Banque (façades personnalisées, murs fins meublés, musées), créations en blocs, attractions dessinées (grands-huit…), plans de site ; « Publier » (titre, description, étiquettes) ou « Fichier .mbloc » à envoyer à un ami. Une création emporte ce dont elle a besoin"],
+		["Plans de site", "nom, puis « Choisir une zone sur la carte » : clic sur un coin, glisser, relâcher (400 m au plus). Le plan garde bâtiments, allées et files du parc, enclos et animaux, décors, murs fins meublés et blocs libres. « Poser » : il suit la souris, R le tourne, clic pour poser (prix, accès, chantiers comme d'habitude)"],
+		["Découvrir", "« Recevoir » lit les fichiers .mbloc déposés dans le dossier d'échange ; Installer, Mettre à jour, Retirer ; filtre par sorte (bâtiment, musée, blocs, attraction, parc, zoo, quartier) et recherche"],
+		["Steam Workshop", "à la sortie sur Steam, « Publier » enverra sur le Workshop et les abonnements s'installeront seuls ; d'ici là, l'atelier local et les fichiers .mbloc font la même chose"],
 	]],
 	["Déchets", [
 		["X", "panneau Déchets : ce que la ville jette et recycle, poubelles qui débordent (clic : y aller), installations, bennes en tournée"],

@@ -89,6 +89,8 @@ var carte: CarteRessources
 ## et elle dit ce qu'elles fournissent et ce dont elles ont besoin. Objet avec
 ## manages(bid), outputs(bid), needs(bid), cap(bid, g), status_of(bid).
 var agri: Object = null
+## Marché mondial (CommerceMondial) : accords commerciaux des villes. null : aucun.
+var marche: Object = null
 
 ## Sites : id du bâtiment -> {kind, st (stock), inc (en route vers lui), res,
 ## rich, reserve, vit, work, eff, status, cash, mois, dem, manque…}.
@@ -1192,11 +1194,18 @@ func _best_source(to: int, g: String) -> Dictionary:
 		return {}
 	var here := _pos_of(to)
 	var cands: Array = []
+	# Accord entre villes : la ville qui achète se fournit d'abord chez la ville qui vend.
+	var vend := int(marche.vendeur_pour(to, g)) if marche != null else -1
+	var p := Pays.instance
 	for bid in _sources_for(g):
 		if bid == to:
 			continue
 		if stock_of(bid, g) > 0.001:
 			cands.append([_pos_of(bid).distance_squared_to(here), bid])
+	if vend != -1 and p != null:
+		var chez: Array = cands.filter(func(c: Array) -> bool: return p.payeur_du_batiment(int(c[1])) == vend)
+		if not chez.is_empty():
+			cands = chez
 	cands.sort_custom(func(a: Array, b: Array) -> bool: return float(a[0]) < float(b[0]))
 	var best := {}
 	var best_m := INF
@@ -1208,8 +1217,9 @@ func _best_source(to: int, g: String) -> Dictionary:
 			best = {"bid": bid}
 	if not best.is_empty():
 		return best
-	# Rien sur la carte : import par la porte la plus proche.
-	if _gate_left("import") <= 0.0:
+	# Rien sur la carte : import par la porte la plus proche (un accord
+	# d'importation garantit le passage même quand la frontière est pleine).
+	if _gate_left("import") <= 0.0 and not (marche != null and bool(marche.import_garanti(to, g))):
 		return {}
 	var gw := _nearest_gate(dst)
 	if gw < 0:
@@ -1252,6 +1262,8 @@ func _fill(from: int, to: int, g: String, q: float) -> Dictionary:
 		var avail := INF if from < 0 else stock_of(from, x)
 		if from < 0:
 			avail = _gate_left("import") - load
+			if marche != null and bool(marche.import_garanti(to, x)):
+				avail = maxf(avail, float(marche.import_restant(to, x)))
 		var take := minf(minf(want, avail), cap - load)
 		if take <= 0.0001:
 			continue
@@ -1289,6 +1301,23 @@ func _push_surplus(t: float, free: Dictionary, n_free: int) -> void:
 		for g in outs:
 			var cap := cap_of(bid, g)
 			var have := stock_of(bid, g)
+			# Accord d'exportation de la ville : il passe avant le reste.
+			var acc: Dictionary = marche.accord_export(bid, g) if marche != null else {}
+			if not acc.is_empty() and have > 0.5:
+				var mods: Array = CAMIONS[Ressources.truck_kind(g)]
+				var qa := minf(minf(have, float(acc.reste)), VehicleCatalog.capacity_t(String(mods[mods.size() - 1])))
+				var gwa := _nearest_gate(access_of(bid))
+				if gwa >= 0 and qa > 0.05:
+					var drva := _pick_driver(free, bid, -1, _pos_of(bid))
+					if drva.is_empty():
+						return
+					n_free -= 1
+					var mid0 := next_mission
+					_start(t, bid, -1, gwa, {g: qa}, drva, "export")
+					if missions.has(mid0):
+						missions[mid0].accord = int(acc.id)
+						marche.reserver(int(acc.id), qa)
+					break
 			if have <= cap * PUSH:
 				continue
 			# Quelqu'un en ville en a besoin : on attend sa commande.
@@ -1388,16 +1417,23 @@ func _unload(mid: int) -> void:
 			_flow(g, q, "livre")
 		if from < 0:
 			_flow(g, q, "import")
-			var cost := q * Ressources.price(g) * Ressources.IMPORT
+			var cost := q * Ressources.prix_import(g)
+			if marche != null:
+				cost = float(marche.achat_import(to, g, q))
 			_pay(to, "Achats importés", -cost)
 			_book("Importations", -cost)
 		elif to < 0:
 			_flow(g, q, "export")
-			var gain := q * Ressources.price(g) * Ressources.EXPORT
+			var gain := q * Ressources.prix_export(g)
+			if marche != null:
+				gain = float(marche.vente_export(from, g, q, int(m.get("accord", -1))))
 			_pay(from, "Exportations", gain)
 			_book("Exportations", gain)
 		elif String(sites.get(to, {}).get("kind", "")) != "entrepot":
-			value += q * Ressources.price(g)
+			if marche != null:
+				value += float(marche.vente_entre(from, to, g, q))
+			else:
+				value += q * Ressources.prix_interieur(g)
 	if value > 0.0 and from >= 0 and to >= 0:
 		_pay(to, "Achats aux fournisseurs", -value)
 		_pay(from, "Ventes aux entreprises", value)
@@ -1407,7 +1443,7 @@ func _unload(mid: int) -> void:
 	if from >= 0 and to >= 0 and String(sites.get(to, {}).get("kind", "")) == "entrepot":
 		var v := 0.0
 		for g in m.cargo:
-			v += float(m.cargo[g]) * Ressources.price(g) * Ressources.EXPORT
+			v += float(m.cargo[g]) * Ressources.prix_export(g)
 		_pay(to, "Achats aux fournisseurs", -v)
 		_pay(from, "Ventes aux entreprises", v)
 		_commerce(from, to, v)
@@ -1441,7 +1477,7 @@ func _commerce(from: int, to: int, value: float) -> void:
 		return
 	var kn := "n:%d>%d" % [nf, nt]
 	m[kn] = float(m.get(kn, 0.0)) + value
-	var duty := value * p.douane_de(nt)
+	var duty := value * p.douane_entre(vf, vt)
 	if duty > 0.0:
 		_pay(to, "Douane", -duty)
 		_book("Douane", -duty)
@@ -1712,7 +1748,7 @@ func _shopping() -> float:
 					continue
 				_put(bid, g, -take)
 				_flow(g, take, "vente")
-				var v := take * Ressources.price(g) * Ressources.DETAIL
+				var v := take * Ressources.prix_interieur(g) * Ressources.DETAIL
 				_pay(bid, "Ventes aux habitants", v)
 				gain += v
 				left -= take
@@ -1796,7 +1832,7 @@ func achats_touristes(pos: Vector3, panier: Dictionary, rayon := 3000.0) -> Arra
 				continue
 			_put(bid, String(g), -take)
 			_flow(String(g), take, "vente")
-			var v := take * Ressources.price(String(g)) * Ressources.DETAIL
+			var v := take * Ressources.prix_interieur(String(g)) * Ressources.DETAIL
 			_pay(bid, "Ventes aux touristes", v)
 			gain += v
 			trouve += take * Ressources.price(String(g))
@@ -1935,7 +1971,7 @@ func export_capacity() -> float:
 	var ex := edge_exits()
 	for m in ex:
 		c += float(EDGE_EXPORT[m]) * int(ex[m])
-	return c
+	return c * Ressources.facteur_capacite
 
 
 ## Forêts et bancs de poissons : repousse et prélèvement de la journée.
@@ -2137,7 +2173,7 @@ func to_dict() -> Dictionary:
 	for m in missions.values():
 		mi.append({"id": m.id, "from": m.from, "to": m.to, "gw": m.gw, "cargo": _snap_dict(m.cargo), "driver": m.driver,
 			"base": m.base, "t0": m.t0, "t_unload": m.t_unload, "t_end": m.t_end, "km": snappedf(float(m.km), 0.01),
-			"kind": m.kind, "model": m.model, "done": m.done})
+			"kind": m.kind, "model": m.model, "done": m.done, "accord": int(m.get("accord", -1))})
 	var mf := {}
 	for home in manque_foyers:
 		mf[str(home)] = _snap_dict(manque_foyers[home], 0.00001)

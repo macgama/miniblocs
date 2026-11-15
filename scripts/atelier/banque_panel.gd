@@ -97,8 +97,7 @@ func build(bp: BuildingPanel) -> void:
 	open.pressed.connect(func() -> void: OS.shell_open(BanqueModeles.share_folder()))
 	xrow.add_child(open)
 	bp.add_control(xrow)
-	bp.add_control(_label("Partage avec les autres joueurs : chaque modèle est rangé comme un objet du Steam Workshop (dossier + aperçu). "
-		+ "En attendant la sortie sur Steam, « Exporter » crée un fichier à envoyer, « Importer » lit ceux reçus.", 11, true))
+	bp.add_control(_label("Partage avec les autres joueurs : menu Partage (Maj+W ou touche 8) pour publier tes modèles, tes créations, tes attractions et des plans de site entiers, et installer ceux des autres (fichiers .mbloc, puis le Steam Workshop).", 11, true))
 
 
 func _filter(all: String, values: Array, cur: String, name_of: Callable, cb: Callable) -> OptionButton:

@@ -12,7 +12,7 @@ Note: the English store page should only go live once the game itself is transla
 | Steamworks field | Value |
 |---|---|
 | Name | MiniBlocs |
-| Developer | *(to fill in: your name or a studio name)* |
+| Developer | ManiGames |
 | Publisher | Same (self-published) |
 | Release date | "2027" (approximate, refine later) |
 | Genres | Simulation, Strategy, Indie |
@@ -162,5 +162,5 @@ Through the Steam discussions, a Discord server and polls with each update.
 ## Legal line
 
 ```
-© 2027 [studio name]. Terrain: Mapzen Terrain Tiles (AWS Open Data: SRTM, GMTED, ETOPO1, EU-DEM). Biomes: ESA WorldCover 2021 (CC BY 4.0). Waterways: © OpenStreetMap contributors (ODbL). Cities: GeoNames (CC BY 4.0). Flags: flag-icons (MIT). Made with Godot Engine (MIT).
+© 2027 ManiGames. Terrain: Mapzen Terrain Tiles (AWS Open Data: SRTM, GMTED, ETOPO1, EU-DEM). Biomes: ESA WorldCover 2021 (CC BY 4.0). Waterways: © OpenStreetMap contributors (ODbL). Cities: GeoNames (CC BY 4.0). Flags: flag-icons (MIT). Made with Godot Engine (MIT).
 ```

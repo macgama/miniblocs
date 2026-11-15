@@ -9,7 +9,7 @@ sont en balisage Steam (BBCode) : on les copie tels quels. La version anglaise e
 | Champ Steamworks | Valeur |
 |---|---|
 | Nom | MiniBlocs |
-| Développeur | *(à remplir : ton nom ou un nom de studio)* |
+| Développeur | ManiGames |
 | Éditeur | Le même (auto-édition) |
 | Date de sortie | « 2027 » (date approximative, à préciser plus tard) |
 | Genres | Simulation, Stratégie, Indépendant |
@@ -180,5 +180,5 @@ Par les discussions Steam, un serveur Discord et les sondages des mises à jour.
 ## Mentions légales (bas de page)
 
 ```
-© 2027 [nom du studio]. Relief : Mapzen Terrain Tiles (AWS Open Data : SRTM, GMTED, ETOPO1, EU-DEM). Biomes : ESA WorldCover 2021 (CC BY 4.0). Cours d'eau : © les contributeurs d'OpenStreetMap (ODbL). Villes : GeoNames (CC BY 4.0). Drapeaux : flag-icons (MIT). Fait avec Godot Engine (MIT).
+© 2027 ManiGames. Relief : Mapzen Terrain Tiles (AWS Open Data : SRTM, GMTED, ETOPO1, EU-DEM). Biomes : ESA WorldCover 2021 (CC BY 4.0). Cours d'eau : © les contributeurs d'OpenStreetMap (ODbL). Villes : GeoNames (CC BY 4.0). Drapeaux : flag-icons (MIT). Fait avec Godot Engine (MIT).
 ```

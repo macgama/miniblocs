@@ -78,7 +78,7 @@ pas le jeu en contenu pour adultes.
 
 ## À décider par Gaël
 
-- Nom affiché comme développeur (ton nom ou un nom de studio).
+- ~~Nom du développeur~~ : **ManiGames** (choisi le 15 novembre 2026).
 - Accès anticipé ou version complète en 2027.
 - Prix (les jeux de gestion indépendants de cette taille sont souvent entre 15 et 25 €).
 - Lancer la page anglaise seulement quand la traduction du jeu sera faite.

@@ -5,6 +5,7 @@ extends RefCounted
 ## sans fichier importé. Voir docs/interface.md.
 
 const SVG := {
+	"direct": "<path d=\"M4 3h16v12h-7l-4 4v-4H4Z\" fill=\"currentColor\" fill-opacity=\".3\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linejoin=\"round\"/><path d=\"M10 6.5v5l4-2.5Z\" fill=\"currentColor\"/>",
 	"observer": "<path d=\"M5 3v15l4-4 3 7 2.2-1-3-6.8H17Z\" fill=\"currentColor\" fill-opacity=\".3\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linejoin=\"round\"/>",
 	"terrain": "<path d=\"M2 19 8 9l4 5 3-4 7 9Z\" fill=\"currentColor\" fill-opacity=\".3\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linejoin=\"round\"/><path d=\"M8 9l1.5 6M15 10l-1 5\" stroke=\"currentColor\" stroke-width=\"1.2\" opacity=\".6\"/>",
 	"aplanir": "<path d=\"M3 18h18\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\"/><path d=\"M4 14h16v4H4Z\" fill=\"currentColor\" fill-opacity=\".3\"/><path d=\"M8 4v6M5.5 7.5 8 10l2.5-2.5M16 4v6M13.5 7.5 16 10l2.5-2.5\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>",

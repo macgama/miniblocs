@@ -409,6 +409,10 @@ const SECTIONS := [
 		["E ou clic gauche", "ouvrir ou fermer une porte, une porte de garage (vue au sol), y compris dans les murs fins"],
 		["Échap", "libérer la souris (vue au sol)"],
 	]],
+	["Mode streamer (Twitch)", [
+		["Maj + F11 (ou Infos → Mode streamer)", "le chat de ta chaîne Twitch vote toutes les quelques minutes : catastrophes, décisions du maire, météo, fêtes ; les spectateurs tapent 1, 2 ou 3. Lecture seule et anonyme, sans compte ni clé ; désactivé par défaut"],
+		["Veto · Appliquer · !vote · !habitant", "annuler ou appliquer le résultat du chat · le streamer et ses modos lancent un vote · un spectateur donne son pseudo au prochain habitant"],
+	]],
 	["Mode photo et time-lapse", [
 		["F8 (ou Infos → Mode photo)", "le temps se fige, l'interface disparaît, une caméra libre part de ta vue : ZQSD avancer, A / E descendre et monter, clic droit glissé regarder, molette zoomer, Maj vite, Ctrl lent"],
 		["Panneau du mode photo", "heure de la lumière (temps figé), zoom, horizon penché, flou de profondeur, 12 filtres (noir et blanc, sépia, vintage, maquette…), luminosité, contraste, saturation, vignette, grain ; cadrage écran, 16:9, vertical 9:16 (TikTok), carré, 4:5, cinéma ; HD, 2K ou 4K"],

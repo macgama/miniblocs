@@ -427,7 +427,20 @@ func _bat(liste: Array) -> void:
 				if bs.buildings.has(bid):
 					if e.has("defs"):
 						SectionsPartagees.adopter(e.defs)
-					bs.set_perso(bid, b.get("perso", {}), int(b.get("v", -1)))
+					var mien: Dictionary = bs.buildings[bid]
+					var niv_avant := int(mien.get("niv", 1))
+					# Niveau d'agrandissement, rénovation et travaux en cours (Ameliorations).
+					for k in ["niv", "renov", "amel"]:
+						if b.has(k):
+							mien[k] = b[k]
+						else:
+							mien.erase(k)
+					var am: Ameliorations = jeu.get("ameliorations")
+					if JSON.stringify(b.get("perso", {})) == JSON.stringify(mien.get("perso", {})) and int(b.get("v", -1)) in [-1, int(mien.get("v", 0))]:
+						if am != null:
+							am.depuis_reseau(bid, niv_avant)
+					else:
+						bs.set_perso(bid, b.get("perso", {}), int(b.get("v", -1)))
 			"-":
 				var bid := int(e.bid)
 				if bs.buildings.has(bid):

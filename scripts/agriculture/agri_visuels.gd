@@ -123,6 +123,8 @@ func couche_de(ch: Dictionary) -> Array:
 		"pousse":
 			if bool(c.get("permanente", false)):
 				return [couche_culture, 0.0]
+			if bool(c.get("perenne", false)):
+				return [couche_culture, clampf((float(ch.cr) - 0.6) / 0.4, 0.0, 1.0)]
 			if float(ch.cr) < 0.22:
 				return [Sols.LEVEE, 0.0]
 			return [couche_culture, clampf((float(ch.cr) - 0.6) / 0.4, 0.0, 1.0)]
@@ -138,11 +140,13 @@ func couche_apres(ch: Dictionary) -> Array:
 			return [Sols.LABOUR, 0.0]
 		"semis":
 			var c := AgriDonnees.culture(String(ch.cult))
-			if bool(c.get("permanente", false)):
+			if bool(c.get("permanente", false)) or bool(c.get("perenne", false)):
 				return [Sols.COUCHES.find(String(c.couche)), 0.0]
 			return [Sols.LEVEE, 0.0]
 		"recolte":
 			var c := AgriDonnees.culture(String(ch.sc))
+			if bool(c.get("perenne", false)):
+				return [Sols.COUCHES.find(String(c.couche)), 0.0]
 			if bool(c.get("permanente", false)):
 				return [Sols.COUCHES.find("pre_fauche"), 0.0]
 			return [Sols.CHAUME, 0.0]
@@ -267,6 +271,9 @@ func _refait_plantes(parent: Node3D, ch: Dictionary, avance: float, proche: bool
 	var taille := 1.0 if etat == "mur" else clampf(float(ch.cr) * 1.25, 0.08, 1.0)
 	if bool(c.get("permanente", false)):
 		taille = clampf(0.3 + float(ch.cr) * 0.7, 0.3, 1.0)
+	elif bool(c.get("perenne", false)):
+		# Vignes, arbres fruitiers, théiers : ils restent en place toute l'année.
+		taille = 1.0
 	var maturite := 1.0 if etat == "mur" else clampf((float(ch.cr) - 0.6) / 0.4, 0.0, 1.0)
 	var mur_col: Color = c.get("couleur", Color("d9b44a"))
 	var teinte := Color(1, 1, 1).lerp(Color(mur_col.r * 1.6, mur_col.g * 1.6, mur_col.b * 1.6), maturite * 0.7)

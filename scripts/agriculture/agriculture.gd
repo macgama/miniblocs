@@ -226,7 +226,8 @@ func outputs(bid: int) -> Dictionary:
 		var c := AgriDonnees.culture(String(ch.cult))
 		var g := String(c.get("good", ""))
 		if g != "":
-			var par_an := float(c.rdt) * surface(ch) * (2.0 if bool(c.get("permanente", false)) else 1.0)
+			var par_an := float(c.rdt) * surface(ch) * (2.0 if bool(c.get("permanente", false)) else 1.0) \
+				* AgriDonnees.facteur_epoque()
 			out[g] = float(out.get(g, 0.0)) + par_an / 365.0
 		if float(c.get("paille", 0.0)) > 0.0:
 			out["paille"] = float(out.get("paille", 0.0)) + float(c.paille) * surface(ch) / 365.0
@@ -234,7 +235,8 @@ func outputs(bid: int) -> Dictionary:
 	for e in f.get("betes", {}):
 		var sp := AgriDonnees.espece(e)
 		for g in sp.get("donne", {}):
-			out[g] = float(out.get(g, 0.0)) + float(sp.donne[g]) * int(f.betes[e])
+			out[g] = float(out.get(g, 0.0)) + float(sp.donne[g]) * int(f.betes[e]) \
+				* (AgriDonnees.facteur_elevage() if g != "fumier" else 1.0)
 	# Le stock déjà là (récolte d'un coup) reste à vendre.
 	if production != null and production.sites.has(bid):
 		for g in production.sites[bid].st:
@@ -246,11 +248,37 @@ func outputs(bid: int) -> Dictionary:
 ## Fourrage dont les bêtes ont besoin chaque jour : {marchandise: t}.
 func needs(bid: int) -> Dictionary:
 	var f: Dictionary = fermes.get(bid, {})
-	if f.is_empty() or _betes_total(f) <= 0:
-		return {}
-	# Ce que la ferme fait pousser elle-même remplit son stock : elle ne
-	# commande que ce qui manque (Production compare au stock).
-	return besoins_betes(bid)
+	var out := {}
+	if not f.is_empty() and _betes_total(f) > 0:
+		# Ce que la ferme fait pousser elle-même remplit son stock : elle ne
+		# commande que ce qui manque (Production compare au stock).
+		out = besoins_betes(bid)
+	# Engrais minéraux : livrés par une usine d'engrais de la carte s'il y en a une.
+	if _usine_engrais():
+		var t := 0.0
+		for id in champs_de(bid):
+			t += float(AgriDonnees.culture(String(champs[id].cult)).get("engrais", 0)) * surface(champs[id]) / 1000.0 / 0.33
+		if t > 0.0:
+			out["engrais"] = t / 365.0
+	return out
+
+
+var _engrais_vu := -1
+var _engrais_ok := false
+
+
+## Une usine d'engrais tourne-t-elle sur la carte ? (vérifié une fois par jour)
+func _usine_engrais() -> bool:
+	if production == null or not Ressources.disponible("engrais"):
+		return false
+	if _engrais_vu != last_day:
+		_engrais_vu = last_day
+		_engrais_ok = false
+		for b in production.sites:
+			if _type_of(b) == "usine_engrais":
+				_engrais_ok = true
+				break
+	return _engrais_ok
 
 
 ## Stock maximal (t) d'une marchandise à la ferme (silos, hangars, tank à lait).
@@ -261,7 +289,7 @@ func cap(bid: int, g: String) -> float:
 	var o := outputs(bid)
 	if o.has(g):
 		return maxf(float(o[g]) * 200.0, 50.0)
-	if g in ["chimie", "carburant", "fumier"]:
+	if g in ["chimie", "carburant", "fumier", "engrais"]:
 		return 200.0
 	return 0.0
 
@@ -370,6 +398,9 @@ func ajoute_champ(r: Rect2i, cult := "", bid := -1) -> int:
 		return -1
 	if cult == "":
 		cult = culture_choisie
+	if not AgriEpoques.culture_disponible(cult):
+		message.emit("%s : %s On sème du blé." % [AgriDonnees.culture_name(cult), AgriEpoques.raison_culture(cult)])
+		cult = "ble"
 	var id := next_id
 	next_id += 1
 	champs[id] = {"id": id, "r": r, "f": int(v.ferme), "cult": cult, "etat": "friche", "sc": "", "cr": 0.0,
@@ -408,6 +439,9 @@ func supprime_champ(id: int) -> void:
 ## récolte, sauf si detruire (le champ repart en friche).
 func change_culture(id: int, cult: String, detruire := false) -> void:
 	if not champs.has(id) or not AgriDonnees.CULTURES.has(cult):
+		return
+	if not AgriEpoques.culture_disponible(cult):
+		message.emit("%s : %s" % [AgriDonnees.culture_name(cult), AgriEpoques.raison_culture(cult)])
 		return
 	var ch: Dictionary = champs[id]
 	ch.cult = cult
@@ -449,7 +483,7 @@ func prepare_ferme(bid: int, n := 4, cote := 160) -> int:
 			var rect := Rect2i(c - Vector2i(taille, taille) / 2, Vector2i(taille, taille))
 			if bool(verifie(rect, bid).ok):
 				var cult: String = cults[faits % cults.size()]
-				if not AgriDonnees.convient(cult, _climat):
+				if not AgriDonnees.convient(cult, _climat) or not AgriEpoques.culture_disponible(cult):
 					cult = "mais" if AgriDonnees.convient("mais", _climat) else "legumes"
 				var id := next_id
 				next_id += 1
@@ -461,6 +495,8 @@ func prepare_ferme(bid: int, n := 4, cote := 160) -> int:
 				break
 	var f := ferme(bid)
 	for e in AgriDonnees.FERMES[BuildingCatalog.base_of(t)].betes:
+		if not AgriEpoques.espece_disponible(e):
+			continue
 		if _betes_total(f) == 0 or int(f.betes.get(e, 0)) == 0:
 			var place := AgriDonnees.places(t, e)
 			# Départ : un quart des places, le premier type de bête de la ferme.
@@ -492,6 +528,20 @@ func _cultures_pour(t: String) -> Array:
 			return ["legumes", "pomme_de_terre", "legumes", "legumes"]
 		"rizerie_bali":
 			return ["riz", "riz", "legumes", "riz"]
+		"vignoble":
+			return ["vigne", "vigne", "vigne", "prairie"]
+		"verger":
+			return ["verger" if _climat <= Plantes.Climat.MEDITERRANEEN else "agrumes", "agrumes" if _climat >= Plantes.Climat.MEDITERRANEEN else "verger", "prairie", "legumes"]
+		"oliveraie":
+			return ["olivier", "olivier", "vigne", "paturage"]
+		"plantation_tropicale":
+			return ["cafe", "cacao", "canne", "the"] if _climat >= Plantes.Climat.TROPICAL else ["cafe", "canne", "the", "agrumes"]
+		"houblonniere":
+			return ["houblon", "tabac", "orge", "houblon"]
+		"basse_cour", "rucher", "pisciculture":
+			return ["mais", "ble", "prairie", "orge"]
+		"ranch_buffles", "elevage_andin", "elevage_rennes":
+			return ["paturage", "prairie", "paturage", "prairie"]
 	return ["ble"]
 
 
@@ -515,13 +565,17 @@ func prix_machine(t: String) -> int:
 func achete_machine(bid: int, t: String) -> bool:
 	if not est_ferme(bid) or not AgriDonnees.MACHINES.has(t):
 		return false
+	if not AgriEpoques.machine_existe(t):
+		message.emit("%s : pas encore inventé." % AgriDonnees.machine_name(t))
+		return false
 	var prix := prix_machine(t)
 	if not buildings.unlimited_money:
 		if buildings.money < prix:
 			message.emit("Pas assez d'argent pour %s (%s)." % [AgriDonnees.machine_name(t).to_lower(), BuildingSystem.format_money(prix)])
 			return false
 		buildings.money -= prix
-	(ferme(bid).machines as Array).append({"t": t, "us": 0.0, "h": 0.0, "panne": -1})
+	(ferme(bid).machines as Array).append({"t": t, "us": 0.0, "h": 0.0, "panne": -1,
+		"nom": AgriDonnees.machine_name(t), "an": Epoques.annee() if Epoques.actif() else 0})
 	_journal(bid, "Achat : %s (%s)" % [AgriDonnees.machine_name(t), BuildingSystem.format_money(prix)])
 	message.emit("%s achetée pour %s." % [AgriDonnees.machine_name(t), nom_ferme(bid)])
 	changed.emit()
@@ -570,6 +624,10 @@ func places_libres(bid: int, esp: String) -> int:
 
 ## Achète n bêtes (caisse du joueur). Rend le nombre acheté.
 func achete_betes(bid: int, esp: String, n: int) -> int:
+	if not AgriEpoques.espece_disponible(esp):
+		message.emit("%s : pas encore élevé, arrive en %d." % [String(AgriDonnees.espece(esp).get("name", esp)),
+			AgriEpoques.annee_espece(esp)])
+		return 0
 	n = mini(n, places_libres(bid, esp))
 	if n <= 0:
 		message.emit("Plus de place pour des %s ici." % String(AgriDonnees.espece(esp).get("name", esp)).to_lower())
@@ -596,7 +654,9 @@ func vend_betes(bid: int, esp: String, n: int) -> int:
 	f.betes[esp] = int(f.betes[esp]) - n
 	if int(f.betes[esp]) <= 0:
 		f.betes.erase(esp)
-	var poids := {"vache": 0.6, "bovin": 0.65, "porc": 0.11, "poule": 0.002, "mouton": 0.045, "chevre": 0.04, "cheval": 0.0}
+	var poids := {"vache": 0.6, "bovin": 0.65, "porc": 0.11, "poule": 0.002, "mouton": 0.045, "chevre": 0.04, "cheval": 0.0,
+		"canard": 0.002, "dinde": 0.009, "lapin": 0.0015, "abeille": 0.0, "pisciculture": 0.0, "buffle": 0.5, "lama": 0.06,
+		"renne": 0.07}
 	var t := float(poids.get(esp, 0.0)) * n
 	if t > 0.0:
 		production.put(bid, "betail", t)
@@ -733,9 +793,14 @@ func tache_due(ch: Dictionary, mois: int) -> String:
 			var sc := AgriDonnees.culture(String(ch.sc))
 			if float(ch.foin) > 0.0:
 				return "pressage"
-			if not bool(ch.eng) and float(sc.get("engrais", 0)) > 0.0 and float(ch.cr) >= 0.15:
+			# Vigne, verger… au repos après la récolte : rien à faire avant la reprise.
+			if bool(sc.get("perenne", false)) and not bool(ch.get("reveil", true)):
+				return ""
+			if not bool(ch.eng) and float(sc.get("engrais", 0)) > 0.0 and float(ch.cr) >= 0.15 \
+					and AgriDonnees.outil("engrais", "") != "":
 				return "engrais"
-			if not bool(ch.tr) and not bool(sc.get("permanente", false)) and float(ch.cr) >= 0.35:
+			if not bool(ch.tr) and not bool(sc.get("permanente", false)) and float(ch.cr) >= 0.35 \
+					and AgriDonnees.outil("traitement", "") != "":
 				return "traitement"
 		"mur":
 			if float(ch.foin) > 0.0:
@@ -802,8 +867,12 @@ func heure(lt: Dictionary) -> void:
 			var engins := _engins(bid, t, cult, prises, jour)
 			if engins.is_empty():
 				continue
-			libres -= 1
-			_travaille(bid, id, t, cult, engins, PAS_H)
+			# Travail à la main (faux, vendanges, cueillette) : plusieurs ouvriers ensemble.
+			var mains := 1
+			if AgriDonnees.manuel(AgriDonnees.outil(t, cult)):
+				mains = clampi(libres, 1, AgriDonnees.MAINS)
+			libres -= mains
+			_travaille(bid, id, t, cult, engins, PAS_H, mains)
 	_grele()
 
 
@@ -839,20 +908,28 @@ func _engins(bid: int, t: String, cult: String, prises: Dictionary, jour: int) -
 
 
 ## Une heure de travail sur un champ.
-func _travaille(bid: int, id: int, t: String, cult: String, engins: Array, h: float) -> void:
+func _travaille(bid: int, id: int, t: String, cult: String, engins: Array, h: float, mains := 1) -> void:
 	var ch: Dictionary = champs[id]
 	var f: Dictionary = fermes[bid]
 	if String(ch.tache) != t:
 		ch.tache = t
 		ch.fait = 0.0
 	var ha := surface(ch)
-	var v := AgriDonnees.vitesse(t, cult) * h
+	var v := AgriDonnees.vitesse(t, cult) * h * float(mains)
 	var fait := minf(v, ha - float(ch.fait))
 	ch.fait = float(ch.fait) + fait
 	var part := fait / maxf(v, 0.0001)
 	# Gazole et usure.
 	var litres := AgriDonnees.litres(t, cult) * h * part
 	production.pay(bid, "Gazole", -litres * AgriDonnees.GAZOLE)
+	# Bêtes de trait (avant le tracteur) : elles mangent du foin ou de l'avoine.
+	var fourrage := AgriDonnees.fourrage_h(t, cult) * h * part
+	if fourrage > 0.0:
+		var pris := minf(production.stock_of(bid, "foin"), fourrage)
+		if pris > 0.0:
+			production.put(bid, "foin", -pris)
+		if fourrage - pris > 0.0:
+			production.pay(bid, "Fourrage des chevaux", -(fourrage - pris) * Ressources.prix_interieur("foin"))
 	for e in engins:
 		if e is int:
 			var m: Dictionary = f.machines[int(e)]
@@ -892,6 +969,7 @@ func _fin_tache(bid: int, id: int, t: String) -> void:
 			ch.pertes = 0.0
 			ch.met = _rng.randf_range(0.92, 1.08)
 			ch.azote = 0.0
+			ch.reveil = true
 			_journal(bid, "Semis : %s sur %s (%s ha)" % [String(c.name).to_lower(), nom_champ(id), _ha(ha)])
 		"engrais":
 			_epand(bid, ch)
@@ -930,14 +1008,20 @@ func _epand(bid: int, ch: Dictionary) -> void:
 		ch.fumier_jour = last_day
 	if kg_n <= 0.0:
 		return
-	# Ammonitrate à 33 % d'azote.
+	# Avant les engrais minéraux (Haber-Bosch, 1910) : seulement le fumier.
+	if not Ressources.disponible("engrais"):
+		return
+	# Ammonitrate à 33 % d'azote : engrais de l'usine d'engrais, sinon produits
+	# chimiques de la ville, sinon acheté à la coopérative.
 	var t := kg_n * ha / 1000.0 / 0.33
-	var stock := production.stock_of(bid, "chimie")
-	var pris2 := minf(stock, t)
-	if pris2 > 0.0:
-		production.put(bid, "chimie", -pris2)
-	if t - pris2 > 0.0:
-		production.pay(bid, "Engrais", -(t - pris2) * Ressources.prix_import("chimie"))
+	var reste := t
+	for g in ["engrais", "chimie"]:
+		var pris2 := minf(production.stock_of(bid, g), reste)
+		if pris2 > 0.0:
+			production.put(bid, g, -pris2)
+			reste -= pris2
+	if reste > 0.0:
+		production.pay(bid, "Engrais", -reste * Ressources.prix_import("engrais"))
 	ch.azote = float(ch.azote) + kg_n
 
 
@@ -952,6 +1036,11 @@ func rendement(ch: Dictionary) -> float:
 		f *= 0.5
 	if not bool(ch.eng):
 		f *= AgriDonnees.SANS_ENGRAIS
+	elif float(c.get("engrais", 0)) > 0.0 and ch.has("azote"):
+		# Engrais épandu mais trop peu d'azote (fumier seul, avant les engrais minéraux).
+		var part := clampf(float(ch.azote) / float(c.engrais), 0.0, 1.0)
+		f *= lerpf(AgriDonnees.SANS_ENGRAIS, 1.0, part)
+	f *= AgriDonnees.facteur_epoque()
 	if not bool(ch.tr):
 		f *= AgriDonnees.SANS_TRAITEMENT
 	if not bool(c.get("permanente", false)):
@@ -982,6 +1071,21 @@ func _recolte(bid: int, id: int) -> void:
 	var t := rendement(ch)
 	var ha := surface(ch)
 	ch.rdt = t
+	if bool(c.get("perenne", false)):
+		# Vigne, verger, plantation : la récolte part, les plantes restent et
+		# se reposent jusqu'à la reprise de l'année suivante.
+		production.put(bid, String(c.good), t)
+		ch.etat = "pousse"
+		ch.cr = 0.0
+		ch.eng = float(c.get("engrais", 0)) <= 0.0
+		ch.tr = false
+		ch.azote = 0.0
+		ch.reveil = false
+		ch.met = _rng.randf_range(0.92, 1.08)
+		ch.jr = last_day
+		_journal(bid, "Récolte : %s de %s sur %s" % [Ressources.format_t(t), String(c.name).to_lower(), nom_champ(id)])
+		message.emit("%s : %s de %s récoltées." % [nom_ferme(bid), Ressources.format_t(t), String(c.name).to_lower()])
+		return
 	if bool(c.get("permanente", false)):
 		# Fauche : le foin sèche au champ, puis on le presse.
 		ch.foin = t
@@ -1027,6 +1131,11 @@ func nouveau_jour(lt: Dictionary) -> void:
 		if String(ch.etat) == "pousse" or String(ch.etat) == "mur":
 			var c := AgriDonnees.culture(String(ch.sc))
 			var perm := bool(c.get("permanente", false))
+			if bool(c.get("perenne", false)) and not bool(ch.get("reveil", true)):
+				# Au repos : repart au mois de reprise.
+				if AgriDonnees.saison_semis(String(ch.sc), mois, lat(), _climat):
+					ch.reveil = true
+				continue
 			if not perm or herbe:
 				ch.cr = minf(float(ch.cr) + 1.0 / maxf(float(c.get("cycle", 100)), 1.0), 1.0 if not perm else 1.0)
 			if sec and not perm and float(ch.cr) < 1.0:
@@ -1093,8 +1202,9 @@ func _nourrit_betes() -> void:
 			var litiere := float(part.get("paille", 1.0))
 			var n := int(f.betes[e])
 			var eff := nourri * soins * (0.9 + 0.1 * litiere)
+			var epoque := AgriDonnees.facteur_elevage()
 			for g in sp.donne:
-				production.put(bid, g, float(sp.donne[g]) * n * eff)
+				production.put(bid, g, float(sp.donne[g]) * n * eff * (epoque if g != "fumier" else 1.0))
 			nb_total += nourri * n
 			nb_n += n
 			var faim: Dictionary = f.faim

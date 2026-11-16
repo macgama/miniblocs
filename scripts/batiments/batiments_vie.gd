@@ -362,6 +362,8 @@ func _update_chantiers() -> void:
 						buildings.money -= part
 					b["du"] = du - part
 				Pays.retour(caisse_prev)
+			if dp > 0.0:
+				_materiaux(b, dp)
 			b["av"] = float(b.av) + dp
 		if float(b.av) >= 0.9999:
 			done.append(bid)
@@ -374,6 +376,28 @@ func _update_chantiers() -> void:
 
 
 var _derniere_alerte := -1.0e12
+
+
+## Le chantier consomme la part dp de ses matériaux d'époque (MateriauxChantiers) :
+## pris dans les stocks de la carte, sinon importés (surcoût payé par sa caisse).
+func _materiaux(b: Dictionary, dp: float) -> void:
+	if not b.has("matx"):
+		b["matx"] = MateriauxChantiers.besoins_batiment(String(b.t))
+	var r := buildings._rect_of(b)
+	var c := Vector2(r.position) + Vector2(r.size) * 0.5
+	var f := MateriauxChantiers.fournir(b.matx, dp, Vector3(c.x, 0.0, c.y))
+	if not b.has("mat_l"):
+		b["mat_l"] = {}
+		b["mat_i"] = {}
+	MateriauxChantiers.cumule(b.mat_l, f.local)
+	MateriauxChantiers.cumule(b.mat_i, f.import)
+
+
+## Matériaux reçus par un chantier : {"local": {g: t}, "import": {g: t}, "total": {g: t}}.
+func materiaux_de(bid: int) -> Dictionary:
+	var b: Dictionary = buildings.buildings.get(bid, {})
+	return {"local": b.get("mat_l", {}), "import": b.get("mat_i", {}),
+		"total": b.get("matx", MateriauxChantiers.besoins_batiment(String(b.get("t", ""))))}
 
 
 ## Un chantier s'arrête faute d'argent : on le dit (au plus une fois par jour de jeu),
@@ -424,6 +448,8 @@ func _show_etape(bid: int) -> void:
 		c.etape = key
 		_vider_ouvriers(c)
 	var txt := "%s\n%s · %d %%\n" % [String(BuildingCatalog.get_type(String(b.t)).get("name", "Chantier")), String(e[2]), floori(float(b.av) * 100.0)]
+	if b.has("matx") and not (b.matx as Dictionary).is_empty():
+		txt += "Matériaux : %s\n" % MateriauxChantiers.texte(b.matx, 3)
 	var eq: Array = Fondateurs.instance.equipe_de(Fondateurs.cle_batiment(bid)) \
 		if Fondateurs.instance != null and Fondateurs.instance.regle_active() else []
 	if b.get("pause", false):
@@ -578,6 +604,8 @@ func _finish_chantier(bid: int) -> void:
 		b.erase("ordre")
 		b.erase("av")
 		b.erase("hr")
+		for k in ["matx", "mat_l", "mat_i"]:
+			b.erase(k)
 		b["fin"] = now()
 		_payer_reste(b)
 	# Les habitants peuvent s'installer.
@@ -752,7 +780,8 @@ func _update_vie() -> void:
 			e.vide = -1.0
 		elif e.vide < 0.0:
 			e.vide = maxf(t, float(b.get("fin", t)))
-		var age := _years(maxf(t - float(b.get("ne", t)), 0.0))
+		# Rénové ou agrandi (Ameliorations) : l'usure repart de la fin des travaux.
+		var age := _years(maxf(t - maxf(float(b.get("ne", t)), float(b.get("renov", 0.0))), 0.0))
 		var rythme := float(extra_usure.call(bid)) if extra_usure.is_valid() else 1.0
 		var usure: float = e.base + age * rythme / (60.0 if occupe or not accueille else 18.0)
 		var abandon := 0.0

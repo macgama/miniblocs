@@ -450,6 +450,12 @@ Touche **H** : la ville en chiffres, la liste des habitants (filtre et recherche
 
 Détails : [docs/habitants.md](docs/habitants.md).
 
+## Agriculture et matériaux au fil des époques
+
+Touche **Maj+F** : champs, bêtes et machines. Dans une partie qui commence dans le passé, les machines suivent l'histoire : en 1800 on moissonne à la faux et on laboure avec des chevaux (qui mangent du foin), la batteuse à vapeur arrive vers 1850, le tracteur vers 1920, la moissonneuse-batteuse vers 1940. Les rendements aussi (environ 1 t de blé par hectare en 1800), les engrais minéraux après 1910, le soja après 1920 ; pas de plastique ni d'électronique dans les magasins avant leur invention. 24 cultures dont la vigne, les vergers, les oliviers, le café, le cacao, le thé, la canne, le houblon et le tabac ; 15 élevages dont canards, dindes, lapins, ruches, truites, buffles, lamas et rennes ; 11 nouvelles fermes et 16 nouvelles industries (four à chaux, tuilerie, cave vinicole, chocolaterie, fromagerie d'alpage, horlogerie, chantier naval, usine d'engrais, batteries…). Détails : [docs/agriculture.md](docs/agriculture.md).
+
+Les **chantiers consomment de vrais matériaux** de leur époque : pierre, chaux, bois et tuiles en 1800, briques et fer après 1850, ciment après 1900, béton armé après 1950. Ils les prennent d'abord dans les carrières, fours à chaux, scieries et briqueteries de la carte (qui sont payées), sinon ils les importent. Détails : [docs/chantiers.md](docs/chantiers.md).
+
 ## Internet et téléphone : antennes, cuivre et fibre
 
 Antennes relais 2G, 4G et 5G (portées réelles, saturation quand trop d'abonnés), central téléphonique dont le cuivre suit les routes (ADSL de plus en plus lent avec la distance), fibre posée rue par rue ou sur poteaux jusqu'aux fermes. Sans internet ni réseau mobile, les habitants sont moins satisfaits et les entreprises produisent moins (réglage Admin pour couper). Détails : [docs/telecom.md](docs/telecom.md).

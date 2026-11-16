@@ -66,6 +66,21 @@ func commencer(cle: String, heures_reelles: float, maj := Callable(), fini := Ca
 		maj.call(float(chantiers[cle].av), Chantiers.etape(etapes, float(chantiers[cle].av)))
 
 
+## Matériaux d'époque du chantier (MateriauxChantiers) : total en tonnes et lieu.
+## Ils sont pris au fil des travaux dans les stocks de la carte, sinon importés.
+func fixer_materiaux(cle: String, total: Dictionary, pos: Vector3) -> void:
+	if chantiers.has(cle) and not total.is_empty():
+		chantiers[cle]["matx"] = total
+		chantiers[cle]["pos"] = pos
+		chantiers[cle]["mat_l"] = {}
+		chantiers[cle]["mat_i"] = {}
+
+
+func materiaux_de(cle: String) -> Dictionary:
+	var c: Dictionary = chantiers.get(cle, {})
+	return {"local": c.get("mat_l", {}), "import": c.get("mat_i", {}), "total": c.get("matx", {})}
+
+
 func en_cours(cle: String) -> bool:
 	return chantiers.has(cle)
 
@@ -182,6 +197,10 @@ func mettre_a_jour() -> void:
 			_payer(part)
 			Pays.retour(caisse_prev)
 			c.du = du - part
+		if c.has("matx") and dp > 0.0:
+			var fm := MateriauxChantiers.fournir(c.matx, dp, c.pos)
+			MateriauxChantiers.cumule(c.mat_l, fm.local)
+			MateriauxChantiers.cumule(c.mat_i, fm.import)
 		c.av = float(c.av) + dp
 		if float(c.av) >= 0.9999:
 			finis.append(cle)

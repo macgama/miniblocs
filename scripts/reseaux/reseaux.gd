@@ -693,10 +693,15 @@ func _maintenant() -> Dictionary:
 func _staff(bid: int) -> float:
 	if population == null or buildings == null or not buildings.buildings.has(bid):
 		return 1.0
-	var jobs := int(BuildingCatalog.get_type(String(buildings.buildings[bid].t)).get("emplois", 0))
+	var jobs := Ameliorations.cap(buildings.buildings[bid], "emplois")
 	if jobs <= 0:
 		return 1.0
 	return clampf(float((population.by_job.get(bid, []) as Array).size()) / jobs, 0.0, 1.0)
+
+
+## Multiplicateur de capacité du niveau d'agrandissement d'une installation.
+func _niv(bid: int) -> float:
+	return Ameliorations.facteur_bid(buildings, bid)
 
 
 func _maj_capacites(now: Dictionary) -> void:
@@ -714,14 +719,15 @@ func _maj_capacites(now: Dictionary) -> void:
 	var courbe := courbe_elec(h, int(now.mois)) * ReseauxIncidents.facteur_clim(temperature)
 	var libre := not ReglagesPartie.actuel.reseaux_obligatoires
 	for bid in elec.consos:
-		var d := float(demande_type(_type(bid)).elec) * courbe
+		var d := float(demande_type(_type(bid)).elec) * courbe * _niv(bid)
 		# Chaleur que le réseau de gaz ne fournit pas : radiateurs et pompes à chaleur.
 		if not libre and gaz.consos.has(bid):
 			d += float(gaz.consos[bid].d) * (1.0 - gaz.taux_servi(bid)) * CHAUFFAGE_ELEC
 		elec.set_demande(bid, d)
 	for bid in elec.sources:
 		var info := ReseauxTypes.info(_type(bid))
-		var nom := float(info.get("cap", 0.0))
+		# Installation agrandie (Ameliorations) : capacité ×1,5 ou ×2.
+		var nom := float(info.get("cap", 0.0)) * _niv(bid)
 		var cap := nom
 		var why := ""
 		match String(info.get("source", "")):
@@ -816,10 +822,11 @@ func _maj_batteries(heures: float) -> void:
 ## Gaz et chaleur : la demande suit le froid, les sources leur combustible.
 func _maj_gaz() -> void:
 	for bid in gaz.consos:
-		gaz.set_demande(bid, float(demande_type(_type(bid)).gaz) * besoin)
+		gaz.set_demande(bid, float(demande_type(_type(bid)).gaz) * besoin * _niv(bid))
 	for bid in gaz.sources:
 		var info := ReseauxTypes.info(_type(bid))
-		var nom := float(info.get("cap", 0.0))
+		# Installation agrandie (Ameliorations) : capacité ×1,5 ou ×2.
+		var nom := float(info.get("cap", 0.0)) * _niv(bid)
 		var cap := nom
 		var why := ""
 		if String(info.get("source", "")) == "combustible":
@@ -851,7 +858,8 @@ func _maj_gaz() -> void:
 func _maj_eau(_now: Dictionary, heures: float) -> void:
 	for bid in eau.sources:
 		var info := ReseauxTypes.info(_type(bid))
-		var nom := float(info.get("cap", 0.0))
+		# Installation agrandie (Ameliorations) : capacité ×1,5 ou ×2.
+		var nom := float(info.get("cap", 0.0)) * _niv(bid)
 		var cap := nom
 		var why := ""
 		if String(info.get("source", "")) == "nappe" and buildings != null and buildings.buildings.has(bid):
@@ -875,12 +883,13 @@ func _maj_eau(_now: Dictionary, heures: float) -> void:
 		sources_info[bid] = {"cap": cap, "max": nom, "why": why}
 	var fe := incidents.facteur_eau(temperature)
 	for bid in eau.consos:
-		eau.set_demande(bid, float(demande_type(_type(bid)).eau) * fe)
+		eau.set_demande(bid, float(demande_type(_type(bid)).eau) * fe * _niv(bid))
 	for bid in egout.consos:
-		egout.set_demande(bid, float(demande_type(_type(bid)).egout) * fe)
+		egout.set_demande(bid, float(demande_type(_type(bid)).egout) * fe * _niv(bid))
 	for bid in egout.sources:
 		var info := ReseauxTypes.info(_type(bid))
-		var nom := float(info.get("cap", 0.0))
+		# Installation agrandie (Ameliorations) : capacité ×1,5 ou ×2.
+		var nom := float(info.get("cap", 0.0)) * _niv(bid)
 		var cap := nom
 		var why := ""
 		if float(info.get("elec", 0.0)) > 0.0:

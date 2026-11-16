@@ -13,6 +13,10 @@
   4. Remplace le contenu du dossier de destination (par défaut Documents\MiniBlocs).
      Les sauvegardes ne sont pas dans ce dossier (elles sont dans %APPDATA%\Godot\app_userdata\MiniBlocs).
 
+.PARAMETER Demo
+  Exporte l'édition démo (Steam Next Fest) avec le preset « Windows Demo » : MiniBlocsDemo.exe +
+  MiniBlocsDemo.pck, dans Documents\MiniBlocs-Demo par défaut (sauvegardes à part, dossier « MiniBlocs Demo »).
+
 .PARAMETER SiChangement
   N'exporte que si main a changé depuis le dernier export (pratique pour la tâche planifiée).
 
@@ -20,15 +24,25 @@
   powershell -ExecutionPolicy Bypass -File tools\export\exporter_windows.ps1
 .EXAMPLE
   powershell -ExecutionPolicy Bypass -File tools\export\exporter_windows.ps1 -SiChangement
+.EXAMPLE
+  powershell -ExecutionPolicy Bypass -File tools\export\exporter_windows.ps1 -Demo
 #>
 param(
     [string]$Godot = $(if ($env:MINIBLOCS_GODOT) { $env:MINIBLOCS_GODOT } else { "$env:USERPROFILE\Downloads\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64_console.exe" }),
-    [string]$Destination = "$env:USERPROFILE\Documents\MiniBlocs",
+    [string]$Destination = "",
     [string]$Source = "$env:USERPROFILE\Documents\MiniBlocs-export\source",
     [string]$Depot = "https://github.com/macgama/miniblocs.git",
     [string]$Branche = "main",
-    [switch]$SiChangement
+    [switch]$SiChangement,
+    [switch]$Demo
 )
+
+# Édition démo (Steam Next Fest) : autre preset, autre nom d'exécutable, autre dossier.
+$Preset = if ($Demo) { "Windows Demo" } else { "Windows Desktop" }
+$Nom = if ($Demo) { "MiniBlocsDemo" } else { "MiniBlocs" }
+if (-not $Destination) {
+    $Destination = if ($Demo) { "$env:USERPROFILE\Documents\MiniBlocs-Demo" } else { "$env:USERPROFILE\Documents\MiniBlocs" }
+}
 
 $ErrorActionPreference = "Stop"
 $Journal = Join-Path (Split-Path $Source -Parent) "export.log"
@@ -65,7 +79,7 @@ $commit = (& git -C $Source rev-parse --short "origin/$Branche").Trim()
 $infoDest = Join-Path $Destination "build_info.json"
 if ($SiChangement -and (Test-Path $infoDest)) {
     $ancien = (Get-Content $infoDest -Raw -Encoding UTF8 | ConvertFrom-Json).commit
-    if ($ancien -eq $commit -and (Test-Path (Join-Path $Destination "MiniBlocs.exe"))) {
+    if ($ancien -eq $commit -and (Test-Path (Join-Path $Destination "$Nom.exe"))) {
         Ecrire "main n'a pas changé ($commit) : rien à faire."
         exit 0
     }
@@ -85,7 +99,7 @@ $json = $info | ConvertTo-Json
 Ecrire "Build $version ($commit) du $date"
 
 # --- 3. Import puis export --------------------------------------------------------------------
-$sortie = Join-Path $Source "build\windows"
+$sortie = Join-Path $Source $(if ($Demo) { "build\windows-demo" } else { "build\windows" })
 if (Test-Path $sortie) { Remove-Item -Recurse -Force $sortie }
 New-Item -ItemType Directory -Force $sortie | Out-Null
 
@@ -98,31 +112,31 @@ $avecModeles = Test-Path (Join-Path $dossierModeles "windows_release_x86_64.exe"
 
 if ($avecModeles) {
     Ecrire "Export complet avec les modèles de $dossierModeles"
-    $null = Lancer-Godot --export-release "Windows Desktop" (Join-Path $sortie "MiniBlocs.exe")
+    $null = Lancer-Godot --export-release $Preset (Join-Path $sortie "$Nom.exe")
 } else {
     Ecrire "Modèles d'export absents ($dossierModeles) : export du .pck + moteur Godot renommé"
-    $null = Lancer-Godot --export-pack "Windows Desktop" (Join-Path $sortie "MiniBlocs.pck")
+    $null = Lancer-Godot --export-pack $Preset (Join-Path $sortie "$Nom.pck")
     $moteur = Join-Path (Split-Path $Godot -Parent) ((Split-Path $Godot -Leaf) -replace '_console\.exe$', '.exe')
     if (-not (Test-Path $moteur)) { throw "Moteur Godot (sans _console) introuvable : $moteur" }
-    Copy-Item $moteur (Join-Path $sortie "MiniBlocs.exe")
+    Copy-Item $moteur (Join-Path $sortie "$Nom.exe")
 }
-foreach ($f in "MiniBlocs.exe", "MiniBlocs.pck") {
+foreach ($f in "$Nom.exe", "$Nom.pck") {
     if (-not (Test-Path (Join-Path $sortie $f))) { throw "L'export n'a pas produit $f (voir $Journal)" }
 }
 Copy-Item (Join-Path $Source "build_info.json") $sortie
 
 # --- 4. Installation dans le dossier de destination -------------------------------------------
-if (Get-Process -Name MiniBlocs -ErrorAction SilentlyContinue | Where-Object { $_.Path -like "$Destination*" }) {
+if (Get-Process -Name $Nom -ErrorAction SilentlyContinue | Where-Object { $_.Path -like "$Destination*" }) {
     throw "MiniBlocs est ouvert depuis $Destination : ferme le jeu puis relance l'export."
 }
 New-Item -ItemType Directory -Force $Destination | Out-Null
-Get-ChildItem $Destination -Filter "MiniBlocs*" | Remove-Item -Force
+Get-ChildItem $Destination -Filter "$Nom.*" | Remove-Item -Force
 Copy-Item (Join-Path $sortie "*") $Destination -Force
 try {
 @"
-MiniBlocs $version ($commit), build du $date
-Lancer : double-clic sur MiniBlocs.exe
-Refaire l'export : powershell -ExecutionPolicy Bypass -File "$PSCommandPath"
+$(if ($Demo) { "MiniBlocs - édition démo (Steam Next Fest)" } else { "MiniBlocs" }) $version ($commit), build du $date
+Lancer : double-clic sur $Nom.exe
+Refaire l'export : powershell -ExecutionPolicy Bypass -File "$PSCommandPath"$(if ($Demo) { " -Demo" })
 "@ | Set-Content -Encoding UTF8 (Join-Path $Destination "LISEZMOI.txt") -ErrorAction Stop
 } catch { Ecrire "LISEZMOI.txt non mis à jour (fichier ouvert ?) : $($_.Exception.Message)" }
-Ecrire "OK : $Destination\MiniBlocs.exe ($version, $(if ($avecModeles) { 'modèles officiels' } else { 'moteur renommé' }))"
+Ecrire "OK : $Destination\$Nom.exe ($version, $(if ($avecModeles) { 'modèles officiels' } else { 'moteur renommé' }))"

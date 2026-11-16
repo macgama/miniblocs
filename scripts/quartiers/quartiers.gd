@@ -812,9 +812,9 @@ func calculer_stats() -> void:
 			var q := quartier_au_point(c.x, c.z)
 			if q < 0 or not out.has(q):
 				continue
-			var t := BuildingCatalog.get_type(String(buildings.buildings[bid].t))
-			out[q].logements += int(t.get("logements", 0))
-			out[q].emplois += int(t.get("emplois", 0))
+			var bat: Dictionary = buildings.buildings[bid]
+			out[q].logements += Ameliorations.cap(bat, "logements")
+			out[q].emplois += Ameliorations.cap(bat, "emplois")
 	if population != null:
 		var nz: Nuisances = Nuisances.instance
 		for hid in population.households:

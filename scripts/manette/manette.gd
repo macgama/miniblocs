@@ -25,6 +25,8 @@ signal commande(nom: String)
 const ZONE_MORTE := 0.2
 ## Vitesse du curseur (pixels de fenêtre par seconde, pour une fenêtre de 900 px de haut).
 const VITESSE_CURSEUR := 950.0
+## Défilement des fenêtres au stick droit, en pixels par seconde.
+const VITESSE_DEFILEMENT := 900.0
 const BORD := 10.0
 
 ## La dernière entrée vient de la manette (aides affichées, curseur visible).
@@ -295,6 +297,10 @@ func _process(delta: float) -> void:
 	regard = Vector2.ZERO
 	pan = Vector2(d.x, d.y * (-1.0 if inverser_y else 1.0))
 	zoom = lt - rt
+	# Stick droit sur une fenêtre qui défile (réglages, aide…) : il la fait défiler
+	# au lieu de déplacer la caméra derrière.
+	if d.y != 0.0 and _defiler(d.y * VITESSE_DEFILEMENT * delta):
+		pan = Vector2.ZERO
 	if g != Vector2.ZERO:
 		if _focus_mode:
 			_focus_mode = false
@@ -312,6 +318,15 @@ func _process(delta: float) -> void:
 		if _pos != avant:
 			_bouger(_pos - avant)
 	_maj_affichage()
+
+
+## Fait défiler la zone sous le curseur (ou celle du bouton qui a le focus).
+func _defiler(dy: float) -> bool:
+	var vp := get_viewport()
+	var c: Control = vp.gui_get_hovered_control() if vp.has_method("gui_get_hovered_control") else null
+	if c == null or _focus_mode:
+		c = vp.gui_get_focus_owner()
+	return c != null and c.is_visible_in_tree() and UiStyle.scroll_under(c, dy)
 
 
 ## Taille de la fenêtre en pixels (sans fenêtre, en test : celle de la vue).

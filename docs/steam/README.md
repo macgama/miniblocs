@@ -2,7 +2,9 @@
 
 - [page-steam-fr.md](page-steam-fr.md) : fiche, descriptions courte et longue, fonctionnalités,
   accroches, tags, configuration requise, accès anticipé, mentions légales.
-- [page-steam-en.md](page-steam-en.md) : la même chose en anglais.
+- [page-steam-en.md](page-steam-en.md), [page-steam-de.md](page-steam-de.md),
+  [page-steam-it.md](page-steam-it.md), [page-steam-es.md](page-steam-es.md) : la même chose
+  en anglais, allemand, italien et espagnol.
 
 Rien n'est publié : tout se colle à la main dans Steamworks une fois le compte Steam Direct
 ouvert (100 $ par jeu, remboursés après 1 000 $ de ventes).
@@ -20,7 +22,8 @@ ouvert (100 $ par jeu, remboursés après 1 000 $ de ventes).
 | Content Survey → Contenu généré par IA | voir plus bas |
 
 Pour chaque langue, Steamworks a un sélecteur de langue en haut de la page : coller le
-français dans « French », l'anglais dans « English ».
+français dans « French », l'anglais dans « English », l'allemand dans « German »,
+l'italien dans « Italian », l'espagnol dans « Spanish - Spain ».
 
 ## Images et vidéo
 
@@ -81,7 +84,7 @@ pas le jeu en contenu pour adultes.
 - ~~Nom du développeur~~ : **ManiGames** (choisi le 15 novembre 2026).
 - **Accès anticipé** en 2027 (choisi le 15 novembre 2026) : la section « Accès anticipé » des fiches est à coller.
 - Prix : **19,99 € / 19,99 $** pour l'accès anticipé, puis 24,99 € en version complète (validé par Gaël le 15 novembre 2026).
-- Page anglaise : publiée seulement quand **toute** l'application est traduite (menus, panneaux, aide F1, tutoriel, démo, nouvelles, noms des bâtiments). Contrôle à faire avant : `python3 tools/langue/extraire.py --manquants en` doit ne plus rien lister (voir [../langues.md](../langues.md)), puis parcourir chaque écran en anglais pour repérer les textes restés en français.
+- Pages anglaise, allemande, italienne et espagnole : le jeu est traduit dans ces quatre langues (Options → Jeu → Langue). Les publier quand **toute** l'application est traduite (menus, panneaux, aide F1, tutoriel, démo, nouvelles, noms des bâtiments). Contrôle à faire avant : `python3 tools/langue/extraire.py --manquants en` (puis `de`, `it`, `es`) ne doit plus lister que des noms propres et du code (voir [../langues.md](../langues.md)), puis parcourir chaque écran dans la langue pour repérer les textes restés en français.
 
 ## Prix conseillé
 

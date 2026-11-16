@@ -419,6 +419,13 @@ const SECTIONS := [
 		["F10 ou icône réglages", "panneau Admin : argent de départ, caisse, argent illimité, coût des constructions, accès à une voie, impôts, salaires, vitesses, épuisement des ressources, déblocage des bâtiments, pollution (seulement pour l'admin de la partie)"],
 		["F1", "afficher ou masquer cette aide"],
 	]],
+	["Santé publique et épidémies", [
+		["F7", "panneau Santé publique (menu Infos) : épidémie en cours, hygiène des logements (eau potable, égouts), lits d'hôpital, conseils ; onglets Vaccins, Mesures et Histoire"],
+		["Maladies de l'eau", "choléra et typhoïde passent par les puits souillés et l'eau mal traitée : des égouts, une station d'épuration et de l'eau potable les arrêtent ; en urgence, faire bouillir l'eau"],
+		["Vaccins", "datés (variole 1800, diphtérie 1923, grippe 1945, polio 1955, rougeole 1963, Covid-19 2021) : campagne payée à la dose ou obligation ; une partie des habitants refuse ; au-delà de 90 % de vaccinés, la maladie ne prend plus"],
+		["Mesures", "quarantaine, écoles fermées, lazaret, campagne d'hygiène (1847), eau bouillie (1854), chlore dans l'eau (1902), masques et confinement (1918) : coût par jour, satisfaction ; levées seules une semaine après l'épidémie"],
+		["Grandes épidémies", "partie commencée dans le passé : choléra de 1832, 1849, 1854…, variole de 1870, grippe espagnole de 1918, grippes de 1957 et 1968, Covid-19 en 2020 ; une rumeur arrive d'abord dans la gazette (F7 → Histoire pour couper le calendrier)"],
+	]],
 ]
 
 
@@ -456,7 +463,8 @@ func _ready() -> void:
 
 	var cols := HBoxContainer.new()
 	cols.add_theme_constant_override("separation", 28)
-	v.add_child(cols)
+	# Défile quand les trois colonnes dépassent l'écran.
+	v.add_child(UiStyle.scroll_fit(cols, panel))
 	# Trois colonnes : barre du bas · construire, lignes, habitants · caméra, temps, partie.
 	const COLUMN_OF := [2, 0, 1, 1, 1, 2, 2]
 	var columns: Array[VBoxContainer] = []
@@ -464,9 +472,13 @@ func _ready() -> void:
 		var vb := VBoxContainer.new()
 		cols.add_child(vb)
 		columns.append(vb)
+	# Les sections suivantes vont dans la colonne la moins remplie (en lignes).
+	var rows := [0, 0, 0]
 	for i in SECTIONS.size():
 		var sec: Array = SECTIONS[i]
-		var col := columns[COLUMN_OF[mini(i, COLUMN_OF.size() - 1)]]
+		var ci: int = COLUMN_OF[i] if i < COLUMN_OF.size() else rows.find(rows.min())
+		rows[ci] += sec[1].size() + 2
+		var col := columns[ci]
 		var h := Label.new()
 		h.text = sec[0]
 		h.add_theme_font_size_override("font_size", 16)
@@ -481,6 +493,9 @@ func _ready() -> void:
 			k.text = row[0]
 			k.add_theme_color_override("font_color", Color("d8f3dc"))
 			k.add_theme_font_size_override("font_size", 13)
+			# Touches longues sur deux lignes : les trois colonnes tiennent en largeur.
+			k.custom_minimum_size = Vector2(140, 0)
+			k.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 			grid.add_child(k)
 			var d := Label.new()
 			d.text = row[1]

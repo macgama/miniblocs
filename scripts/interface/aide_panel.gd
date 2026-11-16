@@ -69,7 +69,8 @@ const SECTIONS := [
 	]],
 	["Époques", [
 		["Année de départ", "globe, Réglages de la partie (ou Admin F10), section Époque : partie historique de 1800 à aujourd'hui ; chaque invention arrive à sa date (train 1830, électricité 1882, autoroute 1930, 4G 2010…)"],
-		["Pas encore inventé", "vignette « Arrive en 1882 » dans Construire ; voies, stations, lignes électriques, fibre et matériaux de l'Atelier suivent aussi l'année"],
+		["Pas encore inventé", "vignette « Arrive en 1882 » dans Construire ; voies, stations, lignes électriques, fibre, matériaux, portes et fenêtres, toits, bassins et terrains de l'Atelier, décors (G), meubles et grands-huit suivent aussi l'année"],
+		["F7 · Catalogue (menu Infos)", "tout ce qui se construit, avec son année d'apparition et ses évolutions (agrandissements, variantes, modèle de chaque époque) ; le curseur « Partie en » montre ce qui existe à n'importe quelle année"],
 		["Services d'époque", "maison d'école, Hôtel-Dieu, remise des pompes, gendarmerie ; pompes à bras, ambulances et corbillards à chevaux, tombereaux, rues pavées et réverbères"],
 		["Rythme de l'histoire", "Admin (F10) : 1 à 25 années d'histoire par année de jeu, ou changer l'année en cours ; les habitants n'attendent le courant qu'en 1925, l'eau courante en 1900, le téléphone en 1975"],
 	]],

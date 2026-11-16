@@ -164,6 +164,9 @@ static func refus(fam_id: String, pente: int, piece_id: String, ferme := false) 
 		return "Pièce inconnue."
 	if ferme:
 		return "Le circuit est bouclé : retire le raccord pour continuer."
+	var ep := EpoquesObjets.raison(EpoquesObjets.annee_piece_voie(piece_id))
+	if ep != "":
+		return ep
 	var genre := String(f.genre)
 	if d.has("genres") and not genre in (d.genres as Array):
 		return "Pas sur ce type d'attraction."

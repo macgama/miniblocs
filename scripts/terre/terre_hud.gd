@@ -73,6 +73,8 @@ signal souterrain_requested
 signal photo_requested
 ## Succès du joueur (F6, menu Infos).
 signal succes_requested
+## Catalogue daté de tout ce qui se construit (F7, menu Infos).
+signal catalogue_requested
 ## Bouton Admin de la barre du haut, ou F10 : réglages de la partie.
 signal admin_requested
 signal spec_edited(type_id: String, spec: Dictionary)
@@ -150,6 +152,7 @@ const CATEGORIES := [
 	{"id": "photo", "name": "Mode photo et time-lapse (Maj+F8)", "icon": "appareil_photo", "key": "F8", "panel": true, "group": "infos"},
 	{"id": "souterrain", "name": "Vue sous terre (tuyaux, câbles, métro, sous-sols)", "icon": "souterrain", "key": "Page bas", "panel": true, "group": "infos"},
 	{"id": "succes", "name": "Succès", "icon": "trophee", "key": "F6", "panel": true, "group": "infos"},
+	{"id": "catalogue", "name": "Catalogue : tout ce qui se construit, daté, avec ses évolutions", "icon": "catalogue", "key": "F7", "panel": true, "group": "infos"},
 	{"id": "murs", "name": "Murs et étages", "icon": "mur", "key": "2", "panel": true, "mode": "creer"},
 	{"id": "blocs", "name": "Blocs", "icon": "editeur", "key": "3", "panel": true, "mode": "creer"},
 	{"id": "interieur", "name": "Intérieur", "icon": "interieur", "key": "4", "panel": true, "mode": "creer"},
@@ -847,6 +850,7 @@ func _on_category(id: String) -> void:
 			"souterrain": souterrain_requested.emit()
 			"photo": photo_requested.emit()
 			"succes": succes_requested.emit()
+			"catalogue": catalogue_requested.emit()
 		_update_categories()
 		return
 	if create_mode and id == "observer":

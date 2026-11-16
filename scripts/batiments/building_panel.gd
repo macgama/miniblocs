@@ -860,6 +860,9 @@ func _fill_catalog_tab(id: String, box: VBoxContainer) -> void:
 			box.add_child(grid)
 			for r in PlanEditor.ROOFS:
 				var rid: String = r[0]
+				# Toit-terrasse, sheds : pas avant leur invention.
+				if EpoquesObjets.annee_toit(rid) > EpoquesObjets.annee_partie():
+					continue
 				var rb := _thumb_card(String(r[1]), "Toit %s sur le dernier étage" % String(r[1]).to_lower(),
 					"toit_" + rid, func() -> Mesh: return VignettesAtelier.roof_mesh(rid))
 				rb.pressed.connect(func() -> void: plan_roof.emit(rid))
@@ -880,6 +883,9 @@ func _fill_catalog_tab(id: String, box: VBoxContainer) -> void:
 			if ot[0] != id:
 				continue
 			for k in ot[2]:
+				# Baies vitrées, murs-rideaux, portes de garage : pas avant leur invention.
+				if EpoquesObjets.annee_ouverture(String(k)) > EpoquesObjets.annee_partie():
+					continue
 				var o: Dictionary = PlanEditor.OPENINGS[k]
 				var kid: String = k
 				var ob := _thumb_card(String(o.name), "%s\n%s · %s" % [o.name, o.desc, BuildingSystem.format_money(int(o.price))],
@@ -938,6 +944,8 @@ func _fill_amenagements(fam: String, box: VBoxContainer, grid: GridContainer) ->
 	box.add_child(own)
 	box.add_child(grid)
 	for kind in Amenagements.of_family(fam):
+		if EpoquesObjets.annee_amenagement(String(kind)) > EpoquesObjets.annee_partie():
+			continue
 		var k: Dictionary = Amenagements.KINDS[kind]
 		var kid: String = kind
 		var sz: Vector2i = k.size

@@ -1276,6 +1276,7 @@ func _setup_succes() -> void:
 	add_child(succes_suivi)
 	succes_suivi.setup(self)
 	hud.succes_requested.connect(toggle_succes)
+	hud.catalogue_requested.connect(toggle_catalogue)
 	if Manette.instance != null:
 		Manette.instance.commande.connect(_on_commande_manette)
 
@@ -1287,6 +1288,19 @@ func toggle_succes() -> void:
 	succes_panel = SuccesPanel.new()
 	succes_panel.closed.connect(func() -> void: succes_panel = null)
 	_windows_layer().add_child(succes_panel)
+
+
+## Catalogue daté de tout ce qui se construit (F7, menu Infos).
+var catalogue_panel: CataloguePanel
+
+
+func toggle_catalogue() -> void:
+	if catalogue_panel != null:
+		catalogue_panel.close_panel()
+		return
+	catalogue_panel = CataloguePanel.new()
+	catalogue_panel.closed.connect(func() -> void: catalogue_panel = null)
+	_windows_layer().add_child(catalogue_panel)
 
 
 func _on_commande_manette(nom: String) -> void:
@@ -1911,6 +1925,10 @@ func _unhandled_input(event: InputEvent) -> void:
 	if k != null and k.pressed and not k.echo and k.keycode == KEY_F6 and pause_menu == null:
 		get_viewport().set_input_as_handled()
 		toggle_succes()
+		return
+	if k != null and k.pressed and not k.echo and k.keycode == KEY_F7 and pause_menu == null:
+		get_viewport().set_input_as_handled()
+		toggle_catalogue()
 		return
 	if k == null or not k.pressed or k.echo or k.keycode != KEY_ESCAPE or pause_menu != null:
 		return

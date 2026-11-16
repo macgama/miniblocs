@@ -201,7 +201,7 @@ const TRONCONS := {"ligne_ht": 1910, "ligne_mt": 1882, "conduite_eau": 0, "colle
 
 ## Matériaux de l'Atelier (BlocMateriaux.LIST) : mots du nom, première règle qui correspond.
 const MOTS_MATERIAUX := [
-	["écran led", 2000], ["néon", 1925], ["fibre de verre", 1950], ["polycarbonate", 1970], ["plastique", 1950],
+	["bâche", 1950], ["camouflage", 1915], ["confettis", 1890], ["écran led", 2000], ["néon", 1925], ["fibre de verre", 1950], ["polycarbonate", 1970], ["plastique", 1950],
 	["epdm", 1965], ["gazon synthétique", 1966], ["tartan", 1968], ["sol amortissant", 1980],
 	["sol sportif", 1970], ["résine", 1970], ["sol souple", 1960], ["caoutchouc", 1900], ["corten", 1965],
 	["aluminium", 1950], ["inox", 1920], ["chrome", 1925], ["galvanisé", 1850], ["bac acier", 1960],
@@ -296,6 +296,8 @@ static func annee_batiment(id: String) -> int:
 		y = int(t.annee)
 	elif ANNEES.has(id):
 		y = int(ANNEES[id])
+	elif EpoquesObjets.BATIMENTS.has(id):
+		y = int(EpoquesObjets.BATIMENTS[id])
 	elif String(t.get("style", "")) != "" and STYLE_ANNEES.has(String(t.style)):
 		y = int(STYLE_ANNEES[String(t.style)])
 	elif String(t.get("style", "")) != "":
@@ -349,7 +351,13 @@ static func role_vehicule(id: String) -> String:
 static func vehicule(id: String, r: ReglagesPartie = null) -> String:
 	if vehicule_disponible(id, r):
 		return id
-	var y := annee(r)
+	return vehicule_pour_annee(id, annee(r))
+
+
+## Même choix pour une année donnée (catalogue : ce qui roule à la place avant l'invention).
+static func vehicule_pour_annee(id: String, y: int) -> String:
+	if annee_vehicule(id) <= y:
+		return id
 	var t := VehicleCatalog.get_type(id)
 	var role := role_vehicule(id)
 	var best := ""

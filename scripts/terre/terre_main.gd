@@ -167,6 +167,9 @@ var timelapse_panel: TimeLapsePanel
 
 func _ready() -> void:
 	OptionsJeu.appliquer(get_tree())
+	var jp := get_node_or_null("/root/Plantages")
+	if jp != null:
+		jp.etat_partie = etat_pour_rapport
 	# Nouvelle partie : réglages choisis sur le globe (ou ceux par défaut du joueur).
 	if GameStart.load_slot == "":
 		var r := ReglagesPartie.prochaine if ReglagesPartie.prochaine != null else ReglagesPartie.load_defaults()
@@ -388,8 +391,11 @@ var last_error := ""
 ## Des changements depuis la dernière sauvegarde (pour la sauvegarde automatique).
 var _unsaved := false
 var _autosave_timer := 0.0
+## Durée de la dernière sauvegarde automatique (ms), pour le rapport de plantage et les bancs.
+var derniere_autosave_ms := 0
 ## Sauvegarde automatique (toutes les 5 minutes par défaut, Options > Jeu), dans une partie à part.
-const AUTOSAVE_SLOT := "sauvegarde-auto"
+## Première des sauvegardes automatiques tournantes (SaveGame.autosave_slots()).
+const AUTOSAVE_SLOT := SaveGame.AUTO_SLOT
 const AUTOSAVE_INTERVAL := 300.0
 var _saves_panel: PartiesPanel
 
@@ -460,7 +466,7 @@ func save_game(slot := "", title := "") -> bool:
 		last_error = "en visite, la ville d'un autre ne se sauvegarde pas"
 		return false
 	if slot == "":
-		slot = GameStart.slot_id if GameStart.slot_id != AUTOSAVE_SLOT else ""
+		slot = GameStart.slot_id if not SaveGame.est_autosave(GameStart.slot_id) else ""
 	if slot == "":
 		slot = SaveGame.make_slot_id(title if title != "" else _game_title())
 	var old := SaveGame.read_manifest(slot)
@@ -480,7 +486,7 @@ func save_game(slot := "", title := "") -> bool:
 	last_error = SaveGame.write(slot, info, save_sections())
 	if last_error != "":
 		return false
-	if slot != AUTOSAVE_SLOT:
+	if not SaveGame.est_autosave(slot):
 		GameStart.slot_id = slot
 	_unsaved = false
 	_autosave_timer = 0.0
@@ -2057,6 +2063,33 @@ func toggle_help() -> void:
 	_windows_layer().add_child(_help)
 
 
+func _exit_tree() -> void:
+	var jp := get_node_or_null("/root/Plantages")
+	if jp != null and jp.etat_partie == Callable(self, "etat_pour_rapport"):
+		jp.etat_partie = Callable()
+
+
+## Ce que dit le rapport de plantage de la partie en cours (JournalPlantage).
+func etat_pour_rapport() -> Dictionary:
+	var d := {"nom": _game_title(), "partie": GameStart.slot_id, "mode": ["bac à sable", "entre amis", "mondiale"][int(GameStart.mode)]}
+	if ambiance != null:
+		var dt: Dictionary = ambiance.local_datetime()
+		d["date_jeu"] = "%02d/%02d/%04d %02dh%02d" % [int(dt.get("day", 0)), int(dt.get("month", 0)), int(dt.get("year", 0)), int(dt.get("hour", 0)), int(dt.get("minute", 0))]
+		d["vitesse"] = ambiance.speed_index
+	if population != null:
+		d["habitants"] = population.persons.size()
+	if buildings != null:
+		d["batiments"] = buildings.buildings.size()
+	if transport != null and transport.traffic != null:
+		d["vehicules"] = transport.traffic.vehicles.size()
+	if rig != null:
+		d["camera"] = "%.0f, %.0f" % [rig.position.x, rig.position.z]
+	d["vue_au_sol"] = ($VueSol as VueSol).active if has_node("VueSol") and "active" in $VueSol else false
+	d["sauvegarde_auto_ms"] = derniere_autosave_ms
+	d["non_sauvegarde"] = _unsaved
+	return d
+
+
 func _autosave(delta: float) -> void:
 	# En ligne : c'est le serveur qui sauvegarde la carte.
 	if GameStart.atelier or Multijoueur.en_ligne() or VisiteVille.active():
@@ -2072,8 +2105,13 @@ func _autosave(delta: float) -> void:
 		return
 	var keep := GameStart.slot_id
 	var t := _game_title()
-	if save_game(AUTOSAVE_SLOT, "Sauvegarde automatique · " + t):
+	var t0 := Time.get_ticks_msec()
+	if save_game(SaveGame.prochain_autosave(), "Sauvegarde automatique · " + t):
 		hud.show_message("Sauvegarde automatique.")
+	else:
+		push_warning("Sauvegarde automatique impossible : " + last_error)
+		hud.show_message("Sauvegarde automatique impossible : " + last_error)
+	derniere_autosave_ms = Time.get_ticks_msec() - t0
 	GameStart.slot_id = keep
 	# La partie du joueur n'est pas à jour : on garde la marque « non sauvegardé ».
 	_unsaved = keep != ""

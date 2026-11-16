@@ -23,7 +23,9 @@ parties/
     blocs.json.zst         éditeur libre bloc par bloc
     mobilier.json.zst      meubles, fonctions des pièces, usage et style des bâtiments en murs fins
     ambiance.json.zst      heure et vitesse du temps
-  sauvegarde-auto/         sauvegarde automatique (toutes les 5 min s'il y a eu des changements)
+  sauvegarde-auto/         sauvegardes automatiques tournantes (toutes les 5 min s'il y a eu
+  sauvegarde-auto-2/       des changements) : chaque nouvelle remplace la plus ancienne, une
+  sauvegarde-auto-3/       coupure pendant l'écriture n'abîme qu'une des trois
 ```
 
 Les sections sont du JSON compressé (Zstandard), clés triées : deux sauvegardes
@@ -38,6 +40,7 @@ identiques donnent des fichiers identiques.
 | `auteur` | identifiant du joueur sur cette machine (`user://joueur.cfg`) |
 | `nom`, `lieu` (`lat`, `lon`, `nom`), `mode` | ce qui s'affiche dans la liste |
 | `cree`, `modifie`, `sauvegardes` | dates (secondes Unix, UTC) et nombre de sauvegardes |
+| `modifie_ms` | date en millisecondes (ordre des sauvegardes automatiques tournantes) |
 | `camera` | position de la caméra, pour reprendre au même endroit |
 | `resume` | bâtiments, logements, emplois, longueur du réseau, blocs, cases modifiées |
 | `sections` | pour chaque section : fichier, version, taille et empreinte SHA-256 |

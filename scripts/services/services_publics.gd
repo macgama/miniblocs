@@ -631,7 +631,8 @@ func _qualite_ecole(home: int, q_temps: float) -> float:
 	for hid in population.by_home.get(home, []):
 		for pid in population.households[hid].m:
 			var p: Dictionary = population.persons[pid]
-			if population.stage(p) != "eleve":
+			# Secondaire II sans bâtiment en ville : il étudie ailleurs, l'école d'ici n'y est pour rien.
+			if population.stage(p) != "eleve" or population.edu.ailleurs(p) or population.edu.cycle(p) == "":
 				continue
 			eleves += 1
 			if int(p.sch) >= 0:

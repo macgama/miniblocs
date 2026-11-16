@@ -54,7 +54,7 @@ enseignant (bachelor HEP), professeur (master), professeur d'université (doctor
 métiers **obligatoires** n'embauchent pas sans le diplôme : le poste reste vide et des **frontaliers** (une ville
 d'un autre pays à moins de 60 km) ou des **pendulaires** viennent le tenir. Ils ne vivent pas en ville. Dès qu'un
 chômeur qualifié habite la ville, un externe lui laisse sa place. Les autres métiers (boulanger, employé de
-commerce…) embauchent sans diplôme, mais chaque employé non qualifié fait baisser la production (−40 %).
+commerce…) embauchent sans diplôme, mais chaque employé non qualifié fait baisser la production (−10 % pour un métier de CFC, −20 % pour un métier de haute école).
 Une partie des arrivants viennent pour un poste qualifié vacant.
 
 Les postes d'un bâtiment sont répartis par métier selon sa liste (un hôpital : 20 % de médecins, 50 %

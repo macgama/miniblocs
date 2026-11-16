@@ -2001,7 +2001,10 @@ func new_day() -> void:
 			var w := 0.0
 			for pid in population.by_job.get(bid, []):
 				if population.persons.has(pid):
-					w += float(Metiers.job(String(population.persons[pid].met)).salaire) * ReglagesPartie.actuel.salaires * CHARGES / DAYS_PER_MONTH
+					var q: Dictionary = population.persons[pid]
+					# Apprenti : salaire d'apprenti (un quart).
+					var part := Education.SALAIRE_APPRENTI if float(q.get("apf", -1.0)) > population.life_clock else 1.0
+					w += float(Metiers.job(String(q.met)).salaire) * part * ReglagesPartie.actuel.salaires * CHARGES / DAYS_PER_MONTH
 			_pay(bid, "Salaires", -w)
 			wages += w
 	# Impôt de la ville sur les bénéfices du jour : à la ville où est l'entreprise.

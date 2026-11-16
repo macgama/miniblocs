@@ -35,7 +35,7 @@ const SALAIRE_APPRENTI := 0.25
 ## Apprentis gardés par leur entreprise formatrice à la fin.
 const GARDES := 0.65
 ## Personne non qualifiée dans un métier qui exige un diplôme (non strict) : rendement.
-const RENDEMENT_NON_QUALIFIE := 0.6
+const RENDEMENT_NON_QUALIFIE := 0.8
 ## Frontaliers : une ville d'un autre pays à moins de cette distance (m).
 const RAYON_FRONTALIERS := 60000.0
 ## Part des postes vacants pourvue chaque jour, et au plus : frontaliers, pendulaires.
@@ -759,11 +759,14 @@ func rendement(bid: int) -> float:
 	var staff: Array = pop.by_job.get(bid, [])
 	var r := 1.0
 	if not staff.is_empty():
-		var nq := 0
+		var perte := 0.0
+		var an := annee()
 		for pid in staff:
 			if pop.persons.has(pid) and bool(pop.persons[pid].get("nq", false)) and pop.stage(pop.persons[pid]) != "apprenti":
-				nq += 1
-		r = 1.0 - (1.0 - RENDEMENT_NON_QUALIFIE) * float(nq) / float(staff.size() + externes_de(bid))
+				# Métier de CFC : on apprend sur le tas (−10 %) ; métier de haute école : −20 %.
+				var niv := int(SystemesScolaires.exigence(String(pop.persons[pid].met), an).niv)
+				perte += (1.0 - RENDEMENT_NON_QUALIFIE) * (0.5 if niv <= 2 else 1.0)
+		r = 1.0 - perte / float(staff.size() + externes_de(bid))
 	_rend[bid] = r
 	return r
 

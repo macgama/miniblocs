@@ -449,7 +449,8 @@ func _ready() -> void:
 
 	var cols := HBoxContainer.new()
 	cols.add_theme_constant_override("separation", 28)
-	v.add_child(cols)
+	# Défile quand les trois colonnes dépassent l'écran.
+	v.add_child(UiStyle.scroll_fit(cols, panel))
 	# Trois colonnes : barre du bas · construire, lignes, habitants · caméra, temps, partie.
 	const COLUMN_OF := [2, 0, 1, 1, 1, 2, 2]
 	var columns: Array[VBoxContainer] = []
@@ -457,9 +458,13 @@ func _ready() -> void:
 		var vb := VBoxContainer.new()
 		cols.add_child(vb)
 		columns.append(vb)
+	# Les sections suivantes vont dans la colonne la moins remplie (en lignes).
+	var rows := [0, 0, 0]
 	for i in SECTIONS.size():
 		var sec: Array = SECTIONS[i]
-		var col := columns[COLUMN_OF[mini(i, COLUMN_OF.size() - 1)]]
+		var ci: int = COLUMN_OF[i] if i < COLUMN_OF.size() else rows.find(rows.min())
+		rows[ci] += sec[1].size() + 2
+		var col := columns[ci]
 		var h := Label.new()
 		h.text = sec[0]
 		h.add_theme_font_size_override("font_size", 16)
@@ -474,6 +479,9 @@ func _ready() -> void:
 			k.text = row[0]
 			k.add_theme_color_override("font_color", Color("d8f3dc"))
 			k.add_theme_font_size_override("font_size", 13)
+			# Touches longues sur deux lignes : les trois colonnes tiennent en largeur.
+			k.custom_minimum_size = Vector2(140, 0)
+			k.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 			grid.add_child(k)
 			var d := Label.new()
 			d.text = row[1]

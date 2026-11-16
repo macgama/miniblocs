@@ -89,6 +89,15 @@ var _jp_window := Vector3(0.0, 24.0, 0.0)
 var real_sun_elev := 0.0
 
 
+func _enter_tree() -> void:
+	EchelleTemps.horloge = self
+
+
+func _exit_tree() -> void:
+	if EchelleTemps.horloge == self:
+		EchelleTemps.horloge = null
+
+
 func _ready() -> void:
 	Epoques.horloge = self
 	sun = get_node_or_null(sun_path) as DirectionalLight3D

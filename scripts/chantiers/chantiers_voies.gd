@@ -247,7 +247,7 @@ static func _cone(k: TransportView.MeshKit, p: Vector3) -> void:
 # --- Engins et ouvriers ------------------------------------------------------------------
 
 func _process(delta: float) -> void:
-	_clock += delta
+	_clock += EchelleTemps.dt(delta)
 	if network == null:
 		return
 	var cam := get_viewport().get_camera_3d() if is_inside_tree() else null

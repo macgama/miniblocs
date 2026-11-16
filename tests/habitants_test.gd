@@ -151,8 +151,11 @@ func _run() -> void:
 	pop._demand_ms = -100000
 	var rush: Dictionary = pop.traffic_demand()
 	_check(int(rush[TransportTypes.Mode.ROAD]) > 0 and int(rush.walkers) > 0, "8 h 12 : %d voitures et %d piétons dehors d'après les habitants" % [rush[TransportTypes.Mode.ROAD], rush.walkers])
+	# Le temps est en pause pour régler l'horloge à la main : on laisse rouler les véhicules.
+	EchelleTemps.force = 1.0
 	for i in 200:
 		await process_frame
+	EchelleTemps.force = -1.0
 	_check(tr.count_mode(TransportTypes.Mode.ROAD) > 0, "les premiers véhicules arrivent avec les habitants (%d)" % tr.count_mode(TransportTypes.Mode.ROAD))
 	amb.unix_time = _at("2026-03-10", 3.0)
 	pop._demand_ms = -100000

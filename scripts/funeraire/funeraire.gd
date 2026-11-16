@@ -575,7 +575,7 @@ func _next_slot(t: float) -> float:
 # --- Temps --------------------------------------------------------------------------------------------
 
 func _process(delta: float) -> void:
-	_cer_t += delta
+	_cer_t += EchelleTemps.dt(delta)
 	_update_ceremonies()
 	_run_spawn_queue()
 	if ambiance == null:

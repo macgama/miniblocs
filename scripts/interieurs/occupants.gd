@@ -51,7 +51,7 @@ func setup(m: Mobilier, pop: Population, cam: Camera3D) -> void:
 
 
 func _process(delta: float) -> void:
-	_t += delta
+	_t += EchelleTemps.dt(delta)
 	for pid in figurines:
 		var f: Figurine = figurines[pid]
 		if f.visible:

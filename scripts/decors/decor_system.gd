@@ -567,7 +567,7 @@ func _process(delta: float) -> void:
 					_auto.erase(k)
 	if _sale or Vector2(f.x - _focus_dessin.x, f.z - _focus_dessin.z).length() > 24.0:
 		_dessine(f)
-	_anime(delta)
+	_anime(EchelleTemps.dt(delta))
 	_maj_outil(delta)
 
 

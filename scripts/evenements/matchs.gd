@@ -615,7 +615,7 @@ func _animate(e: Dictionary, t: float, delta: float) -> void:
 	else:
 		bp = Vector2.ZERO
 	a.bp = bp
-	(a.ball as Node3D).position = Vector3(bp.x, 0.12 + absf(sin(t * 0.0 + Time.get_ticks_msec() * 0.006)) * 0.15, bp.y)
+	(a.ball as Node3D).position = Vector3(bp.x, 0.12 + absf(sin(_anim_acc * 6.0)) * 0.15, bp.y)
 	for pl in a.list:
 		var node: MeshInstance3D = pl.n
 		var base: Vector2 = pl.base

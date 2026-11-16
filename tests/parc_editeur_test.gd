@@ -216,7 +216,10 @@ func _partie_tests() -> void:
 	# Les trains bougent quand l'attraction tourne.
 	var pose: Dictionary = atr._poses[coaster]
 	var tau0 := float(pose.tau)
+	# Temps en pause dans ce test : les manèges suivent la vitesse du temps, on la force à ×1.
+	EchelleTemps.force = 1.0
 	atr._process(1.0)
+	EchelleTemps.force = -1.0
 	_check(float(pose.tau) != tau0 or not atr._en_marche(coaster), "les trains avancent quand l'attraction tourne")
 	# Modifier le tracé.
 	atr.modifier(coaster)

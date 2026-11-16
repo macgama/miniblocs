@@ -480,6 +480,10 @@ func count_mode(mode: int) -> int:
 func _process(delta: float) -> void:
 	if network == null or not enabled:
 		return
+	# Tout suit la vitesse du temps (EchelleTemps) : arrêt en pause.
+	delta = EchelleTemps.dt(delta)
+	if delta <= 0.0:
+		return
 	# Apparitions progressives jusqu'à la densité voulue.
 	_spawn_timer -= delta
 	if _spawn_timer <= 0.0:

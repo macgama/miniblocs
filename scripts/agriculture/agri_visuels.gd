@@ -85,7 +85,7 @@ func _process(delta: float) -> void:
 		_tick = 0.0
 		mise_a_jour()
 	_bouge_engins()
-	_bouge_betes(delta)
+	_bouge_betes(EchelleTemps.dt(delta))
 
 
 ## Met à jour le sol, les plantes, les engins et les bêtes (appelé deux fois par seconde).

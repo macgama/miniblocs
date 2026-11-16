@@ -71,13 +71,14 @@ static func _tete_mesh() -> Mesh:
 func _process(delta: float) -> void:
 	if parc == null or parc.buildings == null:
 		return
-	_t += delta
+	var dt := EchelleTemps.dt(delta)
+	_t += dt
 	_rebuild_t -= delta
 	if _rebuild_t <= 0.0:
 		_rebuild_t = 1.0
 		_sync_anims()
 		_sync_decor()
-	_animer(delta)
+	_animer(dt)
 	_visiteurs()
 
 

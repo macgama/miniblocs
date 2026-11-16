@@ -16,6 +16,8 @@ var _corps: MultiMeshInstance3D
 var _tetes: MultiMeshInstance3D
 var _t := 0.0
 var _anim := 0.0
+## Temps des gestes des figurants (suit la vitesse du temps, arrêté en pause).
+var _horloge := 0.0
 ## Personnages affichés : [position, angle, couleur d'habit, peau, phase].
 var _gens: Array = []
 
@@ -48,6 +50,7 @@ func _process(delta: float) -> void:
 		return
 	_t += delta
 	_anim += delta
+	_horloge += EchelleTemps.dt(delta)
 	if _t >= 0.5:
 		_t = 0.0
 		_placer()
@@ -113,7 +116,7 @@ func _dessiner() -> void:
 func _bouger() -> void:
 	var mc := _corps.multimesh
 	var mt := _tetes.multimesh
-	var t := Time.get_ticks_msec() / 1000.0
+	var t := _horloge
 	for i in mini(_gens.size(), mc.instance_count):
 		var g: Array = _gens[i]
 		var a := float(g[1]) + sin(t * 0.7 + float(g[4])) * 0.25

@@ -163,7 +163,7 @@ func _payer_reste(b: Dictionary) -> void:
 
 
 func _process(delta: float) -> void:
-	_clock += delta
+	_clock += EchelleTemps.dt(delta)
 	if buildings == null:
 		return
 	_acc_chantier += delta

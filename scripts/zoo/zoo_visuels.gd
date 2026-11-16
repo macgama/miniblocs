@@ -82,18 +82,17 @@ static func mat_verre() -> StandardMaterial3D:
 func _process(delta: float) -> void:
 	if zoo == null:
 		return
-	_t += delta
+	var vitesse := EchelleTemps.facteur()
+	_t += delta * vitesse
 	_rebuild_t -= delta
 	if _rebuild_t <= 0.0:
 		_rebuild_t = 0.5
 		_sync_barrieres()
 		_sync_betes()
 		_sync_soigneurs()
-	var vitesse := 1.0
-	if zoo.ambiance != null and "time_scale" in zoo.ambiance:
-		vitesse = clampf(float(zoo.ambiance.time_scale) / 60.0, 0.0, 3.0)
-	_animer(delta, vitesse)
-	_animer_soigneurs(delta, vitesse)
+	# Bêtes et soigneurs suivent la vitesse du temps (EchelleTemps), arrêt en pause.
+	_animer(delta * vitesse, 1.0)
+	_animer_soigneurs(delta * vitesse, 1.0)
 	_visiteurs()
 
 

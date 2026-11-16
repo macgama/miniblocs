@@ -123,6 +123,16 @@ const SECTIONS := [
 		["Effets", "plus un foyer est aisé, plus il paie de taxe foncière (×0,6 à ×1,7), plus il achète dans les commerces et dépense en sorties ; dès Aisé, son épargne lui rapporte des intérêts ; il déménage vers un logement plus cossu quand le sien le bloque"],
 		["Carte", "N → Habitants → Niveaux de vie : du rouge (précaire) au bleu (très aisé)"],
 	]],
+	["Immobilier", [
+		["F7", "panneau Immobilier (menu Ville) : marché de chaque ville, promoteurs et permis de construire, quartiers qui changent, bidonvilles"],
+		["Prix et loyers", "chaque ville a un indice des prix : peu de logements vides et des emplois qui attirent du monde le font monter, beaucoup de logements vides le font baisser ; loyer = loyer de base × valeur du terrain × indice. Rares krachs quand les prix sont trop hauts"],
+		["Règles du maire", "encadrement des loyers (aucun, souple, moyen, strict), part de logements sociaux imposée aux promoteurs (0 à 30 %), permis de construire libre, sur demande ou gelé ; des règles strictes freinent les promoteurs"],
+		["Promoteurs", "Immo Prestige (résidences de standing dans les quartiers chers), Les Bâtisseurs Réunis (maisons), Béton & Fils (maison rasée pour un immeuble), Pierre & Rendement (immeuble racheté et rénové haut de gamme, loyers +30 %) ; ils bâtissent à leurs frais et la ville touche 5 % de taxe d'aménagement"],
+		["Gentrification", "un secteur de 200 m dont les prix montent de plus de 12 % en six mois s'embourgeoise : ses foyers modestes ont peur d'être chassés puis partent ; un secteur qui perd plus de 12 % se paupérise. Carte : N → Immobilier → Quartiers qui changent"],
+		["Bidonvilles", "une famille qui ne trouve aucun logement abordable depuis un mois, ou des travailleurs attirés par des emplois sans logement libre, bâtissent des baraques en bord de ville : pas de loyer, mais odeurs, eau polluée, terrains voisins dévalués et niveau Précaire. Viabiliser (eau, courant : niveau Modeste possible), reloger (logements à moins de 35 % des revenus, sociaux d'abord) ou raser (les familles quittent la ville et les habitants s'en souviennent)"],
+		["Logements sociaux", "B → Logement, selon l'époque : cité ouvrière (1853), immeuble HBM (1894), barre HLM (1955), résidence sociale (1985). Loyer à 55 % du loyer de base ; la ville touche les loyers et paie l'entretien (budget)"],
+		["Admin", "F10 → Immobilier : couper le marché vivant (promoteurs, gentrification) ou les bidonvilles"],
+	]],
 	["Objectifs du pays", [
 		["Maj+J", "panneau Objectifs : réputation du pays (étoiles), missions en cours, rang de chaque ville, succès"],
 		["Missions", "3 missions à la fois, tirées selon tes villes (faire grandir une ville, ouvrir une école, rendre une ville heureuse, faire baisser le chômage, rembourser ses emprunts, fonder une ville, relier deux villes, créer une ligne) ; chacune a un délai et une prime versée au pays"],

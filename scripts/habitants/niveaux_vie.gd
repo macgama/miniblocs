@@ -54,7 +54,7 @@ const BESOINS_NIVEAU := [
 ]
 ## Nom et conseil de chaque besoin (le conseil s'affiche dans le panneau).
 const BESOINS := {
-	"toit": ["Un vrai logement", "Les fondateurs sous la tente attendent des maisons."],
+	"toit": ["Un vrai logement", "Fondateurs sous la tente, familles des bidonvilles : il faut de vrais logements abordables (logements sociaux, B → Logement ; F7 → Bidonvilles)."],
 	"nourriture": ["De quoi manger", "Une boulangerie, une supérette ou un marché approvisionné à proximité (P → commerces)."],
 	"eau": ["Eau courante", "Raccorde le quartier à l'eau potable (O)."],
 	"electricite": ["Électricité", "Pas de coupure de courant (O)."],
@@ -230,6 +230,9 @@ func plafond_logement(bid: int) -> int:
 	var info: Dictionary = population.known[bid]
 	if bool(info.get("camp", false)):
 		return 0
+	# Baraque d'un bidonville : précaire, ou modeste une fois viabilisé (Immobilier).
+	if Immobilier.precaire(bid):
+		return 1 if Immobilier.viabilise(bid) else 0
 	var score := 0
 	if bool(info.get("house", false)):
 		score += 1

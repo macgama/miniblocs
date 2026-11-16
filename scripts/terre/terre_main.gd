@@ -119,6 +119,9 @@ var telecom_panel: TelecomPanel
 var nuisances: Nuisances
 ## Agrandissements (3 niveaux), rénovations et densification du zonage.
 var ameliorations: Ameliorations
+## Immobilier vivant (F7) : prix, promoteurs, gentrification, bidonvilles, logements sociaux.
+var immobilier: Immobilier
+var immobilier_panel: ImmobilierPanel
 ## Panneau « Cartes » (touche N) : cartes de couleur de tous les systèmes.
 var cartes_panel: CartesPanel
 ## Villages du joueur et leur territoire (Maj+M, scripts/communes).
@@ -218,6 +221,7 @@ func _ready() -> void:
 	_setup_pays()
 	_setup_commerce()
 	_setup_niveaux_vie()
+	_setup_immobilier()
 	_setup_statistiques()
 	_setup_journal()
 	_setup_tutoriel()
@@ -401,6 +405,7 @@ func save_sections() -> Dictionary:
 	sec["kit"] = kit.to_dict()
 	sec["rue_fondation"] = rue_fondation.to_dict()
 	sec["niveaux_vie"] = niveaux_vie.to_dict()
+	sec["immobilier"] = immobilier.to_dict()
 	sec["statistiques"] = statistiques.to_dict()
 	sec["journal"] = journal.to_dict()
 	sec["tutoriel"] = tutoriel.to_dict()
@@ -577,6 +582,8 @@ func load_game(slot := "") -> bool:
 	nuisances.from_dict(sec.get("nuisances", {}))
 	# Après les habitants : niveau de chaque foyer (ancienne partie : évalués au premier jour).
 	niveaux_vie.from_dict(sec.get("niveaux_vie", {}))
+	# Après les bâtiments et les habitants : bidonvilles, logements de standing, prix.
+	immobilier.from_dict(sec.get("immobilier", {}))
 	statistiques.from_dict(sec.get("statistiques", {}))
 	# Après les villages : une partie d'avant le time-lapse filme ses villages dès maintenant.
 	if sec.has("timelapse"):
@@ -1006,6 +1013,47 @@ func _setup_niveaux_vie() -> void:
 		"niveau moyen des foyers de chaque logement : du rouge (précaire) au bleu (très aisé). Maj+N : ce qui les empêche de monter.")
 	niveaux_vie_panel.carte_requested.connect(func() -> void: Calques.afficher("habitants_niveaux", true))
 	hud.niveaux_vie_requested.connect(func() -> void: niveaux_vie_panel.toggle())
+## Immobilier vivant (F7) : indice des prix par ville, promoteurs et permis,
+## gentrification par secteur, bidonvilles, logements sociaux ; carte « Quartiers
+## qui changent » dans les Cartes (N → Immobilier).
+func _setup_immobilier() -> void:
+	immobilier = Immobilier.new()
+	immobilier.name = "Immobilier"
+	add_child(immobilier)
+	immobilier.setup(buildings, population, nuisances, zones, ameliorations)
+	immobilier.message.connect(func(t: String) -> void: hud.show_message(t))
+	immobilier.changed.connect(func() -> void: _unsaved = true)
+	immobilier_panel = ImmobilierPanel.new()
+	immobilier_panel.name = "PanneauImmobilier"
+	add_child(immobilier_panel)
+	immobilier_panel.setup(immobilier)
+	immobilier_panel.lieu_requested.connect(func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
+	var cg := CalqueCouleur.new()
+	cg.name = "CalqueGentrification"
+	cg.world = world
+	cg.focus = rig
+	cg.degrade = CalqueCouleur.degrade_valeur()
+	cg.alpha = Vector2(0.55, 0.8)
+	add_child(cg)
+	var im := immobilier
+	cg.valeur = func(x: float, z: float) -> float:
+		var k := Immobilier.secteur_de(Vector3(x, 0, z))
+		if not im.secteurs.has(k):
+			return -1.0
+		# Bidonville : rouge vif.
+		var bq := buildings.building_at(Vector2i(floori(x), floori(z)))
+		if bq >= 0 and Immobilier.precaire(bq):
+			return 0.0
+		return clampf(0.5 + im.evolution_secteur(k) * 2.0, 0.0, 1.0)
+	im.changed.connect(cg.rafraichir)
+	Calques.ajouter("immobilier_quartiers", "Quartiers qui changent", "Immobilier", cg.montrer,
+		"évolution des prix sur six mois par secteur de 200 m : bleu, il s'embourgeoise ; rouge, il se paupérise (et les bidonvilles). F7 : panneau Immobilier.")
+	immobilier_panel.carte_requested.connect(func() -> void: Calques.afficher("immobilier_quartiers", true))
+	hud.immobilier_requested.connect(func() -> void: immobilier_panel.toggle())
+
+
 ## Statistiques dans le temps et conseiller (Maj+I, menu Infos).
 func _setup_statistiques() -> void:
 	statistiques = Statistiques.new()
@@ -2634,6 +2682,8 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 		rue_fondation.clear()
 	if niveaux_vie != null:
 		niveaux_vie.clear()
+	if immobilier != null:
+		immobilier.clear()
 	if journal != null:
 		journal.clear()
 	if communes != null:

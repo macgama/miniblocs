@@ -128,8 +128,13 @@ func _remplit() -> void:
 	var cat := String(_cats.get_item_metadata(_cats.selected))
 	for e: Dictionary in Decors.de_categorie(cat):
 		var t: Array = e.taille
-		_liste.add_item(String(e.nom))
-		_liste.set_item_tooltip(_liste.item_count - 1, "%s\n%.1f × %.1f m, %.1f m de haut, %d triangles" % [e.nom, t[0], t[1], t[2], e.triangles])
+		var y := EpoquesObjets.annee_decor(String(e.id))
+		var libre := EpoquesObjets.decor_disponible(String(e.id))
+		_liste.add_item(String(e.nom) if libre else "%s (arrive en %d)" % [e.nom, y])
+		_liste.set_item_tooltip(_liste.item_count - 1, "%s\n%.1f × %.1f m, %.1f m de haut, %d triangles%s" % [e.nom, t[0], t[1], t[2], e.triangles,
+			"" if y == 0 else ("\nDepuis %d" % y if libre else "\n" + EpoquesObjets.raison(y))])
+		# Pas encore inventé à l'époque de la partie : visible mais pas choisissable.
+		_liste.set_item_disabled(_liste.item_count - 1, not libre)
 		_ids.append(e.id)
 
 

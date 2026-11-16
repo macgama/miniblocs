@@ -173,6 +173,9 @@ const SECTIONS := [
 	["Habitants", [
 		["H", "panneau Habitants : la ville en chiffres, la liste des habitants, le budget de la ville"],
 		["Clic sur un bâtiment (outil 1)", "fiche du bâtiment : logements, employés, élèves, qui y vit et qui s'y trouve en ce moment"],
+		["Agrandir (fiche du bâtiment)", "3 niveaux : niveau 2 = 50 % de places en plus (logements, emplois, élèves, lits, MW…), niveau 3 = le double ; un étage de plus, un vrai chantier payé au fil des travaux, le bâtiment reste ouvert"],
+		["Rénover (fiche du bâtiment)", "bâtiment usé : façade et toit refaits, l'usure repart de zéro (15 % du prix)"],
+		["Densification", "un bâtiment du zonage plein, dans un quartier qui prend de la valeur et une ville qui demande des logements, des commerces ou des industries, s'agrandit tout seul aux frais de ses propriétaires"],
 		["Clic sur un nom", "profil : âge, foyer, travail ou école, loisirs, budget et journée heure par heure"],
 		["Vitesse de la vie", "réglage du panneau : 1 an de vie = 1 mois de jeu par défaut, ou très rapide (1 an = 1 jour), ou réaliste"],
 		["Fiche d'un habitant", "sa vie en frise et son CV (écoles, diplômes, emplois, couple, enfants, santé, médailles), sa famille cliquable, même après sa mort"],

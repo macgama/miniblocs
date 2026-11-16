@@ -445,6 +445,69 @@ func _view_list() -> void:
 		_text("… et %d autres (affine la recherche)." % (total - shown), true)
 
 
+## Agrandissement (3 niveaux) et rénovation d'un bâtiment (Ameliorations).
+func _fiche_amelioration(bid: int) -> void:
+	var am := Ameliorations.instance
+	if am == null or not am.buildings.buildings.has(bid):
+		return
+	var b: Dictionary = am.buildings.buildings[bid]
+	var tid := String(b.t)
+	var niv := Ameliorations.niveau(b)
+	var ok_type := Ameliorations.ameliorable(tid)
+	if not ok_type and am.usure(bid) < Ameliorations.USURE_RENOV:
+		return
+	_section("Agrandissement · niveau %d sur %d" % [niv, Ameliorations.NIVEAU_MAX] if ok_type else "Entretien")
+	if ok_type:
+		_text("Capacité : %s%s" % [am.texte_capacites(bid), " (×%s)" % str(Ameliorations.facteur(b)).replace(".", ",") if niv > 1 else ""], true, 12)
+	var usure := am.usure(bid)
+	_text("État : %s" % ("neuf" if usure < 0.1 else ("bon" if usure < 0.3 else ("usé" if usure < 0.6 else "très usé"))), true, 12)
+	var a := am.en_cours(bid)
+	if not a.is_empty():
+		var quoi := "Agrandissement au niveau %d" % int(a.cible) if String(a.op) == "niv" else "Rénovation"
+		var txt := "%s : %d %%" % [quoi, floori(float(a.av) * 100.0)]
+		if a.get("attente", false):
+			txt += " · arrêté, la caisse est vide"
+		else:
+			txt += " · fin vers le %s" % am._date_fin(bid)
+		if bool(a.get("prive", false)):
+			txt += " · payé par les propriétaires"
+		_text(txt, false, 13)
+		return
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+	if ok_type and niv < Ameliorations.NIVEAU_MAX:
+		var cible := niv + 1
+		var up := Button.new()
+		up.text = "Agrandir · %s" % BuildingSystem.format_money(am.cout(bid, cible))
+		up.icon = Icones.get_icon("construire", 18)
+		up.focus_mode = Control.FOCUS_NONE
+		var why := am.refus_agrandir(bid)
+		up.disabled = why != ""
+		up.tooltip_text = "Niveau %d : %s (au lieu de %s).\nUn étage de plus, chantier d'environ %s, payé au fil des travaux. Le bâtiment reste ouvert pendant les travaux.%s" % [
+			cible, am.texte_capacites(bid, cible), am.texte_capacites(bid), Chantiers.duree_texte(am.duree_prevue(bid, cible)), ("\n" + why) if why != "" else ""]
+		up.pressed.connect(func() -> void:
+			am.agrandir(bid)
+			refresh())
+		row.add_child(up)
+	var why_r := am.refus_renover(bid)
+	if usure >= Ameliorations.USURE_RENOV:
+		var re := Button.new()
+		re.text = "Rénover · %s" % BuildingSystem.format_money(am.cout(bid, 0))
+		re.icon = Icones.get_icon("peinture", 18)
+		re.focus_mode = Control.FOCUS_NONE
+		re.disabled = why_r != ""
+		re.tooltip_text = "Façade et toit refaits à neuf : l'usure repart de zéro. Chantier d'environ %s.%s" % [
+			Chantiers.duree_texte(am.duree_prevue(bid, 0)), ("\n" + why_r) if why_r != "" else ""]
+		re.pressed.connect(func() -> void:
+			am.renover(bid)
+			refresh())
+		row.add_child(re)
+	if row.get_child_count() > 0:
+		_body.add_child(row)
+	elif niv >= Ameliorations.NIVEAU_MAX:
+		_text("Agrandi au maximum.", true, 12)
+
+
 func _view_building(bid: int) -> void:
 	var info: Dictionary = pop.known[bid]
 	_title.text = pop.building_name(bid)
@@ -509,6 +572,7 @@ func _view_building(bid: int) -> void:
 		cu.pressed.connect(func() -> void: customize_requested.emit(bid))
 		acts.add_child(cu)
 	_body.add_child(acts)
+	_fiche_amelioration(bid)
 	if int(info.log) > 0:
 		var homes: Array = pop.by_home.get(bid, [])
 		var n := 0

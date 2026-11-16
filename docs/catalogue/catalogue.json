@@ -2900,6 +2900,56 @@
 		"source": "table"
 	},
 	{
+		"annee": 1853,
+		"evol": "Agrandissable : niveau 2 (+50 %, 780 k€), niveau 3 (×2, 1,0 M€) ; rénovation 195 k€",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "cite_ouvriere",
+		"info": "34 × 16 m · 1,3 M€ · 8 logements",
+		"nom": "Cité ouvrière",
+		"source": "propre"
+	},
+	{
+		"annee": 1894,
+		"evol": "Agrandissable : niveau 2 (+50 %, 2,7 M€), niveau 3 (×2, 3,6 M€) ; rénovation 675 k€",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "hbm",
+		"info": "24 × 16 m · 4,5 M€ · 30 logements",
+		"nom": "Immeuble HBM",
+		"source": "propre"
+	},
+	{
+		"annee": 1955,
+		"evol": "Agrandissable : niveau 2 (+50 %, 7,2 M€), niveau 3 (×2, 9,6 M€) ; rénovation 1,8 M€",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "hlm_barre",
+		"info": "62 × 14 m · 12 M€ · 120 logements",
+		"nom": "Barre HLM",
+		"source": "propre"
+	},
+	{
+		"annee": 1985,
+		"evol": "Agrandissable : niveau 2 (+50 %, 3,9 M€), niveau 3 (×2, 5,2 M€) ; rénovation 975 k€",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "residence_sociale",
+		"info": "26 × 18 m · 6,5 M€ · 36 logements",
+		"nom": "Résidence sociale",
+		"source": "propre"
+	},
+	{
+		"annee": 1960,
+		"evol": "Agrandissable : niveau 2 (+50 %, 5,4 M€), niveau 3 (×2, 7,2 M€) ; rénovation 1,4 M€",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "residence_standing",
+		"info": "28 × 22 m · 9 M€ · 24 logements",
+		"nom": "Résidence de standing",
+		"source": "propre"
+	},
+	{
 		"annee": 0,
 		"evol": "Agrandissable : niveau 2 (+50 %, 135 k€), niveau 3 (×2, 180 k€) ; rénovation 34 k€ · 4 variantes de façade",
 		"fam": "batiments",
@@ -6320,6 +6370,66 @@
 		"source": "propre"
 	},
 	{
+		"annee": 1880,
+		"evol": "Agrandissable : niveau 2 (+50 %, 11 M€), niveau 3 (×2, 14 M€) ; rénovation 2,7 M€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Services publics",
+		"id": "ecole_professionnelle",
+		"info": "52 × 34 m · 18 M€ · 60 emplois · 900 visiteurs · style Briques industrielles",
+		"nom": "École professionnelle",
+		"source": "propre"
+	},
+	{
+		"annee": 1874,
+		"evol": "Agrandissable : niveau 2 (+50 %, 7,2 M€), niveau 3 (×2, 9,6 M€) ; rénovation 1,8 M€ · 4 variantes de façade · Même rôle selon l'époque : Technicum (1874) → Haute école (HES, IUT) (1997)",
+		"fam": "batiments",
+		"groupe": "Services publics",
+		"id": "technicum",
+		"info": "48 × 32 m · 12 M€ · 80 emplois · 700 visiteurs · style Briques industrielles",
+		"nom": "Technicum",
+		"source": "propre"
+	},
+	{
+		"annee": 1997,
+		"evol": "Agrandissable : niveau 2 (+50 %, 27 M€), niveau 3 (×2, 36 M€) ; rénovation 6,8 M€ · 4 variantes de façade · Même rôle selon l'époque : Technicum (1874) → Haute école (HES, IUT) (1997)",
+		"fam": "batiments",
+		"groupe": "Services publics",
+		"id": "haute_ecole",
+		"info": "60 × 40 m · 45 M€ · 220 emplois · 2000 visiteurs · style Verre et acier",
+		"nom": "Haute école (HES, IUT)",
+		"source": "propre"
+	},
+	{
+		"annee": 1830,
+		"evol": "Agrandissable : niveau 2 (+50 %, 3,6 M€), niveau 3 (×2, 4,8 M€) ; rénovation 900 k€ · 4 variantes de façade · Même rôle selon l'époque : École normale (1830) → Haute école pédagogique (HEP) (2001)",
+		"fam": "batiments",
+		"groupe": "Services publics",
+		"id": "ecole_normale",
+		"info": "36 × 26 m · 6 M€ · 30 emplois · 300 visiteurs · style Haussmannien",
+		"nom": "École normale",
+		"source": "propre"
+	},
+	{
+		"annee": 2001,
+		"evol": "Agrandissable : niveau 2 (+50 %, 15 M€), niveau 3 (×2, 20 M€) ; rénovation 3,8 M€ · 4 variantes de façade · Même rôle selon l'époque : École normale (1830) → Haute école pédagogique (HEP) (2001)",
+		"fam": "batiments",
+		"groupe": "Services publics",
+		"id": "haute_ecole_pedagogique",
+		"info": "44 × 30 m · 25 M€ · 120 emplois · 1200 visiteurs · style Style international",
+		"nom": "Haute école pédagogique (HEP)",
+		"source": "propre"
+	},
+	{
+		"annee": 1925,
+		"evol": "Agrandissable : niveau 2 (+50 %, 5,4 M€), niveau 3 (×2, 7,2 M€) ; rénovation 1,4 M€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "residence_etudiante",
+		"info": "22 × 16 m · 9 M€ · 80 logements · style Brutaliste",
+		"nom": "Résidence étudiante",
+		"source": "propre"
+	},
+	{
 		"annee": 1800,
 		"evol": "Agrandissable : niveau 2 (+50 %, 132 k€), niveau 3 (×2, 176 k€) ; rénovation 33 k€",
 		"fam": "batiments",
@@ -6657,6 +6767,136 @@
 		"id": "phare_granit",
 		"info": "12 × 12 m · 900 k€ · 2 emplois · 20 visiteurs",
 		"nom": "Phare de granit",
+		"source": "propre"
+	},
+	{
+		"annee": 0,
+		"evol": "Agrandissable : niveau 2 (+50 %, 54 M€), niveau 3 (×2, 72 M€) ; rénovation 14 M€",
+		"fam": "batiments",
+		"groupe": "Patrimoine et grands monuments",
+		"id": "grande_cathedrale",
+		"info": "46 × 112 m · 90 M€ · 14 emplois · 3000 visiteurs · Europe",
+		"nom": "Grande cathédrale gothique",
+		"source": "propre"
+	},
+	{
+		"annee": 0,
+		"evol": "Agrandissable : niveau 2 (+50 %, 42 M€), niveau 3 (×2, 56 M€) ; rénovation 11 M€",
+		"fam": "batiments",
+		"groupe": "Patrimoine et grands monuments",
+		"id": "basilique_coupole",
+		"info": "64 × 82 m · 70 M€ · 10 emplois · 2400 visiteurs · Méditerranée",
+		"nom": "Basilique à coupole",
+		"source": "propre"
+	},
+	{
+		"annee": 0,
+		"evol": "Agrandissable : niveau 2 (+50 %, 36 M€), niveau 3 (×2, 48 M€) ; rénovation 9 M€",
+		"fam": "batiments",
+		"groupe": "Patrimoine et grands monuments",
+		"id": "grande_mosquee",
+		"info": "90 × 96 m · 60 M€ · 10 emplois · 2000 visiteurs · Moyen-Orient et Maghreb",
+		"nom": "Grande mosquée à coupoles",
+		"source": "propre"
+	},
+	{
+		"annee": 0,
+		"evol": "Agrandissable : niveau 2 (+50 %, 11 M€), niveau 3 (×2, 14 M€) ; rénovation 2,7 M€",
+		"fam": "batiments",
+		"groupe": "Patrimoine et grands monuments",
+		"id": "pagode_neuf_etages",
+		"info": "34 × 34 m · 18 M€ · 5 emplois · 1200 visiteurs · Asie de l'Est",
+		"nom": "Pagode à neuf étages",
+		"source": "propre"
+	},
+	{
+		"annee": 1851,
+		"evol": "Agrandissable : niveau 2 (+50 %, 24 M€), niveau 3 (×2, 32 M€) ; rénovation 6 M€",
+		"fam": "batiments",
+		"groupe": "Patrimoine et grands monuments",
+		"id": "palais_cristal",
+		"info": "150 × 56 m · 40 M€ · 20 emplois · 4000 visiteurs · Europe",
+		"nom": "Palais de verre et de fonte",
+		"source": "propre"
+	},
+	{
+		"annee": 1861,
+		"evol": "Agrandissable : niveau 2 (+50 %, 45 M€), niveau 3 (×2, 60 M€) ; rénovation 11 M€",
+		"fam": "batiments",
+		"groupe": "Patrimoine et grands monuments",
+		"id": "grand_opera",
+		"info": "72 × 112 m · 75 M€ · 60 emplois · 2000 visiteurs · Europe",
+		"nom": "Grand opéra",
+		"source": "propre"
+	},
+	{
+		"annee": 1884,
+		"evol": "Agrandissable : niveau 2 (+50 %, 13 M€), niveau 3 (×2, 18 M€) ; rénovation 3,3 M€",
+		"fam": "batiments",
+		"groupe": "Patrimoine et grands monuments",
+		"id": "statue_colossale",
+		"info": "56 × 56 m · 22 M€ · 8 emplois · 2500 visiteurs",
+		"nom": "Statue colossale du Génie",
+		"source": "propre"
+	},
+	{
+		"annee": 1887,
+		"evol": "Agrandissable : niveau 2 (+50 %, 33 M€), niveau 3 (×2, 44 M€) ; rénovation 8,2 M€",
+		"fam": "batiments",
+		"groupe": "Patrimoine et grands monuments",
+		"id": "tour_fer",
+		"info": "110 × 110 m · 55 M€ · 30 emplois · 6000 visiteurs · Europe",
+		"nom": "Tour de fer de 240 m",
+		"source": "propre"
+	},
+	{
+		"annee": 1905,
+		"evol": "Agrandissable : niveau 2 (+50 %, 108 M€), niveau 3 (×2, 144 M€) ; rénovation 27 M€",
+		"fam": "batiments",
+		"groupe": "Patrimoine et grands monuments",
+		"id": "barrage_poids",
+		"info": "230 × 48 m · 180 M€ · 40 emplois · 600 visiteurs",
+		"nom": "Grand barrage hydroélectrique",
+		"source": "propre"
+	},
+	{
+		"annee": 1930,
+		"evol": "Agrandissable : niveau 2 (+50 %, 96 M€), niveau 3 (×2, 128 M€) ; rénovation 24 M€",
+		"fam": "batiments",
+		"groupe": "Patrimoine et grands monuments",
+		"id": "gratte_ciel_art_deco",
+		"info": "56 × 56 m · 160 M€ · 900 emplois · 3000 visiteurs · Amériques",
+		"nom": "Gratte-ciel Art déco",
+		"source": "propre"
+	},
+	{
+		"annee": 1965,
+		"evol": "Agrandissable : niveau 2 (+50 %, 23 M€), niveau 3 (×2, 30 M€) ; rénovation 5,7 M€",
+		"fam": "batiments",
+		"groupe": "Patrimoine et grands monuments",
+		"id": "tour_television",
+		"info": "44 × 44 m · 38 M€ · 40 emplois · 2500 visiteurs",
+		"nom": "Tour de télévision",
+		"source": "propre"
+	},
+	{
+		"annee": 1985,
+		"evol": "Agrandissable : niveau 2 (+50 %, 72 M€), niveau 3 (×2, 96 M€) ; rénovation 18 M€",
+		"fam": "batiments",
+		"groupe": "Patrimoine et grands monuments",
+		"id": "arche_fraternite",
+		"info": "116 × 100 m · 120 M€ · 500 emplois · 2000 visiteurs · Europe",
+		"nom": "Arche de la Fraternité",
+		"source": "propre"
+	},
+	{
+		"annee": 2008,
+		"evol": "Agrandissable : niveau 2 (+50 %, 360 M€), niveau 3 (×2, 480 M€) ; rénovation 90 M€",
+		"fam": "batiments",
+		"groupe": "Patrimoine et grands monuments",
+		"id": "tour_verre_600",
+		"info": "78 × 78 m · 600 M€ · 3000 emplois · 5000 visiteurs",
+		"nom": "Tour-flèche de 600 m",
 		"source": "propre"
 	},
 	{
@@ -8087,7 +8327,7 @@
 		"id": "lycee",
 		"info": "67 × 47 m · 28 M€ · 110 emplois · 1200 visiteurs · Europe",
 		"nom": "Lycée",
-		"source": "ajoutee"
+		"source": "table"
 	},
 	{
 		"annee": 0,
@@ -8097,7 +8337,7 @@
 		"id": "universite",
 		"info": "93 × 56 m · 80 M€ · 400 emplois · 3000 visiteurs · Europe",
 		"nom": "Université",
-		"source": "ajoutee"
+		"source": "table"
 	},
 	{
 		"annee": 1970,

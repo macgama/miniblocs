@@ -159,6 +159,7 @@ static func all_types() -> Dictionary:
 		_all.merge(ImmobilierTypes.entries())
 		_all.merge(StyleBuilder.generate())
 		_all.merge(EpoquesTypes.entries())
+		_all.merge(EducationTypes.entries())
 		_all.merge(EpoquesBatiments.entries(_all))
 		_all.merge(MonumentsTypes.entries())
 		_all.merge(BibleGlb.entries())

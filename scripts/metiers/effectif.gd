@@ -82,6 +82,8 @@ static func requis_min_de(type_id: String) -> int:
 
 
 static func requis_de(type_id: String) -> Array:
+	if EducationTypes.REQUIS.has(type_id):
+		return EducationTypes.REQUIS[type_id]
 	for k in Metiers.keys_of(type_id):
 		if REQUIS.has(k):
 			return REQUIS[k]
@@ -101,6 +103,8 @@ func actualiser(force := false) -> bool:
 	var sig := pop.known.size() * 1000003 + pop.by_home.size() * 7919
 	for bid in pop.by_job:
 		sig = sig * 31 + int(bid) * 7 + (pop.by_job[bid] as Array).size()
+	if not pop.edu.externes.is_empty():
+		sig = sig * 31 + hash(pop.edu.externes)
 	if sig == _signature and not force:
 		return false
 	_signature = sig
@@ -128,7 +132,13 @@ func _calcul(bid: int) -> Dictionary:
 		if pop.persons.has(pid):
 			var m := String(pop.persons[pid].met)
 			par_metier[m] = int(par_metier.get(m, 0)) + 1
-	var ferme := staff.is_empty()
+	# Frontaliers et pendulaires (Education) : ils tiennent aussi leur poste.
+	var ext: Dictionary = pop.edu.externes.get(bid, {})
+	var n_ext := 0
+	for m in ext:
+		par_metier[m] = int(par_metier.get(m, 0)) + int(ext[m])
+		n_ext += int(ext[m])
+	var ferme := staff.is_empty() and n_ext == 0
 	var raison := "aucun employé" if ferme else ""
 	if not ferme and not requis.is_empty():
 		var ok := false
@@ -151,15 +161,15 @@ func _calcul(bid: int) -> Dictionary:
 				ferme = true
 				var nom := String(Metiers.job(String(requis[0])).name).to_lower().get_slice(" (", 0)
 				raison = "%d %s sur les %d qu'il faut" % [n, nom, mini]
-	var taux := float(staff.size()) / maxf(1.0, float(prevus))
-	var out := {"prevus": prevus, "embauches": staff.size(), "par_metier": par_metier, "requis": requis,
+	var taux := float(staff.size() + n_ext) / maxf(1.0, float(prevus))
+	var out := {"prevus": prevus, "embauches": staff.size() + n_ext, "externes": n_ext, "par_metier": par_metier, "requis": requis,
 		"ferme": ferme, "raison": raison, "taux": taux, "manque": ferme or taux < SOUS_EFFECTIF}
 	if est_commerce(info):
 		var clients := pop.clients_commerce(bid)
 		var besoin := clampi(ceili(float(clients) / HAB_PAR_VENDEUR), 1, maxi(prevus, 1))
 		out.clients = clients
 		out.besoin = besoin
-		out.manque = ferme or staff.size() < ceili(besoin * SOUS_EFFECTIF)
+		out.manque = ferme or staff.size() + n_ext < ceili(besoin * SOUS_EFFECTIF)
 	return out
 
 

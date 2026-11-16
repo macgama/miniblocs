@@ -169,6 +169,8 @@ var _player_id := ""
 var principal: PersonnagePrincipal
 ## Personnel des bâtiments : fermés faute d'employés, sous-effectif (scripts/metiers).
 var effectif: Effectif
+## Systèmes scolaires, diplômes et qualifications (scripts/education).
+var edu: Education
 ## Clic sur un employé visible (vue métiers) : Callable(écran, caméra) -> pid ou -1.
 var extra_person_pick: Callable
 ## Prénom imposé au prochain habitant créé (mode streamer : pseudo d'un
@@ -182,6 +184,7 @@ func _init() -> void:
 	vie = CycleVie.new(self)
 	principal = PersonnagePrincipal.new(self)
 	effectif = Effectif.new(self)
+	edu = Education.new(self)
 
 
 func _ready() -> void:
@@ -423,6 +426,7 @@ func _info_of(b: Dictionary) -> Dictionary:
 		"emp": int(b.get("nemp", roundi(int(t.get("emplois", 0)) * fa))), "camp": bool(t.get("campement", false)), "seats": seats, "pos": BuildingSystem.rect_center(rect) + Vector3(0, float(b.get("h", 0.0)), 0),
 		"rect": rect, "public": String(t.get("cat", "")) == "services", "cost": int(b.get("cost", BuildingCatalog.cost(String(b.t)))),
 		"house": t.get("arch", t.get("role", String(b.t))) in ["maison", "villa", "grande_maison", "ferme"],
+		"etu": bool(t.get("etudiants", false)),
 		"region": String(t.get("region", "monde"))}
 
 
@@ -460,6 +464,7 @@ func _sync_buildings(etaler := false) -> void:
 				added = true
 			known[bid] = info
 	if added or not gone.is_empty():
+		edu.oublier_batiments()
 		_vider_lieux()
 		_transit_cache.clear()
 		vie.clear_cache()
@@ -504,7 +509,7 @@ func free_homes(bid: int) -> int:
 func free_jobs(bid: int) -> int:
 	if not known.has(bid):
 		return 0
-	return int(known[bid].emp) - (by_job.get(bid, []) as Array).size()
+	return int(known[bid].emp) - (by_job.get(bid, []) as Array).size() - edu.externes_de(bid) + edu.apprentis_de(bid)
 
 
 func free_seats(bid: int) -> int:
@@ -569,6 +574,8 @@ func spawn_household(bid: int, kind := "") -> int:
 	(by_home[bid] as Array).append(hid)
 	var surname := Prenoms.family_name(rng, region)
 	match kind:
+		"etudiant":
+			_add_person(hid, "F" if rng.randf() < 0.5 else "H", rng.randf_range(18.6, 23.0), "adulte", surname)
 		"seul":
 			var a := rng.randf_range(19.0, 85.0)
 			_add_person(hid, "F" if rng.randf() < 0.5 else "H", a, "adulte", surname)
@@ -660,11 +667,16 @@ func _remove_person(pid: int, check_household := true, archive := "") -> void:
 func _leave_job(p: Dictionary, reason := "") -> void:
 	if int(p.job) >= 0:
 		(by_job.get(int(p.job), []) as Array).erase(int(p.id))
+		edu.oublier_postes(int(p.job))
 		emplois_version += 1
 		if reason != "":
 			vie.log_event(p, "fin_emploi", reason, int(p.job))
 	p.job = -1
 	p.met = ""
+	p.nq = false
+	# Un apprenti qui perd sa place cherche une autre entreprise formatrice.
+	if float(p.get("apf", -1.0)) > life_clock:
+		p.apf = -1.0
 
 
 func _leave_school(p: Dictionary) -> void:
@@ -684,7 +696,11 @@ func stage(p: Dictionary) -> String:
 	var a := age_of(p)
 	if a < SCHOOL_AGE:
 		return "bebe"
-	if a < ADULT_AGE:
+	# Apprentissage chez un employeur (CFC, CAP) : dès 15 ans, jusqu'au diplôme.
+	if float(p.get("apf", -1.0)) > life_clock and int(p.job) >= 0:
+		return "apprenti"
+	# Gymnase jusqu'à 19 ans en Suisse : encore élève.
+	if a < ADULT_AGE or (float(p.get("fsec", -1.0)) > life_clock and a < 25.0):
 		return "eleve"
 	if a >= RETIREMENT_AGE or bool(p.get("retr", false)):
 		return "retraite"
@@ -693,19 +709,16 @@ func stage(p: Dictionary) -> String:
 	return "actif" if int(p.job) >= 0 else "chomeur"
 
 
-const STAGE_NAMES := {"bebe": "Bébé", "eleve": "Élève", "etudiant": "Étudiant·e", "actif": "Actif·ve", "chomeur": "Sans emploi",
+const STAGE_NAMES := {"bebe": "Bébé", "eleve": "Élève", "apprenti": "Apprenti·e", "etudiant": "Étudiant·e", "actif": "Actif·ve", "chomeur": "Sans emploi",
 	"retraite": "Retraité·e"}
 
 
 func stage_label(p: Dictionary) -> String:
 	var st := stage(p)
-	if st == "eleve":
-		var lvl := Metiers.school_level(age_years(p))
-		return "Élève (%s)" % lvl if int(p.sch) >= 0 else "Enfant sans école"
+	if st == "eleve" or st == "apprenti" or st == "etudiant":
+		return edu.libelle(p)
 	if st == "actif":
 		return Metiers.job(String(p.met)).name
-	if st == "etudiant":
-		return "Étudiant%s (%s)" % [CycleVie.g(p, "", "e"), CycleVie.DIPLOMES.get(String(p.get("etd", "")), "université")]
 	return STAGE_NAMES[st]
 
 
@@ -730,6 +743,12 @@ func _immigrate(hours: float) -> void:
 		var free := free_homes(bid)
 		if free <= 0:
 			continue
+		# Résidence étudiante : seulement des étudiants, s'il y a des places dans les hautes écoles de la ville.
+		var etu := bool(known[bid].get("etu", false))
+		if etu:
+			free = mini(free, edu.places_etudiants(bid))
+			if free <= 0:
+				continue
 		var acc := float(_arrival_acc.get(bid, 0.0))
 		# Un premier foyer s'installe vite dans un logement vide.
 		if (by_home.get(bid, []) as Array).is_empty():
@@ -750,7 +769,7 @@ func _immigrate(hours: float) -> void:
 		acc -= n
 		_arrival_acc[bid] = acc
 		for i in n:
-			var hid := spawn_household(bid)
+			var hid := spawn_household(bid, "etudiant" if etu else "")
 			if hid >= 0:
 				_arrival_news.x += 1
 				_arrival_news.y += (households[hid].m as Array).size()
@@ -774,7 +793,9 @@ func _match_debut() -> Dictionary:
 		if free_jobs(bid) > 0:
 			jobs.append(bid)
 	# urgents : bâtiments fermés faute du métier indispensable, parmi ceux qui embauchent.
-	return {"schools": schools, "jobs": jobs, "urgents": [], "sale": true}
+	# ouverts : ceux qui ont encore des postes sans diplôme obligatoire.
+	var ouverts := jobs.filter(func(b: int) -> bool: return edu.a_postes_ouverts(b))
+	return {"schools": schools, "jobs": jobs, "urgents": [], "sale": true, "ouverts": ouverts, "formatrices": null}
 
 
 ## Attributions d'un habitant (école, retraite, emploi).
@@ -783,28 +804,47 @@ func _match_personne(m: Dictionary, p: Dictionary) -> void:
 	var jobs: Array = m.jobs
 	var urgents: Array = m.urgents
 	var st := stage(p)
-	if st == "eleve":
-		# École devenue trop loin (route coupée, déménagement) : on en cherche une autre.
-		if int(p.sch) >= 0 and school_ok.is_valid() and known.has(int(p.sch)) and not school_ok.call(p, int(p.sch)):
-			_leave_school(p)
+	var cyc := edu.cycle(p) if st in ["eleve", "apprenti", "etudiant"] else ""
+	if cyc != "":
+		# École devenue trop loin (route coupée, déménagement) ou d'un autre degré : on en cherche une autre.
+		if int(p.sch) >= 0 and known.has(int(p.sch)):
+			var bon := edu.accepte(int(p.sch), cyc) or (bool(p.get("mult", false)) and cyc == "sec1" and edu.accepte(int(p.sch), "primaire"))
+			if not bon or (school_ok.is_valid() and not school_ok.call(p, int(p.sch))):
+				_leave_school(p)
 		if int(p.sch) < 0 and not schools.is_empty():
-			var possibles := schools
+			var possibles := schools.filter(func(b: int) -> bool: return edu.accepte(b, cyc))
 			if school_ok.is_valid():
-				possibles = schools.filter(func(b: int) -> bool: return school_ok.call(p, b))
+				possibles = possibles.filter(func(b: int) -> bool: return school_ok.call(p, b))
+			p.mult = false
+			# Sans collège : classes à plusieurs degrés à l'école primaire.
+			if possibles.is_empty() and cyc == "sec1":
+				possibles = schools.filter(func(b: int) -> bool: return edu.accepte(b, "primaire"))
+				if school_ok.is_valid():
+					possibles = possibles.filter(func(b: int) -> bool: return school_ok.call(p, b))
+				p.mult = not possibles.is_empty()
 			var best := _nearest(home_of(p), possibles) if not possibles.is_empty() else -1
 			if best >= 0:
 				_join_school(p, best)
 				if free_seats(best) <= 0:
 					schools.erase(best)
-		if int(p.sch) >= 0:
-			var lvl := Metiers.school_level(age_years(p))
-			if String(p.get("niv", "")) != lvl:
-				p.niv = lvl
-				const ENTRE := {"maternelle": "Entre à l'école maternelle", "élémentaire": "Entre à l'école élémentaire",
-					"collège": "Entre au collège", "lycée": "Entre au lycée"}
-				vie.log_event(p, "ecole", "%s (%s)" % [ENTRE.get(lvl, "Entre à l'école"), building_name(int(p.sch))], int(p.sch))
+		# Secondaire II, apprentis et supérieur : sans bâtiment ici, on étudie dans une autre ville.
+		p.ext = int(p.sch) < 0 and not cyc in Education.OBLIGATOIRES
+		if int(p.sch) >= 0 and st == "eleve":
+			if String(p.get("niv", "")) != cyc:
+				p.niv = cyc
+				vie.log_event(p, "ecole", "Entre : %s (%s)" % [edu.nom_cycle(cyc, edu.systeme(p)), building_name(int(p.sch))], int(p.sch))
 	elif int(p.sch) >= 0:
 		_leave_school(p)
+	else:
+		p.ext = false
+	# Futur apprenti : cherche une entreprise formatrice.
+	if (st == "eleve" or (st == "chomeur" and age_of(p) < 25.0)) and String(p.get("fil", "")) in ["cfc", "afp"]:
+		# Entreprises formatrices (places d'apprentissage en plus du personnel), listées une fois par passage.
+		if m.formatrices == null:
+			m.formatrices = known.keys().filter(func(b: int) -> bool: return edu.places_apprentissage(b) > 0)
+		if edu.chercher_apprentissage(p, m.formatrices):
+			m.sale = true
+			st = stage(p)
 	if st == "retraite" and not bool(p.get("ret", false)):
 		p.ret = true
 		vie.log_event(p, "retraite", "Prend sa retraite%s" % (" (%s)" % String(Metiers.job(String(p.met)).name).to_lower()
@@ -827,20 +867,28 @@ func _match_personne(m: Dictionary, p: Dictionary) -> void:
 					if effectif.ferme(b):
 						urgents.append(b)
 			if not urgents.is_empty():
-				best = _nearest(home_of(p), urgents)
-				var req := Effectif.requis_de(String(known[best].t)) if best >= 0 else []
-				if not req.is_empty():
-					met = String(req[0])
+				# Seulement si l'habitant a le diplôme du métier qui manque.
+				var tenables := urgents.filter(func(b: int) -> bool: return edu.metier_requis_pour(p, b) != "")
+				best = _nearest(home_of(p), tenables) if not tenables.is_empty() else -1
+				if best >= 0:
+					met = edu.metier_requis_pour(p, best)
 		if best < 0:
 			best = _nearest(home_of(p), jobs)
-		if best >= 0:
-			_join_job(p, best, met)
+			# Pas de poste pour lui (diplôme exigé) : le plus proche qui embauche sans diplôme.
+			if best >= 0 and not edu.peut_travailler(p, best):
+				var ouverts: Array = m.get("ouverts", [])
+				best = _nearest(home_of(p), ouverts) if not ouverts.is_empty() else -1
+				if best >= 0 and not edu.a_postes_ouverts(best):
+					ouverts.erase(best)
+					best = -1
+		if best >= 0 and _join_job(p, best, met):
 			if effectif != null:
 				effectif.oublier(best)
 				if urgents.has(best) and (free_jobs(best) <= 0 or not effectif.ferme(best)):
 					urgents.erase(best)
 			if free_jobs(best) <= 0:
 				jobs.erase(best)
+				(m.get("ouverts", []) as Array).erase(best)
 	elif (st == "bebe" or st == "eleve") and int(p.job) >= 0:
 		_leave_job(p)
 		m.sale = true
@@ -871,6 +919,7 @@ func _match_pas(budget_us: int) -> void:
 	m.schools = (m.schools as Array).filter(func(b: int) -> bool: return known.has(b) and free_seats(b) > 0)
 	m.jobs = (m.jobs as Array).filter(func(b: int) -> bool: return known.has(b) and free_jobs(b) > 0)
 	m.urgents = (m.urgents as Array).filter(func(b: int) -> bool: return known.has(b) and free_jobs(b) > 0)
+	m.ouverts = (m.get("ouverts", []) as Array).filter(func(b: int) -> bool: return known.has(b) and free_jobs(b) > 0)
 	var ids: Array = _match_en_cours.ids
 	var i := int(_match_en_cours.i)
 	while i < ids.size():
@@ -925,29 +974,27 @@ func _join_school(p: Dictionary, bid: int) -> void:
 	(by_school[bid] as Array).append(int(p.id))
 
 
-func _join_job(p: Dictionary, bid: int, metier := "") -> void:
+## Rend false si l'habitant n'a le diplôme d'aucun poste libre du bâtiment
+## (il garde alors son emploi actuel). Un métier imposé passe toujours.
+func _join_job(p: Dictionary, bid: int, metier := "") -> bool:
+	if not known.has(bid):
+		return false
 	var had := int(p.job) >= 0
+	var nq := false
+	if metier == "":
+		# Postes libres du bâtiment selon les diplômes (les plus diplômés prennent les mieux payés).
+		var ch := edu.choisir_metier(p, bid)
+		metier = String(ch[0])
+		nq = not bool(ch[1])
+		if metier == "":
+			return false
+	else:
+		nq = not edu.qualifie(p, metier)
 	_leave_job(p)
 	p.job = bid
-	if metier == "":
-		# Les diplômes ouvrent les métiers les mieux payés (deux tirages, on garde le meilleur).
-		metier = Metiers.pick_job(rng, String(known[bid].t))
-		var dip := String(p.get("dip", ""))
-		var other := Metiers.pick_job(rng, String(known[bid].t))
-		var better := int(Metiers.job(other).salaire) > int(Metiers.job(metier).salaire)
-		if (dip in ["licence", "master"] and better) or (dip in ["", "brevet"] and not better):
-			metier = other
-		# Le métier de base du bâtiment (agriculteur d'une ferme…) est pourvu en premier :
-		# sans lui, une ferme aux deux employés tirés chauffeurs ne labourait jamais.
-		var coeur := String(Metiers.jobs_for(String(known[bid].t))[0][0])
-		var pourvu := false
-		for oid in by_job.get(bid, []):
-			if persons.has(int(oid)) and String(persons[int(oid)].get("met", "")) == coeur:
-				pourvu = true
-				break
-		if not pourvu:
-			metier = coeur
 	p.met = metier
+	p.nq = nq
+	edu.oublier_postes(bid)
 	if not by_job.has(bid):
 		by_job[bid] = []
 	(by_job[bid] as Array).append(int(p.id))
@@ -955,6 +1002,7 @@ func _join_job(p: Dictionary, bid: int, metier := "") -> void:
 	var j := Metiers.job(String(p.met))
 	vie.log_event(p, "emploi", "%s %s à %s (%s net par mois)" % ["Change de travail : devient" if had else "Devient",
 		String(j.name).to_lower(), building_name(bid), HabitantsPanel.money(float(j.salaire) * ReglagesPartie.actuel.salaires)], bid)
+	return true
 
 
 ## Chaque nouveau jour : économie, naissances, décès, départs de chez les parents.
@@ -968,6 +1016,7 @@ func _new_day() -> void:
 
 
 func _fin_du_jour() -> void:
+	edu.quotidien()
 	_mobilite()
 	vie.flush_digest()
 	changed.emit()
@@ -1056,7 +1105,8 @@ func _mobilite() -> void:
 					continue
 				if Production.instance != null and Production.instance.busy.has(int(pid)):
 					continue
-				_join_job(p, cible)
+				if not _join_job(p, cible):
+					continue
 				if effectif != null:
 					effectif.oublier(cible)
 					effectif.oublier(d)
@@ -1107,7 +1157,7 @@ func _mobilite_requis() -> void:
 				if float((by_job[d] as Array).size() - 1) / emp < 0.5 or faits >= MOBILITE_REQUIS:
 					break
 				var p: Dictionary = persons[pid]
-				if requis_d.has(String(p.met)) or stage(p) != "actif" or String(p.get("joueur", "")) != "":
+				if requis_d.has(String(p.met)) or stage(p) != "actif" or String(p.get("joueur", "")) != "" or not edu.qualifie(p, met):
 					continue
 				if Production.instance != null and Production.instance.busy.has(int(pid)):
 					continue
@@ -1120,10 +1170,11 @@ func _mobilite_requis() -> void:
 
 
 ## Un jeune adulte quitte ses parents s'il trouve un logement libre.
-func _move_out(pid: int) -> void:
+## texte : étape du CV ("%s" : le logement), par défaut le départ de chez les parents.
+func _move_out(pid: int, texte := "") -> void:
 	var homes := []
 	for bid in known:
-		if free_homes(bid) > 0 and not Immobilier.precaire(bid):
+		if free_homes(bid) > 0 and not bool(known[bid].get("etu", false)) and not Immobilier.precaire(bid):
 			homes.append(bid)
 	if homes.is_empty():
 		return
@@ -1140,7 +1191,7 @@ func _move_out(pid: int) -> void:
 	p.f = hid
 	version += 1
 	p.r = "adulte"
-	vie.log_event(p, "demenage", "Quitte ses parents et s'installe à %s" % building_name(bid), bid)
+	vie.log_event(p, "demenage", (texte if texte != "" else "Quitte ses parents et s'installe à %s") % building_name(bid), bid)
 	if int(households[hid].car) > 0:
 		if not bool(p.get("perm", false)):
 			p.perm = true
@@ -1166,6 +1217,8 @@ func income_of(p: Dictionary) -> float:
 			return ALLOCATION
 		"etudiant":
 			return BOURSE
+		"apprenti":
+			return float(Metiers.job(String(p.met)).salaire) * Education.SALAIRE_APPRENTI * ReglagesPartie.actuel.salaires
 	return 0.0
 
 
@@ -1628,7 +1681,7 @@ func _base_plan(p: Dictionary, n: Dictionary) -> Array:
 				start = 8.5
 				end = 12.0 if n.wd == 3 else 16.5
 				kind = "ecole"
-				where = "À l'école (%s)" % Metiers.school_class(age_years(p))
+				where = "À l'école (%s)" % edu.classe(p)
 		"actif":
 			wake = 6.5
 			sleep = 23.0
@@ -1640,6 +1693,32 @@ func _base_plan(p: Dictionary, n: Dictionary) -> Array:
 				kind = "travail"
 				where = "Au travail (%s)" % String(j.name).to_lower()
 				wake = minf(wake, start - 1.0)
+		"apprenti":
+			wake = 6.5
+			sleep = 22.5
+			# Un jour par semaine (le mardi) à l'école professionnelle, les autres chez l'employeur.
+			if n.wd == 2 and not _school_holidays(n):
+				if int(p.sch) >= 0 and not _ferme(int(p.sch)):
+					dest = int(p.sch)
+					start = 8.0
+					end = 16.5
+					kind = "ecole"
+					where = "À l'école professionnelle (%s)" % edu.classe(p)
+			elif _works_today(p, n) and not _on_leave(p, n):
+				var j := Metiers.job(String(p.met))
+				dest = int(p.job)
+				start = float(j.h[0])
+				end = float(j.h[1])
+				kind = "travail"
+				where = "En apprentissage (%s)" % String(j.name).to_lower()
+				wake = minf(wake, start - 1.0)
+		"etudiant":
+			if int(p.sch) >= 0 and n.wd >= 1 and n.wd <= 5 and not _school_holidays(n) and not _ferme(int(p.sch)):
+				dest = int(p.sch)
+				start = 8.5
+				end = 17.5
+				kind = "etudes"
+				where = "En cours (%s)" % building_name(int(p.sch))
 		"retraite":
 			wake = 7.5
 			sleep = 22.0
@@ -1660,9 +1739,9 @@ func _base_plan(p: Dictionary, n: Dictionary) -> Array:
 		var back := end + float(c.min) / 60.0
 		plan.append([end, back, "trajet", home, "Rentre %s" % c.mode])
 		t = back
-	elif st == "etudiant" and n.wd >= 1 and n.wd <= 5 and not _school_holidays(n):
+	elif (st == "etudiant" or (st == "eleve" and edu.ailleurs(p))) and n.wd >= 1 and n.wd <= 5 and not _school_holidays(n):
 		plan.append([t, 8.5, "maison", home, "À la maison"])
-		plan.append([8.5, 17.5, "etudes", -1, "En cours à l'université (hors de la ville)"])
+		plan.append([8.5, 17.5, "etudes", -1, "En cours (hors de la ville)"])
 		t = 17.5
 	elif st == "chomeur" and n.wd >= 1 and n.wd <= 5:
 		plan.append([t, 12.0, "maison", home, "Cherche un emploi"])
@@ -1772,14 +1851,20 @@ func satisfaction(p: Dictionary) -> Dictionary:
 			if int(p.sch) >= 0:
 				s += _sat(th, "services", 15.0)
 				why.append("+ va à l'école")
-			else:
+			elif edu.sans_ecole(p):
 				s += _sat(th, "services", -20.0)
 				why.append("− pas de place dans une école proche")
+			elif edu.ailleurs(p):
+				s += _sat(th, "services", 5.0)
+				why.append("− va à l'école dans une autre ville")
+		"apprenti":
+			s += _sat(th, "emploi", 12.0)
+			why.append("+ apprend un métier")
 		"retraite":
 			s += _sat(th, "emploi", 10.0)
 		"etudiant":
-			s += _sat(th, "services", 10.0)
-			why.append("+ fait des études")
+			s += _sat(th, "services", 12.0 if int(p.sch) >= 0 else 8.0)
+			why.append("+ fait des études" + (" en ville" if int(p.sch) >= 0 else ""))
 	var found := 0
 	for hb in p.hob:
 		if Metiers.LOISIRS[hb].lieux.is_empty() or venue_for(p, hb) >= 0:
@@ -1915,14 +2000,14 @@ func traffic_demand() -> Dictionary:
 # --- Chiffres ---------------------------------------------------------------------
 
 func stats() -> Dictionary:
-	var out := {"habitants": persons.size(), "foyers": households.size(), "bebe": 0, "eleve": 0, "etudiant": 0, "actif": 0,
+	var out := {"habitants": persons.size(), "foyers": households.size(), "bebe": 0, "eleve": 0, "apprenti": 0, "etudiant": 0, "actif": 0,
 		"chomeur": 0, "retraite": 0, "sans_ecole": 0, "logements": 0, "emplois": 0, "places": 0, "satisfaction": 0}
 	var sat := 0
 	for pid in persons:
 		var p: Dictionary = persons[pid]
 		var st := stage(p)
 		out[st] += 1
-		if st == "eleve" and int(p.sch) < 0:
+		if edu.sans_ecole(p):
 			out.sans_ecole += 1
 	# Satisfaction moyenne sur un échantillon (le calcul complet est coûteux).
 	var n := 0
@@ -1945,7 +2030,7 @@ func stats() -> Dictionary:
 func stats_par_morceaux(budget_us := 2000) -> Dictionary:
 	var t0 := Time.get_ticks_usec()
 	if _stj.is_empty():
-		_stj = {"out": {"habitants": persons.size(), "foyers": households.size(), "bebe": 0, "eleve": 0, "etudiant": 0, "actif": 0,
+		_stj = {"out": {"habitants": persons.size(), "foyers": households.size(), "bebe": 0, "eleve": 0, "apprenti": 0, "etudiant": 0, "actif": 0,
 			"chomeur": 0, "retraite": 0, "sans_ecole": 0, "logements": 0, "emplois": 0, "places": 0, "satisfaction": 0},
 			"pids": persons.keys(), "i": 0, "sat": 0, "n": 0}
 	var out: Dictionary = _stj.out
@@ -1956,7 +2041,7 @@ func stats_par_morceaux(budget_us := 2000) -> Dictionary:
 			var p: Dictionary = persons[pids[i]]
 			var st := stage(p)
 			out[st] += 1
-			if st == "eleve" and int(p.sch) < 0:
+			if edu.sans_ecole(p):
 				out.sans_ecole += 1
 		i += 1
 		if (i & 63) == 0 and Time.get_ticks_usec() - t0 > budget_us:
@@ -2271,7 +2356,7 @@ func to_dict() -> Dictionary:
 		var p: Dictionary = persons[pid]
 		ps.append([pid, p.f, p.p, p.n, p.s, snappedf(float(p.nj), 0.001), p.r, p.job, p.met, p.sch, ",".join(p.hob),
 			CycleVie.pack(p)])
-	return {"version": 2, "vie": vie.to_dict(), "principal": principal.to_dict(), "next_pid": next_pid, "next_hid": next_hid, "life_clock": life_clock,
+	return {"version": 2, "vie": vie.to_dict(), "principal": principal.to_dict(), "education": edu.to_dict(), "next_pid": next_pid, "next_hid": next_hid, "life_clock": life_clock,
 		"life_speed": life_speed_index, "arrivals": arrivals, "last_day": last_day, "ledger": ledger,
 		"money_frac": _money_frac, "foyers": hs, "habitants": ps}
 
@@ -2346,6 +2431,8 @@ func from_dict(d: Dictionary) -> void:
 			_remove_household(hid, "")
 	vie.from_dict(d.get("vie", {}))
 	principal.from_dict(d.get("principal", {}))
+	edu.from_dict(d.get("education", {}))
+	edu.migrer()
 	# Ancienne sauvegarde (sans familles) : couples et parents devinés dans chaque foyer.
 	if int(d.get("version", 1)) < 2:
 		for hid in households:

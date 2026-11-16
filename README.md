@@ -517,6 +517,12 @@ Touche **Maj+U** : chaque logement est relié à l'école, l'hôpital et le comm
 
 Détails : [docs/services.md](docs/services.md).
 
+## Éducation : systèmes scolaires par pays
+
+Touche **Maj+K**. Chaque ville suit le système scolaire de son pays : **Suisse** (HarmoS 1H-11H, gymnase et maturité, apprentissage dual CFC chez un vrai employeur de la ville, maturité professionnelle, HES, HEP, université et EPF : bachelor, master, doctorat), **France** (maternelle, élémentaire, collège et brevet, lycée et bac, CAP et bac pro, BTS, BUT, licence, master, doctorat) ou **générique**. Un bâtiment par degré (crèche, école, collège, lycée/gymnase, école professionnelle, haute école, HEP, université, résidence étudiante). Les métiers exigent des diplômes : sans diplômé en ville, des frontaliers ou des pendulaires tiennent les postes obligatoires, et un employé non qualifié produit moins. Tout suit l'année de la partie, dès 1800.
+
+Détails : [docs/education.md](docs/education.md).
+
 ## Santé publique : épidémies, vaccins et égouts
 
 Touche **F7** (menu Infos) : hygiène des logements (eau potable, égouts), lits d'hôpital, épidémie en cours. Les maladies suivent l'époque : variole jusqu'en 1977, choléra de 1817 à 1923, polio, diphtérie… Une partie commencée dans le passé vit les grandes épidémies à leur date (choléra de 1832, grippe espagnole de 1918, Covid-19 en 2020), annoncées d'abord par une rumeur dans la gazette. Le choléra et la typhoïde passent par l'eau : des égouts et de l'eau potable les arrêtent. Vaccins datés (campagnes ou obligation, une partie des habitants refuse), mesures sanitaires datées (quarantaine, écoles fermées, eau bouillie dès 1854, chlore dès 1902, masques et confinement dès 1918).

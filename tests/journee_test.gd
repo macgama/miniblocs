@@ -210,9 +210,10 @@ func _run() -> void:
 		_check(pop.principal.questions.size() == 1 and amb.speed_index == 0, "question posée : le temps se met en pause")
 		var panel: HabitantsPanel = scene.habitants_panel
 		await process_frame
-		_check(panel._ask.visible and panel._ask_buttons.get_child_count() == 4, "carte de la question avec 4 choix")
-		pop.principal.answer(int(pop.principal.questions[0].id), 1)
-		_check(String(p.etd) == "licence" and amb.speed_index == 2, "réponse « licence » : études choisies, le temps repart")
+		var n_choix := (pop.principal.questions[0].options as Array).size()
+		_check(panel._ask.visible and panel._ask_buttons.get_child_count() == n_choix and n_choix >= 2, "carte de la question avec %d choix (études du système scolaire + travailler)" % n_choix)
+		pop.principal.answer(int(pop.principal.questions[0].id), 0)
+		_check(String(p.etd) != "" and float(p.etu) > pop.life_clock and amb.speed_index == 2, "réponse : études choisies (%s), le temps repart" % String(p.etd))
 		await process_frame
 		_check(not panel._ask.visible, "la carte disparaît")
 		var saved: Dictionary = JSON.parse_string(JSON.stringify(pop.to_dict()))

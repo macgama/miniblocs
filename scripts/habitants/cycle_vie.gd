@@ -113,6 +113,7 @@ static func ensure(p: Dictionary) -> void:
 		p.cv = []
 	if not p.has("dip"):
 		p.dip = ""
+	Education.diplomes(p)
 	if not p.has("etu"):
 		p.etu = -1.0
 	if not p.has("etd"):
@@ -336,33 +337,18 @@ func link_household(hid: int, kind := "") -> void:
 func on_arrival(hid: int, kind: String) -> void:
 	link_household(hid, kind)
 	var h: Dictionary = pop.households[hid]
+	var attires := pop.edu.postes_vacants_stricts(int(h.b))
 	var where := pop.building_name(int(h.b))
 	for m in h.m:
 		var p: Dictionary = pop.persons[m]
 		var a := pop.age_of(p)
 		var nj := float(p.nj)
 		log_event(p, "naissance", g(p, "Naît", "Naît") + " loin d'ici", -1, nj)
-		if a >= 15.0 and pop.rng.randf() < 0.88:
-			p.dip = "brevet"
-			log_event(p, "diplome", "Obtient le brevet", -1, nj + 15.0 * 365.25)
-		if a >= 18.0 and p.dip == "brevet" and pop.rng.randf() < 0.8:
-			p.dip = "bac"
-			log_event(p, "diplome", "Obtient le baccalauréat", -1, nj + 18.0 * 365.25)
-			var r := pop.rng.randf()
-			var sup := ""
-			var dur := 0.0
-			if r < 0.15:
-				sup = "bts"
-				dur = 2.0
-			elif r < 0.37:
-				sup = "licence"
-				dur = 3.0
-			elif r < 0.55:
-				sup = "master"
-				dur = 5.0
-			if sup != "" and a >= 18.0 + dur:
-				p.dip = sup
-				log_event(p, "diplome", "Obtient son %s" % DIPLOMES[sup], -1, nj + (18.0 + dur) * 365.25)
+		# Parcours scolaire selon le système du pays (Education) ; certains viennent pour un poste qualifié vacant.
+		if kind == "etudiant":
+			pop.edu.nouvel_etudiant(p, int(h.b))
+		else:
+			pop.edu.arrivee(p, attires)
 		if a >= 18.5 and pop.rng.randf() < (0.95 if int(h.car) > 0 else 0.6):
 			p.perm = true
 			log_event(p, "permis", "Obtient le permis de conduire", -1, nj + pop.rng.randf_range(18.0, minf(a, 24.0)) * 365.25)
@@ -593,14 +579,8 @@ func _daily_personne(st: Dictionary, pid: int) -> void:
 			deaths.append(pid)
 			return
 	p.gain = float(p.gain) + pop.income_of(p) * 12.0 * years
-	_school_milestones(p, a0, a)
-	# Fin des études supérieures.
-	if float(p.etu) > 0.0 and pop.life_clock >= float(p.etu):
-		p.etu = -1.0
-		if String(p.etd) != "":
-			p.dip = p.etd
-			log_event(p, "diplome", "Obtient son %s et cherche un emploi" % DIPLOMES[String(p.etd)])
-		p.etd = ""
+	# École, orientation, apprentissage, études supérieures (Education).
+	pop.edu.jalons(p, a0, a)
 	if a >= 18.0:
 		_adult_year(p, a, years)
 	if (p.hob as Array).size() > 0 or a >= 3.0:
@@ -680,37 +660,6 @@ func tidy() -> void:
 ## séparation, changement de travail, études) viennent du joueur, pas du hasard.
 static func _player_choice(p: Dictionary) -> bool:
 	return String(p.get("joueur", "")) != ""
-
-
-## École : brevet à 15 ans, bac à 18 ans, puis études supérieures (hors de la ville).
-func _school_milestones(p: Dictionary, a0: float, a: float) -> void:
-	if a0 < 15.0 and a >= 15.0 and String(p.niv) in ["collège", "lycée"]:
-		if pop.rng.randf() < 0.87:
-			p.dip = "brevet"
-			log_event(p, "diplome", "Obtient le brevet")
-	if a0 < 18.0 and a >= 18.0:
-		if String(p.niv) == "lycée" and String(p.dip) == "brevet" and pop.rng.randf() < 0.85:
-			p.dip = "bac"
-			log_event(p, "diplome", "Obtient le baccalauréat")
-			if _player_choice(p):
-				pop.principal.ask_studies(p)
-			elif pop.rng.randf() < 0.6:
-				var r := pop.rng.randf()
-				var sup := "licence"
-				var dur := 3.0
-				if r < 0.28:
-					sup = "bts"
-					dur = 2.0
-				elif r > 0.7:
-					sup = "master"
-					dur = 5.0
-				p.etd = sup
-				p.etu = pop.life_clock + dur * 365.25
-				log_event(p, "etudes", "Commence des études (%s, %d ans) à l'université, hors de la ville" % [DIPLOMES[sup], int(dur)])
-		elif String(p.niv) == "":
-			log_event(p, "fin_emploi", "Atteint 18 ans sans être allé%s à l'école (pas de place en ville)" % g(p, "", "e"))
-		else:
-			log_event(p, "fin_emploi", "Quitte l'école sans le bac")
 
 
 ## Une année d'adulte : permis, voiture, maladie, travail.
@@ -1307,6 +1256,7 @@ static func pack(p: Dictionary) -> Dictionary:
 			d[k] = p[k]
 	if float(p.get("etu", -1.0)) > 0.0:
 		d.etu = snappedf(float(p.etu), 0.01)
+	Education.pack(p, d)
 	if bool(p.get("perm", false)):
 		d.perm = true
 	if bool(p.get("ret", false)):
@@ -1334,6 +1284,7 @@ static func unpack(p: Dictionary, d: Dictionary) -> void:
 	p.niv = String(d.get("niv", ""))
 	p.mal = String(d.get("mal", ""))
 	p.etu = float(d.get("etu", -1.0))
+	Education.unpack(p, d)
 	p.perm = bool(d.get("perm", false))
 	p.ret = bool(d.get("ret", false))
 	p.retr = bool(d.get("retr", false))

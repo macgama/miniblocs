@@ -138,7 +138,11 @@ commerce… Les eaux usées valent 90 % de l'eau. Le courant suit la journée
   moins de 2 km, ou un forage à moins de 300 m d'un rejet, donne une eau non
   potable : −8 de satisfaction et risque pour la santé (groupe `sante_sources`,
   ajouté à la pollution dans CycleVie).
-- **7 jours sans courant ou sans eau** : les foyers quittent la ville.
+- **7 jours sans courant ou sans eau** : les foyers commencent à partir, 12 % des
+  foyers touchés par jour, les moins satisfaits d'abord (choix de Gaël, 2026-11-16 :
+  plus toute la ville le même jour). Il reste une dizaine de jours pour réparer.
+- **Réseau saturé** (demande plus forte que la production) : personne n'emménage
+  dans les logements qu'il dessert (`Reseaux.sature`, `Population.arrivee_bloquee`).
 
 ## Argent
 

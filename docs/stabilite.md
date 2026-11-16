@@ -63,6 +63,16 @@ Test rapide (≈ 2 min, dans `tests/tous.sh`) : `tests/stabilite_test.gd`
   rendue libre après le signal.
 - Fiche de partie abîmée : plus d'erreur JSON, la partie est simplement illisible.
 
+## Ville qui se vidait d'un coup (corrigé, choix de Gaël : départs progressifs)
+
+Un réseau partage un seul taux de service entre tous ses logements : quand la
+demande dépassait deux fois la production, toute la ville passait sous 50 % le
+même jour et, 7 jours plus tard, 2 700 habitants sur 2 700 partaient, puis la
+ville se remplissait de nouveau. Maintenant 12 % des foyers touchés partent
+chaque jour (les moins satisfaits d'abord) et personne n'emménage sur un réseau
+saturé. Dans le banc, les installations du joueur sont posées sans chantier (le
+banc n'a pas d'entreprise du bâtiment) près de chaque morceau de réseau qui manque.
+
 ## Reste à surveiller
 
 - Pilote automatique : ~150 à 370 ms d'un coup le jour de sa « semaine »

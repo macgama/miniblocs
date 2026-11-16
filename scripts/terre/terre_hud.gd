@@ -80,7 +80,7 @@ signal souterrain_requested
 signal photo_requested
 ## Succès du joueur (F6, menu Infos).
 signal succes_requested
-## Visites et cartes postales (F7).
+## Visites et cartes postales (F12).
 signal visites_requested
 ## Bouton Admin de la barre du haut, ou F10 : réglages de la partie.
 signal admin_requested
@@ -143,7 +143,7 @@ const CATEGORIES := [
 	{"id": "niveaux_vie", "name": "Niveaux de vie", "icon": "logement", "key": "Maj+N", "panel": true, "group": "ville"},
 	{"id": "immobilier", "name": "Immobilier (prix, promoteurs, bidonvilles)", "icon": "logement", "key": "F11", "panel": true, "group": "ville"},
 	{"id": "quartiers", "name": "Quartiers et arrêtés", "icon": "pancarte", "key": "Maj+Y", "panel": true, "group": "ville"},
-	{"id": "visites", "name": "Visites et cartes postales (faire visiter sa ville, visiter celle des autres)", "icon": "carte_postale", "key": "F7", "panel": true, "group": "ville"},
+	{"id": "visites", "name": "Visites et cartes postales (faire visiter sa ville, visiter celle des autres)", "icon": "carte_postale", "key": "F12", "panel": true, "group": "ville"},
 	{"id": "trafic", "name": "Trafic", "icon": "circulation", "key": "Maj+L", "panel": true, "group": "transports"},
 	{"id": "budget", "name": "Budget", "icon": "budget", "key": "M", "panel": true, "group": "ville"},
 	{"id": "dechets", "name": "Déchets", "icon": "dechets", "key": "X", "panel": true, "group": "ville"},

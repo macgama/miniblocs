@@ -1,6 +1,6 @@
 extends SceneTree
 ## Vitrine des visites : un village partagé, la visite (bandeau, cartes épinglées
-## du livre d'or), la carte postale qu'on écrit (F7), puis le courrier du maire.
+## du livre d'or), la carte postale qu'on écrit (F12), puis le courrier du maire.
 ## Usage (avec affichage) :
 ##   xvfb-run -a godot --path . --rendering-driver opengl3 --script res://tests/visites_vitrine.gd -- --dossier /chemin/captures
 

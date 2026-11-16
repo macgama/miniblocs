@@ -1,17 +1,17 @@
 # Visiter les villes des autres
 
-Menu **Visites et cartes postales** : **F7** partout, le bouton « Visites » du menu Ville, ou
+Menu **Visites et cartes postales** : **F12** partout, le bouton « Visites » du menu Ville, ou
 **menu principal → Visiter une ville**. On se promène dans la ville d'un ami ou d'un inconnu sans
 pouvoir y toucher, puis on lui laisse une **carte postale**. Tout marche sans serveur payant :
 un fichier à s'envoyer, le Steam Workshop à la sortie, ou la carte entre amis déjà en place.
 
 ## Faire visiter sa ville
 
-F7 → **Ma ville et mon courrier** :
+F12 → **Ma ville et mon courrier** :
 
-- **Mot d'accueil** : la phrase que les visiteurs lisent en arrivant (dans le bandeau et dans F7).
+- **Mot d'accueil** : la phrase que les visiteurs lisent en arrivant (dans le bandeau et dans F12).
 - **Livre d'or** : coché, les cartes que tu as reçues partent avec ta ville et les visiteurs
-  suivants les voient (épinglées et dans F7). Décoché, elles restent chez toi.
+  suivants les voient (épinglées et dans F12). Décoché, elles restent chez toi.
 - **Fichier .mbloc de ma ville** : la partie est sauvegardée, puis elle part entière (bâtiments,
   habitants, voies, réseaux, parcs, clubs…) dans un fichier `ville-<nom>.mbloc` du dossier
   d'échange. Envoie-le comme tu veux (courriel, Discord, clé USB).
@@ -23,7 +23,7 @@ Le dossier d'échange est celui du partage des créations : `user://partage`
 
 ## Visiter
 
-F7 → **Visiter une ville** (ou menu principal → Visiter une ville) :
+F12 → **Visiter une ville** (ou menu principal → Visiter une ville) :
 
 1. Dépose le fichier .mbloc reçu dans ton dossier d'échange, puis **Recevoir**. Les villes du
    Workshop auxquelles tu es abonné arrivent toutes seules.
@@ -44,9 +44,9 @@ En visite :
 
 ## Cartes postales
 
-En visite, **F7** (ou « Carte postale » dans le bandeau) : quelques mots (500 signes), un timbre
+En visite, **F12** (ou « Carte postale » dans le bandeau) : quelques mots (500 signes), un timbre
 (Montagne, Lac, Clocher, Tramway, Soleil, Stade) et, si tu veux, la photo de la vue (prise sans
-l'interface au moment où tu ouvres F7). La carte est épinglée là où tu regardes (une petite carte
+l'interface au moment où tu ouvres F12). La carte est épinglée là où tu regardes (une petite carte
 postale flotte au-dessus du sol, avec ton nom).
 
 - **Hors ligne** : « Poster la carte » écrit `carte-postale-<ville>-<toi>-….mbloc` dans ton
@@ -57,7 +57,7 @@ postale flotte au-dessus du sol, avec ton nom).
 - **En ligne** (carte entre amis) : la carte part par le serveur, qui la signe avec ton vrai pseudo,
   la garde dans la sauvegarde de la carte et l'envoie à tous les joueurs.
 
-Chez le maire, F7 → Ma ville et mon courrier : les cartes (nouvelles en ambre), **Aller voir**
+Chez le maire, F12 → Ma ville et mon courrier : les cartes (nouvelles en ambre), **Aller voir**
 (la caméra se place comme celle du visiteur), **Lue**, **Retirer**. Une annonce
 « Carte postale de … » paraît à l'arrivée. Les cartes épinglées se masquent avec la case
 « Montrer les cartes dans la ville ».
@@ -84,7 +84,7 @@ alors un inconnu qui a l'adresse du serveur peut se promener sans code.
   `touche_verrouillee`), cartes postales (`carte`, `paquet_carte`, `poster`).
 - `scripts/visite/courrier.gd` (`Courrier`, nœud « Courrier » de la scène Terre) : cartes reçues,
   relevé du dossier d'échange, cartes épinglées (Sprite3D + Label3D), section de sauvegarde « courrier ».
-- `scripts/visite/visites_panel.gd` (`VisitesPanel`) : le menu F7 (et celui du menu principal).
+- `scripts/visite/visites_panel.gd` (`VisitesPanel`) : le menu F12 (et celui du menu principal).
 - `PaquetPartage.GENRES` gagne « ville » et « carte » ; `Partage.recevoir_echange` les laisse aux
   visites et au courrier ; `Partage.installer` range une ville du Workshop dans les visites.
 - Carte entre amis : `bonjour` porte `visiteur` ; `CarteAmis.accepter_visiteur`,

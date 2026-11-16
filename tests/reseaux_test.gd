@@ -278,7 +278,13 @@ func _run() -> void:
 	var avant := pop.households.size()
 	for d in 8:
 		res.simuler(24.0)
-	_check(pop.households.size() < avant and not pop.by_home.has(homes[2]) or (pop.by_home.get(homes[2], []) as Array).is_empty(), "après 7 jours sans courant, les foyers partent (%d → %d)" % [avant, pop.households.size()])
+	# Départs progressifs (choix de Gaël, 2026-11-16) : une part des foyers chaque jour, pas tous d'un coup.
+	var apres8 := pop.households.size()
+	_check(apres8 < avant and apres8 > avant / 2, "après 7 jours sans courant, des foyers partent, pas tous le même jour (%d → %d)" % [avant, apres8])
+	for d in 40:
+		res.simuler(24.0)
+	_check(pop.households.size() < apres8 and (not pop.by_home.has(homes[2]) or (pop.by_home.get(homes[2], []) as Array).is_empty()),
+		"sans courant pendant des semaines, la ville finit par se vider (%d → %d)" % [apres8, pop.households.size()])
 
 	print("Sauvegarde :")
 	var d := res.to_dict()

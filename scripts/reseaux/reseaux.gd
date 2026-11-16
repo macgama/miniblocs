@@ -35,8 +35,14 @@ static var instance: Reseaux
 const RES := ["elec", "eau", "egout", "gaz"]
 ## Clé de chaque réseau dans `etat`.
 const CLE := {"elec": "e", "eau": "o", "egout": "g", "gaz": "c"}
-## Jours sans courant ou sans eau avant qu'un foyer quitte son logement.
+## Jours sans courant ou sans eau avant que les foyers commencent à partir.
 const JOURS_DEPART := 7.0
+## Ensuite, chaque jour, cette part des foyers privés de courant ou d'eau s'en va, les
+## plus mécontents d'abord (choix de Gaël, 2026-11-16 : départs progressifs, pas toute
+## la ville le même jour). Il reste au joueur une dizaine de jours pour réparer.
+const PART_DEPART_JOUR := 0.12
+## Foyers dont on calcule la satisfaction pour choisir qui part (au-delà : tirage).
+const DEPART_ECHANTILLON := 400
 ## Prix payés par les habitants et les entreprises (multipliés par le réglage Admin).
 const PRIX_KWH := 0.20
 const PRIX_M3_EAU := 2.1
@@ -162,6 +168,10 @@ func setup(w: TerrainWorld, b: BuildingSystem, t: TransportSystem, p: Population
 			_routes_ok = false
 			_topo_sale = true)
 	if population != null:
+		# Réseau saturé (plus de demande que de production) : personne n'emménage.
+		var prev_bloque: Callable = population.arrivee_bloquee
+		population.arrivee_bloquee = func(bid: int) -> bool:
+			return (prev_bloque.is_valid() and bool(prev_bloque.call(bid))) or sature(bid)
 		# Sans le système d'avis, on ajoute nos raisons à la satisfaction.
 		var prev_sat: Callable = population.extra_satisfaction
 		population.extra_satisfaction = func(person: Dictionary) -> Array:
@@ -1087,6 +1097,58 @@ func _maj_etats() -> void:
 			_set_noir(bid, noir)
 
 
+## Départ du jour : une part des foyers touchés, les moins satisfaits d'abord. Renvoie le nombre de foyers partis.
+func _departs_progressifs(candidats: Array) -> int:
+	if candidats.is_empty():
+		return 0
+	var n := ceili(candidats.size() * PART_DEPART_JOUR)
+	var liste := candidats
+	if liste.size() > DEPART_ECHANTILLON:
+		liste = candidats.duplicate()
+		liste.shuffle()
+		liste = liste.slice(0, DEPART_ECHANTILLON)
+		n = ceili(liste.size() * PART_DEPART_JOUR * float(candidats.size()) / float(liste.size()))
+		n = mini(n, liste.size())
+	for c in liste:
+		c.append(_satisfaction_foyer(int(c[0])))
+	liste.sort_custom(func(a: Array, b: Array) -> bool: return float(a[2]) < float(b[2]))
+	var partis := 0
+	for i in mini(n, liste.size()):
+		var hid := int(liste[i][0])
+		if not population.households.has(hid):
+			continue
+		population._remove_household(hid, "Quitte la ville : plus %s depuis plus d'une semaine" % String(liste[i][1]))
+		partis += 1
+	return partis
+
+
+func _satisfaction_foyer(hid: int) -> float:
+	var h: Dictionary = population.households.get(hid, {})
+	for pid in h.get("m", []):
+		if population.persons.has(pid):
+			return float(population.satisfaction(population.persons[pid]).value)
+	return 0.0
+
+
+## Réseau saturé pour ce logement : son courant ou son eau vient d'un réseau qui produit
+## moins que la demande. Les arrivants ne s'y installent pas (un logement que rien ne dessert
+## encore reste ouvert, comme avant).
+func sature(bid: int) -> bool:
+	if not ReglagesPartie.actuel.reseaux_obligatoires:
+		return false
+	for pair in [[elec, "elec"], [eau, "eau"]]:
+		var r: ReseauBase = pair[0]
+		if not Epoques.attendu(String(pair[1])) or not r.consos.has(bid):
+			continue
+		var c: int = r._comp_of_bid.get(bid, -1)
+		if c < 0:
+			continue
+		var k: Dictionary = r.composantes.get(c, {})
+		if not k.is_empty() and float(k.get("prod", 0.0)) > 0.0 and float(k.get("taux", 1.0)) < 0.999:
+			return true
+	return false
+
+
 func _set_noir(bid: int, on: bool) -> void:
 	if buildings == null:
 		return
@@ -1284,7 +1346,8 @@ func _nouveau_jour() -> void:
 	if not ReglagesPartie.actuel.reseaux_obligatoires or population == null:
 		manque.clear()
 		return
-	var partis := 0
+	# Foyers privés de courant ou d'eau depuis JOURS_DEPART jours : [hid, quoi].
+	var candidats: Array = []
 	for bid in etat:
 		var s: Dictionary = etat[bid]
 		if not population.by_home.has(bid) or (population.by_home[bid] as Array).is_empty():
@@ -1296,12 +1359,12 @@ func _nouveau_jour() -> void:
 		manque[bid] = m
 		if float(m.e) >= JOURS_DEPART or float(m.o) >= JOURS_DEPART:
 			var quoi := "d'électricité" if float(m.e) >= JOURS_DEPART else "d'eau"
-			for hid in (population.by_home[bid] as Array).duplicate():
-				population._remove_household(int(hid), "Quitte la ville : plus %s depuis une semaine" % quoi)
-				partis += 1
-			manque.erase(bid)
+			for hid in population.by_home[bid]:
+				candidats.append([int(hid), quoi])
+	var partis := _departs_progressifs(candidats)
 	if partis > 0:
-		message.emit("%d foyer%s quitte%s la ville : plus d'eau ou d'électricité depuis une semaine." % [partis, "s" if partis > 1 else "", "nt" if partis > 1 else ""])
+		message.emit("%d foyer%s quitte%s la ville : plus d'eau ou d'électricité depuis plus d'une semaine. D'autres suivront chaque jour tant que rien ne change (%d foyers touchés)." % [partis,
+			"s" if partis > 1 else "", "nt" if partis > 1 else "", candidats.size()])
 	compta.jours = int(compta.jours) + 1
 	if int(compta.jours) >= 30:
 		compta.precedent = compta.mois

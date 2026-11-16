@@ -200,33 +200,57 @@ func _remplir(habitants: int) -> void:
 
 func _reseaux() -> void:
 	bs.unlimited_money = true
+	var ch := BatimentsVie.chantiers
+	BatimentsVie.chantiers = false
 	for id in ["poste_national", "forage_eau", "station_epuration", "poste_gaz"]:
 		pa._poser(vid, id)
+	BatimentsVie.chantiers = ch
 	bs.unlimited_money = false
 
 
 ## Comme un joueur attentif (le pilote automatique ne pose pas de réseaux) : chaque jour,
-## si des logements manquent de courant ou d'eau, une installation de plus. Sans cela,
-## la ville se vide d'un coup quand elle dépasse la capacité et le banc ne mesure plus rien.
+## chaque morceau de réseau électrique ou d'eau qui manque reçoit une installation posée
+## tout de suite (sans chantier : le banc n'a pas d'entreprise du bâtiment), près de ses
+## logements. Sans cela la ville se vide et le banc ne mesure plus rien.
 var _jour_reseaux := -1
 var poses_reseaux := 0
 
 
 func _entretenir_reseaux() -> void:
-	var r: Node = game.reseaux
-	if r == null or not "manque" in r:
+	var r: Reseaux = game.reseaux
+	if r == null:
 		return
-	var e := 0
-	var o := 0
-	for bid in r.manque:
-		e += 1 if float(r.manque[bid].e) >= 2.0 else 0
-		o += 1 if float(r.manque[bid].o) >= 2.0 else 0
 	bs.unlimited_money = true
-	if e > 0 and pa._poser(vid, "poste_national") >= 0:
-		poses_reseaux += 1
-	if o > 0 and pa._poser(vid, "forage_eau") >= 0:
-		poses_reseaux += 1
+	var ch := BatimentsVie.chantiers
+	BatimentsVie.chantiers = false
+	for pair in [[r.elec, "poste_national"], [r.eau, "forage_eau"]]:
+		var res: ReseauBase = pair[0]
+		var faits := {}
+		for bid in res.consos:
+			var c: int = res._comp_of_bid.get(bid, -1)
+			if c < 0 or faits.has(c) or not bs.buildings.has(bid):
+				continue
+			var k: Dictionary = res.composantes.get(c, {})
+			if k.is_empty() or float(k.taux) >= 0.95:
+				continue
+			faits[c] = true
+			if _poser_pres(String(pair[1]), bid):
+				poses_reseaux += 1
+	BatimentsVie.chantiers = ch
 	bs.unlimited_money = false
+
+
+func _poser_pres(id: String, bid: int) -> bool:
+	var b: Dictionary = bs.buildings[bid]
+	var c0 := Vector2i(int(b.x), int(b.z))
+	for rayon in [30, 45, 60, 80, 110, 150]:
+		for k in 12:
+			var a := TAU * k / 12.0
+			var c := c0 + Vector2i(roundi(cos(a) * rayon), roundi(sin(a) * rayon))
+			var rot := bs.best_rotation(id, c)
+			if bs.check_place(id, c, rot).ok and bs.place(id, c, rot) >= 0:
+				return true
+	return false
 
 
 # --- Relevés -----------------------------------------------------------------------

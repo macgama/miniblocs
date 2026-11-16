@@ -124,6 +124,9 @@ var extra_health: Callable
 var school_ok: Callable
 ## Attrait d'un logement pour les arrivants (bid) -> multiplicateur (Nuisances : bruit, pollution, valeur).
 var attrait_logement: Callable
+## Logement où personne n'emménage pour l'instant (bid -> bool), par exemple un réseau
+## électrique ou d'eau saturé (Reseaux.sature).
+var arrivee_bloquee: Callable
 ## Appelé avant les arrivées : les fondateurs du campement s'installent en premier.
 var avant_arrivees: Callable
 
@@ -749,6 +752,8 @@ func _immigrate(hours: float) -> void:
 			free = mini(free, edu.places_etudiants(bid))
 			if free <= 0:
 				continue
+		if arrivee_bloquee.is_valid() and bool(arrivee_bloquee.call(bid)):
+			continue
 		var acc := float(_arrival_acc.get(bid, 0.0))
 		# Un premier foyer s'installe vite dans un logement vide.
 		if (by_home.get(bid, []) as Array).is_empty():

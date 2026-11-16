@@ -81,6 +81,7 @@ const SECTIONS := [
 	]],
 	["Saisons et risques naturels", [
 		["Maj+R", "panneau Saisons et risques (menu Infos) : saison, prévisions (3 jours, 7 avec une station météo), records ; vigilances neige, crues, sécheresse, canicule ; déneigement ; calendrier des cultures"],
+		["Maj+F7", "panneau Climat et pollution (menu Infos) : bilan carbone par secteur, réchauffement et montée de la mer, mix électrique, sols pollués, mesures du plan climat datées ; carte « Sols pollués » (N)"],
 		["Neige", "elle tient sur les routes et ralentit tout le monde (secours compris), avec des accidents ; le Centre technique municipal (Construire → Services publics) envoie ses chasse-neige, les grands axes d'abord, et sale : 12 h sans neige qui tient"],
 		["Crues", "plusieurs jours de grosses pluies ou une fonte rapide des neiges : la rivière monte pendant des heures, routes coupées, maisons et champs inondés ; un bassin de rétention fait monter l'eau 25 % moins haut à 3 km"],
 		["Sécheresse", "vigilance, alerte (restrictions d'eau imposées), alerte renforcée (feux de broussailles au bord des bois), crise ; les cultures et les prés souffrent"],

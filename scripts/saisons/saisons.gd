@@ -241,7 +241,7 @@ func catastrophes_on() -> bool:
 
 
 func frequence() -> float:
-	return ReglagesPartie.actuel.frequence_catastrophes
+	return ReglagesPartie.actuel.frequence_catastrophes * Climat.facteur_extremes()
 
 
 static func neige_active() -> bool:

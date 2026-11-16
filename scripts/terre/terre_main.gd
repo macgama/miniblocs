@@ -58,6 +58,9 @@ var saisons: Saisons
 var sante: SantePublique
 var sante_panel: SantePanel
 var saisons_panel: SaisonsPanel
+## Climat et pollution : bilan carbone, réchauffement, mer, sols pollués, plan climat (Maj+F7).
+var climat: Climat
+var climat_panel: ClimatPanel
 var dechets_panel: DechetsPanel
 ## Parc de loisirs : attractions, visiteurs, files, billets, note (Maj+G).
 var musee: Musee
@@ -219,6 +222,7 @@ func _ready() -> void:
 	_setup_saisons()
 	_setup_sante()
 	_setup_nuisances()
+	_setup_climat()
 	_setup_avis()
 	_setup_parc_editeur()
 	_setup_partage()
@@ -420,6 +424,7 @@ func save_sections() -> Dictionary:
 	sec["musee"] = musee.to_dict()
 	sec["spectacles"] = spectacles.to_dict()
 	sec["club"] = club.to_dict()
+	sec["climat"] = climat.to_dict()
 	var autres := {}
 	for s in clubs:
 		if s != "football" and (clubs[s] as ClubSport).fonde():
@@ -568,6 +573,7 @@ func load_game(slot := "") -> bool:
 	# Après les bâtiments et les habitants : dégâts, ruines, malades, matchs.
 	evenements.from_dict(sec.get("evenements", {}))
 	saisons.from_dict(sec.get("saisons", {}))
+	climat.from_dict(sec.get("climat", {}))
 	sante.from_dict(sec.get("sante", {}))
 	communes.ignorer = false
 	if sec.has("communes"):
@@ -812,6 +818,36 @@ func _setup_evenements() -> void:
 	hud.infos_requested.connect(func() -> void: evenements_panel.toggle())
 
 
+## Climat et pollution (Maj+F7, menu Infos) : bilan carbone, réchauffement qui décale
+## la météo, montée de la mer, sols pollués (carte N), mix électrique, plan climat.
+func _setup_climat() -> void:
+	climat = Climat.new()
+	add_child(climat)
+	climat.setup(world, buildings, transport, population, ambiance, reseaux, agriculture, evenements)
+	climat.message.connect(func(t: String) -> void: hud.show_message(t))
+	climat.changed.connect(func() -> void: _unsaved = true)
+	climat_panel = ClimatPanel.new()
+	climat_panel.name = "PanneauClimat"
+	add_child(climat_panel)
+	climat_panel.setup(climat)
+	climat_panel.focus_requested.connect(func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
+	hud.climat_requested.connect(func() -> void: climat_panel.toggle())
+	var c := CalqueCouleur.new()
+	c.name = "CalqueSols"
+	c.world = world
+	c.focus = rig
+	c.degrade = CalqueCouleur.degrade_nuisance()
+	c.seuil = 0.03
+	add_child(c)
+	var cm := climat
+	c.valeur = func(x: float, z: float) -> float:
+		var v := cm.sol_at(x, z)
+		return v if v >= 0.03 else -1.0
+	climat.changed.connect(c.rafraichir)
+	Calques.ajouter("climat_sols", "Sols pollués", "Nuisances", c.montrer,
+		"pollution qui reste dans la terre pendant des années : usines, mines, décharges, pesticides (du jaune au violet).")
 ## Santé publique : hygiène, vaccins, mesures sanitaires, grandes épidémies
 ## de l'histoire (choléra de 1832, grippe de 1918…) ; panneau F7 (menu Infos).
 func _setup_sante() -> void:
@@ -1175,7 +1211,7 @@ func ouvrir_panneau(id: String) -> void:
 	var panels := {"budget": budget_panel, "avis": avis_panel, "construire": build_panel, "trafic": trafic_panel,
 		"dechets": dechets_panel, "reseaux": reseaux_panel, "services": services_panel, "cartes": cartes_panel,
 		"lignes": transit_panel, "pays": pays_panel, "production": production_panel, "objectifs": objectifs_panel,
-		"saisons": saisons_panel, "sante": sante_panel}
+		"saisons": saisons_panel, "sante": sante_panel, "climat": climat_panel}
 	var p = panels.get(id)
 	if p != null:
 		p.set_open(true)
@@ -2743,6 +2779,8 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 		evenements.clear()
 	if saisons != null:
 		saisons.clear()
+	if climat != null:
+		climat.clear()
 	if sante != null:
 		sante.clear()
 	if avis != null:
@@ -2883,7 +2921,7 @@ var _open_before := {}
 ## Construire, Lignes et Habitants partagent la même place à droite : quand
 ## l'un s'ouvre, les autres se ferment. Leur bouton de la barre du bas s'allume.
 func _exclusive_panels() -> void:
-	var panels := {"pays": pays_panel, "objectifs": objectifs_panel, "quartiers": quartiers_panel, "construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "agriculture": agri_panel, "urgences": urgences_panel, "reseaux": reseaux_panel, "dechets": dechets_panel, "trafic": trafic_panel, "budget": budget_panel, "telecom": telecom_panel, "perso": perso_panel, "infos": evenements_panel, "cartes": cartes_panel, "avis": avis_panel, "villages": villages_panel, "fondateurs": fondateurs_panel, "stats": stats_panel, "saisons": saisons_panel, "sante": sante_panel}
+	var panels := {"pays": pays_panel, "objectifs": objectifs_panel, "quartiers": quartiers_panel, "construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "agriculture": agri_panel, "urgences": urgences_panel, "reseaux": reseaux_panel, "dechets": dechets_panel, "trafic": trafic_panel, "budget": budget_panel, "telecom": telecom_panel, "perso": perso_panel, "infos": evenements_panel, "cartes": cartes_panel, "avis": avis_panel, "villages": villages_panel, "fondateurs": fondateurs_panel, "stats": stats_panel, "saisons": saisons_panel, "sante": sante_panel, "climat": climat_panel}
 	var opened := ""
 	panels.merge(_panneaux_parc())
 	panels["musee"] = musee_panel

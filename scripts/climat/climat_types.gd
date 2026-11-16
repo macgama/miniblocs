@@ -171,7 +171,7 @@ const HISTOIRE_CLIMAT := [
 	[1992, "Sommet de Rio : les pays signent la convention sur le climat."],
 	[1997, "Protocole de Kyoto : les pays riches promettent de réduire leurs émissions."],
 	[2015, "Accord de Paris : rester bien en dessous de 2 °C, viser 1,5 °C."],
-	[2050, "Année de la neutralité carbone promise par beaucoup de pays. Bilan dans le panneau Climat (F7)."],
+	[2050, "Année de la neutralité carbone promise par beaucoup de pays. Bilan dans le panneau Climat (Maj+F7)."],
 ]
 
 

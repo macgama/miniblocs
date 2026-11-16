@@ -67,8 +67,9 @@ signal stats_requested
 signal journal_requested
 ## Bouton « Saisons et risques » (menu Infos, Maj+R).
 signal saisons_requested
-## Bouton « Climat et pollution » (menu Infos, F7).
+## Bouton « Climat et pollution » (menu Infos, Maj+F7).
 signal climat_requested
+signal sante_requested
 ## Bouton « Vue sous terre » (menu Infos, Page bas sous le rez-de-chaussée).
 signal souterrain_requested
 ## Bouton « Mode photo » (menu Infos, F8).
@@ -149,7 +150,8 @@ const CATEGORIES := [
 	{"id": "stats", "name": "Statistiques et conseiller", "icon": "courbe", "key": "Maj+I", "panel": true, "group": "infos"},
 	{"id": "journal", "name": "Gazette de la ville", "icon": "journal", "key": "F4", "panel": true, "group": "infos"},
 	{"id": "saisons", "name": "Saisons et risques (météo, neige, crues, sécheresse)", "icon": "saisons", "key": "Maj+R", "panel": true, "group": "infos"},
-	{"id": "climat", "name": "Climat et pollution (CO₂, réchauffement, sols, énergie)", "icon": "climat", "key": "F7", "panel": true, "group": "infos"},
+	{"id": "climat", "name": "Climat et pollution (CO₂, réchauffement, sols, énergie)", "icon": "climat", "key": "Maj+F7", "panel": true, "group": "infos"},
+	{"id": "sante", "name": "Santé publique (hygiène, vaccins, épidémies)", "icon": "sante", "key": "F7", "panel": true, "group": "infos"},
 	{"id": "photo", "name": "Mode photo et time-lapse (Maj+F8)", "icon": "appareil_photo", "key": "F8", "panel": true, "group": "infos"},
 	{"id": "souterrain", "name": "Vue sous terre (tuyaux, câbles, métro, sous-sols)", "icon": "souterrain", "key": "Page bas", "panel": true, "group": "infos"},
 	{"id": "succes", "name": "Succès", "icon": "trophee", "key": "F6", "panel": true, "group": "infos"},
@@ -848,6 +850,7 @@ func _on_category(id: String) -> void:
 			"journal": journal_requested.emit()
 			"saisons": saisons_requested.emit()
 			"climat": climat_requested.emit()
+			"sante": sante_requested.emit()
 			"souterrain": souterrain_requested.emit()
 			"photo": photo_requested.emit()
 			"succes": succes_requested.emit()

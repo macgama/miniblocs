@@ -81,7 +81,7 @@ const SECTIONS := [
 	]],
 	["Saisons et risques naturels", [
 		["Maj+R", "panneau Saisons et risques (menu Infos) : saison, prévisions (3 jours, 7 avec une station météo), records ; vigilances neige, crues, sécheresse, canicule ; déneigement ; calendrier des cultures"],
-		["F7", "panneau Climat et pollution (menu Infos) : bilan carbone par secteur, réchauffement et montée de la mer, mix électrique, sols pollués, mesures du plan climat datées ; carte « Sols pollués » (N)"],
+		["Maj+F7", "panneau Climat et pollution (menu Infos) : bilan carbone par secteur, réchauffement et montée de la mer, mix électrique, sols pollués, mesures du plan climat datées ; carte « Sols pollués » (N)"],
 		["Neige", "elle tient sur les routes et ralentit tout le monde (secours compris), avec des accidents ; le Centre technique municipal (Construire → Services publics) envoie ses chasse-neige, les grands axes d'abord, et sale : 12 h sans neige qui tient"],
 		["Crues", "plusieurs jours de grosses pluies ou une fonte rapide des neiges : la rivière monte pendant des heures, routes coupées, maisons et champs inondés ; un bassin de rétention fait monter l'eau 25 % moins haut à 3 km"],
 		["Sécheresse", "vigilance, alerte (restrictions d'eau imposées), alerte renforcée (feux de broussailles au bord des bois), crise ; les cultures et les prés souffrent"],
@@ -412,6 +412,13 @@ const SECTIONS := [
 		["Globe", "revenir au globe pour changer de lieu"],
 		["F10 ou icône réglages", "panneau Admin : argent de départ, caisse, argent illimité, coût des constructions, accès à une voie, impôts, salaires, vitesses, épuisement des ressources, déblocage des bâtiments, pollution (seulement pour l'admin de la partie)"],
 		["F1", "afficher ou masquer cette aide"],
+	]],
+	["Santé publique et épidémies", [
+		["F7", "panneau Santé publique (menu Infos) : épidémie en cours, hygiène des logements (eau potable, égouts), lits d'hôpital, conseils ; onglets Vaccins, Mesures et Histoire"],
+		["Maladies de l'eau", "choléra et typhoïde passent par les puits souillés et l'eau mal traitée : des égouts, une station d'épuration et de l'eau potable les arrêtent ; en urgence, faire bouillir l'eau"],
+		["Vaccins", "datés (variole 1800, diphtérie 1923, grippe 1945, polio 1955, rougeole 1963, Covid-19 2021) : campagne payée à la dose ou obligation ; une partie des habitants refuse ; au-delà de 90 % de vaccinés, la maladie ne prend plus"],
+		["Mesures", "quarantaine, écoles fermées, lazaret, campagne d'hygiène (1847), eau bouillie (1854), chlore dans l'eau (1902), masques et confinement (1918) : coût par jour, satisfaction ; levées seules une semaine après l'épidémie"],
+		["Grandes épidémies", "partie commencée dans le passé : choléra de 1832, 1849, 1854…, variole de 1870, grippe espagnole de 1918, grippes de 1957 et 1968, Covid-19 en 2020 ; une rumeur arrive d'abord dans la gazette (F7 → Histoire pour couper le calendrier)"],
 	]],
 ]
 

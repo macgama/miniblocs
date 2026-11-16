@@ -1,6 +1,6 @@
 class_name ClimatPanel
 extends CanvasLayer
-## Panneau « Climat et pollution » (F7, menu Infos) : bilan carbone par secteur,
+## Panneau « Climat et pollution » (Maj+F7, menu Infos) : bilan carbone par secteur,
 ## réchauffement et montée de la mer, mix électrique, sols pollués, et mesures
 ## du plan climat (datées selon l'époque).
 
@@ -48,7 +48,7 @@ func _build() -> void:
 	title.add_theme_font_size_override("font_size", 16)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	head.add_child(title)
-	var x := UiStyle.icon_button("fermer", "Fermer", "F7", 18, 32)
+	var x := UiStyle.icon_button("fermer", "Fermer", "Maj+F7", 18, 32)
 	x.pressed.connect(func() -> void: set_open(false))
 	head.add_child(x)
 	var tabs := HBoxContainer.new()
@@ -87,7 +87,7 @@ func toggle() -> void:
 
 func _input(event: InputEvent) -> void:
 	var k := event as InputEventKey
-	if k and k.pressed and not k.echo and k.keycode == KEY_F7 and not k.shift_pressed and not k.ctrl_pressed and not k.alt_pressed:
+	if k and k.pressed and not k.echo and k.keycode == KEY_F7 and k.shift_pressed and not k.ctrl_pressed and not k.alt_pressed:
 		if get_viewport().gui_get_focus_owner() is LineEdit:
 			return
 		toggle()

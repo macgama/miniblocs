@@ -1,11 +1,11 @@
 # Climat et pollution à long terme
 
 Code : `scripts/climat/climat.gd` (nœud « Climat », `Climat.instance`), données `climat_types.gd`,
-panneau `climat_panel.gd` (touche **F7**, menu Infos). Test : `tests/climat_test.gd`.
+panneau `climat_panel.gd` (touche **Maj+F7**, menu Infos ; F7 seul ouvre la Santé publique). Test : `tests/climat_test.gd`.
 Section de sauvegarde : `climat`. S'appuie sur la pollution de l'air, de l'eau et le bruit de
 `docs/nuisances.md`, sur les saisons (`docs/saisons.md`) et sur les époques.
 
-## Ce que le joueur voit (F7)
+## Ce que le joueur voit (Maj+F7)
 
 - **Bilan** : CO₂ par jour et par secteur (électricité, chauffage, transports, industrie, agriculture,
   déchets, moins ce qu'absorbent forêts et parcs), par habitant et par an, comparé à un pays industrialisé
@@ -87,7 +87,7 @@ Avis des habitants : +1,5 avec 4 mesures ou plus, −1 pour la ZFE, −1 à −2
 
 - Statistiques (Maj+I) : « Émissions de CO₂ », « Réchauffement mondial », « Sols pollués ».
 - Nouvelles et gazette : genres `climat` et `submersion`.
-- Aide F1 : ligne F7.
+- Aide F1 : ligne Maj+F7.
 
 ## Pistes
 

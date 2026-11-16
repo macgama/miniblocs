@@ -1,6 +1,6 @@
 class_name Climat
 extends Node
-## Climat et pollution à long terme (panneau F7, menu Infos).
+## Climat et pollution à long terme (panneau Maj+F7, menu Infos).
 ##
 ## - Bilan carbone : chaque heure de jeu, le CO₂ des villes est compté par secteur
 ##   (électricité selon le vrai mix des centrales, chauffage, voitures et camions

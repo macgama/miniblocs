@@ -47,6 +47,8 @@ if (-not $Destination) {
 $ErrorActionPreference = "Stop"
 $Journal = Join-Path (Split-Path $Source -Parent) "export.log"
 New-Item -ItemType Directory -Force (Split-Path $Source -Parent) | Out-Null
+# Le build se fait hors du dépôt : git reset/clean n'a jamais à y toucher (même si le jeu y est ouvert).
+$DossierBuild = Join-Path (Split-Path $Source -Parent) $(if ($Demo) { "build\windows-demo" } else { "build\windows" })
 
 function Ecrire([string]$m) {
     $l = "[{0}] {1}" -f (Get-Date -Format "yyyy-MM-dd HH:mm:ss"), $m
@@ -54,7 +56,31 @@ function Ecrire([string]$m) {
     Add-Content -Path $Journal -Value $l -Encoding UTF8
 }
 
-function Lancer-Git { & git -C $Source @args; if ($LASTEXITCODE -ne 0) { throw "git $args a échoué ($LASTEXITCODE)" } }
+# Toute erreur non prévue finit dans le journal (la tâche planifiée n'a pas de fenêtre).
+trap { Ecrire "ÉCHEC : $($_.Exception.Message)"; exit 1 }
+
+# Git ne doit jamais poser de question (« Should I try again? (y/n) », identifiants…) : il échoue tout seul.
+$env:GIT_ASK_YESNO = "false"
+$env:GIT_TERMINAL_PROMPT = "0"
+
+# Sortie de git dans le journal. Essayer-Git : un échec est noté mais n'arrête pas l'export.
+function Executer-Git([bool]$tolerant, [object[]]$reste) {
+    $ErrorActionPreference = "Continue"
+    & git -C $Source @reste 2>&1 | ForEach-Object { "$_" } | Out-File -Append -Encoding UTF8 $Journal
+    $code = $LASTEXITCODE
+    if ($code -ne 0) {
+        if ($tolerant) { Ecrire "git $reste : code $code (ignoré)" } else { throw "git $reste a échoué ($code)" }
+    }
+}
+function Lancer-Git { Executer-Git $false $args }
+function Essayer-Git { Executer-Git $true $args }
+
+# Le jeu ouvert verrouille ses fichiers : on saute ce passage, le suivant réessaiera (main sera toujours « changé »).
+function Jeu-Ouvert {
+    $dossiers = @($Destination, $DossierBuild)
+    return [bool](Get-Process -Name $Nom -ErrorAction SilentlyContinue |
+        Where-Object { $p = $_.Path; -not $p -or ($dossiers | Where-Object { $p -like "$_*" }) })
+}
 
 # Godot écrit sur stderr : sous PowerShell 5.1 avec « Stop », ça lèverait une erreur. On journalise tout.
 function Lancer-Godot {
@@ -84,8 +110,12 @@ if ($SiChangement -and (Test-Path $infoDest)) {
         exit 0
     }
 }
+if (Jeu-Ouvert) {
+    Ecrire "$Nom est ouvert : export reporté au prochain passage."
+    exit 0
+}
 Lancer-Git reset --quiet --hard "origin/$Branche"
-Lancer-Git clean --quiet -fdx -e .godot
+Essayer-Git clean --quiet -fdx -e .godot -e build
 
 # --- 2. Infos de build ------------------------------------------------------------------------
 $verProjet = (Select-String -Path (Join-Path $Source "project.godot") -Pattern '^config/version="(.*)"' | Select-Object -First 1).Matches.Groups[1].Value
@@ -99,8 +129,11 @@ $json = $info | ConvertTo-Json
 Ecrire "Build $version ($commit) du $date"
 
 # --- 3. Import puis export --------------------------------------------------------------------
-$sortie = Join-Path $Source $(if ($Demo) { "build\windows-demo" } else { "build\windows" })
-if (Test-Path $sortie) { Remove-Item -Recurse -Force $sortie }
+$sortie = $DossierBuild
+if (Test-Path $sortie) {
+    try { Remove-Item -Recurse -Force $sortie -ErrorAction Stop }
+    catch { Ecrire "Dossier de build verrouillé ($sortie) : export reporté au prochain passage."; exit 0 }
+}
 New-Item -ItemType Directory -Force $sortie | Out-Null
 
 Ecrire "Import des ressources (la première fois, ça prend quelques minutes)"
@@ -126,8 +159,9 @@ foreach ($f in "$Nom.exe", "$Nom.pck") {
 Copy-Item (Join-Path $Source "build_info.json") $sortie
 
 # --- 4. Installation dans le dossier de destination -------------------------------------------
-if (Get-Process -Name $Nom -ErrorAction SilentlyContinue | Where-Object { $_.Path -like "$Destination*" }) {
-    throw "MiniBlocs est ouvert depuis $Destination : ferme le jeu puis relance l'export."
+if (Jeu-Ouvert) {
+    Ecrire "$Nom a été ouvert pendant l'export : installation reportée au prochain passage."
+    exit 0
 }
 New-Item -ItemType Directory -Force $Destination | Out-Null
 Get-ChildItem $Destination -Filter "$Nom.*" | Remove-Item -Force

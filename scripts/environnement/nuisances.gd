@@ -467,10 +467,12 @@ func _sources_batiment(bid: int, k: float) -> int:
 		# Les grands sites portent plus loin.
 		var r := float(e.rayon) * clampf(size / 60.0, 0.6, 1.6)
 		var f := k * clampf(size / 50.0, 0.5, 1.5)
+		# Filtres, épuration, normes du plan climat (module Climat).
+		var m := Climat.instance.facteurs_nuisances(tid) if Climat.instance != null else Vector2.ONE
 		if float(e.air) > 0.0:
-			_splat(L.AIR, c, float(e.air) * f, r)
+			_splat(L.AIR, c, float(e.air) * f * m.x, r)
 		if float(e.eau) > 0.0:
-			_splat(L.EAU, c, float(e.eau) * f, r * 0.8)
+			_splat(L.EAU, c, float(e.eau) * f * m.y, r * 0.8)
 		if float(e.bruit) > 0.0:
 			_splat(L.BRUIT, c, float(e.bruit) * f, r * 0.6)
 			if bool(e.nuit):
@@ -527,6 +529,8 @@ func _sources_voies(k: float) -> int:
 	if population != null:
 		activite = clampf(0.35 + population.persons.size() / 3000.0, 0.35, 1.0)
 	var n := 0
+	# Pot catalytique, zone à faibles émissions… (module Climat).
+	var f_air := Climat.instance.facteur_air_trafic() if Climat.instance != null else 1.0
 	for eid in net.edges:
 		var e: Dictionary = net.edges[eid]
 		var cls := String(e.t)
@@ -552,7 +556,7 @@ func _sources_voies(k: float) -> int:
 				bruit *= activite
 				air *= activite
 		bruit *= k
-		air *= k
+		air *= k * f_air
 		if bruit <= 0.0 and air <= 0.0:
 			continue
 		var pts: PackedVector3Array = e.pts
@@ -852,9 +856,11 @@ func loyer_base(bid: int) -> float:
 	return Population.LOYER_MAISON if bool(info.get("house", false)) else Population.LOYER_APPART
 
 
-## Loyer d'un logement (€ par mois) : il suit la valeur du quartier.
+## Loyer d'un logement (€ par mois) : il suit la valeur du quartier, et le
+## marché, le standing ou le loyer social (Immobilier).
 func loyer(bid: int) -> float:
-	return roundf(loyer_base(bid) * coef_foncier(bid))
+	var c := coef_foncier(bid)
+	return roundf(loyer_base(bid) * c * Immobilier.mult_loyer(bid, c))
 
 
 ## Pollution qui touche la santé de ceux qui vivent là (0..1).
@@ -869,8 +875,11 @@ func sante(bid: int) -> float:
 			_lancer_calcul()
 		else:
 			recalculer()
-	var f := au_point(_centre(bid))
-	return clampf(float(f.air) + 0.5 * float(f.eau), 0.0, 1.0)
+	var p := _centre(bid)
+	var f := au_point(p)
+	# Sol pollué du jardin et du potager (module Climat).
+	var sol := Climat.instance.risque_sol(p) if Climat.instance != null else 0.0
+	return clampf(float(f.air) + 0.5 * float(f.eau) + sol, 0.0, 1.0)
 
 
 ## Gêne au logement (pollution, odeurs, bruit surtout la nuit), 0..1.
@@ -881,6 +890,9 @@ func gene(bid: int) -> float:
 
 ## Attrait d'un logement pour les nouveaux arrivants (multiplie le rythme des arrivées).
 func attrait(bid: int) -> float:
+	# Personne ne choisit un bidonville : on y arrive faute de mieux (Immobilier).
+	if Immobilier.precaire(bid):
+		return 0.15
 	var g := gene(bid)
 	var c := coef_foncier(bid)
 	# Les quartiers agréables se remplissent plus vite, les quartiers gênants lentement.
@@ -1020,7 +1032,7 @@ func _logement_moins_cher(hid: int) -> int:
 	var best := -1
 	var best_l := INF
 	for bid in population.known:
-		if population.free_homes(bid) <= 0:
+		if population.free_homes(bid) <= 0 or Immobilier.precaire(bid):
 			continue
 		var l := loyer(bid)
 		if l <= 0.35 * inc and l < best_l:
@@ -1031,7 +1043,7 @@ func _logement_moins_cher(hid: int) -> int:
 	# Rien d'abordable : au moins nettement moins cher qu'aujourd'hui.
 	var now := loyer(int(population.households[hid].b))
 	for bid in population.known:
-		if population.free_homes(bid) <= 0:
+		if population.free_homes(bid) <= 0 or Immobilier.precaire(bid):
 			continue
 		var l := loyer(bid)
 		if l < now * 0.7 and l < best_l:
@@ -1045,7 +1057,7 @@ func _logement_calme(hid: int) -> int:
 	var best := -1
 	var best_g := 0.25
 	for bid in population.known:
-		if population.free_homes(bid) <= 0:
+		if population.free_homes(bid) <= 0 or Immobilier.precaire(bid):
 			continue
 		var g := gene(bid)
 		if g < best_g and loyer(bid) <= 0.4 * inc:

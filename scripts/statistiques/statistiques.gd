@@ -45,6 +45,9 @@ const INDICATEURS := [
 	{"id": "recyclage", "nom": "Déchets recyclés", "unite": "%", "fmt": "pct", "sens": 1, "portee": "pays", "icone": "dechets"},
 	{"id": "touristes", "nom": "Touristes en ville", "unite": "", "fmt": "int", "sens": 1, "portee": "pays", "icone": "valise"},
 	{"id": "nuitees", "nom": "Nuitées de la veille", "unite": "", "fmt": "int", "sens": 1, "portee": "pays", "icone": "lit"},
+	{"id": "co2", "nom": "Émissions de CO₂", "unite": "t/jour", "fmt": "int", "sens": -1, "portee": "pays", "icone": "climat"},
+	{"id": "rechauffement", "nom": "Réchauffement mondial", "unite": "°C", "fmt": "dec", "sens": -1, "portee": "pays", "icone": "thermometre"},
+	{"id": "sols", "nom": "Sols pollués", "unite": "ha", "fmt": "dec", "sens": -1, "portee": "pays", "icone": "climat"},
 ]
 
 var population: Population
@@ -273,6 +276,12 @@ func _nationaux(c: Dictionary) -> void:
 	if trafic != null and trafic.stats.has("jam_factor"):
 		c.congestion = maxf(0.0, (float(trafic.stats.jam_factor) - 1.0) * 100.0)
 		c.trajet = float(trafic.stats.get("avg_min", 0.0))
+	if Climat.instance != null and not Climat.instance.jours.is_empty():
+		var cl := Climat.instance
+		c.co2 = Climat.total(cl.jours[cl.jours.size() - 1].t)
+		if not is_nan(cl.ecart_monde):
+			c.rechauffement = cl.ecart_monde
+		c.sols = cl.sols_pollues_ha()
 	if dechets != null and not dechets.yesterday.is_empty():
 		var b := dechets.bilan()
 		c.dechets = int(b.debordent)

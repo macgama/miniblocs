@@ -63,6 +63,10 @@ var _cremation: OptionButton
 const CREMATIONS := [-1.0, 0.1, 0.25, 0.5, 0.75, 0.95]
 var _pollution: OptionButton
 var _pol_sante: CheckBox
+var _climat: OptionButton
+var _sols: CheckBox
+var _immo: CheckBox
+var _bidonvilles: CheckBox
 const FREQS := [0.25, 1.0, 3.0]
 var _elections: OptionButton
 var _manifs: CheckBox
@@ -371,6 +375,20 @@ func _ready() -> void:
 	_row(g, "Pollution (air, eau, bruit)", _pollution)
 	_pol_sante = _check("La pollution rend malade (santé, espérance de vie)")
 	g.add_child(_pol_sante)
+	_climat = OptionButton.new()
+	for n in ClimatTypes.REGLAGES:
+		_climat.add_item(n)
+	_climat.disabled = not editable
+	_climat.item_selected.connect(func(_i: int) -> void: _changed())
+	_row(g, "Réchauffement climatique", _climat)
+	_sols = _check("Les sols gardent la pollution (usines, mines, pesticides)")
+	g.add_child(_sols)
+	# Immobilier.
+	g = _section(right, "Immobilier", "logement")
+	_immo = _check("Marché vivant : prix qui bougent, promoteurs privés, gentrification")
+	g.add_child(_immo)
+	_bidonvilles = _check("Bidonvilles quand des familles ne trouvent aucun logement abordable")
+	g.add_child(_bidonvilles)
 
 	# Pied.
 	var foot := HBoxContainer.new()
@@ -539,6 +557,10 @@ func _fill() -> void:
 	_cremation.select(ci)
 	_pollution.select(clampi(reglages.pollution, 0, 3))
 	_pol_sante.button_pressed = reglages.pollution_sante
+	_climat.select(clampi(reglages.climat, 0, ClimatTypes.REGLAGES.size() - 1))
+	_sols.button_pressed = reglages.sols_pollues
+	_immo.button_pressed = reglages.immobilier_vivant
+	_bidonvilles.button_pressed = reglages.bidonvilles
 	_epoque.button_pressed = Epoques.actif(reglages)
 	if Epoques.actif(reglages):
 		_annee.value = reglages.annee_depart if creation else Epoques.annee(reglages)
@@ -598,6 +620,10 @@ func _changed() -> void:
 	reglages.dechets_quantite = _dechets_q.value
 	reglages.pollution = maxi(0, _pollution.selected)
 	reglages.pollution_sante = _pol_sante.button_pressed
+	reglages.climat = maxi(0, _climat.selected)
+	reglages.sols_pollues = _sols.button_pressed
+	reglages.immobilier_vivant = _immo.button_pressed
+	reglages.bidonvilles = _bidonvilles.button_pressed
 	_changer_epoque()
 	_emit()
 

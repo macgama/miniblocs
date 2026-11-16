@@ -23,6 +23,7 @@ const CATEGORIES := [
 	{"id": "spectacles", "name": "Spectacles (cinéma, concerts, théâtre)", "color": Color("d64570")},
 	{"id": "tourisme", "name": "Hôtels et tourisme", "color": Color("3a86c8")},
 	{"id": "espaces", "name": "Espaces publics", "color": Color("52b788")},
+	{"id": "patrimoine", "name": "Patrimoine et grands monuments", "color": Color("c9a227")},
 ]
 
 const ROAD := ["route"]
@@ -155,10 +156,12 @@ static func all_types() -> Dictionary:
 		_all.merge(FuneraireTypes.entries())
 		_all.merge(Stades.entries())
 		_all.merge(ClubTypes.entries())
+		_all.merge(ImmobilierTypes.entries())
 		_all.merge(StyleBuilder.generate())
 		_all.merge(EpoquesTypes.entries())
 		_all.merge(EducationTypes.entries())
 		_all.merge(EpoquesBatiments.entries(_all))
+		_all.merge(MonumentsTypes.entries())
 		_all.merge(BibleGlb.entries())
 		ReseauxTypes.adopter(_all)
 		for id in Creations.items:
@@ -239,6 +242,10 @@ static func build_mesh(id: String, material: Material = null, details := true, v
 	var d := float(t.get("d", 4))
 	if t.has("modele"):
 		return ModelesJeu.build_mesh(t)
+	if t.has("monument"):
+		MonumentsTypes.build(k, id, t)
+		k.fit_xz(w, d)
+		return k.to_mesh(material)
 	if t.has("epoque_bat"):
 		EpoquesBatiments.build(k, id, t)
 		k.fit_xz(w, d)
@@ -277,6 +284,10 @@ static func build_mesh(id: String, material: Material = null, details := true, v
 		return k.to_mesh(material)
 	if t.has("spect"):
 		SpectaclesTypes.build(k, id, t)
+		k.fit_xz(w, d)
+		return k.to_mesh(material)
+	if t.has("immo"):
+		ImmobilierTypes.build(k, id, t)
 		k.fit_xz(w, d)
 		return k.to_mesh(material)
 	if t.has("touris"):

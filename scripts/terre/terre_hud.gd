@@ -39,6 +39,8 @@ signal pays_requested
 signal objectifs_requested
 ## Bouton « Niveaux de vie » : niveau des foyers, ce qui les bloque (Maj+N).
 signal niveaux_vie_requested
+## Bouton « Immobilier » : prix, promoteurs, quartiers qui changent, bidonvilles (F11).
+signal immobilier_requested
 ## Bouton « Quartiers » : quartiers nommés et arrêtés municipaux (Maj+Y).
 signal quartiers_requested
 ## Panneau « Trafic » (Maj + L) : bouchons, parkings, remplissage des lignes.
@@ -58,6 +60,8 @@ signal spectacles_requested
 signal club_requested
 ## Bouton « Tourisme » (menu Loisirs, Maj+D) : hôtels, touristes, publicité.
 signal tourisme_requested
+## Bouton « Patrimoine » (menu Loisirs, touche Fin) : classement et grands monuments.
+signal patrimoine_requested
 ## Bouton « Commerce » (menu Économie, Maj+S) : cours mondiaux, accords, crises.
 signal commerce_requested
 ## Panneau « Cartes » (touche N) : pollution, bruit, valeur des terrains, autres calques.
@@ -67,6 +71,8 @@ signal stats_requested
 signal journal_requested
 ## Bouton « Saisons et risques » (menu Infos, Maj+R).
 signal saisons_requested
+## Bouton « Climat et pollution » (menu Infos, Maj+F7).
+signal climat_requested
 signal sante_requested
 ## Bouton « Vue sous terre » (menu Infos, Page bas sous le rez-de-chaussée).
 signal souterrain_requested
@@ -133,6 +139,7 @@ const CATEGORIES := [
 	{"id": "pays", "name": "Pays", "icon": "globe", "key": "Maj+P", "panel": true, "group": "ville"},
 	{"id": "objectifs", "name": "Objectifs", "icon": "trophee", "key": "Maj+J", "panel": true, "group": "ville"},
 	{"id": "niveaux_vie", "name": "Niveaux de vie", "icon": "logement", "key": "Maj+N", "panel": true, "group": "ville"},
+	{"id": "immobilier", "name": "Immobilier (prix, promoteurs, bidonvilles)", "icon": "logement", "key": "F11", "panel": true, "group": "ville"},
 	{"id": "quartiers", "name": "Quartiers et arrêtés", "icon": "pancarte", "key": "Maj+Y", "panel": true, "group": "ville"},
 	{"id": "trafic", "name": "Trafic", "icon": "circulation", "key": "Maj+L", "panel": true, "group": "transports"},
 	{"id": "budget", "name": "Budget", "icon": "budget", "key": "M", "panel": true, "group": "ville"},
@@ -144,10 +151,12 @@ const CATEGORIES := [
 	{"id": "spectacles", "name": "Spectacles (cinémas, concerts, théâtres, studios)", "icon": "masques", "key": "Maj+X", "panel": true, "group": "loisirs"},
 	{"id": "club", "name": "Club de sport (foot, basket, hand, hockey, rugby, tennis)", "icon": "sport", "key": "Maj+B", "panel": true, "group": "loisirs"},
 	{"id": "tourisme", "name": "Tourisme (hôtels, touristes, publicité)", "icon": "valise", "key": "Maj+D", "panel": true, "group": "loisirs"},
+	{"id": "patrimoine", "name": "Patrimoine et grands monuments", "icon": "patrimoine", "key": "Fin", "panel": true, "group": "loisirs"},
 	{"id": "cartes", "name": "Cartes", "icon": "cartes", "key": "N", "panel": true, "group": "infos"},
 	{"id": "stats", "name": "Statistiques et conseiller", "icon": "courbe", "key": "Maj+I", "panel": true, "group": "infos"},
 	{"id": "journal", "name": "Gazette de la ville", "icon": "journal", "key": "F4", "panel": true, "group": "infos"},
 	{"id": "saisons", "name": "Saisons et risques (météo, neige, crues, sécheresse)", "icon": "saisons", "key": "Maj+R", "panel": true, "group": "infos"},
+	{"id": "climat", "name": "Climat et pollution (CO₂, réchauffement, sols, énergie)", "icon": "climat", "key": "Maj+F7", "panel": true, "group": "infos"},
 	{"id": "sante", "name": "Santé publique (hygiène, vaccins, épidémies)", "icon": "sante", "key": "F7", "panel": true, "group": "infos"},
 	{"id": "photo", "name": "Mode photo et time-lapse (Maj+F8)", "icon": "appareil_photo", "key": "F8", "panel": true, "group": "infos"},
 	{"id": "souterrain", "name": "Vue sous terre (tuyaux, câbles, métro, sous-sols)", "icon": "souterrain", "key": "Page bas", "panel": true, "group": "infos"},
@@ -831,6 +840,7 @@ func _on_category(id: String) -> void:
 			"pays": pays_requested.emit()
 			"objectifs": objectifs_requested.emit()
 			"niveaux_vie": niveaux_vie_requested.emit()
+			"immobilier": immobilier_requested.emit()
 			"quartiers": quartiers_requested.emit()
 			"trafic": trafic_requested.emit()
 			"dechets": dechets_requested.emit()
@@ -841,11 +851,13 @@ func _on_category(id: String) -> void:
 			"spectacles": spectacles_requested.emit()
 			"club": club_requested.emit()
 			"tourisme": tourisme_requested.emit()
+			"patrimoine": patrimoine_requested.emit()
 			"commerce": commerce_requested.emit()
 			"cartes": cartes_requested.emit()
 			"stats": stats_requested.emit()
 			"journal": journal_requested.emit()
 			"saisons": saisons_requested.emit()
+			"climat": climat_requested.emit()
 			"sante": sante_requested.emit()
 			"souterrain": souterrain_requested.emit()
 			"photo": photo_requested.emit()

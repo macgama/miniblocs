@@ -1168,7 +1168,7 @@ func _mobilite_requis() -> void:
 func _move_out(pid: int, texte := "") -> void:
 	var homes := []
 	for bid in known:
-		if free_homes(bid) > 0 and not bool(known[bid].get("etu", false)):
+		if free_homes(bid) > 0 and not bool(known[bid].get("etu", false)) and not Immobilier.precaire(bid):
 			homes.append(bid)
 	if homes.is_empty():
 		return
@@ -1229,7 +1229,10 @@ func household_budget(hid: int) -> Dictionary:
 		rent = float(known[int(h.b)].loyer)
 	# Le loyer suit la valeur du quartier (pollution, bruit, parcs, commerces…).
 	if Nuisances.instance != null:
-		rent *= Nuisances.instance.coef_foncier(int(h.b))
+		var cf := Nuisances.instance.coef_foncier(int(h.b))
+		rent *= cf
+		# Marché, standing, logement social, baraque sans loyer (Immobilier).
+		rent *= Immobilier.mult_loyer(int(h.b), cf)
 	var food := COURSES * (h.m as Array).size()
 	# Sous la tente des fondateurs : ni loyer ni courses (vivres, ravitaillement, Fondateurs).
 	if known.has(int(h.b)) and bool(known[int(h.b)].get("camp", false)):
@@ -1271,6 +1274,8 @@ func city_budget(filtre := Callable()) -> Dictionary:
 			tf *= Nuisances.instance.coef_foncier(hb)
 		# Et le niveau de vie du foyer (logement mieux estimé).
 		tf *= NiveauxVie.coef_taxe(households[hid])
+		# Logements sociaux et baraques ne paient pas de taxe foncière (Immobilier).
+		tf *= Immobilier.coef_taxe(hb)
 		rec["Taxe foncière"] += TAXE_FONCIERE * reg.impots * tf
 	rec["Dotation de l'État"] = DOTATION * (hab if f else persons.size())
 	for bid in by_job:

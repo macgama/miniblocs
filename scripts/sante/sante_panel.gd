@@ -86,7 +86,7 @@ func toggle() -> void:
 
 func _unhandled_key_input(event: InputEvent) -> void:
 	var k := event as InputEventKey
-	if k and k.pressed and not k.echo and k.keycode == KEY_F7 and not k.ctrl_pressed and not k.alt_pressed:
+	if k and k.pressed and not k.echo and k.keycode == KEY_F7 and not k.shift_pressed and not k.ctrl_pressed and not k.alt_pressed:
 		toggle()
 		get_viewport().set_input_as_handled()
 

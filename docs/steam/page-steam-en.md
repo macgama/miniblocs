@@ -4,8 +4,8 @@ Paste-ready texts for Steamworks (Edit Store Page → English). Code blocks use 
 markup (BBCode) and are pasted as they are. The French version is in
 [page-steam-fr.md](page-steam-fr.md), instructions in [README.md](README.md).
 
-Note: the English store page should only go live once the game itself is translated
-(Steam players filter by supported language).
+Note: the game is translated into English, German, Italian and Spanish (Options → Game →
+Language); German, Italian and Spanish pages are in page-steam-de.md, -it.md and -es.md.
 
 ## Basic info
 
@@ -19,7 +19,7 @@ Note: the English store page should only go live once the game itself is transla
 | Modes | Single-player (multiplayer comes later: do not tick yet) |
 | Controller | Partial controller support, Steam Deck tested at 1280 × 800 (see docs/succes-manette.md) |
 | Steam features | Steam Achievements (62, succes-steam.csv) and Steam Workshop (docs/partage.md): tick once GodotSteam is installed in the game |
-| Languages | French (interface, subtitles); tick English once the translation ships |
+| Languages | English, French, German, Italian, Spanish (interface, subtitles) |
 | Website | https://www.manigames.online |
 
 ## Short description
@@ -94,6 +94,7 @@ MiniBlocs is made by a single developer. Planned next: an always-online map to s
 - Original music: *Building Permit Waltz*, *Pothole Blues*, *Council Meeting (Running Late)*...
 - 30-minute guided demo.
 - 62 achievements, controller and Steam Deck support, share your creations (Workshop).
+- In English, French, German, Italian and Spanish.
 
 ## Taglines
 

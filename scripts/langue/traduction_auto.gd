@@ -33,6 +33,9 @@ var _re_decimale: RegEx
 var _re_nombre: RegEx
 var _re_date: RegEx
 var nb_modeles := 0
+## Nombres à l'anglaise (« 1,234.5 ») ; sinon à l'allemande, l'italienne ou
+## l'espagnole (« 1.234,5 » : la virgule décimale reste, les milliers prennent un point).
+var anglais := true
 
 
 func _init() -> void:
@@ -51,6 +54,7 @@ func _init() -> void:
 ## Charge un fichier de langue. Renvoie false s'il manque.
 func charger(chemin: String, code: String) -> bool:
 	locale = code
+	anglais = code == "en"
 	var f := FileAccess.open(chemin, FileAccess.READ)
 	if f == null:
 		return false
@@ -303,7 +307,7 @@ func _remplir(modele: String, valeurs: PackedStringArray) -> String:
 	return out + modele.substr(pos)
 
 
-## Chiffres à l'anglaise : « 1 234,5 » → « 1,234.5 ».
+## Chiffres à l'anglaise : « 1 234,5 » → « 1,234.5 » (ou « 1.234,5 » hors anglais).
 ## Nombres d'un texte entier : virgule décimale et espaces des milliers.
 func _nombres_texte(v: String) -> String:
 	if v.contains(" ") and _re_date.search(v) != null:
@@ -314,16 +318,20 @@ func _nombres_texte(v: String) -> String:
 			var jour := m.get_string(1)
 			if jour != "":
 				out += String(textes.get(jour, jour)) + " "
-			out += m.get_string(2) + " " + String(textes.get(m.get_string(3), m.get_string(3)))
+			out += m.get_string(2) + ("." if locale == "de" else "") + " " + String(textes.get(m.get_string(3), m.get_string(3)))
 			pos = m.get_end()
 		v = out + v.substr(pos)
 	if not v.contains(",") and not v.contains(" ") and not v.contains(" ") and not v.contains(" "):
 		return v
+	if not anglais:
+		return _re_milliers.sub(v, "$1.", true)
 	v = _re_decimale.sub(v, "$1.$2", true)
 	return _re_milliers.sub(v, "$1,", true)
 
 
 func _nombres(v: String) -> String:
+	if not anglais:
+		return _re_milliers.sub(v, "$1.", true).replace("−", "-")
 	v = _re_decimale.sub(v, "$1.$2", true)
 	v = _re_milliers.sub(v, "$1,", true)
 	return v.replace("−", "-")

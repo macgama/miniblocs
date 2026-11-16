@@ -73,6 +73,8 @@ signal souterrain_requested
 signal photo_requested
 ## Succès du joueur (F6, menu Infos).
 signal succes_requested
+## Visites et cartes postales (F7).
+signal visites_requested
 ## Bouton Admin de la barre du haut, ou F10 : réglages de la partie.
 signal admin_requested
 signal spec_edited(type_id: String, spec: Dictionary)
@@ -133,6 +135,7 @@ const CATEGORIES := [
 	{"id": "objectifs", "name": "Objectifs", "icon": "trophee", "key": "Maj+J", "panel": true, "group": "ville"},
 	{"id": "niveaux_vie", "name": "Niveaux de vie", "icon": "logement", "key": "Maj+N", "panel": true, "group": "ville"},
 	{"id": "quartiers", "name": "Quartiers et arrêtés", "icon": "pancarte", "key": "Maj+Y", "panel": true, "group": "ville"},
+	{"id": "visites", "name": "Visites et cartes postales (faire visiter sa ville, visiter celle des autres)", "icon": "carte_postale", "key": "F7", "panel": true, "group": "ville"},
 	{"id": "trafic", "name": "Trafic", "icon": "circulation", "key": "Maj+L", "panel": true, "group": "transports"},
 	{"id": "budget", "name": "Budget", "icon": "budget", "key": "M", "panel": true, "group": "ville"},
 	{"id": "dechets", "name": "Déchets", "icon": "dechets", "key": "X", "panel": true, "group": "ville"},
@@ -760,6 +763,10 @@ func _build_mode_badge() -> void:
 func _request_mode(on: bool) -> void:
 	if on == create_mode:
 		return
+	if on and VisiteVille.active():
+		set_create_mode(false)
+		show_message(VisiteVille.TEXTE_VERROU)
+		return
 	set_create_mode(on)
 	mode_changed.emit(on)
 
@@ -807,6 +814,11 @@ func _on_category(id: String) -> void:
 		(_cat_buttons[id] as Button).set_pressed_no_signal(false)
 		show_message(EditionDemo.texte_verrou(String(c.get("name", id)).get_slice(" (", 0)))
 		return
+	# En visite : seulement ce qui se regarde (et les cartes postales).
+	if id != "visites" and VisiteVille.categorie_verrouillee(id):
+		(_cat_buttons[id] as Button).set_pressed_no_signal(false)
+		show_message(VisiteVille.TEXTE_VERROU)
+		return
 	if c.get("mode", "gerer") == "creer":
 		_create_cat = "" if _create_cat == id else id
 		create_requested.emit(_create_cat)
@@ -847,6 +859,7 @@ func _on_category(id: String) -> void:
 			"souterrain": souterrain_requested.emit()
 			"photo": photo_requested.emit()
 			"succes": succes_requested.emit()
+			"visites": visites_requested.emit()
 		_update_categories()
 		return
 	if create_mode and id == "observer":
@@ -1195,6 +1208,10 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	if key == null or not key.pressed or key.echo:
 		return
 	if key.keycode == KEY_TAB and not key.ctrl_pressed and not key.alt_pressed:
+		if VisiteVille.active():
+			show_message(VisiteVille.TEXTE_VERROU)
+			get_viewport().set_input_as_handled()
+			return
 		_request_mode(not create_mode)
 		get_viewport().set_input_as_handled()
 		return
@@ -1210,6 +1227,9 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			return
 	for i in TOOLS.size():
 		if key.keycode == TOOLS[i].key or key.physical_keycode == TOOLS[i].key:
+			if VisiteVille.outil_verrouille(i):
+				show_message(VisiteVille.TEXTE_VERROU)
+				return
 			_buttons[i].button_pressed = true
 			_set_current_tool(i)
 			tool_selected.emit(i)

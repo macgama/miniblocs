@@ -229,6 +229,7 @@ func _ready() -> void:
 	_setup_son()
 	_setup_photo()
 	_setup_succes()
+	_setup_visites()
 	hud.traffic_toggled.connect(func(on: bool) -> void: transport.traffic.set_enabled(on))
 	hud.traffic_filter_changed.connect(func(era: String, region: String) -> void:
 		transport.traffic.set_filters(era, region)
@@ -349,13 +350,17 @@ func _ready() -> void:
 			hud.show_message("Partie chargée : %s." % _game_title())
 		else:
 			hud.show_message("Chargement impossible : " + last_error)
+			if slot == VisiteVille.SLOT:
+				VisiteVille.oublier()
 	if GameStart.atelier:
 		_start_atelier.call_deferred()
+	if VisiteVille.active() and not VisiteVille.en_ligne:
+		_debut_visite()
 	# Nouvelle partie : on commence par fonder le village (le tutoriel le
 	# propose lui-même, après le tour de la caméra).
-	if communes.fondation_requise() and not tutoriel.actif and Multijoueur.role != Multijoueur.Role.SERVEUR:
+	if communes.fondation_requise() and not tutoriel.actif and Multijoueur.role != Multijoueur.Role.SERVEUR and not VisiteVille.active():
 		get_tree().create_timer(1.5).timeout.connect(func() -> void:
-			if communes.fondation_requise() and not villages_panel._dialog.visible and not tutoriel.actif:
+			if communes.fondation_requise() and not villages_panel._dialog.visible and not tutoriel.actif and not VisiteVille.active():
 				villages_panel.demander_nom())
 	# Carte entre amis : ce jeu est le serveur, ou un joueur connecté (scripts/multijoueur).
 	Multijoueur.attacher(self)
@@ -422,6 +427,7 @@ func save_sections() -> Dictionary:
 	sec["parc_allees"] = parc_allees.to_dict()
 	sec["timelapse"] = timelapse.to_dict()
 	sec["edition_demo"] = limite_demo.to_dict()
+	sec["courrier"] = courrier.to_dict()
 	# Serveur de carte entre amis : membres, code d'invitation, caisses personnelles.
 	if Multijoueur.role == Multijoueur.Role.SERVEUR:
 		sec["multijoueur"] = Multijoueur.section()
@@ -430,6 +436,10 @@ func save_sections() -> Dictionary:
 
 ## Sauvegarde dans la partie en cours (ou une nouvelle). title : nom d'une nouvelle partie.
 func save_game(slot := "", title := "") -> bool:
+	# En visite : la ville d'un autre ne se sauvegarde pas (la copie est jetée à la fin).
+	if VisiteVille.active():
+		last_error = "en visite, la ville d'un autre ne se sauvegarde pas"
+		return false
 	if slot == "":
 		slot = GameStart.slot_id if GameStart.slot_id != AUTOSAVE_SLOT else ""
 	if slot == "":
@@ -589,6 +599,7 @@ func load_game(slot := "") -> bool:
 	_load_settings(sec.get("reglages", {}), m)
 	# Après les réglages : une partie d'avant le tutoriel n'en a pas.
 	limite_demo.from_dict(sec.get("edition_demo", {}))
+	courrier.from_dict(sec.get("courrier", {}))
 	if sec.has("tutoriel"):
 		tutoriel.from_dict(sec.tutoriel)
 	else:
@@ -1262,6 +1273,102 @@ func ouvrir_bilan_demo() -> void:
 	add_child(bilan_demo)
 
 
+## Visites et cartes postales (F7, VisiteVille, Courrier, docs/visites.md).
+var courrier: Courrier
+var visites_panel: VisitesPanel
+var _bandeau_visite: PanelContainer
+
+
+func _setup_visites() -> void:
+	courrier = Courrier.new()
+	courrier.name = "Courrier"
+	courrier.world = world
+	courrier.ma_partie = func() -> String:
+		if GameStart.slot_id == "" or GameStart.slot_id == VisiteVille.SLOT:
+			return ""
+		return String(SaveGame.read_manifest(GameStart.slot_id).get("partie_id", ""))
+	add_child(courrier)
+	courrier.arrivee.connect(func(c: Dictionary) -> void:
+		if not _chargement and not VisiteVille.active():
+			hud.show_message("Carte postale de %s : « %s » (F7 pour la lire)." % [String(c.de), String(c.texte).left(60)]))
+	hud.visites_requested.connect(toggle_visites)
+	# Courrier arrivé pendant qu'on ne jouait pas : relevé au lancement.
+	(func() -> void:
+		if not VisiteVille.active() and Multijoueur.role == Multijoueur.Role.SOLO and is_instance_valid(courrier):
+			courrier.relever()).call_deferred()
+
+
+func toggle_visites() -> void:
+	if visites_panel != null:
+		visites_panel.fermer()
+		return
+	visites_panel = VisitesPanel.new(self)
+	visites_panel.closed.connect(func() -> void:
+		visites_panel = null
+		hud.set_panel_open("visites", false))
+	visites_panel.message.connect(func(t: String) -> void: hud.show_message(t))
+	_windows_layer().add_child(visites_panel)
+	hud.set_panel_open("visites", true)
+
+
+## Un champ de texte a-t-il le clavier (carte postale, discussion) ?
+func _saisie_en_cours() -> bool:
+	var f := get_viewport().gui_get_focus_owner()
+	return f is LineEdit or f is TextEdit
+
+
+## La ville visitée est ouverte : on regarde sans toucher.
+func _debut_visite() -> void:
+	set_create_mode(false)
+	if tutoriel != null:
+		tutoriel.set_actif(false)
+	ReglagesPartie.actuel.tutoriel = false
+	if pilote != null:
+		pilote.set_process(false)
+	if scenario != null and scenario.en_cours():
+		scenario.clear()
+	if succes_suivi != null:
+		succes_suivi.actif = false
+	# La ville vit à son rythme normal pendant la promenade.
+	if ambiance.speed_index == 0 and not VisiteVille.en_ligne:
+		ambiance.set_speed(1)
+	hud.set_admin_visible(false)
+	_bandeau_visite = PanelContainer.new()
+	UiStyle.style_panel(_bandeau_visite, 0.9, 10, 8)
+	_bandeau_visite.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
+	_bandeau_visite.position.y = 112
+	var h := HBoxContainer.new()
+	h.add_theme_constant_override("separation", 8)
+	_bandeau_visite.add_child(h)
+	var ic := TextureRect.new()
+	ic.texture = Icones.get_icon("pieton", 20, UiStyle.ACCENT)
+	ic.stretch_mode = TextureRect.STRETCH_KEEP_CENTERED
+	h.add_child(ic)
+	var l := Label.new()
+	var de := VisiteVille.auteur()
+	l.text = "Visite de « %s »%s" % [VisiteVille.titre(), (" · ville de " + de) if de != "" else ""]
+	l.add_theme_color_override("font_color", UiStyle.ACCENT)
+	h.add_child(l)
+	var cp := Button.new()
+	cp.text = "Carte postale (F7)"
+	cp.focus_mode = Control.FOCUS_NONE
+	cp.pressed.connect(toggle_visites)
+	h.add_child(cp)
+	var fin := Button.new()
+	fin.text = "Terminer la visite"
+	fin.focus_mode = Control.FOCUS_NONE
+	fin.pressed.connect(func() -> void: VisiteVille.terminer())
+	h.add_child(fin)
+	hud.add_child(_bandeau_visite)
+	(func() -> void:
+		if is_instance_valid(_bandeau_visite):
+			_bandeau_visite.position.x = (_bandeau_visite.get_parent_area_size().x - _bandeau_visite.size.x) * 0.5).call_deferred()
+	var acc := String(VisiteVille.en_cours.get("accueil", ""))
+	if acc == "":
+		acc = courrier.accueil
+	hud.show_message(("« %s » · " % acc if acc != "" else "") + "Bienvenue ! Promène-toi (V pour marcher), et laisse une carte postale avec F7.")
+
+
 ## Son : ambiances selon la caméra, humeur de la musique, sons des événements.
 ## Succès du joueur (Succes, F6) et commandes de la manette (Manette).
 var succes_suivi: SuccesSuivi
@@ -1838,7 +1945,7 @@ func toggle_help() -> void:
 
 func _autosave(delta: float) -> void:
 	# En ligne : c'est le serveur qui sauvegarde la carte.
-	if GameStart.atelier or Multijoueur.en_ligne():
+	if GameStart.atelier or Multijoueur.en_ligne() or VisiteVille.active():
 		return
 	var interval := OptionsJeu.autosave_min * 60.0
 	if interval <= 0.0:
@@ -1894,6 +2001,11 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		hud.show_message(EditionDemo.texte_verrou(verrou))
 		return
+	# En visite : rien ne se construit ni ne se règle (sauf ce qu'on tape dans un champ).
+	if VisiteVille.touche_verrouillee(k) and not _saisie_en_cours():
+		get_viewport().set_input_as_handled()
+		hud.show_message(VisiteVille.TEXTE_VERROU)
+		return
 	if k != null and k.pressed and not k.echo and k.keycode == KEY_ESCAPE and pause_menu == null:
 		_esc_busy = _tool_busy()
 
@@ -1911,6 +2023,10 @@ func _unhandled_input(event: InputEvent) -> void:
 	if k != null and k.pressed and not k.echo and k.keycode == KEY_F6 and pause_menu == null:
 		get_viewport().set_input_as_handled()
 		toggle_succes()
+		return
+	if k != null and k.pressed and not k.echo and k.keycode == KEY_F7 and not k.shift_pressed and pause_menu == null:
+		get_viewport().set_input_as_handled()
+		toggle_visites()
 		return
 	if k == null or not k.pressed or k.echo or k.keycode != KEY_ESCAPE or pause_menu != null:
 		return
@@ -1944,8 +2060,8 @@ func open_pause() -> void:
 	if pause_menu != null:
 		return
 	pause_menu = MenuPause.new()
-	pause_menu.unsaved = _unsaved and not GameStart.atelier
-	pause_menu.place = _game_title() if not GameStart.atelier else "Atelier"
+	pause_menu.unsaved = _unsaved and not GameStart.atelier and not VisiteVille.active()
+	pause_menu.place = ("Visite : " + VisiteVille.titre()) if VisiteVille.active() else (_game_title() if not GameStart.atelier else "Atelier")
 	pause_menu.resume_requested.connect(close_pause)
 	pause_menu.save_requested.connect(func() -> void:
 		if save_game():
@@ -1988,6 +2104,8 @@ func _quit_from_pause(to_desktop: bool, save_first: bool) -> void:
 		return
 	if GameStart.atelier:
 		GameStart.atelier = false
+	if VisiteVille.active():
+		VisiteVille.oublier()
 	GameStart.slot_id = ""
 	EcranChargement.aller(MenuPrincipal.SCENE, "Retour au menu principal")
 

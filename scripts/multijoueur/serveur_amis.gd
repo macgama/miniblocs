@@ -180,6 +180,8 @@ func _envoyer(id: int, msg: Dictionary) -> void:
 
 ## À tous les joueurs entrés (instantané reçu), sauf sauf.
 func _a_tous(msg: Dictionary, sauf := 0) -> void:
+	if peer == null:
+		return
 	var oct := Protocole.encoder(msg)
 	for id in connectes:
 		if int(id) != sauf and bool(connectes[id].ok):
@@ -278,7 +280,12 @@ func _recevoir(id: int, msg: Dictionary) -> void:
 		return
 	if not bool(c.ok):
 		return
+	# Visiteur : il regarde, discute et laisse des cartes postales, rien d'autre.
+	if bool(c.get("visiteur", false)) and type in ["action", "admin"]:
+		return
 	match type:
+		"carte_postale":
+			_carte_postale(c, msg.get("carte"))
 		"action":
 			var a: Variant = msg.get("a")
 			if a is Dictionary:
@@ -308,6 +315,9 @@ func _bonjour(id: int, msg: Dictionary) -> void:
 		if int(autre) != id and String(connectes[autre].pid) == pid:
 			_refuser(id, "Tu es déjà connecté à cette carte depuis un autre jeu.")
 			return
+	if bool(msg.get("visiteur", false)):
+		_bonjour_visiteur(id, pid, msg)
+		return
 	var res := carte.accepter(pid, String(msg.get("pseudo", "")), String(msg.get("code", "")), int(Time.get_unix_time_from_system()))
 	if not res.ok:
 		_refuser(id, String(res.raison))
@@ -325,11 +335,45 @@ func _bonjour(id: int, msg: Dictionary) -> void:
 	_sale = true
 	var admin := carte.est_admin(pid)
 	_envoyer(id, {"m": "bienvenue", "pid": pid, "pseudo": c.pseudo, "admin": admin, "carte": carte.nom,
-		"code": carte.code if admin else "", "nouveau": bool(res.nouveau)})
+		"code": carte.code if admin else "", "nouveau": bool(res.nouveau), "visites_ouvertes": carte.visites_ouvertes})
 	_envoyer_instantane(id)
 	_log("%s a rejoint la carte%s." % [c.pseudo, " (première fois)" if res.nouveau else ""])
 	_a_tous({"m": "chat", "de": "", "texte": "%s a rejoint la carte." % c.pseudo}, id)
 	_envoyer_joueurs()
+
+
+## Un visiteur entre : ni membre ni caisse, il reçoit la carte et la regarde.
+func _bonjour_visiteur(id: int, pid: String, msg: Dictionary) -> void:
+	var res := carte.accepter_visiteur(pid, String(msg.get("pseudo", "")), String(msg.get("code", "")))
+	if not res.ok:
+		_refuser(id, String(res.raison))
+		return
+	var c: Dictionary = connectes[id]
+	c.pid = pid
+	c.pseudo = String(res.pseudo)
+	c.ok = true
+	c["visiteur"] = true
+	_envoyer(id, {"m": "bienvenue", "pid": pid, "pseudo": c.pseudo, "admin": false, "carte": carte.nom, "code": "",
+		"nouveau": false, "visiteur": true})
+	_envoyer_instantane(id)
+	_log("%s visite la carte." % c.pseudo)
+	_a_tous({"m": "chat", "de": "", "texte": "%s visite la carte." % c.pseudo}, id)
+
+
+## Carte postale d'un joueur ou d'un visiteur : rangée dans le courrier de la carte, envoyée à tous.
+func _carte_postale(c: Dictionary, v: Variant) -> void:
+	var cp := Courrier.nettoyer(v)
+	var cr: Courrier = jeu.get("courrier")
+	if cp.is_empty() or cr == null:
+		return
+	# L'expéditeur est celui que le serveur connaît, pas celui que dit la carte.
+	cp.de = String(c.pseudo)
+	cp.de_id = String(c.pid)
+	cp.ville = carte.nom
+	if cr.recevoir(cp):
+		_sale = true
+		_a_tous({"m": "carte_postale", "carte": cp})
+		_log("Carte postale de %s." % c.pseudo)
 
 
 func _refuser(id: int, raison: String) -> void:
@@ -391,6 +435,10 @@ func _admin(id: int, c: Dictionary, msg: Dictionary) -> void:
 				jeu._apply_settings(true)
 				_sale = true
 				_a_tous({"m": "reglages", "d": ReglagesPartie.actuel.to_dict()}, id)
+		"visites":
+			carte.visites_ouvertes = bool(msg.get("ouvertes", false))
+			_sale = true
+			_envoyer(id, {"m": "info", "texte": "Visiteurs sans code : %s." % ("permis" if carte.visites_ouvertes else "refusés")})
 		"caisse":
 			var k := carte.caisse_principale(String(c.pid))
 			jeu.pays._poser(k, int(msg.get("v", 0)))

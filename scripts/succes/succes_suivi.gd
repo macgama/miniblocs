@@ -19,7 +19,7 @@ var actif := true
 
 func setup(s: Node) -> void:
 	scene = s
-	actif = Multijoueur.role != Multijoueur.Role.SERVEUR and not GameStart.atelier
+	actif = Multijoueur.role != Multijoueur.Role.SERVEUR and not GameStart.atelier and not VisiteVille.active()
 	if not actif:
 		return
 	Succes.charger()

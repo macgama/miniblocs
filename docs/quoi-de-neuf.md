@@ -4,6 +4,11 @@ Tout est dans `main`, et les 9 tests automatiques passent (`sh tests/tous.sh`).
 
 ## Nouveautés
 
+**Visiter les villes des autres** (**F7**, ou menu principal → Visiter une ville, 16 novembre)
+- Partage ta ville en fichier .mbloc (ou sur le Workshop) avec un mot d'accueil ; les visiteurs s'y promènent sans rien pouvoir changer.
+- Ils te laissent une **carte postale** (texte, timbre, photo), épinglée là où ils l'ont écrite ; elle arrive toute seule dans ton courrier. Livre d'or au choix.
+- Sur une carte entre amis : « Visiter (sans construire) », et l'admin peut ouvrir aux visiteurs sans code. Voir docs/visites.md.
+
 **Partager ses créations** (menu **Partage**, **Maj+W**, ou touche **8** en mode Créer, 15 novembre)
 - Publie tes bâtiments de l'Atelier, tes musées, tes créations en blocs, tes attractions dessinées et des plans de site entiers (parc, zoo, quartier) ; installe ceux des autres.
 - Fichiers **.mbloc** à envoyer à un ami en attendant Steam : « Recevoir » les lit dans le dossier d'échange. Une création emporte ce dont elle a besoin.

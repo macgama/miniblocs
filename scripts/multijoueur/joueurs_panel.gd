@@ -54,6 +54,14 @@ func _ready() -> void:
 		neuf.tooltip_text = "L'ancien code ne marche plus (les membres déjà entrés restent membres)."
 		neuf.pressed.connect(func() -> void: client.envoyer_admin("code"))
 		hb.add_child(neuf)
+		var vis := CheckBox.new()
+		vis.text = "Visiteurs sans code"
+		vis.tooltip_text = "Les inconnus qui ont l'adresse peuvent se promener sur la carte (sans construire) et laisser des cartes postales."
+		vis.button_pressed = client.visites_ouvertes
+		vis.toggled.connect(func(on: bool) -> void:
+			client.visites_ouvertes = on
+			client.envoyer_admin("visites", {"ouvertes": on}))
+		hb.add_child(vis)
 	v.add_child(_label("Joueurs", 15, UiStyle.ACCENT))
 	_liste = VBoxContainer.new()
 	v.add_child(_liste)

@@ -372,6 +372,13 @@ L'onglet **Intérieur** (icône fauteuil) du panneau Construire aménage les bâ
 - **Découvrir** : « Recevoir » lit les fichiers .mbloc du dossier d'échange ; Installer, Mettre à jour, Retirer, filtre par sorte et recherche.
 - **Steam Workshop** : la couche `PartageSteam` (GodotSteam) prendra le relais à la sortie sur Steam : publier enverra sur le Workshop et les abonnements s'installeront seuls. Détails : [docs/partage.md](docs/partage.md).
 
+### Visiter les villes des autres (F7)
+
+- **Faire visiter sa ville** : un mot d'accueil, puis « Fichier .mbloc de ma ville » (à envoyer) ou « Publier sur le Workshop ». Livre d'or au choix : les visiteurs voient les cartes déjà reçues.
+- **Visiter** (F7, ou menu principal → Visiter une ville) : on se promène (vue au sol V, à bord E, photo F8), on regarde les panneaux, on ne construit ni ne règle rien, et rien n'est sauvegardé.
+- **Cartes postales** : un mot, un timbre, la photo de la vue, épinglée là où on regarde. Elle arrive toute seule dans le courrier du maire (dossier d'échange, ou serveur de la carte entre amis).
+- **Carte entre amis** : « Visiter (sans construire) » ; l'admin peut ouvrir aux visiteurs sans code. Détails : [docs/visites.md](docs/visites.md).
+
 ![Une rue de Maisons à pignon personnalisées, la dernière ouverte en murs fins](docs/personnaliser_rue.png)
 ![Le panneau Personnaliser](docs/personnaliser_panneau.png)
 ![Une Maison à pignon ouverte : pièces et meubles](docs/personnaliser_coupe.png)

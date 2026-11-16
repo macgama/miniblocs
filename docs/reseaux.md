@@ -16,6 +16,37 @@ Touche **O** : panneau Réseaux (onglets Courant, Eau, Égouts, Chauffage, Compt
 - Dans chaque réseau relié (composante), la production est partagée entre
   tous : taux = production / demande, au plus 100 %.
 
+## Icônes des bâtiments non raccordés (`Raccordements`)
+
+`scripts/reseaux/raccordements.gd`, test `tests/raccordements_test.gd`.
+
+- Au-dessus de chaque bâtiment, une icône par réseau qui manque, côte à côte :
+  éclair (électricité), goutte (eau potable), tuyau (égouts), antenne (internet).
+- **Fond rouge : pas raccordé** (aucune route desservie, ligne ou conduite à
+  moins de 30 m plus la demi-taille du bâtiment ; pour internet : ni cuivre, ni
+  fibre, ni mobile). Montré tout le temps, en jeu normal.
+- **Fond orange : raccordé mais coupé** (pas assez de production, panne, central
+  télécom manquant). Seulement dans la vue Réseaux (O, calque allumé), où toutes
+  les icônes sont plus grandes, pulsent et passent devant les bâtiments.
+- Le gaz n'a pas d'icône : sans gaz, on se chauffe à l'électricité.
+- **Époques** (`Epoques.ATTENDU`) : eau et égouts attendus dès 1900, électricité
+  dès 1925, internet dès 1975 ; avant, pas d'icône (bougies, puits, fosses).
+  Réseaux non obligatoires (Admin, F10) : aucune icône.
+- **Masquer** : Options → Jeu → « Icônes des bâtiments non raccordés »
+  (`OptionsJeu.icones_raccordement`, user://options.cfg), ou la case en haut du
+  panneau O. Jamais sur les photos (F8).
+- **Mairie (M) et fil « À faire »** : « N bâtiments non raccordés (électricité : …) »,
+  bouton « Y aller » qui centre la caméra sur le bâtiment et ouvre sa fiche,
+  puis le suivant à chaque clic (`terre_main.aller_au_non_raccorde()`). Dans une
+  partie à plusieurs villes, seulement ceux de la ville choisie.
+- **Fiche du bâtiment** (clic, panneau Habitants) : rubrique « Réseaux », une ligne
+  par réseau avec son état (raccordé et servi, rationné, coupé et pourquoi, pas
+  raccordé, pas encore attendu à cette époque, rejet sans traitement…).
+- **Performances** : un seul MultiMesh (un quad par icône), un shader qui tourne
+  les icônes vers la caméra et garde leur taille à l'écran (pas de calcul par
+  image côté CPU) ; la liste est refaite une fois par seconde et le MultiMesh
+  seulement quand elle change.
+
 ## Production (Construire > Réseaux)
 
 | Bâtiment | Capacité | Particularité |

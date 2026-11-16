@@ -523,7 +523,9 @@ func _view_building(bid: int) -> void:
 				var who := int(l[1])
 				_link(String(l[0]), func() -> void: show_view("profil", who))
 			else:
-				_text(String(l[0]), false, 13)
+				var lb := _text(String(l[0]), false, 13)
+				if l.size() > 2 and l[2] is Color:
+					lb.add_theme_color_override("font_color", l[2])
 	var here := pop.present_in(bid)
 	# Fiche : icône de la catégorie, jauges d'occupation, bouton « Aller voir ».
 	var card := HBoxContainer.new()
@@ -572,6 +574,12 @@ func _view_building(bid: int) -> void:
 		cu.pressed.connect(func() -> void: customize_requested.emit(bid))
 		acts.add_child(cu)
 	_body.add_child(acts)
+	# Électricité, eau, égouts, chauffage, internet : l'état de chaque réseau.
+	if Reseaux.instance != null and Reseaux.instance.raccordements != null and is_instance_valid(Reseaux.instance):
+		var rac := Reseaux.instance.raccordements
+		if not rac.etat_reseaux(bid).is_empty():
+			_section("Réseaux")
+			rac.remplir_fiche(_body, bid, W)
 	_fiche_amelioration(bid)
 	if int(info.log) > 0:
 		var homes: Array = pop.by_home.get(bid, [])

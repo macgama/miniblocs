@@ -2647,6 +2647,11 @@ func _setup_mairie() -> void:
 		func() -> String: return Statistiques.PAYS if pays == null or pays.selection == Pays.PAYS else str(pays.selection),
 		func() -> String: return pays.nom_de(pays.selection) if pays != null else "")
 	mairie_panel.panneau_requested.connect(aller_au_panneau)
+	# Bâtiments non raccordés : une alerte qui emmène au bâtiment.
+	if reseaux != null and reseaux.raccordements != null:
+		reseaux.raccordements.telecom = telecom
+		mairie_panel.autres_alertes = func(l: String) -> Array:
+			return reseaux.raccordements.alertes(_filtre_ville(l))
 	hud.mairie_requested.connect(func() -> void: mairie_panel.toggle())
 	mairie_panel.visibilite.connect(func(on: bool) -> void: hud.set_mairie_open(on))
 	fil_alertes = FilAlertes.new()
@@ -2655,6 +2660,8 @@ func _setup_mairie() -> void:
 	fil_alertes.setup(mairie_panel)
 	fil_alertes.panneau_requested.connect(aller_au_panneau)
 	fil_alertes.set_shown(not GameStart.atelier)
+	if reseaux != null and reseaux.raccordements != null:
+		reseaux.raccordements.nombre_change.connect(func(_n: int) -> void: fil_alertes.refresh())
 	recherche = RechercheUniverselle.new()
 	recherche.name = "RechercheUniverselle"
 	add_child(recherche)
@@ -2678,11 +2685,47 @@ func aller_au_panneau(id: String) -> void:
 	if id == "mairie":
 		mairie_panel.set_open(true)
 		return
+	if id == "non_raccorde":
+		aller_au_non_raccorde()
+		return
 	var directs := ["budget", "avis", "construire", "trafic", "dechets", "reseaux", "services", "cartes", "lignes", "pays", "production", "objectifs", "saisons"]
 	if directs.has(id):
 		ouvrir_panneau(id)
 	else:
 		hud._on_category(id)
+
+
+## Bâtiments d'une ville (lieu de la Mairie) ; Callable vide pour tout le pays.
+func _filtre_ville(l: String) -> Callable:
+	if l == Statistiques.PAYS or communes == null or not l.is_valid_int():
+		return Callable()
+	var vid := int(l)
+	return func(bid: int) -> bool: return communes.village_de(bid) == vid
+
+
+## Centre la caméra sur le prochain bâtiment non raccordé et ouvre sa fiche.
+func aller_au_non_raccorde() -> int:
+	if reseaux == null or reseaux.raccordements == null:
+		return -1
+	var l := Statistiques.PAYS if pays == null or pays.selection == Pays.PAYS else str(pays.selection)
+	var bid := reseaux.raccordements.suivant(_filtre_ville(l))
+	if bid < 0:
+		bid = reseaux.raccordements.suivant()
+	if bid < 0 or not buildings.buildings.has(bid):
+		hud.show_message("Tous les bâtiments sont raccordés.")
+		return -1
+	var p := BuildingSystem.rect_center(buildings._rect_of(buildings.buildings[bid]))
+	rig.position.x = p.x
+	rig.position.z = p.z
+	if population != null:
+		population.select_building(bid)
+	var noms := []
+	for m in reseaux.raccordements.manques_de(bid):
+		if m[1] == Raccordements.NON_RACCORDE:
+			noms.append(String(Raccordements.NOMS[m[0]]).to_lower())
+	hud.show_message("%s : pas raccordé (%s). Une route, une ligne ou une conduite à moins de 30 m." % [
+		String(BuildingCatalog.get_type(String(buildings.buildings[bid].t)).get("name", "Bâtiment")), ", ".join(noms)])
+	return bid
 
 
 func _on_recherche(e: Dictionary) -> void:

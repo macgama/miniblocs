@@ -14,6 +14,18 @@ const JOURS_FR := ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi"
 const MOIS_FR := ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"]
 const JOURS_EN := ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
 const MOIS_EN := ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+## Autres langues : [jours, mois, format] ; format reçoit jour de semaine, jour, mois, année.
+const DATES := {
+	"de": [["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"],
+		["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"],
+		"%s, %d. %s %d"],
+	"it": [["domenica", "lunedì", "martedì", "mercoledì", "giovedì", "venerdì", "sabato"],
+		["gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre"],
+		"%s %d %s %d"],
+	"es": [["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"],
+		["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"],
+		"%s, %d de %s de %d"],
+}
 
 var journal: Journal
 ## Édition affichée (indice dans journal.editions ; -1 = la dernière).
@@ -208,6 +220,9 @@ func date_texte(ed: Dictionary) -> String:
 	var m := clampi(int(ed.get("mois", 1)) - 1, 0, 11)
 	if Langue.actuelle == "en":
 		return "%s, %s %d, %d" % [JOURS_EN[js], MOIS_EN[m], int(ed.get("jm", 1)), int(ed.get("an", 2026))]
+	if DATES.has(Langue.actuelle):
+		var d: Array = DATES[Langue.actuelle]
+		return String(d[2]) % [d[0][js], int(ed.get("jm", 1)), d[1][m], int(ed.get("an", 2026))]
 	var jm := int(ed.get("jm", 1))
 	return "%s %s %s %d" % [JOURS_FR[js], "1er" if jm == 1 else str(jm), MOIS_FR[m], int(ed.get("an", 2026))]
 

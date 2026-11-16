@@ -44,6 +44,7 @@ L'écran a une barre en haut (lieu, partie, heure et vitesse du temps, chiffres 
 | Carte entre amis (en ligne) | **F3** : joueurs, code d'invitation, discussion |
 | Son et musique | **F2** (volumes général, musique, ambiance, effets, interface ; morceaux) |
 | Succès | **F6** (aussi au menu principal) : 62 succès pour toutes tes parties |
+| Santé publique | **F7** (menu Infos) : hygiène, vaccins, mesures sanitaires, grandes épidémies de l'histoire |
 | Manette, Steam Deck | stick gauche curseur, Ⓐ clic, Ⓑ annuler, stick droit caméra, LB/RB tourner, LT/RT zoom : [docs/succes-manette.md](docs/succes-manette.md) |
 
 L'interface s'adapte à la taille de la fenêtre (elle est dessinée pour 1600 × 900 puis agrandie ou réduite).
@@ -509,6 +510,12 @@ Touche **Maj+U** : chaque logement est relié à l'école, l'hôpital et le comm
 
 Détails : [docs/services.md](docs/services.md).
 
+## Santé publique : épidémies, vaccins et égouts
+
+Touche **F7** (menu Infos) : hygiène des logements (eau potable, égouts), lits d'hôpital, épidémie en cours. Les maladies suivent l'époque : variole jusqu'en 1977, choléra de 1817 à 1923, polio, diphtérie… Une partie commencée dans le passé vit les grandes épidémies à leur date (choléra de 1832, grippe espagnole de 1918, Covid-19 en 2020), annoncées d'abord par une rumeur dans la gazette. Le choléra et la typhoïde passent par l'eau : des égouts et de l'eau potable les arrêtent. Vaccins datés (campagnes ou obligation, une partie des habitants refuse), mesures sanitaires datées (quarantaine, écoles fermées, eau bouillie dès 1854, chlore dès 1902, masques et confinement dès 1918).
+
+Détails : [docs/sante.md](docs/sante.md).
+
 ## Musées : salles à thème, œuvres et visiteurs
 
 Menu **Loisirs → Musée** (touche **Maj+C**) : 12 musées prêts à poser (beaux-arts, muséum, sciences, civilisations, transports, cinéma et musique, sport, mer, préhistoire, jouet et BD, vin…) ou tes propres murs, 26 fonctions de salle (galerie de peinture, Égypte, dinosaures, locomotives, automobile, espace, cinéma, mode, musique…), 208 objets en 24 familles. La note dépend du prestige des œuvres bien rangées par thème, de l'éclairage, du confort et des services ; les visiteurs (habitants et touristes) vont d'œuvre en œuvre, paient leur billet, passent à la boutique et au café. Expositions temporaires, gratuité du 1er dimanche, fermeture le lundi. Détails : [docs/musee.md](docs/musee.md).
@@ -684,6 +691,7 @@ Une ferme entièrement générée en code (longère à colombages et toit de cha
 | `scripts/habitants/habitants_panel.gd` | Panneau « Habitants » (touche H) : ville, liste, bâtiment, profil |
 | `scripts/habitants/metiers.gd` | Métiers (salaires, horaires), métiers par bâtiment, loisirs et leurs lieux, classes |
 | `scripts/habitants/prenoms.gd` | Prénoms et noms par région du monde |
+| `tests/sante_test.gd` | Test de la santé publique (maladies datées, choléra de 1832, eau et égouts, vaccins, mesures, sauvegarde, panneau F7) |
 | `tests/habitants_test.gd` | Test des habitants (école, emplois, journée, budget, transports, sauvegarde, panneau) |
 | `tests/habitants_vitrine.gd` | Petit quartier et captures du panneau Habitants |
 | `scripts/metiers/gestes.gd` | Gestes de métier (pétrir, écrire au tableau, ausculter…) : texte, animation, outil, poste ; gestes devinés pour les nouveaux métiers |

@@ -52,6 +52,15 @@ Clic sur un bâtiment avec l'outil Observer : le panneau Habitants s'ouvre sur s
 
 `scripts/interface/ui_style.gd` réunit le style commun : panneaux sombres arrondis, accent ambre `#ffd166`, boutons à icône (`tile_button`, `icon_button`), pastilles de touche, étiquettes de chiffres.
 
+## Fenêtres trop hautes : défilement
+
+Une fenêtre au centre de l'écran (Réglages de la partie / Admin F10, Aide F1, Son F2)
+met son contenu dans `UiStyle.scroll_fit(contenu, fenetre)` : la zone suit la taille
+du contenu, puis s'arrête à la hauteur de l'écran (titre et pied restent visibles).
+On fait défiler à la molette, en glissant la barre, au clavier ou à la croix (le
+focus est suivi) et au stick droit de la manette (`UiStyle.scroll_under`). Test :
+`tests/defilement_test.gd`. Toute nouvelle fenêtre longue doit faire pareil.
+
 ## Tests et captures
 
 - `tests/interface_test.gd` : icônes, catégories et plateau, panneaux un à la fois, cartes de Construire, chiffres du haut, bouton Vue, fiche. Affiche `INTERFACE TEST OK`.

@@ -33,6 +33,55 @@ static func place_right(p: Control) -> void:
 	p.clip_contents = true
 
 
+## Met `content` dans une zone qui défile verticalement (molette, glisser la barre,
+## focus clavier ou manette, stick droit de la manette) quand la fenêtre `outer`
+## ne tient pas dans l'écran. La zone suit la taille du contenu tant qu'il y a la
+## place, puis s'arrête à la hauteur de la vue moins `marge` (en haut et en bas),
+## en tenant compte de ce que `outer` contient d'autre (titre, pied). Recalculée
+## quand le contenu ou la fenêtre change de taille. Exemple : AdminPanel.
+static func scroll_fit(content: Control, outer: Control, marge := 24.0) -> ScrollContainer:
+	var sc := ScrollContainer.new()
+	sc.name = "Defilement"
+	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	sc.follow_focus = true
+	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sc.add_child(content)
+	var fit := func() -> void:
+		if not is_instance_valid(sc) or not sc.is_inside_tree():
+			return
+		var need := content.get_combined_minimum_size()
+		var autre := outer.get_combined_minimum_size().y - sc.get_combined_minimum_size().y
+		var place := sc.get_viewport_rect().size.y - 2.0 * marge - maxf(autre, 0.0)
+		var h := clampf(need.y, 0.0, maxf(place, 120.0))
+		var barre := 0.0
+		if h < need.y:
+			barre = sc.get_v_scroll_bar().get_combined_minimum_size().x + 6.0
+		sc.custom_minimum_size = Vector2(need.x + barre, h)
+	content.minimum_size_changed.connect(fit, CONNECT_DEFERRED)
+	sc.tree_entered.connect(func() -> void:
+		sc.get_viewport().size_changed.connect(fit, CONNECT_DEFERRED)
+		fit.call_deferred())
+	sc.tree_exiting.connect(func() -> void:
+		var vp := sc.get_viewport()
+		if vp != null and vp.size_changed.is_connected(fit):
+			vp.size_changed.disconnect(fit))
+	return sc
+
+
+## Fait défiler la zone sous `c` (ou qui contient `c`) de `dy` pixels. Rend vrai
+## s'il y avait une zone qui pouvait encore défiler dans ce sens (manette).
+static func scroll_under(c: Control, dy: float) -> bool:
+	while c != null:
+		var sc := c as ScrollContainer
+		if sc != null and sc.vertical_scroll_mode != ScrollContainer.SCROLL_MODE_DISABLED:
+			var bar := sc.get_v_scroll_bar()
+			if bar.max_value - bar.page > 1.0:
+				sc.scroll_vertical += int(round(dy))
+				return true
+		c = c.get_parent() as Control
+	return false
+
+
 static func panel_box(alpha := 0.88, radius := 12, margin := 10) -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Color(PANEL_BG, alpha)

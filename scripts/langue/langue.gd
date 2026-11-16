@@ -6,7 +6,7 @@ extends RefCounted
 
 const DOSSIER := "res://assets/langues/"
 ## [code, nom affiché dans sa propre langue]
-const LANGUES := [["fr", "Français"], ["en", "English"]]
+const LANGUES := [["fr", "Français"], ["en", "English"], ["de", "Deutsch"], ["it", "Italiano"], ["es", "Español"]]
 
 static var _chargees := {}
 static var actuelle := "fr"

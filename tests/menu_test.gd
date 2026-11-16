@@ -101,6 +101,20 @@ func _run() -> void:
 	for id in ["continuer", "nouvelle", "charger", "atelier", "options", "credits", "quitter"]:
 		_check(menu._boutons.has(id), "bouton %s" % id)
 	_check(menu._carte.visible and menu._carte_img.texture != null, "carte « Dernière partie » avec son aperçu")
+	# Tout tient à l'écran (base 1600×900), sans chevaucher la version ni l'aide.
+	var vue := menu._ui.get_viewport().get_visible_rect()
+	var version := menu._ui.get_node("VersionBuild") as Control
+	var aide := menu._aide as Control
+	for id in menu._boutons:
+		var r := (menu._boutons[id] as Control).get_global_rect()
+		_check(vue.encloses(r), "bouton %s entièrement à l'écran" % id)
+		_check(not r.intersects(version.get_global_rect()), "bouton %s ne chevauche pas la version" % id)
+		_check(not r.intersects(aide.get_global_rect()), "bouton %s ne chevauche pas l'aide" % id)
+		_check(String((menu._boutons[id] as Button).tooltip_text) == "", "bouton %s sans infobulle flottante" % id)
+	_check(vue.encloses(version.get_global_rect()), "version à l'écran")
+	(menu._boutons.options as Button).grab_focus()
+	await _frames(1)
+	_check(aide.text.begins_with("Graphismes"), "aide d'Options sous le menu")
 	_check(menu.diorama.stats.triangles > 5000, "île low-poly : %d triangles" % menu.diorama.stats.triangles)
 	_check(menu.diorama.nacelles.size() == 10, "grande roue : 10 nacelles")
 	var a0: float = menu.diorama.roue.rotation.z

@@ -226,6 +226,12 @@ func _run() -> void:
 	_check(not mp.is_open() and game.habitants_panel.is_open(), "Mairie › Habitants ouvre le bon panneau")
 	game.habitants_panel.set_open(false)
 	_check(not hud._group_buttons.ville.is_inside_tree(), "le menu Ville de la barre est remplacé par la Mairie")
+	var oublis := []
+	for c in TerreHud.CATEGORIES:
+		if String(c.get("group", "")) == "ville" and mp._panel.find_child("Menu_" + String(c.id), true, false) == null \
+				and not EditionDemo.panneau_verrouille(String(c.id)):
+			oublis.append(String(c.id))
+	_check(oublis.is_empty(), "chaque menu du groupe Ville a son bouton dans la Mairie (oublis : %s)" % str(oublis))
 	# Alertes : un relevé avec du chômage.
 	var st: Statistiques = game.statistiques
 	st.historique.append({"j": 100, "n": 1, "d": {Statistiques.PAYS: {"habitants": 500.0, "chomage": 25.0, "caisse": 1000000.0, "solde": -5000.0, "satisfaction": 60.0}}})

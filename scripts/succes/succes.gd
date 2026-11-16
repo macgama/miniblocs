@@ -172,7 +172,8 @@ static func total() -> int:
 ## Débloque un succès (une seule fois). Renvoie true s'il vient d'être débloqué.
 static func debloquer(id: String) -> bool:
 	charger()
-	if debloques.has(id) or not existe(id) or argent_illimite:
+	# Édition démo : pas de succès (Valve conseille de les couper dans une démo).
+	if debloques.has(id) or not existe(id) or argent_illimite or EditionDemo.active():
 		return false
 	debloques[id] = int(Time.get_unix_time_from_system())
 	sauver()

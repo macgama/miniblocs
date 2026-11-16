@@ -503,6 +503,9 @@ func _build_bottom() -> void:
 		if c.get("mode", "gerer") == "creer":
 			UiStyle.tint_pressed(b, UiStyle.CREATE, UiStyle.CREATE_INK)
 		b.tooltip_text = "%s (%s)" % [c.name, c.key]
+		if EditionDemo.panneau_verrouille(String(c.id)):
+			b.modulate = Color(1, 1, 1, 0.45)
+			b.tooltip_text = "🔒 %s : dans le jeu complet" % c.name
 		# Toutes allumables : outil en cours ou panneau ouvert (état remis par _update_categories / set_panel_open).
 		b.toggle_mode = true
 		var id: String = c.id
@@ -799,6 +802,11 @@ func set_level_text(text: String) -> void:
 func _on_category(id: String) -> void:
 	close_groups()
 	var c := _category(id)
+	# Édition démo : les loisirs avancés, le Workshop et les succès sont dans le jeu complet.
+	if EditionDemo.panneau_verrouille(id):
+		(_cat_buttons[id] as Button).set_pressed_no_signal(false)
+		show_message(EditionDemo.texte_verrou(String(c.get("name", id)).get_slice(" (", 0)))
+		return
 	if c.get("mode", "gerer") == "creer":
 		_create_cat = "" if _create_cat == id else id
 		create_requested.emit(_create_cat)

@@ -157,6 +157,9 @@ func _ready() -> void:
 	tabs.append({"id": "interieur", "name": "Intérieur : meubles, pièces, bâtiments meublés", "color": Color("c9a0dc")})
 	tabs.append({"id": "banque", "name": "Banque de modèles : bâtiments personnalisés et meublés", "color": Color("9fe3b0")})
 	for c in tabs:
+		# Édition démo : parc de loisirs, zoo, spectacles et tourisme dans le jeu complet.
+		if EditionDemo.categorie_verrouillee(String(c.id)):
+			continue
 		var b := UiStyle.icon_button(String(CAT_ICONS.get(c.id, "construire")), c.name, "", 26, 46)
 		b.custom_minimum_size = Vector2(70, 46)
 		b.toggle_mode = true
@@ -286,6 +289,8 @@ func refresh() -> void:
 
 
 func show_category(cat: String) -> void:
+	if not _cat_buttons.has(cat):
+		cat = "logement"
 	_category = cat
 	(_cat_buttons[cat] as Button).button_pressed = true
 	_cat_title.text = (_cat_buttons[cat] as Button).tooltip_text

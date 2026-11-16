@@ -51,6 +51,13 @@ func _ready() -> void:
 	row.alignment = BoxContainer.ALIGNMENT_END
 	row.add_theme_constant_override("separation", 10)
 	v.add_child(row)
+	# Édition démo (Steam Next Fest) : l'appel à la liste de souhaits.
+	if EditionDemo.active():
+		var souhaits := Button.new()
+		souhaits.name = "Souhaits"
+		souhaits.text = "♥ Liste de souhaits"
+		souhaits.pressed.connect(func() -> void: EditionDemo.ouvrir_magasin())
+		row.add_child(souhaits)
 	var menu := Button.new()
 	menu.name = "Menu"
 	menu.text = "Menu principal"

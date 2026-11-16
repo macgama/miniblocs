@@ -3,6 +3,7 @@
 Code : `scripts/tutoriel/demo.gd` (`Demo` : lieu, réglages, lancement),
 `scripts/tutoriel/demo_bilan.gd` (`DemoBilan` : bilan de fin), les étapes dans
 `Tutoriel.ETAPES_DEMO` (`scripts/tutoriel/tutoriel.gd`).
+Édition démo pour Steam (build à part, limites, liste de souhaits) : `docs/demo-next-fest.md`.
 Tests : `tests/demo_test.gd` (headless), `tests/demo_vitrine.gd` (captures et vidéo
 pour la page Steam).
 

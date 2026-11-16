@@ -220,6 +220,7 @@ func _ready() -> void:
 	_setup_journal()
 	_setup_tutoriel()
 	_setup_scenario()
+	_setup_edition_demo()
 	_setup_quartiers()
 	_setup_souterrain()
 	_setup_create_mode()
@@ -417,6 +418,7 @@ func save_sections() -> Dictionary:
 	sec["parc_editeur"] = attractions.to_dict()
 	sec["parc_allees"] = parc_allees.to_dict()
 	sec["timelapse"] = timelapse.to_dict()
+	sec["edition_demo"] = limite_demo.to_dict()
 	# Serveur de carte entre amis : membres, code d'invitation, caisses personnelles.
 	if Multijoueur.role == Multijoueur.Role.SERVEUR:
 		sec["multijoueur"] = Multijoueur.section()
@@ -582,6 +584,7 @@ func load_game(slot := "") -> bool:
 	($VueSol as VueSol).from_dict(sec.get("personnage", {}))
 	_load_settings(sec.get("reglages", {}), m)
 	# Après les réglages : une partie d'avant le tutoriel n'en a pas.
+	limite_demo.from_dict(sec.get("edition_demo", {}))
 	if sec.has("tutoriel"):
 		tutoriel.from_dict(sec.tutoriel)
 	else:
@@ -1197,6 +1200,43 @@ func ouvrir_bilan_scenario(r: Dictionary) -> void:
 			hud.show_message("Sauvegarde impossible : " + last_error)
 		Scenarios.lancer(String(r.get("id", ""))))
 	add_child(bilan_scenario)
+
+
+## Édition démo (Steam Next Fest, EditionDemo) : limite de la partie et écran de fin.
+var limite_demo: LimiteDemo
+var fin_demo: FinDemo
+
+
+func _setup_edition_demo() -> void:
+	limite_demo = LimiteDemo.new()
+	limite_demo.name = "LimiteDemo"
+	add_child(limite_demo)
+	limite_demo.lire = func() -> Dictionary:
+		var vid := int(pays.actif) if pays != null else -1
+		return {"jour": objectifs.jour(), "habitants": population.persons.size(),
+			"nom": String(pays.nom_de(vid)) if pays != null and vid >= 0 else "Ta ville"}
+	limite_demo.vitesse = func() -> int: return ambiance.speed_index
+	limite_demo.pause = func() -> void: ambiance.set_speed(0)
+	limite_demo.message.connect(func(t: String) -> void: hud.show_message(t))
+	limite_demo.fin_atteinte.connect(ouvrir_fin_demo)
+
+
+func ouvrir_fin_demo(chiffres: Dictionary = {}) -> void:
+	if fin_demo != null:
+		return
+	if bilan_demo != null:
+		bilan_demo.fermer()
+	fin_demo = FinDemo.new(FinDemo.Motif.LIMITE, chiffres)
+	fin_demo.ferme.connect(func() -> void:
+		fin_demo = null
+		if not save_game():
+			hud.show_message("Sauvegarde impossible : " + last_error))
+	fin_demo.menu_demande.connect(func() -> void:
+		if not save_game():
+			hud.show_message("Sauvegarde impossible : " + last_error)
+		GameStart.slot_id = ""
+		EcranChargement.aller(MenuPrincipal.SCENE, "Retour au menu principal"))
+	add_child(fin_demo)
 
 
 ## Démo guidée : bilan de fin (DemoBilan), au-dessus du jeu.
@@ -1838,6 +1878,12 @@ func _tool_busy() -> bool:
 
 func _input(event: InputEvent) -> void:
 	var k := event as InputEventKey
+	# Édition démo : raccourcis des panneaux du jeu complet (avant que les panneaux les voient).
+	var verrou := EditionDemo.touche_verrouillee(k)
+	if verrou != "":
+		get_viewport().set_input_as_handled()
+		hud.show_message(EditionDemo.texte_verrou(verrou))
+		return
 	if k != null and k.pressed and not k.echo and k.keycode == KEY_ESCAPE and pause_menu == null:
 		_esc_busy = _tool_busy()
 

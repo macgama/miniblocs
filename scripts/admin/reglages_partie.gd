@@ -126,6 +126,10 @@ var pollution_sante := true
 var climat: int = 2
 ## Les sols gardent la mémoire des pollutions (usines, mines, pesticides).
 var sols_pollues := true
+## Immobilier vivant : indice des prix, promoteurs privés, gentrification (Immobilier).
+var immobilier_vivant := true
+## Des bidonvilles apparaissent quand des familles ne trouvent aucun logement abordable.
+var bidonvilles := true
 ## Joueur qui a créé la partie (SaveGame.player_id()) : l'admin des cartes entre amis.
 var createur := ""
 ## Chantiers : les constructions apparaissent d'un coup (bac à sable) au lieu de
@@ -311,6 +315,7 @@ func to_dict() -> Dictionary:
 		"record_habitants": record_habitants, "evenements_auto": evenements_auto, "catastrophes": catastrophes,
 		"frequence_catastrophes": frequence_catastrophes, "crises_economiques": crises_economiques, "volatilite_marche": volatilite_marche, "neige_routes": neige_routes, "faim": faim, "telecom_necessaire": telecom_necessaire, "construction_instantanee": construction_instantanee,
 		"horaires_chantiers": horaires_chantiers, "rythme_chantiers": rythme_chantiers, "usure": usure, "dechets": dechets, "dechets_quantite": dechets_quantite, "pollution": pollution, "pollution_sante": pollution_sante, "climat": climat, "sols_pollues": sols_pollues,
+		"immobilier_vivant": immobilier_vivant, "bidonvilles": bidonvilles,
 		"elections": elections, "manifestations": manifestations, "funeraire": funeraire, "cremation": cremation, "reseaux_obligatoires": reseaux_obligatoires, "prix_services": prix_services,
 		"fondation": fondation, "rue_fondation": rue_fondation, "territoire": territoire, "fondateurs": fondateurs, "vivres_jours": vivres_jours, "main_oeuvre": main_oeuvre,
 		"tutoriel": tutoriel, "objectifs_ecran": objectifs_ecran,
@@ -367,6 +372,8 @@ func from_dict(d: Dictionary) -> void:
 	pollution_sante = bool(d.get("pollution_sante", true))
 	climat = clampi(int(d.get("climat", 2)), 0, 3)
 	sols_pollues = bool(d.get("sols_pollues", true))
+	immobilier_vivant = bool(d.get("immobilier_vivant", true))
+	bidonvilles = bool(d.get("bidonvilles", true))
 	funeraire = bool(d.get("funeraire", true))
 	cremation = clampf(float(d.get("cremation", -1.0)), -1.0, 1.0)
 	annee_depart = int(d.get("annee_depart", 0))

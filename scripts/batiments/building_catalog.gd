@@ -155,6 +155,7 @@ static func all_types() -> Dictionary:
 		_all.merge(FuneraireTypes.entries())
 		_all.merge(Stades.entries())
 		_all.merge(ClubTypes.entries())
+		_all.merge(ImmobilierTypes.entries())
 		_all.merge(StyleBuilder.generate())
 		_all.merge(EpoquesTypes.entries())
 		_all.merge(EpoquesBatiments.entries(_all))
@@ -276,6 +277,10 @@ static func build_mesh(id: String, material: Material = null, details := true, v
 		return k.to_mesh(material)
 	if t.has("spect"):
 		SpectaclesTypes.build(k, id, t)
+		k.fit_xz(w, d)
+		return k.to_mesh(material)
+	if t.has("immo"):
+		ImmobilierTypes.build(k, id, t)
 		k.fit_xz(w, d)
 		return k.to_mesh(material)
 	if t.has("touris"):

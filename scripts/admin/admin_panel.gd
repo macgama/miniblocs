@@ -65,6 +65,8 @@ var _pollution: OptionButton
 var _pol_sante: CheckBox
 var _climat: OptionButton
 var _sols: CheckBox
+var _immo: CheckBox
+var _bidonvilles: CheckBox
 const FREQS := [0.25, 1.0, 3.0]
 var _elections: OptionButton
 var _manifs: CheckBox
@@ -381,6 +383,12 @@ func _ready() -> void:
 	_row(g, "Réchauffement climatique", _climat)
 	_sols = _check("Les sols gardent la pollution (usines, mines, pesticides)")
 	g.add_child(_sols)
+	# Immobilier.
+	g = _section(right, "Immobilier", "logement")
+	_immo = _check("Marché vivant : prix qui bougent, promoteurs privés, gentrification")
+	g.add_child(_immo)
+	_bidonvilles = _check("Bidonvilles quand des familles ne trouvent aucun logement abordable")
+	g.add_child(_bidonvilles)
 
 	# Pied.
 	var foot := HBoxContainer.new()
@@ -551,6 +559,8 @@ func _fill() -> void:
 	_pol_sante.button_pressed = reglages.pollution_sante
 	_climat.select(clampi(reglages.climat, 0, ClimatTypes.REGLAGES.size() - 1))
 	_sols.button_pressed = reglages.sols_pollues
+	_immo.button_pressed = reglages.immobilier_vivant
+	_bidonvilles.button_pressed = reglages.bidonvilles
 	_epoque.button_pressed = Epoques.actif(reglages)
 	if Epoques.actif(reglages):
 		_annee.value = reglages.annee_depart if creation else Epoques.annee(reglages)
@@ -612,6 +622,8 @@ func _changed() -> void:
 	reglages.pollution_sante = _pol_sante.button_pressed
 	reglages.climat = maxi(0, _climat.selected)
 	reglages.sols_pollues = _sols.button_pressed
+	reglages.immobilier_vivant = _immo.button_pressed
+	reglages.bidonvilles = _bidonvilles.button_pressed
 	_changer_epoque()
 	_emit()
 

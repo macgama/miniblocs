@@ -856,9 +856,11 @@ func loyer_base(bid: int) -> float:
 	return Population.LOYER_MAISON if bool(info.get("house", false)) else Population.LOYER_APPART
 
 
-## Loyer d'un logement (€ par mois) : il suit la valeur du quartier.
+## Loyer d'un logement (€ par mois) : il suit la valeur du quartier, et le
+## marché, le standing ou le loyer social (Immobilier).
 func loyer(bid: int) -> float:
-	return roundf(loyer_base(bid) * coef_foncier(bid))
+	var c := coef_foncier(bid)
+	return roundf(loyer_base(bid) * c * Immobilier.mult_loyer(bid, c))
 
 
 ## Pollution qui touche la santé de ceux qui vivent là (0..1).
@@ -888,6 +890,9 @@ func gene(bid: int) -> float:
 
 ## Attrait d'un logement pour les nouveaux arrivants (multiplie le rythme des arrivées).
 func attrait(bid: int) -> float:
+	# Personne ne choisit un bidonville : on y arrive faute de mieux (Immobilier).
+	if Immobilier.precaire(bid):
+		return 0.15
 	var g := gene(bid)
 	var c := coef_foncier(bid)
 	# Les quartiers agréables se remplissent plus vite, les quartiers gênants lentement.
@@ -1027,7 +1032,7 @@ func _logement_moins_cher(hid: int) -> int:
 	var best := -1
 	var best_l := INF
 	for bid in population.known:
-		if population.free_homes(bid) <= 0:
+		if population.free_homes(bid) <= 0 or Immobilier.precaire(bid):
 			continue
 		var l := loyer(bid)
 		if l <= 0.35 * inc and l < best_l:
@@ -1038,7 +1043,7 @@ func _logement_moins_cher(hid: int) -> int:
 	# Rien d'abordable : au moins nettement moins cher qu'aujourd'hui.
 	var now := loyer(int(population.households[hid].b))
 	for bid in population.known:
-		if population.free_homes(bid) <= 0:
+		if population.free_homes(bid) <= 0 or Immobilier.precaire(bid):
 			continue
 		var l := loyer(bid)
 		if l < now * 0.7 and l < best_l:
@@ -1052,7 +1057,7 @@ func _logement_calme(hid: int) -> int:
 	var best := -1
 	var best_g := 0.25
 	for bid in population.known:
-		if population.free_homes(bid) <= 0:
+		if population.free_homes(bid) <= 0 or Immobilier.precaire(bid):
 			continue
 		var g := gene(bid)
 		if g < best_g and loyer(bid) <= 0.4 * inc:

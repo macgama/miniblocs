@@ -90,6 +90,8 @@ var vent := 0.5
 var soleil := 0.0
 
 var vue: ReseauxVue
+## Icônes au-dessus des bâtiments non raccordés (scripts/reseaux/raccordements.gd).
+var raccordements: Raccordements
 var panneau: Node
 
 var _topo_sale := true
@@ -176,6 +178,9 @@ func setup(w: TerrainWorld, b: BuildingSystem, t: TransportSystem, p: Population
 	vue.name = "Vue"
 	vue.reseaux = self
 	add_child(vue)
+	raccordements = Raccordements.new()
+	raccordements.reseaux = self
+	add_child(raccordements)
 	_inscrire_calques()
 
 

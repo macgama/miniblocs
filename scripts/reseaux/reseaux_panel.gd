@@ -171,6 +171,18 @@ func _reseau(res: String) -> void:
 	_label(ReseauxTypes.RES_NAMES[res], 15, UiStyle.ACCENT)
 	if not ReglagesPartie.actuel.reseaux_obligatoires:
 		_label("Réseaux non obligatoires (Admin, F10) : tout est desservi d'office.", 12, UiStyle.TEXT_DIM)
+	elif res != "gaz" and not Epoques.attendu(res):
+		_label("En %d, ce réseau n'est pas encore attendu : personne ne s'en plaint, pas d'icône au-dessus des bâtiments." % Epoques.annee(), 12, UiStyle.TEXT_DIM)
+	if reseaux.raccordements != null:
+		var ic := CheckBox.new()
+		var nb := reseaux.raccordements.nb_non_raccordes
+		ic.text = "Icônes des bâtiments non raccordés" + (" (%d)" % nb if nb > 0 else "")
+		ic.tooltip_text = "Rouge : pas raccordé (route, ligne ou conduite à plus de 30 m).\nOrange (dans cette vue) : raccordé mais coupé.\nAussi dans Options → Jeu."
+		ic.button_pressed = OptionsJeu.icones_raccordement
+		ic.toggled.connect(func(on: bool) -> void:
+			OptionsJeu.icones_raccordement = on
+			OptionsJeu.sauver())
+		_body.add_child(ic)
 	var nom := "traitement" if res == "egout" else "production"
 	_label("%s : %s %s (au mieux %s) · demande : %s %s" % [nom.capitalize(), Reseaux._fmt(b.production), u, Reseaux._fmt(b.nominal), Reseaux._fmt(b.demande), u])
 	var servi := 1.0 if float(b.demande) <= 0.0 else float(b.servi) / float(b.demande)

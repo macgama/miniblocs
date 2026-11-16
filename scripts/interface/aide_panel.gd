@@ -240,6 +240,7 @@ const SECTIONS := [
 	]],
 	["Réseaux (électricité, eau, égouts, chauffage)", [
 		["O", "panneau Réseaux : production et demande, sources, bâtiments coupés, comptes ; ses onglets allument le calque du réseau (pastille verte, orange ou rouge sur chaque bâtiment)"],
+		["Icônes au-dessus des bâtiments", "éclair (électricité), goutte (eau), tuyau (égouts), antenne (internet) sur fond rouge : pas raccordé, il faut une route, une ligne ou une conduite à moins de 30 m. Dans la vue Réseaux (O), plus grandes, et en orange les bâtiments raccordés mais coupés. Selon l'époque : rien avant 1900 (eau, égouts), 1925 (électricité), 1975 (internet). Mairie (M) → « Y aller » emmène au bâtiment ; Options → Jeu pour les masquer"],
 		["Construire > Réseaux", "centrales (charbon, gaz, bois, nucléaire, barrage, éolienne, solaire, réseau national posable partout), batteries (gardent le surplus pour la nuit et les jours sans vent), captage et forage d'eau, château d'eau, station d'épuration, lagunage, rejet direct"],
 		["Routes", "chaque route porte la desserte locale : un bâtiment à moins de 30 m d'une route reliée à une source est desservi"],
 		["Panneau O > ligne HT, MT, conduite, collecteur", "clic pour chaque point, clic droit ou Échap pour finir ; le tronçon a son chantier avant d'être en service"],

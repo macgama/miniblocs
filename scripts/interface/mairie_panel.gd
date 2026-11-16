@@ -41,6 +41,10 @@ var stats: Statistiques
 ## Lieu suivi : Callable -> String (Statistiques.PAYS ou id de ville), et son nom.
 var lieu: Callable
 var nom_lieu: Callable
+## Avis d'autres systèmes qui ne passent pas par les statistiques :
+## Callable(lieu: String) -> Array d'avis (mêmes clés que Conseiller._avis).
+## Exemple : bâtiments non raccordés (Raccordements), bouton qui emmène au bâtiment.
+var autres_alertes: Callable
 
 var _panel: PanelContainer
 var _body: VBoxContainer
@@ -132,7 +136,18 @@ func alertes(n := 4) -> Array:
 	if stats == null:
 		return []
 	var out := []
-	for a in Conseiller.analyser(stats, _lieu()):
+	var liste := Conseiller.analyser(stats, _lieu())
+	if autres_alertes.is_valid():
+		var en_plus: Array = autres_alertes.call(_lieu())
+		if not en_plus.is_empty():
+			# « Tout va bien » n'a plus lieu d'être.
+			liste = liste.filter(func(a) -> bool: return int(a.gravite) >= 1) + en_plus
+			# À gravité égale, ce qui se règle d'un clic (« prio ») passe devant.
+			liste.sort_custom(func(a, b) -> bool:
+				var ka := int(a.gravite) * 10 + int(a.get("prio", 0))
+				var kb := int(b.gravite) * 10 + int(b.get("prio", 0))
+				return ka > kb)
+	for a in liste:
 		if int(a.gravite) >= 1 or out.is_empty():
 			out.append(a)
 		if out.size() >= n:
@@ -248,6 +263,7 @@ static func _verbe(pid: String) -> String:
 		"avis": return "Voir les avis"
 		"cartes": return "Voir la carte"
 		"production": return "Voir l'économie"
+		"non_raccorde": return "Y aller"
 	return "Ouvrir"
 
 

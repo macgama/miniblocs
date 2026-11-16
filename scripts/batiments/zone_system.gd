@@ -292,14 +292,16 @@ func _compute_demand() -> Dictionary:
 	if buildings != null:
 		for b in buildings.buildings.values():
 			var t := BuildingCatalog.get_type(b.t)
-			homes += int(t.get("logements", 0))
+			# Capacités du niveau d'agrandissement (Ameliorations).
+			homes += Ameliorations.cap(b, "logements")
+			var emp := Ameliorations.cap(b, "emplois")
 			match t.cat:
 				"commerce":
-					jobs_c += int(t.get("emplois", 0))
+					jobs_c += emp
 				"industrie":
-					jobs_i += int(t.get("emplois", 0))
+					jobs_i += emp
 				_:
-					jobs_other += int(t.get("emplois", 0))
+					jobs_other += emp
 	var people := homes * PEOPLE_PER_HOME
 	var workers := people * 0.5
 	var jobs := jobs_c + jobs_i + jobs_other

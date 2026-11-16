@@ -349,6 +349,9 @@ func _sync_differe() -> void:
 ## Fait avancer la simulation de dt secondes de jeu.
 ## realtime : appelé par le jeu (les attributions sont limitées à ~3 par seconde réelle).
 func advance(dt: float, realtime := false) -> void:
+	# L'heure a changé : l'heure mise en cache par activity() n'est plus la bonne
+	# (sans image entre deux pas, les habitants restaient figés à l'ancienne heure).
+	_now = {}
 	if not realtime and not _match_en_cours.is_empty():
 		_match_pas(1 << 60)
 	if not realtime:
@@ -405,6 +408,9 @@ func _info_of(b: Dictionary) -> Dictionary:
 		seats = int(t.get("visiteurs", DEFAULT_SCHOOL_SEATS))
 		if seats <= 0:
 			seats = DEFAULT_SCHOOL_SEATS
+		seats = roundi(seats * Ameliorations.facteur(b))
+	# Bâtiment agrandi (Ameliorations) : 1,5 ou 2 fois plus de places.
+	var fa := Ameliorations.facteur(b)
 	var rect := Rect2i(int(b.x), int(b.z), 1, 1)
 	if buildings != null:
 		rect = buildings._rect_of(b)
@@ -413,8 +419,8 @@ func _info_of(b: Dictionary) -> Dictionary:
 		if Metiers.venue_matches(hb, String(b.t)):
 			serves.append(hb)
 	# Places propres au bâtiment (campement des fondateurs : "nlog", "nemp").
-	return {"t": String(b.t), "cat": String(t.get("cat", "")), "serves": serves, "log": int(b.get("nlog", t.get("logements", 0))),
-		"emp": int(b.get("nemp", t.get("emplois", 0))), "camp": bool(t.get("campement", false)), "seats": seats, "pos": BuildingSystem.rect_center(rect) + Vector3(0, float(b.get("h", 0.0)), 0),
+	return {"t": String(b.t), "cat": String(t.get("cat", "")), "serves": serves, "log": int(b.get("nlog", roundi(int(t.get("logements", 0)) * fa))),
+		"emp": int(b.get("nemp", roundi(int(t.get("emplois", 0)) * fa))), "camp": bool(t.get("campement", false)), "seats": seats, "pos": BuildingSystem.rect_center(rect) + Vector3(0, float(b.get("h", 0.0)), 0),
 		"rect": rect, "public": String(t.get("cat", "")) == "services", "cost": int(b.get("cost", BuildingCatalog.cost(String(b.t)))),
 		"house": t.get("arch", t.get("role", String(b.t))) in ["maison", "villa", "grande_maison", "ferme"],
 		"etu": bool(t.get("etudiants", false)),

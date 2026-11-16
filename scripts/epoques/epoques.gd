@@ -238,7 +238,8 @@ static var _cache_mat := {}
 static func actif(r: ReglagesPartie = null) -> bool:
 	if r == null:
 		r = ReglagesPartie.actuel
-	return r != null and r.annee_depart > 0
+	# Édition démo : on démarre toujours aujourd'hui (les époques sont dans le jeu complet).
+	return r != null and r.annee_depart > 0 and not EditionDemo.active()
 
 
 static func _unix() -> float:

@@ -704,6 +704,16 @@ func choisir_metier(p: Dictionary, bid: int) -> Array:
 			ok.append(m)
 		elif not bool(SystemesScolaires.exigence(m, an).strict):
 			sans.append(m)
+	# Le métier de base du bâtiment (agriculteur d'une ferme…) est pourvu en premier :
+	# sans lui, une ferme aux deux employés chauffeurs ne labourait jamais.
+	var liste := Metiers.jobs_for(String(pop.known[bid].t)) if pop.known.has(bid) else []
+	if not liste.is_empty():
+		var coeur := String(liste[0][0])
+		if ps.has(coeur) and int(ps[coeur].n) + int(ps[coeur].e) == 0 and int(ps[coeur].libre) > 0:
+			if coeur in ok:
+				return [coeur, true]
+			if coeur in sans and ok.is_empty():
+				return [coeur, false]
 	if not ok.is_empty():
 		# Les plus diplômés prennent les postes les mieux payés.
 		ok.sort_custom(func(a: String, b: String) -> bool:

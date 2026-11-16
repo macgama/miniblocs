@@ -326,7 +326,8 @@ func etoiles(bid: int) -> int:
 
 
 func lits(bid: int) -> int:
-	return TourismeTypes.lits_de(spec(bid))
+	# Hôtel agrandi (Ameliorations) : 1,5 ou 2 fois plus de lits.
+	return roundi(TourismeTypes.lits_de(spec(bid)) * Ameliorations.facteur_bid(buildings, bid))
 
 
 func est_municipal(bid: int) -> bool:
@@ -364,7 +365,7 @@ func relie(bid: int) -> bool:
 func personnel(bid: int) -> float:
 	if ignore_staff:
 		return 1.0
-	var emplois := int(BuildingCatalog.get_type(_type_of(bid)).get("emplois", 0))
+	var emplois := Ameliorations.cap(buildings.buildings.get(bid, {}), "emplois") if buildings != null else 0
 	if emplois <= 0:
 		return 1.0
 	if population == null:
@@ -959,7 +960,7 @@ func _journee(now: Dictionary) -> void:
 		# Visites des sites proches.
 		var vis := _visites_depuis(p, float(n) * VISITES_JOUR * (1.0 - 0.25 * pluie if not bool(sp.get("animation", false)) else 0.8))
 		# Comptes de l'hébergement : salaires, charges, impôt.
-		var emplois := int(BuildingCatalog.get_type(_type_of(int(bid))).get("emplois", 0))
+		var emplois := Ameliorations.cap(buildings.buildings.get(int(bid), {}), "emplois")
 		var charges := float(emplois) * SALAIRE_MOYEN * ReglagesPartie.actuel.salaires / 30.44 + float(n) * float(st.prix) * CHARGES_NUIT
 		st.jour.ca = float(st.jour.ca) + ca
 		st.jour.charges = float(st.jour.charges) + charges

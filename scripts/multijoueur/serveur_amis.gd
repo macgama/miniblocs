@@ -486,6 +486,21 @@ func executer(pid: String, a: Dictionary) -> String:
 			var perso: Dictionary = a.get("perso", {})
 			if bid >= 0 and (not perso.is_empty() or int(a.get("v", -1)) >= 0):
 				bs.set_perso(bid, perso, int(a.get("v", -1)))
+		"ameliorer":
+			# Agrandissement ou rénovation (Ameliorations), payé par la caisse du joueur hors de ses villes.
+			var bid := int(a.get("bid", -1))
+			var am: Ameliorations = jeu.get("ameliorations")
+			if am == null or not bs.buildings.has(bid):
+				refus = "Plus de bâtiment ici."
+			else:
+				var b: Dictionary = bs.buildings[bid]
+				_forcer_payeur(pid, Vector2(BuildingSystem.rect_center(bs._rect_of(b)).x, BuildingSystem.rect_center(bs._rect_of(b)).z))
+				refus = am.refus_renover(bid) if String(a.get("op", "")) == "renov" else am.refus_agrandir(bid)
+				if refus == "":
+					if String(a.get("op", "")) == "renov":
+						am.renover(bid)
+					else:
+						am.agrandir(bid)
 		"demolir":
 			var c := Vector2i(int(a.c[0]), int(a.c[1]))
 			var bid := bs.building_at(c)

@@ -101,6 +101,9 @@ func _sync() -> void:
 			# la vue sous terre (ConstructionSouterraine) en ont un.
 			suivi.commencer(cle(id), float(e.chr), func(av: float, et: Array) -> void: _maj(id, av, et),
 				func() -> void: _fini(id), float(e.ch), int(e.get("cout", 0)), _etapes(e))
+			# Matériaux d'époque : granulats et sable, rails et traverses.
+			var milieu := network.point_at(id, float(e.len) * 0.5)
+			suivi.fixer_materiaux(cle(id), MateriauxChantiers.besoins_voie(String(e.t), float(e.len), float(e.width)), milieu)
 	for eid in _vus.keys():
 		if not network.edges.has(eid) or not network.edges[eid].has("ch"):
 			_oublier(eid)

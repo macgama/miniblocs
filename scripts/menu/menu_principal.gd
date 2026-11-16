@@ -146,6 +146,13 @@ func _build_ui() -> void:
 	logo.add_theme_constant_override("shadow_offset_x", 3)
 	logo.add_theme_constant_override("shadow_offset_y", 4)
 	col.add_child(logo)
+	if EditionDemo.active():
+		var badge := Label.new()
+		badge.name = "BadgeDemo"
+		badge.text = "DÉMO · Steam Next Fest"
+		badge.add_theme_font_size_override("font_size", 20)
+		badge.add_theme_color_override("font_color", UiStyle.TEXT)
+		col.add_child(badge)
 	var devise := Label.new()
 	devise.name = "Devise"
 	devise.text = String(DEVISES[_rng.randi() % DEVISES.size()])
@@ -174,7 +181,9 @@ func _build_ui() -> void:
 	_bouton("succes", "Succès", "%d succès débloqués sur %d, dans toutes tes parties" % [Succes.nombre(), Succes.total()], ouvrir_succes)
 	_bouton("options", "Options", "Graphismes, son, sauvegarde automatique, touches, manette", ouvrir_options)
 	_bouton("credits", "Crédits", "Qui a fait quoi, et avec quelles données", ouvrir_credits)
-	_bouton("quitter", "Quitter", "Fermer le jeu (les habitants ne t'en voudront pas… trop)", func() -> void: get_tree().quit())
+	if EditionDemo.active():
+		_bouton("souhaits", "Liste de souhaits ♥", "Ouvrir la page Steam de MiniBlocs pour l'ajouter à ta liste de souhaits", func() -> void: EditionDemo.ouvrir_magasin())
+	_bouton("quitter", "Quitter", "Fermer le jeu (les habitants ne t'en voudront pas… trop)", quitter)
 	var first: Button = _boutons.get("continuer", _boutons.demo)
 	first.grab_focus.call_deferred()
 
@@ -210,7 +219,7 @@ func _build_ui() -> void:
 
 	var version := Label.new()
 	version.name = "VersionBuild"
-	version.text = VersionBuild.texte()
+	version.text = ("Démo · " if EditionDemo.active() else "") + VersionBuild.texte()
 	version.add_theme_font_size_override("font_size", 12)
 	version.add_theme_color_override("font_color", Color(1, 1, 1, 0.55))
 	version.anchor_top = 1.0
@@ -222,6 +231,9 @@ func _build_ui() -> void:
 
 
 func _bouton(id: String, texte: String, aide: String, cb: Callable) -> Button:
+	# Édition démo (Steam Next Fest) : scénarios, carte entre amis, Atelier et succès absents.
+	if not EditionDemo.menu_visible(id):
+		return null
 	var b := Button.new()
 	b.name = id
 	b.text = texte
@@ -262,6 +274,18 @@ func _maj_carte() -> void:
 
 
 # --- Actions ----------------------------------------------------------------------------
+
+## Quitter : dans la démo, un dernier écran avec la liste de souhaits (FinDemo).
+func quitter() -> void:
+	if not EditionDemo.active():
+		get_tree().quit()
+		return
+	if get_node_or_null("FinDemo") != null:
+		return
+	var f := FinDemo.new(FinDemo.Motif.QUITTER)
+	f.quitter_demande.connect(func() -> void: get_tree().quit())
+	add_child(f)
+
 
 func continuer() -> void:
 	if not _derniere.is_empty():

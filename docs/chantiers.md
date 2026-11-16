@@ -64,7 +64,37 @@ Le propriétaire garde l'avancement dans sa donnée et rappelle `commencer` au
 chargement. `ChantiersVoies.instance.chantier_reparation(eid, heures, cout, fini)`
 ferme un tronçon le temps d'une réparation (cônes, rouleau).
 
+## Matériaux d'époque (MateriauxChantiers)
+
+Chaque chantier consomme de vraies marchandises, au fil des travaux (10 %
+d'avancement = 10 % des matériaux), selon l'année de la partie :
+
+| Époque | Bâtiment (par m² de plancher) |
+|---|---|
+| avant 1850 | pierre, chaux, sable, bois, tuiles |
+| 1850-1900 | pierre et briques, chaux, bois, tuiles, un peu de verre et de fer |
+| 1900-1950 | briques, ciment, sable, acier, planches, tuiles, verre |
+| après 1950 | béton (ciment, sable, granulats), acier, verre, briques, un peu de plastique |
+
+Les chalets et maisons à ossature bois prennent surtout du bois ; les usines
+plus d'acier. Les routes prennent des granulats et du sable (et un peu de
+ciment après 1920), les voies ferrées du ballast, des rails et des traverses
+(bois avant 1950, béton après).
+
+Le chantier se sert d'abord dans les stocks de la carte (carrière, four à
+chaux, scierie, briqueterie, tuilerie, cimenterie, entrepôts…), du plus proche
+au plus loin dans un rayon de 30 km : l'entreprise est payée sur le prix du
+chantier (« Ventes aux chantiers » dans ses comptes). Ce qui manque est
+importé, déjà compris dans le prix. Le prix d'un chantier ne change donc pas,
+mais une ville qui produit ses matériaux fait travailler ses entreprises.
+
+Le panneau du chantier affiche les principaux matériaux. Code :
+`scripts/chantiers/materiaux_chantiers.gd` ; `BatimentsVie.materiaux_de(bid)`
+et `SuiviChantiers.materiaux_de(cle)` donnent ce qui a été reçu (local ou
+importé).
+
 ## Tester
 
 - `godot --headless --path . --script res://tests/chantiers_test.gd`
+- Matériaux et agriculture d'époque : `godot --headless --path . --script res://tests/agri_epoques_test.gd`
 - Vitrine : `godot --path . --script res://tests/chantiers_vitrine.gd -- --screenshot chantiers.png [--vue routes]`

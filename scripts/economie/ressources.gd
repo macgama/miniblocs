@@ -116,6 +116,34 @@ const MARCHANDISES := {
 	"meubles": {"name": "Meubles", "prix": 3000.0, "conso": true},
 	"biens": {"name": "Électroménager et outils", "prix": 6000.0, "conso": true},
 	"voitures": {"name": "Voitures neuves", "prix": 15000.0, "conso": true},
+	# Cultures pérennes et de rente, élevages nouveaux.
+	"raisin": {"name": "Raisin", "prix": 600.0, "camion": "vrac"},
+	"houblon": {"name": "Houblon", "prix": 5000.0},
+	"tabac": {"name": "Tabac en feuilles", "prix": 4000.0},
+	"cafe": {"name": "Café vert", "prix": 3000.0},
+	"cacao": {"name": "Fèves de cacao", "prix": 2500.0},
+	"the": {"name": "Thé", "prix": 3000.0},
+	"canne": {"name": "Canne à sucre", "prix": 35.0, "camion": "vrac"},
+	"miel": {"name": "Miel", "prix": 6000.0, "conso": true},
+	# Industries nouvelles.
+	"chocolat": {"name": "Chocolat", "prix": 8000.0, "conso": true},
+	"cuir": {"name": "Cuir", "prix": 3000.0},
+	"montres": {"name": "Montres et horlogerie", "prix": 2_000_000.0},
+	"tuiles": {"name": "Tuiles", "prix": 250.0},
+	"chaux": {"name": "Chaux", "prix": 110.0, "camion": "vrac"},
+	"navires": {"name": "Navires (coques et bateaux)", "prix": 3000.0},
+	"engrais": {"name": "Engrais minéraux", "prix": 400.0, "camion": "vrac"},
+	"batteries": {"name": "Batteries", "prix": 15000.0},
+	"cigares": {"name": "Cigares et cigarettes", "prix": 20000.0},
+}
+
+## Marchandises qui n'existent pas encore à certaines époques (Epoques) :
+## année d'apparition (les autres existent de tout temps). Avant, les habitants
+## n'en achètent pas et les usines qui en utilisent font sans.
+const ANNEES := {
+	"plastique": 1950, "electronique": 1960, "voitures": 1900, "carburant": 1900, "aluminium": 1890,
+	"petrole": 1860, "gaz": 1820, "chimie": 1850, "medicaments": 1900, "ciment": 1850, "balles_tri": 1990,
+	"batteries": 1990, "engrais": 1910, "chocolat": 1820, "cigares": 1800,
 }
 ## Prix de détail (vente aux habitants) par rapport au prix de gros.
 const DETAIL := 1.4
@@ -128,7 +156,8 @@ const IMPORT := 1.25
 ## carburant et voitures neuves : par voiture du foyer.
 const CONSO_HABITANT := {"pain": 0.0002, "viande": 0.00016, "poisson": 0.00005, "laitages": 0.0003,
 	"fruits_legumes": 0.0004, "epicerie": 0.0003, "oeufs": 0.00004, "huile": 0.00004, "boissons": 0.0005, "hygiene": 0.00006,
-	"vetements": 0.00001, "medicaments": 0.000005, "electronique": 0.000005, "meubles": 0.00002, "biens": 0.0001}
+	"vetements": 0.00001, "medicaments": 0.000005, "electronique": 0.000005, "meubles": 0.00002, "biens": 0.0001,
+	"miel": 0.000003, "chocolat": 0.00002}
 const CONSO_VOITURE := {"carburant": 0.003, "voitures": 0.0003}
 ## Besoins de première nécessité : un rayon vide fâche davantage.
 ## Nourriture : ce qui compte pour les repas des habitants (voir Repas).
@@ -142,11 +171,12 @@ const ESSENTIELS := ["pain", "laitages", "fruits_legumes", "epicerie", "boissons
 ## par jour) pour servir leurs clients.
 const COMMERCES := {
 	"boulangerie": {"vend": ["pain"], "fait": {"in": {"farine": 0.75}, "out": {"pain": 1.0}}},
-	"superette": {"vend": ["pain", "laitages", "fruits_legumes", "epicerie", "boissons", "hygiene", "viande", "oeufs", "huile"]},
+	"superette": {"vend": ["pain", "laitages", "fruits_legumes", "epicerie", "boissons", "hygiene", "viande", "oeufs", "huile",
+		"miel", "chocolat"]},
 	"supermarche": {"vend": ["pain", "viande", "poisson", "laitages", "fruits_legumes", "epicerie", "oeufs", "huile",
-		"boissons", "hygiene",
+		"boissons", "hygiene", "miel", "chocolat",
 		"vetements", "electronique", "biens", "carburant"]},
-	"marche": {"vend": ["fruits_legumes", "viande", "poisson", "laitages", "pain", "oeufs"]},
+	"marche": {"vend": ["fruits_legumes", "viande", "poisson", "laitages", "pain", "oeufs", "miel"]},
 	"boutique": {"vend": ["vetements"]},
 	"boutique_mode": {"vend": ["vetements"]},
 	"grand_magasin": {"vend": ["vetements", "meubles", "electronique", "biens", "hygiene"]},
@@ -178,6 +208,15 @@ static func truck_kind(good: String) -> String:
 
 static func naturelle(id: String) -> Dictionary:
 	return NATURELLES.get(id, {})
+
+
+## La marchandise existe-t-elle à l'époque de la partie ?
+static func disponible(id: String) -> bool:
+	return not Epoques.actif() or int(ANNEES.get(id, 0)) <= Epoques.annee()
+
+
+static func annee_de(id: String) -> int:
+	return int(ANNEES.get(id, 0))
 
 
 static func good_name(id: String) -> String:

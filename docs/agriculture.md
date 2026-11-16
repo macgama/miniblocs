@@ -82,11 +82,61 @@ Concession agricole, silo coopérative (entrepôt de grains), huilerie
 (oléagineux → huile), filature (laine → fibres). Nouvelles marchandises :
 oléagineux, foin, paille, fumier, laine, œufs, huile.
 
+## L'agriculture au fil des époques
+
+Dans une partie qui commence dans le passé (année de départ, voir
+`docs/epoques-1800.md`), chaque machine change de forme avec les années
+(`scripts/agriculture/agri_epoques.gd`). Une machine du jeu est un **rôle** :
+« moissonneuse » veut dire « ce qui récolte les céréales ».
+
+| Rôle | 1800 | puis | puis | aujourd'hui |
+|---|---|---|---|---|
+| Tracteur | paire de chevaux de trait (mangent du foin) | 1920 tracteur à pétrole | 1950 tracteur diesel | 1990 tracteur moderne |
+| Moisson | faux, faucille et fléau (à la main) | 1850 moissonneuse attelée et batteuse à vapeur | 1900 moissonneuse-lieuse, 1940 moissonneuse-batteuse tractée | 1960 automotrice |
+| Labour | charrue à versoir attelée | 1880 brabant double | 1950 charrue portée | 1980 |
+| Semis | à la volée, à la main | 1850 semoir en ligne attelé | 1950 semoir mécanique | 1985 |
+| Traitement | aucun (rendement −15 %) | 1885 pulvérisateur à dos (bouillie bordelaise) | 1950 pulvérisateur porté | 1990 |
+| Fenaison | faux, fourche et meules | 1850 faucheuse à cheval, 1880 presse fixe | 1945 ramasseuse-presse | 1975 balles rondes |
+| Vendanges, cueillette, canne | à la main | | | 1960-1975 machines |
+
+- Le travail **à la main** se fait à plusieurs : jusqu'à 8 employés de la ferme
+  sur le même champ. Les chevaux ne brûlent pas de gazole mais mangent du foin
+  (pris dans le stock de la ferme, sinon acheté).
+- **Rendements d'époque** : vers 1800, le blé donne environ 1 t/ha (16 %
+  d'aujourd'hui), 1,3 t/ha en 1900, 1,8 t/ha en 1950 ; la sélection et les
+  engrais font le reste après 1950. Les bêtes donnent aussi moins (30 % du
+  lait d'une vache actuelle en 1800).
+- **Engrais minéraux** à partir de 1910 (Haber-Bosch) ; avant, seul le fumier
+  nourrit les champs. L'usine d'engrais (1913) livre les fermes par camion.
+- **Cultures datées** : betterave sucrière en 1812, tournesol en 1830, soja en
+  1920. **Élevage** : pisciculture à partir de 1850.
+- **Marchandises datées** : pas de plastique avant 1950, d'électronique avant
+  1960, de carburant ni de voitures avant 1900, d'aluminium avant 1890… Les
+  habitants n'en achètent pas, et une usine qui en utilise fait sans.
+
+## Nouvelles cultures et nouveaux élevages
+
+- **Cultures pérennes** (plantées une fois, récoltées chaque année, puis au
+  repos jusqu'à la reprise) : vigne (raisin), verger (pommes, poires), agrumes,
+  oliviers, houblon, caféiers, cacaoyers, théiers, canne à sucre ; et le tabac
+  (annuel). Chacune a son climat.
+- **Élevages** : canards, dindes, lapins, ruches (miel), bassins de truites,
+  buffles d'eau, lamas et alpagas, rennes.
+- **Fermes** (catégorie Production) : domaine viticole, verger, oliveraie,
+  plantation tropicale, houblonnière, basse-cour, rucher, pisciculture, ranch
+  de buffles, élevage andin, élevage de rennes.
+- **Industries** : four à chaux, tuilerie, cave vinicole, distillerie,
+  sucrerie de canne et rhumerie, chocolaterie, torréfaction, fromagerie
+  d'alpage, conserverie, tannerie, manufacture de tabac, manufacture
+  horlogère, chantier naval, usine d'engrais, usine de recyclage des
+  matériaux, usine de batteries.
+
 ## Pour les développeurs
 
 | Fichier | Rôle |
 |---|---|
 | `scripts/agriculture/agri_donnees.gd` | tables : cultures, travaux, machines, espèces, fermes |
+| `scripts/agriculture/agri_epoques.gd` | versions d'époque des machines, années des cultures et des élevages |
 | `scripts/agriculture/agriculture.gd` | simulation (champs, travaux heure par heure, bêtes, sauvegarde) |
 | `scripts/agriculture/repas.gd` | repas et faim des foyers |
 | `scripts/agriculture/agri_visuels.gd` + `champ.gdshader` | sol des champs, plantes, bottes, machines, bêtes |
@@ -95,4 +145,5 @@ oléagineux, foin, paille, fumier, laine, œufs, huile.
 Ajouter une culture, une machine ou une espèce dans `agri_donnees.gd` suffit.
 La production délègue les fermes via `Production.agri` (outputs, needs, cap,
 status). Sauvegarde : section `agriculture`. Tests :
-`tests/agriculture_test.gd` ; captures : `tests/agriculture_vitrine.gd`.
+`tests/agriculture_test.gd`, `tests/agri_epoques_test.gd` ; captures :
+`tests/agriculture_vitrine.gd`.

@@ -818,6 +818,8 @@ func _step_hours(h: float) -> void:
 			var f := staff
 			var missing: Array[String] = []
 			for g in prod.in:
+				if not Ressources.disponible(g):
+					continue # pas encore inventé (plastique en 1900) : l'usine fait sans
 				var need := float(prod.in[g]) * frac * staff
 				var have := stock_of(bid, g)
 				if have < need:
@@ -832,9 +834,13 @@ func _step_hours(h: float) -> void:
 					else "Stock plein : aucun camion ne vient le chercher"
 				continue
 			for g in prod.in:
+				if not Ressources.disponible(g):
+					continue
 				_put(bid, g, -float(prod.in[g]) * frac * f)
 				_flow(g, float(prod.in[g]) * frac * f, "conso")
 			for g in prod.out:
+				if not Ressources.disponible(g):
+					continue
 				_put(bid, g, float(prod.out[g]) * frac * f)
 				_flow(g, float(prod.out[g]) * frac * f, "prod")
 			s.eff = f
@@ -912,7 +918,8 @@ func _needs_calc(bid: int, s: Dictionary) -> Dictionary:
 		"transformation":
 			var prod := ProductionTypes.prod_of(_type_of(bid))
 			for g in prod.in:
-				out[g] = float(prod.in[g])
+				if Ressources.disponible(g):
+					out[g] = float(prod.in[g])
 		"commerce":
 			var shop := Ressources.commerce_of(_type_of(bid))
 			var made := {}
@@ -1650,9 +1657,10 @@ func daily_needs() -> Dictionary:
 	for h in population.households.values():
 		var n := float((h.m as Array).size())
 		for g in Ressources.CONSO_HABITANT:
-			out[g] = float(out[g]) + float(Ressources.CONSO_HABITANT[g]) * n * NiveauxVie.coef_conso(h, String(g))
+			if Ressources.disponible(g):
+				out[g] = float(out[g]) + float(Ressources.CONSO_HABITANT[g]) * n * NiveauxVie.coef_conso(h, String(g))
 	for g in Ressources.CONSO_VOITURE:
-		out[g] = float(Ressources.CONSO_VOITURE[g]) * cars
+		out[g] = float(Ressources.CONSO_VOITURE[g]) * cars if Ressources.disponible(g) else 0.0
 	return out
 
 
@@ -1722,9 +1730,10 @@ func _shopping() -> float:
 		var wt: Vector2 = weight[home]
 		var want := {}
 		for g in Ressources.CONSO_HABITANT:
-			want[g] = float(Ressources.CONSO_HABITANT[g]) * (wt.y if NiveauxVie.BIENS_COURANTS.has(g) else wt.x)
+			if Ressources.disponible(g):
+				want[g] = float(Ressources.CONSO_HABITANT[g]) * (wt.y if NiveauxVie.BIENS_COURANTS.has(g) else wt.x)
 		for g in Ressources.CONSO_VOITURE:
-			if nc.y > 0:
+			if nc.y > 0 and Ressources.disponible(g):
 				want[g] = float(Ressources.CONSO_VOITURE[g]) * nc.y
 		for g in want:
 			var left := float(want[g])

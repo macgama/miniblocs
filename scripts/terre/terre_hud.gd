@@ -43,6 +43,8 @@ signal pays_requested
 signal objectifs_requested
 ## Bouton « Niveaux de vie » : niveau des foyers, ce qui les bloque (Maj+N).
 signal niveaux_vie_requested
+## Bouton « Immobilier » : prix, promoteurs, quartiers qui changent, bidonvilles (F11).
+signal immobilier_requested
 ## Bouton « Quartiers » : quartiers nommés et arrêtés municipaux (Maj+Y).
 signal quartiers_requested
 ## Panneau « Trafic » (Maj + L) : bouchons, parkings, remplissage des lignes.
@@ -71,6 +73,7 @@ signal stats_requested
 signal journal_requested
 ## Bouton « Saisons et risques » (menu Infos, Maj+R).
 signal saisons_requested
+signal sante_requested
 ## Bouton « Vue sous terre » (menu Infos, Page bas sous le rez-de-chaussée).
 signal souterrain_requested
 ## Bouton « Mode photo » (menu Infos, F8).
@@ -137,6 +140,7 @@ const CATEGORIES := [
 	{"id": "pays", "name": "Pays", "icon": "globe", "key": "Maj+P", "panel": true, "group": "ville"},
 	{"id": "objectifs", "name": "Objectifs", "icon": "trophee", "key": "Maj+J", "panel": true, "group": "ville"},
 	{"id": "niveaux_vie", "name": "Niveaux de vie", "icon": "logement", "key": "Maj+N", "panel": true, "group": "ville"},
+	{"id": "immobilier", "name": "Immobilier (prix, promoteurs, bidonvilles)", "icon": "logement", "key": "F11", "panel": true, "group": "ville"},
 	{"id": "quartiers", "name": "Quartiers et arrêtés", "icon": "pancarte", "key": "Maj+Y", "panel": true, "group": "ville"},
 	{"id": "trafic", "name": "Trafic", "icon": "circulation", "key": "Maj+L", "panel": true, "group": "transports"},
 	{"id": "budget", "name": "Budget", "icon": "budget", "key": "", "panel": true, "group": "ville"},
@@ -152,6 +156,7 @@ const CATEGORIES := [
 	{"id": "stats", "name": "Statistiques et conseiller", "icon": "courbe", "key": "Maj+I", "panel": true, "group": "infos"},
 	{"id": "journal", "name": "Gazette de la ville", "icon": "journal", "key": "F4", "panel": true, "group": "infos"},
 	{"id": "saisons", "name": "Saisons et risques (météo, neige, crues, sécheresse)", "icon": "saisons", "key": "Maj+R", "panel": true, "group": "infos"},
+	{"id": "sante", "name": "Santé publique (hygiène, vaccins, épidémies)", "icon": "sante", "key": "F7", "panel": true, "group": "infos"},
 	{"id": "photo", "name": "Mode photo et time-lapse (Maj+F8)", "icon": "appareil_photo", "key": "F8", "panel": true, "group": "infos"},
 	{"id": "souterrain", "name": "Vue sous terre (tuyaux, câbles, métro, sous-sols)", "icon": "souterrain", "key": "Page bas", "panel": true, "group": "infos"},
 	{"id": "succes", "name": "Succès", "icon": "trophee", "key": "F6", "panel": true, "group": "infos"},
@@ -863,6 +868,7 @@ func _on_category(id: String) -> void:
 			"pays": pays_requested.emit()
 			"objectifs": objectifs_requested.emit()
 			"niveaux_vie": niveaux_vie_requested.emit()
+			"immobilier": immobilier_requested.emit()
 			"quartiers": quartiers_requested.emit()
 			"trafic": trafic_requested.emit()
 			"dechets": dechets_requested.emit()
@@ -878,6 +884,7 @@ func _on_category(id: String) -> void:
 			"stats": stats_requested.emit()
 			"journal": journal_requested.emit()
 			"saisons": saisons_requested.emit()
+			"sante": sante_requested.emit()
 			"souterrain": souterrain_requested.emit()
 			"photo": photo_requested.emit()
 			"succes": succes_requested.emit()

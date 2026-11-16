@@ -3,11 +3,11 @@ extends RefCounted
 ## Visiter la ville d'un autre joueur, sans y toucher, et lui laisser une carte postale.
 ##
 ## Deux façons de visiter (voir docs/visites.md) :
-##  - un fichier : le maire « partage sa ville » (F7 → Ma ville). La partie entière
+##  - un fichier : le maire « partage sa ville » (F12 → Ma ville). La partie entière
 ##    part dans un paquet .mbloc de genre « ville » (PaquetPartage) : les fichiers de
 ##    la sauvegarde, tels quels, en base64 dans contenu.json. On l'envoie à un ami
 ##    (courriel, Discord, clé USB) ou on le publie sur le Steam Workshop pour les
-##    inconnus. Le visiteur l'ouvre (F7 → Visiter, ou menu principal) : la ville est
+##    inconnus. Le visiteur l'ouvre (F12 → Visiter, ou menu principal) : la ville est
 ##    recopiée dans une partie cachée (user://parties/visite) et s'ouvre en visite ;
 ##  - en ligne : sur une carte entre amis, on entre en « visiteur » (pas de caisse,
 ##    pas de construction) et les cartes postales passent par le serveur.
@@ -390,7 +390,7 @@ static func touche_verrouillee(k: InputEventKey) -> bool:
 	return false
 
 
-const TEXTE_VERROU := "En visite, on regarde sans toucher : ici rien ne se construit ni ne se règle. Laisse plutôt une carte postale (F7) !"
+const TEXTE_VERROU := "En visite, on regarde sans toucher : ici rien ne se construit ni ne se règle. Laisse plutôt une carte postale (F12) !"
 
 
 # --- Cartes postales --------------------------------------------------------------------------

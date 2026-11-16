@@ -147,8 +147,8 @@ static func ou_trouver(genre: String) -> String:
 		"creation": return "Créer → Mes créations (5)"
 		"attraction": return "Loisirs → Créer un parc (Maj+A), « Mes attractions »"
 		"site": return "Partage → Plans de site"
-		"ville": return "Visites (F7) → Visiter une ville, ou menu principal → Visiter une ville"
-		"carte": return "Visites (F7) → Ma ville et mon courrier"
+		"ville": return "Visites (F12) → Visiter une ville, ou menu principal → Visiter une ville"
+		"carte": return "Visites (F12) → Ma ville et mon courrier"
 	return "ton jeu"
 
 
@@ -290,7 +290,7 @@ static func recevoir_echange() -> Dictionary:
 			(res.erreurs as Array).append("%s : %s" % [f, r.erreur])
 			continue
 		var p: Dictionary = r.paquet
-		# Villes et cartes postales : rangées par les visites et le courrier (F7), pas dans l'atelier.
+		# Villes et cartes postales : rangées par les visites et le courrier (F12), pas dans l'atelier.
 		if PaquetPartage.genre(p) in ["ville", "carte"]:
 			continue
 		var c := PaquetPartage.cle(p)

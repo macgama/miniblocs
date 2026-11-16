@@ -1,6 +1,6 @@
 class_name Courrier
 extends Node3D
-## Courrier de la ville : les cartes postales laissées par les visiteurs (F7 →
+## Courrier de la ville : les cartes postales laissées par les visiteurs (F12 →
 ## Ma ville). Section de sauvegarde « courrier ».
 ##
 ## Une carte arrive de deux façons :
@@ -12,7 +12,7 @@ extends Node3D
 ## du sol (masqué avec « Montrer les cartes dans la ville »).
 ##
 ## Livre d'or : si le maire le veut (livre_or), les cartes reçues partent avec la
-## ville partagée ; les visiteurs suivants les voient épinglées et dans F7.
+## ville partagée ; les visiteurs suivants les voient épinglées et dans F12.
 
 signal arrivee(carte: Dictionary)
 signal change

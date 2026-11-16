@@ -1393,7 +1393,7 @@ func ouvrir_bilan_demo() -> void:
 	add_child(bilan_demo)
 
 
-## Visites et cartes postales (F7, VisiteVille, Courrier, docs/visites.md).
+## Visites et cartes postales (F12, VisiteVille, Courrier, docs/visites.md).
 var courrier: Courrier
 var visites_panel: VisitesPanel
 var _bandeau_visite: PanelContainer
@@ -1410,7 +1410,7 @@ func _setup_visites() -> void:
 	add_child(courrier)
 	courrier.arrivee.connect(func(c: Dictionary) -> void:
 		if not _chargement and not VisiteVille.active():
-			hud.show_message("Carte postale de %s : « %s » (F7 pour la lire)." % [String(c.de), String(c.texte).left(60)]))
+			hud.show_message("Carte postale de %s : « %s » (F12 pour la lire)." % [String(c.de), String(c.texte).left(60)]))
 	hud.visites_requested.connect(toggle_visites)
 	# Courrier arrivé pendant qu'on ne jouait pas : relevé au lancement.
 	(func() -> void:
@@ -1470,7 +1470,7 @@ func _debut_visite() -> void:
 	l.add_theme_color_override("font_color", UiStyle.ACCENT)
 	h.add_child(l)
 	var cp := Button.new()
-	cp.text = "Carte postale (F7)"
+	cp.text = "Carte postale (F12)"
 	cp.focus_mode = Control.FOCUS_NONE
 	cp.pressed.connect(toggle_visites)
 	h.add_child(cp)
@@ -1486,7 +1486,7 @@ func _debut_visite() -> void:
 	var acc := String(VisiteVille.en_cours.get("accueil", ""))
 	if acc == "":
 		acc = courrier.accueil
-	hud.show_message(("« %s » · " % acc if acc != "" else "") + "Bienvenue ! Promène-toi (V pour marcher), et laisse une carte postale avec F7.")
+	hud.show_message(("« %s » · " % acc if acc != "" else "") + "Bienvenue ! Promène-toi (V pour marcher), et laisse une carte postale avec F12.")
 
 
 ## Son : ambiances selon la caméra, humeur de la musique, sons des événements.
@@ -2176,7 +2176,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		toggle_succes()
 		return
-	if k != null and k.pressed and not k.echo and k.keycode == KEY_F7 and not k.shift_pressed and pause_menu == null:
+	if k != null and k.pressed and not k.echo and k.keycode == KEY_F12 and not k.shift_pressed and pause_menu == null:
 		get_viewport().set_input_as_handled()
 		toggle_visites()
 		return

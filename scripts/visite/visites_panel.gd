@@ -1,6 +1,6 @@
 class_name VisitesPanel
 extends Control
-## Visites et cartes postales (F7, menu Ville → Visites, ou menu principal →
+## Visites et cartes postales (F12, menu Ville → Visites, ou menu principal →
 ## « Visiter une ville »). Trois vues :
 ##  - Ma ville (dans sa partie) : mot d'accueil, livre d'or, partager la ville
 ##    (.mbloc ou Workshop), courrier reçu (« Aller voir », « Retirer ») ;
@@ -560,6 +560,6 @@ func fermer() -> void:
 
 func _unhandled_key_input(event: InputEvent) -> void:
 	var k := event as InputEventKey
-	if k != null and k.pressed and not k.echo and (k.keycode == KEY_ESCAPE or k.keycode == KEY_F7):
+	if k != null and k.pressed and not k.echo and (k.keycode == KEY_ESCAPE or k.keycode == KEY_F12):
 		get_viewport().set_input_as_handled()
 		fermer()

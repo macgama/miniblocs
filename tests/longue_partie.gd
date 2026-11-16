@@ -205,6 +205,30 @@ func _reseaux() -> void:
 	bs.unlimited_money = false
 
 
+## Comme un joueur attentif (le pilote automatique ne pose pas de réseaux) : chaque jour,
+## si des logements manquent de courant ou d'eau, une installation de plus. Sans cela,
+## la ville se vide d'un coup quand elle dépasse la capacité et le banc ne mesure plus rien.
+var _jour_reseaux := -1
+var poses_reseaux := 0
+
+
+func _entretenir_reseaux() -> void:
+	var r: Node = game.reseaux
+	if r == null or not "manque" in r:
+		return
+	var e := 0
+	var o := 0
+	for bid in r.manque:
+		e += 1 if float(r.manque[bid].e) >= 2.0 else 0
+		o += 1 if float(r.manque[bid].o) >= 2.0 else 0
+	bs.unlimited_money = true
+	if e > 0 and pa._poser(vid, "poste_national") >= 0:
+		poses_reseaux += 1
+	if o > 0 and pa._poser(vid, "forage_eau") >= 0:
+		poses_reseaux += 1
+	bs.unlimited_money = false
+
+
 # --- Relevés -----------------------------------------------------------------------
 
 ## Taille de chaque liste / dictionnaire des systèmes du jeu (enfants directs de la partie).
@@ -228,6 +252,23 @@ func _tailles_listes() -> Dictionary:
 				continue
 			var nom := "%s.%s" % [n.name, p.name]
 			out[nom] = (v as Dictionary).size() if t == TYPE_DICTIONARY else v.size()
+	return out
+
+
+var _archives_vues := {}
+
+
+## Départs et décès depuis le relevé précédent, par cause (fiches d'archive des habitants).
+func _departs() -> Dictionary:
+	var out := {}
+	if pop == null or pop.vie == null:
+		return out
+	for pid in pop.vie.archive:
+		if _archives_vues.has(pid):
+			continue
+		_archives_vues[pid] = true
+		var c := String(pop.vie.archive[pid].get("cause", "?"))
+		out[c] = int(out.get(c, 0)) + 1
 	return out
 
 
@@ -415,6 +456,10 @@ func _run() -> void:
 				print("    image de %.1f s à la minute %.1f" % [ms / 1000.0, minute])
 		# Minutes de jeu réel simulées : le pas de temps du moteur (fixe avec --fixed-fps).
 		minute += get_root().get_process_delta_time() / 60.0
+		var jour_jeu := int(amb.unix_time / 86400.0)
+		if jour_jeu != _jour_reseaux:
+			_jour_reseaux = jour_jeu
+			_entretenir_reseaux()
 		if minute >= prochain_releve:
 			prochain_releve += ech
 			var rel := _releve(minute, ims, float(Time.get_ticks_msec() - _debut_ech))
@@ -426,6 +471,9 @@ func _run() -> void:
 			if csv != null:
 				csv.store_line(lignes[-1])
 				csv.flush()
+			var causes := _departs()
+			if not causes.is_empty():
+				print("    départs : ", ", ".join(causes.keys().map(func(k: String) -> String: return "%s ×%d" % [k, causes[k]])))
 			print("  %5.0f min · jour %3d · %4d hab · %4d bât · %3d véh · image %.1f ms (réel %.1f, p95 %.1f, pire %.0f) · %.0f Mo · %d objets · %d nœuds · %d orphelins · %d erreurs · %.0f min réelles" % [
 				minute, rel.jour, rel.habitants, rel.batiments, rel.vehicules, rel.ms_moy, rel.ms_reel, rel.ms_p95, rel.ms_pire, rel.mem_mo,
 				rel.objets, rel.noeuds, rel.orphelins, rel.erreurs, (Time.get_ticks_msec() - debut_reel) / 60000.0])
@@ -441,6 +489,7 @@ func _run() -> void:
 
 	amb.set_speed(0)
 	print("Bilan :")
+	print("  %d installations de courant ou d'eau ajoutées en route" % poses_reseaux)
 	_verdict(releves, listes)
 	if rapport_listes != "" and not listes.is_empty():
 		var noms := {}

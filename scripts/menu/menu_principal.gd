@@ -219,6 +219,9 @@ func _build_ui() -> void:
 	version.offset_left = 80
 	version.offset_bottom = -20
 	_ui.add_child(version)
+	if JournalPlantage.dernier_rapport != "" and not JournalPlantage.rapport_vu:
+		JournalPlantage.rapport_vu = true
+		ouvrir_rapport_plantage.call_deferred()
 
 
 func _bouton(id: String, texte: String, aide: String, cb: Callable) -> Button:
@@ -386,6 +389,72 @@ func ouvrir_credits() -> void:
 		c.queue_free())
 	v.add_child(close)
 	close.grab_focus.call_deferred()
+	_sub = c
+	_ui.add_child(c)
+
+
+## La dernière session s'est arrêtée brutalement : on le dit, on montre où est le
+## rapport (rien n'est envoyé) et on propose de reprendre la dernière sauvegarde automatique.
+func ouvrir_rapport_plantage() -> void:
+	if _sub != null:
+		return
+	var c := Control.new()
+	c.name = "RapportPlantage"
+	c.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var dim := ColorRect.new()
+	dim.color = Color(0, 0, 0, 0.5)
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	c.add_child(dim)
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	c.add_child(center)
+	var p := PanelContainer.new()
+	UiStyle.style_panel(p, 0.96, 12, 18)
+	center.add_child(p)
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 12)
+	p.add_child(v)
+	var t := Label.new()
+	t.text = "MiniBlocs s'est fermé brutalement"
+	t.add_theme_font_size_override("font_size", 24)
+	v.add_child(t)
+	var auto := SaveGame.derniere_autosave()
+	var l := Label.new()
+	l.text = ("La dernière fois, le jeu s'est arrêté sans se fermer normalement. Désolé : même les maires les mieux organisés ont des coupures de courant.\n\n"
+		+ "Un rapport a été écrit sur ton ordinateur (rien n'a été envoyé en ligne) :\n%s\n\n" % ProjectSettings.globalize_path(JournalPlantage.dernier_rapport)
+		+ "Tu peux l'envoyer au développeur pour l'aider à corriger le problème.")
+	if not auto.is_empty():
+		l.text += "\n\nDernière sauvegarde automatique : « %s », %s." % [String(auto.get("nom", auto.id)), PartiesPanel.format_date(int(auto.get("modifie", 0)))]
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.custom_minimum_size = Vector2(600, 0)
+	v.add_child(l)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 10)
+	v.add_child(row)
+	var fermer := func() -> void:
+		_sub = null
+		c.queue_free()
+	var first: Button = null
+	if not auto.is_empty():
+		var rep := Button.new()
+		rep.name = "Reprendre"
+		rep.text = "Reprendre la sauvegarde automatique"
+		rep.pressed.connect(func() -> void:
+			fermer.call()
+			charger_partie(String(auto.id)))
+		row.add_child(rep)
+		first = rep
+	var dossier := Button.new()
+	dossier.name = "Dossier"
+	dossier.text = "Ouvrir le dossier des rapports"
+	dossier.pressed.connect(func() -> void: JournalPlantage.ouvrir_dossier())
+	row.add_child(dossier)
+	var close := Button.new()
+	close.name = "Fermer"
+	close.text = "Fermer"
+	close.pressed.connect(fermer)
+	row.add_child(close)
+	(first if first != null else close).grab_focus.call_deferred()
 	_sub = c
 	_ui.add_child(c)
 

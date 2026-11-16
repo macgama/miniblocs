@@ -226,10 +226,16 @@ func _process(_delta: float) -> void:
 			_fail_job(job, false)
 
 
+func _liberer(req: HTTPRequest) -> void:
+	if is_instance_valid(req) and not _free.has(req):
+		_free.append(req)
+
+
 func _on_completed(result: int, code: int, _headers: PackedStringArray, body: PackedByteArray, req: HTTPRequest) -> void:
 	var job: Dictionary = _jobs.get(req, {})
 	_jobs.erase(req)
-	_free.append(req)
+	# Libre seulement après le signal (voir ElevationTiles._liberer).
+	_liberer.call_deferred(req)
 	if job.is_empty():
 		return
 	var ok := result == HTTPRequest.RESULT_SUCCESS and (code == 206 or code == 200)

@@ -105,6 +105,7 @@ static func write(slot_id: String, info: Dictionary, sections: Dictionary) -> St
 		"auteur": player_id(),
 		"cree": int(old.get("cree", now)),
 		"modifie": now,
+		"modifie_ms": int(Time.get_unix_time_from_system() * 1000.0),
 		"sauvegardes": int(old.get("sauvegardes", 0)) + 1,
 		"sections": {},
 	}
@@ -159,7 +160,11 @@ static func read_manifest(slot_id: String) -> Dictionary:
 	var path := DIR.path_join(slot_id).path_join(MANIFEST)
 	if not FileAccess.file_exists(path):
 		return {}
-	var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+	# Fiche abîmée (coupure pendant l'écriture) : ignorée sans erreur, la partie est « illisible ».
+	var j := JSON.new()
+	if j.parse(FileAccess.get_file_as_string(path)) != OK:
+		return {}
+	var data: Variant = j.data
 	if typeof(data) != TYPE_DICTIONARY or data.get("format", "") != FORMAT:
 		return {}
 	data["id"] = slot_id
@@ -231,6 +236,53 @@ static func list_saves() -> Array[Dictionary]:
 			out.append(m)
 	out.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return int(a.get("modifie", 0)) > int(b.get("modifie", 0)))
 	return out
+
+
+# --- Sauvegardes automatiques tournantes --------------------------------------------
+
+## Les sauvegardes automatiques tournent sur AUTO_NB parties à part : chaque nouvelle
+## écrase la plus ancienne. Si le jeu plante pendant une écriture, les autres restent bonnes.
+const AUTO_SLOT := "sauvegarde-auto"
+const AUTO_NB := 3
+
+
+static func autosave_slots() -> Array[String]:
+	var out: Array[String] = [AUTO_SLOT]
+	for i in range(2, AUTO_NB + 1):
+		out.append("%s-%d" % [AUTO_SLOT, i])
+	return out
+
+
+static func est_autosave(slot_id: String) -> bool:
+	return slot_id in autosave_slots()
+
+
+## La partie à écrire pour la prochaine sauvegarde automatique : une place libre, sinon la plus ancienne.
+static func prochain_autosave() -> String:
+	var plus_vieux := ""
+	var date := 1 << 62
+	for s in autosave_slots():
+		var m := read_manifest(s)
+		if m.is_empty():
+			return s
+		if _date_ms(m) < date:
+			date = _date_ms(m)
+			plus_vieux = s
+	return plus_vieux
+
+
+static func _date_ms(m: Dictionary) -> int:
+	return int(m.get("modifie_ms", int(m.get("modifie", 0)) * 1000))
+
+
+## La sauvegarde automatique la plus récente qui se relit ({} s'il n'y en a pas).
+static func derniere_autosave() -> Dictionary:
+	var best := {}
+	for s in autosave_slots():
+		var m := read_manifest(s)
+		if not m.is_empty() and (best.is_empty() or _date_ms(m) > _date_ms(best)):
+			best = m
+	return best
 
 
 ## Image d'aperçu d'une partie (capture de la caméra au moment de la sauvegarde).

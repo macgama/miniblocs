@@ -175,6 +175,9 @@ func _city_tests() -> void:
 	_check(fun.free_places(cim) == fun.capacity(cim) and fun.capacity(cim) > 100, "cimetière vide : %d places" % fun.capacity(cim))
 
 	# Décès : obsèques prévues, convoi, cérémonie, tombe.
+	# Une famille sans économies ferait payer le reste à la commune : la recette nette du jour
+	# pourrait alors être négative (« la commune encaisse » échouait au hasard).
+	pop.households[hid].ep = maxf(float(pop.households[hid].ep), 50_000.0)
 	var ep0 := float(pop.households[hid].ep)
 	pop.vie.die(a, "de vieillesse")
 	var o: Dictionary = fun.obseques.get(a, {})

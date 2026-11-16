@@ -11,6 +11,8 @@ extends RefCounted
 # --- Titres selon le genre des nouvelles (scripts/evenements) ---------------------------
 
 const TITRES_GENRE := {
+	"climat": ["Climat : %s face au thermomètre", "Le climat change, et %s avec lui", "Réchauffement : ce que %s peut faire"],
+	"submersion": ["La mer envahit les rues basses de %s", "Submersion à %s : les pieds dans l'eau salée"],
 	"incendie": [
 		"Le feu frappe %s",
 		"Incendie à %s : la ville retient son souffle",
@@ -113,6 +115,8 @@ const CHAPO_DEFAUT := ["Les nouvelles du jour."]
 
 ## Paroles de témoins selon le genre (un habitant de la ville, nommé).
 const TEMOINS := {
+	"climat": ["Quand j'étais petit, il neigeait tous les hivers.", "Mes tomates n'ont jamais été aussi précoces. Ni aussi assoiffées."],
+	"submersion": ["L'eau est montée jusqu'au comptoir en une heure.", "Mon grand-père disait que la mer reprend toujours ce qu'on lui prend."],
 	"incendie": ["J'ai vu la fumée depuis ma fenêtre, j'ai tout de suite appelé.", "On a eu très peur. Heureusement que les secours sont venus vite.",
 		"Je l'avais toujours dit, ce bâtiment, c'était une boîte d'allumettes."],
 	"tempete": ["Mon parapluie est parti tout seul vers la commune voisine.", "On n'avait pas vu un vent pareil depuis des années.",

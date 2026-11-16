@@ -470,8 +470,18 @@ func _maj_sites() -> void:
 			var n := sp.note(int(bid))
 			sites.append({"kind": "spectacles", "key": int(bid), "nom": sp.nom(int(bid)), "pos": sp.centre(int(bid)),
 				"pts": clampf(float(sp.places(int(bid))) / 1000.0, 0.1, 6.0) * (0.6 + n / 5.0 * 0.6) * 0.8, "note": n})
-	# Patrimoine : monuments, châteaux, cathédrales et temples de la bible.
-	if buildings != null:
+	# Patrimoine : grands monuments (même en chantier), bâtiments protégés,
+	# monuments, châteaux, cathédrales et temples de la bible (Patrimoine).
+	var pat := Patrimoine.instance
+	if buildings != null and pat != null and is_instance_valid(pat) and pat.buildings == buildings:
+		for bid in buildings.buildings:
+			var pts := pat.points_site(int(bid))
+			if pts > 0.0:
+				var nm := pat.nom(int(bid))
+				if pat.en_chantier(int(bid)):
+					nm = "Chantier de " + nm.substr(0, 1).to_lower() + nm.substr(1)
+				sites.append({"kind": "patrimoine", "key": int(bid), "nom": nm, "pos": pos_of(int(bid)), "pts": pts, "note": pat.note_site(int(bid))})
+	elif buildings != null:
 		for bid in buildings.buildings:
 			var t := BuildingCatalog.get_type(String(buildings.buildings[bid].t))
 			var role := String(t.get("role", ""))

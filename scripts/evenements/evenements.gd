@@ -51,6 +51,9 @@ const TYPES := {
 	"canicule": {"nom": "Canicule", "icone": "thermometre", "couleur": Color("f77f00")},
 	"gel": {"nom": "Gel", "icone": "neige", "couleur": Color("a2d2ff")},
 	"saison": {"nom": "Saison", "icone": "saisons", "couleur": Color("90be6d")},
+	# Climat et pollution (scripts/climat) : nouvelles seulement.
+	"climat": {"nom": "Climat", "icone": "climat", "couleur": Color("e76f51")},
+	"submersion": {"nom": "Submersion marine", "icone": "eau", "couleur": Color("2a9d8f")},
 }
 ## Vitesse maximale des incendies (secondes de jeu par seconde réelle).
 const FEU_MAX_VITESSE := 600.0

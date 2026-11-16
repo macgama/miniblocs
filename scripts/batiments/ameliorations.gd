@@ -306,6 +306,8 @@ func refus_agrandir(bid: int) -> String:
 	var b: Dictionary = buildings.buildings[bid]
 	if not ameliorable(String(b.t)):
 		return "Ce bâtiment ne s'agrandit pas."
+	if Patrimoine.instance != null and Patrimoine.instance.raison_agrandir(bid) != "":
+		return Patrimoine.instance.raison_agrandir(bid)
 	if niveau(b) >= NIVEAU_MAX:
 		return "Déjà agrandi au maximum (niveau %d)." % NIVEAU_MAX
 	if buildings.en_chantier(bid):
@@ -761,6 +763,8 @@ func raison_densif(bid: int, d: Dictionary = {}) -> String:
 		return "hors zone"
 	if niveau(b) >= NIVEAU_MAX:
 		return "au maximum"
+	if Patrimoine.instance != null and Patrimoine.instance.niveau(bid) > 0:
+		return "protégé"
 	if not ameliorable(String(b.t)) or buildings.en_chantier(bid) or b.has("amel"):
 		return "en travaux"
 	var t := now()

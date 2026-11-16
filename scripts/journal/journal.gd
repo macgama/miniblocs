@@ -33,13 +33,13 @@ const GRANDS_LOGEMENTS := 40
 ## Poids des genres de nouvelles (la une va au plus lourd).
 const POIDS_GENRE := {"incendie": 8, "tempete": 7, "crue": 7, "epidemie": 7, "manifestation": 6, "politique": 6,
 	"canicule": 5, "secheresse": 5, "neige": 4, "gel": 4, "fete": 4, "marche": 3, "ruine": 5, "reparation": 2,
-	"saison": 2, "match": 1}
+	"saison": 2, "match": 1, "submersion": 7, "climat": 3}
 ## Rubriques (titre affiché au-dessus de l'article).
 const RUBRIQUES := {"ville": "Vie locale", "faits": "Faits divers", "meteo": "Météo et nature", "politique": "Politique",
 	"sport": "Sports", "economie": "Économie", "travaux": "Travaux", "societe": "Société"}
 const RUBRIQUE_GENRE := {"incendie": "faits", "ruine": "faits", "reparation": "faits", "tempete": "meteo", "crue": "meteo",
 	"neige": "meteo", "secheresse": "meteo", "canicule": "meteo", "gel": "meteo", "saison": "meteo", "epidemie": "societe",
-	"fete": "ville", "marche": "ville", "politique": "politique", "manifestation": "politique", "match": "sport"}
+	"fete": "ville", "marche": "ville", "politique": "politique", "manifestation": "politique", "match": "sport", "submersion": "meteo", "climat": "meteo"}
 
 var population: Population
 var evenements: Evenements

@@ -8,7 +8,7 @@ habitants. **Désactivé par défaut.**
 
 ## Ouvrir
 
-- **F7**, ou menu **Infos → Mode streamer**.
+- **F11**, ou menu **Infos → Mode streamer**.
 - Coche **Activer le mode streamer**, tape le nom de ta chaîne (ou colle le lien
   `twitch.tv/…`), puis **Se connecter**. L'état passe à « Connecté ».
 
@@ -68,7 +68,7 @@ habiter la ville. Pratique pour régler le rythme avant un live.
 ## Tester avec une vraie chaîne
 
 1. Lance le jeu (Godot 4.3+ : ouvrir `project.godot`, F5), démarre une partie.
-2. F7 → coche **Activer**, tape le nom d'une chaîne Twitch **en direct** avec du
+2. F11 → coche **Activer**, tape le nom d'une chaîne Twitch **en direct** avec du
    chat (la tienne, ou n'importe quelle chaîne publique), **Se connecter**.
 3. Depuis ton compte Twitch, écris `!habitant`, puis `1` / `2` / `3` pendant un vote
    (sur ta propre chaîne, `!vote` lance un vote tout de suite).
@@ -84,7 +84,7 @@ habiter la ville. Pratique pour régler le rythme avant un live.
   réglages, votes (`lancer_vote`, `recevoir`, `decompte`, `clore_maintenant`,
   `annuler`, `appliquer_resultat`, `appliquer(id)`), file des pseudos branchée
   sur `Population.prenom_impose`, chat simulé. Section de sauvegarde `streamer`.
-- `scripts/streamer/streamer_panel.gd` (**StreamerPanel**) : panneau F7 et encart du vote.
+- `scripts/streamer/streamer_panel.gd` (**StreamerPanel**) : panneau F11 et encart du vote.
 - Genre d'actualité `streamer` (« Chat Twitch », icône `direct`).
 - Test : `tests/streamer_test.gd` (avec un faux serveur Twitch local en WebSocket) ;
   vitrine : `tests/streamer_vitrine.gd`.

@@ -388,7 +388,7 @@ const SECTIONS := [
 		["Échap", "libérer la souris (vue au sol)"],
 	]],
 	["Mode streamer (Twitch)", [
-		["F7 (ou Infos → Mode streamer)", "le chat de ta chaîne Twitch vote toutes les quelques minutes : catastrophes, décisions du maire, météo, fêtes ; les spectateurs tapent 1, 2 ou 3. Lecture seule et anonyme, sans compte ni clé ; désactivé par défaut"],
+		["F11 (ou Infos → Mode streamer)", "le chat de ta chaîne Twitch vote toutes les quelques minutes : catastrophes, décisions du maire, météo, fêtes ; les spectateurs tapent 1, 2 ou 3. Lecture seule et anonyme, sans compte ni clé ; désactivé par défaut"],
 		["Veto · Appliquer · !vote · !habitant", "annuler ou appliquer le résultat du chat · le streamer et ses modos lancent un vote · un spectateur donne son pseudo au prochain habitant"],
 	]],
 	["Mode photo et time-lapse", [

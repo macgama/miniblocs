@@ -151,7 +151,7 @@ const CATEGORIES := [
 	{"id": "photo", "name": "Mode photo et time-lapse (Maj+F8)", "icon": "appareil_photo", "key": "F8", "panel": true, "group": "infos"},
 	{"id": "souterrain", "name": "Vue sous terre (tuyaux, câbles, métro, sous-sols)", "icon": "souterrain", "key": "Page bas", "panel": true, "group": "infos"},
 	{"id": "succes", "name": "Succès", "icon": "trophee", "key": "F6", "panel": true, "group": "infos"},
-	{"id": "streamer", "name": "Mode streamer (le chat Twitch vote)", "icon": "direct", "key": "F7", "panel": true, "group": "infos"},
+	{"id": "streamer", "name": "Mode streamer (le chat Twitch vote)", "icon": "direct", "key": "F11", "panel": true, "group": "infos"},
 	{"id": "murs", "name": "Murs et étages", "icon": "mur", "key": "2", "panel": true, "mode": "creer"},
 	{"id": "blocs", "name": "Blocs", "icon": "editeur", "key": "3", "panel": true, "mode": "creer"},
 	{"id": "interieur", "name": "Intérieur", "icon": "interieur", "key": "4", "panel": true, "mode": "creer"},

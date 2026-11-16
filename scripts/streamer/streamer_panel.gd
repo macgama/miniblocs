@@ -1,6 +1,6 @@
 class_name StreamerPanel
 extends CanvasLayer
-## Panneau « Mode streamer » (F7, menu Infos) et encart du vote à l'écran.
+## Panneau « Mode streamer » (F11, menu Infos) et encart du vote à l'écran.
 ##
 ## Le panneau règle le mode (chaîne Twitch, rythme des votes, catégories,
 ## noms d'habitants) ; l'encart, en haut à gauche, montre le vote en cours aux
@@ -57,7 +57,7 @@ func _build() -> void:
 	title.add_theme_font_size_override("font_size", 16)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	head.add_child(title)
-	var x := UiStyle.icon_button("fermer", "Fermer", "F7", 18, 32)
+	var x := UiStyle.icon_button("fermer", "Fermer", "F11", 18, 32)
 	x.pressed.connect(func() -> void: set_open(false))
 	head.add_child(x)
 	_scroll = ScrollContainer.new()
@@ -97,7 +97,7 @@ func toggle() -> void:
 
 func _input(event: InputEvent) -> void:
 	var k := event as InputEventKey
-	if k and k.pressed and not k.echo and k.keycode == KEY_F7 and not k.shift_pressed and not k.ctrl_pressed:
+	if k and k.pressed and not k.echo and k.keycode == KEY_F11 and not k.shift_pressed and not k.ctrl_pressed:
 		toggle()
 		get_viewport().set_input_as_handled()
 

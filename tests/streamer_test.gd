@@ -3,7 +3,7 @@ extends SceneTree
 ## connexion anonyme à un faux serveur Twitch local, PING/PONG, messages),
 ## votes (une voix par spectateur, égalités, veto, délai, !vote des modos),
 ## effets (météo, impôts, entretien, incendie, tempête, fête, calme), pseudos
-## donnés aux habitants (!habitant), réglages, panneau F7, sauvegarde.
+## donnés aux habitants (!habitant), réglages, panneau F11, sauvegarde.
 ## Usage : godot --headless --path . --script res://tests/streamer_test.gd
 
 var ok := true
@@ -334,7 +334,7 @@ func _city_tests() -> void:
 	# --- Panneau et encart.
 	var sp: StreamerPanel = scene.streamer_panel
 	sp.set_open(true)
-	_check(sp.is_open() and sp._body.get_child_count() > 10, "panneau F7 ouvert (%d lignes)" % sp._body.get_child_count())
+	_check(sp.is_open() and sp._body.get_child_count() > 10, "panneau F11 ouvert (%d lignes)" % sp._body.get_child_count())
 	ms.lancer_vote(["pluie", "soleil", "calme"])
 	ms.recevoir("a", "a", "1")
 	sp._maj_encart()
@@ -346,10 +346,10 @@ func _city_tests() -> void:
 	ms.annuler()
 	sp.set_open(false)
 	var k := InputEventKey.new()
-	k.keycode = KEY_F7
+	k.keycode = KEY_F11
 	k.pressed = true
 	sp._input(k)
-	_check(sp.is_open(), "F7 ouvre le panneau")
+	_check(sp.is_open(), "F11 ouvre le panneau")
 	sp.set_open(false)
 
 	# --- Sauvegarde.

@@ -72,7 +72,7 @@ func _process(delta: float) -> void:
 	if _t <= 0.0:
 		_t = 1.0
 		_peupler()
-	_bouger(delta)
+	_bouger(EchelleTemps.dt(delta))
 	_dessiner()
 
 

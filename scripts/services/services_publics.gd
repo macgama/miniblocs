@@ -503,7 +503,7 @@ func _process(delta: float) -> void:
 	if _dirty and _t_rebuild <= 0.0:
 		rebuild()
 	if delits_actifs:
-		_t_delit -= delta
+		_t_delit -= EchelleTemps.dt(delta)
 		if _t_delit <= 0.0:
 			_tirer_delit()
 

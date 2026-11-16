@@ -853,8 +853,9 @@ func _process(delta: float) -> void:
 		_relief_t = 0.0
 		_relief_sale = false
 		relief_change.emit()
-	_t += delta
-	_anime(delta)
+	var dt := EchelleTemps.dt(delta)
+	_t += dt
+	_anime(dt)
 
 
 func _focus_pos() -> Vector3:

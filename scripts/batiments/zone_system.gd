@@ -320,7 +320,8 @@ func _process(delta: float) -> void:
 	_rebuild_dirty_views(VIEW_BUDGET_MS)
 	if not growth or zones.is_empty() or buildings == null:
 		return
-	_timer += delta
+	# Les zones se remplissent au rythme du temps (rien en pause).
+	_timer += EchelleTemps.dt(delta)
 	if _timer < GROW_INTERVAL:
 		return
 	_timer = 0.0

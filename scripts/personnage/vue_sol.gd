@@ -81,6 +81,7 @@ var _bord_maj := 0.0
 
 func _exit_tree() -> void:
 	Manette.au_sol = false
+	EchelleTemps.vue_sol = false
 
 
 func _ready() -> void:
@@ -148,6 +149,7 @@ func set_vue(v: Vue) -> void:
 	var avant := vue
 	vue = v
 	Manette.au_sol = v != Vue.DESSUS
+	EchelleTemps.vue_sol = v != Vue.DESSUS
 	if v == Vue.DESSUS and a_bord():
 		_quitter_bord(false)
 	if avant == Vue.DESSUS:

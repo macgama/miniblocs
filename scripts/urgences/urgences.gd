@@ -743,7 +743,7 @@ func _check_late(inc: Dictionary) -> void:
 func _process(delta: float) -> void:
 	if transport == null or transport.traffic == null or not transport.traffic.enabled:
 		return
-	step(delta)
+	step(EchelleTemps.dt(delta))
 
 
 ## Fait avancer les urgences de delta secondes de simulation.

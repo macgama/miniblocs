@@ -240,8 +240,8 @@ func _process(delta: float) -> void:
 	incendies.step(dt_feu)
 	tempetes.step(dt, t)
 	epidemies.step(dt)
-	matchs.step(t, delta)
-	fetes.step(t, delta)
+	matchs.step(t, EchelleTemps.dt(delta))
+	fetes.step(t, EchelleTemps.dt(delta))
 	_secours_simules(t)
 
 

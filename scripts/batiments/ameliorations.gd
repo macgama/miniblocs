@@ -412,7 +412,7 @@ func regler_niveau(bid: int, niv: int) -> void:
 # --- Avancement des chantiers -------------------------------------------------------------
 
 func _process(delta: float) -> void:
-	_clock += delta
+	_clock += EchelleTemps.dt(delta)
 	if buildings == null:
 		return
 	_acc += delta

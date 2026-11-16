@@ -92,8 +92,7 @@ func set_enabled(on: bool) -> void:
 func _process(delta: float) -> void:
 	if pop == null:
 		return
-	if ambiance == null or ambiance.speed_index > 0:
-		_t += delta
+	_t += EchelleTemps.dt(delta)
 	if not enabled:
 		return
 	_timer -= delta

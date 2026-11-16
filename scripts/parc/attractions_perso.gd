@@ -344,7 +344,7 @@ func _sol_local(xf: Transform3D) -> Callable:
 # --- Animation des trains ------------------------------------------------------------------------
 
 func _process(delta: float) -> void:
-	_t += delta
+	_t += EchelleTemps.dt(delta)
 	var cam := get_viewport().get_camera_3d() if is_inside_tree() else null
 	var dt := delta * _vitesse_jeu()
 	for bid in _poses:
@@ -370,8 +370,8 @@ func _process(delta: float) -> void:
 
 
 func _vitesse_jeu() -> float:
-	# Les manèges tournent en temps réel (comme les manèges du parc v1).
-	return 1.0
+	# Les manèges suivent la vitesse du temps (EchelleTemps), arrêt en pause.
+	return EchelleTemps.facteur()
 
 
 func _en_marche(bid: int) -> bool:

@@ -41,10 +41,9 @@ static func _label(text: String, size := 12, dim := false) -> Label:
 
 
 func build(bp: BuildingPanel) -> void:
-	bp.add_control(_label("Tes bâtiments personnalisés et tes bâtiments en murs fins, prêts à reposer. "
-		+ "Enregistre un bâtiment depuis « Personnaliser » (clic sur un bâtiment, outil 1) ou depuis l'onglet Intérieur. "
-		+ "Choisis sa « Fonction » (maison, centrale, stade, piscine…) : il devient un vrai bâtiment du jeu, "
-		+ "dans le catalogue (B → Mes modèles), avec son prix, la rotation R, l'accès à une route et un chantier.", 12, true))
+	bp.add_control(_label("Tous tes bâtiments enregistrés, communs à toutes tes parties. Pour en ajouter un : construis-le, "
+		+ "puis « Enregistrer mon bâtiment » en haut de l'écran. Dans la partie, ils sont dans Construire › Mes modèles, "
+		+ "avec leur prix, la rotation R et un chantier.", 12, true))
 	# --- Filtres ---------------------------------------------------------------------
 	var search := LineEdit.new()
 	search.placeholder_text = "Chercher un modèle…"
@@ -81,6 +80,7 @@ func build(bp: BuildingPanel) -> void:
 			break
 		bp.add_control(_card(String(id), bp))
 		shown += 1
+	bp.show_creations_section()
 	# --- Échanger ------------------------------------------------------------------------
 	var xrow := HFlowContainer.new()
 	var imp := Button.new()

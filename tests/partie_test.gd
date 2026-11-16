@@ -286,6 +286,10 @@ func _run() -> void:
 	print("La ville grandit (pas de 10 min, une tentative de croissance par pas) :")
 	var lignes := ["jour;habitants;campement;foyers;batiments;chantiers;caisse;logements;emplois;chomeurs;satisfaction;sans_courant;sans_eau;ms_image;rang"]
 	var pas := 600.0
+	# Le temps avance à la main sans faire tourner la météo : elle resterait figée sur le
+	# temps de la fin du chargement (pluie = pas de chantier ni de labour). On fixe le beau temps.
+	amb.weather.mode = Meteo.Mode.SOLEIL
+	amb.weather.settle(amb.unix_time, 8.0)
 	var t0 := amb.unix_time
 	var jour := 0
 	var atteint := -1
@@ -337,6 +341,7 @@ func _run() -> void:
 
 	print("Sauvegarde et chargement :")
 	var n_bat := bs.buildings.size()
+	var bids := bs.buildings.keys()
 	var n_pers := pop.persons.size()
 	var pids := pop.persons.keys()
 	var n_voies := tr.network.edges.size()
@@ -348,7 +353,9 @@ func _run() -> void:
 	globe.load_saved_game(slot)
 	game = await _wait_game()
 	await _frames(10)
-	_check(game.buildings.buildings.size() == n_bat, "bâtiments revenus (%d / %d)" % [game.buildings.buildings.size(), n_bat])
+	# Le temps repart pendant le chargement : un chantier peut s'ouvrir ; on compte les disparus.
+	var bat_revenus := bids.filter(func(b) -> bool: return game.buildings.buildings.has(b)).size()
+	_check(bat_revenus == n_bat, "bâtiments revenus (%d / %d, %d en tout)" % [bat_revenus, n_bat, game.buildings.buildings.size()])
 	# Le temps repart à la vitesse de la partie : quelques foyers peuvent déjà emménager.
 	var revenus := 0
 	for pid in pids:

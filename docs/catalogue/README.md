@@ -9,7 +9,7 @@ Tout ce qui se construit ou se pose dans le jeu, avec son année d'apparition et
 | [catalogue.json](catalogue.json) | Les données brutes, pour d'autres outils (site, page Steam) |
 | [dates-ajoutees.md](dates-ajoutees.md) | Les années données le 16 novembre 2026 aux objets qui n'en avaient pas |
 
-En jeu : **F7** (ou menu Infos → Catalogue). Le curseur « Partie en » part de l'année de la partie et
+En jeu : **Maj+F1** (ou menu Infos → Catalogue). Le curseur « Partie en » part de l'année de la partie et
 montre ce qui existe à n'importe quelle année.
 
 ## Familles

@@ -24,6 +24,11 @@ var _drapeau_dialog: ConfirmationDialog
 var _drapeau_choix: OptionButton
 var _drapeau_vid := -1
 var _tick := 0.0
+## Bord gauche (en pixels) d'un panneau ouvert à droite, ou -1 : le bandeau
+## « Fonde ton village » se raccourcit et se décale pour ne pas le recouvrir.
+var bord_droit: Callable
+const TEXTE_BANDEAU := "Fonde ton village : pose sa Maison de commune où tu veux sur la carte.\nAvant, on ne peut que regarder et modeler le paysage."
+const TEXTE_BANDEAU_COURT := "Fonde ton village :\npose sa Maison de commune."
 var _renommer := -1
 
 
@@ -85,7 +90,7 @@ func _build() -> void:
 	bi.stretch_mode = TextureRect.STRETCH_KEEP_CENTERED
 	bh.add_child(bi)
 	_banner_label = Label.new()
-	_banner_label.text = "Fonde ton village : pose sa Maison de commune où tu veux sur la carte.\nAvant, on ne peut que regarder et modeler le paysage."
+	_banner_label.text = TEXTE_BANDEAU
 	_banner_label.add_theme_font_size_override("font_size", 14)
 	bh.add_child(_banner_label)
 	var bb := Button.new()
@@ -225,8 +230,26 @@ func _valider_nom() -> void:
 	fonder_requested.emit(nom)
 
 
+func _placer_bandeau() -> void:
+	var limite := float(bord_droit.call()) if bord_droit.is_valid() else -1.0
+	var court := limite > 0.0
+	var txt := TEXTE_BANDEAU_COURT if court else TEXTE_BANDEAU
+	if _banner_label.text != txt:
+		_banner_label.text = txt
+		_banner.reset_size()
+	var w := _banner.get_combined_minimum_size().x
+	var gauche := -w * 0.5
+	if court:
+		var centre := get_viewport().get_visible_rect().size.x * 0.5
+		gauche = minf(gauche, limite - 12.0 - w - centre)
+	_banner.offset_left = gauche
+	_banner.offset_right = gauche + w
+
+
 func _process(delta: float) -> void:
 	_banner.visible = cm != null and cm.fondation_requise() and not _dialog.visible
+	if _banner.visible:
+		_placer_bandeau()
 	if not is_open():
 		return
 	_tick += delta

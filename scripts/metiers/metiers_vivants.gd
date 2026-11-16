@@ -71,7 +71,7 @@ func setup(p: Population, b: BuildingSystem, amb: DayNight, camera_rig: Node3D) 
 
 func _unhandled_input(event: InputEvent) -> void:
 	var k := event as InputEventKey
-	if k and k.pressed and not k.echo and k.physical_keycode == KEY_K and not k.ctrl_pressed and not k.alt_pressed:
+	if k and k.pressed and not k.echo and k.physical_keycode == KEY_K and not k.ctrl_pressed and not k.alt_pressed and not k.shift_pressed:
 		if k.shift_pressed:
 			coupe_auto = not coupe_auto
 			pop.message.emit("Vue en coupe automatique : %s." % ("oui" if coupe_auto else "non"))

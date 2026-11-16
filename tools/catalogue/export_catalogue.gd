@@ -64,7 +64,7 @@ static func markdown(tout: Array) -> String:
 	l.append("# Catalogue de MiniBlocs : tout ce qui se construit, daté")
 	l.append("")
 	l.append("Fichier généré par `tools/catalogue/export_catalogue.gd` à partir des données du jeu : ne pas le modifier à la main.")
-	l.append("Le même catalogue s'ouvre en jeu avec **F7** (ou menu Infos → Catalogue), et en page web avec [catalogue.html](catalogue.html).")
+	l.append("Le même catalogue s'ouvre en jeu avec **Maj+F1** (ou menu Infos → Catalogue), et en page web avec [catalogue.html](catalogue.html).")
 	l.append("")
 	l.append("« toujours » : déjà là en 1800, au début de la plus ancienne partie possible. Une partie qui commence en 1850")
 	l.append("n'a que ce qui est daté 1850 ou avant ; le reste arrive à sa date (« Arrive en 1882 »).")

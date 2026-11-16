@@ -1,6 +1,6 @@
 class_name CataloguePanel
 extends Control
-## Fenêtre « Catalogue » (F7, menu Infos) : tout ce qui se construit ou se pose
+## Fenêtre « Catalogue » (Maj+F1, menu Infos) : tout ce qui se construit ou se pose
 ## dans le jeu (bâtiments, véhicules, voies, réseaux, agriculture, attractions,
 ## Atelier, décors, meubles), avec son année d'apparition et ses évolutions
 ## (agrandissements, variantes, modèle de chaque époque). Le curseur « Partie
@@ -246,6 +246,6 @@ func close_panel() -> void:
 
 func _unhandled_key_input(event: InputEvent) -> void:
 	var k := event as InputEventKey
-	if k and k.pressed and not k.echo and (k.keycode == KEY_ESCAPE or k.keycode == KEY_F7):
+	if k and k.pressed and not k.echo and (k.keycode == KEY_ESCAPE or k.keycode == KEY_F1 and k.shift_pressed):
 		get_viewport().set_input_as_handled()
 		close_panel()

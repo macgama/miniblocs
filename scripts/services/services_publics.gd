@@ -482,13 +482,13 @@ func ecole_possible(p: Dictionary, school: int) -> bool:
 	var home := population.home_of(p)
 	if not population.known.has(home):
 		return true
-	var lvl := Metiers.school_level(population.age_years(p))
+	var lvl := population.edu.cycle(p)
 	# Gardé jusqu'au prochain changement de la ville ou du réseau (la population
 	# revérifie chaque élève à chaque attribution).
 	var key := "%d:%d:%s" % [home, school, lvl]
 	if _ecole_ok.has(key):
 		return _ecole_ok[key]
-	var ok := minutes(home, school, "ecole") <= float(SEUIL_NIVEAU.get(lvl, 15.0)) * 2.0
+	var ok := minutes(home, school, "ecole") <= float(Education.SEUILS.get(lvl, 15.0)) * 2.0
 	_ecole_ok[key] = ok
 	return ok
 
@@ -632,13 +632,13 @@ func _qualite_ecole(home: int, q_temps: float) -> float:
 	for hid in population.by_home.get(home, []):
 		for pid in population.households[hid].m:
 			var p: Dictionary = population.persons[pid]
-			if population.stage(p) != "eleve":
+			# Secondaire II sans bâtiment en ville : il étudie ailleurs, l'école d'ici n'y est pour rien.
+			if population.stage(p) != "eleve" or population.edu.ailleurs(p) or population.edu.cycle(p) == "":
 				continue
 			eleves += 1
 			if int(p.sch) >= 0:
 				inscrits += 1
-				var lvl := Metiers.school_level(population.age_years(p))
-				tps.append(qualite_temps(minutes(home, int(p.sch), "ecole"), float(SEUIL_NIVEAU.get(lvl, 15.0))))
+				tps.append(qualite_temps(minutes(home, int(p.sch), "ecole"), population.edu.seuil(p)))
 	if eleves == 0:
 		return q_temps
 	var q := 0.0
@@ -760,9 +760,8 @@ func _avis_ecole(p: Dictionary) -> Array:
 	# « Pas de place à l'école » est déjà compté par Population.satisfaction.
 	if population.stage(p) == "eleve" and int(p.sch) >= 0:
 		var home := population.home_of(p)
-		var lvl := Metiers.school_level(population.age_years(p))
 		var t := minutes(home, int(p.sch), "ecole")
-		if t > float(SEUIL_NIVEAU.get(lvl, 15.0)):
+		if t > population.edu.seuil(p):
 			return [-5.0, ["− école loin (%d min)" % roundi(t)]]
 		return [0.0, []]
 	# Parents : un enfant sans école.
@@ -774,7 +773,7 @@ func _avis_ecole(p: Dictionary) -> Array:
 func households_has_child_without_school(hid: int) -> bool:
 	for pid in population.households.get(hid, {}).get("m", []):
 		var c: Dictionary = population.persons.get(pid, {})
-		if not c.is_empty() and population.stage(c) == "eleve" and int(c.sch) < 0:
+		if not c.is_empty() and population.edu.sans_ecole(c):
 			return true
 	return false
 

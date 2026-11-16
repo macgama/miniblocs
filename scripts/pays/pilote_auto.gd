@@ -43,7 +43,14 @@ const BESOINS := [
 	["police", 250, 4000], ["superette", 300, 0], ["pylone_4g", 150, 0], ["central_telephonique", 400, 0],
 	["depot_collecte", 200, 6000], ["decharge", 200, 0],
 	["gymnase", 600, 0], ["hopital", 2000, 0],
+	# Degrés de l'école (scripts/education) : collège, lycée ou gymnase, école professionnelle,
+	# hautes écoles, université et logements étudiants pour les grandes villes.
+	["college", 1200, 6000], ["lycee", 4000, 15000], ["ecole_professionnelle", 5000, 30000],
+	["haute_ecole", 20000, 0], ["universite", 40000, 0], ["residence_etudiante", 40000, 20000],
 ]
+
+## Besoins qu'on attend d'avoir les moyens de payer, sans bloquer les suivants.
+const OPTIONNELS := ["college", "lycee", "ecole_professionnelle", "haute_ecole", "universite", "residence_etudiante"]
 
 var buildings: BuildingSystem
 var transport: TransportSystem
@@ -210,7 +217,7 @@ func chiffres(vid: int) -> Dictionary:
 		if communes.village_de(population.home_of(p)) != vid:
 			continue
 		var s := population.stage(p)
-		if s == "eleve" and int(p.sch) < 0:
+		if population.edu.sans_ecole(p):
 			out.sans_ecole += 1
 		elif s == "actif":
 			out.actifs += 1
@@ -331,6 +338,9 @@ func construire(vid: int) -> String:
 		if compter(vid, besoin) >= voulu:
 			continue
 		var prix := ReglagesPartie.prix(BuildingCatalog.cost(id))
+		# Établissements chers (lycée, hautes écoles…) : attendus sans bloquer le reste.
+		if besoin in OPTIONNELS and dispo(vid) < prix:
+			continue
 		if besoin == "ecole" and dispo(vid) < prix:
 			_financer_ecole(vid, prix)
 		if dispo(vid) < prix:

@@ -21,6 +21,10 @@ signal production_requested
 signal agriculture_requested
 ## Panneau « Budget » (touche M) : impôts, emprunts, entretien des voies.
 signal budget_requested
+## Tuile « Mairie » (M) : tableau de bord de la gestion.
+signal mairie_requested
+## Tuile « Chercher » (Espace) : recherche dans tout le jeu.
+signal search_requested
 ## Bouton « Décors » (touche G) : bancs, clôtures, animaux, bateaux, rochers…
 signal decors_requested
 ## Panneau Infos : événements de la ville (touche I).
@@ -39,6 +43,8 @@ signal pays_requested
 signal objectifs_requested
 ## Bouton « Niveaux de vie » : niveau des foyers, ce qui les bloque (Maj+N).
 signal niveaux_vie_requested
+## Bouton « Immobilier » : prix, promoteurs, quartiers qui changent, bidonvilles (F11).
+signal immobilier_requested
 ## Bouton « Quartiers » : quartiers nommés et arrêtés municipaux (Maj+Y).
 signal quartiers_requested
 ## Panneau « Trafic » (Maj + L) : bouchons, parkings, remplissage des lignes.
@@ -58,6 +64,8 @@ signal spectacles_requested
 signal club_requested
 ## Bouton « Tourisme » (menu Loisirs, Maj+D) : hôtels, touristes, publicité.
 signal tourisme_requested
+## Bouton « Patrimoine » (menu Loisirs, touche Fin) : classement et grands monuments.
+signal patrimoine_requested
 ## Bouton « Commerce » (menu Économie, Maj+S) : cours mondiaux, accords, crises.
 signal commerce_requested
 ## Panneau « Cartes » (touche N) : pollution, bruit, valeur des terrains, autres calques.
@@ -67,14 +75,20 @@ signal stats_requested
 signal journal_requested
 ## Bouton « Saisons et risques » (menu Infos, Maj+R).
 signal saisons_requested
+## Bouton « Climat et pollution » (menu Infos, Maj+F7).
+signal climat_requested
+signal sante_requested
 ## Bouton « Vue sous terre » (menu Infos, Page bas sous le rez-de-chaussée).
 signal souterrain_requested
 ## Bouton « Mode photo » (menu Infos, F8).
 signal photo_requested
+signal streamer_requested
 ## Succès du joueur (F6, menu Infos).
 signal succes_requested
-## Catalogue daté de tout ce qui se construit (F7, menu Infos).
+## Catalogue daté de tout ce qui se construit (Maj+F1, menu Infos).
 signal catalogue_requested
+## Visites et cartes postales (F12).
+signal visites_requested
 ## Bouton Admin de la barre du haut, ou F10 : réglages de la partie.
 signal admin_requested
 signal spec_edited(type_id: String, spec: Dictionary)
@@ -120,6 +134,7 @@ const CATEGORIES := [
 	{"id": "voies", "name": "Voies", "icon": "route", "key": "5-9", "tools": [4, 5, 6, 7, 9, 8]},
 	{"id": "paysage", "name": "Paysage", "icon": "paysage", "key": "0", "tools": [10]},
 	{"id": "construire", "name": "Construire", "icon": "construire", "key": "B", "panel": true},
+	{"id": "mairie", "name": "Mairie : tableau de bord et alertes", "icon": "mairie", "key": "M", "panel": true},
 	{"id": "lignes", "name": "Lignes", "icon": "lignes", "key": "L", "panel": true, "group": "transports"},
 	{"id": "habitants", "name": "Habitants", "icon": "habitants", "key": "H", "panel": true, "group": "ville"},
 	{"id": "production", "name": "Production", "icon": "ressources", "key": "P", "panel": true, "group": "economie"},
@@ -134,9 +149,11 @@ const CATEGORIES := [
 	{"id": "pays", "name": "Pays", "icon": "globe", "key": "Maj+P", "panel": true, "group": "ville"},
 	{"id": "objectifs", "name": "Objectifs", "icon": "trophee", "key": "Maj+J", "panel": true, "group": "ville"},
 	{"id": "niveaux_vie", "name": "Niveaux de vie", "icon": "logement", "key": "Maj+N", "panel": true, "group": "ville"},
+	{"id": "immobilier", "name": "Immobilier (prix, promoteurs, bidonvilles)", "icon": "logement", "key": "F11", "panel": true, "group": "ville"},
 	{"id": "quartiers", "name": "Quartiers et arrêtés", "icon": "pancarte", "key": "Maj+Y", "panel": true, "group": "ville"},
+	{"id": "visites", "name": "Visites et cartes postales (faire visiter sa ville, visiter celle des autres)", "icon": "carte_postale", "key": "F12", "panel": true, "group": "ville"},
 	{"id": "trafic", "name": "Trafic", "icon": "circulation", "key": "Maj+L", "panel": true, "group": "transports"},
-	{"id": "budget", "name": "Budget", "icon": "budget", "key": "M", "panel": true, "group": "ville"},
+	{"id": "budget", "name": "Budget", "icon": "budget", "key": "", "panel": true, "group": "ville"},
 	{"id": "dechets", "name": "Déchets", "icon": "dechets", "key": "X", "panel": true, "group": "ville"},
 	{"id": "parc_editeur", "name": "Créer un parc (attractions, grands-huit, allées, décors)", "icon": "loisirs", "key": "Maj+A", "panel": true, "group": "loisirs"},
 	{"id": "parc", "name": "Parc de loisirs", "icon": "parc", "key": "Maj+G", "panel": true, "group": "loisirs"},
@@ -145,21 +162,26 @@ const CATEGORIES := [
 	{"id": "spectacles", "name": "Spectacles (cinémas, concerts, théâtres, studios)", "icon": "masques", "key": "Maj+X", "panel": true, "group": "loisirs"},
 	{"id": "club", "name": "Club de sport (foot, basket, hand, hockey, rugby, tennis)", "icon": "sport", "key": "Maj+B", "panel": true, "group": "loisirs"},
 	{"id": "tourisme", "name": "Tourisme (hôtels, touristes, publicité)", "icon": "valise", "key": "Maj+D", "panel": true, "group": "loisirs"},
+	{"id": "patrimoine", "name": "Patrimoine et grands monuments", "icon": "patrimoine", "key": "Fin", "panel": true, "group": "loisirs"},
 	{"id": "cartes", "name": "Cartes", "icon": "cartes", "key": "N", "panel": true, "group": "infos"},
 	{"id": "stats", "name": "Statistiques et conseiller", "icon": "courbe", "key": "Maj+I", "panel": true, "group": "infos"},
 	{"id": "journal", "name": "Gazette de la ville", "icon": "journal", "key": "F4", "panel": true, "group": "infos"},
 	{"id": "saisons", "name": "Saisons et risques (météo, neige, crues, sécheresse)", "icon": "saisons", "key": "Maj+R", "panel": true, "group": "infos"},
+	{"id": "climat", "name": "Climat et pollution (CO₂, réchauffement, sols, énergie)", "icon": "climat", "key": "Maj+F7", "panel": true, "group": "infos"},
+	{"id": "sante", "name": "Santé publique (hygiène, vaccins, épidémies)", "icon": "sante", "key": "F7", "panel": true, "group": "infos"},
 	{"id": "photo", "name": "Mode photo et time-lapse (Maj+F8)", "icon": "appareil_photo", "key": "F8", "panel": true, "group": "infos"},
 	{"id": "souterrain", "name": "Vue sous terre (tuyaux, câbles, métro, sous-sols)", "icon": "souterrain", "key": "Page bas", "panel": true, "group": "infos"},
 	{"id": "succes", "name": "Succès", "icon": "trophee", "key": "F6", "panel": true, "group": "infos"},
-	{"id": "catalogue", "name": "Catalogue : tout ce qui se construit, daté, avec ses évolutions", "icon": "catalogue", "key": "F7", "panel": true, "group": "infos"},
+	{"id": "catalogue", "name": "Catalogue : tout ce qui se construit, daté, avec ses évolutions", "icon": "catalogue", "key": "Maj+F1", "panel": true, "group": "infos"},
+	{"id": "streamer", "name": "Mode streamer (le chat Twitch vote)", "icon": "direct", "key": "Maj+F11", "panel": true, "group": "infos"},
 	{"id": "murs", "name": "Murs et étages", "icon": "mur", "key": "2", "panel": true, "mode": "creer"},
 	{"id": "blocs", "name": "Blocs", "icon": "editeur", "key": "3", "panel": true, "mode": "creer"},
 	{"id": "interieur", "name": "Intérieur", "icon": "interieur", "key": "4", "panel": true, "mode": "creer"},
-	{"id": "creations", "name": "Mes créations", "icon": "creations", "key": "5", "panel": true, "mode": "creer"},
-	{"id": "banque", "name": "Banque", "icon": "banque", "key": "6", "panel": true, "mode": "creer"},
+	{"id": "creations", "name": "Mes créations", "icon": "creations", "key": "5", "panel": true, "mode": "creer", "cache": true},
+	{"id": "banque", "name": "Mes modèles", "icon": "banque", "key": "5", "panel": true, "mode": "creer"},
 	{"id": "atelier", "name": "Atelier", "icon": "atelier", "key": "7", "panel": true, "mode": "creer"},
 	{"id": "partage", "name": "Partage (publier et installer des créations, Workshop)", "icon": "partage", "key": "8", "panel": true, "mode": "creer"},
+	{"id": "chercher", "name": "Chercher dans tout le jeu", "icon": "chercher", "key": "Espace", "panel": true, "mode": "both", "cache": true},
 ]
 ## Menus de la barre du bas (mode Gérer) : leurs panneaux s'ouvrent dans une
 ## petite rangée au-dessus du bouton, pour que la barre tienne sur tout écran.
@@ -171,7 +193,7 @@ const GROUPS := [
 	{"id": "infos", "name": "Infos", "icon": "infos"},
 ]
 ## Touches 2 à 5 du mode Créer.
-const CREATE_KEYS := {KEY_2: "murs", KEY_3: "blocs", KEY_4: "interieur", KEY_5: "creations", KEY_6: "banque", KEY_7: "atelier", KEY_8: "partage"}
+const CREATE_KEYS := {KEY_2: "murs", KEY_3: "blocs", KEY_4: "interieur", KEY_5: "banque", KEY_6: "banque", KEY_7: "atelier", KEY_8: "partage"}
 ## Icône de chaque outil de TOOLS.
 const TOOL_ICONS := ["observer", "aplanir", "monter", "creuser", "route", "rail", "chemin", "eau", "demolir", "carrefour", "paysage"]
 ## Nom court sous l'icône (le nom complet est dans l'infobulle).
@@ -223,6 +245,8 @@ var _mode_badge: PanelContainer
 var _group_buttons := {}
 var _group_popups := {}
 var _open_group := ""
+## Tableau de bord de la Mairie ouvert (tuile allumée).
+var _mairie_open := false
 var _dock: PanelContainer
 var _cell_card: PanelContainer
 ## Barre en icônes seules (écran étroit).
@@ -307,7 +331,20 @@ func _build_top_bar() -> void:
 	_place_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	_place_label.mouse_filter = Control.MOUSE_FILTER_PASS
 	row.add_child(_place_label)
-	var go := UiStyle.icon_button("chercher", "Aller à d'autres coordonnées, infos techniques")
+	# Recherche dans tout le jeu : bâtiments, outils, menus de gestion (Espace).
+	var find := UiStyle.icon_button("chercher", "Chercher dans tout le jeu : un bâtiment, un outil, un menu de gestion (Espace)", "Espace")
+	find.name = "Chercher"
+	find.pressed.connect(func() -> void: search_requested.emit())
+	row.add_child(find)
+	# Coordonnées et infos techniques : clic sur le nom du lieu.
+	var go := Button.new()
+	go.visible = false
+	_place_label.tooltip_text = "Clic : aller à d'autres coordonnées, infos techniques"
+	_place_label.mouse_filter = Control.MOUSE_FILTER_STOP
+	_place_label.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	_place_label.gui_input.connect(func(e: InputEvent) -> void:
+		if e is InputEventMouseButton and (e as InputEventMouseButton).pressed and (e as InputEventMouseButton).button_index == MOUSE_BUTTON_LEFT:
+			go.button_pressed = not go.button_pressed)
 	go.toggle_mode = true
 	go.toggled.connect(func(on: bool) -> void:
 		_coords_panel.visible = on
@@ -502,7 +539,7 @@ func _build_bottom() -> void:
 			var s := UiStyle.vsep()
 			row.add_child(s)
 			_gerer_only.append(s)
-		var b := UiStyle.tile_button(c.icon, c.name, c.key, DOCK_TILE)
+		var b := UiStyle.tile_button(c.icon, String(c.name).get_slice(" (", 0).get_slice(" :", 0), c.key, DOCK_TILE)
 		if c.get("mode", "gerer") == "creer":
 			UiStyle.tint_pressed(b, UiStyle.CREATE, UiStyle.CREATE_INK)
 		b.tooltip_text = "%s (%s)" % [c.name, c.key]
@@ -519,8 +556,22 @@ func _build_bottom() -> void:
 			row.add_child(b)
 			continue
 		if not _group_popups.has(gid):
-			row.add_child(_build_group(gid))
+			var gb := _build_group(gid)
+			# Les menus de la ville sont dans le tableau de bord de la Mairie (tuile Mairie, M).
+			if gid != "ville":
+				row.add_child(gb)
+			else:
+				# Hors de l'arbre : on le libère avec la barre (sinon un nœud orphelin par partie).
+				tree_exiting.connect(func() -> void:
+					if is_instance_valid(gb):
+						gb.free())
 		(_group_popups[gid].get_child(0) as HBoxContainer).add_child(b)
+	if _cat_buttons.has("mairie"):
+		var names := []
+		for c in CATEGORIES:
+			if c.get("group", "") == "ville":
+				names.append(String(c.name))
+		(_cat_buttons.mairie as Button).tooltip_text = "Mairie : tableau de bord, alertes et tous les menus de la ville (M)\n%s" % ", ".join(names)
 	var fsep := UiStyle.vsep()
 	row.add_child(fsep)
 	_creer_only.append(fsep)
@@ -614,6 +665,8 @@ func _refresh_groups() -> void:
 			if c.get("group", "") == gid and (_cat_buttons[c.id] as Button).button_pressed:
 				on = true
 		(_group_buttons[gid] as Button).set_pressed_no_signal(on)
+		if gid == "ville" and _cat_buttons.has("mairie"):
+			(_cat_buttons.mairie as Button).set_pressed_no_signal(on or _mairie_open)
 
 
 ## Fait tenir la barre dans l'écran, à droite de la carte de la case : icônes
@@ -763,6 +816,10 @@ func _build_mode_badge() -> void:
 func _request_mode(on: bool) -> void:
 	if on == create_mode:
 		return
+	if on and VisiteVille.active():
+		set_create_mode(false)
+		show_message(VisiteVille.TEXTE_VERROU)
+		return
 	set_create_mode(on)
 	mode_changed.emit(on)
 
@@ -810,6 +867,11 @@ func _on_category(id: String) -> void:
 		(_cat_buttons[id] as Button).set_pressed_no_signal(false)
 		show_message(EditionDemo.texte_verrou(String(c.get("name", id)).get_slice(" (", 0)))
 		return
+	# En visite : seulement ce qui se regarde (et les cartes postales).
+	if id != "visites" and VisiteVille.categorie_verrouillee(id):
+		(_cat_buttons[id] as Button).set_pressed_no_signal(false)
+		show_message(VisiteVille.TEXTE_VERROU)
+		return
 	if c.get("mode", "gerer") == "creer":
 		_create_cat = "" if _create_cat == id else id
 		create_requested.emit(_create_cat)
@@ -818,6 +880,8 @@ func _on_category(id: String) -> void:
 	if c.get("panel", false):
 		match id:
 			"construire": build_requested.emit()
+			"mairie": mairie_requested.emit()
+			"chercher": search_requested.emit()
 			"lignes": transit_requested.emit()
 			"habitants": habitants_requested.emit()
 			"production": production_requested.emit()
@@ -832,6 +896,7 @@ func _on_category(id: String) -> void:
 			"pays": pays_requested.emit()
 			"objectifs": objectifs_requested.emit()
 			"niveaux_vie": niveaux_vie_requested.emit()
+			"immobilier": immobilier_requested.emit()
 			"quartiers": quartiers_requested.emit()
 			"trafic": trafic_requested.emit()
 			"dechets": dechets_requested.emit()
@@ -842,15 +907,20 @@ func _on_category(id: String) -> void:
 			"spectacles": spectacles_requested.emit()
 			"club": club_requested.emit()
 			"tourisme": tourisme_requested.emit()
+			"patrimoine": patrimoine_requested.emit()
 			"commerce": commerce_requested.emit()
 			"cartes": cartes_requested.emit()
 			"stats": stats_requested.emit()
 			"journal": journal_requested.emit()
 			"saisons": saisons_requested.emit()
+			"climat": climat_requested.emit()
+			"sante": sante_requested.emit()
 			"souterrain": souterrain_requested.emit()
 			"photo": photo_requested.emit()
+			"streamer": streamer_requested.emit()
 			"succes": succes_requested.emit()
 			"catalogue": catalogue_requested.emit()
+			"visites": visites_requested.emit()
 		_update_categories()
 		return
 	if create_mode and id == "observer":
@@ -904,7 +974,7 @@ func _update_categories() -> void:
 	for c in CATEGORIES:
 		var mode: String = c.get("mode", "gerer")
 		var b := _cat_buttons[c.id] as Button
-		b.visible = mode == "both" or (mode == "creer") == create_mode
+		b.visible = (mode == "both" or (mode == "creer") == create_mode) and not c.get("cache", false)
 		if mode == "creer":
 			b.set_pressed_no_signal(c.id == _create_cat)
 		elif not c.get("panel", false):
@@ -944,6 +1014,11 @@ func set_category_label(id: String, text: String, tip := "") -> void:
 
 
 ## Panneaux ouverts (Construire, Lignes, Habitants) : leur catégorie est allumée.
+func set_mairie_open(on: bool) -> void:
+	_mairie_open = on
+	_refresh_groups()
+
+
 func set_panel_open(id: String, on: bool) -> void:
 	var b := _cat_buttons.get(id) as Button
 	if b and b.button_pressed != on:
@@ -1199,6 +1274,10 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	if key == null or not key.pressed or key.echo:
 		return
 	if key.keycode == KEY_TAB and not key.ctrl_pressed and not key.alt_pressed:
+		if VisiteVille.active():
+			show_message(VisiteVille.TEXTE_VERROU)
+			get_viewport().set_input_as_handled()
+			return
 		_request_mode(not create_mode)
 		get_viewport().set_input_as_handled()
 		return
@@ -1214,11 +1293,16 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			return
 	for i in TOOLS.size():
 		if key.keycode == TOOLS[i].key or key.physical_keycode == TOOLS[i].key:
+			if VisiteVille.outil_verrouille(i):
+				show_message(VisiteVille.TEXTE_VERROU)
+				return
 			_buttons[i].button_pressed = true
 			_set_current_tool(i)
 			tool_selected.emit(i)
 			return
-	if key.keycode == KEY_F1:
+	if key.keycode == KEY_F1 and key.shift_pressed:
+		catalogue_requested.emit()
+	elif key.keycode == KEY_F1:
 		help_requested.emit()
 	elif key.keycode == KEY_F5:
 		save_requested.emit()

@@ -309,7 +309,7 @@ func _view_city() -> void:
 	_text("Clique un bâtiment de la carte (outil 1 · Observer) pour voir qui y vit, y travaille ou y étudie.", true, 12)
 	_section("Population")
 	var adults: int = s.actif + s.chomeur
-	for row in [["bebe", "Bébés (0-2 ans)"], ["eleve", "Élèves (3-17 ans)"], ["etudiant", "Étudiants (université hors de la ville)"],
+	for row in [["bebe", "Bébés (0-2 ans)"], ["eleve", "Élèves"], ["apprenti", "Apprentis (CFC, CAP)"], ["etudiant", "Étudiants (hautes écoles, université)"],
 			["actif", "Actifs avec emploi"], ["chomeur", "Sans emploi"], ["retraite", "Retraités (64 ans et plus)"]]:
 		var key: String = row[0]
 		var cnt: int = s[key]
@@ -393,7 +393,7 @@ func _view_list() -> void:
 	var row := HBoxContainer.new()
 	var pick := OptionButton.new()
 	pick.focus_mode = Control.FOCUS_NONE
-	var keys := ["", "bebe", "eleve", "etudiant", "actif", "chomeur", "retraite", "defunts"]
+	var keys := ["", "bebe", "eleve", "apprenti", "etudiant", "actif", "chomeur", "retraite", "defunts"]
 	for i in keys.size():
 		pick.add_item("Tout le monde" if keys[i] == "" else ("Défunts et partis" if keys[i] == "defunts" else String(Population.STAGE_NAMES[keys[i]])), i)
 		if keys[i] == _filter:
@@ -601,13 +601,14 @@ func _view_building(bid: int) -> void:
 				at_school += 1
 		_section("Élèves : %d inscrits sur %d places · %d en classe maintenant" % [pupils.size(), int(info.seats), at_school])
 		var levels := {}
+		var sys := pop.edu.systeme_batiment(bid)
 		for pid in pupils:
-			var lv := Metiers.school_level(pop.age_years(pop.persons[pid]))
+			var lv := pop.edu.cycle(pop.persons[pid])
 			levels[lv] = int(levels.get(lv, 0)) + 1
 		var parts := []
-		for lv in ["maternelle", "élémentaire", "collège", "lycée"]:
+		for lv in SystemesScolaires.CYCLES:
 			if levels.has(lv):
-				parts.append("%s : %d" % [lv, levels[lv]])
+				parts.append("%s : %d" % [pop.edu.nom_cycle(lv, sys), levels[lv]])
 		if not parts.is_empty():
 			_text(" · ".join(parts), true, 12)
 		var shown := 0
@@ -698,14 +699,27 @@ func _view_profile(pid: int) -> void:
 		_section("École")
 		if int(p.sch) >= 0:
 			_building_link("", int(p.sch))
-			_text("Classe : %s (%s)" % [Metiers.school_class(age), Metiers.school_level(age)])
+			_text("Classe : %s (%s)" % [pop.edu.classe(p), pop.edu.nom_cycle(pop.edu.cycle(p), pop.edu.systeme(p))])
 			var c := pop.commute(p, int(h.b), int(p.sch))
 			_text("Trajet : %d min %s" % [int(c.min), c.mode], true)
 			if c.has("detail"):
 				_text("Itinéraire : " + String(c.detail), true, 12)
 			_text("Lundi, mardi, jeudi, vendredi de 8 h 30 à 16 h 30, mercredi matin.", true, 12)
 		else:
-			_text("Aucune place libre dans une école : construis une école (B → Services publics).", true)
+			_text(pop.edu.libelle(p), true)
+			if pop.edu.sans_ecole(p):
+				_text("Aucune place libre pour ce degré (%s) : construis l'école qui l'accueille (B → Services publics)." % pop.edu.nom_cycle(pop.edu.cycle(p), pop.edu.systeme(p)), true)
+	elif st == "apprenti" or st == "etudiant":
+		_section("Formation")
+		_text(pop.edu.libelle(p), true)
+		if int(p.job) >= 0:
+			_building_link("Entreprise formatrice : ", int(p.job))
+			_text("Salaire d'apprenti : %s net par mois · 4 jours chez l'employeur, le mardi à l'école professionnelle." % money(pop.income_of(p)), true, 12)
+		if int(p.sch) >= 0:
+			_building_link("École : ", int(p.sch))
+		var fin := float(p.get("apf", -1.0)) if st == "apprenti" else float(p.get("etu", -1.0))
+		if fin > pop.life_clock:
+			_text("Diplôme prévu dans %.1f an%s." % [(fin - pop.life_clock) / 365.25, "s" if (fin - pop.life_clock) / 365.25 >= 2.0 else ""], true, 12)
 	elif st == "actif" or st == "chomeur":
 		_section("Travail")
 		if int(p.job) >= 0:
@@ -713,6 +727,8 @@ func _view_profile(pid: int) -> void:
 			_text("%s · %s net par mois%s" % [j.name, money(float(j.salaire) * ReglagesPartie.actuel.salaires),
 				" (payé par l'État)" if bool(j.get("etat", false)) else (" (payé par la ville)" if bool(j.get("public", false)) else "")])
 			_building_link("Lieu : ", int(p.job))
+			_text("Diplôme exigé : %s%s" % [SystemesScolaires.texte_exigence(String(p.met), pop.edu.annee()),
+				" · embauché%s sans ce diplôme : travaille moins vite" % CycleVie.g(p, "", "e") if bool(p.get("nq", false)) else ""], true, 12)
 			const JOURS := {"semaine": "du lundi au vendredi", "lunsam": "du lundi au samedi", "marsam": "du mardi au samedi",
 				"tous": "tous les jours", "garde": "un jour sur deux (gardes de 12 h)", "ecole": "les jours d'école"}
 			_text("Horaires : %s, %s" % [_hours(float(j.h[0]), float(j.h[1])), JOURS.get(String(j.j), "")], true)
@@ -907,7 +923,10 @@ func _life_sections(p: Dictionary) -> void:
 	var pid := int(p.id)
 	var alive := pop.persons.has(pid)
 	_section("En bref")
-	var bits := ["Diplôme : %s" % CycleVie.DIPLOMES.get(String(p.get("dip", "")), "aucun")]
+	var noms := []
+	for d in Education.diplomes(p):
+		noms.append(SystemesScolaires.nom_diplome(String(d)))
+	var bits := ["Diplômes : %s" % (", ".join(noms) if not noms.is_empty() else "aucun")]
 	bits.append("permis de conduire" if bool(p.get("perm", false)) else "pas de permis")
 	if int(p.get("sp", 0)) > 0:
 		bits.append("%d distinction%s sportive%s" % [int(p.sp), "s" if int(p.sp) > 1 else "", "s" if int(p.sp) > 1 else ""])

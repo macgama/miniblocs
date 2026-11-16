@@ -26,6 +26,13 @@ config/icon="res://icon.svg"
 
 ManetteAuto="*res://scripts/manette/manette.gd"
 SuccesNotif="*res://scripts/succes/succes_notif.gd"
+Plantages="*res://scripts/stabilite/journal_plantage.gd"
+
+[debug]
+
+file_logging/enable_file_logging=true
+file_logging/enable_file_logging.pc=true
+file_logging/max_log_files=10
 
 [display]
 

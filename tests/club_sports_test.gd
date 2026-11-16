@@ -292,12 +292,15 @@ func _ville_tests() -> void:
 	# Centre de formation.
 	print("Centre de formation :")
 	_check(bk.set_academie(2) != "", "niveau 2 refusé sans bâtiment")
+	# Les familles du test sont tirées au hasard : parfois un seul ado de 14-17 ans joue au basket.
+	var sportifs := mini(2, bk._habitants_sportifs(14.0, 17.5).size())
+	_check(sportifs >= 1, "des ados basketteurs en ville (%d)" % sportifs)
 	_check(bk.set_academie(1) == "" and bk.espoirs.size() == 3, "école de sport : 3 jeunes (%d)" % bk.espoirs.size())
 	var de_la_ville := 0
 	for id in bk.espoirs:
 		if int(bk.espoirs[id].pid) >= 0:
 			de_la_ville += 1
-	_check(de_la_ville >= 2, "%d jeunes de la ville au centre" % de_la_ville)
+	_check(de_la_ville >= sportifs, "%d jeunes de la ville au centre (%d ados basketteurs au moins)" % [de_la_ville, sportifs])
 	var cf := _poser(bs, "centre_formation", -180)
 	_check(cf > 0 and bk.centre_bati(), "centre de formation bâti")
 	_check(bk.set_academie(3) == "", "académie de haut niveau ouverte")

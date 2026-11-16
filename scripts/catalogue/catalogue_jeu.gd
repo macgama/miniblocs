@@ -2,7 +2,7 @@ class_name CatalogueJeu
 extends RefCounted
 ## Catalogue de tout ce qui se construit ou se pose dans le jeu, avec son année
 ## d'apparition et ses évolutions. Construit à partir des données du jeu
-## (aucune liste à tenir à la main) : il sert au panneau « Catalogue » (F7, menu
+## (aucune liste à tenir à la main) : il sert au panneau « Catalogue » (Maj+F1, menu
 ## Infos) et à l'export docs/catalogue (tools/catalogue/export_catalogue.gd).
 ##
 ## Une entrée : {"fam", "groupe", "id", "nom", "annee", "source", "info", "evol"}.

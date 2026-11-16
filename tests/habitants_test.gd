@@ -96,11 +96,15 @@ func _run() -> void:
 	_check(pupils.size() > 0 and kids_linked == pupils.size(), "%d élèves inscrits = %d profils liés à l'école" % [pupils.size(), kids_linked])
 	_check(ages_ok, "tous les élèves ont de 3 à 17 ans")
 	var all_schoolkids := true
+	var lyceens := 0
 	for pid in pop.persons:
 		var p: Dictionary = pop.persons[pid]
-		if pop.stage(p) == "eleve" and int(p.sch) < 0:
+		if pop.edu.sans_ecole(p):
 			all_schoolkids = false
-	_check(all_schoolkids, "chaque enfant de 3 à 17 ans a une école (places suffisantes)")
+		if pop.edu.ailleurs(p):
+			lyceens += 1
+	_check(all_schoolkids, "chaque enfant en âge de scolarité obligatoire a une école (places suffisantes)")
+	print("    %d élèves du secondaire II étudient dans une autre ville (pas de lycée ici)" % lyceens)
 	pop._now = {}
 	var in_class := 0
 	for pid in pupils:
@@ -166,9 +170,14 @@ func _run() -> void:
 	var workers_ok := true
 	var n_workers := 0
 	for bid in pop.by_job:
-		_check((pop.by_job[bid] as Array).size() <= int(pop.known[bid].emp), "%s : %d postes pourvus sur %d" % [pop.building_name(bid), (pop.by_job[bid] as Array).size(), pop.known[bid].emp])
+		# Les apprentis sont en plus du personnel (places d'apprentissage).
+		var personnel := (pop.by_job[bid] as Array).size() - pop.edu.apprentis_de(bid)
+		_check(personnel <= int(pop.known[bid].emp), "%s : %d postes pourvus sur %d" % [pop.building_name(bid), personnel, pop.known[bid].emp])
 		for pid in pop.by_job[bid]:
 			var p: Dictionary = pop.persons[pid]
+			if pop.stage(p) == "apprenti":
+				workers_ok = workers_ok and int(p.job) == bid and pop.age_of(p) >= 15.0
+				continue
 			n_workers += 1
 			workers_ok = workers_ok and int(p.job) == bid and pop.age_of(p) >= 18.0 and pop.age_of(p) < 64.0 and Metiers.METIERS.has(String(p.met))
 	_check(n_workers > 0 and workers_ok, "%d actifs, tous adultes de moins de 64 ans, avec un métier" % n_workers)
@@ -183,7 +192,15 @@ func _run() -> void:
 	for i in range(1, plan.size()):
 		cont = cont and absf(float(plan[i][0]) - float(plan[i - 1][1])) < 0.001
 	_check(cont and float(plan[0][0]) == 0.0 and float(plan[-1][1]) == 24.0, "journée d'un élève de 0 h à 24 h sans trou (%d étapes)" % plan.size())
-	_check(int(pop.satisfaction(some).value) > 0, "satisfaction calculée")
+	var sat_el := pop.satisfaction(some)
+	# La ville du test n'a ni courant ni eau : l'élève est vers 15 sur 100, et un motif de plus
+	# (trajet, pluie, avis…) peut le mettre à 0. On vérifie donc le calcul lui-même : 60 + la
+	# somme des thèmes, bornée à 0-100, avec des raisons (avant : « > 0 », échouait 2 fois sur 60).
+	var somme := 60.0
+	for k in sat_el.themes:
+		somme += float(sat_el.themes[k])
+	_check(int(sat_el.value) == clampi(roundi(somme), 0, 100) and not (sat_el.why as Array).is_empty(),
+		"satisfaction calculée (%d : %s ; thèmes %s)" % [int(sat_el.value), "; ".join(sat_el.why), str(sat_el.themes)])
 
 	print("Économie :")
 	var bud := pop.city_budget()

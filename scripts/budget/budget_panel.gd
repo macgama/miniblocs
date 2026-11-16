@@ -7,7 +7,8 @@ signal focus_requested(pos: Vector3)
 
 const W := 360.0
 const H := 560.0
-const KEY := KEY_M
+## M ouvre maintenant le tableau de bord de la Mairie (MairiePanel), qui mène au budget.
+const KEY := KEY_NONE
 
 var budget: BudgetCommunal
 var view := "bilan"
@@ -88,7 +89,7 @@ func toggle() -> void:
 
 func _unhandled_key_input(event: InputEvent) -> void:
 	var k := event as InputEventKey
-	if k and k.pressed and not k.echo and k.physical_keycode == KEY and not k.shift_pressed and not k.ctrl_pressed:
+	if KEY != KEY_NONE and k and k.pressed and not k.echo and k.physical_keycode == KEY and not k.shift_pressed and not k.ctrl_pressed:
 		toggle()
 		get_viewport().set_input_as_handled()
 

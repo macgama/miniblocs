@@ -65,6 +65,11 @@ func _ready() -> void:
 	close.text = "Fermer (F2 ou Échap)"
 	close.pressed.connect(close_panel)
 	head.add_child(close)
+	# Le reste défile si l'écran est trop petit (le titre reste visible).
+	var body := VBoxContainer.new()
+	body.add_theme_constant_override("separation", 8)
+	v.add_child(UiStyle.scroll_fit(body, panel))
+	v = body
 
 	var grid := GridContainer.new()
 	grid.columns = 3

@@ -1,5 +1,5 @@
 extends SceneTree
-## Test du catalogue daté (CatalogueJeu, EpoquesObjets, panneau F7) : chaque
+## Test du catalogue daté (CatalogueJeu, EpoquesObjets, panneau Maj+F1) : chaque
 ## objet qui se construit a une année et aucune n'est plus devinée ; décors,
 ## meubles, ouvertures, toits, aménagements et grands-huit suivent l'époque ;
 ## l'export docs/catalogue s'écrit ; le panneau s'ouvre et filtre.
@@ -104,7 +104,7 @@ func _run() -> void:
 	_check(page.contains("<title>Catalogue MiniBlocs</title>") and page.contains("\"objets\""), "la page HTML embarque les données")
 	_check(String(Export.dates_ajoutees(tout)).contains("Grande roue (1893)"), "les années ajoutées sont listées")
 
-	print("Panneau F7 :")
+	print("Panneau Maj+F1 :")
 	var p := CataloguePanel.new()
 	root.add_child(p)
 	await process_frame

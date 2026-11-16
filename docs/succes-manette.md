@@ -2,7 +2,7 @@
 
 ## Succès
 
-**62 succès** (les 21 des Objectifs, plus 41 nouveaux, avec une touche d'humour) valent pour
+**64 succès** (les 21 des Objectifs, plus 43 nouveaux, avec une touche d'humour) valent pour
 **toutes les parties**, comme sur Steam. Ils sont gardés dans `user://succes.cfg` avec les
 compteurs qui servent à les débloquer (km de routes, incendies vus, bâtiments démolis,
 minutes à la manette…).

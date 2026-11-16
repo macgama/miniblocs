@@ -19,11 +19,13 @@ const SECTIONS := [
 		["Ⓑ · ☰ · ⧉", "annuler (Échap) · menu pause · Gérer / Créer (Tab)"],
 		["Ⓧ · Ⓨ", "tourner le bâtiment (R) · vue au sol (V)"],
 		["F6", "succès : toutes tes médailles, débloquées ou non (aussi dans le menu Infos et le menu principal)"],
+		["F12", "visites et cartes postales : faire visiter ta ville, visiter celle d'un autre, lire ton courrier"],
 	]],
 	["Barre du bas", [
-		["Tab · Gérer / Créer", "Gérer : la ville (terrain, voies, zonage, catalogue, lignes, habitants). Créer : construire un bâtiment soi-même (murs et étages, blocs, intérieur, Mes créations, banque, atelier, partage), la ville en pause ; touches 1 à 8 et échelle des étages"],
+		["Tab · Gérer / Créer", "Gérer : la ville (terrain, voies, zonage, catalogue, lignes, habitants). Créer : construire un bâtiment soi-même (murs et étages, blocs, intérieur, Mes modèles, atelier, partage), la ville en pause ; touches 1 à 8 et échelle des étages"],
+		["Enregistrer mon bâtiment (mode Créer)", "les 3 étapes en haut de l'écran : 1 construire, 2 nom et usage dans la partie (maison, école, stade…), 3 enregistrer ; il va dans Construire › Mes modèles, dans toutes tes parties ; « Le poser dans ma partie » le met en main"],
 		["Catégories", "Observer, Terrain, Voies, Paysage : un clic ouvre leurs outils juste au-dessus ; Construire et Décors ouvrent leur panneau à droite (un seul à la fois)"],
-		["Menus ▴", "Transports (lignes, trafic, circulation, véhicules), Ville (habitants, urgences, avis, budget, déchets), Économie (production, agriculture), Loisirs (créer un parc, panneau du parc, musée, zoo, spectacles, club, tourisme), Infos (infos, cartes) : un clic ouvre la rangée de leurs panneaux ; les touches restent les mêmes"],
+		["Menus ▴", "Transports (lignes, trafic, circulation, véhicules), Ville (habitants, urgences, avis, budget, déchets), Économie (production, agriculture), Loisirs (créer un parc, panneau du parc, musée, zoo, spectacles, club, tourisme, patrimoine), Infos (infos, cartes) : un clic ouvre la rangée de leurs panneaux ; les touches restent les mêmes"],
 		["Circulation, Véhicules, Vue", "afficher la circulation, choisir l'époque et la région des véhicules, changer de vue"],
 		["1", "observer : survoler une case pour voir son altitude et son biome (et le nom de la rivière)"],
 		["2 · 3 · 4", "aplanir, monter de 1 m, creuser de 1 m (clic gauche glissé)"],
@@ -40,7 +42,9 @@ const SECTIONS := [
 		["Échap (sans outil en cours)", "menu pause : le temps s'arrête ; sauvegarder, charger, options, menu principal, quitter"],
 	]],
 	["Construire (panneau de droite)", [
-		["B", "afficher ou masquer le panneau Construire (catégories en icônes, bâtiments en vignettes)"],
+		["Espace", "chercher dans tout le jeu : un bâtiment, un outil ou un menu de gestion (« zoo », « budget », « route »…), ↑ ↓ puis Entrée ; aussi « Chercher… » en haut de l'écran"],
+		["B", "afficher ou masquer le panneau Construire : thèmes nommés à gauche (Favoris, Récents, Logement, Services publics, Loisirs et culture…), recherche dans tout le catalogue, bâtiments en vignettes"],
+		["Étoile d'une vignette", "garder le bâtiment dans les Favoris ; les Récents se remplissent seuls"],
 		["Clic gauche", "poser le bâtiment choisi"],
 		["R", "tourner le bâtiment d'un quart de tour (sinon il se cale tout seul le long de la route la plus proche, même courbe, à sa hauteur)"],
 		["Ctrl + Z", "annuler (éditeur libre : blocs, murs et étages)"],
@@ -62,7 +66,7 @@ const SECTIONS := [
 		["Page bas · Page haut · Origine", "vue par étage (mode Gérer) : enlève ou remet les étages des bâtiments en murs fins autour de la caméra, pour voir les habitants dedans"],
 		["Page bas sous le rez-de-chaussée (ou Infos → Vue sous terre)", "vue sous terre : Sous-sol −1 à −20 (3 m par niveau). Réseaux sous les rues (vert télécoms, rouge électricité, jaune gaz, bleu eau, marron égouts ; gris : pas alimenté), gros tronçons enterrés, branchements des bâtiments, tunnels, métro et stations, caves, parkings et sous-sols de l'Atelier. Page haut remonte, Origine ou Échap revient à la surface"],
 		["Construire sous terre (barre de la vue sous terre)", "au niveau affiché : poser une conduite d'eau, un égout, du gaz ou de la fibre (plus profond = plus cher : tranchée, tranchée blindée, microtunnelier) ; creuser un métro ou un tunnel routier (à partir du −3, rampe automatique vers la surface) ; creuser une cave, un parking, un entrepôt, un local technique ou un bunker sur 1 à 3 niveaux, puis l'aménager avec les murs, portes et escaliers de l'Atelier ; Déplacer une conduite (elle reste en service pendant les travaux) ; Supprimer. Tout se construit en chantier, payé au fil des travaux"],
-		["Banque (6) · Atelier (7)", "tes modèles étiquetés (type, style, époque, couleur) à reposer ou échanger ; l'atelier : terrain plat sans habitants ni argent"],
+		["Mes modèles (5) · Atelier (7)", "tous tes bâtiments enregistrés (murs et blocs), à reposer ou échanger ; l'atelier : terrain vide, sans arbres, habitants ni argent"],
 		["Fonction d'un modèle (Banque, Mes créations)", "le bâtiment du jeu dont ton modèle prend le rôle : maison, centrale électrique, stade, piscine, grand-huit… Il fonctionne comme lui (capacités à sa taille) avec ton apparence"],
 		["Mes modèles (Construire, B)", "tes modèles et créations se posent comme les autres bâtiments : prix, R pour tourner, accès à une route, chantier ; chantier fini, ses vrais murs, pièces et meubles sont posés : il se visite (V)"],
 		["Chantiers", "bâtiments et voies se construisent étape par étape au rythme de la vie (maison ≈ 3 semaines de jeu), en semaine et en journée ; le prix se paie au fil des travaux ; panneau Admin (F10) : horaires des équipes ou construction instantanée"],
@@ -70,7 +74,7 @@ const SECTIONS := [
 	["Époques", [
 		["Année de départ", "globe, Réglages de la partie (ou Admin F10), section Époque : partie historique de 1800 à aujourd'hui ; chaque invention arrive à sa date (train 1830, électricité 1882, autoroute 1930, 4G 2010…)"],
 		["Pas encore inventé", "vignette « Arrive en 1882 » dans Construire ; voies, stations, lignes électriques, fibre, matériaux, portes et fenêtres, toits, bassins et terrains de l'Atelier, décors (G), meubles et grands-huit suivent aussi l'année"],
-		["F7 · Catalogue (menu Infos)", "tout ce qui se construit, avec son année d'apparition et ses évolutions (agrandissements, variantes, modèle de chaque époque) ; le curseur « Partie en » montre ce qui existe à n'importe quelle année"],
+		["Maj+F1 · Catalogue (menu Infos)", "tout ce qui se construit, avec son année d'apparition et ses évolutions (agrandissements, variantes, modèle de chaque époque) ; le curseur « Partie en » montre ce qui existe à n'importe quelle année"],
 		["Services d'époque", "maison d'école, Hôtel-Dieu, remise des pompes, gendarmerie ; pompes à bras, ambulances et corbillards à chevaux, tombereaux, rues pavées et réverbères"],
 		["Rythme de l'histoire", "Admin (F10) : 1 à 25 années d'histoire par année de jeu, ou changer l'année en cours ; les habitants n'attendent le courant qu'en 1925, l'eau courante en 1900, le téléphone en 1975"],
 	]],
@@ -82,6 +86,7 @@ const SECTIONS := [
 	]],
 	["Saisons et risques naturels", [
 		["Maj+R", "panneau Saisons et risques (menu Infos) : saison, prévisions (3 jours, 7 avec une station météo), records ; vigilances neige, crues, sécheresse, canicule ; déneigement ; calendrier des cultures"],
+		["Maj+F7", "panneau Climat et pollution (menu Infos) : bilan carbone par secteur, réchauffement et montée de la mer, mix électrique, sols pollués, mesures du plan climat datées ; carte « Sols pollués » (N)"],
 		["Neige", "elle tient sur les routes et ralentit tout le monde (secours compris), avec des accidents ; le Centre technique municipal (Construire → Services publics) envoie ses chasse-neige, les grands axes d'abord, et sale : 12 h sans neige qui tient"],
 		["Crues", "plusieurs jours de grosses pluies ou une fonte rapide des neiges : la rivière monte pendant des heures, routes coupées, maisons et champs inondés ; un bassin de rétention fait monter l'eau 25 % moins haut à 3 km"],
 		["Sécheresse", "vigilance, alerte (restrictions d'eau imposées), alerte renforcée (feux de broussailles au bord des bois), crise ; les cultures et les prés souffrent"],
@@ -124,6 +129,16 @@ const SECTIONS := [
 		["Effets", "plus un foyer est aisé, plus il paie de taxe foncière (×0,6 à ×1,7), plus il achète dans les commerces et dépense en sorties ; dès Aisé, son épargne lui rapporte des intérêts ; il déménage vers un logement plus cossu quand le sien le bloque"],
 		["Carte", "N → Habitants → Niveaux de vie : du rouge (précaire) au bleu (très aisé)"],
 	]],
+	["Immobilier", [
+		["F11", "panneau Immobilier (menu Ville) : marché de chaque ville, promoteurs et permis de construire, quartiers qui changent, bidonvilles"],
+		["Prix et loyers", "chaque ville a un indice des prix : peu de logements vides et des emplois qui attirent du monde le font monter, beaucoup de logements vides le font baisser ; loyer = loyer de base × valeur du terrain × indice. Rares krachs quand les prix sont trop hauts"],
+		["Règles du maire", "encadrement des loyers (aucun, souple, moyen, strict), part de logements sociaux imposée aux promoteurs (0 à 30 %), permis de construire libre, sur demande ou gelé ; des règles strictes freinent les promoteurs"],
+		["Promoteurs", "Immo Prestige (résidences de standing dans les quartiers chers), Les Bâtisseurs Réunis (maisons), Béton & Fils (maison rasée pour un immeuble), Pierre & Rendement (immeuble racheté et rénové haut de gamme, loyers +30 %) ; ils bâtissent à leurs frais et la ville touche 5 % de taxe d'aménagement"],
+		["Gentrification", "un secteur de 200 m dont les prix montent de plus de 12 % en six mois s'embourgeoise : ses foyers modestes ont peur d'être chassés puis partent ; un secteur qui perd plus de 12 % se paupérise. Carte : N → Immobilier → Quartiers qui changent"],
+		["Bidonvilles", "une famille qui ne trouve aucun logement abordable depuis un mois, ou des travailleurs attirés par des emplois sans logement libre, bâtissent des baraques en bord de ville : pas de loyer, mais odeurs, eau polluée, terrains voisins dévalués et niveau Précaire. Viabiliser (eau, courant : niveau Modeste possible), reloger (logements à moins de 35 % des revenus, sociaux d'abord) ou raser (les familles quittent la ville et les habitants s'en souviennent)"],
+		["Logements sociaux", "B → Logement, selon l'époque : cité ouvrière (1853), immeuble HBM (1894), barre HLM (1955), résidence sociale (1985). Loyer à 55 % du loyer de base ; la ville touche les loyers et paie l'entretien (budget)"],
+		["Admin", "F10 → Immobilier : couper le marché vivant (promoteurs, gentrification) ou les bidonvilles"],
+	]],
 	["Objectifs du pays", [
 		["Maj+J", "panneau Objectifs : réputation du pays (étoiles), missions en cours, rang de chaque ville, succès"],
 		["Missions", "3 missions à la fois, tirées selon tes villes (faire grandir une ville, ouvrir une école, rendre une ville heureuse, faire baisser le chômage, rembourser ses emprunts, fonder une ville, relier deux villes, créer une ligne) ; chacune a un délai et une prime versée au pays"],
@@ -161,7 +176,8 @@ const SECTIONS := [
 		["Admin", "le créateur de la carte : réglages (F10), vitesse du temps (T, Maj+T), nouveau code, exclure, arrêter le serveur"],
 	]],
 	["Budget de la commune", [
-		["M", "panneau Budget : bilan du mois, impôts votés par le maire, emprunts, entretien et état des voies"],
+		["M · Mairie", "tableau de bord : ce qu'il faut régler maintenant (avec un bouton qui ouvre le bon panneau), l'état de la ville en 8 tuiles, et tous les menus de gestion ; le fil « À faire » en bas à gauche reprend les alertes"],
+		["Mairie → Argent (ou Ville → Budget)", "panneau Budget : bilan du mois, impôts votés par le maire, emprunts, entretien et état des voies"],
 		["Impôts", "taxe foncière, impôt des entreprises, impôt sur les bénéfices de 0 à 200 % : plus haut, la caisse se remplit et les habitants râlent"],
 		["Emprunts", "de 100 k€ à 20 M€ sur 5 à 30 ans ; le taux monte avec la dette, plafond de 8 ans de recettes, remboursement anticipé possible"],
 		["Tutelle", "caisse dans le rouge 90 jours : le préfet relève les impôts à 150 %, bloque emprunts et bâtiments publics jusqu'à 30 jours sans dette"],
@@ -272,6 +288,13 @@ const SECTIONS := [
 		["Places", "école : pupitres ; hôpital : 3 lits pour 1 000 habitants ; police : 1 agent pour 400 habitants. Sans personnel embauché, le service ne couvre rien"],
 		["Conséquences", "santé et espérance de vie (hôpital), satisfaction des habitants, petits délits (cambriolages) dans les quartiers sans police"],
 	]],
+	["Éducation", [
+		["Maj + K", "panneau Éducation : élèves et places par degré, apprentis chez les employeurs, étudiants, diplômes des adultes, métiers en pénurie, système scolaire de chaque pays"],
+		["Systèmes", "chaque ville suit son pays réel : Suisse (HarmoS 1H-11H, gymnase et maturité, apprentissage CFC, HES, HEP, université et EPF), France (maternelle → lycée, CAP, bac, BTS, licence, master), générique ailleurs. Tout suit l'année de la partie, dès 1800"],
+		["Un bâtiment par degré", "crèche (enfantine), école (enfantine, primaire), collège (secondaire I), lycée ou gymnase, école professionnelle, haute école, HEP, université ; résidence étudiante pour loger les étudiants"],
+		["Apprentissage", "à 15 ans, beaucoup de jeunes signent un contrat chez un employeur de la ville (boulangerie, atelier, usine, hôpital…) : 4 jours au travail, le mardi à l'école professionnelle, CFC au bout de 3-4 ans"],
+		["Diplômes exigés", "médecin, infirmier, enseignant, professeur, ingénieur, policier… n'embauchent que des diplômés : sinon frontaliers ou pendulaires. Les autres métiers embauchent sans diplôme mais produisent moins"],
+	]],
 	["Internet et téléphone", [
 		["Maj + O", "panneau Internet et téléphone (aussi en onglet « Télécom » du panneau Réseaux, O) : outils des câbles, calques, bâtiment survolé, bilan"],
 		["Construire → Services", "pylône 2G (7 km), pylône 4G (2,5 km), pylône 4G + 5G, petite antenne 5G (450 m), central téléphonique, nœud de la fibre"],
@@ -342,6 +365,16 @@ const SECTIONS := [
 		["Nature", "plages, côtes, lacs, rivières, forêts, sommets et glaciers du vrai terrain autour des villages attirent aussi (onglet Attractions) : surtout l'été, moins sous la pluie ; une route à moins de 800 m, des sentiers (outil Chemin) et les aménagements (poste de secours, base nautique, belvédère, parking de randonnée, maison de la nature) les rendent plus attirants"],
 		["Autocars", "avec un parking d'autocars, les cars des voyages organisés arrivent le matin par l'entrée de la ville, déposent leur groupe au parking puis l'emmènent voir les sites"],
 	]],
+	["Patrimoine et grands monuments", [
+		["Fin (Loisirs ▴ → Patrimoine)", "menu Patrimoine : En bref (rayonnement, monuments protégés, entretien, Journées du patrimoine, règles des abords, conseils), Grands chantiers, Classement, Bâtir un monument"],
+		["Grands monuments", "Construire → Patrimoine et grands monuments : cathédrale gothique, basilique à coupole, grande mosquée, pagode, palais de verre (1851), grand opéra (1861), statue colossale (1884), tour de fer (1887), barrage (1905), gratte-ciel Art déco (1930), tour de télévision (1965), grande arche (1985), tour de 600 m (2008). Des chantiers de plusieurs années, étape par étape (le chœur, la nef, les voûtes, les tours, la flèche…), payés au fil des travaux"],
+		["Souscription et mécènes", "une souscription populaire fait payer aux habitants jusqu'à 25 % du chantier ; des mécènes donnent parfois 1 à 4 % ; les curieux viennent déjà voir le chantier"],
+		["Inauguration", "un grand monument fini est classé monument historique d'office et attire les touristes du monde entier (Tourisme, Maj+D)"],
+		["Classement", "un édifice remarquable (église, château, théâtre, phare…), d'architecture ancienne ou vieux de plusieurs dizaines d'années peut être inscrit (intérêt 1, 15 k€) puis classé (intérêt 2, 40 k€) : attrait ×1,3 ou ×1,7"],
+		["Protection", "un monument protégé ne se démolit pas et ne s'agrandit pas ; à ses abords (100 m inscrit, 200 m classé) : 45 m ou 30 m de haut au plus, pas d'usine ni de déchets"],
+		["Entretien", "0,12 % (inscrit) ou 0,25 % (classé) de sa valeur par an, dont 30 % ou 50 % payés par l'État : il s'use trois fois moins vite. Sans entretien, il s'abîme et attire moins ; la restauration est aidée par l'État (25 % ou 40 %)"],
+		["Journées du patrimoine", "le troisième week-end de septembre, les monuments attirent presque deux fois plus de visiteurs"],
+	]],
 	["Partage des créations", [
 		["Maj + W (ou Créer → 8)", "menu Partage : Partager mes créations, Plans de site, Découvrir les créations des autres"],
 		["Partager", "bâtiments de la Banque (façades personnalisées, murs fins meublés, musées), créations en blocs, attractions dessinées (grands-huit…), plans de site ; « Publier » (titre, description, étiquettes) ou « Fichier .mbloc » à envoyer à un ami. Une création emporte ce dont elle a besoin"],
@@ -388,6 +421,10 @@ const SECTIONS := [
 		["E ou clic gauche", "ouvrir ou fermer une porte, une porte de garage (vue au sol), y compris dans les murs fins"],
 		["Échap", "libérer la souris (vue au sol)"],
 	]],
+	["Mode streamer (Twitch)", [
+		["Maj + F11 (ou Infos → Mode streamer)", "le chat de ta chaîne Twitch vote toutes les quelques minutes : catastrophes, décisions du maire, météo, fêtes ; les spectateurs tapent 1, 2 ou 3. Lecture seule et anonyme, sans compte ni clé ; désactivé par défaut"],
+		["Veto · Appliquer · !vote · !habitant", "annuler ou appliquer le résultat du chat · le streamer et ses modos lancent un vote · un spectateur donne son pseudo au prochain habitant"],
+	]],
 	["Mode photo et time-lapse", [
 		["F8 (ou Infos → Mode photo)", "le temps se fige, l'interface disparaît, une caméra libre part de ta vue : ZQSD avancer, A / E descendre et monter, clic droit glissé regarder, molette zoomer, Maj vite, Ctrl lent"],
 		["Panneau du mode photo", "heure de la lumière (temps figé), zoom, horizon penché, flou de profondeur, 12 filtres (noir et blanc, sépia, vintage, maquette…), luminosité, contraste, saturation, vignette, grain ; cadrage écran, 16:9, vertical 9:16 (TikTok), carré, 4:5, cinéma ; HD, 2K ou 4K"],
@@ -412,6 +449,13 @@ const SECTIONS := [
 		["Globe", "revenir au globe pour changer de lieu"],
 		["F10 ou icône réglages", "panneau Admin : argent de départ, caisse, argent illimité, coût des constructions, accès à une voie, impôts, salaires, vitesses, épuisement des ressources, déblocage des bâtiments, pollution (seulement pour l'admin de la partie)"],
 		["F1", "afficher ou masquer cette aide"],
+	]],
+	["Santé publique et épidémies", [
+		["F7", "panneau Santé publique (menu Infos) : épidémie en cours, hygiène des logements (eau potable, égouts), lits d'hôpital, conseils ; onglets Vaccins, Mesures et Histoire"],
+		["Maladies de l'eau", "choléra et typhoïde passent par les puits souillés et l'eau mal traitée : des égouts, une station d'épuration et de l'eau potable les arrêtent ; en urgence, faire bouillir l'eau"],
+		["Vaccins", "datés (variole 1800, diphtérie 1923, grippe 1945, polio 1955, rougeole 1963, Covid-19 2021) : campagne payée à la dose ou obligation ; une partie des habitants refuse ; au-delà de 90 % de vaccinés, la maladie ne prend plus"],
+		["Mesures", "quarantaine, écoles fermées, lazaret, campagne d'hygiène (1847), eau bouillie (1854), chlore dans l'eau (1902), masques et confinement (1918) : coût par jour, satisfaction ; levées seules une semaine après l'épidémie"],
+		["Grandes épidémies", "partie commencée dans le passé : choléra de 1832, 1849, 1854…, variole de 1870, grippe espagnole de 1918, grippes de 1957 et 1968, Covid-19 en 2020 ; une rumeur arrive d'abord dans la gazette (F7 → Histoire pour couper le calendrier)"],
 	]],
 ]
 
@@ -450,7 +494,8 @@ func _ready() -> void:
 
 	var cols := HBoxContainer.new()
 	cols.add_theme_constant_override("separation", 28)
-	v.add_child(cols)
+	# Défile quand les trois colonnes dépassent l'écran.
+	v.add_child(UiStyle.scroll_fit(cols, panel))
 	# Trois colonnes : barre du bas · construire, lignes, habitants · caméra, temps, partie.
 	const COLUMN_OF := [2, 0, 1, 1, 1, 2, 2]
 	var columns: Array[VBoxContainer] = []
@@ -458,9 +503,13 @@ func _ready() -> void:
 		var vb := VBoxContainer.new()
 		cols.add_child(vb)
 		columns.append(vb)
+	# Les sections suivantes vont dans la colonne la moins remplie (en lignes).
+	var rows := [0, 0, 0]
 	for i in SECTIONS.size():
 		var sec: Array = SECTIONS[i]
-		var col := columns[COLUMN_OF[mini(i, COLUMN_OF.size() - 1)]]
+		var ci: int = COLUMN_OF[i] if i < COLUMN_OF.size() else rows.find(rows.min())
+		rows[ci] += sec[1].size() + 2
+		var col := columns[ci]
 		var h := Label.new()
 		h.text = sec[0]
 		h.add_theme_font_size_override("font_size", 16)
@@ -475,6 +524,9 @@ func _ready() -> void:
 			k.text = row[0]
 			k.add_theme_color_override("font_color", Color("d8f3dc"))
 			k.add_theme_font_size_override("font_size", 13)
+			# Touches longues sur deux lignes : les trois colonnes tiennent en largeur.
+			k.custom_minimum_size = Vector2(140, 0)
+			k.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 			grid.add_child(k)
 			var d := Label.new()
 			d.text = row[1]

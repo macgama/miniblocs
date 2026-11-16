@@ -20,7 +20,7 @@ Prototype de city builder en vue de dessus, style low-poly, mode bac à sable. F
 
 Dans le jeu, **F1** (ou le bouton **?** en haut à gauche) affiche toutes les commandes.
 
-L'écran a une barre en haut (lieu, partie, heure et vitesse du temps, chiffres de la ville) et une barre de catégories en bas, avec des icônes : Observer, Terrain, Voies, Paysage, Construire, Lignes, Habitants, Circulation, Véhicules, Vue. Les outils de la catégorie choisie s'affichent juste au-dessus. Détails : [docs/interface.md](docs/interface.md).
+L'écran a une barre en haut (lieu, partie, heure et vitesse du temps, chiffres de la ville) et une barre de catégories en bas, avec des icônes : Observer, Terrain, Voies, Paysage, Construire, Lignes, Habitants, Circulation, Véhicules, Vue. Les outils de la catégorie choisie s'affichent juste au-dessus. Détails : [docs/interface.md](docs/interface.md). Thèmes nommés de Construire, recherche dans tout le jeu (Espace), Mairie (M) et parcours « Enregistrer mon bâtiment » de l'Atelier : [docs/ergonomie.md](docs/ergonomie.md).
 
 ![Barre de catégories et outils des voies](docs/apercu-menus-voies.png)
 
@@ -44,6 +44,7 @@ L'écran a une barre en haut (lieu, partie, heure et vitesse du temps, chiffres 
 | Carte entre amis (en ligne) | **F3** : joueurs, code d'invitation, discussion |
 | Son et musique | **F2** (volumes général, musique, ambiance, effets, interface ; morceaux) |
 | Succès | **F6** (aussi au menu principal) : 62 succès pour toutes tes parties |
+| Santé publique | **F7** (menu Infos) : hygiène, vaccins, mesures sanitaires, grandes épidémies de l'histoire |
 | Manette, Steam Deck | stick gauche curseur, Ⓐ clic, Ⓑ annuler, stick droit caméra, LB/RB tourner, LT/RT zoom : [docs/succes-manette.md](docs/succes-manette.md) |
 
 L'interface s'adapte à la taille de la fenêtre (elle est dessinée pour 1600 × 900 puis agrandie ou réduite).
@@ -372,6 +373,13 @@ L'onglet **Intérieur** (icône fauteuil) du panneau Construire aménage les bâ
 - **Découvrir** : « Recevoir » lit les fichiers .mbloc du dossier d'échange ; Installer, Mettre à jour, Retirer, filtre par sorte et recherche.
 - **Steam Workshop** : la couche `PartageSteam` (GodotSteam) prendra le relais à la sortie sur Steam : publier enverra sur le Workshop et les abonnements s'installeront seuls. Détails : [docs/partage.md](docs/partage.md).
 
+### Visiter les villes des autres (F12)
+
+- **Faire visiter sa ville** : un mot d'accueil, puis « Fichier .mbloc de ma ville » (à envoyer) ou « Publier sur le Workshop ». Livre d'or au choix : les visiteurs voient les cartes déjà reçues.
+- **Visiter** (F12, ou menu principal → Visiter une ville) : on se promène (vue au sol V, à bord E, photo F8), on regarde les panneaux, on ne construit ni ne règle rien, et rien n'est sauvegardé.
+- **Cartes postales** : un mot, un timbre, la photo de la vue, épinglée là où on regarde. Elle arrive toute seule dans le courrier du maire (dossier d'échange, ou serveur de la carte entre amis).
+- **Carte entre amis** : « Visiter (sans construire) » ; l'admin peut ouvrir aux visiteurs sans code. Détails : [docs/visites.md](docs/visites.md).
+
 ![Une rue de Maisons à pignon personnalisées, la dernière ouverte en murs fins](docs/personnaliser_rue.png)
 ![Le panneau Personnaliser](docs/personnaliser_panneau.png)
 ![Une Maison à pignon ouverte : pièces et meubles](docs/personnaliser_coupe.png)
@@ -509,11 +517,27 @@ Touche **Maj+U** : chaque logement est relié à l'école, l'hôpital et le comm
 
 Détails : [docs/services.md](docs/services.md).
 
+## Éducation : systèmes scolaires par pays
+
+Touche **Maj+K**. Chaque ville suit le système scolaire de son pays : **Suisse** (HarmoS 1H-11H, gymnase et maturité, apprentissage dual CFC chez un vrai employeur de la ville, maturité professionnelle, HES, HEP, université et EPF : bachelor, master, doctorat), **France** (maternelle, élémentaire, collège et brevet, lycée et bac, CAP et bac pro, BTS, BUT, licence, master, doctorat) ou **générique**. Un bâtiment par degré (crèche, école, collège, lycée/gymnase, école professionnelle, haute école, HEP, université, résidence étudiante). Les métiers exigent des diplômes : sans diplômé en ville, des frontaliers ou des pendulaires tiennent les postes obligatoires, et un employé non qualifié produit moins. Tout suit l'année de la partie, dès 1800.
+
+Détails : [docs/education.md](docs/education.md).
+
+## Santé publique : épidémies, vaccins et égouts
+
+Touche **F7** (menu Infos) : hygiène des logements (eau potable, égouts), lits d'hôpital, épidémie en cours. Les maladies suivent l'époque : variole jusqu'en 1977, choléra de 1817 à 1923, polio, diphtérie… Une partie commencée dans le passé vit les grandes épidémies à leur date (choléra de 1832, grippe espagnole de 1918, Covid-19 en 2020), annoncées d'abord par une rumeur dans la gazette. Le choléra et la typhoïde passent par l'eau : des égouts et de l'eau potable les arrêtent. Vaccins datés (campagnes ou obligation, une partie des habitants refuse), mesures sanitaires datées (quarantaine, écoles fermées, eau bouillie dès 1854, chlore dès 1902, masques et confinement dès 1918).
+
+Détails : [docs/sante.md](docs/sante.md).
+
 ## Musées : salles à thème, œuvres et visiteurs
 
 Menu **Loisirs → Musée** (touche **Maj+C**) : 12 musées prêts à poser (beaux-arts, muséum, sciences, civilisations, transports, cinéma et musique, sport, mer, préhistoire, jouet et BD, vin…) ou tes propres murs, 26 fonctions de salle (galerie de peinture, Égypte, dinosaures, locomotives, automobile, espace, cinéma, mode, musique…), 208 objets en 24 familles. La note dépend du prestige des œuvres bien rangées par thème, de l'éclairage, du confort et des services ; les visiteurs (habitants et touristes) vont d'œuvre en œuvre, paient leur billet, passent à la boutique et au café. Expositions temporaires, gratuité du 1er dimanche, fermeture le lundi. Détails : [docs/musee.md](docs/musee.md).
 
 ![Musées en coupe](docs/apercu-musee-coupe.jpg)
+
+## Mode streamer : le chat Twitch vote
+
+**Maj+F11** (menu Infos) : pendant un live, le chat Twitch vote toutes les quelques minutes pour une catastrophe, une décision du maire, la météo ou une fête (les spectateurs tapent 1, 2 ou 3), avec un délai de veto pour le streamer ; `!habitant` donne son pseudo au prochain habitant. Lecture seule et anonyme, sans compte ni clé, désactivé par défaut ; « Simuler le chat » pour essayer sans Twitch. Détails : [docs/streamer.md](docs/streamer.md).
 
 ## Vue au sol : marcher à la 3e ou à la 1re personne
 
@@ -620,6 +644,12 @@ Une ferme entièrement générée en code (longère à colombages et toit de cha
 | `scripts/interface/ui_style.gd` | Style commun des menus (panneaux, boutons à icône, pastilles de touche) |
 | `scripts/interface/vignettes.gd` | Vignettes des bâtiments du panneau Construire |
 | `scripts/interface/aide_panel.gd` | Fenêtre d'aide (F1) |
+| `scripts/interface/recherche_universelle.gd` | Recherche dans tout le jeu (Espace) : bâtiments, outils, menus |
+| `scripts/interface/mairie_panel.gd` | Tableau de bord de la Mairie (M) : alertes, état de la ville, tous les menus |
+| `scripts/interface/fil_alertes.gd` | Fil « À faire » en bas à gauche |
+| `scripts/atelier/parcours_atelier.gd` | Mode Créer et Atelier : 3 étapes et « Enregistrer mon bâtiment » |
+| `scripts/batiments/favoris_construire.gd` | Favoris et récents du panneau Construire |
+| `tests/ergonomie_test.gd` | Test de l'ergonomie (Atelier, thèmes, recherche, Mairie) |
 | `tests/terre_test.gd` | Test automatique du mode Terre (sans réseau) |
 | `tests/globe_test.gd` | Test automatique du globe (sans réseau) |
 | `scripts/transport/transport_types.gd` | Catalogue des types de voies (largeur, pente maxi, vitesse…) |
@@ -684,6 +714,7 @@ Une ferme entièrement générée en code (longère à colombages et toit de cha
 | `scripts/habitants/habitants_panel.gd` | Panneau « Habitants » (touche H) : ville, liste, bâtiment, profil |
 | `scripts/habitants/metiers.gd` | Métiers (salaires, horaires), métiers par bâtiment, loisirs et leurs lieux, classes |
 | `scripts/habitants/prenoms.gd` | Prénoms et noms par région du monde |
+| `tests/sante_test.gd` | Test de la santé publique (maladies datées, choléra de 1832, eau et égouts, vaccins, mesures, sauvegarde, panneau F7) |
 | `tests/habitants_test.gd` | Test des habitants (école, emplois, journée, budget, transports, sauvegarde, panneau) |
 | `tests/habitants_vitrine.gd` | Petit quartier et captures du panneau Habitants |
 | `scripts/metiers/gestes.gd` | Gestes de métier (pétrir, écrire au tableau, ausculter…) : texte, animation, outil, poste ; gestes devinés pour les nouveaux métiers |

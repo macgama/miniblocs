@@ -30,6 +30,10 @@ var pid_impose := ""
 ## deconnecte, connexion, attente, chargement, en_jeu
 var etat := "deconnecte"
 var admin := false
+## Entré en visiteur : on regarde sans construire (VisiteVille.en_ligne).
+var visiteur := false
+## Admin : les inconnus peuvent-ils visiter sans code ?
+var visites_ouvertes := false
 var nom_carte := ""
 var code_carte := ""
 var joueurs: Array = []
@@ -82,7 +86,8 @@ func _init() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
 
-func connecter(adresse: String, code_invitation: String, nom_joueur: String) -> String:
+func connecter(adresse: String, code_invitation: String, nom_joueur: String, en_visiteur := false) -> String:
+	visiteur = en_visiteur
 	var hp := Protocole.lire_adresse(adresse)
 	hote = String(hp[0])
 	port = int(hp[1])
@@ -97,7 +102,7 @@ func connecter(adresse: String, code_invitation: String, nom_joueur: String) -> 
 	peer.peer_connected.connect(func(id: int) -> void:
 		if id == 1:
 			_changer("attente", "Connecté, entrée sur la carte…")
-			_envoyer({"m": "bonjour", "version": Protocole.VERSION, "pid": pid, "pseudo": pseudo, "code": code}))
+			_envoyer({"m": "bonjour", "version": Protocole.VERSION, "pid": pid, "pseudo": pseudo, "code": code, "visiteur": visiteur}))
 	peer.peer_disconnected.connect(func(id: int) -> void:
 		# Pas pendant poll() : le pair ne doit pas disparaître sous ses pieds.
 		if id == 1:
@@ -137,6 +142,10 @@ func _perdu(texte: String) -> void:
 
 func _changer(e: String, texte: String) -> void:
 	etat = e
+	if e == "deconnecte" and visiteur:
+		visiteur = false
+		VisiteVille.en_ligne = false
+		VisiteVille.en_cours = {}
 	etat_change.emit(e, texte)
 
 
@@ -150,7 +159,14 @@ func _envoyer(msg: Dictionary) -> void:
 
 
 func envoyer_action(a: Dictionary) -> void:
+	# Visiteur : rien ne part (le serveur refuserait de toute façon).
+	if visiteur:
+		return
 	_envoyer({"m": "action", "a": a})
+
+
+func envoyer_carte(c: Dictionary) -> void:
+	_envoyer({"m": "carte_postale", "carte": c})
 
 
 func envoyer_chat(t: String) -> void:
@@ -197,6 +213,11 @@ func _recevoir(msg: Dictionary) -> void:
 			nom_carte = String(msg.get("carte", ""))
 			code_carte = String(msg.get("code", ""))
 			pseudo = String(msg.get("pseudo", pseudo))
+			visiteur = bool(msg.get("visiteur", false))
+			visites_ouvertes = bool(msg.get("visites_ouvertes", false))
+			if visiteur:
+				VisiteVille.en_ligne = true
+				VisiteVille.en_cours = {"ville": nom_carte, "titre": nom_carte, "auteur": "", "partie": ""}
 			Multijoueur.memoriser(hote, port, code, pseudo)
 		"instantane":
 			_morceaux.clear()
@@ -321,6 +342,8 @@ func attacher(j: Node) -> void:
 	if not get_tree().process_frame.is_connected(_apres_gestes):
 		get_tree().process_frame.connect(_apres_gestes)
 	_changer("en_jeu", "Sur la carte « %s »." % nom_carte)
+	if visiteur and jeu.has_method("_debut_visite"):
+		jeu._debut_visite()
 	jeu.hud.show_message("Carte entre amis « %s » : F3 pour les joueurs et la discussion." % nom_carte)
 	_appliquer_tampon()
 
@@ -369,6 +392,10 @@ func _relais_batiment(a: Dictionary) -> void:
 ## Applique un message du serveur à la partie ouverte.
 func appliquer(msg: Dictionary) -> void:
 	match String(msg.get("m", "")):
+		"carte_postale":
+			var cr: Variant = jeu.get("courrier")
+			if cr is Courrier:
+				(cr as Courrier).recevoir(msg.get("carte"))
 		"bat":
 			_bat(msg.get("l", []))
 		"rejouer":

@@ -30,6 +30,8 @@ static var retour_slot := ""
 static var retour_lat := 0.0
 static var retour_lon := 0.0
 static var retour_nom := ""
+## Bâtiment enregistré dans l'Atelier à mettre en main au retour dans la partie (id du catalogue).
+static var modele_a_poser := ""
 const ATELIER_SLOT := "atelier"
 const ATELIER_LAT := 45.0
 const ATELIER_LON := 5.0

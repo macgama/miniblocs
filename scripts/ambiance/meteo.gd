@@ -78,6 +78,11 @@ static func default_humidity(lat: float) -> float:
 
 
 ## Température de l'air (°C) : latitude, saison, heure, altitude.
+## Décalage du climat (°C) : réchauffement depuis aujourd'hui et îlot de chaleur
+## (module Climat). 0 sans lui.
+static var ecart_climat := 0.0
+
+
 static func air_temperature(lat: float, unix: float, local_hour: float, altitude: float) -> float:
 	var a := absf(lat)
 	var mean := 27.0 - 0.45 * maxf(a - 12.0, 0.0)
@@ -87,7 +92,7 @@ static func air_temperature(lat: float, unix: float, local_hour: float, altitude
 	if lat < 0.0:
 		season = -season
 	var daily := 4.0 * cos((local_hour - 15.0) / 24.0 * TAU)
-	return mean + amp * season + daily - 6.5 * maxf(altitude, 0.0) / 1000.0
+	return mean + amp * season + daily - 6.5 * maxf(altitude, 0.0) / 1000.0 + ecart_climat
 
 
 ## Bruit lissé à une dimension (0 à 1), reproductible.
@@ -110,9 +115,12 @@ static func natural(unix: float, lat: float, lon: float, hum: float, temp: float
 	var big := smooth_noise(hours / 30.0, seed)
 	var mid := smooth_noise(hours / 9.0, seed + 1)
 	var small := smooth_noise(hours / 3.0, seed + 2)
+	# Un climat plus chaud est plus sec en moyenne, mais ses pluies sont plus fortes.
+	hum = clampf(hum - 0.02 * ecart_climat, 0.0, 1.0)
 	var w := big * 0.5 + mid * 0.35 + small * 0.15 + (hum - 0.5) * 0.7
 	var cov := smoothstep(0.28, 0.72, w)
-	var pr := smoothstep(0.6, 0.85, w) * clampf(hum * 1.6, 0.0, 1.0)
+	var pr := smoothstep(0.6, 0.85, w) * clampf(hum * 1.6, 0.0, 1.0) * (1.0 + 0.07 * maxf(ecart_climat, 0.0))
+	pr = minf(pr, 1.0)
 	var morning := 1.0 - smoothstep(0.0, 4.0, absf(local_hour - 6.5))
 	var fg := smoothstep(0.55, 0.85, smooth_noise(hours / 14.0, seed + 3) + hum * 0.25) * morning
 	fg *= 1.0 - smoothstep(14.0, 22.0, temp)

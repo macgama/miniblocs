@@ -256,14 +256,17 @@ func _run() -> void:
 	print("Panneau Budget :")
 	await _key(KEY_M)
 	await _frames(2)
+	_check(scene.mairie_panel.is_open(), "M ouvre le tableau de bord de la Mairie")
+	scene.mairie_panel.get_node("Mairie").find_child("Tuile_Argent", true, false).pressed.emit()
+	await _frames(2)
 	var panel: BudgetPanel = scene.budget_panel
-	_check(panel.is_open(), "M ouvre le panneau")
+	_check(panel.is_open() and not scene.mairie_panel.is_open(), "Mairie › Argent ouvre le budget")
 	for v in ["bilan", "impots", "emprunts", "entretien"]:
 		panel.show_view(v)
 		await _frames(1)
 		_check(panel._body.get_child_count() > 2, "onglet %s (%d lignes)" % [v, panel._body.get_child_count()])
-	await _key(KEY_M)
-	_check(not panel.is_open(), "M le referme")
+	panel.toggle()
+	_check(not panel.is_open(), "le budget se referme")
 	var aide := FileAccess.get_file_as_string("res://scripts/interface/aide_panel.gd")
 	_check(aide.contains("panneau Budget"), "aide F1 à jour")
 

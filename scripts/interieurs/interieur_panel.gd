@@ -89,7 +89,14 @@ func build(bp: BuildingPanel) -> void:
 		mob.message.emit("%d meuble%s posé%s dans %s." % [n, "s" if n > 1 else "", "s" if n > 1 else "", mob.plan_name(id)]))
 	urow.add_child(all)
 	bp.add_control(urow)
+	var easy := Button.new()
+	easy.text = "Enregistrer mon bâtiment"
+	easy.icon = Icones.get_icon("banque", 18)
+	easy.tooltip_text = "Range le bâtiment visé (murs, pièces, meubles, toit) dans Mes modèles, avec son nom et son usage."
+	easy.pressed.connect(func() -> void: bp.save_requested.emit())
+	bp.add_control(easy)
 	var brow := HBoxContainer.new()
+	brow.visible = false
 	var bname := LineEdit.new()
 	bname.placeholder_text = "Nom du modèle"
 	bname.size_flags_horizontal = Control.SIZE_EXPAND_FILL

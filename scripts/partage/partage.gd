@@ -24,9 +24,9 @@ const ECHANGE := "user://partage"
 ## Dossier d'échange (autre dossier pour les tests).
 static var echange := ECHANGE
 const SORTES := {"batiment": "Bâtiment", "musee": "Musée", "blocs": "Création en blocs", "attraction": "Attraction",
-	"parc": "Parc de loisirs", "zoo": "Zoo", "quartier": "Quartier"}
+	"parc": "Parc de loisirs", "zoo": "Zoo", "quartier": "Quartier", "ville": "Ville à visiter", "carte": "Carte postale"}
 const SORTE_ICONES := {"batiment": "construire", "musee": "musee", "blocs": "creations", "attraction": "loisirs",
-	"parc": "parc", "zoo": "zoo", "quartier": "village"}
+	"parc": "parc", "zoo": "zoo", "quartier": "village", "ville": "pieton", "carte": "carte_postale"}
 
 ## Faux en test : ni registre ni dossier d'échange sur le disque.
 static var persist := true
@@ -147,6 +147,8 @@ static func ou_trouver(genre: String) -> String:
 		"creation": return "Créer → Mes créations (5)"
 		"attraction": return "Loisirs → Créer un parc (Maj+A), « Mes attractions »"
 		"site": return "Partage → Plans de site"
+		"ville": return "Visites (F12) → Visiter une ville, ou menu principal → Visiter une ville"
+		"carte": return "Visites (F12) → Ma ville et mon courrier"
 	return "ton jeu"
 
 
@@ -288,6 +290,9 @@ static func recevoir_echange() -> Dictionary:
 			(res.erreurs as Array).append("%s : %s" % [f, r.erreur])
 			continue
 		var p: Dictionary = r.paquet
+		# Villes et cartes postales : rangées par les visites et le courrier (F12), pas dans l'atelier.
+		if PaquetPartage.genre(p) in ["ville", "carte"]:
+			continue
 		var c := PaquetPartage.cle(p)
 		if connus.has(c) and float(connus[c]) >= float(p.fiche.get("maj", 0.0)):
 			continue
@@ -368,6 +373,17 @@ static func installer(p: Dictionary, remplacer := true) -> Dictionary:
 			ok = _installer_attraction(id, principal, remplacer)
 		"site":
 			ok = PlansSites.installer(principal, remplacer) != ""
+		"ville":
+			var rv := VisiteVille.ranger(p)
+			if not bool(rv.ok):
+				return {"ok": false, "error": String(rv.error)}
+			ok = true
+		"carte":
+			var tree := Engine.get_main_loop() as SceneTree
+			var cr: Variant = tree.current_scene.get("courrier") if tree != null and tree.current_scene != null else null
+			ok = cr is Courrier and (cr as Courrier).recevoir_paquet(p)
+			if not ok:
+				return {"ok": false, "error": "ouvre la partie de cette ville pour ranger la carte dans son courrier"}
 	if not ok:
 		return {"ok": false, "error": "contenu illisible par cette version du jeu"}
 	_reg().installes[String(fiche.cle)] = {"titre": String(fiche.get("titre", "")), "genre": genre, "id": id,

@@ -23,7 +23,7 @@ const SECTIONS := [
 	["Barre du bas", [
 		["Tab · Gérer / Créer", "Gérer : la ville (terrain, voies, zonage, catalogue, lignes, habitants). Créer : construire un bâtiment soi-même (murs et étages, blocs, intérieur, Mes créations, banque, atelier, partage), la ville en pause ; touches 1 à 8 et échelle des étages"],
 		["Catégories", "Observer, Terrain, Voies, Paysage : un clic ouvre leurs outils juste au-dessus ; Construire et Décors ouvrent leur panneau à droite (un seul à la fois)"],
-		["Menus ▴", "Transports (lignes, trafic, circulation, véhicules), Ville (habitants, urgences, avis, budget, déchets), Économie (production, agriculture), Loisirs (créer un parc, panneau du parc, musée, zoo, spectacles, club, tourisme), Infos (infos, cartes) : un clic ouvre la rangée de leurs panneaux ; les touches restent les mêmes"],
+		["Menus ▴", "Transports (lignes, trafic, circulation, véhicules), Ville (habitants, urgences, avis, budget, déchets), Économie (production, agriculture), Loisirs (créer un parc, panneau du parc, musée, zoo, spectacles, club, tourisme, patrimoine), Infos (infos, cartes) : un clic ouvre la rangée de leurs panneaux ; les touches restent les mêmes"],
 		["Circulation, Véhicules, Vue", "afficher la circulation, choisir l'époque et la région des véhicules, changer de vue"],
 		["1", "observer : survoler une case pour voir son altitude et son biome (et le nom de la rivière)"],
 		["2 · 3 · 4", "aplanir, monter de 1 m, creuser de 1 m (clic gauche glissé)"],
@@ -351,6 +351,16 @@ const SECTIONS := [
 		["Réputation", "ce que pensent les touristes qui repartent : confort et prix de l'hôtel, repas trouvés, ce qu'il y avait à voir, rayons pleins, souvenirs, foule ; trop de touristes pour trop peu d'habitants agace la ville"],
 		["Nature", "plages, côtes, lacs, rivières, forêts, sommets et glaciers du vrai terrain autour des villages attirent aussi (onglet Attractions) : surtout l'été, moins sous la pluie ; une route à moins de 800 m, des sentiers (outil Chemin) et les aménagements (poste de secours, base nautique, belvédère, parking de randonnée, maison de la nature) les rendent plus attirants"],
 		["Autocars", "avec un parking d'autocars, les cars des voyages organisés arrivent le matin par l'entrée de la ville, déposent leur groupe au parking puis l'emmènent voir les sites"],
+	]],
+	["Patrimoine et grands monuments", [
+		["Fin (Loisirs ▴ → Patrimoine)", "menu Patrimoine : En bref (rayonnement, monuments protégés, entretien, Journées du patrimoine, règles des abords, conseils), Grands chantiers, Classement, Bâtir un monument"],
+		["Grands monuments", "Construire → Patrimoine et grands monuments : cathédrale gothique, basilique à coupole, grande mosquée, pagode, palais de verre (1851), grand opéra (1861), statue colossale (1884), tour de fer (1887), barrage (1905), gratte-ciel Art déco (1930), tour de télévision (1965), grande arche (1985), tour de 600 m (2008). Des chantiers de plusieurs années, étape par étape (le chœur, la nef, les voûtes, les tours, la flèche…), payés au fil des travaux"],
+		["Souscription et mécènes", "une souscription populaire fait payer aux habitants jusqu'à 25 % du chantier ; des mécènes donnent parfois 1 à 4 % ; les curieux viennent déjà voir le chantier"],
+		["Inauguration", "un grand monument fini est classé monument historique d'office et attire les touristes du monde entier (Tourisme, Maj+D)"],
+		["Classement", "un édifice remarquable (église, château, théâtre, phare…), d'architecture ancienne ou vieux de plusieurs dizaines d'années peut être inscrit (intérêt 1, 15 k€) puis classé (intérêt 2, 40 k€) : attrait ×1,3 ou ×1,7"],
+		["Protection", "un monument protégé ne se démolit pas et ne s'agrandit pas ; à ses abords (100 m inscrit, 200 m classé) : 45 m ou 30 m de haut au plus, pas d'usine ni de déchets"],
+		["Entretien", "0,12 % (inscrit) ou 0,25 % (classé) de sa valeur par an, dont 30 % ou 50 % payés par l'État : il s'use trois fois moins vite. Sans entretien, il s'abîme et attire moins ; la restauration est aidée par l'État (25 % ou 40 %)"],
+		["Journées du patrimoine", "le troisième week-end de septembre, les monuments attirent presque deux fois plus de visiteurs"],
 	]],
 	["Partage des créations", [
 		["Maj + W (ou Créer → 8)", "menu Partage : Partager mes créations, Plans de site, Découvrir les créations des autres"],

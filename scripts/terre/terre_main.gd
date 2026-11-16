@@ -80,6 +80,9 @@ var zoo_panel: ZooPanel
 ## Tourisme : hébergements, touristes, dépenses en ville (menu Loisirs, Maj+R).
 var tourisme: Tourisme
 var tourisme_panel: TourismePanel
+## Patrimoine : classement, abords, entretien, grands monuments (touche Fin).
+var patrimoine: Patrimoine
+var patrimoine_panel: PatrimoinePanel
 ## Commerce entre villes et pays : cours mondiaux, accords, crises (Économie, Maj+S).
 var commerce_mondial: CommerceMondial
 var commerce_panel: CommercePanel
@@ -227,6 +230,7 @@ func _ready() -> void:
 	_setup_fondateurs()
 	_setup_pays()
 	_setup_commerce()
+	_setup_patrimoine()
 	_setup_niveaux_vie()
 	_setup_immobilier()
 	_setup_statistiques()
@@ -429,6 +433,7 @@ func save_sections() -> Dictionary:
 	sec["parc"] = parc.to_dict()
 	sec["zoo"] = zoo.to_dict()
 	sec["tourisme"] = tourisme.to_dict()
+	sec["patrimoine"] = patrimoine.to_dict()
 	sec["commerce_mondial"] = commerce_mondial.to_dict()
 	sec["quartiers"] = quartiers.to_dict()
 	sec["sante"] = sante.to_dict()
@@ -561,6 +566,7 @@ func load_game(slot := "") -> bool:
 	parc.from_dict(sec.get("parc", {}))
 	zoo.from_dict(sec.get("zoo", {}))
 	tourisme.from_dict(sec.get("tourisme", {}))
+	patrimoine.from_dict(sec.get("patrimoine", {}))
 	commerce_mondial.from_dict(sec.get("commerce_mondial", {}))
 	funeraire.from_dict(sec.get("funeraire", {}))
 	ambiance.from_dict(sec.get("ambiance", {}))
@@ -2508,6 +2514,53 @@ func _setup_tourisme() -> void:
 	hud.tourisme_requested.connect(func() -> void: tourisme_panel.toggle())
 
 
+## Patrimoine : bâtiments inscrits et classés (protection, abords, entretien,
+## restauration) et grands monuments sur plusieurs années (touche Fin).
+func _setup_patrimoine() -> void:
+	patrimoine = Patrimoine.new()
+	patrimoine.name = "Patrimoine"
+	add_child(patrimoine)
+	patrimoine.setup(buildings, population, ambiance, vie_batiments)
+	patrimoine.message.connect(func(t: String) -> void: hud.show_message(t))
+	patrimoine.changed.connect(func() -> void: _unsaved = true)
+	patrimoine.actualite.connect(func(t: String, pos: Vector3) -> void:
+		if evenements != null:
+			evenements.news(t, pos, "patrimoine"))
+	# Un monument protégé ne se démolit pas ; ses abords ont des règles.
+	var prev_demol: Callable = buildings.demolish_check
+	buildings.demolish_check = func(bid: int) -> String:
+		var why := patrimoine.raison_demolir(bid)
+		if why != "":
+			return why
+		return String(prev_demol.call(bid)) if prev_demol.is_valid() else ""
+	var prev_check: Callable = buildings.extra_check
+	buildings.extra_check = func(id: String, rect: Rect2i) -> Dictionary:
+		var mine := patrimoine.check_place(id, rect)
+		if String(mine.get("reason", "")) != "":
+			return mine
+		var res: Dictionary = prev_check.call(id, rect) if prev_check.is_valid() else {}
+		if String(mine.get("info", "")) != "" and String(res.get("reason", "")) == "":
+			res = res.duplicate()
+			res["info"] = (String(res.get("info", "")) + "  " + String(mine.info)).strip_edges()
+		return res
+	# Entretenu, un monument protégé s'use moins vite.
+	var prev_usure: Callable = vie_batiments.extra_usure
+	vie_batiments.extra_usure = func(bid: int) -> float:
+		var k := float(prev_usure.call(bid)) if prev_usure.is_valid() else 1.0
+		return k * patrimoine.usure_rythme(bid)
+	patrimoine_panel = PatrimoinePanel.new()
+	patrimoine_panel.name = "PanneauPatrimoine"
+	add_child(patrimoine_panel)
+	patrimoine_panel.setup(patrimoine)
+	patrimoine_panel.building_chosen.connect(func(id: String) -> void:
+		_select_building_tool()
+		buildings.set_place(id))
+	patrimoine_panel.focus_requested.connect(func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
+	hud.patrimoine_requested.connect(func() -> void: patrimoine_panel.toggle())
+
+
 ## Commerce : marché mondial, villes partenaires, accords, crises (Maj+S).
 func _setup_commerce() -> void:
 	commerce_mondial = CommerceMondial.new()
@@ -2649,7 +2702,7 @@ func _loisirs_ouvert() -> bool:
 
 
 func _panneaux_parc() -> Dictionary:
-	return {"parc": parc_panel, "parc_editeur": parc_editeur_panel, "zoo": zoo_panel, "musee": musee_panel, "spectacles": spectacles_panel, "club": club_panel, "tourisme": tourisme_panel}
+	return {"parc": parc_panel, "parc_editeur": parc_editeur_panel, "zoo": zoo_panel, "musee": musee_panel, "spectacles": spectacles_panel, "club": club_panel, "tourisme": tourisme_panel, "patrimoine": patrimoine_panel}
 
 
 ## Panneau « Paysage » : pinceaux de terrain (outil 0).
@@ -2775,6 +2828,8 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 		(clubs[s] as ClubSport).clear()
 	if tourisme != null:
 		tourisme.clear()
+	if patrimoine != null:
+		patrimoine.clear()
 	if commerce_mondial != null:
 		commerce_mondial.clear()
 	resource_overlay.show_resource(resource_overlay.res)

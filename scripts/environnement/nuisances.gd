@@ -467,10 +467,12 @@ func _sources_batiment(bid: int, k: float) -> int:
 		# Les grands sites portent plus loin.
 		var r := float(e.rayon) * clampf(size / 60.0, 0.6, 1.6)
 		var f := k * clampf(size / 50.0, 0.5, 1.5)
+		# Filtres, épuration, normes du plan climat (module Climat).
+		var m := Climat.instance.facteurs_nuisances(tid) if Climat.instance != null else Vector2.ONE
 		if float(e.air) > 0.0:
-			_splat(L.AIR, c, float(e.air) * f, r)
+			_splat(L.AIR, c, float(e.air) * f * m.x, r)
 		if float(e.eau) > 0.0:
-			_splat(L.EAU, c, float(e.eau) * f, r * 0.8)
+			_splat(L.EAU, c, float(e.eau) * f * m.y, r * 0.8)
 		if float(e.bruit) > 0.0:
 			_splat(L.BRUIT, c, float(e.bruit) * f, r * 0.6)
 			if bool(e.nuit):
@@ -527,6 +529,8 @@ func _sources_voies(k: float) -> int:
 	if population != null:
 		activite = clampf(0.35 + population.persons.size() / 3000.0, 0.35, 1.0)
 	var n := 0
+	# Pot catalytique, zone à faibles émissions… (module Climat).
+	var f_air := Climat.instance.facteur_air_trafic() if Climat.instance != null else 1.0
 	for eid in net.edges:
 		var e: Dictionary = net.edges[eid]
 		var cls := String(e.t)
@@ -552,7 +556,7 @@ func _sources_voies(k: float) -> int:
 				bruit *= activite
 				air *= activite
 		bruit *= k
-		air *= k
+		air *= k * f_air
 		if bruit <= 0.0 and air <= 0.0:
 			continue
 		var pts: PackedVector3Array = e.pts
@@ -869,8 +873,11 @@ func sante(bid: int) -> float:
 			_lancer_calcul()
 		else:
 			recalculer()
-	var f := au_point(_centre(bid))
-	return clampf(float(f.air) + 0.5 * float(f.eau), 0.0, 1.0)
+	var p := _centre(bid)
+	var f := au_point(p)
+	# Sol pollué du jardin et du potager (module Climat).
+	var sol := Climat.instance.risque_sol(p) if Climat.instance != null else 0.0
+	return clampf(float(f.air) + 0.5 * float(f.eau) + sol, 0.0, 1.0)
 
 
 ## Gêne au logement (pollution, odeurs, bruit surtout la nuit), 0..1.

@@ -121,6 +121,11 @@ var cremation := -1.0
 var pollution: int = 2
 ## La pollution rend malade et raccourcit la vie (sinon : seulement gêne et valeur des terrains).
 var pollution_sante := true
+## Réchauffement climatique (ClimatTypes.REGLAGES) : 0 désactivé, 1 histoire réelle,
+## 2 le monde suit l'exemple des villes du joueur, 3 accéléré.
+var climat: int = 2
+## Les sols gardent la mémoire des pollutions (usines, mines, pesticides).
+var sols_pollues := true
 ## Joueur qui a créé la partie (SaveGame.player_id()) : l'admin des cartes entre amis.
 var createur := ""
 ## Chantiers : les constructions apparaissent d'un coup (bac à sable) au lieu de
@@ -305,7 +310,7 @@ func to_dict() -> Dictionary:
 		"epuisement": epuisement, "deblocage": deblocage, "createur": createur,
 		"record_habitants": record_habitants, "evenements_auto": evenements_auto, "catastrophes": catastrophes,
 		"frequence_catastrophes": frequence_catastrophes, "crises_economiques": crises_economiques, "volatilite_marche": volatilite_marche, "neige_routes": neige_routes, "faim": faim, "telecom_necessaire": telecom_necessaire, "construction_instantanee": construction_instantanee,
-		"horaires_chantiers": horaires_chantiers, "rythme_chantiers": rythme_chantiers, "usure": usure, "dechets": dechets, "dechets_quantite": dechets_quantite, "pollution": pollution, "pollution_sante": pollution_sante,
+		"horaires_chantiers": horaires_chantiers, "rythme_chantiers": rythme_chantiers, "usure": usure, "dechets": dechets, "dechets_quantite": dechets_quantite, "pollution": pollution, "pollution_sante": pollution_sante, "climat": climat, "sols_pollues": sols_pollues,
 		"elections": elections, "manifestations": manifestations, "funeraire": funeraire, "cremation": cremation, "reseaux_obligatoires": reseaux_obligatoires, "prix_services": prix_services,
 		"fondation": fondation, "rue_fondation": rue_fondation, "territoire": territoire, "fondateurs": fondateurs, "vivres_jours": vivres_jours, "main_oeuvre": main_oeuvre,
 		"tutoriel": tutoriel, "objectifs_ecran": objectifs_ecran,
@@ -360,6 +365,8 @@ func from_dict(d: Dictionary) -> void:
 	dechets_quantite = clampf(float(d.get("dechets_quantite", 1.0)), 0.5, 3.0)
 	pollution = clampi(int(d.get("pollution", 2)), 0, 3)
 	pollution_sante = bool(d.get("pollution_sante", true))
+	climat = clampi(int(d.get("climat", 2)), 0, 3)
+	sols_pollues = bool(d.get("sols_pollues", true))
 	funeraire = bool(d.get("funeraire", true))
 	cremation = clampf(float(d.get("cremation", -1.0)), -1.0, 1.0)
 	annee_depart = int(d.get("annee_depart", 0))

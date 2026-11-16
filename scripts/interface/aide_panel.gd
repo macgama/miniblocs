@@ -87,6 +87,13 @@ const SECTIONS := [
 		["Canicule, gel", "3 jours à 33 °C et plus : canicule ; gelée tardive au printemps : jeunes pousses abîmées"],
 		["Provoquer", "Maj+R, onglet Risques (ou I → Organiser) : chute de neige, crue, sécheresse, canicule, feu de broussailles ; Admin (F10) : neige sur les routes oui / non"],
 	]],
+	["Santé publique et épidémies", [
+		["F7", "panneau Santé publique (menu Infos) : épidémie en cours, hygiène des logements (eau potable, égouts), lits d'hôpital, conseils ; onglets Vaccins, Mesures et Histoire"],
+		["Maladies de l'eau", "choléra et typhoïde passent par les puits souillés et l'eau mal traitée : des égouts, une station d'épuration et de l'eau potable les arrêtent ; en urgence, faire bouillir l'eau"],
+		["Vaccins", "datés (variole 1800, diphtérie 1923, grippe 1945, polio 1955, rougeole 1963, Covid-19 2021) : campagne payée à la dose ou obligation ; une partie des habitants refuse ; au-delà de 90 % de vaccinés, la maladie ne prend plus"],
+		["Mesures", "quarantaine, écoles fermées, lazaret, campagne d'hygiène (1847), eau bouillie (1854), chlore dans l'eau (1902), masques et confinement (1918) : coût par jour, satisfaction ; levées seules une semaine après l'épidémie"],
+		["Grandes épidémies", "partie commencée dans le passé : choléra de 1832, 1849, 1854…, variole de 1870, grippe espagnole de 1918, grippes de 1957 et 1968, Covid-19 en 2020 ; une rumeur arrive d'abord dans la gazette (F7 → Histoire pour couper le calendrier)"],
+	]],
 	["Villages et territoire", [
 		["Début de partie", "sur le globe, cherche la ville de départ ; puis choisis le nom et le drapeau du village et pose sa Maison de commune (pas besoin de route) : avant, on ne peut que regarder et modeler le paysage"],
 		["Drapeau", "Maj+M, bouton Changer… à côté du drapeau d'un village : n'importe quel pays, ou aucun"],

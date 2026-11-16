@@ -51,6 +51,8 @@ const TYPES := {
 	"canicule": {"nom": "Canicule", "icone": "thermometre", "couleur": Color("f77f00")},
 	"gel": {"nom": "Gel", "icone": "neige", "couleur": Color("a2d2ff")},
 	"saison": {"nom": "Saison", "icone": "saisons", "couleur": Color("90be6d")},
+	# Mode streamer (scripts/streamer) : votes du chat Twitch, nouvelles seulement.
+	"streamer": {"nom": "Chat Twitch", "icone": "direct", "couleur": Color("a970ff")},
 	# Climat et pollution (scripts/climat) : nouvelles seulement.
 	"climat": {"nom": "Climat", "icone": "climat", "couleur": Color("e76f51")},
 	"submersion": {"nom": "Submersion marine", "icone": "eau", "couleur": Color("2a9d8f")},

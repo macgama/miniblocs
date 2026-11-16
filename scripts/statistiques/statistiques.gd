@@ -177,7 +177,7 @@ func _par_habitant() -> Dictionary:
 				o.actifs += 1
 			elif st == "chomeur":
 				o.chomeurs += 1
-			elif st == "eleve" and int(p.sch) < 0:
+			elif st == "eleve" and population.edu.sans_ecole(p):
 				o.sans_ecole += 1
 			if pol >= 0.0:
 				o.pol += pol

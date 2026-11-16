@@ -287,6 +287,13 @@ const SECTIONS := [
 		["Places", "école : pupitres ; hôpital : 3 lits pour 1 000 habitants ; police : 1 agent pour 400 habitants. Sans personnel embauché, le service ne couvre rien"],
 		["Conséquences", "santé et espérance de vie (hôpital), satisfaction des habitants, petits délits (cambriolages) dans les quartiers sans police"],
 	]],
+	["Éducation", [
+		["Maj + K", "panneau Éducation : élèves et places par degré, apprentis chez les employeurs, étudiants, diplômes des adultes, métiers en pénurie, système scolaire de chaque pays"],
+		["Systèmes", "chaque ville suit son pays réel : Suisse (HarmoS 1H-11H, gymnase et maturité, apprentissage CFC, HES, HEP, université et EPF), France (maternelle → lycée, CAP, bac, BTS, licence, master), générique ailleurs. Tout suit l'année de la partie, dès 1800"],
+		["Un bâtiment par degré", "crèche (enfantine), école (enfantine, primaire), collège (secondaire I), lycée ou gymnase, école professionnelle, haute école, HEP, université ; résidence étudiante pour loger les étudiants"],
+		["Apprentissage", "à 15 ans, beaucoup de jeunes signent un contrat chez un employeur de la ville (boulangerie, atelier, usine, hôpital…) : 4 jours au travail, le mardi à l'école professionnelle, CFC au bout de 3-4 ans"],
+		["Diplômes exigés", "médecin, infirmier, enseignant, professeur, ingénieur, policier… n'embauchent que des diplômés : sinon frontaliers ou pendulaires. Les autres métiers embauchent sans diplôme mais produisent moins"],
+	]],
 	["Internet et téléphone", [
 		["Maj + O", "panneau Internet et téléphone (aussi en onglet « Télécom » du panneau Réseaux, O) : outils des câbles, calques, bâtiment survolé, bilan"],
 		["Construire → Services", "pylône 2G (7 km), pylône 4G (2,5 km), pylône 4G + 5G, petite antenne 5G (450 m), central téléphonique, nœud de la fibre"],
@@ -412,6 +419,10 @@ const SECTIONS := [
 		["ZQSD, Maj, Espace", "marcher, courir, sauter (vue au sol)"],
 		["E ou clic gauche", "ouvrir ou fermer une porte, une porte de garage (vue au sol), y compris dans les murs fins"],
 		["Échap", "libérer la souris (vue au sol)"],
+	]],
+	["Mode streamer (Twitch)", [
+		["Maj + F11 (ou Infos → Mode streamer)", "le chat de ta chaîne Twitch vote toutes les quelques minutes : catastrophes, décisions du maire, météo, fêtes ; les spectateurs tapent 1, 2 ou 3. Lecture seule et anonyme, sans compte ni clé ; désactivé par défaut"],
+		["Veto · Appliquer · !vote · !habitant", "annuler ou appliquer le résultat du chat · le streamer et ses modos lancent un vote · un spectateur donne son pseudo au prochain habitant"],
 	]],
 	["Mode photo et time-lapse", [
 		["F8 (ou Infos → Mode photo)", "le temps se fige, l'interface disparaît, une caméra libre part de ta vue : ZQSD avancer, A / E descendre et monter, clic droit glissé regarder, molette zoomer, Maj vite, Ctrl lent"],

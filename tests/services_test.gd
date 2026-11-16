@@ -109,7 +109,7 @@ func _run() -> void:
 		for hid in pop.by_home.get(h, []):
 			for pid in pop.households[hid].m:
 				var p: Dictionary = pop.persons[pid]
-				if pop.stage(p) == "eleve":
+				if pop.stage(p) == "eleve" and pop.edu.cycle(p) in Education.OBLIGATOIRES:
 					kids_hameau += 1
 					if int(p.sch) < 0:
 						sans += 1
@@ -180,7 +180,8 @@ func _run() -> void:
 		for hid in pop.by_home.get(h, []):
 			for pid in pop.households[hid].m:
 				var p: Dictionary = pop.persons[pid]
-				if pop.stage(p) == "eleve" and int(p.sch) >= 0:
+				# Gymnase, apprentissage : sans bâtiment de ce degré en ville, on étudie ailleurs.
+				if pop.stage(p) == "eleve" and int(p.sch) >= 0 and pop.edu.cycle(p) in Education.OBLIGATOIRES:
 					with_school += 1
 	_check(with_school == kids_hameau, "les élèves du hameau ont une école (%d)" % with_school)
 	sp.rebuild()

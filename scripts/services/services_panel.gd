@@ -182,11 +182,11 @@ func _view_service(s: String) -> void:
 			_body.add_child(hb)
 	match s:
 		"ecole":
-			_text("Seuils de trajet (à pied ou en car) : maternelle et élémentaire 15 min, collège 25 min, lycée 40 min. Au-delà du double, l'élève reste sans école.", true, 11)
+			_text("Seuils de trajet (à pied ou en car) : école enfantine et primaire 15 min, secondaire I 25 min, gymnase ou lycée 40 min, école professionnelle 45 min, hautes écoles et université 60 min. Au-delà du double, l'élève reste sans école (ou étudie dans une autre ville après la scolarité obligatoire). Détail par degré : panneau Éducation (Maj+K).", true, 11)
 			var sans := 0
 			for pid in sp.population.persons:
 				var p: Dictionary = sp.population.persons[pid]
-				if sp.population.stage(p) == "eleve" and int(p.sch) < 0:
+				if sp.population.edu.sans_ecole(p):
 					sans += 1
 			if sans > 0:
 				_text("%d élève%s sans école proche avec de la place." % [sans, "s" if sans > 1 else ""])

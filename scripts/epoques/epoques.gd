@@ -110,7 +110,7 @@ const ANNEES := {
 	"maison_commune": 0, "mairie": 0, "ecole": 1950, "pompiers": 1950, "police": 1950, "hopital": 1950,
 	"chateau_eau": 1880, "pylone_2g": 1992, "pylone_4g": 2010, "pylone_5g": 2019, "antenne_5g": 2020,
 	"central_telephonique": 1880, "noeud_fibre": 2000, "centre_technique": 1950, "bassin_retention": 1970,
-	"station_meteo": 1850, "bibliotheque": 1980, "college": 1960, "creche": 1970, "hopital_regional": 1960,
+	"station_meteo": 1850, "bibliotheque": 1980, "college": 1960, "creche": 1970, "universite": 0, "lycee": 1802, "hopital_regional": 1960,
 	"clinique": 1970, "caserne_pompiers": 1990, "gendarmerie": 1960, "commissariat": 1990,
 	# Loisirs et sport
 	"parc": 0, "aire_jeux": 1900, "cafe": 0, "cinema": 1910, "musee": 0, "bowling": 1950, "discotheque": 1965,

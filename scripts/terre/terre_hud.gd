@@ -82,6 +82,7 @@ signal sante_requested
 signal souterrain_requested
 ## Bouton « Mode photo » (menu Infos, F8).
 signal photo_requested
+signal streamer_requested
 ## Succès du joueur (F6, menu Infos).
 signal succes_requested
 ## Visites et cartes postales (F12).
@@ -169,6 +170,7 @@ const CATEGORIES := [
 	{"id": "photo", "name": "Mode photo et time-lapse (Maj+F8)", "icon": "appareil_photo", "key": "F8", "panel": true, "group": "infos"},
 	{"id": "souterrain", "name": "Vue sous terre (tuyaux, câbles, métro, sous-sols)", "icon": "souterrain", "key": "Page bas", "panel": true, "group": "infos"},
 	{"id": "succes", "name": "Succès", "icon": "trophee", "key": "F6", "panel": true, "group": "infos"},
+	{"id": "streamer", "name": "Mode streamer (le chat Twitch vote)", "icon": "direct", "key": "Maj+F11", "panel": true, "group": "infos"},
 	{"id": "murs", "name": "Murs et étages", "icon": "mur", "key": "2", "panel": true, "mode": "creer"},
 	{"id": "blocs", "name": "Blocs", "icon": "editeur", "key": "3", "panel": true, "mode": "creer"},
 	{"id": "interieur", "name": "Intérieur", "icon": "interieur", "key": "4", "panel": true, "mode": "creer"},
@@ -912,6 +914,7 @@ func _on_category(id: String) -> void:
 			"sante": sante_requested.emit()
 			"souterrain": souterrain_requested.emit()
 			"photo": photo_requested.emit()
+			"streamer": streamer_requested.emit()
 			"succes": succes_requested.emit()
 			"visites": visites_requested.emit()
 		_update_categories()

@@ -346,6 +346,9 @@ func _sync_differe() -> void:
 ## Fait avancer la simulation de dt secondes de jeu.
 ## realtime : appelé par le jeu (les attributions sont limitées à ~3 par seconde réelle).
 func advance(dt: float, realtime := false) -> void:
+	# L'heure a changé : l'heure mise en cache par activity() n'est plus la bonne
+	# (sans image entre deux pas, les habitants restaient figés à l'ancienne heure).
+	_now = {}
 	if not realtime and not _match_en_cours.is_empty():
 		_match_pas(1 << 60)
 	if not realtime:
@@ -928,6 +931,16 @@ func _join_job(p: Dictionary, bid: int, metier := "") -> void:
 		var better := int(Metiers.job(other).salaire) > int(Metiers.job(metier).salaire)
 		if (dip in ["licence", "master"] and better) or (dip in ["", "brevet"] and not better):
 			metier = other
+		# Le métier de base du bâtiment (agriculteur d'une ferme…) est pourvu en premier :
+		# sans lui, une ferme aux deux employés tirés chauffeurs ne labourait jamais.
+		var coeur := String(Metiers.jobs_for(String(known[bid].t))[0][0])
+		var pourvu := false
+		for oid in by_job.get(bid, []):
+			if persons.has(int(oid)) and String(persons[int(oid)].get("met", "")) == coeur:
+				pourvu = true
+				break
+		if not pourvu:
+			metier = coeur
 	p.met = metier
 	if not by_job.has(bid):
 		by_job[bid] = []

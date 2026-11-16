@@ -37,6 +37,10 @@ signal plan_wall_levels(count: int)
 signal plan_reseat
 ## Échelle des étages : clic sur un étage.
 signal plan_level_set(level: int)
+## « Enregistrer mon bâtiment » (parcours guidé de l'Atelier).
+signal save_requested
+## « Créer un nouveau bâtiment » (Mes modèles) : ouvrir l'Atelier.
+signal atelier_requested
 
 var _panel: PanelContainer
 var _list: VBoxContainer
@@ -87,6 +91,12 @@ var workshop := false
 var _creation_choosing := ""
 const WORKSHOP_TABS := ["blocs", "creations", "interieur", "banque"]
 var _head_icon: TextureRect
+## Mode Gérer : recherche dans tout le catalogue et thèmes nommés (voir THEMES).
+var _global_search: LineEdit
+var _local_search: LineEdit
+var _themes_scroll: ScrollContainer
+var _themes_box: VBoxContainer
+var _theme_open := "logement"
 var _head_title: Label
 var _cats_grid: GridContainer
 var _foot: HBoxContainer
@@ -99,6 +109,27 @@ var _ladder_level := 0
 const CAT_ICONS := {"logement": "logement", "commerce": "commerce", "industrie": "industrie", "production": "ressources", "reseaux": "reseaux",
 	"services": "services", "dechets": "dechets", "funeraire": "funeraire", "loisirs": "loisirs", "sport": "sport", "parc": "parc", "zoo": "zoo", "spectacles": "masques", "tourisme": "valise", "espaces": "publics",
 	"zones": "zonage", "blocs": "editeur", "creations": "creations", "interieur": "interieur", "banque": "banque", "mes_modeles": "atelier"}
+
+## Thèmes du catalogue (mode Gérer) : nom écrit, icône, catégories du catalogue.
+## « favoris » et « recents » sont des listes du joueur (FavorisConstruire).
+const THEMES := [
+	{"id": "favoris", "name": "Favoris", "icon": "etoile", "cats": ["favoris"]},
+	{"id": "recents", "name": "Récents", "icon": "horloge", "cats": ["recents"]},
+	{"id": "logement", "name": "Logement", "icon": "logement", "cats": ["logement"], "head": "Thèmes"},
+	{"id": "commerce", "name": "Commerce et bureaux", "icon": "commerce", "cats": ["commerce"]},
+	{"id": "industrie", "name": "Industrie et production", "icon": "industrie", "cats": ["industrie", "production"]},
+	{"id": "services", "name": "Services publics", "icon": "services", "cats": ["services", "funeraire"]},
+	{"id": "reseaux", "name": "Réseaux et déchets", "icon": "reseaux", "cats": ["reseaux", "dechets"]},
+	{"id": "loisirs", "name": "Loisirs et culture", "icon": "loisirs", "cats": ["loisirs", "parc", "zoo", "spectacles", "espaces"]},
+	{"id": "sport", "name": "Sport", "icon": "sport", "cats": ["sport"]},
+	{"id": "tourisme", "name": "Tourisme", "icon": "valise", "cats": ["tourisme"]},
+	{"id": "mes_modeles", "name": "Mes modèles", "icon": "atelier", "cats": ["mes_modeles"]},
+	{"id": "zones", "name": "Zonage", "icon": "zonage", "cats": ["zones"], "head": "Outils"},
+]
+## Nom court des sous-thèmes (sous un thème ouvert).
+const SUB_NAMES := {"industrie": "Industrie", "production": "Production et ressources", "services": "Services publics", "funeraire": "Funéraire",
+	"reseaux": "Électricité, eau, égouts", "dechets": "Déchets et propreté", "loisirs": "Loisirs", "parc": "Parc d'attractions", "zoo": "Zoo",
+	"spectacles": "Spectacles et musées", "espaces": "Places et jardins"}
 
 ## Onglet Intérieur : fonction (BuildingPanel) qui remplit la liste (voir InterieurPanel).
 var interieur_builder: Callable
@@ -149,7 +180,8 @@ func _ready() -> void:
 	box.add_child(cats)
 	_cats_grid = cats
 	var cat_group := ButtonGroup.new()
-	var tabs: Array = BuildingCatalog.CATEGORIES.duplicate()
+	var tabs: Array = [{"id": "favoris", "name": "Favoris"}, {"id": "recents", "name": "Récents"}]
+	tabs.append_array(BuildingCatalog.CATEGORIES.duplicate())
 	tabs.append({"id": ModelesJeu.CATEGORY, "name": "Mes modèles : les bâtiments de ton atelier, avec leur fonction", "color": Color("9fe3b0")})
 	tabs.append({"id": "zones", "name": "Zonage", "color": Color("ffd166")})
 	tabs.append({"id": "blocs", "name": "Éditeur libre", "color": Color("8ecae6")})
@@ -168,14 +200,43 @@ func _ready() -> void:
 		b.pressed.connect(func() -> void: show_category(id))
 		cats.add_child(b)
 		_cat_buttons[id] = b
+	# Recherche dans tout le catalogue (mode Gérer), au-dessus des thèmes.
+	_global_search = LineEdit.new()
+	_global_search.name = "RechercheCatalogue"
+	_global_search.placeholder_text = "Chercher dans tout le catalogue : piscine, école, gare…"
+	_global_search.clear_button_enabled = true
+	_global_search.right_icon = Icones.get_icon("chercher", 18, UiStyle.TEXT_DIM)
+	_global_search.text_changed.connect(func(txt: String) -> void:
+		_search = txt.strip_edges().to_lower()
+		show_category(_category))
+	box.add_child(_global_search)
+	# Thèmes nommés à gauche, bâtiments à droite.
+	var body := HBoxContainer.new()
+	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	body.add_theme_constant_override("separation", 8)
+	box.add_child(body)
+	_themes_scroll = ScrollContainer.new()
+	_themes_scroll.custom_minimum_size = Vector2(196, 0)
+	_themes_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	body.add_child(_themes_scroll)
+	_themes_box = VBoxContainer.new()
+	_themes_box.name = "Themes"
+	_themes_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_themes_box.add_theme_constant_override("separation", 1)
+	_themes_scroll.add_child(_themes_box)
+	var right := VBoxContainer.new()
+	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	right.add_theme_constant_override("separation", 6)
+	body.add_child(right)
 	_cat_title = Label.new()
 	_cat_title.add_theme_font_size_override("font_size", 15)
 	_cat_title.add_theme_color_override("font_color", UiStyle.ACCENT)
-	box.add_child(_cat_title)
+	_cat_title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	right.add_child(_cat_title)
 
 	# Filtres de la bible : région du monde, époque, recherche par nom.
 	_filters = HFlowContainer.new()
-	box.add_child(_filters)
+	right.add_child(_filters)
 	var region_opt := OptionButton.new()
 	region_opt.add_item("Toutes les régions")
 	region_opt.set_item_metadata(0, "")
@@ -197,6 +258,7 @@ func _ready() -> void:
 		show_category(_category))
 	_filters.add_child(era_opt)
 	var search := LineEdit.new()
+	_local_search = search
 	search.placeholder_text = "Chercher…"
 	search.custom_minimum_size = Vector2(150, 0)
 	search.clear_button_enabled = true
@@ -209,7 +271,7 @@ func _ready() -> void:
 	scroll.custom_minimum_size = Vector2(0, 200)
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	box.add_child(scroll)
+	right.add_child(scroll)
 	_list = VBoxContainer.new()
 	_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.add_child(_list)
@@ -247,9 +309,15 @@ func set_workshop(on: bool, cat := "") -> void:
 	workshop = on
 	for id in _cat_buttons:
 		(_cat_buttons[id] as Button).visible = WORKSHOP_TABS.has(id) == on
-	# En atelier, la barre du bas choisit l'onglet : pas besoin de la grille.
-	_cats_grid.visible = not on
+	# En atelier, la barre du bas choisit l'onglet ; en Gérer, les thèmes nommés
+	# remplacent l'ancienne grille d'icônes.
+	_cats_grid.visible = false
+	_themes_scroll.visible = not on
+	_global_search.visible = not on
+	_local_search.visible = on
 	_foot.visible = not on
+	# Plus large en Gérer : la colonne des thèmes à gauche des vignettes.
+	_panel.offset_left = UiStyle.SIDE_LEFT if on else UiStyle.SIDE_LEFT - 204.0
 	_head_title.text = "Atelier" if on else "Construire"
 	_head_icon.texture = Icones.get_icon("editeur" if on else "construire", 24, UiStyle.CREATE if on else UiStyle.ACCENT)
 	_cat_title.add_theme_color_override("font_color", UiStyle.CREATE if on else UiStyle.ACCENT)
@@ -288,6 +356,89 @@ func refresh() -> void:
 		show_category(_category)
 
 
+## Thème (THEMES) qui contient une catégorie du catalogue.
+static func theme_of(cat: String) -> String:
+	for t in THEMES:
+		if (t.cats as Array).has(cat):
+			return String(t.id)
+	return ""
+
+
+## Nombre de bâtiments d'une catégorie (colonne des thèmes).
+func _count(cat: String) -> int:
+	match cat:
+		"favoris", "recents":
+			return FavorisConstruire.liste(cat).size()
+		ModelesJeu.CATEGORY:
+			return ModelesJeu.ids().size() + Creations.ids().size()
+		"zones":
+			return -1
+	return BuildingCatalog.ids_in(cat, _region, _era).size()
+
+
+## Colonne des thèmes : nom écrit, nombre de bâtiments ; le thème ouvert
+## montre ses sous-thèmes.
+func _fill_themes() -> void:
+	if _themes_box == null:
+		return
+	for ch in _themes_box.get_children():
+		_themes_box.remove_child(ch)
+		ch.queue_free()
+	for t in THEMES:
+		var cats: Array = t.cats
+		if EditionDemo.categorie_verrouillee(String(cats[0])) or not _cat_buttons.has(String(cats[0])):
+			continue
+		if t.has("head"):
+			var h := Label.new()
+			h.text = String(t.head).to_upper()
+			h.add_theme_font_size_override("font_size", 11)
+			h.add_theme_color_override("font_color", UiStyle.TEXT_DIM)
+			_themes_box.add_child(h)
+		var n := 0
+		for c in cats:
+			n += maxi(0, _count(String(c)))
+		var open := String(t.id) == _theme_open and _search == ""
+		_themes_box.add_child(_theme_button(String(t.icon), String(t.name), "" if String(t.id) == "zones" else str(n), open and cats.size() == 1, open, String(cats[0]), 0))
+		if open and cats.size() > 1:
+			for c in cats:
+				if EditionDemo.categorie_verrouillee(String(c)) or not _cat_buttons.has(String(c)):
+					continue
+				_themes_box.add_child(_theme_button("", String(SUB_NAMES.get(c, c)), str(_count(String(c))), String(c) == _category, false, String(c), 1))
+
+
+func _theme_button(icon: String, label: String, count: String, on: bool, open: bool, cat: String, depth: int) -> Button:
+	var b := Button.new()
+	b.name = "Theme_" + cat
+	b.text = label
+	b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	b.clip_text = true
+	b.focus_mode = Control.FOCUS_NONE
+	b.custom_minimum_size = Vector2(0, 30 if depth == 0 else 24)
+	b.add_theme_font_size_override("font_size", 14 if depth == 0 else 12)
+	if icon != "":
+		b.icon = Icones.get_icon(icon, 18, UiStyle.ACCENT if open else Color.WHITE)
+	if depth > 0:
+		b.add_theme_constant_override("h_separation", 0)
+	var normal := UiStyle.flat_box(Color(UiStyle.ACCENT, 0.16) if on or (open and depth == 0) else Color(0, 0, 0, 0), 7, 4)
+	normal.content_margin_left = 6 + depth * 22
+	var hover := UiStyle.flat_box(Color(1, 1, 1, 0.08), 7, 4)
+	hover.content_margin_left = normal.content_margin_left
+	b.add_theme_stylebox_override("normal", normal)
+	b.add_theme_stylebox_override("hover", hover)
+	b.add_theme_stylebox_override("pressed", normal)
+	var col := UiStyle.ACCENT if on or open else (UiStyle.TEXT_DIM if depth > 0 else Color.WHITE)
+	for k in ["font_color", "font_hover_color", "font_pressed_color"]:
+		b.add_theme_color_override(k, col)
+	if count != "":
+		b.tooltip_text = "%s · %s bâtiment%s" % [label, count, "s" if count != "1" else ""]
+	b.pressed.connect(func() -> void:
+		if _search != "":
+			_global_search.text = ""
+			_search = ""
+		show_category(cat))
+	return b
+
+
 func show_category(cat: String) -> void:
 	if not _cat_buttons.has(cat):
 		cat = "logement"
@@ -299,6 +450,16 @@ func show_category(cat: String) -> void:
 	for b in _item_buttons:
 		b.queue_free()
 	_item_buttons.clear()
+	if not workshop:
+		if theme_of(cat) != "":
+			_theme_open = theme_of(cat)
+		_fill_themes()
+		if _search != "" and cat != "zones":
+			_show_search_results()
+			return
+		if cat == "favoris" or cat == "recents":
+			_show_list(FavorisConstruire.liste(cat), "Clique l'étoile d'une vignette pour la garder ici." if cat == "favoris" else "Les bâtiments que tu choisis s'ajoutent ici.")
+			return
 	if cat == "zones":
 		_show_zones()
 		return
@@ -357,10 +518,79 @@ func show_category(cat: String) -> void:
 		_item_buttons.append(none)
 
 
+## Recherche (mode Gérer) : dans tout le catalogue, toutes catégories et Mes modèles.
+func _show_search_results() -> void:
+	_filters.visible = true
+	var q: String = FavorisConstruire.plier(_search)
+	var ids: Array[String] = []
+	var seen := {}
+	var cats: Array = []
+	for t in THEMES:
+		for c in t.cats:
+			if not ["favoris", "recents", "zones"].has(String(c)) and not EditionDemo.categorie_verrouillee(String(c)):
+				cats.append(String(c))
+	for c in cats:
+		var pool: Array = (ModelesJeu.ids() + Creations.ids()) if c == ModelesJeu.CATEGORY else BuildingCatalog.ids_in(String(c), _region, _era)
+		for id in pool:
+			var t := BuildingCatalog.get_type(String(id))
+			if t.is_empty() or seen.has(id) or t.get("cache", false):
+				continue
+			if FavorisConstruire.plier(String(t.name) + " " + String(t.get("desc", ""))).contains(q):
+				seen[id] = true
+				ids.append(String(id))
+	# Les noms qui commencent par le mot cherché d'abord.
+	ids.sort_custom(func(a: String, b: String) -> bool:
+		var pa: bool = FavorisConstruire.plier(String(BuildingCatalog.get_type(a).name)).begins_with(q)
+		var pb: bool = FavorisConstruire.plier(String(BuildingCatalog.get_type(b).name)).begins_with(q)
+		return pa and not pb)
+	_cat_title.text = "« %s » dans tout le catalogue" % _search
+	_show_list(ids, "Aucun bâtiment ne correspond. Essaie un autre mot (école, piscine, gare…).")
+
+
+## Vignettes d'une liste d'ids, avec un message si elle est vide.
+func _show_list(ids: Array, empty_text: String) -> void:
+	_filters.visible = _search != ""
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 6)
+	grid.add_theme_constant_override("v_separation", 6)
+	_list.add_child(grid)
+	_item_buttons.append(grid)
+	var shown := 0
+	for id in ids:
+		if shown >= 80:
+			break
+		var t := BuildingCatalog.get_type(String(id))
+		grid.add_child(_card(String(id), String(CAT_ICONS.get(String(t.get("cat", "")), "construire"))))
+		shown += 1
+	_cat_title.text += "  ·  %d" % ids.size()
+	if shown == 0:
+		var none := Label.new()
+		none.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		none.text = empty_text
+		none.add_theme_color_override("font_color", UiStyle.TEXT_DIM)
+		_list.add_child(none)
+		_item_buttons.append(none)
+
+
 ## Mes modèles (mode Gérer) : les modèles de la banque et les créations en blocs,
 ## posés comme les autres bâtiments.
 func _show_models() -> void:
 	_filters.visible = true
+	var neu := Button.new()
+	neu.name = "CreerBatiment"
+	neu.text = "Créer un nouveau bâtiment dans l'Atelier"
+	neu.icon = Icones.get_icon("plus", 20, UiStyle.CREATE)
+	neu.tooltip_text = "Ouvre l'Atelier (terrain vide). Une fois ton bâtiment enregistré, tu reviens ici avec lui en main."
+	neu.add_theme_color_override("font_color", UiStyle.CREATE)
+	var nsb := UiStyle.flat_box(Color(UiStyle.CREATE, 0.08), 10, 10)
+	nsb.border_color = Color(UiStyle.CREATE, 0.7)
+	nsb.set_border_width_all(2)
+	neu.add_theme_stylebox_override("normal", nsb)
+	neu.add_theme_stylebox_override("hover", UiStyle.flat_box(Color(UiStyle.CREATE, 0.18), 10, 10))
+	neu.custom_minimum_size = Vector2(0, 48)
+	neu.pressed.connect(func() -> void: atelier_requested.emit())
+	_add(neu)
 	var ids: Array = ModelesJeu.ids()
 	ids.append_array(Creations.ids())
 	var grid := GridContainer.new()
@@ -380,8 +610,8 @@ func _show_models() -> void:
 	if shown == 0:
 		var none := Label.new()
 		none.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		none.text = ("Aucun modèle pour l'instant. Dans l'Atelier, construis un bâtiment en murs et étages, puis onglet Intérieur (4) → "
-			+ "« Enregistrer dans la banque ». Dans la Banque (6), choisis sa Fonction : il apparaît ici.") if _search == "" else "Aucun modèle pour cette recherche."
+		none.text = ("Aucun modèle pour l'instant. Dans l'Atelier, construis un bâtiment puis clique « Enregistrer mon bâtiment » "
+			+ "en haut de l'écran : il apparaît ici.") if _search == "" else "Aucun modèle pour cette recherche."
 		_list.add_child(none)
 		_item_buttons.append(none)
 
@@ -1149,8 +1379,15 @@ func _show_materials(box: VBoxContainer) -> void:
 
 
 func _show_capture() -> void:
-	# Enregistrer une construction comme bâtiment de « Mes créations ».
+	# Enregistrer : le bouton « Enregistrer mon bâtiment » prend tout le groupe de
+	# blocs visé. Le rectangle à tracer reste pour choisir une partie seulement.
 	_list.add_child(HSeparator.new())
+	var save := Button.new()
+	save.text = "Enregistrer mon bâtiment"
+	save.icon = Icones.get_icon("banque", 18)
+	save.tooltip_text = "Range ta construction dans Mes modèles (nom et usage dans la partie)."
+	save.pressed.connect(func() -> void: save_requested.emit())
+	_add(save)
 	var crow := HBoxContainer.new()
 	var cname := LineEdit.new()
 	cname.placeholder_text = "Nom de la création"
@@ -1161,8 +1398,8 @@ func _show_capture() -> void:
 		capture_name_changed.emit(txt))
 	crow.add_child(cname)
 	var cap := Button.new()
-	cap.text = "Enregistrer"
-	cap.tooltip_text = "Clic glissé autour de ta construction : elle devient un bâtiment de l'onglet Mes créations, à poser où tu veux."
+	cap.text = "Une partie seulement"
+	cap.tooltip_text = "Clic glissé autour d'une partie de ta construction : elle devient un bâtiment de l'onglet Mes créations, à poser où tu veux."
 	cap.toggle_mode = true
 	cap.button_group = _item_group
 	cap.pressed.connect(func() -> void: block_tool_chosen.emit(BlockEditor.Tool.CAPTURE))
@@ -1215,8 +1452,22 @@ func _material_icon(i: int) -> Texture2D:
 	return _icons[i]
 
 
-func _show_creations() -> void:
-	_filters.visible = false
+## Mes créations en blocs. in_bank : section de l'onglet Mes modèles (Banque).
+func show_creations_section() -> void:
+	var ids := Creations.ids()
+	if ids.is_empty():
+		return
+	var h := Label.new()
+	h.text = "Créations en blocs"
+	h.add_theme_font_size_override("font_size", 15)
+	h.add_theme_color_override("font_color", UiStyle.CREATE if workshop else UiStyle.ACCENT)
+	_add(h)
+	_show_creations(false)
+
+
+func _show_creations(standalone := true) -> void:
+	if standalone:
+		_filters.visible = false
 	var ids := Creations.ids()
 	if ids.is_empty():
 		var none := Label.new()
@@ -1247,14 +1498,14 @@ func _show_creations() -> void:
 			ModelesJeu.fonction_name(String(Creations.items[type_id].get("fonction", ""))) if String(Creations.items[type_id].get("fonction", "")) != "" else "aucune (décor)")
 		fn.pressed.connect(func() -> void:
 			_creation_choosing = "" if _creation_choosing == type_id else type_id
-			show_category(Creations.CATEGORY))
+			show_category(_category))
 		row.add_child(fn)
 		var del := Button.new()
 		del.text = "✕"
 		del.tooltip_text = "Supprimer cette création de la bibliothèque (les exemplaires déjà posés restent)."
 		del.pressed.connect(func() -> void:
 			creation_deleted.emit(type_id)
-			show_category(Creations.CATEGORY))
+			show_category(_category))
 		row.add_child(del)
 		_list.add_child(row)
 		_item_buttons.append(row)
@@ -1269,7 +1520,7 @@ func _show_creations() -> void:
 			ch.picked.connect(func(f: String) -> void:
 				Creations.set_fonction(type_id, f)
 				_creation_choosing = ""
-				show_category(Creations.CATEGORY))
+				show_category(_category))
 			_list.add_child(ch)
 			_item_buttons.append(ch)
 
@@ -1318,7 +1569,10 @@ func _card(id: String, fallback_icon: String) -> Button:
 	b.add_theme_stylebox_override("pressed", sel)
 	b.add_theme_stylebox_override("hover_pressed", sel)
 	var type_id := id
-	b.pressed.connect(func() -> void: building_chosen.emit(type_id))
+	b.set_meta("type_id", id)
+	b.pressed.connect(func() -> void:
+		FavorisConstruire.noter(type_id)
+		building_chosen.emit(type_id))
 	var box := VBoxContainer.new()
 	box.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT, Control.PRESET_MODE_MINSIZE, 6)
 	box.add_theme_constant_override("separation", 2)
@@ -1363,11 +1617,34 @@ func _card(id: String, fallback_icon: String) -> Button:
 	meta.add_theme_color_override("font_color", Color("ffd166") if offert > 0 and lock == "" else UiStyle.TEXT_DIM)
 	meta.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.add_child(meta)
+	# Étoile : garder ce bâtiment dans les Favoris.
+	var star := Button.new()
+	star.name = "Etoile"
+	star.flat = true
+	star.focus_mode = Control.FOCUS_NONE
+	star.toggle_mode = true
+	star.button_pressed = FavorisConstruire.est_favori(id)
+	star.tooltip_text = "Retirer des favoris" if star.button_pressed else "Ajouter aux favoris"
+	star.icon = Icones.get_icon("etoile", 20, UiStyle.ACCENT if star.button_pressed else Color(1, 1, 1, 0.55))
+	star.position = Vector2(b.custom_minimum_size.x - 34, 4)
+	star.size = Vector2(30, 30)
+	star.toggled.connect(func(on: bool) -> void:
+		FavorisConstruire.basculer(type_id)
+		star.icon = Icones.get_icon("etoile", 20, UiStyle.ACCENT if on else Color(1, 1, 1, 0.55))
+		star.tooltip_text = "Retirer des favoris" if on else "Ajouter aux favoris"
+		if _category == "favoris" or not workshop:
+			_fill_themes())
+	b.add_child(star)
 	return b
 
 
 func is_open() -> bool:
 	return _panel.visible
+
+
+## Bord gauche du panneau à l'écran quand il est ouvert, sinon -1.
+func bord_gauche() -> float:
+	return _panel.get_global_rect().position.x if _panel.visible else -1.0
 
 
 func set_open(on: bool) -> void:

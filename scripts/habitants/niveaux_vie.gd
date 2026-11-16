@@ -54,7 +54,7 @@ const BESOINS_NIVEAU := [
 ]
 ## Nom et conseil de chaque besoin (le conseil s'affiche dans le panneau).
 const BESOINS := {
-	"toit": ["Un vrai logement", "Fondateurs sous la tente, familles des bidonvilles : il faut de vrais logements abordables (logements sociaux, B → Logement ; F7 → Bidonvilles)."],
+	"toit": ["Un vrai logement", "Fondateurs sous la tente, familles des bidonvilles : il faut de vrais logements abordables (logements sociaux, B → Logement ; F11 → Bidonvilles)."],
 	"nourriture": ["De quoi manger", "Une boulangerie, une supérette ou un marché approvisionné à proximité (P → commerces)."],
 	"eau": ["Eau courante", "Raccorde le quartier à l'eau potable (O)."],
 	"electricite": ["Électricité", "Pas de coupure de courant (O)."],

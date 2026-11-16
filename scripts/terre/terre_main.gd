@@ -121,7 +121,7 @@ var telecom_panel: TelecomPanel
 var nuisances: Nuisances
 ## Agrandissements (3 niveaux), rénovations et densification du zonage.
 var ameliorations: Ameliorations
-## Immobilier vivant (F7) : prix, promoteurs, gentrification, bidonvilles, logements sociaux.
+## Immobilier vivant (F11) : prix, promoteurs, gentrification, bidonvilles, logements sociaux.
 var immobilier: Immobilier
 var immobilier_panel: ImmobilierPanel
 ## Panneau « Cartes » (touche N) : cartes de couleur de tous les systèmes.
@@ -1037,7 +1037,7 @@ func _setup_niveaux_vie() -> void:
 		"niveau moyen des foyers de chaque logement : du rouge (précaire) au bleu (très aisé). Maj+N : ce qui les empêche de monter.")
 	niveaux_vie_panel.carte_requested.connect(func() -> void: Calques.afficher("habitants_niveaux", true))
 	hud.niveaux_vie_requested.connect(func() -> void: niveaux_vie_panel.toggle())
-## Immobilier vivant (F7) : indice des prix par ville, promoteurs et permis,
+## Immobilier vivant (F11) : indice des prix par ville, promoteurs et permis,
 ## gentrification par secteur, bidonvilles, logements sociaux ; carte « Quartiers
 ## qui changent » dans les Cartes (N → Immobilier).
 func _setup_immobilier() -> void:
@@ -1073,7 +1073,7 @@ func _setup_immobilier() -> void:
 		return clampf(0.5 + im.evolution_secteur(k) * 2.0, 0.0, 1.0)
 	im.changed.connect(cg.rafraichir)
 	Calques.ajouter("immobilier_quartiers", "Quartiers qui changent", "Immobilier", cg.montrer,
-		"évolution des prix sur six mois par secteur de 200 m : bleu, il s'embourgeoise ; rouge, il se paupérise (et les bidonvilles). F7 : panneau Immobilier.")
+		"évolution des prix sur six mois par secteur de 200 m : bleu, il s'embourgeoise ; rouge, il se paupérise (et les bidonvilles). F11 : panneau Immobilier.")
 	immobilier_panel.carte_requested.connect(func() -> void: Calques.afficher("immobilier_quartiers", true))
 	hud.immobilier_requested.connect(func() -> void: immobilier_panel.toggle())
 

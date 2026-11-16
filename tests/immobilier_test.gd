@@ -5,7 +5,7 @@ extends SceneTree
 ## dans un bidonville (loyer nul, niveau Précaire, pollution autour), pression
 ## des emplois sans logement, viabilisation, relogement en HLM, bidonville rasé,
 ## promoteur qui rachète et rénove en haut de gamme (permis sur demande),
-## gentrification d'un secteur, avis des habitants, sauvegarde, panneau F7.
+## gentrification d'un secteur, avis des habitants, sauvegarde, panneau F11.
 ## Usage : godot --headless --path . --script res://tests/immobilier_test.gd
 
 var ok := true
@@ -311,7 +311,7 @@ func _run() -> void:
 		im.jour_suivant()
 	_check(true, "35 jours simulés sans erreur")
 
-	print("Panneau F7 :")
+	print("Panneau F11 :")
 	var pnl: ImmobilierPanel = scene.immobilier_panel
 	pnl.set_open(true)
 	for v in ["marche", "promoteurs", "quartiers", "bidonvilles"]:

@@ -1,6 +1,6 @@
 # Immobilier vivant
 
-Panneau **Immobilier** : touche **F7**, ou menu **Ville → Immobilier**. Les quartiers
+Panneau **Immobilier** : touche **F11**, ou menu **Ville → Immobilier**. Les quartiers
 changent de visage tout seuls : prix qui montent et qui baissent, promoteurs privés,
 gentrification, bidonvilles, logements sociaux.
 
@@ -117,7 +117,7 @@ des loyers + 15 € par logement et par mois), visible dans le budget (M).
 ## Tester dans Godot
 
 1. Ouvrir le projet dans Godot (4.7 conseillé), lancer une partie, fonder un village.
-2. **F7** ouvre le panneau. Peindre une zone résidentielle, laisser la ville se remplir :
+2. **F11** ouvre le panneau. Peindre une zone résidentielle, laisser la ville se remplir :
    quand il n'y a plus de logement libre, l'indice des prix monte (onglet Marché).
 3. Onglet Promoteurs : avec le permis « Sur demande », les demandes arrivent ici
    (Accorder / Refuser).

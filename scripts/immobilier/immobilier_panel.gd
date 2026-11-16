@@ -1,6 +1,6 @@
 class_name ImmobilierPanel
 extends CanvasLayer
-## Panneau « Immobilier » (F7, menu Ville) : marché de chaque ville (prix,
+## Panneau « Immobilier » (F11, menu Ville) : marché de chaque ville (prix,
 ## loyers, vacance, taux d'effort), promoteurs et permis de construire,
 ## secteurs qui s'embourgeoisent ou se paupérisent, bidonvilles et ce que le
 ## maire peut y faire, règles (permis, encadrement des loyers, quota social).
@@ -52,7 +52,7 @@ func _build() -> void:
 	_title.add_theme_font_size_override("font_size", 16)
 	_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	head.add_child(_title)
-	var x := UiStyle.icon_button("fermer", "Fermer", "F7", 18, 32)
+	var x := UiStyle.icon_button("fermer", "Fermer", "F11", 18, 32)
 	x.pressed.connect(func() -> void: set_open(false))
 	head.add_child(x)
 	var tabs := HBoxContainer.new()
@@ -92,7 +92,7 @@ func toggle() -> void:
 
 func _input(event: InputEvent) -> void:
 	var k := event as InputEventKey
-	if k and k.pressed and not k.echo and k.physical_keycode == KEY_F7 and not k.shift_pressed and not k.ctrl_pressed and not k.alt_pressed:
+	if k and k.pressed and not k.echo and k.physical_keycode == KEY_F11 and not k.shift_pressed and not k.ctrl_pressed and not k.alt_pressed:
 		if get_viewport().gui_get_focus_owner() is LineEdit:
 			return
 		toggle()

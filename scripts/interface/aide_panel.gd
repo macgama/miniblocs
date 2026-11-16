@@ -124,7 +124,7 @@ const SECTIONS := [
 		["Carte", "N → Habitants → Niveaux de vie : du rouge (précaire) au bleu (très aisé)"],
 	]],
 	["Immobilier", [
-		["F7", "panneau Immobilier (menu Ville) : marché de chaque ville, promoteurs et permis de construire, quartiers qui changent, bidonvilles"],
+		["F11", "panneau Immobilier (menu Ville) : marché de chaque ville, promoteurs et permis de construire, quartiers qui changent, bidonvilles"],
 		["Prix et loyers", "chaque ville a un indice des prix : peu de logements vides et des emplois qui attirent du monde le font monter, beaucoup de logements vides le font baisser ; loyer = loyer de base × valeur du terrain × indice. Rares krachs quand les prix sont trop hauts"],
 		["Règles du maire", "encadrement des loyers (aucun, souple, moyen, strict), part de logements sociaux imposée aux promoteurs (0 à 30 %), permis de construire libre, sur demande ou gelé ; des règles strictes freinent les promoteurs"],
 		["Promoteurs", "Immo Prestige (résidences de standing dans les quartiers chers), Les Bâtisseurs Réunis (maisons), Béton & Fils (maison rasée pour un immeuble), Pierre & Rendement (immeuble racheté et rénové haut de gamme, loyers +30 %) ; ils bâtissent à leurs frais et la ville touche 5 % de taxe d'aménagement"],

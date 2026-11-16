@@ -1,6 +1,6 @@
 extends SceneTree
 ## Vitrine de l'immobilier : un bidonville en bord de ville, les logements sociaux
-## de chaque époque et la résidence de standing, le panneau Immobilier (F7).
+## de chaque époque et la résidence de standing, le panneau Immobilier (F11).
 ## Usage (avec affichage) :
 ##   godot --path . --rendering-driver opengl3 --script res://tests/immobilier_vitrine.gd -- --dossier /chemin/captures
 

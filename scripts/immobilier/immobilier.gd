@@ -1,6 +1,6 @@
 class_name Immobilier
 extends Node
-## Immobilier vivant (panneau Immobilier, F7) : les quartiers changent de visage
+## Immobilier vivant (panneau Immobilier, F11) : les quartiers changent de visage
 ## tout seuls.
 ##
 ## - Marché : chaque ville a un indice des prix qui suit la tension du marché
@@ -707,7 +707,7 @@ func proposer(proj: Dictionary) -> void:
 	next_demande += 1
 	dm["jour"] = _jour
 	demandes.append(dm)
-	message.emit("Permis de construire : %s demande à bâtir (%s, %s). Réponds dans le panneau Immobilier (F7)." % [
+	message.emit("Permis de construire : %s demande à bâtir (%s, %s). Réponds dans le panneau Immobilier (F11)." % [
 		nom_promoteur(String(proj.prom)), String(GENRES.get(String(proj.genre), "")).to_lower(), String(proj.lieu)])
 	changed.emit()
 

@@ -29,12 +29,12 @@ const TUILES := [
 ## ou de terre_main.ouvrir_panneau).
 const MENUS := [
 	{"titre": "La ville", "ids": [["budget", "Budget et impôts"], ["habitants", "Habitants"], ["niveaux_vie", "Niveaux de vie"], ["avis", "Avis et élections"],
-		["quartiers", "Quartiers et arrêtés"], ["objectifs", "Objectifs"], ["villages", "Villages"], ["pays", "Pays"], ["fondateurs", "Fondateurs et chantiers"], ["immobilier", "Immobilier"]]},
+		["quartiers", "Quartiers et arrêtés"], ["objectifs", "Objectifs"], ["villages", "Villages"], ["pays", "Pays"], ["fondateurs", "Fondateurs et chantiers"], ["immobilier", "Immobilier"], ["visites", "Visites et cartes postales"]]},
 	{"titre": "Services", "ids": [["services", "Écoles, santé, police"], ["urgences", "Urgences"], ["reseaux", "Eau, électricité, égouts"], ["dechets", "Déchets"], ["sante", "Santé publique"]]},
 	{"titre": "Économie", "ids": [["production", "Production"], ["agriculture", "Agriculture"], ["commerce", "Commerce mondial"], ["tourisme", "Tourisme"]]},
 	{"titre": "Transports", "ids": [["lignes", "Lignes"], ["trafic", "Trafic"]]},
-	{"titre": "Loisirs", "ids": [["parc", "Parc de loisirs"], ["zoo", "Zoo"], ["musee", "Musée"], ["spectacles", "Spectacles"], ["club", "Club de sport"]]},
-	{"titre": "Infos", "ids": [["stats", "Statistiques"], ["cartes", "Cartes"], ["journal", "Gazette"], ["saisons", "Saisons et risques"], ["succes", "Succès"]]},
+	{"titre": "Loisirs", "ids": [["parc", "Parc de loisirs"], ["zoo", "Zoo"], ["musee", "Musée"], ["spectacles", "Spectacles"], ["club", "Club de sport"], ["patrimoine", "Patrimoine"]]},
+	{"titre": "Infos", "ids": [["stats", "Statistiques"], ["cartes", "Cartes"], ["journal", "Gazette"], ["saisons", "Saisons et risques"], ["succes", "Succès"], ["climat", "Climat et pollution"]]},
 ]
 
 var stats: Statistiques

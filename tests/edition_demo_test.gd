@@ -77,7 +77,7 @@ func _run() -> void:
 	for id in ["demo", "nouvelle", "charger", "options", "credits", "souhaits", "quitter"]:
 		_check(menu._boutons.has(id), "bouton « %s »" % id)
 	var noms: Array = menu._menu.get_children().map(func(b) -> String: return String(b.name))
-	_check(noms.find("souhaits") == noms.find("quitter") - 1, "Liste de souhaits juste avant Quitter (%s)" % ", ".join(noms))
+	_check(noms.back() == "souhaits" and (menu._boutons.quitter as Node).get_parent() == menu._rangee, "Liste de souhaits en bas du menu, juste au-dessus de Quitter (%s)" % ", ".join(noms))
 	_check(menu.find_child("BadgeDemo", true, false) != null, "badge « DÉMO »")
 	_check(String((menu.find_child("VersionBuild", true, false) as Label).text).begins_with("Démo · "), "version marquée Démo")
 	(menu._boutons.souhaits as Button).pressed.emit()

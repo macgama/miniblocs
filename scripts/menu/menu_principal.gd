@@ -1,12 +1,18 @@
 class_name MenuPrincipal
 extends Node3D
 ## Écran titre et menu principal : une île low-poly qui tourne doucement, et à
-## gauche le menu (Continuer, Démo guidée, Scénarios et défis, Nouvelle partie, Charger, Atelier, Options,
-## Crédits, Quitter). C'est la scène de départ du jeu.
+## gauche le menu en groupes (Continuer, Nouvelle partie, Charger · Démo guidée, Scénarios et défis,
+## Entre amis, Visiter une ville · Atelier) et une rangée Succès, Options, Crédits, Quitter.
+## C'est la scène de départ du jeu. Tout tient dans 1600×900 (voir tests/menu_accueil_vitrine.gd).
 
 const SCENE := "res://scenes/menu_principal.tscn"
 const TERRE := "res://scenes/terre.tscn"
 const GLOBE := "res://scenes/globe.tscn"
+## Mise en page de la colonne de gauche (UI de base 1600×900, toujours au moins 900 de haut).
+const LARGEUR := 420.0
+const MARGE_HAUT := 52.0
+## Place gardée en bas pour la ligne de version.
+const MARGE_BAS := 52.0
 
 const DEVISES := [
 	"Le city builder où la Terre entière est ton chantier.",
@@ -37,6 +43,8 @@ var _carte_txt: Label
 var _sub: Control
 var _derniere := {}
 var _boutons := {}
+var _aide: Label
+var _rangee: HBoxContainer
 var _rng := RandomNumberGenerator.new()
 
 
@@ -133,14 +141,18 @@ func _build_ui() -> void:
 	grad.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_ui.add_child(grad)
 
+	# Colonne de gauche, de haut en bas : logo, devise, menu (défilant si l'écran est
+	# trop bas), ligne d'aide du bouton survolé, puis Succès · Options · Crédits · Quitter.
+	# Elle s'arrête au-dessus de la ligne de version : rien ne se chevauche.
 	var col := VBoxContainer.new()
-	col.position = Vector2(80, 90)
-	col.custom_minimum_size = Vector2(420, 0)
+	col.name = "Colonne"
+	col.position = Vector2(80, MARGE_HAUT)
+	col.custom_minimum_size = Vector2(LARGEUR, 0)
 	col.add_theme_constant_override("separation", 6)
 	_ui.add_child(col)
 	var logo := Label.new()
 	logo.text = "MiniBlocs"
-	logo.add_theme_font_size_override("font_size", 76)
+	logo.add_theme_font_size_override("font_size", 68)
 	logo.add_theme_color_override("font_color", UiStyle.ACCENT)
 	logo.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.55))
 	logo.add_theme_constant_override("shadow_offset_x", 3)
@@ -157,35 +169,58 @@ func _build_ui() -> void:
 	devise.name = "Devise"
 	devise.text = String(DEVISES[_rng.randi() % DEVISES.size()])
 	devise.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	devise.custom_minimum_size = Vector2(440, 0)
-	devise.add_theme_font_size_override("font_size", 17)
+	devise.custom_minimum_size = Vector2(LARGEUR, 0)
+	devise.add_theme_font_size_override("font_size", 16)
 	devise.add_theme_color_override("font_color", UiStyle.TEXT)
 	col.add_child(devise)
 	var sp := Control.new()
-	sp.custom_minimum_size = Vector2(0, 28)
+	sp.custom_minimum_size = Vector2(0, 14)
 	col.add_child(sp)
 
+	# Menu en trois groupes : jouer (la démo en tête pour qui découvre), d'autres façons
+	# de jouer, puis l'Atelier.
 	_menu = VBoxContainer.new()
-	_menu.add_theme_constant_override("separation", 8)
-	col.add_child(_menu)
+	_menu.name = "Menu"
+	_menu.add_theme_constant_override("separation", 6)
+	col.add_child(UiStyle.scroll_fit(_menu, col, MARGE_BAS))
 	_derniere = SaveGame.latest()
 	if not _derniere.is_empty():
 		var b := _bouton("continuer", "Continuer", "Reprendre « %s »" % String(_derniere.get("nom", _derniere.id)), continuer)
 		b.mouse_entered.connect(func() -> void: _carte.visible = true)
 	_bouton("demo", "Démo guidée", "Environ %d minutes, pas à pas : fonder un village près de %s et le faire grandir" % [Demo.DUREE_MIN, String(Demo.LIEU.nom).get_slice(",", 0)], lancer_demo)
-	_bouton("scenarios", "Scénarios et défis", "Des parties avec un lieu, des règles et une date limite : crue, ville sans voiture, grand hiver… et un classement", ouvrir_scenarios)
 	_bouton("nouvelle", "Nouvelle partie", "Choisir un lieu sur le globe, n'importe où sur Terre", nouvelle_partie)
-	_bouton("visites", "Visiter une ville", "Se promener dans la ville d'un ami ou d'un inconnu (fichier .mbloc, Workshop) et lui laisser une carte postale", ouvrir_visites)
-	_bouton("amis", "Entre amis", "Rejoindre la carte d'un ami avec son code, ou héberger une de tes parties", ouvrir_amis)
 	_bouton("charger", "Charger une partie", "Toutes les parties sauvegardées, avec leur aperçu", ouvrir_parties)
+	_separateur()
+	_bouton("scenarios", "Scénarios et défis", "Des parties avec un lieu, des règles et une date limite : crue, ville sans voiture, grand hiver… et un classement", ouvrir_scenarios)
+	_bouton("amis", "Entre amis", "Rejoindre la carte d'un ami avec son code, ou héberger une de tes parties", ouvrir_amis)
+	_bouton("visites", "Visiter une ville", "Se promener dans la ville d'un ami ou d'un inconnu (fichier .mbloc, Workshop) et lui laisser une carte postale", ouvrir_visites)
+	_separateur()
 	_bouton("atelier", "Atelier", "Créer des bâtiments sur un terrain plat, sans habitants ni argent", ouvrir_atelier)
-	_bouton("succes", "Succès", "%d succès débloqués sur %d, dans toutes tes parties" % [Succes.nombre(), Succes.total()], ouvrir_succes)
-	_bouton("options", "Options", "Graphismes, son, sauvegarde automatique, touches, manette", ouvrir_options)
-	_bouton("credits", "Crédits", "Qui a fait quoi, et avec quelles données", ouvrir_credits)
 	if EditionDemo.active():
 		_bouton("souhaits", "Liste de souhaits ♥", "Ouvrir la page Steam de MiniBlocs pour l'ajouter à ta liste de souhaits", func() -> void: EditionDemo.ouvrir_magasin())
-	_bouton("quitter", "Quitter", "Fermer le jeu (les habitants ne t'en voudront pas… trop)", quitter)
-	var first: Button = _boutons.get("continuer", _boutons.demo)
+	# Retire un séparateur resté en bout de groupe (édition démo : boutons absents).
+	_nettoyer_separateurs()
+
+	# Aide du bouton survolé ou sélectionné : une ligne fixe sous le menu, à la place
+	# des infobulles qui flottaient par-dessus les boutons et la version.
+	_aide = Label.new()
+	_aide.name = "Aide"
+	_aide.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_aide.custom_minimum_size = Vector2(LARGEUR, 42)
+	_aide.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+	_aide.add_theme_font_size_override("font_size", 14)
+	_aide.add_theme_color_override("font_color", Color(UiStyle.TEXT, 0.85))
+	col.add_child(_aide)
+
+	_rangee = HBoxContainer.new()
+	_rangee.name = "Rangee"
+	_rangee.add_theme_constant_override("separation", 6)
+	col.add_child(_rangee)
+	_bouton("succes", "Succès", "%d succès débloqués sur %d, dans toutes tes parties" % [Succes.nombre(), Succes.total()], ouvrir_succes, true)
+	_bouton("options", "Options", "Graphismes, son, sauvegarde automatique, touches, manette", ouvrir_options, true)
+	_bouton("credits", "Crédits", "Qui a fait quoi, et avec quelles données", ouvrir_credits, true)
+	_bouton("quitter", "Quitter", "Fermer le jeu (les habitants ne t'en voudront pas… trop)", quitter, true)
+	var first: Button = _boutons.get("continuer", _boutons.get("demo", _boutons.get("nouvelle")))
 	first.grab_focus.call_deferred()
 
 	# Carte « dernière partie » à droite, en bas.
@@ -227,28 +262,32 @@ func _build_ui() -> void:
 	version.anchor_bottom = 1.0
 	version.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	version.offset_left = 80
-	version.offset_bottom = -20
+	version.offset_bottom = -16
 	_ui.add_child(version)
 	if JournalPlantage.dernier_rapport != "" and not JournalPlantage.rapport_vu:
 		JournalPlantage.rapport_vu = true
 		ouvrir_rapport_plantage.call_deferred()
 
 
-func _bouton(id: String, texte: String, aide: String, cb: Callable) -> Button:
+func _bouton(id: String, texte: String, aide: String, cb: Callable, petit := false) -> Button:
 	# Édition démo (Steam Next Fest) : scénarios, carte entre amis, Atelier et succès absents.
 	if not EditionDemo.menu_visible(id):
 		return null
 	var b := Button.new()
 	b.name = id
 	b.text = texte
-	b.tooltip_text = aide
-	b.alignment = HORIZONTAL_ALIGNMENT_LEFT
-	b.custom_minimum_size = Vector2(340, 48)
-	b.add_theme_font_size_override("font_size", 20)
-	var n := UiStyle.flat_box(Color(0.06, 0.08, 0.07, 0.55), 10, 12)
-	n.content_margin_left = 20
-	var h := UiStyle.flat_box(Color(UiStyle.ACCENT, 0.92), 10, 12)
-	h.content_margin_left = 26
+	# Pas d'infobulle : l'aide s'affiche dans la ligne fixe sous le menu (_aide).
+	b.set_meta("aide", aide)
+	b.alignment = HORIZONTAL_ALIGNMENT_CENTER if petit else HORIZONTAL_ALIGNMENT_LEFT
+	b.custom_minimum_size = Vector2(0, 38) if petit else Vector2(LARGEUR, 44)
+	b.add_theme_font_size_override("font_size", 16 if petit else 19)
+	var marge := 8 if petit else 20
+	var n := UiStyle.flat_box(Color(0.06, 0.08, 0.07, 0.55), 10, 10)
+	n.content_margin_left = marge
+	n.content_margin_right = marge
+	var h := UiStyle.flat_box(Color(UiStyle.ACCENT, 0.92), 10, 10)
+	h.content_margin_left = marge if petit else 26
+	h.content_margin_right = marge
 	b.add_theme_stylebox_override("normal", n)
 	b.add_theme_stylebox_override("hover", h)
 	b.add_theme_stylebox_override("focus", h)
@@ -257,9 +296,45 @@ func _bouton(id: String, texte: String, aide: String, cb: Callable) -> Button:
 	b.add_theme_color_override("font_focus_color", UiStyle.ACCENT_INK)
 	b.add_theme_color_override("font_pressed_color", UiStyle.ACCENT_INK)
 	b.pressed.connect(cb)
-	_menu.add_child(b)
+	b.mouse_entered.connect(_montrer_aide.bind(b))
+	b.focus_entered.connect(_montrer_aide.bind(b))
+	if petit:
+		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_rangee.add_child(b)
+	else:
+		_menu.add_child(b)
 	_boutons[id] = b
 	return b
+
+
+func _montrer_aide(b: Button) -> void:
+	if _aide != null and is_instance_valid(b):
+		_aide.text = String(b.get_meta("aide", ""))
+
+
+## Petit espace entre deux groupes de boutons.
+func _separateur() -> void:
+	var s := Control.new()
+	s.name = "Separateur%d" % _menu.get_child_count()
+	s.custom_minimum_size = Vector2(0, 8)
+	s.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_menu.add_child(s)
+
+
+func _nettoyer_separateurs() -> void:
+	var precedent_sep := true
+	for c in _menu.get_children():
+		var sep := not (c is Button)
+		if sep and precedent_sep:
+			_menu.remove_child(c)
+			c.queue_free()
+			continue
+		precedent_sep = sep
+	var n := _menu.get_child_count()
+	if n > 0 and not (_menu.get_child(n - 1) is Button):
+		var d := _menu.get_child(n - 1)
+		_menu.remove_child(d)
+		d.queue_free()
 
 
 func _maj_carte() -> void:

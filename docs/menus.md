@@ -14,16 +14,27 @@ roue qui tourne (clin d'œil au sport et au parc de loisirs à venir). La camér
 tourne lentement autour (Options > Jeu > « Écran titre immobile » pour la figer).
 Une devise tirée au hasard s'affiche sous le titre.
 
-| Bouton | Effet |
-| --- | --- |
-| Continuer | reprend la partie la plus récente (sauvegarde auto comprise) ; sa carte avec l'aperçu est en bas à droite |
-| Démo guidée | partie d'environ 30 minutes au lieu de la démo, pas à pas, avec un bilan (voir [demo.md](demo.md)) |
-| Nouvelle partie | ouvre le globe pour choisir le lieu (Échap ou « Menu principal » pour revenir) |
-| Charger une partie | liste des parties, avec aperçu, fiche, renommer, supprimer |
-| Atelier | terrain plat pour créer des bâtiments, sans habitants ni argent |
-| Options | voir plus bas |
-| Crédits | données utilisées (relief, biomes, villes, drapeaux) |
-| Quitter | ferme le jeu |
+Le menu est rangé en trois groupes, puis une rangée de petits boutons. Tout tient
+dans la vue de base 1600 × 900 (donc à toutes les résolutions, l'interface étant
+en `canvas_items` / `expand`) ; si un jour il ne tenait plus, la liste défile
+(`UiStyle.scroll_fit`) au lieu de passer sous la ligne de version.
+
+| Groupe | Bouton | Effet |
+| --- | --- | --- |
+| Jouer | Continuer | reprend la partie la plus récente (sauvegarde auto comprise) ; sa carte avec l'aperçu est en bas à droite |
+| | Démo guidée | partie d'environ 30 minutes au lieu de la démo, pas à pas, avec un bilan (voir [demo.md](demo.md)) |
+| | Nouvelle partie | ouvre le globe pour choisir le lieu (Échap ou « Menu principal » pour revenir) |
+| | Charger une partie | liste des parties, avec aperçu, fiche, renommer, supprimer |
+| Autres façons de jouer | Scénarios et défis | parties avec règles et date limite |
+| | Entre amis | carte entre amis (code ou hébergement) |
+| | Visiter une ville | ville d'un autre en lecture seule (voir [visites.md](visites.md)) |
+| Créer | Atelier | terrain plat pour créer des bâtiments, sans habitants ni argent |
+| Rangée du bas | Succès · Options · Crédits · Quitter | succès, réglages (voir plus bas), données utilisées, fermer le jeu |
+
+Pas d'infobulle flottante : l'explication du bouton survolé (ou choisi à la
+manette) s'affiche sur une ligne fixe juste au-dessus de la rangée du bas.
+Vérifier la mise en page : `xvfb-run godot --path . --script res://tests/menu_accueil_vitrine.gd -- --dossier /tmp/accueil`
+(captures à 7 tailles de fenêtre, de 1280 × 720 à 2560 × 1080).
 
 ## Sauvegardes : nom et aperçu
 

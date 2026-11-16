@@ -1543,6 +1543,8 @@ func _aide() -> void:
 func ajouter_onglet(titre: String, control: Control) -> void:
 	if panneau != null and panneau.has_method("ajouter_onglet"):
 		panneau.ajouter_onglet(titre, control)
+	elif control.get_parent() == null:
+		control.queue_free()
 
 
 func caler(p: Vector3) -> Vector3:

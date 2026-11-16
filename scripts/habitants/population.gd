@@ -173,6 +173,9 @@ var effectif: Effectif
 var edu: Education
 ## Clic sur un employé visible (vue métiers) : Callable(écran, caméra) -> pid ou -1.
 var extra_person_pick: Callable
+## Prénom imposé au prochain habitant créé (mode streamer : pseudo d'un
+## spectateur) : func(sexe, age, role) -> String ("" : prénom habituel).
+var prenom_impose: Callable
 ## Vue au sol (pour incarner un habitant).
 var vue_sol: VueSol
 
@@ -610,13 +613,16 @@ func _add_person(hid: int, sex: String, age: float, role: String, surname: Strin
 	var h: Dictionary = households[hid]
 	var pid := next_pid
 	next_pid += 1
-	var p := {"id": pid, "f": hid, "p": Prenoms.first_name(rng, String(h.reg), sex), "n": surname, "s": sex,
+	var impose := String(prenom_impose.call(sex, age, role)) if prenom_impose.is_valid() else ""
+	var p := {"id": pid, "f": hid, "p": impose if impose != "" else Prenoms.first_name(rng, String(h.reg), sex), "n": surname, "s": sex,
 		"nj": life_clock - age * 365.25, "r": role, "job": -1, "met": "", "sch": -1, "hob": []}
 	p.hob = Metiers.pick_hobbies(rng, age)
 	CycleVie.ensure(p)
 	persons[pid] = p
 	version += 1
 	(h.m as Array).append(pid)
+	if impose != "" and prenom_impose.get_object() != null and prenom_impose.get_object().has_method("habitant_nomme"):
+		prenom_impose.get_object().habitant_nomme.call_deferred(pid, impose)
 	return pid
 
 

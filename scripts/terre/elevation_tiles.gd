@@ -107,7 +107,9 @@ func _process(_delta: float) -> void:
 func _on_completed(result: int, code: int, _headers: PackedStringArray, body: PackedByteArray, req: HTTPRequest) -> void:
 	var t: Vector2i = _request_tile.get(req, Vector2i(-1, -1))
 	_request_tile.erase(req)
-	_free_requests.append(req)
+	# Rendue libre après le signal : HTTPRequest n'accepte pas de nouvelle requête
+	# avant d'avoir fini de traiter celle-ci (sinon « HTTPRequest is processing a request »).
+	_liberer.call_deferred(req)
 	_queued.erase(t)
 	if result != HTTPRequest.RESULT_SUCCESS or code != 200:
 		push_warning("Tuile d'altitude %s non téléchargée (résultat %d, code HTTP %d)" % [t, result, code])
@@ -122,6 +124,11 @@ func _on_completed(result: int, code: int, _headers: PackedStringArray, body: Pa
 		f.store_buffer(body)
 	_keep_image(t, body)
 	_store(t, heights)
+
+
+func _liberer(req: HTTPRequest) -> void:
+	if is_instance_valid(req) and not _free_requests.has(req):
+		_free_requests.append(req)
 
 
 ## Une tuile introuvable devient une tuile au niveau de la mer pour ne pas bloquer le jeu.

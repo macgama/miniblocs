@@ -19,6 +19,7 @@ const SECTIONS := [
 		["Ⓑ · ☰ · ⧉", "annuler (Échap) · menu pause · Gérer / Créer (Tab)"],
 		["Ⓧ · Ⓨ", "tourner le bâtiment (R) · vue au sol (V)"],
 		["F6", "succès : toutes tes médailles, débloquées ou non (aussi dans le menu Infos et le menu principal)"],
+		["F12", "visites et cartes postales : faire visiter ta ville, visiter celle d'un autre, lire ton courrier"],
 	]],
 	["Barre du bas", [
 		["Tab · Gérer / Créer", "Gérer : la ville (terrain, voies, zonage, catalogue, lignes, habitants). Créer : construire un bâtiment soi-même (murs et étages, blocs, intérieur, Mes créations, banque, atelier, partage), la ville en pause ; touches 1 à 8 et échelle des étages"],
@@ -414,6 +415,10 @@ const SECTIONS := [
 		["ZQSD, Maj, Espace", "marcher, courir, sauter (vue au sol)"],
 		["E ou clic gauche", "ouvrir ou fermer une porte, une porte de garage (vue au sol), y compris dans les murs fins"],
 		["Échap", "libérer la souris (vue au sol)"],
+	]],
+	["Mode streamer (Twitch)", [
+		["Maj + F11 (ou Infos → Mode streamer)", "le chat de ta chaîne Twitch vote toutes les quelques minutes : catastrophes, décisions du maire, météo, fêtes ; les spectateurs tapent 1, 2 ou 3. Lecture seule et anonyme, sans compte ni clé ; désactivé par défaut"],
+		["Veto · Appliquer · !vote · !habitant", "annuler ou appliquer le résultat du chat · le streamer et ses modos lancent un vote · un spectateur donne son pseudo au prochain habitant"],
 	]],
 	["Mode photo et time-lapse", [
 		["F8 (ou Infos → Mode photo)", "le temps se fige, l'interface disparaît, une caméra libre part de ta vue : ZQSD avancer, A / E descendre et monter, clic droit glissé regarder, molette zoomer, Maj vite, Ctrl lent"],

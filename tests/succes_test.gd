@@ -96,7 +96,8 @@ func _run() -> void:
 	_check(noms_ok, "noms Steam valides (MB_…, majuscules) et textes remplis")
 	_check(icones_ok, "chaque succès a une icône")
 	# Chaque compteur est bien relevé quelque part.
-	var src := FileAccess.get_file_as_string("res://scripts/succes/succes_suivi.gd") + FileAccess.get_file_as_string("res://scripts/manette/manette.gd")
+	var src := FileAccess.get_file_as_string("res://scripts/succes/succes_suivi.gd") + FileAccess.get_file_as_string("res://scripts/manette/manette.gd") \
+		+ FileAccess.get_file_as_string("res://scripts/visite/visites_panel.gd") + FileAccess.get_file_as_string("res://scripts/visite/courrier.gd")
 	var orphelins: Array = []
 	for s in Succes.NOUVEAUX:
 		if not src.contains("\"%s\"" % String(s.stat)):

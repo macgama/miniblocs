@@ -373,6 +373,13 @@ L'onglet **Intérieur** (icône fauteuil) du panneau Construire aménage les bâ
 - **Découvrir** : « Recevoir » lit les fichiers .mbloc du dossier d'échange ; Installer, Mettre à jour, Retirer, filtre par sorte et recherche.
 - **Steam Workshop** : la couche `PartageSteam` (GodotSteam) prendra le relais à la sortie sur Steam : publier enverra sur le Workshop et les abonnements s'installeront seuls. Détails : [docs/partage.md](docs/partage.md).
 
+### Visiter les villes des autres (F12)
+
+- **Faire visiter sa ville** : un mot d'accueil, puis « Fichier .mbloc de ma ville » (à envoyer) ou « Publier sur le Workshop ». Livre d'or au choix : les visiteurs voient les cartes déjà reçues.
+- **Visiter** (F12, ou menu principal → Visiter une ville) : on se promène (vue au sol V, à bord E, photo F8), on regarde les panneaux, on ne construit ni ne règle rien, et rien n'est sauvegardé.
+- **Cartes postales** : un mot, un timbre, la photo de la vue, épinglée là où on regarde. Elle arrive toute seule dans le courrier du maire (dossier d'échange, ou serveur de la carte entre amis).
+- **Carte entre amis** : « Visiter (sans construire) » ; l'admin peut ouvrir aux visiteurs sans code. Détails : [docs/visites.md](docs/visites.md).
+
 ![Une rue de Maisons à pignon personnalisées, la dernière ouverte en murs fins](docs/personnaliser_rue.png)
 ![Le panneau Personnaliser](docs/personnaliser_panneau.png)
 ![Une Maison à pignon ouverte : pièces et meubles](docs/personnaliser_coupe.png)
@@ -527,6 +534,10 @@ Détails : [docs/sante.md](docs/sante.md).
 Menu **Loisirs → Musée** (touche **Maj+C**) : 12 musées prêts à poser (beaux-arts, muséum, sciences, civilisations, transports, cinéma et musique, sport, mer, préhistoire, jouet et BD, vin…) ou tes propres murs, 26 fonctions de salle (galerie de peinture, Égypte, dinosaures, locomotives, automobile, espace, cinéma, mode, musique…), 208 objets en 24 familles. La note dépend du prestige des œuvres bien rangées par thème, de l'éclairage, du confort et des services ; les visiteurs (habitants et touristes) vont d'œuvre en œuvre, paient leur billet, passent à la boutique et au café. Expositions temporaires, gratuité du 1er dimanche, fermeture le lundi. Détails : [docs/musee.md](docs/musee.md).
 
 ![Musées en coupe](docs/apercu-musee-coupe.jpg)
+
+## Mode streamer : le chat Twitch vote
+
+**Maj+F11** (menu Infos) : pendant un live, le chat Twitch vote toutes les quelques minutes pour une catastrophe, une décision du maire, la météo ou une fête (les spectateurs tapent 1, 2 ou 3), avec un délai de veto pour le streamer ; `!habitant` donne son pseudo au prochain habitant. Lecture seule et anonyme, sans compte ni clé, désactivé par défaut ; « Simuler le chat » pour essayer sans Twitch. Détails : [docs/streamer.md](docs/streamer.md).
 
 ## Vue au sol : marcher à la 3e ou à la 1re personne
 

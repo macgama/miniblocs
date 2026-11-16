@@ -80,6 +80,15 @@ func ajouter_onglet(titre: String, control: Control) -> void:
 	_add_tab(titre, v)
 
 
+## Les onglets d'autres systèmes qui ne sont pas affichés ne sont dans aucun arbre :
+## on les libère avec le panneau (sinon ils restent en mémoire à chaque partie chargée).
+func _exit_tree() -> void:
+	for c in _extra.values():
+		if is_instance_valid(c) and (c as Control).get_parent() == null:
+			(c as Control).free()
+	_extra.clear()
+
+
 func is_open() -> bool:
 	return _panel.visible
 

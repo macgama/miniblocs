@@ -579,6 +579,7 @@ func _dessine(f: Vector3) -> void:
 	var anim := {}
 	var kc := Vector2i(floori(f.x / TUILE), floori(f.z / TUILE))
 	var n := ceili(RAYON / TUILE)
+	var epoques_on := Epoques.actif()
 	var sources: Array = [poses, _routes]
 	if _auto_on():
 		sources.append(_auto)
@@ -590,8 +591,15 @@ func _dessine(f: Vector3) -> void:
 			for src: Dictionary in sources:
 				if not src.has(k):
 					continue
+				var auto := not is_same(src, poses)
 				for r: Array in src[k]:
 					var id: String = r[0]
+					# Décors posés tout seuls : l'équivalent de l'époque (réverbère
+					# à gaz, barque, meule), ou rien s'il n'était pas encore inventé.
+					if auto and epoques_on:
+						id = EpoquesObjets.decor_epoque(id)
+						if id == "":
+							continue
 					if is_nan(float(r[2])):
 						r[2] = _hauteur(id, r[1], r[3])
 						if is_nan(float(r[2])):
@@ -924,7 +932,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 		elif not mb.pressed and _glisse:
 			_glisse = false
-			if outil == Outil.POSER and p != null:
+			if outil == Outil.POSER and p != null and not EpoquesObjets.decor_disponible(choix):
+				message.emit("%s : %s" % [Decors.nom(choix), EpoquesObjets.raison(EpoquesObjets.annee_decor(choix))])
+			elif outil == Outil.POSER and p != null:
 				var a: Vector3 = _debut_ligne
 				var b: Vector3 = p
 				var n := 0
@@ -958,6 +968,8 @@ func _maj_outil(delta: float) -> void:
 
 ## Pinceau : sème quelques exemplaires du décor choisi, sans trop les serrer.
 func _seme(centre: Vector3) -> void:
+	if not EpoquesObjets.decor_disponible(choix):
+		return
 	var ecart := maxf(Decors.emprise(choix) * 1.1, 1.2)
 	var essais := maxi(1, roundi(densite * 4.0))
 	var k := Vector2i(floori(centre.x / TUILE), floori(centre.z / TUILE))

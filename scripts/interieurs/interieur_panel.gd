@@ -224,6 +224,9 @@ func build(bp: BuildingPanel) -> void:
 	for id in ids:
 		if shown >= MAX_SHOWN:
 			break
+		# Meubles pas encore inventés à l'époque de la partie : cachés.
+		if not EpoquesObjets.meuble_disponible(String(id)):
+			continue
 		var e := Meubles.get_entry(String(id))
 		var b2 := Button.new()
 		b2.text = "%s · %s" % [e.name, Meubles.style_of(String(e.style)).name]

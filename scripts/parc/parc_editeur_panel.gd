@@ -296,6 +296,10 @@ func _vue_familles(ordre: Array, titre: String, aide: String) -> void:
 			_vignettes.request_mesh("voie_modele_" + id, func() -> Mesh: return _maquette(modele), b, 160)
 		else:
 			b.icon = Icones.get_icon("parc", 40)
+		var ep := EpoquesObjets.raison(EpoquesObjets.annee_famille_voie(id))
+		if ep != "":
+			b.disabled = true
+			b.tooltip_text = "%s\n%s" % [String(f.desc), ep]
 		b.pressed.connect(func() -> void:
 			attractions.nouveau(id)
 			refresh())
@@ -305,6 +309,8 @@ func _vue_familles(ordre: Array, titre: String, aide: String) -> void:
 	var g2 := _grille(2)
 	for m: Dictionary in AttractionsPerso.modeles():
 		if not String(m.famille) in ordre:
+			continue
+		if EpoquesObjets.annee_famille_voie(String(m.famille)) > EpoquesObjets.annee_partie():
 			continue
 		var b := _carte(String(m.nom), "Modèle « %s » (%s). Clic : poser la gare." % [String(m.nom), String(VoiePieces.famille(String(m.famille)).nom)], 206.0, 120.0)
 		_vignettes.request_mesh("voie_pret_" + String(m.nom).md5_text(), func() -> Mesh: return _maquette(m), b, 160)

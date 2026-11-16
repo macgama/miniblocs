@@ -1537,6 +1537,7 @@ func _setup_succes() -> void:
 	add_child(succes_suivi)
 	succes_suivi.setup(self)
 	hud.succes_requested.connect(toggle_succes)
+	hud.catalogue_requested.connect(toggle_catalogue)
 	if Manette.instance != null:
 		Manette.instance.commande.connect(_on_commande_manette)
 
@@ -1548,6 +1549,19 @@ func toggle_succes() -> void:
 	succes_panel = SuccesPanel.new()
 	succes_panel.closed.connect(func() -> void: succes_panel = null)
 	_windows_layer().add_child(succes_panel)
+
+
+## Catalogue daté de tout ce qui se construit (Maj+F1, menu Infos).
+var catalogue_panel: CataloguePanel
+
+
+func toggle_catalogue() -> void:
+	if catalogue_panel != null:
+		catalogue_panel.close_panel()
+		return
+	catalogue_panel = CataloguePanel.new()
+	catalogue_panel.closed.connect(func() -> void: catalogue_panel = null)
+	_windows_layer().add_child(catalogue_panel)
 
 
 func _on_commande_manette(nom: String) -> void:

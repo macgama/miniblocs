@@ -461,6 +461,9 @@ static func filtered(cat := "", style := "", region := "", era := "", text := ""
 
 ## Meilleur meuble d'un type dans un style (ou un style proche de la même époque).
 static func pick(type_id: String, style: String) -> String:
+	# Pas encore inventé à l'époque de la partie (frigo, télé, douche…) : rien.
+	if not EpoquesObjets.meuble_disponible(type_id):
+		return ""
 	var a := all()
 	var id := "%s/%s" % [style, type_id]
 	if a.has(id):
@@ -490,11 +493,11 @@ static func pick(type_id: String, style: String) -> String:
 static func pick_any(types: Array, style: String) -> String:
 	# Identifiants complets (« musee/vitrine_murale ») : pris tels quels.
 	for t in types:
-		if String(t).contains("/") and all().has(String(t)):
+		if String(t).contains("/") and all().has(String(t)) and EpoquesObjets.meuble_disponible(String(t)):
 			return String(t)
 	for t in types:
 		var id := "%s/%s" % [style, t]
-		if all().has(id):
+		if all().has(id) and EpoquesObjets.meuble_disponible(String(t)):
 			return id
 	for t in types:
 		var id2 := pick(String(t), style)

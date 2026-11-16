@@ -85,6 +85,8 @@ signal photo_requested
 signal streamer_requested
 ## Succès du joueur (F6, menu Infos).
 signal succes_requested
+## Catalogue daté de tout ce qui se construit (Maj+F1, menu Infos).
+signal catalogue_requested
 ## Visites et cartes postales (F12).
 signal visites_requested
 ## Bouton Admin de la barre du haut, ou F10 : réglages de la partie.
@@ -170,6 +172,7 @@ const CATEGORIES := [
 	{"id": "photo", "name": "Mode photo et time-lapse (Maj+F8)", "icon": "appareil_photo", "key": "F8", "panel": true, "group": "infos"},
 	{"id": "souterrain", "name": "Vue sous terre (tuyaux, câbles, métro, sous-sols)", "icon": "souterrain", "key": "Page bas", "panel": true, "group": "infos"},
 	{"id": "succes", "name": "Succès", "icon": "trophee", "key": "F6", "panel": true, "group": "infos"},
+	{"id": "catalogue", "name": "Catalogue : tout ce qui se construit, daté, avec ses évolutions", "icon": "catalogue", "key": "Maj+F1", "panel": true, "group": "infos"},
 	{"id": "streamer", "name": "Mode streamer (le chat Twitch vote)", "icon": "direct", "key": "Maj+F11", "panel": true, "group": "infos"},
 	{"id": "murs", "name": "Murs et étages", "icon": "mur", "key": "2", "panel": true, "mode": "creer"},
 	{"id": "blocs", "name": "Blocs", "icon": "editeur", "key": "3", "panel": true, "mode": "creer"},
@@ -916,6 +919,7 @@ func _on_category(id: String) -> void:
 			"photo": photo_requested.emit()
 			"streamer": streamer_requested.emit()
 			"succes": succes_requested.emit()
+			"catalogue": catalogue_requested.emit()
 			"visites": visites_requested.emit()
 		_update_categories()
 		return
@@ -1296,7 +1300,9 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			_set_current_tool(i)
 			tool_selected.emit(i)
 			return
-	if key.keycode == KEY_F1:
+	if key.keycode == KEY_F1 and key.shift_pressed:
+		catalogue_requested.emit()
+	elif key.keycode == KEY_F1:
 		help_requested.emit()
 	elif key.keycode == KEY_F5:
 		save_requested.emit()

@@ -55,7 +55,12 @@ var budget_panel: BudgetPanel
 var dechets: Dechets
 ## Saisons, neige et déneigement, crues, sécheresse, canicule (Maj+R).
 var saisons: Saisons
+var sante: SantePublique
+var sante_panel: SantePanel
 var saisons_panel: SaisonsPanel
+## Climat et pollution : bilan carbone, réchauffement, mer, sols pollués, plan climat (Maj+F7).
+var climat: Climat
+var climat_panel: ClimatPanel
 var dechets_panel: DechetsPanel
 ## Parc de loisirs : attractions, visiteurs, files, billets, note (Maj+G).
 var musee: Musee
@@ -75,6 +80,9 @@ var zoo_panel: ZooPanel
 ## Tourisme : hébergements, touristes, dépenses en ville (menu Loisirs, Maj+R).
 var tourisme: Tourisme
 var tourisme_panel: TourismePanel
+## Patrimoine : classement, abords, entretien, grands monuments (touche Fin).
+var patrimoine: Patrimoine
+var patrimoine_panel: PatrimoinePanel
 ## Commerce entre villes et pays : cours mondiaux, accords, crises (Économie, Maj+S).
 var commerce_mondial: CommerceMondial
 var commerce_panel: CommercePanel
@@ -119,6 +127,9 @@ var telecom_panel: TelecomPanel
 var nuisances: Nuisances
 ## Agrandissements (3 niveaux), rénovations et densification du zonage.
 var ameliorations: Ameliorations
+## Immobilier vivant (F11) : prix, promoteurs, gentrification, bidonvilles, logements sociaux.
+var immobilier: Immobilier
+var immobilier_panel: ImmobilierPanel
 ## Panneau « Cartes » (touche N) : cartes de couleur de tous les systèmes.
 var cartes_panel: CartesPanel
 ## Villages du joueur et leur territoire (Maj+M, scripts/communes).
@@ -209,7 +220,9 @@ func _ready() -> void:
 	_setup_tourisme()
 	_setup_evenements()
 	_setup_saisons()
+	_setup_sante()
 	_setup_nuisances()
+	_setup_climat()
 	_setup_avis()
 	_setup_parc_editeur()
 	_setup_partage()
@@ -217,7 +230,9 @@ func _ready() -> void:
 	_setup_fondateurs()
 	_setup_pays()
 	_setup_commerce()
+	_setup_patrimoine()
 	_setup_niveaux_vie()
+	_setup_immobilier()
 	_setup_statistiques()
 	_setup_journal()
 	_setup_tutoriel()
@@ -406,6 +421,7 @@ func save_sections() -> Dictionary:
 	sec["kit"] = kit.to_dict()
 	sec["rue_fondation"] = rue_fondation.to_dict()
 	sec["niveaux_vie"] = niveaux_vie.to_dict()
+	sec["immobilier"] = immobilier.to_dict()
 	sec["statistiques"] = statistiques.to_dict()
 	sec["journal"] = journal.to_dict()
 	sec["tutoriel"] = tutoriel.to_dict()
@@ -413,6 +429,7 @@ func save_sections() -> Dictionary:
 	sec["musee"] = musee.to_dict()
 	sec["spectacles"] = spectacles.to_dict()
 	sec["club"] = club.to_dict()
+	sec["climat"] = climat.to_dict()
 	var autres := {}
 	for s in clubs:
 		if s != "football" and (clubs[s] as ClubSport).fonde():
@@ -421,8 +438,10 @@ func save_sections() -> Dictionary:
 	sec["parc"] = parc.to_dict()
 	sec["zoo"] = zoo.to_dict()
 	sec["tourisme"] = tourisme.to_dict()
+	sec["patrimoine"] = patrimoine.to_dict()
 	sec["commerce_mondial"] = commerce_mondial.to_dict()
 	sec["quartiers"] = quartiers.to_dict()
+	sec["sante"] = sante.to_dict()
 	sec["parc_editeur"] = attractions.to_dict()
 	sec["parc_allees"] = parc_allees.to_dict()
 	sec["timelapse"] = timelapse.to_dict()
@@ -557,12 +576,15 @@ func load_game(slot := "") -> bool:
 	parc.from_dict(sec.get("parc", {}))
 	zoo.from_dict(sec.get("zoo", {}))
 	tourisme.from_dict(sec.get("tourisme", {}))
+	patrimoine.from_dict(sec.get("patrimoine", {}))
 	commerce_mondial.from_dict(sec.get("commerce_mondial", {}))
 	funeraire.from_dict(sec.get("funeraire", {}))
 	ambiance.from_dict(sec.get("ambiance", {}))
 	# Après les bâtiments et les habitants : dégâts, ruines, malades, matchs.
 	evenements.from_dict(sec.get("evenements", {}))
 	saisons.from_dict(sec.get("saisons", {}))
+	climat.from_dict(sec.get("climat", {}))
+	sante.from_dict(sec.get("sante", {}))
 	communes.ignorer = false
 	if sec.has("communes"):
 		communes.from_dict(sec.communes)
@@ -587,6 +609,8 @@ func load_game(slot := "") -> bool:
 	nuisances.from_dict(sec.get("nuisances", {}))
 	# Après les habitants : niveau de chaque foyer (ancienne partie : évalués au premier jour).
 	niveaux_vie.from_dict(sec.get("niveaux_vie", {}))
+	# Après les bâtiments et les habitants : bidonvilles, logements de standing, prix.
+	immobilier.from_dict(sec.get("immobilier", {}))
 	statistiques.from_dict(sec.get("statistiques", {}))
 	# Après les villages : une partie d'avant le time-lapse filme ses villages dès maintenant.
 	if sec.has("timelapse"):
@@ -805,6 +829,55 @@ func _setup_evenements() -> void:
 	hud.infos_requested.connect(func() -> void: evenements_panel.toggle())
 
 
+## Climat et pollution (Maj+F7, menu Infos) : bilan carbone, réchauffement qui décale
+## la météo, montée de la mer, sols pollués (carte N), mix électrique, plan climat.
+func _setup_climat() -> void:
+	climat = Climat.new()
+	add_child(climat)
+	climat.setup(world, buildings, transport, population, ambiance, reseaux, agriculture, evenements)
+	climat.message.connect(func(t: String) -> void: hud.show_message(t))
+	climat.changed.connect(func() -> void: _unsaved = true)
+	climat_panel = ClimatPanel.new()
+	climat_panel.name = "PanneauClimat"
+	add_child(climat_panel)
+	climat_panel.setup(climat)
+	climat_panel.focus_requested.connect(func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
+	hud.climat_requested.connect(func() -> void: climat_panel.toggle())
+	var c := CalqueCouleur.new()
+	c.name = "CalqueSols"
+	c.world = world
+	c.focus = rig
+	c.degrade = CalqueCouleur.degrade_nuisance()
+	c.seuil = 0.03
+	add_child(c)
+	var cm := climat
+	c.valeur = func(x: float, z: float) -> float:
+		var v := cm.sol_at(x, z)
+		return v if v >= 0.03 else -1.0
+	climat.changed.connect(c.rafraichir)
+	Calques.ajouter("climat_sols", "Sols pollués", "Nuisances", c.montrer,
+		"pollution qui reste dans la terre pendant des années : usines, mines, décharges, pesticides (du jaune au violet).")
+## Santé publique : hygiène, vaccins, mesures sanitaires, grandes épidémies
+## de l'histoire (choléra de 1832, grippe de 1918…) ; panneau F7 (menu Infos).
+func _setup_sante() -> void:
+	sante = SantePublique.new()
+	add_child(sante)
+	sante.setup(evenements, population, buildings)
+	sante.message.connect(func(t: String) -> void:
+		if not _chargement:
+			hud.show_message(t))
+	sante_panel = SantePanel.new()
+	sante_panel.name = "PanneauSante"
+	add_child(sante_panel)
+	sante_panel.setup(sante)
+	sante_panel.focus_requested.connect(func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
+	hud.sante_requested.connect(func() -> void: sante_panel.toggle())
+
+
 ## Saisons et risques naturels : relevés et prévisions, neige sur les routes et
 ## chasse-neige, crues, sécheresse, canicule, gel ; panneau Maj+R (menu Infos).
 func _setup_saisons() -> void:
@@ -1017,6 +1090,47 @@ func _setup_niveaux_vie() -> void:
 		"niveau moyen des foyers de chaque logement : du rouge (précaire) au bleu (très aisé). Maj+N : ce qui les empêche de monter.")
 	niveaux_vie_panel.carte_requested.connect(func() -> void: Calques.afficher("habitants_niveaux", true))
 	hud.niveaux_vie_requested.connect(func() -> void: niveaux_vie_panel.toggle())
+## Immobilier vivant (F11) : indice des prix par ville, promoteurs et permis,
+## gentrification par secteur, bidonvilles, logements sociaux ; carte « Quartiers
+## qui changent » dans les Cartes (N → Immobilier).
+func _setup_immobilier() -> void:
+	immobilier = Immobilier.new()
+	immobilier.name = "Immobilier"
+	add_child(immobilier)
+	immobilier.setup(buildings, population, nuisances, zones, ameliorations)
+	immobilier.message.connect(func(t: String) -> void: hud.show_message(t))
+	immobilier.changed.connect(func() -> void: _unsaved = true)
+	immobilier_panel = ImmobilierPanel.new()
+	immobilier_panel.name = "PanneauImmobilier"
+	add_child(immobilier_panel)
+	immobilier_panel.setup(immobilier)
+	immobilier_panel.lieu_requested.connect(func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
+	var cg := CalqueCouleur.new()
+	cg.name = "CalqueGentrification"
+	cg.world = world
+	cg.focus = rig
+	cg.degrade = CalqueCouleur.degrade_valeur()
+	cg.alpha = Vector2(0.55, 0.8)
+	add_child(cg)
+	var im := immobilier
+	cg.valeur = func(x: float, z: float) -> float:
+		var k := Immobilier.secteur_de(Vector3(x, 0, z))
+		if not im.secteurs.has(k):
+			return -1.0
+		# Bidonville : rouge vif.
+		var bq := buildings.building_at(Vector2i(floori(x), floori(z)))
+		if bq >= 0 and Immobilier.precaire(bq):
+			return 0.0
+		return clampf(0.5 + im.evolution_secteur(k) * 2.0, 0.0, 1.0)
+	im.changed.connect(cg.rafraichir)
+	Calques.ajouter("immobilier_quartiers", "Quartiers qui changent", "Immobilier", cg.montrer,
+		"évolution des prix sur six mois par secteur de 200 m : bleu, il s'embourgeoise ; rouge, il se paupérise (et les bidonvilles). F11 : panneau Immobilier.")
+	immobilier_panel.carte_requested.connect(func() -> void: Calques.afficher("immobilier_quartiers", true))
+	hud.immobilier_requested.connect(func() -> void: immobilier_panel.toggle())
+
+
 ## Statistiques dans le temps et conseiller (Maj+I, menu Infos).
 func _setup_statistiques() -> void:
 	statistiques = Statistiques.new()
@@ -1108,7 +1222,7 @@ func ouvrir_panneau(id: String) -> void:
 	var panels := {"budget": budget_panel, "avis": avis_panel, "construire": build_panel, "trafic": trafic_panel,
 		"dechets": dechets_panel, "reseaux": reseaux_panel, "services": services_panel, "cartes": cartes_panel,
 		"lignes": transit_panel, "pays": pays_panel, "production": production_panel, "objectifs": objectifs_panel,
-		"saisons": saisons_panel}
+		"saisons": saisons_panel, "sante": sante_panel, "climat": climat_panel}
 	var p = panels.get(id)
 	if p != null:
 		p.set_open(true)
@@ -2518,6 +2632,53 @@ func _setup_tourisme() -> void:
 	hud.tourisme_requested.connect(func() -> void: tourisme_panel.toggle())
 
 
+## Patrimoine : bâtiments inscrits et classés (protection, abords, entretien,
+## restauration) et grands monuments sur plusieurs années (touche Fin).
+func _setup_patrimoine() -> void:
+	patrimoine = Patrimoine.new()
+	patrimoine.name = "Patrimoine"
+	add_child(patrimoine)
+	patrimoine.setup(buildings, population, ambiance, vie_batiments)
+	patrimoine.message.connect(func(t: String) -> void: hud.show_message(t))
+	patrimoine.changed.connect(func() -> void: _unsaved = true)
+	patrimoine.actualite.connect(func(t: String, pos: Vector3) -> void:
+		if evenements != null:
+			evenements.news(t, pos, "patrimoine"))
+	# Un monument protégé ne se démolit pas ; ses abords ont des règles.
+	var prev_demol: Callable = buildings.demolish_check
+	buildings.demolish_check = func(bid: int) -> String:
+		var why := patrimoine.raison_demolir(bid)
+		if why != "":
+			return why
+		return String(prev_demol.call(bid)) if prev_demol.is_valid() else ""
+	var prev_check: Callable = buildings.extra_check
+	buildings.extra_check = func(id: String, rect: Rect2i) -> Dictionary:
+		var mine := patrimoine.check_place(id, rect)
+		if String(mine.get("reason", "")) != "":
+			return mine
+		var res: Dictionary = prev_check.call(id, rect) if prev_check.is_valid() else {}
+		if String(mine.get("info", "")) != "" and String(res.get("reason", "")) == "":
+			res = res.duplicate()
+			res["info"] = (String(res.get("info", "")) + "  " + String(mine.info)).strip_edges()
+		return res
+	# Entretenu, un monument protégé s'use moins vite.
+	var prev_usure: Callable = vie_batiments.extra_usure
+	vie_batiments.extra_usure = func(bid: int) -> float:
+		var k := float(prev_usure.call(bid)) if prev_usure.is_valid() else 1.0
+		return k * patrimoine.usure_rythme(bid)
+	patrimoine_panel = PatrimoinePanel.new()
+	patrimoine_panel.name = "PanneauPatrimoine"
+	add_child(patrimoine_panel)
+	patrimoine_panel.setup(patrimoine)
+	patrimoine_panel.building_chosen.connect(func(id: String) -> void:
+		_select_building_tool()
+		buildings.set_place(id))
+	patrimoine_panel.focus_requested.connect(func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
+	hud.patrimoine_requested.connect(func() -> void: patrimoine_panel.toggle())
+
+
 ## Commerce : marché mondial, villes partenaires, accords, crises (Maj+S).
 func _setup_commerce() -> void:
 	commerce_mondial = CommerceMondial.new()
@@ -2659,7 +2820,7 @@ func _loisirs_ouvert() -> bool:
 
 
 func _panneaux_parc() -> Dictionary:
-	return {"parc": parc_panel, "parc_editeur": parc_editeur_panel, "zoo": zoo_panel, "musee": musee_panel, "spectacles": spectacles_panel, "club": club_panel, "tourisme": tourisme_panel}
+	return {"parc": parc_panel, "parc_editeur": parc_editeur_panel, "zoo": zoo_panel, "musee": musee_panel, "spectacles": spectacles_panel, "club": club_panel, "tourisme": tourisme_panel, "patrimoine": patrimoine_panel}
 
 
 ## Panneau « Paysage » : pinceaux de terrain (outil 0).
@@ -2736,6 +2897,10 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 		evenements.clear()
 	if saisons != null:
 		saisons.clear()
+	if climat != null:
+		climat.clear()
+	if sante != null:
+		sante.clear()
 	if avis != null:
 		avis.clear()
 	if pays != null:
@@ -2752,6 +2917,8 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 		rue_fondation.clear()
 	if niveaux_vie != null:
 		niveaux_vie.clear()
+	if immobilier != null:
+		immobilier.clear()
 	if journal != null:
 		journal.clear()
 	if communes != null:
@@ -2779,6 +2946,8 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 		(clubs[s] as ClubSport).clear()
 	if tourisme != null:
 		tourisme.clear()
+	if patrimoine != null:
+		patrimoine.clear()
 	if commerce_mondial != null:
 		commerce_mondial.clear()
 	resource_overlay.show_resource(resource_overlay.res)
@@ -2870,7 +3039,7 @@ var _open_before := {}
 ## Construire, Lignes et Habitants partagent la même place à droite : quand
 ## l'un s'ouvre, les autres se ferment. Leur bouton de la barre du bas s'allume.
 func _exclusive_panels() -> void:
-	var panels := {"pays": pays_panel, "objectifs": objectifs_panel, "quartiers": quartiers_panel, "construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "agriculture": agri_panel, "urgences": urgences_panel, "reseaux": reseaux_panel, "dechets": dechets_panel, "trafic": trafic_panel, "budget": budget_panel, "telecom": telecom_panel, "perso": perso_panel, "infos": evenements_panel, "cartes": cartes_panel, "avis": avis_panel, "villages": villages_panel, "fondateurs": fondateurs_panel, "stats": stats_panel, "saisons": saisons_panel}
+	var panels := {"pays": pays_panel, "objectifs": objectifs_panel, "quartiers": quartiers_panel, "construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "agriculture": agri_panel, "urgences": urgences_panel, "reseaux": reseaux_panel, "dechets": dechets_panel, "trafic": trafic_panel, "budget": budget_panel, "telecom": telecom_panel, "perso": perso_panel, "infos": evenements_panel, "cartes": cartes_panel, "avis": avis_panel, "villages": villages_panel, "fondateurs": fondateurs_panel, "stats": stats_panel, "saisons": saisons_panel, "sante": sante_panel, "climat": climat_panel}
 	var opened := ""
 	panels.merge(_panneaux_parc())
 	panels["musee"] = musee_panel

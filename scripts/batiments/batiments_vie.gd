@@ -303,7 +303,7 @@ func progress(bid: int) -> float:
 func etape_de(bid: int) -> Array:
 	if not _chantiers.has(bid):
 		return []
-	return Chantiers.etape(Chantiers.ETAPES_BATIMENT, progress(bid))
+	return Chantiers.etape(Chantiers.etapes_batiment(String(buildings.buildings[bid].t)), progress(bid))
 
 
 ## Fait avancer les chantiers selon les heures de travail écoulées depuis le dernier passage.
@@ -421,9 +421,16 @@ func _part_semaine(b: Dictionary, k: float) -> int:
 func _show_etape(bid: int) -> void:
 	var c: Dictionary = _chantiers[bid]
 	var b: Dictionary = buildings.buildings[bid]
-	var e := Chantiers.etape(Chantiers.ETAPES_BATIMENT, float(b.get("av", 0.0)))
+	var e := Chantiers.etape(Chantiers.etapes_batiment(String(b.t)), float(b.get("av", 0.0)))
 	var key: String = e[1]
 	var u: float = e[3]
+	c["u"] = u
+	# Grand monument : ses étapes propres, montrées comme celles d'un bâtiment.
+	if MonumentsTypes.est_monument(String(b.t)):
+		var vu := MonumentsTypes.visuel(String(b.t), float(b.get("av", 0.0)))
+		key = String(vu[0])
+		u = float(vu[1])
+	c["u"] = u
 	var H: float = c.H
 	var h := -1.0
 	match key:
@@ -528,7 +535,7 @@ func _poser_ouvriers(bid: int, c: Dictionary) -> void:
 			y = 0.0
 		"murs":
 			gestes = ["marteler", "porter"]
-			var built := (floorf(Chantiers.etape(Chantiers.ETAPES_BATIMENT, progress(bid))[3] * ceilf(c.H / 3.0)) + 1.0) * 3.0
+			var built := (floorf(float(c.get("u", 0.0)) * ceilf(c.H / 3.0)) + 1.0) * 3.0
 			y = maxf(0.0, floorf((minf(built, c.H) - 1.5) / 2.0) * 2.0)
 			tour = true
 		"toit":

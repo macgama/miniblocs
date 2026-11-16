@@ -1049,6 +1049,9 @@ func rendement(ch: Dictionary) -> float:
 		elif String(ch.prec) in ["colza", "soja", "prairie", "paturage"] and cult in ["ble", "orge", "mais"]:
 			f *= AgriDonnees.BONNE_ROTATION
 	f *= 1.0 - float(ch.get("pertes", 0.0))
+	# Sols pollués et normes agricoles (module Climat).
+	if Climat.instance != null:
+		f *= Climat.instance.facteur_champ(ch)
 	return float(c.rdt) * surface(ch) * f
 
 

@@ -25,7 +25,8 @@ const CONTENU := "contenu.json"
 const APERCU := "apercu.png"
 ## Taille maximale d'un fichier du paquet (octets).
 const MAX_OCTETS := 24 * 1024 * 1024
-const GENRES := ["modele", "creation", "attraction", "site"]
+## ville : une partie entière à visiter (VisiteVille) ; carte : une carte postale (Courrier).
+const GENRES := ["modele", "creation", "attraction", "site", "ville", "carte"]
 
 
 ## Nouveau paquet. cle : "<genre>:<id de la création>".

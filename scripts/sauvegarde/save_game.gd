@@ -223,8 +223,8 @@ static func list_saves() -> Array[Dictionary]:
 	if d == null:
 		return out
 	for name in d.get_directories():
-		# L'atelier n'est pas une partie : il ne paraît pas dans la liste.
-		if name == "atelier":
+		# L'atelier et la ville qu'on visite ne sont pas des parties : ils ne paraissent pas dans la liste.
+		if name == "atelier" or name == "visite":
 			continue
 		var m := read_manifest(name)
 		if not m.is_empty():

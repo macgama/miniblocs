@@ -25,6 +25,8 @@ var membres := {}
 var exclus := {}
 ## vid -> pid du maire
 var maires := {}
+## Visiteurs sans code d'invitation (inconnus) permis : ils se promènent sans construire.
+var visites_ouvertes := false
 var _prochain := 1
 
 
@@ -53,6 +55,20 @@ func creer(nom_carte: String, createur_id: String) -> void:
 	nom = nom_carte
 	createur = createur_id
 	code = nouveau_code()
+
+
+## Visiteur (pas membre, pas de caisse, ne construit pas). Renvoie {"ok", "raison", "pseudo"}.
+func accepter_visiteur(pid: String, pseudo_: String, code_tape: String) -> Dictionary:
+	if pid.length() < 8:
+		return {"ok": false, "raison": "Identifiant de joueur invalide."}
+	if exclus.has(pid):
+		return {"ok": false, "raison": "L'admin de la carte t'en a exclu."}
+	if not visites_ouvertes and not membres.has(pid) and normaliser_code(code_tape) != code:
+		return {"ok": false, "raison": "Cette carte ne s'ouvre aux visiteurs qu'avec le code d'invitation."}
+	var p := nettoyer_pseudo(pseudo_, 0)
+	if p == "Joueur 0":
+		p = "Visiteur"
+	return {"ok": true, "raison": "", "pseudo": p}
 
 
 ## Demande d'entrée. Renvoie {"ok", "raison", "nouveau": premier passage}.
@@ -136,7 +152,7 @@ func to_dict(caisses: Dictionary = {}) -> Dictionary:
 	for k in caisses:
 		cs[str(k)] = int(caisses[k])
 	return {"version": VERSION, "nom": nom, "code": code, "createur": createur, "membres": m,
-		"exclus": exclus.keys(), "maires": ma, "prochain": _prochain, "caisses": cs}
+		"exclus": exclus.keys(), "maires": ma, "prochain": _prochain, "caisses": cs, "visites_ouvertes": visites_ouvertes}
 
 
 ## Renvoie les caisses personnelles enregistrées (clé -> solde).
@@ -158,6 +174,7 @@ func from_dict(d: Dictionary) -> Dictionary:
 	for vid in dma:
 		maires[int(vid)] = String(dma[vid])
 	_prochain = maxi(int(d.get("prochain", 1)), 1)
+	visites_ouvertes = bool(d.get("visites_ouvertes", false))
 	for pid in membres:
 		_prochain = maxi(_prochain, int(membres[pid].n) + 1)
 	if code == "":

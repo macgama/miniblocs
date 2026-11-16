@@ -19,6 +19,7 @@ const SECTIONS := [
 		["Ⓑ · ☰ · ⧉", "annuler (Échap) · menu pause · Gérer / Créer (Tab)"],
 		["Ⓧ · Ⓨ", "tourner le bâtiment (R) · vue au sol (V)"],
 		["F6", "succès : toutes tes médailles, débloquées ou non (aussi dans le menu Infos et le menu principal)"],
+		["F7", "visites et cartes postales : faire visiter ta ville, visiter celle d'un autre, lire ton courrier"],
 	]],
 	["Barre du bas", [
 		["Tab · Gérer / Créer", "Gérer : la ville (terrain, voies, zonage, catalogue, lignes, habitants). Créer : construire un bâtiment soi-même (murs et étages, blocs, intérieur, Mes créations, banque, atelier, partage), la ville en pause ; touches 1 à 8 et échelle des étages"],

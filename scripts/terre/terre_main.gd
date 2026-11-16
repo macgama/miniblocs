@@ -151,6 +151,8 @@ var quartiers_panel: QuartiersPanel
 ## Mode photo (F8) et time-lapse de la ville (Maj+F8), scripts/photo.
 var mode_photo: ModePhoto
 var timelapse: TimeLapse
+var mode_streamer: ModeStreamer
+var streamer_panel: StreamerPanel
 var timelapse_panel: TimeLapsePanel
 
 
@@ -228,6 +230,7 @@ func _ready() -> void:
 	_setup_create_mode()
 	_setup_son()
 	_setup_photo()
+	_setup_streamer()
 	_setup_succes()
 	hud.traffic_toggled.connect(func(on: bool) -> void: transport.traffic.set_enabled(on))
 	hud.traffic_filter_changed.connect(func(era: String, region: String) -> void:
@@ -421,6 +424,7 @@ func save_sections() -> Dictionary:
 	sec["parc_editeur"] = attractions.to_dict()
 	sec["parc_allees"] = parc_allees.to_dict()
 	sec["timelapse"] = timelapse.to_dict()
+	sec["streamer"] = mode_streamer.to_dict()
 	sec["edition_demo"] = limite_demo.to_dict()
 	# Serveur de carte entre amis : membres, code d'invitation, caisses personnelles.
 	if Multijoueur.role == Multijoueur.Role.SERVEUR:
@@ -584,6 +588,10 @@ func load_game(slot := "") -> bool:
 	else:
 		timelapse.clear()
 		timelapse.adopter_villages()
+	if sec.has("streamer"):
+		mode_streamer.from_dict(sec.streamer)
+	else:
+		mode_streamer.clear()
 	journal.from_dict(sec.get("journal", {}))
 	($VueSol as VueSol).from_dict(sec.get("personnage", {}))
 	_load_settings(sec.get("reglages", {}), m)
@@ -1025,6 +1033,25 @@ func _setup_statistiques() -> void:
 
 ## Mode photo (F8 : temps figé, caméra libre, filtres, photo sans l'interface)
 ## et time-lapse (Maj+F8 : une image par jour depuis la fondation, export vidéo).
+## Mode streamer (F7) : le chat Twitch vote pour des catastrophes, des décisions
+## du maire, la météo ou des fêtes ; « !habitant » donne son pseudo à un habitant.
+func _setup_streamer() -> void:
+	mode_streamer = ModeStreamer.new()
+	mode_streamer.name = "ModeStreamer"
+	add_child(mode_streamer)
+	mode_streamer.setup(evenements, population, rig)
+	mode_streamer.message.connect(func(t: String) -> void: hud.show_message(t))
+	mode_streamer.changed.connect(func() -> void: _unsaved = true)
+	streamer_panel = StreamerPanel.new()
+	streamer_panel.name = "PanneauStreamer"
+	add_child(streamer_panel)
+	streamer_panel.setup(mode_streamer)
+	streamer_panel.focus_requested.connect(func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
+	hud.streamer_requested.connect(func() -> void: streamer_panel.toggle())
+
+
 func _setup_photo() -> void:
 	timelapse = TimeLapse.new()
 	timelapse.name = "TimeLapse"
@@ -2752,7 +2779,7 @@ var _open_before := {}
 ## Construire, Lignes et Habitants partagent la même place à droite : quand
 ## l'un s'ouvre, les autres se ferment. Leur bouton de la barre du bas s'allume.
 func _exclusive_panels() -> void:
-	var panels := {"pays": pays_panel, "objectifs": objectifs_panel, "quartiers": quartiers_panel, "construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "agriculture": agri_panel, "urgences": urgences_panel, "reseaux": reseaux_panel, "dechets": dechets_panel, "trafic": trafic_panel, "budget": budget_panel, "telecom": telecom_panel, "perso": perso_panel, "infos": evenements_panel, "cartes": cartes_panel, "avis": avis_panel, "villages": villages_panel, "fondateurs": fondateurs_panel, "stats": stats_panel, "saisons": saisons_panel}
+	var panels := {"pays": pays_panel, "objectifs": objectifs_panel, "quartiers": quartiers_panel, "construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "agriculture": agri_panel, "urgences": urgences_panel, "reseaux": reseaux_panel, "dechets": dechets_panel, "trafic": trafic_panel, "budget": budget_panel, "telecom": telecom_panel, "perso": perso_panel, "streamer": streamer_panel, "infos": evenements_panel, "cartes": cartes_panel, "avis": avis_panel, "villages": villages_panel, "fondateurs": fondateurs_panel, "stats": stats_panel, "saisons": saisons_panel}
 	var opened := ""
 	panels.merge(_panneaux_parc())
 	panels["musee"] = musee_panel

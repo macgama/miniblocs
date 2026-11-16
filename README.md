@@ -515,6 +515,10 @@ Menu **Loisirs → Musée** (touche **Maj+C**) : 12 musées prêts à poser (bea
 
 ![Musées en coupe](docs/apercu-musee-coupe.jpg)
 
+## Mode streamer : le chat Twitch vote
+
+**F7** (menu Infos) : pendant un live, le chat Twitch vote toutes les quelques minutes pour une catastrophe, une décision du maire, la météo ou une fête (les spectateurs tapent 1, 2 ou 3), avec un délai de veto pour le streamer ; `!habitant` donne son pseudo au prochain habitant. Lecture seule et anonyme, sans compte ni clé, désactivé par défaut ; « Simuler le chat » pour essayer sans Twitch. Détails : [docs/streamer.md](docs/streamer.md).
+
 ## Vue au sol : marcher à la 3e ou à la 1re personne
 
 Dans le mode Terre, appuie sur **V** (ou les boutons **Dessus / 3e pers. / 1re pers.** en haut au centre) : un personnage apparaît au sol, au centre de la vue de gestion.

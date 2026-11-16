@@ -555,6 +555,11 @@ func _build_bottom() -> void:
 			# Les menus de la ville sont dans le tableau de bord de la Mairie (tuile Mairie, M).
 			if gid != "ville":
 				row.add_child(gb)
+			else:
+				# Hors de l'arbre : on le libère avec la barre (sinon un nœud orphelin par partie).
+				tree_exiting.connect(func() -> void:
+					if is_instance_valid(gb):
+						gb.free())
 		(_group_popups[gid].get_child(0) as HBoxContainer).add_child(b)
 	if _cat_buttons.has("mairie"):
 		var names := []

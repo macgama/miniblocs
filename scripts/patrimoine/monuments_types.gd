@@ -28,6 +28,7 @@ const PIERRE := Color("d2c8b2")
 const PIERRE_SOMBRE := Color("b4aa94")
 const ARDOISE := Color("4f5560")
 const PLOMB := Color("6c7378")
+const TOIT_CATH := Color("75818a")
 const CUIVRE := Color("6fa595")
 const OR := Color("d9b13b")
 const VITRAIL := Color("3d4f8a")
@@ -267,7 +268,7 @@ static func build(k: BlocMesh, id: String, t: Dictionary) -> void:
 			var p := PIERRE
 			# Nef et bas-côtés.
 			k.box(0, 0, 6, 15, 30, 72, p)
-			k.gable(0, 30, 6, 15.6, 72, 11, ARDOISE, false)
+			k.gable(0, 30, 6, 15.6, 72, 11, TOIT_CATH, false)
 			for s: float in [-1.0, 1.0]:
 				k.box(s * 12.5, 0, 6, 10, 15, 72, p.darkened(0.05))
 				k.gable(s * 12.5, 15, 6, 10.4, 72, 4, PLOMB, false)
@@ -281,14 +282,14 @@ static func build(k: BlocMesh, id: String, t: Dictionary) -> void:
 					k.cylinder(s * 18.5, 18, z, 0.7, 0.0, 4.0, 4, p)
 			# Transept.
 			k.box(0, 0, 22, 44, 30, 14, p)
-			k.gable(0, 30, 22, 44.6, 14.6, 10, ARDOISE, true)
+			k.gable(0, 30, 22, 44.6, 14.6, 10, TOIT_CATH, true)
 			for s: float in [-1.0, 1.0]:
 				k.box(s * 22.06, 12, 22, 0.12, 9, 9, VITRAIL)
 			# Chœur et abside.
 			k.box(0, 0, 38, 15, 30, 18, p)
-			k.gable(0, 30, 38, 15.6, 18, 11, ARDOISE, false)
+			k.gable(0, 30, 38, 15.6, 18, 11, TOIT_CATH, false)
 			k.cylinder(0, 0, 49, 8.6, 8.6, 30, 8, p)
-			k.cylinder(0, 30, 49, 9.0, 0.0, 11, 8, ARDOISE)
+			k.cylinder(0, 30, 49, 9.0, 0.0, 11, 8, TOIT_CATH)
 			# Façade et deux tours.
 			k.box(0, 0, -34, 16, 36, 8, p.lightened(0.05))
 			k.gable(0, 36, -34, 16, 8, 6, p, true)

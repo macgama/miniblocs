@@ -646,7 +646,7 @@ func nouveau_jour() -> void:
 	if bool(jour.journees) and int(dt.weekday) == 6:
 		var n := proteges.size()
 		if n > 0:
-			var txt := "Journées du patrimoine : %d monuments ouverts gratuitement ce week-end. Les guides ont révisé leurs blagues." % n
+			var txt := "Journées du patrimoine : %d monument%s ouvert%s gratuitement ce week-end. Les guides ont révisé leurs blagues." % [n, "s" if n > 1 else "", "s" if n > 1 else ""]
 			message.emit(txt)
 			actualite.emit(txt, Vector3.INF)
 	changed.emit()

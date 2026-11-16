@@ -340,20 +340,15 @@ func _run() -> void:
 	var recharger := float(_arg("recharger", "120"))
 	var rapport := _arg("rapport", "")
 	var rapport_listes := _arg("listes", "")
-	var fps := Engine.physics_ticks_per_second
-	var fixe := 0
-	var ca := OS.get_cmdline_args()
-	var fi := ca.find("--fixed-fps")
-	if fi >= 0 and fi + 1 < ca.size():
-		fixe = int(ca[fi + 1])
-	if fixe <= 0:
-		print("  (sans --fixed-fps, le temps du jeu suit l'horloge réelle : le banc durera vraiment %.0f h)" % heures)
+	# --fixed-fps n'est pas dans les arguments visibles du script : on le reconnaît au pas de temps.
+	await _frames(3)
+	var pas_s := get_root().get_process_delta_time()
 	var r := ReglagesPartie.preset("normal")
 	r.tutoriel = false
 	ReglagesPartie.prochaine = r
 	OptionsJeu.autosave_min = 5
 
-	print("Longue partie près de Bâle (%.1f h de jeu, %d habitants au départ, %s images/s) :" % [heures, hab, str(fixe) if fixe > 0 else "temps réel"])
+	print("Longue partie près de Bâle (%.1f h de jeu, %d habitants au départ, pas de %.1f ms) :" % [heures, hab, pas_s * 1000.0])
 	change_scene_to_file("res://scenes/globe.tscn")
 	await _frames(5)
 	var globe: Node = current_scene
@@ -418,7 +413,8 @@ func _run() -> void:
 			lent += 1
 			if lent <= 20:
 				print("    image de %.1f s à la minute %.1f" % [ms / 1000.0, minute])
-		minute += (1.0 / float(fixe)) / 60.0 if fixe > 0 else ms / 60000.0
+		# Minutes de jeu réel simulées : le pas de temps du moteur (fixe avec --fixed-fps).
+		minute += get_root().get_process_delta_time() / 60.0
 		if minute >= prochain_releve:
 			prochain_releve += ech
 			var rel := _releve(minute, ims, float(Time.get_ticks_msec() - _debut_ech))

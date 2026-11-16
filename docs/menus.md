@@ -36,9 +36,13 @@ Une devise tirée au hasard s'affiche sous le titre.
   pas une section : le format de sauvegarde reste le format 2, les anciennes
   parties s'ouvrent sans aperçu.
 - **Sauvegarde automatique** : toutes les 5 minutes par défaut (Options > Jeu :
-  jamais, 2, 5, 10 ou 15 min), seulement s'il y a eu des changements, dans la
-  partie à part « sauvegarde-auto » (marquée ⟳ dans la liste). Ta partie à toi
-  n'est jamais écrasée par elle.
+  jamais, 2, 5, 10 ou 15 min), seulement s'il y a eu des changements, dans
+  trois parties à part qui tournent (« sauvegarde-auto », « -2 », « -3 »,
+  marquées ⟳ dans la liste) : la plus ancienne est remplacée. Ta partie à toi
+  n'est jamais écrasée par elles.
+- **Après un plantage** : le menu principal le dit, montre où est le rapport
+  (dossier `plantages`, rien n'est envoyé) et propose de reprendre la dernière
+  sauvegarde automatique. Voir docs/stabilite.md.
 
 ## Options (`OptionsJeu`, `OptionsPanel`)
 

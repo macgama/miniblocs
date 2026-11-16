@@ -213,8 +213,12 @@ func _run() -> void:
 	bs.buildings[zh]["fin"] = scene.ambiance.unix_time - 100.0 * 86400.0
 	scene.zones._demand_cache = {"R": 100.0, "C": 0.0, "I": 0.0}
 	var log := int(scene.population.known[zh].log)
+	# Un foyer arrivé entre-temps (arrivées actives dans ce test) remplirait la maison : on la vide.
+	var deja: Array = scene.population.by_home.get(zh, [])
+	scene.population.by_home[zh] = []
 	var r := am.raison_densif(zh)
 	_check(r == "logements libres", "vide : %s" % r)
+	scene.population.by_home[zh] = deja
 	scene.population.by_home[zh] = range(-1, -1 - log, -1)
 	scene.nuisances.coef_bat[zh] = 1.0
 	_check(am.raison_densif(zh) == "terrain pas assez cher", "terrain moyen : pas d'agrandissement")

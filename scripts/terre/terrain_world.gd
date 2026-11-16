@@ -84,6 +84,8 @@ var horizon: HorizonTerrain
 ## Optionnel : Callable(c: Vector2i) -> bool. Vrai = pas d'arbre sur cette case
 ## (ex. une route posée sur un terrain plat).
 var tree_blocker: Callable
+## Atelier : ni arbres, ni herbes, ni fleurs (terrain vide pour construire).
+var sans_vegetation := false
 var _tree_mesh: Mesh
 var _bush_mesh: Mesh
 var _dirty: Dictionary = {}
@@ -1382,6 +1384,8 @@ func _plant_vegetation(mi: MeshInstance3D, job: Dictionary) -> void:
 	for child in mi.get_children():
 		mi.remove_child(child)
 		child.queue_free()
+	if sans_vegetation:
+		return
 	var veg: Dictionary = job.veg
 	var cells: Array[Vector2i] = veg.cells
 	var xforms: Array[Transform3D] = veg.xforms

@@ -377,6 +377,10 @@ func _ready() -> void:
 				VisiteVille.oublier()
 	if GameStart.atelier:
 		_start_atelier.call_deferred()
+	elif GameStart.modele_a_poser != "":
+		var cid := GameStart.modele_a_poser
+		GameStart.modele_a_poser = ""
+		get_tree().create_timer(0.6).timeout.connect(func() -> void: poser_modele(cid))
 	if VisiteVille.active() and not VisiteVille.en_ligne:
 		_debut_visite()
 	# Nouvelle partie : on commence par fonder le village (le tutoriel le
@@ -973,6 +977,7 @@ func _setup_communes() -> void:
 	villages_panel.name = "PanneauVillages"
 	add_child(villages_panel)
 	villages_panel.setup(communes)
+	villages_panel.bord_droit = func() -> float: return build_panel.bord_gauche() if build_panel != null else -1.0
 	villages_panel.focus_requested.connect(func(pos: Vector3) -> void:
 		rig.position.x = pos.x
 		rig.position.z = pos.z)
@@ -2502,6 +2507,8 @@ func _prepare_atelier() -> void:
 		return a
 	# Sol bâti (WorldCover 50) : ni arbres ni herbes hautes.
 	world.land.offline_generator = func(_lat: float, _lon: float) -> int: return 50
+	# Terrain vide : pas d'arbres, d'herbes hautes ni de fleurs qui gênent la vue et le clic.
+	world.sans_vegetation = true
 	GameStart.chosen = true
 	GameStart.lat = GameStart.ATELIER_LAT
 	GameStart.lon = GameStart.ATELIER_LON
@@ -2519,8 +2526,11 @@ func _start_atelier() -> void:
 	ambiance.weather.mode = Meteo.Mode.SOLEIL
 	set_create_mode(true)
 	hud.set_category_label("atelier", "Quitter", "Quitter l'atelier et revenir à la partie (l'atelier est gardé tel quel) (7)")
-	hud.set_create_banner("Atelier : terrain plat, sans habitants ni argent  ·  7 : quitter")
-	hud.show_message("Atelier : crée, personnalise, meuble, puis range tes bâtiments dans la banque (6).")
+	hud.set_create_banner("Atelier : terrain vide, sans habitants ni argent  ·  7 : retour à la partie")
+	hud.show_message("Atelier : construis, puis « Enregistrer mon bâtiment » en haut de l'écran.")
+	parcours.poser_possible = GameStart.retour_slot != "" and SaveGame.exists(GameStart.retour_slot)
+	parcours.texte_poser = "Le poser dans ma partie"
+	parcours.set_shown(true)
 
 
 ## Tuile Atelier : y aller depuis la partie (après l'avoir sauvegardée), ou en revenir.
@@ -2557,7 +2567,21 @@ func _toggle_atelier() -> void:
 var _speed_before_create := -1
 
 
+## Parcours guidé du mode Créer : 3 étapes et « Enregistrer mon bâtiment ».
+var parcours: ParcoursAtelier
+
+
 func _setup_create_mode() -> void:
+	parcours = ParcoursAtelier.new()
+	parcours.name = "ParcoursAtelier"
+	add_child(parcours)
+	parcours.setup(plans, blocks, mobilier, func() -> Vector3: return rig.global_position)
+	parcours.poser_demande.connect(poser_modele)
+	build_panel.save_requested.connect(func() -> void: parcours.ouvrir())
+	_setup_mairie()
+	build_panel.atelier_requested.connect(func() -> void:
+		build_panel.set_open(false)
+		_toggle_atelier())
 	hud.mode_changed.connect(set_create_mode)
 	hud.create_requested.connect(_on_create_requested)
 	hud.level_step_requested.connect(func(d: int) -> void: plans.step_level(d))
@@ -2575,6 +2599,10 @@ func set_create_mode(on: bool) -> void:
 		return
 	if hud.create_mode != on:
 		hud.set_create_mode(on)
+	if parcours:
+		parcours.set_shown(on)
+	if fil_alertes:
+		fil_alertes.set_shown(not on and not GameStart.atelier)
 	if on:
 		_select_building_tool()
 		if _speed_before_create < 0:
@@ -2589,6 +2617,103 @@ func set_create_mode(on: bool) -> void:
 		if _speed_before_create >= 0:
 			ambiance.set_speed(_speed_before_create)
 			_speed_before_create = -1
+
+
+## Tableau de bord de la Mairie (M), fil d'alertes et recherche dans tout le jeu (Espace).
+var mairie_panel: MairiePanel
+var fil_alertes: FilAlertes
+var recherche: RechercheUniverselle
+
+
+func _setup_mairie() -> void:
+	mairie_panel = MairiePanel.new()
+	mairie_panel.name = "PanneauMairie"
+	add_child(mairie_panel)
+	mairie_panel.setup(statistiques,
+		func() -> String: return Statistiques.PAYS if pays == null or pays.selection == Pays.PAYS else str(pays.selection),
+		func() -> String: return pays.nom_de(pays.selection) if pays != null else "")
+	mairie_panel.panneau_requested.connect(aller_au_panneau)
+	hud.mairie_requested.connect(func() -> void: mairie_panel.toggle())
+	mairie_panel.visibilite.connect(func(on: bool) -> void: hud.set_mairie_open(on))
+	fil_alertes = FilAlertes.new()
+	fil_alertes.name = "FilAlertes"
+	add_child(fil_alertes)
+	fil_alertes.setup(mairie_panel)
+	fil_alertes.panneau_requested.connect(aller_au_panneau)
+	fil_alertes.set_shown(not GameStart.atelier)
+	recherche = RechercheUniverselle.new()
+	recherche.name = "RechercheUniverselle"
+	add_child(recherche)
+	recherche.extras = [{"genre": "panneau", "id": "mairie", "nom": "Mairie", "detail": "Tableau de bord et alertes",
+		"mots": "mairie tableau de bord alertes gestion conseiller maire", "cle": "M", "icone": "mairie"},
+		{"genre": "action", "id": "atelier", "nom": "Atelier", "detail": "Créer un bâtiment sur un terrain vide",
+		"mots": "atelier créer bâtiment modèle construire libre", "cle": "", "icone": "atelier"},
+		{"genre": "action", "id": "aide", "nom": "Aide", "detail": "Toutes les touches et le mode d'emploi",
+		"mots": "aide touches raccourcis clavier", "cle": "F1", "icone": "aide"}]
+	var vue := get_node_or_null("VueSol")
+	recherche.peut_ouvrir = func() -> bool:
+		return pause_menu == null and (vue == null or int(vue.vue) == 0) and not parcours.dialog_open()
+	recherche.choisi.connect(_on_recherche)
+	hud.search_requested.connect(func() -> void: recherche.ouvrir())
+
+
+## Ouvre un panneau de gestion par son id (Mairie, fil d'alertes, recherche).
+func aller_au_panneau(id: String) -> void:
+	if hud.create_mode and not GameStart.atelier:
+		set_create_mode(false)
+	if id == "mairie":
+		mairie_panel.set_open(true)
+		return
+	var directs := ["budget", "avis", "construire", "trafic", "dechets", "reseaux", "services", "cartes", "lignes", "pays", "production", "objectifs", "saisons"]
+	if directs.has(id):
+		ouvrir_panneau(id)
+	else:
+		hud._on_category(id)
+
+
+func _on_recherche(e: Dictionary) -> void:
+	match String(e.genre):
+		"batiment":
+			var id := String(e.id)
+			if hud.create_mode and not GameStart.atelier:
+				set_create_mode(false)
+			_select_building_tool()
+			if not hud.create_mode:
+				build_panel.set_open(true)
+				build_panel.show_category(String(BuildingCatalog.get_type(id).get("cat", "logement")))
+			FavorisConstruire.noter(id)
+			buildings.set_place(id)
+			hud.show_message("%s en main : clic pour le poser · R pour tourner · Échap pour annuler." % String(e.nom))
+		"outil":
+			if hud.create_mode and not GameStart.atelier:
+				set_create_mode(false)
+			var i := int(e.id)
+			hud._buttons[i].button_pressed = true
+			hud._buttons[i].pressed.emit()
+		"panneau":
+			aller_au_panneau(String(e.id))
+		"action":
+			match String(e.id):
+				"atelier": _toggle_atelier()
+				"aide": hud.help_requested.emit()
+
+
+## « Le poser dans ma partie » : depuis l'Atelier, retour à la partie avec le
+## bâtiment en main ; dans la partie, retour en mode Gérer, bâtiment en main.
+func poser_modele(catalog_id: String) -> void:
+	if GameStart.atelier:
+		GameStart.modele_a_poser = catalog_id
+		_toggle_atelier()
+		return
+	if BuildingCatalog.get_type(catalog_id).is_empty():
+		return
+	if hud.create_mode:
+		set_create_mode(false)
+	_select_building_tool()
+	build_panel.set_open(true)
+	build_panel.show_category(ModelesJeu.CATEGORY)
+	buildings.set_place(catalog_id)
+	hud.show_message("« %s » en main : clic pour le poser · R pour tourner · Échap pour annuler." % String(BuildingCatalog.get_type(catalog_id).name))
 
 
 ## Barre du bas du mode Créer : Murs et étages, Blocs, Intérieur, Mes créations.

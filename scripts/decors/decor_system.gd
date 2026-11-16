@@ -202,6 +202,11 @@ func _jour() -> float:
 
 
 ## Décors automatiques d'une tuile (sans les voies). null si le relief manque.
+## Décors automatiques (rochers, fleurs, bancs le long des rues) : jamais dans l'Atelier.
+func _auto_on() -> bool:
+	return auto_actif and not GameStart.atelier
+
+
 func _calcule_tuile(k: Vector2i) -> Variant:
 	var out := []
 	var rng := RandomNumberGenerator.new()
@@ -531,7 +536,7 @@ func _process(delta: float) -> void:
 			_champs_cle = cle
 	var f := _focus()
 	# Les tuiles manquantes, les plus proches d'abord, avec un budget de temps.
-	if auto_actif:
+	if _auto_on():
 		var t0 := Time.get_ticks_usec()
 		var kc := Vector2i(floori(f.x / TUILE), floori(f.z / TUILE))
 		var n := ceili(RAYON / TUILE)
@@ -575,7 +580,7 @@ func _dessine(f: Vector3) -> void:
 	var kc := Vector2i(floori(f.x / TUILE), floori(f.z / TUILE))
 	var n := ceili(RAYON / TUILE)
 	var sources: Array = [poses, _routes]
-	if auto_actif:
+	if _auto_on():
 		sources.append(_auto)
 	else:
 		sources = [poses]

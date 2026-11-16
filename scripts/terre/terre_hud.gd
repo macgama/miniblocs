@@ -21,6 +21,10 @@ signal production_requested
 signal agriculture_requested
 ## Panneau « Budget » (touche M) : impôts, emprunts, entretien des voies.
 signal budget_requested
+## Tuile « Mairie » (M) : tableau de bord de la gestion.
+signal mairie_requested
+## Tuile « Chercher » (Espace) : recherche dans tout le jeu.
+signal search_requested
 ## Bouton « Décors » (touche G) : bancs, clôtures, animaux, bateaux, rochers…
 signal decors_requested
 ## Panneau Infos : événements de la ville (touche I).
@@ -128,6 +132,7 @@ const CATEGORIES := [
 	{"id": "voies", "name": "Voies", "icon": "route", "key": "5-9", "tools": [4, 5, 6, 7, 9, 8]},
 	{"id": "paysage", "name": "Paysage", "icon": "paysage", "key": "0", "tools": [10]},
 	{"id": "construire", "name": "Construire", "icon": "construire", "key": "B", "panel": true},
+	{"id": "mairie", "name": "Mairie : tableau de bord et alertes", "icon": "mairie", "key": "M", "panel": true},
 	{"id": "lignes", "name": "Lignes", "icon": "lignes", "key": "L", "panel": true, "group": "transports"},
 	{"id": "habitants", "name": "Habitants", "icon": "habitants", "key": "H", "panel": true, "group": "ville"},
 	{"id": "production", "name": "Production", "icon": "ressources", "key": "P", "panel": true, "group": "economie"},
@@ -146,7 +151,7 @@ const CATEGORIES := [
 	{"id": "quartiers", "name": "Quartiers et arrêtés", "icon": "pancarte", "key": "Maj+Y", "panel": true, "group": "ville"},
 	{"id": "visites", "name": "Visites et cartes postales (faire visiter sa ville, visiter celle des autres)", "icon": "carte_postale", "key": "F12", "panel": true, "group": "ville"},
 	{"id": "trafic", "name": "Trafic", "icon": "circulation", "key": "Maj+L", "panel": true, "group": "transports"},
-	{"id": "budget", "name": "Budget", "icon": "budget", "key": "M", "panel": true, "group": "ville"},
+	{"id": "budget", "name": "Budget", "icon": "budget", "key": "", "panel": true, "group": "ville"},
 	{"id": "dechets", "name": "Déchets", "icon": "dechets", "key": "X", "panel": true, "group": "ville"},
 	{"id": "parc_editeur", "name": "Créer un parc (attractions, grands-huit, allées, décors)", "icon": "loisirs", "key": "Maj+A", "panel": true, "group": "loisirs"},
 	{"id": "parc", "name": "Parc de loisirs", "icon": "parc", "key": "Maj+G", "panel": true, "group": "loisirs"},
@@ -169,10 +174,11 @@ const CATEGORIES := [
 	{"id": "murs", "name": "Murs et étages", "icon": "mur", "key": "2", "panel": true, "mode": "creer"},
 	{"id": "blocs", "name": "Blocs", "icon": "editeur", "key": "3", "panel": true, "mode": "creer"},
 	{"id": "interieur", "name": "Intérieur", "icon": "interieur", "key": "4", "panel": true, "mode": "creer"},
-	{"id": "creations", "name": "Mes créations", "icon": "creations", "key": "5", "panel": true, "mode": "creer"},
-	{"id": "banque", "name": "Banque", "icon": "banque", "key": "6", "panel": true, "mode": "creer"},
+	{"id": "creations", "name": "Mes créations", "icon": "creations", "key": "5", "panel": true, "mode": "creer", "cache": true},
+	{"id": "banque", "name": "Mes modèles", "icon": "banque", "key": "5", "panel": true, "mode": "creer"},
 	{"id": "atelier", "name": "Atelier", "icon": "atelier", "key": "7", "panel": true, "mode": "creer"},
 	{"id": "partage", "name": "Partage (publier et installer des créations, Workshop)", "icon": "partage", "key": "8", "panel": true, "mode": "creer"},
+	{"id": "chercher", "name": "Chercher dans tout le jeu", "icon": "chercher", "key": "Espace", "panel": true, "mode": "both", "cache": true},
 ]
 ## Menus de la barre du bas (mode Gérer) : leurs panneaux s'ouvrent dans une
 ## petite rangée au-dessus du bouton, pour que la barre tienne sur tout écran.
@@ -184,7 +190,7 @@ const GROUPS := [
 	{"id": "infos", "name": "Infos", "icon": "infos"},
 ]
 ## Touches 2 à 5 du mode Créer.
-const CREATE_KEYS := {KEY_2: "murs", KEY_3: "blocs", KEY_4: "interieur", KEY_5: "creations", KEY_6: "banque", KEY_7: "atelier", KEY_8: "partage"}
+const CREATE_KEYS := {KEY_2: "murs", KEY_3: "blocs", KEY_4: "interieur", KEY_5: "banque", KEY_6: "banque", KEY_7: "atelier", KEY_8: "partage"}
 ## Icône de chaque outil de TOOLS.
 const TOOL_ICONS := ["observer", "aplanir", "monter", "creuser", "route", "rail", "chemin", "eau", "demolir", "carrefour", "paysage"]
 ## Nom court sous l'icône (le nom complet est dans l'infobulle).
@@ -236,6 +242,8 @@ var _mode_badge: PanelContainer
 var _group_buttons := {}
 var _group_popups := {}
 var _open_group := ""
+## Tableau de bord de la Mairie ouvert (tuile allumée).
+var _mairie_open := false
 var _dock: PanelContainer
 var _cell_card: PanelContainer
 ## Barre en icônes seules (écran étroit).
@@ -320,7 +328,20 @@ func _build_top_bar() -> void:
 	_place_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	_place_label.mouse_filter = Control.MOUSE_FILTER_PASS
 	row.add_child(_place_label)
-	var go := UiStyle.icon_button("chercher", "Aller à d'autres coordonnées, infos techniques")
+	# Recherche dans tout le jeu : bâtiments, outils, menus de gestion (Espace).
+	var find := UiStyle.icon_button("chercher", "Chercher dans tout le jeu : un bâtiment, un outil, un menu de gestion (Espace)", "Espace")
+	find.name = "Chercher"
+	find.pressed.connect(func() -> void: search_requested.emit())
+	row.add_child(find)
+	# Coordonnées et infos techniques : clic sur le nom du lieu.
+	var go := Button.new()
+	go.visible = false
+	_place_label.tooltip_text = "Clic : aller à d'autres coordonnées, infos techniques"
+	_place_label.mouse_filter = Control.MOUSE_FILTER_STOP
+	_place_label.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	_place_label.gui_input.connect(func(e: InputEvent) -> void:
+		if e is InputEventMouseButton and (e as InputEventMouseButton).pressed and (e as InputEventMouseButton).button_index == MOUSE_BUTTON_LEFT:
+			go.button_pressed = not go.button_pressed)
 	go.toggle_mode = true
 	go.toggled.connect(func(on: bool) -> void:
 		_coords_panel.visible = on
@@ -515,7 +536,7 @@ func _build_bottom() -> void:
 			var s := UiStyle.vsep()
 			row.add_child(s)
 			_gerer_only.append(s)
-		var b := UiStyle.tile_button(c.icon, c.name, c.key, DOCK_TILE)
+		var b := UiStyle.tile_button(c.icon, String(c.name).get_slice(" (", 0).get_slice(" :", 0), c.key, DOCK_TILE)
 		if c.get("mode", "gerer") == "creer":
 			UiStyle.tint_pressed(b, UiStyle.CREATE, UiStyle.CREATE_INK)
 		b.tooltip_text = "%s (%s)" % [c.name, c.key]
@@ -532,8 +553,22 @@ func _build_bottom() -> void:
 			row.add_child(b)
 			continue
 		if not _group_popups.has(gid):
-			row.add_child(_build_group(gid))
+			var gb := _build_group(gid)
+			# Les menus de la ville sont dans le tableau de bord de la Mairie (tuile Mairie, M).
+			if gid != "ville":
+				row.add_child(gb)
+			else:
+				# Hors de l'arbre : on le libère avec la barre (sinon un nœud orphelin par partie).
+				tree_exiting.connect(func() -> void:
+					if is_instance_valid(gb):
+						gb.free())
 		(_group_popups[gid].get_child(0) as HBoxContainer).add_child(b)
+	if _cat_buttons.has("mairie"):
+		var names := []
+		for c in CATEGORIES:
+			if c.get("group", "") == "ville":
+				names.append(String(c.name))
+		(_cat_buttons.mairie as Button).tooltip_text = "Mairie : tableau de bord, alertes et tous les menus de la ville (M)\n%s" % ", ".join(names)
 	var fsep := UiStyle.vsep()
 	row.add_child(fsep)
 	_creer_only.append(fsep)
@@ -627,6 +662,8 @@ func _refresh_groups() -> void:
 			if c.get("group", "") == gid and (_cat_buttons[c.id] as Button).button_pressed:
 				on = true
 		(_group_buttons[gid] as Button).set_pressed_no_signal(on)
+		if gid == "ville" and _cat_buttons.has("mairie"):
+			(_cat_buttons.mairie as Button).set_pressed_no_signal(on or _mairie_open)
 
 
 ## Fait tenir la barre dans l'écran, à droite de la carte de la case : icônes
@@ -840,6 +877,8 @@ func _on_category(id: String) -> void:
 	if c.get("panel", false):
 		match id:
 			"construire": build_requested.emit()
+			"mairie": mairie_requested.emit()
+			"chercher": search_requested.emit()
 			"lignes": transit_requested.emit()
 			"habitants": habitants_requested.emit()
 			"production": production_requested.emit()
@@ -931,7 +970,7 @@ func _update_categories() -> void:
 	for c in CATEGORIES:
 		var mode: String = c.get("mode", "gerer")
 		var b := _cat_buttons[c.id] as Button
-		b.visible = mode == "both" or (mode == "creer") == create_mode
+		b.visible = (mode == "both" or (mode == "creer") == create_mode) and not c.get("cache", false)
 		if mode == "creer":
 			b.set_pressed_no_signal(c.id == _create_cat)
 		elif not c.get("panel", false):
@@ -971,6 +1010,11 @@ func set_category_label(id: String, text: String, tip := "") -> void:
 
 
 ## Panneaux ouverts (Construire, Lignes, Habitants) : leur catégorie est allumée.
+func set_mairie_open(on: bool) -> void:
+	_mairie_open = on
+	_refresh_groups()
+
+
 func set_panel_open(id: String, on: bool) -> void:
 	var b := _cat_buttons.get(id) as Button
 	if b and b.button_pressed != on:

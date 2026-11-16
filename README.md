@@ -20,7 +20,7 @@ Prototype de city builder en vue de dessus, style low-poly, mode bac à sable. F
 
 Dans le jeu, **F1** (ou le bouton **?** en haut à gauche) affiche toutes les commandes.
 
-L'écran a une barre en haut (lieu, partie, heure et vitesse du temps, chiffres de la ville) et une barre de catégories en bas, avec des icônes : Observer, Terrain, Voies, Paysage, Construire, Lignes, Habitants, Circulation, Véhicules, Vue. Les outils de la catégorie choisie s'affichent juste au-dessus. Détails : [docs/interface.md](docs/interface.md).
+L'écran a une barre en haut (lieu, partie, heure et vitesse du temps, chiffres de la ville) et une barre de catégories en bas, avec des icônes : Observer, Terrain, Voies, Paysage, Construire, Lignes, Habitants, Circulation, Véhicules, Vue. Les outils de la catégorie choisie s'affichent juste au-dessus. Détails : [docs/interface.md](docs/interface.md). Thèmes nommés de Construire, recherche dans tout le jeu (Espace), Mairie (M) et parcours « Enregistrer mon bâtiment » de l'Atelier : [docs/ergonomie.md](docs/ergonomie.md).
 
 ![Barre de catégories et outils des voies](docs/apercu-menus-voies.png)
 
@@ -644,6 +644,12 @@ Une ferme entièrement générée en code (longère à colombages et toit de cha
 | `scripts/interface/ui_style.gd` | Style commun des menus (panneaux, boutons à icône, pastilles de touche) |
 | `scripts/interface/vignettes.gd` | Vignettes des bâtiments du panneau Construire |
 | `scripts/interface/aide_panel.gd` | Fenêtre d'aide (F1) |
+| `scripts/interface/recherche_universelle.gd` | Recherche dans tout le jeu (Espace) : bâtiments, outils, menus |
+| `scripts/interface/mairie_panel.gd` | Tableau de bord de la Mairie (M) : alertes, état de la ville, tous les menus |
+| `scripts/interface/fil_alertes.gd` | Fil « À faire » en bas à gauche |
+| `scripts/atelier/parcours_atelier.gd` | Mode Créer et Atelier : 3 étapes et « Enregistrer mon bâtiment » |
+| `scripts/batiments/favoris_construire.gd` | Favoris et récents du panneau Construire |
+| `tests/ergonomie_test.gd` | Test de l'ergonomie (Atelier, thèmes, recherche, Mairie) |
 | `tests/terre_test.gd` | Test automatique du mode Terre (sans réseau) |
 | `tests/globe_test.gd` | Test automatique du globe (sans réseau) |
 | `scripts/transport/transport_types.gd` | Catalogue des types de voies (largeur, pente maxi, vitesse…) |

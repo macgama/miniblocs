@@ -2,7 +2,8 @@
 "version": 1,
 "langue": "en",
 "textes": {
-" %d habitant%s refuse%s : « Mon cousin connaît quelqu'un qui… »": " %d resident%s refuse%s: \"My cousin knows someone who…\"",
+" %d habitants refusent : « Mon cousin connaît quelqu'un qui… »": " %d residents refuse: \"My cousin knows someone who…\"",
+" Un habitant refuse : « Mon cousin connaît quelqu'un qui… »": " One resident refuses: \"My cousin knows someone who…\"",
 " %s par jour.": " %s per day.",
 " (lazaret compris)": " (field hospital included)",
 " Satisfaction %d.": " Satisfaction %d.",

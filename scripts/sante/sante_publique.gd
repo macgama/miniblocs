@@ -570,7 +570,7 @@ func _vacciner(an: int) -> void:
 			var t := "Campagne de vaccination contre la %s terminée : %d doses, couverture %d %%." % [
 				String(SanteDonnees.VACCINS[v].nom).to_lower(), int(c.doses), roundi(couverture(v) * 100.0)]
 			if refus > 0:
-				t += " %d habitant%s refuse%s : « Mon cousin connaît quelqu'un qui… »" % [refus, "s" if refus > 1 else "", "nt" if refus > 1 else ""]
+				t += (" %d habitants refusent : « Mon cousin connaît quelqu'un qui… »" % refus) if refus > 1 else " Un habitant refuse : « Mon cousin connaît quelqu'un qui… »"
 			_annonce(t)
 		# Les morts et les déménagés quittent les listes.
 		for pid in d.keys():

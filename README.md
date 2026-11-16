@@ -503,6 +503,12 @@ Touche **Maj+U** : chaque logement est relié à l'école, l'hôpital et le comm
 
 Détails : [docs/services.md](docs/services.md).
 
+## Éducation : systèmes scolaires par pays
+
+Touche **Maj+K**. Chaque ville suit le système scolaire de son pays : **Suisse** (HarmoS 1H-11H, gymnase et maturité, apprentissage dual CFC chez un vrai employeur de la ville, maturité professionnelle, HES, HEP, université et EPF : bachelor, master, doctorat), **France** (maternelle, élémentaire, collège et brevet, lycée et bac, CAP et bac pro, BTS, BUT, licence, master, doctorat) ou **générique**. Un bâtiment par degré (crèche, école, collège, lycée/gymnase, école professionnelle, haute école, HEP, université, résidence étudiante). Les métiers exigent des diplômes : sans diplômé en ville, des frontaliers ou des pendulaires tiennent les postes obligatoires, et un employé non qualifié produit moins. Tout suit l'année de la partie, dès 1800.
+
+Détails : [docs/education.md](docs/education.md).
+
 ## Musées : salles à thème, œuvres et visiteurs
 
 Menu **Loisirs → Musée** (touche **Maj+C**) : 12 musées prêts à poser (beaux-arts, muséum, sciences, civilisations, transports, cinéma et musique, sport, mer, préhistoire, jouet et BD, vin…) ou tes propres murs, 26 fonctions de salle (galerie de peinture, Égypte, dinosaures, locomotives, automobile, espace, cinéma, mode, musique…), 208 objets en 24 familles. La note dépend du prestige des œuvres bien rangées par thème, de l'éclairage, du confort et des services ; les visiteurs (habitants et touristes) vont d'œuvre en œuvre, paient leur billet, passent à la boutique et au café. Expositions temporaires, gratuité du 1er dimanche, fermeture le lundi. Détails : [docs/musee.md](docs/musee.md).

@@ -389,7 +389,7 @@ func _type_of(bid: int) -> String:
 func _workers(bid: int) -> int:
 	if population == null:
 		return 0
-	return (population.by_job.get(bid, []) as Array).size()
+	return (population.by_job.get(bid, []) as Array).size() + population.edu.externes_de(bid)
 
 
 func _staff(bid: int) -> float:
@@ -402,7 +402,8 @@ func _staff(bid: int) -> float:
 func _rendement(bid: int) -> float:
 	if not is_inside_tree():
 		return 1.0
-	var r := 1.0
+	# Personnel sans le diplôme du métier : on travaille moins bien (Education).
+	var r := population.edu.rendement(bid) if population != null else 1.0
 	var nodes: Array
 	if _pas > 0:
 		if _rendement_nodes == null:

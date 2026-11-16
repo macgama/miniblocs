@@ -25,6 +25,12 @@ const METIERS := {
 	"agent_public": {"name": "Agent·e municipal·e", "salaire": 1900, "h": [8.5, 17.0], "j": "semaine", "public": true},
 	"enseignant": {"name": "Enseignant·e", "salaire": 2400, "h": [8.0, 17.0], "j": "ecole", "public": true, "etat": true},
 	"atsem": {"name": "ATSEM (aide en maternelle)", "salaire": 1650, "h": [8.0, 17.0], "j": "ecole", "public": true, "etat": true},
+	# Établissements scolaires (scripts/education).
+	"professeur": {"name": "Professeur·e (secondaire, haute école)", "salaire": 3300, "h": [8.0, 17.0], "j": "ecole", "public": true, "etat": true},
+	"enseignant_pro": {"name": "Enseignant·e d'école professionnelle", "salaire": 3100, "h": [7.5, 17.0], "j": "ecole", "public": true, "etat": true},
+	"professeur_universite": {"name": "Professeur·e d'université", "salaire": 6200, "h": [8.5, 18.5], "j": "semaine", "public": true, "etat": true, "tenue": "cadre"},
+	"chercheur": {"name": "Chercheur·euse", "salaire": 4300, "h": [9.0, 19.0], "j": "semaine", "public": true, "etat": true},
+	"educateur_enfance": {"name": "Éducateur·rice de l'enfance", "salaire": 1950, "h": [7.0, 18.5], "j": "semaine", "public": true},
 	"pompier": {"name": "Sapeur·euse-pompier", "salaire": 2300, "h": [7.0, 19.0], "j": "garde", "public": true},
 	"policier": {"name": "Policier·ère", "salaire": 2400, "h": [7.0, 19.0], "j": "garde", "public": true, "etat": true},
 	"medecin": {"name": "Médecin", "salaire": 5500, "h": [8.0, 19.0], "j": "semaine", "public": true, "etat": true},
@@ -240,6 +246,9 @@ static func keys_of(type_id: String) -> Array:
 
 
 static func jobs_for(type_id: String) -> Array:
+	# Établissements scolaires : leurs propres enseignants (professeurs, chercheurs).
+	if EducationTypes.METIERS.has(type_id):
+		return EducationTypes.METIERS[type_id]
 	# Bâtiments de la bible Blender : répartition propre au bâtiment.
 	var t := BuildingCatalog.get_type(type_id)
 	if t.has("metiers") and not (t.metiers as Array).is_empty():

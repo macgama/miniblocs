@@ -142,11 +142,7 @@ func _apply(q: Dictionary, action: String, arg: Variant) -> void:
 			if mom >= 0:
 				vie._birth(mom, true)
 		"etudes":
-			var sup := String(arg)
-			var dur: float = {"bts": 2.0, "licence": 3.0, "master": 5.0}.get(sup, 3.0)
-			p.etd = sup
-			p.etu = pop.life_clock + dur * 365.25
-			vie.log_event(p, "etudes", "Choisit des études (%s, %d ans) à l'université, hors de la ville" % [CycleVie.DIPLOMES[sup], int(dur)])
+			pop.edu.choisir_etudes(p, String(arg))
 		"emploi":
 			if pop.known.has(int(arg)) and pop.free_jobs(int(arg)) > 0:
 				pop._join_job(p, int(arg))
@@ -211,9 +207,11 @@ func questions_add_where(pid: int, kind: String, text: String, options: Array, w
 
 ## Après le bac : le joueur choisit les études.
 func ask_studies(p: Dictionary) -> void:
-	ask(int(p.id), "etudes", "%s a son bac ! Quelles études ?" % p.p,
-		[["BTS (2 ans)", "etudes", "bts"], ["Licence (3 ans)", "etudes", "licence"], ["Master (5 ans)", "etudes", "master"],
-		["Travailler tout de suite", "non"]])
+	var opts := pop.edu.options_etudes(p)
+	if opts.is_empty():
+		opts = [["Licence (3 ans)", "etudes", "licence"]]
+	opts.append(["Travailler tout de suite", "non"])
+	ask(int(p.id), "etudes", "%s a obtenu : %s ! Quelles études ?" % [p.p, SystemesScolaires.nom_diplome(String(p.dip))], opts)
 
 
 ## À la mort du personnage : continuer avec un proche ou un nouveau-né.

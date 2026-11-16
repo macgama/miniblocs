@@ -48,6 +48,7 @@ var trafic_overlay: TraficOverlay
 var lignes_eco: ExploitationLignes
 var services: ServicesPublics
 var services_panel: ServicesPanel
+var education_panel: EducationPanel
 ## Budget de la commune : impôts, emprunts, entretien et usure des voies (touche M).
 var budget: BudgetCommunal
 var budget_panel: BudgetPanel
@@ -194,6 +195,7 @@ func _ready() -> void:
 	_setup_reseaux()
 	_setup_trafic()
 	_setup_services()
+	_setup_education()
 	_setup_telecom()
 	_setup_dechets()
 	_setup_musee()
@@ -1088,7 +1090,7 @@ func _setup_journal() -> void:
 ## Ouvre un panneau par son id (boutons du conseiller).
 func ouvrir_panneau(id: String) -> void:
 	var panels := {"budget": budget_panel, "avis": avis_panel, "construire": build_panel, "trafic": trafic_panel,
-		"dechets": dechets_panel, "reseaux": reseaux_panel, "services": services_panel, "cartes": cartes_panel,
+		"dechets": dechets_panel, "reseaux": reseaux_panel, "services": services_panel, "education": education_panel, "cartes": cartes_panel,
 		"lignes": transit_panel, "pays": pays_panel, "production": production_panel, "objectifs": objectifs_panel,
 		"saisons": saisons_panel}
 	var p = panels.get(id)
@@ -1577,6 +1579,17 @@ func _setup_urgences() -> void:
 		rig.position.x = pos.x
 		rig.position.z = pos.z)
 	hud.urgences_requested.connect(func() -> void: urgences_panel.toggle())
+
+
+## Éducation : système scolaire du pays, degrés, apprentis, diplômes et pénuries (Maj+K).
+func _setup_education() -> void:
+	education_panel = EducationPanel.new()
+	education_panel.name = "PanneauEducation"
+	add_child(education_panel)
+	education_panel.setup(population)
+	education_panel.focus_requested.connect(func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
 
 
 ## Services publics : couverture des écoles, hôpitaux et police (Maj+U, calques).

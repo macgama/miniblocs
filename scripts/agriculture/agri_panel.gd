@@ -288,8 +288,12 @@ func _view_champs() -> void:
 	for i in AgriDonnees.ORDRE_CULTURES.size():
 		var id: String = AgriDonnees.ORDRE_CULTURES[i]
 		var ok := AgriDonnees.convient(id, agri.climat())
-		ob.add_item("%s%s · semis %s" % [AgriDonnees.culture_name(id), "" if ok else " (climat défavorable)",
+		var pret := AgriEpoques.culture_disponible(id)
+		ob.add_item("%s%s · %s %s" % [AgriDonnees.culture_name(id),
+			(" (arrive en %d)" % AgriEpoques.annee_culture(id)) if not pret else ("" if ok else " (climat défavorable)"),
+			"reprise" if bool(AgriDonnees.culture(id).get("perenne", false)) else "semis",
 			AgriDonnees.mois_semis_texte(id, agri.lat(), agri.climat())], i)
+		ob.set_item_disabled(ob.item_count - 1, not pret)
 		if id == agri.culture_choisie:
 			ob.select(i)
 	ob.item_selected.connect(func(i: int) -> void:
@@ -325,6 +329,9 @@ func _etat_texte(ch: Dictionary) -> String:
 		"pousse":
 			if bool(AgriDonnees.culture(cult).get("paturage", false)):
 				return "Pâture : herbe à %d %%" % roundi(float(ch.cr) * 100.0)
+			if bool(AgriDonnees.culture(cult).get("perenne", false)) and not bool(ch.get("reveil", true)):
+				return "%s au repos jusqu'à la reprise (%s)" % [AgriDonnees.culture_name(cult),
+					AgriDonnees.mois_semis_texte(cult, agri.lat(), agri.climat())]
 			return "%s pousse : %d %%" % [AgriDonnees.culture_name(cult), roundi(float(ch.cr) * 100.0)]
 		"mur":
 			return "%s mûr, à récolter" % AgriDonnees.culture_name(cult)
@@ -384,6 +391,7 @@ func _carte_champ(id: int) -> void:
 	for i in AgriDonnees.ORDRE_CULTURES.size():
 		var cid: String = AgriDonnees.ORDRE_CULTURES[i]
 		ob.add_item(AgriDonnees.culture_name(cid), i)
+		ob.set_item_disabled(ob.item_count - 1, not AgriEpoques.culture_disponible(cid))
 		if cid == String(ch.cult):
 			ob.select(i)
 	ob.item_selected.connect(func(i: int) -> void:
@@ -417,6 +425,9 @@ func _view_betes() -> void:
 		var sp := AgriDonnees.espece(e)
 		var n := int(f.betes.get(e, 0))
 		_body.add_child(HSeparator.new())
+		if not AgriEpoques.espece_disponible(e):
+			_text("%s : arrive en %d" % [sp.name, AgriEpoques.annee_espece(e)], false, 13)
+			continue
 		_text("%s : %d / %d" % [sp.name, n, int(places[e])], false, 13)
 		var donne: Array[String] = []
 		for g in sp.donne:
@@ -461,7 +472,8 @@ func _view_machines() -> void:
 		var r := _row()
 		var l := Label.new()
 		var panne: bool = int(m.panne) >= agri.last_day
-		l.text = "%s%s · %d h" % [AgriDonnees.machine_name(String(m.t)), " (en panne)" if panne else "", roundi(float(m.h))]
+		l.text = "%s%s · %d h" % [String(m.get("nom", AgriDonnees.machine_name(String(m.t)))), " (en panne)" if panne else "",
+			roundi(float(m.h))]
 		l.add_theme_font_size_override("font_size", 12)
 		l.custom_minimum_size = Vector2(150, 0)
 		r.add_child(l)
@@ -469,8 +481,10 @@ func _view_machines() -> void:
 		var idx: int = i
 		_button("Réviser", func() -> void: agri.revise_machine(bid, idx), r, "Remet l'usure à 10 % (payé par la ferme)")
 		_button("Vendre", func() -> void: agri.vend_machine(bid, idx), r)
-	_section("Acheter")
+	_section("Acheter" if not Epoques.actif() else "Acheter (machines de %d)" % Epoques.annee())
 	for t in AgriDonnees.ORDRE_MACHINES:
+		if not AgriEpoques.machine_existe(t):
+			continue
 		var md := AgriDonnees.machine(t)
 		var r := _row()
 		var l := Label.new()
@@ -478,7 +492,9 @@ func _view_machines() -> void:
 			(" · %s ha/h" % ("%.1f" % float(md.ha_h)).replace(".", ",")) if float(md.ha_h) > 0.0 else ""]
 		l.add_theme_font_size_override("font_size", 12)
 		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		l.tooltip_text = "Location : %s par jour" % _money(float(md.loc))
+		l.tooltip_text = "Location : %s par jour%s%s" % [_money(float(md.loc)),
+			" · à la main, à plusieurs" if bool(md.get("manuel", false)) else "",
+			(" · mangent %s de foin par heure" % Ressources.format_t(float(md.foin_h))) if float(md.get("foin_h", 0.0)) > 0.0 else ""]
 		r.add_child(l)
 		var typ: String = t
 		_button("Acheter", func() -> void: agri.achete_machine(bid, typ), r)

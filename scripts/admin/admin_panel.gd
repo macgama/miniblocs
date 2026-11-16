@@ -260,7 +260,9 @@ func _ready() -> void:
 	# Époque : année de départ, rythme de l'histoire.
 	g = _section(right, "Époque", "horloge")
 	_epoque = _check("Partie historique : les inventions arrivent avec les années")
-	_epoque.disabled = not editable
+	_epoque.disabled = not editable or EditionDemo.active()
+	if EditionDemo.active():
+		_epoque.tooltip_text = "Partir de 1800 et traverser les époques : dans le jeu complet"
 	_epoque.toggled.connect(func(_on: bool) -> void: _changed())
 	g.add_child(_epoque)
 	_annee = _spin(Epoques.ANNEE_MIN, 2100, 1, "")

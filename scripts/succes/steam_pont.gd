@@ -68,7 +68,8 @@ static func tick() -> void:
 
 static func debloquer(api: String, envoyer_tout_de_suite := true) -> void:
 	journal.append(["succes", api])
-	if not actif():
+	# Valve conseille de couper les succès Steam dans une démo.
+	if not actif() or EditionDemo.active():
 		return
 	var s := _steam()
 	if s.has_method("setAchievement"):
@@ -134,6 +135,19 @@ static func clavier(rect: Rect2, multiligne := false) -> bool:
 	if s.has_method("showFloatingGamepadTextInput"):
 		return bool(s.call("showFloatingGamepadTextInput", 1 if multiligne else 0,
 			int(rect.position.x), int(rect.position.y), int(rect.size.x), int(rect.size.y)))
+	return false
+
+
+## Page Steam d'un jeu dans l'overlay (bouton « Liste de souhaits » de la démo).
+## Renvoie true si Steam l'a ouverte.
+static func magasin(app_id: int) -> bool:
+	journal.append(["magasin", app_id])
+	if not actif():
+		return false
+	var s := _steam()
+	if s.has_method("activateGameOverlayToStore"):
+		s.call("activateGameOverlayToStore", app_id, 0)
+		return true
 	return false
 
 

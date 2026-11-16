@@ -423,7 +423,8 @@ static func _besoin_relatif(d: Dictionary, k: String) -> float:
 ## Cherche une place le long d'une route de la zone pour un bâtiment de son type.
 ## need : demande du type de zone ; un gros employeur attend qu'elle suffise.
 ## max_logements : plafond de logements par bâtiment (village neuf : pas de tour), 0 sans plafond.
-func _grow_in(z: Dictionary, need := INF, max_logements := 0) -> int:
+## types_force : types imposés avec leur poids (promoteurs immobiliers), sinon ceux de la zone.
+func _grow_in(z: Dictionary, need := INF, max_logements := 0, types_force: Dictionary = {}) -> int:
 	var rect := zone_rect(z)
 	var net := buildings.transport.network
 	var cached: Dictionary = _roads_cache.get(int(z.id), {})
@@ -435,7 +436,7 @@ func _grow_in(z: Dictionary, need := INF, max_logements := 0) -> int:
 		_roads_cache[int(z.id)] = {"rect": rect, "roads": roads}
 	if roads.is_empty():
 		return -1
-	var types := types_for(String(z.k), String(z.get("s", "")))
+	var types := types_force if not types_force.is_empty() else types_for(String(z.k), String(z.get("s", "")))
 	if max_logements > 0:
 		var petits := {}
 		for id in types:

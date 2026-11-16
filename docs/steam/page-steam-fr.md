@@ -16,7 +16,7 @@ sont en balisage Steam (BBCode) : on les copie tels quels. La version anglaise e
 | Modes | Solo (le multijoueur viendra plus tard : ne pas cocher pour l'instant) |
 | Contrôleur | Prise en charge partielle de la manette, Steam Deck testé en 1280 × 800 (voir docs/succes-manette.md) |
 | Fonctionnalités Steam | Succès Steam (62, fichier succes-steam.csv) et Steam Workshop (docs/partage.md) : à cocher une fois GodotSteam installé dans le jeu |
-| Langues | Français (interface, sous-titres) ; anglais à cocher quand la traduction sera dans le jeu |
+| Langues | Français, anglais, allemand, italien, espagnol (interface, sous-titres) |
 | Site / réseaux | https://www.manigames.online (YouTube, Discord, TikTok à ajouter) |
 
 ## Description courte

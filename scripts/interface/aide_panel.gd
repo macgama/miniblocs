@@ -123,6 +123,16 @@ const SECTIONS := [
 		["Effets", "plus un foyer est aisé, plus il paie de taxe foncière (×0,6 à ×1,7), plus il achète dans les commerces et dépense en sorties ; dès Aisé, son épargne lui rapporte des intérêts ; il déménage vers un logement plus cossu quand le sien le bloque"],
 		["Carte", "N → Habitants → Niveaux de vie : du rouge (précaire) au bleu (très aisé)"],
 	]],
+	["Immobilier", [
+		["F11", "panneau Immobilier (menu Ville) : marché de chaque ville, promoteurs et permis de construire, quartiers qui changent, bidonvilles"],
+		["Prix et loyers", "chaque ville a un indice des prix : peu de logements vides et des emplois qui attirent du monde le font monter, beaucoup de logements vides le font baisser ; loyer = loyer de base × valeur du terrain × indice. Rares krachs quand les prix sont trop hauts"],
+		["Règles du maire", "encadrement des loyers (aucun, souple, moyen, strict), part de logements sociaux imposée aux promoteurs (0 à 30 %), permis de construire libre, sur demande ou gelé ; des règles strictes freinent les promoteurs"],
+		["Promoteurs", "Immo Prestige (résidences de standing dans les quartiers chers), Les Bâtisseurs Réunis (maisons), Béton & Fils (maison rasée pour un immeuble), Pierre & Rendement (immeuble racheté et rénové haut de gamme, loyers +30 %) ; ils bâtissent à leurs frais et la ville touche 5 % de taxe d'aménagement"],
+		["Gentrification", "un secteur de 200 m dont les prix montent de plus de 12 % en six mois s'embourgeoise : ses foyers modestes ont peur d'être chassés puis partent ; un secteur qui perd plus de 12 % se paupérise. Carte : N → Immobilier → Quartiers qui changent"],
+		["Bidonvilles", "une famille qui ne trouve aucun logement abordable depuis un mois, ou des travailleurs attirés par des emplois sans logement libre, bâtissent des baraques en bord de ville : pas de loyer, mais odeurs, eau polluée, terrains voisins dévalués et niveau Précaire. Viabiliser (eau, courant : niveau Modeste possible), reloger (logements à moins de 35 % des revenus, sociaux d'abord) ou raser (les familles quittent la ville et les habitants s'en souviennent)"],
+		["Logements sociaux", "B → Logement, selon l'époque : cité ouvrière (1853), immeuble HBM (1894), barre HLM (1955), résidence sociale (1985). Loyer à 55 % du loyer de base ; la ville touche les loyers et paie l'entretien (budget)"],
+		["Admin", "F10 → Immobilier : couper le marché vivant (promoteurs, gentrification) ou les bidonvilles"],
+	]],
 	["Objectifs du pays", [
 		["Maj+J", "panneau Objectifs : réputation du pays (étoiles), missions en cours, rang de chaque ville, succès"],
 		["Missions", "3 missions à la fois, tirées selon tes villes (faire grandir une ville, ouvrir une école, rendre une ville heureuse, faire baisser le chômage, rembourser ses emprunts, fonder une ville, relier deux villes, créer une ligne) ; chacune a un délai et une prime versée au pays"],
@@ -412,6 +422,13 @@ const SECTIONS := [
 		["F10 ou icône réglages", "panneau Admin : argent de départ, caisse, argent illimité, coût des constructions, accès à une voie, impôts, salaires, vitesses, épuisement des ressources, déblocage des bâtiments, pollution (seulement pour l'admin de la partie)"],
 		["F1", "afficher ou masquer cette aide"],
 	]],
+	["Santé publique et épidémies", [
+		["F7", "panneau Santé publique (menu Infos) : épidémie en cours, hygiène des logements (eau potable, égouts), lits d'hôpital, conseils ; onglets Vaccins, Mesures et Histoire"],
+		["Maladies de l'eau", "choléra et typhoïde passent par les puits souillés et l'eau mal traitée : des égouts, une station d'épuration et de l'eau potable les arrêtent ; en urgence, faire bouillir l'eau"],
+		["Vaccins", "datés (variole 1800, diphtérie 1923, grippe 1945, polio 1955, rougeole 1963, Covid-19 2021) : campagne payée à la dose ou obligation ; une partie des habitants refuse ; au-delà de 90 % de vaccinés, la maladie ne prend plus"],
+		["Mesures", "quarantaine, écoles fermées, lazaret, campagne d'hygiène (1847), eau bouillie (1854), chlore dans l'eau (1902), masques et confinement (1918) : coût par jour, satisfaction ; levées seules une semaine après l'épidémie"],
+		["Grandes épidémies", "partie commencée dans le passé : choléra de 1832, 1849, 1854…, variole de 1870, grippe espagnole de 1918, grippes de 1957 et 1968, Covid-19 en 2020 ; une rumeur arrive d'abord dans la gazette (F7 → Histoire pour couper le calendrier)"],
+	]],
 ]
 
 
@@ -449,7 +466,8 @@ func _ready() -> void:
 
 	var cols := HBoxContainer.new()
 	cols.add_theme_constant_override("separation", 28)
-	v.add_child(cols)
+	# Défile quand les trois colonnes dépassent l'écran.
+	v.add_child(UiStyle.scroll_fit(cols, panel))
 	# Trois colonnes : barre du bas · construire, lignes, habitants · caméra, temps, partie.
 	const COLUMN_OF := [2, 0, 1, 1, 1, 2, 2]
 	var columns: Array[VBoxContainer] = []
@@ -457,9 +475,13 @@ func _ready() -> void:
 		var vb := VBoxContainer.new()
 		cols.add_child(vb)
 		columns.append(vb)
+	# Les sections suivantes vont dans la colonne la moins remplie (en lignes).
+	var rows := [0, 0, 0]
 	for i in SECTIONS.size():
 		var sec: Array = SECTIONS[i]
-		var col := columns[COLUMN_OF[mini(i, COLUMN_OF.size() - 1)]]
+		var ci: int = COLUMN_OF[i] if i < COLUMN_OF.size() else rows.find(rows.min())
+		rows[ci] += sec[1].size() + 2
+		var col := columns[ci]
 		var h := Label.new()
 		h.text = sec[0]
 		h.add_theme_font_size_override("font_size", 16)
@@ -474,6 +496,9 @@ func _ready() -> void:
 			k.text = row[0]
 			k.add_theme_color_override("font_color", Color("d8f3dc"))
 			k.add_theme_font_size_override("font_size", 13)
+			# Touches longues sur deux lignes : les trois colonnes tiennent en largeur.
+			k.custom_minimum_size = Vector2(140, 0)
+			k.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 			grid.add_child(k)
 			var d := Label.new()
 			d.text = row[1]

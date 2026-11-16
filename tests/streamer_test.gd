@@ -283,13 +283,12 @@ func _city_tests() -> void:
 	var e0 := float(bud.entretien.route.taux)
 	_check(ms.appliquer("entretien_plus") and float(bud.entretien.route.taux) > e0, "entretien des routes augmenté")
 	_check(ms.appliquer("impots_baisse") and absf(float(bud.taux.foncier) - t0) < 0.001, "baisse de la taxe foncière")
-	var nf := ev.en_cours("incendie").size() + ev.prevus("incendie").size()
 	_check(ms.appliquer("incendie") and ev.incendies.feux.size() >= 1, "le chat met le feu à un bâtiment")
 	_check(ms.appliquer("tempete") and not (ev.en_cours("tempete") + ev.prevus("tempete")).is_empty(), "tempête déclenchée")
 	scene.rig.global_position = Vector3(0, y, 20)
 	_check(ms.appliquer("fete") and not (ev.en_cours("fete") + ev.prevus("fete")).is_empty(), "fête organisée là où regarde la caméra")
 	_check(ms.appliquer("calme") and String(ev.journal[0].texte).contains("calme"), "le calme : rien ne se passe")
-	nf = nf
+
 
 	# --- !habitant : pseudos donnés aux habitants.
 	ms.recevoir("zoe_builds", "Zoé_Builds", "!habitant")

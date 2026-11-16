@@ -60,6 +60,8 @@ signal spectacles_requested
 signal club_requested
 ## Bouton « Tourisme » (menu Loisirs, Maj+D) : hôtels, touristes, publicité.
 signal tourisme_requested
+## Bouton « Patrimoine » (menu Loisirs, touche Fin) : classement et grands monuments.
+signal patrimoine_requested
 ## Bouton « Commerce » (menu Économie, Maj+S) : cours mondiaux, accords, crises.
 signal commerce_requested
 ## Panneau « Cartes » (touche N) : pollution, bruit, valeur des terrains, autres calques.
@@ -69,6 +71,8 @@ signal stats_requested
 signal journal_requested
 ## Bouton « Saisons et risques » (menu Infos, Maj+R).
 signal saisons_requested
+## Bouton « Climat et pollution » (menu Infos, Maj+F7).
+signal climat_requested
 signal sante_requested
 ## Bouton « Vue sous terre » (menu Infos, Page bas sous le rez-de-chaussée).
 signal souterrain_requested
@@ -77,6 +81,8 @@ signal photo_requested
 signal streamer_requested
 ## Succès du joueur (F6, menu Infos).
 signal succes_requested
+## Visites et cartes postales (F7).
+signal visites_requested
 ## Bouton Admin de la barre du haut, ou F10 : réglages de la partie.
 signal admin_requested
 signal spec_edited(type_id: String, spec: Dictionary)
@@ -138,6 +144,7 @@ const CATEGORIES := [
 	{"id": "niveaux_vie", "name": "Niveaux de vie", "icon": "logement", "key": "Maj+N", "panel": true, "group": "ville"},
 	{"id": "immobilier", "name": "Immobilier (prix, promoteurs, bidonvilles)", "icon": "logement", "key": "F11", "panel": true, "group": "ville"},
 	{"id": "quartiers", "name": "Quartiers et arrêtés", "icon": "pancarte", "key": "Maj+Y", "panel": true, "group": "ville"},
+	{"id": "visites", "name": "Visites et cartes postales (faire visiter sa ville, visiter celle des autres)", "icon": "carte_postale", "key": "F7", "panel": true, "group": "ville"},
 	{"id": "trafic", "name": "Trafic", "icon": "circulation", "key": "Maj+L", "panel": true, "group": "transports"},
 	{"id": "budget", "name": "Budget", "icon": "budget", "key": "M", "panel": true, "group": "ville"},
 	{"id": "dechets", "name": "Déchets", "icon": "dechets", "key": "X", "panel": true, "group": "ville"},
@@ -148,10 +155,12 @@ const CATEGORIES := [
 	{"id": "spectacles", "name": "Spectacles (cinémas, concerts, théâtres, studios)", "icon": "masques", "key": "Maj+X", "panel": true, "group": "loisirs"},
 	{"id": "club", "name": "Club de sport (foot, basket, hand, hockey, rugby, tennis)", "icon": "sport", "key": "Maj+B", "panel": true, "group": "loisirs"},
 	{"id": "tourisme", "name": "Tourisme (hôtels, touristes, publicité)", "icon": "valise", "key": "Maj+D", "panel": true, "group": "loisirs"},
+	{"id": "patrimoine", "name": "Patrimoine et grands monuments", "icon": "patrimoine", "key": "Fin", "panel": true, "group": "loisirs"},
 	{"id": "cartes", "name": "Cartes", "icon": "cartes", "key": "N", "panel": true, "group": "infos"},
 	{"id": "stats", "name": "Statistiques et conseiller", "icon": "courbe", "key": "Maj+I", "panel": true, "group": "infos"},
 	{"id": "journal", "name": "Gazette de la ville", "icon": "journal", "key": "F4", "panel": true, "group": "infos"},
 	{"id": "saisons", "name": "Saisons et risques (météo, neige, crues, sécheresse)", "icon": "saisons", "key": "Maj+R", "panel": true, "group": "infos"},
+	{"id": "climat", "name": "Climat et pollution (CO₂, réchauffement, sols, énergie)", "icon": "climat", "key": "Maj+F7", "panel": true, "group": "infos"},
 	{"id": "sante", "name": "Santé publique (hygiène, vaccins, épidémies)", "icon": "sante", "key": "F7", "panel": true, "group": "infos"},
 	{"id": "photo", "name": "Mode photo et time-lapse (Maj+F8)", "icon": "appareil_photo", "key": "F8", "panel": true, "group": "infos"},
 	{"id": "souterrain", "name": "Vue sous terre (tuyaux, câbles, métro, sous-sols)", "icon": "souterrain", "key": "Page bas", "panel": true, "group": "infos"},
@@ -767,6 +776,10 @@ func _build_mode_badge() -> void:
 func _request_mode(on: bool) -> void:
 	if on == create_mode:
 		return
+	if on and VisiteVille.active():
+		set_create_mode(false)
+		show_message(VisiteVille.TEXTE_VERROU)
+		return
 	set_create_mode(on)
 	mode_changed.emit(on)
 
@@ -814,6 +827,11 @@ func _on_category(id: String) -> void:
 		(_cat_buttons[id] as Button).set_pressed_no_signal(false)
 		show_message(EditionDemo.texte_verrou(String(c.get("name", id)).get_slice(" (", 0)))
 		return
+	# En visite : seulement ce qui se regarde (et les cartes postales).
+	if id != "visites" and VisiteVille.categorie_verrouillee(id):
+		(_cat_buttons[id] as Button).set_pressed_no_signal(false)
+		show_message(VisiteVille.TEXTE_VERROU)
+		return
 	if c.get("mode", "gerer") == "creer":
 		_create_cat = "" if _create_cat == id else id
 		create_requested.emit(_create_cat)
@@ -847,16 +865,19 @@ func _on_category(id: String) -> void:
 			"spectacles": spectacles_requested.emit()
 			"club": club_requested.emit()
 			"tourisme": tourisme_requested.emit()
+			"patrimoine": patrimoine_requested.emit()
 			"commerce": commerce_requested.emit()
 			"cartes": cartes_requested.emit()
 			"stats": stats_requested.emit()
 			"journal": journal_requested.emit()
 			"saisons": saisons_requested.emit()
+			"climat": climat_requested.emit()
 			"sante": sante_requested.emit()
 			"souterrain": souterrain_requested.emit()
 			"photo": photo_requested.emit()
 			"streamer": streamer_requested.emit()
 			"succes": succes_requested.emit()
+			"visites": visites_requested.emit()
 		_update_categories()
 		return
 	if create_mode and id == "observer":
@@ -1205,6 +1226,10 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	if key == null or not key.pressed or key.echo:
 		return
 	if key.keycode == KEY_TAB and not key.ctrl_pressed and not key.alt_pressed:
+		if VisiteVille.active():
+			show_message(VisiteVille.TEXTE_VERROU)
+			get_viewport().set_input_as_handled()
+			return
 		_request_mode(not create_mode)
 		get_viewport().set_input_as_handled()
 		return
@@ -1220,6 +1245,9 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			return
 	for i in TOOLS.size():
 		if key.keycode == TOOLS[i].key or key.physical_keycode == TOOLS[i].key:
+			if VisiteVille.outil_verrouille(i):
+				show_message(VisiteVille.TEXTE_VERROU)
+				return
 			_buttons[i].button_pressed = true
 			_set_current_tool(i)
 			tool_selected.emit(i)

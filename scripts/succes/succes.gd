@@ -72,6 +72,9 @@ const NOUVEAUX := [
 	{"id": "maire_insomniaque", "nom": "Maire insomniaque", "desc": "Jouer entre 3 h et 5 h du matin (pour de vrai).", "icone": "lune", "stat": "nuit_blanche", "seuil": 1, "cache": true},
 	{"id": "pouces_verts", "nom": "Pouces verts", "desc": "Jouer 30 minutes à la manette.", "icone": "manette", "stat": "manette_min", "seuil": 30},
 	{"id": "tour_du_monde", "nom": "Tour du monde", "desc": "Fonder des villes sur 3 continents différents.", "icone": "globe", "stat": "continents", "seuil": 3},
+	# Visites
+	{"id": "bons_baisers", "nom": "Bons baisers de…", "desc": "Laisser une carte postale dans la ville d'un autre joueur.", "icone": "carte_postale", "stat": "cartes_postales", "seuil": 1},
+	{"id": "le_facteur", "nom": "Le facteur est passé", "desc": "Recevoir 10 cartes postales de visiteurs. Pense à vider la boîte.", "icone": "carte_postale", "stat": "cartes_recues", "seuil": 10},
 ]
 
 ## Profil : succès débloqués (id -> date unix) et compteurs (stat -> valeur).

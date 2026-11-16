@@ -58,6 +58,9 @@ var saisons: Saisons
 var sante: SantePublique
 var sante_panel: SantePanel
 var saisons_panel: SaisonsPanel
+## Climat et pollution : bilan carbone, réchauffement, mer, sols pollués, plan climat (Maj+F7).
+var climat: Climat
+var climat_panel: ClimatPanel
 var dechets_panel: DechetsPanel
 ## Parc de loisirs : attractions, visiteurs, files, billets, note (Maj+G).
 var musee: Musee
@@ -77,6 +80,9 @@ var zoo_panel: ZooPanel
 ## Tourisme : hébergements, touristes, dépenses en ville (menu Loisirs, Maj+R).
 var tourisme: Tourisme
 var tourisme_panel: TourismePanel
+## Patrimoine : classement, abords, entretien, grands monuments (touche Fin).
+var patrimoine: Patrimoine
+var patrimoine_panel: PatrimoinePanel
 ## Commerce entre villes et pays : cours mondiaux, accords, crises (Économie, Maj+S).
 var commerce_mondial: CommerceMondial
 var commerce_panel: CommercePanel
@@ -163,6 +169,9 @@ var timelapse_panel: TimeLapsePanel
 
 func _ready() -> void:
 	OptionsJeu.appliquer(get_tree())
+	var jp := get_node_or_null("/root/Plantages")
+	if jp != null:
+		jp.etat_partie = etat_pour_rapport
 	# Nouvelle partie : réglages choisis sur le globe (ou ceux par défaut du joueur).
 	if GameStart.load_slot == "":
 		var r := ReglagesPartie.prochaine if ReglagesPartie.prochaine != null else ReglagesPartie.load_defaults()
@@ -218,6 +227,7 @@ func _ready() -> void:
 	_setup_saisons()
 	_setup_sante()
 	_setup_nuisances()
+	_setup_climat()
 	_setup_avis()
 	_setup_parc_editeur()
 	_setup_partage()
@@ -225,6 +235,7 @@ func _ready() -> void:
 	_setup_fondateurs()
 	_setup_pays()
 	_setup_commerce()
+	_setup_patrimoine()
 	_setup_niveaux_vie()
 	_setup_immobilier()
 	_setup_statistiques()
@@ -239,6 +250,7 @@ func _ready() -> void:
 	_setup_photo()
 	_setup_streamer()
 	_setup_succes()
+	_setup_visites()
 	hud.traffic_toggled.connect(func(on: bool) -> void: transport.traffic.set_enabled(on))
 	hud.traffic_filter_changed.connect(func(era: String, region: String) -> void:
 		transport.traffic.set_filters(era, region)
@@ -359,13 +371,17 @@ func _ready() -> void:
 			hud.show_message("Partie chargée : %s." % _game_title())
 		else:
 			hud.show_message("Chargement impossible : " + last_error)
+			if slot == VisiteVille.SLOT:
+				VisiteVille.oublier()
 	if GameStart.atelier:
 		_start_atelier.call_deferred()
+	if VisiteVille.active() and not VisiteVille.en_ligne:
+		_debut_visite()
 	# Nouvelle partie : on commence par fonder le village (le tutoriel le
 	# propose lui-même, après le tour de la caméra).
-	if communes.fondation_requise() and not tutoriel.actif and Multijoueur.role != Multijoueur.Role.SERVEUR:
+	if communes.fondation_requise() and not tutoriel.actif and Multijoueur.role != Multijoueur.Role.SERVEUR and not VisiteVille.active():
 		get_tree().create_timer(1.5).timeout.connect(func() -> void:
-			if communes.fondation_requise() and not villages_panel._dialog.visible and not tutoriel.actif:
+			if communes.fondation_requise() and not villages_panel._dialog.visible and not tutoriel.actif and not VisiteVille.active():
 				villages_panel.demander_nom())
 	# Carte entre amis : ce jeu est le serveur, ou un joueur connecté (scripts/multijoueur).
 	Multijoueur.attacher(self)
@@ -378,8 +394,11 @@ var last_error := ""
 ## Des changements depuis la dernière sauvegarde (pour la sauvegarde automatique).
 var _unsaved := false
 var _autosave_timer := 0.0
+## Durée de la dernière sauvegarde automatique (ms), pour le rapport de plantage et les bancs.
+var derniere_autosave_ms := 0
 ## Sauvegarde automatique (toutes les 5 minutes par défaut, Options > Jeu), dans une partie à part.
-const AUTOSAVE_SLOT := "sauvegarde-auto"
+## Première des sauvegardes automatiques tournantes (SaveGame.autosave_slots()).
+const AUTOSAVE_SLOT := SaveGame.AUTO_SLOT
 const AUTOSAVE_INTERVAL := 300.0
 var _saves_panel: PartiesPanel
 
@@ -419,6 +438,7 @@ func save_sections() -> Dictionary:
 	sec["musee"] = musee.to_dict()
 	sec["spectacles"] = spectacles.to_dict()
 	sec["club"] = club.to_dict()
+	sec["climat"] = climat.to_dict()
 	var autres := {}
 	for s in clubs:
 		if s != "football" and (clubs[s] as ClubSport).fonde():
@@ -427,6 +447,7 @@ func save_sections() -> Dictionary:
 	sec["parc"] = parc.to_dict()
 	sec["zoo"] = zoo.to_dict()
 	sec["tourisme"] = tourisme.to_dict()
+	sec["patrimoine"] = patrimoine.to_dict()
 	sec["commerce_mondial"] = commerce_mondial.to_dict()
 	sec["quartiers"] = quartiers.to_dict()
 	sec["sante"] = sante.to_dict()
@@ -435,6 +456,7 @@ func save_sections() -> Dictionary:
 	sec["timelapse"] = timelapse.to_dict()
 	sec["streamer"] = mode_streamer.to_dict()
 	sec["edition_demo"] = limite_demo.to_dict()
+	sec["courrier"] = courrier.to_dict()
 	# Serveur de carte entre amis : membres, code d'invitation, caisses personnelles.
 	if Multijoueur.role == Multijoueur.Role.SERVEUR:
 		sec["multijoueur"] = Multijoueur.section()
@@ -443,8 +465,12 @@ func save_sections() -> Dictionary:
 
 ## Sauvegarde dans la partie en cours (ou une nouvelle). title : nom d'une nouvelle partie.
 func save_game(slot := "", title := "") -> bool:
+	# En visite : la ville d'un autre ne se sauvegarde pas (la copie est jetée à la fin).
+	if VisiteVille.active():
+		last_error = "en visite, la ville d'un autre ne se sauvegarde pas"
+		return false
 	if slot == "":
-		slot = GameStart.slot_id if GameStart.slot_id != AUTOSAVE_SLOT else ""
+		slot = GameStart.slot_id if not SaveGame.est_autosave(GameStart.slot_id) else ""
 	if slot == "":
 		slot = SaveGame.make_slot_id(title if title != "" else _game_title())
 	var old := SaveGame.read_manifest(slot)
@@ -464,7 +490,7 @@ func save_game(slot := "", title := "") -> bool:
 	last_error = SaveGame.write(slot, info, save_sections())
 	if last_error != "":
 		return false
-	if slot != AUTOSAVE_SLOT:
+	if not SaveGame.est_autosave(slot):
 		GameStart.slot_id = slot
 	_unsaved = false
 	_autosave_timer = 0.0
@@ -560,12 +586,14 @@ func load_game(slot := "") -> bool:
 	parc.from_dict(sec.get("parc", {}))
 	zoo.from_dict(sec.get("zoo", {}))
 	tourisme.from_dict(sec.get("tourisme", {}))
+	patrimoine.from_dict(sec.get("patrimoine", {}))
 	commerce_mondial.from_dict(sec.get("commerce_mondial", {}))
 	funeraire.from_dict(sec.get("funeraire", {}))
 	ambiance.from_dict(sec.get("ambiance", {}))
 	# Après les bâtiments et les habitants : dégâts, ruines, malades, matchs.
 	evenements.from_dict(sec.get("evenements", {}))
 	saisons.from_dict(sec.get("saisons", {}))
+	climat.from_dict(sec.get("climat", {}))
 	sante.from_dict(sec.get("sante", {}))
 	communes.ignorer = false
 	if sec.has("communes"):
@@ -609,6 +637,7 @@ func load_game(slot := "") -> bool:
 	_load_settings(sec.get("reglages", {}), m)
 	# Après les réglages : une partie d'avant le tutoriel n'en a pas.
 	limite_demo.from_dict(sec.get("edition_demo", {}))
+	courrier.from_dict(sec.get("courrier", {}))
 	if sec.has("tutoriel"):
 		tutoriel.from_dict(sec.tutoriel)
 	else:
@@ -814,6 +843,36 @@ func _setup_evenements() -> void:
 	hud.infos_requested.connect(func() -> void: evenements_panel.toggle())
 
 
+## Climat et pollution (Maj+F7, menu Infos) : bilan carbone, réchauffement qui décale
+## la météo, montée de la mer, sols pollués (carte N), mix électrique, plan climat.
+func _setup_climat() -> void:
+	climat = Climat.new()
+	add_child(climat)
+	climat.setup(world, buildings, transport, population, ambiance, reseaux, agriculture, evenements)
+	climat.message.connect(func(t: String) -> void: hud.show_message(t))
+	climat.changed.connect(func() -> void: _unsaved = true)
+	climat_panel = ClimatPanel.new()
+	climat_panel.name = "PanneauClimat"
+	add_child(climat_panel)
+	climat_panel.setup(climat)
+	climat_panel.focus_requested.connect(func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
+	hud.climat_requested.connect(func() -> void: climat_panel.toggle())
+	var c := CalqueCouleur.new()
+	c.name = "CalqueSols"
+	c.world = world
+	c.focus = rig
+	c.degrade = CalqueCouleur.degrade_nuisance()
+	c.seuil = 0.03
+	add_child(c)
+	var cm := climat
+	c.valeur = func(x: float, z: float) -> float:
+		var v := cm.sol_at(x, z)
+		return v if v >= 0.03 else -1.0
+	climat.changed.connect(c.rafraichir)
+	Calques.ajouter("climat_sols", "Sols pollués", "Nuisances", c.montrer,
+		"pollution qui reste dans la terre pendant des années : usines, mines, décharges, pesticides (du jaune au violet).")
 ## Santé publique : hygiène, vaccins, mesures sanitaires, grandes épidémies
 ## de l'histoire (choléra de 1832, grippe de 1918…) ; panneau F7 (menu Infos).
 func _setup_sante() -> void:
@@ -1196,7 +1255,7 @@ func ouvrir_panneau(id: String) -> void:
 	var panels := {"budget": budget_panel, "avis": avis_panel, "construire": build_panel, "trafic": trafic_panel,
 		"dechets": dechets_panel, "reseaux": reseaux_panel, "services": services_panel, "cartes": cartes_panel,
 		"lignes": transit_panel, "pays": pays_panel, "production": production_panel, "objectifs": objectifs_panel,
-		"saisons": saisons_panel, "sante": sante_panel}
+		"saisons": saisons_panel, "sante": sante_panel, "climat": climat_panel}
 	var p = panels.get(id)
 	if p != null:
 		p.set_open(true)
@@ -1359,6 +1418,102 @@ func ouvrir_bilan_demo() -> void:
 		GameStart.slot_id = ""
 		EcranChargement.aller(MenuPrincipal.SCENE, "Retour au menu principal"))
 	add_child(bilan_demo)
+
+
+## Visites et cartes postales (F7, VisiteVille, Courrier, docs/visites.md).
+var courrier: Courrier
+var visites_panel: VisitesPanel
+var _bandeau_visite: PanelContainer
+
+
+func _setup_visites() -> void:
+	courrier = Courrier.new()
+	courrier.name = "Courrier"
+	courrier.world = world
+	courrier.ma_partie = func() -> String:
+		if GameStart.slot_id == "" or GameStart.slot_id == VisiteVille.SLOT:
+			return ""
+		return String(SaveGame.read_manifest(GameStart.slot_id).get("partie_id", ""))
+	add_child(courrier)
+	courrier.arrivee.connect(func(c: Dictionary) -> void:
+		if not _chargement and not VisiteVille.active():
+			hud.show_message("Carte postale de %s : « %s » (F7 pour la lire)." % [String(c.de), String(c.texte).left(60)]))
+	hud.visites_requested.connect(toggle_visites)
+	# Courrier arrivé pendant qu'on ne jouait pas : relevé au lancement.
+	(func() -> void:
+		if not VisiteVille.active() and Multijoueur.role == Multijoueur.Role.SOLO and is_instance_valid(courrier):
+			courrier.relever()).call_deferred()
+
+
+func toggle_visites() -> void:
+	if visites_panel != null:
+		visites_panel.fermer()
+		return
+	visites_panel = VisitesPanel.new(self)
+	visites_panel.closed.connect(func() -> void:
+		visites_panel = null
+		hud.set_panel_open("visites", false))
+	visites_panel.message.connect(func(t: String) -> void: hud.show_message(t))
+	_windows_layer().add_child(visites_panel)
+	hud.set_panel_open("visites", true)
+
+
+## Un champ de texte a-t-il le clavier (carte postale, discussion) ?
+func _saisie_en_cours() -> bool:
+	var f := get_viewport().gui_get_focus_owner()
+	return f is LineEdit or f is TextEdit
+
+
+## La ville visitée est ouverte : on regarde sans toucher.
+func _debut_visite() -> void:
+	set_create_mode(false)
+	if tutoriel != null:
+		tutoriel.set_actif(false)
+	ReglagesPartie.actuel.tutoriel = false
+	if pilote != null:
+		pilote.set_process(false)
+	if scenario != null and scenario.en_cours():
+		scenario.clear()
+	if succes_suivi != null:
+		succes_suivi.actif = false
+	# La ville vit à son rythme normal pendant la promenade.
+	if ambiance.speed_index == 0 and not VisiteVille.en_ligne:
+		ambiance.set_speed(1)
+	hud.set_admin_visible(false)
+	_bandeau_visite = PanelContainer.new()
+	UiStyle.style_panel(_bandeau_visite, 0.9, 10, 8)
+	_bandeau_visite.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
+	_bandeau_visite.position.y = 112
+	var h := HBoxContainer.new()
+	h.add_theme_constant_override("separation", 8)
+	_bandeau_visite.add_child(h)
+	var ic := TextureRect.new()
+	ic.texture = Icones.get_icon("pieton", 20, UiStyle.ACCENT)
+	ic.stretch_mode = TextureRect.STRETCH_KEEP_CENTERED
+	h.add_child(ic)
+	var l := Label.new()
+	var de := VisiteVille.auteur()
+	l.text = "Visite de « %s »%s" % [VisiteVille.titre(), (" · ville de " + de) if de != "" else ""]
+	l.add_theme_color_override("font_color", UiStyle.ACCENT)
+	h.add_child(l)
+	var cp := Button.new()
+	cp.text = "Carte postale (F7)"
+	cp.focus_mode = Control.FOCUS_NONE
+	cp.pressed.connect(toggle_visites)
+	h.add_child(cp)
+	var fin := Button.new()
+	fin.text = "Terminer la visite"
+	fin.focus_mode = Control.FOCUS_NONE
+	fin.pressed.connect(func() -> void: VisiteVille.terminer())
+	h.add_child(fin)
+	hud.add_child(_bandeau_visite)
+	(func() -> void:
+		if is_instance_valid(_bandeau_visite):
+			_bandeau_visite.position.x = (_bandeau_visite.get_parent_area_size().x - _bandeau_visite.size.x) * 0.5).call_deferred()
+	var acc := String(VisiteVille.en_cours.get("accueil", ""))
+	if acc == "":
+		acc = courrier.accueil
+	hud.show_message(("« %s » · " % acc if acc != "" else "") + "Bienvenue ! Promène-toi (V pour marcher), et laisse une carte postale avec F7.")
 
 
 ## Son : ambiances selon la caméra, humeur de la musique, sons des événements.
@@ -1935,9 +2090,36 @@ func toggle_help() -> void:
 	_windows_layer().add_child(_help)
 
 
+func _exit_tree() -> void:
+	var jp := get_node_or_null("/root/Plantages")
+	if jp != null and jp.etat_partie == Callable(self, "etat_pour_rapport"):
+		jp.etat_partie = Callable()
+
+
+## Ce que dit le rapport de plantage de la partie en cours (JournalPlantage).
+func etat_pour_rapport() -> Dictionary:
+	var d := {"nom": _game_title(), "partie": GameStart.slot_id, "mode": ["bac à sable", "entre amis", "mondiale"][int(GameStart.mode)]}
+	if ambiance != null:
+		var dt: Dictionary = ambiance.local_datetime()
+		d["date_jeu"] = "%02d/%02d/%04d %02dh%02d" % [int(dt.get("day", 0)), int(dt.get("month", 0)), int(dt.get("year", 0)), int(dt.get("hour", 0)), int(dt.get("minute", 0))]
+		d["vitesse"] = ambiance.speed_index
+	if population != null:
+		d["habitants"] = population.persons.size()
+	if buildings != null:
+		d["batiments"] = buildings.buildings.size()
+	if transport != null and transport.traffic != null:
+		d["vehicules"] = transport.traffic.vehicles.size()
+	if rig != null:
+		d["camera"] = "%.0f, %.0f" % [rig.position.x, rig.position.z]
+	d["vue_au_sol"] = ($VueSol as VueSol).active if has_node("VueSol") and "active" in $VueSol else false
+	d["sauvegarde_auto_ms"] = derniere_autosave_ms
+	d["non_sauvegarde"] = _unsaved
+	return d
+
+
 func _autosave(delta: float) -> void:
 	# En ligne : c'est le serveur qui sauvegarde la carte.
-	if GameStart.atelier or Multijoueur.en_ligne():
+	if GameStart.atelier or Multijoueur.en_ligne() or VisiteVille.active():
 		return
 	var interval := OptionsJeu.autosave_min * 60.0
 	if interval <= 0.0:
@@ -1950,8 +2132,13 @@ func _autosave(delta: float) -> void:
 		return
 	var keep := GameStart.slot_id
 	var t := _game_title()
-	if save_game(AUTOSAVE_SLOT, "Sauvegarde automatique · " + t):
+	var t0 := Time.get_ticks_msec()
+	if save_game(SaveGame.prochain_autosave(), "Sauvegarde automatique · " + t):
 		hud.show_message("Sauvegarde automatique.")
+	else:
+		push_warning("Sauvegarde automatique impossible : " + last_error)
+		hud.show_message("Sauvegarde automatique impossible : " + last_error)
+	derniere_autosave_ms = Time.get_ticks_msec() - t0
 	GameStart.slot_id = keep
 	# La partie du joueur n'est pas à jour : on garde la marque « non sauvegardé ».
 	_unsaved = keep != ""
@@ -1993,6 +2180,11 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		hud.show_message(EditionDemo.texte_verrou(verrou))
 		return
+	# En visite : rien ne se construit ni ne se règle (sauf ce qu'on tape dans un champ).
+	if VisiteVille.touche_verrouillee(k) and not _saisie_en_cours():
+		get_viewport().set_input_as_handled()
+		hud.show_message(VisiteVille.TEXTE_VERROU)
+		return
 	if k != null and k.pressed and not k.echo and k.keycode == KEY_ESCAPE and pause_menu == null:
 		_esc_busy = _tool_busy()
 
@@ -2010,6 +2202,10 @@ func _unhandled_input(event: InputEvent) -> void:
 	if k != null and k.pressed and not k.echo and k.keycode == KEY_F6 and pause_menu == null:
 		get_viewport().set_input_as_handled()
 		toggle_succes()
+		return
+	if k != null and k.pressed and not k.echo and k.keycode == KEY_F7 and not k.shift_pressed and pause_menu == null:
+		get_viewport().set_input_as_handled()
+		toggle_visites()
 		return
 	if k == null or not k.pressed or k.echo or k.keycode != KEY_ESCAPE or pause_menu != null:
 		return
@@ -2043,8 +2239,8 @@ func open_pause() -> void:
 	if pause_menu != null:
 		return
 	pause_menu = MenuPause.new()
-	pause_menu.unsaved = _unsaved and not GameStart.atelier
-	pause_menu.place = _game_title() if not GameStart.atelier else "Atelier"
+	pause_menu.unsaved = _unsaved and not GameStart.atelier and not VisiteVille.active()
+	pause_menu.place = ("Visite : " + VisiteVille.titre()) if VisiteVille.active() else (_game_title() if not GameStart.atelier else "Atelier")
 	pause_menu.resume_requested.connect(close_pause)
 	pause_menu.save_requested.connect(func() -> void:
 		if save_game():
@@ -2087,6 +2283,8 @@ func _quit_from_pause(to_desktop: bool, save_first: bool) -> void:
 		return
 	if GameStart.atelier:
 		GameStart.atelier = false
+	if VisiteVille.active():
+		VisiteVille.oublier()
 	GameStart.slot_id = ""
 	EcranChargement.aller(MenuPrincipal.SCENE, "Retour au menu principal")
 
@@ -2499,6 +2697,53 @@ func _setup_tourisme() -> void:
 	hud.tourisme_requested.connect(func() -> void: tourisme_panel.toggle())
 
 
+## Patrimoine : bâtiments inscrits et classés (protection, abords, entretien,
+## restauration) et grands monuments sur plusieurs années (touche Fin).
+func _setup_patrimoine() -> void:
+	patrimoine = Patrimoine.new()
+	patrimoine.name = "Patrimoine"
+	add_child(patrimoine)
+	patrimoine.setup(buildings, population, ambiance, vie_batiments)
+	patrimoine.message.connect(func(t: String) -> void: hud.show_message(t))
+	patrimoine.changed.connect(func() -> void: _unsaved = true)
+	patrimoine.actualite.connect(func(t: String, pos: Vector3) -> void:
+		if evenements != null:
+			evenements.news(t, pos, "patrimoine"))
+	# Un monument protégé ne se démolit pas ; ses abords ont des règles.
+	var prev_demol: Callable = buildings.demolish_check
+	buildings.demolish_check = func(bid: int) -> String:
+		var why := patrimoine.raison_demolir(bid)
+		if why != "":
+			return why
+		return String(prev_demol.call(bid)) if prev_demol.is_valid() else ""
+	var prev_check: Callable = buildings.extra_check
+	buildings.extra_check = func(id: String, rect: Rect2i) -> Dictionary:
+		var mine := patrimoine.check_place(id, rect)
+		if String(mine.get("reason", "")) != "":
+			return mine
+		var res: Dictionary = prev_check.call(id, rect) if prev_check.is_valid() else {}
+		if String(mine.get("info", "")) != "" and String(res.get("reason", "")) == "":
+			res = res.duplicate()
+			res["info"] = (String(res.get("info", "")) + "  " + String(mine.info)).strip_edges()
+		return res
+	# Entretenu, un monument protégé s'use moins vite.
+	var prev_usure: Callable = vie_batiments.extra_usure
+	vie_batiments.extra_usure = func(bid: int) -> float:
+		var k := float(prev_usure.call(bid)) if prev_usure.is_valid() else 1.0
+		return k * patrimoine.usure_rythme(bid)
+	patrimoine_panel = PatrimoinePanel.new()
+	patrimoine_panel.name = "PanneauPatrimoine"
+	add_child(patrimoine_panel)
+	patrimoine_panel.setup(patrimoine)
+	patrimoine_panel.building_chosen.connect(func(id: String) -> void:
+		_select_building_tool()
+		buildings.set_place(id))
+	patrimoine_panel.focus_requested.connect(func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
+	hud.patrimoine_requested.connect(func() -> void: patrimoine_panel.toggle())
+
+
 ## Commerce : marché mondial, villes partenaires, accords, crises (Maj+S).
 func _setup_commerce() -> void:
 	commerce_mondial = CommerceMondial.new()
@@ -2640,7 +2885,7 @@ func _loisirs_ouvert() -> bool:
 
 
 func _panneaux_parc() -> Dictionary:
-	return {"parc": parc_panel, "parc_editeur": parc_editeur_panel, "zoo": zoo_panel, "musee": musee_panel, "spectacles": spectacles_panel, "club": club_panel, "tourisme": tourisme_panel}
+	return {"parc": parc_panel, "parc_editeur": parc_editeur_panel, "zoo": zoo_panel, "musee": musee_panel, "spectacles": spectacles_panel, "club": club_panel, "tourisme": tourisme_panel, "patrimoine": patrimoine_panel}
 
 
 ## Panneau « Paysage » : pinceaux de terrain (outil 0).
@@ -2717,6 +2962,8 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 		evenements.clear()
 	if saisons != null:
 		saisons.clear()
+	if climat != null:
+		climat.clear()
 	if sante != null:
 		sante.clear()
 	if avis != null:
@@ -2764,6 +3011,8 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 		(clubs[s] as ClubSport).clear()
 	if tourisme != null:
 		tourisme.clear()
+	if patrimoine != null:
+		patrimoine.clear()
 	if commerce_mondial != null:
 		commerce_mondial.clear()
 	resource_overlay.show_resource(resource_overlay.res)
@@ -2855,7 +3104,7 @@ var _open_before := {}
 ## Construire, Lignes et Habitants partagent la même place à droite : quand
 ## l'un s'ouvre, les autres se ferment. Leur bouton de la barre du bas s'allume.
 func _exclusive_panels() -> void:
-	var panels := {"pays": pays_panel, "objectifs": objectifs_panel, "quartiers": quartiers_panel, "construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "agriculture": agri_panel, "urgences": urgences_panel, "reseaux": reseaux_panel, "dechets": dechets_panel, "trafic": trafic_panel, "budget": budget_panel, "telecom": telecom_panel, "perso": perso_panel, "streamer": streamer_panel, "infos": evenements_panel, "cartes": cartes_panel, "avis": avis_panel, "villages": villages_panel, "fondateurs": fondateurs_panel, "stats": stats_panel, "saisons": saisons_panel, "sante": sante_panel}
+	var panels := {"pays": pays_panel, "objectifs": objectifs_panel, "quartiers": quartiers_panel, "construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "agriculture": agri_panel, "urgences": urgences_panel, "reseaux": reseaux_panel, "dechets": dechets_panel, "trafic": trafic_panel, "budget": budget_panel, "telecom": telecom_panel, "perso": perso_panel, "streamer": streamer_panel, "infos": evenements_panel, "cartes": cartes_panel, "avis": avis_panel, "villages": villages_panel, "fondateurs": fondateurs_panel, "stats": stats_panel, "saisons": saisons_panel, "sante": sante_panel, "climat": climat_panel}
 	var opened := ""
 	panels.merge(_panneaux_parc())
 	panels["musee"] = musee_panel

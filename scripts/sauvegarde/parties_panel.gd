@@ -137,10 +137,10 @@ func refresh() -> void:
 	_list.clear()
 	_confirm_delete = ""
 	for m in _saves:
-		var auto := String(m.id) == "sauvegarde-auto"
+		var auto := SaveGame.est_autosave(String(m.id))
 		var i := _list.add_item("%s%s   ·   %s" % ["⟳ " if auto else "", String(m.get("nom", m.id)), format_date(int(m.get("modifie", 0)))])
 		if auto:
-			_list.set_item_tooltip(i, "Sauvegarde automatique : écrite toutes les quelques minutes (Options > Jeu), elle n'écrase jamais tes parties.")
+			_list.set_item_tooltip(i, "Sauvegarde automatique : écrite toutes les quelques minutes (Options > Jeu), sur %d emplacements qui tournent (la plus ancienne est remplacée). Elle n'écrase jamais tes parties." % SaveGame.AUTO_NB)
 	if _saves.is_empty():
 		_info.text = "Aucune partie sauvegardée pour l'instant. Une ville sans archives, c'est une ville sans soucis… jusqu'à la panne de courant. En jeu : F5 ou Échap > Sauvegarder."
 		_preview.texture = null

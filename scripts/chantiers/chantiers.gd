@@ -163,6 +163,8 @@ const OUVRAGES := {
 
 ## Mois de travail réels d'une équipe pour un type de bâtiment.
 static func mois_batiment(id: String) -> float:
+	if MonumentsTypes.est_monument(id):
+		return MonumentsTypes.mois(id)
 	if OUVRAGES.has(id):
 		return float(OUVRAGES[id][0])
 	var t := BuildingCatalog.get_type(id)
@@ -224,6 +226,8 @@ static func equipe_batiment(id: String) -> int:
 
 
 static func _equipe_batiment(id: String) -> int:
+	if MonumentsTypes.est_monument(id):
+		return MonumentsTypes.equipe(id)
 	if OUVRAGES.has(id):
 		return int(OUVRAGES[id][1])
 	var t := BuildingCatalog.get_type(id)
@@ -248,6 +252,11 @@ static func rythme(pop: Population) -> float:
 
 
 # --- Étapes --------------------------------------------------------------------------
+
+## Étapes du chantier d'un type de bâtiment (les grands monuments ont les leurs).
+static func etapes_batiment(id: String) -> Array:
+	return MonumentsTypes.etapes(id) if MonumentsTypes.est_monument(id) else ETAPES_BATIMENT
+
 
 ## [indice, clé, nom, avancement dans l'étape (0 à 1)] pour un avancement global.
 static func etape(etapes: Array, av: float) -> Array:

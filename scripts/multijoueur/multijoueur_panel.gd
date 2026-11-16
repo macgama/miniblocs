@@ -61,7 +61,17 @@ func _ready() -> void:
 	_rejoindre.text = "Rejoindre"
 	_rejoindre.custom_minimum_size = Vector2(0, 40)
 	_rejoindre.pressed.connect(rejoindre)
-	v.add_child(_rejoindre)
+	var hj := HBoxContainer.new()
+	hj.add_theme_constant_override("separation", 6)
+	v.add_child(hj)
+	_rejoindre.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	hj.add_child(_rejoindre)
+	var vis := Button.new()
+	vis.text = "Visiter (sans construire)"
+	vis.tooltip_text = "Se promener sur la carte en visiteur : pas de caisse, pas de construction, des cartes postales pour les joueurs."
+	vis.custom_minimum_size = Vector2(0, 40)
+	vis.pressed.connect(func() -> void: rejoindre(true))
+	hj.add_child(vis)
 	_etat = _texte("", UiStyle.GOOD)
 	v.add_child(_etat)
 
@@ -121,7 +131,7 @@ func _champ(g: GridContainer, nom: String, val: String, aide: String) -> LineEdi
 	return e
 
 
-func rejoindre() -> void:
+func rejoindre(en_visiteur := false) -> void:
 	var c := Multijoueur.nouveau_client(get_tree())
 	c.etat_change.connect(func(_e: String, texte: String) -> void:
 		if not is_instance_valid(_etat):
@@ -133,7 +143,7 @@ func rejoindre() -> void:
 			_essais += 1
 			_etat.text = "Le serveur démarre… (essai %d)" % _essais
 			get_tree().create_timer(2.0).timeout.connect(rejoindre))
-	var err := c.connecter(_adresse.text, _code.text, _pseudo.text)
+	var err := c.connecter(_adresse.text, _code.text, _pseudo.text, en_visiteur)
 	if err != "":
 		_etat.text = err
 

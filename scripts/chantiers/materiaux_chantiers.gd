@@ -61,6 +61,8 @@ static func besoins_batiment(type_id: String, annee := -1) -> Dictionary:
 	var t := BuildingCatalog.get_type(type_id)
 	if t.is_empty():
 		return {}
+	if MonumentsTypes.est_monument(type_id):
+		return MonumentsTypes.materiaux(type_id)
 	var w := float(t.get("w", 8))
 	var d := float(t.get("d", 8))
 	var out := {}

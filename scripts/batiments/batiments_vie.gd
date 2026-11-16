@@ -752,7 +752,8 @@ func _update_vie() -> void:
 			e.vide = -1.0
 		elif e.vide < 0.0:
 			e.vide = maxf(t, float(b.get("fin", t)))
-		var age := _years(maxf(t - float(b.get("ne", t)), 0.0))
+		# Rénové ou agrandi (Ameliorations) : l'usure repart de la fin des travaux.
+		var age := _years(maxf(t - maxf(float(b.get("ne", t)), float(b.get("renov", 0.0))), 0.0))
 		var rythme := float(extra_usure.call(bid)) if extra_usure.is_valid() else 1.0
 		var usure: float = e.base + age * rythme / (60.0 if occupe or not accueille else 18.0)
 		var abandon := 0.0

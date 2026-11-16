@@ -158,6 +158,41 @@ func mesh_for(id: String, variant := 0, perso: Dictionary = {}) -> ArrayMesh:
 	return _meshes[key]
 
 
+## Modèle d'un bâtiment posé à son niveau d'agrandissement (Ameliorations) :
+## étages de la personnalisation, ou étages insérés dans le maillage.
+func mesh_du_niveau(b: Dictionary, loin := false) -> ArrayMesh:
+	var v := int(b.get("v", 0))
+	var perso := Ameliorations.perso_effectif(b)
+	var base := mesh_far_for(String(b.t), v, perso) if loin else mesh_for(String(b.t), v, perso)
+	var n := Ameliorations.etages_inseres(b)
+	if n <= 0:
+		return base
+	var key := "%s|niv%d|%s" % [_mesh_key(String(b.t), v, perso), n, "loin" if loin else "pres"]
+	if not _meshes.has(key):
+		_meshes[key] = Ameliorations.inserer_etages(base, n)
+	return _meshes[key]
+
+
+## Redessine un bâtiment posé (nouveau niveau) sans le retirer de la ville :
+## maillage, version lointaine et collision.
+func rafraichir_modele(bid: int) -> void:
+	if not buildings.has(bid) or not _nodes.has(bid):
+		return
+	var b: Dictionary = buildings[bid]
+	var mi: MeshInstance3D = _nodes[bid]
+	mi.mesh = mesh_du_niveau(b)
+	var far := mi.get_node_or_null("Loin") as MeshInstance3D
+	if far != null:
+		far.mesh = mesh_du_niveau(b, true)
+	for c in mi.get_children():
+		if c is StaticBody3D:
+			for sh in c.get_children():
+				if sh is CollisionShape3D and (sh as CollisionShape3D).shape is BoxShape3D:
+					var bb := mi.mesh.get_aabb()
+					((sh as CollisionShape3D).shape as BoxShape3D).size = bb.size
+					(sh as CollisionShape3D).position = bb.get_center()
+
+
 ## Version légère (sans finitions) d'un modèle, pour le lointain.
 func mesh_far_for(id: String, variant := 0, perso: Dictionary = {}) -> ArrayMesh:
 	var key := _mesh_key(id, variant, perso)
@@ -665,10 +700,9 @@ func _spawn(b: Dictionary) -> void:
 	var bid := int(b.id)
 	var rect := _rect_of(b)
 	var v := int(b.v)
-	var perso: Dictionary = b.get("perso", {})
 	var mi := MeshInstance3D.new()
 	mi.name = "Batiment_%d" % bid
-	mi.mesh = mesh_for(b.t, v, perso)
+	mi.mesh = mesh_du_niveau(b)
 	mi.position = rect_center(rect) + Vector3(0, float(b.h), 0)
 	mi.rotation.y = -int(b.r) * PI / 2.0 + float(b.get("a", 0.0))
 	mi.visibility_range_end = 1400.0
@@ -690,7 +724,7 @@ func _spawn(b: Dictionary) -> void:
 		mi.visibility_range_end = LOIN
 		var far := MeshInstance3D.new()
 		far.name = "Loin"
-		far.mesh = mesh_far_for(b.t, v, perso)
+		far.mesh = mesh_du_niveau(b, true)
 		far.visibility_range_begin = LOIN
 		far.visibility_range_end = 1400.0
 		mi.add_child(far)
@@ -938,7 +972,7 @@ func totals() -> Dictionary:
 	for b in buildings.values():
 		var t := BuildingCatalog.get_type(b.t)
 		for k in ["logements", "emplois", "visiteurs"]:
-			out[k] += int(t.get(k, 0))
+			out[k] += Ameliorations.cap(b, k)
 		var bid := int(b.id)
 		if not _access_cache.has(bid):
 			_access_cache[bid] = (t.get("access", []) as Array).is_empty() or not find_access(b.t, _rect_of(b), int(b.r), float(b.get("a", 0.0))).is_empty()
@@ -973,7 +1007,8 @@ func to_dict() -> Dictionary:
 		var e := {"id": b.id, "t": b.t, "x": b.x, "z": b.z, "r": b.r, "a": b.get("a", 0.0), "h": b.h, "cost": b.get("cost", 0), "zone": b.get("zone", 0)}
 		# Variante du modèle, dates, avancement et reste à payer du chantier (BatimentsVie) ;
 		# chantier en pause ou passé en premier, places du campement (Fondateurs).
-		for key in ["v", "ne", "fin", "av", "hr", "du", "perso", "pause", "ordre", "nlog", "nemp", "caisse"]:
+		# Niveau d'agrandissement, rénovation et travaux en cours (Ameliorations).
+		for key in ["v", "ne", "fin", "av", "hr", "du", "perso", "pause", "ordre", "nlog", "nemp", "caisse", "niv", "renov", "amel"]:
 			if b.has(key):
 				e[key] = b[key]
 		list.append(e)
@@ -1005,9 +1040,16 @@ func from_dict(data: Dictionary) -> void:
 			e["pause"] = true
 		if b.has("ordre"):
 			e["ordre"] = float(b.ordre)
-		for key in ["nlog", "nemp", "caisse"]:
+		for key in ["nlog", "nemp", "caisse", "niv"]:
 			if b.has(key):
 				e[key] = int(b[key])
+		if b.has("renov"):
+			e["renov"] = float(b.renov)
+		var am = b.get("amel", {})
+		if am is Dictionary and not (am as Dictionary).is_empty():
+			e["amel"] = {"op": String(am.get("op", "niv")), "cible": int(am.get("cible", 2)), "av": float(am.get("av", 0.0)),
+				"hr": float(am.get("hr", 1.0)), "du": int(am.get("du", 0)), "cout": int(am.get("cout", 0)),
+				"prive": bool(am.get("prive", false)), "ne": float(am.get("ne", 0.0))}
 		var pd = b.get("perso", {})
 		if pd is Dictionary and not (pd as Dictionary).is_empty():
 			e["perso"] = Personnalisation.clean(pd)

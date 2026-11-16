@@ -208,7 +208,8 @@ func capacite(bid: int, service: String) -> int:
 			return int(info.seats)
 		"hopital":
 			var t := BuildingCatalog.get_type(String(info.t))
-			var lits := int(info.get("lits", t.get("lits", roundi(float(info.emp) * LITS_PAR_EMPLOI))))
+			# Les emplois (info.emp) suivent déjà le niveau d'agrandissement ; les lits du catalogue aussi.
+			var lits := int(info.get("lits", roundi(int(t.get("lits", 0)) * Ameliorations.facteur_bid(population.buildings, bid)) if t.has("lits") else roundi(float(info.emp) * LITS_PAR_EMPLOI)))
 			if lits <= 0:
 				lits = 10
 			return 0 if _ferme(bid) else maxi(1, roundi(lits * minf(1.0, _taux(bid))))

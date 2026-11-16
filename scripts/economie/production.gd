@@ -393,7 +393,7 @@ func _workers(bid: int) -> int:
 
 
 func _staff(bid: int) -> float:
-	var jobs := maxi(int(BuildingCatalog.get_type(_type_of(bid)).get("emplois", 1)), 1)
+	var jobs := maxi(roundi(int(BuildingCatalog.get_type(_type_of(bid)).get("emplois", 1)) * Ameliorations.facteur_bid(buildings, bid)), 1)
 	return clampf(float(_workers(bid)) / jobs, 0.0, 1.0) * _rendement(bid)
 
 
@@ -741,10 +741,12 @@ func step_hours(h: float) -> void:
 
 
 func _step_hours(h: float) -> void:
-	var frac := h / 24.0
+	var frac0 := h / 24.0
 	for bid in sites:
 		if not buildings.buildings.has(bid):
 			continue
+		# Site agrandi (Ameliorations) : il produit d'autant plus.
+		var frac := frac0 * Ameliorations.facteur(buildings.buildings[bid])
 		var s: Dictionary = sites[bid]
 		var kind := String(s.kind)
 		var type_id := _type_of(bid)
@@ -877,7 +879,7 @@ func _shop_need(bid: int, good: String) -> float:
 	var s: Dictionary = sites[bid]
 	var t := BuildingCatalog.get_type(_type_of(bid))
 	var shop := Ressources.commerce_of(_type_of(bid))
-	var vis := float(maxi(int(t.get("visiteurs", 100)), 20))
+	var vis := float(maxi(int(t.get("visiteurs", 100)), 20)) * Ameliorations.facteur_bid(buildings, bid)
 	if shop.has("consomme"):
 		return float(shop.consomme.get(good, 0.0)) * vis
 	if s.dem.has(good):
@@ -1774,7 +1776,7 @@ func _shopping() -> float:
 			served = minf(served, take / need) if g in ["boissons", "viande", "fruits_legumes"] else served
 			_put(bid, g, -take)
 			_flow(g, take, "vente")
-		var vis := float(BuildingCatalog.get_type(_type_of(bid)).get("visiteurs", 100))
+		var vis := float(BuildingCatalog.get_type(_type_of(bid)).get("visiteurs", 100)) * Ameliorations.facteur_bid(buildings, bid)
 		var v := vis * staff * served * Ressources.REPAS
 		_pay(bid, "Repas servis", v)
 		gain += v
@@ -1872,7 +1874,7 @@ func repas_touristes(pos: Vector3, n: float, rayon := 3000.0) -> Array:
 			continue
 		var s: Dictionary = sites[bid]
 		var shop := Ressources.commerce_of(_type_of(bid))
-		var vis := float(BuildingCatalog.get_type(_type_of(bid)).get("visiteurs", 100))
+		var vis := float(BuildingCatalog.get_type(_type_of(bid)).get("visiteurs", 100)) * Ameliorations.facteur_bid(buildings, bid)
 		var jour := _day_of(clock if clock > 0.0 else (ambiance.unix_time if ambiance != null else 0.0))
 		if int(s.get("tour_j", -1)) != jour:
 			s.tour_j = jour
@@ -2137,7 +2139,7 @@ func site_info(bid: int) -> Dictionary:
 	if String(s.get("attente", "")) != "":
 		status += " · " + String(s.attente)
 	var out := {"name": String(t.name), "kind": String(s.kind), "status": status, "eff": float(s.get("eff", 0.0)),
-		"jobs": int(t.get("emplois", 0)), "workers": _workers(bid), "recipe": recipe_text(String(b.t)),
+		"jobs": Ameliorations.cap(b, "emplois"), "workers": _workers(bid), "recipe": recipe_text(String(b.t)),
 		"pos": BuildingSystem.rect_center(buildings._rect_of(b)), "stock": (s.st as Dictionary).duplicate(),
 		"inc": (s.inc as Dictionary).duplicate(), "cash": float(s.cash), "mois": (s.mois as Dictionary).duplicate(),
 		"drivers": (drivers().get(bid, []) as Array).size()}

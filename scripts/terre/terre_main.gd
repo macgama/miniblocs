@@ -117,6 +117,8 @@ var niveaux_vie_panel: NiveauxViePanel
 var telecom_panel: TelecomPanel
 ## Pollution de l'air et de l'eau, bruit, valeur des terrains et loyers.
 var nuisances: Nuisances
+## Agrandissements (3 niveaux), rénovations et densification du zonage.
+var ameliorations: Ameliorations
 ## Panneau « Cartes » (touche N) : cartes de couleur de tous les systèmes.
 var cartes_panel: CartesPanel
 ## Villages du joueur et leur territoire (Maj+M, scripts/communes).
@@ -388,6 +390,7 @@ func save_sections() -> Dictionary:
 		"production": production.to_dict(), "agriculture": agriculture.to_dict(), "urgences": urgences.to_dict(), "reseaux": reseaux.to_dict(), "dechets": dechets.to_dict(), "funeraire": funeraire.to_dict(), "trafic": trafic.to_dict(), "lignes_eco": lignes_eco.to_dict(), "reglages": _settings_snapshot().to_dict(), "budget": budget.to_dict(), "evenements": evenements.to_dict(), "saisons": saisons.to_dict(), "decors": decors.to_dict(),
 		"nuisances": nuisances.to_dict(), "telecom": telecom.to_dict(), "services": services.to_dict(), "carrieres": carrieres.to_dict(),
 		"souterrain": construction_souterraine.to_dict()}
+	sec["ameliorations"] = ameliorations.to_dict()
 	sec["avis"] = avis.to_dict()
 	sec["communes"] = communes.to_dict()
 	sec["fondateurs"] = fondateurs.to_dict()
@@ -509,6 +512,7 @@ func load_game(slot := "") -> bool:
 	AttractionsPerso.adopt(sec.get("parc_editeur", {}))
 	buildings.from_dict(sec.get("batiments", {}))
 	zones.from_dict(sec.get("zones", {}))
+	ameliorations.from_dict(sec.get("ameliorations", {}))
 	blocks.from_dict(sec.get("blocs", {}))
 	# Murs fins et meubles avant les habitants : ils y vivent et y travaillent.
 	plans.from_dict(sec.get("plans", {}))
@@ -1338,6 +1342,12 @@ func _setup_nuisances() -> void:
 	nuisances.setup(world, buildings, transport, population, ambiance)
 	zones.extra_chance = nuisances.chance_pousse
 	vie_batiments.extra_usure = nuisances.usure_rythme
+	ameliorations = Ameliorations.new()
+	ameliorations.name = "Ameliorations"
+	add_child(ameliorations)
+	ameliorations.setup(buildings, vie_batiments, population, zones)
+	ameliorations.nuisances = nuisances
+	ameliorations.message.connect(func(t: String) -> void: hud.show_message(t))
 	tree_exiting.connect(func() -> void: Calques.vider())
 	var make := func(nom: String, deg: Gradient) -> CalqueCouleur:
 		var c := CalqueCouleur.new()

@@ -17,7 +17,8 @@ Note: the English store page should only go live once the game itself is transla
 | Release date | "2027" (approximate, refine later) |
 | Genres | Simulation, Strategy, Indie |
 | Modes | Single-player (multiplayer comes later: do not tick yet) |
-| Controller | No (keyboard + mouse) |
+| Controller | Partial controller support, Steam Deck tested at 1280 × 800 (see docs/succes-manette.md) |
+| Steam features | Steam Achievements (62, succes-steam.csv) and Steam Workshop (docs/partage.md): tick once GodotSteam is installed in the game |
 | Languages | French (interface, subtitles); tick English once the translation ships |
 | Website | https://www.manigames.online |
 
@@ -92,6 +93,7 @@ MiniBlocs is made by a single developer. Planned next: an always-online map to s
 - Theme parks, zoo, museums, entertainment venues, football club.
 - Original music: *Building Permit Waltz*, *Pothole Blues*, *Council Meeting (Running Late)*...
 - 30-minute guided demo.
+- 62 achievements, controller and Steam Deck support, share your creations (Workshop).
 
 ## Taglines
 

@@ -14,7 +14,8 @@ sont en balisage Steam (BBCode) : on les copie tels quels. La version anglaise e
 | Date de sortie | « 2027 » (date approximative, à préciser plus tard) |
 | Genres | Simulation, Stratégie, Indépendant |
 | Modes | Solo (le multijoueur viendra plus tard : ne pas cocher pour l'instant) |
-| Contrôleur | Non (clavier + souris) |
+| Contrôleur | Prise en charge partielle de la manette, Steam Deck testé en 1280 × 800 (voir docs/succes-manette.md) |
+| Fonctionnalités Steam | Succès Steam (62, fichier succes-steam.csv) et Steam Workshop (docs/partage.md) : à cocher une fois GodotSteam installé dans le jeu |
 | Langues | Français (interface, sous-titres) ; anglais à cocher quand la traduction sera dans le jeu |
 | Site / réseaux | https://www.manigames.online (YouTube, Discord, TikTok à ajouter) |
 
@@ -89,6 +90,7 @@ MiniBlocs est développé par une seule personne. Sont prévus : une carte entre
 - Parcs de loisirs, zoo, musées, spectacles, club de football.
 - Musique originale : *Valse du permis de construire*, *Nids-de-poule blues*, *Conseil municipal (en retard)*…
 - Démo guidée de 30 minutes.
+- 62 succès, manette et Steam Deck, partage des créations (Workshop).
 
 ## Accroches (pour une bande-annonce, un tweet, la capsule)
 

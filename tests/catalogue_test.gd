@@ -108,6 +108,22 @@ func _run() -> void:
 				n += 1
 		_check(n > 0 and EpoquesObjets.annee_meuble(tid) > 0, "meuble %s : %d modèles, %d" % [tid, n, EpoquesObjets.annee_meuble(tid)])
 	_check(Meubles.count() >= 2700, "meubles : %d modèles" % Meubles.count())
+	# Lot 3 : Atelier et attractions.
+	var att_avant_guerre := 0
+	for fid in VoiePieces.ORDRE_RAIL + VoiePieces.ORDRE_EAU:
+		var ya := EpoquesObjets.annee_famille_voie(String(fid))
+		if ya >= 1900 and ya < 1950:
+			att_avant_guerre += 1
+	_check(att_avant_guerre >= 3, "attractions nées entre 1900 et 1950 : %d" % att_avant_guerre)
+	_check(PlanEditor.ROOFS.size() >= 18 and PlanEditor.OPENINGS.size() >= 36, "%d toits, %d portes et fenêtres" % [PlanEditor.ROOFS.size(), PlanEditor.OPENINGS.size()])
+	var mat_recents := 0
+	for i in BlocMateriaux.LIST.size():
+		if Epoques.annee_materiau(i) >= 1990:
+			mat_recents += 1
+	_check(mat_recents >= 15, "matériaux d'après 1990 : %d" % mat_recents)
+	_check(Epoques.annee_materiau(BlocMateriaux.index_of("Béton fibré blanc")) == 2000 and Epoques.annee_materiau(BlocMateriaux.index_of("Pierre agglomérée")) == 1850,
+		"béton fibré daté 2000 (pas 1890), pierre agglomérée 1850")
+	_check(VoiePieces.style("panoramique") == "bois" and VoiePieces.style("acier") == "acier", "les attractions d'époque reprennent un dessin existant")
 
 	print("Objets datés selon l'année de la partie :")
 	var r := ReglagesPartie.new()

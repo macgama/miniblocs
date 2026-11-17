@@ -327,9 +327,11 @@ func _modele_de(fam_id: String) -> Dictionary:
 		if String(m.famille) == fam_id:
 			return m
 	var base := {"acier": "acier", "suspendu": "acier", "lance": "acier", "bois": "mine", "familial": "mine", "splash": "buches"}
-	if base.has(fam_id):
+	var sty := VoiePieces.style(fam_id)
+	var src := String(base.get(fam_id, base.get(sty, sty)))
+	if src != fam_id:
 		for m: Dictionary in AttractionsPerso.modeles():
-			if String(m.famille) == String(base[fam_id]):
+			if String(m.famille) == src:
 				var d := m.duplicate(true)
 				d.famille = fam_id
 				if fam_id == "lance":
@@ -465,7 +467,7 @@ func _vue_trace() -> void:
 	# Réglages.
 	_section("Couleurs et trains")
 	for q in [["rail", "Voie"], ["support", "Piliers"], ["train", "Train"]]:
-		if q[0] == "support" and String(d.famille) in ["bois", "mine"]:
+		if q[0] == "support" and VoiePieces.style(String(d.famille)) in ["bois", "mine"]:
 			continue
 		var hr := _rangee()
 		var l := Label.new()

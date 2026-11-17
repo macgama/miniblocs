@@ -17580,6 +17580,36 @@
 		"source": "ajoutee"
 	},
 	{
+		"annee": 1887,
+		"evol": "",
+		"fam": "attractions",
+		"groupe": "Types d'attraction",
+		"id": "panoramique",
+		"info": "gare 450 k€ · voie 4 k€/m",
+		"nom": "Montagnes russes panoramiques",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 1929,
+		"evol": "",
+		"fam": "attractions",
+		"groupe": "Types d'attraction",
+		"id": "bobsleigh",
+		"info": "gare 600 k€ · voie 6 k€/m",
+		"nom": "Bobsleigh",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 1930,
+		"evol": "",
+		"fam": "attractions",
+		"groupe": "Types d'attraction",
+		"id": "train_fantome",
+		"info": "gare 300 k€ · voie 3 k€/m",
+		"nom": "Train fantôme",
+		"source": "ajoutee"
+	},
+	{
 		"annee": 1963,
 		"evol": "",
 		"fam": "attractions",
@@ -17617,6 +17647,26 @@
 		"id": "toboggan",
 		"info": "gare 350 k€ · voie 3 k€/m",
 		"nom": "Toboggan aquatique",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 1902,
+		"evol": "",
+		"fam": "attractions",
+		"groupe": "Types d'attraction",
+		"id": "moulin",
+		"info": "gare 400 k€ · voie 4 k€/m",
+		"nom": "Tunnel de l'amour",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 1905,
+		"evol": "",
+		"fam": "attractions",
+		"groupe": "Types d'attraction",
+		"id": "tour_glissade",
+		"info": "gare 200 k€ · voie 2 k€/m",
+		"nom": "Tour de glissade",
 		"source": "ajoutee"
 	},
 	{
@@ -18513,6 +18563,16 @@
 		"annee": 0,
 		"evol": "",
 		"fam": "ouvertures",
+		"groupe": "Portes",
+		"id": "porte_fenetre_volets",
+		"info": "Porte-fenêtre et ses volets battants (maison de campagne, Méditerranée).",
+		"nom": "Porte-fenêtre à volets",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "ouvertures",
 		"groupe": "Fenêtres",
 		"id": "fenetre",
 		"info": "Fenêtre à croisillons, allège à 90 cm.",
@@ -18590,6 +18650,66 @@
 		"source": "ajoutee"
 	},
 	{
+		"annee": 0,
+		"evol": "",
+		"fam": "ouvertures",
+		"groupe": "Fenêtres",
+		"id": "fenetre_cintree_volets",
+		"info": "Fenêtre à haut arrondi avec ses volets (Italie, Provence, Amérique latine).",
+		"nom": "Fenêtre cintrée à volets",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "ouvertures",
+		"groupe": "Fenêtres",
+		"id": "fenetre_ogive",
+		"info": "Arc brisé sans vitrail (néo-gothique, architecture islamique, Venise).",
+		"nom": "Fenêtre en ogive",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 1850,
+		"evol": "",
+		"fam": "ouvertures",
+		"groupe": "Fenêtres",
+		"id": "fenetre_balconnet",
+		"info": "Haute fenêtre et garde-corps de fer forgé (immeuble du XIXe siècle).",
+		"nom": "Fenêtre à balconnet",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 1880,
+		"evol": "",
+		"fam": "ouvertures",
+		"groupe": "Fenêtres",
+		"id": "fenetre_store",
+		"info": "Fenêtre abritée par un store en toile rayée (bord de mer, Méditerranée).",
+		"nom": "Fenêtre à store",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "ouvertures",
+		"groupe": "Fenêtres",
+		"id": "fenetre_haute_volets",
+		"info": "Petite fenêtre de ferme ou de cuisine, avec ses volets.",
+		"nom": "Petite fenêtre à volets",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 1930,
+		"evol": "",
+		"fam": "ouvertures",
+		"groupe": "Fenêtres",
+		"id": "hublot",
+		"info": "Fenêtre ronde des années 30 (style paquebot, Art déco, Streamline).",
+		"nom": "Hublot",
+		"source": "ajoutee"
+	},
+	{
 		"annee": 1930,
 		"evol": "",
 		"fam": "ouvertures",
@@ -18660,6 +18780,16 @@
 		"source": "ajoutee"
 	},
 	{
+		"annee": 1930,
+		"evol": "",
+		"fam": "ouvertures",
+		"groupe": "Baies et vitrines",
+		"id": "baie_balconnet",
+		"info": "Baie vitrée du sol au plafond fermée par un garde-corps (immeuble moderne).",
+		"nom": "Baie à garde-corps",
+		"source": "ajoutee"
+	},
+	{
 		"annee": 0,
 		"evol": "",
 		"fam": "ouvertures",
@@ -18677,6 +18807,16 @@
 		"id": "arcade",
 		"info": "Passage en plein cintre (cloître, galerie, halle).",
 		"nom": "Arcade",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "ouvertures",
+		"groupe": "Passages",
+		"id": "arcade_brisee",
+		"info": "Passage en arc brisé (cloître gothique, souk, mosquée).",
+		"nom": "Arcade brisée",
 		"source": "ajoutee"
 	},
 	{
@@ -18807,6 +18947,66 @@
 		"id": "pyramide",
 		"info": "",
 		"nom": "Pyramide",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 1830,
+		"evol": "",
+		"fam": "toits",
+		"groupe": "Toits",
+		"id": "verriere",
+		"info": "",
+		"nom": "Verrière",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "toits",
+		"groupe": "Toits",
+		"id": "comble_brise",
+		"info": "",
+		"nom": "Comble brisé (grange)",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "toits",
+		"groupe": "Toits",
+		"id": "pagode",
+		"info": "",
+		"nom": "Pagode",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 1905,
+		"evol": "",
+		"fam": "toits",
+		"groupe": "Toits",
+		"id": "plat_debord",
+		"info": "",
+		"nom": "Plat à grand débord",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 1970,
+		"evol": "",
+		"fam": "toits",
+		"groupe": "Toits",
+		"id": "toit_vegetal",
+		"info": "",
+		"nom": "Toit végétalisé",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 1995,
+		"evol": "",
+		"fam": "toits",
+		"groupe": "Toits",
+		"id": "toit_solaire",
+		"info": "",
+		"nom": "Toit solaire",
 		"source": "ajoutee"
 	},
 	{
@@ -22647,6 +22847,356 @@
 		"id": "383",
 		"info": "20 € le m²",
 		"nom": "Gazon de fête",
+		"source": "mot"
+	},
+	{
+		"annee": 1850,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Murs",
+		"id": "384",
+		"info": "90 € le m²",
+		"nom": "Pierre agglomérée",
+		"source": "mot"
+	},
+	{
+		"annee": 1860,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Murs",
+		"id": "385",
+		"info": "80 € le m²",
+		"nom": "Ciment moulé",
+		"source": "mot"
+	},
+	{
+		"annee": 1890,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Murs",
+		"id": "386",
+		"info": "260 € le m²",
+		"nom": "Grès flammé Art nouveau",
+		"source": "mot"
+	},
+	{
+		"annee": 1904,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Murs",
+		"id": "387",
+		"info": "130 € le m²",
+		"nom": "Carreaux de métro",
+		"source": "mot"
+	},
+	{
+		"annee": 1925,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Murs",
+		"id": "388",
+		"info": "220 € le m²",
+		"nom": "Faïence Art déco",
+		"source": "mot"
+	},
+	{
+		"annee": 1925,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Sols",
+		"id": "389",
+		"info": "240 € le m²",
+		"nom": "Mosaïque Art déco",
+		"source": "mot"
+	},
+	{
+		"annee": 1893,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Métal et verre",
+		"id": "390",
+		"info": "180 € le m²",
+		"nom": "Ferronnerie Art nouveau",
+		"source": "mot"
+	},
+	{
+		"annee": 1910,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Tissus et divers",
+		"id": "391",
+		"info": "90 € le m²",
+		"nom": "Bakélite",
+		"source": "mot"
+	},
+	{
+		"annee": 1950,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Tissus et divers",
+		"id": "392",
+		"info": "70 € le m²",
+		"nom": "Formica jaune",
+		"source": "mot"
+	},
+	{
+		"annee": 1950,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Tissus et divers",
+		"id": "393",
+		"info": "70 € le m²",
+		"nom": "Formica turquoise",
+		"source": "mot"
+	},
+	{
+		"annee": 1900,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Nature",
+		"id": "394",
+		"info": "60 € le m²",
+		"nom": "Gabions",
+		"source": "mot"
+	},
+	{
+		"annee": 1900,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Toits",
+		"id": "395",
+		"info": "120 € le m²",
+		"nom": "Tôle émaillée",
+		"source": "mot"
+	},
+	{
+		"annee": 1969,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Métal et verre",
+		"id": "396",
+		"info": "210 € le m²",
+		"nom": "Façade aluminium composite",
+		"source": "mot"
+	},
+	{
+		"annee": 1950,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Murs",
+		"id": "397",
+		"info": "100 € le m²",
+		"nom": "Panneaux de béton préfabriqués",
+		"source": "mot"
+	},
+	{
+		"annee": 1958,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Métal et verre",
+		"id": "398",
+		"info": "260 € le m²",
+		"nom": "Mur-rideau bronze",
+		"source": "mot"
+	},
+	{
+		"annee": 1950,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Sols",
+		"id": "399",
+		"info": "50 € le m²",
+		"nom": "Vinyle de sol",
+		"source": "mot"
+	},
+	{
+		"annee": 1977,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Sols",
+		"id": "400",
+		"info": "60 € le m²",
+		"nom": "Parquet stratifié",
+		"source": "mot"
+	},
+	{
+		"annee": 1971,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Tissus et divers",
+		"id": "401",
+		"info": "180 € le m²",
+		"nom": "Polymère blanc",
+		"source": "mot"
+	},
+	{
+		"annee": 1970,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Sols",
+		"id": "402",
+		"info": "70 € le m²",
+		"nom": "Béton imprimé",
+		"source": "mot"
+	},
+	{
+		"annee": 1995,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Toits",
+		"id": "403",
+		"info": "300 € le m²",
+		"nom": "Panneaux solaires",
+		"source": "mot"
+	},
+	{
+		"annee": 2016,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Toits",
+		"id": "404",
+		"info": "340 € le m²",
+		"nom": "Tuiles solaires",
+		"source": "mot"
+	},
+	{
+		"annee": 1995,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Bois",
+		"id": "405",
+		"info": "160 € le m²",
+		"nom": "Bois lamellé-croisé",
+		"source": "mot"
+	},
+	{
+		"annee": 2000,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Bois",
+		"id": "406",
+		"info": "120 € le m²",
+		"nom": "Bardage composite gris",
+		"source": "mot"
+	},
+	{
+		"annee": 1990,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Murs",
+		"id": "407",
+		"info": "110 € le m²",
+		"nom": "Bardage fibre-ciment",
+		"source": "mot"
+	},
+	{
+		"annee": 2000,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Murs",
+		"id": "408",
+		"info": "230 € le m²",
+		"nom": "Baguettes de terre cuite",
+		"source": "mot"
+	},
+	{
+		"annee": 2001,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Métal et verre",
+		"id": "409",
+		"info": "350 € le m²",
+		"nom": "Coussins ETFE",
+		"source": "mot"
+	},
+	{
+		"annee": 2000,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Murs",
+		"id": "410",
+		"info": "200 € le m²",
+		"nom": "Béton fibré blanc",
+		"source": "mot"
+	},
+	{
+		"annee": 2005,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Sols",
+		"id": "411",
+		"info": "120 € le m²",
+		"nom": "Carrelage grand format",
+		"source": "mot"
+	},
+	{
+		"annee": 2005,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Sols",
+		"id": "412",
+		"info": "70 € le m²",
+		"nom": "Pavés drainants",
+		"source": "mot"
+	},
+	{
+		"annee": 1994,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Nature",
+		"id": "413",
+		"info": "260 € le m²",
+		"nom": "Mur végétal",
+		"source": "mot"
+	},
+	{
+		"annee": 2005,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Métal et verre",
+		"id": "414",
+		"info": "280 € le m²",
+		"nom": "Métal perforé doré",
+		"source": "mot"
+	},
+	{
+		"annee": 2025,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Métal et verre",
+		"id": "415",
+		"info": "420 € le m²",
+		"nom": "Verre intelligent",
+		"source": "mot"
+	},
+	{
+		"annee": 2030,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Métal et verre",
+		"id": "416",
+		"info": "500 € le m²",
+		"nom": "Façade OLED",
+		"source": "mot"
+	},
+	{
+		"annee": 2030,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Murs",
+		"id": "417",
+		"info": "150 € le m²",
+		"nom": "Mycélium",
+		"source": "mot"
+	},
+	{
+		"annee": 2028,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Murs",
+		"id": "418",
+		"info": "180 € le m²",
+		"nom": "Biobéton",
 		"source": "mot"
 	},
 	{

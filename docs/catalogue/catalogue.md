@@ -16,24 +16,24 @@ n'a que ce qui est daté 1850 ou avant ; le reste arrive à sa date (« Arrive e
 | [Stations, gares et ports](#stations) | 10 | 2 | 2 | 2 | 3 | 1 | 0 | 0 |
 | [Lignes et conduites](#reseaux) | 8 | 2 | 1 | 2 | 1 | 0 | 2 | 0 |
 | [Agriculture](#agriculture) | 89 | 49 | 2 | 7 | 8 | 18 | 5 | 0 |
-| [Grands-huit et attractions](#attractions) | 56 | 28 | 0 | 2 | 0 | 17 | 9 | 0 |
+| [Grands-huit et attractions](#attractions) | 61 | 28 | 0 | 3 | 4 | 17 | 9 | 0 |
 | [Aménagements de l'Atelier](#amenagements) | 34 | 5 | 5 | 12 | 7 | 3 | 2 | 0 |
-| [Portes et fenêtres](#ouvertures) | 27 | 19 | 0 | 3 | 3 | 2 | 0 | 0 |
-| [Toits](#toits) | 12 | 10 | 1 | 0 | 1 | 0 | 0 | 0 |
-| [Matériaux](#materiaux) | 384 | 298 | 9 | 18 | 19 | 38 | 2 | 0 |
+| [Portes et fenêtres](#ouvertures) | 36 | 24 | 0 | 5 | 5 | 2 | 0 | 0 |
+| [Toits](#toits) | 18 | 12 | 2 | 0 | 2 | 1 | 1 | 0 |
+| [Matériaux](#materiaux) | 419 | 298 | 9 | 22 | 25 | 47 | 16 | 2 |
 | [Décors](#decors) | 291 | 158 | 5 | 25 | 43 | 35 | 24 | 1 |
 | [Meubles](#meubles) | 121 | 65 | 0 | 11 | 11 | 20 | 12 | 2 |
 | [Objets de spectacle](#spectacles) | 58 | 19 | 0 | 2 | 17 | 16 | 4 | 0 |
-| **Total** | **2735** | |
+| **Total** | **2790** | |
 
 ### D'où viennent les années
 
 - date propre : 376
 - table des époques : 439
-- datée avec le catalogue : 745
+- datée avec le catalogue : 765
 - style : 581
 - époque de la bible : 210
-- mot du nom : 384
+- mot du nom : 419
 
 Évolutions : un bâtiment qui accueille du monde ou produit s'agrandit en 3 niveaux (+50 %, puis ×2) et se rénove ;
 beaucoup ont des variantes de façade ; ceux qui jouent le même rôle à différentes époques (école, hôpital, pompiers,
@@ -2047,7 +2047,7 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 
 <a id="attractions"></a>
 
-## Grands-huit et attractions (56)
+## Grands-huit et attractions (61)
 
 ### Pièces : Droits
 
@@ -2126,6 +2126,11 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 |---|---:|---|---|
 | Bateau splash | 1884 | gare 900 k€ · voie 7 k€/m |  |
 | Grand-huit en bois | 1884 | gare 800 k€ · voie 7 k€/m |  |
+| Montagnes russes panoramiques | 1887 | gare 450 k€ · voie 4 k€/m |  |
+| Tunnel de l'amour | 1902 | gare 400 k€ · voie 4 k€/m |  |
+| Tour de glissade | 1905 | gare 200 k€ · voie 2 k€/m |  |
+| Bobsleigh | 1929 | gare 600 k€ · voie 6 k€/m |  |
+| Train fantôme | 1930 | gare 300 k€ · voie 3 k€/m |  |
 | Grand-huit junior | 1950 | gare 350 k€ · voie 4 k€/m |  |
 | Grand-huit en acier | 1959 | gare 900 k€ · voie 9 k€/m |  |
 | Toboggan aquatique | 1960 | gare 350 k€ · voie 3 k€/m |  |
@@ -2195,7 +2200,7 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 
 <a id="ouvertures"></a>
 
-## Portes et fenêtres (27)
+## Portes et fenêtres (36)
 
 ### Baies et vitrines
 
@@ -2206,6 +2211,7 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Vitrine à store | 1850 | Vitrine de boutique avec son store rayé côté rue. |  |
 | Fenêtre en bandeau | 1925 | Longue bande vitrée horizontale (architecture moderne). |  |
 | Baie vitrée | 1930 | Grand vitrage du sol au plafond. |  |
+| Baie à garde-corps | 1930 | Baie vitrée du sol au plafond fermée par un garde-corps (immeuble moderne). |  |
 | Baie coulissante | 1950 | Grande baie vitrée à galandage, sur plusieurs mètres. |  |
 | Mur-rideau | 1950 | Façade entièrement vitrée du sol au plafond (bureaux, tours). |  |
 
@@ -2215,18 +2221,25 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 |---|---:|---|---|
 | Fenêtre | toujours | Fenêtre à croisillons, allège à 90 cm. |  |
 | Fenêtre cintrée | toujours | Fenêtre à haut arrondi. |  |
+| Fenêtre cintrée à volets | toujours | Fenêtre à haut arrondi avec ses volets (Italie, Provence, Amérique latine). |  |
+| Fenêtre en ogive | toujours | Arc brisé sans vitrail (néo-gothique, architecture islamique, Venise). |  |
 | Fenêtre gothique | toujours | Fenêtre en arc brisé avec vitrail (église, cathédrale). |  |
 | Fenêtre haute | toujours | Petite fenêtre (salle de bains, cuisine). |  |
 | Fenêtre à petits bois | toujours | Fenêtre à petits carreaux (maison ancienne, cottage). |  |
 | Fenêtre à volets | toujours | Fenêtre avec ses volets battants ouverts sur la façade extérieure. |  |
 | Meurtrière | toujours | Fente étroite (château, tour de guet). |  |
+| Petite fenêtre à volets | toujours | Petite fenêtre de ferme ou de cuisine, avec ses volets. |  |
 | Œil-de-bœuf | toujours | Fenêtre ronde (combles, escaliers, façades classiques). |  |
+| Fenêtre à balconnet | 1850 | Haute fenêtre et garde-corps de fer forgé (immeuble du XIXe siècle). |  |
+| Fenêtre à store | 1880 | Fenêtre abritée par un store en toile rayée (bord de mer, Méditerranée). |  |
+| Hublot | 1930 | Fenêtre ronde des années 30 (style paquebot, Art déco, Streamline). |  |
 
 ### Passages
 
 | Nom | Année | Détails | Évolutions |
 |---|---:|---|---|
 | Arcade | toujours | Passage en plein cintre (cloître, galerie, halle). |  |
+| Arcade brisée | toujours | Passage en arc brisé (cloître gothique, souk, mosquée). |  |
 | Claustra | toujours | Mur ajouré qui laisse passer l'air et la lumière (moucharabieh). |  |
 | Passage | toujours | Ouverture sans porte entre deux pièces. |  |
 
@@ -2242,32 +2255,39 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Porte vitrée | toujours | Porte avec un vitrage. |  |
 | Porte-fenêtre | toujours | Porte entièrement vitrée, vers un jardin ou un balcon. |  |
 | Porte-fenêtre à balconnet | toujours | Porte-fenêtre avec garde-corps en fer forgé côté extérieur (immeuble haussmannien). |  |
+| Porte-fenêtre à volets | toujours | Porte-fenêtre et ses volets battants (maison de campagne, Méditerranée). |  |
 | Porte de garage | 1910 | Porte sectionnelle : pose-la sur 2 à 6 m de mur. S'ouvre en vue au sol. |  |
 
 <a id="toits"></a>
 
-## Toits (12)
+## Toits (18)
 
 ### Toits
 
 | Nom | Année | Détails | Évolutions |
 |---|---:|---|---|
 | Bulbe | toujours |  |  |
+| Comble brisé (grange) | toujours |  |  |
 | Conique | toujours |  |  |
 | Coupole | toujours |  |  |
 | Deux pans | toujours |  |  |
 | Mansarde | toujours |  |  |
+| Pagode | toujours |  |  |
 | Pyramide | toujours |  |  |
 | Quatre pans | toujours |  |  |
 | Toit plat | toujours |  |  |
 | Un pan | toujours |  |  |
 | Voûte | toujours |  |  |
 | Sheds | 1830 |  |  |
+| Verrière | 1830 |  |  |
+| Plat à grand débord | 1905 |  |  |
 | Terrasse | 1920 |  |  |
+| Toit végétalisé | 1970 |  |  |
+| Toit solaire | 1995 |  |  |
 
 <a id="materiaux"></a>
 
-## Matériaux (384)
+## Matériaux (419)
 
 ### Bois
 
@@ -2303,6 +2323,8 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Teck | toujours | 150 € le m² |  |
 | Écorce | toujours | 50 € le m² |  |
 | Contreplaqué | 1900 | 60 € le m² |  |
+| Bois lamellé-croisé | 1995 | 160 € le m² |  |
+| Bardage composite gris | 2000 | 120 € le m² |  |
 
 ### Murs
 
@@ -2386,6 +2408,8 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Travertin | toujours | 260 € le m² |  |
 | Tuffeau | toujours | 210 € le m² |  |
 | Zellige | toujours | 260 € le m² |  |
+| Pierre agglomérée | 1850 | 90 € le m² |  |
+| Ciment moulé | 1860 | 80 € le m² |  |
 | Béton | 1890 | 100 € le m² |  |
 | Béton blanc | 1890 | 120 € le m² |  |
 | Béton brut | 1890 | 110 € le m² |  |
@@ -2393,7 +2417,16 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Béton matricé | 1890 | 130 € le m² |  |
 | Béton rouge | 1890 | 120 € le m² |  |
 | Béton sablé | 1890 | 130 € le m² |  |
+| Grès flammé Art nouveau | 1890 | 260 € le m² |  |
+| Carreaux de métro | 1904 | 130 € le m² |  |
 | Parpaing | 1920 | 60 € le m² |  |
+| Faïence Art déco | 1925 | 220 € le m² |  |
+| Panneaux de béton préfabriqués | 1950 | 100 € le m² |  |
+| Bardage fibre-ciment | 1990 | 110 € le m² |  |
+| Baguettes de terre cuite | 2000 | 230 € le m² |  |
+| Béton fibré blanc | 2000 | 200 € le m² |  |
+| Biobéton | 2028 | 180 € le m² |  |
+| Mycélium | 2030 | 150 € le m² |  |
 
 ### Musées et prestige
 
@@ -2438,14 +2471,21 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Grillage | 1850 | 60 € le m² |  |
 | Verre miroir | 1850 | 260 € le m² |  |
 | Acier noir | 1860 | 180 € le m² |  |
+| Ferronnerie Art nouveau | 1893 | 180 € le m² |  |
 | Métal déployé | 1900 | 150 € le m² |  |
 | Inox | 1920 | 260 € le m² |  |
 | Chrome | 1925 | 300 € le m² |  |
 | Pavés de verre | 1930 | 250 € le m² |  |
 | Aluminium | 1950 | 200 € le m² |  |
 | Verre fumé | 1950 | 220 € le m² |  |
+| Mur-rideau bronze | 1958 | 260 € le m² |  |
 | Acier Corten | 1965 | 260 € le m² |  |
+| Façade aluminium composite | 1969 | 210 € le m² |  |
 | Polycarbonate | 1970 | 120 € le m² |  |
+| Coussins ETFE | 2001 | 350 € le m² |  |
+| Métal perforé doré | 2005 | 280 € le m² |  |
+| Verre intelligent | 2025 | 420 € le m² |  |
+| Façade OLED | 2030 | 500 € le m² |  |
 
 ### Nature
 
@@ -2475,6 +2515,8 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Sable noir | toujours | 20 € le m² |  |
 | Terre | toujours | 10 € le m² |  |
 | Terre rouge | toujours | 10 € le m² |  |
+| Gabions | 1900 | 60 € le m² |  |
+| Mur végétal | 1994 | 260 € le m² |  |
 
 ### Parcs d'attractions
 
@@ -2549,14 +2591,20 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Carreaux de ciment | 1860 | 170 € le m² |  |
 | Lino damier rouge | 1870 | 70 € le m² |  |
 | Enrobé | 1920 | 40 € le m² |  |
+| Mosaïque Art déco | 1925 | 240 € le m² |  |
 | Dalles de béton | 1930 | 70 € le m² |  |
 | Moquette | 1950 | 60 € le m² |  |
 | Moquette beige | 1950 | 60 € le m² |  |
 | Moquette bleue | 1950 | 60 € le m² |  |
 | Moquette grise | 1950 | 60 € le m² |  |
 | Moquette verte | 1950 | 60 € le m² |  |
+| Vinyle de sol | 1950 | 50 € le m² |  |
 | Pavés autobloquants | 1960 | 70 € le m² |  |
 | Sol souple | 1960 | 60 € le m² |  |
+| Béton imprimé | 1970 | 70 € le m² |  |
+| Parquet stratifié | 1977 | 60 € le m² |  |
+| Carrelage grand format | 2005 | 120 € le m² |  |
+| Pavés drainants | 2005 | 70 € le m² |  |
 
 ### Sport et stades
 
@@ -2626,6 +2674,10 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Feutre | toujours | 50 € le m² |  |
 | Toile blanche | toujours | 40 € le m² |  |
 | Toile rayée | toujours | 50 € le m² |  |
+| Bakélite | 1910 | 90 € le m² |  |
+| Formica jaune | 1950 | 70 € le m² |  |
+| Formica turquoise | 1950 | 70 € le m² |  |
+| Polymère blanc | 1971 | 180 € le m² |  |
 
 ### Toits
 
@@ -2665,10 +2717,13 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Tuile mécanique | 1850 | 110 € le m² |  |
 | Bardeaux bitumés rouges | 1900 | 70 € le m² |  |
 | Bardeaux bitumés verts | 1900 | 70 € le m² |  |
+| Tôle émaillée | 1900 | 120 € le m² |  |
 | Fibrociment | 1910 | 60 € le m² |  |
 | Bac acier | 1960 | 90 € le m² |  |
 | Membrane EPDM | 1965 | 60 € le m² |  |
 | Toit végétal | 1970 | 150 € le m² |  |
+| Panneaux solaires | 1995 | 300 € le m² |  |
+| Tuiles solaires | 2016 | 340 € le m² |  |
 
 ### Zoo et animaux
 

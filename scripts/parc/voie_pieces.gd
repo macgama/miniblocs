@@ -64,9 +64,31 @@ const FAMILLES := {
 		"lv": 1.6, "mu": 0.10, "air": 0.0045, "chaine": 0.0, "courant": 1.4, "releve_max": 60.0, "gare": 6.0, "h_gare": 12.0, "ouvert": true,
 		"m_prix": 2500, "gare_prix": 350_000, "trains": 6, "icone": "toboggan",
 		"desc": "Une tour, un tube qui serpente et un bassin d'arrivée. Parcours ouvert : on remonte à pied."},
+	# --- Attractions d'avant-guerre (lot du 2026-11-17). « base » : famille dont elles
+	# reprennent le dessin (voie, piliers, voitures, gare).
+	"panoramique": {"nom": "Montagnes russes panoramiques", "genre": "rail", "pente_max": 30, "inversions": false, "places": 4, "voitures": 4,
+		"lv": 2.4, "mu": 0.014, "air": 0.0008, "chaine": 3.0, "releve_max": 25.0, "gare": 22.0, "h_gare": 1.1,
+		"m_prix": 4000, "gare_prix": 450_000, "icone": "bois", "base": "bois",
+		"desc": "Le grand-huit de la Belle Époque : voie en bois, décors peints et un serre-freins debout dans chaque train."},
+	"bobsleigh": {"nom": "Bobsleigh", "genre": "rail", "pente_max": 40, "inversions": false, "places": 2, "voitures": 4,
+		"lv": 2.2, "mu": 0.015, "air": 0.0008, "chaine": 3.0, "releve_max": 85.0, "gare": 20.0, "h_gare": 1.1,
+		"m_prix": 6000, "gare_prix": 600_000, "icone": "bois", "base": "bois",
+		"desc": "Une gouttière en bois où les luges filent librement et montent sur les parois des virages (1929)."},
+	"train_fantome": {"nom": "Train fantôme", "genre": "rail", "pente_max": 10, "inversions": false, "places": 2, "voitures": 2,
+		"lv": 1.8, "mu": 0.014, "air": 0.0008, "chaine": 2.6, "releve_max": 10.0, "gare": 16.0, "h_gare": 0.9,
+		"m_prix": 2500, "gare_prix": 300_000, "icone": "mine", "base": "familial",
+		"desc": "Petites voitures qui cognent les portes d'un tunnel sombre : squelettes, toiles d'araignée et cris garantis."},
+	"moulin": {"nom": "Tunnel de l'amour", "genre": "eau", "pente_max": 10, "inversions": false, "places": 4, "voitures": 1,
+		"lv": 3.6, "mu": 0.026, "air": 0.0012, "chaine": 1.8, "courant": 1.4, "releve_max": 0.0, "gare": 18.0, "h_gare": 0.0,
+		"m_prix": 3500, "gare_prix": 400_000, "trains": 6, "icone": "buches", "base": "buches",
+		"desc": "Barques lentes dans un canal couvert, une petite chute au moulin. Romantique, et humide au premier rang."},
+	"tour_glissade": {"nom": "Tour de glissade", "genre": "glisse", "pente_max": 35, "inversions": false, "places": 1, "voitures": 1,
+		"lv": 1.4, "mu": 0.14, "air": 0.0045, "chaine": 0.0, "courant": 1.2, "releve_max": 45.0, "gare": 5.0, "h_gare": 10.0, "ouvert": true,
+		"m_prix": 1500, "gare_prix": 200_000, "trains": 6, "icone": "toboggan", "base": "toboggan",
+		"desc": "Une tour en bois et sa glissade en spirale, sur un paillasson. Le grand frisson de la fête foraine de 1905."},
 }
-const ORDRE_RAIL := ["acier", "bois", "mine", "familial", "suspendu", "lance"]
-const ORDRE_EAU := ["buches", "riviere", "splash", "toboggan"]
+const ORDRE_RAIL := ["acier", "bois", "mine", "familial", "suspendu", "lance", "panoramique", "bobsleigh", "train_fantome"]
+const ORDRE_EAU := ["buches", "riviere", "splash", "toboggan", "moulin", "tour_glissade"]
 
 ## Pièces. L : longueur (m). p0 : pente d'entrée imposée (absent = toute pente
 ## permise, la pièce la garde). p1 : pente de sortie. yaw : changement de cap
@@ -134,6 +156,12 @@ const PAS := 0.5
 
 static func famille(id: String) -> Dictionary:
 	return FAMILLES.get(id, FAMILLES.acier)
+
+
+## Famille dont l'attraction reprend le dessin (voie, piliers, voitures) : elle-même
+## ou sa « base » pour les attractions d'époque.
+static func style(id: String) -> String:
+	return String(FAMILLES.get(id, {}).get("base", id))
 
 
 static func piece(id: String) -> Dictionary:

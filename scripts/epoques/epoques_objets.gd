@@ -173,9 +173,11 @@ const SPECTACLES := {
 const OUVERTURES := {
 	"baie": 1930, "baie_coulissante": 1950, "mur_rideau": 1950, "porte_garage": 1910, "bandeau": 1925,
 	"vitrine": 1850, "vitrine_store": 1850, "fenetre_atelier": 1850,
+	"fenetre_balconnet": 1850, "fenetre_store": 1880, "hublot": 1930, "baie_balconnet": 1930,
 }
 
-const TOITS := {"terrasse": 1920, "dents_de_scie": 1830}
+const TOITS := {"terrasse": 1920, "dents_de_scie": 1830, "verriere": 1830, "plat_debord": 1905, "toit_vegetal": 1970,
+	"toit_solaire": 1995}
 
 const AMENAGEMENTS := {
 	"piscine": 1920, "bassin_nage": 1900, "plongeon": 1900, "pataugeoire": 1920, "spa": 1970, "bassin_animaux": 1830,
@@ -191,6 +193,7 @@ const AMENAGEMENTS := {
 const FAMILLES_VOIES := {
 	"bois": 1884, "acier": 1959, "mine": 1966, "familial": 1950, "suspendu": 1981, "lance": 1977,
 	"splash": 1884, "buches": 1963, "riviere": 1980, "toboggan": 1960,
+	"panoramique": 1887, "moulin": 1902, "tour_glissade": 1905, "bobsleigh": 1929, "train_fantome": 1930,
 }
 
 const PIECES_VOIES := {

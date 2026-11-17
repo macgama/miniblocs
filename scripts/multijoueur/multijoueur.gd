@@ -132,7 +132,8 @@ const APPELS := {
 		"set_abo_prix", "subventionner"], "ville": true, "etat": true},
 	"parc": {"f": ["set_prix", "renommer"], "ville": true, "etat": true},
 	"zoo": {"f": ["ajouter_enclos", "retirer_enclos", "changer_barriere", "renommer_enclos", "acheter", "vendre", "relacher",
-		"deplacer", "set_prix", "set_nom"], "ville": true, "etat": true},
+		"deplacer", "set_prix", "set_nom", "set_contraception", "acheter_offre", "repondre_demande", "refuser_offre",
+		"proposer_echange", "placer_arrivee", "ceder_arrivee"], "ville": true, "etat": true},
 	"musee": {"f": ["renommer", "set_prix", "set_gratuit_dimanche", "lancer_expo"], "ville": true, "etat": true},
 }
 

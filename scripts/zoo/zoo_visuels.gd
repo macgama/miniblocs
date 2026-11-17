@@ -284,7 +284,7 @@ func _sync_betes() -> void:
 		if String(b.did) != did:
 			b.did = did
 			(b.node as MeshInstance3D).mesh = Decors.mesh(did)
-		b.echelle = ZooEspeces.echelle(esp, age)
+		b.echelle = ZooEspeces.echelle(esp, age) * (1.0 + 0.07 * ZooGenetique.effectif(a, "taille"))
 
 
 func _animer(delta: float, vitesse: float) -> void:

@@ -282,6 +282,7 @@ const SECTIONS := [
 		["Véhicules", "achetés à la création de la ligne (prix réel selon le modèle, réglage Admin du coût), revendus selon leur âge ; ils vieillissent, coûtent plus d'entretien et tombent en panne après leur durée de vie (bus 12 ans, tram 30, train 35…) : « Renouveler les usés » ou case Automatique"],
 		["Fret", "les camions, trains et bateaux de fret ne sont payés (à la tonne et au km) que pour les marchandises que les entreprises de la région expédient ou reçoivent ; sans client, ils roulent à vide"],
 		["Voie de bus", "Choisir une route > Voie de bus : bus et trams y passent les bouchons, les voitures perdent une voie ; Fermer à la circulation coupe la route"],
+		["Faire évoluer une route", "outil Route > Faire évoluer (ou Trafic > Choisir une route > Faire évoluer), puis clic sur la route : passer de 2 à 4 voies (une rue devient une avenue, une départementale une 2 × 2 voies), changer la largeur des voies, mettre ou enlever les trottoirs, ajouter un terre-plein central, des couloirs de bus ou un tramway au milieu (vraie voie de tram : arrêts et lignes possibles). Devis avant de lancer ; chantier payé au fil des travaux, la route reste ouverte avec une file sur deux ; carrefours, bâtiments et réseaux restent raccordés, et on refuse un élargissement qui toucherait un bâtiment"],
 	]],
 	["Services publics", [
 		["Maj + U", "panneau Services publics : écoles, hôpitaux, police ; habitants bien couverts, loin, saturés ou sans service ; places, lits et agents de chaque bâtiment (clic : y aller)"],
@@ -348,7 +349,7 @@ const SECTIONS := [
 		["Mes attractions", "Enregistrer garde un tracé dans ta bibliothèque pour le reposer dans n'importe quelle partie ; 5 modèles prêts à poser"],
 	]],
 	["Zoo", [
-		["Maj + Z (Loisirs ▴ → Zoo)", "panneau du zoo en 7 onglets : Zoo (note, visiteurs, prix, comptes, personnel, conseils), Enclos, Terrain, Animaux, Bâtiments, Visiteurs, Objets"],
+		["Maj + Z (Loisirs ▴ → Zoo)", "panneau du zoo en 8 onglets : Zoo (note, visiteurs, prix, comptes, personnel, conseils), Enclos, Terrain, Animaux, Bâtiments, Visiteurs, Objets, Échanges"],
 		["Fonder", "poser l'Entrée du zoo au bord d'une route (onglet Bâtiments ou Construire → Zoo) ; le reste se pose à moins de 400 m"],
 		["Enclos → Tracer", "clic à chaque coin, clic sur le premier point ou Entrée pour fermer, glisser pour un rectangle, Retour arrière efface le dernier coin ; 9 barrières (bois, électrique, grillage, palissade, renforcée, volière, vitre, mur, douve) : hauteur, solidité, vue et prix"],
 		["Terrain", "pinceaux de sol (herbe, forêt, savane sèche, sable, roche, neige, marais), bassin d'eau, remblai, relief (Maj : lisser), arbres et arrachage ; rayon du pinceau réglable"],
@@ -356,6 +357,9 @@ const SECTIONS := [
 		["Soigneurs et bâtiments", "poste de soigneurs (repas à 8 h et 15 h, nettoyage), cuisine, clinique vétérinaire, atelier (réparation des barrières), abris, belvédère, kiosque pédagogique, restaurants, toilettes"],
 		["Risques", "barrière trop basse ou usée : évasions ; fauves et proies ensemble : prédation ; enclos sale ou animaux mal soignés : maladies. Naissances quand le bien-être est bon"],
 		["Visiteurs", "chemins depuis l'entrée, vue sur les enclos (vitres et douves les meilleures), espèces rares et menacées : note, prestige et dons pour la conservation"],
+		["Génétique", "chaque animal hérite de ses parents quatre gènes (taille, santé, fertilité, longévité) ; parents trop proches : petits consanguins, plus fragiles, parfois porteurs d'une tare. La fiche de l'enclos donne la diversité génétique, les conseils signalent les couples à risque ; bouton Contra. : contraception"],
+		["Échanges", "onglet Échanges : le réseau d'élevage propose des animaux d'autres lignées et en demande (un animal rare rapporte argent et prestige) ; bouton Échanger d'un animal : le proposer à un autre zoo de la carte (sur une carte entre amis, l'autre maire accepte) ; les animaux rapportés par les expéditions y attendent un enclos"],
+		["Remise en liberté", "espèces menacées, adultes en forme, sans tare : prestige tout de suite, puis 60 jours de suivi par collier émetteur ; s'il s'adapte, prestige et dons en plus"],
 	]],
 	["Tourisme", [
 		["Maj + D (Loisirs ▴ → Tourisme)", "menu Tourisme : En bref (touristes en ville, arrivées, nuitées, refus, réputation, dépenses et ce que touche la caisse, conseils), Hébergements, Attractions, Publicité, Bâtir, Avis des touristes"],
@@ -376,6 +380,15 @@ const SECTIONS := [
 		["Protection", "un monument protégé ne se démolit pas et ne s'agrandit pas ; à ses abords (100 m inscrit, 200 m classé) : 45 m ou 30 m de haut au plus, pas d'usine ni de déchets"],
 		["Entretien", "0,12 % (inscrit) ou 0,25 % (classé) de sa valeur par an, dont 30 % ou 50 % payés par l'État : il s'use trois fois moins vite. Sans entretien, il s'abîme et attire moins ; la restauration est aidée par l'État (25 % ou 40 %)"],
 		["Journées du patrimoine", "le troisième week-end de septembre, les monuments attirent presque deux fois plus de visiteurs"],
+	]],
+	["Expéditions et objets rares", [
+		["Maj + F4 (Loisirs ▴ → Expéditions)", "menu Expéditions : En cours, Préparer, Réserve, Récits. Il faut d'abord une Société des explorateurs (Construire → Loisirs, dès 1800)"],
+		["Préparer", "une destination parmi 17 (vallée du Nil, Congo, Himalaya, Yucatán, Antarctique dès 1895…), un chef, jusqu'à 9 membres (guide, médecin, porteurs, archéologue, naturaliste, cuisinier, photographe, pilote…) et des provisions. Six qualités comptent : endurance, médecine, orientation, diplomatie, savoir, débrouille"],
+		["Le voyage", "voilier, vapeur, paquebot puis avion selon l'année ; sans le matériel adapté au climat (froid, chaleur, jungle, altitude), santé et moral fondent. Un membre trop faible rentre ; si tout le monde abandonne, l'expédition est perdue"],
+		["Imprévus", "tempêtes, fièvres, guides qui disparaissent, ruines, rencontres : on choisit une réponse (chance de réussite affichée) ou on laisse le chef décider. Un chef qui réussit gagne des niveaux"],
+		["Butin", "42 objets rares, des animaux pour le zoo et 14 spécialistes à faire venir en ville"],
+		["Réserve", "donner un objet à un musée (prestige, étoiles, thèmes), l'exposer dans le cabinet de curiosités de la Société (attire les touristes), le vendre ou le rendre à son pays d'origine ; placer un animal dans un enclos du zoo ou le confier à un autre zoo (80 % de son prix)"],
+		["Spécialistes", "une ingénieure des ponts accélère les chantiers, un agronome les récoltes, un médecin des tropiques la santé, une conservatrice les musées, un conférencier le tourisme… au plus 3 par ville"],
 	]],
 	["Partage des créations", [
 		["Maj + W (ou Créer → 8)", "menu Partage : Partager mes créations, Plans de site, Découvrir les créations des autres"],
@@ -411,7 +424,11 @@ const SECTIONS := [
 	["Son et musique", [
 		["F2, ou haut-parleur de la barre du haut", "panneau Son : volumes général, musique, ambiance, effets et interface ; silences entre les morceaux ; morceau suivant ; retirer ou écouter un morceau"],
 		["Ambiances", "on entend ce que regarde la caméra : oiseaux ou grillons à la campagne, rue animée en ville, voitures près des routes, chantiers en activité, pluie, vent, orage, mer ; en prenant de la hauteur, le vent couvre le reste"],
-		["Musique", "elle suit l'heure de la ville : morceaux de journée, de soirée et de nuit ; un thème pour le globe"],
+		["Saisons", "corneilles et silence feutré l'hiver, cigales les après-midi chauds d'été, grenouilles les nuits douces"],
+		["Lieux de la ville", "on les entend sur place : récré dans la cour d'école, manèges, zoo, usines, ferme, piscine l'été, terrasse de café, quai de gare, port, tribune pendant un match (sifflet, buts), marché, fête, incendie ; sonnerie de l'école le matin et à la sortie"],
+		["Sirènes", "selon le pays (deux-tons français, sirène américaine, japonaise) et l'époque : avant 1920, cloche des pompiers à cheval et sifflet des sergents de ville"],
+		["Pause (T)", "tout ce qui bouge se tait : trafic, chantiers, lieux et sirènes se figent ; la nature et la météo restent"],
+		["Musique", "elle suit l'heure de la ville : morceaux de journée, de soirée et de nuit ; un thème pour le globe. Partie historique : musique de son temps (XIXe siècle avant 1920, bal musette, swing et tango de 1900 à 1950)"],
 		["Réglages", "gardés pour toutes les parties (fichier son.cfg du joueur)"],
 	]],
 	["Temps et vue", [

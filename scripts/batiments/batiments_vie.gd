@@ -149,6 +149,7 @@ func fin_prevue(bid: int) -> float:
 	var f := Fondateurs.facteur_de(Fondateurs.cle_batiment(bid)) if b.has("av") else 1.0
 	if f > 0.0:
 		reste /= f
+	reste /= Expeditions.rythme_chantier(bid)
 	return Chantiers.date_apres(now(), reste, offset_h())
 
 
@@ -343,7 +344,8 @@ func _update_chantiers() -> void:
 		else:
 			b.erase("sans_ouvriers")
 		if heures > 0.0 and f > 0.0:
-			var dp := heures * k * f / maxf(float(b.get("hr", 1.0)), 1.0)
+			# Spécialistes rapportés par les expéditions (ingénieure des ponts…) : plus rapide.
+			var dp := heures * k * f * Expeditions.rythme_chantier(bid) / maxf(float(b.get("hr", 1.0)), 1.0)
 			dp = minf(dp, 1.0 - float(b.av))
 			# Le prix se paie au fil des travaux ; sans argent, le chantier s'arrête.
 			var du := int(b.get("du", 0))

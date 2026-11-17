@@ -151,6 +151,14 @@ func split_edge(id: int, s: float, snap := 1.5) -> int:
 		for k in [e1, e2]:
 			edges[k]["ch"] = e.ch
 			edges[k]["chr"] = float(e.get("chr", 0.0)) * float(edges[k].len) / maxf(float(e.len), 0.01)
+	# Route qu'on fait évoluer : les deux moitiés continuent les travaux.
+	if e.has("evo"):
+		for k in [e1, e2]:
+			var evo: Dictionary = (e.evo as Dictionary).duplicate(true)
+			var f := float(edges[k].len) / maxf(float(e.len), 0.01)
+			evo["h"] = float(evo.get("h", 8.0)) * f
+			evo["cout"] = roundi(float(evo.get("cout", 0)) * f)
+			edges[k]["evo"] = evo
 	return mid
 
 
@@ -460,6 +468,9 @@ func to_dict() -> Dictionary:
 		# Tunnel creusé depuis la vue sous terre : sa profondeur.
 		if e.has("prof"):
 			row["prof"] = snappedf(float(e.prof), 0.1)
+		# Route qu'on fait évoluer : travaux en cours (EvolutionVoies).
+		if e.has("evo"):
+			row["evo"] = (e.evo as Dictionary).duplicate(true)
 		es.append(row)
 	return {"version": 1, "next_id": next_id, "nodes": ns, "edges": es}
 
@@ -496,6 +507,8 @@ func from_dict(data: Dictionary) -> void:
 			e["chr"] = float(ed.get("chr", 0.0))
 		if ed.has("prof"):
 			e["prof"] = float(ed.prof)
+		if ed.has("evo") and typeof(ed.evo) == TYPE_DICTIONARY:
+			e["evo"] = (ed.evo as Dictionary).duplicate(true)
 		_measure(e)
 		edges[id] = e
 		(adjacency[a] as Array).append(id)

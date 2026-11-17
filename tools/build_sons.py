@@ -5,7 +5,8 @@ de tools/sons/ (bruits filtrés, oscillateurs, petite réverbération). Les fich
 produits sont placés sous licence CC0 (voir assets/son/LICENCE.md).
 
 Sorties (OGG Vorbis, 44,1 kHz) :
-- assets/son/ambiance/*.ogg : boucles (nature, ville, trafic, pluie, vent, mer, chantier)
+- assets/son/ambiance/*.ogg : boucles (nature, ville, trafic, pluie, vent, mer, chantier,
+  saisons, lieux de la ville et sirènes en mono pour la 3D)
 - assets/son/effets/*.ogg   : sons ponctuels (interface, construction, fanfares, tonnerre…)
 - assets/son/musique/*.ogg  : morceaux
 
@@ -21,8 +22,10 @@ sys.path.insert(0, os.path.join(HERE, "sons"))
 import ambiances  # noqa: E402
 import ambiances_epoque  # noqa: E402
 import effets  # noqa: E402
+import lieux  # noqa: E402
 import musique  # noqa: E402
 import musique_epoque  # noqa: E402
+import musique_1920  # noqa: E402
 from synth import write_ogg  # noqa: E402
 
 OUT = os.path.join(HERE, "..", "assets", "son")
@@ -32,19 +35,20 @@ def main():
     groups = sys.argv[1:2] or ["ambiance", "effets", "musique"]
     only = set(sys.argv[2:])
     if "ambiance" in groups:
-        for name, f in {**ambiances.ALL, **ambiances_epoque.ALL}.items():
+        mono = set(lieux.LIEUX) | {"chantier"}
+        for name, f in {**ambiances.ALL, **ambiances_epoque.ALL, **lieux.SAISONS, **lieux.LIEUX}.items():
             if only and name not in only:
                 continue
             print("ambiance", name)
-            write_ogg(os.path.join(OUT, "ambiance", name + ".ogg"), f(), 3, mono=(name == "chantier"))
+            write_ogg(os.path.join(OUT, "ambiance", name + ".ogg"), f(), 3, mono=(name in mono))
     if "effets" in groups:
-        for name, f in {**effets.ALL, **ambiances_epoque.EFFETS}.items():
+        for name, f in {**effets.ALL, **ambiances_epoque.EFFETS, **lieux.EFFETS}.items():
             if only and name not in only:
                 continue
             print("effet", name)
             write_ogg(os.path.join(OUT, "effets", name + ".ogg"), f(), 4)
     if "musique" in groups:
-        for name, (f, title, mood) in {**musique.ALL, **musique_epoque.ALL}.items():
+        for name, (f, title, mood) in {**musique.ALL, **musique_epoque.ALL, **musique_1920.ALL}.items():
             if only and name not in only:
                 continue
             print("musique", name, "-", title)

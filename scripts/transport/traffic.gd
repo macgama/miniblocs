@@ -615,7 +615,7 @@ func sidewalk_length() -> float:
 
 func _has_sidewalk(eid: int) -> bool:
 	var e: Dictionary = network.edges[eid]
-	return String(TransportTypes.get_type(e.t).get("side_kind", "")) == "trottoir"
+	return TransportTypes.side_kind_of(e.t, e.w) == "trottoir"
 
 
 func walker_count() -> int:
@@ -766,7 +766,8 @@ func _end_cross(v: Dictionary) -> void:
 
 
 func _side_w(eid: int) -> float:
-	return float(TransportTypes.get_type(network.edges[eid].t).get("side", 1.5))
+	var e: Dictionary = network.edges[eid]
+	return TransportTypes.side_of(e.t, e.w)
 
 
 ## Pas d'apparition sur un véhicule déjà présent au même endroit.
@@ -1340,12 +1341,15 @@ func _place(v: Dictionary) -> void:
 		flat = Vector3.FORWARD
 	flat = flat.normalized()
 	var right := Vector3(-flat.z, 0, flat.x)
-	var surface := 0.08 if int(v.mode) != TransportTypes.Mode.RAIL else 0.47
+	var surface := 0.08 if int(v.mode) != TransportTypes.Mode.RAIL else (0.2 if bool(e.w.get("sr", false)) else 0.47)
 	if int(v.mode) == TransportTypes.Mode.WATER:
 		# En mer (voie posée au niveau 0), le bateau suit la marée.
 		surface = Maree.level if absf(p.y) < 0.05 else 0.0
 	var offsets := TransportTypes.lane_offsets(e.t, e.w)
 	var lane: float = offsets[mini(int(v.lane_idx), offsets.size() - 1)] if not offsets.is_empty() else 0.0
+	# Bus d'une ligne : dans le couloir de bus de la route (EvolutionVoies).
+	if v.has("line") and int(v.mode) == TransportTypes.Mode.ROAD and TransportTypes.bus_of(e.t, e.w) > 0.0:
+		lane = TransportTypes.bus_lane_offset(e.t, e.w)
 	if int(v.mode) == TransportTypes.Mode.PATH:
 		lane *= float(v.lane)
 	elif v.has("bike"):
@@ -1828,10 +1832,13 @@ func _siren_audio(v: Dictionary) -> void:
 	var player: AudioStreamPlayer3D = v.get("siren_player", null)
 	if on and player == null:
 		player = AudioStreamPlayer3D.new()
-		player.stream = siren_stream()
+		# Sirène du pays et de l'époque (AmbiancesSonores.sirene_de) ; sinon le deux-tons maison.
+		var annee := Epoques.annee() if Epoques.actif() else 0
+		var st := Son.flux("ambiance/" + AmbiancesSonores.sirene_de(String(v.get("model", "")), annee), true)
+		player.stream = st if st != null else siren_stream()
 		player.unit_size = 12.0
 		player.max_distance = 350.0
-		player.volume_db = -8.0
+		player.volume_db = -10.0
 		player.bus = "Effets" if AudioServer.get_bus_index("Effets") >= 0 else "Master"
 		(v.body as Node3D).add_child(player)
 		v.siren_player = player

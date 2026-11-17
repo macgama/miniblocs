@@ -236,7 +236,10 @@ func _refresh_junction_cells(changed_cells: Array) -> void:
 			if n == 0:
 				changed_cells.append(c)
 			_occupied[c] = n + 1
-			if world != null and is_nan(water_surface(c.x + 0.5, c.y + 0.5)):
+			# Relief pas encore chargé (partie qui s'ouvre) : le plateau a été terrassé à la
+			# pose et ses cases sont dans la sauvegarde ; sinon chaque chargement ajoutait
+			# des centaines de cases « modifiées » sous les carrefours.
+			if world != null and is_nan(water_surface(c.x + 0.5, c.y + 0.5)) and not is_nan(world.cell_height(c)):
 				works[c] = floorf((float(cells[c]) + 0.001) / world.height_step) * world.height_step
 		_node_fp[nid] = {"key": keys[nid], "cells": cells.keys()}
 	if world != null and not works.is_empty():

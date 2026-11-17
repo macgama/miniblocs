@@ -219,5 +219,5 @@ func _run() -> void:
 		rac.maj()
 	_check(true, "20 mises à jour en %.1f ms" % ((Time.get_ticks_usec() - t) / 1000.0))
 
-	print("Raccordements : %s" % ("OK" if ok else "ÉCHEC"))
+	print("RACCORDEMENTS TEST OK" if ok else "RACCORDEMENTS TEST ÉCHEC")
 	quit(0 if ok else 1)

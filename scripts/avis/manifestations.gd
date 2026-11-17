@@ -306,6 +306,11 @@ func _fermer(m: Dictionary) -> void:
 		return
 	var net := avis.transport.network
 	if net.closed_edges.has(int(m.edge)):
+		# Rue déjà fermée par une manifestation : celle d'avant un chargement (la fermeture
+		# est sauvegardée par le trafic). Celle-ci la rouvrira à la fin, sinon la rue
+		# restait barrée pour toujours après une manifestation interrompue par un chargement.
+		if String(net.closed_edges[int(m.edge)]) == "manifestation":
+			m.ferme = true
 		return
 	var trafic := _trafic()
 	if trafic != null and trafic.has_method("fermer"):
@@ -658,6 +663,11 @@ func from_dict(d: Dictionary) -> void:
 		for pid in m.get("part", []):
 			part.append(int(pid))
 		m.part = part
+		# Cortège interrompu par la sauvegarde : il repart de zéro (« prévue »). La rue qu'il
+		# barrait (fermeture rechargée avec le trafic) est rouverte ; il la refermera en repartant.
+		m.ferme = bool(m.get("ferme", false)) and String(m.etat) == "en_cours"
+		if m.ferme:
+			_rouvrir(m)
 		m.ferme = false
 		liste[int(m.id)] = m
 		if String(m.etat) == "en_cours":

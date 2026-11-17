@@ -2367,6 +2367,9 @@ func to_dict() -> Dictionary:
 
 
 func from_dict(d: Dictionary) -> void:
+	# Journée de l'ancienne partie en cours de calcul (étalée sur plusieurs images) :
+	# elle ne doit pas se poursuivre sur les habitants de la partie chargée (F9, Charger).
+	_jour_en_cours = {}
 	persons.clear()
 	households.clear()
 	by_home.clear()

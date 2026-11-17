@@ -97,6 +97,8 @@ signal curve_toggled(on: bool)
 signal level_changed(level: String)
 ## Action de l'outil Carrefour : "regime", "giratoire" ou "echangeur".
 signal junction_action_changed(action: String)
+## Bouton « Faire évoluer » du panneau Route : outil qui change une route posée.
+signal upgrade_requested
 
 const PLACES := [
 	{"name": "Tour Eiffel", "lat": 48.85826, "lon": 2.29450},
@@ -265,6 +267,7 @@ var _curve: Button
 var _level_pick: OptionButton
 const LEVEL_IDS := ["auto", "dessus", "dessous"]
 var _junction_panel: HBoxContainer
+var _upgrade: Button
 var _junction_buttons: Dictionary = {}
 var _spec_rows: Dictionary = {}
 var _filling := false
@@ -1151,6 +1154,13 @@ func _build_spec_panel(parent: Control) -> void:
 		if not _filling:
 			level_changed.emit(LEVEL_IDS[i]))
 	row.add_child(_level_pick)
+	_upgrade = Button.new()
+	_upgrade.text = "Faire évoluer"
+	_upgrade.icon = Icones.get_icon("route", 18)
+	_upgrade.tooltip_text = "Changer une route déjà posée sans la démolir : 2 → 4 voies, trottoirs, terre-plein, couloirs de bus, tramway"
+	_upgrade.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_upgrade.pressed.connect(func() -> void: upgrade_requested.emit())
+	row.add_child(_upgrade)
 	# Outil Carrefour : régime, giratoire ou échangeur.
 	_junction_panel = HBoxContainer.new()
 	_junction_panel.visible = false
@@ -1248,6 +1258,7 @@ func show_spec(type_id: String, spec: Dictionary, curve: bool, level := "auto") 
 	_curve.button_pressed = curve
 	_level_pick.select(maxi(0, LEVEL_IDS.find(level)))
 	_level_pick.visible = int(c.mode) != TransportTypes.Mode.WATER
+	_upgrade.visible = int(c.mode) == TransportTypes.Mode.ROAD
 	_spec_panel.visible = true
 	_filling = false
 	_update_categories()

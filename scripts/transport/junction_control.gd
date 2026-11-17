@@ -333,7 +333,7 @@ func _crosswalk(root: Node3D, nid: int, eid: int) -> void:
 	var base := network.point_at(eid, sd)
 	var out: Vector3 = network.out_dir_at(eid, nid, sd)
 	var right := Vector3(-out.z, 0, out.x)
-	var road := network.half_width(eid) - float(TransportTypes.get_type(e.t).get("side", 1.5))
+	var road := network.half_width(eid) - TransportTypes.side_of(e.t, e.w)
 	var n := maxi(2, floori(road * 2.0 / 1.0))
 	var mm := MultiMeshInstance3D.new()
 	var mesh := MultiMesh.new()

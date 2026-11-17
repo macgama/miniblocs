@@ -557,7 +557,8 @@ func executer(pid: String, a: Dictionary) -> String:
 			if bid < 0 or not bs.buildings.has(bid):
 				refus = "Plus rien à démolir ici."
 			else:
-				bs.demolish(bid)
+				# « annule » : pose défaite par Ctrl+Z, tout ce qui a été payé revient.
+				bs.demolish(bid, bool(a.get("annule", false)))
 		"voie":
 			var path: PackedVector2Array = a.get("path", PackedVector2Array())
 			if path.size() < 2:
@@ -574,7 +575,7 @@ func executer(pid: String, a: Dictionary) -> String:
 					tr.edges_built.emit(res.edges)
 					if not is_nan(prof) and jeu.construction_souterraine != null:
 						jeu.construction_souterraine.appliquer_tunnel(res.edges, prof)
-					_a_tous({"m": "rejouer", "a": a})
+					_a_tous({"m": "rejouer", "a": a, "par": pid})
 					_messages.append(tr._describe(res, true))
 				else:
 					refus = String(res.reason)
@@ -582,9 +583,22 @@ func executer(pid: String, a: Dictionary) -> String:
 			var eid := int(a.get("eid", -1))
 			if tr.network.edges.has(eid):
 				_rejeu = true
+				var av := tr.photo_reseau()
 				tr.demolish(eid)
 				_rejeu = false
+				_a_tous({"m": "rejouer", "a": a, "par": pid, "diff": tr.diff_reseau(av, tr.photo_reseau())})
+		"voie_histo":
+			# Ctrl+Z d'un joueur sur ses voies : la même différence chez tous (mêmes numéros).
+			var d: Variant = a.get("d")
+			if not d is Dictionary or not (d as Dictionary).has("e_plus"):
+				refus = "Annulation illisible."
+			else:
+				_rejeu = true
+				var sautes := tr.appliquer_diff(d, bool(a.get("annuler", true)))
+				_rejeu = false
 				_a_tous({"m": "rejouer", "a": a})
+				if sautes > 0:
+					_messages.append("%d tronçon%s avai%s déjà changé." % [sautes, "s" if sautes > 1 else "", "ent" if sautes > 1 else "t"])
 		"carrefour":
 			_rejeu = true
 			var txt := tr.appliquer_carrefour(String(a.get("action", "")), a.get("p", Vector3.ZERO), bool(a.get("maj", false)))

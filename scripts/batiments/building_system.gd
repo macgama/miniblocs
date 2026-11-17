@@ -595,14 +595,16 @@ func place(id: String, center: Vector2i, r: int, zone := 0, a := 0.0) -> int:
 var demolish_check: Callable
 
 
-func demolish(bid: int) -> void:
+## Démolit un bâtiment. Renvoie ce qui a été rendu (-1 : refusé). plein : tout ce qui
+## a été payé revient (pose annulée par Ctrl+Z en carte entre amis).
+func demolish(bid: int, plein := false) -> int:
 	if not buildings.has(bid) or bloque_reseau():
-		return
+		return -1
 	if demolish_check.is_valid():
 		var why := String(demolish_check.call(bid))
 		if why != "":
 			message.emit(why)
-			return
+			return -1
 	var b: Dictionary = buildings[bid]
 	var rect := _rect_of(b)
 	for c in _cells_of(b):
@@ -613,7 +615,9 @@ func demolish(bid: int) -> void:
 		_nodes.erase(bid)
 	buildings.erase(bid)
 	# Chantier pas fini : seule la part déjà payée compte.
-	var back := roundi(float(int(b.get("cost", 0)) - int(b.get("du", 0))) * REFUND)
+	var back := roundi(float(int(b.get("cost", 0)) - int(b.get("du", 0))) * (1.0 if plein else REFUND))
+	if unlimited_money:
+		back = 0
 	if not unlimited_money:
 		var caisse_prev := Pays.du_batiment(b, rect)
 		money += back
@@ -623,6 +627,7 @@ func demolish(bid: int) -> void:
 	message.emit("%s démoli (%s rendus)." % [BuildingCatalog.get_type(b.t).get("name", b.t), format_money(back)])
 	last_change_rect = rect.grow(3)
 	changed.emit()
+	return back
 
 
 ## Retire un bâtiment sans remboursement ni message (il est remplacé, par
@@ -757,6 +762,7 @@ func path_cells(door: Vector3, road: Vector3) -> Array:
 func _terrace_path(door: Vector3, road: Vector3, target: float) -> void:
 	var cells := path_cells(door, road)
 	for c in cells:
+		world.noter_case(c)
 		world.modifications[c] = target
 	world.mark_cells_dirty(cells)
 
@@ -792,6 +798,7 @@ func _terrace(footprint: Array, target: float) -> void:
 		cells[c] = snappedf(lerpf(target, h, u), world.height_step)
 	# Les cases de l'emprise sont toujours enregistrées : pas d'arbres dessous.
 	for c in cells:
+		world.noter_case(c)
 		world.modifications[c] = cells[c]
 	world.mark_cells_dirty(cells.keys())
 
@@ -819,25 +826,43 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		if relais.is_valid():
 			# Multijoueur : le serveur décide, la ville change chez tout le monde.
+			var histo := HistoriqueVille.instance
 			if mode == Mode.DEMOLISH:
 				if _hover_building >= 0 and buildings.has(_hover_building):
 					var hb: Dictionary = buildings[_hover_building]
 					var hc := _center_of(hb)
 					relais.call({"t": "demolir", "bid": _hover_building, "c": [hc.x, hc.y]})
+					if histo != null:
+						histo.noter("Démolition : " + HistoriqueVille._nom_type(String(hb.t)).to_lower(), {"k": "mp_bat_demoli",
+							"a": {"t": "poser", "id": String(hb.t), "c": [hc.x, hc.y], "r": int(hb.r), "a": float(hb.get("a", 0.0)),
+								"perso": hb.get("perso", {}), "v": int(hb.get("v", -1))}})
 			else:
-				relais.call({"t": "poser", "id": type_id, "c": [_place_center.x, _place_center.y], "r": rot, "a": angle,
-					"perso": place_perso, "v": place_variant})
+				if ModePlan.instance != null and ModePlan.instance.actif:
+					ModePlan.instance.capter_batiment(type_id, _place_center, rot, angle, place_perso, place_variant)
+					return
+				var pa := {"t": "poser", "id": type_id, "c": [_place_center.x, _place_center.y], "r": rot, "a": angle,
+					"perso": place_perso, "v": place_variant}
+				relais.call(pa)
+				if histo != null and not Communes.est_fondateur(type_id):
+					histo.noter(HistoriqueVille._nom_type(type_id), {"k": "mp_bat_pose", "a": pa.duplicate(true)})
 			return
 		if mode == Mode.DEMOLISH:
 			if _hover_building >= 0:
 				var at := _nodes[_hover_building].global_position as Vector3 if _nodes.has(_hover_building) else Vector3.ZERO
 				var had := buildings.has(_hover_building)
-				demolish(_hover_building)
+				var avant: Dictionary = buildings[_hover_building].duplicate(true) if had else {}
+				var rendu := demolish(_hover_building)
+				if rendu >= 0 and HistoriqueVille.instance != null:
+					HistoriqueVille.instance.noter_demolition(avant, rendu)
 				if had and not buildings.has(_hover_building):
 					Son.jouer_a("demolition", at)
 				else:
 					Son.jouer("ui_erreur", -4.0, 0.0, "Interface")
 				_refresh()
+			return
+		# Mode plan : le bâtiment reste un projet (fantôme bleu), sans payer.
+		if ModePlan.instance != null and ModePlan.instance.actif:
+			ModePlan.instance.capter_batiment(type_id, _place_center, rot, angle, place_perso, place_variant)
 			return
 		var nb := place(type_id, _place_center, rot, 0, angle)
 		if nb < 0:
@@ -846,6 +871,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			Son.jouer("pose_batiment", -2.0, 0.08)
 			if not place_perso.is_empty() or place_variant >= 0:
 				set_perso(nb, place_perso, place_variant)
+			if HistoriqueVille.instance != null:
+				HistoriqueVille.instance.noter_pose(nb)
 			_refresh()
 	elif event is InputEventKey:
 		var key := event as InputEventKey
@@ -895,7 +922,9 @@ func _refresh() -> void:
 			_place_center = snap.center
 			rot = snap.r
 			angle = snap.a
-	_check = check_place(type_id, _place_center, rot, false, angle)
+	# Mode plan : ni argent ni voie exigés pour un projet (ModePlan.verifier_batiment).
+	var en_plan := ModePlan.instance != null and ModePlan.instance.actif
+	_check = ModePlan.instance.verifier_batiment(type_id, _place_center, rot, angle) if en_plan else check_place(type_id, _place_center, rot, false, angle)
 	var rect: Rect2i = _check.rect
 	var h: float = _check.h
 	if h == 0.0:
@@ -931,7 +960,9 @@ func _refresh() -> void:
 		txt += "\n" + String(_check.info)
 	if not _check.ok:
 		txt += "\n✗ " + String(_check.reason)
-	txt += "\nClic : poser · R : tourner%s · clic droit ou Échap : arrêter" % ("" if manual_rot else " (calé le long de la route)" if angle != 0.0 or _place_center != _cursor else " (orientation auto vers la route)")
+	if en_plan:
+		txt = "Mode plan · " + txt
+	txt += "\nClic : %s · R : tourner%s · clic droit ou Échap : arrêter" % ["prévoir (projet, sans payer)" if en_plan else "poser", "" if manual_rot else " (calé le long de la route)" if angle != 0.0 or _place_center != _cursor else " (orientation auto vers la route)"]
 	info_changed.emit(txt)
 
 

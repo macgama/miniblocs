@@ -261,6 +261,7 @@ func _ready() -> void:
 	_setup_streamer()
 	_setup_succes()
 	_setup_visites()
+	_setup_historique()
 	hud.traffic_toggled.connect(func(on: bool) -> void: transport.traffic.set_enabled(on))
 	hud.traffic_filter_changed.connect(func(era: String, region: String) -> void:
 		transport.traffic.set_filters(era, region)
@@ -472,6 +473,7 @@ func save_sections() -> Dictionary:
 	sec["streamer"] = mode_streamer.to_dict()
 	sec["edition_demo"] = limite_demo.to_dict()
 	sec["courrier"] = courrier.to_dict()
+	sec["projets"] = mode_plan.to_dict()
 	# Serveur de carte entre amis : membres, code d'invitation, caisses personnelles.
 	if Multijoueur.role == Multijoueur.Role.SERVEUR:
 		sec["multijoueur"] = Multijoueur.section()
@@ -665,6 +667,10 @@ func load_game(slot := "") -> bool:
 	# Après les réglages : une partie d'avant le tutoriel n'en a pas.
 	limite_demo.from_dict(sec.get("edition_demo", {}))
 	courrier.from_dict(sec.get("courrier", {}))
+	# Mode plan : projets en attente ; l'historique (Ctrl+Z) repart à zéro.
+	mode_plan.from_dict(sec.get("projets", {}))
+	mode_plan.set_actif(false)
+	historique.vider()
 	if sec.has("tutoriel"):
 		tutoriel.from_dict(sec.tutoriel)
 	else:
@@ -1465,6 +1471,64 @@ func ouvrir_bilan_demo() -> void:
 		GameStart.slot_id = ""
 		EcranChargement.aller(MenuPrincipal.SCENE, "Retour au menu principal"))
 	add_child(bilan_demo)
+
+
+## Annuler / rétablir (Ctrl+Z, Ctrl+Y) et mode plan (Ctrl+P), docs/annuler-mode-plan.md.
+var historique: HistoriqueVille
+var mode_plan: ModePlan
+var mode_plan_panel: ModePlanPanel
+
+
+func _setup_historique() -> void:
+	mode_plan = ModePlan.new()
+	mode_plan.name = "ModePlan"
+	mode_plan.buildings = buildings
+	mode_plan.transport = transport
+	add_child(mode_plan)
+	mode_plan.message.connect(func(t: String) -> void: hud.show_message(t))
+	mode_plan_panel = ModePlanPanel.new()
+	mode_plan_panel.name = "ModePlanPanel"
+	add_child(mode_plan_panel)
+	mode_plan_panel.setup(mode_plan)
+	mode_plan_panel.haut = func() -> float:
+		var y := UiStyle.SIDE_TOP
+		for c in [tuto_carte._col if tuto_carte != null else null, scenario_carte._panel if scenario_carte != null else null,
+				habitants_panel._card if habitants_panel != null else null]:
+			if c is Control and (c as Control).is_visible_in_tree() and (c as Control).size.y > 4.0:
+				y = maxf(y, (c as Control).get_global_rect().end.y + 8.0)
+		return y
+	historique = HistoriqueVille.new()
+	historique.name = "Historique"
+	add_child(historique)
+	historique.setup(self)
+	historique.message.connect(func(t: String) -> void: hud.show_message(t))
+	var maj := func() -> void: hud.set_historique(historique.nom_annuler(), historique.nom_refaire(), mode_plan.actif)
+	historique.changed.connect(maj)
+	mode_plan.changed.connect(maj)
+	maj.call()
+	hud.undo_requested.connect(func() -> void: historique.annuler())
+	hud.redo_requested.connect(func() -> void: historique.refaire())
+	hud.plan_requested.connect(func() -> void: mode_plan.basculer())
+
+
+## Ctrl+Z, Ctrl+Y (ou Ctrl+Maj+Z), Ctrl+P. Vrai si la touche a servi.
+func _touche_historique(k: InputEventKey) -> bool:
+	if k == null or not k.pressed or not (k.ctrl_pressed or k.meta_pressed) or historique == null:
+		return false
+	if VisiteVille.active():
+		return false
+	if k.keycode == KEY_Z and not k.shift_pressed:
+		historique.annuler()
+		Son.jouer("ui_clic", -6.0, 0.0, "Interface")
+		return true
+	if k.keycode == KEY_Y or (k.keycode == KEY_Z and k.shift_pressed):
+		historique.refaire()
+		Son.jouer("ui_clic", -6.0, 0.0, "Interface")
+		return true
+	if k.keycode == KEY_P and not k.echo:
+		mode_plan.basculer()
+		return true
+	return false
 
 
 ## Visites et cartes postales (F12, VisiteVille, Courrier, docs/visites.md).
@@ -2273,6 +2337,10 @@ func _input(event: InputEvent) -> void:
 ## racine, elle passe donc en dernier.
 func _unhandled_input(event: InputEvent) -> void:
 	var k := event as InputEventKey
+	# Après les éditeurs (blocs, murs, meubles), qui gardent leur propre Ctrl+Z.
+	if pause_menu == null and _touche_historique(k):
+		get_viewport().set_input_as_handled()
+		return
 	if k != null and k.pressed and not k.echo and k.keycode == KEY_F3 and Multijoueur.client_actif() != null \
 			and Multijoueur.role == Multijoueur.Role.CLIENT:
 		get_viewport().set_input_as_handled()
@@ -3293,6 +3361,10 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 	blocks.clear()
 	plans.clear()
 	mobilier.clear()
+	if mode_plan != null:
+		mode_plan.clear()
+		mode_plan.set_actif(false)
+		historique.vider()
 	GameStart.lat = lat
 	GameStart.lon = lon
 	# Nouvelle région : nouvelle partie (load_game() remet son identifiant après).

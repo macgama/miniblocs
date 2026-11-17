@@ -503,6 +503,28 @@ func _en_ligne() -> void:
 	_check(await _attendre(func() -> bool: return scene.world.modifications.has(Vector2i(301, 301)), 10.0), "terrain monté d'un mètre chez Alice")
 	_check(absf(float(scene.world.modifications.get(Vector2i(301, 301), 0.0)) - 41.0) < 0.01, "hauteur reçue : 41 m")
 
+	print("Ctrl+Z en ligne :")
+	var h: HistoriqueVille = scene.historique
+	h.vider()
+	var ne: int = scene.transport.network.edges.size()
+	scene.transport.relais.call({"t": "voie", "id": "departementale", "spec": {}, "path": PackedVector2Array([Vector2(-80, 140), Vector2(80, 140)])})
+	_check(await _attendre(func() -> bool: return scene.transport.network.edges.size() > ne and h.peut_annuler(), 10.0), "la route d'Alice entre dans son historique (%s)" % h.nom_annuler())
+	var ne_route: int = scene.transport.network.edges.size()
+	h.annuler()
+	_check(await _attendre(func() -> bool: return scene.transport.network.edges.size() == ne, 10.0), "Ctrl+Z : le serveur ôte la route chez tous")
+	h.refaire()
+	_check(await _attendre(func() -> bool: return scene.transport.network.edges.size() == ne_route, 10.0), "Ctrl+Y : elle revient")
+	var nb2 := bs.buildings.size()
+	var m_av := bs.money
+	var pa := {"t": "poser", "id": "maison", "c": [20, 152], "r": 0, "a": 0.0, "perso": {}, "v": -1}
+	bs.relais.call(pa)
+	h.noter("Maison", {"k": "mp_bat_pose", "a": pa.duplicate(true)})
+	_check(await _attendre(func() -> bool: return bs.buildings.size() > nb2, 10.0), "maison posée par le serveur")
+	h.annuler()
+	_check(await _attendre(func() -> bool: return bs.buildings.size() == nb2, 10.0), "Ctrl+Z : la maison est retirée par le serveur")
+	await _attendre(func() -> bool: return false, 1.0)
+	_check(absi(bs.money - m_av) < 50000, "tout l'argent revient (écart %s)" % BuildingSystem.format_money(bs.money - m_av))
+
 	await _sections_partagees(a, b, scene, vid)
 	await _systemes_geres(a, b, scene, vid)
 

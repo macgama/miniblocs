@@ -1658,6 +1658,7 @@ func apply_tool(a: Vector2i, b: Vector2i) -> int:
 					h += 1.0
 				Tool.LOWER:
 					h -= 1.0
+			noter_case(c)
 			modifications[c] = h
 			water_cells.erase(c)
 			count += 1
@@ -1695,6 +1696,7 @@ func apply_brush(center: Vector2i) -> int:
 				var add := snappedf(hill_height * (1.0 - d * d), height_step)
 				if add <= 0.0:
 					continue
+				noter_case(c)
 				water_cells.erase(c)
 				modifications[c] = h + add
 				count += 1
@@ -1713,6 +1715,7 @@ func apply_brush(center: Vector2i) -> int:
 					new_h[c] = _quantize(sum / n)
 			for c in new_h:
 				if new_h[c] != cell_height(c):
+					noter_case(c)
 					modifications[c] = new_h[c]
 					count += 1
 		Tool.DIG_WATER:
@@ -1729,12 +1732,14 @@ func apply_brush(center: Vector2i) -> int:
 				if is_nan(bank) or bank < 0.0:
 					continue
 				var level := minf(bank, _stroke_level)
+				noter_case(c)
 				water_cells[c] = level - WATER_SURFACE_DROP
 				modifications[c] = level - 1.0
 				count += 1
 		Tool.FILL_WATER:
 			for c in cells:
 				if water_cells.has(c):
+					noter_case(c)
 					modifications[c] = float(water_cells[c]) + WATER_SURFACE_DROP
 					water_cells.erase(c)
 					count += 1
@@ -1767,6 +1772,7 @@ func set_cells(cells: Dictionary) -> int:
 		var h: float = cells[c]
 		if cell_height(c) == h:
 			continue
+		noter_case(c)
 		modifications[c] = h
 		_mark_dirty_around(c)
 		count += 1
@@ -1774,6 +1780,42 @@ func set_cells(cells: Dictionary) -> int:
 		terrain_edited.emit(count)
 		_update_selection()
 	return count
+
+
+## Annuler (HistoriqueVille) : null, ou les cases touchées pendant le geste du joueur
+## → [hauteur modifiée d'avant ou null, eau d'avant ou null].
+var journal: Variant = null
+
+
+func noter_case(c: Vector2i) -> void:
+	if journal is Dictionary and not (journal as Dictionary).has(c):
+		journal[c] = [modifications.get(c), water_cells.get(c)]
+
+
+## État de cases (même forme que journal).
+func etat_cases(cells: Array) -> Dictionary:
+	var out := {}
+	for c in cells:
+		out[c] = [modifications.get(c), water_cells.get(c)]
+	return out
+
+
+## Remet des cases dans un état noté (etat_cases, journal).
+func remettre_cases(etat: Dictionary) -> void:
+	for c in etat:
+		var e: Array = etat[c]
+		if e[0] == null:
+			modifications.erase(c)
+		else:
+			modifications[c] = float(e[0])
+		if e[1] == null:
+			water_cells.erase(c)
+		else:
+			water_cells[c] = e[1]
+		_mark_dirty_around(c)
+	if not etat.is_empty():
+		terrain_edited.emit(etat.size())
+		_update_selection()
 
 
 ## À appeler quand quelque chose posé sur des cases (ex. des routes) doit

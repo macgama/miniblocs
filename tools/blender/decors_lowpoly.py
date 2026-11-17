@@ -33,7 +33,7 @@ import bpy  # avant bmesh
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import batiment_lowpoly as bl  # noqa: E402  (lire_options, apercu)
-from decors import base, urbain, clotures, loisirs, ferme, animaux, eau, rochers, zoo  # noqa: E402
+from decors import base, urbain, clotures, loisirs, ferme, animaux, eau, rochers, zoo, epoques  # noqa: E402
 
 # Catégories, dans l'ordre du panneau du jeu.
 CATEGORIES = [
@@ -47,7 +47,7 @@ CATEGORIES = [
 # id -> (fonction, catégorie, options). Options : ligne (longueur d'un tronçon
 # qui se répète, en m), eau (posé sur l'eau, origine à la flottaison), berge
 # (ponton : origine sur la berge), anime (animal qui se déplace).
-U, C, L, F, A, E, R, Z = urbain, clotures, loisirs, ferme, animaux, eau, rochers, zoo
+U, C, L, F, A, E, R, Z, H = urbain, clotures, loisirs, ferme, animaux, eau, rochers, zoo, epoques
 DECORS = {
     # Mobilier urbain
     "banc_bois": (U.banc_bois, "urbain", {}), "banc_vert": (U.banc_vert, "urbain", {}),
@@ -193,6 +193,58 @@ DECORS = {
     "abri_paille": (Z.abri_paille, "zoo_objets", {}),
     "panneau_espece": (Z.panneau_espece, "zoo_objets", {}),
     "longue_vue": (Z.longue_vue, "zoo_objets", {}),
+    # Décors datés (1800 → demain) et objets du monde
+    "bec_gaz": (H.bec_gaz, "eclairage", {}),
+    "lampadaire_solaire": (H.lampadaire_solaire, "eclairage", {}),
+    "lanternes_papier": (H.lanternes_papier, "eclairage", {}),
+    "vespasienne": (H.vespasienne, "urbain", {}),
+    "kiosque_journaux": (H.kiosque_journaux, "urbain", {}),
+    "kiosque_musique": (H.kiosque_musique, "monuments", {}),
+    "pompe_a_bras": (H.pompe_a_bras, "urbain", {}),
+    "lavoir": (H.lavoir, "monuments", {}),
+    "poteau_telegraphe": (H.poteau_telegraphe, "panneaux", {}),
+    "orgue_barbarie": (H.orgue_barbarie, "marche", {}),
+    "chasse_roue": (H.chasse_roue, "urbain", {}),
+    "cireur": (H.cireur, "marche", {}),
+    "malles_bagages": (H.malles_bagages, "urbain", {}),
+    "pompe_essence_ancienne": (H.pompe_essence_ancienne, "urbain", {}),
+    "borne_routiere": (H.borne_routiere, "panneaux", {}),
+    "cabine_police": (H.cabine_police, "urbain", {}),
+    "entree_metro": (H.entree_metro, "urbain", {}),
+    "borne_appel": (H.borne_appel, "urbain", {}),
+    "affiche_reclame": (H.affiche_reclame, "panneaux", {}),
+    "sirene_alerte": (H.sirene_alerte, "panneaux", {}),
+    "borne_recharge": (H.borne_recharge, "urbain", {}),
+    "bornes_recharge_parking": (H.bornes_recharge_parking, "urbain", {}),
+    "velos_libre_service": (H.velos_libre_service, "urbain", {}),
+    "trottinettes": (H.trottinettes, "urbain", {}),
+    "abribus_moderne": (H.abribus_moderne, "urbain", {}),
+    "panneaux_solaires": (H.panneaux_solaires, "panneaux", {}),
+    "boite_livres": (H.boite_livres, "urbain", {}),
+    "conteneurs_enterres": (H.conteneurs_enterres, "urbain", {}),
+    "poubelle_solaire": (H.poubelle_solaire, "urbain", {}),
+    "totem_info": (H.totem_info, "panneaux", {}),
+    "camera_surveillance": (H.camera_surveillance, "panneaux", {}),
+    "radar_vitesse": (H.radar_vitesse, "panneaux", {}),
+    "casiers_colis": (H.casiers_colis, "urbain", {}),
+    "atelier_velo": (H.atelier_velo, "urbain", {}),
+    "agres_fitness": (H.agres_fitness, "jeux", {}),
+    "rampe_skate": (H.rampe_skate, "jeux", {}),
+    "sanisette": (H.sanisette, "urbain", {}),
+    "bac_compost": (H.bac_compost, "urbain", {}),
+    "jardin_partage": (H.jardin_partage, "cultures", {}),
+    "hotel_insectes": (H.hotel_insectes, "cultures", {}),
+    "banc_connecte": (H.banc_connecte, "urbain", {}),
+    "mat_5g": (H.mat_5g, "panneaux", {}),
+    "borne_drones": (H.borne_drones, "urbain", {}),
+    "torii": (H.torii, "monuments", {}),
+    "chadouf": (H.chadouf, "ferme", {}),
+    "drapeaux_priere": (H.drapeaux_priere, "monuments", {}),
+    "yatai": (H.yatai, "marche", {}),
+    "tandoor": (H.tandoor, "marche", {}),
+    "totem": (H.totem, "monuments", {}),
+    "mur_mani": (H.mur_mani, "monuments", {}),
+    "four_pain": (H.four_pain, "ferme", {}),
 }
 
 

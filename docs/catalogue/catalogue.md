@@ -21,16 +21,16 @@ n'a que ce qui est daté 1850 ou avant ; le reste arrive à sa date (« Arrive e
 | [Portes et fenêtres](#ouvertures) | 27 | 19 | 0 | 3 | 3 | 2 | 0 | 0 |
 | [Toits](#toits) | 12 | 10 | 1 | 0 | 1 | 0 | 0 | 0 |
 | [Matériaux](#materiaux) | 384 | 298 | 9 | 18 | 19 | 38 | 2 | 0 |
-| [Décors](#decors) | 240 | 148 | 1 | 19 | 36 | 34 | 2 | 0 |
-| [Meubles](#meubles) | 79 | 60 | 0 | 5 | 6 | 8 | 0 | 0 |
+| [Décors](#decors) | 291 | 158 | 5 | 25 | 43 | 35 | 24 | 1 |
+| [Meubles](#meubles) | 121 | 65 | 0 | 11 | 11 | 20 | 12 | 2 |
 | [Objets de spectacle](#spectacles) | 58 | 19 | 0 | 2 | 17 | 16 | 4 | 0 |
-| **Total** | **2642** | |
+| **Total** | **2735** | |
 
 ### D'où viennent les années
 
 - date propre : 376
 - table des époques : 439
-- datée avec le catalogue : 652
+- datée avec le catalogue : 745
 - style : 581
 - époque de la bible : 210
 - mot du nom : 384
@@ -2720,7 +2720,7 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 
 <a id="decors"></a>
 
-## Décors (240)
+## Décors (291)
 
 ### Animaux
 
@@ -2832,13 +2832,17 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Rang de choux (1 m) | toujours | 1,0 × 0,3 m |  |
 | Rang de tomates sur tuteurs (1 m) | toujours | 1,0 × 0,3 m |  |
 | Serre tunnel en plastique (6 × 20 m) | 1960 | 6,0 × 20,1 m | Avant 1960, posé tout seul : rien |
+| Jardin partagé : bacs potagers surélevés et cabane à outils | 2000 | 7,1 × 3,4 m |  |
+| Hôtel à insectes : cases de bûches, paille et briques | 2010 | 1,4 × 0,4 m |  |
 
 ### Ferme
 
 | Nom | Année | Détails | Évolutions |
 |---|---:|---|---|
 | Brouette | toujours | 0,6 × 1,8 m |  |
+| Chadouf : puits à balancier, perche et contrepoids | toujours | 1,8 × 4,1 m |  |
 | Charrue à socs | toujours | 1,2 × 3,0 m |  |
+| Four à pain communal en briques et pierre | toujours | 2,4 × 2,4 m |  |
 | Grumes | toujours | 1,8 × 6,0 m |  |
 | Meule de foin traditionnelle | toujours | 3,2 × 3,4 m |  |
 | Petit poulailler sur pilotis | toujours | 1,4 × 2,2 m |  |
@@ -2868,10 +2872,16 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 |---|---:|---|---|
 | Buste sur une colonne | toujours | 0,7 × 0,7 m |  |
 | Cavalier en bronze sur un grand piédestal | toujours | 2,4 × 4,0 m |  |
+| Cordes de drapeaux de prière tendues depuis un mât | toujours | 8,2 × 5,0 m |  |
 | Fontaine ronde : bassin de pierre, colonne et vasque | toujours | 4,4 × 4,4 m |  |
+| Mur de pierres gravées de prières | toujours | 6,3 × 1,1 m |  |
+| Mât totémique sculpté et peint | toujours | 2,2 × 0,9 m |  |
 | Petit obélisque de granit | toujours | 1,4 × 1,4 m |  |
 | Statue en bronze sur son piédestal | toujours | 1,6 × 1,6 m |  |
+| Torii : portique shinto en bois laqué vermillon | toujours | 5,6 × 0,5 m |  |
+| Lavoir couvert : bassin de pierre sous un auvent de tuiles | 1830 | 6,4 × 6,8 m |  |
 | Borne-fontaine pour boire | 1850 | 0,5 × 0,6 m |  |
+| Kiosque à musique : plateforme, colonnettes et toit en pavillon | 1850 | 8,6 × 8,8 m |  |
 | Fontaine à boire en fonte verte | 1872 | 0,9 × 0,9 m |  |
 | Monument aux morts : stèle, obélisque et grille | 1919 | 3,0 × 3,0 m |  |
 
@@ -2888,17 +2898,23 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Jeu à ressort en forme de cheval | 1960 | 0,4 × 0,9 m |  |
 | Table de ping-pong en béton | 1960 | 2,7 × 1,6 m |  |
 | Cabane perchée avec filet d'escalade | 1980 | 2,1 × 2,9 m |  |
+| Module de skatepark en béton : rampe, plan incliné et rail | 1990 | 6,0 × 4,0 m |  |
+| Agrès de fitness en plein air : barres et vélo elliptique | 2005 | 5,0 × 3,0 m |  |
 
 ### Marché
 
 | Nom | Année | Détails | Évolutions |
 |---|---:|---|---|
 | Charrette à bras en bois | toujours | 1,5 × 3,0 m |  |
+| Four tandoor en argile et sa table de pâte | toujours | 1,9 × 1,1 m |  |
 | Pile de cagettes | toujours | 1,6 × 0,5 m |  |
 | Trois tonneaux de bois cerclés | toujours | 1,3 × 1,2 m |  |
 | Étal de fruits et légumes sous un auvent rayé | toujours | 3,0 × 1,4 m |  |
+| Orgue de Barbarie sur sa charrette et son joueur | 1800 | 1,3 × 0,9 m |  |
+| Étal de cireur de chaussures, fauteuil haut et parasol | 1880 | 2,1 × 2,0 m |  |
 | Grand parasol de marché ou de terrasse | 1900 | 3,0 × 3,0 m | Avant 1900, posé tout seul : Étal de fruits et légumes sous un auvent rayé |
 | Triporteur à glaces | 1900 | 1,5 × 1,9 m |  |
+| Yatai : échoppe de rue sur roues, auvent et lanterne | 1900 | 2,4 × 1,9 m |  |
 | Tente blanche de marché (3 × 3 m) | 1950 | 3,1 × 3,1 m | Avant 1950, posé tout seul : Grand parasol de marché ou de terrasse |
 
 ### Mobilier urbain
@@ -2909,14 +2925,23 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Banc de parc à lattes peintes en vert | toujours | 1,9 × 0,6 m |  |
 | Banc de pierre massif | toujours | 1,8 × 0,5 m |  |
 | Banc public : lattes de bois sur pieds de fonte | toujours | 1,8 × 0,6 m |  |
+| Chasse-roue de pierre au coin d'un porche | toujours | 0,5 × 0,5 m |  |
+| Pompe à bras de village, en fonte, avec son auge | toujours | 1,2 × 1,0 m |  |
 | Table de pique-nique en bois et ses deux bancs | toujours | 1,9 × 1,6 m |  |
+| Vespasienne : urinoir public en fonte et tôle | 1834 | 2,1 × 2,2 m |  |
 | Boîte aux lettres jaune sur pied | 1850 | 0,5 × 0,4 m |  |
 | Poteau d'incendie rouge | 1850 | 0,3 × 0,3 m |  |
 | Colonne d'affichage verte et ses affiches | 1855 | 1,7 × 1,7 m |  |
+| Kiosque à journaux octogonal, dôme et lanterneau | 1857 | 2,5 × 2,5 m |  |
 | Horloge de rue à double cadran | 1860 | 0,7 × 0,4 m |  |
+| Chariot à bagages de gare chargé de malles | 1880 | 2,1 × 1,0 m |  |
 | Corbeille de rue sur son poteau | 1884 | 0,5 × 0,5 m |  |
+| Avertisseur d'incendie de rue, colonne rouge | 1890 | 0,3 × 0,3 m |  |
+| Entrée de métro Art nouveau : rampes de fonte et lanternes | 1900 | 2,5 × 4,3 m |  |
 | Table de café, deux chaises et un parasol | 1900 | 2,6 × 2,6 m |  |
+| Pompe à essence à globe et cuve de verre | 1920 | 0,8 × 0,6 m |  |
 | Cabine téléphonique rouge à petits carreaux | 1926 | 1,1 × 1,1 m | Avant 1926, posé tout seul : rien |
+| Cabine d'appel de police en bois peint, lanterne au toit | 1929 | 1,4 × 1,4 m |  |
 | Abribus vitré : banc, toit et plan du réseau | 1950 | 4,7 × 1,5 m |  |
 | Panneau publicitaire 4 × 3 sur pied | 1950 | 4,2 × 0,8 m | Avant 1950, posé tout seul : Colonne d'affichage verte et ses affiches |
 | Conteneur à ordures sur roues (1 100 l) | 1965 | 1,4 × 1,1 m | Avant 1965, posé tout seul : Corbeille de rue sur son poteau |
@@ -2925,7 +2950,21 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Potelet de trottoir | 1970 | 0,1 × 0,1 m |  |
 | Rangée de cinq potelets (4 m) | 1970 | 4,1 × 0,1 m |  |
 | Horodateur de stationnement | 1980 | 0,4 × 0,3 m |  |
+| Toilette publique automatique | 1981 | 2,0 × 2,1 m | Avant 1981, posé tout seul : Vespasienne : urinoir public en fonte et tôle |
 | Trois bacs de tri | 1990 | 1,8 × 0,6 m | Avant 1990, posé tout seul : Corbeille de rue sur son poteau |
+| Abribus contemporain en verre, écran d'information | 2000 | 4,0 × 1,5 m | Avant 2000, posé tout seul : Abribus vitré : banc, toit et plan du réseau |
+| Conteneurs enterrés de tri sélectif | 2000 | 4,6 × 1,8 m | Avant 2000, posé tout seul : Trois bacs de tri |
+| Station de vélos en libre-service : borne et six vélos | 2007 | 4,8 × 1,8 m | Avant 2007, posé tout seul : Arceaux à vélos et deux vélos garés |
+| Borne de recharge pour voitures électriques, deux prises | 2010 | 0,8 × 0,5 m | Avant 2010, posé tout seul : Pompe à essence à globe et cuve de verre |
+| Boîte à livres en bois sur pied, porte vitrée | 2010 | 0,8 × 0,5 m |  |
+| Poubelle compacteuse à panneau solaire | 2010 | 0,7 × 0,6 m | Avant 2010, posé tout seul : Corbeille de rue sur son poteau |
+| Banc solaire connecté : recharge des téléphones | 2015 | 1,9 × 0,8 m | Avant 2015, posé tout seul : Banc contemporain : bloc de béton et assise en bois |
+| Composteur de quartier en bois, trois bacs | 2015 | 2,9 × 0,8 m |  |
+| Consigne automatique de colis | 2015 | 2,5 × 0,8 m | Avant 2015, posé tout seul : rien |
+| Quatre places de recharge sous une ombrière solaire | 2015 | 10,1 × 6,0 m |  |
+| Station de réparation de vélos en libre accès, pompe et outils | 2015 | 1,1 × 0,2 m |  |
+| Trottinettes électriques en libre-service garées | 2018 | 2,4 × 1,4 m | Avant 2018, posé tout seul : rien |
+| Borne de livraison par drones, aire de pose sur le toit | 2030 | 2,6 × 2,6 m | Avant 2030, posé tout seul : rien |
 
 ### Objets des enclos
 
@@ -2947,17 +2986,26 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Nom | Année | Détails | Évolutions |
 |---|---:|---|---|
 | Borne kilométrique de route | toujours | 0,4 × 0,2 m |  |
+| Poteau télégraphique en bois à isolateurs de verre | 1850 | 1,6 × 0,2 m |  |
 | Poteau électrique en bois avec traverse et isolateurs | 1882 | 1,8 × 0,3 m |  |
+| Mur peint de réclame sur pignon, pied de bois | 1900 | 3,6 × 0,2 m |  |
 | Panneau de direction à deux flèches | 1900 | 2,6 × 0,1 m |  |
 | Danger (triangle rouge) | 1909 | 0,8 × 0,1 m |  |
 | Pylône à haute tension | 1910 | 15,0 × 6,2 m |  |
+| Borne routière en béton à chapeau peint | 1920 | 0,5 × 0,4 m |  |
 | Feu tricolore sur son mât | 1920 | 0,3 × 0,3 m |  |
 | Limitation à 50 | 1920 | 0,6 × 0,1 m |  |
 | Panneau d'entrée d'agglomération | 1920 | 1,6 × 0,1 m |  |
 | Stop | 1927 | 0,8 × 0,3 m |  |
+| Sirène d'alerte sur mât | 1938 | 1,0 × 1,1 m |  |
 | Parking (P blanc sur fond bleu) | 1940 | 0,6 × 0,1 m |  |
 | Balise de bord de route | 1950 | 0,1 × 0,1 m |  |
 | Cédez le passage | 1950 | 0,9 × 0,1 m |  |
+| Mât de vidéosurveillance à deux caméras | 1995 | 1,1 × 0,6 m | Avant 1995, posé tout seul : rien |
+| Radar de contrôle de vitesse sur poteau | 2003 | 0,8 × 0,6 m | Avant 2003, posé tout seul : rien |
+| Champ de panneaux solaires au sol, trois rangées | 2005 | 7,0 × 6,5 m |  |
+| Totem d'information numérique et plan de quartier | 2012 | 0,9 × 0,3 m | Avant 2012, posé tout seul : Colonne d'affichage verte et ses affiches |
+| Mât d'antennes de téléphonie 4G/5G | 2019 | 2,6 × 1,5 m | Avant 2019, posé tout seul : Pylône à haute tension |
 
 ### Parc : Far West
 
@@ -3066,21 +3114,25 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 
 | Nom | Année | Détails | Évolutions |
 |---|---:|---|---|
+| Guirlande de lanternes de papier rouges entre deux mâts | toujours | 6,1 × 0,4 m |  |
 | Tōrō : lanterne de pierre de jardin japonais | toujours | 0,9 × 1,1 m |  |
 | Réverbère ancien en fonte et sa lanterne | 1820 | 0,7 × 0,5 m |  |
+| Bec de gaz sur colonnette de fonte | 1830 | 0,5 × 0,5 m |  |
 | Lampadaire routier : mât de 8 m, crosse, lanterne vers -Y | 1930 | 0,3 × 2,2 m | Avant 1930, posé tout seul : Réverbère ancien en fonte et sa lanterne |
 | Lampadaire à deux crosses | 1930 | 0,3 × 4,1 m | Avant 1930, posé tout seul : Réverbère ancien en fonte et sa lanterne |
 | Lampadaire de parc à boule (3,5 m) | 1960 | 0,5 × 0,5 m | Avant 1960, posé tout seul : Réverbère ancien en fonte et sa lanterne |
+| Lampadaire LED autonome à panneau solaire | 2012 | 0,9 × 1,4 m | Avant 2012, posé tout seul : Lampadaire routier : mât de 8 m, crosse, lanterne vers -Y |
 
 <a id="meubles"></a>
 
-## Meubles (79)
+## Meubles (121)
 
 ### Boutique
 
 | Nom | Année | Détails | Évolutions |
 |---|---:|---|---|
 | Comptoir et caisse | toujours | 2 × 1 · 2 k€ · 32 styles |  |
+| Métier à tisser à bras | toujours | 2 × 2 · 900 € · 21 styles | Styles : Antiquité à XIXe – 1945 |
 | Présentoir | toujours | 1 × 1 · 350 € · 32 styles |  |
 | Rayonnage | toujours | 2 × 1 · 600 € · 32 styles |  |
 | Étal | toujours | 2 × 1 · 300 € · 21 styles | Styles : Antiquité à XIXe – 1945 |
@@ -3096,7 +3148,10 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Armoire à dossiers | 1900 | 1 × 1 · 350 € · 32 styles |  |
 | Fontaine à eau | 1950 | 1 × 1 · 300 € · 11 styles | Styles : Moderne à Futuriste |
 | Photocopieur | 1960 | 1 × 1 · 3 k€ · 11 styles | Styles : Moderne à Futuriste |
+| Ordinateur personnel | 1981 | 2 × 1 · 2 k€ · 11 styles | Styles : Moderne à Futuriste |
 | Poste de travail | 1985 | 2 × 1 · 1 k€ · 32 styles |  |
+| Bureau assis-debout | 2012 | 2 × 1 · 900 € · 8 styles | Styles : Contemporain à Futuriste |
+| Imprimante 3D | 2012 | 1 × 1 · 600 € · 8 styles | Styles : Contemporain à Futuriste |
 
 ### Chambre
 
@@ -3108,16 +3163,21 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Commode | toujours | 1 × 1 · 350 € · 33 styles |  |
 | Lit double | toujours | 2 × 2 · 900 € · 32 styles |  |
 | Table de chevet | toujours | 1 × 1 · 120 € · 32 styles |  |
+| Machine à coudre | 1851 | 1 × 1 · 300 € · 17 styles | Styles : XIXe – 1945 à Contemporain |
+| Lit escamotable | 1916 | 2 × 2 · 1 k€ · 18 styles | Styles : XIXe – 1945 à Futuriste |
+| Vélo d'appartement | 1970 | 1 × 1 · 400 € · 11 styles | Styles : Moderne à Futuriste |
+| Tapis de course | 1990 | 1 × 2 · 900 € · 8 styles | Styles : Contemporain à Futuriste |
 
 ### Chambre d'enfant
 
 | Nom | Année | Détails | Évolutions |
 |---|---:|---|---|
 | Berceau | toujours | 1 × 1 · 250 € · 32 styles |  |
-| Bureau et chaise | toujours | 2 × 1 · 450 € · 33 styles |  |
+| Bureau et chaise | toujours | 2 × 1 · 450 € · 34 styles |  |
 | Coffre à jouets | toujours | 1 × 1 · 90 € · 32 styles |  |
 | Lit simple | toujours | 1 × 2 · 400 € · 32 styles |  |
 | Lits superposés | toujours | 1 × 2 · 550 € · 18 styles | Styles : XIXe – 1945 à Futuriste |
+| Fauteuil de joueur | 2015 | 1 × 1 · 350 € · 8 styles | Styles : Contemporain à Futuriste |
 
 ### Cuisine
 
@@ -3130,9 +3190,13 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Plan de travail | toujours | 1 × 1 · 300 € · 32 styles |  |
 | Vaisselier | toujours | 2 × 1 · 650 € · 22 styles | Styles : Traditionnel à Moderne |
 | Évier | toujours | 1 × 1 · 450 € · 32 styles |  |
+| Glacière en bois | 1850 | 1 × 1 · 280 € · 10 styles | Styles : XIXe – 1945 à Moderne |
 | Cuisinière | 1920 | 1 × 1 · 600 € · 11 styles | Styles : Moderne à Futuriste |
 | Réfrigérateur | 1930 | 1 × 1 · 700 € · 11 styles | Styles : Moderne à Futuriste |
 | Lave-vaisselle | 1960 | 1 × 1 · 500 € · 11 styles | Styles : Moderne à Futuriste |
+| Four à micro-ondes | 1975 | 1 × 1 · 250 € · 11 styles | Styles : Moderne à Futuriste |
+| Cave à vin | 1990 | 1 × 1 · 900 € · 8 styles | Styles : Contemporain à Futuriste |
+| Îlot de cuisine à induction | 2000 | 2 × 1 · 4 k€ · 8 styles | Styles : Contemporain à Futuriste |
 
 ### Décoration, plantes, lumières
 
@@ -3149,7 +3213,11 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Tapis | toujours | 2 × 2 · 250 € · 32 styles |  |
 | Étagère murale | toujours | 1 × 1 · 60 € · 32 styles |  |
 | Aquarium | 1850 | 2 × 1 · 900 € · 11 styles | Styles : Moderne à Futuriste |
+| Lampe à pétrole | 1860 | 1 × 1 · 60 € · 19 styles | Styles : Traditionnel à XIXe – 1945 |
 | Lampadaire | 1900 | 1 × 1 · 150 € · 33 styles |  |
+| Lampe à lave | 1963 | 1 × 1 · 60 € · 10 styles | Styles : Moderne à Contemporain |
+| Robot aspirateur | 2002 | 1 × 1 · 300 € · 8 styles | Styles : Contemporain à Futuriste |
+| Enceinte connectée | 2014 | 1 × 1 · 150 € · 8 styles | Styles : Contemporain à Futuriste |
 
 ### Entrée, couloir
 
@@ -3158,6 +3226,8 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Banc | toujours | 2 × 1 · 160 € · 32 styles |  |
 | Miroir | toujours | 1 × 1 · 150 € · 30 styles | Styles : Traditionnel à Futuriste |
 | Porte-manteau | toujours | 1 × 1 · 80 € · 32 styles |  |
+| Téléphone mural | 1880 | 1 × 1 · 150 € · 10 styles | Styles : XIXe – 1945 à Moderne |
+| Minitel | 1982 | 1 × 1 · 200 € · 10 styles | Styles : Moderne à Contemporain |
 
 ### Réserve
 
@@ -3174,10 +3244,13 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Chaise percée | toujours | 1 × 1 · 80 € · 14 styles | Styles : Antiquité à Traditionnel |
 | Table de toilette | toujours | 1 × 1 · 200 € · 14 styles | Styles : Antiquité à Traditionnel |
 | Baignoire | 1850 | 2 × 1 · 900 € · 18 styles | Styles : XIXe – 1945 à Futuriste |
+| Lessiveuse et planche à laver | 1850 | 1 × 1 · 80 € · 19 styles | Styles : Traditionnel à XIXe – 1945 |
 | Lavabo | 1880 | 1 × 1 · 350 € · 18 styles | Styles : XIXe – 1945 à Futuriste |
 | Toilettes | 1880 | 1 × 1 · 300 € · 18 styles | Styles : XIXe – 1945 à Futuriste |
 | Douche | 1900 | 1 × 1 · 800 € · 11 styles | Styles : Moderne à Futuriste |
+| Lave-linge | 1950 | 1 × 1 · 500 € · 11 styles | Styles : Moderne à Futuriste |
 | Meuble vasque | 1960 | 2 × 1 · 900 € · 11 styles | Styles : Moderne à Futuriste |
+| Sèche-linge | 1960 | 1 × 1 · 450 € · 11 styles | Styles : Moderne à Futuriste |
 
 ### Salle de café-restaurant
 
@@ -3187,6 +3260,10 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Comptoir de bar | toujours | 2 × 1 · 3 k€ · 32 styles |  |
 | Table de bistrot | toujours | 2 × 1 · 350 € · 32 styles |  |
 | Tabouret | toujours | 1 × 1 · 70 € · 32 styles |  |
+| Juke-box | 1940 | 1 × 1 · 3 k€ · 10 styles | Styles : Moderne à Contemporain |
+| Flipper | 1947 | 1 × 2 · 3 k€ · 11 styles | Styles : Moderne à Futuriste |
+| Baby-foot | 1950 | 2 × 1 · 800 € · 11 styles | Styles : Moderne à Futuriste |
+| Borne d'arcade | 1978 | 1 × 1 · 3 k€ · 11 styles | Styles : Moderne à Futuriste |
 
 ### Salle de classe
 
@@ -3204,16 +3281,32 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 |---|---:|---|---|
 | Bibliothèque | toujours | 2 × 1 · 500 € · 32 styles |  |
 | Buffet | toujours | 2 × 1 · 600 € · 33 styles |  |
-| Canapé | toujours | 2 × 1 · 800 € · 30 styles |  |
+| Canapé | toujours | 2 × 1 · 800 € · 31 styles |  |
 | Chaise | toujours | 1 × 1 · 90 € · 32 styles |  |
 | Cheminée | toujours | 2 × 1 · 3 k€ · 31 styles | Styles : Antiquité à Contemporain |
 | Fauteuil | toujours | 1 × 1 · 380 € · 32 styles |  |
 | Horloge | toujours | 1 × 1 · 800 € · 30 styles | Styles : Traditionnel à Futuriste |
+| Méridienne | toujours | 2 × 1 · 700 € · 21 styles | Styles : Traditionnel à Moderne |
 | Piano | toujours | 2 × 1 · 4 k€ · 18 styles | Styles : XIXe – 1945 à Futuriste |
 | Poêle | toujours | 1 × 1 · 900 € · 17 styles | Styles : XIXe – 1945 à Contemporain |
+| Poêle en faïence | toujours | 1 × 1 · 2 k€ · 22 styles | Styles : Traditionnel à Moderne |
+| Rouet | toujours | 1 × 1 · 120 € · 21 styles | Styles : Antiquité à XIXe – 1945 |
+| Secrétaire à abattant | toujours | 1 × 1 · 600 € · 21 styles | Styles : Traditionnel à Moderne |
 | Table basse | toujours | 1 × 1 · 180 € · 32 styles |  |
 | Table et quatre chaises | toujours | 2 × 2 · 750 € · 32 styles |  |
+| Phonographe à pavillon | 1895 | 1 × 1 · 250 € · 10 styles | Styles : XIXe – 1945 à Moderne |
+| Fauteuil club | 1920 | 1 × 1 · 600 € · 17 styles | Styles : XIXe – 1945 à Contemporain |
+| Poste de TSF | 1922 | 1 × 1 · 300 € · 10 styles | Styles : XIXe – 1945 à Moderne |
 | Meuble télé | 1950 | 2 × 1 · 900 € · 11 styles | Styles : Moderne à Futuriste |
+| Téléviseur à tube | 1950 | 1 × 1 · 600 € · 10 styles | Styles : Moderne à Contemporain |
+| Fauteuil coque | 1958 | 1 × 1 · 2 k€ · 11 styles | Styles : Moderne à Futuriste |
+| Chaîne hi-fi | 1970 | 1 × 1 · 700 € · 10 styles | Styles : Moderne à Contemporain |
+| Canapé d'angle | 1990 | 3 × 2 · 2 k€ · 8 styles | Styles : Contemporain à Futuriste |
+| Home cinéma | 1995 | 3 × 1 · 4 k€ · 8 styles | Styles : Contemporain à Futuriste |
+| Poêle à granulés | 2005 | 1 × 1 · 3 k€ · 8 styles | Styles : Contemporain à Futuriste |
+| Écran plat et console de jeux | 2005 | 2 × 1 · 1 k€ · 8 styles | Styles : Contemporain à Futuriste |
+| Robot domestique | 2035 | 1 × 1 · 12 k€ · 1 styles | Styles : Futuriste à Futuriste |
+| Projecteur holographique | 2040 | 1 × 1 · 5 k€ · 1 styles | Styles : Futuriste à Futuriste |
 
 <a id="spectacles"></a>
 

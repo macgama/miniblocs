@@ -370,9 +370,9 @@ func place(type_id: String, p: Vector3, rot := 0.0, name_ := "") -> Dictionary:
 	var t := get_type(type_id)
 	if t.is_empty():
 		return {"ok": false, "reason": "Type de station inconnu."}
-	var epoque := Epoques.raison_station(type_id)
+	var epoque := ReglagesPartie.actuel.raison_station(type_id)
 	if epoque != "":
-		return {"ok": false, "reason": "%s : %s" % [String(t.name), epoque.to_lower()]}
+		return {"ok": false, "reason": "%s : %s" % [String(t.name), epoque[0].to_lower() + epoque.substr(1)]}
 	var st := {"type": type_id, "node": -1, "name": name_}
 	if int(t.mode) == AIR:
 		var c := check_air(type_id, p, rot)

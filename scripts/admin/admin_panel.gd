@@ -204,8 +204,9 @@ func _ready() -> void:
 	_main_oeuvre.tooltip_text = "Sinon, les chantiers avancent toujours avec une équipe complète"
 	g.add_child(_main_oeuvre)
 	_deblocage = OptionButton.new()
-	_deblocage.add_item("Tout débloqué d'office")
-	_deblocage.add_item("Au fil de la partie (paliers de population)")
+	_deblocage.add_item("Tout débloqué (bac à sable)")
+	_deblocage.add_item("Arbre de progression à points (Maj+F10)")
+	_deblocage.tooltip_text = "Arbre : tu gagnes des points en jouant (population, rang des villes, missions, succès) et tu choisis quoi débloquer"
 	_deblocage.disabled = not editable
 	_deblocage.item_selected.connect(func(_i: int) -> void: _changed())
 	_row(g, "Bâtiments", _deblocage)
@@ -513,7 +514,7 @@ func _fill() -> void:
 	_main_oeuvre.button_pressed = reglages.main_oeuvre
 	_tutoriel.button_pressed = reglages.tutoriel
 	_obj_ecran.button_pressed = reglages.objectifs_ecran
-	_deblocage.select(1 if reglages.deblocage == "progression" else 0)
+	_deblocage.select(1 if reglages.deblocage == "arbre" else 0)
 	_impots.value = reglages.impots
 	_salaires.value = reglages.salaires
 	_temps.select(reglages.vitesse_temps)
@@ -590,7 +591,7 @@ func _changed() -> void:
 	reglages.main_oeuvre = _main_oeuvre.button_pressed
 	reglages.tutoriel = _tutoriel.button_pressed
 	reglages.objectifs_ecran = _obj_ecran.button_pressed
-	reglages.deblocage = "progression" if _deblocage.selected == 1 else "tout"
+	reglages.deblocage = "arbre" if _deblocage.selected == 1 else "tout"
 	reglages.impots = _impots.value
 	reglages.salaires = _salaires.value
 	reglages.vitesse_temps = maxi(0, _temps.selected)
@@ -661,15 +662,11 @@ func _update_labels() -> void:
 	_argent.editable = editable and not _illimite.button_pressed
 	if _caisse:
 		_caisse.editable = editable and not _illimite.button_pressed
-	var parts: Array[String] = []
-	for p in ReglagesPartie.PALIERS:
-		var m := int(p.prix_max)
-		parts.append("%s (%d hab.) : %s" % [p.nom, int(p.habitants), "tout" if m < 0 else "jusqu'à " + BuildingSystem.format_short(m)])
-	var t := "Paliers : " + " · ".join(parts) + ". Écoles et production toujours ouvertes."
-	if not creation and reglages.deblocage == "progression":
-		t += "\nPalier atteint : %s (record %d habitants)." % [ReglagesPartie.PALIERS[reglages.palier_atteint()].nom, reglages.record_habitants]
+	var t := "Points de progrès : %d au départ, +1 par record de population (50, 100, 250, 500, 1 000… habitants), +2 à +5 quand une ville monte de rang, +1 par mission réussie et par succès. Écoles, production de base et petits réseaux toujours ouverts. L'époque passe avant l'arbre." % ArbreProgression.POINTS_DEPART
+	if not creation and reglages.deblocage == "arbre":
+		t += "\nPoints : %d disponibles sur %d gagnés." % [ArbreProgression.points_disponibles(reglages), ArbreProgression.points_gagnes(reglages)]
 	_paliers_l.text = t
-	_paliers_l.visible = reglages.deblocage == "progression"
+	_paliers_l.visible = reglages.deblocage == "arbre"
 	if _epoque_l:
 		if Epoques.actif(reglages):
 			var y := reglages.annee_depart if creation else Epoques.annee(reglages)

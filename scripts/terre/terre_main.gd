@@ -84,6 +84,9 @@ var tourisme_panel: TourismePanel
 ## Patrimoine : classement, abords, entretien, grands monuments (touche Fin).
 var patrimoine: Patrimoine
 var patrimoine_panel: PatrimoinePanel
+## Expéditions : Société des explorateurs, objets rares, animaux, spécialistes (Maj+F4).
+var expeditions: Expeditions
+var expeditions_panel: ExpeditionsPanel
 ## Commerce entre villes et pays : cours mondiaux, accords, crises (Économie, Maj+S).
 var commerce_mondial: CommerceMondial
 var commerce_panel: CommercePanel
@@ -95,6 +98,9 @@ var vie_batiments: BatimentsVie
 ## Chantiers des voies et des réseaux (SuiviChantiers) et des voies (ChantiersVoies).
 var chantiers: SuiviChantiers
 var chantiers_voies: ChantiersVoies
+## Faire évoluer une route posée (voies, trottoirs, terre-plein, bus, tram).
+var evolution_voies: EvolutionVoies
+var evolution_panel: EvolutionPanel
 var _hover := Vector2i.ZERO
 var _hover_valid := false
 ## Intérieurs : meubles, pièces, usage des bâtiments en murs fins (onglet Intérieur).
@@ -238,6 +244,7 @@ func _ready() -> void:
 	_setup_pays()
 	_setup_commerce()
 	_setup_patrimoine()
+	_setup_expeditions()
 	_setup_niveaux_vie()
 	_setup_immobilier()
 	_setup_statistiques()
@@ -454,6 +461,7 @@ func save_sections() -> Dictionary:
 	sec["zoo"] = zoo.to_dict()
 	sec["tourisme"] = tourisme.to_dict()
 	sec["patrimoine"] = patrimoine.to_dict()
+	sec["expeditions"] = expeditions.to_dict()
 	sec["commerce_mondial"] = commerce_mondial.to_dict()
 	sec["quartiers"] = quartiers.to_dict()
 	sec["sante"] = sante.to_dict()
@@ -599,6 +607,7 @@ func load_game(slot := "") -> bool:
 	zoo.from_dict(sec.get("zoo", {}))
 	tourisme.from_dict(sec.get("tourisme", {}))
 	patrimoine.from_dict(sec.get("patrimoine", {}))
+	expeditions.from_dict(sec.get("expeditions", {}))
 	commerce_mondial.from_dict(sec.get("commerce_mondial", {}))
 	funeraire.from_dict(sec.get("funeraire", {}))
 	ambiance.from_dict(sec.get("ambiance", {}))
@@ -819,6 +828,17 @@ func _setup_vie() -> void:
 	chantiers_voies.name = "ChantiersVoies"
 	add_child(chantiers_voies)
 	chantiers_voies.setup(transport, chantiers)
+	evolution_voies = EvolutionVoies.new()
+	evolution_voies.name = "EvolutionVoies"
+	add_child(evolution_voies)
+	evolution_voies.setup(transport, chantiers, trafic)
+	evolution_panel = EvolutionPanel.new()
+	evolution_panel.name = "PanneauEvolution"
+	add_child(evolution_panel)
+	evolution_panel.setup(evolution_voies)
+	hud.upgrade_requested.connect(func() -> void:
+		hud.show_spec("", {}, false)
+		transport.set_upgrade())
 
 
 ## Événements de la ville et leur panneau (I), fil d'actualité en haut de l'écran.
@@ -1593,6 +1613,9 @@ func _setup_son() -> void:
 	sons.setup(rig, ambiance, world, buildings, transport.traffic, get_node_or_null("VueSol"))
 	sons.sources_chantiers.append(vie_batiments.chantiers_bruyants)
 	sons.sources_chantiers.append(chantiers_voies.chantiers_bruyants)
+	sons.saisons = saisons
+	sons.evenements = evenements
+	sons.stations = transport.stations
 	add_child(sons)
 	evenements.incident_declare.connect(func(_i: Dictionary) -> void:
 		if not _chargement:
@@ -2949,6 +2972,30 @@ func _setup_patrimoine() -> void:
 	hud.patrimoine_requested.connect(func() -> void: patrimoine_panel.toggle())
 
 
+## Expéditions : depuis une Société des explorateurs, des équipes partent au loin et
+## rapportent objets rares (musées), animaux (zoo) et spécialistes (villes) (Maj+F4).
+func _setup_expeditions() -> void:
+	expeditions = Expeditions.new()
+	expeditions.name = "Expeditions"
+	add_child(expeditions)
+	expeditions.setup(buildings, ambiance)
+	expeditions.message.connect(func(t: String) -> void: hud.show_message(t))
+	expeditions.changed.connect(func() -> void: _unsaved = true)
+	expeditions.actualite.connect(func(t: String, pos: Vector3) -> void:
+		if evenements != null:
+			evenements.news(t, pos, "expeditions"))
+	expeditions_panel = ExpeditionsPanel.new()
+	expeditions_panel.name = "PanneauExpeditions"
+	add_child(expeditions_panel)
+	expeditions_panel.setup(expeditions)
+	expeditions_panel.building_chosen.connect(func(id: String) -> void:
+		_select_building_tool()
+		buildings.set_place(id))
+	expeditions_panel.focus_requested.connect(func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
+	hud.expeditions_requested.connect(func() -> void: expeditions_panel.toggle())
+
 ## Commerce : marché mondial, villes partenaires, accords, crises (Maj+S).
 func _setup_commerce() -> void:
 	commerce_mondial = CommerceMondial.new()
@@ -3090,7 +3137,7 @@ func _loisirs_ouvert() -> bool:
 
 
 func _panneaux_parc() -> Dictionary:
-	return {"parc": parc_panel, "parc_editeur": parc_editeur_panel, "zoo": zoo_panel, "musee": musee_panel, "spectacles": spectacles_panel, "club": club_panel, "tourisme": tourisme_panel, "patrimoine": patrimoine_panel}
+	return {"parc": parc_panel, "parc_editeur": parc_editeur_panel, "zoo": zoo_panel, "musee": musee_panel, "spectacles": spectacles_panel, "club": club_panel, "tourisme": tourisme_panel, "patrimoine": patrimoine_panel, "expeditions": expeditions_panel}
 
 
 ## Panneau « Paysage » : pinceaux de terrain (outil 0).
@@ -3218,6 +3265,8 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 		tourisme.clear()
 	if patrimoine != null:
 		patrimoine.clear()
+	if expeditions != null:
+		expeditions.clear()
 	if commerce_mondial != null:
 		commerce_mondial.clear()
 	resource_overlay.show_resource(resource_overlay.res)

@@ -66,6 +66,8 @@ signal club_requested
 signal tourisme_requested
 ## Bouton « Patrimoine » (menu Loisirs, touche Fin) : classement et grands monuments.
 signal patrimoine_requested
+## Bouton « Expéditions » (menu Loisirs, Maj+F4) : Société des explorateurs.
+signal expeditions_requested
 ## Bouton « Commerce » (menu Économie, Maj+S) : cours mondiaux, accords, crises.
 signal commerce_requested
 ## Panneau « Cartes » (touche N) : pollution, bruit, valeur des terrains, autres calques.
@@ -97,6 +99,8 @@ signal curve_toggled(on: bool)
 signal level_changed(level: String)
 ## Action de l'outil Carrefour : "regime", "giratoire" ou "echangeur".
 signal junction_action_changed(action: String)
+## Bouton « Faire évoluer » du panneau Route : outil qui change une route posée.
+signal upgrade_requested
 
 const PLACES := [
 	{"name": "Tour Eiffel", "lat": 48.85826, "lon": 2.29450},
@@ -163,6 +167,7 @@ const CATEGORIES := [
 	{"id": "club", "name": "Club de sport (foot, basket, hand, hockey, rugby, tennis)", "icon": "sport", "key": "Maj+B", "panel": true, "group": "loisirs"},
 	{"id": "tourisme", "name": "Tourisme (hôtels, touristes, publicité)", "icon": "valise", "key": "Maj+D", "panel": true, "group": "loisirs"},
 	{"id": "patrimoine", "name": "Patrimoine et grands monuments", "icon": "patrimoine", "key": "Fin", "panel": true, "group": "loisirs"},
+	{"id": "expeditions", "name": "Expéditions (objets rares, animaux, spécialistes)", "icon": "boussole", "key": "Maj+F4", "panel": true, "group": "loisirs"},
 	{"id": "cartes", "name": "Cartes", "icon": "cartes", "key": "N", "panel": true, "group": "infos"},
 	{"id": "stats", "name": "Statistiques et conseiller", "icon": "courbe", "key": "Maj+I", "panel": true, "group": "infos"},
 	{"id": "journal", "name": "Gazette de la ville", "icon": "journal", "key": "F4", "panel": true, "group": "infos"},
@@ -265,6 +270,7 @@ var _curve: Button
 var _level_pick: OptionButton
 const LEVEL_IDS := ["auto", "dessus", "dessous"]
 var _junction_panel: HBoxContainer
+var _upgrade: Button
 var _junction_buttons: Dictionary = {}
 var _spec_rows: Dictionary = {}
 var _filling := false
@@ -908,6 +914,7 @@ func _on_category(id: String) -> void:
 			"club": club_requested.emit()
 			"tourisme": tourisme_requested.emit()
 			"patrimoine": patrimoine_requested.emit()
+			"expeditions": expeditions_requested.emit()
 			"commerce": commerce_requested.emit()
 			"cartes": cartes_requested.emit()
 			"stats": stats_requested.emit()
@@ -1151,6 +1158,13 @@ func _build_spec_panel(parent: Control) -> void:
 		if not _filling:
 			level_changed.emit(LEVEL_IDS[i]))
 	row.add_child(_level_pick)
+	_upgrade = Button.new()
+	_upgrade.text = "Faire évoluer"
+	_upgrade.icon = Icones.get_icon("route", 18)
+	_upgrade.tooltip_text = "Changer une route déjà posée sans la démolir : 2 → 4 voies, trottoirs, terre-plein, couloirs de bus, tramway"
+	_upgrade.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_upgrade.pressed.connect(func() -> void: upgrade_requested.emit())
+	row.add_child(_upgrade)
 	# Outil Carrefour : régime, giratoire ou échangeur.
 	_junction_panel = HBoxContainer.new()
 	_junction_panel.visible = false
@@ -1248,6 +1262,7 @@ func show_spec(type_id: String, spec: Dictionary, curve: bool, level := "auto") 
 	_curve.button_pressed = curve
 	_level_pick.select(maxi(0, LEVEL_IDS.find(level)))
 	_level_pick.visible = int(c.mode) != TransportTypes.Mode.WATER
+	_upgrade.visible = int(c.mode) == TransportTypes.Mode.ROAD
 	_spec_panel.visible = true
 	_filling = false
 	_update_categories()

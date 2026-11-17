@@ -18,3 +18,6 @@ OpenGameArt…), noter ici : fichier, auteur, source (lien), licence.
 | `ambiance/*.ogg` | `tools/sons/ambiances.py` | CC0 |
 | `effets/*.ogg` | `tools/sons/effets.py` | CC0 |
 | `musique/*.ogg` | `tools/sons/musique.py` | CC0 |
+| `ambiance/` lieux, saisons, sirènes | `tools/sons/lieux.py` | CC0 |
+| `effets/` stade, école, succès | `tools/sons/lieux.py` | CC0 |
+| `musique/` 1900-1950 | `tools/sons/musique_1920.py` | CC0 |

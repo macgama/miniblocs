@@ -557,6 +557,12 @@ func load_game(slot := "") -> bool:
 	Creations.adopt(sec.get("creations", {}))
 	ModelesJeu.adopt(sec.get("modeles_jeu", {}))
 	AttractionsPerso.adopt(sec.get("parc_editeur", {}))
+	# L'heure de la partie avant les bâtiments : la vie des bâtiments compare la fin de chaque
+	# chantier à « maintenant ». Avec l'heure du lancement, tout bâtiment fini plus tard que
+	# celle-ci repartait en chantier (centrales coupées, ville vidée après un chargement).
+	var amb_sec: Dictionary = sec.get("ambiance", {})
+	if amb_sec.has("unix"):
+		ambiance.unix_time = float(amb_sec.unix)
 	buildings.from_dict(sec.get("batiments", {}))
 	zones.from_dict(sec.get("zones", {}))
 	ameliorations.from_dict(sec.get("ameliorations", {}))

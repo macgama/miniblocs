@@ -60,6 +60,35 @@ func _run() -> void:
 	_check(String(maison.get("evol", "")).contains("niveau 3"), "la maison montre ses agrandissements")
 	_check(Epoques.vehicule_pour_annee("tacot", 1850) != "tacot", "avant 1900, une voiture sans chevaux est remplacée par un attelage")
 
+	print("Toutes les régions à toutes les époques :")
+	var periodes := [[0, 1850], [1850, 1900], [1900, 1950], [1950, 1990], [1990, 3000]]
+	var trous := []
+	for r in Styles.REGIONS:
+		var n := [0, 0, 0, 0, 0]
+		for id in types:
+			var t: Dictionary = types[id]
+			if t.has("blocks") or t.has("modele") or bool(t.get("cache", false)) or String(t.get("region", "")) != String(r.id):
+				continue
+			var y := Epoques.annee_batiment(String(id))
+			for i in periodes.size():
+				if y >= int(periodes[i][0]) and y < int(periodes[i][1]):
+					n[i] += 1
+		for i in periodes.size():
+			if n[i] < 5:
+				trous.append("%s %d-%d (%d)" % [r.id, periodes[i][0], periodes[i][1], n[i]])
+	_check(trous.is_empty(), "au moins 5 bâtiments par région et par période (%s)" % ", ".join(trous))
+	for sid in ["art_nouveau", "bauhaus", "meiji", "indo_sarrasin", "colonial_tropical", "nubien", "craftsman", "federation", "bois_vegetal"]:
+		_check(Styles.STYLES.has(sid) and types.has("%s__%s" % [sid, Styles.STYLES[sid].archs[0]]), "style « %s » au catalogue" % sid)
+	_check(Epoques.annee_batiment("art_nouveau__immeuble") == 1893, "l'immeuble Art nouveau arrive en 1893")
+	_check(Epoques.annee_batiment("bois_vegetal__tour") == 2010, "la tour en bois arrive en 2010")
+	var regions_v := {}
+	for vid in VehicleCatalog.TYPES:
+		var v: Dictionary = VehicleCatalog.TYPES[vid]
+		regions_v[String(v.get("region", ""))] = int(regions_v.get(String(v.get("region", "")), 0)) + 1
+	for rid in ["afrique", "asie_est", "asie_sud", "moyen_orient", "ameriques", "oceanie"]:
+		_check(int(regions_v.get(rid, 0)) >= 8, "au moins 8 véhicules en région %s (%d)" % [rid, int(regions_v.get(rid, 0))])
+	_check(VehicleCatalog.build_mesh("tonga").get_surface_count() > 0, "la tonga indienne se dessine")
+
 	print("Objets datés selon l'année de la partie :")
 	var r := ReglagesPartie.new()
 	r.annee_depart = 1850

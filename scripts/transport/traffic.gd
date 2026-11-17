@@ -1832,10 +1832,13 @@ func _siren_audio(v: Dictionary) -> void:
 	var player: AudioStreamPlayer3D = v.get("siren_player", null)
 	if on and player == null:
 		player = AudioStreamPlayer3D.new()
-		player.stream = siren_stream()
+		# Sirène du pays et de l'époque (AmbiancesSonores.sirene_de) ; sinon le deux-tons maison.
+		var annee := Epoques.annee() if Epoques.actif() else 0
+		var st := Son.flux("ambiance/" + AmbiancesSonores.sirene_de(String(v.get("model", "")), annee), true)
+		player.stream = st if st != null else siren_stream()
 		player.unit_size = 12.0
 		player.max_distance = 350.0
-		player.volume_db = -8.0
+		player.volume_db = -10.0
 		player.bus = "Effets" if AudioServer.get_bus_index("Effets") >= 0 else "Master"
 		(v.body as Node3D).add_child(player)
 		v.siren_player = player

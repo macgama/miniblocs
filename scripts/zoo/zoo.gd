@@ -22,6 +22,11 @@ extends Node3D
 ## - Visiteurs selon l'attrait des animaux, leur bien-être, les espèces
 ##   menacées, la vue sur les enclos, la note, le prix et la saison. Billets,
 ##   stands et dons pour la conservation → caisse de la ville de l'entrée.
+## - Génétique (ZooGenetique) : gènes hérités (taille, santé, fertilité, longévité),
+##   généalogie, consanguinité et diversité génétique de chaque groupe.
+## - Échanges : réseau d'élevage des zoos partenaires (offres et demandes), échanges
+##   entre zoos de la carte (autres villes, autres joueurs sur une carte entre amis),
+##   arrivées à placer (expéditions : accueillir()), remise en liberté suivie.
 ## - Liens : groupes "avis_sources" (thème loisirs) et "pollution_sources" (odeurs).
 
 signal changed
@@ -106,6 +111,18 @@ var _dirty := true
 ## Enclos dont le contenu (sols, eau, abris, objets) est à relire.
 var _sales: Dictionary = {}
 var visuels: ZooVisuels
+## Généalogie de tous les animaux connus (même partis) : id → {esp, nom, f, pere, mere, F, naiss}.
+var genealogie: Dictionary = {}
+## Offres d'échange : id → offre (réseau d'élevage, ou d'un zoo de la carte à un autre).
+var offres: Dictionary = {}
+var next_offre := 1
+## Animaux arrivés (expéditions, sauvetages) qui attendent un enclos : id → {zoo, animal, origine, jour}.
+var arrivees: Dictionary = {}
+var next_arrivee := 1
+## Animaux relâchés dans la nature, suivis : [{nom, esp, zoo, jour, fin, chance, statut}].
+var relaches: Array = []
+## Animaux partis vers le réseau d'élevage (leurs petits peuvent revenir) : [{id, esp, f}].
+var reseau: Array = []
 
 
 func _init() -> void:
@@ -153,6 +170,13 @@ func clear() -> void:
 	animaux.clear()
 	sorties.clear()
 	items.clear()
+	genealogie.clear()
+	offres.clear()
+	arrivees.clear()
+	relaches.clear()
+	reseau.clear()
+	next_offre = 1
+	next_arrivee = 1
 	next_enclos = 1
 	next_animal = 1
 	clock = -1.0
@@ -171,7 +195,7 @@ func _tout_relire() -> void:
 
 static func _empty_stats() -> Dictionary:
 	return {"visiteurs": 0, "touristes": 0, "habitants": 0, "billets": 0.0, "stands": 0.0, "dons": 0.0, "depenses": 0.0,
-		"nourriture": 0.0, "naissances": 0, "morts": 0, "evasions": 0}
+		"nourriture": 0.0, "naissances": 0, "morts": 0, "evasions": 0, "relaches": 0, "reussites": 0, "echanges": 0}
 
 
 func _new_zoo(bid: int) -> Dictionary:
@@ -517,14 +541,93 @@ func acheter(esp: String, id: int, femelle := -1, payer := true, age := -1.0) ->
 	return _naitre(esp, id, femelle == 1, jour_courant() - ans * 365.25, _point_dans(id))
 
 
-func _naitre(esp: String, id: int, femelle: bool, naiss: float, pos: Vector2) -> int:
+## Un animal arrive (naissance, achat, échange) : pere/mere -1 = fondateur (lignée inconnue,
+## sans lien avec les autres), genes vide = tirés au hasard.
+func _naitre(esp: String, id: int, femelle: bool, naiss: float, pos: Vector2, pere := -1, mere := -1, genes: Dictionary = {},
+		origine := "elevage", nom := "") -> int:
 	var aid := next_animal
 	next_animal += 1
-	animaux[aid] = {"id": aid, "esp": esp, "nom": PRENOMS[(aid * 7 + esp.length()) % PRENOMS.size()], "f": femelle,
+	var consang := 0.0
+	if genes.is_empty():
+		if pere >= 0 and mere >= 0 and animal_connu(pere) and animal_connu(mere):
+			genes = ZooGenetique.heritage(rng, _genes_de(pere), _genes_de(mere))
+		else:
+			genes = ZooGenetique.fondateur(rng, origine == "sauvage")
+	if pere >= 0 and mere >= 0:
+		consang = ZooGenetique.parente(genealogie, pere, mere)
+	var tare := ""
+	if consang >= ZooGenetique.SEUIL_TARE and rng.randf() < consang * 1.5:
+		tare = ZooGenetique.TARES[rng.randi() % ZooGenetique.TARES.size()]
+	var n := nom if nom != "" else String(PRENOMS[(aid * 7 + esp.length()) % PRENOMS.size()])
+	animaux[aid] = {"id": aid, "esp": esp, "nom": n, "f": femelle,
 		"naiss": naiss, "sante": 90.0, "bien": 70.0, "faim": 20.0, "enclos": id, "gest": -1.0, "pos": [pos.x, pos.y],
-		"evade": false, "evade_h": 0.0, "malade": false, "besoins": {}}
+		"evade": false, "evade_h": 0.0, "malade": false, "besoins": {}, "genes": genes, "consang": snappedf(consang, 0.0001),
+		"pere": pere, "mere": mere, "tare": tare, "origine": origine, "contra": false}
+	genealogie[aid] = {"esp": esp, "nom": n, "f": femelle, "pere": pere, "mere": mere, "F": snappedf(consang, 0.0001), "naiss": naiss,
+		"genes": genes}
 	changed.emit()
 	return aid
+
+
+## L'animal (vivant ou parti) est-il dans la généalogie ?
+func animal_connu(aid: int) -> bool:
+	return genealogie.has(aid)
+
+
+func _genes_de(aid: int) -> Dictionary:
+	if animaux.has(aid):
+		return animaux[aid].get("genes", {})
+	return genealogie.get(aid, {}).get("genes", {})
+
+
+## Gène effectif (avec la consanguinité et les tares) d'un animal vivant.
+func gene(aid: int, g: String) -> float:
+	return ZooGenetique.effectif(animaux[aid], g) if animaux.has(aid) else 0.0
+
+
+## Durée de vie de cet animal (années) : celle de l'espèce, selon son gène de longévité.
+func vie_de(a: Dictionary) -> float:
+	var e := ZooEspeces.espece(String(a.esp))
+	return float(e.get("vie", 20)) * (1.0 + 0.15 * ZooGenetique.effectif(a, "longevite"))
+
+
+## Animaux d'une espèce dans un zoo (pour la diversité génétique).
+func groupe_espece(e: int, esp: String) -> Array:
+	var out: Array = []
+	for aid in animaux_du_zoo(e):
+		if String(animaux[aid].esp) == esp:
+			out.append(aid)
+	return out
+
+
+func diversite(e: int, esp: String) -> float:
+	return ZooGenetique.diversite(genealogie, groupe_espece(e, esp))
+
+
+## Couples à risque dans un enclos (parents proches, parenté ≥ 12,5 %) : [[mâle, femelle, parenté]].
+func couples_a_risque(id: int) -> Array:
+	var out: Array = []
+	var ids := animaux_de(id)
+	var memo := {}
+	for m in ids:
+		var am: Dictionary = animaux[m]
+		if bool(am.f) or bool(am.get("contra", false)):
+			continue
+		for f in ids:
+			var af: Dictionary = animaux[f]
+			if not bool(af.f) or bool(af.get("contra", false)) or String(af.esp) != String(am.esp):
+				continue
+			var k := ZooGenetique.parente(genealogie, int(m), int(f), memo)
+			if k >= ZooGenetique.SEUIL_TARE:
+				out.append([int(m), int(f), k])
+	return out
+
+
+## Contraception d'un animal (on évite les petits consanguins sans séparer le groupe).
+func set_contraception(aid: int, on: bool) -> void:
+	if animaux.has(aid):
+		animaux[aid].contra = on
+		changed.emit()
 
 
 ## Vend un animal à un autre zoo (moitié du prix, plus s'il est jeune et en forme).
@@ -536,30 +639,11 @@ func vendre(aid: int) -> void:
 	var prix := float(e.get("prix", 0)) * 0.5 * clampf(float(a.sante) / 100.0, 0.3, 1.0)
 	if enclos.has(int(a.enclos)):
 		_flux_ville(_centre_enclos(int(a.enclos)), "Zoo : vente d'animaux", prix)
+	_retirer_offres_de(aid)
 	animaux.erase(aid)
+	_vers_reseau(aid, a)
 	message.emit("%s (%s) part pour un autre zoo." % [String(a.nom), ZooEspeces.minuscule(String(e.get("nom", "")))])
 	changed.emit()
-
-
-## Relâche un animal dans la nature (espèces menacées) : prestige du zoo.
-func relacher(aid: int) -> bool:
-	if not animaux.has(aid):
-		return false
-	var a: Dictionary = animaux[aid]
-	var esp := String(a.esp)
-	if ZooEspeces.uicn_bonus(esp) <= 0.0:
-		message.emit("Seules les espèces menacées sont relâchées dans la nature.")
-		return false
-	if float(a.bien) < 60.0 or age_ans(a) < float(ZooEspeces.espece(esp).maturite):
-		message.emit("Il faut un animal adulte et en forme (bien-être 60 au moins).")
-		return false
-	var z := int(enclos.get(int(a.enclos), {}).get("zoo", -1))
-	if zoos.has(z):
-		zoos[z].prestige = float(zoos[z].prestige) + 10.0 * (1.0 + ZooEspeces.uicn_bonus(esp) * 4.0)
-	animaux.erase(aid)
-	message.emit("%s retourne à la vie sauvage. Le prestige du zoo grimpe." % String(a.nom))
-	changed.emit()
-	return true
 
 
 func deplacer(aid: int, id: int) -> void:
@@ -816,13 +900,18 @@ func _soins(h: int) -> void:
 			# Santé : suit le bien-être ; les vétérinaires soignent.
 			var v := float(veto.get(z, 0.0))
 			var ds := (float(a.bien) - 55.0) * 0.02
+			# Génétique : une santé fragile (ou une tare) fait tomber malade plus souvent.
+			var gs := ZooGenetique.effectif(a, "sante")
+			var fragile := clampf(1.0 - gs * 0.6, 0.4, 2.2)
+			if gs < 0.0:
+				ds -= -gs * 0.03
 			if bool(a.malade):
 				ds -= 0.6
 				if v > 0.0 and rng.randf() < 0.08 * v:
 					a.malade = false
 				elif v <= 0.0 and rng.randf() < 0.01:
 					a.malade = false
-			elif float(a.bien) < 40.0 and rng.randf() < 0.004:
+			elif (float(a.bien) < 40.0 and rng.randf() < 0.004 * fragile) or (gs < -0.3 and rng.randf() < 0.0004 * -gs):
 				a.malade = true
 				message.emit("%s (%s) est malade." % [String(a.nom), ZooEspeces.minuscule(String(e.nom))])
 			a.sante = clampf(float(a.sante) + ds, 0.0, 100.0)
@@ -892,6 +981,10 @@ func new_day(now: Dictionary) -> void:
 			reste -= rep
 	_naissances_et_morts()
 	_predateurs()
+	_suivre_relaches()
+	_offres_du_jour()
+	if int(now.day) % 7 == 0:
+		_elaguer_genealogie()
 	for e in zoos:
 		var z: Dictionary = zoos[e]
 		_charges(int(e))
@@ -913,7 +1006,7 @@ func _naissances_et_morts() -> void:
 		var e := ZooEspeces.espece(String(a.esp))
 		var age := age_ans(a)
 		# Vieillesse, maladie grave.
-		var vie := float(e.get("vie", 20))
+		var vie := vie_de(a)
 		var mort := float(a.sante) <= 0.0 or (age > vie and rng.randf() < 0.02) or (age > vie * 1.3)
 		if mort:
 			var z := int(enclos.get(int(a.enclos), {}).get("zoo", -1))
@@ -928,30 +1021,46 @@ func _naissances_et_morts() -> void:
 			a.gest = float(a.gest) - 1.0
 			if float(a.gest) <= 0.0:
 				a.gest = -1.0
-				var n := maxi(1, rng.randi_range(1, int(e.get("portee", 1))))
+				var pmax := int(e.get("portee", 1))
+				if ZooGenetique.effectif(a, "fertilite") < -0.5:
+					pmax = maxi(1, pmax - 1)
+				var n := maxi(1, rng.randi_range(1, pmax))
 				var p := Vector2(float(a.pos[0]), float(a.pos[1]))
+				var pere := int(a.get("gest_pere", -1))
+				var tares := 0
 				for i in n:
-					_naitre(String(a.esp), int(a.enclos), rng.randf() < 0.5, jour, p + Vector2(rng.randf_range(-1, 1), rng.randf_range(-1, 1)))
+					var nid := _naitre(String(a.esp), int(a.enclos), rng.randf() < 0.5, jour, p + Vector2(rng.randf_range(-1, 1), rng.randf_range(-1, 1)),
+						pere, int(aid))
+					if String(animaux[nid].tare) != "":
+						tares += 1
 				var z := int(enclos.get(int(a.enclos), {}).get("zoo", -1))
 				if zoos.has(z):
 					zoos[z].jour.naissances = int(zoos[z].jour.naissances) + n
 				message.emit("Naissance au zoo : %d petit%s %s (%s) !" % [n, "s" if n > 1 else "", "de " + String(a.nom), ZooEspeces.minuscule(String(e.nom))])
+				if tares > 0:
+					message.emit("Le vétérinaire est inquiet : parents trop proches, %s porte une tare héréditaire. Pensez aux échanges ou à la contraception." % (
+						"un des petits" if n > 1 else "le petit"))
 			continue
-		if not bool(a.f) or bool(a.evade) or age < float(e.get("maturite", 2)) or float(a.bien) < 70.0:
+		if not bool(a.f) or bool(a.evade) or bool(a.get("contra", false)) or age < float(e.get("maturite", 2)) or float(a.bien) < 70.0:
 			continue
-		# Un mâle adulte de la même espèce dans l'enclos, et de la place dans le groupe.
-		var male := false
+		# Un mâle adulte de la même espèce dans l'enclos (sans contraception), et de la place dans le groupe.
+		var males: Array = []
 		var nb := 0
 		for bid in animaux_de(int(a.enclos)):
 			var b: Dictionary = animaux[bid]
 			if String(b.esp) != String(a.esp):
 				continue
 			nb += 1
-			if not bool(b.f) and age_ans(b) >= float(e.get("maturite", 2)):
-				male = true
+			if not bool(b.f) and not bool(b.get("contra", false)) and not bool(b.evade) and age_ans(b) >= float(e.get("maturite", 2)):
+				males.append(int(bid))
 		var gmax := int((e.get("groupe", [1, 10]) as Array)[1])
-		if male and nb < gmax and rng.randf() < 1.0 / 120.0:
+		if males.is_empty() or nb >= gmax:
+			continue
+		var male := int(males[rng.randi() % males.size()])
+		var fert := (ZooGenetique.effectif(a, "fertilite") + ZooGenetique.effectif(animaux[male], "fertilite")) * 0.5
+		if rng.randf() < 1.0 / 120.0 * clampf(1.0 + 0.6 * fert, 0.15, 1.8):
 			a.gest = float(e.get("gestation", 100))
+			a.gest_pere = male
 
 
 ## Un prédateur et ses proies dans le même enclos : de temps en temps, une proie disparaît.
@@ -1206,7 +1315,7 @@ func detail_note(e: int) -> Dictionary:
 		"vue": vues / maxf(1.0, float(encl.size())) if not encl.is_empty() else 0.0,
 		"services": services,
 		"prix": clampf(valeur(e) / maxf(float(z.prix), 1.0), 0.0, 1.0),
-		"conservation": clampf(float(z.prestige) / 100.0 + _part_menacees(ids), 0.0, 1.0),
+		"conservation": clampf(float(z.prestige) / 100.0 + _part_menacees(ids) + float(z.total.get("reussites", 0)) * 0.03, 0.0, 1.0),
 	}
 	var poids := {"variete": 0.22, "bien": 0.3, "vue": 0.14, "services": 0.14, "prix": 0.1, "conservation": 0.1}
 	var note := 0.0
@@ -1405,6 +1514,483 @@ func summary() -> String:
 	return "Zoo : %d visiteurs hier" % v
 
 
+# --- Remise en liberté -----------------------------------------------------------------------------------
+
+## Suivi d'un animal relâché (jours) avant de savoir s'il s'est adapté.
+const RELACHE_SUIVI := 60
+## Transport, colliers émetteurs, équipe sur place (€).
+const RELACHE_PRIX := 2500.0
+
+
+func zoo_de_animal(aid: int) -> int:
+	if not animaux.has(aid):
+		return -1
+	return int(enclos.get(int(animaux[aid].enclos), {}).get("zoo", -1))
+
+
+## Pourquoi cet animal ne peut pas être relâché ("" : il peut).
+func raison_pas_relacher(aid: int) -> String:
+	if not animaux.has(aid):
+		return "Animal inconnu."
+	var a: Dictionary = animaux[aid]
+	var esp := String(a.esp)
+	if ZooEspeces.uicn_bonus(esp) <= 0.0:
+		return "Seules les espèces menacées sont relâchées dans la nature."
+	if float(a.bien) < 60.0 or float(a.sante) < 60.0 or age_ans(a) < float(ZooEspeces.espece(esp).maturite) or bool(a.malade):
+		return "Il faut un animal adulte et en forme (bien-être et santé 60 au moins)."
+	if String(a.get("tare", "")) != "" or float(a.get("consang", 0.0)) >= 0.25:
+		return "Le programme de réintroduction refuse les animaux trop consanguins ou porteurs d'une tare."
+	return ""
+
+
+## Chance qu'un animal relâché s'adapte à la vie sauvage (0 à 1).
+func chance_relache(aid: int) -> float:
+	if not animaux.has(aid):
+		return 0.0
+	var a: Dictionary = animaux[aid]
+	var c := 0.3 + 0.2 * ZooGenetique.effectif(a, "sante") + float(a.bien) / 250.0 + float(a.sante) / 500.0
+	if String(a.get("origine", "")) == "sauvage":
+		c += 0.15
+	c -= float(a.get("consang", 0.0)) * 1.5
+	return clampf(c, 0.1, 0.95)
+
+
+## Relâche un animal dans la nature (espèces menacées) : prestige tout de suite, puis
+## suivi pendant RELACHE_SUIVI jours (s'il s'adapte : prestige et dons en plus).
+func relacher(aid: int) -> bool:
+	var r := raison_pas_relacher(aid)
+	if r != "":
+		message.emit(r)
+		return false
+	var a: Dictionary = animaux[aid]
+	var esp := String(a.esp)
+	var z := zoo_de_animal(aid)
+	var chance := chance_relache(aid)
+	if zoos.has(z):
+		var qualite := clampf(1.0 - float(a.get("consang", 0.0)) * 3.0, 0.4, 1.0)
+		zoos[z].prestige = float(zoos[z].prestige) + 10.0 * (1.0 + ZooEspeces.uicn_bonus(esp) * 4.0) * qualite
+		zoos[z].jour.relaches = int(zoos[z].jour.get("relaches", 0)) + 1
+		_payer(z, "Zoo : réintroductions", RELACHE_PRIX)
+	relaches.push_front({"nom": String(a.nom), "esp": esp, "zoo": z, "jour": jour_courant(), "fin": jour_courant() + RELACHE_SUIVI,
+		"chance": snappedf(chance, 0.01), "statut": "suivi"})
+	if relaches.size() > 30:
+		relaches.resize(30)
+	_retirer_offres_de(aid)
+	animaux.erase(aid)
+	message.emit("%s retourne à la vie sauvage, avec un collier émetteur. Le prestige du zoo grimpe." % String(a.nom))
+	changed.emit()
+	return true
+
+
+func _suivre_relaches() -> void:
+	var jour := jour_courant()
+	for r in relaches:
+		if String(r.statut) != "suivi" or jour < float(r.fin):
+			continue
+		var z := int(r.zoo)
+		var nom := "%s (%s)" % [String(r.nom), ZooEspeces.nom_bas(String(r.esp))]
+		if rng.randf() < float(r.chance):
+			r.statut = "reussi"
+			if zoos.has(z):
+				zoos[z].prestige = float(zoos[z].prestige) + 8.0 * (1.0 + ZooEspeces.uicn_bonus(String(r.esp)) * 4.0)
+				zoos[z].jour.reussites = int(zoos[z].jour.get("reussites", 0)) + 1
+				_encaisser(z, "dons", 1500.0 + 4000.0 * ZooEspeces.uicn_bonus(String(r.esp)))
+			message.emit("Bonne nouvelle du terrain : %s s'est adapté à la vie sauvage. Les dons affluent." % nom)
+		else:
+			r.statut = "perdu"
+			message.emit("Le collier de %s ne donne plus de signal. Les biologistes ont perdu sa trace." % nom)
+
+
+# --- Réseau d'élevage et échanges ---------------------------------------------------------------------------
+
+## Zoos partenaires (inventés) du réseau d'élevage.
+const PARTENAIRES := ["Parc zoologique de Valdorne", "Zoo des Hautes-Rives", "Bioparc de Santa Ilha", "Tierpark Eichenhain",
+	"Safari de Montbrisac", "Zoo royal de Kessenbourg", "Réserve de Kaoshan", "Parque de las Lomas Altas",
+	"Wildlife Park Ashcombe", "Zoo de la Baie d'Oranne", "Jardin animalier de Corvallo", "Parc des Plateaux de Mbeya"]
+const OFFRES_MAX := 6
+const OFFRE_JOURS := 20
+const RESEAU_MAX := 40
+
+
+## Offres en cours visibles par un zoo : celles du réseau, et celles d'un zoo de la carte vers lui (ou de lui).
+func offres_pour(z: int) -> Array:
+	var out: Array = []
+	for oid in offres:
+		var o: Dictionary = offres[oid]
+		if String(o.sorte) != "joueur" or int(o.vers) == z or int(o.de) == z:
+			out.append(int(oid))
+	return out
+
+
+## Autres zoos de la carte (autres villes, autres joueurs) : [[entrée, nom]].
+func autres_zoos(z: int) -> Array:
+	var out: Array = []
+	for b in zoos:
+		if int(b) != z:
+			out.append([int(b), String(zoos[b].nom)])
+	return out
+
+
+## Un animal acheté au réseau ou échangé : sa valeur pour l'élevage (rare chez nous = précieux).
+func valeur_genetique(aid: int) -> float:
+	if not animaux.has(aid):
+		return 1.0
+	var esp := String(animaux[aid].esp)
+	var tous: Array = []
+	for b in animaux:
+		if String(animaux[b].esp) == esp:
+			tous.append(b)
+	var mk := ZooGenetique.parente_moyenne(genealogie, aid, tous)
+	return clampf(1.3 - mk * 2.0, 0.6, 1.3)
+
+
+func _offres_du_jour() -> void:
+	var jour := jour_courant()
+	for oid in offres.keys():
+		var o: Dictionary = offres[oid]
+		if float(o.expire) < jour or (String(o.sorte) == "joueur" and not animaux.has(int(o.aid))):
+			offres.erase(oid)
+	if zoos.is_empty():
+		return
+	var n := 0
+	for oid in offres:
+		if String(offres[oid].sorte) != "joueur":
+			n += 1
+	if n < OFFRES_MAX and rng.randf() < 0.35:
+		nouvelle_offre_reseau()
+
+
+## Le réseau propose un animal (« vente ») ou en demande un (« demande »).
+func nouvelle_offre_reseau() -> int:
+	var chez_nous := {}
+	for aid in animaux:
+		chez_nous[String(animaux[aid].esp)] = true
+	var esp := ""
+	if not chez_nous.is_empty() and rng.randf() < 0.65:
+		var k: Array = chez_nous.keys()
+		esp = String(k[rng.randi() % k.size()])
+	else:
+		esp = String(ZooEspeces.ORDRE[rng.randi() % ZooEspeces.ORDRE.size()])
+	var e := ZooEspeces.espece(esp)
+	var demande := chez_nous.has(esp) and rng.randf() < 0.45
+	var oid := next_offre
+	next_offre += 1
+	var o := {"id": oid, "partenaire": String(PARTENAIRES[rng.randi() % PARTENAIRES.size()]), "esp": esp,
+		"expire": jour_courant() + OFFRE_JOURS, "de": -1, "vers": -1, "aid": -1}
+	if demande:
+		o.sorte = "demande"
+		o.f = rng.randi_range(-1, 1)
+		o.prix = roundf(float(e.prix) * rng.randf_range(0.55, 0.8) / 10.0) * 10.0
+		o.prestige = 2.0 + ZooEspeces.uicn_bonus(esp) * 12.0
+	else:
+		o.sorte = "vente"
+		var f := rng.randf() < 0.5
+		var ans := rng.randf_range(float(e.maturite), float(e.maturite) + 3.0)
+		var pere := -1
+		var mere := -1
+		# Parfois, le petit d'un animal que nous avons cédé au réseau : attention à la parenté.
+		var cedes: Array = []
+		for r in reseau:
+			if String(r.esp) == esp and genealogie.has(int(r.id)):
+				cedes.append(r)
+		if not cedes.is_empty() and rng.randf() < 0.4:
+			var r: Dictionary = cedes[rng.randi() % cedes.size()]
+			var autre := next_animal
+			next_animal += 1
+			genealogie[autre] = {"esp": esp, "nom": "", "f": not bool(r.f), "pere": -1, "mere": -1, "F": 0.0,
+				"naiss": jour_courant() - (ans + float(e.maturite) + 2.0) * 365.25, "genes": ZooGenetique.fondateur(rng)}
+			if bool(r.f):
+				mere = int(r.id)
+				pere = autre
+			else:
+				pere = int(r.id)
+				mere = autre
+		var genes := ZooGenetique.heritage(rng, _genes_de(pere), _genes_de(mere)) if pere >= 0 else ZooGenetique.fondateur(rng)
+		o.f = 1 if f else 0
+		o.prix = roundf(float(e.prix) * rng.randf_range(0.6, 0.9) / 10.0) * 10.0
+		o.prestige = 0.0
+		o.animal = {"nom": String(PRENOMS[rng.randi() % PRENOMS.size()]), "naiss": jour_courant() - ans * 365.25, "genes": genes,
+			"pere": pere, "mere": mere}
+	offres[oid] = o
+	changed.emit()
+	return oid
+
+
+## Parenté (0 à 0,5) d'un animal proposé avec le groupe de son espèce dans un zoo.
+func parente_offre(oid: int, z: int) -> float:
+	if not offres.has(oid):
+		return 0.0
+	var o: Dictionary = offres[oid]
+	var groupe := groupe_espece(z, String(o.esp))
+	if String(o.sorte) == "joueur":
+		return ZooGenetique.parente_moyenne(genealogie, int(o.aid), groupe)
+	if String(o.sorte) != "vente":
+		return 0.0
+	var an: Dictionary = o.animal
+	var memo := {}
+	var s := 0.0
+	for b in groupe:
+		s += 0.5 * (ZooGenetique.parente(genealogie, int(an.pere), int(b), memo) + ZooGenetique.parente(genealogie, int(an.mere), int(b), memo))
+	return s / float(groupe.size()) if not groupe.is_empty() else 0.0
+
+
+## Accepte une offre (animal proposé par le réseau ou par un autre zoo de la carte) : il
+## arrive dans l'enclos id, et la ville du zoo paie. "" : fait, sinon la raison.
+func acheter_offre(oid: int, id: int) -> String:
+	if not offres.has(oid):
+		return _refus("Cette offre n'est plus valable.")
+	if not enclos.has(id):
+		return _refus("Choisissez un enclos.")
+	var o: Dictionary = offres[oid]
+	var z := int(enclos[id].zoo)
+	var prix := float(o.prix)
+	match String(o.sorte):
+		"vente":
+			if not _peut_payer(prix):
+				return _refus("Pas assez d'argent (%s)." % _euros(prix))
+			_payer_ville(_centre_enclos(id), "Zoo : échanges d'animaux", prix)
+			var an: Dictionary = o.animal
+			var nid := _naitre(String(o.esp), id, int(o.f) == 1, float(an.naiss), _point_dans(id), int(an.pere), int(an.mere),
+				an.genes, "reseau", String(an.nom))
+			if zoos.has(z):
+				zoos[z].jour.echanges = int(zoos[z].jour.get("echanges", 0)) + 1
+			offres.erase(oid)
+			message.emit("%s (%s) arrive du %s." % [String(animaux[nid].nom), ZooEspeces.nom_bas(String(o.esp)), String(o.partenaire)])
+		"joueur":
+			var aid := int(o.aid)
+			if not animaux.has(aid):
+				offres.erase(oid)
+				return _refus("L'animal proposé n'est plus là.")
+			if z != int(o.vers):
+				return _refus("Cet animal est proposé à %s : choisissez un de ses enclos." % _nom_zoo(int(o.vers)))
+			if prix > 0.0 and not _peut_payer(prix):
+				return _refus("Pas assez d'argent (%s)." % _euros(prix))
+			_transferer(aid, id, int(o.de), z, prix)
+			offres.erase(oid)
+		_:
+			return _refus("Cette offre demande un animal : utilisez « Envoyer ».")
+	changed.emit()
+	return ""
+
+
+## Répond à une demande du réseau en envoyant l'animal aid : argent et prestige.
+func repondre_demande(oid: int, aid: int) -> String:
+	if not offres.has(oid) or String(offres[oid].sorte) != "demande":
+		return _refus("Cette demande n'est plus valable.")
+	if not animaux.has(aid):
+		return _refus("Animal inconnu.")
+	var o: Dictionary = offres[oid]
+	var a: Dictionary = animaux[aid]
+	if String(a.esp) != String(o.esp):
+		return _refus("Le réseau demande un %s." % ZooEspeces.nom_bas(String(o.esp)))
+	if int(o.f) >= 0 and bool(a.f) != (int(o.f) == 1):
+		return _refus("Le réseau demande %s." % ("une femelle" if int(o.f) == 1 else "un mâle"))
+	if age_ans(a) < float(ZooEspeces.espece(String(a.esp)).maturite) * 0.5 or bool(a.malade):
+		return _refus("Le réseau veut un animal en bonne santé, pas trop jeune.")
+	var z := zoo_de_animal(aid)
+	var v := valeur_genetique(aid)
+	var prix := float(o.prix) * v
+	if zoos.has(z):
+		zoos[z].prestige = float(zoos[z].prestige) + float(o.prestige) * v
+		zoos[z].jour.echanges = int(zoos[z].jour.get("echanges", 0)) + 1
+		_flux(z, "Zoo : échanges d'animaux", prix)
+	_retirer_offres_de(aid)
+	animaux.erase(aid)
+	_vers_reseau(aid, a)
+	offres.erase(oid)
+	message.emit("%s part pour le %s (%s%s)." % [String(a.nom), String(o.partenaire), _euros(prix),
+		", précieux pour le programme d'élevage" if v >= 1.15 else ""])
+	changed.emit()
+	return ""
+
+
+## Refuse (ou retire) une offre.
+func refuser_offre(oid: int) -> String:
+	if not offres.has(oid):
+		return ""
+	var o: Dictionary = offres[oid]
+	if String(o.sorte) == "joueur" and animaux.has(int(o.aid)):
+		message.emit("L'échange de %s n'a pas lieu." % String(animaux[int(o.aid)].nom))
+	offres.erase(oid)
+	changed.emit()
+	return ""
+
+
+## Propose un animal à un autre zoo de la carte (entrée vers), pour prix (0 : don ou prêt).
+## En solo, tous les zoos sont à vous : l'animal part tout de suite. Sur une carte entre
+## amis, le maire de la ville du zoo choisi accepte ou refuse (onglet Échanges).
+func proposer_echange(aid: int, vers: int, prix := 0.0) -> String:
+	if not animaux.has(aid):
+		return _refus("Animal inconnu.")
+	var de := zoo_de_animal(aid)
+	if not zoos.has(vers) or vers == de:
+		return _refus("Choisissez un autre zoo.")
+	prix = maxf(0.0, roundf(prix))
+	for oid in offres:
+		if String(offres[oid].sorte) == "joueur" and int(offres[oid].aid) == aid:
+			return _refus("%s est déjà proposé à un zoo." % String(animaux[aid].nom))
+	if echanges_directs():
+		var id := _meilleur_enclos(vers, String(animaux[aid].esp))
+		if id < 0:
+			return _refus("%s n'a pas encore d'enclos." % _nom_zoo(vers))
+		_transferer(aid, id, de, vers, prix)
+		changed.emit()
+		return ""
+	var oid := next_offre
+	next_offre += 1
+	offres[oid] = {"id": oid, "sorte": "joueur", "partenaire": _nom_zoo(de), "esp": String(animaux[aid].esp),
+		"f": 1 if bool(animaux[aid].f) else 0, "prix": prix, "expire": jour_courant() + OFFRE_JOURS, "de": de, "vers": vers,
+		"aid": aid, "prestige": 0.0}
+	message.emit("%s est proposé à %s%s." % [String(animaux[aid].nom), _nom_zoo(vers), " pour " + _euros(prix) if prix > 0.0 else " (don)"])
+	changed.emit()
+	return ""
+
+
+## Échanges tout de suite (solo, tests) ; sur le serveur d'une carte entre amis, on attend l'autre maire.
+var echanges_directs_force := -1
+
+
+func echanges_directs() -> bool:
+	if echanges_directs_force >= 0:
+		return echanges_directs_force == 1
+	return Multijoueur.role == Multijoueur.Role.SOLO
+
+
+func _transferer(aid: int, id: int, de: int, vers: int, prix: float) -> void:
+	var a: Dictionary = animaux[aid]
+	if prix > 0.0:
+		_payer(vers, "Zoo : échanges d'animaux", prix)
+		_flux(de, "Zoo : échanges d'animaux", prix)
+	a.enclos = id
+	var p := _point_dans(id)
+	a.pos = [p.x, p.y]
+	a.evade = false
+	for z in [de, vers]:
+		if zoos.has(z):
+			zoos[z].jour.echanges = int(zoos[z].jour.get("echanges", 0)) + 1
+	message.emit("%s (%s) quitte %s pour %s." % [String(a.nom), ZooEspeces.nom_bas(String(a.esp)), _nom_zoo(de), _nom_zoo(vers)])
+
+
+## Le meilleur enclos d'un zoo pour une espèce : celui où elle vit déjà, sinon le plus adapté.
+func _meilleur_enclos(z: int, esp: String) -> int:
+	var best := -1
+	var score := -1.0
+	for id in enclos_du_zoo(z):
+		var s := bien_etre(besoins(esp, int(id)), 20.0) + (100.0 if especes_de(int(id)).has(esp) else 0.0)
+		if s > score:
+			score = s
+			best = int(id)
+	return best
+
+
+func _nom_zoo(z: int) -> String:
+	return String(zoos[z].nom) if zoos.has(z) else "un autre zoo"
+
+
+func _refus(t: String) -> String:
+	message.emit(t)
+	return t
+
+
+func _retirer_offres_de(aid: int) -> void:
+	for oid in offres.keys():
+		if String(offres[oid].sorte) == "joueur" and int(offres[oid].aid) == aid:
+			offres.erase(oid)
+
+
+## Un animal parti vers le réseau : on garde sa trace (ses petits peuvent revenir).
+func _vers_reseau(aid: int, a: Dictionary) -> void:
+	reseau.push_front({"id": aid, "esp": String(a.esp), "f": bool(a.f)})
+	if reseau.size() > RESEAU_MAX:
+		reseau.resize(RESEAU_MAX)
+
+
+# --- Arrivées (expéditions, sauvetages) -----------------------------------------------------------------------
+
+## Point d'entrée pour les expéditions (et tout ce qui ramène un animal) : un animal
+## arrive au zoo z (-1 : le premier). Il attend un enclos dans l'onglet Échanges, sauf si
+## extra.enclos est donné. extra : "nom", "f" (bool), "age" (ans), "genes", "enclos",
+## "texte" (message). origine : "expedition", "sauvetage", "sauvage"… (animal sauvage :
+## fondateur, gènes variés). Renvoie l'id de l'arrivée (ou -(id animal) s'il est placé), 0 si refusé.
+func accueillir(esp: String, z := -1, origine := "expedition", extra: Dictionary = {}) -> int:
+	var e := ZooEspeces.espece(esp)
+	if e.is_empty():
+		return 0
+	if not zoos.has(z):
+		z = int(zoos.keys()[0]) if not zoos.is_empty() else -1
+	var ans := float(extra.get("age", rng.randf_range(float(e.maturite), float(e.maturite) + 5.0)))
+	var an := {"nom": String(extra.get("nom", PRENOMS[rng.randi() % PRENOMS.size()])), "f": bool(extra.get("f", rng.randf() < 0.5)),
+		"naiss": jour_courant() - ans * 365.25, "genes": extra.get("genes", ZooGenetique.fondateur(rng, true))}
+	var texte := String(extra.get("texte", ""))
+	var id := int(extra.get("enclos", -1))
+	if enclos.has(id):
+		var aid := _naitre(esp, id, bool(an.f), float(an.naiss), _point_dans(id), -1, -1, an.genes, origine, String(an.nom))
+		message.emit(texte if texte != "" else "%s (%s) arrive au zoo." % [String(an.nom), ZooEspeces.nom_bas(esp)])
+		return -aid
+	var rid := next_arrivee
+	next_arrivee += 1
+	arrivees[rid] = {"id": rid, "zoo": z, "esp": esp, "animal": an, "origine": origine, "jour": jour_courant()}
+	message.emit(texte if texte != "" else "%s (%s) est arrivé%s : il attend un enclos (zoo, onglet Échanges)." % [
+		String(an.nom), ZooEspeces.nom_bas(esp), " de l'expédition" if origine == "expedition" else ""])
+	changed.emit()
+	return rid
+
+
+## Arrivées qui attendent un enclos dans un zoo (et celles sans zoo).
+func arrivees_de(z: int) -> Array:
+	var out: Array = []
+	for rid in arrivees:
+		if int(arrivees[rid].zoo) == z or not zoos.has(int(arrivees[rid].zoo)):
+			out.append(int(rid))
+	return out
+
+
+func placer_arrivee(rid: int, id: int) -> String:
+	if not arrivees.has(rid):
+		return _refus("Cet animal n'attend plus.")
+	if not enclos.has(id):
+		return _refus("Choisissez un enclos.")
+	var r: Dictionary = arrivees[rid]
+	var an: Dictionary = r.animal
+	var aid := _naitre(String(r.esp), id, bool(an.f), float(an.naiss), _point_dans(id), -1, -1, an.genes, String(r.origine), String(an.nom))
+	arrivees.erase(rid)
+	message.emit("%s s'installe dans « %s »." % [String(animaux[aid].nom), String(enclos[id].nom)])
+	changed.emit()
+	return ""
+
+
+## Confie une arrivée au réseau d'élevage (moitié du prix de l'espèce).
+func ceder_arrivee(rid: int) -> String:
+	if not arrivees.has(rid):
+		return ""
+	var r: Dictionary = arrivees[rid]
+	var prix := float(ZooEspeces.espece(String(r.esp)).get("prix", 0)) * 0.5
+	if zoos.has(int(r.zoo)):
+		_flux(int(r.zoo), "Zoo : échanges d'animaux", prix)
+	arrivees.erase(rid)
+	message.emit("%s est confié au réseau d'élevage (%s)." % [String(r.animal.nom), _euros(prix)])
+	changed.emit()
+	return ""
+
+
+## La généalogie ne garde que les ancêtres utiles (animaux présents, offres, réseau).
+func _elaguer_genealogie() -> void:
+	var garder := {}
+	for aid in animaux:
+		ZooGenetique.ancetres(genealogie, int(aid), garder)
+		ZooGenetique.ancetres(genealogie, int(animaux[aid].get("gest_pere", -1)), garder)
+	for oid in offres:
+		var an: Variant = offres[oid].get("animal")
+		if an is Dictionary:
+			ZooGenetique.ancetres(genealogie, int(an.pere), garder)
+			ZooGenetique.ancetres(genealogie, int(an.mere), garder)
+	for r in reseau:
+		ZooGenetique.ancetres(genealogie, int(r.id), garder)
+	for k in genealogie.keys():
+		if not garder.has(k):
+			genealogie.erase(k)
+
+
 # --- Sauvegarde --------------------------------------------------------------------------------------------
 
 func to_dict() -> Dictionary:
@@ -1425,7 +2011,18 @@ func to_dict() -> Dictionary:
 		var z: Dictionary = zoos[b]
 		zs[str(b)] = {"nom": z.nom, "prix": z.prix, "note": z.note, "total": z.total, "hier": z.hier, "conservation": z.conservation,
 			"prestige": z.prestige}
-	return {"v": 1, "enclos": en, "animaux": an, "zoos": zs, "next_enclos": next_enclos, "next_animal": next_animal}
+	var gen := {}
+	for k in genealogie:
+		gen[str(k)] = genealogie[k]
+	var of := {}
+	for k in offres:
+		of[str(k)] = offres[k]
+	var ar := {}
+	for k in arrivees:
+		ar[str(k)] = arrivees[k]
+	return {"v": 2, "enclos": en, "animaux": an, "zoos": zs, "next_enclos": next_enclos, "next_animal": next_animal,
+		"genealogie": gen, "offres": of, "next_offre": next_offre, "arrivees": ar, "next_arrivee": next_arrivee,
+		"relaches": relaches.duplicate(true), "reseau": reseau.duplicate(true)}
 
 
 func from_dict(d: Dictionary) -> void:
@@ -1449,13 +2046,66 @@ func from_dict(d: Dictionary) -> void:
 		a.evade = bool(a.get("evade", false))
 		a.malade = bool(a.get("malade", false))
 		a.besoins = {}
+		# Sauvegardes d'avant la génétique : fondateurs sans lien.
+		if not a.get("genes") is Dictionary:
+			a.genes = ZooGenetique.fondateur(rng)
+		a.consang = float(a.get("consang", 0.0))
+		a.pere = int(a.get("pere", -1))
+		a.mere = int(a.get("mere", -1))
+		a.tare = String(a.get("tare", ""))
+		a.origine = String(a.get("origine", "elevage"))
+		a.contra = bool(a.get("contra", false))
+		if a.has("gest_pere"):
+			a.gest_pere = int(a.gest_pere)
 		animaux[int(k)] = a
+	for k in (d.get("genealogie", {}) as Dictionary):
+		var g: Dictionary = (d.genealogie[k] as Dictionary).duplicate()
+		g.pere = int(g.get("pere", -1))
+		g.mere = int(g.get("mere", -1))
+		g.F = float(g.get("F", 0.0))
+		g.naiss = float(g.get("naiss", 0.0))
+		genealogie[int(k)] = g
+	for aid in animaux:
+		var a: Dictionary = animaux[aid]
+		if not genealogie.has(aid):
+			genealogie[aid] = {"esp": a.esp, "nom": a.nom, "f": a.f, "pere": a.pere, "mere": a.mere, "F": a.consang,
+				"naiss": float(a.naiss), "genes": a.genes}
+	for k in (d.get("offres", {}) as Dictionary):
+		var o: Dictionary = (d.offres[k] as Dictionary).duplicate(true)
+		for c in ["id", "f", "de", "vers", "aid"]:
+			o[c] = int(o.get(c, -1))
+		o.id = int(k)
+		if o.get("animal") is Dictionary:
+			o.animal.pere = int(o.animal.get("pere", -1))
+			o.animal.mere = int(o.animal.get("mere", -1))
+		offres[int(k)] = o
+	for k in (d.get("arrivees", {}) as Dictionary):
+		var r: Dictionary = (d.arrivees[k] as Dictionary).duplicate(true)
+		r.id = int(k)
+		r.zoo = int(r.get("zoo", -1))
+		arrivees[int(k)] = r
+	for r in d.get("relaches", []):
+		if r is Dictionary:
+			var x: Dictionary = (r as Dictionary).duplicate()
+			x.zoo = int(x.get("zoo", -1))
+			relaches.append(x)
+	for r in d.get("reseau", []):
+		if r is Dictionary:
+			reseau.append({"id": int(r.get("id", -1)), "esp": String(r.get("esp", "")), "f": bool(r.get("f", false))})
+	next_offre = maxi(int(d.get("next_offre", 1)), next_offre)
+	next_arrivee = maxi(int(d.get("next_arrivee", 1)), next_arrivee)
+	for k in offres:
+		next_offre = maxi(next_offre, int(k) + 1)
+	for k in arrivees:
+		next_arrivee = maxi(next_arrivee, int(k) + 1)
 	var zs: Dictionary = d.get("zoos", {})
 	next_enclos = maxi(int(d.get("next_enclos", 1)), next_enclos)
 	next_animal = maxi(int(d.get("next_animal", 1)), next_animal)
 	for id in enclos:
 		next_enclos = maxi(next_enclos, int(id) + 1)
 	for aid in animaux:
+		next_animal = maxi(next_animal, int(aid) + 1)
+	for aid in genealogie:
 		next_animal = maxi(next_animal, int(aid) + 1)
 	_dirty = true
 	_sync()

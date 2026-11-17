@@ -80,6 +80,52 @@ journée, soirée, nuit ; l’écran titre et le globe ont leur thème. L’ongl
 Fondu de 3 s entre deux morceaux ; le passage du globe à la ville change de
 morceau tout de suite.
 
+### Musique de son temps (parties historiques)
+
+| Époque | Années jouées | Morceaux |
+| --- | --- | --- |
+| XIXe siècle | 1800 à 1919 | Menuet de la place du marché, Quadrille des diligences, L'orgue de barbarie du dimanche, Fanfare pour l'inauguration de la gare, Ragtime du saloon, Complainte du canal, Nocturne à la bougie |
+| 1900-1950 | 1895 à 1964 | **Swing du tramway** (jour : clarinette, trompettes bouchées ; le tramway sonne en plein solo), **Bal musette du 14 Juillet** (jour : accordéon, banjo ; un pétard éclate au mauvais moment), **Tango du cadastre** (soir : bandonéon, violon ; chaque phrase finit sur un coup de tampon), **Clair de lune sur le gazomètre** (nuit : piano-bar, clarinette) |
+| Moderne | dès 1930, et parties modernes | les 7 morceaux ci-dessus |
+
+Les époques se chevauchent : en 1910 on entend le XIXe et le bal musette, en
+1930 le swing et les morceaux modernes. Le panneau F2 indique l'époque de
+chaque morceau, qu'on peut toujours lancer à la main.
+
+## Saisons, lieux de la ville, sirènes (novembre 2026)
+
+- **Saisons** (Saisons.saison) : en hiver, la nature de jour devient
+  corneilles, rouge-gorge et vent froid ; les après-midi chauds d'été (plus de
+  22 °C, au mieux vers 15 h) font chanter les **cigales** ; les nuits douces
+  du printemps et de l'été, les **grenouilles** (plus fort près de l'eau).
+- **Lieux de la ville**, en 3D sur place (au plus 1 ou 2 de chaque à la fois,
+  dans un rayon de 320 m) :
+
+| Lieu | Son | Quand |
+| --- | --- | --- |
+| École | cour de récré (cris, ballon, corde à sauter) | 8 h à 16 h 45, fort aux récrés et à midi |
+| Aire de jeux | enfants | 9 h à 19 h 30, s'il ne pleut pas |
+| Parc de loisirs, fête de quartier | orgue de manège, montagnes russes et cris | 10 h à 23 h |
+| Zoo | lion, éléphant, singes, perroquets | 7 h 30 à 19 h 30 (calme la nuit) |
+| Usine, atelier, entrepôt | presse, moteur, vapeur | 6 h à 22 h (ronron la nuit) |
+| Ferme | vaches, poules, moutons, chien | 5 h à 21 h 30 |
+| Piscine | plongeons, enfants, sifflet du maître-nageur | 10 h à 19 h 30, s'il fait plus de 18 °C |
+| Café, marché | terrasse : conversations, rires, tasses | 8 h à 23 h 30, s'il ne pleut pas |
+| Gare | quai : foule, carillon d'annonce, freins, sifflet | 5 h à minuit |
+| Port | clapotis, mouettes, cordages, corne de brume | toujours |
+| Stade pendant un match | tribune, chants, « ooooh » ; sifflet au coup d'envoi et à la fin, clameur à chaque but | pendant le match |
+| Incendie | grondement et crépitements | jusqu'à l'extinction |
+
+- **Sonnerie de l'école** à 8 h 15 et 16 h 30 près d'une école (cloche à
+  main avant 1920).
+- **Sirènes** selon le véhicule, le pays et l'époque : deux-tons des
+  pompiers, deux-tons rapide de la police, trois tons du SAMU, sirène
+  américaine qui ondule, « pii-poo » japonais ; avant 1920, cloche des
+  pompiers à cheval (et des ambulances) et sifflet des sergents de ville.
+- **Succès débloqué** : petite fanfare.
+- **Pause (T)** : le trafic se tait, chantiers, lieux et sirènes se figent et
+  repartent d'où ils étaient ; nature et météo restent (EchelleTemps).
+
 ## Pour le développeur
 
 - `scripts/son/son.gd` (`Son`, nœud `/root/Son` créé à la demande, pas
@@ -88,9 +134,12 @@ morceau tout de suite.
   clic des boutons, F2.
 - `scripts/son/son_panel.gd` (`SonPanel`) : le panneau.
 - `scripts/son/ambiances_sonores.gd` (`AmbiancesSonores`, nœud de la scène
-  Terre) : nappes, chantiers, tonnerre, cloches, coq. Une nouvelle source de
-  chantier s'ajoute avec `sons.sources_chantiers.append(callable)` (renvoie des
-  `Vector3`).
+  Terre) : nappes, saisons, chantiers, lieux (`LIEUX`, `lieu_de()` : type de
+  bâtiment → son selon l'heure et la météo), sirènes (`sirene_de()`),
+  tonnerre, cloches, coq, sonnerie de l'école. Une nouvelle source de chantier
+  s'ajoute avec `sons.sources_chantiers.append(callable)` (renvoie des
+  `Vector3`). Un nouveau lieu : une fonction dans `tools/sons/lieux.py`
+  (boucle mono), une entrée dans `LIEUX`, une règle dans `lieu_de()`.
 - Refaire les sons : `python3 tools/build_sons.py` (tout) ou
   `python3 tools/build_sons.py musique lampadaires` (un seul). Il faut numpy,
   scipy et ffmpeg (libvorbis). Les fichiers sont reproductibles (graines fixes).
@@ -103,6 +152,5 @@ morceau tout de suite.
 - Remplacer un morceau ou un son par un enregistrement libre (Freesound,
   Kenney, OpenGameArt) ou fait dans Adobe Audition : même nom de fichier, et
   noter la licence dans `assets/son/LICENCE.md`.
-- Sons propres aux bâtiments (usine, école à la récréation, stade les soirs de
-  match), aux animaux de la ferme, aux trains et aux avions.
+- Trains et avions qui passent (sons 3D sur les véhicules), bateaux.
 - Musique qui réagit à la situation (crise, fête, élections).

@@ -50,8 +50,72 @@ et **arrachage**. Rayon réglable. Les travaux sont payés par la ville.
 - **Bien-être** détaillé : espace, sols, eau, abri, groupe, nourriture,
   propreté, enrichissement, température, tranquillité, avec les problèmes en
   clair (« Abri trop petit : 30 places pour 48 »).
-- Chaque animal a un nom, un sexe, un âge et une santé ; on peut le vendre, le
-  relâcher ou le déplacer.
+- Chaque animal a un nom, un sexe, un âge et une santé ; on peut le vendre,
+  l'échanger, le relâcher, le déplacer ou lui donner un contraceptif.
+
+## Génétique
+
+Code : `scripts/zoo/zoo_genetique.gd` (ZooGenetique), généalogie dans
+`ZooSysteme.genealogie`.
+
+- **Quatre gènes** par animal, de -1 à +1 (0 = moyenne de l'espèce) :
+  **taille** (le modèle est un peu plus grand ou plus petit), **santé**
+  (maladies plus ou moins fréquentes), **fertilité** (chances d'avoir des
+  petits, taille de la portée), **longévité** (±15 % de vie).
+- Un animal acheté au marché est un **fondateur** (lignée inconnue, sans lien
+  avec les autres). Un petit hérite de la moyenne de ses deux parents, plus un
+  peu de hasard. La généalogie garde les parents même vendus, morts ou relâchés.
+- **Parenté** (coefficient de Malécot) : père × fille ou frère × sœur = 25 %,
+  demi-frère × demi-sœur = 12,5 %, cousins = 6,25 %. La **consanguinité** d'un
+  petit est la parenté de ses parents. Elle baisse la santé, la fertilité et la
+  longévité ; dès 12,5 %, une **tare héréditaire** peut apparaître (cœur
+  fragile, hanches faibles…).
+- **Diversité génétique** d'un groupe (fiche de l'enclos) = 1 − parenté
+  moyenne : 2 fondateurs = 75 %, 10 = 95 %. Les animaux venus d'ailleurs la
+  font remonter.
+- Les **conseils** signalent les couples à risque (« Simba et Nala sont
+  proches parents ») ; le bouton **Contra.** met un animal sous contraception.
+- Infobulle d'un animal : ses gènes, ses parents, son origine, sa
+  consanguinité, sa valeur pour l'élevage.
+
+## Échanges (onglet Échanges)
+
+- **Réseau d'élevage** : douze zoos partenaires (inventés) publient tous les
+  quelques jours des offres (un animal d'une autre lignée, moins cher que le
+  marché) et des demandes (ils cherchent une espèce, parfois un sexe). Envoyer
+  un animal de lignée rare rapporte plus d'argent et du prestige. Les offres
+  durent 20 jours. Attention : le réseau peut proposer le petit d'un animal
+  que vous lui avez cédé, l'onglet le signale (« Apparenté à vos animaux »).
+- **Entre zoos de la carte** : bouton **Échanger** sur un animal, choisir un
+  autre zoo et un prix (0 = don). En solo, tous les zoos sont à vous : l'animal
+  part tout de suite. Sur une **carte entre amis**, le maire de la ville de
+  l'autre zoo accepte (en choisissant l'enclos) ou refuse ; la ville qui reçoit
+  paie celle qui donne.
+- **Arrivées** : les animaux rapportés par les expéditions (ou un sauvetage)
+  attendent un enclos ; on les place ou on les cède au réseau.
+
+## Remise en liberté
+
+- Espèces menacées seulement (statut UICN Vulnérable ou plus), adultes, en
+  forme (bien-être et santé ≥ 60), sans tare ni forte consanguinité.
+- Coût 2 500 € (transport, colliers émetteurs). **Prestige** tout de suite,
+  puis **60 jours de suivi** : s'il s'adapte (chance selon sa santé, ses gènes,
+  sa forme, et s'il est né sauvage), prestige et dons en plus. Le suivi est
+  dans l'onglet Échanges, et les réussites comptent dans la note
+  « Conservation ».
+
+## Branchement pour les expéditions
+
+`ZooSysteme.instance.accueillir(esp, zoo := -1, origine := "expedition", extra := {})`
+
+- `esp` : une espèce de `ZooEspeces.ESPECES` (sinon refusée, renvoie 0) ;
+- `zoo` : l'entrée du zoo (-1 : le premier) ;
+- `origine` : "expedition", "sauvetage", "sauvage"… (animal sauvage : gènes
+  plus variés, aucun lien avec les animaux en captivité) ;
+- `extra` : "nom", "f" (femelle), "age" (ans), "genes", "enclos" (placé
+  directement), "texte" (message affiché).
+- Renvoie l'id de l'arrivée (> 0, à placer dans l'onglet Échanges), ou
+  `-id` de l'animal s'il a été placé directement.
 
 ## Bâtiments et personnel
 
@@ -101,5 +165,6 @@ des enclos**. Un objet posé dans un enclos compte comme jouet.
 
 ```
 godot --headless --path . --script res://tests/zoo_test.gd
+godot --headless --path . --script res://tests/zoo_genetique_test.gd
 xvfb-run -a godot --path . --rendering-driver opengl3 --script res://tests/zoo_vitrine.gd -- --dossier captures/zoo
 ```

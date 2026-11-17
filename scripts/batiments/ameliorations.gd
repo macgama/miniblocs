@@ -221,8 +221,9 @@ static func inserer_etages(mesh: ArrayMesh, n: int) -> ArrayMesh:
 			if hi <= y_c + E:
 				for i in [a, b, c]:
 					emit.call(i, 0.0)
-				# Étage courant (fenêtres, bandeaux) : recopié plus haut.
-				if copie > 0 and lo >= y_c - ETAGE - E:
+				# Étage courant (fenêtres, bandeaux) : recopié plus haut. Les abords plats
+				# (pelouse, allée, terrasse au sol) restent au sol.
+				if copie > 0 and lo >= y_c - ETAGE - E and hi > 0.6:
 					for j in copie:
 						for i in [a, b, c]:
 							emit.call(i, ETAGE * (j + 1))

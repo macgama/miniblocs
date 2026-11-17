@@ -5,7 +5,9 @@ extends RefCounted
 ## (aucune liste à tenir à la main) : il sert au panneau « Catalogue » (Maj+F1, menu
 ## Infos) et à l'export docs/catalogue (tools/catalogue/export_catalogue.gd).
 ##
-## Une entrée : {"fam", "groupe", "id", "nom", "annee", "source", "info", "evol"}.
+## Une entrée : {"fam", "groupe", "id", "nom", "annee", "source", "info", "evol"}, et
+## "lignee" (identifiants de la même famille qui tiennent le même rôle, du plus
+## ancien au plus récent) quand il y en a une.
 ## annee 0 = de tout temps (déjà là en 1800). source dit d'où vient l'année :
 ## "propre" (donnée par l'objet), "table" (tables d'Epoques), "ajoutee" (datée
 ## avec le catalogue, EpoquesObjets), "style" (style de la bible), "epoque"
@@ -84,6 +86,16 @@ static func _lignee(membres: Array) -> String:
 	return " → ".join(parts)
 
 
+## Identifiants d'une lignée [nom, année, id], du plus ancien au plus récent.
+static func _ids_lignee(membres: Array) -> Array:
+	var m := membres.duplicate()
+	m.sort_custom(func(a: Array, b: Array) -> bool: return int(a[1]) < int(b[1]) or int(a[1]) == int(b[1]) and String(a[0]) < String(b[0]))
+	var out := []
+	for x in m:
+		out.append(String(x[2]))
+	return out
+
+
 # --- Bâtiments -----------------------------------------------------------------------------
 
 static func source_batiment(id: String) -> String:
@@ -138,7 +150,7 @@ static func _batiments(out: Array) -> void:
 		var b := BuildingCatalog.base_of(id)
 		if not lignees.has(b):
 			lignees[b] = []
-		(lignees[b] as Array).append([String(types[id].name), Epoques.annee_batiment(id)])
+		(lignees[b] as Array).append([String(types[id].name), Epoques.annee_batiment(id), id])
 	for id in ids:
 		var t: Dictionary = types[id]
 		var cat := BuildingCatalog.category(String(t.get("cat", "")))
@@ -154,8 +166,11 @@ static func _batiments(out: Array) -> void:
 		var lg: Array = lignees.get(BuildingCatalog.base_of(id), [])
 		if lg.size() > 1:
 			evol.append("Même rôle selon l'époque : " + _lignee(lg.duplicate()))
-		out.append(_e("batiments", String(cat.get("name", t.get("cat", ""))), id, String(t.name), Epoques.annee_batiment(id),
-			source_batiment(id), _info_batiment(id, t), " · ".join(evol)))
+		var eb := _e("batiments", String(cat.get("name", t.get("cat", ""))), id, String(t.name), Epoques.annee_batiment(id),
+			source_batiment(id), _info_batiment(id, t), " · ".join(evol))
+		if lg.size() > 1:
+			eb["lignee"] = _ids_lignee(lg)
+		out.append(eb)
 
 
 # --- Véhicules --------------------------------------------------------------------------
@@ -170,7 +185,7 @@ static func _vehicules(out: Array) -> void:
 		if r != "":
 			if not roles.has(r):
 				roles[r] = []
-			(roles[r] as Array).append([String(VehicleCatalog.TYPES[vid].name), Epoques.annee_vehicule(String(vid))])
+			(roles[r] as Array).append([String(VehicleCatalog.TYPES[vid].name), Epoques.annee_vehicule(String(vid)), String(vid)])
 	for vid in VehicleCatalog.TYPES:
 		var v: Dictionary = VehicleCatalog.TYPES[vid]
 		if bool(v.get("hidden", false)):
@@ -184,15 +199,21 @@ static func _vehicules(out: Array) -> void:
 		if String(v.get("region", "")) not in ["", "monde"]:
 			info.append(Styles.region_name(String(v.region)))
 		var evol := ""
+		var lig := []
 		var r := Epoques.role_vehicule(String(vid))
 		if r != "" and (roles[r] as Array).size() > 1:
 			evol = "Selon l'époque : " + _lignee((roles[r] as Array).duplicate())
+			lig = _ids_lignee(roles[r])
 		elif y > Epoques.ANNEE_MIN:
 			var avant := Epoques.vehicule_pour_annee(String(vid), y - 1)
 			if avant != String(vid):
 				evol = "Avant %d, remplacé par : %s" % [y, String(VehicleCatalog.get_type(avant).get("name", avant))]
-		out.append(_e("vehicules", String(noms_cat.get(String(v.cat), v.cat)), String(vid), String(v.name), y, "propre",
-			" · ".join(info), evol))
+				lig = [avant, String(vid)]
+		var ev := _e("vehicules", String(noms_cat.get(String(v.cat), v.cat)), String(vid), String(v.name), y, "propre",
+			" · ".join(info), evol)
+		if not lig.is_empty():
+			ev["lignee"] = lig
+		out.append(ev)
 
 
 # --- Voies, stations, réseaux -----------------------------------------------------------
@@ -239,11 +260,18 @@ static func _agriculture(out: Array) -> void:
 				moderne = int(v.annee)
 		chaine.append([String(m.name) + " moderne", moderne])
 		var evol := "Selon l'époque : " + _lignee(chaine.duplicate()) if chaine.size() > 1 else ""
+		var lig := []
+		for c in chaine:
+			if String(c[0]) != "(rien)":
+				lig.append("%s@%d" % [mid, int(c[1])])
 		for c in chaine:
 			if String(c[0]) == "(rien)":
 				continue
-			out.append(_e("agriculture", "Machines : " + String(m.name), "%s@%d" % [mid, int(c[1])], String(c[0]), int(c[1]), "table",
-				"", evol))
+			var ea := _e("agriculture", "Machines : " + String(m.name), "%s@%d" % [mid, int(c[1])], String(c[0]), int(c[1]), "table",
+				"", evol)
+			if lig.size() > 1:
+				ea["lignee"] = lig
+			out.append(ea)
 	for cid in AgriDonnees.ORDRE_CULTURES:
 		if AgriDonnees.CULTURES.has(cid):
 			out.append(_e("agriculture", "Cultures", String(cid), String(AgriDonnees.CULTURES[cid].name), AgriEpoques.annee_culture(String(cid)), "table"))
@@ -309,8 +337,18 @@ static func _decors(out: Array) -> void:
 			var avant := EpoquesObjets.decor_epoque(id, y - 1)
 			evol = "Avant %d, posé tout seul : %s" % [y, Decors.nom(avant) if avant != "" else "rien"] if EpoquesObjets.DECORS_ANCIENS.has(id) else ""
 		var t: Array = d.get("taille", [0, 0, 0])
-		out.append(_e("decors", String(noms.get(String(d.cat), d.cat)), id, String(d.nom), y, "ajoutee",
-			("%.1f × %.1f m" % [float(t[0]), float(t[1])]).replace(".", ","), evol))
+		var ed := _e("decors", String(noms.get(String(d.cat), d.cat)), id, String(d.nom), y, "ajoutee",
+			("%.1f × %.1f m" % [float(t[0]), float(t[1])]).replace(".", ","), evol)
+		if EpoquesObjets.DECORS_ANCIENS.has(id) and not (EpoquesObjets.DECORS_ANCIENS[id] as Array).is_empty():
+			var lig := []
+			for alt in EpoquesObjets.DECORS_ANCIENS[id]:
+				if Decors.existe(String(alt)) and not String(alt) in lig:
+					lig.append(String(alt))
+			lig.sort_custom(func(a: String, b: String) -> bool: return EpoquesObjets.annee_decor(a) < EpoquesObjets.annee_decor(b))
+			lig.append(id)
+			if lig.size() > 1:
+				ed["lignee"] = lig
+		out.append(ed)
 
 
 static func _meubles(out: Array) -> void:

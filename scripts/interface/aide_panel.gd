@@ -347,7 +347,7 @@ const SECTIONS := [
 		["Mes attractions", "Enregistrer garde un tracé dans ta bibliothèque pour le reposer dans n'importe quelle partie ; 5 modèles prêts à poser"],
 	]],
 	["Zoo", [
-		["Maj + Z (Loisirs ▴ → Zoo)", "panneau du zoo en 7 onglets : Zoo (note, visiteurs, prix, comptes, personnel, conseils), Enclos, Terrain, Animaux, Bâtiments, Visiteurs, Objets"],
+		["Maj + Z (Loisirs ▴ → Zoo)", "panneau du zoo en 8 onglets : Zoo (note, visiteurs, prix, comptes, personnel, conseils), Enclos, Terrain, Animaux, Bâtiments, Visiteurs, Objets, Échanges"],
 		["Fonder", "poser l'Entrée du zoo au bord d'une route (onglet Bâtiments ou Construire → Zoo) ; le reste se pose à moins de 400 m"],
 		["Enclos → Tracer", "clic à chaque coin, clic sur le premier point ou Entrée pour fermer, glisser pour un rectangle, Retour arrière efface le dernier coin ; 9 barrières (bois, électrique, grillage, palissade, renforcée, volière, vitre, mur, douve) : hauteur, solidité, vue et prix"],
 		["Terrain", "pinceaux de sol (herbe, forêt, savane sèche, sable, roche, neige, marais), bassin d'eau, remblai, relief (Maj : lisser), arbres et arrachage ; rayon du pinceau réglable"],
@@ -355,6 +355,9 @@ const SECTIONS := [
 		["Soigneurs et bâtiments", "poste de soigneurs (repas à 8 h et 15 h, nettoyage), cuisine, clinique vétérinaire, atelier (réparation des barrières), abris, belvédère, kiosque pédagogique, restaurants, toilettes"],
 		["Risques", "barrière trop basse ou usée : évasions ; fauves et proies ensemble : prédation ; enclos sale ou animaux mal soignés : maladies. Naissances quand le bien-être est bon"],
 		["Visiteurs", "chemins depuis l'entrée, vue sur les enclos (vitres et douves les meilleures), espèces rares et menacées : note, prestige et dons pour la conservation"],
+		["Génétique", "chaque animal hérite de ses parents quatre gènes (taille, santé, fertilité, longévité) ; parents trop proches : petits consanguins, plus fragiles, parfois porteurs d'une tare. La fiche de l'enclos donne la diversité génétique, les conseils signalent les couples à risque ; bouton Contra. : contraception"],
+		["Échanges", "onglet Échanges : le réseau d'élevage propose des animaux d'autres lignées et en demande (un animal rare rapporte argent et prestige) ; bouton Échanger d'un animal : le proposer à un autre zoo de la carte (sur une carte entre amis, l'autre maire accepte) ; les animaux rapportés par les expéditions y attendent un enclos"],
+		["Remise en liberté", "espèces menacées, adultes en forme, sans tare : prestige tout de suite, puis 60 jours de suivi par collier émetteur ; s'il s'adapte, prestige et dons en plus"],
 	]],
 	["Tourisme", [
 		["Maj + D (Loisirs ▴ → Tourisme)", "menu Tourisme : En bref (touristes en ville, arrivées, nuitées, refus, réputation, dépenses et ce que touche la caisse, conseils), Hébergements, Attractions, Publicité, Bâtir, Avis des touristes"],
@@ -419,7 +422,11 @@ const SECTIONS := [
 	["Son et musique", [
 		["F2, ou haut-parleur de la barre du haut", "panneau Son : volumes général, musique, ambiance, effets et interface ; silences entre les morceaux ; morceau suivant ; retirer ou écouter un morceau"],
 		["Ambiances", "on entend ce que regarde la caméra : oiseaux ou grillons à la campagne, rue animée en ville, voitures près des routes, chantiers en activité, pluie, vent, orage, mer ; en prenant de la hauteur, le vent couvre le reste"],
-		["Musique", "elle suit l'heure de la ville : morceaux de journée, de soirée et de nuit ; un thème pour le globe"],
+		["Saisons", "corneilles et silence feutré l'hiver, cigales les après-midi chauds d'été, grenouilles les nuits douces"],
+		["Lieux de la ville", "on les entend sur place : récré dans la cour d'école, manèges, zoo, usines, ferme, piscine l'été, terrasse de café, quai de gare, port, tribune pendant un match (sifflet, buts), marché, fête, incendie ; sonnerie de l'école le matin et à la sortie"],
+		["Sirènes", "selon le pays (deux-tons français, sirène américaine, japonaise) et l'époque : avant 1920, cloche des pompiers à cheval et sifflet des sergents de ville"],
+		["Pause (T)", "tout ce qui bouge se tait : trafic, chantiers, lieux et sirènes se figent ; la nature et la météo restent"],
+		["Musique", "elle suit l'heure de la ville : morceaux de journée, de soirée et de nuit ; un thème pour le globe. Partie historique : musique de son temps (XIXe siècle avant 1920, bal musette, swing et tango de 1900 à 1950)"],
 		["Réglages", "gardés pour toutes les parties (fichier son.cfg du joueur)"],
 	]],
 	["Temps et vue", [

@@ -87,7 +87,7 @@ const TYPES := {
 		"metiers": [["serveur", 3], ["technicien_spectacle", 1], ["cadre", 1]],
 		"desc": "Cave voûtée, lumière tamisée, piano droit. Le saxophoniste joue parfois jusqu'à 2 h du matin."},
 	"salle_musiques_actuelles": {"name": "Salle de musiques actuelles", "w": 32, "d": 40, "access": ROAD, "emplois": 14, "cost": 7_000_000, "role": "salle_concert",
-		"spect": {"role": "salle", "famille": "concert", "places": 1100, "confort": 0.5, "acoustique": 0.75, "prix": 25.0, "genres": G_ACTUELLES + ["humour"]},
+		"spect": {"role": "salle", "famille": "concert", "places": 1100, "confort": 0.5, "acoustique": 0.75, "prix": 25.0, "genres": ["rock", "pop", "rap", "electro", "metal", "chanson", "monde", "jazz", "humour"]},
 		"metiers": [["technicien_spectacle", 5], ["regisseur", 2], ["ouvreur", 4], ["serveur", 2], ["cadre", 1]],
 		"desc": "Fosse debout de 1 100 places, bar et studios de répétition. Rock, rap, électro : ça fait du bruit le soir."},
 	"auditorium": {"name": "Auditorium philharmonique", "w": 50, "d": 60, "access": ROAD, "emplois": 30, "cost": 38_000_000, "role": "salle_concert",

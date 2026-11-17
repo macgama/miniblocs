@@ -147,7 +147,9 @@ func _ready() -> void:
 		var row := HBoxContainer.new()
 		v.add_child(row)
 		var cb := CheckBox.new()
-		cb.text = "%s  ·  %s" % [Son.MORCEAUX[id][0], hum[Son.MORCEAUX[id][1]]]
+		var ep := Son.epoque_de(id)
+		cb.text = "%s  ·  %s%s" % [Son.MORCEAUX[id][0], hum[Son.MORCEAUX[id][1]],
+			"" if ep == "" else ("  ·  XIXe siècle" if ep == "1800" else "  ·  1900-1950")]
 		cb.button_pressed = not _son.exclus.has(id)
 		cb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		cb.toggled.connect(func(on: bool) -> void:

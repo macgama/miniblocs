@@ -280,11 +280,14 @@ static func periode(e: Dictionary, t: float) -> String:
 
 func on_start(e: Dictionary) -> void:
 	_build_visuals(e)
+	# Coup d'envoi : sifflet de l'arbitre (s'entend autour du stade).
+	Son.jouer_a("sifflet_arbitre", e.pos, -6.0, 500.0)
 	if bool(e.data.get("ligue", false)):
 		ev.news("Ce soir au stade : %s – %s, %d spectateurs attendus." % [String(e.data.home), String(e.data.away), int(e.data.affluence)], e.pos, "match", int(e.id))
 
 
 func on_end(e: Dictionary) -> void:
+	Son.jouer_a("sifflet_arbitre", e.pos, -6.0, 500.0)
 	var d: Dictionary = e.data
 	var goals: Array = d.buts
 	var sh := 0
@@ -351,6 +354,8 @@ func step(t: float, delta: float) -> void:
 		d.score = [sh, sa]
 		if n > int(d.annonces):
 			var g: Dictionary = d.buts[n - 1]
+			# But (ou panier, essai…) : la tribune explose.
+			Son.jouer_a("but_foule", e.pos, -2.0, 700.0)
 			var who := String(d.home) if int(g.side) == 0 else String(d.away)
 			var sport := String(d.get("sport", "football"))
 			if bool(d.ligue):

@@ -381,7 +381,7 @@ const SECTIONS := [
 	]],
 	["Expéditions et objets rares", [
 		["Maj + F4 (Loisirs ▴ → Expéditions)", "menu Expéditions : En cours, Préparer, Réserve, Récits. Il faut d'abord une Société des explorateurs (Construire → Loisirs, dès 1800)"],
-		["Préparer", "une destination parmi 17 (Égypte, Amazonie, Himalaya, pôle Sud dès 1895…), un chef, jusqu'à 9 membres (guide, médecin, porteurs, archéologue, naturaliste, cuisinier, photographe, pilote…) et des provisions. Six qualités comptent : endurance, médecine, orientation, diplomatie, savoir, débrouille"],
+		["Préparer", "une destination parmi 17 (vallée du Nil, Congo, Himalaya, Yucatán, Antarctique dès 1895…), un chef, jusqu'à 9 membres (guide, médecin, porteurs, archéologue, naturaliste, cuisinier, photographe, pilote…) et des provisions. Six qualités comptent : endurance, médecine, orientation, diplomatie, savoir, débrouille"],
 		["Le voyage", "voilier, vapeur, paquebot puis avion selon l'année ; sans le matériel adapté au climat (froid, chaleur, jungle, altitude), santé et moral fondent. Un membre trop faible rentre ; si tout le monde abandonne, l'expédition est perdue"],
 		["Imprévus", "tempêtes, fièvres, guides qui disparaissent, ruines, rencontres : on choisit une réponse (chance de réussite affichée) ou on laisse le chef décider. Un chef qui réussit gagne des niveaux"],
 		["Butin", "42 objets rares, des animaux pour le zoo et 14 spécialistes à faire venir en ville"],

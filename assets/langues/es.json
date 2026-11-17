@@ -12027,7 +12027,6 @@
 "Maj + F4 (Loisirs ▴ → Expéditions)": "Mayús + F4 (Ocio ▴ → Expediciones)",
 "menu Expéditions : En cours, Préparer, Réserve, Récits. Il faut d'abord une Société des explorateurs (Construire → Loisirs, dès 1800)": "menú Expediciones: En curso, Preparar, Reserva, Relatos. Primero hace falta una Sociedad de exploradores (Construir → Ocio, desde 1800)",
 "Préparer": "Preparar",
-"une destination parmi 17 (Égypte, Amazonie, Himalaya, pôle Sud dès 1895…), un chef, jusqu'à 9 membres (guide, médecin, porteurs, archéologue, naturaliste, cuisinier, photographe, pilote…) et des provisions. Six qualités comptent : endurance, médecine, orientation, diplomatie, savoir, débrouille": "un destino entre 17 (Egipto, Amazonia, Himalaya, Polo Sur desde 1895…), un jefe, hasta 9 miembros (guía, médico, porteadores, arqueólogo, naturalista, cocinero, fotógrafo, piloto…) y provisiones. Cuentan seis cualidades: resistencia, medicina, orientación, diplomacia, saber, ingenio",
 "Le voyage": "El viaje",
 "voilier, vapeur, paquebot puis avion selon l'année ; sans le matériel adapté au climat (froid, chaleur, jungle, altitude), santé et moral fondent. Un membre trop faible rentre ; si tout le monde abandonne, l'expédition est perdue": "velero, vapor, transatlántico y luego avión según el año; sin el material adecuado al clima (frío, calor, selva, altitud), la salud y la moral se hunden. Un miembro demasiado débil regresa; si todos abandonan, la expedición se pierde",
 "Imprévus": "Imprevistos",
@@ -12035,6 +12034,13 @@
 "Butin": "Botín",
 "42 objets rares, des animaux pour le zoo et 14 spécialistes à faire venir en ville": "42 objetos raros, animales para el zoo y 14 especialistas que traer a la ciudad",
 "donner un objet à un musée (prestige, étoiles, thèmes), l'exposer dans le cabinet de curiosités de la Société (attire les touristes), le vendre ou le rendre à son pays d'origine ; placer un animal dans un enclos du zoo ou le confier à un autre zoo (80 % de son prix)": "donar un objeto a un museo (prestigio, estrellas, temas), exponerlo en el gabinete de curiosidades de la Sociedad (atrae turistas), venderlo o devolverlo a su país de origen; poner un animal en un recinto del zoo o cederlo a otro zoo (80 % de su precio)",
-"une ingénieure des ponts accélère les chantiers, un agronome les récoltes, un médecin des tropiques la santé, une conservatrice les musées, un conférencier le tourisme… au plus 3 par ville": "una ingeniera de puentes acelera las obras, un agrónomo las cosechas, un médico tropical la salud, una conservadora los museos, un conferenciante el turismo… como máximo 3 por ciudad"
+"une ingénieure des ponts accélère les chantiers, un agronome les récoltes, un médecin des tropiques la santé, une conservatrice les musées, un conférencier le tourisme… au plus 3 par ville": "una ingeniera de puentes acelera las obras, un agrónomo las cosechas, un médico tropical la salud, una conservadora los museos, un conferenciante el turismo… como máximo 3 por ciudad",
+"Au zoo": "Al zoo",
+"Il part au zoo et attend un enclos dans l'onglet Échanges (né sauvage : gènes neufs pour l'élevage).": "Va al zoo y espera un recinto en la pestaña Intercambios (nacido en libertad: genes nuevos para la cría).",
+"il faut d'abord un zoo": "primero hace falta un zoo",
+"impossible de l'accueillir": "no se puede acoger",
+"%s, rapporté de %s, s'installe au zoo.": "%s, traído de %s, se instala en el zoo.",
+"%s, rapporté de %s, attend un enclos (zoo, onglet Échanges).": "%s, traído de %s, espera un recinto (zoo, pestaña Intercambios).",
+"une destination parmi 17 (vallée du Nil, Congo, Himalaya, Yucatán, Antarctique dès 1895…), un chef, jusqu'à 9 membres (guide, médecin, porteurs, archéologue, naturaliste, cuisinier, photographe, pilote…) et des provisions. Six qualités comptent : endurance, médecine, orientation, diplomatie, savoir, débrouille": "un destino entre 17 (valle del Nilo, Congo, Himalaya, Yucatán, Antártida desde 1895…), un jefe, hasta 9 miembros (guía, médico, porteadores, arqueólogo, naturalista, cocinero, fotógrafo, piloto…) y provisiones. Cuentan seis cualidades: resistencia, medicina, orientación, diplomacia, saber, ingenio"
 }
 }

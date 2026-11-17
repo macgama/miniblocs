@@ -12027,7 +12027,6 @@
 "Maj + F4 (Loisirs ▴ → Expéditions)": "Maiusc + F4 (Svago ▴ → Spedizioni)",
 "menu Expéditions : En cours, Préparer, Réserve, Récits. Il faut d'abord une Société des explorateurs (Construire → Loisirs, dès 1800)": "menu Spedizioni: In corso, Preparare, Riserva, Racconti. Serve prima una Società degli esploratori (Costruire → Svago, dal 1800)",
 "Préparer": "Preparare",
-"une destination parmi 17 (Égypte, Amazonie, Himalaya, pôle Sud dès 1895…), un chef, jusqu'à 9 membres (guide, médecin, porteurs, archéologue, naturaliste, cuisinier, photographe, pilote…) et des provisions. Six qualités comptent : endurance, médecine, orientation, diplomatie, savoir, débrouille": "una meta tra 17 (Egitto, Amazzonia, Himalaya, Polo Sud dal 1895…), un capo, fino a 9 membri (guida, medico, portatori, archeologo, naturalista, cuoco, fotografo, pilota…) e provviste. Contano sei qualità: resistenza, medicina, orientamento, diplomazia, sapere, ingegno",
 "Le voyage": "Il viaggio",
 "voilier, vapeur, paquebot puis avion selon l'année ; sans le matériel adapté au climat (froid, chaleur, jungle, altitude), santé et moral fondent. Un membre trop faible rentre ; si tout le monde abandonne, l'expédition est perdue": "veliero, vapore, transatlantico poi aereo secondo l'anno; senza l'attrezzatura adatta al clima (freddo, caldo, giungla, altitudine), salute e morale crollano. Un membro troppo debole torna a casa; se tutti abbandonano, la spedizione è persa",
 "Imprévus": "Imprevisti",
@@ -12035,6 +12034,13 @@
 "Butin": "Bottino",
 "42 objets rares, des animaux pour le zoo et 14 spécialistes à faire venir en ville": "42 oggetti rari, animali per lo zoo e 14 specialisti da portare in città",
 "donner un objet à un musée (prestige, étoiles, thèmes), l'exposer dans le cabinet de curiosités de la Société (attire les touristes), le vendre ou le rendre à son pays d'origine ; placer un animal dans un enclos du zoo ou le confier à un autre zoo (80 % de son prix)": "donare un oggetto a un museo (prestigio, stelle, temi), esporlo nel gabinetto delle curiosità della Società (attira i turisti), venderlo o restituirlo al paese d'origine; mettere un animale in un recinto dello zoo o affidarlo a un altro zoo (80 % del prezzo)",
-"une ingénieure des ponts accélère les chantiers, un agronome les récoltes, un médecin des tropiques la santé, une conservatrice les musées, un conférencier le tourisme… au plus 3 par ville": "un'ingegnera dei ponti accelera i cantieri, un agronomo i raccolti, un medico dei tropici la salute, una conservatrice i musei, un conferenziere il turismo… al massimo 3 per città"
+"une ingénieure des ponts accélère les chantiers, un agronome les récoltes, un médecin des tropiques la santé, une conservatrice les musées, un conférencier le tourisme… au plus 3 par ville": "un'ingegnera dei ponti accelera i cantieri, un agronomo i raccolti, un medico dei tropici la salute, una conservatrice i musei, un conferenziere il turismo… al massimo 3 per città",
+"Au zoo": "Allo zoo",
+"Il part au zoo et attend un enclos dans l'onglet Échanges (né sauvage : gènes neufs pour l'élevage).": "Va allo zoo e attende un recinto nella scheda Scambi (nato libero: geni nuovi per l'allevamento).",
+"il faut d'abord un zoo": "serve prima uno zoo",
+"impossible de l'accueillir": "impossibile accoglierlo",
+"%s, rapporté de %s, s'installe au zoo.": "%s, riportato da %s, si sistema allo zoo.",
+"%s, rapporté de %s, attend un enclos (zoo, onglet Échanges).": "%s, riportato da %s, attende un recinto (zoo, scheda Scambi).",
+"une destination parmi 17 (vallée du Nil, Congo, Himalaya, Yucatán, Antarctique dès 1895…), un chef, jusqu'à 9 membres (guide, médecin, porteurs, archéologue, naturaliste, cuisinier, photographe, pilote…) et des provisions. Six qualités comptent : endurance, médecine, orientation, diplomatie, savoir, débrouille": "una meta tra 17 (valle del Nilo, Congo, Himalaya, Yucatán, Antartide dal 1895…), un capo, fino a 9 membri (guida, medico, portatori, archeologo, naturalista, cuoco, fotografo, pilota…) e provviste. Contano sei qualità: resistenza, medicina, orientamento, diplomazia, sapere, ingegno"
 }
 }

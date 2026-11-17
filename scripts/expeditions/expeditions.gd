@@ -918,19 +918,29 @@ func objets_du_musee(key: String) -> Array:
 	return out
 
 
-## Place un animal de la réserve dans un enclos du zoo (gratuit) : rend "" ou la raison.
-func placer_animal(i: int, enclos_id: int) -> String:
+## Place un animal de la réserve au zoo (gratuit) : rend "" ou la raison. Avec un enclos,
+## il s'y installe ; avec -1, il attend un enclos dans l'onglet Échanges du zoo. Né
+## sauvage, il apporte des gènes neufs (ZooSysteme.accueillir).
+func placer_animal(i: int, enclos_id: int = -1) -> String:
 	if i < 0 or i >= animaux.size():
 		return "animal introuvable"
 	var zs := ZooSysteme.instance
-	if zs == null or not is_instance_valid(zs) or not zs.enclos.has(enclos_id):
+	if zs == null or not is_instance_valid(zs) or zs.zoos.is_empty():
+		return "il faut d'abord un zoo"
+	if enclos_id >= 0 and not zs.enclos.has(enclos_id):
 		return "enclos introuvable"
 	var a: Dictionary = animaux[i]
-	var aid := zs.acheter(String(a.esp), enclos_id, 1 if bool(a.f) else 0, false)
-	if aid < 0:
-		return "impossible de le placer ici"
+	var esp := String(a.esp)
+	var d := ExpeditionsDonnees.destination(String(a.get("dest", "")))
+	var extra := {"f": bool(a.f)}
+	if enclos_id >= 0:
+		extra["enclos"] = enclos_id
+	if not d.is_empty():
+		extra["texte"] = ("%s, rapporté de %s, s'installe au zoo." if enclos_id >= 0 else "%s, rapporté de %s, attend un enclos (zoo, onglet Échanges).") % [ZooEspeces.nom(esp), String(d.nom)]
+	var r := zs.accueillir(esp, -1, "sauvage", extra)
+	if r == 0:
+		return "impossible de l'accueillir"
 	animaux.remove_at(i)
-	message.emit("%s s'installe au zoo." % ZooEspeces.nom(String(a.esp)))
 	changed.emit()
 	return ""
 

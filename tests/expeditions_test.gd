@@ -249,6 +249,11 @@ func _ville_tests() -> void:
 	var nb0 := zoo.animaux_de(enc).size()
 	_check(ex.placer_animal(0, enc) == "", "un animal rejoint l'enclos")
 	_check(zoo.animaux_de(enc).size() == nb0 + 1, "il est bien au zoo")
+	ex.animaux.append((ex.animaux[0] as Dictionary).duplicate())
+	var arr0 := zoo.arrivees.size()
+	_check(ex.placer_animal(ex.animaux.size() - 1, -1) == "" and zoo.arrivees.size() == arr0 + 1, "un autre attend un enclos dans l'onglet Échanges du zoo")
+	var rid := int(zoo.arrivees.keys()[-1])
+	_check(String(zoo.arrivees[rid].origine) == "sauvage", "il arrive né sauvage (gènes neufs)")
 	var caisse1 := bs.money
 	_check(ex.confier_animal(0) == "" and bs.money > caisse1, "l'autre est confié à un zoo voisin")
 

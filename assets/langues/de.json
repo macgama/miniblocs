@@ -12027,7 +12027,6 @@
 "Maj + F4 (Loisirs ▴ → Expéditions)": "Umschalt + F4 (Freizeit ▴ → Expeditionen)",
 "menu Expéditions : En cours, Préparer, Réserve, Récits. Il faut d'abord une Société des explorateurs (Construire → Loisirs, dès 1800)": "Menü Expeditionen: Unterwegs, Vorbereiten, Lager, Berichte. Zuerst braucht es eine Gesellschaft der Entdecker (Bauen → Freizeit, ab 1800)",
 "Préparer": "Vorbereiten",
-"une destination parmi 17 (Égypte, Amazonie, Himalaya, pôle Sud dès 1895…), un chef, jusqu'à 9 membres (guide, médecin, porteurs, archéologue, naturaliste, cuisinier, photographe, pilote…) et des provisions. Six qualités comptent : endurance, médecine, orientation, diplomatie, savoir, débrouille": "ein Ziel unter 17 (Ägypten, Amazonien, Himalaya, Südpol ab 1895…), ein Leiter, bis zu 9 Mitglieder (Führer, Arzt, Träger, Archäologe, Naturforscher, Koch, Fotograf, Pilot…) und Vorräte. Sechs Eigenschaften zählen: Ausdauer, Medizin, Orientierung, Diplomatie, Wissen, Findigkeit",
 "Le voyage": "Die Reise",
 "voilier, vapeur, paquebot puis avion selon l'année ; sans le matériel adapté au climat (froid, chaleur, jungle, altitude), santé et moral fondent. Un membre trop faible rentre ; si tout le monde abandonne, l'expédition est perdue": "Segelschiff, Dampfer, Ozeandampfer, dann Flugzeug je nach Jahr; ohne passende Ausrüstung für das Klima (Kälte, Hitze, Dschungel, Höhe) schwinden Gesundheit und Moral. Ein zu schwaches Mitglied kehrt heim; geben alle auf, ist die Expedition verloren",
 "Imprévus": "Zwischenfälle",
@@ -12035,6 +12034,13 @@
 "Butin": "Ausbeute",
 "42 objets rares, des animaux pour le zoo et 14 spécialistes à faire venir en ville": "42 seltene Objekte, Tiere für den Zoo und 14 Fachleute für die Stadt",
 "donner un objet à un musée (prestige, étoiles, thèmes), l'exposer dans le cabinet de curiosités de la Société (attire les touristes), le vendre ou le rendre à son pays d'origine ; placer un animal dans un enclos du zoo ou le confier à un autre zoo (80 % de son prix)": "ein Objekt einem Museum schenken (Prestige, Sterne, Themen), es im Kuriositätenkabinett der Gesellschaft zeigen (lockt Touristen), es verkaufen oder dem Herkunftsland zurückgeben; ein Tier in ein Zoogehege setzen oder einem anderen Zoo überlassen (80 % seines Preises)",
-"une ingénieure des ponts accélère les chantiers, un agronome les récoltes, un médecin des tropiques la santé, une conservatrice les musées, un conférencier le tourisme… au plus 3 par ville": "eine Brückeningenieurin beschleunigt die Baustellen, ein Agronom die Ernten, ein Tropenarzt die Gesundheit, eine Kuratorin die Museen, ein Vortragsredner den Tourismus… höchstens 3 pro Stadt"
+"une ingénieure des ponts accélère les chantiers, un agronome les récoltes, un médecin des tropiques la santé, une conservatrice les musées, un conférencier le tourisme… au plus 3 par ville": "eine Brückeningenieurin beschleunigt die Baustellen, ein Agronom die Ernten, ein Tropenarzt die Gesundheit, eine Kuratorin die Museen, ein Vortragsredner den Tourismus… höchstens 3 pro Stadt",
+"Au zoo": "In den Zoo",
+"Il part au zoo et attend un enclos dans l'onglet Échanges (né sauvage : gènes neufs pour l'élevage).": "Es kommt in den Zoo und wartet im Reiter Austausch auf ein Gehege (wild geboren: neue Gene für die Zucht).",
+"il faut d'abord un zoo": "zuerst braucht es einen Zoo",
+"impossible de l'accueillir": "es kann nicht aufgenommen werden",
+"%s, rapporté de %s, s'installe au zoo.": "%s, mitgebracht aus %s, zieht in den Zoo ein.",
+"%s, rapporté de %s, attend un enclos (zoo, onglet Échanges).": "%s, mitgebracht aus %s, wartet auf ein Gehege (Zoo, Reiter Austausch).",
+"une destination parmi 17 (vallée du Nil, Congo, Himalaya, Yucatán, Antarctique dès 1895…), un chef, jusqu'à 9 membres (guide, médecin, porteurs, archéologue, naturaliste, cuisinier, photographe, pilote…) et des provisions. Six qualités comptent : endurance, médecine, orientation, diplomatie, savoir, débrouille": "ein Ziel unter 17 (Niltal, Kongo, Himalaya, Yucatán, Antarktis ab 1895…), ein Leiter, bis zu 9 Mitglieder (Führer, Arzt, Träger, Archäologe, Naturforscher, Koch, Fotograf, Pilot…) und Vorräte. Sechs Eigenschaften zählen: Ausdauer, Medizin, Orientierung, Diplomatie, Wissen, Findigkeit"
 }
 }

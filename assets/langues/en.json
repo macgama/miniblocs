@@ -12322,7 +12322,6 @@
 "Maj + F4 (Loisirs ▴ → Expéditions)": "Shift + F4 (Leisure ▴ → Expeditions)",
 "menu Expéditions : En cours, Préparer, Réserve, Récits. Il faut d'abord une Société des explorateurs (Construire → Loisirs, dès 1800)": "Expeditions menu: Under way, Prepare, Storeroom, Tales. You first need an Explorers' Society (Build → Leisure, from 1800)",
 "Préparer": "Prepare",
-"une destination parmi 17 (Égypte, Amazonie, Himalaya, pôle Sud dès 1895…), un chef, jusqu'à 9 membres (guide, médecin, porteurs, archéologue, naturaliste, cuisinier, photographe, pilote…) et des provisions. Six qualités comptent : endurance, médecine, orientation, diplomatie, savoir, débrouille": "a destination among 17 (Egypt, Amazonia, Himalaya, the South Pole from 1895…), a leader, up to 9 members (guide, doctor, porters, archaeologist, naturalist, cook, photographer, pilot…) and supplies. Six qualities count: endurance, medicine, navigation, diplomacy, knowledge, resourcefulness",
 "Le voyage": "The journey",
 "voilier, vapeur, paquebot puis avion selon l'année ; sans le matériel adapté au climat (froid, chaleur, jungle, altitude), santé et moral fondent. Un membre trop faible rentre ; si tout le monde abandonne, l'expédition est perdue": "sailing ship, steamer, liner then plane depending on the year; without gear suited to the climate (cold, heat, jungle, altitude), health and morale melt away. A member who is too weak goes home; if everyone gives up, the expedition is lost",
 "Imprévus": "Mishaps",
@@ -12330,6 +12329,13 @@
 "Butin": "Spoils",
 "42 objets rares, des animaux pour le zoo et 14 spécialistes à faire venir en ville": "42 rare objects, animals for the zoo and 14 specialists to bring to town",
 "donner un objet à un musée (prestige, étoiles, thèmes), l'exposer dans le cabinet de curiosités de la Société (attire les touristes), le vendre ou le rendre à son pays d'origine ; placer un animal dans un enclos du zoo ou le confier à un autre zoo (80 % de son prix)": "give an object to a museum (prestige, stars, themes), show it in the Society's cabinet of curiosities (draws tourists), sell it or return it to its country of origin; place an animal in a zoo enclosure or hand it to another zoo (80% of its price)",
-"une ingénieure des ponts accélère les chantiers, un agronome les récoltes, un médecin des tropiques la santé, une conservatrice les musées, un conférencier le tourisme… au plus 3 par ville": "a bridge engineer speeds up building sites, an agronomist the harvests, a tropical doctor health, a curator the museums, a lecturer tourism… at most 3 per town"
+"une ingénieure des ponts accélère les chantiers, un agronome les récoltes, un médecin des tropiques la santé, une conservatrice les musées, un conférencier le tourisme… au plus 3 par ville": "a bridge engineer speeds up building sites, an agronomist the harvests, a tropical doctor health, a curator the museums, a lecturer tourism… at most 3 per town",
+"Au zoo": "To the zoo",
+"Il part au zoo et attend un enclos dans l'onglet Échanges (né sauvage : gènes neufs pour l'élevage).": "It goes to the zoo and waits for an enclosure in the Exchanges tab (wild-born: new genes for breeding).",
+"il faut d'abord un zoo": "you need a zoo first",
+"impossible de l'accueillir": "it cannot be taken in",
+"%s, rapporté de %s, s'installe au zoo.": "%s, brought back from %s, settles in at the zoo.",
+"%s, rapporté de %s, attend un enclos (zoo, onglet Échanges).": "%s, brought back from %s, is waiting for an enclosure (zoo, Exchanges tab).",
+"une destination parmi 17 (vallée du Nil, Congo, Himalaya, Yucatán, Antarctique dès 1895…), un chef, jusqu'à 9 membres (guide, médecin, porteurs, archéologue, naturaliste, cuisinier, photographe, pilote…) et des provisions. Six qualités comptent : endurance, médecine, orientation, diplomatie, savoir, débrouille": "a destination among 17 (Nile valley, Congo, Himalaya, Yucatán, Antarctica from 1895…), a leader, up to 9 members (guide, doctor, porters, archaeologist, naturalist, cook, photographer, pilot…) and supplies. Six qualities count: endurance, medicine, navigation, diplomacy, knowledge, resourcefulness"
 }
 }

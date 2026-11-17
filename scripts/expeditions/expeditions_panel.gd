@@ -505,6 +505,8 @@ func _vue_reserve() -> void:
 				pm.add_item(String(zs.enclos[ids[k]].get("nom", "Enclos %d" % int(ids[k]))), k)
 			pm.id_pressed.connect(func(k: int) -> void: _faire("placer_animal", [ii, int(ids[k])]))
 			r.add_child(mb)
+		if zs != null and is_instance_valid(zs) and not zs.zoos.is_empty():
+			_button("Au zoo", func() -> void: _faire("placer_animal", [ii, -1]), "Il part au zoo et attend un enclos dans l'onglet Échanges (né sauvage : gènes neufs pour l'élevage).", r)
 		_button("Autre zoo", func() -> void: _faire("confier_animal", [ii]), "Confié à un autre zoo : 80 % de son prix pour la ville.", r)
 	_sep()
 	_titre("Spécialistes")

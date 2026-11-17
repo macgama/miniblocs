@@ -316,6 +316,7 @@ func _ready() -> void:
 
 # --- Barre du haut : lieu, partie, chiffres (l'horloge se place au centre) ---------
 
+var _historique_row: HBoxContainer
 var undo_button: Button
 var redo_button: Button
 var plan_button: Button
@@ -391,21 +392,6 @@ func _build_top_bar() -> void:
 		row.add_child(b)
 		if spec[0] == "admin":
 			_admin_button = b
-			row.add_child(UiStyle.vsep())
-			undo_button = UiStyle.icon_button("annuler", "Annuler", "Ctrl+Z")
-			undo_button.name = "Annuler"
-			undo_button.pressed.connect(func() -> void: undo_requested.emit())
-			row.add_child(undo_button)
-			redo_button = UiStyle.icon_button("refaire", "Rétablir", "Ctrl+Y")
-			redo_button.name = "Retablir"
-			redo_button.pressed.connect(func() -> void: redo_requested.emit())
-			row.add_child(redo_button)
-			plan_button = UiStyle.icon_button("plan", "Mode plan : poser en projet, sans payer, puis tout construire d'un coup", "Ctrl+P")
-			plan_button.name = "ModePlan"
-			plan_button.toggle_mode = true
-			UiStyle.tint_pressed(plan_button, ModePlan.COULEUR.lightened(0.1), UiStyle.CREATE_INK)
-			plan_button.pressed.connect(func() -> void: plan_requested.emit())
-			row.add_child(plan_button)
 		elif spec[0] == "aide":
 			var son := UiStyle.icon_button("son", "Son et musique : volumes, morceaux", "F2")
 			son.pressed.connect(func() -> void: Son.panneau())
@@ -416,6 +402,25 @@ func _build_top_bar() -> void:
 	middle.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	middle.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(middle)
+	# Annuler, rétablir, mode plan : à droite de l'horloge, avant les chiffres.
+	_historique_row = HBoxContainer.new()
+	_historique_row.add_theme_constant_override("separation", 8)
+	undo_button = UiStyle.icon_button("annuler", "Annuler", "Ctrl+Z")
+	undo_button.name = "Annuler"
+	undo_button.pressed.connect(func() -> void: undo_requested.emit())
+	_historique_row.add_child(undo_button)
+	redo_button = UiStyle.icon_button("refaire", "Rétablir", "Ctrl+Y")
+	redo_button.name = "Retablir"
+	redo_button.pressed.connect(func() -> void: redo_requested.emit())
+	_historique_row.add_child(redo_button)
+	plan_button = UiStyle.icon_button("plan", "Mode plan : poser en projet, sans payer, puis tout construire d'un coup", "Ctrl+P")
+	plan_button.name = "ModePlan"
+	plan_button.toggle_mode = true
+	UiStyle.tint_pressed(plan_button, ModePlan.COULEUR.lightened(0.1), UiStyle.CREATE_INK)
+	plan_button.pressed.connect(func() -> void: plan_requested.emit())
+	_historique_row.add_child(plan_button)
+	row.add_child(_historique_row)
+	row.add_child(UiStyle.vsep())
 
 	for spec in [["caisse", "budget", "Caisse de la ville (clic : budget)"],
 			["habitants", "habitants", "Habitants (clic : panneau Habitants, H)"],

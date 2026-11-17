@@ -14,7 +14,7 @@ Captures refaites avec `tests/historique_vitrine.gd` (voir son en-tête).
 | --- | --- |
 | Ctrl + Z | annule le dernier geste |
 | Ctrl + Y, ou Ctrl + Maj + Z | rétablit ce qui vient d'être annulé |
-| flèches ↶ ↷ en haut de l'écran | pareil, la bulle dit ce qui sera défait |
+| flèches ↶ ↷ en haut à droite, à côté de la caisse | pareil, la bulle dit ce qui sera défait |
 
 Un **geste** est tout ce que fait un clic : du bouton enfoncé jusqu'à un
 instant après le relâcher. Peindre une zone en glissant, semer des décors au
@@ -49,7 +49,7 @@ d'un bâtiment à remettre est prise), Ctrl+Z le dit et fait le reste.
 
 ## Mode plan
 
-Ctrl + P, ou le bouton en pointillés en haut de l'écran.
+Ctrl + P, ou le bouton en pointillés à droite des flèches ↶ ↷.
 
 - Ce que tu poses (bâtiments du catalogue, voies) reste un **projet** dessiné
   en **bleu** : rien n'est payé, aucun chantier ne démarre. Les projets ne se

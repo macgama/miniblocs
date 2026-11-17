@@ -66,6 +66,8 @@ signal club_requested
 signal tourisme_requested
 ## Bouton « Patrimoine » (menu Loisirs, touche Fin) : classement et grands monuments.
 signal patrimoine_requested
+## Bouton « Expéditions » (menu Loisirs, Maj+F4) : Société des explorateurs.
+signal expeditions_requested
 ## Bouton « Commerce » (menu Économie, Maj+S) : cours mondiaux, accords, crises.
 signal commerce_requested
 ## Panneau « Cartes » (touche N) : pollution, bruit, valeur des terrains, autres calques.
@@ -163,6 +165,7 @@ const CATEGORIES := [
 	{"id": "club", "name": "Club de sport (foot, basket, hand, hockey, rugby, tennis)", "icon": "sport", "key": "Maj+B", "panel": true, "group": "loisirs"},
 	{"id": "tourisme", "name": "Tourisme (hôtels, touristes, publicité)", "icon": "valise", "key": "Maj+D", "panel": true, "group": "loisirs"},
 	{"id": "patrimoine", "name": "Patrimoine et grands monuments", "icon": "patrimoine", "key": "Fin", "panel": true, "group": "loisirs"},
+	{"id": "expeditions", "name": "Expéditions (objets rares, animaux, spécialistes)", "icon": "boussole", "key": "Maj+F4", "panel": true, "group": "loisirs"},
 	{"id": "cartes", "name": "Cartes", "icon": "cartes", "key": "N", "panel": true, "group": "infos"},
 	{"id": "stats", "name": "Statistiques et conseiller", "icon": "courbe", "key": "Maj+I", "panel": true, "group": "infos"},
 	{"id": "journal", "name": "Gazette de la ville", "icon": "journal", "key": "F4", "panel": true, "group": "infos"},
@@ -908,6 +911,7 @@ func _on_category(id: String) -> void:
 			"club": club_requested.emit()
 			"tourisme": tourisme_requested.emit()
 			"patrimoine": patrimoine_requested.emit()
+			"expeditions": expeditions_requested.emit()
 			"commerce": commerce_requested.emit()
 			"cartes": cartes_requested.emit()
 			"stats": stats_requested.emit()

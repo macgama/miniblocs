@@ -491,6 +491,10 @@ func _maj_sites() -> void:
 					continue
 				var pts := clampf(float(BuildingCatalog.cost(String(buildings.buildings[bid].t))) / 8_000_000.0, 0.15, 2.5) * (1.0 if role == "monument" else 0.6)
 				sites.append({"kind": "patrimoine", "key": int(bid), "nom": String(t.get("name", "Monument")), "pos": pos_of(int(bid)), "pts": pts, "note": 3.5})
+	# Cabinets de curiosités et renommée des expéditions.
+	var ex := Expeditions.instance
+	if ex != null and is_instance_valid(ex) and ex.buildings == buildings:
+		sites.append_array(ex.sites_tourisme())
 	_sites_nature()
 	var kinds := {}
 	attrait_total = 0.0
@@ -498,6 +502,8 @@ func _maj_sites() -> void:
 		attrait_total += float(s.pts)
 		kinds[String(s.kind)] = true
 	attrait_total *= 1.0 + 0.12 * maxf(0.0, float(kinds.size()) - 1.0)
+	# Explorateurs conférenciers, photographes de renom… (spécialistes des expéditions).
+	attrait_total *= 1.0 + Expeditions.facteur("tourisme")
 
 
 func kinds_count() -> int:

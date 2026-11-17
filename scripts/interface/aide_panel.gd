@@ -380,6 +380,15 @@ const SECTIONS := [
 		["Entretien", "0,12 % (inscrit) ou 0,25 % (classé) de sa valeur par an, dont 30 % ou 50 % payés par l'État : il s'use trois fois moins vite. Sans entretien, il s'abîme et attire moins ; la restauration est aidée par l'État (25 % ou 40 %)"],
 		["Journées du patrimoine", "le troisième week-end de septembre, les monuments attirent presque deux fois plus de visiteurs"],
 	]],
+	["Expéditions et objets rares", [
+		["Maj + F4 (Loisirs ▴ → Expéditions)", "menu Expéditions : En cours, Préparer, Réserve, Récits. Il faut d'abord une Société des explorateurs (Construire → Loisirs, dès 1800)"],
+		["Préparer", "une destination parmi 17 (vallée du Nil, Congo, Himalaya, Yucatán, Antarctique dès 1895…), un chef, jusqu'à 9 membres (guide, médecin, porteurs, archéologue, naturaliste, cuisinier, photographe, pilote…) et des provisions. Six qualités comptent : endurance, médecine, orientation, diplomatie, savoir, débrouille"],
+		["Le voyage", "voilier, vapeur, paquebot puis avion selon l'année ; sans le matériel adapté au climat (froid, chaleur, jungle, altitude), santé et moral fondent. Un membre trop faible rentre ; si tout le monde abandonne, l'expédition est perdue"],
+		["Imprévus", "tempêtes, fièvres, guides qui disparaissent, ruines, rencontres : on choisit une réponse (chance de réussite affichée) ou on laisse le chef décider. Un chef qui réussit gagne des niveaux"],
+		["Butin", "42 objets rares, des animaux pour le zoo et 14 spécialistes à faire venir en ville"],
+		["Réserve", "donner un objet à un musée (prestige, étoiles, thèmes), l'exposer dans le cabinet de curiosités de la Société (attire les touristes), le vendre ou le rendre à son pays d'origine ; placer un animal dans un enclos du zoo ou le confier à un autre zoo (80 % de son prix)"],
+		["Spécialistes", "une ingénieure des ponts accélère les chantiers, un agronome les récoltes, un médecin des tropiques la santé, une conservatrice les musées, un conférencier le tourisme… au plus 3 par ville"],
+	]],
 	["Partage des créations", [
 		["Maj + W (ou Créer → 8)", "menu Partage : Partager mes créations, Plans de site, Découvrir les créations des autres"],
 		["Partager", "bâtiments de la Banque (façades personnalisées, murs fins meublés, musées), créations en blocs, attractions dessinées (grands-huit…), plans de site ; « Publier » (titre, description, étiquettes) ou « Fichier .mbloc » à envoyer à un ami. Une création emporte ce dont elle a besoin"],

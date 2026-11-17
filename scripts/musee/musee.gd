@@ -303,6 +303,7 @@ func analyse(key: String) -> Dictionary:
 		a.services = {"billetterie": 2, "vestiaire": 1, "toilettes": 1, "boutique": 1, "cafe": 1}
 		a.billetterie = true
 		a.detail = {"collections": 3.0, "confort": 0.36, "services": 0.85, "variete": 0.2, "expo": 0.0, "degats": 0.0}
+		_objets_rares(key, a)
 		a.note = _note(key, a)
 		_cache[key] = a
 		return a
@@ -405,11 +406,32 @@ func analyse(key: String) -> Dictionary:
 			lum_tot += float(s.lumiere)
 			lum_besoin += maxf(1.0, float(s.area) / 12.0)
 	a.lumiere = clampf(lum_tot / lum_besoin, 0.0, 1.5) if lum_besoin > 0.0 else 1.0
+	_objets_rares(key, a)
 	a.note = _note(key, a)
 	_conseils(a)
 	_cache[key] = a
 	return a
 
+
+
+## Objets rares rapportés par les expéditions et donnés au musée (Expeditions) : ils
+## s'ajoutent à la collection ; une conservatrice rapportée par une expédition fait
+## briller toute la collection.
+func _objets_rares(key: String, a: Dictionary) -> void:
+	var ex := Expeditions.instance
+	if ex == null or not is_instance_valid(ex):
+		return
+	for oid in ex.objets_du_musee(key):
+		var o := ExpeditionsDonnees.objet(String(oid))
+		a.prestige = float(a.prestige) + float(o.prestige)
+		a.brut = float(a.brut) + float(o.prestige)
+		a.oeuvres = int(a.oeuvres) + 1
+		a.valeur = int(a.valeur) + int(o.valeur)
+		var t := String(o.theme)
+		a.themes[t] = int((a.themes as Dictionary).get(t, 0)) + 1
+		if int(o.rare) >= 2:
+			(a.stars as Array).append(String(o.nom))
+	a.prestige = float(a.prestige) * Expeditions.facteur_musee(key)
 
 ## Note en étoiles (0 à 5) et son détail.
 func _note(key: String, a: Dictionary) -> float:

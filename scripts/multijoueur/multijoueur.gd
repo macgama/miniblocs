@@ -134,6 +134,8 @@ const APPELS := {
 	"zoo": {"f": ["ajouter_enclos", "retirer_enclos", "changer_barriere", "renommer_enclos", "acheter", "vendre", "relacher",
 		"deplacer", "set_prix", "set_nom"], "ville": true, "etat": true},
 	"musee": {"f": ["renommer", "set_prix", "set_gratuit_dimanche", "lancer_expo"], "ville": true, "etat": true},
+	"expeditions": {"f": ["partir", "choisir", "set_auto", "rappeler", "recruter_chef", "donner_musee", "exposer", "vendre", "rendre",
+		"placer_animal", "confier_animal", "affecter"], "etat": true},
 }
 
 
@@ -219,6 +221,8 @@ static func executer_appel(jeu: Node, a: Dictionary) -> Variant:
 			return jeu.zoo.callv(f, args)
 		"musee":
 			return jeu.musee.callv(f, args)
+		"expeditions":
+			return jeu.expeditions.callv(f, args)
 		"stations":
 			var st: StationSystem = jeu.transport.stations
 			return jeu.transport.appliquer_reseau(func() -> Variant: return st.callv(f, args))

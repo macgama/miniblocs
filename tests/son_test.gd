@@ -47,12 +47,14 @@ func _flat_tile(t: Vector2i) -> PackedFloat32Array:
 func _run() -> void:
 	print("Fichiers :")
 	var manque: Array = []
-	for id in AmbiancesSonores.NAPPES + ["chantier"] + AmbiancesSonores.NAPPES_ANCIENNES.values():
+	for id in AmbiancesSonores.NAPPES + ["chantier", "nature_hiver"] + AmbiancesSonores.NAPPES_ANCIENNES.values() + AmbiancesSonores.LIEUX.keys() \
+			+ ["sirene_pompiers", "sirene_police", "sirene_samu", "sirene_us", "sirene_japon", "cloche_pompiers", "sifflet_police"]:
 		if Son.flux("ambiance/" + id, true) == null:
 			manque.append("ambiance/" + id)
 	for id in ["ui_clic", "ui_ouvrir", "ui_fermer", "ui_notification", "ui_erreur", "pose_batiment", "pose_route",
 			"demolition", "chantier_fini", "argent", "palier", "election_gagnee", "election_perdue", "alerte",
-			"tonnerre_1", "tonnerre_2", "cloches", "coq", "sifflet_vapeur"]:
+			"tonnerre_1", "tonnerre_2", "cloches", "coq", "sifflet_vapeur",
+			"but_foule", "sifflet_arbitre", "sonnerie_ecole", "cloche_main", "succes"]:
 		if Son.flux("effets/" + id) == null:
 			manque.append("effets/" + id)
 	for id in Son.MORCEAUX:
@@ -100,9 +102,20 @@ func _run() -> void:
 	var l1850 := son.liste("jour")
 	_check(l1850.has("menuet_de_la_place") and not l1850.has("premier_coup_de_pioche"), "1850 : musique d'époque seulement")
 	_check(son.liste("nuit").has("nocturne_a_la_bougie"), "1850 : nocturne la nuit")
+	_check(not l1850.has("swing_du_tramway"), "1850 : pas encore de swing")
+	son.annee_forcee = 1910
+	var l1910 := son.liste("jour")
+	_check(l1910.has("menuet_de_la_place") and l1910.has("bal_musette_du_14_juillet") and not l1910.has("premier_coup_de_pioche"),
+		"1910 : XIXe siècle et bal musette se mélangent")
 	son.annee_forcee = 1930
 	var l1930 := son.liste("jour")
-	_check(l1930.has("menuet_de_la_place") and l1930.has("premier_coup_de_pioche"), "1930 : les deux se mélangent")
+	_check(l1930.has("swing_du_tramway") and l1930.has("premier_coup_de_pioche") and not l1930.has("menuet_de_la_place"),
+		"1930 : swing et morceaux modernes, plus de menuet")
+	_check(son.liste("nuit").has("clair_de_lune_sur_le_gazometre") and son.liste("soir").has("tango_du_cadastre"), "1930 : nocturne et tango")
+	son.annee_forcee = 1990
+	_check(not son.liste("jour").has("swing_du_tramway") and son.liste("jour").has("premier_coup_de_pioche"), "1990 : morceaux modernes")
+	son.annee_forcee = 0
+	_check(not son.liste("jour").has("bal_musette_du_14_juillet"), "partie moderne : pas de bal musette")
 	son.annee_forcee = 1850
 	_check(son.liste("menu") == ["une_terre_a_batir"], "1850 : le globe garde son thème")
 	son.annee_forcee = -1
@@ -224,6 +237,68 @@ func _run() -> void:
 	day.weather.flash = 0.0
 	_check(son.humeur() in ["jour", "soir", "nuit"], "dans la ville, la musique suit l'heure (%s)" % son.humeur())
 	_check(scene.hud.find_children("*", "Button", true, false).any(func(x) -> bool: return (x as Button).tooltip_text.begins_with("Son et musique")), "bouton Son dans la barre du haut")
+
+	print("Saisons :")
+	day.set_local_hour(15.0)
+	amb.saison_forcee = AmbiancesSonores.ETE
+	await _frames(5)
+	day.weather.temperature = 31.0
+	amb.calculer()
+	_check(float(amb.cible.cigales) > 0.3, "été, 15 h, 31 °C : les cigales chantent (%.2f)" % float(amb.cible.cigales))
+	amb.saison_forcee = AmbiancesSonores.HIVER
+	day.weather.temperature = 2.0
+	amb._maj_saison()
+	amb.calculer()
+	_check(amb.hiver and amb._players.nature_jour.stream == Son.flux("ambiance/nature_hiver", true) and float(amb.cible.cigales) == 0.0,
+		"hiver : corneilles au lieu des oiseaux, pas de cigales")
+	amb.saison_forcee = AmbiancesSonores.PRINTEMPS
+	amb._maj_saison()
+	day.set_local_hour(23.0)
+	await _frames(5)
+	day.weather.temperature = 16.0
+	amb.calculer()
+	_check(not amb.hiver and amb._players.nature_jour.stream == Son.flux("ambiance/nature_jour", true), "printemps : les oiseaux reviennent")
+	amb.saison_forcee = -1
+
+	print("Lieux de la ville :")
+	_check(AmbiancesSonores.lieu_de("ecole", 10.2, 15.0, 0.0) == ["cour_recre", 1.0], "école à la récré de 10 h : cour animée")
+	_check(String(AmbiancesSonores.lieu_de("ecole", 21.0, 15.0, 0.0)[0]) == "", "école le soir : silence")
+	_check(String(AmbiancesSonores.lieu_de("piscine", 15.0, 28.0, 0.0)[0]) == "piscine" and float(AmbiancesSonores.lieu_de("piscine", 15.0, 12.0, 0.0)[1]) == 0.0,
+		"piscine : pleine quand il fait chaud, vide quand il fait froid")
+	_check(String(AmbiancesSonores.lieu_de("usine", 10.0, 15.0, 0.0)[0]) == "usine", "usine : machines")
+	_check(String(AmbiancesSonores.lieu_de("cafe", 12.0, 20.0, 0.8)[0]) == "", "café sous la pluie : terrasse vide")
+	day.set_local_hour(10.25)
+	await _frames(3)
+	var ecole := -1
+	for gz in [90, 130, -100]:
+		ecole = bs.place("ecole", Vector2i(10, gz), 0)
+		if ecole >= 0:
+			break
+	if ecole >= 0 and bs.buildings[ecole].has("chantier"):
+		bs.buildings[ecole].erase("chantier")
+	EchelleTemps.force = 1.0
+	amb.calculer()
+	amb._placer_lieux()
+	_check(ecole >= 0 and int(amb.lieux_actifs.get("cour_recre", 0)) >= 1 and (amb._lieux.cour_recre[0] as AudioStreamPlayer3D).playing,
+		"une école posée : on entend la récré sur place (%s)" % str(amb.lieux_actifs))
+	EchelleTemps.force = 0.0
+	amb.calculer()
+	amb._maj_pause()
+	_check(amb.en_pause and float(amb.cible.trafic) == 0.0 and amb.figes >= 1,
+		"temps en pause : trafic coupé, la récré se fige")
+	EchelleTemps.force = 1.0
+	amb.calculer()
+	amb._maj_pause()
+	_check(not amb.en_pause and amb.figes == 0 and (amb._lieux.cour_recre[0] as AudioStreamPlayer3D).playing, "le temps repart : la récré aussi")
+	EchelleTemps.force = -1.0
+
+	print("Sirènes :")
+	_check(AmbiancesSonores.sirene_de("fpt", 0) == "sirene_pompiers", "pompiers : deux-tons")
+	_check(AmbiancesSonores.sirene_de("police_nationale", 0) == "sirene_police", "police : son deux-tons rapide")
+	_check(AmbiancesSonores.sirene_de("ambulance", 0) == "sirene_samu", "SAMU : trois tons")
+	_check(AmbiancesSonores.sirene_de("police_us", 0) == "sirene_us" and AmbiancesSonores.sirene_de("police_japon", 0) == "sirene_japon", "sirènes américaine et japonaise")
+	_check(AmbiancesSonores.sirene_de("fpt", 1880) == "cloche_pompiers" and AmbiancesSonores.sirene_de("police_nationale", 1880) == "sifflet_police",
+		"1880 : cloche des pompiers à cheval, sifflet des sergents de ville")
 
 	print("Aide :")
 	var aide := false

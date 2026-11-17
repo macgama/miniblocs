@@ -4,6 +4,11 @@ Tout est dans `main`, et les 9 tests automatiques passent (`sh tests/tous.sh`).
 
 ## Nouveautés
 
+**Expéditions et objets rares** (Construire → Loisirs → Société des explorateurs, puis **Maj+F4**, 17 novembre)
+- Monte une équipe (chef, guide, médecin, naturaliste, archéologue, porteurs…), choisis provisions et matériel, et envoie-la vers 17 destinations, de l'Antarctique au Yucatán. Voilier en 1800, avion aujourd'hui.
+- En route, des imprévus à trancher (ou laisse le chef décider) ; sans le bon matériel, santé et moral s'effondrent.
+- Retour avec 42 objets rares pour tes musées (prestige, étoiles) ou le cabinet de curiosités (touristes), des animaux nés sauvages pour le zoo (gènes neufs) et 14 spécialistes qui aident la ville (chantiers, récoltes, santé, tourisme). Voir docs/expeditions.md.
+
 **Visiter les villes des autres** (**F12**, ou menu principal → Visiter une ville, 16 novembre)
 - Partage ta ville en fichier .mbloc (ou sur le Workshop) avec un mot d'accueil ; les visiteurs s'y promènent sans rien pouvoir changer.
 - Ils te laissent une **carte postale** (texte, timbre, photo), épinglée là où ils l'ont écrite ; elle arrive toute seule dans ton courrier. Livre d'or au choix.

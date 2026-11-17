@@ -62,6 +62,7 @@ var saisons_panel: SaisonsPanel
 ## Climat et pollution : bilan carbone, réchauffement, mer, sols pollués, plan climat (Maj+F7).
 var climat: Climat
 var climat_panel: ClimatPanel
+var arbre_panel: ArbrePanel
 var dechets_panel: DechetsPanel
 ## Parc de loisirs : attractions, visiteurs, files, billets, note (Maj+G).
 var musee: Musee
@@ -84,6 +85,9 @@ var tourisme_panel: TourismePanel
 ## Patrimoine : classement, abords, entretien, grands monuments (touche Fin).
 var patrimoine: Patrimoine
 var patrimoine_panel: PatrimoinePanel
+## Expéditions : Société des explorateurs, objets rares, animaux, spécialistes (Maj+F4).
+var expeditions: Expeditions
+var expeditions_panel: ExpeditionsPanel
 ## Commerce entre villes et pays : cours mondiaux, accords, crises (Économie, Maj+S).
 var commerce_mondial: CommerceMondial
 var commerce_panel: CommercePanel
@@ -95,6 +99,9 @@ var vie_batiments: BatimentsVie
 ## Chantiers des voies et des réseaux (SuiviChantiers) et des voies (ChantiersVoies).
 var chantiers: SuiviChantiers
 var chantiers_voies: ChantiersVoies
+## Faire évoluer une route posée (voies, trottoirs, terre-plein, bus, tram).
+var evolution_voies: EvolutionVoies
+var evolution_panel: EvolutionPanel
 var _hover := Vector2i.ZERO
 var _hover_valid := false
 ## Intérieurs : meubles, pièces, usage des bâtiments en murs fins (onglet Intérieur).
@@ -238,6 +245,7 @@ func _ready() -> void:
 	_setup_pays()
 	_setup_commerce()
 	_setup_patrimoine()
+	_setup_expeditions()
 	_setup_niveaux_vie()
 	_setup_immobilier()
 	_setup_statistiques()
@@ -455,6 +463,7 @@ func save_sections() -> Dictionary:
 	sec["zoo"] = zoo.to_dict()
 	sec["tourisme"] = tourisme.to_dict()
 	sec["patrimoine"] = patrimoine.to_dict()
+	sec["expeditions"] = expeditions.to_dict()
 	sec["commerce_mondial"] = commerce_mondial.to_dict()
 	sec["quartiers"] = quartiers.to_dict()
 	sec["sante"] = sante.to_dict()
@@ -546,6 +555,9 @@ func load_game(slot := "") -> bool:
 		return false
 	var sec: Dictionary = res.sections
 	var m: Dictionary = res.manifest
+	# F9 ou Charger pendant une pause (T) : la partie chargée reste en pause, le joueur
+	# relance le temps quand il a regardé sa ville (elle repartait toute seule).
+	var en_pause := ambiance.speed_index == 0
 	Multijoueur.section_chargee = sec.get("multijoueur", {})
 	_chargement = true
 	journal.ecoute = false
@@ -601,6 +613,7 @@ func load_game(slot := "") -> bool:
 	zoo.from_dict(sec.get("zoo", {}))
 	tourisme.from_dict(sec.get("tourisme", {}))
 	patrimoine.from_dict(sec.get("patrimoine", {}))
+	expeditions.from_dict(sec.get("expeditions", {}))
 	commerce_mondial.from_dict(sec.get("commerce_mondial", {}))
 	funeraire.from_dict(sec.get("funeraire", {}))
 	ambiance.from_dict(sec.get("ambiance", {}))
@@ -649,6 +662,8 @@ func load_game(slot := "") -> bool:
 	journal.from_dict(sec.get("journal", {}))
 	($VueSol as VueSol).from_dict(sec.get("personnage", {}))
 	_load_settings(sec.get("reglages", {}), m)
+	if en_pause:
+		ambiance.set_speed(0)
 	# Après les réglages : une partie d'avant le tutoriel n'en a pas.
 	limite_demo.from_dict(sec.get("edition_demo", {}))
 	courrier.from_dict(sec.get("courrier", {}))
@@ -825,6 +840,17 @@ func _setup_vie() -> void:
 	chantiers_voies.name = "ChantiersVoies"
 	add_child(chantiers_voies)
 	chantiers_voies.setup(transport, chantiers)
+	evolution_voies = EvolutionVoies.new()
+	evolution_voies.name = "EvolutionVoies"
+	add_child(evolution_voies)
+	evolution_voies.setup(transport, chantiers, trafic)
+	evolution_panel = EvolutionPanel.new()
+	evolution_panel.name = "PanneauEvolution"
+	add_child(evolution_panel)
+	evolution_panel.setup(evolution_voies)
+	hud.upgrade_requested.connect(func() -> void:
+		hud.show_spec("", {}, false)
+		transport.set_upgrade())
 
 
 ## Événements de la ville et leur panneau (I), fil d'actualité en haut de l'écran.
@@ -877,6 +903,14 @@ func _setup_climat() -> void:
 		rig.position.x = pos.x
 		rig.position.z = pos.z)
 	hud.climat_requested.connect(func() -> void: climat_panel.toggle())
+	arbre_panel = ArbrePanel.new()
+	arbre_panel.name = "PanneauArbre"
+	add_child(arbre_panel)
+	arbre_panel.changed.connect(func() -> void:
+		_unsaved = true
+		if build_panel != null:
+			build_panel.refresh())
+	hud.arbre_requested.connect(func() -> void: arbre_panel.toggle())
 	var c := CalqueCouleur.new()
 	c.name = "CalqueSols"
 	c.world = world
@@ -1274,7 +1308,7 @@ func ouvrir_panneau(id: String) -> void:
 	var panels := {"budget": budget_panel, "avis": avis_panel, "construire": build_panel, "trafic": trafic_panel,
 		"dechets": dechets_panel, "reseaux": reseaux_panel, "services": services_panel, "education": education_panel, "cartes": cartes_panel,
 		"lignes": transit_panel, "pays": pays_panel, "production": production_panel, "objectifs": objectifs_panel,
-		"saisons": saisons_panel, "sante": sante_panel, "climat": climat_panel}
+		"saisons": saisons_panel, "sante": sante_panel, "climat": climat_panel, "arbre": arbre_panel}
 	var p = panels.get(id)
 	if p != null:
 		p.set_open(true)
@@ -1657,6 +1691,9 @@ func _setup_son() -> void:
 	sons.setup(rig, ambiance, world, buildings, transport.traffic, get_node_or_null("VueSol"))
 	sons.sources_chantiers.append(vie_batiments.chantiers_bruyants)
 	sons.sources_chantiers.append(chantiers_voies.chantiers_bruyants)
+	sons.saisons = saisons
+	sons.evenements = evenements
+	sons.stations = transport.stations
 	add_child(sons)
 	evenements.incident_declare.connect(func(_i: Dictionary) -> void:
 		if not _chargement:
@@ -2138,6 +2175,10 @@ func _setup_transit() -> void:
 		_select_building_tool(true)
 		build_panel.clear_selection()
 		st.set_line_tool())
+	transit_panel.evitement_chosen.connect(func() -> void:
+		_select_building_tool(true)
+		build_panel.clear_selection()
+		st.set_evitement())
 
 
 func _network_length() -> float:
@@ -3013,6 +3054,30 @@ func _setup_patrimoine() -> void:
 	hud.patrimoine_requested.connect(func() -> void: patrimoine_panel.toggle())
 
 
+## Expéditions : depuis une Société des explorateurs, des équipes partent au loin et
+## rapportent objets rares (musées), animaux (zoo) et spécialistes (villes) (Maj+F4).
+func _setup_expeditions() -> void:
+	expeditions = Expeditions.new()
+	expeditions.name = "Expeditions"
+	add_child(expeditions)
+	expeditions.setup(buildings, ambiance)
+	expeditions.message.connect(func(t: String) -> void: hud.show_message(t))
+	expeditions.changed.connect(func() -> void: _unsaved = true)
+	expeditions.actualite.connect(func(t: String, pos: Vector3) -> void:
+		if evenements != null:
+			evenements.news(t, pos, "expeditions"))
+	expeditions_panel = ExpeditionsPanel.new()
+	expeditions_panel.name = "PanneauExpeditions"
+	add_child(expeditions_panel)
+	expeditions_panel.setup(expeditions)
+	expeditions_panel.building_chosen.connect(func(id: String) -> void:
+		_select_building_tool()
+		buildings.set_place(id))
+	expeditions_panel.focus_requested.connect(func(pos: Vector3) -> void:
+		rig.position.x = pos.x
+		rig.position.z = pos.z)
+	hud.expeditions_requested.connect(func() -> void: expeditions_panel.toggle())
+
 ## Commerce : marché mondial, villes partenaires, accords, crises (Maj+S).
 func _setup_commerce() -> void:
 	commerce_mondial = CommerceMondial.new()
@@ -3154,7 +3219,7 @@ func _loisirs_ouvert() -> bool:
 
 
 func _panneaux_parc() -> Dictionary:
-	return {"parc": parc_panel, "parc_editeur": parc_editeur_panel, "zoo": zoo_panel, "musee": musee_panel, "spectacles": spectacles_panel, "club": club_panel, "tourisme": tourisme_panel, "patrimoine": patrimoine_panel}
+	return {"parc": parc_panel, "parc_editeur": parc_editeur_panel, "zoo": zoo_panel, "musee": musee_panel, "spectacles": spectacles_panel, "club": club_panel, "tourisme": tourisme_panel, "patrimoine": patrimoine_panel, "expeditions": expeditions_panel}
 
 
 ## Panneau « Paysage » : pinceaux de terrain (outil 0).
@@ -3225,8 +3290,11 @@ func _on_tool_selected(t: int) -> void:
 
 
 func _on_origin_changed(lat: float, lon: float) -> void:
-	# Nouvelle région : réseau vierge, paliers de déblocage à zéro.
+	# Nouvelle région : réseau vierge, arbre de progression à zéro.
 	ReglagesPartie.actuel.record_habitants = 0
+	ReglagesPartie.actuel.arbre = {}
+	ReglagesPartie.actuel.points_bonus = 0
+	ReglagesPartie.actuel.journal_points = []
 	if evenements != null:
 		evenements.clear()
 	if saisons != null:
@@ -3282,6 +3350,8 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 		tourisme.clear()
 	if patrimoine != null:
 		patrimoine.clear()
+	if expeditions != null:
+		expeditions.clear()
 	if commerce_mondial != null:
 		commerce_mondial.clear()
 	resource_overlay.show_resource(resource_overlay.res)
@@ -3377,7 +3447,7 @@ var _open_before := {}
 ## Construire, Lignes et Habitants partagent la même place à droite : quand
 ## l'un s'ouvre, les autres se ferment. Leur bouton de la barre du bas s'allume.
 func _exclusive_panels() -> void:
-	var panels := {"pays": pays_panel, "objectifs": objectifs_panel, "quartiers": quartiers_panel, "construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "agriculture": agri_panel, "urgences": urgences_panel, "reseaux": reseaux_panel, "dechets": dechets_panel, "trafic": trafic_panel, "budget": budget_panel, "telecom": telecom_panel, "perso": perso_panel, "streamer": streamer_panel, "infos": evenements_panel, "cartes": cartes_panel, "avis": avis_panel, "villages": villages_panel, "fondateurs": fondateurs_panel, "stats": stats_panel, "saisons": saisons_panel, "sante": sante_panel, "climat": climat_panel}
+	var panels := {"pays": pays_panel, "objectifs": objectifs_panel, "quartiers": quartiers_panel, "construire": build_panel, "lignes": transit_panel, "habitants": habitants_panel, "production": production_panel, "agriculture": agri_panel, "urgences": urgences_panel, "reseaux": reseaux_panel, "dechets": dechets_panel, "trafic": trafic_panel, "budget": budget_panel, "telecom": telecom_panel, "perso": perso_panel, "streamer": streamer_panel, "infos": evenements_panel, "cartes": cartes_panel, "avis": avis_panel, "villages": villages_panel, "fondateurs": fondateurs_panel, "stats": stats_panel, "saisons": saisons_panel, "sante": sante_panel, "climat": climat_panel, "arbre": arbre_panel}
 	var opened := ""
 	panels.merge(_panneaux_parc())
 	panels["musee"] = musee_panel
@@ -3405,12 +3475,9 @@ func _exclusive_panels() -> void:
 func _refresh_stats(st := {}) -> void:
 	var money := "Illimitée" if buildings.unlimited_money else BuildingSystem.format_money(buildings.money)
 	var s := st if not st.is_empty() else population.stats()
-	# Les fondateurs encore sous la tente ne font pas monter les paliers.
-	var palier := ReglagesPartie.actuel.note_population(int(s.habitants) - (fondateurs.au_campement() if fondateurs != null else 0))
-	if palier != "" and ReglagesPartie.actuel.deblocage == "progression":
-		hud.show_message("Palier « %s » atteint : de nouveaux bâtiments sont débloqués !" % palier)
-		Son.jouer("palier")
-		build_panel.refresh()
+	# Les fondateurs encore sous la tente ne comptent pas dans le record.
+	ReglagesPartie.actuel.note_population(int(s.habitants) - (fondateurs.au_campement() if fondateurs != null else 0))
+	_annoncer_points()
 	suivre_epoque()
 	var adults: int = int(s.actif) + int(s.chomeur)
 	var unemployment := "—" if adults == 0 else "%d %%" % roundi(100.0 * int(s.chomeur) / adults)
@@ -3419,6 +3486,30 @@ func _refresh_stats(st := {}) -> void:
 		money = "%s : %s" % [pays.nom_de(pays.actif), money]
 		tip = "Caisse de %s, la ville que tu gères (elle suit la caméra ; Maj+P pour le pays et les autres villes). Clic : budget." % pays.nom_de(pays.actif)
 	hud.set_stats(money, int(s.habitants), int(s.satisfaction), unemployment, tip)
+
+
+## Arbre de progression : annonce les points de progrès gagnés depuis la
+## dernière fois (records, rangs, missions, succès).
+var _points_vus := -1
+
+
+func _annoncer_points() -> void:
+	var r := ReglagesPartie.actuel
+	var g := ArbreProgression.points_gagnes(r)
+	if _points_vus < 0 or r.deblocage != "arbre":
+		_points_vus = g
+		return
+	if g <= _points_vus:
+		_points_vus = g
+		return
+	var gain := g - _points_vus
+	_points_vus = g
+	var pourquoi := String(r.journal_points[-1].raison) if not r.journal_points.is_empty() else ""
+	hud.show_message("+%d point%s de progrès%s : %d à dépenser dans l'arbre (Maj+F10)." % [gain, "s" if gain > 1 else "",
+		" (" + pourquoi + ")" if pourquoi != "" else "", ArbreProgression.points_disponibles(r)])
+	Son.jouer("palier")
+	if arbre_panel != null and arbre_panel.is_open():
+		arbre_panel.refresh()
 
 
 ## Partie historique : à chaque nouvelle année, les véhicules en circulation

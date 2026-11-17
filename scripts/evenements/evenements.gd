@@ -525,7 +525,14 @@ func _duree_intervention(inc: Dictionary) -> float:
 
 # --- Nouvelles ---------------------------------------------------------------------
 
+## Vrai pendant le chargement, quand un événement déjà commencé reprend : il ne
+## s'annonce pas une seconde fois (« Marché du samedi : ça commence » à chaque chargement).
+var reprise := false
+
+
 func news(texte: String, pos := Vector3.INF, genre := "", ev := -1) -> void:
+	if reprise:
+		return
 	var n := {"t": now(), "texte": texte, "pos": pos, "genre": genre, "ev": ev}
 	journal.push_front(n)
 	if journal.size() > JOURNAL_MAX:
@@ -981,7 +988,9 @@ func from_dict(d: Dictionary) -> void:
 		# Déjà commencé : il reprend (visuels refaits).
 		if String(o.get("etat", "prevu")) == "en_cours":
 			e.etat = "en_cours"
+			reprise = true
 			_start(e)
+			reprise = false
 	_last_unix = now()
 	_last_day = int(local_now().day)
 	# Les incidents rechargés sont annoncés à nouveau aux services d'urgence.

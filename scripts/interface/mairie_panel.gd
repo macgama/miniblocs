@@ -34,7 +34,7 @@ const MENUS := [
 	{"titre": "Économie", "ids": [["production", "Production"], ["agriculture", "Agriculture"], ["commerce", "Commerce mondial"], ["tourisme", "Tourisme"]]},
 	{"titre": "Transports", "ids": [["lignes", "Lignes"], ["trafic", "Trafic"]]},
 	{"titre": "Loisirs", "ids": [["parc", "Parc de loisirs"], ["zoo", "Zoo"], ["musee", "Musée"], ["spectacles", "Spectacles"], ["club", "Club de sport"], ["patrimoine", "Patrimoine"]]},
-	{"titre": "Infos", "ids": [["stats", "Statistiques"], ["cartes", "Cartes"], ["journal", "Gazette"], ["saisons", "Saisons et risques"], ["succes", "Succès"], ["climat", "Climat et pollution"]]},
+	{"titre": "Infos", "ids": [["stats", "Statistiques"], ["cartes", "Cartes"], ["journal", "Gazette"], ["saisons", "Saisons et risques"], ["succes", "Succès"], ["climat", "Climat et pollution"], ["arbre", "Arbre de progression"]]},
 ]
 
 var stats: Statistiques

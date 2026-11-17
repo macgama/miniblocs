@@ -16,6 +16,8 @@ const CONCRETE := Color("b9b4aa")
 const SIDEWALK := Color("c9c5bd")
 const KERB := Color("9e9a92")
 const GRASS := Color("6f8f4e")
+## Couloir de bus (enrobé rouge).
+const BUS_LANE := Color("8e4a3f")
 const BALLAST := Color("8a7f72")
 const SLEEPER := Color("5b4636")
 const STEEL := Color("c6cbd1")
@@ -75,7 +77,7 @@ func rebuild() -> void:
 		var joints := joint_rights(network, id)
 		var e0: Dictionary = network.edges[id]
 		var clear := Vector2(crosswalk_clear(network, id, e0.a, trims), crosswalk_clear(network, id, e0.b, trims))
-		var key := [tr, joints[0], joints[1], clear, chantier_key(network.edges[id])]
+		var key := [tr, joints[0], joints[1], clear, chantier_key(network.edges[id]), String(e0.t), (e0.w as Dictionary).hash()]
 		if _edge_meshes.has(id) and _edge_keys.get(id) == key:
 			continue
 		var e: Dictionary = network.edges[id]
@@ -133,7 +135,7 @@ func refresh_edge(id: int) -> void:
 	var tr: Vector2 = _trims.get(id, Vector2.ZERO)
 	var joints := joint_rights(network, id)
 	var clear := Vector2(crosswalk_clear(network, id, e.a, _trims), crosswalk_clear(network, id, e.b, _trims))
-	var key := [tr, joints[0], joints[1], clear, chantier_key(e)]
+	var key := [tr, joints[0], joints[1], clear, chantier_key(e), String(e.t), (e.w as Dictionary).hash()]
 	if _edge_keys.get(id) == key:
 		return
 	var mi: MeshInstance3D = _edge_meshes[id]
@@ -251,7 +253,7 @@ static func crosswalk_clear(net: TransportNetwork, eid: int, nid: int, trims: Di
 	var e: Dictionary = net.edges[eid]
 	if net.degree(nid) < 3 or net.node_mode(nid) != TransportTypes.Mode.ROAD:
 		return 0.0
-	if String(TransportTypes.get_type(e.t).get("side_kind", "")) != "trottoir":
+	if TransportTypes.side_kind_of(e.t, e.w) != "trottoir":
 		return 0.0
 	var tr: Vector2 = trims.get(eid, Vector2.ZERO)
 	if float(e.len) - tr.x - tr.y <= CROSS_W * 2.0 + 6.0:
@@ -395,12 +397,11 @@ static func _junction_arms(net: TransportNetwork, nid: int, trims: Dictionary) -
 		var stc := net.struct_at(eid, s)
 		if stc == TransportTypes.Struct.TUNNEL:
 			return []
-		var ty := TransportTypes.get_type(e.t)
 		# Direction au bout rogné (pas au nœud) : sur une courbe, les bords du
 		# plateau tombent ainsi exactement sur ceux du tronçon.
 		var dir: Vector3 = net.out_dir_at(eid, nid, s)
 		var hw := net.half_width(eid)
-		var walk := float(ty.get("side", 0.0)) if String(ty.get("side_kind", "")) == "trottoir" else 0.0
+		var walk := TransportTypes.side_of(e.t, e.w) if TransportTypes.side_kind_of(e.t, e.w) == "trottoir" else 0.0
 		arms.append({"p": net.point_at(eid, s), "d": dir, "r": Vector3(-dir.z, 0, dir.x), "hw": hw, "kerb": hw - walk,
 			"ang": atan2(dir.z, dir.x), "bridge": stc == TransportTypes.Struct.BRIDGE})
 	arms.sort_custom(func(x: Dictionary, y: Dictionary) -> bool: return float(x.ang) < float(y.ang))
@@ -556,6 +557,7 @@ static func build_mesh(type_id: String, spec: Dictionary, pts: PackedVector3Arra
 				k.box(pts[i] - right[i] * hw + Vector3(0, 0.4, 0), Vector3(0.8, 1.2, 0.8), Color("d6453d"))
 		return k.commit()
 
+	var sur_route := mode == TransportTypes.Mode.RAIL and bool(spec.get("sr", false))
 	var acc_len := 0.0
 	var total_len := 0.0
 	for i in n - 1:
@@ -589,6 +591,8 @@ static func build_mesh(type_id: String, spec: Dictionary, pts: PackedVector3Arra
 				_road_section(k, type_id, spec, a, b, ra, rb, bridge, skirt, dash_on, marks)
 			TransportTypes.Mode.RAIL:
 				_rail_section(k, type_id, spec, a, b, ra, rb, bridge, skirt, hw)
+				if sur_route:
+					continue
 			TransportTypes.Mode.PATH:
 				var pc: Color = ty.get("color", SIDEWALK)
 				k.strip(a, b, ra, rb, -hw, hw, 0.08, CONCRETE if bridge else pc, skirt, pc.darkened(0.25))
@@ -599,6 +603,9 @@ static func build_mesh(type_id: String, spec: Dictionary, pts: PackedVector3Arra
 			k.strip(a, b, ra, rb, -hw - 0.3, -hw, 1.0, CONCRETE, 0.95, CONCRETE)
 			k.strip(a, b, ra, rb, hw, hw + 0.3, 1.0, CONCRETE, 0.95, CONCRETE)
 
+	# Tram posé dans une route : la route porte déjà ponts, piles et tunnels.
+	if sur_route:
+		return k.commit()
 	# Viaducs ferroviaires (piles régulières et arches de pierre), sinon piles
 	# de pont tous les ~20 m ; puis entrées de tunnel.
 	var viaduct := mode == TransportTypes.Mode.RAIL and not ty.has("underground")
@@ -761,41 +768,64 @@ static func _road_section(k: MeshKit, type_id: String, spec: Dictionary, a: Vect
 	var lanes: int = spec.lanes
 	var lw: float = spec.lane_w
 	var med := TransportTypes.median_of(type_id, spec)
-	var side: float = ty.side
+	var side := TransportTypes.side_of(type_id, spec)
+	var bus := TransportTypes.bus_of(type_id, spec)
+	var tram := TransportTypes.has_tram(type_id, spec)
 	var single := bool(ty.get("single", false))
 	var carriage := lanes * lw * (0.5 if single else 1.0)
 	var inner := med * 0.5
 	var outer := inner + carriage
-	var hw := outer + side
+	var bus_out := outer + bus
+	var hw := bus_out + side
 	var skirt_col := CONCRETE if bridge else ASPHALT.darkened(0.2)
 	# Chaussées (les deux sens) et terre-plein : pavés et empierrement avant
 	# l'enrobé, dans une partie historique (Epoques).
 	var chaussee := couleur_chaussee()
 	k.strip(a, b, ra, rb, -outer, -inner, 0.08, chaussee, 0.0, chaussee)
 	k.strip(a, b, ra, rb, inner, outer, 0.08, chaussee, 0.0, chaussee)
+	# Couloirs de bus : enrobé rouge, à droite de chaque sens.
+	if bus > 0.0:
+		k.strip(a, b, ra, rb, -bus_out, -outer, 0.08, BUS_LANE, 0.0, BUS_LANE)
+		k.strip(a, b, ra, rb, outer, bus_out, 0.08, BUS_LANE, 0.0, BUS_LANE)
 	if single:
 		lanes = 1
 	if med > 0.0:
 		if ty.center == "barrier":
 			k.strip(a, b, ra, rb, -inner, inner, 0.08, ASPHALT_SIDE, 0.0, ASPHALT_SIDE)
 			k.strip(a, b, ra, rb, -0.25, 0.25, 0.9, CONCRETE, 0.82, CONCRETE)
+		elif tram:
+			# Plate-forme du tram (gazon bas, rails posés par la voie de tram),
+			# bordée du reste du terre-plein s'il y en a un.
+			var t := TransportTypes.TRAM_W * 0.5
+			k.strip(a, b, ra, rb, -t, t, 0.12, GRASS.darkened(0.08), 0.06, KERB)
+			if inner - t > 0.05:
+				k.strip(a, b, ra, rb, -inner, -t, 0.22, GRASS, 0.14, KERB)
+				k.strip(a, b, ra, rb, t, inner, 0.22, GRASS, 0.14, KERB)
 		else:
 			k.strip(a, b, ra, rb, -inner, inner, 0.22, GRASS, 0.14, KERB)
 	# Bords.
-	match String(ty.side_kind):
+	match TransportTypes.side_kind_of(type_id, spec):
 		"trottoir":
-			k.strip(a, b, ra, rb, -hw, -outer, 0.22, SIDEWALK, skirt + 0.14, KERB)
-			k.strip(a, b, ra, rb, outer, hw, 0.22, SIDEWALK, skirt + 0.14, KERB)
+			k.strip(a, b, ra, rb, -hw, -bus_out, 0.22, SIDEWALK, skirt + 0.14, KERB)
+			k.strip(a, b, ra, rb, bus_out, hw, 0.22, SIDEWALK, skirt + 0.14, KERB)
+		"aucun":
+			k.strip(a, b, ra, rb, -hw, -bus_out, 0.16, KERB, skirt + 0.08, KERB)
+			k.strip(a, b, ra, rb, bus_out, hw, 0.16, KERB, skirt + 0.08, KERB)
 		_:
-			k.strip(a, b, ra, rb, -hw, -outer, 0.08, ASPHALT_SIDE, skirt, skirt_col)
-			k.strip(a, b, ra, rb, outer, hw, 0.08, ASPHALT_SIDE, skirt, skirt_col)
+			k.strip(a, b, ra, rb, -hw, -bus_out, 0.08, ASPHALT_SIDE, skirt, skirt_col)
+			k.strip(a, b, ra, rb, bus_out, hw, 0.08, ASPHALT_SIDE, skirt, skirt_col)
 	# Pas de marquage au sol avant les années 1930.
 	if not marks or (Epoques.actif() and Epoques.annee() < 1930):
 		return
 	# Lignes de rive (continues) au bord de la chaussée.
-	for e in [-outer, outer]:
+	for e in [-bus_out, bus_out]:
 		var o: float = e
 		k.strip(a, b, ra, rb, o - 0.08, o + 0.08, 0.1, MARKING, 0.0, MARKING)
+	# Couloir de bus : large ligne continue (25 cm) qui le sépare des voitures.
+	if bus > 0.0:
+		for e in [-outer, outer]:
+			var o3: float = e
+			k.strip(a, b, ra, rb, o3 - 0.13, o3 + 0.13, 0.1, MARKING, 0.0, MARKING)
 	# Axe : tirets (rue, départementale) ou ligne continue (avenue sans terre-plein).
 	if ty.center == "none":
 		pass
@@ -824,8 +854,11 @@ static func _rail_section(k: MeshKit, type_id: String, spec: Dictionary, a: Vect
 		ra: Vector3, rb: Vector3, bridge: bool, skirt: float, hw: float) -> void:
 	var ty := TransportTypes.get_type(type_id)
 	var tram := type_id == "tram"
+	# Tram dans une route : rails noyés dans la plate-forme (ni ballast ni traverses).
+	var sr := bool(spec.get("sr", false))
 	var base := CONCRETE if bridge else (GRASS if tram else BALLAST)
-	k.strip(a, b, ra, rb, -hw, hw, 0.12, base, skirt, BALLAST.darkened(0.2))
+	if not sr:
+		k.strip(a, b, ra, rb, -hw, hw, 0.12, base, skirt, BALLAST.darkened(0.2))
 	var tracks: int = spec.tracks
 	var spacing: float = ty.spacing
 	var rm := (ra + rb).normalized()
@@ -835,9 +868,14 @@ static func _rail_section(k: MeshKit, type_id: String, spec: Dictionary, a: Vect
 		var cb := b + rb * off
 		if not tram:
 			k.strip(ca, cb, ra, rb, -1.5, 1.5, 0.2, BALLAST.lightened(0.08), 0.0, BALLAST)
+		var g := TransportTypes.GAUGE * 0.5
+		if sr:
+			for r in [-g, g]:
+				var o4: float = r
+				k.strip(ca, cb, ra, rb, o4 - 0.05, o4 + 0.05, 0.16, STEEL, 0.04, STEEL.darkened(0.3))
+			continue
 		for c in [ca.lerp(cb, 0.25), ca.lerp(cb, 0.75)]:
 			k.oriented_box(c + Vector3(0, 0.26, 0), rm, Vector3(2.6, 0.12, 0.26), SLEEPER)
-		var g := TransportTypes.GAUGE * 0.5
 		for r in [-g, g]:
 			var o: float = r
 			k.strip(ca, cb, ra, rb, o - 0.05, o + 0.05, 0.42, STEEL, 0.1, STEEL.darkened(0.3))

@@ -61,6 +61,7 @@ func _run() -> void:
 	var y := world.cell_height(Vector2i(0, 0))
 	transport.build_segment("route", Vector3(-400, y, 0), Vector3(400, y, 0))
 	var parc: ParcLoisirs = scene.parc
+	ReglagesPartie.actuel.recherche_parc = false
 	var atr: AttractionsPerso = scene.attractions
 	var al: ParcAllees = scene.parc_allees
 	parc.set_process(false)

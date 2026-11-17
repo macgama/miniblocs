@@ -469,9 +469,22 @@ func capacity(eid: int) -> float:
 	var lanes := int(s.get("lanes", 1))
 	if c.get("oneway", false) and not c.get("single", false):
 		lanes *= 2
-	if bus_lanes.has(eid) and lanes > 1:
+	if bus_lanes.has(eid) and lanes > 1 and TransportTypes.bus_of(e.t, e.w) <= 0.0:
 		lanes -= 1
-	return maxf(100.0, lanes * float(CAP_PER_LANE.get(String(e.t), 600.0)))
+	var cap := lanes * float(CAP_PER_LANE.get(String(e.t), 600.0))
+	# Route qu'on fait évoluer (EvolutionVoies) : une file sur deux pendant les travaux.
+	if e.has("evo"):
+		cap *= 0.5
+	return maxf(100.0, cap)
+
+
+## Vrai si les bus ont un couloir sur ce tronçon : voie réservée (panneau
+## Trafic) ou couloir construit en faisant évoluer la route.
+func has_bus_lane(eid: int) -> bool:
+	if bus_lanes.has(eid):
+		return true
+	var e: Dictionary = transport.network.edges.get(eid, {})
+	return not e.is_empty() and TransportTypes.bus_of(String(e.t), e.get("w", {})) > 0.0
 
 
 ## Activité selon l'heure (1 à la pointe du matin).
@@ -532,7 +545,7 @@ func _compute_bus_flow() -> void:
 
 ## Facteur de temps d'un bus sur un tronçon à la pointe (pour le planificateur).
 func bus_factor(eid: int) -> float:
-	if bus_lanes.has(eid):
+	if has_bus_lane(eid):
 		return 1.0
 	return minf(bpr(ratio(eid)), 4.0)
 
@@ -541,7 +554,7 @@ func bus_factor(eid: int) -> float:
 func _visible_factor(eid: int, v: Dictionary) -> float:
 	if not visible_jams or v.has("urgence"):
 		return 1.0
-	if v.has("line") and bus_lanes.has(eid):
+	if v.has("line") and has_bus_lane(eid):
 		return 1.0
 	var e: Dictionary = transport.network.edges.get(eid, {})
 	if e.is_empty():
@@ -1038,6 +1051,9 @@ func to_dict() -> Dictionary:
 
 func from_dict(d: Dictionary) -> void:
 	clear()
+	# Partie chargée par-dessus une autre (F9, Charger) : le jour vu avant ne compte pas,
+	# sinon le premier passage comptait une journée de tickets et de stationnement en trop.
+	_last_day = -1
 	for k in d.get("tarifs", {}):
 		fares[int(k)] = float(d.tarifs[k])
 	for k in d.get("parkings", {}):

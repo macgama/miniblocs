@@ -98,8 +98,8 @@ const ORDER := ["entree_parc", "carrousel_parc", "tasses_parc", "autos_tamponneu
 
 static func entries() -> Dictionary:
 	var out := {}
-	for id in ORDER + ParcExtras.ORDER:
-		var t: Dictionary = (TYPES[id] if TYPES.has(id) else ParcExtras.TYPES[id]).duplicate()
+	for id in ORDER + ParcExtras.ORDER + ParcInventions.ORDER:
+		var t: Dictionary = (TYPES[id] if TYPES.has(id) else (ParcExtras.TYPES[id] if ParcExtras.TYPES.has(id) else ParcInventions.TYPES[id])).duplicate()
 		t["cat"] = CATEGORY
 		t["region"] = "monde"
 		t["era"] = "moderne"
@@ -115,6 +115,8 @@ static func spec_of(type_id: String) -> Dictionary:
 		return TYPES[base].parc
 	if ParcExtras.TYPES.has(base):
 		return ParcExtras.TYPES[base].parc
+	if ParcInventions.TYPES.has(base):
+		return ParcInventions.TYPES[base].parc
 	# Attractions de l'éditeur (atr_…) : le champ "parc" est dans leur entrée de catalogue.
 	if AttractionsPerso.is_atr(base):
 		return BuildingCatalog.get_type(base).get("parc", {})
@@ -236,6 +238,9 @@ static func build(k: BlocMesh, id: String, t: Dictionary) -> void:
 		return
 	if ParcExtras.TYPES.has(id):
 		ParcExtras.build(k, id, t)
+		return
+	if ParcInventions.TYPES.has(id):
+		ParcInventions.build(k, id, t)
 		return
 	match id:
 		"entree_parc":
@@ -524,6 +529,9 @@ static func build_anim(id: String) -> Node3D:
 	var extra := ParcExtras.build_anim(id, spec)
 	if extra != null:
 		return extra
+	extra = ParcInventions.build_anim(id, spec)
+	if extra != null:
+		return extra
 	var root := Node3D.new()
 	root.name = "Anim"
 	match String(spec.get("anim", "")):
@@ -731,6 +739,9 @@ static func animate(root: Node3D, id: String, t: float, dt: float, marche: float
 	var spec := spec_of(id)
 	if String(spec.get("anim", "")) in ParcExtras.ANIMS:
 		ParcExtras.animate(root, id, t, dt, marche, phase)
+		return
+	if String(spec.get("anim", "")) in ParcInventions.ANIMS:
+		ParcInventions.animate(root, id, t, dt, marche, phase)
 		return
 	var tt := t + phase
 	match String(spec.get("anim", "")):

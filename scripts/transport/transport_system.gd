@@ -16,8 +16,10 @@ signal network_changed
 signal spec_changed(type_id: String, spec: Dictionary)
 ## Voie posée par le joueur (ses tronçons commencent par un chantier, voir ChantiersVoies).
 signal edges_built(edges: Array)
+## Outil « Faire évoluer » : le joueur a cliqué sur cette route (EvolutionPanel).
+signal upgrade_picked(edge_id: int)
 
-enum Tool { NONE, BUILD, DEMOLISH, JUNCTION }
+enum Tool { NONE, BUILD, DEMOLISH, JUNCTION, UPGRADE }
 
 ## Hauteur entre deux voies qui se croisent : en dessous, carrefour (ou passage
 ## à niveau) ; au-dessus de CLEARANCE, l'une passe sous l'autre.
@@ -37,6 +39,8 @@ var view: TransportView
 var traffic: Traffic
 var stations: StationSystem
 var junctions: JunctionControl
+## Signaux ferroviaires le long des voies (Signalisation, selon l'époque).
+var signaux_vue: SignauxVue
 ## Îlots centraux des giratoires : [{"c": Vector3, "r": float}].
 var roundabouts: Array = []
 var _islands: Node3D
@@ -102,6 +106,10 @@ func _ready() -> void:
 	traffic.name = "Vehicules"
 	add_child(traffic)
 	traffic.setup(network)
+	signaux_vue = SignauxVue.new()
+	signaux_vue.name = "Signaux"
+	add_child(signaux_vue)
+	signaux_vue.setup(network, traffic.signaux)
 	junctions = JunctionControl.new()
 	add_child(junctions)
 	junctions.setup(network)
@@ -228,7 +236,10 @@ func _refresh_junction_cells(changed_cells: Array) -> void:
 			if n == 0:
 				changed_cells.append(c)
 			_occupied[c] = n + 1
-			if world != null and is_nan(water_surface(c.x + 0.5, c.y + 0.5)):
+			# Relief pas encore chargé (partie qui s'ouvre) : le plateau a été terrassé à la
+			# pose et ses cases sont dans la sauvegarde ; sinon chaque chargement ajoutait
+			# des centaines de cases « modifiées » sous les carrefours.
+			if world != null and is_nan(water_surface(c.x + 0.5, c.y + 0.5)) and not is_nan(world.cell_height(c)):
 				works[c] = floorf((float(cells[c]) + 0.001) / world.height_step) * world.height_step
 		_node_fp[nid] = {"key": keys[nid], "cells": cells.keys()}
 	if world != null and not works.is_empty():
@@ -311,6 +322,23 @@ func set_demolish() -> void:
 	tool = Tool.DEMOLISH
 	cancel()
 	info_changed.emit("Démolir : clic sur un tronçon pour le supprimer (le terrain reste terrassé).")
+
+
+## Outil « Faire évoluer » : clic sur une route posée pour changer son profil
+## (voies, trottoirs, terre-plein, couloirs de bus, tramway) sans la démolir.
+func set_upgrade() -> void:
+	tool = Tool.UPGRADE
+	cancel()
+	info_changed.emit("Faire évoluer : clic sur une route pour l'élargir, changer ses trottoirs, ajouter un terre-plein, des couloirs de bus ou un tramway.")
+
+
+## Tronçon que l'outil Démolir ou Faire évoluer peut viser (un tram posé dans
+## une route se change avec la route).
+func _pickable(id: int) -> bool:
+	var e: Dictionary = network.edges[id]
+	if bool((e.w as Dictionary).get("sr", false)):
+		return false
+	return tool != Tool.UPGRADE or TransportTypes.mode_of(e.t) == TransportTypes.Mode.ROAD
 
 
 ## Outil « Carrefour », trois actions : changer le régime d'un carrefour
@@ -651,6 +679,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		_update_cursor(mb.position)
 		if not _cursor_valid:
 			return
+		if tool == Tool.UPGRADE:
+			if _highlight_edge >= 0:
+				upgrade_picked.emit(_highlight_edge)
+			return
 		if tool == Tool.DEMOLISH:
 			if _highlight_edge >= 0:
 				if relais.is_valid():
@@ -840,17 +872,23 @@ func _update_cursor(screen: Vector2) -> void:
 	_cursor_valid = hit != null
 	if _cursor_valid:
 		_cursor = hit
-	if tool == Tool.DEMOLISH:
+	if tool == Tool.DEMOLISH or tool == Tool.UPGRADE:
 		var best := -1
 		var best_d := INF
 		if _cursor_valid:
 			for id in network.edges:
+				if not _pickable(id):
+					continue
 				var h := network.nearest_on_edge(id, _cursor)
 				if h.dist < network.half_width(id) + 1.5 and h.dist < best_d:
 					best_d = h.dist
 					best = id
 		_set_highlight(best)
-		if best >= 0:
+		if best >= 0 and tool == Tool.UPGRADE:
+			var eu: Dictionary = network.edges[best]
+			info_changed.emit("Faire évoluer : %s de %d m (%s) · clic pour choisir" % [TransportTypes.get_type(eu.t).name, roundi(eu.len),
+				TransportTypes.describe(eu.t, eu.w)])
+		elif best >= 0:
 			var e: Dictionary = network.edges[best]
 			info_changed.emit("Démolir : %s de %d m · clic pour supprimer" % [TransportTypes.get_type(e.t).name, roundi(e.len)])
 	elif tool == Tool.JUNCTION:
@@ -921,13 +959,13 @@ func _set_highlight(id: int) -> void:
 		return
 	_highlight_edge = id
 	if id < 0:
-		if tool == Tool.DEMOLISH:
+		if tool == Tool.DEMOLISH or tool == Tool.UPGRADE:
 			_preview.mesh = null
 		return
 	var e: Dictionary = network.edges[id]
 	_preview.mesh = TransportView.build_mesh(e.t, e.w, e.pts, e.st, ground_height)
 	_preview.position = Vector3(0, 0.12, 0)
-	_preview.material_override = _preview_bad_mat
+	_preview.material_override = _preview_ok_mat if tool == Tool.UPGRADE else _preview_bad_mat
 
 
 # --- Évaluation d'un tracé -----------------------------------------------------------------
@@ -954,7 +992,8 @@ func evaluate(id: String, s: Dictionary, path: PackedVector2Array) -> Dictionary
 	plan.snap_b = sb
 	plan.crossings = []
 	# Partie historique : pas d'autoroute en 1850 ni de métro en 1820 (Epoques).
-	var epoque := Epoques.raison_voie(id)
+	# Puis la branche Transports de l'arbre de progression.
+	var epoque := ReglagesPartie.actuel.raison_voie(id)
 	if epoque != "":
 		plan.ok = false
 		plan.reason = epoque

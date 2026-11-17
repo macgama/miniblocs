@@ -35,7 +35,15 @@ const MORCEAUX := {
 	"ragtime_du_saloon": ["Ragtime du saloon", "soir", "1800"],
 	"complainte_du_canal": ["Complainte du canal", "soir", "1800"],
 	"nocturne_a_la_bougie": ["Nocturne à la bougie", "nuit", "1800"],
+	# 1900-1950 : bal musette, swing, tango, piano-bar.
+	"swing_du_tramway": ["Swing du tramway", "jour", "1920"],
+	"bal_musette_du_14_juillet": ["Bal musette du 14 Juillet", "jour", "1920"],
+	"tango_du_cadastre": ["Tango du cadastre", "soir", "1920"],
+	"clair_de_lune_sur_le_gazometre": ["Clair de lune sur le gazomètre", "nuit", "1920"],
 }
+## Années où chaque époque musicale passe dans la liste de lecture : [début, fin[.
+## « » : morceaux modernes. Les époques se chevauchent pour des transitions douces.
+const EPOQUES_MUSIQUE := {"1800": [1, 1920], "1920": [1895, 1965], "": [1930, 100000]}
 ## Humeurs acceptées par chaque moment (le soir mélange jour et nuit).
 const HUMEURS := {
 	"menu": ["menu"],
@@ -335,6 +343,11 @@ static func est_d_epoque(id: String) -> bool:
 	return MORCEAUX.has(id) and MORCEAUX[id].size() > 2
 
 
+## Époque musicale d'un morceau : "1800", "1920" ou "" (moderne).
+static func epoque_de(id: String) -> String:
+	return String(MORCEAUX[id][2]) if est_d_epoque(id) else ""
+
+
 ## Année qui choisit la musique : 0 hors partie historique.
 func annee_musique() -> int:
 	if annee_forcee >= 0:
@@ -342,23 +355,29 @@ func annee_musique() -> int:
 	return Epoques.annee() if Epoques.actif() else 0
 
 
+## Le morceau a-t-il sa place dans une partie de cette année (0 : partie moderne) ?
+static func du_temps(id: String, annee: int) -> bool:
+	var ep := epoque_de(id)
+	if annee <= 0:
+		return ep == ""
+	var r: Array = EPOQUES_MUSIQUE.get(ep, [0, 100000])
+	return annee >= int(r[0]) and annee < int(r[1])
+
+
 ## Morceaux possibles pour une humeur (ceux que le joueur n'a pas retirés).
-## Partie historique avant 1920 : morceaux d'époque seulement ; 1920-1950 :
-## mélange ; sinon les morceaux d'époque restent hors de la playlist (on peut
-## toujours les lancer à la main dans F2).
+## Partie historique : la musique de son temps (XIXe avant 1920, bal musette et
+## swing de 1895 à 1965, morceaux modernes dès 1930) ; partie moderne : morceaux
+## modernes seulement (les autres se lancent à la main dans F2).
 func liste(h: String) -> Array:
 	var ok: Array = HUMEURS.get(h, ["jour"])
 	var a := annee_musique()
-	var anciens := a > 0 and a < 1950
-	var seuls_anciens := a > 0 and a < 1920
 	var tous: Array = []
 	var out: Array = []
 	for id in MORCEAUX:
 		if exclus.has(id) or not ok.has(String(MORCEAUX[id][1])):
 			continue
 		tous.append(id)
-		var ep := est_d_epoque(id)
-		if (ep and anciens) or (not ep and not seuls_anciens):
+		if du_temps(id, a):
 			out.append(id)
 	return out if not out.is_empty() else tous
 

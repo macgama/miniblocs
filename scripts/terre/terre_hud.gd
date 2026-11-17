@@ -91,6 +91,10 @@ signal catalogue_requested
 signal visites_requested
 ## Bouton Admin de la barre du haut, ou F10 : réglages de la partie.
 signal admin_requested
+## Annuler / rétablir (Ctrl+Z, Ctrl+Y) et mode plan (Ctrl+P) : HistoriqueVille, ModePlan.
+signal undo_requested
+signal redo_requested
+signal plan_requested
 signal spec_edited(type_id: String, spec: Dictionary)
 signal curve_toggled(on: bool)
 ## Passage aux croisements choisi : "auto", "dessus" ou "dessous".
@@ -304,6 +308,22 @@ func _ready() -> void:
 
 # --- Barre du haut : lieu, partie, chiffres (l'horloge se place au centre) ---------
 
+var undo_button: Button
+var redo_button: Button
+var plan_button: Button
+
+
+## Bulles des boutons Annuler / Rétablir : ce qu'ils vont défaire ou refaire.
+func set_historique(annuler: String, refaire: String, plan_actif: bool) -> void:
+	if undo_button == null:
+		return
+	undo_button.disabled = annuler == ""
+	undo_button.tooltip_text = "Annuler (Ctrl+Z)" if annuler == "" else "Annuler : %s (Ctrl+Z)" % annuler
+	redo_button.disabled = refaire == ""
+	redo_button.tooltip_text = "Rétablir (Ctrl+Y)" if refaire == "" else "Rétablir : %s (Ctrl+Y)" % refaire
+	plan_button.set_pressed_no_signal(plan_actif)
+
+
 func _build_top_bar() -> void:
 	var top := PanelContainer.new()
 	top.name = "BarreHaut"
@@ -363,6 +383,21 @@ func _build_top_bar() -> void:
 		row.add_child(b)
 		if spec[0] == "admin":
 			_admin_button = b
+			row.add_child(UiStyle.vsep())
+			undo_button = UiStyle.icon_button("annuler", "Annuler", "Ctrl+Z")
+			undo_button.name = "Annuler"
+			undo_button.pressed.connect(func() -> void: undo_requested.emit())
+			row.add_child(undo_button)
+			redo_button = UiStyle.icon_button("refaire", "Rétablir", "Ctrl+Y")
+			redo_button.name = "Retablir"
+			redo_button.pressed.connect(func() -> void: redo_requested.emit())
+			row.add_child(redo_button)
+			plan_button = UiStyle.icon_button("plan", "Mode plan : poser en projet, sans payer, puis tout construire d'un coup", "Ctrl+P")
+			plan_button.name = "ModePlan"
+			plan_button.toggle_mode = true
+			UiStyle.tint_pressed(plan_button, ModePlan.COULEUR.lightened(0.1), UiStyle.CREATE_INK)
+			plan_button.pressed.connect(func() -> void: plan_requested.emit())
+			row.add_child(plan_button)
 		elif spec[0] == "aide":
 			var son := UiStyle.icon_button("son", "Son et musique : volumes, morceaux", "F2")
 			son.pressed.connect(func() -> void: Son.panneau())

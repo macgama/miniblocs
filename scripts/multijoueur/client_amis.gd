@@ -399,7 +399,7 @@ func appliquer(msg: Dictionary) -> void:
 		"bat":
 			_bat(msg.get("l", []))
 		"rejouer":
-			_rejouer(msg.get("a", {}))
+			_rejouer(msg.get("a", {}), String(msg.get("par", "")), msg.get("diff"))
 		"terrain":
 			_terrain(msg)
 		"section":
@@ -476,11 +476,18 @@ func _bat(liste: Array) -> void:
 	bs._refresh()
 
 
-func _rejouer(a: Dictionary) -> void:
+func _rejouer(a: Dictionary, par := "", diff_serveur: Variant = null) -> void:
 	var tr: TransportSystem = jeu.transport
 	var avant := tr._par_reseau
 	tr._par_reseau = true
+	# Ctrl+Z : ce que ce joueur a fait lui-même entre dans son historique.
+	var mien := par != "" and par == pid and HistoriqueVille.instance != null
+	var photo := tr.photo_reseau() if mien else {}
 	match String(a.get("t", "")):
+		"voie_histo":
+			var d: Variant = a.get("d")
+			if d is Dictionary and (d as Dictionary).has("e_plus"):
+				tr.appliquer_diff(d, bool(a.get("annuler", true)))
 		"voie":
 			# La profondeur du tunnel vient du serveur (pas de l'outil ouvert ici).
 			var avant_prof := RoutePlanner.profondeur_forcee
@@ -497,6 +504,11 @@ func _rejouer(a: Dictionary) -> void:
 		"carrefour":
 			tr.appliquer_carrefour(String(a.get("action", "")), a.get("p", Vector3.ZERO), bool(a.get("maj", false)))
 	tr._par_reseau = avant
+	if mien:
+		var d: Dictionary = diff_serveur if diff_serveur is Dictionary else tr.diff_reseau(photo, tr.photo_reseau())
+		if not TransportSystem.diff_vide(d):
+			var nom := "Démolition : voie" if String(a.get("t", "")) == "voie_demolir" else String(TransportTypes.get_type(String(a.get("id", ""))).get("name", "Voie"))
+			HistoriqueVille.instance.noter(nom, {"k": "mp_voies", "diff": d})
 
 
 func _terrain(msg: Dictionary) -> void:

@@ -59,6 +59,7 @@ var _dechets: CheckBox
 var _dechets_q: HSlider
 var _dechets_q_l: Label
 var _funeraire: CheckBox
+var _recherche_parc: CheckBox
 var _cremation: OptionButton
 const CREMATIONS := [-1.0, 0.1, 0.25, 0.5, 0.75, 0.95]
 var _pollution: OptionButton
@@ -348,6 +349,11 @@ func _ready() -> void:
 	g = _section(right, "Internet et téléphone", "services")
 	_telecom = _check("Nécessaires : sans internet ni réseau mobile, les habitants sont moins satisfaits et les entreprises produisent moins")
 	g.add_child(_telecom)
+	# Parc de loisirs.
+	g = _section(right, "Parc de loisirs", "parc")
+	_recherche_parc = _check("Recherche des attractions : grande roue, montagnes russes, looping… s'inventent au bureau d'études du parc (Maj+G)")
+	_recherche_parc.tooltip_text = "Sinon, toutes les attractions de l'époque se posent d'office ; la recherche garde les améliorations"
+	g.add_child(_recherche_parc)
 	# Déchets.
 	g = _section(left, "Déchets", "dechets")
 	_dechets = _check("Déchets à ramasser (sacs qui débordent, collecte, décharges)")
@@ -551,6 +557,7 @@ func _fill() -> void:
 	_dechets.button_pressed = reglages.dechets
 	_dechets_q.value = reglages.dechets_quantite
 	_funeraire.button_pressed = reglages.funeraire
+	_recherche_parc.button_pressed = reglages.recherche_parc
 	var ci := 0
 	for i in CREMATIONS.size():
 		if absf(float(CREMATIONS[i]) - reglages.cremation) < 0.01:
@@ -617,6 +624,7 @@ func _changed() -> void:
 	reglages.usure = float(USURES[maxi(0, _usure.selected)])
 	reglages.dechets = _dechets.button_pressed
 	reglages.funeraire = _funeraire.button_pressed
+	reglages.recherche_parc = _recherche_parc.button_pressed
 	reglages.cremation = float(CREMATIONS[maxi(0, _cremation.selected)])
 	reglages.dechets_quantite = _dechets_q.value
 	reglages.pollution = maxi(0, _pollution.selected)

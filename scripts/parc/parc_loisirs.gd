@@ -27,11 +27,16 @@ extends Node3D
 ## - Argent : billets d'entrée, tours payants, stands → caisse de la ville où
 ##   est l'entrée (BudgetCommunal.recette, poste « Parc de loisirs ») ;
 ##   salaires et entretien → dépenses. Taxe de séjour par touriste.
+## - Publicité (ParcPublicite), recherche (ParcRecherche, bureau d'études commun
+##   à tous les parcs) et soirées (ParcSoirees : feux d'artifice et spectacles du
+##   soir, dessinés par ParcSoireesVisuels).
 ## - Liens, par groupes de nœuds : "avis_sources" (thème loisirs : le parc
 ##   près de chez soi, la sortie au parc), "pollution_sources" (bruit).
 
 signal changed
 signal message(text: String)
+## Un projet du bureau d'études vient d'aboutir (ParcRecherche.PROJETS).
+signal recherche_terminee(id: String)
 
 static var instance: ParcLoisirs
 
@@ -55,6 +60,8 @@ const DEPANNEUR_PRIX := 2500.0
 const ENTRETIEN_MOIS := 0.008
 const MOIS_SAISON := {1: 0.3, 2: 0.35, 3: 0.55, 4: 0.85, 5: 0.95, 6: 1.0, 7: 1.6, 8: 1.6, 9: 0.8, 10: 0.85, 11: 0.35, 12: 0.55}
 ## Répartition des arrivées sur la journée (part par heure d'ouverture).
+## Visiteurs venus pour le spectacle du soir : heure → part du bonus.
+const ARRIVEES_SOIR := {14: 0.08, 15: 0.12, 16: 0.16, 17: 0.2, 18: 0.2, 19: 0.14, 20: 0.07, 21: 0.03}
 const ARRIVEES := {10: 0.22, 11: 0.2, 12: 0.14, 13: 0.14, 14: 0.12, 15: 0.08, 16: 0.05, 17: 0.03, 18: 0.01, 19: 0.0, 20: 0.0, 21: 0.0}
 const NOMS := ["Parc des Merveilles", "Le Grand Frisson", "Planète Manège", "Fantasialand des Familles", "Parc du Vertige",
 	"Les Folies du Dimanche", "Royaume des Montagnes Russes", "Parc Barbe-à-Papa"]
@@ -80,6 +87,10 @@ const PENSEES := {
 	"ennui": "On a fait le tour en une heure. Il manque des attractions.",
 	"souvenir": "J'ai acheté une casquette du parc. Je ne la porterai jamais.",
 	"pluie": "Le parc sous la pluie, c'est romantique. Les files sont courtes, au moins.",
+	"spectacle": "%s ! J'en ai encore des étincelles plein les yeux.",
+	"annule": "%s annulé à cause de la pluie. On a regardé les éclairs à la place.",
+	"pub": "On a vu la publicité, alors on est venus. Elle ne montrait pas la file d'attente.",
+	"mascotte": "Le grand lapin m'a serré la main. Il sentait un peu le renfermé.",
 }
 
 var buildings: BuildingSystem
@@ -102,6 +113,8 @@ var sorties: Dictionary = {}
 ## Tests : personnel complet, sans tenir compte des habitants.
 var ignore_staff := false
 var rng := RandomNumberGenerator.new()
+## Bureau d'études des parcs (commun à tous les parcs de la partie).
+var recherche := ParcRecherche.new()
 var _dirty := true
 var _n := 0
 var _warned: Dictionary = {}
@@ -123,6 +136,7 @@ func _exit_tree() -> void:
 
 
 var visuels: ParcVisuels
+var soirees_visuels: ParcSoireesVisuels
 ## Allées et files tracées à la main (éditeur du parc), ou null.
 var allees: ParcAllees
 
@@ -132,6 +146,10 @@ func _ready() -> void:
 	visuels.name = "Visuels"
 	visuels.setup(self)
 	add_child(visuels)
+	soirees_visuels = ParcSoireesVisuels.new()
+	soirees_visuels.name = "Soirees"
+	soirees_visuels.setup(self)
+	add_child(soirees_visuels)
 
 
 func setup(b: BuildingSystem, p: Population, t: TransportSystem, a: DayNight) -> void:
@@ -152,6 +170,7 @@ func clear() -> void:
 	clock = -1.0
 	last_unix = -1.0
 	last_day = -1
+	recherche = ParcRecherche.new()
 	_dirty = true
 	changed.emit()
 
@@ -164,14 +183,15 @@ static func actif() -> bool:
 
 static func _empty_stats() -> Dictionary:
 	return {"visiteurs": 0, "touristes": 0, "habitants": 0, "billets": 0.0, "tours_argent": 0.0, "stands": 0.0, "tours": 0,
-		"pannes": 0, "sortis": 0, "humeur": 0.0, "depenses": 0.0, "refus": 0}
+		"pannes": 0, "sortis": 0, "humeur": 0.0, "depenses": 0.0, "refus": 0, "pub": 0.0, "spectacles": 0, "spectateurs": 0}
 
 
 func _new_parc(bid: int) -> Dictionary:
 	return {"nom": NOMS[(bid * 7 + parcs.size()) % NOMS.size()], "prix": PRIX_ENTREE, "prix_tour": PRIX_TOUR, "note": 2.5,
 		"salete": 0.0, "jour": _empty_stats(), "hier": _empty_stats(), "total": _empty_stats(), "pensees": {}, "dernieres": [],
 		"reste": 0.0, "w": 1, "items": [], "ouvert": false, "attente": 0.0, "argent": 0.0, "dep": 0.0, "saison": 0, "techs": 0.0,
-		"agents_propre": 0.0}
+		"agents_propre": 0.0, "campagnes": [], "noto": ParcPublicite.vide(), "pub_jour": 0.0, "soiree": ParcSoirees.programme_vide(),
+		"show": {}, "show_jour": -1, "annule_jour": -1}
 
 
 func _sync() -> void:
@@ -317,7 +337,8 @@ func _now(t: float) -> Dictionary:
 	var off := ambiance.utc_offset() if ambiance != null else 0.0
 	var local := t + off * 3600.0
 	var dt := Time.get_datetime_dict_from_unix_time(int(local))
-	return {"h": fposmod(local, 86400.0) / 3600.0, "wd": int(dt.weekday), "month": int(dt.month), "day": int(floorf(local / 86400.0))}
+	return {"h": fposmod(local, 86400.0) / 3600.0, "wd": int(dt.weekday), "month": int(dt.month), "day": int(floorf(local / 86400.0)),
+		"dom": int(dt.day)}
 
 
 ## Heures d'ouverture [ouverture, fermeture] selon le mois.
@@ -381,8 +402,27 @@ func step(dt: float) -> void:
 func est_ouvert(e: int, now: Dictionary) -> bool:
 	if not actif() or en_chantier(e) or attractions_ok(e).is_empty():
 		return false
-	var hr := horaires(int(now.month))
+	var hr := heures(e, now)
 	return float(now.h) >= hr.x and float(now.h) < hr.y
+
+
+## Heures d'ouverture du parc ce jour-là : un soir de spectacle, on ferme après.
+func heures(e: int, now: Dictionary) -> Vector2:
+	var hr := horaires(int(now.month))
+	if soiree_ce_jour(e, now):
+		var fin := ParcSoirees.heure(int(now.month)) + ParcSoirees.duree_h(parcs[e].soiree) + 0.25
+		hr.y = maxf(hr.y, minf(fin, 23.99))
+	return hr
+
+
+## Spectacle prévu ce soir (et pas annulé) ?
+func soiree_ce_jour(e: int, now: Dictionary) -> bool:
+	if not parcs.has(e):
+		return false
+	var p: Dictionary = parcs[e]
+	if int(p.get("annule_jour", -1)) == int(now.day):
+		return false
+	return ParcSoirees.prevu(p.get("soiree", {}), now)
 
 
 ## Attractions du parc qui peuvent tourner (posées, finies).
@@ -422,12 +462,15 @@ func attendus(e: int, now: Dictionary) -> Array:
 	var prix := clampf(valeur(e) / maxf(float(p.prix), 1.0), 0.2, 1.25)
 	var acces := 1.0 if _relie(e) else 0.15
 	var f := note_f * saison * jour * meteo * prix
-	var touristes := TOURISTES_ATTRAIT * a * f * acces
+	var pub := ParcPublicite.effet(p.get("noto", {}))
+	if ParcRecherche.a_effet("billets"):
+		f *= 1.08
+	var touristes := TOURISTES_ATTRAIT * a * f * acces * float(pub[0])
 	# Clients des hôtels de la ville (Tourisme).
 	touristes += Tourisme.visites("parc", e) * meteo * clampf(prix, 0.4, 1.2)
 	var hab := 0.0
 	if population != null:
-		hab = float(population.persons.size()) * HABITANTS_JOUR * f * clampf(a / 10.0, 0.3, 1.5)
+		hab = float(population.persons.size()) * HABITANTS_JOUR * f * clampf(a / 10.0, 0.3, 1.5) * float(pub[1])
 	return [touristes, hab]
 
 
@@ -463,9 +506,60 @@ func _step_parc(e: int, now: Dictionary, dt: float) -> void:
 			"attraction": _tourner(int(bid), e, dt)
 			"stand", "toilettes": _servir(int(bid), e, dt)
 	_visiteurs(e, now, dt)
+	_soiree(e, now)
 	# Note du parc : glisse doucement vers la note du moment (ouvert seulement).
 	if p.ouvert and _n % 10 == 0:
 		p.note = lerpf(float(p.note), note_cible(e), 0.05)
+
+
+# --- Soirées ---------------------------------------------------------------------------------------
+
+## Début et fin du spectacle du soir (heure de jeu), annulation sous la pluie.
+func _soiree(e: int, now: Dictionary) -> void:
+	var p: Dictionary = parcs[e]
+	var show: Dictionary = p.get("show", {})
+	if not show.is_empty() and clock >= float(show.t1):
+		p.show = {}
+		show = {}
+	if int(p.get("show_jour", -1)) == int(now.day) or not soiree_ce_jour(e, now):
+		return
+	if float(now.h) < ParcSoirees.heure(int(now.month)) or not bool(p.ouvert):
+		return
+	var prog: Dictionary = p.soiree
+	var t: Dictionary = ParcSoirees.TYPES[String(prog.type)]
+	p.show_jour = int(now.day)
+	var prix := ParcSoirees.prix(prog)
+	if bool(t.pluie) and _pluie() > 0.45:
+		p.annule_jour = int(now.day)
+		_payer(e, "Parc de loisirs : spectacles du soir", prix * ParcSoirees.FRAIS_ANNULATION)
+		_penser(e, "annule", [String(t.nom)])
+		message.emit("%s : %s annulé à cause de la pluie." % [String(p.nom), String(t.nom).to_lower()])
+		return
+	_payer(e, "Parc de loisirs : spectacles du soir", prix)
+	var duree := ParcSoirees.duree_h(prog) * 3600.0
+	p.show = {"type": String(prog.type), "taille": int(prog.taille), "t0": clock, "t1": clock + duree, "id": int(now.day) * 1000 + e % 1000}
+	p.jour.spectacles = int(p.jour.spectacles) + 1
+	var bonheur := ParcSoirees.humeur(prog)
+	var n := 0
+	for a in agents.values():
+		if int(a.parc) == e and String(a.etat) != "sortie":
+			a.humeur = clampf(float(a.humeur) + bonheur, 0.0, 100.0)
+			a.fin = maxf(float(a.fin), clock + duree)
+			n += int(a.w)
+	p.jour.spectateurs = int(p.jour.spectateurs) + n
+	if n > 0:
+		_penser(e, "spectacle", [String(t.nom)])
+	message.emit("%s : %s ce soir devant %d spectateurs." % [String(p.nom), String(t.nom).to_lower(), n])
+
+
+## Spectacle en cours dans ce parc (vide sinon).
+func spectacle_en_cours(e: int) -> Dictionary:
+	if not parcs.has(e):
+		return {}
+	var show: Dictionary = parcs[e].get("show", {})
+	if show.is_empty() or clock > float(show.t1) or clock < float(show.t0):
+		return {}
+	return show
 
 
 ## Personnel d'un objet : [part des postes tenus (0 à 1), saisonniers].
@@ -509,11 +603,15 @@ func _arrivees(e: int, now: Dictionary, dt: float) -> void:
 		return
 	var h := int(now.h)
 	var part := float(ARRIVEES.get(h, 0.0))
-	if part <= 0.0:
+	# Soir de spectacle : du monde en plus, surtout en fin d'après-midi.
+	var soir := 0.0
+	if soiree_ce_jour(e, now) and float(now.h) < ParcSoirees.heure(int(now.month)):
+		soir = ParcSoirees.bonus(p.soiree) * float(ARRIVEES_SOIR.get(h, 0.0))
+	if part <= 0.0 and soir <= 0.0:
 		return
 	# Poids d'un visiteur suivi selon la foule attendue.
-	p.w = maxi(1, ceili(total * 0.5 / MAX_AGENTS))
-	p.reste = float(p.reste) + total * part * dt / 3600.0
+	p.w = maxi(1, ceili(total * (1.0 + (ParcSoirees.bonus(p.soiree) if soiree_ce_jour(e, now) else 0.0)) * 0.5 / MAX_AGENTS))
+	p.reste = float(p.reste) + total * (part + soir) * dt / 3600.0
 	var w := int(p.w)
 	var tour_part := float(att[0]) / total
 	while float(p.reste) >= float(w) and _agents_du(e) < MAX_AGENTS:
@@ -542,10 +640,32 @@ func _nouveau(e: int, w: int, touriste: bool) -> void:
 		"pref": rng.randf_range(1.0, 9.0), "tol": rng.randf_range(2.0, 9.5), "fin": clock + rng.randf_range(3.0, 7.0) * 3600.0,
 		"vus": {}, "tours": 0, "depense": 0.0, "col": rng.randi() % 64, "pos": portail(e)}
 	next_agent += 1
+	# Public amené par la publicité ciblée.
+	match ParcPublicite.public_au_hasard(p.get("noto", {}), rng.randf()):
+		"familles":
+			a.pref = rng.randf_range(1.0, 5.0)
+			a.tol = rng.randf_range(2.0, 6.0)
+			a.argent = float(a.argent) + 15.0
+		"sensations":
+			a.pref = rng.randf_range(6.0, 10.0)
+			a.tol = rng.randf_range(6.0, 10.0)
+	if ParcRecherche.a_effet("humeur"):
+		a.humeur = float(a.humeur) + 4.0
+		if rng.randf() < 0.01:
+			_penser(e, "mascotte")
+	var noto: Dictionary = p.get("noto", {})
+	if float(noto.get("ville", 0.0)) + float(noto.get("region", 0.0)) > 0.3 and rng.randf() < 0.01:
+		_penser(e, "pub")
+	# Soir de spectacle : on reste jusqu'au bout (surtout ceux qui arrivent tard).
+	var now := _now(clock)
+	if soiree_ce_jour(e, now):
+		var fin_show := clock + (ParcSoirees.heure(int(now.month)) + ParcSoirees.duree_h(p.soiree) - float(now.h)) * 3600.0
+		if fin_show > clock and (float(now.h) >= 14.0 or rng.randf() < 0.5):
+			a.fin = maxf(float(a.fin), fin_show)
 	# Le billet d'entrée : trop cher, on hésite (ou on fait demi-tour).
 	var prix := float(p.prix)
 	var val := valeur(e)
-	if prix > val * 1.6 and rng.randf() < 0.5:
+	if prix > val * 1.6 and rng.randf() < (0.3 if ParcRecherche.a_effet("billets") else 0.5):
 		p.jour.refus = int(p.jour.refus) + w
 		_penser(e, "cher", [roundi(prix)])
 		return
@@ -726,7 +846,7 @@ func _choisir(a: Dictionary) -> void:
 			continue
 		var spec := ParcTypes.spec_of(_type_of(bid))
 		var exc := float(spec.exc)
-		var w_min := attente(bid)
+		var w_min := attente(bid) * (0.8 if ParcRecherche.a_effet("files") else 1.0)
 		var s := 10.0 - absf(exc - float(a.pref)) * 1.2 - w_min / 6.0 - float(int((a.vus as Dictionary).get(bid, 0))) * 4.0
 		if float(spec.int) > float(a.tol) + 3.0:
 			s -= 8.0
@@ -834,7 +954,8 @@ func _visiteurs(e: int, now: Dictionary, dt: float) -> void:
 						a.humeur = float(a.humeur) - 4.0
 					_choisir(a)
 				else:
-					a.humeur = float(a.humeur) - 1.5 * hrs * maxf(0.0, attente(c) / 20.0 - 0.5)
+					var ressentie := attente(c) * (0.8 if ParcRecherche.a_effet("files") else 1.0)
+					a.humeur = float(a.humeur) - 1.5 * hrs * maxf(0.0, ressentie / 20.0 - 0.5)
 			"repos":
 				a.fatigue = maxf(0.0, float(a.fatigue) - 45.0 * hrs)
 				if float(a.fatigue) < 20.0:
@@ -948,7 +1069,8 @@ func _fin_tour(bid: int, e: int, spec: Dictionary) -> void:
 	it.tours = int(it.tours) + n
 	p.jour.tours = int(p.jour.tours) + n
 	# Usure et pannes.
-	it.fiab = maxf(0.0, float(it.fiab) - float(spec.get("usure", 0.08)) * (1.0 + rng.randf()))
+	var usure := float(spec.get("usure", 0.08)) * (0.75 if ParcRecherche.a_effet("usure") else 1.0)
+	it.fiab = maxf(0.0, float(it.fiab) - usure * (1.0 + rng.randf()))
 	var risque := 0.0008 + 0.06 * pow((100.0 - float(it.fiab)) / 100.0, 2.0)
 	if rng.randf() < risque:
 		_panne(bid, e)
@@ -1024,7 +1146,7 @@ func _servir(bid: int, e: int, dt: float) -> void:
 	if (it.file as Array).is_empty() or not bool(parcs[e].ouvert):
 		return
 	var staff := float(personnel(bid)[0])
-	var rate := float(spec.get("service", 60.0)) * (0.5 + 0.5 * staff)
+	var rate := float(spec.get("service", 60.0)) * (0.5 + 0.5 * staff) * (1.3 if ParcRecherche.a_effet("stands") else 1.0)
 	it.serv = float(it.serv) + rate * dt / 3600.0
 	var sale_f := 1.0
 	for r in items_of(e, "repos"):
@@ -1226,9 +1348,17 @@ func _charges(e: int) -> void:
 
 
 func new_day() -> void:
+	var visiteurs := 0.0
+	for e in parcs:
+		visiteurs += float(parcs[e].jour.visiteurs)
+	_recherche_jour(visiteurs)
 	for e in parcs:
 		var p: Dictionary = parcs[e]
 		_charges(int(e))
+		var pub := ParcPublicite.jour(p, last_day, _a_sensations(int(e)))
+		if pub > 0.0:
+			p.jour.pub = float(p.jour.pub) + pub
+			_payer(int(e), "Parc de loisirs : publicité", pub)
 		for k in p.jour:
 			if p.jour[k] is int:
 				p.total[k] = int(p.total.get(k, 0)) + int(p.jour[k])
@@ -1252,6 +1382,31 @@ func new_day() -> void:
 			sorties.erase(pid)
 
 
+## Un jour au bureau d'études : budget payé par les villes des parcs, projets finis.
+func _recherche_jour(visiteurs: float) -> void:
+	if parcs.is_empty():
+		return
+	var part := recherche.cout_mois() / 30.44 / parcs.size()
+	if part > 0.0:
+		for e in parcs:
+			_payer(int(e), "Parc de loisirs : recherche", part)
+	for id in recherche.jour(visiteurs, last_day):
+		var pr: Dictionary = ParcRecherche.PROJETS[id]
+		if String(pr.type) == "attraction":
+			message.emit("Bureau d'études du parc : « %s » est au point ! Elle se pose dans Construire → Parc de loisirs." % String(pr.nom))
+		else:
+			message.emit("Bureau d'études du parc : « %s » est au point." % String(pr.nom))
+		recherche_terminee.emit(String(id))
+
+
+## Le parc a-t-il une attraction à sensations (excitation 6 ou plus) ?
+func _a_sensations(e: int) -> bool:
+	for bid in attractions_ok(e):
+		if float(ParcTypes.spec_of(_type_of(int(bid))).get("exc", 0.0)) >= 6.0:
+			return true
+	return false
+
+
 func _warn(key: String, text: String, every := 3600.0 * 6.0) -> void:
 	if clock - float(_warned.get(key, -INF)) < every:
 		return
@@ -1267,6 +1422,74 @@ func set_prix(e: int, entree: float, tour := -1.0) -> void:
 	parcs[e].prix = clampf(entree, 0.0, 120.0)
 	if tour >= 0.0:
 		parcs[e].prix_tour = clampf(tour, 0.0, 15.0)
+	changed.emit()
+
+
+## Publicité : lance (ou prolonge) une campagne. Renvoie "" ou la raison du refus.
+func lancer_campagne(e: int, support: String, cible: String, semaines: int) -> String:
+	if not parcs.has(e):
+		return "Pas de parc."
+	var why := ParcPublicite.lancer(parcs[e], support, cible, semaines, last_day if last_day >= 0 else int(_now(clock).day))
+	if why == "":
+		changed.emit()
+	return why
+
+
+func arreter_campagne(e: int, support: String) -> void:
+	if parcs.has(e):
+		ParcPublicite.arreter(parcs[e], support)
+		changed.emit()
+
+
+## Soirées : programme du parc (type, taille 0 à 2, quand).
+func set_soiree(e: int, type_id: String, taille: int, quand: String) -> void:
+	if not parcs.has(e) or not ParcSoirees.TYPES.has(type_id) or not ParcSoirees.QUAND.has(quand):
+		return
+	var prog: Dictionary = parcs[e].soiree
+	prog.type = type_id
+	prog.taille = clampi(taille, 0, 2)
+	prog.quand = quand
+	changed.emit()
+
+
+## Un spectacle ce soir, en plus du programme. Renvoie "" ou la raison du refus.
+func soiree_ce_soir(e: int) -> String:
+	if not parcs.has(e):
+		return "Pas de parc."
+	var prog: Dictionary = parcs[e].soiree
+	var why := ParcSoirees.raison(String(prog.type))
+	if why != "":
+		return why
+	var now := _now(clock if clock > 0.0 else 0.0)
+	if int(parcs[e].get("show_jour", -1)) == int(now.day):
+		return "Il y a déjà eu un spectacle ce soir."
+	if float(now.h) >= heures(e, now).y:
+		return "Trop tard : le parc est fermé."
+	prog.ce_soir = int(now.day)
+	if int(parcs[e].get("annule_jour", -1)) == int(now.day):
+		parcs[e].annule_jour = -1
+	changed.emit()
+	return ""
+
+
+## Recherche (bureau d'études commun) : e sert à savoir quelle ville décide.
+func recherche_lancer(_e: int, id: String) -> void:
+	recherche.lancer(id)
+	changed.emit()
+
+
+func recherche_ajouter(_e: int, id: String) -> void:
+	recherche.ajouter(id)
+	changed.emit()
+
+
+func recherche_retirer(_e: int, id: String) -> void:
+	recherche.retirer(id)
+	changed.emit()
+
+
+func recherche_budget(_e: int, i: int) -> void:
+	recherche.set_budget(i)
 	changed.emit()
 
 
@@ -1307,6 +1530,10 @@ func pollution_sources() -> Array:
 			continue
 		out.append({"pos": centre(int(e)), "rayon": 250.0 + 15.0 * n, "bruit": clampf(0.2 + 0.05 * n, 0.2, 0.6),
 			"nom": String(parcs[e].nom), "bid": int(e)})
+		var show := spectacle_en_cours(int(e))
+		if not show.is_empty() and float(ParcSoirees.TYPES[String(show.type)].bruit) > 0.0:
+			out.append({"pos": centre(int(e)), "rayon": 900.0 + 300.0 * int(show.taille), "bruit": float(ParcSoirees.TYPES[String(show.type)].bruit),
+				"nom": "%s (%s)" % [String(parcs[e].nom), String(ParcSoirees.TYPES[String(show.type)].nom).to_lower()], "bid": int(e)})
 	return out
 
 
@@ -1354,6 +1581,19 @@ func conseils(e: int) -> Array[String]:
 		out.append("L'entrée est chère pour ce que propose le parc (il vaut environ %d €)." % roundi(valeur(e)))
 	if int(p.saison) > 0:
 		out.append("%d saisonniers venus d'ailleurs complètent le personnel (ils coûtent 30 %% de plus) : la ville manque d'habitants pour ces emplois." % int(p.saison))
+	var noto: Dictionary = p.get("noto", {})
+	if (p.get("campagnes", []) as Array).is_empty() and float(noto.get("region", 0.0)) < 0.05 and float(p.note) >= 3.0 and not attractions_ok(e).is_empty():
+		out.append("Le parc est bien noté mais peu connu : lance une campagne de publicité (onglet Publicité).")
+	for c in p.get("campagnes", []):
+		if String(c.cible) == "sensations" and not _a_sensations(e):
+			out.append("La pub vise les amateurs de sensations, mais le parc n'a aucune attraction à sensations : l'argent part en fumée.")
+			break
+	if float(p.note) < 2.0 and not (p.get("campagnes", []) as Array).is_empty():
+		out.append("La publicité marche mal pour un parc mal noté : améliore d'abord le parc.")
+	if String(p.soiree.quand) == "jamais" and int(p.soiree.ce_soir) < 0 and float(p.note) >= 3.5:
+		out.append("Un feu d'artifice le samedi soir attire du monde et rend les visiteurs heureux (onglet Soirées).")
+	if recherche.en_cours == "" and recherche.file.is_empty() and not recherche.proposables().filter(func(x: String) -> bool: return recherche.possible(x)).is_empty():
+		out.append("Le bureau d'études n'a rien à chercher : choisis un projet (onglet Recherche).")
 	var hp := hors_parc()
 	if not hp.is_empty():
 		out.append("%d objet(s) du parc sont trop loin d'une entrée (plus de 250 m) et ne servent à rien." % hp.size())
@@ -1369,7 +1609,8 @@ func to_dict() -> Dictionary:
 	for e in parcs:
 		var p: Dictionary = parcs[e]
 		ps[str(e)] = {"nom": p.nom, "prix": p.prix, "prix_tour": p.prix_tour, "note": snappedf(float(p.note), 0.01),
-			"salete": snappedf(float(p.salete), 0.1), "hier": p.hier, "total": p.total, "pensees": p.pensees}
+			"salete": snappedf(float(p.salete), 0.1), "hier": p.hier, "total": p.total, "pensees": p.pensees,
+			"campagnes": p.campagnes, "noto": p.noto, "soiree": p.soiree, "show_jour": int(p.show_jour), "annule_jour": int(p.annule_jour)}
 	var its := {}
 	for bid in items:
 		var it: Dictionary = items[bid]
@@ -1378,7 +1619,7 @@ func to_dict() -> Dictionary:
 	var so := {}
 	for pid in sorties:
 		so[str(pid)] = int(sorties[pid])
-	return {"v": 1, "parcs": ps, "items": its, "sorties": so}
+	return {"v": 1, "parcs": ps, "items": its, "sorties": so, "recherche": recherche.to_dict()}
 
 
 func from_dict(d: Dictionary) -> void:
@@ -1403,6 +1644,15 @@ func from_dict(d: Dictionary) -> void:
 		tot.merge(s.get("total", {}), true)
 		p.total = tot
 		p.pensees = (s.get("pensees", {}) as Dictionary).duplicate()
+		p.campagnes = (s.get("campagnes", []) as Array).duplicate(true)
+		var noto := ParcPublicite.vide()
+		noto.merge(s.get("noto", {}), true)
+		p.noto = noto
+		var prog := ParcSoirees.programme_vide()
+		prog.merge(s.get("soiree", {}), true)
+		p.soiree = prog
+		p.show_jour = int(s.get("show_jour", -1))
+		p.annule_jour = int(s.get("annule_jour", -1))
 	var its: Dictionary = d.get("items", {})
 	for k in its:
 		var bid := int(k)
@@ -1412,4 +1662,5 @@ func from_dict(d: Dictionary) -> void:
 	var so: Dictionary = d.get("sorties", {})
 	for k in so:
 		sorties[int(k)] = int(so[k])
+	recherche.from_dict(d.get("recherche", {}))
 	changed.emit()

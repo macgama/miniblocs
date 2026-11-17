@@ -145,6 +145,7 @@ func _partie_tests() -> void:
 		await process_frame
 	amb.set_speed(0)
 	amb.unix_time = SAMEDI
+	ReglagesPartie.actuel.recherche_parc = false
 	bs.unlimited_money = true
 	var y := world.cell_height(Vector2i(0, 0))
 	transport.build_segment("route", Vector3(-400, y, 0), Vector3(400, y, 0))

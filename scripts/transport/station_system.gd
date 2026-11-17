@@ -17,7 +17,7 @@ signal info_changed(text: String)
 signal message(text: String)
 signal lines_changed
 
-enum Tool { NONE, PLACE, LINE, DEMOLISH }
+enum Tool { NONE, PLACE, LINE, DEMOLISH, EVITEMENT }
 
 const ROAD := TransportTypes.Mode.ROAD
 const RAIL := TransportTypes.Mode.RAIL
@@ -80,6 +80,13 @@ var next_id := 1
 var achat_ok: Callable
 ## Itinéraires des habitants (marche + lignes) : planner.plan(a, b).
 var planner: TransitPlanner
+## Horaires des lignes (service, cadence, fiche horaire, ponctualité).
+var horaires: HorairesLignes
+## Voies à quai par nœud (gares, stations de métro), pour la signalisation.
+var _quais: Dictionary = {}
+var _quais_sales := true
+## Longueur d'un évitement posé avec l'outil (m).
+const EVITEMENT_M := 600.0
 
 var tool: Tool = Tool.NONE
 var place_type := "arret_bus"
@@ -109,6 +116,10 @@ func setup(t: TransportSystem) -> void:
 	traffic.restarted.connect(respawn_all)
 	traffic.line_arrived.connect(_on_line_arrived)
 	planner = TransitPlanner.new(self)
+	horaires = HorairesLignes.new(self)
+	traffic.line_gate = horaires.porte
+	traffic.line_stop.connect(horaires.sur_arret)
+	traffic.signaux.quais = quais_at
 	_material = StandardMaterial3D.new()
 	_material.vertex_color_use_as_albedo = true
 	_material.vertex_color_is_srgb = true
@@ -137,6 +148,7 @@ func clear() -> void:
 	for id in stations.keys():
 		_drop_view(id)
 	stations.clear()
+	_quais_sales = true
 	lines.clear()
 	_pending.clear()
 	next_id = 1
@@ -168,6 +180,14 @@ func set_demolish() -> void:
 	tool = Tool.DEMOLISH
 	_ghost.mesh = null
 	info_changed.emit("Supprimer une station : clic dessus")
+
+
+## Outil « Évitement » : un clic sur une voie unique la double sur EVITEMENT_M mètres.
+func set_evitement() -> void:
+	tool = Tool.EVITEMENT
+	_pending.clear()
+	_ghost.mesh = null
+	info_changed.emit("Évitement : clic sur une voie ferrée unique, les trains pourront s'y croiser (double voie sur %d m) · Échap : terminer" % roundi(EVITEMENT_M))
 
 
 func set_inactive() -> void:
@@ -216,6 +236,12 @@ func _unhandled_input(event: InputEvent) -> void:
 				else:
 					_pending.append(sid)
 					info_changed.emit("Nouvelle ligne : %s · Entrée : créer" % " → ".join(_pending.map(func(i: int) -> String: return stations[i].name)))
+			Tool.EVITEMENT:
+				if transport.bloque_reseau():
+					message.emit("Sur une carte entre amis, les voies se changent sur la carte du serveur.")
+					return
+				var r := creer_evitement(_cursor)
+				message.emit(r.reason if not r.ok else "Évitement posé : %d m de double voie, les trains s'y croisent." % roundi(float(r.len)))
 			Tool.DEMOLISH:
 				var sid2 := station_at(_cursor)
 				if sid2 >= 0:
@@ -479,6 +505,7 @@ func remove_station(id: int) -> void:
 	var s: Dictionary = stations[id]
 	var old := _sample(s.type, s.pos, s.dir, _station_hw(s), 8.0)
 	stations.erase(id)
+	_quais_sales = true
 	_drop_view(id)
 	if world != null:
 		world.mark_cells_dirty(old)
@@ -494,6 +521,7 @@ func remove_station(id: int) -> void:
 
 
 func _on_network_changed() -> void:
+	_quais_sales = true
 	for sid in stations.keys():
 		var s: Dictionary = stations[sid]
 		if int(get_type(s.type).mode) == AIR:
@@ -1293,6 +1321,85 @@ static func build_air_mesh(type_id: String) -> ArrayMesh:
 
 # --- Sauvegarde ---------------------------------------------------------------------------
 
+# --- Signalisation : gares et évitements --------------------------------------------------
+
+## Voies à quai au nœud (gares et stations de métro : Signalisation.QUAIS_GARE).
+func quais_at(nid: int) -> int:
+	if _quais_sales:
+		_quais_sales = false
+		_quais.clear()
+		for sid in stations:
+			var s: Dictionary = stations[sid]
+			if String(s.type) == "gare" or String(s.type) == "station_metro":
+				_quais[int(s.node)] = Signalisation.QUAIS_GARE
+	return int(_quais.get(nid, 0))
+
+
+## Double une voie ferrée unique autour du point p, sur longueur mètres (moins si
+## le tronçon est plus court) : les trains s'y croisent. Renvoie {ok, reason, edge, len}.
+func creer_evitement(p: Vector3, longueur := EVITEMENT_M) -> Dictionary:
+	var snap := network.find_snap(p, RAIL, 6.0)
+	if snap.is_empty() or int(snap.get("edge", -1)) < 0:
+		if not snap.is_empty() and int(snap.get("node", -1)) >= 0:
+			for eid in network.adjacency.get(int(snap.node), []):
+				if not Signalisation.double_voie(network.edges[eid]):
+					snap = {"edge": eid, "s": 0.0 if int(network.edges[eid].a) == int(snap.node) else float(network.edges[eid].len)}
+					break
+		if snap.is_empty() or int(snap.get("edge", -1)) < 0:
+			return {"ok": false, "reason": "Clique sur une voie ferrée."}
+	var eid := int(snap.edge)
+	var e: Dictionary = network.edges[eid]
+	var c := TransportTypes.get_type(e.t)
+	if not c.has("tracks") or int((c.tracks as Array)[1]) < 2:
+		return {"ok": false, "reason": "Cette voie ne peut pas être doublée."}
+	if Signalisation.double_voie(e):
+		return {"ok": false, "reason": "Voie déjà double : les trains s'y croisent déjà."}
+	if e.has("ch"):
+		return {"ok": false, "reason": "Voie encore en chantier."}
+	var L := float(e.len)
+	var mid := eid
+	if L > longueur + 40.0:
+		var s0 := clampf(float(snap.s) - longueur * 0.5, 0.0, L - longueur)
+		var a := int(e.a)
+		var n1 := network.split_edge(eid, s0 + longueur, 2.0)
+		var first := _edge_between(a, n1)
+		if first < 0:
+			return {"ok": false, "reason": "Voie trop courte pour un évitement."}
+		var n0 := network.split_edge(first, s0, 2.0)
+		mid = _edge_between(n0, n1)
+		if mid < 0:
+			return {"ok": false, "reason": "Voie trop courte pour un évitement."}
+	var m: Dictionary = network.edges[mid]
+	var spec: Dictionary = (m.w as Dictionary).duplicate()
+	spec.tracks = 2
+	var wear = m.get("u")
+	var na := int(m.a)
+	var nb := int(m.b)
+	var pts: PackedVector3Array = m.pts
+	var st: PackedByteArray = m.st
+	var keep_a: Dictionary = network.nodes[na].duplicate()
+	var keep_b: Dictionary = network.nodes[nb].duplicate()
+	network.remove_edge(mid)
+	for pair in [[na, keep_a], [nb, keep_b]]:
+		if not network.nodes.has(int(pair[0])):
+			network.nodes[int(pair[0])] = pair[1]
+			network.adjacency[int(pair[0])] = []
+	var neu := network.add_edge(na, nb, String(m.t), pts, st, spec)
+	if wear != null:
+		network.edges[neu]["u"] = wear
+	network.changed.emit()
+	# Les trains des tronçons remplacés reprennent leur service.
+	respawn_all()
+	return {"ok": true, "reason": "", "edge": neu, "len": float(network.edges[neu].len)}
+
+
+func _edge_between(a: int, b: int) -> int:
+	for eid in network.adjacency.get(a, []):
+		if network.other_end(eid, a) == b:
+			return int(eid)
+	return -1
+
+
 func to_dict() -> Dictionary:
 	var ss := []
 	for sid in stations:
@@ -1305,11 +1412,16 @@ func to_dict() -> Dictionary:
 		ls.append({"id": lid, "name": l.name, "kind": l.kind, "stops": l.stops, "model": l.model, "count": l.count, "color": (l.color as Color).to_html(false),
 			"fret": bool(l.get("fret", false)), "tonnes": snappedf(float(l.get("tonnes", 0.0)), 0.1),
 			"passengers": int(l.get("passengers", 0))})
+		if l.has("horaire"):
+			ls[ls.size() - 1]["horaire"] = (l.horaire as Dictionary).duplicate()
+		if l.has("ponct"):
+			ls[ls.size() - 1]["ponct"] = (l.ponct as Array).map(func(x: float) -> float: return snappedf(x, 0.01))
 	return {"next_id": next_id, "stations": ss, "lines": ls}
 
 
 func from_dict(data: Dictionary) -> void:
 	clear()
+	_quais_sales = true
 	for s in data.get("stations", []):
 		var id := int(s.id)
 		var t := get_type(String(s.type))
@@ -1337,6 +1449,10 @@ func from_dict(data: Dictionary) -> void:
 		lines[id] = {"id": id, "name": String(l.name), "kind": String(l.kind), "stops": stops, "model": String(l.model),
 			"fret": bool(l.get("fret", String(l.kind) == "camion")), "tonnes": float(l.get("tonnes", 0.0)),
 			"passengers": int(l.get("passengers", 0)), "count": int(l.count), "color": Color(String(l.get("color", "e63946")))}
+		if l.get("horaire") is Dictionary:
+			lines[id].horaire = (l.horaire as Dictionary).duplicate()
+		if l.get("ponct") is Array and (l.ponct as Array).size() == 4:
+			lines[id].ponct = (l.ponct as Array).duplicate()
 		next_id = maxi(next_id, id + 1)
 	next_id = maxi(next_id, int(data.get("next_id", 1)))
 	respawn_all()

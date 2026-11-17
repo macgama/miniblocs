@@ -3,10 +3,13 @@ extends CanvasLayer
 ## Panneau « Transports publics » (touche L) : poser des stations, tracer des
 ## lignes, choisir le véhicule et le nombre de véhicules de chaque ligne, et
 ## suivre le bilan de chaque ligne (recettes, coûts, âge des véhicules).
+## Signalisation ferroviaire (époque, trains arrêtés, outil Évitement) et
+## horaire de chaque ligne (service, cadence, fiche horaire, ponctualité).
 
 signal station_chosen(type_id: String)
 signal demolish_chosen
 signal line_tool_chosen
+signal evitement_chosen
 
 var stations: StationSystem
 var _panel: PanelContainer
@@ -24,6 +27,10 @@ var _total: Label
 var _scroll: ScrollContainer
 ## Ligne dont le bilan vient d'être ouvert : on fait défiler le panneau jusqu'à lui.
 var _focus := -1
+var _sig_label: Label
+## Horaires ouverts : id de ligne -> {"resume": Label, "ponct": Label, "fiche": Label}.
+var _horaires: Dictionary = {}
+var _h_open: Dictionary = {}
 
 
 func setup(s: StationSystem) -> void:
@@ -94,6 +101,27 @@ func _build() -> void:
 	var nl := _tool_button("Nouvelle ligne")
 	nl.pressed.connect(func() -> void: line_tool_chosen.emit())
 	box.add_child(nl)
+	box.add_child(HSeparator.new())
+	var sh := HBoxContainer.new()
+	box.add_child(sh)
+	var st_t := Label.new()
+	st_t.text = "Signalisation ferroviaire"
+	st_t.add_theme_font_size_override("font_size", 14)
+	st_t.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sh.add_child(st_t)
+	var evb := _tool_button("Évitement")
+	evb.custom_minimum_size = Vector2(110, 0)
+	evb.size_flags_horizontal = Control.SIZE_SHRINK_END
+	evb.tooltip_text = "Double une voie unique sur %d m : les trains s'y croisent" % roundi(StationSystem.EVITEMENT_M)
+	evb.pressed.connect(func() -> void: evitement_chosen.emit())
+	sh.add_child(evb)
+	_sig_label = Label.new()
+	_sig_label.add_theme_font_size_override("font_size", 12)
+	_sig_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_sig_label.custom_minimum_size = Vector2(340, 0)
+	_sig_label.add_theme_color_override("font_color", Color(1, 1, 1, 0.75))
+	box.add_child(_sig_label)
+	_refresh_signaux()
 	_lines_box = VBoxContainer.new()
 	box.add_child(_lines_box)
 
@@ -140,6 +168,17 @@ func _process(delta: float) -> void:
 		if stations.lines.has(lid) and is_instance_valid(_summaries[lid]):
 			(_summaries[lid] as Label).text = stations.line_summary(lid)
 	_refresh_eco(false)
+	_refresh_signaux()
+	for lid in _horaires:
+		_fill_horaire_labels(lid)
+
+
+func _refresh_signaux() -> void:
+	if _sig_label == null or stations == null or stations.traffic == null:
+		return
+	var sg := stations.traffic.signaux
+	_sig_label.text = "%s.\nLes trains se croisent dans les gares (%d voies à quai) et sur la double voie : sur une voie unique, pose des évitements." % [
+		sg.resume(stations.traffic.vehicles), Signalisation.QUAIS_GARE]
 
 
 func _unhandled_key_input(event: InputEvent) -> void:
@@ -157,6 +196,7 @@ func _refresh_lines() -> void:
 	_summaries.clear()
 	_bilans.clear()
 	_details.clear()
+	_horaires.clear()
 	_total = null
 	if stations.lines.is_empty():
 		var l := Label.new()
@@ -225,9 +265,173 @@ func _refresh_lines() -> void:
 		pick.item_selected.connect(func(i: int) -> void: stations.ui_set_line(id_, models[i], int(count.value)))
 		count.value_changed.connect(func(v: float) -> void: stations.ui_set_line(id_, String(stations.lines[id_].model), int(v)))
 		_lines_box.add_child(row)
+		if String(line.kind) != "avion" and stations.horaires != null:
+			_add_horaire(id_)
 		if eco != null:
 			_add_bilan(id_)
+		else:
+			_lines_box.add_child(HSeparator.new())
 	_refresh_eco()
+
+
+# --- Horaires des lignes ---------------------------------------------------------------------
+
+func _add_horaire(id_: int) -> void:
+	var hz := stations.horaires
+	var r := HBoxContainer.new()
+	var b := Label.new()
+	b.add_theme_font_size_override("font_size", 12)
+	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	b.clip_text = true
+	b.custom_minimum_size = Vector2(240, 0)
+	var hr := hz.horaire(id_)
+	b.text = ("Horaire : toutes les %s, %s – %s" % [HorairesLignes.duree(float(hr.cadence) * 60.0), HorairesLignes.heure_txt(float(hr.debut)),
+		HorairesLignes.heure_txt(float(hr.fin))]) if hz.actif(id_) else "Sans horaire (navette continue)"
+	r.add_child(b)
+	var more := Button.new()
+	more.text = "Horaire ▾" if _h_open.has(id_) else "Horaire ▸"
+	more.tooltip_text = "Heures de service, cadence, fiche horaire et ponctualité"
+	more.add_theme_font_size_override("font_size", 12)
+	more.pressed.connect(func() -> void:
+		if _h_open.has(id_):
+			_h_open.erase(id_)
+		else:
+			_h_open[id_] = true
+			_focus = id_
+		_refresh_lines())
+	r.add_child(more)
+	_lines_box.add_child(r)
+	if not _h_open.has(id_):
+		return
+	var d := VBoxContainer.new()
+	d.add_theme_constant_override("separation", 3)
+	_lines_box.add_child(d)
+	var on := CheckBox.new()
+	on.text = "Suivre un horaire"
+	on.tooltip_text = "Service de jour, départs cadencés, véhicules en trop gardés en réserve"
+	on.button_pressed = hz.actif(id_)
+	on.add_theme_font_size_override("font_size", 12)
+	d.add_child(on)
+	var r1 := HBoxContainer.new()
+	d.add_child(r1)
+	_small(r1, "Un départ toutes les")
+	var cad := OptionButton.new()
+	cad.add_theme_font_size_override("font_size", 12)
+	var cur := int(hr.get("cadence", HorairesLignes.CADENCE))
+	for i in HorairesLignes.CADENCES.size():
+		var c: int = HorairesLignes.CADENCES[i]
+		cad.add_item(HorairesLignes.duree(float(c) * 60.0), i)
+		if c == cur:
+			cad.select(i)
+	r1.add_child(cad)
+	var r2 := HBoxContainer.new()
+	d.add_child(r2)
+	_small(r2, "Service de")
+	var deb := _hour_spin(float(hr.get("debut", HorairesLignes.DEBUT)), 0.0, 23.5)
+	r2.add_child(deb)
+	_small(r2, "h à")
+	var fin := _hour_spin(float(hr.get("fin", HorairesLignes.FIN)), 0.5, 24.0)
+	r2.add_child(fin)
+	_small(r2, "h")
+	for c in [r1, r2]:
+		(c as Control).modulate.a = 1.0 if hz.actif(id_) else 0.5
+	on.toggled.connect(func(v: bool) -> void:
+		hz.regler(id_, {"on": v})
+		for c in [r1, r2]:
+			(c as Control).modulate.a = 1.0 if v else 0.5
+		_fill_horaire_labels(id_))
+	cad.item_selected.connect(func(i: int) -> void:
+		hz.regler(id_, {"on": true, "cadence": HorairesLignes.CADENCES[i]})
+		on.set_pressed_no_signal(true)
+		_fill_horaire_labels(id_))
+	deb.value_changed.connect(func(v: float) -> void:
+		hz.regler(id_, {"on": true, "debut": v})
+		on.set_pressed_no_signal(true)
+		_fill_horaire_labels(id_))
+	fin.value_changed.connect(func(v: float) -> void:
+		hz.regler(id_, {"on": true, "fin": v})
+		on.set_pressed_no_signal(true)
+		_fill_horaire_labels(id_))
+	var labels := {}
+	for k in ["resume", "ponct", "fiche"]:
+		var l := Label.new()
+		l.add_theme_font_size_override("font_size", 12)
+		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		l.custom_minimum_size = Vector2(330, 0)
+		if k == "fiche":
+			l.autowrap_mode = TextServer.AUTOWRAP_OFF
+			l.add_theme_font_override("font", _mono())
+			l.add_theme_color_override("font_color", Color(1, 1, 1, 0.85))
+		d.add_child(l)
+		labels[k] = l
+	_horaires[id_] = labels
+	_fill_horaire_labels(id_)
+	if _focus == id_:
+		_focus = -1
+		_show_details.call_deferred(d)
+
+
+func _small(parent: Control, text: String) -> void:
+	var l := Label.new()
+	l.text = text
+	l.add_theme_font_size_override("font_size", 12)
+	parent.add_child(l)
+
+
+func _hour_spin(v: float, lo: float, hi: float) -> SpinBox:
+	var sp := SpinBox.new()
+	sp.min_value = lo
+	sp.max_value = hi
+	sp.step = 0.5
+	sp.value = v
+	sp.custom_minimum_size = Vector2(70, 0)
+	sp.add_theme_font_size_override("font_size", 12)
+	return sp
+
+
+var _mono_font: SystemFont
+func _mono() -> Font:
+	if _mono_font == null:
+		_mono_font = SystemFont.new()
+		_mono_font.font_names = PackedStringArray(["DejaVu Sans Mono", "Consolas", "Menlo", "monospace"])
+	return _mono_font
+
+
+## Textes de l'horaire ouvert : résumé, ponctualité, fiche des prochains passages.
+func _fill_horaire_labels(lid: int) -> void:
+	var labels: Dictionary = _horaires.get(lid, {})
+	if labels.is_empty() or not stations.lines.has(lid) or not is_instance_valid(labels.resume):
+		return
+	var hz := stations.horaires
+	(labels.resume as Label).text = hz.resume(lid)
+	var p := hz.ponctualite(lid)
+	var rem := hz.remises(lid)
+	var txt := ""
+	if p.is_empty():
+		txt = "Ponctualité : pas encore de trajet mesuré."
+	else:
+		txt = "Ponctualité %d %% (retard de moins de 2 min) · retard moyen %s · attente aux signaux %d s par trajet" % [
+			roundi(float(p.ponctualite) * 100.0), "< 30 s" if float(p.retard) < 30.0 else HorairesLignes.duree(float(p.retard)), roundi(float(p.signaux))]
+	var parts: Array[String] = []
+	if int(rem.nuit) > 0:
+		parts.append("%d remisé%s pour la nuit" % [int(rem.nuit), "s" if int(rem.nuit) > 1 else ""])
+	if int(rem.reserve) > 0:
+		parts.append("%d en réserve" % int(rem.reserve))
+	if not parts.is_empty():
+		txt += "\nAu terminus : " + ", ".join(parts) + "."
+	(labels.ponct as Label).text = txt
+	var f := ""
+	for sens in 2:
+		var fi := hz.fiche(lid, sens, 4)
+		if fi.is_empty():
+			continue
+		f += ("\n" if sens == 1 else "") + "Prochains départs %s\n" % String(fi.titre)
+		for row in fi.lignes:
+			var nm := String(row[0])
+			if nm.length() > 16:
+				nm = nm.substr(0, 15) + "…"
+			f += "%s %s\n" % [nm.rpad(16), "  ".join(row[1])]
+	(labels.fiche as Label).text = f.strip_edges(false, true)
 
 
 # --- Bilan des lignes -----------------------------------------------------------------------

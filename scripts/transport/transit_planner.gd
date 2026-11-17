@@ -245,6 +245,9 @@ func _line_info(lid: int) -> Dictionary:
 		total += t
 	# Aller-retour d'un véhicule, réparti entre les véhicules de la ligne.
 	var headway := total * 2.0 / maxf(1.0, float(l.count))
+	# Ligne à horaire : on attend en moyenne une demi-cadence.
+	if stations.horaires != null and stations.horaires.actif(lid):
+		headway = stations.horaires.intervalle_s(lid, total * 2.0)
 	var info := {"hops": hops, "wait": headway * 0.5}
 	_cache[lid] = info
 	return info

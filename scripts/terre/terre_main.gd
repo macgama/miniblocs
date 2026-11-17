@@ -2106,6 +2106,10 @@ func _setup_transit() -> void:
 		_select_building_tool(true)
 		build_panel.clear_selection()
 		st.set_line_tool())
+	transit_panel.evitement_chosen.connect(func() -> void:
+		_select_building_tool(true)
+		build_panel.clear_selection()
+		st.set_evitement())
 
 
 func _network_length() -> float:

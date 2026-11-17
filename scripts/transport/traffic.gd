@@ -65,6 +65,8 @@ signal line_arrived(line_id: int, model: String)
 signal edge_entered(eid: int, v: Dictionary)
 ## Un véhicule quitte la circulation (fin de course, ligne supprimée…).
 signal vehicle_removed(v: Dictionary)
+## Un véhicule de ligne arrive à un arrêt (avant de repartir vers le suivant).
+signal line_stop(v: Dictionary)
 
 var network: TransportNetwork
 var enabled := true
@@ -109,6 +111,14 @@ var siren_sound := true
 var _siren_stream: AudioStreamWAV
 var _beacon_mats: Dictionary = {}
 var _blink := 0.0
+## Signalisation ferroviaire (cantons, voies uniques, gares).
+var signaux := Signalisation.new()
+## Temps de simulation écoulé (s, à la vitesse du temps).
+var sim_t := 0.0
+## Horaires : Callable(v) -> float, appelé quand un véhicule de ligne a fini
+## son arrêt ; une valeur > 0 le retient encore autant de secondes.
+var line_gate: Callable
+var _epoque_t := 0.0
 
 
 func _init() -> void:
@@ -122,9 +132,11 @@ func _init() -> void:
 
 func setup(net: TransportNetwork) -> void:
 	network = net
+	signaux.network = net
 	network.changed.connect(func() -> void:
 		_lanes.clear()
 		_busy.clear()
+		signaux.reset(vehicles)
 		_sidewalk_len = -1.0)
 
 
@@ -534,6 +546,12 @@ func step(delta: float) -> void:
 	if junctions != null:
 		junctions.tick(delta)
 	_blink += delta
+	sim_t += delta
+	signaux.temps = sim_t
+	_epoque_t -= delta
+	if _epoque_t <= 0.0:
+		_epoque_t = 5.0
+		signaux.verifier_epoque(vehicles)
 	_build_index()
 	_parite = 1 - _parite
 	var i := 0
@@ -963,6 +981,11 @@ func _advance(v: Dictionary, delta: float) -> bool:
 		return true
 	if float(v.get("dwell", 0.0)) > 0.0:
 		v.dwell = float(v.dwell) - delta
+		# Fin de l'arrêt : l'horaire peut retenir le véhicule (nuit, cadence).
+		if float(v.dwell) <= 0.0 and v.has("line") and line_gate.is_valid():
+			var w := float(line_gate.call(v))
+			if w > 0.0:
+				v.dwell = w
 		_place(v)
 		return true
 	if v.has("urgence"):
@@ -1021,6 +1044,8 @@ func _advance(v: Dictionary, delta: float) -> bool:
 			if v.has("line"):
 				# Arrivée en station : arrêt, puis départ vers la suivante.
 				line_arrived.emit(int(v.line), String(v.model))
+				line_stop.emit(v)
+				signaux.arrivee(v)
 				if not _next_stop(v):
 					return false
 				v.dwell = DWELL
@@ -1157,13 +1182,20 @@ func _drive(v: Dictionary, eid: int, e: Dictionary, cruise: float, delta: float)
 	var siren: bool = v.get("siren", false)
 	if v.has("urgence") and stuck > (SIREN_GHOST if siren else STUCK_LINE):
 		ghost = true
+	# Trains : la signalisation les arrête au signal ; ils ne passent « à travers »
+	# qu'en cas d'interblocage, après une longue attente.
+	var rail_sig := int(v.mode) == TransportTypes.Mode.RAIL and signaux.actif
+	if rail_sig and (v.has("line") or v.has("delivery")):
+		ghost = stuck > Signalisation.INTERBLOCAGE
 	var route: Array[int] = v.route
 	# Destination suivante choisie à l'avance : le véhicule voit qui est devant
 	# lui à la sortie du nœud et respecte le carrefour.
 	if not (v.has("line") or v.has("delivery")) and not v.has("park_at") and not v.has("urgence") and int(v.leg) + 1 >= route.size() and float(e.len) - s < 40.0:
 		_extend_route(v)
 		route = v.route
-	var limit := INF if ghost else _room(v, eid, e, s)
+	# Trains (hors tramway) : les cantons espacent déjà les trains, et deux trains
+	# à quai dans la même gare sont sur deux voies différentes.
+	var limit := INF if ghost or (rail_sig and String(e.t) != "tram") else _room(v, eid, e, s)
 	if v.has("halt_leg") and int(v.leg) == int(v.halt_leg):
 		limit = minf(limit, maxf(float(v.halt_s) - s, 0.0))
 	var nid := network.other_end(eid, v.node)
@@ -1195,6 +1227,8 @@ func _drive(v: Dictionary, eid: int, e: Dictionary, cruise: float, delta: float)
 			v.res = nid
 		else:
 			limit = minf(limit, maxf(dist, 0.0))
+	if rail_sig:
+		limit = minf(limit, signaux.limite(v, float(v.speed), ghost, delta))
 	var target := cruise
 	if limit < INF:
 		target = minf(cruise, sqrt(2.0 * BRAKE * maxf(limit, 0.0)))
@@ -1205,6 +1239,8 @@ func _drive(v: Dictionary, eid: int, e: Dictionary, cruise: float, delta: float)
 		adv = clampf(adv, 0.0, maxf(limit, 0.0))
 	v.speed = speed
 	v.s = s + adv
+	if rail_sig:
+		signaux.avance(v, adv)
 	if adv < 0.05 * delta:
 		v.wait = float(v.get("wait", 0.0)) + delta
 		v.stuck = stuck + delta
@@ -1347,6 +1383,9 @@ func _place(v: Dictionary) -> void:
 		surface = Maree.level if absf(p.y) < 0.05 else 0.0
 	var offsets := TransportTypes.lane_offsets(e.t, e.w)
 	var lane: float = offsets[mini(int(v.lane_idx), offsets.size() - 1)] if not offsets.is_empty() else 0.0
+	if int(v.mode) == TransportTypes.Mode.RAIL and v.has("sig"):
+		# Deuxième voie à quai d'une gare : le train s'y range en arrivant.
+		lane += signaux.decalage_quai(v, eid)
 	# Bus d'une ligne : dans le couloir de bus de la route (EvolutionVoies).
 	if v.has("line") and int(v.mode) == TransportTypes.Mode.ROAD and TransportTypes.bus_of(e.t, e.w) > 0.0:
 		lane = TransportTypes.bus_lane_offset(e.t, e.w)
@@ -1481,6 +1520,7 @@ func _free_vehicle(v: Dictionary) -> void:
 	_end_cross(v)
 	_release(v)
 	_free_spot(v)
+	signaux.liberer(v)
 	if v.has("body"):
 		(v.body as Node).queue_free()
 	for w in v.get("wagons", []):

@@ -39,6 +39,8 @@ var view: TransportView
 var traffic: Traffic
 var stations: StationSystem
 var junctions: JunctionControl
+## Signaux ferroviaires le long des voies (Signalisation, selon l'époque).
+var signaux_vue: SignauxVue
 ## Îlots centraux des giratoires : [{"c": Vector3, "r": float}].
 var roundabouts: Array = []
 var _islands: Node3D
@@ -104,6 +106,10 @@ func _ready() -> void:
 	traffic.name = "Vehicules"
 	add_child(traffic)
 	traffic.setup(network)
+	signaux_vue = SignauxVue.new()
+	signaux_vue.name = "Signaux"
+	add_child(signaux_vue)
+	signaux_vue.setup(network, traffic.signaux)
 	junctions = JunctionControl.new()
 	add_child(junctions)
 	junctions.setup(network)

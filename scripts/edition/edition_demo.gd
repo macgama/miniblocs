@@ -30,7 +30,7 @@ const HABITANTS_MAX := 1000
 ## Boutons du menu principal absents de la démo.
 const MENU_ABSENTS := ["scenarios", "amis", "atelier", "succes"]
 ## Boutons de la barre du bas (TerreHud.CATEGORIES) réservés au jeu complet.
-const PANNEAUX_VERROUILLES := ["parc_editeur", "parc", "zoo", "musee", "spectacles", "club", "tourisme", "patrimoine", "partage", "succes"]
+const PANNEAUX_VERROUILLES := ["parc_editeur", "parc", "zoo", "musee", "spectacles", "club", "tourisme", "patrimoine", "expeditions", "partage", "succes"]
 ## Onglets du catalogue Construire (BuildingCatalog.CATEGORIES) cachés dans la démo.
 const CATALOGUE_VERROUILLE := ["parc", "zoo", "spectacles", "tourisme", "patrimoine"]
 ## Raccourcis Maj + touche des panneaux verrouillés.

@@ -1622,7 +1622,7 @@ func _card(id: String, fallback_icon: String) -> Button:
 		elif ParcRecherche.verrouille(id):
 			meta.text = "À inventer · Maj+G"
 		else:
-			meta.text = "Verrouillé · %d hab." % int(ReglagesPartie.PALIERS[ReglagesPartie.palier_requis(id)].habitants)
+			meta.text = ArbreProgression.etiquette(id) if not ReglagesPartie.actuel.est_debloque(id) else "Verrouillé"
 	meta.add_theme_font_size_override("font_size", 12)
 	meta.add_theme_color_override("font_color", Color("ffd166") if offert > 0 and lock == "" else UiStyle.TEXT_DIM)
 	meta.mouse_filter = Control.MOUSE_FILTER_IGNORE

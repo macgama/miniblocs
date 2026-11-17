@@ -25,18 +25,15 @@ const SALAIRES_MAX := 2.0
 const PRIX_SERVICES_MIN := 0.0
 const PRIX_SERVICES_MAX := 3.0
 
-## Déblocage des bâtiments au fil de la partie : paliers de population (record
-## atteint, une démolition ne rebloque rien) et prix maximal débloqué.
+## Tailles de ville (noms par population), lues par les villages et le pays.
+## Le déblocage des bâtiments passe par l'arbre de progression (ArbreProgression).
 const PALIERS := [
-	{"nom": "Hameau", "habitants": 0, "prix_max": 1_500_000},
-	{"nom": "Village", "habitants": 100, "prix_max": 5_000_000},
-	{"nom": "Bourg", "habitants": 500, "prix_max": 15_000_000},
-	{"nom": "Ville", "habitants": 2000, "prix_max": 40_000_000},
-	{"nom": "Grande ville", "habitants": 10000, "prix_max": -1},
+	{"nom": "Hameau", "habitants": 0},
+	{"nom": "Village", "habitants": 100},
+	{"nom": "Bourg", "habitants": 500},
+	{"nom": "Ville", "habitants": 2000},
+	{"nom": "Grande ville", "habitants": 10000},
 ]
-## Toujours débloqués : les écoles (il en faut tôt) et les sites de production
-## de base, sinon une ville qui démarre ne peut pas vivre.
-const TOUJOURS := ["ecole"]
 
 ## Préréglages : un clic remplit tout le panneau.
 const PRESETS := {
@@ -45,7 +42,7 @@ const PRESETS := {
 	"normal": {"nom": "Normal", "argent_depart": 30_000_000, "argent_illimite": false, "cout_construction": 1.0,
 		"acces_route": true, "impots": 1.0, "salaires": 1.0, "epuisement": true, "deblocage": "tout", "reseaux_obligatoires": true, "fondation": true, "territoire": true, "main_oeuvre": true, "recherche_parc": true},
 	"difficile": {"nom": "Difficile", "argent_depart": 5_000_000, "argent_illimite": false, "cout_construction": 2.0,
-		"acces_route": true, "impots": 0.75, "salaires": 1.25, "epuisement": true, "deblocage": "progression", "reseaux_obligatoires": true, "fondation": true, "territoire": true, "main_oeuvre": true, "recherche_parc": true},
+		"acces_route": true, "impots": 0.75, "salaires": 1.25, "epuisement": true, "deblocage": "arbre", "reseaux_obligatoires": true, "fondation": true, "territoire": true, "main_oeuvre": true, "recherche_parc": true},
 	"libre": {"nom": "Bac à sable libre", "argent_depart": 20_000_000, "argent_illimite": true, "cout_construction": 1.0,
 		"acces_route": false, "impots": 1.0, "salaires": 1.0, "epuisement": false, "deblocage": "tout", "reseaux_obligatoires": false, "fondation": false, "territoire": false, "main_oeuvre": false, "recherche_parc": false},
 }
@@ -77,8 +74,15 @@ var vitesse_temps: int = DayNight.DEFAULT_SPEED
 var vitesse_vie: int = Population.DEFAULT_LIFE_SPEED
 ## Mines, carrières et puits s'épuisent ; forêts et poissons s'abîment si on exploite trop.
 var epuisement := true
-## "tout" : tout le catalogue d'office ; "progression" : par paliers de population.
+## "tout" : tout le catalogue d'office (bac à sable) ; "arbre" : arbre de
+## progression à points (ArbreProgression). Les anciennes parties « progression »
+## (paliers de population) passent sur l'arbre.
 var deblocage := "tout"
+## Arbre de progression : branche -> niveau acheté, points gagnés hors
+## population (rangs, missions, succès, admin) et derniers gains.
+var arbre := {}
+var points_bonus: int = 0
+var journal_points: Array = []
 ## Fêtes de quartier, marchés et matchs organisés tout seuls par la ville.
 var evenements_auto := true
 ## Incendies, tempêtes et épidémies au hasard (on peut toujours en déclencher à la main).
@@ -161,7 +165,7 @@ var main_oeuvre := true
 var tutoriel := true
 ## Objectifs résumés en haut à gauche de l'écran (rang de la ville, missions).
 var objectifs_ecran := true
-## Plus grande population atteinte (pour les paliers).
+## Plus grande population atteinte (points de progrès de population).
 var record_habitants := 0
 ## Époques (scripts/epoques) : année de départ de la partie (0 = époque
 ## actuelle, rien de verrouillé), années d'histoire par année de jeu, heure
@@ -247,35 +251,8 @@ static func prix(v: int) -> int:
 	return roundi(float(v) * actuel.cout_construction)
 
 
-func palier_atteint() -> int:
-	var best := 0
-	for i in PALIERS.size():
-		if record_habitants >= int(PALIERS[i].habitants):
-			best = i
-	return best
-
-
-## Premier palier où ce bâtiment est débloqué.
-static func palier_requis(id: String) -> int:
-	var t := BuildingCatalog.get_type(id)
-	if String(t.get("cat", "")) == "production":
-		return 0
-	# Il faut du courant et de l'eau dès le hameau (sauf les très grosses centrales).
-	if String(t.get("cat", "")) == "reseaux" and BuildingCatalog.cost(id) <= 50_000_000:
-		return 0
-	for k in Metiers.keys_of(id):
-		if TOUJOURS.has(k):
-			return 0
-	var c := BuildingCatalog.cost(id)
-	for i in PALIERS.size():
-		var m := int(PALIERS[i].prix_max)
-		if m < 0 or c <= m:
-			return i
-	return PALIERS.size() - 1
-
-
 func est_debloque(id: String) -> bool:
-	return deblocage != "progression" or palier_requis(id) <= palier_atteint()
+	return ArbreProgression.batiment_ouvert(self, id)
 
 
 ## Raison du blocage, ou "".
@@ -296,20 +273,31 @@ func raison_blocage(id: String) -> String:
 	var sc := ScenarioPartie.refus_batiment(id)
 	if sc != "":
 		return sc
-	if est_debloque(id):
-		return ""
-	var p: Dictionary = PALIERS[palier_requis(id)]
-	return "Débloqué au palier « %s » (%d habitants)." % [p.nom, int(p.habitants)]
+	return ArbreProgression.raison_batiment(self, id)
 
 
-## Note la population ; renvoie le nom du nouveau palier atteint, ou "".
-func note_population(n: int) -> String:
+## Voies et stations : époque d'abord, puis branche Transports de l'arbre.
+func raison_voie(cls: String) -> String:
+	var ep := Epoques.raison_voie(cls, self)
+	return ep if ep != "" else ArbreProgression.raison_voie(self, cls)
+
+
+func raison_station(type_id: String) -> String:
+	var ep := Epoques.raison_station(type_id, self)
+	return ep if ep != "" else ArbreProgression.raison_station(self, type_id)
+
+
+## Note la population ; renvoie le nombre de points de progrès gagnés par ce
+## nouveau record (0 si rien de nouveau).
+func note_population(n: int) -> int:
 	if n <= record_habitants:
-		return ""
-	var before := palier_atteint()
+		return 0
+	var before := ArbreProgression.points_population(record_habitants)
 	record_habitants = n
-	var after := palier_atteint()
-	return String(PALIERS[after].nom) if after > before else ""
+	var gain := ArbreProgression.points_population(n) - before
+	if gain > 0:
+		ArbreProgression.noter(self, gain, "%d habitants" % ArbreProgression.SEUILS_POPULATION[ArbreProgression.points_population(n) - 1])
+	return gain
 
 
 # --- Fichier --------------------------------------------------------------------------
@@ -319,6 +307,7 @@ func to_dict() -> Dictionary:
 		"cout_construction": cout_construction, "acces_route": acces_route, "impots": impots,
 		"salaires": salaires, "vitesse_temps": vitesse_temps, "vitesse_vie": vitesse_vie,
 		"epuisement": epuisement, "deblocage": deblocage, "createur": createur,
+		"arbre": arbre.duplicate(), "points_bonus": points_bonus, "journal_points": journal_points.duplicate(true),
 		"record_habitants": record_habitants, "evenements_auto": evenements_auto, "catastrophes": catastrophes,
 		"frequence_catastrophes": frequence_catastrophes, "crises_economiques": crises_economiques, "volatilite_marche": volatilite_marche, "neige_routes": neige_routes, "faim": faim, "telecom_necessaire": telecom_necessaire, "construction_instantanee": construction_instantanee,
 		"horaires_chantiers": horaires_chantiers, "rythme_chantiers": rythme_chantiers, "usure": usure, "dechets": dechets, "dechets_quantite": dechets_quantite, "pollution": pollution, "pollution_sante": pollution_sante, "climat": climat, "sols_pollues": sols_pollues,
@@ -348,7 +337,20 @@ func from_dict(d: Dictionary) -> void:
 	vitesse_temps = clampi(int(d.get("vitesse_temps", DayNight.DEFAULT_SPEED)), 0, DayNight.SPEEDS.size() - 1)
 	vitesse_vie = clampi(int(d.get("vitesse_vie", Population.DEFAULT_LIFE_SPEED)), 0, Population.LIFE_SPEEDS.size() - 1)
 	epuisement = bool(d.get("epuisement", true))
-	deblocage = "progression" if String(d.get("deblocage", "tout")) == "progression" else "tout"
+	deblocage = "arbre" if ["arbre", "progression"].has(String(d.get("deblocage", "tout"))) else "tout"
+	arbre = {}
+	var a = d.get("arbre", {})
+	if a is Dictionary:
+		for b in a:
+			if not ArbreProgression.branche(String(b)).is_empty():
+				arbre[String(b)] = clampi(int(a[b]), 0, ArbreProgression.NIVEAU_MAX)
+	points_bonus = maxi(0, int(d.get("points_bonus", 0)))
+	journal_points = []
+	var jp = d.get("journal_points", [])
+	if jp is Array:
+		for e in jp:
+			if e is Dictionary:
+				journal_points.append({"n": int(e.get("n", 0)), "raison": String(e.get("raison", ""))})
 	createur = String(d.get("createur", ""))
 	record_habitants = maxi(0, int(d.get("record_habitants", 0)))
 	evenements_auto = bool(d.get("evenements_auto", true))
@@ -406,6 +408,9 @@ static func load_defaults() -> ReglagesPartie:
 				r.recherche_parc = true
 	r.createur = ""
 	r.record_habitants = 0
+	r.arbre = {}
+	r.points_bonus = 0
+	r.journal_points = []
 	r.histoire_debut = 0.0
 	r.histoire_saut = 0
 	return r
@@ -415,6 +420,9 @@ func save_as_defaults() -> bool:
 	var d := to_dict()
 	d.erase("createur")
 	d.erase("record_habitants")
+	d.erase("arbre")
+	d.erase("points_bonus")
+	d.erase("journal_points")
 	d.erase("histoire_debut")
 	d.erase("histoire_saut")
 	var f := FileAccess.open(DEFAULTS_FILE, FileAccess.WRITE)
@@ -428,7 +436,7 @@ func save_as_defaults() -> bool:
 func summary() -> String:
 	var money := "argent illimité" if argent_illimite else BuildingSystem.format_short(argent_depart) + " au départ"
 	return "%s · %s · coûts ×%s · %s · %s" % [preset_name(), money, _fmt(cout_construction),
-		"déblocage par paliers" if deblocage == "progression" else "tout débloqué", Epoques.resume(self)]
+		"arbre de progression" if deblocage == "arbre" else "tout débloqué", Epoques.resume(self)]
 
 
 static func _fmt(x: float) -> String:

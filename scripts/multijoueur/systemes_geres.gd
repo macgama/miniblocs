@@ -41,6 +41,9 @@ static func specs(jeu: Node) -> Dictionary:
 		s["zoo"] = {"obj": jeu.zoo, "garder": horloge, "entites": {"zoos": "zoos", "enclos": "enclos", "animaux": "animaux"}}
 	if jeu.get("musee") != null:
 		s["musee"] = {"obj": jeu.musee, "garder": horloge, "entites": {"musees": "musees"}}
+	# Expéditions : tirages au sort du serveur (trouvailles, événements) : pas de simulation ici.
+	if jeu.get("expeditions") != null:
+		s["expeditions"] = {"obj": jeu.expeditions, "simule": false}
 	return s
 
 

@@ -240,6 +240,39 @@ func _entretenir_reseaux() -> void:
 	bs.unlimited_money = false
 
 
+## Résumé des réseaux d'électricité et d'eau (diagnostic des départs après un chargement).
+func _diag_reseaux() -> String:
+	var r: Reseaux = game.reseaux
+	if r == null:
+		return ""
+	var out := []
+	for pair in [["élec", r.elec], ["eau", r.eau]]:
+		var res: ReseauBase = pair[1]
+		var b := res.bilan()
+		var bas := 0
+		for c in res.composantes:
+			if float(res.composantes[c].get("taux", 1.0)) < 0.95:
+				bas += 1
+		var hors := 0
+		for bid in res.consos:
+			if not res.est_raccorde(bid):
+				hors += 1
+		out.append("%s %d sources, prod %.1f / dem %.1f, %d comp. (%d en manque), %d hors réseau" % [pair[0],
+			res.sources.size(), b.production, b.demande, res.composantes.size(), bas, hors])
+	var sans := 0
+	for bid in r.etat:
+		if float(r.etat[bid].e) < 0.5:
+			sans += 1
+	out.append("%d bât. sans courant" % sans)
+	if OS.get_cmdline_user_args().has("--diag"):
+		for bid in r.sources_info:
+			var si: Dictionary = r.sources_info[bid]
+			var b: Dictionary = bs.buildings.get(bid, {})
+			out.append("\n        source %d %s cap %.1f/%.1f « %s » chantier=%s personnel=%d" % [bid, b.get("t", "?"), float(si.cap), float(si.max), si.why,
+				b.get("chantier", false), (pop.by_job.get(bid, []) as Array).size()])
+	return " · ".join(out)
+
+
 func _poser_pres(id: String, bid: int) -> bool:
 	var b: Dictionary = bs.buildings[bid]
 	var c0 := Vector2i(int(b.x), int(b.z))
@@ -364,6 +397,8 @@ func _sauver_recharger() -> void:
 	var avant_hab := pop.persons.size()
 	var ids_bat := bs.buildings.keys()
 	var ids_hab := pop.persons.keys()
+	var finis := ids_bat.filter(func(b) -> bool: return not bs.en_chantier(b))
+	print("    réseaux avant : ", _diag_reseaux())
 	if not game.save_game(_slot, "Banc longue partie"):
 		_check(false, "sauvegarde : " + String(game.last_error))
 		return
@@ -383,8 +418,12 @@ func _sauver_recharger() -> void:
 	# mourir et des chantiers s'ouvrir ; on compte seulement ce qui a disparu sans raison.
 	var bat_perdus := ids_bat.filter(func(b) -> bool: return not bs.buildings.has(b)).size()
 	var hab_perdus := ids_hab.filter(func(p) -> bool: return not pop.persons.has(p)).size()
+	print("    réseaux après : ", _diag_reseaux())
 	print("    rechargement n° %d : %d bâtiments (%d disparus), %d habitants (%d disparus, %+d en tout)" % [_recharges,
 		bs.buildings.size(), bat_perdus, pop.persons.size(), hab_perdus, pop.persons.size() - avant_hab])
+	var rouverts := finis.filter(func(b) -> bool: return bs.buildings.has(b) and bs.en_chantier(b)).size()
+	if rouverts > 0:
+		_check(false, "rechargement n° %d : %d bâtiments finis repartis en chantier" % [_recharges, rouverts])
 	if bat_perdus > 2 or hab_perdus > maxi(5, avant_hab / 100):
 		_check(false, "rechargement n° %d fidèle (%d bâtiments et %d habitants disparus)" % [_recharges, bat_perdus, hab_perdus])
 
@@ -495,6 +534,8 @@ func _run() -> void:
 			if csv != null:
 				csv.store_line(lignes[-1])
 				csv.flush()
+			if OS.get_cmdline_user_args().has("--diag"):
+				print("    réseaux : ", _diag_reseaux())
 			var causes := _departs()
 			if not causes.is_empty():
 				print("    départs : ", ", ".join(causes.keys().map(func(k: String) -> String: return "%s ×%d" % [k, causes[k]])))

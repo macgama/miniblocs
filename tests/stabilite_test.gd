@@ -173,6 +173,14 @@ func _rechargements() -> void:
 	_check(mc >= 0, "mairie posée")
 	if game.villages_panel._dialog.visible:
 		game.villages_panel._dialog.hide()
+	# Un bâtiment fini un mois après le début de la partie ne doit pas repartir en chantier
+	# au chargement (l'heure de la partie revenait après les bâtiments : centrales coupées).
+	game.ambiance.unix_time += 30.0 * 86400.0
+	var ch := BatimentsVie.chantiers
+	BatimentsVie.chantiers = false
+	var forage := bs.place("forage_eau", Vector2i(60, 0), 0)
+	BatimentsVie.chantiers = ch
+	_check(forage >= 0 and not bs.en_chantier(forage), "forage posé et terminé un mois plus tard")
 	_check(game.save_game("", "Test stabilité"), "partie sauvegardée")
 	var slot := GameStart.slot_id
 	# Sauvegarde automatique : dans un emplacement tournant, la partie du joueur reste la sienne.
@@ -198,6 +206,8 @@ func _rechargements() -> void:
 		objets.append(int(Performance.get_monitor(Performance.OBJECT_COUNT)))
 		print("    chargement %d : %d nœuds orphelins, %d objets" % [k + 1, orph[-1], objets[-1]])
 	_check(game != null and game.buildings.buildings.has(mc), "la mairie revient")
+	_check(game != null and game.buildings.buildings.has(forage) and not game.buildings.en_chantier(forage),
+		"le forage fini reste fini après les chargements (pas de chantier relancé)")
 	_check(orph[2] <= orph[0], "aucun nœud orphelin de plus à chaque chargement (%s)" % str(orph))
 	_check(objets[2] <= objets[0] + 300, "le nombre d'objets ne grimpe pas d'un chargement à l'autre (%s)" % str(objets))
 	SaveGame.delete(slot)

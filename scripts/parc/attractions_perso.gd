@@ -104,7 +104,9 @@ static func nouveau_design(fam_id: String) -> Dictionary:
 	var noms := {"acier": "Le Serpentin", "bois": "Le Vieux Bois", "mine": "Train de la Mine d'Or", "familial": "La Chenille",
 		"suspendu": "L'Envol", "lance": "La Fusée", "buches": "Les Bûches du Moulin", "riviere": "Rivière Sauvage",
 		"splash": "Grand Plouf", "toboggan": "Le Toboggan Bleu", "panoramique": "Les Montagnes Russes de 1900",
-		"bobsleigh": "Le Bobsleigh", "train_fantome": "Le Château Hanté", "moulin": "Le Vieux Moulin", "tour_glissade": "La Tour Joyeuse"}
+		"bobsleigh": "Le Bobsleigh", "train_fantome": "Le Château Hanté", "moulin": "Le Vieux Moulin", "tour_glissade": "La Tour Joyeuse",
+		"promenades": "Les Promenades de Belleville", "tournant": "La Toupie Folle", "luge_ete": "La Luge du Col",
+		"aile": "Les Ailes du Faucon", "realite_virtuelle": "Le Dragon Virtuel"}
 	return {"id": nouvel_id(), "nom": String(noms.get(fam_id, "Mon attraction")), "famille": fam_id, "pieces": [],
 		"raccord": false, "c_rail": 0, "c_support": 0, "c_train": 0, "voitures": int(f.voitures), "trains": int(f.get("trains", 1))}
 

@@ -570,3 +570,226 @@ def four_pain(d):
     d.boite((0, -0.9, 0.9), (0.6, 0.4, 0.55), "brique")
     d.boite((0, -1.11, 0.95), (0.4, 0.02, 0.35), "noir")
     d.cyl((0.4, 0.6, 1.4), 0.15, 0.8, "brique", n=6)
+
+
+# --- Lot 4 : début du XIXe siècle --------------------------------------------------
+
+def barriere_octroi(d):
+    """Barrière d'octroi : bascule rayée et bureau du receveur, à l'entrée de la ville (1800)."""
+    d.boite((-1.6, 0, 0), (1.6, 1.6, 0.15), "pierre")
+    d.boite((-1.6, 0, 0.15), (1.4, 1.4, 2.3), "pierre")
+    d.profil([(-0.85, 2.45), (0.85, 2.45), (0, 3.1)], -0.85, 0.85, "tuile", origine=(-1.6, 0, 0), cotes="pierre_sombre")
+    d.boite((-0.89, 0, 0.9), (0.02, 0.5, 0.7), "vitre")
+    d.cyl((-0.6, 0, 0), 0.12, 1.1, "bois_sombre", n=6)
+    for i in range(6):
+        d.boite((-0.3 + i * 0.6, 0, 1.0), (0.6, 0.12, 0.12), "rouge" if i % 2 else "blanc")
+    d.cyl((3.1, 0, 0), 0.08, 1.0, "bois_sombre", n=6)
+
+
+def poteau_indicateur(d):
+    """Poteau indicateur de carrefour, flèches de bois peintes (1800)."""
+    d.cyl((0, 0, 0), 0.08, 3.0, "bois_sombre", n=6)
+    for z, rz in ((2.6, 0), (2.3, 70), (2.0, 145)):
+        d.boite((0.45, 0, z), (0.9, 0.05, 0.2), "blanc", rz=rz)
+    d.cone((0, 0, 3.0), 0.12, 0.15, "bois_sombre", n=4)
+
+
+def telegraphe_chappe(d):
+    """Télégraphe Chappe : mât à bras articulés sur une tour de pierre (1794)."""
+    d.boite((0, 0, 0), (2.4, 2.4, 3.5), "pierre")
+    d.profil([(-1.4, 3.5), (1.4, 3.5), (0, 4.4)], -1.3, 1.3, "tuile", cotes="pierre_sombre")
+    d.tube((0, 0, 4.0), (0, 0, 8.0), 0.09, "bois_sombre", n=6)
+    d.poutre((-1.6, 0, 7.6), (1.6, 0, 7.3), 0.25, 0.08, "noir")
+    d.poutre((-1.6, 0, 7.6), (-1.7, 0, 6.6), 0.2, 0.06, "noir")
+    d.poutre((1.6, 0, 7.3), (2.1, 0, 8.1), 0.2, 0.06, "noir")
+
+
+def puits_couvert(d):
+    """Puits couvert à treuil et à toit de tuiles."""
+    d.anneau((0, 0, 0), 0.55, 0.85, 0.8, "pierre", n=12, interieur="eau")
+    for x in (-0.75, 0.75):
+        d.boite((x, 0, 0.8), (0.14, 0.14, 1.5), "bois_sombre")
+    d.tube((-0.8, 0, 1.75), (0.95, 0, 1.75), 0.08, "bois", n=6)
+    d.tube((0.95, 0, 1.75), (0.95, 0.3, 1.55), 0.025, "fonte", n=4)
+    d.profil([(-1.2, 2.25), (1.2, 2.25), (0, 2.9)], -0.7, 0.7, "tuile", rz=90, cotes="bois_sombre")
+    d.cyl((0.2, 0, 0.9), 0.15, 0.3, "bois", n=8)
+
+
+def guerite(d):
+    """Guérite de sentinelle à rayures, devant la caserne ou le palais (1800)."""
+    d.boite((0, 0, 0), (1.1, 1.1, 0.12), "pierre")
+    d.boite((0, 0.1, 0.12), (1.0, 0.9, 2.3), "blanc")
+    for z in (0.5, 1.2, 1.9):
+        d.boite((0, 0.1, z), (1.02, 0.92, 0.3), "rouge")
+    d.boite((0, -0.36, 0.12), (0.62, 0.02, 1.9), "noir")
+    d.profil([(-0.65, 2.42), (0.65, 2.42), (0, 2.95)], -0.6, 0.65, "bleu", cotes="blanc")
+
+
+def boite_lettres_fonte(d):
+    """Boîte aux lettres en fonte sur colonne (1849)."""
+    d.cyl((0, 0, 0), 0.22, 0.1, "fonte", n=8)
+    d.cyl((0, 0, 0.1), 0.18, 1.25, "rouge", n=8)
+    d.cyl((0, 0, 1.35), 0.22, 0.08, "rouge", n=8)
+    d.cone((0, 0, 1.43), 0.22, 0.18, "rouge", n=8)
+    d.boite((0, -0.17, 1.0), (0.22, 0.02, 0.04), "noir")
+    d.boite((0, -0.17, 0.75), (0.16, 0.02, 0.12), "or")
+
+
+def grue_quai(d):
+    """Grue de quai en bois à tambour de halage (XIXe siècle)."""
+    d.boite((0, 0, 0), (2.0, 2.0, 0.3), "pierre_sombre")
+    d.cyl((0, 0, 0.3), 1.0, 2.2, "bois", n=10)
+    d.cone((0, 0, 2.5), 1.15, 0.7, "tuile", n=10)
+    d.poutre((0.6, 0, 1.5), (4.0, 0, 4.2), 0.25, 0.25, "bois_sombre")
+    d.poutre((0.8, 0, 0.6), (3.0, 0, 3.0), 0.12, 0.12, "bois_sombre")
+    d.tube((4.0, 0, 4.2), (4.0, 0, 1.5), 0.02, "noir", n=4)
+    d.boite((4.0, 0, 1.0), (0.5, 0.5, 0.5), "bois_clair")
+
+
+def montoir(d):
+    """Montoir à cheval : trois marches de pierre et un anneau."""
+    for i, h in enumerate((0.25, 0.5, 0.75)):
+        d.boite((0, -0.3 + i * 0.3, 0), (0.8, 0.3, h), "pierre")
+    d.cyl((0.55, 0.3, 0), 0.1, 1.0, "pierre_sombre", n=6)
+    d.anneau((0.55, 0.38, 0.8), 0.06, 0.09, 0.03, "fonte", n=8)
+
+
+# --- Lot 4 : la rue d'aujourd'hui et de demain -------------------------------------
+
+def eolienne_urbaine(d):
+    """Petite éolienne urbaine à axe vertical (2015)."""
+    d.cyl((0, 0, 0), 0.35, 0.15, "beton", n=8)
+    d.cyl((0, 0, 0.15), 0.1, 5.0, "galva", n=8)
+    for i in range(3):
+        a = math.tau * i / 3
+        x, y = math.cos(a) * 0.8, math.sin(a) * 0.8
+        d.tube((x * 0.9, y * 0.9, 5.0), (x, y, 7.4), 0.07, "blanc", n=5)
+        d.tube((0, 0, 5.4), (x * 0.9, y * 0.9, 5.4), 0.025, "galva", n=4)
+        d.tube((0, 0, 7.0), (x, y, 7.0), 0.025, "galva", n=4)
+    d.cyl((0, 0, 5.0), 0.14, 2.6, "galva", n=8)
+
+
+def arbre_solaire(d):
+    """Arbre solaire : ombrière à feuilles de panneaux et bancs (2020)."""
+    d.cyl((0, 0, 0), 0.8, 0.45, "bois_clair", n=10)
+    d.tube((0, 0, 0.45), (0, 0, 3.6), 0.14, "metal_sombre", n=8)
+    for i, (r, z) in enumerate(((1.6, 3.4), (1.2, 4.1), (0.9, 4.7), (1.4, 3.8), (1.0, 4.4))):
+        a = math.tau * i / 5 + 0.3
+        x, y = math.cos(a) * r, math.sin(a) * r
+        d.tube((0, 0, z - 0.6), (x, y, z), 0.04, "metal_sombre", n=4)
+        d.boite((x, y, z), (1.1, 0.8, 0.05), "bleu", rz=math.degrees(a))
+    d.cyl((0, 0, 3.6), 0.1, 1.4, "metal_sombre", n=6)
+
+
+def brumisateur(d):
+    """Mât brumisateur, îlot de fraîcheur des étés chauds (2019)."""
+    d.boite((0, 0, 0), (1.6, 1.6, 0.04), "eau")
+    d.cyl((0, 0, 0.04), 0.12, 3.2, "blanc", n=8)
+    for i in range(6):
+        a = math.tau * i / 6
+        d.tube((0, 0, 3.0), (math.cos(a) * 0.7, math.sin(a) * 0.7, 3.1), 0.025, "blanc", n=4)
+        d.boule((math.cos(a) * 0.8, math.sin(a) * 0.8, 2.7), 0.25, 0.25, 0.35, "tissu_blanc", alea=0.3)
+
+
+def capteur_air(d):
+    """Station de mesure de la qualité de l'air (2015)."""
+    d.boite((0, 0, 0), (0.9, 0.7, 1.6), "blanc")
+    d.boite((0, -0.36, 1.1), (0.5, 0.02, 0.3), "vert")
+    d.tube((0.2, 0, 1.6), (0.2, 0, 2.6), 0.03, "galva", n=4)
+    for z in (2.2, 2.35, 2.5):
+        d.cyl((0.2, 0, z), 0.15, 0.08, "blanc", n=8)
+    d.tube((-0.25, 0, 1.6), (-0.25, 0, 2.0), 0.05, "galva", n=6)
+    d.cone((-0.25, 0, 2.0), 0.1, 0.1, "galva", n=6)
+
+
+def parklet(d):
+    """Parklet : terrasse en bois sur une place de stationnement (2016)."""
+    d.boite((0, 0, 0), (5.0, 2.0, 0.15), "bois_clair")
+    for x in (-2.4, 2.4):
+        d.boite((x, 0, 0.15), (0.2, 2.0, 0.6), "bois", dessus="feuillage")
+    d.boite((0, 0.85, 0.15), (4.6, 0.3, 0.6), "bois", dessus="herbe")
+    for x in (-1.2, 0.5, 1.6):
+        d.boite((x, 0.85, 0.75), (0.8, 0.25, 0.1), "feuillage")
+        d.boule((x, 0.85, 0.85), 0.35, 0.18, 0.3, "feuillage")
+    d.boite((-0.5, 0.4, 0.15), (2.0, 0.4, 0.45), "bois")
+    for x in (0.9, 1.9):
+        d.cyl((x, -0.2, 0.15), 0.3, 0.72, "metal_sombre", n=8, dessus="bois_clair")
+
+
+def jardin_pluie(d):
+    """Jardin de pluie : noue plantée qui boit l'eau des averses (2015)."""
+    d.boite((0, 0, 0), (6.0, 2.4, 0.05), "terre")
+    d.boite((0, 0, 0.05), (5.4, 1.2, 0.02), "eau")
+    for i in range(10):
+        x = -2.6 + i * 0.58
+        y = 0.85 if i % 2 else -0.85
+        d.boule((x, y, 0.05), 0.35, 0.3, 0.4, "herbe" if i % 3 else "feuillage")
+    for x in (-3.05, 3.05):
+        d.boite((x, 0, 0), (0.1, 2.4, 0.2), "beton")
+
+
+def frigo_solidaire(d):
+    """Frigo solidaire : on y laisse et on y prend de quoi manger (2015)."""
+    d.boite((0, 0, 0), (1.4, 0.9, 0.1), "beton")
+    d.boite((0, 0.1, 0.1), (1.3, 0.7, 2.3), "bois_clair")
+    d.boite((0, 0.1, 2.4), (1.5, 0.9, 0.1), "bois")
+    d.boite((-0.3, -0.18, 0.15), (0.6, 0.6, 1.6), "blanc")
+    d.boite((0.35, -0.2, 0.3), (0.5, 0.02, 1.6), "vert")
+    d.boite((-0.3, -0.49, 1.2), (0.03, 0.02, 0.4), "metal")
+
+
+def toilettes_seches(d):
+    """Toilettes sèches publiques en bois (2015)."""
+    d.boite((0, 0, 0), (1.6, 1.6, 0.4), "beton")
+    d.boite((0, 0, 0.4), (1.4, 1.4, 2.2), "bois_clair")
+    d.boite((0, -0.71, 0.4), (0.8, 0.02, 1.9), "bois")
+    d.boite((0, 0, 2.6), (1.7, 1.7, 0.08), "herbe")
+    d.tube((0.5, 0.5, 2.6), (0.5, 0.5, 3.2), 0.06, "galva", n=6)
+    d.boite((-0.9, 0, 0.0), (0.4, 0.6, 0.9), "bois")
+
+
+def echange_batteries(d):
+    """Station d'échange de batteries de scooters (2019)."""
+    d.boite((0, 0, 0), (1.8, 0.7, 0.1), "beton")
+    d.boite((0, 0.05, 0.1), (1.6, 0.55, 2.0), "metal_sombre")
+    for i in range(4):
+        for j in range(3):
+            d.boite((-0.6 + i * 0.4, -0.23, 0.35 + j * 0.45), (0.3, 0.02, 0.35), "galva")
+            d.boite((-0.6 + i * 0.4, -0.245, 0.62 + j * 0.45), (0.08, 0.01, 0.04), "feu_vert")
+    d.boite((0, -0.23, 1.75), (1.2, 0.02, 0.2), "bleu_ciel")
+
+
+def borne_hydrogene(d):
+    """Distributeur d'hydrogène sous auvent (2018)."""
+    d.boite((0, 0, 0), (2.0, 1.2, 0.2), "beton")
+    d.boite((0, 0, 0.2), (0.7, 0.5, 1.9), "blanc")
+    d.boite((0, -0.26, 1.4), (0.4, 0.02, 0.3), "bleu_ciel")
+    d.boite((0, -0.26, 1.85), (0.6, 0.02, 0.2), "bleu")
+    d.tube((0.3, -0.25, 1.1), (0.55, -0.4, 0.6), 0.03, "noir", n=5)
+    for x in (-0.9, 0.9):
+        d.cyl((x, 0, 0.2), 0.08, 4.0, "galva", n=6)
+    d.boite((0, 0, 4.2), (3.0, 2.0, 0.25), "blanc")
+
+
+def robot_livraison(d):
+    """Robot de livraison sur le trottoir, avec son fanion (2020)."""
+    for x in (-0.25, 0, 0.25):
+        for y in (-0.25, 0.25):
+            d.roue((x, y, 0.1), 0.1, 0.05, "caoutchouc")
+    d.boite((0, 0, 0.12), (0.7, 0.55, 0.45), "blanc")
+    d.boite((0, 0, 0.57), (0.65, 0.5, 0.05), "metal_sombre")
+    d.boite((0.36, 0, 0.35), (0.02, 0.4, 0.1), "lumiere")
+    d.tube((-0.28, 0.2, 0.6), (-0.28, 0.2, 1.6), 0.008, "noir", n=4)
+    d.boite((-0.28, 0.27, 1.45), (0.02, 0.15, 0.12), "orange")
+
+
+def vertiport(d):
+    """Plateforme de taxis volants au sol, avec ses bornes (2030)."""
+    d.cyl((0, 0, 0), 6.0, 0.6, "beton", n=16)
+    d.anneau((0, 0, 0.6), 5.4, 5.6, 0.02, "jaune", n=16)
+    d.anneau((0, 0, 0.6), 2.0, 2.3, 0.02, "blanc", n=12)
+    for i in range(8):
+        a = math.tau * i / 8
+        d.cyl((math.cos(a) * 5.8, math.sin(a) * 5.8, 0.6), 0.1, 0.25, "lumiere", n=5)
+    d.boite((6.5, 0, 0), (1.0, 0.6, 1.8), "blanc")
+    d.boite((6.5, -0.31, 1.0), (0.6, 0.02, 0.4), "bleu_ciel")

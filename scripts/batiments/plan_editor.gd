@@ -98,13 +98,24 @@ const OPENINGS := {
 	"hublot": {"name": "Hublot", "s": 1.2, "t": 2.1, "price": 350, "window": true, "forme": "oeil", "desc": "Fenêtre ronde des années 30 (style paquebot, Art déco, Streamline)."},
 	"baie_balconnet": {"name": "Baie à garde-corps", "s": 0.05, "t": 2.5, "price": 900, "bay": true, "balconnet": true, "desc": "Baie vitrée du sol au plafond fermée par un garde-corps (immeuble moderne)."},
 	"arcade_brisee": {"name": "Arcade brisée", "s": 0.0, "t": 2.7, "price": 140, "forme": "brise", "passage": true, "desc": "Passage en arc brisé (cloître gothique, souk, mosquée)."},
+	# --- Lot 4 : début du XIXe siècle et baies d'aujourd'hui ------------------------------
+	"fenetre_petits_bois_volets": {"name": "Fenêtre à petits bois et volets", "s": 0.9, "t": 2.2, "price": 600, "window": true, "special": "grille", "volets": true, "desc": "Fenêtre à petits carreaux et ses volets (maison du début du XIXe siècle)."},
+	"fenetre_balconnet_volets": {"name": "Fenêtre à balconnet et volets", "s": 0.3, "t": 2.3, "price": 850, "window": true, "balconnet": true, "volets": true, "desc": "Haute fenêtre à garde-corps et volets (Italie, Provence, Nouvelle-Orléans)."},
+	"oeil_volets": {"name": "Œil-de-bœuf à volets", "s": 1.35, "t": 2.25, "price": 450, "window": true, "forme": "oeil", "volets": true, "desc": "Petite fenêtre ronde et ses volets (grenier, pigeonnier)."},
+	"fenetre_ogive_volets": {"name": "Fenêtre en ogive à volets", "s": 0.8, "t": 2.6, "price": 650, "window": true, "forme": "brise", "volets": true, "desc": "Arc brisé et volets de bois (Venise, Levant, néo-gothique)."},
+	"fenetre_balconnet_store": {"name": "Fenêtre à balconnet et store", "s": 0.3, "t": 2.3, "price": 850, "window": true, "balconnet": true, "store": true, "desc": "Garde-corps de fer et store rayé (immeuble de bord de mer, Belle Époque)."},
+	"baie_balconnet_store": {"name": "Baie à garde-corps et store", "s": 0.05, "t": 2.5, "price": 1050, "bay": true, "balconnet": true, "store": true, "desc": "Baie du sol au plafond, garde-corps et store (immeuble de vacances des années 60)."},
+	"baie_store": {"name": "Baie vitrée à store banne", "s": 0.1, "t": 2.5, "price": 900, "bay": true, "store": true, "desc": "Baie du sol au plafond et son store sur la terrasse (années 60 et après)."},
+	"baie_volets": {"name": "Baie vitrée à volets", "s": 0.1, "t": 2.5, "price": 950, "bay": true, "volets": true, "desc": "Baie vitrée et ses grands volets (maison des années 70, villa)."},
 }
 const OPENING_ORDER := ["porte", "porte_vitree", "porte_fenetre", "porte_entree", "porte_cintree", "porte_double", "porte_balcon",
 	"porte_garage", "porte_grange", "passage", "arcade",
 	"fenetre", "fenetre_volets", "fenetre_petits_bois", "fenetre_cintree", "fenetre_gothique", "oeil_de_boeuf", "fenetre_haute",
 	"fenetre_atelier", "bandeau", "baie", "baie_coulissante", "mur_rideau", "vitrine", "vitrine_store", "meurtriere", "claustra",
 	"porte_fenetre_volets", "fenetre_cintree_volets", "fenetre_ogive", "fenetre_balconnet", "fenetre_store", "fenetre_haute_volets",
-	"hublot", "baie_balconnet", "arcade_brisee"]
+	"hublot", "baie_balconnet", "arcade_brisee",
+	"fenetre_petits_bois_volets", "fenetre_balconnet_volets", "oeil_volets", "fenetre_ogive_volets", "fenetre_balconnet_store",
+	"baie_store", "baie_volets", "baie_balconnet_store"]
 ## Vitrail des fenêtres gothiques, fer forgé des balconnets.
 const VITRAIL_MAT := 51
 const IRON_MAT := 56
@@ -2183,10 +2194,13 @@ const ROOFS := [["deux_pans", "Deux pans"], ["quatre_pans", "Quatre pans"], ["pl
 	["mansarde", "Mansarde"], ["terrasse", "Terrasse"], ["dents_de_scie", "Sheds"], ["voute", "Voûte"],
 	["coupole", "Coupole"], ["bulbe", "Bulbe"], ["conique", "Conique"], ["pyramide", "Pyramide"],
 	["verriere", "Verrière"], ["comble_brise", "Comble brisé (grange)"], ["pagode", "Pagode"], ["plat_debord", "Plat à grand débord"],
-	["toit_vegetal", "Toit végétalisé"], ["toit_solaire", "Toit solaire"]]
+	["toit_vegetal", "Toit végétalisé"], ["toit_solaire", "Toit solaire"],
+	["chaume", "Chaume"], ["verriere_pavillon", "Verrière en pavillon"], ["coupole_verre", "Coupole de verre"],
+	["papillon", "Toit papillon"], ["sheds_solaires", "Sheds solaires"], ["tuiles_solaires", "Tuiles solaires"],
+	["toit_radiatif", "Toit blanc rafraîchissant"]]
 ## Matériau par défaut d'un toit quand le matériau choisi n'est pas un matériau de toit.
 const ROOF_DEFAULT_MAT := {"mansarde": 8, "coupole": 47, "bulbe": 42, "conique": 8, "voute": 46, "dents_de_scie": 45, "terrasse": 23, "plat": 7,
-	"pagode": 89, "comble_brise": 177, "plat_debord": 23, "toit_vegetal": 23}
+	"pagode": 89, "comble_brise": 177, "plat_debord": 23, "toit_vegetal": 23, "papillon": 7}
 
 
 func add_roof(id: String, kind: String, roof_mat := -1) -> int:
@@ -2280,6 +2294,46 @@ func _roof_groups(kind: String, lo: Vector2i, hi: Vector2i, over: int, y2: int, 
 		"toit_solaire":
 			var sol := BlocMateriaux.index_of("Panneaux solaires")
 			return _roof_groups("un_pan", lo, hi, over, y2, sol if sol >= 0 else roof_mat, wall_mat)
+		# Lot 4 : toits faits d'un autre toit et d'un matériau d'époque.
+		"chaume":
+			var ch := BlocMateriaux.index_of("Chaume")
+			return _roof_groups("deux_pans", lo, hi, over, y2, ch if ch >= 0 else roof_mat, wall_mat)
+		"verriere_pavillon":
+			return _roof_groups("quatre_pans", lo, hi, over, y2, GLASS_MAT, wall_mat)
+		"coupole_verre":
+			return _roof_groups("coupole", lo, hi, over, y2, GLASS_MAT, wall_mat)
+		"sheds_solaires":
+			var ps := BlocMateriaux.index_of("Panneaux solaires")
+			return _roof_groups("dents_de_scie", lo, hi, over, y2, ps if ps >= 0 else roof_mat, wall_mat)
+		"tuiles_solaires":
+			var ts := BlocMateriaux.index_of("Tuiles solaires")
+			return _roof_groups("deux_pans", lo, hi, over, y2, ts if ts >= 0 else roof_mat, wall_mat)
+		"toit_radiatif":
+			var rb := BlocMateriaux.index_of("Peinture radiative blanche")
+			return _roof_groups("terrasse", lo, hi, over, y2, rb if rb >= 0 else roof_mat, wall_mat)
+		"papillon":
+			# Toit papillon (années 50) : deux pans qui descendent vers une noue au
+			# milieu ; les pignons sont montés en mur sous les pentes.
+			var along_xp := (x1 - x0) >= (z1 - z0)
+			var np := (z1 - z0 + 1) if along_xp else (x1 - x0 + 1)
+			var half := (np - 1) / 2
+			for j in np:
+				var fe := mini(j, np - 1 - j)
+				var outer := j < np - 1 - j
+				var dm := maxi(0, half - fe)
+				var layer := maxi(0, dm - 1) / 2
+				var sh: int = BlocFormes.S.SLAB if dm == 0 else (BlocFormes.S.SLOPE_LOW if (dm - 1) % 2 == 0 else BlocFormes.S.SLOPE_HIGH)
+				var r := 0 if dm == 0 else ((2 if outer else 0) if along_xp else (1 if outer else 3))
+				for q in (range(x0, x1 + 1) if along_xp else range(z0, z1 + 1)):
+					add.call(Vector3i(q, y2 + layer * hu, z0 + j) if along_xp else Vector3i(x0 + j, y2 + layer * hu, q),
+						BlocFormes.encode(roof_mat, sh, r))
+				if j == 0 or j == np - 1:
+					continue
+				for gq in ([lo.x, hi.x] if along_xp else [lo.y, hi.y]):
+					for l in layer:
+						add.call(Vector3i(gq, y2 + l * hu, z0 + j) if along_xp else Vector3i(x0 + j, y2 + l * hu, gq),
+							BlocFormes.encode(wall_mat))
+			return groups
 		"plat_debord":
 			# Dalle mince qui déborde largement (style Prairie, villas modernistes).
 			for x in range(x0 - 1, x1 + 2):

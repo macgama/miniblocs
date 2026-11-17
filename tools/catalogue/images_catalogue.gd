@@ -11,7 +11,7 @@ extends SceneTree
 ## Écrit aussi img/index.json, lu par tools/catalogue/export_catalogue.gd pour
 ## brancher les images dans catalogue.html. À lancer avec affichage :
 ##   xvfb-run -a godot --path . --rendering-driver opengl3 --script res://tools/catalogue/images_catalogue.gd
-##   ... -- --familles batiments,decors   --limite 20   --seul nubien__maison
+##   ... -- --familles batiments,decors   --limite 20   --seul nubien__maison   --manquants
 ## Le rendu complet prend une vingtaine de minutes.
 
 const PX := 160
@@ -23,6 +23,8 @@ var dossier := "res://docs/catalogue/img"
 var familles: Array = []
 var limite := 0
 var seul := ""
+## --manquants : ne rend que les objets absents de index.json (après un ajout au catalogue).
+var manquants := false
 var manif := {}
 var holder: Node3D
 var cam: Camera3D
@@ -44,6 +46,7 @@ func _run() -> void:
 			"--familles": familles = Array(v.split(","))
 			"--limite": limite = v.to_int()
 			"--seul": seul = v
+			"--manquants": manquants = true
 	_t0 = Time.get_ticks_msec()
 	root.transparent_bg = true
 	root.size = Vector2i(PX, PX)
@@ -81,6 +84,8 @@ func _run() -> void:
 		if not familles.is_empty() and not f in familles:
 			continue
 		if seul != "" and String(e.id) != seul:
+			continue
+		if manquants and manif.has(_cle(e)):
 			continue
 		par_fam[f] = int(par_fam.get(f, 0)) + 1
 		if limite > 0 and int(par_fam[f]) > limite:

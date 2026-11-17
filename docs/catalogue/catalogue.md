@@ -10,30 +10,30 @@ n'a que ce qui est daté 1850 ou avant ; le reste arrive à sa date (« Arrive e
 
 | Famille | Total | De tout temps (avant 1800) | 1800 – 1849 | 1850 – 1899 | 1900 – 1949 | 1950 – 1989 | 1990 – 2029 | Futur |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
-| [Bâtiments](#batiments) | 1351 | 440 | 79 | 221 | 197 | 250 | 155 | 9 |
-| [Véhicules](#vehicules) | 277 | 11 | 40 | 30 | 36 | 83 | 72 | 5 |
+| [Bâtiments](#batiments) | 1474 | 449 | 136 | 221 | 197 | 250 | 193 | 28 |
+| [Véhicules](#vehicules) | 310 | 11 | 44 | 30 | 36 | 83 | 95 | 11 |
 | [Voies](#voies) | 17 | 6 | 1 | 3 | 4 | 2 | 1 | 0 |
 | [Stations, gares et ports](#stations) | 10 | 2 | 2 | 2 | 3 | 1 | 0 | 0 |
 | [Lignes et conduites](#reseaux) | 8 | 2 | 1 | 2 | 1 | 0 | 2 | 0 |
 | [Agriculture](#agriculture) | 89 | 49 | 2 | 7 | 8 | 18 | 5 | 0 |
-| [Grands-huit et attractions](#attractions) | 61 | 28 | 0 | 3 | 4 | 17 | 9 | 0 |
-| [Aménagements de l'Atelier](#amenagements) | 34 | 5 | 5 | 12 | 7 | 3 | 2 | 0 |
-| [Portes et fenêtres](#ouvertures) | 36 | 24 | 0 | 5 | 5 | 2 | 0 | 0 |
-| [Toits](#toits) | 18 | 12 | 2 | 0 | 2 | 1 | 1 | 0 |
-| [Matériaux](#materiaux) | 419 | 298 | 9 | 22 | 25 | 47 | 16 | 2 |
-| [Décors](#decors) | 291 | 158 | 5 | 25 | 43 | 35 | 24 | 1 |
-| [Meubles](#meubles) | 121 | 65 | 0 | 11 | 11 | 20 | 12 | 2 |
-| [Objets de spectacle](#spectacles) | 58 | 19 | 0 | 2 | 17 | 16 | 4 | 0 |
-| **Total** | **2790** | |
+| [Grands-huit et attractions](#attractions) | 66 | 28 | 1 | 3 | 4 | 17 | 13 | 0 |
+| [Aménagements de l'Atelier](#amenagements) | 44 | 5 | 7 | 16 | 7 | 3 | 6 | 0 |
+| [Portes et fenêtres](#ouvertures) | 44 | 27 | 0 | 7 | 5 | 5 | 0 | 0 |
+| [Toits](#toits) | 25 | 13 | 4 | 0 | 2 | 2 | 4 | 0 |
+| [Matériaux](#materiaux) | 444 | 298 | 20 | 22 | 25 | 47 | 26 | 6 |
+| [Décors](#decors) | 311 | 161 | 10 | 25 | 43 | 35 | 35 | 2 |
+| [Meubles](#meubles) | 137 | 65 | 7 | 11 | 11 | 20 | 17 | 6 |
+| [Objets de spectacle](#spectacles) | 70 | 22 | 2 | 2 | 17 | 17 | 10 | 0 |
+| **Total** | **3049** | |
 
 ### D'où viennent les années
 
-- date propre : 376
+- date propre : 409
 - table des époques : 439
-- datée avec le catalogue : 765
-- style : 581
+- datée avec le catalogue : 843
+- style : 704
 - époque de la bible : 210
-- mot du nom : 419
+- mot du nom : 444
 
 Évolutions : un bâtiment qui accueille du monde ou produit s'agrandit en 3 niveaux (+50 %, puis ×2) et se rénove ;
 beaucoup ont des variantes de façade ; ceux qui jouent le même rôle à différentes époques (école, hôpital, pompiers,
@@ -41,7 +41,7 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 
 <a id="batiments"></a>
 
-## Bâtiments (1351)
+## Bâtiments (1474)
 
 ### Commerce
 
@@ -102,9 +102,21 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Échoppe | toujours | 9 × 12 m · 270 k€ · 4 emplois · 120 visiteurs · style Médina | Agrandissable : niveau 2 (+50 %, 162 k€), niveau 3 (×2, 216 k€) ; rénovation 41 k€ · 4 variantes de façade |
 | Échoppe à bow-window | toujours | 9 × 12 m · 300 k€ · 4 emplois · 120 visiteurs · style Géorgien et Regency | Agrandissable : niveau 2 (+50 %, 180 k€), niveau 3 (×2, 240 k€) ; rénovation 45 k€ · 4 variantes de façade |
 | Épicerie de quartier | toujours | 12 × 13 m · 300 k€ · 3 emplois · 250 visiteurs · Europe | Agrandissable : niveau 2 (+50 %, 180 k€), niveau 3 (×2, 240 k€) ; rénovation 45 k€ · 4 variantes de façade |
+| Magasin général | 1790 | 9 × 12 m · 300 k€ · 4 emplois · 120 visiteurs · style Fédéral américain | Agrandissable : niveau 2 (+50 %, 180 k€), niveau 3 (×2, 240 k€) ; rénovation 45 k€ · 4 variantes de façade |
+| Amirauté | 1800 | 24 × 20 m · 9 M€ · 125 emplois · style Saint-Pétersbourg impérial | Agrandissable : niveau 2 (+50 %, 5,4 M€), niveau 3 (×2, 7,2 M€) ; rénovation 1,4 M€ · 4 variantes de façade |
+| Halle aux grains | 1800 | 30 × 24 m · 1,5 M€ · 30 emplois · 800 visiteurs · style Néoclassique Empire | Agrandissable : niveau 2 (+50 %, 900 k€), niveau 3 (×2, 1,2 M€) ; rénovation 225 k€ · 4 variantes de façade |
+| Maison de négoce | 1800 | 24 × 20 m · 9 M€ · 125 emplois · style Comptoirs de Canton | Agrandissable : niveau 2 (+50 %, 5,4 M€), niveau 3 (×2, 7,2 M€) ; rénovation 1,4 M€ · 4 variantes de façade |
+| Marché aux porcelaines | 1800 | 30 × 24 m · 1,5 M€ · 30 emplois · 800 visiteurs · style Comptoirs de Canton | Agrandissable : niveau 2 (+50 %, 900 k€), niveau 3 (×2, 1,2 M€) ; rénovation 225 k€ · 4 variantes de façade |
+| Passage couvert | 1800 | 9 × 12 m · 300 k€ · 4 emplois · 120 visiteurs · style Néoclassique Empire | Agrandissable : niveau 2 (+50 %, 180 k€), niveau 3 (×2, 240 k€) ; rénovation 45 k€ · 4 variantes de façade |
+| Échoppe du Cohong | 1800 | 9 × 12 m · 300 k€ · 4 emplois · 120 visiteurs · style Comptoirs de Canton | Agrandissable : niveau 2 (+50 %, 180 k€), niveau 3 (×2, 240 k€) ; rénovation 45 k€ · 4 variantes de façade |
+| Comptoir de la Compagnie | 1810 | 24 × 20 m · 9 M€ · 125 emplois · style Bungalow anglo-indien | Agrandissable : niveau 2 (+50 %, 5,4 M€), niveau 3 (×2, 7,2 M€) ; rénovation 1,4 M€ · 4 variantes de façade |
+| Confiserie | 1815 | 9 × 12 m · 300 k€ · 4 emplois · 120 visiteurs · style Biedermeier | Agrandissable : niveau 2 (+50 %, 180 k€), niveau 3 (×2, 240 k€) ; rénovation 45 k€ · 4 variantes de façade |
+| Banque en temple | 1820 | 24 × 20 m · 9 M€ · 125 emplois · style Néo-grec américain | Agrandissable : niveau 2 (+50 %, 5,4 M€), niveau 3 (×2, 7,2 M€) ; rénovation 1,4 M€ · 4 variantes de façade |
 | Shophouse | 1820 | 9 × 21 m · 820 k€ · 2 logements · 4 emplois · 180 visiteurs · Asie du Sud et du Sud-Est | Agrandissable : niveau 2 (+50 %, 492 k€), niveau 3 (×2, 656 k€) ; rénovation 123 k€ · 4 variantes de façade |
 | Halle en fonte | 1830 | 30 × 24 m · 1,5 M€ · 30 emplois · 800 visiteurs · style Briques industrielles | Agrandissable : niveau 2 (+50 %, 900 k€), niveau 3 (×2, 1,2 M€) ; rénovation 225 k€ · 4 variantes de façade |
+| Marché aux épices | 1830 | 30 × 24 m · 1,5 M€ · 30 emplois · 800 visiteurs · style Stone Town de Zanzibar | Agrandissable : niveau 2 (+50 %, 900 k€), niveau 3 (×2, 1,2 M€) ; rénovation 225 k€ · 4 variantes de façade |
 | Pizzeria | 1830 | 13 × 19 m · 480 k€ · 1 logement · 7 emplois · 220 visiteurs · Méditerranée | Agrandissable : niveau 2 (+50 %, 288 k€), niveau 3 (×2, 384 k€) ; rénovation 72 k€ · 4 variantes de façade |
+| Échoppe à banquette | 1830 | 9 × 12 m · 300 k€ · 4 emplois · 120 visiteurs · style Stone Town de Zanzibar | Agrandissable : niveau 2 (+50 %, 180 k€), niveau 3 (×2, 240 k€) ; rénovation 45 k€ · 4 variantes de façade |
 | Boutique à cinq pieds | 1840 | 9 × 12 m · 300 k€ · 4 emplois · 120 visiteurs · style Compartiments sino-malais | Agrandissable : niveau 2 (+50 %, 180 k€), niveau 3 (×2, 240 k€) ; rénovation 45 k€ · 4 variantes de façade |
 | Compartiments chinois | 1840 | 24 × 16 m · 900 k€ · 4 logements · 12 emplois · 300 visiteurs · Asie du Sud et du Sud-Est | Agrandissable : niveau 2 (+50 %, 540 k€), niveau 3 (×2, 720 k€) ; rénovation 135 k€ |
 | Pasar | 1840 | 30 × 24 m · 1,5 M€ · 30 emplois · 800 visiteurs · style Compartiments sino-malais | Agrandissable : niveau 2 (+50 %, 900 k€), niveau 3 (×2, 1,2 M€) ; rénovation 225 k€ · 4 variantes de façade |
@@ -211,8 +223,8 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Boutique peinte | 1960 | 9 × 12 m · 300 k€ · 4 emplois · 120 visiteurs · style Ville africaine | Agrandissable : niveau 2 (+50 %, 180 k€), niveau 3 (×2, 240 k€) ; rénovation 45 k€ · 4 variantes de façade |
 | Bureaux (ville africaine) | 1960 | 24 × 20 m · 9 M€ · 200 emplois · style Ville africaine | Agrandissable : niveau 2 (+50 %, 5,4 M€), niveau 3 (×2, 7,2 M€) ; rénovation 1,4 M€ · 4 variantes de façade |
 | Faré sur pilotis | 1960 | 36 × 30 m · 1,2 M€ · 12 emplois · 40 visiteurs · Océanie | Agrandissable : niveau 2 (+50 %, 720 k€), niveau 3 (×2, 960 k€) ; rénovation 180 k€ · 4 variantes de façade |
-| Immeuble de bureaux | 1960 | 22 × 18 m · 9 M€ · 250 emplois | Agrandissable : niveau 2 (+50 %, 5,4 M€), niveau 3 (×2, 7,2 M€) ; rénovation 1,4 M€ |
 | Immeuble de bureaux | 1960 | 35 × 21 m · 14 M€ · 320 emplois · Europe | Agrandissable : niveau 2 (+50 %, 8,4 M€), niveau 3 (×2, 11 M€) ; rénovation 2,1 M€ · 4 variantes de façade |
+| Immeuble de bureaux | 1960 | 22 × 18 m · 9 M€ · 250 emplois | Agrandissable : niveau 2 (+50 %, 5,4 M€), niveau 3 (×2, 7,2 M€) ; rénovation 1,4 M€ |
 | Marché aux toits de tôle | 1960 | 30 × 24 m · 1,5 M€ · 30 emplois · 800 visiteurs · style Ville africaine | Agrandissable : niveau 2 (+50 %, 900 k€), niveau 3 (×2, 1,2 M€) ; rénovation 225 k€ · 4 variantes de façade |
 | Marché couvert africain | 1960 | 38 × 28 m · 900 k€ · 40 emplois · 2500 visiteurs · Afrique | Agrandissable : niveau 2 (+50 %, 540 k€), niveau 3 (×2, 720 k€) ; rénovation 135 k€ · 4 variantes de façade |
 | Supermarché | 1960 | 44 × 46 m · 6,5 M€ · 60 emplois · 2500 visiteurs | Agrandissable : niveau 2 (+50 %, 3,9 M€), niveau 3 (×2, 5,2 M€) ; rénovation 975 k€ |
@@ -271,9 +283,24 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Bureaux à énergie positive | 2010 | 24 × 20 m · 12 M€ · 300 emplois · style Bois et végétal | Agrandissable : niveau 2 (+50 %, 7,0 M€), niveau 3 (×2, 9,4 M€) ; rénovation 1,8 M€ · 4 variantes de façade |
 | Halles bioclimatiques | 2010 | 30 × 24 m · 1,9 M€ · 30 emplois · 800 visiteurs · style Bois et végétal | Agrandissable : niveau 2 (+50 %, 1,2 M€), niveau 3 (×2, 1,6 M€) ; rénovation 293 k€ · 4 variantes de façade |
 | Magasin coopératif | 2010 | 42 × 36 m · 9,1 M€ · 80 emplois · 2500 visiteurs · style Bois et végétal | Agrandissable : niveau 2 (+50 %, 5,5 M€), niveau 3 (×2, 7,3 M€) ; rénovation 1,4 M€ · 4 variantes de façade |
+| Halle de producteurs | 2015 | 30 × 24 m · 1,9 M€ · 30 emplois · 800 visiteurs · style Écoquartier | Agrandissable : niveau 2 (+50 %, 1,2 M€), niveau 3 (×2, 1,6 M€) ; rénovation 293 k€ · 4 variantes de façade |
+| Tiers-lieu | 2015 | 24 × 20 m · 12 M€ · 300 emplois · style Écoquartier | Agrandissable : niveau 2 (+50 %, 7,0 M€), niveau 3 (×2, 9,4 M€) ; rénovation 1,8 M€ · 4 variantes de façade |
+| Campus des données | 2020 | 24 × 20 m · 12 M€ · 300 emplois · style Ville connectée d'Asie | Agrandissable : niveau 2 (+50 %, 7,0 M€), niveau 3 (×2, 9,4 M€) ; rénovation 1,8 M€ · 4 variantes de façade |
+| Centre commercial sans caisse | 2020 | 42 × 36 m · 9,1 M€ · 80 emplois · 2500 visiteurs · style Ville connectée d'Asie | Agrandissable : niveau 2 (+50 %, 5,5 M€), niveau 3 (×2, 7,3 M€) ; rénovation 1,4 M€ · 4 variantes de façade |
+| Institut des énergies | 2020 | 24 × 20 m · 12 M€ · 300 emplois · style Ville du désert sobre | Agrandissable : niveau 2 (+50 %, 7,0 M€), niveau 3 (×2, 9,4 M€) ; rénovation 1,8 M€ · 4 variantes de façade |
+| Méga-tour mixte | 2020 | 34 × 34 m · 78 M€ · 3600 emplois · style Ville connectée d'Asie | Agrandissable : niveau 2 (+50 %, 47 M€), niveau 3 (×2, 62 M€) ; rénovation 12 M€ · 4 variantes de façade |
+| Souk couvert solaire | 2020 | 30 × 24 m · 1,9 M€ · 30 emplois · 800 visiteurs · style Ville du désert sobre | Agrandissable : niveau 2 (+50 %, 1,2 M€), niveau 3 (×2, 1,6 M€) ; rénovation 293 k€ · 4 variantes de façade |
+| Marché sous ombrières solaires | 2022 | 30 × 24 m · 1,9 M€ · 30 emplois · 800 visiteurs · style Villes nouvelles d'Afrique | Agrandissable : niveau 2 (+50 %, 1,2 M€), niveau 3 (×2, 1,6 M€) ; rénovation 293 k€ · 4 variantes de façade |
+| Pôle des start-up | 2022 | 24 × 20 m · 12 M€ · 300 emplois · style Villes nouvelles d'Afrique | Agrandissable : niveau 2 (+50 %, 7,0 M€), niveau 3 (×2, 9,4 M€) ; rénovation 1,8 M€ · 4 variantes de façade |
+| Boutique sur barge | 2028 | 9 × 12 m · 540 k€ · 4 emplois · 120 visiteurs · style Habitat flottant | Agrandissable : niveau 2 (+50 %, 324 k€), niveau 3 (×2, 432 k€) ; rénovation 81 k€ · 4 variantes de façade |
+| Marché flottant | 2028 | 30 × 24 m · 2,7 M€ · 30 emplois · 800 visiteurs · style Habitat flottant | Agrandissable : niveau 2 (+50 %, 1,6 M€), niveau 3 (×2, 2,2 M€) ; rénovation 405 k€ · 4 variantes de façade |
+| Bureaux sous canopée | 2032 | 24 × 20 m · 16 M€ · 350 emplois · style Méditerranée climatique | Agrandissable : niveau 2 (+50 %, 9,7 M€), niveau 3 (×2, 13 M€) ; rénovation 2,4 M€ · 4 variantes de façade |
+| Marché-brumisé | 2032 | 30 × 24 m · 2,7 M€ · 30 emplois · 800 visiteurs · style Méditerranée climatique | Agrandissable : niveau 2 (+50 %, 1,6 M€), niveau 3 (×2, 2,2 M€) ; rénovation 405 k€ · 4 variantes de façade |
 | Bureaux (futuriste) | 2040 | 24 × 20 m · 16 M€ · 350 emplois · style Futuriste | Agrandissable : niveau 2 (+50 %, 9,7 M€), niveau 3 (×2, 13 M€) ; rénovation 2,4 M€ · 4 variantes de façade |
 | Grand magasin (futuriste) | 2040 | 42 × 36 m · 13 M€ · 80 emplois · 2500 visiteurs · style Futuriste | Agrandissable : niveau 2 (+50 %, 7,6 M€), niveau 3 (×2, 10 M€) ; rénovation 1,9 M€ · 4 variantes de façade |
 | Tour orbitale | 2040 | 34 × 34 m · 108 M€ · 5400 emplois · style Futuriste | Agrandissable : niveau 2 (+50 %, 65 M€), niveau 3 (×2, 86 M€) ; rénovation 16 M€ · 4 variantes de façade |
+| Méga-structure en ponts | 2045 | 34 × 34 m · 108 M€ · 5400 emplois · style Ville verticale | Agrandissable : niveau 2 (+50 %, 65 M€), niveau 3 (×2, 86 M€) ; rénovation 16 M€ · 4 variantes de façade |
+| Plateau de travail suspendu | 2045 | 24 × 20 m · 16 M€ · 350 emplois · style Ville verticale | Agrandissable : niveau 2 (+50 %, 9,7 M€), niveau 3 (×2, 13 M€) ; rénovation 2,4 M€ · 4 variantes de façade |
 
 ### Déchets et propreté
 
@@ -390,8 +417,8 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Ferme (bois slave) | toujours | 28 × 24 m · 720 k€ · 1 logement · 4 emplois · style Bois slave | Agrandissable : niveau 2 (+50 %, 432 k€), niveau 3 (×2, 576 k€) ; rénovation 108 k€ · 4 variantes de façade |
 | Ferme (khmer) | toujours | 28 × 24 m · 640 k€ · 1 logement · 4 emplois · style Khmer | Agrandissable : niveau 2 (+50 %, 384 k€), niveau 3 (×2, 512 k€) ; rénovation 96 k€ · 4 variantes de façade |
 | Ferme bavaroise | toujours | 18 × 33 m · 1,3 M€ · 1 logement · 3 emplois · Europe | Agrandissable : niveau 2 (+50 %, 780 k€), niveau 3 (×2, 1,0 M€) ; rénovation 195 k€ · 4 variantes de façade |
-| Ferme d'alpage | toujours | 28 × 24 m · 720 k€ · 1 logement · 4 emplois · style Chalet alpin | Agrandissable : niveau 2 (+50 %, 432 k€), niveau 3 (×2, 576 k€) ; rénovation 108 k€ · 4 variantes de façade |
 | Ferme d'alpage | toujours | 28 × 18 m · 700 k€ · 1 logement · 3 emplois · Europe | Agrandissable : niveau 2 (+50 %, 420 k€), niveau 3 (×2, 560 k€) ; rénovation 105 k€ · 4 variantes de façade |
+| Ferme d'alpage | toujours | 28 × 24 m · 720 k€ · 1 logement · 4 emplois · style Chalet alpin | Agrandissable : niveau 2 (+50 %, 432 k€), niveau 3 (×2, 576 k€) ; rénovation 108 k€ · 4 variantes de façade |
 | Ferme du Nil | toujours | 28 × 24 m · 640 k€ · 1 logement · 4 emplois · style Égypte antique | Agrandissable : niveau 2 (+50 %, 384 k€), niveau 3 (×2, 512 k€) ; rénovation 96 k€ · 4 variantes de façade |
 | Ferme gasshō | toujours | 28 × 24 m · 720 k€ · 1 logement · 4 emplois · style Japon traditionnel | Agrandissable : niveau 2 (+50 %, 432 k€), niveau 3 (×2, 576 k€) ; rénovation 108 k€ · 4 variantes de façade |
 | Ferme jurassienne | toujours | 28 × 24 m · 1,1 M€ · 1 logement · 3 emplois · Europe | Agrandissable : niveau 2 (+50 %, 660 k€), niveau 3 (×2, 880 k€) ; rénovation 165 k€ · 4 variantes de façade |
@@ -415,12 +442,17 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Scierie du Jura | toujours | 52 × 36 m · 2,6 M€ · 18 emplois · Europe | Agrandissable : niveau 2 (+50 %, 1,6 M€), niveau 3 (×2, 2,1 M€) ; rénovation 390 k€ · 4 variantes de façade |
 | Tannerie | toujours | 14 × 18 m · 450 k€ · 10 emplois · style Médina | Agrandissable : niveau 2 (+50 %, 270 k€), niveau 3 (×2, 360 k€) ; rénovation 68 k€ · 4 variantes de façade |
 | Villa rustica | toujours | 28 × 24 m · 640 k€ · 1 logement · 4 emplois · style Rome antique | Agrandissable : niveau 2 (+50 %, 384 k€), niveau 3 (×2, 512 k€) ; rénovation 96 k€ · 4 variantes de façade |
+| Entrepôt du port | 1790 | 30 × 40 m · 2 M€ · 30 emplois · style Fédéral américain | Agrandissable : niveau 2 (+50 %, 1,2 M€), niveau 3 (×2, 1,6 M€) ; rénovation 300 k€ · 4 variantes de façade |
 | Forge du maréchal-ferrant | 1800 | 14 × 12 m · 180 k€ · 3 emplois · Europe | Agrandissable : niveau 2 (+50 %, 108 k€), niveau 3 (×2, 144 k€) ; rénovation 27 k€ · Même rôle selon l'époque : Atelier (toujours) → Forge du maréchal-ferrant (1800) → Rotonde à locomotives (1850) |
 | Kura, entrepôt de marchand | 1800 | 10 × 8 m · 160 k€ · 2 emplois · Asie de l'Est | Agrandissable : niveau 2 (+50 %, 96 k€), niveau 3 (×2, 128 k€) ; rénovation 24 k€ · Même rôle selon l'époque : Kura, entrepôt de marchand (1800) → Halle à marchandises (1840) → Entrepôt (1850) |
+| Magasin à thé | 1800 | 30 × 40 m · 2 M€ · 30 emplois · style Comptoirs de Canton | Agrandissable : niveau 2 (+50 %, 1,2 M€), niveau 3 (×2, 1,6 M€) ; rénovation 300 k€ · 4 variantes de façade |
 | Remise des pompes à incendie | 1800 | 14 × 12 m · 400 k€ · 10 emplois · style Colombages | Agrandissable : niveau 2 (+50 %, 240 k€), niveau 3 (×2, 320 k€) ; rénovation 60 k€ · 4 variantes de façade · Même rôle selon l'époque : Remise des pompes à incendie (1800) → Caserne de pompiers en briques (1880) → Caserne de pompiers (1950) |
+| Magasin de l'intendance | 1810 | 30 × 40 m · 2 M€ · 30 emplois · style Géorgien des colonies | Agrandissable : niveau 2 (+50 %, 1,2 M€), niveau 3 (×2, 1,6 M€) ; rénovation 300 k€ · 4 variantes de façade |
+| Atelier d'ébéniste | 1815 | 14 × 18 m · 500 k€ · 10 emplois · style Biedermeier | Agrandissable : niveau 2 (+50 %, 300 k€), niveau 3 (×2, 400 k€) ; rénovation 75 k€ · 4 variantes de façade |
 | Filature en briques | 1820 | 72 × 49 m · 9 M€ · 180 emplois · Europe | Agrandissable : niveau 2 (+50 %, 5,4 M€), niveau 3 (×2, 7,2 M€) ; rénovation 1,4 M€ · 4 variantes de façade |
 | Atelier (briques industrielles) | 1830 | 14 × 18 m · 500 k€ · 10 emplois · style Briques industrielles | Agrandissable : niveau 2 (+50 %, 300 k€), niveau 3 (×2, 400 k€) ; rénovation 75 k€ · 4 variantes de façade |
 | Docks | 1830 | 30 × 40 m · 2 M€ · 30 emplois · style Briques industrielles | Agrandissable : niveau 2 (+50 %, 1,2 M€), niveau 3 (×2, 1,6 M€) ; rénovation 300 k€ · 4 variantes de façade |
+| Entrepôt du port aux boutres | 1830 | 30 × 40 m · 2 M€ · 30 emplois · style Stone Town de Zanzibar | Agrandissable : niveau 2 (+50 %, 1,2 M€), niveau 3 (×2, 1,6 M€) ; rénovation 300 k€ · 4 variantes de façade |
 | Filature | 1830 | 40 × 30 m · 6 M€ · 120 emplois · style Briques industrielles | Agrandissable : niveau 2 (+50 %, 3,6 M€), niveau 3 (×2, 4,8 M€) ; rénovation 900 k€ · 4 variantes de façade |
 | Brasserie | 1840 | 35 × 30 m · 8 M€ · 60 emplois · 80 visiteurs · Europe | Agrandissable : niveau 2 (+50 %, 4,8 M€), niveau 3 (×2, 6,4 M€) ; rénovation 1,2 M€ · 4 variantes de façade |
 | Entrepôt d'épices | 1840 | 30 × 40 m · 2 M€ · 30 emplois · style Compartiments sino-malais | Agrandissable : niveau 2 (+50 %, 1,2 M€), niveau 3 (×2, 1,6 M€) ; rénovation 300 k€ · 4 variantes de façade |
@@ -469,7 +501,10 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Plateforme logistique | 1990 | 202 × 118 m · 28 M€ · 300 emplois · Europe | Agrandissable : niveau 2 (+50 %, 17 M€), niveau 3 (×2, 22 M€) ; rénovation 4,2 M€ · 4 variantes de façade |
 | Stabulation laitière | 1990 | 93 × 34 m · 1,8 M€ · 4 emplois · Europe | Agrandissable : niveau 2 (+50 %, 1,1 M€), niveau 3 (×2, 1,4 M€) ; rénovation 270 k€ · 4 variantes de façade |
 | Centre de données | 2000 | 92 × 72 m · 220 M€ · 60 emplois · Europe | Agrandissable : niveau 2 (+50 %, 132 M€), niveau 3 (×2, 176 M€) ; rénovation 33 M€ · 4 variantes de façade |
+| Usine d'impression de maisons | 2030 | 14 × 18 m · 900 k€ · 10 emplois · style Imprimé en 3D | Agrandissable : niveau 2 (+50 %, 540 k€), niveau 3 (×2, 720 k€) ; rénovation 135 k€ · 4 variantes de façade |
 | Fabrique automatisée | 2040 | 40 × 30 m · 11 M€ · 120 emplois · style Futuriste | Agrandissable : niveau 2 (+50 %, 6,5 M€), niveau 3 (×2, 8,6 M€) ; rénovation 1,6 M€ · 4 variantes de façade |
+| Ferme urbaine | 2045 | 28 × 24 m · 1,4 M€ · 1 logement · 4 emplois · style Ville verticale | Agrandissable : niveau 2 (+50 %, 864 k€), niveau 3 (×2, 1,2 M€) ; rénovation 216 k€ · 4 variantes de façade |
+| Usine de recyclage intégral | 2045 | 40 × 30 m · 11 M€ · 120 emplois · style Ville verticale | Agrandissable : niveau 2 (+50 %, 6,5 M€), niveau 3 (×2, 8,6 M€) ; rénovation 1,6 M€ · 4 variantes de façade |
 
 ### Logement
 
@@ -501,17 +536,17 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Hacienda | toujours | 18 × 20 m · 630 k€ · 2 logements · style Adobe | Agrandissable : niveau 2 (+50 %, 378 k€), niveau 3 (×2, 504 k€) ; rénovation 95 k€ · 4 variantes de façade |
 | Hanok | toujours | 22 × 13 m · 690 k€ · 1 logement · Asie de l'Est | Agrandissable : niveau 2 (+50 %, 414 k€), niveau 3 (×2, 552 k€) ; rénovation 104 k€ · 4 variantes de façade |
 | Hanok | toujours | 10 × 12 m · 225 k€ · 1 logement · style Hanok coréen | Agrandissable : niveau 2 (+50 %, 135 k€), niveau 3 (×2, 180 k€) ; rénovation 34 k€ · 4 variantes de façade |
-| Haveli | toujours | 18 × 20 m · 630 k€ · 2 logements · style Rajasthan | Agrandissable : niveau 2 (+50 %, 378 k€), niveau 3 (×2, 504 k€) ; rénovation 95 k€ · 4 variantes de façade |
 | Haveli | toujours | 19 × 18 m · 1,4 M€ · 3 logements · Asie du Sud et du Sud-Est | Agrandissable : niveau 2 (+50 %, 840 k€), niveau 3 (×2, 1,1 M€) ; rénovation 210 k€ · 4 variantes de façade |
+| Haveli | toujours | 18 × 20 m · 630 k€ · 2 logements · style Rajasthan | Agrandissable : niveau 2 (+50 %, 378 k€), niveau 3 (×2, 504 k€) ; rénovation 95 k€ · 4 variantes de façade |
 | Insula | toujours | 26 × 12 m · 800 k€ · 4 logements · style Rome antique | Agrandissable : niveau 2 (+50 %, 480 k€), niveau 3 (×2, 640 k€) ; rénovation 120 k€ · 4 variantes de façade |
 | Insula | toujours | 10 × 12 m · 200 k€ · 1 logement · style Gréco-romain | Agrandissable : niveau 2 (+50 %, 120 k€), niveau 3 (×2, 160 k€) ; rénovation 30 k€ · 4 variantes de façade |
-| Isba | toujours | 10 × 12 m · 225 k€ · 1 logement · style Bois slave | Agrandissable : niveau 2 (+50 %, 135 k€), niveau 3 (×2, 180 k€) ; rénovation 34 k€ · 4 variantes de façade |
 | Isba | toujours | 12 × 12 m · 300 k€ · 1 logement · Europe | Agrandissable : niveau 2 (+50 %, 180 k€), niveau 3 (×2, 240 k€) ; rénovation 45 k€ · 4 variantes de façade |
+| Isba | toujours | 10 × 12 m · 225 k€ · 1 logement · style Bois slave | Agrandissable : niveau 2 (+50 %, 135 k€), niveau 3 (×2, 180 k€) ; rénovation 34 k€ · 4 variantes de façade |
 | Kasbah | toujours | 23 × 23 m · 1,8 M€ · 4 logements · Moyen-Orient et Maghreb | Agrandissable : niveau 2 (+50 %, 1,1 M€), niveau 3 (×2, 1,4 M€) ; rénovation 270 k€ · 4 variantes de façade |
 | Longue maison | toujours | 18 × 20 m · 630 k€ · 2 logements · style Asie du Sud-Est | Agrandissable : niveau 2 (+50 %, 378 k€), niveau 3 (×2, 504 k€) ; rénovation 95 k€ · 4 variantes de façade |
 | Longère bretonne | toujours | 19 × 9 m · 380 k€ · 1 logement · Europe | Agrandissable : niveau 2 (+50 %, 228 k€), niveau 3 (×2, 304 k€) ; rénovation 57 k€ · 4 variantes de façade |
-| Machiya | toujours | 11 × 18 m · 820 k€ · 1 logement · Asie de l'Est | Agrandissable : niveau 2 (+50 %, 492 k€), niveau 3 (×2, 656 k€) ; rénovation 123 k€ · 4 variantes de façade |
 | Machiya | toujours | 26 × 12 m · 900 k€ · 4 logements · style Japon traditionnel | Agrandissable : niveau 2 (+50 %, 540 k€), niveau 3 (×2, 720 k€) ; rénovation 135 k€ · 4 variantes de façade |
+| Machiya | toujours | 11 × 18 m · 820 k€ · 1 logement · Asie de l'Est | Agrandissable : niveau 2 (+50 %, 492 k€), niveau 3 (×2, 656 k€) ; rénovation 123 k€ · 4 variantes de façade |
 | Maison alsacienne | toujours | 13 × 14 m · 560 k€ · 1 logement · Europe | Agrandissable : niveau 2 (+50 %, 336 k€), niveau 3 (×2, 448 k€) ; rénovation 84 k€ · 4 variantes de façade |
 | Maison basque | toujours | 16 × 16 m · 640 k€ · 2 logements · Europe | Agrandissable : niveau 2 (+50 %, 384 k€), niveau 3 (×2, 512 k€) ; rénovation 96 k€ · 4 variantes de façade |
 | Maison blanchie | toujours | 10 × 12 m · 225 k€ · 1 logement · style Village méditerranéen | Agrandissable : niveau 2 (+50 %, 135 k€), niveau 3 (×2, 180 k€) ; rénovation 34 k€ · 4 variantes de façade |
@@ -543,9 +578,9 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Maison nubienne peinte | toujours | 18 × 20 m · 630 k€ · 2 logements · style Voûtes nubiennes | Agrandissable : niveau 2 (+50 %, 378 k€), niveau 3 (×2, 504 k€) ; rénovation 95 k€ · 4 variantes de façade |
 | Maison peinte | toujours | 18 × 20 m · 630 k€ · 2 logements · style Rondavels | Agrandissable : niveau 2 (+50 %, 378 k€), niveau 3 (×2, 504 k€) ; rénovation 95 k€ · 4 variantes de façade |
 | Maison scandinave | toujours | 13 × 12 m · 450 k€ · 1 logement · Europe | Agrandissable : niveau 2 (+50 %, 270 k€), niveau 3 (×2, 360 k€) ; rénovation 68 k€ · 4 variantes de façade |
-| Maison sur pilotis | toujours | 10 × 12 m · 225 k€ · 1 logement · style Mélanésien | Agrandissable : niveau 2 (+50 %, 135 k€), niveau 3 (×2, 180 k€) ; rénovation 34 k€ · 4 variantes de façade |
 | Maison sur pilotis | toujours | 10 × 12 m · 200 k€ · 1 logement · style Khmer | Agrandissable : niveau 2 (+50 %, 120 k€), niveau 3 (×2, 160 k€) ; rénovation 30 k€ · 4 variantes de façade |
 | Maison sur pilotis | toujours | 10 × 12 m · 225 k€ · 1 logement · style Asie du Sud-Est | Agrandissable : niveau 2 (+50 %, 135 k€), niveau 3 (×2, 180 k€) ; rénovation 34 k€ · 4 variantes de façade |
+| Maison sur pilotis | toujours | 10 × 12 m · 225 k€ · 1 logement · style Mélanésien | Agrandissable : niveau 2 (+50 %, 135 k€), niveau 3 (×2, 180 k€) ; rénovation 34 k€ · 4 variantes de façade |
 | Maison swahilie | toujours | 15 × 16 m · 520 k€ · 2 logements · Afrique | Agrandissable : niveau 2 (+50 %, 312 k€), niveau 3 (×2, 416 k€) ; rénovation 78 k€ · 4 variantes de façade |
 | Maison thaïe sur pilotis | toujours | 13 × 13 m · 280 k€ · 1 logement · Asie du Sud et du Sud-Est | Agrandissable : niveau 2 (+50 %, 168 k€), niveau 3 (×2, 224 k€) ; rénovation 42 k€ · 4 variantes de façade |
 | Maison à bardeaux | toujours | 10 × 12 m · 250 k€ · 1 logement · style Colonial américain | Agrandissable : niveau 2 (+50 %, 150 k€), niveau 3 (×2, 200 k€) ; rénovation 38 k€ · 4 variantes de façade |
@@ -574,8 +609,8 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Minka | toujours | 10 × 12 m · 225 k€ · 1 logement · style Japon traditionnel | Agrandissable : niveau 2 (+50 %, 135 k€), niveau 3 (×2, 180 k€) ; rénovation 34 k€ · 4 variantes de façade |
 | Minka | toujours | 18 × 13 m · 650 k€ · 1 logement · Asie de l'Est | Agrandissable : niveau 2 (+50 %, 390 k€), niveau 3 (×2, 520 k€) ; rénovation 98 k€ · 4 variantes de façade |
 | Nalukettu à cour | toujours | 18 × 20 m · 630 k€ · 2 logements · style Inde du Sud | Agrandissable : niveau 2 (+50 %, 378 k€), niveau 3 (×2, 504 k€) ; rénovation 95 k€ · 4 variantes de façade |
-| Riad | toujours | 18 × 20 m · 630 k€ · 2 logements · style Médina | Agrandissable : niveau 2 (+50 %, 378 k€), niveau 3 (×2, 504 k€) ; rénovation 95 k€ · 4 variantes de façade |
 | Riad | toujours | 16 × 17 m · 900 k€ · 1 logement · Moyen-Orient et Maghreb | Agrandissable : niveau 2 (+50 %, 540 k€), niveau 3 (×2, 720 k€) ; rénovation 135 k€ · 4 variantes de façade |
+| Riad | toujours | 18 × 20 m · 630 k€ · 2 logements · style Médina | Agrandissable : niveau 2 (+50 %, 378 k€), niveau 3 (×2, 504 k€) ; rénovation 95 k€ · 4 variantes de façade |
 | Rondavel | toujours | 10 × 10 m · 225 k€ · 1 logement · style Rondavels | Agrandissable : niveau 2 (+50 %, 135 k€), niveau 3 (×2, 180 k€) ; rénovation 34 k€ · 4 variantes de façade |
 | Rue coloniale | toujours | 26 × 12 m · 1 M€ · 8 logements · style Amérique latine | Agrandissable : niveau 2 (+50 %, 600 k€), niveau 3 (×2, 800 k€) ; rénovation 150 k€ · 4 variantes de façade |
 | Rue d'agraharam | toujours | 26 × 12 m · 900 k€ · 4 logements · style Inde du Sud | Agrandissable : niveau 2 (+50 %, 540 k€), niveau 3 (×2, 720 k€) ; rénovation 135 k€ · 4 variantes de façade |
@@ -594,17 +629,39 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Whare | toujours | 10 × 12 m · 225 k€ · 1 logement · style Maori | Agrandissable : niveau 2 (+50 %, 135 k€), niveau 3 (×2, 180 k€) ; rénovation 34 k€ · 4 variantes de façade |
 | Wharenui | toujours | 18 × 20 m · 630 k€ · 2 logements · style Maori | Agrandissable : niveau 2 (+50 %, 378 k€), niveau 3 (×2, 504 k€) ; rénovation 95 k€ · 4 variantes de façade |
 | Yalı | toujours | 18 × 20 m · 700 k€ · 2 logements · style Ottoman | Agrandissable : niveau 2 (+50 %, 420 k€), niveau 3 (×2, 560 k€) ; rénovation 105 k€ · 4 variantes de façade |
+| Demeure de Boston | 1790 | 18 × 20 m · 700 k€ · 2 logements · style Fédéral américain | Agrandissable : niveau 2 (+50 %, 420 k€), niveau 3 (×2, 560 k€) ; rénovation 105 k€ · 4 variantes de façade |
+| Maison fédérale | 1790 | 10 × 12 m · 250 k€ · 1 logement · style Fédéral américain | Agrandissable : niveau 2 (+50 %, 150 k€), niveau 3 (×2, 200 k€) ; rénovation 38 k€ · 4 variantes de façade |
+| Maisons de Beacon Hill | 1790 | 26 × 12 m · 1 M€ · 8 logements · style Fédéral américain | Agrandissable : niveau 2 (+50 %, 600 k€), niveau 3 (×2, 800 k€) ; rénovation 150 k€ · 4 variantes de façade |
 | Brigade de gendarmerie | 1800 | 16 × 12 m · 500 k€ · 2 logements · 6 emplois · style Colombages | Agrandissable : niveau 2 (+50 %, 300 k€), niveau 3 (×2, 400 k€) ; rénovation 75 k€ · 4 variantes de façade · Même rôle selon l'époque : Brigade de gendarmerie (1800) → Commissariat de quartier (1860) → Commissariat (1950) |
 | Cabane en rondins | 1800 | 10 × 9 m · 40 k€ · 1 logement · Amériques | Agrandissable : niveau 2 (+50 %, 24 k€), niveau 3 (×2, 32 k€) ; rénovation 6 k€ |
 | Cases obus | 1800 | 16 × 16 m · 60 k€ · 2 logements · Afrique | Agrandissable : niveau 2 (+50 %, 36 k€), niveau 3 (×2, 48 k€) ; rénovation 9 k€ |
+| Factorerie à véranda | 1800 | 20 × 16 m · 2,6 M€ · 24 logements · style Comptoirs de Canton | Agrandissable : niveau 2 (+50 %, 1,6 M€), niveau 3 (×2, 2,1 M€) ; rénovation 390 k€ · 4 variantes de façade |
+| Hôtel particulier Empire | 1800 | 18 × 20 m · 700 k€ · 2 logements · style Néoclassique Empire | Agrandissable : niveau 2 (+50 %, 420 k€), niveau 3 (×2, 560 k€) ; rénovation 105 k€ · 4 variantes de façade |
 | Hôtel-Dieu | 1800 | 34 × 24 m · 4 M€ · 30 emplois · 60 lits · style Pierre médiévale | Agrandissable : niveau 2 (+50 %, 2,4 M€), niveau 3 (×2, 3,2 M€) ; rénovation 600 k€ · 4 variantes de façade · Même rôle selon l'époque : Hôtel-Dieu (1800) → Hôpital à pavillons (1880) → Hôpital (1950) |
+| Immeuble de la Perspective | 1800 | 20 × 16 m · 2,6 M€ · 24 logements · style Saint-Pétersbourg impérial | Agrandissable : niveau 2 (+50 %, 1,6 M€), niveau 3 (×2, 2,1 M€) ; rénovation 390 k€ · 4 variantes de façade |
+| Immeuble à fronton | 1800 | 20 × 16 m · 2,6 M€ · 24 logements · style Néoclassique Empire | Agrandissable : niveau 2 (+50 %, 1,6 M€), niveau 3 (×2, 2,1 M€) ; rénovation 390 k€ · 4 variantes de façade |
 | Longère bretonne | 1800 | 20 × 12 m · 220 k€ · 1 logement · Europe | Agrandissable : niveau 2 (+50 %, 132 k€), niveau 3 (×2, 176 k€) ; rénovation 33 k€ |
+| Maison du marchand hong | 1800 | 10 × 12 m · 250 k€ · 1 logement · style Comptoirs de Canton | Agrandissable : niveau 2 (+50 %, 150 k€), niveau 3 (×2, 200 k€) ; rénovation 38 k€ · 4 variantes de façade |
+| Maisons de la rue de Rivoli | 1800 | 26 × 12 m · 1 M€ · 8 logements · style Néoclassique Empire | Agrandissable : niveau 2 (+50 %, 600 k€), niveau 3 (×2, 800 k€) ; rénovation 150 k€ · 4 variantes de façade |
+| Palais de boyard | 1800 | 18 × 20 m · 700 k€ · 2 logements · style Saint-Pétersbourg impérial | Agrandissable : niveau 2 (+50 %, 420 k€), niveau 3 (×2, 560 k€) ; rénovation 105 k€ · 4 variantes de façade |
 | Tulou hakka | 1800 | 42 × 42 m · 3 M€ · 60 logements · Asie de l'Est | Agrandissable : niveau 2 (+50 %, 1,8 M€), niveau 3 (×2, 2,4 M€) ; rénovation 450 k€ |
+| Bungalow à véranda | 1810 | 10 × 12 m · 250 k€ · 1 logement · style Bungalow anglo-indien | Agrandissable : niveau 2 (+50 %, 150 k€), niveau 3 (×2, 200 k€) ; rénovation 38 k€ · 4 variantes de façade |
+| Cottage de grès | 1810 | 10 × 12 m · 250 k€ · 1 logement · style Géorgien des colonies | Agrandissable : niveau 2 (+50 %, 150 k€), niveau 3 (×2, 200 k€) ; rénovation 38 k€ · 4 variantes de façade |
+| Domaine du colon | 1810 | 18 × 20 m · 700 k€ · 2 logements · style Géorgien des colonies | Agrandissable : niveau 2 (+50 %, 420 k€), niveau 3 (×2, 560 k€) ; rénovation 105 k€ · 4 variantes de façade |
+| Résidence du collecteur | 1810 | 18 × 20 m · 700 k€ · 2 logements · style Bungalow anglo-indien | Agrandissable : niveau 2 (+50 %, 420 k€), niveau 3 (×2, 560 k€) ; rénovation 105 k€ · 4 variantes de façade |
+| Maison bourgeoise de Vienne | 1815 | 10 × 12 m · 250 k€ · 1 logement · style Biedermeier | Agrandissable : niveau 2 (+50 %, 150 k€), niveau 3 (×2, 200 k€) ; rénovation 38 k€ · 4 variantes de façade |
+| Maisons de faubourg | 1815 | 26 × 12 m · 1 M€ · 8 logements · style Biedermeier | Agrandissable : niveau 2 (+50 %, 600 k€), niveau 3 (×2, 800 k€) ; rénovation 150 k€ · 4 variantes de façade |
+| Villa Biedermeier | 1815 | 18 × 20 m · 700 k€ · 2 logements · style Biedermeier | Agrandissable : niveau 2 (+50 %, 420 k€), niveau 3 (×2, 560 k€) ; rénovation 105 k€ · 4 variantes de façade |
 | Maison de maître | 1820 | 18 × 16 m · 520 k€ · 1 logement · Europe | Agrandissable : niveau 2 (+50 %, 312 k€), niveau 3 (×2, 416 k€) ; rénovation 78 k€ |
+| Maison à portique | 1820 | 10 × 12 m · 250 k€ · 1 logement · style Néo-grec américain | Agrandissable : niveau 2 (+50 %, 150 k€), niveau 3 (×2, 200 k€) ; rénovation 38 k€ · 4 variantes de façade |
+| Plantation à colonnes | 1820 | 18 × 20 m · 700 k€ · 2 logements · style Néo-grec américain | Agrandissable : niveau 2 (+50 %, 420 k€), niveau 3 (×2, 560 k€) ; rénovation 105 k€ · 4 variantes de façade |
 | Immeuble de canuts | 1825 | 16 × 14 m · 1,2 M€ · 8 logements · 8 emplois · Europe | Agrandissable : niveau 2 (+50 %, 720 k€), niveau 3 (×2, 960 k€) ; rénovation 180 k€ |
 | Bungalow à véranda | 1830 | 22 × 20 m · 420 k€ · 1 logement · Asie du Sud et du Sud-Est | Agrandissable : niveau 2 (+50 %, 252 k€), niveau 3 (×2, 336 k€) ; rénovation 63 k€ |
 | Corons | 1830 | 26 × 12 m · 1 M€ · 8 logements · style Briques industrielles | Agrandissable : niveau 2 (+50 %, 600 k€), niveau 3 (×2, 800 k€) ; rénovation 150 k€ · 4 variantes de façade |
+| Demeure de marchand omanais | 1830 | 18 × 20 m · 700 k€ · 2 logements · style Stone Town de Zanzibar | Agrandissable : niveau 2 (+50 %, 420 k€), niveau 3 (×2, 560 k€) ; rénovation 105 k€ · 4 variantes de façade |
 | Immeuble ouvrier | 1830 | 20 × 16 m · 2,6 M€ · 24 logements · style Briques industrielles | Agrandissable : niveau 2 (+50 %, 1,6 M€), niveau 3 (×2, 2,1 M€) ; rénovation 390 k€ · 4 variantes de façade |
+| Maison à balcons de bois | 1830 | 20 × 16 m · 2,6 M€ · 24 logements · style Stone Town de Zanzibar | Agrandissable : niveau 2 (+50 %, 1,6 M€), niveau 3 (×2, 2,1 M€) ; rénovation 390 k€ · 4 variantes de façade |
+| Maison à porte sculptée | 1830 | 10 × 12 m · 250 k€ · 1 logement · style Stone Town de Zanzibar | Agrandissable : niveau 2 (+50 %, 150 k€), niveau 3 (×2, 200 k€) ; rénovation 38 k€ · 4 variantes de façade |
 | Brownstone | 1840 | 10 × 22 m · 3,6 M€ · 4 logements · Amériques | Agrandissable : niveau 2 (+50 %, 2,2 M€), niveau 3 (×2, 2,9 M€) ; rénovation 540 k€ · 4 variantes de façade |
 | Compartiment chinois | 1840 | 10 × 12 m · 250 k€ · 1 logement · style Compartiments sino-malais | Agrandissable : niveau 2 (+50 %, 150 k€), niveau 3 (×2, 200 k€) ; rénovation 38 k€ · 4 variantes de façade |
 | Immeuble Art déco tropical | 1840 | 20 × 16 m · 2,6 M€ · 24 logements · style Compartiments sino-malais | Agrandissable : niveau 2 (+50 %, 1,6 M€), niveau 3 (×2, 2,1 M€) ; rénovation 390 k€ · 4 variantes de façade |
@@ -628,8 +685,8 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Échoppe bordelaise | 1850 | 8 × 18 m · 240 k€ · 1 logement · Europe | Agrandissable : niveau 2 (+50 %, 144 k€), niveau 3 (×2, 192 k€) ; rénovation 36 k€ |
 | Cité ouvrière | 1853 | 34 × 16 m · 1,3 M€ · 8 logements | Agrandissable : niveau 2 (+50 %, 780 k€), niveau 3 (×2, 1,0 M€) ; rénovation 195 k€ |
 | Hôtels particuliers | 1853 | 26 × 12 m · 1 M€ · 8 logements · style Haussmannien | Agrandissable : niveau 2 (+50 %, 600 k€), niveau 3 (×2, 800 k€) ; rénovation 150 k€ · 4 variantes de façade |
-| Immeuble haussmannien | 1853 | 23 × 18 m · 9 M€ · 18 logements · Europe | Agrandissable : niveau 2 (+50 %, 5,4 M€), niveau 3 (×2, 7,2 M€) ; rénovation 1,4 M€ · 4 variantes de façade |
 | Immeuble haussmannien | 1853 | 20 × 16 m · 2,6 M€ · 24 logements · style Haussmannien | Agrandissable : niveau 2 (+50 %, 1,6 M€), niveau 3 (×2, 2,1 M€) ; rénovation 390 k€ · 4 variantes de façade |
+| Immeuble haussmannien | 1853 | 23 × 18 m · 9 M€ · 18 logements · Europe | Agrandissable : niveau 2 (+50 %, 5,4 M€), niveau 3 (×2, 7,2 M€) ; rénovation 1,4 M€ · 4 variantes de façade |
 | Grand hôtel de la plage | 1860 | 18 × 20 m · 700 k€ · 2 logements · style Villas balnéaires | Agrandissable : niveau 2 (+50 %, 420 k€), niveau 3 (×2, 560 k€) ; rénovation 105 k€ · 4 variantes de façade |
 | Immeuble des concessions | 1860 | 20 × 16 m · 2,6 M€ · 24 logements · style Shanghai des concessions | Agrandissable : niveau 2 (+50 %, 1,6 M€), niveau 3 (×2, 2,1 M€) ; rénovation 390 k€ · 4 variantes de façade |
 | Lilong | 1860 | 26 × 12 m · 1 M€ · 8 logements · style Shanghai des concessions | Agrandissable : niveau 2 (+50 %, 600 k€), niveau 3 (×2, 800 k€) ; rénovation 150 k€ · 4 variantes de façade |
@@ -792,9 +849,30 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Immeuble en bois massif | 2010 | 20 × 16 m · 3,4 M€ · 32 logements · style Bois et végétal | Agrandissable : niveau 2 (+50 %, 2,0 M€), niveau 3 (×2, 2,7 M€) ; rénovation 507 k€ · 4 variantes de façade |
 | Maison passive en bois | 2010 | 10 × 12 m · 325 k€ · 1 logement · style Bois et végétal | Agrandissable : niveau 2 (+50 %, 195 k€), niveau 3 (×2, 260 k€) ; rénovation 49 k€ · 4 variantes de façade |
 | Tour en bois et forêt verticale | 2010 | 22 × 22 m · 16 M€ · 156 logements · style Bois et végétal | Agrandissable : niveau 2 (+50 %, 9,4 M€), niveau 3 (×2, 12 M€) ; rénovation 2,3 M€ · 4 variantes de façade |
+| Maison à énergie positive | 2015 | 10 × 12 m · 325 k€ · 1 logement · style Écoquartier | Agrandissable : niveau 2 (+50 %, 195 k€), niveau 3 (×2, 260 k€) ; rénovation 49 k€ · 4 variantes de façade |
+| Maisons en bande passives | 2015 | 26 × 12 m · 1,3 M€ · 8 logements · style Écoquartier | Agrandissable : niveau 2 (+50 %, 780 k€), niveau 3 (×2, 1,0 M€) ; rénovation 195 k€ · 4 variantes de façade |
+| Plot à coursives végétalisées | 2015 | 20 × 16 m · 3,4 M€ · 32 logements · style Écoquartier | Agrandissable : niveau 2 (+50 %, 2,0 M€), niveau 3 (×2, 2,7 M€) ; rénovation 507 k€ · 4 variantes de façade |
+| Maison à tour à vent | 2020 | 10 × 12 m · 325 k€ · 1 logement · style Ville du désert sobre | Agrandissable : niveau 2 (+50 %, 195 k€), niveau 3 (×2, 260 k€) ; rénovation 49 k€ · 4 variantes de façade |
+| Résidence connectée | 2020 | 20 × 16 m · 3,4 M€ · 32 logements · style Ville connectée d'Asie | Agrandissable : niveau 2 (+50 %, 2,0 M€), niveau 3 (×2, 2,7 M€) ; rénovation 507 k€ · 4 variantes de façade |
+| Tour à jardins suspendus | 2020 | 22 × 22 m · 16 M€ · 156 logements · style Ville connectée d'Asie | Agrandissable : niveau 2 (+50 %, 9,4 M€), niveau 3 (×2, 12 M€) ; rénovation 2,3 M€ · 4 variantes de façade |
+| Tour à moucharabieh mobile | 2020 | 22 × 22 m · 16 M€ · 156 logements · style Ville du désert sobre | Agrandissable : niveau 2 (+50 %, 9,4 M€), niveau 3 (×2, 12 M€) ; rénovation 2,3 M€ · 4 variantes de façade |
+| Îlot ombragé | 2020 | 20 × 16 m · 3,4 M€ · 32 logements · style Ville du désert sobre | Agrandissable : niveau 2 (+50 %, 2,0 M€), niveau 3 (×2, 2,7 M€) ; rénovation 507 k€ · 4 variantes de façade |
+| Immeuble à brise-soleil | 2022 | 20 × 16 m · 3,4 M€ · 32 logements · style Villes nouvelles d'Afrique | Agrandissable : niveau 2 (+50 %, 2,0 M€), niveau 3 (×2, 2,7 M€) ; rénovation 507 k€ · 4 variantes de façade |
+| Maison en terre compressée | 2022 | 10 × 12 m · 325 k€ · 1 logement · style Villes nouvelles d'Afrique | Agrandissable : niveau 2 (+50 %, 195 k€), niveau 3 (×2, 260 k€) ; rénovation 49 k€ · 4 variantes de façade |
+| Tour de la cité numérique | 2022 | 22 × 22 m · 16 M€ · 156 logements · style Villes nouvelles d'Afrique | Agrandissable : niveau 2 (+50 %, 9,4 M€), niveau 3 (×2, 12 M€) ; rénovation 2,3 M€ · 4 variantes de façade |
+| Maison flottante | 2028 | 10 × 12 m · 450 k€ · 1 logement · style Habitat flottant | Agrandissable : niveau 2 (+50 %, 270 k€), niveau 3 (×2, 360 k€) ; rénovation 68 k€ · 4 variantes de façade |
+| Pontons habités | 2028 | 26 × 12 m · 1,8 M€ · 4 logements · style Habitat flottant | Agrandissable : niveau 2 (+50 %, 1,1 M€), niveau 3 (×2, 1,4 M€) ; rénovation 270 k€ · 4 variantes de façade |
+| Îlot sur flotteurs | 2028 | 20 × 16 m · 4,7 M€ · 48 logements · style Habitat flottant | Agrandissable : niveau 2 (+50 %, 2,8 M€), niveau 3 (×2, 3,7 M€) ; rénovation 702 k€ · 4 variantes de façade |
+| Lotissement imprimé | 2030 | 26 × 12 m · 1,8 M€ · 4 logements · style Imprimé en 3D | Agrandissable : niveau 2 (+50 %, 1,1 M€), niveau 3 (×2, 1,4 M€) ; rénovation 270 k€ · 4 variantes de façade |
+| Maison imprimée en 48 h | 2030 | 10 × 12 m · 450 k€ · 1 logement · style Imprimé en 3D | Agrandissable : niveau 2 (+50 %, 270 k€), niveau 3 (×2, 360 k€) ; rénovation 68 k€ · 4 variantes de façade |
+| Villa aux murs ondulés | 2030 | 18 × 20 m · 1,3 M€ · 2 logements · style Imprimé en 3D | Agrandissable : niveau 2 (+50 %, 756 k€), niveau 3 (×2, 1,0 M€) ; rénovation 189 k€ · 4 variantes de façade |
+| Immeuble à pergolas | 2032 | 20 × 16 m · 4,7 M€ · 48 logements · style Méditerranée climatique | Agrandissable : niveau 2 (+50 %, 2,8 M€), niveau 3 (×2, 3,7 M€) ; rénovation 702 k€ · 4 variantes de façade |
+| Maison-patio rafraîchie | 2032 | 10 × 12 m · 450 k€ · 1 logement · style Méditerranée climatique | Agrandissable : niveau 2 (+50 %, 270 k€), niveau 3 (×2, 360 k€) ; rénovation 68 k€ · 4 variantes de façade |
+| Tour-forêt | 2032 | 22 × 22 m · 22 M€ · 204 logements · style Méditerranée climatique | Agrandissable : niveau 2 (+50 %, 13 M€), niveau 3 (×2, 17 M€) ; rénovation 3,2 M€ · 4 variantes de façade |
 | Arcologie | 2040 | 20 × 16 m · 4,7 M€ · 48 logements · style Futuriste | Agrandissable : niveau 2 (+50 %, 2,8 M€), niveau 3 (×2, 3,7 M€) ; rénovation 702 k€ · 4 variantes de façade |
 | Habitat bulle | 2040 | 10 × 12 m · 450 k€ · 1 logement · style Futuriste | Agrandissable : niveau 2 (+50 %, 270 k€), niveau 3 (×2, 360 k€) ; rénovation 68 k€ · 4 variantes de façade |
 | Tour vivante | 2040 | 22 × 22 m · 22 M€ · 204 logements · style Futuriste | Agrandissable : niveau 2 (+50 %, 13 M€), niveau 3 (×2, 17 M€) ; rénovation 3,2 M€ · 4 variantes de façade |
+| Tour-quartier de 10 000 habitants | 2045 | 22 × 22 m · 22 M€ · 204 logements · style Ville verticale | Agrandissable : niveau 2 (+50 %, 13 M€), niveau 3 (×2, 17 M€) ; rénovation 3,2 M€ · 4 variantes de façade |
 
 ### Loisirs
 
@@ -823,8 +901,8 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Jardin persan | toujours | 30 × 30 m · 225 k€ · 300 visiteurs · style Persan | Agrandissable : niveau 2 (+50 %, 135 k€), niveau 3 (×2, 180 k€) ; rénovation 34 k€ · 4 variantes de façade |
 | Jardin zen | toujours | 30 × 30 m · 225 k€ · 300 visiteurs · style Japon traditionnel | Agrandissable : niveau 2 (+50 %, 135 k€), niveau 3 (×2, 180 k€) ; rénovation 34 k€ · 4 variantes de façade |
 | Lolo | toujours | 12 × 14 m · 360 k€ · 4 emplois · 120 visiteurs · style Créole des Antilles | Agrandissable : niveau 2 (+50 %, 216 k€), niveau 3 (×2, 288 k€) ; rénovation 54 k€ · 4 variantes de façade |
-| Maison de thé | toujours | 12 × 14 m · 360 k€ · 4 emplois · 120 visiteurs · style Hanok coréen | Agrandissable : niveau 2 (+50 %, 216 k€), niveau 3 (×2, 288 k€) ; rénovation 54 k€ · 4 variantes de façade |
 | Maison de thé | toujours | 12 × 14 m · 360 k€ · 4 emplois · 120 visiteurs · style Chine impériale | Agrandissable : niveau 2 (+50 %, 216 k€), niveau 3 (×2, 288 k€) ; rénovation 54 k€ · 4 variantes de façade |
+| Maison de thé | toujours | 12 × 14 m · 360 k€ · 4 emplois · 120 visiteurs · style Hanok coréen | Agrandissable : niveau 2 (+50 %, 216 k€), niveau 3 (×2, 288 k€) ; rénovation 54 k€ · 4 variantes de façade |
 | Musée | toujours | 30 × 24 m · 6,5 M€ · 12 emplois · 400 visiteurs | Agrandissable : niveau 2 (+50 %, 3,9 M€), niveau 3 (×2, 5,2 M€) ; rénovation 975 k€ |
 | Musée des beaux-arts | toujours | 48 × 46 m · 30 M€ · 40 emplois · 1500 visiteurs · Europe | Agrandissable : niveau 2 (+50 %, 18 M€), niveau 3 (×2, 24 M€) ; rénovation 4,5 M€ |
 | Opéra | toujours | 54 × 72 m · 120 M€ · 150 emplois · 2000 visiteurs · Europe | Agrandissable : niveau 2 (+50 %, 72 M€), niveau 3 (×2, 96 M€) ; rénovation 18 M€ |
@@ -833,15 +911,19 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Pub | toujours | 12 × 14 m · 360 k€ · 4 emplois · 120 visiteurs · style Tudor anglais | Agrandissable : niveau 2 (+50 %, 216 k€), niveau 3 (×2, 288 k€) ; rénovation 54 k€ · 4 variantes de façade |
 | Pyramide maya | toujours | 59 × 59 m · 15 M€ · 10 emplois · 4000 visiteurs · Amériques | Agrandissable : niveau 2 (+50 %, 9 M€), niveau 3 (×2, 12 M€) ; rénovation 2,2 M€ |
 | Restaurant (asie du sud-est) | toujours | 12 × 14 m · 360 k€ · 4 emplois · 120 visiteurs · style Asie du Sud-Est | Agrandissable : niveau 2 (+50 %, 216 k€), niveau 3 (×2, 288 k€) ; rénovation 54 k€ · 4 variantes de façade |
-| Salon de thé | toujours | 12 × 14 m · 360 k€ · 4 emplois · 120 visiteurs · style Médina | Agrandissable : niveau 2 (+50 %, 216 k€), niveau 3 (×2, 288 k€) ; rénovation 54 k€ · 4 variantes de façade |
 | Salon de thé | toujours | 12 × 14 m · 400 k€ · 4 emplois · 120 visiteurs · style Géorgien et Regency | Agrandissable : niveau 2 (+50 %, 240 k€), niveau 3 (×2, 320 k€) ; rénovation 60 k€ · 4 variantes de façade |
+| Salon de thé | toujours | 12 × 14 m · 360 k€ · 4 emplois · 120 visiteurs · style Médina | Agrandissable : niveau 2 (+50 %, 216 k€), niveau 3 (×2, 288 k€) ; rénovation 54 k€ · 4 variantes de façade |
 | Salon de thé | toujours | 12 × 14 m · 360 k€ · 4 emplois · 120 visiteurs · style Birmanie et Siam | Agrandissable : niveau 2 (+50 %, 216 k€), niveau 3 (×2, 288 k€) ; rénovation 54 k€ · 4 variantes de façade |
 | Taverne | toujours | 12 × 14 m · 360 k€ · 4 emplois · 120 visiteurs · style Village méditerranéen | Agrandissable : niveau 2 (+50 %, 216 k€), niveau 3 (×2, 288 k€) ; rénovation 54 k€ · 4 variantes de façade |
 | Temple grec | toujours | 23 × 41 m · 12 M€ · 6 emplois · 3000 visiteurs · Méditerranée | Agrandissable : niveau 2 (+50 %, 7,2 M€), niveau 3 (×2, 9,6 M€) ; rénovation 1,8 M€ |
 | Théâtre municipal | toujours | 27 × 38 m · 15 M€ · 25 emplois · 700 visiteurs · Europe | Agrandissable : niveau 2 (+50 %, 9 M€), niveau 3 (×2, 12 M€) ; rénovation 2,2 M€ · 2 variantes de façade |
 | Théâtre royal | toujours | 30 × 36 m · 6 M€ · 40 emplois · 600 visiteurs · style Géorgien et Regency | Agrandissable : niveau 2 (+50 %, 3,6 M€), niveau 3 (×2, 4,8 M€) ; rénovation 900 k€ · 4 variantes de façade |
+| Taverne | 1790 | 12 × 14 m · 400 k€ · 4 emplois · 120 visiteurs · style Fédéral américain | Agrandissable : niveau 2 (+50 %, 240 k€), niveau 3 (×2, 320 k€) ; rénovation 60 k€ · 4 variantes de façade |
 | Hammam | 1800 | 20 × 16 m · 600 k€ · 6 emplois · 200 visiteurs · Moyen-Orient et Maghreb | Agrandissable : niveau 2 (+50 %, 360 k€), niveau 3 (×2, 480 k€) ; rénovation 90 k€ |
 | Société des explorateurs | 1800 | 22 × 16 m · 450 k€ · 5 emplois · 80 visiteurs | Agrandissable : niveau 2 (+50 %, 270 k€), niveau 3 (×2, 360 k€) ; rénovation 68 k€ |
+| Théâtre impérial | 1800 | 30 × 36 m · 6 M€ · 40 emplois · 600 visiteurs · style Saint-Pétersbourg impérial | Agrandissable : niveau 2 (+50 %, 3,6 M€), niveau 3 (×2, 4,8 M€) ; rénovation 900 k€ · 4 variantes de façade |
+| Théâtre à colonnade | 1800 | 30 × 36 m · 6 M€ · 40 emplois · 600 visiteurs · style Néoclassique Empire | Agrandissable : niveau 2 (+50 %, 3,6 M€), niveau 3 (×2, 4,8 M€) ; rénovation 900 k€ · 4 variantes de façade |
+| Café viennois | 1815 | 12 × 14 m · 400 k€ · 4 emplois · 120 visiteurs · style Biedermeier | Agrandissable : niveau 2 (+50 %, 240 k€), niveau 3 (×2, 320 k€) ; rénovation 60 k€ · 4 variantes de façade |
 | Café-narguilé | 1840 | 12 × 14 m · 400 k€ · 4 emplois · 120 visiteurs · style Maison levantine | Agrandissable : niveau 2 (+50 %, 240 k€), niveau 3 (×2, 320 k€) ; rénovation 60 k€ · 4 variantes de façade |
 | Kopitiam | 1840 | 12 × 14 m · 400 k€ · 4 emplois · 120 visiteurs · style Compartiments sino-malais | Agrandissable : niveau 2 (+50 %, 240 k€), niveau 3 (×2, 320 k€) ; rénovation 60 k€ · 4 variantes de façade |
 | Carrousel | 1850 | 15 × 15 m · 450 k€ · 2 emplois · 300 visiteurs · Europe | Agrandissable : niveau 2 (+50 %, 270 k€), niveau 3 (×2, 360 k€) ; rénovation 68 k€ · 2 variantes de façade |
@@ -914,11 +996,14 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Opéra aux voiles | 1995 | 30 × 36 m · 7,8 M€ · 40 emplois · 600 visiteurs · style Pacifique contemporain | Agrandissable : niveau 2 (+50 %, 4,7 M€), niveau 3 (×2, 6,2 M€) ; rénovation 1,2 M€ · 4 variantes de façade |
 | Palais des festivals | 1995 | 30 × 36 m · 7,8 M€ · 40 emplois · 600 visiteurs · style Riviera contemporaine | Agrandissable : niveau 2 (+50 %, 4,7 M€), niveau 3 (×2, 6,2 M€) ; rénovation 1,2 M€ · 4 variantes de façade |
 | Musée de verre | 1998 | 30 × 36 m · 7,8 M€ · 40 emplois · 600 visiteurs · style Asie de l'Est contemporaine | Agrandissable : niveau 2 (+50 %, 4,7 M€), niveau 3 (×2, 6,2 M€) ; rénovation 1,2 M€ · 4 variantes de façade |
-| Centre culturel | 2000 | 30 × 36 m · 7,8 M€ · 40 emplois · 600 visiteurs · style Afrique contemporaine | Agrandissable : niveau 2 (+50 %, 4,7 M€), niveau 3 (×2, 6,2 M€) ; rénovation 1,2 M€ · 4 variantes de façade |
 | Centre culturel | 2000 | 30 × 36 m · 7,8 M€ · 40 emplois · 600 visiteurs · style Amérique latine contemporaine | Agrandissable : niveau 2 (+50 %, 4,7 M€), niveau 3 (×2, 6,2 M€) ; rénovation 1,2 M€ · 4 variantes de façade |
+| Centre culturel | 2000 | 30 × 36 m · 7,8 M€ · 40 emplois · 600 visiteurs · style Afrique contemporaine | Agrandissable : niveau 2 (+50 %, 4,7 M€), niveau 3 (×2, 6,2 M€) ; rénovation 1,2 M€ · 4 variantes de façade |
 | Opéra blanc | 2000 | 30 × 36 m · 7,8 M€ · 40 emplois · 600 visiteurs · style Nordique contemporain | Agrandissable : niveau 2 (+50 %, 4,7 M€), niveau 3 (×2, 6,2 M€) ; rénovation 1,2 M€ · 4 variantes de façade |
 | Sauna et restaurant | 2000 | 12 × 14 m · 520 k€ · 4 emplois · 120 visiteurs · style Nordique contemporain | Agrandissable : niveau 2 (+50 %, 312 k€), niveau 3 (×2, 416 k€) ; rénovation 78 k€ · 4 variantes de façade |
 | Opéra aux courbes | 2005 | 30 × 36 m · 7,8 M€ · 40 emplois · 600 visiteurs · style Courbes paramétriques | Agrandissable : niveau 2 (+50 %, 4,7 M€), niveau 3 (×2, 6,2 M€) ; rénovation 1,2 M€ · 4 variantes de façade |
+| Cantine du quartier | 2015 | 12 × 14 m · 520 k€ · 4 emplois · 120 visiteurs · style Écoquartier | Agrandissable : niveau 2 (+50 %, 312 k€), niveau 3 (×2, 416 k€) ; rénovation 78 k€ · 4 variantes de façade |
+| Parc-éponge | 2015 | 30 × 30 m · 325 k€ · 300 visiteurs · style Écoquartier | Agrandissable : niveau 2 (+50 %, 195 k€), niveau 3 (×2, 260 k€) ; rénovation 49 k€ · 4 variantes de façade |
+| Ferme flottante | 2028 | 30 × 30 m · 450 k€ · 300 visiteurs · style Habitat flottant | Agrandissable : niveau 2 (+50 %, 270 k€), niveau 3 (×2, 360 k€) ; rénovation 68 k€ · 4 variantes de façade |
 | Dôme des spectacles | 2040 | 30 × 36 m · 11 M€ · 40 emplois · 600 visiteurs · style Futuriste | Agrandissable : niveau 2 (+50 %, 6,5 M€), niveau 3 (×2, 8,6 M€) ; rénovation 1,6 M€ · 4 variantes de façade |
 
 ### Parc de loisirs
@@ -1129,8 +1214,8 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Mairie de village | toujours | 20 × 14 m · 1,8 M€ · 6 emplois · Europe | Agrandissable : niveau 2 (+50 %, 1,1 M€), niveau 3 (×2, 1,4 M€) ; rénovation 270 k€ · 3 variantes de façade |
 | Maison de commune | toujours | 16 × 14 m · 300 k€ · 3 emplois | Agrandissable : niveau 2 (+50 %, 180 k€), niveau 3 (×2, 240 k€) ; rénovation 45 k€ |
 | Maison du chef | toujours | 44 × 38 m · 14 M€ · 40 emplois · 600 visiteurs · style Voûtes nubiennes | Agrandissable : niveau 2 (+50 %, 8,1 M€), niveau 3 (×2, 11 M€) ; rénovation 2,0 M€ · 4 variantes de façade |
-| Marae | toujours | 24 × 24 m · 2,7 M€ · 300 visiteurs · style Maori | Agrandissable : niveau 2 (+50 %, 1,6 M€), niveau 3 (×2, 2,2 M€) ; rénovation 405 k€ · 4 variantes de façade |
 | Marae | toujours | 24 × 24 m · 2,7 M€ · 300 visiteurs · style Polynésien | Agrandissable : niveau 2 (+50 %, 1,6 M€), niveau 3 (×2, 2,2 M€) ; rénovation 405 k€ · 4 variantes de façade |
+| Marae | toujours | 24 × 24 m · 2,7 M€ · 300 visiteurs · style Maori | Agrandissable : niveau 2 (+50 %, 1,6 M€), niveau 3 (×2, 2,2 M€) ; rénovation 405 k€ · 4 variantes de façade |
 | Mission espagnole | toujours | 24 × 36 m · 2,7 M€ · 300 visiteurs · style Adobe | Agrandissable : niveau 2 (+50 %, 1,6 M€), niveau 3 (×2, 2,2 M€) ; rénovation 405 k€ · 4 variantes de façade |
 | Mission espagnole | toujours | 36 × 34 m · 2,8 M€ · 2 emplois · 300 visiteurs · Amériques | Agrandissable : niveau 2 (+50 %, 1,7 M€), niveau 3 (×2, 2,2 M€) ; rénovation 420 k€ · 2 variantes de façade |
 | Mosquée | toujours | 37 × 47 m · 14 M€ · 4 emplois · 900 visiteurs · Moyen-Orient et Maghreb | Agrandissable : niveau 2 (+50 %, 8,4 M€), niveau 3 (×2, 11 M€) ; rénovation 2,1 M€ |
@@ -1169,8 +1254,8 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Temple (wat) et stupa | toujours | 34 × 34 m · 2,7 M€ · 300 visiteurs · style Asie du Sud-Est | Agrandissable : niveau 2 (+50 %, 1,6 M€), niveau 3 (×2, 2,2 M€) ; rénovation 405 k€ · 4 variantes de façade |
 | Temple bouddhiste | toujours | 24 × 24 m · 2,7 M€ · 300 visiteurs · style Hanok coréen | Agrandissable : niveau 2 (+50 %, 1,6 M€), niveau 3 (×2, 2,2 M€) ; rénovation 405 k€ · 4 variantes de façade |
 | Temple d'Angkor | toujours | 34 × 34 m · 2,4 M€ · 300 visiteurs · style Khmer | Agrandissable : niveau 2 (+50 %, 1,4 M€), niveau 3 (×2, 1,9 M€) ; rénovation 360 k€ · 4 variantes de façade |
-| Temple hindou | toujours | 28 × 38 m · 3,4 M€ · 3 emplois · 900 visiteurs · Asie du Sud et du Sud-Est | Agrandissable : niveau 2 (+50 %, 2,0 M€), niveau 3 (×2, 2,7 M€) ; rénovation 510 k€ |
 | Temple hindou | toujours | 24 × 24 m · 2,7 M€ · 300 visiteurs · style Rajasthan | Agrandissable : niveau 2 (+50 %, 1,6 M€), niveau 3 (×2, 2,2 M€) ; rénovation 405 k€ · 4 variantes de façade |
+| Temple hindou | toujours | 28 × 38 m · 3,4 M€ · 3 emplois · 900 visiteurs · Asie du Sud et du Sud-Est | Agrandissable : niveau 2 (+50 %, 2,0 M€), niveau 3 (×2, 2,7 M€) ; rénovation 510 k€ |
 | Temple romain | toujours | 22 × 40 m · 2,4 M€ · 300 visiteurs · style Rome antique | Agrandissable : niveau 2 (+50 %, 1,4 M€), niveau 3 (×2, 1,9 M€) ; rénovation 360 k€ · 4 variantes de façade |
 | Temple réformé | toujours | 15 × 25 m · 2,4 M€ · 1 emploi · 200 visiteurs · Europe | Agrandissable : niveau 2 (+50 %, 1,4 M€), niveau 3 (×2, 1,9 M€) ; rénovation 360 k€ · 2 variantes de façade |
 | Temple thaï | toujours | 21 × 42 m · 3 M€ · 3 emplois · 1000 visiteurs · Asie du Sud et du Sud-Est | Agrandissable : niveau 2 (+50 %, 1,8 M€), niveau 3 (×2, 2,4 M€) ; rénovation 450 k€ |
@@ -1196,9 +1281,32 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Église romane | toujours | 17 × 29 m · 3,2 M€ · 2 emplois · 150 visiteurs · Europe | Agrandissable : niveau 2 (+50 %, 1,9 M€), niveau 3 (×2, 2,6 M€) ; rénovation 480 k€ · 2 variantes de façade |
 | Église réformée blanche | toujours | 24 × 36 m · 2,7 M€ · 300 visiteurs · style Cap hollandais | Agrandissable : niveau 2 (+50 %, 1,6 M€), niveau 3 (×2, 2,2 M€) ; rénovation 405 k€ · 4 variantes de façade |
 | Église à bulbes | toujours | 24 × 36 m · 2,7 M€ · 300 visiteurs · style Bois slave | Agrandissable : niveau 2 (+50 %, 1,6 M€), niveau 3 (×2, 2,2 M€) ; rénovation 405 k€ · 4 variantes de façade |
+| Académie | 1790 | 34 × 26 m · 5 M€ · 25 emplois · 300 visiteurs · style Fédéral américain | Agrandissable : niveau 2 (+50 %, 3 M€), niveau 3 (×2, 4 M€) ; rénovation 750 k€ · 4 variantes de façade |
+| Capitole d'État | 1790 | 44 × 38 m · 15 M€ · 40 emplois · 600 visiteurs · style Fédéral américain | Agrandissable : niveau 2 (+50 %, 9 M€), niveau 3 (×2, 12 M€) ; rénovation 2,2 M€ · 4 variantes de façade |
+| Meeting house | 1790 | 24 × 36 m · 3 M€ · 300 visiteurs · style Fédéral américain | Agrandissable : niveau 2 (+50 %, 1,8 M€), niveau 3 (×2, 2,4 M€) ; rénovation 450 k€ · 4 variantes de façade |
+| Cathédrale à coupole dorée | 1800 | 24 × 36 m · 3 M€ · 300 visiteurs · style Saint-Pétersbourg impérial | Agrandissable : niveau 2 (+50 %, 1,8 M€), niveau 3 (×2, 2,4 M€) ; rénovation 450 k€ · 4 variantes de façade |
+| Hôpital des invalides | 1800 | 40 × 34 m · 22 M€ · 400 emplois · style Saint-Pétersbourg impérial | Agrandissable : niveau 2 (+50 %, 13 M€), niveau 3 (×2, 18 M€) ; rénovation 3,3 M€ · 4 variantes de façade |
+| Lycée impérial | 1800 | 34 × 26 m · 5 M€ · 25 emplois · 300 visiteurs · style Néoclassique Empire | Agrandissable : niveau 2 (+50 %, 3 M€), niveau 3 (×2, 4 M€) ; rénovation 750 k€ · 4 variantes de façade |
 | Maison d'école | 1800 | 20 × 14 m · 600 k€ · 2 emplois · 60 visiteurs · style Colombages | Agrandissable : niveau 2 (+50 %, 360 k€), niveau 3 (×2, 480 k€) ; rénovation 90 k€ · 4 variantes de façade · Même rôle selon l'époque : Maison d'école (1800) → École de la République (1882) → École (1950) |
+| Palais d'hiver | 1800 | 44 × 38 m · 15 M€ · 40 emplois · 600 visiteurs · style Saint-Pétersbourg impérial | Agrandissable : niveau 2 (+50 %, 9 M€), niveau 3 (×2, 12 M€) ; rénovation 2,2 M€ · 4 variantes de façade |
+| Palais de la Bourse | 1800 | 44 × 38 m · 15 M€ · 40 emplois · 600 visiteurs · style Néoclassique Empire | Agrandissable : niveau 2 (+50 %, 9 M€), niveau 3 (×2, 12 M€) ; rénovation 2,2 M€ · 4 variantes de façade |
+| Église-temple | 1800 | 24 × 36 m · 3 M€ · 300 visiteurs · style Néoclassique Empire | Agrandissable : niveau 2 (+50 %, 1,8 M€), niveau 3 (×2, 2,4 M€) ; rénovation 450 k€ · 4 variantes de façade |
 | Lycée | 1802 | 67 × 47 m · 28 M€ · 110 emplois · 1200 visiteurs · Europe | Agrandissable : niveau 2 (+50 %, 17 M€), niveau 3 (×2, 22 M€) ; rénovation 4,2 M€ · 2 variantes de façade |
+| Collège de la Compagnie | 1810 | 34 × 26 m · 5 M€ · 25 emplois · 300 visiteurs · style Bungalow anglo-indien | Agrandissable : niveau 2 (+50 %, 3 M€), niveau 3 (×2, 4 M€) ; rénovation 750 k€ · 4 variantes de façade |
+| Hôpital au rhum | 1810 | 40 × 34 m · 22 M€ · 400 emplois · style Géorgien des colonies | Agrandissable : niveau 2 (+50 %, 13 M€), niveau 3 (×2, 18 M€) ; rénovation 3,3 M€ · 4 variantes de façade |
+| Hôpital de garnison | 1810 | 40 × 34 m · 22 M€ · 400 emplois · style Bungalow anglo-indien | Agrandissable : niveau 2 (+50 %, 13 M€), niveau 3 (×2, 18 M€) ; rénovation 3,3 M€ · 4 variantes de façade |
+| Maison du gouverneur | 1810 | 44 × 38 m · 15 M€ · 40 emplois · 600 visiteurs · style Géorgien des colonies | Agrandissable : niveau 2 (+50 %, 9 M€), niveau 3 (×2, 12 M€) ; rénovation 2,2 M€ · 4 variantes de façade |
+| Résidence du gouverneur | 1810 | 44 × 38 m · 15 M€ · 40 emplois · 600 visiteurs · style Bungalow anglo-indien | Agrandissable : niveau 2 (+50 %, 9 M€), niveau 3 (×2, 12 M€) ; rénovation 2,2 M€ · 4 variantes de façade |
+| École de la colonie | 1810 | 34 × 26 m · 5 M€ · 25 emplois · 300 visiteurs · style Géorgien des colonies | Agrandissable : niveau 2 (+50 %, 3 M€), niveau 3 (×2, 4 M€) ; rénovation 750 k€ · 4 variantes de façade |
+| Église de garnison | 1810 | 24 × 36 m · 3 M€ · 300 visiteurs · style Bungalow anglo-indien | Agrandissable : niveau 2 (+50 %, 1,8 M€), niveau 3 (×2, 2,4 M€) ; rénovation 450 k€ · 4 variantes de façade |
+| Église de grès | 1810 | 24 × 36 m · 3 M€ · 300 visiteurs · style Géorgien des colonies | Agrandissable : niveau 2 (+50 %, 1,8 M€), niveau 3 (×2, 2,4 M€) ; rénovation 450 k€ · 4 variantes de façade |
+| École de la paroisse | 1815 | 34 × 26 m · 5 M€ · 25 emplois · 300 visiteurs · style Biedermeier | Agrandissable : niveau 2 (+50 %, 3 M€), niveau 3 (×2, 4 M€) ; rénovation 750 k€ · 4 variantes de façade |
+| Asile | 1820 | 40 × 34 m · 22 M€ · 400 emplois · style Néo-grec américain | Agrandissable : niveau 2 (+50 %, 13 M€), niveau 3 (×2, 18 M€) ; rénovation 3,3 M€ · 4 variantes de façade |
+| Palais de justice | 1820 | 44 × 38 m · 15 M€ · 40 emplois · 600 visiteurs · style Néo-grec américain | Agrandissable : niveau 2 (+50 %, 9 M€), niveau 3 (×2, 12 M€) ; rénovation 2,2 M€ · 4 variantes de façade |
+| Université à colonnade | 1820 | 34 × 26 m · 5 M€ · 25 emplois · 300 visiteurs · style Néo-grec américain | Agrandissable : niveau 2 (+50 %, 3 M€), niveau 3 (×2, 4 M€) ; rénovation 750 k€ · 4 variantes de façade |
+| Église à fronton | 1820 | 22 × 40 m · 3 M€ · 300 visiteurs · style Néo-grec américain | Agrandissable : niveau 2 (+50 %, 1,8 M€), niveau 3 (×2, 2,4 M€) ; rénovation 450 k€ · 4 variantes de façade |
 | Gare (briques industrielles) | 1830 | 50 × 26 m · 9 M€ · 60 emplois · 3000 visiteurs · style Briques industrielles | Agrandissable : niveau 2 (+50 %, 5,4 M€), niveau 3 (×2, 7,2 M€) ; rénovation 1,4 M€ · 4 variantes de façade |
+| Maison des merveilles | 1830 | 44 × 38 m · 15 M€ · 40 emplois · 600 visiteurs · style Stone Town de Zanzibar | Agrandissable : niveau 2 (+50 %, 9 M€), niveau 3 (×2, 12 M€) ; rénovation 2,2 M€ · 4 variantes de façade |
 | École (briques industrielles) | 1830 | 34 × 26 m · 5 M€ · 25 emplois · 300 visiteurs · style Briques industrielles | Agrandissable : niveau 2 (+50 %, 3 M€), niveau 3 (×2, 4 M€) ; rénovation 750 k€ · 4 variantes de façade |
 | École normale | 1830 | 36 × 26 m · 6 M€ · 30 emplois · 300 visiteurs · style Haussmannien | Agrandissable : niveau 2 (+50 %, 3,6 M€), niveau 3 (×2, 4,8 M€) ; rénovation 900 k€ · 4 variantes de façade · Même rôle selon l'époque : École normale (1830) → Haute école pédagogique (HEP) (2001) |
 | Collège | 1840 | 34 × 26 m · 5 M€ · 25 emplois · 300 visiteurs · style Maison levantine | Agrandissable : niveau 2 (+50 %, 3 M€), niveau 3 (×2, 4 M€) ; rénovation 750 k€ · 4 variantes de façade |
@@ -1383,9 +1491,24 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Hôpital végétalisé | 2010 | 40 × 34 m · 29 M€ · 400 emplois · style Bois et végétal | Agrandissable : niveau 2 (+50 %, 17 M€), niveau 3 (×2, 23 M€) ; rénovation 4,3 M€ · 4 variantes de façade |
 | Pylône 4G | 2010 | 8 × 8 m · 260 k€ |  |
 | École bas carbone | 2010 | 34 × 26 m · 6,5 M€ · 25 emplois · 300 visiteurs · style Bois et végétal | Agrandissable : niveau 2 (+50 %, 3,9 M€), niveau 3 (×2, 5,2 M€) ; rénovation 975 k€ · 4 variantes de façade |
+| Groupe scolaire biosourcé | 2015 | 34 × 26 m · 6,5 M€ · 25 emplois · 300 visiteurs · style Écoquartier | Agrandissable : niveau 2 (+50 %, 3,9 M€), niveau 3 (×2, 5,2 M€) ; rénovation 975 k€ · 4 variantes de façade |
 | Pylône 4G + 5G | 2019 | 8 × 8 m · 420 k€ |  |
+| Clinique bioclimatique | 2020 | 40 × 34 m · 29 M€ · 400 emplois · style Ville du désert sobre | Agrandissable : niveau 2 (+50 %, 17 M€), niveau 3 (×2, 23 M€) ; rénovation 4,3 M€ · 4 variantes de façade |
+| Gare de maglev | 2020 | 50 × 26 m · 12 M€ · 60 emplois · 3000 visiteurs · style Ville connectée d'Asie | Agrandissable : niveau 2 (+50 %, 7,0 M€), niveau 3 (×2, 9,4 M€) ; rénovation 1,8 M€ · 4 variantes de façade |
+| Hôpital robotisé | 2020 | 40 × 34 m · 29 M€ · 400 emplois · style Ville connectée d'Asie | Agrandissable : niveau 2 (+50 %, 17 M€), niveau 3 (×2, 23 M€) ; rénovation 4,3 M€ · 4 variantes de façade |
 | Petite antenne 5G | 2020 | 3 × 3 m · 90 k€ |  |
+| École du numérique | 2020 | 34 × 26 m · 6,5 M€ · 25 emplois · 300 visiteurs · style Ville connectée d'Asie | Agrandissable : niveau 2 (+50 %, 3,9 M€), niveau 3 (×2, 5,2 M€) ; rénovation 975 k€ · 4 variantes de façade |
+| École fraîche sans clim | 2020 | 34 × 26 m · 6,5 M€ · 25 emplois · 300 visiteurs · style Ville du désert sobre | Agrandissable : niveau 2 (+50 %, 3,9 M€), niveau 3 (×2, 5,2 M€) ; rénovation 975 k€ · 4 variantes de façade |
+| Centre de santé solaire | 2022 | 40 × 34 m · 29 M€ · 400 emplois · style Villes nouvelles d'Afrique | Agrandissable : niveau 2 (+50 %, 17 M€), niveau 3 (×2, 23 M€) ; rénovation 4,3 M€ · 4 variantes de façade |
+| Gare du train express | 2022 | 50 × 26 m · 12 M€ · 60 emplois · 3000 visiteurs · style Villes nouvelles d'Afrique | Agrandissable : niveau 2 (+50 %, 7,0 M€), niveau 3 (×2, 9,4 M€) ; rénovation 1,8 M€ · 4 variantes de façade |
+| École en briques de terre | 2022 | 34 × 26 m · 6,5 M€ · 25 emplois · 300 visiteurs · style Villes nouvelles d'Afrique | Agrandissable : niveau 2 (+50 %, 3,9 M€), niveau 3 (×2, 5,2 M€) ; rénovation 975 k€ · 4 variantes de façade |
+| École amphibie | 2028 | 34 × 26 m · 9 M€ · 25 emplois · 300 visiteurs · style Habitat flottant | Agrandissable : niveau 2 (+50 %, 5,4 M€), niveau 3 (×2, 7,2 M€) ; rénovation 1,4 M€ · 4 variantes de façade |
+| Dispensaire imprimé | 2030 | 40 × 34 m · 40 M€ · 400 emplois · style Imprimé en 3D | Agrandissable : niveau 2 (+50 %, 24 M€), niveau 3 (×2, 32 M€) ; rénovation 5,9 M€ · 4 variantes de façade |
+| École imprimée | 2030 | 34 × 26 m · 9 M€ · 25 emplois · 300 visiteurs · style Imprimé en 3D | Agrandissable : niveau 2 (+50 %, 5,4 M€), niveau 3 (×2, 7,2 M€) ; rénovation 1,4 M€ · 4 variantes de façade |
+| Hôpital des canicules | 2032 | 40 × 34 m · 40 M€ · 400 emplois · style Méditerranée climatique | Agrandissable : niveau 2 (+50 %, 24 M€), niveau 3 (×2, 32 M€) ; rénovation 5,9 M€ · 4 variantes de façade |
+| École-îlot de fraîcheur | 2032 | 34 × 26 m · 9 M€ · 25 emplois · 300 visiteurs · style Méditerranée climatique | Agrandissable : niveau 2 (+50 %, 5,4 M€), niveau 3 (×2, 7,2 M€) ; rénovation 1,4 M€ · 4 variantes de façade |
 | Hôpital (futuriste) | 2040 | 40 × 34 m · 40 M€ · 400 emplois · style Futuriste | Agrandissable : niveau 2 (+50 %, 24 M€), niveau 3 (×2, 32 M€) ; rénovation 5,9 M€ · 4 variantes de façade |
+| Vertiport de toit | 2045 | 50 × 26 m · 16 M€ · 60 emplois · 3000 visiteurs · style Ville verticale | Agrandissable : niveau 2 (+50 %, 9,7 M€), niveau 3 (×2, 13 M€) ; rénovation 2,4 M€ · 4 variantes de façade |
 
 ### Spectacles (cinéma, concerts, théâtre)
 
@@ -1476,7 +1599,7 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 
 <a id="vehicules"></a>
 
-## Véhicules (277)
+## Véhicules (310)
 
 ### Attelages
 
@@ -1484,6 +1607,7 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 |---|---:|---|---|
 | Ambulance à chevaux | 1800 | 12 km/h · 3 places | Selon l'époque : Ambulance à chevaux (1800) → Ambulance des années 30 (1930) → Ambulance des années 70 (1970) → Ambulance (2015) → Ambulance américaine (2015) → VSAV des pompiers (2018) → Véhicule du SMUR (2019) |
 | Araba d'Orient | 1800 | 8 km/h · 6 places · Moyen-Orient et Maghreb |  |
+| Chaise de poste | 1800 | 15 km/h · 2 places · Europe |  |
 | Char à bancs | 1800 | 10 km/h · 10 places · Europe | Selon l'époque : Char à bancs (1800) → Diligence des messageries (1800) → Omnibus à chevaux (1828) → Diligence (1860) → Autobus à plateforme (1935) → Autocar des années 60 (1960) → Autocar de tourisme (2012) |
 | Chariot à bœufs du Cap | 1800 | 4 km/h · 6 places · Afrique |  |
 | Charrette | 1800 | 6 km/h · 2 places |  |
@@ -1501,7 +1625,8 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Tombereau des boueux | 1800 | 6 km/h · 2 places | Selon l'époque : Tombereau des boueux (1800) → Benne à ordures des années 50 (1950) → Camion benne (2010) → Benne à ordures ménagères (2018) |
 | Tonga indienne | 1800 | 12 km/h · 4 places · Asie du Sud et du Sud-Est |  |
 | Charrette de la rivière Rouge | 1801 | 6 km/h · 1 places · Amériques | Avant 1801, remplacé par : Charrette |
-| Cabriolet | 1810 | 18 km/h · 2 places · Europe | Avant 1810, remplacé par : Charrette de la rivière Rouge |
+| Berline de voyage | 1805 | 12 km/h · 6 places · Europe | Avant 1805, remplacé par : Charrette de la rivière Rouge |
+| Cabriolet | 1810 | 18 km/h · 2 places · Europe | Avant 1810, remplacé par : Berline de voyage |
 | Omnibus à chevaux | 1828 | 10 km/h · 30 places · Europe | Selon l'époque : Char à bancs (1800) → Diligence des messageries (1800) → Omnibus à chevaux (1828) → Diligence (1860) → Autobus à plateforme (1935) → Autocar des années 60 (1960) → Autocar de tourisme (2012) |
 | Coupé de ville | 1838 | 15 km/h · 2 places · Europe | Avant 1838, remplacé par : Cabriolet |
 | Calèche | 1850 | 15 km/h · 4 places · Europe | Avant 1850, remplacé par : Coupé de ville |
@@ -1531,7 +1656,11 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Avion de ligne court-courrier | 2000 | 840 km/h · 180 places | Avant 2000, remplacé par : Avion régional à turbopropulseurs |
 | Jet d'affaires | 2005 | 850 km/h · 8 places | Avant 2005, remplacé par : Avion de ligne court-courrier |
 | Avion de ligne régional à réaction | 2016 | 830 km/h · 90 places · Asie de l'Est | Avant 2016, remplacé par : Jet d'affaires |
-| Taxi volant électrique | 2035 | 150 km/h · 2 places | Avant 2035, remplacé par : Avion de ligne régional à réaction |
+| Drone de livraison | 2022 | 90 km/h | Avant 2022, remplacé par : Avion de ligne régional à réaction |
+| Avion régional électrique | 2030 | 400 km/h · 19 places · Europe | Avant 2030, remplacé par : Drone de livraison |
+| Avion de ligne à hydrogène | 2035 | 850 km/h · 200 places · Europe | Avant 2035, remplacé par : Avion régional électrique |
+| Taxi volant électrique | 2035 | 150 km/h · 2 places | Avant 2035, remplacé par : Avion régional électrique |
+| Ambulance volante | 2038 | 200 km/h · 2 places | Avant 2038, remplacé par : Taxi volant électrique |
 
 ### Bateaux
 
@@ -1552,9 +1681,11 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Bateau-dragon | 1800 | 15 km/h · 22 places · Asie de l'Est |  |
 | Bateau-maison du Kerala | 1800 | 8 km/h · 10 places · Asie du Sud et du Sud-Est |  |
 | Caïque | 1800 | 12 km/h · 8 places · Méditerranée |  |
+| Coche d'eau | 1800 | 6 km/h · 60 places · Europe |  |
 | Gabare | 1800 | 8 km/h · 3 places · Europe |  |
 | Trois-mâts marchand | 1800 | 14 km/h · 30 places |  |
-| Péniche de halage | 1820 | 4 km/h · 2 places · Europe | Avant 1820, remplacé par : Barque à rames |
+| Premier vapeur fluvial | 1807 | 12 km/h · 150 places · Amériques | Avant 1807, remplacé par : Barque à rames |
+| Péniche de halage | 1820 | 4 km/h · 2 places · Europe | Avant 1820, remplacé par : Premier vapeur fluvial |
 | Vapeur à roues de haute mer | 1838 | 17 km/h · 150 places · Europe | Avant 1838, remplacé par : Péniche de halage |
 | Vapeur à roue arrière | 1840 | 15 km/h · 200 places · Amériques | Avant 1840, remplacé par : Vapeur à roues de haute mer |
 | Clipper | 1845 | 30 km/h · 40 places · Amériques | Avant 1845, remplacé par : Vapeur à roue arrière |
@@ -1578,6 +1709,9 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Hors-bord | 2000 | 70 km/h · 6 places | Avant 2000, remplacé par : Ferry rapide catamaran |
 | Porte-conteneurs | 2010 | 45 km/h · 25 places | Avant 2010, remplacé par : Hors-bord |
 | Navire de croisière | 2015 | 40 km/h · 5000 places | Avant 2015, remplacé par : Porte-conteneurs |
+| Ferry électrique | 2020 | 30 km/h · 600 places · Europe | Avant 2020, remplacé par : Navire de croisière |
+| Navette à hydrofoils électrique | 2024 | 45 km/h · 30 places | Avant 2024, remplacé par : Ferry électrique |
+| Cargo à voiles rigides | 2025 | 25 km/h · 20 places | Avant 2025, remplacé par : Navette à hydrofoils électrique |
 
 ### Bus et cars
 
@@ -1606,7 +1740,10 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Bus urbain | 2015 | 70 km/h · 100 places | Avant 2015, remplacé par : Matatu (minibus décoré) |
 | Bus à étage moderne | 2015 | 70 km/h · 130 places · Asie de l'Est | Avant 2015, remplacé par : Matatu (minibus décoré) |
 | Bus électrique chinois | 2016 | 70 km/h · 80 places · Asie de l'Est | Avant 2016, remplacé par : Bus urbain |
-| Navette autonome | 2035 | 40 km/h · 15 places | Avant 2035, remplacé par : Bus électrique chinois |
+| Bus à haut niveau de service | 2020 | 80 km/h · 160 places · Amériques | Avant 2020, remplacé par : Bus électrique chinois |
+| Bus à hydrogène | 2020 | 70 km/h · 85 places · Europe | Avant 2020, remplacé par : Bus électrique chinois |
+| Bus autonome de ligne | 2028 | 60 km/h · 90 places · Asie de l'Est | Avant 2028, remplacé par : Bus à hydrogène |
+| Navette autonome | 2035 | 40 km/h · 15 places | Avant 2035, remplacé par : Bus autonome de ligne |
 
 ### Deux et trois roues
 
@@ -1631,7 +1768,11 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Moto | 2015 | 180 km/h · 2 places | Avant 2015, remplacé par : Tuk-tuk |
 | Moto-taxi | 2015 | 90 km/h · 2 places · Afrique | Avant 2015, remplacé par : Tuk-tuk |
 | Vélo cargo | 2015 | 18 km/h · 3 places · Europe | Avant 2015, remplacé par : Vélo électrique |
+| Tuk-tuk électrique | 2018 | 45 km/h · 4 places · Asie du Sud et du Sud-Est | Avant 2018, remplacé par : Moto |
 | Trottinette électrique | 2019 | 22 km/h · 1 places | Avant 2019, remplacé par : Vélo cargo |
+| Scooter électrique à batterie échangeable | 2020 | 60 km/h · 2 places · Asie de l'Est | Avant 2020, remplacé par : Tuk-tuk électrique |
+| Vélo cargo de livraison | 2020 | 25 km/h · 1 places · Europe | Avant 2020, remplacé par : Trottinette électrique |
+| Moto-taxi électrique | 2022 | 80 km/h · 2 places · Afrique | Avant 2022, remplacé par : Scooter électrique à batterie échangeable |
 
 ### Trains
 
@@ -1667,10 +1808,13 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Train à grande vitesse japonais | 2007 | 300 km/h · 60 places · Asie de l'Est | Avant 2007, remplacé par : Locomotive électrique de fret |
 | Train à grande vitesse chinois | 2008 | 350 km/h · 60 places · Asie de l'Est | Avant 2008, remplacé par : Train à grande vitesse japonais |
 | Train régional électrique | 2010 | 160 km/h · 220 places · Europe | Avant 2010, remplacé par : Train à grande vitesse chinois |
+| Train régional à hydrogène | 2018 | 140 km/h · 150 places · Europe | Avant 2018, remplacé par : Train régional électrique |
 | Train à grande vitesse du désert | 2018 | 320 km/h · Moyen-Orient et Maghreb | Avant 2018, remplacé par : Train régional électrique |
-| Rame à crémaillère moderne | 2023 | 30 km/h · 180 places · Europe | Avant 2023, remplacé par : Train à grande vitesse du désert |
-| Métro automatique | 2030 | 100 km/h · 160 places · Asie de l'Est | Avant 2030, remplacé par : Rame à crémaillère moderne |
-| Train à sustentation magnétique | 2030 | 500 km/h · 70 places · Asie de l'Est | Avant 2030, remplacé par : Rame à crémaillère moderne |
+| Automotrice à batteries | 2022 | 120 km/h · 160 places · Asie de l'Est | Avant 2022, remplacé par : Train régional à hydrogène |
+| Rame à crémaillère moderne | 2023 | 30 km/h · 180 places · Europe | Avant 2023, remplacé par : Automotrice à batteries |
+| Grande vitesse nouvelle génération | 2025 | 320 km/h · Europe | Avant 2025, remplacé par : Rame à crémaillère moderne |
+| Métro automatique | 2030 | 100 km/h · 160 places · Asie de l'Est | Avant 2030, remplacé par : Grande vitesse nouvelle génération |
+| Train à sustentation magnétique | 2030 | 500 km/h · 70 places · Asie de l'Est | Avant 2030, remplacé par : Grande vitesse nouvelle génération |
 
 ### Tramways
 
@@ -1688,6 +1832,7 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Tramway à étage | 1960 | 40 km/h · 115 places · Asie de l'Est | Avant 1960, remplacé par : Tramway des années 50 |
 | Tramway moderne | 2010 | 70 km/h · 90 places · Europe | Avant 2010, remplacé par : Tramway à étage |
 | Tramway moderne d'Afrique du Nord | 2011 | 70 km/h · 300 places · Moyen-Orient et Maghreb | Avant 2011, remplacé par : Tramway moderne |
+| Tram-train | 2021 | 100 km/h · 250 places · Europe | Avant 2021, remplacé par : Tramway moderne d'Afrique du Nord |
 
 ### Utilitaires et camions
 
@@ -1729,7 +1874,10 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Benne à ordures ménagères | 2018 | 80 km/h · 3 places | Selon l'époque : Tombereau des boueux (1800) → Benne à ordures des années 50 (1950) → Camion benne (2010) → Benne à ordures ménagères (2018) |
 | Camion porteur de livraison | 2018 | 90 km/h · 2 places | Avant 2018, remplacé par : Fourgon de livraison |
 | VSAV des pompiers | 2018 | 140 km/h · 4 places · Europe | Selon l'époque : Ambulance à chevaux (1800) → Ambulance des années 30 (1930) → Ambulance des années 70 (1970) → Ambulance (2015) → Ambulance américaine (2015) → VSAV des pompiers (2018) → Véhicule du SMUR (2019) |
-| Porteur électrique | 2022 | 90 km/h · 2 places | Avant 2022, remplacé par : Camion porteur de livraison |
+| Benne à ordures électrique | 2021 | 80 km/h · 3 places · Europe | Avant 2021, remplacé par : Camion porteur de livraison |
+| Porteur électrique | 2022 | 90 km/h · 2 places | Avant 2022, remplacé par : Benne à ordures électrique |
+| Semi-remorque à hydrogène | 2024 | 90 km/h · 2 places · Europe | Avant 2024, remplacé par : Porteur électrique |
+| Porteur autonome sans chauffeur | 2035 | 80 km/h | Avant 2035, remplacé par : Semi-remorque à hydrogène |
 
 ### Voitures
 
@@ -1775,11 +1923,19 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Voiture de la Gendarmerie | 2019 | 190 km/h · 5 places · Europe | Selon l'époque : Gendarme à cheval (1800) → Voiture cellulaire à chevaux (1860) → Voiture de police des années 30 (1930) → Voiture de police des années 70 (1970) → Voiture de police japonaise (2014) → Fourgon de police (2016) → Voiture de police américaine (2016) → Voiture de la Gendarmerie (2019) → Voiture de la Police nationale (2019) |
 | Voiture de la Police nationale | 2019 | 190 km/h · 5 places · Europe | Selon l'époque : Gendarme à cheval (1800) → Voiture cellulaire à chevaux (1860) → Voiture de police des années 30 (1930) → Voiture de police des années 70 (1970) → Voiture de police japonaise (2014) → Fourgon de police (2016) → Voiture de police américaine (2016) → Voiture de la Gendarmerie (2019) → Voiture de la Police nationale (2019) |
 | Véhicule du SMUR | 2019 | 190 km/h · 4 places · Europe | Selon l'époque : Ambulance à chevaux (1800) → Ambulance des années 30 (1930) → Ambulance des années 70 (1970) → Ambulance (2015) → Ambulance américaine (2015) → VSAV des pompiers (2018) → Véhicule du SMUR (2019) |
+| Micro-voiture en partage | 2020 | 45 km/h · 2 places · Europe | Avant 2020, remplacé par : SUV |
 | Supercar | 2020 | 330 km/h · 2 places · Europe | Avant 2020, remplacé par : SUV |
+| SUV électrique | 2020 | 180 km/h · 5 places | Avant 2020, remplacé par : SUV |
+| Voiture à hydrogène | 2021 | 175 km/h · 5 places · Asie de l'Est | Avant 2021, remplacé par : Supercar |
 | Voiture électrique chinoise | 2021 | 100 km/h · 4 places · Asie de l'Est | Avant 2021, remplacé par : Supercar |
+| Pick-up électrique | 2022 | 180 km/h · 5 places · Amériques | Avant 2022, remplacé par : Voiture électrique chinoise |
 | Voiture électrique compacte | 2022 | 160 km/h · 5 places | Avant 2022, remplacé par : Voiture électrique chinoise |
-| Robotaxi | 2024 | 130 km/h · 4 places | Avant 2024, remplacé par : Voiture électrique compacte |
-| Capsule autonome | 2040 | 120 km/h · 4 places | Avant 2040, remplacé par : Robotaxi |
+| Petite électrique indienne | 2023 | 100 km/h · 4 places · Asie du Sud et du Sud-Est | Avant 2023, remplacé par : Voiture électrique compacte |
+| Robotaxi | 2024 | 130 km/h · 4 places | Avant 2024, remplacé par : Petite électrique indienne |
+| Robotaxi chinois | 2025 | 120 km/h · 4 places · Asie de l'Est | Avant 2025, remplacé par : Robotaxi |
+| Voiture solaire | 2030 | 140 km/h · 4 places · Europe | Avant 2030, remplacé par : Robotaxi chinois |
+| Capsule autonome | 2040 | 120 km/h · 4 places | Avant 2040, remplacé par : Voiture solaire |
+| Salon roulant autonome | 2045 | 130 km/h · 6 places | Avant 2045, remplacé par : Capsule autonome |
 
 ### Voitures et wagons
 
@@ -2047,7 +2203,7 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 
 <a id="attractions"></a>
 
-## Grands-huit et attractions (61)
+## Grands-huit et attractions (66)
 
 ### Pièces : Droits
 
@@ -2124,6 +2280,7 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 
 | Nom | Année | Détails | Évolutions |
 |---|---:|---|---|
+| Promenades aériennes | 1817 | gare 300 k€ · voie 3 k€/m |  |
 | Bateau splash | 1884 | gare 900 k€ · voie 7 k€/m |  |
 | Grand-huit en bois | 1884 | gare 800 k€ · voie 7 k€/m |  |
 | Montagnes russes panoramiques | 1887 | gare 450 k€ · voie 4 k€/m |  |
@@ -2139,10 +2296,14 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Grand-huit lancé | 1977 | gare 1 M€ · voie 10 k€/m |  |
 | Rivière à bouées | 1980 | gare 800 k€ · voie 8 k€/m |  |
 | Grand-huit suspendu | 1981 | gare 1,1 M€ · voie 11 k€/m |  |
+| Luge d'été sur rail | 1996 | gare 250 k€ · voie 3 k€/m |  |
+| Grand-huit à voitures tournantes | 1997 | gare 700 k€ · voie 6 k€/m |  |
+| Grand-huit à ailes | 2007 | gare 1,3 M€ · voie 12 k€/m |  |
+| Grand-huit en réalité virtuelle | 2016 | gare 1,2 M€ · voie 10 k€/m |  |
 
 <a id="amenagements"></a>
 
-## Aménagements de l'Atelier (34)
+## Aménagements de l'Atelier (44)
 
 ### Bassins
 
@@ -2156,6 +2317,8 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Pataugeoire | 1920 | 40 cm d'eau pour les petits, mosaïque et bord amortissant. |  |
 | Piscine | 1920 | Bassin carrelé de 1,50 m, margelle en pierre. Le terrain est creusé dessous. |  |
 | Spa | 1970 | Bain bouillonnant surélevé, banquette tout autour, bord en teck. |  |
+| Piscine naturelle | 2000 | Baignade filtrée par les plantes : fond de gravier, bord en bois. |  |
+| Baignade urbaine | 2017 | Bassin en bois posé sur le canal ou le port : on se baigne en pleine ville. |  |
 
 ### Gradins
 
@@ -2164,8 +2327,10 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Gradins antiques | toujours | Rangs de pierre façon théâtre antique. |  |
 | Gradins en bois | toujours | Bancs en planches sur structure métallique, comme au stade du village. |  |
 | Talus en gazon | toujours | Talus en terrasses où l'on s'assoit dans l'herbe. |  |
+| Tribune en bois couverte | 1830 | Tribune de champ de courses du XIXe siècle : bancs en planches et toit de bardeaux. |  |
 | Tribune couverte | 1890 | Gradins à sièges rouges, mur du fond et toit en porte-à-faux. |  |
 | Gradins en béton | 1900 | Rangs de 80 cm, 40 cm plus haut à chaque rang, sièges coques. Ils montent vers l'arrière (R : tourner). |  |
+| Gradins rétractables | 1990 | Gradins télescopiques de salle polyvalente : ils se replient contre le mur. |  |
 
 ### Rails et quais
 
@@ -2175,9 +2340,11 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Voie ferrée | 1830 | Voie normale de 1,435 m sur ballast et traverses en bois. Plus large : plusieurs voies côte à côte (4,50 m d'entraxe). |  |
 | Heurtoir | 1840 | Butoir de fin de voie, à poser au bout des rails. |  |
 | Quai couvert | 1840 | Quai avec marquise sur poteaux tous les 8 m. |  |
+| Voie large | 1851 | Écartement russe de 1,52 m (ou ibérique, indien) : traverses plus longues. |  |
 | Voie de tram | 1853 | Rails encastrés dans un pavage : on y marche et on y roule. |  |
 | Petit train | 1860 | Voie de 60 cm : petit train de parc, de mine ou de jardin. |  |
 | Voie métrique | 1870 | Voie de montagne ou de tramway ancien, 1 m d'écartement. |  |
+| Voie du Cap | 1873 | Voie de 1,067 m : Afrique australe, Japon, Australie, Indonésie. |  |
 | Voie à grande vitesse | 1964 | Voie normale sur traverses en béton, entraxe de 4,80 m. |  |
 
 ### Terrains de sport
@@ -2185,8 +2352,11 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Nom | Année | Détails | Évolutions |
 |---|---:|---|---|
 | Green de golf | toujours | Green ras, trou et drapeau, bunker de sable. |  |
+| Cricket | 1800 | Pitch de 22 yards (20,12 m) au milieu de la pelouse, guichets à chaque bout. |  |
+| Croquet | 1856 | Pelouse rase de 32 × 25,6 m, six arceaux et piquet au centre. |  |
 | Football | 1863 | Terrain de 105 × 68 m : surfaces de réparation, buts et filets. |  |
 | Rugby | 1871 | 100 m entre les lignes d'essai, en-buts, lignes des 22 m et poteaux en H. |  |
+| Badminton | 1873 | 13,40 × 6,10 m, filet à 1,55 m. |  |
 | Patinoire | 1876 | Glace de 60 × 30 m aux angles arrondis, bandes et vitres, lignes de hockey. |  |
 | Piste d'athlétisme | 1880 | Piste de 400 m à 8 couloirs autour d'un terrain de football (s'il a la place). |  |
 | Tennis (terre battue) | 1880 | Court en terre battue façon Roland-Garros. |  |
@@ -2197,10 +2367,11 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Tennis (dur) | 1950 | Court en résine : couloirs, carrés de service, filet de 91 cm, grillage. |  |
 | Beach-volley | 1990 | 16 × 8 m dans le sable, sangles et filet. |  |
 | City-stade | 1990 | Terrain multisport en gazon synthétique, petits buts et palissade. |  |
+| Padel | 1990 | 20 × 10 m entre vitres et grillage : on joue avec les murs. |  |
 
 <a id="ouvertures"></a>
 
-## Portes et fenêtres (36)
+## Portes et fenêtres (44)
 
 ### Baies et vitrines
 
@@ -2214,6 +2385,9 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Baie à garde-corps | 1930 | Baie vitrée du sol au plafond fermée par un garde-corps (immeuble moderne). |  |
 | Baie coulissante | 1950 | Grande baie vitrée à galandage, sur plusieurs mètres. |  |
 | Mur-rideau | 1950 | Façade entièrement vitrée du sol au plafond (bureaux, tours). |  |
+| Baie vitrée à store banne | 1960 | Baie du sol au plafond et son store sur la terrasse (années 60 et après). |  |
+| Baie à garde-corps et store | 1960 | Baie du sol au plafond, garde-corps et store (immeuble de vacances des années 60). |  |
+| Baie vitrée à volets | 1970 | Baie vitrée et ses grands volets (maison des années 70, villa). |  |
 
 ### Fenêtres
 
@@ -2223,14 +2397,19 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Fenêtre cintrée | toujours | Fenêtre à haut arrondi. |  |
 | Fenêtre cintrée à volets | toujours | Fenêtre à haut arrondi avec ses volets (Italie, Provence, Amérique latine). |  |
 | Fenêtre en ogive | toujours | Arc brisé sans vitrail (néo-gothique, architecture islamique, Venise). |  |
+| Fenêtre en ogive à volets | toujours | Arc brisé et volets de bois (Venise, Levant, néo-gothique). |  |
 | Fenêtre gothique | toujours | Fenêtre en arc brisé avec vitrail (église, cathédrale). |  |
 | Fenêtre haute | toujours | Petite fenêtre (salle de bains, cuisine). |  |
 | Fenêtre à petits bois | toujours | Fenêtre à petits carreaux (maison ancienne, cottage). |  |
+| Fenêtre à petits bois et volets | toujours | Fenêtre à petits carreaux et ses volets (maison du début du XIXe siècle). |  |
 | Fenêtre à volets | toujours | Fenêtre avec ses volets battants ouverts sur la façade extérieure. |  |
 | Meurtrière | toujours | Fente étroite (château, tour de guet). |  |
 | Petite fenêtre à volets | toujours | Petite fenêtre de ferme ou de cuisine, avec ses volets. |  |
 | Œil-de-bœuf | toujours | Fenêtre ronde (combles, escaliers, façades classiques). |  |
+| Œil-de-bœuf à volets | toujours | Petite fenêtre ronde et ses volets (grenier, pigeonnier). |  |
 | Fenêtre à balconnet | 1850 | Haute fenêtre et garde-corps de fer forgé (immeuble du XIXe siècle). |  |
+| Fenêtre à balconnet et volets | 1850 | Haute fenêtre à garde-corps et volets (Italie, Provence, Nouvelle-Orléans). |  |
+| Fenêtre à balconnet et store | 1880 | Garde-corps de fer et store rayé (immeuble de bord de mer, Belle Époque). |  |
 | Fenêtre à store | 1880 | Fenêtre abritée par un store en toile rayée (bord de mer, Méditerranée). |  |
 | Hublot | 1930 | Fenêtre ronde des années 30 (style paquebot, Art déco, Streamline). |  |
 
@@ -2260,13 +2439,14 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 
 <a id="toits"></a>
 
-## Toits (18)
+## Toits (25)
 
 ### Toits
 
 | Nom | Année | Détails | Évolutions |
 |---|---:|---|---|
 | Bulbe | toujours |  |  |
+| Chaume | toujours |  |  |
 | Comble brisé (grange) | toujours |  |  |
 | Conique | toujours |  |  |
 | Coupole | toujours |  |  |
@@ -2278,16 +2458,22 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Toit plat | toujours |  |  |
 | Un pan | toujours |  |  |
 | Voûte | toujours |  |  |
+| Coupole de verre | 1820 |  |  |
 | Sheds | 1830 |  |  |
 | Verrière | 1830 |  |  |
+| Verrière en pavillon | 1830 |  |  |
 | Plat à grand débord | 1905 |  |  |
 | Terrasse | 1920 |  |  |
+| Toit papillon | 1950 |  |  |
 | Toit végétalisé | 1970 |  |  |
 | Toit solaire | 1995 |  |  |
+| Sheds solaires | 2010 |  |  |
+| Tuiles solaires | 2016 |  |  |
+| Toit blanc rafraîchissant | 2022 |  |  |
 
 <a id="materiaux"></a>
 
-## Matériaux (419)
+## Matériaux (444)
 
 ### Bois
 
@@ -2325,6 +2511,7 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Contreplaqué | 1900 | 60 € le m² |  |
 | Bois lamellé-croisé | 1995 | 160 € le m² |  |
 | Bardage composite gris | 2000 | 120 € le m² |  |
+| Bois transparent | 2035 | 450 € le m² |  |
 
 ### Murs
 
@@ -2408,6 +2595,9 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Travertin | toujours | 260 € le m² |  |
 | Tuffeau | toujours | 210 € le m² |  |
 | Zellige | toujours | 260 € le m² |  |
+| Ciment romain | 1800 | 70 € le m² |  |
+| Plâtre de Paris | 1800 | 60 € le m² |  |
+| Stuc Empire | 1800 | 140 € le m² |  |
 | Pierre agglomérée | 1850 | 90 € le m² |  |
 | Ciment moulé | 1860 | 80 € le m² |  |
 | Béton | 1890 | 100 € le m² |  |
@@ -2425,6 +2615,11 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Bardage fibre-ciment | 1990 | 110 € le m² |  |
 | Baguettes de terre cuite | 2000 | 230 € le m² |  |
 | Béton fibré blanc | 2000 | 200 € le m² |  |
+| Bottes de paille enduites | 2005 | 90 € le m² |  |
+| Béton de chanvre | 2010 | 130 € le m² |  |
+| Liège projeté | 2015 | 120 € le m² |  |
+| Béton bas carbone | 2020 | 110 € le m² |  |
+| Terre imprimée en 3D | 2025 | 160 € le m² |  |
 | Biobéton | 2028 | 180 € le m² |  |
 | Mycélium | 2030 | 150 € le m² |  |
 
@@ -2466,7 +2661,9 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Verre vert | toujours | 230 € le m² |  |
 | Vitrail | toujours | 350 € le m² |  |
 | Vitrail bleu | toujours | 360 € le m² |  |
+| Fonte moulée | 1810 | 160 € le m² |  |
 | Tôle perforée | 1830 | 170 € le m² |  |
+| Verre soufflé en manchon | 1830 | 150 € le m² |  |
 | Acier galvanisé | 1850 | 160 € le m² |  |
 | Grillage | 1850 | 60 € le m² |  |
 | Verre miroir | 1850 | 260 € le m² |  |
@@ -2484,8 +2681,11 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Polycarbonate | 1970 | 120 € le m² |  |
 | Coussins ETFE | 2001 | 350 € le m² |  |
 | Métal perforé doré | 2005 | 280 € le m² |  |
+| Verre solaire coloré | 2022 | 380 € le m² |  |
 | Verre intelligent | 2025 | 420 € le m² |  |
 | Façade OLED | 2030 | 500 € le m² |  |
+| Aérogel | 2032 | 480 € le m² |  |
+| Graphène | 2040 | 520 € le m² |  |
 
 ### Nature
 
@@ -2588,6 +2788,9 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Terrazzo | toujours | 180 € le m² |  |
 | Tomettes | toujours | 100 € le m² |  |
 | Tomettes hexagonales | toujours | 110 € le m² |  |
+| Asphalte de trottoir | 1835 | 50 € le m² |  |
+| Carreaux de Minton | 1840 | 180 € le m² |  |
+| Pavés de bois | 1840 | 80 € le m² |  |
 | Carreaux de ciment | 1860 | 170 € le m² |  |
 | Lino damier rouge | 1870 | 70 € le m² |  |
 | Enrobé | 1920 | 40 € le m² |  |
@@ -2605,6 +2808,9 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Parquet stratifié | 1977 | 60 € le m² |  |
 | Carrelage grand format | 2005 | 120 € le m² |  |
 | Pavés drainants | 2005 | 70 € le m² |  |
+| Sol perméable en résine | 2018 | 90 € le m² |  |
+| Asphalte clair rafraîchissant | 2020 | 70 € le m² |  |
+| Pavés solaires | 2030 | 420 € le m² |  |
 
 ### Sport et stades
 
@@ -2674,10 +2880,14 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Feutre | toujours | 50 € le m² |  |
 | Toile blanche | toujours | 40 € le m² |  |
 | Toile rayée | toujours | 50 € le m² |  |
+| Faux marbre peint | 1800 | 120 € le m² |  |
+| Papier peint à rayures Empire | 1800 | 90 € le m² |  |
+| Toile cirée | 1800 | 60 € le m² |  |
 | Bakélite | 1910 | 90 € le m² |  |
 | Formica jaune | 1950 | 70 € le m² |  |
 | Formica turquoise | 1950 | 70 € le m² |  |
 | Polymère blanc | 1971 | 180 € le m² |  |
+| Plastique recyclé | 2018 | 90 € le m² |  |
 
 ### Toits
 
@@ -2724,6 +2934,7 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Toit végétal | 1970 | 150 € le m² |  |
 | Panneaux solaires | 1995 | 300 € le m² |  |
 | Tuiles solaires | 2016 | 340 € le m² |  |
+| Peinture radiative blanche | 2022 | 90 € le m² |  |
 
 ### Zoo et animaux
 
@@ -2775,7 +2986,7 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 
 <a id="decors"></a>
 
-## Décors (291)
+## Décors (311)
 
 ### Animaux
 
@@ -2850,6 +3061,7 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Casiers et filets de pêcheur sur le quai | toujours | 2,3 × 0,7 m |  |
 | Petit embarcadère (3 m), une échelle | toujours | 1,6 × 3,2 m |  |
 | Ponton de bois sur pilotis | toujours | 2,1 × 8,2 m |  |
+| Grue de quai en bois à tambour de halage | 1800 | 5,3 × 2,3 m |  |
 | Bouée de mouillage rouge | 1850 | 0,8 × 0,8 m |  |
 | Petit phare de jetée blanc et rouge | 1850 | 2,7 × 2,8 m |  |
 | Balise de chenal rouge (bâbord) | 1880 | 1,0 × 1,0 m |  |
@@ -2901,6 +3113,7 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Grumes | toujours | 1,8 × 6,0 m |  |
 | Meule de foin traditionnelle | toujours | 3,2 × 3,4 m |  |
 | Petit poulailler sur pilotis | toujours | 1,4 × 2,2 m |  |
+| Puits couvert à treuil et à toit de tuiles | toujours | 1,8 × 2,4 m |  |
 | Puits en pierre avec son toit | toujours | 1,9 × 1,8 m |  |
 | Râtelier à foin | toujours | 2,4 × 1,4 m |  |
 | Tas de bûches | toujours | 2,1 × 0,8 m |  |
@@ -2981,9 +3194,13 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Banc de pierre massif | toujours | 1,8 × 0,5 m |  |
 | Banc public : lattes de bois sur pieds de fonte | toujours | 1,8 × 0,6 m |  |
 | Chasse-roue de pierre au coin d'un porche | toujours | 0,5 × 0,5 m |  |
+| Montoir à cheval : trois marches de pierre et un anneau | toujours | 1,0 × 0,9 m |  |
 | Pompe à bras de village, en fonte, avec son auge | toujours | 1,2 × 1,0 m |  |
 | Table de pique-nique en bois et ses deux bancs | toujours | 1,9 × 1,6 m |  |
+| Barrière d'octroi : bascule rayée et bureau du receveur, à l'entrée de la ville | 1800 | 5,6 × 1,7 m |  |
+| Guérite de sentinelle à rayures, devant la caserne ou le palais | 1800 | 1,3 × 1,2 m |  |
 | Vespasienne : urinoir public en fonte et tôle | 1834 | 2,1 × 2,2 m |  |
+| Boîte aux lettres en fonte sur colonne | 1849 | 0,4 × 0,4 m |  |
 | Boîte aux lettres jaune sur pied | 1850 | 0,5 × 0,4 m |  |
 | Poteau d'incendie rouge | 1850 | 0,3 × 0,3 m |  |
 | Colonne d'affichage verte et ses affiches | 1855 | 1,7 × 1,7 m |  |
@@ -3016,10 +3233,19 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Banc solaire connecté : recharge des téléphones | 2015 | 1,9 × 0,8 m | Avant 2015, posé tout seul : Banc contemporain : bloc de béton et assise en bois |
 | Composteur de quartier en bois, trois bacs | 2015 | 2,9 × 0,8 m |  |
 | Consigne automatique de colis | 2015 | 2,5 × 0,8 m | Avant 2015, posé tout seul : rien |
+| Frigo solidaire : on y laisse et on y prend de quoi manger | 2015 | 1,5 × 1,1 m |  |
+| Jardin de pluie : noue plantée qui boit l'eau des averses | 2015 | 6,2 × 2,4 m |  |
 | Quatre places de recharge sous une ombrière solaire | 2015 | 10,1 × 6,0 m |  |
 | Station de réparation de vélos en libre accès, pompe et outils | 2015 | 1,1 × 0,2 m |  |
+| Toilettes sèches publiques en bois | 2015 | 1,9 × 1,7 m |  |
+| Parklet : terrasse en bois sur une place de stationnement | 2016 | 5,0 × 2,0 m |  |
+| Distributeur d'hydrogène sous auvent | 2018 | 3,0 × 2,0 m | Avant 2018, posé tout seul : Borne de recharge pour voitures électriques, deux prises |
 | Trottinettes électriques en libre-service garées | 2018 | 2,4 × 1,4 m | Avant 2018, posé tout seul : rien |
+| Mât brumisateur, îlot de fraîcheur des étés chauds | 2019 | 2,0 × 1,9 m | Avant 2019, posé tout seul : Borne-fontaine pour boire |
+| Station d'échange de batteries de scooters | 2019 | 1,8 × 0,7 m | Avant 2019, posé tout seul : Borne de recharge pour voitures électriques, deux prises |
+| Robot de livraison sur le trottoir, avec son fanion | 2020 | 0,7 × 0,7 m |  |
 | Borne de livraison par drones, aire de pose sur le toit | 2030 | 2,6 × 2,6 m | Avant 2030, posé tout seul : rien |
+| Plateforme de taxis volants au sol, avec ses bornes | 2030 | 13,0 × 12,0 m |  |
 
 ### Objets des enclos
 
@@ -3041,6 +3267,8 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Nom | Année | Détails | Évolutions |
 |---|---:|---|---|
 | Borne kilométrique de route | toujours | 0,4 × 0,2 m |  |
+| Télégraphe Chappe : mât à bras articulés sur une tour de pierre | 1794 | 3,9 × 2,6 m | Avant 1794, posé tout seul : rien |
+| Poteau indicateur de carrefour, flèches de bois peintes | 1800 | 1,0 × 0,9 m |  |
 | Poteau télégraphique en bois à isolateurs de verre | 1850 | 1,6 × 0,2 m |  |
 | Poteau électrique en bois avec traverse et isolateurs | 1882 | 1,8 × 0,3 m |  |
 | Mur peint de réclame sur pignon, pied de bois | 1900 | 3,6 × 0,2 m |  |
@@ -3060,6 +3288,8 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Radar de contrôle de vitesse sur poteau | 2003 | 0,8 × 0,6 m | Avant 2003, posé tout seul : rien |
 | Champ de panneaux solaires au sol, trois rangées | 2005 | 7,0 × 6,5 m |  |
 | Totem d'information numérique et plan de quartier | 2012 | 0,9 × 0,3 m | Avant 2012, posé tout seul : Colonne d'affichage verte et ses affiches |
+| Petite éolienne urbaine à axe vertical | 2015 | 1,3 × 1,5 m |  |
+| Station de mesure de la qualité de l'air | 2015 | 0,9 × 0,7 m |  |
 | Mât d'antennes de téléphonie 4G/5G | 2019 | 2,6 × 1,5 m | Avant 2019, posé tout seul : Pylône à haute tension |
 
 ### Parc : Far West
@@ -3177,10 +3407,11 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Lampadaire à deux crosses | 1930 | 0,3 × 4,1 m | Avant 1930, posé tout seul : Réverbère ancien en fonte et sa lanterne |
 | Lampadaire de parc à boule (3,5 m) | 1960 | 0,5 × 0,5 m | Avant 1960, posé tout seul : Réverbère ancien en fonte et sa lanterne |
 | Lampadaire LED autonome à panneau solaire | 2012 | 0,9 × 1,4 m | Avant 2012, posé tout seul : Lampadaire routier : mât de 8 m, crosse, lanterne vers -Y |
+| Arbre solaire : ombrière à feuilles de panneaux et bancs | 2020 | 3,7 × 3,6 m | Avant 2020, posé tout seul : Lampadaire LED autonome à panneau solaire |
 
 <a id="meubles"></a>
 
-## Meubles (121)
+## Meubles (137)
 
 ### Boutique
 
@@ -3191,6 +3422,7 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Présentoir | toujours | 1 × 1 · 350 € · 32 styles |  |
 | Rayonnage | toujours | 2 × 1 · 600 € · 32 styles |  |
 | Étal | toujours | 2 × 1 · 300 € · 21 styles | Styles : Antiquité à XIXe – 1945 |
+| Chambre photographique | 1840 | 1 × 1 · 700 € · 10 styles | Styles : XIXe – 1945 à Moderne |
 | Mannequin | 1850 | 1 × 1 · 250 € · 18 styles | Styles : XIXe – 1945 à Futuriste |
 | Portant de vêtements | 1900 | 2 × 1 · 250 € · 18 styles | Styles : XIXe – 1945 à Futuriste |
 | Vitrine réfrigérée | 1950 | 2 × 1 · 4 k€ · 11 styles | Styles : Moderne à Futuriste |
@@ -3218,10 +3450,13 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Commode | toujours | 1 × 1 · 350 € · 33 styles |  |
 | Lit double | toujours | 2 × 2 · 900 € · 32 styles |  |
 | Table de chevet | toujours | 1 × 1 · 120 € · 32 styles |  |
+| Lit bateau | 1800 | 2 × 2 · 900 € · 22 styles | Styles : Traditionnel à Moderne |
+| Psyché | 1810 | 1 × 1 · 400 € · 22 styles | Styles : Traditionnel à Moderne |
 | Machine à coudre | 1851 | 1 × 1 · 300 € · 17 styles | Styles : XIXe – 1945 à Contemporain |
 | Lit escamotable | 1916 | 2 × 2 · 1 k€ · 18 styles | Styles : XIXe – 1945 à Futuriste |
 | Vélo d'appartement | 1970 | 1 × 1 · 400 € · 11 styles | Styles : Moderne à Futuriste |
 | Tapis de course | 1990 | 1 × 2 · 900 € · 8 styles | Styles : Contemporain à Futuriste |
+| Capsule de sommeil | 2030 | 1 × 2 · 6 k€ · 1 styles | Styles : Futuriste à Futuriste |
 
 ### Chambre d'enfant
 
@@ -3245,6 +3480,7 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Plan de travail | toujours | 1 × 1 · 300 € · 32 styles |  |
 | Vaisselier | toujours | 2 × 1 · 650 € · 22 styles | Styles : Traditionnel à Moderne |
 | Évier | toujours | 1 × 1 · 450 € · 32 styles |  |
+| Cuisinière en fonte | 1830 | 2 × 1 · 600 € · 22 styles | Styles : Traditionnel à Moderne |
 | Glacière en bois | 1850 | 1 × 1 · 280 € · 10 styles | Styles : XIXe – 1945 à Moderne |
 | Cuisinière | 1920 | 1 × 1 · 600 € · 11 styles | Styles : Moderne à Futuriste |
 | Réfrigérateur | 1930 | 1 × 1 · 700 € · 11 styles | Styles : Moderne à Futuriste |
@@ -3252,6 +3488,10 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Four à micro-ondes | 1975 | 1 × 1 · 250 € · 11 styles | Styles : Moderne à Futuriste |
 | Cave à vin | 1990 | 1 × 1 · 900 € · 8 styles | Styles : Contemporain à Futuriste |
 | Îlot de cuisine à induction | 2000 | 2 × 1 · 4 k€ · 8 styles | Styles : Contemporain à Futuriste |
+| Réfrigérateur connecté | 2018 | 1 × 1 · 3 k€ · 8 styles | Styles : Contemporain à Futuriste |
+| Potager hydroponique | 2019 | 1 × 1 · 600 € · 8 styles | Styles : Contemporain à Futuriste |
+| Bras robot cuisinier | 2033 | 2 × 1 · 15 k€ · 1 styles | Styles : Futuriste à Futuriste |
+| Imprimante à repas | 2040 | 1 × 1 · 4 k€ · 1 styles | Styles : Futuriste à Futuriste |
 
 ### Décoration, plantes, lumières
 
@@ -3283,6 +3523,7 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Porte-manteau | toujours | 1 × 1 · 80 € · 32 styles |  |
 | Téléphone mural | 1880 | 1 × 1 · 150 € · 10 styles | Styles : XIXe – 1945 à Moderne |
 | Minitel | 1982 | 1 × 1 · 200 € · 10 styles | Styles : Moderne à Contemporain |
+| Batterie domestique | 2020 | 1 × 1 · 8 k€ · 8 styles | Styles : Contemporain à Futuriste |
 
 ### Réserve
 
@@ -3298,6 +3539,7 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Baquet de bain | toujours | 1 × 1 · 150 € · 14 styles | Styles : Antiquité à Traditionnel |
 | Chaise percée | toujours | 1 × 1 · 80 € · 14 styles | Styles : Antiquité à Traditionnel |
 | Table de toilette | toujours | 1 × 1 · 200 € · 14 styles | Styles : Antiquité à Traditionnel |
+| Baignoire en zinc | 1830 | 2 × 1 · 250 € · 19 styles | Styles : Traditionnel à XIXe – 1945 |
 | Baignoire | 1850 | 2 × 1 · 900 € · 18 styles | Styles : XIXe – 1945 à Futuriste |
 | Lessiveuse et planche à laver | 1850 | 1 × 1 · 80 € · 19 styles | Styles : Traditionnel à XIXe – 1945 |
 | Lavabo | 1880 | 1 × 1 · 350 € · 18 styles | Styles : XIXe – 1945 à Futuriste |
@@ -3349,6 +3591,8 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Secrétaire à abattant | toujours | 1 × 1 · 600 € · 21 styles | Styles : Traditionnel à Moderne |
 | Table basse | toujours | 1 × 1 · 180 € · 32 styles |  |
 | Table et quatre chaises | toujours | 2 × 2 · 750 € · 32 styles |  |
+| Harpe | 1800 | 1 × 1 · 900 € · 22 styles | Styles : Traditionnel à Moderne |
+| Lanterne magique | 1800 | 1 × 1 · 180 € · 19 styles | Styles : Traditionnel à XIXe – 1945 |
 | Phonographe à pavillon | 1895 | 1 × 1 · 250 € · 10 styles | Styles : XIXe – 1945 à Moderne |
 | Fauteuil club | 1920 | 1 × 1 · 600 € · 17 styles | Styles : XIXe – 1945 à Contemporain |
 | Poste de TSF | 1922 | 1 × 1 · 300 € · 10 styles | Styles : XIXe – 1945 à Moderne |
@@ -3360,12 +3604,15 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Home cinéma | 1995 | 3 × 1 · 4 k€ · 8 styles | Styles : Contemporain à Futuriste |
 | Poêle à granulés | 2005 | 1 × 1 · 3 k€ · 8 styles | Styles : Contemporain à Futuriste |
 | Écran plat et console de jeux | 2005 | 2 × 1 · 1 k€ · 8 styles | Styles : Contemporain à Futuriste |
+| Mur végétal d'intérieur | 2015 | 2 × 1 · 2 k€ · 8 styles | Styles : Contemporain à Futuriste |
+| Coin de réalité virtuelle | 2016 | 2 × 2 · 1 k€ · 8 styles | Styles : Contemporain à Futuriste |
+| Mur-écran | 2032 | 3 × 1 · 9 k€ · 1 styles | Styles : Futuriste à Futuriste |
 | Robot domestique | 2035 | 1 × 1 · 12 k€ · 1 styles | Styles : Futuriste à Futuriste |
 | Projecteur holographique | 2040 | 1 × 1 · 5 k€ · 1 styles | Styles : Futuriste à Futuriste |
 
 <a id="spectacles"></a>
 
-## Objets de spectacle (58)
+## Objets de spectacle (70)
 
 ### Cinéma
 
@@ -3385,6 +3632,7 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Nom | Année | Détails | Évolutions |
 |---|---:|---|---|
 | Grande table de coupe | toujours |  |  |
+| Machines à bruits (vent, tonnerre) | toujours |  |  |
 | Mannequin de couturière | toujours |  |  |
 | Portant de costumes | toujours |  |  |
 | Établi du décorateur | toujours |  |  |
@@ -3401,6 +3649,7 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Table de cabaret et ses chaises | toujours |  |  |
 | Barrière de sécurité devant la scène | 1970 |  |  |
 | Fauteuils inclinables en cuir (salle premium) | 1990 |  |  |
+| Fauteuils et casques de réalité virtuelle | 2016 |  |  |
 
 ### Foyer et accueil
 
@@ -3409,6 +3658,7 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Affiche du spectacle | toujours |  |  |
 | Bar du foyer | toujours |  |  |
 | Guichet de location | toujours |  |  |
+| Lustre de salle à bougies | toujours |  |  |
 
 ### Musique et sono
 
@@ -3423,6 +3673,7 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Console de mixage (régie son et lumière) | 1960 |  |  |
 | Platines de DJ | 1970 |  |  |
 | Retours de scène | 1970 |  |  |
+| Projecteurs laser | 1980 |  |  |
 
 ### Scène et décors
 
@@ -3436,8 +3687,14 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Praticable de scène (1 × 1 m) | toujours |  |  |
 | Pupitres et chaises d'orchestre | toujours |  |  |
 | Rideau de fond de scène et perche de projecteurs | toujours |  |  |
+| Trappe et treuil de scène | toujours |  |  |
+| Toile de panorama peint | 1800 |  |  |
+| Rampe d'éclairage au gaz | 1817 |  |  |
 | Projecteurs latéraux | 1880 |  |  |
 | Projecteur de poursuite | 1900 |  |  |
+| Mur d'images LED | 2010 |  |  |
+| Hologramme de scène | 2015 |  |  |
+| Essaim de drones lumineux | 2016 |  |  |
 
 ### Tournage
 
@@ -3459,4 +3716,6 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Moniteurs de retour vidéo | 1960 |  |  |
 | Fond vert d'incrustation | 1970 |  |  |
 | Caméra de cinéma numérique sur pied | 2005 |  |  |
+| Caméra robotisée sur bras | 2015 |  |  |
+| Plateau virtuel à écrans LED | 2019 |  |  |
 

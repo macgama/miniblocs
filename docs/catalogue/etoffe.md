@@ -96,3 +96,49 @@ baie à garde-corps (1930).
 train fantôme (1930, avec son modèle prêt à poser « Le Château Hanté »).
 
 La planche montre aussi `--toits`, `--ouvertures` et `--materiaux "Nom,Nom"`.
+
+## Lot 4 : le début du XIXe siècle et les années 2020 à 2045 (2026-11-17)
+
+Deuxième demande de Gaël : « encore une grosse série d'objets dans toutes les familles ». Les plus grands trous
+étaient les années 1800 à 1850 et l'après-2020, presque vides dans toutes les familles. Le catalogue passe de
+2 790 à **3 049 objets**.
+
+**17 styles de bâtiments** (environ 120 bâtiments) :
+
+| Époque | Styles ajoutés (année) |
+|---|---|
+| Début du XIXe | Néoclassique Empire (1800), Saint-Pétersbourg impérial (1800), Comptoirs de Canton (1800), Fédéral américain (1790), Bungalow anglo-indien (1810), Géorgien des colonies (1810), Biedermeier (1815), Néo-grec américain (1820), Stone Town de Zanzibar (1830) |
+| 2015 à 2045 | Écoquartier (2015), Ville du désert sobre (2020), Ville connectée d'Asie (2020), Villes nouvelles d'Afrique (2022), Habitat flottant (2028), Imprimé en 3D (2030), Méditerranée climatique (2032), Ville verticale (2045) |
+
+**33 véhicules** : SUV, pick-up et petite voiture indienne électriques, voiture à hydrogène, micro-voiture en partage,
+voiture solaire, robotaxi chinois, salon roulant autonome (2045) ; semi-remorque à hydrogène, porteur autonome, benne
+électrique ; bus à hydrogène, bus à haut niveau de service, bus autonome ; vélo cargo de livraison, scooter à batterie
+échangeable, moto-taxi et tuk-tuk électriques ; tram-train, trains à hydrogène et à batteries, grande vitesse nouvelle
+génération ; cargo à voiles rigides, ferry électrique, navette à hydrofoils ; avions électrique et à hydrogène, drone de
+livraison, ambulance volante. Et pour 1800 : chaise de poste, berline de voyage, coche d'eau, premier vapeur fluvial.
+
+**16 meubles** : harpe, lit bateau, psyché, baignoire en zinc, cuisinière en fonte, lanterne magique, chambre
+photographique (1800-1840) ; réfrigérateur connecté, coin de réalité virtuelle, mur végétal, potager hydroponique,
+batterie domestique (2015-2020) ; capsule de sommeil, mur-écran, bras robot cuisinier, imprimante à repas (2030-2040).
+
+**20 décors Blender** : barrière d'octroi, poteau indicateur, télégraphe Chappe (1794), puits couvert, guérite,
+boîte aux lettres en fonte (1849), grue de quai, montoir ; petite éolienne urbaine, arbre solaire, mât brumisateur,
+station de mesure de l'air, parklet, jardin de pluie, frigo solidaire, toilettes sèches, station d'échange de
+batteries, distributeur d'hydrogène, robot de livraison, plateforme de taxis volants (2030).
+
+**Atelier** : 25 matériaux (stuc Empire, faux marbre, papier peint à rayures, fonte moulée, ciment romain, verre
+soufflé, asphalte de trottoir, pavés de bois, carreaux de Minton… et béton bas carbone, béton de chanvre, liège projeté,
+verre solaire, peinture radiative, pavés solaires, aérogel, bois transparent, graphène) ; 7 toits (chaume, verrière en
+pavillon, coupole de verre, toit papillon, sheds solaires, tuiles solaires, toit blanc rafraîchissant) ; 8 portes et
+fenêtres (petits bois et volets, balconnet et volets, ogive à volets, œil-de-bœuf à volets, balconnet et store, baies à
+store, à volets, à garde-corps et store) ; 10 aménagements (piscine naturelle, baignade urbaine, voie large, voie du Cap,
+tribune en bois couverte, gradins rétractables, cricket, croquet, badminton, padel).
+
+**Spectacles** : rampe d'éclairage au gaz (1817), toile de panorama, machines à bruits, trappe de scène, lustre à
+bougies ; mur d'images LED, projecteurs laser, hologramme de scène, essaim de drones lumineux, caméra robotisée, plateau
+virtuel à écrans LED, fauteuils de réalité virtuelle.
+
+**5 grands-huit** : promenades aériennes (Paris, 1817), luge d'été sur rail (1996), grand-huit à voitures tournantes
+(1997), grand-huit à ailes (2007), grand-huit en réalité virtuelle (2016).
+
+Restent maigres : voies, stations et réseaux (ils touchent au graphe de transport), et l'agriculture après 1990.

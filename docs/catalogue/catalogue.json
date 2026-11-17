@@ -38082,6 +38082,4680 @@
 	{
 		"annee": 1800,
 		"evo": {
+			"f": "img/evo/batiments/empire__grande_maison.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 420 k€), niveau 3 (×2, 560 k€) ; rénovation 105 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "empire__grande_maison",
+		"info": "18 × 20 m · 700 k€ · 2 logements · style Néoclassique Empire",
+		"nom": "Hôtel particulier Empire",
+		"source": "style",
+		"v": "img/v/batiments/empire__grande_maison.webp",
+		"var": {
+			"f": "img/var/batiments/empire__grande_maison.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1800,
+		"evo": {
+			"f": "img/evo/batiments/empire__immeuble.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 1,6 M€), niveau 3 (×2, 2,1 M€) ; rénovation 390 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "empire__immeuble",
+		"info": "20 × 16 m · 2,6 M€ · 24 logements · style Néoclassique Empire",
+		"nom": "Immeuble à fronton",
+		"source": "style",
+		"v": "img/v/batiments/empire__immeuble.webp",
+		"var": {
+			"f": "img/var/batiments/empire__immeuble.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1800,
+		"evo": {
+			"f": "img/evo/batiments/empire__rangee.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 600 k€), niveau 3 (×2, 800 k€) ; rénovation 150 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "empire__rangee",
+		"info": "26 × 12 m · 1 M€ · 8 logements · style Néoclassique Empire",
+		"nom": "Maisons de la rue de Rivoli",
+		"source": "style",
+		"v": "img/v/batiments/empire__rangee.webp",
+		"var": {
+			"f": "img/var/batiments/empire__rangee.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1800,
+		"evo": {
+			"f": "img/evo/batiments/empire__boutique.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 180 k€), niveau 3 (×2, 240 k€) ; rénovation 45 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Commerce",
+		"id": "empire__boutique",
+		"info": "9 × 12 m · 300 k€ · 4 emplois · 120 visiteurs · style Néoclassique Empire",
+		"nom": "Passage couvert",
+		"source": "style",
+		"v": "img/v/batiments/empire__boutique.webp",
+		"var": {
+			"f": "img/var/batiments/empire__boutique.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1800,
+		"evo": {
+			"f": "img/evo/batiments/empire__theatre.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 3,6 M€), niveau 3 (×2, 4,8 M€) ; rénovation 900 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Loisirs",
+		"id": "empire__theatre",
+		"info": "30 × 36 m · 6 M€ · 40 emplois · 600 visiteurs · style Néoclassique Empire",
+		"nom": "Théâtre à colonnade",
+		"source": "style",
+		"v": "img/v/batiments/empire__theatre.webp",
+		"var": {
+			"f": "img/var/batiments/empire__theatre.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1800,
+		"evo": {
+			"f": "img/evo/batiments/empire__palais.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 9 M€), niveau 3 (×2, 12 M€) ; rénovation 2,2 M€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Services publics",
+		"id": "empire__palais",
+		"info": "44 × 38 m · 15 M€ · 40 emplois · 600 visiteurs · style Néoclassique Empire",
+		"nom": "Palais de la Bourse",
+		"source": "style",
+		"v": "img/v/batiments/empire__palais.webp",
+		"var": {
+			"f": "img/var/batiments/empire__palais.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1800,
+		"evo": {
+			"f": "img/evo/batiments/empire__culte.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 1,8 M€), niveau 3 (×2, 2,4 M€) ; rénovation 450 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Services publics",
+		"id": "empire__culte",
+		"info": "24 × 36 m · 3 M€ · 300 visiteurs · style Néoclassique Empire",
+		"nom": "Église-temple",
+		"source": "style",
+		"v": "img/v/batiments/empire__culte.webp",
+		"var": {
+			"f": "img/var/batiments/empire__culte.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1800,
+		"evo": {
+			"f": "img/evo/batiments/empire__ecole.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 3 M€), niveau 3 (×2, 4 M€) ; rénovation 750 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Services publics",
+		"id": "empire__ecole",
+		"info": "34 × 26 m · 5 M€ · 25 emplois · 300 visiteurs · style Néoclassique Empire",
+		"nom": "Lycée impérial",
+		"source": "style",
+		"v": "img/v/batiments/empire__ecole.webp",
+		"var": {
+			"f": "img/var/batiments/empire__ecole.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1800,
+		"evo": {
+			"f": "img/evo/batiments/empire__marche.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 900 k€), niveau 3 (×2, 1,2 M€) ; rénovation 225 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Commerce",
+		"id": "empire__marche",
+		"info": "30 × 24 m · 1,5 M€ · 30 emplois · 800 visiteurs · style Néoclassique Empire",
+		"nom": "Halle aux grains",
+		"source": "style",
+		"v": "img/v/batiments/empire__marche.webp",
+		"var": {
+			"f": "img/var/batiments/empire__marche.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1815,
+		"evo": {
+			"f": "img/evo/batiments/biedermeier__maison.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 150 k€), niveau 3 (×2, 200 k€) ; rénovation 38 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "biedermeier__maison",
+		"info": "10 × 12 m · 250 k€ · 1 logement · style Biedermeier",
+		"nom": "Maison bourgeoise de Vienne",
+		"source": "style",
+		"v": "img/v/batiments/biedermeier__maison.webp",
+		"var": {
+			"f": "img/var/batiments/biedermeier__maison.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1815,
+		"evo": {
+			"f": "img/evo/batiments/biedermeier__grande_maison.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 420 k€), niveau 3 (×2, 560 k€) ; rénovation 105 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "biedermeier__grande_maison",
+		"info": "18 × 20 m · 700 k€ · 2 logements · style Biedermeier",
+		"nom": "Villa Biedermeier",
+		"source": "style",
+		"v": "img/v/batiments/biedermeier__grande_maison.webp",
+		"var": {
+			"f": "img/var/batiments/biedermeier__grande_maison.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1815,
+		"evo": {
+			"f": "img/evo/batiments/biedermeier__rangee.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 600 k€), niveau 3 (×2, 800 k€) ; rénovation 150 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "biedermeier__rangee",
+		"info": "26 × 12 m · 1 M€ · 8 logements · style Biedermeier",
+		"nom": "Maisons de faubourg",
+		"source": "style",
+		"v": "img/v/batiments/biedermeier__rangee.webp",
+		"var": {
+			"f": "img/var/batiments/biedermeier__rangee.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1815,
+		"evo": {
+			"f": "img/evo/batiments/biedermeier__boutique.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 180 k€), niveau 3 (×2, 240 k€) ; rénovation 45 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Commerce",
+		"id": "biedermeier__boutique",
+		"info": "9 × 12 m · 300 k€ · 4 emplois · 120 visiteurs · style Biedermeier",
+		"nom": "Confiserie",
+		"source": "style",
+		"v": "img/v/batiments/biedermeier__boutique.webp",
+		"var": {
+			"f": "img/var/batiments/biedermeier__boutique.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1815,
+		"evo": {
+			"f": "img/evo/batiments/biedermeier__restaurant.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 240 k€), niveau 3 (×2, 320 k€) ; rénovation 60 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Loisirs",
+		"id": "biedermeier__restaurant",
+		"info": "12 × 14 m · 400 k€ · 4 emplois · 120 visiteurs · style Biedermeier",
+		"nom": "Café viennois",
+		"source": "style",
+		"v": "img/v/batiments/biedermeier__restaurant.webp",
+		"var": {
+			"f": "img/var/batiments/biedermeier__restaurant.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1815,
+		"evo": {
+			"f": "img/evo/batiments/biedermeier__atelier.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 300 k€), niveau 3 (×2, 400 k€) ; rénovation 75 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Industrie",
+		"id": "biedermeier__atelier",
+		"info": "14 × 18 m · 500 k€ · 10 emplois · style Biedermeier",
+		"nom": "Atelier d'ébéniste",
+		"source": "style",
+		"v": "img/v/batiments/biedermeier__atelier.webp",
+		"var": {
+			"f": "img/var/batiments/biedermeier__atelier.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1815,
+		"evo": {
+			"f": "img/evo/batiments/biedermeier__ecole.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 3 M€), niveau 3 (×2, 4 M€) ; rénovation 750 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Services publics",
+		"id": "biedermeier__ecole",
+		"info": "34 × 26 m · 5 M€ · 25 emplois · 300 visiteurs · style Biedermeier",
+		"nom": "École de la paroisse",
+		"source": "style",
+		"v": "img/v/batiments/biedermeier__ecole.webp",
+		"var": {
+			"f": "img/var/batiments/biedermeier__ecole.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1800,
+		"evo": {
+			"f": "img/evo/batiments/petersbourg__grande_maison.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 420 k€), niveau 3 (×2, 560 k€) ; rénovation 105 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "petersbourg__grande_maison",
+		"info": "18 × 20 m · 700 k€ · 2 logements · style Saint-Pétersbourg impérial",
+		"nom": "Palais de boyard",
+		"source": "style",
+		"v": "img/v/batiments/petersbourg__grande_maison.webp",
+		"var": {
+			"f": "img/var/batiments/petersbourg__grande_maison.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1800,
+		"evo": {
+			"f": "img/evo/batiments/petersbourg__immeuble.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 1,6 M€), niveau 3 (×2, 2,1 M€) ; rénovation 390 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "petersbourg__immeuble",
+		"info": "20 × 16 m · 2,6 M€ · 24 logements · style Saint-Pétersbourg impérial",
+		"nom": "Immeuble de la Perspective",
+		"source": "style",
+		"v": "img/v/batiments/petersbourg__immeuble.webp",
+		"var": {
+			"f": "img/var/batiments/petersbourg__immeuble.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1800,
+		"evo": {
+			"f": "img/evo/batiments/petersbourg__palais.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 9 M€), niveau 3 (×2, 12 M€) ; rénovation 2,2 M€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Services publics",
+		"id": "petersbourg__palais",
+		"info": "44 × 38 m · 15 M€ · 40 emplois · 600 visiteurs · style Saint-Pétersbourg impérial",
+		"nom": "Palais d'hiver",
+		"source": "style",
+		"v": "img/v/batiments/petersbourg__palais.webp",
+		"var": {
+			"f": "img/var/batiments/petersbourg__palais.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1800,
+		"evo": {
+			"f": "img/evo/batiments/petersbourg__culte.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 1,8 M€), niveau 3 (×2, 2,4 M€) ; rénovation 450 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Services publics",
+		"id": "petersbourg__culte",
+		"info": "24 × 36 m · 3 M€ · 300 visiteurs · style Saint-Pétersbourg impérial",
+		"nom": "Cathédrale à coupole dorée",
+		"source": "style",
+		"v": "img/v/batiments/petersbourg__culte.webp",
+		"var": {
+			"f": "img/var/batiments/petersbourg__culte.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1800,
+		"evo": {
+			"f": "img/evo/batiments/petersbourg__theatre.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 3,6 M€), niveau 3 (×2, 4,8 M€) ; rénovation 900 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Loisirs",
+		"id": "petersbourg__theatre",
+		"info": "30 × 36 m · 6 M€ · 40 emplois · 600 visiteurs · style Saint-Pétersbourg impérial",
+		"nom": "Théâtre impérial",
+		"source": "style",
+		"v": "img/v/batiments/petersbourg__theatre.webp",
+		"var": {
+			"f": "img/var/batiments/petersbourg__theatre.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1800,
+		"evo": {
+			"f": "img/evo/batiments/petersbourg__bureaux.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 5,4 M€), niveau 3 (×2, 7,2 M€) ; rénovation 1,4 M€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Commerce",
+		"id": "petersbourg__bureaux",
+		"info": "24 × 20 m · 9 M€ · 125 emplois · style Saint-Pétersbourg impérial",
+		"nom": "Amirauté",
+		"source": "style",
+		"v": "img/v/batiments/petersbourg__bureaux.webp",
+		"var": {
+			"f": "img/var/batiments/petersbourg__bureaux.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1800,
+		"evo": {
+			"f": "img/evo/batiments/petersbourg__hopital.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 13 M€), niveau 3 (×2, 18 M€) ; rénovation 3,3 M€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Services publics",
+		"id": "petersbourg__hopital",
+		"info": "40 × 34 m · 22 M€ · 400 emplois · style Saint-Pétersbourg impérial",
+		"nom": "Hôpital des invalides",
+		"source": "style",
+		"v": "img/v/batiments/petersbourg__hopital.webp",
+		"var": {
+			"f": "img/var/batiments/petersbourg__hopital.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1790,
+		"evo": {
+			"f": "img/evo/batiments/federal__maison.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 150 k€), niveau 3 (×2, 200 k€) ; rénovation 38 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "federal__maison",
+		"info": "10 × 12 m · 250 k€ · 1 logement · style Fédéral américain",
+		"nom": "Maison fédérale",
+		"source": "style",
+		"v": "img/v/batiments/federal__maison.webp",
+		"var": {
+			"f": "img/var/batiments/federal__maison.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1790,
+		"evo": {
+			"f": "img/evo/batiments/federal__grande_maison.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 420 k€), niveau 3 (×2, 560 k€) ; rénovation 105 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "federal__grande_maison",
+		"info": "18 × 20 m · 700 k€ · 2 logements · style Fédéral américain",
+		"nom": "Demeure de Boston",
+		"source": "style",
+		"v": "img/v/batiments/federal__grande_maison.webp",
+		"var": {
+			"f": "img/var/batiments/federal__grande_maison.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1790,
+		"evo": {
+			"f": "img/evo/batiments/federal__rangee.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 600 k€), niveau 3 (×2, 800 k€) ; rénovation 150 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "federal__rangee",
+		"info": "26 × 12 m · 1 M€ · 8 logements · style Fédéral américain",
+		"nom": "Maisons de Beacon Hill",
+		"source": "style",
+		"v": "img/v/batiments/federal__rangee.webp",
+		"var": {
+			"f": "img/var/batiments/federal__rangee.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1790,
+		"evo": {
+			"f": "img/evo/batiments/federal__boutique.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 180 k€), niveau 3 (×2, 240 k€) ; rénovation 45 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Commerce",
+		"id": "federal__boutique",
+		"info": "9 × 12 m · 300 k€ · 4 emplois · 120 visiteurs · style Fédéral américain",
+		"nom": "Magasin général",
+		"source": "style",
+		"v": "img/v/batiments/federal__boutique.webp",
+		"var": {
+			"f": "img/var/batiments/federal__boutique.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1790,
+		"evo": {
+			"f": "img/evo/batiments/federal__restaurant.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 240 k€), niveau 3 (×2, 320 k€) ; rénovation 60 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Loisirs",
+		"id": "federal__restaurant",
+		"info": "12 × 14 m · 400 k€ · 4 emplois · 120 visiteurs · style Fédéral américain",
+		"nom": "Taverne",
+		"source": "style",
+		"v": "img/v/batiments/federal__restaurant.webp",
+		"var": {
+			"f": "img/var/batiments/federal__restaurant.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1790,
+		"evo": {
+			"f": "img/evo/batiments/federal__ecole.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 3 M€), niveau 3 (×2, 4 M€) ; rénovation 750 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Services publics",
+		"id": "federal__ecole",
+		"info": "34 × 26 m · 5 M€ · 25 emplois · 300 visiteurs · style Fédéral américain",
+		"nom": "Académie",
+		"source": "style",
+		"v": "img/v/batiments/federal__ecole.webp",
+		"var": {
+			"f": "img/var/batiments/federal__ecole.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1790,
+		"evo": {
+			"f": "img/evo/batiments/federal__culte.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 1,8 M€), niveau 3 (×2, 2,4 M€) ; rénovation 450 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Services publics",
+		"id": "federal__culte",
+		"info": "24 × 36 m · 3 M€ · 300 visiteurs · style Fédéral américain",
+		"nom": "Meeting house",
+		"source": "style",
+		"v": "img/v/batiments/federal__culte.webp",
+		"var": {
+			"f": "img/var/batiments/federal__culte.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1790,
+		"evo": {
+			"f": "img/evo/batiments/federal__palais.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 9 M€), niveau 3 (×2, 12 M€) ; rénovation 2,2 M€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Services publics",
+		"id": "federal__palais",
+		"info": "44 × 38 m · 15 M€ · 40 emplois · 600 visiteurs · style Fédéral américain",
+		"nom": "Capitole d'État",
+		"source": "style",
+		"v": "img/v/batiments/federal__palais.webp",
+		"var": {
+			"f": "img/var/batiments/federal__palais.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1790,
+		"evo": {
+			"f": "img/evo/batiments/federal__entrepot.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 1,2 M€), niveau 3 (×2, 1,6 M€) ; rénovation 300 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Industrie",
+		"id": "federal__entrepot",
+		"info": "30 × 40 m · 2 M€ · 30 emplois · style Fédéral américain",
+		"nom": "Entrepôt du port",
+		"source": "style",
+		"v": "img/v/batiments/federal__entrepot.webp",
+		"var": {
+			"f": "img/var/batiments/federal__entrepot.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1820,
+		"evo": {
+			"f": "img/evo/batiments/greek_revival__maison.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 150 k€), niveau 3 (×2, 200 k€) ; rénovation 38 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "greek_revival__maison",
+		"info": "10 × 12 m · 250 k€ · 1 logement · style Néo-grec américain",
+		"nom": "Maison à portique",
+		"source": "style",
+		"v": "img/v/batiments/greek_revival__maison.webp",
+		"var": {
+			"f": "img/var/batiments/greek_revival__maison.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1820,
+		"evo": {
+			"f": "img/evo/batiments/greek_revival__grande_maison.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 420 k€), niveau 3 (×2, 560 k€) ; rénovation 105 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "greek_revival__grande_maison",
+		"info": "18 × 20 m · 700 k€ · 2 logements · style Néo-grec américain",
+		"nom": "Plantation à colonnes",
+		"source": "style",
+		"v": "img/v/batiments/greek_revival__grande_maison.webp",
+		"var": {
+			"f": "img/var/batiments/greek_revival__grande_maison.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1820,
+		"evo": {
+			"f": "img/evo/batiments/greek_revival__bureaux.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 5,4 M€), niveau 3 (×2, 7,2 M€) ; rénovation 1,4 M€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Commerce",
+		"id": "greek_revival__bureaux",
+		"info": "24 × 20 m · 9 M€ · 125 emplois · style Néo-grec américain",
+		"nom": "Banque en temple",
+		"source": "style",
+		"v": "img/v/batiments/greek_revival__bureaux.webp",
+		"var": {
+			"f": "img/var/batiments/greek_revival__bureaux.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1820,
+		"evo": {
+			"f": "img/evo/batiments/greek_revival__palais.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 9 M€), niveau 3 (×2, 12 M€) ; rénovation 2,2 M€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Services publics",
+		"id": "greek_revival__palais",
+		"info": "44 × 38 m · 15 M€ · 40 emplois · 600 visiteurs · style Néo-grec américain",
+		"nom": "Palais de justice",
+		"source": "style",
+		"v": "img/v/batiments/greek_revival__palais.webp",
+		"var": {
+			"f": "img/var/batiments/greek_revival__palais.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1820,
+		"evo": {
+			"f": "img/evo/batiments/greek_revival__culte.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 1,8 M€), niveau 3 (×2, 2,4 M€) ; rénovation 450 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Services publics",
+		"id": "greek_revival__culte",
+		"info": "22 × 40 m · 3 M€ · 300 visiteurs · style Néo-grec américain",
+		"nom": "Église à fronton",
+		"source": "style",
+		"v": "img/v/batiments/greek_revival__culte.webp",
+		"var": {
+			"f": "img/var/batiments/greek_revival__culte.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1820,
+		"evo": {
+			"f": "img/evo/batiments/greek_revival__ecole.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 3 M€), niveau 3 (×2, 4 M€) ; rénovation 750 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Services publics",
+		"id": "greek_revival__ecole",
+		"info": "34 × 26 m · 5 M€ · 25 emplois · 300 visiteurs · style Néo-grec américain",
+		"nom": "Université à colonnade",
+		"source": "style",
+		"v": "img/v/batiments/greek_revival__ecole.webp",
+		"var": {
+			"f": "img/var/batiments/greek_revival__ecole.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1820,
+		"evo": {
+			"f": "img/evo/batiments/greek_revival__hopital.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 13 M€), niveau 3 (×2, 18 M€) ; rénovation 3,3 M€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Services publics",
+		"id": "greek_revival__hopital",
+		"info": "40 × 34 m · 22 M€ · 400 emplois · style Néo-grec américain",
+		"nom": "Asile",
+		"source": "style",
+		"v": "img/v/batiments/greek_revival__hopital.webp",
+		"var": {
+			"f": "img/var/batiments/greek_revival__hopital.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1800,
+		"evo": {
+			"f": "img/evo/batiments/canton__immeuble.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 1,6 M€), niveau 3 (×2, 2,1 M€) ; rénovation 390 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "canton__immeuble",
+		"info": "20 × 16 m · 2,6 M€ · 24 logements · style Comptoirs de Canton",
+		"nom": "Factorerie à véranda",
+		"source": "style",
+		"v": "img/v/batiments/canton__immeuble.webp",
+		"var": {
+			"f": "img/var/batiments/canton__immeuble.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1800,
+		"evo": {
+			"f": "img/evo/batiments/canton__bureaux.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 5,4 M€), niveau 3 (×2, 7,2 M€) ; rénovation 1,4 M€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Commerce",
+		"id": "canton__bureaux",
+		"info": "24 × 20 m · 9 M€ · 125 emplois · style Comptoirs de Canton",
+		"nom": "Maison de négoce",
+		"source": "style",
+		"v": "img/v/batiments/canton__bureaux.webp",
+		"var": {
+			"f": "img/var/batiments/canton__bureaux.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1800,
+		"evo": {
+			"f": "img/evo/batiments/canton__entrepot.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 1,2 M€), niveau 3 (×2, 1,6 M€) ; rénovation 300 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Industrie",
+		"id": "canton__entrepot",
+		"info": "30 × 40 m · 2 M€ · 30 emplois · style Comptoirs de Canton",
+		"nom": "Magasin à thé",
+		"source": "style",
+		"v": "img/v/batiments/canton__entrepot.webp",
+		"var": {
+			"f": "img/var/batiments/canton__entrepot.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1800,
+		"evo": {
+			"f": "img/evo/batiments/canton__boutique.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 180 k€), niveau 3 (×2, 240 k€) ; rénovation 45 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Commerce",
+		"id": "canton__boutique",
+		"info": "9 × 12 m · 300 k€ · 4 emplois · 120 visiteurs · style Comptoirs de Canton",
+		"nom": "Échoppe du Cohong",
+		"source": "style",
+		"v": "img/v/batiments/canton__boutique.webp",
+		"var": {
+			"f": "img/var/batiments/canton__boutique.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1800,
+		"evo": {
+			"f": "img/evo/batiments/canton__marche.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 900 k€), niveau 3 (×2, 1,2 M€) ; rénovation 225 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Commerce",
+		"id": "canton__marche",
+		"info": "30 × 24 m · 1,5 M€ · 30 emplois · 800 visiteurs · style Comptoirs de Canton",
+		"nom": "Marché aux porcelaines",
+		"source": "style",
+		"v": "img/v/batiments/canton__marche.webp",
+		"var": {
+			"f": "img/var/batiments/canton__marche.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1800,
+		"evo": {
+			"f": "img/evo/batiments/canton__maison.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 150 k€), niveau 3 (×2, 200 k€) ; rénovation 38 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "canton__maison",
+		"info": "10 × 12 m · 250 k€ · 1 logement · style Comptoirs de Canton",
+		"nom": "Maison du marchand hong",
+		"source": "style",
+		"v": "img/v/batiments/canton__maison.webp",
+		"var": {
+			"f": "img/var/batiments/canton__maison.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1810,
+		"evo": {
+			"f": "img/evo/batiments/anglo_indien__maison.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 150 k€), niveau 3 (×2, 200 k€) ; rénovation 38 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "anglo_indien__maison",
+		"info": "10 × 12 m · 250 k€ · 1 logement · style Bungalow anglo-indien",
+		"nom": "Bungalow à véranda",
+		"source": "style",
+		"v": "img/v/batiments/anglo_indien__maison.webp",
+		"var": {
+			"f": "img/var/batiments/anglo_indien__maison.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1810,
+		"evo": {
+			"f": "img/evo/batiments/anglo_indien__grande_maison.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 420 k€), niveau 3 (×2, 560 k€) ; rénovation 105 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "anglo_indien__grande_maison",
+		"info": "18 × 20 m · 700 k€ · 2 logements · style Bungalow anglo-indien",
+		"nom": "Résidence du collecteur",
+		"source": "style",
+		"v": "img/v/batiments/anglo_indien__grande_maison.webp",
+		"var": {
+			"f": "img/var/batiments/anglo_indien__grande_maison.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1810,
+		"evo": {
+			"f": "img/evo/batiments/anglo_indien__bureaux.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 5,4 M€), niveau 3 (×2, 7,2 M€) ; rénovation 1,4 M€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Commerce",
+		"id": "anglo_indien__bureaux",
+		"info": "24 × 20 m · 9 M€ · 125 emplois · style Bungalow anglo-indien",
+		"nom": "Comptoir de la Compagnie",
+		"source": "style",
+		"v": "img/v/batiments/anglo_indien__bureaux.webp",
+		"var": {
+			"f": "img/var/batiments/anglo_indien__bureaux.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1810,
+		"evo": {
+			"f": "img/evo/batiments/anglo_indien__ecole.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 3 M€), niveau 3 (×2, 4 M€) ; rénovation 750 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Services publics",
+		"id": "anglo_indien__ecole",
+		"info": "34 × 26 m · 5 M€ · 25 emplois · 300 visiteurs · style Bungalow anglo-indien",
+		"nom": "Collège de la Compagnie",
+		"source": "style",
+		"v": "img/v/batiments/anglo_indien__ecole.webp",
+		"var": {
+			"f": "img/var/batiments/anglo_indien__ecole.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1810,
+		"evo": {
+			"f": "img/evo/batiments/anglo_indien__hopital.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 13 M€), niveau 3 (×2, 18 M€) ; rénovation 3,3 M€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Services publics",
+		"id": "anglo_indien__hopital",
+		"info": "40 × 34 m · 22 M€ · 400 emplois · style Bungalow anglo-indien",
+		"nom": "Hôpital de garnison",
+		"source": "style",
+		"v": "img/v/batiments/anglo_indien__hopital.webp",
+		"var": {
+			"f": "img/var/batiments/anglo_indien__hopital.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1810,
+		"evo": {
+			"f": "img/evo/batiments/anglo_indien__culte.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 1,8 M€), niveau 3 (×2, 2,4 M€) ; rénovation 450 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Services publics",
+		"id": "anglo_indien__culte",
+		"info": "24 × 36 m · 3 M€ · 300 visiteurs · style Bungalow anglo-indien",
+		"nom": "Église de garnison",
+		"source": "style",
+		"v": "img/v/batiments/anglo_indien__culte.webp",
+		"var": {
+			"f": "img/var/batiments/anglo_indien__culte.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1810,
+		"evo": {
+			"f": "img/evo/batiments/anglo_indien__palais.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 9 M€), niveau 3 (×2, 12 M€) ; rénovation 2,2 M€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Services publics",
+		"id": "anglo_indien__palais",
+		"info": "44 × 38 m · 15 M€ · 40 emplois · 600 visiteurs · style Bungalow anglo-indien",
+		"nom": "Résidence du gouverneur",
+		"source": "style",
+		"v": "img/v/batiments/anglo_indien__palais.webp",
+		"var": {
+			"f": "img/var/batiments/anglo_indien__palais.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1830,
+		"evo": {
+			"f": "img/evo/batiments/zanzibar__maison.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 150 k€), niveau 3 (×2, 200 k€) ; rénovation 38 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "zanzibar__maison",
+		"info": "10 × 12 m · 250 k€ · 1 logement · style Stone Town de Zanzibar",
+		"nom": "Maison à porte sculptée",
+		"source": "style",
+		"v": "img/v/batiments/zanzibar__maison.webp",
+		"var": {
+			"f": "img/var/batiments/zanzibar__maison.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1830,
+		"evo": {
+			"f": "img/evo/batiments/zanzibar__grande_maison.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 420 k€), niveau 3 (×2, 560 k€) ; rénovation 105 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "zanzibar__grande_maison",
+		"info": "18 × 20 m · 700 k€ · 2 logements · style Stone Town de Zanzibar",
+		"nom": "Demeure de marchand omanais",
+		"source": "style",
+		"v": "img/v/batiments/zanzibar__grande_maison.webp",
+		"var": {
+			"f": "img/var/batiments/zanzibar__grande_maison.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1830,
+		"evo": {
+			"f": "img/evo/batiments/zanzibar__immeuble.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 1,6 M€), niveau 3 (×2, 2,1 M€) ; rénovation 390 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "zanzibar__immeuble",
+		"info": "20 × 16 m · 2,6 M€ · 24 logements · style Stone Town de Zanzibar",
+		"nom": "Maison à balcons de bois",
+		"source": "style",
+		"v": "img/v/batiments/zanzibar__immeuble.webp",
+		"var": {
+			"f": "img/var/batiments/zanzibar__immeuble.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1830,
+		"evo": {
+			"f": "img/evo/batiments/zanzibar__boutique.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 180 k€), niveau 3 (×2, 240 k€) ; rénovation 45 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Commerce",
+		"id": "zanzibar__boutique",
+		"info": "9 × 12 m · 300 k€ · 4 emplois · 120 visiteurs · style Stone Town de Zanzibar",
+		"nom": "Échoppe à banquette",
+		"source": "style",
+		"v": "img/v/batiments/zanzibar__boutique.webp",
+		"var": {
+			"f": "img/var/batiments/zanzibar__boutique.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1830,
+		"evo": {
+			"f": "img/evo/batiments/zanzibar__marche.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 900 k€), niveau 3 (×2, 1,2 M€) ; rénovation 225 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Commerce",
+		"id": "zanzibar__marche",
+		"info": "30 × 24 m · 1,5 M€ · 30 emplois · 800 visiteurs · style Stone Town de Zanzibar",
+		"nom": "Marché aux épices",
+		"source": "style",
+		"v": "img/v/batiments/zanzibar__marche.webp",
+		"var": {
+			"f": "img/var/batiments/zanzibar__marche.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1830,
+		"evo": {
+			"f": "img/evo/batiments/zanzibar__entrepot.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 1,2 M€), niveau 3 (×2, 1,6 M€) ; rénovation 300 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Industrie",
+		"id": "zanzibar__entrepot",
+		"info": "30 × 40 m · 2 M€ · 30 emplois · style Stone Town de Zanzibar",
+		"nom": "Entrepôt du port aux boutres",
+		"source": "style",
+		"v": "img/v/batiments/zanzibar__entrepot.webp",
+		"var": {
+			"f": "img/var/batiments/zanzibar__entrepot.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1830,
+		"evo": {
+			"f": "img/evo/batiments/zanzibar__palais.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 9 M€), niveau 3 (×2, 12 M€) ; rénovation 2,2 M€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Services publics",
+		"id": "zanzibar__palais",
+		"info": "44 × 38 m · 15 M€ · 40 emplois · 600 visiteurs · style Stone Town de Zanzibar",
+		"nom": "Maison des merveilles",
+		"source": "style",
+		"v": "img/v/batiments/zanzibar__palais.webp",
+		"var": {
+			"f": "img/var/batiments/zanzibar__palais.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1810,
+		"evo": {
+			"f": "img/evo/batiments/macquarie__maison.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 150 k€), niveau 3 (×2, 200 k€) ; rénovation 38 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "macquarie__maison",
+		"info": "10 × 12 m · 250 k€ · 1 logement · style Géorgien des colonies",
+		"nom": "Cottage de grès",
+		"source": "style",
+		"v": "img/v/batiments/macquarie__maison.webp",
+		"var": {
+			"f": "img/var/batiments/macquarie__maison.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1810,
+		"evo": {
+			"f": "img/evo/batiments/macquarie__grande_maison.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 420 k€), niveau 3 (×2, 560 k€) ; rénovation 105 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "macquarie__grande_maison",
+		"info": "18 × 20 m · 700 k€ · 2 logements · style Géorgien des colonies",
+		"nom": "Domaine du colon",
+		"source": "style",
+		"v": "img/v/batiments/macquarie__grande_maison.webp",
+		"var": {
+			"f": "img/var/batiments/macquarie__grande_maison.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1810,
+		"evo": {
+			"f": "img/evo/batiments/macquarie__entrepot.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 1,2 M€), niveau 3 (×2, 1,6 M€) ; rénovation 300 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Industrie",
+		"id": "macquarie__entrepot",
+		"info": "30 × 40 m · 2 M€ · 30 emplois · style Géorgien des colonies",
+		"nom": "Magasin de l'intendance",
+		"source": "style",
+		"v": "img/v/batiments/macquarie__entrepot.webp",
+		"var": {
+			"f": "img/var/batiments/macquarie__entrepot.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1810,
+		"evo": {
+			"f": "img/evo/batiments/macquarie__hopital.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 13 M€), niveau 3 (×2, 18 M€) ; rénovation 3,3 M€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Services publics",
+		"id": "macquarie__hopital",
+		"info": "40 × 34 m · 22 M€ · 400 emplois · style Géorgien des colonies",
+		"nom": "Hôpital au rhum",
+		"source": "style",
+		"v": "img/v/batiments/macquarie__hopital.webp",
+		"var": {
+			"f": "img/var/batiments/macquarie__hopital.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1810,
+		"evo": {
+			"f": "img/evo/batiments/macquarie__culte.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 1,8 M€), niveau 3 (×2, 2,4 M€) ; rénovation 450 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Services publics",
+		"id": "macquarie__culte",
+		"info": "24 × 36 m · 3 M€ · 300 visiteurs · style Géorgien des colonies",
+		"nom": "Église de grès",
+		"source": "style",
+		"v": "img/v/batiments/macquarie__culte.webp",
+		"var": {
+			"f": "img/var/batiments/macquarie__culte.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1810,
+		"evo": {
+			"f": "img/evo/batiments/macquarie__ecole.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 3 M€), niveau 3 (×2, 4 M€) ; rénovation 750 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Services publics",
+		"id": "macquarie__ecole",
+		"info": "34 × 26 m · 5 M€ · 25 emplois · 300 visiteurs · style Géorgien des colonies",
+		"nom": "École de la colonie",
+		"source": "style",
+		"v": "img/v/batiments/macquarie__ecole.webp",
+		"var": {
+			"f": "img/var/batiments/macquarie__ecole.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1810,
+		"evo": {
+			"f": "img/evo/batiments/macquarie__palais.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 9 M€), niveau 3 (×2, 12 M€) ; rénovation 2,2 M€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Services publics",
+		"id": "macquarie__palais",
+		"info": "44 × 38 m · 15 M€ · 40 emplois · 600 visiteurs · style Géorgien des colonies",
+		"nom": "Maison du gouverneur",
+		"source": "style",
+		"v": "img/v/batiments/macquarie__palais.webp",
+		"var": {
+			"f": "img/var/batiments/macquarie__palais.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2015,
+		"evo": {
+			"f": "img/evo/batiments/ecoquartier__maison.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 195 k€), niveau 3 (×2, 260 k€) ; rénovation 49 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "ecoquartier__maison",
+		"info": "10 × 12 m · 325 k€ · 1 logement · style Écoquartier",
+		"nom": "Maison à énergie positive",
+		"source": "style",
+		"v": "img/v/batiments/ecoquartier__maison.webp",
+		"var": {
+			"f": "img/var/batiments/ecoquartier__maison.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2015,
+		"evo": {
+			"f": "img/evo/batiments/ecoquartier__rangee.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 780 k€), niveau 3 (×2, 1,0 M€) ; rénovation 195 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "ecoquartier__rangee",
+		"info": "26 × 12 m · 1,3 M€ · 8 logements · style Écoquartier",
+		"nom": "Maisons en bande passives",
+		"source": "style",
+		"v": "img/v/batiments/ecoquartier__rangee.webp",
+		"var": {
+			"f": "img/var/batiments/ecoquartier__rangee.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2015,
+		"evo": {
+			"f": "img/evo/batiments/ecoquartier__immeuble.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 2,0 M€), niveau 3 (×2, 2,7 M€) ; rénovation 507 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "ecoquartier__immeuble",
+		"info": "20 × 16 m · 3,4 M€ · 32 logements · style Écoquartier",
+		"nom": "Plot à coursives végétalisées",
+		"source": "style",
+		"v": "img/v/batiments/ecoquartier__immeuble.webp",
+		"var": {
+			"f": "img/var/batiments/ecoquartier__immeuble.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2015,
+		"evo": {
+			"f": "img/evo/batiments/ecoquartier__bureaux.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 7,0 M€), niveau 3 (×2, 9,4 M€) ; rénovation 1,8 M€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Commerce",
+		"id": "ecoquartier__bureaux",
+		"info": "24 × 20 m · 12 M€ · 300 emplois · style Écoquartier",
+		"nom": "Tiers-lieu",
+		"source": "style",
+		"v": "img/v/batiments/ecoquartier__bureaux.webp",
+		"var": {
+			"f": "img/var/batiments/ecoquartier__bureaux.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2015,
+		"evo": {
+			"f": "img/evo/batiments/ecoquartier__ecole.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 3,9 M€), niveau 3 (×2, 5,2 M€) ; rénovation 975 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Services publics",
+		"id": "ecoquartier__ecole",
+		"info": "34 × 26 m · 6,5 M€ · 25 emplois · 300 visiteurs · style Écoquartier",
+		"nom": "Groupe scolaire biosourcé",
+		"source": "style",
+		"v": "img/v/batiments/ecoquartier__ecole.webp",
+		"var": {
+			"f": "img/var/batiments/ecoquartier__ecole.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2015,
+		"evo": {
+			"f": "img/evo/batiments/ecoquartier__marche.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 1,2 M€), niveau 3 (×2, 1,6 M€) ; rénovation 293 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Commerce",
+		"id": "ecoquartier__marche",
+		"info": "30 × 24 m · 1,9 M€ · 30 emplois · 800 visiteurs · style Écoquartier",
+		"nom": "Halle de producteurs",
+		"source": "style",
+		"v": "img/v/batiments/ecoquartier__marche.webp",
+		"var": {
+			"f": "img/var/batiments/ecoquartier__marche.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2015,
+		"evo": {
+			"f": "img/evo/batiments/ecoquartier__restaurant.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 312 k€), niveau 3 (×2, 416 k€) ; rénovation 78 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Loisirs",
+		"id": "ecoquartier__restaurant",
+		"info": "12 × 14 m · 520 k€ · 4 emplois · 120 visiteurs · style Écoquartier",
+		"nom": "Cantine du quartier",
+		"source": "style",
+		"v": "img/v/batiments/ecoquartier__restaurant.webp",
+		"var": {
+			"f": "img/var/batiments/ecoquartier__restaurant.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2015,
+		"evo": {
+			"f": "img/evo/batiments/ecoquartier__jardin.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 195 k€), niveau 3 (×2, 260 k€) ; rénovation 49 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Loisirs",
+		"id": "ecoquartier__jardin",
+		"info": "30 × 30 m · 325 k€ · 300 visiteurs · style Écoquartier",
+		"nom": "Parc-éponge",
+		"source": "style",
+		"v": "img/v/batiments/ecoquartier__jardin.webp",
+		"var": {
+			"f": "img/var/batiments/ecoquartier__jardin.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2020,
+		"evo": {
+			"f": "img/evo/batiments/desert_intelligent__maison.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 195 k€), niveau 3 (×2, 260 k€) ; rénovation 49 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "desert_intelligent__maison",
+		"info": "10 × 12 m · 325 k€ · 1 logement · style Ville du désert sobre",
+		"nom": "Maison à tour à vent",
+		"source": "style",
+		"v": "img/v/batiments/desert_intelligent__maison.webp",
+		"var": {
+			"f": "img/var/batiments/desert_intelligent__maison.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2020,
+		"evo": {
+			"f": "img/evo/batiments/desert_intelligent__immeuble.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 2,0 M€), niveau 3 (×2, 2,7 M€) ; rénovation 507 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "desert_intelligent__immeuble",
+		"info": "20 × 16 m · 3,4 M€ · 32 logements · style Ville du désert sobre",
+		"nom": "Îlot ombragé",
+		"source": "style",
+		"v": "img/v/batiments/desert_intelligent__immeuble.webp",
+		"var": {
+			"f": "img/var/batiments/desert_intelligent__immeuble.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2020,
+		"evo": {
+			"f": "img/evo/batiments/desert_intelligent__tour.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 9,4 M€), niveau 3 (×2, 12 M€) ; rénovation 2,3 M€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "desert_intelligent__tour",
+		"info": "22 × 22 m · 16 M€ · 156 logements · style Ville du désert sobre",
+		"nom": "Tour à moucharabieh mobile",
+		"source": "style",
+		"v": "img/v/batiments/desert_intelligent__tour.webp",
+		"var": {
+			"f": "img/var/batiments/desert_intelligent__tour.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2020,
+		"evo": {
+			"f": "img/evo/batiments/desert_intelligent__bureaux.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 7,0 M€), niveau 3 (×2, 9,4 M€) ; rénovation 1,8 M€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Commerce",
+		"id": "desert_intelligent__bureaux",
+		"info": "24 × 20 m · 12 M€ · 300 emplois · style Ville du désert sobre",
+		"nom": "Institut des énergies",
+		"source": "style",
+		"v": "img/v/batiments/desert_intelligent__bureaux.webp",
+		"var": {
+			"f": "img/var/batiments/desert_intelligent__bureaux.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2020,
+		"evo": {
+			"f": "img/evo/batiments/desert_intelligent__ecole.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 3,9 M€), niveau 3 (×2, 5,2 M€) ; rénovation 975 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Services publics",
+		"id": "desert_intelligent__ecole",
+		"info": "34 × 26 m · 6,5 M€ · 25 emplois · 300 visiteurs · style Ville du désert sobre",
+		"nom": "École fraîche sans clim",
+		"source": "style",
+		"v": "img/v/batiments/desert_intelligent__ecole.webp",
+		"var": {
+			"f": "img/var/batiments/desert_intelligent__ecole.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2020,
+		"evo": {
+			"f": "img/evo/batiments/desert_intelligent__marche.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 1,2 M€), niveau 3 (×2, 1,6 M€) ; rénovation 293 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Commerce",
+		"id": "desert_intelligent__marche",
+		"info": "30 × 24 m · 1,9 M€ · 30 emplois · 800 visiteurs · style Ville du désert sobre",
+		"nom": "Souk couvert solaire",
+		"source": "style",
+		"v": "img/v/batiments/desert_intelligent__marche.webp",
+		"var": {
+			"f": "img/var/batiments/desert_intelligent__marche.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2020,
+		"evo": {
+			"f": "img/evo/batiments/desert_intelligent__hopital.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 17 M€), niveau 3 (×2, 23 M€) ; rénovation 4,3 M€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Services publics",
+		"id": "desert_intelligent__hopital",
+		"info": "40 × 34 m · 29 M€ · 400 emplois · style Ville du désert sobre",
+		"nom": "Clinique bioclimatique",
+		"source": "style",
+		"v": "img/v/batiments/desert_intelligent__hopital.webp",
+		"var": {
+			"f": "img/var/batiments/desert_intelligent__hopital.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2020,
+		"evo": {
+			"f": "img/evo/batiments/smart_city__immeuble.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 2,0 M€), niveau 3 (×2, 2,7 M€) ; rénovation 507 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "smart_city__immeuble",
+		"info": "20 × 16 m · 3,4 M€ · 32 logements · style Ville connectée d'Asie",
+		"nom": "Résidence connectée",
+		"source": "style",
+		"v": "img/v/batiments/smart_city__immeuble.webp",
+		"var": {
+			"f": "img/var/batiments/smart_city__immeuble.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2020,
+		"evo": {
+			"f": "img/evo/batiments/smart_city__tour.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 9,4 M€), niveau 3 (×2, 12 M€) ; rénovation 2,3 M€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "smart_city__tour",
+		"info": "22 × 22 m · 16 M€ · 156 logements · style Ville connectée d'Asie",
+		"nom": "Tour à jardins suspendus",
+		"source": "style",
+		"v": "img/v/batiments/smart_city__tour.webp",
+		"var": {
+			"f": "img/var/batiments/smart_city__tour.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2020,
+		"evo": {
+			"f": "img/evo/batiments/smart_city__gratte_ciel.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 47 M€), niveau 3 (×2, 62 M€) ; rénovation 12 M€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Commerce",
+		"id": "smart_city__gratte_ciel",
+		"info": "34 × 34 m · 78 M€ · 3600 emplois · style Ville connectée d'Asie",
+		"nom": "Méga-tour mixte",
+		"source": "style",
+		"v": "img/v/batiments/smart_city__gratte_ciel.webp",
+		"var": {
+			"f": "img/var/batiments/smart_city__gratte_ciel.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2020,
+		"evo": {
+			"f": "img/evo/batiments/smart_city__bureaux.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 7,0 M€), niveau 3 (×2, 9,4 M€) ; rénovation 1,8 M€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Commerce",
+		"id": "smart_city__bureaux",
+		"info": "24 × 20 m · 12 M€ · 300 emplois · style Ville connectée d'Asie",
+		"nom": "Campus des données",
+		"source": "style",
+		"v": "img/v/batiments/smart_city__bureaux.webp",
+		"var": {
+			"f": "img/var/batiments/smart_city__bureaux.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2020,
+		"evo": {
+			"f": "img/evo/batiments/smart_city__grand_magasin.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 5,5 M€), niveau 3 (×2, 7,3 M€) ; rénovation 1,4 M€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Commerce",
+		"id": "smart_city__grand_magasin",
+		"info": "42 × 36 m · 9,1 M€ · 80 emplois · 2500 visiteurs · style Ville connectée d'Asie",
+		"nom": "Centre commercial sans caisse",
+		"source": "style",
+		"v": "img/v/batiments/smart_city__grand_magasin.webp",
+		"var": {
+			"f": "img/var/batiments/smart_city__grand_magasin.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2020,
+		"evo": {
+			"f": "img/evo/batiments/smart_city__gare.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 7,0 M€), niveau 3 (×2, 9,4 M€) ; rénovation 1,8 M€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Services publics",
+		"id": "smart_city__gare",
+		"info": "50 × 26 m · 12 M€ · 60 emplois · 3000 visiteurs · style Ville connectée d'Asie",
+		"nom": "Gare de maglev",
+		"source": "style",
+		"v": "img/v/batiments/smart_city__gare.webp",
+		"var": {
+			"f": "img/var/batiments/smart_city__gare.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2020,
+		"evo": {
+			"f": "img/evo/batiments/smart_city__hopital.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 17 M€), niveau 3 (×2, 23 M€) ; rénovation 4,3 M€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Services publics",
+		"id": "smart_city__hopital",
+		"info": "40 × 34 m · 29 M€ · 400 emplois · style Ville connectée d'Asie",
+		"nom": "Hôpital robotisé",
+		"source": "style",
+		"v": "img/v/batiments/smart_city__hopital.webp",
+		"var": {
+			"f": "img/var/batiments/smart_city__hopital.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2020,
+		"evo": {
+			"f": "img/evo/batiments/smart_city__ecole.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 3,9 M€), niveau 3 (×2, 5,2 M€) ; rénovation 975 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Services publics",
+		"id": "smart_city__ecole",
+		"info": "34 × 26 m · 6,5 M€ · 25 emplois · 300 visiteurs · style Ville connectée d'Asie",
+		"nom": "École du numérique",
+		"source": "style",
+		"v": "img/v/batiments/smart_city__ecole.webp",
+		"var": {
+			"f": "img/var/batiments/smart_city__ecole.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2022,
+		"evo": {
+			"f": "img/evo/batiments/afrique_villes_nouvelles__maison.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 195 k€), niveau 3 (×2, 260 k€) ; rénovation 49 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "afrique_villes_nouvelles__maison",
+		"info": "10 × 12 m · 325 k€ · 1 logement · style Villes nouvelles d'Afrique",
+		"nom": "Maison en terre compressée",
+		"source": "style",
+		"v": "img/v/batiments/afrique_villes_nouvelles__maison.webp",
+		"var": {
+			"f": "img/var/batiments/afrique_villes_nouvelles__maison.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2022,
+		"evo": {
+			"f": "img/evo/batiments/afrique_villes_nouvelles__immeuble.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 2,0 M€), niveau 3 (×2, 2,7 M€) ; rénovation 507 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "afrique_villes_nouvelles__immeuble",
+		"info": "20 × 16 m · 3,4 M€ · 32 logements · style Villes nouvelles d'Afrique",
+		"nom": "Immeuble à brise-soleil",
+		"source": "style",
+		"v": "img/v/batiments/afrique_villes_nouvelles__immeuble.webp",
+		"var": {
+			"f": "img/var/batiments/afrique_villes_nouvelles__immeuble.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2022,
+		"evo": {
+			"f": "img/evo/batiments/afrique_villes_nouvelles__tour.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 9,4 M€), niveau 3 (×2, 12 M€) ; rénovation 2,3 M€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "afrique_villes_nouvelles__tour",
+		"info": "22 × 22 m · 16 M€ · 156 logements · style Villes nouvelles d'Afrique",
+		"nom": "Tour de la cité numérique",
+		"source": "style",
+		"v": "img/v/batiments/afrique_villes_nouvelles__tour.webp",
+		"var": {
+			"f": "img/var/batiments/afrique_villes_nouvelles__tour.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2022,
+		"evo": {
+			"f": "img/evo/batiments/afrique_villes_nouvelles__bureaux.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 7,0 M€), niveau 3 (×2, 9,4 M€) ; rénovation 1,8 M€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Commerce",
+		"id": "afrique_villes_nouvelles__bureaux",
+		"info": "24 × 20 m · 12 M€ · 300 emplois · style Villes nouvelles d'Afrique",
+		"nom": "Pôle des start-up",
+		"source": "style",
+		"v": "img/v/batiments/afrique_villes_nouvelles__bureaux.webp",
+		"var": {
+			"f": "img/var/batiments/afrique_villes_nouvelles__bureaux.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2022,
+		"evo": {
+			"f": "img/evo/batiments/afrique_villes_nouvelles__marche.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 1,2 M€), niveau 3 (×2, 1,6 M€) ; rénovation 293 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Commerce",
+		"id": "afrique_villes_nouvelles__marche",
+		"info": "30 × 24 m · 1,9 M€ · 30 emplois · 800 visiteurs · style Villes nouvelles d'Afrique",
+		"nom": "Marché sous ombrières solaires",
+		"source": "style",
+		"v": "img/v/batiments/afrique_villes_nouvelles__marche.webp",
+		"var": {
+			"f": "img/var/batiments/afrique_villes_nouvelles__marche.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2022,
+		"evo": {
+			"f": "img/evo/batiments/afrique_villes_nouvelles__ecole.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 3,9 M€), niveau 3 (×2, 5,2 M€) ; rénovation 975 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Services publics",
+		"id": "afrique_villes_nouvelles__ecole",
+		"info": "34 × 26 m · 6,5 M€ · 25 emplois · 300 visiteurs · style Villes nouvelles d'Afrique",
+		"nom": "École en briques de terre",
+		"source": "style",
+		"v": "img/v/batiments/afrique_villes_nouvelles__ecole.webp",
+		"var": {
+			"f": "img/var/batiments/afrique_villes_nouvelles__ecole.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2022,
+		"evo": {
+			"f": "img/evo/batiments/afrique_villes_nouvelles__hopital.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 17 M€), niveau 3 (×2, 23 M€) ; rénovation 4,3 M€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Services publics",
+		"id": "afrique_villes_nouvelles__hopital",
+		"info": "40 × 34 m · 29 M€ · 400 emplois · style Villes nouvelles d'Afrique",
+		"nom": "Centre de santé solaire",
+		"source": "style",
+		"v": "img/v/batiments/afrique_villes_nouvelles__hopital.webp",
+		"var": {
+			"f": "img/var/batiments/afrique_villes_nouvelles__hopital.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2022,
+		"evo": {
+			"f": "img/evo/batiments/afrique_villes_nouvelles__gare.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 7,0 M€), niveau 3 (×2, 9,4 M€) ; rénovation 1,8 M€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Services publics",
+		"id": "afrique_villes_nouvelles__gare",
+		"info": "50 × 26 m · 12 M€ · 60 emplois · 3000 visiteurs · style Villes nouvelles d'Afrique",
+		"nom": "Gare du train express",
+		"source": "style",
+		"v": "img/v/batiments/afrique_villes_nouvelles__gare.webp",
+		"var": {
+			"f": "img/var/batiments/afrique_villes_nouvelles__gare.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2028,
+		"evo": {
+			"f": "img/evo/batiments/habitat_flottant__maison.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 270 k€), niveau 3 (×2, 360 k€) ; rénovation 68 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "habitat_flottant__maison",
+		"info": "10 × 12 m · 450 k€ · 1 logement · style Habitat flottant",
+		"nom": "Maison flottante",
+		"source": "style",
+		"v": "img/v/batiments/habitat_flottant__maison.webp",
+		"var": {
+			"f": "img/var/batiments/habitat_flottant__maison.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2028,
+		"evo": {
+			"f": "img/evo/batiments/habitat_flottant__rangee.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 1,1 M€), niveau 3 (×2, 1,4 M€) ; rénovation 270 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "habitat_flottant__rangee",
+		"info": "26 × 12 m · 1,8 M€ · 4 logements · style Habitat flottant",
+		"nom": "Pontons habités",
+		"source": "style",
+		"v": "img/v/batiments/habitat_flottant__rangee.webp",
+		"var": {
+			"f": "img/var/batiments/habitat_flottant__rangee.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2028,
+		"evo": {
+			"f": "img/evo/batiments/habitat_flottant__immeuble.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 2,8 M€), niveau 3 (×2, 3,7 M€) ; rénovation 702 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "habitat_flottant__immeuble",
+		"info": "20 × 16 m · 4,7 M€ · 48 logements · style Habitat flottant",
+		"nom": "Îlot sur flotteurs",
+		"source": "style",
+		"v": "img/v/batiments/habitat_flottant__immeuble.webp",
+		"var": {
+			"f": "img/var/batiments/habitat_flottant__immeuble.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2028,
+		"evo": {
+			"f": "img/evo/batiments/habitat_flottant__boutique.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 324 k€), niveau 3 (×2, 432 k€) ; rénovation 81 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Commerce",
+		"id": "habitat_flottant__boutique",
+		"info": "9 × 12 m · 540 k€ · 4 emplois · 120 visiteurs · style Habitat flottant",
+		"nom": "Boutique sur barge",
+		"source": "style",
+		"v": "img/v/batiments/habitat_flottant__boutique.webp",
+		"var": {
+			"f": "img/var/batiments/habitat_flottant__boutique.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2028,
+		"evo": {
+			"f": "img/evo/batiments/habitat_flottant__ecole.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 5,4 M€), niveau 3 (×2, 7,2 M€) ; rénovation 1,4 M€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Services publics",
+		"id": "habitat_flottant__ecole",
+		"info": "34 × 26 m · 9 M€ · 25 emplois · 300 visiteurs · style Habitat flottant",
+		"nom": "École amphibie",
+		"source": "style",
+		"v": "img/v/batiments/habitat_flottant__ecole.webp",
+		"var": {
+			"f": "img/var/batiments/habitat_flottant__ecole.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2028,
+		"evo": {
+			"f": "img/evo/batiments/habitat_flottant__marche.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 1,6 M€), niveau 3 (×2, 2,2 M€) ; rénovation 405 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Commerce",
+		"id": "habitat_flottant__marche",
+		"info": "30 × 24 m · 2,7 M€ · 30 emplois · 800 visiteurs · style Habitat flottant",
+		"nom": "Marché flottant",
+		"source": "style",
+		"v": "img/v/batiments/habitat_flottant__marche.webp",
+		"var": {
+			"f": "img/var/batiments/habitat_flottant__marche.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2028,
+		"evo": {
+			"f": "img/evo/batiments/habitat_flottant__jardin.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 270 k€), niveau 3 (×2, 360 k€) ; rénovation 68 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Loisirs",
+		"id": "habitat_flottant__jardin",
+		"info": "30 × 30 m · 450 k€ · 300 visiteurs · style Habitat flottant",
+		"nom": "Ferme flottante",
+		"source": "style",
+		"v": "img/v/batiments/habitat_flottant__jardin.webp",
+		"var": {
+			"f": "img/var/batiments/habitat_flottant__jardin.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2030,
+		"evo": {
+			"f": "img/evo/batiments/impression_3d__maison.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 270 k€), niveau 3 (×2, 360 k€) ; rénovation 68 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "impression_3d__maison",
+		"info": "10 × 12 m · 450 k€ · 1 logement · style Imprimé en 3D",
+		"nom": "Maison imprimée en 48 h",
+		"source": "style",
+		"v": "img/v/batiments/impression_3d__maison.webp",
+		"var": {
+			"f": "img/var/batiments/impression_3d__maison.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2030,
+		"evo": {
+			"f": "img/evo/batiments/impression_3d__grande_maison.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 756 k€), niveau 3 (×2, 1,0 M€) ; rénovation 189 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "impression_3d__grande_maison",
+		"info": "18 × 20 m · 1,3 M€ · 2 logements · style Imprimé en 3D",
+		"nom": "Villa aux murs ondulés",
+		"source": "style",
+		"v": "img/v/batiments/impression_3d__grande_maison.webp",
+		"var": {
+			"f": "img/var/batiments/impression_3d__grande_maison.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2030,
+		"evo": {
+			"f": "img/evo/batiments/impression_3d__rangee.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 1,1 M€), niveau 3 (×2, 1,4 M€) ; rénovation 270 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "impression_3d__rangee",
+		"info": "26 × 12 m · 1,8 M€ · 4 logements · style Imprimé en 3D",
+		"nom": "Lotissement imprimé",
+		"source": "style",
+		"v": "img/v/batiments/impression_3d__rangee.webp",
+		"var": {
+			"f": "img/var/batiments/impression_3d__rangee.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2030,
+		"evo": {
+			"f": "img/evo/batiments/impression_3d__ecole.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 5,4 M€), niveau 3 (×2, 7,2 M€) ; rénovation 1,4 M€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Services publics",
+		"id": "impression_3d__ecole",
+		"info": "34 × 26 m · 9 M€ · 25 emplois · 300 visiteurs · style Imprimé en 3D",
+		"nom": "École imprimée",
+		"source": "style",
+		"v": "img/v/batiments/impression_3d__ecole.webp",
+		"var": {
+			"f": "img/var/batiments/impression_3d__ecole.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2030,
+		"evo": {
+			"f": "img/evo/batiments/impression_3d__atelier.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 540 k€), niveau 3 (×2, 720 k€) ; rénovation 135 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Industrie",
+		"id": "impression_3d__atelier",
+		"info": "14 × 18 m · 900 k€ · 10 emplois · style Imprimé en 3D",
+		"nom": "Usine d'impression de maisons",
+		"source": "style",
+		"v": "img/v/batiments/impression_3d__atelier.webp",
+		"var": {
+			"f": "img/var/batiments/impression_3d__atelier.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2030,
+		"evo": {
+			"f": "img/evo/batiments/impression_3d__hopital.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 24 M€), niveau 3 (×2, 32 M€) ; rénovation 5,9 M€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Services publics",
+		"id": "impression_3d__hopital",
+		"info": "40 × 34 m · 40 M€ · 400 emplois · style Imprimé en 3D",
+		"nom": "Dispensaire imprimé",
+		"source": "style",
+		"v": "img/v/batiments/impression_3d__hopital.webp",
+		"var": {
+			"f": "img/var/batiments/impression_3d__hopital.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2032,
+		"evo": {
+			"f": "img/evo/batiments/mediterranee_climatique__maison.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 270 k€), niveau 3 (×2, 360 k€) ; rénovation 68 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "mediterranee_climatique__maison",
+		"info": "10 × 12 m · 450 k€ · 1 logement · style Méditerranée climatique",
+		"nom": "Maison-patio rafraîchie",
+		"source": "style",
+		"v": "img/v/batiments/mediterranee_climatique__maison.webp",
+		"var": {
+			"f": "img/var/batiments/mediterranee_climatique__maison.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2032,
+		"evo": {
+			"f": "img/evo/batiments/mediterranee_climatique__immeuble.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 2,8 M€), niveau 3 (×2, 3,7 M€) ; rénovation 702 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "mediterranee_climatique__immeuble",
+		"info": "20 × 16 m · 4,7 M€ · 48 logements · style Méditerranée climatique",
+		"nom": "Immeuble à pergolas",
+		"source": "style",
+		"v": "img/v/batiments/mediterranee_climatique__immeuble.webp",
+		"var": {
+			"f": "img/var/batiments/mediterranee_climatique__immeuble.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2032,
+		"evo": {
+			"f": "img/evo/batiments/mediterranee_climatique__tour.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 13 M€), niveau 3 (×2, 17 M€) ; rénovation 3,2 M€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "mediterranee_climatique__tour",
+		"info": "22 × 22 m · 22 M€ · 204 logements · style Méditerranée climatique",
+		"nom": "Tour-forêt",
+		"source": "style",
+		"v": "img/v/batiments/mediterranee_climatique__tour.webp",
+		"var": {
+			"f": "img/var/batiments/mediterranee_climatique__tour.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2032,
+		"evo": {
+			"f": "img/evo/batiments/mediterranee_climatique__bureaux.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 9,7 M€), niveau 3 (×2, 13 M€) ; rénovation 2,4 M€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Commerce",
+		"id": "mediterranee_climatique__bureaux",
+		"info": "24 × 20 m · 16 M€ · 350 emplois · style Méditerranée climatique",
+		"nom": "Bureaux sous canopée",
+		"source": "style",
+		"v": "img/v/batiments/mediterranee_climatique__bureaux.webp",
+		"var": {
+			"f": "img/var/batiments/mediterranee_climatique__bureaux.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2032,
+		"evo": {
+			"f": "img/evo/batiments/mediterranee_climatique__marche.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 1,6 M€), niveau 3 (×2, 2,2 M€) ; rénovation 405 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Commerce",
+		"id": "mediterranee_climatique__marche",
+		"info": "30 × 24 m · 2,7 M€ · 30 emplois · 800 visiteurs · style Méditerranée climatique",
+		"nom": "Marché-brumisé",
+		"source": "style",
+		"v": "img/v/batiments/mediterranee_climatique__marche.webp",
+		"var": {
+			"f": "img/var/batiments/mediterranee_climatique__marche.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2032,
+		"evo": {
+			"f": "img/evo/batiments/mediterranee_climatique__ecole.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 5,4 M€), niveau 3 (×2, 7,2 M€) ; rénovation 1,4 M€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Services publics",
+		"id": "mediterranee_climatique__ecole",
+		"info": "34 × 26 m · 9 M€ · 25 emplois · 300 visiteurs · style Méditerranée climatique",
+		"nom": "École-îlot de fraîcheur",
+		"source": "style",
+		"v": "img/v/batiments/mediterranee_climatique__ecole.webp",
+		"var": {
+			"f": "img/var/batiments/mediterranee_climatique__ecole.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2032,
+		"evo": {
+			"f": "img/evo/batiments/mediterranee_climatique__hopital.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 24 M€), niveau 3 (×2, 32 M€) ; rénovation 5,9 M€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Services publics",
+		"id": "mediterranee_climatique__hopital",
+		"info": "40 × 34 m · 40 M€ · 400 emplois · style Méditerranée climatique",
+		"nom": "Hôpital des canicules",
+		"source": "style",
+		"v": "img/v/batiments/mediterranee_climatique__hopital.webp",
+		"var": {
+			"f": "img/var/batiments/mediterranee_climatique__hopital.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2045,
+		"evo": {
+			"f": "img/evo/batiments/ville_verticale__tour.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 13 M€), niveau 3 (×2, 17 M€) ; rénovation 3,2 M€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Logement",
+		"id": "ville_verticale__tour",
+		"info": "22 × 22 m · 22 M€ · 204 logements · style Ville verticale",
+		"nom": "Tour-quartier de 10 000 habitants",
+		"source": "style",
+		"v": "img/v/batiments/ville_verticale__tour.webp",
+		"var": {
+			"f": "img/var/batiments/ville_verticale__tour.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2045,
+		"evo": {
+			"f": "img/evo/batiments/ville_verticale__gratte_ciel.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 65 M€), niveau 3 (×2, 86 M€) ; rénovation 16 M€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Commerce",
+		"id": "ville_verticale__gratte_ciel",
+		"info": "34 × 34 m · 108 M€ · 5400 emplois · style Ville verticale",
+		"nom": "Méga-structure en ponts",
+		"source": "style",
+		"v": "img/v/batiments/ville_verticale__gratte_ciel.webp",
+		"var": {
+			"f": "img/var/batiments/ville_verticale__gratte_ciel.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2045,
+		"evo": {
+			"f": "img/evo/batiments/ville_verticale__bureaux.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 9,7 M€), niveau 3 (×2, 13 M€) ; rénovation 2,4 M€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Commerce",
+		"id": "ville_verticale__bureaux",
+		"info": "24 × 20 m · 16 M€ · 350 emplois · style Ville verticale",
+		"nom": "Plateau de travail suspendu",
+		"source": "style",
+		"v": "img/v/batiments/ville_verticale__bureaux.webp",
+		"var": {
+			"f": "img/var/batiments/ville_verticale__bureaux.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2045,
+		"evo": {
+			"f": "img/evo/batiments/ville_verticale__ferme.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 864 k€), niveau 3 (×2, 1,2 M€) ; rénovation 216 k€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Industrie",
+		"id": "ville_verticale__ferme",
+		"info": "28 × 24 m · 1,4 M€ · 1 logement · 4 emplois · style Ville verticale",
+		"nom": "Ferme urbaine",
+		"source": "style",
+		"v": "img/v/batiments/ville_verticale__ferme.webp",
+		"var": {
+			"f": "img/var/batiments/ville_verticale__ferme.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2045,
+		"evo": {
+			"f": "img/evo/batiments/ville_verticale__usine.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 6,5 M€), niveau 3 (×2, 8,6 M€) ; rénovation 1,6 M€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Industrie",
+		"id": "ville_verticale__usine",
+		"info": "40 × 30 m · 11 M€ · 120 emplois · style Ville verticale",
+		"nom": "Usine de recyclage intégral",
+		"source": "style",
+		"v": "img/v/batiments/ville_verticale__usine.webp",
+		"var": {
+			"f": "img/var/batiments/ville_verticale__usine.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 2045,
+		"evo": {
+			"f": "img/evo/batiments/ville_verticale__gare.webp",
+			"l": [
+				"Fouilles",
+				"Fondations",
+				"Gros œuvre",
+				"Toit",
+				"Terminé",
+				"Niveau 2",
+				"Niveau 3",
+				"Usé",
+				"Abandonné"
+			],
+			"n": 9.0,
+			"px": 160.0
+		},
+		"evol": "Agrandissable : niveau 2 (+50 %, 9,7 M€), niveau 3 (×2, 13 M€) ; rénovation 2,4 M€ · 4 variantes de façade",
+		"fam": "batiments",
+		"groupe": "Services publics",
+		"id": "ville_verticale__gare",
+		"info": "50 × 26 m · 16 M€ · 60 emplois · 3000 visiteurs · style Ville verticale",
+		"nom": "Vertiport de toit",
+		"source": "style",
+		"v": "img/v/batiments/ville_verticale__gare.webp",
+		"var": {
+			"f": "img/var/batiments/ville_verticale__gare.webp",
+			"l": [
+				"Variante 1",
+				"Variante 2",
+				"Variante 3",
+				"Variante 4"
+			],
+			"n": 4.0,
+			"px": 160.0
+		}
+	},
+	{
+		"annee": 1800,
+		"evo": {
 			"f": "img/evo/batiments/ecole_communale.webp",
 			"l": [
 				"Fouilles",
@@ -47402,13 +52076,13 @@
 	},
 	{
 		"annee": 2040,
-		"evol": "Avant 2040, remplacé par : Robotaxi",
+		"evol": "Avant 2040, remplacé par : Voiture solaire",
 		"fam": "vehicules",
 		"groupe": "Voitures",
 		"id": "capsule",
 		"info": "120 km/h · 4 places",
 		"lignee": [
-			"robotaxi",
+			"voiture_solaire",
 			"capsule"
 		],
 		"nom": "Capsule autonome",
@@ -48378,13 +53052,13 @@
 	},
 	{
 		"annee": 2035,
-		"evol": "Avant 2035, remplacé par : Bus électrique chinois",
+		"evol": "Avant 2035, remplacé par : Bus autonome de ligne",
 		"fam": "vehicules",
 		"groupe": "Bus et cars",
 		"id": "navette_autonome",
 		"info": "40 km/h · 15 places",
 		"lignee": [
-			"bus_electrique",
+			"bus_autonome",
 			"navette_autonome"
 		],
 		"nom": "Navette autonome",
@@ -48929,13 +53603,13 @@
 	},
 	{
 		"annee": 2023,
-		"evol": "Avant 2023, remplacé par : Train à grande vitesse du désert",
+		"evol": "Avant 2023, remplacé par : Automotrice à batteries",
 		"fam": "vehicules",
 		"groupe": "Trains",
 		"id": "cremaillere_moderne",
 		"info": "30 km/h · 180 places · Europe",
 		"lignee": [
-			"grande_vitesse_desert",
+			"train_batterie",
 			"cremaillere_moderne"
 		],
 		"nom": "Rame à crémaillère moderne",
@@ -48974,13 +53648,13 @@
 	},
 	{
 		"annee": 2030,
-		"evol": "Avant 2030, remplacé par : Rame à crémaillère moderne",
+		"evol": "Avant 2030, remplacé par : Grande vitesse nouvelle génération",
 		"fam": "vehicules",
 		"groupe": "Trains",
 		"id": "metro_auto",
 		"info": "100 km/h · 160 places · Asie de l'Est",
 		"lignee": [
-			"cremaillere_moderne",
+			"lgv_nouvelle",
 			"metro_auto"
 		],
 		"nom": "Métro automatique",
@@ -49034,13 +53708,13 @@
 	},
 	{
 		"annee": 2030,
-		"evol": "Avant 2030, remplacé par : Rame à crémaillère moderne",
+		"evol": "Avant 2030, remplacé par : Grande vitesse nouvelle génération",
 		"fam": "vehicules",
 		"groupe": "Trains",
 		"id": "maglev",
 		"info": "500 km/h · 70 places · Asie de l'Est",
 		"lignee": [
-			"cremaillere_moderne",
+			"lgv_nouvelle",
 			"maglev"
 		],
 		"nom": "Train à sustentation magnétique",
@@ -49635,13 +54309,13 @@
 	},
 	{
 		"annee": 2035,
-		"evol": "Avant 2035, remplacé par : Avion de ligne régional à réaction",
+		"evol": "Avant 2035, remplacé par : Avion régional électrique",
 		"fam": "vehicules",
 		"groupe": "Aéronefs",
 		"id": "taxi_volant",
 		"info": "150 km/h · 2 places",
 		"lignee": [
-			"jet_regional_asie",
+			"avion_electrique",
 			"taxi_volant"
 		],
 		"nom": "Taxi volant électrique",
@@ -49676,13 +54350,13 @@
 	},
 	{
 		"annee": 1810,
-		"evol": "Avant 1810, remplacé par : Charrette de la rivière Rouge",
+		"evol": "Avant 1810, remplacé par : Berline de voyage",
 		"fam": "vehicules",
 		"groupe": "Attelages",
 		"id": "cabriolet",
 		"info": "18 km/h · 2 places · Europe",
 		"lignee": [
-			"charrette_red_river",
+			"berline_voyage",
 			"cabriolet"
 		],
 		"nom": "Cabriolet",
@@ -50107,13 +54781,13 @@
 	},
 	{
 		"annee": 1820,
-		"evol": "Avant 1820, remplacé par : Barque à rames",
+		"evol": "Avant 1820, remplacé par : Premier vapeur fluvial",
 		"fam": "vehicules",
 		"groupe": "Bateaux",
 		"id": "peniche_halage",
 		"info": "4 km/h · 2 places · Europe",
 		"lignee": [
-			"barque",
+			"vapeur_hudson",
 			"peniche_halage"
 		],
 		"nom": "Péniche de halage",
@@ -50373,13 +55047,13 @@
 	},
 	{
 		"annee": 2024,
-		"evol": "Avant 2024, remplacé par : Voiture électrique compacte",
+		"evol": "Avant 2024, remplacé par : Petite électrique indienne",
 		"fam": "vehicules",
 		"groupe": "Voitures",
 		"id": "robotaxi",
 		"info": "130 km/h · 4 places",
 		"lignee": [
-			"electrique",
+			"citadine_electrique_inde",
 			"robotaxi"
 		],
 		"nom": "Robotaxi",
@@ -50508,13 +55182,13 @@
 	},
 	{
 		"annee": 2022,
-		"evol": "Avant 2022, remplacé par : Camion porteur de livraison",
+		"evol": "Avant 2022, remplacé par : Benne à ordures électrique",
 		"fam": "vehicules",
 		"groupe": "Utilitaires et camions",
 		"id": "camion_electrique",
 		"info": "90 km/h · 2 places",
 		"lignee": [
-			"porteur",
+			"benne_electrique",
 			"camion_electrique"
 		],
 		"nom": "Porteur électrique",
@@ -50535,6 +55209,493 @@
 		"nom": "Camion de marché d'Amérique latine",
 		"source": "propre",
 		"v": "img/v/vehicules/camion_mexique.webp"
+	},
+	{
+		"annee": 2020,
+		"evol": "Avant 2020, remplacé par : SUV",
+		"fam": "vehicules",
+		"groupe": "Voitures",
+		"id": "suv_electrique",
+		"info": "180 km/h · 5 places",
+		"lignee": [
+			"suv",
+			"suv_electrique"
+		],
+		"nom": "SUV électrique",
+		"source": "propre",
+		"v": "img/v/vehicules/suv_electrique.webp"
+	},
+	{
+		"annee": 2023,
+		"evol": "Avant 2023, remplacé par : Voiture électrique compacte",
+		"fam": "vehicules",
+		"groupe": "Voitures",
+		"id": "citadine_electrique_inde",
+		"info": "100 km/h · 4 places · Asie du Sud et du Sud-Est",
+		"lignee": [
+			"electrique",
+			"citadine_electrique_inde"
+		],
+		"nom": "Petite électrique indienne",
+		"source": "propre",
+		"v": "img/v/vehicules/citadine_electrique_inde.webp"
+	},
+	{
+		"annee": 2022,
+		"evol": "Avant 2022, remplacé par : Voiture électrique chinoise",
+		"fam": "vehicules",
+		"groupe": "Voitures",
+		"id": "pickup_electrique",
+		"info": "180 km/h · 5 places · Amériques",
+		"lignee": [
+			"electrique_chine",
+			"pickup_electrique"
+		],
+		"nom": "Pick-up électrique",
+		"source": "propre",
+		"v": "img/v/vehicules/pickup_electrique.webp"
+	},
+	{
+		"annee": 2021,
+		"evol": "Avant 2021, remplacé par : Supercar",
+		"fam": "vehicules",
+		"groupe": "Voitures",
+		"id": "voiture_hydrogene",
+		"info": "175 km/h · 5 places · Asie de l'Est",
+		"lignee": [
+			"supercar",
+			"voiture_hydrogene"
+		],
+		"nom": "Voiture à hydrogène",
+		"source": "propre",
+		"v": "img/v/vehicules/voiture_hydrogene.webp"
+	},
+	{
+		"annee": 2020,
+		"evol": "Avant 2020, remplacé par : SUV",
+		"fam": "vehicules",
+		"groupe": "Voitures",
+		"id": "microcar_partage",
+		"info": "45 km/h · 2 places · Europe",
+		"lignee": [
+			"suv",
+			"microcar_partage"
+		],
+		"nom": "Micro-voiture en partage",
+		"source": "propre",
+		"v": "img/v/vehicules/microcar_partage.webp"
+	},
+	{
+		"annee": 2030,
+		"evol": "Avant 2030, remplacé par : Robotaxi chinois",
+		"fam": "vehicules",
+		"groupe": "Voitures",
+		"id": "voiture_solaire",
+		"info": "140 km/h · 4 places · Europe",
+		"lignee": [
+			"robotaxi_chine",
+			"voiture_solaire"
+		],
+		"nom": "Voiture solaire",
+		"source": "propre",
+		"v": "img/v/vehicules/voiture_solaire.webp"
+	},
+	{
+		"annee": 2025,
+		"evol": "Avant 2025, remplacé par : Robotaxi",
+		"fam": "vehicules",
+		"groupe": "Voitures",
+		"id": "robotaxi_chine",
+		"info": "120 km/h · 4 places · Asie de l'Est",
+		"lignee": [
+			"robotaxi",
+			"robotaxi_chine"
+		],
+		"nom": "Robotaxi chinois",
+		"source": "propre",
+		"v": "img/v/vehicules/robotaxi_chine.webp"
+	},
+	{
+		"annee": 2045,
+		"evol": "Avant 2045, remplacé par : Capsule autonome",
+		"fam": "vehicules",
+		"groupe": "Voitures",
+		"id": "capsule_salon",
+		"info": "130 km/h · 6 places",
+		"lignee": [
+			"capsule",
+			"capsule_salon"
+		],
+		"nom": "Salon roulant autonome",
+		"source": "propre",
+		"v": "img/v/vehicules/capsule_salon.webp"
+	},
+	{
+		"annee": 2024,
+		"evol": "Avant 2024, remplacé par : Porteur électrique",
+		"fam": "vehicules",
+		"groupe": "Utilitaires et camions",
+		"id": "camion_hydrogene",
+		"info": "90 km/h · 2 places · Europe",
+		"lignee": [
+			"camion_electrique",
+			"camion_hydrogene"
+		],
+		"nom": "Semi-remorque à hydrogène",
+		"source": "propre",
+		"v": "img/v/vehicules/camion_hydrogene.webp"
+	},
+	{
+		"annee": 2035,
+		"evol": "Avant 2035, remplacé par : Semi-remorque à hydrogène",
+		"fam": "vehicules",
+		"groupe": "Utilitaires et camions",
+		"id": "camion_autonome",
+		"info": "80 km/h",
+		"lignee": [
+			"camion_hydrogene",
+			"camion_autonome"
+		],
+		"nom": "Porteur autonome sans chauffeur",
+		"source": "propre",
+		"v": "img/v/vehicules/camion_autonome.webp"
+	},
+	{
+		"annee": 2021,
+		"evol": "Avant 2021, remplacé par : Camion porteur de livraison",
+		"fam": "vehicules",
+		"groupe": "Utilitaires et camions",
+		"id": "benne_electrique",
+		"info": "80 km/h · 3 places · Europe",
+		"lignee": [
+			"porteur",
+			"benne_electrique"
+		],
+		"nom": "Benne à ordures électrique",
+		"source": "propre",
+		"v": "img/v/vehicules/benne_electrique.webp"
+	},
+	{
+		"annee": 2020,
+		"evol": "Avant 2020, remplacé par : Bus électrique chinois",
+		"fam": "vehicules",
+		"groupe": "Bus et cars",
+		"id": "bus_hydrogene",
+		"info": "70 km/h · 85 places · Europe",
+		"lignee": [
+			"bus_electrique",
+			"bus_hydrogene"
+		],
+		"nom": "Bus à hydrogène",
+		"source": "propre",
+		"v": "img/v/vehicules/bus_hydrogene.webp"
+	},
+	{
+		"annee": 2020,
+		"evol": "Avant 2020, remplacé par : Bus électrique chinois",
+		"fam": "vehicules",
+		"groupe": "Bus et cars",
+		"id": "bus_articule_brt",
+		"info": "80 km/h · 160 places · Amériques",
+		"lignee": [
+			"bus_electrique",
+			"bus_articule_brt"
+		],
+		"nom": "Bus à haut niveau de service",
+		"source": "propre",
+		"v": "img/v/vehicules/bus_articule_brt.webp"
+	},
+	{
+		"annee": 2028,
+		"evol": "Avant 2028, remplacé par : Bus à hydrogène",
+		"fam": "vehicules",
+		"groupe": "Bus et cars",
+		"id": "bus_autonome",
+		"info": "60 km/h · 90 places · Asie de l'Est",
+		"lignee": [
+			"bus_hydrogene",
+			"bus_autonome"
+		],
+		"nom": "Bus autonome de ligne",
+		"source": "propre",
+		"v": "img/v/vehicules/bus_autonome.webp"
+	},
+	{
+		"annee": 2020,
+		"evol": "Avant 2020, remplacé par : Trottinette électrique",
+		"fam": "vehicules",
+		"groupe": "Deux et trois roues",
+		"id": "velo_cargo_electrique",
+		"info": "25 km/h · 1 places · Europe",
+		"lignee": [
+			"trottinette",
+			"velo_cargo_electrique"
+		],
+		"nom": "Vélo cargo de livraison",
+		"source": "propre",
+		"v": "img/v/vehicules/velo_cargo_electrique.webp"
+	},
+	{
+		"annee": 2020,
+		"evol": "Avant 2020, remplacé par : Tuk-tuk électrique",
+		"fam": "vehicules",
+		"groupe": "Deux et trois roues",
+		"id": "scooter_electrique",
+		"info": "60 km/h · 2 places · Asie de l'Est",
+		"lignee": [
+			"tuktuk_electrique",
+			"scooter_electrique"
+		],
+		"nom": "Scooter électrique à batterie échangeable",
+		"source": "propre",
+		"v": "img/v/vehicules/scooter_electrique.webp"
+	},
+	{
+		"annee": 2022,
+		"evol": "Avant 2022, remplacé par : Scooter électrique à batterie échangeable",
+		"fam": "vehicules",
+		"groupe": "Deux et trois roues",
+		"id": "moto_taxi_electrique",
+		"info": "80 km/h · 2 places · Afrique",
+		"lignee": [
+			"scooter_electrique",
+			"moto_taxi_electrique"
+		],
+		"nom": "Moto-taxi électrique",
+		"source": "propre",
+		"v": "img/v/vehicules/moto_taxi_electrique.webp"
+	},
+	{
+		"annee": 2018,
+		"evol": "Avant 2018, remplacé par : Moto",
+		"fam": "vehicules",
+		"groupe": "Deux et trois roues",
+		"id": "tuktuk_electrique",
+		"info": "45 km/h · 4 places · Asie du Sud et du Sud-Est",
+		"lignee": [
+			"moto",
+			"tuktuk_electrique"
+		],
+		"nom": "Tuk-tuk électrique",
+		"source": "propre",
+		"v": "img/v/vehicules/tuktuk_electrique.webp"
+	},
+	{
+		"annee": 2021,
+		"evol": "Avant 2021, remplacé par : Tramway moderne d'Afrique du Nord",
+		"fam": "vehicules",
+		"groupe": "Tramways",
+		"id": "tram_train",
+		"info": "100 km/h · 250 places · Europe",
+		"lignee": [
+			"tram_maghreb",
+			"tram_train"
+		],
+		"nom": "Tram-train",
+		"source": "propre",
+		"v": "img/v/vehicules/tram_train.webp"
+	},
+	{
+		"annee": 2018,
+		"evol": "Avant 2018, remplacé par : Train régional électrique",
+		"fam": "vehicules",
+		"groupe": "Trains",
+		"id": "train_hydrogene",
+		"info": "140 km/h · 150 places · Europe",
+		"lignee": [
+			"regional",
+			"train_hydrogene"
+		],
+		"nom": "Train régional à hydrogène",
+		"source": "propre",
+		"v": "img/v/vehicules/train_hydrogene.webp"
+	},
+	{
+		"annee": 2022,
+		"evol": "Avant 2022, remplacé par : Train régional à hydrogène",
+		"fam": "vehicules",
+		"groupe": "Trains",
+		"id": "train_batterie",
+		"info": "120 km/h · 160 places · Asie de l'Est",
+		"lignee": [
+			"train_hydrogene",
+			"train_batterie"
+		],
+		"nom": "Automotrice à batteries",
+		"source": "propre",
+		"v": "img/v/vehicules/train_batterie.webp"
+	},
+	{
+		"annee": 2025,
+		"evol": "Avant 2025, remplacé par : Rame à crémaillère moderne",
+		"fam": "vehicules",
+		"groupe": "Trains",
+		"id": "lgv_nouvelle",
+		"info": "320 km/h · Europe",
+		"lignee": [
+			"cremaillere_moderne",
+			"lgv_nouvelle"
+		],
+		"nom": "Grande vitesse nouvelle génération",
+		"source": "propre",
+		"v": "img/v/vehicules/lgv_nouvelle.webp"
+	},
+	{
+		"annee": 2025,
+		"evol": "Avant 2025, remplacé par : Navette à hydrofoils électrique",
+		"fam": "vehicules",
+		"groupe": "Bateaux",
+		"id": "cargo_voile",
+		"info": "25 km/h · 20 places",
+		"lignee": [
+			"navette_hydrofoil",
+			"cargo_voile"
+		],
+		"nom": "Cargo à voiles rigides",
+		"source": "propre",
+		"v": "img/v/vehicules/cargo_voile.webp"
+	},
+	{
+		"annee": 2020,
+		"evol": "Avant 2020, remplacé par : Navire de croisière",
+		"fam": "vehicules",
+		"groupe": "Bateaux",
+		"id": "ferry_electrique",
+		"info": "30 km/h · 600 places · Europe",
+		"lignee": [
+			"croisiere",
+			"ferry_electrique"
+		],
+		"nom": "Ferry électrique",
+		"source": "propre",
+		"v": "img/v/vehicules/ferry_electrique.webp"
+	},
+	{
+		"annee": 2024,
+		"evol": "Avant 2024, remplacé par : Ferry électrique",
+		"fam": "vehicules",
+		"groupe": "Bateaux",
+		"id": "navette_hydrofoil",
+		"info": "45 km/h · 30 places",
+		"lignee": [
+			"ferry_electrique",
+			"navette_hydrofoil"
+		],
+		"nom": "Navette à hydrofoils électrique",
+		"source": "propre",
+		"v": "img/v/vehicules/navette_hydrofoil.webp"
+	},
+	{
+		"annee": 2030,
+		"evol": "Avant 2030, remplacé par : Drone de livraison",
+		"fam": "vehicules",
+		"groupe": "Aéronefs",
+		"id": "avion_electrique",
+		"info": "400 km/h · 19 places · Europe",
+		"lignee": [
+			"drone_livraison",
+			"avion_electrique"
+		],
+		"nom": "Avion régional électrique",
+		"source": "propre",
+		"v": "img/v/vehicules/avion_electrique.webp"
+	},
+	{
+		"annee": 2035,
+		"evol": "Avant 2035, remplacé par : Avion régional électrique",
+		"fam": "vehicules",
+		"groupe": "Aéronefs",
+		"id": "avion_hydrogene",
+		"info": "850 km/h · 200 places · Europe",
+		"lignee": [
+			"avion_electrique",
+			"avion_hydrogene"
+		],
+		"nom": "Avion de ligne à hydrogène",
+		"source": "propre",
+		"v": "img/v/vehicules/avion_hydrogene.webp"
+	},
+	{
+		"annee": 2022,
+		"evol": "Avant 2022, remplacé par : Avion de ligne régional à réaction",
+		"fam": "vehicules",
+		"groupe": "Aéronefs",
+		"id": "drone_livraison",
+		"info": "90 km/h",
+		"lignee": [
+			"jet_regional_asie",
+			"drone_livraison"
+		],
+		"nom": "Drone de livraison",
+		"source": "propre",
+		"v": "img/v/vehicules/drone_livraison.webp"
+	},
+	{
+		"annee": 2038,
+		"evol": "Avant 2038, remplacé par : Taxi volant électrique",
+		"fam": "vehicules",
+		"groupe": "Aéronefs",
+		"id": "ambulance_volante",
+		"info": "200 km/h · 2 places",
+		"lignee": [
+			"taxi_volant",
+			"ambulance_volante"
+		],
+		"nom": "Ambulance volante",
+		"source": "propre",
+		"v": "img/v/vehicules/ambulance_volante.webp"
+	},
+	{
+		"annee": 1800,
+		"evol": "",
+		"fam": "vehicules",
+		"groupe": "Attelages",
+		"id": "chaise_poste",
+		"info": "15 km/h · 2 places · Europe",
+		"nom": "Chaise de poste",
+		"source": "propre",
+		"v": "img/v/vehicules/chaise_poste.webp"
+	},
+	{
+		"annee": 1805,
+		"evol": "Avant 1805, remplacé par : Charrette de la rivière Rouge",
+		"fam": "vehicules",
+		"groupe": "Attelages",
+		"id": "berline_voyage",
+		"info": "12 km/h · 6 places · Europe",
+		"lignee": [
+			"charrette_red_river",
+			"berline_voyage"
+		],
+		"nom": "Berline de voyage",
+		"source": "propre",
+		"v": "img/v/vehicules/berline_voyage.webp"
+	},
+	{
+		"annee": 1807,
+		"evol": "Avant 1807, remplacé par : Barque à rames",
+		"fam": "vehicules",
+		"groupe": "Bateaux",
+		"id": "vapeur_hudson",
+		"info": "12 km/h · 150 places · Amériques",
+		"lignee": [
+			"barque",
+			"vapeur_hudson"
+		],
+		"nom": "Premier vapeur fluvial",
+		"source": "propre",
+		"v": "img/v/vehicules/vapeur_hudson.webp"
+	},
+	{
+		"annee": 1800,
+		"evol": "",
+		"fam": "vehicules",
+		"groupe": "Bateaux",
+		"id": "coche_eau",
+		"info": "6 km/h · 60 places · Europe",
+		"nom": "Coche d'eau",
+		"source": "propre",
+		"v": "img/v/vehicules/coche_eau.webp"
 	},
 	{
 		"annee": 1970,
@@ -53030,6 +58191,61 @@
 		"v": "img/v/attractions/train_fantome.webp"
 	},
 	{
+		"annee": 1817,
+		"evol": "",
+		"fam": "attractions",
+		"groupe": "Types d'attraction",
+		"id": "promenades",
+		"info": "gare 300 k€ · voie 3 k€/m",
+		"nom": "Promenades aériennes",
+		"source": "ajoutee",
+		"v": "img/v/attractions/promenades.webp"
+	},
+	{
+		"annee": 1997,
+		"evol": "",
+		"fam": "attractions",
+		"groupe": "Types d'attraction",
+		"id": "tournant",
+		"info": "gare 700 k€ · voie 6 k€/m",
+		"nom": "Grand-huit à voitures tournantes",
+		"source": "ajoutee",
+		"v": "img/v/attractions/tournant.webp"
+	},
+	{
+		"annee": 1996,
+		"evol": "",
+		"fam": "attractions",
+		"groupe": "Types d'attraction",
+		"id": "luge_ete",
+		"info": "gare 250 k€ · voie 3 k€/m",
+		"nom": "Luge d'été sur rail",
+		"source": "ajoutee",
+		"v": "img/v/attractions/luge_ete.webp"
+	},
+	{
+		"annee": 2007,
+		"evol": "",
+		"fam": "attractions",
+		"groupe": "Types d'attraction",
+		"id": "aile",
+		"info": "gare 1,3 M€ · voie 12 k€/m",
+		"nom": "Grand-huit à ailes",
+		"source": "ajoutee",
+		"v": "img/v/attractions/aile.webp"
+	},
+	{
+		"annee": 2016,
+		"evol": "",
+		"fam": "attractions",
+		"groupe": "Types d'attraction",
+		"id": "realite_virtuelle",
+		"info": "gare 1,2 M€ · voie 10 k€/m",
+		"nom": "Grand-huit en réalité virtuelle",
+		"source": "ajoutee",
+		"v": "img/v/attractions/realite_virtuelle.webp"
+	},
+	{
 		"annee": 1963,
 		"evol": "",
 		"fam": "attractions",
@@ -53976,6 +59192,116 @@
 		"v": "img/v/amenagements/golf_green.webp"
 	},
 	{
+		"annee": 2000,
+		"evol": "",
+		"fam": "amenagements",
+		"groupe": "Bassins",
+		"id": "bassin_naturel",
+		"info": "Baignade filtrée par les plantes : fond de gravier, bord en bois.",
+		"nom": "Piscine naturelle",
+		"source": "ajoutee",
+		"v": "img/v/amenagements/bassin_naturel.webp"
+	},
+	{
+		"annee": 2017,
+		"evol": "",
+		"fam": "amenagements",
+		"groupe": "Bassins",
+		"id": "bassin_urbain",
+		"info": "Bassin en bois posé sur le canal ou le port : on se baigne en pleine ville.",
+		"nom": "Baignade urbaine",
+		"source": "ajoutee",
+		"v": "img/v/amenagements/bassin_urbain.webp"
+	},
+	{
+		"annee": 1851,
+		"evol": "",
+		"fam": "amenagements",
+		"groupe": "Rails et quais",
+		"id": "voie_large",
+		"info": "Écartement russe de 1,52 m (ou ibérique, indien) : traverses plus longues.",
+		"nom": "Voie large",
+		"source": "ajoutee",
+		"v": "img/v/amenagements/voie_large.webp"
+	},
+	{
+		"annee": 1873,
+		"evol": "",
+		"fam": "amenagements",
+		"groupe": "Rails et quais",
+		"id": "voie_cap",
+		"info": "Voie de 1,067 m : Afrique australe, Japon, Australie, Indonésie.",
+		"nom": "Voie du Cap",
+		"source": "ajoutee",
+		"v": "img/v/amenagements/voie_cap.webp"
+	},
+	{
+		"annee": 1830,
+		"evol": "",
+		"fam": "amenagements",
+		"groupe": "Gradins",
+		"id": "tribune_bois",
+		"info": "Tribune de champ de courses du XIXe siècle : bancs en planches et toit de bardeaux.",
+		"nom": "Tribune en bois couverte",
+		"source": "ajoutee",
+		"v": "img/v/amenagements/tribune_bois.webp"
+	},
+	{
+		"annee": 1990,
+		"evol": "",
+		"fam": "amenagements",
+		"groupe": "Gradins",
+		"id": "gradins_retractables",
+		"info": "Gradins télescopiques de salle polyvalente : ils se replient contre le mur.",
+		"nom": "Gradins rétractables",
+		"source": "ajoutee",
+		"v": "img/v/amenagements/gradins_retractables.webp"
+	},
+	{
+		"annee": 1800,
+		"evol": "",
+		"fam": "amenagements",
+		"groupe": "Terrains de sport",
+		"id": "cricket",
+		"info": "Pitch de 22 yards (20,12 m) au milieu de la pelouse, guichets à chaque bout.",
+		"nom": "Cricket",
+		"source": "ajoutee",
+		"v": "img/v/amenagements/cricket.webp"
+	},
+	{
+		"annee": 1856,
+		"evol": "",
+		"fam": "amenagements",
+		"groupe": "Terrains de sport",
+		"id": "croquet",
+		"info": "Pelouse rase de 32 × 25,6 m, six arceaux et piquet au centre.",
+		"nom": "Croquet",
+		"source": "ajoutee",
+		"v": "img/v/amenagements/croquet.webp"
+	},
+	{
+		"annee": 1873,
+		"evol": "",
+		"fam": "amenagements",
+		"groupe": "Terrains de sport",
+		"id": "badminton",
+		"info": "13,40 × 6,10 m, filet à 1,55 m.",
+		"nom": "Badminton",
+		"source": "ajoutee",
+		"v": "img/v/amenagements/badminton.webp"
+	},
+	{
+		"annee": 1990,
+		"evol": "",
+		"fam": "amenagements",
+		"groupe": "Terrains de sport",
+		"id": "padel",
+		"info": "20 × 10 m entre vitres et grillage : on joue avec les murs.",
+		"nom": "Padel",
+		"source": "ajoutee",
+		"v": "img/v/amenagements/padel.webp"
+	},
+	{
 		"annee": 0,
 		"evol": "",
 		"fam": "ouvertures",
@@ -54240,6 +59566,61 @@
 		"v": "img/v/ouvertures/hublot.webp"
 	},
 	{
+		"annee": 0,
+		"evol": "",
+		"fam": "ouvertures",
+		"groupe": "Fenêtres",
+		"id": "fenetre_petits_bois_volets",
+		"info": "Fenêtre à petits carreaux et ses volets (maison du début du XIXe siècle).",
+		"nom": "Fenêtre à petits bois et volets",
+		"source": "ajoutee",
+		"v": "img/v/ouvertures/fenetre_petits_bois_volets.webp"
+	},
+	{
+		"annee": 1850,
+		"evol": "",
+		"fam": "ouvertures",
+		"groupe": "Fenêtres",
+		"id": "fenetre_balconnet_volets",
+		"info": "Haute fenêtre à garde-corps et volets (Italie, Provence, Nouvelle-Orléans).",
+		"nom": "Fenêtre à balconnet et volets",
+		"source": "ajoutee",
+		"v": "img/v/ouvertures/fenetre_balconnet_volets.webp"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "ouvertures",
+		"groupe": "Fenêtres",
+		"id": "oeil_volets",
+		"info": "Petite fenêtre ronde et ses volets (grenier, pigeonnier).",
+		"nom": "Œil-de-bœuf à volets",
+		"source": "ajoutee",
+		"v": "img/v/ouvertures/oeil_volets.webp"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "ouvertures",
+		"groupe": "Fenêtres",
+		"id": "fenetre_ogive_volets",
+		"info": "Arc brisé et volets de bois (Venise, Levant, néo-gothique).",
+		"nom": "Fenêtre en ogive à volets",
+		"source": "ajoutee",
+		"v": "img/v/ouvertures/fenetre_ogive_volets.webp"
+	},
+	{
+		"annee": 1880,
+		"evol": "",
+		"fam": "ouvertures",
+		"groupe": "Fenêtres",
+		"id": "fenetre_balconnet_store",
+		"info": "Garde-corps de fer et store rayé (immeuble de bord de mer, Belle Époque).",
+		"nom": "Fenêtre à balconnet et store",
+		"source": "ajoutee",
+		"v": "img/v/ouvertures/fenetre_balconnet_store.webp"
+	},
+	{
 		"annee": 1930,
 		"evol": "",
 		"fam": "ouvertures",
@@ -54326,6 +59707,39 @@
 		"nom": "Baie à garde-corps",
 		"source": "ajoutee",
 		"v": "img/v/ouvertures/baie_balconnet.webp"
+	},
+	{
+		"annee": 1960,
+		"evol": "",
+		"fam": "ouvertures",
+		"groupe": "Baies et vitrines",
+		"id": "baie_store",
+		"info": "Baie du sol au plafond et son store sur la terrasse (années 60 et après).",
+		"nom": "Baie vitrée à store banne",
+		"source": "ajoutee",
+		"v": "img/v/ouvertures/baie_store.webp"
+	},
+	{
+		"annee": 1970,
+		"evol": "",
+		"fam": "ouvertures",
+		"groupe": "Baies et vitrines",
+		"id": "baie_volets",
+		"info": "Baie vitrée et ses grands volets (maison des années 70, villa).",
+		"nom": "Baie vitrée à volets",
+		"source": "ajoutee",
+		"v": "img/v/ouvertures/baie_volets.webp"
+	},
+	{
+		"annee": 1960,
+		"evol": "",
+		"fam": "ouvertures",
+		"groupe": "Baies et vitrines",
+		"id": "baie_balconnet_store",
+		"info": "Baie du sol au plafond, garde-corps et store (immeuble de vacances des années 60).",
+		"nom": "Baie à garde-corps et store",
+		"source": "ajoutee",
+		"v": "img/v/ouvertures/baie_balconnet_store.webp"
 	},
 	{
 		"annee": 0,
@@ -54568,6 +59982,83 @@
 		"nom": "Toit solaire",
 		"source": "ajoutee",
 		"v": "img/v/toits/toit_solaire.webp"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "toits",
+		"groupe": "Toits",
+		"id": "chaume",
+		"info": "",
+		"nom": "Chaume",
+		"source": "ajoutee",
+		"v": "img/v/toits/chaume.webp"
+	},
+	{
+		"annee": 1830,
+		"evol": "",
+		"fam": "toits",
+		"groupe": "Toits",
+		"id": "verriere_pavillon",
+		"info": "",
+		"nom": "Verrière en pavillon",
+		"source": "ajoutee",
+		"v": "img/v/toits/verriere_pavillon.webp"
+	},
+	{
+		"annee": 1820,
+		"evol": "",
+		"fam": "toits",
+		"groupe": "Toits",
+		"id": "coupole_verre",
+		"info": "",
+		"nom": "Coupole de verre",
+		"source": "ajoutee",
+		"v": "img/v/toits/coupole_verre.webp"
+	},
+	{
+		"annee": 1950,
+		"evol": "",
+		"fam": "toits",
+		"groupe": "Toits",
+		"id": "papillon",
+		"info": "",
+		"nom": "Toit papillon",
+		"source": "ajoutee",
+		"v": "img/v/toits/papillon.webp"
+	},
+	{
+		"annee": 2010,
+		"evol": "",
+		"fam": "toits",
+		"groupe": "Toits",
+		"id": "sheds_solaires",
+		"info": "",
+		"nom": "Sheds solaires",
+		"source": "ajoutee",
+		"v": "img/v/toits/sheds_solaires.webp"
+	},
+	{
+		"annee": 2016,
+		"evol": "",
+		"fam": "toits",
+		"groupe": "Toits",
+		"id": "tuiles_solaires",
+		"info": "",
+		"nom": "Tuiles solaires",
+		"source": "ajoutee",
+		"v": "img/v/toits/tuiles_solaires.webp"
+	},
+	{
+		"annee": 2022,
+		"evol": "",
+		"fam": "toits",
+		"groupe": "Toits",
+		"id": "toit_radiatif",
+		"info": "",
+		"nom": "Toit blanc rafraîchissant",
+		"source": "ajoutee",
+		"v": "img/v/toits/toit_radiatif.webp"
 	},
 	{
 		"annee": 0,
@@ -59598,6 +65089,306 @@
 		"v": "img/v/materiaux/418.webp"
 	},
 	{
+		"annee": 1800,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Murs",
+		"id": "419",
+		"info": "140 € le m²",
+		"nom": "Stuc Empire",
+		"pixel": true,
+		"source": "mot",
+		"v": "img/v/materiaux/419.webp"
+	},
+	{
+		"annee": 1800,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Tissus et divers",
+		"id": "420",
+		"info": "120 € le m²",
+		"nom": "Faux marbre peint",
+		"pixel": true,
+		"source": "mot",
+		"v": "img/v/materiaux/420.webp"
+	},
+	{
+		"annee": 1800,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Tissus et divers",
+		"id": "421",
+		"info": "90 € le m²",
+		"nom": "Papier peint à rayures Empire",
+		"pixel": true,
+		"source": "mot",
+		"v": "img/v/materiaux/421.webp"
+	},
+	{
+		"annee": 1810,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Métal et verre",
+		"id": "422",
+		"info": "160 € le m²",
+		"nom": "Fonte moulée",
+		"pixel": true,
+		"source": "mot",
+		"v": "img/v/materiaux/422.webp"
+	},
+	{
+		"annee": 1800,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Murs",
+		"id": "423",
+		"info": "70 € le m²",
+		"nom": "Ciment romain",
+		"pixel": true,
+		"source": "mot",
+		"v": "img/v/materiaux/423.webp"
+	},
+	{
+		"annee": 1830,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Métal et verre",
+		"id": "424",
+		"info": "150 € le m²",
+		"nom": "Verre soufflé en manchon",
+		"pixel": true,
+		"source": "mot",
+		"v": "img/v/materiaux/424.webp"
+	},
+	{
+		"annee": 1835,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Sols",
+		"id": "425",
+		"info": "50 € le m²",
+		"nom": "Asphalte de trottoir",
+		"pixel": true,
+		"source": "mot",
+		"v": "img/v/materiaux/425.webp"
+	},
+	{
+		"annee": 1840,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Sols",
+		"id": "426",
+		"info": "80 € le m²",
+		"nom": "Pavés de bois",
+		"pixel": true,
+		"source": "mot",
+		"v": "img/v/materiaux/426.webp"
+	},
+	{
+		"annee": 1800,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Tissus et divers",
+		"id": "427",
+		"info": "60 € le m²",
+		"nom": "Toile cirée",
+		"pixel": true,
+		"source": "mot",
+		"v": "img/v/materiaux/427.webp"
+	},
+	{
+		"annee": 1840,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Sols",
+		"id": "428",
+		"info": "180 € le m²",
+		"nom": "Carreaux de Minton",
+		"pixel": true,
+		"source": "mot",
+		"v": "img/v/materiaux/428.webp"
+	},
+	{
+		"annee": 1800,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Murs",
+		"id": "429",
+		"info": "60 € le m²",
+		"nom": "Plâtre de Paris",
+		"pixel": true,
+		"source": "mot",
+		"v": "img/v/materiaux/429.webp"
+	},
+	{
+		"annee": 2018,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Tissus et divers",
+		"id": "430",
+		"info": "90 € le m²",
+		"nom": "Plastique recyclé",
+		"pixel": true,
+		"source": "mot",
+		"v": "img/v/materiaux/430.webp"
+	},
+	{
+		"annee": 2020,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Murs",
+		"id": "431",
+		"info": "110 € le m²",
+		"nom": "Béton bas carbone",
+		"pixel": true,
+		"source": "mot",
+		"v": "img/v/materiaux/431.webp"
+	},
+	{
+		"annee": 2010,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Murs",
+		"id": "432",
+		"info": "130 € le m²",
+		"nom": "Béton de chanvre",
+		"pixel": true,
+		"source": "mot",
+		"v": "img/v/materiaux/432.webp"
+	},
+	{
+		"annee": 2005,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Murs",
+		"id": "433",
+		"info": "90 € le m²",
+		"nom": "Bottes de paille enduites",
+		"pixel": true,
+		"source": "mot",
+		"v": "img/v/materiaux/433.webp"
+	},
+	{
+		"annee": 2015,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Murs",
+		"id": "434",
+		"info": "120 € le m²",
+		"nom": "Liège projeté",
+		"pixel": true,
+		"source": "mot",
+		"v": "img/v/materiaux/434.webp"
+	},
+	{
+		"annee": 2022,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Métal et verre",
+		"id": "435",
+		"info": "380 € le m²",
+		"nom": "Verre solaire coloré",
+		"pixel": true,
+		"source": "mot",
+		"v": "img/v/materiaux/435.webp"
+	},
+	{
+		"annee": 2022,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Toits",
+		"id": "436",
+		"info": "90 € le m²",
+		"nom": "Peinture radiative blanche",
+		"pixel": true,
+		"source": "mot",
+		"v": "img/v/materiaux/436.webp"
+	},
+	{
+		"annee": 2020,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Sols",
+		"id": "437",
+		"info": "70 € le m²",
+		"nom": "Asphalte clair rafraîchissant",
+		"pixel": true,
+		"source": "mot",
+		"v": "img/v/materiaux/437.webp"
+	},
+	{
+		"annee": 2018,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Sols",
+		"id": "438",
+		"info": "90 € le m²",
+		"nom": "Sol perméable en résine",
+		"pixel": true,
+		"source": "mot",
+		"v": "img/v/materiaux/438.webp"
+	},
+	{
+		"annee": 2030,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Sols",
+		"id": "439",
+		"info": "420 € le m²",
+		"nom": "Pavés solaires",
+		"pixel": true,
+		"source": "mot",
+		"v": "img/v/materiaux/439.webp"
+	},
+	{
+		"annee": 2032,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Métal et verre",
+		"id": "440",
+		"info": "480 € le m²",
+		"nom": "Aérogel",
+		"pixel": true,
+		"source": "mot",
+		"v": "img/v/materiaux/440.webp"
+	},
+	{
+		"annee": 2035,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Bois",
+		"id": "441",
+		"info": "450 € le m²",
+		"nom": "Bois transparent",
+		"pixel": true,
+		"source": "mot",
+		"v": "img/v/materiaux/441.webp"
+	},
+	{
+		"annee": 2040,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Métal et verre",
+		"id": "442",
+		"info": "520 € le m²",
+		"nom": "Graphène",
+		"pixel": true,
+		"source": "mot",
+		"v": "img/v/materiaux/442.webp"
+	},
+	{
+		"annee": 2025,
+		"evol": "",
+		"fam": "materiaux",
+		"groupe": "Murs",
+		"id": "443",
+		"info": "160 € le m²",
+		"nom": "Terre imprimée en 3D",
+		"pixel": true,
+		"source": "mot",
+		"v": "img/v/materiaux/443.webp"
+	},
+	{
 		"annee": 0,
 		"evol": "",
 		"fam": "decors",
@@ -62497,6 +68288,244 @@
 		"nom": "Four à pain communal en briques et pierre",
 		"source": "ajoutee",
 		"v": "img/v/decors/four_pain.webp"
+	},
+	{
+		"annee": 1800,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Mobilier urbain",
+		"id": "barriere_octroi",
+		"info": "5,6 × 1,7 m",
+		"nom": "Barrière d'octroi : bascule rayée et bureau du receveur, à l'entrée de la ville",
+		"source": "ajoutee",
+		"v": "img/v/decors/barriere_octroi.webp"
+	},
+	{
+		"annee": 1800,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Panneaux et réseaux",
+		"id": "poteau_indicateur",
+		"info": "1,0 × 0,9 m",
+		"nom": "Poteau indicateur de carrefour, flèches de bois peintes",
+		"source": "ajoutee",
+		"v": "img/v/decors/poteau_indicateur.webp"
+	},
+	{
+		"annee": 1794,
+		"evol": "Avant 1794, posé tout seul : rien",
+		"fam": "decors",
+		"groupe": "Panneaux et réseaux",
+		"id": "telegraphe_chappe",
+		"info": "3,9 × 2,6 m",
+		"nom": "Télégraphe Chappe : mât à bras articulés sur une tour de pierre",
+		"source": "ajoutee",
+		"v": "img/v/decors/telegraphe_chappe.webp"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Ferme",
+		"id": "puits_couvert",
+		"info": "1,8 × 2,4 m",
+		"nom": "Puits couvert à treuil et à toit de tuiles",
+		"source": "ajoutee",
+		"v": "img/v/decors/puits_couvert.webp"
+	},
+	{
+		"annee": 1800,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Mobilier urbain",
+		"id": "guerite",
+		"info": "1,3 × 1,2 m",
+		"nom": "Guérite de sentinelle à rayures, devant la caserne ou le palais",
+		"source": "ajoutee",
+		"v": "img/v/decors/guerite.webp"
+	},
+	{
+		"annee": 1849,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Mobilier urbain",
+		"id": "boite_lettres_fonte",
+		"info": "0,4 × 0,4 m",
+		"nom": "Boîte aux lettres en fonte sur colonne",
+		"source": "ajoutee",
+		"v": "img/v/decors/boite_lettres_fonte.webp"
+	},
+	{
+		"annee": 1800,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Bateaux et pontons",
+		"id": "grue_quai",
+		"info": "5,3 × 2,3 m",
+		"nom": "Grue de quai en bois à tambour de halage",
+		"source": "ajoutee",
+		"v": "img/v/decors/grue_quai.webp"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Mobilier urbain",
+		"id": "montoir",
+		"info": "1,0 × 0,9 m",
+		"nom": "Montoir à cheval : trois marches de pierre et un anneau",
+		"source": "ajoutee",
+		"v": "img/v/decors/montoir.webp"
+	},
+	{
+		"annee": 2015,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Panneaux et réseaux",
+		"id": "eolienne_urbaine",
+		"info": "1,3 × 1,5 m",
+		"nom": "Petite éolienne urbaine à axe vertical",
+		"source": "ajoutee",
+		"v": "img/v/decors/eolienne_urbaine.webp"
+	},
+	{
+		"annee": 2020,
+		"evol": "Avant 2020, posé tout seul : Lampadaire LED autonome à panneau solaire",
+		"fam": "decors",
+		"groupe": "Éclairage",
+		"id": "arbre_solaire",
+		"info": "3,7 × 3,6 m",
+		"lignee": [
+			"reverbere",
+			"lampadaire_solaire",
+			"arbre_solaire"
+		],
+		"nom": "Arbre solaire : ombrière à feuilles de panneaux et bancs",
+		"source": "ajoutee",
+		"v": "img/v/decors/arbre_solaire.webp"
+	},
+	{
+		"annee": 2019,
+		"evol": "Avant 2019, posé tout seul : Borne-fontaine pour boire",
+		"fam": "decors",
+		"groupe": "Mobilier urbain",
+		"id": "brumisateur",
+		"info": "2,0 × 1,9 m",
+		"lignee": [
+			"borne_fontaine",
+			"brumisateur"
+		],
+		"nom": "Mât brumisateur, îlot de fraîcheur des étés chauds",
+		"source": "ajoutee",
+		"v": "img/v/decors/brumisateur.webp"
+	},
+	{
+		"annee": 2015,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Panneaux et réseaux",
+		"id": "capteur_air",
+		"info": "0,9 × 0,7 m",
+		"nom": "Station de mesure de la qualité de l'air",
+		"source": "ajoutee",
+		"v": "img/v/decors/capteur_air.webp"
+	},
+	{
+		"annee": 2016,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Mobilier urbain",
+		"id": "parklet",
+		"info": "5,0 × 2,0 m",
+		"nom": "Parklet : terrasse en bois sur une place de stationnement",
+		"source": "ajoutee",
+		"v": "img/v/decors/parklet.webp"
+	},
+	{
+		"annee": 2015,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Mobilier urbain",
+		"id": "jardin_pluie",
+		"info": "6,2 × 2,4 m",
+		"nom": "Jardin de pluie : noue plantée qui boit l'eau des averses",
+		"source": "ajoutee",
+		"v": "img/v/decors/jardin_pluie.webp"
+	},
+	{
+		"annee": 2015,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Mobilier urbain",
+		"id": "frigo_solidaire",
+		"info": "1,5 × 1,1 m",
+		"nom": "Frigo solidaire : on y laisse et on y prend de quoi manger",
+		"source": "ajoutee",
+		"v": "img/v/decors/frigo_solidaire.webp"
+	},
+	{
+		"annee": 2015,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Mobilier urbain",
+		"id": "toilettes_seches",
+		"info": "1,9 × 1,7 m",
+		"nom": "Toilettes sèches publiques en bois",
+		"source": "ajoutee",
+		"v": "img/v/decors/toilettes_seches.webp"
+	},
+	{
+		"annee": 2019,
+		"evol": "Avant 2019, posé tout seul : Borne de recharge pour voitures électriques, deux prises",
+		"fam": "decors",
+		"groupe": "Mobilier urbain",
+		"id": "echange_batteries",
+		"info": "1,8 × 0,7 m",
+		"lignee": [
+			"borne_recharge",
+			"echange_batteries"
+		],
+		"nom": "Station d'échange de batteries de scooters",
+		"source": "ajoutee",
+		"v": "img/v/decors/echange_batteries.webp"
+	},
+	{
+		"annee": 2018,
+		"evol": "Avant 2018, posé tout seul : Borne de recharge pour voitures électriques, deux prises",
+		"fam": "decors",
+		"groupe": "Mobilier urbain",
+		"id": "borne_hydrogene",
+		"info": "3,0 × 2,0 m",
+		"lignee": [
+			"pompe_essence_ancienne",
+			"borne_recharge",
+			"borne_hydrogene"
+		],
+		"nom": "Distributeur d'hydrogène sous auvent",
+		"source": "ajoutee",
+		"v": "img/v/decors/borne_hydrogene.webp"
+	},
+	{
+		"annee": 2020,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Mobilier urbain",
+		"id": "robot_livraison",
+		"info": "0,7 × 0,7 m",
+		"nom": "Robot de livraison sur le trottoir, avec son fanion",
+		"source": "ajoutee",
+		"v": "img/v/decors/robot_livraison.webp"
+	},
+	{
+		"annee": 2030,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Mobilier urbain",
+		"id": "vertiport",
+		"info": "13,0 × 12,0 m",
+		"nom": "Plateforme de taxis volants au sol, avec ses bornes",
+		"source": "ajoutee",
+		"v": "img/v/decors/vertiport.webp"
 	},
 	{
 		"annee": 1900,
@@ -65828,6 +71857,338 @@
 		"v": "img/v/meubles/robot_domestique.webp"
 	},
 	{
+		"annee": 1800,
+		"evol": "Styles : Traditionnel à Moderne",
+		"fam": "meubles",
+		"groupe": "Séjour",
+		"id": "harpe",
+		"info": "1 × 1 · 900 € · 22 styles",
+		"nom": "Harpe",
+		"source": "ajoutee",
+		"sty": {
+			"f": "img/sty/meubles/harpe.webp",
+			"l": [
+				"Afrique de l'Ouest traditionnelle",
+				"Indien traditionnel",
+				"Mexicain colonial",
+				"Colonial",
+				"Côte swahilie",
+				"Scandinave"
+			],
+			"n": 6.0,
+			"px": 160.0
+		},
+		"v": "img/v/meubles/harpe.webp"
+	},
+	{
+		"annee": 1800,
+		"evol": "Styles : Traditionnel à Moderne",
+		"fam": "meubles",
+		"groupe": "Chambre",
+		"id": "lit_bateau",
+		"info": "2 × 2 · 900 € · 22 styles",
+		"nom": "Lit bateau",
+		"source": "ajoutee",
+		"sty": {
+			"f": "img/sty/meubles/lit_bateau.webp",
+			"l": [
+				"Afrique de l'Ouest traditionnelle",
+				"Indien traditionnel",
+				"Mexicain colonial",
+				"Colonial",
+				"Côte swahilie",
+				"Scandinave"
+			],
+			"n": 6.0,
+			"px": 160.0
+		},
+		"v": "img/v/meubles/lit_bateau.webp"
+	},
+	{
+		"annee": 1810,
+		"evol": "Styles : Traditionnel à Moderne",
+		"fam": "meubles",
+		"groupe": "Chambre",
+		"id": "psyche",
+		"info": "1 × 1 · 400 € · 22 styles",
+		"nom": "Psyché",
+		"source": "ajoutee",
+		"sty": {
+			"f": "img/sty/meubles/psyche.webp",
+			"l": [
+				"Afrique de l'Ouest traditionnelle",
+				"Indien traditionnel",
+				"Mexicain colonial",
+				"Colonial",
+				"Côte swahilie",
+				"Scandinave"
+			],
+			"n": 6.0,
+			"px": 160.0
+		},
+		"v": "img/v/meubles/psyche.webp"
+	},
+	{
+		"annee": 1830,
+		"evol": "Styles : Traditionnel à XIXe – 1945",
+		"fam": "meubles",
+		"groupe": "Salle de bains",
+		"id": "baignoire_zinc",
+		"info": "2 × 1 · 250 € · 19 styles",
+		"nom": "Baignoire en zinc",
+		"source": "ajoutee",
+		"sty": {
+			"f": "img/sty/meubles/baignoire_zinc.webp",
+			"l": [
+				"Afrique de l'Ouest traditionnelle",
+				"Indien traditionnel",
+				"Marocain",
+				"Rustique européen",
+				"Coréen (hanok)",
+				"Victorien et bourgeois XIXe"
+			],
+			"n": 6.0,
+			"px": 160.0
+		},
+		"v": "img/v/meubles/baignoire_zinc.webp"
+	},
+	{
+		"annee": 1830,
+		"evol": "Styles : Traditionnel à Moderne",
+		"fam": "meubles",
+		"groupe": "Cuisine",
+		"id": "cuisiniere_fonte",
+		"info": "2 × 1 · 600 € · 22 styles",
+		"nom": "Cuisinière en fonte",
+		"source": "ajoutee",
+		"sty": {
+			"f": "img/sty/meubles/cuisiniere_fonte.webp",
+			"l": [
+				"Afrique de l'Ouest traditionnelle",
+				"Indien traditionnel",
+				"Mexicain colonial",
+				"Colonial",
+				"Côte swahilie",
+				"Scandinave"
+			],
+			"n": 6.0,
+			"px": 160.0
+		},
+		"v": "img/v/meubles/cuisiniere_fonte.webp"
+	},
+	{
+		"annee": 1800,
+		"evol": "Styles : Traditionnel à XIXe – 1945",
+		"fam": "meubles",
+		"groupe": "Séjour",
+		"id": "lanterne_magique",
+		"info": "1 × 1 · 180 € · 19 styles",
+		"nom": "Lanterne magique",
+		"source": "ajoutee",
+		"sty": {
+			"f": "img/sty/meubles/lanterne_magique.webp",
+			"l": [
+				"Afrique de l'Ouest traditionnelle",
+				"Indien traditionnel",
+				"Marocain",
+				"Rustique européen",
+				"Coréen (hanok)",
+				"Victorien et bourgeois XIXe"
+			],
+			"n": 6.0,
+			"px": 160.0
+		},
+		"v": "img/v/meubles/lanterne_magique.webp"
+	},
+	{
+		"annee": 1840,
+		"evol": "Styles : XIXe – 1945 à Moderne",
+		"fam": "meubles",
+		"groupe": "Boutique",
+		"id": "chambre_photo",
+		"info": "1 × 1 · 700 € · 10 styles",
+		"nom": "Chambre photographique",
+		"source": "ajoutee",
+		"sty": {
+			"f": "img/sty/meubles/chambre_photo.webp",
+			"l": [
+				"Art déco",
+				"Coréen (hanok)",
+				"Persan et ottoman",
+				"Côte swahilie",
+				"Années 1970",
+				"Scandinave"
+			],
+			"n": 6.0,
+			"px": 160.0
+		},
+		"v": "img/v/meubles/chambre_photo.webp"
+	},
+	{
+		"annee": 2018,
+		"evol": "Styles : Contemporain à Futuriste",
+		"fam": "meubles",
+		"groupe": "Cuisine",
+		"id": "frigo_connecte",
+		"info": "1 × 1 · 3 k€ · 8 styles",
+		"nom": "Réfrigérateur connecté",
+		"source": "ajoutee",
+		"sty": {
+			"f": "img/sty/meubles/frigo_connecte.webp",
+			"l": [
+				"Afrique urbaine contemporaine",
+				"Tokyo contemporain",
+				"Contemporain",
+				"Loft industriel",
+				"Majlis contemporain",
+				"Futuriste"
+			],
+			"n": 6.0,
+			"px": 160.0
+		},
+		"v": "img/v/meubles/frigo_connecte.webp"
+	},
+	{
+		"annee": 2016,
+		"evol": "Styles : Contemporain à Futuriste",
+		"fam": "meubles",
+		"groupe": "Séjour",
+		"id": "realite_virtuelle",
+		"info": "2 × 2 · 1 k€ · 8 styles",
+		"nom": "Coin de réalité virtuelle",
+		"source": "ajoutee",
+		"sty": {
+			"f": "img/sty/meubles/realite_virtuelle.webp",
+			"l": [
+				"Afrique urbaine contemporaine",
+				"Tokyo contemporain",
+				"Contemporain",
+				"Loft industriel",
+				"Majlis contemporain",
+				"Futuriste"
+			],
+			"n": 6.0,
+			"px": 160.0
+		},
+		"v": "img/v/meubles/realite_virtuelle.webp"
+	},
+	{
+		"annee": 2015,
+		"evol": "Styles : Contemporain à Futuriste",
+		"fam": "meubles",
+		"groupe": "Séjour",
+		"id": "mur_vegetal",
+		"info": "2 × 1 · 2 k€ · 8 styles",
+		"nom": "Mur végétal d'intérieur",
+		"source": "ajoutee",
+		"sty": {
+			"f": "img/sty/meubles/mur_vegetal.webp",
+			"l": [
+				"Afrique urbaine contemporaine",
+				"Tokyo contemporain",
+				"Contemporain",
+				"Loft industriel",
+				"Majlis contemporain",
+				"Futuriste"
+			],
+			"n": 6.0,
+			"px": 160.0
+		},
+		"v": "img/v/meubles/mur_vegetal.webp"
+	},
+	{
+		"annee": 2019,
+		"evol": "Styles : Contemporain à Futuriste",
+		"fam": "meubles",
+		"groupe": "Cuisine",
+		"id": "potager_interieur",
+		"info": "1 × 1 · 600 € · 8 styles",
+		"nom": "Potager hydroponique",
+		"source": "ajoutee",
+		"sty": {
+			"f": "img/sty/meubles/potager_interieur.webp",
+			"l": [
+				"Afrique urbaine contemporaine",
+				"Tokyo contemporain",
+				"Contemporain",
+				"Loft industriel",
+				"Majlis contemporain",
+				"Futuriste"
+			],
+			"n": 6.0,
+			"px": 160.0
+		},
+		"v": "img/v/meubles/potager_interieur.webp"
+	},
+	{
+		"annee": 2020,
+		"evol": "Styles : Contemporain à Futuriste",
+		"fam": "meubles",
+		"groupe": "Entrée, couloir",
+		"id": "batterie_domestique",
+		"info": "1 × 1 · 8 k€ · 8 styles",
+		"nom": "Batterie domestique",
+		"source": "ajoutee",
+		"sty": {
+			"f": "img/sty/meubles/batterie_domestique.webp",
+			"l": [
+				"Afrique urbaine contemporaine",
+				"Tokyo contemporain",
+				"Contemporain",
+				"Loft industriel",
+				"Majlis contemporain",
+				"Futuriste"
+			],
+			"n": 6.0,
+			"px": 160.0
+		},
+		"v": "img/v/meubles/batterie_domestique.webp"
+	},
+	{
+		"annee": 2030,
+		"evol": "Styles : Futuriste à Futuriste",
+		"fam": "meubles",
+		"groupe": "Chambre",
+		"id": "capsule_sommeil",
+		"info": "1 × 2 · 6 k€ · 1 styles",
+		"nom": "Capsule de sommeil",
+		"source": "ajoutee",
+		"v": "img/v/meubles/capsule_sommeil.webp"
+	},
+	{
+		"annee": 2032,
+		"evol": "Styles : Futuriste à Futuriste",
+		"fam": "meubles",
+		"groupe": "Séjour",
+		"id": "mur_ecran",
+		"info": "3 × 1 · 9 k€ · 1 styles",
+		"nom": "Mur-écran",
+		"source": "ajoutee",
+		"v": "img/v/meubles/mur_ecran.webp"
+	},
+	{
+		"annee": 2033,
+		"evol": "Styles : Futuriste à Futuriste",
+		"fam": "meubles",
+		"groupe": "Cuisine",
+		"id": "robot_cuisinier",
+		"info": "2 × 1 · 15 k€ · 1 styles",
+		"nom": "Bras robot cuisinier",
+		"source": "ajoutee",
+		"v": "img/v/meubles/robot_cuisinier.webp"
+	},
+	{
+		"annee": 2040,
+		"evol": "Styles : Futuriste à Futuriste",
+		"fam": "meubles",
+		"groupe": "Cuisine",
+		"id": "imprimante_repas",
+		"info": "1 × 1 · 4 k€ · 1 styles",
+		"nom": "Imprimante à repas",
+		"source": "ajoutee",
+		"v": "img/v/meubles/imprimante_repas.webp"
+	},
+	{
 		"annee": 0,
 		"evol": "",
 		"fam": "spectacles",
@@ -66464,5 +72825,137 @@
 		"nom": "Affiche du spectacle",
 		"source": "ajoutee",
 		"v": "img/v/spectacles/affiche_spectacle.webp"
+	},
+	{
+		"annee": 1817,
+		"evol": "",
+		"fam": "spectacles",
+		"groupe": "Scène et décors",
+		"id": "rampe_gaz",
+		"info": "",
+		"nom": "Rampe d'éclairage au gaz",
+		"source": "ajoutee",
+		"v": "img/v/spectacles/rampe_gaz.webp"
+	},
+	{
+		"annee": 1800,
+		"evol": "",
+		"fam": "spectacles",
+		"groupe": "Scène et décors",
+		"id": "panorama_peint",
+		"info": "",
+		"nom": "Toile de panorama peint",
+		"source": "ajoutee",
+		"v": "img/v/spectacles/panorama_peint.webp"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "spectacles",
+		"groupe": "Coulisses et ateliers",
+		"id": "machine_tonnerre",
+		"info": "",
+		"nom": "Machines à bruits (vent, tonnerre)",
+		"source": "ajoutee",
+		"v": "img/v/spectacles/machine_tonnerre.webp"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "spectacles",
+		"groupe": "Scène et décors",
+		"id": "trappe_scene",
+		"info": "",
+		"nom": "Trappe et treuil de scène",
+		"source": "ajoutee",
+		"v": "img/v/spectacles/trappe_scene.webp"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "spectacles",
+		"groupe": "Foyer et accueil",
+		"id": "lustre_bougies",
+		"info": "",
+		"nom": "Lustre de salle à bougies",
+		"source": "ajoutee",
+		"v": "img/v/spectacles/lustre_bougies.webp"
+	},
+	{
+		"annee": 2010,
+		"evol": "",
+		"fam": "spectacles",
+		"groupe": "Scène et décors",
+		"id": "mur_led",
+		"info": "",
+		"nom": "Mur d'images LED",
+		"source": "ajoutee",
+		"v": "img/v/spectacles/mur_led.webp"
+	},
+	{
+		"annee": 1980,
+		"evol": "",
+		"fam": "spectacles",
+		"groupe": "Musique et sono",
+		"id": "laser_scene",
+		"info": "",
+		"nom": "Projecteurs laser",
+		"source": "ajoutee",
+		"v": "img/v/spectacles/laser_scene.webp"
+	},
+	{
+		"annee": 2015,
+		"evol": "",
+		"fam": "spectacles",
+		"groupe": "Scène et décors",
+		"id": "hologramme_scene",
+		"info": "",
+		"nom": "Hologramme de scène",
+		"source": "ajoutee",
+		"v": "img/v/spectacles/hologramme_scene.webp"
+	},
+	{
+		"annee": 2016,
+		"evol": "",
+		"fam": "spectacles",
+		"groupe": "Scène et décors",
+		"id": "drones_lumineux",
+		"info": "",
+		"nom": "Essaim de drones lumineux",
+		"source": "ajoutee",
+		"v": "img/v/spectacles/drones_lumineux.webp"
+	},
+	{
+		"annee": 2015,
+		"evol": "",
+		"fam": "spectacles",
+		"groupe": "Tournage",
+		"id": "camera_robot",
+		"info": "",
+		"nom": "Caméra robotisée sur bras",
+		"source": "ajoutee",
+		"v": "img/v/spectacles/camera_robot.webp"
+	},
+	{
+		"annee": 2019,
+		"evol": "",
+		"fam": "spectacles",
+		"groupe": "Tournage",
+		"id": "plateau_virtuel",
+		"info": "",
+		"nom": "Plateau virtuel à écrans LED",
+		"source": "ajoutee",
+		"v": "img/v/spectacles/plateau_virtuel.webp"
+	},
+	{
+		"annee": 2016,
+		"evol": "",
+		"fam": "spectacles",
+		"groupe": "Fauteuils et gradins",
+		"id": "casques_vr",
+		"info": "",
+		"nom": "Fauteuils et casques de réalité virtuelle",
+		"source": "ajoutee",
+		"v": "img/v/spectacles/casques_vr.webp"
 	}
 ]

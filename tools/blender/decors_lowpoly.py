@@ -245,6 +245,17 @@ DECORS = {
     "totem": (H.totem, "monuments", {}),
     "mur_mani": (H.mur_mani, "monuments", {}),
     "four_pain": (H.four_pain, "ferme", {}),
+    # Lot 4 : début du XIXe siècle et rue de demain
+    "barriere_octroi": (H.barriere_octroi, "urbain", {}), "poteau_indicateur": (H.poteau_indicateur, "panneaux", {}),
+    "telegraphe_chappe": (H.telegraphe_chappe, "panneaux", {}), "puits_couvert": (H.puits_couvert, "ferme", {}),
+    "guerite": (H.guerite, "urbain", {}), "boite_lettres_fonte": (H.boite_lettres_fonte, "urbain", {}),
+    "grue_quai": (H.grue_quai, "eau", {}), "montoir": (H.montoir, "urbain", {}),
+    "eolienne_urbaine": (H.eolienne_urbaine, "panneaux", {}), "arbre_solaire": (H.arbre_solaire, "eclairage", {}),
+    "brumisateur": (H.brumisateur, "urbain", {}), "capteur_air": (H.capteur_air, "panneaux", {}),
+    "parklet": (H.parklet, "urbain", {}), "jardin_pluie": (H.jardin_pluie, "urbain", {}),
+    "frigo_solidaire": (H.frigo_solidaire, "urbain", {}), "toilettes_seches": (H.toilettes_seches, "urbain", {}),
+    "echange_batteries": (H.echange_batteries, "urbain", {}), "borne_hydrogene": (H.borne_hydrogene, "urbain", {}),
+    "robot_livraison": (H.robot_livraison, "urbain", {}), "vertiport": (H.vertiport, "urbain", {}),
 }
 
 

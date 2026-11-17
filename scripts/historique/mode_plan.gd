@@ -36,6 +36,7 @@ var refus: Dictionary = {}
 
 var _fantomes: Dictionary = {} # pid -> Node3D
 var _cases: Dictionary = {} # Vector2i -> pid (emprise des bâtiments prévus)
+var _cases_voies: Dictionary = {} # Vector2i -> pid (emprise des voies prévues)
 var _mat: StandardMaterial3D
 var _mat_refus: StandardMaterial3D
 
@@ -58,9 +59,9 @@ static func _matiere(c: Color) -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
 	m.albedo_color = c
 	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.emission_enabled = true
+	m.emission = Color(c.r, c.g, c.b) * 0.35
 	m.cull_mode = BaseMaterial3D.CULL_DISABLED
-	m.no_depth_test = false
 	return m
 
 
@@ -125,6 +126,10 @@ func verifier_batiment(id: String, center: Vector2i, r: int, a := 0.0) -> Dictio
 				res.ok = false
 				res.reason = "Un autre projet occupe déjà cette place."
 				break
+			if _cases_voies.has(c):
+				res.ok = false
+				res.reason = "Une voie en projet passe sur l'emplacement."
+				break
 	res["acces"] = not (res.access as Dictionary).is_empty() or (BuildingCatalog.get_type(id).get("access", []) as Array).is_empty()
 	return res
 
@@ -141,6 +146,11 @@ func capter_voie(id: String, spec: Dictionary, path: PackedVector2Array, prof :=
 		Son.jouer("ui_erreur", -4.0, 0.0, "Interface")
 		return false
 	var pts: PackedVector3Array = plan.pts
+	for c in RoutePlanner.footprint(TransportTypes.width_of(id, s), pts, plan.st):
+		if _cases.has(c):
+			message.emit("Un bâtiment en projet est sur le tracé.")
+			Son.jouer("ui_erreur", -4.0, 0.0, "Interface")
+			return false
 	var flat := []
 	for q in path:
 		flat.append_array([snappedf(q.x, 0.01), snappedf(q.y, 0.01)])
@@ -148,7 +158,7 @@ func capter_voie(id: String, spec: Dictionary, path: PackedVector2Array, prof :=
 	for q in pts:
 		p3.append_array([snappedf(q.x, 0.01), snappedf(q.y, 0.01), snappedf(q.z, 0.01)])
 	var p := {"pid": next_pid, "k": "voie", "t": id, "spec": s.duplicate(true), "path": flat, "pts": p3,
-		"l": TransportTypes.width_of(id, s), "cout": 0}
+		"st": Array(plan.st), "l": TransportTypes.width_of(id, s), "cout": 0}
 	if not is_nan(prof):
 		p["prof"] = prof
 	next_pid += 1
@@ -164,11 +174,35 @@ func capter_voie(id: String, spec: Dictionary, path: PackedVector2Array, prof :=
 
 func _ajouter(p: Dictionary) -> void:
 	projets.append(p)
+	_occuper(p)
+	_fantome(p)
+	changed.emit()
+
+
+func _occuper(p: Dictionary) -> void:
 	if String(p.k) == "bat":
 		for c in _cellules(p):
 			_cases[c] = int(p.pid)
-	_fantome(p)
-	changed.emit()
+		return
+	var pts := _points(p)
+	var st := PackedByteArray()
+	for v in p.get("st", []):
+		st.append(int(v))
+	if st.size() != pts.size():
+		st.resize(pts.size())
+		st.fill(0)
+	for c in RoutePlanner.footprint(float(p.get("l", 6.0)), pts, st):
+		_cases_voies[c] = int(p.pid)
+
+
+static func _points(p: Dictionary) -> PackedVector3Array:
+	var f: Array = p.get("pts", [])
+	var pts := PackedVector3Array()
+	var i := 0
+	while i + 2 < f.size():
+		pts.append(Vector3(float(f[i]), float(f[i + 1]), float(f[i + 2])))
+		i += 3
+	return pts
 
 
 ## Remet un projet retiré (Ctrl+Z, rétablir), à sa place dans l'ordre.
@@ -182,9 +216,7 @@ func remettre(p: Dictionary) -> void:
 			i = k
 			break
 	projets.insert(i, q)
-	if String(q.k) == "bat":
-		for c in _cellules(q):
-			_cases[c] = int(q.pid)
+	_occuper(q)
 	next_pid = maxi(next_pid, int(q.pid) + 1)
 	_fantome(q)
 	changed.emit()
@@ -204,9 +236,10 @@ func retirer(pid: int, noter := true) -> void:
 		return
 	projets.erase(p)
 	refus.erase(pid)
-	for c in _cases.keys():
-		if int(_cases[c]) == pid:
-			_cases.erase(c)
+	for d in [_cases, _cases_voies]:
+		for c in (d as Dictionary).keys():
+			if int(d[c]) == pid:
+				(d as Dictionary).erase(c)
 	if _fantomes.has(pid):
 		(_fantomes[pid] as Node).queue_free()
 		_fantomes.erase(pid)
@@ -226,6 +259,7 @@ func clear() -> void:
 	projets.clear()
 	refus.clear()
 	_cases.clear()
+	_cases_voies.clear()
 	for n in _fantomes.values():
 		(n as Node).queue_free()
 	_fantomes.clear()
@@ -397,12 +431,7 @@ func _fantome_bat(p: Dictionary) -> MeshInstance3D:
 
 
 func _fantome_voie(p: Dictionary) -> MeshInstance3D:
-	var f: Array = p.get("pts", [])
-	var pts := PackedVector3Array()
-	var i := 0
-	while i + 2 < f.size():
-		pts.append(Vector3(float(f[i]), float(f[i + 1]), float(f[i + 2])))
-		i += 3
+	var pts := _points(p)
 	if pts.size() < 2:
 		return null
 	var hw := float(p.get("l", 6.0)) * 0.5
@@ -442,9 +471,7 @@ func from_dict(d: Dictionary) -> void:
 			var q: Dictionary = (p as Dictionary).duplicate(true)
 			q.pid = int(q.pid)
 			projets.append(q)
-			if String(q.k) == "bat":
-				for c in _cellules(q):
-					_cases[c] = int(q.pid)
+			_occuper(q)
 			_fantome(q)
 	next_pid = maxi(int(d.get("next", 1)), 1)
 	for p in projets:

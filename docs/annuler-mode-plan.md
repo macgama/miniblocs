@@ -55,7 +55,7 @@ Ctrl + P, ou le bouton en pointillés en haut de l'écran.
   en **bleu** : rien n'est payé, aucun chantier ne démarre. Les projets ne se
   chevauchent pas ; une maison peut être prévue le long d'une route
   elle-même en projet.
-- L'encadré en haut à gauche liste les projets (✕ pour en retirer un), le
+- L'encadré à gauche (sous les objectifs) liste les projets (✕ pour en retirer un), le
   nombre de bâtiments et de voies et le **total estimé**.
 - **Tout construire** pose les voies d'abord, puis les bâtiments (ils ont
   ainsi leur accès), avec les vrais prix et les vrais chantiers. Ce qui ne

@@ -200,6 +200,8 @@ func _run() -> void:
 	await process_frame
 	_check(mp.capter_batiment("maison", Vector2i(0, 212), 0), "maison en projet le long de la voie prévue")
 	_check(not mp.capter_batiment("maison", Vector2i(0, 212), 0), "pas deux projets au même endroit")
+	_check(not mp.capter_batiment("maison", Vector2i(-50, 200), 0), "pas de bâtiment sur une voie en projet")
+	_check(not mp.capter_voie("departementale", {}, PackedVector2Array([Vector2(0, 180), Vector2(0, 240)])), "pas de voie à travers un bâtiment en projet")
 	_check(mp.projets.size() == 2 and mp._fantomes.size() == 2, "2 fantômes bleus")
 	_check(bs.money == mb0 and bs.buildings.size() == nb0 and net.edges.size() == ne0, "rien payé, rien construit")
 	_check(mp.cout_total() > 0, "total estimé : %s" % BuildingSystem.format_money(mp.cout_total()))

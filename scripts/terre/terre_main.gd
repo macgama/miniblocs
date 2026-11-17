@@ -1456,6 +1456,13 @@ func _setup_historique() -> void:
 	mode_plan_panel.name = "ModePlanPanel"
 	add_child(mode_plan_panel)
 	mode_plan_panel.setup(mode_plan)
+	mode_plan_panel.haut = func() -> float:
+		var y := UiStyle.SIDE_TOP
+		for c in [tuto_carte._col if tuto_carte != null else null, scenario_carte._panel if scenario_carte != null else null,
+				habitants_panel._card if habitants_panel != null else null]:
+			if c is Control and (c as Control).is_visible_in_tree() and (c as Control).size.y > 4.0:
+				y = maxf(y, (c as Control).get_global_rect().end.y + 8.0)
+		return y
 	historique = HistoriqueVille.new()
 	historique.name = "Historique"
 	add_child(historique)

@@ -56,12 +56,14 @@ func _run() -> void:
 	for i in 3:
 		mp.capter_batiment("maison", Vector2i(-14, 25 + i * 26), 1)
 		mp.capter_batiment("maison", Vector2i(14, 25 + i * 26), 3)
-	mp.capter_batiment("ecole", Vector2i(-45, 130), 2)
-	scene.rig.global_position = Vector3(0, gy, 50)
-	scene.rig._target_distance = 190.0
-	scene.rig.set_pitch(-52.0, true)
+	print("école en projet : ", mp.capter_batiment("ecole", Vector2i(-45, 150), 2))
+	scene.rig.global_position = Vector3(0, gy, 55)
+	scene.rig._target_distance = 230.0
+	scene.rig.set_pitch(55.0, true)
+	scene.build_panel.set_open(true)
 	await _shot(dir.path_join("mode-plan-projets.png"), 60)
 	mp.valider()
+	print("refus : ", mp.refus)
 	mp.set_actif(false)
 	await _shot(dir.path_join("mode-plan-construit.png"), 40)
 	scene.historique.annuler()

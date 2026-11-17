@@ -1,12 +1,14 @@
 class_name ModePlanPanel
 extends CanvasLayer
-## Encadré du mode plan, en haut à gauche : projets posés, total estimé, « Tout
+## Encadré du mode plan, dans la colonne de gauche : projets posés, total estimé, « Tout
 ## construire », « Tout effacer », quitter le mode. Visible quand le mode plan est
 ## ouvert ou qu'il reste des projets.
 
-const MAX_LIGNES := 8
+const MAX_LIGNES := 5
 
 var plan: ModePlan
+## Optionnel : Callable() -> float, haut de l'encadré (sous les cartes de gauche).
+var haut: Callable
 
 var _panel: PanelContainer
 var _titre: Label
@@ -21,9 +23,10 @@ func _ready() -> void:
 	layer = 6
 	_panel = PanelContainer.new()
 	_panel.name = "ModePlan"
+	# Colonne de gauche, sous les cartes déjà là (objectifs, scénario, habitant suivi).
 	_panel.position = Vector2(10, UiStyle.SIDE_TOP)
 	_panel.custom_minimum_size = Vector2(300, 0)
-	UiStyle.style_panel(_panel, 0.9, 10, 10)
+	UiStyle.style_panel(_panel, 0.95, 10, 10)
 	var bord := _panel.get_theme_stylebox("panel").duplicate() as StyleBoxFlat
 	if bord != null:
 		bord.border_color = ModePlan.COULEUR.lightened(0.2)
@@ -76,6 +79,11 @@ func _ready() -> void:
 	_panel.visible = false
 
 
+func _process(_delta: float) -> void:
+	if _panel.visible and haut.is_valid():
+		_panel.position.y = float(haut.call())
+
+
 func setup(p: ModePlan) -> void:
 	plan = p
 	p.changed.connect(refresh)
@@ -113,6 +121,8 @@ func refresh() -> void:
 	_valider.disabled = plan.projets.is_empty()
 	_effacer.disabled = plan.projets.is_empty()
 	_bascule.text = "Quitter le mode plan (Ctrl+P)" if plan.actif else "Reprendre le plan (Ctrl+P)"
+	# L'encadré reprend sa hauteur quand des projets s'en vont.
+	_panel.set_deferred("size", Vector2.ZERO)
 
 
 func _ligne(p: Dictionary) -> Control:

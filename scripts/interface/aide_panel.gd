@@ -410,7 +410,11 @@ const SECTIONS := [
 	["Son et musique", [
 		["F2, ou haut-parleur de la barre du haut", "panneau Son : volumes général, musique, ambiance, effets et interface ; silences entre les morceaux ; morceau suivant ; retirer ou écouter un morceau"],
 		["Ambiances", "on entend ce que regarde la caméra : oiseaux ou grillons à la campagne, rue animée en ville, voitures près des routes, chantiers en activité, pluie, vent, orage, mer ; en prenant de la hauteur, le vent couvre le reste"],
-		["Musique", "elle suit l'heure de la ville : morceaux de journée, de soirée et de nuit ; un thème pour le globe"],
+		["Saisons", "corneilles et silence feutré l'hiver, cigales les après-midi chauds d'été, grenouilles les nuits douces"],
+		["Lieux de la ville", "on les entend sur place : récré dans la cour d'école, manèges, zoo, usines, ferme, piscine l'été, terrasse de café, quai de gare, port, tribune pendant un match (sifflet, buts), marché, fête, incendie ; sonnerie de l'école le matin et à la sortie"],
+		["Sirènes", "selon le pays (deux-tons français, sirène américaine, japonaise) et l'époque : avant 1920, cloche des pompiers à cheval et sifflet des sergents de ville"],
+		["Pause (T)", "tout ce qui bouge se tait : trafic, chantiers, lieux et sirènes se figent ; la nature et la météo restent"],
+		["Musique", "elle suit l'heure de la ville : morceaux de journée, de soirée et de nuit ; un thème pour le globe. Partie historique : musique de son temps (XIXe siècle avant 1920, bal musette, swing et tango de 1900 à 1950)"],
 		["Réglages", "gardés pour toutes les parties (fichier son.cfg du joueur)"],
 	]],
 	["Temps et vue", [

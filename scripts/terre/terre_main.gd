@@ -1593,6 +1593,9 @@ func _setup_son() -> void:
 	sons.setup(rig, ambiance, world, buildings, transport.traffic, get_node_or_null("VueSol"))
 	sons.sources_chantiers.append(vie_batiments.chantiers_bruyants)
 	sons.sources_chantiers.append(chantiers_voies.chantiers_bruyants)
+	sons.saisons = saisons
+	sons.evenements = evenements
+	sons.stations = transport.stations
 	add_child(sons)
 	evenements.incident_declare.connect(func(_i: Dictionary) -> void:
 		if not _chargement:

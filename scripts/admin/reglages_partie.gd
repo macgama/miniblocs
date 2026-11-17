@@ -41,13 +41,13 @@ const TOUJOURS := ["ecole"]
 ## Préréglages : un clic remplit tout le panneau.
 const PRESETS := {
 	"facile": {"nom": "Facile", "argent_depart": 100_000_000, "argent_illimite": false, "cout_construction": 0.5,
-		"acces_route": true, "impots": 1.5, "salaires": 1.0, "epuisement": false, "deblocage": "tout", "reseaux_obligatoires": true, "fondation": true, "territoire": true, "main_oeuvre": true},
+		"acces_route": true, "impots": 1.5, "salaires": 1.0, "epuisement": false, "deblocage": "tout", "reseaux_obligatoires": true, "fondation": true, "territoire": true, "main_oeuvre": true, "recherche_parc": true},
 	"normal": {"nom": "Normal", "argent_depart": 30_000_000, "argent_illimite": false, "cout_construction": 1.0,
-		"acces_route": true, "impots": 1.0, "salaires": 1.0, "epuisement": true, "deblocage": "tout", "reseaux_obligatoires": true, "fondation": true, "territoire": true, "main_oeuvre": true},
+		"acces_route": true, "impots": 1.0, "salaires": 1.0, "epuisement": true, "deblocage": "tout", "reseaux_obligatoires": true, "fondation": true, "territoire": true, "main_oeuvre": true, "recherche_parc": true},
 	"difficile": {"nom": "Difficile", "argent_depart": 5_000_000, "argent_illimite": false, "cout_construction": 2.0,
-		"acces_route": true, "impots": 0.75, "salaires": 1.25, "epuisement": true, "deblocage": "progression", "reseaux_obligatoires": true, "fondation": true, "territoire": true, "main_oeuvre": true},
+		"acces_route": true, "impots": 0.75, "salaires": 1.25, "epuisement": true, "deblocage": "progression", "reseaux_obligatoires": true, "fondation": true, "territoire": true, "main_oeuvre": true, "recherche_parc": true},
 	"libre": {"nom": "Bac à sable libre", "argent_depart": 20_000_000, "argent_illimite": true, "cout_construction": 1.0,
-		"acces_route": false, "impots": 1.0, "salaires": 1.0, "epuisement": false, "deblocage": "tout", "reseaux_obligatoires": false, "fondation": false, "territoire": false, "main_oeuvre": false},
+		"acces_route": false, "impots": 1.0, "salaires": 1.0, "epuisement": false, "deblocage": "tout", "reseaux_obligatoires": false, "fondation": false, "territoire": false, "main_oeuvre": false, "recherche_parc": false},
 }
 
 ## Réglages de la partie en cours (lus par tous les systèmes).
@@ -99,6 +99,9 @@ var prix_services := 1.0
 ## Élections municipales (Elections.MODES) et manifestations (scripts/avis).
 var elections := "mairie"
 var manifestations := true
+## Parc de loisirs : les attractions s'inventent au bureau d'études (ParcRecherche).
+## Faux d'office (anciennes parties, tests) ; vrai dans les préréglages joués.
+var recherche_parc := false
 ## Faim des habitants quand les commerces d'alimentation sont vides :
 ## "aucune" (pas d'effet), "normale" (moins satisfaits, santé, départs),
 ## "mortelle" (en plus, on peut mourir de faim). Voir Repas.
@@ -285,6 +288,10 @@ func raison_blocage(id: String) -> String:
 	var epoque := Epoques.raison_batiment(id, self)
 	if epoque != "":
 		return epoque
+	# Attraction du parc pas encore inventée au bureau d'études.
+	var recherche := ParcRecherche.raison_blocage(id, self)
+	if recherche != "":
+		return recherche
 	# Scénario en cours : bâtiments interdits.
 	var sc := ScenarioPartie.refus_batiment(id)
 	if sc != "":
@@ -316,7 +323,7 @@ func to_dict() -> Dictionary:
 		"frequence_catastrophes": frequence_catastrophes, "crises_economiques": crises_economiques, "volatilite_marche": volatilite_marche, "neige_routes": neige_routes, "faim": faim, "telecom_necessaire": telecom_necessaire, "construction_instantanee": construction_instantanee,
 		"horaires_chantiers": horaires_chantiers, "rythme_chantiers": rythme_chantiers, "usure": usure, "dechets": dechets, "dechets_quantite": dechets_quantite, "pollution": pollution, "pollution_sante": pollution_sante, "climat": climat, "sols_pollues": sols_pollues,
 		"immobilier_vivant": immobilier_vivant, "bidonvilles": bidonvilles,
-		"elections": elections, "manifestations": manifestations, "funeraire": funeraire, "cremation": cremation, "reseaux_obligatoires": reseaux_obligatoires, "prix_services": prix_services,
+		"elections": elections, "manifestations": manifestations, "funeraire": funeraire, "recherche_parc": recherche_parc, "cremation": cremation, "reseaux_obligatoires": reseaux_obligatoires, "prix_services": prix_services,
 		"fondation": fondation, "rue_fondation": rue_fondation, "territoire": territoire, "fondateurs": fondateurs, "vivres_jours": vivres_jours, "main_oeuvre": main_oeuvre,
 		"tutoriel": tutoriel, "objectifs_ecran": objectifs_ecran,
 		"annee_depart": annee_depart, "rythme_histoire": rythme_histoire, "histoire_debut": histoire_debut, "histoire_saut": histoire_saut}
@@ -356,6 +363,7 @@ func from_dict(d: Dictionary) -> void:
 	if not Elections.MODES.has(elections):
 		elections = "objectifs"
 	manifestations = bool(d.get("manifestations", true))
+	recherche_parc = bool(d.get("recherche_parc", false))
 	faim = String(d.get("faim", "normale"))
 	if not FAIMS.has(faim):
 		faim = "normale"
@@ -393,6 +401,9 @@ static func load_defaults() -> ReglagesPartie:
 		var data = JSON.parse_string(FileAccess.get_file_as_string(DEFAULTS_FILE))
 		if data is Dictionary:
 			r.from_dict(data)
+			# Réglages par défaut enregistrés avant la recherche du parc : on la garde.
+			if not (data as Dictionary).has("recherche_parc"):
+				r.recherche_parc = true
 	r.createur = ""
 	r.record_habitants = 0
 	r.histoire_debut = 0.0

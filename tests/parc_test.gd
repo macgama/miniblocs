@@ -40,7 +40,7 @@ func _run() -> void:
 func _catalog_tests() -> void:
 	print("Catalogue :")
 	var ids := BuildingCatalog.ids_in("parc")
-	_check(ids.size() == ParcTypes.ORDER.size() + ParcExtras.ORDER.size(), "%d objets dans la catégorie Parc de loisirs" % ids.size())
+	_check(ids.size() == ParcTypes.ORDER.size() + ParcExtras.ORDER.size() + ParcInventions.ORDER.size(), "%d objets dans la catégorie Parc de loisirs" % ids.size())
 	_check(not BuildingCatalog.category("parc").is_empty(), "onglet Parc de loisirs dans Construire")
 	_check(Icones.has_icon("parc"), "icône du parc")
 	var n_att := 0
@@ -97,6 +97,8 @@ func _city_tests() -> void:
 		if i >= 120 and world.missing_chunk_count() == 0 and world._dirty.is_empty() and world._jobs.is_empty():
 			break
 	var parc: ParcLoisirs = scene.parc
+	# Ce test pose les attractions directement : pas de bureau d'études (voir parc_soirees_test).
+	ReglagesPartie.actuel.recherche_parc = false
 	_check(parc != null and scene.parc_panel != null, "parc et panneau branchés dans la scène")
 	_check(scene.save_sections().has("parc"), "section « parc » dans la sauvegarde")
 	var pop: Population = scene.population

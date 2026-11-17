@@ -2,7 +2,8 @@ class_name ParcPanel
 extends CanvasLayer
 ## Panneau « Parc de loisirs » (Maj+G) : note en étoiles, visiteurs, prix des
 ## billets, recettes ; attractions (files, fiabilité, pannes) ; ce que disent
-## les visiteurs ; conseils.
+## les visiteurs ; conseils ; publicité (ParcPublicite), bureau d'études
+## (ParcRecherche) et soirées (ParcSoirees : feux d'artifice, spectacles du soir).
 
 signal focus_requested(pos: Vector3)
 
@@ -50,16 +51,22 @@ func _build() -> void:
 	x.pressed.connect(func() -> void: set_open(false))
 	head.add_child(x)
 	var tabs := HBoxContainer.new()
+	var tabs2 := HBoxContainer.new()
 	outer.add_child(tabs)
-	for spec in [["Parc", "parc", "parc"], ["Attractions", "attractions", "loisirs"], ["Visiteurs", "visiteurs", "habitants"]]:
+	outer.add_child(tabs2)
+	var n_tab := 0
+	for spec in [["Parc", "parc", "parc"], ["Attractions", "attractions", "loisirs"], ["Visiteurs", "visiteurs", "habitants"],
+		["Publicité", "publicite", "megaphone"], ["Recherche", "recherche", "lampe"], ["Soirées", "soirees", "lune"]]:
 		var b := Button.new()
+		b.name = "Onglet_" + String(spec[1])
 		b.text = spec[0]
 		b.icon = Icones.get_icon(spec[2], 18)
 		b.focus_mode = Control.FOCUS_NONE
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var v: String = spec[1]
 		b.pressed.connect(func() -> void: show_view(v))
-		tabs.add_child(b)
+		(tabs if n_tab < 3 else tabs2).add_child(b)
+		n_tab += 1
 	_scroll = ScrollContainer.new()
 	_scroll.custom_minimum_size = Vector2(W, H)
 	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -148,6 +155,9 @@ func refresh() -> void:
 	match view:
 		"attractions": _view_attractions(e)
 		"visiteurs": _view_visiteurs(e)
+		"publicite": _view_publicite(e)
+		"recherche": _view_recherche(e)
+		"soirees": _view_soirees(e)
 		_: _view_parc(e)
 
 
@@ -388,6 +398,315 @@ func _view_visiteurs(e: int) -> void:
 			var k := String(keys[i])
 			var txt := String(ParcLoisirs.PENSEES.get(k, k)).replace("%s", "…").replace("%d", "…")
 			_text("%d × « %s »" % [int(pens[k]), txt], true, 12)
+
+
+# --- Publicité ---------------------------------------------------------------------------
+
+## Choix en cours dans l'onglet Publicité (avant de lancer).
+var _pub_support := "affiches"
+var _pub_cible := "tous"
+var _pub_semaines := 2
+var _retour := ""
+
+
+func _option(items: Array, ids: Array, choisi_id: String, cb: Callable, desactives: Array = []) -> OptionButton:
+	var ob := OptionButton.new()
+	ob.focus_mode = Control.FOCUS_NONE
+	ob.custom_minimum_size = Vector2(W - 30, 0)
+	for i in items.size():
+		ob.add_item(String(items[i]), i)
+		if desactives.has(ids[i]):
+			ob.set_item_disabled(i, true)
+		if String(ids[i]) == choisi_id:
+			ob.select(i)
+	ob.item_selected.connect(func(i: int) -> void: cb.call(String(ids[i])))
+	_body.add_child(ob)
+	return ob
+
+
+func _bouton(t: String, cb: Callable, tip := "") -> Button:
+	var b := Button.new()
+	b.text = t
+	b.focus_mode = Control.FOCUS_NONE
+	b.tooltip_text = tip
+	b.pressed.connect(cb)
+	_body.add_child(b)
+	return b
+
+
+func _afficher_retour() -> void:
+	if _retour != "":
+		var l := _text(_retour, false, 12)
+		l.add_theme_color_override("font_color", Color("ffd166"))
+		_retour = ""
+
+
+func _view_publicite(e: int) -> void:
+	var p: Dictionary = parc.parcs[e]
+	_title.text = "%s · publicité" % String(p.nom)
+	var noto: Dictionary = p.get("noto", ParcPublicite.vide())
+	_section("Notoriété")
+	_bar(float(noto.ville), Color("4cc9f0"), "En ville")
+	_bar(float(noto.region), Color("52b788"), "Dans la région")
+	var eff := ParcPublicite.effet(noto)
+	_text("Effet : +%d %% de touristes, +%d %% d'habitants. Elle retombe de %d %% par jour sans publicité." % [roundi((float(eff[0]) - 1.0) * 100.0),
+		roundi((float(eff[1]) - 1.0) * 100.0), roundi(ParcPublicite.OUBLI * 100.0)], true)
+	if float(noto.familles) > 0.05 or float(noto.sensations) > 0.05:
+		_text("Public attiré : %d %% de familles, %d %% d'amateurs de sensations en plus." % [roundi(float(noto.familles) * 50.0),
+			roundi(float(noto.sensations) * 50.0)], true)
+	_section("Campagnes en cours")
+	var camps: Array = p.get("campagnes", [])
+	if camps.is_empty():
+		_text("Aucune.", true)
+	for c in camps:
+		var s: Dictionary = ParcPublicite.SUPPORTS.get(String(c.support), {})
+		var reste := int(c.fin) - parc.last_day
+		var row := HBoxContainer.new()
+		var l := Label.new()
+		l.text = "%s → %s\n%s par semaine · encore %d jour%s · %s dépensés" % [String(s.get("nom", c.support)),
+			String(ParcPublicite.CIBLES.get(String(c.cible), {}).get("nom", c.cible)).to_lower(), euros(float(s.get("semaine", 0.0))),
+			maxi(reste, 0), "s" if reste > 1 else "", euros(float(c.get("depense", 0.0)))]
+		l.add_theme_font_size_override("font_size", 12)
+		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(l)
+		var stop := Button.new()
+		stop.text = "Arrêter"
+		stop.focus_mode = Control.FOCUS_NONE
+		var sup := String(c.support)
+		stop.pressed.connect(func() -> void:
+			_faire("arreter_campagne", [e, sup], e)
+			refresh())
+		row.add_child(stop)
+		_body.add_child(row)
+	if float(p.hier.get("pub", 0.0)) > 0.0:
+		_text("Hier : %s de publicité." % euros(float(p.hier.pub)), true)
+	_section("Nouvelle campagne")
+	var possibles := ParcPublicite.supports_possibles()
+	if not possibles.has(_pub_support) and not possibles.is_empty():
+		_pub_support = String(possibles[0])
+	var noms: Array = []
+	var bloques: Array = []
+	for id in ParcPublicite.SUPPORTS_ORDRE:
+		var sp: Dictionary = ParcPublicite.SUPPORTS[id]
+		if ParcPublicite.disponible(id):
+			noms.append("%s · %s/sem." % [String(sp.nom), BuildingSystem.format_short(roundi(float(sp.semaine)))])
+		else:
+			noms.append("%s · en %d" % [String(sp.nom), int(sp.annee)])
+			bloques.append(id)
+	_option(noms, ParcPublicite.SUPPORTS_ORDRE, _pub_support, func(id: String) -> void:
+		_pub_support = id
+		refresh(), bloques)
+	_text(String(ParcPublicite.SUPPORTS[_pub_support].desc), true, 12)
+	var cnoms: Array = []
+	for id in ParcPublicite.CIBLES_ORDRE:
+		cnoms.append("Cible : " + String(ParcPublicite.CIBLES[id].nom).to_lower())
+	_option(cnoms, ParcPublicite.CIBLES_ORDRE, _pub_cible, func(id: String) -> void:
+		_pub_cible = id
+		refresh())
+	var dnoms: Array = []
+	var dids: Array = []
+	for n in ParcPublicite.DUREES:
+		dnoms.append("%d semaine%s · %s" % [n, "s" if n > 1 else "", euros(ParcPublicite.cout(_pub_support, n))])
+		dids.append(str(n))
+	_option(dnoms, dids, str(_pub_semaines), func(id: String) -> void:
+		_pub_semaines = int(id)
+		refresh())
+	_bouton("Lancer la campagne", func() -> void:
+		var why := _faire_r("lancer_campagne", [e, _pub_support, _pub_cible, _pub_semaines], e)
+		_retour = why if why != "" else "Campagne lancée : %s." % String(ParcPublicite.SUPPORTS[_pub_support].nom).to_lower()
+		refresh(), "Payée chaque jour par la caisse de la ville du parc.")
+	_afficher_retour()
+	_text("Une pub pour un parc mal noté marche moitié moins. Les familles dépensent aux stands ; les amateurs de sensations veulent des grands frissons.", true, 12)
+
+
+# --- Recherche --------------------------------------------------------------------------
+
+func _view_recherche(e: int) -> void:
+	var r := parc.recherche
+	_title.text = "Bureau d'études des parcs"
+	_section("Budget")
+	var bnoms: Array = []
+	var bids: Array = []
+	for i in ParcRecherche.BUDGETS.size():
+		bnoms.append(String(ParcRecherche.BUDGET_NOMS[i]))
+		bids.append(str(i))
+	_option(bnoms, bids, str(r.budget), func(id: String) -> void:
+		_faire("recherche_budget", [e, int(id)], e)
+		refresh())
+	var vis := 0.0
+	for k in parc.parcs:
+		vis += float(parc.parcs[k].hier.visiteurs)
+	_text("%.1f points par jour (dont %.1f grâce aux %d visiteurs d'hier) · %d points en réserve." % [r.points_jour() + vis * ParcRecherche.POINTS_VISITEUR,
+		vis * ParcRecherche.POINTS_VISITEUR, roundi(vis), roundi(r.points)], true)
+	if parc.parcs.size() > 1:
+		_text("Le budget est partagé entre les caisses des villes de tes %d parcs." % parc.parcs.size(), true, 12)
+	_section("En cours")
+	if r.en_cours == "":
+		_text("Aucun projet. Choisis-en un ci-dessous.", true)
+	else:
+		var pr: Dictionary = ParcRecherche.PROJETS[r.en_cours]
+		var req := r.points_requis(r.en_cours)
+		_text("%s — %d / %d points" % [String(pr.nom), roundi(minf(r.points, req)), roundi(req)])
+		_bar(r.points / maxf(req, 1.0), Color("ffd166"))
+		var j := r.jours_restants(vis)
+		_text("Encore environ %s." % ("∞ (aucun budget)" if is_inf(j) else ("%d jour%s" % [ceili(j), "s" if ceili(j) > 1 else ""])), true)
+	if not r.file.is_empty():
+		_section("Ensuite")
+		for id in r.file:
+			var row := HBoxContainer.new()
+			var l := Label.new()
+			l.text = String(ParcRecherche.PROJETS[String(id)].nom)
+			var why := r.raison(String(id))
+			if why != "":
+				l.text += " (%s)" % why
+			l.add_theme_font_size_override("font_size", 12)
+			l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			row.add_child(l)
+			var x := Button.new()
+			x.text = "Retirer"
+			x.focus_mode = Control.FOCUS_NONE
+			var pid := String(id)
+			x.pressed.connect(func() -> void:
+				_faire("recherche_retirer", [e, pid], e)
+				refresh())
+			row.add_child(x)
+			_body.add_child(row)
+	for typ in [["attraction", "Nouvelles attractions"], ["amelioration", "Améliorations"]]:
+		var list: Array = r.proposables().filter(func(id: String) -> bool: return String(ParcRecherche.PROJETS[id].type) == typ[0])
+		if list.is_empty():
+			continue
+		_section(String(typ[1]))
+		for id in list:
+			if id == r.en_cours or r.file.has(id):
+				continue
+			var pr: Dictionary = ParcRecherche.PROJETS[id]
+			var why := r.raison(String(id))
+			var row := HBoxContainer.new()
+			var l := Label.new()
+			l.text = "%s · %d pts%s" % [String(pr.nom), int(pr.points), ("\n" + why) if why != "" else ""]
+			if pr.has("desc"):
+				l.tooltip_text = String(pr.desc)
+				l.mouse_filter = Control.MOUSE_FILTER_PASS
+			l.add_theme_font_size_override("font_size", 12)
+			if why != "":
+				l.add_theme_color_override("font_color", Color(1, 1, 1, 0.55))
+			l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			row.add_child(l)
+			var pid := String(id)
+			var go := Button.new()
+			go.text = "Chercher"
+			go.focus_mode = Control.FOCUS_NONE
+			go.disabled = not r.possible(pid)
+			go.tooltip_text = "Lancer ce projet tout de suite (le projet en cours passe après)."
+			go.pressed.connect(func() -> void:
+				_faire("recherche_lancer", [e, pid], e)
+				refresh())
+			row.add_child(go)
+			var q := Button.new()
+			q.text = "+"
+			q.focus_mode = Control.FOCUS_NONE
+			q.disabled = r.file.size() >= ParcRecherche.FILE_MAX
+			q.tooltip_text = "Ajouter à la file d'attente."
+			q.pressed.connect(func() -> void:
+				_faire("recherche_ajouter", [e, pid], e)
+				refresh())
+			row.add_child(q)
+			_body.add_child(row)
+	if not r.faits.is_empty():
+		_section("Déjà trouvé")
+		var noms: Array = []
+		for id in ParcRecherche.ORDRE:
+			if r.faits.has(id):
+				noms.append(String(ParcRecherche.PROJETS[id].nom))
+		_text(", ".join(noms) + ".", true, 12)
+	if not ParcRecherche.attractions_a_chercher():
+		_text("Réglage de partie : toutes les attractions de l'époque se posent d'office (Admin F10 → Parc de loisirs). Le bureau d'études sert aux améliorations.", true, 12)
+
+
+# --- Soirées ---------------------------------------------------------------------------
+
+func _view_soirees(e: int) -> void:
+	var p: Dictionary = parc.parcs[e]
+	var prog: Dictionary = p.soiree
+	_title.text = "%s · soirées" % String(p.nom)
+	var now := parc._now(parc.clock if parc.clock > 0.0 else 0.0)
+	var show := parc.spectacle_en_cours(e)
+	if not show.is_empty():
+		var l := _text("En ce moment : %s !" % String(ParcSoirees.TYPES[String(show.type)].nom), false, 15)
+		l.add_theme_color_override("font_color", Color("ffd166"))
+		_link("Aller voir (ralentis le temps avec T pour en profiter)", parc.centre(e))
+	elif parc.soiree_ce_jour(e, now) and int(p.get("show_jour", -1)) != int(now.day):
+		_text("Ce soir à %s : %s. Le parc ferme après le spectacle." % [_heure(ParcSoirees.heure(int(now.month))),
+			String(ParcSoirees.TYPES[String(prog.type)].nom).to_lower()])
+	elif int(p.get("annule_jour", -1)) == int(now.day):
+		_text("Ce soir : annulé à cause de la pluie.", true)
+	_section("Spectacle")
+	var noms: Array = []
+	var bloques: Array = []
+	for id in ParcSoirees.TYPES_ORDRE:
+		var t: Dictionary = ParcSoirees.TYPES[id]
+		var why := ParcSoirees.raison(id)
+		noms.append(String(t.nom) + ("" if why == "" else " · verrouillé"))
+		if why != "":
+			bloques.append(id)
+	_option(noms, ParcSoirees.TYPES_ORDRE, String(prog.type), func(id: String) -> void:
+		_faire("set_soiree", [e, id, int(prog.taille), String(prog.quand)], e)
+		refresh(), bloques)
+	var td: Dictionary = ParcSoirees.TYPES[String(prog.type)]
+	_text(String(td.desc), true, 12)
+	var why_t := ParcSoirees.raison(String(prog.type))
+	if why_t != "":
+		_text(why_t, true, 12)
+	if String(prog.type) in ["feu_artifice", "pyromelodique"]:
+		_text("Couleurs : %s." % ("dorées seulement (les feux en couleurs sont à inventer au bureau d'études)" if not ParcSoirees.couleurs() else "rouge, vert" + (", bleu et violet" if ParcSoirees.palette().size() > 5 else "")), true, 12)
+	var tnoms: Array = []
+	var tids: Array = []
+	for i in 3:
+		var pr := ParcSoirees.prix({"type": prog.type, "taille": i})
+		tnoms.append("%s · %s · %d min" % [ParcSoirees.TAILLES[i], euros(pr), roundi(float(td.duree[i]))])
+		tids.append(str(i))
+	_option(tnoms, tids, str(int(prog.taille)), func(id: String) -> void:
+		_faire("set_soiree", [e, String(prog.type), int(id), String(prog.quand)], e)
+		refresh())
+	_section("Quand")
+	var qnoms: Array = []
+	for q in ParcSoirees.QUAND_ORDRE:
+		qnoms.append(String(ParcSoirees.QUAND[q]))
+	_option(qnoms, ParcSoirees.QUAND_ORDRE, String(prog.quand), func(id: String) -> void:
+		_faire("set_soiree", [e, String(prog.type), int(prog.taille), id], e)
+		refresh())
+	_text("Début à la nuit tombée : %s ce mois-ci." % _heure(ParcSoirees.heure(int(now.month))), true, 12)
+	_bouton("Un spectacle ce soir", func() -> void:
+		var why := _faire_r("soiree_ce_soir", [e], e)
+		_retour = why if why != "" else "C'est noté : spectacle ce soir à %s." % _heure(ParcSoirees.heure(int(now.month)))
+		refresh(), "En plus du programme, une seule fois.")
+	_afficher_retour()
+	_section("Effet")
+	_text("+%d %% de visiteurs ce jour-là (surtout en fin d'après-midi), +%d d'humeur pour ceux qui le voient. Annulé sous la pluie%s (20 %% du prix payé quand même)." % [
+		roundi(ParcSoirees.bonus(prog) * 100.0), roundi(ParcSoirees.humeur(prog)), "" if bool(td.pluie) else " (sauf celui-ci)"], true, 12)
+	var y: Dictionary = p.hier
+	if int(y.get("spectacles", 0)) > 0:
+		_text("Hier soir : %d spectateurs." % int(y.spectateurs), true)
+	var tot: Dictionary = p.total
+	if int(tot.get("spectacles", 0)) > 0:
+		_text("Depuis l'ouverture : %d spectacles, %d spectateurs." % [int(tot.spectacles), int(tot.spectateurs)], true)
+
+
+static func _heure(h: float) -> String:
+	var hh := int(h)
+	var mm := roundi((h - hh) * 60.0)
+	return "%d h %02d" % [hh, mm] if mm > 0 else "%d h" % hh
+
+
+## Comme _faire, mais renvoie la raison d'un refus (en solo seulement).
+func _faire_r(f: String, args: Array, e: int) -> String:
+	if SystemesGeres.relayer("parc", f, args, parc._center(e)):
+		return ""
+	var r = parc.callv(f, args)
+	return String(r) if r is String else ""
 
 
 ## Carte entre amis : la décision part au serveur (le maire de la ville du parc décide) ;

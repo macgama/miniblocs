@@ -935,7 +935,8 @@ func evaluate(id: String, s: Dictionary, path: PackedVector2Array) -> Dictionary
 	plan.snap_b = sb
 	plan.crossings = []
 	# Partie historique : pas d'autoroute en 1850 ni de métro en 1820 (Epoques).
-	var epoque := Epoques.raison_voie(id)
+	# Puis la branche Transports de l'arbre de progression.
+	var epoque := ReglagesPartie.actuel.raison_voie(id)
 	if epoque != "":
 		plan.ok = false
 		plan.reason = epoque

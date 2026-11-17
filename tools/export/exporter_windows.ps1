@@ -50,10 +50,26 @@ New-Item -ItemType Directory -Force (Split-Path $Source -Parent) | Out-Null
 # Le build se fait hors du dépôt : git reset/clean n'a jamais à y toucher (même si le jeu y est ouvert).
 $DossierBuild = Join-Path (Split-Path $Source -Parent) $(if ($Demo) { "build\windows-demo" } else { "build\windows" })
 
+# Détail de Godot dans un fichier à part, refait à chaque export : export.log reste court et lisible.
+$JournalGodot = Join-Path (Split-Path $Source -Parent) "godot.log"
+# Ancien journal devenu énorme (sortie de Godot) : on le met de côté une fois.
+if ((Test-Path $Journal) -and (Get-Item $Journal).Length -gt 2MB) {
+    Move-Item $Journal ([IO.Path]::ChangeExtension($Journal, ".ancien.log")) -Force -ErrorAction SilentlyContinue
+}
+
+# Écrire dans un journal sans jamais faire échouer l'export : un fichier brièvement verrouillé
+# (antivirus, indexation, éditeur ouvert dessus) est réessayé, puis tant pis.
+function Ajouter-Journal([string]$fichier, [object[]]$lignes) {
+    for ($i = 0; $i -lt 20; $i++) {
+        try { [IO.File]::AppendAllLines($fichier, [string[]]$lignes, (New-Object Text.UTF8Encoding $false)); return }
+        catch { Start-Sleep -Milliseconds 500 }
+    }
+}
+
 function Ecrire([string]$m) {
     $l = "[{0}] {1}" -f (Get-Date -Format "yyyy-MM-dd HH:mm:ss"), $m
     Write-Host $l
-    Add-Content -Path $Journal -Value $l -Encoding UTF8
+    Ajouter-Journal $Journal @($l)
 }
 
 # Toute erreur non prévue finit dans le journal (la tâche planifiée n'a pas de fenêtre).
@@ -66,8 +82,9 @@ $env:GIT_TERMINAL_PROMPT = "0"
 # Sortie de git dans le journal. Essayer-Git : un échec est noté mais n'arrête pas l'export.
 function Executer-Git([bool]$tolerant, [object[]]$reste) {
     $ErrorActionPreference = "Continue"
-    & git -C $Source @reste 2>&1 | ForEach-Object { "$_" } | Out-File -Append -Encoding UTF8 $Journal
+    $sortieGit = @(& git -C $Source @reste 2>&1 | ForEach-Object { "$_" })
     $code = $LASTEXITCODE
+    if ($sortieGit.Count) { Ajouter-Journal $Journal $sortieGit }
     if ($code -ne 0) {
         if ($tolerant) { Ecrire "git $reste : code $code (ignoré)" } else { throw "git $reste a échoué ($code)" }
     }
@@ -85,8 +102,10 @@ function Jeu-Ouvert {
 # Godot écrit sur stderr : sous PowerShell 5.1 avec « Stop », ça lèverait une erreur. On journalise tout.
 function Lancer-Godot {
     $ErrorActionPreference = "Continue"
-    & $Godot --headless --path $Source @args 2>&1 | ForEach-Object { "$_" } | Out-File -Append -Encoding UTF8 $Journal
-    return $LASTEXITCODE
+    $sortieGodot = @(& $Godot --headless --path $Source @args 2>&1 | ForEach-Object { "$_" })
+    $code = $LASTEXITCODE
+    Ajouter-Journal $JournalGodot (@("--- godot $args") + $sortieGodot)
+    return $code
 }
 
 if (-not (Test-Path $Godot)) { throw "Godot introuvable : $Godot (passe -Godot <chemin du .exe console> ou définis MINIBLOCS_GODOT)" }
@@ -136,7 +155,8 @@ if (Test-Path $sortie) {
 }
 New-Item -ItemType Directory -Force $sortie | Out-Null
 
-Ecrire "Import des ressources (la première fois, ça prend quelques minutes)"
+Remove-Item $JournalGodot -Force -ErrorAction SilentlyContinue
+Ecrire "Import des ressources (la première fois, ça prend quelques minutes ; détail dans godot.log)"
 $null = Lancer-Godot --import
 
 $verGodot = (& $Godot --version).Trim()                       # ex. 4.7.2.stable.official.ed1daf0bf
@@ -154,7 +174,7 @@ if ($avecModeles) {
     Copy-Item $moteur (Join-Path $sortie "$Nom.exe")
 }
 foreach ($f in "$Nom.exe", "$Nom.pck") {
-    if (-not (Test-Path (Join-Path $sortie $f))) { throw "L'export n'a pas produit $f (voir $Journal)" }
+    if (-not (Test-Path (Join-Path $sortie $f))) { throw "L'export n'a pas produit $f (voir $JournalGodot)" }
 }
 Copy-Item (Join-Path $Source "build_info.json") $sortie
 

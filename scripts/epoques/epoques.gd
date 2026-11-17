@@ -81,6 +81,18 @@ const STYLE_ANNEES := {
 	"hollandais": 0, "latino": 0, "ottoman": 0, "colonial": 0,
 	"international": 1930, "brutaliste": 1955, "sovietique": 1955, "banlieue_us": 1950, "afrique_moderne": 1960,
 	"golfe": 1990, "asie_dense": 1985, "verre": 1990, "futuriste": 2040,
+	# Troisième vague de styles (toutes les régions, toutes les époques).
+	"georgien": 0, "balneaire": 1860, "art_nouveau": 1893, "bauhaus": 1925, "reconstruction": 1945,
+	"nordique_contemporain": 2000, "palazzina": 1850, "moderniste_catalan": 1888, "rationalisme": 1928,
+	"polykatoikia": 1955, "riviera_contemporaine": 1995, "levantin": 1840, "moderne_orient": 1935,
+	"maghreb_colonial": 1890, "colonial_tropical": 1870, "independances": 1957, "afrique_contemporaine": 2000,
+	"meiji": 1872, "shikumen": 1860, "japon_moderne": 1958, "chine_populaire": 1952, "asie_est_contemporain": 1998,
+	"indo_sarrasin": 1870, "compartiments": 1840, "inde_moderne": 1951, "tropical_contemporain": 1995,
+	"craftsman": 1905, "neo_hispanique": 1890, "streamline": 1933, "bresil_moderne": 1940, "latino_contemporain": 2000,
+	"federation": 1890, "pacifique_contemporain": 1995, "postmoderne": 1978, "high_tech": 1977, "parametrique": 2005,
+	"bois_vegetal": 2010, "art_deco_shanghai": 1925, "art_deco_bombay": 1930, "asmara": 1935, "neo_soudanais": 1907,
+	"entre_deux_guerres_oceanie": 1915, "art_deco_napier": 1931, "golfe_petrolier": 1968,
+	"australie_moderne": 1950,
 }
 
 ## Bâtiments du catalogue (hors bible des styles) : année d'apparition.

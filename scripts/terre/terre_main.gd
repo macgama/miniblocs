@@ -553,6 +553,9 @@ func load_game(slot := "") -> bool:
 		return false
 	var sec: Dictionary = res.sections
 	var m: Dictionary = res.manifest
+	# F9 ou Charger pendant une pause (T) : la partie chargée reste en pause, le joueur
+	# relance le temps quand il a regardé sa ville (elle repartait toute seule).
+	var en_pause := ambiance.speed_index == 0
 	Multijoueur.section_chargee = sec.get("multijoueur", {})
 	_chargement = true
 	journal.ecoute = false
@@ -657,6 +660,8 @@ func load_game(slot := "") -> bool:
 	journal.from_dict(sec.get("journal", {}))
 	($VueSol as VueSol).from_dict(sec.get("personnage", {}))
 	_load_settings(sec.get("reglages", {}), m)
+	if en_pause:
+		ambiance.set_speed(0)
 	# Après les réglages : une partie d'avant le tutoriel n'en a pas.
 	limite_demo.from_dict(sec.get("edition_demo", {}))
 	courrier.from_dict(sec.get("courrier", {}))

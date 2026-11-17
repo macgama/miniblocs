@@ -1051,6 +1051,9 @@ func to_dict() -> Dictionary:
 
 func from_dict(d: Dictionary) -> void:
 	clear()
+	# Partie chargée par-dessus une autre (F9, Charger) : le jour vu avant ne compte pas,
+	# sinon le premier passage comptait une journée de tickets et de stationnement en trop.
+	_last_day = -1
 	for k in d.get("tarifs", {}):
 		fares[int(k)] = float(d.tarifs[k])
 	for k in d.get("parkings", {}):

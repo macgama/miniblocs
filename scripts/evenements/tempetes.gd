@@ -86,8 +86,13 @@ func _centre_ville() -> int:
 
 func on_start(e: Dictionary) -> void:
 	var w: Meteo = ev.ambiance.weather if ev.ambiance != null else null
-	if w != null:
+	# Tempête rechargée en cours : la météo d'avant est celle notée au vrai début (la
+	# météo rechargée est déjà l'orage, qui serait sinon resté pour toujours après la fin).
+	if e.data.has("mode_avant"):
+		_mode_avant = int(e.data.mode_avant)
+	elif w != null:
 		_mode_avant = int(w.mode)
+	if w != null:
 		w.mode = Meteo.Mode.ORAGE
 	e.data.mode_avant = _mode_avant
 	ev.news("Tempête sur la ville : vent violent et orages !", e.pos, "tempete", int(e.id))

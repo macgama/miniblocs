@@ -145,6 +145,8 @@ func clear() -> void:
 	dernier = {}
 	_last_day = -1
 	_last_hour = -1
+	# Sondage du jour de l'ancienne partie à moitié fait : oublié (ses villes n'existent plus).
+	_jour_file = {}
 	_sondage_ms = -100000
 	_ville_ms = -100000
 	elections.clear()

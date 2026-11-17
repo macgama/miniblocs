@@ -371,6 +371,9 @@ func _edge_card(eid: int) -> void:
 		overlay.rebuild()
 		refresh()))
 	r.add_child(_button("Voir", func() -> void: _focus_edge(eid)))
+	var r2 := _row()
+	r2.add_child(_button("Faire évoluer (voies, trottoirs, bus, tram)", func() -> void:
+		trafic.transport.upgrade_picked.emit(eid)))
 	if trafic.bus_lanes.has(eid):
 		_text("Une voie est réservée aux bus : ils évitent les bouchons, les voitures ont une voie de moins.", true, 12)
 

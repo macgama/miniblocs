@@ -98,6 +98,9 @@ var vie_batiments: BatimentsVie
 ## Chantiers des voies et des réseaux (SuiviChantiers) et des voies (ChantiersVoies).
 var chantiers: SuiviChantiers
 var chantiers_voies: ChantiersVoies
+## Faire évoluer une route posée (voies, trottoirs, terre-plein, bus, tram).
+var evolution_voies: EvolutionVoies
+var evolution_panel: EvolutionPanel
 var _hover := Vector2i.ZERO
 var _hover_valid := false
 ## Intérieurs : meubles, pièces, usage des bâtiments en murs fins (onglet Intérieur).
@@ -825,6 +828,17 @@ func _setup_vie() -> void:
 	chantiers_voies.name = "ChantiersVoies"
 	add_child(chantiers_voies)
 	chantiers_voies.setup(transport, chantiers)
+	evolution_voies = EvolutionVoies.new()
+	evolution_voies.name = "EvolutionVoies"
+	add_child(evolution_voies)
+	evolution_voies.setup(transport, chantiers, trafic)
+	evolution_panel = EvolutionPanel.new()
+	evolution_panel.name = "PanneauEvolution"
+	add_child(evolution_panel)
+	evolution_panel.setup(evolution_voies)
+	hud.upgrade_requested.connect(func() -> void:
+		hud.show_spec("", {}, false)
+		transport.set_upgrade())
 
 
 ## Événements de la ville et leur panneau (I), fil d'actualité en haut de l'écran.

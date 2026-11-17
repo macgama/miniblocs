@@ -281,6 +281,7 @@ const SECTIONS := [
 		["Véhicules", "achetés à la création de la ligne (prix réel selon le modèle, réglage Admin du coût), revendus selon leur âge ; ils vieillissent, coûtent plus d'entretien et tombent en panne après leur durée de vie (bus 12 ans, tram 30, train 35…) : « Renouveler les usés » ou case Automatique"],
 		["Fret", "les camions, trains et bateaux de fret ne sont payés (à la tonne et au km) que pour les marchandises que les entreprises de la région expédient ou reçoivent ; sans client, ils roulent à vide"],
 		["Voie de bus", "Choisir une route > Voie de bus : bus et trams y passent les bouchons, les voitures perdent une voie ; Fermer à la circulation coupe la route"],
+		["Faire évoluer une route", "outil Route > Faire évoluer (ou Trafic > Choisir une route > Faire évoluer), puis clic sur la route : passer de 2 à 4 voies (une rue devient une avenue, une départementale une 2 × 2 voies), changer la largeur des voies, mettre ou enlever les trottoirs, ajouter un terre-plein central, des couloirs de bus ou un tramway au milieu (vraie voie de tram : arrêts et lignes possibles). Devis avant de lancer ; chantier payé au fil des travaux, la route reste ouverte avec une file sur deux ; carrefours, bâtiments et réseaux restent raccordés, et on refuse un élargissement qui toucherait un bâtiment"],
 	]],
 	["Services publics", [
 		["Maj + U", "panneau Services publics : écoles, hôpitaux, police ; habitants bien couverts, loin, saturés ou sans service ; places, lits et agents de chaque bâtiment (clic : y aller)"],

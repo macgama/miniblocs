@@ -18,7 +18,9 @@ extends RefCounted
 ##   La ville peut imposer des restrictions d'eau (−20 % de consommation).
 
 ## Durée de vie (ans) des tronçons, au réglage d'usure normal.
-const DUREE_VIE := {"ligne_ht": 60.0, "ligne_mt": 40.0, "conduite_eau": 50.0, "collecteur": 70.0, "conduite_gaz": 50.0}
+const DUREE_VIE := {"ligne_ht": 60.0, "ligne_mt": 40.0, "conduite_eau": 50.0, "collecteur": 70.0, "conduite_gaz": 50.0,
+	"ligne_bt": 35.0, "ligne_tht": 70.0, "cable_souterrain": 45.0, "aqueduc": 150.0, "egout_separatif": 70.0, "reseau_chaleur": 40.0,
+	"hydrogenoduc": 50.0}
 ## Pannes par km de tronçon et par jour, pour un tronçon neuf (×4 quand il est usé).
 const PANNES_KM_JOUR := 0.004
 ## Part de la production d'eau perdue par une fuite dans une rue.

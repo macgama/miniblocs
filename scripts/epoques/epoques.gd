@@ -207,13 +207,19 @@ const MOTS_BATIMENTS := [
 ## Voies (TransportTypes.CLASSES).
 const VOIES := {"rue": 0, "avenue": 0, "giratoire": 1906, "departementale": 0, "voie_express": 1950,
 	"autoroute": 1930, "bretelle": 1930, "tram": 1853, "train": 1830, "cremaillere": 1870, "metro": 1863,
-	"lgv": 1964, "trottoir": 0, "piste_cyclable": 1930, "voie_verte": 1990, "canal": 0, "chenal": 0}
+	"lgv": 1964, "trottoir": 0, "piste_cyclable": 1930, "voie_verte": 1990, "canal": 0, "chenal": 0,
+	"chemin_terre": 0, "route_pavee": 0, "route_empierree": 0, "boulevard": 1853, "zone_rencontre": 1976,
+	"avenue_bhns": 2000, "route_2plus1": 1998, "autoroute_urbaine": 2020, "voie_etroite": 1865, "ligne_fret": 1950,
+	"sentier": 0, "chemin_halage": 0, "promenade_planches": 1870, "voie_cyclable_express": 2015, "canal_grand_gabarit": 1960}
 ## Stations (StationSystem.TYPES).
 const STATIONS := {"arret_bus": 1828, "arret_tram": 1853, "station_metro": 1863, "gare": 1830, "port": 0,
-	"heliport": 1950, "aerodrome": 1910, "aeroport": 1930, "depot": 0, "parking": 1920}
+	"heliport": 1950, "aerodrome": 1910, "aeroport": 1930, "depot": 0, "parking": 1920,
+	"halte": 1840, "gare_routiere": 1930, "parking_relais": 1990, "port_plaisance": 1960, "vertiport": 2030}
 ## Tronçons des réseaux (ReseauxTypes.TRONCONS) et câbles (Telecom.CABLES).
 const TRONCONS := {"ligne_ht": 1910, "ligne_mt": 1882, "conduite_eau": 0, "collecteur": 0, "conduite_gaz": 1820,
-	"cuivre_aerien": 1880, "fibre": 2000, "fibre_aerienne": 2000}
+	"cuivre_aerien": 1880, "fibre": 2000, "fibre_aerienne": 2000,
+	"ligne_bt": 1890, "ligne_tht": 1958, "cable_souterrain": 1890, "aqueduc": 0, "egout_separatif": 1960, "reseau_chaleur": 1927,
+	"hydrogenoduc": 2030, "cuivre_souterrain": 1900, "cable_coaxial": 1970}
 
 ## Matériaux de l'Atelier (BlocMateriaux.LIST) : mots du nom, première règle qui correspond.
 const MOTS_MATERIAUX := [

@@ -161,7 +161,7 @@ func _refaire(res: String, id: int) -> void:
 	var e: Dictionary = r.troncons[id]
 	var mesh: ArrayMesh = null
 	var mat := _mat
-	if res == "elec":
+	if res == "elec" and not bool(ReseauxTypes.troncon(String(e.t)).get("enterre", false)):
 		var av := 1.0 if bool(e.ok) else float(e.get("av", 0.0))
 		mesh = ligne_aerienne(e.pts, String(e.t), av, bool(e.get("hs", false)))
 	elif bool(calques[res]) or (reseaux.outil == Reseaux.Outil.TRACER and String(ReseauxTypes.troncon(reseaux.type_troncon).res) == res):
@@ -170,7 +170,7 @@ func _refaire(res: String, id: int) -> void:
 			col = col.darkened(0.45)
 		if bool(e.get("hs", false)):
 			col = Color("e63946")
-		mesh = ruban(e.pts, 2.2 if String(e.t) == "collecteur" else 1.4, col, 0.4)
+		mesh = ruban(e.pts, 2.2 if String(e.t) in ["collecteur", "egout_separatif", "aqueduc"] else 1.4, col, 0.4)
 		mat = _mat_calque
 	if mesh == null:
 		return
@@ -221,7 +221,7 @@ static func ligne_aerienne(pts: PackedVector3Array, type_id: String, av := 1.0, 
 	var tr := ReseauxTypes.troncon(type_id)
 	var pas := float(tr.get("pas", 60.0))
 	var haut := float(tr.get("haut", 10.0))
-	var ht := type_id == "ligne_ht"
+	var ht := type_id == "ligne_ht" or bool(tr.get("treillis", false))
 	var total := ReseauBase.longueur(pts)
 	var n := maxi(1, ceili(total / pas))
 	var poses := []

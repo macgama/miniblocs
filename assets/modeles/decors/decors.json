@@ -1184,6 +1184,215 @@
    ]
   },
   {
+   "id": "semoir",
+   "nom": "Semoir combiné : trémie à grains, rampe et disques semeurs",
+   "cat": "ferme",
+   "triangles": 736,
+   "taille": [
+    3.47,
+    2.98,
+    1.96
+   ]
+  },
+  {
+   "id": "semoir_precision",
+   "nom": "Semoir monograine : six éléments semeurs et leurs petites trémies",
+   "cat": "ferme",
+   "triangles": 676,
+   "taille": [
+    5.27,
+    2.23,
+    1.64
+   ]
+  },
+  {
+   "id": "planteuse",
+   "nom": "Planteuse de pommes de terre quatre rangs : trémie et buttoirs",
+   "cat": "ferme",
+   "triangles": 196,
+   "taille": [
+    3.82,
+    3.49,
+    2.06
+   ]
+  },
+  {
+   "id": "epandeur",
+   "nom": "Épandeur d'engrais porté : trémie en entonnoir et deux disques",
+   "cat": "ferme",
+   "triangles": 152,
+   "taille": [
+    2.4,
+    1.5,
+    1.28
+   ]
+  },
+  {
+   "id": "pulverisateur",
+   "nom": "Pulvérisateur traîné : cuve blanche, rampe repliée de 24 m",
+   "cat": "ferme",
+   "triangles": 232,
+   "taille": [
+    2.3,
+    4.08,
+    1.96
+   ]
+  },
+  {
+   "id": "faucheuse",
+   "nom": "Faucheuse-conditionneuse rotative : carter et assiettes",
+   "cat": "ferme",
+   "triangles": 216,
+   "taille": [
+    3.2,
+    2.31,
+    1.15
+   ]
+  },
+  {
+   "id": "presse_balles",
+   "nom": "Presse à balles rondes : chambre à rouleaux et ramasseur",
+   "cat": "ferme",
+   "triangles": 264,
+   "taille": [
+    2.72,
+    4.01,
+    2.28
+   ]
+  },
+  {
+   "id": "presse_enrubanneuse",
+   "nom": "Presse-enrubanneuse : presse à l'avant, table d'enrubannage et botte filmée",
+   "cat": "ferme",
+   "triangles": 448,
+   "taille": [
+    2.72,
+    5.46,
+    2.3
+   ]
+  },
+  {
+   "id": "dechaumeur",
+   "nom": "Déchaumeur à disques : deux rangées de disques, rouleau arrière",
+   "cat": "ferme",
+   "triangles": 948,
+   "taille": [
+    4.39,
+    3.31,
+    1.04
+   ]
+  },
+  {
+   "id": "arracheuse",
+   "nom": "Arracheuse automotrice de betteraves : effeuilleuse, socs et trémie",
+   "cat": "ferme",
+   "triangles": 388,
+   "taille": [
+    3.82,
+    6.85,
+    3.7
+   ]
+  },
+  {
+   "id": "vendangeuse",
+   "nom": "Machine à vendanger enjambeuse : haute, étroite, bacs sur les côtés",
+   "cat": "ferme",
+   "triangles": 308,
+   "taille": [
+    2.7,
+    3.7,
+    4.92
+   ]
+  },
+  {
+   "id": "tracteur_gps",
+   "nom": "Tracteur bleu à guidage satellite : dôme d'antenne sur la cabine",
+   "cat": "ferme",
+   "triangles": 440,
+   "taille": [
+    2.2,
+    3.0,
+    2.57
+   ]
+  },
+  {
+   "id": "tracteur_autonome",
+   "nom": "Tracteur autonome électrique : sans cabine, capteurs et batteries",
+   "cat": "ferme",
+   "triangles": 440,
+   "taille": [
+    2.37,
+    3.2,
+    2.0
+   ]
+  },
+  {
+   "id": "robot_agricole",
+   "nom": "Petit robot de champ à quatre roues",
+   "cat": "ferme",
+   "triangles": 356,
+   "taille": [
+    1.7,
+    1.54,
+    1.52
+   ]
+  },
+  {
+   "id": "robot_desherbeur",
+   "nom": "Robot désherbeur : châssis haut, caméras et outils de binage",
+   "cat": "ferme",
+   "triangles": 428,
+   "taille": [
+    1.7,
+    1.54,
+    1.52
+   ]
+  },
+  {
+   "id": "drone_agricole",
+   "nom": "Drone de pulvérisation à six rotors et cuve, posé sur ses patins",
+   "cat": "ferme",
+   "triangles": 580,
+   "taille": [
+    2.8,
+    2.57,
+    1.08
+   ]
+  },
+  {
+   "id": "moissonneuse_autonome",
+   "nom": "Moissonneuse-batteuse autonome : sans cabine, capteurs à l'avant",
+   "cat": "ferme",
+   "triangles": 440,
+   "taille": [
+    8.05,
+    7.3,
+    4.0
+   ]
+  },
+  {
+   "id": "robot_cueilleur",
+   "nom": "Robot cueilleur de fruits : base à chenilles, mât, bras et bac",
+   "cat": "ferme",
+   "triangles": 136,
+   "taille": [
+    1.4,
+    1.69,
+    2.9
+   ]
+  },
+  {
+   "id": "bac_insectes",
+   "nom": "Élevage d'insectes : étagères de bacs sous un petit abri",
+   "cat": "ferme",
+   "triangles": 168,
+   "taille": [
+    3.2,
+    2.2,
+    2.38
+   ]
+  },
+  {
    "id": "citrouilles",
    "nom": "Carré de citrouilles (1 m²)",
    "cat": "cultures",

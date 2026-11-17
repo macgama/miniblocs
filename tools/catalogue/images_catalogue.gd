@@ -265,6 +265,8 @@ func _objet(e: Dictionary) -> void:
 			await _attraction(e)
 		"agriculture":
 			await _agri(e)
+		"reseaux":
+			await _reseau(e)
 
 
 func _batiment(e: Dictionary) -> void:
@@ -417,7 +419,16 @@ func _voie(e: Dictionary) -> void:
 		st.append(0)
 	var m := TransportView.build_mesh(id, {}, pts, st, func(_p: Vector3) -> float: return 0.0)
 	if m != null and m.get_surface_count() > 0:
-		await _vignette(e, [_mi(m)])
+		var nodes: Array = [_mi(m)]
+		# Voie d'eau : le plan d'eau n'est pas dans le maillage (il vient du terrain).
+		if TransportTypes.mode_of(id) == TransportTypes.Mode.WATER:
+			var w := float(TransportTypes.default_spec(id).get("width", 20.0))
+			var k := BlocMesh.new()
+			k.plate(0, 15.0, w, 30.0, Color("3f88c5"), -0.4, 0.1)
+			for sg in [-1.0, 1.0]:
+				k.plate(sg * (w / 2.0 + 3.0), 15.0, 6.0, 30.0, Color("6aa040"), -0.2, 0.3)
+			nodes.append(_mi(k.to_mesh()))
+		await _vignette(e, nodes)
 
 
 func _attraction(e: Dictionary) -> void:
@@ -448,6 +459,9 @@ func _attraction(e: Dictionary) -> void:
 
 func _agri(e: Dictionary) -> void:
 	var id := String(e.id)
+	if AgriDonnees.CULTURES.has(id):
+		await _culture(e)
+		return
 	if not id.contains("@"):
 		var esp: Dictionary = AgriDonnees.ESPECES.get(id, {})
 		var mods: Array = esp.get("modeles", [])
@@ -458,7 +472,80 @@ func _agri(e: Dictionary) -> void:
 	var an := id.get_slice("@", 1).to_int()
 	var modele := String(AgriDonnees.MACHINES.get(mid, {}).get("modele", ""))
 	for v: Dictionary in AgriEpoques.VERSIONS.get(mid, []):
+		if int(v.annee) == an and bool(v.get("absent", false)):
+			return
 		if int(v.annee) == an and v.has("modele"):
 			modele = String(v.modele)
 	if modele != "" and Decors.mesh(modele) != null:
 		await _vignette(e, [_mi(Decors.mesh(modele), Decors.materiau())])
+
+
+## Une parcelle de 12 m : sol labouré et quelques plants de la culture.
+func _culture(e: Dictionary) -> void:
+	var c: Dictionary = AgriDonnees.CULTURES[String(e.id)]
+	var esp := Plantes.id(String(c.get("plante", "")))
+	var pm: Mesh = Plantes.mesh(esp) if esp >= 0 else null
+	var k := BlocMesh.new()
+	k.plate(0, 0, 12.0, 12.0, Color("6a5038"))
+	for i in 6:
+		k.box(-5.0 + i * 2.0, 0.0, 0, 0.7, 0.18, 11.6, Color("7d6047"))
+	var nodes: Array = [_mi(k.to_mesh())]
+	if pm != null:
+		var pas := 2.0 if float(c.get("densite", 1.0)) < 0.2 else 1.0
+		var n := int(10.0 / pas)
+		for i in n + 1:
+			for j in n + 1:
+				var mi := _mi(pm)
+				mi.position = Vector3(-5.0 + i * pas + (0.3 if j % 2 else 0.0), 0.15, -5.0 + j * pas)
+				mi.rotation.y = float((i * 7 + j * 13) % 10) * 0.6
+				nodes.append(mi)
+	else:
+		var k2 := BlocMesh.new()
+		for i in 6:
+			for j in 6:
+				k2.box(-5.0 + i * 2.0, 0.15, -5.0 + j * 2.0, 0.6, 0.5, 0.6, c.get("couleur", Color("6aa040")))
+		nodes.append(_mi(k2.to_mesh()))
+	await _vignette(e, nodes)
+
+
+## Un tronçon de réseau : lignes sur pylônes ou poteaux, sinon tranchée ouverte
+## avec la conduite ou le câble posé au fond.
+func _reseau(e: Dictionary) -> void:
+	var id := String(e.id)
+	var tr := ReseauxTypes.troncon(id)
+	var cable: Dictionary = Telecom.CABLES.get(id, {})
+	var aerien := (not tr.is_empty() and String(tr.res) == "elec" and not bool(tr.get("enterre", false))) \
+		or bool(cable.get("aerien", false))
+	if aerien:
+		# Deux supports assez proches pour qu'on les voie bien.
+		var demi := float(tr.get("haut", 8.0)) * 1.4
+		var pts := PackedVector3Array([Vector3(0, 0, -demi), Vector3(0, 0, demi)])
+		var m := ReseauxVue.ligne_aerienne(pts, id if not tr.is_empty() else "ligne_bt")
+		await _vignette(e, [_mi(m)])
+		return
+	var res := String(tr.get("res", "telecom"))
+	var col: Color = ReseauxTypes.COULEURS.get(res, Telecom.COULEUR_FIBRE if String(cable.get("reseau", "")) == "fibre" else Telecom.COULEUR_CUIVRE)
+	var spec: Dictionary = VueSouterraine.TRONCONS.get(id, {"d": 0.8, "s": 0.3})
+	var s := clampf(float(spec.s), 0.15, 1.8)
+	var prof := clampf(float(spec.d), 0.6, 4.0)
+	var larg := s + 1.2
+	var k := BlocMesh.new()
+	var L := 10.0
+	# Terre des deux côtés, fond de fouille, conduite, terre déblayée et bornes.
+	for sg in [-1.0, 1.0]:
+		k.box(sg * (larg / 2.0 + 2.0), -prof, 0, 4.0, prof, L, Color("8a6a4a"))
+		k.box(sg * (larg / 2.0 + 2.0), 0.0, 0, 4.0, 0.08, L, Color("6aa040"))
+	k.box(0, -prof - 0.2, 0, larg, 0.2, L, Color("5c4433"))
+	if id == "aqueduc":
+		k.box(0, -prof, 0, s + 0.6, s + 0.3, L, Color("c9c1ae"))
+		k.box(0, -prof + 0.15, 0, s, 0.2, L, Color("4a90b8"))
+	elif id == "egout_separatif":
+		k.box(-s * 0.35, -prof, 0, s * 0.6, s * 0.6, L, col)
+		k.box(s * 0.4, -prof, 0, s * 0.45, s * 0.45, L, Color("4cc9f0"))
+	else:
+		k.box(0, -prof, 0, s, s, L, col)
+		if id == "reseau_chaleur":
+			k.box(0, -prof + s + 0.05, 0, s, s, L, Color("e63946"))
+	k.box(larg / 2.0 + 1.0, 0.0, -2.0, 1.4, 0.7, 3.0, Color("9b7b55"))
+	k.box(-larg / 2.0 - 0.6, 0.0, L / 2.0 - 1.0, 0.25, 1.0, 0.25, col)
+	await _vignette(e, [_mi(k.to_mesh())])

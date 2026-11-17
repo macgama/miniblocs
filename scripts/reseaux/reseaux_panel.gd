@@ -222,7 +222,7 @@ func _reseau(res: String) -> void:
 	for id in ReseauxTypes.troncons_de(res):
 		var tr := ReseauxTypes.troncon(id)
 		var bt := Button.new()
-		bt.text = String(tr.name).replace("Ligne ", "").replace("Conduite d'eau potable", "Conduite").replace("Collecteur d'égout", "Collecteur").replace("Conduite de gaz ou de chaleur", "Conduite").capitalize()
+		bt.text = String(tr.court) if tr.has("court") else String(tr.name).replace("Ligne ", "").replace("Conduite d'eau potable", "Conduite").replace("Collecteur d'égout", "Collecteur").replace("Conduite de gaz ou de chaleur", "Conduite").capitalize()
 		bt.tooltip_text = "%s\n%s\n%s par mètre" % [tr.name, tr.desc, BuildingSystem.format_money(ReglagesPartie.prix(int(tr.prix_m)))]
 		bt.toggle_mode = true
 		bt.button_pressed = reseaux.outil == Reseaux.Outil.TRACER and reseaux.type_troncon == id

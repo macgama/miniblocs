@@ -34,14 +34,25 @@ const TYPES := {
 		"desc": "Deux quais bas de part et d'autre des voies de tram."},
 	"station_metro": {"name": "Station de métro", "mode": RAIL, "kind": "metro", "classes": ["metro"], "len": 80.0,
 		"desc": "Quais souterrains et bouche de métro en surface, sur une voie de métro."},
-	"gare": {"name": "Gare", "mode": RAIL, "kind": "train", "classes": ["train", "lgv", "cremaillere"], "len": 160.0,
+	"gare": {"name": "Gare", "mode": RAIL, "kind": "train", "classes": ["train", "lgv", "cremaillere", "voie_etroite", "ligne_fret"], "len": 160.0,
 		"desc": "Quais, marquise et bâtiment voyageurs, sur une ligne classique ou une LGV."},
 	"port": {"name": "Port", "mode": WATER, "kind": "bateau", "classes": [], "len": 60.0,
 		"desc": "Jetée, grue et gare maritime, sur une voie d'eau."},
 	"depot": {"name": "Dépôt de marchandises", "mode": ROAD, "kind": "camion", "classes": [], "len": 40.0,
 		"desc": "Entrepôt et quai de chargement au bord d'une route : des camions y chargent et déchargent."},
-	"parking": {"name": "Parking", "mode": ROAD, "kind": "parking", "classes": ["rue", "avenue", "departementale"], "len": 36.0,
+	"parking": {"name": "Parking", "mode": ROAD, "kind": "parking", "classes": PARKING_ROUTES, "len": 36.0,
 		"desc": "Parking de 28 places au bord d'une route : les voitures de passage viennent s'y garer un moment."},
+	# Lot 5 : stations de toutes les époques.
+	"halte": {"name": "Halte ferroviaire", "mode": RAIL, "kind": "train", "classes": ["train", "cremaillere", "voie_etroite"], "len": 60.0,
+		"desc": "Un quai, un abri et une pancarte : l'arrêt des trains omnibus à la campagne."},
+	"gare_routiere": {"name": "Gare routière", "mode": ROAD, "kind": "bus", "classes": [], "len": 40.0,
+		"desc": "Quais en épi, abris et salle d'attente : le terminus des cars et des bus."},
+	"parking_relais": {"name": "Parking relais (P+R)", "mode": ROAD, "kind": "parking", "classes": PARKING_ROUTES, "len": 36.0,
+		"desc": "Parking sous ombrières solaires, avec bornes de recharge, au bout des lignes de bus et de tram."},
+	"port_plaisance": {"name": "Port de plaisance", "mode": WATER, "kind": "bateau", "classes": [], "len": 60.0,
+		"desc": "Pontons, capitainerie et voiliers amarrés : bateaux-promenade et navettes y font escale."},
+	"vertiport": {"name": "Vertiport", "mode": AIR, "kind": "avion", "len": 0.0, "pad": 36.0, "flat": 2.0,
+		"desc": "Deux aires de taxis volants électriques, leurs chargeurs et un petit terminal vitré."},
 	"heliport": {"name": "Héliport", "mode": AIR, "kind": "avion", "len": 0.0, "pad": 24.0, "flat": 2.0,
 		"desc": "Plateforme pour hélicoptères et taxis volants."},
 	"aerodrome": {"name": "Aérodrome", "mode": AIR, "kind": "avion", "len": 600.0, "width": 30.0, "flat": 8.0,
@@ -49,7 +60,10 @@ const TYPES := {
 	"aeroport": {"name": "Aéroport", "mode": AIR, "kind": "avion", "len": 1000.0, "width": 45.0, "flat": 20.0,
 		"desc": "Piste de 1 000 × 45 m, aire de stationnement, aérogare et tour de contrôle."},
 }
-const ORDER := ["arret_bus", "arret_tram", "station_metro", "gare", "port", "heliport", "aerodrome", "aeroport", "depot", "parking"]
+const ORDER := ["arret_bus", "gare_routiere", "arret_tram", "station_metro", "halte", "gare", "port", "port_plaisance", "heliport",
+	"vertiport", "aerodrome", "aeroport", "depot", "parking", "parking_relais"]
+## Routes où l'on peut poser un parking.
+const PARKING_ROUTES := ["rue", "avenue", "departementale", "route_pavee", "route_empierree", "boulevard", "avenue_bhns"]
 const KIND_NAMES := {"bus": "Bus", "tram": "Tramway", "metro": "Métro", "train": "Train", "bateau": "Bateau", "avion": "Avion", "parking": "Parking", "camion": "Camions"}
 ## Noms des lignes de marchandises.
 const FREIGHT_NAMES := {"train": "Fret ferroviaire", "bateau": "Fret par bateau", "camion": "Camions"}
@@ -547,7 +561,7 @@ func _sync_parkings() -> void:
 	var out := {}
 	for sid in stations:
 		var s: Dictionary = stations[sid]
-		if s.type != "parking" or not network.nodes.has(int(s.node)):
+		if String(get_type(s.type).get("kind", "")) != "parking" or not network.nodes.has(int(s.node)):
 			continue
 		var node := int(s.node)
 		var old: Dictionary = traffic.parkings.get(node, {})
@@ -719,7 +733,7 @@ func models_for(kind: String, stops: Array = [], fret := false) -> Array[String]
 	for s in stops:
 		if stations.has(int(s)):
 			var st: Dictionary = stations[int(s)]
-			if st.type == "heliport":
+			if st.type == "heliport" or st.type == "vertiport":
 				heli_only = true
 			if st.type == "gare":
 				if _class_at({"node": int(st.node), "edge": -1}) == "cremaillere":
@@ -898,6 +912,16 @@ func _rects(type_id: String, hw := 0.0) -> Array:
 	match type_id:
 		"heliport":
 			return [[-15.0, 15.0, -15.0, 15.0]]
+		"vertiport":
+			return [[-20.0, 20.0, -20.0, 20.0]]
+		"halte":
+			return [[-half, half, hw + 0.2, hw + 4.2]]
+		"gare_routiere":
+			return [[-half, half, hw + 0.2, hw + 20.0]]
+		"parking_relais":
+			return [[-half, half, hw + 0.2, hw + 1.0 + SPOT_D * 2.0 + AISLE + 0.5]]
+		"port_plaisance":
+			return [[-half, half, hw + 0.2, hw + 16.0]]
 		"aerodrome":
 			return [[-half, half, -20.0, 20.0], [-30.0, 30.0, 20.0, 60.0]]
 		"aeroport":
@@ -1143,28 +1167,64 @@ static func build_network_mesh(type_id: String, hw: float, ancien := false) -> A
 			k.box(hw + 0.6, 0.0, len / 2.0 - 1.0, 0.25, 1.1, 0.25, Color("dcdcdc"))
 			k.box(hw + 0.6, 1.0, len / 2.0 - 4.0, 0.12, 0.12, 6.0, Color("e63946"))
 		"parking":
-			var depth := SPOT_D * 2.0 + AISLE + 1.0
-			k.box(hw + 0.6 + depth / 2.0, 0.0, 0, depth, 0.12, len, ASPHALT)
-			# Bordure, avec l'entrée au milieu.
-			for zz in [-len / 4.0 - 2.0, len / 4.0 + 2.0]:
-				k.box(hw + 0.4, 0.0, zz, 0.3, 0.25, len / 2.0 - 4.0, Color("dcdcdc"))
-			k.box(hw + 1.0 + depth, 0.0, 0, 0.3, 0.3, len, Color("dcdcdc"))
-			# Marquage des places.
-			var n := floori((len - 2.0) / SPOT_W)
+			_parking(k, hw, len)
+		"parking_relais":
+			_parking(k, hw, len)
+			# Ombrières photovoltaïques sur les deux rangées et bornes de recharge.
 			for row in 2:
-				var x0 := hw + 1.0 if row == 0 else hw + 1.0 + SPOT_D + AISLE
-				for i in n + 1:
-					var z := -len / 2.0 + 1.0 + SPOT_W * i
-					k.box(x0 + SPOT_D / 2.0, 0.12, z, SPOT_D, 0.02, 0.12, WHITE)
-			# Panneau P.
-			k.box(hw + 0.6, 0.0, -len / 2.0 + 0.5, 0.12, 2.6, 0.12, ROOF)
-			k.box(hw + 0.6, 2.6, -len / 2.0 + 0.5, 0.08, 0.8, 0.8, Color("1d4ed8"))
-			k.box(hw + 0.55, 2.75, -len / 2.0 + 0.5, 0.02, 0.5, 0.1, WHITE)
-			k.box(hw + 0.55, 2.9, -len / 2.0 + 0.6, 0.02, 0.2, 0.25, WHITE)
-			# Quelques arbres en bout de rangée.
-			for zz in [-len / 2.0 - 1.5, len / 2.0 + 1.5]:
-				k.box(hw + 0.6 + depth / 2.0, 0.0, zz, 0.3, 2.2, 0.3, Color("6d4c41"))
-				k.box(hw + 0.6 + depth / 2.0, 2.2, zz, 2.2, 2.0, 2.2, Color("4f8a3c"))
+				var xr := hw + 1.0 + SPOT_D * 0.5 if row == 0 else hw + 1.0 + SPOT_D * 1.5 + AISLE
+				for zz in [-len / 2.0 + 3.0, 0.0, len / 2.0 - 3.0]:
+					k.box(xr, 0.0, zz, 0.25, 2.6, 0.25, Color("9aa3ad"))
+				k.box(xr, 2.6, 0, SPOT_D + 0.6, 0.18, len - 2.0, Color("1f3b5a"))
+				k.box(xr, 2.79, 0, SPOT_D + 0.4, 0.02, len - 2.4, Color("2f5d8a"))
+			for i in 4:
+				var zb := -len / 2.0 + 2.2 + i * 2.5
+				k.box(hw + 1.0 + SPOT_D + 0.4, 0.12, zb, 0.35, 1.5, 0.25, WHITE)
+				k.box(hw + 1.0 + SPOT_D + 0.4, 1.2, zb, 0.37, 0.25, 0.27, Color("06d6a0"))
+			# Panneau P+R.
+			k.box(hw + 0.6, 3.4, -len / 2.0 + 0.5, 0.08, 0.5, 1.4, Color("2a9d8f"))
+		"halte":
+			# Quai bas, abri de bois et pancarte du nom.
+			k.box(hw + 2.2, 0.0, 0, 3.8, 0.4, len, CONCRETE)
+			k.box(hw + 0.4, 0.4, 0, 0.3, 0.01, len, WHITE)
+			_shelter(k, hw + 2.6, 0.4, 4.0, 1.0, Color("7a5230"))
+			for zz in [-len / 2.0 + 3.0, len / 2.0 - 3.0]:
+				k.box(hw + 3.6, 0.4, zz, 0.12, 3.0, 0.12, ROOF)
+				k.box(hw + 3.6, 3.4, zz, 0.3, 0.3, 0.3, Color("f4d35e"))
+			k.box(hw + 3.2, 0.4, -6.0, 0.1, 2.0, 0.1, ROOF)
+			k.box(hw + 3.2, 2.2, -6.0, 0.08, 0.5, 2.0, Color("1d3557"))
+			for i in 3:
+				k.box(hw + 3.3, 0.4, 4.0 + i * 1.6, 0.5, 0.45, 1.2, Color("7a5230"))
+		"gare_routiere":
+			# Parvis, trois quais îlots avec abris, salle d'attente vitrée au fond.
+			k.box(hw + 10.0, 0.0, 0, 19.6, 0.12, len, ASPHALT)
+			for i in 3:
+				var xq := hw + 4.5 + i * 5.0
+				k.box(xq, 0.12, 0, 2.0, 0.2, len - 8.0, CONCRETE)
+				_shelter(k, xq - 0.6, -len * 0.15 + i * 3.0, 7.0, 1.0, Color("e9c46a"))
+				k.box(xq - 1.8, 0.13, 0, 0.15, 0.02, len - 6.0, WHITE)
+			k.box(hw + 18.0, 0.12, 0, 3.6, 3.6, len - 4.0, Color("2b3d4f"))
+			k.box(hw + 18.0, 3.72, 0, 4.2, 0.3, len - 3.0, Color("dfe7ec"))
+			k.box(hw + 0.6, 0.12, -len / 2.0 + 1.0, 0.15, 4.5, 0.15, ROOF)
+			k.box(hw + 0.6, 4.2, -len / 2.0 + 1.0, 0.1, 0.9, 1.6, Color("2a9d8f"))
+		"port_plaisance":
+			# Quai, capitainerie, pontons en peigne et voiliers amarrés.
+			var xq := hw + 7.0
+			k.box(xq, -2.0, 0, 12.0, 3.4, len, Color("cfc8b8"))
+			k.box(xq - 5.8, 1.4, 0, 0.3, 0.15, len, Color("ffd166"))
+			k.box(xq + 2.5, 1.4, -len * 0.25, 6.0, 4.0, 8.0, WHITE)
+			k.box(xq + 2.5, 5.4, -len * 0.25, 6.6, 0.4, 8.6, Color("1d4ed8"))
+			k.box(xq + 2.5, 5.8, -len * 0.25 + 2.5, 2.2, 2.6, 2.2, Color("33495e"))
+			for i in 6:
+				var zp := -len / 2.0 + 6.0 + i * (len - 12.0) / 5.0
+				k.box(hw + 0.5, 0.25, zp, 2.2, 0.2, 1.4, Color("9c7650"))
+				# Voilier : coque, roof, mât.
+				var xb := hw - 1.2
+				k.box(xb, 0.0, zp + 2.4, 1.9, 0.9, 5.5, WHITE)
+				k.box(xb, 0.9, zp + 2.0, 1.2, 0.5, 2.2, Color("dfe7ec"))
+				k.box(xb, 0.9, zp + 2.8, 0.1, 8.0, 0.1, Color("c0c4c8"))
+			for i in 4:
+				k.cylinder(xq - 5.0, 1.4, -len / 2.0 + 10.0 + i * 12.0, 0.2, 0.16, 0.5, 6, Color("2b2d42"))
 		"arret_bus":
 			k.box(hw + 1.8, 0.0, 0, 3.2, 0.18, len, CONCRETE)
 			k.box(hw + 0.25, 0.0, 0, 0.3, 0.2, len, Color("dcdcdc"))
@@ -1212,6 +1272,32 @@ static func build_network_mesh(type_id: String, hw: float, ancien := false) -> A
 			k.box(x - 8.0, 17.0, gz, 26.0, 1.0, 1.2, Color("f4a261"))
 			k.box(x - 14.0, 8.0, gz, 0.1, 9.0, 0.1, Color("2b2d42"))
 	return k.to_mesh()
+
+
+## Parking de 28 places au bord de la route (parking, parking relais).
+static func _parking(k: VehicleMesh, hw: float, len: float) -> void:
+	var depth := SPOT_D * 2.0 + AISLE + 1.0
+	k.box(hw + 0.6 + depth / 2.0, 0.0, 0, depth, 0.12, len, ASPHALT)
+	# Bordure, avec l'entrée au milieu.
+	for zz in [-len / 4.0 - 2.0, len / 4.0 + 2.0]:
+		k.box(hw + 0.4, 0.0, zz, 0.3, 0.25, len / 2.0 - 4.0, Color("dcdcdc"))
+	k.box(hw + 1.0 + depth, 0.0, 0, 0.3, 0.3, len, Color("dcdcdc"))
+	# Marquage des places.
+	var n := floori((len - 2.0) / SPOT_W)
+	for row in 2:
+		var x0 := hw + 1.0 if row == 0 else hw + 1.0 + SPOT_D + AISLE
+		for i in n + 1:
+			var z := -len / 2.0 + 1.0 + SPOT_W * i
+			k.box(x0 + SPOT_D / 2.0, 0.12, z, SPOT_D, 0.02, 0.12, WHITE)
+	# Panneau P.
+	k.box(hw + 0.6, 0.0, -len / 2.0 + 0.5, 0.12, 2.6, 0.12, ROOF)
+	k.box(hw + 0.6, 2.6, -len / 2.0 + 0.5, 0.08, 0.8, 0.8, Color("1d4ed8"))
+	k.box(hw + 0.55, 2.75, -len / 2.0 + 0.5, 0.02, 0.5, 0.1, WHITE)
+	k.box(hw + 0.55, 2.9, -len / 2.0 + 0.6, 0.02, 0.2, 0.25, WHITE)
+	# Quelques arbres en bout de rangée.
+	for zz in [-len / 2.0 - 1.5, len / 2.0 + 1.5]:
+		k.box(hw + 0.6 + depth / 2.0, 0.0, zz, 0.3, 2.2, 0.3, Color("6d4c41"))
+		k.box(hw + 0.6 + depth / 2.0, 2.2, zz, 2.2, 2.0, 2.2, Color("4f8a3c"))
 
 
 ## Gare et port du XIXe siècle : quais bas en pierre, marquise de fonte et de
@@ -1275,6 +1361,22 @@ static func build_air_mesh(type_id: String) -> ArrayMesh:
 			k.box(0, 0.39, 0, 4.0, 0.02, 0.8, WHITE)
 			k.box(12.5, 0.0, 10.0, 0.1, 5.0, 0.1, ROOF)
 			k.box(12.5, 4.6, 9.0, 0.3, 0.4, 2.0, Color("ff7f11"))
+		"vertiport":
+			# Dalle, deux aires de posé (marquage V), chargeurs et terminal vitré.
+			k.box(0, 0.0, 0, 38.0, 0.35, 38.0, Color("8d99ae"))
+			for zv in [-9.0, 9.0]:
+				k.cylinder(-6.0, 0.35, zv, 7.5, 7.5, 0.02, 24, Color("06d6a0"))
+				k.cylinder(-6.0, 0.37, zv, 6.9, 6.9, 0.02, 24, Color("5c677d"))
+				k.box(-7.2, 0.39, zv, 0.7, 0.02, 5.0, WHITE)
+				k.box(-4.8, 0.39, zv, 0.7, 0.02, 5.0, WHITE)
+				k.box(-6.0, 0.39, zv + 2.4, 3.1, 0.02, 0.7, WHITE)
+				k.box(3.0, 0.35, zv, 0.6, 1.6, 0.6, WHITE)
+				k.box(3.0, 1.6, zv, 0.62, 0.3, 0.62, Color("06d6a0"))
+			k.box(13.0, 0.35, 0, 10.0, 4.0, 22.0, Color("33495e"))
+			k.box(13.0, 4.35, 0, 11.0, 0.4, 23.0, WHITE)
+			k.box(13.0, 4.75, -6.0, 4.0, 0.1, 8.0, Color("1f3b5a"))
+			k.box(18.6, 0.35, 12.0, 0.12, 6.0, 0.12, ROOF)
+			k.z_cyl(18.6, 5.6, 12.0, 14.5, 0.35, 0.15, 6, Color("06d6a0"))
 		"aerodrome":
 			var l := float(t.len)
 			k.box(0, 0.0, 0, float(t.width), 0.06, l, Color("5f8f3e"))

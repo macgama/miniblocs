@@ -398,6 +398,41 @@ const LIST := [
 	{"name": "Paillettes or", "pat": "confettis", "c1": "c89a2a", "c2": "f6e08a", "price": 150, "fam": "evenements"},
 	{"name": "Paillettes argent", "pat": "confettis", "c1": "9aa0a8", "c2": "eef0f2", "price": 150, "fam": "evenements"},
 	{"name": "Gazon de fête", "pat": "herbe", "c1": "6aa84f", "c2": "4f8a3a", "price": 20, "fam": "evenements"},
+	{"name": "Pierre agglomérée", "pat": "pierre_taillee", "c1": "c8bfae", "c2": "a39a88", "price": 90, "fam": "murs"},
+	{"name": "Ciment moulé", "pat": "beton", "c1": "bdb6a6", "c2": "9e9788", "price": 80, "fam": "murs"},
+	{"name": "Grès flammé Art nouveau", "pat": "brique_vernie", "c1": "6a8a5a", "c2": "c9a24a", "price": 260, "fam": "murs"},
+	{"name": "Carreaux de métro", "pat": "carrelage", "c1": "f4f2ea", "c2": "d6d2c6", "price": 130, "fam": "murs"},
+	{"name": "Faïence Art déco", "pat": "carrelage", "c1": "1f5f6a", "c2": "d4b25a", "price": 220, "fam": "murs"},
+	{"name": "Mosaïque Art déco", "pat": "mosaique", "c1": "1f2a44", "c2": "c9a24a", "price": 240, "fam": "sols"},
+	{"name": "Ferronnerie Art nouveau", "pat": "grillage", "c1": "2f4a3a", "c2": "1f2a24", "price": 180, "fam": "metal_verre"},
+	{"name": "Bakélite", "pat": "plastique", "c1": "5a2a1a", "c2": "3a1a10", "price": 90, "fam": "decor"},
+	{"name": "Formica jaune", "pat": "plastique", "c1": "f2d04a", "c2": "e0be38", "price": 70, "fam": "decor"},
+	{"name": "Formica turquoise", "pat": "plastique", "c1": "5ac0c0", "c2": "48a8a8", "price": 70, "fam": "decor"},
+	{"name": "Gabions", "pat": "moellons", "c1": "9a958a", "c2": "6e6a62", "price": 60, "fam": "nature"},
+	{"name": "Tôle émaillée", "pat": "tole", "c1": "e8e4d8", "c2": "b0aca0", "price": 120, "fam": "toits"},
+	{"name": "Façade aluminium composite", "pat": "panneaux", "c1": "d0d4d8", "c2": "8a9096", "price": 210, "fam": "metal_verre"},
+	{"name": "Panneaux de béton préfabriqués", "pat": "panneaux", "c1": "c4bfb2", "c2": "9a958a", "price": 100, "fam": "murs"},
+	{"name": "Mur-rideau bronze", "pat": "panneaux", "c1": "6a5a3a", "c2": "3a3428", "price": 260, "fam": "metal_verre"},
+	{"name": "Vinyle de sol", "pat": "carrelage", "c1": "d8d0c0", "c2": "b8ae9a", "price": 50, "fam": "sols"},
+	{"name": "Parquet stratifié", "pat": "parquet", "c1": "c49a6a", "c2": "a07a4a", "price": 60, "fam": "sols"},
+	{"name": "Polymère blanc", "pat": "uni", "c1": "f6f4ee", "c2": "e6e2da", "price": 180, "fam": "decor"},
+	{"name": "Béton imprimé", "pat": "dalles", "c1": "b8a08a", "c2": "8a7460", "price": 70, "fam": "sols"},
+	{"name": "Panneaux solaires", "pat": "solaire", "c1": "1f2f5a", "c2": "9aa6b8", "price": 300, "fam": "toits"},
+	{"name": "Tuiles solaires", "pat": "solaire", "c1": "2a2a30", "c2": "4a4a52", "price": 340, "fam": "toits"},
+	{"name": "Bois lamellé-croisé", "pat": "planches_v", "c1": "dcbf94", "c2": "bf9f72", "price": 160, "fam": "bois"},
+	{"name": "Bardage composite gris", "pat": "planches_h", "c1": "8a8a86", "c2": "6e6e6a", "price": 120, "fam": "bois"},
+	{"name": "Bardage fibre-ciment", "pat": "fibrociment", "c1": "b8b4ac", "c2": "9a968e", "price": 110, "fam": "murs"},
+	{"name": "Baguettes de terre cuite", "pat": "planches_v", "c1": "c46a44", "c2": "9a4e30", "price": 230, "fam": "murs"},
+	{"name": "Coussins ETFE", "pat": "pave_verre", "c1": "d8ecf2", "c2": "a8cad6", "price": 350, "fam": "metal_verre"},
+	{"name": "Béton fibré blanc", "pat": "beton", "c1": "eeece6", "c2": "d6d2c8", "price": 200, "fam": "murs"},
+	{"name": "Carrelage grand format", "pat": "dalles", "c1": "d6d2ca", "c2": "bab6ae", "price": 120, "fam": "sols"},
+	{"name": "Pavés drainants", "pat": "autobloquant", "c1": "9a9a8e", "c2": "6e7a5a", "price": 70, "fam": "sols"},
+	{"name": "Mur végétal", "pat": "vegetal", "c1": "4f8a3a", "c2": "2f6a2a", "price": 260, "fam": "nature"},
+	{"name": "Métal perforé doré", "pat": "grillage", "c1": "c8a24a", "c2": "8a6a2a", "price": 280, "fam": "metal_verre"},
+	{"name": "Verre intelligent", "pat": "verre", "c1": "8ac0d8", "c2": "5a90b0", "price": 420, "fam": "metal_verre"},
+	{"name": "Façade OLED", "pat": "pixels", "c1": "20304a", "c2": "101828", "price": 500, "fam": "metal_verre"},
+	{"name": "Mycélium", "pat": "enduit", "c1": "e8dcc4", "c2": "c8b89a", "price": 150, "fam": "murs"},
+	{"name": "Biobéton", "pat": "beton", "c1": "a8b49a", "c2": "8a967c", "price": 180, "fam": "murs"},
 ]
 
 const FAMILIES := [
@@ -1027,6 +1062,13 @@ static func _pixel(pat: String, x: int, y: int, c1: Color, c2: Color, s: int) ->
 			if _h(x, y, s) > 0.9:
 				return _shade(c, 1.2)
 			return c
+		"solaire":
+			# Cellules photovoltaïques : quadrillage fin, cadre clair tous les 32 px.
+			if x % 32 == 0 or y % 32 == 0:
+				return _shade(c2, 1.0)
+			if x % 8 == 0 or y % 8 == 0:
+				return _shade(c1, 1.35)
+			return _shade(c1, 0.95 + _n(fx * 0.3, fy * 0.3, 0.1, s) * 0.05 + (0.08 if (x + y) % 32 < 3 else 0.0))
 		"panneaux":
 			if x % 32 == 0 or y % 21 == 0:
 				return _shade(c2, 0.7)

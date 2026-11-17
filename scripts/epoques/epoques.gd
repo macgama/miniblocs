@@ -213,6 +213,15 @@ const TRONCONS := {"ligne_ht": 1910, "ligne_mt": 1882, "conduite_eau": 0, "colle
 
 ## Matériaux de l'Atelier (BlocMateriaux.LIST) : mots du nom, première règle qui correspond.
 const MOTS_MATERIAUX := [
+	# Lot du 2026-11-17 (avant les règles générales : « béton fibré » avant « béton »).
+	["pierre agglomérée", 1850], ["ciment moulé", 1860], ["grès flammé", 1890], ["carreaux de métro", 1904],
+	["art déco", 1925], ["ferronnerie art nouveau", 1893], ["bakélite", 1910], ["formica", 1950], ["gabions", 1900],
+	["tôle émaillée", 1900], ["aluminium composite", 1969], ["béton préfabriqués", 1950], ["mur-rideau bronze", 1958],
+	["vinyle", 1950], ["stratifié", 1977], ["polymère", 1971], ["béton imprimé", 1970], ["panneaux solaires", 1995],
+	["tuiles solaires", 2016], ["lamellé-croisé", 1995], ["bardage composite", 2000], ["fibre-ciment", 1990],
+	["baguettes de terre cuite", 2000], ["etfe", 2001], ["béton fibré", 2000], ["grand format", 2005],
+	["pavés drainants", 2005], ["mur végétal", 1994], ["métal perforé", 2005], ["verre intelligent", 2025],
+	["oled", 2030], ["mycélium", 2030], ["biobéton", 2028],
 	["bâche", 1950], ["camouflage", 1915], ["confettis", 1890], ["écran led", 2000], ["néon", 1925], ["fibre de verre", 1950], ["polycarbonate", 1970], ["plastique", 1950],
 	["epdm", 1965], ["gazon synthétique", 1966], ["tartan", 1968], ["sol amortissant", 1980],
 	["sol sportif", 1970], ["résine", 1970], ["sol souple", 1960], ["caoutchouc", 1900], ["corten", 1965],

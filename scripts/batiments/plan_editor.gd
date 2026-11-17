@@ -88,11 +88,23 @@ const OPENINGS := {
 	"vitrine_store": {"name": "Vitrine à store", "s": 0.3, "t": 2.5, "price": 950, "bay": true, "store": true, "desc": "Vitrine de boutique avec son store rayé côté rue."},
 	"meurtriere": {"name": "Meurtrière", "s": 0.6, "t": 2.0, "price": 150, "special": "fente", "desc": "Fente étroite (château, tour de guet)."},
 	"claustra": {"name": "Claustra", "s": 0.1, "t": 2.6, "price": 300, "special": "claustra", "desc": "Mur ajouré qui laisse passer l'air et la lumière (moucharabieh)."},
+	# --- Ajouts du 2026-11-17 : combinaisons d'époque et du monde ------------------------
+	"porte_fenetre_volets": {"name": "Porte-fenêtre à volets", "s": 0.0, "t": 2.2, "price": 850, "leaf": true, "glass": true, "full": true, "volets": true, "desc": "Porte-fenêtre et ses volets battants (maison de campagne, Méditerranée)."},
+	"fenetre_cintree_volets": {"name": "Fenêtre cintrée à volets", "s": 0.9, "t": 2.4, "price": 650, "window": true, "forme": "rond", "volets": true, "desc": "Fenêtre à haut arrondi avec ses volets (Italie, Provence, Amérique latine)."},
+	"fenetre_ogive": {"name": "Fenêtre en ogive", "s": 0.8, "t": 2.6, "price": 550, "window": true, "forme": "brise", "desc": "Arc brisé sans vitrail (néo-gothique, architecture islamique, Venise)."},
+	"fenetre_balconnet": {"name": "Fenêtre à balconnet", "s": 0.3, "t": 2.3, "price": 700, "window": true, "balconnet": true, "desc": "Haute fenêtre et garde-corps de fer forgé (immeuble du XIXe siècle)."},
+	"fenetre_store": {"name": "Fenêtre à store", "s": 0.9, "t": 2.15, "price": 500, "window": true, "store": true, "desc": "Fenêtre abritée par un store en toile rayée (bord de mer, Méditerranée)."},
+	"fenetre_haute_volets": {"name": "Petite fenêtre à volets", "s": 1.3, "t": 2.1, "price": 380, "window": true, "volets": true, "desc": "Petite fenêtre de ferme ou de cuisine, avec ses volets."},
+	"hublot": {"name": "Hublot", "s": 1.2, "t": 2.1, "price": 350, "window": true, "forme": "oeil", "desc": "Fenêtre ronde des années 30 (style paquebot, Art déco, Streamline)."},
+	"baie_balconnet": {"name": "Baie à garde-corps", "s": 0.05, "t": 2.5, "price": 900, "bay": true, "balconnet": true, "desc": "Baie vitrée du sol au plafond fermée par un garde-corps (immeuble moderne)."},
+	"arcade_brisee": {"name": "Arcade brisée", "s": 0.0, "t": 2.7, "price": 140, "forme": "brise", "passage": true, "desc": "Passage en arc brisé (cloître gothique, souk, mosquée)."},
 }
 const OPENING_ORDER := ["porte", "porte_vitree", "porte_fenetre", "porte_entree", "porte_cintree", "porte_double", "porte_balcon",
 	"porte_garage", "porte_grange", "passage", "arcade",
 	"fenetre", "fenetre_volets", "fenetre_petits_bois", "fenetre_cintree", "fenetre_gothique", "oeil_de_boeuf", "fenetre_haute",
-	"fenetre_atelier", "bandeau", "baie", "baie_coulissante", "mur_rideau", "vitrine", "vitrine_store", "meurtriere", "claustra"]
+	"fenetre_atelier", "bandeau", "baie", "baie_coulissante", "mur_rideau", "vitrine", "vitrine_store", "meurtriere", "claustra",
+	"porte_fenetre_volets", "fenetre_cintree_volets", "fenetre_ogive", "fenetre_balconnet", "fenetre_store", "fenetre_haute_volets",
+	"hublot", "baie_balconnet", "arcade_brisee"]
 ## Vitrail des fenêtres gothiques, fer forgé des balconnets.
 const VITRAIL_MAT := 51
 const IRON_MAT := 56
@@ -2164,13 +2176,17 @@ static func _stair_box(k: Vector3i, r: int, s0: float, s1: float, c0: float, c1:
 
 ## Toit posé en blocs de l'éditeur sur le dernier étage du bâtiment :
 ## "deux_pans", "quatre_pans", "plat", "un_pan", "mansarde", "terrasse",
-## "dents_de_scie", "voute", "coupole", "bulbe", "conique" ou "pyramide".
+## "dents_de_scie", "voute", "coupole", "bulbe", "conique", "pyramide", "verriere",
+## "toit_vegetal", "toit_solaire", "plat_debord", "pagode" ou "comble_brise".
 ## Renvoie le nombre de blocs posés.
 const ROOFS := [["deux_pans", "Deux pans"], ["quatre_pans", "Quatre pans"], ["plat", "Toit plat"], ["un_pan", "Un pan"],
 	["mansarde", "Mansarde"], ["terrasse", "Terrasse"], ["dents_de_scie", "Sheds"], ["voute", "Voûte"],
-	["coupole", "Coupole"], ["bulbe", "Bulbe"], ["conique", "Conique"], ["pyramide", "Pyramide"]]
+	["coupole", "Coupole"], ["bulbe", "Bulbe"], ["conique", "Conique"], ["pyramide", "Pyramide"],
+	["verriere", "Verrière"], ["comble_brise", "Comble brisé (grange)"], ["pagode", "Pagode"], ["plat_debord", "Plat à grand débord"],
+	["toit_vegetal", "Toit végétalisé"], ["toit_solaire", "Toit solaire"]]
 ## Matériau par défaut d'un toit quand le matériau choisi n'est pas un matériau de toit.
-const ROOF_DEFAULT_MAT := {"mansarde": 8, "coupole": 47, "bulbe": 42, "conique": 8, "voute": 46, "dents_de_scie": 45, "terrasse": 23, "plat": 7}
+const ROOF_DEFAULT_MAT := {"mansarde": 8, "coupole": 47, "bulbe": 42, "conique": 8, "voute": 46, "dents_de_scie": 45, "terrasse": 23, "plat": 7,
+	"pagode": 89, "comble_brise": 177, "plat_debord": 23, "toit_vegetal": 23}
 
 
 func add_roof(id: String, kind: String, roof_mat := -1) -> int:
@@ -2254,6 +2270,81 @@ func _roof_groups(kind: String, lo: Vector2i, hi: Vector2i, over: int, y2: int, 
 		if not groups.has(code):
 			groups[code] = []
 		groups[code].append(key)
+	match kind:
+		"verriere":
+			# Deux pans tout en verre (halle, gare, passage couvert, serre).
+			return _roof_groups("deux_pans", lo, hi, over, y2, GLASS_MAT, wall_mat)
+		"toit_vegetal":
+			var vg := BlocMateriaux.index_of("Toit végétal")
+			return _roof_groups("terrasse", lo, hi, over, y2, vg if vg >= 0 else roof_mat, wall_mat)
+		"toit_solaire":
+			var sol := BlocMateriaux.index_of("Panneaux solaires")
+			return _roof_groups("un_pan", lo, hi, over, y2, sol if sol >= 0 else roof_mat, wall_mat)
+		"plat_debord":
+			# Dalle mince qui déborde largement (style Prairie, villas modernistes).
+			for x in range(x0 - 1, x1 + 2):
+				for z in range(z0 - 1, z1 + 2):
+					add.call(Vector3i(x, y2, z), BlocFormes.encode(roof_mat, BlocFormes.S.SLAB))
+			return groups
+		"pagode":
+			# Avant-toit en couronne qui déborde de deux cases, un étage de murs en
+			# retrait, puis un toit à quatre pans : silhouette de pagode ou de temple.
+			var px0 := x0 - 1
+			var px1 := x1 + 1
+			var pz0 := z0 - 1
+			var pz1 := z1 + 1
+			for x in range(px0 + 1, px1):
+				add.call(Vector3i(x, y2, pz0), BlocFormes.encode(roof_mat, BlocFormes.S.SLOPE_LOW, 0))
+				add.call(Vector3i(x, y2, pz1), BlocFormes.encode(roof_mat, BlocFormes.S.SLOPE_LOW, 2))
+			for z in range(pz0 + 1, pz1):
+				add.call(Vector3i(px0, y2, z), BlocFormes.encode(roof_mat, BlocFormes.S.SLOPE_LOW, 3))
+				add.call(Vector3i(px1, y2, z), BlocFormes.encode(roof_mat, BlocFormes.S.SLOPE_LOW, 1))
+			for c in [[px0, pz0], [px1, pz0], [px1, pz1], [px0, pz1]]:
+				add.call(Vector3i(c[0], y2, c[1]), BlocFormes.encode(roof_mat, BlocFormes.S.SLAB))
+			for x in range(px0 + 1, px1):
+				for z in range(pz0 + 1, pz1):
+					add.call(Vector3i(x, y2, z), BlocFormes.encode(roof_mat, BlocFormes.S.SLAB))
+			if hi.x - lo.x < 2 or hi.y - lo.y < 2:
+				return groups
+			var lo2 := lo + Vector2i(1, 1)
+			var hi2 := hi - Vector2i(1, 1)
+			for x in range(lo2.x, hi2.x + 1):
+				for z in range(lo2.y, hi2.y + 1):
+					if x == lo2.x or x == hi2.x or z == lo2.y or z == hi2.y:
+						add.call(Vector3i(x, y2 + hu, z), BlocFormes.encode(wall_mat))
+			var up := _roof_groups("quatre_pans", lo2, hi2, 1, y2 + 2 * hu, roof_mat, wall_mat)
+			for code in up:
+				for key in up[code]:
+					add.call(key, code)
+			return groups
+		"comble_brise":
+			# Comble brisé à l'américaine (grange) : deux rangs raides sur chaque
+			# long pan, puis une pente douce jusqu'au faîtage.
+			var along_xb := (x1 - x0) >= (z1 - z0)
+			var nb := (z1 - z0 + 1) if along_xb else (x1 - x0 + 1)
+			for j in nb:
+				var fe := mini(j, nb - 1 - j)
+				var rising := j < nb - 1 - j
+				var middle := j == nb - 1 - j
+				var layer := fe if fe < 2 else 2 + (fe - 2) / 2
+				var sh: int
+				if middle:
+					sh = BlocFormes.S.SLAB
+				elif fe < 2:
+					sh = BlocFormes.S.SLOPE
+				else:
+					sh = BlocFormes.S.SLOPE_LOW if (fe - 2) % 2 == 0 else BlocFormes.S.SLOPE_HIGH
+				var r := 0 if middle else ((0 if rising else 2) if along_xb else (3 if rising else 1))
+				for q in (range(x0, x1 + 1) if along_xb else range(z0, z1 + 1)):
+					add.call(Vector3i(q, y2 + layer * hu, z0 + j) if along_xb else Vector3i(x0 + j, y2 + layer * hu, q),
+						BlocFormes.encode(roof_mat, sh, r))
+				if j == 0 or j == nb - 1:
+					continue
+				for gq in ([lo.x, hi.x] if along_xb else [lo.y, hi.y]):
+					for l in layer:
+						add.call(Vector3i(gq, y2 + l * hu, z0 + j) if along_xb else Vector3i(x0 + j, y2 + l * hu, gq),
+							BlocFormes.encode(wall_mat))
+			return groups
 	var piece_kinds := {"coupole": BlocFormes.S.P_DOME, "bulbe": BlocFormes.S.P_ONION, "conique": BlocFormes.S.P_CONE, "pyramide": BlocFormes.S.P_PYRAMID}
 	if piece_kinds.has(kind):
 		# Une grande pièce centrée sur l'emprise, une dalle sur le reste.

@@ -73,6 +73,26 @@ la sanisette devient vespasienne, l'abribus vitré redevient abribus, la borne d
 
 La planche sait aussi montrer les décors et les meubles : `--decors bec_gaz,torii` ou `--meubles victorien/phonographe`.
 
-## Lots suivants
+## Lot 3 : Atelier et parc de loisirs (2026-11-17)
 
-- Lot 3 : matériaux, toits, portes et fenêtres, attractions de 1900-1950, voies et stations.
+**35 nouveaux matériaux** (`BlocMateriaux.LIST`, 419 en tout), datés par `Epoques.MOTS_MATERIAUX` :
+
+| Époque | Matériaux ajoutés (année) |
+|---|---|
+| 1850-1950 | Pierre agglomérée (1850), ciment moulé (1860), grès flammé (1890), ferronnerie Art nouveau (1893), gabions et tôle émaillée (1900), carreaux de métro (1904), bakélite (1910), faïence et mosaïque Art déco (1925) |
+| 1950-1990 | Formica jaune et turquoise, vinyle de sol, panneaux de béton préfabriqués (1950), mur-rideau bronze (1958), façade aluminium composite (1969), béton imprimé (1970), polymère blanc (1971), parquet stratifié (1977) |
+| 1990 et après | Fibre-ciment (1990), mur végétal (1994), panneaux solaires et bois lamellé-croisé (1995), bardage composite, baguettes de terre cuite, béton fibré (2000), coussins ETFE (2001), carrelage grand format, pavés drainants, métal perforé doré (2005), tuiles solaires (2016) |
+| Demain | Verre intelligent (2025), biobéton (2028), mycélium et façade OLED (2030) |
+
+**6 nouveaux toits** (18 en tout) : verrière (1830), comble brisé de grange, pagode à deux niveaux, toit plat à grand
+débord (1905), toit végétalisé (1970), toit solaire (1995).
+
+**9 nouvelles portes et fenêtres** (36 en tout) : porte-fenêtre à volets, fenêtre cintrée à volets, fenêtre en ogive,
+petite fenêtre à volets, arcade brisée (de tout temps), fenêtre à balconnet (1850), fenêtre à store (1880), hublot et
+baie à garde-corps (1930).
+
+**5 attractions d'avant-guerre** (`VoiePieces.FAMILLES`, 15 en tout), qui reprennent le dessin d'une famille existante
+(clé `base`) : montagnes russes panoramiques (1887), tunnel de l'amour (1902), tour de glissade (1905), bobsleigh (1929),
+train fantôme (1930, avec son modèle prêt à poser « Le Château Hanté »).
+
+La planche montre aussi `--toits`, `--ouvertures` et `--materiaux "Nom,Nom"`.

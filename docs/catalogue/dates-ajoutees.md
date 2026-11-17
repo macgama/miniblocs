@@ -10,9 +10,9 @@ dans `scripts/epoques/epoques_objets.gd` (classe EpoquesObjets). « toujours » 
 
 **De tout temps** : Abbaye cistercienne, Amphithéâtre romain, Aqueduc romain, Arc de triomphe, Atelier d'artisan, Auberge de montagne, Banque, Bergerie, Boucherie-charcuterie, Boulangerie de village, Bureau de poste, Caravansérail, Case obus, Cases rondes, Casino, Cathédrale gothique, Cerisier en fleurs, Chalet de l'Oberland, Chalet valaisan, Chapelle alpine, Château fort, Château japonais, Château viticole, Cortijo andalou, Cottage anglais, Ferme bavaroise, Ferme d'alpage, Ferme jurassienne, Ferme à cour carrée, Grande mosquée de terre, Grange américaine, Grenier à riz, Hacienda, Hanok, Haras, Haveli, Hôtel de ville à beffroi, Isba, Izakaya, Jardin à la française, Kasbah, Lanterne de pierre, Librairie, Longère bretonne, Machiya, Mairie de village, Maison alsacienne, Maison basque, Maison coloniale, Maison d'adobe, Maison de canal, Maison des Cyclades, Maison longue, Maison normande, Maison scandinave, Maison swahilie, Maison thaïe sur pilotis, Maison à tours du vent, Maison-tour yéménite, Maisons en bande, Mas provençal, Minka, Mission espagnole, Mosquée, Moulin à eau, Moulin à vent, Musée des beaux-arts, Mâts totémiques, Obélisque, Opéra, Pagode à cinq toits, Palais de justice, Phare, Piazza à obélisque, Place pavée, Pyramide maya, Rangée de boutiques, Riad, Ryokan, Siheyuan, Souk couvert, Square, Statue équestre, Stupa, Stupa, Synagogue, Temple grec, Temple hindou, Temple réformé, Temple thaï, Théâtre municipal, Tongkonan, Torii, Trullo, Tulou, Village de greniers dogon, Wharenui, Église baroque à bulbe, Église en bois de Chiloé, Église monolithe, Église orthodoxe, Église romane.
 
-## Grands-huit et attractions : 56
+## Grands-huit et attractions : 61
 
-**Datés** : Sommet en chapeau (2003), Plongeon (dive loop) à droite (2000), Plongeon (dive loop) à gauche (2000), Chute verticale (1998), Montée verticale (1998), Sortie de chute verticale (1998), Sortie de verticale (montée) (1998), Immelmann (sort à droite) (1995), Immelmann (sort à gauche) (1995), Grand-huit suspendu (1981), Rivière à bouées (1980), Grand-huit lancé (1977), Lanceur (100 km/h) (1977), Looping (1976), Petit looping (1976), Tire-bouchon à droite (1975), Tire-bouchon à gauche (1975), Vrille à droite (1975), Vrille à gauche (1975), Train de la mine (1966), Bûches (1963), Toboggan aquatique (1960), Grand-huit en acier (1959), Hélice à droite (descend) (1959), Hélice à gauche (descend) (1959), Grand-huit junior (1950), Bateau splash (1884), Grand-huit en bois (1884).
+**Datés** : Sommet en chapeau (2003), Plongeon (dive loop) à droite (2000), Plongeon (dive loop) à gauche (2000), Chute verticale (1998), Montée verticale (1998), Sortie de chute verticale (1998), Sortie de verticale (montée) (1998), Immelmann (sort à droite) (1995), Immelmann (sort à gauche) (1995), Grand-huit suspendu (1981), Rivière à bouées (1980), Grand-huit lancé (1977), Lanceur (100 km/h) (1977), Looping (1976), Petit looping (1976), Tire-bouchon à droite (1975), Tire-bouchon à gauche (1975), Vrille à droite (1975), Vrille à gauche (1975), Train de la mine (1966), Bûches (1963), Toboggan aquatique (1960), Grand-huit en acier (1959), Hélice à droite (descend) (1959), Hélice à gauche (descend) (1959), Grand-huit junior (1950), Train fantôme (1930), Bobsleigh (1929), Tour de glissade (1905), Tunnel de l'amour (1902), Montagnes russes panoramiques (1887), Bateau splash (1884), Grand-huit en bois (1884).
 
 **De tout temps** : Bassin d'arrivée, Bosse (airtime), Courbe à droite (45°), Courbe à gauche (45°), Creux, Demi-tour à droite, Demi-tour à gauche, Descente adoucie, Descente raide, Droit, Droit court, Droit long, Début de descente, Début de montée, Fin de descente, Fin de montée, Freins, Grand virage à droite, Grand virage à gauche, Grande bosse, Montée adoucie, Montée raide, Rapides, Tourbillon, Tunnel décoré, Virage à droite, Virage à gauche, Éclaboussure.
 
@@ -22,17 +22,17 @@ dans `scripts/epoques/epoques_objets.gd` (classe EpoquesObjets). « toujours » 
 
 **De tout temps** : Bassin d'ornement, Gradins antiques, Gradins en bois, Green de golf, Talus en gazon.
 
-## Portes et fenêtres : 27
+## Portes et fenêtres : 36
 
-**Datés** : Baie coulissante (1950), Mur-rideau (1950), Baie vitrée (1930), Fenêtre en bandeau (1925), Porte de garage (1910), Fenêtre d'atelier (1850), Vitrine (1850), Vitrine à store (1850).
+**Datés** : Baie coulissante (1950), Mur-rideau (1950), Baie vitrée (1930), Baie à garde-corps (1930), Hublot (1930), Fenêtre en bandeau (1925), Porte de garage (1910), Fenêtre à store (1880), Fenêtre d'atelier (1850), Fenêtre à balconnet (1850), Vitrine (1850), Vitrine à store (1850).
 
-**De tout temps** : Arcade, Claustra, Fenêtre, Fenêtre cintrée, Fenêtre gothique, Fenêtre haute, Fenêtre à petits bois, Fenêtre à volets, Meurtrière, Passage, Porte, Porte cintrée, Porte d'entrée, Porte de grange, Porte double, Porte vitrée, Porte-fenêtre, Porte-fenêtre à balconnet, Œil-de-bœuf.
+**De tout temps** : Arcade, Arcade brisée, Claustra, Fenêtre, Fenêtre cintrée, Fenêtre cintrée à volets, Fenêtre en ogive, Fenêtre gothique, Fenêtre haute, Fenêtre à petits bois, Fenêtre à volets, Meurtrière, Passage, Petite fenêtre à volets, Porte, Porte cintrée, Porte d'entrée, Porte de grange, Porte double, Porte vitrée, Porte-fenêtre, Porte-fenêtre à balconnet, Porte-fenêtre à volets, Œil-de-bœuf.
 
-## Toits : 12
+## Toits : 18
 
-**Datés** : Terrasse (1920), Sheds (1830).
+**Datés** : Toit solaire (1995), Toit végétalisé (1970), Terrasse (1920), Plat à grand débord (1905), Sheds (1830), Verrière (1830).
 
-**De tout temps** : Bulbe, Conique, Coupole, Deux pans, Mansarde, Pyramide, Quatre pans, Toit plat, Un pan, Voûte.
+**De tout temps** : Bulbe, Comble brisé (grange), Conique, Coupole, Deux pans, Mansarde, Pagode, Pyramide, Quatre pans, Toit plat, Un pan, Voûte.
 
 ## Décors : 291
 

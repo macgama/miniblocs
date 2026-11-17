@@ -7,6 +7,8 @@ extends SceneTree
 ##   ... -- --vehicules serie_1908,tonga --colonnes 6
 ##   ... -- --batiments maison,villa
 ##   ... -- --decors bec_gaz,torii   ou   --meubles phonographe_x,radio_tsf_y
+##   ... -- --toits pagode,verriere   ou   --ouvertures hublot,fenetre_ogive (maquettes de l'Atelier)
+##   ... -- --materiaux "Mycélium,Biobéton"   (cubes de 2 m)
 ## --colonnes N : objets par ligne. --yaw / --pitch : angle de la caméra. --largeur / --hauteur : taille de l'image.
 
 
@@ -42,6 +44,15 @@ func _run() -> void:
 			"--meubles":
 				genre = "meuble"
 				ids.append_array(v.split(","))
+			"--toits":
+				genre = "toit"
+				ids.append_array(v.split(","))
+			"--ouvertures":
+				genre = "ouverture"
+				ids.append_array(v.split(","))
+			"--materiaux":
+				genre = "materiau"
+				ids.append_array(v.split(","))
 			"--colonnes": cols = v.to_int()
 			"--yaw": yaw = v.to_float()
 			"--pitch": pitch = v.to_float()
@@ -68,7 +79,13 @@ func _run() -> void:
 	# Cases de la grille : taille de la plus grande emprise.
 	var cell := 4.0
 	for id in ids:
-		if genre == "decor" or genre == "meuble":
+		if genre == "materiau":
+			cell = 4.0
+		elif genre == "toit":
+			cell = maxf(cell, 12.0)
+		elif genre == "ouverture":
+			cell = maxf(cell, 6.0)
+		elif genre == "decor" or genre == "meuble":
 			cell = maxf(cell, _taille(genre, id) + 2.0)
 		elif genre == "vehicule":
 			var t := VehicleCatalog.get_type(id)
@@ -83,7 +100,26 @@ func _run() -> void:
 	for i in ids.size():
 		var id := String(ids[i])
 		var mesh: ArrayMesh
-		if genre == "decor":
+		if genre == "materiau":
+			var mid := BlocMateriaux.index_of(id)
+			if mid < 0:
+				push_error("matériau inconnu : " + id)
+				continue
+			var bm := BlocMesher.new()
+			var cells := {}
+			for x in 2:
+				for y in roundi(BlockEditor.HU):
+					for z in 2:
+						cells[Vector3i(x, y, z)] = BlocFormes.encode(mid)
+			for kk: Vector3i in cells:
+				BlocFormes.emit(bm, int(cells[kk]), Vector3(kk.x * BlockEditor.SIZE, kk.y * BlockEditor.UNIT_Y, kk.z * BlockEditor.SIZE),
+					func(off: Vector3i) -> int: return int(cells.get(kk + off, -1)))
+			mesh = bm.to_mesh()
+		elif genre == "toit":
+			mesh = VignettesAtelier.roof_mesh(id)
+		elif genre == "ouverture":
+			mesh = VignettesAtelier.opening_mesh(id)
+		elif genre == "decor":
 			mesh = Decors.mesh(id) as ArrayMesh
 			if mesh == null:
 				push_error("décor inconnu : " + id)
@@ -110,6 +146,8 @@ func _run() -> void:
 		var cx := (i % cols - (cols - 1) / 2.0) * cell
 		var cz := (int(i / cols) - (rows - 1) / 2.0) * cell
 		mi.position = Vector3(cx, 0, cz)
+		if genre == "toit" or genre == "ouverture" or genre == "materiau":
+			mi.position -= mesh.get_aabb().get_center() * Vector3(1, 0, 1)
 		mi.rotation_degrees.y = 90.0 + 30.0 if genre == "vehicule" else 30.0
 		scene.add_child(mi)
 		maxh = maxf(maxh, mesh.get_aabb().size.y)
@@ -164,6 +202,12 @@ func _taille(genre: String, id: String) -> float:
 
 func _nom(genre: String, id: String) -> String:
 	match genre:
+		"toit":
+			for r in PlanEditor.ROOFS:
+				if r[0] == id:
+					return String(r[1])
+		"ouverture": return String(PlanEditor.OPENINGS.get(id, {}).get("name", id))
+		"materiau": return id
 		"vehicule": return String(VehicleCatalog.get_type(id).get("name", id))
 		"decor": return Decors.nom(id)
 		"meuble": return String(Meubles.get_entry(id).get("n", id))

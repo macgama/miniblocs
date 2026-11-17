@@ -24,10 +24,10 @@ passare una volta ogni schermata in italiano.
 
 ## Descrizione breve
 
-Mostrata sotto la capsula, al massimo 300 caratteri (questa ne ha 282).
+Mostrata sotto la capsula, al massimo 300 caratteri (questa ne ha 276).
 
 ```
-Scegli un punto qualsiasi della Terra, posa il municipio e costruisci una città viva su un terreno reale, un metro quadro alla volta. Strade, reti, abitanti che nascono, lavorano e votano, parchi divertimenti, zoo e squadra di calcio: sei il sindaco... finché gli elettori vorranno.
+Scegli un punto qualsiasi della Terra e un anno dal 1800, posa il municipio e costruisci una città viva su un terreno reale, un metro quadro alla volta. Abitanti che nascono, lavorano e votano, reti, parchi, zoo e club sportivo: sei il sindaco... finché gli elettori vorranno.
 ```
 
 ## Descrizione lunga («Informazioni sul gioco»)
@@ -67,7 +67,8 @@ La città cresce? Fonda paesi vicini, ognuno con la propria cassa, e affidali al
 [*][b]Zoo[/b] con recinti e 34 specie.
 [*][b]Musei[/b]: 208 opere, 24 temi espositivi.
 [*][b]Spettacoli[/b]: cinema, teatri, sale da concerto, studi cinematografici.
-[*][b]Squadra di calcio[/b]: rosa, trasferimenti, un campionato dal regionale fino alla massima serie, partite giocate nel tuo stadio.
+[*][b]Polisportiva[/b]: calcio, basket, pallamano, hockey su ghiaccio, rugby e tennis. Rosa, settore giovanile, trasferimenti, tifosi, un campionato dal regionale fino alla massima serie, partite giocate nel tuo stadio.
+[*][b]Turismo[/b]: alberghi, spiagge, natura e monumenti attirano i visitatori... e infastidiscono gli abitanti quando sono troppi.
 [*]Mercati, feste di paese, campi sportivi, spiagge e 160 decorazioni da spargere col pennello.
 [/list]
 
@@ -77,8 +78,26 @@ Fattorie e raccolti, cave a gradoni, fabbriche, camion di consegna: le risorse s
 [h2]Una sandbox con regole (scelte da te)[/h2]
 Gioca in modalità Normale o apri il pannello Admin: soldi iniziali o illimitati, costo delle costruzioni, velocità del tempo, esaurimento delle risorse, edifici sbloccati. Nessun game over improvviso: una città indebitata rallenta, non crolla.
 
+[h2]Dal 1800 a oggi[/h2]
+Comincia nel 1800 con strade sterrate, diligenze e lampade a olio, oppure parti subito dai giorni nostri. Materiali, edifici, veicoli, macchine agricole e servizi pubblici seguono l'epoca: il primo tram arriva quando deve arrivare.
+
+[h2]Una città con veri problemi da città[/h2]
+[list]
+[*][b]Stagioni e catastrofi[/b]: alluvioni, tempeste, incendi, inverni rigidi. Prevedi bacini di laminazione e caserme dei pompieri.
+[*][b]Sanità pubblica[/b]: medici, ospedali, vaccinazioni ed epidemie che si propagano quartiere per quartiere.
+[*][b]Clima e inquinamento[/b]: CO₂, riscaldamento, innalzamento del mare, suoli inquinati e piano clima del comune.
+[*][b]Mercato immobiliare vivo[/b]: affitti, vendite, case vuote, quartieri che salgono o decadono.
+[*][b]Istruzione per paese[/b]: dalla scuola elementare all'università, con i veri percorsi (apprendistato, maturità, scuole universitarie professionali).
+[*][b]Commercio tra città e paesi[/b]: mercato, accordi, crisi del petrolio.
+[*][b]Sottosuolo[/b]: condotte, gallerie, metropolitana, cantine e bunker in una vista sotterranea.
+[*][b]Patrimonio[/b]: tutela i vecchi edifici e avvia grandi monumenti che richiedono anni di lavoro.
+[/list]
+
+[h2]Racconta la tua città[/h2]
+Il giornale locale commenta le tue decisioni (non sempre con gentilezza), la modalità foto e il time-lapse mostrano la città che cresce, gli scenari propongono sfide pronte, e puoi visitare la città di un amico, lasciargli una cartolina o condividere i tuoi edifici nel Workshop. Gli streamer possono perfino far votare la chat di Twitch sulle decisioni del sindaco.
+
 [h2]In arrivo[/h2]
-MiniBlocs è fatto da un solo sviluppatore. Prossimi passi: una mappa sempre accessibile da condividere con gli amici, poi una mappa del mondo condivisa in cui ogni giocatore è sindaco della propria città, altri sport, catastrofi e turismo.
+MiniBlocs è fatto da un solo sviluppatore. La mappa tra amici, sempre accessibile anche quando il suo creatore dorme, è in fase di test e aprirà durante l'accesso anticipato. Poi arriverà una mappa del mondo condivisa in cui ogni giocatore è sindaco della propria città.
 ```
 
 ## Punti di forza (social, cartella stampa)
@@ -90,7 +109,11 @@ MiniBlocs è fatto da un solo sviluppatore. Prossimi passi: una mappa sempre acc
 - Reti complete: elettricità, acqua, fogne, telecomunicazioni, rifiuti.
 - Elezioni, paesi, più città con la propria cassa, pilota automatico.
 - Vista a livello della strada in terza e prima persona, guida dei veicoli.
-- Parchi divertimenti, zoo, musei, luoghi di spettacolo, squadra di calcio.
+- Parchi divertimenti, zoo, musei, luoghi di spettacolo, polisportiva (calcio, basket, pallamano, hockey, rugby, tennis).
+- Partenza nel 1800 o più tardi: edifici, veicoli e macchine d'epoca.
+- Stagioni e catastrofi, sanità ed epidemie, clima e inquinamento, mercato immobiliare, turismo, patrimonio e grandi monumenti.
+- Costruzione nel sottosuolo, commercio tra città e paesi, istruzione per paese.
+- Giornale cittadino, modalità foto e time-lapse, scenari, visite agli amici, modalità streamer per Twitch.
 - Musica originale: *Valzer del permesso di costruire*, *Blues della buca*, *Consiglio comunale (in ritardo)*...
 - Demo guidata di 30 minuti.
 - 62 obiettivi, controller e Steam Deck, condivisione delle creazioni (Workshop).
@@ -109,7 +132,7 @@ MiniBlocs è fatto da un solo sviluppatore. Prossimi passi: una mappa sempre acc
 
 Stessa lista della pagina francese (i tag si impostano una volta, in inglese): City Builder,
 Simulation, Building, Sandbox, Management, Economy, Strategy, Open World, Realistic,
-Life Sim, Transportation, Trains, Low Poly, Singleplayer, Relaxing, Soccer, Agriculture,
+Life Sim, Transportation, Trains, Low Poly, Singleplayer, Relaxing, Sports, Agriculture,
 Third Person, Indie, 3D.
 
 ## Requisiti di sistema (Windows)
@@ -150,12 +173,13 @@ come deve funzionare la mappa condivisa.
 Circa un anno, a seconda dei riscontri.
 
 **In cosa differirà la versione completa?**
-La mappa tra amici, poi la mappa del mondo condivisa, altri sport per il club, catastrofi
-e stagioni più marcate, turismo, altre lingue.
+La mappa tra amici, poi la mappa del mondo condivisa, altre regioni del mondo nel catalogo
+degli edifici, parco divertimenti e polisportiva arricchiti in base ai riscontri, altre lingue.
 
 **Qual è lo stato attuale della versione in accesso anticipato?**
-Un gioco completo per giocatore singolo: fondazione, crescita fino alla grande città, reti,
-abitanti, elezioni, più città, svago e squadra di calcio. La demo guidata dura 30 minuti.
+Un gioco completo per giocatore singolo, dal 1800 a oggi: fondazione, crescita fino alla
+grande città, reti, abitanti, elezioni, più città, svago, polisportiva, stagioni e
+catastrofi, sanità, clima, turismo. La demo guidata dura 30 minuti.
 
 **Il prezzo cambierà durante e dopo l'accesso anticipato?**
 Il prezzo aumenterà leggermente all'uscita della versione completa.

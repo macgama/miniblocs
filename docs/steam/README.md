@@ -38,6 +38,7 @@ voir [../demo.md](../demo.md)). Capsules et logos : dans ce dépôt, `marque/ste
 | Capsule principale | 1232 × 706 | marque/steam/capsule-principale-1232x706.png | prête |
 | Capsule verticale | 748 × 896 | marque/steam/capsule-verticale-748x896.png | prête |
 | Capsule bibliothèque | 600 × 900 | marque/steam/capsule-bibliotheque-600x900.png | prête |
+| Annonces Steam (couverture, en-tête) | 800 × 450, 1920 × 622 | marque/steam/annonce-couverture-800x450.png, annonce-entete-1920x622.png | prêtes |
 | Fond de page | 1438 × 810 | marque/steam/fond-page-1438x810.png | prête (facultatif) |
 | Héros de bibliothèque | 3840 × 1240 | marque/steam/heros-bibliotheque-3840x1240.png | prêt (sans texte, comme Steam le demande) |
 | Logo de bibliothèque | 1280 × 720, fond transparent | marque/steam/logo-bibliotheque-1280x720.png | prêt |
@@ -50,6 +51,44 @@ marché, 08 bilan. La première est celle qu'on voit au survol dans les listes.
 
 Logo de bibliothèque : dans Steamworks, le placer en bas à gauche du héros. Steam refuse les capsules avec des notes,
 des récompenses ou des mentions comme « Nouveau » ou « En promo ».
+
+## Le jour où Steam donne l'App ID (liste de souhaits)
+
+Une fois les 100 $ payés, Steamworks donne un numéro à MiniBlocs (l'App ID, par exemple
+`1234560`). Il se reporte à quatre endroits pour que tous les boutons mènent à la liste de
+souhaits :
+
+| Où | Quoi changer |
+|---|---|
+| `scripts/edition/edition_demo.gd` | `const APP_ID := 0` → le numéro (bouton « Ajouter à ma liste de souhaits » de la démo et de son écran de fin) |
+| Godot, Projet → Paramètres du projet | ajouter le réglage `steam/initialization/app_id` = le numéro (Workshop, succès) |
+| `tools/site/construire.py` | `CONFIG["steam_miniblocs"]` = `https://store.steampowered.com/app/<numéro>/MiniBlocs/`, puis reconstruire et téléverser le site |
+| Réseaux (bios YouTube, Discord, TikTok) | le même lien |
+
+Ensuite, dans l'ordre :
+
+1. Remplir la page (textes de ce dossier, capsules de `marque/steam/`, captures, bande-annonce).
+2. Cliquer « Prête pour vérification » : Valve vérifie en quelques jours ouvrés.
+3. Publier la page **Prochainement** : les joueurs peuvent l'ajouter à leur liste de souhaits.
+4. Le même jour, publier l'annonce ci-dessous sur Steam (Événements et annonces), le site et
+   les réseaux.
+5. Créer la page développeur ManiGames (Steamworks → Homepage du développeur) avec le logo
+   choisi, puis la lier à MiniBlocs.
+
+### Annonce « La page est en ligne »
+
+> **FR** : MiniBlocs a sa page Steam ! Choisis n'importe quel lieu sur Terre et n'importe
+> quelle année depuis 1800, et bâtis ta ville au mètre près. Le jeu sort en accès anticipé
+> en 2027. Ajoute-le à ta liste de souhaits : c'est le meilleur moyen de soutenir un jeu
+> fait par une seule personne, et tu seras prévenu le jour de la sortie.
+>
+> **EN**: MiniBlocs now has a Steam page! Pick any spot on Earth and any year from 1800,
+> and build your town one square metre at a time. The game launches in Early Access in
+> 2027. Add it to your wishlist: it's the best way to support a game made by one person,
+> and you'll be notified on launch day.
+
+Images de l'annonce (Steam les demande) : couverture 800 × 450 et en-tête 1920 × 622,
+`marque/steam/annonce-couverture-800x450.png` et `annonce-entete-1920x622.png`.
 
 ## Contenu généré par IA (questionnaire obligatoire)
 

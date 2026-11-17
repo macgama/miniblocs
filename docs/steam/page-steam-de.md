@@ -24,10 +24,10 @@ Veröffentlichen jeden Bildschirm einmal auf Deutsch durchgehen.
 
 ## Kurzbeschreibung
 
-Unter der Kapsel angezeigt, höchstens 300 Zeichen (diese hat 292).
+Unter der Kapsel angezeigt, höchstens 300 Zeichen (diese hat 291).
 
 ```
-Wähle einen beliebigen Ort der Erde, setz dein Rathaus und bau eine lebendige Stadt auf echtem Gelände, Quadratmeter für Quadratmeter. Straßen, Netze, Einwohner, die geboren werden, arbeiten und wählen, Freizeitparks, Zoo und Fußballverein: Du bist Bürgermeister... solange die Wähler wollen.
+Wähle einen Ort der Erde und ein Jahr ab 1800, setz dein Rathaus und bau eine lebendige Stadt auf echtem Gelände, Quadratmeter für Quadratmeter. Einwohner, die geboren werden, arbeiten und wählen, Netze, Freizeitparks, Zoo und Sportverein: Du bist Bürgermeister... solange die Wähler wollen.
 ```
 
 ## Ausführliche Beschreibung („Über dieses Spiel“)
@@ -67,7 +67,8 @@ Die Stadt wächst? Gründe Nachbardörfer, jedes mit eigener Kasse, und überlas
 [*][b]Zoo[/b] mit Gehegen und 34 Arten.
 [*][b]Museen[/b]: 208 Exponate, 24 Ausstellungsthemen.
 [*][b]Unterhaltung[/b]: Kinos, Theater, Konzertsäle, Filmstudios.
-[*][b]Fußballverein[/b]: Kader, Transfers, eine Liga von der Regionalliga bis ganz nach oben, Spiele in deinem eigenen Stadion.
+[*][b]Mehrspartenverein[/b]: Fußball, Basketball, Handball, Eishockey, Rugby und Tennis. Kader, Nachwuchsakademie, Transfers, Fans, eine Liga von der Regionalliga bis ganz nach oben, Spiele in deinem eigenen Stadion.
+[*][b]Tourismus[/b]: Hotels, Strände, Natur und Denkmäler locken Besucher an... und nerven die Einwohner, wenn es zu viele werden.
 [*]Märkte, Dorffeste, Sportplätze, Strände und 160 Dekorationen, die man mit dem Pinsel verteilt.
 [/list]
 
@@ -77,8 +78,26 @@ Höfe und Ernten, Steinbrüche in Terrassen, Fabriken, Lieferwagen: Rohstoffe we
 [h2]Ein Sandkasten mit Regeln (die du wählst)[/h2]
 Spiel im Normalmodus oder öffne das Admin-Fenster: Startgeld oder unbegrenztes Geld, Baukosten, Zeitgeschwindigkeit, Erschöpfung der Rohstoffe, freigeschaltete Gebäude. Kein plötzliches Game over: Eine verschuldete Stadt wird langsamer, sie bricht nicht zusammen.
 
+[h2]Von 1800 bis heute[/h2]
+Beginne 1800 mit Feldwegen, Postkutschen und Öllampen oder steig direkt in der Gegenwart ein. Baustoffe, Gebäude, Fahrzeuge, Landmaschinen und öffentliche Dienste folgen der Epoche: Die erste Straßenbahn kommt, wenn ihre Zeit gekommen ist.
+
+[h2]Eine Stadt mit echten Stadtproblemen[/h2]
+[list]
+[*][b]Jahreszeiten und Katastrophen[/b]: Hochwasser, Stürme, Brände, harte Winter. Plane Rückhaltebecken und Feuerwachen ein.
+[*][b]Gesundheit[/b]: Ärzte, Spitäler, Impfungen und Epidemien, die sich Viertel für Viertel ausbreiten.
+[*][b]Klima und Umwelt[/b]: CO₂, Erwärmung, steigender Meeresspiegel, belastete Böden und der Klimaplan deiner Gemeinde.
+[*][b]Lebendiger Immobilienmarkt[/b]: Mieten, Verkäufe, leere Wohnungen, Viertel im Aufschwung oder im Niedergang.
+[*][b]Bildung je nach Land[/b]: von der Primarschule bis zur Universität, mit echten Bildungswegen (Lehre, Matura, Fachhochschulen).
+[*][b]Handel zwischen Städten und Ländern[/b]: Markt, Abkommen, Ölkrisen.
+[*][b]Unter der Erde[/b]: Leitungen, Tunnel, U-Bahn, Keller und Bunker in einer Untergrundansicht.
+[*][b]Kulturerbe[/b]: Stell alte Gebäude unter Schutz und bau große Denkmäler, die mehrere Jahre brauchen.
+[/list]
+
+[h2]Erzähl die Geschichte deiner Stadt[/h2]
+Die Lokalzeitung kommentiert deine Entscheidungen (nicht immer freundlich), Fotomodus und Zeitraffer zeigen deine Stadt beim Wachsen, Szenarien bieten fertige Herausforderungen, und du kannst die Stadt eines Freundes besuchen, ihm eine Postkarte dalassen oder deine Gebäude im Workshop teilen. Streamer können sogar ihren Twitch-Chat über die Entscheidungen des Bürgermeisters abstimmen lassen.
+
 [h2]Demnächst[/h2]
-MiniBlocs wird von einem einzigen Entwickler gemacht. Als Nächstes geplant: eine immer erreichbare Karte zum Teilen mit Freunden, dann eine gemeinsame Weltkarte, auf der jeder Spieler Bürgermeister seiner eigenen Stadt ist, mehr Sportarten, Katastrophen und Tourismus.
+MiniBlocs wird von einem einzigen Entwickler gemacht. Die Karte mit Freunden, immer erreichbar, auch wenn ihr Ersteller schläft, wird gerade getestet und öffnet während des Early Access. Danach folgt eine gemeinsame Weltkarte, auf der jeder Spieler Bürgermeister seiner eigenen Stadt ist.
 ```
 
 ## Hauptmerkmale (soziale Netzwerke, Pressemappe)
@@ -90,7 +109,11 @@ MiniBlocs wird von einem einzigen Entwickler gemacht. Als Nächstes geplant: ein
 - Vollständige Netze: Strom, Wasser, Abwasser, Telekommunikation, Abfall.
 - Wahlen, Länder, mehrere Städte mit eigener Kasse, Autopilot.
 - Straßenansicht in der dritten und ersten Person, Fahrzeuge selbst steuern.
-- Freizeitparks, Zoo, Museen, Veranstaltungsorte, Fußballverein.
+- Freizeitparks, Zoo, Museen, Veranstaltungsorte, Mehrspartenverein (Fußball, Basketball, Handball, Eishockey, Rugby, Tennis).
+- Start 1800 oder später: Gebäude, Fahrzeuge und Maschinen der Epoche.
+- Jahreszeiten und Katastrophen, Gesundheit und Epidemien, Klima und Umwelt, Immobilienmarkt, Tourismus, Kulturerbe und große Denkmäler.
+- Bauen unter der Erde, Handel zwischen Städten und Ländern, Bildung je nach Land.
+- Stadtzeitung, Fotomodus und Zeitraffer, Szenarien, Besuche bei Freunden, Twitch-Streamer-Modus.
 - Eigene Musik: *Baugenehmigungswalzer*, *Schlagloch-Blues*, *Gemeinderatssitzung (mit Verspätung)*...
 - Geführte Demo von 30 Minuten.
 - 62 Errungenschaften, Controller und Steam Deck, eigene Kreationen teilen (Workshop).
@@ -109,7 +132,7 @@ MiniBlocs wird von einem einzigen Entwickler gemacht. Als Nächstes geplant: ein
 
 Dieselbe Liste wie auf der französischen Seite (Tags werden einmal auf Englisch gesetzt):
 City Builder, Simulation, Building, Sandbox, Management, Economy, Strategy, Open World,
-Realistic, Life Sim, Transportation, Trains, Low Poly, Singleplayer, Relaxing, Soccer,
+Realistic, Life Sim, Transportation, Trains, Low Poly, Singleplayer, Relaxing, Sports,
 Agriculture, Third Person, Indie, 3D.
 
 ## Systemanforderungen (Windows)
@@ -150,12 +173,13 @@ Ecke der Welt fehlen und wie die gemeinsame Karte funktionieren soll.
 Etwa ein Jahr, je nach Rückmeldungen.
 
 **Wie wird sich die Vollversion voraussichtlich unterscheiden?**
-Die Karte mit Freunden, dann die gemeinsame Weltkarte, mehr Sportarten für den Verein,
-Katastrophen und stärkere Jahreszeiten, Tourismus, weitere Sprachen.
+Die Karte mit Freunden, dann die gemeinsame Weltkarte, mehr Weltregionen im Gebäudekatalog,
+ein ausgebauter Freizeitpark und Sportverein je nach Rückmeldungen, weitere Sprachen.
 
 **Wie ist der aktuelle Stand der Early-Access-Version?**
-Ein vollständiges Einzelspielerspiel: Gründung, Wachstum bis zur Großstadt, Netze,
-Einwohner, Wahlen, mehrere Städte, Freizeit und Fußballverein. Die geführte Demo dauert
+Ein vollständiges Einzelspielerspiel von 1800 bis heute: Gründung, Wachstum bis zur
+Großstadt, Netze, Einwohner, Wahlen, mehrere Städte, Freizeit, Mehrspartenverein,
+Jahreszeiten und Katastrophen, Gesundheit, Klima, Tourismus. Die geführte Demo dauert
 30 Minuten.
 
 **Wird sich der Preis während und nach dem Early Access unterscheiden?**

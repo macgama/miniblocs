@@ -1,4 +1,4 @@
-"""Logos ManiGames (4 pistes) et logo du jeu MiniBlocs, en SVG vectorisé.
+"""Logos ManiGames (8 pistes) et logo du jeu MiniBlocs, en SVG vectorisé.
 
     python3 tools/marque/logos.py            # écrit marque/*.svg
     python3 tools/marque/logos.py --png      # + rendus PNG (Chromium, voir rendu.js)
@@ -205,6 +205,147 @@ def piste4(sombre=False):
     return svg(2 * r, 2 * r, corps)
 
 
+
+# ---------------------------------------------------------------- piste 5
+def icone_planete(t=200.0) -> str:
+    """Petite planète low-poly (facettes) avec un anneau et un cube en orbite."""
+    k = t / 200
+    cx = cy = t / 2
+    r = 64 * k
+    corps = ""
+    # anneau arrière
+    corps += (f'<path d="M {cx - 94 * k:.1f} {cy + 8 * k:.1f} A {94 * k:.1f} {30 * k:.1f} -14 0 1 {cx + 94 * k:.1f} {cy - 8 * k:.1f}" '
+              f'fill="none" stroke="{JAUNE_F}" stroke-width="{9 * k:.1f}" stroke-linecap="round"/>')
+    # globe : disque bleu, ombre en croissant, continents anguleux (low-poly)
+    corps += f'<defs><clipPath id="glb"><circle cx="{cx:.1f}" cy="{cy:.1f}" r="{r:.1f}"/></clipPath></defs>'
+    corps += f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{r:.1f}" fill="{BLEU}"/>'
+    g = f'<g clip-path="url(#glb)">'
+    terres = [
+        ([(-50, -30), (-14, -52), (6, -34), (-6, -10), (-30, -2), (-52, -8)], VERT),
+        ([(-6, -10), (6, -34), (22, -24), (10, 2)], VERT_F),
+        ([(-24, 14), (4, 8), (14, 30), (-2, 56), (-20, 40)], VERT),
+        ([(30, -6), (56, -20), (70, 10), (44, 18)], VERT),
+    ]
+    for pts, col in terres:
+        g += f'<polygon points="{_pts([(cx + x * k, cy + y * k) for x, y in pts])}" fill="{col}"/>'
+    g += f'<circle cx="{cx + 26 * k:.1f}" cy="{cy + 14 * k:.1f}" r="{r * 1.02:.1f}" fill="none" stroke="{ENCRE}" stroke-opacity=".18" stroke-width="{34 * k:.1f}" transform="translate({-50 * k:.1f} {-26 * k:.1f})"/>'
+    g += f'<polygon points="{_pts([(cx - 46 * k, cy - 40 * k), (cx - 26 * k, cy - 56 * k), (cx - 36 * k, cy - 34 * k)])}" fill="{CREME}" fill-opacity=".55"/>'
+    g += '</g>'
+    corps += g
+    # anneau avant
+    corps += (f'<path d="M {cx + 94 * k:.1f} {cy - 8 * k:.1f} A {94 * k:.1f} {30 * k:.1f} -14 0 1 {cx - 94 * k:.1f} {cy + 8 * k:.1f}" '
+              f'fill="none" stroke="{JAUNE}" stroke-width="{9 * k:.1f}" stroke-linecap="round"/>')
+    # cube en orbite
+    corps += cube(cx + 78 * k, cy - 40 * k, 15 * k, JAUNE, ROUGE, ROUGE_F)
+    return corps
+
+
+def piste5(sombre=False):
+    encre = CREME if sombre else ENCRE
+    corps = icone_planete(200)
+    a = texte("Outfit", "ManiGames", 104, 800)
+    ttag = texte("Outfit", "STUDIO DE JEUX INDÉPENDANT", 22.5, 500, approche=.22)
+    y = 100 + a.haut / 2 - 12
+    corps += f'<path transform="translate(222 {y:.2f})" d="{a.d}" fill="{encre}"/>'
+    corps += f'<path transform="translate(226 {y + 42:.2f})" d="{ttag.d}" fill="{encre}" fill-opacity=".7"/>'
+    return svg(222 + max(a.largeur, ttag.largeur + 4) + 6, 200, corps)
+
+
+# ---------------------------------------------------------------- piste 6
+def icone_play(t=200.0) -> str:
+    """Tuile rouge : grand M crème dont le creux porte un bouton « play » jaune."""
+    k = t / 200
+    corps = f'<rect width="{t:.1f}" height="{t:.1f}" rx="{46 * k:.1f}" fill="{ROUGE}"/>'
+    corps += f'<rect y="{t * .78:.1f}" width="{t:.1f}" height="{t * .22:.1f}" fill="{ROUGE_F}" clip-path="url(#cp6)"/>'
+    corps = f'<defs><clipPath id="cp6"><rect width="{t:.1f}" height="{t:.1f}" rx="{46 * k:.1f}"/></clipPath></defs>' + corps
+    m = texte("Outfit", "M", 150 * k, 800)
+    x = (t - (m.droite - m.gauche)) / 2 - m.gauche
+    y = t * .5 + m.haut / 2 - 4 * k
+    corps += f'<path transform="translate({x:.2f} {y:.2f})" d="{m.d}" fill="{CREME}"/>'
+    # bouton play
+    px, py, pt = t * .74, t * .24, 22 * k
+    corps += f'<circle cx="{px:.1f}" cy="{py:.1f}" r="{pt:.1f}" fill="{JAUNE}" stroke="{ROUGE}" stroke-width="{6 * k:.1f}"/>'
+    corps += f'<polygon points="{_pts([(px - 7 * k, py - 10 * k), (px + 11 * k, py), (px - 7 * k, py + 10 * k)])}" fill="{ENCRE}"/>'
+    return corps
+
+
+def piste6(sombre=False):
+    encre = CREME if sombre else ENCRE
+    corps = icone_play(200)
+    a = texte("Outfit", "mani", 112, 800)
+    b = texte("Outfit", "games", 112, 300)
+    y = 100 + a.haut / 2 - 6
+    corps += f'<path transform="translate(232 {y:.2f})" d="{a.d}" fill="{encre}"/>'
+    corps += f'<path transform="translate({232 + a.largeur:.2f} {y:.2f})" d="{b.d}" fill="{ROUGE}"/>'
+    return svg(232 + a.largeur + b.largeur + 8, 200, corps)
+
+
+# ---------------------------------------------------------------- piste 7
+PIXEL_M = ["X...X", "XX.XX", "X.X.X", "X...X", "X...X"]
+
+
+def icone_pixel(t=200.0, fond=True) -> str:
+    """M en gros pixels de couleur, façon jeu rétro."""
+    k = t / 200
+    corps = f'<rect width="{t:.1f}" height="{t:.1f}" rx="{30 * k:.1f}" fill="{ENCRE}"/>' if fond else ""
+    p, e = 28 * k, 4 * k
+    x0 = (t - (5 * p + 4 * e)) / 2
+    y0 = (t - (5 * p + 4 * e)) / 2
+    cols = [JAUNE, ROUGE, BLEU, VERT]
+    n = 0
+    for j, ligne in enumerate(PIXEL_M):
+        for i, c in enumerate(ligne):
+            if c != "X":
+                continue
+            col = cols[(i + j) % 4]
+            x, y = x0 + i * (p + e), y0 + j * (p + e)
+            corps += f'<rect x="{x:.1f}" y="{y:.1f}" width="{p:.1f}" height="{p:.1f}" rx="{4 * k:.1f}" fill="{col}"/>'
+            corps += f'<rect x="{x:.1f}" y="{y + p * .72:.1f}" width="{p:.1f}" height="{p * .28:.1f}" rx="{3 * k:.1f}" fill="{ENCRE}" fill-opacity=".22"/>'
+            n += 1
+    return corps
+
+
+def piste7(sombre=False):
+    encre = CREME if sombre else ENCRE
+    corps = icone_pixel(200)
+    a = texte("Lexend", "MANIGAMES", 84, 800, approche=.06)
+    ttag = texte("Lexend", "INDIE GAME STUDIO", 24, 400, approche=.42)
+    y = 100 + a.haut / 2 - 14
+    corps += f'<path transform="translate(230 {y:.2f})" d="{a.d}" fill="{encre}"/>'
+    corps += f'<path transform="translate(232 {y + 44:.2f})" d="{ttag.d}" fill="{ROUGE}"/>'
+    return svg(230 + max(a.largeur, ttag.largeur) + 6, 200, corps)
+
+
+# ---------------------------------------------------------------- piste 8
+def piste8(sombre=False):
+    """Cartouche de jeu : le nom sur l'étiquette, encoches en haut."""
+    L, H = 560.0, 300.0
+    coque = BLEU_F if not sombre else BLEU
+    corps = ""
+    # coque (avec ombre)
+    corps += f'<rect x="10" y="22" width="{L - 20}" height="{H - 24}" rx="34" fill="{ENCRE}" fill-opacity=".25"/>'
+    corps += f'<path d="M 34 10 H {L - 120} l 18 -10 h 58 a 20 20 0 0 1 20 20 V {H - 46} a 30 30 0 0 1 -30 30 H 40 a 30 30 0 0 1 -30 -30 V 34 a 24 24 0 0 1 24 -24 Z" fill="{coque}"/>'
+    # rainures
+    for i in range(5):
+        corps += f'<rect x="{40 + i * 22}" y="22" width="12" height="40" rx="6" fill="{ENCRE}" fill-opacity=".25"/>'
+    # étiquette
+    corps += f'<rect x="44" y="74" width="{L - 88}" height="170" rx="18" fill="{CREME}"/>'
+    corps += f'<rect x="44" y="74" width="{L - 88}" height="26" rx="13" fill="{JAUNE}"/>'
+    corps += f'<rect x="44" y="88" width="{L - 88}" height="12" fill="{JAUNE}"/>'
+    for i, col in enumerate([ROUGE, VERT, BLEU]):
+        corps += f'<circle cx="{L - 70 - i * 22}" cy="87" r="6" fill="{col}"/>'
+    a = texte("Outfit", "Mani", 80, 800)
+    b = texte("Outfit", "Games", 80, 800)
+    w = a.largeur + b.largeur
+    x = (L - w) / 2
+    y = 74 + 26 + (144 + a.haut) / 2 - 16
+    corps += f'<path transform="translate({x:.2f} {y:.2f})" d="{a.d}" fill="{ENCRE}"/>'
+    corps += f'<path transform="translate({x + a.largeur:.2f} {y:.2f})" d="{b.d}" fill="{ROUGE}"/>'
+    t = texte("Outfit", "INDIE GAMES", 20, 600, approche=.4)
+    corps += f'<path transform="translate({(L - t.largeur) / 2:.2f} {y + 34:.2f})" d="{t.d}" fill="{ENCRE}" fill-opacity=".6"/>'
+    return svg(L, H + 2, corps)
+
+
 # ---------------------------------------------------------------- MiniBlocs
 def logo_miniblocs(taille=220, ombre=14, contour=13):
     """Logo du jeu : lettres jaunes en relief, points des i en petits cubes."""
@@ -259,6 +400,16 @@ FICHIERS = {
     "manigames-piste3-point.svg": lambda: piste3(),
     "manigames-piste3-point-sombre.svg": lambda: piste3(True),
     "manigames-piste4-tampon.svg": lambda: piste4(),
+    "manigames-piste5-planete.svg": lambda: piste5(),
+    "manigames-piste5-planete-sombre.svg": lambda: piste5(True),
+    "manigames-piste5-icone.svg": lambda: svg(200, 200, icone_planete(200)),
+    "manigames-piste6-play.svg": lambda: piste6(),
+    "manigames-piste6-play-sombre.svg": lambda: piste6(True),
+    "manigames-piste6-icone.svg": lambda: svg(200, 200, icone_play(200)),
+    "manigames-piste7-pixel.svg": lambda: piste7(),
+    "manigames-piste7-pixel-sombre.svg": lambda: piste7(True),
+    "manigames-piste7-icone.svg": lambda: svg(200, 200, icone_pixel(200)),
+    "manigames-piste8-cartouche.svg": lambda: piste8(),
     "miniblocs-logo.svg": lambda: logo_miniblocs(),
 }
 

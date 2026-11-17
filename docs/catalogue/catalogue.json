@@ -56538,6 +56538,94 @@
 		"v": "img/v/voies/bretelle.webp"
 	},
 	{
+		"annee": 0,
+		"evol": "",
+		"fam": "voies",
+		"groupe": "Voies",
+		"id": "chemin_terre",
+		"info": "25 km/h",
+		"nom": "Chemin de terre",
+		"source": "table",
+		"v": "img/v/voies/chemin_terre.webp"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "voies",
+		"groupe": "Voies",
+		"id": "route_pavee",
+		"info": "40 km/h",
+		"nom": "Route pavée",
+		"source": "table",
+		"v": "img/v/voies/route_pavee.webp"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "voies",
+		"groupe": "Voies",
+		"id": "route_empierree",
+		"info": "45 km/h",
+		"nom": "Route empierrée (macadam)",
+		"source": "table",
+		"v": "img/v/voies/route_empierree.webp"
+	},
+	{
+		"annee": 1853,
+		"evol": "",
+		"fam": "voies",
+		"groupe": "Voies",
+		"id": "boulevard",
+		"info": "50 km/h",
+		"nom": "Grand boulevard (à l'haussmannienne)",
+		"source": "table",
+		"v": "img/v/voies/boulevard.webp"
+	},
+	{
+		"annee": 1976,
+		"evol": "",
+		"fam": "voies",
+		"groupe": "Voies",
+		"id": "zone_rencontre",
+		"info": "20 km/h",
+		"nom": "Rue partagée (zone de rencontre, 20 km/h)",
+		"source": "table",
+		"v": "img/v/voies/zone_rencontre.webp"
+	},
+	{
+		"annee": 2000,
+		"evol": "",
+		"fam": "voies",
+		"groupe": "Voies",
+		"id": "avenue_bhns",
+		"info": "50 km/h",
+		"nom": "Avenue à couloirs de bus (BHNS)",
+		"source": "table",
+		"v": "img/v/voies/avenue_bhns.webp"
+	},
+	{
+		"annee": 1998,
+		"evol": "",
+		"fam": "voies",
+		"groupe": "Voies",
+		"id": "route_2plus1",
+		"info": "90 km/h",
+		"nom": "Route à 2 + 1 voies (dépassement alterné)",
+		"source": "table",
+		"v": "img/v/voies/route_2plus1.webp"
+	},
+	{
+		"annee": 2020,
+		"evol": "",
+		"fam": "voies",
+		"groupe": "Voies",
+		"id": "autoroute_urbaine",
+		"info": "70 km/h",
+		"nom": "Autoroute urbaine apaisée (70 km/h)",
+		"source": "table",
+		"v": "img/v/voies/autoroute_urbaine.webp"
+	},
+	{
 		"annee": 1853,
 		"evol": "",
 		"fam": "voies",
@@ -56593,6 +56681,28 @@
 		"v": "img/v/voies/lgv.webp"
 	},
 	{
+		"annee": 1865,
+		"evol": "",
+		"fam": "voies",
+		"groupe": "Voies",
+		"id": "voie_etroite",
+		"info": "60 km/h",
+		"nom": "Chemin de fer à voie métrique",
+		"source": "table",
+		"v": "img/v/voies/voie_etroite.webp"
+	},
+	{
+		"annee": 1950,
+		"evol": "",
+		"fam": "voies",
+		"groupe": "Voies",
+		"id": "ligne_fret",
+		"info": "100 km/h",
+		"nom": "Ligne de fret électrifiée (trains lourds)",
+		"source": "table",
+		"v": "img/v/voies/ligne_fret.webp"
+	},
+	{
 		"annee": 0,
 		"evol": "",
 		"fam": "voies",
@@ -56630,6 +56740,50 @@
 		"evol": "",
 		"fam": "voies",
 		"groupe": "Voies",
+		"id": "sentier",
+		"info": "4 km/h",
+		"nom": "Sentier de randonnée",
+		"source": "table",
+		"v": "img/v/voies/sentier.webp"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "voies",
+		"groupe": "Voies",
+		"id": "chemin_halage",
+		"info": "5 km/h",
+		"nom": "Chemin de halage (au bord de l'eau)",
+		"source": "table",
+		"v": "img/v/voies/chemin_halage.webp"
+	},
+	{
+		"annee": 1870,
+		"evol": "",
+		"fam": "voies",
+		"groupe": "Voies",
+		"id": "promenade_planches",
+		"info": "5 km/h",
+		"nom": "Promenade en planches (caillebotis)",
+		"source": "table",
+		"v": "img/v/voies/promenade_planches.webp"
+	},
+	{
+		"annee": 2015,
+		"evol": "",
+		"fam": "voies",
+		"groupe": "Voies",
+		"id": "voie_cyclable_express",
+		"info": "22 km/h",
+		"nom": "Voie cyclable express (vélo-route)",
+		"source": "table",
+		"v": "img/v/voies/voie_cyclable_express.webp"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "voies",
+		"groupe": "Voies",
 		"id": "canal",
 		"info": "12 km/h",
 		"nom": "Voie navigable",
@@ -56646,6 +56800,17 @@
 		"nom": "Chenal maritime",
 		"source": "table",
 		"v": "img/v/voies/chenal.webp"
+	},
+	{
+		"annee": 1960,
+		"evol": "",
+		"fam": "voies",
+		"groupe": "Voies",
+		"id": "canal_grand_gabarit",
+		"info": "14 km/h",
+		"nom": "Canal à grand gabarit (péniches de 3 000 t)",
+		"source": "table",
+		"v": "img/v/voies/canal_grand_gabarit.webp"
 	},
 	{
 		"annee": 1828,
@@ -56743,6 +56908,61 @@
 		"v": "img/v/stations/parking.webp"
 	},
 	{
+		"annee": 1840,
+		"evol": "",
+		"fam": "stations",
+		"groupe": "Stations",
+		"id": "halte",
+		"info": "Un quai, un abri et une pancarte : l'arrêt des trains omnibus à la campagne.",
+		"nom": "Halte ferroviaire",
+		"source": "table",
+		"v": "img/v/stations/halte.webp"
+	},
+	{
+		"annee": 1930,
+		"evol": "",
+		"fam": "stations",
+		"groupe": "Stations",
+		"id": "gare_routiere",
+		"info": "Quais en épi, abris et salle d'attente : le terminus des cars et des bus.",
+		"nom": "Gare routière",
+		"source": "table",
+		"v": "img/v/stations/gare_routiere.webp"
+	},
+	{
+		"annee": 1990,
+		"evol": "",
+		"fam": "stations",
+		"groupe": "Stations",
+		"id": "parking_relais",
+		"info": "Parking sous ombrières solaires, avec bornes de recharge, au bout des lignes de bus et de tram.",
+		"nom": "Parking relais (P+R)",
+		"source": "table",
+		"v": "img/v/stations/parking_relais.webp"
+	},
+	{
+		"annee": 1960,
+		"evol": "",
+		"fam": "stations",
+		"groupe": "Stations",
+		"id": "port_plaisance",
+		"info": "Pontons, capitainerie et voiliers amarrés : bateaux-promenade et navettes y font escale.",
+		"nom": "Port de plaisance",
+		"source": "table",
+		"v": "img/v/stations/port_plaisance.webp"
+	},
+	{
+		"annee": 2030,
+		"evol": "",
+		"fam": "stations",
+		"groupe": "Stations",
+		"id": "vertiport",
+		"info": "Deux aires de taxis volants électriques, leurs chargeurs et un petit terminal vitré.",
+		"nom": "Vertiport",
+		"source": "table",
+		"v": "img/v/stations/vertiport.webp"
+	},
+	{
 		"annee": 1950,
 		"evol": "",
 		"fam": "stations",
@@ -56783,7 +57003,8 @@
 		"id": "ligne_ht",
 		"info": "Pylônes de 28 m tous les 300 m : relie une centrale lointaine à la ville.",
 		"nom": "Ligne haute tension",
-		"source": "table"
+		"source": "table",
+		"v": "img/v/reseaux/ligne_ht.webp"
 	},
 	{
 		"annee": 1882,
@@ -56793,7 +57014,8 @@
 		"id": "ligne_mt",
 		"info": "Poteaux de 10 m tous les 60 m : dessert un hameau ou une ferme hors des routes.",
 		"nom": "Ligne moyenne tension",
-		"source": "table"
+		"source": "table",
+		"v": "img/v/reseaux/ligne_mt.webp"
 	},
 	{
 		"annee": 0,
@@ -56803,7 +57025,8 @@
 		"id": "conduite_eau",
 		"info": "Canalisation enterrée (visible avec le calque Eau) : relie un captage éloigné au réseau des routes.",
 		"nom": "Conduite d'eau potable",
-		"source": "table"
+		"source": "table",
+		"v": "img/v/reseaux/conduite_eau.webp"
 	},
 	{
 		"annee": 0,
@@ -56813,7 +57036,8 @@
 		"id": "collecteur",
 		"info": "Grand égout enterré : emmène les eaux usées jusqu'à la station d'épuration.",
 		"nom": "Collecteur d'égout",
-		"source": "table"
+		"source": "table",
+		"v": "img/v/reseaux/collecteur.webp"
 	},
 	{
 		"annee": 1820,
@@ -56823,7 +57047,85 @@
 		"id": "conduite_gaz",
 		"info": "Canalisation enterrée (visible avec le calque Chauffage) : relie un poste de gaz ou une chaufferie aux rues.",
 		"nom": "Conduite de gaz ou de chaleur",
-		"source": "table"
+		"source": "table",
+		"v": "img/v/reseaux/conduite_gaz.webp"
+	},
+	{
+		"annee": 1890,
+		"evol": "",
+		"fam": "reseaux",
+		"groupe": "Électricité, eau, égouts, gaz",
+		"id": "ligne_bt",
+		"info": "Poteaux de bois de 8 m tous les 40 m : la ligne du village, d'une ferme à l'autre.",
+		"nom": "Ligne basse tension sur poteaux de bois",
+		"source": "table",
+		"v": "img/v/reseaux/ligne_bt.webp"
+	},
+	{
+		"annee": 1958,
+		"evol": "",
+		"fam": "reseaux",
+		"groupe": "Électricité, eau, égouts, gaz",
+		"id": "ligne_tht",
+		"info": "Pylônes géants de 50 m tous les 450 m : amène le courant d'une grande centrale à l'autre bout du pays.",
+		"nom": "Ligne très haute tension (400 000 volts)",
+		"source": "table",
+		"v": "img/v/reseaux/ligne_tht.webp"
+	},
+	{
+		"annee": 1890,
+		"evol": "",
+		"fam": "reseaux",
+		"groupe": "Électricité, eau, égouts, gaz",
+		"id": "cable_souterrain",
+		"info": "Câble sous la chaussée (visible avec le calque Électricité) : ni poteaux, ni pannes de tempête, mais cher.",
+		"nom": "Câble électrique souterrain",
+		"source": "table",
+		"v": "img/v/reseaux/cable_souterrain.webp"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "reseaux",
+		"groupe": "Électricité, eau, égouts, gaz",
+		"id": "aqueduc",
+		"info": "Galerie de pierre en pente douce : l'eau d'une source lointaine arrive par gravité, comme au temps des Romains.",
+		"nom": "Aqueduc maçonné (canal couvert)",
+		"source": "table",
+		"v": "img/v/reseaux/aqueduc.webp"
+	},
+	{
+		"annee": 1960,
+		"evol": "",
+		"fam": "reseaux",
+		"groupe": "Électricité, eau, égouts, gaz",
+		"id": "egout_separatif",
+		"info": "Deux tuyaux : les eaux usées vont à la station, la pluie à la rivière. La station ne déborde plus quand il pleut.",
+		"nom": "Égout séparatif (pluie à part)",
+		"source": "table",
+		"v": "img/v/reseaux/egout_separatif.webp"
+	},
+	{
+		"annee": 1927,
+		"evol": "",
+		"fam": "reseaux",
+		"groupe": "Électricité, eau, égouts, gaz",
+		"id": "reseau_chaleur",
+		"info": "Tuyaux isolés d'eau chaude : la chaleur d'une chaufferie bois, d'un incinérateur ou d'une usine chauffe les quartiers.",
+		"nom": "Réseau de chaleur urbain",
+		"source": "table",
+		"v": "img/v/reseaux/reseau_chaleur.webp"
+	},
+	{
+		"annee": 2030,
+		"evol": "",
+		"fam": "reseaux",
+		"groupe": "Électricité, eau, égouts, gaz",
+		"id": "hydrogenoduc",
+		"info": "Canalisation d'hydrogène vert : relie un électrolyseur aux usines et aux stations de bus à hydrogène.",
+		"nom": "Conduite d'hydrogène",
+		"source": "table",
+		"v": "img/v/reseaux/hydrogenoduc.webp"
 	},
 	{
 		"annee": 2000,
@@ -56833,7 +57135,8 @@
 		"id": "fibre",
 		"info": "",
 		"nom": "Fibre sous la rue",
-		"source": "table"
+		"source": "table",
+		"v": "img/v/reseaux/fibre.webp"
 	},
 	{
 		"annee": 2000,
@@ -56843,7 +57146,8 @@
 		"id": "fibre_aerienne",
 		"info": "",
 		"nom": "Fibre sur poteaux",
-		"source": "table"
+		"source": "table",
+		"v": "img/v/reseaux/fibre_aerienne.webp"
 	},
 	{
 		"annee": 1880,
@@ -56853,11 +57157,34 @@
 		"id": "cuivre_aerien",
 		"info": "",
 		"nom": "Ligne téléphonique sur poteaux",
-		"source": "table"
+		"source": "table",
+		"v": "img/v/reseaux/cuivre_aerien.webp"
+	},
+	{
+		"annee": 1900,
+		"evol": "",
+		"fam": "reseaux",
+		"groupe": "Téléphone et internet",
+		"id": "cuivre_souterrain",
+		"info": "",
+		"nom": "Ligne téléphonique enterrée",
+		"source": "table",
+		"v": "img/v/reseaux/cuivre_souterrain.webp"
+	},
+	{
+		"annee": 1970,
+		"evol": "",
+		"fam": "reseaux",
+		"groupe": "Téléphone et internet",
+		"id": "cable_coaxial",
+		"info": "",
+		"nom": "Câble coaxial (télévision et internet)",
+		"source": "table",
+		"v": "img/v/reseaux/cable_coaxial.webp"
 	},
 	{
 		"annee": 0,
-		"evol": "Selon l'époque : Paire de chevaux de trait (toujours) → Tracteur à pétrole (Fordson) (1920) → Tracteur diesel (1950) → Tracteur moderne (1990)",
+		"evol": "Selon l'époque : Paire de chevaux de trait (toujours) → Tracteur à pétrole (Fordson) (1920) → Tracteur diesel (1950) → Tracteur moderne (1990) → Tracteur guidé par satellite (GPS RTK) (2010) → Tracteur autonome électrique (2035)",
 		"fam": "agriculture",
 		"groupe": "Machines : Tracteur",
 		"id": "tracteur@0",
@@ -56866,7 +57193,9 @@
 			"tracteur@0",
 			"tracteur@1920",
 			"tracteur@1950",
-			"tracteur@1990"
+			"tracteur@1990",
+			"tracteur@2010",
+			"tracteur@2035"
 		],
 		"nom": "Paire de chevaux de trait",
 		"source": "table",
@@ -56874,7 +57203,7 @@
 	},
 	{
 		"annee": 1920,
-		"evol": "Selon l'époque : Paire de chevaux de trait (toujours) → Tracteur à pétrole (Fordson) (1920) → Tracteur diesel (1950) → Tracteur moderne (1990)",
+		"evol": "Selon l'époque : Paire de chevaux de trait (toujours) → Tracteur à pétrole (Fordson) (1920) → Tracteur diesel (1950) → Tracteur moderne (1990) → Tracteur guidé par satellite (GPS RTK) (2010) → Tracteur autonome électrique (2035)",
 		"fam": "agriculture",
 		"groupe": "Machines : Tracteur",
 		"id": "tracteur@1920",
@@ -56883,7 +57212,9 @@
 			"tracteur@0",
 			"tracteur@1920",
 			"tracteur@1950",
-			"tracteur@1990"
+			"tracteur@1990",
+			"tracteur@2010",
+			"tracteur@2035"
 		],
 		"nom": "Tracteur à pétrole (Fordson)",
 		"source": "table",
@@ -56891,7 +57222,7 @@
 	},
 	{
 		"annee": 1950,
-		"evol": "Selon l'époque : Paire de chevaux de trait (toujours) → Tracteur à pétrole (Fordson) (1920) → Tracteur diesel (1950) → Tracteur moderne (1990)",
+		"evol": "Selon l'époque : Paire de chevaux de trait (toujours) → Tracteur à pétrole (Fordson) (1920) → Tracteur diesel (1950) → Tracteur moderne (1990) → Tracteur guidé par satellite (GPS RTK) (2010) → Tracteur autonome électrique (2035)",
 		"fam": "agriculture",
 		"groupe": "Machines : Tracteur",
 		"id": "tracteur@1950",
@@ -56900,7 +57231,9 @@
 			"tracteur@0",
 			"tracteur@1920",
 			"tracteur@1950",
-			"tracteur@1990"
+			"tracteur@1990",
+			"tracteur@2010",
+			"tracteur@2035"
 		],
 		"nom": "Tracteur diesel",
 		"source": "table",
@@ -56908,7 +57241,7 @@
 	},
 	{
 		"annee": 1990,
-		"evol": "Selon l'époque : Paire de chevaux de trait (toujours) → Tracteur à pétrole (Fordson) (1920) → Tracteur diesel (1950) → Tracteur moderne (1990)",
+		"evol": "Selon l'époque : Paire de chevaux de trait (toujours) → Tracteur à pétrole (Fordson) (1920) → Tracteur diesel (1950) → Tracteur moderne (1990) → Tracteur guidé par satellite (GPS RTK) (2010) → Tracteur autonome électrique (2035)",
 		"fam": "agriculture",
 		"groupe": "Machines : Tracteur",
 		"id": "tracteur@1990",
@@ -56917,15 +57250,55 @@
 			"tracteur@0",
 			"tracteur@1920",
 			"tracteur@1950",
-			"tracteur@1990"
+			"tracteur@1990",
+			"tracteur@2010",
+			"tracteur@2035"
 		],
 		"nom": "Tracteur moderne",
 		"source": "table",
 		"v": "img/v/agriculture/tracteur_1990.webp"
 	},
 	{
+		"annee": 2010,
+		"evol": "Selon l'époque : Paire de chevaux de trait (toujours) → Tracteur à pétrole (Fordson) (1920) → Tracteur diesel (1950) → Tracteur moderne (1990) → Tracteur guidé par satellite (GPS RTK) (2010) → Tracteur autonome électrique (2035)",
+		"fam": "agriculture",
+		"groupe": "Machines : Tracteur",
+		"id": "tracteur@2010",
+		"info": "",
+		"lignee": [
+			"tracteur@0",
+			"tracteur@1920",
+			"tracteur@1950",
+			"tracteur@1990",
+			"tracteur@2010",
+			"tracteur@2035"
+		],
+		"nom": "Tracteur guidé par satellite (GPS RTK)",
+		"source": "table",
+		"v": "img/v/agriculture/tracteur_2010.webp"
+	},
+	{
+		"annee": 2035,
+		"evol": "Selon l'époque : Paire de chevaux de trait (toujours) → Tracteur à pétrole (Fordson) (1920) → Tracteur diesel (1950) → Tracteur moderne (1990) → Tracteur guidé par satellite (GPS RTK) (2010) → Tracteur autonome électrique (2035)",
+		"fam": "agriculture",
+		"groupe": "Machines : Tracteur",
+		"id": "tracteur@2035",
+		"info": "",
+		"lignee": [
+			"tracteur@0",
+			"tracteur@1920",
+			"tracteur@1950",
+			"tracteur@1990",
+			"tracteur@2010",
+			"tracteur@2035"
+		],
+		"nom": "Tracteur autonome électrique",
+		"source": "table",
+		"v": "img/v/agriculture/tracteur_2035.webp"
+	},
+	{
 		"annee": 0,
-		"evol": "Selon l'époque : Charrue à versoir attelée (toujours) → Brabant double (1880) → Charrue portée trois socs (1950) → Charrue moderne (1980)",
+		"evol": "Selon l'époque : Charrue à versoir attelée (toujours) → Brabant double (1880) → Charrue portée trois socs (1950) → Charrue moderne (1980) → Déchaumeur à disques (sans labour) (2005)",
 		"fam": "agriculture",
 		"groupe": "Machines : Charrue",
 		"id": "charrue@0",
@@ -56934,7 +57307,8 @@
 			"charrue@0",
 			"charrue@1880",
 			"charrue@1950",
-			"charrue@1980"
+			"charrue@1980",
+			"charrue@2005"
 		],
 		"nom": "Charrue à versoir attelée",
 		"source": "table",
@@ -56942,7 +57316,7 @@
 	},
 	{
 		"annee": 1880,
-		"evol": "Selon l'époque : Charrue à versoir attelée (toujours) → Brabant double (1880) → Charrue portée trois socs (1950) → Charrue moderne (1980)",
+		"evol": "Selon l'époque : Charrue à versoir attelée (toujours) → Brabant double (1880) → Charrue portée trois socs (1950) → Charrue moderne (1980) → Déchaumeur à disques (sans labour) (2005)",
 		"fam": "agriculture",
 		"groupe": "Machines : Charrue",
 		"id": "charrue@1880",
@@ -56951,7 +57325,8 @@
 			"charrue@0",
 			"charrue@1880",
 			"charrue@1950",
-			"charrue@1980"
+			"charrue@1980",
+			"charrue@2005"
 		],
 		"nom": "Brabant double",
 		"source": "table",
@@ -56959,7 +57334,7 @@
 	},
 	{
 		"annee": 1950,
-		"evol": "Selon l'époque : Charrue à versoir attelée (toujours) → Brabant double (1880) → Charrue portée trois socs (1950) → Charrue moderne (1980)",
+		"evol": "Selon l'époque : Charrue à versoir attelée (toujours) → Brabant double (1880) → Charrue portée trois socs (1950) → Charrue moderne (1980) → Déchaumeur à disques (sans labour) (2005)",
 		"fam": "agriculture",
 		"groupe": "Machines : Charrue",
 		"id": "charrue@1950",
@@ -56968,7 +57343,8 @@
 			"charrue@0",
 			"charrue@1880",
 			"charrue@1950",
-			"charrue@1980"
+			"charrue@1980",
+			"charrue@2005"
 		],
 		"nom": "Charrue portée trois socs",
 		"source": "table",
@@ -56976,7 +57352,7 @@
 	},
 	{
 		"annee": 1980,
-		"evol": "Selon l'époque : Charrue à versoir attelée (toujours) → Brabant double (1880) → Charrue portée trois socs (1950) → Charrue moderne (1980)",
+		"evol": "Selon l'époque : Charrue à versoir attelée (toujours) → Brabant double (1880) → Charrue portée trois socs (1950) → Charrue moderne (1980) → Déchaumeur à disques (sans labour) (2005)",
 		"fam": "agriculture",
 		"groupe": "Machines : Charrue",
 		"id": "charrue@1980",
@@ -56985,15 +57361,34 @@
 			"charrue@0",
 			"charrue@1880",
 			"charrue@1950",
-			"charrue@1980"
+			"charrue@1980",
+			"charrue@2005"
 		],
 		"nom": "Charrue moderne",
 		"source": "table",
 		"v": "img/v/agriculture/charrue_1980.webp"
 	},
 	{
+		"annee": 2005,
+		"evol": "Selon l'époque : Charrue à versoir attelée (toujours) → Brabant double (1880) → Charrue portée trois socs (1950) → Charrue moderne (1980) → Déchaumeur à disques (sans labour) (2005)",
+		"fam": "agriculture",
+		"groupe": "Machines : Charrue",
+		"id": "charrue@2005",
+		"info": "",
+		"lignee": [
+			"charrue@0",
+			"charrue@1880",
+			"charrue@1950",
+			"charrue@1980",
+			"charrue@2005"
+		],
+		"nom": "Déchaumeur à disques (sans labour)",
+		"source": "table",
+		"v": "img/v/agriculture/charrue_2005.webp"
+	},
+	{
 		"annee": 0,
-		"evol": "Selon l'époque : Semis à la volée (à la main) (toujours) → Semoir en ligne attelé (1850) → Semoir mécanique (1950) → Semoir moderne (1985)",
+		"evol": "Selon l'époque : Semis à la volée (à la main) (toujours) → Semoir en ligne attelé (1850) → Semoir mécanique (1950) → Semoir moderne (1985) → Semoir de précision monograine (2010) → Essaim de petits robots semeurs (2032)",
 		"fam": "agriculture",
 		"groupe": "Machines : Semoir",
 		"id": "semoir@0",
@@ -57002,7 +57397,9 @@
 			"semoir@0",
 			"semoir@1850",
 			"semoir@1950",
-			"semoir@1985"
+			"semoir@1985",
+			"semoir@2010",
+			"semoir@2032"
 		],
 		"nom": "Semis à la volée (à la main)",
 		"source": "table",
@@ -57010,7 +57407,7 @@
 	},
 	{
 		"annee": 1850,
-		"evol": "Selon l'époque : Semis à la volée (à la main) (toujours) → Semoir en ligne attelé (1850) → Semoir mécanique (1950) → Semoir moderne (1985)",
+		"evol": "Selon l'époque : Semis à la volée (à la main) (toujours) → Semoir en ligne attelé (1850) → Semoir mécanique (1950) → Semoir moderne (1985) → Semoir de précision monograine (2010) → Essaim de petits robots semeurs (2032)",
 		"fam": "agriculture",
 		"groupe": "Machines : Semoir",
 		"id": "semoir@1850",
@@ -57019,14 +57416,16 @@
 			"semoir@0",
 			"semoir@1850",
 			"semoir@1950",
-			"semoir@1985"
+			"semoir@1985",
+			"semoir@2010",
+			"semoir@2032"
 		],
 		"nom": "Semoir en ligne attelé",
 		"source": "table"
 	},
 	{
 		"annee": 1950,
-		"evol": "Selon l'époque : Semis à la volée (à la main) (toujours) → Semoir en ligne attelé (1850) → Semoir mécanique (1950) → Semoir moderne (1985)",
+		"evol": "Selon l'époque : Semis à la volée (à la main) (toujours) → Semoir en ligne attelé (1850) → Semoir mécanique (1950) → Semoir moderne (1985) → Semoir de précision monograine (2010) → Essaim de petits robots semeurs (2032)",
 		"fam": "agriculture",
 		"groupe": "Machines : Semoir",
 		"id": "semoir@1950",
@@ -57035,14 +57434,17 @@
 			"semoir@0",
 			"semoir@1850",
 			"semoir@1950",
-			"semoir@1985"
+			"semoir@1985",
+			"semoir@2010",
+			"semoir@2032"
 		],
 		"nom": "Semoir mécanique",
-		"source": "table"
+		"source": "table",
+		"v": "img/v/agriculture/semoir_1950.webp"
 	},
 	{
 		"annee": 1985,
-		"evol": "Selon l'époque : Semis à la volée (à la main) (toujours) → Semoir en ligne attelé (1850) → Semoir mécanique (1950) → Semoir moderne (1985)",
+		"evol": "Selon l'époque : Semis à la volée (à la main) (toujours) → Semoir en ligne attelé (1850) → Semoir mécanique (1950) → Semoir moderne (1985) → Semoir de précision monograine (2010) → Essaim de petits robots semeurs (2032)",
 		"fam": "agriculture",
 		"groupe": "Machines : Semoir",
 		"id": "semoir@1985",
@@ -57051,14 +57453,55 @@
 			"semoir@0",
 			"semoir@1850",
 			"semoir@1950",
-			"semoir@1985"
+			"semoir@1985",
+			"semoir@2010",
+			"semoir@2032"
 		],
 		"nom": "Semoir moderne",
-		"source": "table"
+		"source": "table",
+		"v": "img/v/agriculture/semoir_1985.webp"
+	},
+	{
+		"annee": 2010,
+		"evol": "Selon l'époque : Semis à la volée (à la main) (toujours) → Semoir en ligne attelé (1850) → Semoir mécanique (1950) → Semoir moderne (1985) → Semoir de précision monograine (2010) → Essaim de petits robots semeurs (2032)",
+		"fam": "agriculture",
+		"groupe": "Machines : Semoir",
+		"id": "semoir@2010",
+		"info": "",
+		"lignee": [
+			"semoir@0",
+			"semoir@1850",
+			"semoir@1950",
+			"semoir@1985",
+			"semoir@2010",
+			"semoir@2032"
+		],
+		"nom": "Semoir de précision monograine",
+		"source": "table",
+		"v": "img/v/agriculture/semoir_2010.webp"
+	},
+	{
+		"annee": 2032,
+		"evol": "Selon l'époque : Semis à la volée (à la main) (toujours) → Semoir en ligne attelé (1850) → Semoir mécanique (1950) → Semoir moderne (1985) → Semoir de précision monograine (2010) → Essaim de petits robots semeurs (2032)",
+		"fam": "agriculture",
+		"groupe": "Machines : Semoir",
+		"id": "semoir@2032",
+		"info": "",
+		"lignee": [
+			"semoir@0",
+			"semoir@1850",
+			"semoir@1950",
+			"semoir@1985",
+			"semoir@2010",
+			"semoir@2032"
+		],
+		"nom": "Essaim de petits robots semeurs",
+		"source": "table",
+		"v": "img/v/agriculture/semoir_2032.webp"
 	},
 	{
 		"annee": 0,
-		"evol": "Selon l'époque : Plantation à la main (toujours) → Planteuse attelée (1930) → Planteuse deux rangs (1960) → Planteuse moderne (1990)",
+		"evol": "Selon l'époque : Plantation à la main (toujours) → Planteuse attelée (1930) → Planteuse deux rangs (1960) → Planteuse moderne (1990) → Planteuse quatre rangs guidée par GPS (2015)",
 		"fam": "agriculture",
 		"groupe": "Machines : Planteuse",
 		"id": "planteuse@0",
@@ -57067,7 +57510,8 @@
 			"planteuse@0",
 			"planteuse@1930",
 			"planteuse@1960",
-			"planteuse@1990"
+			"planteuse@1990",
+			"planteuse@2015"
 		],
 		"nom": "Plantation à la main",
 		"source": "table",
@@ -57075,7 +57519,7 @@
 	},
 	{
 		"annee": 1930,
-		"evol": "Selon l'époque : Plantation à la main (toujours) → Planteuse attelée (1930) → Planteuse deux rangs (1960) → Planteuse moderne (1990)",
+		"evol": "Selon l'époque : Plantation à la main (toujours) → Planteuse attelée (1930) → Planteuse deux rangs (1960) → Planteuse moderne (1990) → Planteuse quatre rangs guidée par GPS (2015)",
 		"fam": "agriculture",
 		"groupe": "Machines : Planteuse",
 		"id": "planteuse@1930",
@@ -57084,14 +57528,15 @@
 			"planteuse@0",
 			"planteuse@1930",
 			"planteuse@1960",
-			"planteuse@1990"
+			"planteuse@1990",
+			"planteuse@2015"
 		],
 		"nom": "Planteuse attelée",
 		"source": "table"
 	},
 	{
 		"annee": 1960,
-		"evol": "Selon l'époque : Plantation à la main (toujours) → Planteuse attelée (1930) → Planteuse deux rangs (1960) → Planteuse moderne (1990)",
+		"evol": "Selon l'époque : Plantation à la main (toujours) → Planteuse attelée (1930) → Planteuse deux rangs (1960) → Planteuse moderne (1990) → Planteuse quatre rangs guidée par GPS (2015)",
 		"fam": "agriculture",
 		"groupe": "Machines : Planteuse",
 		"id": "planteuse@1960",
@@ -57100,14 +57545,16 @@
 			"planteuse@0",
 			"planteuse@1930",
 			"planteuse@1960",
-			"planteuse@1990"
+			"planteuse@1990",
+			"planteuse@2015"
 		],
 		"nom": "Planteuse deux rangs",
-		"source": "table"
+		"source": "table",
+		"v": "img/v/agriculture/planteuse_1960.webp"
 	},
 	{
 		"annee": 1990,
-		"evol": "Selon l'époque : Plantation à la main (toujours) → Planteuse attelée (1930) → Planteuse deux rangs (1960) → Planteuse moderne (1990)",
+		"evol": "Selon l'époque : Plantation à la main (toujours) → Planteuse attelée (1930) → Planteuse deux rangs (1960) → Planteuse moderne (1990) → Planteuse quatre rangs guidée par GPS (2015)",
 		"fam": "agriculture",
 		"groupe": "Machines : Planteuse",
 		"id": "planteuse@1990",
@@ -57116,14 +57563,34 @@
 			"planteuse@0",
 			"planteuse@1930",
 			"planteuse@1960",
-			"planteuse@1990"
+			"planteuse@1990",
+			"planteuse@2015"
 		],
 		"nom": "Planteuse moderne",
-		"source": "table"
+		"source": "table",
+		"v": "img/v/agriculture/planteuse_1990.webp"
+	},
+	{
+		"annee": 2015,
+		"evol": "Selon l'époque : Plantation à la main (toujours) → Planteuse attelée (1930) → Planteuse deux rangs (1960) → Planteuse moderne (1990) → Planteuse quatre rangs guidée par GPS (2015)",
+		"fam": "agriculture",
+		"groupe": "Machines : Planteuse",
+		"id": "planteuse@2015",
+		"info": "",
+		"lignee": [
+			"planteuse@0",
+			"planteuse@1930",
+			"planteuse@1960",
+			"planteuse@1990",
+			"planteuse@2015"
+		],
+		"nom": "Planteuse quatre rangs guidée par GPS",
+		"source": "table",
+		"v": "img/v/agriculture/planteuse_2015.webp"
 	},
 	{
 		"annee": 0,
-		"evol": "Selon l'époque : Épandage à la fourche (tombereau) (toujours) → Épandeur à fumier attelé (1910) → Épandeur à hérissons (1960) → Épandeur d'engrais moderne (1990)",
+		"evol": "Selon l'époque : Épandage à la fourche (tombereau) (toujours) → Épandeur à fumier attelé (1910) → Épandeur à hérissons (1960) → Épandeur d'engrais moderne (1990) → Épandeur à dose modulée (cartes satellite) (2012)",
 		"fam": "agriculture",
 		"groupe": "Machines : Épandeur d'engrais",
 		"id": "epandeur@0",
@@ -57132,7 +57599,8 @@
 			"epandeur@0",
 			"epandeur@1910",
 			"epandeur@1960",
-			"epandeur@1990"
+			"epandeur@1990",
+			"epandeur@2012"
 		],
 		"nom": "Épandage à la fourche (tombereau)",
 		"source": "table",
@@ -57140,7 +57608,7 @@
 	},
 	{
 		"annee": 1910,
-		"evol": "Selon l'époque : Épandage à la fourche (tombereau) (toujours) → Épandeur à fumier attelé (1910) → Épandeur à hérissons (1960) → Épandeur d'engrais moderne (1990)",
+		"evol": "Selon l'époque : Épandage à la fourche (tombereau) (toujours) → Épandeur à fumier attelé (1910) → Épandeur à hérissons (1960) → Épandeur d'engrais moderne (1990) → Épandeur à dose modulée (cartes satellite) (2012)",
 		"fam": "agriculture",
 		"groupe": "Machines : Épandeur d'engrais",
 		"id": "epandeur@1910",
@@ -57149,7 +57617,8 @@
 			"epandeur@0",
 			"epandeur@1910",
 			"epandeur@1960",
-			"epandeur@1990"
+			"epandeur@1990",
+			"epandeur@2012"
 		],
 		"nom": "Épandeur à fumier attelé",
 		"source": "table",
@@ -57157,7 +57626,7 @@
 	},
 	{
 		"annee": 1960,
-		"evol": "Selon l'époque : Épandage à la fourche (tombereau) (toujours) → Épandeur à fumier attelé (1910) → Épandeur à hérissons (1960) → Épandeur d'engrais moderne (1990)",
+		"evol": "Selon l'époque : Épandage à la fourche (tombereau) (toujours) → Épandeur à fumier attelé (1910) → Épandeur à hérissons (1960) → Épandeur d'engrais moderne (1990) → Épandeur à dose modulée (cartes satellite) (2012)",
 		"fam": "agriculture",
 		"groupe": "Machines : Épandeur d'engrais",
 		"id": "epandeur@1960",
@@ -57166,14 +57635,16 @@
 			"epandeur@0",
 			"epandeur@1910",
 			"epandeur@1960",
-			"epandeur@1990"
+			"epandeur@1990",
+			"epandeur@2012"
 		],
 		"nom": "Épandeur à hérissons",
-		"source": "table"
+		"source": "table",
+		"v": "img/v/agriculture/epandeur_1960.webp"
 	},
 	{
 		"annee": 1990,
-		"evol": "Selon l'époque : Épandage à la fourche (tombereau) (toujours) → Épandeur à fumier attelé (1910) → Épandeur à hérissons (1960) → Épandeur d'engrais moderne (1990)",
+		"evol": "Selon l'époque : Épandage à la fourche (tombereau) (toujours) → Épandeur à fumier attelé (1910) → Épandeur à hérissons (1960) → Épandeur d'engrais moderne (1990) → Épandeur à dose modulée (cartes satellite) (2012)",
 		"fam": "agriculture",
 		"groupe": "Machines : Épandeur d'engrais",
 		"id": "epandeur@1990",
@@ -57182,14 +57653,34 @@
 			"epandeur@0",
 			"epandeur@1910",
 			"epandeur@1960",
-			"epandeur@1990"
+			"epandeur@1990",
+			"epandeur@2012"
 		],
 		"nom": "Épandeur d'engrais moderne",
-		"source": "table"
+		"source": "table",
+		"v": "img/v/agriculture/epandeur_1990.webp"
+	},
+	{
+		"annee": 2012,
+		"evol": "Selon l'époque : Épandage à la fourche (tombereau) (toujours) → Épandeur à fumier attelé (1910) → Épandeur à hérissons (1960) → Épandeur d'engrais moderne (1990) → Épandeur à dose modulée (cartes satellite) (2012)",
+		"fam": "agriculture",
+		"groupe": "Machines : Épandeur d'engrais",
+		"id": "epandeur@2012",
+		"info": "",
+		"lignee": [
+			"epandeur@0",
+			"epandeur@1910",
+			"epandeur@1960",
+			"epandeur@1990",
+			"epandeur@2012"
+		],
+		"nom": "Épandeur à dose modulée (cartes satellite)",
+		"source": "table",
+		"v": "img/v/agriculture/epandeur_2012.webp"
 	},
 	{
 		"annee": 0,
-		"evol": "Selon l'époque : Pas de traitement des cultures (toujours) → Pulvérisateur à dos (bouillie bordelaise) (1885) → Pulvérisateur porté (1950) → Pulvérisateur moderne (1990)",
+		"evol": "Selon l'époque : Pas de traitement des cultures (toujours) → Pulvérisateur à dos (bouillie bordelaise) (1885) → Pulvérisateur porté (1950) → Pulvérisateur moderne (1990) → Drone de pulvérisation (2016) → Robot désherbeur (sans produits chimiques) (2026)",
 		"fam": "agriculture",
 		"groupe": "Machines : Pulvérisateur",
 		"id": "pulverisateur@0",
@@ -57198,14 +57689,16 @@
 			"pulverisateur@0",
 			"pulverisateur@1885",
 			"pulverisateur@1950",
-			"pulverisateur@1990"
+			"pulverisateur@1990",
+			"pulverisateur@2016",
+			"pulverisateur@2026"
 		],
 		"nom": "Pas de traitement des cultures",
 		"source": "table"
 	},
 	{
 		"annee": 1885,
-		"evol": "Selon l'époque : Pas de traitement des cultures (toujours) → Pulvérisateur à dos (bouillie bordelaise) (1885) → Pulvérisateur porté (1950) → Pulvérisateur moderne (1990)",
+		"evol": "Selon l'époque : Pas de traitement des cultures (toujours) → Pulvérisateur à dos (bouillie bordelaise) (1885) → Pulvérisateur porté (1950) → Pulvérisateur moderne (1990) → Drone de pulvérisation (2016) → Robot désherbeur (sans produits chimiques) (2026)",
 		"fam": "agriculture",
 		"groupe": "Machines : Pulvérisateur",
 		"id": "pulverisateur@1885",
@@ -57214,7 +57707,9 @@
 			"pulverisateur@0",
 			"pulverisateur@1885",
 			"pulverisateur@1950",
-			"pulverisateur@1990"
+			"pulverisateur@1990",
+			"pulverisateur@2016",
+			"pulverisateur@2026"
 		],
 		"nom": "Pulvérisateur à dos (bouillie bordelaise)",
 		"source": "table",
@@ -57222,7 +57717,7 @@
 	},
 	{
 		"annee": 1950,
-		"evol": "Selon l'époque : Pas de traitement des cultures (toujours) → Pulvérisateur à dos (bouillie bordelaise) (1885) → Pulvérisateur porté (1950) → Pulvérisateur moderne (1990)",
+		"evol": "Selon l'époque : Pas de traitement des cultures (toujours) → Pulvérisateur à dos (bouillie bordelaise) (1885) → Pulvérisateur porté (1950) → Pulvérisateur moderne (1990) → Drone de pulvérisation (2016) → Robot désherbeur (sans produits chimiques) (2026)",
 		"fam": "agriculture",
 		"groupe": "Machines : Pulvérisateur",
 		"id": "pulverisateur@1950",
@@ -57231,14 +57726,17 @@
 			"pulverisateur@0",
 			"pulverisateur@1885",
 			"pulverisateur@1950",
-			"pulverisateur@1990"
+			"pulverisateur@1990",
+			"pulverisateur@2016",
+			"pulverisateur@2026"
 		],
 		"nom": "Pulvérisateur porté",
-		"source": "table"
+		"source": "table",
+		"v": "img/v/agriculture/pulverisateur_1950.webp"
 	},
 	{
 		"annee": 1990,
-		"evol": "Selon l'époque : Pas de traitement des cultures (toujours) → Pulvérisateur à dos (bouillie bordelaise) (1885) → Pulvérisateur porté (1950) → Pulvérisateur moderne (1990)",
+		"evol": "Selon l'époque : Pas de traitement des cultures (toujours) → Pulvérisateur à dos (bouillie bordelaise) (1885) → Pulvérisateur porté (1950) → Pulvérisateur moderne (1990) → Drone de pulvérisation (2016) → Robot désherbeur (sans produits chimiques) (2026)",
 		"fam": "agriculture",
 		"groupe": "Machines : Pulvérisateur",
 		"id": "pulverisateur@1990",
@@ -57247,14 +57745,55 @@
 			"pulverisateur@0",
 			"pulverisateur@1885",
 			"pulverisateur@1950",
-			"pulverisateur@1990"
+			"pulverisateur@1990",
+			"pulverisateur@2016",
+			"pulverisateur@2026"
 		],
 		"nom": "Pulvérisateur moderne",
-		"source": "table"
+		"source": "table",
+		"v": "img/v/agriculture/pulverisateur_1990.webp"
+	},
+	{
+		"annee": 2016,
+		"evol": "Selon l'époque : Pas de traitement des cultures (toujours) → Pulvérisateur à dos (bouillie bordelaise) (1885) → Pulvérisateur porté (1950) → Pulvérisateur moderne (1990) → Drone de pulvérisation (2016) → Robot désherbeur (sans produits chimiques) (2026)",
+		"fam": "agriculture",
+		"groupe": "Machines : Pulvérisateur",
+		"id": "pulverisateur@2016",
+		"info": "",
+		"lignee": [
+			"pulverisateur@0",
+			"pulverisateur@1885",
+			"pulverisateur@1950",
+			"pulverisateur@1990",
+			"pulverisateur@2016",
+			"pulverisateur@2026"
+		],
+		"nom": "Drone de pulvérisation",
+		"source": "table",
+		"v": "img/v/agriculture/pulverisateur_2016.webp"
+	},
+	{
+		"annee": 2026,
+		"evol": "Selon l'époque : Pas de traitement des cultures (toujours) → Pulvérisateur à dos (bouillie bordelaise) (1885) → Pulvérisateur porté (1950) → Pulvérisateur moderne (1990) → Drone de pulvérisation (2016) → Robot désherbeur (sans produits chimiques) (2026)",
+		"fam": "agriculture",
+		"groupe": "Machines : Pulvérisateur",
+		"id": "pulverisateur@2026",
+		"info": "",
+		"lignee": [
+			"pulverisateur@0",
+			"pulverisateur@1885",
+			"pulverisateur@1950",
+			"pulverisateur@1990",
+			"pulverisateur@2016",
+			"pulverisateur@2026"
+		],
+		"nom": "Robot désherbeur (sans produits chimiques)",
+		"source": "table",
+		"v": "img/v/agriculture/pulverisateur_2026.webp"
 	},
 	{
 		"annee": 0,
-		"evol": "Selon l'époque : Faux (à la main) (toujours) → Faucheuse à cheval (1850) → Barre de coupe portée (1950) → Faucheuse moderne (1985)",
+		"evol": "Selon l'époque : Faux (à la main) (toujours) → Faucheuse à cheval (1850) → Barre de coupe portée (1950) → Faucheuse moderne (1985) → Faucheuse-conditionneuse rotative (2005)",
 		"fam": "agriculture",
 		"groupe": "Machines : Faucheuse",
 		"id": "faucheuse@0",
@@ -57263,7 +57802,8 @@
 			"faucheuse@0",
 			"faucheuse@1850",
 			"faucheuse@1950",
-			"faucheuse@1985"
+			"faucheuse@1985",
+			"faucheuse@2005"
 		],
 		"nom": "Faux (à la main)",
 		"source": "table",
@@ -57271,7 +57811,7 @@
 	},
 	{
 		"annee": 1850,
-		"evol": "Selon l'époque : Faux (à la main) (toujours) → Faucheuse à cheval (1850) → Barre de coupe portée (1950) → Faucheuse moderne (1985)",
+		"evol": "Selon l'époque : Faux (à la main) (toujours) → Faucheuse à cheval (1850) → Barre de coupe portée (1950) → Faucheuse moderne (1985) → Faucheuse-conditionneuse rotative (2005)",
 		"fam": "agriculture",
 		"groupe": "Machines : Faucheuse",
 		"id": "faucheuse@1850",
@@ -57280,14 +57820,15 @@
 			"faucheuse@0",
 			"faucheuse@1850",
 			"faucheuse@1950",
-			"faucheuse@1985"
+			"faucheuse@1985",
+			"faucheuse@2005"
 		],
 		"nom": "Faucheuse à cheval",
 		"source": "table"
 	},
 	{
 		"annee": 1950,
-		"evol": "Selon l'époque : Faux (à la main) (toujours) → Faucheuse à cheval (1850) → Barre de coupe portée (1950) → Faucheuse moderne (1985)",
+		"evol": "Selon l'époque : Faux (à la main) (toujours) → Faucheuse à cheval (1850) → Barre de coupe portée (1950) → Faucheuse moderne (1985) → Faucheuse-conditionneuse rotative (2005)",
 		"fam": "agriculture",
 		"groupe": "Machines : Faucheuse",
 		"id": "faucheuse@1950",
@@ -57296,14 +57837,16 @@
 			"faucheuse@0",
 			"faucheuse@1850",
 			"faucheuse@1950",
-			"faucheuse@1985"
+			"faucheuse@1985",
+			"faucheuse@2005"
 		],
 		"nom": "Barre de coupe portée",
-		"source": "table"
+		"source": "table",
+		"v": "img/v/agriculture/faucheuse_1950.webp"
 	},
 	{
 		"annee": 1985,
-		"evol": "Selon l'époque : Faux (à la main) (toujours) → Faucheuse à cheval (1850) → Barre de coupe portée (1950) → Faucheuse moderne (1985)",
+		"evol": "Selon l'époque : Faux (à la main) (toujours) → Faucheuse à cheval (1850) → Barre de coupe portée (1950) → Faucheuse moderne (1985) → Faucheuse-conditionneuse rotative (2005)",
 		"fam": "agriculture",
 		"groupe": "Machines : Faucheuse",
 		"id": "faucheuse@1985",
@@ -57312,14 +57855,34 @@
 			"faucheuse@0",
 			"faucheuse@1850",
 			"faucheuse@1950",
-			"faucheuse@1985"
+			"faucheuse@1985",
+			"faucheuse@2005"
 		],
 		"nom": "Faucheuse moderne",
-		"source": "table"
+		"source": "table",
+		"v": "img/v/agriculture/faucheuse_1985.webp"
+	},
+	{
+		"annee": 2005,
+		"evol": "Selon l'époque : Faux (à la main) (toujours) → Faucheuse à cheval (1850) → Barre de coupe portée (1950) → Faucheuse moderne (1985) → Faucheuse-conditionneuse rotative (2005)",
+		"fam": "agriculture",
+		"groupe": "Machines : Faucheuse",
+		"id": "faucheuse@2005",
+		"info": "",
+		"lignee": [
+			"faucheuse@0",
+			"faucheuse@1850",
+			"faucheuse@1950",
+			"faucheuse@1985",
+			"faucheuse@2005"
+		],
+		"nom": "Faucheuse-conditionneuse rotative",
+		"source": "table",
+		"v": "img/v/agriculture/faucheuse_2005.webp"
 	},
 	{
 		"annee": 0,
-		"evol": "Selon l'époque : Fourche, râteau et meules (à la main) (toujours) → Presse à foin fixe (1880) → Ramasseuse-presse (balles carrées) (1945) → Presse à balles rondes moderne (1975)",
+		"evol": "Selon l'époque : Fourche, râteau et meules (à la main) (toujours) → Presse à foin fixe (1880) → Ramasseuse-presse (balles carrées) (1945) → Presse à balles rondes moderne (1975) → Presse-enrubanneuse combinée (2005)",
 		"fam": "agriculture",
 		"groupe": "Machines : Presse à balles rondes",
 		"id": "presse@0",
@@ -57328,7 +57891,8 @@
 			"presse@0",
 			"presse@1880",
 			"presse@1945",
-			"presse@1975"
+			"presse@1975",
+			"presse@2005"
 		],
 		"nom": "Fourche, râteau et meules (à la main)",
 		"source": "table",
@@ -57336,7 +57900,7 @@
 	},
 	{
 		"annee": 1880,
-		"evol": "Selon l'époque : Fourche, râteau et meules (à la main) (toujours) → Presse à foin fixe (1880) → Ramasseuse-presse (balles carrées) (1945) → Presse à balles rondes moderne (1975)",
+		"evol": "Selon l'époque : Fourche, râteau et meules (à la main) (toujours) → Presse à foin fixe (1880) → Ramasseuse-presse (balles carrées) (1945) → Presse à balles rondes moderne (1975) → Presse-enrubanneuse combinée (2005)",
 		"fam": "agriculture",
 		"groupe": "Machines : Presse à balles rondes",
 		"id": "presse@1880",
@@ -57345,7 +57909,8 @@
 			"presse@0",
 			"presse@1880",
 			"presse@1945",
-			"presse@1975"
+			"presse@1975",
+			"presse@2005"
 		],
 		"nom": "Presse à foin fixe",
 		"source": "table",
@@ -57353,7 +57918,7 @@
 	},
 	{
 		"annee": 1945,
-		"evol": "Selon l'époque : Fourche, râteau et meules (à la main) (toujours) → Presse à foin fixe (1880) → Ramasseuse-presse (balles carrées) (1945) → Presse à balles rondes moderne (1975)",
+		"evol": "Selon l'époque : Fourche, râteau et meules (à la main) (toujours) → Presse à foin fixe (1880) → Ramasseuse-presse (balles carrées) (1945) → Presse à balles rondes moderne (1975) → Presse-enrubanneuse combinée (2005)",
 		"fam": "agriculture",
 		"groupe": "Machines : Presse à balles rondes",
 		"id": "presse@1945",
@@ -57362,7 +57927,8 @@
 			"presse@0",
 			"presse@1880",
 			"presse@1945",
-			"presse@1975"
+			"presse@1975",
+			"presse@2005"
 		],
 		"nom": "Ramasseuse-presse (balles carrées)",
 		"source": "table",
@@ -57370,7 +57936,7 @@
 	},
 	{
 		"annee": 1975,
-		"evol": "Selon l'époque : Fourche, râteau et meules (à la main) (toujours) → Presse à foin fixe (1880) → Ramasseuse-presse (balles carrées) (1945) → Presse à balles rondes moderne (1975)",
+		"evol": "Selon l'époque : Fourche, râteau et meules (à la main) (toujours) → Presse à foin fixe (1880) → Ramasseuse-presse (balles carrées) (1945) → Presse à balles rondes moderne (1975) → Presse-enrubanneuse combinée (2005)",
 		"fam": "agriculture",
 		"groupe": "Machines : Presse à balles rondes",
 		"id": "presse@1975",
@@ -57379,10 +57945,30 @@
 			"presse@0",
 			"presse@1880",
 			"presse@1945",
-			"presse@1975"
+			"presse@1975",
+			"presse@2005"
 		],
 		"nom": "Presse à balles rondes moderne",
-		"source": "table"
+		"source": "table",
+		"v": "img/v/agriculture/presse_1975.webp"
+	},
+	{
+		"annee": 2005,
+		"evol": "Selon l'époque : Fourche, râteau et meules (à la main) (toujours) → Presse à foin fixe (1880) → Ramasseuse-presse (balles carrées) (1945) → Presse à balles rondes moderne (1975) → Presse-enrubanneuse combinée (2005)",
+		"fam": "agriculture",
+		"groupe": "Machines : Presse à balles rondes",
+		"id": "presse@2005",
+		"info": "",
+		"lignee": [
+			"presse@0",
+			"presse@1880",
+			"presse@1945",
+			"presse@1975",
+			"presse@2005"
+		],
+		"nom": "Presse-enrubanneuse combinée",
+		"source": "table",
+		"v": "img/v/agriculture/presse_2005.webp"
 	},
 	{
 		"annee": 0,
@@ -57416,7 +58002,7 @@
 	},
 	{
 		"annee": 0,
-		"evol": "Selon l'époque : Faux, faucille et fléau (à la main) (toujours) → Moissonneuse attelée et batteuse à vapeur (1850) → Moissonneuse-lieuse et batteuse (1900) → Moissonneuse-batteuse tractée (1940) → Moissonneuse-batteuse automotrice (1960) → Moissonneuse-batteuse moderne (1995)",
+		"evol": "Selon l'époque : Faux, faucille et fléau (à la main) (toujours) → Moissonneuse attelée et batteuse à vapeur (1850) → Moissonneuse-lieuse et batteuse (1900) → Moissonneuse-batteuse tractée (1940) → Moissonneuse-batteuse automotrice (1960) → Moissonneuse-batteuse moderne (1995) → Moissonneuse-batteuse autonome (2030)",
 		"fam": "agriculture",
 		"groupe": "Machines : Moissonneuse-batteuse",
 		"id": "moissonneuse@0",
@@ -57427,7 +58013,8 @@
 			"moissonneuse@1900",
 			"moissonneuse@1940",
 			"moissonneuse@1960",
-			"moissonneuse@1995"
+			"moissonneuse@1995",
+			"moissonneuse@2030"
 		],
 		"nom": "Faux, faucille et fléau (à la main)",
 		"source": "table",
@@ -57435,7 +58022,7 @@
 	},
 	{
 		"annee": 1850,
-		"evol": "Selon l'époque : Faux, faucille et fléau (à la main) (toujours) → Moissonneuse attelée et batteuse à vapeur (1850) → Moissonneuse-lieuse et batteuse (1900) → Moissonneuse-batteuse tractée (1940) → Moissonneuse-batteuse automotrice (1960) → Moissonneuse-batteuse moderne (1995)",
+		"evol": "Selon l'époque : Faux, faucille et fléau (à la main) (toujours) → Moissonneuse attelée et batteuse à vapeur (1850) → Moissonneuse-lieuse et batteuse (1900) → Moissonneuse-batteuse tractée (1940) → Moissonneuse-batteuse automotrice (1960) → Moissonneuse-batteuse moderne (1995) → Moissonneuse-batteuse autonome (2030)",
 		"fam": "agriculture",
 		"groupe": "Machines : Moissonneuse-batteuse",
 		"id": "moissonneuse@1850",
@@ -57446,7 +58033,8 @@
 			"moissonneuse@1900",
 			"moissonneuse@1940",
 			"moissonneuse@1960",
-			"moissonneuse@1995"
+			"moissonneuse@1995",
+			"moissonneuse@2030"
 		],
 		"nom": "Moissonneuse attelée et batteuse à vapeur",
 		"source": "table",
@@ -57454,7 +58042,7 @@
 	},
 	{
 		"annee": 1900,
-		"evol": "Selon l'époque : Faux, faucille et fléau (à la main) (toujours) → Moissonneuse attelée et batteuse à vapeur (1850) → Moissonneuse-lieuse et batteuse (1900) → Moissonneuse-batteuse tractée (1940) → Moissonneuse-batteuse automotrice (1960) → Moissonneuse-batteuse moderne (1995)",
+		"evol": "Selon l'époque : Faux, faucille et fléau (à la main) (toujours) → Moissonneuse attelée et batteuse à vapeur (1850) → Moissonneuse-lieuse et batteuse (1900) → Moissonneuse-batteuse tractée (1940) → Moissonneuse-batteuse automotrice (1960) → Moissonneuse-batteuse moderne (1995) → Moissonneuse-batteuse autonome (2030)",
 		"fam": "agriculture",
 		"groupe": "Machines : Moissonneuse-batteuse",
 		"id": "moissonneuse@1900",
@@ -57465,7 +58053,8 @@
 			"moissonneuse@1900",
 			"moissonneuse@1940",
 			"moissonneuse@1960",
-			"moissonneuse@1995"
+			"moissonneuse@1995",
+			"moissonneuse@2030"
 		],
 		"nom": "Moissonneuse-lieuse et batteuse",
 		"source": "table",
@@ -57473,7 +58062,7 @@
 	},
 	{
 		"annee": 1940,
-		"evol": "Selon l'époque : Faux, faucille et fléau (à la main) (toujours) → Moissonneuse attelée et batteuse à vapeur (1850) → Moissonneuse-lieuse et batteuse (1900) → Moissonneuse-batteuse tractée (1940) → Moissonneuse-batteuse automotrice (1960) → Moissonneuse-batteuse moderne (1995)",
+		"evol": "Selon l'époque : Faux, faucille et fléau (à la main) (toujours) → Moissonneuse attelée et batteuse à vapeur (1850) → Moissonneuse-lieuse et batteuse (1900) → Moissonneuse-batteuse tractée (1940) → Moissonneuse-batteuse automotrice (1960) → Moissonneuse-batteuse moderne (1995) → Moissonneuse-batteuse autonome (2030)",
 		"fam": "agriculture",
 		"groupe": "Machines : Moissonneuse-batteuse",
 		"id": "moissonneuse@1940",
@@ -57484,7 +58073,8 @@
 			"moissonneuse@1900",
 			"moissonneuse@1940",
 			"moissonneuse@1960",
-			"moissonneuse@1995"
+			"moissonneuse@1995",
+			"moissonneuse@2030"
 		],
 		"nom": "Moissonneuse-batteuse tractée",
 		"source": "table",
@@ -57492,7 +58082,7 @@
 	},
 	{
 		"annee": 1960,
-		"evol": "Selon l'époque : Faux, faucille et fléau (à la main) (toujours) → Moissonneuse attelée et batteuse à vapeur (1850) → Moissonneuse-lieuse et batteuse (1900) → Moissonneuse-batteuse tractée (1940) → Moissonneuse-batteuse automotrice (1960) → Moissonneuse-batteuse moderne (1995)",
+		"evol": "Selon l'époque : Faux, faucille et fléau (à la main) (toujours) → Moissonneuse attelée et batteuse à vapeur (1850) → Moissonneuse-lieuse et batteuse (1900) → Moissonneuse-batteuse tractée (1940) → Moissonneuse-batteuse automotrice (1960) → Moissonneuse-batteuse moderne (1995) → Moissonneuse-batteuse autonome (2030)",
 		"fam": "agriculture",
 		"groupe": "Machines : Moissonneuse-batteuse",
 		"id": "moissonneuse@1960",
@@ -57503,7 +58093,8 @@
 			"moissonneuse@1900",
 			"moissonneuse@1940",
 			"moissonneuse@1960",
-			"moissonneuse@1995"
+			"moissonneuse@1995",
+			"moissonneuse@2030"
 		],
 		"nom": "Moissonneuse-batteuse automotrice",
 		"source": "table",
@@ -57511,7 +58102,7 @@
 	},
 	{
 		"annee": 1995,
-		"evol": "Selon l'époque : Faux, faucille et fléau (à la main) (toujours) → Moissonneuse attelée et batteuse à vapeur (1850) → Moissonneuse-lieuse et batteuse (1900) → Moissonneuse-batteuse tractée (1940) → Moissonneuse-batteuse automotrice (1960) → Moissonneuse-batteuse moderne (1995)",
+		"evol": "Selon l'époque : Faux, faucille et fléau (à la main) (toujours) → Moissonneuse attelée et batteuse à vapeur (1850) → Moissonneuse-lieuse et batteuse (1900) → Moissonneuse-batteuse tractée (1940) → Moissonneuse-batteuse automotrice (1960) → Moissonneuse-batteuse moderne (1995) → Moissonneuse-batteuse autonome (2030)",
 		"fam": "agriculture",
 		"groupe": "Machines : Moissonneuse-batteuse",
 		"id": "moissonneuse@1995",
@@ -57522,15 +58113,36 @@
 			"moissonneuse@1900",
 			"moissonneuse@1940",
 			"moissonneuse@1960",
-			"moissonneuse@1995"
+			"moissonneuse@1995",
+			"moissonneuse@2030"
 		],
 		"nom": "Moissonneuse-batteuse moderne",
 		"source": "table",
 		"v": "img/v/agriculture/moissonneuse_1995.webp"
 	},
 	{
+		"annee": 2030,
+		"evol": "Selon l'époque : Faux, faucille et fléau (à la main) (toujours) → Moissonneuse attelée et batteuse à vapeur (1850) → Moissonneuse-lieuse et batteuse (1900) → Moissonneuse-batteuse tractée (1940) → Moissonneuse-batteuse automotrice (1960) → Moissonneuse-batteuse moderne (1995) → Moissonneuse-batteuse autonome (2030)",
+		"fam": "agriculture",
+		"groupe": "Machines : Moissonneuse-batteuse",
+		"id": "moissonneuse@2030",
+		"info": "",
+		"lignee": [
+			"moissonneuse@0",
+			"moissonneuse@1850",
+			"moissonneuse@1900",
+			"moissonneuse@1940",
+			"moissonneuse@1960",
+			"moissonneuse@1995",
+			"moissonneuse@2030"
+		],
+		"nom": "Moissonneuse-batteuse autonome",
+		"source": "table",
+		"v": "img/v/agriculture/moissonneuse_2030.webp"
+	},
+	{
 		"annee": 0,
-		"evol": "Selon l'époque : Arrachage à la main (houe et panier) (toujours) → Arracheuse attelée (1900) → Arracheuse tractée (1960) → Arracheuse (betteraves, pommes de terre) moderne (1985)",
+		"evol": "Selon l'époque : Arrachage à la main (houe et panier) (toujours) → Arracheuse attelée (1900) → Arracheuse tractée (1960) → Arracheuse (betteraves, pommes de terre) moderne (1985) → Arracheuse automotrice six rangs (2015)",
 		"fam": "agriculture",
 		"groupe": "Machines : Arracheuse (betteraves, pommes de terre)",
 		"id": "arracheuse@0",
@@ -57539,7 +58151,8 @@
 			"arracheuse@0",
 			"arracheuse@1900",
 			"arracheuse@1960",
-			"arracheuse@1985"
+			"arracheuse@1985",
+			"arracheuse@2015"
 		],
 		"nom": "Arrachage à la main (houe et panier)",
 		"source": "table",
@@ -57547,7 +58160,7 @@
 	},
 	{
 		"annee": 1900,
-		"evol": "Selon l'époque : Arrachage à la main (houe et panier) (toujours) → Arracheuse attelée (1900) → Arracheuse tractée (1960) → Arracheuse (betteraves, pommes de terre) moderne (1985)",
+		"evol": "Selon l'époque : Arrachage à la main (houe et panier) (toujours) → Arracheuse attelée (1900) → Arracheuse tractée (1960) → Arracheuse (betteraves, pommes de terre) moderne (1985) → Arracheuse automotrice six rangs (2015)",
 		"fam": "agriculture",
 		"groupe": "Machines : Arracheuse (betteraves, pommes de terre)",
 		"id": "arracheuse@1900",
@@ -57556,7 +58169,8 @@
 			"arracheuse@0",
 			"arracheuse@1900",
 			"arracheuse@1960",
-			"arracheuse@1985"
+			"arracheuse@1985",
+			"arracheuse@2015"
 		],
 		"nom": "Arracheuse attelée",
 		"source": "table",
@@ -57564,7 +58178,7 @@
 	},
 	{
 		"annee": 1960,
-		"evol": "Selon l'époque : Arrachage à la main (houe et panier) (toujours) → Arracheuse attelée (1900) → Arracheuse tractée (1960) → Arracheuse (betteraves, pommes de terre) moderne (1985)",
+		"evol": "Selon l'époque : Arrachage à la main (houe et panier) (toujours) → Arracheuse attelée (1900) → Arracheuse tractée (1960) → Arracheuse (betteraves, pommes de terre) moderne (1985) → Arracheuse automotrice six rangs (2015)",
 		"fam": "agriculture",
 		"groupe": "Machines : Arracheuse (betteraves, pommes de terre)",
 		"id": "arracheuse@1960",
@@ -57573,7 +58187,8 @@
 			"arracheuse@0",
 			"arracheuse@1900",
 			"arracheuse@1960",
-			"arracheuse@1985"
+			"arracheuse@1985",
+			"arracheuse@2015"
 		],
 		"nom": "Arracheuse tractée",
 		"source": "table",
@@ -57581,7 +58196,7 @@
 	},
 	{
 		"annee": 1985,
-		"evol": "Selon l'époque : Arrachage à la main (houe et panier) (toujours) → Arracheuse attelée (1900) → Arracheuse tractée (1960) → Arracheuse (betteraves, pommes de terre) moderne (1985)",
+		"evol": "Selon l'époque : Arrachage à la main (houe et panier) (toujours) → Arracheuse attelée (1900) → Arracheuse tractée (1960) → Arracheuse (betteraves, pommes de terre) moderne (1985) → Arracheuse automotrice six rangs (2015)",
 		"fam": "agriculture",
 		"groupe": "Machines : Arracheuse (betteraves, pommes de terre)",
 		"id": "arracheuse@1985",
@@ -57590,22 +58205,42 @@
 			"arracheuse@0",
 			"arracheuse@1900",
 			"arracheuse@1960",
-			"arracheuse@1985"
+			"arracheuse@1985",
+			"arracheuse@2015"
 		],
 		"nom": "Arracheuse (betteraves, pommes de terre) moderne",
 		"source": "table",
 		"v": "img/v/agriculture/arracheuse_1985.webp"
 	},
 	{
+		"annee": 2015,
+		"evol": "Selon l'époque : Arrachage à la main (houe et panier) (toujours) → Arracheuse attelée (1900) → Arracheuse tractée (1960) → Arracheuse (betteraves, pommes de terre) moderne (1985) → Arracheuse automotrice six rangs (2015)",
+		"fam": "agriculture",
+		"groupe": "Machines : Arracheuse (betteraves, pommes de terre)",
+		"id": "arracheuse@2015",
+		"info": "",
+		"lignee": [
+			"arracheuse@0",
+			"arracheuse@1900",
+			"arracheuse@1960",
+			"arracheuse@1985",
+			"arracheuse@2015"
+		],
+		"nom": "Arracheuse automotrice six rangs",
+		"source": "table",
+		"v": "img/v/agriculture/arracheuse_2015.webp"
+	},
+	{
 		"annee": 0,
-		"evol": "Selon l'époque : Cueillette à la main (paniers, échelles) (toujours) → Cueilleurs et plateforme de récolte moderne (1960)",
+		"evol": "Selon l'époque : Cueillette à la main (paniers, échelles) (toujours) → Cueilleurs et plateforme de récolte moderne (1960) → Robots cueilleurs de fruits (2025)",
 		"fam": "agriculture",
 		"groupe": "Machines : Cueilleurs et plateforme de récolte",
 		"id": "cueillette@0",
 		"info": "",
 		"lignee": [
 			"cueillette@0",
-			"cueillette@1960"
+			"cueillette@1960",
+			"cueillette@2025"
 		],
 		"nom": "Cueillette à la main (paniers, échelles)",
 		"source": "table",
@@ -57613,29 +58248,47 @@
 	},
 	{
 		"annee": 1960,
-		"evol": "Selon l'époque : Cueillette à la main (paniers, échelles) (toujours) → Cueilleurs et plateforme de récolte moderne (1960)",
+		"evol": "Selon l'époque : Cueillette à la main (paniers, échelles) (toujours) → Cueilleurs et plateforme de récolte moderne (1960) → Robots cueilleurs de fruits (2025)",
 		"fam": "agriculture",
 		"groupe": "Machines : Cueilleurs et plateforme de récolte",
 		"id": "cueillette@1960",
 		"info": "",
 		"lignee": [
 			"cueillette@0",
-			"cueillette@1960"
+			"cueillette@1960",
+			"cueillette@2025"
 		],
 		"nom": "Cueilleurs et plateforme de récolte moderne",
 		"source": "table",
 		"v": "img/v/agriculture/cueillette_1960.webp"
 	},
 	{
+		"annee": 2025,
+		"evol": "Selon l'époque : Cueillette à la main (paniers, échelles) (toujours) → Cueilleurs et plateforme de récolte moderne (1960) → Robots cueilleurs de fruits (2025)",
+		"fam": "agriculture",
+		"groupe": "Machines : Cueilleurs et plateforme de récolte",
+		"id": "cueillette@2025",
+		"info": "",
+		"lignee": [
+			"cueillette@0",
+			"cueillette@1960",
+			"cueillette@2025"
+		],
+		"nom": "Robots cueilleurs de fruits",
+		"source": "table",
+		"v": "img/v/agriculture/cueillette_2025.webp"
+	},
+	{
 		"annee": 0,
-		"evol": "Selon l'époque : Vendange à la main (hottes et paniers) (toujours) → Machine à vendanger moderne (1975)",
+		"evol": "Selon l'époque : Vendange à la main (hottes et paniers) (toujours) → Machine à vendanger moderne (1975) → Machine à vendanger à tri optique (2020)",
 		"fam": "agriculture",
 		"groupe": "Machines : Machine à vendanger",
 		"id": "vendangeuse@0",
 		"info": "",
 		"lignee": [
 			"vendangeuse@0",
-			"vendangeuse@1975"
+			"vendangeuse@1975",
+			"vendangeuse@2020"
 		],
 		"nom": "Vendange à la main (hottes et paniers)",
 		"source": "table",
@@ -57643,29 +58296,47 @@
 	},
 	{
 		"annee": 1975,
-		"evol": "Selon l'époque : Vendange à la main (hottes et paniers) (toujours) → Machine à vendanger moderne (1975)",
+		"evol": "Selon l'époque : Vendange à la main (hottes et paniers) (toujours) → Machine à vendanger moderne (1975) → Machine à vendanger à tri optique (2020)",
 		"fam": "agriculture",
 		"groupe": "Machines : Machine à vendanger",
 		"id": "vendangeuse@1975",
 		"info": "",
 		"lignee": [
 			"vendangeuse@0",
-			"vendangeuse@1975"
+			"vendangeuse@1975",
+			"vendangeuse@2020"
 		],
 		"nom": "Machine à vendanger moderne",
 		"source": "table",
 		"v": "img/v/agriculture/vendangeuse_1975.webp"
 	},
 	{
+		"annee": 2020,
+		"evol": "Selon l'époque : Vendange à la main (hottes et paniers) (toujours) → Machine à vendanger moderne (1975) → Machine à vendanger à tri optique (2020)",
+		"fam": "agriculture",
+		"groupe": "Machines : Machine à vendanger",
+		"id": "vendangeuse@2020",
+		"info": "",
+		"lignee": [
+			"vendangeuse@0",
+			"vendangeuse@1975",
+			"vendangeuse@2020"
+		],
+		"nom": "Machine à vendanger à tri optique",
+		"source": "table",
+		"v": "img/v/agriculture/vendangeuse_2020.webp"
+	},
+	{
 		"annee": 0,
-		"evol": "Selon l'époque : Coupe à la machette (toujours) → Récolteuse de canne moderne (1975)",
+		"evol": "Selon l'époque : Coupe à la machette (toujours) → Récolteuse de canne moderne (1975) → Récolteuse de canne deux rangs (2020)",
 		"fam": "agriculture",
 		"groupe": "Machines : Récolteuse de canne",
 		"id": "coupe_canne@0",
 		"info": "",
 		"lignee": [
 			"coupe_canne@0",
-			"coupe_canne@1975"
+			"coupe_canne@1975",
+			"coupe_canne@2020"
 		],
 		"nom": "Coupe à la machette",
 		"source": "table",
@@ -57673,18 +58344,35 @@
 	},
 	{
 		"annee": 1975,
-		"evol": "Selon l'époque : Coupe à la machette (toujours) → Récolteuse de canne moderne (1975)",
+		"evol": "Selon l'époque : Coupe à la machette (toujours) → Récolteuse de canne moderne (1975) → Récolteuse de canne deux rangs (2020)",
 		"fam": "agriculture",
 		"groupe": "Machines : Récolteuse de canne",
 		"id": "coupe_canne@1975",
 		"info": "",
 		"lignee": [
 			"coupe_canne@0",
-			"coupe_canne@1975"
+			"coupe_canne@1975",
+			"coupe_canne@2020"
 		],
 		"nom": "Récolteuse de canne moderne",
 		"source": "table",
 		"v": "img/v/agriculture/coupe_canne_1975.webp"
+	},
+	{
+		"annee": 2020,
+		"evol": "Selon l'époque : Coupe à la machette (toujours) → Récolteuse de canne moderne (1975) → Récolteuse de canne deux rangs (2020)",
+		"fam": "agriculture",
+		"groupe": "Machines : Récolteuse de canne",
+		"id": "coupe_canne@2020",
+		"info": "",
+		"lignee": [
+			"coupe_canne@0",
+			"coupe_canne@1975",
+			"coupe_canne@2020"
+		],
+		"nom": "Récolteuse de canne deux rangs",
+		"source": "table",
+		"v": "img/v/agriculture/coupe_canne_2020.webp"
 	},
 	{
 		"annee": 0,
@@ -57694,7 +58382,8 @@
 		"id": "ble",
 		"info": "",
 		"nom": "Blé tendre",
-		"source": "table"
+		"source": "table",
+		"v": "img/v/agriculture/ble.webp"
 	},
 	{
 		"annee": 0,
@@ -57704,7 +58393,8 @@
 		"id": "orge",
 		"info": "",
 		"nom": "Orge",
-		"source": "table"
+		"source": "table",
+		"v": "img/v/agriculture/orge.webp"
 	},
 	{
 		"annee": 0,
@@ -57714,7 +58404,8 @@
 		"id": "mais",
 		"info": "",
 		"nom": "Maïs grain",
-		"source": "table"
+		"source": "table",
+		"v": "img/v/agriculture/mais.webp"
 	},
 	{
 		"annee": 0,
@@ -57724,7 +58415,8 @@
 		"id": "colza",
 		"info": "",
 		"nom": "Colza",
-		"source": "table"
+		"source": "table",
+		"v": "img/v/agriculture/colza.webp"
 	},
 	{
 		"annee": 1830,
@@ -57734,7 +58426,8 @@
 		"id": "tournesol",
 		"info": "",
 		"nom": "Tournesol",
-		"source": "table"
+		"source": "table",
+		"v": "img/v/agriculture/tournesol.webp"
 	},
 	{
 		"annee": 1920,
@@ -57744,7 +58437,8 @@
 		"id": "soja",
 		"info": "",
 		"nom": "Soja",
-		"source": "table"
+		"source": "table",
+		"v": "img/v/agriculture/soja.webp"
 	},
 	{
 		"annee": 1812,
@@ -57754,7 +58448,8 @@
 		"id": "betterave",
 		"info": "",
 		"nom": "Betterave sucrière",
-		"source": "table"
+		"source": "table",
+		"v": "img/v/agriculture/betterave.webp"
 	},
 	{
 		"annee": 0,
@@ -57764,7 +58459,8 @@
 		"id": "pomme_de_terre",
 		"info": "",
 		"nom": "Pomme de terre",
-		"source": "table"
+		"source": "table",
+		"v": "img/v/agriculture/pomme_de_terre.webp"
 	},
 	{
 		"annee": 0,
@@ -57774,7 +58470,8 @@
 		"id": "legumes",
 		"info": "",
 		"nom": "Légumes de plein champ",
-		"source": "table"
+		"source": "table",
+		"v": "img/v/agriculture/legumes.webp"
 	},
 	{
 		"annee": 0,
@@ -57784,7 +58481,8 @@
 		"id": "riz",
 		"info": "",
 		"nom": "Riz",
-		"source": "table"
+		"source": "table",
+		"v": "img/v/agriculture/riz.webp"
 	},
 	{
 		"annee": 0,
@@ -57794,7 +58492,8 @@
 		"id": "lin",
 		"info": "",
 		"nom": "Lin textile",
-		"source": "table"
+		"source": "table",
+		"v": "img/v/agriculture/lin.webp"
 	},
 	{
 		"annee": 0,
@@ -57804,7 +58503,8 @@
 		"id": "coton",
 		"info": "",
 		"nom": "Coton",
-		"source": "table"
+		"source": "table",
+		"v": "img/v/agriculture/coton.webp"
 	},
 	{
 		"annee": 0,
@@ -57814,7 +58514,8 @@
 		"id": "prairie",
 		"info": "",
 		"nom": "Prairie de fauche (foin)",
-		"source": "table"
+		"source": "table",
+		"v": "img/v/agriculture/prairie.webp"
 	},
 	{
 		"annee": 0,
@@ -57824,7 +58525,8 @@
 		"id": "paturage",
 		"info": "",
 		"nom": "Pâture (bêtes au pré)",
-		"source": "table"
+		"source": "table",
+		"v": "img/v/agriculture/paturage.webp"
 	},
 	{
 		"annee": 0,
@@ -57834,7 +58536,8 @@
 		"id": "vigne",
 		"info": "",
 		"nom": "Vigne",
-		"source": "table"
+		"source": "table",
+		"v": "img/v/agriculture/vigne.webp"
 	},
 	{
 		"annee": 0,
@@ -57844,7 +58547,8 @@
 		"id": "verger",
 		"info": "",
 		"nom": "Verger (pommes, poires)",
-		"source": "table"
+		"source": "table",
+		"v": "img/v/agriculture/verger.webp"
 	},
 	{
 		"annee": 0,
@@ -57854,7 +58558,8 @@
 		"id": "agrumes",
 		"info": "",
 		"nom": "Agrumes (oranges, citrons)",
-		"source": "table"
+		"source": "table",
+		"v": "img/v/agriculture/agrumes.webp"
 	},
 	{
 		"annee": 0,
@@ -57864,7 +58569,8 @@
 		"id": "olivier",
 		"info": "",
 		"nom": "Oliviers",
-		"source": "table"
+		"source": "table",
+		"v": "img/v/agriculture/olivier.webp"
 	},
 	{
 		"annee": 0,
@@ -57874,7 +58580,8 @@
 		"id": "houblon",
 		"info": "",
 		"nom": "Houblon",
-		"source": "table"
+		"source": "table",
+		"v": "img/v/agriculture/houblon.webp"
 	},
 	{
 		"annee": 0,
@@ -57884,7 +58591,8 @@
 		"id": "tabac",
 		"info": "",
 		"nom": "Tabac",
-		"source": "table"
+		"source": "table",
+		"v": "img/v/agriculture/tabac.webp"
 	},
 	{
 		"annee": 0,
@@ -57894,7 +58602,8 @@
 		"id": "cafe",
 		"info": "",
 		"nom": "Caféiers",
-		"source": "table"
+		"source": "table",
+		"v": "img/v/agriculture/cafe.webp"
 	},
 	{
 		"annee": 0,
@@ -57904,7 +58613,8 @@
 		"id": "cacao",
 		"info": "",
 		"nom": "Cacaoyers",
-		"source": "table"
+		"source": "table",
+		"v": "img/v/agriculture/cacao.webp"
 	},
 	{
 		"annee": 0,
@@ -57914,7 +58624,8 @@
 		"id": "the",
 		"info": "",
 		"nom": "Théiers",
-		"source": "table"
+		"source": "table",
+		"v": "img/v/agriculture/the.webp"
 	},
 	{
 		"annee": 0,
@@ -57924,7 +58635,52 @@
 		"id": "canne",
 		"info": "",
 		"nom": "Canne à sucre",
-		"source": "table"
+		"source": "table",
+		"v": "img/v/agriculture/canne.webp"
+	},
+	{
+		"annee": 1970,
+		"evol": "",
+		"fam": "agriculture",
+		"groupe": "Cultures",
+		"id": "triticale",
+		"info": "",
+		"nom": "Triticale (blé × seigle)",
+		"source": "table",
+		"v": "img/v/agriculture/triticale.webp"
+	},
+	{
+		"annee": 2010,
+		"evol": "",
+		"fam": "agriculture",
+		"groupe": "Cultures",
+		"id": "quinoa",
+		"info": "",
+		"nom": "Quinoa",
+		"source": "table",
+		"v": "img/v/agriculture/quinoa.webp"
+	},
+	{
+		"annee": 1995,
+		"evol": "",
+		"fam": "agriculture",
+		"groupe": "Cultures",
+		"id": "miscanthus",
+		"info": "",
+		"nom": "Miscanthus (herbe à éléphant, chauffage)",
+		"source": "table",
+		"v": "img/v/agriculture/miscanthus.webp"
+	},
+	{
+		"annee": 1995,
+		"evol": "",
+		"fam": "agriculture",
+		"groupe": "Cultures",
+		"id": "fraises_hors_sol",
+		"info": "",
+		"nom": "Fraises hors-sol (sous serre)",
+		"source": "table",
+		"v": "img/v/agriculture/fraises_hors_sol.webp"
 	},
 	{
 		"annee": 0,
@@ -58090,6 +58846,28 @@
 		"nom": "Rennes",
 		"source": "table",
 		"v": "img/v/agriculture/renne.webp"
+	},
+	{
+		"annee": 2010,
+		"evol": "",
+		"fam": "agriculture",
+		"groupe": "Élevages",
+		"id": "aquaponie",
+		"info": "",
+		"nom": "Aquaponie (poissons et salades)",
+		"source": "table",
+		"v": "img/v/agriculture/aquaponie.webp"
+	},
+	{
+		"annee": 2015,
+		"evol": "",
+		"fam": "agriculture",
+		"groupe": "Élevages",
+		"id": "insectes",
+		"info": "",
+		"nom": "Élevage d'insectes (protéines)",
+		"source": "table",
+		"v": "img/v/agriculture/insectes.webp"
 	},
 	{
 		"annee": 1959,
@@ -66582,6 +67360,215 @@
 		"nom": "Silo à grain en tôle ondulée",
 		"source": "ajoutee",
 		"v": "img/v/decors/silo_grain.webp"
+	},
+	{
+		"annee": 1960,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Ferme",
+		"id": "semoir",
+		"info": "3,5 × 3,0 m",
+		"nom": "Semoir combiné : trémie à grains, rampe et disques semeurs",
+		"source": "ajoutee",
+		"v": "img/v/decors/semoir.webp"
+	},
+	{
+		"annee": 2010,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Ferme",
+		"id": "semoir_precision",
+		"info": "5,3 × 2,2 m",
+		"nom": "Semoir monograine : six éléments semeurs et leurs petites trémies",
+		"source": "ajoutee",
+		"v": "img/v/decors/semoir_precision.webp"
+	},
+	{
+		"annee": 1970,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Ferme",
+		"id": "planteuse",
+		"info": "3,8 × 3,5 m",
+		"nom": "Planteuse de pommes de terre quatre rangs : trémie et buttoirs",
+		"source": "ajoutee",
+		"v": "img/v/decors/planteuse.webp"
+	},
+	{
+		"annee": 1965,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Ferme",
+		"id": "epandeur",
+		"info": "2,4 × 1,5 m",
+		"nom": "Épandeur d'engrais porté : trémie en entonnoir et deux disques",
+		"source": "ajoutee",
+		"v": "img/v/decors/epandeur.webp"
+	},
+	{
+		"annee": 1960,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Ferme",
+		"id": "pulverisateur",
+		"info": "2,3 × 4,1 m",
+		"nom": "Pulvérisateur traîné : cuve blanche, rampe repliée de 24 m",
+		"source": "ajoutee",
+		"v": "img/v/decors/pulverisateur.webp"
+	},
+	{
+		"annee": 1975,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Ferme",
+		"id": "faucheuse",
+		"info": "3,2 × 2,3 m",
+		"nom": "Faucheuse-conditionneuse rotative : carter et assiettes",
+		"source": "ajoutee",
+		"v": "img/v/decors/faucheuse.webp"
+	},
+	{
+		"annee": 1975,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Ferme",
+		"id": "presse_balles",
+		"info": "2,7 × 4,0 m",
+		"nom": "Presse à balles rondes : chambre à rouleaux et ramasseur",
+		"source": "ajoutee",
+		"v": "img/v/decors/presse_balles.webp"
+	},
+	{
+		"annee": 2005,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Ferme",
+		"id": "presse_enrubanneuse",
+		"info": "2,7 × 5,5 m",
+		"nom": "Presse-enrubanneuse : presse à l'avant, table d'enrubannage et botte filmée",
+		"source": "ajoutee",
+		"v": "img/v/decors/presse_enrubanneuse.webp"
+	},
+	{
+		"annee": 2005,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Ferme",
+		"id": "dechaumeur",
+		"info": "4,4 × 3,3 m",
+		"nom": "Déchaumeur à disques : deux rangées de disques, rouleau arrière",
+		"source": "ajoutee",
+		"v": "img/v/decors/dechaumeur.webp"
+	},
+	{
+		"annee": 1985,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Ferme",
+		"id": "arracheuse",
+		"info": "3,8 × 6,8 m",
+		"nom": "Arracheuse automotrice de betteraves : effeuilleuse, socs et trémie",
+		"source": "ajoutee",
+		"v": "img/v/decors/arracheuse.webp"
+	},
+	{
+		"annee": 1975,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Ferme",
+		"id": "vendangeuse",
+		"info": "2,7 × 3,7 m",
+		"nom": "Machine à vendanger enjambeuse : haute, étroite, bacs sur les côtés",
+		"source": "ajoutee",
+		"v": "img/v/decors/vendangeuse.webp"
+	},
+	{
+		"annee": 2010,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Ferme",
+		"id": "tracteur_gps",
+		"info": "2,2 × 3,0 m",
+		"nom": "Tracteur bleu à guidage satellite : dôme d'antenne sur la cabine",
+		"source": "ajoutee",
+		"v": "img/v/decors/tracteur_gps.webp"
+	},
+	{
+		"annee": 2035,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Ferme",
+		"id": "tracteur_autonome",
+		"info": "2,4 × 3,2 m",
+		"nom": "Tracteur autonome électrique : sans cabine, capteurs et batteries",
+		"source": "ajoutee",
+		"v": "img/v/decors/tracteur_autonome.webp"
+	},
+	{
+		"annee": 2032,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Ferme",
+		"id": "robot_agricole",
+		"info": "1,7 × 1,5 m",
+		"nom": "Petit robot de champ à quatre roues",
+		"source": "ajoutee",
+		"v": "img/v/decors/robot_agricole.webp"
+	},
+	{
+		"annee": 2026,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Ferme",
+		"id": "robot_desherbeur",
+		"info": "1,7 × 1,5 m",
+		"nom": "Robot désherbeur : châssis haut, caméras et outils de binage",
+		"source": "ajoutee",
+		"v": "img/v/decors/robot_desherbeur.webp"
+	},
+	{
+		"annee": 2016,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Ferme",
+		"id": "drone_agricole",
+		"info": "2,8 × 2,6 m",
+		"nom": "Drone de pulvérisation à six rotors et cuve, posé sur ses patins",
+		"source": "ajoutee",
+		"v": "img/v/decors/drone_agricole.webp"
+	},
+	{
+		"annee": 2030,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Ferme",
+		"id": "moissonneuse_autonome",
+		"info": "8,1 × 7,3 m",
+		"nom": "Moissonneuse-batteuse autonome : sans cabine, capteurs à l'avant",
+		"source": "ajoutee",
+		"v": "img/v/decors/moissonneuse_autonome.webp"
+	},
+	{
+		"annee": 2025,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Ferme",
+		"id": "robot_cueilleur",
+		"info": "1,4 × 1,7 m",
+		"nom": "Robot cueilleur de fruits : base à chenilles, mât, bras et bac",
+		"source": "ajoutee",
+		"v": "img/v/decors/robot_cueilleur.webp"
+	},
+	{
+		"annee": 2015,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Ferme",
+		"id": "bac_insectes",
+		"info": "3,2 × 2,2 m",
+		"nom": "Élevage d'insectes : étagères de bacs sous un petit abri",
+		"source": "ajoutee",
+		"v": "img/v/decors/bac_insectes.webp"
 	},
 	{
 		"annee": 0,

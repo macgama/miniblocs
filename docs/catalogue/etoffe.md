@@ -141,4 +141,36 @@ virtuel à écrans LED, fauteuils de réalité virtuelle.
 **5 grands-huit** : promenades aériennes (Paris, 1817), luge d'été sur rail (1996), grand-huit à voitures tournantes
 (1997), grand-huit à ailes (2007), grand-huit en réalité virtuelle (2016).
 
-Restent maigres : voies, stations et réseaux (ils touchent au graphe de transport), et l'agriculture après 1990.
+Restaient maigres : voies, stations, réseaux et agriculture après 1990 (comblés au lot 5).
+
+## Lot 5 : les derniers manques (voies, stations, réseaux, agriculture d'aujourd'hui) (2026-11-17)
+
+Catalogue : 3 119 objets, dont 3 115 en images (il ne manque que trois machines attelées du XIXe siècle et un
+élevage sans modèle).
+
+**15 voies** (outils Route, Rail, Chemin et Eau ; les routes de la même famille évoluent les unes vers les autres) :
+chemin de terre, route pavée, route empierrée (macadam) depuis toujours ; grand boulevard (1853), rue partagée en zone
+de rencontre (1976), route à 2 + 1 voies (1998), avenue à couloirs de bus BHNS (2000), autoroute urbaine apaisée
+(2020) ; chemin de fer à voie métrique (1865), ligne de fret électrifiée (1950) ; sentier de randonnée, chemin de
+halage, promenade en planches (1870), voie cyclable express (2015) ; canal à grand gabarit (1960). Les routes
+anciennes ont leur revêtement (terre, pavés, empierrement) et pas de peinture au sol.
+
+**5 stations** : halte ferroviaire (1840), gare routière (1930), port de plaisance (1960), parking relais sous
+ombrières solaires avec bornes de recharge (1990, les voitures s'y garent comme dans un parking), vertiport pour taxis
+volants (2030, seuls les engins à décollage vertical y vont).
+
+**9 réseaux** : ligne basse tension sur poteaux de bois (1890), câble électrique souterrain (1890, sans poteaux),
+ligne très haute tension à pylônes de 50 m (1958) ; aqueduc maçonné (de tout temps) ; égout séparatif (1960) ; réseau de
+chaleur urbain (1927) ; conduite d'hydrogène (2030) ; ligne téléphonique enterrée (1900) et câble coaxial (1970) dans
+le panneau Internet et téléphone. Chacun a sa durée de vie, son temps de chantier et sa place dans la vue sous terre.
+
+**Agriculture après 1990** : 16 machines nouvelles qui prennent le relais dans une partie datée (tracteur guidé par
+GPS 2010 puis autonome électrique 2035, déchaumeur sans labour, semoir monograine, essaim de robots semeurs, planteuse
+et épandeur guidés par satellite, drone de pulvérisation 2016, robot désherbeur 2026, faucheuse-conditionneuse,
+presse-enrubanneuse, moissonneuse-batteuse autonome 2030, arracheuse six rangs, robots cueilleurs, vendangeuse à tri
+optique, récolteuse de canne deux rangs) ; 4 cultures (triticale 1970, miscanthus 1995, fraises hors-sol 1995, quinoa
+2010) ; 2 élevages (aquaponie 2010, insectes 2015). 19 nouveaux modèles Blender (catégorie Ferme du menu G) donnent
+enfin une image à chaque machine.
+
+**Images** : les réseaux (pylônes ou tranchée ouverte avec la conduite), les cultures (une parcelle plantée) et les
+voies d'eau ont maintenant leur vignette.

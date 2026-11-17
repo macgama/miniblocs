@@ -118,6 +118,11 @@ const DECORS := {
 	"boite_lettres_fonte": 1849, "grue_quai": 1800, "eolienne_urbaine": 2015, "arbre_solaire": 2020, "brumisateur": 2019,
 	"capteur_air": 2015, "parklet": 2016, "jardin_pluie": 2015, "frigo_solidaire": 2015, "toilettes_seches": 2015,
 	"echange_batteries": 2019, "borne_hydrogene": 2018, "robot_livraison": 2020, "vertiport": 2030,
+	# Lot 5 : machines agricoles.
+	"semoir": 1960, "semoir_precision": 2010, "planteuse": 1970, "epandeur": 1965, "pulverisateur": 1960, "faucheuse": 1975,
+	"presse_balles": 1975, "presse_enrubanneuse": 2005, "dechaumeur": 2005, "arracheuse": 1985, "vendangeuse": 1975,
+	"tracteur_gps": 2010, "tracteur_autonome": 2035, "robot_agricole": 2032, "robot_desherbeur": 2026, "drone_agricole": 2016,
+	"moissonneuse_autonome": 2030, "robot_cueilleur": 2025, "bac_insectes": 2015,
 }
 
 ## Décors posés tout seuls (rues, berges, plages, fermes) : équivalents plus

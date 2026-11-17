@@ -375,7 +375,9 @@ func troncon_pres(p: Vector3, r: float) -> Dictionary:
 
 # --- Chantiers (fil « chantiers visibles », branché s'il est là) ----------------------------
 
-const HEURES_PAR_M := {"ligne_ht": 0.4, "ligne_mt": 0.15, "conduite_eau": 0.3, "collecteur": 0.5, "conduite_gaz": 0.25}
+const HEURES_PAR_M := {"ligne_ht": 0.4, "ligne_mt": 0.15, "conduite_eau": 0.3, "collecteur": 0.5, "conduite_gaz": 0.25,
+	"ligne_bt": 0.1, "ligne_tht": 0.6, "cable_souterrain": 0.45, "aqueduc": 0.8, "egout_separatif": 0.6, "reseau_chaleur": 0.4,
+	"hydrogenoduc": 0.3}
 
 
 ## Étapes des chantiers de lignes aériennes et de canalisations enterrées.

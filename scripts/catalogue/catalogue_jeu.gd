@@ -259,6 +259,7 @@ static func _agriculture(out: Array) -> void:
 			else:
 				moderne = int(v.annee)
 		chaine.append([String(m.name) + " moderne", moderne])
+		chaine.sort_custom(func(a: Array, b: Array) -> bool: return int(a[1]) < int(b[1]))
 		var evol := "Selon l'époque : " + _lignee(chaine.duplicate()) if chaine.size() > 1 else ""
 		var lig := []
 		for c in chaine:

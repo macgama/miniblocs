@@ -12,25 +12,25 @@ n'a que ce qui est daté 1850 ou avant ; le reste arrive à sa date (« Arrive e
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
 | [Bâtiments](#batiments) | 1474 | 449 | 136 | 221 | 197 | 250 | 193 | 28 |
 | [Véhicules](#vehicules) | 310 | 11 | 44 | 30 | 36 | 83 | 95 | 11 |
-| [Voies](#voies) | 17 | 6 | 1 | 3 | 4 | 2 | 1 | 0 |
-| [Stations, gares et ports](#stations) | 10 | 2 | 2 | 2 | 3 | 1 | 0 | 0 |
-| [Lignes et conduites](#reseaux) | 8 | 2 | 1 | 2 | 1 | 0 | 2 | 0 |
-| [Agriculture](#agriculture) | 89 | 49 | 2 | 7 | 8 | 18 | 5 | 0 |
+| [Voies](#voies) | 32 | 11 | 1 | 6 | 4 | 5 | 5 | 0 |
+| [Stations, gares et ports](#stations) | 15 | 2 | 3 | 2 | 4 | 2 | 1 | 1 |
+| [Lignes et conduites](#reseaux) | 17 | 3 | 1 | 4 | 3 | 3 | 2 | 1 |
+| [Agriculture](#agriculture) | 111 | 49 | 2 | 7 | 8 | 19 | 23 | 3 |
 | [Grands-huit et attractions](#attractions) | 66 | 28 | 1 | 3 | 4 | 17 | 13 | 0 |
 | [Aménagements de l'Atelier](#amenagements) | 44 | 5 | 7 | 16 | 7 | 3 | 6 | 0 |
 | [Portes et fenêtres](#ouvertures) | 44 | 27 | 0 | 7 | 5 | 5 | 0 | 0 |
 | [Toits](#toits) | 25 | 13 | 4 | 0 | 2 | 2 | 4 | 0 |
 | [Matériaux](#materiaux) | 444 | 298 | 20 | 22 | 25 | 47 | 26 | 6 |
-| [Décors](#decors) | 311 | 161 | 10 | 25 | 43 | 35 | 35 | 2 |
+| [Décors](#decors) | 330 | 161 | 10 | 25 | 43 | 43 | 43 | 5 |
 | [Meubles](#meubles) | 137 | 65 | 7 | 11 | 11 | 20 | 17 | 6 |
 | [Objets de spectacle](#spectacles) | 70 | 22 | 2 | 2 | 17 | 17 | 10 | 0 |
-| **Total** | **3049** | |
+| **Total** | **3119** | |
 
 ### D'où viennent les années
 
 - date propre : 409
-- table des époques : 439
-- datée avec le catalogue : 843
+- table des époques : 490
+- datée avec le catalogue : 862
 - style : 704
 - époque de la bible : 210
 - mot du nom : 444
@@ -1963,33 +1963,48 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 
 <a id="voies"></a>
 
-## Voies (17)
+## Voies (32)
 
 ### Voies
 
 | Nom | Année | Détails | Évolutions |
 |---|---:|---|---|
 | Avenue urbaine | toujours | 50 km/h |  |
+| Chemin de halage (au bord de l'eau) | toujours | 5 km/h |  |
+| Chemin de terre | toujours | 25 km/h |  |
 | Chemin piéton | toujours | 5 km/h |  |
 | Chenal maritime | toujours | 40 km/h |  |
 | Route départementale | toujours | 80 km/h |  |
+| Route empierrée (macadam) | toujours | 45 km/h |  |
+| Route pavée | toujours | 40 km/h |  |
 | Rue de desserte | toujours | 30 km/h |  |
+| Sentier de randonnée | toujours | 4 km/h |  |
 | Voie navigable | toujours | 12 km/h |  |
 | Ligne ferroviaire classique | 1830 | 120 km/h |  |
+| Grand boulevard (à l'haussmannienne) | 1853 | 50 km/h |  |
 | Tramway | 1853 | 50 km/h |  |
 | Métro (souterrain) | 1863 | 80 km/h |  |
+| Chemin de fer à voie métrique | 1865 | 60 km/h |  |
 | Chemin de fer à crémaillère | 1870 | 25 km/h |  |
+| Promenade en planches (caillebotis) | 1870 | 5 km/h |  |
 | Anneau de giratoire | 1906 | 30 km/h |  |
 | Autoroute | 1930 | 130 km/h |  |
 | Bretelle d'autoroute (sens unique) | 1930 | 70 km/h |  |
 | Piste cyclable bidirectionnelle | 1930 | 18 km/h |  |
+| Ligne de fret électrifiée (trains lourds) | 1950 | 100 km/h |  |
 | Voie express | 1950 | 110 km/h |  |
+| Canal à grand gabarit (péniches de 3 000 t) | 1960 | 14 km/h |  |
 | Ligne à grande vitesse | 1964 | 300 km/h |  |
+| Rue partagée (zone de rencontre, 20 km/h) | 1976 | 20 km/h |  |
 | Voie verte (piétons et vélos) | 1990 | 12 km/h |  |
+| Route à 2 + 1 voies (dépassement alterné) | 1998 | 90 km/h |  |
+| Avenue à couloirs de bus (BHNS) | 2000 | 50 km/h |  |
+| Voie cyclable express (vélo-route) | 2015 | 22 km/h |  |
+| Autoroute urbaine apaisée (70 km/h) | 2020 | 70 km/h |  |
 
 <a id="stations"></a>
 
-## Stations, gares et ports (10)
+## Stations, gares et ports (15)
 
 ### Stations
 
@@ -1999,22 +2014,29 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Port | toujours | Jetée, grue et gare maritime, sur une voie d'eau. | Avant 1880 : embarcadère |
 | Arrêt de bus | 1828 | Abri et poteau au bord d'une route. |  |
 | Gare | 1830 | Quais, marquise et bâtiment voyageurs, sur une ligne classique ou une LGV. | Avant 1900 : gare d'époque (bâtiment voyageurs en pierre) |
+| Halte ferroviaire | 1840 | Un quai, un abri et une pancarte : l'arrêt des trains omnibus à la campagne. |  |
 | Arrêt de tram | 1853 | Deux quais bas de part et d'autre des voies de tram. |  |
 | Station de métro | 1863 | Quais souterrains et bouche de métro en surface, sur une voie de métro. |  |
 | Aérodrome | 1910 | Piste en herbe de 600 m et un hangar. |  |
 | Parking | 1920 | Parking de 28 places au bord d'une route : les voitures de passage viennent s'y garer un moment. |  |
 | Aéroport | 1930 | Piste de 1 000 × 45 m, aire de stationnement, aérogare et tour de contrôle. |  |
+| Gare routière | 1930 | Quais en épi, abris et salle d'attente : le terminus des cars et des bus. |  |
 | Héliport | 1950 | Plateforme pour hélicoptères et taxis volants. |  |
+| Port de plaisance | 1960 | Pontons, capitainerie et voiliers amarrés : bateaux-promenade et navettes y font escale. |  |
+| Parking relais (P+R) | 1990 | Parking sous ombrières solaires, avec bornes de recharge, au bout des lignes de bus et de tram. |  |
+| Vertiport | 2030 | Deux aires de taxis volants électriques, leurs chargeurs et un petit terminal vitré. |  |
 
 <a id="reseaux"></a>
 
-## Lignes et conduites (8)
+## Lignes et conduites (17)
 
 ### Téléphone et internet
 
 | Nom | Année | Détails | Évolutions |
 |---|---:|---|---|
 | Ligne téléphonique sur poteaux | 1880 |  |  |
+| Ligne téléphonique enterrée | 1900 |  |  |
+| Câble coaxial (télévision et internet) | 1970 |  |  |
 | Fibre sous la rue | 2000 |  |  |
 | Fibre sur poteaux | 2000 |  |  |
 
@@ -2022,15 +2044,22 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 
 | Nom | Année | Détails | Évolutions |
 |---|---:|---|---|
+| Aqueduc maçonné (canal couvert) | toujours | Galerie de pierre en pente douce : l'eau d'une source lointaine arrive par gravité, comme au temps des Romains. |  |
 | Collecteur d'égout | toujours | Grand égout enterré : emmène les eaux usées jusqu'à la station d'épuration. |  |
 | Conduite d'eau potable | toujours | Canalisation enterrée (visible avec le calque Eau) : relie un captage éloigné au réseau des routes. |  |
 | Conduite de gaz ou de chaleur | 1820 | Canalisation enterrée (visible avec le calque Chauffage) : relie un poste de gaz ou une chaufferie aux rues. |  |
 | Ligne moyenne tension | 1882 | Poteaux de 10 m tous les 60 m : dessert un hameau ou une ferme hors des routes. |  |
+| Câble électrique souterrain | 1890 | Câble sous la chaussée (visible avec le calque Électricité) : ni poteaux, ni pannes de tempête, mais cher. |  |
+| Ligne basse tension sur poteaux de bois | 1890 | Poteaux de bois de 8 m tous les 40 m : la ligne du village, d'une ferme à l'autre. |  |
 | Ligne haute tension | 1910 | Pylônes de 28 m tous les 300 m : relie une centrale lointaine à la ville. |  |
+| Réseau de chaleur urbain | 1927 | Tuyaux isolés d'eau chaude : la chaleur d'une chaufferie bois, d'un incinérateur ou d'une usine chauffe les quartiers. |  |
+| Ligne très haute tension (400 000 volts) | 1958 | Pylônes géants de 50 m tous les 450 m : amène le courant d'une grande centrale à l'autre bout du pays. |  |
+| Égout séparatif (pluie à part) | 1960 | Deux tuyaux : les eaux usées vont à la station, la pluie à la rivière. La station ne déborde plus quand il pleut. |  |
+| Conduite d'hydrogène | 2030 | Canalisation d'hydrogène vert : relie un électrolyseur aux usines et aux stations de bus à hydrogène. |  |
 
 <a id="agriculture"></a>
 
-## Agriculture (89)
+## Agriculture (111)
 
 ### Cultures
 
@@ -2060,85 +2089,99 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Betterave sucrière | 1812 |  |  |
 | Tournesol | 1830 |  |  |
 | Soja | 1920 |  |  |
+| Triticale (blé × seigle) | 1970 |  |  |
+| Fraises hors-sol (sous serre) | 1995 |  |  |
+| Miscanthus (herbe à éléphant, chauffage) | 1995 |  |  |
+| Quinoa | 2010 |  |  |
 
 ### Machines : Arracheuse (betteraves, pommes de terre)
 
 | Nom | Année | Détails | Évolutions |
 |---|---:|---|---|
-| Arrachage à la main (houe et panier) | toujours |  | Selon l'époque : Arrachage à la main (houe et panier) (toujours) → Arracheuse attelée (1900) → Arracheuse tractée (1960) → Arracheuse (betteraves, pommes de terre) moderne (1985) |
-| Arracheuse attelée | 1900 |  | Selon l'époque : Arrachage à la main (houe et panier) (toujours) → Arracheuse attelée (1900) → Arracheuse tractée (1960) → Arracheuse (betteraves, pommes de terre) moderne (1985) |
-| Arracheuse tractée | 1960 |  | Selon l'époque : Arrachage à la main (houe et panier) (toujours) → Arracheuse attelée (1900) → Arracheuse tractée (1960) → Arracheuse (betteraves, pommes de terre) moderne (1985) |
-| Arracheuse (betteraves, pommes de terre) moderne | 1985 |  | Selon l'époque : Arrachage à la main (houe et panier) (toujours) → Arracheuse attelée (1900) → Arracheuse tractée (1960) → Arracheuse (betteraves, pommes de terre) moderne (1985) |
+| Arrachage à la main (houe et panier) | toujours |  | Selon l'époque : Arrachage à la main (houe et panier) (toujours) → Arracheuse attelée (1900) → Arracheuse tractée (1960) → Arracheuse (betteraves, pommes de terre) moderne (1985) → Arracheuse automotrice six rangs (2015) |
+| Arracheuse attelée | 1900 |  | Selon l'époque : Arrachage à la main (houe et panier) (toujours) → Arracheuse attelée (1900) → Arracheuse tractée (1960) → Arracheuse (betteraves, pommes de terre) moderne (1985) → Arracheuse automotrice six rangs (2015) |
+| Arracheuse tractée | 1960 |  | Selon l'époque : Arrachage à la main (houe et panier) (toujours) → Arracheuse attelée (1900) → Arracheuse tractée (1960) → Arracheuse (betteraves, pommes de terre) moderne (1985) → Arracheuse automotrice six rangs (2015) |
+| Arracheuse (betteraves, pommes de terre) moderne | 1985 |  | Selon l'époque : Arrachage à la main (houe et panier) (toujours) → Arracheuse attelée (1900) → Arracheuse tractée (1960) → Arracheuse (betteraves, pommes de terre) moderne (1985) → Arracheuse automotrice six rangs (2015) |
+| Arracheuse automotrice six rangs | 2015 |  | Selon l'époque : Arrachage à la main (houe et panier) (toujours) → Arracheuse attelée (1900) → Arracheuse tractée (1960) → Arracheuse (betteraves, pommes de terre) moderne (1985) → Arracheuse automotrice six rangs (2015) |
 
 ### Machines : Charrue
 
 | Nom | Année | Détails | Évolutions |
 |---|---:|---|---|
-| Charrue à versoir attelée | toujours |  | Selon l'époque : Charrue à versoir attelée (toujours) → Brabant double (1880) → Charrue portée trois socs (1950) → Charrue moderne (1980) |
-| Brabant double | 1880 |  | Selon l'époque : Charrue à versoir attelée (toujours) → Brabant double (1880) → Charrue portée trois socs (1950) → Charrue moderne (1980) |
-| Charrue portée trois socs | 1950 |  | Selon l'époque : Charrue à versoir attelée (toujours) → Brabant double (1880) → Charrue portée trois socs (1950) → Charrue moderne (1980) |
-| Charrue moderne | 1980 |  | Selon l'époque : Charrue à versoir attelée (toujours) → Brabant double (1880) → Charrue portée trois socs (1950) → Charrue moderne (1980) |
+| Charrue à versoir attelée | toujours |  | Selon l'époque : Charrue à versoir attelée (toujours) → Brabant double (1880) → Charrue portée trois socs (1950) → Charrue moderne (1980) → Déchaumeur à disques (sans labour) (2005) |
+| Brabant double | 1880 |  | Selon l'époque : Charrue à versoir attelée (toujours) → Brabant double (1880) → Charrue portée trois socs (1950) → Charrue moderne (1980) → Déchaumeur à disques (sans labour) (2005) |
+| Charrue portée trois socs | 1950 |  | Selon l'époque : Charrue à versoir attelée (toujours) → Brabant double (1880) → Charrue portée trois socs (1950) → Charrue moderne (1980) → Déchaumeur à disques (sans labour) (2005) |
+| Charrue moderne | 1980 |  | Selon l'époque : Charrue à versoir attelée (toujours) → Brabant double (1880) → Charrue portée trois socs (1950) → Charrue moderne (1980) → Déchaumeur à disques (sans labour) (2005) |
+| Déchaumeur à disques (sans labour) | 2005 |  | Selon l'époque : Charrue à versoir attelée (toujours) → Brabant double (1880) → Charrue portée trois socs (1950) → Charrue moderne (1980) → Déchaumeur à disques (sans labour) (2005) |
 
 ### Machines : Cueilleurs et plateforme de récolte
 
 | Nom | Année | Détails | Évolutions |
 |---|---:|---|---|
-| Cueillette à la main (paniers, échelles) | toujours |  | Selon l'époque : Cueillette à la main (paniers, échelles) (toujours) → Cueilleurs et plateforme de récolte moderne (1960) |
-| Cueilleurs et plateforme de récolte moderne | 1960 |  | Selon l'époque : Cueillette à la main (paniers, échelles) (toujours) → Cueilleurs et plateforme de récolte moderne (1960) |
+| Cueillette à la main (paniers, échelles) | toujours |  | Selon l'époque : Cueillette à la main (paniers, échelles) (toujours) → Cueilleurs et plateforme de récolte moderne (1960) → Robots cueilleurs de fruits (2025) |
+| Cueilleurs et plateforme de récolte moderne | 1960 |  | Selon l'époque : Cueillette à la main (paniers, échelles) (toujours) → Cueilleurs et plateforme de récolte moderne (1960) → Robots cueilleurs de fruits (2025) |
+| Robots cueilleurs de fruits | 2025 |  | Selon l'époque : Cueillette à la main (paniers, échelles) (toujours) → Cueilleurs et plateforme de récolte moderne (1960) → Robots cueilleurs de fruits (2025) |
 
 ### Machines : Faucheuse
 
 | Nom | Année | Détails | Évolutions |
 |---|---:|---|---|
-| Faux (à la main) | toujours |  | Selon l'époque : Faux (à la main) (toujours) → Faucheuse à cheval (1850) → Barre de coupe portée (1950) → Faucheuse moderne (1985) |
-| Faucheuse à cheval | 1850 |  | Selon l'époque : Faux (à la main) (toujours) → Faucheuse à cheval (1850) → Barre de coupe portée (1950) → Faucheuse moderne (1985) |
-| Barre de coupe portée | 1950 |  | Selon l'époque : Faux (à la main) (toujours) → Faucheuse à cheval (1850) → Barre de coupe portée (1950) → Faucheuse moderne (1985) |
-| Faucheuse moderne | 1985 |  | Selon l'époque : Faux (à la main) (toujours) → Faucheuse à cheval (1850) → Barre de coupe portée (1950) → Faucheuse moderne (1985) |
+| Faux (à la main) | toujours |  | Selon l'époque : Faux (à la main) (toujours) → Faucheuse à cheval (1850) → Barre de coupe portée (1950) → Faucheuse moderne (1985) → Faucheuse-conditionneuse rotative (2005) |
+| Faucheuse à cheval | 1850 |  | Selon l'époque : Faux (à la main) (toujours) → Faucheuse à cheval (1850) → Barre de coupe portée (1950) → Faucheuse moderne (1985) → Faucheuse-conditionneuse rotative (2005) |
+| Barre de coupe portée | 1950 |  | Selon l'époque : Faux (à la main) (toujours) → Faucheuse à cheval (1850) → Barre de coupe portée (1950) → Faucheuse moderne (1985) → Faucheuse-conditionneuse rotative (2005) |
+| Faucheuse moderne | 1985 |  | Selon l'époque : Faux (à la main) (toujours) → Faucheuse à cheval (1850) → Barre de coupe portée (1950) → Faucheuse moderne (1985) → Faucheuse-conditionneuse rotative (2005) |
+| Faucheuse-conditionneuse rotative | 2005 |  | Selon l'époque : Faux (à la main) (toujours) → Faucheuse à cheval (1850) → Barre de coupe portée (1950) → Faucheuse moderne (1985) → Faucheuse-conditionneuse rotative (2005) |
 
 ### Machines : Machine à vendanger
 
 | Nom | Année | Détails | Évolutions |
 |---|---:|---|---|
-| Vendange à la main (hottes et paniers) | toujours |  | Selon l'époque : Vendange à la main (hottes et paniers) (toujours) → Machine à vendanger moderne (1975) |
-| Machine à vendanger moderne | 1975 |  | Selon l'époque : Vendange à la main (hottes et paniers) (toujours) → Machine à vendanger moderne (1975) |
+| Vendange à la main (hottes et paniers) | toujours |  | Selon l'époque : Vendange à la main (hottes et paniers) (toujours) → Machine à vendanger moderne (1975) → Machine à vendanger à tri optique (2020) |
+| Machine à vendanger moderne | 1975 |  | Selon l'époque : Vendange à la main (hottes et paniers) (toujours) → Machine à vendanger moderne (1975) → Machine à vendanger à tri optique (2020) |
+| Machine à vendanger à tri optique | 2020 |  | Selon l'époque : Vendange à la main (hottes et paniers) (toujours) → Machine à vendanger moderne (1975) → Machine à vendanger à tri optique (2020) |
 
 ### Machines : Moissonneuse-batteuse
 
 | Nom | Année | Détails | Évolutions |
 |---|---:|---|---|
-| Faux, faucille et fléau (à la main) | toujours |  | Selon l'époque : Faux, faucille et fléau (à la main) (toujours) → Moissonneuse attelée et batteuse à vapeur (1850) → Moissonneuse-lieuse et batteuse (1900) → Moissonneuse-batteuse tractée (1940) → Moissonneuse-batteuse automotrice (1960) → Moissonneuse-batteuse moderne (1995) |
-| Moissonneuse attelée et batteuse à vapeur | 1850 |  | Selon l'époque : Faux, faucille et fléau (à la main) (toujours) → Moissonneuse attelée et batteuse à vapeur (1850) → Moissonneuse-lieuse et batteuse (1900) → Moissonneuse-batteuse tractée (1940) → Moissonneuse-batteuse automotrice (1960) → Moissonneuse-batteuse moderne (1995) |
-| Moissonneuse-lieuse et batteuse | 1900 |  | Selon l'époque : Faux, faucille et fléau (à la main) (toujours) → Moissonneuse attelée et batteuse à vapeur (1850) → Moissonneuse-lieuse et batteuse (1900) → Moissonneuse-batteuse tractée (1940) → Moissonneuse-batteuse automotrice (1960) → Moissonneuse-batteuse moderne (1995) |
-| Moissonneuse-batteuse tractée | 1940 |  | Selon l'époque : Faux, faucille et fléau (à la main) (toujours) → Moissonneuse attelée et batteuse à vapeur (1850) → Moissonneuse-lieuse et batteuse (1900) → Moissonneuse-batteuse tractée (1940) → Moissonneuse-batteuse automotrice (1960) → Moissonneuse-batteuse moderne (1995) |
-| Moissonneuse-batteuse automotrice | 1960 |  | Selon l'époque : Faux, faucille et fléau (à la main) (toujours) → Moissonneuse attelée et batteuse à vapeur (1850) → Moissonneuse-lieuse et batteuse (1900) → Moissonneuse-batteuse tractée (1940) → Moissonneuse-batteuse automotrice (1960) → Moissonneuse-batteuse moderne (1995) |
-| Moissonneuse-batteuse moderne | 1995 |  | Selon l'époque : Faux, faucille et fléau (à la main) (toujours) → Moissonneuse attelée et batteuse à vapeur (1850) → Moissonneuse-lieuse et batteuse (1900) → Moissonneuse-batteuse tractée (1940) → Moissonneuse-batteuse automotrice (1960) → Moissonneuse-batteuse moderne (1995) |
+| Faux, faucille et fléau (à la main) | toujours |  | Selon l'époque : Faux, faucille et fléau (à la main) (toujours) → Moissonneuse attelée et batteuse à vapeur (1850) → Moissonneuse-lieuse et batteuse (1900) → Moissonneuse-batteuse tractée (1940) → Moissonneuse-batteuse automotrice (1960) → Moissonneuse-batteuse moderne (1995) → Moissonneuse-batteuse autonome (2030) |
+| Moissonneuse attelée et batteuse à vapeur | 1850 |  | Selon l'époque : Faux, faucille et fléau (à la main) (toujours) → Moissonneuse attelée et batteuse à vapeur (1850) → Moissonneuse-lieuse et batteuse (1900) → Moissonneuse-batteuse tractée (1940) → Moissonneuse-batteuse automotrice (1960) → Moissonneuse-batteuse moderne (1995) → Moissonneuse-batteuse autonome (2030) |
+| Moissonneuse-lieuse et batteuse | 1900 |  | Selon l'époque : Faux, faucille et fléau (à la main) (toujours) → Moissonneuse attelée et batteuse à vapeur (1850) → Moissonneuse-lieuse et batteuse (1900) → Moissonneuse-batteuse tractée (1940) → Moissonneuse-batteuse automotrice (1960) → Moissonneuse-batteuse moderne (1995) → Moissonneuse-batteuse autonome (2030) |
+| Moissonneuse-batteuse tractée | 1940 |  | Selon l'époque : Faux, faucille et fléau (à la main) (toujours) → Moissonneuse attelée et batteuse à vapeur (1850) → Moissonneuse-lieuse et batteuse (1900) → Moissonneuse-batteuse tractée (1940) → Moissonneuse-batteuse automotrice (1960) → Moissonneuse-batteuse moderne (1995) → Moissonneuse-batteuse autonome (2030) |
+| Moissonneuse-batteuse automotrice | 1960 |  | Selon l'époque : Faux, faucille et fléau (à la main) (toujours) → Moissonneuse attelée et batteuse à vapeur (1850) → Moissonneuse-lieuse et batteuse (1900) → Moissonneuse-batteuse tractée (1940) → Moissonneuse-batteuse automotrice (1960) → Moissonneuse-batteuse moderne (1995) → Moissonneuse-batteuse autonome (2030) |
+| Moissonneuse-batteuse moderne | 1995 |  | Selon l'époque : Faux, faucille et fléau (à la main) (toujours) → Moissonneuse attelée et batteuse à vapeur (1850) → Moissonneuse-lieuse et batteuse (1900) → Moissonneuse-batteuse tractée (1940) → Moissonneuse-batteuse automotrice (1960) → Moissonneuse-batteuse moderne (1995) → Moissonneuse-batteuse autonome (2030) |
+| Moissonneuse-batteuse autonome | 2030 |  | Selon l'époque : Faux, faucille et fléau (à la main) (toujours) → Moissonneuse attelée et batteuse à vapeur (1850) → Moissonneuse-lieuse et batteuse (1900) → Moissonneuse-batteuse tractée (1940) → Moissonneuse-batteuse automotrice (1960) → Moissonneuse-batteuse moderne (1995) → Moissonneuse-batteuse autonome (2030) |
 
 ### Machines : Planteuse
 
 | Nom | Année | Détails | Évolutions |
 |---|---:|---|---|
-| Plantation à la main | toujours |  | Selon l'époque : Plantation à la main (toujours) → Planteuse attelée (1930) → Planteuse deux rangs (1960) → Planteuse moderne (1990) |
-| Planteuse attelée | 1930 |  | Selon l'époque : Plantation à la main (toujours) → Planteuse attelée (1930) → Planteuse deux rangs (1960) → Planteuse moderne (1990) |
-| Planteuse deux rangs | 1960 |  | Selon l'époque : Plantation à la main (toujours) → Planteuse attelée (1930) → Planteuse deux rangs (1960) → Planteuse moderne (1990) |
-| Planteuse moderne | 1990 |  | Selon l'époque : Plantation à la main (toujours) → Planteuse attelée (1930) → Planteuse deux rangs (1960) → Planteuse moderne (1990) |
+| Plantation à la main | toujours |  | Selon l'époque : Plantation à la main (toujours) → Planteuse attelée (1930) → Planteuse deux rangs (1960) → Planteuse moderne (1990) → Planteuse quatre rangs guidée par GPS (2015) |
+| Planteuse attelée | 1930 |  | Selon l'époque : Plantation à la main (toujours) → Planteuse attelée (1930) → Planteuse deux rangs (1960) → Planteuse moderne (1990) → Planteuse quatre rangs guidée par GPS (2015) |
+| Planteuse deux rangs | 1960 |  | Selon l'époque : Plantation à la main (toujours) → Planteuse attelée (1930) → Planteuse deux rangs (1960) → Planteuse moderne (1990) → Planteuse quatre rangs guidée par GPS (2015) |
+| Planteuse moderne | 1990 |  | Selon l'époque : Plantation à la main (toujours) → Planteuse attelée (1930) → Planteuse deux rangs (1960) → Planteuse moderne (1990) → Planteuse quatre rangs guidée par GPS (2015) |
+| Planteuse quatre rangs guidée par GPS | 2015 |  | Selon l'époque : Plantation à la main (toujours) → Planteuse attelée (1930) → Planteuse deux rangs (1960) → Planteuse moderne (1990) → Planteuse quatre rangs guidée par GPS (2015) |
 
 ### Machines : Presse à balles rondes
 
 | Nom | Année | Détails | Évolutions |
 |---|---:|---|---|
-| Fourche, râteau et meules (à la main) | toujours |  | Selon l'époque : Fourche, râteau et meules (à la main) (toujours) → Presse à foin fixe (1880) → Ramasseuse-presse (balles carrées) (1945) → Presse à balles rondes moderne (1975) |
-| Presse à foin fixe | 1880 |  | Selon l'époque : Fourche, râteau et meules (à la main) (toujours) → Presse à foin fixe (1880) → Ramasseuse-presse (balles carrées) (1945) → Presse à balles rondes moderne (1975) |
-| Ramasseuse-presse (balles carrées) | 1945 |  | Selon l'époque : Fourche, râteau et meules (à la main) (toujours) → Presse à foin fixe (1880) → Ramasseuse-presse (balles carrées) (1945) → Presse à balles rondes moderne (1975) |
-| Presse à balles rondes moderne | 1975 |  | Selon l'époque : Fourche, râteau et meules (à la main) (toujours) → Presse à foin fixe (1880) → Ramasseuse-presse (balles carrées) (1945) → Presse à balles rondes moderne (1975) |
+| Fourche, râteau et meules (à la main) | toujours |  | Selon l'époque : Fourche, râteau et meules (à la main) (toujours) → Presse à foin fixe (1880) → Ramasseuse-presse (balles carrées) (1945) → Presse à balles rondes moderne (1975) → Presse-enrubanneuse combinée (2005) |
+| Presse à foin fixe | 1880 |  | Selon l'époque : Fourche, râteau et meules (à la main) (toujours) → Presse à foin fixe (1880) → Ramasseuse-presse (balles carrées) (1945) → Presse à balles rondes moderne (1975) → Presse-enrubanneuse combinée (2005) |
+| Ramasseuse-presse (balles carrées) | 1945 |  | Selon l'époque : Fourche, râteau et meules (à la main) (toujours) → Presse à foin fixe (1880) → Ramasseuse-presse (balles carrées) (1945) → Presse à balles rondes moderne (1975) → Presse-enrubanneuse combinée (2005) |
+| Presse à balles rondes moderne | 1975 |  | Selon l'époque : Fourche, râteau et meules (à la main) (toujours) → Presse à foin fixe (1880) → Ramasseuse-presse (balles carrées) (1945) → Presse à balles rondes moderne (1975) → Presse-enrubanneuse combinée (2005) |
+| Presse-enrubanneuse combinée | 2005 |  | Selon l'époque : Fourche, râteau et meules (à la main) (toujours) → Presse à foin fixe (1880) → Ramasseuse-presse (balles carrées) (1945) → Presse à balles rondes moderne (1975) → Presse-enrubanneuse combinée (2005) |
 
 ### Machines : Pulvérisateur
 
 | Nom | Année | Détails | Évolutions |
 |---|---:|---|---|
-| Pas de traitement des cultures | toujours |  | Selon l'époque : Pas de traitement des cultures (toujours) → Pulvérisateur à dos (bouillie bordelaise) (1885) → Pulvérisateur porté (1950) → Pulvérisateur moderne (1990) |
-| Pulvérisateur à dos (bouillie bordelaise) | 1885 |  | Selon l'époque : Pas de traitement des cultures (toujours) → Pulvérisateur à dos (bouillie bordelaise) (1885) → Pulvérisateur porté (1950) → Pulvérisateur moderne (1990) |
-| Pulvérisateur porté | 1950 |  | Selon l'époque : Pas de traitement des cultures (toujours) → Pulvérisateur à dos (bouillie bordelaise) (1885) → Pulvérisateur porté (1950) → Pulvérisateur moderne (1990) |
-| Pulvérisateur moderne | 1990 |  | Selon l'époque : Pas de traitement des cultures (toujours) → Pulvérisateur à dos (bouillie bordelaise) (1885) → Pulvérisateur porté (1950) → Pulvérisateur moderne (1990) |
+| Pas de traitement des cultures | toujours |  | Selon l'époque : Pas de traitement des cultures (toujours) → Pulvérisateur à dos (bouillie bordelaise) (1885) → Pulvérisateur porté (1950) → Pulvérisateur moderne (1990) → Drone de pulvérisation (2016) → Robot désherbeur (sans produits chimiques) (2026) |
+| Pulvérisateur à dos (bouillie bordelaise) | 1885 |  | Selon l'époque : Pas de traitement des cultures (toujours) → Pulvérisateur à dos (bouillie bordelaise) (1885) → Pulvérisateur porté (1950) → Pulvérisateur moderne (1990) → Drone de pulvérisation (2016) → Robot désherbeur (sans produits chimiques) (2026) |
+| Pulvérisateur porté | 1950 |  | Selon l'époque : Pas de traitement des cultures (toujours) → Pulvérisateur à dos (bouillie bordelaise) (1885) → Pulvérisateur porté (1950) → Pulvérisateur moderne (1990) → Drone de pulvérisation (2016) → Robot désherbeur (sans produits chimiques) (2026) |
+| Pulvérisateur moderne | 1990 |  | Selon l'époque : Pas de traitement des cultures (toujours) → Pulvérisateur à dos (bouillie bordelaise) (1885) → Pulvérisateur porté (1950) → Pulvérisateur moderne (1990) → Drone de pulvérisation (2016) → Robot désherbeur (sans produits chimiques) (2026) |
+| Drone de pulvérisation | 2016 |  | Selon l'époque : Pas de traitement des cultures (toujours) → Pulvérisateur à dos (bouillie bordelaise) (1885) → Pulvérisateur porté (1950) → Pulvérisateur moderne (1990) → Drone de pulvérisation (2016) → Robot désherbeur (sans produits chimiques) (2026) |
+| Robot désherbeur (sans produits chimiques) | 2026 |  | Selon l'époque : Pas de traitement des cultures (toujours) → Pulvérisateur à dos (bouillie bordelaise) (1885) → Pulvérisateur porté (1950) → Pulvérisateur moderne (1990) → Drone de pulvérisation (2016) → Robot désherbeur (sans produits chimiques) (2026) |
 
 ### Machines : Remorque (récolte à la main)
 
@@ -2151,35 +2194,41 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 
 | Nom | Année | Détails | Évolutions |
 |---|---:|---|---|
-| Coupe à la machette | toujours |  | Selon l'époque : Coupe à la machette (toujours) → Récolteuse de canne moderne (1975) |
-| Récolteuse de canne moderne | 1975 |  | Selon l'époque : Coupe à la machette (toujours) → Récolteuse de canne moderne (1975) |
+| Coupe à la machette | toujours |  | Selon l'époque : Coupe à la machette (toujours) → Récolteuse de canne moderne (1975) → Récolteuse de canne deux rangs (2020) |
+| Récolteuse de canne moderne | 1975 |  | Selon l'époque : Coupe à la machette (toujours) → Récolteuse de canne moderne (1975) → Récolteuse de canne deux rangs (2020) |
+| Récolteuse de canne deux rangs | 2020 |  | Selon l'époque : Coupe à la machette (toujours) → Récolteuse de canne moderne (1975) → Récolteuse de canne deux rangs (2020) |
 
 ### Machines : Semoir
 
 | Nom | Année | Détails | Évolutions |
 |---|---:|---|---|
-| Semis à la volée (à la main) | toujours |  | Selon l'époque : Semis à la volée (à la main) (toujours) → Semoir en ligne attelé (1850) → Semoir mécanique (1950) → Semoir moderne (1985) |
-| Semoir en ligne attelé | 1850 |  | Selon l'époque : Semis à la volée (à la main) (toujours) → Semoir en ligne attelé (1850) → Semoir mécanique (1950) → Semoir moderne (1985) |
-| Semoir mécanique | 1950 |  | Selon l'époque : Semis à la volée (à la main) (toujours) → Semoir en ligne attelé (1850) → Semoir mécanique (1950) → Semoir moderne (1985) |
-| Semoir moderne | 1985 |  | Selon l'époque : Semis à la volée (à la main) (toujours) → Semoir en ligne attelé (1850) → Semoir mécanique (1950) → Semoir moderne (1985) |
+| Semis à la volée (à la main) | toujours |  | Selon l'époque : Semis à la volée (à la main) (toujours) → Semoir en ligne attelé (1850) → Semoir mécanique (1950) → Semoir moderne (1985) → Semoir de précision monograine (2010) → Essaim de petits robots semeurs (2032) |
+| Semoir en ligne attelé | 1850 |  | Selon l'époque : Semis à la volée (à la main) (toujours) → Semoir en ligne attelé (1850) → Semoir mécanique (1950) → Semoir moderne (1985) → Semoir de précision monograine (2010) → Essaim de petits robots semeurs (2032) |
+| Semoir mécanique | 1950 |  | Selon l'époque : Semis à la volée (à la main) (toujours) → Semoir en ligne attelé (1850) → Semoir mécanique (1950) → Semoir moderne (1985) → Semoir de précision monograine (2010) → Essaim de petits robots semeurs (2032) |
+| Semoir moderne | 1985 |  | Selon l'époque : Semis à la volée (à la main) (toujours) → Semoir en ligne attelé (1850) → Semoir mécanique (1950) → Semoir moderne (1985) → Semoir de précision monograine (2010) → Essaim de petits robots semeurs (2032) |
+| Semoir de précision monograine | 2010 |  | Selon l'époque : Semis à la volée (à la main) (toujours) → Semoir en ligne attelé (1850) → Semoir mécanique (1950) → Semoir moderne (1985) → Semoir de précision monograine (2010) → Essaim de petits robots semeurs (2032) |
+| Essaim de petits robots semeurs | 2032 |  | Selon l'époque : Semis à la volée (à la main) (toujours) → Semoir en ligne attelé (1850) → Semoir mécanique (1950) → Semoir moderne (1985) → Semoir de précision monograine (2010) → Essaim de petits robots semeurs (2032) |
 
 ### Machines : Tracteur
 
 | Nom | Année | Détails | Évolutions |
 |---|---:|---|---|
-| Paire de chevaux de trait | toujours |  | Selon l'époque : Paire de chevaux de trait (toujours) → Tracteur à pétrole (Fordson) (1920) → Tracteur diesel (1950) → Tracteur moderne (1990) |
-| Tracteur à pétrole (Fordson) | 1920 |  | Selon l'époque : Paire de chevaux de trait (toujours) → Tracteur à pétrole (Fordson) (1920) → Tracteur diesel (1950) → Tracteur moderne (1990) |
-| Tracteur diesel | 1950 |  | Selon l'époque : Paire de chevaux de trait (toujours) → Tracteur à pétrole (Fordson) (1920) → Tracteur diesel (1950) → Tracteur moderne (1990) |
-| Tracteur moderne | 1990 |  | Selon l'époque : Paire de chevaux de trait (toujours) → Tracteur à pétrole (Fordson) (1920) → Tracteur diesel (1950) → Tracteur moderne (1990) |
+| Paire de chevaux de trait | toujours |  | Selon l'époque : Paire de chevaux de trait (toujours) → Tracteur à pétrole (Fordson) (1920) → Tracteur diesel (1950) → Tracteur moderne (1990) → Tracteur guidé par satellite (GPS RTK) (2010) → Tracteur autonome électrique (2035) |
+| Tracteur à pétrole (Fordson) | 1920 |  | Selon l'époque : Paire de chevaux de trait (toujours) → Tracteur à pétrole (Fordson) (1920) → Tracteur diesel (1950) → Tracteur moderne (1990) → Tracteur guidé par satellite (GPS RTK) (2010) → Tracteur autonome électrique (2035) |
+| Tracteur diesel | 1950 |  | Selon l'époque : Paire de chevaux de trait (toujours) → Tracteur à pétrole (Fordson) (1920) → Tracteur diesel (1950) → Tracteur moderne (1990) → Tracteur guidé par satellite (GPS RTK) (2010) → Tracteur autonome électrique (2035) |
+| Tracteur moderne | 1990 |  | Selon l'époque : Paire de chevaux de trait (toujours) → Tracteur à pétrole (Fordson) (1920) → Tracteur diesel (1950) → Tracteur moderne (1990) → Tracteur guidé par satellite (GPS RTK) (2010) → Tracteur autonome électrique (2035) |
+| Tracteur guidé par satellite (GPS RTK) | 2010 |  | Selon l'époque : Paire de chevaux de trait (toujours) → Tracteur à pétrole (Fordson) (1920) → Tracteur diesel (1950) → Tracteur moderne (1990) → Tracteur guidé par satellite (GPS RTK) (2010) → Tracteur autonome électrique (2035) |
+| Tracteur autonome électrique | 2035 |  | Selon l'époque : Paire de chevaux de trait (toujours) → Tracteur à pétrole (Fordson) (1920) → Tracteur diesel (1950) → Tracteur moderne (1990) → Tracteur guidé par satellite (GPS RTK) (2010) → Tracteur autonome électrique (2035) |
 
 ### Machines : Épandeur d'engrais
 
 | Nom | Année | Détails | Évolutions |
 |---|---:|---|---|
-| Épandage à la fourche (tombereau) | toujours |  | Selon l'époque : Épandage à la fourche (tombereau) (toujours) → Épandeur à fumier attelé (1910) → Épandeur à hérissons (1960) → Épandeur d'engrais moderne (1990) |
-| Épandeur à fumier attelé | 1910 |  | Selon l'époque : Épandage à la fourche (tombereau) (toujours) → Épandeur à fumier attelé (1910) → Épandeur à hérissons (1960) → Épandeur d'engrais moderne (1990) |
-| Épandeur à hérissons | 1960 |  | Selon l'époque : Épandage à la fourche (tombereau) (toujours) → Épandeur à fumier attelé (1910) → Épandeur à hérissons (1960) → Épandeur d'engrais moderne (1990) |
-| Épandeur d'engrais moderne | 1990 |  | Selon l'époque : Épandage à la fourche (tombereau) (toujours) → Épandeur à fumier attelé (1910) → Épandeur à hérissons (1960) → Épandeur d'engrais moderne (1990) |
+| Épandage à la fourche (tombereau) | toujours |  | Selon l'époque : Épandage à la fourche (tombereau) (toujours) → Épandeur à fumier attelé (1910) → Épandeur à hérissons (1960) → Épandeur d'engrais moderne (1990) → Épandeur à dose modulée (cartes satellite) (2012) |
+| Épandeur à fumier attelé | 1910 |  | Selon l'époque : Épandage à la fourche (tombereau) (toujours) → Épandeur à fumier attelé (1910) → Épandeur à hérissons (1960) → Épandeur d'engrais moderne (1990) → Épandeur à dose modulée (cartes satellite) (2012) |
+| Épandeur à hérissons | 1960 |  | Selon l'époque : Épandage à la fourche (tombereau) (toujours) → Épandeur à fumier attelé (1910) → Épandeur à hérissons (1960) → Épandeur d'engrais moderne (1990) → Épandeur à dose modulée (cartes satellite) (2012) |
+| Épandeur d'engrais moderne | 1990 |  | Selon l'époque : Épandage à la fourche (tombereau) (toujours) → Épandeur à fumier attelé (1910) → Épandeur à hérissons (1960) → Épandeur d'engrais moderne (1990) → Épandeur à dose modulée (cartes satellite) (2012) |
+| Épandeur à dose modulée (cartes satellite) | 2012 |  | Selon l'époque : Épandage à la fourche (tombereau) (toujours) → Épandeur à fumier attelé (1910) → Épandeur à hérissons (1960) → Épandeur d'engrais moderne (1990) → Épandeur à dose modulée (cartes satellite) (2012) |
 
 ### Élevages
 
@@ -2200,6 +2249,8 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Ruches (abeilles) | toujours |  |  |
 | Vaches laitières | toujours |  |  |
 | Bassins de truites | 1850 |  |  |
+| Aquaponie (poissons et salades) | 2010 |  |  |
+| Élevage d'insectes (protéines) | 2015 |  |  |
 
 <a id="attractions"></a>
 
@@ -2986,7 +3037,7 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 
 <a id="decors"></a>
 
-## Décors (311)
+## Décors (330)
 
 ### Animaux
 
@@ -3128,11 +3179,30 @@ police, moulin…) sont reliés en « lignée ». Véhicules et machines agricol
 | Plateau chargé de bottes de paille | 1940 | 2,4 × 6,1 m | Avant 1940, posé tout seul : Charrette à bras en bois |
 | Moissonneuse-batteuse et sa barre de coupe | 1950 | 7,7 × 7,3 m | Avant 1950, posé tout seul : rien |
 | Tracteur rouge | 1950 | 2,2 × 3,0 m | Avant 1950, posé tout seul : Vieux tracteur sans cabine |
+| Pulvérisateur traîné : cuve blanche, rampe repliée de 24 m | 1960 | 2,3 × 4,1 m |  |
+| Semoir combiné : trémie à grains, rampe et disques semeurs | 1960 | 3,5 × 3,0 m |  |
 | Tracteur moderne vert à cabine | 1960 | 2,2 × 3,0 m | Avant 1960, posé tout seul : Tracteur rouge |
+| Épandeur d'engrais porté : trémie en entonnoir et deux disques | 1965 | 2,4 × 1,5 m |  |
+| Planteuse de pommes de terre quatre rangs : trémie et buttoirs | 1970 | 3,8 × 3,5 m |  |
 | Botte ronde de foin (Ø 1,5 m), couchée | 1972 | 1,2 × 1,5 m | Avant 1972, posé tout seul : Meule de foin traditionnelle |
 | Botte ronde posée debout | 1972 | 1,5 × 1,5 m | Avant 1972, posé tout seul : Meule de foin traditionnelle |
+| Faucheuse-conditionneuse rotative : carter et assiettes | 1975 | 3,2 × 2,3 m |  |
+| Machine à vendanger enjambeuse : haute, étroite, bacs sur les côtés | 1975 | 2,7 × 3,7 m |  |
+| Presse à balles rondes : chambre à rouleaux et ramasseur | 1975 | 2,7 × 4,0 m |  |
 | Pile de grosses bottes carrées | 1980 | 3,7 × 2,4 m | Avant 1980, posé tout seul : Meule de foin traditionnelle |
+| Arracheuse automotrice de betteraves : effeuilleuse, socs et trémie | 1985 | 3,8 × 6,8 m |  |
 | Botte ronde enrubannée de film blanc | 1985 | 1,2 × 1,5 m | Avant 1985, posé tout seul : Meule de foin traditionnelle |
+| Déchaumeur à disques : deux rangées de disques, rouleau arrière | 2005 | 4,4 × 3,3 m |  |
+| Presse-enrubanneuse : presse à l'avant, table d'enrubannage et botte filmée | 2005 | 2,7 × 5,5 m |  |
+| Semoir monograine : six éléments semeurs et leurs petites trémies | 2010 | 5,3 × 2,2 m |  |
+| Tracteur bleu à guidage satellite : dôme d'antenne sur la cabine | 2010 | 2,2 × 3,0 m |  |
+| Élevage d'insectes : étagères de bacs sous un petit abri | 2015 | 3,2 × 2,2 m |  |
+| Drone de pulvérisation à six rotors et cuve, posé sur ses patins | 2016 | 2,8 × 2,6 m |  |
+| Robot cueilleur de fruits : base à chenilles, mât, bras et bac | 2025 | 1,4 × 1,7 m |  |
+| Robot désherbeur : châssis haut, caméras et outils de binage | 2026 | 1,7 × 1,5 m |  |
+| Moissonneuse-batteuse autonome : sans cabine, capteurs à l'avant | 2030 | 8,1 × 7,3 m |  |
+| Petit robot de champ à quatre roues | 2032 | 1,7 × 1,5 m |  |
+| Tracteur autonome électrique : sans cabine, capteurs et batteries | 2035 | 2,4 × 3,2 m |  |
 
 ### Fontaines et statues
 

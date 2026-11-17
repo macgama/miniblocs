@@ -42,6 +42,9 @@ const CABLES := {
 	"fibre": {"reseau": "fibre", "name": "Fibre sous la rue", "cout": 60.0, "entretien": 0.02, "aerien": false},
 	"fibre_aerienne": {"reseau": "fibre", "name": "Fibre sur poteaux", "cout": 18.0, "entretien": 0.04, "aerien": true},
 	"cuivre_aerien": {"reseau": "cuivre", "name": "Ligne téléphonique sur poteaux", "cout": 12.0, "entretien": 0.03, "aerien": true},
+	"cuivre_souterrain": {"reseau": "cuivre", "name": "Ligne téléphonique enterrée", "cout": 35.0, "entretien": 0.015, "aerien": false},
+	"cable_coaxial": {"reseau": "cuivre", "name": "Câble coaxial (télévision et internet)", "cout": 28.0, "entretien": 0.02,
+		"aerien": false},
 }
 ## Entretien des équipements (€ par mois).
 const ENTRETIEN := {"pylone_2g": 900, "pylone_4g": 1600, "pylone_5g": 2400, "antenne_5g": 700,
@@ -60,8 +63,9 @@ const COULEUR_CUIVRE := Color("e09f3e")
 const COULEURS_NET := {"fibre": Color("2dd4bf"), "adsl": Color("80ed99"), "lent": Color("ffd166"),
 	"mobile": Color("f4a261"), "rien": Color("ef476f")}
 
-enum Outil { AUCUN, FIBRE_RUE, FIBRE, FIBRE_AERIENNE, CUIVRE_AERIEN, RETIRER }
-const OUTIL_CABLE := {Outil.FIBRE: "fibre", Outil.FIBRE_AERIENNE: "fibre_aerienne", Outil.CUIVRE_AERIEN: "cuivre_aerien"}
+enum Outil { AUCUN, FIBRE_RUE, FIBRE, FIBRE_AERIENNE, CUIVRE_AERIEN, RETIRER, CUIVRE_SOUTERRAIN, COAXIAL }
+const OUTIL_CABLE := {Outil.FIBRE: "fibre", Outil.FIBRE_AERIENNE: "fibre_aerienne", Outil.CUIVRE_AERIEN: "cuivre_aerien",
+	Outil.CUIVRE_SOUTERRAIN: "cuivre_souterrain", Outil.COAXIAL: "cable_coaxial"}
 
 ## Profondeur (m) des câbles posés depuis la vue sous terre ; NAN : normale.
 var profondeur_pose := NAN
@@ -568,7 +572,7 @@ func aide_outil() -> String:
 	match outil:
 		Outil.FIBRE_RUE:
 			return "Fibrer une rue : clic sur une route, toute la rue reçoit la fibre (%d €/m)." % roundi(ReglagesPartie.prix(int(CABLES.fibre.cout)))
-		Outil.FIBRE, Outil.FIBRE_AERIENNE, Outil.CUIVRE_AERIEN:
+		Outil.FIBRE, Outil.FIBRE_AERIENNE, Outil.CUIVRE_AERIEN, Outil.CUIVRE_SOUTERRAIN, Outil.COAXIAL:
 			var c: Dictionary = CABLES[OUTIL_CABLE[outil]]
 			return "%s : un clic par point, Échap ou clic droit pour finir (%d €/m)." % [c.name, roundi(ReglagesPartie.prix(int(c.cout)))]
 		Outil.RETIRER:

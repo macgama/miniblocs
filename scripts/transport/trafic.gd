@@ -21,9 +21,11 @@ signal message(text: String)
 ## Capacité d'une voie, en véhicules par heure et par sens, selon la classe
 ## (les carrefours rapprochés des rues en ville divisent le débit).
 const CAP_PER_LANE := {"rue": 500.0, "avenue": 800.0, "giratoire": 1200.0, "departementale": 1100.0,
-	"voie_express": 1800.0, "autoroute": 1900.0, "bretelle": 1500.0}
+	"voie_express": 1800.0, "autoroute": 1900.0, "bretelle": 1500.0, "chemin_terre": 250.0, "route_pavee": 400.0,
+	"route_empierree": 600.0, "boulevard": 900.0, "zone_rencontre": 250.0, "avenue_bhns": 800.0, "route_2plus1": 1300.0,
+	"autoroute_urbaine": 1700.0}
 ## Classes sans accès direct aux bâtiments.
-const NO_ACCESS := ["autoroute", "voie_express", "bretelle"]
+const NO_ACCESS := ["autoroute", "voie_express", "bretelle", "autoroute_urbaine"]
 ## Formule BPR : t = t0 × (1 + ALPHA × (flux / capacité)^BETA).
 const BPR_ALPHA := 0.15
 const BPR_BETA := 4.0

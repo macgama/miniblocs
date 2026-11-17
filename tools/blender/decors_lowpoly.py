@@ -33,7 +33,7 @@ import bpy  # avant bmesh
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import batiment_lowpoly as bl  # noqa: E402  (lire_options, apercu)
-from decors import base, urbain, clotures, loisirs, ferme, animaux, eau, rochers, zoo, epoques  # noqa: E402
+from decors import base, urbain, clotures, loisirs, ferme, animaux, eau, rochers, zoo, epoques, machines  # noqa: E402
 
 # Catégories, dans l'ordre du panneau du jeu.
 CATEGORIES = [
@@ -116,6 +116,11 @@ DECORS = {
     "brouette": (F.brouette, "ferme", {}), "puits": (F.puits, "ferme", {}),
     "bidons_lait": (F.bidons_lait, "ferme", {}), "poulailler": (F.poulailler, "ferme", {}),
     "citerne": (F.citerne, "ferme", {}), "silo_grain": (F.silo_grain, "ferme", {}),
+    # Machines d'aujourd'hui et de demain (lot 5)
+    **{n: (getattr(machines, n), "ferme", {}) for n in (
+        "semoir", "semoir_precision", "planteuse", "epandeur", "pulverisateur", "faucheuse", "presse_balles",
+        "presse_enrubanneuse", "dechaumeur", "arracheuse", "vendangeuse", "tracteur_gps", "tracteur_autonome",
+        "robot_agricole", "robot_desherbeur", "drone_agricole", "moissonneuse_autonome", "robot_cueilleur", "bac_insectes")},
     # Cultures
     "citrouilles": (F.citrouilles, "cultures", {}), "choux": (F.choux, "cultures", {}),
     "tomates": (F.tomates, "cultures", {}), "serre_tunnel": (F.serre_tunnel, "cultures", {}),

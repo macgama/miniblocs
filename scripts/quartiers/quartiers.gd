@@ -38,7 +38,8 @@ const NOMS_AUTO := ["Centre", "Les Tilleuls", "La Gare", "Le Moulin", "Bellevue"
 ## Le conseil élu garde au moins cette réserve après une mise en place.
 const RESERVE_CONSEIL := 200_000
 ## Voies où s'applique la zone 30 (pas les voies rapides).
-const ZONE_30_CLASSES := ["rue", "avenue", "departementale", "giratoire"]
+const ZONE_30_CLASSES := ["rue", "avenue", "departementale", "giratoire", "route_pavee", "route_empierree", "boulevard",
+	"avenue_bhns"]
 ## Bruit la nuit (0..1) au-delà duquel le pilote automatique demande le calme.
 const SEUIL_NUIT_PILOTE := 0.3
 

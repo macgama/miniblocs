@@ -780,7 +780,7 @@ static func _road_section(k: MeshKit, type_id: String, spec: Dictionary, a: Vect
 	var skirt_col := CONCRETE if bridge else ASPHALT.darkened(0.2)
 	# Chaussées (les deux sens) et terre-plein : pavés et empierrement avant
 	# l'enrobé, dans une partie historique (Epoques).
-	var chaussee := couleur_chaussee()
+	var chaussee: Color = ty.get("surface", couleur_chaussee())
 	k.strip(a, b, ra, rb, -outer, -inner, 0.08, chaussee, 0.0, chaussee)
 	k.strip(a, b, ra, rb, inner, outer, 0.08, chaussee, 0.0, chaussee)
 	# Couloirs de bus : enrobé rouge, à droite de chaque sens.
@@ -815,7 +815,7 @@ static func _road_section(k: MeshKit, type_id: String, spec: Dictionary, a: Vect
 			k.strip(a, b, ra, rb, -hw, -bus_out, 0.08, ASPHALT_SIDE, skirt, skirt_col)
 			k.strip(a, b, ra, rb, bus_out, hw, 0.08, ASPHALT_SIDE, skirt, skirt_col)
 	# Pas de marquage au sol avant les années 1930.
-	if not marks or (Epoques.actif() and Epoques.annee() < 1930):
+	if not marks or not bool(ty.get("marquage", true)) or (Epoques.actif() and Epoques.annee() < 1930):
 		return
 	# Lignes de rive (continues) au bord de la chaussée.
 	for e in [-bus_out, bus_out]:

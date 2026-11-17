@@ -242,6 +242,16 @@ func _run() -> void:
 				walkers += 1
 				break
 	_check(walkers > 0, "%d manifestants quittent leur journée pour y aller" % walkers)
+	# Sauvegarde en plein cortège puis chargement : la rue fermée (gardée par le trafic)
+	# ne doit pas rester barrée pour toujours.
+	var rue := int(m.edge)
+	var sauve := JSON.parse_string(JSON.stringify(avis.to_dict())) as Dictionary
+	avis.from_dict(sauve)
+	m = avis.manifs.liste[mid]
+	_check(String(m.etat) == "prevue" and not transport.network.closed_edges.has(rue), "chargé en plein cortège : il repart de zéro et la rue est rouverte")
+	_hours(scene, 1, 600.0)
+	_check(String(m.etat) == "en_cours" and transport.network.closed_edges.has(int(m.edge)), "le cortège repart et referme sa rue")
+	node = avis.manifs._nodes.get(mid, null)
 	var note_avant := avis.note("environnement")
 	_check(avis.manifs.repondre(mid, "negocier") == "", "négocier")
 	_check(String(m.etat) == "finie" and not transport.network.closed_edges.has(int(m.edge)), "fin du cortège, rue rouverte")

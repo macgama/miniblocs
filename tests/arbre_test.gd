@@ -53,7 +53,8 @@ func _run() -> void:
 	var sans := 0
 	for id in BuildingCatalog.all_types():
 		var t: Dictionary = BuildingCatalog.get_type(id)
-		if t.get("cache", false):
+		# (créations du joueur : hors arbre, toujours ouvertes)
+		if t.get("cache", false) or Creations.items.has(id):
 			continue
 		var b := A.branche_batiment(id)
 		if b == "":

@@ -136,6 +136,37 @@ const KINDS := {
 	"golf_green": {"name": "Green de golf", "fam": "terrains", "size": Vector2i(14, 18), "min": Vector2i(6, 6), "max": Vector2i(60, 80), "price": 35,
 		"fn": "parc", "reg": Vector2(18, 14), "surf": "Green de golf", "around": "Herbe", "green": true,
 		"desc": "Green ras, trou et drapeau, bunker de sable."},
+	# --- Lot 4 : du début du XIXe siècle à aujourd'hui ---------------------------------
+	"bassin_naturel": {"name": "Piscine naturelle", "fam": "bassins", "size": Vector2i(8, 14), "min": Vector2i(3, 4), "max": Vector2i(30, 60), "price": 800,
+		"fn": "piscine", "depth": 1.8, "wall": "Pierre de taille", "floor": "Gravier", "rim": "Teck", "water": "Eau de bassin",
+		"desc": "Baignade filtrée par les plantes : fond de gravier, bord en bois."},
+	"bassin_urbain": {"name": "Baignade urbaine", "fam": "bassins", "size": Vector2i(10, 25), "min": Vector2i(4, 6), "max": Vector2i(30, 80), "price": 900,
+		"fn": "piscine", "depth": 2.0, "raise": 0.3, "wall": "Planches", "floor": "Sable", "rim": "Bois lamellé-croisé", "water": "Eau de bassin", "lanes": 2.5,
+		"desc": "Bassin en bois posé sur le canal ou le port : on se baigne en pleine ville."},
+	"voie_large": {"name": "Voie large", "fam": "rails", "size": Vector2i(4, 30), "min": Vector2i(3, 4), "max": Vector2i(60, 400), "price": 360,
+		"fn": "", "gauge": 1.52, "entraxe": 4.8, "sleeper": 2.75, "ballast": 3.6, "spacing": 0.6, "ties": "Bois", "rail": "Acier noir",
+		"desc": "Écartement russe de 1,52 m (ou ibérique, indien) : traverses plus longues."},
+	"voie_cap": {"name": "Voie du Cap", "fam": "rails", "size": Vector2i(3, 24), "min": Vector2i(3, 4), "max": Vector2i(60, 400), "price": 280,
+		"fn": "", "gauge": 1.067, "entraxe": 3.8, "sleeper": 2.1, "ballast": 2.8, "spacing": 0.6, "ties": "Béton", "rail": "Acier noir",
+		"desc": "Voie de 1,067 m : Afrique australe, Japon, Australie, Indonésie."},
+	"tribune_bois": {"name": "Tribune en bois couverte", "fam": "gradins", "size": Vector2i(20, 8), "min": Vector2i(4, 3), "max": Vector2i(60, 120), "price": 300,
+		"fn": "", "step": 0.75, "rise": 0.4, "tread": "Planches", "riser": "Bois", "seat": "", "roof": "Bardeaux",
+		"desc": "Tribune de champ de courses du XIXe siècle : bancs en planches et toit de bardeaux."},
+	"gradins_retractables": {"name": "Gradins rétractables", "fam": "gradins", "size": Vector2i(14, 6), "min": Vector2i(2, 2), "max": Vector2i(40, 60), "price": 450,
+		"fn": "", "step": 0.8, "rise": 0.3, "tread": "Contreplaqué", "riser": "Béton ciré gris", "seat": "Sièges de stade verts",
+		"desc": "Gradins télescopiques de salle polyvalente : ils se replient contre le mur."},
+	"cricket": {"name": "Cricket", "fam": "terrains", "size": Vector2i(60, 70), "min": Vector2i(12, 26), "max": Vector2i(150, 150), "price": 12,
+		"fn": "parc", "reg": Vector2(20.12, 3.05), "surf": "Terre battue", "around": "Pelouse rayée",
+		"desc": "Pitch de 22 yards (20,12 m) au milieu de la pelouse, guichets à chaque bout."},
+	"croquet": {"name": "Croquet", "fam": "terrains", "size": Vector2i(27, 34), "min": Vector2i(10, 14), "max": Vector2i(40, 50), "price": 15,
+		"fn": "parc", "reg": Vector2(32, 25.6), "surf": "Green de golf", "around": "Herbe",
+		"desc": "Pelouse rase de 32 × 25,6 m, six arceaux et piquet au centre."},
+	"badminton": {"name": "Badminton", "fam": "terrains", "size": Vector2i(10, 17), "min": Vector2i(7, 14), "max": Vector2i(30, 40), "price": 50,
+		"fn": "gymnase", "reg": Vector2(13.4, 6.1), "surf": "Sol sportif vert", "around": "Sol sportif bleu",
+		"desc": "13,40 × 6,10 m, filet à 1,55 m."},
+	"padel": {"name": "Padel", "fam": "terrains", "size": Vector2i(12, 22), "min": Vector2i(11, 21), "max": Vector2i(20, 30), "price": 90,
+		"fn": "tennis", "reg": Vector2(20, 10), "surf": "Gazon synthétique", "around": "Sol sportif bleu", "fence": true,
+		"desc": "20 × 10 m entre vitres et grillage : on joue avec les murs."},
 }
 
 ## Ordre des vignettes dans chaque onglet.
@@ -143,7 +174,9 @@ const ORDER := ["piscine", "bassin_nage", "plongeon", "pataugeoire", "spa", "bas
 	"voie_normale", "voie_lgv", "voie_metrique", "voie_etroite", "voie_tram", "quai", "quai_couvert", "butoir",
 	"gradins_beton", "tribune_couverte", "gradins_bois", "gradins_pierre", "gradins_gazon",
 	"foot", "foot5", "rugby", "basket", "handball", "volley", "beach_volley", "tennis", "tennis_terre", "athletisme",
-	"patinoire", "petanque", "golf_green"]
+	"patinoire", "petanque", "golf_green",
+	"bassin_naturel", "bassin_urbain", "voie_large", "voie_cap", "tribune_bois", "gradins_retractables",
+	"cricket", "croquet", "badminton", "padel"]
 
 static var _mats: Dictionary = {}
 
@@ -874,6 +907,31 @@ static func _emit_field(m: BlocMesher, r: Rect2i, a: Dictionary, by: float) -> v
 		"tennis", "tennis_terre":
 			_tennis_lines(m, f, hu, hv, y, white)
 			_net(m, f, 0.0, hv + 0.914, 1.07, 0.95, by, true)
+		"badminton":
+			_outline(m, f, hu, hv, 0.04, y, white)
+			_seg(m, f, -hu, 0, hu, 0, 0.04, y, white)
+			for sb in [-1.0, 1.0]:
+				_seg(m, f, sb * 1.98, -hv, sb * 1.98, hv, 0.04, y, white)
+				_seg(m, f, sb * (hu - 0.76), -hv, sb * (hu - 0.76), hv, 0.04, y, white)
+			_net(m, f, 0.0, hv + 0.3, 1.55, 0.76, by)
+		"padel":
+			_outline(m, f, hu, hv, 0.05, y, white)
+			for sp in [-1.0, 1.0]:
+				_seg(m, f, sp * 6.95, -hv, sp * 6.95, hv, 0.05, y, white)
+			_seg(m, f, -6.95, 0, 6.95, 0, 0.05, y, white)
+			_net(m, f, 0.0, hv + 0.2, 0.88, 0.9, by, true)
+		"cricket":
+			_outline(m, f, hu, hv, 0.05, y, white)
+			for sc in [-1.0, 1.0]:
+				_seg(m, f, sc * (hu - 1.22), -hv, sc * (hu - 1.22), hv, 0.05, y, white)
+				for wv in [-0.11, 0.0, 0.11]:
+					_ubox(m, f, sc * hu, wv, 0.02, 0.02, by, by + 0.71, code("Bois"))
+		"croquet":
+			_outline(m, f, hu, hv, 0.06, y, white)
+			_ubox(m, f, 0, 0, 0.03, 0.03, by, by + 0.45, code("Bois"))
+			for hp in [[-10.0, -6.4], [-10.0, 6.4], [10.0, -6.4], [10.0, 6.4], [-4.0, 0.0], [4.0, 0.0]]:
+				_ubox(m, f, hp[0] - 0.05, hp[1], 0.01, 0.01, by, by + 0.3, white)
+				_ubox(m, f, hp[0] + 0.05, hp[1], 0.01, 0.01, by, by + 0.3, white)
 		"petanque":
 			var wood := code("Rondins")
 			var b0 := _p(f, -hu, -hv)

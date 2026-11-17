@@ -86,8 +86,30 @@ const FAMILLES := {
 		"lv": 1.4, "mu": 0.14, "air": 0.0045, "chaine": 0.0, "courant": 1.2, "releve_max": 45.0, "gare": 5.0, "h_gare": 10.0, "ouvert": true,
 		"m_prix": 1500, "gare_prix": 200_000, "trains": 6, "icone": "toboggan", "base": "toboggan",
 		"desc": "Une tour en bois et sa glissade en spirale, sur un paillasson. Le grand frisson de la fête foraine de 1905."},
+	# --- Lot 4 : la première attraction du genre (1817) et celles d'aujourd'hui.
+	"promenades": {"nom": "Promenades aériennes", "genre": "rail", "pente_max": 25, "inversions": false, "places": 2, "voitures": 2,
+		"lv": 2.4, "mu": 0.014, "air": 0.0008, "chaine": 3.0, "releve_max": 20.0, "gare": 20.0, "h_gare": 1.1,
+		"m_prix": 3000, "gare_prix": 300_000, "icone": "bois", "base": "bois",
+		"desc": "Des chariots à roulettes calés sur une rampe en bois descendent en tournant autour d'un pavillon (Paris, 1817)."},
+	"tournant": {"nom": "Grand-huit à voitures tournantes", "genre": "rail", "pente_max": 30, "inversions": false, "places": 4, "voitures": 4,
+		"lv": 2.4, "mu": 0.014, "air": 0.0008, "chaine": 3.0, "releve_max": 30.0, "gare": 20.0, "h_gare": 1.0,
+		"m_prix": 6000, "gare_prix": 700_000, "icone": "familial", "base": "familial",
+		"desc": "Chaque voiture pivote librement sur elle-même dans les virages : jamais deux tours pareils (1997)."},
+	"luge_ete": {"nom": "Luge d'été sur rail", "genre": "rail", "pente_max": 30, "inversions": false, "places": 2, "voitures": 4,
+		"lv": 2.4, "mu": 0.014, "air": 0.0008, "chaine": 3.0, "releve_max": 35.0, "gare": 16.0, "h_gare": 0.9,
+		"m_prix": 2500, "gare_prix": 250_000, "icone": "familial", "base": "familial",
+		"desc": "Une luge à deux places sur un rail en inox qui dévale la montagne ; chacun freine quand il veut (1996)."},
+	"aile": {"nom": "Grand-huit à ailes", "genre": "rail", "pente_max": 90, "inversions": true, "places": 4, "voitures": 6,
+		"lv": 2.6, "mu": 0.010, "air": 0.0007, "chaine": 3.6, "releve_max": 85.0, "gare": 24.0, "h_gare": 1.1,
+		"m_prix": 12000, "gare_prix": 1_300_000, "icone": "acier", "base": "acier",
+		"desc": "Les sièges sont de part et d'autre du rail, rien au-dessus ni en dessous : on vole (2007)."},
+	"realite_virtuelle": {"nom": "Grand-huit en réalité virtuelle", "genre": "rail", "pente_max": 90, "inversions": true, "places": 4, "voitures": 6,
+		"lv": 2.6, "mu": 0.010, "air": 0.0007, "chaine": 3.6, "releve_max": 85.0, "gare": 24.0, "h_gare": 1.1,
+		"m_prix": 10000, "gare_prix": 1_200_000, "icone": "acier", "base": "acier",
+		"desc": "Un casque sur les yeux : le grand-huit devient vol de dragon ou descente dans l'espace (2016)."},
 }
-const ORDRE_RAIL := ["acier", "bois", "mine", "familial", "suspendu", "lance", "panoramique", "bobsleigh", "train_fantome"]
+const ORDRE_RAIL := ["acier", "bois", "mine", "familial", "suspendu", "lance", "panoramique", "bobsleigh", "train_fantome",
+	"promenades", "tournant", "luge_ete", "aile", "realite_virtuelle"]
 const ORDRE_EAU := ["buches", "riviere", "splash", "toboggan", "moulin", "tour_glissade"]
 
 ## Pièces. L : longueur (m). p0 : pente d'entrée imposée (absent = toute pente

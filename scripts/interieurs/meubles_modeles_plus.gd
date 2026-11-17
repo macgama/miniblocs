@@ -334,6 +334,144 @@ static func build(kit: LpKit, k: String, w: float, d: float, h: float, c: Dictio
 			kit.layer = "base"
 			for sx in [-1, 1]:
 				kit.beam(Vector3(sx * 0.24, 0.7, 0), Vector3(sx * 0.3, 0.4, 0.15), 0.07, 0.07, metal.lightened(0.4))
+		# --- Lot 4 : début du XIXe siècle -------------------------------------------------
+		"harpe":
+			kit.box(Vector3(0, 0.08, 0), Vector3(0.4, 0.16, 0.5), wood)
+			kit.beam(Vector3(0, 0.15, 0.2), Vector3(0, 1.72, 0.12), 0.09, 0.09, LAITON)
+			kit.beam(Vector3(0, 0.16, -0.2), Vector3(0, 1.5, -0.12), 0.14, 0.16, wood2)
+			kit.beam(Vector3(0, 1.5, -0.12), Vector3(0, 1.7, 0.12), 0.08, 0.1, wood2)
+			for i in 7:
+				var z := -0.12 + i * 0.04
+				kit.tube(Vector3(0, 0.25, z * 1.4), Vector3(0, 1.45 + i * 0.03, z), 0.004, 0.004, 4, Color("e9e2c8"), false)
+		"lit_bateau":
+			kit.box(Vector3(0, 0.3, 0), Vector3(w - 0.2, 0.3, d - 0.4), wood)
+			kit.box(Vector3(0, 0.5, 0), Vector3(w - 0.3, 0.14, d - 0.5), white)
+			kit.box(Vector3(0, 0.58, 0.2), Vector3(w - 0.28, 0.04, d * 0.5), cloth)
+			for sz in [-1, 1]:
+				kit.beam(Vector3(-w * 0.5 + 0.1, 0.95, sz * (d * 0.5 - 0.12)), Vector3(w * 0.5 - 0.1, 0.95, sz * (d * 0.5 - 0.12)), 0.18, 0.12, wood.darkened(0.1))
+				kit.box(Vector3(0, 0.55, sz * (d * 0.5 - 0.12)), Vector3(w - 0.3, 0.8, 0.1), wood)
+			for px in [-0.3, 0.3]:
+				kit.box(Vector3(px, 0.65, -d * 0.5 + 0.35), Vector3(0.5, 0.1, 0.25), cloth2.lightened(0.2))
+		"psyche":
+			kit.box(Vector3(0, 0.05, 0), Vector3(0.7, 0.1, 0.35), wood)
+			for sx in [-1, 1]:
+				kit.box(Vector3(sx * 0.31, 0.85, 0), Vector3(0.06, 1.6, 0.06), wood)
+				kit.lathe(Vector3(sx * 0.31, 1.65, 0), [Vector2(0.05, 0.0), Vector2(0.05, 0.05), Vector2(0.0, 0.1)], 8, LAITON)
+			kit.box(Vector3(0, 0.95, 0), Vector3(0.56, 1.3, 0.05), wood2)
+			kit.layer = "verre"
+			kit.box(Vector3(0, 0.95, 0.03), Vector3(0.48, 1.2, 0.01), Color(0.75, 0.82, 0.88))
+			kit.layer = "base"
+		"baignoire_zinc":
+			kit.box(Vector3(0, 0.33, 0), Vector3(w - 0.4, 0.5, 0.7), Color("9aa3a8"))
+			kit.box(Vector3(0, 0.55, 0), Vector3(w - 0.55, 0.1, 0.55), Color("9fc3d6"))
+			kit.beam(Vector3(-w * 0.5 + 0.2, 0.45, 0), Vector3(-w * 0.5 + 0.08, 0.7, 0), 0.68, 0.06, Color("9aa3a8"))
+			for sx in [-1, 1]:
+				for sz in [-1, 1]:
+					kit.lathe(Vector3(sx * (w * 0.5 - 0.3), 0.0, sz * 0.28), [Vector2(0.04, 0.0), Vector2(0.03, 0.08)], 6, LAITON)
+		"cuisiniere_fonte":
+			kit.box(Vector3(0, 0.42, -0.15), Vector3(w - 0.3, 0.84, 0.6), NOIR.lightened(0.1))
+			kit.box(Vector3(0, 0.86, -0.15), Vector3(w - 0.25, 0.04, 0.65), NOIR)
+			for x in [-0.4, 0.0, 0.4]:
+				kit.lathe(Vector3(x, 0.88, -0.15), [Vector2(0.11, 0.0), Vector2(0.11, 0.01)], 10, NOIR.lightened(0.25))
+			for x in [-0.4, 0.2]:
+				kit.box(Vector3(x, 0.45, 0.16), Vector3(0.4, 0.3, 0.02), NOIR.lightened(0.2))
+				kit.box(Vector3(x, 0.62, 0.18), Vector3(0.3, 0.03, 0.03), LAITON)
+			kit.tube(Vector3(0.7, 0.86, -0.38), Vector3(0.7, 2.0, -0.38), 0.07, 0.07, 8, NOIR)
+		"lanterne_magique":
+			kit.box(Vector3(0, 0.38, 0), Vector3(0.5, 0.76, 0.5), wood)
+			kit.box(Vector3(0, 0.88, 0), Vector3(0.24, 0.22, 0.24), metal.darkened(0.2))
+			kit.tube(Vector3(0, 0.88, 0.12), Vector3(0, 0.88, 0.3), 0.05, 0.06, 8, LAITON)
+			kit.tube(Vector3(0, 0.99, 0), Vector3(0, 1.12, 0), 0.04, 0.03, 6, metal.darkened(0.2))
+			kit.layer = "lumiere"
+			kit.lathe(Vector3(0, 0.88, 0.3), [Vector2(0.05, 0.0), Vector2(0.05, 0.005)], 8, Color("ffe7a0"))
+			kit.layer = "base"
+		"chambre_photo":
+			for a in [0.0, 2.1, 4.2]:
+				kit.beam(Vector3(0, 1.15, 0), Vector3(sin(a) * 0.35, 0.0, cos(a) * 0.35), 0.04, 0.04, wood)
+			kit.box(Vector3(0, 1.22, 0), Vector3(0.32, 0.06, 0.4), wood)
+			kit.box(Vector3(0, 1.38, -0.12), Vector3(0.3, 0.3, 0.08), wood2)
+			kit.tube(Vector3(0, 1.38, -0.08), Vector3(0, 1.38, 0.15), 0.13, 0.08, 4, NOIR)
+			kit.box(Vector3(0, 1.38, 0.17), Vector3(0.18, 0.18, 0.04), wood2)
+			kit.tube(Vector3(0, 1.38, 0.19), Vector3(0, 1.38, 0.26), 0.05, 0.05, 8, LAITON)
+			kit.box(Vector3(0, 1.45, -0.2), Vector3(0.36, 0.5, 0.02), NOIR)
+		# --- Lot 4 : maison d'aujourd'hui et de demain ---------------------------------------
+		"frigo_connecte":
+			kit.box(Vector3(0, 0.95, -0.15), Vector3(0.85, 1.9, 0.65), metal.lightened(0.45))
+			kit.box(Vector3(0, 1.15, 0.18), Vector3(0.01, 1.4, 0.02), NOIR)
+			kit.box(Vector3(0, 0.25, 0.18), Vector3(0.8, 0.02, 0.02), NOIR)
+			kit.layer = "lumiere"
+			kit.box(Vector3(0.2, 1.3, 0.185), Vector3(0.26, 0.4, 0.01), ECRAN_ALLUME)
+			kit.layer = "base"
+		"realite_virtuelle":
+			kit.box(Vector3(0, 0.01, 0), Vector3(1.6, 0.02, 1.6), Color("3b3f46"))
+			for sx in [-1, 1]:
+				kit.tube(Vector3(sx * 0.75, 0.0, -0.75), Vector3(sx * 0.75, 1.8, -0.75), 0.02, 0.02, 6, NOIR)
+				kit.box(Vector3(sx * 0.75, 1.8, -0.75), Vector3(0.1, 0.08, 0.08), NOIR)
+			kit.box(Vector3(0, 1.5, 0), Vector3(0.22, 0.12, 0.14), white)
+			kit.box(Vector3(0, 1.5, -0.1), Vector3(0.24, 0.04, 0.12), NOIR)
+		"mur_vegetal":
+			kit.box(Vector3(0, 1.1, -0.44), Vector3(w - 0.1, 2.2, 0.08), Color("3b3f46"))
+			for i in 6:
+				for j in 8:
+					var g := Color("4f8a3a").lerp(Color("8cbf5a"), float((i * 7 + j * 3) % 5) / 4.0)
+					kit.box(Vector3(-w * 0.5 + 0.2 + j * (w - 0.3) / 8.0, 0.25 + i * 0.33, -0.36), Vector3(0.24, 0.28, 0.1), g)
+		"potager_interieur":
+			kit.box(Vector3(0, 0.9, -0.25), Vector3(0.75, 1.8, 0.4), white)
+			kit.layer = "lumiere"
+			for y in [0.55, 1.05, 1.55]:
+				kit.box(Vector3(0, y + 0.18, -0.08), Vector3(0.65, 0.02, 0.05), Color("e67bff"))
+			kit.layer = "base"
+			for y in [0.35, 0.85, 1.35]:
+				kit.box(Vector3(0, y, -0.18), Vector3(0.65, 0.06, 0.3), Color("3b3f46"))
+				for x in [-0.22, 0.0, 0.22]:
+					kit.blob(Vector3(x, y + 0.1, -0.18), Vector3(0.09, 0.08, 0.09), Color("4f8a3a"), Color("8cbf5a"), 0.2, 1)
+		"batterie_domestique":
+			kit.box(Vector3(0, 0.6, -0.38), Vector3(0.7, 1.15, 0.18), white)
+			kit.layer = "lumiere"
+			kit.box(Vector3(0, 0.95, -0.285), Vector3(0.3, 0.02, 0.01), Color("6fe39a"))
+			kit.layer = "base"
+			kit.tube(Vector3(0.25, 0.05, -0.4), Vector3(0.25, 0.0, -0.45), 0.02, 0.02, 4, NOIR)
+		"capsule_sommeil":
+			kit.box(Vector3(0, 0.15, 0), Vector3(0.95, 0.3, d - 0.1), white)
+			kit.box(Vector3(0, 0.38, 0.05), Vector3(0.8, 0.14, d - 0.3), cloth)
+			kit.beam(Vector3(0, 0.75, -d * 0.5 + 0.1), Vector3(0, 0.95, 0.2), 0.95, 0.06, white)
+			kit.layer = "verre"
+			kit.beam(Vector3(0, 0.95, 0.2), Vector3(0, 0.4, d * 0.5 - 0.05), 0.9, 0.03, Color(0.55, 0.8, 0.95))
+			kit.layer = "lumiere"
+			kit.box(Vector3(0, 0.3, d * 0.5 - 0.04), Vector3(0.8, 0.02, 0.01), Color("6fe3ff"))
+			kit.layer = "base"
+			kit.box(Vector3(0, 0.55, -d * 0.5 + 0.25), Vector3(0.5, 0.1, 0.25), cloth2.lightened(0.2))
+		"mur_ecran":
+			kit.box(Vector3(0, 1.1, -0.45), Vector3(w - 0.1, 2.2, 0.06), NOIR)
+			kit.layer = "lumiere"
+			kit.box(Vector3(0, 1.1, -0.415), Vector3(w - 0.2, 2.05, 0.01), Color("4fa3d9"))
+			kit.layer = "base"
+			kit.box(Vector3(0, 0.15, -0.3), Vector3(w - 0.4, 0.3, 0.35), wood2)
+		"robot_cuisinier":
+			kit.box(Vector3(0, 0.45, -0.2), Vector3(w - 0.15, 0.9, 0.6), white)
+			kit.box(Vector3(0, 0.91, -0.2), Vector3(w - 0.1, 0.03, 0.62), Color("3b3f46"))
+			kit.box(Vector3(0, 1.85, -0.25), Vector3(w - 0.2, 0.08, 0.15), metal.lightened(0.3))
+			for sx in [-1, 1]:
+				var a := Vector3(sx * 0.4, 1.8, -0.25)
+				var b := Vector3(sx * 0.45, 1.35, -0.05)
+				var c2 := Vector3(sx * 0.25, 1.05, 0.0)
+				kit.beam(a, b, 0.07, 0.07, white)
+				kit.beam(b, c2, 0.06, 0.06, white)
+				kit.lathe(c2, [Vector2(0.05, 0.0), Vector2(0.05, 0.04)], 8, metal)
+			kit.lathe(Vector3(-0.3, 0.93, -0.2), [Vector2(0.14, 0.0), Vector2(0.14, 0.12)], 12, metal.lightened(0.4), true, false)
+		"imprimante_repas":
+			kit.box(Vector3(0, 0.45, -0.15), Vector3(0.7, 0.9, 0.6), white)
+			kit.box(Vector3(0, 1.2, -0.15), Vector3(0.7, 0.6, 0.6), white)
+			kit.layer = "verre"
+			kit.box(Vector3(0, 1.2, 0.16), Vector3(0.6, 0.5, 0.01), Color(0.6, 0.75, 0.85))
+			kit.layer = "base"
+			kit.lathe(Vector3(0, 0.95, -0.1), [Vector2(0.16, 0.0), Vector2(0.17, 0.02)], 12, white.darkened(0.1))
+			kit.blob(Vector3(0, 1.0, -0.1), Vector3(0.08, 0.05, 0.08), Color("c96f3c"), Color("e9b26f"), 0.1, 0)
+			kit.tube(Vector3(0, 1.45, -0.1), Vector3(0, 1.15, -0.1), 0.02, 0.01, 6, metal)
+			kit.layer = "lumiere"
+			kit.box(Vector3(0.25, 1.48, 0.165), Vector3(0.12, 0.06, 0.01), ECRAN_ALLUME)
+			kit.layer = "base"
+
 		_:
 			return false
 	return true

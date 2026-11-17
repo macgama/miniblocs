@@ -11,8 +11,9 @@ const FLOOR_MAT := 2 # bois
 const OPENING_TABS := [
 	["portes", "Portes", ["porte", "porte_vitree", "porte_fenetre", "porte_entree", "porte_cintree", "porte_double", "porte_balcon", "porte_grange", "porte_garage", "porte_fenetre_volets"]],
 	["fenetres", "Fenêtres", ["fenetre", "fenetre_volets", "fenetre_petits_bois", "fenetre_cintree", "fenetre_gothique", "oeil_de_boeuf", "fenetre_haute", "meurtriere",
-		"fenetre_cintree_volets", "fenetre_ogive", "fenetre_balconnet", "fenetre_store", "fenetre_haute_volets", "hublot"]],
-	["baies", "Baies et vitrines", ["baie", "baie_coulissante", "mur_rideau", "fenetre_atelier", "bandeau", "vitrine", "vitrine_store", "baie_balconnet"]],
+		"fenetre_cintree_volets", "fenetre_ogive", "fenetre_balconnet", "fenetre_store", "fenetre_haute_volets", "hublot",
+		"fenetre_petits_bois_volets", "fenetre_balconnet_volets", "oeil_volets", "fenetre_ogive_volets", "fenetre_balconnet_store"]],
+	["baies", "Baies et vitrines", ["baie", "baie_coulissante", "mur_rideau", "fenetre_atelier", "bandeau", "vitrine", "vitrine_store", "baie_balconnet", "baie_store", "baie_volets", "baie_balconnet_store"]],
 	["passages", "Passages", ["passage", "arcade", "arcade_brisee", "claustra"]],
 ]
 

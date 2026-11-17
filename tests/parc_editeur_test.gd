@@ -40,10 +40,10 @@ func _run() -> void:
 func _pieces_tests() -> void:
 	print("Pièces :")
 	_check(VoiePieces.PIECES.size() >= 40, "%d pièces de voie" % VoiePieces.PIECES.size())
-	_check(VoiePieces.FAMILLES.size() == 15, "15 familles (9 grands-huit, 6 sur l'eau)")
+	_check(VoiePieces.FAMILLES.size() == 20, "20 familles (14 grands-huit, 6 sur l'eau)")
 	# Attractions d'avant-guerre : un modèle de leur famille de base, rejoué chez elles.
-	var src := {"bois": "mine", "familial": "mine", "buches": "buches", "toboggan": "toboggan"}
-	for fid in ["panoramique", "bobsleigh", "train_fantome", "moulin", "tour_glissade"]:
+	var src := {"bois": "mine", "familial": "mine", "acier": "acier", "buches": "buches", "toboggan": "toboggan"}
+	for fid in ["panoramique", "bobsleigh", "train_fantome", "moulin", "tour_glissade", "promenades", "tournant", "luge_ete", "aile", "realite_virtuelle"]:
 		var base := String(src.get(VoiePieces.style(fid), "mine"))
 		var ok := false
 		var modeles := AttractionsPerso.modeles().filter(func(m: Dictionary) -> bool: return String(m.famille) == fid)

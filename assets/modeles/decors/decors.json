@@ -2887,6 +2887,226 @@
     2.4,
     2.2
    ]
+  },
+  {
+   "id": "barriere_octroi",
+   "nom": "Barrière d'octroi : bascule rayée et bureau du receveur, à l'entrée de la ville",
+   "cat": "urbain",
+   "triangles": 156,
+   "taille": [
+    5.62,
+    1.7,
+    3.1
+   ]
+  },
+  {
+   "id": "poteau_indicateur",
+   "nom": "Poteau indicateur de carrefour, flèches de bois peintes",
+   "cat": "panneaux",
+   "triangles": 62,
+   "taille": [
+    1.02,
+    0.86,
+    3.15
+   ]
+  },
+  {
+   "id": "telegraphe_chappe",
+   "nom": "Télégraphe Chappe : mât à bras articulés sur une tour de pierre",
+   "cat": "panneaux",
+   "triangles": 76,
+   "taille": [
+    3.86,
+    2.6,
+    8.12
+   ]
+  },
+  {
+   "id": "puits_couvert",
+   "nom": "Puits couvert à treuil et à toit de tuiles",
+   "cat": "ferme",
+   "triangles": 188,
+   "taille": [
+    1.83,
+    2.4,
+    2.9
+   ]
+  },
+  {
+   "id": "guerite",
+   "nom": "Guérite de sentinelle à rayures, devant la caserne ou le palais",
+   "cat": "urbain",
+   "triangles": 80,
+   "taille": [
+    1.3,
+    1.25,
+    2.95
+   ]
+  },
+  {
+   "id": "boite_lettres_fonte",
+   "nom": "Boîte aux lettres en fonte sur colonne",
+   "cat": "urbain",
+   "triangles": 122,
+   "taille": [
+    0.44,
+    0.44,
+    1.61
+   ]
+  },
+  {
+   "id": "grue_quai",
+   "nom": "Grue de quai en bois à tambour de halage",
+   "cat": "eau",
+   "triangles": 114,
+   "taille": [
+    5.34,
+    2.3,
+    4.3
+   ]
+  },
+  {
+   "id": "montoir",
+   "nom": "Montoir à cheval : trois marches de pierre et un anneau",
+   "cat": "urbain",
+   "triangles": 120,
+   "taille": [
+    1.04,
+    0.92,
+    1.0
+   ]
+  },
+  {
+   "id": "eolienne_urbaine",
+   "nom": "Petite éolienne urbaine à axe vertical",
+   "cat": "panneaux",
+   "triangles": 204,
+   "taille": [
+    1.33,
+    1.51,
+    7.6
+   ]
+  },
+  {
+   "id": "arbre_solaire",
+   "nom": "Arbre solaire : ombrière à feuilles de panneaux et bancs",
+   "cat": "eclairage",
+   "triangles": 204,
+   "taille": [
+    3.67,
+    3.56,
+    5.0
+   ]
+  },
+  {
+   "id": "brumisateur",
+   "nom": "Mât brumisateur, îlot de fraîcheur des étés chauds",
+   "cat": "urbain",
+   "triangles": 232,
+   "taille": [
+    2.04,
+    1.88,
+    3.24
+   ]
+  },
+  {
+   "id": "capteur_air",
+   "nom": "Station de mesure de la qualité de l'air",
+   "cat": "panneaux",
+   "triangles": 150,
+   "taille": [
+    0.9,
+    0.72,
+    2.6
+   ]
+  },
+  {
+   "id": "parklet",
+   "nom": "Parklet : terrasse en bois sur une place de stationnement",
+   "cat": "urbain",
+   "triangles": 212,
+   "taille": [
+    5.0,
+    2.03,
+    1.18
+   ]
+  },
+  {
+   "id": "jardin_pluie",
+   "nom": "Jardin de pluie : noue plantée qui boit l'eau des averses",
+   "cat": "urbain",
+   "triangles": 248,
+   "taille": [
+    6.2,
+    2.4,
+    0.91
+   ]
+  },
+  {
+   "id": "frigo_solidaire",
+   "nom": "Frigo solidaire : on y laisse et on y prend de quoi manger",
+   "cat": "urbain",
+   "triangles": 72,
+   "taille": [
+    1.5,
+    1.05,
+    2.5
+   ]
+  },
+  {
+   "id": "toilettes_seches",
+   "nom": "Toilettes sèches publiques en bois",
+   "cat": "urbain",
+   "triangles": 80,
+   "taille": [
+    1.95,
+    1.7,
+    3.2
+   ]
+  },
+  {
+   "id": "echange_batteries",
+   "nom": "Station d'échange de batteries de scooters",
+   "cat": "urbain",
+   "triangles": 324,
+   "taille": [
+    1.8,
+    0.7,
+    2.1
+   ]
+  },
+  {
+   "id": "borne_hydrogene",
+   "nom": "Distributeur d'hydrogène sous auvent",
+   "cat": "urbain",
+   "triangles": 116,
+   "taille": [
+    3.0,
+    2.0,
+    4.45
+   ]
+  },
+  {
+   "id": "robot_livraison",
+   "nom": "Robot de livraison sur le trottoir, avec son fanion",
+   "cat": "urbain",
+   "triangles": 396,
+   "taille": [
+    0.72,
+    0.7,
+    1.6
+   ]
+  },
+  {
+   "id": "vertiport",
+   "nom": "Plateforme de taxis volants au sol, avec ses bornes",
+   "cat": "urbain",
+   "triangles": 436,
+   "taille": [
+    13.0,
+    12.0,
+    1.8
+   ]
   }
  ]
 }

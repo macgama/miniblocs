@@ -66,6 +66,6 @@ Les images (une à deux minutes, il faut un affichage : sous Linux sans écran, 
 godot --path . --rendering-driver opengl3 --script res://tools/catalogue/images_catalogue.gd
 ```
 
-Options : `-- --familles batiments,vehicules` (seulement ces familles, le reste de `img/index.json` est
+Options : `-- --manquants` (seulement les objets qui n'ont pas encore d'image, après un ajout), `-- --familles batiments,vehicules` (seulement ces familles, le reste de `img/index.json` est
 gardé), `-- --seul maison`, `-- --limite 10` (essai rapide). Relancer ensuite l'export ci-dessus pour que la
 page html reprenne les images.

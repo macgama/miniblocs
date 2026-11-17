@@ -77,6 +77,10 @@ const ERA_ANNEES := {"antique": 0, "traditionnel": 0, "classique": 1830, "modern
 
 ## Styles de la bible plus précis que leur époque.
 const STYLE_ANNEES := {
+	"empire": 1800, "biedermeier": 1815, "petersbourg": 1800, "federal": 1790, "greek_revival": 1820, "canton": 1800,
+	"anglo_indien": 1810, "zanzibar": 1830, "macquarie": 1810,
+	"ecoquartier": 2015, "desert_intelligent": 2020, "smart_city": 2020, "afrique_villes_nouvelles": 2022,
+	"habitat_flottant": 2028, "impression_3d": 2030, "mediterranee_climatique": 2032, "ville_verticale": 2045,
 	"haussmann": 1853, "briques_ind": 1830, "art_deco": 1920, "australien": 1850, "far_west": 1850,
 	"hollandais": 0, "latino": 0, "ottoman": 0, "colonial": 0,
 	"international": 1930, "brutaliste": 1955, "sovietique": 1955, "banlieue_us": 1950, "afrique_moderne": 1960,
@@ -213,6 +217,8 @@ const TRONCONS := {"ligne_ht": 1910, "ligne_mt": 1882, "conduite_eau": 0, "colle
 
 ## Matériaux de l'Atelier (BlocMateriaux.LIST) : mots du nom, première règle qui correspond.
 const MOTS_MATERIAUX := [
+	# Lot 4 (2026-11-17) : début du XIXe siècle et matériaux de demain.
+	["stuc empire", 1800], ["faux marbre", 1800], ["papier peint à rayures", 1800], ["fonte moulée", 1810], ["ciment romain", 1800], ["verre soufflé", 1830], ["asphalte de trottoir", 1835], ["pavés de bois", 1840], ["toile cirée", 1800], ["minton", 1840], ["plâtre de paris", 1800], ["plastique recyclé", 2018], ["bas carbone", 2020], ["chanvre", 2010], ["bottes de paille", 2005], ["liège projeté", 2015], ["verre solaire", 2022], ["radiative", 2022], ["asphalte clair", 2020], ["sol perméable", 2018], ["pavés solaires", 2030], ["aérogel", 2032], ["bois transparent", 2035], ["graphène", 2040], ["imprimée en 3d", 2025],
 	# Lot du 2026-11-17 (avant les règles générales : « béton fibré » avant « béton »).
 	["pierre agglomérée", 1850], ["ciment moulé", 1860], ["grès flammé", 1890], ["carreaux de métro", 1904],
 	["art déco", 1925], ["ferronnerie art nouveau", 1893], ["bakélite", 1910], ["formica", 1950], ["gabions", 1900],

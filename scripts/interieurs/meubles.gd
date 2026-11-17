@@ -221,6 +221,26 @@ const TYPES := {
 	# Futur
 	"hologramme": {"n": "Projecteur holographique", "k": "hologramme", "w": 1, "d": 1, "h": 1.1, "prix": 5000, "conf": 5, "attr": 9, "p": ["sejour", "deco"], "e": [5, 5]},
 	"robot_domestique": {"n": "Robot domestique", "k": "robot", "w": 1, "d": 1, "h": 1.15, "prix": 12000, "conf": 8, "attr": 6, "p": ["sejour", "cuisine", "deco"], "e": [5, 5]},
+	# Lot 4 : début du XIXe siècle et maison de demain
+	"harpe": {"n": "Harpe", "k": "harpe", "w": 1, "d": 1, "h": 1.75, "prix": 900, "conf": 2, "attr": 6, "p": ["sejour", "salle", "deco"], "e": [1, 3]},
+	"lit_bateau": {"n": "Lit bateau", "k": "lit_bateau", "w": 2, "d": 2, "h": 1.1, "prix": 900, "conf": 9, "attr": 5, "p": ["chambre"], "mur": true, "e": [1, 3],
+		"tags": ["lit"], "places": [["lit", -0.3, 0.55, 0.0, 0.0], ["lit", 0.3, 0.55, 0.0, 0.0]]},
+	"psyche": {"n": "Psyché", "k": "psyche", "w": 1, "d": 1, "h": 1.8, "prix": 400, "conf": 2, "attr": 4, "p": ["chambre", "sdb"], "e": [1, 3]},
+	"baignoire_zinc": {"n": "Baignoire en zinc", "k": "baignoire_zinc", "w": 2, "d": 1, "h": 0.7, "prix": 250, "conf": 5, "attr": 2, "p": ["sdb", "chambre"], "e": [1, 2]},
+	"cuisiniere_fonte": {"n": "Cuisinière en fonte", "k": "cuisiniere_fonte", "w": 2, "d": 1, "h": 1.0, "prix": 600, "conf": 6, "attr": 3, "p": ["cuisine"], "mur": true, "e": [1, 3], "tags": ["cuisson", "chauffage"],
+		"places": [["cuisine", 0.0, 0.0, 0.6, PI]]},
+	"lanterne_magique": {"n": "Lanterne magique", "k": "lanterne_magique", "w": 1, "d": 1, "h": 1.15, "prix": 180, "conf": 1, "attr": 6, "p": ["sejour", "enfant", "salle"], "e": [1, 2]},
+	"chambre_photo": {"n": "Chambre photographique", "k": "chambre_photo", "w": 1, "d": 1, "h": 1.6, "prix": 700, "conf": 1, "attr": 5, "p": ["boutique", "sejour", "bureau"], "e": [2, 3]},
+	"frigo_connecte": {"n": "Réfrigérateur connecté", "k": "frigo_connecte", "w": 1, "d": 1, "h": 1.9, "prix": 2500, "conf": 5, "attr": 2, "p": ["cuisine"], "mur": true, "e": [4, 5], "tags": ["froid"]},
+	"realite_virtuelle": {"n": "Coin de réalité virtuelle", "k": "realite_virtuelle", "w": 2, "d": 2, "h": 1.8, "prix": 1200, "conf": 3, "attr": 7, "p": ["sejour", "enfant", "salle"], "e": [4, 5]},
+	"mur_vegetal": {"n": "Mur végétal d'intérieur", "k": "mur_vegetal", "w": 2, "d": 1, "h": 2.2, "prix": 1500, "conf": 4, "attr": 7, "p": ["sejour", "bureau", "entree", "deco"], "mur": true, "e": [4, 5]},
+	"potager_interieur": {"n": "Potager hydroponique", "k": "potager_interieur", "w": 1, "d": 1, "h": 1.8, "prix": 600, "conf": 2, "attr": 4, "p": ["cuisine", "sejour"], "mur": true, "e": [4, 5]},
+	"batterie_domestique": {"n": "Batterie domestique", "k": "batterie_domestique", "w": 1, "d": 1, "h": 1.2, "prix": 8000, "conf": 3, "attr": 0, "p": ["entree", "reserve"], "mur": true, "e": [4, 5]},
+	"capsule_sommeil": {"n": "Capsule de sommeil", "k": "capsule_sommeil", "w": 1, "d": 2, "h": 1.3, "prix": 6000, "conf": 11, "attr": 6, "p": ["chambre"], "mur": true, "e": [5, 5],
+		"tags": ["lit"], "places": [["lit", 0.0, 0.5, 0.0, 0.0]]},
+	"mur_ecran": {"n": "Mur-écran", "k": "mur_ecran", "w": 3, "d": 1, "h": 2.2, "prix": 9000, "conf": 7, "attr": 8, "p": ["sejour"], "mur": true, "e": [5, 5], "tags": ["ecran"]},
+	"robot_cuisinier": {"n": "Bras robot cuisinier", "k": "robot_cuisinier", "w": 2, "d": 1, "h": 1.9, "prix": 15000, "conf": 8, "attr": 6, "p": ["cuisine"], "mur": true, "e": [5, 5], "tags": ["cuisson"]},
+	"imprimante_repas": {"n": "Imprimante à repas", "k": "imprimante_repas", "w": 1, "d": 1, "h": 1.5, "prix": 4000, "conf": 4, "attr": 5, "p": ["cuisine"], "mur": true, "e": [5, 5]},
 }
 
 ## Styles de mobilier. pal : bois, bois2 (clair), tissu, tissu2, metal, accent,

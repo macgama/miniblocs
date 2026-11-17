@@ -6,6 +6,7 @@ extends SceneTree
 ##   godot --path . --rendering-driver opengl3 --script res://tests/catalogue_planche.gd -- --screenshot p.png --styles nubien,birman
 ##   ... -- --vehicules serie_1908,tonga --colonnes 6
 ##   ... -- --batiments maison,villa
+##   ... -- --decors bec_gaz,torii   ou   --meubles phonographe_x,radio_tsf_y
 ## --colonnes N : objets par ligne. --yaw / --pitch : angle de la caméra. --largeur / --hauteur : taille de l'image.
 
 
@@ -35,6 +36,12 @@ func _run() -> void:
 			"--vehicules":
 				genre = "vehicule"
 				ids.append_array(v.split(","))
+			"--decors":
+				genre = "decor"
+				ids.append_array(v.split(","))
+			"--meubles":
+				genre = "meuble"
+				ids.append_array(v.split(","))
 			"--colonnes": cols = v.to_int()
 			"--yaw": yaw = v.to_float()
 			"--pitch": pitch = v.to_float()
@@ -61,7 +68,9 @@ func _run() -> void:
 	# Cases de la grille : taille de la plus grande emprise.
 	var cell := 4.0
 	for id in ids:
-		if genre == "vehicule":
+		if genre == "decor" or genre == "meuble":
+			cell = maxf(cell, _taille(genre, id) + 2.0)
+		elif genre == "vehicule":
 			var t := VehicleCatalog.get_type(id)
 			cell = maxf(cell, maxf(float(t.get("L", 4.0)), float(t.get("W", 2.0))) + 2.0)
 		else:
@@ -74,7 +83,17 @@ func _run() -> void:
 	for i in ids.size():
 		var id := String(ids[i])
 		var mesh: ArrayMesh
-		if genre == "vehicule":
+		if genre == "decor":
+			mesh = Decors.mesh(id) as ArrayMesh
+			if mesh == null:
+				push_error("décor inconnu : " + id)
+				continue
+		elif genre == "meuble":
+			if not Meubles.has(id):
+				push_error("meuble inconnu : " + id)
+				continue
+			mesh = MeublesModeles.mesh_of(id)
+		elif genre == "vehicule":
 			if VehicleCatalog.get_type(id).is_empty():
 				push_error("véhicule inconnu : " + id)
 				continue
@@ -86,6 +105,8 @@ func _run() -> void:
 			mesh = BuildingCatalog.build_mesh(id, mat)
 		var mi := MeshInstance3D.new()
 		mi.mesh = mesh
+		if genre == "decor":
+			mi.material_override = Decors.materiau()
 		var cx := (i % cols - (cols - 1) / 2.0) * cell
 		var cz := (int(i / cols) - (rows - 1) / 2.0) * cell
 		mi.position = Vector3(cx, 0, cz)
@@ -93,7 +114,7 @@ func _run() -> void:
 		scene.add_child(mi)
 		maxh = maxf(maxh, mesh.get_aabb().size.y)
 		var lab := Label3D.new()
-		lab.text = String(BuildingCatalog.get_type(id).get("name", id)) if genre != "vehicule" else String(VehicleCatalog.get_type(id).get("name", id))
+		lab.text = _nom(genre, id)
 		lab.font_size = 64
 		lab.pixel_size = cell / 750.0
 		lab.modulate = Color("1f2933")
@@ -131,3 +152,19 @@ func _run() -> void:
 	img.save_png(shot)
 	print("Planche : %d objets → %s" % [ids.size(), shot])
 	quit()
+
+
+func _taille(genre: String, id: String) -> float:
+	if genre == "decor":
+		var t: Array = Decors.info(id).get("taille", [2, 2, 2])
+		return maxf(float(t[0]), float(t[1]))
+	var e := Meubles.get_entry(id)
+	return maxf(float(e.get("w", 1)), float(e.get("d", 1)))
+
+
+func _nom(genre: String, id: String) -> String:
+	match genre:
+		"vehicule": return String(VehicleCatalog.get_type(id).get("name", id))
+		"decor": return Decors.nom(id)
+		"meuble": return String(Meubles.get_entry(id).get("n", id))
+	return String(BuildingCatalog.get_type(id).get("name", id))

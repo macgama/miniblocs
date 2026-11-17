@@ -2326,6 +2326,567 @@
     0.62,
     1.42
    ]
+  },
+  {
+   "id": "bec_gaz",
+   "nom": "Bec de gaz sur colonnette de fonte",
+   "cat": "eclairage",
+   "triangles": 98,
+   "taille": [
+    0.5,
+    0.48,
+    3.64
+   ]
+  },
+  {
+   "id": "lampadaire_solaire",
+   "nom": "Lampadaire LED autonome à panneau solaire",
+   "cat": "eclairage",
+   "triangles": 112,
+   "taille": [
+    0.9,
+    1.45,
+    5.96
+   ]
+  },
+  {
+   "id": "lanternes_papier",
+   "nom": "Guirlande de lanternes de papier rouges entre deux mâts",
+   "cat": "eclairage",
+   "triangles": 328,
+   "taille": [
+    6.12,
+    0.37,
+    3.6
+   ]
+  },
+  {
+   "id": "vespasienne",
+   "nom": "Vespasienne : urinoir public en fonte et tôle",
+   "cat": "urbain",
+   "triangles": 202,
+   "taille": [
+    2.09,
+    2.2,
+    3.27
+   ]
+  },
+  {
+   "id": "kiosque_journaux",
+   "nom": "Kiosque à journaux octogonal, dôme et lanterneau",
+   "cat": "urbain",
+   "triangles": 250,
+   "taille": [
+    2.5,
+    2.5,
+    3.42
+   ]
+  },
+  {
+   "id": "kiosque_musique",
+   "nom": "Kiosque à musique : plateforme, colonnettes et toit en pavillon",
+   "cat": "monuments",
+   "triangles": 394,
+   "taille": [
+    8.6,
+    8.75,
+    6.7
+   ]
+  },
+  {
+   "id": "pompe_a_bras",
+   "nom": "Pompe à bras de village, en fonte, avec son auge",
+   "cat": "urbain",
+   "triangles": 70,
+   "taille": [
+    1.21,
+    1.02,
+    1.55
+   ]
+  },
+  {
+   "id": "lavoir",
+   "nom": "Lavoir couvert : bassin de pierre sous un auvent de tuiles",
+   "cat": "monuments",
+   "triangles": 124,
+   "taille": [
+    6.4,
+    6.8,
+    3.6
+   ]
+  },
+  {
+   "id": "poteau_telegraphe",
+   "nom": "Poteau télégraphique en bois à isolateurs de verre",
+   "cat": "panneaux",
+   "triangles": 172,
+   "taille": [
+    1.6,
+    0.24,
+    7.0
+   ]
+  },
+  {
+   "id": "orgue_barbarie",
+   "nom": "Orgue de Barbarie sur sa charrette et son joueur",
+   "cat": "marche",
+   "triangles": 280,
+   "taille": [
+    1.34,
+    0.88,
+    1.69
+   ]
+  },
+  {
+   "id": "chasse_roue",
+   "nom": "Chasse-roue de pierre au coin d'un porche",
+   "cat": "urbain",
+   "triangles": 48,
+   "taille": [
+    0.5,
+    0.5,
+    0.67
+   ]
+  },
+  {
+   "id": "cireur",
+   "nom": "Étal de cireur de chaussures, fauteuil haut et parasol",
+   "cat": "marche",
+   "triangles": 86,
+   "taille": [
+    2.15,
+    2.0,
+    2.4
+   ]
+  },
+  {
+   "id": "malles_bagages",
+   "nom": "Chariot à bagages de gare chargé de malles",
+   "cat": "urbain",
+   "triangles": 296,
+   "taille": [
+    2.12,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "id": "pompe_essence_ancienne",
+   "nom": "Pompe à essence à globe et cuve de verre",
+   "cat": "urbain",
+   "triangles": 124,
+   "taille": [
+    0.8,
+    0.6,
+    2.8
+   ]
+  },
+  {
+   "id": "borne_routiere",
+   "nom": "Borne routière en béton à chapeau peint",
+   "cat": "panneaux",
+   "triangles": 52,
+   "taille": [
+    0.5,
+    0.38,
+    0.9
+   ]
+  },
+  {
+   "id": "cabine_police",
+   "nom": "Cabine d'appel de police en bois peint, lanterne au toit",
+   "cat": "urbain",
+   "triangles": 116,
+   "taille": [
+    1.35,
+    1.35,
+    3.05
+   ]
+  },
+  {
+   "id": "entree_metro",
+   "nom": "Entrée de métro Art nouveau : rampes de fonte et lanternes",
+   "cat": "urbain",
+   "triangles": 312,
+   "taille": [
+    2.5,
+    4.27,
+    3.53
+   ]
+  },
+  {
+   "id": "borne_appel",
+   "nom": "Avertisseur d'incendie de rue, colonne rouge",
+   "cat": "urbain",
+   "triangles": 86,
+   "taille": [
+    0.32,
+    0.32,
+    1.85
+   ]
+  },
+  {
+   "id": "affiche_reclame",
+   "nom": "Mur peint de réclame sur pignon, pied de bois",
+   "cat": "panneaux",
+   "triangles": 60,
+   "taille": [
+    3.6,
+    0.2,
+    2.8
+   ]
+  },
+  {
+   "id": "sirene_alerte",
+   "nom": "Sirène d'alerte sur mât",
+   "cat": "panneaux",
+   "triangles": 108,
+   "taille": [
+    1.01,
+    1.15,
+    6.42
+   ]
+  },
+  {
+   "id": "borne_recharge",
+   "nom": "Borne de recharge pour voitures électriques, deux prises",
+   "cat": "urbain",
+   "triangles": 84,
+   "taille": [
+    0.85,
+    0.47,
+    1.64
+   ]
+  },
+  {
+   "id": "bornes_recharge_parking",
+   "nom": "Quatre places de recharge sous une ombrière solaire",
+   "cat": "urbain",
+   "triangles": 276,
+   "taille": [
+    10.05,
+    6.0,
+    3.62
+   ]
+  },
+  {
+   "id": "velos_libre_service",
+   "nom": "Station de vélos en libre-service : borne et six vélos",
+   "cat": "urbain",
+   "triangles": 1116,
+   "taille": [
+    4.8,
+    1.78,
+    1.88
+   ]
+  },
+  {
+   "id": "trottinettes",
+   "nom": "Trottinettes électriques en libre-service garées",
+   "cat": "urbain",
+   "triangles": 604,
+   "taille": [
+    2.4,
+    1.4,
+    1.14
+   ]
+  },
+  {
+   "id": "abribus_moderne",
+   "nom": "Abribus contemporain en verre, écran d'information",
+   "cat": "urbain",
+   "triangles": 96,
+   "taille": [
+    4.0,
+    1.5,
+    2.6
+   ]
+  },
+  {
+   "id": "panneaux_solaires",
+   "nom": "Champ de panneaux solaires au sol, trois rangées",
+   "cat": "panneaux",
+   "triangles": 360,
+   "taille": [
+    7.0,
+    6.53,
+    1.3
+   ]
+  },
+  {
+   "id": "boite_livres",
+   "nom": "Boîte à livres en bois sur pied, porte vitrée",
+   "cat": "urbain",
+   "triangles": 188,
+   "taille": [
+    0.84,
+    0.5,
+    2.1
+   ]
+  },
+  {
+   "id": "conteneurs_enterres",
+   "nom": "Conteneurs enterrés de tri sélectif",
+   "cat": "urbain",
+   "triangles": 284,
+   "taille": [
+    4.6,
+    1.8,
+    1.23
+   ]
+  },
+  {
+   "id": "poubelle_solaire",
+   "nom": "Poubelle compacteuse à panneau solaire",
+   "cat": "urbain",
+   "triangles": 36,
+   "taille": [
+    0.65,
+    0.62,
+    1.29
+   ]
+  },
+  {
+   "id": "totem_info",
+   "nom": "Totem d'information numérique et plan de quartier",
+   "cat": "panneaux",
+   "triangles": 60,
+   "taille": [
+    0.9,
+    0.35,
+    2.42
+   ]
+  },
+  {
+   "id": "camera_surveillance",
+   "nom": "Mât de vidéosurveillance à deux caméras",
+   "cat": "panneaux",
+   "triangles": 80,
+   "taille": [
+    1.14,
+    0.63,
+    5.0
+   ]
+  },
+  {
+   "id": "radar_vitesse",
+   "nom": "Radar de contrôle de vitesse sur poteau",
+   "cat": "panneaux",
+   "triangles": 84,
+   "taille": [
+    0.75,
+    0.63,
+    3.2
+   ]
+  },
+  {
+   "id": "casiers_colis",
+   "nom": "Consigne automatique de colis",
+   "cat": "urbain",
+   "triangles": 288,
+   "taille": [
+    2.5,
+    0.75,
+    2.15
+   ]
+  },
+  {
+   "id": "atelier_velo",
+   "nom": "Station de réparation de vélos en libre accès, pompe et outils",
+   "cat": "urbain",
+   "triangles": 104,
+   "taille": [
+    1.15,
+    0.22,
+    1.7
+   ]
+  },
+  {
+   "id": "agres_fitness",
+   "nom": "Agrès de fitness en plein air : barres et vélo elliptique",
+   "cat": "jeux",
+   "triangles": 200,
+   "taille": [
+    5.0,
+    3.0,
+    2.23
+   ]
+  },
+  {
+   "id": "rampe_skate",
+   "nom": "Module de skatepark en béton : rampe, plan incliné et rail",
+   "cat": "jeux",
+   "triangles": 72,
+   "taille": [
+    6.0,
+    4.0,
+    1.4
+   ]
+  },
+  {
+   "id": "sanisette",
+   "nom": "Toilette publique automatique",
+   "cat": "urbain",
+   "triangles": 84,
+   "taille": [
+    2.0,
+    2.1,
+    2.8
+   ]
+  },
+  {
+   "id": "bac_compost",
+   "nom": "Composteur de quartier en bois, trois bacs",
+   "cat": "urbain",
+   "triangles": 240,
+   "taille": [
+    2.93,
+    0.85,
+    1.2
+   ]
+  },
+  {
+   "id": "jardin_partage",
+   "nom": "Jardin partagé : bacs potagers surélevés et cabane à outils",
+   "cat": "cultures",
+   "triangles": 452,
+   "taille": [
+    7.1,
+    3.4,
+    2.4
+   ]
+  },
+  {
+   "id": "hotel_insectes",
+   "nom": "Hôtel à insectes : cases de bûches, paille et briques",
+   "cat": "cultures",
+   "triangles": 80,
+   "taille": [
+    1.4,
+    0.44,
+    1.9
+   ]
+  },
+  {
+   "id": "banc_connecte",
+   "nom": "Banc solaire connecté : recharge des téléphones",
+   "cat": "urbain",
+   "triangles": 48,
+   "taille": [
+    1.95,
+    0.78,
+    1.65
+   ]
+  },
+  {
+   "id": "mat_5g",
+   "nom": "Mât d'antennes de téléphonie 4G/5G",
+   "cat": "panneaux",
+   "triangles": 136,
+   "taille": [
+    2.65,
+    1.5,
+    25.8
+   ]
+  },
+  {
+   "id": "borne_drones",
+   "nom": "Borne de livraison par drones, aire de pose sur le toit",
+   "cat": "urbain",
+   "triangles": 336,
+   "taille": [
+    2.6,
+    2.6,
+    3.07
+   ]
+  },
+  {
+   "id": "torii",
+   "nom": "Torii : portique shinto en bois laqué vermillon",
+   "cat": "monuments",
+   "triangles": 148,
+   "taille": [
+    5.6,
+    0.48,
+    4.3
+   ]
+  },
+  {
+   "id": "chadouf",
+   "nom": "Chadouf : puits à balancier, perche et contrepoids",
+   "cat": "ferme",
+   "triangles": 208,
+   "taille": [
+    1.8,
+    4.06,
+    3.24
+   ]
+  },
+  {
+   "id": "drapeaux_priere",
+   "nom": "Cordes de drapeaux de prière tendues depuis un mât",
+   "cat": "monuments",
+   "triangles": 468,
+   "taille": [
+    8.23,
+    5.0,
+    5.0
+   ]
+  },
+  {
+   "id": "yatai",
+   "nom": "Yatai : échoppe de rue sur roues, auvent et lanterne",
+   "cat": "marche",
+   "triangles": 264,
+   "taille": [
+    2.38,
+    1.95,
+    2.46
+   ]
+  },
+  {
+   "id": "tandoor",
+   "nom": "Four tandoor en argile et sa table de pâte",
+   "cat": "marche",
+   "triangles": 140,
+   "taille": [
+    1.95,
+    1.1,
+    0.98
+   ]
+  },
+  {
+   "id": "totem",
+   "nom": "Mât totémique sculpté et peint",
+   "cat": "monuments",
+   "triangles": 306,
+   "taille": [
+    2.2,
+    0.9,
+    6.8
+   ]
+  },
+  {
+   "id": "mur_mani",
+   "nom": "Mur de pierres gravées de prières",
+   "cat": "monuments",
+   "triangles": 224,
+   "taille": [
+    6.3,
+    1.1,
+    1.62
+   ]
+  },
+  {
+   "id": "four_pain",
+   "nom": "Four à pain communal en briques et pierre",
+   "cat": "ferme",
+   "triangles": 76,
+   "taille": [
+    2.4,
+    2.4,
+    2.2
+   ]
   }
  ]
 }

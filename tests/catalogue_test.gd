@@ -88,6 +88,26 @@ func _run() -> void:
 	for rid in ["afrique", "asie_est", "asie_sud", "moyen_orient", "ameriques", "oceanie"]:
 		_check(int(regions_v.get(rid, 0)) >= 8, "au moins 8 véhicules en région %s (%d)" % [rid, int(regions_v.get(rid, 0))])
 	_check(VehicleCatalog.build_mesh("tonga").get_surface_count() > 0, "la tonga indienne se dessine")
+	# Lot 2 : meubles et décors de chaque époque.
+	var dec_recents := 0
+	var dec_xixe := 0
+	for e in Decors.tous():
+		var y := EpoquesObjets.annee_decor(String(e.id))
+		if y >= 1990:
+			dec_recents += 1
+		elif y > 0 and y < 1900:
+			dec_xixe += 1
+	_check(dec_recents >= 25, "décors d'après 1990 : %d" % dec_recents)
+	_check(dec_xixe >= 20, "décors datés du XIXe siècle : %d" % dec_xixe)
+	_check(not EpoquesObjets.decor_disponible("borne_recharge", 1950) and EpoquesObjets.decor_disponible("bec_gaz", 1850),
+		"pas de borne de recharge en 1950, bec de gaz en 1850")
+	for tid in ["machine_coudre", "phonographe", "radio_tsf", "minitel", "ecran_plat", "robot_domestique"]:
+		var n := 0
+		for mid in Meubles.ids():
+			if String(mid).ends_with("/" + tid):
+				n += 1
+		_check(n > 0 and EpoquesObjets.annee_meuble(tid) > 0, "meuble %s : %d modèles, %d" % [tid, n, EpoquesObjets.annee_meuble(tid)])
+	_check(Meubles.count() >= 2700, "meubles : %d modèles" % Meubles.count())
 
 	print("Objets datés selon l'année de la partie :")
 	var r := ReglagesPartie.new()

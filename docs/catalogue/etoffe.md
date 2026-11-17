@@ -44,7 +44,35 @@ quadrimoteur des années 50, jet régional).
 Planches de vérification : `tests/catalogue_planche.gd` (voir l'en-tête du script), captures dans
 `captures/catalogue-etoffe/` des fichiers du projet.
 
+## Lot 2 : meubles et décors de chaque époque (2026-11-17)
+
+**38 nouveaux types de meubles** (`scripts/interieurs/meubles.gd`, modèles dans `meubles_modeles_plus.gd`), déclinés
+dans chaque style de mobilier de leur époque : **351 modèles de plus, 2 778 en tout**.
+
+| Époque | Meubles ajoutés (année) |
+|---|---|
+| Avant 1900 | Rouet, métier à tisser, secrétaire à abattant, méridienne, poêle en faïence (toujours), glacière en bois (1850), lessiveuse (1850), machine à coudre (1851), lampe à pétrole (1860), téléphone mural (1880), phonographe (1895) |
+| 1900-1950 | Lit escamotable (1916), fauteuil club (1920), poste de TSF (1922), juke-box (1940), flipper (1947) |
+| 1950-1990 | Baby-foot, téléviseur à tube, lave-linge (1950), fauteuil coque (1958), sèche-linge (1960), lampe à lave (1963), chaîne hi-fi, vélo d'appartement (1970), micro-ondes (1975), borne d'arcade (1978), ordinateur personnel (1981), minitel (1982) |
+| Après 1990 | Canapé d'angle, tapis de course, cave à vin (1990), home cinéma (1995), îlot à induction (2000), robot aspirateur (2002), écran plat, poêle à granulés (2005), bureau assis-debout, imprimante 3D (2012), enceinte connectée (2014), fauteuil de joueur (2015) |
+| Demain | Robot domestique (2035), hologramme (2040) |
+
+**51 nouveaux décors** (touche G), modelés dans Blender (`tools/blender/decors/epoques.py`) :
+
+| Époque | Décors ajoutés (année) |
+|---|---|
+| XIXe siècle | Bec de gaz (1830), lavoir couvert (1830), vespasienne (1834), kiosque à musique (1850), poteau télégraphique (1850), kiosque à journaux (1857), orgue de Barbarie, cireur de chaussures (1880), chariot à bagages de gare (1880), avertisseur d'incendie (1890) |
+| 1900-1950 | Entrée de métro Art nouveau (1900), mur de réclame (1900), yatai japonais (1900), pompe à essence à globe (1920), borne routière (1920), cabine d'appel de police (1929), sirène d'alerte (1938) |
+| 1980-2000 | Sanisette (1981), module de skatepark (1990), caméras de surveillance (1995), abribus vitré (2000), conteneurs enterrés (2000), jardin partagé (2000) |
+| Après 2000 | Radar (2003), panneaux solaires (2005), agrès de fitness (2005), vélos en libre-service (2007), borne de recharge (2010), poubelle solaire (2010), boîte à livres (2010), hôtel à insectes (2010), lampadaire solaire (2012), totem d'information (2012), ombrière de recharge, consigne à colis, atelier vélo, composteur, banc connecté (2015), trottinettes (2018), mât 5G (2019) |
+| Demain | Borne de livraison par drones (2030) |
+| Du monde (de tout temps) | Torii, lanternes de papier, chadouf, drapeaux de prière, mur mani, totem, tandoor, four à pain, pompe à bras, chasse-roue |
+
+Dans une partie qui commence tôt, les décors posés tout seuls prennent leur équivalent d'époque (`DECORS_ANCIENS`) :
+la sanisette devient vespasienne, l'abribus vitré redevient abribus, la borne de recharge une pompe à essence, etc.
+
+La planche sait aussi montrer les décors et les meubles : `--decors bec_gaz,torii` ou `--meubles victorien/phonographe`.
+
 ## Lots suivants
 
-- Lot 2 : meubles et décors modernes (après 1990) et d'époque.
 - Lot 3 : matériaux, toits, portes et fenêtres, attractions de 1900-1950, voies et stations.

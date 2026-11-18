@@ -61,8 +61,14 @@ var temps_jours := 20620.0
 ## Horloge de la vie en jours (Population.life_clock) : les arbres vieillissent à la
 ## même vitesse que les habitants (réglage Admin « vitesse de la vie »).
 var horloge_vie := 0.0
-## Neige tombée au sol (0 à 1), d'après la météo du jeu.
+## Neige tombée au sol (0 à 1), d'après la météo du jeu, à l'altitude du lieu
+## (neige_alt_ref). Ailleurs, plus haut ou plus bas : neige.gdshaderinc.
 var neige := 0.0
+## Altitude (m) où la météo (et donc `neige`) est calculée.
+var neige_alt_ref := 0.0
+## Altitude (m) de l'isotherme 0 °C moyen du jour : au-dessus, la neige de saison
+## tient. Très haut (100 km) tant que la météo n'est pas connue.
+var neige_iso0 := 100000.0
 ## Rayon du pinceau des outils de paysage (cases).
 var brush_radius := 3
 ## Biome posé par l'outil BIOME (indice Kind).
@@ -293,6 +299,7 @@ func update_saison(unix: float, meteo: Meteo, vie_jours := NAN) -> void:
 	var dt_h := 0.0 if is_nan(_saison_unix) else (unix - _saison_unix) / 3600.0
 	_saison_unix = unix
 	if meteo != null:
+		_maj_neige_altitude(unix)
 		var t := meteo.temperature
 		if absf(dt_h) > 48.0 or dt_h < 0.0:
 			# Saut dans le temps : on repart d'une neige plausible.
@@ -313,10 +320,13 @@ func update_saison(unix: float, meteo: Meteo, vie_jours := NAN) -> void:
 			_dirty[k] = true
 		_saison_annee = annee
 	var jour := fposmod(temps_jours, 365.2425)
-	if absf(jour - _saison_jour) < 0.05 and absf(neige - _saison_neige) < 0.005:
+	if absf(jour - _saison_jour) < 0.05 and absf(neige - _saison_neige) < 0.005 \
+			and absf(neige_iso0 - _saison_iso0) < 5.0 and neige_alt_ref == _saison_alt:
 		return
 	_saison_jour = jour
 	_saison_neige = neige
+	_saison_iso0 = neige_iso0
+	_saison_alt = neige_alt_ref
 	var cl := Plantes.climat(origin_lat, origin_lon)
 	var s := Plantes.saison(jour, origin_lat, cl)
 	var cu := Sols.etat_cultures(jour, origin_lat)
@@ -324,7 +334,42 @@ func update_saison(unix: float, meteo: Meteo, vie_jours := NAN) -> void:
 	_material.set_shader_parameter("couche_culture", cu.couche)
 	_material.set_shader_parameter("maturite_culture", cu.maturite)
 	_material.set_shader_parameter("herbe_seche", s.herbe_seche)
-	_material.set_shader_parameter("neige", neige)
+	var np := neige_params()
+	for cle in np:
+		_material.set_shader_parameter(cle, np[cle])
+	Plantes.applique_neige(np)
+	neige_version += 1
+
+
+## Version des réglages de neige (HorizonTerrain les recopie quand elle change).
+var neige_version := 0
+var _saison_iso0 := 0.0
+var _saison_alt := 0.0
+
+
+## Réglages communs du manteau neigeux (uniformes de neige.gdshaderinc).
+func neige_params() -> Dictionary:
+	return {"neige": neige, "neige_alt_ref": neige_alt_ref, "neige_iso0": neige_iso0,
+		"neige_equateur": Vector2(0.0, 1.0 if origin_lat >= 0.0 else -1.0)}
+
+
+## Altitude du lieu et isotherme 0 °C moyen du jour (température de 9 h, quand
+## l'écart du matin et du soir s'annule ; 6,5 °C de moins par 1 000 m).
+func _maj_neige_altitude(unix: float) -> void:
+	var alt := raw_height(0.5, 0.5)
+	if not is_nan(alt):
+		neige_alt_ref = maxf(alt, 0.0)
+	var t_moy := Meteo.air_temperature(origin_lat, unix, 9.0, neige_alt_ref)
+	neige_iso0 = neige_alt_ref + t_moy / 0.0065
+
+
+## Couverture de neige (0 à 1) à l'altitude alt, comme neige_locale() du shader
+## sur un sol plat (tests, outils).
+func neige_a(alt: float) -> float:
+	var dh := alt - neige_alt_ref
+	var v := neige * (1.0 + maxf(dh, 0.0) / 400.0) - maxf(-dh, 0.0) / 1200.0
+	var s := smoothstep(neige_iso0 - 150.0, neige_iso0 + 450.0, alt) * clampf(dh / 300.0, 0.0, 1.0)
+	return clampf(maxf(v, s), 0.0, 1.0)
 
 
 ## Hauteur actuelle de la surface de la mer (marée comprise).

@@ -28,7 +28,7 @@ var _mat_sol: ShaderMaterial
 ## réglage par instance (« culture ») qui remplit vite le tampon des variables
 ## d'instance ; la taille et la couleur passent par les instances.
 var _mat_plantes: ShaderMaterial
-const PARAMS_PLANTES := ["palette", "roles", "vent", "feuilles", "automne", "printemps", "herbe_seche", "fleurs", "neige"]
+const PARAMS_PLANTES := ["palette", "roles", "vent", "feuilles", "automne", "printemps", "herbe_seche", "fleurs", "neige", "neige_alt_ref", "neige_iso0", "neige_equateur"]
 var _rng := RandomNumberGenerator.new()
 
 

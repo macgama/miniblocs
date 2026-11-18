@@ -21,9 +21,9 @@ uniform float detail_loin = 450.0;
 // Champs : couche visible et maturité (0 vert, 1 mûr) de chaque culture.
 uniform int couche_culture[9];
 uniform float maturite_culture[9];
-// Herbe jaunie (hiver, été sec) et neige au sol (0 à 1).
+// Herbe jaunie (hiver, été sec). La neige (selon l'altitude) : neige.gdshaderinc.
 uniform float herbe_seche = 0.0;
-uniform float neige = 0.0;
+#include "res://scripts/terre/neige.gdshaderinc"
 
 varying vec3 world_pos;
 varying vec3 world_normal;
@@ -33,17 +33,6 @@ void vertex() {
 	world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 	world_normal = NORMAL;
 	couche = UV;
-}
-
-float bruit(vec2 p) {
-	vec2 i = floor(p);
-	vec2 f = fract(p);
-	f = f * f * (3.0 - 2.0 * f);
-	float a = fract(sin(dot(i, vec2(127.1, 311.7))) * 43758.5453);
-	float b = fract(sin(dot(i + vec2(1.0, 0.0), vec2(127.1, 311.7))) * 43758.5453);
-	float c = fract(sin(dot(i + vec2(0.0, 1.0), vec2(127.1, 311.7))) * 43758.5453);
-	float d = fract(sin(dot(i + vec2(1.0, 1.0), vec2(127.1, 311.7))) * 43758.5453);
-	return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
 }
 
 vec3 srgb_vers_lineaire(vec3 c) {
@@ -93,11 +82,18 @@ void fragment() {
 			}
 		}
 	}
-	if (neige > 0.0 && world_normal.y > 0.5) {
-		// Neige : d'abord par taches, puis partout.
-		float b = bruit(world_pos.xz * 0.35) * 0.6 + bruit(world_pos.xz * 1.7) * 0.4;
-		float couvre = smoothstep(b - 0.15, b + 0.05, neige * 1.25 - 0.1);
-		col = mix(col, vec3(0.86, 0.89, 0.93), couvre);
+	if (neige > 0.0 || neige_iso0 < 9000.0) {
+		// Neige selon l'altitude, d'abord par taches, puis partout. Les petits
+		// murs entre deux cases en prennent aussi : sinon, vus de loin, ils
+		// dessinent des courbes de niveau sombres (moiré) sur le manteau blanc.
+		float v = neige_locale(world_pos.y, vec3(0.0, 1.0, 0.0), 0.0);
+		if (v > 0.0) {
+			float couvre = neige_couvre(world_pos.xz, v);
+			if (world_normal.y <= 0.5) {
+				couvre *= 0.9;
+			}
+			col = mix(col, NEIGE_COULEUR, couvre);
+		}
 	}
 	if (world_normal.y > 0.5) {
 		vec2 d = abs(fract(world_pos.xz + 0.5) - 0.5) / max(fwidth(world_pos.xz), vec2(1e-4));
@@ -107,4 +103,11 @@ void fragment() {
 	}
 	ALBEDO = col;
 	ROUGHNESS = 0.95;
+	if (world_normal.y <= 0.5) {
+		// Au loin, les murs de 1 m entre les cases sont plus fins qu'un pixel :
+		// éclairés de côté, ils feraient des lignes en moiré. On les éclaire
+		// peu à peu comme le dessus des cases.
+		float loin = smoothstep(120.0, 600.0, dist);
+		NORMAL = normalize(mix(NORMAL, (VIEW_MATRIX * vec4(0.0, 1.0, 0.0, 0.0)).xyz, loin));
+	}
 }

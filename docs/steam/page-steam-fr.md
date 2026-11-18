@@ -21,10 +21,10 @@ sont en balisage Steam (BBCode) : on les copie tels quels. La version anglaise e
 
 ## Description courte
 
-Affichée sous la capsule, 300 caractères au plus (celle-ci en fait 275).
+Affichée sous la capsule, 300 caractères au plus (celle-ci en fait 297).
 
 ```
-Choisis n'importe quel lieu sur Terre, pose ta Maison de commune et bâtis une ville vivante sur le vrai relief, au mètre près. Routes, réseaux, habitants qui naissent, travaillent et votent, parcs, zoo et club de foot : tu es le maire… tant que les électeurs le veulent bien.
+Choisis n'importe quel lieu sur Terre et n'importe quelle année depuis 1800, pose ta Maison de commune et bâtis une ville vivante sur le vrai relief, au mètre près. Habitants qui naissent, travaillent et votent, réseaux, zoo, club de sport : tu es le maire… tant que les électeurs le veulent bien.
 ```
 
 ## Description longue (« À propos de ce jeu »)
@@ -64,7 +64,8 @@ Ta ville grandit ? Fonde des villages voisins, chacun avec sa propre caisse, et 
 [*][b]Zoo[/b] avec enclos et 34 espèces.
 [*][b]Musées[/b] : 208 objets, 24 thèmes d'exposition.
 [*][b]Spectacles[/b] : cinémas, théâtres, salles de concert, studios de cinéma.
-[*][b]Club de football[/b] : effectif, transferts, championnat de la Régionale à la Première Ligue, matchs joués dans ton stade.
+[*][b]Club multisports[/b] : football, basket, handball, hockey, rugby et tennis. Effectif, centre de formation, transferts, supporters, championnat de la Régionale à la Première Ligue, matchs joués dans ton stade.
+[*][b]Tourisme[/b] : hôtels, plages, nature et monuments attirent les visiteurs… et agacent les habitants quand ils sont trop nombreux.
 [*]Marchés, fêtes de village, terrains de sport, plages et 160 décors à poser au pinceau.
 [/list]
 
@@ -74,8 +75,26 @@ Fermes et moissons, carrières en gradins, usines, camions de livraison : les re
 [h2]Un bac à sable avec des règles (que tu choisis)[/h2]
 Joue en mode Normal ou ouvre le panneau Admin : argent de départ ou illimité, coût des constructions, vitesse du temps, épuisement des ressources, bâtiments débloqués. Pas de game over brutal : une ville endettée ralentit, elle ne s'effondre pas.
 
+[h2]De 1800 à aujourd'hui[/h2]
+Commence en 1800 avec des chemins de terre, des diligences et des lampes à huile, ou directement de nos jours. Les matériaux, les bâtiments, les véhicules, les machines agricoles et les services publics suivent l'époque : le premier tramway arrive quand il doit arriver.
+
+[h2]Une ville qui a des problèmes de ville[/h2]
+[list]
+[*][b]Saisons et catastrophes[/b] : crues, tempêtes, incendies, hivers rudes. Prévois bassins de rétention et casernes de pompiers.
+[*][b]Santé publique[/b] : médecins, hôpitaux, vaccination et épidémies qui se propagent quartier par quartier.
+[*][b]Climat et pollution[/b] : CO₂, réchauffement, montée de la mer, sols pollués et plan climat de la commune.
+[*][b]Immobilier vivant[/b] : loyers, ventes, logements vides et quartiers qui montent ou se dégradent.
+[*][b]Éducation par pays[/b] : de l'école primaire à l'université, avec les vraies filières (apprentissage, maturité, hautes écoles).
+[*][b]Commerce entre villes et pays[/b] : marché, accords, crises du pétrole.
+[*][b]Sous terre[/b] : conduites, tunnels, métro, caves et bunkers dans une vue souterraine.
+[*][b]Patrimoine[/b] : classe tes vieux bâtiments et lance de grands monuments qui se construisent sur plusieurs années.
+[/list]
+
+[h2]Raconte ta ville[/h2]
+Le journal local commente tes décisions (pas toujours gentiment), le mode photo et le time-lapse montrent ta ville grandir, les scénarios proposent des défis tout prêts, et tu peux visiter la ville d'un ami, lui laisser une carte postale ou partager tes bâtiments sur le Workshop. Les streamers peuvent même laisser le chat Twitch voter pour les décisions du maire.
+
 [h2]Bientôt[/h2]
-MiniBlocs est développé par une seule personne. Sont prévus : une carte entre amis toujours en ligne, puis une carte mondiale partagée où chaque joueur est maire de sa ville, d'autres sports, des catastrophes et du tourisme.
+MiniBlocs est développé par une seule personne. La carte entre amis, toujours en ligne même quand son créateur dort, est en test et ouvrira pendant l'accès anticipé. Viendra ensuite une carte mondiale partagée où chaque joueur est maire de sa ville.
 ```
 
 ## Fonctionnalités en bref (pour les réseaux, la presse, le kit média)
@@ -87,7 +106,11 @@ MiniBlocs est développé par une seule personne. Sont prévus : une carte entre
 - Réseaux complets : électricité, eau, égouts, télécoms, déchets.
 - Élections, pays, plusieurs villes avec leur propre caisse, pilote automatique.
 - Vue au sol à la 3e et à la 1re personne, conduite des véhicules.
-- Parcs de loisirs, zoo, musées, spectacles, club de football.
+- Parcs de loisirs, zoo, musées, spectacles, club multisports (foot, basket, hand, hockey, rugby, tennis).
+- Départ en 1800 ou plus tard : bâtiments, véhicules et machines de l'époque.
+- Saisons et catastrophes, santé publique et épidémies, climat et pollution, immobilier, tourisme, patrimoine et grands monuments.
+- Construction sous terre, commerce entre villes et pays, éducation par pays.
+- Journal de la ville, mode photo et time-lapse, scénarios, visites chez les amis, mode streamer Twitch.
 - Musique originale : *Valse du permis de construire*, *Nids-de-poule blues*, *Conseil municipal (en retard)*…
 - Démo guidée de 30 minutes.
 - 62 succès, manette et Steam Deck, partage des créations (Workshop).
@@ -119,7 +142,7 @@ Steam garde les 20 premiers ; les tags sont choisis en anglais dans Steamworks.
 13. Low Poly
 14. Singleplayer
 15. Relaxing
-16. Soccer
+16. Sports
 17. Agriculture
 18. Third Person
 19. Indie
@@ -166,12 +189,13 @@ doit fonctionner la carte partagée.
 Environ un an, selon les retours.
 
 **Qu'est-ce qui changera dans la version complète ?**
-La carte entre amis puis la carte mondiale partagée, d'autres sports pour le club, les
-catastrophes et les saisons plus marquées, le tourisme, d'autres langues.
+La carte entre amis puis la carte mondiale partagée, d'autres régions du monde dans le catalogue de
+bâtiments, le parc de loisirs et le club enrichis selon les retours, d'autres langues.
 
 **Quel est l'état actuel ?**
-Une partie complète en solo : fondation, croissance jusqu'à la ville, réseaux, habitants,
-élections, plusieurs villes, loisirs et club de football. La démo guidée dure 30 minutes.
+Une partie complète en solo, de 1800 à nos jours : fondation, croissance jusqu'à la ville,
+réseaux, habitants, élections, plusieurs villes, loisirs, club multisports, saisons et
+catastrophes, santé, climat, tourisme. La démo guidée dure 30 minutes.
 
 **Le prix changera-t-il ?**
 Il augmentera légèrement à la sortie de la version complète.

@@ -4,16 +4,22 @@ Tout est fabriqué par `tools/marque/logos.py` (lettres vectorisées : les SVG s
 Illustrator, Inkscape ou un navigateur sans installer de police). PNG transparents avec
 `python3 tools/marque/logos.py --png`.
 
-## Les 4 pistes de logo du studio
+## Les 8 pistes de logo du studio
 
 | Piste | Fichiers | Idée |
 |---|---|---|
-| 1. Cube MG (proposée) | `manigames-piste1-*` | Un bloc de MiniBlocs en 3D isométrique, M sur la face rouge, G sur la face bleue. « Mani » en encre, « Games » en rouge. Marche aussi en icône seule (favicon, photo de profil). |
+| 1. Cube MG (**choisie par Gaël le 18 novembre 2026**) | `manigames-piste1-*` | Un bloc de MiniBlocs en 3D isométrique, M sur la face rouge, G sur la face bleue. « Mani » en encre, « Games » en rouge. Marche aussi en icône seule (favicon, photo de profil). |
 | 2. Ville en M | `manigames-piste2-*` | Badge sombre : cinq immeubles dont les toits dessinent un M, sur une bande de pré. MANI en gras, GAMES en fin. |
 | 3. Point-cube | `manigames-piste3-*` | « manigames » en minuscules rondes, le point du i remplacé par un petit cube. |
 | 4. Tampon | `manigames-piste4-*` | Médaillon rond, trois blocs empilés, « MANIGAMES · INDIE GAMES · MADE WITH CARE » autour. |
+| 5. Planète | `manigames-piste5-*` | Petite Terre low-poly avec un anneau jaune et un cube en orbite : un studio aux jeux variés, ouvert sur le monde. |
+| 6. M play | `manigames-piste6-*` | Tuile rouge, grand M crème et bouton « play » jaune ; « mani » gras, « games » fin. |
+| 7. Pixel M | `manigames-piste7-*` | M en gros pixels de couleur sur tuile sombre, MANIGAMES en capitales. |
+| 8. Cartouche | `manigames-piste8-*` | Cartouche de jeu bleue, « ManiGames » sur l'étiquette. |
 
-Le site et les capsules utilisent la piste 1. Changer de piste = refaire les fichiers du
+Planche pour comparer : `python3 tools/marque/planche.py planche.png`.
+
+Logo officiel du studio : piste 1. Le site, les capsules, la bande-annonce et les réseaux l'utilisent ; les autres pistes restent pour mémoire. Changer de piste = refaire les fichiers du
 site (`tools/site/construire.py`, fonction `logo_inline` et favicons) avec l'autre logo.
 
 ## Couleurs et polices

@@ -24,10 +24,10 @@ Language); German, Italian and Spanish pages are in page-steam-de.md, -it.md and
 
 ## Short description
 
-Shown under the capsule, 300 characters max (this one is 269).
+Shown under the capsule, 300 characters max (this one is 283).
 
 ```
-Pick any spot on Earth, lay down your town hall and build a living town on real terrain, one square metre at a time. Roads, utilities, residents who are born, work and vote, theme parks, a zoo and a football club: you are the mayor... for as long as the voters let you.
+Pick any spot on Earth and any year from 1800, lay down your town hall and build a living town on real terrain, one square metre at a time. Residents who are born, work and vote, utilities, theme parks, a zoo and a sports club: you are the mayor... for as long as the voters let you.
 ```
 
 ## Long description ("About This Game")
@@ -67,7 +67,8 @@ Town growing? Found neighbouring villages, each with its own treasury, and hand 
 [*][b]Zoo[/b] with enclosures and 34 species.
 [*][b]Museums[/b]: 208 exhibits, 24 exhibition themes.
 [*][b]Entertainment[/b]: cinemas, theatres, concert halls, film studios.
-[*][b]Football club[/b]: squad, transfers, a league from the regional division all the way to the top flight, matches played in your own stadium.
+[*][b]Multi-sports club[/b]: football, basketball, handball, ice hockey, rugby and tennis. Squad, youth academy, transfers, fans, a league from the regional division all the way to the top flight, matches played in your own stadium.
+[*][b]Tourism[/b]: hotels, beaches, nature and monuments draw visitors... and annoy the locals when there are too many of them.
 [*]Markets, village fairs, sports grounds, beaches and 160 decorations to paint in with a brush.
 [/list]
 
@@ -77,8 +78,26 @@ Farms and harvests, terraced quarries, factories, delivery lorries: resources ar
 [h2]A sandbox with rules (that you choose)[/h2]
 Play in Normal mode or open the Admin panel: starting or unlimited money, building costs, time speed, resource depletion, unlocked buildings. No sudden game over: a town in debt slows down, it doesn't collapse.
 
+[h2]From 1800 to today[/h2]
+Start in 1800 with dirt tracks, stagecoaches and oil lamps, or jump straight to the present day. Materials, buildings, vehicles, farm machinery and public services follow the era: the first tram arrives when it should.
+
+[h2]A town with real town problems[/h2]
+[list]
+[*][b]Seasons and disasters[/b]: floods, storms, fires, harsh winters. Plan retention basins and fire stations.
+[*][b]Public health[/b]: doctors, hospitals, vaccination and epidemics spreading street by street.
+[*][b]Climate and pollution[/b]: CO₂, warming, rising seas, polluted soil and your town's climate plan.
+[*][b]A living property market[/b]: rents, sales, empty homes, neighbourhoods on the rise or in decline.
+[*][b]Education by country[/b]: from primary school to university, with real pathways (apprenticeships, baccalaureate, universities of applied sciences).
+[*][b]Trade between towns and countries[/b]: markets, agreements, oil crises.
+[*][b]Underground[/b]: pipes, tunnels, metro lines, cellars and bunkers in an underground view.
+[*][b]Heritage[/b]: list your old buildings and launch great monuments that take years to build.
+[/list]
+
+[h2]Tell your town's story[/h2]
+The local paper comments on your decisions (not always kindly), photo mode and time-lapse show your town growing, scenarios offer ready-made challenges, and you can visit a friend's town, leave them a postcard or share your buildings on the Workshop. Streamers can even let their Twitch chat vote on the mayor's decisions.
+
 [h2]Coming soon[/h2]
-MiniBlocs is made by a single developer. Planned next: an always-online map to share with friends, then a shared world map where every player is the mayor of their own town, more sports, disasters and tourism.
+MiniBlocs is made by a single developer. The friends' map, always online even while its creator sleeps, is in testing and will open during Early Access. After that comes a shared world map where every player is the mayor of their own town.
 ```
 
 ## Key features (social media, press kit)
@@ -90,7 +109,11 @@ MiniBlocs is made by a single developer. Planned next: an always-online map to s
 - Full utilities: power, water, sewers, telecoms, waste.
 - Elections, countries, several towns with their own treasury, autopilot.
 - Street-level view in third and first person, drive the vehicles.
-- Theme parks, zoo, museums, entertainment venues, football club.
+- Theme parks, zoo, museums, entertainment venues, multi-sports club (football, basketball, handball, hockey, rugby, tennis).
+- Start in 1800 or later: period buildings, vehicles and machinery.
+- Seasons and disasters, public health and epidemics, climate and pollution, property market, tourism, heritage and great monuments.
+- Underground building, trade between towns and countries, education by country.
+- Town newspaper, photo mode and time-lapse, scenarios, visits to friends' towns, Twitch streamer mode.
 - Original music: *Building Permit Waltz*, *Pothole Blues*, *Council Meeting (Running Late)*...
 - 30-minute guided demo.
 - 62 achievements, controller and Steam Deck support, share your creations (Workshop).
@@ -109,7 +132,7 @@ MiniBlocs is made by a single developer. Planned next: an always-online map to s
 
 Same list as the French page (tags are set once, in English): City Builder, Simulation,
 Building, Sandbox, Management, Economy, Strategy, Open World, Realistic, Life Sim,
-Transportation, Trains, Low Poly, Singleplayer, Relaxing, Soccer, Agriculture,
+Transportation, Trains, Low Poly, Singleplayer, Relaxing, Sports, Agriculture,
 Third Person, Indie, 3D.
 
 ## System requirements (Windows)
@@ -150,12 +173,13 @@ how the shared map should work.
 About a year, depending on feedback.
 
 **How is the full version planned to differ?**
-The friends' map, then the shared world map, more sports for the club, disasters and
-stronger seasons, tourism, more languages.
+The friends' map, then the shared world map, more regions of the world in the building
+catalogue, a richer theme park and sports club based on feedback, more languages.
 
 **What is the current state of the Early Access version?**
-A complete single-player game: founding, growth into a city, utilities, residents,
-elections, several towns, leisure and a football club. The guided demo lasts 30 minutes.
+A complete single-player game, from 1800 to today: founding, growth into a city, utilities,
+residents, elections, several towns, leisure, a multi-sports club, seasons and disasters,
+health, climate, tourism. The guided demo lasts 30 minutes.
 
 **Will the game be priced differently during and after Early Access?**
 The price will rise slightly when the full version comes out.

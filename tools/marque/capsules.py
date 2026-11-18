@@ -28,6 +28,8 @@ CAPSULES = [
     ("capsule-bibliotheque-600x900", 600, 900, "centre", "45% 50%", 1.0, (88, "50%", "19%"), "haut", False),
     ("heros-bibliotheque-3840x1240", 3840, 1240, "horizon", "50% 62%", 1.0, None, "aucun", False),
     ("fond-page-1438x810", 1438, 810, "horizon", "50% 55%", 1.0, None, "fond", False),
+    ("annonce-couverture-800x450", 800, 450, "soir", "50% 50%", 1.0, (64, "50%", "48%"), "bas", False),
+    ("annonce-entete-1920x622", 1920, 622, "horizon", "50% 60%", 1.0, (38, "50%", "50%"), "bas", False),
     ("og-manigames", 1200, 630, "village", "50% 45%", 1.0, None, "gauche", True),
 ]
 FONDS = {

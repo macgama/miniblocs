@@ -37,7 +37,7 @@ Règles des modèles : 1 unité = 1 mètre, origine au sol au centre, façade pr
 
 ## Tester dans Godot
 
-1. Ouvre le projet dans Godot 4.3 ou plus récent (les `.glb` s'importent tout seuls, ça prend une minute la
+1. Ouvre le projet dans Godot 4.7 ou plus récent (les `.glb` s'importent tout seuls, ça prend une minute la
    première fois).
 2. Lance le jeu (**F5**), choisis un lieu, puis **B** (Construire) : les nouveaux bâtiments sont dans
    chaque catégorie. Le filtre de région (Europe, Asie de l'Est, Amériques…) et d'époque aide à les trouver.

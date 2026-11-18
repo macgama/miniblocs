@@ -6,7 +6,7 @@ Une ferme complète, entièrement générée en code (aucun modèle 3D, aucune t
 
 ## Ouvrir la démo
 
-1. Ouvre le projet dans **Godot 4.3 ou plus** (rendu **Forward+**, celui du projet).
+1. Ouvre le projet dans **Godot 4.7 ou plus** (rendu **Forward+**, celui du projet).
 2. Dans le panneau **Système de fichiers**, double-clique sur `scenes/demo_ferme.tscn`.
 3. Appuie sur **F6** (lancer la scène courante).
 

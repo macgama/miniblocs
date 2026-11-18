@@ -90,7 +90,7 @@ et n'a qu'à recommencer.
 
 ## Lancer un serveur à la main
 
-Dans le dossier du jeu (celui de `project.godot`), avec Godot 4.3 ou plus :
+Dans le dossier du jeu (celui de `project.godot`), avec Godot 4.7 ou plus :
 
 ```
 godot --headless --path . -- --serveur --partie <id de la partie> [--port 24680] [--code ABCD-EFGH]

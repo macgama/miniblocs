@@ -44,27 +44,31 @@ func _ready() -> void:
 	var x := UiStyle.icon_button("fermer", "Fermer", "N", 18, 32)
 	x.pressed.connect(func() -> void: set_open(false))
 	head.add_child(x)
+	# Le corps défile plutôt que de descendre sous la barre des catégories (en bas).
+	var corps := VBoxContainer.new()
+	corps.add_theme_constant_override("separation", 6)
+	outer.add_child(UiStyle.scroll_fit(corps, _panel, UiStyle.SIDE_BAS))
 	var hint := Label.new()
 	hint.text = "Une carte de couleur sur le terrain autour de la caméra. Survole une case pour lire ses valeurs."
 	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	hint.custom_minimum_size = Vector2(W - 24, 0)
 	hint.add_theme_font_size_override("font_size", 12)
 	hint.add_theme_color_override("font_color", Color(1, 1, 1, 0.65))
-	outer.add_child(hint)
+	corps.add_child(hint)
 	_list = VBoxContainer.new()
 	_list.add_theme_constant_override("separation", 3)
-	outer.add_child(_list)
+	corps.add_child(_list)
 	_legend = Label.new()
 	_legend.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_legend.custom_minimum_size = Vector2(W - 24, 0)
 	_legend.add_theme_font_size_override("font_size", 12)
-	outer.add_child(_legend)
-	outer.add_child(HSeparator.new())
+	corps.add_child(_legend)
+	corps.add_child(HSeparator.new())
 	_resume = Label.new()
 	_resume.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_resume.custom_minimum_size = Vector2(W - 24, 0)
 	_resume.add_theme_font_size_override("font_size", 12)
-	outer.add_child(_resume)
+	corps.add_child(_resume)
 
 
 func is_open() -> bool:

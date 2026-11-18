@@ -6626,6 +6626,7 @@
 "Relevés": "Readings",
 "Relief : %s (de %d à %d m sur ~1 km)": "Terrain: %s (from %d to %d m over ~1 km)",
 "Relief : Mapzen   ·   Biomes : © ESA   ·   Rivières : © OSM": "Terrain: Mapzen   ·   Biomes: © ESA   ·   Rivers: © OSM",
+"Relief : Mapzen\nBiomes : © ESA\nRivières : © OSM": "Terrain: Mapzen\nBiomes: © ESA\nRivers: © OSM",
 "Relief : Mapzen Terrain Tiles (AWS Open Data) — SRTM, GMTED, ETOPO1, EU-DEM": "Terrain: Mapzen Terrain Tiles (AWS Open Data) — SRTM, GMTED, ETOPO1, EU-DEM",
 "Relief : Mapzen Terrain Tiles (AWS Open Data) — SRTM, GMTED, ETOPO1, EU-DEM · Biomes : © ESA WorldCover 2021 (CC BY 4.0) · Villes : GeoNames (CC BY 4.0) · Drapeaux : flag-icons (MIT)": "Terrain: Mapzen Terrain Tiles (AWS Open Data) — SRTM, GMTED, ETOPO1, EU-DEM · Biomes: © ESA WorldCover 2021 (CC BY 4.0) · Towns: GeoNames (CC BY 4.0) · Flags: flag-icons (MIT)",
 "Relief : Mapzen Terrain Tiles (AWS Open Data) — SRTM, GMTED, ETOPO1, EU-DEM · Biomes : © ESA WorldCover 2021, données Copernicus Sentinel (CC BY 4.0) · Rivières : © contributeurs OpenStreetMap (ODbL), sinon calculées sur le relief": "Terrain: Mapzen Terrain Tiles (AWS Open Data) — SRTM, GMTED, ETOPO1, EU-DEM · Biomes: © ESA WorldCover 2021, Copernicus Sentinel data (CC BY 4.0) · Rivers: © OpenStreetMap contributors (ODbL), otherwise computed from the terrain",

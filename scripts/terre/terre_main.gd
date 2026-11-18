@@ -2777,6 +2777,7 @@ func _setup_mairie() -> void:
 	fil_alertes.set_shown(not GameStart.atelier)
 	if reseaux != null and reseaux.raccordements != null:
 		reseaux.raccordements.nombre_change.connect(func(_n: int) -> void: fil_alertes.refresh())
+	_setup_pile_gauche()
 	recherche = RechercheUniverselle.new()
 	recherche.name = "RechercheUniverselle"
 	add_child(recherche)
@@ -2808,6 +2809,23 @@ func aller_au_panneau(id: String) -> void:
 		ouvrir_panneau(id)
 	else:
 		hud._on_category(id)
+
+
+## Cartes flottantes de gauche empilées sans se recouvrir : tutoriel/objectifs puis
+## habitant suivi en haut, carte de la case puis « À faire » en bas.
+var pile_gauche: PileGauche
+
+
+func _setup_pile_gauche() -> void:
+	pile_gauche = PileGauche.new()
+	pile_gauche.name = "PileGauche"
+	add_child(pile_gauche)
+	pile_gauche.haut = [
+		func() -> Control: return tuto_carte.find_child("CarteTutoriel", true, false) as Control if is_instance_valid(tuto_carte) else null,
+		func() -> Control: return habitants_panel._card if is_instance_valid(habitants_panel) else null]
+	pile_gauche.bas = [
+		func() -> Control: return hud._cell_card,
+		func() -> Control: return fil_alertes._panel if is_instance_valid(fil_alertes) else null]
 
 
 ## Bâtiments d'une ville (lieu de la Mairie) ; Callable vide pour tout le pays.

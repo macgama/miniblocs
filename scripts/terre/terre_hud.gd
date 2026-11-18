@@ -259,6 +259,8 @@ var _open_group := ""
 ## Tableau de bord de la Mairie ouvert (tuile allumée).
 var _mairie_open := false
 var _dock: PanelContainer
+## Mention des sources (en bas à droite) : passe sur trois lignes si la barre du bas l'atteint.
+var _credit: Label
 var _cell_card: PanelContainer
 ## Barre en icônes seules (écran étroit).
 var compact := false
@@ -303,6 +305,7 @@ func _ready() -> void:
 	_build_mode_badge()
 
 	var credit := _build_credit()
+	_credit = credit
 	credit.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
 	credit.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	credit.grow_vertical = Control.GROW_DIRECTION_BEGIN
@@ -344,7 +347,7 @@ func _build_top_bar() -> void:
 	UiStyle.style_panel(top, 0.86, 12, 8)
 	add_child(top)
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 8)
+	row.add_theme_constant_override("separation", 6)
 	top.add_child(row)
 
 	var pin := TextureRect.new()
@@ -354,7 +357,9 @@ func _build_top_bar() -> void:
 	row.add_child(pin)
 	_place_label = Label.new()
 	_place_label.add_theme_font_size_override("font_size", 16)
-	_place_label.custom_minimum_size = Vector2(150, 0)
+	_place_label.custom_minimum_size = Vector2(110, 0)
+	_place_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_place_label.size_flags_stretch_ratio = 0.35
 	_place_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_place_label.clip_text = true
 	_place_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
@@ -397,8 +402,11 @@ func _build_top_bar() -> void:
 			son.pressed.connect(func() -> void: Son.panneau())
 			row.add_child(son)
 
-	# Centre : l'horloge (ClockHud, calque au-dessus) s'y pose.
+	# Centre : l'horloge (ClockHud, calque au-dessus) s'y pose. Elle donne sa largeur
+	# à cette place (groupe « zone_horloge ») : rien ne passe dessous.
 	var middle := Control.new()
+	middle.name = "PlaceHorloge"
+	middle.add_to_group("zone_horloge")
 	middle.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	middle.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(middle)
@@ -737,6 +745,24 @@ func _fit_dock(width := -1.0) -> void:
 	col.offset_left = shift
 	col.offset_right = shift
 	_place_group_popup()
+
+
+const CREDIT_LIGNE := "Relief : Mapzen   ·   Biomes : © ESA   ·   Rivières : © OSM"
+const CREDIT_COLONNE := "Relief : Mapzen\nBiomes : © ESA\nRivières : © OSM"
+
+
+## La mention des sources ne passe jamais sous la barre du bas : sur une ligne s'il y a
+## la place à droite de la barre, sinon sur trois lignes, plus étroite.
+func _placer_credit() -> void:
+	if _credit == null or _dock == null or not _dock.is_visible_in_tree():
+		return
+	var droite := _dock.get_global_rect().end.x + 12.0
+	var bord := _credit.get_viewport_rect().size.x + _credit.offset_right
+	var ligne := _credit.get_theme_font("font").get_string_size(tr(CREDIT_LIGNE), HORIZONTAL_ALIGNMENT_LEFT, -1,
+		_credit.get_theme_font_size("font_size")).x
+	var texte := CREDIT_LIGNE if bord - ligne >= droite else CREDIT_COLONNE
+	if _credit.text != texte:
+		_credit.text = texte
 
 
 ## Icônes seules (le nom reste dans l'infobulle) : la barre est presque deux fois plus courte.
@@ -1087,12 +1113,36 @@ func set_view(v: int) -> void:
 		_view_button.text = VIEW_NAMES[clampi(v, 0, 2)]
 
 
+## Largeur maximale de la pastille de la caisse dans la barre du haut.
+const CAISSE_MAX := 170.0
+
+
 ## Chiffres de la ville dans la barre du haut.
 func set_stats(money: String, people: int, satisfaction: int, unemployment: String, caisse_tip := "") -> void:
 	if _chips.is_empty():
 		return
-	(_chips.caisse as Button).text = money
-	(_chips.caisse as Button).tooltip_text = caisse_tip if caisse_tip != "" else "Caisse de la ville (clic : budget)"
+	var caisse := _chips.caisse as Button
+	var tip := caisse_tip if caisse_tip != "" else "Caisse de la ville (clic : budget)"
+	if caisse.text == money and caisse.has_meta("tip") and caisse.get_meta("tip") == tip:
+		_set_autres_stats(people, satisfaction, unemployment)
+		return
+	caisse.set_meta("tip", tip)
+	caisse.text = money
+	caisse.tooltip_text = tip
+	# Un long nom de ville (« Vulliens (Vaud) : Illimitée ») ne doit pas pousser
+	# Annuler/Rétablir sous l'horloge : au-delà de CAISSE_MAX, le texte finit par « … ».
+	caisse.clip_text = false
+	caisse.custom_minimum_size.x = 0
+	if caisse.get_combined_minimum_size().x > CAISSE_MAX:
+		caisse.clip_text = true
+		caisse.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		caisse.custom_minimum_size.x = CAISSE_MAX
+		if not caisse.tooltip_text.begins_with(money):
+			caisse.tooltip_text = money + "\n" + caisse.tooltip_text
+	_set_autres_stats(people, satisfaction, unemployment)
+
+
+func _set_autres_stats(people: int, satisfaction: int, unemployment: String) -> void:
 	(_chips.habitants as Button).text = str(people)
 	(_chips.satisfaction as Button).text = "—" if people == 0 else str(satisfaction)
 	(_chips.chomage as Button).text = unemployment
@@ -1100,7 +1150,7 @@ func set_stats(money: String, people: int, satisfaction: int, unemployment: Stri
 
 func _build_credit() -> Label:
 	var credit := Label.new()
-	credit.text = "Relief : Mapzen   ·   Biomes : © ESA   ·   Rivières : © OSM"
+	credit.text = CREDIT_LIGNE
 	credit.tooltip_text = "Relief : Mapzen Terrain Tiles (AWS Open Data) — SRTM, GMTED, ETOPO1, EU-DEM\nBiomes : © ESA WorldCover 2021, données Copernicus Sentinel (CC BY 4.0)\nRivières : © contributeurs OpenStreetMap (ODbL) si disponible, sinon calculées sur le relief"
 	credit.mouse_filter = Control.MOUSE_FILTER_PASS
 	credit.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
@@ -1321,6 +1371,7 @@ func _on_go() -> void:
 
 
 func _process(delta: float) -> void:
+	_placer_credit()
 	if _message_timer > 0.0:
 		_message_timer -= delta
 		if _message_timer <= 0.0:

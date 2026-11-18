@@ -346,6 +346,7 @@ func _ready() -> void:
 		blocks._emit_help())
 	build_panel.growth_toggled.connect(func(on: bool) -> void: zones.growth = on)
 	build_panel.zone_style_chosen.connect(func(st: String) -> void: zones.current_style = st)
+	build_panel.suivre_zones(zones)
 	build_panel.admin_requested.connect(toggle_admin)
 	hud.admin_requested.connect(toggle_admin)
 	hud.save_requested.connect(func() -> void:

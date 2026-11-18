@@ -421,6 +421,13 @@ func appliquer(msg: Dictionary) -> void:
 				etats_recus += 1
 		"tic":
 			_tic(msg)
+		"arbres":
+			# Arbres de progression des joueurs, comptés par le serveur.
+			ReglagesPartie.actuel.arbres_joueurs = ReglagesPartie.lire_arbres_joueurs(msg.get("d", {}))
+			if is_instance_valid(jeu) and jeu.get("arbre_panel") != null:
+				if jeu.arbre_panel.is_open():
+					jeu.arbre_panel.refresh()
+				jeu.build_panel.refresh()
 		"reglages":
 			var d: Variant = msg.get("d")
 			if d is Dictionary:

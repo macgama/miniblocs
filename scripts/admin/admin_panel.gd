@@ -149,7 +149,7 @@ func _ready() -> void:
 	pr.add_child(_preset_label)
 
 	var cols := HBoxContainer.new()
-	cols.add_theme_constant_override("separation", 28)
+	cols.add_theme_constant_override("separation", 20)
 	# Les deux colonnes défilent quand elles dépassent l'écran (titre et pied restent visibles).
 	v.add_child(UiStyle.scroll_fit(cols, panel))
 	var left := _column(cols)
@@ -428,10 +428,14 @@ func _label(text: String, size := 14, color := UiStyle.TEXT) -> Label:
 	return l
 
 
+## Largeur d'une colonne de réglages : deux colonnes et les marges tiennent dans 1280.
+const COLONNE := 520.0
+
+
 func _column(parent: Control) -> VBoxContainer:
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", 12)
-	col.custom_minimum_size = Vector2(430, 0)
+	col.custom_minimum_size = Vector2(COLONNE, 0)
 	parent.add_child(col)
 	return col
 
@@ -479,6 +483,10 @@ func _spin(lo: float, hi: float, step: float, suffix: String) -> SpinBox:
 func _check(text: String) -> CheckBox:
 	var b := CheckBox.new()
 	b.text = text
+	# Les longs intitulés passent à la ligne : la fenêtre garde la largeur de ses
+	# colonnes et ne dépasse jamais l'écran (1600 de large au minimum).
+	b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	b.disabled = not editable
 	b.toggled.connect(func(_on: bool) -> void: _changed())
 	return b

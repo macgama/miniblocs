@@ -477,7 +477,10 @@ func _run() -> void:
 			await _frames(20)
 			_check(game != null and game.name == "Terre", "« Continuer » rouvre la partie")
 			if game != null:
-				_check(game.buildings.buildings.size() == n_bat, "bâtiments revenus (%d / %d)" % [game.buildings.buildings.size(), n_bat])
+				# La partie tourne pendant les 20 images d'après le chargement : une zone
+				# peut déjà pousser un bâtiment de plus.
+				var n_rev: int = game.buildings.buildings.size()
+				_check(n_rev >= n_bat and n_rev <= n_bat + 3, "bâtiments revenus (%d / %d)" % [n_rev, n_bat])
 				_check(game.tutoriel.habitants_ville() >= hab - 5, "habitants revenus (%d / %d)" % [game.tutoriel.habitants_ville(), hab])
 				_check(not game.tutoriel.actif and game.tutoriel.demo_finie, "la démo reste finie")
 				if GameStart.slot_id != "":

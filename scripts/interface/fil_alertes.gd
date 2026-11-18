@@ -16,6 +16,11 @@ var _head: Button
 var _list: VBoxContainer
 var _n := 0
 var _montre := true
+## Trop peu de place dans la colonne de gauche (PileGauche) : la liste se replie,
+## seul le titre « À faire · n » reste, sans toucher au choix du joueur (replie).
+var _serre := false
+## Pas même la place du titre : le fil se cache (les alertes restent dans la Mairie, M).
+var _sans_place := false
 
 
 func _ready() -> void:
@@ -47,6 +52,22 @@ func _ready() -> void:
 	_list.add_theme_constant_override("separation", 4)
 	col.add_child(_list)
 	_panel.visible = false
+	_panel.set_meta("place", Callable(self, "set_place"))
+
+
+## Hauteur disponible au-dessus de la carte de la case (PileGauche).
+func set_place(h: float) -> void:
+	var plein := _panel.get_theme_stylebox("panel").get_minimum_size().y + _head.get_combined_minimum_size().y \
+		+ 4.0 + _list.get_combined_minimum_size().y
+	var serre := plein > h
+	if serre != _serre:
+		_serre = serre
+		_list.visible = not replie and not _serre
+	var titre := _panel.get_theme_stylebox("panel").get_minimum_size().y + _head.get_combined_minimum_size().y
+	var sans := titre > h
+	if sans != _sans_place:
+		_sans_place = sans
+		_panel.visible = _montre and _n > 0 and not _sans_place
 
 
 func setup(m: MairiePanel) -> void:
@@ -58,7 +79,7 @@ func setup(m: MairiePanel) -> void:
 
 func set_shown(on: bool) -> void:
 	_montre = on
-	_panel.visible = on and _n > 0
+	_panel.visible = on and _n > 0 and not _sans_place
 
 
 func nombre() -> int:
@@ -76,8 +97,8 @@ func refresh() -> void:
 				al.append(a)
 	_n = al.size()
 	_head.text = "À faire  ·  %d" % _n + ("   ▸" if replie else "   ▾")
-	_list.visible = not replie
+	_list.visible = not replie and not _serre
 	for a in al:
 		_list.add_child(MairiePanel.carte_alerte(a, func(id: String) -> void: panneau_requested.emit(id), true))
-	_panel.visible = _montre and _n > 0
+	_panel.visible = _montre and _n > 0 and not _sans_place
 	_panel.reset_size()

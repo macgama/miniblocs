@@ -62,6 +62,63 @@ const TOUJOURS := ["ecole", "maison_commune"]
 static var _branche_cat := {}
 static var _cache_niveau := {}
 
+## Carte entre amis (choix de Gaël, 2026-11-18) : un arbre par joueur, comme la
+## caisse (ReglagesPartie.arbres_joueurs). Le serveur fait foi : il compte les
+## points et fait les achats ; chaque joueur regarde son propre arbre. Pendant
+## l'action d'un joueur, le serveur met `joueur_serveur` à son identifiant ; ce
+## qu'aucun joueur ne fait (pousse des zones, pilote…) n'est pas verrouillé.
+static var joueur_serveur := ""
+## Serveur : maire d'une ville (vid -> pid) et membres de la carte (pour les
+## succès du pays, partagés par tous).
+static var maire_de: Callable
+static var membres: Callable
+
+
+static func multi() -> bool:
+	return Multijoueur.role != Multijoueur.Role.SOLO
+
+
+static func joueur() -> String:
+	if Multijoueur.role == Multijoueur.Role.CLIENT and Multijoueur.client != null:
+		return Multijoueur.client.pid
+	return joueur_serveur
+
+
+static func _j(r: ReglagesPartie) -> Dictionary:
+	var pid := joueur()
+	if not r.arbres_joueurs.has(pid):
+		r.arbres_joueurs[pid] = {"arbre": {}, "bonus": 0, "journal": [], "record": 0}
+	return r.arbres_joueurs[pid]
+
+
+static func _par_joueur() -> bool:
+	return multi() and joueur() != ""
+
+
+static func arbre_de(r: ReglagesPartie) -> Dictionary:
+	return _j(r).arbre if _par_joueur() else r.arbre
+
+
+static func bonus_de(r: ReglagesPartie) -> int:
+	return int(_j(r).bonus) if _par_joueur() else r.points_bonus
+
+
+static func record_de(r: ReglagesPartie) -> int:
+	return int(_j(r).record) if _par_joueur() else r.record_habitants
+
+
+static func journal_de(r: ReglagesPartie) -> Array:
+	return _j(r).journal if _par_joueur() else r.journal_points
+
+
+## Exécute f avec l'arbre d'un autre joueur, puis revient au joueur courant.
+static func pour(pid: String, f: Callable) -> Variant:
+	var avant := joueur_serveur
+	joueur_serveur = pid
+	var res: Variant = f.call()
+	joueur_serveur = avant
+	return res
+
 
 # --- Données ----------------------------------------------------------------------------
 
@@ -145,13 +202,14 @@ static func prochain_seuil(record: int) -> int:
 
 
 static func points_gagnes(r: ReglagesPartie) -> int:
-	return POINTS_DEPART + points_population(r.record_habitants) + r.points_bonus
+	return POINTS_DEPART + points_population(record_de(r)) + bonus_de(r)
 
 
 static func points_depenses(r: ReglagesPartie) -> int:
 	var n := 0
-	for b in r.arbre:
-		for i in range(1, mini(int(r.arbre[b]), NIVEAU_MAX) + 1):
+	var a := arbre_de(r)
+	for b in a:
+		for i in range(1, mini(int(a[b]), NIVEAU_MAX) + 1):
 			n += int(COUTS[i])
 	return n
 
@@ -164,35 +222,72 @@ static func points_disponibles(r: ReglagesPartie) -> int:
 static func gagner(r: ReglagesPartie, n: int, raison: String) -> void:
 	if r == null or n == 0:
 		return
-	r.points_bonus += n
+	if _par_joueur():
+		_j(r).bonus = int(_j(r).bonus) + n
+	else:
+		r.points_bonus += n
 	noter(r, n, raison)
 
 
 static func noter(r: ReglagesPartie, n: int, raison: String) -> void:
-	r.journal_points.append({"n": n, "raison": raison})
-	while r.journal_points.size() > 12:
-		r.journal_points.pop_front()
+	var j := journal_de(r)
+	j.append({"n": n, "raison": raison})
+	while j.size() > 12:
+		j.pop_front()
+
+
+## Carte entre amis : record de population d'un joueur (ses villes). Renvoie les points gagnés.
+static func note_population_joueur(r: ReglagesPartie, pid: String, n: int) -> int:
+	return int(pour(pid, func() -> int:
+		var e := _j(r)
+		if n <= int(e.record):
+			return 0
+		var avant := points_population(int(e.record))
+		e.record = n
+		var gain := points_population(n) - avant
+		if gain > 0:
+			noter(r, gain, "%d habitants" % SEUILS_POPULATION[points_population(n) - 1])
+		return gain))
+
+
+## Points pour une ville (vid -1 : tout le pays). En solo, le joueur ; sur une
+## carte entre amis (serveur), le maire de la ville, ou chaque membre pour le pays.
+static func _gagner_ville(vid: int, n: int, raison: String) -> void:
+	# Carte entre amis : seul le serveur compte les points.
+	if n <= 0 or Multijoueur.role == Multijoueur.Role.CLIENT:
+		return
+	var r := ReglagesPartie.actuel
+	if not multi():
+		gagner(r, n, raison)
+		return
+	var pids: Array = []
+	if vid >= 0 and maire_de.is_valid():
+		var m := String(maire_de.call(vid))
+		if m != "":
+			pids.append(m)
+	elif membres.is_valid():
+		pids = membres.call()
+	for pid in pids:
+		pour(String(pid), func() -> void: gagner(r, n, raison))
 
 
 ## Raccourcis pour la partie en cours, appelés par Objectifs (rangs, missions, succès).
-static func rang_atteint(nom_rang: String, ville: String) -> void:
-	var n := int(POINTS_RANG.get(nom_rang, 0))
-	if n > 0:
-		gagner(ReglagesPartie.actuel, n, "%s devient %s" % [ville, nom_rang])
+static func rang_atteint(nom_rang: String, ville: String, vid := -1) -> void:
+	_gagner_ville(vid, int(POINTS_RANG.get(nom_rang, 0)), "%s devient %s" % [ville, nom_rang])
 
 
-static func mission_reussie(texte: String) -> void:
-	gagner(ReglagesPartie.actuel, POINTS_MISSION, "Mission : " + texte)
+static func mission_reussie(texte: String, vid := -1) -> void:
+	_gagner_ville(vid, POINTS_MISSION, "Mission : " + texte)
 
 
 static func succes_gagne(nom: String) -> void:
-	gagner(ReglagesPartie.actuel, POINTS_SUCCES, "Succès « %s »" % nom)
+	_gagner_ville(-1, POINTS_SUCCES, "Succès « %s »" % nom)
 
 
 # --- Niveaux ----------------------------------------------------------------------------
 
 static func niveau(r: ReglagesPartie, branche_id: String) -> int:
-	return clampi(int(r.arbre.get(branche_id, 0)), 0, NIVEAU_MAX)
+	return clampi(int(arbre_de(r).get(branche_id, 0)), 0, NIVEAU_MAX)
 
 
 ## Raison pour laquelle on ne peut pas acheter le niveau suivant, ou "".
@@ -212,12 +307,17 @@ static func acheter(r: ReglagesPartie, branche_id: String) -> String:
 	var refus := refus_achat(r, branche_id)
 	if refus != "":
 		return refus
-	r.arbre[branche_id] = niveau(r, branche_id) + 1
+	arbre_de(r)[branche_id] = niveau(r, branche_id) + 1
 	return ""
 
 
 static func est_ouvert(r: ReglagesPartie, branche_id: String, niveau_requis: int) -> bool:
-	return r.deblocage != "arbre" or niveau_requis <= 0 or branche_id == "" or niveau(r, branche_id) >= niveau_requis
+	if r.deblocage != "arbre" or niveau_requis <= 0 or branche_id == "":
+		return true
+	# Carte entre amis : ce qu'aucun joueur ne fait (zones, pilote…) n'est pas verrouillé.
+	if multi() and joueur() == "":
+		return true
+	return niveau(r, branche_id) >= niveau_requis
 
 
 static func batiment_ouvert(r: ReglagesPartie, id: String) -> bool:

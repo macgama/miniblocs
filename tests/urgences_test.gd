@@ -143,6 +143,7 @@ func _city_tests() -> void:
 	tf.siren_sound = false
 	urg.random_calls = false
 	bs.unlimited_money = true
+	ReglagesPartie.actuel.deblocage = "tout"
 	var y := world.cell_height(Vector2i(0, 0))
 	var road := transport.build_segment("route", Vector3(-700, y, 0), Vector3(700, y, 0))
 	_check(road.ok, "route de 1,4 km")

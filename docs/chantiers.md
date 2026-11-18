@@ -24,9 +24,10 @@ et des arbres, et on voit les travaux avancer.
 - Le travail n'avance que pendant les **horaires de l'équipe**, à l'heure locale
   du lieu : jours ouvrés 7 h 30–12 h et 13 h–16 h 30 (par défaut), tous les
   jours, ou jour et nuit (réglage Admin).
-- **Rythme** = vitesse de la vie (`Population.life_speed`) × réglage Admin
-  « rythme des chantiers » (×3 par défaut) : avec 1 an de vie = 1 mois de jeu,
-  une maison de 5 mois demande ≈ 3 jours ouvrés de jeu à ×3 (≈ 2 semaines à ×1).
+- **Rythme** = vitesse de la vie (`Population.life_speed`) ÷ 3 (au moins ×1)
+  × réglage Admin « rythme des chantiers » (×3 par défaut). Avec 1 an de vie =
+  1 mois de jeu : ×4 × 3 = ×12. Maison ≈ 2 semaines de jeu, immeuble ≈ 5 à
+  6 semaines, hôpital ≈ 4 mois (à ×1 : trois fois plus).
 - **Ouvriers** : avec moins d'ouvriers que l'équipe complète, le chantier
   avance d'autant moins vite (Fondateurs).
 - **Paiement au fil des travaux** : rien n'est payé à la pose, le prix part de la

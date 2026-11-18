@@ -7,16 +7,28 @@ et des arbres, et on voit les travaux avancer.
 ## Règles (scripts/chantiers/chantiers.gd)
 
 - Chaque chantier a une quantité de travail en **heures réelles** d'une équipe :
-  - bâtiment : `3 + 1,6 × étages^0,9 + √surface / 20` mois (maison ≈ 7 à 9 mois,
-    immeuble ≈ 1 an et demi, tour de 20 étages ≈ 2 ans et demi ; places et
-    parcs : quelques jours à quelques mois) ;
+  - bâtiment : selon sa **surface de plancher** (emprise bâtie × niveaux, un
+    niveau = 3,5 m de hauteur) : `0,42 × plancher^0,46` mois, puis × **type**
+    (industrie 0,75, services 1,1, réseaux 1,2 ; hôpital 1,35, centrale 1,4,
+    nucléaire 2,5, gare 1,15, hangar 0,6…), × **matériaux** (bois 0,8, pierre
+    de taille 1,25) et × **époque** (avant 1850 : 1,6 ; avant 1900 : 1,4 ;
+    avant 1945 : 1,2 ; avant 1980 : 1,05 ; ensuite 1). Stades, parcs et zoos
+    comptent leur emprise, pas les niveaux. Plafond 10 ans (les grands
+    monuments ont leurs propres durées). Repères aujourd'hui : maison ≈ 4 à
+    6 mois, immeuble de 8 niveaux ≈ 14 mois, école ≈ 1 an, gare ≈ 1 an et
+    quart, hôpital ≈ 3 ans, stade ≈ 2 ans et demi, tour de 40 étages ≈ 4 ans.
+    Places et parcs : quelques jours à quelques mois. La durée est fixée au
+    lancement du chantier (année de jeu de ce moment-là) ;
   - voie : surface × 0,1 h/m² pour une route, 0,14 pour le rail, 0,04 pour un
     chemin, ×6 sur les ponts et en tunnel (100 m de départementale ≈ 80 h).
 - Le travail n'avance que pendant les **horaires de l'équipe**, à l'heure locale
   du lieu : jours ouvrés 7 h 30–12 h et 13 h–16 h 30 (par défaut), tous les
   jours, ou jour et nuit (réglage Admin).
-- **Rythme** = vitesse de la vie (`Population.life_speed`) : avec 1 an de vie =
-  1 mois de jeu (défaut), une maison de 9 mois demande ≈ 3 semaines de jeu.
+- **Rythme** = vitesse de la vie (`Population.life_speed`) × réglage Admin
+  « rythme des chantiers » (×3 par défaut) : avec 1 an de vie = 1 mois de jeu,
+  une maison de 5 mois demande ≈ 3 jours ouvrés de jeu à ×3 (≈ 2 semaines à ×1).
+- **Ouvriers** : avec moins d'ouvriers que l'équipe complète, le chantier
+  avance d'autant moins vite (Fondateurs).
 - **Paiement au fil des travaux** : rien n'est payé à la pose, le prix part de la
   caisse au fur et à mesure. Caisse vide : le chantier s'arrête (pastille rouge
   sur son marqueur) et repart quand il y a de l'argent. Démolir un chantier rend la moitié

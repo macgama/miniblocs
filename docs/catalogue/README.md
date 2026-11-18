@@ -5,7 +5,8 @@ Tout ce qui se construit ou se pose dans le jeu, avec son année d'apparition et
 | Fichier | Contenu |
 |---|---|
 | [catalogue.md](catalogue.md) | Le catalogue complet, famille par famille, lisible sur GitHub |
-| [catalogue.html](catalogue.html) | La même chose en page web autonome : recherche, filtre par famille, curseur « Partie en 1800 … 2040 » |
+| [catalogue.html](catalogue.html) | La même chose en page web, **en images** : galerie ou liste, recherche, filtre par famille, curseur « Partie en 1800 … 2040 » ; un clic ouvre la fiche avec les évolutions en images |
+| [img/](img/) | Les images rendues par le jeu (vignettes, frises d'évolution, variantes, styles) |
 | [catalogue.json](catalogue.json) | Les données brutes, pour d'autres outils (site, page Steam) |
 | [dates-ajoutees.md](dates-ajoutees.md) | Les années données le 16 novembre 2026 aux objets qui n'en avaient pas |
 
@@ -34,6 +35,18 @@ Ne sont pas dans le catalogue : les créations du joueur (Mes créations, modèl
 - **Décors posés tout seuls** : leur équivalent d'époque (réverbère à gaz au lieu du lampadaire, barque au lieu
   du hors-bord, meule au lieu des bottes rondes).
 
+## Images
+
+Chaque objet a sa vignette, rendue par Godot avec les vrais modèles du jeu. Dans la fiche (clic sur une carte) :
+
+- **Du chantier à la vieillesse** (bâtiments) : fouilles, fondations, gros œuvre, toit, terminé, niveau 2,
+  niveau 3, usé, abandonné ;
+- **Selon l'époque** (gares, ports) : la version d'avant 1900 et la moderne ;
+- **Variantes de façade** ; **le même meuble dans les styles de chaque époque** ;
+- **Même rôle selon l'époque** : les vignettes de toute la lignée, l'objet ouvert est encadré.
+
+Ouvrir `docs/catalogue/catalogue.html` dans un navigateur (le dossier `img/` doit rester à côté).
+
 ## Régénérer
 
 Le catalogue se calcule à partir des données du jeu (`scripts/catalogue/catalogue_jeu.gd`) : après un ajout
@@ -45,3 +58,14 @@ godot --headless --path . --script res://tools/catalogue/export_catalogue.gd
 
 Les années des objets qui n'en avaient pas sont dans `scripts/epoques/epoques_objets.gd` (EpoquesObjets).
 Un nouveau bâtiment sans `annee`, hors des tables, est signalé par `tests/catalogue_test.gd` (« aucune année devinée »).
+
+Les images (une à deux minutes, il faut un affichage : sous Linux sans écran, préfixer par
+`xvfb-run -a`) :
+
+```
+godot --path . --rendering-driver opengl3 --script res://tools/catalogue/images_catalogue.gd
+```
+
+Options : `-- --manquants` (seulement les objets qui n'ont pas encore d'image, après un ajout), `-- --familles batiments,vehicules` (seulement ces familles, le reste de `img/index.json` est
+gardé), `-- --seul maison`, `-- --limite 10` (essai rapide). Relancer ensuite l'export ci-dessus pour que la
+page html reprenne les images.

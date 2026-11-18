@@ -17,6 +17,8 @@ const OUTILS := [
 	["Fibre sous la rue (tracé libre)", Telecom.Outil.FIBRE, "chemin"],
 	["Fibre sur poteaux", Telecom.Outil.FIBRE_AERIENNE, "lignes"],
 	["Téléphone sur poteaux (cuivre)", Telecom.Outil.CUIVRE_AERIEN, "lignes"],
+	["Téléphone enterré (cuivre)", Telecom.Outil.CUIVRE_SOUTERRAIN, "chemin"],
+	["Câble coaxial (télé et internet)", Telecom.Outil.COAXIAL, "chemin"],
 	["Retirer un câble", Telecom.Outil.RETIRER, "demolir"],
 ]
 const CALQUES := [["Aucun calque", ""], ["Couverture mobile", "mobile"], ["Débit internet", "debit"]]

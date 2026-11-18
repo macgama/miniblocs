@@ -182,6 +182,7 @@ static func debloquer(id: String) -> bool:
 	sauver()
 	SteamPont.debloquer(api_steam(id))
 	recents.append(id)
+	Son.jouer("succes", -4.0, 0.0, "Interface")
 	# Carte « Succès débloqué » (nœud global SuccesNotif, s'il est là).
 	var tree := Engine.get_main_loop() as SceneTree
 	var notif := tree.root.get_node_or_null("SuccesNotif") if tree != null else null

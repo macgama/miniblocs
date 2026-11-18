@@ -1052,6 +1052,8 @@ func rendement(ch: Dictionary) -> float:
 	# Sols pollués et normes agricoles (module Climat).
 	if Climat.instance != null:
 		f *= Climat.instance.facteur_champ(ch)
+	# Agronomes et botanistes rapportés par les expéditions (tout le pays).
+	f *= 1.0 + Expeditions.facteur("agriculture")
 	return float(c.rdt) * surface(ch) * f
 
 

@@ -117,6 +117,25 @@ const TRONCONS := {
 		"desc": "Grand égout enterré : emmène les eaux usées jusqu'à la station d'épuration."},
 	"conduite_gaz": {"name": "Conduite de gaz ou de chaleur", "res": "gaz", "prix_m": 180, "entretien_m": 2.5,
 		"desc": "Canalisation enterrée (visible avec le calque Chauffage) : relie un poste de gaz ou une chaufferie aux rues."},
+	# Lot 5 : tronçons de toutes les époques. court : nom du bouton ; enterre : câble
+	# électrique sous terre (pas de poteaux) ; treillis : pylônes en treillis.
+	"ligne_bt": {"name": "Ligne basse tension sur poteaux de bois", "court": "Basse tension", "res": "elec", "prix_m": 45,
+		"entretien_m": 1.2, "pas": 40.0, "haut": 8.0,
+		"desc": "Poteaux de bois de 8 m tous les 40 m : la ligne du village, d'une ferme à l'autre."},
+	"ligne_tht": {"name": "Ligne très haute tension (400 000 volts)", "court": "Très haute tension", "res": "elec", "prix_m": 900,
+		"entretien_m": 9.0, "pas": 450.0, "haut": 50.0, "treillis": true,
+		"desc": "Pylônes géants de 50 m tous les 450 m : amène le courant d'une grande centrale à l'autre bout du pays."},
+	"cable_souterrain": {"name": "Câble électrique souterrain", "court": "Câble enterré", "res": "elec", "prix_m": 1100,
+		"entretien_m": 2.5, "enterre": true,
+		"desc": "Câble sous la chaussée (visible avec le calque Électricité) : ni poteaux, ni pannes de tempête, mais cher."},
+	"aqueduc": {"name": "Aqueduc maçonné (canal couvert)", "court": "Aqueduc", "res": "eau", "prix_m": 320, "entretien_m": 4.0,
+		"desc": "Galerie de pierre en pente douce : l'eau d'une source lointaine arrive par gravité, comme au temps des Romains."},
+	"egout_separatif": {"name": "Égout séparatif (pluie à part)", "court": "Séparatif", "res": "egout", "prix_m": 620, "entretien_m": 4.5,
+		"desc": "Deux tuyaux : les eaux usées vont à la station, la pluie à la rivière. La station ne déborde plus quand il pleut."},
+	"reseau_chaleur": {"name": "Réseau de chaleur urbain", "court": "Chaleur", "res": "gaz", "prix_m": 700, "entretien_m": 3.5,
+		"desc": "Tuyaux isolés d'eau chaude : la chaleur d'une chaufferie bois, d'un incinérateur ou d'une usine chauffe les quartiers."},
+	"hydrogenoduc": {"name": "Conduite d'hydrogène", "court": "Hydrogène", "res": "gaz", "prix_m": 520, "entretien_m": 3.0,
+		"desc": "Canalisation d'hydrogène vert : relie un électrolyseur aux usines et aux stations de bus à hydrogène."},
 }
 
 const RES_NAMES := {"elec": "Électricité", "eau": "Eau potable", "egout": "Égouts", "gaz": "Gaz et chauffage"}

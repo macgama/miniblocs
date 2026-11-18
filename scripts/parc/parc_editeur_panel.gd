@@ -171,7 +171,7 @@ func refresh() -> void:
 		"eau":
 			_vue_familles(VoiePieces.ORDRE_EAU, "Attractions sur l'eau", "Canal, tapis qui monte, chutes et éclaboussures. Le toboggan est un parcours ouvert : il finit par un bassin d'arrivée.")
 			_section("Bassins et attractions aquatiques")
-			_grille_batiments(ParcExtras.ORDER.filter(func(id: String) -> bool: return String(ParcExtras.TYPES[id].groupe) == "eau"))
+			_grille_batiments(ParcExtras.ORDER.filter(func(id: String) -> bool: return String(ParcExtras.TYPES[id].groupe) == "eau") + ["riviere_rapide"])
 		"manege":
 			_section("Manèges")
 			_texte("Attractions toutes faites, à poser derrière l'entrée du parc (à moins de 250 m).", true)
@@ -179,6 +179,7 @@ func refresh() -> void:
 			for id in ParcTypes.ORDER:
 				if String(ParcTypes.TYPES[id].parc.role) == "attraction":
 					ids.append(id)
+			ids += ParcInventions.ORDER.filter(func(id: String) -> bool: return id != "riviere_rapide")
 			_grille_batiments(ids)
 		"boutique": _vue_boutiques()
 		"allees": _vue_allees()
@@ -326,9 +327,11 @@ func _modele_de(fam_id: String) -> Dictionary:
 		if String(m.famille) == fam_id:
 			return m
 	var base := {"acier": "acier", "suspendu": "acier", "lance": "acier", "bois": "mine", "familial": "mine", "splash": "buches"}
-	if base.has(fam_id):
+	var sty := VoiePieces.style(fam_id)
+	var src := String(base.get(fam_id, base.get(sty, sty)))
+	if src != fam_id:
 		for m: Dictionary in AttractionsPerso.modeles():
-			if String(m.famille) == String(base[fam_id]):
+			if String(m.famille) == src:
 				var d := m.duplicate(true)
 				d.famille = fam_id
 				if fam_id == "lance":
@@ -464,7 +467,7 @@ func _vue_trace() -> void:
 	# Réglages.
 	_section("Couleurs et trains")
 	for q in [["rail", "Voie"], ["support", "Piliers"], ["train", "Train"]]:
-		if q[0] == "support" and String(d.famille) in ["bois", "mine"]:
+		if q[0] == "support" and VoiePieces.style(String(d.famille)) in ["bois", "mine"]:
 			continue
 		var hr := _rangee()
 		var l := Label.new()
@@ -541,6 +544,10 @@ func _grille_batiments(ids: Array) -> void:
 			continue
 		var b := _carte(String(t.name), "%s\n%s · %d × %d m\n%s" % [String(t.name), _euros(float(BuildingCatalog.cost(String(id)))), int(t.w), int(t.d), String(t.get("desc", ""))])
 		var tid := String(id)
+		var verrou := ReglagesPartie.actuel.raison_blocage(tid) if ReglagesPartie.actuel != null else ""
+		if verrou != "":
+			b.tooltip_text += "\n\n" + verrou
+			b.modulate = Color(1, 1, 1, 0.5)
 		_vignettes.request_mesh("parc_bat_" + tid, func() -> Mesh: return BuildingCatalog.build_mesh(tid, ParcTypes.material()), b, 110)
 		b.pressed.connect(func() -> void: poser_batiment.emit(tid))
 		g.add_child(b)

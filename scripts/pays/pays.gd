@@ -387,7 +387,7 @@ func payeur_de_voie(eid: int) -> int:
 func payeur_de_cle(cle: String) -> int:
 	if payeur_force != -1:
 		return payeur_force
-	if cle.begins_with("voie:") or cle.begins_with("reparation:"):
+	if cle.begins_with("voie:") or cle.begins_with("reparation:") or cle.begins_with("evolution:"):
 		var eid := int(cle.get_slice(":", 1))
 		if network != null and network.edges.has(eid):
 			return payeur_de_voie(eid)

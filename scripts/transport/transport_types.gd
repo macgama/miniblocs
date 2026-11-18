@@ -68,9 +68,10 @@ const CLASSES := {
 		"side": 1.0, "side_kind": "accotement", "center": "dashed",
 		"r_min": 12.0, "max_grade": 0.06, "smooth": 4.0, "bridge_gap": 4.0, "tunnel_depth": 6.0,
 	},
+	# Route à 2 × 2 voies possible (ARP, type R) : terre-plein de 2 m dès 2 voies par sens.
 	"departementale": {
 		"name": "Route départementale", "mode": Mode.ROAD, "kmh": 80.0,
-		"lanes": [1, 1, 1], "lane_w": [3.0, 3.5, 3.0], "median": 0.0, "median_from": 9,
+		"lanes": [1, 2, 1], "lane_w": [3.0, 3.5, 3.0], "median": 2.0, "median_from": 2,
 		"side": 1.75, "side_kind": "accotement", "center": "dashed",
 		"r_min": 240.0, "max_grade": 0.07, "smooth": 16.0, "bridge_gap": 4.0, "tunnel_depth": 6.0,
 	},
@@ -95,6 +96,57 @@ const CLASSES := {
 		"lanes": [1, 1, 1], "lane_w": [3.5, 4.0, 3.5], "median": 0.0, "median_from": 9,
 		"side": 1.0, "side_kind": "accotement", "center": "none",
 		"r_min": 50.0, "max_grade": 0.07, "smooth": 12.0, "bridge_gap": 5.0, "tunnel_depth": 8.0,
+	},
+	# Lot 5 : voies de toutes les époques. surface : revêtement imposé (sinon
+	# celui de l'époque) ; marquage : false pour une voie sans peinture au sol.
+	"chemin_terre": {
+		"name": "Chemin de terre", "mode": Mode.ROAD, "kmh": 25.0,
+		"lanes": [1, 1, 1], "lane_w": [2.5, 3.0, 2.75], "median": 0.0, "median_from": 9,
+		"side": 0.6, "side_kind": "accotement", "center": "none", "surface": Color("9b7b55"), "marquage": false,
+		"r_min": 10.0, "max_grade": 0.15, "smooth": 5.0, "bridge_gap": 3.0, "tunnel_depth": 6.0,
+	},
+	"route_pavee": {
+		"name": "Route pavée", "mode": Mode.ROAD, "kmh": 40.0,
+		"lanes": [1, 1, 1], "lane_w": [2.75, 3.25, 3.0], "median": 0.0, "median_from": 9,
+		"side": 1.2, "side_kind": "accotement", "center": "none", "surface": Color("8a8378"), "marquage": false,
+		"r_min": 30.0, "max_grade": 0.1, "smooth": 8.0, "bridge_gap": 4.0, "tunnel_depth": 6.0,
+	},
+	"route_empierree": {
+		"name": "Route empierrée (macadam)", "mode": Mode.ROAD, "kmh": 45.0,
+		"lanes": [1, 1, 1], "lane_w": [3.0, 3.5, 3.25], "median": 0.0, "median_from": 9,
+		"side": 1.5, "side_kind": "accotement", "center": "none", "surface": Color("a39a88"), "marquage": false,
+		"r_min": 60.0, "max_grade": 0.08, "smooth": 12.0, "bridge_gap": 4.0, "tunnel_depth": 6.0,
+	},
+	"boulevard": {
+		"name": "Grand boulevard (à l'haussmannienne)", "mode": Mode.ROAD, "kmh": 50.0,
+		"lanes": [2, 3, 2], "lane_w": [3.0, 3.5, 3.25], "median": 6.0, "median_from": 1,
+		"side": 4.0, "side_kind": "trottoir", "center": "solid",
+		"r_min": 60.0, "max_grade": 0.06, "smooth": 12.0, "bridge_gap": 4.0, "tunnel_depth": 6.0,
+	},
+	"zone_rencontre": {
+		"name": "Rue partagée (zone de rencontre, 20 km/h)", "mode": Mode.ROAD, "kmh": 20.0,
+		"lanes": [1, 1, 1], "lane_w": [3.0, 3.5, 3.25], "median": 0.0, "median_from": 9,
+		"side": 1.0, "side_kind": "aucun", "center": "none", "surface": Color("b9a68c"), "marquage": false,
+		"r_min": 10.0, "max_grade": 0.12, "smooth": 5.0, "bridge_gap": 4.0, "tunnel_depth": 6.0,
+	},
+	"avenue_bhns": {
+		"name": "Avenue à couloirs de bus (BHNS)", "mode": Mode.ROAD, "kmh": 50.0, "bus_defaut": true,
+		"lanes": [1, 2, 1], "lane_w": [3.0, 3.5, 3.25], "median": 2.0, "median_from": 1,
+		"side": 2.5, "side_kind": "trottoir", "center": "solid",
+		"r_min": 50.0, "max_grade": 0.07, "smooth": 10.0, "bridge_gap": 4.0, "tunnel_depth": 6.0,
+	},
+	"route_2plus1": {
+		"name": "Route à 2 + 1 voies (dépassement alterné)", "mode": Mode.ROAD, "kmh": 90.0,
+		"lanes": [1, 2, 2], "lane_w": [3.25, 3.5, 3.5], "median": 0.0, "median_from": 9,
+		"side": 1.75, "side_kind": "accotement", "center": "barrier",
+		"r_min": 300.0, "max_grade": 0.06, "smooth": 20.0, "bridge_gap": 4.0, "tunnel_depth": 6.0,
+	},
+	"autoroute_urbaine": {
+		"name": "Autoroute urbaine apaisée (70 km/h)", "mode": Mode.ROAD, "kmh": 70.0,
+		"lanes": [2, 3, 2], "lane_w": [3.25, 3.5, 3.25], "median": 3.0, "median_from": 1,
+		"side": 2.5, "side_kind": "bau", "center": "barrier",
+		"r_min": 250.0, "max_grade": 0.06, "smooth": 24.0, "bridge_gap": 5.0, "tunnel_depth": 8.0,
+		"ramps": true, "separated": true,
 	},
 	"tram": {
 		"name": "Tramway", "mode": Mode.RAIL, "kmh": 50.0,
@@ -121,6 +173,16 @@ const CLASSES := {
 		"tracks": [2, 2, 2], "spacing": 4.5, "side": 1.5,
 		"r_min": 4000.0, "max_grade": 0.035, "smooth": 80.0, "bridge_gap": 4.0, "tunnel_depth": 8.0,
 	},
+	"voie_etroite": {
+		"name": "Chemin de fer à voie métrique", "mode": Mode.RAIL, "kmh": 60.0,
+		"tracks": [1, 2, 1], "spacing": 3.4, "side": 1.0,
+		"r_min": 100.0, "max_grade": 0.04, "smooth": 16.0, "bridge_gap": 4.0, "tunnel_depth": 6.0,
+	},
+	"ligne_fret": {
+		"name": "Ligne de fret électrifiée (trains lourds)", "mode": Mode.RAIL, "kmh": 100.0,
+		"tracks": [1, 2, 2], "spacing": 4.2, "side": 2.0,
+		"r_min": 800.0, "max_grade": 0.0125, "smooth": 60.0, "bridge_gap": 4.0, "tunnel_depth": 8.0,
+	},
 	"trottoir": {
 		"name": "Chemin piéton", "mode": Mode.PATH, "kmh": 5.0, "width": [1.4, 4.0, 2.0],
 		"r_min": 2.0, "max_grade": 0.12, "smooth": 3.0, "bridge_gap": 3.0, "tunnel_depth": 5.0,
@@ -136,6 +198,26 @@ const CLASSES := {
 		"r_min": 10.0, "max_grade": 0.06, "smooth": 6.0, "bridge_gap": 3.0, "tunnel_depth": 5.0,
 		"color": Color("d9c49a"),
 	},
+	"sentier": {
+		"name": "Sentier de randonnée", "mode": Mode.PATH, "kmh": 4.0, "width": [0.8, 1.5, 1.0],
+		"r_min": 1.5, "max_grade": 0.35, "smooth": 2.0, "bridge_gap": 3.0, "tunnel_depth": 5.0,
+		"color": Color("a68a64"),
+	},
+	"chemin_halage": {
+		"name": "Chemin de halage (au bord de l'eau)", "mode": Mode.PATH, "kmh": 5.0, "width": [2.5, 4.0, 3.0],
+		"r_min": 20.0, "max_grade": 0.03, "smooth": 8.0, "bridge_gap": 3.0, "tunnel_depth": 5.0,
+		"color": Color("bfa77a"),
+	},
+	"promenade_planches": {
+		"name": "Promenade en planches (caillebotis)", "mode": Mode.PATH, "kmh": 5.0, "width": [1.5, 6.0, 3.0],
+		"r_min": 4.0, "max_grade": 0.06, "smooth": 4.0, "bridge_gap": 2.0, "tunnel_depth": 5.0,
+		"color": Color("9c7650"),
+	},
+	"voie_cyclable_express": {
+		"name": "Voie cyclable express (vélo-route)", "mode": Mode.PATH, "kmh": 22.0, "width": [3.5, 5.0, 4.0],
+		"r_min": 20.0, "max_grade": 0.05, "smooth": 8.0, "bridge_gap": 3.0, "tunnel_depth": 5.0,
+		"color": Color("3d8c5a"),
+	},
 	"canal": {
 		"name": "Voie navigable", "mode": Mode.WATER, "kmh": 12.0, "width": [12.0, 60.0, 20.0],
 		"r_min": 50.0, "max_grade": 0.0, "smooth": 0.0, "bridge_gap": 0.0, "tunnel_depth": 0.0,
@@ -144,6 +226,10 @@ const CLASSES := {
 		"name": "Chenal maritime", "mode": Mode.WATER, "kmh": 40.0, "width": [60.0, 400.0, 150.0],
 		"r_min": 400.0, "max_grade": 0.0, "smooth": 0.0, "bridge_gap": 0.0, "tunnel_depth": 0.0,
 	},
+	"canal_grand_gabarit": {
+		"name": "Canal à grand gabarit (péniches de 3 000 t)", "mode": Mode.WATER, "kmh": 14.0, "width": [40.0, 80.0, 54.0],
+		"r_min": 250.0, "max_grade": 0.0, "smooth": 0.0, "bridge_gap": 0.0, "tunnel_depth": 0.0,
+	},
 }
 
 ## Anciens identifiants (sauvegardes de la première version).
@@ -151,10 +237,13 @@ const ALIASES := {"route": "departementale", "rail": "train", "chemin": "voie_ve
 
 ## Classes proposées par chaque outil, dans l'ordre d'affichage.
 const BY_MODE := {
-	Mode.ROAD: ["rue", "avenue", "departementale", "voie_express", "autoroute", "bretelle"],
-	Mode.RAIL: ["tram", "train", "lgv", "cremaillere", "metro"],
-	Mode.PATH: ["trottoir", "piste_cyclable", "voie_verte"],
-	Mode.WATER: ["canal", "chenal"],
+	Mode.ROAD: ["rue", "avenue", "departementale", "voie_express", "autoroute", "bretelle",
+		"chemin_terre", "route_pavee", "route_empierree", "boulevard", "zone_rencontre", "avenue_bhns", "route_2plus1",
+		"autoroute_urbaine"],
+	Mode.RAIL: ["tram", "train", "lgv", "cremaillere", "metro", "voie_etroite", "ligne_fret"],
+	Mode.PATH: ["trottoir", "piste_cyclable", "voie_verte", "sentier", "chemin_halage", "promenade_planches",
+		"voie_cyclable_express"],
+	Mode.WATER: ["canal", "canal_grand_gabarit", "chenal"],
 }
 
 ## Pas d'échantillonnage du tracé (m).
@@ -211,6 +300,8 @@ static func default_spec(id: String) -> Dictionary:
 		s.tracks = int(c.tracks[2])
 	if c.has("width"):
 		s.width = float(c.width[2])
+	if bool(c.get("bus_defaut", false)):
+		s.bus = true
 	return s
 
 
@@ -225,14 +316,106 @@ static func normalize(id: String, spec: Dictionary) -> Dictionary:
 		s.tracks = clampi(int(spec.get("tracks", s.tracks)), int(c.tracks[0]), int(c.tracks[1]))
 	if c.has("width"):
 		s.width = clampf(snappedf(float(spec.get("width", s.width)), 0.05), float(c.width[0]), float(c.width[1]))
+	# Aménagements d'une route qu'on fait évoluer (EvolutionVoies) : gardés
+	# seulement s'ils diffèrent de la classe et que la classe les accepte.
+	var opt := options_of(id)
+	if opt.bords and spec.has("bords"):
+		var b := String(spec.bords)
+		if BORDS.has(b) and b != String(c.get("side_kind", "")):
+			s.bords = b
+	if opt.tp and spec.has("tp"):
+		var auto := c.has("lanes") and float(c.median) > 0.0 and int(s.lanes) >= int(c.median_from)
+		if bool(spec.tp) != auto:
+			s.tp = bool(spec.tp)
+	if opt.bus and bool(spec.get("bus", false)):
+		s.bus = true
+	if opt.tram and bool(spec.get("tram", false)):
+		s.tram = true
+	# Voie de tram posée dans une route (dessinée sans plate-forme ni traverses).
+	if c.has("tracks") and bool(spec.get("sr", false)):
+		s.sr = true
 	return s
 
 
+# --- Évolution d'une route posée ------------------------------------------------------------
+
+## Bords possibles d'une route : largeur (m) de chaque côté.
+const BORDS := {"trottoir": 2.0, "accotement": 1.0, "aucun": 0.3}
+const BORDS_NOMS := {"trottoir": "Trottoirs", "accotement": "Accotements", "aucun": "Sans trottoirs (simple bordure)"}
+## Couloir de bus (CEREMA : 3,00 à 3,50 m), un par sens, à droite.
+const BUS_W := 3.5
+## Plate-forme axiale d'un tramway à deux voies (entraxe 3 m + 2 × 2 m).
+const TRAM_W := 7.0
+## Terre-plein central ajouté à une classe qui n'en a pas (m).
+const TP_W := 2.0
+## Familles de classes entre lesquelles une route posée peut évoluer.
+const FAMILLES := [["rue", "avenue", "departementale", "chemin_terre", "route_pavee", "route_empierree", "zone_rencontre",
+	"avenue_bhns", "boulevard", "route_2plus1"], ["voie_express", "autoroute", "autoroute_urbaine"]]
+
+
+## Aménagements qu'on peut changer sur une classe : {bords, tp, bus, tram}.
+static func options_of(id: String) -> Dictionary:
+	var c := get_type(id)
+	var road: bool = int(c.get("mode", -1)) == Mode.ROAD and not c.get("oneway", false) and not c.get("single", false)
+	var urbain: bool = road and not c.get("separated", false)
+	return {"bords": urbain, "tp": urbain, "bus": urbain, "tram": urbain}
+
+
+## Classes vers lesquelles une route de cette classe peut évoluer (elle comprise).
+static func evolutions_of(id: String) -> Array:
+	id = resolve(id)
+	for f in FAMILLES:
+		if (f as Array).has(id):
+			return (f as Array).duplicate()
+	return [id] if mode_of(id) == Mode.ROAD else []
+
+
+## Genre des bords : "trottoir", "accotement", "bau" ou "aucun".
+static func side_kind_of(id: String, spec: Dictionary) -> String:
+	if spec.has("bords"):
+		return String(spec.bords)
+	return String(get_type(id).get("side_kind", ""))
+
+
+## Largeur des bords de chaque côté (m).
+static func side_of(id: String, spec: Dictionary) -> float:
+	var c := get_type(id)
+	if spec.has("bords") and String(spec.bords) != String(c.get("side_kind", "")):
+		return float(BORDS.get(String(spec.bords), c.get("side", 0.0)))
+	return float(c.get("side", 0.0))
+
+
+## Couloir de bus de chaque côté (m), 0 sans.
+static func bus_of(id: String, spec: Dictionary) -> float:
+	return BUS_W if bool(spec.get("bus", false)) and options_of(id).bus else 0.0
+
+
+static func has_tram(id: String, spec: Dictionary) -> bool:
+	return bool(spec.get("tram", false)) and options_of(id).tram
+
+
+## Terre-plein central (m), plate-forme du tram comprise.
 static func median_of(id: String, spec: Dictionary) -> float:
 	var c := get_type(id)
 	if not c.has("lanes"):
 		return 0.0
-	return float(c.median) if int(spec.get("lanes", 1)) >= int(c.median_from) else 0.0
+	var m := float(c.median) if int(spec.get("lanes", 1)) >= int(c.median_from) else 0.0
+	if spec.has("tp"):
+		m = (float(c.median) if float(c.median) > 0.0 else TP_W) if bool(spec.tp) else 0.0
+	if has_tram(id, spec):
+		m += TRAM_W
+	return m
+
+
+## Terre-plein seul (sans la plate-forme du tram).
+static func tp_of(id: String, spec: Dictionary) -> float:
+	return median_of(id, spec) - (TRAM_W if has_tram(id, spec) else 0.0)
+
+
+## Décalage latéral du couloir de bus (vers la droite du sens de marche).
+static func bus_lane_offset(id: String, spec: Dictionary) -> float:
+	var s := normalize(id, spec)
+	return median_of(id, s) * 0.5 + float(s.get("lanes", 1)) * float(s.get("lane_w", 3.0)) + BUS_W * 0.5
 
 
 ## Largeur totale (m) : chaussées + terre-plein + trottoirs / accotements.
@@ -243,7 +426,7 @@ static func width_of(id: String, spec: Dictionary) -> float:
 		Mode.ROAD:
 			if c.get("single", false):
 				return s.lanes * s.lane_w + 2.0 * float(c.side)
-			return 2.0 * s.lanes * s.lane_w + median_of(id, s) + 2.0 * float(c.side)
+			return 2.0 * s.lanes * s.lane_w + median_of(id, s) + 2.0 * (side_of(id, s) + bus_of(id, s))
 		Mode.RAIL:
 			return float(s.tracks - 1) * float(c.spacing) + 3.0 + 2.0 * float(c.side)
 		Mode.PATH, Mode.WATER:
@@ -293,10 +476,14 @@ static func describe(id: String, spec: Dictionary) -> String:
 				parts.append("sens unique, %d voie%s de %s m" % [s.lanes, "s" if s.lanes > 1 else "", _num(s.lane_w)])
 			else:
 				parts.append("2 × %d voie%s de %s m" % [s.lanes, "s" if s.lanes > 1 else "", _num(s.lane_w)])
-			if median_of(id, s) > 0.0:
-				parts.append("terre-plein %s m" % _num(median_of(id, s)))
-			var side_names := {"trottoir": "trottoirs", "accotement": "accotements", "bau": "bandes d'arrêt d'urgence"}
-			parts.append("%s %s m" % [side_names.get(c.side_kind, "bords"), _num(c.side)])
+			if tp_of(id, s) > 0.0:
+				parts.append("terre-plein %s m" % _num(tp_of(id, s)))
+			if has_tram(id, s):
+				parts.append("tramway au milieu (%s m)" % _num(TRAM_W))
+			if bus_of(id, s) > 0.0:
+				parts.append("couloirs de bus %s m" % _num(BUS_W))
+			var side_names := {"trottoir": "trottoirs", "accotement": "accotements", "bau": "bandes d'arrêt d'urgence", "aucun": "bordures"}
+			parts.append("%s %s m" % [side_names.get(side_kind_of(id, s), "bords"), _num(side_of(id, s))])
 		Mode.RAIL:
 			parts.append("%s, écartement %s m" % ["voie unique" if s.tracks == 1 else "double voie (entraxe %s m)" % _num(c.spacing), _num(GAUGE)])
 	parts.append("%d km/h" % roundi(c.kmh))

@@ -660,7 +660,11 @@ static func build(kit: LpKit, e: Dictionary, xf: Transform3D) -> void:
 			for sx2 in [-0.65, 0.65]:
 				kit.box(Vector3(sx2, 1.55, 0), Vector3(0.02, 2.1, 0.02), metal)
 		_:
-			kit.box(Vector3(0, h * 0.5, 0), Vector3(w - 0.2, h, d - 0.2), wood)
+			var cols := {"bois": wood, "bois2": wood2, "tissu": cloth, "tissu2": cloth2, "metal": metal, "accent": accent,
+				"pierre": stone, "blanc": white}
+			if not MeublesModelesPlus.build(kit, k, w, d, h, cols):
+				kit.box(Vector3(0, h * 0.5, 0), Vector3(w - 0.2, h, d - 0.2), wood)
+			kit.layer = "base"
 
 
 static func _lamp_small(kit: LpKit, at: Vector3, shade: Color) -> void:

@@ -16,8 +16,10 @@ signal network_changed
 signal spec_changed(type_id: String, spec: Dictionary)
 ## Voie posée par le joueur (ses tronçons commencent par un chantier, voir ChantiersVoies).
 signal edges_built(edges: Array)
+## Outil « Faire évoluer » : le joueur a cliqué sur cette route (EvolutionPanel).
+signal upgrade_picked(edge_id: int)
 
-enum Tool { NONE, BUILD, DEMOLISH, JUNCTION }
+enum Tool { NONE, BUILD, DEMOLISH, JUNCTION, UPGRADE }
 
 ## Hauteur entre deux voies qui se croisent : en dessous, carrefour (ou passage
 ## à niveau) ; au-dessus de CLEARANCE, l'une passe sous l'autre.
@@ -37,6 +39,8 @@ var view: TransportView
 var traffic: Traffic
 var stations: StationSystem
 var junctions: JunctionControl
+## Signaux ferroviaires le long des voies (Signalisation, selon l'époque).
+var signaux_vue: SignauxVue
 ## Îlots centraux des giratoires : [{"c": Vector3, "r": float}].
 var roundabouts: Array = []
 var _islands: Node3D
@@ -102,6 +106,10 @@ func _ready() -> void:
 	traffic.name = "Vehicules"
 	add_child(traffic)
 	traffic.setup(network)
+	signaux_vue = SignauxVue.new()
+	signaux_vue.name = "Signaux"
+	add_child(signaux_vue)
+	signaux_vue.setup(network, traffic.signaux)
 	junctions = JunctionControl.new()
 	add_child(junctions)
 	junctions.setup(network)
@@ -228,7 +236,10 @@ func _refresh_junction_cells(changed_cells: Array) -> void:
 			if n == 0:
 				changed_cells.append(c)
 			_occupied[c] = n + 1
-			if world != null and is_nan(water_surface(c.x + 0.5, c.y + 0.5)):
+			# Relief pas encore chargé (partie qui s'ouvre) : le plateau a été terrassé à la
+			# pose et ses cases sont dans la sauvegarde ; sinon chaque chargement ajoutait
+			# des centaines de cases « modifiées » sous les carrefours.
+			if world != null and is_nan(water_surface(c.x + 0.5, c.y + 0.5)) and not is_nan(world.cell_height(c)):
 				works[c] = floorf((float(cells[c]) + 0.001) / world.height_step) * world.height_step
 		_node_fp[nid] = {"key": keys[nid], "cells": cells.keys()}
 	if world != null and not works.is_empty():
@@ -311,6 +322,23 @@ func set_demolish() -> void:
 	tool = Tool.DEMOLISH
 	cancel()
 	info_changed.emit("Démolir : clic sur un tronçon pour le supprimer (le terrain reste terrassé).")
+
+
+## Outil « Faire évoluer » : clic sur une route posée pour changer son profil
+## (voies, trottoirs, terre-plein, couloirs de bus, tramway) sans la démolir.
+func set_upgrade() -> void:
+	tool = Tool.UPGRADE
+	cancel()
+	info_changed.emit("Faire évoluer : clic sur une route pour l'élargir, changer ses trottoirs, ajouter un terre-plein, des couloirs de bus ou un tramway.")
+
+
+## Tronçon que l'outil Démolir ou Faire évoluer peut viser (un tram posé dans
+## une route se change avec la route).
+func _pickable(id: int) -> bool:
+	var e: Dictionary = network.edges[id]
+	if bool((e.w as Dictionary).get("sr", false)):
+		return false
+	return tool != Tool.UPGRADE or TransportTypes.mode_of(e.t) == TransportTypes.Mode.ROAD
 
 
 ## Outil « Carrefour », trois actions : changer le régime d'un carrefour
@@ -651,18 +679,27 @@ func _unhandled_input(event: InputEvent) -> void:
 		_update_cursor(mb.position)
 		if not _cursor_valid:
 			return
+		if tool == Tool.UPGRADE:
+			if _highlight_edge >= 0:
+				upgrade_picked.emit(_highlight_edge)
+			return
 		if tool == Tool.DEMOLISH:
 			if _highlight_edge >= 0:
 				if relais.is_valid():
 					relais.call({"t": "voie_demolir", "eid": _highlight_edge})
 				else:
+					var av := photo_reseau()
+					var nom := "Démolition : " + String(TransportTypes.get_type(String(network.edges[_highlight_edge].t)).get("name", "voie")).to_lower()
 					demolish(_highlight_edge)
+					_noter_histo(nom, av)
 			return
 		if tool == Tool.JUNCTION:
 			if relais.is_valid():
 				relais.call({"t": "carrefour", "action": junction_action, "p": _cursor, "maj": mb.shift_pressed})
 				return
+			var av_j := photo_reseau()
 			var txt := appliquer_carrefour(junction_action, _cursor, mb.shift_pressed)
+			_noter_histo("Carrefour", av_j)
 			if txt != "":
 				message.emit(txt)
 			return
@@ -738,6 +775,12 @@ func _click_build() -> void:
 		_ctrl = Vector2(t.x, t.z)
 		_update_preview()
 		return
+	# Mode plan : le tronçon reste un projet (fantôme bleu), sans chantier.
+	if ModePlan.instance != null and ModePlan.instance.actif:
+		var pp := _current_path()
+		if ModePlan.instance.capter_voie(type_id, spec, pp, RoutePlanner.profondeur_forcee):
+			_continuer_depuis(pp)
+		return
 	if relais.is_valid():
 		# Multijoueur : le serveur pose la voie chez tout le monde ; on continue le
 		# tracé depuis le dernier point, dans le prolongement.
@@ -747,19 +790,16 @@ func _click_build() -> void:
 		if not is_nan(RoutePlanner.profondeur_forcee):
 			a["prof"] = RoutePlanner.profondeur_forcee
 		relais.call(a)
-		var n := path.size()
-		var last := path[n - 1]
-		var dir := (path[n - 1] - path[maxi(n - 2, 0)]).normalized()
-		_start = {"node": -1, "edge": -1, "pos": Vector3(last.x, ground_height(last.x, last.y), last.y), "dir": dir}
-		_ctrl = null
-		_update_preview()
+		_continuer_depuis(path)
 		return
+	var av := photo_reseau()
 	var res := build_path(type_id, spec, _current_path())
 	if not res.ok:
 		message.emit(res.reason)
 		return
 	message.emit(_describe(res, true))
 	edges_built.emit(res.edges)
+	_noter_histo(String(TransportTypes.get_type(type_id).get("name", "Voie")), av)
 	Son.jouer("pose_route", -3.0, 0.08)
 	# On continue le tracé depuis le point posé, dans le prolongement.
 	var end_node: int = res.end_node
@@ -767,6 +807,17 @@ func _click_build() -> void:
 	var tail := pts[pts.size() - 1] - pts[maxi(pts.size() - 3, 0)]
 	_start = {"node": end_node, "edge": -1, "pos": network.node_pos(end_node),
 		"dir": Vector2(tail.x, tail.z).normalized()}
+	_ctrl = null
+	_update_preview()
+
+
+## Le tracé continue depuis le bout de path, dans le prolongement (voie envoyée au
+## serveur ou gardée en projet : pas encore de nœud où s'accrocher).
+func _continuer_depuis(path: PackedVector2Array) -> void:
+	var n := path.size()
+	var last := path[n - 1]
+	var dir := (path[n - 1] - path[maxi(n - 2, 0)]).normalized()
+	_start = {"node": -1, "edge": -1, "pos": Vector3(last.x, ground_height(last.x, last.y), last.y), "dir": dir}
 	_ctrl = null
 	_update_preview()
 
@@ -821,17 +872,23 @@ func _update_cursor(screen: Vector2) -> void:
 	_cursor_valid = hit != null
 	if _cursor_valid:
 		_cursor = hit
-	if tool == Tool.DEMOLISH:
+	if tool == Tool.DEMOLISH or tool == Tool.UPGRADE:
 		var best := -1
 		var best_d := INF
 		if _cursor_valid:
 			for id in network.edges:
+				if not _pickable(id):
+					continue
 				var h := network.nearest_on_edge(id, _cursor)
 				if h.dist < network.half_width(id) + 1.5 and h.dist < best_d:
 					best_d = h.dist
 					best = id
 		_set_highlight(best)
-		if best >= 0:
+		if best >= 0 and tool == Tool.UPGRADE:
+			var eu: Dictionary = network.edges[best]
+			info_changed.emit("Faire évoluer : %s de %d m (%s) · clic pour choisir" % [TransportTypes.get_type(eu.t).name, roundi(eu.len),
+				TransportTypes.describe(eu.t, eu.w)])
+		elif best >= 0:
 			var e: Dictionary = network.edges[best]
 			info_changed.emit("Démolir : %s de %d m · clic pour supprimer" % [TransportTypes.get_type(e.t).name, roundi(e.len)])
 	elif tool == Tool.JUNCTION:
@@ -902,13 +959,13 @@ func _set_highlight(id: int) -> void:
 		return
 	_highlight_edge = id
 	if id < 0:
-		if tool == Tool.DEMOLISH:
+		if tool == Tool.DEMOLISH or tool == Tool.UPGRADE:
 			_preview.mesh = null
 		return
 	var e: Dictionary = network.edges[id]
 	_preview.mesh = TransportView.build_mesh(e.t, e.w, e.pts, e.st, ground_height)
 	_preview.position = Vector3(0, 0.12, 0)
-	_preview.material_override = _preview_bad_mat
+	_preview.material_override = _preview_ok_mat if tool == Tool.UPGRADE else _preview_bad_mat
 
 
 # --- Évaluation d'un tracé -----------------------------------------------------------------
@@ -935,7 +992,8 @@ func evaluate(id: String, s: Dictionary, path: PackedVector2Array) -> Dictionary
 	plan.snap_b = sb
 	plan.crossings = []
 	# Partie historique : pas d'autoroute en 1850 ni de métro en 1820 (Epoques).
-	var epoque := Epoques.raison_voie(id)
+	# Puis la branche Transports de l'arbre de progression.
+	var epoque := ReglagesPartie.actuel.raison_voie(id)
 	if epoque != "":
 		plan.ok = false
 		plan.reason = epoque
@@ -1344,6 +1402,104 @@ func demolish(id: int) -> void:
 	_highlight_edge = -1
 	_preview.mesh = null
 	message.emit("%s supprimée." % name_)
+
+
+# --- Annuler / rétablir (HistoriqueVille) ------------------------------------------------
+
+## Photo légère du réseau (dictionnaires partagés, pas copiés) avant un geste du joueur.
+func photo_reseau() -> Dictionary:
+	return {"n": network.nodes.duplicate(), "e": network.edges.duplicate(), "g": roundabouts.duplicate(true)}
+
+
+## Ce qui a changé entre deux photos : tronçons et nœuds créés ou ôtés (copies), giratoires.
+## Les tronçons modifiés sur place (usure, chantier) ne comptent pas.
+func diff_reseau(av: Dictionary, ap: Dictionary) -> Dictionary:
+	var d := {"e_plus": {}, "e_moins": {}, "n_plus": {}, "n_moins": {}, "g_av": av.get("g", []), "g_ap": ap.get("g", [])}
+	for id in ap.e:
+		if not av.e.has(id) or not is_same(av.e[id], ap.e[id]):
+			d.e_plus[id] = (ap.e[id] as Dictionary).duplicate(true)
+	for id in av.e:
+		if not ap.e.has(id) or not is_same(av.e[id], ap.e[id]):
+			d.e_moins[id] = (av.e[id] as Dictionary).duplicate(true)
+	for id in ap.n:
+		if not av.n.has(id):
+			d.n_plus[id] = (ap.n[id] as Dictionary).duplicate(true)
+	for id in av.n:
+		if not ap.n.has(id):
+			d.n_moins[id] = (av.n[id] as Dictionary).duplicate(true)
+	return d
+
+
+static func diff_vide(d: Dictionary) -> bool:
+	return (d.get("e_plus", {}) as Dictionary).is_empty() and (d.get("e_moins", {}) as Dictionary).is_empty()
+
+
+## Note un geste du joueur sur le réseau dans l'historique (Ctrl+Z).
+func _noter_histo(nom: String, av: Dictionary) -> void:
+	if HistoriqueVille.instance != null:
+		HistoriqueVille.instance.noter_voies(nom, diff_reseau(av, photo_reseau()))
+
+
+## Défait (annuler = true) ou refait une différence du réseau. Les tronçons gardent
+## leurs numéros. Renvoie le nombre de tronçons qui avaient changé entre-temps (sautés).
+func appliquer_diff(d: Dictionary, annuler: bool) -> int:
+	if bloque_reseau():
+		return 0
+	var otes: Dictionary = d.e_plus if annuler else d.e_moins
+	var mis: Dictionary = d.e_moins if annuler else d.e_plus
+	var n_otes: Dictionary = d.n_plus if annuler else d.n_moins
+	var n_mis: Dictionary = d.n_moins if annuler else d.n_plus
+	var sautes := 0
+	for id in otes:
+		if not network.edges.has(id):
+			sautes += 1
+			continue
+		var e: Dictionary = network.edges[id]
+		network.edges.erase(id)
+		network.closed_edges.erase(id)
+		for n in [e.a, e.b]:
+			(network.adjacency.get(n, []) as Array).erase(id)
+	for id in n_mis:
+		if not network.nodes.has(id):
+			network.nodes[id] = (n_mis[id] as Dictionary).duplicate(true)
+			network.adjacency[id] = []
+	for id in mis:
+		if network.edges.has(id):
+			sautes += 1
+			continue
+		var e: Dictionary = (mis[id] as Dictionary).duplicate(true)
+		if not network.nodes.has(e.a) or not network.nodes.has(e.b):
+			sautes += 1
+			continue
+		network.edges[id] = e
+		(network.adjacency[e.a] as Array).append(id)
+		(network.adjacency[e.b] as Array).append(id)
+		network.next_id = maxi(network.next_id, int(id) + 1)
+	for id in n_otes:
+		if network.nodes.has(id) and (network.adjacency.get(id, []) as Array).is_empty():
+			network.nodes.erase(id)
+			network.adjacency.erase(id)
+	# Les nœuds vidés par les tronçons ôtés disparaissent, comme avec remove_edge.
+	for id in otes:
+		var e: Dictionary = otes[id]
+		for n in [e.a, e.b]:
+			if network.nodes.has(n) and (network.adjacency.get(n, []) as Array).is_empty():
+				network.nodes.erase(n)
+				network.adjacency.erase(n)
+	for id in n_mis:
+		network.next_id = maxi(network.next_id, int(id) + 1)
+	# Giratoires de l'état visé (ceux dont l'anneau a disparu s'effacent tout seuls).
+	for g in (d.get("g_av", []) if annuler else d.get("g_ap", [])):
+		var deja := false
+		for r in roundabouts:
+			deja = deja or (r.c as Vector3).distance_to(g.c) < 0.5
+		if not deja:
+			roundabouts.append((g as Dictionary).duplicate(true))
+	_highlight_edge = -1
+	if _preview != null:
+		_preview.mesh = null
+	network.changed.emit()
+	return sautes
 
 
 # --- Statistiques et sauvegarde -----------------------------------------------------------

@@ -54,6 +54,20 @@ const CULTURES := {
 	"coton": {"name": "Coton", "good": "fibres", "rdt": 0.9, "paille": 0.0, "cycle": 170, "semis": [4, 5],
 		"climats": [3, 4], "toute_annee": true, "semis_m": "semoir", "recolte_m": "moissonneuse", "semences": 150,
 		"engrais": 120, "couche": "legumes", "plante": "legumes", "densite": 0.5, "couleur": Color("f1efe6")},
+	# Lot 5 : cultures arrivées après 1970.
+	"triticale": {"name": "Triticale (blé × seigle)", "good": "cereales", "rdt": 6.0, "paille": 4.0, "cycle": 260, "semis": [10],
+		"climats": [0, 1, 2], "semis_m": "semoir", "recolte_m": "moissonneuse", "semences": 120, "engrais": 110,
+		"couche": "ble", "plante": "ble", "densite": 1.0, "couleur": Color("c9a95a")},
+	"quinoa": {"name": "Quinoa", "good": "cereales", "rdt": 1.8, "paille": 0.0, "cycle": 150, "semis": [4],
+		"climats": [0, 1, 2], "semis_m": "semoir", "recolte_m": "moissonneuse", "semences": 12, "engrais": 60,
+		"couche": "colza", "plante": "colza", "densite": 0.6, "couleur": Color("b5654a")},
+	"miscanthus": {"name": "Miscanthus (herbe à éléphant, chauffage)", "good": "bois", "rdt": 14.0, "paille": 0.0, "cycle": 300,
+		"semis": [4], "perenne": true, "climats": [0, 1, 2], "semis_m": "planteuse", "recolte_m": "moissonneuse", "semences": 400, "engrais": 0,
+		"couche": "mais", "plante": "mais", "densite": 1.2, "couleur": Color("a8b36a")},
+	"fraises_hors_sol": {"name": "Fraises hors-sol (sous serre)", "good": "fruits_legumes", "rdt": 45.0, "paille": 0.0,
+		"cycle": 120, "semis": [3], "climats": [0, 1, 2, 3], "toute_annee": true, "semis_m": "planteuse",
+		"recolte_m": "cueillette", "semences": 900, "engrais": 140, "couche": "legumes", "plante": "legumes", "densite": 0.5,
+		"couleur": Color("d64545")},
 	"prairie": {"name": "Prairie de fauche (foin)", "good": "foin", "rdt": 3.5, "paille": 0.0, "cycle": 60,
 		"semis": [3, 4, 9], "climats": [0, 1, 2, 3, 4], "permanente": true, "semis_m": "semoir", "recolte_m": "faucheuse",
 		"semences": 120, "engrais": 60, "couche": "pre_fauche", "plante": "herbe", "densite": 0.08,
@@ -99,7 +113,7 @@ const CULTURES := {
 ## Ordre d'affichage.
 const ORDRE_CULTURES := ["ble", "orge", "mais", "colza", "tournesol", "soja", "betterave", "pomme_de_terre",
 	"legumes", "riz", "lin", "coton", "prairie", "paturage", "vigne", "verger", "agrumes", "olivier", "houblon", "tabac",
-	"cafe", "cacao", "the", "canne"]
+	"cafe", "cacao", "the", "canne", "triticale", "quinoa", "miscanthus", "fraises_hors_sol"]
 
 ## Travaux des champs : machine (outil) et tracteur nécessaires. "outil"
 ## peut dépendre de la culture (semis_m, recolte_m). pluie : impossible sous
@@ -121,23 +135,23 @@ const MACHINES := {
 	"tracteur": {"name": "Tracteur", "prix": 110_000, "loc": 220, "ha_h": 0.0, "litres": 14.0, "automoteur": true,
 		"modele": "tracteur"},
 	"charrue": {"name": "Charrue", "prix": 22_000, "loc": 70, "ha_h": 1.4, "modele": "charrue"},
-	"semoir": {"name": "Semoir", "prix": 38_000, "loc": 110, "ha_h": 3.0, "modele": ""},
-	"planteuse": {"name": "Planteuse", "prix": 45_000, "loc": 140, "ha_h": 1.2, "modele": ""},
-	"epandeur": {"name": "Épandeur d'engrais", "prix": 18_000, "loc": 60, "ha_h": 8.0, "modele": ""},
-	"pulverisateur": {"name": "Pulvérisateur", "prix": 32_000, "loc": 100, "ha_h": 12.0, "modele": ""},
+	"semoir": {"name": "Semoir", "prix": 38_000, "loc": 110, "ha_h": 3.0, "modele": "semoir"},
+	"planteuse": {"name": "Planteuse", "prix": 45_000, "loc": 140, "ha_h": 1.2, "modele": "planteuse"},
+	"epandeur": {"name": "Épandeur d'engrais", "prix": 18_000, "loc": 60, "ha_h": 8.0, "modele": "epandeur"},
+	"pulverisateur": {"name": "Pulvérisateur", "prix": 32_000, "loc": 100, "ha_h": 12.0, "modele": "pulverisateur"},
 	"moissonneuse": {"name": "Moissonneuse-batteuse", "prix": 320_000, "loc": 900, "ha_h": 2.8, "litres": 28.0,
 		"automoteur": true, "modele": "moissonneuse"},
 	"arracheuse": {"name": "Arracheuse (betteraves, pommes de terre)", "prix": 380_000, "loc": 1000, "ha_h": 0.9,
-		"litres": 30.0, "automoteur": true, "modele": "moissonneuse"},
-	"faucheuse": {"name": "Faucheuse", "prix": 14_000, "loc": 55, "ha_h": 3.0, "modele": ""},
-	"presse": {"name": "Presse à balles rondes", "prix": 40_000, "loc": 130, "ha_h": 4.0, "modele": ""},
+		"litres": 30.0, "automoteur": true, "modele": "arracheuse"},
+	"faucheuse": {"name": "Faucheuse", "prix": 14_000, "loc": 55, "ha_h": 3.0, "modele": "faucheuse"},
+	"presse": {"name": "Presse à balles rondes", "prix": 40_000, "loc": 130, "ha_h": 4.0, "modele": "presse_balles"},
 	"remorque": {"name": "Remorque (récolte à la main)", "prix": 15_000, "loc": 45, "ha_h": 0.25, "modele": "remorque_foin"},
 	# Récoltes des cultures pérennes. manuel : le travail se fait à plusieurs
 	# mains (jusqu'à MAINS ouvriers sur le même champ), sans tracteur.
 	"cueillette": {"name": "Cueilleurs et plateforme de récolte", "prix": 25_000, "loc": 90, "ha_h": 0.08, "litres": 2.0,
 		"automoteur": true, "manuel": true, "modele": "remorque_foin"},
 	"vendangeuse": {"name": "Machine à vendanger", "prix": 180_000, "loc": 600, "ha_h": 0.5, "litres": 20.0,
-		"automoteur": true, "modele": "tracteur"},
+		"automoteur": true, "modele": "vendangeuse"},
 	"coupe_canne": {"name": "Récolteuse de canne", "prix": 300_000, "loc": 900, "ha_h": 0.8, "litres": 30.0,
 		"automoteur": true, "modele": "moissonneuse"},
 }
@@ -196,6 +210,12 @@ const ESPECES := {
 	"pisciculture": {"name": "Bassins de truites", "un": "bassin", "ugb": 0.0, "prix": 8000,
 		"mange": {"cereales": 0.035}, "donne": {"poisson": 0.027},
 		"par_eleveur": 8, "modeles": ["ponton_court"]},
+	"aquaponie": {"name": "Aquaponie (poissons et salades)", "un": "bassin", "ugb": 0.0, "prix": 15000,
+		"mange": {"cereales": 0.02}, "donne": {"poisson": 0.015, "fruits_legumes": 0.03},
+		"par_eleveur": 6, "modeles": ["serre_tunnel"]},
+	"insectes": {"name": "Élevage d'insectes (protéines)", "un": "bac", "ugb": 0.0, "prix": 400,
+		"mange": {"cereales": 0.0004}, "donne": {"betail": 0.00015, "fumier": 0.0002},
+		"par_eleveur": 400, "modeles": ["bac_insectes"]},
 	"buffle": {"name": "Buffles d'eau", "un": "buffle", "ugb": 1.0, "prix": 1800,
 		"mange": {"foin": 0.012}, "donne": {"lait": 0.008, "betail": 0.0007, "fumier": 0.04},
 		"par_eleveur": 50, "modeles": ["zebu", "yack"]},
@@ -207,7 +227,7 @@ const ESPECES := {
 		"par_eleveur": 400, "modeles": ["renne"]},
 }
 const ORDRE_ESPECES := ["vache", "bovin", "porc", "poule", "mouton", "chevre", "cheval", "canard", "dinde", "lapin",
-	"abeille", "pisciculture", "buffle", "lama", "renne"]
+	"abeille", "pisciculture", "buffle", "lama", "renne", "aquaponie", "insectes"]
 ## Litière : paille par UGB et par jour en bâtiment (t).
 const LITIERE := 0.004
 

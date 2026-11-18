@@ -81,9 +81,14 @@ const VOIES := {
 	"avenue": [0.5, 0.3, 180.0, 0.3], "giratoire": [0.4, 0.25, 140.0, 0.3], "rue": [0.25, 0.12, 90.0, 0.2],
 	"train": [0.55, 0.05, 280.0, 0.5], "cremaillere": [0.35, 0.0, 150.0, 0.2], "lgv": [0.75, 0.0, 420.0, 0.5],
 	"tram": [0.3, 0.0, 110.0, 0.2], "metro": [0.25, 0.0, 80.0, 0.2],
+	"chemin_terre": [0.1, 0.05, 50.0, 0.1], "route_pavee": [0.35, 0.12, 110.0, 0.2], "route_empierree": [0.3, 0.15, 120.0, 0.2],
+	"boulevard": [0.5, 0.3, 180.0, 0.3], "zone_rencontre": [0.12, 0.05, 50.0, 0.1], "avenue_bhns": [0.45, 0.25, 160.0, 0.3],
+	"route_2plus1": [0.55, 0.3, 240.0, 0.35], "autoroute_urbaine": [0.6, 0.36, 300.0, 0.45],
+	"voie_etroite": [0.35, 0.03, 160.0, 0.2], "ligne_fret": [0.65, 0.0, 320.0, 0.7],
 }
 ## Aéroports et héliports : [bruit, air, rayon, part la nuit].
-const AIR_STATIONS := {"aeroport": [1.0, 0.45, 2500.0, 0.6], "aerodrome": [0.6, 0.15, 1000.0, 0.2], "heliport": [0.55, 0.05, 600.0, 0.2]}
+const AIR_STATIONS := {"aeroport": [1.0, 0.45, 2500.0, 0.6], "aerodrome": [0.6, 0.15, 1000.0, 0.2], "heliport": [0.55, 0.05, 600.0, 0.2],
+	"vertiport": [0.3, 0.0, 300.0, 0.1]}
 
 var world: TerrainWorld
 var buildings: BuildingSystem

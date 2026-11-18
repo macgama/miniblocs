@@ -24,7 +24,7 @@ const PEAUX := [Color("f6dccb"), Color("e5b48f"), Color("c98f67"), Color("a06743
 static func couleur(design: Dictionary, quoi: String) -> Color:
 	var pal: Array = COULEURS[quoi]
 	var defaut := {"rail": 0, "support": 0, "train": 0}
-	var fam := String(design.get("famille", "acier"))
+	var fam := VoiePieces.style(String(design.get("famille", "acier")))
 	if quoi == "support" and fam in ["bois", "mine"]:
 		return BOIS
 	return pal[clampi(int(design.get("c_" + quoi, defaut[quoi])), 0, pal.size() - 1)]
@@ -34,8 +34,8 @@ static func couleur(design: Dictionary, quoi: String) -> Color:
 ## locale du sol sous ce point (NAN si inconnue : pas de piliers).
 static func voie(design: Dictionary, tr: Dictionary, sim: Dictionary, sol: Callable, fantome := false) -> ArrayMesh:
 	var k := BlocMesh.new()
-	var fam_id := String(design.get("famille", "acier"))
-	var fam := VoiePieces.famille(fam_id)
+	var fam := VoiePieces.famille(String(design.get("famille", "acier")))
+	var fam_id := VoiePieces.style(String(design.get("famille", "acier")))
 	var P: PackedVector3Array = tr.P
 	var n := P.size()
 	if n < 2:
@@ -301,8 +301,8 @@ static func emprise(fam_id: String) -> Vector2i:
 
 ## Modèle de la gare (repère du bâtiment, sol en 0, entrée vers −Z).
 static func gare(k: BlocMesh, t: Dictionary) -> void:
-	var fam_id := String(t.get("voie_famille", "acier"))
-	var f := VoiePieces.famille(fam_id)
+	var f := VoiePieces.famille(String(t.get("voie_famille", "acier")))
+	var fam_id := VoiePieces.style(String(t.get("voie_famille", "acier")))
 	var w := float(t.get("w", 28))
 	var d := float(t.get("d", 12))
 	var genre := String(f.genre)
@@ -365,8 +365,8 @@ static func _panneau(k: BlocMesh, x: float, z: float, col: Color) -> void:
 ## Maillage d'une voiture (avant vers −Z, roues sur y = 0 = rail). occupe : passagers assis.
 static func voiture(design: Dictionary, occupe: bool, tete := false) -> ArrayMesh:
 	var k := BlocMesh.new()
-	var fam_id := String(design.get("famille", "acier"))
-	var f := VoiePieces.famille(fam_id)
+	var f := VoiePieces.famille(String(design.get("famille", "acier")))
+	var fam_id := VoiePieces.style(String(design.get("famille", "acier")))
 	var col := couleur(design, "train")
 	var lv := float(f.lv)
 	var places := int(f.places)

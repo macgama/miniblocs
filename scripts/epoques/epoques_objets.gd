@@ -101,6 +101,28 @@ const DECORS := {
 	# Parc de loisirs
 	"pt_lampadaire_guirlande": 1900, "pt_poubelle_clown": 1950, "pt_mascotte": 1950, "pt_fusee": 1957,
 	"pt_soucoupe": 1950, "pt_radar": 1940, "pt_robot": 1930, "pt_planete": 1950,
+	# Décors datés (lot du 2026-11-17) ; torii, lanternes, chadouf, totem, mur mani,
+	# four à pain, tandoor, chasse-roue, pompe à bras : de tout temps.
+	"bec_gaz": 1830, "vespasienne": 1834, "kiosque_journaux": 1857, "kiosque_musique": 1850, "lavoir": 1830,
+	"poteau_telegraphe": 1850, "orgue_barbarie": 1800, "cireur": 1880, "malles_bagages": 1880,
+	"pompe_essence_ancienne": 1920, "borne_routiere": 1920, "cabine_police": 1929, "entree_metro": 1900,
+	"borne_appel": 1890, "affiche_reclame": 1900, "sirene_alerte": 1938, "yatai": 1900,
+	"borne_recharge": 2010, "bornes_recharge_parking": 2015, "velos_libre_service": 2007, "trottinettes": 2018,
+	"abribus_moderne": 2000, "panneaux_solaires": 2005, "lampadaire_solaire": 2012, "boite_livres": 2010,
+	"conteneurs_enterres": 2000, "poubelle_solaire": 2010, "totem_info": 2012, "camera_surveillance": 1995,
+	"radar_vitesse": 2003, "casiers_colis": 2015, "atelier_velo": 2015, "agres_fitness": 2005, "rampe_skate": 1990,
+	"sanisette": 1981, "bac_compost": 2015, "jardin_partage": 2000, "hotel_insectes": 2010, "banc_connecte": 2015,
+	"mat_5g": 2019, "borne_drones": 2030,
+	# Lot 4 (puits couvert et montoir : de tout temps).
+	"barriere_octroi": 1800, "poteau_indicateur": 1800, "telegraphe_chappe": 1794, "guerite": 1800,
+	"boite_lettres_fonte": 1849, "grue_quai": 1800, "eolienne_urbaine": 2015, "arbre_solaire": 2020, "brumisateur": 2019,
+	"capteur_air": 2015, "parklet": 2016, "jardin_pluie": 2015, "frigo_solidaire": 2015, "toilettes_seches": 2015,
+	"echange_batteries": 2019, "borne_hydrogene": 2018, "robot_livraison": 2020, "vertiport": 2030,
+	# Lot 5 : machines agricoles.
+	"semoir": 1960, "semoir_precision": 2010, "planteuse": 1970, "epandeur": 1965, "pulverisateur": 1960, "faucheuse": 1975,
+	"presse_balles": 1975, "presse_enrubanneuse": 2005, "dechaumeur": 2005, "arracheuse": 1985, "vendangeuse": 1975,
+	"tracteur_gps": 2010, "tracteur_autonome": 2035, "robot_agricole": 2032, "robot_desherbeur": 2026, "drone_agricole": 2016,
+	"moissonneuse_autonome": 2030, "robot_cueilleur": 2025, "bac_insectes": 2015,
 }
 
 ## Décors posés tout seuls (rues, berges, plages, fermes) : équivalents plus
@@ -116,6 +138,13 @@ const DECORS_ANCIENS := {
 	"tracteur_ancien": ["cheval"], "moissonneuse": [], "serre_tunnel": [], "silo_grain": [], "citerne": ["tonneaux"],
 	"abreuvoir": [], "tente_marche": ["parasol", "etal_fruits"], "parasol": ["etal_fruits"],
 	"cabine_telephone": [], "panneau_publicite": ["colonne_affichage"],
+	"abribus_moderne": ["abribus"], "lampadaire_solaire": ["lampadaire", "reverbere"],
+	"velos_libre_service": ["arceaux_velo"], "trottinettes": [], "borne_recharge": ["pompe_essence_ancienne"],
+	"conteneurs_enterres": ["poubelles_tri", "poubelle"], "poubelle_solaire": ["poubelle"], "totem_info": ["colonne_affichage"],
+	"sanisette": ["vespasienne"], "banc_connecte": ["banc_moderne", "banc_bois"], "casiers_colis": [],
+	"borne_drones": [], "mat_5g": ["pylone"], "radar_vitesse": [], "camera_surveillance": [],
+	"brumisateur": ["borne_fontaine"], "arbre_solaire": ["lampadaire_solaire", "reverbere"], "echange_batteries": ["borne_recharge"],
+	"borne_hydrogene": ["borne_recharge", "pompe_essence_ancienne"], "telegraphe_chappe": [],
 }
 
 # --- Meubles et objets de spectacle (Intérieur) ------------------------------------------
@@ -126,10 +155,27 @@ const MEUBLES := {
 	"baignoire": 1850, "lavabo": 1880, "wc": 1880, "meuble_vasque": 1960, "photocopieur": 1960,
 	"fontaine_eau": 1950, "poste_travail": 1985, "armoire_dossiers": 1900, "vitrine_froide": 1950,
 	"aquarium": 1850, "lampadaire": 1900, "casiers": 1950, "portant": 1900, "mannequin": 1850,
+	# Catalogue étoffé (17 novembre 2026).
+	"machine_coudre": 1851, "lampe_petrole": 1860, "glaciere": 1850, "lessiveuse": 1850, "telephone_mural": 1880,
+	"phonographe": 1895, "fauteuil_club": 1920, "radio_tsf": 1922, "lit_escamotable": 1916, "juke_box": 1940,
+	"flipper": 1947, "baby_foot": 1950, "lave_linge": 1950, "seche_linge": 1960, "television_tube": 1950,
+	"micro_ondes": 1975, "chaine_hifi": 1970, "velo_appartement": 1970, "fauteuil_oeuf": 1958, "lampe_lave": 1963,
+	"borne_arcade": 1978, "ordinateur_perso": 1981, "minitel": 1982, "canape_angle": 1990, "ecran_plat": 2005,
+	"home_cinema": 1995, "bureau_assis_debout": 2012, "fauteuil_gamer": 2015, "robot_aspirateur": 2002,
+	"enceinte_connectee": 2014, "tapis_course": 1990, "imprimante_3d": 2012, "ilot_induction": 2000, "cave_vin": 1990,
+	"poele_granules": 2005, "hologramme": 2040, "robot_domestique": 2035,
+	# Lot 4.
+	"harpe": 1800, "lit_bateau": 1800, "psyche": 1810, "baignoire_zinc": 1830, "cuisiniere_fonte": 1830,
+	"lanterne_magique": 1800, "chambre_photo": 1840, "frigo_connecte": 2018, "realite_virtuelle": 2016, "mur_vegetal": 2015,
+	"potager_interieur": 2019, "batterie_domestique": 2020, "capsule_sommeil": 2030, "mur_ecran": 2032, "robot_cuisinier": 2033,
+	"imprimante_repas": 2040,
 }
 
 ## Objets de spectacle (SpectaclesObjets.TYPES).
 const SPECTACLES := {
+	"rampe_gaz": 1817, "panorama_peint": 1800,
+	"mur_led": 2010, "laser_scene": 1980, "hologramme_scene": 2015, "drones_lumineux": 2016, "camera_robot": 2015,
+	"plateau_virtuel": 2019, "casques_vr": 2016,
 	"projecteurs_scene": 1880, "poursuite": 1900, "fauteuils_inclinables": 1990, "barriere_scene": 1970,
 	"grand_ecran": 1900, "ecran_geant": 1953, "projecteur_numerique": 2005, "enceinte_cine": 1975,
 	"comptoir_confiserie": 1930, "machine_popcorn": 1893, "borne_billets": 2000, "affiche_lumineuse": 1930,
@@ -147,9 +193,14 @@ const SPECTACLES := {
 const OUVERTURES := {
 	"baie": 1930, "baie_coulissante": 1950, "mur_rideau": 1950, "porte_garage": 1910, "bandeau": 1925,
 	"vitrine": 1850, "vitrine_store": 1850, "fenetre_atelier": 1850,
+	"fenetre_balconnet": 1850, "fenetre_store": 1880, "hublot": 1930, "baie_balconnet": 1930,
+	"fenetre_balconnet_volets": 1850, "fenetre_balconnet_store": 1880, "baie_store": 1960, "baie_volets": 1970,
+	"baie_balconnet_store": 1960,
 }
 
-const TOITS := {"terrasse": 1920, "dents_de_scie": 1830}
+const TOITS := {"terrasse": 1920, "dents_de_scie": 1830, "verriere": 1830, "plat_debord": 1905, "toit_vegetal": 1970,
+	"toit_solaire": 1995, "verriere_pavillon": 1830, "coupole_verre": 1820, "papillon": 1950, "sheds_solaires": 2010,
+	"tuiles_solaires": 2016, "toit_radiatif": 2022}
 
 const AMENAGEMENTS := {
 	"piscine": 1920, "bassin_nage": 1900, "plongeon": 1900, "pataugeoire": 1920, "spa": 1970, "bassin_animaux": 1830,
@@ -158,6 +209,8 @@ const AMENAGEMENTS := {
 	"tribune_couverte": 1890, "foot": 1863, "foot5": 1990, "rugby": 1871, "basket": 1891, "handball": 1920,
 	"volley": 1895, "beach_volley": 1990, "tennis": 1950, "tennis_terre": 1880, "athletisme": 1880,
 	"patinoire": 1876, "petanque": 1907,
+	"bassin_naturel": 2000, "bassin_urbain": 2017, "voie_large": 1851, "voie_cap": 1873, "tribune_bois": 1830,
+	"gradins_retractables": 1990, "cricket": 1800, "croquet": 1856, "badminton": 1873, "padel": 1990,
 }
 
 # --- Parc de loisirs : grands-huit et figures ---------------------------------------------
@@ -165,6 +218,8 @@ const AMENAGEMENTS := {
 const FAMILLES_VOIES := {
 	"bois": 1884, "acier": 1959, "mine": 1966, "familial": 1950, "suspendu": 1981, "lance": 1977,
 	"splash": 1884, "buches": 1963, "riviere": 1980, "toboggan": 1960,
+	"panoramique": 1887, "moulin": 1902, "tour_glissade": 1905, "bobsleigh": 1929, "train_fantome": 1930,
+	"promenades": 1817, "tournant": 1997, "luge_ete": 1996, "aile": 2007, "realite_virtuelle": 2016,
 }
 
 const PIECES_VOIES := {

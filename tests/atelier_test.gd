@@ -233,7 +233,7 @@ func _run() -> void:
 		bp.show_category("blocs")
 		await process_frame
 		counts[tab] = (tab_cards.call() as Array).size()
-	_check(counts.portes == 9 and counts.fenetres == 8 and counts.toits == PlanEditor.ROOFS.size(),
+	_check(counts.portes == 10 and counts.fenetres == 19 and counts.toits == PlanEditor.ROOFS.size(),
 		"onglets Portes, Fenêtres, Baies, Passages, Toits en vignettes %s" % [counts])
 	bp._block_mode = "blocs"
 	var bcount := 0

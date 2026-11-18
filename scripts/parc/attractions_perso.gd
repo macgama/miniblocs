@@ -103,7 +103,10 @@ static func nouveau_design(fam_id: String) -> Dictionary:
 	var f := VoiePieces.famille(fam_id)
 	var noms := {"acier": "Le Serpentin", "bois": "Le Vieux Bois", "mine": "Train de la Mine d'Or", "familial": "La Chenille",
 		"suspendu": "L'Envol", "lance": "La Fusée", "buches": "Les Bûches du Moulin", "riviere": "Rivière Sauvage",
-		"splash": "Grand Plouf", "toboggan": "Le Toboggan Bleu"}
+		"splash": "Grand Plouf", "toboggan": "Le Toboggan Bleu", "panoramique": "Les Montagnes Russes de 1900",
+		"bobsleigh": "Le Bobsleigh", "train_fantome": "Le Château Hanté", "moulin": "Le Vieux Moulin", "tour_glissade": "La Tour Joyeuse",
+		"promenades": "Les Promenades de Belleville", "tournant": "La Toupie Folle", "luge_ete": "La Luge du Col",
+		"aile": "Les Ailes du Faucon", "realite_virtuelle": "Le Dragon Virtuel"}
 	return {"id": nouvel_id(), "nom": String(noms.get(fam_id, "Mon attraction")), "famille": fam_id, "pieces": [],
 		"raccord": false, "c_rail": 0, "c_support": 0, "c_train": 0, "voitures": int(f.voitures), "trains": int(f.get("trains", 1))}
 
@@ -239,6 +242,8 @@ static func modeles() -> Array:
 			"droit virage_g montee* droit_long* fin_montee* virage_g droit_long descente raidir_bas adoucir_bas fin_descente eclabousse virage_g droit")},
 		{"nom": "Rivière Sauvage", "famille": "riviere", "raccord": true, "c_rail": 6, "c_support": 0, "c_train": 1, "pieces": suite(
 			"droit rapides virage_d_large tourbillon montee* fin_montee* virage_d descente fin_descente rapides virage_d_large")},
+		{"nom": "Le Château Hanté", "famille": "train_fantome", "raccord": true, "c_rail": 5, "c_support": 0, "c_train": 5, "pieces": suite(
+			"droit* virage_d* tunnel* virage_d* droit_long* droit_long* droit_long* virage_d* tunnel* virage_d* droit* freins")},
 		{"nom": "Le Toboggan Bleu", "famille": "toboggan", "raccord": false, "c_rail": 1, "c_support": 0, "c_train": 0, "pieces": suite(
 			"droit_court descente virage_d fin_descente virage_g virage_d droit arrivee")},
 	]

@@ -421,7 +421,10 @@ func rise_set() -> Vector2:
 
 func _process(delta: float) -> void:
 	var s: float = SPEEDS[speed_index]
-	if s > 0.0:
+	# Derrière l'écran de chargement, la partie n'a pas encore commencé : l'heure attend
+	# que le joueur voie sa ville (sinon 2 h de jeu passaient à 1 jour/min pendant 5 s
+	# de chargement, chantiers et emménagements compris).
+	if s > 0.0 and EcranChargement.actif == null:
 		unix_time += delta * s
 	# Jour permanent, à minuit : le Soleil repart du matin en glissant (1 à 2 s)
 	# au lieu de sauter.

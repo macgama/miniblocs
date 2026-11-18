@@ -65,6 +65,12 @@ func _run() -> void:
 	_check(bool(AgriDonnees.machine("moissonneuse").automoteur), "1965 : moissonneuse-batteuse automotrice")
 	_annee(r, 2020)
 	_check(AgriDonnees.machine("moissonneuse").name == AgriDonnees.MACHINES.moissonneuse.name, "2020 : la machine moderne")
+	_check(String(AgriDonnees.machine("tracteur").name).contains("GPS") and String(AgriDonnees.machine("pulverisateur").name).contains("Drone"),
+		"2020 : tracteur guidé par GPS et drone de pulvérisation")
+	_annee(r, 2040)
+	_check(String(AgriDonnees.machine("tracteur").name).contains("autonome") and float(AgriDonnees.machine("tracteur").litres) == 0.0,
+		"2040 : tracteur autonome électrique")
+	_check(AgriEpoques.culture_disponible("quinoa") and AgriEpoques.espece_disponible("insectes"), "2040 : quinoa et insectes")
 	_annee(r, 0)
 	_check(AgriDonnees.machine("tracteur") == AgriDonnees.MACHINES.tracteur, "époque actuelle : rien ne change")
 	for id in AgriEpoques.VERSIONS:

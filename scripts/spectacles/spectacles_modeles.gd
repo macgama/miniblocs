@@ -466,6 +466,91 @@ static func build(kit: LpKit, e: Dictionary) -> void:
 			kit.box(Vector3(0, 1.3, -0.445), Vector3(0.65, 0.95, 0.01), [Color("1d3557"), Color("8e1e24"), Color("2a9d8f")][absi(hash(String(e.id))) % 3])
 			kit.box(Vector3(0, 1.55, -0.44), Vector3(0.45, 0.12, 0.005), CREAM)
 			kit.box(Vector3(0, 1.15, -0.44), Vector3(0.3, 0.35, 0.005), Color("e9c46a"))
+		# --- Lot 4 -------------------------------------------------------------------------------
+		"rampe_gaz":
+			kit.box(Vector3(0, 0.08, 0), Vector3(w - 0.1, 0.16, 0.3), WOOD)
+			kit.beam(Vector3(-w * 0.5 + 0.05, 0.16, 0.12), Vector3(w * 0.5 - 0.05, 0.3, 0.0), 0.04, 0.3, BLACK)
+			kit.layer = "lumiere"
+			for i in 6:
+				kit.lathe(Vector3(-w * 0.5 + 0.2 + i * (w - 0.4) / 5.0, 0.16, 0.05), [Vector2(0.03, 0.0), Vector2(0.015, 0.1)], 6, Color("8fc8ff"))
+			kit.layer = "base"
+		"panorama_peint":
+			kit.box(Vector3(0, h * 0.5, -0.45), Vector3(w - 0.05, h, 0.04), WOOD)
+			for i in 4:
+				var bandc: Color = [Color("8fb7d6"), Color("c9d6de"), Color("6f8f5a"), Color("8a7a5a")][i]
+				kit.box(Vector3(0, 0.3 + (3 - i) * 0.65, -0.425), Vector3(w - 0.15, 0.68, 0.01), bandc)
+			kit.box(Vector3(-0.7, 1.15, -0.415), Vector3(0.35, 0.6, 0.01), Color("d8c8a8"))
+			kit.box(Vector3(0.6, 0.9, -0.415), Vector3(0.6, 0.35, 0.01), Color("a8553a"))
+		"machine_tonnerre":
+			kit.box(Vector3(-0.5, 0.45, 0), Vector3(0.7, 0.1, 0.6), WOOD)
+			for sx in [-0.8, -0.2]:
+				kit.box(Vector3(sx, 0.2, 0), Vector3(0.06, 0.4, 0.5), WOOD)
+			kit.tube(Vector3(-0.85, 0.75, 0), Vector3(-0.15, 0.75, 0), 0.25, 0.25, 10, WOOD2)
+			kit.box(Vector3(0.55, 0.95, -0.2), Vector3(0.75, 1.75, 0.03), STEEL)
+			kit.tube(Vector3(0.55, 1.83, -0.2), Vector3(0.55, 1.83, -0.4), 0.02, 0.02, 4, BLACK)
+		"trappe_scene":
+			kit.box(Vector3(0, 0.3, 0), Vector3(w - 0.1, 0.6, d - 0.1), BOARD)
+			kit.box(Vector3(0, 0.605, 0), Vector3(0.9, 0.01, 0.9), BLACK)
+			kit.box(Vector3(0.75, 0.3, 0.75), Vector3(0.3, 0.6, 0.3), WOOD)
+			kit.tube(Vector3(0.75, 0.75, 0.75), Vector3(0.75, 0.75, 0.45), 0.12, 0.12, 8, WOOD2)
+		"lustre_bougies":
+			kit.tube(Vector3(0, 2.2, 0), Vector3(0, CEIL - 0.05, 0), 0.015, 0.015, 4, GOLD)
+			kit.lathe(Vector3(0, 1.9, 0), [Vector2(0.05, 0.0), Vector2(0.6, 0.12), Vector2(0.55, 0.18), Vector2(0.08, 0.35)], 12, GOLD)
+			kit.layer = "lumiere"
+			for i in 10:
+				var a := TAU * i / 10.0
+				kit.tube(Vector3(cos(a) * 0.55, 2.02, sin(a) * 0.55), Vector3(cos(a) * 0.55, 2.14, sin(a) * 0.55), 0.015, 0.015, 4, LIGHT)
+			kit.layer = "base"
+		"mur_led":
+			kit.box(Vector3(0, h * 0.5, -0.45), Vector3(w - 0.05, h, 0.08), BLACK)
+			kit.layer = "lumiere"
+			for i in 4:
+				kit.box(Vector3(-w * 0.5 + 0.5 + i * (w - 1.0) / 3.0, h * 0.5, -0.405), Vector3((w - 0.2) / 4.0 - 0.02, h - 0.15, 0.01),
+					[Color("ff4f9a"), Color("5f6fff"), Color("2fd6e0"), Color("ffb84f")][i])
+			kit.layer = "base"
+		"laser_scene":
+			kit.box(Vector3(0, 0.4, 0), Vector3(0.5, 0.8, 0.5), BLACK)
+			kit.box(Vector3(0, 0.95, 0), Vector3(0.35, 0.25, 0.4), DARK)
+			kit.layer = "lumiere"
+			for i in 5:
+				var la := -0.6 + i * 0.3
+				kit.tube(Vector3(0, 1.0, 0.1), Vector3(sin(la) * 0.42, 1.18, 0.42), 0.008, 0.008, 3, Color("4fff7a"))
+			kit.layer = "base"
+		"hologramme_scene":
+			kit.box(Vector3(0, 0.05, 0), Vector3(w - 0.1, 0.1, d - 0.1), BLACK)
+			kit.layer = "verre"
+			kit.box(Vector3(0, 1.3, 0), Vector3(w - 0.2, 2.4, 0.02), Color(0.55, 0.8, 0.95))
+			kit.layer = "lumiere"
+			kit.lathe(Vector3(0, 0.15, 0.1), [Vector2(0.18, 0.0), Vector2(0.22, 0.9), Vector2(0.12, 1.3), Vector2(0.14, 1.5), Vector2(0.0, 1.75)], 10, Color("6fe3ff"))
+			kit.layer = "base"
+		"drones_lumineux":
+			kit.box(Vector3(0, 0.3, 0), Vector3(1.2, 0.6, 0.8), DARK)
+			kit.layer = "lumiere"
+			for i in 9:
+				var dx := (i % 3 - 1) * 0.6
+				var dz := (i / 3 - 1) * 0.6
+				kit.blob(Vector3(dx, 2.0 + 0.15 * (i % 2), dz), Vector3(0.07, 0.04, 0.07), Color("9fdcff"), Color("ffffff"), 0.0, 1)
+			kit.layer = "base"
+		"camera_robot":
+			kit.lathe(Vector3.ZERO, [Vector2(0.4, 0.0), Vector2(0.4, 0.1), Vector2(0.25, 0.15)], 12, DARK)
+			kit.beam(Vector3(0, 0.15, 0), Vector3(0.2, 1.2, 0), 0.22, 0.22, Color("f08c2a"))
+			kit.beam(Vector3(0.2, 1.2, 0), Vector3(-0.3, 1.9, 0.3), 0.18, 0.18, Color("f08c2a"))
+			kit.box(Vector3(-0.35, 1.95, 0.4), Vector3(0.26, 0.28, 0.5), BLACK)
+			kit.tube(Vector3(-0.35, 1.95, 0.65), Vector3(-0.35, 1.95, 0.8), 0.08, 0.09, 8, BLACK)
+		"plateau_virtuel":
+			kit.box(Vector3(0, 0.05, 0), Vector3(w - 0.1, 0.1, d - 0.1), BOARD)
+			kit.layer = "lumiere"
+			kit.box(Vector3(0, 1.45, -d * 0.5 + 0.1), Vector3(w - 0.1, 2.7, 0.06), Color("4f8fd9"))
+			kit.box(Vector3(-w * 0.5 + 0.08, 1.45, 0), Vector3(0.06, 2.7, d - 0.2), Color("6fb0e8"))
+			kit.box(Vector3(0, 2.75, 0), Vector3(w - 0.2, 0.05, d - 0.3), Color("dfe8f0"))
+			kit.layer = "base"
+		"casques_vr":
+			for sx in [-0.5, 0.5]:
+				kit.box(Vector3(sx, 0.25, 0), Vector3(0.6, 0.5, 0.6), BLACK)
+				kit.box(Vector3(sx, 0.55, 0.0), Vector3(0.55, 0.12, 0.55), RED)
+				kit.box(Vector3(sx, 0.85, -0.27), Vector3(0.55, 0.6, 0.08), RED)
+				kit.box(Vector3(sx, 1.15, -0.1), Vector3(0.2, 0.1, 0.12), WHITE)
+
 		_:
 			kit.box(Vector3(0, h * 0.5, 0), Vector3(w * 0.8, h, d * 0.8), GREY)
 

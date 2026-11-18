@@ -40,7 +40,27 @@ func _run() -> void:
 func _pieces_tests() -> void:
 	print("Pièces :")
 	_check(VoiePieces.PIECES.size() >= 40, "%d pièces de voie" % VoiePieces.PIECES.size())
-	_check(VoiePieces.FAMILLES.size() == 10, "10 familles (6 grands-huit, 4 sur l'eau)")
+	_check(VoiePieces.FAMILLES.size() == 20, "20 familles (14 grands-huit, 6 sur l'eau)")
+	# Attractions d'avant-guerre : un modèle de leur famille de base, rejoué chez elles.
+	var src := {"bois": "mine", "familial": "mine", "acier": "acier", "buches": "buches", "toboggan": "toboggan"}
+	for fid in ["panoramique", "bobsleigh", "train_fantome", "moulin", "tour_glissade", "promenades", "tournant", "luge_ete", "aile", "realite_virtuelle"]:
+		var base := String(src.get(VoiePieces.style(fid), "mine"))
+		var ok := false
+		var modeles := AttractionsPerso.modeles().filter(func(m: Dictionary) -> bool: return String(m.famille) == fid)
+		if not modeles.is_empty():
+			base = fid
+		for m: Dictionary in AttractionsPerso.modeles():
+			if String(m.famille) == base:
+				var d := m.duplicate(true)
+				d.famille = fid
+				d.id = "t_" + fid
+				var c := AttractionsPerso.calcule(d)
+				var mesh := VoieMesh.voie(d, c.tr, c.sim, func(_p: Vector3) -> float: return 0.0)
+				var car := VoieMesh.voiture(d, true)
+				ok = mesh.get_surface_count() > 0 and car.get_surface_count() > 0 and bool(c.sim.ok)
+				print("    %s : ok %s, %s" % [VoiePieces.famille(fid).nom, c.sim.ok, c.sim.erreurs])
+				break
+		_check(ok, "%s : voie et voitures dessinées" % VoiePieces.famille(fid).nom)
 	for id in VoiePieces.PIECES:
 		var tex := VoiePieces.vignette(id, 40)
 		if tex == null:
@@ -145,6 +165,7 @@ func _partie_tests() -> void:
 		await process_frame
 	amb.set_speed(0)
 	amb.unix_time = SAMEDI
+	ReglagesPartie.actuel.recherche_parc = false
 	bs.unlimited_money = true
 	var y := world.cell_height(Vector2i(0, 0))
 	transport.build_segment("route", Vector3(-400, y, 0), Vector3(400, y, 0))

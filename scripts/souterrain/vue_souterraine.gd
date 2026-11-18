@@ -45,8 +45,15 @@ const TRONCONS := {
 	"conduite_eau": {"res": "eau", "d": 1.6, "s": 0.6},
 	"collecteur": {"res": "egout", "d": 4.0, "s": 1.8},
 	"conduite_gaz": {"res": "gaz", "d": 1.3, "s": 0.5},
+	"cable_souterrain": {"res": "elec", "d": 1.0, "s": 0.3},
+	"aqueduc": {"res": "eau", "d": 2.5, "s": 1.4},
+	"egout_separatif": {"res": "egout", "d": 3.5, "s": 1.4},
+	"reseau_chaleur": {"res": "gaz", "d": 1.2, "s": 0.7},
+	"hydrogenoduc": {"res": "gaz", "d": 1.5, "s": 0.4},
 	"fibre": {"res": "telecom", "d": 0.8, "s": 0.3},
 	"cuivre": {"res": "telecom", "d": 0.8, "s": 0.3},
+	"cuivre_souterrain": {"res": "telecom", "d": 0.8, "s": 0.3},
+	"cable_coaxial": {"res": "telecom", "d": 0.7, "s": 0.25},
 }
 const COULEURS := {
 	"telecom": Color(0.25, 0.68, 0.3),

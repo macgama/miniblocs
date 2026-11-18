@@ -77,10 +77,26 @@ const ERA_ANNEES := {"antique": 0, "traditionnel": 0, "classique": 1830, "modern
 
 ## Styles de la bible plus précis que leur époque.
 const STYLE_ANNEES := {
+	"empire": 1800, "biedermeier": 1815, "petersbourg": 1800, "federal": 1790, "greek_revival": 1820, "canton": 1800,
+	"anglo_indien": 1810, "zanzibar": 1830, "macquarie": 1810,
+	"ecoquartier": 2015, "desert_intelligent": 2020, "smart_city": 2020, "afrique_villes_nouvelles": 2022,
+	"habitat_flottant": 2028, "impression_3d": 2030, "mediterranee_climatique": 2032, "ville_verticale": 2045,
 	"haussmann": 1853, "briques_ind": 1830, "art_deco": 1920, "australien": 1850, "far_west": 1850,
 	"hollandais": 0, "latino": 0, "ottoman": 0, "colonial": 0,
 	"international": 1930, "brutaliste": 1955, "sovietique": 1955, "banlieue_us": 1950, "afrique_moderne": 1960,
 	"golfe": 1990, "asie_dense": 1985, "verre": 1990, "futuriste": 2040,
+	# Troisième vague de styles (toutes les régions, toutes les époques).
+	"georgien": 0, "balneaire": 1860, "art_nouveau": 1893, "bauhaus": 1925, "reconstruction": 1945,
+	"nordique_contemporain": 2000, "palazzina": 1850, "moderniste_catalan": 1888, "rationalisme": 1928,
+	"polykatoikia": 1955, "riviera_contemporaine": 1995, "levantin": 1840, "moderne_orient": 1935,
+	"maghreb_colonial": 1890, "colonial_tropical": 1870, "independances": 1957, "afrique_contemporaine": 2000,
+	"meiji": 1872, "shikumen": 1860, "japon_moderne": 1958, "chine_populaire": 1952, "asie_est_contemporain": 1998,
+	"indo_sarrasin": 1870, "compartiments": 1840, "inde_moderne": 1951, "tropical_contemporain": 1995,
+	"craftsman": 1905, "neo_hispanique": 1890, "streamline": 1933, "bresil_moderne": 1940, "latino_contemporain": 2000,
+	"federation": 1890, "pacifique_contemporain": 1995, "postmoderne": 1978, "high_tech": 1977, "parametrique": 2005,
+	"bois_vegetal": 2010, "art_deco_shanghai": 1925, "art_deco_bombay": 1930, "asmara": 1935, "neo_soudanais": 1907,
+	"entre_deux_guerres_oceanie": 1915, "art_deco_napier": 1931, "golfe_petrolier": 1968,
+	"australie_moderne": 1950,
 }
 
 ## Bâtiments du catalogue (hors bible des styles) : année d'apparition.
@@ -191,16 +207,33 @@ const MOTS_BATIMENTS := [
 ## Voies (TransportTypes.CLASSES).
 const VOIES := {"rue": 0, "avenue": 0, "giratoire": 1906, "departementale": 0, "voie_express": 1950,
 	"autoroute": 1930, "bretelle": 1930, "tram": 1853, "train": 1830, "cremaillere": 1870, "metro": 1863,
-	"lgv": 1964, "trottoir": 0, "piste_cyclable": 1930, "voie_verte": 1990, "canal": 0, "chenal": 0}
+	"lgv": 1964, "trottoir": 0, "piste_cyclable": 1930, "voie_verte": 1990, "canal": 0, "chenal": 0,
+	"chemin_terre": 0, "route_pavee": 0, "route_empierree": 0, "boulevard": 1853, "zone_rencontre": 1976,
+	"avenue_bhns": 2000, "route_2plus1": 1998, "autoroute_urbaine": 2020, "voie_etroite": 1865, "ligne_fret": 1950,
+	"sentier": 0, "chemin_halage": 0, "promenade_planches": 1870, "voie_cyclable_express": 2015, "canal_grand_gabarit": 1960}
 ## Stations (StationSystem.TYPES).
 const STATIONS := {"arret_bus": 1828, "arret_tram": 1853, "station_metro": 1863, "gare": 1830, "port": 0,
-	"heliport": 1950, "aerodrome": 1910, "aeroport": 1930, "depot": 0, "parking": 1920}
+	"heliport": 1950, "aerodrome": 1910, "aeroport": 1930, "depot": 0, "parking": 1920,
+	"halte": 1840, "gare_routiere": 1930, "parking_relais": 1990, "port_plaisance": 1960, "vertiport": 2030}
 ## Tronçons des réseaux (ReseauxTypes.TRONCONS) et câbles (Telecom.CABLES).
 const TRONCONS := {"ligne_ht": 1910, "ligne_mt": 1882, "conduite_eau": 0, "collecteur": 0, "conduite_gaz": 1820,
-	"cuivre_aerien": 1880, "fibre": 2000, "fibre_aerienne": 2000}
+	"cuivre_aerien": 1880, "fibre": 2000, "fibre_aerienne": 2000,
+	"ligne_bt": 1890, "ligne_tht": 1958, "cable_souterrain": 1890, "aqueduc": 0, "egout_separatif": 1960, "reseau_chaleur": 1927,
+	"hydrogenoduc": 2030, "cuivre_souterrain": 1900, "cable_coaxial": 1970}
 
 ## Matériaux de l'Atelier (BlocMateriaux.LIST) : mots du nom, première règle qui correspond.
 const MOTS_MATERIAUX := [
+	# Lot 4 (2026-11-17) : début du XIXe siècle et matériaux de demain.
+	["stuc empire", 1800], ["faux marbre", 1800], ["papier peint à rayures", 1800], ["fonte moulée", 1810], ["ciment romain", 1800], ["verre soufflé", 1830], ["asphalte de trottoir", 1835], ["pavés de bois", 1840], ["toile cirée", 1800], ["minton", 1840], ["plâtre de paris", 1800], ["plastique recyclé", 2018], ["bas carbone", 2020], ["chanvre", 2010], ["bottes de paille", 2005], ["liège projeté", 2015], ["verre solaire", 2022], ["radiative", 2022], ["asphalte clair", 2020], ["sol perméable", 2018], ["pavés solaires", 2030], ["aérogel", 2032], ["bois transparent", 2035], ["graphène", 2040], ["imprimée en 3d", 2025],
+	# Lot du 2026-11-17 (avant les règles générales : « béton fibré » avant « béton »).
+	["pierre agglomérée", 1850], ["ciment moulé", 1860], ["grès flammé", 1890], ["carreaux de métro", 1904],
+	["art déco", 1925], ["ferronnerie art nouveau", 1893], ["bakélite", 1910], ["formica", 1950], ["gabions", 1900],
+	["tôle émaillée", 1900], ["aluminium composite", 1969], ["béton préfabriqués", 1950], ["mur-rideau bronze", 1958],
+	["vinyle", 1950], ["stratifié", 1977], ["polymère", 1971], ["béton imprimé", 1970], ["panneaux solaires", 1995],
+	["tuiles solaires", 2016], ["lamellé-croisé", 1995], ["bardage composite", 2000], ["fibre-ciment", 1990],
+	["baguettes de terre cuite", 2000], ["etfe", 2001], ["béton fibré", 2000], ["grand format", 2005],
+	["pavés drainants", 2005], ["mur végétal", 1994], ["métal perforé", 2005], ["verre intelligent", 2025],
+	["oled", 2030], ["mycélium", 2030], ["biobéton", 2028],
 	["bâche", 1950], ["camouflage", 1915], ["confettis", 1890], ["écran led", 2000], ["néon", 1925], ["fibre de verre", 1950], ["polycarbonate", 1970], ["plastique", 1950],
 	["epdm", 1965], ["gazon synthétique", 1966], ["tartan", 1968], ["sol amortissant", 1980],
 	["sol sportif", 1970], ["résine", 1970], ["sol souple", 1960], ["caoutchouc", 1900], ["corten", 1965],

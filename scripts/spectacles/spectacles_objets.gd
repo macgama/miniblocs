@@ -154,6 +154,25 @@ const TYPES := {
 	"guichet_theatre": {"n": "Guichet de location", "k": "guichet", "fam": "accueil", "w": 2, "d": 1, "h": 2.2, "prix": 5000, "attr": 4, "service": "billetterie",
 		"tags": ["comptoir"], "places": [["comptoir", 0.0, 0.0, -0.3, 0.0]]},
 	"affiche_spectacle": {"n": "Affiche du spectacle", "k": "affiche_spectacle", "fam": "accueil", "w": 1, "d": 1, "h": 1.6, "prix": 200, "attr": 3, "mur": true, "couche": "mur"},
+	# --- Lot 4 : la scène du début du XIXe siècle et celle de demain ---------------------------------
+	"rampe_gaz": {"n": "Rampe d'éclairage au gaz", "k": "rampe_gaz", "fam": "scene", "w": 2, "d": 1, "h": 0.35, "prix": 1500, "attr": 3, "sp": "lumiere", "lumiere": 2,
+		"tags": ["lumiere"]},
+	"panorama_peint": {"n": "Toile de panorama peint", "k": "panorama_peint", "fam": "scene", "w": 3, "d": 1, "h": 2.8, "prix": 4000, "attr": 6, "mur": true, "couche": "mur"},
+	"machine_tonnerre": {"n": "Machines à bruits (vent, tonnerre)", "k": "machine_tonnerre", "fam": "coulisses", "w": 2, "d": 1, "h": 1.8, "prix": 900, "attr": 2, "sp": "son", "son": 1},
+	"trappe_scene": {"n": "Trappe et treuil de scène", "k": "trappe_scene", "fam": "scene", "w": 2, "d": 2, "h": 0.6, "prix": 3000, "attr": 4},
+	"lustre_bougies": {"n": "Lustre de salle à bougies", "k": "lustre_bougies", "fam": "accueil", "w": 2, "d": 2, "h": 0.02, "prix": 5000, "attr": 6, "couche": "sol", "suspendu": true,
+		"lumiere": 2, "tags": ["lumiere"]},
+	"mur_led": {"n": "Mur d'images LED", "k": "mur_led", "fam": "scene", "w": 4, "d": 1, "h": 2.8, "prix": 60000, "attr": 9, "mur": true, "couche": "mur", "sp": "ecran",
+		"tags": ["ecran"]},
+	"laser_scene": {"n": "Projecteurs laser", "k": "laser_scene", "fam": "musique", "w": 1, "d": 1, "h": 1.2, "prix": 8000, "attr": 6, "sp": "lumiere", "lumiere": 3,
+		"tags": ["lumiere"]},
+	"hologramme_scene": {"n": "Hologramme de scène", "k": "hologramme_scene", "fam": "scene", "w": 3, "d": 2, "h": 2.6, "prix": 90000, "attr": 10, "sp": "ecran"},
+	"drones_lumineux": {"n": "Essaim de drones lumineux", "k": "drones_lumineux", "fam": "scene", "w": 2, "d": 2, "h": 0.6, "prix": 40000, "attr": 9, "lumiere": 3,
+		"tags": ["lumiere"]},
+	"camera_robot": {"n": "Caméra robotisée sur bras", "k": "camera_robot", "fam": "studio", "w": 2, "d": 2, "h": 2.2, "prix": 120000, "attr": 5, "sp": "camera"},
+	"plateau_virtuel": {"n": "Plateau virtuel à écrans LED", "k": "plateau_virtuel", "fam": "studio", "w": 4, "d": 3, "h": 2.8, "prix": 250000, "attr": 9, "sp": "fond_vert"},
+	"casques_vr": {"n": "Fauteuils et casques de réalité virtuelle", "k": "casques_vr", "fam": "salle", "w": 2, "d": 1, "h": 1.2, "prix": 7000, "attr": 7, "confort": 5, "conf": 5,
+		"sp": "siege", "tags": ["assise"], "places": [["assis", -0.5, 0.45, 0.0, 0.0], ["assis", 0.5, 0.45, 0.0, 0.0]]},
 }
 
 ## Fonctions des pièces (outil Fonction et « Aménager la salle »).

@@ -112,6 +112,10 @@ static func _size(s: Dictionary, arch: String) -> Vector2i:
 		match String(s.culte):
 			"pagode", "sanctuaire", "temple_shikhara", "stavkirke":
 				return Vector2i(24, 24)
+			"gopuram":
+				return Vector2i(30, 36)
+			"stupa":
+				return Vector2i(24, 24)
 			"mosquee_dome", "mosquee_minaret", "mosquee_terre", "wat":
 				return Vector2i(34, 34)
 			"cathedrale", "cathedrale_baroque":
@@ -408,7 +412,8 @@ static func _roof(k: BlocMesh, s: Dictionary, p: Dictionary, kind: String, cx: f
 				k.gable(cx - sx / 2.0 + sx * (i + 0.5) / n, y, cz, sx / n, sz, 2.6, col, false)
 		"dome":
 			k.box(cx, y, cz, sx, 0.4, sz, Color(p.trim))
-			k.dome(cx, y + 0.4, cz, short * 0.42, short * 0.25, Color(p.glass).lightened(0.3), 16)
+			var dc: Color = Color(String(s.dome_col)) if s.has("dome_col") else Color(p.glass).lightened(0.3)
+			k.dome(cx, y + 0.4, cz, short * 0.42, short * 0.25, dc, 16)
 		_:
 			# Terrasse avec acrotère.
 			k.box(cx, y, cz, sx + 0.2, 0.25, sz + 0.2, col.darkened(0.08))
@@ -777,6 +782,36 @@ static func _culte(k: BlocMesh, s: Dictionary, p: Dictionary, w: float, d: float
 			var sx := w / 2.0 - 4.0
 			k.box(sx, 0, -d / 2.0 + 5.0, 6.0, 2.0, 6.0, Color("f2f2f2"))
 			k.lathe(sx, 2.0, -d / 2.0 + 5.0, [Vector2(2.8, 0), Vector2(2.6, 2.4), Vector2(1.2, 4.0), Vector2(0.6, 7.0), Vector2(0.15, 11.0), Vector2(0, 12.0)], 10, Color("d9a520"))
+		"gopuram":
+			# Temple d'Inde du Sud : enceinte, sanctuaire et grande tour-porche à gradins.
+			k.box(0, 0, 0, w - 2.0, 3.0, 0.6, wall.darkened(0.05))
+			k.box(0, 0, d / 2.0 - 1.3, w - 2.0, 3.0, 0.6, wall.darkened(0.05))
+			k.box(-w / 2.0 + 1.3, 0, d / 4.0, 0.6, 3.0, d / 2.0, wall.darkened(0.05))
+			k.box(w / 2.0 - 1.3, 0, d / 4.0, 0.6, 3.0, d / 2.0, wall.darkened(0.05))
+			k.box(0, 0, d / 4.0, 8.0, 5.0, 8.0, wall)
+			k.pyramid(0, 5.0, d / 4.0, 8.0, 8.0, 6.0, Color("d9a520"))
+			for i in 6:
+				var gw := 12.0 - i * 1.5
+				var gd := 6.0 - i * 0.6
+				k.box(0, i * 3.0, -d / 2.0 + 4.0, gw, 3.0, gd, wall.lightened(0.04 * (i % 2)))
+				k.box(0, i * 3.0 + 2.7, -d / 2.0 + 4.0, gw + 0.4, 0.3, gd + 0.4, trim)
+			k.box(0, 18.0, -d / 2.0 + 4.0, 4.0, 1.4, 2.4, roof)
+			for x in [-1.3, 0.0, 1.3]:
+				k.dome(x, 19.4, -d / 2.0 + 4.0, 0.45, 0.8, Color("d9a520"), 6)
+			k.box(0, 0, -d / 2.0 + 0.95, 2.4, 4.0, 0.2, p.door)
+			k.plate(-w / 4.0, d / 4.0, 6.0, 6.0, Color("4f86a8"), 0.0, 0.1)
+		"stupa":
+			# Pagode birmane : terrasses blanches et grand stupa doré.
+			k.box(0, 0, 0, w - 4.0, 1.2, d - 4.0, Color("f2f2f2"))
+			k.box(0, 1.2, 0, w - 9.0, 1.2, d - 9.0, Color("f6f1e7"))
+			k.lathe(0, 2.4, 0, [Vector2(7.0, 0), Vector2(6.6, 2.0), Vector2(5.0, 4.0), Vector2(3.4, 6.5), Vector2(1.6, 11.0),
+				Vector2(0.7, 15.0), Vector2(0.2, 19.0), Vector2(0, 20.0)], 14, Color("d9a520"))
+			for c in [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1), Vector2(1, 1)]:
+				var px: float = c.x * (w / 2.0 - 4.0)
+				var pz: float = c.y * (d / 2.0 - 4.0)
+				k.lathe(px, 1.2, pz, [Vector2(1.2, 0), Vector2(0.8, 2.0), Vector2(0.2, 4.5), Vector2(0, 5.0)], 8, Color("d9a520"))
+			k.box(0, 0, -d / 2.0 + 3.0, 5.0, 4.0, 3.0, wall)
+			_roof(k, s, p, "curved", 0, 4.0, -d / 2.0 + 3.0, 5.0, 3.0, "culte")
 		"mission":
 			k.box(0, 0, 4.0, w * 0.5, 8.0, d - 10.0, wall)
 			k.box(0, 8.0, 4.0, w * 0.5, 0.5, d - 10.0, wall.darkened(0.1))

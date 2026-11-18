@@ -1,6 +1,6 @@
 extends SceneTree
 ## Test des réglages de partie et du panneau Admin : préréglages, droits d'admin,
-## prix, déblocage par paliers, économie, panneau, sauvegarde.
+## prix, arbre de progression, économie, panneau, sauvegarde.
 ## Usage : godot --headless --path . --script res://tests/admin_test.gd
 
 var ok := true
@@ -63,9 +63,11 @@ func _run() -> void:
 	_check(not ReglagesPartie.peut_administrer(M.MONDIALE, "a", "a", false), "carte mondiale : pas les joueurs, même le créateur")
 	_check(ReglagesPartie.peut_administrer(M.MONDIALE, "", "b", true), "carte mondiale : le développeur")
 
-	print("Déblocage par paliers :")
+	print("Arbre de progression :")
 	var p := ReglagesPartie.preset("normal")
 	p.deblocage = "progression"
+	p.from_dict(p.to_dict())
+	_check(p.deblocage == "arbre", "ancienne partie « progression » passée sur l'arbre")
 	_check(p.est_debloque("maison"), "maison ouverte dès le départ")
 	_check(p.est_debloque("ecole"), "école toujours ouverte")
 	var big := ""
@@ -75,19 +77,22 @@ func _run() -> void:
 			big = id
 			break
 	_check(big != "" and not p.est_debloque(big), "grand bâtiment (%s) verrouillé au départ" % big)
-	_check(p.raison_blocage(big).contains("10000 habitants"), "raison : " + p.raison_blocage(big))
-	_check(p.note_population(150) == "Village", "150 habitants : palier Village")
-	_check(p.note_population(120) == "" and p.record_habitants == 150, "la population qui baisse ne rebloque rien")
-	p.note_population(20000)
-	_check(p.est_debloque(big), "20 000 habitants : tout est ouvert")
+	_check(p.raison_blocage(big).contains("arbre de progression"), "raison : " + p.raison_blocage(big))
+	_check(p.note_population(150) == 2, "150 habitants : 2 points (50 et 100)")
+	_check(p.note_population(120) == 0 and p.record_habitants == 150, "la population qui baisse ne reprend rien")
+	var br := ArbreProgression.branche_batiment(big)
+	ArbreProgression.gagner(p, 20, "test")
+	for i in 4:
+		ArbreProgression.acheter(p, br)
+	_check(p.est_debloque(big), "branche %s au niveau IV : ouvert" % br)
 	p.deblocage = "tout"
-	p.record_habitants = 0
+	p.arbre = {}
 	_check(p.est_debloque(big), "« tout débloqué » : tout est ouvert")
 
 	print("Nouvelle partie réglée sur le globe :")
 	Creations.persist = false
 	var pre := ReglagesPartie.preset("difficile")
-	pre.deblocage = "progression"
+	pre.deblocage = "arbre"
 	ReglagesPartie.prochaine = pre
 	GameStart.mode = GameStart.Mode.BAC_A_SABLE
 	GameStart.load_slot = ""
@@ -113,7 +118,7 @@ func _run() -> void:
 		print("    raison : ", chk.reason)
 	_check(chk.ok and int(chk.cost) == base * 2, "coûts ×2 : maison à %s" % BuildingSystem.format_money(int(chk.cost)))
 	var lock := bs.check_place(big, Vector2i(60, 0), 3)
-	_check(not lock.ok and String(lock.reason).begins_with("Débloqué"), "bâtiment verrouillé refusé : " + String(lock.reason))
+	_check(not lock.ok and String(lock.reason).contains("arbre de progression"), "bâtiment verrouillé refusé : " + String(lock.reason))
 
 	print("Panneau Admin :")
 	_check(scene.hud._admin_button.visible, "bouton Admin visible en bac à sable")
@@ -128,7 +133,7 @@ func _run() -> void:
 	panel._deblocage.item_selected.emit(0)
 	await _frames(1)
 	_check(reg.cout_construction == 1.0 and bs.unlimited_money and reg.deblocage == "tout", "changements appliqués tout de suite")
-	_check(not String(bs.check_place(big, Vector2i(60, 0), 3).reason).begins_with("Débloqué"), "plus de verrou")
+	_check(not String(bs.check_place(big, Vector2i(60, 0), 3).reason).contains("arbre de progression"), "plus de verrou")
 	panel._illimite.button_pressed = false
 	panel._caisse.value = 1_300_000
 	for c in panel.find_children("*", "Button", true, false):

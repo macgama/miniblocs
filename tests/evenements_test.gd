@@ -271,6 +271,15 @@ func _run() -> void:
 	_check(bool(bs.node_of(dark).get_meta("ev_panne", false)) and not amb.street.dark_zones.is_empty(), "fenêtres et lampadaires éteints")
 	_pass(ev, amb, 3.0 * 3600.0, 120.0)
 	_check(transport.network.closed_edges.size() < int(se.data.arbres), "les pompiers dégagent les arbres (routes rouvertes)")
+	# Sauvegarde et chargement en pleine tempête (la météo rechargée est déjà l'orage) :
+	# pas de deuxième annonce, et la météo d'avant revient quand même à la fin.
+	var n_journal := ev.journal.size()
+	var meteo := JSON.parse_string(JSON.stringify(amb.weather.to_dict())) as Dictionary
+	var pendant := JSON.parse_string(JSON.stringify(scene.save_sections().evenements)) as Dictionary
+	amb.weather.from_dict(meteo)
+	ev.from_dict(pendant)
+	se = ev.events[sid]
+	_check(String(se.etat) == "en_cours" and ev.journal.size() == n_journal, "tempête rechargée en cours, sans seconde annonce (%d → %d nouvelles)" % [n_journal, ev.journal.size()])
 	ev.finir(sid)
 	_check(int(amb.weather.mode) != Meteo.Mode.ORAGE and not bool(bs.node_of(dark).get_meta("ev_panne", false)) and amb.street.dark_zones.is_empty(), "fin de la tempête : météo d'avant, courant rétabli")
 

@@ -66,6 +66,8 @@ signal club_requested
 signal tourisme_requested
 ## Bouton « Patrimoine » (menu Loisirs, touche Fin) : classement et grands monuments.
 signal patrimoine_requested
+## Bouton « Expéditions » (menu Loisirs, Maj+F4) : Société des explorateurs.
+signal expeditions_requested
 ## Bouton « Commerce » (menu Économie, Maj+S) : cours mondiaux, accords, crises.
 signal commerce_requested
 ## Panneau « Cartes » (touche N) : pollution, bruit, valeur des terrains, autres calques.
@@ -77,6 +79,7 @@ signal journal_requested
 signal saisons_requested
 ## Bouton « Climat et pollution » (menu Infos, Maj+F7).
 signal climat_requested
+signal arbre_requested
 signal sante_requested
 ## Bouton « Vue sous terre » (menu Infos, Page bas sous le rez-de-chaussée).
 signal souterrain_requested
@@ -91,12 +94,18 @@ signal catalogue_requested
 signal visites_requested
 ## Bouton Admin de la barre du haut, ou F10 : réglages de la partie.
 signal admin_requested
+## Annuler / rétablir (Ctrl+Z, Ctrl+Y) et mode plan (Ctrl+P) : HistoriqueVille, ModePlan.
+signal undo_requested
+signal redo_requested
+signal plan_requested
 signal spec_edited(type_id: String, spec: Dictionary)
 signal curve_toggled(on: bool)
 ## Passage aux croisements choisi : "auto", "dessus" ou "dessous".
 signal level_changed(level: String)
 ## Action de l'outil Carrefour : "regime", "giratoire" ou "echangeur".
 signal junction_action_changed(action: String)
+## Bouton « Faire évoluer » du panneau Route : outil qui change une route posée.
+signal upgrade_requested
 
 const PLACES := [
 	{"name": "Tour Eiffel", "lat": 48.85826, "lon": 2.29450},
@@ -163,11 +172,13 @@ const CATEGORIES := [
 	{"id": "club", "name": "Club de sport (foot, basket, hand, hockey, rugby, tennis)", "icon": "sport", "key": "Maj+B", "panel": true, "group": "loisirs"},
 	{"id": "tourisme", "name": "Tourisme (hôtels, touristes, publicité)", "icon": "valise", "key": "Maj+D", "panel": true, "group": "loisirs"},
 	{"id": "patrimoine", "name": "Patrimoine et grands monuments", "icon": "patrimoine", "key": "Fin", "panel": true, "group": "loisirs"},
+	{"id": "expeditions", "name": "Expéditions (objets rares, animaux, spécialistes)", "icon": "boussole", "key": "Maj+F4", "panel": true, "group": "loisirs"},
 	{"id": "cartes", "name": "Cartes", "icon": "cartes", "key": "N", "panel": true, "group": "infos"},
 	{"id": "stats", "name": "Statistiques et conseiller", "icon": "courbe", "key": "Maj+I", "panel": true, "group": "infos"},
 	{"id": "journal", "name": "Gazette de la ville", "icon": "journal", "key": "F4", "panel": true, "group": "infos"},
 	{"id": "saisons", "name": "Saisons et risques (météo, neige, crues, sécheresse)", "icon": "saisons", "key": "Maj+R", "panel": true, "group": "infos"},
 	{"id": "climat", "name": "Climat et pollution (CO₂, réchauffement, sols, énergie)", "icon": "climat", "key": "Maj+F7", "panel": true, "group": "infos"},
+	{"id": "arbre", "name": "Arbre de progression (points de progrès à dépenser)", "icon": "etoile", "key": "Maj+F10", "panel": true, "group": "infos"},
 	{"id": "sante", "name": "Santé publique (hygiène, vaccins, épidémies)", "icon": "sante", "key": "F7", "panel": true, "group": "infos"},
 	{"id": "photo", "name": "Mode photo et time-lapse (Maj+F8)", "icon": "appareil_photo", "key": "F8", "panel": true, "group": "infos"},
 	{"id": "souterrain", "name": "Vue sous terre (tuyaux, câbles, métro, sous-sols)", "icon": "souterrain", "key": "Page bas", "panel": true, "group": "infos"},
@@ -265,6 +276,7 @@ var _curve: Button
 var _level_pick: OptionButton
 const LEVEL_IDS := ["auto", "dessus", "dessous"]
 var _junction_panel: HBoxContainer
+var _upgrade: Button
 var _junction_buttons: Dictionary = {}
 var _spec_rows: Dictionary = {}
 var _filling := false
@@ -303,6 +315,23 @@ func _ready() -> void:
 
 
 # --- Barre du haut : lieu, partie, chiffres (l'horloge se place au centre) ---------
+
+var _historique_row: HBoxContainer
+var undo_button: Button
+var redo_button: Button
+var plan_button: Button
+
+
+## Bulles des boutons Annuler / Rétablir : ce qu'ils vont défaire ou refaire.
+func set_historique(annuler: String, refaire: String, plan_actif: bool) -> void:
+	if undo_button == null:
+		return
+	undo_button.disabled = annuler == ""
+	undo_button.tooltip_text = "Annuler (Ctrl+Z)" if annuler == "" else "Annuler : %s (Ctrl+Z)" % annuler
+	redo_button.disabled = refaire == ""
+	redo_button.tooltip_text = "Rétablir (Ctrl+Y)" if refaire == "" else "Rétablir : %s (Ctrl+Y)" % refaire
+	plan_button.set_pressed_no_signal(plan_actif)
+
 
 func _build_top_bar() -> void:
 	var top := PanelContainer.new()
@@ -373,6 +402,25 @@ func _build_top_bar() -> void:
 	middle.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	middle.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(middle)
+	# Annuler, rétablir, mode plan : à droite de l'horloge, avant les chiffres.
+	_historique_row = HBoxContainer.new()
+	_historique_row.add_theme_constant_override("separation", 8)
+	undo_button = UiStyle.icon_button("annuler", "Annuler", "Ctrl+Z")
+	undo_button.name = "Annuler"
+	undo_button.pressed.connect(func() -> void: undo_requested.emit())
+	_historique_row.add_child(undo_button)
+	redo_button = UiStyle.icon_button("refaire", "Rétablir", "Ctrl+Y")
+	redo_button.name = "Retablir"
+	redo_button.pressed.connect(func() -> void: redo_requested.emit())
+	_historique_row.add_child(redo_button)
+	plan_button = UiStyle.icon_button("plan", "Mode plan : poser en projet, sans payer, puis tout construire d'un coup", "Ctrl+P")
+	plan_button.name = "ModePlan"
+	plan_button.toggle_mode = true
+	UiStyle.tint_pressed(plan_button, ModePlan.COULEUR.lightened(0.1), UiStyle.CREATE_INK)
+	plan_button.pressed.connect(func() -> void: plan_requested.emit())
+	_historique_row.add_child(plan_button)
+	row.add_child(_historique_row)
+	row.add_child(UiStyle.vsep())
 
 	for spec in [["caisse", "budget", "Caisse de la ville (clic : budget)"],
 			["habitants", "habitants", "Habitants (clic : panneau Habitants, H)"],
@@ -908,12 +956,14 @@ func _on_category(id: String) -> void:
 			"club": club_requested.emit()
 			"tourisme": tourisme_requested.emit()
 			"patrimoine": patrimoine_requested.emit()
+			"expeditions": expeditions_requested.emit()
 			"commerce": commerce_requested.emit()
 			"cartes": cartes_requested.emit()
 			"stats": stats_requested.emit()
 			"journal": journal_requested.emit()
 			"saisons": saisons_requested.emit()
 			"climat": climat_requested.emit()
+			"arbre": arbre_requested.emit()
 			"sante": sante_requested.emit()
 			"souterrain": souterrain_requested.emit()
 			"photo": photo_requested.emit()
@@ -1151,6 +1201,13 @@ func _build_spec_panel(parent: Control) -> void:
 		if not _filling:
 			level_changed.emit(LEVEL_IDS[i]))
 	row.add_child(_level_pick)
+	_upgrade = Button.new()
+	_upgrade.text = "Faire évoluer"
+	_upgrade.icon = Icones.get_icon("route", 18)
+	_upgrade.tooltip_text = "Changer une route déjà posée sans la démolir : 2 → 4 voies, trottoirs, terre-plein, couloirs de bus, tramway"
+	_upgrade.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_upgrade.pressed.connect(func() -> void: upgrade_requested.emit())
+	row.add_child(_upgrade)
 	# Outil Carrefour : régime, giratoire ou échangeur.
 	_junction_panel = HBoxContainer.new()
 	_junction_panel.visible = false
@@ -1248,6 +1305,7 @@ func show_spec(type_id: String, spec: Dictionary, curve: bool, level := "auto") 
 	_curve.button_pressed = curve
 	_level_pick.select(maxi(0, LEVEL_IDS.find(level)))
 	_level_pick.visible = int(c.mode) != TransportTypes.Mode.WATER
+	_upgrade.visible = int(c.mode) == TransportTypes.Mode.ROAD
 	_spec_panel.visible = true
 	_filling = false
 	_update_categories()
@@ -1308,7 +1366,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		save_requested.emit()
 	elif key.keycode == KEY_F9:
 		quick_load_requested.emit()
-	elif key.keycode == KEY_F10:
+	elif key.keycode == KEY_F10 and not key.shift_pressed:
 		admin_requested.emit()
 
 

@@ -15,7 +15,7 @@ commencer la partie.
 | Caisse actuelle | en cours de partie, l'admin peut mettre la caisse à un montant |
 | Coût des constructions (×0,5 à ×5) | bâtiments, terrassement, zonage, blocs, murs et étages |
 | Accès à une voie obligatoire | règle de pose des bâtiments |
-| Bâtiments | tout débloqué d'office, ou au fil de la partie par paliers de population |
+| Bâtiments | tout débloqué (bac à sable), ou arbre de progression à points (Maj+F10, voir [arbre-progression.md](arbre-progression.md)) |
 | Impôts (×0 à ×3) | taxe foncière et impôts des entreprises touchés par la ville |
 | Usure des routes et réseaux | Aucune, Lente, Normale, Rapide (voir [budget.md](budget.md)) |
 | Salaires (×0,5 à ×2) | salaires des habitants, des agents de la ville et de la production |
@@ -29,20 +29,11 @@ Préréglages : **Facile**, **Normal** (30 M€, prix ×1), **Difficile**,
 **Bac à sable libre**. « Garder par défaut » écrit `user://reglages_defaut.json`,
 proposé pour les nouvelles parties.
 
-## Paliers de déblocage
+## Déblocage : l'arbre de progression
 
-![Bâtiments verrouillés](apercu-admin-paliers.png)
-
-| Palier | Habitants | Bâtiments jusqu'à |
-|---|---|---|
-| Hameau | 0 | 1,5 M€ |
-| Village | 100 | 5 M€ |
-| Bourg | 500 | 15 M€ |
-| Ville | 2 000 | 40 M€ |
-| Grande ville | 10 000 | tout |
-
-Écoles et bâtiments de production toujours ouverts. On compte le record de population :
-une démolition ne rebloque rien. Le zonage fait toujours pousser ses modèles.
+Les anciens paliers de population sont remplacés par l'arbre de progression à
+points (voir [arbre-progression.md](arbre-progression.md)). Une ancienne partie
+réglée « par paliers » passe sur l'arbre au chargement.
 
 ## Qui est admin
 
@@ -56,7 +47,7 @@ Les autres joueurs ne voient ni l'icône ni le bouton Règles.
 ## Code
 
 - `scripts/admin/reglages_partie.gd` (`ReglagesPartie`) : valeurs, préréglages, droits,
-  paliers, `ReglagesPartie.prix()`. `ReglagesPartie.actuel` = partie en cours.
+  arbre (`ArbreProgression`), `ReglagesPartie.prix()`. `ReglagesPartie.actuel` = partie en cours.
 - `scripts/admin/admin_panel.gd` (`AdminPanel`) : le panneau.
 - Section de sauvegarde `reglages`. Une ancienne sauvegarde sans section garde ses règles
   (accès, argent illimité).

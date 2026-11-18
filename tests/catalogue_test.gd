@@ -60,6 +60,71 @@ func _run() -> void:
 	_check(String(maison.get("evol", "")).contains("niveau 3"), "la maison montre ses agrandissements")
 	_check(Epoques.vehicule_pour_annee("tacot", 1850) != "tacot", "avant 1900, une voiture sans chevaux est remplacée par un attelage")
 
+	print("Toutes les régions à toutes les époques :")
+	var periodes := [[0, 1850], [1850, 1900], [1900, 1950], [1950, 1990], [1990, 3000]]
+	var trous := []
+	for r in Styles.REGIONS:
+		var n := [0, 0, 0, 0, 0]
+		for id in types:
+			var t: Dictionary = types[id]
+			if t.has("blocks") or t.has("modele") or bool(t.get("cache", false)) or String(t.get("region", "")) != String(r.id):
+				continue
+			var y := Epoques.annee_batiment(String(id))
+			for i in periodes.size():
+				if y >= int(periodes[i][0]) and y < int(periodes[i][1]):
+					n[i] += 1
+		for i in periodes.size():
+			if n[i] < 5:
+				trous.append("%s %d-%d (%d)" % [r.id, periodes[i][0], periodes[i][1], n[i]])
+	_check(trous.is_empty(), "au moins 5 bâtiments par région et par période (%s)" % ", ".join(trous))
+	for sid in ["art_nouveau", "bauhaus", "meiji", "indo_sarrasin", "colonial_tropical", "nubien", "craftsman", "federation", "bois_vegetal"]:
+		_check(Styles.STYLES.has(sid) and types.has("%s__%s" % [sid, Styles.STYLES[sid].archs[0]]), "style « %s » au catalogue" % sid)
+	_check(Epoques.annee_batiment("art_nouveau__immeuble") == 1893, "l'immeuble Art nouveau arrive en 1893")
+	_check(Epoques.annee_batiment("bois_vegetal__tour") == 2010, "la tour en bois arrive en 2010")
+	var regions_v := {}
+	for vid in VehicleCatalog.TYPES:
+		var v: Dictionary = VehicleCatalog.TYPES[vid]
+		regions_v[String(v.get("region", ""))] = int(regions_v.get(String(v.get("region", "")), 0)) + 1
+	for rid in ["afrique", "asie_est", "asie_sud", "moyen_orient", "ameriques", "oceanie"]:
+		_check(int(regions_v.get(rid, 0)) >= 8, "au moins 8 véhicules en région %s (%d)" % [rid, int(regions_v.get(rid, 0))])
+	_check(VehicleCatalog.build_mesh("tonga").get_surface_count() > 0, "la tonga indienne se dessine")
+	# Lot 2 : meubles et décors de chaque époque.
+	var dec_recents := 0
+	var dec_xixe := 0
+	for e in Decors.tous():
+		var y := EpoquesObjets.annee_decor(String(e.id))
+		if y >= 1990:
+			dec_recents += 1
+		elif y > 0 and y < 1900:
+			dec_xixe += 1
+	_check(dec_recents >= 25, "décors d'après 1990 : %d" % dec_recents)
+	_check(dec_xixe >= 20, "décors datés du XIXe siècle : %d" % dec_xixe)
+	_check(not EpoquesObjets.decor_disponible("borne_recharge", 1950) and EpoquesObjets.decor_disponible("bec_gaz", 1850),
+		"pas de borne de recharge en 1950, bec de gaz en 1850")
+	for tid in ["machine_coudre", "phonographe", "radio_tsf", "minitel", "ecran_plat", "robot_domestique"]:
+		var n := 0
+		for mid in Meubles.ids():
+			if String(mid).ends_with("/" + tid):
+				n += 1
+		_check(n > 0 and EpoquesObjets.annee_meuble(tid) > 0, "meuble %s : %d modèles, %d" % [tid, n, EpoquesObjets.annee_meuble(tid)])
+	_check(Meubles.count() >= 2700, "meubles : %d modèles" % Meubles.count())
+	# Lot 3 : Atelier et attractions.
+	var att_avant_guerre := 0
+	for fid in VoiePieces.ORDRE_RAIL + VoiePieces.ORDRE_EAU:
+		var ya := EpoquesObjets.annee_famille_voie(String(fid))
+		if ya >= 1900 and ya < 1950:
+			att_avant_guerre += 1
+	_check(att_avant_guerre >= 3, "attractions nées entre 1900 et 1950 : %d" % att_avant_guerre)
+	_check(PlanEditor.ROOFS.size() >= 18 and PlanEditor.OPENINGS.size() >= 36, "%d toits, %d portes et fenêtres" % [PlanEditor.ROOFS.size(), PlanEditor.OPENINGS.size()])
+	var mat_recents := 0
+	for i in BlocMateriaux.LIST.size():
+		if Epoques.annee_materiau(i) >= 1990:
+			mat_recents += 1
+	_check(mat_recents >= 15, "matériaux d'après 1990 : %d" % mat_recents)
+	_check(Epoques.annee_materiau(BlocMateriaux.index_of("Béton fibré blanc")) == 2000 and Epoques.annee_materiau(BlocMateriaux.index_of("Pierre agglomérée")) == 1850,
+		"béton fibré daté 2000 (pas 1890), pierre agglomérée 1850")
+	_check(VoiePieces.style("panoramique") == "bois" and VoiePieces.style("acier") == "acier", "les attractions d'époque reprennent un dessin existant")
+
 	print("Objets datés selon l'année de la partie :")
 	var r := ReglagesPartie.new()
 	r.annee_depart = 1850

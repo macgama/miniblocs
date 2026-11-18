@@ -408,6 +408,41 @@ func _systemes_geres(a: ClientAmis, b: ClientAmis, scene: Node, vid: int) -> voi
 	_check(a.resynchros == 0, "toujours pas de resynchronisation")
 
 
+## Arbre de progression sur la carte entre amis : un arbre par joueur, compté
+## et acheté par le serveur (choix de Gaël, 2026-11-18).
+func _arbre_en_ligne(a: ClientAmis, b: ClientAmis, scene: Node) -> void:
+	print("Arbre de progression :")
+	var r := ReglagesPartie.actuel
+	r.deblocage = "arbre"
+	a.reglages_changes()
+	_check(ArbreProgression.multi() and ArbreProgression.joueur() == a.pid, "chez Alice, l'arbre regardé est le sien")
+	_check(await _attendre(func() -> bool: return ReglagesPartie.actuel.arbres_joueurs.has(a.pid) and ReglagesPartie.actuel.arbres_joueurs.has(b.pid), 10.0), "arbres des deux joueurs reçus du serveur")
+	r = ReglagesPartie.actuel
+	var dispo := ArbreProgression.points_disponibles(r)
+	var dep := ArbreProgression.points_depenses(r)
+	_check(dispo >= ArbreProgression.POINTS_DEPART, "Alice a %d points" % dispo)
+	scene.arbre_panel._acheter("logement")
+	_check(await _attendre(func() -> bool: return ArbreProgression.niveau(ReglagesPartie.actuel, "logement") == 1, 10.0), "Logement I acheté par le serveur pour Alice")
+	r = ReglagesPartie.actuel
+	_check(ArbreProgression.points_depenses(r) == dep + 1, "un point dépensé")
+	_check((r.arbres_joueurs[b.pid].arbre as Dictionary).is_empty(), "l'arbre de Bob ne bouge pas")
+	var infos_b := []
+	b.info_recue.connect(func(t: String) -> void: infos_b.append(t))
+	b.envoyer_action({"t": "voie", "id": "autoroute", "spec": {}, "path": PackedVector2Array([Vector2(-200, 600), Vector2(200, 600)])})
+	_check(await _attendre(func() -> bool: return infos_b.any(func(t: String) -> bool: return t.contains("Transports III")), 10.0), "Bob ne peut pas tracer d'autoroute sans la branche Transports")
+	infos_b.clear()
+	b.envoyer_action({"t": "arbre", "op": "cadeau"})
+	_check(await _attendre(func() -> bool: return infos_b.any(func(t: String) -> bool: return t.begins_with("Seul l'admin")), 10.0), "Bob, pas admin, ne se donne pas de points")
+	var avant := ArbreProgression.points_gagnes(ReglagesPartie.actuel)
+	b.envoyer_action({"t": "arbre", "op": "acheter", "b": "commerce"})
+	a.envoyer_action({"t": "arbre", "op": "cadeau"})
+	_check(await _attendre(func() -> bool: return ArbreProgression.points_gagnes(ReglagesPartie.actuel) == avant + 5, 10.0), "l'admin Alice se donne 5 points")
+	_check(await _attendre(func() -> bool: return int(ReglagesPartie.actuel.arbres_joueurs[b.pid].arbre.get("commerce", 0)) == 1, 10.0), "Bob achète Commerce I dans son propre arbre")
+	ReglagesPartie.actuel.deblocage = "tout"
+	a.reglages_changes()
+	await _attendre(func() -> bool: return false, 1.0)
+
+
 func _touche() -> InputEventKey:
 	var e := InputEventKey.new()
 	e.keycode = KEY_Z
@@ -527,6 +562,7 @@ func _en_ligne() -> void:
 
 	await _sections_partagees(a, b, scene, vid)
 	await _systemes_geres(a, b, scene, vid)
+	await _arbre_en_ligne(a, b, scene)
 
 	print("Arrêt et reprise :")
 	var nbats := bs.buildings.size()

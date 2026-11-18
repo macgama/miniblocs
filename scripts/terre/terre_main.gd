@@ -3295,6 +3295,7 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 	ReglagesPartie.actuel.arbre = {}
 	ReglagesPartie.actuel.points_bonus = 0
 	ReglagesPartie.actuel.journal_points = []
+	ReglagesPartie.actuel.arbres_joueurs = {}
 	if evenements != null:
 		evenements.clear()
 	if saisons != null:

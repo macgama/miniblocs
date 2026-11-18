@@ -53,3 +53,16 @@ encore inventé (le panneau indique combien de bâtiments arrivent plus tard).
 - Verrous : `ReglagesPartie.raison_blocage` (bâtiments), `raison_voie` (TransportSystem.evaluate), `raison_station` (StationSystem.place).
 - Points : `Objectifs.verifier_palier`, `_verifier_missions`, `succes_debloque` ; `ReglagesPartie.note_population`.
 - Test : `tests/arbre_test.gd`.
+
+## Carte entre amis
+
+Choix de Gaël (2026-11-18) : **un arbre par joueur**, comme la caisse.
+
+- Le serveur garde l'arbre de chaque joueur (`ReglagesPartie.arbres_joueurs`, pid ->
+  arbre, bonus, journal, record) et l'envoie à tous (message « arbres ») quand il change.
+- Points : record de population des villes dont le joueur est maire, rang de ses
+  villes, missions de ses villes ; les succès du pays vont à chaque membre.
+- Achat et cadeau de l'admin : action « arbre » envoyée au serveur, qui vérifie les points.
+- Verrous : pendant l'action d'un joueur, le serveur regarde son arbre
+  (`ArbreProgression.joueur_serveur`) ; ce qu'aucun joueur ne fait (zones, pilote) n'est pas verrouillé.
+- Test : section « Arbre de progression » de `tests/multijoueur_test.gd`.

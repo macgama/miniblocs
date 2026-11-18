@@ -105,6 +105,8 @@ func refresh() -> void:
 	if not actif:
 		var l := _text("Cette partie a tout débloqué (bac à sable) : l'arbre ne verrouille rien. L'admin peut choisir « Arbre de progression » dans les réglages (F10).", false, 13)
 		l.add_theme_color_override("font_color", Color("ffb36b"))
+	if ArbreProgression.multi():
+		_text("Carte entre amis : chacun a son arbre et gagne ses points avec ses propres villes.", true, 12)
 	if Epoques.actif():
 		_text("Partie en %d : l'époque passe avant l'arbre, ce qui n'est pas encore inventé reste grisé." % Epoques.annee(), true, 12)
 	_body.add_child(HSeparator.new())
@@ -127,6 +129,9 @@ func refresh() -> void:
 		bt.tooltip_text = "Pour tester : se donner des points de progrès"
 		bt.focus_mode = Control.FOCUS_NONE
 		bt.pressed.connect(func() -> void:
+			if _en_ligne():
+				Multijoueur.client.envoyer_action({"t": "arbre", "op": "cadeau"})
+				return
 			ArbreProgression.gagner(ReglagesPartie.actuel, 5, "Cadeau de l'admin")
 			changed.emit()
 			refresh())
@@ -217,7 +222,15 @@ func _detail(id: String, r: ReglagesPartie) -> void:
 			_text(t, true, 11)
 
 
+## Carte entre amis : c'est le serveur qui achète (il compte les points).
+func _en_ligne() -> bool:
+	return Multijoueur.role == Multijoueur.Role.CLIENT and Multijoueur.client != null
+
+
 func _acheter(id: String) -> void:
+	if _en_ligne():
+		Multijoueur.client.envoyer_action({"t": "arbre", "op": "acheter", "b": id})
+		return
 	var refus := ArbreProgression.acheter(ReglagesPartie.actuel, id)
 	if refus == "":
 		Son.jouer("palier")

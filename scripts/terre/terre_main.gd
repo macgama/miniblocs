@@ -2840,7 +2840,11 @@ func _setup_mairie() -> void:
 	if reseaux != null and reseaux.raccordements != null:
 		reseaux.raccordements.telecom = telecom
 		mairie_panel.autres_alertes = func(l: String) -> Array:
-			return reseaux.raccordements.alertes(_filtre_ville(l))
+			var out: Array = reseaux.raccordements.alertes(_filtre_ville(l))
+			# Appels d'urgence qu'aucun bâtiment de la ville ne peut traiter.
+			if urgences != null:
+				out.append_array(urgences.alertes())
+			return out
 	hud.mairie_requested.connect(func() -> void: mairie_panel.toggle())
 	mairie_panel.visibilite.connect(func(on: bool) -> void: hud.set_mairie_open(on))
 	fil_alertes = FilAlertes.new()
@@ -2876,6 +2880,11 @@ func aller_au_panneau(id: String) -> void:
 		return
 	if id == "non_raccorde":
 		aller_au_non_raccorde()
+		return
+	# Alerte « construire ce bâtiment » (ex. urgences sans commissariat) : le bâtiment en main.
+	if id.begins_with("batiment:"):
+		var bt := id.substr(9)
+		_on_recherche({"genre": "batiment", "id": bt, "nom": String(BuildingCatalog.get_type(bt).get("name", bt))})
 		return
 	var directs := ["budget", "avis", "construire", "trafic", "dechets", "reseaux", "services", "cartes", "lignes", "pays", "production", "objectifs", "saisons"]
 	if directs.has(id):

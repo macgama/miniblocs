@@ -93,7 +93,11 @@ func _run() -> void:
 	vie._update_chantiers()
 	_check(node.get_node("Fouille").visible and not node.get_node("Echafaudage").visible, "étape 1 : fouille, pas encore d'échafaudage")
 	_check(node.get_node("Engins/Pelleteuse").visible, "pelleteuse dans la fouille")
-	_check(node.get_node_or_null("PanneauChantier") != null and String((node.get_node("PanneauChantier") as Label3D).text).contains("Terrassement"), "panneau de chantier : « Terrassement »")
+	_check(node.find_children("*", "Label3D", true, false).is_empty(), "plus de texte flottant au-dessus du chantier")
+	_check(vie.texte_chantier(bid).contains("Terrassement"), "détail du chantier (info-bulle) : « Terrassement »")
+	vie.marqueurs.maj()
+	var mq: Array = vie.marqueurs.marqueurs.filter(func(m: Dictionary) -> bool: return int(m.bid) == bid)
+	_check(mq.size() == 1 and String(mq[0].genre) == "chantier" and float(mq[0].pos.y) > float(node.global_position.y) + 3.0, "marqueur au-dessus du chantier")
 	# Un bâtiment sans électricité (panne de réseau) garde l'aspect du chantier.
 	node.set_meta("res_panne", true)
 	BatimentsVie.refresh_material(node)
@@ -128,7 +132,7 @@ func _run() -> void:
 	amb.unix_time = Chantiers.date_apres(amb.unix_time, hjeu * 0.1, off)
 	vie._update_chantiers()
 	_check(is_equal_approx(vie.progress(bid), av_stop) and bool(bs.buildings[bid].get("attente", false)), "caisse vide : chantier arrêté")
-	_check(String((node.get_node("PanneauChantier") as Label3D).text).contains("argent"), "le panneau le dit")
+	_check(vie.texte_chantier(bid).contains("argent") and vie.statut_de(bid) == "argent", "le détail le dit (pastille rouge)")
 	bs.money = 10_000_000
 	var m1 := bs.money
 	amb.unix_time = Chantiers.date_apres(amb.unix_time, hjeu * 0.6, off)

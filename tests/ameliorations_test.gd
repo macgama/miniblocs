@@ -101,8 +101,8 @@ func _run() -> void:
 	_check(am.agrandir(eco), "chantier lancé")
 	var a: Dictionary = am.en_cours(eco)
 	_check(not a.is_empty() and int(a.cible) == 2 and int(a.du) == prix, "travaux en cours, %s à payer" % BuildingSystem.format_money(int(a.get("du", 0))))
-	_check(bs.node_of(eco).get_node_or_null("EchafaudageTravaux") != null and bs.node_of(eco).get_node_or_null("PanneauTravaux") != null,
-		"échafaudages et panneau de travaux")
+	_check(bs.node_of(eco).get_node_or_null("EchafaudageTravaux") != null and am.travaux_en_cours().has(eco) and am.texte_travaux(eco).contains("Agrandissement"),
+		"échafaudages et marqueur de travaux (détail au survol)")
 	_check(am.refus_agrandir(eco) != "", "pas deux chantiers à la fois")
 	_check(int(scene.population.known[eco].seats) == seats1, "l'école reste ouverte avec ses places pendant les travaux")
 	# Une semaine de travail plus tard.

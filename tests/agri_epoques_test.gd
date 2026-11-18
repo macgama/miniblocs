@@ -214,8 +214,7 @@ func _run() -> void:
 	_check(float((mat.import as Dictionary).get("chaux", 0.0)) > 0.0, "chaux importée (pas de four à chaux)")
 	_check(not (mat.total as Dictionary).has("ciment"), "pas de ciment en 1800")
 	var node := bs.node_of(bid)
-	var panneau := node.get_node_or_null("PanneauChantier") as Label3D
-	_check(panneau != null and panneau.text.contains("Matériaux"), "panneau de chantier : matériaux")
+	_check(node != null and vie.texte_chantier(bid).contains("Matériaux"), "détail du chantier (info-bulle) : matériaux")
 	vie.finish_all()
 	_check(not bs.buildings[bid].has("matx"), "chantier fini : bilan des matériaux effacé (sauvegarde légère)")
 

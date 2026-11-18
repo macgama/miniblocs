@@ -39,6 +39,8 @@ static var langue := "fr"
 static var titre_fixe := false
 ## Icônes flottantes au-dessus des bâtiments sans électricité, eau, égouts ou internet.
 static var icones_raccordement := true
+## Petits marqueurs (icône + anneau d'avancement) au-dessus des chantiers.
+static var marqueurs_chantiers := true
 
 static var _charge := false
 
@@ -67,6 +69,7 @@ static func charger() -> void:
 	langue = String(cf.get_value("jeu", "langue", langue))
 	titre_fixe = bool(cf.get_value("jeu", "titre_fixe", titre_fixe))
 	icones_raccordement = bool(cf.get_value("jeu", "icones_raccordement", icones_raccordement))
+	marqueurs_chantiers = bool(cf.get_value("jeu", "marqueurs_chantiers", marqueurs_chantiers))
 
 
 static func sauver() -> void:
@@ -82,6 +85,7 @@ static func sauver() -> void:
 	cf.set_value("jeu", "langue", langue)
 	cf.set_value("jeu", "titre_fixe", titre_fixe)
 	cf.set_value("jeu", "icones_raccordement", icones_raccordement)
+	cf.set_value("jeu", "marqueurs_chantiers", marqueurs_chantiers)
 	cf.set_value("manette", "sensibilite", snappedf(Manette.sensibilite, 0.05))
 	cf.set_value("manette", "inverser_y", Manette.inverser_y)
 	cf.set_value("manette", "vibrations", Manette.vibrations)

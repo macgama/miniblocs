@@ -473,6 +473,7 @@ const SECTIONS := [
 		["Globe", "revenir au globe pour changer de lieu"],
 		["F10 ou icône réglages", "panneau Admin : argent de départ, caisse, argent illimité, coût des constructions, accès à une voie, impôts, salaires, vitesses, épuisement des ressources, déblocage des bâtiments, pollution (seulement pour l'admin de la partie)"],
 		["F1", "afficher ou masquer cette aide"],
+		["Ctrl + F1", "guide du maire : un chapitre par fonction du jeu (fondateurs, Construire, Mairie, Atelier, vue au sol, zoo, musée, parc, club…), en bulles au centre de l'écran qui encadrent où cliquer ; la première fois qu'on ouvre une fonction, une bulle propose sa visite"],
 	]],
 	["Santé publique et épidémies", [
 		["F7", "panneau Santé publique (menu Infos) : épidémie en cours, hygiène des logements (eau potable, égouts), lits d'hôpital, conseils ; onglets Vaccins, Mesures et Histoire"],

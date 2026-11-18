@@ -74,8 +74,17 @@ static func demarrage_serveur(tree: SceneTree) -> bool:
 		GameStart.lat = float(o.get("lat", GameStart.lat))
 		GameStart.lon = float(o.get("lon", GameStart.lon))
 		GameStart.place_name = String(o.get("nom", "Carte entre amis"))
+		GameStart.pays = String(o.get("pays", ""))
 		GameStart.load_slot = ""
 		GameStart.slot_id = ""
+		# Réglages choisis dans l'assistant de nouvelle partie (sinon ceux par défaut).
+		if o.has("reglages") and FileAccess.file_exists(String(o.reglages)):
+			var data = JSON.parse_string(FileAccess.get_file_as_string(String(o.reglages)))
+			if data is Dictionary:
+				var r := ReglagesPartie.load_defaults()
+				r.from_dict(data)
+				r.tutoriel = false
+				ReglagesPartie.prochaine = r
 	GameStart.chosen = true
 	GameStart.atelier = false
 	GameStart.mode = GameStart.Mode.ENTRE_AMIS
@@ -311,8 +320,41 @@ static func copier_en_carte(slot_src: String, erreur: Array = []) -> String:
 ## Lance le serveur sans écran sur ce PC (un processus à part, qui continue après
 ## la fermeture du jeu). Renvoie le numéro du processus, ou -1.
 static func lancer_serveur_local(slot: String, port: int) -> int:
+	return _lancer_serveur(PackedStringArray(["--partie", slot, "--port", str(port)]))
+
+
+## Fichier des réglages d'une nouvelle carte entre amis, lu par le serveur au démarrage.
+const REGLAGES_NOUVELLE_CARTE := "user://amis_nouvelle_carte.json"
+
+
+## Lance sur ce PC le serveur d'une nouvelle carte entre amis (assistant de
+## nouvelle partie) : lieu choisi sur le globe, réglages de la partie.
+## Renvoie le numéro du processus, ou -1.
+static func lancer_nouvelle_carte(lat: float, lon: float, nom: String, pays_: String, r: ReglagesPartie, port: int) -> int:
+	var f := FileAccess.open(REGLAGES_NOUVELLE_CARTE, FileAccess.WRITE)
+	if f == null:
+		return -1
+	var d := r.to_dict()
+	d.erase("createur")
+	f.store_string(JSON.stringify(d))
+	f.close()
+	var a := PackedStringArray(["--lat", str(lat), "--lon", str(lon), "--reglages", REGLAGES_NOUVELLE_CARTE, "--port", str(port)])
+	if nom.strip_edges() != "":
+		a.append_array(["--nom", nom.strip_edges()])
+	if pays_ != "":
+		a.append_array(["--pays", pays_])
+	return _lancer_serveur(a)
+
+
+## Arguments donnés au serveur (« -- --serveur … ») en plus de --headless.
+static func arguments_serveur(options_: PackedStringArray) -> PackedStringArray:
 	var args := PackedStringArray(["--headless"])
 	if OS.has_feature("editor") or not OS.has_feature("template"):
 		args.append_array(["--path", ProjectSettings.globalize_path("res://")])
-	args.append_array(["--", "--serveur", "--partie", slot, "--port", str(port)])
-	return OS.create_process(OS.get_executable_path(), args)
+	args.append_array(["--", "--serveur"])
+	args.append_array(options_)
+	return args
+
+
+static func _lancer_serveur(options_: PackedStringArray) -> int:
+	return OS.create_process(OS.get_executable_path(), arguments_serveur(options_))

@@ -616,14 +616,80 @@ func _show_models() -> void:
 		_item_buttons.append(none)
 
 
+## Cartes du zonage : type -> [icône, nom, ce qui pousse].
+const ZONE_CARTES := {
+	"R": ["logement", "Résidentielle", "Maisons, immeubles"],
+	"C": ["commerce", "Commerciale", "Boutiques, bureaux"],
+	"I": ["industrie", "Industrielle", "Ateliers, usines"],
+	"X": ["gomme", "Retirer", "Efface la couleur ; les bâtiments restent"],
+}
+## Système de zonage suivi (suivre_zones) : jauges de demande et pinceau.
+var zone_system: ZoneSystem
+var _zone_cartes := {}
+var _zone_jauges := {}
+var _zone_pinceau: Label
+var _zone_pinceau_box: PanelContainer
+var _zone_pinceau_ico: TextureRect
+var _zone_apercus: HBoxContainer
+
+
+## Branche le panneau sur le zonage : les cartes suivent le pinceau actif
+## (clic droit ou Échap le reposent) et les jauges la demande.
+func suivre_zones(zs: ZoneSystem) -> void:
+	zone_system = zs
+	if zs != null and not zs.outil_change.is_connected(_maj_pinceau):
+		zs.outil_change.connect(_maj_pinceau)
+
+
+static func couleur_zone(k: String) -> Color:
+	var c: Color = ZoneSystem.KINDS[k].color if ZoneSystem.KINDS.has(k) else ZoneSystem.COULEUR_RETIRER
+	return Color(c.r, c.g, c.b, 1.0)
+
+
 func _show_zones() -> void:
 	_filters.visible = false
-	# Style que suivra le zonage (les bâtiments qui poussent).
-	var srow := HBoxContainer.new()
-	var sl := Label.new()
-	sl.text = "Style :"
-	srow.add_child(sl)
+	_zone_cartes.clear()
+	_zone_jauges.clear()
+	# Mode d'emploi en deux temps.
+	var aide := Label.new()
+	aide.text = "Choisis une carte, puis glisse sur le terrain avec le clic gauche. Les bâtiments poussent seuls le long des routes."
+	aide.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	aide.add_theme_font_size_override("font_size", 12)
+	aide.add_theme_color_override("font_color", UiStyle.TEXT_DIM)
+	_add(aide)
+	# Les 4 cartes : Résidentielle, Commerciale, Industrielle, Retirer.
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 6)
+	grid.add_theme_constant_override("v_separation", 6)
+	for k in ZONE_CARTES:
+		grid.add_child(_carte_zone(k))
+	_add(grid)
+	# Pinceau actif.
+	_zone_pinceau_box = PanelContainer.new()
+	var prow := HBoxContainer.new()
+	prow.add_theme_constant_override("separation", 8)
+	_zone_pinceau_box.add_child(prow)
+	var pic := TextureRect.new()
+	pic.name = "Icone"
+	pic.custom_minimum_size = Vector2(22, 22)
+	pic.stretch_mode = TextureRect.STRETCH_KEEP_CENTERED
+	prow.add_child(pic)
+	_zone_pinceau_ico = pic
+	_zone_pinceau = Label.new()
+	_zone_pinceau.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_zone_pinceau.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_zone_pinceau.add_theme_font_size_override("font_size", 13)
+	prow.add_child(_zone_pinceau)
+	_add(_zone_pinceau_box)
+	# Style des bâtiments qui pousseront, avec un aperçu en images.
+	var st := Label.new()
+	st.text = "Style des bâtiments"
+	st.add_theme_font_size_override("font_size", 13)
+	st.add_theme_color_override("font_color", UiStyle.ACCENT)
+	_add(st)
 	var style_opt := OptionButton.new()
+	style_opt.name = "StyleZonage"
 	style_opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	style_opt.fit_to_longest_item = false
 	style_opt.clip_text = true
@@ -636,51 +702,280 @@ func _show_zones() -> void:
 	style_opt.add_item("Bâtiments Blender (bible)")
 	style_opt.set_item_metadata(2, ZoneSystem.STYLE_BIBLE)
 	for sid in Styles.STYLES:
-		var st: Dictionary = Styles.STYLES[sid]
-		style_opt.add_item("%s (%s, %s)" % [st.name, Styles.region_name(st.region), Styles.era_name(st.era).to_lower()])
+		var sty: Dictionary = Styles.STYLES[sid]
+		style_opt.add_item("%s (%s, %s)" % [sty.name, Styles.region_name(sty.region), Styles.era_name(sty.era).to_lower()])
 		style_opt.set_item_metadata(style_opt.item_count - 1, sid)
 	for i in style_opt.item_count:
 		if String(style_opt.get_item_metadata(i)) == _zone_style:
 			style_opt.select(i)
 	style_opt.item_selected.connect(func(i: int) -> void:
 		_zone_style = String(style_opt.get_item_metadata(i))
-		zone_style_chosen.emit(_zone_style))
-	srow.add_child(style_opt)
-	_list.add_child(srow)
-	_item_buttons.append(srow)
-	for k in ZoneSystem.KINDS:
-		var b := Button.new()
-		b.text = "Zone %s  ·  %d €/m²" % [String(ZoneSystem.KINDS[k].name).to_lower(), ZoneSystem.PRICE_M2]
-		b.tooltip_text = "Clic gauche glissé pour peindre. Des bâtiments poussent le long des routes selon la demande."
-		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		b.toggle_mode = true
-		b.button_group = _item_group
-		b.add_theme_color_override("font_pressed_color", (ZoneSystem.KINDS[k].color as Color).lightened(0.4))
-		var kk: String = k
-		b.pressed.connect(func() -> void: zone_chosen.emit(kk))
-		_list.add_child(b)
-		_item_buttons.append(b)
-	var rm := Button.new()
-	rm.text = "Retirer des zones"
-	rm.alignment = HORIZONTAL_ALIGNMENT_LEFT
-	rm.toggle_mode = true
-	rm.button_group = _item_group
-	rm.pressed.connect(func() -> void: zone_remove_chosen.emit())
-	_list.add_child(rm)
-	_item_buttons.append(rm)
+		zone_style_chosen.emit(_zone_style)
+		_maj_apercus())
+	_add(style_opt)
+	_zone_apercus = HBoxContainer.new()
+	_zone_apercus.add_theme_constant_override("separation", 6)
+	_add(_zone_apercus)
+	_maj_apercus()
 	var grow := CheckBox.new()
 	grow.text = "Croissance automatique"
+	grow.tooltip_text = "Décoché : les zones restent colorées mais rien n'y pousse."
 	grow.button_pressed = _growth
 	grow.toggled.connect(func(on: bool) -> void:
 		_growth = on
 		growth_toggled.emit(on))
-	_list.add_child(grow)
-	_item_buttons.append(grow)
+	_add(grow)
 	_zone_label = Label.new()
 	_zone_label.add_theme_font_size_override("font_size", 12)
+	_zone_label.add_theme_color_override("font_color", UiStyle.TEXT_DIM)
 	_zone_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_list.add_child(_zone_label)
-	_item_buttons.append(_zone_label)
+	_add(_zone_label)
+	_maj_pinceau()
+	_maj_jauges()
+
+
+## Carte d'un type de zone : bandeau de couleur avec son icône, nom, ce qui y
+## pousse, prix et jauge de la demande. Clic : prendre ce pinceau.
+func _carte_zone(k: String) -> Button:
+	var info: Array = ZONE_CARTES[k]
+	var col := couleur_zone(k)
+	var b := Button.new()
+	b.name = "Zone" + k
+	b.custom_minimum_size = Vector2(160, 128)
+	b.toggle_mode = true
+	b.button_group = _item_group
+	b.focus_mode = Control.FOCUS_NONE
+	b.tooltip_text = ("Pinceau « %s » : maintiens le clic gauche et glisse sur la carte. %s le m².\nDes bâtiments poussent le long des routes selon la demande." % [info[1], BuildingSystem.format_money(ReglagesPartie.prix(ZoneSystem.PRICE_M2))]) if k != "X" else "Gomme : glisse sur une zone pour effacer sa couleur. Les bâtiments déjà construits restent."
+	var sel := UiStyle.flat_box(Color(col.r, col.g, col.b, 0.22), 10, 0)
+	sel.border_color = col
+	sel.set_border_width_all(3)
+	var normal := UiStyle.flat_box(Color(1, 1, 1, 0.05), 10, 0)
+	normal.border_color = Color(col.r, col.g, col.b, 0.45)
+	normal.set_border_width_all(1)
+	var hover := UiStyle.flat_box(Color(col.r, col.g, col.b, 0.12), 10, 0)
+	hover.border_color = Color(col.r, col.g, col.b, 0.8)
+	hover.set_border_width_all(2)
+	b.add_theme_stylebox_override("normal", normal)
+	b.add_theme_stylebox_override("hover", hover)
+	b.add_theme_stylebox_override("pressed", sel)
+	b.add_theme_stylebox_override("hover_pressed", sel)
+	var box := VBoxContainer.new()
+	box.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT, Control.PRESET_MODE_MINSIZE, 0)
+	box.add_theme_constant_override("separation", 3)
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	b.add_child(box)
+	# Bandeau : la couleur que prendra le sol, avec l'icône du type.
+	var bandeau := PanelContainer.new()
+	var bsb := UiStyle.flat_box(Color(col.r, col.g, col.b, 0.85), 8, 4)
+	bsb.corner_radius_bottom_left = 0
+	bsb.corner_radius_bottom_right = 0
+	bandeau.add_theme_stylebox_override("panel", bsb)
+	bandeau.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var hrow := HBoxContainer.new()
+	hrow.add_theme_constant_override("separation", 6)
+	hrow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bandeau.add_child(hrow)
+	var ico := TextureRect.new()
+	ico.texture = Icones.get_icon(String(info[0]), 26, Color(0.08, 0.09, 0.08))
+	ico.custom_minimum_size = Vector2(28, 28)
+	ico.stretch_mode = TextureRect.STRETCH_KEEP_CENTERED
+	ico.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hrow.add_child(ico)
+	var nom := Label.new()
+	nom.text = String(info[1])
+	nom.add_theme_font_size_override("font_size", 15)
+	nom.add_theme_color_override("font_color", Color(0.08, 0.09, 0.08))
+	nom.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	nom.clip_text = true
+	nom.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	hrow.add_child(nom)
+	box.add_child(bandeau)
+	var corps := MarginContainer.new()
+	for side in ["left", "right"]:
+		corps.add_theme_constant_override("margin_" + side, 8)
+	corps.add_theme_constant_override("margin_bottom", 6)
+	corps.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	corps.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	box.add_child(corps)
+	var vb := VBoxContainer.new()
+	vb.add_theme_constant_override("separation", 2)
+	vb.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	corps.add_child(vb)
+	var desc := Label.new()
+	desc.text = String(info[2])
+	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	desc.add_theme_font_size_override("font_size", 12)
+	desc.add_theme_color_override("font_color", UiStyle.TEXT_DIM)
+	desc.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	vb.add_child(desc)
+	if k != "X":
+		var prix := Label.new()
+		prix.text = "%s / m²" % BuildingSystem.format_money(ReglagesPartie.prix(ZoneSystem.PRICE_M2))
+		prix.add_theme_font_size_override("font_size", 12)
+		prix.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		vb.add_child(prix)
+		# Jauge de la demande, avec son mot en dessous.
+		var jl := Label.new()
+		jl.name = "Demande"
+		jl.add_theme_font_size_override("font_size", 11)
+		jl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		vb.add_child(jl)
+		var jauge := ProgressBar.new()
+		jauge.name = "Jauge"
+		jauge.show_percentage = false
+		jauge.max_value = 1.0
+		jauge.step = 0.0
+		jauge.custom_minimum_size = Vector2(70, 8)
+		jauge.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		jauge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		jauge.add_theme_stylebox_override("background", UiStyle.flat_box(Color(1, 1, 1, 0.12), 4, 0))
+		jauge.add_theme_stylebox_override("fill", UiStyle.flat_box(col, 4, 0))
+		vb.add_child(jauge)
+		_zone_jauges[k] = [jauge, jl]
+	var kk := k
+	b.pressed.connect(func() -> void:
+		if kk == "X":
+			zone_remove_chosen.emit()
+		else:
+			zone_chosen.emit(kk)
+		_maj_pinceau())
+	_zone_cartes[k] = b
+	return b
+
+
+## Choisit un pinceau comme un clic sur sa carte ("R", "C", "I" ou "X" pour retirer).
+func choisir_zone(k: String) -> void:
+	if not _zone_cartes.has(k):
+		return
+	var b: Button = _zone_cartes[k]
+	b.button_pressed = true
+	b.pressed.emit()
+
+
+## Encadré du pinceau : couleur et consigne du pinceau en main, ou invitation à
+## en choisir un. Les cartes suivent (clic droit ou Échap reposent le pinceau).
+func _maj_pinceau() -> void:
+	if not is_instance_valid(_zone_pinceau) or _zone_pinceau.is_queued_for_deletion():
+		return
+	var actif := ""
+	if zone_system != null:
+		if zone_system.mode == ZoneSystem.Mode.PAINT:
+			actif = zone_system.kind
+		elif zone_system.mode == ZoneSystem.Mode.REMOVE:
+			actif = "X"
+	else:
+		for k in _zone_cartes:
+			if (_zone_cartes[k] as Button).button_pressed:
+				actif = k
+	for k in _zone_cartes:
+		(_zone_cartes[k] as Button).set_pressed_no_signal(k == actif)
+	var ico := _zone_pinceau_ico if is_instance_valid(_zone_pinceau_ico) else null
+	if actif == "":
+		_zone_pinceau.text = "Aucun pinceau en main : choisis une carte ci-dessus."
+		_zone_pinceau.add_theme_color_override("font_color", UiStyle.TEXT_DIM)
+		_zone_pinceau_box.add_theme_stylebox_override("panel", UiStyle.flat_box(Color(1, 1, 1, 0.05), 8, 8))
+		if ico:
+			ico.texture = Icones.get_icon("zonage", 20, UiStyle.TEXT_DIM)
+		return
+	var col := couleur_zone(actif)
+	var sb := UiStyle.flat_box(Color(col.r, col.g, col.b, 0.18), 8, 8)
+	sb.border_color = col
+	sb.set_border_width_all(2)
+	_zone_pinceau_box.add_theme_stylebox_override("panel", sb)
+	_zone_pinceau.add_theme_color_override("font_color", UiStyle.TEXT)
+	if ico:
+		ico.texture = Icones.get_icon(String(ZONE_CARTES[actif][0]), 20, col)
+	if actif == "X":
+		_zone_pinceau.text = "Pinceau Retirer en main · clic droit : le reposer"
+	else:
+		_zone_pinceau.text = "Pinceau %s en main · clic droit : le reposer" % String(ZONE_CARTES[actif][1])
+
+
+## Jauges de la demande et surfaces déjà zonées.
+func _maj_jauges() -> void:
+	if zone_system == null or _zone_jauges.is_empty():
+		return
+	var d := zone_system.demand()
+	var area := zone_system.surfaces()
+	for k in _zone_jauges:
+		var j: Array = _zone_jauges[k]
+		if not is_instance_valid(j[0]) or (j[0] as Node).is_queued_for_deletion():
+			return
+		var v := float(d.get(k, 0.0))
+		(j[0] as ProgressBar).value = ZoneSystem.jauge_demande(v)
+		var lab := j[1] as Label
+		lab.text = "Demande forte" if v > 50.0 else ("Demande faible" if v > 0.0 else "Pas de demande")
+		lab.add_theme_color_override("font_color", couleur_zone(k).lightened(0.3) if v > 0.0 else UiStyle.TEXT_DIM)
+		(j[0] as ProgressBar).tooltip_text = "%d m² déjà zonés" % int(area.get(k, 0))
+	if is_instance_valid(_zone_label) and not _zone_label.is_queued_for_deletion():
+		_zone_label.text = "Déjà zoné : %s m² résidentiels · %s m² commerciaux · %s m² industriels" % [
+			_milliers(int(area.R)), _milliers(int(area.C)), _milliers(int(area.I))]
+
+
+static func _milliers(n: int) -> String:
+	var s := str(absi(n))
+	var out := ""
+	while s.length() > 3:
+		out = "\u00a0" + s.substr(s.length() - 3) + out
+		s = s.substr(0, s.length() - 3)
+	return ("-" if n < 0 else "") + s + out
+
+
+## Aperçu du style choisi : un bâtiment typique de chaque type de zone.
+func _maj_apercus() -> void:
+	if not is_instance_valid(_zone_apercus) or _zone_apercus.is_queued_for_deletion():
+		return
+	for ch in _zone_apercus.get_children():
+		_zone_apercus.remove_child(ch)
+		ch.queue_free()
+	for k in ["R", "C", "I"]:
+		var id := exemple_de_style(k, _zone_style)
+		var col := couleur_zone(k)
+		var cadre := PanelContainer.new()
+		var sb := UiStyle.flat_box(Color(1, 1, 1, 0.05), 8, 3)
+		sb.border_color = Color(col.r, col.g, col.b, 0.7)
+		sb.set_border_width_all(2)
+		cadre.add_theme_stylebox_override("panel", sb)
+		cadre.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var vb := VBoxContainer.new()
+		vb.add_theme_constant_override("separation", 1)
+		cadre.add_child(vb)
+		var pic := TextureRect.new()
+		pic.custom_minimum_size = Vector2(104, 66)
+		pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		pic.texture = Icones.get_icon(String(ZONE_CARTES[k][0]), 36, Color(col.r, col.g, col.b, 0.5))
+		vb.add_child(pic)
+		if id != "" and _vignettes:
+			_vignettes.request(id, pic)
+		var nom := Label.new()
+		nom.text = String(BuildingCatalog.get_type(id).get("name", ZONE_CARTES[k][1])) if id != "" else String(ZONE_CARTES[k][1])
+		nom.add_theme_font_size_override("font_size", 11)
+		nom.add_theme_color_override("font_color", UiStyle.TEXT_DIM)
+		nom.clip_text = true
+		nom.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		nom.custom_minimum_size = Vector2(100, 0)
+		nom.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		vb.add_child(nom)
+		cadre.tooltip_text = {"R": "Exemple de logement dans ce style", "C": "Exemple de commerce dans ce style",
+			"I": "Exemple d'industrie dans ce style"}[k]
+		_zone_apercus.add_child(cadre)
+
+
+## Bâtiment typique (le plus fréquent) d'un type de zone dans un style ; "" si aucun.
+static func exemple_de_style(k: String, style: String) -> String:
+	var types := ZoneSystem.types_for(k, style)
+	var best := ""
+	var best_w := -1
+	var ids := types.keys()
+	ids.sort()
+	for id in ids:
+		if BuildingCatalog.get_type(String(id)).is_empty():
+			continue
+		if int(types[id]) > best_w:
+			best_w = int(types[id])
+			best = String(id)
+	return best
 
 
 func block_mode() -> String:
@@ -1540,7 +1835,10 @@ func set_block_info(text: String) -> void:
 
 func set_zone_info(text: String) -> void:
 	if is_instance_valid(_zone_label) and not _zone_label.is_queued_for_deletion():
-		_zone_label.text = text
+		if zone_system != null:
+			_maj_jauges()
+		else:
+			_zone_label.text = text
 
 
 ## Carte d'un bâtiment : vignette, nom, taille et prix. Clic : le poser.

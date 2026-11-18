@@ -19,6 +19,8 @@ signal changed
 ## prendre un outil…) : la scène fait l'action.
 signal action_requested(id: String)
 signal message(text: String)
+## Une nouvelle étape commence : la scène montre ses bulles (BullesAide).
+signal etape_commencee(id: String)
 
 static var instance: Tutoriel
 
@@ -29,89 +31,171 @@ const LOGES := 5
 ## Habitants à atteindre pour finir la démo (comme le rang de Village).
 const CENT := 100
 
-## Étapes, dans l'ordre. action : bouton de la carte (texte, id envoyé à la scène).
+## Étapes, dans l'ordre.
+##   texte  : la consigne courte, sur la carte en haut à gauche ;
+##   bulles : l'explication, en bulles au centre de l'écran (BullesAide) qui
+##            montrent l'élément concerné ; ou chapitre : les bulles d'un
+##            chapitre du guide (Guide.CHAPITRES) ;
+##   action : bouton de la carte et de la dernière bulle (texte, id envoyé à la scène).
 const ETAPES := [
 	{"id": "camera", "titre": "Bienvenue, futur maire",
-		"texte": "Te voilà sur une terre vierge : pas une route, pas une maison, pas même un panneau « Bienvenue ». Fais d'abord un petit tour du propriétaire.",
-		"touches": "ZQSD ou flèches : se déplacer · molette : zoomer · A / E : tourner"},
+		"texte": "Fais un petit tour du propriétaire : déplace la caméra, zoome, tourne.",
+		"touches": "ZQSD ou flèches : se déplacer · molette : zoomer · A / E : tourner",
+		"bulles": [
+			{"titre": "Bienvenue, futur maire", "texte": "Te voilà sur une terre vierge : pas une route, pas une maison, pas même un panneau « Bienvenue ». Ici, tout est à construire."},
+			{"titre": "Une étape à la fois", "racine": "tuto_carte", "cible": ["CarteTutoriel"],
+				"texte": "Ta consigne du moment reste ici, en haut à gauche. Elle se coche toute seule quand c'est fait."},
+			{"titre": "Fais le tour", "texte": "Commence par un petit tour du propriétaire : déplace-toi, zoome et tourne autour du terrain.",
+				"touches": "ZQSD ou flèches : se déplacer · molette : zoomer · A / E : tourner"},
+		]},
 	{"id": "fonder", "titre": "Fonder ton village",
-		"texte": "Tout commence par une Maison de commune. Choisis un nom et un drapeau, puis pose-la sur un terrain plutôt plat. Pas besoin de route : c'est la première pierre (et la seule qui ne se plaindra pas du bruit).",
+		"texte": "Choisis un nom et pose la Maison de commune sur un terrain plat.",
 		"touches": "R : tourner · clic gauche : poser · clic droit : annuler",
-		"action": ["Fonder mon village", "fonder"]},
+		"action": ["Fonder mon village", "fonder"],
+		"bulles": [
+			{"titre": "La Maison de commune", "texte": "Tout commence par elle. Choisis un nom et un drapeau, puis pose-la sur un terrain plutôt plat. C'est la première pierre (et la seule qui ne se plaindra pas du bruit).",
+				"touches": "R : tourner · clic gauche : poser"},
+		]},
 	{"id": "fondateurs", "titre": "Tes fondateurs",
-		"texte": "Une centaine de courageux plantent leurs tentes près de la mairie. Ce sont les ouvriers de tes premiers chantiers, puis tes premiers habitants dès qu'ils auront un toit. Les vivres ne dureront pas éternellement : jette un œil à leur campement.",
+		"texte": "Jette un œil au campement de tes fondateurs.",
 		"touches": "Maj + H : fondateurs et chantiers",
-		"action": ["Voir les fondateurs", "fondateurs"]},
+		"action": ["Voir les fondateurs", "fondateurs"],
+		"chapitre": "fondateurs"},
 	{"id": "route", "titre": "Tracer une route",
-		"texte": "Les maisons veulent une route devant la porte : personne n'aime rentrer à travers champs en pantoufles. Trace une route qui part de la Maison de commune.",
-		"texte_rue": "Ta Maison de commune est arrivée avec une petite rue en T, offerte : tu peux déjà construire le long. Mais les maisons veulent une route devant la porte (personne n'aime rentrer à travers champs en pantoufles) : prolonge-la d'au moins 50 m avec l'outil Route, en partant d'un bout du T.",
+		"texte": "Trace 50 m de route qui partent de la Maison de commune.",
+		"texte_rue": "Prolonge la rue en T offerte d'au moins 50 m avec l'outil Route.",
 		"touches": "5 : outil Route · un clic par point · C : courbe · clic droit : finir",
-		"action": ["Prendre l'outil Route", "route"]},
+		"action": ["Prendre l'outil Route", "route"],
+		"bulles": [
+			{"titre": "Une route devant la porte", "cible": ["Voies"],
+				"texte": "Les maisons veulent une route devant la porte : personne n'aime rentrer à travers champs en pantoufles. L'outil Route est dans Voies.",
+				"touches": "5 : outil Route · un clic par point · clic droit : finir"},
+		]},
 	{"id": "zone_r", "titre": "Zoner des logements",
-		"texte": "Dans Construire, onglet Zonage, choisis « Résidentielle » et glisse le long de ta route. Les maisons pousseront toutes seules… enfin, avec tes ouvriers et ton argent.",
+		"texte": "Construire → Zonage → Résidentielle, puis glisse le long de ta route.",
 		"touches": "B : Construire → Zonage → Résidentielle · clic glissé",
-		"action": ["Ouvrir le zonage", "zones"]},
+		"action": ["Ouvrir le zonage", "zones"],
+		"bulles": [
+			{"titre": "Le bouton Construire", "cible": ["Construire"],
+				"texte": "Tous les bâtiments et le zonage sont rangés dans Construire.", "touches": "B : Construire"},
+			{"titre": "Le zonage", "panneau": "build_panel", "cible": ["ZoneR", "Zonage"], "section": false,
+				"texte": "Choisis « Résidentielle » et glisse le long de ta route. Les maisons pousseront toutes seules… enfin, avec tes ouvriers et ton argent."},
+		]},
 	{"id": "reseaux", "titre": "Courant, eau et égouts",
-		"texte": "Une maison sans eau ni électricité, c'est du camping (et tes fondateurs en ont assez). Pose une source d'électricité (raccordement au réseau national, éolienne, solaire…), une source d'eau (forage, ou captage près d'une rivière) et de quoi traiter les égouts (lagunage, station d'épuration), près d'une route. Bonne nouvelle : la première ville du pays reçoit le kit d'installation de l'État, et ses bons paient ces bâtiments, et même un dépôt de collecte pour les poubelles (détails : Maj+P). Les routes portent déjà les petits câbles et les tuyaux.",
+		"texte": "Pose une source d'électricité, une source d'eau et de quoi traiter les égouts.",
 		"touches": "B : Construire → Réseaux (et Déchets) · O : panneau des réseaux · Maj+P : bons du kit",
-		"action": ["Ouvrir les réseaux", "reseaux"]},
+		"action": ["Ouvrir les réseaux", "reseaux"],
+		"bulles": [
+			{"titre": "Sans eau ni courant, c'est du camping", "panneau": "build_panel", "cible": ["Réseaux et déchets"], "section": false,
+				"texte": "Pose, près d'une route, une source d'électricité (éolienne, solaire, raccordement…), un forage pour l'eau et un lagunage ou une station pour les égouts."},
+			{"titre": "Le kit de l'État", "texte": "Bonne nouvelle : la première ville du pays reçoit des bons qui paient ces bâtiments. Les routes portent déjà les petits câbles et les tuyaux.",
+				"touches": "Maj + P : bons du kit · O : réseaux"},
+		]},
 	{"id": "temps", "titre": "Laisser le temps faire",
-		"texte": "Les chantiers avancent au rythme de la vie, en semaine et en journée, comme les vrais. Accélère le temps et attends que les premières maisons soient habitées : tes fondateurs quittent la tente dès qu'un toit est prêt.",
+		"texte": "Accélère le temps et attends que 5 habitants aient un vrai toit.",
 		"touches": "Maj + T : vitesse suivante · T : pause",
-		"action": ["Accélérer le temps", "temps"]},
+		"action": ["Accélérer le temps", "temps"],
+		"bulles": [
+			{"titre": "Les chantiers prennent du temps", "texte": "Ils avancent en semaine et en journée, comme les vrais. Accélère le temps : tes fondateurs quittent la tente dès qu'un toit est prêt.",
+				"touches": "Maj + T : vitesse suivante · T : pause"},
+		]},
 	{"id": "emplois", "titre": "Du travail pour tous",
-		"texte": "Des habitants sans travail finissent par partir, ou pire : par se plaindre à la mairie. Zone des commerces ou de l'industrie près des logements.",
+		"texte": "Zone des commerces ou de l'industrie près des logements.",
 		"touches": "B : Construire → Zonage → Commerciale ou Industrielle",
-		"action": ["Ouvrir le zonage", "zones"]},
+		"action": ["Ouvrir le zonage", "zones"],
+		"bulles": [
+			{"titre": "Du travail pour tous", "panneau": "build_panel", "cible": ["ZoneC", "ZoneI", "Zonage"], "section": false,
+				"texte": "Des habitants sans travail finissent par partir, ou pire : par se plaindre à la mairie. Zone des commerces ou de l'industrie."},
+		]},
 	{"id": "ecole", "titre": "Une école",
-		"texte": "Les enfants grandissent vite, et pas toujours sagement. Construis une école reliée à la route : sans elle, ta ville ne deviendra jamais un Bourg.",
+		"texte": "Construis une école reliée à la route.",
 		"touches": "B : Construire → Services → École",
-		"action": ["Ouvrir les services", "ecole"]},
+		"action": ["Ouvrir les services", "ecole"],
+		"bulles": [
+			{"titre": "Une école", "panneau": "build_panel", "cible": ["Services publics"], "section": false,
+				"texte": "Les enfants grandissent vite, et pas toujours sagement. Sans école, ta ville ne deviendra jamais un Bourg."},
+		]},
 	{"id": "dechets", "titre": "Ramasser les poubelles",
-		"texte": "Chaque habitant jette près d'un kilo et demi d'ordures par jour, et elles ne partent pas toutes seules. Sans collecte, les sacs s'entassent sur le trottoir et tout le village sent la poubelle. Pose un dépôt de collecte (les bennes et leurs éboueurs) et une décharge pour les recevoir, chacun près d'une route. Mets la décharge à l'écart des maisons, au bout du territoire : elle sent fort. Les bons du kit de l'État en paient une bonne partie.",
+		"texte": "Pose un dépôt de collecte et une décharge, à l'écart des maisons.",
 		"touches": "B : Construire → Déchets et propreté · X : panneau des déchets",
-		"action": ["Ouvrir les déchets", "dechets"]},
+		"action": ["Ouvrir les déchets", "dechets"],
+		"bulles": [
+			{"titre": "Les poubelles", "panneau": "build_panel", "cible": ["Réseaux et déchets"], "section": false,
+				"texte": "Chaque habitant jette un kilo et demi d'ordures par jour. Pose un dépôt de collecte (les bennes) et une décharge, chacun près d'une route."},
+			{"titre": "Loin des maisons", "texte": "La décharge sent fort : mets-la au bout du territoire. Les bons du kit de l'État en paient une bonne partie.",
+				"touches": "X : panneau des déchets"},
+		]},
 	{"id": "budget", "titre": "Surveiller la caisse",
-		"texte": "Impôts, dépenses, emprunts : tout est dans le budget. Si la caisse est à sec, un emprunt dépanne, mais il faudra le rembourser. Conseil d'ami : une caisse vide n'a jamais construit de pont.",
-		"touches": "M : budget de la ville",
-		"action": ["Ouvrir le budget", "budget"]},
+		"texte": "Ouvre le budget : Mairie → Budget et impôts.",
+		"touches": "M : Mairie → Budget et impôts",
+		"action": ["Ouvrir le budget", "budget"],
+		"bulles": [
+			{"titre": "La Mairie", "cible": ["Mairie"],
+				"texte": "Ton tableau de bord : satisfaction, emploi, réseaux, alertes, et tous les menus de la ville.", "touches": "M : Mairie"},
+			{"titre": "Le budget", "texte": "Impôts, dépenses, emprunts : tout est dans le budget. Conseil d'ami : une caisse vide n'a jamais construit de pont."},
+		]},
 	{"id": "objectifs", "titre": "Tes objectifs",
-		"texte": "Le pays te confie des missions, avec une prime à la clé, et ta ville gagne des rangs : Hameau, Village, Bourg… Ils sont résumés sous cette carte. Ouvre le panneau pour le détail et les succès.",
+		"texte": "Ouvre le panneau des objectifs pour voir missions, rangs et succès.",
 		"touches": "Maj + J : objectifs, rangs et succès",
-		"action": ["Ouvrir les objectifs", "objectifs"]},
+		"action": ["Ouvrir les objectifs", "objectifs"],
+		"bulles": [
+			{"titre": "Missions et rangs", "racine": "tuto_carte", "cible": ["Objectifs"], "section": false,
+				"texte": "Le pays te confie des missions avec une prime, et ta ville gagne des rangs : Hameau, Village, Bourg… Le résumé reste ici."},
+		]},
 	{"id": "fin", "titre": "Tu es maire !",
-		"texte": "Le tutoriel s'arrête là, la ville continue. Fais-la grandir, garde les habitants contents et gagne les élections. Ils râleront quand même un peu : c'est comme ça qu'on sait qu'ils tiennent à leur ville.",
-		"touches": "F1 : toutes les commandes · F10 : réglages (relancer le tutoriel)",
-		"action": ["Terminer", "terminer"]},
+		"texte": "La ville est à toi. Le guide (Ctrl + F1) t'explique le reste quand tu le découvres.",
+		"touches": "Ctrl + F1 : guide · F1 : commandes · F10 : réglages",
+		"action": ["Terminer", "terminer"],
+		"bulles": [
+			{"titre": "Tu es maire !", "texte": "Fais grandir ta ville, garde les habitants contents et gagne les élections. Ils râleront quand même un peu : c'est comme ça qu'on sait qu'ils tiennent à leur ville."},
+			{"titre": "Et ensuite ?", "texte": "Zoo, musée, parc d'attractions, club de sport, Atelier, vue au sol… La première fois que tu ouvres une fonction, une bulle te propose de la découvrir.",
+				"touches": "Ctrl + F1 : le guide, tous les chapitres"},
+		]},
 ]
 
 ## Démo guidée (menu principal → « Démo guidée ») : les étapes du tutoriel
 ## jusqu'aux objectifs, puis ces chapitres, puis le bilan. Environ 30 minutes.
 const ETAPES_DEMO := [
 	{"id": "vue_sol", "titre": "Descendre dans la rue", "demo": true,
-		"texte": "Assez vu ta ville d'en haut, comme un pigeon. Descends à hauteur d'habitant : tu peux marcher, entrer dans les bâtiments ouverts et regarder les chantiers de près. V repasse d'une vue à l'autre, et te ramène dans ton fauteuil de maire.",
+		"texte": "Passe en vue au sol et marche dans ta ville.",
 		"touches": "V : vue au sol (3e puis 1re personne) · ZQSD : marcher · souris : regarder",
-		"action": ["Descendre dans la rue", "vue_sol"]},
+		"action": ["Descendre dans la rue", "vue_sol"],
+		"chapitre": "vue_sol"},
 	{"id": "loisirs", "titre": "Un coin pour souffler", "demo": true,
-		"texte": "Travailler, dormir, recommencer : tes habitants méritent mieux. Pose un square, une place, une aire de jeux ou un terrain de sport près des maisons. Les gens contents votent mieux (c'est ce qu'on dit).",
+		"texte": "Pose un square, une place, une aire de jeux ou un terrain de sport.",
 		"touches": "B : Construire → Espaces publics, Loisirs ou Sport",
-		"action": ["Ouvrir les espaces publics", "loisirs"]},
+		"action": ["Ouvrir les espaces publics", "loisirs"],
+		"bulles": [
+			{"titre": "Un coin pour souffler", "panneau": "build_panel", "cible": ["Loisirs et culture"], "section": false,
+				"texte": "Travailler, dormir, recommencer : tes habitants méritent mieux. Les gens contents votent mieux (c'est ce qu'on dit)."},
+		]},
 	{"id": "fete", "titre": "Une fête au village", "demo": true,
-		"texte": "Rien ne soude un village comme un marché ou une fête avec des lampions. Organise-en un : clique sur l'endroit où poser les étals ou la scène, les habitants libres viendront à pied.",
+		"texte": "Organise un marché ou une fête : clique où poser les étals.",
 		"touches": "I : Infos → Organiser · clic : poser · clic droit : annuler",
-		"action": ["Organiser un marché ou une fête", "fete"]},
+		"action": ["Organiser un marché ou une fête", "fete"],
+		"bulles": [
+			{"titre": "Une fête au village", "texte": "Rien ne soude un village comme un marché ou une fête avec des lampions. Les habitants libres viendront à pied.",
+				"touches": "I : Infos → Organiser"},
+		]},
 	{"id": "ligne", "titre": "Prendre le bus", "demo": true,
-		"texte": "Pour qu'on se passe un peu de la voiture, pose deux arrêts de bus le long de tes routes, puis trace une ligne qui les relie. Les bus partent tout seuls ; leur bilan te dira si la ligne vaut le ticket.",
+		"texte": "Pose deux arrêts de bus, puis trace une ligne qui les relie.",
 		"touches": "L : lignes et arrêts · outil Ligne : un clic par arrêt, clic droit pour finir",
-		"action": ["Ouvrir les lignes", "ligne"]},
+		"action": ["Ouvrir les lignes", "ligne"],
+		"chapitre": "lignes"},
 	{"id": "village", "titre": "Cent habitants", "demo": true,
-		"texte": "Dernier défi de la démo : loger 100 habitants. Avec une majorité contente en plus, ton hameau deviendra un Village, avec une prime du pays. Logements, emplois, services : tout compte. Accélère le temps si tu es sûr de toi.",
+		"texte": "Loge 100 habitants, avec une majorité contente.",
 		"touches": "Maj + J : ce qui manque · Maj + T : accélérer · Y : avis des habitants",
-		"action": ["Voir ce qui manque", "objectifs"]},
+		"action": ["Voir ce qui manque", "objectifs"],
+		"bulles": [
+			{"titre": "Dernier défi", "texte": "Loge 100 habitants. Avec une majorité contente, ton hameau deviendra un Village, avec une prime du pays. Logements, emplois, services : tout compte."},
+		]},
 	{"id": "fin_demo", "titre": "Fin de la démo", "demo": true,
-		"texte": "Bravo, Monsieur le Maire (ou Madame) : la démo s'arrête ici, mais pas ta ville. Regarde ton bilan, puis continue à jouer aussi longtemps que tu veux.",
+		"texte": "Regarde ton bilan, puis continue à jouer aussi longtemps que tu veux.",
 		"touches": "",
-		"action": ["Voir mon bilan", "bilan"]},
+		"action": ["Voir mon bilan", "bilan"],
+		"bulles": [
+			{"titre": "Fin de la démo", "texte": "Bravo, Monsieur le Maire (ou Madame) : la démo s'arrête ici, mais pas ta ville."},
+		]},
 ]
 
 ## Parcours en cours : "" (tutoriel) ou "demo" (démo guidée).
@@ -244,6 +328,22 @@ static func texte_de(e: Dictionary) -> String:
 	return String(e.get("texte", ""))
 
 
+## Bulles d'une étape (les siennes, ou celles de son chapitre du guide). La
+## dernière bulle reçoit le bouton d'action de l'étape (id « tuto_agir »).
+static func bulles_de(e: Dictionary) -> Array:
+	var liste: Array = []
+	if e.has("chapitre"):
+		liste = Guide.bulles_de(String(e.chapitre)).duplicate(true)
+	else:
+		liste = (e.get("bulles", []) as Array).duplicate(true)
+	if liste.is_empty():
+		liste = [{"titre": String(e.get("titre", "")), "texte": texte_de(e), "touches": String(e.get("touches", ""))}]
+	var der: Dictionary = liste[liste.size() - 1]
+	if e.has("action") and not der.has("action") and String(e.action[1]) != "terminer" and String(e.action[1]) != "bilan":
+		der["action"] = [String(e.action[0]), "tuto_agir"]
+	return liste
+
+
 func etape_courante() -> Dictionary:
 	return etapes()[etape] if actif and etape < etapes().size() else {}
 
@@ -344,7 +444,9 @@ static func _deja_faisable(id: String) -> bool:
 	return not ["camera", "fondateurs", "budget", "objectifs", "temps", "vue_sol", "fete", "loisirs"].has(id)
 
 
-func _debut_etape() -> void:
+func _debut_etape(annoncer := true) -> void:
+	if annoncer:
+		etape_commencee.emit.call_deferred(id_courant())
 	_vus.clear()
 	_cam0.clear()
 	_fetes0 = fetes_organisees()
@@ -670,5 +772,5 @@ func from_dict(d: Dictionary) -> void:
 	if etape >= etapes().size():
 		actif = false
 	if actif:
-		_debut_etape()
+		_debut_etape(false)
 	changed.emit()

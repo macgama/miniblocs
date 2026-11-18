@@ -9,6 +9,8 @@ extends CanvasLayer
 ## Masquée en mode Créer et dans l'atelier.
 
 signal objectifs_requested
+## Bouton « ? » : revoir les bulles d'explication de l'étape.
+signal bulles_requested
 
 const W := 340.0
 const VERT := Color("7bd389")
@@ -30,6 +32,7 @@ var _touches_l: Label
 var _progres_l: Label
 var _action_b: Button
 var _passer_b: Button
+var _revoir_b: Button
 var _obj_panel: PanelContainer
 var _obj_head_l: Label
 var _replier_b: Button
@@ -99,6 +102,13 @@ func _build() -> void:
 	_action_b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_action_b.pressed.connect(func() -> void: tuto.agir())
 	row.add_child(_action_b)
+	_revoir_b = Button.new()
+	_revoir_b.text = "?"
+	_revoir_b.tooltip_text = "Revoir les explications en bulles"
+	_revoir_b.focus_mode = Control.FOCUS_NONE
+	_revoir_b.custom_minimum_size = Vector2(32, 0)
+	_revoir_b.pressed.connect(func() -> void: bulles_requested.emit())
+	row.add_child(_revoir_b)
 	_passer_b = Button.new()
 	_passer_b.text = "Passer"
 	_passer_b.tooltip_text = "Passer cette étape"

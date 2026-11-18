@@ -4,12 +4,13 @@ extends RefCounted
 ## horaires des équipes, étapes, avancement.
 ##
 ## Principe : chaque chantier a une quantité de travail en « heures réelles »
-## (une maison ≈ 6 mois d'une équipe, une départementale ≈ 0,1 h par m²). Le
+## (une maison ≈ 5 mois d'une équipe, une départementale ≈ 0,1 h par m²). Le
 ## travail n'avance que pendant les horaires de l'équipe (réglage Admin :
 ## jours ouvrés, tous les jours ou jour et nuit), à l'heure locale du lieu.
 ## Comme les habitants et les arbres, le chantier suit la vitesse de la vie
-## (Population.life_speed) : 1 an de vie = 1 mois de jeu par défaut, donc une
-## maison de 6 mois demande 6 / 12 mois de travail, soit ≈ 2 semaines de jeu.
+## (Population.life_speed) divisée par 3 (1 an de vie = 1 mois de jeu → ×4),
+## puis le réglage Admin « rythme des chantiers » (×3) : ×12 en tout, une
+## maison de 5 mois demande ≈ 2 semaines de jeu (≈ 6 semaines à ×1).
 ##
 ## Avancement gardé dans la donnée du chantier : "av" (0 à 1) et "hr" (heures
 ## réelles de travail au total). Changer la vitesse de la vie en cours de route
@@ -161,30 +162,115 @@ const OUVRAGES := {
 }
 
 
-## Mois de travail réels d'une équipe pour un type de bâtiment.
-static func mois_batiment(id: String) -> float:
+## Règle des durées (bâtiments ordinaires) : la durée suit la surface de plancher
+## (emprise bâtie × niveaux), avec des rendements décroissants (une équipe plus
+## grande travaille en parallèle) : mois = 0,42 × plancher^0,46. Repères réels
+## d'aujourd'hui avec une équipe complète :
+##   maison ≈ 190 m² → 4 à 6 mois ; immeuble de 8 niveaux ≈ 2 000 m² → 12 à 18 mois ;
+##   école ≈ 2 000 m² → 1 an et demi à 2 ans ; hôpital ≈ 10 000 m² → 3 à 4 ans ;
+##   stade (emprise, sans niveaux) → 2 à 3 ans ; tour de 40 étages → 4 à 5 ans.
+## Puis : × type (technique, simple), × matériaux (bois plus rapide, pierre de
+## taille plus lente) et × époque (à la main en 1800, machines aujourd'hui).
+const PLANCHER_A := 0.42
+const PLANCHER_EXPOSANT := 0.46
+## Hauteur d'un niveau pour compter les étages (toit compris dans la hauteur).
+const HAUTEUR_NIVEAU := 3.5
+## Plafond des bâtiments ordinaires (les grands monuments ont leurs propres durées).
+const MOIS_MAX := 120.0
+## Catégories à grande emprise ouverte (tribunes, enclos, attractions) : on compte
+## l'emprise, pas les niveaux.
+const CAT_EMPRISE := ["sport", "parc", "zoo"]
+## Complexité par catégorie.
+const COEF_CATEGORIE := {
+	"logement": 1.0, "commerce": 0.9, "tourisme": 1.0, "industrie": 0.75, "production": 0.75,
+	"services": 1.1, "reseaux": 1.2, "dechets": 1.0, "funeraire": 1.0, "loisirs": 0.9,
+	"sport": 1.0, "parc": 0.8, "zoo": 0.7, "spectacles": 1.1, "patrimoine": 1.3,
+}
+## Bâtiments très techniques (mots du nom ou de l'id).
+const COEF_MOTS := [
+	["nucleaire", 2.5], ["hopital", 1.35], ["clinique", 1.2], ["centrale", 1.4], ["aeroport", 1.3],
+	["laboratoire", 1.25], ["gare", 1.15], ["prison", 1.2], ["universite", 1.1], ["hangar", 0.6],
+	["entrepot", 0.6], ["serre", 0.5], ["abri", 0.5], ["cabane", 0.6], ["garage", 0.6],
+]
+## Pierre de taille, maçonnerie lourde : plus lent.
+const MOTS_PIERRE := ["pierre", "chateau", "fort", "gothique", "roman", "cathedrale", "abbaye", "monastere", "citadelle"]
+## Époques : [jusqu'à l'année (exclue), facteur]. Avant 1850 tout se fait à la main.
+const COEF_EPOQUES := [[1850, 1.6], [1900, 1.4], [1945, 1.2], [1980, 1.05]]
+
+
+## Surface de plancher (m²) servant à la durée d'un type de bâtiment.
+static func plancher_batiment(id: String) -> float:
+	var t := BuildingCatalog.get_type(id)
+	var w := float(t.get("w", 8))
+	var d := float(t.get("d", 8))
+	var surface := w * d
+	# Les grands terrains (usines, fermes) ne sont pas bâtis partout.
+	var emprise := surface * (0.6 if surface > 400.0 else 0.8)
+	if String(t.get("cat", "")) in CAT_EMPRISE:
+		return emprise
+	return emprise * niveaux_batiment(id)
+
+
+static var _niveaux := {}
+
+
+## Niveaux d'un type de bâtiment, d'après sa hauteur (toit compris).
+static func niveaux_batiment(id: String) -> float:
+	if not _niveaux.has(id):
+		_niveaux[id] = maxf(1.0, floorf(BuildingCatalog.approx_height(id) / HAUTEUR_NIVEAU))
+	return float(_niveaux[id])
+
+
+## Facteur de l'époque (année de jeu) : 1 aujourd'hui, 1,6 en 1800.
+static func coef_epoque(annee := -1) -> float:
+	if annee < 0:
+		annee = MateriauxChantiers._annee()
+	for e in COEF_EPOQUES:
+		if annee < int(e[0]):
+			return float(e[1])
+	return 1.0
+
+
+## Facteur du type (catégorie, bâtiment technique) et des matériaux.
+static func coef_type(id: String) -> float:
+	var t := BuildingCatalog.get_type(id)
+	var k := float(COEF_CATEGORIE.get(String(t.get("cat", "")), 1.0))
+	var hay := (id + " " + String(t.get("name", "")) + " " + String(t.get("style", ""))).to_lower()
+	hay = hay.replace("ô", "o").replace("é", "e").replace("è", "e").replace("â", "a").replace("ï", "i")
+	for m in COEF_MOTS:
+		if hay.contains(String(m[0])):
+			k *= float(m[1])
+			break
+	for m in MateriauxChantiers.MOTS_BOIS:
+		if hay.contains(m):
+			return k * 0.8
+	for m in MOTS_PIERRE:
+		if hay.contains(m):
+			return k * 1.25
+	return k
+
+
+static var _mois_base := {}
+
+
+## Mois de travail réels d'une équipe complète pour un type de bâtiment, à
+## l'époque donnée (année de jeu par défaut).
+static func mois_batiment(id: String, annee := -1) -> float:
 	if MonumentsTypes.est_monument(id):
 		return MonumentsTypes.mois(id)
 	if OUVRAGES.has(id):
 		return float(OUVRAGES[id][0])
 	var t := BuildingCatalog.get_type(id)
-	var w := float(t.get("w", 8))
-	var d := float(t.get("d", 8))
-	var surface := w * d
 	if String(t.get("cat", "")) == "espaces":
 		# Places, parcs, bancs : de quelques jours à quelques mois.
-		return clampf(sqrt(surface) / 25.0, 0.1, 6.0)
-	var etages := maxf(1.0, ceilf(BuildingCatalog.approx_height(id) / 3.0))
-	# Maison ≈ 6 à 8 mois, immeuble de 6 étages ≈ 1 an, tour de 20 étages ≈ 2 ans et demi ;
-	# les grandes emprises (usines, hôpitaux) ajoutent du temps.
-	var mois := 3.0 + 1.6 * pow(etages, 0.9) + sqrt(surface) / 20.0
-	if surface < 40.0 and etages <= 1.0:
-		mois *= 0.4 # cabanon, kiosque
-	return clampf(mois, 0.5, 48.0)
+		return clampf(sqrt(float(t.get("w", 8)) * float(t.get("d", 8))) / 25.0, 0.1, 6.0)
+	if not _mois_base.has(id):
+		_mois_base[id] = PLANCHER_A * pow(plancher_batiment(id), PLANCHER_EXPOSANT) * coef_type(id)
+	return clampf(float(_mois_base[id]) * coef_epoque(annee), 0.3, MOIS_MAX)
 
 
-static func heures_batiment(id: String) -> float:
-	return mois_batiment(id) * HEURES_PAR_MOIS
+static func heures_batiment(id: String, annee := -1) -> float:
+	return mois_batiment(id, annee) * HEURES_PAR_MOIS
 
 
 ## Heures de travail réelles pour un tronçon de voie (longueur en m) : selon
@@ -246,9 +332,19 @@ static func equipe_travaux(heures_reelles: float) -> int:
 
 ## Rythme : heures réelles faites pour une heure de travail dans le jeu (vitesse de
 ## la vie × réglage Admin « rythme des chantiers »).
-static func rythme(pop: Population) -> float:
+## Les chantiers ne suivent qu'une partie de la vitesse de la vie : vie / 3
+## (1 an de vie = 1 mois de jeu → chantiers ×4), jamais moins que ×1. Choix de
+## Gaël (2026-11-18) : maison ≈ 2 semaines de jeu, hôpital ≈ 4 mois à ×3.
+const VIE_DIVISEUR := 3.0
+
+
+static func vie_chantiers(pop: Population) -> float:
 	var vie := pop.life_speed() if pop != null else float(Population.LIFE_SPEEDS[Population.DEFAULT_LIFE_SPEED])
-	return vie * ReglagesPartie.actuel.rythme_chantiers
+	return maxf(1.0, vie / VIE_DIVISEUR)
+
+
+static func rythme(pop: Population) -> float:
+	return vie_chantiers(pop) * ReglagesPartie.actuel.rythme_chantiers
 
 
 # --- Étapes --------------------------------------------------------------------------

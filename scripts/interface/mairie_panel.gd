@@ -253,6 +253,8 @@ static func carte_alerte(a: Dictionary, ouvrir: Callable, compact := false) -> C
 
 
 static func _verbe(pid: String) -> String:
+	if pid.begins_with("batiment:"):
+		return "Construire"
 	match pid:
 		"budget": return "Ouvrir le budget"
 		"construire": return "Construire"

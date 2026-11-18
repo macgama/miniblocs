@@ -361,6 +361,30 @@ func _run() -> void:
 	vue.vue_suivante()
 	_check(vue.vue == VueSol.Vue.DESSUS, "V : 1re personne → dessus")
 
+	print("Échap et bouton « Vue de dessus » :")
+	for depart in [VueSol.Vue.TROISIEME, VueSol.Vue.PREMIERE]:
+		vue.set_vue(depart)
+		_check(vue._sortie.visible and vue._aide_cadre.visible, "bouton de sortie et aide visibles au sol (%s)" % VueSol.NOMS[depart])
+		var esc := InputEventKey.new()
+		esc.keycode = KEY_ESCAPE
+		esc.physical_keycode = KEY_ESCAPE
+		esc.pressed = true
+		Input.parse_input_event(esc)
+		# Les touches simulées arrivent au prochain tour de boucle (images, pas physique).
+		for i in 4:
+			await process_frame
+		var lache := esc.duplicate() as InputEventKey
+		lache.pressed = false
+		Input.parse_input_event(lache)
+		for i in 4:
+			await process_frame
+		_check(vue.vue == VueSol.Vue.DESSUS and not p.visible, "Échap depuis la %s : retour direct en vue de dessus" % VueSol.NOMS[depart])
+		_check(not vue._sortie.visible and not vue._aide_cadre.visible, "bouton de sortie et aide rangés en vue de dessus")
+	vue.set_vue(VueSol.Vue.TROISIEME)
+	vue._sortie.pressed.emit()
+	_check(vue.vue == VueSol.Vue.DESSUS, "bouton « Vue de dessus » : retour en vue de gestion")
+	_check(vue._aide.text.begins_with("Échap vue de dessus"), "l'aide commence par la sortie")
+
 	print("PERSONNAGE TEST OK" if ok else "PERSONNAGE TEST ÉCHEC")
 	quit(0 if ok else 1)
 

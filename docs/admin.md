@@ -3,8 +3,9 @@
 ![Panneau Admin](apercu-admin.png)
 
 **F10**, ou l'icône réglages de la barre du haut, ou le bouton **Règles** du panneau
-Construire. Sur le globe, le bouton **Réglages…** ouvre le même panneau avant de
-commencer la partie.
+Construire. Avant la partie, l'étape 3 de l'assistant de nouvelle partie (globe)
+propose les réglages essentiels par thèmes, et son bouton **Réglages avancés…**
+ouvre ce même panneau.
 
 ## Réglages
 

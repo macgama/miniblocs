@@ -4,6 +4,16 @@ Tout est dans `main`, et les 9 tests automatiques passent (`sh tests/tous.sh`).
 
 ## Nouveautés
 
+**Sortir facilement de la vue au sol** (18 novembre)
+- **Échap** quitte tout de suite le personnage (3e ou 1re personne, même à bord d'un véhicule) et revient à la vue de dessus. Le bouton jaune **Vue de dessus** en haut à droite fait pareil.
+- **Alt** libère la souris pour cliquer dans l'interface (un clic dans la vue la reprend).
+- L'aide des touches est un bandeau en bas, au-dessus de la barre d'outils : elle ne recouvre plus le panneau Objectifs.
+
+**Zonage plus visible** (Construire → Outils → Zonage, 18 novembre)
+- Quatre cartes de couleur avec leur icône : Résidentielle (vert), Commerciale (bleu), Industrielle (jaune) et Retirer (rouge). Chacune montre ce qui y pousse, le prix au m² et une jauge de la demande.
+- L'encadré du pinceau dit ce que tu as en main ; clic droit ou Échap le repose et les cartes se relèvent. Le style choisi se voit en trois vignettes (logement, commerce, industrie).
+- Sur une pente, la couleur des zones épouse les marches du terrain (dessus et flancs de chaque case) et ne disparaît plus dans le sol ; le cadre du pinceau englobe tout le relief. Voir docs/zonage.md.
+
 **Expéditions et objets rares** (Construire → Loisirs → Société des explorateurs, puis **Maj+F4**, 17 novembre)
 - Monte une équipe (chef, guide, médecin, naturaliste, archéologue, porteurs…), choisis provisions et matériel, et envoie-la vers 17 destinations, de l'Antarctique au Yucatán. Voilier en 1800, avion aujourd'hui.
 - En route, des imprévus à trancher (ou laisse le chef décider) ; sans le bon matériel, santé et moral s'effondrent.

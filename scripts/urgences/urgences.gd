@@ -18,6 +18,9 @@ extends Node3D
 ##   négligé gagne un bâtiment (incendie, si les événements sont là).
 ## - Temps d'intervention mesurés et zones de couverture (carte des routes
 ##   colorée selon le temps pour y arriver).
+## - Sur les lieux : épaves, blessé, feu de poubelle… et les équipages qui
+##   descendent travailler (ScenesIncidents) ; au-dessus, une petite icône
+##   avec le détail au survol (IconesIncidents). Voir docs/incidents.md.
 
 signal message(text: String)
 signal changed
@@ -61,8 +64,19 @@ const EVENT_NAMES := {"incendie": "Incendie", "malades": "Malades", "accident": 
 const WORK := {"pompiers": 40.0, "ambulance": 25.0, "police": 30.0}
 ## Pause à l'hôpital avant de rentrer (s).
 const HOSPITAL_STOP := 8.0
-## Appels au hasard par heure réelle : base + par habitant.
-const CALL_RATE := [4.0, 0.03]
+## Appels au hasard par heure réelle : base + par habitant. Un hameau n'a
+## presque pas d'appels ; les accidents dépendent en plus de la circulation.
+const CALL_RATE := [0.0, 0.03]
+## En dessous de ce nombre d'habitants, les appels deviennent rares (proportionnels).
+const PETITE_VILLE := 400
+## Voitures en circulation pour un accident « au tarif plein ».
+const TRAFIC_PLEIN := 150.0
+## Sans aucun bâtiment pour répondre, un appel ne reste pas ouvert plus de
+## ce multiple de son délai « trop tard » : les gens se débrouillent seuls.
+const ABANDON := 1.5
+## Bâtiment qui envoie chaque service (pour le conseil « construire »).
+const BATIMENT_DE := {"pompiers": "pompiers", "police": "police", "ambulance": "hopital"}
+const NOM_BATIMENT := {"pompiers": "une caserne de pompiers", "police": "un commissariat", "ambulance": "un hôpital"}
 const MAX_ACTIVE := 6
 ## Couverture : seuils (s) des couleurs vert, jaune, orange ; au-delà rouge.
 const COVER_STEPS := [180.0, 360.0, 600.0]
@@ -94,9 +108,11 @@ var _retry := 0.0
 var _evenements: Node
 var _cover_mesh: MeshInstance3D
 var _cover_dirty := true
-var _markers: Dictionary = {}
-var _marker_mat: StandardMaterial3D
 var _no_crew_warned: Dictionary = {}
+var _next_uid := 1
+## Décor des lieux (voitures accidentées, blessés, équipages…) et icônes.
+var scenes: ScenesIncidents
+var icones: IconesIncidents
 
 
 func _init() -> void:
@@ -128,17 +144,20 @@ func _ready() -> void:
 	_cover_mesh.material_override = m
 	_cover_mesh.visible = false
 	add_child(_cover_mesh)
-	_marker_mat = StandardMaterial3D.new()
-	_marker_mat.albedo_color = Color("ff5d5d")
-	_marker_mat.emission_enabled = true
-	_marker_mat.emission = Color("ff3030")
-	_marker_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	scenes = ScenesIncidents.new()
+	scenes.urg = self
+	add_child(scenes)
+	icones = IconesIncidents.new()
+	icones.urg = self
+	add_child(icones)
 	_connect_events()
 
 
 func clear() -> void:
 	for id in incidents.keys():
 		_close(int(id), "annule", false)
+	if scenes != null:
+		scenes.vider()
 	if transport != null and transport.traffic != null:
 		for v in transport.traffic.emergency_vehicles():
 			transport.traffic.remove_emergency(v)
@@ -186,7 +205,13 @@ func _on_event_declared(inc: Dictionary) -> void:
 		return
 	var pos: Vector3 = inc.get("position", Vector3.ZERO)
 	var typ := String(inc.get("type", "incident"))
-	var meta: Dictionary = inc.get("urgences", {})
+	var meta: Dictionary = (inc.get("urgences", {}) as Dictionary).duplicate()
+	if inc.has("role") and not meta.has("role"):
+		meta["role"] = String(inc.role)
+	if int(inc.get("batiment", -1)) >= 0 and not meta.has("bid"):
+		meta["batiment"] = int(inc.batiment)
+	if inc.has("texte") and not meta.has("name") and String(inc.get("origine", "")) != "urgences":
+		meta["name"] = String(inc.texte)
 	var name_ := String(meta.get("name", EVENT_NAMES.get(typ, typ.capitalize())))
 	_open_incident(id, typ, name_, pos, besoin, int(inc.get("gravite", 1)), meta, false)
 
@@ -239,10 +264,12 @@ func random_call(kind := "", near := Vector3.INF) -> int:
 	if kind == "":
 		var total := 0.0
 		for k in CALLS:
-			total += float(CALLS[k].weight)
+			total += call_weight(k)
+		if total <= 0.0:
+			return -1
 		var x := rng.randf() * total
 		for k in CALLS:
-			x -= float(CALLS[k].weight)
+			x -= call_weight(k)
 			kind = k
 			if x <= 0.0:
 				break
@@ -268,6 +295,46 @@ func random_call(kind := "", near := Vector3.INF) -> int:
 	if kind == "accident" and rng.randf() < 0.3:
 		grav = 2
 	return declare(kind, String(c.name), pos, c.besoin, grav, meta)
+
+
+## Poids d'un petit appel au hasard : les accidents suivent la circulation
+## réelle ; un appel que personne ne peut traiter (aucun bâtiment du service)
+## devient rare, pour ne pas remplir la ville d'incidents bloqués.
+func call_weight(kind: String) -> float:
+	var w := float(CALLS[kind].weight)
+	if kind == "accident":
+		w *= clampf(_cars_on_road() / TRAFIC_PLEIN, 0.0, 1.5)
+	for s in CALLS[kind].besoin:
+		if not has_service(String(s)):
+			w *= 0.2
+	return w
+
+
+func _cars_on_road() -> float:
+	if transport == null or transport.traffic == null:
+		return 0.0
+	var n := 0
+	for v in transport.traffic.vehicles:
+		if int(v.get("mode", -1)) == TransportTypes.Mode.ROAD and not v.has("urgence") and not v.has("line"):
+			n += 1
+	return float(n)
+
+
+## Un bâtiment de la ville envoie-t-il ce service ?
+func has_service(service: String) -> bool:
+	for bid in stations:
+		for u in stations[bid].units:
+			if String(u.role) == service:
+				return true
+	return false
+
+
+## Appels au hasard par heure réelle pour la population actuelle.
+func call_rate() -> float:
+	var n := float(population.persons.size() if population != null else 0)
+	var r := float(CALL_RATE[0]) + float(CALL_RATE[1]) * n
+	# Petit village : encore moins (un accident par semaine, pas dix à la fois).
+	return r * clampf(n / float(PETITE_VILLE), 0.0, 1.0)
 
 
 func _pick_home(near: Vector3) -> int:
@@ -362,7 +429,8 @@ func _open_incident(id: int, type: String, name_: String, pos: Vector3, besoin: 
 	incidents[id] = inc
 	if road.is_empty():
 		inc.state = "inaccessible"
-	_add_marker(inc)
+	if scenes != null:
+		scenes.ouvrir(inc)
 	_dispatch(inc)
 	var where := _place_name(inc)
 	message.emit("Appel : %s%s." % [name_, where])
@@ -542,6 +610,8 @@ func _send(inc: Dictionary, bid: int, u: Dictionary) -> bool:
 	if v.is_empty():
 		return false
 	u.out = true
+	u.uid = _next_uid
+	_next_uid += 1
 	u.model = model
 	u.v = v
 	u.inc = int(inc.id)
@@ -683,7 +753,8 @@ func _close(id: int, how: String, notify: bool) -> void:
 	if history.size() > 30:
 		history.resize(30)
 	incidents.erase(id)
-	_remove_marker(id)
+	if scenes != null:
+		scenes.fermer(id)
 	changed.emit()
 
 
@@ -717,7 +788,12 @@ func _effects_on_done(inc: Dictionary, service: String) -> void:
 
 ## Incident sans secours à temps : il s'aggrave ou se termine mal.
 func _check_late(inc: Dictionary) -> void:
-	if not inc.local or inc.get("late_done", false):
+	if not CALLS.has(String(inc.type)):
+		return
+	if not inc.local:
+		_check_abandon(inc)
+		return
+	if inc.get("late_done", false):
 		return
 	var late := float(CALLS.get(String(inc.type), {}).get("late", INF))
 	if _t - float(inc.t0) < late:
@@ -736,6 +812,38 @@ func _check_late(inc: Dictionary) -> void:
 	if (inc.units as Array).is_empty():
 		_effects_on_done(inc, String(inc.besoin[0]))
 		_close(int(inc.id), "trop_tard", false)
+
+
+## Appel d'une ville sans service pour y répondre (ou sans route) : après un
+## long moment, les gens se débrouillent seuls et l'incident se ferme, avec
+## ses conséquences (dépanneuse privée, cambriolage non élucidé…).
+func _check_abandon(inc: Dictionary) -> void:
+	# Seulement si ce qui reste à faire n'a aucun bâtiment pour l'envoyer (sinon
+	# l'appel attend son tour, même long) et que personne n'y travaille.
+	var reste := false
+	for s in inc.besoin:
+		if bool(inc.done.get(s, false)):
+			continue
+		reste = true
+		if has_service(String(s)) and not (inc.road as Dictionary).is_empty():
+			return
+		for u in inc.units:
+			if String(u.role) == String(s) and String(u.get("phase", "")) in ["aller", "sur_place"]:
+				return
+	if not reste:
+		return
+	var late := float(CALLS[String(inc.type)].late)
+	if _t - float(inc.t0) < late * ABANDON:
+		return
+	stats.trop_tard = int(stats.trop_tard) + 1
+	var manque := services_manquants(inc)
+	match String(inc.type):
+		"accident":
+			message.emit("Accident : sans %s, les automobilistes ont appelé une dépanneuse privée. Route dégagée." % ", ".join(manque.map(func(s): return String(SERVICE_NAMES[s]).get_slice(" ", 0).to_lower())) if not manque.is_empty() else "Accident : route dégagée sans les secours.")
+		"feu_poubelle":
+			message.emit("Le feu de poubelle s'est éteint tout seul. Cette fois.")
+	_effects_on_done(inc, String(inc.besoin[0]))
+	_close(int(inc.id), "trop_tard", true)
 
 
 # --- Boucle ------------------------------------------------------------------------------
@@ -778,59 +886,114 @@ func step(delta: float) -> void:
 	if random_calls:
 		_call_timer -= delta
 		if _call_timer <= 0.0:
-			var rate := float(CALL_RATE[0]) + float(CALL_RATE[1]) * float(population.persons.size() if population != null else 0)
-			_call_timer = rng.randf_range(0.5, 1.5) * 3600.0 / maxf(rate, 0.1)
-			if not stations.is_empty() and incidents.size() < MAX_ACTIVE:
+			var rate := call_rate()
+			_call_timer = rng.randf_range(0.5, 1.5) * 3600.0 / maxf(rate, 0.05)
+			if rate > 0.0 and not stations.is_empty() and _random_open() < MAX_ACTIVE:
 				random_call()
-	_update_markers(delta)
 	if coverage != "" and _cover_dirty:
 		_build_coverage()
 
 
-# --- Repères des incidents ------------------------------------------------------------------
+# --- Détail d'un incident (icônes, panneau) ---------------------------------------------
 
-func _add_marker(inc: Dictionary) -> void:
-	var root := Node3D.new()
-	root.position = inc.pos + Vector3(0, 9.0, 0)
-	var cone := MeshInstance3D.new()
-	var cm := CylinderMesh.new()
-	cm.top_radius = 1.4
-	cm.bottom_radius = 0.0
-	cm.height = 2.8
-	cm.radial_segments = 4
-	cone.mesh = cm
-	cone.material_override = _marker_mat
-	cone.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	root.add_child(cone)
-	var lab := Label3D.new()
-	lab.text = String(inc.name)
-	lab.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	lab.no_depth_test = true
-	lab.fixed_size = true
-	lab.pixel_size = 0.0007
-	lab.font_size = 28
-	lab.outline_size = 8
-	lab.modulate = Color("ffb4b4")
-	lab.position = Vector3(0, 2.6, 0)
-	root.add_child(lab)
-	add_child(root)
-	_markers[int(inc.id)] = root
+func _random_open() -> int:
+	var n := 0
+	for id in incidents:
+		if CALLS.has(String(incidents[id].type)) and String(incidents[id].meta.get("role", "")) == "":
+			n += 1
+	return n
 
 
-func _remove_marker(id: int) -> void:
-	if _markers.has(id):
-		(_markers[id] as Node).queue_free()
-		_markers.erase(id)
+## Services demandés par l'incident qu'aucun bâtiment de la ville n'envoie.
+func services_manquants(inc: Dictionary) -> Array:
+	var out := []
+	for s in inc.besoin:
+		if not inc.done.get(s, false) and not has_service(String(s)):
+			out.append(String(s))
+	return out
 
 
-func _update_markers(delta: float) -> void:
-	for id in _markers:
-		var n: Node3D = _markers[id]
-		n.rotate_y(delta * 2.0)
-		if incidents.has(id):
-			var inc: Dictionary = incidents[id]
-			var lab: Label3D = n.get_child(1)
-			lab.text = "%s · %s" % [String(inc.name), state_label(inc)]
+## Pourquoi personne n'est (encore) parti pour un service : "" si quelqu'un vient.
+func raison_attente(inc: Dictionary, service: String) -> String:
+	if _sent(inc, service) > 0 or bool(inc.done.get(service, false)):
+		return ""
+	if (inc.road as Dictionary).is_empty():
+		return "aucune route n'arrive jusqu'ici"
+	if not has_service(service):
+		return "il faut %s" % String(NOM_BATIMENT.get(service, "un bâtiment de secours"))
+	return "aucun véhicule libre avec son équipage de garde"
+
+
+## Type de bâtiment (de l'époque) qui envoie ce service, "" s'il n'y en a pas.
+func batiment_pour(service: String) -> String:
+	var base := String(BATIMENT_DE.get(service, ""))
+	if base == "":
+		return ""
+	if Epoques.batiment_disponible(base):
+		return base
+	for id in BuildingCatalog.all_types():
+		if BuildingCatalog.base_of(String(id)) == base and Epoques.batiment_disponible(String(id)):
+			return String(id)
+	return base
+
+
+## Titre et texte de la carte d'un incident (survol de l'icône).
+func detail(inc: Dictionary) -> Dictionary:
+	var titre := String(inc.name) + _place_name(inc)
+	var lignes: Array[String] = []
+	var depuis := format_time(_t - float(inc.t0))
+	match String(inc.state):
+		"attente", "inaccessible":
+			lignes.append("Appel il y a %s : personne n'est encore parti." % depuis)
+		"en_route":
+			lignes.append("Appel il y a %s : secours en route." % depuis)
+		"sur_place":
+			lignes.append("Secours sur place (appel il y a %s)." % depuis)
+	for s in inc.besoin:
+		var nom := String(SERVICE_NAMES.get(s, s))
+		var etat := ""
+		if bool(inc.done.get(s, false)):
+			etat = "terminé"
+		elif inc.arrived.has(s):
+			var la := 0
+			for u in inc.units:
+				if String(u.role) == s and String(u.get("phase", "")) == "sur_place":
+					la += 1
+			etat = "sur place (%d véhicule%s), arrivés en %s" % [la, "s" if la > 1 else "", format_time(float(inc.arrived[s]))] if la > 0 else "repartis"
+		elif _sent(inc, s) > 0:
+			etat = "en route"
+		else:
+			etat = "personne : " + raison_attente(inc, String(s))
+		lignes.append("• %s : %s" % [nom, etat])
+	var manque := services_manquants(inc)
+	if not manque.is_empty():
+		var noms := []
+		for s in manque:
+			noms.append(String(NOM_BATIMENT[s]))
+		lignes.append("Construis %s (B → Services). Sans secours, l'affaire se règle seule, mais mal et lentement." % " et ".join(noms))
+	return {"titre": titre, "texte": "\n".join(lignes)}
+
+
+## Avis pour la Mairie (M) et le fil « À faire » : appels sans aucun service pour y répondre.
+func alertes() -> Array:
+	var par_service := {}
+	for id in incidents:
+		for s in services_manquants(incidents[id]):
+			par_service[s] = int(par_service.get(s, 0)) + 1
+	var out := []
+	for s in ["police", "ambulance", "pompiers"]:
+		if not par_service.has(s):
+			continue
+		var n := int(par_service[s])
+		var id := batiment_pour(s)
+		out.append({"id": "sans_" + s, "gravite": 2 if n >= 3 else 1, "prio": 1, "theme": "securite",
+			"titre": "%d appel%s sans %s" % [n, "s" if n > 1 else "", {"police": "police", "ambulance": "ambulance", "pompiers": "pompiers"}[s]],
+			"texte": {"police": "Les accidents et les cambriolages attendent un agent qui ne viendra pas.",
+				"ambulance": "Les malades attendent une ambulance que personne n'envoie.",
+				"pompiers": "Les feux attendent des pompiers qui n'existent pas."}[s],
+			"conseil": "Construis %s : il enverra ses véhicules (icônes rouges au-dessus des incidents)." % String(NOM_BATIMENT[s]),
+			"panneau": "batiment:" + id if id != "" else "construire"})
+	return out
 
 
 func state_label(inc: Dictionary) -> String:

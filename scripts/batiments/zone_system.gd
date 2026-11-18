@@ -13,6 +13,8 @@ extends Node3D
 signal info_changed(text: String)
 signal message(text: String)
 signal changed
+## Le pinceau a changé (set_paint, set_remove, set_inactive) : le panneau le montre.
+signal outil_change
 
 enum Mode { NONE, PAINT, REMOVE }
 
@@ -45,6 +47,8 @@ var area_check: Callable
 var peut_pousser: Callable
 var current_style := ""
 
+## Couleur de l'outil Retirer (cadre, carte du panneau).
+const COULEUR_RETIRER := Color(1.0, 0.36, 0.3, 0.35)
 ## Prix du zonage (€ par m²).
 const PRICE_M2 := 2
 ## Côté maximal d'une zone (m).
@@ -81,6 +85,9 @@ var _cursor_valid := false
 var _right_press := Vector2.ZERO
 var _box: MeshInstance3D
 var _mats: Dictionary = {}
+var _box_mat: StandardMaterial3D
+## Opacité du calque des zones peintes.
+const CALQUE_ALPHA := 0.42
 
 
 func _ready() -> void:
@@ -105,18 +112,33 @@ func _ready() -> void:
 			else:
 				for id in zones:
 					_dirty_views[id] = true)
+	if world != null:
+		# Le sol d'un bloc vient d'être (re)dessiné (tuile d'altitude arrivée,
+		# terrassement…) : le calque des zones de ce bloc suit le nouveau relief.
+		world.chunk_rebuilt.connect(func(k: Vector2i) -> void:
+			if not zones.is_empty():
+				var cs := world.chunk_size
+				_mark_area(Rect2i(k * cs, Vector2i(cs, cs))))
+	var shader: Shader = load("res://scripts/batiments/zone_calque.gdshader")
 	for k in KINDS:
-		var m := StandardMaterial3D.new()
-		m.albedo_color = KINDS[k].color
-		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		m.cull_mode = BaseMaterial3D.CULL_DISABLED
+		var m := ShaderMaterial.new()
+		m.shader = shader
+		var c: Color = KINDS[k].color
+		m.set_shader_parameter("couleur", Color(c.r, c.g, c.b, CALQUE_ALPHA))
 		_mats[k] = m
 	_box = MeshInstance3D.new()
 	_box.mesh = BoxMesh.new()
 	_box.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_box.visible = false
 	add_child(_box)
+	# Pinceau : un cadre lumineux qui reste visible même derrière une pente.
+	_box_mat = StandardMaterial3D.new()
+	_box_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	_box_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	_box_mat.no_depth_test = true
+	_box_mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	_box_mat.render_priority = 1
+	_box.material_override = _box_mat
 
 
 # --- Outils -------------------------------------------------------------------------
@@ -126,6 +148,7 @@ func set_paint(k: String) -> void:
 	kind = k
 	_drag = false
 	_update_box()
+	outil_change.emit()
 	info_changed.emit("Zone %s : clic gauche glissé pour peindre un rectangle (%s le m²) · clic droit ou Échap : arrêter" % [String(KINDS[k].name).to_lower(), BuildingSystem.format_money(ReglagesPartie.prix(PRICE_M2))])
 
 
@@ -133,6 +156,7 @@ func set_remove() -> void:
 	mode = Mode.REMOVE
 	_drag = false
 	_update_box()
+	outil_change.emit()
 	info_changed.emit("Retirer des zones : clic gauche glissé sur les zones à effacer (les bâtiments restent).")
 
 
@@ -143,6 +167,7 @@ func set_inactive() -> void:
 	_drag = false
 	_update_box()
 	info_changed.emit("")
+	outil_change.emit()
 
 
 func clear() -> void:
@@ -636,7 +661,10 @@ func _mark_area(rect: Rect2i) -> void:
 		_dirty_views[id] = subs
 
 
-## Calque coloré posé sur chaque case libre de la zone (suit le relief), en morceaux.
+## Calque coloré posé sur chaque case libre de la zone, en morceaux. Il épouse
+## le relief : le dessus de chaque case et, sur une pente, le flanc des cases
+## plus hautes que leur voisine (les marches du terrain). Le shader l'avance un
+## peu vers la caméra pour qu'il ne disparaisse jamais dans le sol.
 func _rebuild_sub(id: int, sk: Vector2i) -> void:
 	if not zones.has(id) or world == null:
 		return
@@ -654,30 +682,7 @@ func _rebuild_sub(id: int, sk: Vector2i) -> void:
 		if mi != null:
 			mi.queue_free()
 		return
-	var hs := world.cell_heights(rect)
-	var rw := rect.size.x
-	var verts := PackedVector3Array()
-	for jj in rect.size.y:
-		var j := rect.position.y + jj
-		var ii := 0
-		while ii < rw:
-			var c := Vector2i(rect.position.x + ii, j)
-			var h := hs[ii + jj * rw]
-			if is_nan(h) or _covered(c):
-				ii += 1
-				continue
-			# Cases voisines de même hauteur réunies en une bande.
-			var e := ii
-			while e + 1 < rw:
-				if hs[e + 1 + jj * rw] != h or _covered(Vector2i(rect.position.x + e + 1, j)):
-					break
-				e += 1
-			var y := maxf(h, 0.0) + 0.06
-			var x0 := float(rect.position.x + ii)
-			var x1 := float(rect.position.x + e + 1)
-			verts.append_array([Vector3(x0, y, j), Vector3(x1, y, j), Vector3(x1, y, j + 1),
-				Vector3(x0, y, j), Vector3(x1, y, j + 1), Vector3(x0, y, j + 1)])
-			ii = e + 1
+	var verts := calque_relief(rect)
 	if mi == null:
 		mi = MeshInstance3D.new()
 		mi.name = sub_name
@@ -695,6 +700,81 @@ func _rebuild_sub(id: int, sk: Vector2i) -> void:
 	mi.mesh = mesh
 
 
+## Hauteur du calque au-dessus du sol (m) ; le shader l'avance en plus vers la caméra.
+const CALQUE_Y := 0.04
+
+
+## Triangles du calque d'un rectangle de cases : le dessus de chaque case libre
+## (cases voisines de même hauteur réunies en bandes) et les flancs où une case
+## domine sa voisine, pour que la couleur suive les marches du relief.
+func calque_relief(rect: Rect2i) -> PackedVector3Array:
+	var verts := PackedVector3Array()
+	if world == null or not rect.has_area():
+		return verts
+	# Une case de marge tout autour : les flancs au bord du rectangle.
+	var big := rect.grow(1)
+	var hs := world.cell_heights(big)
+	var bw := big.size.x
+	var rw := rect.size.x
+	var libre := PackedByteArray()
+	libre.resize(rw * rect.size.y)
+	for jj in rect.size.y:
+		for ii in rw:
+			var h := hs[(ii + 1) + (jj + 1) * bw]
+			if not is_nan(h) and not _covered(rect.position + Vector2i(ii, jj)):
+				libre[ii + jj * rw] = 1
+	for jj in rect.size.y:
+		var j := rect.position.y + jj
+		var ii := 0
+		while ii < rw:
+			if libre[ii + jj * rw] == 0:
+				ii += 1
+				continue
+			var h := hs[(ii + 1) + (jj + 1) * bw]
+			# Cases voisines de même hauteur réunies en une bande.
+			var e := ii
+			while e + 1 < rw and libre[e + 1 + jj * rw] == 1 and hs[(e + 2) + (jj + 1) * bw] == h:
+				e += 1
+			var y := maxf(h, 0.0) + CALQUE_Y
+			var x0 := float(rect.position.x + ii)
+			var x1 := float(rect.position.x + e + 1)
+			verts.append_array([Vector3(x0, y, j), Vector3(x1, y, j), Vector3(x1, y, j + 1),
+				Vector3(x0, y, j), Vector3(x1, y, j + 1), Vector3(x0, y, j + 1)])
+			ii = e + 1
+	# Flancs : une case plus haute que sa voisine colore sa face jusqu'en bas.
+	for jj in rect.size.y:
+		for ii in rw:
+			if libre[ii + jj * rw] == 0:
+				continue
+			var h := maxf(hs[(ii + 1) + (jj + 1) * bw], 0.0)
+			var x := float(rect.position.x + ii)
+			var zz := float(rect.position.y + jj)
+			for d in 4:
+				var o: Vector2i = [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)][d]
+				var hn := hs[(ii + 1 + o.x) + (jj + 1 + o.y) * bw]
+				if is_nan(hn):
+					continue
+				hn = maxf(hn, 0.0)
+				if hn >= h:
+					continue
+				var top := h + CALQUE_Y
+				var bas := hn
+				match d:
+					0:
+						verts.append_array([Vector3(x + 1, top, zz), Vector3(x + 1, top, zz + 1), Vector3(x + 1, bas, zz + 1),
+							Vector3(x + 1, top, zz), Vector3(x + 1, bas, zz + 1), Vector3(x + 1, bas, zz)])
+					1:
+						verts.append_array([Vector3(x, top, zz), Vector3(x, top, zz + 1), Vector3(x, bas, zz + 1),
+							Vector3(x, top, zz), Vector3(x, bas, zz + 1), Vector3(x, bas, zz)])
+					2:
+						verts.append_array([Vector3(x, top, zz + 1), Vector3(x + 1, top, zz + 1), Vector3(x + 1, bas, zz + 1),
+							Vector3(x, top, zz + 1), Vector3(x + 1, bas, zz + 1), Vector3(x, bas, zz + 1)])
+					3:
+						verts.append_array([Vector3(x, top, zz), Vector3(x + 1, top, zz), Vector3(x + 1, bas, zz),
+							Vector3(x, top, zz), Vector3(x + 1, bas, zz), Vector3(x, bas, zz)])
+	return verts
+
+
 ## Case cachée sous un bâtiment ou une voie : pas de calque dessus.
 func _covered(c: Vector2i) -> bool:
 	if buildings == null:
@@ -710,18 +790,27 @@ func _update_box() -> void:
 	var lo := Vector2i(mini(a.x, _cursor.x), mini(a.y, _cursor.y))
 	var hi := Vector2i(maxi(a.x, _cursor.x), maxi(a.y, _cursor.y))
 	var size := hi - lo + Vector2i.ONE
-	var h := world.cell_height(a)
-	if is_nan(h):
-		h = 0.0
+	# Le cadre englobe le relief du rectangle (pente comprise) : quelques
+	# points relevés suffisent, même pour une grande zone.
+	var hmin := INF
+	var hmax := -INF
+	for fx in [0.0, 0.25, 0.5, 0.75, 1.0]:
+		for fz in [0.0, 0.25, 0.5, 0.75, 1.0]:
+			var h := world.cell_height(lo + Vector2i(roundi((size.x - 1) * fx), roundi((size.y - 1) * fz)))
+			if not is_nan(h):
+				hmin = minf(hmin, maxf(h, 0.0))
+				hmax = maxf(hmax, maxf(h, 0.0))
+	if hmin == INF:
+		hmin = 0.0
+		hmax = 0.0
 	_box.visible = true
-	(_box.mesh as BoxMesh).size = Vector3(size.x, 0.8, size.y)
-	_box.position = Vector3(lo.x + size.x / 2.0, maxf(h, 0.0), lo.y + size.y / 2.0)
-	var col: Color = KINDS[kind].color if mode == Mode.PAINT else Color(1, 0.3, 0.25, 0.35)
+	(_box.mesh as BoxMesh).size = Vector3(size.x, hmax - hmin + 0.8, size.y)
+	_box.position = Vector3(lo.x + size.x / 2.0, (hmin + hmax) / 2.0 + 0.2, lo.y + size.y / 2.0)
+	var col: Color = KINDS[kind].color if mode == Mode.PAINT else COULEUR_RETIRER
 	var too_big := size.x > MAX_SIDE or size.y > MAX_SIDE
 	if too_big:
-		col = Color(1, 0.3, 0.25, 0.35)
-	var m := BuildingSystem._tint(Color(col.r, col.g, col.b, 0.45))
-	_box.material_override = m
+		col = COULEUR_RETIRER
+	_box_mat.albedo_color = Color(col.r, col.g, col.b, 0.28)
 	if _drag and mode == Mode.PAINT:
 		info_changed.emit("Zone %s : %d × %d m · %s%s" % [String(KINDS[kind].name).to_lower(), size.x, size.y,
 			BuildingSystem.format_money(ReglagesPartie.prix(size.x * size.y * PRICE_M2)), "  ·  trop grande" if too_big else ""])
@@ -782,11 +871,17 @@ func _update_cursor(screen: Vector2) -> void:
 
 func summary() -> String:
 	var d := demand()
+	var area := surfaces()
+	return "Demande  ·  R %s  ·  C %s  ·  I %s\nZones : R %d m²  ·  C %d m²  ·  I %d m²" % [
+		_bar(d.R), _bar(d.C), _bar(d.I), area.R, area.C, area.I]
+
+
+## Surface zonée (m²) de chaque type.
+func surfaces() -> Dictionary:
 	var area := {"R": 0, "C": 0, "I": 0}
 	for z in zones.values():
 		area[z.k] += int(z.w) * int(z.h)
-	return "Demande  ·  R %s  ·  C %s  ·  I %s\nZones : R %d m²  ·  C %d m²  ·  I %d m²" % [
-		_bar(d.R), _bar(d.C), _bar(d.I), area.R, area.C, area.I]
+	return area
 
 
 static func _bar(v: float) -> String:
@@ -795,6 +890,14 @@ static func _bar(v: float) -> String:
 	if v > 0.0:
 		return "faible"
 	return "nulle"
+
+
+## Remplissage d'une jauge de demande (0..1) : 0 = nulle, ≈ 0,4 au seuil
+## « forte » (50), pleine vers 150.
+static func jauge_demande(v: float) -> float:
+	if v <= 0.0:
+		return 0.0
+	return clampf(0.08 + v / 150.0, 0.0, 1.0)
 
 
 func to_dict() -> Dictionary:

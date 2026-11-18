@@ -5,7 +5,7 @@ extends Node
 ## - Agrandissement en 3 niveaux : le niveau 2 accueille 50 % de monde en plus
 ##   (logements, emplois, élèves, lits, visiteurs, puissance d'une centrale,
 ##   débit d'une station…), le niveau 3 le double. L'agrandissement est un vrai
-##   chantier : échafaudages, grue pour les grands, panneau, payé au fil des
+##   chantier : échafaudages, grue pour les grands, marqueur, payé au fil des
 ##   travaux par la caisse de la ville (arrêté si elle est vide). Le bâtiment
 ##   reste ouvert pendant les travaux, avec sa capacité d'avant.
 ## - Visuel par niveau : un ou plusieurs étages en plus. Les bâtiments faits en
@@ -56,7 +56,7 @@ var zones: ZoneSystem
 ## Optionnel : Nuisances (valeur du terrain).
 var nuisances: Node
 
-## bid -> {"echaf", "grue", "panneau", "texte"}
+## bid -> {"echaf", "grue", "texte", "mi", "bb"} (le marqueur : scripts/chantiers/marqueurs_chantiers.gd)
 var _vus := {}
 var _t_prev := -1.0
 var _acc := 0.0
@@ -601,7 +601,7 @@ func _on_removed(bid: int) -> void:
 
 func _oublier(bid: int) -> void:
 	var v: Dictionary = _vus.get(bid, {})
-	for key in ["echaf", "grue", "panneau"]:
+	for key in ["echaf", "grue"]:
 		if v.get(key) != null and is_instance_valid(v[key]):
 			(v[key] as Node).queue_free()
 	_vus.erase(bid)
@@ -634,35 +634,54 @@ func _montrer(bid: int) -> void:
 		grue = BatimentsVie._grue(bb)
 		grue.name = "GrueTravaux"
 		mi.add_child(grue)
-	var panneau := Label3D.new()
-	panneau.name = "PanneauTravaux"
-	panneau.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	panneau.pixel_size = 0.018
-	panneau.font_size = 56
-	panneau.outline_size = 14
-	panneau.outline_modulate = Color(0.08, 0.08, 0.1, 0.9)
-	panneau.modulate = Color("fff3c4")
-	panneau.position = Vector3(0, 4.2, bb.position.z - 1.2)
-	panneau.visibility_range_end = BatimentsVie.VUE_PANNEAU
-	mi.add_child(panneau)
-	_vus[bid] = {"echaf": echaf, "grue": grue, "panneau": panneau, "texte": ""}
+	_vus[bid] = {"echaf": echaf, "grue": grue, "texte": "", "mi": mi, "bb": bb}
 	_maj_panneau(bid)
 
 
 func _maj_panneau(bid: int) -> void:
 	var v: Dictionary = _vus.get(bid, {})
-	if v.is_empty() or not is_instance_valid(v.panneau):
+	if v.is_empty():
 		return
+	v.texte = texte_travaux(bid)
+
+
+## Le détail des travaux en quelques lignes (info-bulle du marqueur).
+func texte_travaux(bid: int) -> String:
+	if not buildings.buildings.has(bid):
+		return ""
 	var a: Dictionary = buildings.buildings[bid].get("amel", {})
+	if a.is_empty():
+		return ""
 	var quoi := "Agrandissement · niveau %d" % int(a.get("cible", 2)) if String(a.get("op", "")) == "niv" else "Rénovation"
 	var txt := "%s\n%s · %d %%\n" % [_nom(bid), quoi, floori(float(a.get("av", 0.0)) * 100.0)]
 	if a.get("attente", false):
 		txt += "Arrêté : plus d'argent dans la caisse"
 	else:
-		txt += "Fin vers le %s" % _date_fin(bid)
-	if txt != String(v.texte):
-		v.texte = txt
-		(v.panneau as Label3D).text = txt
+		txt += ("Équipe au repos · " if vie != null and not vie.au_travail else "") + "Fin vers le %s" % _date_fin(bid)
+	return txt
+
+
+## Travaux montrés en ce moment (bid), pour les marqueurs.
+func travaux_en_cours() -> Array:
+	return _vus.keys()
+
+
+## Pour le marqueur : [genre ("niv" ou "renov"), avancement, statut ("argent", "repos" ou "")].
+func etat_travaux(bid: int) -> Array:
+	var a: Dictionary = buildings.buildings.get(bid, {}).get("amel", {})
+	if a.is_empty():
+		return []
+	var st := "argent" if a.get("attente", false) else ("repos" if vie != null and not vie.au_travail else "")
+	return ["niv" if String(a.get("op", "")) == "niv" else "renov", clampf(float(a.get("av", 0.0)), 0.0, 1.0), st]
+
+
+## Point au-dessus des travaux où poser le marqueur (coordonnées du monde).
+func haut_des_travaux(bid: int) -> Vector3:
+	var v: Dictionary = _vus.get(bid, {})
+	if v.is_empty() or not is_instance_valid(v.get("mi")) or not (v.mi as Node3D).is_inside_tree():
+		return Vector3.INF
+	var bb: AABB = v.bb
+	return (v.mi as Node3D).global_transform * Vector3(bb.get_center().x, 0.0, bb.get_center().z) + Vector3(0, bb.end.y + 3.0, 0)
 
 
 func _animer() -> void:

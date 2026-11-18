@@ -90,6 +90,8 @@ signal streamer_requested
 signal succes_requested
 ## Catalogue daté de tout ce qui se construit (Maj+F1, menu Infos).
 signal catalogue_requested
+## Ctrl+F1 : guide en bulles (GuidePanel).
+signal guide_requested
 ## Visites et cartes postales (F12).
 signal visites_requested
 ## Bouton Admin de la barre du haut, ou F10 : réglages de la partie.
@@ -1358,7 +1360,9 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			_set_current_tool(i)
 			tool_selected.emit(i)
 			return
-	if key.keycode == KEY_F1 and key.shift_pressed:
+	if key.keycode == KEY_F1 and key.ctrl_pressed:
+		guide_requested.emit()
+	elif key.keycode == KEY_F1 and key.shift_pressed:
 		catalogue_requested.emit()
 	elif key.keycode == KEY_F1:
 		help_requested.emit()

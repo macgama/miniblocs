@@ -23,7 +23,7 @@ en `canvas_items` / `expand`) ; si un jour il ne tenait plus, la liste défile
 | --- | --- | --- |
 | Jouer | Continuer | reprend la partie la plus récente (sauvegarde auto comprise) ; sa carte avec l'aperçu est en bas à droite |
 | | Démo guidée | partie d'environ 30 minutes au lieu de la démo, pas à pas, avec un bilan (voir [demo.md](demo.md)) |
-| | Nouvelle partie | ouvre le globe pour choisir le lieu (Échap ou « Menu principal » pour revenir) |
+| | Nouvelle partie | ouvre le globe et l'assistant de nouvelle partie (voir plus bas ; Échap ou « Menu principal » pour revenir) |
 | | Charger une partie | liste des parties, avec aperçu, fiche, renommer, supprimer |
 | Autres façons de jouer | Scénarios et défis | parties avec règles et date limite |
 | | Entre amis | carte entre amis (code ou hébergement) |
@@ -35,6 +35,30 @@ Pas d'infobulle flottante : l'explication du bouton survolé (ou choisi à la
 manette) s'affiche sur une ligne fixe juste au-dessus de la rangée du bas.
 Vérifier la mise en page : `xvfb-run godot --path . --script res://tests/menu_accueil_vitrine.gd -- --dossier /tmp/accueil`
 (captures à 7 tailles de fenêtre, de 1280 × 720 à 2560 × 1080).
+
+## Assistant de nouvelle partie (globe)
+
+`scripts/terre/globe_menu.gd` : les choix arrivent un par un, dans le panneau de
+droite, avec **◂ Précédent** / **Suivant ▸** et les étapes en haut de l'écran (un
+clic revient à une étape déjà vue ; tant qu'aucun lieu n'est choisi, on reste à la 1).
+
+1. **Lieu** : recherche à gauche (seulement à cette étape), clic sur la Terre, aperçu du relief.
+2. **Type de carte** : Seul (bac à sable), Entre amis (la carte est créée sur ce PC :
+   `Multijoueur.lancer_nouvelle_carte` lance le serveur sans écran avec le lieu et les
+   réglages, `-- --serveur --lat … --lon … --nom … --pays … --reglages user://amis_nouvelle_carte.json`,
+   puis le panneau Entre amis y entre en créateur ; « Rejoindre plutôt la carte d'un ami… »
+   ouvre ce panneau), Carte mondiale (grisée, bientôt).
+3. **Réglages** par thèmes : difficulté (préréglages Facile / Normal / Difficile / Bac à sable
+   libre, qui gardent l'époque et le tutoriel), époque de départ (aujourd'hui, 1800, 1850,
+   1900, 1950 ou autre année, rythme de l'histoire), argent, construction, ville et habitants.
+   **Réglages avancés…** ouvre le panneau Admin complet (F10) sur les mêmes réglages.
+4. **Tutoriel** : oui ou non, objectifs à l'écran (pas de tutoriel entre amis).
+5. **Résumé** avec « Modifier » sur chaque ligne, puis **Commencer la partie**.
+
+Une nouvelle partie solo démarre **en pause** (`terre_main.demarre_en_pause`) : ▶ ou **T**
+lance le temps. Continuer, Parties… et Atelier restent en bas à gauche. Le panneau
+de l'assistant a une hauteur fixe (de 70 px sous le haut à 40 px du bas) et sa page défile.
+Test : `tests/globe_test.gd` ; captures : `tests/globe_vitrine.gd -- --dossier … --planete`.
 
 ## Sauvegardes : nom et aperçu
 

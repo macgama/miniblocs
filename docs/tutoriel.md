@@ -62,7 +62,7 @@ Tout vient de `Objectifs` (`scripts/pays/objectifs.gd`) : la carte ne calcule ri
 
 ## Réglages (F10 → Aide)
 
-- **Tutoriel guidé** : le cocher relance le tutoriel (il reprend à la première étape pas faite) ; il se décoche tout seul quand le tutoriel est fini ou arrêté. Aussi sur le globe, sous « Réglages… ».
+- **Tutoriel guidé** : le cocher relance le tutoriel (il reprend à la première étape pas faite) ; il se décoche tout seul quand le tutoriel est fini ou arrêté. Aussi à l'étape 4 de l'assistant de nouvelle partie (globe).
 - **Objectifs à l'écran** : afficher ou masquer le cadre des objectifs.
 
 Une partie sauvegardée avant le tutoriel le charge sans tutoriel.

@@ -382,6 +382,12 @@ func _ready() -> void:
 		world.set_origin(GameStart.lat, GameStart.lon)
 	_on_origin_changed(world.origin_lat, world.origin_lon)
 	_apply_settings(true)
+	# Nouvelle partie : le temps attend le joueur (en pause), il le lance avec ▶ ou T.
+	if demarre_en_pause():
+		ambiance.set_speed(0)
+		get_tree().create_timer(2.5).timeout.connect(func() -> void:
+			if is_instance_valid(hud) and ambiance.speed_index == 0:
+				hud.show_message("Le temps est en pause : lance-le avec ▶ en haut de l'écran, ou T."))
 	if GameStart.load_slot != "":
 		var slot := GameStart.load_slot
 		GameStart.load_slot = ""
@@ -1368,6 +1374,7 @@ func _setup_tutoriel() -> void:
 	# Nouvelle partie lancée du globe : le tutoriel commence (s'il est coché).
 	tutoriel.bilan_demande.connect(ouvrir_bilan_demo)
 	var demo := Demo.demandee
+	_demo_demandee = demo
 	Demo.demandee = false
 	if GameStart.load_slot == "" and GameStart.chosen and not GameStart.atelier and demo:
 		tutoriel.demarrer_demo.call_deferred()
@@ -1375,6 +1382,18 @@ func _setup_tutoriel() -> void:
 		tutoriel.demarrer.call_deferred()
 	else:
 		ReglagesPartie.actuel.tutoriel = false
+
+
+## La démo guidée a été demandée pour cette partie (lu dans _setup_tutoriel).
+var _demo_demandee := false
+
+
+## Vrai pour une nouvelle partie jouée sur ce PC (pas une partie chargée, ni
+## l'Atelier, ni une visite, ni un serveur entre amis) : elle commence en pause.
+## La démo guidée garde son propre rythme (elle est chronométrée).
+func demarre_en_pause() -> bool:
+	return GameStart.load_slot == "" and GameStart.chosen and not GameStart.atelier and not _demo_demandee and not Demo.demandee \
+		and Multijoueur.role == Multijoueur.Role.SOLO and not VisiteVille.active()
 
 
 ## Bulles d'explication d'une étape du tutoriel, au centre de l'écran. Si

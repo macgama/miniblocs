@@ -23,6 +23,11 @@ var _speed_buttons: Array[Button] = []
 var _details: PanelContainer
 var _updating := false
 var _night := false
+var _row: HBoxContainer
+## Emplacement réservé dans la barre du haut (TerreHud, groupe « zone_horloge ») :
+## l'horloge s'y centre et lui donne sa largeur, pour ne jamais recouvrir les
+## boutons voisins (Annuler, Rétablir, mode plan, chiffres de la ville).
+var _zone: Control
 
 
 func _ready() -> void:
@@ -39,6 +44,7 @@ func _ready() -> void:
 	row.custom_minimum_size = Vector2(470, 42)
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	anchor.add_child(row)
+	_row = row
 
 	_sky_icon = UiStyle.icon_button("soleil", "", "", 22, 34)
 	_sky_icon.toggle_mode = true
@@ -49,6 +55,10 @@ func _ready() -> void:
 	_time_label = Label.new()
 	_time_label.add_theme_font_size_override("font_size", 20)
 	_time_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	# Largeur fixe : l'horloge ne bouge pas quand l'heure passe de 9:59 à 10:00.
+	_time_label.custom_minimum_size = Vector2(56, 0)
+	_time_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_time_label.mouse_filter = Control.MOUSE_FILTER_PASS
 	row.add_child(_time_label)
 	_date_label = Label.new()
 	_date_label.add_theme_font_size_override("font_size", 13)
@@ -161,6 +171,47 @@ static func moon_phase_name(age: float) -> String:
 	var names := ["nouvelle lune", "premier croissant", "premier quartier", "lune gibbeuse croissante",
 		"pleine lune", "lune gibbeuse décroissante", "dernier quartier", "dernier croissant"]
 	return names[int(floorf(fposmod(age + 1.0 / 16.0, 1.0) * 8.0)) % 8]
+
+
+func _process(_delta: float) -> void:
+	_placer()
+
+
+## Pose l'horloge (et ses détails) au centre de la place réservée dans la barre du haut.
+## Sans barre (autres scènes), elle reste centrée en haut de l'écran.
+func _placer() -> void:
+	if _row == null:
+		return
+	if _zone == null or not is_instance_valid(_zone):
+		_zone = get_tree().get_first_node_in_group("zone_horloge") as Control if is_inside_tree() else null
+	if _zone == null:
+		return
+	# Barre trop étroite (petite fenêtre, longue traduction, gros chiffres) : la date
+	# se cache (elle reste dans l'infobulle de l'heure et dans les détails « … »).
+	var barre := _zone.get_parent().get_parent() as Control
+	if barre != null:
+		var place := _zone.get_viewport_rect().size.x - 20.0
+		var besoin := barre.get_combined_minimum_size().x
+		if _date_label.visible and besoin > place:
+			_date_label.visible = false
+		elif not _date_label.visible and besoin + _date_label.custom_minimum_size.x + 16.0 < place:
+			_date_label.visible = true
+		_time_label.tooltip_text = "" if _date_label.visible else _date_label.text
+	var w := _row.get_combined_minimum_size().x
+	if absf(_zone.custom_minimum_size.x - w) > 0.5:
+		_zone.custom_minimum_size.x = w
+	var r := _zone.get_global_rect()
+	_row.size = Vector2(w, _row.size.y)
+	_row.global_position = Vector2(roundf(r.position.x + (r.size.x - w) * 0.5), _row.global_position.y)
+	var vue := _row.get_viewport_rect().size
+	var dw := _details.get_combined_minimum_size().x
+	var dx := clampf(_row.global_position.x + (w - dw) * 0.5, 8.0, maxf(8.0, vue.x - dw - 8.0))
+	_details.global_position = Vector2(roundf(dx), _details.global_position.y)
+
+
+## Largeur de l'horloge (pour les tests de mise en page).
+func rect_horloge() -> Rect2:
+	return _row.get_global_rect() if _row != null else Rect2()
 
 
 func refresh() -> void:

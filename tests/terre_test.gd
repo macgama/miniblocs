@@ -185,9 +185,13 @@ func _run() -> void:
 			var rig = scene.get_node("CameraRig")
 			var date_i := args.find("--date")
 			if date_i >= 0 and date_i + 1 < args.size():
-				# Saison voulue (AAAA-MM-JJ, midi UTC) ; --neige : il neige depuis des heures.
+				# Saison voulue (AAAA-MM-JJ, midi UTC) ; --neige : il neige depuis des heures ;
+				# --jour : jour permanent (photo en plein jour).
 				var dn: DayNight = scene.ambiance
 				dn.unix_time = Time.get_unix_time_from_datetime_string(args[date_i + 1] + "T12:00:00")
+				dn.weather.settle(dn.unix_time, dn.local_hour()) # le temps de la date voulue, tout de suite
+				if "--jour" in args:
+					dn.set_jour_permanent(true) # photo de jour, quelle que soit l'heure
 				if "--neige" in args:
 					dn.weather.mode = Meteo.Mode.NEIGE
 				var t1 := Time.get_ticks_msec()

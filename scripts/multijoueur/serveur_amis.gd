@@ -116,6 +116,10 @@ func demarrer(j: Node, p: int) -> String:
 		if not _rejeu:
 			_push_transport = 0.4)
 	jeu.communes.fonde.connect(_on_fonde)
+	# Arbre de progression : un arbre par joueur, points comptés ici.
+	ArbreProgression.joueur_serveur = ""
+	ArbreProgression.maire_de = carte.maire_de
+	ArbreProgression.membres = func() -> Array: return carte.membres.keys()
 	var sigs := [bs.message, jeu.transport.message, jeu.communes.message, jeu.pays.message, jeu.transport.stations.message]
 	if jeu.budget != null:
 		sigs.append(jeu.budget.message)
@@ -430,7 +434,10 @@ func _admin(id: int, c: Dictionary, msg: Dictionary) -> void:
 		"reglages":
 			var d: Variant = msg.get("d")
 			if d is Dictionary:
+				# Les arbres des joueurs restent ceux du serveur (l'admin règle le reste).
+				var arbres: Dictionary = ReglagesPartie.actuel.arbres_joueurs
 				ReglagesPartie.actuel.from_dict(d)
+				ReglagesPartie.actuel.arbres_joueurs = arbres
 				ReglagesPartie.actuel.createur = carte.createur
 				jeu._apply_settings(true)
 				_sale = true
@@ -516,6 +523,8 @@ func executer(pid: String, a: Dictionary) -> String:
 	_en_cours = true
 	_auteur = pid
 	_messages.clear()
+	# Verrous de l'arbre de progression : ceux de ce joueur.
+	ArbreProgression.joueur_serveur = pid
 	var bs: BuildingSystem = jeu.buildings
 	var tr: TransportSystem = jeu.transport
 	var w: TerrainWorld = jeu.world
@@ -616,9 +625,23 @@ func executer(pid: String, a: Dictionary) -> String:
 			refus = _appel(pid, a)
 		"site":
 			refus = _site(pid, a)
+		"arbre":
+			# Arbre de progression du joueur : acheter un niveau, ou cadeau de l'admin.
+			var r := ReglagesPartie.actuel
+			if String(a.get("op", "")) == "cadeau":
+				if not carte.est_admin(pid):
+					refus = "Seul l'admin de la carte peut se donner des points."
+				else:
+					ArbreProgression.gagner(r, 5, "Cadeau de l'admin")
+			else:
+				refus = ArbreProgression.acheter(r, String(a.get("b", "")))
+				if refus == "":
+					_messages.append("%s débloqué." % ArbreProgression.nom_niveau(String(a.get("b", "")), ArbreProgression.niveau(r, String(a.get("b", "")))))
+			_envoyer_arbres()
 		_:
 			refus = "Action inconnue du serveur : %s." % t
 	Pays.payeur_force = -1
+	ArbreProgression.joueur_serveur = ""
 	_en_cours = false
 	_auteur = ""
 	_sale = true
@@ -854,7 +877,34 @@ func empreintes() -> Dictionary:
 		"v": jeu.communes.villages.size()}
 
 
+## Arbres de progression des joueurs : records de population (leurs villes),
+## puis envoi à tous s'ils ont changé.
+var _arbres_emp := ""
+
+
+func _maj_arbres() -> void:
+	var r := ReglagesPartie.actuel
+	var stats: Dictionary = jeu.communes.stats
+	for pid in carte.membres:
+		var hab := 0
+		for vid in carte.villes_de(String(pid)):
+			hab += int(stats.get(vid, {}).get("hab", 0))
+		ArbreProgression.note_population_joueur(r, String(pid), hab)
+	_envoyer_arbres()
+
+
+func _envoyer_arbres() -> void:
+	var r := ReglagesPartie.actuel
+	var emp := JSON.stringify(r.arbres_joueurs)
+	if emp == _arbres_emp:
+		return
+	_arbres_emp = emp
+	_sale = true
+	_a_tous({"m": "arbres", "d": r.arbres_joueurs.duplicate(true)})
+
+
 func _envoyer_tic() -> void:
+	_maj_arbres()
 	var pays: Pays = jeu.pays
 	var caisses := {}
 	for k in pays.cles():

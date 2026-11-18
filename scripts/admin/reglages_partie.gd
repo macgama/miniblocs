@@ -83,6 +83,8 @@ var deblocage := "tout"
 var arbre := {}
 var points_bonus: int = 0
 var journal_points: Array = []
+## Carte entre amis : un arbre par joueur, pid -> {arbre, bonus, journal, record}.
+var arbres_joueurs := {}
 ## Fêtes de quartier, marchés et matchs organisés tout seuls par la ville.
 var evenements_auto := true
 ## Incendies, tempêtes et épidémies au hasard (on peut toujours en déclencher à la main).
@@ -310,7 +312,7 @@ func to_dict() -> Dictionary:
 		"cout_construction": cout_construction, "acces_route": acces_route, "impots": impots,
 		"salaires": salaires, "vitesse_temps": vitesse_temps, "vitesse_vie": vitesse_vie,
 		"epuisement": epuisement, "deblocage": deblocage, "createur": createur,
-		"arbre": arbre.duplicate(), "points_bonus": points_bonus, "journal_points": journal_points.duplicate(true),
+		"arbre": arbre.duplicate(), "points_bonus": points_bonus, "journal_points": journal_points.duplicate(true), "arbres_joueurs": arbres_joueurs.duplicate(true),
 		"record_habitants": record_habitants, "evenements_auto": evenements_auto, "catastrophes": catastrophes,
 		"frequence_catastrophes": frequence_catastrophes, "envoi_secours_manuel": envoi_secours_manuel, "crises_economiques": crises_economiques, "volatilite_marche": volatilite_marche, "neige_routes": neige_routes, "faim": faim, "telecom_necessaire": telecom_necessaire, "construction_instantanee": construction_instantanee,
 		"horaires_chantiers": horaires_chantiers, "rythme_chantiers": rythme_chantiers, "usure": usure, "dechets": dechets, "dechets_quantite": dechets_quantite, "pollution": pollution, "pollution_sante": pollution_sante, "climat": climat, "sols_pollues": sols_pollues,
@@ -348,6 +350,7 @@ func from_dict(d: Dictionary) -> void:
 			if not ArbreProgression.branche(String(b)).is_empty():
 				arbre[String(b)] = clampi(int(a[b]), 0, ArbreProgression.NIVEAU_MAX)
 	points_bonus = maxi(0, int(d.get("points_bonus", 0)))
+	arbres_joueurs = lire_arbres_joueurs(d.get("arbres_joueurs", {}))
 	journal_points = []
 	var jp = d.get("journal_points", [])
 	if jp is Array:
@@ -400,6 +403,29 @@ func from_dict(d: Dictionary) -> void:
 	histoire_saut = int(d.get("histoire_saut", 0))
 
 
+## Arbres des joueurs d'une carte entre amis, nettoyés (pid -> {arbre, bonus, journal, record}).
+static func lire_arbres_joueurs(aj: Variant) -> Dictionary:
+	var out := {}
+	if not aj is Dictionary:
+		return out
+	for pid in aj:
+		var e = aj[pid]
+		if not e is Dictionary:
+			continue
+		var ar := {}
+		if e.get("arbre") is Dictionary:
+			for b in e.arbre:
+				if not ArbreProgression.branche(String(b)).is_empty():
+					ar[String(b)] = clampi(int(e.arbre[b]), 0, ArbreProgression.NIVEAU_MAX)
+		var jr: Array = []
+		if e.get("journal") is Array:
+			for x in e.journal:
+				if x is Dictionary:
+					jr.append({"n": int(x.get("n", 0)), "raison": String(x.get("raison", ""))})
+		out[String(pid)] = {"arbre": ar, "bonus": maxi(0, int(e.get("bonus", 0))), "journal": jr, "record": maxi(0, int(e.get("record", 0)))}
+	return out
+
+
 ## Réglages par défaut des nouvelles parties (fichier du joueur, sinon « Normal »).
 static func load_defaults() -> ReglagesPartie:
 	var r := preset("normal")
@@ -418,6 +444,7 @@ static func load_defaults() -> ReglagesPartie:
 	r.arbre = {}
 	r.points_bonus = 0
 	r.journal_points = []
+	r.arbres_joueurs = {}
 	r.histoire_debut = 0.0
 	r.histoire_saut = 0
 	return r
@@ -430,6 +457,7 @@ func save_as_defaults() -> bool:
 	d.erase("arbre")
 	d.erase("points_bonus")
 	d.erase("journal_points")
+	d.erase("arbres_joueurs")
 	d.erase("histoire_debut")
 	d.erase("histoire_saut")
 	var f := FileAccess.open(DEFAULTS_FILE, FileAccess.WRITE)

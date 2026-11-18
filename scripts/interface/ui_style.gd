@@ -16,6 +16,9 @@ const PANEL_BG := Color(0.08, 0.10, 0.09, 0.88)
 const SIDE_LEFT := -392.0
 const SIDE_RIGHT := -12.0
 const SIDE_TOP := 78.0
+## Marge de scroll_fit pour un panneau de droite (posé à SIDE_TOP) : il s'arrête
+## au-dessus de la barre des catégories en bas de l'écran (≈ 110 px), sans la chevaucher.
+const SIDE_BAS := 96.0
 ## Haut de la barre de catégories (depuis le bas de l'écran).
 const DOCK_HEIGHT := 100.0
 

@@ -118,6 +118,7 @@ func _process(_delta: float) -> void:
 	var env := get_world_3d().environment if get_world_3d() else null
 	if env:
 		_material.set_shader_parameter("horizon_color", env.fog_light_color)
+	_maj_neige()
 
 	_collect_jobs()
 	var r := ceili(radius / PATCH)
@@ -174,6 +175,25 @@ func finish_jobs() -> void:
 		if _jobs[k].job.gen == _generation:
 			_apply(_jobs[k].job)
 	_jobs.clear()
+
+
+var _neige_version := -1
+
+
+## Même manteau neigeux que les blocs détaillés (altitude, saison, exposition).
+func _maj_neige() -> void:
+	var r := world._view_radius
+	if world.neige_version == _neige_version and is_equal_approx(r, _neige_rayon):
+		return
+	_neige_version = world.neige_version
+	_neige_rayon = r
+	var np := world.neige_params()
+	for cle in np:
+		_material.set_shader_parameter(cle, np[cle])
+	_material.set_shader_parameter("neige_expo_debut", r + 100.0)
+
+
+var _neige_rayon := -1.0
 
 
 # --- Masque des blocs détaillés ------------------------------------------

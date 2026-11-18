@@ -326,7 +326,7 @@ func verifier_palier(vid: int) -> void:
 		pays.prime(prime, "Prime : %s devient %s" % [pays.nom_de(vid), String(p.nom)], vid)
 		message.emit("%s devient « %s » ! Le pays reçoit une prime de %s." % [pays.nom_de(vid), String(p.nom), BuildingSystem.format_money(prime)])
 		ajouter_reputation(float(p.rep), "%s devient %s" % [pays.nom_de(vid), String(p.nom).to_lower()])
-		ArbreProgression.rang_atteint(String(p.nom), pays.nom_de(vid))
+		ArbreProgression.rang_atteint(String(p.nom), pays.nom_de(vid), vid)
 
 
 # --- Missions ------------------------------------------------------------------------------
@@ -551,7 +551,7 @@ func _verifier_missions() -> void:
 			pays.prime(int(m.prime), "Mission réussie : " + String(m.texte), vid if vid >= 0 else -1)
 			message.emit("Mission réussie : %s ! Le pays reçoit %s." % [String(m.texte), BuildingSystem.format_money(int(m.prime))])
 			ajouter_reputation(float(m.rep), "mission réussie")
-			ArbreProgression.mission_reussie(String(m.texte))
+			ArbreProgression.mission_reussie(String(m.texte), vid)
 			_historiser(m, true)
 		elif d > int(m.fin):
 			missions.erase(m)

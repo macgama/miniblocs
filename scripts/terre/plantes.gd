@@ -424,6 +424,13 @@ static func applique_saison(s: Dictionary, neige: float, cultures: Dictionary) -
 	m.set_shader_parameter("maturite_culture", cultures.maturite)
 
 
+## Neige selon l'altitude (TerrainWorld.neige_params()) sur les plantes.
+static func applique_neige(params: Dictionary) -> void:
+	var m := materiau()
+	for cle in params:
+		m.set_shader_parameter(cle, params[cle])
+
+
 ## Coefficient du vent pour une espèce : balancement (m) en haut de la plante,
 ## divisé par sa hauteur au carré (le shader fait coef × hauteur²).
 static func vent(espece: int) -> float:

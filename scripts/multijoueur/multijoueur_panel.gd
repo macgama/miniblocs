@@ -169,6 +169,23 @@ func heberger() -> void:
 	get_tree().create_timer(4.0).timeout.connect(rejoindre)
 
 
+## Nouvelle carte créée dans l'assistant : le serveur vient d'être lancé sur ce
+## PC (processus pid), on y entre dès qu'il répond.
+func attendre_serveur_local(pid: int, port: int, pseudo_: String) -> void:
+	if not is_node_ready():
+		await ready
+	if pid < 0:
+		_etat.text = "Le serveur n'a pas pu démarrer."
+		return
+	if pseudo_.strip_edges() != "":
+		_pseudo.text = pseudo_.strip_edges()
+	_code.text = ""
+	_adresse.text = "127.0.0.1:%d" % port if port != Protocole.PORT_DEFAUT else "127.0.0.1"
+	_etat.text = "Serveur de ta nouvelle carte lancé (processus %d). Connexion…" % pid
+	_essais = 1
+	get_tree().create_timer(4.0).timeout.connect(rejoindre)
+
+
 func fermer() -> void:
 	closed.emit()
 	queue_free()

@@ -42,18 +42,69 @@ var _list: ItemList
 var _loading_label: Label
 var _place_label: Label
 var _detail_label: Label
-var _mode: OptionButton
-## Réglages de la nouvelle partie (bouton « Réglages de la partie »).
+## Réglages de la nouvelle partie (bouton « Réglages avancés… »).
 var _settings_label: Label
 var _settings_panel: AdminPanel
+## Bouton Suivant, puis « Commencer la partie » à la dernière étape.
 var _start_btn: Button
-## Case « Tutoriel guidé » (suit aussi le réglage du panneau Réglages…).
-var _tuto_check: CheckBox
 ## Résultats affichés dans la liste ({nom, pays, pays_nom, pop, lat, lon}).
 var _filtered: Array = []
 var _search_timer: Timer
 var _online_btn: Button
 var _online: HTTPRequest
+
+# Assistant de nouvelle partie : une étape à la fois.
+const ETAPES := ["Lieu", "Type de carte", "Réglages", "Tutoriel", "Résumé"]
+const ETAPES_TITRES := ["Où fonder ton village ?", "Seul ou à plusieurs ?", "Quelle partie veux-tu ?",
+	"Un coup de main pour commencer ?", "Prêt à fonder ta ville ?"]
+const LARGEUR_ASSISTANT := 430.0
+## Préréglages proposés, avec leur phrase.
+const DIFFICULTES := {
+	"facile": "Facile : 100 M€, constructions à moitié prix, tout débloqué, pas d'épuisement des ressources.",
+	"normal": "Normal : 30 M€, prix réels, arbre de progression, ressources qui s'épuisent.",
+	"difficile": "Difficile : 5 M€, constructions deux fois plus chères, impôts plus bas, salaires plus hauts.",
+	"libre": "Bac à sable libre : argent illimité, tout débloqué, pas de route ni de réseaux obligatoires.",
+}
+const ARGENTS := [1_000_000, 5_000_000, 10_000_000, 30_000_000, 100_000_000]
+## [année (0 : aujourd'hui, -1 : autre année), nom].
+const EPOQUES := [[0, "Aujourd'hui : tout est déjà inventé"], [1800, "1800 : diligences, puits et lampes à huile"],
+	[1850, "1850 : vapeur et chemin de fer"], [1900, "1900 : tramways et premières lignes électriques"],
+	[1950, "1950 : voitures et grands ensembles"], [-1, "Autre année…"]]
+
+var etape := 0
+var mode_carte: int = GameStart.Mode.BAC_A_SABLE
+var _ui: CanvasLayer
+var _left: Control
+var _assistant: PanelContainer
+var _credit: Label
+var _defilement: ScrollContainer
+var _pages: Array[VBoxContainer] = []
+var _etape_btns: Array[Button] = []
+var _etape_label: Label
+var _titre_etape: Label
+var _prev_btn: Button
+var _mode_btns: Array[Button] = []
+var _amis_box: VBoxContainer
+var _pseudo_edit: LineEdit
+var _amis_panel: MultijoueurPanel
+var _preset_btns := {}
+var _preset_info: Label
+var _epoque_opt: OptionButton
+var _epoque_ligne: Control
+var _annee_spin: SpinBox
+var _rythme_opt: OptionButton
+var _epoque_info: Label
+## « Autre année… » choisie : l'année se tape dans la case.
+var _epoque_autre := false
+var _argent_opt: OptionButton
+var _options := {}
+var _remplissage := false
+var _tuto_oui: Button
+var _tuto_non: Button
+var _tuto_note: Label
+var _objectifs_check: CheckBox
+var _resume_box: GridContainer
+var _resume_note: Label
 
 
 var _continue_btn: Button
@@ -128,7 +179,7 @@ func _ready() -> void:
 		_check_globe_tiles()
 
 	if GameStart.chosen:
-		select_place(GameStart.lat, GameStart.lon, GameStart.place_name, true)
+		select_place(GameStart.lat, GameStart.lon, GameStart.place_name, true, GameStart.pays)
 
 
 # --- Planète --------------------------------------------------------------
@@ -274,7 +325,8 @@ func back_to_menu() -> void:
 
 func _unhandled_key_input(event: InputEvent) -> void:
 	var k := event as InputEventKey
-	if k and k.pressed and not k.echo and k.keycode == KEY_ESCAPE and _saves_panel == null and _settings_panel == null:
+	if k and k.pressed and not k.echo and k.keycode == KEY_ESCAPE and _saves_panel == null and _settings_panel == null \
+			and _amis_panel == null:
 		get_viewport().set_input_as_handled()
 		back_to_menu()
 
@@ -322,7 +374,7 @@ func select_place(lat: float, lon: float, place_name: String, instant := false, 
 	if place_name != "":
 		fly_to(sel_lat, sel_lon, minf(_target_dist, 1.7), instant)
 	_place_label.text = (place_name + "\n" if place_name != "" else "") + _format_lat_lon(sel_lat, sel_lon)
-	_start_btn.disabled = false
+	_maj_navigation()
 	var px := Geo.lon_to_pixel_x(sel_lon, ElevationTiles.ZOOM)
 	var py := Geo.lat_to_pixel_y(sel_lat, ElevationTiles.ZOOM)
 	_detail_tiles.request_tile(ElevationTiles.tile_of_pixel(px, py))
@@ -387,30 +439,41 @@ func start_game() -> void:
 	GameStart.lon = sel_lon
 	GameStart.place_name = sel_name
 	GameStart.pays = sel_pays
-	GameStart.mode = GameStart.Mode.BAC_A_SABLE
 	GameStart.load_slot = ""
 	GameStart.slot_id = ""
+	if mode_carte == GameStart.Mode.ENTRE_AMIS:
+		heberger_nouvelle_carte()
+		return
+	GameStart.mode = GameStart.Mode.BAC_A_SABLE
 	EcranChargement.aller("res://scenes/terre.tscn", sel_name if sel_name != "" else "Nouvelle partie")
+
+
+## Entre amis : le serveur de la nouvelle carte démarre sur ce PC (un processus
+## à part, avec le lieu et les réglages choisis), puis on y entre en créateur.
+func heberger_nouvelle_carte() -> void:
+	var r := ReglagesPartie.prochaine.duplicate_settings()
+	r.tutoriel = false
+	var p := ouvrir_amis()
+	var pid := Multijoueur.lancer_nouvelle_carte(sel_lat, sel_lon, sel_name, sel_pays, r, Protocole.PORT_DEFAUT)
+	p.attendre_serveur_local(pid, Protocole.PORT_DEFAUT, _pseudo_edit.text if _pseudo_edit != null else "")
 
 
 ## Panneau des réglages de la nouvelle partie (le même que le panneau Admin).
 func open_settings(ui: CanvasLayer) -> void:
 	if _settings_panel != null:
 		return
-	GameStart.mode = _mode.selected as GameStart.Mode
+	GameStart.mode = mode_carte as GameStart.Mode
 	_settings_panel = AdminPanel.new(ReglagesPartie.prochaine, true, true)
-	_settings_panel.settings_changed.connect(_update_settings_label)
+	_settings_panel.settings_changed.connect(_remplir_reglages)
 	_settings_panel.closed.connect(func() -> void:
 		_settings_panel = null
-		_update_settings_label())
+		_remplir_reglages())
 	ui.add_child(_settings_panel)
 
 
 func _update_settings_label() -> void:
 	if _settings_label and ReglagesPartie.prochaine != null:
 		_settings_label.text = "Réglages : " + ReglagesPartie.prochaine.summary()
-	if _tuto_check and ReglagesPartie.prochaine != null:
-		_tuto_check.set_pressed_no_signal(ReglagesPartie.prochaine.tutoriel)
 
 
 ## Ouvre l'atelier (retour au globe en le quittant).
@@ -483,13 +546,17 @@ func _panel_label(text: String, size := 14, alpha := 1.0) -> Label:
 
 func _build_ui() -> void:
 	var ui := CanvasLayer.new()
+	_ui = ui
 	add_child(ui)
+	if ReglagesPartie.prochaine == null:
+		ReglagesPartie.prochaine = ReglagesPartie.load_defaults()
 
-	# Panneau de gauche : recherche.
+	# Étape 1, panneau de gauche : recherche du lieu.
 	var left := PanelContainer.new()
 	left.position = Vector2(16, 16)
 	left.custom_minimum_size = Vector2(340, 0)
 	ui.add_child(left)
+	_left = left
 	var lv := VBoxContainer.new()
 	lv.add_theme_constant_override("separation", 8)
 	left.add_child(lv)
@@ -526,76 +593,117 @@ func _build_ui() -> void:
 	_loading_label = _panel_label("", 13, 0.9)
 	lv.add_child(_loading_label)
 
-	# Panneau de droite : le lieu choisi.
+	# Les étapes, en haut au milieu (un clic revient à une étape déjà vue).
+	var top := PanelContainer.new()
+	UiStyle.style_panel(top, 0.85, 10, 6)
+	top.anchor_left = 0.5
+	top.anchor_right = 0.5
+	top.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	top.offset_top = 16
+	ui.add_child(top)
+	var th := HBoxContainer.new()
+	th.add_theme_constant_override("separation", 4)
+	top.add_child(th)
+	for i in ETAPES.size():
+		if i > 0:
+			var fl := _panel_label("›", 18, 0.5)
+			fl.autowrap_mode = TextServer.AUTOWRAP_OFF
+			fl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+			fl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			th.add_child(fl)
+		var b := Button.new()
+		b.text = "%d · %s" % [i + 1, ETAPES[i]]
+		b.toggle_mode = true
+		b.focus_mode = Control.FOCUS_NONE
+		b.add_theme_stylebox_override("normal", UiStyle.flat_box(Color(0, 0, 0, 0)))
+		b.add_theme_stylebox_override("disabled", UiStyle.flat_box(Color(0, 0, 0, 0)))
+		b.add_theme_stylebox_override("hover", UiStyle.flat_box(Color(1, 1, 1, 0.12)))
+		UiStyle.tint_pressed(b, UiStyle.ACCENT, UiStyle.ACCENT_INK)
+		var idx := i
+		b.pressed.connect(func() -> void: aller_a(idx))
+		th.add_child(b)
+		_etape_btns.append(b)
+
+	# L'assistant, à droite : titre, page de l'étape (qui défile), Précédent / Suivant.
 	var right := PanelContainer.new()
-	right.custom_minimum_size = Vector2(320, 0)
+	UiStyle.style_panel(right, 0.9, 12, 14)
 	right.anchor_left = 1.0
 	right.anchor_right = 1.0
-	right.anchor_top = 1.0
 	right.anchor_bottom = 1.0
-	right.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	right.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	right.offset_left = -16 - LARGEUR_ASSISTANT
 	right.offset_right = -16
+	right.offset_top = 70
 	right.offset_bottom = -40
 	ui.add_child(right)
+	_assistant = right
 	var rv := VBoxContainer.new()
-	rv.add_theme_constant_override("separation", 8)
+	rv.add_theme_constant_override("separation", 10)
 	right.add_child(rv)
-	rv.add_child(_panel_label("Lieu choisi", 18))
-	_place_label = _panel_label("Clique sur la Terre ou choisis un lieu dans la liste.", 14, 0.9)
-	rv.add_child(_place_label)
-	_detail_label = _panel_label("", 13, 0.8)
-	rv.add_child(_detail_label)
-	_mode = OptionButton.new()
-	_mode.add_item("Bac à sable : seul, hors ligne")
-	_mode.add_item("Entre amis : menu principal → Entre amis")
-	_mode.add_item("Carte mondiale : tous les joueurs (bientôt)")
-	_mode.set_item_disabled(1, true)
-	_mode.set_item_disabled(2, true)
-	rv.add_child(_mode)
-	if ReglagesPartie.prochaine == null:
-		ReglagesPartie.prochaine = ReglagesPartie.load_defaults()
-	var set_row := HBoxContainer.new()
-	rv.add_child(set_row)
-	_settings_label = _panel_label("", 12, 0.8)
-	_settings_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	set_row.add_child(_settings_label)
-	var set_btn := Button.new()
-	set_btn.text = "Réglages…"
-	set_btn.icon = Icones.get_icon("admin", 18)
-	set_btn.tooltip_text = "Réglages de la partie : argent de départ, coûts, règles, économie, temps, ressources, déblocage"
-	set_btn.pressed.connect(func() -> void: open_settings(ui))
-	set_row.add_child(set_btn)
-	_update_settings_label()
-	var tuto := CheckBox.new()
-	tuto.text = "Tutoriel guidé (conseillé pour une première partie)"
-	tuto.tooltip_text = "Une étape à la fois en haut à gauche : fonder le village, tracer une route, zoner, courant et eau… Se coupe à tout moment (F10 → Aide)."
-	tuto.focus_mode = Control.FOCUS_NONE
-	tuto.button_pressed = ReglagesPartie.prochaine.tutoriel
-	tuto.toggled.connect(func(on: bool) -> void:
-		if ReglagesPartie.prochaine != null:
-			ReglagesPartie.prochaine.tutoriel = on)
-	rv.add_child(tuto)
-	_tuto_check = tuto
+	_etape_label = _panel_label("", 13, 0.7)
+	rv.add_child(_etape_label)
+	_titre_etape = _panel_label("", 22)
+	_titre_etape.add_theme_color_override("font_color", UiStyle.ACCENT)
+	rv.add_child(_titre_etape)
+	var sc := ScrollContainer.new()
+	sc.name = "Defilement"
+	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	sc.follow_focus = true
+	sc.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	rv.add_child(sc)
+	_defilement = sc
+	var pages := VBoxContainer.new()
+	pages.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sc.add_child(pages)
+	for f in [_page_lieu, _page_carte, _page_reglages, _page_tutoriel, _page_resume]:
+		var p := VBoxContainer.new()
+		p.add_theme_constant_override("separation", 10)
+		p.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		pages.add_child(p)
+		(f as Callable).call(p)
+		_pages.append(p)
+	var nav := HBoxContainer.new()
+	nav.add_theme_constant_override("separation", 8)
+	rv.add_child(nav)
+	_prev_btn = Button.new()
+	_prev_btn.text = "◂ Précédent"
+	_prev_btn.custom_minimum_size = Vector2(130, 44)
+	_prev_btn.pressed.connect(precedent)
+	nav.add_child(_prev_btn)
 	_start_btn = Button.new()
-	_start_btn.text = "Commencer la partie"
 	_start_btn.custom_minimum_size = Vector2(0, 44)
-	_start_btn.disabled = true
-	_start_btn.pressed.connect(start_game)
-	rv.add_child(_start_btn)
+	_start_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_start_btn.add_theme_font_size_override("font_size", 17)
+	_start_btn.add_theme_stylebox_override("normal", UiStyle.flat_box(UiStyle.ACCENT))
+	_start_btn.add_theme_stylebox_override("hover", UiStyle.flat_box(UiStyle.ACCENT.lightened(0.15)))
+	_start_btn.add_theme_stylebox_override("pressed", UiStyle.flat_box(UiStyle.ACCENT.darkened(0.1)))
+	for k in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
+		_start_btn.add_theme_color_override(k, UiStyle.ACCENT_INK)
+	_start_btn.pressed.connect(suivant)
+	nav.add_child(_start_btn)
 
-	# Parties sauvegardées : reprendre la dernière, ou choisir dans la liste.
+	# Parties sauvegardées : reprendre la dernière, ou choisir dans la liste (en bas à gauche).
 	var saves := SaveGame.list_saves()
+	var bas := PanelContainer.new()
+	UiStyle.style_panel(bas, 0.85, 10, 6)
+	bas.anchor_top = 1.0
+	bas.anchor_bottom = 1.0
+	bas.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	bas.offset_left = 16
+	bas.offset_bottom = -16
+	ui.add_child(bas)
 	var srow := HBoxContainer.new()
-	rv.add_child(srow)
+	srow.add_theme_constant_override("separation", 6)
+	bas.add_child(srow)
 	_continue_btn = Button.new()
-	_continue_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_continue_btn.custom_minimum_size = Vector2(0, 36)
 	if saves.is_empty():
 		_continue_btn.text = "Aucune partie sauvegardée"
 		_continue_btn.disabled = true
 	else:
-		_continue_btn.text = "Continuer : " + String(saves[0].get("nom", saves[0].id))
+		var nom_partie := String(saves[0].get("nom", saves[0].id))
+		if nom_partie.length() > 36:
+			nom_partie = nom_partie.substr(0, 35) + "…"
+		_continue_btn.text = "Continuer : " + nom_partie
 		_continue_btn.tooltip_text = PartiesPanel.format_date(int(saves[0].get("modifie", 0)))
 		var last_id := String(saves[0].id)
 		_continue_btn.pressed.connect(func() -> void: load_saved_game(last_id))
@@ -617,20 +725,10 @@ func _build_ui() -> void:
 	back.anchor_left = 1.0
 	back.anchor_right = 1.0
 	back.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	back.offset_right = -150
+	back.offset_right = -16
 	back.offset_top = 16
 	back.pressed.connect(back_to_menu)
 	ui.add_child(back)
-
-	var proto := Button.new()
-	proto.text = "Ville prototype"
-	proto.anchor_left = 1.0
-	proto.anchor_right = 1.0
-	proto.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	proto.offset_right = -16
-	proto.offset_top = 16
-	proto.pressed.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/main.tscn"))
-	ui.add_child(proto)
 
 	var credit := _panel_label("Relief : Mapzen Terrain Tiles (AWS Open Data) — SRTM, GMTED, ETOPO1, EU-DEM · Biomes : © ESA WorldCover 2021 (CC BY 4.0) · Villes : GeoNames (CC BY 4.0) · Drapeaux : flag-icons (MIT)", 11, 0.6)
 	credit.autowrap_mode = TextServer.AUTOWRAP_OFF
@@ -643,6 +741,482 @@ func _build_ui() -> void:
 	credit.offset_right = -16
 	credit.offset_bottom = -12
 	ui.add_child(credit)
+	_credit = credit
+
+	_remplir_reglages()
+	aller_a(0)
+
+
+# --- Assistant de nouvelle partie --------------------------------------------
+
+## Étape suivante (ou, à la dernière, commencer la partie).
+func suivant() -> void:
+	if etape >= ETAPES.size() - 1:
+		start_game()
+	else:
+		aller_a(etape + 1)
+
+
+func precedent() -> void:
+	aller_a(etape - 1)
+
+
+## Étape la plus loin qu'on peut atteindre : tant qu'aucun lieu n'est choisi, la première.
+func etape_max() -> int:
+	return ETAPES.size() - 1 if selected else 0
+
+
+func aller_a(i: int) -> void:
+	etape = clampi(i, 0, etape_max())
+	for k in _pages.size():
+		_pages[k].visible = k == etape
+	if _left != null:
+		_left.visible = etape == 0
+	if etape == ETAPES.size() - 1:
+		_maj_resume()
+	if etape == 2:
+		_remplir_reglages()
+	if etape == 3:
+		_maj_tutoriel()
+	if _defilement != null:
+		_defilement.scroll_vertical = 0
+	_maj_navigation()
+
+
+func _maj_navigation() -> void:
+	if _start_btn == null:
+		return
+	_etape_label.text = "Étape %d sur %d" % [etape + 1, ETAPES.size()]
+	_titre_etape.text = ETAPES_TITRES[etape]
+	for k in _etape_btns.size():
+		_etape_btns[k].set_pressed_no_signal(k == etape)
+		_etape_btns[k].disabled = k > etape_max()
+	_prev_btn.disabled = etape == 0
+	if etape < ETAPES.size() - 1:
+		_start_btn.text = "Suivant ▸"
+		_start_btn.disabled = etape == 0 and not selected
+	else:
+		_start_btn.text = "Créer la carte et la rejoindre" if mode_carte == GameStart.Mode.ENTRE_AMIS else "Commencer la partie"
+		_start_btn.disabled = not selected
+
+
+func _titre_section(parent: Control, texte: String, icone := "") -> void:
+	var h := HBoxContainer.new()
+	h.add_theme_constant_override("separation", 6)
+	if icone != "":
+		var ic := TextureRect.new()
+		ic.texture = Icones.get_icon(icone, 18, UiStyle.ACCENT)
+		ic.stretch_mode = TextureRect.STRETCH_KEEP_CENTERED
+		h.add_child(ic)
+	var l := _panel_label(texte, 16)
+	l.autowrap_mode = TextServer.AUTOWRAP_OFF
+	l.add_theme_color_override("font_color", UiStyle.ACCENT)
+	h.add_child(l)
+	parent.add_child(h)
+
+
+## Grand bouton à choisir (titre + une phrase), dans un groupe.
+func _carte_choix(parent: Control, titre: String, texte: String, groupe: ButtonGroup, icone := "") -> Button:
+	var b := Button.new()
+	b.toggle_mode = true
+	b.button_group = groupe
+	b.text = titre + "\n" + texte
+	b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	b.custom_minimum_size = Vector2(0, 64)
+	b.focus_mode = Control.FOCUS_NONE
+	if icone != "":
+		b.icon = Icones.get_icon(icone, 24)
+		b.expand_icon = false
+	UiStyle.tint_pressed(b, UiStyle.ACCENT, UiStyle.ACCENT_INK)
+	parent.add_child(b)
+	return b
+
+
+func _page_lieu(p: VBoxContainer) -> void:
+	_place_label = _panel_label("Cherche une ville à gauche, ou clique sur la Terre.", 15, 0.95)
+	p.add_child(_place_label)
+	_detail_label = _panel_label("", 13, 0.8)
+	p.add_child(_detail_label)
+	p.add_child(_panel_label("Ta région de jeu fera 40 × 40 km autour de ce point, avec le vrai relief. Tu pourras fonder d'autres villes plus tard.", 12, 0.65))
+
+
+func _page_carte(p: VBoxContainer) -> void:
+	var g := ButtonGroup.new()
+	_mode_btns.clear()
+	_mode_btns.append(_carte_choix(p, "Seul (bac à sable)", "Ta carte, hors ligne. Tu es maire et admin : tu règles tout.", g, "construire"))
+	_mode_btns.append(_carte_choix(p, "Entre amis", "Une carte sur invitation, hébergée sur ce PC. Chacun a sa caisse et fonde ses villes.", g, "habitants"))
+	_mode_btns.append(_carte_choix(p, "Carte mondiale (bientôt)", "Une seule Terre pour tous les joueurs. Elle ouvrira avec un serveur en ligne.", g, "globe"))
+	_mode_btns[2].disabled = true
+	if EditionDemo.active():
+		_mode_btns[1].disabled = true
+		_mode_btns[1].tooltip_text = "La carte entre amis est dans le jeu complet."
+	for i in _mode_btns.size():
+		var m := i
+		_mode_btns[i].toggled.connect(func(on: bool) -> void:
+			if on:
+				choisir_mode(m))
+	_mode_btns[0].set_pressed_no_signal(true)
+	_amis_box = VBoxContainer.new()
+	_amis_box.add_theme_constant_override("separation", 6)
+	_amis_box.visible = false
+	p.add_child(_amis_box)
+	_amis_box.add_child(_panel_label("Le serveur de la carte tourne sur ce PC tant qu'il est allumé. Une fois dedans, F3 affiche le code d'invitation à donner à tes amis.", 13, 0.8))
+	var h := HBoxContainer.new()
+	h.add_theme_constant_override("separation", 8)
+	_amis_box.add_child(h)
+	var lp := _panel_label("Ton pseudo", 14)
+	lp.autowrap_mode = TextServer.AUTOWRAP_OFF
+	h.add_child(lp)
+	_pseudo_edit = LineEdit.new()
+	var s := Multijoueur.souvenirs()
+	_pseudo_edit.text = String(s.get("pseudo", "")) if String(s.get("pseudo", "")) != "" else OS.get_environment("USERNAME")
+	_pseudo_edit.placeholder_text = "le nom que voient les autres"
+	_pseudo_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	h.add_child(_pseudo_edit)
+	var rej := Button.new()
+	rej.text = "Rejoindre plutôt la carte d'un ami…"
+	rej.tooltip_text = "Avec l'adresse de son serveur et son code d'invitation"
+	rej.pressed.connect(ouvrir_amis)
+	p.add_child(rej)
+
+
+func choisir_mode(m: int) -> void:
+	mode_carte = m
+	if m < _mode_btns.size():
+		_mode_btns[m].set_pressed_no_signal(true)
+	if _amis_box != null:
+		_amis_box.visible = m == GameStart.Mode.ENTRE_AMIS
+	_maj_navigation()
+
+
+## Panneau « Carte entre amis » (rejoindre avec un code).
+func ouvrir_amis() -> MultijoueurPanel:
+	if _amis_panel != null:
+		return _amis_panel
+	_amis_panel = MultijoueurPanel.new()
+	_amis_panel.closed.connect(func() -> void: _amis_panel = null)
+	_ui.add_child(_amis_panel)
+	return _amis_panel
+
+
+func _page_reglages(p: VBoxContainer) -> void:
+	var r := ReglagesPartie.prochaine
+	_titre_section(p, "Difficulté", "etoile")
+	var grille := GridContainer.new()
+	grille.columns = 2
+	grille.add_theme_constant_override("h_separation", 6)
+	grille.add_theme_constant_override("v_separation", 6)
+	p.add_child(grille)
+	var g := ButtonGroup.new()
+	g.allow_unpress = true
+	for id in DIFFICULTES:
+		var b := Button.new()
+		b.text = String(ReglagesPartie.PRESETS[id].nom)
+		b.toggle_mode = true
+		b.button_group = g
+		b.custom_minimum_size = Vector2(0, 36)
+		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		b.focus_mode = Control.FOCUS_NONE
+		b.tooltip_text = String(DIFFICULTES[id])
+		UiStyle.tint_pressed(b, UiStyle.ACCENT, UiStyle.ACCENT_INK)
+		var pid: String = id
+		b.pressed.connect(func() -> void: choisir_difficulte(pid))
+		grille.add_child(b)
+		_preset_btns[id] = b
+	_preset_info = _panel_label("", 13, 0.8)
+	p.add_child(_preset_info)
+
+	_titre_section(p, "Époque de départ", "horloge")
+	_epoque_opt = OptionButton.new()
+	for e in EPOQUES:
+		_epoque_opt.add_item(String(e[1]))
+	_epoque_opt.clip_text = true
+	_epoque_opt.item_selected.connect(func(_i: int) -> void: _changer_epoque())
+	p.add_child(_epoque_opt)
+	var he := HBoxContainer.new()
+	he.add_theme_constant_override("separation", 8)
+	p.add_child(he)
+	_annee_spin = SpinBox.new()
+	_annee_spin.min_value = Epoques.ANNEE_MIN
+	_annee_spin.max_value = 2100
+	_annee_spin.step = 1
+	_annee_spin.value = 1800
+	_annee_spin.custom_minimum_size = Vector2(110, 0)
+	_annee_spin.value_changed.connect(func(_v: float) -> void: _changer_epoque())
+	he.add_child(_annee_spin)
+	_rythme_opt = OptionButton.new()
+	for n in Epoques.RYTHME_NOMS:
+		_rythme_opt.add_item(String(n))
+	_rythme_opt.tooltip_text = "Années d'histoire par année de jeu : ×10, on traverse un siècle en dix ans de jeu."
+	_rythme_opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_rythme_opt.clip_text = true
+	_rythme_opt.item_selected.connect(func(_i: int) -> void: _changer_epoque())
+	var lr := _panel_label("Rythme de l'histoire", 13, 0.8)
+	lr.autowrap_mode = TextServer.AUTOWRAP_OFF
+	lr.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	he.add_child(lr)
+	he.add_child(_rythme_opt)
+	_epoque_ligne = he
+	_epoque_info = _panel_label("", 12, 0.7)
+	p.add_child(_epoque_info)
+	if EditionDemo.active():
+		_epoque_opt.disabled = true
+		_epoque_opt.tooltip_text = "Partir de 1800 et traverser les époques : dans le jeu complet"
+
+	_titre_section(p, "Argent", "budget")
+	var ha := HBoxContainer.new()
+	ha.add_theme_constant_override("separation", 8)
+	p.add_child(ha)
+	var la := _panel_label("Argent de départ", 14)
+	la.autowrap_mode = TextServer.AUTOWRAP_OFF
+	ha.add_child(la)
+	_argent_opt = OptionButton.new()
+	_argent_opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_argent_opt.item_selected.connect(func(i: int) -> void:
+		if _remplissage or i >= ARGENTS.size():
+			return
+		ReglagesPartie.prochaine.argent_depart = ARGENTS[i]
+		_reglages_changes())
+	ha.add_child(_argent_opt)
+	_option(p, "argent_illimite", "Argent illimité", "Pour construire sans compter (les prix restent affichés).")
+
+	_titre_section(p, "Construction", "construire")
+	_option(p, "chantiers", "Chantiers en temps réel (ouvriers, étapes)", "Sinon, les bâtiments apparaissent d'un coup.")
+	_option(p, "acces_route", "Une route devant chaque bâtiment", "Un bâtiment doit toucher une route pour être posé.")
+	_option(p, "arbre", "Débloquer les bâtiments avec l'arbre de progression", "Sinon, tout le catalogue est ouvert dès le départ.")
+
+	_titre_section(p, "Ville et habitants", "habitants")
+	_option(p, "reseaux_obligatoires", "Courant, eau et égouts obligatoires", "Sinon, tout est desservi d'office.")
+	_option(p, "dechets", "Poubelles à ramasser", "Collecte, décharges et incinérateurs.")
+	_option(p, "catastrophes", "Catastrophes (incendies, tempêtes, épidémies)", "Au hasard, de temps en temps.")
+
+	var adv := Button.new()
+	adv.text = "Réglages avancés…"
+	adv.icon = Icones.get_icon("admin", 18)
+	adv.tooltip_text = "Tous les réglages : impôts, salaires, temps, ressources, pollution, immobilier… (aussi en partie avec F10)"
+	adv.pressed.connect(func() -> void: open_settings(_ui))
+	p.add_child(adv)
+	_settings_label = _panel_label("", 12, 0.65)
+	p.add_child(_settings_label)
+	p.add_child(_panel_label("Tout reste modifiable en partie : F10 (Admin).", 12, 0.65))
+	if r != null:
+		_remplir_reglages()
+
+
+## Une case à cocher d'un thème (clé de OPTIONS_SIMPLES).
+func _option(parent: Control, cle: String, texte: String, aide: String) -> void:
+	var c := CheckBox.new()
+	c.text = texte
+	c.tooltip_text = aide
+	c.focus_mode = Control.FOCUS_NONE
+	c.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	c.toggled.connect(func(on: bool) -> void:
+		if _remplissage:
+			return
+		regler_option(cle, on))
+	parent.add_child(c)
+	_options[cle] = c
+
+
+## Lit une case simple dans les réglages de la prochaine partie.
+static func lire_option(r: ReglagesPartie, cle: String) -> bool:
+	match cle:
+		"chantiers":
+			return not r.construction_instantanee
+		"arbre":
+			return r.deblocage == "arbre"
+	return bool(r.get(cle))
+
+
+func regler_option(cle: String, on: bool) -> void:
+	var r := ReglagesPartie.prochaine
+	match cle:
+		"chantiers":
+			r.construction_instantanee = not on
+		"arbre":
+			r.deblocage = "arbre" if on else "tout"
+		_:
+			r.set(cle, on)
+	if _options.has(cle):
+		(_options[cle] as CheckBox).set_pressed_no_signal(on)
+	_reglages_changes()
+
+
+func choisir_difficulte(id: String) -> void:
+	var r := ReglagesPartie.prochaine
+	# Le préréglage ne touche ni l'époque ni le tutoriel.
+	var an := r.annee_depart
+	var ry := r.rythme_histoire
+	var tu := r.tutoriel
+	r.apply_preset(id)
+	r.annee_depart = an
+	r.rythme_histoire = ry
+	r.tutoriel = tu
+	_remplir_reglages()
+	_reglages_changes()
+
+
+func _changer_epoque() -> void:
+	if _remplissage:
+		return
+	var r := ReglagesPartie.prochaine
+	var i := _epoque_opt.selected
+	var annee := int(EPOQUES[i][0]) if i >= 0 else 0
+	_epoque_autre = annee < 0
+	if annee < 0:
+		annee = int(_annee_spin.value)
+	r.annee_depart = annee
+	r.rythme_histoire = float(Epoques.RYTHMES[maxi(0, _rythme_opt.selected)])
+	_remplir_reglages()
+	_reglages_changes()
+
+
+## Remet les contrôles des réglages à jour (après un préréglage ou les réglages avancés).
+func _remplir_reglages() -> void:
+	var r := ReglagesPartie.prochaine
+	if r == null or _argent_opt == null:
+		return
+	_remplissage = true
+	var nom := r.preset_name()
+	for id in _preset_btns:
+		(_preset_btns[id] as Button).set_pressed_no_signal(String(ReglagesPartie.PRESETS[id].nom) == nom)
+	var cur := ""
+	for id in DIFFICULTES:
+		if String(ReglagesPartie.PRESETS[id].nom) == nom:
+			cur = id
+	_preset_info.text = String(DIFFICULTES[cur]) if cur != "" else "Personnalisé : tes propres réglages."
+	_argent_opt.clear()
+	var trouve := -1
+	for i in ARGENTS.size():
+		_argent_opt.add_item(BuildingSystem.format_short(ARGENTS[i]))
+		if ARGENTS[i] == r.argent_depart:
+			trouve = i
+	if trouve < 0:
+		_argent_opt.add_item(BuildingSystem.format_short(r.argent_depart))
+		trouve = ARGENTS.size()
+	_argent_opt.select(trouve)
+	_argent_opt.disabled = r.argent_illimite
+	for cle in _options:
+		(_options[cle] as CheckBox).set_pressed_no_signal(lire_option(r, cle))
+	var e := 0
+	if r.annee_depart > 0:
+		e = EPOQUES.size() - 1
+		if not _epoque_autre:
+			for i in EPOQUES.size():
+				if int(EPOQUES[i][0]) == r.annee_depart:
+					e = i
+		_annee_spin.value = r.annee_depart
+	_epoque_opt.select(e)
+	_epoque_ligne.visible = r.annee_depart > 0
+	_annee_spin.visible = int(EPOQUES[e][0]) < 0
+	_rythme_opt.select(AdminPanel._indice_rythme(r.rythme_histoire))
+	_epoque_info.text = _texte_epoque(r)
+	_remplissage = false
+	_update_settings_label()
+
+
+func _texte_epoque(r: ReglagesPartie) -> String:
+	if r.annee_depart <= 0:
+		return "Époque actuelle : tout est disponible d'office."
+	var nxt: Array[String] = []
+	for inv in Epoques.prochaines(r.annee_depart, 3):
+		nxt.append("%d %s" % [int(inv.annee), String(inv.nom).to_lower()])
+	return ("Bâtiments, véhicules, voies, réseaux et matériaux de l'Atelier suivent l'année. "
+		+ "À venir : %s." % (", ".join(nxt) if not nxt.is_empty() else "le futur reste à écrire"))
+
+
+func _reglages_changes() -> void:
+	if not _remplissage:
+		_remplir_reglages()
+	if etape == ETAPES.size() - 1:
+		_maj_resume()
+
+
+func _page_tutoriel(p: VBoxContainer) -> void:
+	var g := ButtonGroup.new()
+	_tuto_oui = _carte_choix(p, "Oui, guide-moi", "Une étape à la fois en haut à gauche : fonder le village, tracer une route, zoner, courant et eau… Conseillé pour une première partie.", g, "aide")
+	_tuto_non = _carte_choix(p, "Non merci, je connais", "Tu commences directement. Le tutoriel se rallume à tout moment (F10 → Aide).", g, "play")
+	_tuto_oui.toggled.connect(func(on: bool) -> void:
+		if on:
+			choisir_tutoriel(true))
+	_tuto_non.toggled.connect(func(on: bool) -> void:
+		if on:
+			choisir_tutoriel(false))
+	_objectifs_check = CheckBox.new()
+	_objectifs_check.text = "Objectifs à l'écran (rang de la ville, missions)"
+	_objectifs_check.focus_mode = Control.FOCUS_NONE
+	_objectifs_check.toggled.connect(func(on: bool) -> void:
+		ReglagesPartie.prochaine.objectifs_ecran = on)
+	p.add_child(_objectifs_check)
+	_tuto_note = _panel_label("", 13, 0.75)
+	p.add_child(_tuto_note)
+
+
+func choisir_tutoriel(on: bool) -> void:
+	ReglagesPartie.prochaine.tutoriel = on
+	_maj_tutoriel()
+
+
+func _maj_tutoriel() -> void:
+	var r := ReglagesPartie.prochaine
+	var amis := mode_carte == GameStart.Mode.ENTRE_AMIS
+	_tuto_oui.disabled = amis
+	_tuto_oui.set_pressed_no_signal(r.tutoriel and not amis)
+	_tuto_non.set_pressed_no_signal(not r.tutoriel or amis)
+	_objectifs_check.set_pressed_no_signal(r.objectifs_ecran)
+	_tuto_note.text = "Le tutoriel se joue en solo : sur une carte entre amis, chacun avance à son rythme." if amis else ""
+	_tuto_note.visible = amis
+
+
+func _page_resume(p: VBoxContainer) -> void:
+	_resume_box = GridContainer.new()
+	_resume_box.columns = 3
+	_resume_box.add_theme_constant_override("h_separation", 10)
+	_resume_box.add_theme_constant_override("v_separation", 8)
+	p.add_child(_resume_box)
+	_resume_note = _panel_label("", 13, 0.8)
+	p.add_child(_resume_note)
+
+
+## Lignes du résumé : [nom, valeur, étape à modifier].
+func lignes_resume() -> Array:
+	var r := ReglagesPartie.prochaine
+	var lieu := sel_name if sel_name != "" else _format_lat_lon(sel_lat, sel_lon)
+	var types := ["Seul (bac à sable)", "Entre amis, sur ce PC", "Carte mondiale"]
+	var argent := "Illimité" if r.argent_illimite else BuildingSystem.format_short(r.argent_depart)
+	var epoque := "Aujourd'hui" if r.annee_depart <= 0 else "%d" % r.annee_depart
+	if r.annee_depart > 0 and r.rythme_histoire > 1.0:
+		epoque += " · histoire " + Epoques.nom_rythme(r.rythme_histoire)
+	var tuto := "Oui" if r.tutoriel and mode_carte != GameStart.Mode.ENTRE_AMIS else "Non"
+	return [["Lieu", lieu, 0], ["Type de carte", types[mode_carte], 1], ["Difficulté", r.preset_name(), 2],
+		["Argent de départ", argent, 2], ["Époque", epoque, 2],
+		["Bâtiments", "Arbre de progression" if r.deblocage == "arbre" else "Tout débloqué", 2], ["Tutoriel", tuto, 3]]
+
+
+func _maj_resume() -> void:
+	if _resume_box == null:
+		return
+	for c in _resume_box.get_children():
+		c.queue_free()
+	for l in lignes_resume():
+		var n := _panel_label(String(l[0]), 14, 0.7)
+		n.autowrap_mode = TextServer.AUTOWRAP_OFF
+		_resume_box.add_child(n)
+		var v := _panel_label(String(l[1]), 15)
+		v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_resume_box.add_child(v)
+		var b := Button.new()
+		b.text = "Modifier"
+		b.flat = true
+		b.focus_mode = Control.FOCUS_NONE
+		var e := int(l[2])
+		b.pressed.connect(func() -> void: aller_a(e))
+		_resume_box.add_child(b)
+	if mode_carte == GameStart.Mode.ENTRE_AMIS:
+		_resume_note.text = "Le serveur de ta carte démarre sur ce PC, puis tu y entres. Tes amis la rejoignent depuis le menu principal → Entre amis, avec ton adresse et le code d'invitation (F3 en partie)."
+	else:
+		_resume_note.text = "La partie commence en pause, le temps de regarder ton lieu : lance le temps avec ▶ en haut de l'écran (ou T)."
 
 
 ## Résultats de la recherche : des coordonnées, ou les villes de l'index.

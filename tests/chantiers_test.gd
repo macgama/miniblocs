@@ -116,7 +116,7 @@ func _run() -> void:
 
 	var hjeu := float(bs.buildings[bid].hr) / Chantiers.rythme(vie.population)
 	var jours := (vie.fin_prevue(bid) - amb.unix_time) / 86400.0
-	_check(jours > 1.5 and jours < 40.0, "maison finie en %.0f jours de jeu (≈ 3 jours ouvrés à ×3, 1 an de vie = 1 mois)" % jours)
+	_check(jours > 1.5 and jours < 40.0, "maison finie en %.0f jours de jeu (≈ 2 semaines à ×3, 1 an de vie = 1 mois)" % jours)
 	# La nuit et le week-end, rien n'avance.
 	amb.unix_time = _lundi(off) + 4.0 * 86400.0 + 10.0 * 3600.0 # vendredi 17 h 30
 	vie._t_prev = amb.unix_time

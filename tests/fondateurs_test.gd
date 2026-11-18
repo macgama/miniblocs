@@ -157,7 +157,7 @@ func _run() -> void:
 	vie._update_chantiers()
 	_check(vie.progress(premiere) > 0.0, "la première maison avance (%.1f %%)" % (vie.progress(premiere) * 100.0))
 	_check(vie.progress(derniere) == 0.0 and bool(bs.buildings[derniere].get("sans_ouvriers", false)), "la dernière n'a pas bougé : en attente d'ouvriers")
-	_check(String((bs.node_of(derniere).get_node("PanneauChantier") as Label3D).text).contains("ouvriers"), "le panneau du chantier le dit")
+	_check(vie.texte_chantier(derniere).contains("ouvriers") and vie.statut_de(derniere) == "sans_ouvriers", "le détail du chantier le dit (pastille orange)")
 
 	print("Doser : pause et « En premier » :")
 	fd.basculer_pause(Fondateurs.cle_batiment(premiere))

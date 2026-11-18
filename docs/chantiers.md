@@ -18,8 +18,8 @@ et des arbres, et on voit les travaux avancer.
 - **Rythme** = vitesse de la vie (`Population.life_speed`) : avec 1 an de vie =
   1 mois de jeu (défaut), une maison de 9 mois demande ≈ 3 semaines de jeu.
 - **Paiement au fil des travaux** : rien n'est payé à la pose, le prix part de la
-  caisse au fur et à mesure. Caisse vide : le chantier s'arrête (le panneau le
-  dit) et repart quand il y a de l'argent. Démolir un chantier rend la moitié
+  caisse au fur et à mesure. Caisse vide : le chantier s'arrête (pastille rouge
+  sur son marqueur) et repart quand il y a de l'argent. Démolir un chantier rend la moitié
   de ce qui a été payé.
 - **Construction instantanée** (Admin, F10, section Construction) : pas de
   chantier, tout apparaît d'un coup (bac à sable). Les chantiers en cours se
@@ -31,8 +31,18 @@ et des arbres, et on voit les travaux avancer.
 pelleteuse et camion-benne), fondations (dalle qui monte, camion-toupie), gros
 œuvre (étage par étage derrière les échafaudages, grue au-delà de 12 m), toit,
 finitions (échafaudages démontés, camionnette). Palissade jusqu'à la fin.
-Panneau de chantier au-dessus de l'entrée (de près) : nom, étape, pourcentage,
-date de fin prévue.
+Marqueur de chantier (`scripts/chantiers/marqueurs_chantiers.gd`, à la place de
+l'ancien texte flottant) : un cône de chantier entouré d'un anneau jaune qui se
+remplit avec l'avancement, et une petite pastille quand le chantier n'avance
+pas normalement : lune (équipe au repos), pièce rouge (caisse vide), casque
+orange (pas d'ouvriers ou équipe incomplète), ‖ (pause). Taille à peu près
+constante à l'écran, effacé au-delà de 650 m, absent des photos (F8).
+Survol : carte avec le nom, l'étape, la barre d'avancement, l'état, les
+matériaux et la date de fin. Clic : la carte reste ouverte (Échap ou clic
+ailleurs pour la fermer). Agrandissements et rénovations ont le même marqueur
+(immeuble + flèche, rouleau de peinture) ; leur clic ouvre la fiche du
+bâtiment. Option : Options → Jeu → « Marqueurs des chantiers ».
+Test : `tests/marqueurs_chantiers_test.gd`.
 
 Ouvriers (figurines en gilet orange, `Figurine.creer(…, "ouvrier")`) : seulement
 près de la caméra (240 m) et pendant les heures de travail ; à la pioche dans la
@@ -88,7 +98,7 @@ chantier (« Ventes aux chantiers » dans ses comptes). Ce qui manque est
 importé, déjà compris dans le prix. Le prix d'un chantier ne change donc pas,
 mais une ville qui produit ses matériaux fait travailler ses entreprises.
 
-Le panneau du chantier affiche les principaux matériaux. Code :
+La carte du marqueur (survol) affiche les principaux matériaux. Code :
 `scripts/chantiers/materiaux_chantiers.gd` ; `BatimentsVie.materiaux_de(bid)`
 et `SuiviChantiers.materiaux_de(cle)` donnent ce qui a été reçu (local ou
 importé).

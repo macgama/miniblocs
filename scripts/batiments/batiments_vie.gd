@@ -27,8 +27,9 @@ const VUE_ABORDS := 260.0
 const VUE_FUMEE := 380.0
 ## Ouvriers et engins animés seulement près de la caméra.
 const VUE_OUVRIERS := 240.0
-## Panneau de chantier (texte) visible de près.
-const VUE_PANNEAU := 90.0
+## Marqueur de chantier (icône et anneau d'avancement) visible jusqu'à cette distance
+## (scripts/chantiers/marqueurs_chantiers.gd) ; le détail est dans l'info-bulle et la fiche.
+const VUE_PANNEAU := 650.0
 
 ## Vitesse d'usure d'un bâtiment (bid) -> multiplicateur (Nuisances : quartiers dévalués).
 var extra_usure: Callable
@@ -36,7 +37,7 @@ var buildings: BuildingSystem
 var ambiance: DayNight
 var population: Population
 
-## bid -> {"mi", "echaf", "grue", "fleche", "palissade", "terre", "dalle", "engins", "ouvriers", "panneau", "H", "bb", "mat", "mat_echaf", "etape"}
+## bid -> {"mi", "echaf", "grue", "fleche", "palissade", "terre", "dalle", "engins", "ouvriers", "texte", "H", "bb", "mat", "mat_echaf", "etape"}
 var _chantiers := {}
 ## bid -> {"abords": nœud, "fumee": [nœuds], "usure": float, "abandon": float, "vide": float}
 var _etat := {}
@@ -47,13 +48,18 @@ var _clock := 0.0
 var _t_prev := -1.0
 ## L'équipe est-elle au travail en ce moment (heure locale) ?
 var au_travail := false
+## Petits marqueurs au-dessus des chantiers (icône, anneau d'avancement, état).
+var marqueurs: MarqueursChantiers
 
+## Dernière vie des bâtiments installée (fiche du bâtiment).
+static var instance: BatimentsVie
 static var _bounds_cache := {}
 static var _fumee_mesh: ArrayMesh
 static var _fumee_mat: ShaderMaterial
 
 
 func setup(b: BuildingSystem, a: DayNight, p: Population) -> void:
+	instance = self
 	buildings = b
 	ambiance = a
 	population = p
@@ -62,6 +68,10 @@ func setup(b: BuildingSystem, a: DayNight, p: Population) -> void:
 	buildings.removed.connect(_on_removed)
 	for bid in buildings.buildings:
 		_on_added(bid)
+	if marqueurs == null:
+		marqueurs = MarqueursChantiers.new()
+		marqueurs.vie = self
+		add_child(marqueurs)
 
 
 func now() -> float:
@@ -263,19 +273,8 @@ func _start_chantier(bid: int) -> void:
 	cam.position = Vector3(minf(w * 0.25, 4.0), 0, avant)
 	cam.rotation.y = PI / 2.0
 	engins.add_child(cam)
-	var panneau := Label3D.new()
-	panneau.name = "PanneauChantier"
-	panneau.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	panneau.pixel_size = 0.018
-	panneau.font_size = 56
-	panneau.outline_size = 14
-	panneau.outline_modulate = Color(0.08, 0.08, 0.1, 0.9)
-	panneau.modulate = Color("fff3c4")
-	panneau.position = Vector3(0, 4.2, -d / 2.0 - 0.5)
-	panneau.visibility_range_end = VUE_PANNEAU
-	mi.add_child(panneau)
 	var c := {"mi": mi, "echaf": echaf, "palissade": pal, "grue": null, "fleche": null, "H": bb.end.y, "bb": bb,
-		"mat": mat, "mat_echaf": mat_echaf, "terre": terre, "dalle": dalle, "engins": engins, "panneau": panneau,
+		"mat": mat, "mat_echaf": mat_echaf, "terre": terre, "dalle": dalle, "engins": engins,
 		"ouvriers": [], "etape": "", "texte": "", "w": w, "d": d}
 	if bb.end.y > 12.0:
 		var g := _grue(bb)
@@ -456,26 +455,87 @@ func _show_etape(bid: int) -> void:
 	if key != String(c.etape):
 		c.etape = key
 		_vider_ouvriers(c)
-	var txt := "%s\n%s · %d %%\n" % [String(BuildingCatalog.get_type(String(b.t)).get("name", "Chantier")), String(e[2]), floori(float(b.av) * 100.0)]
-	if b.has("matx") and not (b.matx as Dictionary).is_empty():
-		txt += "Matériaux : %s\n" % MateriauxChantiers.texte(b.matx, 3)
-	var eq: Array = Fondateurs.instance.equipe_de(Fondateurs.cle_batiment(bid)) \
-		if Fondateurs.instance != null and Fondateurs.instance.regle_active() else []
+	c.texte = texte_chantier(bid)
+
+
+## Pourquoi le chantier n'avance pas (ou "" s'il avance) : pause, argent, sans_ouvriers,
+## equipe (équipe incomplète), repos (hors des heures de travail).
+func statut_de(bid: int) -> String:
+	var b: Dictionary = buildings.buildings.get(bid, {})
+	if b.is_empty():
+		return ""
 	if b.get("pause", false):
-		txt += "En pause (Maj+H : fondateurs et chantiers)"
-	elif b.get("attente", false):
-		txt += "Arrêté : plus d'argent dans la caisse"
-	elif b.get("sans_ouvriers", false):
-		txt += "En attente d'ouvriers (Maj+H)"
-	elif not eq.is_empty() and int(eq[0]) < int(eq[1]):
-		txt += "%d ouvriers sur %d · fin vers le %s" % [int(eq[0]), int(eq[1]), Chantiers.date_texte(fin_prevue(bid), offset_h())]
-	elif not au_travail:
-		txt += "Équipe au repos · fin vers le %s" % Chantiers.date_texte(fin_prevue(bid), offset_h())
-	else:
-		txt += "Fin vers le %s" % Chantiers.date_texte(fin_prevue(bid), offset_h())
-	if txt != String(c.texte):
-		c.texte = txt
-		(c.panneau as Label3D).text = txt
+		return "pause"
+	if b.get("attente", false):
+		return "argent"
+	if b.get("sans_ouvriers", false):
+		return "sans_ouvriers"
+	var eq := _equipe(bid)
+	if not eq.is_empty() and int(eq[0]) < int(eq[1]):
+		return "equipe"
+	if not au_travail:
+		return "repos"
+	return ""
+
+
+func _equipe(bid: int) -> Array:
+	return Fondateurs.instance.equipe_de(Fondateurs.cle_batiment(bid)) \
+		if Fondateurs.instance != null and Fondateurs.instance.regle_active() else []
+
+
+## Ce qu'on sait d'un chantier, pour l'info-bulle du marqueur et la fiche du bâtiment :
+## {nom, etape, av, statut, etat (phrase), materiaux, fin} ; vide si pas de chantier.
+func detail_chantier(bid: int) -> Dictionary:
+	if not _chantiers.has(bid) or not buildings.buildings.has(bid):
+		return {}
+	var b: Dictionary = buildings.buildings[bid]
+	var e := Chantiers.etape(Chantiers.etapes_batiment(String(b.t)), float(b.get("av", 0.0)))
+	var fin := Chantiers.date_texte(fin_prevue(bid), offset_h())
+	var st := statut_de(bid)
+	var etat := "Équipe au travail"
+	match st:
+		"pause": etat = "En pause (Maj+H : fondateurs et chantiers)"
+		"argent": etat = "Arrêté : plus d'argent dans la caisse"
+		"sans_ouvriers": etat = "En attente d'ouvriers (Maj+H)"
+		"equipe":
+			var eq := _equipe(bid)
+			etat = "%d ouvriers sur %d" % [int(eq[0]), int(eq[1])]
+		"repos": etat = "Équipe au repos"
+	var mat := ""
+	if b.has("matx") and not (b.matx as Dictionary).is_empty():
+		mat = MateriauxChantiers.texte(b.matx, 3)
+	return {"nom": String(BuildingCatalog.get_type(String(b.t)).get("name", "Chantier")), "etape": String(e[2]) if e.size() > 2 else "",
+		"av": progress(bid), "statut": st, "etat": etat, "materiaux": mat,
+		"fin": "" if st == "argent" or st == "pause" or st == "sans_ouvriers" else fin}
+
+
+## Le détail du chantier en quelques lignes (info-bulle du marqueur).
+func texte_chantier(bid: int) -> String:
+	var d := detail_chantier(bid)
+	if d.is_empty():
+		return ""
+	var txt := "%s\n%s · %d %%\n" % [d.nom, d.etape, floori(float(d.av) * 100.0)]
+	if String(d.materiaux) != "":
+		txt += "Matériaux : %s\n" % d.materiaux
+	txt += String(d.etat)
+	if String(d.fin) != "":
+		txt += " · fin vers le %s" % d.fin
+	return txt
+
+
+## Les chantiers de bâtiments en cours (bid).
+func chantiers_en_cours() -> Array:
+	return _chantiers.keys()
+
+
+## Point au-dessus du chantier où poser son marqueur (coordonnées du monde).
+func haut_du_chantier(bid: int) -> Vector3:
+	var c: Dictionary = _chantiers.get(bid, {})
+	if c.is_empty() or not is_instance_valid(c.mi) or not (c.mi as Node3D).is_inside_tree():
+		return Vector3.INF
+	var mi: MeshInstance3D = c.mi
+	var bb: AABB = c.bb
+	return mi.global_transform * Vector3(bb.get_center().x, 0.0, bb.get_center().z) + Vector3(0, float(c.H) + 3.0, 0)
 
 
 ## Ouvriers (près de la caméra, pendant les heures de travail) et engins qui bougent.
@@ -600,7 +660,7 @@ func _finish_chantier(bid: int) -> void:
 	# L'usure sera réappliquée au prochain passage.
 	if _etat.has(bid):
 		_etat[bid].usure = -1.0
-	for key in ["echaf", "palissade", "grue", "terre", "dalle", "engins", "panneau"]:
+	for key in ["echaf", "palissade", "grue", "terre", "dalle", "engins"]:
 		if c[key] != null:
 			(c[key] as Node).queue_free()
 	_vider_ouvriers(c)

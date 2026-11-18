@@ -352,6 +352,8 @@ func _montrer_bulle(id: int, pos := Vector2.ZERO) -> void:
 	var inc: Dictionary = urg.incidents[id]
 	var det := urg.detail(inc)
 	var aide := "Clic : garder ouvert · U : panneau Urgences" if id != epingle else "Échap ou clic ailleurs : fermer"
+	if etat_de(inc) == 0 and id != epingle:
+		aide = "Clic : envoyer les secours · U : panneau Urgences"
 	var cle := "%s|%s|%s|%d" % [det.titre, det.texte, aide, etat_de(inc)]
 	if _bulle.get_meta("cle", "") != cle:
 		_bulle.set_meta("cle", cle)
@@ -392,5 +394,10 @@ func _input(event: InputEvent) -> void:
 	if id == 0:
 		epingle = 0
 		return
-	epingle = 0 if epingle == id else id
+	# Personne n'est parti : le clic envoie les secours (ou met l'appel en tête de file).
+	if urg != null and urg.incidents.has(id) and etat_de(urg.incidents[id]) == 0:
+		urg.envoyer(id)
+		epingle = id
+	else:
+		epingle = 0 if epingle == id else id
 	get_viewport().set_input_as_handled()

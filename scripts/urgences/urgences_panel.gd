@@ -186,6 +186,12 @@ func _view_calls() -> void:
 	r.add_child(_button("Appels au hasard", func() -> void:
 		urg.random_calls = not urg.random_calls
 		refresh(), 1 if urg.random_calls else 0))
+	var envoi := _row()
+	envoi.add_child(_button("Envoi à mon clic" if urg.envoi_manuel else "Envoi automatique", func() -> void:
+		urg.envoi_manuel = not urg.envoi_manuel
+		refresh(), 1 if urg.envoi_manuel else 0))
+	_text("À ton clic : rien ne part tant que tu ne cliques pas sur l'icône de l'incident." if urg.envoi_manuel
+		else "Automatique : les secours partent seuls, le plus ancien appel d'abord. Clique sur une icône rouge pour la faire passer devant.", true)
 	var snd := _row()
 	var tf := urg.transport.traffic if urg.transport != null else null
 	if tf != null:
@@ -221,8 +227,14 @@ func _incident_row(inc: Dictionary, live: bool) -> void:
 		urg.state_label(inc), " · ".join(needs), ("\n" + " · ".join(times)) if not times.is_empty() else ""]
 	b.icon = _swatch(Color("ff5d5d") if live else Color("6c757d"))
 	var pos: Vector3 = inc.pos
-	b.pressed.connect(func() -> void: focus_requested.emit(pos))
-	b.tooltip_text = "Clique pour y aller."
+	var iid := int(inc.id)
+	var attente := live and String(inc.get("state", "")) == "attente"
+	b.pressed.connect(func() -> void:
+		focus_requested.emit(pos)
+		if attente:
+			urg.envoyer(iid)
+			refresh())
+	b.tooltip_text = "Clique pour y aller et envoyer les secours." if attente else "Clique pour y aller."
 	_body.add_child(b)
 
 

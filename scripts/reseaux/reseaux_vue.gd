@@ -25,6 +25,9 @@ var _lignes_calque: MeshInstance3D
 var _incidents_mi: MeshInstance3D
 var _incidents_cle := ""
 var _acc := 0.0
+## Parties animées des pannes : id -> Node3D (gyrophare, ouvriers, geyser, étincelles).
+var _vivants := {}
+var _temps := 0.0
 
 
 func _ready() -> void:
@@ -66,6 +69,8 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	_temps += delta
+	_animer_incidents()
 	_acc += delta
 	if _acc < 1.0 and not calques_sales:
 		return
@@ -86,6 +91,7 @@ func _maj_incidents() -> void:
 	if cle == _incidents_cle:
 		return
 	_incidents_cle = cle
+	_maj_vivants(lst)
 	if lst.is_empty():
 		_incidents_mi.mesh = null
 		return
@@ -106,6 +112,116 @@ func _maj_incidents() -> void:
 			_boite(st, p + Vector3(-2 + k * 2.0, 0.4, 3.0), Vector3(0.45, 0.8, 0.45), b, Color("ff6b35"))
 	st.generate_normals()
 	_incidents_mi.mesh = st.commit()
+
+
+## Équipe au travail sur chaque panne : gyrophare orange qui tourne, deux
+## ouvriers qui creusent, geyser d'eau (fuite) ou étincelles (transformateur).
+func _maj_vivants(lst: Array) -> void:
+	var la := {}
+	for inc in lst:
+		var id := int(inc.id)
+		la[id] = true
+		if _vivants.has(id):
+			continue
+		var p: Vector3 = inc.p
+		if reseaux.world != null:
+			p.y = reseaux._hauteur(p)
+		var n := Node3D.new()
+		n.position = p
+		add_child(n)
+		var feu := MeshInstance3D.new()
+		var bm := BoxMesh.new()
+		bm.size = Vector3(0.5, 0.3, 0.5)
+		feu.mesh = bm
+		var m := StandardMaterial3D.new()
+		m.albedo_color = Color("ff9f1c")
+		m.emission_enabled = true
+		m.emission = Color("ff9f1c")
+		m.emission_energy_multiplier = 3.0
+		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		feu.material_override = m
+		feu.position = Vector3(4, 2.4, -0.8)
+		feu.name = "Gyrophare"
+		n.add_child(feu)
+		for k in 2:
+			var f := Figurine.creer(id * 7 + k, "ouvrier")
+			f.regler("creuser" if k == 0 else "surveiller")
+			f.position = Vector3(-1.0 + k * 2.2, 0, 0.8 - k * 0.6)
+			f.rotation.y = PI * (0.1 + k)
+			n.add_child(f)
+		match String(inc.kind):
+			"fuite":
+				n.add_child(_geyser())
+			"transfo":
+				n.add_child(_etincelles())
+		_vivants[id] = n
+	for id in _vivants.keys():
+		if not la.has(id):
+			(_vivants[id] as Node).queue_free()
+			_vivants.erase(id)
+
+
+func _animer_incidents() -> void:
+	if _vivants.is_empty():
+		return
+	var cam := get_viewport().get_camera_3d() if is_inside_tree() else null
+	var on := fmod(_temps, 0.8) < 0.4
+	for id in _vivants:
+		var n: Node3D = _vivants[id]
+		var proche := cam == null or cam.global_position.distance_to(n.global_position) < 500.0
+		n.visible = proche
+		if not proche:
+			continue
+		(n.get_node("Gyrophare") as Node3D).visible = on
+		for c in n.get_children():
+			if c is Figurine:
+				(c as Figurine).animer(_temps)
+
+
+static func _geyser() -> GPUParticles3D:
+	var g := GPUParticles3D.new()
+	g.name = "Geyser"
+	g.amount = 70
+	g.lifetime = 1.6
+	g.visibility_aabb = AABB(Vector3(-8, -1, -8), Vector3(16, 14, 16))
+	var pm := ParticleProcessMaterial.new()
+	pm.direction = Vector3.UP
+	pm.spread = 9.0
+	pm.initial_velocity_min = 6.0
+	pm.initial_velocity_max = 8.5
+	pm.gravity = Vector3(0, -9.8, 0)
+	pm.scale_min = 0.3
+	pm.scale_max = 0.7
+	g.process_material = pm
+	var q := QuadMesh.new()
+	q.size = Vector2(0.6, 0.6)
+	q.material = EvVisuels._particle_material(Color(0.75, 0.9, 1.0, 0.85), false)
+	g.draw_pass_1 = q
+	return g
+
+
+static func _etincelles() -> GPUParticles3D:
+	var g := GPUParticles3D.new()
+	g.name = "Etincelles"
+	g.amount = 30
+	g.lifetime = 0.7
+	g.explosiveness = 0.6
+	g.position = Vector3(0, 2.5, 0)
+	g.visibility_aabb = AABB(Vector3(-6, -3, -6), Vector3(12, 10, 12))
+	var pm := ParticleProcessMaterial.new()
+	pm.direction = Vector3.UP
+	pm.spread = 70.0
+	pm.initial_velocity_min = 2.0
+	pm.initial_velocity_max = 5.0
+	pm.gravity = Vector3(0, -9.8, 0)
+	pm.scale_min = 0.1
+	pm.scale_max = 0.2
+	g.process_material = pm
+	var q := QuadMesh.new()
+	q.size = Vector2(0.4, 0.4)
+	q.material = EvVisuels._particle_material(Color(1.0, 0.85, 0.3), true)
+	g.draw_pass_1 = q
+	return g
 
 
 func set_calque(res: String, on: bool) -> void:

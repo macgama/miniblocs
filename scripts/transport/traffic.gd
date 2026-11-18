@@ -974,6 +974,11 @@ func _new_route(v: Dictionary) -> bool:
 func _advance(v: Dictionary, delta: float) -> bool:
 	if int(v.mode) == TransportTypes.Mode.AIR:
 		return _advance_air(v, delta)
+	# Véhicule de secours qui sort encore de sa caserne (animation de la sortie) : il attend.
+	if float(v.get("hold", 0.0)) > 0.0:
+		v.hold = float(v.hold) - delta
+		v.speed = 0.0
+		return true
 	if v.get("parked", false):
 		v.dwell = float(v.dwell) - delta
 		if float(v.dwell) <= 0.0:
@@ -1485,6 +1490,9 @@ func _make_body(v: Dictionary) -> void:
 	var t := VehicleCatalog.get_type(model)
 	var paint := rng.randi() % VehicleCatalog.paint_count(model)
 	mi.mesh = _model_mesh(model, paint)
+	# Chasse-neige : gerbe de neige rejetée sur le bas-côté par la lame.
+	if String(t.get("role", "")) == "chasse_neige" or model == "chasse_neige":
+		mi.add_child(_gerbe_neige(float(t.L), float(t.W)))
 	v.max_speed = float(t.kmh) / 3.6
 	v.half = float(t.L) / 2.0
 	v.rear = v.half
@@ -1505,6 +1513,31 @@ func _make_body(v: Dictionary) -> void:
 		w.visible = false
 		add_child(w)
 		(v.wagons as Array).append(w)
+
+
+static func _gerbe_neige(L: float, W: float) -> GPUParticles3D:
+	var g := GPUParticles3D.new()
+	g.name = "GerbeNeige"
+	g.amount = 60
+	g.lifetime = 0.9
+	g.local_coords = false
+	g.position = Vector3(W * 0.5, 0.4, -L * 0.5 - 0.6)
+	g.visibility_aabb = AABB(Vector3(-10, -2, -10), Vector3(20, 10, 20))
+	var pm := ParticleProcessMaterial.new()
+	# Vers la droite et un peu vers le haut (le repère du véhicule regarde vers −Z).
+	pm.direction = Vector3(1.0, 0.7, -0.2)
+	pm.spread = 22.0
+	pm.initial_velocity_min = 3.0
+	pm.initial_velocity_max = 6.0
+	pm.gravity = Vector3(0, -9.8, 0)
+	pm.scale_min = 0.25
+	pm.scale_max = 0.55
+	g.process_material = pm
+	var q := QuadMesh.new()
+	q.size = Vector2(0.5, 0.5)
+	q.material = EvVisuels._particle_material(Color(0.97, 0.98, 1.0, 0.95), false)
+	g.draw_pass_1 = q
+	return g
 
 
 func _model_mesh(id: String, paint: int) -> ArrayMesh:

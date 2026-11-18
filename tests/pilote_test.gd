@@ -39,6 +39,7 @@ func _run() -> void:
 	GameStart.chosen = true
 	GameStart.place_name = "Valfleuri, Savoie"
 	ReglagesPartie.prochaine = ReglagesPartie.preset("normal")
+	ReglagesPartie.prochaine.deblocage = "tout"  # (ce test ne porte pas sur l'arbre de progression)
 	ReglagesPartie.prochaine.fondateurs = 0
 	# Le pilote part de rien et trace lui-même sa première rue : pas de rue en T offerte (tests/rue_fondation_test.gd).
 	ReglagesPartie.prochaine.rue_fondation = false

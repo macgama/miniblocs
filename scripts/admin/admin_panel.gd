@@ -670,9 +670,10 @@ func _update_labels() -> void:
 	_argent.editable = editable and not _illimite.button_pressed
 	if _caisse:
 		_caisse.editable = editable and not _illimite.button_pressed
-	var t := "Points de progrès : %d au départ, +1 par record de population (50, 100, 250, 500, 1 000… habitants), +2 à +5 quand une ville monte de rang, +1 par mission réussie et par succès. Écoles, production de base et petits réseaux toujours ouverts. L'époque passe avant l'arbre." % ArbreProgression.POINTS_DEPART
+	var t := "Points gagnés en jouant, à dépenser dans l'arbre (Maj+F10)."
 	if not creation and reglages.deblocage == "arbre":
-		t += "\nPoints : %d disponibles sur %d gagnés." % [ArbreProgression.points_disponibles(reglages), ArbreProgression.points_gagnes(reglages)]
+		t = "Arbre (Maj+F10) : %d points disponibles sur %d gagnés." % [ArbreProgression.points_disponibles(reglages), ArbreProgression.points_gagnes(reglages)]
+	_paliers_l.tooltip_text = "%d points au départ, +1 par record de population, +2 à +5 quand une ville monte de rang, +1 par mission réussie et par succès. Écoles, production de base et petits réseaux toujours ouverts. L'époque passe avant l'arbre." % ArbreProgression.POINTS_DEPART
 	_paliers_l.text = t
 	_paliers_l.visible = reglages.deblocage == "arbre"
 	if _epoque_l:

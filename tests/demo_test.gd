@@ -52,7 +52,7 @@ func _run() -> void:
 	var titre := Demo.preparer()
 	_check(titre.contains("Démo guidée") and GameStart.chosen and GameStart.load_slot == "", "nouvelle partie préparée (%s)" % titre)
 	_check(is_equal_approx(GameStart.lat, float(Demo.LIEU.lat)) and GameStart.pays == String(Demo.LIEU.pays), "lieu de la démo")
-	_check(ReglagesPartie.prochaine != null and ReglagesPartie.prochaine.preset_name() == "Normal", "réglages Normal")
+	_check(ReglagesPartie.prochaine != null and ReglagesPartie.prochaine.argent_depart == int(ReglagesPartie.PRESETS.normal.argent_depart) and ReglagesPartie.prochaine.cout_construction == 1.0, "réglages Normal")
 	_check(Demo.demandee, "démo demandée")
 	ReglagesPartie.prochaine.fondateurs = 0
 	var scene: Node = load("res://scenes/terre.tscn").instantiate()

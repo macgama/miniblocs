@@ -182,6 +182,7 @@ func _run() -> void:
 	Succes.reinitialiser()
 	Creations.persist = false
 	ReglagesPartie.prochaine = ReglagesPartie.preset("normal")
+	ReglagesPartie.prochaine.deblocage = "tout"  # (ce test ne porte pas sur l'arbre de progression)
 	GameStart.mode = GameStart.Mode.BAC_A_SABLE
 	GameStart.load_slot = ""
 	var scene: Node = load("res://scenes/terre.tscn").instantiate()

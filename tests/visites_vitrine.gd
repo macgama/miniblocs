@@ -33,6 +33,7 @@ func _scene() -> Node:
 	GameStart.load_slot = ""
 	GameStart.place_name = "Valfleuri, Savoie"
 	ReglagesPartie.prochaine = ReglagesPartie.preset("normal")
+	ReglagesPartie.prochaine.deblocage = "tout"  # (ce test ne porte pas sur l'arbre de progression)
 	ReglagesPartie.prochaine.fondateurs = 0
 	ReglagesPartie.prochaine.tutoriel = false
 	var scene: Node = load("res://scenes/terre.tscn").instantiate()

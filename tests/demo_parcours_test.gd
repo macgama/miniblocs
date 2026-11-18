@@ -284,7 +284,7 @@ func _run() -> void:
 	amb = game.ambiance
 	t = game.tutoriel
 	await _attendre_relief(180_000 if proxy_hote != "" else 30_000)
-	_check(ReglagesPartie.actuel.preset_name() == "Normal" and not bs.unlimited_money, "réglages Normal (%s)" % BuildingSystem.format_money(bs.money))
+	_check(ReglagesPartie.actuel.argent_depart == int(ReglagesPartie.PRESETS.normal.argent_depart) and ReglagesPartie.actuel.cout_construction == 1.0 and not bs.unlimited_money, "réglages Normal (%s)" % BuildingSystem.format_money(bs.money))
 	_check(t.actif and t.est_demo(), "la démo guidée commence (%s)" % t.id_courant())
 	_check(GameStart.place_name.contains("Échallens"), "lieu : %s" % GameStart.place_name)
 	print("  vitesse du temps au départ : %s" % DayNight.SPEED_NAMES[amb.speed_index])

@@ -43,7 +43,8 @@ func _frames(n: int) -> void:
 func _run() -> void:
 	print("Réglages :")
 	var r := ReglagesPartie.preset("normal")
-	_check(r.argent_depart == 30_000_000 and r.cout_construction == 1.0 and r.deblocage == "tout", "préréglage Normal : 30 M€, prix ×1, tout débloqué")
+	_check(r.argent_depart == 30_000_000 and r.cout_construction == 1.0 and r.deblocage == "arbre", "préréglage Normal : 30 M€, prix ×1, arbre de progression")
+	_check(ReglagesPartie.preset("facile").deblocage == "tout" and ReglagesPartie.preset("libre").deblocage == "tout", "Facile et Bac à sable libre : tout débloqué")
 	_check(r.preset_name() == "Normal", "nom du préréglage reconnu")
 	r.cout_construction = 1.5
 	_check(r.preset_name() == "Personnalisé", "réglage changé : Personnalisé")

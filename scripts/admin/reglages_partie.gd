@@ -40,7 +40,7 @@ const PRESETS := {
 	"facile": {"nom": "Facile", "argent_depart": 100_000_000, "argent_illimite": false, "cout_construction": 0.5,
 		"acces_route": true, "impots": 1.5, "salaires": 1.0, "epuisement": false, "deblocage": "tout", "reseaux_obligatoires": true, "fondation": true, "territoire": true, "main_oeuvre": true, "recherche_parc": true},
 	"normal": {"nom": "Normal", "argent_depart": 30_000_000, "argent_illimite": false, "cout_construction": 1.0,
-		"acces_route": true, "impots": 1.0, "salaires": 1.0, "epuisement": true, "deblocage": "tout", "reseaux_obligatoires": true, "fondation": true, "territoire": true, "main_oeuvre": true, "recherche_parc": true},
+		"acces_route": true, "impots": 1.0, "salaires": 1.0, "epuisement": true, "deblocage": "arbre", "reseaux_obligatoires": true, "fondation": true, "territoire": true, "main_oeuvre": true, "recherche_parc": true},
 	"difficile": {"nom": "Difficile", "argent_depart": 5_000_000, "argent_illimite": false, "cout_construction": 2.0,
 		"acces_route": true, "impots": 0.75, "salaires": 1.25, "epuisement": true, "deblocage": "arbre", "reseaux_obligatoires": true, "fondation": true, "territoire": true, "main_oeuvre": true, "recherche_parc": true},
 	"libre": {"nom": "Bac à sable libre", "argent_depart": 20_000_000, "argent_illimite": true, "cout_construction": 1.0,
@@ -406,6 +406,9 @@ static func load_defaults() -> ReglagesPartie:
 			# Réglages par défaut enregistrés avant la recherche du parc : on la garde.
 			if not (data as Dictionary).has("recherche_parc"):
 				r.recherche_parc = true
+	# « -- --tout-debloque » (suite de tests, essais) : nouvelles parties sans arbre.
+	if OS.get_cmdline_user_args().has("--tout-debloque"):
+		r.deblocage = "tout"
 	r.createur = ""
 	r.record_habitants = 0
 	r.arbre = {}

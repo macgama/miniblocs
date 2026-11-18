@@ -38,6 +38,7 @@ func _sr_count(net: TransportNetwork) -> int:
 func _run() -> void:
 	Creations.persist = false
 	ReglagesPartie.actuel = ReglagesPartie.preset("normal")
+	ReglagesPartie.actuel.deblocage = "tout"  # (ce test ne porte pas sur l'arbre de progression)
 	var T := TransportTypes
 	print("Gabarits :")
 	_check(is_equal_approx(T.width_of("rue", {}), 9.0), "rue : 9 m")

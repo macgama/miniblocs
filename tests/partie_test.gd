@@ -184,6 +184,7 @@ func _run() -> void:
 	var cible := int(_arg("cible", "1000"))
 	var rapport := _arg("rapport", "")
 	ReglagesPartie.prochaine = ReglagesPartie.preset("normal")
+	ReglagesPartie.prochaine.deblocage = "tout"  # (ce test ne porte pas sur l'arbre de progression)
 
 	print("Globe :")
 	change_scene_to_file("res://scenes/globe.tscn")
@@ -214,7 +215,7 @@ func _run() -> void:
 	fd = game.fondateurs
 	cm = game.communes
 	res = game.reseaux
-	_check(ReglagesPartie.actuel.preset_name() == "Normal" and not bs.unlimited_money, "mode Normal, argent compté")
+	_check(ReglagesPartie.actuel.argent_depart == int(ReglagesPartie.PRESETS.normal.argent_depart) and ReglagesPartie.actuel.cout_construction == 1.0 and not bs.unlimited_money, "mode Normal, argent compté")
 	var argent0 := bs.money
 	print("  caisse de départ : ", BuildingSystem.format_money(argent0))
 	# On joue en accéléré : l'horloge est avancée à la main (pas de vitesse réelle).

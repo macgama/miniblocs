@@ -38,6 +38,7 @@ func _run() -> void:
 			heure = args[i + 1].to_float()
 	Creations.persist = false
 	ReglagesPartie.actuel = ReglagesPartie.preset("normal")
+	ReglagesPartie.actuel.deblocage = "tout"  # (ce test ne porte pas sur l'arbre de progression)
 	BatimentsVie.chantiers = true
 	var scene: Node = load("res://scenes/terre.tscn").instantiate()
 	var world: TerrainWorld = scene.get_node("Terrain")

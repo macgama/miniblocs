@@ -158,6 +158,7 @@ func _rapport() -> void:
 func _rechargements() -> void:
 	print("Rechargements sans fuite :")
 	var r := ReglagesPartie.preset("normal")
+	r.deblocage = "tout"  # (ce test ne porte pas sur l'arbre de progression)
 	r.tutoriel = false
 	ReglagesPartie.prochaine = r
 	change_scene_to_file("res://scenes/globe.tscn")

@@ -35,6 +35,7 @@ func _lundi(offset: float) -> float:
 func _run() -> void:
 	Creations.persist = false
 	ReglagesPartie.actuel = ReglagesPartie.preset("normal")
+	ReglagesPartie.actuel.deblocage = "tout"  # (ce test ne porte pas sur l'arbre de progression)
 	print("Règles :")
 	var lundi := _lundi(0.0)
 	_check(Chantiers.jour_semaine(lundi) == 0, "le 2 mars 2026 est un lundi")

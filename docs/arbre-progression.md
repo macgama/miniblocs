@@ -5,7 +5,8 @@ gagne des **points de progrès** en jouant et choisit lui-même quoi débloquer.
 
 Panneau : **Maj+F10**, ou menu Infos → « Arbre de progression ».
 Réglage : Admin (F10) → Bâtiments → « Tout débloqué (bac à sable) » ou
-« Arbre de progression à points ». Le préréglage Difficile utilise l'arbre.
+« Arbre de progression à points ». Les préréglages Normal et Difficile utilisent l'arbre ;
+Facile et Bac à sable libre gardent tout débloqué (choix de Gaël, 2026-11-18).
 
 ## Gagner des points
 

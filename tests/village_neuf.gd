@@ -159,6 +159,7 @@ func _run() -> void:
 	var jours_max := int(_arg("jours", "40"))
 	var rapport := _arg("rapport", "")
 	ReglagesPartie.prochaine = ReglagesPartie.preset("normal")
+	ReglagesPartie.prochaine.deblocage = "tout"  # (ce test ne porte pas sur l'arbre de progression)
 
 	print("Globe :")
 	change_scene_to_file("res://scenes/globe.tscn")

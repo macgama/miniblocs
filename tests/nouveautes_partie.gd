@@ -271,6 +271,7 @@ func _run() -> void:
 	var reel := int(_arg("reel", "600"))
 	var rapport := _arg("rapport", "")
 	var r := ReglagesPartie.preset("normal")
+	r.deblocage = "tout"  # (ce test ne porte pas sur l'arbre de progression)
 	var periodes: Array = Array(_arg("periodes", ",".join(PERIODES.map(func(x) -> String: return str(x)))).split(",")).map(func(x) -> int: return int(x))
 	r.annee_depart = periodes[0]
 	r.rythme_histoire = 25.0

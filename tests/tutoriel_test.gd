@@ -42,6 +42,7 @@ func _run() -> void:
 	GameStart.load_slot = ""
 	GameStart.place_name = "Valfleuri, Savoie"
 	ReglagesPartie.prochaine = ReglagesPartie.preset("normal")
+	ReglagesPartie.prochaine.deblocage = "tout"  # (ce test ne porte pas sur l'arbre de progression)
 	ReglagesPartie.prochaine.fondateurs = 0
 	_check(ReglagesPartie.prochaine.tutoriel and ReglagesPartie.prochaine.objectifs_ecran, "tutoriel et objectifs à l'écran cochés par défaut")
 	var scene: Node = load("res://scenes/terre.tscn").instantiate()

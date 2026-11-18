@@ -43,6 +43,7 @@ func _run() -> void:
 	GameStart.chosen = true
 	GameStart.place_name = "Valfleuri, Savoie"
 	ReglagesPartie.prochaine = ReglagesPartie.preset("normal")
+	ReglagesPartie.prochaine.deblocage = "tout"  # (ce test ne porte pas sur l'arbre de progression)
 	print("Règles :")
 	_check(ReglagesPartie.prochaine.fondateurs == 100 and ReglagesPartie.prochaine.vivres_jours == 90 and ReglagesPartie.prochaine.main_oeuvre,
 		"par défaut : 100 fondateurs, 90 jours de vivres, chantiers avec ouvriers")

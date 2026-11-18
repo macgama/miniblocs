@@ -61,6 +61,7 @@ func _run() -> void:
 	GameStart.chosen = true
 	GameStart.place_name = "Bâle (test)"
 	ReglagesPartie.prochaine = ReglagesPartie.preset("normal")
+	ReglagesPartie.prochaine.deblocage = "tout"  # (ce test ne porte pas sur l'arbre de progression)
 	ReglagesPartie.prochaine.fondateurs = 0
 	var scene: Node = load("res://scenes/terre.tscn").instantiate()
 	world = scene.get_node("Terrain")

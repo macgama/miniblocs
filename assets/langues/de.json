@@ -14649,6 +14649,27 @@
 "« %s » : %s et %s sont proches parents (%s). Contraception, ou un partenaire venu d'ailleurs (onglet Échanges).": "„%s“: %s und %s sind nah verwandt (%s). Verhütung oder ein Partner von anderswo (Reiter Tausch).",
 "Échanger": "Tauschen",
 "Échanges d'animaux": "Tiertausch",
-"⚠ Apparenté à vos animaux (parenté moyenne %s) : peu utile pour la diversité.": "⚠ Mit deinen Tieren verwandt (mittlere Verwandtschaft %s): wenig nützlich für die Vielfalt."
+"⚠ Apparenté à vos animaux (parenté moyenne %s) : peu utile pour la diversité.": "⚠ Mit deinen Tieren verwandt (mittlere Verwandtschaft %s): wenig nützlich für die Vielfalt.",
+"Choisis une carte, puis glisse sur le terrain avec le clic gauche. Les bâtiments poussent seuls le long des routes.": "Wähle eine Karte und ziehe dann mit der linken Maustaste über das Gelände. Gebäude wachsen von selbst entlang der Straßen.",
+"Maisons, immeubles": "Häuser, Wohnblocks",
+"Boutiques, bureaux": "Läden, Büros",
+"Ateliers, usines": "Werkstätten, Fabriken",
+"Efface la couleur ; les bâtiments restent": "Löscht die Farbe; Gebäude bleiben",
+"Style des bâtiments": "Baustil",
+"Décoché : les zones restent colorées mais rien n'y pousse.": "Abgewählt: Zonen bleiben farbig, aber nichts wächst dort.",
+"%s / m²": "%s / m²",
+"Demande forte": "Hohe Nachfrage",
+"Demande faible": "Geringe Nachfrage",
+"Pas de demande": "Keine Nachfrage",
+"%d m² déjà zonés": "%d m² bereits ausgewiesen",
+"Déjà zoné : %s m² résidentiels · %s m² commerciaux · %s m² industriels": "Bereits ausgewiesen: %s m² Wohnen · %s m² Gewerbe · %s m² Industrie",
+"Exemple de logement dans ce style": "Beispiel-Wohngebäude in diesem Stil",
+"Exemple de commerce dans ce style": "Beispiel-Geschäft in diesem Stil",
+"Exemple d'industrie dans ce style": "Beispiel-Industriebau in diesem Stil",
+"Pinceau « %s » : maintiens le clic gauche et glisse sur la carte. %s le m².\nDes bâtiments poussent le long des routes selon la demande.": "Pinsel „%s“: linke Maustaste gedrückt halten und über die Karte ziehen. %s pro m².\nGebäude wachsen je nach Nachfrage entlang der Straßen.",
+"Gomme : glisse sur une zone pour effacer sa couleur. Les bâtiments déjà construits restent.": "Radiergummi: über eine Zone ziehen, um ihre Farbe zu löschen. Bereits gebaute Gebäude bleiben.",
+"Aucun pinceau en main : choisis une carte ci-dessus.": "Kein Pinsel in der Hand: wähle oben eine Karte.",
+"Pinceau Retirer en main · clic droit : le reposer": "Entfernen-Pinsel in der Hand · Rechtsklick: ablegen",
+"Pinceau %s en main · clic droit : le reposer": "Pinsel %s in der Hand · Rechtsklick: ablegen"
 }
 }

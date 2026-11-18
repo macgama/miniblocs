@@ -1,6 +1,6 @@
 # Tutoriel guidé et objectifs à l'écran
 
-Code : `scripts/tutoriel/` (`tutoriel.gd` = `Tutoriel`, nœud « Tutoriel » sous la scène Terre ; `tutoriel_carte.gd` = `TutorielCarte`, la carte en haut à gauche). Test : `tests/tutoriel_test.gd`. Captures : `tests/tutoriel_vitrine.gd`.
+Code : `scripts/tutoriel/` (`bulles_aide.gd` = `BullesAide`, les bulles au centre de l'écran ; `guide.gd` = `Guide`, les chapitres par fonction ; `guide_panel.gd` = `GuidePanel`, Ctrl+F1 ; `tutoriel.gd` = `Tutoriel`, nœud « Tutoriel » sous la scène Terre ; `tutoriel_carte.gd` = `TutorielCarte`, la carte en haut à gauche). Tests : `tests/tutoriel_test.gd`, `tests/bulles_test.gd` (bulles et guide ; avec `-- --dossier <dir>` et un affichage, il fait aussi les captures). Captures : `tests/tutoriel_vitrine.gd`.
 
 ![Première étape du tutoriel](apercu-tutoriel-bienvenue.jpg)
 
@@ -30,6 +30,25 @@ Une partie neuve lancée depuis le globe commence par un **tutoriel guidé**, si
 - Pendant le tutoriel, la fenêtre « Fonder ton village » ne s'ouvre plus d'office au début : c'est l'étape 2 qui la propose, après le tour de la caméra.
 - Ton : réaliste avec une touche d'humour (« personne n'aime rentrer à travers champs en pantoufles »).
 
+## Les bulles d'aide (depuis le 2026-11-18)
+
+![Bulle « Les fondateurs » : la section du panneau est encadrée](apercu-bulles-fondateurs.png)
+
+Au lieu d'un grand texte, chaque explication est une **bulle au centre de l'écran** : un titre, deux phrases, les touches utiles. L'élément dont elle parle (un bouton de la barre, une section d'un panneau, la carte du tutoriel) est **encadré en orange**, le reste de l'écran est un peu assombri et un trait relie la bulle à l'élément. Si la bulle cachait l'élément, elle se pousse de l'autre côté. Les clics passent à travers le voile : on peut cliquer ce qui est montré. Boutons : ◂ Précédent, Suivant ▸ (ou « Compris » / « Terminer » à la dernière), la croix ferme.
+
+- **Tutoriel** : chaque étape ouvre ses bulles (1 à 4) au début ; la carte en haut à gauche ne garde qu'une consigne courte, le progrès, le bouton d'action, **?** (revoir les bulles) et « Passer ». La dernière bulle a aussi le bouton d'action de l'étape. Une étape qui se valide pendant ses bulles (ex. « Tes fondateurs » quand la bulle ouvre le panneau) laisse les bulles finir, puis les bulles de l'étape suivante arrivent.
+- **Guide du maire** (`Guide.CHAPITRES`, 19 chapitres) : Les bases, Fondateurs, Construire, Mairie, Budget, Habitants, Avis et élections, Réseaux, Lignes, Atelier, Ton personnage (vue au sol), Décors, Zoo, Musée, Parc d'attractions, Club de sport, Production, Pays, Objectifs.
+  - La **première fois** qu'on ouvre la fonction (son panneau, le mode Créer, la vue au sol), une bulle propose « Nouveau : le zoo… Découvrir / Plus tard ». Pas de proposition pendant le tutoriel.
+  - **Ctrl + F1** (ou F1 → ligne Ctrl + F1) : panneau **Guide du maire**, tous les chapitres par thème, ✓ pour ceux déjà vus, « Voir / Revoir », case « Proposer une visite quand je découvre une fonction », « Tout revoir ».
+  - Chapitres vus et réglage gardés pour le joueur dans `user://guide.cfg` (pas dans la sauvegarde).
+- La démo guidée utilise les mêmes bulles (vue au sol et lignes reprennent les chapitres du guide).
+
+### Ajouter une bulle ou un chapitre
+
+Une bulle est un dictionnaire : `titre`, `texte`, `touches` ; `panneau` (propriété de la scène Terre à ouvrir, ex. `zoo_panel`) ; `cible` (début du texte d'un Label ou d'un Button, début d'une infobulle, ou nom de nœud ; une liste = la première trouvée ; sans cible trouvée, tout le panneau est encadré) ; `racine` (autre propriété où chercher : `tuto_carte`, `parcours`, `fil_alertes`) ; `section` (un titre de section s'étend jusqu'à la section suivante, vrai par défaut) ; `creer` (passer en mode Créer) ; `action` ([texte, id]). Un chapitre : `id`, `titre`, `icone`, `theme`, `resume`, `declencheur` (`{"panneau": …}`, `{"mode": "creer"}`, `{"vue_sol": true}` ou `{}`), `bulles`. Une étape du tutoriel prend `bulles`, ou `chapitre` pour reprendre un chapitre du guide.
+
+Chaque texte doit aussi aller dans `assets/langues/{en,de,it,es}.json` : `tests/bulles_test.gd` vérifie que toutes les bulles sont traduites.
+
 ## Les objectifs à l'écran
 
 ![Étape « Tracer une route » et objectifs à l'écran](apercu-tutoriel-objectifs.jpg)
@@ -43,7 +62,7 @@ Tout vient de `Objectifs` (`scripts/pays/objectifs.gd`) : la carte ne calcule ri
 
 ## Réglages (F10 → Aide)
 
-- **Tutoriel guidé** : le cocher relance le tutoriel (il reprend à la première étape pas faite) ; il se décoche tout seul quand le tutoriel est fini ou arrêté. Aussi sur le globe, sous « Réglages… ».
+- **Tutoriel guidé** : le cocher relance le tutoriel (il reprend à la première étape pas faite) ; il se décoche tout seul quand le tutoriel est fini ou arrêté. Aussi à l'étape 4 de l'assistant de nouvelle partie (globe).
 - **Objectifs à l'écran** : afficher ou masquer le cadre des objectifs.
 
 Une partie sauvegardée avant le tutoriel le charge sans tutoriel.
@@ -54,4 +73,4 @@ Section `tutoriel` : `{version, actif, etape, faits: [ids], replie}`. Les régla
 
 ## Ajouter une étape
 
-Ajouter une entrée à `Tutoriel.ETAPES` (`id`, `titre`, `texte`, `touches`, `action` facultative), puis un cas dans `est_faite()` (et dans `sans_objet()` si l'étape dépend d'un réglage). Le geste du bouton se code dans `terre_main._on_tuto_action()`.
+Ajouter une entrée à `Tutoriel.ETAPES` (`id`, `titre`, `texte` = consigne courte de la carte, `touches`, `action` facultative, `bulles` ou `chapitre`), puis un cas dans `est_faite()` (et dans `sans_objet()` si l'étape dépend d'un réglage). Le geste du bouton se code dans `terre_main._on_tuto_action()`.

@@ -159,6 +159,12 @@ var journal_panel: JournalPanel
 ## Tutoriel guidé et objectifs à l'écran (scripts/tutoriel).
 var tutoriel: Tutoriel
 var tuto_carte: TutorielCarte
+## Bulles d'aide au centre de l'écran, guide par chapitres et son panneau (Maj+F1).
+var bulles_aide: BullesAide
+var guide: Guide
+var guide_panel: GuidePanel
+## Étape du tutoriel dont les bulles attendent que les bulles en cours se ferment.
+var _bulles_attente := ""
 ## Scénario en cours (menu principal → Scénarios) et sa carte à l'écran.
 var scenario: ScenarioPartie
 var scenario_carte: ScenarioCarte
@@ -340,6 +346,7 @@ func _ready() -> void:
 		blocks._emit_help())
 	build_panel.growth_toggled.connect(func(on: bool) -> void: zones.growth = on)
 	build_panel.zone_style_chosen.connect(func(st: String) -> void: zones.current_style = st)
+	build_panel.suivre_zones(zones)
 	build_panel.admin_requested.connect(toggle_admin)
 	hud.admin_requested.connect(toggle_admin)
 	hud.save_requested.connect(func() -> void:
@@ -375,6 +382,12 @@ func _ready() -> void:
 		world.set_origin(GameStart.lat, GameStart.lon)
 	_on_origin_changed(world.origin_lat, world.origin_lon)
 	_apply_settings(true)
+	# Nouvelle partie : le temps attend le joueur (en pause), il le lance avec ▶ ou T.
+	if demarre_en_pause():
+		ambiance.set_speed(0)
+		get_tree().create_timer(2.5).timeout.connect(func() -> void:
+			if is_instance_valid(hud) and ambiance.speed_index == 0:
+				hud.show_message("Le temps est en pause : lance-le avec ▶ en haut de l'écran, ou T."))
 	if GameStart.load_slot != "":
 		var slot := GameStart.load_slot
 		GameStart.load_slot = ""
@@ -1327,9 +1340,41 @@ func _setup_tutoriel() -> void:
 	tuto_carte.ville_courante = func() -> int: return pays.actif
 	tuto_carte.setup(tutoriel, objectifs)
 	tuto_carte.objectifs_requested.connect(func() -> void: objectifs_panel.set_open(not objectifs_panel.is_open()))
+	# Bulles d'aide et guide par chapitres.
+	bulles_aide = BullesAide.new()
+	bulles_aide.name = "BullesAide"
+	bulles_aide.scene = self
+	add_child(bulles_aide)
+	guide = Guide.new()
+	guide.name = "Guide"
+	add_child(guide)
+	guide.setup(self, bulles_aide)
+	guide.bloque = func() -> bool: return tutoriel.actif
+	guide_panel = GuidePanel.new()
+	guide_panel.name = "PanneauGuide"
+	add_child(guide_panel)
+	guide_panel.setup(guide)
+	hud.guide_requested.connect(func() -> void: guide_panel.toggle())
+	tutoriel.etape_commencee.connect(montrer_bulles_etape)
+	tuto_carte.bulles_requested.connect(func() -> void: montrer_bulles_etape(tutoriel.id_courant(), true))
+	bulles_aide.action.connect(func(a: String) -> void:
+		if a == "tuto_agir":
+			bulles_aide.fermer()
+			tutoriel.agir())
+	bulles_aide.termine.connect(func(suite: String, au_bout: bool) -> void:
+		# « Terminer » / « Voir mon bilan » de la dernière étape : comme le bouton de la carte.
+		if au_bout and (suite == "tuto:fin" or suite == "tuto:fin_demo") and tutoriel.actif \
+				and "tuto:" + tutoriel.id_courant() == suite:
+			tutoriel.agir()
+		if _bulles_attente != "":
+			var e := _bulles_attente
+			_bulles_attente = ""
+			if tutoriel.actif and tutoriel.id_courant() == e:
+				montrer_bulles_etape.call_deferred(e))
 	# Nouvelle partie lancée du globe : le tutoriel commence (s'il est coché).
 	tutoriel.bilan_demande.connect(ouvrir_bilan_demo)
 	var demo := Demo.demandee
+	_demo_demandee = demo
 	Demo.demandee = false
 	if GameStart.load_slot == "" and GameStart.chosen and not GameStart.atelier and demo:
 		tutoriel.demarrer_demo.call_deferred()
@@ -1337,6 +1382,35 @@ func _setup_tutoriel() -> void:
 		tutoriel.demarrer.call_deferred()
 	else:
 		ReglagesPartie.actuel.tutoriel = false
+
+
+## La démo guidée a été demandée pour cette partie (lu dans _setup_tutoriel).
+var _demo_demandee := false
+
+
+## Vrai pour une nouvelle partie jouée sur ce PC (pas une partie chargée, ni
+## l'Atelier, ni une visite, ni un serveur entre amis) : elle commence en pause.
+## La démo guidée garde son propre rythme (elle est chronométrée).
+func demarre_en_pause() -> bool:
+	return GameStart.load_slot == "" and GameStart.chosen and not GameStart.atelier and not _demo_demandee and not Demo.demandee \
+		and Multijoueur.role == Multijoueur.Role.SOLO and not VisiteVille.active()
+
+
+## Bulles d'explication d'une étape du tutoriel, au centre de l'écran. Si
+## d'autres bulles sont ouvertes, elles attendent leur fin (sauf « ? »).
+func montrer_bulles_etape(id: String, tout_de_suite := false) -> void:
+	if bulles_aide == null or not tutoriel.actif or tutoriel.id_courant() != id or id == "":
+		return
+	if bulles_aide.actif and not tout_de_suite:
+		_bulles_attente = id
+		return
+	var e := tutoriel.etape_courante()
+	var suite := "guide:" + String(e.chapitre) if e.has("chapitre") else "tuto:" + id
+	var nom := "Démo guidée · étape %d / %d" % [tutoriel.numero(), tutoriel.total()] if tutoriel.est_demo() \
+		else "Tutoriel · étape %d / %d" % [tutoriel.numero(), tutoriel.total()]
+	var fin := "Terminer" if id == "fin" else ("Voir mon bilan" if id == "fin_demo" else "Compris")
+	_bulles_attente = ""
+	bulles_aide.lancer(suite, nom, Tutoriel.bulles_de(e), fin)
 
 
 ## Bouton d'action de l'étape du tutoriel.

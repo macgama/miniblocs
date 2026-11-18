@@ -50,10 +50,20 @@ func _run() -> void:
 	_check(is_equal_approx(Chantiers.heures_ouvrees(paris, paris + 3600.0, 1.0, "semaine"), 1.0), "heure locale (fuseau du lieu)")
 	var fin := Chantiers.date_apres(lundi, 40.0, 0.0, "semaine")
 	_check(absf(fin - (lundi + 4.0 * 86400.0 + 9.0 * 3600.0)) < 1.0, "40 h de travail finissent le vendredi à 16 h 30")
-	var m_maison := Chantiers.mois_batiment("colombages__maison")
-	var m_imm := Chantiers.mois_batiment("international__immeuble")
-	_check(m_maison >= 4.0 and m_maison <= 10.0, "maison : %.1f mois réels" % m_maison)
-	_check(m_imm > m_maison * 1.3, "immeuble : %.1f mois réels" % m_imm)
+	var m_maison := Chantiers.mois_batiment("colombages__maison", 2025)
+	var m_imm := Chantiers.mois_batiment("international__immeuble", 2025)
+	_check(m_maison >= 4.0 and m_maison <= 6.5, "maison : %.1f mois réels (4 à 6)" % m_maison)
+	_check(m_imm >= 12.0 and m_imm <= 24.0, "immeuble : %.1f mois réels (12 à 24)" % m_imm)
+	var m_ecole := Chantiers.mois_batiment("ecole", 2025)
+	var m_hop := Chantiers.mois_batiment("hopital", 2025)
+	var m_stade := Chantiers.mois_batiment("stade_lugano", 2025)
+	var m_kiosque := Chantiers.mois_batiment("kiosque_presse", 2025)
+	_check(m_ecole >= 9.0 and m_ecole <= 24.0, "école : %.1f mois réels" % m_ecole)
+	_check(m_hop >= 24.0 and m_hop <= 60.0, "hôpital : %.1f mois réels (plusieurs années)" % m_hop)
+	_check(m_stade >= 20.0 and m_stade <= 48.0, "stade : %.1f mois réels (plusieurs années)" % m_stade)
+	_check(m_kiosque < m_maison, "un kiosque va plus vite qu'une maison : %.1f mois" % m_kiosque)
+	_check(Chantiers.mois_batiment("colombages__maison", 1810) > m_maison * 1.4, "en 1810, à la main, la même maison est plus longue : %.1f mois" % Chantiers.mois_batiment("colombages__maison", 1810))
+	_check(Chantiers.mois_batiment("hopital", 1810) <= Chantiers.MOIS_MAX, "plafond des bâtiments ordinaires")
 	var h100 := Chantiers.heures_voie("departementale", 100.0, 8.0)
 	_check(h100 > 40.0 and h100 < 160.0, "100 m de départementale : %d h réelles" % roundi(h100))
 	var et := Chantiers.etape(Chantiers.ETAPES_BATIMENT, 0.5)
@@ -106,7 +116,7 @@ func _run() -> void:
 
 	var hjeu := float(bs.buildings[bid].hr) / Chantiers.rythme(vie.population)
 	var jours := (vie.fin_prevue(bid) - amb.unix_time) / 86400.0
-	_check(jours > 7.0 and jours < 40.0, "maison finie en %.0f jours de jeu (1 an de vie = 1 mois)" % jours)
+	_check(jours > 1.5 and jours < 40.0, "maison finie en %.0f jours de jeu (≈ 2 semaines à ×3, 1 an de vie = 1 mois)" % jours)
 	# La nuit et le week-end, rien n'avance.
 	amb.unix_time = _lundi(off) + 4.0 * 86400.0 + 10.0 * 3600.0 # vendredi 17 h 30
 	vie._t_prev = amb.unix_time

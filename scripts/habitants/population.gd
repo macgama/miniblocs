@@ -2175,7 +2175,7 @@ func incarnate(pid: int) -> bool:
 		vue_sol.personnage.prendre_apparence(Silhouettes.apparence_habitant(self, pid))
 	vue_sol.set_vue(VueSol.Vue.TROISIEME)
 	var p: Dictionary = persons[pid]
-	message.emit("Tu es %s. ZQSD pour marcher, V pour revenir à la vue de dessus." % CycleVie.full_name(p))
+	message.emit("Tu es %s. ZQSD pour marcher, Échap pour revenir à la vue de dessus." % CycleVie.full_name(p))
 	plan_changed(pid)
 	return true
 

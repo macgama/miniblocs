@@ -8,7 +8,7 @@ Prototype de city builder en vue de dessus, style low-poly, mode bac à sable. F
 
 1. Installe [Godot 4.7 ou plus](https://godotengine.org/download) (version standard, pas .NET). Les versions plus anciennes ne lancent pas le jeu : le journal de plantage utilise la classe `Logger` (Godot 4.5+) et le projet est réglé pour 4.7.
 2. Ouvre Godot, clique sur **Importer** et choisis le fichier `project.godot` de ce dossier.
-3. Appuie sur **F5** (ou le bouton ▶) pour lancer : le **menu principal** s'ouvre (Continuer, Démo guidée, Nouvelle partie → globe, Charger, Atelier, Options, Crédits, Quitter). Détails : [docs/menus.md](docs/menus.md). Le prototype de ville reste accessible avec le bouton **Ville prototype** du globe (ou ouvre `scenes/main.tscn` et appuie sur **F6**).
+3. Appuie sur **F5** (ou le bouton ▶) pour lancer : le **menu principal** s'ouvre (Continuer, Démo guidée, Nouvelle partie → globe, Charger, Atelier, Options, Crédits, Quitter). Détails : [docs/menus.md](docs/menus.md). Le prototype de ville reste accessible en ouvrant `scenes/main.tscn` dans l'éditeur (**F6**).
 
 ![Menu principal](docs/apercu-menu-titre.png)
 
@@ -67,7 +67,8 @@ Au lancement (**F5**), un **globe 3D** coloré par les vrais biomes (forêts, ch
 
 - **Globe** : glisser pour tourner, molette pour zoomer, clic pour poser le point de départ. La **recherche** trouve n'importe quelle ville de la planète : 135 000 villes de plus de 1 000 habitants (GeoNames), avec leur drapeau ; les accents sont facultatifs et les noms français des grandes villes marchent (Londres, Pékin, Genève). **Entrée** choisit la première. On peut aussi taper des coordonnées (Google Maps : clic droit sur un lieu), ou **Chercher en ligne** (OpenStreetMap) pour un hameau ou un lieu-dit. Le pays choisi propose le drapeau du premier village.
 - **Aperçu** : altitude du point et type de relief autour (plaine, collines, montagne, côte, mer), région de jeu de 40 × 40 km (1 600 km², soit 1,6 milliard de cases).
-- **Commencer la partie** : ouvre la région en cases de 1 m. Survole une case pour voir ses coordonnées et son altitude. Outils : **2 Aplanir**, **3 Monter +1 m**, **4 Creuser −1 m** (clic gauche glissé). Bouton **Globe** pour changer de lieu.
+- **Assistant de nouvelle partie** : une étape à la fois, avec **Précédent** / **Suivant** : 1) le lieu, 2) le type de carte (seul, entre amis sur ce PC, carte mondiale bientôt), 3) les réglages par thèmes (difficulté Facile / Normal / Difficile / Bac à sable libre, époque de départ dès 1800, argent, construction, ville ; **Réglages avancés…** ouvre le panneau Admin complet), 4) le tutoriel ou pas, 5) un résumé. Détails : [docs/menus.md](docs/menus.md).
+- **Commencer la partie** (la partie démarre **en pause** : ▶ ou **T** lance le temps) : ouvre la région en cases de 1 m. Survole une case pour voir ses coordonnées et son altitude. Outils : **2 Aplanir**, **3 Monter +1 m**, **4 Creuser −1 m** (clic gauche glissé). Bouton **Globe** pour changer de lieu.
 - Le relief est téléchargé la première fois (Internet nécessaire), puis gardé en cache.
 
 ![Mode Terre : forêt au-dessus du lac d'Annecy](docs/apercu-biomes.png)

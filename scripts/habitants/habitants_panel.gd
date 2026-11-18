@@ -798,7 +798,7 @@ func _follow_row(pid: int) -> void:
 	inc.text = "Prendre sa place (vue au sol)"
 	inc.focus_mode = Control.FOCUS_NONE
 	inc.disabled = Ordres.protected(pop, pop.persons[pid]) or pop.age_of(pop.persons[pid]) < 3.0
-	inc.tooltip_text = "L'incarner en 3e personne et le diriger toi-même (V pour revenir)."
+	inc.tooltip_text = "L'incarner en 3e personne et le diriger toi-même (Échap pour revenir)."
 	inc.pressed.connect(func() -> void:
 		if pop.incarnate(pid):
 			set_open(false))

@@ -5,10 +5,12 @@ extends Node3D
 ## à la 1re personne (par les yeux du personnage).
 ##
 ## Commandes au sol :
+## - Échap (ou le bouton « Vue de dessus » en haut à droite) : revenir tout de suite
+##   à la vue de gestion, depuis la 3e ou la 1re personne et même à bord
 ## - V : changer de vue (dessus → 3e personne → 1re personne → dessus)
 ## - ZQSD / WASD / flèches : marcher · Maj : courir · Espace : sauter / remonter en nageant
 ## - Souris : regarder · Molette : rapprocher / éloigner la caméra (au plus près : 1re personne)
-## - Échap : libérer la souris (clic dans la vue pour la reprendre)
+## - Alt : libérer la souris pour cliquer dans l'interface (clic dans la vue pour la reprendre)
 ##
 ## À bord d'un véhicule (conduit tout seul par la circulation ou par son système) :
 ## - E près d'un véhicule : monter · E à bord : descendre
@@ -25,8 +27,10 @@ signal bord_change(cible: Dictionary)
 
 enum Vue { DESSUS, TROISIEME, PREMIERE }
 
-const AIDE_SOL := "ZQSD marcher · Maj courir · Espace sauter · Souris regarder · Molette caméra · V changer de vue · E monter dans un véhicule proche · Échap libérer la souris"
-const AIDE_BORD := "E descendre · Maj+E véhicule voisin · V conducteur / extérieur · Souris regarder · Molette recul · Maj+V vue de dessus"
+const AIDE_SOL := "Échap vue de dessus · ZQSD marcher · Maj courir · Espace sauter · Molette caméra · V 3e / 1re personne · E véhicule · Alt souris"
+const AIDE_BORD := "Échap vue de dessus · E descendre · Maj+E véhicule voisin · V conducteur / extérieur · Molette recul · Alt souris"
+## Texte du bouton de sortie, toujours visible en vue au sol.
+const TEXTE_SORTIE := "⬆  Vue de dessus  (Échap)"
 const NOMS := {Vue.DESSUS: "Vue de dessus", Vue.TROISIEME: "3e personne", Vue.PREMIERE: "1re personne"}
 
 @export var world_path: NodePath
@@ -62,6 +66,8 @@ var _distance := 4.5
 var _ui: CanvasLayer
 var _boutons: Array[Button] = []
 var _aide: Label
+var _aide_cadre: PanelContainer
+var _sortie: Button
 var _viseur: Control
 var _panneau_visible := true
 
@@ -263,8 +269,17 @@ func _input(event: InputEvent) -> void:
 			return
 		if vue == Vue.DESSUS:
 			return
-		if k.pressed and k.keycode == KEY_ESCAPE:
-			_capturer(false)
+		if k.pressed and not k.echo and k.keycode == KEY_ESCAPE:
+			# Échap : on sort directement du personnage (ou du véhicule).
+			# Dans un champ de texte, Échap lâche d'abord le champ.
+			if typing:
+				get_viewport().gui_release_focus()
+			else:
+				set_vue(Vue.DESSUS)
+			get_viewport().set_input_as_handled()
+		elif k.pressed and not k.echo and k.keycode == KEY_ALT:
+			# Alt : libère (ou reprend) la souris pour cliquer dans l'interface.
+			_capturer(not _souris_capturee())
 			get_viewport().set_input_as_handled()
 		elif k.pressed and not k.echo and not typing and k.physical_keycode == KEY_E:
 			if a_bord():
@@ -459,15 +474,58 @@ func _construire_ui() -> void:
 	_ui.layer = 2
 	add_child(_ui)
 	# Le choix de la vue est dans la barre du bas (bouton Vue, touche V) : voir TerreHud.
+	# Aide des touches : un bandeau discret en bas, au-dessus de la barre d'outils,
+	# pour ne pas recouvrir le panneau Objectifs en haut à gauche.
+	_aide_cadre = PanelContainer.new()
+	_aide_cadre.name = "AideSol"
+	var fond := StyleBoxFlat.new()
+	fond.bg_color = Color(0.08, 0.09, 0.11, 0.72)
+	fond.set_corner_radius_all(8)
+	fond.content_margin_left = 14
+	fond.content_margin_right = 14
+	fond.content_margin_top = 5
+	fond.content_margin_bottom = 5
+	_aide_cadre.add_theme_stylebox_override("panel", fond)
+	_aide_cadre.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_aide_cadre.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	_aide_cadre.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_aide_cadre.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	_aide_cadre.offset_bottom = -118
+	_aide_cadre.offset_top = -118
+	_ui.add_child(_aide_cadre)
 	_aide = Label.new()
-	_aide.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	_aide.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	_aide.position.y = 104
 	_aide.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_aide.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
-	_aide.add_theme_constant_override("outline_size", 5)
+	_aide.add_theme_font_size_override("font_size", 14)
+	_aide.add_theme_color_override("font_color", Color(0.94, 0.95, 0.97))
+	_aide.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_aide.text = AIDE_SOL
-	_ui.add_child(_aide)
+	_aide_cadre.add_child(_aide)
+
+	# Bouton de sortie bien visible, en haut à droite sous la barre du haut.
+	_sortie = Button.new()
+	_sortie.name = "BoutonVueDessus"
+	_sortie.text = TEXTE_SORTIE
+	_sortie.tooltip_text = "Quitter le personnage et revenir à la vue de gestion (Échap)"
+	_sortie.focus_mode = Control.FOCUS_NONE
+	_sortie.add_theme_font_size_override("font_size", 17)
+	for etat in ["normal", "hover", "pressed"]:
+		var sb := StyleBoxFlat.new()
+		sb.bg_color = {"normal": Color(0.98, 0.78, 0.25), "hover": Color(1.0, 0.85, 0.4), "pressed": Color(0.9, 0.7, 0.2)}[etat]
+		sb.set_corner_radius_all(10)
+		sb.content_margin_left = 16
+		sb.content_margin_right = 16
+		sb.content_margin_top = 8
+		sb.content_margin_bottom = 8
+		_sortie.add_theme_stylebox_override(etat, sb)
+	for c in ["font_color", "font_hover_color", "font_pressed_color"]:
+		_sortie.add_theme_color_override(c, Color(0.12, 0.1, 0.06))
+	_sortie.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	_sortie.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	_sortie.offset_right = -16
+	_sortie.offset_left = -16
+	_sortie.offset_top = 84
+	_sortie.pressed.connect(func() -> void: set_vue(Vue.DESSUS))
+	_ui.add_child(_sortie)
 
 	_viseur = ColorRect.new()
 	_viseur.color = Color(1, 1, 1, 0.85)
@@ -482,7 +540,8 @@ func _construire_ui() -> void:
 func _maj_ui(annoncer: bool) -> void:
 	if _boutons.size() == 3:
 		_boutons[vue].set_pressed_no_signal(true)
-	_aide.visible = vue != Vue.DESSUS
+	_aide_cadre.visible = vue != Vue.DESSUS
+	_sortie.visible = vue != Vue.DESSUS
 	_aide.text = AIDE_BORD if a_bord() else AIDE_SOL
 	if _bord_panneau:
 		_bord_panneau.visible = a_bord() and vue != Vue.DESSUS

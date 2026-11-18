@@ -204,7 +204,7 @@ const SECTIONS := [
 		["Clic sur un passant", "les habitants près de la caméra marchent, roulent ou pédalent vers leur travail, l'école, le sport : un clic ouvre sa fiche"],
 		["Donner un ordre (fiche)", "sa journée (aller à…, rentrer, travail, loisir, courses, visite, dormir) ou ses choix de vie (emploi, déménagement, rencontre, mariage, enfant, séparation, retraite) ; Échap annule « Aller à… »"],
 		["Ton personnage", "il naît dans une famille de ta ville ; une carte te demande ses grands choix (couple, mariage, enfants, études, emploi, retraite), le temps se met en pause"],
-		["Prendre sa place (fiche)", "incarner l'habitant en vue au sol (3e personne) ; V pour revenir, il reprend sa journée"],
+		["Prendre sa place (fiche)", "incarner l'habitant en vue au sol (3e personne) ; Échap pour revenir, il reprend sa journée"],
 	]],
 	["Métiers", [
 		["K", "vue métiers : zoome près d'un commerce, d'une école, d'un hôpital… il s'ouvre en coupe et on voit les employés à leur poste (le boulanger pétrit, le prof écrit au tableau, le médecin ausculte) ; K la coupe, K la remet"],
@@ -442,7 +442,8 @@ const SECTIONS := [
 		["V", "vue suivante : dessus, 3e personne, 1re personne"],
 		["ZQSD, Maj, Espace", "marcher, courir, sauter (vue au sol)"],
 		["E ou clic gauche", "ouvrir ou fermer une porte, une porte de garage (vue au sol), y compris dans les murs fins"],
-		["Échap", "libérer la souris (vue au sol)"],
+		["Échap (vue au sol)", "revenir tout de suite à la vue de dessus (aussi depuis un véhicule) ; bouton « Vue de dessus » en haut à droite"],
+		["Alt (vue au sol)", "libérer la souris pour cliquer dans l'interface ; un clic dans la vue la reprend"],
 	]],
 	["Mode streamer (Twitch)", [
 		["Maj + F11 (ou Infos → Mode streamer)", "le chat de ta chaîne Twitch vote toutes les quelques minutes : catastrophes, décisions du maire, météo, fêtes ; les spectateurs tapent 1, 2 ou 3. Lecture seule et anonyme, sans compte ni clé ; désactivé par défaut"],
@@ -472,6 +473,7 @@ const SECTIONS := [
 		["Globe", "revenir au globe pour changer de lieu"],
 		["F10 ou icône réglages", "panneau Admin : argent de départ, caisse, argent illimité, coût des constructions, accès à une voie, impôts, salaires, vitesses, épuisement des ressources, déblocage des bâtiments, pollution (seulement pour l'admin de la partie)"],
 		["F1", "afficher ou masquer cette aide"],
+		["Ctrl + F1", "guide du maire : un chapitre par fonction du jeu (fondateurs, Construire, Mairie, Atelier, vue au sol, zoo, musée, parc, club…), en bulles au centre de l'écran qui encadrent où cliquer ; la première fois qu'on ouvre une fonction, une bulle propose sa visite"],
 	]],
 	["Santé publique et épidémies", [
 		["F7", "panneau Santé publique (menu Infos) : épidémie en cours, hygiène des logements (eau potable, égouts), lits d'hôpital, conseils ; onglets Vaccins, Mesures et Histoire"],

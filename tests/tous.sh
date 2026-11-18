@@ -2,7 +2,8 @@
 # Lance tous les tests automatiques (Godot dans le PATH sous le nom « godot »).
 # Usage : sh tests/tous.sh [motif]   (ex. sh tests/tous.sh telecom)
 # Un test réussit s'il se termine avec le code 0 et affiche « TEST OK » ou
-# « RÉSULTAT : OK ». Les erreurs de script (SCRIPT ERROR) sont signalées à part :
+# « RÉSULTAT : OK ». Les nouvelles parties sans préréglage choisi y sont « tout
+# débloqué » (-- --tout-debloque) : seuls admin_test et arbre_test testent l'arbre. Les erreurs de script (SCRIPT ERROR) sont signalées à part :
 # elles ne font pas échouer la suite, mais doivent être corrigées.
 cd "$(dirname "$0")/.." || exit 1
 fail=0
@@ -12,7 +13,7 @@ for t in tests/*${1:-}*_test.gd; do
 	[ -f "$t" ] || continue
 	total=$((total + 1))
 	name=$(basename "$t")
-	out=$(godot --headless --path . --script "res://$t" 2>&1)
+	out=$(timeout 900 godot --headless --path . --script "res://$t" -- --tout-debloque 2>&1)
 	code=$?
 	line=$(echo "$out" | grep -E "TEST (OK|ÉCHEC)|RÉSULTAT : (OK|ÉCHEC)" | tail -1)
 	errs=$(echo "$out" | grep -c "SCRIPT ERROR")

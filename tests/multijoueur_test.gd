@@ -49,7 +49,7 @@ func _flat_tile(_t: Vector2i) -> PackedFloat32Array:
 
 func _lancer_serveur(args: Array) -> void:
 	var a := PackedStringArray(["--headless", "--path", ProjectSettings.globalize_path("res://"), "--", "--serveur",
-		"--port", str(PORT), "--terrain-plat"])
+		"--port", str(PORT), "--terrain-plat", "--tout-debloque"])
 	a.append_array(PackedStringArray(args))
 	_serveur_pid = OS.create_process(OS.get_executable_path(), a)
 

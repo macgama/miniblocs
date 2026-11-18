@@ -46,6 +46,7 @@ func _run() -> void:
 	Creations.persist = false
 	print("Époque actuelle (par défaut) :")
 	ReglagesPartie.actuel = ReglagesPartie.preset("normal")
+	ReglagesPartie.actuel.deblocage = "tout"  # (ce test ne porte pas sur l'arbre de progression)
 	_check(not Epoques.actif(), "année de départ 0 : pas de partie historique")
 	_check(ReglagesPartie.actuel.raison_blocage("centrale_nucleaire") == "", "tout reste débloqué comme avant")
 	_check(Epoques.vehicule("fpt") == "fpt", "véhicules modernes inchangés")
@@ -53,6 +54,7 @@ func _run() -> void:
 
 	print("Départ en 1800 :")
 	var r := ReglagesPartie.preset("normal")
+	r.deblocage = "tout"  # (ce test ne porte pas sur l'arbre de progression)
 	r.annee_depart = 1800
 	ReglagesPartie.actuel = r
 	_check(Epoques.actif() and Epoques.annee() == 1800, "nous sommes en 1800")
@@ -127,6 +129,7 @@ func _run() -> void:
 
 	print("Rythme de l'histoire :")
 	var r3 := ReglagesPartie.preset("normal")
+	r3.deblocage = "tout"  # (ce test ne porte pas sur l'arbre de progression)
 	r3.annee_depart = 1850
 	r3.rythme_histoire = 10.0
 	ReglagesPartie.actuel = r3
@@ -164,6 +167,7 @@ func _run() -> void:
 	Epoques.horloge = null
 	h.queue_free()
 	ReglagesPartie.actuel = ReglagesPartie.preset("normal")
+	ReglagesPartie.actuel.deblocage = "tout"  # (ce test ne porte pas sur l'arbre de progression)
 	await process_frame
 
 	print("TEST OK" if ok else "TEST ÉCHEC")

@@ -38,6 +38,7 @@ func _annee(r: ReglagesPartie, a: int) -> void:
 func _run() -> void:
 	Creations.persist = false
 	var r := ReglagesPartie.preset("normal")
+	r.deblocage = "tout"  # (ce test ne porte pas sur l'arbre de progression)
 	ReglagesPartie.actuel = r
 
 	print("Machines d'époque :")
@@ -254,5 +255,6 @@ func _run() -> void:
 	_check(agri.tache_due(cv, 12) == "", "rien à faire à la vigne en décembre")
 
 	ReglagesPartie.actuel = ReglagesPartie.preset("normal")
+	ReglagesPartie.actuel.deblocage = "tout"  # (ce test ne porte pas sur l'arbre de progression)
 	print("TEST OK" if ok else "TEST ÉCHEC")
 	quit(0 if ok else 1)

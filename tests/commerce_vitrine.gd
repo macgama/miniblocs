@@ -32,6 +32,7 @@ func _run() -> void:
 	GameStart.lat = 47.56
 	GameStart.lon = 7.59
 	ReglagesPartie.prochaine = ReglagesPartie.preset("normal")
+	ReglagesPartie.prochaine.deblocage = "tout"  # (ce test ne porte pas sur l'arbre de progression)
 	ReglagesPartie.prochaine.fondateurs = 0
 	ReglagesPartie.prochaine.tutoriel = false
 	var scene: Node = load("res://scenes/terre.tscn").instantiate()

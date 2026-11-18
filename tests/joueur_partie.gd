@@ -410,6 +410,7 @@ func _run() -> void:
 
 	_ctx("Globe")
 	ReglagesPartie.prochaine = ReglagesPartie.preset("normal")
+	ReglagesPartie.prochaine.deblocage = "tout"  # (ce test ne porte pas sur l'arbre de progression)
 	ReglagesPartie.prochaine.tutoriel = true
 	globe.select_place(46.775, 6.62, "Yverdon-les-Bains", true, "ch")
 	await _frames(5)
@@ -746,6 +747,7 @@ func _partie_minuscule() -> String:
 	var gl := await _wait_scene("Globe", 30000)
 	await _frames(5)
 	var r := ReglagesPartie.preset("normal")
+	r.deblocage = "tout"  # (ce test ne porte pas sur l'arbre de progression)
 	r.tutoriel = false
 	ReglagesPartie.prochaine = r
 	gl.select_place(46.2, 6.14, "Genève", true, "ch")
@@ -773,6 +775,7 @@ func _epoque() -> void:
 	var gl := await _wait_scene("Globe", 30000)
 	await _frames(5)
 	var r := ReglagesPartie.preset("normal")
+	r.deblocage = "tout"  # (ce test ne porte pas sur l'arbre de progression)
 	r.tutoriel = false
 	r.annee_depart = 1800
 	ReglagesPartie.prochaine = r

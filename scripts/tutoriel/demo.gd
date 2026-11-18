@@ -27,6 +27,8 @@ static func reglages() -> ReglagesPartie:
 	var r := ReglagesPartie.preset("normal")
 	r.tutoriel = true
 	r.objectifs_ecran = true
+	# Démo guidée de 30 min : tout le catalogue ouvert (pas d'arbre de progression).
+	r.deblocage = "tout"
 	return r
 
 

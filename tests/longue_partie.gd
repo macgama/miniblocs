@@ -448,6 +448,7 @@ func _run() -> void:
 	await _frames(3)
 	var pas_s := get_root().get_process_delta_time()
 	var r := ReglagesPartie.preset("normal")
+	r.deblocage = "tout"  # (ce test ne porte pas sur l'arbre de progression)
 	r.tutoriel = false
 	ReglagesPartie.prochaine = r
 	OptionsJeu.autosave_min = 5

@@ -310,6 +310,7 @@ func _run() -> void:
 	var echelle := float(_arg("echelle", "1.0"))
 	var reel := int(_arg("reel", "600"))
 	ReglagesPartie.prochaine = ReglagesPartie.preset("normal")
+	ReglagesPartie.prochaine.deblocage = "tout"  # (ce test ne porte pas sur l'arbre de progression)
 
 	print("Globe : Bâle")
 	change_scene_to_file("res://scenes/globe.tscn")

@@ -104,6 +104,7 @@ func _run() -> void:
 
 	print("Époques et succès :")
 	var r := ReglagesPartie.preset("normal")
+	r.deblocage = "tout"  # (ce test ne porte pas sur l'arbre de progression)
 	r.annee_depart = 1850
 	_check(not Epoques.actif(r), "démo : pas de partie historique")
 	EditionDemo.forcee = 0

@@ -88,6 +88,7 @@ func _city_tests() -> void:
 	Creations.persist = false
 	BatimentsVie.chantiers = false
 	ReglagesPartie.actuel = ReglagesPartie.preset("normal")
+	ReglagesPartie.actuel.deblocage = "tout"  # (ce test ne porte pas sur l'arbre de progression)
 	ReglagesPartie.actuel.construction_instantanee = true
 	ReglagesPartie.actuel.reseaux_obligatoires = false
 	var scene: Node = load("res://scenes/terre.tscn").instantiate()

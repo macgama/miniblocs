@@ -227,6 +227,8 @@ static func reglages(id: String) -> ReglagesPartie:
 	var s := donnees(id)
 	var rg: Dictionary = s.get("reglages", {})
 	var r := ReglagesPartie.preset(String(rg.get("preset", "normal")))
+	# Les scénarios ont leurs propres limites : pas d'arbre de progression, sauf s'ils le demandent.
+	r.deblocage = "tout"
 	for k in rg:
 		if k != "preset":
 			r.set(k, rg[k])

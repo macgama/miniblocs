@@ -8,7 +8,8 @@ signal focus_requested(pos: Vector3)
 signal person_requested(pid: int)
 
 const W := 1040.0
-const H := 740.0
+## Hauteur : entre la barre du haut (68 px) et celle des catégories (en bas, ≈ 794 px).
+const H := 700.0
 const COL_DROITE := 300.0
 const JOURS_FR := ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"]
 const MOIS_FR := ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"]

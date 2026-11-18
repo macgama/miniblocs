@@ -61,6 +61,31 @@ On fait défiler à la molette, en glissant la barre, au clavier ou à la croix 
 focus est suivi) et au stick droit de la manette (`UiStyle.scroll_under`). Test :
 `tests/defilement_test.gd`. Toute nouvelle fenêtre longue doit faire pareil.
 
+## Rien ne se chevauche
+
+- **Barre du haut** : l'horloge (`ClockHud`, calque à part) se pose dans la place
+  `PlaceHorloge` de la barre (groupe `zone_horloge`) et lui donne sa largeur : les
+  boutons Annuler, Rétablir, mode plan et les chiffres de la ville ne passent jamais
+  dessous. La caisse d'une ville au long nom est coupée à `TerreHud.CAISSE_MAX` (nom
+  complet en infobulle). Si la barre manque encore de place, la date se cache (elle
+  reste dans l'infobulle de l'heure et dans les détails « … »).
+- **Colonne de gauche** (`PileGauche`) : en haut, la carte du tutoriel et des objectifs
+  puis la carte de l'habitant suivi ; en bas, la carte de la case puis le fil « À
+  faire ». Les cartes s'empilent ; si la place manque, « À faire » se replie sur son
+  titre, puis se cache (les alertes restent dans la Mairie, M). Une nouvelle carte
+  flottante à gauche s'ajoute à `pile_gauche.haut` ou `pile_gauche.bas` (terre_main).
+- **Bas à droite** : la mention des sources passe sur trois lignes si la barre des
+  catégories l'atteint.
+- **Panneaux de droite** : ils s'arrêtent au-dessus de la barre des catégories ; un
+  contenu long défile (`UiStyle.scroll_fit(corps, panneau, UiStyle.SIDE_BAS)`, voir
+  Cartes).
+- Test : `tests/chevauchements_test.gd` (fenêtres 1280×720, 1600×900, 1920×1080,
+  2560×1080 et 1600×1200, modes Gérer et Créer, tous les menus de la Mairie, colonne
+  de gauche avec une carte de la case très longue). Capture :
+  `tests/chevauchements_vitrine.gd`.
+
+![Barre du haut et colonne de gauche sans chevauchement](apercu-chevauchements.png)
+
 ## Tests et captures
 
 - `tests/interface_test.gd` : icônes, catégories et plateau, panneaux un à la fois, cartes de Construire, chiffres du haut, bouton Vue, fiche. Affiche `INTERFACE TEST OK`.

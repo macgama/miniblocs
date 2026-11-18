@@ -29,6 +29,9 @@ static func reglages() -> ReglagesPartie:
 	r.objectifs_ecran = true
 	# Démo guidée de 30 min : tout le catalogue ouvert (pas d'arbre de progression).
 	r.deblocage = "tout"
+	# 30 min de jeu : les chantiers gardent le rythme d'avant (×36 en tout, ici
+	# ×4 × 10 = ×40), sinon le village n'a pas le temps de sortir de terre.
+	r.rythme_chantiers = 10.0
 	return r
 
 

@@ -8,9 +8,9 @@ extends RefCounted
 ## travail n'avance que pendant les horaires de l'équipe (réglage Admin :
 ## jours ouvrés, tous les jours ou jour et nuit), à l'heure locale du lieu.
 ## Comme les habitants et les arbres, le chantier suit la vitesse de la vie
-## (Population.life_speed) : 1 an de vie = 1 mois de jeu par défaut, puis le
-## réglage Admin « rythme des chantiers » (×3) : une maison de 5 mois demande
-## ≈ 3 jours ouvrés de jeu (≈ 2 semaines à ×1).
+## (Population.life_speed) divisée par 3 (1 an de vie = 1 mois de jeu → ×4),
+## puis le réglage Admin « rythme des chantiers » (×3) : ×12 en tout, une
+## maison de 5 mois demande ≈ 2 semaines de jeu (≈ 6 semaines à ×1).
 ##
 ## Avancement gardé dans la donnée du chantier : "av" (0 à 1) et "hr" (heures
 ## réelles de travail au total). Changer la vitesse de la vie en cours de route
@@ -332,9 +332,19 @@ static func equipe_travaux(heures_reelles: float) -> int:
 
 ## Rythme : heures réelles faites pour une heure de travail dans le jeu (vitesse de
 ## la vie × réglage Admin « rythme des chantiers »).
-static func rythme(pop: Population) -> float:
+## Les chantiers ne suivent qu'une partie de la vitesse de la vie : vie / 3
+## (1 an de vie = 1 mois de jeu → chantiers ×4), jamais moins que ×1. Choix de
+## Gaël (2026-11-18) : maison ≈ 2 semaines de jeu, hôpital ≈ 4 mois à ×3.
+const VIE_DIVISEUR := 3.0
+
+
+static func vie_chantiers(pop: Population) -> float:
 	var vie := pop.life_speed() if pop != null else float(Population.LIFE_SPEEDS[Population.DEFAULT_LIFE_SPEED])
-	return vie * ReglagesPartie.actuel.rythme_chantiers
+	return maxf(1.0, vie / VIE_DIVISEUR)
+
+
+static func rythme(pop: Population) -> float:
+	return vie_chantiers(pop) * ReglagesPartie.actuel.rythme_chantiers
 
 
 # --- Étapes --------------------------------------------------------------------------

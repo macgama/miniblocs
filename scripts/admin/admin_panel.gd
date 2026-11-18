@@ -41,6 +41,7 @@ var _vie: OptionButton
 var _epuisement: CheckBox
 var _ev_auto: CheckBox
 var _catas: CheckBox
+var _envoi_manuel: CheckBox
 var _neige_routes: CheckBox
 var _telecom: CheckBox
 var _instant: CheckBox
@@ -305,6 +306,8 @@ func _ready() -> void:
 	g.add_child(_ev_auto)
 	_catas = _check("Catastrophes au hasard (incendies, tempêtes, épidémies, crues, feux de broussailles)")
 	g.add_child(_catas)
+	_envoi_manuel = _check("Envoi des secours à mon clic (sinon automatique ; un clic fait passer l'appel devant)")
+	g.add_child(_envoi_manuel)
 	_neige_routes = _check("Neige sur les routes (chasse-neige et sel à prévoir)")
 	g.add_child(_neige_routes)
 	_freq = OptionButton.new()
@@ -528,6 +531,7 @@ func _fill() -> void:
 	_epuisement.button_pressed = reglages.epuisement
 	_ev_auto.button_pressed = reglages.evenements_auto
 	_catas.button_pressed = reglages.catastrophes
+	_envoi_manuel.button_pressed = reglages.envoi_secours_manuel
 	_neige_routes.button_pressed = reglages.neige_routes
 	_telecom.button_pressed = reglages.telecom_necessaire
 	_instant.button_pressed = reglages.construction_instantanee
@@ -606,6 +610,7 @@ func _changed() -> void:
 	reglages.epuisement = _epuisement.button_pressed
 	reglages.evenements_auto = _ev_auto.button_pressed
 	reglages.catastrophes = _catas.button_pressed
+	reglages.envoi_secours_manuel = _envoi_manuel.button_pressed
 	reglages.neige_routes = _neige_routes.button_pressed
 	reglages.telecom_necessaire = _telecom.button_pressed
 	reglages.construction_instantanee = _instant.button_pressed

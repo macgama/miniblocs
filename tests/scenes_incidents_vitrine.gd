@@ -89,6 +89,12 @@ func _run() -> void:
 	var rig: Node3D = scene.get_node("CameraRig")
 	var id := urg.declare("accident", "Accident de la route", Vector3(40, y, 2), ["ambulance", "police"], 1)
 	var p: Vector3 = urg.incidents[id].scene_pos
+	# Sortie de la caserne de police : porte levée, voiture qui sort.
+	_avance(urg, tf, 20)
+	for bid in urg.stations:
+		if String(urg.stations[bid].t) == "police":
+			_vise(rig, urg.stations[bid].door, 24.0, 28.0, 160.0)
+	await _shot(dir.path_join("0-sortie-caserne.png"))
 	_vise(rig, p, 26.0, 35.0, -30.0)
 	await _shot(dir.path_join("1-accident.png"))
 	# Les secours arrivent et travaillent.
@@ -100,6 +106,16 @@ func _run() -> void:
 	for i in 120:
 		await process_frame
 	await _shot(dir.path_join("2-accident-secours.png"))
+	# Fin : les dépanneuses chargent les épaves.
+	for i in 3000:
+		_avance(urg, tf, 1)
+		if not urg.incidents.has(id):
+			break
+	for i in 200:
+		await process_frame
+		if not urg.scenes.finales.is_empty() and float(urg.scenes.finales[0].t) > 6.6:
+			break
+	await _shot(dir.path_join("2b-depanneuses.png"))
 	var fid := urg.declare("feu_poubelle", "Feu de poubelle", Vector3(-60, y, 2), ["pompiers"], 1)
 	var mid := urg.declare("malaise", "Malaise", urg._building_pos(maison), ["ambulance"], 1, {"bid": maison})
 	_vise(rig, urg.incidents[fid].scene_pos, 22.0, 30.0, 150.0)
@@ -115,6 +131,27 @@ func _run() -> void:
 	if urg.incidents.has(mid):
 		_vise(rig, urg.incidents[mid].scene_pos, 18.0, 60.0, 0.0)
 		await _shot(dir.path_join("5-malaise.png"))
+	# Arbre tombé et crue.
+	var aid := urg.declare("arbre", "Arbre tombé sur la route", Vector3(-420, y, 0), ["pompiers"], 1)
+	var cid := urg.declare("inondation", "Inondation", Vector3(420, y, 0), ["pompiers"], 1)
+	for i in 3000:
+		_avance(urg, tf, 1)
+		if urg.incidents.has(aid) and urg.scenes.avancement(urg.incidents[aid], "pompiers") > 0.4:
+			break
+	for i in 60:
+		await process_frame
+	if urg.incidents.has(aid):
+		_vise(rig, urg.incidents[aid].scene_pos, 22.0, 35.0, 30.0)
+		await _shot(dir.path_join("7-arbre.png"))
+	for i in 3000:
+		_avance(urg, tf, 1)
+		if urg.incidents.has(cid) and urg.scenes.avancement(urg.incidents[cid], "pompiers") > 0.6:
+			break
+	for i in 60:
+		await process_frame
+	if urg.incidents.has(cid):
+		_vise(rig, urg.incidents[cid].scene_pos, 24.0, 35.0, -60.0)
+		await _shot(dir.path_join("8-crue.png"))
 	# Icônes de loin, carte de détail.
 	urg.declare("cambriolage", "Cambriolage", Vector3(-150, y, 2), ["police"], 1)
 	_vise(rig, Vector3(0, y, 0), 260.0, 50.0, 0.0)

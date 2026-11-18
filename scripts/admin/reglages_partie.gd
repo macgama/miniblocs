@@ -89,6 +89,9 @@ var evenements_auto := true
 var catastrophes := true
 ## Fréquence des catastrophes (0,25 : rares ; 1 : normales ; 3 : fréquentes).
 var frequence_catastrophes := 1.0
+## Secours (pompiers, ambulances, police) envoyés seulement au clic du joueur
+## sur l'incident ; sinon automatiquement (un clic fait passer l'appel devant).
+var envoi_secours_manuel := false
 ## Crises économiques mondiales (choc pétrolier, krach…) dans le menu Commerce.
 var crises_economiques := true
 ## Marché mondial : 0,5 calme, 1 normal, 2 agité (amplitude des cours chaque jour).
@@ -309,7 +312,7 @@ func to_dict() -> Dictionary:
 		"epuisement": epuisement, "deblocage": deblocage, "createur": createur,
 		"arbre": arbre.duplicate(), "points_bonus": points_bonus, "journal_points": journal_points.duplicate(true),
 		"record_habitants": record_habitants, "evenements_auto": evenements_auto, "catastrophes": catastrophes,
-		"frequence_catastrophes": frequence_catastrophes, "crises_economiques": crises_economiques, "volatilite_marche": volatilite_marche, "neige_routes": neige_routes, "faim": faim, "telecom_necessaire": telecom_necessaire, "construction_instantanee": construction_instantanee,
+		"frequence_catastrophes": frequence_catastrophes, "envoi_secours_manuel": envoi_secours_manuel, "crises_economiques": crises_economiques, "volatilite_marche": volatilite_marche, "neige_routes": neige_routes, "faim": faim, "telecom_necessaire": telecom_necessaire, "construction_instantanee": construction_instantanee,
 		"horaires_chantiers": horaires_chantiers, "rythme_chantiers": rythme_chantiers, "usure": usure, "dechets": dechets, "dechets_quantite": dechets_quantite, "pollution": pollution, "pollution_sante": pollution_sante, "climat": climat, "sols_pollues": sols_pollues,
 		"immobilier_vivant": immobilier_vivant, "bidonvilles": bidonvilles,
 		"elections": elections, "manifestations": manifestations, "funeraire": funeraire, "recherche_parc": recherche_parc, "cremation": cremation, "reseaux_obligatoires": reseaux_obligatoires, "prix_services": prix_services,
@@ -355,6 +358,7 @@ func from_dict(d: Dictionary) -> void:
 	record_habitants = maxi(0, int(d.get("record_habitants", 0)))
 	evenements_auto = bool(d.get("evenements_auto", true))
 	catastrophes = bool(d.get("catastrophes", true))
+	envoi_secours_manuel = bool(d.get("envoi_secours_manuel", false))
 	frequence_catastrophes = clampf(float(d.get("frequence_catastrophes", 1.0)), 0.25, 3.0)
 	crises_economiques = bool(d.get("crises_economiques", true))
 	volatilite_marche = clampf(float(d.get("volatilite_marche", 1.0)), 0.0, 3.0)

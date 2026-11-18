@@ -33,6 +33,9 @@ var scenes: Dictionary = {}
 
 var _acc := 0.0
 var _temps := 0.0
+## Fins d'intervention animées (dépanneuses qui emportent les épaves…) :
+## [{root, t, trucks: [{node, car, z0, x, zc, debut}], fin}].
+var finales: Array = []
 var _rng := RandomNumberGenerator.new()
 
 static var _mat_glow: StandardMaterial3D
@@ -79,17 +82,128 @@ func ouvrir(inc: Dictionary) -> void:
 		inc.icone_pos = (sc.batiment as Vector3) + Vector3(0, float(sc.get("hauteur", 8.0)) + 1.0, 0)
 
 
-func fermer(id: int) -> void:
+func fermer(id: int, animer := true) -> void:
 	if not scenes.has(id):
 		return
 	var sc: Dictionary = scenes[id]
-	(sc.root as Node).queue_free()
 	scenes.erase(id)
+	for uid in (sc.equipes as Dictionary).keys():
+		_remonter(sc, int(uid))
+	if animer and not (sc.get("epaves", []) as Array).is_empty() and is_inside_tree():
+		_depannage(sc)
+		return
+	(sc.root as Node).queue_free()
 
 
 func vider() -> void:
 	for id in scenes.keys():
-		fermer(int(id))
+		fermer(int(id), false)
+	for f in finales:
+		if is_instance_valid(f.root):
+			(f.root as Node).queue_free()
+	finales.clear()
+
+
+# --- Fin d'un accident : les dépanneuses -----------------------------------------------------
+
+## Les secours sont partis : une dépanneuse par épave arrive de l'amont, charge
+## la voiture sur son plateau et repart ; les débris disparaissent ensuite.
+func _depannage(sc: Dictionary) -> void:
+	for n in [sc.blesse, sc.voisin, sc.get("brancard"), sc.cordon]:
+		if n != null and is_instance_valid(n):
+			(n as Node).queue_free()
+	var root: Node3D = sc.root
+	var trucks: Array = []
+	var i := 0
+	for ep in sc.epaves:
+		var car: Node3D = ep
+		var t := _depanneuse()
+		var x := car.position.x + 2.8
+		t.position = Vector3(x, car.position.y, 55.0 + i * 10.0)
+		root.add_child(t)
+		trucks.append({"node": t, "car": car, "z0": t.position.z, "x": x, "zc": car.position.z - 1.3, "debut": i * 4.5,
+			"car0": car.position, "yaw0": car.rotation.y})
+		i += 1
+	finales.append({"root": root, "t": 0.0, "trucks": trucks, "blink": sc.blink})
+
+
+## Durées (s) de l'arrivée, du chargement et du départ d'une dépanneuse.
+const D_ARRIVEE := 5.0
+const D_CHARGE := 2.5
+const D_DEPART := 5.0
+
+
+func _animer_finales(delta: float) -> void:
+	var reste: Array = []
+	var clign := fmod(_temps, 0.6) < 0.3
+	for f in finales:
+		if not is_instance_valid(f.root):
+			continue
+		f.t = float(f.t) + delta
+		var fini := true
+		for tr in f.trucks:
+			var t := float(f.t) - float(tr.debut)
+			var n: Node3D = tr.node
+			var car: Node3D = tr.car
+			for c in n.get_children():
+				if c.has_meta("feu"):
+					(c as Node3D).visible = clign
+			if t < 0.0:
+				fini = false
+				continue
+			if t < D_ARRIVEE:
+				n.position.z = lerpf(float(tr.z0), float(tr.zc), smoothstep(0.0, 1.0, t / D_ARRIVEE))
+				fini = false
+			elif t < D_ARRIVEE + D_CHARGE:
+				n.position.z = float(tr.zc)
+				var k := smoothstep(0.0, 1.0, (t - D_ARRIVEE) / D_CHARGE)
+				var bed := n.position + Vector3(0, 1.2, 1.3)
+				car.position = (tr.car0 as Vector3).lerp(bed, k)
+				car.position.y += sin(k * PI) * 0.8
+				car.rotation.y = lerp_angle(float(tr.yaw0), 0.0, k)
+				car.rotation.x = lerpf(car.rotation.x, 0.0, k)
+				car.rotation.z = lerpf(car.rotation.z, 0.0, k)
+				fini = false
+			elif t < D_ARRIVEE + D_CHARGE + D_DEPART:
+				var k2 := (t - D_ARRIVEE - D_CHARGE) / D_DEPART
+				n.position.z = float(tr.zc) - k2 * k2 * 90.0
+				car.position = n.position + Vector3(0, 1.2, 1.3)
+				car.rotation = Vector3.ZERO
+				fini = false
+			else:
+				n.visible = false
+				car.visible = false
+		if fini:
+			(f.root as Node).queue_free()
+		else:
+			reste.append(f)
+	finales = reste
+
+
+## Dépanneuse à plateau (orange et blanc, gyrophare orange). Regarde vers −Z.
+func _depanneuse() -> Node3D:
+	var n := Node3D.new()
+	n.name = "Depanneuse"
+	var k := EvVisuels._kit()
+	for z in [-2.6, 1.0, 2.6]:
+		for x in [-1.05, 1.05]:
+			k.box(x, 0.0, z, 0.3, 0.9, 0.9, Color("26282b"))
+	k.box(0, 0.45, -2.7, 2.3, 1.6, 2.0, Color("f8f9fa"))
+	k.box(0, 1.2, -3.1, 2.25, 0.75, 1.1, Color("2b3d4f"))
+	k.box(0, 0.45, -2.7, 2.32, 0.3, 2.02, ORANGE)
+	k.box(0, 0.55, 1.2, 2.4, 0.5, 6.0, Color("495057"))
+	k.box(0, 1.05, 1.2, 2.4, 0.08, 6.0, Color("adb5bd"))
+	k.box(0, 1.1, 4.0, 2.2, 0.3, 0.2, ORANGE)
+	n.add_child(EvVisuels._mesh_instance(k))
+	var box := BoxMesh.new()
+	box.size = Vector3(0.7, 0.18, 0.25)
+	var f := MeshInstance3D.new()
+	f.mesh = box
+	f.material_override = _glow()
+	f.position = Vector3(0, 2.15, -2.6)
+	f.set_meta("feu", true)
+	n.add_child(f)
+	return n
 
 
 ## Point des lieux : sur la route (accident, poubelle) ou devant la porte.
@@ -307,6 +421,9 @@ func _poser_epave(sc: Dictionary, model: String, choc: String, p: Vector3, yaw: 
 	mi.mesh = epave(model, paint, choc)
 	n.add_child(mi)
 	(sc.root as Node3D).add_child(n)
+	if not sc.has("epaves"):
+		sc.epaves = []
+	(sc.epaves as Array).append(n)
 	# Feux de détresse aux quatre coins.
 	var t := VehicleCatalog.get_type(model)
 	var L := float(t.get("L", 4.2))
@@ -438,7 +555,9 @@ func _postes(sc: Dictionary, role: String, rang: int) -> Array:
 			if kind in ["incendie", "feu_poubelle"]:
 				return [["lance", Vector3(cote * (1.5 + rang), 0, 5.5 + rang), Vector3.ZERO], ["lance", Vector3(-cote * 2.5, 0, 7.0 + rang), Vector3.ZERO]]
 			if kind == "arbre":
-				return [["tronconner", Vector3(0.6, 0, 1.4), Vector3.ZERO], ["surveiller", Vector3(-2.0, 0, 4.0), Vector3(0, 0, 12)]]
+				return [["tronconner", Vector3(0.6, 0, 1.4), Vector3.ZERO], ["empiler", Vector3(-2.0, 0, 2.5), Vector3.ZERO]]
+			if kind == "inondation":
+				return [["surveiller", Vector3(-4.5, 0, 4.5), Vector3(-4, 0, 3)], ["empiler", Vector3(3.6, 0, 0.0), Vector3(4.5, 0, 0)]]
 			if kind == "accident":
 				return [["ausculter", Vector3(1.0, 0, -2.6), Vector3(-0.2, 0, -3.2)], ["surveiller", Vector3(-1.4, 0, 1.5), Vector3.ZERO]]
 			return [["surveiller", Vector3(cote * 2.0, 0, 3.0), Vector3.ZERO], ["surveiller", Vector3(-cote * 3.0, 0, 4.0), Vector3.ZERO]]
@@ -477,6 +596,11 @@ func _sync(id: int, sc: Dictionary, inc: Dictionary) -> void:
 		sc.blesse = null
 		if sc.has("brancard") and is_instance_valid(sc.brancard):
 			(sc.brancard as Node).queue_free()
+	match String(sc.kind):
+		"arbre":
+			_arbre_travail(sc, inc)
+		"inondation":
+			_crue_travail(sc, inc)
 	# Pompiers sur place : le feu de poubelle baisse.
 	if sc.has("feu") and is_instance_valid(sc.feu) and inc.arrived.has("pompiers"):
 		var flammes := (sc.feu as Node3D).get_node_or_null("Flammes") as GPUParticles3D
@@ -487,6 +611,101 @@ func _sync(id: int, sc: Dictionary, inc: Dictionary) -> void:
 			fumee.amount_ratio = maxf(0.15, fumee.amount_ratio - 0.03)
 		if bool(inc.done.get("pompiers", false)):
 			EvVisuels.fumee_seule(sc.feu)
+
+
+## Avancement (0 à 1) du travail d'un service sur place, d'après l'heure d'arrivée.
+func avancement(inc: Dictionary, service: String) -> float:
+	if bool(inc.done.get(service, false)):
+		return 1.0
+	if not inc.arrived.has(service) or urg == null:
+		return 0.0
+	var duree := float(Urgences.WORK.get(service, 30.0)) * (1.0 + 0.5 * (int(inc.gravite) - 1))
+	return clampf((urg._t - float(inc.t0) - float(inc.arrived[service])) / duree, 0.0, 1.0)
+
+
+## Arbre tombé : tronçonné en bûches, que l'équipe charge ensuite dans le camion.
+func _arbre_travail(sc: Dictionary, inc: Dictionary) -> void:
+	var f := avancement(inc, "pompiers")
+	if f <= 0.0:
+		return
+	var ev := Evenements.instance
+	var arbre: Node3D = null
+	if ev != null and is_instance_valid(ev) and ev.tempetes != null and ev.tempetes.arbres.has(int(inc.id)):
+		var a: Dictionary = ev.tempetes.arbres[int(inc.id)]
+		if a.get("node") != null and is_instance_valid(a.node):
+			arbre = a.node
+	if not sc.has("tronc"):
+		sc.tronc = _local(sc, arbre.global_position) if arbre != null else Vector3.ZERO
+		sc.yaw_arbre = (arbre.global_rotation.y - (sc.root as Node3D).global_rotation.y) if arbre != null else 0.0
+	# Coupé au premier quart du travail : l'arbre laisse place aux bûches et aux branches.
+	if f > 0.25 and arbre != null:
+		arbre.visible = false
+	var n := 0 if f <= 0.25 else (8 if f < 0.55 else int(ceil(8.0 * (1.0 - (f - 0.55) / 0.45))))
+	if int(sc.get("nb_buches", -1)) == n:
+		return
+	sc.nb_buches = n
+	if sc.has("buches") and is_instance_valid(sc.buches):
+		(sc.buches as Node).queue_free()
+	if n <= 0 and f >= 1.0:
+		return
+	var k := EvVisuels._kit()
+	for i in n:
+		var row := i / 3
+		k.cylinder(-1.4 + (i % 3) * 0.55 + row * 0.27, row * 0.42, 0.0, 0.24, 0.22, 0.01, 6, Color("8b5a2b"))
+		k.box(-1.4 + (i % 3) * 0.55 + row * 0.27, row * 0.42, 0.0, 0.42, 0.42, 1.1, Color("7a4f2a"))
+	if f > 0.25 and f < 0.8:
+		# Tas de branches encore à évacuer.
+		for j in 4:
+			k.box(1.5 + j * 0.4, 0.0, -0.6 + (j % 2) * 0.8, 1.2, 0.5, 0.9, Color("3f6b35"))
+	var mi := EvVisuels._mesh_instance(k)
+	mi.position = sc.tronc
+	mi.rotation.y = float(sc.yaw_arbre)
+	(sc.root as Node3D).add_child(mi)
+	sc.buches = mi
+
+
+## Crue : pompe qui rejette l'eau, mur de sacs de sable qui monte au fil du travail.
+func _crue_travail(sc: Dictionary, inc: Dictionary) -> void:
+	var f := avancement(inc, "pompiers")
+	if f <= 0.0:
+		return
+	var root: Node3D = sc.root
+	if not sc.has("pompe"):
+		var k := EvVisuels._kit()
+		k.box(0, 0.25, 0, 1.4, 0.9, 1.0, Color("ffb703"))
+		k.box(0, 1.15, 0, 0.8, 0.3, 0.6, Color("3a3a3a"))
+		for x in [-0.6, 0.6]:
+			k.box(x, 0.0, 0.0, 0.2, 0.5, 0.5, Color("26282b"))
+		# Tuyau d'aspiration vers l'eau, tuyau de refoulement vers le bas-côté.
+		k.box(-3.0, 0.05, 0.0, 4.6, 0.16, 0.16, Color("1d3557"))
+		k.box(0.8, 0.6, 2.5, 0.16, 0.16, 4.2, Color("e9d8a6"))
+		var mi := EvVisuels._mesh_instance(k)
+		mi.position = Vector3(-4.0, 0, 3.0)
+		root.add_child(mi)
+		sc.pompe = mi
+		var jet := _jet()
+		jet.position = Vector3(-3.2, 0.7, 7.0)
+		var pm := jet.process_material as ParticleProcessMaterial
+		pm.direction = Vector3(0, 0.6, 1).normalized()
+		pm.initial_velocity_min = 5.0
+		pm.initial_velocity_max = 6.0
+		jet.emitting = true
+		root.add_child(jet)
+		sc.rejet = jet
+	var n := int(ceil(f * 24.0))
+	if int(sc.get("nb_sacs", -1)) == n:
+		return
+	sc.nb_sacs = n
+	if sc.has("sacs") and is_instance_valid(sc.sacs):
+		(sc.sacs as Node).queue_free()
+	var ks := EvVisuels._kit()
+	for i in n:
+		var rang := 0 if i < 10 else (1 if i < 18 else 2)
+		var j: int = i - int([0, 10, 18][rang])
+		ks.box(4.5, rang * 0.3, -5.0 + j * 0.9 + rang * 0.45, 0.7, 0.3, 0.85, Color("c9b38a") if (i % 3) else Color("b9a27a"))
+	var ms := EvVisuels._mesh_instance(ks)
+	root.add_child(ms)
+	sc.sacs = ms
 
 
 func _local(sc: Dictionary, p: Vector3) -> Vector3:
@@ -657,6 +876,7 @@ func _process(delta: float) -> void:
 	_temps += delta
 	_acc += delta
 	var cam := get_viewport().get_camera_3d() if is_inside_tree() else null
+	_animer_finales(delta)
 	if _acc >= PAS:
 		_acc = 0.0
 		for id in scenes.keys():

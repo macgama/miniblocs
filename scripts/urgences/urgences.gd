@@ -87,6 +87,16 @@ var transport: TransportSystem
 var population: Population
 ## Petits appels au hasard (sinon : seulement les événements et les essais).
 var random_calls := true
+## Envoi des secours : false = automatique (le plus ancien appel d'abord, un
+## clic le fait passer devant) ; true = rien ne part sans un clic du joueur
+## sur l'incident (panneau Urgences, U).
+## (Réglage de la partie : Admin, F10 ; aussi dans le panneau U.)
+var envoi_manuel: bool:
+	get:
+		return ReglagesPartie.actuel.envoi_secours_manuel if ReglagesPartie.actuel != null else false
+	set(v):
+		if ReglagesPartie.actuel != null:
+			ReglagesPartie.actuel.envoi_secours_manuel = v
 ## Tests : les équipages ne manquent jamais.
 var ignore_crew := false
 var rng := RandomNumberGenerator.new()
@@ -113,6 +123,8 @@ var _next_uid := 1
 ## Décor des lieux (voitures accidentées, blessés, équipages…) et icônes.
 var scenes: ScenesIncidents
 var icones: IconesIncidents
+## Portes de garage et sorties/rentrées visibles des véhicules.
+var sorties: SortiesCasernes
 
 
 func _init() -> void:
@@ -147,6 +159,9 @@ func _ready() -> void:
 	scenes = ScenesIncidents.new()
 	scenes.urg = self
 	add_child(scenes)
+	sorties = SortiesCasernes.new()
+	sorties.urg = self
+	add_child(sorties)
 	icones = IconesIncidents.new()
 	icones.urg = self
 	add_child(icones)
@@ -158,6 +173,8 @@ func clear() -> void:
 		_close(int(id), "annule", false)
 	if scenes != null:
 		scenes.vider()
+	if sorties != null:
+		sorties.vider()
 	if transport != null and transport.traffic != null:
 		for v in transport.traffic.emergency_vehicles():
 			transport.traffic.remove_emergency(v)
@@ -431,7 +448,8 @@ func _open_incident(id: int, type: String, name_: String, pos: Vector3, besoin: 
 		inc.state = "inaccessible"
 	if scenes != null:
 		scenes.ouvrir(inc)
-	_dispatch(inc)
+	inc.demande = not envoi_manuel
+	_dispatch_all()
 	var where := _place_name(inc)
 	message.emit("Appel : %s%s." % [name_, where])
 	changed.emit()
@@ -557,8 +575,83 @@ func _sent(inc: Dictionary, service: String) -> int:
 	return c
 
 
+## Envoie les véhicules libres aux appels, dans l'ordre de la file (appels
+## prioritaires d'abord, puis du plus ancien au plus récent).
+func _dispatch_all() -> void:
+	for id in ordre_file():
+		if incidents.has(id):
+			_dispatch(incidents[id])
+
+
+## Ids des appels ouverts, dans l'ordre où ils seront servis.
+func ordre_file() -> Array:
+	var ids := incidents.keys()
+	ids.sort_custom(func(a, b) -> bool:
+		var ia: Dictionary = incidents[a]
+		var ib: Dictionary = incidents[b]
+		if bool(ia.get("prio", false)) != bool(ib.get("prio", false)):
+			return bool(ia.get("prio", false))
+		return float(ia.t0) < float(ib.t0))
+	return ids
+
+
+## Le service manque-t-il encore à cet appel (rien d'envoyé, ou pas assez) ?
+func attend(inc: Dictionary, service: String) -> bool:
+	return not bool(inc.done.get(service, false)) and _sent(inc, service) < _need(inc, service) and not inc.get("closing", false)
+
+
+## File d'attente d'un service : ids des appels qui l'attendent, dans l'ordre
+## (en envoi manuel, seulement ceux que le joueur a demandés).
+func file(service: String) -> Array:
+	var out := []
+	for id in ordre_file():
+		var inc: Dictionary = incidents[id]
+		if (inc.besoin as Array).has(service) and attend(inc, service) and bool(inc.get("demande", true)):
+			out.append(id)
+	return out
+
+
+## Place (1 = le prochain servi) d'un appel dans la file d'un service, 0 s'il n'y est pas.
+func place_dans_file(inc: Dictionary, service: String) -> int:
+	return file(service).find(int(inc.id)) + 1
+
+
+## Clic du joueur sur un incident : on envoie les secours (en tête de file).
+## Renvoie le texte affiché au joueur.
+func envoyer(id: int) -> String:
+	if not incidents.has(id):
+		return ""
+	var inc: Dictionary = incidents[id]
+	var deja := bool(inc.get("demande", false))
+	inc.demande = true
+	inc.prio = true
+	_dispatch_all()
+	var attente: Array[String] = []
+	for s in inc.besoin:
+		if attend(inc, String(s)):
+			var r := raison_attente(inc, String(s))
+			var place := place_dans_file(inc, String(s))
+			attente.append("%s %s" % [String(SERVICE_NAMES[s]).get_slice(" ", 0), ("(%s)" % r) if not has_service(String(s)) or (inc.road as Dictionary).is_empty()
+				else "en sous-effectif : %s dans la file" % _rang(place)])
+	var txt := ""
+	if attente.is_empty():
+		txt = "%s : secours envoyés." % String(inc.name) if not deja or (inc.units as Array).size() > 0 else ""
+	else:
+		txt = "%s : en attente. %s." % [String(inc.name), ", ".join(attente)]
+	if txt != "":
+		message.emit(txt)
+	changed.emit()
+	return txt
+
+
+static func _rang(n: int) -> String:
+	return "1er" if n == 1 else "%de" % n
+
+
 func _dispatch(inc: Dictionary) -> void:
 	if (inc.road as Dictionary).is_empty() or inc.get("closing", false):
+		return
+	if not bool(inc.get("demande", true)):
 		return
 	for service in inc.besoin:
 		if bool(inc.done.get(service, false)):
@@ -597,7 +690,20 @@ func _warn_no_crew(service: String) -> void:
 		return
 	_no_crew_warned[key] = _t
 	if has_station:
-		message.emit("%s : aucun véhicule libre avec son équipage de garde." % String(SERVICE_NAMES[service]))
+		var n := file(service).size()
+		var garde := 0
+		var vehicules := 0
+		for bid in stations:
+			var has := false
+			for u in stations[bid].units:
+				if String(u.role) == service:
+					has = true
+					vehicules += 1
+			if has:
+				garde += mini(staff_of(int(bid)), 999)
+		message.emit("%d appel%s en attente : %s en sous-effectif (%s de garde, %d véhicule%s). Embauche ou construis un 2e bâtiment." % [
+			n, "s" if n > 1 else "", String(SERVICE_NAMES[service]).get_slice(" ", 0).to_lower(),
+			"personne" if garde == 0 else "%d personne%s" % [garde, "s" if garde > 1 else ""], vehicules, "s" if vehicules > 1 else ""])
 	else:
 		message.emit("%s : aucun bâtiment pour répondre à l'appel." % String(SERVICE_NAMES[service]))
 
@@ -609,6 +715,8 @@ func _send(inc: Dictionary, bid: int, u: Dictionary) -> bool:
 	var v := transport.traffic.add_emergency(model, st.road, inc.road, true, func(veh: Dictionary) -> void: _on_arrival(unit, veh))
 	if v.is_empty():
 		return false
+	if sorties != null:
+		sorties.sortie(bid, v)
 	u.out = true
 	u.uid = _next_uid
 	_next_uid += 1
@@ -727,6 +835,8 @@ func _go_home(u: Dictionary) -> void:
 ## Rentré au garage : le véhicule disparaît, il est de nouveau disponible.
 func _home(u: Dictionary) -> void:
 	if not (u.v as Dictionary).is_empty():
+		if sorties != null and String(u.get("phase", "")) == "retour" and transport.traffic.vehicles.has(u.v):
+			sorties.rentree(int(u.get("bid", -1)), String(u.get("model", u.base)), transport.traffic.vehicle_position(u.v))
 		transport.traffic.remove_emergency(u.v)
 	u.v = {}
 	u.out = false
@@ -857,6 +967,8 @@ func _process(delta: float) -> void:
 ## Fait avancer les urgences de delta secondes de simulation.
 func step(delta: float) -> void:
 	_t += delta
+	if sorties != null:
+		sorties.step(delta)
 	_connect_events()
 	# Véhicules sur place ou à l'hôpital : minuterie.
 	for bid in stations:
@@ -879,10 +991,10 @@ func step(delta: float) -> void:
 	_retry -= delta
 	if _retry <= 0.0:
 		_retry = 3.0
+		_dispatch_all()
 		for id in incidents.keys():
-			var inc: Dictionary = incidents[id]
-			_dispatch(inc)
-			_check_late(inc)
+			if incidents.has(id):
+				_check_late(incidents[id])
 	if random_calls:
 		_call_timer -= delta
 		if _call_timer <= 0.0:
@@ -962,8 +1074,13 @@ func detail(inc: Dictionary) -> Dictionary:
 			etat = "sur place (%d véhicule%s), arrivés en %s" % [la, "s" if la > 1 else "", format_time(float(inc.arrived[s]))] if la > 0 else "repartis"
 		elif _sent(inc, s) > 0:
 			etat = "en route"
+		elif not bool(inc.get("demande", true)):
+			etat = "à envoyer : clique sur l'icône"
 		else:
 			etat = "personne : " + raison_attente(inc, String(s))
+			var place := place_dans_file(inc, String(s))
+			if place > 0 and has_service(String(s)):
+				etat += " (%s dans la file sur %d)" % [_rang(place), file(String(s)).size()]
 		lignes.append("• %s : %s" % [nom, etat])
 	var manque := services_manquants(inc)
 	if not manque.is_empty():
@@ -998,7 +1115,10 @@ func alertes() -> Array:
 
 func state_label(inc: Dictionary) -> String:
 	match String(inc.state):
-		"attente": return "en attente (%s)" % format_time(_t - float(inc.t0))
+		"attente":
+			if not bool(inc.get("demande", true)):
+				return "à envoyer (clic) · %s" % format_time(_t - float(inc.t0))
+			return "en attente (%s)" % format_time(_t - float(inc.t0))
 		"en_route": return "secours en route (%s)" % format_time(_t - float(inc.t0))
 		"sur_place": return "secours sur place"
 		"inaccessible": return "aucune route"

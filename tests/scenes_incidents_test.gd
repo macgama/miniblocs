@@ -143,6 +143,54 @@ func _run() -> void:
 	_check(saw_blesse_parti, "l'ambulance repart avec le blessé")
 	_check(not urg.incidents.has(id) and not urg.scenes.scenes.has(id), "intervention terminée, lieux dégagés")
 
+	print("Sortie des casernes et dépanneuses :")
+	_check(not urg.sorties.portes.is_empty(), "portes de garage posées sur les casernes")
+	_check(urg.sorties.anims.is_empty(), "plus aucune sortie en cours")
+	_check(not urg.scenes.finales.is_empty(), "les dépanneuses arrivent pour les épaves")
+	for i in 40:
+		urg.scenes._process(0.5)
+	_check(urg.scenes.finales.is_empty(), "épaves emportées, lieux dégagés")
+
+	print("File d'attente et envoi au clic :")
+	urg.envoi_manuel = true
+	var mid0 := urg.declare("cambriolage", "Cambriolage", Vector3(-100, y, 2), ["police"], 1)
+	for i in 30:
+		tf.step(0.1)
+		urg.step(0.1)
+	_check((urg.incidents[mid0].units as Array).is_empty(), "envoi à mon clic : personne ne part tout seul")
+	var txt := urg.envoyer(mid0)
+	_check((urg.incidents[mid0].units as Array).size() == 1, "clic : la police part (%s)" % txt)
+	urg.envoi_manuel = false
+	var ids := []
+	for k in 4:
+		ids.append(urg.declare("cambriolage", "Cambriolage", Vector3(-300 + k * 40, y, 2), ["police"], 1))
+	var dernier: Dictionary = urg.incidents[ids[3]]
+	_check(urg.file("police").size() >= 1, "plus de voitures libres : %d appel(s) en file" % urg.file("police").size())
+	_check(urg.place_dans_file(dernier, "police") >= 1, "le dernier appel connaît sa place (%d)" % urg.place_dans_file(dernier, "police"))
+	_check(String(urg.detail(dernier).texte).contains("dans la file"), "la carte montre la place dans la file")
+	urg.envoyer(int(ids[3]))
+	_check(urg.place_dans_file(dernier, "police") == 1 or not urg.attend(dernier, "police"), "clic : l'appel passe en tête de file")
+	urg.clear()
+	urg._sync_stations()
+
+	print("Arbre et crue :")
+	var aid := urg.declare("arbre", "Arbre tombé sur la route", Vector3(-80, y, 0), ["pompiers"], 1)
+	var cid := urg.declare("inondation", "Inondation", Vector3(60, y, 0), ["pompiers"], 1)
+	var saw_buches := false
+	var saw_sacs := false
+	for i in 20000:
+		tf.step(0.1)
+		urg.step(0.1)
+		urg.scenes._process(0.1)
+		if urg.scenes.scenes.has(aid):
+			saw_buches = saw_buches or int(urg.scenes.scenes[aid].get("nb_buches", 0)) > 0
+		if urg.scenes.scenes.has(cid):
+			saw_sacs = saw_sacs or (urg.scenes.scenes[cid].has("pompe") and int(urg.scenes.scenes[cid].get("nb_sacs", 0)) > 3)
+		if not urg.incidents.has(aid) and not urg.incidents.has(cid):
+			break
+	_check(saw_buches, "arbre tronçonné en bûches")
+	_check(saw_sacs, "crue : pompe et mur de sacs de sable")
+
 	print("À domicile et feu de poubelle :")
 	var mid := urg.declare("malaise", "Malaise", urg._building_pos(maison), ["ambulance"], 1, {"bid": maison})
 	var ms: Dictionary = urg.scenes.scenes[mid]

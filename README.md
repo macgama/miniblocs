@@ -1,12 +1,12 @@
 # MiniBlocs
 
-Prototype de city builder en vue de dessus, style low-poly, mode bac à sable. Fait avec **Godot 4.3** (GDScript), sans aucun asset externe : tous les modèles (maisons, commerces, usines, arbres, routes) sont générés en code.
+Prototype de city builder en vue de dessus, style low-poly, mode bac à sable. Fait avec **Godot 4.7** (GDScript), sans aucun asset externe : tous les modèles (maisons, commerces, usines, arbres, routes) sont générés en code.
 
 ![Aperçu](docs/apercu.png)
 
 ## Lancer le jeu
 
-1. Installe [Godot 4.3 ou plus](https://godotengine.org/download) (version standard, pas .NET).
+1. Installe [Godot 4.7 ou plus](https://godotengine.org/download) (version standard, pas .NET). Les versions plus anciennes ne lancent pas le jeu : le journal de plantage utilise la classe `Logger` (Godot 4.5+) et le projet est réglé pour 4.7.
 2. Ouvre Godot, clique sur **Importer** et choisis le fichier `project.godot` de ce dossier.
 3. Appuie sur **F5** (ou le bouton ▶) pour lancer : le **menu principal** s'ouvre (Continuer, Démo guidée, Nouvelle partie → globe, Charger, Atelier, Options, Crédits, Quitter). Détails : [docs/menus.md](docs/menus.md). Le prototype de ville reste accessible avec le bouton **Ville prototype** du globe (ou ouvre `scenes/main.tscn` et appuie sur **F6**).
 

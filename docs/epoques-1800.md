@@ -2,7 +2,7 @@
 
 Une partie historique qui commence entre 1800 et 1900 a maintenant son propre contenu : bâtiments, véhicules, gares, musique et ambiances d'époque. Tout apparaît à sa date réelle (inventions datées) et disparaît peu à peu quand la ville se modernise.
 
-## Tester dans Godot (4.3 ou plus)
+## Tester dans Godot (4.7 ou plus)
 
 1. Ouvrir le projet dans Godot, lancer avec **F5**.
 2. **Nouvelle partie** → choisir une **année de départ** entre 1800 et 1900 (par exemple 1840).

@@ -151,7 +151,7 @@ Tout est dans `main`, et les 9 tests automatiques passent (`sh tests/tous.sh`).
 - Aide complète sur **F1**. Plus aucune touche ne déclenche deux actions : **T** met le temps en pause, **L** ouvre les lignes (#19, #31).
 - Performances : chargement de la carte nettement plus rapide, et plus de gel quand la ville pousse (#12, #15, #31).
 
-## Comment tester (Godot 4.3 ou plus)
+## Comment tester (Godot 4.7 ou plus)
 
 1. Dans GitHub Desktop, fais **Fetch origin** puis **Pull** sur `main`.
 2. Ouvre le projet dans Godot et appuie sur **F5**.

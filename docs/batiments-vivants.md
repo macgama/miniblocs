@@ -14,7 +14,7 @@ Ce document couvre cinq ajouts sur les bâtiments de la bible.
 | **Chantiers** | **Usure et abandon** |
 | ![Chantiers](apercu-vie-chantier.jpg) | ![Vieux](apercu-vie-vieux.jpg) |
 
-## Tester (Godot 4.3 et plus)
+## Tester (Godot 4.7 et plus)
 
 1. Ouvrir le projet, puis lancer avec F5.
 2. Poser une maison ou un immeuble (B, Construire). Il démarre en chantier : palissade, échafaudages, puis les étages qui montent un par un et enfin le toit. Les bâtiments de plus de 12 m ont une grue.

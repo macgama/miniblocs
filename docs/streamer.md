@@ -67,7 +67,7 @@ habiter la ville. Pratique pour régler le rythme avant un live.
 
 ## Tester avec une vraie chaîne
 
-1. Lance le jeu (Godot 4.3+ : ouvrir `project.godot`, F5), démarre une partie.
+1. Lance le jeu (Godot 4.7+ : ouvrir `project.godot`, F5), démarre une partie.
 2. Maj+F11 → coche **Activer**, tape le nom d'une chaîne Twitch **en direct** avec du
    chat (la tienne, ou n'importe quelle chaîne publique), **Se connecter**.
 3. Depuis ton compte Twitch, écris `!habitant`, puis `1` / `2` / `3` pendant un vote

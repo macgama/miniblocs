@@ -149,7 +149,7 @@ func _ready() -> void:
 	pr.add_child(_preset_label)
 
 	var cols := HBoxContainer.new()
-	cols.add_theme_constant_override("separation", 28)
+	cols.add_theme_constant_override("separation", 20)
 	# Les deux colonnes défilent quand elles dépassent l'écran (titre et pied restent visibles).
 	v.add_child(UiStyle.scroll_fit(cols, panel))
 	var left := _column(cols)

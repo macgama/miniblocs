@@ -417,7 +417,17 @@ func _touche() -> InputEventKey:
 
 func _en_ligne() -> void:
 	print("Serveur sans écran :")
-	_lancer_serveur(["--nouvelle", "--lat", "48.85", "--lon", "2.29", "--nom", "Test", "--code", CODE])
+	# Réglages choisis dans l'assistant de nouvelle partie (fichier lu par le serveur).
+	var reg := ReglagesPartie.load_defaults()
+	reg.argent_depart = 31_000_000
+	reg.tutoriel = true
+	var fr := FileAccess.open("user://test_amis_reglages.json", FileAccess.WRITE)
+	fr.store_string(JSON.stringify(reg.to_dict()))
+	fr.close()
+	var args_assistant := Multijoueur.arguments_serveur(PackedStringArray(["--lat", "1", "--reglages", "x"]))
+	_check(args_assistant.has("--serveur") and args_assistant.has("--reglages") and args_assistant.has("--headless"), "arguments du serveur d'une nouvelle carte (%s)" % " ".join(args_assistant))
+	_lancer_serveur(["--nouvelle", "--lat", "48.85", "--lon", "2.29", "--nom", "Test", "--code", CODE,
+		"--reglages", "user://test_amis_reglages.json"])
 	_check(_serveur_pid > 0, "serveur lancé (processus %d)" % _serveur_pid)
 	# Mauvais code : refusé.
 	var intrus := _client("intrus-000001", "Intrus", "ZZZZ-ZZZZ")
@@ -447,6 +457,7 @@ func _en_ligne() -> void:
 	_check(a.etat == "en_jeu" and bs.verrou_reseau and bs.relais.is_valid() and scene.transport.relais.is_valid(), "partie ouverte, branchée sur le serveur")
 	_check(await _attendre(func() -> bool: return a.ma_caisse != 0, 5.0), "caisse d'Alice reçue")
 	_check(Pays.est_caisse_joueur(a.ma_caisse) and bs.money == ReglagesPartie.actuel.argent_depart, "sans ville : caisse personnelle de %s" % BuildingSystem.format_money(bs.money))
+	_check(ReglagesPartie.actuel.argent_depart == 31_000_000 and not ReglagesPartie.actuel.tutoriel, "réglages de l'assistant appliqués par le serveur (argent %d, tutoriel coupé)" % ReglagesPartie.actuel.argent_depart)
 	_check(bs.place("maison", Vector2i(10, 10), 0) == -1 and bs.buildings.is_empty(), "rien ne se pose en local sans le serveur")
 
 	# Fonder un village : la Maison de commune part au serveur, revient chez Alice.

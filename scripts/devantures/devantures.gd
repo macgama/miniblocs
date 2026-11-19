@@ -230,13 +230,13 @@ func _batiment(bid: int, d: float, proche: bool, ctx: Dictionary, figs_vues: Dic
 	var niche := proche and bool(g.niche) and int(ctx.niches) < MAX_NICHES
 	s["a_niche"] = niche
 	if not proche:
-		_masquer(s, ["niche", "vitres", "contenu", "store", "terrasse", "etal", "ardoise", "texte_ardoise", "affichette", "logis", "stock", "lum", "potence", "rideau", "pancarte"])
+		_masquer(s, ["niche", "vitres", "contenu", "store", "nom_store", "terrasse", "etal", "ardoise", "texte_ardoise", "affichette", "logis", "stock", "lum", "potence", "rideau", "pancarte"])
 		montres.append(info)
 		return
 	# Logements : plaque, lampe d'entrée, jardinières.
 	if genre == DevanturesTypes.LOGIS:
 		_logis(s, g, ctx)
-		_masquer(s, ["niche", "vitres", "contenu", "store", "terrasse", "etal", "ardoise", "texte_ardoise", "affichette", "stock", "lum", "potence", "rideau", "pancarte"])
+		_masquer(s, ["niche", "vitres", "contenu", "store", "nom_store", "terrasse", "etal", "ardoise", "texte_ardoise", "affichette", "stock", "lum", "potence", "rideau", "pancarte"])
 		info.lumiere = bool(ctx.soir)
 		montres.append(info)
 		return
@@ -254,7 +254,7 @@ func _batiment(bid: int, d: float, proche: bool, ctx: Dictionary, figs_vues: Dic
 			mi.visible = true
 		else:
 			_masquer(s, ["stock"])
-		_masquer(s, ["niche", "vitres", "contenu", "store", "terrasse", "etal", "ardoise", "texte_ardoise", "affichette", "lum", "potence", "rideau", "pancarte"])
+		_masquer(s, ["niche", "vitres", "contenu", "store", "nom_store", "terrasse", "etal", "ardoise", "texte_ardoise", "affichette", "lum", "potence", "rideau", "pancarte"])
 		montres.append(info)
 		return
 	_masquer(s, ["stock"])
@@ -326,8 +326,20 @@ func _batiment(bid: int, d: float, proche: bool, ctx: Dictionary, figs_vues: Dic
 		ms.mesh = DevanturesModeles.store(w, h, Color(String(p.store)), deplie, String(st.id) != "moderne")
 		ms.visible = true
 		info.store = "deplie" if deplie else "replie"
+		# Le nom peint sur le lambrequin : lisible même quand le store cache le bandeau.
+		if deplie and nom != "":
+			var ln := _label(s, "nom_store", 48, 0.004)
+			ln.text = nom.to_upper() if String(st.id) != "ancien" else nom
+			ln.pixel_size = clampf((w * 0.8) / maxf(float(nom.length()) * 27.0, 1.0), 0.0018, 0.004)
+			ln.modulate = Color("f4f1e8") if Color(String(p.store)).get_luminance() < 0.6 else Color("2b2b2b")
+			ln.outline_size = 0
+			ln.position = DevanturesModeles.lambrequin(w, h)
+			ln.rotation = Vector3(0, PI, 0)
+			ln.visible = true
+		else:
+			_masquer(s, ["nom_store"])
 	else:
-		_masquer(s, ["store"])
+		_masquer(s, ["store", "nom_store"])
 	# Enseigne en potence (époques anciennes).
 	if bool(st.enseigne_potence) and genre == DevanturesTypes.BOUTIQUE:
 		var mp := _mi(s, "potence")
@@ -368,13 +380,14 @@ func _batiment(bid: int, d: float, proche: bool, ctx: Dictionary, figs_vues: Dic
 		ma.position = Vector3(DevanturesModeles.porte_x(w) - 1.3, 0, -0.9)
 		ma.rotation = Vector3(0, PI + 0.25, 0)
 		ma.visible = true
-		var lt := _label(s, "texte_ardoise", 28, 0.0045)
+		var lt := _label(s, "texte_ardoise", 40, 0.0038)
 		lt.text = phrase
 		lt.modulate = Color("f4f1e8")
 		lt.outline_size = 0
-		lt.width = 160.0
+		lt.width = 215.0
 		lt.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		lt.transform = ma.transform * Transform3D(Basis(Vector3.RIGHT, -0.19), Vector3(0, 0.55, -0.12))
+		# Collée sur la face avant du tableau (même inclinaison que lui).
+		lt.transform = ma.transform * Transform3D(Basis(Vector3.RIGHT, 0.19), Vector3(0, 0.66, -0.11)) * Transform3D(Basis.IDENTITY, Vector3(0, 0, 0.02))
 		lt.visible = true
 		info.ardoise = phrase
 	else:

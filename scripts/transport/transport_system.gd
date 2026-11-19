@@ -24,6 +24,11 @@ enum Tool { NONE, BUILD, DEMOLISH, JUNCTION, UPGRADE }
 ## Hauteur entre deux voies qui se croisent : en dessous, carrefour (ou passage
 ## à niveau) ; au-dessus de CLEARANCE, l'une passe sous l'autre.
 const JUNCTION_DY := 1.5
+## Surcoût de montagne : terrassement au-delà de 1 m de déblai ou de remblai (€/m³),
+## et aménagements d'une voie en zone orange (revêtement antidérapant, glissières,
+## drainage renforcé, €/m² de plate-forme).
+const PRIX_TERRASSEMENT := 12.0
+const PRIX_ZONE_ORANGE := 30.0
 const CLEARANCE := 4.5
 ## Passage aux croisements : automatique (carrefour, ou pont pour couper une
 ## autoroute), toujours dessus (pont) ou toujours dessous (tunnel).
@@ -51,6 +56,8 @@ var tool: Tool = Tool.NONE
 var type_id := "departementale"
 var spec: Dictionary = TransportTypes.default_spec("departementale")
 var curve_mode := false
+## Lacets : le tracé monte en épingles quand la pente est trop forte (bouton « Lacets »).
+var lacets_mode := false
 ## Passage imposé aux croisements (voir LEVELS).
 var level := "auto"
 ## Réglages retenus pour chaque classe (on les retrouve en revenant dessus).
@@ -64,6 +71,7 @@ var _plan := {}
 var _preview: MeshInstance3D
 var _preview_ok_mat: StandardMaterial3D
 var _preview_bad_mat: StandardMaterial3D
+var _preview_warn_mat: StandardMaterial3D
 var _marker: MeshInstance3D
 var _ctrl_marker: MeshInstance3D
 var _highlight_edge := -1
@@ -130,6 +138,7 @@ func _ready() -> void:
 	add_child(_preview)
 	_preview_ok_mat = _tint(Color(0.35, 0.95, 0.45, 0.6))
 	_preview_bad_mat = _tint(Color(1.0, 0.3, 0.25, 0.6))
+	_preview_warn_mat = _tint(Color(1.0, 0.62, 0.12, 0.65))
 	_marker = _make_marker(Color(1, 0.9, 0.3, 0.8))
 	_ctrl_marker = _make_marker(Color(0.4, 0.8, 1.0, 0.9))
 
@@ -295,6 +304,13 @@ func set_curve(on: bool) -> void:
 	_emit_help()
 
 
+func set_lacets(on: bool) -> void:
+	lacets_mode = on
+	_ctrl = null
+	_update_preview()
+	_emit_help()
+
+
 func set_level(l: String) -> void:
 	if not LEVELS.has(l):
 		return
@@ -312,9 +328,10 @@ func _emit_help() -> void:
 	if tool != Tool.BUILD:
 		return
 	var ty := TransportTypes.get_type(type_id)
-	var how := "clic de départ, clic de direction, clic d'arrivée" if curve_mode else "clic pour commencer, clic pour chaque point"
+	var how := "clic de départ, clic de direction, clic d'arrivée" if curve_mode and not lacets_mode else "clic pour commencer, clic pour chaque point"
+	var forme := "lacets" if lacets_mode else ("courbe" if curve_mode else "droite")
 	info_changed.emit("%s (%s) : %s · C : %s · N : %s · Échap / clic droit : arrêter · Maj : angles de 15°\n%s" % [
-		ty.name, "courbe" if curve_mode else "droite", how, "passer en ligne droite" if curve_mode else "passer en courbe",
+		ty.name, forme, how, "passer en ligne droite" if curve_mode else "passer en courbe",
 		String(LEVEL_NAMES[level]).to_lower(), TransportTypes.describe(type_id, spec)])
 
 
@@ -799,6 +816,7 @@ func _click_build() -> void:
 		return
 	message.emit(_describe(res, true))
 	edges_built.emit(res.edges)
+	appliquer_surcout(res)
 	_noter_histo(String(TransportTypes.get_type(type_id).get("name", "Voie")), av)
 	Son.jouer("pose_route", -3.0, 0.08)
 	# On continue le tracé depuis le point posé, dans le prolongement.
@@ -853,6 +871,10 @@ func _cursor_target() -> Vector3:
 func _current_path() -> PackedVector2Array:
 	var s: Vector3 = _start.pos
 	var e := _cursor_target()
+	if lacets_mode and TransportTypes.mode_of(type_id) != TransportTypes.Mode.WATER:
+		var lp := RoutePlanner.lacets(Vector2(s.x, s.z), Vector2(e.x, e.z), s.y, e.y, type_id)
+		if lp.size() >= 2:
+			return lp
 	return make_path(Vector2(s.x, s.z), Vector2(e.x, e.z), _ctrl, _start.get("dir", Vector2.ZERO), curve_mode)
 
 
@@ -928,7 +950,7 @@ func _update_preview() -> void:
 	if pts.size() >= 2:
 		_preview.mesh = TransportView.build_mesh(type_id, spec, pts, _plan.st, ground_height)
 		_preview.position = Vector3(0, 0.05, 0)
-		_preview.material_override = _preview_ok_mat if _plan.ok else _preview_bad_mat
+		_preview.material_override = (_preview_warn_mat if _plan.get("orange", false) else _preview_ok_mat) if _plan.ok else _preview_bad_mat
 	else:
 		_preview.mesh = null
 	info_changed.emit(_describe(_plan, false) + "\n" + TransportTypes.describe(type_id, spec))
@@ -937,7 +959,10 @@ func _update_preview() -> void:
 func _describe(p: Dictionary, built: bool) -> String:
 	var ty := TransportTypes.get_type(String(p.get("type", type_id)))
 	if not p.get("ok", false):
-		return "%s : %s" % [ty.name, p.get("reason", "")]
+		var r := "%s : %s" % [ty.name, p.get("reason", "")]
+		if String(p.get("reason", "")).begins_with("Pente trop forte") and not lacets_mode and not built:
+			r += "\nBouton « Lacets » : tracé en épingles."
+		return r
 	var s := "%s%s : %d m · pente maxi %s %%" % [ty.name, " posée" if built else "", roundi(p.length),
 		TransportTypes._num(float(p.max_grade) * 100.0)]
 	if float(p.get("min_radius", INF)) < 1.0e6:
@@ -951,6 +976,15 @@ func _describe(p: Dictionary, built: bool) -> String:
 			p.passes, "s" if int(p.passes) > 1 else ""]
 	if built and int(p.get("junctions", 0)) > 0:
 		s += " · %d carrefour%s" % [p.junctions, "s" if int(p.junctions) > 1 else ""]
+	if float(p.get("terr_bout", 0.0)) > 0.05:
+		s += " · bout terrassé de %s m" % TransportTypes._num(snappedf(float(p.terr_bout), 0.1))
+	var vol: Dictionary = p.get("volumes", {})
+	if float(vol.get("deblai", 0.0)) + float(vol.get("remblai", 0.0)) >= 50.0:
+		s += " · terrassement : déblai %d m³, remblai %d m³" % [roundi(vol.deblai), roundi(vol.remblai)]
+	if p.get("orange", false):
+		s += "\nZone orange : %s · plus cher, véhicules ralentis" % String(p.get("avert", ""))
+	if int(p.get("surcout", 0)) > 0:
+		s += " · surcoût %s" % BuildingSystem.format_money(int(p.surcout))
 	return s
 
 
@@ -1048,7 +1082,7 @@ func evaluate(id: String, s: Dictionary, path: PackedVector2Array) -> Dictionary
 		fplan.passes = forced.size()
 		if not fplan.ok:
 			return fplan
-		var grade := float(TransportTypes.get_type(id).max_grade)
+		var grade := TransportTypes.grade_tolere(id)
 		if float(fplan.max_grade) > grade * 1.05 + 0.002:
 			fplan.ok = false
 			fplan.reason = "Pas assez de longueur pour passer %s : il faut environ %d m de rampe de chaque côté (pente maxi %s %%)." % [
@@ -1078,7 +1112,49 @@ func evaluate(id: String, s: Dictionary, path: PackedVector2Array) -> Dictionary
 		plan.ok = false
 		plan.reason = "Chevauche %s. Raccorde-toi dessus (clic sur la voie) ou croise-la franchement." % String(clash.name).to_lower()
 		plan.clash = clash.pos
+		return plan
+	plan.volumes = RoutePlanner.volumes(w, pts, st, ground_height)
+	plan.surcout = surcout(plan, w)
 	return plan
+
+
+## Surcoût de montagne d'un tracé évalué (€, multiplicateur de la partie compris) :
+## gros terrassement (au-delà de 1 m) et aménagements de la zone orange.
+static func surcout(plan: Dictionary, width: float) -> int:
+	var c := float((plan.get("volumes", {}) as Dictionary).get("gros", 0.0)) * PRIX_TERRASSEMENT
+	if plan.get("orange", false):
+		# Pente au-delà de la norme : toute la longueur ; épingles seules : leurs abords.
+		var part := 1.0 if float(plan.get("need_grade", 0.0)) > TransportTypes.grade_norme(String(plan.get("type", ""))) + 1e-4 else 0.25
+		c += float(plan.get("length", 0.0)) * width * PRIX_ZONE_ORANGE * part
+	if c < 1.0:
+		return 0
+	return ReglagesPartie.prix(roundi(c))
+
+
+## Fait payer le surcoût de montagne d'une voie posée, réparti sur ses tronçons
+## au prorata de leur longueur (au fil des travaux si un chantier est en cours).
+func appliquer_surcout(res: Dictionary) -> int:
+	var total := int(res.get("surcout", 0))
+	var edges: Array = res.get("edges", [])
+	if total <= 0 or edges.is_empty():
+		return 0
+	var lt := 0.0
+	for eid in edges:
+		if network.edges.has(eid):
+			lt += float(network.edges[eid].len)
+	if lt <= 0.0:
+		return 0
+	var reste := total
+	for i in edges.size():
+		var eid: int = edges[i]
+		if not network.edges.has(eid):
+			continue
+		var part := reste if i == edges.size() - 1 else roundi(float(total) * float(network.edges[eid].len) / lt)
+		part = mini(part, reste)
+		reste -= part
+		if ChantiersVoies.instance != null:
+			ChantiersVoies.instance.fixer_cout(eid, int(network.edges[eid].get("cout", 0)) + part)
+	return total
 
 
 ## Croisements à franchir par un pont ou un tunnel : [[croisement, "dessus" ou

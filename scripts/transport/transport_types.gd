@@ -19,6 +19,12 @@ extends RefCounted
 ## - ferroviaire : écartement 1,435 m ; entraxe 4,20 m (lignes classiques) et
 ##   4,50 m (LGV) ; rampe maximale 25 ‰ (classique) et 35 ‰ (LGV) ;
 ##   tramway : entraxe 3,00 m, rayon minimal 25 m, pente jusqu'à 7 %.
+## Montagne (2026-11-19) : pentes relevées d'après les routes alpines suisses
+## (VSS) et l'ARP en relief difficile : départementale 10 % (cols jusqu'à 12-13 %),
+## autoroute 6 % (ICTAAL L1), chemins de fer 30 ‰ (Gothard 27 ‰), voie métrique
+## 70 ‰ (Bernina), LGV 40 ‰. Zone orange : au-delà de la norme, la voie se
+## construit encore jusqu'à TOLERANCE_PENTE × la pente et jusqu'au rayon
+## d'épingle r_epingle (lacets), plus chère et parcourue moins vite.
 ## Le tableau ci-dessous est la seule source de ces valeurs : on peut ajouter
 ## d'autres pays sans toucher au reste du code.
 
@@ -45,7 +51,8 @@ const GAUGE := 1.435
 ## tracks : nombre de voies ferrées [min, max, défaut] · spacing : entraxe (m)
 ## width : largeur totale [min, max, défaut] (chemins, eau)
 ## kmh : vitesse de référence · r_min : rayon de courbure minimal (m)
-## max_grade : pente maximale · smooth : rayon de lissage du profil (m)
+## max_grade : pente maximale (norme) · r_epingle : plus petit rayon toléré (épingle, zone orange)
+## smooth : rayon de lissage du profil (m)
 ## bridge_gap / tunnel_depth : écart avec le sol au-delà duquel on fait un pont / un tunnel (m)
 ## oneway : sens unique · single : une seule voie (lane_w est alors sa largeur)
 ## ramps : reçoit des bretelles · separated : jamais de carrefour à niveau (on passe dessus)
@@ -54,39 +61,39 @@ const CLASSES := {
 		"name": "Rue de desserte", "mode": Mode.ROAD, "kmh": 30.0,
 		"lanes": [1, 1, 1], "lane_w": [2.75, 3.25, 3.0], "median": 0.0, "median_from": 9,
 		"side": 1.5, "side_kind": "trottoir", "center": "dashed",
-		"r_min": 15.0, "max_grade": 0.12, "smooth": 6.0, "bridge_gap": 4.0, "tunnel_depth": 6.0,
+		"r_min": 15.0, "max_grade": 0.12, "r_epingle": 8.0, "smooth": 6.0, "bridge_gap": 4.0, "tunnel_depth": 6.0,
 	},
 	"avenue": {
 		"name": "Avenue urbaine", "mode": Mode.ROAD, "kmh": 50.0,
 		"lanes": [1, 3, 2], "lane_w": [3.0, 3.5, 3.25], "median": 2.0, "median_from": 2,
 		"side": 2.0, "side_kind": "trottoir", "center": "solid",
-		"r_min": 40.0, "max_grade": 0.08, "smooth": 10.0, "bridge_gap": 4.0, "tunnel_depth": 6.0,
+		"r_min": 40.0, "max_grade": 0.08, "r_epingle": 20.0, "smooth": 10.0, "bridge_gap": 4.0, "tunnel_depth": 6.0,
 	},
 	"giratoire": {
 		"name": "Anneau de giratoire", "mode": Mode.ROAD, "kmh": 30.0, "oneway": true,
 		"lanes": [1, 1, 1], "lane_w": [3.5, 4.5, 4.0], "median": 0.0, "median_from": 9,
 		"side": 1.0, "side_kind": "accotement", "center": "dashed",
-		"r_min": 12.0, "max_grade": 0.06, "smooth": 4.0, "bridge_gap": 4.0, "tunnel_depth": 6.0,
+		"r_min": 12.0, "max_grade": 0.06, "r_epingle": 12.0, "smooth": 4.0, "bridge_gap": 4.0, "tunnel_depth": 6.0,
 	},
 	# Route à 2 × 2 voies possible (ARP, type R) : terre-plein de 2 m dès 2 voies par sens.
 	"departementale": {
 		"name": "Route départementale", "mode": Mode.ROAD, "kmh": 80.0,
 		"lanes": [1, 2, 1], "lane_w": [3.0, 3.5, 3.0], "median": 2.0, "median_from": 2,
 		"side": 1.75, "side_kind": "accotement", "center": "dashed",
-		"r_min": 240.0, "max_grade": 0.07, "smooth": 16.0, "bridge_gap": 4.0, "tunnel_depth": 6.0,
+		"r_min": 240.0, "max_grade": 0.1, "r_epingle": 12.0, "smooth": 16.0, "bridge_gap": 4.0, "tunnel_depth": 6.0,
 	},
 	"voie_express": {
 		"name": "Voie express", "mode": Mode.ROAD, "kmh": 110.0,
 		"lanes": [2, 3, 2], "lane_w": [3.5, 3.5, 3.5], "median": 2.6, "median_from": 1,
 		"side": 2.5, "side_kind": "bau", "center": "barrier",
-		"r_min": 400.0, "max_grade": 0.06, "smooth": 30.0, "bridge_gap": 5.0, "tunnel_depth": 8.0,
+		"r_min": 400.0, "max_grade": 0.07, "r_epingle": 300.0, "smooth": 30.0, "bridge_gap": 5.0, "tunnel_depth": 8.0,
 		"ramps": true, "separated": true,
 	},
 	"autoroute": {
 		"name": "Autoroute", "mode": Mode.ROAD, "kmh": 130.0,
 		"lanes": [2, 4, 2], "lane_w": [3.5, 3.5, 3.5], "median": 3.0, "median_from": 1,
 		"side": 3.0, "side_kind": "bau", "center": "barrier",
-		"r_min": 665.0, "max_grade": 0.05, "smooth": 40.0, "bridge_gap": 5.0, "tunnel_depth": 8.0,
+		"r_min": 665.0, "max_grade": 0.06, "r_epingle": 450.0, "smooth": 40.0, "bridge_gap": 5.0, "tunnel_depth": 8.0,
 		"ramps": true, "separated": true,
 	},
 	# Bretelle d'échangeur (ICTAAL) : sens unique, une voie de 3,50 à 4,00 m,
@@ -95,7 +102,7 @@ const CLASSES := {
 		"name": "Bretelle d'autoroute (sens unique)", "mode": Mode.ROAD, "kmh": 70.0, "oneway": true, "single": true,
 		"lanes": [1, 1, 1], "lane_w": [3.5, 4.0, 3.5], "median": 0.0, "median_from": 9,
 		"side": 1.0, "side_kind": "accotement", "center": "none",
-		"r_min": 50.0, "max_grade": 0.07, "smooth": 12.0, "bridge_gap": 5.0, "tunnel_depth": 8.0,
+		"r_min": 50.0, "max_grade": 0.08, "r_epingle": 35.0, "smooth": 12.0, "bridge_gap": 5.0, "tunnel_depth": 8.0,
 	},
 	# Lot 5 : voies de toutes les époques. surface : revêtement imposé (sinon
 	# celui de l'époque) ; marquage : false pour une voie sans peinture au sol.
@@ -103,85 +110,85 @@ const CLASSES := {
 		"name": "Chemin de terre", "mode": Mode.ROAD, "kmh": 25.0,
 		"lanes": [1, 1, 1], "lane_w": [2.5, 3.0, 2.75], "median": 0.0, "median_from": 9,
 		"side": 0.6, "side_kind": "accotement", "center": "none", "surface": Color("9b7b55"), "marquage": false,
-		"r_min": 10.0, "max_grade": 0.15, "smooth": 5.0, "bridge_gap": 3.0, "tunnel_depth": 6.0,
+		"r_min": 10.0, "max_grade": 0.18, "r_epingle": 6.0, "smooth": 5.0, "bridge_gap": 3.0, "tunnel_depth": 6.0,
 	},
 	"route_pavee": {
 		"name": "Route pavée", "mode": Mode.ROAD, "kmh": 40.0,
 		"lanes": [1, 1, 1], "lane_w": [2.75, 3.25, 3.0], "median": 0.0, "median_from": 9,
 		"side": 1.2, "side_kind": "accotement", "center": "none", "surface": Color("8a8378"), "marquage": false,
-		"r_min": 30.0, "max_grade": 0.1, "smooth": 8.0, "bridge_gap": 4.0, "tunnel_depth": 6.0,
+		"r_min": 30.0, "max_grade": 0.12, "r_epingle": 10.0, "smooth": 8.0, "bridge_gap": 4.0, "tunnel_depth": 6.0,
 	},
 	"route_empierree": {
 		"name": "Route empierrée (macadam)", "mode": Mode.ROAD, "kmh": 45.0,
 		"lanes": [1, 1, 1], "lane_w": [3.0, 3.5, 3.25], "median": 0.0, "median_from": 9,
 		"side": 1.5, "side_kind": "accotement", "center": "none", "surface": Color("a39a88"), "marquage": false,
-		"r_min": 60.0, "max_grade": 0.08, "smooth": 12.0, "bridge_gap": 4.0, "tunnel_depth": 6.0,
+		"r_min": 60.0, "max_grade": 0.1, "r_epingle": 12.0, "smooth": 12.0, "bridge_gap": 4.0, "tunnel_depth": 6.0,
 	},
 	"boulevard": {
 		"name": "Grand boulevard (à l'haussmannienne)", "mode": Mode.ROAD, "kmh": 50.0,
 		"lanes": [2, 3, 2], "lane_w": [3.0, 3.5, 3.25], "median": 6.0, "median_from": 1,
 		"side": 4.0, "side_kind": "trottoir", "center": "solid",
-		"r_min": 60.0, "max_grade": 0.06, "smooth": 12.0, "bridge_gap": 4.0, "tunnel_depth": 6.0,
+		"r_min": 60.0, "max_grade": 0.06, "r_epingle": 40.0, "smooth": 12.0, "bridge_gap": 4.0, "tunnel_depth": 6.0,
 	},
 	"zone_rencontre": {
 		"name": "Rue partagée (zone de rencontre, 20 km/h)", "mode": Mode.ROAD, "kmh": 20.0,
 		"lanes": [1, 1, 1], "lane_w": [3.0, 3.5, 3.25], "median": 0.0, "median_from": 9,
 		"side": 1.0, "side_kind": "aucun", "center": "none", "surface": Color("b9a68c"), "marquage": false,
-		"r_min": 10.0, "max_grade": 0.12, "smooth": 5.0, "bridge_gap": 4.0, "tunnel_depth": 6.0,
+		"r_min": 10.0, "max_grade": 0.12, "r_epingle": 6.0, "smooth": 5.0, "bridge_gap": 4.0, "tunnel_depth": 6.0,
 	},
 	"avenue_bhns": {
 		"name": "Avenue à couloirs de bus (BHNS)", "mode": Mode.ROAD, "kmh": 50.0, "bus_defaut": true,
 		"lanes": [1, 2, 1], "lane_w": [3.0, 3.5, 3.25], "median": 2.0, "median_from": 1,
 		"side": 2.5, "side_kind": "trottoir", "center": "solid",
-		"r_min": 50.0, "max_grade": 0.07, "smooth": 10.0, "bridge_gap": 4.0, "tunnel_depth": 6.0,
+		"r_min": 50.0, "max_grade": 0.07, "r_epingle": 30.0, "smooth": 10.0, "bridge_gap": 4.0, "tunnel_depth": 6.0,
 	},
 	"route_2plus1": {
 		"name": "Route à 2 + 1 voies (dépassement alterné)", "mode": Mode.ROAD, "kmh": 90.0,
 		"lanes": [1, 2, 2], "lane_w": [3.25, 3.5, 3.5], "median": 0.0, "median_from": 9,
 		"side": 1.75, "side_kind": "accotement", "center": "barrier",
-		"r_min": 300.0, "max_grade": 0.06, "smooth": 20.0, "bridge_gap": 4.0, "tunnel_depth": 6.0,
+		"r_min": 300.0, "max_grade": 0.08, "r_epingle": 150.0, "smooth": 20.0, "bridge_gap": 4.0, "tunnel_depth": 6.0,
 	},
 	"autoroute_urbaine": {
 		"name": "Autoroute urbaine apaisée (70 km/h)", "mode": Mode.ROAD, "kmh": 70.0,
 		"lanes": [2, 3, 2], "lane_w": [3.25, 3.5, 3.25], "median": 3.0, "median_from": 1,
 		"side": 2.5, "side_kind": "bau", "center": "barrier",
-		"r_min": 250.0, "max_grade": 0.06, "smooth": 24.0, "bridge_gap": 5.0, "tunnel_depth": 8.0,
+		"r_min": 250.0, "max_grade": 0.06, "r_epingle": 150.0, "smooth": 24.0, "bridge_gap": 5.0, "tunnel_depth": 8.0,
 		"ramps": true, "separated": true,
 	},
 	"tram": {
 		"name": "Tramway", "mode": Mode.RAIL, "kmh": 50.0,
 		"tracks": [1, 2, 2], "spacing": 3.0, "side": 0.5,
-		"r_min": 25.0, "max_grade": 0.07, "smooth": 8.0, "bridge_gap": 4.0, "tunnel_depth": 6.0,
+		"r_min": 25.0, "max_grade": 0.08, "r_epingle": 18.0, "smooth": 8.0, "bridge_gap": 4.0, "tunnel_depth": 6.0,
 	},
 	"train": {
 		"name": "Ligne ferroviaire classique", "mode": Mode.RAIL, "kmh": 120.0,
 		"tracks": [1, 2, 1], "spacing": 4.2, "side": 1.5,
-		"r_min": 600.0, "max_grade": 0.025, "smooth": 40.0, "bridge_gap": 4.0, "tunnel_depth": 6.0,
+		"r_min": 600.0, "max_grade": 0.03, "r_epingle": 300.0, "smooth": 40.0, "bridge_gap": 4.0, "tunnel_depth": 6.0,
 	},
 	"cremaillere": {
 		"name": "Chemin de fer à crémaillère", "mode": Mode.RAIL, "kmh": 25.0, "rack": true,
 		"tracks": [1, 2, 1], "spacing": 3.6, "side": 1.0,
-		"r_min": 60.0, "max_grade": 0.25, "smooth": 10.0, "bridge_gap": 4.0, "tunnel_depth": 6.0,
+		"r_min": 60.0, "max_grade": 0.25, "r_epingle": 40.0, "smooth": 10.0, "bridge_gap": 4.0, "tunnel_depth": 6.0,
 	},
 	"metro": {
 		"name": "Métro (souterrain)", "mode": Mode.RAIL, "kmh": 80.0, "underground": 14.0,
 		"tracks": [2, 2, 2], "spacing": 3.4, "side": 1.0,
-		"r_min": 150.0, "max_grade": 0.05, "smooth": 20.0, "bridge_gap": 4.0, "tunnel_depth": 4.0,
+		"r_min": 150.0, "max_grade": 0.06, "r_epingle": 100.0, "smooth": 20.0, "bridge_gap": 4.0, "tunnel_depth": 4.0,
 	},
 	"lgv": {
 		"name": "Ligne à grande vitesse", "mode": Mode.RAIL, "kmh": 300.0,
 		"tracks": [2, 2, 2], "spacing": 4.5, "side": 1.5,
-		"r_min": 4000.0, "max_grade": 0.035, "smooth": 80.0, "bridge_gap": 4.0, "tunnel_depth": 8.0,
+		"r_min": 4000.0, "max_grade": 0.04, "r_epingle": 2500.0, "smooth": 80.0, "bridge_gap": 4.0, "tunnel_depth": 8.0,
 	},
 	"voie_etroite": {
 		"name": "Chemin de fer à voie métrique", "mode": Mode.RAIL, "kmh": 60.0,
 		"tracks": [1, 2, 1], "spacing": 3.4, "side": 1.0,
-		"r_min": 100.0, "max_grade": 0.04, "smooth": 16.0, "bridge_gap": 4.0, "tunnel_depth": 6.0,
+		"r_min": 100.0, "max_grade": 0.07, "r_epingle": 45.0, "smooth": 16.0, "bridge_gap": 4.0, "tunnel_depth": 6.0,
 	},
 	"ligne_fret": {
 		"name": "Ligne de fret électrifiée (trains lourds)", "mode": Mode.RAIL, "kmh": 100.0,
 		"tracks": [1, 2, 2], "spacing": 4.2, "side": 2.0,
-		"r_min": 800.0, "max_grade": 0.0125, "smooth": 60.0, "bridge_gap": 4.0, "tunnel_depth": 8.0,
+		"r_min": 800.0, "max_grade": 0.015, "r_epingle": 500.0, "smooth": 60.0, "bridge_gap": 4.0, "tunnel_depth": 8.0,
 	},
 	"trottoir": {
 		"name": "Chemin piéton", "mode": Mode.PATH, "kmh": 5.0, "width": [1.4, 4.0, 2.0],
@@ -249,6 +256,15 @@ const BY_MODE := {
 ## Pas d'échantillonnage du tracé (m).
 const STEP := 2.0
 
+## Zone orange : pente tolérée = pente de la norme × ce facteur (plus cher, plus lent).
+const TOLERANCE_PENTE := {Mode.ROAD: 1.5, Mode.PATH: 1.5, Mode.RAIL: 1.25}
+## Vitesse sur la pente la plus raide tolérée (part de la vitesse normale) ;
+## les poids lourds et les trains de fret perdent en plus PERTE_LOURDS.
+const VITESSE_RAIDE := 0.65
+const PERTE_LOURDS := 0.3
+## Vitesse moyenne minimale sur un tronçon à épingles (part de la vitesse normale).
+const VITESSE_EPINGLES := 0.5
+
 
 static func resolve(id: String) -> String:
 	return ALIASES.get(id, id)
@@ -283,6 +299,69 @@ static func takes_ramps(id: String) -> bool:
 ## Classe jamais coupée à niveau : les autres voies passent dessus ou dessous.
 static func is_separated(id: String) -> bool:
 	return bool(get_type(id).get("separated", false))
+
+
+## Pente de la norme (au-delà : zone orange).
+static func grade_norme(id: String) -> float:
+	return float(get_type(id).get("max_grade", 0.0))
+
+
+## Pente la plus forte tolérée (zone orange comprise ; au-delà : refus).
+static func grade_tolere(id: String) -> float:
+	return grade_norme(id) * float(TOLERANCE_PENTE.get(mode_of(id), 1.0))
+
+
+## Plus petit rayon toléré (épingle, zone orange comprise).
+static func rayon_tolere(id: String) -> float:
+	var c := get_type(id)
+	if int(c.get("mode", -1)) == Mode.WATER:
+		return float(c.get("r_min", 0.0))
+	return minf(float(c.get("r_min", 0.0)), float(c.get("r_epingle", float(c.get("r_min", 0.0)) / 1.5)))
+
+
+## Ralentissement dû au relief d'un tronçon posé (pente au-delà de la norme,
+## épingles) : {"f": part de la vitesse normale, "raide": 0..1 (dépassement de la
+## pente de la norme, 1 = pente la plus forte tolérée)}.
+static func facteur_relief(id: String, pts: PackedVector3Array) -> Dictionary:
+	var out := {"f": 1.0, "raide": 0.0}
+	var c := get_type(id)
+	var n := pts.size()
+	if c.is_empty() or n < 3 or int(c.get("mode", -1)) == Mode.WATER:
+		return out
+	# Pente sur ~10 m (une marche de raccord ne compte pas).
+	var gmax := 0.0
+	var k := 5
+	for i in range(0, n - 1):
+		var j := mini(n - 1, i + k)
+		var h := Vector2(pts[j].x - pts[i].x, pts[j].z - pts[i].z).length()
+		if h > 6.0:
+			gmax = maxf(gmax, absf(pts[j].y - pts[i].y) / h)
+		if j == n - 1:
+			break
+	var norme := grade_norme(id)
+	var tol := grade_tolere(id)
+	if norme > 0.0 and tol > norme and gmax > norme * 1.05:
+		var x := clampf((gmax - norme) / (tol - norme), 0.0, 1.0)
+		out.raide = x
+		out.f = lerpf(1.0, VITESSE_RAIDE, x)
+	var r_min := float(c.get("r_min", 0.0))
+	if r_min > 0.0:
+		var xz := PackedVector2Array()
+		xz.resize(n)
+		for i in n:
+			xz[i] = Vector2(pts[i].x, pts[i].z)
+		var rad := RoutePlanner.min_radius(xz)
+		if rad < r_min * 0.9:
+			out.f = minf(float(out.f), maxf(VITESSE_EPINGLES, sqrt(rad / r_min)))
+	return out
+
+
+## Vitesse d'un véhicule sur un tronçon posé, compte tenu du relief (e.lent, e.raide).
+static func facteur_vehicule(e: Dictionary, lourd: bool) -> float:
+	var f := float(e.get("lent", 1.0))
+	if lourd:
+		f *= 1.0 - PERTE_LOURDS * float(e.get("raide", 0.0))
+	return f
 
 
 static func speed_of(id: String) -> float:

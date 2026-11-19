@@ -20,6 +20,12 @@ const SEA_LEVEL := 0.0
 ## Pente des talus de remblai / déblai (horizontal pour 1 m de vertical).
 const TALUS := 1.5
 const TALUS_MAX := 14.0
+## Terrassement automatique : une extrémité libre (pas raccordée) peut être
+## creusée ou remblayée jusqu'à cette profondeur pour adoucir la pente (m).
+const TERRASSEMENT_BOUT := 3.0
+## Lacets : pente visée (part de la pente de la norme) et largeur maximale du lacet (m).
+const LACETS_PENTE := 0.85
+const LACETS_LARGEUR_MAX := 600.0
 
 
 # --- Géométrie en plan -------------------------------------------------------------
@@ -90,7 +96,9 @@ static var profondeur_forcee := NAN
 ## water (optionnel) : Callable(x, z) -> float, surface d'une rivière ou d'un lac
 ## (NAN = pas d'eau douce) : la voie l'enjambe par un pont.
 ## Renvoie : ok, reason, type, pts, st, length, max_grade, min_radius,
-## bridge_len, tunnel_len.
+## bridge_len, tunnel_len ; orange (zone de tolérance : pente au-delà de la norme
+## ou virage en épingle), avert (texte), terr_bout (m creusés ou remblayés aux
+## extrémités libres).
 ## bounds (optionnel) : passages imposés au-dessus ou au-dessous d'une autre
 ## voie, [{s0, s1 (distances le long du tracé), lo, hi (hauteurs permises),
 ## st (structure imposée)}] ; les rampes d'accès suivent la pente maximale.
@@ -99,7 +107,8 @@ static func plan(type_id: String, path: PackedVector2Array, h0: float, h1: float
 	type_id = TransportTypes.resolve(type_id)
 	var ty := TransportTypes.get_type(type_id)
 	var res := {"type": type_id, "ok": false, "reason": "", "pts": PackedVector3Array(), "st": PackedByteArray(),
-		"length": 0.0, "max_grade": 0.0, "min_radius": INF, "bridge_len": 0.0, "tunnel_len": 0.0}
+		"length": 0.0, "max_grade": 0.0, "min_radius": INF, "bridge_len": 0.0, "tunnel_len": 0.0,
+		"orange": false, "avert": "", "terr_bout": 0.0}
 	if ty.is_empty() or path.size() < 2:
 		res.reason = "Type de voie inconnu."
 		return res
@@ -119,7 +128,9 @@ static func plan(type_id: String, path: PackedVector2Array, h0: float, h1: float
 	var rad := min_radius(xz)
 	res.min_radius = rad
 	# Tolérance : la courbe est échantillonnée, on accepte 3 % d'écart.
-	var too_tight := rad < r_min * 0.97
+	# Entre le rayon d'épingle et le rayon de la norme : zone orange.
+	var too_tight := rad < TransportTypes.rayon_tolere(type_id) * 0.97
+	var serre := rad < r_min * 0.97 and not too_tight
 
 	var g := PackedFloat32Array()
 	g.resize(n)
@@ -181,13 +192,37 @@ static func plan(type_id: String, path: PackedVector2Array, h0: float, h1: float
 			want[i] = maxf(want[i], ws[i] + RIVER_CLEARANCE)
 	if depth > 0.0:
 		ws.fill(NAN)
-	if is_nan(h0):
+	var libre0 := is_nan(h0)
+	var libre1 := is_nan(h1)
+	if libre0:
 		h0 = g[0] - depth if depth > 0.0 else maxf(g[0], SEA_LEVEL + 0.5)
-	if is_nan(h1):
+	if libre1:
 		h1 = g[n - 1] - depth if depth > 0.0 else maxf(g[n - 1], SEA_LEVEL + 0.5)
 
 	var grade: float = ty.max_grade
+	var hard := TransportTypes.grade_tolere(type_id)
 	var need := absf(h1 - h0) / length
+	# Terrassement automatique : l'extrémité libre du haut est creusée, celle du
+	# bas remblayée (TERRASSEMENT_BOUT au plus), comme sur un vrai chantier.
+	res.terr_bout = 0.0
+	if need > grade + 1e-4 and depth <= 0.0 and (libre0 or libre1):
+		var exces := absf(h1 - h0) - grade * length
+		var cap := TERRASSEMENT_BOUT * (int(libre0) + int(libre1))
+		var shift := minf(exces, cap)
+		var sgn := signf(h1 - h0)
+		var s0 := 0.0
+		var s1 := 0.0
+		if libre0 and libre1:
+			s0 = minf(shift * 0.5, TERRASSEMENT_BOUT)
+			s1 = shift - s0
+		elif libre0:
+			s0 = shift
+		else:
+			s1 = shift
+		h0 += sgn * s0
+		h1 -= sgn * s1
+		res.terr_bout = shift
+		need = absf(h1 - h0) / length
 
 	# Lissage (moyenne glissante).
 	var r := maxi(0, roundi(float(ty.smooth) / ds))
@@ -278,18 +313,32 @@ static func plan(type_id: String, path: PackedVector2Array, h0: float, h1: float
 	res.max_grade = max_g
 	res.bridge_len = bridge
 	res.tunnel_len = tunnel
-	if need > grade + 1e-4:
-		res.reason = "Pente trop forte : %s %% (maximum %s %% pour %s)." % [
-			TransportTypes._num(need * 100.0), TransportTypes._num(grade * 100.0), String(ty.name).to_lower()]
+	res.need_grade = need
+	if need > hard + 1e-4:
+		res.reason = "Pente trop forte : %s %% (maximum %s %% pour %s, %s %% en tolérance). Essaie « Lacets » ou un tunnel." % [
+			TransportTypes._num(need * 100.0), TransportTypes._num(grade * 100.0), String(ty.name).to_lower(),
+			TransportTypes._num(hard * 100.0)]
 		return res
 	if too_tight:
-		res.reason = _radius_reason(ty, rad)
+		res.reason = _radius_reason(ty, rad, type_id)
 		return res
+	# Zone orange : construit quand même, plus cher, véhicules ralentis.
+	var avert := []
+	if need > grade + 1e-4:
+		avert.append("pente %s %% (norme %s %%)" % [TransportTypes._num(snappedf(need * 100.0, 0.1)), TransportTypes._num(grade * 100.0)])
+	if serre:
+		avert.append("virage en épingle (rayon %d m, norme %d m)" % [roundi(rad), roundi(r_min)])
+	res.orange = not avert.is_empty()
+	res.avert = " · ".join(avert)
 	res.ok = true
 	return res
 
 
-static func _radius_reason(ty: Dictionary, rad: float) -> String:
+static func _radius_reason(ty: Dictionary, rad: float, type_id := "") -> String:
+	var tol := TransportTypes.rayon_tolere(type_id) if type_id != "" else float(ty.r_min)
+	if tol < float(ty.r_min) - 0.5:
+		return "Virage trop serré : rayon %d m (minimum %d m pour %s, %d m en épingle)." % [
+			roundi(rad), roundi(ty.r_min), String(ty.name).to_lower(), roundi(tol)]
 	return "Virage trop serré : rayon %d m (minimum %d m pour %s à %d km/h)." % [
 		roundi(rad), roundi(ty.r_min), String(ty.name).to_lower(), roundi(ty.kmh)]
 
@@ -316,6 +365,136 @@ static func _clean_runs(st: PackedByteArray, min_run: int) -> void:
 				for k in range(i, j + 1):
 					st[k] = fill
 		i = j + 1
+
+
+# --- Lacets ---------------------------------------------------------------------------
+
+## Tracé en lacets de a (hauteur ha) à b (hauteur hb) pour la classe type_id :
+## des branches en travers de la pente reliées par des épingles au rayon
+## d'épingle de la classe, assez longues pour monter à LACETS_PENTE × la pente
+## de la norme. Renvoie [a, b] si la ligne droite suffit ; un tableau vide si
+## même les lacets ne tiennent pas (trop raide pour la place disponible).
+static func lacets(a: Vector2, b: Vector2, ha: float, hb: float, type_id: String) -> PackedVector2Array:
+	var d := a.distance_to(b)
+	var g := TransportTypes.grade_norme(type_id) * LACETS_PENTE
+	if g <= 0.0 or d < 1.0 or is_nan(ha) or is_nan(hb):
+		return PackedVector2Array([a, b])
+	var need_len := absf(hb - ha) / g
+	if need_len <= d * 1.02:
+		return PackedVector2Array([a, b])
+	need_len = minf(need_len, MAX_LENGTH * 0.95)
+	var r := TransportTypes.rayon_tolere(type_id) * 1.15
+	var u := (b - a) / d
+	var v := Vector2(-u.y, u.x)
+	var best := PackedVector2Array()
+	for n in range(2, 80):
+		var adv := d / float(n)
+		if adv < 2.2 * r:
+			break
+		# Les épingles raccourcissent le tracé : on élargit jusqu'à la bonne longueur.
+		var cible := need_len
+		var line := PackedVector2Array()
+		for _essai in 8:
+			var w := _largeur_lacets(n, adv, cible)
+			if w > LACETS_LARGEUR_MAX or w < 3.0 * r:
+				line = PackedVector2Array()
+				break
+			var corners := PackedVector2Array([a])
+			for k in range(1, n):
+				var side := 1.0 if k % 2 == 1 else -1.0
+				corners.append(a + u * adv * float(k) + v * w * 0.5 * side)
+			corners.append(b)
+			line = _arrondir(corners, r)
+			if line.is_empty():
+				break
+			var l := polyline_length(line)
+			if l >= need_len * 0.98 or l > MAX_LENGTH * 0.95:
+				break
+			cible *= need_len / maxf(l, 1.0)
+		if not line.is_empty() and polyline_length(line) >= need_len * 0.95:
+			best = line # on garde le lacet le plus serré qui tient (plus de branches)
+	return best
+
+
+## Largeur w (m) du lacet à n branches qui avance de adv par branche et mesure
+## total m : 2 demi-branches au bout, n − 2 branches entières.
+static func _largeur_lacets(n: int, adv: float, total: float) -> float:
+	var lo := 0.0
+	var hi := LACETS_LARGEUR_MAX * 2.0
+	for _i in 40:
+		var w := (lo + hi) * 0.5
+		var l := 2.0 * sqrt(adv * adv + w * w * 0.25) + float(n - 2) * sqrt(adv * adv + w * w)
+		if l < total:
+			lo = w
+		else:
+			hi = w
+	return (lo + hi) * 0.5
+
+
+## Arrondit chaque coin intérieur d'une ligne brisée par un arc de rayon r
+## (épingles). Vide si un arc ne tient pas sur ses branches.
+static func _arrondir(c: PackedVector2Array, r: float) -> PackedVector2Array:
+	var out := PackedVector2Array([c[0]])
+	var avail := PackedFloat32Array()
+	for i in range(1, c.size()):
+		avail.append(c[i].distance_to(c[i - 1]))
+	var used := PackedFloat32Array()
+	used.resize(avail.size())
+	for i in range(1, c.size() - 1):
+		var d1 := (c[i] - c[i - 1]).normalized()
+		var d2 := (c[i + 1] - c[i]).normalized()
+		var phi := d1.angle_to(d2)
+		var t := r * tan(absf(phi) * 0.5)
+		used[i - 1] += t
+		used[i] += t
+		var t1 := c[i] - d1 * t
+		var t2 := c[i] + d2 * t
+		var nrm := d1.rotated(signf(phi) * PI * 0.5)
+		var ctr := t1 + nrm * r
+		var a0 := (t1 - ctr).angle()
+		var steps := maxi(4, ceili(absf(phi) * r / 1.5))
+		for k in steps + 1:
+			out.append(ctr + Vector2.from_angle(a0 + phi * float(k) / float(steps)) * r)
+		if t2.distance_to(out[out.size() - 1]) > 0.01:
+			out.append(t2)
+	for i in avail.size():
+		if used[i] > avail[i] * 0.9:
+			return PackedVector2Array()
+	out.append(c[c.size() - 1])
+	return out
+
+
+# --- Volumes de terrassement ------------------------------------------------------------
+
+## Volumes (m³) de déblai et de remblai d'une voie au sol, talus compris (estimation
+## le long du tracé) ; "gros" : la part au-delà de 1 m de profondeur ou de hauteur,
+## facturée en plus (TransportSystem.surcout).
+static func volumes(width: float, pts: PackedVector3Array, st: PackedByteArray, ground: Callable) -> Dictionary:
+	var out := {"deblai": 0.0, "remblai": 0.0, "gros": 0.0}
+	var n := pts.size()
+	if n < 2 or not ground.is_valid():
+		return out
+	for i in n:
+		if st[i] != TransportTypes.Struct.GROUND:
+			continue
+		var gh: float = ground.call(pts[i].x, pts[i].z)
+		if is_nan(gh):
+			continue
+		var ds := 0.0
+		if i > 0:
+			ds += pts[i].distance_to(pts[i - 1]) * 0.5
+		if i < n - 1:
+			ds += pts[i].distance_to(pts[i + 1]) * 0.5
+		var dh := pts[i].y - gh
+		var ah := absf(dh)
+		var vol := ah * ds * (width + minf(TALUS_MAX, ah * TALUS))
+		if dh > 0.0:
+			out["remblai"] += vol
+		else:
+			out["deblai"] += vol
+		if ah > 1.0:
+			out["gros"] += (ah - 1.0) * ds * (width + minf(TALUS_MAX, ah * TALUS))
+	return out
 
 
 # --- Emprise et terrassement -----------------------------------------------------------

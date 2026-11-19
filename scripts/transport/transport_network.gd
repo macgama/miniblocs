@@ -84,6 +84,14 @@ static func _measure(e: Dictionary) -> void:
 	e.d = d
 	e.len = acc
 	e.width = TransportTypes.width_of(e.t, e.get("w", {}))
+	# Zone orange (pente au-delà de la norme, épingles) : véhicules ralentis.
+	var fr := TransportTypes.facteur_relief(String(e.t), pts)
+	if float(fr.f) < 0.999:
+		e.lent = float(fr.f)
+		e.raide = float(fr.raide)
+	else:
+		e.erase("lent")
+		e.erase("raide")
 
 
 func half_width(edge_id: int) -> float:

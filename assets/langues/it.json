@@ -15006,6 +15006,19 @@
 "Échap (vue au sol)": "Esc (vista a terra)",
 "revenir tout de suite à la vue de dessus (aussi depuis un véhicule) ; bouton « Vue de dessus » en haut à droite": "torna subito alla vista dall'alto (anche da un veicolo); pulsante «Vista dall'alto» in alto a destra",
 "Alt (vue au sol)": "Alt (vista a terra)",
-"libérer la souris pour cliquer dans l'interface ; un clic dans la vue la reprend": "libera il mouse per cliccare l'interfaccia; un clic nella vista lo riprende"
+"libérer la souris pour cliquer dans l'interface ; un clic dans la vue la reprend": "libera il mouse per cliccare l'interfaccia; un clic nella vista lo riprende",
+"Pente trop forte : %s %% (maximum %s %% pour %s, %s %% en tolérance). Essaie « Lacets » ou un tunnel.": "Pendenza eccessiva: %s %% (massimo %s %% per %s, %s %% con tolleranza). Prova «Tornanti» o una galleria.",
+"Virage trop serré : rayon %d m (minimum %d m pour %s, %d m en épingle).": "Curva troppo stretta: raggio %d m (minimo %d m per %s, %d m come tornante).",
+"pente %s %% (norme %s %%)": "pendenza %s %% (norma %s %%)",
+"virage en épingle (rayon %d m, norme %d m)": "tornante (raggio %d m, norma %d m)",
+"Zone orange : %s": "Zona arancione: %s",
+"plus cher, véhicules ralentis": "più caro, veicoli rallentati",
+"bout terrassé de %s m": "estremità livellata di %s m",
+"terrassement : déblai %d m³, remblai %d m³": "movimento terra: scavo %d m³, riporto %d m³",
+"surcoût %s": "sovraccosto %s",
+"Bouton « Lacets » : tracé en épingles.": "Pulsante «Tornanti»: tracciato a tornanti.",
+"Lacets": "Tornanti",
+"lacets": "tornanti",
+"Tracé en lacets : quand la pente est trop forte, la voie monte en épingles à cheveux (plus longue, plus lente)": "Tracciato a tornanti: se la pendenza è troppo forte, la strada sale a tornanti (più lunga, più lenta)"
 }
 }

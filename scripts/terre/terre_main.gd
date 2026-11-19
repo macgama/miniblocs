@@ -109,6 +109,7 @@ var mobilier: Mobilier
 var occupants: Occupants
 ## Habitants au travail visibles (scripts/metiers, touche K).
 var metiers_vivants: MetiersVivants
+var devantures: Devantures
 var interieur_panel: InterieurPanel
 ## Décors : mobilier urbain, clôtures, animaux, bateaux, rochers (touche G).
 var decors: DecorSystem
@@ -1935,6 +1936,8 @@ func _setup_production() -> void:
 	add_child(production)
 	production.setup(world, buildings, population, transport, ambiance)
 	production.message.connect(func(t: String) -> void: hud.show_message(t))
+	if devantures != null:
+		devantures.production = production
 	resource_overlay = RessourcesOverlay.new()
 	resource_overlay.name = "CarteRessources"
 	resource_overlay.world = world
@@ -2593,6 +2596,13 @@ func _setup_mobilier() -> void:
 	add_child(metiers_vivants)
 	metiers_vivants.setup(population, buildings, ambiance, rig)
 	metiers_vivants.occupants = occupants
+	# Devantures vivantes : vitrines selon le stock, enseignes, stores, terrasses,
+	# intérieurs vus à travers la vitrine (scripts/devantures).
+	devantures = Devantures.new()
+	devantures.name = "Devantures"
+	add_child(devantures)
+	devantures.setup(population, buildings, production, ambiance, rig)
+	devantures.metiers = metiers_vivants
 	# Modèles de l'atelier posés comme bâtiments : leurs vrais murs et meubles.
 	modeles_visites = ModelesVisites.new()
 	modeles_visites.name = "ModelesVisites"

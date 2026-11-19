@@ -43,6 +43,13 @@ uniform float chantier_h = 10000.0;
 uniform float degats = 0.0;
 uniform float bache = 0.0;
 uniform float panne = 0.0;
+// Devantures (scripts/devantures) : boîtes où la façade est creusée pour
+// laisser voir la vitrine et l'intérieur de la boutique. Chaque boîte est une
+// transformation affine (trois lignes) du monde vers le cube [-1, 1]³.
+uniform int trou_count = 0;
+uniform vec4 trou_x[16];
+uniform vec4 trou_y[16];
+uniform vec4 trou_z[16];
 
 varying flat vec3 face_corner;
 varying vec3 world_pos;
@@ -148,6 +155,13 @@ void fragment() {
 	float ly = world_pos.y - NODE_POSITION_WORLD.y;
 	if (ly > chantier_h) {
 		discard;
+	}
+	for (int i = 0; i < trou_count; i++) {
+		vec4 wp4 = vec4(world_pos, 1.0);
+		vec3 q = vec3(dot(trou_x[i], wp4), dot(trou_y[i], wp4), dot(trou_z[i], wp4));
+		if (abs(q.x) < 1.0 && abs(q.y) < 1.0 && abs(q.z) < 1.0) {
+			discard;
+		}
 	}
 	vec3 c = COLOR.rgb;
 	ALBEDO = to_linear(c);

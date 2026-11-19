@@ -362,6 +362,7 @@ func _construire(p: Dictionary) -> Dictionary:
 		if not bool(res.ok):
 			return {"ok": false, "reason": String(res.reason)}
 		transport.edges_built.emit(res.edges)
+		transport.appliquer_surcout(res)
 		transport._noter_histo(nom_projet(p), av)
 		return {"ok": true}
 	var c := Vector2i(int(p.c[0]), int(p.c[1]))

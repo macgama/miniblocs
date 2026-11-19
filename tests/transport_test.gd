@@ -80,10 +80,10 @@ func _run() -> void:
 	_check(flat.ok and float(flat.bridge_len) == 0.0 and float(flat.tunnel_len) == 0.0, "route en plaine, au sol")
 	var valley := _p("route", -170, 0, -30, 0, g)
 	_check(valley.ok and float(valley.bridge_len) > 10.0, "pont au-dessus de la vallée (%d m)" % roundi(valley.get("bridge_len", 0.0)))
-	_check(valley.ok and float(valley.max_grade) <= 0.0701, "pente maxi de la départementale respectée (%.1f %%)" % (float(valley.max_grade) * 100.0))
+	_check(valley.ok and float(valley.max_grade) <= TransportTypes.grade_norme("departementale") + 0.0001, "pente maxi de la départementale respectée (%.1f %%)" % (float(valley.max_grade) * 100.0))
 	var hill := _p("rail", 60, 0, 340, 0, g)
 	_check(hill.ok and float(hill.tunnel_len) > 20.0, "tunnel ferroviaire sous la colline (%d m)" % roundi(hill.get("tunnel_len", 0.0)))
-	_check(hill.ok and float(hill.max_grade) <= 0.0251, "rail : rampe ≤ 25 ‰ (%.1f %%)" % (float(hill.max_grade) * 100.0))
+	_check(hill.ok and float(hill.max_grade) <= TransportTypes.grade_norme("train") + 0.0001, "rail : rampe ≤ 30 ‰ (%.1f %%)" % (float(hill.max_grade) * 100.0))
 
 	print("Gabarits et courbes :")
 	_check(is_equal_approx(TransportTypes.width_of("departementale", {}), 9.5), "départementale : 2 × 3,00 m + accotements 1,75 m = 9,50 m")

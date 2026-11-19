@@ -102,6 +102,7 @@ signal redo_requested
 signal plan_requested
 signal spec_edited(type_id: String, spec: Dictionary)
 signal curve_toggled(on: bool)
+signal lacets_toggled(on: bool)
 ## Passage aux croisements choisi : "auto", "dessus" ou "dessous".
 signal level_changed(level: String)
 ## Action de l'outil Carrefour : "regime", "giratoire" ou "echangeur".
@@ -279,6 +280,7 @@ var _lane_w: SpinBox
 var _tracks: SpinBox
 var _width: SpinBox
 var _curve: Button
+var _lacets: Button
 var _level_pick: ChoixVisuel
 const LEVEL_IDS := ["auto", "dessus", "dessous"]
 var _junction_panel: HBoxContainer
@@ -1253,6 +1255,16 @@ func _build_spec_panel(parent: Control) -> void:
 		if not _filling:
 			curve_toggled.emit(on))
 	row.add_child(_curve)
+	_lacets = Button.new()
+	_lacets.text = "Lacets"
+	_lacets.icon = Icones.get_icon("lacets", 18)
+	_lacets.tooltip_text = "Tracé en lacets : quand la pente est trop forte, la voie monte en épingles à cheveux (plus longue, plus lente)"
+	_lacets.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_lacets.toggle_mode = true
+	_lacets.toggled.connect(func(on: bool) -> void:
+		if not _filling:
+			lacets_toggled.emit(on))
+	row.add_child(_lacets)
 	_level_pick = ChoixVisuel.new()
 	_level_pick.custom_minimum_size = Vector2(215, 46)
 	_level_pick.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -1336,7 +1348,7 @@ func _emit_spec() -> void:
 
 
 ## Affiche le panneau de réglage pour une classe de voie (null : le cacher).
-func show_spec(type_id: String, spec: Dictionary, curve: bool, level := "auto") -> void:
+func show_spec(type_id: String, spec: Dictionary, curve: bool, level := "auto", lacets := false) -> void:
 	_junction_panel.visible = false
 	if type_id == "":
 		_spec_panel.visible = false
@@ -1374,6 +1386,8 @@ func show_spec(type_id: String, spec: Dictionary, curve: bool, level := "auto") 
 		_width.max_value = c.width[1]
 		_width.value = spec.width
 	_curve.button_pressed = curve
+	_lacets.button_pressed = lacets
+	_lacets.visible = int(c.mode) != TransportTypes.Mode.WATER
 	_level_pick.select(maxi(0, LEVEL_IDS.find(level)))
 	_level_pick.visible = int(c.mode) != TransportTypes.Mode.WATER
 	_upgrade.visible = int(c.mode) == TransportTypes.Mode.ROAD

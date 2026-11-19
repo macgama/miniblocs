@@ -15006,6 +15006,18 @@
 "Échap (vue au sol)": "Esc (vista a pie)",
 "revenir tout de suite à la vue de dessus (aussi depuis un véhicule) ; bouton « Vue de dessus » en haut à droite": "volver enseguida a la vista cenital (también desde un vehículo); botón «Vista cenital» arriba a la derecha",
 "Alt (vue au sol)": "Alt (vista a pie)",
-"libérer la souris pour cliquer dans l'interface ; un clic dans la vue la reprend": "liberar el ratón para pulsar la interfaz; un clic en la vista lo recupera"
+"libérer la souris pour cliquer dans l'interface ; un clic dans la vue la reprend": "liberar el ratón para pulsar la interfaz; un clic en la vista lo recupera",
+"Aux croisements avec une autre voie (N)": "En los cruces con otra vía (N)",
+"Carrefour à niveau quand c'est possible, sinon pont ou tunnel": "Cruce a nivel cuando es posible; si no, puente o túnel",
+"Toujours un pont au-dessus de l'autre voie": "Siempre un puente sobre la otra vía",
+"Toujours un tunnel sous l'autre voie": "Siempre un túnel bajo la otra vía",
+"Nouvelle classe de la route": "Nueva clase de la carretera",
+"Bords de la route": "Bordes de la carretera",
+"Biome à peindre": "Bioma que pintar",
+"Format de la caméra": "Formato de la cámara",
+"sens unique": "sentido único",
+"%d voie%s par sens": "%d carril%s por sentido",
+"double voie": "vía doble",
+"largeur %s m": "anchura %s m"
 }
 }

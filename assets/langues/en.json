@@ -15105,6 +15105,18 @@
 "Échap (vue au sol)": "Esc (ground view)",
 "revenir tout de suite à la vue de dessus (aussi depuis un véhicule) ; bouton « Vue de dessus » en haut à droite": "return straight to the top view (also from a vehicle); \"Top view\" button at the top right",
 "Alt (vue au sol)": "Alt (ground view)",
-"libérer la souris pour cliquer dans l'interface ; un clic dans la vue la reprend": "release the mouse to click the interface; a click in the view takes it back"
+"libérer la souris pour cliquer dans l'interface ; un clic dans la vue la reprend": "release the mouse to click the interface; a click in the view takes it back",
+"Aux croisements avec une autre voie (N)": "Where it crosses another route (N)",
+"Carrefour à niveau quand c'est possible, sinon pont ou tunnel": "Level junction when possible, otherwise a bridge or tunnel",
+"Toujours un pont au-dessus de l'autre voie": "Always a bridge over the other route",
+"Toujours un tunnel sous l'autre voie": "Always a tunnel under the other route",
+"Nouvelle classe de la route": "New road class",
+"Bords de la route": "Road edges",
+"Biome à peindre": "Biome to paint",
+"Format de la caméra": "Camera format",
+"sens unique": "one-way",
+"%d voie%s par sens": "%d lane%s each way",
+"double voie": "double track",
+"largeur %s m": "width %s m"
 }
 }

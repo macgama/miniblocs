@@ -15006,6 +15006,18 @@
 "Échap (vue au sol)": "Esc (vista a terra)",
 "revenir tout de suite à la vue de dessus (aussi depuis un véhicule) ; bouton « Vue de dessus » en haut à droite": "torna subito alla vista dall'alto (anche da un veicolo); pulsante «Vista dall'alto» in alto a destra",
 "Alt (vue au sol)": "Alt (vista a terra)",
-"libérer la souris pour cliquer dans l'interface ; un clic dans la vue la reprend": "libera il mouse per cliccare l'interfaccia; un clic nella vista lo riprende"
+"libérer la souris pour cliquer dans l'interface ; un clic dans la vue la reprend": "libera il mouse per cliccare l'interfaccia; un clic nella vista lo riprende",
+"Aux croisements avec une autre voie (N)": "Agli incroci con un'altra via (N)",
+"Carrefour à niveau quand c'est possible, sinon pont ou tunnel": "Incrocio a raso quando possibile, altrimenti ponte o galleria",
+"Toujours un pont au-dessus de l'autre voie": "Sempre un ponte sopra l'altra via",
+"Toujours un tunnel sous l'autre voie": "Sempre una galleria sotto l'altra via",
+"Nouvelle classe de la route": "Nuova classe della strada",
+"Bords de la route": "Bordi della strada",
+"Biome à peindre": "Bioma da dipingere",
+"Format de la caméra": "Formato della telecamera",
+"sens unique": "senso unico",
+"%d voie%s par sens": "%d corsie per senso",
+"double voie": "doppio binario",
+"largeur %s m": "larghezza %s m"
 }
 }

@@ -15009,6 +15009,18 @@
 "Échap (vue au sol)": "Esc (Bodenansicht)",
 "revenir tout de suite à la vue de dessus (aussi depuis un véhicule) ; bouton « Vue de dessus » en haut à droite": "sofort zur Draufsicht zurück (auch aus einem Fahrzeug); Schaltfläche „Draufsicht“ oben rechts",
 "Alt (vue au sol)": "Alt (Bodenansicht)",
-"libérer la souris pour cliquer dans l'interface ; un clic dans la vue la reprend": "Maus freigeben, um die Oberfläche anzuklicken; ein Klick in die Ansicht fängt sie wieder"
+"libérer la souris pour cliquer dans l'interface ; un clic dans la vue la reprend": "Maus freigeben, um die Oberfläche anzuklicken; ein Klick in die Ansicht fängt sie wieder",
+"Aux croisements avec une autre voie (N)": "An Kreuzungen mit einem anderen Verkehrsweg (N)",
+"Carrefour à niveau quand c'est possible, sinon pont ou tunnel": "Ebenerdige Kreuzung, wenn möglich, sonst Brücke oder Tunnel",
+"Toujours un pont au-dessus de l'autre voie": "Immer eine Brücke über den anderen Weg",
+"Toujours un tunnel sous l'autre voie": "Immer ein Tunnel unter dem anderen Weg",
+"Nouvelle classe de la route": "Neue Straßenklasse",
+"Bords de la route": "Straßenränder",
+"Biome à peindre": "Zu malendes Biom",
+"Format de la caméra": "Kameraformat",
+"sens unique": "Einbahnstraße",
+"%d voie%s par sens": "%d Fahrstreifen je Richtung",
+"double voie": "zweigleisig",
+"largeur %s m": "Breite %s m"
 }
 }

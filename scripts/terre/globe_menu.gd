@@ -89,7 +89,10 @@ var _pseudo_edit: LineEdit
 var _amis_panel: MultijoueurPanel
 var _preset_btns := {}
 var _preset_info: Label
-var _epoque_opt: OptionButton
+var _epoque_opt: ChoixVisuel
+var _vignettes: Vignettes
+## Véhicule du jeu qui illustre chaque époque de départ ("" : dessin).
+const EPOQUES_VEHICULES := ["electrique", "diligence_messageries", "loco_crampton", "tram_1900", "populaire_ronde", ""]
 var _epoque_ligne: Control
 var _annee_spin: SpinBox
 var _rythme_opt: OptionButton
@@ -928,10 +931,23 @@ func _page_reglages(p: VBoxContainer) -> void:
 	p.add_child(_preset_info)
 
 	_titre_section(p, "Époque de départ", "horloge")
-	_epoque_opt = OptionButton.new()
+	_vignettes = Vignettes.new()
+	add_child(_vignettes)
+	_epoque_opt = ChoixVisuel.new()
+	_epoque_opt.titre = "Époque de départ"
+	_epoque_opt.max_columns = 3
+	_epoque_opt.tile_size = Vector2(170, 136)
+	_epoque_opt.image_height = 92.0
+	_epoque_opt.custom_minimum_size = Vector2(0, 46)
+	_epoque_opt.illustrer = func(i: int, cible: TextureRect) -> void:
+		var vid: String = EPOQUES_VEHICULES[i] if i < EPOQUES_VEHICULES.size() else ""
+		if vid == "":
+			cible.texture = Pictos.get_picto("autre_annee", 120)
+		else:
+			_vignettes.request_mesh("epoque:" + vid, func() -> Mesh: return VehicleCatalog.build_mesh(vid, 0, TransportView.make_material()),
+				cible, 168, Vector3(1.0, 0.55, 0.8), 0.55, 112)
 	for e in EPOQUES:
 		_epoque_opt.add_item(String(e[1]))
-	_epoque_opt.clip_text = true
 	_epoque_opt.item_selected.connect(func(_i: int) -> void: _changer_epoque())
 	p.add_child(_epoque_opt)
 	var he := HBoxContainer.new()
@@ -962,7 +978,7 @@ func _page_reglages(p: VBoxContainer) -> void:
 	p.add_child(_epoque_info)
 	if EditionDemo.active():
 		_epoque_opt.disabled = true
-		_epoque_opt.tooltip_text = "Partir de 1800 et traverser les époques : dans le jeu complet"
+		_epoque_opt.infobulle = "Partir de 1800 et traverser les époques : dans le jeu complet"
 
 	_titre_section(p, "Argent", "budget")
 	var ha := HBoxContainer.new()

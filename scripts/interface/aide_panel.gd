@@ -207,7 +207,10 @@ const SECTIONS := [
 		["Prendre sa place (fiche)", "incarner l'habitant en vue au sol (3e personne) ; Échap pour revenir, il reprend sa journée"],
 	]],
 	["Métiers", [
-		["K", "vue métiers : zoome près d'un commerce, d'une école, d'un hôpital… il s'ouvre en coupe et on voit les employés à leur poste (le boulanger pétrit, le prof écrit au tableau, le médecin ausculte) ; K la coupe, K la remet"],
+		["K", "vue métiers : zoome près d'un commerce, d'une école, d'un hôpital en regardant d'en haut… il s'ouvre en coupe et on voit les employés à leur poste (le boulanger pétrit, le prof écrit au tableau, le médecin ausculte) ; K la coupe, K la remet"],
+		["Vitrines", "caméra rasante ou vue au sol (V) : on voit dans les vitrines ce que vend chaque commerce, en quantité réelle (vitrine vide et « Plus de pain » quand la farine manque), le vendeur derrière son comptoir, les clients et la queue dehors"],
+		["Devantures", "enseigne au nom du patron, store déplié quand c'est ouvert et qu'il fait jour, ardoise du jour, étal dehors, terrasse des cafés par beau temps, vitrines éclairées le soir, rideau baissé quand c'est fermé ; tout change avec l'époque"],
+		["Toute la ville", "halls éclairés et enseignes des mairies, écoles, banques, hôtels ; enseigne et marchandise empilée devant les ateliers, usines et fermes (selon leur stock) ; plaque au nom de la famille, lampe et jardinières des maisons"],
 		["Maj + K", "ouvrir les bâtiments en coupe quand on zoome, ou non (les employés d'extérieur restent visibles)"],
 		["Dehors", "agriculteurs aux champs, bûcherons, carriers, pêcheurs, marchands, policiers de garde, pompiers près de leur camion"],
 		["Ouvert / Fermé", "enseigne sur la façade et rideau de fer selon le personnel présent ; pancarte orange « Manque de personnel », rouge « Fermé : pas d'enseignant »…"],

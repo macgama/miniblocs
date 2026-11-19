@@ -34,6 +34,33 @@ static func set_shared(param: String, value: Variant) -> void:
 		m.set_shader_parameter(param, value)
 
 
+## Façades creusées par les devantures (au plus 16 boîtes) : chaque boîte est
+## [Transform3D monde, demi-tailles]. Les bâtiments n'y sont pas dessinés.
+static func set_trous(boites: Array) -> void:
+	var rx := PackedVector4Array()
+	var ry := PackedVector4Array()
+	var rz := PackedVector4Array()
+	for b in boites:
+		if rx.size() >= 16:
+			break
+		var xf: Transform3D = b[0]
+		var half: Vector3 = b[1]
+		var inv := xf.affine_inverse()
+		var bs := inv.basis
+		rx.append(Vector4(bs.x.x, bs.y.x, bs.z.x, inv.origin.x) / half.x)
+		ry.append(Vector4(bs.x.y, bs.y.y, bs.z.y, inv.origin.y) / half.y)
+		rz.append(Vector4(bs.x.z, bs.y.z, bs.z.z, inv.origin.z) / half.z)
+	var n := rx.size()
+	while rx.size() < 16:
+		rx.append(Vector4.ZERO)
+		ry.append(Vector4.ZERO)
+		rz.append(Vector4.ZERO)
+	set_shared("trou_x", rx)
+	set_shared("trou_y", ry)
+	set_shared("trou_z", rz)
+	set_shared("trou_count", n)
+
+
 ## Matériau d'un bâtiment usé : usure en paliers de 0 à 5, abandon de 0 à 4.
 ## (0, 0) = le matériau commun.
 static func variant_material(usure_q: int, abandon_q: int, degats_q := 0, bache_q := 0, panne := false) -> ShaderMaterial:

@@ -285,7 +285,7 @@ func _cost(eid: int, fwd: bool, free := false) -> float:
 	if not free and _edge_cost.has(key):
 		return _edge_cost[key]
 	var e: Dictionary = transport.network.edges[eid]
-	var t0 := float(e.len) / maxf(1.0, TransportTypes.speed_of(e.t))
+	var t0 := float(e.len) / maxf(1.0, TransportTypes.speed_of(e.t) * float(e.get("lent", 1.0)))
 	# Arrêtés des quartiers : zone 30, rues piétonnes (le transit fait le tour).
 	if Quartiers.instance != null:
 		t0 *= Quartiers.instance.facteur_cout_voie(eid)

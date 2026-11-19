@@ -235,7 +235,7 @@ func _line_info(lid: int) -> Dictionary:
 				return {}
 			for eid in route:
 				var e: Dictionary = stations.network.edges[eid]
-				var et := float(e.len) / maxf(1.0, minf(vmax, TransportTypes.speed_of(e.t)))
+				var et := float(e.len) / maxf(1.0, minf(vmax, TransportTypes.speed_of(e.t)) * float(e.get("lent", 1.0)))
 				if edge_factor.is_valid() and TransportTypes.mode_of(e.t) == TransportTypes.Mode.ROAD:
 					et *= float(edge_factor.call(eid))
 				t += et

@@ -15009,6 +15009,19 @@
 "Échap (vue au sol)": "Esc (Bodenansicht)",
 "revenir tout de suite à la vue de dessus (aussi depuis un véhicule) ; bouton « Vue de dessus » en haut à droite": "sofort zur Draufsicht zurück (auch aus einem Fahrzeug); Schaltfläche „Draufsicht“ oben rechts",
 "Alt (vue au sol)": "Alt (Bodenansicht)",
-"libérer la souris pour cliquer dans l'interface ; un clic dans la vue la reprend": "Maus freigeben, um die Oberfläche anzuklicken; ein Klick in die Ansicht fängt sie wieder"
+"libérer la souris pour cliquer dans l'interface ; un clic dans la vue la reprend": "Maus freigeben, um die Oberfläche anzuklicken; ein Klick in die Ansicht fängt sie wieder",
+"Pente trop forte : %s %% (maximum %s %% pour %s, %s %% en tolérance). Essaie « Lacets » ou un tunnel.": "Steigung zu stark: %s %% (höchstens %s %% für %s, %s %% mit Toleranz). Versuche „Serpentinen“ oder einen Tunnel.",
+"Virage trop serré : rayon %d m (minimum %d m pour %s, %d m en épingle).": "Kurve zu eng: Radius %d m (mindestens %d m für %s, %d m als Haarnadelkurve).",
+"pente %s %% (norme %s %%)": "Steigung %s %% (Norm %s %%)",
+"virage en épingle (rayon %d m, norme %d m)": "Haarnadelkurve (Radius %d m, Norm %d m)",
+"Zone orange : %s": "Orange Zone: %s",
+"plus cher, véhicules ralentis": "teurer, Fahrzeuge langsamer",
+"bout terrassé de %s m": "Ende um %s m abgetragen/aufgeschüttet",
+"terrassement : déblai %d m³, remblai %d m³": "Erdarbeiten: Abtrag %d m³, Auftrag %d m³",
+"surcoût %s": "Mehrkosten %s",
+"Bouton « Lacets » : tracé en épingles.": "Schaltfläche „Serpentinen“: Trasse mit Haarnadelkurven.",
+"Lacets": "Serpentinen",
+"lacets": "Serpentinen",
+"Tracé en lacets : quand la pente est trop forte, la voie monte en épingles à cheveux (plus longue, plus lente)": "Serpentinen: Ist die Steigung zu stark, windet sich die Strecke in Haarnadelkurven hinauf (länger, langsamer)"
 }
 }

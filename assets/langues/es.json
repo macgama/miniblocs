@@ -15006,6 +15006,19 @@
 "Échap (vue au sol)": "Esc (vista a pie)",
 "revenir tout de suite à la vue de dessus (aussi depuis un véhicule) ; bouton « Vue de dessus » en haut à droite": "volver enseguida a la vista cenital (también desde un vehículo); botón «Vista cenital» arriba a la derecha",
 "Alt (vue au sol)": "Alt (vista a pie)",
-"libérer la souris pour cliquer dans l'interface ; un clic dans la vue la reprend": "liberar el ratón para pulsar la interfaz; un clic en la vista lo recupera"
+"libérer la souris pour cliquer dans l'interface ; un clic dans la vue la reprend": "liberar el ratón para pulsar la interfaz; un clic en la vista lo recupera",
+"Pente trop forte : %s %% (maximum %s %% pour %s, %s %% en tolérance). Essaie « Lacets » ou un tunnel.": "Pendiente demasiado fuerte: %s %% (máximo %s %% para %s, %s %% con tolerancia). Prueba «Curvas de herradura» o un túnel.",
+"Virage trop serré : rayon %d m (minimum %d m pour %s, %d m en épingle).": "Curva demasiado cerrada: radio %d m (mínimo %d m para %s, %d m en horquilla).",
+"pente %s %% (norme %s %%)": "pendiente %s %% (norma %s %%)",
+"virage en épingle (rayon %d m, norme %d m)": "curva de herradura (radio %d m, norma %d m)",
+"Zone orange : %s": "Zona naranja: %s",
+"plus cher, véhicules ralentis": "más caro, vehículos más lentos",
+"bout terrassé de %s m": "extremo explanado %s m",
+"terrassement : déblai %d m³, remblai %d m³": "movimiento de tierras: desmonte %d m³, terraplén %d m³",
+"surcoût %s": "sobrecoste %s",
+"Bouton « Lacets » : tracé en épingles.": "Botón «Curvas de herradura»: trazado en zigzag.",
+"Lacets": "Curvas de herradura",
+"lacets": "curvas de herradura",
+"Tracé en lacets : quand la pente est trop forte, la voie monte en épingles à cheveux (plus longue, plus lente)": "Trazado en zigzag: si la pendiente es demasiado fuerte, la vía sube en curvas de herradura (más larga, más lenta)"
 }
 }

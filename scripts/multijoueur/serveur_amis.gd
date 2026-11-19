@@ -582,6 +582,7 @@ func executer(pid: String, a: Dictionary) -> String:
 				_rejeu = false
 				if res.ok:
 					tr.edges_built.emit(res.edges)
+					tr.appliquer_surcout(res)
 					if not is_nan(prof) and jeu.construction_souterraine != null:
 						jeu.construction_souterraine.appliquer_tunnel(res.edges, prof)
 					_a_tous({"m": "rejouer", "a": a, "par": pid})

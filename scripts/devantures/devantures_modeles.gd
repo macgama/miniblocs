@@ -341,17 +341,23 @@ static func hall(w: float, h: float, d: float, accueil: String, annee: int, fond
 # --- Abords : store, terrasse, étal, ardoise, stock, logement ---------------------------------
 
 ## Store banne : déplié (toile inclinée sur ses bras) ou replié dans son coffre.
+## Centre du lambrequin du store déplié (où l'on peint le nom du commerce).
+static func lambrequin(w: float, h: float) -> Vector3:
+	return Vector3(0, h + 0.6 - 0.45 - 0.1, -0.25 - clampf(w * 0.35, 1.2, 2.2) - 0.02)
+
+
 static func store(w: float, h: float, couleur: Color, deplie: bool, raye: bool) -> ArrayMesh:
 	var key := "store|%.1f|%.1f|%s|%d|%d" % [w, h, couleur.to_html(false), int(deplie), int(raye)]
 	if _cache.has(key):
 		return _cache[key]
 	var k := _kit(41)
 	k.jitter = 0.01
-	var y := h + 0.15
+	# Coffre posé au-dessus du bandeau : l'enseigne reste lisible sous le store.
+	var y := h + 0.6
 	k.box(Vector3(0, y, -0.2), Vector3(w, 0.18, 0.2), couleur.darkened(0.35))
 	if deplie:
 		var avance := clampf(w * 0.35, 1.2, 2.2)
-		var chute := 0.55
+		var chute := 0.45
 		var n := maxi(2, int(w / 0.5))
 		for i in n:
 			var x0 := -w * 0.5 + w * float(i) / n
@@ -360,7 +366,7 @@ static func store(w: float, h: float, couleur: Color, deplie: bool, raye: bool) 
 			k.quad(Vector3(x0, y, -0.25), Vector3(x1, y, -0.25), Vector3(x1, y - chute, -0.25 - avance), Vector3(x0, y - chute, -0.25 - avance), c, Vector3(0, 1, -0.4))
 			k.quad(Vector3(x0, y, -0.25), Vector3(x0, y - chute, -0.25 - avance), Vector3(x1, y - chute, -0.25 - avance), Vector3(x1, y, -0.25), c.darkened(0.3), Vector3(0, -1, 0.4))
 			# Lambrequin festonné.
-			k.box(Vector3((x0 + x1) * 0.5, y - chute - 0.12, -0.25 - avance), Vector3((x1 - x0) * 0.96, 0.24, 0.02), c.darkened(0.08))
+			k.box(Vector3((x0 + x1) * 0.5, y - chute - 0.1, -0.25 - avance), Vector3((x1 - x0) * 0.96, 0.2, 0.02), c.darkened(0.08))
 		for sx in [-1.0, 1.0]:
 			k.beam(Vector3(sx * (w * 0.5 - 0.1), y - 0.05, -0.2), Vector3(sx * (w * 0.5 - 0.1), y - chute, -0.25 - avance), 0.04, 0.04, METAL)
 	var m := _commit(k)
@@ -421,13 +427,15 @@ static func ardoise() -> ArrayMesh:
 	if _cache.has("ardoise"):
 		return _cache.ardoise
 	var k := _kit(71)
-	k.beam(Vector3(-0.28, 0, -0.18), Vector3(-0.25, 0.95, 0.0), 0.04, 0.03, BOIS)
-	k.beam(Vector3(0.28, 0, -0.18), Vector3(0.25, 0.95, 0.0), 0.04, 0.03, BOIS)
-	k.beam(Vector3(-0.28, 0, 0.18), Vector3(-0.25, 0.95, 0.0), 0.04, 0.03, BOIS)
-	k.beam(Vector3(0.28, 0, 0.18), Vector3(0.25, 0.95, 0.0), 0.04, 0.03, BOIS)
-	var xf := Transform3D(Basis(Vector3.RIGHT, 0.19), Vector3(0, 0.52, -0.09))
+	# Chevalet assez grand pour qu'on lise la craie depuis le trottoir.
+	for sx in [-1.0, 1.0]:
+		for sz in [-1.0, 1.0]:
+			k.beam(Vector3(sx * 0.48, 0, sz * 0.24), Vector3(sx * 0.45, 1.2, 0.0), 0.045, 0.035, BOIS)
+	var xf := Transform3D(Basis(Vector3.RIGHT, 0.19), Vector3(0, 0.66, -0.11))
 	k.xf = xf
-	k.box(Vector3.ZERO, Vector3(0.5, 0.75, 0.025), Color("2b2f2c"))
+	k.box(Vector3.ZERO, Vector3(0.9, 0.95, 0.025), Color("2b2f2c"))
+	k.box(Vector3(0, 0.49, 0), Vector3(0.96, 0.05, 0.04), BOIS)
+	k.box(Vector3(0, -0.49, 0), Vector3(0.96, 0.05, 0.04), BOIS)
 	k.xf = Transform3D.IDENTITY
 	var m := _commit(k)
 	_cache["ardoise"] = m

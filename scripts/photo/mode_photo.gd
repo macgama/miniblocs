@@ -606,8 +606,13 @@ func _construire_ui() -> void:
 		_appliquer_camera())
 
 	_section(body, "Filtre")
-	var of := OptionButton.new()
-	of.focus_mode = Control.FOCUS_NONE
+	var of := ChoixVisuel.new()
+	of.custom_minimum_size = Vector2(0, 42)
+	of.titre = "Filtre"
+	of.max_columns = 4
+	# Aperçus calculés seulement quand la grille s'ouvre.
+	of.illustrer = func(i: int, cible: TextureRect) -> void:
+		cible.texture = Pictos.filtre_photo(of.get_item_id(i), 120)
 	for f in FILTRES:
 		of.add_item(String(f[0]), int(f[1]))
 	of.item_selected.connect(func(i: int) -> void:
@@ -634,10 +639,12 @@ func _construire_ui() -> void:
 		_appliquer_filtre())
 
 	_section(body, "Cadrage")
-	var ofm := OptionButton.new()
-	ofm.focus_mode = Control.FOCUS_NONE
+	var ofm := ChoixVisuel.new()
+	ofm.custom_minimum_size = Vector2(0, 42)
+	ofm.titre = "Cadrage"
 	for f in FORMATS:
 		ofm.add_item(String(f.nom))
+		ofm.set_item_icon(ofm.item_count - 1, Pictos.cadrage(float(f.r), 120))
 	ofm.item_selected.connect(func(i: int) -> void:
 		format = String(FORMATS[i].id)
 		_guides.queue_redraw())

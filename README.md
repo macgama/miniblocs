@@ -20,7 +20,7 @@ Prototype de city builder en vue de dessus, style low-poly, mode bac à sable. F
 
 Dans le jeu, **F1** (ou le bouton **?** en haut à gauche) affiche toutes les commandes.
 
-L'écran a une barre en haut (lieu, partie, heure et vitesse du temps, chiffres de la ville) et une barre de catégories en bas, avec des icônes : Observer, Terrain, Voies, Paysage, Construire, Lignes, Habitants, Circulation, Véhicules, Vue. Les outils de la catégorie choisie s'affichent juste au-dessus. Détails : [docs/interface.md](docs/interface.md). Thèmes nommés de Construire, recherche dans tout le jeu (Espace), Mairie (M) et parcours « Enregistrer mon bâtiment » de l'Atelier : [docs/ergonomie.md](docs/ergonomie.md).
+L'écran a une barre en haut (lieu, partie, heure et vitesse du temps, chiffres de la ville) et une barre de catégories en bas, avec des icônes : Observer, Terrain, Voies, Paysage, Construire, Lignes, Habitants, Circulation, Véhicules, Vue. Les outils de la catégorie choisie s'affichent juste au-dessus. Détails : [docs/interface.md](docs/interface.md). Thèmes nommés de Construire, recherche dans tout le jeu (Espace), Mairie (M) et parcours « Enregistrer mon bâtiment » de l'Atelier : [docs/ergonomie.md](docs/ergonomie.md). Menus à choix en images (types de routes, rails, chemins, voies d'eau, croisements, météo, biomes, filtres photo, époque de départ) : [docs/menus-en-images.md](docs/menus-en-images.md).
 
 ![Barre de catégories et outils des voies](docs/apercu-menus-voies.png)
 

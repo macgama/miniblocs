@@ -15019,6 +15019,18 @@
 "Bouton « Lacets » : tracé en épingles.": "Botón «Curvas de herradura»: trazado en zigzag.",
 "Lacets": "Curvas de herradura",
 "lacets": "curvas de herradura",
-"Tracé en lacets : quand la pente est trop forte, la voie monte en épingles à cheveux (plus longue, plus lente)": "Trazado en zigzag: si la pendiente es demasiado fuerte, la vía sube en curvas de herradura (más larga, más lenta)"
+"Tracé en lacets : quand la pente est trop forte, la voie monte en épingles à cheveux (plus longue, plus lente)": "Trazado en zigzag: si la pendiente es demasiado fuerte, la vía sube en curvas de herradura (más larga, más lenta)",
+"Aux croisements avec une autre voie (N)": "En los cruces con otra vía (N)",
+"Carrefour à niveau quand c'est possible, sinon pont ou tunnel": "Cruce a nivel cuando es posible; si no, puente o túnel",
+"Toujours un pont au-dessus de l'autre voie": "Siempre un puente sobre la otra vía",
+"Toujours un tunnel sous l'autre voie": "Siempre un túnel bajo la otra vía",
+"Nouvelle classe de la route": "Nueva clase de la carretera",
+"Bords de la route": "Bordes de la carretera",
+"Biome à peindre": "Bioma que pintar",
+"Format de la caméra": "Formato de la cámara",
+"sens unique": "sentido único",
+"%d voie%s par sens": "%d carril%s por sentido",
+"double voie": "vía doble",
+"largeur %s m": "anchura %s m"
 }
 }

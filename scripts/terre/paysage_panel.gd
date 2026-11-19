@@ -25,7 +25,7 @@ var _panel: PanelContainer
 var _group := ButtonGroup.new()
 var _buttons: Array[Button] = []
 var _radius_label: Label
-var _biome_pick: OptionButton
+var _biome_pick: ChoixVisuel
 var _tip: Label
 
 
@@ -83,10 +83,13 @@ func _ready() -> void:
 	var bl := Label.new()
 	bl.text = "Biome :"
 	brow.add_child(bl)
-	_biome_pick = OptionButton.new()
+	_biome_pick = ChoixVisuel.new()
 	_biome_pick.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_biome_pick.custom_minimum_size = Vector2(0, 42)
+	_biome_pick.titre = "Biome à peindre"
 	for k: int in TerrainWorld.PAINTABLE_KINDS:
 		_biome_pick.add_item(TerrainWorld.KIND_NAMES[k], k)
+		_biome_pick.set_item_icon(_biome_pick.item_count - 1, Pictos.get_picto("biome_%d" % k, 120))
 	_biome_pick.item_selected.connect(func(i: int) -> void:
 		kind = _biome_pick.get_item_id(i)
 		biome_chosen.emit(kind)

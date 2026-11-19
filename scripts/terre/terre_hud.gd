@@ -271,7 +271,9 @@ var compact := false
 var _last_tool := {"terrain": 1, "voies": 4}
 # Panneau de réglage de la voie à poser.
 var _spec_panel: HBoxContainer
-var _class_pick: OptionButton
+var _class_pick: ChoixVisuel
+## Vignettes 3D des classes de voies (menus en images).
+var _vignettes: Vignettes
 var _class_ids: Array = []
 var _lanes: SpinBox
 var _lane_w: SpinBox
@@ -279,7 +281,7 @@ var _tracks: SpinBox
 var _width: SpinBox
 var _curve: Button
 var _lacets: Button
-var _level_pick: OptionButton
+var _level_pick: ChoixVisuel
 const LEVEL_IDS := ["auto", "dessus", "dessous"]
 var _junction_panel: HBoxContainer
 var _upgrade: Button
@@ -1223,9 +1225,16 @@ func _build_spec_panel(parent: Control) -> void:
 	_spec_panel.add_theme_constant_override("separation", 10)
 	parent.add_child(_spec_panel)
 	var row := _spec_panel
-	_class_pick = OptionButton.new()
-	_class_pick.custom_minimum_size = Vector2(230, 0)
+	_vignettes = Vignettes.new()
+	add_child(_vignettes)
+	_class_pick = ChoixVisuel.new()
+	_class_pick.custom_minimum_size = Vector2(265, 46)
 	_class_pick.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_class_pick.tile_size = Vector2(150, 142)
+	_class_pick.image_height = 96.0
+	_class_pick.illustrer = func(i: int, cible: TextureRect) -> void:
+		if i >= 0 and i < _class_ids.size():
+			VignettesVoies.demander(_vignettes, String(_class_ids[i]), cible)
 	_class_pick.item_selected.connect(func(i: int) -> void:
 		if _filling:
 			return
@@ -1256,11 +1265,17 @@ func _build_spec_panel(parent: Control) -> void:
 		if not _filling:
 			lacets_toggled.emit(on))
 	row.add_child(_lacets)
-	_level_pick = OptionButton.new()
+	_level_pick = ChoixVisuel.new()
+	_level_pick.custom_minimum_size = Vector2(215, 46)
 	_level_pick.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	_level_pick.tooltip_text = "Aux croisements avec une autre voie (N) : carrefour automatique, ou toujours un pont, ou toujours un tunnel"
-	for t in ["Croisement : auto", "Passer dessus (pont)", "Passer dessous (tunnel)"]:
-		_level_pick.add_item(t)
+	_level_pick.titre = "Aux croisements avec une autre voie (N)"
+	var niveaux := [["Croisement : auto", "croisement_auto", "Carrefour à niveau quand c'est possible, sinon pont ou tunnel"],
+		["Passer dessus (pont)", "pont", "Toujours un pont au-dessus de l'autre voie"],
+		["Passer dessous (tunnel)", "tunnel", "Toujours un tunnel sous l'autre voie"]]
+	for n in niveaux:
+		_level_pick.add_item(n[0])
+		_level_pick.set_item_icon(_level_pick.item_count - 1, Pictos.get_picto(n[1], 120))
+		_level_pick.set_item_tooltip(_level_pick.item_count - 1, n[2])
 	_level_pick.item_selected.connect(func(i: int) -> void:
 		if not _filling:
 			level_changed.emit(LEVEL_IDS[i]))
@@ -1284,6 +1299,8 @@ func _build_spec_panel(parent: Control) -> void:
 		var jb := Button.new()
 		jb.text = it[1]
 		jb.tooltip_text = it[2]
+		jb.icon = Pictos.get_picto(it[0], 60)
+		jb.add_theme_constant_override("icon_max_width", 60)
 		jb.toggle_mode = true
 		jb.button_group = group
 		jb.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -1341,8 +1358,10 @@ func show_spec(type_id: String, spec: Dictionary, curve: bool, level := "auto", 
 	var c := TransportTypes.get_type(type_id)
 	_class_ids = TransportTypes.BY_MODE.get(int(c.mode), [type_id])
 	_class_pick.clear()
+	_class_pick.titre = String(TransportTypes.MODE_NAMES.get(int(c.mode), ""))
 	for id in _class_ids:
 		_class_pick.add_item(TransportTypes.get_type(id).name)
+		_class_pick.set_item_tooltip(_class_pick.item_count - 1, VignettesVoies.details(String(id)))
 	_class_pick.select(maxi(0, _class_ids.find(type_id)))
 	_spec_rows.lanes.visible = c.has("lanes")
 	_spec_rows.lane_w.visible = c.has("lanes")

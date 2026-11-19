@@ -48,7 +48,7 @@ var _etat: Label
 var _rec: CheckBox
 var _inter: OptionButton
 var _qual: OptionButton
-var _fmt: OptionButton
+var _fmt: ChoixVisuel
 
 
 func setup(t: TimeLapse) -> void:
@@ -337,10 +337,13 @@ func _construire() -> void:
 	v.add_child(_liste)
 	var nouv := HBoxContainer.new()
 	v.add_child(nouv)
-	_fmt = OptionButton.new()
-	_fmt.focus_mode = Control.FOCUS_NONE
-	for f in [["Paysage", "paysage"], ["Vertical 9:16", "vertical"], ["Carré", "carre"]]:
+	_fmt = ChoixVisuel.new()
+	_fmt.custom_minimum_size = Vector2(150, 40)
+	_fmt.face_image = Vector2(42, 28)
+	_fmt.titre = "Format de la caméra"
+	for f in [["Paysage", 16.0 / 9.0], ["Vertical 9:16", 9.0 / 16.0], ["Carré", 1.0]]:
 		_fmt.add_item(f[0])
+		_fmt.set_item_icon(_fmt.item_count - 1, Pictos.cadrage(float(f[1]), 120))
 	nouv.add_child(_fmt)
 	var ajout := Button.new()
 	ajout.text = "Nouvelle : vue actuelle"

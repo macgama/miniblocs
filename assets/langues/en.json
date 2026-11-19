@@ -15118,6 +15118,18 @@
 "Bouton « Lacets » : tracé en épingles.": "“Switchbacks” button: route with hairpin bends.",
 "Lacets": "Switchbacks",
 "lacets": "switchbacks",
-"Tracé en lacets : quand la pente est trop forte, la voie monte en épingles à cheveux (plus longue, plus lente)": "Switchback route: when the slope is too steep, the road climbs in hairpin bends (longer, slower)"
+"Tracé en lacets : quand la pente est trop forte, la voie monte en épingles à cheveux (plus longue, plus lente)": "Switchback route: when the slope is too steep, the road climbs in hairpin bends (longer, slower)",
+"Aux croisements avec une autre voie (N)": "Where it crosses another route (N)",
+"Carrefour à niveau quand c'est possible, sinon pont ou tunnel": "Level junction when possible, otherwise a bridge or tunnel",
+"Toujours un pont au-dessus de l'autre voie": "Always a bridge over the other route",
+"Toujours un tunnel sous l'autre voie": "Always a tunnel under the other route",
+"Nouvelle classe de la route": "New road class",
+"Bords de la route": "Road edges",
+"Biome à peindre": "Biome to paint",
+"Format de la caméra": "Camera format",
+"sens unique": "one-way",
+"%d voie%s par sens": "%d lane%s each way",
+"double voie": "double track",
+"largeur %s m": "width %s m"
 }
 }

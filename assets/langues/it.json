@@ -15019,6 +15019,18 @@
 "Bouton « Lacets » : tracé en épingles.": "Pulsante «Tornanti»: tracciato a tornanti.",
 "Lacets": "Tornanti",
 "lacets": "tornanti",
-"Tracé en lacets : quand la pente est trop forte, la voie monte en épingles à cheveux (plus longue, plus lente)": "Tracciato a tornanti: se la pendenza è troppo forte, la strada sale a tornanti (più lunga, più lenta)"
+"Tracé en lacets : quand la pente est trop forte, la voie monte en épingles à cheveux (plus longue, plus lente)": "Tracciato a tornanti: se la pendenza è troppo forte, la strada sale a tornanti (più lunga, più lenta)",
+"Aux croisements avec une autre voie (N)": "Agli incroci con un'altra via (N)",
+"Carrefour à niveau quand c'est possible, sinon pont ou tunnel": "Incrocio a raso quando possibile, altrimenti ponte o galleria",
+"Toujours un pont au-dessus de l'autre voie": "Sempre un ponte sopra l'altra via",
+"Toujours un tunnel sous l'autre voie": "Sempre una galleria sotto l'altra via",
+"Nouvelle classe de la route": "Nuova classe della strada",
+"Bords de la route": "Bordi della strada",
+"Biome à peindre": "Bioma da dipingere",
+"Format de la caméra": "Formato della telecamera",
+"sens unique": "senso unico",
+"%d voie%s par sens": "%d corsie per senso",
+"double voie": "doppio binario",
+"largeur %s m": "larghezza %s m"
 }
 }

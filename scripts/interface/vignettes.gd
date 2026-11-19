@@ -73,7 +73,10 @@ func request(id: String, target: TextureRect) -> void:
 
 ## Vignette carrée d'une maquette quelconque (atelier) : builder() rend un Mesh.
 ## La cible est un TextureRect (texture) ou un bouton (icône).
-func request_mesh(id: String, builder: Callable, target: Control, px := 128) -> void:
+## `dir` : direction de la caméra (vers le modèle), `zoom` : part de la diagonale
+## couverte par l'image (plus petit = plus serré), `px_h` : hauteur si l'image n'est
+## pas carrée.
+func request_mesh(id: String, builder: Callable, target: Control, px := 128, dir := Vector3.ZERO, zoom := 0.6, px_h := 0) -> void:
 	if _cache.has(id):
 		_apply(target, _cache[id])
 		return
@@ -83,7 +86,7 @@ func request_mesh(id: String, builder: Callable, target: Control, px := 128) -> 
 		if q[0] == id:
 			(q[1] as Array).append(target)
 			return
-	_queue.append([id, [target], builder, px])
+	_queue.append([id, [target], builder, px, dir, zoom, px_h])
 
 
 static func _apply(target: Object, tex: Texture2D) -> void:
@@ -114,7 +117,8 @@ func _render_next() -> void:
 	var mesh: Mesh
 	if custom:
 		mesh = (job[2] as Callable).call()
-		_viewport.size = Vector2i(int(job[3]), int(job[3]))
+		var h: int = int(job[6]) if job.size() > 6 and int(job[6]) > 0 else int(job[3])
+		_viewport.size = Vector2i(int(job[3]), h)
 	else:
 		mesh = BuildingCatalog.build_mesh(id, NightWindows.building_material())
 		_viewport.size = SIZE
@@ -123,9 +127,13 @@ func _render_next() -> void:
 	var c := box.get_center()
 	var extent := maxf(box.size.length(), 1.0)
 	var dir := Vector3(1.0, 0.85, 1.25).normalized()
+	var zoom := 0.62
 	if custom:
 		dir = Vector3(0.5, 0.4, 1.0).normalized()
-	_camera.size = extent * (0.6 if custom else 0.62)
+		if job.size() > 4 and (job[4] as Vector3) != Vector3.ZERO:
+			dir = (job[4] as Vector3).normalized()
+		zoom = float(job[5]) if job.size() > 5 else 0.6
+	_camera.size = extent * zoom
 	_camera.position = c + dir * extent * 2.0
 	_camera.look_at(c, Vector3.UP)
 	_viewport.render_target_update_mode = SubViewport.UPDATE_ONCE

@@ -344,6 +344,29 @@ static func bulles_de(e: Dictionary) -> Array:
 	return liste
 
 
+## Bulles du bouton « Afficher » (piste CityRT 11) : seulement celles qui montrent
+## un élément de l'écran (cible encadrée ou panneau à ouvrir), sans le discours.
+## La dernière garde le bouton d'action de l'étape.
+static func bulles_afficher(e: Dictionary) -> Array:
+	var out: Array = []
+	for b in bulles_de(e):
+		if (b as Dictionary).has("cible") or (b as Dictionary).has("panneau"):
+			out.append(b)
+	if not out.is_empty() and e.has("action") and not (out[out.size() - 1] as Dictionary).has("action") \
+			and String(e.action[1]) != "terminer" and String(e.action[1]) != "bilan":
+		out[out.size() - 1]["action"] = [String(e.action[0]), "tuto_agir"]
+	return out
+
+
+## L'étape a quelque chose à montrer : un bouton encadré ou une action qui ouvre le menu.
+static func peut_afficher(e: Dictionary) -> bool:
+	if e.is_empty():
+		return false
+	if not bulles_afficher(e).is_empty():
+		return true
+	return e.has("action") and String(e.action[1]) != "terminer" and String(e.action[1]) != "bilan"
+
+
 func etape_courante() -> Dictionary:
 	return etapes()[etape] if actif and etape < etapes().size() else {}
 

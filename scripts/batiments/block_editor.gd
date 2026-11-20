@@ -21,6 +21,9 @@ signal captured(result: Dictionary)
 
 enum Tool { NONE, BLOCK, RECT, WALL, ERASE, CAPTURE }
 
+## F ou C sur une forme qui ne se renverse pas (cube plein, grande pièce, porte).
+const TEXTE_SANS_POSE := "Cette forme ne peut pas se %s : choisis une pente, un arrondi ou une demi-dalle (R tourne toutes les formes)."
+
 ## Côté d'un bloc (m). 0,5 donnerait des blocs plus fins.
 const SIZE := 1.0
 ## Pas vertical (m) : celui du relief.
@@ -384,6 +387,9 @@ func rotate_step() -> void:
 
 ## Renverser tête en bas, ou remettre à l'endroit (touche F).
 func flip_step() -> void:
+	if not BlocFormes.can_tilt(shape):
+		message.emit(TEXTE_SANS_POSE % "renverser")
+		return
 	match pose:
 		BlocFormes.POSE_DEBOUT: pose = BlocFormes.POSE_RENVERSE
 		BlocFormes.POSE_RENVERSE: pose = BlocFormes.POSE_DEBOUT
@@ -394,6 +400,9 @@ func flip_step() -> void:
 
 ## Coucher sur le côté, ou remettre debout (touche C).
 func lay_step() -> void:
+	if not BlocFormes.can_tilt(shape):
+		message.emit(TEXTE_SANS_POSE % "coucher")
+		return
 	pose = BlocFormes.POSE_DEBOUT if pose >= BlocFormes.POSE_COUCHE else BlocFormes.POSE_COUCHE
 	_orientation_changed()
 

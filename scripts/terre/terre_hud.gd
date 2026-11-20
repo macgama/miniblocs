@@ -297,7 +297,8 @@ func _ready() -> void:
 	_message_label = Label.new()
 	_message_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	_message_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	_message_label.offset_top = 76
+	# Sous les jauges de la ville (JaugesVille, au centre sous la barre du haut).
+	_message_label.offset_top = 108
 	_message_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_message_label.add_theme_font_size_override("font_size", 16)
 	_message_label.add_theme_color_override("font_color", Color("fff3b0"))

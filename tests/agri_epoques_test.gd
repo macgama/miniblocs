@@ -212,11 +212,54 @@ func _run() -> void:
 	_check(float(prod.sites[carr].st.get("pierre", 0.0)) < 5000.0, "le stock de la carrière baisse")
 	_check(float(prod.sites[carr].cash) > cash0, "la carrière est payée par le chantier")
 	_check(float((mat.import as Dictionary).get("chaux", 0.0)) > 0.0, "chaux importée (pas de four à chaux)")
+	_check(absf(MateriauxChantiers.surcout_tonne("chaux") - Ressources.price("chaux") * (Ressources.IMPORT - 1.0)) < 1.0,
+		"import : %.0f € de plus par tonne de chaux" % MateriauxChantiers.surcout_tonne("chaux"))
+	_check(int(mat.get("surcout", 0)) > 0, "surcoût des imports payé par la caisse : %s" % BuildingSystem.format_money(int(mat.get("surcout", 0))))
+	_check(vie.texte_chantier(bid).contains("importées"), "info-bulle : part importée")
 	_check(not (mat.total as Dictionary).has("ciment"), "pas de ciment en 1800")
 	var node := bs.node_of(bid)
 	_check(node != null and vie.texte_chantier(bid).contains("Matériaux"), "détail du chantier (info-bulle) : matériaux")
 	vie.finish_all()
 	_check(not bs.buildings[bid].has("matx"), "chantier fini : bilan des matériaux effacé (sauvegarde légère)")
+	# Le toit ne compte pas comme un étage : même plancher que pour la durée du chantier.
+	var m1800 := MateriauxChantiers.besoins_batiment("maison", 1800)
+	var t1800 := 0.0
+	for g in m1800:
+		t1800 += float(m1800[g])
+	_check(absf(t1800 - Chantiers.plancher_batiment("maison") * 1.10) < 1.0 and t1800 < 260.0,
+		"maison de 1800 : %d t pour %d m² de plancher" % [roundi(t1800), roundi(Chantiers.plancher_batiment("maison"))])
+
+	print("Camions de livraison des chantiers :")
+	var transport: TransportSystem = scene.get_node("Transport")
+	var ya := world.cell_height(Vector2i(0, 0))
+	r.deblocage = "tout"  # (la route n'est pas le sujet : pas d'arbre de progression)
+	_check(transport.build_segment("route", Vector3(-700, ya, 0), Vector3(700, ya, 0)).ok, "route est-ouest")
+	(scene.get_node("Chantiers") as SuiviChantiers).terminer_tout()  # route ouverte tout de suite
+	prod.sites[carr].st["pierre"] = 0.0
+	var dc := int(BuildingCatalog.get_type("carriere").d)
+	var carr2 := bs.place("carriere", Vector2i(300, -(dc / 2 + 6)), bs.best_rotation("carriere", Vector2i(300, -(dc / 2 + 6))))
+	_check(carr2 > 0, "carrière au bord de la route")
+	prod._sync()
+	prod.sites[carr2].st["pierre"] = 5000.0
+	var env0 := LivraisonsChantiers.envoyes
+	var id2 := "maison" if Epoques.batiment_disponible("maison") else "colombages__maison"
+	var c2 := Vector2i(-100, -(int(BuildingCatalog.get_type(id2).d) / 2 + 6))
+	var bid2 := bs.place(id2, c2, bs.best_rotation(id2, c2))
+	_check(bid2 > 0 and bs.en_chantier(bid2), "deuxième maison au bord de la route")
+	vie._t_prev = amb.unix_time
+	var b2: Dictionary = bs.buildings[bid2]
+	var hjeu2 := float(b2.hr) / Chantiers.rythme(vie.population)
+	amb.unix_time = Chantiers.date_apres(amb.unix_time, hjeu2 * 0.6, amb.utc_offset())
+	vie._update_chantiers()
+	var tr := prod._traffic()
+	var n_camions := 0
+	if tr != null:
+		for v in tr.vehicles:
+			if int(v.get("delivery", 0)) <= LivraisonsChantiers.TAG:
+				n_camions += 1
+	_check(LivraisonsChantiers.envoyes > env0 and (tr == null or n_camions > 0),
+		"des camions livrent le chantier (%d partis, %d sur la route)" % [LivraisonsChantiers.envoyes - env0, n_camions])
+	vie.finish_all()
 
 	print("Ferme de 1800 :")
 	var agri: Agriculture = prod.agri

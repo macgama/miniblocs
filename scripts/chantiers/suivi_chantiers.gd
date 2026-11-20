@@ -78,7 +78,8 @@ func fixer_materiaux(cle: String, total: Dictionary, pos: Vector3) -> void:
 
 func materiaux_de(cle: String) -> Dictionary:
 	var c: Dictionary = chantiers.get(cle, {})
-	return {"local": c.get("mat_l", {}), "import": c.get("mat_i", {}), "total": c.get("matx", {})}
+	return {"local": c.get("mat_l", {}), "import": c.get("mat_i", {}), "surcout": int(c.get("mat_sc", 0)),
+		"total": c.get("matx", {})}
 
 
 func en_cours(cle: String) -> bool:
@@ -110,6 +111,8 @@ func terminer(cle: String) -> void:
 		return
 	var c: Dictionary = chantiers[cle]
 	chantiers.erase(cle)
+	if c.has("pos"):
+		LivraisonsChantiers.solder(c.pos)
 	var caisse_prev := Pays.a_la_caisse(int(c.get("payeur", -1)))
 	_payer(int(c.du))
 	Pays.retour(caisse_prev)
@@ -201,6 +204,11 @@ func mettre_a_jour() -> void:
 			var fm := MateriauxChantiers.fournir(c.matx, dp, c.pos)
 			MateriauxChantiers.cumule(c.mat_l, fm.local)
 			MateriauxChantiers.cumule(c.mat_i, fm.import)
+			# Surcoût des matériaux importés : payé par la caisse du chantier.
+			if float(fm.surcout) > 0.0:
+				var caisse_sc := Pays.a_la_caisse(int(c.get("payeur", -1)))
+				c["mat_sc"] = int(c.get("mat_sc", 0)) + MateriauxChantiers.regler_surcout(fm, buildings)
+				Pays.retour(caisse_sc)
 		c.av = float(c.av) + dp
 		if float(c.av) >= 0.9999:
 			finis.append(cle)

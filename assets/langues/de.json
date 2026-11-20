@@ -15092,6 +15092,19 @@
 "Âges": "Alter",
 "Éducation (Maj+K)": "Bildung (Umschalt+K)",
 "Hommes": "Männer",
-"Femmes": "Frauen"
+"Femmes": "Frauen",
+"Remplir les rayons": "Regale auffüllen",
+"Pose un dépôt de marchandises au bord d'une rue, puis un entrepôt : ses chauffeurs-livreurs remplissent les rayons.": "Setze ein Güterdepot an eine Straße, dann ein Lagerhaus: Seine Lieferfahrer füllen die Regale.",
+"L : lignes et dépôts → Dépôt de marchandises · B : Construire → Industrie → Entrepôt": "L: Linien und Depots → Güterdepot · B: Bauen → Industrie → Lagerhaus",
+"Ouvrir les dépôts": "Depots öffnen",
+"D'où vient le pain ?": "Woher kommt das Brot?",
+"Les commerces vendent ce que les camions leur livrent. Sans dépôt de marchandises (ou route qui sort de la carte), rien n'arrive : les rayons se vident et tes habitants vont faire leurs courses chez le voisin.": "Geschäfte verkaufen, was die Lastwagen liefern. Ohne Güterdepot (oder eine Straße, die die Karte verlässt) kommt nichts an: Die Regale leeren sich und deine Einwohner kaufen beim Nachbarn ein.",
+"L : Dépôt de marchandises, au bord d'une rue": "L: Güterdepot, an einer Straße",
+"Des chauffeurs-livreurs": "Lieferfahrer",
+"Il faut aussi quelqu'un pour conduire les camions : un entrepôt emploie des chauffeurs-livreurs. Mets-le un peu à l'écart des maisons, ça klaxonne dès six heures.": "Jemand muss auch die Lastwagen fahren: Ein Lagerhaus beschäftigt Lieferfahrer. Stell es etwas abseits der Häuser, ab sechs Uhr wird gehupt.",
+"B : Construire → Industrie et production → Entrepôt": "B: Bauen → Industrie und Produktion → Lagerhaus",
+"Une manifestation !": "Eine Demonstration!",
+"Des habitants mécontents vont défiler devant la mairie. Négocier coûte un peu, mais le sujet remonte pendant un mois. Ignorer (ou ne rien faire) : la colère monte, et la deuxième fois, grève des agents de la ville.": "Unzufriedene Einwohner ziehen gleich vor das Rathaus. Verhandeln kostet etwas, aber das Thema bessert sich einen Monat lang. Ignorieren (oder nichts tun): Die Wut wächst, und beim zweiten Mal streiken die Gemeindeangestellten.",
+"Y : avis des habitants → Manifs": "Y: Meinung der Einwohner → Demos"
 }
 }

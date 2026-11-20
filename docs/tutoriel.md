@@ -18,14 +18,16 @@ Une partie neuve lancée depuis le globe commence par un **tutoriel guidé**, si
 | 6 | Courant, eau et égouts | une source d'électricité, une source d'eau et un traitement des égouts (lagunage, station, ou rejet) sont posés (sautée si les réseaux ne sont pas obligatoires) |
 | 7 | Laisser le temps faire | 5 habitants ont un vrai toit (les fondateurs sous la tente ne comptent pas) |
 | 8 | Du travail pour tous | une zone commerciale ou industrielle, ou un bâtiment qui emploie |
-| 9 | Une école | une école est posée |
-| 10 | Ramasser les poubelles | un dépôt de collecte et une décharge (ou un incinérateur) sont posés, chantiers compris (sautée si les déchets sont désactivés) |
-| 11 | Surveiller la caisse | le budget (M) a été ouvert |
-| 12 | Tes objectifs | le panneau Objectifs (Maj+J) a été ouvert |
-| 13 | Tu es maire ! | bouton « Terminer » |
+| 9 | Remplir les rayons | un dépôt de marchandises (ou une gare, un port, une route qui sort de la carte) et un entrepôt, qui emploie les chauffeurs-livreurs, sont posés |
+| 10 | Une école | une école est posée |
+| 11 | Ramasser les poubelles | un dépôt de collecte et une décharge (ou un incinérateur) sont posés, chantiers compris (sautée si les déchets sont désactivés) |
+| 12 | Surveiller la caisse | le budget (M) a été ouvert |
+| 13 | Tes objectifs | le panneau Objectifs (Maj+J) a été ouvert |
+| 14 | Tu es maire ! | bouton « Terminer » |
 
 - Chaque étape a un **bouton d'action** qui fait le premier geste (ouvrir la fenêtre de fondation, prendre l'outil Route, ouvrir Construire → Zonage, Réseaux, Services ou Déchets, accélérer le temps, ouvrir le budget ou les objectifs).
 - **Passer** saute l'étape ; la **croix** arrête le tutoriel.
+- **Première manifestation** pendant le tutoriel ou la démo : le panneau Avis s'ouvre sur les manifestations et une bulle montre « Négocier » (une fois par partie, `Tutoriel.manif_expliquee`, `TerreMain.expliquer_manif`). Sans réponse, une manifestation compte comme ignorée.
 - Une étape déjà faite est sautée toute seule (sauf celles qui demandent un geste : caméra, panneaux, temps).
 - Pendant le tutoriel, la fenêtre « Fonder ton village » ne s'ouvre plus d'office au début : c'est l'étape 2 qui la propose, après le tour de la caméra.
 - Ton : réaliste avec une touche d'humour (« personne n'aime rentrer à travers champs en pantoufles »).

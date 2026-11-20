@@ -21,6 +21,9 @@ signal action_requested(id: String)
 signal message(text: String)
 ## Une nouvelle étape commence : la scène montre ses bulles (BullesAide).
 signal etape_commencee(id: String)
+## Première manifestation sans réponse pendant le tutoriel ou la démo : la scène
+## explique comment y répondre (bulle sur « Négocier ») puis met manif_expliquee.
+signal manif_a_expliquer
 
 static var instance: Tutoriel
 
@@ -106,6 +109,16 @@ const ETAPES := [
 		"bulles": [
 			{"titre": "Du travail pour tous", "panneau": "build_panel", "cible": ["ZoneC", "ZoneI", "Zonage"], "section": false,
 				"texte": "Des habitants sans travail finissent par partir, ou pire : par se plaindre à la mairie. Zone des commerces ou de l'industrie."},
+		]},
+	{"id": "marchandises", "titre": "Remplir les rayons",
+		"texte": "Pose un dépôt de marchandises au bord d'une rue, puis un entrepôt : ses chauffeurs-livreurs remplissent les rayons.",
+		"touches": "L : lignes et dépôts → Dépôt de marchandises · B : Construire → Industrie → Entrepôt",
+		"action": ["Ouvrir les dépôts", "marchandises"],
+		"bulles": [
+			{"titre": "D'où vient le pain ?", "texte": "Les commerces vendent ce que les camions leur livrent. Sans dépôt de marchandises (ou route qui sort de la carte), rien n'arrive : les rayons se vident et tes habitants vont faire leurs courses chez le voisin.",
+				"touches": "L : Dépôt de marchandises, au bord d'une rue"},
+			{"titre": "Des chauffeurs-livreurs", "texte": "Il faut aussi quelqu'un pour conduire les camions : un entrepôt emploie des chauffeurs-livreurs. Mets-le un peu à l'écart des maisons, ça klaxonne dès six heures.",
+				"touches": "B : Construire → Industrie et production → Entrepôt"},
 		]},
 	{"id": "ecole", "titre": "Une école",
 		"texte": "Construis une école reliée à la route.",
@@ -216,6 +229,8 @@ var actif := false
 var etape := 0
 ## Étapes faites ou passées : id -> true.
 var faits := {}
+## La bulle « Une manifestation » a été montrée (une fois par partie).
+var manif_expliquee := false
 ## Carte des objectifs repliée.
 var replie := false
 ## Panneaux vus ouverts depuis le début de l'étape.
@@ -405,6 +420,8 @@ func _process(delta: float) -> void:
 func verifier() -> void:
 	if not actif:
 		return
+	if not manif_expliquee and manif_sans_reponse() >= 0:
+		manif_a_expliquer.emit()
 	var id := id_courant()
 	if id == "" or id == "fin" or id == "fin_demo":
 		return
@@ -517,6 +534,9 @@ func est_faite(id: String) -> bool:
 			return loges() >= LOGES
 		"emplois":
 			return zones_de(["C", "I"]) > 0 or batiments_de_cat(["commerce", "industrie", "production"]) > 0
+		"marchandises":
+			var m := marchandises()
+			return bool(m.import) and bool(m.livreurs)
 		"ecole":
 			return batiments_de_type("ecole") > 0
 		"dechets":
@@ -557,6 +577,10 @@ func progres() -> String:
 			var d := collecte()
 			return "Dépôt de collecte : %s · Décharge ou incinérateur : %s" % ["oui" if d.depot else "pas encore",
 				"oui" if d.traitement else "pas encore"]
+		"marchandises":
+			var m := marchandises()
+			return "Dépôt de marchandises : %s · Entrepôt : %s" % ["oui" if m.import else "pas encore",
+				"oui" if m.livreurs else "pas encore"]
 		"ligne":
 			return "Arrêts posés : %d · lignes : %d" % [arrets(), lignes()]
 		"village":
@@ -600,6 +624,29 @@ func zones_de(kinds: Array) -> int:
 func _batiments() -> Dictionary:
 	var b = _lire("buildings")
 	return {} if b == null else b.buildings
+
+
+## Marchandises : une porte d'import (dépôt, gare, port ou route qui sort de la
+## carte) et un entrepôt (chantier compris), qui emploie les chauffeurs-livreurs.
+func marchandises() -> Dictionary:
+	var out := {"import": false, "livreurs": false}
+	var pr = _lire("production")
+	if pr != null and pr.has_method("gateways"):
+		out.import = not (pr.gateways() as Array).is_empty()
+	out.livreurs = batiments_de_type("entrepot") > 0
+	return out
+
+
+## Une manifestation annoncée à laquelle le maire n'a pas encore répondu (id), ou -1.
+func manif_sans_reponse() -> int:
+	if Avis.instance == null or Avis.instance.manifs == null:
+		return -1
+	var mf = Avis.instance.manifs
+	for mid in mf.liste:
+		var m: Dictionary = mf.liste[mid]
+		if String(m.reponse) == "" and String(m.etat) != "finie":
+			return int(mid)
+	return -1
 
 
 ## Collecte des déchets posée (chantiers compris : le joueur a fait sa part).
@@ -755,7 +802,8 @@ func bilan() -> Dictionary:
 
 func to_dict() -> Dictionary:
 	return {"version": 1, "actif": actif, "etape": etape, "faits": faits.keys(), "replie": replie,
-		"parcours": parcours, "temps_demo": temps_demo, "demo_finie": demo_finie, "jour0": jour0}
+		"parcours": parcours, "temps_demo": temps_demo, "demo_finie": demo_finie, "jour0": jour0,
+		"manif": manif_expliquee}
 
 
 func from_dict(d: Dictionary) -> void:
@@ -763,6 +811,7 @@ func from_dict(d: Dictionary) -> void:
 	temps_demo = float(d.get("temps_demo", 0.0))
 	demo_finie = bool(d.get("demo_finie", false))
 	jour0 = int(d.get("jour0", -1))
+	manif_expliquee = bool(d.get("manif", false))
 	actif = bool(d.get("actif", false))
 	etape = clampi(int(d.get("etape", 0)), 0, etapes().size())
 	faits.clear()

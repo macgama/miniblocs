@@ -15188,6 +15188,19 @@
 "Âges": "Ages",
 "Éducation (Maj+K)": "Education (Shift+K)",
 "Hommes": "Men",
-"Femmes": "Women"
+"Femmes": "Women",
+"Remplir les rayons": "Stock the shelves",
+"Pose un dépôt de marchandises au bord d'une rue, puis un entrepôt : ses chauffeurs-livreurs remplissent les rayons.": "Place a goods depot beside a street, then a warehouse: its delivery drivers stock the shelves.",
+"L : lignes et dépôts → Dépôt de marchandises · B : Construire → Industrie → Entrepôt": "L: lines and depots → Goods depot · B: Build → Industry → Warehouse",
+"Ouvrir les dépôts": "Open depots",
+"D'où vient le pain ?": "Where does the bread come from?",
+"Les commerces vendent ce que les camions leur livrent. Sans dépôt de marchandises (ou route qui sort de la carte), rien n'arrive : les rayons se vident et tes habitants vont faire leurs courses chez le voisin.": "Shops sell what the lorries bring them. Without a goods depot (or a road leaving the map), nothing arrives: the shelves empty and your residents go shopping next door.",
+"L : Dépôt de marchandises, au bord d'une rue": "L: Goods depot, beside a street",
+"Des chauffeurs-livreurs": "Delivery drivers",
+"Il faut aussi quelqu'un pour conduire les camions : un entrepôt emploie des chauffeurs-livreurs. Mets-le un peu à l'écart des maisons, ça klaxonne dès six heures.": "Someone also has to drive the lorries: a warehouse employs delivery drivers. Keep it a little away from the houses, the horns start at six.",
+"B : Construire → Industrie et production → Entrepôt": "B: Build → Industry and production → Warehouse",
+"Une manifestation !": "A demonstration!",
+"Des habitants mécontents vont défiler devant la mairie. Négocier coûte un peu, mais le sujet remonte pendant un mois. Ignorer (ou ne rien faire) : la colère monte, et la deuxième fois, grève des agents de la ville.": "Unhappy residents are about to march to the town hall. Negotiating costs a little, but the issue improves for a month. Ignoring it (or doing nothing): anger grows, and the second time, the town staff go on strike.",
+"Y : avis des habitants → Manifs": "Y: residents' opinion → Protests"
 }
 }

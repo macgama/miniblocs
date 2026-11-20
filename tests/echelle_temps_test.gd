@@ -77,8 +77,10 @@ func _run() -> void:
 
 	amb.set_speed(0)
 	_check(EchelleTemps.facteur() == 0.0 and EchelleTemps.en_pause(), "T (pause) : tout est arrêté")
-	amb.set_speed(DayNight.SPEEDS.size() - 1)
+	amb.set_speed(5)
 	_check(is_equal_approx(EchelleTemps.facteur(), 2.0), "100 min/s : ×2")
+	amb.set_speed(DayNight.TURBO)
+	_check(DayNight.TURBO == DayNight.SPEEDS.size() - 1 and is_equal_approx(EchelleTemps.facteur(), 3.0), "Turbo (1 jour en 6 s) : ×3")
 	amb.set_speed(1)
 	_check(is_equal_approx(EchelleTemps.facteur(), 0.25), "temps réel : ×0,25")
 	EchelleTemps.vue_sol = true
@@ -100,7 +102,7 @@ func _run() -> void:
 	_check(d0 < 0.001, "en pause, la voiture ne bouge plus (%.3f m)" % d0)
 	var d_lent := _distance(tr, amb, 2, 10, 0.05)
 	var d_def := _distance(tr, amb, DayNight.DEFAULT_SPEED, 10, 0.05)
-	var d_vite := _distance(tr, amb, DayNight.SPEEDS.size() - 1, 10, 0.05)
+	var d_vite := _distance(tr, amb, 5, 10, 0.05)
 	_check(d_lent > 0.0 and d_lent < d_def, "1 min/s : plus lente qu'au défaut (%.1f m contre %.1f m)" % [d_lent, d_def])
 	_check(d_vite > d_def * 1.3, "100 min/s : plus rapide (%.1f m contre %.1f m)" % [d_vite, d_def])
 
@@ -132,7 +134,7 @@ func _run() -> void:
 	zones.growth = true
 	zones._process(5.0)
 	_check(is_equal_approx(zones._timer, tz), "en pause, les zones ne se remplissent pas")
-	amb.set_speed(DayNight.SPEEDS.size() - 1)
+	amb.set_speed(5)
 	var attr := AttractionsPerso.new()
 	_check(is_equal_approx(attr._vitesse_jeu(), 2.0), "manèges : suivent la vitesse du temps (×2 à 100 min/s)")
 	amb.set_speed(0)

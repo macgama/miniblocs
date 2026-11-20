@@ -147,7 +147,7 @@ static func save_building(bs: BuildingSystem, bid: int, nom: String, vp: Viewpor
 		var c := Personnalisation.color_name(Personnalisation.color_of(tid, v, perso, key))
 		if not c in cols:
 			cols.append(c)
-	var etages := int(perso.get("etages", Personnalisation.base_floors(tid)))
+	var etages := int(perso.get("etages", Personnalisation.base_floors(tid, perso)))
 	var data := {
 		"format": FORMAT, "version": VERSION, "id": _new_id(nm), "nom": nm, "auteur": _author(),
 		"cree": Time.get_unix_time_from_system(), "genre": "facade",

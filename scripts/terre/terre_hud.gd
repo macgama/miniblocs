@@ -184,7 +184,8 @@ const CATEGORIES := [
 	{"id": "arbre", "name": "Arbre de progression (points de progrès à dépenser)", "icon": "etoile", "key": "Maj+F10", "panel": true, "group": "infos"},
 	{"id": "sante", "name": "Santé publique (hygiène, vaccins, épidémies)", "icon": "sante", "key": "F7", "panel": true, "group": "infos"},
 	{"id": "photo", "name": "Mode photo et time-lapse (Maj+F8)", "icon": "appareil_photo", "key": "F8", "panel": true, "group": "infos"},
-	{"id": "souterrain", "name": "Vue sous terre (tuyaux, câbles, métro, sous-sols)", "icon": "souterrain", "key": "Page bas", "panel": true, "group": "infos"},
+	# Dans la barre du bas, à côté de la vue : voir et construire sous le sol.
+	{"id": "souterrain", "name": "Sous terre (voir et construire : conduites, câbles, tunnels, métro, caves, bunkers)", "icon": "souterrain", "key": "Pg↓", "panel": true},
 	{"id": "succes", "name": "Succès", "icon": "trophee", "key": "F6", "panel": true, "group": "infos"},
 	{"id": "catalogue", "name": "Catalogue : tout ce qui se construit, daté, avec ses évolutions", "icon": "catalogue", "key": "Maj+F1", "panel": true, "group": "infos"},
 	{"id": "streamer", "name": "Mode streamer (le chat Twitch vote)", "icon": "direct", "key": "Maj+F11", "panel": true, "group": "infos"},
@@ -243,6 +244,8 @@ var _tray: PanelContainer
 var _tray_tools: HBoxContainer
 var _tray_sep: Control
 var _coords_panel: PanelContainer
+## Bouton (caché) qui ouvre ou ferme le panneau des coordonnées.
+var _coords_go: Button
 var _chips := {}
 var _view_button: Button
 var _admin_button: Button
@@ -265,6 +268,11 @@ var _dock: PanelContainer
 ## Mention des sources (en bas à droite) : passe sur trois lignes si la barre du bas l'atteint.
 var _credit: Label
 var _cell_card: PanelContainer
+## Le joueur a fermé la carte de la case et « À faire » : la barre du bas peut
+## se centrer sans laisser leur place à gauche (AffichagePanneaux).
+var gauche_libre := false
+## Place du bouton « œil » (Affichage), entre l'aide et l'admin.
+var _place_affichage: HBoxContainer
 ## Barre en icônes seules (écran étroit).
 var compact := false
 ## Dernier outil choisi dans chaque catégorie (clic sur la catégorie = on y revient).
@@ -401,6 +409,7 @@ func _build_top_bar() -> void:
 		if e is InputEventMouseButton and (e as InputEventMouseButton).pressed and (e as InputEventMouseButton).button_index == MOUSE_BUTTON_LEFT:
 			go.button_pressed = not go.button_pressed)
 	go.toggle_mode = true
+	_coords_go = go
 	go.toggled.connect(func(on: bool) -> void:
 		_coords_panel.visible = on
 		if on:
@@ -419,6 +428,9 @@ func _build_top_bar() -> void:
 		if spec[0] == "admin":
 			_admin_button = b
 		elif spec[0] == "aide":
+			_place_affichage = HBoxContainer.new()
+			_place_affichage.name = "PlaceAffichage"
+			row.add_child(_place_affichage)
 			var son := UiStyle.icon_button("son", "Son et musique : volumes, morceaux", "F2")
 			son.pressed.connect(func() -> void: Son.panneau())
 			row.add_child(son)
@@ -464,6 +476,12 @@ func _build_top_bar() -> void:
 			chip.pressed.connect(func() -> void: habitants_requested.emit())
 		row.add_child(chip)
 		_chips[spec[0]] = chip
+
+
+## Bouton « œil » de l'affichage des cartes (AffichagePanneaux.faire_bouton).
+func poser_bouton_affichage(b: Button) -> void:
+	if _place_affichage != null:
+		_place_affichage.add_child(b)
 
 
 func _build_coords_panel() -> void:
@@ -752,7 +770,7 @@ func _fit_dock(width := -1.0) -> void:
 	if _dock == null:
 		return
 	var view := width if width > 0.0 else get_viewport().get_visible_rect().size.x
-	var card_right := 10.0 + _cell_card.size.x + 10.0
+	var card_right := 10.0 if gauche_libre else 10.0 + _cell_card.size.x + 10.0
 	set_compact(false)
 	var w := _dock.get_combined_minimum_size().x
 	if w > view - card_right - 10.0:
@@ -799,7 +817,7 @@ func set_compact(on: bool) -> void:
 		if on:
 			btn.set_meta("label", btn.text)
 			btn.text = ""
-			btn.custom_minimum_size = Vector2(52, 52)
+			btn.custom_minimum_size = Vector2(50, 52)
 		else:
 			btn.text = String(btn.get_meta("label", btn.text))
 			btn.custom_minimum_size = DOCK_TILE
@@ -815,6 +833,17 @@ func set_compact(on: bool) -> void:
 
 
 func _input(event: InputEvent) -> void:
+	# Panneau des coordonnées : un clic ailleurs ou Échap le referme (sinon il
+	# reste sous les cartes de gauche sans qu'on sache pourquoi).
+	if coords_open():
+		var clic := event as InputEventMouseButton
+		var touche := event as InputEventKey
+		if clic != null and clic.pressed and not _coords_panel.get_global_rect().has_point(clic.position) \
+				and not _place_label.get_global_rect().has_point(clic.position):
+			fermer_coords()
+		elif touche != null and touche.pressed and touche.keycode == KEY_ESCAPE:
+			fermer_coords()
+			get_viewport().set_input_as_handled()
 	# Clic ailleurs : le menu ouvert se referme.
 	var mb := event as InputEventMouseButton
 	if _open_group == "" or mb == null or not mb.pressed:
@@ -1420,7 +1449,8 @@ func show_spec(type_id: String, spec: Dictionary, curve: bool, level := "auto", 
 	_level_pick.select(maxi(0, LEVEL_IDS.find(level)))
 	_level_pick.visible = int(c.mode) != TransportTypes.Mode.WATER
 	_upgrade.visible = int(c.mode) == TransportTypes.Mode.ROAD
-	_spec_panel.visible = true
+	# Vue sous terre : son panneau a déjà l'outil et son aide.
+	_spec_panel.visible = not sous_terre
 	_filling = false
 	_update_categories()
 
@@ -1499,6 +1529,18 @@ func coords_open() -> bool:
 	return _coords_panel != null and _coords_panel.visible
 
 
+## Le panneau des coordonnées (tête de la colonne de gauche quand il est ouvert).
+func coords_panel() -> Control:
+	return _coords_panel
+
+
+func fermer_coords() -> void:
+	if _coords_go != null:
+		_coords_go.button_pressed = false
+	if _coords_panel != null:
+		_coords_panel.visible = false
+
+
 ## Enfonce le bouton d'un outil sans prévenir (un autre système a pris la main).
 func select_tool_silently(i: int) -> void:
 	_buttons[i].set_pressed_no_signal(true)
@@ -1525,7 +1567,20 @@ func set_cell_info(text: String) -> void:
 
 func set_tool_info(text: String) -> void:
 	_tool_label.text = text.strip_edges()
-	_hint_panel.visible = _tool_label.text != ""
+	_hint_panel.visible = _tool_label.text != "" and not sous_terre
+
+
+## Vue sous terre ouverte : son panneau montre l'outil et l'aide, on cache ceux
+## de la surface (réglages des voies, aide de l'outil) qui passeraient dessous.
+var sous_terre := false
+
+
+func set_sous_terre(on: bool) -> void:
+	sous_terre = on
+	set_panel_open("souterrain", on)
+	_hint_panel.visible = _tool_label.text != "" and not on
+	if on:
+		_spec_panel.visible = false
 
 
 func set_network_info(text: String) -> void:

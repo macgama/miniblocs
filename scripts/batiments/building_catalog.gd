@@ -243,6 +243,13 @@ static func build_mesh(id: String, material: Material = null, details := true, v
 	var d := float(t.get("d", 4))
 	if t.has("modele"):
 		return ModelesJeu.build_mesh(t)
+	# Modèle classique refait dans un style du monde (« Modifier la façade »).
+	if perso.has("style") and Personnalisation.is_classic(id):
+		var ts := Personnalisation.type_of(id, perso)
+		if ts.has("arch"):
+			StyleBuilder.build(k, ts)
+			k.fit_xz(w, d)
+			return k.to_mesh(material)
 	if t.has("monument"):
 		MonumentsTypes.build(k, id, t)
 		k.fit_xz(w, d)

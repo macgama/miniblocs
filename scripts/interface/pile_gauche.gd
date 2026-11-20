@@ -10,6 +10,8 @@ extends Node
 ## tutoriel reste où elle est et sert de repère.
 
 const ECART := 8.0
+## Marge sous la carte la plus basse (celle de la carte de la case).
+const MARGE_BAS := 10.0
 
 ## Callables -> Control (ou null) : les cartes, dans l'ordre d'empilement.
 var haut: Array[Callable] = []
@@ -43,7 +45,9 @@ func placer() -> float:
 			continue
 		vue = c.get_viewport_rect().size.y
 		if fond == INF:
-			fond = vue
+			# Bas de la colonne : la carte la plus basse s'y pose, même si celle
+			# d'en dessous a été fermée par le joueur (AffichagePanneaux).
+			fond = vue - MARGE_BAS
 		# Place qui reste sous la pile du haut : le fil « À faire » s'y adapte (même
 		# caché faute de place, pour réapparaître quand elle revient).
 		if fond < vue and c.has_meta("place"):

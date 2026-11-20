@@ -344,7 +344,28 @@ static func vie_chantiers(pop: Population) -> float:
 
 
 static func rythme(pop: Population) -> float:
-	return vie_chantiers(pop) * ReglagesPartie.actuel.rythme_chantiers
+	return vie_chantiers(pop) * ReglagesPartie.actuel.rythme_chantiers * bonus_depart(pop)
+
+
+## Départ rapide (Admin F10, actif par défaut) : chantiers ×3 de plus tant que la
+## carte compte moins de 200 habitants, puis le coup de pouce s'efface peu à peu
+## jusqu'à 400 habitants. Sans lui, les fondateurs restaient des semaines au
+## campement (≈ 30 habitants au 40e jour en mode Normal, depuis les chantiers
+## plus réalistes du 18 novembre) ; ensuite, durées choisies par Gaël inchangées.
+const DEPART_BONUS := 3.0
+const DEPART_PLEIN := 200
+const DEPART_FIN := 400
+
+
+static func bonus_depart(pop: Population) -> float:
+	if pop == null or not ReglagesPartie.actuel.depart_rapide:
+		return 1.0
+	return bonus_depart_pour(pop.persons.size())
+
+
+static func bonus_depart_pour(habitants: int) -> float:
+	var t := clampf(float(habitants - DEPART_PLEIN) / float(DEPART_FIN - DEPART_PLEIN), 0.0, 1.0)
+	return lerpf(DEPART_BONUS, 1.0, t)
 
 
 # --- Étapes --------------------------------------------------------------------------

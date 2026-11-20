@@ -42,7 +42,15 @@ Les onglets sont des icônes (le nom est dans l'infobulle et au-dessus de la lis
 
 ## Fiche d'un bâtiment
 
-Clic sur un bâtiment avec l'outil Observer : le panneau Habitants s'ouvre sur sa fiche, avec l'icône de sa catégorie et des jauges (logements, employés, élèves), le nombre de personnes présentes, puis la liste des habitants, élèves et employés.
+Clic sur un bâtiment avec l'outil Observer : le panneau Habitants s'ouvre sur sa **fiche courte** (demande de Gaël du 20 novembre 2026 : « trop d'infos en même temps ») :
+
+- en tête : l'icône de sa catégorie, les jauges (logements, employés, élèves), le nombre de personnes présentes et **une pastille par réseau** (électricité, eau, égouts, chauffage, internet) dans la couleur de son état, le détail en infobulle ; bouton **« Sur les routes »** qui montre (ou cache) le flux des réseaux jusqu'au bâtiment ;
+- « Aller voir » et les tuiles « Modifier la façade » / « Aménager l'intérieur » ;
+- puis le détail en **rubriques repliables** (Réseaux, Agrandissement ou Entretien, Habitants, Élèves, Employés, Visiteurs) : une ligne-titre avec son résumé (« 3 dans 1 logement sur 1 », « 2 soucis »…), clic pour déplier. Toutes repliées au départ ; le choix est gardé pour les autres bâtiments (`user://interface.cfg`, section `[fiche]`).
+
+Les onglets Ville / Habitants / Funéraire sont cachés sur la fiche (flèche Retour pour revenir) et le panneau s'arrête sous la dernière rubrique. Code : `HabitantsPanel._view_building`, `_repli()`, `_pastilles_reseaux()` ; `Raccordements.remplir_pastilles()`. Captures : `tests/fiche_courte_vitrine.gd`.
+
+Le panneau des coordonnées (clic sur le nom du lieu, en haut à gauche) prend la tête de la colonne de gauche (`PileGauche`) : le fil des habitants et la carte de l'habitant suivi passent dessous au lieu de le recouvrir. Clic ailleurs ou Échap : il se referme.
 
 ![Fiche d'une école](apercu-menus-fiche.png)
 
@@ -86,6 +94,19 @@ focus est suivi) et au stick droit de la manette (`UiStyle.scroll_under`). Test 
 
 ![Barre du haut et colonne de gauche sans chevauchement](apercu-chevauchements.png)
 
+## Mini-carte (en bas à droite, Ctrl+M)
+
+`scripts/interface/mini_carte.gd` (classe `MiniCarte`, créée par `terre_main._setup_mini_carte`, enfant du HUD, mode Gérer et vue de dessus seulement).
+
+- **Fond** : relief ombré (lumière du nord-ouest) et occupation du sol ESA WorldCover (forêts, prés, champs, bâti, eau, neige), rivières. Calculé 3 lignes par image (128 × 128 px, ≈ 2,5 ms par image pendant 43 images), seulement quand la caméra sort de la zone déjà prête ; reprend tout seul les morceaux pas encore téléchargés.
+- **Routes, rails, chemins, canaux, bâtiments, territoires des villages** : dessinés une fois en coordonnées du monde (couche `Couche`), puis seulement déplacés et mis à l'échelle ; redessinés au plus une fois par seconde quand le réseau, les bâtiments ou les villages changent.
+- **Couleurs** : reprend la ressource montrée dans Production (P) ou la carte en couleur choisie dans Cartes (N) — toutes celles faites avec `CalqueCouleur` (groupe `calque_couleur`) ; légende « Couleurs : … » sous la carte.
+- **Alertes** (relevées une fois par seconde) : appels d'urgence et incendies (rouge, clignotent, restent au bord s'ils sont hors champ), catastrophes en cours (orange), bâtiments non raccordés (rouge foncé), chantiers (jaune). Clic sur un point : la caméra y va et la fiche du bâtiment s'ouvre.
+- **Caméra** : champ de vision en trapèze et flèche du regard ; clic ou glisser = déplacer la caméra ; molette ou − / + = 1, 2, 4, 8, 16 ou 40 km. Zoom gardé dans `user://mini_carte.cfg` ; la croix, Ctrl+M et le menu Affichage (œil de la barre du haut, `AffichagePanneaux`, id `mini_carte`) la masquent et la réaffichent.
+- **Carte entre amis** : les villes du joueur en ambre, les villes voisines dans leur couleur ; l'infobulle dit « ta ville » ou « ville voisine ».
+- Les panneaux de droite passent devant elle ; elle ne touche ni la barre des catégories, ni la carte de la case, ni les sources (vérifié par `tests/chevauchements_test.gd`).
+- Tests : `tests/mini_carte_test.gd` (affiche `MINI-CARTE TEST OK`) ; captures : `tests/mini_carte_vitrine.gd` (relief réel de Vulliens, réseau nécessaire).
+
 ## Tests et captures
 
 - `tests/interface_test.gd` : icônes, catégories et plateau, panneaux un à la fois, cartes de Construire, chiffres du haut, bouton Vue, fiche. Affiche `INTERFACE TEST OK`.
@@ -95,4 +116,3 @@ focus est suivi) et au stick droit de la manette (`UiStyle.scroll_under`). Test 
 
 - La roue des menus de la direction C (touche Tab) pour la vue au sol.
 - Une couleur par catégorie si les icônes blanches ne suffisent pas.
-- Une mini-carte en bas à droite.

@@ -8,7 +8,7 @@ extends CanvasLayer
 
 const MONTHS := ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."]
 
-const SPEED_ICONS := ["pause", "play", "fast", "fast", "faster", "fastest"]
+const SPEED_ICONS := ["pause", "play", "fast", "fast", "faster", "fastest", "turbo"]
 
 var clock: DayNight
 var _time_label: Label

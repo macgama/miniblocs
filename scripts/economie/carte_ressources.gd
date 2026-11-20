@@ -18,6 +18,12 @@ const PATCH_KM := 3.0
 const PATCH_KM_HC := 9.0
 
 var world: TerrainWorld
+## Disques arrosés par les forages d'irrigation : [[x, z, rayon, bid], ...]
+## (Production._maj_irrigation). Dedans, la terre est cultivable même au désert.
+var irrigation: Array = []
+## Terres cultivables et prés d'un sol arrosé (avant pente, altitude et climat).
+const IRRIGUE := 0.65
+const IRRIGUE_PRE := 0.6
 ## Provinces réelles qui touchent la région (voir GisementsMonde.near).
 var provinces: Array = []
 var _for_origin := Vector2(INF, INF)
@@ -138,7 +144,7 @@ func sample_env(x0: float, z0: float, nx: int, nz: int, step: float) -> Dictiona
 				wid[n] = maxf(wid[n], 4.0)
 			if not world.biome_paint.is_empty() and world.biome_paint.has(c):
 				bio[n] = KIND_TO_CODE[int(world.biome_paint[c])]
-	return {"h": h, "bio": bio, "wid": wid, "lats": lats, "lons": lons, "nx": nx, "nz": nz, "step": step}
+	return {"h": h, "bio": bio, "wid": wid, "lats": lats, "lons": lons, "nx": nx, "nz": nz, "step": step, "x0": x0, "z0": z0}
 
 
 const NEIGH: Array[Vector2i] = [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]
@@ -150,6 +156,19 @@ const PATURES := {30: 1.0, 40: 0.6, 20: 0.55, 100: 0.35, 90: 0.3, 10: 0.15}
 
 ## Code WorldCover équivalent d'un biome peint (TerrainWorld.Kind).
 const KIND_TO_CODE := [80, 80, 70, 60, 10, 20, 30, 40, 60, 90, 95, 100, 60, 70, 30, 80, 80, 80, 80]
+
+
+## Le point (i, j) d'un relevé est-il arrosé par un forage d'irrigation ?
+func _arrose(env: Dictionary, i: int, j: int) -> bool:
+	var st: float = env.step
+	var x := float(env.get("x0", 0.0)) + (i + 0.5) * st
+	var z := float(env.get("z0", 0.0)) + (j + 0.5) * st
+	for d in irrigation:
+		var dx := x - float(d[0])
+		var dz := z - float(d[1])
+		if dx * dx + dz * dz <= float(d[2]) * float(d[2]):
+			return true
+	return false
 
 
 ## Richesse de `res` sur chaque point d'un relevé (sample_env).
@@ -200,12 +219,16 @@ func evaluate(res: String, env: Dictionary) -> PackedFloat32Array:
 				"fertilite":
 					if not water:
 						v = CULTURES.get(code, 0.0)
+						if not irrigation.is_empty() and _arrose(env, i, j):
+							v = maxf(v, IRRIGUE)
 						v *= clampf(1.0 - s * 4.0, 0.0, 1.0)
 						v *= clampf(1.0 - (hh - 1200.0) / 1300.0, 0.0, 1.0)
 						v *= _climate(lats[j])
 				"paturage":
 					if not water:
 						v = PATURES.get(code, 0.0)
+						if not irrigation.is_empty() and _arrose(env, i, j):
+							v = maxf(v, IRRIGUE_PRE)
 						v *= clampf(1.0 - s * 1.5, 0.0, 1.0)
 						if hh > 2800.0:
 							v *= 0.3

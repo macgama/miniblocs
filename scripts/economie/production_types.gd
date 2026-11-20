@@ -69,6 +69,9 @@ const TYPES := {
 	"concession_agricole": {"name": "Concession de machines agricoles", "w": 36, "d": 28, "access": ROAD, "emplois": 6,
 		"cost": 1_800_000, "prod": {"kind": "service"},
 		"desc": "Vend, loue et répare les tracteurs et les machines : achats 10 % moins chers, réparations deux fois moins chères."},
+	"forage_irrigation": {"annee": 1910, "name": "Forage d'irrigation", "w": 14, "d": 12, "access": RP, "emplois": 2,
+		"cost": 900_000, "prod": {"kind": "service", "irrigation": 400.0}, "reseaux": {"elec": 0.15, "eau": 0.0, "egout": 0.0, "gaz": 0.0},
+		"desc": "Pompe électrique sur la nappe et canalisations : rend la terre cultivable à 400 m autour, même au désert. Gros consommateur de courant ; chaque ferme arrosée paie son eau (450 € par jour)."},
 	"silo_cooperative": {"name": "Silo de coopérative agricole", "w": 30, "d": 24, "access": RP, "emplois": 4,
 		"cost": 2_000_000, "prod": {"kind": "entrepot"},
 		"desc": "Les fermes y apportent leurs récoltes (grain, colza, foin…) : un entrepôt pour toute la région."},
@@ -242,7 +245,7 @@ const TYPES := {
 const ORDER := ["exploitation_forestiere", "ferme_cereales", "ferme_maraichere", "ferme_betteraves", "ferme_fibres",
 	"elevage", "ferme_laitiere", "vignoble", "verger", "oliveraie", "plantation_tropicale", "houblonniere",
 	"basse_cour", "rucher", "pisciculture", "ranch_buffles", "elevage_andin", "elevage_rennes", "silo_cooperative",
-	"concession_agricole", "port_peche", "carriere", "sabliere", "argiliere", "mine_ciel_ouvert", "mine", "mine_sel", "puits",
+	"concession_agricole", "forage_irrigation", "port_peche", "carriere", "sabliere", "argiliere", "mine_ciel_ouvert", "mine", "mine_sel", "puits",
 	"scierie", "moulin", "fournil", "abattoir", "laiterie", "sucrerie", "huilerie", "filature", "usine_agro", "brasserie",
 	"briqueterie", "cimenterie", "verrerie", "papeterie", "acierie", "fonderie_cuivre", "aluminerie", "raffinerie",
 	"usine_chimique", "menuiserie", "usine_textile", "usine_hygiene", "labo_pharma", "usine_biens",
@@ -520,6 +523,14 @@ static func build(k: BlocMesh, id: String, t: Dictionary) -> void:
 			for p in [Vector2(-8, 7), Vector2(-3, 10), Vector2(3, 8), Vector2(8, 11)]:
 				k.box(p.x, 0.7, p.y, 2.2, 1.1, 0.9, Color("f8f9fa"))
 				k.box(p.x + 0.3, 1.0, p.y, 0.8, 0.5, 0.92, Color("3d3d3d"))
+		"forage_irrigation":
+			k.plate(0, 0, w, d, GRAVIER)
+			k.box(-3, 0, -2, 5, 3.2, 4, Color("e9ecef"))
+			k.gable(-3, 3.2, -2, 5.4, 4.4, 1.2, TOLE)
+			k.cylinder(3.5, 0, 1.5, 1.8, 1.8, 4.5, 10, Color("90a4ae"))
+			k.cylinder(3.5, 4.5, 1.5, 1.9, 0.2, 0.6, 10, Color("78909c"))
+			k.box(-0.5, 0, 3.5, 8, 0.5, 0.5, EAU)
+			k.box(-6, 0, -4.5, 0.4, 5.5, 0.4, ACIER)
 		"concession_agricole":
 			k.plate(0, 0, w, d, BETON)
 			k.box(-6, 0, -4, 20, 7, 14, Color("e9ecef"))

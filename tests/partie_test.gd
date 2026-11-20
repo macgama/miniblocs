@@ -4,7 +4,7 @@ extends SceneTree
 ## les chantiers avancent avec les ouvriers -> la ville grandit jusqu'à ~1 000 habitants
 ## -> sauvegarde et chargement. Relève chaque jour la population, la caisse, les
 ## chantiers, l'emploi, et compte les erreurs de script et le temps par image.
-## Usage : godot --headless --path . --script res://tests/partie_test.gd [-- --jours 250 --cible 1000 --rapport partie.csv --messages --diag]
+## Usage : godot --headless --path . --script res://tests/partie_test.gd [-- --jours 250 --cible 1000 --rapport partie.csv --messages --diag --sans-depart-rapide oui]
 
 var ok := true
 var erreurs: Array = []
@@ -195,6 +195,8 @@ func _run() -> void:
 	# Ce parcours trace lui-même son plan de rues : pas de rue en T offerte (tests/rue_fondation_test.gd).
 	ReglagesPartie.prochaine.rue_fondation = false
 	ReglagesPartie.prochaine.services_fondation = false  # (services posés d'office : tests/services_fondation_test.gd)
+	# --sans-depart-rapide : mesure sans le coup de pouce du début (Chantiers.bonus_depart).
+	ReglagesPartie.prochaine.depart_rapide = _arg("sans-depart-rapide", "non") == "non"
 	ReglagesPartie.prochaine.annee_depart = 0  # (époque actuelle : batteries, éoliennes… ; l'assistant propose 1800, 1900 ou 2000)
 	globe.start_game()
 	game = await _wait_game()

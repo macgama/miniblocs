@@ -8,6 +8,8 @@ signal focus_requested(pos: Vector3)
 ## Boutons de la fiche d'un bâtiment : personnaliser (catalogue), aménager (murs fins).
 signal customize_requested(bid: int)
 signal furnish_requested(bid: int)
+## « Aménager l'intérieur » d'un bâtiment du catalogue : il est d'abord ouvert en murs fins.
+signal interior_requested(bid: int)
 
 const W := 348.0
 const H := 560.0
@@ -37,6 +39,16 @@ var _card_tick := 0.0
 var _ask: PanelContainer
 var _ask_text: Label
 var _ask_buttons: HFlowContainer
+## Onglets Ville / Habitants / Funéraire (cachés sur la fiche d'un bâtiment).
+var _tabs: HBoxContainer
+## Fiche d'un bâtiment : rubriques repliables (id -> ouverte), gardées dans
+## user://interface.cfg [fiche]. Toutes repliées au départ : le clic montre
+## d'abord l'essentiel (type, jauges, réseaux en pastilles).
+var ouvertes := {}
+## Conteneur où les petits outils (_text, _link…) ajoutent leurs lignes : le
+## corps de la rubrique dépliée en cours, sinon le corps du panneau.
+var _dest: Control = null
+const CFG := "user://interface.cfg"
 
 
 func setup(p: Population) -> void:
@@ -80,6 +92,7 @@ func _build() -> void:
 	x.pressed.connect(func() -> void: set_open(false))
 	head.add_child(x)
 	var tabs := HBoxContainer.new()
+	_tabs = tabs
 	outer.add_child(tabs)
 	for spec in [["Ville", "ville", "budget"], ["Habitants", "liste", "habitants"], ["Funéraire", "funeraire", "funeraire"]]:
 		var b := Button.new()
@@ -100,6 +113,10 @@ func _build() -> void:
 	_body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_body.add_theme_constant_override("separation", 3)
 	_scroll.add_child(_body)
+	var cfg := ConfigFile.new()
+	if cfg.load(CFG) == OK:
+		for k in cfg.get_section_keys("fiche") if cfg.has_section("fiche") else []:
+			ouvertes[k] = bool(cfg.get_value("fiche", k, false))
 
 
 func is_open() -> bool:
@@ -182,6 +199,9 @@ func refresh() -> void:
 		_body.remove_child(c)
 		c.queue_free()
 	_back.disabled = _history.is_empty() and view == "ville"
+	_tabs.visible = view != "batiment"
+	_dest = null
+	_scroll.custom_minimum_size.y = H
 	match view:
 		"ville":
 			_view_city()
@@ -203,6 +223,17 @@ func refresh() -> void:
 			else:
 				_title.text = "Habitant parti"
 				_text("Cet habitant n'est plus dans la ville.", true)
+	# Fiche d'un bâtiment : le panneau s'arrête sous la dernière rubrique (pas de
+	# grand vide sous une fiche courte).
+	if view == "batiment":
+		_ajuster_hauteur.call_deferred()
+
+
+func _ajuster_hauteur() -> void:
+	if view != "batiment" or not is_instance_valid(_body):
+		return
+	_scroll.custom_minimum_size.y = clampf(_body.get_combined_minimum_size().y + 6.0, 120.0, H)
+	_panel.reset_size()
 
 
 # --- Petits outils d'interface ----------------------------------------------------
@@ -215,12 +246,69 @@ func _text(t: String, dim := false, size := 13) -> Label:
 	l.add_theme_font_size_override("font_size", size)
 	if dim:
 		l.add_theme_color_override("font_color", Color(1, 1, 1, 0.65))
-	_body.add_child(l)
+	_cible().add_child(l)
 	return l
 
 
+func _cible() -> Control:
+	return _dest if _dest != null and is_instance_valid(_dest) else _body
+
+
+## Rubrique repliable de la fiche d'un bâtiment : une ligne-titre cliquable
+## (flèche, titre, résumé en gris). Rend vrai si elle est dépliée : les lignes
+## suivantes vont alors dans son corps, jusqu'à _fin_repli().
+func _repli(id: String, titre: String, resume := "") -> bool:
+	_dest = null
+	var ouverte := bool(ouvertes.get(id, false))
+	var b := Button.new()
+	b.name = "Repli_" + id
+	b.flat = true
+	b.focus_mode = Control.FOCUS_NONE
+	b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	b.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	b.custom_minimum_size = Vector2(W - 30, 30)
+	b.icon = Icones.get_icon("bas" if ouverte else "suivant", 16, Color("ffd166"))
+	b.text = titre + (("  ·  " + resume) if resume != "" else "")
+	b.tooltip_text = ("Clic : replier" if ouverte else "Clic : voir le détail") + ((" (%s)" % resume) if resume != "" else "")
+	b.add_theme_font_size_override("font_size", 14)
+	b.add_theme_color_override("font_color", Color("ffd166"))
+	b.add_theme_color_override("font_hover_color", Color("ffe29a"))
+	b.add_theme_stylebox_override("normal", UiStyle.flat_box(Color(1, 1, 1, 0.05), 6, 4))
+	b.add_theme_stylebox_override("hover", UiStyle.flat_box(Color(1, 1, 1, 0.11), 6, 4))
+	b.add_theme_stylebox_override("pressed", UiStyle.flat_box(Color(1, 1, 1, 0.11), 6, 4))
+	b.pressed.connect(func() -> void: basculer_rubrique(id))
+	_body.add_child(b)
+	if not ouverte:
+		return false
+	var m := MarginContainer.new()
+	m.add_theme_constant_override("margin_left", 10)
+	m.add_theme_constant_override("margin_bottom", 4)
+	_body.add_child(m)
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 3)
+	m.add_child(v)
+	_dest = v
+	return true
+
+
+func _fin_repli() -> void:
+	_dest = null
+
+
+## Déplie ou replie une rubrique de la fiche (choix gardé pour les autres bâtiments).
+func basculer_rubrique(id: String) -> void:
+	ouvertes[id] = not bool(ouvertes.get(id, false))
+	var cfg := ConfigFile.new()
+	cfg.load(CFG)
+	cfg.set_value("fiche", id, ouvertes[id])
+	cfg.save(CFG)
+	var keep := _scroll.scroll_vertical
+	refresh()
+	_scroll.set_deferred("scroll_vertical", keep)
+
+
 func _section(t: String) -> void:
-	_body.add_child(HSeparator.new())
+	_cible().add_child(HSeparator.new())
 	var l := _text(t, false, 15)
 	l.add_theme_color_override("font_color", Color("ffd166"))
 
@@ -237,7 +325,7 @@ func _link(t: String, cb: Callable, tip := "") -> Button:
 	b.add_theme_font_size_override("font_size", 13)
 	b.add_theme_color_override("font_color", Color("a8dadc"))
 	b.pressed.connect(cb)
-	_body.add_child(b)
+	_cible().add_child(b)
 	return b
 
 
@@ -450,6 +538,54 @@ func _view_list() -> void:
 		_text("… et %d autres (affine la recherche)." % (total - shown), true)
 
 
+## Deux grandes tuiles illustrées sous la fiche : « Modifier la façade » (style,
+## couleurs, toit, étages, avec un devis) et « Aménager l'intérieur » (pièces et
+## meubles ; un bâtiment du catalogue est d'abord ouvert en murs fins).
+func _tuiles_travaux(bid: int, info: Dictionary) -> void:
+	var tid := String(info.t)
+	var b: Dictionary = pop.buildings.buildings.get(bid, {}) if pop.buildings != null else {}
+	var facade := not info.has("plan") and Personnalisation.can_customize(tid)
+	var interieur := info.has("plan") or Conversion.can_open(tid, b.get("perso", {}))
+	if not facade and not interieur:
+		return
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+	_body.add_child(row)
+	if facade:
+		var f := _tuile("Modifier la façade", "Style, couleurs, toit, étages", "peinture",
+			"Change le style, les couleurs (murs, toit, volets, porte…), la forme du toit et les étages de ce bâtiment.\nTu vois le résultat tout de suite, avec le devis des travaux à valider.")
+		f.name = "TuileFacade"
+		f.pressed.connect(func() -> void: customize_requested.emit(bid))
+		row.add_child(f)
+	if interieur:
+		var sous := "Pièces, murs, meubles" if info.has("plan") else "Ouvrir et meubler"
+		var tip := "Meubles, pièces, murs : ouvre l'onglet Intérieur sur ce bâtiment." if info.has("plan") else \
+			"Le bâtiment est refait en vrais murs (portes, escaliers, toit) avec ses couleurs, découpé en pièces et meublé.\nLe prix du bâtiment est repris ; tu paies les murs et les meubles. Ensuite : onglet Intérieur, entre avec V."
+		var i := _tuile("Aménager l'intérieur", sous, "interieur", tip)
+		i.name = "TuileInterieur"
+		i.pressed.connect(func() -> void:
+			if info.has("plan"):
+				furnish_requested.emit(bid)
+			else:
+				interior_requested.emit(bid))
+		row.add_child(i)
+
+
+func _tuile(titre: String, sous: String, icone: String, tip: String) -> Button:
+	var t := Button.new()
+	t.text = "%s\n%s" % [titre, sous]
+	t.icon = Icones.get_icon(icone if Icones.has_icon(icone) else "construire", 34, UiStyle.ACCENT)
+	t.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	t.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
+	t.expand_icon = false
+	t.custom_minimum_size = Vector2(0, 78)
+	t.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	t.add_theme_font_size_override("font_size", 13)
+	t.focus_mode = Control.FOCUS_NONE
+	t.tooltip_text = tip
+	return t
+
+
 ## Agrandissement (3 niveaux) et rénovation d'un bâtiment (Ameliorations).
 func _fiche_amelioration(bid: int) -> void:
 	var am := Ameliorations.instance
@@ -461,12 +597,17 @@ func _fiche_amelioration(bid: int) -> void:
 	var ok_type := Ameliorations.ameliorable(tid)
 	if not ok_type and am.usure(bid) < Ameliorations.USURE_RENOV:
 		return
-	_section("Agrandissement · niveau %d sur %d" % [niv, Ameliorations.NIVEAU_MAX] if ok_type else "Entretien")
+	var usure := am.usure(bid)
+	var etat := "neuf" if usure < 0.1 else ("bon" if usure < 0.3 else ("usé" if usure < 0.6 else "très usé"))
+	var a := am.en_cours(bid)
+	var resume := "état %s" % etat
+	if not a.is_empty():
+		resume = "%s %d %%" % ["agrandissement" if String(a.op) == "niv" else "rénovation", floori(float(a.av) * 100.0)]
+	if not _repli("travaux", ("Agrandissement · niveau %d sur %d" % [niv, Ameliorations.NIVEAU_MAX]) if ok_type else "Entretien", resume):
+		return
 	if ok_type:
 		_text("Capacité : %s%s" % [am.texte_capacites(bid), " (×%s)" % str(Ameliorations.facteur(b)).replace(".", ",") if niv > 1 else ""], true, 12)
-	var usure := am.usure(bid)
-	_text("État : %s" % ("neuf" if usure < 0.1 else ("bon" if usure < 0.3 else ("usé" if usure < 0.6 else "très usé"))), true, 12)
-	var a := am.en_cours(bid)
+	_text("État : %s" % etat, true, 12)
 	if not a.is_empty():
 		var quoi := "Agrandissement au niveau %d" % int(a.cible) if String(a.op) == "niv" else "Rénovation"
 		var txt := "%s : %d %%" % [quoi, floori(float(a.av) * 100.0)]
@@ -508,7 +649,7 @@ func _fiche_amelioration(bid: int) -> void:
 			refresh())
 		row.add_child(re)
 	if row.get_child_count() > 0:
-		_body.add_child(row)
+		_cible().add_child(row)
 	elif niv >= Ameliorations.NIVEAU_MAX:
 		_text("Agrandi au maximum.", true, 12)
 
@@ -555,6 +696,7 @@ func _view_building(bid: int) -> void:
 	now_l.text = "En ce moment : %d personne%s" % [here.size(), "s" if here.size() > 1 else ""]
 	now_l.add_theme_font_size_override("font_size", 13)
 	gauges.add_child(now_l)
+	_pastilles_reseaux(gauges, bid)
 	var go := Button.new()
 	go.text = "Aller voir"
 	go.icon = Icones.get_icon("lieu", 18)
@@ -562,109 +704,140 @@ func _view_building(bid: int) -> void:
 	go.pressed.connect(func() -> void: focus_requested.emit(info.pos))
 	var acts := HBoxContainer.new()
 	acts.add_child(go)
-	if info.has("plan"):
-		var fu := Button.new()
-		fu.text = "Aménager"
-		fu.icon = Icones.get_icon("interieur", 18)
-		fu.focus_mode = Control.FOCUS_NONE
-		fu.tooltip_text = "Meubles, pièces, murs : ouvre l'onglet Intérieur sur ce bâtiment (et l'enregistrer dans la banque de modèles)."
-		fu.pressed.connect(func() -> void: furnish_requested.emit(bid))
-		acts.add_child(fu)
-	elif Personnalisation.can_customize(String(info.t)):
-		var cu := Button.new()
-		cu.text = "Personnaliser"
-		cu.icon = Icones.get_icon("peinture", 18)
-		cu.focus_mode = Control.FOCUS_NONE
-		cu.tooltip_text = "Couleurs, toit, étages ; ouvrir l'intérieur ; enregistrer dans la banque de modèles."
-		cu.pressed.connect(func() -> void: customize_requested.emit(bid))
-		acts.add_child(cu)
 	_body.add_child(acts)
-	# Électricité, eau, égouts, chauffage, internet : l'état de chaque réseau.
+	_tuiles_travaux(bid, info)
+	# Le détail, rubrique par rubrique (repliées au départ : un clic sur le titre déplie).
 	if Reseaux.instance != null and Reseaux.instance.raccordements != null and is_instance_valid(Reseaux.instance):
 		var rac := Reseaux.instance.raccordements
-		if not rac.etat_reseaux(bid).is_empty():
-			_section("Réseaux")
-			rac.remplir_fiche(_body, bid, W)
+		var etats := rac.etat_reseaux(bid)
+		if not etats.is_empty():
+			var mal := 0
+			for e in etats:
+				if e[2] == Raccordements.COULEUR_NON or e[2] == Raccordements.COULEUR_COUPE or e[2] == Color("e63946"):
+					mal += 1
+			if _repli("reseaux", "Réseaux", "tout va bien" if mal == 0 else ("%d souci%s" % [mal, "s" if mal > 1 else ""])):
+				rac.remplir_fiche(_cible(), bid, W - 10)
+			_fin_repli()
 	_fiche_amelioration(bid)
+	_fin_repli()
 	if int(info.log) > 0:
 		var homes: Array = pop.by_home.get(bid, [])
 		var n := 0
 		for hid in homes:
 			n += (pop.households[hid].m as Array).size()
-		_section("Habitants : %d dans %d logement%s sur %d" % [n, homes.size(), "s" if homes.size() > 1 else "", int(info.log)])
-		var shown := 0
-		for hid in homes:
-			if shown >= 60:
-				_text("… et d'autres foyers.", true)
-				break
-			var h: Dictionary = pop.households[hid]
-			var bud := pop.household_budget(hid)
-			_text("Foyer %s · %s/mois de revenus · épargne %s%s" % [pop.persons[h.m[0]].n if not (h.m as Array).is_empty() else "",
-				money(bud.revenus), money(h.ep), (" · " + NiveauxVie.nom(NiveauxVie.niveau(h)).to_lower()) if NiveauxVie.niveau(h) >= 0 else ""], true, 12)
-			for pid in h.m:
-				_person_link(pid, String(pop.activity(pop.persons[pid]).text))
-			shown += 1
-		if homes.is_empty():
-			_text("Personne n'a encore emménagé. Laisse avancer le temps (T, Maj + T).", true)
+		if _repli("habitants", "Habitants", "%d dans %d logement%s sur %d" % [n, homes.size(), "s" if homes.size() > 1 else "", int(info.log)]):
+			var shown := 0
+			for hid in homes:
+				if shown >= 60:
+					_text("… et d'autres foyers.", true)
+					break
+				var h: Dictionary = pop.households[hid]
+				var bud := pop.household_budget(hid)
+				_text("Foyer %s · %s/mois de revenus · épargne %s%s" % [pop.persons[h.m[0]].n if not (h.m as Array).is_empty() else "",
+					money(bud.revenus), money(h.ep), (" · " + NiveauxVie.nom(NiveauxVie.niveau(h)).to_lower()) if NiveauxVie.niveau(h) >= 0 else ""], true, 12)
+				for pid in h.m:
+					_person_link(pid, String(pop.activity(pop.persons[pid]).text))
+				shown += 1
+			if homes.is_empty():
+				_text("Personne n'a encore emménagé. Laisse avancer le temps (T, Maj + T).", true)
+		_fin_repli()
 	if int(info.seats) > 0:
 		var pupils: Array = pop.by_school.get(bid, [])
 		var at_school := 0
 		for pid in pupils:
 			if pop.activity(pop.persons[pid]).kind == "ecole":
 				at_school += 1
-		_section("Élèves : %d inscrits sur %d places · %d en classe maintenant" % [pupils.size(), int(info.seats), at_school])
-		var levels := {}
-		var sys := pop.edu.systeme_batiment(bid)
-		for pid in pupils:
-			var lv := pop.edu.cycle(pop.persons[pid])
-			levels[lv] = int(levels.get(lv, 0)) + 1
-		var parts := []
-		for lv in SystemesScolaires.CYCLES:
-			if levels.has(lv):
-				parts.append("%s : %d" % [pop.edu.nom_cycle(lv, sys), levels[lv]])
-		if not parts.is_empty():
-			_text(" · ".join(parts), true, 12)
-		var shown := 0
-		for pid in pupils:
-			if shown >= 120:
-				_text("… et %d autres." % (pupils.size() - shown), true)
-				break
-			_person_link(pid, String(pop.activity(pop.persons[pid]).text))
-			shown += 1
+		if _repli("eleves", "Élèves", "%d inscrits sur %d · %d en classe" % [pupils.size(), int(info.seats), at_school]):
+			var levels := {}
+			var sys := pop.edu.systeme_batiment(bid)
+			for pid in pupils:
+				var lv := pop.edu.cycle(pop.persons[pid])
+				levels[lv] = int(levels.get(lv, 0)) + 1
+			var parts := []
+			for lv in SystemesScolaires.CYCLES:
+				if levels.has(lv):
+					parts.append("%s : %d" % [pop.edu.nom_cycle(lv, sys), levels[lv]])
+			if not parts.is_empty():
+				_text(" · ".join(parts), true, 12)
+			var shown := 0
+			for pid in pupils:
+				if shown >= 120:
+					_text("… et %d autres." % (pupils.size() - shown), true)
+					break
+				_person_link(pid, String(pop.activity(pop.persons[pid]).text))
+				shown += 1
+		_fin_repli()
 	if int(info.emp) > 0:
 		var staff: Array = pop.by_job.get(bid, [])
-		_section("Employés : %d sur %d postes" % [staff.size(), int(info.emp)])
-		if pop.effectif != null and pop.effectif.concerne(bid):
-			_text(pop.effectif.resume(bid), true, 13)
-			for c in pop.effectif.consequences(bid):
-				_text("  " + String(c), true, 12)
-		var shown := 0
-		for pid in staff:
-			if shown >= 120:
-				_text("… et %d autres." % (staff.size() - shown), true)
-				break
-			var g := Gestes.de_personne(pop, pid)
-			_person_link(pid, String(pop.activity(pop.persons[pid]).text) + ((" · " + g) if g != "" else ""))
-			shown += 1
-		if staff.is_empty():
-			var fd := Fondateurs.instance
-			if fd != null and fd.regle_active() and fd.camp >= 0 and Fondateurs.est_vital(info):
-				_text("Aucun employé : des fondateurs du campement viennent le tenir dès demain matin (Maj+H pour en envoyer tout de suite).", true)
-			elif fd != null and fd.regle_active() and fd.camp >= 0:
-				_text("Aucun employé : il faut des habitants sans emploi en ville, ou des fondateurs sans chantier (Maj+H → Affecter les fondateurs).", true)
-			else:
-				_text("Aucun employé : il faut des habitants sans emploi en ville.", true)
+		if _repli("employes", "Employés", "%d sur %d postes" % [staff.size(), int(info.emp)]):
+			if pop.effectif != null and pop.effectif.concerne(bid):
+				_text(pop.effectif.resume(bid), true, 13)
+				for c in pop.effectif.consequences(bid):
+					_text("  " + String(c), true, 12)
+			var shown := 0
+			for pid in staff:
+				if shown >= 120:
+					_text("… et %d autres." % (staff.size() - shown), true)
+					break
+				var g := Gestes.de_personne(pop, pid)
+				_person_link(pid, String(pop.activity(pop.persons[pid]).text) + ((" · " + g) if g != "" else ""))
+				shown += 1
+			if staff.is_empty():
+				var fd := Fondateurs.instance
+				if fd != null and fd.regle_active() and fd.camp >= 0 and Fondateurs.est_vital(info):
+					_text("Aucun employé : des fondateurs du campement viennent le tenir dès demain matin (Maj+H pour en envoyer tout de suite).", true)
+				elif fd != null and fd.regle_active() and fd.camp >= 0:
+					_text("Aucun employé : il faut des habitants sans emploi en ville, ou des fondateurs sans chantier (Maj+H → Affecter les fondateurs).", true)
+				else:
+					_text("Aucun employé : il faut des habitants sans emploi en ville.", true)
+		_fin_repli()
 	var visitors := []
 	for pid in here:
 		var k := String(pop.activity(pop.persons[pid]).kind)
 		if k == "loisir" or k == "courses":
 			visitors.append(pid)
 	if not visitors.is_empty():
-		_section("Visiteurs en ce moment : %d" % visitors.size())
-		for i in mini(visitors.size(), 60):
-			_person_link(visitors[i], String(pop.activity(pop.persons[visitors[i]]).text))
+		if _repli("visiteurs", "Visiteurs", "%d en ce moment" % visitors.size()):
+			for i in mini(visitors.size(), 60):
+				_person_link(visitors[i], String(pop.activity(pop.persons[visitors[i]]).text))
+		_fin_repli()
 	if int(info.log) == 0 and int(info.seats) == 0 and int(info.emp) == 0 and visitors.is_empty():
 		_text("Ce bâtiment n'accueille ni habitants, ni employés, ni élèves.", true)
+
+
+## Fiche courte : une pastille par réseau (couleur de son état, détail en
+## infobulle) et le bouton qui montre le flux sur les routes.
+func _pastilles_reseaux(parent: Control, bid: int) -> void:
+	if Reseaux.instance == null or not is_instance_valid(Reseaux.instance) or Reseaux.instance.raccordements == null:
+		return
+	var rac := Reseaux.instance.raccordements
+	if rac.etat_reseaux(bid).is_empty():
+		return
+	var row := HBoxContainer.new()
+	row.name = "PastillesReseaux"
+	row.add_theme_constant_override("separation", 4)
+	parent.add_child(row)
+	rac.remplir_pastilles(row, bid)
+	var fl := Reseaux.instance.flux
+	if fl == null or fl.reseaux_de(bid).is_empty():
+		return
+	var sp := Control.new()
+	sp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(sp)
+	var b := Button.new()
+	b.name = "VoirFlux"
+	b.toggle_mode = true
+	b.focus_mode = Control.FOCUS_NONE
+	b.set_pressed_no_signal(fl.montre_batiment(bid))
+	b.text = "Sur les routes"
+	b.icon = Icones.get_icon("reseaux", 16)
+	b.add_theme_font_size_override("font_size", 12)
+	b.tooltip_text = ("Cacher le flux des réseaux sur les routes" if b.button_pressed else "Voir le courant, l'eau et les égouts circuler sur les routes jusqu'à ce bâtiment") \
+		+ "\n" + Raccordements.LEGENDE_FLUX
+	b.toggled.connect(func(_on: bool) -> void:
+		fl.basculer_batiment(bid)
+		refresh())
+	row.add_child(b)
 
 
 func _view_profile(pid: int) -> void:

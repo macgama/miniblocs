@@ -46,6 +46,7 @@ var _envoi_manuel: CheckBox
 var _neige_routes: CheckBox
 var _telecom: CheckBox
 var _instant: CheckBox
+var _depart_rapide: CheckBox
 var _horaires: ChoixVisuel
 var _rythme: ChoixVisuel
 var _freq: ChoixVisuel
@@ -238,6 +239,9 @@ func _ready() -> void:
 	_rythme.disabled = not editable
 	_rythme.item_selected.connect(func(_i: int) -> void: _changed())
 	_row(g, "Rythme des chantiers", _rythme)
+	_depart_rapide = _check("Départ rapide (chantiers ×3 jusqu'à 200 habitants)")
+	_depart_rapide.tooltip_text = "Les premières maisons, rues et services se construisent 3 fois plus vite tant que la ville est petite ; le coup de pouce s'efface entre 200 et 400 habitants"
+	g.add_child(_depart_rapide)
 	_paliers_l = _label("", 12, UiStyle.TEXT_DIM)
 	_paliers_l.custom_minimum_size = Vector2(400, 0)
 	_paliers_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -578,6 +582,7 @@ func _fill() -> void:
 	_instant.button_pressed = reglages.construction_instantanee
 	_horaires.select(maxi(0, Chantiers.HORAIRES.find(reglages.horaires_chantiers)))
 	_rythme.select(_indice_rythme(reglages.rythme_chantiers))
+	_depart_rapide.button_pressed = reglages.depart_rapide
 	var fi := 1
 	for i in FREQS.size():
 		if absf(float(FREQS[i]) - reglages.frequence_catastrophes) < 0.01:
@@ -658,7 +663,9 @@ func _changed() -> void:
 	reglages.construction_instantanee = _instant.button_pressed
 	reglages.horaires_chantiers = String(Chantiers.HORAIRES[maxi(0, _horaires.selected)])
 	reglages.rythme_chantiers = float(ReglagesPartie.RYTHMES_CHANTIERS[maxi(0, _rythme.selected)])
+	reglages.depart_rapide = _depart_rapide.button_pressed
 	_rythme.disabled = not editable or _instant.button_pressed
+	_depart_rapide.disabled = not editable or _instant.button_pressed
 	_horaires.disabled = not editable or _instant.button_pressed
 	reglages.frequence_catastrophes = float(FREQS[maxi(0, _freq.selected)])
 	reglages.crises_economiques = _crises_eco.button_pressed

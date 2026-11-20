@@ -150,6 +150,8 @@ var fondateurs: Fondateurs
 var fondateurs_panel: FondateursPanel
 var pays: Pays
 var pays_panel: PaysPanel
+## Passer vite d'une ville à l'autre (barre du haut, Ctrl+Tab).
+var selecteur_villes: SelecteurVilles
 var pilote: PiloteAuto
 var objectifs: Objectifs
 var kit: KitInstallation
@@ -1105,6 +1107,16 @@ func _setup_pays() -> void:
 		rig.position.x = pos.x
 		rig.position.z = pos.z)
 	hud.pays_requested.connect(func() -> void: pays_panel.toggle())
+	# Passer vite d'une ville à l'autre : ◀ drapeau ▶ dans la barre du haut, Ctrl+Tab.
+	selecteur_villes = SelecteurVilles.new()
+	selecteur_villes.name = "SelecteurVilles"
+	hud.add_child(selecteur_villes)
+	selecteur_villes.setup(pays, communes, rig)
+	selecteur_villes.hauteur_sol = rig.ground_height
+	selecteur_villes.bloque = func() -> bool:
+		var vs := get_node_or_null("VueSol") as VueSol
+		return GameStart.atelier or VisiteVille.active() or (vs != null and vs.vue != VueSol.Vue.DESSUS)
+	hud.poser_dans_barre(selecteur_villes.barre, "Chercher")
 	kit = KitInstallation.new()
 	kit.name = "KitInstallation"
 	add_child(kit)
@@ -3552,6 +3564,8 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 		avis.clear()
 	if pays != null:
 		pays.clear()
+	if selecteur_villes != null:
+		selecteur_villes.clear()
 	if pilote != null:
 		pilote.clear()
 	if objectifs != null:

@@ -2690,6 +2690,7 @@ var banque_panel: BanquePanel
 ## menu Infos. Réseaux de rue, tronçons enterrés, tunnels, métro, sous-sols.
 var souterrain: VueSouterraine
 var construction_souterraine: ConstructionSouterraine
+var sous_terre_auto: SousTerreAuto
 
 
 func _setup_souterrain() -> void:
@@ -2731,6 +2732,25 @@ func _setup_souterrain() -> void:
 		else:
 			vue_etages.show_all()
 			souterrain.entrer())
+	souterrain.ouverte.connect(func(on: bool) -> void: hud.set_sous_terre(on))
+	# Outil qui construit sous le sol, pris dans n'importe quel menu : la vue y passe seule.
+	sous_terre_auto = SousTerreAuto.new()
+	sous_terre_auto.name = "SousTerreAuto"
+	sous_terre_auto.vue = souterrain
+	sous_terre_auto.construction = construction_souterraine
+	sous_terre_auto.reseaux = reseaux
+	sous_terre_auto.telecom = telecom
+	sous_terre_auto.transport = transport
+	sous_terre_auto.preparer = func() -> void: vue_etages.show_all()
+	add_child(sous_terre_auto)
+	sous_terre_auto.brancher()
+	# Construire → Sous terre : conduites, tunnels, pièces, en images.
+	build_panel.sous_terre_chosen.connect(func(outil: String, param: String) -> void:
+		if not sous_terre_auto.lancer(outil, param):
+			hud.show_message("Sous terre : seulement depuis la vue de dessus (V).")
+			return
+		build_panel.set_open(false)
+		hud.set_panel_open("construire", false))
 
 
 func _setup_atelier_tools() -> void:

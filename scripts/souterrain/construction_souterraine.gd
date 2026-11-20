@@ -30,20 +30,24 @@ const PIECE_MIN := 2
 const NIVEAUX_PIECE_MAX := 3
 
 ## Conduites qu'on pose depuis la vue (type de tronçon -> réseau).
+## « picto » : vignette du bouton (Pictos). Les autres conduites enterrées des
+## panneaux O et Maj+O (aqueduc, séparatif, chaleur, téléphone…) se posent aussi
+## sous terre quand on les choisit là-bas (SousTerreAuto).
 const CONDUITES := {
-	"conduite_eau": {"name": "Eau", "tip": "Conduite d'eau potable", "res": "eau"},
-	"collecteur": {"name": "Égout", "tip": "Collecteur d'égout", "res": "egout"},
-	"conduite_gaz": {"name": "Gaz", "tip": "Conduite de gaz ou de chaleur", "res": "gaz"},
-	"fibre": {"name": "Fibre", "tip": "Fibre optique enterrée", "res": "telecom"},
+	"conduite_eau": {"name": "Eau", "tip": "Conduite d'eau potable", "res": "eau", "picto": "sous_eau"},
+	"collecteur": {"name": "Égout", "tip": "Collecteur d'égout", "res": "egout", "picto": "sous_egout"},
+	"conduite_gaz": {"name": "Gaz", "tip": "Conduite de gaz ou de chaleur", "res": "gaz", "picto": "sous_gaz"},
+	"cable_souterrain": {"name": "Électricité", "tip": "Câble électrique enterré (ni poteaux, ni pannes de tempête)", "res": "elec", "picto": "sous_elec"},
+	"fibre": {"name": "Fibre", "tip": "Fibre optique enterrée", "res": "telecom", "picto": "sous_fibre"},
 }
 ## Voies qu'on creuse : prix du tunnel au mètre (base, avant le coût de la partie).
 ## Repères réels : métro double voie au tunnelier 50 à 80 k€/m (hors stations),
 ## tunnel routier urbain 60 à 150 k€/m.
 const VOIES := {
-	"metro": {"name": "Métro", "tip": "Tunnel de métro (double voie, tunnelier)", "prix_m": 60000},
-	"rue": {"name": "Tunnel (rue)", "tip": "Tunnel routier urbain, une voie par sens", "prix_m": 45000},
-	"voie_express": {"name": "Tunnel (2×2)", "tip": "Tunnel routier à deux tubes, 2 × 2 voies", "prix_m": 110000},
-	"train": {"name": "Tunnel ferroviaire", "tip": "Tunnel de train", "prix_m": 70000},
+	"metro": {"name": "Métro", "tip": "Tunnel de métro (double voie, tunnelier)", "prix_m": 60000, "picto": "sous_metro"},
+	"rue": {"name": "Rue", "tip": "Tunnel routier urbain, une voie par sens", "prix_m": 45000, "picto": "sous_rue"},
+	"voie_express": {"name": "2 × 2 voies", "tip": "Tunnel routier à deux tubes, 2 × 2 voies", "prix_m": 110000, "picto": "sous_2x2"},
+	"train": {"name": "Train", "tip": "Tunnel ferroviaire", "prix_m": 70000, "picto": "sous_train"},
 }
 ## Pièces : prix au m² et par niveau (creusement, soutènement, dalles et voiles),
 ## heures de travail par m², surface par place (parking, abri).
@@ -56,11 +60,12 @@ const USAGES := {
 }
 const USAGE_ORDRE := ["cave", "parking", "entrepot", "technique", "bunker"]
 ## Outils de l'Atelier proposés sous terre.
+## [nom, outil, infobulle, icône]
 const ATELIER := [
-	["Murs", PlanEditor.Tool.WALL, "Murs fins (glisser)"],
-	["Porte", PlanEditor.Tool.OPENING, "Porte dans un mur"],
-	["Escalier", PlanEditor.Tool.STAIRS, "Escalier vers le niveau du dessus"],
-	["Gomme", PlanEditor.Tool.ERASE, "Effacer murs, portes, escaliers"],
+	["Murs", PlanEditor.Tool.WALL, "Murs fins (glisser)", "mur"],
+	["Porte", PlanEditor.Tool.OPENING, "Porte dans un mur", "ouverture"],
+	["Escalier", PlanEditor.Tool.STAIRS, "Escalier vers le niveau du dessus", "escalier"],
+	["Gomme", PlanEditor.Tool.ERASE, "Effacer murs, portes, escaliers", "gomme"],
 ]
 const MATERIAU_PIECE := "Béton brut"
 
@@ -100,7 +105,6 @@ var _barre: VBoxContainer
 var _boutons := {}
 var _info: Label
 var _bilan: Label
-var _usage_btn: ChoixVisuel
 var _haut_btn: ChoixVisuel
 var _rangement := false
 
@@ -127,6 +131,27 @@ static func methode_conduite(d: float) -> String:
 	if d <= PROF_TRANCHEE_MAX:
 		return "tranchée blindée"
 	return "microtunnelier"
+
+
+## Nom d'une conduite : celles de la barre, puis les tronçons du panneau O et les câbles des télécoms.
+static func nom_conduite(type_id: String) -> String:
+	if CONDUITES.has(type_id):
+		return String(CONDUITES[type_id].tip)
+	if est_telecom(type_id):
+		return String(Telecom.CABLES[type_id].name)
+	return String(ReseauxTypes.troncon(type_id).get("name", type_id))
+
+
+## Câble des télécoms (fibre, téléphone, coaxial) plutôt que tronçon du panneau O.
+static func est_telecom(type_id: String) -> bool:
+	return Telecom.CABLES.has(type_id)
+
+
+static func outil_telecom(type_id: String) -> Telecom.Outil:
+	for o in Telecom.OUTIL_CABLE:
+		if String(Telecom.OUTIL_CABLE[o]) == type_id:
+			return o
+	return Telecom.Outil.FIBRE
 
 
 ## Profondeur de l'axe d'une conduite posée au niveau n : sa profondeur habituelle
@@ -253,6 +278,9 @@ func activer(o: Outil, param := "") -> void:
 			if transport.relais.is_valid() or transport.bloque_reseau():
 				message.emit("En ligne, les tunnels ne se creusent pas encore depuis la vue sous terre.")
 				outil = Outil.AUCUN
+		Outil.PIECE:
+			if USAGES.has(param):
+				usage = param
 		Outil.ATELIER:
 			if param != "":
 				outil_atelier = int(param)
@@ -265,11 +293,11 @@ func activer(o: Outil, param := "") -> void:
 func echap() -> void:
 	match outil:
 		Outil.CONDUITE:
-			if type_conduite == "fibre" and not telecom._trace.is_empty():
+			if est_telecom(type_conduite) and not telecom._trace.is_empty():
 				telecom._trace.clear()
 				telecom._dessiner_trace()
 				return
-			if type_conduite != "fibre" and reseaux._trace.size() > 0:
+			if not est_telecom(type_conduite) and reseaux._trace.size() > 0:
 				reseaux._trace = PackedVector3Array()
 				if reseaux.vue:
 					reseaux.vue.fantome(PackedVector3Array(), Color.WHITE)
@@ -343,10 +371,10 @@ func _appliquer_niveau() -> void:
 	match outil:
 		Outil.CONDUITE:
 			var prof := profondeur_conduite(type_conduite, n)
-			if type_conduite == "fibre":
+			if est_telecom(type_conduite):
 				telecom.profondeur_pose = prof
-				if telecom.outil != Telecom.Outil.FIBRE:
-					telecom.set_outil(Telecom.Outil.FIBRE)
+				if telecom.outil != outil_telecom(type_conduite):
+					telecom.set_outil(outil_telecom(type_conduite))
 			else:
 				reseaux.profondeur_pose = prof
 				if reseaux.outil != Reseaux.Outil.TRACER or reseaux.type_troncon != type_conduite:
@@ -383,8 +411,8 @@ func _process(_delta: float) -> void:
 	var parti := false
 	match outil:
 		Outil.CONDUITE:
-			if type_conduite == "fibre":
-				parti = telecom.outil != Telecom.Outil.FIBRE
+			if est_telecom(type_conduite):
+				parti = telecom.outil != outil_telecom(type_conduite)
 			else:
 				parti = reseaux.outil != Reseaux.Outil.TRACER or reseaux.type_troncon != type_conduite
 		Outil.TUNNEL:
@@ -407,7 +435,7 @@ func _aide() -> void:
 		Outil.CONDUITE:
 			var d := profondeur_conduite(type_conduite, n)
 			t = "%s à %s m (%s, prix ×%s). Clic pour chaque point, clic droit pour finir." % [
-				CONDUITES[type_conduite].tip, TransportTypes._num(snappedf(d, 0.1)), methode_conduite(d),
+				nom_conduite(type_conduite), TransportTypes._num(snappedf(d, 0.1)), methode_conduite(d),
 				TransportTypes._num(snappedf(facteur_profondeur(d), 0.01))]
 		Outil.TUNNEL:
 			if n < NIVEAU_MIN_TUNNEL:
@@ -1076,47 +1104,43 @@ func _fantome_tunnel() -> void:
 
 func construire_barre(parent: Container) -> void:
 	_barre = VBoxContainer.new()
-	_barre.add_theme_constant_override("separation", 4)
+	_barre.add_theme_constant_override("separation", 3)
 	parent.add_child(_barre)
-	var r1 := _ligne("Poser :")
+	# Menus en images : chaque outil est une vignette (coupe du sous-sol) ou une icône.
+	var r1 := _ligne("Poser")
 	for t in CONDUITES:
 		_bouton(r1, "c:" + t, CONDUITES[t].name, CONDUITES[t].tip + " au niveau affiché",
-			func() -> void: activer(Outil.CONDUITE, t))
+			func() -> void: activer(Outil.CONDUITE, t), String(CONDUITES[t].picto))
 	r1.add_child(VSeparator.new())
 	for t in VOIES:
 		_bouton(r1, "v:" + t, VOIES[t].name, VOIES[t].tip + " (à partir du −3)",
-			func() -> void: activer(Outil.TUNNEL, t))
-	var r2 := _ligne("Creuser :")
-	_usage_btn = ChoixVisuel.new()
-	_usage_btn.focus_mode = Control.FOCUS_NONE
+			func() -> void: activer(Outil.TUNNEL, t), String(VOIES[t].picto))
+	var r2 := _ligne("Creuser")
 	for u in USAGE_ORDRE:
-		_usage_btn.add_item(USAGES[u].name)
-		_usage_btn.set_item_modele(_usage_btn.item_count - 1, "picto", "sous_" + String(u))
-	_usage_btn.item_selected.connect(func(i: int) -> void:
-		usage = USAGE_ORDRE[i]
-		if outil == Outil.PIECE:
-			_aide())
-	r2.add_child(_usage_btn)
+		_bouton(r2, "p:" + u, String(USAGES[u].name).get_slice(" (", 0), "Creuser : %s (glisser un rectangle, sous ce niveau)" % USAGES[u].name,
+			func() -> void: activer(Outil.PIECE, u), "sous_" + String(u))
 	_haut_btn = ChoixVisuel.new()
 	_haut_btn.icone = "souterrain"
 	_haut_btn.gradue = 1
+	_haut_btn.titre = "Hauteur de la pièce"
 	_haut_btn.focus_mode = Control.FOCUS_NONE
+	_haut_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	for h in NIVEAUX_PIECE_MAX:
 		_haut_btn.add_item(niveaux_txt(h + 1))
+	_haut_btn.face_image = Vector2(40, 28)
+	_haut_btn.select(hauteur - 1)
 	_haut_btn.item_selected.connect(func(i: int) -> void:
 		hauteur = i + 1
 		if outil == Outil.PIECE:
 			_aide())
 	r2.add_child(_haut_btn)
-	_bouton(r2, "piece", "Creuser", "Glisser un rectangle : la pièce est creusée sous ce niveau",
-		func() -> void: activer(Outil.PIECE))
 	r2.add_child(VSeparator.new())
 	for a in ATELIER:
 		var t: int = a[1]
-		_bouton(r2, "a:%d" % t, String(a[0]), "Atelier : " + String(a[2]), func() -> void: activer(Outil.ATELIER, str(t)))
+		_bouton(r2, "a:%d" % t, String(a[0]), "Atelier : " + String(a[2]), func() -> void: activer(Outil.ATELIER, str(t)), "", String(a[3]))
 	r2.add_child(VSeparator.new())
-	_bouton(r2, "deplacer", "Déplacer", "Déplacer une conduite enterrée (dévoiement)", func() -> void: activer(Outil.DEPLACER))
-	_bouton(r2, "gomme", "Supprimer", "Supprimer une pièce, une conduite ou un tunnel", func() -> void: activer(Outil.GOMME))
+	_bouton(r2, "deplacer", "Déplacer", "Déplacer une conduite enterrée (dévoiement)", func() -> void: activer(Outil.DEPLACER), "", "glisser")
+	_bouton(r2, "gomme", "Supprimer", "Supprimer une pièce, une conduite ou un tunnel", func() -> void: activer(Outil.GOMME), "", "demolir")
 	_info = Label.new()
 	_info.add_theme_font_size_override("font_size", 13)
 	_info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -1134,23 +1158,45 @@ func construire_barre(parent: Container) -> void:
 
 func _ligne(titre: String) -> HBoxContainer:
 	var h := HBoxContainer.new()
-	h.add_theme_constant_override("separation", 4)
+	h.add_theme_constant_override("separation", 3)
 	h.alignment = BoxContainer.ALIGNMENT_CENTER
 	var l := Label.new()
 	l.text = titre
 	l.add_theme_font_size_override("font_size", 13)
+	l.add_theme_color_override("font_color", UiStyle.TEXT_DIM)
+	l.custom_minimum_size = Vector2(62, 0)
 	h.add_child(l)
 	_barre.add_child(h)
 	return h
 
 
-func _bouton(parent: Container, cle_: String, texte: String, tip: String, f: Callable) -> void:
+## Vignette d'outil : une image (picto, coupe du sous-sol) ou une icône, le nom dessous.
+const TUILE := Vector2(70, 60)
+
+
+func _bouton(parent: Container, cle_: String, texte: String, tip: String, f: Callable, picto := "", icone := "") -> void:
 	var b := Button.new()
+	b.name = "Outil_" + cle_.replace(":", "_")
 	b.text = texte
 	b.tooltip_text = tip
 	b.toggle_mode = true
 	b.focus_mode = Control.FOCUS_NONE
-	b.add_theme_font_size_override("font_size", 13)
+	b.custom_minimum_size = TUILE
+	b.clip_text = true
+	b.add_theme_font_size_override("font_size", 11)
+	b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	b.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
+	if picto != "":
+		b.icon = Pictos.get_picto(picto, 60)
+		b.add_theme_constant_override("icon_max_width", 60)
+	else:
+		b.icon = Icones.get_icon(icone if icone != "" else "souterrain", 26)
+		b.add_theme_constant_override("icon_max_width", 26)
+	UiStyle.style_icon_button(b)
+	if picto != "":
+		# Une image garde ses couleurs, même enfoncée.
+		for k in ["icon_normal_color", "icon_hover_color", "icon_pressed_color", "icon_hover_pressed_color"]:
+			b.add_theme_color_override(k, Color.WHITE)
 	b.pressed.connect(func() -> void:
 		if b.button_pressed:
 			f.call()
@@ -1164,7 +1210,7 @@ func _cle_active() -> String:
 	match outil:
 		Outil.CONDUITE: return "c:" + type_conduite
 		Outil.TUNNEL: return "v:" + type_voie
-		Outil.PIECE: return "piece"
+		Outil.PIECE: return "p:" + usage
 		Outil.ATELIER: return "a:%d" % outil_atelier
 		Outil.DEPLACER: return "deplacer"
 		Outil.GOMME: return "gomme"

@@ -238,13 +238,44 @@ func _run() -> void:
 	for pid in pop.by_job.get(depot, []):
 		if String(pop.persons[pid].met) == "eboueur":
 			ripeurs += 1
-	if libres0 >= 3:
-		_check(dep_k >= 3 and ripeurs >= 3 and not pop.effectif.ferme(depot), "les fondateurs sans chantier le tiennent : %d éboueurs" % ripeurs)
-	else:
-		_check(dep_k == libres0, "seulement les fondateurs sans chantier (%d)" % libres0)
+	# Service vital : les fondateurs y vont même s'il faut les prendre aux chantiers.
+	_check(dep_k >= 3 and ripeurs >= 3 and not pop.effectif.ferme(depot), "les fondateurs le tiennent : %d éboueurs (%d sans chantier avant)" % [ripeurs, libres0])
 	if depot > 0:
 		bs.remove_quietly(depot)
 		pop._sync_buildings()
+
+	# Un forage sans personne (aucun métier « indispensable ») : il fermait pour
+	# toujours, car les fondateurs ont un emploi (la base de chantier) et ne sont
+	# jamais chômeurs. Les fondateurs y vont, même tous pris par les chantiers.
+	var forage := -1
+	for c in [Vector2i(-1000, 260), Vector2i(-900, 260), Vector2i(-1100, 260), Vector2i(-1000, 60), Vector2i(-800, 160)]:
+		if forage < 0 and bs.check_place("forage_eau", c, 0).ok:
+			forage = bs.place("forage_eau", c, 0)
+	vie.finish_all()
+	pop._sync_buildings()
+	for pid in (pop.by_job.get(forage, []) as Array).duplicate():
+		pop._leave_job(pop.persons[pid])
+	pop._apres_embauches()
+	_check(forage > 0 and pop.effectif.ferme(forage) and (pop.effectif.etat(forage).requis as Array).is_empty(), "forage sans personne : fermé, sans métier indispensable")
+	fd.repartir()
+	var libres_f := fd.libres
+	fd.depanner()
+	var au_forage := (pop.by_job.get(forage, []) as Array).size()
+	_check(au_forage >= 1 and not pop.effectif.ferme(forage), "un fondateur tient le forage (%d, %d sans chantier avant)" % [au_forage, libres_f])
+	_check(Fondateurs.est_vital(pop.known[forage]), "le forage est un service vital")
+	fd.depanner()
+	_check((pop.by_job.get(forage, []) as Array).size() == au_forage, "pas de renfort en double le lendemain")
+	if forage > 0:
+		bs.remove_quietly(forage)
+		pop._sync_buildings()
+
+	# « N personnes ici » : un fondateur dort et travaille au campement, compté une fois.
+	var ici := pop.present_in(fd.camp)
+	var uniques := {}
+	for pid in ici:
+		uniques[pid] = true
+	_check(uniques.size() == ici.size() and ici.size() <= fd.vivants().size() + 20, "campement : %d personnes ici, chacune comptée une fois" % ici.size())
+	_check(pop.free_homes(fd.camp) == 0, "les tentes libérées ne se relouent pas")
 
 	print("Vivres puis ravitaillement :")
 	var n_tente := fd.au_campement()

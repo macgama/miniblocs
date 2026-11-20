@@ -647,7 +647,13 @@ func _view_building(bid: int) -> void:
 			_person_link(pid, String(pop.activity(pop.persons[pid]).text) + ((" · " + g) if g != "" else ""))
 			shown += 1
 		if staff.is_empty():
-			_text("Aucun employé : il faut des habitants sans emploi en ville.", true)
+			var fd := Fondateurs.instance
+			if fd != null and fd.regle_active() and fd.camp >= 0 and Fondateurs.est_vital(info):
+				_text("Aucun employé : des fondateurs du campement viennent le tenir dès demain matin (Maj+H pour en envoyer tout de suite).", true)
+			elif fd != null and fd.regle_active() and fd.camp >= 0:
+				_text("Aucun employé : il faut des habitants sans emploi en ville, ou des fondateurs sans chantier (Maj+H → Affecter les fondateurs).", true)
+			else:
+				_text("Aucun employé : il faut des habitants sans emploi en ville.", true)
 	var visitors := []
 	for pid in here:
 		var k := String(pop.activity(pop.persons[pid]).kind)

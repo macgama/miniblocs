@@ -649,7 +649,9 @@ func _construire_ui() -> void:
 		format = String(FORMATS[i].id)
 		_guides.queue_redraw())
 	body.add_child(ofm)
-	var od := OptionButton.new()
+	var od := ChoixVisuel.new()
+	od.icone = "appareil_photo"
+	od.gradue = 1
 	od.focus_mode = Control.FOCUS_NONE
 	for d in DEFINITIONS:
 		od.add_item(String(d[0]))

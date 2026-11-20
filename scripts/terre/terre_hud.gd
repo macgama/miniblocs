@@ -1200,6 +1200,16 @@ func _build_vehicle_menu() -> MenuButton:
 			continue
 		pm.add_radio_check_item(r.name, entries.size())
 		entries.append(["region", r.id])
+	# Chaque époque et chaque région en image : un véhicule de son temps, de chez elle.
+	pm.add_theme_constant_override("icon_max_width", 56)
+	for i in pm.item_count:
+		var eid := pm.get_item_id(i)
+		if pm.is_item_separator(i) or eid < 0 or eid >= entries.size():
+			continue
+		var en0: Array = entries[eid]
+		pm.set_item_icon(i, Pictos.auto(pm.get_item_text(i), 0, 1, "vehicules" if en0[1] != "" else "globe", false, 56))
+		if String(en0[1]) != "":
+			Illustrations.poser_dans_liste("vehicule_epoque" if en0[0] == "era" else "vehicule_region", String(en0[1]), pm, i)
 	var refresh := func() -> void:
 		for i in pm.item_count:
 			var id := pm.get_item_id(i)
@@ -1228,6 +1238,7 @@ func _build_spec_panel(parent: Control) -> void:
 	_vignettes = Vignettes.new()
 	add_child(_vignettes)
 	_class_pick = ChoixVisuel.new()
+	_class_pick.face_image = Vector2(54, 38)
 	_class_pick.custom_minimum_size = Vector2(265, 46)
 	_class_pick.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_class_pick.tile_size = Vector2(150, 142)
@@ -1266,6 +1277,7 @@ func _build_spec_panel(parent: Control) -> void:
 			lacets_toggled.emit(on))
 	row.add_child(_lacets)
 	_level_pick = ChoixVisuel.new()
+	_level_pick.face_image = Vector2(54, 38)
 	_level_pick.custom_minimum_size = Vector2(215, 46)
 	_level_pick.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_level_pick.titre = "Aux croisements avec une autre voie (N)"

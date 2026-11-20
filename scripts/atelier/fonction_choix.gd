@@ -21,7 +21,9 @@ func _init(cur := "") -> void:
 	_cat = String(t.get("cat", ""))
 	_groups = ModelesJeu.fonctions()
 	var row := HBoxContainer.new()
-	var cat := OptionButton.new()
+	var cat := ChoixVisuel.new()
+	cat.modele_meta = "categorie"
+	cat.icone = "construire"
 	cat.custom_minimum_size = Vector2(150, 0)
 	cat.clip_text = true
 	cat.add_item("Toutes les catégories")

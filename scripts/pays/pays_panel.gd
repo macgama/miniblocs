@@ -235,7 +235,9 @@ func _view_villes() -> void:
 	ml.text = "Montant des virements :"
 	ml.add_theme_font_size_override("font_size", 12)
 	m.add_child(ml)
-	var opt := OptionButton.new()
+	var opt := ChoixVisuel.new()
+	opt.icone = "billet"
+	opt.gradue = 1
 	opt.focus_mode = Control.FOCUS_NONE
 	for v in Pays.SUBVENTIONS:
 		opt.add_item(money(v))

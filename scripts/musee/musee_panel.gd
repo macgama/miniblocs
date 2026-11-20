@@ -227,7 +227,9 @@ func _choix_musee(key: String) -> void:
 	var l := musee.list()
 	if l.size() < 2:
 		return
-	var opt := OptionButton.new()
+	var opt := ChoixVisuel.new()
+	opt.icone = "musee"
+	opt.gradue = 0
 	opt.focus_mode = Control.FOCUS_NONE
 	for k in l:
 		opt.add_item(musee.nom(String(k)))

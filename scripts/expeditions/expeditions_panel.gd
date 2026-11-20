@@ -343,7 +343,9 @@ func _vue_preparer() -> void:
 		return
 	# Destination.
 	_titre("Destination")
-	var opt := OptionButton.new()
+	var opt := ChoixVisuel.new()
+	opt.icone = "globe"
+	opt.gradue = 0
 	opt.focus_mode = Control.FOCUS_NONE
 	var ouvertes := ex.destinations_ouvertes()
 	if not ouvertes.has(String(plan.dest)):
@@ -377,7 +379,9 @@ func _vue_preparer() -> void:
 		return
 	if not libres.has(int(plan.chef)):
 		plan.chef = int(libres[0])
-	var co := OptionButton.new()
+	var co := ChoixVisuel.new()
+	co.icone = "emploi"
+	co.gradue = 1
 	co.focus_mode = Control.FOCUS_NONE
 	for i in libres.size():
 		var c: Dictionary = ex.chefs[int(libres[i])]
@@ -519,7 +523,9 @@ func _vue_reserve() -> void:
 		var sd := ExpeditionsDonnees.specialiste(String(sid))
 		_label("%s : %s" % [String(sd.nom), String(sd.desc)], 12)
 		var r2 := _row()
-		var o := OptionButton.new()
+		var o := ChoixVisuel.new()
+		o.icone = "village"
+		o.gradue = 0
 		o.focus_mode = Control.FOCUS_NONE
 		o.add_item("En réserve (sans effet)", 0)
 		var sel := 0

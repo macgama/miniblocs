@@ -178,7 +178,9 @@ func _choix_lieu() -> void:
 	var l := Label.new()
 	l.text = "Lieu :"
 	row.add_child(l)
-	var opt := OptionButton.new()
+	var opt := ChoixVisuel.new()
+	opt.icone = "village"
+	opt.gradue = 0
 	opt.focus_mode = Control.FOCUS_NONE
 	opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	for i in lieux.size():

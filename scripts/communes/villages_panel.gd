@@ -19,9 +19,9 @@ var _banner: PanelContainer
 var _banner_label: Label
 var _dialog: ConfirmationDialog
 var _dialog_edit: LineEdit
-var _dialog_drapeau: OptionButton
+var _dialog_drapeau: ChoixVisuel
 var _drapeau_dialog: ConfirmationDialog
-var _drapeau_choix: OptionButton
+var _drapeau_choix: ChoixVisuel
 var _drapeau_vid := -1
 var _tick := 0.0
 ## Bord gauche (en pixels) d'un panneau ouvert à droite, ou -1 : le bandeau
@@ -147,8 +147,8 @@ func _build() -> void:
 
 
 ## Liste déroulante de tous les drapeaux (taper une lettre pour sauter au pays).
-static func choix_drapeau() -> OptionButton:
-	var o := OptionButton.new()
+static func choix_drapeau() -> ChoixVisuel:
+	var o := ChoixVisuel.new()
 	o.focus_mode = Control.FOCUS_ALL
 	o.add_item("Aucun drapeau")
 	o.set_item_metadata(0, "")
@@ -159,11 +159,10 @@ static func choix_drapeau() -> OptionButton:
 		else:
 			o.add_item(String(e[1]))
 		o.set_item_metadata(o.item_count - 1, String(e[0]))
-	o.get_popup().max_size = Vector2i(0, 480)
 	return o
 
 
-static func choisir_code(o: OptionButton, code: String) -> void:
+static func choisir_code(o: ChoixVisuel, code: String) -> void:
 	for i in o.item_count:
 		if String(o.get_item_metadata(i)) == code.to_lower():
 			o.select(i)
@@ -171,7 +170,7 @@ static func choisir_code(o: OptionButton, code: String) -> void:
 	o.select(0)
 
 
-static func code_choisi(o: OptionButton) -> String:
+static func code_choisi(o: ChoixVisuel) -> String:
 	return String(o.get_item_metadata(o.selected)) if o.selected >= 0 else ""
 
 

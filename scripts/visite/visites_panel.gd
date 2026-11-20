@@ -21,7 +21,7 @@ var _body: VBoxContainer
 var _tabs: HBoxContainer
 var _etat: Label
 var _texte: TextEdit
-var _timbre: OptionButton
+var _timbre: ChoixVisuel
 var _avec_photo: CheckBox
 var _photo: Image
 var _miniatures := {}
@@ -167,9 +167,10 @@ func _vue_visite() -> void:
 	var lt := Label.new()
 	lt.text = "Timbre"
 	h.add_child(lt)
-	_timbre = OptionButton.new()
+	_timbre = ChoixVisuel.new()
 	for i in VisiteVille.TIMBRES.size():
 		_timbre.add_item(VisiteVille.TIMBRES[i], i)
+		_timbre.set_item_modele(i, "timbre", String(VisiteVille.TIMBRES[i]))
 	_timbre.focus_mode = Control.FOCUS_NONE
 	h.add_child(_timbre)
 	_avec_photo = CheckBox.new()

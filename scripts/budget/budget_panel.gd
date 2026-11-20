@@ -303,7 +303,9 @@ func _view_loans() -> void:
 	_text("Mensualités : %s par mois." % money(budget.mensualites()))
 	_section("Nouvel emprunt")
 	var r := _row()
-	var amt := OptionButton.new()
+	var amt := ChoixVisuel.new()
+	amt.icone = "billet"
+	amt.gradue = 1
 	for m in BudgetCommunal.MONTANTS:
 		amt.add_item(BuildingSystem.format_short(m))
 	amt.select(_montant)
@@ -311,7 +313,9 @@ func _view_loans() -> void:
 		_montant = i
 		refresh())
 	r.add_child(amt)
-	var dur := OptionButton.new()
+	var dur := ChoixVisuel.new()
+	dur.icone = "horloge"
+	dur.gradue = 1
 	for y in BudgetCommunal.DUREES:
 		dur.add_item("%d ans" % y)
 	dur.select(_duree)
@@ -375,7 +379,9 @@ func _view_upkeep() -> void:
 		auto.add_theme_font_size_override("font_size", 12)
 		auto.toggled.connect(func(on: bool) -> void: _faire("set_entretien", [key, "auto", on]))
 		r2.add_child(auto)
-		var seuil := OptionButton.new()
+		var seuil := ChoixVisuel.new()
+		seuil.icone = "sourire"
+		seuil.gradue = 1
 		for s in [20, 35, 50, 70]:
 			seuil.add_item("%d %%" % s)
 		var best := 0

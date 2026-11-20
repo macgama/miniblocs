@@ -84,6 +84,7 @@ func _ready() -> void:
 	bl.text = "Biome :"
 	brow.add_child(bl)
 	_biome_pick = ChoixVisuel.new()
+	_biome_pick.face_image = Vector2(54, 38)
 	_biome_pick.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_biome_pick.custom_minimum_size = Vector2(0, 42)
 	_biome_pick.titre = "Biome à peindre"

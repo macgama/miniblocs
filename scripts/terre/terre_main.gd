@@ -1822,6 +1822,10 @@ func _setup_quartiers() -> void:
 	add_child(quartiers)
 	quartiers.setup(world, buildings, transport, population, communes)
 	quartiers.dechets = dechets
+	quartiers.regisseurs = Regisseurs.new()
+	quartiers.regisseurs.name = "Regisseurs"
+	quartiers.add_child(quartiers.regisseurs)
+	quartiers.regisseurs.setup(quartiers, population, decors)
 	quartiers.message.connect(func(t: String) -> void: hud.show_message(t))
 	quartiers.changed.connect(func() -> void: _unsaved = true)
 	Calques.ajouter("quartiers", "Quartiers et arrêtés", "Villages", func(on: bool) -> void: quartiers.calque = on,
@@ -2942,6 +2946,10 @@ func _setup_fil_habitants() -> void:
 	fil_habitants.visible = fil_habitants.visible and not GameStart.atelier
 	if GameStart.atelier:
 		fil_habitants.set_process(false)
+	if quartiers != null and quartiers.regisseurs != null:
+		quartiers.regisseurs.action.connect(func(_qid: int, pid: int, t: String) -> void:
+			if population.persons.has(pid):
+				fil_habitants.ajouter(fil_habitants._post(population.persons[pid], "regisseur", t, "pancarte", false)))
 	fil_habitants.person_requested.connect(func(pid: int) -> void:
 		if population.persons.has(pid):
 			habitants_panel.set_open(true)

@@ -109,6 +109,7 @@ func _village(scene: Node) -> void:
 func _suite(scene: Node) -> void:
 	await _prix(scene)
 	await _deplacer(scene)
+	await _regisseur(scene)
 
 
 func _prix(scene: Node) -> void:
@@ -324,3 +325,63 @@ func _afficher(scene: Node) -> void:
 			_check(scene.bulles_aide.actif and scene.bulles_aide.id.ends_with(":afficher"), "Afficher : bulles « Où cliquer » à l'écran")
 			_check(scene.bulles_aide.bulle().has("cible"), "la bulle montre un élément de l'écran")
 			scene.bulles_aide.fermer()
+
+
+func _regisseur(scene: Node) -> void:
+	print("Régisseur de quartier :")
+	var q: Quartiers = scene.quartiers
+	var rg: Regisseurs = q.regisseurs
+	var pop: Population = scene.population
+	var bs: BuildingSystem = scene.buildings
+	_check(rg != null and rg.is_in_group("avis_sources"), "régisseurs branchés aux quartiers et à l'avis")
+	var qid := q.creer("Les Tilleuls")
+	_check(qid > 0, "quartier créé")
+	q.peindre_rect(qid, Rect2i(-350, -100, 250, 200))
+	_check(q.ha(qid) > 0.0, "quartier peint autour des maisons (%s ha)" % str(q.ha(qid)))
+	var cands := rg.candidats(qid)
+	_check(not cands.is_empty(), "des habitants du quartier peuvent devenir régisseurs (%d)" % cands.size())
+	if cands.is_empty():
+		return
+	var c: Dictionary = cands[0]
+	_check(Regisseurs.CARACTERES.has(String(c.car)) and int(c.age) >= 25, "candidat : %s, %d ans, %s" % [c.nom, int(c.age), c.car])
+	var posts0: int = scene.fil_habitants.posts.size()
+	_check(rg.confier(qid, int(c.pid), 40_000) == "", "quartier confié")
+	_check(scene.fil_habitants.posts.size() == posts0 + 1, "la nomination passe dans le fil des habitants")
+	var p: Dictionary = pop.persons[int(c.pid)]
+	var av := rg.avis_politique(p)
+	_check(float(av[0]) > 0.0, "ses voisins aiment avoir un des leurs aux commandes")
+	# Caractère forcé « bon vivant » : bancs et jeux, puis rues piétonnes quand la cagnotte suffit.
+	rg.regisseurs[qid].car = "bon_vivant"
+	var argent0 := bs.money
+	var decors0: int = scene.decors.nombre_poses()
+	var t := rg.semaine(qid)
+	_check(t != "", "une semaine : il fait quelque chose (%s)" % t)
+	_check(argent0 - bs.money == roundi(40_000.0 * 7.0 / 30.44), "sa part du budget est payée par la ville")
+	var a_fait: bool = scene.decors.nombre_poses() > decors0 or q.a_arrete(qid, "rue_pietonne") or q.a_arrete(qid, "zone_30")
+	_check(a_fait, "arrêté pris ou mobilier posé dans le quartier")
+	for i in 6:
+		rg.semaine(qid)
+	_check(int(rg.de(qid).actions) >= 3, "il agit chaque semaine (%d actions)" % int(rg.de(qid).actions))
+	_check(int(rg.de(qid).caisse) >= 0, "la cagnotte ne passe jamais sous zéro")
+	# Sauvegarde et rechargement.
+	var d := q.to_dict()
+	rg.clear()
+	q.from_dict(d)
+	_check(rg.de(qid).get("pid", -1) == int(c.pid) and String(rg.de(qid).car) == "bon_vivant", "sauvegardé avec les quartiers")
+	# Reprendre la main : la cagnotte revient.
+	var caisse := int(rg.de(qid).caisse)
+	var argent1 := bs.money
+	rg.reprendre(qid)
+	_check(rg.de(qid).is_empty() and bs.money - argent1 == caisse, "reprendre la main : cagnotte rendue (%s)" % BuildingSystem.format_money(caisse))
+	# Mairie perdue : il s'en va.
+	rg.confier(qid, int(c.pid), 5_000)
+	var qp: QuartiersPanel = scene.quartiers_panel
+	qp.set_open(true)
+	q.selection = qid
+	qp.refresh()
+	await _frames(2)
+	_check(qp._body.get_child_count() > 0, "panneau du quartier avec la section Régisseur")
+	qp.set_open(false)
+	pop.persons.erase(int(c.pid))
+	rg.journee(rg._jour() + 30)
+	_check(rg.de(qid).is_empty(), "régisseur parti : le maire reprend la main")

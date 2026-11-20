@@ -152,6 +152,10 @@ func _process(delta: float) -> void:
 # --- Ce qu'on montre ---------------------------------------------------------------------
 
 ## Clic sur un bâtiment (Population.building_selected) ; -1 = plus rien de choisi.
+## Hors de la vue O, un clic n'allume plus le flux tout seul (trop chargé) : la
+## fiche du bâtiment a un bouton « Voir sur les routes » (basculer_batiment).
+## Dans la vue O (un onglet ouvert), le joueur regarde déjà les réseaux : le clic
+## montre directement le flux du bâtiment.
 func sur_selection(b: int) -> void:
 	if b < 0:
 		# Le même clic vient de montrer une route dans la vue O : on la garde.
@@ -159,7 +163,27 @@ func sur_selection(b: int) -> void:
 			return
 		effacer()
 		return
-	montrer_batiment(b)
+	if reseaux != null and reseaux.vue != null and reseaux.vue.calque_actif() != "":
+		montrer_batiment(b)
+		return
+	# Même bâtiment déjà montré à la demande : on le garde.
+	if actif() and origine == "batiment" and bid == b:
+		return
+	effacer()
+
+
+## Bouton de la fiche : montre le flux des réseaux du bâtiment, ou l'efface s'il
+## est déjà montré. Rend vrai si le flux est maintenant affiché.
+func basculer_batiment(b: int) -> bool:
+	if montre_batiment(b):
+		effacer()
+		return false
+	return montrer_batiment(b)
+
+
+## Le flux montré est celui du bâtiment b (bouton de la fiche enfoncé).
+func montre_batiment(b: int) -> bool:
+	return actif() and origine == "batiment" and bid == b
 
 
 ## Réseaux d'un bâtiment : ceux qu'il alimente puis ceux qu'il consomme.

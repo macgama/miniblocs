@@ -150,7 +150,7 @@ func _run() -> void:
 	_check(lp.contains("raccordé mais coupé (pas assez de production"), "fiche : raccordé mais coupé, avec la raison")
 	var box := VBoxContainer.new()
 	root.add_child(box)
-	_check(rac.remplir_fiche(box, loin) == lignes.size() and box.get_child_count() == lignes.size() + 1, "rubrique Réseaux de la fiche : une ligne par réseau, plus la légende du flux")
+	_check(rac.remplir_fiche(box, loin) == lignes.size() and box.get_child_count() == lignes.size(), "rubrique Réseaux de la fiche : une ligne par réseau")
 	box.queue_free()
 	var hp: HabitantsPanel = scene.habitants_panel
 	scene.population._sync_buildings()
@@ -160,7 +160,19 @@ func _run() -> void:
 	for n in hp._body.find_children("*", "Label", true, false):
 		if (n as Label).text.contains("Électricité : pas raccordé"):
 			vu = true
-	_check(vu, "la fiche du bâtiment (clic) montre la rubrique Réseaux")
+	_check(not vu, "fiche courte : le détail des réseaux est replié au départ")
+	var pastille := false
+	for n in hp._body.find_children("*", "PanelContainer", true, false):
+		if (n as Control).tooltip_text.contains("Électricité : pas raccordé"):
+			pastille = true
+	_check(pastille, "la fiche courte montre l'électricité manquante en pastille (détail en infobulle)")
+	hp.ouvertes["reseaux"] = true
+	hp.refresh()
+	for n in hp._body.find_children("*", "Label", true, false):
+		if (n as Label).text.contains("Électricité : pas raccordé"):
+			vu = true
+	_check(vu, "rubrique Réseaux dépliée : le détail de chaque réseau")
+	hp.ouvertes.erase("reseaux")
 
 	print("Mairie :")
 	var al := rac.alertes()

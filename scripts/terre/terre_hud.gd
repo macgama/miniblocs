@@ -244,6 +244,8 @@ var _tray: PanelContainer
 var _tray_tools: HBoxContainer
 var _tray_sep: Control
 var _coords_panel: PanelContainer
+## Bouton (caché) qui ouvre ou ferme le panneau des coordonnées.
+var _coords_go: Button
 var _chips := {}
 var _view_button: Button
 var _admin_button: Button
@@ -407,6 +409,7 @@ func _build_top_bar() -> void:
 		if e is InputEventMouseButton and (e as InputEventMouseButton).pressed and (e as InputEventMouseButton).button_index == MOUSE_BUTTON_LEFT:
 			go.button_pressed = not go.button_pressed)
 	go.toggle_mode = true
+	_coords_go = go
 	go.toggled.connect(func(on: bool) -> void:
 		_coords_panel.visible = on
 		if on:
@@ -830,6 +833,17 @@ func set_compact(on: bool) -> void:
 
 
 func _input(event: InputEvent) -> void:
+	# Panneau des coordonnées : un clic ailleurs ou Échap le referme (sinon il
+	# reste sous les cartes de gauche sans qu'on sache pourquoi).
+	if coords_open():
+		var clic := event as InputEventMouseButton
+		var touche := event as InputEventKey
+		if clic != null and clic.pressed and not _coords_panel.get_global_rect().has_point(clic.position) \
+				and not _place_label.get_global_rect().has_point(clic.position):
+			fermer_coords()
+		elif touche != null and touche.pressed and touche.keycode == KEY_ESCAPE:
+			fermer_coords()
+			get_viewport().set_input_as_handled()
 	# Clic ailleurs : le menu ouvert se referme.
 	var mb := event as InputEventMouseButton
 	if _open_group == "" or mb == null or not mb.pressed:
@@ -1513,6 +1527,18 @@ func choose_tool(i: int) -> void:
 ## Panneau des coordonnées ouvert (en haut à gauche).
 func coords_open() -> bool:
 	return _coords_panel != null and _coords_panel.visible
+
+
+## Le panneau des coordonnées (tête de la colonne de gauche quand il est ouvert).
+func coords_panel() -> Control:
+	return _coords_panel
+
+
+func fermer_coords() -> void:
+	if _coords_go != null:
+		_coords_go.button_pressed = false
+	if _coords_panel != null:
+		_coords_panel.visible = false
 
 
 ## Enfonce le bouton d'un outil sans prévenir (un autre système a pris la main).

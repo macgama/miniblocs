@@ -261,7 +261,12 @@ func _run() -> void:
 	hp.show_view("batiment", g)
 	await process_frame
 	var txt := _textes(hp)
-	_check(txt.contains("Agrandissement · niveau 2 sur 3") and txt.contains("Agrandir ·"), "section Agrandissement et bouton")
+	_check(txt.contains("Agrandissement · niveau 2 sur 3") and not txt.contains("Agrandir ·"), "fiche courte : rubrique Agrandissement repliée")
+	hp.basculer_rubrique("travaux")
+	await process_frame
+	txt = _textes(hp)
+	_check(txt.contains("Agrandissement · niveau 2 sur 3") and txt.contains("Agrandir ·"), "rubrique dépliée : section Agrandissement et bouton")
+	hp.basculer_rubrique("travaux")
 
 	print("Sauvegarde de la partie :")
 	var s2: Dictionary = scene.save_sections()

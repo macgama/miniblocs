@@ -3089,6 +3089,14 @@ func _setup_jauges() -> void:
 	jauges.panneau_requested.connect(aller_au_panneau)
 
 
+## Tête de la colonne de gauche : le panneau des coordonnées s'il est ouvert (clic
+## sur le nom du lieu ; le tutoriel est alors caché), sinon la carte du tutoriel.
+func _tete_pile_gauche() -> Control:
+	if hud.coords_open():
+		return hud.coords_panel()
+	return tuto_carte.find_child("CarteTutoriel", true, false) as Control if is_instance_valid(tuto_carte) else null
+
+
 ## Mini-carte vue du dessus en bas à droite (Ctrl+M) : clic pour déplacer la
 ## caméra, couleurs de N ou P, alertes cliquables, villes voisines.
 var mini_carte: MiniCarte
@@ -3109,7 +3117,7 @@ func _setup_pile_gauche() -> void:
 	pile_gauche.name = "PileGauche"
 	add_child(pile_gauche)
 	pile_gauche.haut = [
-		func() -> Control: return tuto_carte.find_child("CarteTutoriel", true, false) as Control if is_instance_valid(tuto_carte) else null,
+		_tete_pile_gauche,
 		func() -> Control: return habitants_panel._card if is_instance_valid(habitants_panel) else null,
 		func() -> Control: return fil_habitants if is_instance_valid(fil_habitants) else null]
 	pile_gauche.bas = [

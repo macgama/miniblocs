@@ -42,7 +42,15 @@ Les onglets sont des icônes (le nom est dans l'infobulle et au-dessus de la lis
 
 ## Fiche d'un bâtiment
 
-Clic sur un bâtiment avec l'outil Observer : le panneau Habitants s'ouvre sur sa fiche, avec l'icône de sa catégorie et des jauges (logements, employés, élèves), le nombre de personnes présentes, puis la liste des habitants, élèves et employés.
+Clic sur un bâtiment avec l'outil Observer : le panneau Habitants s'ouvre sur sa **fiche courte** (demande de Gaël du 20 novembre 2026 : « trop d'infos en même temps ») :
+
+- en tête : l'icône de sa catégorie, les jauges (logements, employés, élèves), le nombre de personnes présentes et **une pastille par réseau** (électricité, eau, égouts, chauffage, internet) dans la couleur de son état, le détail en infobulle ; bouton **« Sur les routes »** qui montre (ou cache) le flux des réseaux jusqu'au bâtiment ;
+- « Aller voir » et les tuiles « Modifier la façade » / « Aménager l'intérieur » ;
+- puis le détail en **rubriques repliables** (Réseaux, Agrandissement ou Entretien, Habitants, Élèves, Employés, Visiteurs) : une ligne-titre avec son résumé (« 3 dans 1 logement sur 1 », « 2 soucis »…), clic pour déplier. Toutes repliées au départ ; le choix est gardé pour les autres bâtiments (`user://interface.cfg`, section `[fiche]`).
+
+Les onglets Ville / Habitants / Funéraire sont cachés sur la fiche (flèche Retour pour revenir) et le panneau s'arrête sous la dernière rubrique. Code : `HabitantsPanel._view_building`, `_repli()`, `_pastilles_reseaux()` ; `Raccordements.remplir_pastilles()`. Captures : `tests/fiche_courte_vitrine.gd`.
+
+Le panneau des coordonnées (clic sur le nom du lieu, en haut à gauche) prend la tête de la colonne de gauche (`PileGauche`) : le fil des habitants et la carte de l'habitant suivi passent dessous au lieu de le recouvrir. Clic ailleurs ou Échap : il se referme.
 
 ![Fiche d'une école](apercu-menus-fiche.png)
 

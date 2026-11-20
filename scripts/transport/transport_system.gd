@@ -76,6 +76,13 @@ var _marker: MeshInstance3D
 var _ctrl_marker: MeshInstance3D
 var _highlight_edge := -1
 var _right_press := Vector2.ZERO
+## Route tracée au geste (piste CityRT 7) : appuie et glisse, la voie suit la souris.
+const GESTE_SEUIL_PX := 12.0
+const GESTE_PAS := 4.0
+const GESTE_MIN := 15.0
+var _geste := false
+var _geste_press := Vector2.INF
+var _geste_pts := PackedVector2Array()
 ## Cases recouvertes par une voie au sol (pas d'arbres dessus, talus protégés).
 ## Cases couvertes par les voies : Vector2i -> nombre de tronçons qui la couvrent.
 var _occupied: Dictionary = {}
@@ -328,7 +335,7 @@ func _emit_help() -> void:
 	if tool != Tool.BUILD:
 		return
 	var ty := TransportTypes.get_type(type_id)
-	var how := "clic de départ, clic de direction, clic d'arrivée" if curve_mode and not lacets_mode else "clic pour commencer, clic pour chaque point"
+	var how := ("clic de départ, clic de direction, clic d'arrivée" if curve_mode and not lacets_mode else "clic pour commencer, clic pour chaque point") + " · ou appuie et glisse : la route suit ton tracé"
 	var forme := "lacets" if lacets_mode else ("courbe" if curve_mode else "droite")
 	info_changed.emit("%s (%s) : %s · C : %s · N : %s · Échap / clic droit : arrêter · Maj : angles de 15°\n%s" % [
 		ty.name, forme, how, "passer en ligne droite" if curve_mode else "passer en courbe",
@@ -649,6 +656,9 @@ func set_inactive() -> void:
 
 
 func cancel() -> void:
+	_geste = false
+	_geste_press = Vector2.INF
+	_geste_pts = PackedVector2Array()
 	_start = {}
 	_ctrl = null
 	_plan = {}
@@ -682,9 +692,17 @@ func _unhandled_input(event: InputEvent) -> void:
 	if tool == Tool.NONE or camera == null or world == null:
 		return
 	if event is InputEventMouseMotion:
-		_update_cursor((event as InputEventMouseMotion).position)
+		var mm := event as InputEventMouseMotion
+		_update_cursor(mm.position)
+		_suivre_geste(mm)
 	elif event is InputEventMouseButton:
 		var mb := event as InputEventMouseButton
+		if mb.button_index == MOUSE_BUTTON_LEFT and not mb.pressed:
+			_geste_press = Vector2.INF
+			if _geste:
+				_update_cursor(mb.position)
+				finir_geste()
+			return
 		if mb.button_index == MOUSE_BUTTON_RIGHT:
 			if mb.pressed:
 				_right_press = mb.position
@@ -721,6 +739,8 @@ func _unhandled_input(event: InputEvent) -> void:
 				message.emit(txt)
 			return
 		_click_build()
+		if tool == Tool.BUILD and not _start.is_empty():
+			_geste_press = mb.position
 	elif event is InputEventKey:
 		var key := event as InputEventKey
 		if not key.pressed or key.echo:
@@ -809,8 +829,14 @@ func _click_build() -> void:
 		relais.call(a)
 		_continuer_depuis(path)
 		return
+	_poser(_current_path())
+
+
+## Pose réelle d'un tracé (clic ou geste), avec annulation Ctrl+Z ; le tracé
+## continue ensuite depuis le bout posé.
+func _poser(path: PackedVector2Array) -> void:
 	var av := photo_reseau()
-	var res := build_path(type_id, spec, _current_path())
+	var res := build_path(type_id, spec, path)
 	if not res.ok:
 		message.emit(res.reason)
 		return
@@ -827,6 +853,72 @@ func _click_build() -> void:
 		"dir": Vector2(tail.x, tail.z).normalized()}
 	_ctrl = null
 	_update_preview()
+
+
+## Souris déplacée bouton gauche enfoncé : au-delà de quelques pixels, on passe
+## en tracé au geste et on relève un point au sol tous les GESTE_PAS mètres.
+func _suivre_geste(mm: InputEventMouseMotion) -> void:
+	if tool != Tool.BUILD or _start.is_empty() or _geste_press == Vector2.INF:
+		return
+	if (mm.button_mask & MOUSE_BUTTON_MASK_LEFT) == 0:
+		_geste_press = Vector2.INF
+		return
+	if not _geste:
+		if mm.position.distance_to(_geste_press) < GESTE_SEUIL_PX:
+			return
+		commencer_geste()
+	if _cursor_valid:
+		ajouter_point_geste(Vector2(_cursor.x, _cursor.z))
+	_update_preview()
+
+
+## Début du geste depuis le point de départ du tracé.
+func commencer_geste() -> void:
+	var s: Vector3 = _start.pos
+	_geste = true
+	_ctrl = null
+	_geste_pts = PackedVector2Array([Vector2(s.x, s.z)])
+	info_changed.emit("Tracé au geste : relâche pour poser la route (elle suit ton tracé, lissée en courbes conformes) · Échap : annuler")
+
+
+func ajouter_point_geste(p: Vector2) -> void:
+	if _geste_pts.is_empty() or p.distance_to(_geste_pts[_geste_pts.size() - 1]) >= GESTE_PAS:
+		_geste_pts.append(p)
+
+
+## Tracé lissé du geste en cours (jusqu'à la souris, accrochée au réseau).
+func chemin_geste() -> PackedVector2Array:
+	var brut := _geste_pts.duplicate()
+	var e := _cursor_target()
+	var fin := Vector2(e.x, e.z)
+	if brut.size() > 1 and brut[brut.size() - 1].distance_to(fin) < GESTE_PAS * 0.5:
+		brut[brut.size() - 1] = fin
+	else:
+		brut.append(fin)
+	return RoutePlanner.trace_geste(brut, type_id)
+
+
+## Bouton relâché : on pose le tracé du geste s'il est assez long.
+func finir_geste() -> void:
+	var path := chemin_geste()
+	_geste = false
+	_geste_pts = PackedVector2Array()
+	_emit_help()
+	if path.size() < 2 or RoutePlanner.polyline_length(path) < GESTE_MIN:
+		_update_preview()
+		return
+	if ModePlan.instance != null and ModePlan.instance.actif:
+		if ModePlan.instance.capter_voie(type_id, spec, path, RoutePlanner.profondeur_forcee):
+			_continuer_depuis(path)
+		return
+	if relais.is_valid():
+		var a := {"t": "voie", "id": type_id, "spec": spec.duplicate(true), "path": path}
+		if not is_nan(RoutePlanner.profondeur_forcee):
+			a["prof"] = RoutePlanner.profondeur_forcee
+		relais.call(a)
+		_continuer_depuis(path)
+		return
+	_poser(path)
 
 
 ## Le tracé continue depuis le bout de path, dans le prolongement (voie envoyée au
@@ -869,6 +961,8 @@ func _cursor_target() -> Vector3:
 
 ## Tracé en plan entre le départ et la souris (droit ou courbe).
 func _current_path() -> PackedVector2Array:
+	if _geste:
+		return chemin_geste()
 	var s: Vector3 = _start.pos
 	var e := _cursor_target()
 	if lacets_mode and TransportTypes.mode_of(type_id) != TransportTypes.Mode.WATER:

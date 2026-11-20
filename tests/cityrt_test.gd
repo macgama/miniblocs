@@ -110,6 +110,55 @@ func _suite(scene: Node) -> void:
 	await _prix(scene)
 	await _deplacer(scene)
 	await _regisseur(scene)
+	await _geste_route(scene)
+
+
+func _geste_route(scene: Node) -> void:
+	print("Route tracée au geste + Ctrl+Z :")
+	# Un geste tremblé en forme de S, sur 400 m.
+	var brut := PackedVector2Array()
+	for i in 101:
+		var x := 300.0 + i * 4.0
+		brut.append(Vector2(x, 200.0 + 60.0 * sin(i / 100.0 * TAU) + (1.2 if i % 2 == 0 else -1.2)))
+	var lisse := RoutePlanner.trace_geste(brut, "rue")
+	var rmin := float(TransportTypes.get_type("rue").get("r_min", 15.0))
+	var r := RoutePlanner.min_radius(RoutePlanner.resample(lisse, TransportTypes.STEP))
+	_check(lisse.size() > 2 and r >= rmin - 0.5, "tracé lissé : virages ≥ rayon mini (%.0f m ≥ %.0f m)" % [r, rmin])
+	_check(lisse[0].distance_to(brut[0]) < 0.1 and lisse[lisse.size() - 1].distance_to(brut[brut.size() - 1]) < 0.1, "le tracé part et arrive où la souris l'a dit")
+	var ecart := 0.0
+	for p in brut:
+		var best := INF
+		for q in RoutePlanner.resample(lisse, 2.0):
+			best = minf(best, p.distance_to(q))
+		ecart = maxf(ecart, best)
+	_check(ecart < 25.0, "il suit l'allure du geste (écart max %.0f m)" % ecart)
+	var dep := RoutePlanner.trace_geste(brut, "departementale")
+	_check(RoutePlanner.min_radius(RoutePlanner.resample(dep, TransportTypes.STEP)) >= 239.5, "une départementale garde ses 240 m de rayon : le geste est adouci")
+	var droite := RoutePlanner.trace_geste(PackedVector2Array([Vector2(0, 0), Vector2(50, 0.8), Vector2(100, -0.6), Vector2(150, 0)]), "departementale")
+	_check(droite.size() == 2, "un trait presque droit reste une droite")
+	# Le geste dans l'outil, comme la souris.
+	var ts: TransportSystem = scene.transport
+	var w: TerrainWorld = scene.world
+	ts.set_build("rue")
+	var aretes := ts.network.edges.size()
+	var y0 := w.cell_height(Vector2i(300, 200))
+	ts._start = {"node": -1, "edge": -1, "pos": Vector3(300, y0, 200), "dir": Vector2.ZERO}
+	ts.commencer_geste()
+	for p in brut:
+		ts.ajouter_point_geste(p)
+	var fin := brut[brut.size() - 1]
+	ts._cursor = Vector3(fin.x, w.cell_height(Vector2i(fin)), fin.y)
+	ts._cursor_valid = true
+	var h: HistoriqueVille = scene.historique
+	var n_h := h.taille()
+	ts.finir_geste()
+	_check(ts.network.edges.size() > aretes, "relâcher le bouton pose la route (%d tronçons)" % (ts.network.edges.size() - aretes))
+	_check(not ts._geste and not ts._start.is_empty(), "le tracé continue depuis le bout posé")
+	_check(h.taille() == n_h + 1, "le geste est une entrée de l'historique")
+	var txt := h.annuler()
+	_check(ts.network.edges.size() == aretes, "Ctrl+Z défait la route tracée (%s)" % txt)
+	ts.set_inactive()
+	await _frames(2)
 
 
 func _prix(scene: Node) -> void:

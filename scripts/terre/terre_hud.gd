@@ -265,6 +265,11 @@ var _dock: PanelContainer
 ## Mention des sources (en bas à droite) : passe sur trois lignes si la barre du bas l'atteint.
 var _credit: Label
 var _cell_card: PanelContainer
+## Le joueur a fermé la carte de la case et « À faire » : la barre du bas peut
+## se centrer sans laisser leur place à gauche (AffichagePanneaux).
+var gauche_libre := false
+## Place du bouton « œil » (Affichage), entre l'aide et l'admin.
+var _place_affichage: HBoxContainer
 ## Barre en icônes seules (écran étroit).
 var compact := false
 ## Dernier outil choisi dans chaque catégorie (clic sur la catégorie = on y revient).
@@ -419,6 +424,9 @@ func _build_top_bar() -> void:
 		if spec[0] == "admin":
 			_admin_button = b
 		elif spec[0] == "aide":
+			_place_affichage = HBoxContainer.new()
+			_place_affichage.name = "PlaceAffichage"
+			row.add_child(_place_affichage)
 			var son := UiStyle.icon_button("son", "Son et musique : volumes, morceaux", "F2")
 			son.pressed.connect(func() -> void: Son.panneau())
 			row.add_child(son)
@@ -464,6 +472,12 @@ func _build_top_bar() -> void:
 			chip.pressed.connect(func() -> void: habitants_requested.emit())
 		row.add_child(chip)
 		_chips[spec[0]] = chip
+
+
+## Bouton « œil » de l'affichage des cartes (AffichagePanneaux.faire_bouton).
+func poser_bouton_affichage(b: Button) -> void:
+	if _place_affichage != null:
+		_place_affichage.add_child(b)
 
 
 func _build_coords_panel() -> void:
@@ -752,7 +766,7 @@ func _fit_dock(width := -1.0) -> void:
 	if _dock == null:
 		return
 	var view := width if width > 0.0 else get_viewport().get_visible_rect().size.x
-	var card_right := 10.0 + _cell_card.size.x + 10.0
+	var card_right := 10.0 if gauche_libre else 10.0 + _cell_card.size.x + 10.0
 	set_compact(false)
 	var w := _dock.get_combined_minimum_size().x
 	if w > view - card_right - 10.0:

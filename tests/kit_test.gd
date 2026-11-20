@@ -39,6 +39,7 @@ func _run() -> void:
 	ReglagesPartie.prochaine = ReglagesPartie.preset("normal")
 	ReglagesPartie.prochaine.deblocage = "tout"  # (ce test ne porte pas sur l'arbre de progression)
 	ReglagesPartie.prochaine.fondateurs = 20
+	ReglagesPartie.prochaine.services_fondation = false  # (services posés d'office : tests/services_fondation_test.gd)
 	var scene: Node = load("res://scenes/terre.tscn").instantiate()
 	var world: TerrainWorld = scene.get_node("Terrain")
 	var transport: TransportSystem = scene.get_node("Transport")

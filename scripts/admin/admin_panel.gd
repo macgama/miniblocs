@@ -26,6 +26,7 @@ var _cout_l: Label
 var _acces: CheckBox
 var _fondation: CheckBox
 var _rue_fondation: CheckBox
+var _services_fondation: CheckBox
 var _territoire: CheckBox
 var _fondateurs: SpinBox
 var _vivres: SpinBox
@@ -191,6 +192,9 @@ func _ready() -> void:
 	_rue_fondation = _check("Rue en T offerte devant chaque nouvelle Maison de commune")
 	_rue_fondation.tooltip_text = "Une petite rue de village en T, gratuite et prête tout de suite, pour poser ses premières maisons (décoche pour partir de rien)"
 	g.add_child(_rue_fondation)
+	_services_fondation = _check("Services de base prêts au premier village (courant, eau, égouts, déchets)")
+	_services_fondation.tooltip_text = "Le premier village de la carte reçoit, un peu à l'écart du centre et raccordés, les bâtiments de son époque (avec les bons du kit de l'État). Ce qui n'est pas encore inventé arrive tout seul plus tard"
+	g.add_child(_services_fondation)
 	_territoire = _check("Bâtiments et zonage seulement sur le territoire de ses villages")
 	_territoire.tooltip_text = "Les voies, réseaux et lignes restent permis partout pour relier les villages (Maj+M : villages)"
 	g.add_child(_territoire)
@@ -553,6 +557,7 @@ func _fill() -> void:
 	_acces.button_pressed = reglages.acces_route
 	_fondation.button_pressed = reglages.fondation
 	_rue_fondation.button_pressed = reglages.rue_fondation
+	_services_fondation.button_pressed = reglages.services_fondation
 	_territoire.button_pressed = reglages.territoire
 	_fondateurs.value = reglages.fondateurs
 	_vivres.value = reglages.vivres_jours
@@ -632,6 +637,7 @@ func _changed() -> void:
 	reglages.acces_route = _acces.button_pressed
 	reglages.fondation = _fondation.button_pressed
 	reglages.rue_fondation = _rue_fondation.button_pressed
+	reglages.services_fondation = _services_fondation.button_pressed
 	reglages.territoire = _territoire.button_pressed
 	reglages.fondateurs = int(_fondateurs.value)
 	reglages.vivres_jours = int(_vivres.value)

@@ -63,6 +63,10 @@ var fondation := true
 ## Chaque nouvelle ville reçoit une petite rue de village en T, offerte, devant sa
 ## Maison de commune, pour poser ses premières maisons tout de suite (RueFondation).
 var rue_fondation := true
+## Le tout premier village de la carte (en solo, ou le premier joueur) reçoit ses
+## services de base prêts à servir, de son époque, un peu à l'écart du centre :
+## courant, eau, égouts, déchets (ServicesFondation, avec le kit de l'État).
+var services_fondation := true
 ## Bâtiments et zonage seulement sur le territoire de ses villages.
 var territoire := true
 ## Multiplicateur des impôts touchés par la ville (taxe foncière, impôts des entreprises).
@@ -318,7 +322,7 @@ func to_dict() -> Dictionary:
 		"horaires_chantiers": horaires_chantiers, "rythme_chantiers": rythme_chantiers, "usure": usure, "dechets": dechets, "dechets_quantite": dechets_quantite, "pollution": pollution, "pollution_sante": pollution_sante, "climat": climat, "sols_pollues": sols_pollues,
 		"immobilier_vivant": immobilier_vivant, "bidonvilles": bidonvilles,
 		"elections": elections, "manifestations": manifestations, "funeraire": funeraire, "recherche_parc": recherche_parc, "cremation": cremation, "reseaux_obligatoires": reseaux_obligatoires, "prix_services": prix_services,
-		"fondation": fondation, "rue_fondation": rue_fondation, "territoire": territoire, "fondateurs": fondateurs, "vivres_jours": vivres_jours, "main_oeuvre": main_oeuvre,
+		"fondation": fondation, "rue_fondation": rue_fondation, "services_fondation": services_fondation, "territoire": territoire, "fondateurs": fondateurs, "vivres_jours": vivres_jours, "main_oeuvre": main_oeuvre,
 		"tutoriel": tutoriel, "objectifs_ecran": objectifs_ecran,
 		"annee_depart": annee_depart, "rythme_histoire": rythme_histoire, "histoire_debut": histoire_debut, "histoire_saut": histoire_saut}
 
@@ -331,6 +335,7 @@ func from_dict(d: Dictionary) -> void:
 	acces_route = bool(d.get("acces_route", true))
 	fondation = bool(d.get("fondation", true))
 	rue_fondation = bool(d.get("rue_fondation", true))
+	services_fondation = bool(d.get("services_fondation", true))
 	territoire = bool(d.get("territoire", true))
 	fondateurs = clampi(int(d.get("fondateurs", 100)), 0, FONDATEURS_MAX)
 	vivres_jours = clampi(int(d.get("vivres_jours", 90)), 0, VIVRES_MAX)

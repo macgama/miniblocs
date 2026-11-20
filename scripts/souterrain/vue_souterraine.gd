@@ -20,6 +20,10 @@ extends Node3D
 ## plus profond (vu à travers la grille) ; ce qui est plus haut est coupé.
 
 signal message(text: String)
+## La vue s'ouvre ou se referme (bouton « Sous terre » de la barre du bas).
+signal ouverte(on: bool)
+## Juste avant de revenir en surface, outil encore en main (SousTerreAuto).
+signal avant_sortie
 
 ## Couche de rendu de la vue (la couche 20 est celle du corps du personnage).
 const COUCHE := 1 << 18
@@ -162,12 +166,14 @@ func entrer() -> void:
 		(_mi[k] as MeshInstance3D).visible = true
 	_sale = true
 	_maj()
+	ouverte.emit(true)
 	message.emit("Vue sous terre : Page bas pour descendre, Page haut pour remonter, Origine ou Échap pour revenir à la surface.")
 
 
 func sortir() -> void:
 	if not actif:
 		return
+	avant_sortie.emit()
 	niveau = 0
 	if camera != null:
 		camera.cull_mask = _cull_avant
@@ -178,6 +184,7 @@ func sortir() -> void:
 	_box.visible = false
 	if construction != null:
 		construction.desactiver()
+	ouverte.emit(false)
 
 
 ## d = −1 descend d'un niveau, +1 remonte (au-dessus de −1 : retour à la surface).

@@ -36,6 +36,7 @@ func _frames(n: int) -> void:
 
 func _run() -> void:
 	Creations.persist = false
+	AffichagePanneaux.persist = false
 	BatimentsVie.chantiers = false
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(MiniCarte.PREFS))
 	var game: Node = load("res://scenes/terre.tscn").instantiate()
@@ -135,11 +136,17 @@ func _run() -> void:
 	k.pressed = true
 	root.push_input(k)
 	await _frames(2)
-	_check(mc.replie and not mc._cadre.visible and mc._bouton_ouvrir.visible, "Ctrl+M : repliée (bouton Carte)")
+	_check(not mc.est_montree() and game.affichage.est_masque("mini_carte"), "Ctrl+M : masquée (menu Affichage, œil)")
 	_check(not game.mairie_panel.visible or not game.mairie_panel.is_open(), "Ctrl+M n'ouvre pas la Mairie")
 	root.push_input(k)
 	await _frames(2)
-	_check(not mc.replie and mc._cadre.visible, "Ctrl+M : dépliée")
+	_check(mc.est_montree() and not game.affichage.est_masque("mini_carte"), "Ctrl+M : réaffichée")
+	game.affichage.masquer("mini_carte", true)
+	await _frames(2)
+	_check(not mc.est_montree(), "croix / menu Affichage : masquée")
+	game.affichage.masquer("mini_carte", false)
+	await _frames(2)
+	_check(mc.est_montree(), "menu Affichage : réaffichée")
 
 	print("Alertes :")
 	var ev := Evenements.instance

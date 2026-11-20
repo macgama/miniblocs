@@ -15385,6 +15385,8 @@
 "Non raccordé": "Not connected",
 "Chantier": "Construction site",
 "%s (ta ville)": "%s (your town)",
-"%s (ville voisine)": "%s (neighbouring town)"
+"%s (ville voisine)": "%s (neighbouring town)",
+"Mini-carte": "Minimap",
+"Vue du dessus en bas à droite : clic pour y aller (Ctrl+M)": "Top-down view at the bottom right: click to go there (Ctrl+M)"
 }
 }

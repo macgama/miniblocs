@@ -15286,6 +15286,8 @@
 "Non raccordé": "Sin conexión",
 "Chantier": "Obra",
 "%s (ta ville)": "%s (tu ciudad)",
-"%s (ville voisine)": "%s (ciudad vecina)"
+"%s (ville voisine)": "%s (ciudad vecina)",
+"Mini-carte": "Minimapa",
+"Vue du dessus en bas à droite : clic pour y aller (Ctrl+M)": "Vista cenital abajo a la derecha: clic para ir allí (Ctrl+M)"
 }
 }

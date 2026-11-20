@@ -79,6 +79,9 @@ var _donnees: Node2D
 var _statique: Node2D
 var _dessus: Control
 var _bouton_replie: Button
+## Fermeture gérée par le menu Affichage (œil de la barre du haut) : Callable(on)
+## qui masque ou réaffiche la mini-carte. Sinon, elle se replie elle-même.
+var masquer_externe: Callable
 var _bouton_ouvrir: Button
 var _en_vue := true
 
@@ -249,7 +252,24 @@ func set_replie(on: bool) -> void:
 
 
 func basculer() -> void:
+	if masquer_externe.is_valid():
+		masquer_externe.call(est_montree())
+		return
 	set_replie(not replie)
+
+
+## La croix et la mémoire du choix passent au menu Affichage.
+func confier_a(masquer: Callable) -> void:
+	masquer_externe = masquer
+	_bouton_replie.visible = false
+	# Place pour la croix ronde du menu Affichage, posée sur le coin.
+	var place := Control.new()
+	place.custom_minimum_size = Vector2(12, 0)
+	place.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_bouton_replie.get_parent().add_child(place)
+	if replie:
+		replie = false
+		_appliquer_replie()
 
 
 func est_montree() -> bool:
@@ -303,7 +323,7 @@ func _process(delta: float) -> void:
 	if not is_visible_in_tree() or not _en_vue or rig == null:
 		return
 	_placer()
-	if replie:
+	if replie or not _cadre.visible:
 		return
 	centre = Vector2(rig.global_position.x, rig.global_position.z)
 	var k := echelle()

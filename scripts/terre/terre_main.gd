@@ -3149,6 +3149,12 @@ func _setup_affichage() -> void:
 		func() -> void:
 			if is_instance_valid(jauges):
 				jauges.visible = not GameStart.atelier and not hud.create_mode)
+	affichage.ajouter("mini_carte", "Mini-carte", "cartes", "Vue du dessus en bas à droite : clic pour y aller (Ctrl+M)",
+		func() -> Control: return mini_carte._cadre if is_instance_valid(mini_carte) else null,
+		func() -> void:
+			if is_instance_valid(mini_carte):
+				mini_carte.set_replie(false))
+	mini_carte.confier_a(func(on: bool) -> void: affichage.masquer("mini_carte", on))
 	var maj := func() -> void:
 		hud.gauche_libre = affichage.est_masque("case") and affichage.est_masque("a_faire")
 		hud._fit_dock()

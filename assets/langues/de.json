@@ -15289,6 +15289,8 @@
 "Non raccordé": "Nicht angeschlossen",
 "Chantier": "Baustelle",
 "%s (ta ville)": "%s (deine Stadt)",
-"%s (ville voisine)": "%s (Nachbarstadt)"
+"%s (ville voisine)": "%s (Nachbarstadt)",
+"Mini-carte": "Minikarte",
+"Vue du dessus en bas à droite : clic pour y aller (Ctrl+M)": "Draufsicht unten rechts: Klick führt hin (Strg+M)"
 }
 }

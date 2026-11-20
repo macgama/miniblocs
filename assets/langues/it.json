@@ -15286,6 +15286,8 @@
 "Non raccordé": "Non allacciato",
 "Chantier": "Cantiere",
 "%s (ta ville)": "%s (la tua città)",
-"%s (ville voisine)": "%s (città vicina)"
+"%s (ville voisine)": "%s (città vicina)",
+"Mini-carte": "Minimappa",
+"Vue du dessus en bas à droite : clic pour y aller (Ctrl+M)": "Vista dall'alto in basso a destra: clic per andarci (Ctrl+M)"
 }
 }

@@ -26,6 +26,7 @@ func _run() -> void:
 	DirAccess.make_dir_recursive_absolute(dir)
 	root.size = Vector2i(1600, 900)
 	Creations.persist = false
+	AffichagePanneaux.persist = false
 	BatimentsVie.chantiers = false
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(MiniCarte.PREFS))
 	GameStart.place_name = "Vulliens (Vaud), Suisse"

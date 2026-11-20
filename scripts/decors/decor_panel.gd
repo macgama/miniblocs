@@ -37,13 +37,16 @@ func _ready() -> void:
 	var groupe := ButtonGroup.new()
 	for o in [[DecorSystem.Outil.POSER, "Poser", "Clic : pose le décor choisi. Glisser : une rangée (ou une clôture). R : tourner."],
 			[DecorSystem.Outil.PINCEAU, "Pinceau", "Glisser : sème le décor choisi au hasard (troupeau, rochers, bottes de foin…)."],
-			[DecorSystem.Outil.GOMME, "Gomme", "Glisser : efface les décors, ceux posés et ceux venus tout seuls."]]:
+			[DecorSystem.Outil.GOMME, "Gomme", "Glisser : efface les décors, ceux posés et ceux venus tout seuls."],
+			[DecorSystem.Outil.DEPLACER, "Déplacer", "Déplacer à la main : clic sur un décor ou cadre glissé pour en prendre plusieurs, glisser pour les déplacer, Ctrl + glisser pour les copier, R pour tourner, Suppr pour retirer."]]:
 		var b := Button.new()
 		b.text = o[1]
 		b.tooltip_text = o[2]
 		b.toggle_mode = true
 		b.button_group = groupe
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		b.add_theme_font_size_override("font_size", 13)
+		b.name = "Outil" + String(o[1])
 		var outil: int = o[0]
 		b.pressed.connect(func() -> void:
 			if decors:
@@ -68,7 +71,7 @@ func _ready() -> void:
 	_liste.same_column_width = true
 	_liste.fixed_column_width = 76
 	_liste.fixed_icon_size = Vector2i(68, 51)
-	_liste.max_text_lines = 2
+	_liste.max_text_lines = 3
 	_liste.add_theme_font_size_override("font_size", 11)
 	_liste.item_selected.connect(func(i: int) -> void:
 		if decors and i < _ids.size():
@@ -140,8 +143,11 @@ func _remplit() -> void:
 		var t: Array = e.taille
 		var y := EpoquesObjets.annee_decor(String(e.id))
 		var libre := EpoquesObjets.decor_disponible(String(e.id))
-		_liste.add_item(String(e.nom) if libre else "%s (arrive en %d)" % [e.nom, y])
-		_liste.set_item_tooltip(_liste.item_count - 1, "%s\n%.1f × %.1f m, %.1f m de haut, %d triangles%s" % [e.nom, t[0], t[1], t[2], e.triangles,
+		# Prix sur chaque carte (piste CityRT 5) : à la pièce, ou au tronçon pour une clôture.
+		var prix := Decors.prix(String(e.id))
+		var etiquette := BuildingSystem.format_money(prix) + (" / tronçon" if Decors.ligne(String(e.id)) > 0.0 else "")
+		_liste.add_item(("%s\n%s" % [e.nom, etiquette]) if libre else "%s (arrive en %d)" % [e.nom, y])
+		_liste.set_item_tooltip(_liste.item_count - 1, "%s · %s\n%.1f × %.1f m, %.1f m de haut, %d triangles%s" % [e.nom, etiquette, t[0], t[1], t[2], e.triangles,
 			"" if y == 0 else ("\nDepuis %d" % y if libre else "\n" + EpoquesObjets.raison(y))])
 		# Pas encore inventé à l'époque de la partie : visible mais pas choisissable.
 		_liste.set_item_disabled(_liste.item_count - 1, not libre)

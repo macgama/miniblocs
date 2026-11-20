@@ -336,6 +336,7 @@ func _view_quartier(qid: int) -> void:
 		var sat := q.satisfaction(qid)
 		_text("Bruit chez les habitants : %d dB le jour, %d dB la nuit%s" % [Nuisances.decibels(float(s.get("bruit", 0.0))),
 			Nuisances.decibels(float(s.get("nuit", 0.0))), (" · satisfaction %d / 100" % roundi(sat)) if sat >= 0.0 else ""], true, 12)
+	_regisseur(qid, bloque)
 	var h := q.ha(qid)
 	var ar: Dictionary = info.arretes
 	_section("Arrêtés en vigueur : %d%s" % [ar.size(), (" · " + euros_mois(q.cout_mois(qid))) if not ar.is_empty() else ""])
@@ -374,3 +375,53 @@ func _view_quartier(qid: int) -> void:
 		var ex := Arretes.exclut(aid)
 		if not on and ex != "" and ar.has(ex):
 			_text("   Incompatible avec « %s »." % Arretes.nom(ex), true, 11)
+
+
+## Régisseur du quartier (piste CityRT 9) : le confier à un habitant, son budget,
+## ce qu'il a fait ; ou reprendre la main.
+func _regisseur(qid: int, bloque: bool) -> void:
+	var rg := q.regisseurs
+	if rg == null:
+		return
+	var r := rg.de(qid)
+	if not r.is_empty() and rg.population.persons.has(int(r.pid)):
+		var p: Dictionary = rg.population.persons[int(r.pid)]
+		_section("Régisseur : %s (%s)" % [CycleVie.full_name(p), Regisseurs.nom_caractere(String(r.car)).to_lower()])
+		_text(String(Regisseurs.CARACTERES[String(r.car)].desc), true, 12)
+		_text("Budget %s par mois · cagnotte %s · %d action%s depuis %s" % [BuildingSystem.format_money(int(r.budget)),
+			BuildingSystem.format_money(int(r.caisse)), int(r.actions), "s" if int(r.actions) > 1 else "", _quand(int(r.depuis)).to_lower()], true, 12)
+		if String(r.dernier) != "":
+			_text("Dernièrement : %s." % String(r.dernier), false, 12)
+		if not bloque:
+			var row := _row()
+			for b in Regisseurs.BUDGETS:
+				var bud: int = b
+				var bt := _button(BuildingSystem.format_short(bud) + "/mois", func() -> void:
+					rg.changer_budget(qid, bud)
+					refresh(), "Budget du régisseur, payé chaque semaine par la caisse de la ville")
+				bt.toggle_mode = true
+				bt.button_pressed = int(r.budget) == bud
+				row.add_child(bt)
+			_row().add_child(_button("Reprendre la main", func() -> void:
+				rg.reprendre(qid)
+				refresh(), "Le régisseur s'en va, sa cagnotte revient à la ville"))
+		return
+	_section("Régisseur : aucun")
+	if bloque:
+		return
+	_text("Confie le quartier à un habitant : chaque semaine, il fait une chose selon son caractère (arrêté, bancs, jeux, lumière…), payée par son budget.", true, 12)
+	var cands := rg.candidats(qid)
+	if cands.is_empty():
+		_text("Personne n'habite encore ici (25 ans et plus).", true, 12)
+		return
+	for c in cands:
+		var row := _row()
+		var cand: Dictionary = c
+		var l := _text("%s, %d ans · %s · %s" % [cand.nom, int(cand.age), String(cand.qui).to_lower(), Regisseurs.nom_caractere(String(cand.car))], false, 12)
+		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		l.tooltip_text = String(Regisseurs.CARACTERES[String(cand.car)].desc)
+		l.reparent(row)
+		l.custom_minimum_size = Vector2(W - 120, 0)
+		row.add_child(_button("Confier", func() -> void:
+			_dire(rg.confier(qid, int(cand.pid), Regisseurs.BUDGETS[1]))
+			refresh(), "%s · %s par mois pour commencer" % [String(Regisseurs.CARACTERES[String(cand.car)].desc), BuildingSystem.format_money(Regisseurs.BUDGETS[1])]))

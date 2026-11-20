@@ -1065,7 +1065,13 @@ func from_dict(data: Dictionary) -> void:
 		if b.has("av"):
 			e["av"] = float(b.av)
 			e["hr"] = float(b.get("hr", 0.0))
-		if int(b.get("du", 0)) > 0:
+			# Toujours en chantier dès le chargement (BatimentsVie rouvre le chantier
+			# plus tard) : sinon les habitants emménageaient dans les immeubles pas finis.
+			if float(b.av) < 0.9999:
+				e["chantier"] = true
+		# Reste à payer : relu tel quel, même à 0 (chantier payé), pour que la partie
+		# rechargée soit identique à celle sauvegardée.
+		if b.has("du"):
 			e["du"] = int(b.du)
 		if bool(b.get("pause", false)):
 			e["pause"] = true

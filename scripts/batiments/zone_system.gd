@@ -314,6 +314,7 @@ func _compute_demand() -> Dictionary:
 	var jobs_c := 0
 	var jobs_i := 0
 	var jobs_other := 0
+	var jobs_b := 0
 	if buildings != null:
 		for b in buildings.buildings.values():
 			var t := BuildingCatalog.get_type(b.t)
@@ -323,6 +324,8 @@ func _compute_demand() -> Dictionary:
 			match t.cat:
 				"commerce":
 					jobs_c += emp
+					if est_bureau(String(b.t)):
+						jobs_b += emp
 				"industrie":
 					jobs_i += emp
 				_:
@@ -338,7 +341,22 @@ func _compute_demand() -> Dictionary:
 		"R": 50.0 + jobs * 1.3 - workers,
 		"C": people * 0.2 - jobs_c,
 		"I": people * 0.25 - jobs_i,
+		# Bureaux (jauge B, piste CityRT 10) : une part des emplois de commerce ; ils
+		# poussent dans les zones commerciales (la demande C les compte déjà).
+		"B": people * PART_BUREAUX - jobs_b,
 	}
+
+
+## Part des habitants qui travaillent dans des bureaux quand la ville est équilibrée.
+const PART_BUREAUX := 0.06
+
+
+## Bâtiment de bureaux (modèle « bureaux », gratte-ciel, ou style qui en joue le rôle).
+static func est_bureau(type_id: String) -> bool:
+	var base := BuildingCatalog.base_of(type_id)
+	if base in ["bureaux", "gratte_ciel"]:
+		return true
+	return String(BuildingCatalog.get_type(type_id).get("arch", "")) in ["bureaux", "gratte_ciel"]
 
 
 func _process(delta: float) -> void:

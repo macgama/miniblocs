@@ -155,6 +155,12 @@ func _run() -> void:
 	var mai := int(homes[3])
 	var hid := int((pop.by_home[mai] as Array)[0])
 	nz._cher[hid] = Nuisances.JOURS_AVANT_DEMENAGER + Immobilier.JOURS_A_LA_RUE + 1
+	# Village encore en fondation (des fondateurs sous la tente) : ni expulsion ni baraque.
+	var fd := Fondateurs.instance
+	if fd != null and fd.camp >= 0 and fd.au_campement() > 0:
+		im._a_la_rue()
+		_check(int(pop.households[hid].b) == mai and im.bidonvilles.is_empty(), "village en fondation : personne n'est mis à la rue")
+		fd.camp = -1
 	im._a_la_rue()
 	var bq := int(pop.households[hid].b) if pop.households.has(hid) else -1
 	_check(bq >= 0 and Immobilier.precaire(bq), "faute de logement abordable, elle bâtit une baraque")

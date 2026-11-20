@@ -49,7 +49,7 @@ func _arg(nom: String, defaut: String) -> String:
 
 
 func _etape(nom: String) -> bool:
-	var e := _arg("etapes", "ville,touches,recharge,f9,epoque,demo")
+	var e := _arg("etapes", "ville,touches,recharge,f9,semaine,montagne,epoque,demo")
 	return e.split(",").has(nom)
 
 
@@ -251,7 +251,9 @@ const SECTIONS_LIBRES := ["personnage"]
 ## Écarts sans conséquence : relevés recalculés à chaque image (météo du jour), record
 ## d'habitants recompté, foyers sans niveau évalués d'office, champ par défaut ajouté.
 const ECARTS_PERMIS := ["reseaux.incidents.tmax", "reglages.record_habitants", "niveaux_vie.foyers : ",
-	"saisons.aujourdhui.tmax", "nuisances.valeurs : "]
+	"saisons.aujourdhui.tmax", "nuisances.valeurs : ",
+	# Défi « satisfaction » : mesuré toutes les 2 s, la satisfaction recalculée bouge d'un rien.
+	"objectifs.defi.acc", "objectifs.defi.vu"]
 
 
 func _comparer(avant: Dictionary, apres: Dictionary, quoi: String) -> int:
@@ -431,6 +433,10 @@ func _run() -> void:
 		await _recharge()
 	if _etape("f9"):
 		await _f9()
+	if _etape("semaine"):
+		await _semaine()
+	if _etape("montagne"):
+		await _montagne()
 	if _etape("epoque"):
 		await _epoque()
 	if _etape("demo"):
@@ -440,7 +446,18 @@ func _run() -> void:
 
 func _ville() -> void:
 	_ctx("Fondation")
-	_check(ReglagesPartie.actuel.preset_name() == "Normal" and not bs.unlimited_money, "mode Normal, argent compté")
+	# (le banc a tout débloqué : on compare au préréglage Normal avec le même déblocage ;
+	# le créateur de la partie est noté à la création)
+	var normal := ReglagesPartie.preset("normal")
+	normal.deblocage = ReglagesPartie.actuel.deblocage
+	normal.tutoriel = ReglagesPartie.actuel.tutoriel
+	var nd := normal.to_dict()
+	var ad := ReglagesPartie.actuel.to_dict()
+	var ecarts := []
+	for k in nd:
+		if k != "createur" and JSON.stringify(nd[k]) != JSON.stringify(ad.get(k)):
+			ecarts.append("%s : %s → %s" % [k, JSON.stringify(nd[k]), JSON.stringify(ad.get(k))])
+	_check(ecarts.is_empty() and not bs.unlimited_money, "mode Normal, argent compté %s" % str(ecarts))
 	var tuto: Tutoriel = game.tutoriel
 	_check(tuto.actif, "le tutoriel démarre pour une nouvelle partie (étape « %s »)" % tuto.id_courant())
 	_note("caisse avant la fondation : " + BuildingSystem.format_money(bs.money))
@@ -523,7 +540,7 @@ func _ville() -> void:
 	_note("caisse : " + BuildingSystem.format_money(bs.money))
 
 	_ctx("La ville grandit")
-	var jours := float(_arg("jours", "30"))
+	var jours := float(_arg("jours", "40"))
 	await _jours(jours * 0.6, "ville")
 	# Services de la ville quand elle a des habitants, comme un joueur.
 	for p in [["caserne_pompiers", -280, 70, 1, 280], ["police", -280, 70, -1, 280], ["hopital", -280, -90, 1, 280],
@@ -537,7 +554,8 @@ func _ville() -> void:
 	_note("services : " + JSON.stringify(poses))
 	await _jours(jours * 0.4, "ville")
 	var hab := _habitants()
-	_check(hab >= 100, "la ville a des habitants (%d)" % hab)
+	# Depuis les chantiers au tiers de la vie (#221), immeubles et tours sortent après 20 à 30 jours.
+	_check(hab >= 20, "la ville a des habitants (%d)" % hab)
 	_note("tutoriel : étape « %s » (%d/%d), actif %s" % [tuto.id_courant(), tuto.numero(), tuto.total(), tuto.actif])
 
 
@@ -582,6 +600,7 @@ func _touches() -> void:
 	var nouvelles: int = _logger.liste.size() - avant
 	_check(nouvelles == 0, "aucune erreur de script en ouvrant et fermant %d panneaux (%d)" % [TOUCHES.size(), nouvelles])
 	_check(root.get_child_count() == noeuds0, "rien ne traîne à la racine (%d → %d)" % [noeuds0, root.get_child_count()])
+
 
 
 func _recharge() -> void:
@@ -636,6 +655,12 @@ func _recharge() -> void:
 	_ctx("La ville continue après le rechargement")
 	_meteo_fixe()
 	var hab0 := _habitants()
+	await _jours(0.05)
+	var dans_chantier := 0
+	for bid in bs.buildings:
+		if bs.en_chantier(bid):
+			dans_chantier += (pop.by_home.get(bid, []) as Array).size()
+	_check(dans_chantier == 0 and _habitants() <= hab0 + 40, "personne n'emménage dans un immeuble pas fini au rechargement (%d foyers, %d → %d hab)" % [dans_chantier, hab0, _habitants()])
 	await _jours(5.0, "après")
 	_check(_habitants() >= hab0 * 0.9, "pas d'exode après le rechargement (%d → %d)" % [hab0, _habitants()])
 	# Deuxième aller-retour : sauvegarde automatique puis rechargement direct.
@@ -861,6 +886,224 @@ func _quitter_vers_menu() -> void:
 		game.open_pause()
 		await _frames(2)
 		game.pause_menu.quit_requested.emit(false, false)
+
+
+# --- Nouveautés de la semaine (neige, passants, devantures, menus en images, chantiers) ---
+
+## Bâtiment de la ville le plus proche de p qui a un profil de devanture de ce genre.
+func _batiment_genre(genres: Array) -> int:
+	var best := -1
+	var best_d := INF
+	for bid in bs.buildings:
+		if bs.en_chantier(bid):
+			continue
+		var t := String(bs.buildings[bid].get("t", ""))
+		var p := DevanturesTypes.profil(t)
+		if p.is_empty() or not genres.has(String(p.get("genre", ""))):
+			continue
+		var node: Node3D = bs.node_of(bid)
+		if node == null:
+			continue
+		var d := Vector2(node.global_position.x, node.global_position.z).length()
+		if d < best_d:
+			best_d = d
+			best = bid
+	return best
+
+
+func _semaine() -> void:
+	_ctx("Nouveautés : chantiers à icônes")
+	var vie: BatimentsVie = game.vie_batiments
+	var mq: MarqueursChantiers = vie.marqueurs if vie != null else null
+	_check(mq != null and mq.is_inside_tree(), "marqueurs de chantiers dans la partie")
+	if mq != null:
+		mq.maj()
+		var en_cours := vie.chantiers_en_cours()
+		var faux := []
+		for m in mq.marqueurs:
+			if String(m.genre) == "chantier" and not en_cours.has(int(m.bid)):
+				faux.append(int(m.bid))
+		_check(faux.is_empty(), "%d marqueurs pour %d chantiers, aucun sur un bâtiment fini (%s)" % [mq.marqueurs.size(), en_cours.size(), str(faux)])
+		_check(game.find_children("*", "Label3D", true, false).filter(func(l: Node) -> bool:
+			return l.get_parent() == mq).is_empty(), "aucun texte flottant au-dessus des chantiers")
+
+	_ctx("Nouveautés : devantures")
+	var dev: Devantures = game.devantures
+	_check(dev != null and dev.enabled, "devantures actives")
+	var boutique := _batiment_genre([DevanturesTypes.BOUTIQUE, DevanturesTypes.SALLE])
+	if boutique < 0:
+		boutique = _batiment_genre([DevanturesTypes.HALL, DevanturesTypes.ENTREPRISE, DevanturesTypes.LOGIS])
+	_check(boutique >= 0, "un bâtiment de la ville a une devanture (%s)" % (bs.buildings[boutique].get("t", "?") if boutique >= 0 else "aucun"))
+	if dev != null and boutique >= 0:
+		var pb: Vector3 = (bs.node_of(boutique) as Node3D).global_position
+		await _viser(pb, 60.0)
+		await _frames(40)
+		dev.refresh()
+		await _frames(3)
+		_check(dev._etat.has(boutique), "vue de près : la devanture est dessinée")
+		await _viser(pb, 400.0)
+		await _frames(40)
+		dev.refresh()
+		_check(dev.trous.is_empty(), "vue de loin : plus de façade creusée")
+
+	_ctx("Nouveautés : allées et venues")
+	var ps: Passants = pop.passants
+	_check(ps != null, "passants dans la partie")
+	if ps != null:
+		var maison := _batiment_genre([DevanturesTypes.LOGIS])
+		if maison >= 0:
+			await _viser((bs.node_of(maison) as Node3D).global_position, 90.0)
+		# Jour de semaine, 7 h : on regarde partir au travail pendant 3 h de jeu
+		# (40 s de jeu par image, comme le temps accéléré).
+		var h := amb.local_hour()
+		amb.unix_time += fposmod(7.0 - h, 24.0) * 3600.0
+		var max_scenes := 0
+		var max_proches := 0
+		var vus := 0
+		for i in 270:
+			amb.unix_time += 40.0
+			await process_frame
+			max_scenes = maxi(max_scenes, ps.scenes())
+			max_proches = maxi(max_proches, ps.proches())
+			vus = maxi(vus, ps.agents.size())
+		_check(vus > 0, "des habitants vont et viennent (%d à la fois au plus)" % vus)
+		_check(max_scenes <= Passants.MAX_SCENES and max_proches <= Passants.MAX_PROCHES,
+			"plafonds tenus (%d scènes de porte, %d personnages détaillés)" % [max_scenes, max_proches])
+		var garees_ok := true
+		for pid in ps.garees:
+			if not is_instance_valid(ps.garees[pid].node):
+				garees_ok = false
+		_check(garees_ok and ps.garees.size() <= Passants.MAX_GAREES, "voitures garées valides (%d)" % ps.garees.size())
+
+	_ctx("Nouveautés : neige")
+	var w: TerrainWorld = game.world
+	_check(is_finite(w.neige_iso0) and w.neige_iso0 < 10000.0, "isotherme 0 °C calculé (%.0f m, lieu à %.0f m)" % [w.neige_iso0, w.neige_alt_ref])
+	_check(w.neige_a(w.neige_alt_ref + 2500.0) >= w.neige_a(w.neige_alt_ref), "plus haut, au moins autant de neige")
+	var hz = w.get("horizon")
+	if hz != null and hz.get("_material") != null:
+		# (les réglages appliqués aux blocs détaillés : l'isotherme suit l'heure, recopié par pas de 5 m)
+		_check(is_equal_approx(float((hz._material as ShaderMaterial).get_shader_parameter("neige_iso0")),
+				float((w._material as ShaderMaterial).get_shader_parameter("neige_iso0"))),
+			"le relief lointain a le même manteau neigeux")
+
+	_ctx("Nouveautés : menus en images")
+	var avant: int = _logger.liste.size()
+	var vus_menus := 0
+	var options := 0
+	for t in TOUCHES:
+		_logger.contexte = "menus de " + _nom_touche(t)
+		await _touche(t[0], t[1])
+		await _frames(6)
+		options += game.find_children("*", "OptionButton", true, false).filter(func(o: Node) -> bool:
+			return (o as Control).is_visible_in_tree()).size()
+		for c in game.find_children("*", "ChoixVisuel", true, false):
+			# Un choix précédent peut avoir reconstruit le panneau (menus libérés).
+			if not is_instance_valid(c):
+				continue
+			var cv := c as ChoixVisuel
+			if cv == null or not cv.is_visible_in_tree() or cv.disabled or cv.item_count == 0:
+				continue
+			vus_menus += 1
+			cv.ouvrir()
+			await _frames(2)
+			if not is_instance_valid(cv):
+				continue
+			if cv.selected >= 0 and cv.est_ouvert():
+				cv.choisir(cv.selected)
+			elif cv.est_ouvert():
+				cv._close()
+			await _frames(2)
+		await _touche(t[0], t[1])
+		await _frames(4)
+		if game.pause_menu != null:
+			game.close_pause()
+		await _touche(KEY_ESCAPE)
+		await _frames(3)
+		if game.pause_menu != null:
+			game.close_pause()
+			await _frames(2)
+		if paused:
+			paused = false
+	_logger.contexte = _contexte
+	_check(options == 0, "aucune liste de texte dans les panneaux (%d)" % options)
+	_check(vus_menus > 0, "%d menus en images ouverts et rechoisis" % vus_menus)
+	_check(_logger.liste.size() == avant, "aucune erreur en ouvrant les menus en images (%d)" % (_logger.liste.size() - avant))
+
+
+## Partie à la montagne (relief réel) : neige en altitude et routes en lacets.
+func _montagne() -> void:
+	if hors_ligne:
+		_note("montagne : relief plat hors ligne, étape passée")
+		return
+	_ctx("Partie à la montagne")
+	game.hud.globe_requested.emit()
+	var gl := await _wait_scene("Globe", 30000)
+	await _frames(5)
+	var r := ReglagesPartie.preset("normal")
+	r.deblocage = "tout"
+	r.tutoriel = false
+	ReglagesPartie.prochaine = r
+	gl.select_place(46.0207, 7.7491, "Zermatt", true, "ch")
+	gl.start_game()
+	game = await _wait_game()
+	_check(game != null and game.name == "Terre", "partie à Zermatt ouverte")
+	_lier()
+	await _frames(10)
+	if game.villages_panel._dialog.visible:
+		game.villages_panel._dialog.get_ok_button().pressed.emit()
+		await _frames(3)
+	amb.set_speed(0)
+	_meteo_fixe()
+	var w: TerrainWorld = game.world
+	_note("lieu à %.0f m, isotherme 0 °C à %.0f m, neige %.2f" % [w.neige_alt_ref, w.neige_iso0, w.neige])
+	_check(w.neige_alt_ref > 1200.0, "relief réel de montagne (%.0f m)" % w.neige_alt_ref)
+	# Plus haut, plus de neige ; les sommets blancs dès que l'isotherme est sous eux.
+	_check(w.neige_a(w.neige_alt_ref + 1500.0) >= w.neige_a(w.neige_alt_ref), "plus haut, au moins autant de neige")
+	var haut := maxf(w.neige_iso0, w.neige_alt_ref) + 600.0
+	_check(w.neige_a(haut) > 0.5, "sur les pentes au-dessus de l'isotherme 0 °C, le sol est blanc (%.2f à %.0f m)" % [w.neige_a(haut), haut])
+	# Cherche une pente raide autour du centre pour une route.
+	var best := []
+	var plus_raide := 0.0
+	var trous := 0
+	for ang in range(0, 360, 10):
+		var dir := Vector2.from_angle(deg_to_rad(ang))
+		for d0 in [30.0, 120.0, 250.0]:
+			for l in [120.0, 200.0, 300.0]:
+				var a: Vector2 = dir * d0
+				var b: Vector2 = a + dir * l
+				var ha := _sol(a.x, a.y).y
+				var hb := _sol(b.x, b.y).y
+				if is_nan(ha) or is_nan(hb):
+					trous += 1
+					continue
+				var g: float = absf(hb - ha) / l
+				plus_raide = maxf(plus_raide, g)
+				# Trop raide pour une départementale (15 %), mais pas trop pour des lacets (~25 %).
+				if g > 0.17 and g < 0.35 and (best.is_empty() or absf(g - 0.25) < absf(float(best[2]) - 0.25)):
+					best = [a, b, g]
+	_note("pente la plus raide relevée : %.0f %% (%d mesures sans relief)" % [plus_raide * 100.0, trous])
+	_check(not best.is_empty(), "une pente raide près du village (%s)" % ("%.0f %%" % (float(best[2]) * 100.0) if not best.is_empty() else "aucune"))
+	if best.is_empty():
+		return
+	var a: Vector2 = best[0]
+	var b: Vector2 = best[1]
+	var droit: Dictionary = tr.build_segment("departementale", _sol(a.x, a.y), _sol(b.x, b.y))
+	_check(not droit.get("ok", false) and String(droit.get("reason", "")).contains("Lacets"),
+		"route droite à %.0f %% refusée avec le conseil Lacets (%s)" % [float(best[2]) * 100.0, droit.get("reason", "posée")])
+	var lp := RoutePlanner.lacets(a, b, _sol(a.x, a.y).y, _sol(b.x, b.y).y, "departementale")
+	_check(lp.size() > 2, "tracé en lacets proposé (%d points)" % lp.size())
+	if lp.size() > 2:
+		var n0: int = tr.network.edges.size()
+		var caisse := bs.money
+		var lac: Dictionary = tr.build_path("departementale", {}, lp)
+		_check(lac.get("ok", false) and tr.network.edges.size() > n0, "les lacets se construisent (%s)" % lac.get("reason", "ok"))
+		_check(bs.money <= caisse, "le terrassement et la zone orange sont comptés (%s payés d'un coup, le reste au fil du chantier)" % BuildingSystem.format_money(caisse - bs.money))
+		await _jours(1.0)
+		var lents := 0
+		for eid in tr.network.edges:
+			if float(tr.network.edges[eid].get("lent", 1.0)) < 1.0:
+				lents += 1
+		_check(lents > 0, "tronçons en épingles ralentis (%d)" % lents)
 
 
 func _fin() -> void:

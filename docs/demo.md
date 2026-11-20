@@ -21,19 +21,19 @@ chrono compte le temps réel joué (pas le temps en pause).
 
 ## Le parcours
 
-1. Les 12 premières étapes du **tutoriel** (caméra, Maison de commune, fondateurs,
-   route, logements, courant et eau, temps, emplois, école, poubelles, budget,
-   objectifs), sans l'étape « Tu es maire ! ».
+1. Les 13 premières étapes du **tutoriel** (caméra, Maison de commune, fondateurs,
+   route, logements, courant et eau, temps, emplois, marchandises, école,
+   poubelles, budget, objectifs), sans l'étape « Tu es maire ! ».
 2. Les chapitres de la démo :
 
 | # | Chapitre | Il se valide quand… | Bouton |
 |---|---|---|---|
-| 13 | Descendre dans la rue | la vue au sol est active (V) | passe en vue au sol |
-| 14 | Un coin pour souffler | un espace public, un loisir ou un terrain de sport est posé | Construire → Espaces publics |
-| 15 | Une fête au village | un marché ou une fête est organisé (I → Organiser) | ouvre Infos → Organiser |
-| 16 | Prendre le bus | une ligne de transport existe (L) | ouvre les lignes |
-| 17 | Cent habitants | la ville a 100 habitants (ou le rang de Village) | ouvre Maj+J |
-| 18 | Fin de la démo | bouton « Voir mon bilan » | ouvre le bilan |
+| 14 | Descendre dans la rue | la vue au sol est active (V) | passe en vue au sol |
+| 15 | Un coin pour souffler | un espace public, un loisir ou un terrain de sport est posé | Construire → Espaces publics |
+| 16 | Une fête au village | un marché ou une fête est organisé (I → Organiser) | ouvre Infos → Organiser |
+| 17 | Prendre le bus | une ligne de transport existe (L) | ouvre les lignes |
+| 18 | Cent habitants | la ville a 100 habitants (ou le rang de Village) | ouvre Maj+J |
+| 19 | Fin de la démo | bouton « Voir mon bilan » | ouvre le bilan |
 
 ![Le bilan de fin de démo](apercu-demo-bilan.jpg)
 
@@ -55,6 +55,26 @@ chapitres 12 à 15 se font pendant que les chantiers avancent ; la démo tient d
 en 25 à 35 minutes. Le rang de Village demande aussi 50 % de satisfaction, ce qui
 peut prendre plus longtemps : c'est pour ça que le dernier chapitre accepte
 100 habitants.
+
+## Équilibre (2026-11-20)
+
+La démo n'atteignait le rang de Village qu'une partie sur deux : sans tour
+d'habitation tirée au sort dans la zone, le campement se vide maison par maison
+(≈ 50 jours au lieu de 21) et la satisfaction tombait à 0 %. Trois causes,
+mesurées avec `tests/demo_parcours_test.gd` :
+
+- **Rayons vides** : ni dépôt de marchandises ni chauffeur-livreur, le stock du
+  début s'épuise. Étape « Remplir les rayons » (dépôt + entrepôt) ; quand les
+  rayons sont vides et qu'il n'y a aucun chauffeur, deux fondateurs sans chantier
+  prennent le volant d'un entrepôt (`Fondateurs._livreurs`).
+- **Manifestations ignorées** (elles comptent comme ignorées sans réponse) :
+  bulle « Une manifestation ! » sur « Négocier » à la première.
+- **Bidonvilles et expulsions** pendant que des fondateurs dorment encore sous
+  la tente : plus de baraques ni d'expulsions dans un village en fondation
+  (`Immobilier._ville_en_fondation`).
+
+Résultat : rang de Village 6 parties sur 6 (5,8 à 14 min de jeu à vitesse max,
+satisfaction 50 à 95 %), contre 2 sur 4 avant.
 
 ## Captures et vidéo pour la page Steam
 

@@ -1471,7 +1471,7 @@ func _plant_vegetation(mi: MeshInstance3D, job: Dictionary) -> void:
 			continue
 		var proche := _pose_multimesh(mi, m, liste, teintes, Plantes.vent(e), Plantes.materiau())
 		proche.name = Plantes.nom(e)
-		if cu >= 0:
+		if cu >= 0 and not OS.has_feature("web"):
 			proche.set_instance_shader_parameter("culture", cu)
 		proche.set_meta("categorie", cat)
 		proche.visibility_range_end = Plantes.DISTANCE[cat]

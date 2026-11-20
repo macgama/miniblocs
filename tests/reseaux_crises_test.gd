@@ -72,6 +72,7 @@ func _run() -> void:
 	var pop: Population = scene.population
 	res.message.connect(func(t: String) -> void: messages.append(t))
 	ReglagesPartie.actuel.reseaux_obligatoires = true
+	ReglagesPartie.actuel.deblocage = "tout"
 	ReglagesPartie.actuel.construction_instantanee = true
 	ReglagesPartie.actuel.usure = 1.0
 	amb.set_speed(0)

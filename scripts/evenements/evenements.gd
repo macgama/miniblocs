@@ -492,18 +492,24 @@ func _secours_simules(t: float) -> void:
 		var inc: Dictionary = incidents[id]
 		if String(inc.etat) == "resolu":
 			continue
-		if not inc.has("sim"):
+		# Sans service au moment de l'incident : on recherche un secours chaque heure de jeu
+		# (sinon l'incident attendait pour toujours, même une caserne construite après,
+		# et seul un rechargement le faisait prendre en charge).
+		var a_refaire := inc.has("sim") and String(inc.etat) == "declare" and is_inf(float(inc.sim.arrive)) \
+				and t - float(inc.sim.get("essai", -INF)) >= 3600.0
+		if not inc.has("sim") or a_refaire:
 			var arrive := INF
 			var who := ""
 			for s in inc.besoin:
 				var st := service_proche(String(s), inc.position)
 				if st >= 0:
 					var d := building_pos(st).distance_to(inc.position) * 1.3
-					var a := float(inc.debut) + SECOURS_DEPART + d / SECOURS_VITESSE
+					# Secours trouvé plus tard : il part maintenant, pas à l'heure de l'incident.
+					var a := (t if a_refaire else float(inc.debut)) + SECOURS_DEPART + d / SECOURS_VITESSE
 					if a < arrive:
 						arrive = a
 						who = String(s)
-			inc.sim = {"arrive": arrive, "service": who, "fin": INF}
+			inc.sim = {"arrive": arrive, "service": who, "fin": INF, "essai": t}
 		var sim: Dictionary = inc.sim
 		if is_inf(float(sim.arrive)):
 			continue
@@ -512,6 +518,15 @@ func _secours_simules(t: float) -> void:
 			sim.fin = t + _duree_intervention(inc)
 		elif String(inc.etat) == "pris" and t >= float(sim.fin):
 			resoudre(id)
+
+
+## Infini en JSON : codé 1e30 (± selon le signe).
+static func _fini(v: float) -> float:
+	return signf(v) * 1.0e30 if is_inf(v) else v
+
+
+static func _infini(v: float) -> float:
+	return signf(v) * INF if absf(v) >= 1.0e29 else v
 
 
 func _duree_intervention(inc: Dictionary) -> float:
@@ -903,7 +918,12 @@ func to_dict() -> Dictionary:
 			continue
 		var o := inc.duplicate(true)
 		o.position = v3(inc.position)
+		# Secours simulés en route : gardés (sinon le rechargement refaisait le trajet
+		# depuis le service le plus proche du moment, et l'incident changeait d'état).
 		o.erase("sim")
+		if inc.has("sim"):
+			var sm: Dictionary = inc.sim
+			o["secours"] = [_fini(float(sm.arrive)), String(sm.service), _fini(float(sm.fin)), _fini(float(sm.get("essai", 0.0)))]
 		incs.append(o)
 	var jr := []
 	for n in journal.slice(0, 80):
@@ -966,6 +986,10 @@ func from_dict(d: Dictionary) -> void:
 		for key in ["ev", "pid"]:
 			if inc.has(key):
 				inc[key] = int(inc[key])
+		var sc: Array = inc.get("secours", [])
+		inc.erase("secours")
+		if sc.size() == 4:
+			inc.sim = {"arrive": _infini(float(sc[0])), "service": String(sc[1]), "fin": _infini(float(sc[2])), "essai": _infini(float(sc[3]))}
 		incidents[inc.id] = inc
 	for o in d.get("events", []):
 		var e := {"id": int(o.id), "type": String(o.type), "nom": String(o.nom), "debut": float(o.debut), "fin": float(o.fin),

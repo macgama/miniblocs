@@ -1419,7 +1419,7 @@ func _fill_catalog_tab(id: String, box: VBoxContainer) -> void:
 					continue
 				var o: Dictionary = PlanEditor.OPENINGS[k]
 				var kid: String = k
-				var ob := _thumb_card(String(o.name), "%s\n%s · %s" % [o.name, o.desc, BuildingSystem.format_money(int(o.price))],
+				var ob := _thumb_card("%s\n%s" % [o.name, BuildingSystem.format_short(int(o.price))], "%s\n%s · %s" % [o.name, o.desc, BuildingSystem.format_money(int(o.price))],
 					"ouv_" + kid, func() -> Mesh: return VignettesAtelier.opening_mesh(kid))
 				ob.toggle_mode = true
 				ob.button_group = _item_group
@@ -1484,7 +1484,7 @@ func _fill_amenagements(fam: String, box: VBoxContainer, grid: GridContainer) ->
 		var fn := String(k.get("fn", ""))
 		if fn != "" and not BuildingCatalog.get_type(fn).is_empty():
 			tip += "\nFonction proposée au modèle : %s" % String(BuildingCatalog.get_type(fn).name)
-		var b := _thumb_card(String(k.name), tip, "am_" + kid, func() -> Mesh: return VignettesAtelier.amenagement_mesh(kid))
+		var b := _thumb_card("%s\n%s/m²" % [k.name, BuildingSystem.format_short(int(k.price))], tip, "am_" + kid, func() -> Mesh: return VignettesAtelier.amenagement_mesh(kid))
 		b.toggle_mode = true
 		b.button_group = _item_group
 		b.button_pressed = kid == _amenag

@@ -49,7 +49,15 @@ static func active() -> bool:
 
 
 static func menu_visible(id: String) -> bool:
+	# Démo jouable dans le navigateur : on ferme l'onglet, pas le jeu.
+	if id == "quitter" and navigateur():
+		return false
 	return not (active() and MENU_ABSENTS.has(id))
+
+
+## Démo jouable dans le navigateur (préréglage « Web Demo », piste CityRT 12).
+static func navigateur() -> bool:
+	return OS.has_feature("web")
 
 
 static func panneau_verrouille(id: String) -> bool:

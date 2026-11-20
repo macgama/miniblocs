@@ -297,7 +297,8 @@ func _ready() -> void:
 	_message_label = Label.new()
 	_message_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	_message_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	_message_label.offset_top = 76
+	# Sous les jauges de la ville (JaugesVille, au centre sous la barre du haut).
+	_message_label.offset_top = 108
 	_message_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_message_label.add_theme_font_size_override("font_size", 16)
 	_message_label.add_theme_color_override("font_color", Color("fff3b0"))
@@ -1373,7 +1374,9 @@ func show_spec(type_id: String, spec: Dictionary, curve: bool, level := "auto", 
 	_class_pick.titre = String(TransportTypes.MODE_NAMES.get(int(c.mode), ""))
 	for id in _class_ids:
 		_class_pick.add_item(TransportTypes.get_type(id).name)
-		_class_pick.set_item_tooltip(_class_pick.item_count - 1, VignettesVoies.details(String(id)))
+		_class_pick.set_item_tooltip(_class_pick.item_count - 1, VignettesVoies.details(String(id))
+			+ "\nPose gratuite (terrassement de montagne en plus) · entretien conseillé : " + VignettesVoies.prix(String(id)))
+		_class_pick.set_item_prix(_class_pick.item_count - 1, VignettesVoies.prix(String(id)))
 	_class_pick.select(maxi(0, _class_ids.find(type_id)))
 	_spec_rows.lanes.visible = c.has("lanes")
 	_spec_rows.lane_w.visible = c.has("lanes")

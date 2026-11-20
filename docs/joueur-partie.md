@@ -17,15 +17,23 @@ pour traquer les bugs avant la démo Steam :
 6. **Sauvegarde automatique** rechargée, même comparaison.
 7. **F5 puis F9** (retour à la sauvegarde sans quitter), puis **Charger une autre partie**
    par-dessus la ville : rien ne doit rester de la première.
-8. **Partie en 1800** : fondation, bâtiments d'époque, sauvegarde et rechargement.
-9. **Démo guidée** depuis le menu : ses 18 étapes s'enchaînent.
+8. **Nouveautés de la semaine** (étape `semaine`) : marqueurs des chantiers (un par
+   chantier, aucun texte flottant), devantures dessinées de près et effacées de loin,
+   allées et venues d'un matin de semaine (plafonds de scènes et de personnages), manteau
+   neigeux recopié sur le relief lointain, et chaque menu en images des panneaux ouvert
+   puis rechoisi (aucune liste de texte, aucune erreur).
+9. **Partie à la montagne** (étape `montagne`, relief réel) : Zermatt, neige au-dessus de
+   l'isotherme 0 °C, route droite trop raide refusée avec le conseil « Lacets », tracé en
+   lacets posé et tronçons d'épingles ralentis.
+10. **Partie en 1800** : fondation, bâtiments d'époque, sauvegarde et rechargement.
+11. **Démo guidée** depuis le menu : ses 18 étapes s'enchaînent.
 
-Lancer (≈ 20 min) :
+Lancer (≈ 35 min) :
 
-    godot --headless --path . --script res://tests/joueur_partie.gd -- --jours 25
+    godot --headless --path . --script res://tests/joueur_partie.gd
 
-Options : `--etapes ville,touches,recharge,f9,epoque,demo` (choisir les étapes ; `ville`
-est toujours nécessaire), `--hors-ligne` (relief plat, sans réseau), `--jours N`.
+Options : `--etapes ville,touches,recharge,f9,semaine,montagne,epoque,demo` (choisir les étapes ; `ville`
+est toujours nécessaire), `--hors-ligne` (relief plat, sans réseau), `--jours N` (40 par défaut : depuis les chantiers au tiers de la vie, les immeubles sortent après 20 à 30 jours).
 À la fin : la liste des erreurs de script (avec l'étape ou la touche en cours) et des
 constats. Les écarts sans conséquence (météo du jour recalculée, record d'habitants
 recompté) sont listés dans `ECARTS_PERMIS`.
@@ -49,3 +57,18 @@ recompté) sont listés dans `ECARTS_PERMIS`.
 - **F9 en revenant en arrière dans le temps** : une journée de tickets et de stationnement
   en trop au compteur du trafic ; une journée d'habitants à moitié calculée (ou un sondage
   à moitié fait) de l'ancienne partie pouvait continuer sur la partie chargée.
+
+## Bugs trouvés et corrigés (20 novembre 2026)
+
+- **Au chargement, le campement emménageait dans les immeubles pas finis** : les
+  bâtiments en chantier n'étaient pas encore marqués « en chantier » quand les habitants
+  sont relus, si bien que 100 fondateurs s'installaient d'un coup dans des immeubles et
+  des tours en travaux (34 → 143 habitants à chaque rechargement).
+- **Relief qui bougeait de 0,5 m au bout des rues** à chaque chargement : les plateaux
+  de carrefour étaient reterrassés par-dessus les cases sauvegardées.
+- **Incident sans secours pour toujours** : un incident déclaré avant qu'une caserne
+  (ou un poste) existe n'était jamais pris en charge ensuite ; et les secours en route
+  étaient refaits au rechargement (F9 changeait l'état d'un incident).
+- **Missions jugées au chargement** : le bilan du jour se refaisait en rouvrant la
+  partie (mission « 60 habitants » réussie seulement après un rechargement).
+- **Reste à payer d'un chantier** effacé au rechargement quand il valait 0.

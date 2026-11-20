@@ -23,6 +23,24 @@ const POLLUTION_ATTENTION := 35.0
 const POLLUTION_URGENT := 60.0
 ## Mois de réserve sous lesquels un solde négatif devient inquiétant.
 const MOIS_RESERVE := 6.0
+## Part du revenu passée dans le loyer (%) : au-delà d'un tiers, ça pince ; 45 % : ça étrangle.
+const EFFORT_ATTENTION := 33.0
+const EFFORT_URGENT := 45.0
+## Part des habitants avec eau potable / égouts (%) sous laquelle les maladies guettent.
+const HYGIENE_ATTENTION := 60.0
+const HYGIENE_URGENT := 30.0
+## Délai moyen des secours (min) : au-delà, des vies se jouent.
+const SECOURS_ATTENTION := 12.0
+const SECOURS_URGENT := 20.0
+## Part des 65 ans et plus (%) d'une ville vieillissante.
+const SENIORS_ATTENTION := 30.0
+
+## Icône (Icones) de chaque thème d'avis, pour les cartes du conseiller.
+const ICONES_THEMES := {"argent": "budget", "emploi": "emploi", "logement": "logement", "ville": "village",
+	"avis": "sourire", "politique": "urne", "ecole": "ecole", "pollution": "paysage", "reseaux": "reseaux",
+	"trafic": "circulation", "dechets": "dechets", "sante": "sante", "secours": "feu", "ages": "habitants"}
+## Humeur du conseiller (portrait) selon l'avis le plus grave.
+const HUMEURS := ["Serein", "Soucieux", "Alarmé"]
 
 
 ## Tous les avis pour un lieu (Statistiques.PAYS ou l'id d'une ville), les plus urgents d'abord.
@@ -42,6 +60,10 @@ static func analyser(st: Statistiques, lieu: String) -> Array:
 		_ecole(st, lieu, out, j)
 		_pollution(st, lieu, out, j)
 		_tendances(st, lieu, nom, out, j)
+		_loyers(st, lieu, nom, out, j)
+		_ages(st, lieu, nom, out, j)
+	_sante(st, out, j)
+	_secours(st, out, j)
 	_reseaux(st, out, j)
 	_trafic(st, out, j)
 	_dechets(st, out, j)
@@ -291,3 +313,59 @@ static func _tendances(st: Statistiques, lieu: String, nom: String, out: Array, 
 	if not is_nan(ds) and ds <= -10.0:
 		out.append(_avis("chute_satisfaction", 1, "avis", "La satisfaction chute (%s en une semaine)" % Statistiques.format_ecart("satisfaction", ds),
 			"Quelque chose a changé récemment, et ça ne plaît pas.", "Une hausse d'impôts, une coupure ou une fermeture ? L'avis des habitants (Y) donne les raisons.", "avis", j))
+
+
+## Loyers trop lourds pour les foyers (F11).
+static func _loyers(st: Statistiques, lieu: String, nom: String, out: Array, j: int) -> void:
+	var e := st.dernier(lieu, "effort")
+	if is_nan(e) or e < EFFORT_ATTENTION:
+		return
+	out.append(_avis("loyers", 2 if e >= EFFORT_URGENT else 1, "logement", "Les loyers étranglent les foyers (%s du revenu)" % _pct(e),
+		_choix(j, "loyers", ["À %s, on paie d'abord le propriétaire, et on mange s'il reste quelque chose." % nom,
+			"Les habitants de %s envisagent de dormir au bureau. Certains le font déjà." % nom]),
+		"Construis des logements (B) ou des logements sociaux, et regarde les quartiers qui flambent (F11).", "immobilier", j))
+
+
+## Population qui vieillit (pyramide des âges).
+static func _ages(st: Statistiques, lieu: String, nom: String, out: Array, j: int) -> void:
+	var s := st.dernier(lieu, "seniors")
+	if is_nan(s) or s < SENIORS_ATTENTION or st.dernier(lieu, "habitants") < 20.0:
+		return
+	out.append(_avis("vieillissement", 1, "ages", "La population vieillit (%s ont 65 ans ou plus)" % _pct(s),
+		"Le club de pétanque de %s refuse du monde ; l'école, elle, cherche des élèves." % nom,
+		"Attire des familles : logements abordables, écoles et emplois. Prévois aussi soins et transports pour les aînés (Maj+U).", "services", j))
+
+
+## Hygiène et épidémies (F7, pour tout le pays).
+static func _sante(st: Statistiques, out: Array, j: int) -> void:
+	var m := st.dernier(Statistiques.PAYS, "malades")
+	if not is_nan(m) and m >= 1.0:
+		out.append(_avis("epidemie", 2 if m >= 20.0 else 1, "sante", "Épidémie : %d malade%s" % [roundi(m), "s" if m >= 2.0 else ""],
+			_choix(j, "epidemie", ["Le pharmacien a vendu son dernier mouchoir.", "On se salue désormais de loin, avec un hochement de tête."]),
+			"Isole les malades, ouvre des lits d'hôpital et vaccine si un vaccin existe (F7).", "sante", j))
+	for k in [["eau_potable", "boivent de l'eau potable", "Un captage ou une usine d'eau et des conduites (O)."],
+			["egouts", "sont raccordés aux égouts", "Un réseau d'égouts et une station d'épuration (O)."]]:
+		var v := st.dernier(Statistiques.PAYS, String(k[0]))
+		if is_nan(v) or v >= HYGIENE_ATTENTION:
+			continue
+		# Urgent seulement s'il y a déjà des malades : sinon un village de 1800 serait en alerte permanente.
+		var malade := not is_nan(m) and m >= 1.0
+		out.append(_avis("hygiene_" + String(k[0]), 2 if v < HYGIENE_URGENT and malade else 1, "sante",
+			"Seuls %s des habitants %s" % [_pct(v), Langue.t(String(k[1]))],
+			"Le choléra lit aussi les statistiques, et celles-ci lui plaisent.", "%s Détails dans Santé (F7)." % Langue.t(String(k[2])), "sante", j))
+
+
+## Secours trop lents (U).
+static func _secours(st: Statistiques, out: Array, j: int) -> void:
+	var d := st.dernier(Statistiques.PAYS, "intervention")
+	if is_nan(d) or d < SECOURS_ATTENTION:
+		return
+	out.append(_avis("secours", 2 if d >= SECOURS_URGENT else 1, "secours", "Les secours mettent %d min à arriver" % roundi(d),
+		_choix(j, "secours", ["Les pompiers connaissent bien la ville : ils ont eu le temps de la visiter en route.",
+			"Le temps que l'ambulance arrive, le patient a souvent fini par aller mieux. Ou pas."]),
+		"Rapproche les casernes et les hôpitaux des quartiers (B → Services) et désengorge les routes (Maj+L).", "urgences", j))
+
+
+## Humeur du conseiller (0 serein, 1 soucieux, 2 alarmé) pour une liste d'avis.
+static func humeur(avis: Array) -> int:
+	return _max_gravite(avis)

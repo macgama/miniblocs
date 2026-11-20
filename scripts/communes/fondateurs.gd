@@ -873,7 +873,30 @@ func depanner() -> int:
 			faits += k
 			message.emit("%d fondateur%s sans chantier %s tenir %s (%s)." % [k, "s" if k > 1 else "", "vont" if k > 1 else "va",
 				population.building_name(bid), pourquoi])
+	faits += _livreurs()
 	return faits
+
+
+## Rayons vides et aucun chauffeur-livreur en ville : deux fondateurs sans
+## chantier prennent le volant des camions d'un entrepôt (le dépôt de
+## marchandises ne sert à rien sans eux).
+func _livreurs() -> int:
+	var pr := Production.instance
+	if libres <= 0 or pr == null or pr.manque_foyers.is_empty() or not pr.drivers().is_empty():
+		return 0
+	for bid in population.known.keys():
+		if bid == camp or population.free_jobs(bid) <= 0:
+			continue
+		if BuildingCatalog.base_of(String(population.known[bid].t)) != "entrepot":
+			continue
+		if population.effectif != null and population.effectif.en_greve(bid):
+			continue
+		var k := affecter(bid, mini(2, libres), "chauffeur")
+		if k > 0:
+			message.emit("%d fondateur%s sans chantier %s les camions de %s (rayons vides)." % [k, "s" if k > 1 else "", "conduisent" if k > 1 else "conduit",
+				population.building_name(bid)])
+			return k
+	return 0
 
 
 # --- Sauvegarde ----------------------------------------------------------------------------------

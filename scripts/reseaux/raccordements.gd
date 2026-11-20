@@ -423,4 +423,12 @@ func remplir_fiche(parent: Control, bid: int, largeur := 300.0) -> int:
 		row.add_child(l)
 		parent.add_child(row)
 		n += 1
+	if n > 0 and reseaux != null and reseaux.flux != null:
+		var lg := Label.new()
+		lg.text = "Sur les routes : les flèches montrent le courant, l'eau, les égouts et le gaz qui circulent. Bord vert = tout va bien, orange et lent = saturé, rouge qui clignote = coupé."
+		lg.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		lg.custom_minimum_size = Vector2(largeur, 0)
+		lg.add_theme_font_size_override("font_size", 11)
+		lg.add_theme_color_override("font_color", UiStyle.TEXT_DIM)
+		parent.add_child(lg)
 	return n

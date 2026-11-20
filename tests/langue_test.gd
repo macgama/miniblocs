@@ -165,7 +165,32 @@ func _run() -> void:
 	_egal(Langue.t("ZQSD ou flèches : se déplacer · molette : zoomer · A / E : tourner"),
 		"WASD o flechas: moverse · rueda: zoom · Q / E: girar", "es : touches QWERTY")
 
-	# 5. Retour au français : rien n'est traduit.
+	# 5. Portugais, polonais, chinois (piste CityRT 13) : partielles, l'anglais en secours.
+	for code in ["pt", "pl", "zh"]:
+		_verifier_fichier(code, 500)
+	var nouvelles := {
+		"pt": ["Nova partida", "Opções", "Statistics", "Caixa"],
+		"pl": ["Nowa gra", "Opcje", "Statistics", "Kasa"],
+		"zh": ["新游戏", "选项", "Statistics", "金库"],
+	}
+	for code in nouvelles:
+		var a: Array = nouvelles[code]
+		_check(Langue.existe(code), "langue %s connue" % code)
+		Langue.activer(code)
+		var trad := Langue.traduction(code) as TraductionAuto
+		_check(trad != null and trad.secours == "en", "%s : l'anglais en secours" % code)
+		_egal(Langue.t("Nouvelle partie"), a[0], "%s : texte traduit" % code)
+		_egal(Langue.t("Statistiques"), a[2], "%s : texte pas encore traduit → anglais" % code)
+		_egal(l.atr(l.text), a[2], "%s : Label (secours anglais)" % code)
+		print("  ", code, " : ", Langue.t("Habitants : %d / %d · satisfaction : %s" % [12, 40, "62"]), " | ", Langue.t("Caisse : 1 234 567 €"))
+	Langue.activer("pl")
+	_egal(Langue.t("Caisse : 1 234 567 €"), "Funds: 1 234 567 €", "pl : milliers avec une espace")
+	Langue.activer("zh")
+	_egal(Langue.t("Habitants : %d / %d · satisfaction : %s" % [12, 40, "62"]), "居民：12 / 40 · 满意度：62", "zh : modèle")
+	for c in ["新", "游", "♥", "▸", "Ⓐ", "🔒"]:
+		_check(Polices.sait(c), "police de secours : « %s »" % c)
+
+	# 6. Retour au français : rien n'est traduit.
 	Langue.activer("fr")
 	_egal(tr("Statistiques"), "Statistiques", "français : texte d'origine")
 	_egal(l.atr(l.text), "Statistiques", "français : Label d'origine")

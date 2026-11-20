@@ -14,6 +14,8 @@ extends Translation
 ## Un texte inconnu reste en français. Les résultats sont mis en cache.
 ##
 ## Fichier : res://assets/langues/<code>.json = {"textes": {"fr": "traduction"}}.
+## Une langue encore partielle (pt, pl, zh) indique "secours": "en" : les textes
+## qu'elle n'a pas encore s'affichent en anglais plutôt qu'en français.
 ## Dans la traduction, les trous gardent l'ordre du français ; %2$s prend le
 ## 2e trou pour changer l'ordre des mots.
 
@@ -24,6 +26,8 @@ var textes := {}
 ## Modèles rangés par début (« p:Pop ») ou fin (« s:ts. ») du texte, et le reste.
 var _modeles := {}
 var _general: Array = []
+## Modèle français → son entrée (une langue chargée par-dessus son secours la remplace).
+var _par_cle := {}
 var _cache := {}
 var _re_spec: RegEx
 var _re_cible: RegEx
@@ -36,6 +40,10 @@ var nb_modeles := 0
 ## Nombres à l'anglaise (« 1,234.5 ») ; sinon à l'allemande, l'italienne ou
 ## l'espagnole (« 1.234,5 » : la virgule décimale reste, les milliers prennent un point).
 var anglais := true
+## Nombres à la française (« 1 234,5 », polonais) : laissés tels quels.
+var nombres_fr := false
+## Langue de secours chargée sous celle-ci ("" si aucune).
+var secours := ""
 
 
 func _init() -> void:
@@ -54,13 +62,23 @@ func _init() -> void:
 ## Charge un fichier de langue. Renvoie false s'il manque.
 func charger(chemin: String, code: String) -> bool:
 	locale = code
-	anglais = code == "en"
+	anglais = code == "en" or code == "zh"
+	nombres_fr = code == "pl"
 	var f := FileAccess.open(chemin, FileAccess.READ)
 	if f == null:
 		return false
 	var data = JSON.parse_string(f.get_as_text())
 	if not data is Dictionary:
 		return false
+	# Langue partielle : d'abord la langue de secours, puis la sienne par-dessus.
+	secours = String(data.get("secours", ""))
+	if secours != "" and secours != code:
+		var dossier := chemin.get_base_dir()
+		var sec := FileAccess.open(dossier.path_join(secours + ".json"), FileAccess.READ)
+		if sec != null:
+			var ds = JSON.parse_string(sec.get_as_text())
+			if ds is Dictionary:
+				ajouter(ds.get("textes", {}))
 	ajouter(data.get("textes", {}))
 	return true
 
@@ -74,7 +92,10 @@ func ajouter(d: Dictionary) -> void:
 			continue
 		textes[fr] = en
 		if fr.contains("%"):
-			_ajouter_modele(fr, en)
+			if _par_cle.has(fr):
+				(_par_cle[fr] as Array)[1] = en
+			else:
+				_ajouter_modele(fr, en)
 	_cache.clear()
 	for b in _modeles:
 		(_modeles[b] as Array).sort_custom(func(a, c): return a[3] > c[3])
@@ -123,6 +144,7 @@ func _ajouter_modele(fr: String, en: String) -> void:
 	if not re.is_valid():
 		return
 	var entree := [re, en, types, litteral.length()]
+	_par_cle[fr] = entree
 	nb_modeles += 1
 	if prefixe.length() >= 3:
 		_ranger("p:" + prefixe.left(3), entree)
@@ -321,7 +343,7 @@ func _nombres_texte(v: String) -> String:
 			out += m.get_string(2) + ("." if locale == "de" else "") + " " + String(textes.get(m.get_string(3), m.get_string(3)))
 			pos = m.get_end()
 		v = out + v.substr(pos)
-	if not v.contains(",") and not v.contains(" ") and not v.contains(" ") and not v.contains(" "):
+	if nombres_fr or (not v.contains(",") and not v.contains(" ") and not v.contains(" ") and not v.contains(" ")):
 		return v
 	if not anglais:
 		return _re_milliers.sub(v, "$1.", true)
@@ -330,6 +352,8 @@ func _nombres_texte(v: String) -> String:
 
 
 func _nombres(v: String) -> String:
+	if nombres_fr:
+		return v.replace("−", "-")
 	if not anglais:
 		return _re_milliers.sub(v, "$1.", true).replace("−", "-")
 	v = _re_decimale.sub(v, "$1.$2", true)

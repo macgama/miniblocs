@@ -6,7 +6,9 @@ extends RefCounted
 
 const DOSSIER := "res://assets/langues/"
 ## [code, nom affiché dans sa propre langue]
-const LANGUES := [["fr", "Français"], ["en", "English"], ["de", "Deutsch"], ["it", "Italiano"], ["es", "Español"]]
+## pt, pl et zh sont partielles (menus, tutoriel, démo) : le reste s'affiche en anglais.
+const LANGUES := [["fr", "Français"], ["en", "English"], ["de", "Deutsch"], ["it", "Italiano"], ["es", "Español"],
+	["pt", "Português"], ["pl", "Polski"], ["zh", "中文"]]
 
 static var _chargees := {}
 static var actuelle := "fr"
@@ -19,6 +21,7 @@ static var _branchee: Translation = null
 ## Applique une langue : charge sa traduction (une fois) et change la langue de Godot.
 ## Tous les textes affichés se traduisent aussitôt.
 static func activer(code: String) -> void:
+	Polices.installer()
 	if not existe(code):
 		code = "fr"
 	if code != "fr" and not _chargees.has(code):

@@ -104,6 +104,9 @@ func _ready() -> void:
 	_debut = int(Time.get_unix_time_from_system())
 	_derniere_image_ms = Time.get_ticks_msec()
 	ecrire_marque()
+	# Navigateur (démo web, sans fils d'exécution) : pas de sentinelle de gel.
+	if OS.has_feature("web"):
+		return
 	_sentinelle = Thread.new()
 	_sentinelle.start(_veiller)
 

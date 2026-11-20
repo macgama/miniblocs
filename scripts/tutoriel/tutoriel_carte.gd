@@ -105,34 +105,31 @@ func _build() -> void:
 	_action_b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_action_b.pressed.connect(func() -> void: tuto.agir())
 	row.add_child(_action_b)
-	# Deuxième rangée : « Afficher » montre où cliquer (le bon menu s'ouvre et le
-	# bouton est encadré, piste CityRT 11), « ? » revoit toutes les bulles,
-	# « Je sais déjà » passe l'étape.
-	var row2 := HBoxContainer.new()
-	row2.add_theme_constant_override("separation", 6)
-	v.add_child(row2)
+	# Sur la même rangée : « Afficher » (l'œil) montre où cliquer (le bon menu
+	# s'ouvre et le bouton est encadré, piste CityRT 11), « ? » revoit toutes les
+	# bulles, « Passer » saute l'étape (« je sais déjà »). Rangée unique : la carte
+	# garde sa largeur et sa hauteur dans la colonne de gauche.
 	_afficher_b = Button.new()
 	_afficher_b.name = "Afficher"
-	_afficher_b.text = "Afficher"
 	_afficher_b.icon = Icones.get_icon("oeil", 16, UiStyle.ACCENT)
-	_afficher_b.tooltip_text = "Montre où cliquer : ouvre le bon menu et encadre le bouton à utiliser"
+	_afficher_b.tooltip_text = "Afficher : montre où cliquer (ouvre le bon menu et encadre le bouton à utiliser)"
 	_afficher_b.focus_mode = Control.FOCUS_NONE
-	_afficher_b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_afficher_b.custom_minimum_size = Vector2(32, 0)
 	_afficher_b.pressed.connect(func() -> void: afficher_requested.emit())
-	row2.add_child(_afficher_b)
+	row.add_child(_afficher_b)
 	_revoir_b = Button.new()
 	_revoir_b.text = "?"
 	_revoir_b.tooltip_text = "Revoir les explications en bulles"
 	_revoir_b.focus_mode = Control.FOCUS_NONE
 	_revoir_b.custom_minimum_size = Vector2(32, 0)
 	_revoir_b.pressed.connect(func() -> void: bulles_requested.emit())
-	row2.add_child(_revoir_b)
+	row.add_child(_revoir_b)
 	_passer_b = Button.new()
-	_passer_b.text = "Je sais déjà"
+	_passer_b.text = "Passer"
 	_passer_b.tooltip_text = "Je sais déjà : passer cette étape"
 	_passer_b.focus_mode = Control.FOCUS_NONE
 	_passer_b.pressed.connect(func() -> void: tuto.passer())
-	row2.add_child(_passer_b)
+	row.add_child(_passer_b)
 
 	# Objectifs à l'écran.
 	_obj_panel = PanelContainer.new()

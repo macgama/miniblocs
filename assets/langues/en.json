@@ -15240,6 +15240,7 @@
 "Polski": "Polski",
 "中文": "中文",
 "Cette forme ne peut pas se renverser : choisis une pente, un arrondi ou une demi-dalle (R tourne toutes les formes).": "This shape cannot be flipped: choose a slope, a rounded piece or a half-slab (R rotates every shape).",
-"Cette forme ne peut pas se coucher : choisis une pente, un arrondi ou une demi-dalle (R tourne toutes les formes).": "This shape cannot be laid down: choose a slope, a rounded piece or a half-slab (R rotates every shape)."
+"Cette forme ne peut pas se coucher : choisis une pente, un arrondi ou une demi-dalle (R tourne toutes les formes).": "This shape cannot be laid down: choose a slope, a rounded piece or a half-slab (R rotates every shape).",
+"Afficher : montre où cliquer (ouvre le bon menu et encadre le bouton à utiliser)": "Show me: shows where to click (opens the right menu and frames the button to use)"
 }
 }

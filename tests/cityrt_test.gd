@@ -365,7 +365,7 @@ func _afficher(scene: Node) -> void:
 	_check(t.actif, "tutoriel relancé")
 	if t.actif:
 		_check(carte._afficher_b.visible == Tutoriel.peut_afficher(t.etape_courante()), "bouton « Afficher » sur la carte selon l'étape")
-		_check(carte._passer_b.text == "Je sais déjà", "« Je sais déjà » passe l'étape")
+		_check(carte._passer_b.tooltip_text.begins_with("Je sais déjà"), "« Passer » : je sais déjà, l'étape est passée")
 		while t.actif and t.id_courant() != "route":
 			t.passer()
 		if t.id_courant() == "route":

@@ -98,6 +98,8 @@ var soleil := 0.0
 var vue: ReseauxVue
 ## Icônes au-dessus des bâtiments non raccordés (scripts/reseaux/raccordements.gd).
 var raccordements: Raccordements
+## Flux animé sur les routes au clic sur un bâtiment ou un tracé (voir ReseauxFlux).
+var flux: ReseauxFlux
 var panneau: Node
 
 var _topo_sale := true
@@ -191,6 +193,12 @@ func setup(w: TerrainWorld, b: BuildingSystem, t: TransportSystem, p: Population
 	raccordements = Raccordements.new()
 	raccordements.reseaux = self
 	add_child(raccordements)
+	flux = ReseauxFlux.new()
+	flux.name = "Flux"
+	flux.reseaux = self
+	add_child(flux)
+	if population != null:
+		population.building_selected.connect(flux.sur_selection)
 	_inscrire_calques()
 
 
@@ -212,6 +220,8 @@ func clear() -> void:
 	_last_unix = -1.0
 	_jour = -1
 	_retirer_nuisances()
+	if flux:
+		flux.effacer()
 	if vue:
 		vue.tout_refaire()
 	changed.emit()
@@ -966,6 +976,10 @@ func _maj_eau(_now: Dictionary, heures: float) -> void:
 func _taux_elec_source(bid: int) -> float:
 	if not ReglagesPartie.actuel.reseaux_obligatoires:
 		return 1.0
+	# Avant que le courant se répande (Epoques.ATTENDU, 1925), pompes et usines
+	# d'eau marchent à la vapeur ou par gravité : elles n'attendent pas le réseau.
+	if not Epoques.attendu("elec"):
+		return 1.0
 	return elec.taux_servi(bid)
 
 
@@ -1672,6 +1686,7 @@ func _pick(pos: Vector2) -> Variant:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if outil == Outil.AUCUN:
+		_clic_flux(event)
 		return
 	var mm := event as InputEventMouseMotion
 	if mm:
@@ -1727,6 +1742,32 @@ func _unhandled_input(event: InputEvent) -> void:
 		else:
 			set_outil(Outil.AUCUN)
 		get_viewport().set_input_as_handled()
+
+
+## Vue O, sans outil : un clic sur une route, une ligne ou une conduite montre le
+## flux du réseau de l'onglet ; un clic ailleurs l'enlève. Le clic n'est pas
+## gardé : la fiche d'un bâtiment s'ouvre comme d'habitude.
+func _clic_flux(event: InputEvent) -> void:
+	var mb := event as InputEventMouseButton
+	if mb == null or mb.button_index != MOUSE_BUTTON_LEFT or flux == null or vue == null:
+		return
+	if mb.pressed:
+		_press = mb.position
+		return
+	var res := vue.calque_actif()
+	if res == "" or mb.position.distance_to(_press) > 6.0:
+		return
+	var hit = _pick(mb.position)
+	if hit == null:
+		return
+	var p: Vector3 = hit
+	if buildings != null and buildings.building_at(Vector2i(floori(p.x), floori(p.z))) >= 0:
+		return
+	var li := flux.ligne_pres(res, p)
+	if li >= 0:
+		flux.montrer_ligne(res, li)
+	elif flux.origine == "ligne":
+		flux.effacer()
 
 
 # --- Sauvegarde --------------------------------------------------------------------------

@@ -80,6 +80,7 @@ func _run() -> void:
 	_check(rac != null and rac.reseaux == res and rac.telecom == scene.telecom, "icônes branchées sur les réseaux et le téléphone")
 	var r := ReglagesPartie.actuel
 	r.reseaux_obligatoires = true
+	r.deblocage = "tout"
 	_annee(r, 0)
 	amb.set_speed(0)
 	amb.unix_time = Time.get_unix_time_from_datetime_string("2026-06-21T12:00:00")
@@ -149,7 +150,7 @@ func _run() -> void:
 	_check(lp.contains("raccordé mais coupé (pas assez de production"), "fiche : raccordé mais coupé, avec la raison")
 	var box := VBoxContainer.new()
 	root.add_child(box)
-	_check(rac.remplir_fiche(box, loin) == lignes.size() and box.get_child_count() == lignes.size(), "rubrique Réseaux de la fiche : une ligne par réseau")
+	_check(rac.remplir_fiche(box, loin) == lignes.size() and box.get_child_count() == lignes.size() + 1, "rubrique Réseaux de la fiche : une ligne par réseau, plus la légende du flux")
 	box.queue_free()
 	var hp: HabitantsPanel = scene.habitants_panel
 	scene.population._sync_buildings()

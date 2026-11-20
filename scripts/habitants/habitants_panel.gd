@@ -13,6 +13,8 @@ const W := 348.0
 const H := 560.0
 
 var pop: Population
+## Vrai quand une autre action garde la touche F (poser des blocs : F renverse la forme).
+var f_key_taken := func() -> bool: return false
 var _panel: PanelContainer
 var _title: Label
 var _back: Button
@@ -122,7 +124,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		toggle()
 		get_viewport().set_input_as_handled()
 	elif k and k.pressed and not k.echo and k.physical_keycode == KEY_F and not k.shift_pressed and not k.ctrl_pressed \
-			and pop.followed() >= 0:
+			and pop.followed() >= 0 and not f_key_taken.call():
 		_toggle_camera()
 		get_viewport().set_input_as_handled()
 

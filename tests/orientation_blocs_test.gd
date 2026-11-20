@@ -151,6 +151,29 @@ func _run() -> void:
 			found += 1
 	_check(found == 1, "bouton Renverser visible dans le panneau")
 
+	# Habitant suivi : F renverse toujours la forme, sans basculer la caméra de l'habitant.
+	var pop: Population = scene.get("population")
+	var pid := -1
+	for id in pop.persons:
+		pid = int(id)
+		break
+	if pid < 0:
+		pid = 999999
+		pop.persons[pid] = {"id": pid, "f": -1, "p": "Test", "n": "Suivi", "s": "F", "nj": 0}
+	pop.set_physics_process(false)
+	pop.vie.followed = pid
+	pop.follow_camera = true
+	var p_avant := be.pose
+	await _key(KEY_F, 102)
+	_check(be.pose != p_avant, "habitant suivi : F renverse quand même la forme")
+	_check(pop.follow_camera, "habitant suivi : F ne bascule pas sa caméra pendant la pose de blocs")
+	await _key(KEY_F, 102)
+	pop.vie.followed = -1
+	pop.follow_camera = false
+	if pid == 999999:
+		pop.persons.erase(pid)
+	pop.set_physics_process(true)
+
 	# Poser la forme couchée : la position est gardée.
 	var code := be.current_code(be._target)
 	var place: Vector3i = be._target.place

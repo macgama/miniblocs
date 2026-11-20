@@ -186,7 +186,9 @@ func _run() -> void:
 	for pid in pop.persons:
 		var p: Dictionary = pop.persons[pid]
 		if pop.stage(p) == "chomeur" or pop.stage(p) == "actif":
-			if not edu.qualifie(p, "medecin"):
+			# Ni médecin ni infirmier : une infirmière diplômée prendrait
+			# légitimement un poste d'infirmier (test instable avant).
+			if not edu.qualifie(p, "medecin") and not edu.qualifie(p, "infirmier"):
 				sans_dip = pid
 				break
 	if sans_dip >= 0:

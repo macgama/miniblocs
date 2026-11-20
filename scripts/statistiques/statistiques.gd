@@ -36,6 +36,12 @@ const INDICATEURS := [
 	{"id": "emplois_libres", "nom": "Emplois libres", "unite": "", "fmt": "int", "sens": 0, "portee": "ville", "icone": "industrie"},
 	{"id": "sans_ecole", "nom": "Enfants sans école", "unite": "", "fmt": "int", "sens": -1, "portee": "ville", "icone": "ecole"},
 	{"id": "pollution", "nom": "Pollution de l'air chez les habitants", "unite": "/100", "fmt": "int", "sens": -1, "portee": "ville", "icone": "paysage"},
+	{"id": "age_moyen", "nom": "Âge moyen", "unite": "ans", "fmt": "dec", "sens": 0, "portee": "ville", "icone": "horloge"},
+	{"id": "seniors", "nom": "65 ans et plus", "unite": "%", "fmt": "pct", "sens": 0, "portee": "ville", "icone": "habitants"},
+	{"id": "loyer", "nom": "Loyer moyen", "unite": "€/mois", "fmt": "money", "sens": -1, "portee": "ville", "icone": "logement"},
+	{"id": "effort", "nom": "Part du revenu pour le loyer", "unite": "%", "fmt": "pct", "sens": -1, "portee": "ville", "icone": "billet"},
+	{"id": "prix_m2", "nom": "Prix du m²", "unite": "€/m²", "fmt": "money", "sens": 0, "portee": "ville", "icone": "banque"},
+	{"id": "diplomes", "nom": "Adultes diplômés du supérieur", "unite": "%", "fmt": "pct", "sens": 1, "portee": "ville", "icone": "ecole"},
 	{"id": "electricite", "nom": "Électricité fournie", "unite": "%", "fmt": "pct", "sens": 1, "portee": "pays", "icone": "reseaux"},
 	{"id": "eau", "nom": "Eau fournie", "unite": "%", "fmt": "pct", "sens": 1, "portee": "pays", "icone": "eau"},
 	{"id": "coupures", "nom": "Bâtiments privés de courant ou d'eau", "unite": "", "fmt": "int", "sens": -1, "portee": "pays", "icone": "reseaux"},
@@ -43,6 +49,12 @@ const INDICATEURS := [
 	{"id": "trajet", "nom": "Trajet moyen", "unite": "min", "fmt": "dec", "sens": -1, "portee": "pays", "icone": "circulation"},
 	{"id": "dechets", "nom": "Poubelles qui débordent", "unite": "", "fmt": "int", "sens": -1, "portee": "pays", "icone": "dechets"},
 	{"id": "recyclage", "nom": "Déchets recyclés", "unite": "%", "fmt": "pct", "sens": 1, "portee": "pays", "icone": "dechets"},
+	{"id": "eau_potable", "nom": "Habitants avec eau potable", "unite": "%", "fmt": "pct", "sens": 1, "portee": "pays", "icone": "eau"},
+	{"id": "egouts", "nom": "Habitants raccordés aux égouts", "unite": "%", "fmt": "pct", "sens": 1, "portee": "pays", "icone": "sante"},
+	{"id": "malades", "nom": "Malades (épidémies)", "unite": "", "fmt": "int", "sens": -1, "portee": "pays", "icone": "epidemie"},
+	{"id": "hospitalises", "nom": "Hospitalisés", "unite": "", "fmt": "int", "sens": -1, "portee": "pays", "icone": "sante"},
+	{"id": "appels", "nom": "Appels d'urgence du jour", "unite": "", "fmt": "int", "sens": -1, "portee": "pays", "icone": "services"},
+	{"id": "intervention", "nom": "Délai moyen des secours", "unite": "min", "fmt": "dec", "sens": -1, "portee": "pays", "icone": "feu"},
 	{"id": "touristes", "nom": "Touristes en ville", "unite": "", "fmt": "int", "sens": 1, "portee": "pays", "icone": "valise"},
 	{"id": "nuitees", "nom": "Nuitées de la veille", "unite": "", "fmt": "int", "sens": 1, "portee": "pays", "icone": "lit"},
 	{"id": "co2", "nom": "Émissions de CO₂", "unite": "t/jour", "fmt": "int", "sens": -1, "portee": "pays", "icone": "climat"},
@@ -165,14 +177,19 @@ func _par_habitant() -> Dictionary:
 		if vid >= 0:
 			lieux.append(str(vid))
 		var st := population.stage(p)
+		var age := population.age_of(p)
 		var pol := -1.0
 		if nuisances != null and home >= 0 and i % pas == 0:
 			pol = nuisances.air(population.building_pos(home))
 		i += 1
 		for l in lieux:
 			if not out.has(l):
-				out[l] = {"actifs": 0, "chomeurs": 0, "sans_ecole": 0, "pol": 0.0, "pol_n": 0}
+				out[l] = {"actifs": 0, "chomeurs": 0, "sans_ecole": 0, "pol": 0.0, "pol_n": 0, "n": 0, "ages": 0.0, "seniors": 0}
 			var o: Dictionary = out[l]
+			o.n += 1
+			o.ages += age
+			if age >= 65.0:
+				o.seniors += 1
 			if st == "actif":
 				o.actifs += 1
 			elif st == "chomeur":
@@ -259,12 +276,99 @@ func _communs(c: Dictionary, lieu: String) -> void:
 	c.sans_ecole = int(h.get("sans_ecole", 0))
 	if int(h.get("pol_n", 0)) > 0:
 		c.pollution = 100.0 * float(h.pol) / int(h.pol_n)
+	if int(h.get("n", 0)) > 0:
+		c.age_moyen = float(h.ages) / int(h.n)
+		c.seniors = 100.0 * int(h.seniors) / int(h.n)
+	_logement_et_diplomes(c, -1 if lieu == PAYS else int(lieu))
 	if lieu == PAYS:
 		c.erase("_actifs")
 
 
+## Un système de la partie (santé, immobilier, urgences…), voisin de ce nœud ; null sinon.
+func _systeme(nom: String) -> Object:
+	var parent := get_parent()
+	if parent == null or not (nom in parent):
+		return null
+	var o: Variant = parent.get(nom)
+	return o if o is Object and is_instance_valid(o) else null
+
+
+## Loyers (F11) et diplômes (Maj+K) d'une ville (vid) ou de tout le pays (-1).
+func _logement_et_diplomes(c: Dictionary, vid: int) -> void:
+	var im := _systeme("immobilier") as Immobilier
+	if im != null:
+		var b := im.bilan(-2 if vid < 0 else vid)
+		if int(b.get("foyers", 0)) > 0:
+			c.loyer = float(b.loyer)
+			c.effort = 100.0 * float(b.effort)
+			c.prix_m2 = float(b.prix_m2)
+	var ed: Education = population.edu if population != null else null
+	if ed != null:
+		var b := ed.bilan(vid)
+		if int(b.get("adultes", 0)) > 0:
+			var sup := 0
+			for niv in range(4, (b.niveaux as Array).size()):
+				sup += int(b.niveaux[niv])
+			c.diplomes = 100.0 * sup / int(b.adultes)
+
+
+## Pyramide des âges d'un lieu, en tranches de 10 ans (la dernière : 90 ans et plus) :
+## [{"h": hommes, "f": femmes}], de la plus jeune à la plus âgée. Calculée à la demande.
+func pyramide(lieu: String) -> Array:
+	if pyramide_imposee.has(lieu):
+		return pyramide_imposee[lieu]
+	var out := []
+	for i in 10:
+		out.append({"h": 0, "f": 0})
+	if population == null:
+		return out
+	var vid := -1 if lieu == PAYS else int(lieu)
+	var bv: Dictionary = communes.bat_village if communes != null else {}
+	# Même décompte que Communes (habitants logés, par foyer).
+	for hid in population.households:
+		var h: Dictionary = population.households[hid]
+		var b := int(h.b)
+		if Fondateurs.est_campement(b) or (vid >= 0 and int(bv.get(b, -1)) != vid):
+			continue
+		for pid in h.m:
+			var p: Dictionary = population.persons.get(pid, {})
+			if p.is_empty():
+				continue
+			var t := clampi(population.age_years(p) / 10, 0, 9)
+			out[t]["f" if String(p.get("s", "H")) == "F" else "h"] += 1
+	return out
+
+
+## Pyramides inventées par lieu (vitrine des captures seulement).
+var pyramide_imposee := {}
+
+## Cumul des secours au relevé précédent (pour les appels et délais du jour).
+var _urg_prev := {}
+
+
 ## Réseaux, trafic et déchets : un seul chiffre pour tout le pays.
 func _nationaux(c: Dictionary) -> void:
+	var sp := _systeme("sante") as SantePublique
+	if sp != null and population != null and not population.households.is_empty():
+		var b := sp.bilan()
+		if int(b.get("hab", 0)) > 0:
+			c.eau_potable = 100.0 * float(b.eau_potable)
+			c.egouts = 100.0 * float(b.egouts)
+			c.malades = int(b.malades)
+			c.hospitalises = int(b.hospitalises)
+	var ur := _systeme("urgences") as Urgences
+	if ur != null and not ur.stats.is_empty():
+		var n := 0
+		var tot := 0.0
+		for s in Urgences.SERVICES:
+			n += int(ur.stats[s].n)
+			tot += float(ur.stats[s].total)
+		var cur := {"appels": int(ur.stats.appels), "n": n, "tot": tot}
+		if not _urg_prev.is_empty() and cur.appels >= int(_urg_prev.appels):
+			c.appels = cur.appels - int(_urg_prev.appels)
+			if n > int(_urg_prev.n):
+				c.intervention = (tot - float(_urg_prev.tot)) / (n - int(_urg_prev.n)) / 60.0
+		_urg_prev = cur
 	if reseaux != null:
 		var coupes := 0
 		for res in ["elec", "eau"]:

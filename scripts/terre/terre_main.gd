@@ -152,6 +152,7 @@ var pilote: PiloteAuto
 var objectifs: Objectifs
 var kit: KitInstallation
 var rue_fondation: RueFondation
+var services_fondation: ServicesFondation
 var objectifs_panel: ObjectifsPanel
 var statistiques: Statistiques
 var stats_panel: StatsPanel
@@ -193,6 +194,10 @@ func _ready() -> void:
 		ReglagesPartie.actuel = r.duplicate_settings()
 		ReglagesPartie.actuel.createur = SaveGame.player_id()
 		ReglagesPartie.prochaine = null
+		# Partie historique : le 1er janvier de l'année de départ, et l'histoire part de là.
+		if Epoques.actif():
+			ambiance.demarrer_au_nouvel_an()
+			ReglagesPartie.actuel.histoire_debut = ambiance.unix_time
 	_setup_plans()
 	# Région jouable : REGION_SIZE de côté autour du point de départ.
 	var half := GameStart.REGION_SIZE * 0.5
@@ -459,6 +464,7 @@ func save_sections() -> Dictionary:
 	sec["objectifs"] = objectifs.to_dict()
 	sec["kit"] = kit.to_dict()
 	sec["rue_fondation"] = rue_fondation.to_dict()
+	sec["services_fondation"] = services_fondation.to_dict()
 	sec["niveaux_vie"] = niveaux_vie.to_dict()
 	sec["immobilier"] = immobilier.to_dict()
 	sec["statistiques"] = statistiques.to_dict()
@@ -656,6 +662,7 @@ func load_game(slot := "") -> bool:
 	objectifs.from_dict(sec.get("objectifs", {}))
 	kit.from_dict(sec.get("kit", {}))
 	rue_fondation.from_dict(sec.get("rue_fondation", {}))
+	services_fondation.from_dict(sec.get("services_fondation", {}))
 	# Après les villages, le pays et les élections (quartiers d'une mairie perdue).
 	quartiers.from_dict(sec.get("quartiers", {}))
 	nuisances.from_dict(sec.get("nuisances", {}))
@@ -834,6 +841,8 @@ func _setup_population() -> void:
 	habitants_panel.name = "PanneauHabitants"
 	add_child(habitants_panel)
 	habitants_panel.setup(population)
+	# En construction bloc par bloc, F renverse la forme : la caméra de l'habitant suivi garde son bouton.
+	habitants_panel.f_key_taken = func() -> bool: return blocks != null and blocks.tool == BlockEditor.Tool.BLOCK
 	habitants_panel.focus_requested.connect(func(pos: Vector3) -> void:
 		rig.position.x = pos.x
 		rig.position.z = pos.z)
@@ -1109,6 +1118,13 @@ func _setup_pays() -> void:
 	rue_fondation.setup(transport, buildings, communes)
 	rue_fondation.message.connect(func(t: String) -> void: hud.show_message(t))
 	rue_fondation.changed.connect(func() -> void: _unsaved = true)
+	# Services de base prêts au premier village de la carte (réglage Admin).
+	services_fondation = ServicesFondation.new()
+	services_fondation.name = "ServicesFondation"
+	add_child(services_fondation)
+	services_fondation.setup(buildings, transport, communes, fondateurs)
+	services_fondation.message.connect(func(t: String) -> void: hud.show_message(t))
+	services_fondation.changed.connect(func() -> void: _unsaved = true)
 	objectifs = Objectifs.new()
 	objectifs.name = "Objectifs"
 	add_child(objectifs)
@@ -1323,7 +1339,8 @@ func ouvrir_panneau(id: String) -> void:
 	var panels := {"budget": budget_panel, "avis": avis_panel, "construire": build_panel, "trafic": trafic_panel,
 		"dechets": dechets_panel, "reseaux": reseaux_panel, "services": services_panel, "education": education_panel, "cartes": cartes_panel,
 		"lignes": transit_panel, "pays": pays_panel, "production": production_panel, "objectifs": objectifs_panel,
-		"saisons": saisons_panel, "sante": sante_panel, "climat": climat_panel, "arbre": arbre_panel}
+		"saisons": saisons_panel, "sante": sante_panel, "climat": climat_panel, "arbre": arbre_panel,
+		"immobilier": immobilier_panel, "urgences": urgences_panel}
 	var p = panels.get(id)
 	if p != null:
 		p.set_open(true)
@@ -1358,6 +1375,7 @@ func _setup_tutoriel() -> void:
 	guide_panel.setup(guide)
 	hud.guide_requested.connect(func() -> void: guide_panel.toggle())
 	tutoriel.etape_commencee.connect(montrer_bulles_etape)
+	tutoriel.manif_a_expliquer.connect(expliquer_manif)
 	tuto_carte.bulles_requested.connect(func() -> void: montrer_bulles_etape(tutoriel.id_courant(), true))
 	bulles_aide.action.connect(func(a: String) -> void:
 		if a == "tuto_agir":
@@ -1396,6 +1414,26 @@ var _demo_demandee := false
 func demarre_en_pause() -> bool:
 	return GameStart.load_slot == "" and GameStart.chosen and not GameStart.atelier and not _demo_demandee and not Demo.demandee \
 		and Multijoueur.role == Multijoueur.Role.SOLO and not VisiteVille.active()
+
+
+## Première manifestation pendant le tutoriel ou la démo : le panneau des
+## manifestations s'ouvre et une bulle montre « Négocier » (une fois par partie).
+## Sans réponse, une manifestation compte comme ignorée : le thème baisse et la
+## colère monte, ce qu'un nouveau joueur ne peut pas deviner.
+func expliquer_manif() -> void:
+	# Elle passe devant les bulles d'une étape (la manifestation n'attend pas) ;
+	# celles d'un chapitre du guide ou d'une autre suite finissent d'abord.
+	if bulles_aide == null or avis_panel == null or (bulles_aide.actif and not bulles_aide.id.begins_with("tuto:")):
+		return
+	tutoriel.manif_expliquee = true
+	avis_panel.set_open(true)
+	avis_panel.show_view("manifs")
+	var nom := "Démo guidée" if tutoriel.est_demo() else "Tutoriel"
+	bulles_aide.lancer("tuto:manif", nom, [
+		{"titre": "Une manifestation !", "panneau": "avis_panel", "cible": ["Négocier"],
+			"texte": "Des habitants mécontents vont défiler devant la mairie. Négocier coûte un peu, mais le sujet remonte pendant un mois. Ignorer (ou ne rien faire) : la colère monte, et la deuxième fois, grève des agents de la ville.",
+			"touches": "Y : avis des habitants → Manifs"},
+	], "Compris")
 
 
 ## Bulles d'explication d'une étape du tutoriel, au centre de l'écran. Si
@@ -1448,6 +1486,8 @@ func _on_tuto_action(id: String) -> void:
 			evenements_panel.set_open(true)
 			evenements_panel.show_view("organiser")
 		"ligne":
+			transit_panel.set_open(true)
+		"marchandises":
 			transit_panel.set_open(true)
 
 
@@ -3430,6 +3470,8 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 		kit.clear()
 	if rue_fondation != null:
 		rue_fondation.clear()
+	if services_fondation != null:
+		services_fondation.clear()
 	if niveaux_vie != null:
 		niveaux_vie.clear()
 	if immobilier != null:

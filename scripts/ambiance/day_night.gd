@@ -240,6 +240,19 @@ func _start_today() -> void:
 	unix_time = local_midnight + START_HOUR * 3600.0 - off
 
 
+## Partie historique : elle commence le 1er janvier (1800, 1900 ou 2000), à 10 h,
+## heure du lieu. Le calendrier réel sert aux jours de la semaine et au soleil ;
+## l'année affichée est celle de l'époque (local_datetime).
+func demarrer_au_nouvel_an() -> void:
+	var y := int(Time.get_date_dict_from_system().year)
+	var jan := float(Time.get_unix_time_from_datetime_dict({"year": y, "month": 1, "day": 1, "hour": 0, "minute": 0, "second": 0}))
+	var off := Fuseaux.utc_offset(lat, lon, jan) * 3600.0
+	unix_time = jan + START_HOUR * 3600.0 - off
+	_rise_set_day = -1
+	_jp_day = -2147483648
+	_snap = true
+
+
 func set_place(a: float, o: float) -> void:
 	lat = a
 	lon = o

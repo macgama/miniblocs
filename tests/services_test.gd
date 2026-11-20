@@ -97,6 +97,11 @@ func _run() -> void:
 	for i in 96:
 		pop.advance(300.0)
 	_check(pop.persons.size() > 50, "%d habitants" % pop.persons.size())
+	# La population est tirée au hasard : 6 maisons peuvent n'avoir aucun enfant
+	# en âge de scolarité obligatoire (test instable avant). On en installe un.
+	var hid0: int = pop.by_home[hameau[0]][0]
+	pop._add_person(hid0, "F", 9.0, "enfant", String(pop.persons[pop.households[hid0].m[0]].n))
+	pop._match_all()
 	sp.rebuild()
 
 	var a_c := sp.minutes(centre[0], school, "ecole")

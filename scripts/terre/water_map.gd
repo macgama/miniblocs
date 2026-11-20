@@ -462,9 +462,20 @@ func _try_start_hydro() -> void:
 	var gen := _generation
 	var cancel := [false]
 	_hydro_cancel = cancel
+	# Référence faible : la carte peut être libérée (changement de scène) entre
+	# la fin du calcul et l'appel différé (SCRIPT ERROR « objet libéré », stabilite_test).
+	var wr: WeakRef = weakref(self)
 	_hydro_task = WorkerThreadPool.add_task(func() -> void:
 		var res := compute_streams(elev, w, h, px_m, cancel)
-		_finish_hydro.call_deferred(res, x0, y0, gen, k))
+		WaterMap._rappel_hydro.call_deferred(wr, res, x0, y0, gen, k))
+
+
+## Fin du calcul des rivières (appel différé, fonction statique : rien n'est
+## appelé sur une carte déjà libérée).
+static func _rappel_hydro(wr: WeakRef, res: Dictionary, x0: int, y0: int, gen: int, k: Vector2i) -> void:
+	var o := wr.get_ref() as WaterMap
+	if o != null and is_instance_valid(o):
+		o._finish_hydro(res, x0, y0, gen, k)
 
 
 func _finish_hydro(res: Dictionary, x0: int, y0: int, gen: int, k := Vector2i.ZERO) -> void:

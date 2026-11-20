@@ -51,6 +51,8 @@ var transport: TransportSystem
 var population: Population
 var communes: Communes
 var dechets: Node
+## Régisseurs de quartier (piste CityRT 9), sauvegardés avec les quartiers.
+var regisseurs: Regisseurs
 var camera: Camera3D
 
 ## qid -> {id, nom, couleur, vid, arretes: {aid: jour de l'arrêté}}
@@ -138,6 +140,8 @@ func clear() -> void:
 	quartiers.clear()
 	cases.clear()
 	journal.clear()
+	if regisseurs != null:
+		regisseurs.clear()
 	stats.clear()
 	_actifs.clear()
 	next_id = 1
@@ -1074,7 +1078,8 @@ func to_dict() -> Dictionary:
 			cs.append([k.x, k.y])
 		qs.append({"id": qid, "nom": q.nom, "couleur": q.couleur, "vid": q.vid, "cree": q.get("cree", 0),
 			"arretes": (q.arretes as Dictionary).duplicate(), "cases": cs})
-	return {"version": 1, "next_id": next_id, "quartiers": qs, "journal": journal.duplicate(true)}
+	return {"version": 1, "next_id": next_id, "quartiers": qs, "journal": journal.duplicate(true),
+		"regisseurs": regisseurs.to_list() if regisseurs != null else []}
 
 
 func from_dict(d: Dictionary) -> void:
@@ -1095,5 +1100,7 @@ func from_dict(d: Dictionary) -> void:
 	for j in d.get("journal", []):
 		if j is Dictionary:
 			journal.append({"jour": int(j.get("jour", 0)), "vid": int(j.get("vid", 0)), "texte": String(j.get("texte", ""))})
+	if regisseurs != null:
+		regisseurs.from_list(d.get("regisseurs", []))
 	_maj_villes()
 	_apres_changement()

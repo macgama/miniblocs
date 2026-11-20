@@ -1377,6 +1377,7 @@ func _setup_tutoriel() -> void:
 	tutoriel.etape_commencee.connect(montrer_bulles_etape)
 	tutoriel.manif_a_expliquer.connect(expliquer_manif)
 	tuto_carte.bulles_requested.connect(func() -> void: montrer_bulles_etape(tutoriel.id_courant(), true))
+	tuto_carte.afficher_requested.connect(afficher_etape)
 	bulles_aide.action.connect(func(a: String) -> void:
 		if a == "tuto_agir":
 			bulles_aide.fermer()
@@ -1451,6 +1452,22 @@ func montrer_bulles_etape(id: String, tout_de_suite := false) -> void:
 	var fin := "Terminer" if id == "fin" else ("Voir mon bilan" if id == "fin_demo" else "Compris")
 	_bulles_attente = ""
 	bulles_aide.lancer(suite, nom, Tutoriel.bulles_de(e), fin)
+
+
+## Bouton « Afficher » de la carte du tutoriel : ouvre le bon menu et encadre le
+## bouton à utiliser (bulles avec cible seulement) ; sans cible, fait l'action
+## de l'étape (prendre l'outil, ouvrir le panneau).
+func afficher_etape() -> void:
+	if not tutoriel.actif:
+		return
+	var e := tutoriel.etape_courante()
+	var liste := Tutoriel.bulles_afficher(e)
+	if liste.is_empty():
+		tutoriel.agir()
+		return
+	_bulles_attente = ""
+	bulles_aide.lancer("tuto:%s:afficher" % tutoriel.id_courant(),
+		"Où cliquer · étape %d / %d" % [tutoriel.numero(), tutoriel.total()], liste, "Compris")
 
 
 ## Bouton d'action de l'étape du tutoriel.
@@ -1844,6 +1861,10 @@ func _setup_quartiers() -> void:
 	add_child(quartiers)
 	quartiers.setup(world, buildings, transport, population, communes)
 	quartiers.dechets = dechets
+	quartiers.regisseurs = Regisseurs.new()
+	quartiers.regisseurs.name = "Regisseurs"
+	quartiers.add_child(quartiers.regisseurs)
+	quartiers.regisseurs.setup(quartiers, population, decors)
 	quartiers.message.connect(func(t: String) -> void: hud.show_message(t))
 	quartiers.changed.connect(func() -> void: _unsaved = true)
 	Calques.ajouter("quartiers", "Quartiers et arrêtés", "Villages", func(on: bool) -> void: quartiers.calque = on,
@@ -2906,6 +2927,8 @@ func _setup_mairie() -> void:
 	fil_alertes.set_shown(not GameStart.atelier)
 	if reseaux != null and reseaux.raccordements != null:
 		reseaux.raccordements.nombre_change.connect(func(_n: int) -> void: fil_alertes.refresh())
+	_setup_fil_habitants()
+	_setup_jauges()
 	_setup_pile_gauche()
 	recherche = RechercheUniverselle.new()
 	recherche.name = "RechercheUniverselle"
@@ -2950,13 +2973,52 @@ func aller_au_panneau(id: String) -> void:
 var pile_gauche: PileGauche
 
 
+## Fil des habitants (piste CityRT 8) : carte en haut à gauche, sous le tutoriel
+## et l'habitant suivi. Clic : fiche de l'habitant.
+var fil_habitants: FilHabitants
+
+
+func _setup_fil_habitants() -> void:
+	fil_habitants = FilHabitants.new()
+	hud.add_child(fil_habitants)
+	fil_habitants.setup(population, avis)
+	fil_habitants.visible = fil_habitants.visible and not GameStart.atelier
+	if GameStart.atelier:
+		fil_habitants.set_process(false)
+	if quartiers != null and quartiers.regisseurs != null:
+		quartiers.regisseurs.action.connect(func(_qid: int, pid: int, t: String) -> void:
+			if population.persons.has(pid):
+				fil_habitants.ajouter(fil_habitants._post(population.persons[pid], "regisseur", t, "pancarte", false)))
+	fil_habitants.person_requested.connect(func(pid: int) -> void:
+		if population.persons.has(pid):
+			habitants_panel.set_open(true)
+			habitants_panel.show_view("profil", pid))
+
+
+## Jauges toujours visibles sous la barre du haut (piste CityRT 10) : demande
+## L/C/I/B et électricité, eau, égouts, déchets ; clic = fiche courte.
+var jauges: JaugesVille
+
+
+func _setup_jauges() -> void:
+	jauges = JaugesVille.new()
+	hud.add_child(jauges)
+	jauges.setup(zones, reseaux, dechets)
+	hud._gerer_only.append(jauges)
+	jauges.visible = not GameStart.atelier and not hud.create_mode
+	if GameStart.atelier:
+		jauges.set_process(false)
+	jauges.panneau_requested.connect(aller_au_panneau)
+
+
 func _setup_pile_gauche() -> void:
 	pile_gauche = PileGauche.new()
 	pile_gauche.name = "PileGauche"
 	add_child(pile_gauche)
 	pile_gauche.haut = [
 		func() -> Control: return tuto_carte.find_child("CarteTutoriel", true, false) as Control if is_instance_valid(tuto_carte) else null,
-		func() -> Control: return habitants_panel._card if is_instance_valid(habitants_panel) else null]
+		func() -> Control: return habitants_panel._card if is_instance_valid(habitants_panel) else null,
+		func() -> Control: return fil_habitants if is_instance_valid(fil_habitants) else null]
 	pile_gauche.bas = [
 		func() -> Control: return hud._cell_card,
 		func() -> Control: return fil_alertes._panel if is_instance_valid(fil_alertes) else null]
@@ -3478,6 +3540,8 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 		immobilier.clear()
 	if journal != null:
 		journal.clear()
+	if fil_habitants != null:
+		fil_habitants.clear()
 	if communes != null:
 		communes.clear()
 	if fondateurs != null:

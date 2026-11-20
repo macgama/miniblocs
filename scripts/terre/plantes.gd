@@ -404,6 +404,12 @@ static func materiau() -> ShaderMaterial:
 		return _materiaux["plantes"]
 	var m := ShaderMaterial.new()
 	m.shader = preload("res://scripts/terre/plante.gdshader")
+	if OS.has_feature("web"):
+		# Navigateur (WebGL) : trop peu de places pour un « instance uniform » par
+		# bouquet de plantes ; les champs y gardent la teinte commune.
+		var sh := Shader.new()
+		sh.code = m.shader.code.replace("instance uniform int culture", "uniform int culture")
+		m.shader = sh
 	if ResourceLoader.exists(PALETTE):
 		m.set_shader_parameter("palette", load(PALETTE))
 	if ResourceLoader.exists(PALETTE_ROLES):

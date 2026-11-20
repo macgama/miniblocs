@@ -22,7 +22,23 @@ signal message(text: String)
 signal info_changed(text: String)
 signal changed
 
-enum Outil { AUCUN, POSER, PINCEAU, GOMME }
+enum Outil { AUCUN, POSER, PINCEAU, GOMME, DEPLACER }
+
+## Outil « Déplacer à la main » (piste CityRT 4) : cadre de sélection, glisser
+## pour déplacer, Ctrl + glisser pour copier, R / Maj+R pour tourner le groupe,
+## Suppr pour retirer (la moitié du prix est rendue). Seuls les décors posés par
+## le joueur se déplacent (les automatiques se gomment).
+## Décors sélectionnés : les entrées de `poses` elles-mêmes ([id, x, y, z, angle, échelle]).
+var selection: Array = []
+## Décors posés à la main payés par la caisse (les tests et la sauvegarde posent sans payer).
+var payant := true
+var _cadre: MeshInstance3D
+var _marques: MultiMeshInstance3D
+var _geste := ""  # "", "cadre", "deplace"
+var _geste_depart := Vector3.ZERO
+var _geste_dernier := Vector3.ZERO
+var _geste_ajout := false
+var _geste_copie := 0
 
 ## Côté d'une tuile de calcul (m).
 const TUILE := 64
@@ -104,6 +120,38 @@ func _ready() -> void:
 	_cercle.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_cercle.visible = false
 	add_child(_cercle)
+	_cadre = MeshInstance3D.new()
+	_cadre.name = "CadreSelection"
+	var bx := BoxMesh.new()
+	bx.size = Vector3(1, 0.2, 1)
+	_cadre.mesh = bx
+	var mk := StandardMaterial3D.new()
+	mk.albedo_color = Color(0.45, 0.8, 1.0, 0.25)
+	mk.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mk.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	_cadre.material_override = mk
+	_cadre.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_cadre.visible = false
+	add_child(_cadre)
+	_marques = MultiMeshInstance3D.new()
+	_marques.name = "MarquesSelection"
+	var mm := MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+	var anneau := TorusMesh.new()
+	anneau.inner_radius = 0.82
+	anneau.outer_radius = 1.0
+	anneau.rings = 24
+	anneau.ring_segments = 4
+	mm.mesh = anneau
+	_marques.multimesh = mm
+	var ma := StandardMaterial3D.new()
+	ma.albedo_color = Color(1.0, 0.82, 0.3, 0.9)
+	ma.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	ma.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	ma.no_depth_test = true
+	_marques.material_override = ma
+	_marques.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(_marques)
 
 
 ## Relie le système au terrain, aux voies et aux bâtiments.
@@ -780,7 +828,7 @@ func pose(id: String, x: float, z: float, ang := 0.0, sc := 1.0, force := false)
 
 
 ## Pose une clôture (ou tout décor) en ligne de a à b. Renvoie le nombre posé.
-func pose_ligne(id: String, a: Vector3, b: Vector3) -> int:
+func pose_ligne(id: String, a: Vector3, b: Vector3, payer := false) -> int:
 	var L := Decors.ligne(id)
 	var pas := L if L > 0.0 else maxf(Decors.emprise(id) * 1.2, 1.0)
 	var d := Vector2(b.x - a.x, b.z - a.z)
@@ -794,8 +842,12 @@ func pose_ligne(id: String, a: Vector3, b: Vector3) -> int:
 	for i in n:
 		var t := (i + 0.5) * pas
 		var p := Vector2(a.x, a.z) + dir * t
+		if payer and not _peut_payer(Decors.prix(id)):
+			break
 		if pose(id, p.x, p.y, ang):
 			posees += 1
+			if payer:
+				_payer(Decors.prix(id))
 	return posees
 
 
@@ -854,6 +906,9 @@ func nombre_poses() -> int:
 func set_outil(o: Outil) -> void:
 	outil = o
 	_glisse = false
+	_geste = ""
+	if o != Outil.DEPLACER:
+		vider_selection()
 	_maj_fantome()
 	_aide()
 
@@ -869,6 +924,10 @@ func set_choix(id: String) -> void:
 func set_inactive() -> void:
 	outil = Outil.AUCUN
 	_glisse = false
+	_geste = ""
+	vider_selection()
+	if _cadre != null:
+		_cadre.visible = false
 	_fantome.visible = false
 	_cercle.visible = false
 
@@ -890,6 +949,12 @@ func _aide() -> void:
 			info_changed.emit("Pinceau (%s) : glisser pour semer des décors au hasard." % Decors.nom(choix))
 		Outil.GOMME:
 			info_changed.emit("Gomme : glisser pour effacer les décors, posés ou automatiques.")
+		Outil.DEPLACER:
+			if selection.is_empty():
+				info_changed.emit("Déplacer à la main : clic sur un décor ou cadre glissé pour en choisir plusieurs (Maj : ajouter).")
+			else:
+				info_changed.emit("%d décor%s choisi%s : glisser pour déplacer · Ctrl + glisser : copier · R / Maj+R : tourner · Suppr : retirer · Échap : lâcher" % [
+					selection.size(), "s" if selection.size() > 1 else "", "s" if selection.size() > 1 else ""])
 		_:
 			info_changed.emit("")
 
@@ -903,6 +968,9 @@ func _pick(pos: Vector2) -> Variant:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if outil == Outil.AUCUN or world == null:
+		return
+	if outil == Outil.DEPLACER:
+		_entree_deplacer(event)
 		return
 	if event is InputEventMouseMotion:
 		var p: Variant = _pick((event as InputEventMouseMotion).position)
@@ -938,17 +1006,26 @@ func _unhandled_input(event: InputEvent) -> void:
 				var a: Vector3 = _debut_ligne
 				var b: Vector3 = p
 				var n := 0
-				if Vector2(b.x - a.x, b.z - a.z).length() > 1.5:
-					n = pose_ligne(choix, a, b)
+				var prix := Decors.prix(choix)
+				if not _peut_payer(prix):
+					message.emit(_texte_sans_argent(prix))
+				elif Vector2(b.x - a.x, b.z - a.z).length() > 1.5:
+					n = pose_ligne(choix, a, b, true)
 				elif pose(choix, a.x, a.z, angle, 1.0):
 					n = 1
-				message.emit("%d × %s posé%s." % [n, Decors.nom(choix), "s" if n > 1 else ""] if n > 0 else "Impossible de poser ici.")
+					_payer(prix)
+				if n > 0:
+					message.emit("%d × %s posé%s · %s." % [n, Decors.nom(choix), "s" if n > 1 else "", BuildingSystem.format_money(prix * n)])
+				elif _peut_payer(prix):
+					message.emit("Impossible de poser ici.")
 			get_viewport().set_input_as_handled()
 
 
 func _maj_outil(delta: float) -> void:
 	if outil == Outil.AUCUN:
 		return
+	if outil == Outil.DEPLACER:
+		_maj_marques()
 	if _fantome.visible:
 		var y := _survol.y
 		if Decors.sur_eau(choix):
@@ -986,7 +1063,272 @@ func _seme(centre: Vector3) -> void:
 					break
 		var c := Vector2i(floori(x), floori(z))
 		if libre and not _bloque(c):
-			pose(choix, x, z, randf() * TAU, randf_range(0.9, 1.1))
+			if not _peut_payer(Decors.prix(choix)):
+				return
+			if pose(choix, x, z, randf() * TAU, randf_range(0.9, 1.1)):
+				_payer(Decors.prix(choix))
+
+
+# --- Argent ------------------------------------------------------------------------------
+
+func _peut_payer(prix: int) -> bool:
+	if not payant or buildings == null or buildings.unlimited_money or prix <= 0:
+		return true
+	return buildings.money >= prix
+
+
+func _payer(prix: int) -> void:
+	if payant and buildings != null and not buildings.unlimited_money and prix > 0:
+		buildings.money -= prix
+
+
+static func _texte_sans_argent(prix: int) -> String:
+	return "Pas assez d'argent dans la caisse (%s)." % BuildingSystem.format_money(prix)
+
+
+# --- Déplacer à la main (piste CityRT 4) -----------------------------------------------
+
+func vider_selection() -> void:
+	selection.clear()
+	if _marques != null:
+		_marques.multimesh.instance_count = 0
+	if outil == Outil.DEPLACER:
+		_aide()
+
+
+## Décor posé le plus proche de p (rayon : la moitié de son emprise, au moins 1 m), ou [].
+func decor_a(p: Vector3, marge := 1.0) -> Array:
+	var best: Array = []
+	var best_d := INF
+	var k0 := Vector2i(floori((p.x - 8.0) / TUILE), floori((p.z - 8.0) / TUILE))
+	var k1 := Vector2i(floori((p.x + 8.0) / TUILE), floori((p.z + 8.0) / TUILE))
+	for kx in range(k0.x, k1.x + 1):
+		for kz in range(k0.y, k1.y + 1):
+			for rr: Array in poses.get(Vector2i(kx, kz), []):
+				var d := Vector2(float(rr[1]) - p.x, float(rr[3]) - p.z).length()
+				var r := maxf(Decors.emprise(String(rr[0])) * 0.5 * float(rr[5]), marge)
+				if d <= r and d < best_d:
+					best = rr
+					best_d = d
+	return best
+
+
+## Décors posés dont le pied est dans le rectangle (a, b) au sol.
+func decors_dans(a: Vector3, b: Vector3) -> Array:
+	var out := []
+	var x0 := minf(a.x, b.x)
+	var x1 := maxf(a.x, b.x)
+	var z0 := minf(a.z, b.z)
+	var z1 := maxf(a.z, b.z)
+	for kx in range(floori(x0 / TUILE), floori(x1 / TUILE) + 1):
+		for kz in range(floori(z0 / TUILE), floori(z1 / TUILE) + 1):
+			for rr: Array in poses.get(Vector2i(kx, kz), []):
+				if float(rr[1]) >= x0 and float(rr[1]) <= x1 and float(rr[3]) >= z0 and float(rr[3]) <= z1:
+					out.append(rr)
+	return out
+
+
+func est_choisi(rr: Array) -> bool:
+	for e in selection:
+		if is_same(e, rr):
+			return true
+	return false
+
+
+func choisir(liste: Array, ajouter := false) -> void:
+	if not ajouter:
+		selection.clear()
+	for rr in liste:
+		if not est_choisi(rr):
+			selection.append(rr)
+	_aide()
+
+
+func _retire(rr: Array) -> void:
+	var k := Vector2i(floori(float(rr[1]) / TUILE), floori(float(rr[3]) / TUILE))
+	var l: Array = poses.get(k, [])
+	for i in l.size():
+		if is_same(l[i], rr):
+			l.remove_at(i)
+			return
+
+
+func _insere(rr: Array) -> void:
+	var k := Vector2i(floori(float(rr[1]) / TUILE), floori(float(rr[3]) / TUILE))
+	if not poses.has(k):
+		poses[k] = []
+	(poses[k] as Array).append(rr)
+
+
+## Déplace la sélection de (dx, dz) au sol ; les décors suivent le relief.
+func deplacer_selection(dx: float, dz: float) -> void:
+	for rr: Array in selection:
+		_retire(rr)
+		rr[1] = snappedf(float(rr[1]) + dx, 0.01)
+		rr[3] = snappedf(float(rr[3]) + dz, 0.01)
+		var y := _hauteur(String(rr[0]), float(rr[1]), float(rr[3]))
+		if not is_nan(y):
+			rr[2] = y
+		_insere(rr)
+	_sale = true
+
+
+## Tourne la sélection autour de son centre (rad).
+func tourner_selection(da: float) -> void:
+	if selection.is_empty():
+		return
+	var c := Vector2.ZERO
+	for rr: Array in selection:
+		c += Vector2(float(rr[1]), float(rr[3]))
+	c /= float(selection.size())
+	for rr: Array in selection:
+		_retire(rr)
+		# Basis(UP, a) tourne +X vers −Z : même sens pour les positions.
+		var v := Vector2(float(rr[1]) - c.x, float(rr[3]) - c.y).rotated(-da)
+		rr[1] = snappedf(c.x + v.x, 0.01)
+		rr[3] = snappedf(c.y + v.y, 0.01)
+		rr[4] = snappedf(fposmod(float(rr[4]) + da, TAU), 0.001)
+		var y := _hauteur(String(rr[0]), float(rr[1]), float(rr[3]))
+		if not is_nan(y):
+			rr[2] = y
+		_insere(rr)
+	_sale = true
+	changed.emit()
+
+
+## Copie la sélection sur place (payée) : la copie devient la sélection.
+## Renvoie le nombre de décors copiés (0 si la caisse ne suffit pas).
+func copier_selection() -> int:
+	var total := 0
+	for rr: Array in selection:
+		total += Decors.prix(String(rr[0]))
+	if not _peut_payer(total):
+		message.emit(_texte_sans_argent(total))
+		return 0
+	var copies := []
+	for rr: Array in selection:
+		var c := (rr as Array).duplicate()
+		_insere(c)
+		copies.append(c)
+	_payer(total)
+	selection = copies
+	_sale = true
+	changed.emit()
+	return copies.size()
+
+
+## Retire la sélection ; la moitié du prix est rendue. Renvoie le nombre retiré.
+func retirer_selection() -> int:
+	var n := selection.size()
+	var rendu := 0
+	for rr: Array in selection:
+		_retire(rr)
+		rendu += Decors.prix(String(rr[0])) / 2
+	if payant and buildings != null and not buildings.unlimited_money:
+		buildings.money += rendu
+	selection.clear()
+	_sale = true
+	changed.emit()
+	_aide()
+	return n
+
+
+func _entree_deplacer(event: InputEvent) -> void:
+	if event is InputEventMouseMotion:
+		var p: Variant = _pick((event as InputEventMouseMotion).position)
+		_survol_ok = p != null
+		if p == null:
+			return
+		_survol = p
+		if _geste == "deplace":
+			var d: Vector3 = (p as Vector3) - _geste_dernier
+			_geste_dernier = p
+			deplacer_selection(d.x, d.z)
+		elif _geste == "cadre":
+			_geste_dernier = p
+			_maj_cadre()
+	elif event is InputEventKey and event.pressed and not event.echo:
+		var k := event as InputEventKey
+		if k.physical_keycode == KEY_R and not k.ctrl_pressed and not selection.is_empty():
+			tourner_selection(deg_to_rad(-15.0 if k.shift_pressed else 45.0))
+			get_viewport().set_input_as_handled()
+		elif (k.physical_keycode == KEY_DELETE or k.physical_keycode == KEY_BACKSPACE) and not selection.is_empty():
+			var n := retirer_selection()
+			message.emit("%d décor%s retiré%s (la moitié du prix est rendue)." % [n, "s" if n > 1 else "", "s" if n > 1 else ""])
+			get_viewport().set_input_as_handled()
+		elif k.physical_keycode == KEY_ESCAPE:
+			if not selection.is_empty():
+				vider_selection()
+			else:
+				set_inactive()
+				_aide()
+			get_viewport().set_input_as_handled()
+	elif event is InputEventMouseButton and (event as InputEventMouseButton).button_index == MOUSE_BUTTON_LEFT:
+		var mb := event as InputEventMouseButton
+		var p: Variant = _pick(mb.position)
+		if mb.pressed and p != null:
+			commencer_geste(p, mb.shift_pressed, mb.ctrl_pressed)
+			get_viewport().set_input_as_handled()
+		elif not mb.pressed and _geste != "":
+			finir_geste(p if p != null else _geste_dernier)
+			get_viewport().set_input_as_handled()
+
+
+## Clic enfoncé en p : prend le décor visé (et le déplace en glissant), ou commence un cadre.
+func commencer_geste(p: Vector3, ajout := false, copie := false) -> void:
+	_geste_depart = p
+	_geste_dernier = p
+	_geste_ajout = ajout
+	_geste_copie = 0
+	var rr := decor_a(p)
+	if rr.is_empty():
+		_geste = "cadre"
+		_maj_cadre()
+		return
+	if not est_choisi(rr):
+		choisir([rr], ajout)
+	_geste = "deplace"
+	if copie:
+		_geste_copie = copier_selection()
+
+
+## Clic relâché : fin du déplacement (ou de la copie), ou sélection du cadre.
+func finir_geste(p: Vector3) -> void:
+	var g := _geste
+	_geste = ""
+	_cadre.visible = false
+	if g == "cadre":
+		var liste := decors_dans(_geste_depart, p) if Vector2(p.x - _geste_depart.x, p.z - _geste_depart.z).length() > 0.8 else []
+		if liste.is_empty() and not _geste_ajout:
+			vider_selection()
+		else:
+			choisir(liste, _geste_ajout)
+	elif g == "deplace":
+		var d := Vector2(p.x - _geste_depart.x, p.z - _geste_depart.z).length()
+		if _geste_copie > 0:
+			message.emit("%d décor%s copié%s." % [_geste_copie, "s" if _geste_copie > 1 else "", "s" if _geste_copie > 1 else ""])
+		elif d > 0.2:
+			message.emit("%d décor%s déplacé%s." % [selection.size(), "s" if selection.size() > 1 else "", "s" if selection.size() > 1 else ""])
+		changed.emit()
+	_aide()
+
+
+func _maj_cadre() -> void:
+	var a := _geste_depart
+	var b := _geste_dernier
+	_cadre.visible = true
+	_cadre.transform = Transform3D(Basis().scaled(Vector3(maxf(absf(b.x - a.x), 0.1), 1.0, maxf(absf(b.z - a.z), 0.1))),
+		Vector3((a.x + b.x) * 0.5, maxf(a.y, b.y) + 0.1, (a.z + b.z) * 0.5))
+
+
+func _maj_marques() -> void:
+	var mm := _marques.multimesh
+	if mm.instance_count != selection.size():
+		mm.instance_count = selection.size()
+	for i in selection.size():
+		var rr: Array = selection[i]
+		var r := maxf(Decors.emprise(String(rr[0])) * 0.6 * float(rr[5]), 0.6)
+		mm.set_instance_transform(i, Transform3D(Basis().scaled(Vector3(r, 1.0, r)), Vector3(float(rr[1]), float(rr[2]) + 0.08, float(rr[3]))))
 
 
 # --- Sauvegarde -------------------------------------------------------------------------

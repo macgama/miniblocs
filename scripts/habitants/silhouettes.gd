@@ -247,6 +247,12 @@ static func materiau() -> ShaderMaterial:
 	if _materiau == null:
 		_materiau = ShaderMaterial.new()
 		_materiau.shader = preload("res://scripts/habitants/silhouette.gdshader")
+		if OS.has_feature("web"):
+			# Navigateur (WebGL) : 4096 places seulement pour les « instance
+			# uniform » ; chaque personnage y prend un matériau à lui (_applique).
+			var sh := Shader.new()
+			sh.code = _materiau.shader.code.replace("instance uniform", "uniform")
+			_materiau.shader = sh
 		var pal := DOSSIER + "palette_roles.png"
 		if ResourceLoader.exists(pal):
 			_materiau.set_shader_parameter("palette", load(pal))
@@ -330,11 +336,27 @@ static func colorer(n: Node3D, couleurs: Dictionary) -> void:
 
 
 static func _applique(n: Node, cur: Dictionary) -> void:
+	if OS.has_feature("web"):
+		var mat: ShaderMaterial = n.get_meta("mat_web") if n.has_meta("mat_web") else null
+		if mat == null:
+			mat = materiau().duplicate() as ShaderMaterial
+			n.set_meta("mat_web", mat)
+		for k in cur:
+			mat.set_shader_parameter(k, cur[k])
+		_override(n, mat)
+		return
 	if n is GeometryInstance3D:
 		for k in cur:
 			(n as GeometryInstance3D).set_instance_shader_parameter(k, cur[k])
 	for c in n.get_children():
 		_applique(c, cur)
+
+
+static func _override(n: Node, mat: ShaderMaterial) -> void:
+	if n is MeshInstance3D:
+		(n as MeshInstance3D).material_override = mat
+	for c in n.get_children():
+		_override(c, mat)
 
 
 ## Tenue de métier (haut, bas, chaussures, accessoire, manches, jambes).

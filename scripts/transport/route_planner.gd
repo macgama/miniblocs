@@ -431,6 +431,71 @@ static func _largeur_lacets(n: int, adv: float, total: float) -> float:
 	return (lo + hi) * 0.5
 
 
+## Route tracée au geste (piste CityRT 7) : la souris a dessiné `brut` (points au
+## sol, dans l'ordre). On garde l'allure du geste mais on la rend conforme : les
+## tremblements sont gommés (Ramer-Douglas-Peucker), puis chaque angle devient un
+## arc de cercle au rayon minimal de la classe de voie (un peu plus, par confort).
+## Si un virage n'a pas la place, on simplifie davantage ; au pire, une droite.
+static func trace_geste(brut: PackedVector2Array, type_id: String) -> PackedVector2Array:
+	if brut.size() < 2:
+		return brut
+	var ty := TransportTypes.get_type(type_id)
+	var r := float(ty.get("r_min", 15.0)) * 1.15
+	var long := polyline_length(brut)
+	if long < 1.0:
+		return PackedVector2Array([brut[0], brut[brut.size() - 1]])
+	var tol := maxf(1.5, TransportTypes.width_of(type_id, TransportTypes.default_spec(type_id)) * 0.4)
+	for essai in 8:
+		var coins := simplifier(brut, tol)
+		if coins.size() <= 2:
+			return PackedVector2Array([brut[0], brut[brut.size() - 1]])
+		var arc := _arrondir(coins, r)
+		if not arc.is_empty() and min_radius(resample(arc, TransportTypes.STEP)) >= float(ty.get("r_min", 15.0)) - 0.5:
+			return arc
+		tol *= 1.7
+	return PackedVector2Array([brut[0], brut[brut.size() - 1]])
+
+
+## Ramer-Douglas-Peucker : garde les points qui s'écartent de plus de `tol` mètres.
+static func simplifier(p: PackedVector2Array, tol: float) -> PackedVector2Array:
+	if p.size() <= 2:
+		return p
+	var garde := PackedByteArray()
+	garde.resize(p.size())
+	garde[0] = 1
+	garde[p.size() - 1] = 1
+	var pile := [[0, p.size() - 1]]
+	while not pile.is_empty():
+		var seg: Array = pile.pop_back()
+		var a: int = seg[0]
+		var b: int = seg[1]
+		var best := -1
+		var best_d := tol
+		for i in range(a + 1, b):
+			var d := _dist_segment(p[i], p[a], p[b])
+			if d > best_d:
+				best_d = d
+				best = i
+		if best >= 0:
+			garde[best] = 1
+			pile.append([a, best])
+			pile.append([best, b])
+	var out := PackedVector2Array()
+	for i in p.size():
+		if garde[i] == 1:
+			out.append(p[i])
+	return out
+
+
+static func _dist_segment(q: Vector2, a: Vector2, b: Vector2) -> float:
+	var ab := b - a
+	var l2 := ab.length_squared()
+	if l2 < 1e-9:
+		return q.distance_to(a)
+	var t := clampf((q - a).dot(ab) / l2, 0.0, 1.0)
+	return q.distance_to(a + ab * t)
+
+
 ## Arrondit chaque coin intérieur d'une ligne brisée par un arc de rayon r
 ## (épingles). Vide si un arc ne tient pas sur ses branches.
 static func _arrondir(c: PackedVector2Array, r: float) -> PackedVector2Array:

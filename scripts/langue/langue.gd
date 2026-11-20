@@ -6,7 +6,9 @@ extends RefCounted
 
 const DOSSIER := "res://assets/langues/"
 ## [code, nom affiché dans sa propre langue]
-const LANGUES := [["fr", "Français"], ["en", "English"], ["de", "Deutsch"], ["it", "Italiano"], ["es", "Español"]]
+## pt, pl et zh sont partielles (menus, tutoriel, démo) : le reste s'affiche en anglais.
+const LANGUES := [["fr", "Français"], ["en", "English"], ["de", "Deutsch"], ["it", "Italiano"], ["es", "Español"],
+	["pt", "Português"], ["pl", "Polski"], ["zh", "中文"]]
 
 static var _chargees := {}
 static var actuelle := "fr"
@@ -37,6 +39,7 @@ static func activer(code: String) -> void:
 			TranslationServer.add_translation(voulue)
 		_branchee = voulue
 	actuelle = code
+	Polices.installer()
 	if TranslationServer.get_locale() != code:
 		TranslationServer.set_locale(code)
 

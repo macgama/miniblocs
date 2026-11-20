@@ -51,6 +51,23 @@ static func details(type_id: String) -> String:
 	return " · ".join(parts)
 
 
+## Prix d'une classe de voie pour sa carte (piste CityRT 5). La pose est gratuite
+## (seul le terrassement de montagne se paie) ; l'entretien se paie chaque mois.
+static func prix(type_id: String) -> String:
+	var c := TransportTypes.get_type(type_id)
+	if c.is_empty():
+		return ""
+	var cle := ""
+	for k in BudgetCommunal.VOIES:
+		if int(BudgetCommunal.VOIES[k]) == int(c.mode):
+			cle = String(k)
+	if cle == "":
+		return ""
+	var w := TransportTypes.width_of(type_id, TransportTypes.default_spec(type_id))
+	var par_km := float(BudgetCommunal.COUT_KM[cle]) * w / float(BudgetCommunal.LARGEUR_REF[cle])
+	return "%s / km / mois" % BuildingSystem.format_short(ReglagesPartie.prix(roundi(par_km)))
+
+
 static func _m(v: float) -> String:
 	return ("%d" % roundi(v)) if absf(v - roundf(v)) < 0.05 else ("%.1f" % v).replace(".", ",")
 

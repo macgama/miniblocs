@@ -106,14 +106,17 @@ func _run() -> void:
 	rig.rotation_degrees.y = 0.0
 	var maison := bs.building_at(Vector2i(16, 70))
 	pop.select_building(maison)
+	res.flux.basculer_batiment(maison)
 	print("flux : ", res.flux.reseaux_montres, " ", res.flux.stats)
 	await _shot(dir.path_join("flux-maison-tous-reseaux.png"))
 	pop.select_building(poste)
+	res.flux.basculer_batiment(poste)
 	await _shot(dir.path_join("flux-centrale-champs.png"))
 	rig.position = Vector3(-40, y, 40)
 	rig._target_distance = 120.0
 	rig.set_pitch(40.0, true)
 	pop.select_building(maison)
+	res.flux.basculer_batiment(maison)
 	await _shot(dir.path_join("flux-zoom.png"))
 	# Vue O, onglet Électricité, clic sur une route ; le réseau est saturé.
 	pop.select_building(-1)

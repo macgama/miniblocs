@@ -9,6 +9,8 @@ extends SceneTree
 ##   --hab N[,M…]  tailles de ville (habitants) ; défaut 1000,5000
 ##   --images N    images mesurées par taille (défaut 600)
 ##   --detail      coût de chaque script : on coupe son _process un moment
+##   --vitesse I   indice de DayNight.SPEEDS mesuré (défaut 4 = 1 jour/min ;
+##                 6 = Turbo, 1 jour en 6 s)
 ##   --max-ms X    échoue (code 1) si l'image moyenne dépasse X ms (test chiffré)
 ## Imprime un tableau et « PERF VILLE OK ».
 
@@ -144,6 +146,8 @@ func _run() -> void:
 	var images := int(_arg("--images", "600"))
 	var detail := OS.get_cmdline_user_args().has("--detail")
 	var max_ms := float(_arg("--max-ms", "0"))
+	var vitesse := clampi(int(_arg("--vitesse", str(DayNight.DEFAULT_SPEED))), 1, DayNight.SPEEDS.size() - 1)
+	print("Vitesse du temps : %s" % DayNight.SPEED_NAMES[vitesse])
 	var echec := false
 	print("Banc d'essai ville habitée — Godot %s, %s, %d cœurs" % [Engine.get_version_info().string,
 		DisplayServer.get_name(), OS.get_processor_count()])
@@ -176,7 +180,7 @@ func _run() -> void:
 			pop.persons.size(), pop.households.size(), bs.buildings.size(), t_ville])
 		# Un mardi de mars à 7 h 30 : départs au travail.
 		amb.unix_time = Time.get_unix_time_from_datetime_string("2026-03-10T06:30:00")
-		amb.set_speed(DayNight.DEFAULT_SPEED)
+		amb.set_speed(vitesse)
 		rig.position = Vector3.ZERO
 		rig._distance = 350.0
 		rig._target_distance = 350.0

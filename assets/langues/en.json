@@ -15313,5 +15313,8 @@
 "Cette forme ne peut pas se renverser : choisis une pente, un arrondi ou une demi-dalle (R tourne toutes les formes).": "This shape cannot be flipped: choose a slope, a rounded piece or a half-slab (R rotates every shape).",
 "Cette forme ne peut pas se coucher : choisis une pente, un arrondi ou une demi-dalle (R tourne toutes les formes).": "This shape cannot be laid down: choose a slope, a rounded piece or a half-slab (R rotates every shape).",
 "Afficher : montre où cliquer (ouvre le bon menu et encadre le bouton à utiliser)": "Show me: shows where to click (opens the right menu and frames the button to use)"
-}
+},
+"Turbo (4 h/s)": "Turbo (4 h/s)",
+"Départ rapide (chantiers ×3 jusqu'à 200 habitants)": "Quick start (construction ×3 up to 200 residents)",
+"Les premières maisons, rues et services se construisent 3 fois plus vite tant que la ville est petite ; le coup de pouce s'efface entre 200 et 400 habitants": "The first houses, streets and services are built 3 times faster while the town is small; the boost fades out between 200 and 400 residents"
 }

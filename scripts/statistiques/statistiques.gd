@@ -116,6 +116,9 @@ func jour() -> int:
 	return int(population.now().day) if population != null else 0
 
 
+var _attente_avis := 0
+
+
 func _process(_delta: float) -> void:
 	if not auto or population == null:
 		return
@@ -126,6 +129,12 @@ func _process(_delta: float) -> void:
 			releve()
 		return
 	if d != _dernier_jour and Etalement.libre():
+		# On laisse d'abord Avis finir son sondage du jour (quelques images au plus),
+		# pour reprendre son résultat (Statistiques._chiffres_pays).
+		if avis != null and not avis.sondage_du_jour_fini(d) and _attente_avis < 120:
+			_attente_avis += 1
+			return
+		_attente_avis = 0
 		_dernier_jour = d
 		releve()
 
@@ -208,11 +217,16 @@ var _hab_cache := {}
 func _chiffres_pays() -> Dictionary:
 	_hab_cache = _par_habitant()
 	var c := {}
-	var s := population.stats() if population != null else {}
+	# Satisfaction : celle du sondage d'Avis quand il y en a un (ci-dessous).
+	var s := population.stats(avis == null) if population != null else {}
 	c.habitants = int(s.get("habitants", 0))
 	_communs(c, PAYS)
 	if avis != null and population != null and not population.persons.is_empty():
-		var sd := avis.sondage(true)
+		# Le sondage du jour d'Avis, s'il est déjà fait (même ville, même jour de jeu) :
+		# le refaire coûtait ~150 ms à 5 000 habitants, chaque jour (toutes les 6 s en Turbo).
+		var sd := avis.dernier
+		if sd.is_empty() or int(sd.get("jour", -1)) != avis.jour() or int(sd.get("n", 0)) <= 0:
+			sd = avis.sondage(true)
 		if int(sd.n) > 0:
 			c.satisfaction = int(sd.valeur)
 	elif s.has("satisfaction") and c.habitants > 0:

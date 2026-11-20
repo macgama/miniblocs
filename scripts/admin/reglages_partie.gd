@@ -158,6 +158,9 @@ var horaires_chantiers := "semaine"
 ## que les premières maisons des fondateurs sortent en 2 à 3 semaines de jeu.
 var rythme_chantiers := 3.0
 const RYTHMES_CHANTIERS := [1.0, 2.0, 3.0, 5.0, 10.0]
+## Départ rapide : tant que la carte compte peu d'habitants, les chantiers vont
+## encore plus vite (Chantiers.bonus_depart) pour que la première ville décolle.
+var depart_rapide := true
 ## Fondateurs arrivés avec le premier village (réserve de travailleurs,
 ## scripts/communes/fondateurs.gd) : 0 = aucun.
 var fondateurs: int = 100
@@ -319,7 +322,7 @@ func to_dict() -> Dictionary:
 		"arbre": arbre.duplicate(), "points_bonus": points_bonus, "journal_points": journal_points.duplicate(true), "arbres_joueurs": arbres_joueurs.duplicate(true),
 		"record_habitants": record_habitants, "evenements_auto": evenements_auto, "catastrophes": catastrophes,
 		"frequence_catastrophes": frequence_catastrophes, "envoi_secours_manuel": envoi_secours_manuel, "crises_economiques": crises_economiques, "volatilite_marche": volatilite_marche, "neige_routes": neige_routes, "faim": faim, "telecom_necessaire": telecom_necessaire, "construction_instantanee": construction_instantanee,
-		"horaires_chantiers": horaires_chantiers, "rythme_chantiers": rythme_chantiers, "usure": usure, "dechets": dechets, "dechets_quantite": dechets_quantite, "pollution": pollution, "pollution_sante": pollution_sante, "climat": climat, "sols_pollues": sols_pollues,
+		"horaires_chantiers": horaires_chantiers, "rythme_chantiers": rythme_chantiers, "depart_rapide": depart_rapide, "usure": usure, "dechets": dechets, "dechets_quantite": dechets_quantite, "pollution": pollution, "pollution_sante": pollution_sante, "climat": climat, "sols_pollues": sols_pollues,
 		"immobilier_vivant": immobilier_vivant, "bidonvilles": bidonvilles,
 		"elections": elections, "manifestations": manifestations, "funeraire": funeraire, "recherche_parc": recherche_parc, "cremation": cremation, "reseaux_obligatoires": reseaux_obligatoires, "prix_services": prix_services,
 		"fondation": fondation, "rue_fondation": rue_fondation, "services_fondation": services_fondation, "territoire": territoire, "fondateurs": fondateurs, "vivres_jours": vivres_jours, "main_oeuvre": main_oeuvre,
@@ -386,6 +389,7 @@ func from_dict(d: Dictionary) -> void:
 	construction_instantanee = bool(d.get("construction_instantanee", false))
 	horaires_chantiers = String(d.get("horaires_chantiers", "semaine"))
 	rythme_chantiers = clampf(float(d.get("rythme_chantiers", 3.0)), 0.25, 20.0)
+	depart_rapide = bool(d.get("depart_rapide", true))
 	if not Chantiers.HORAIRES.has(horaires_chantiers):
 		horaires_chantiers = "semaine"
 	dechets = bool(d.get("dechets", true))

@@ -77,8 +77,10 @@ func _run() -> void:
 
 	amb.set_speed(0)
 	_check(EchelleTemps.facteur() == 0.0 and EchelleTemps.en_pause(), "T (pause) : tout est arrêté")
-	amb.set_speed(DayNight.SPEEDS.size() - 1)
+	amb.set_speed(5)
 	_check(is_equal_approx(EchelleTemps.facteur(), 2.0), "100 min/s : ×2")
+	amb.set_speed(DayNight.TURBO)
+	_check(DayNight.TURBO == DayNight.SPEEDS.size() - 1 and is_equal_approx(EchelleTemps.facteur(), 3.0), "Turbo (1 jour en 6 s) : ×3")
 	amb.set_speed(1)
 	_check(is_equal_approx(EchelleTemps.facteur(), 0.25), "temps réel : ×0,25")
 	EchelleTemps.vue_sol = true

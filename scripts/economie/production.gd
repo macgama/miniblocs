@@ -695,12 +695,20 @@ func _process(_delta: float) -> void:
 	var dt := clampf(t - last_unix, 0.0, 86400.0 * 3.0)
 	last_unix = t
 	if dt > 0.0:
-		advance(dt)
+		advance(dt, _pas_livraisons())
+
+
+## Livraisons lancées tous les combien de pas de 15 min. En Turbo (1 jour en 6 s),
+## un pas passe toutes les 4 images et chacun coûte ~60 ms à 5 000 habitants : on
+## lance alors les livraisons une fois par heure de jeu (les commandes attendent
+## au plus 45 min de plus). Aux autres vitesses (et dans les tests), à chaque pas.
+func _pas_livraisons() -> int:
+	return 4 if ambiance != null and ambiance.speed_index >= DayNight.TURBO else 1
 
 
 ## Fait avancer l'économie de dt secondes de jeu : logistique toutes les 15 min,
 ## production toutes les heures, ventes et salaires chaque jour.
-func advance(dt: float) -> void:
+func advance(dt: float, livraisons_tous := 1) -> void:
 	if _dirty:
 		_sync()
 	var end_t := (ambiance.unix_time if ambiance != null else clock + dt)
@@ -719,7 +727,7 @@ func advance(dt: float) -> void:
 			new_day()
 		if _log_n % 4 == 0:
 			step_hours(1.0)
-		logistics(clock)
+		logistics(clock, livraisons_tous <= 1 or _log_n % livraisons_tous == 0)
 	if clock < end_t - 86400.0:
 		clock = end_t
 
@@ -1096,7 +1104,7 @@ func _pick_driver(free: Dictionary, src: int, dst: int, near: Vector3) -> Dictio
 
 
 ## Un pas de logistique : arrivées des camions, puis nouvelles livraisons.
-func logistics(t: float) -> void:
+func logistics(t: float, livrer := true) -> void:
 	for mid in missions.keys():
 		var m: Dictionary = missions[mid]
 		if not bool(m.get("done", false)) and float(m.t_unload) <= t:
@@ -1104,7 +1112,7 @@ func logistics(t: float) -> void:
 		if float(m.t_end) <= t:
 			busy.erase(int(m.driver))
 			missions.erase(mid)
-	if buildings == null or population == null or transport == null:
+	if not livrer or buildings == null or population == null or transport == null:
 		return
 	_dispatch(t)
 

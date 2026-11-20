@@ -15217,5 +15217,8 @@
 "Cette forme ne peut pas se renverser : choisis une pente, un arrondi ou une demi-dalle (R tourne toutes les formes).": "Diese Form lässt sich nicht kippen: wähle eine Schräge, eine Rundung oder eine halbe Platte (R dreht alle Formen).",
 "Cette forme ne peut pas se coucher : choisis une pente, un arrondi ou une demi-dalle (R tourne toutes les formes).": "Diese Form lässt sich nicht hinlegen: wähle eine Schräge, eine Rundung oder eine halbe Platte (R dreht alle Formen).",
 "Afficher : montre où cliquer (ouvre le bon menu et encadre le bouton à utiliser)": "Zeigen: zeigt, wohin du klicken musst (öffnet das richtige Menü und rahmt die Schaltfläche ein)"
-}
+},
+"Turbo (4 h/s)": "Turbo (4 Std/s)",
+"Départ rapide (chantiers ×3 jusqu'à 200 habitants)": "Schnellstart (Baustellen ×3 bis 200 Einwohner)",
+"Les premières maisons, rues et services se construisent 3 fois plus vite tant que la ville est petite ; le coup de pouce s'efface entre 200 et 400 habitants": "Die ersten Häuser, Straßen und Dienste entstehen dreimal so schnell, solange die Stadt klein ist; der Schub läuft zwischen 200 und 400 Einwohnern aus"
 }

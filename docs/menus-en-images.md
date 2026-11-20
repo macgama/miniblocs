@@ -6,6 +6,8 @@ et l'infobulle donne les détails (vitesse, voies, largeur…).
 
 ![Avant / après : outil Route](apercu-menus-images-route.jpg)
 
+![Avant / après : toits de l'Atelier](apercu-menus-images-toits.jpg)
+
 ## Ce qui est en images
 
 | Menu | Où | Images |

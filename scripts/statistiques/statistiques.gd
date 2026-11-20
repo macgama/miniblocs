@@ -128,12 +128,15 @@ func _process(_delta: float) -> void:
 		if historique.is_empty():
 			releve()
 		return
-	if d != _dernier_jour and Etalement.libre():
-		# On laisse d'abord Avis finir son sondage du jour (quelques images au plus),
-		# pour reprendre son résultat (Statistiques._chiffres_pays).
-		if avis != null and not avis.sondage_du_jour_fini(d) and _attente_avis < 120:
-			_attente_avis += 1
-			return
+	if d == _dernier_jour:
+		return
+	# On laisse d'abord Avis finir son sondage du jour (quelques images au plus),
+	# pour reprendre son résultat (Statistiques._chiffres_pays). Sans prendre la
+	# place du jour (Etalement) pendant l'attente : le journal et les autres passent.
+	if avis != null and not avis.sondage_du_jour_fini(d) and _attente_avis < 120:
+		_attente_avis += 1
+		return
+	if Etalement.libre():
 		_attente_avis = 0
 		_dernier_jour = d
 		releve()

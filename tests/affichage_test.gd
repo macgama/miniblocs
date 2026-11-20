@@ -67,7 +67,7 @@ func _run() -> void:
 	hud = scene.hud
 	aff = scene.affichage
 	_check(aff != null, "le gestionnaire d'affichage existe")
-	var attendus := ["objectifs", "scenario", "habitant", "personnage", "fil_habitants", "a_faire", "case", "jauges"]
+	var attendus := ["objectifs", "scenario", "habitant", "personnage", "fil_habitants", "a_faire", "case", "jauges", "mini_carte"]
 	for id in attendus:
 		_check(aff.ids().has(id), "carte « %s » fermable" % id)
 	_check(aff.nb_masques() == 0, "tout est visible au départ")

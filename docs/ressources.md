@@ -93,6 +93,27 @@ Nouveaux bâtiments : 4 fermes (maraîchage, betteraves, lin et coton, lait), 13
 
 Code : `scripts/economie/production.gd` (sites, livraisons, courses, comptes), `ressources.gd` (marchandises, commerces, consommation), `production_types.gd` et `commerces_types.gd` (bâtiments), `Traffic.add_delivery_vehicle` (camions). Sauvegarde : section `production`, version 2 (les parties d'avant gardent leur stock, rangé dans les entrepôts ou chez les producteurs).
 
+## Fiche « Que faire ici ? » (2026-11-20)
+
+Pour savoir ce qu'on peut installer à un endroit, sans tester chaque bâtiment :
+
+- **Clic sur un terrain libre** (outil Observer, ni bâtiment ni voie dessous), ou **P → Ressources → « Que faire ici ? »** (au centre de l'écran).
+- **Ressources autour (150 m)** : un picto rond par ressource, sa jauge et son pourcentage.
+- **À construire ici** : la vignette de chaque bâtiment d'extraction qui passe la règle de pose (même richesse minimale et même rayon que `Production.check_site`), avec les tonnes par jour prévues et un bouton **Construire** qui lance la pose.
+- **Pour transformer ce qui sort d'ici** : les usines dont tous les intrants sortent d'ici, de proche en proche (bois → scierie → menuiserie), en vert ; celles qui reçoivent une partie de leurs intrants d'ici, en orange, avec « À faire venir : … ».
+- **Pas ici** : vignettes grisées avec la raison : trop pauvre (« 4 % / 15 % »), mauvais climat (oliveraie hors climat méditerranéen, plantation tropicale hors climat subtropical ou tropical), pas encore inventé (« arrive en 1860 »), ou à débloquer (arbre de progression).
+- Option : Options → Jeu → « Fiche « Que faire ici ? » au clic ».
+
+- **Agriculture ici** (ajoutée le 2026-11-20) : climat, sol cultivable (rendement des champs entre 40 % et 125 %), prés ; vignettes des cultures avec le rendement en t/ha (champ engraissé et traité, époque comprise), en gris hors climat ou pas encore cultivées ; élevages et fermes posables partout (hors-sol compris), avec un clic pour construire. Quand aucune ferme à règle de sol ne passe, un encadré « Pour cultiver ici » dit quoi faire.
+
+## Forage d'irrigation (2026-11-20, choix de Gaël : « partout avec un forage »)
+
+- Bâtiment `forage_irrigation` (Construire → Production, dès 1910) : pompe électrique de 150 kW (`"reseaux"` dans le type, lu par `Reseaux.demande_type`), 2 emplois.
+- Dans un rayon de 400 m, la terre cultivable monte à 65 % au moins et les prés à 60 % (`CarteRessources.irrigation`, avant pente, altitude et climat). La règle de pose des fermes, la carte P et la fiche le voient tout de suite ; les fermes déjà posées relisent leur sol et les champs leur fertilité (`Production.irrigation_changed`).
+- Chaque ferme arrosée paie 450 € par jour au forage (« Eau d'irrigation »), selon la marche de la pompe. Pompe à l'arrêt (sans courant ni employés) : les champs arrosés perdent jusqu'à la moitié de leur rendement.
+
+Code : `scripts/economie/que_faire_ici.gd` (`QueFaireIci.analyser` est statique). Test : `tests/que_faire_ici_test.gd`. Captures : `tests/que_faire_ici_vitrine.gd`.
+
 ## Étapes suivantes proposées
 
 - Trains et bateaux de fret qui chargent eux-mêmes aux gares et aux ports (aujourd'hui, ils ajoutent de la capacité d'import et d'export).

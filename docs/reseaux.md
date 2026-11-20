@@ -52,10 +52,14 @@ Touche **O** : panneau Réseaux (onglets Courant, Eau, Égouts, Chauffage, Compt
 Pour voir si le courant, l'eau, les égouts et le gaz passent bien, des bâtiments de
 réseau jusqu'au bout de la ville (`scripts/reseaux/reseaux_flux.gd`, nœud `Reseaux/Flux`) :
 
-- **Clic sur un bâtiment** (fiche) : ses réseaux s'affichent en rubans animés sur les
-  routes et les tronçons qui les portent, côte à côte (jaune électricité, bleu eau,
-  brun égouts, orange gaz). Une centrale, un captage ou une station : son réseau seul.
-  Fiche fermée : le flux disparaît.
+- **Bouton « Sur les routes » de la fiche d'un bâtiment** (depuis le 20 novembre 2026,
+  un simple clic ne l'allume plus : trop chargé) : ses réseaux s'affichent en rubans
+  animés sur les routes et les tronçons qui les portent, côte à côte (jaune électricité,
+  bleu eau, brun égouts, orange gaz). Une centrale, un captage ou une station : son
+  réseau seul. Second appui, autre bâtiment ou fiche fermée : le flux disparaît
+  (`ReseauxFlux.basculer_batiment`, `montre_batiment`).
+- **Clic sur un bâtiment dans la vue O** (un onglet ouvert) : le flux s'affiche tout de
+  suite, puisqu'on regarde déjà les réseaux.
 - **Vue O, sans outil** : clic sur une route, une ligne ou une conduite = le réseau de
   l'onglet sur cette partie ; clic ailleurs ou sortie de la vue O = effacé.
 - **Sens** : flèches en chevron qui partent des sources (distance à la source le long des

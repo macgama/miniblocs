@@ -4,7 +4,8 @@ extends SceneTree
 ## à des étapes différentes (piquets, terre, grave, enrobé, marquage), un lundi
 ## matin (ouvriers au travail).
 ## Usage (avec affichage) :
-##   godot --path . --script res://tests/chantiers_vitrine.gd -- --screenshot chantiers.png [--distance 90] [--yaw 30] [--vue routes] [--heure 10]
+##   godot --path . --script res://tests/chantiers_vitrine.gd -- --screenshot chantiers.png [--distance 90] [--yaw 30] [--vue routes|rue] [--heure 10]
+## --vue rue : maisons collées au trottoir, comme un lotissement zoné (camions garés devant).
 
 
 func _initialize() -> void:
@@ -74,6 +75,19 @@ func _run() -> void:
 		if imm > 0:
 			bs.buildings[imm]["av"] = 0.5
 		focus = Vector3(0, y, 0)
+	elif vue == "rue":
+		# Maisons serrées au bord du trottoir, toutes au terrassement ou aux fondations :
+		# un camion devant chacune (cas d'un lotissement zoné).
+		var t := BuildingCatalog.get_type("colombages__maison")
+		var prof := float(t.get("d", 8))
+		var larg := float(t.get("w", 8))
+		var bord := -20.0 + TransportTypes.width_of("route", {}) / 2.0
+		var av_rue := [0.03, 0.08, 0.15, 0.2, 0.05, 0.18]
+		for i in av_rue.size():
+			var bid := bs.place("colombages__maison", Vector2i(roundi(bord + prof / 2.0 + 0.5), -40 + i * roundi(larg + 1.0)), 3)
+			if bid > 0:
+				bs.buildings[bid]["av"] = av_rue[i]
+		focus = Vector3(-14, y, -20)
 	else:
 		var etapes2 := [0.05, 0.25, 0.5, 0.76, 0.95]
 		for i in etapes2.size():

@@ -109,6 +109,7 @@ func _run() -> void:
 	vie._update_chantiers()
 	_check(node.get_node("Fouille").visible and not node.get_node("Echafaudage").visible, "étape 1 : fouille, pas encore d'échafaudage")
 	_check(node.get_node("Engins/Pelleteuse").visible, "pelleteuse dans la fouille")
+	_camions(scene, bs, vie, node)
 	_check(node.find_children("*", "Label3D", true, false).is_empty(), "plus de texte flottant au-dessus du chantier")
 	_check(vie.texte_chantier(bid).contains("Terrassement"), "détail du chantier (info-bulle) : « Terrassement »")
 	vie.marqueurs.maj()
@@ -261,3 +262,44 @@ func _run() -> void:
 	_check(mc > 0 and bs.en_chantier(mc), "la Maison de commune se construit aussi par étapes (%s)" % bs.check_place("maison_commune", Vector2i(-400, 400), 0).reason)
 	print("CHANTIERS TEST OK" if ok else "CHANTIERS TEST ÉCHEC")
 	quit(0 if ok else 1)
+
+
+## Camions du chantier : un seul à la fois, jamais dans la palissade ; garé sur la
+## chaussée, le long du trottoir et dans le sens de la route quand elle est proche.
+func _camions(scene: Node, bs: BuildingSystem, vie: BatimentsVie, node: Node3D) -> void:
+	var t := BuildingCatalog.get_type("colombages__maison")
+	var d := float(t.get("d", 8))
+	var w := float(t.get("w", 8))
+	var vus := 0
+	for nom in ["Benne", "Toupie", "Camionnette"]:
+		if (node.get_node("Engins/" + nom) as Node3D).visible:
+			vus += 1
+	_check(vus == 1, "un seul camion devant le chantier (%d)" % vus)
+	var benne := node.get_node("Engins/Benne") as Node3D
+	_check(benne.transform.origin.z <= -d / 2.0 - 1.2 - 0.3, "sans route, le camion attend devant l'entrée, hors de la palissade (z = %.1f)" % benne.transform.origin.z)
+	# Deuxième maison, collée à une route tracée devant elle.
+	var transport: TransportSystem = scene.get_node("Transport")
+	var bid2 := bs.place("colombages__maison", Vector2i(200, 200), 0)
+	if bid2 <= 0:
+		_check(false, "deuxième maison posée")
+		return
+	var n2 := bs.node_of(bid2)
+	var ent := n2.global_transform * Vector3(0, 0, -d / 2.0)
+	var dir := (n2.global_transform.basis * Vector3(0, 0, -1)).normalized()
+	var larg := TransportTypes.width_of("route", {})
+	var axe := ent + dir * (larg / 2.0 + 0.3)
+	var cote := (n2.global_transform.basis * Vector3(1, 0, 0)).normalized()
+	var r := transport.build_segment("route", axe - cote * 40.0, axe + cote * 40.0)
+	_check(bool(r.ok), "route devant la deuxième maison")
+	vie._update_chantiers()
+	vie._garer_camions(vie._chantiers[bid2])
+	var b2 := n2.get_node("Engins/Benne") as Node3D
+	var p := b2.global_position
+	var lat := absf((p - axe).dot(dir))
+	var chaussee := larg / 2.0 - TransportTypes.side_of("route", {})
+	_check(lat + 1.2 <= chaussee + 0.05 and lat > 0.5, "camion sur la chaussée, le long du trottoir (%.1f m de l'axe, chaussée %.1f m)" % [lat, chaussee])
+	var avant := (b2.global_transform.basis * Vector3(0, 0, 1)).normalized()
+	_check(absf(avant.dot(cote)) > 0.99, "camion dans le sens de la route")
+	_check(avant.cross(Vector3.UP).dot(-dir) > 0.0, "trottoir à droite du camion (circulation à droite)")
+	_check(absf((p - ent).dot(cote)) < w / 2.0, "garé devant l'entrée du chantier")
+	bs.demolish(bid2)

@@ -37,6 +37,10 @@ var buildings: BuildingSystem
 var ambiance: DayNight
 var population: Population
 
+## Route à moins de CAMION_ROUTE_MAX m du bord de la palissade : les camions
+## du chantier s'y garent (sinon devant l'entrée, sur le terrain).
+const CAMION_ROUTE_MAX := 12.0
+const CAMION_DEMI_LARGEUR := 1.2
 ## bid -> {"mi", "echaf", "grue", "fleche", "palissade", "terre", "dalle", "engins", "ouvriers", "texte", "H", "bb", "mat", "mat_echaf", "etape"}
 var _chantiers := {}
 ## bid -> {"abords": nœud, "fumee": [nœuds], "usure": float, "abandon": float, "vide": float}
@@ -256,23 +260,14 @@ func _start_chantier(bid: int) -> void:
 	var engins := Node3D.new()
 	engins.name = "Engins"
 	mi.add_child(engins)
-	var avant := -d / 2.0 - 3.2
 	var pel := EnginsChantier.pelleteuse()
 	pel.position = Vector3(bb.get_center().x + minf(bb.size.x * 0.2, 2.0), 0.15, bb.get_center().z)
 	pel.rotation.y = 0.6
 	engins.add_child(pel)
-	var benne := EnginsChantier.benne()
-	benne.position = Vector3(minf(w * 0.3, 5.0), 0, avant)
-	benne.rotation.y = PI / 2.0
-	engins.add_child(benne)
-	var tp := EnginsChantier.toupie()
-	tp.position = Vector3(-minf(w * 0.25, 4.0), 0, avant)
-	tp.rotation.y = -PI / 2.0
-	engins.add_child(tp)
-	var cam := EnginsChantier.camionnette()
-	cam.position = Vector3(minf(w * 0.25, 4.0), 0, avant)
-	cam.rotation.y = PI / 2.0
-	engins.add_child(cam)
+	# Camion-benne, toupie et camionnette ne sortent jamais ensemble (une étape
+	# chacun) : ils partagent la même place, garée par _garer_camions().
+	for cam in [EnginsChantier.benne(), EnginsChantier.toupie(), EnginsChantier.camionnette()]:
+		engins.add_child(cam)
 	var c := {"mi": mi, "echaf": echaf, "palissade": pal, "grue": null, "fleche": null, "H": bb.end.y, "bb": bb,
 		"mat": mat, "mat_echaf": mat_echaf, "terre": terre, "dalle": dalle, "engins": engins,
 		"ouvriers": [], "etape": "", "texte": "", "w": w, "d": d}
@@ -282,7 +277,94 @@ func _start_chantier(bid: int) -> void:
 		c.grue = g
 		c.fleche = g.get_node("Fleche")
 	_chantiers[bid] = c
+	_garer_camions(c)
 	_show_etape(bid)
+
+
+## Camions du chantier (benne, toupie, camionnette) : garés le long du trottoir,
+## sur la chaussée côté chantier, dans le sens de la circulation, devant
+## l'entrée de la palissade. Sans route tout près, sur le terrain devant
+## l'entrée, sans toucher la palissade.
+func _garer_camions(c: Dictionary) -> void:
+	var mi := c.mi as MeshInstance3D
+	var eng := c.engins as Node3D
+	if not is_instance_valid(mi) or eng == null:
+		return
+	var local := place_camion(mi.global_transform, float(c.d),
+		buildings.transport if buildings != null else null)
+	for n in eng.get_children():
+		if n.name != "Pelleteuse":
+			(n as Node3D).transform = local
+
+
+## Place (dans le repère du bâtiment) d'un camion de chantier de profondeur d
+## (entrée côté -Z). Les engins regardent vers +Z et reposent sur y = 0.
+static func place_camion(g: Transform3D, d: float, tr: TransportSystem) -> Transform3D:
+	# Par défaut : sur le terrain devant l'entrée, parallèle à la palissade,
+	# 0,8 m devant elle (demi-largeur du camion 1,2 m).
+	var defaut := Transform3D(Basis(Vector3.UP, PI / 2.0), Vector3(0, 0, -d / 2.0 - 2.1))
+	if tr == null or tr.network == null:
+		return defaut
+	var ent := g * Vector3(0, 0, -d / 2.0)
+	var best := {}
+	var best_d := INF
+	for eid in tr.edges_near(ent, CAMION_ROUTE_MAX + 20.0):
+		if not tr.network.edges.has(eid):
+			continue
+		var e: Dictionary = tr.network.edges[eid]
+		if TransportTypes.mode_of(String(e.t)) != TransportTypes.Mode.ROAD or e.has("ch"):
+			continue
+		var hit: Dictionary = tr.network.nearest_on_edge(eid, ent)
+		var bord := TransportTypes.width_of(String(e.t), e.w) / 2.0
+		var dist := float(hit.dist) - bord
+		if dist < best_d and dist <= CAMION_ROUTE_MAX:
+			best_d = dist
+			best = {"e": e, "pos": hit.pos}
+	if best.is_empty():
+		return defaut
+	var e: Dictionary = best.e
+	var p: Vector3 = best.pos
+	var pts: PackedVector3Array = e.pts
+	# Direction de la route au point le plus proche.
+	var t := Vector3.ZERO
+	var dmin := INF
+	for i in pts.size() - 1:
+		var a := pts[i]
+		var b := pts[i + 1]
+		var ab := Vector3(b.x - a.x, 0, b.z - a.z)
+		if ab.length_squared() < 1e-6:
+			continue
+		var u := clampf(Vector3(p.x - a.x, 0, p.z - a.z).dot(ab) / ab.length_squared(), 0.0, 1.0)
+		var q := a + (b - a) * u
+		var dd := Vector2(q.x - p.x, q.z - p.z).length()
+		if dd < dmin:
+			dmin = dd
+			t = ab.normalized()
+	if t == Vector3.ZERO:
+		return defaut
+	var n := Vector3(ent.x - p.x, 0, ent.z - p.z)
+	if n.length_squared() < 1e-4:
+		return defaut
+	n = n.normalized()
+	# Composante perpendiculaire à la route seulement (entrée en biais, route courbe).
+	n = (n - t * n.dot(t))
+	if n.length_squared() < 1e-4:
+		return defaut
+	n = n.normalized()
+	var spec: Dictionary = e.w
+	var bord_chaussee := TransportTypes.width_of(String(e.t), spec) / 2.0 \
+		- TransportTypes.side_of(String(e.t), spec) - TransportTypes.bus_of(String(e.t), spec)
+	var off := maxf(bord_chaussee - CAMION_DEMI_LARGEUR - 0.25, 0.0)
+	var pos := Vector3(p.x, p.y + 0.05, p.z) + n * off
+	# Circulation à droite : le trottoir (n) est à droite du camion.
+	if t.cross(Vector3.UP).dot(n) < 0.0:
+		t = -t
+	var monde := Transform3D(Basis(Vector3.UP.cross(t), Vector3.UP, t), pos)
+	# Repère du bâtiment sans son échelle : le camion garde sa taille réelle.
+	var gl := Transform3D(g.basis.orthonormalized(), g.origin)
+	var out := gl.affine_inverse() * monde
+	out.basis = out.basis.scaled(Vector3.ONE / g.basis.get_scale())
+	return out
 
 
 func _set_clip(bid: int, h: float) -> void:
@@ -467,6 +549,8 @@ func _show_etape(bid: int) -> void:
 	if key != String(c.etape):
 		c.etape = key
 		_vider_ouvriers(c)
+		# Une route a pu être tracée depuis le début du chantier : on regare le camion.
+		_garer_camions(c)
 	c.texte = texte_chantier(bid)
 
 

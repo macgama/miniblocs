@@ -324,7 +324,8 @@ func poser(type_id: String, pts: PackedVector3Array, payer := true) -> int:
 	# Posé depuis la vue sous terre : plus cher en profondeur (blindage, fonçage).
 	var prof := profondeur_pose
 	if not is_nan(prof):
-		if String(tr.res) == "elec":
+		# Lignes aériennes : pas de profondeur ; le câble enterré, lui, descend.
+		if String(tr.res) == "elec" and not bool(tr.get("enterre", false)):
 			prof = NAN
 		else:
 			prix = roundi(prix * ConstructionSouterraine.facteur_profondeur(prof))
@@ -487,6 +488,11 @@ static func _demande_type_calc(type_id: String) -> Dictionary:
 	var r := ReseauxTypes.info(type_id)
 	if t.is_empty() or not r.is_empty() or bool(t.get("espace", false)):
 		return {"elec": float(r.get("elec", 0.0)), "eau": 0.0, "egout": 0.0, "gaz": 0.0}
+	# Demande fixée par le type (forage d'irrigation : grosse pompe électrique).
+	if t.has("reseaux"):
+		var dm: Dictionary = t.reseaux
+		return {"elec": float(dm.get("elec", 0.0)), "eau": float(dm.get("eau", 0.0)), "egout": float(dm.get("egout", 0.0)),
+			"gaz": float(dm.get("gaz", 0.0))}
 	var cat := String(t.get("cat", ""))
 	var log := float(t.get("logements", 0))
 	var emp := float(t.get("emplois", 0))
@@ -1608,7 +1614,7 @@ func _aide() -> void:
 	match outil:
 		Outil.TRACER:
 			var tr := ReseauxTypes.troncon(type_troncon)
-			var f := 1.0 if is_nan(profondeur_pose) or String(tr.res) == "elec" else ConstructionSouterraine.facteur_profondeur(profondeur_pose)
+			var f := 1.0 if is_nan(profondeur_pose) or (String(tr.res) == "elec" and not bool(tr.get("enterre", false))) else ConstructionSouterraine.facteur_profondeur(profondeur_pose)
 			var t := "%s : clic pour chaque point, clic droit ou Échap pour finir. %s / m." % [tr.name, BuildingSystem.format_money(roundi(ReglagesPartie.prix(int(tr.prix_m)) * f))]
 			if f != 1.0:
 				t += " (à %s m de fond : %s)" % [TransportTypes._num(snappedf(profondeur_pose, 0.1)), ConstructionSouterraine.methode_conduite(profondeur_pose)]

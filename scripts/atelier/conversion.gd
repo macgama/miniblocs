@@ -24,15 +24,18 @@ const USAGE_GLB := {"maison": "logement", "villa": "logement", "immeuble": "loge
 	"bureaux": "bureaux", "banque": "bureaux", "mairie": "bureaux", "atelier": "bureaux", "menuiserie": "bureaux", "ecole": "ecole"}
 
 
-static func can_open(type_id: String) -> bool:
-	return usage_of(type_id) != ""
+static func can_open(type_id: String, perso: Dictionary = {}) -> bool:
+	return usage_of(type_id, perso) != ""
 
 
 ## Usage des murs fins pour ce type (« » s'il ne s'ouvre pas).
-static func usage_of(type_id: String) -> String:
+static func usage_of(type_id: String, perso: Dictionary = {}) -> String:
 	var t := BuildingCatalog.get_type(type_id)
 	if t.has("modele") or t.has("creation"):
 		return ""
+	# Modèle classique : son archétype (même sans style choisi).
+	if Personnalisation.is_classic(type_id):
+		return String(USAGE.get(String(Personnalisation.CLASSIQUES[type_id]), ""))
 	if t.has("arch"):
 		return String(USAGE.get(String(t.arch), ""))
 	if Personnalisation.is_glb(type_id) and not BibleGlb.volume(type_id).is_empty():
@@ -245,17 +248,21 @@ static func open_interior(mob: Mobilier, bid: int) -> Dictionary:
 		return {"ok": false, "error": "bâtiment introuvable"}
 	var b: Dictionary = bs.buildings[bid]
 	var type_id := String(b.t)
-	if not can_open(type_id):
+	var perso: Dictionary = Personnalisation.completer(type_id, b.get("perso", {}))
+	if not can_open(type_id, perso):
 		return {"ok": false, "error": "ce bâtiment ne s'ouvre pas encore (seulement maisons, immeubles, boutiques, restaurants, bureaux, ateliers, écoles)"}
-	var t := BuildingCatalog.get_type(type_id).duplicate()
+	var t := Personnalisation.type_of(type_id, perso).duplicate()
+	if Personnalisation.is_classic(type_id) and not t.has("arch"):
+		t["arch"] = String(Personnalisation.CLASSIQUES[type_id])
 	t["id"] = type_id
-	var perso: Dictionary = b.get("perso", {})
 	var vol := main_volume(t)
 	var W := maxi(4, int(round(float(vol.w))))
 	var D := maxi(4, int(round(float(vol.d))))
 	if W > MAX_SIDE or D > MAX_SIDE:
 		return {"ok": false, "error": "bâtiment trop grand pour être ouvert (%d m de côté au plus)" % MAX_SIDE}
-	var floors := int(perso.get("etages", vol.get("etages", Personnalisation.base_floors(type_id))))
+	var floors := int(perso.get("etages", vol.get("etages", Personnalisation.base_floors(type_id, perso))))
+	if Personnalisation.is_classic(type_id) and not perso.has("style") and not perso.has("etages"):
+		floors = 2 if String(t.arch) in ["maison", "grande_maison"] else maxi(floors, 1)
 	var yaw := -int(b.r) * PI / 2.0 + float(b.get("a", 0.0))
 	var basis := Basis(Vector3.UP, yaw)
 	var rect := Rect2i(Vector2i(int(b.x), int(b.z)), BuildingCatalog.footprint(type_id, int(b.r)))
@@ -269,14 +276,14 @@ static func open_interior(mob: Mobilier, bid: int) -> Dictionary:
 	var sz := Vector2i(W, D) if gr % 2 == 0 else Vector2i(D, W)
 	var origin := Vector2i(roundi(center.x - sz.x / 2.0), roundi(center.z - sz.y / 2.0))
 	# Couleurs du bâtiment -> matériaux des murs et du toit.
-	var pal := Personnalisation.palette(type_id, int(b.get("v", 0)))
+	var pal := Personnalisation.palette(type_id, int(b.get("v", 0)), perso)
 	var wall_c := Personnalisation.color_of(type_id, int(b.get("v", 0)), perso, "mur")
 	var roof_c := Personnalisation.color_of(type_id, int(b.get("v", 0)), perso, "toit_c")
-	if pal.is_empty() and not Personnalisation.is_glb(type_id):
+	if pal.is_empty() and not Personnalisation.is_glb(type_id) and not Personnalisation.is_classic(type_id):
 		wall_c = Color("f1ece2")
 	var style_id := String(t.get("style", ""))
-	var roof_kind := String(perso.get("toit", Personnalisation.base_roof(type_id)))
-	var usage := usage_of(type_id)
+	var roof_kind := String(perso.get("toit", Personnalisation.base_roof(type_id, perso)))
+	var usage := usage_of(type_id, perso)
 	var roof := String(vol.toit) if vol.has("toit") else String(ROOF.get(roof_kind, "deux_pans"))
 	var spec := {"w": W, "d": D, "levels": levels_for(usage, W, D, floors), "usage": usage,
 		"roof": roof, "budget": 0,

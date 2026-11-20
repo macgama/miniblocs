@@ -167,6 +167,7 @@ const PAR_BATIMENT := {
 	"elevage_andin": [["eleveur", 3], ["chauffeur", 1]],
 	"elevage_rennes": [["eleveur", 3], ["chauffeur", 1]],
 	"concession_agricole": [["vendeur", 2], ["mecanicien", 4]],
+	"forage_irrigation": [["agriculteur", 1], ["mecanicien", 1]],
 	"silo_cooperative": [["magasinier", 2], ["chauffeur", 2]],
 	"huilerie": [["operateur", 2], ["ouvrier", 2], ["chauffeur", 1]],
 	"filature": [["ouvrier", 4], ["operateur", 1], ["chauffeur", 1]],

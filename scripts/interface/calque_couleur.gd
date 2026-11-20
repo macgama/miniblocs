@@ -11,6 +11,8 @@ extends MeshInstance3D
 ## La couleur vient du dégradé (0 → 1). Appeler rafraichir() quand les valeurs
 ## changent ; la carte se redessine aussi quand la caméra bouge.
 
+## Groupe des cartes de couleur (la mini-carte reprend celle qui est montrée).
+const GROUPE := "calque_couleur"
 const RADIUS := 900.0
 const STEP := 20.0
 const MOVE := 100.0
@@ -47,6 +49,7 @@ static func degrade_valeur() -> Gradient:
 
 
 func _ready() -> void:
+	add_to_group(GROUPE)
 	var m := StandardMaterial3D.new()
 	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	m.vertex_color_use_as_albedo = true

@@ -1375,6 +1375,7 @@ func _setup_tutoriel() -> void:
 	guide_panel.setup(guide)
 	hud.guide_requested.connect(func() -> void: guide_panel.toggle())
 	tutoriel.etape_commencee.connect(montrer_bulles_etape)
+	tutoriel.manif_a_expliquer.connect(expliquer_manif)
 	tuto_carte.bulles_requested.connect(func() -> void: montrer_bulles_etape(tutoriel.id_courant(), true))
 	tuto_carte.afficher_requested.connect(afficher_etape)
 	bulles_aide.action.connect(func(a: String) -> void:
@@ -1414,6 +1415,26 @@ var _demo_demandee := false
 func demarre_en_pause() -> bool:
 	return GameStart.load_slot == "" and GameStart.chosen and not GameStart.atelier and not _demo_demandee and not Demo.demandee \
 		and Multijoueur.role == Multijoueur.Role.SOLO and not VisiteVille.active()
+
+
+## Première manifestation pendant le tutoriel ou la démo : le panneau des
+## manifestations s'ouvre et une bulle montre « Négocier » (une fois par partie).
+## Sans réponse, une manifestation compte comme ignorée : le thème baisse et la
+## colère monte, ce qu'un nouveau joueur ne peut pas deviner.
+func expliquer_manif() -> void:
+	# Elle passe devant les bulles d'une étape (la manifestation n'attend pas) ;
+	# celles d'un chapitre du guide ou d'une autre suite finissent d'abord.
+	if bulles_aide == null or avis_panel == null or (bulles_aide.actif and not bulles_aide.id.begins_with("tuto:")):
+		return
+	tutoriel.manif_expliquee = true
+	avis_panel.set_open(true)
+	avis_panel.show_view("manifs")
+	var nom := "Démo guidée" if tutoriel.est_demo() else "Tutoriel"
+	bulles_aide.lancer("tuto:manif", nom, [
+		{"titre": "Une manifestation !", "panneau": "avis_panel", "cible": ["Négocier"],
+			"texte": "Des habitants mécontents vont défiler devant la mairie. Négocier coûte un peu, mais le sujet remonte pendant un mois. Ignorer (ou ne rien faire) : la colère monte, et la deuxième fois, grève des agents de la ville.",
+			"touches": "Y : avis des habitants → Manifs"},
+	], "Compris")
 
 
 ## Bulles d'explication d'une étape du tutoriel, au centre de l'écran. Si
@@ -1482,6 +1503,8 @@ func _on_tuto_action(id: String) -> void:
 			evenements_panel.set_open(true)
 			evenements_panel.show_view("organiser")
 		"ligne":
+			transit_panel.set_open(true)
+		"marchandises":
 			transit_panel.set_open(true)
 
 

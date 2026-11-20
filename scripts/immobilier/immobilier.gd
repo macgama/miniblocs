@@ -877,6 +877,16 @@ func logement_abordable(hid: int, sauf := -1) -> int:
 	return best
 
 
+## Village encore en fondation (des fondateurs dorment sous la tente), ou -2 :
+## les logements neufs reviennent aux fondateurs, personne n'y bâtit de baraques
+## ni n'y est expulsé (premières semaines d'un village, démo guidée).
+func _ville_en_fondation() -> int:
+	var fd := Fondateurs.instance
+	if fd != null and fd.camp >= 0 and fd.au_campement() > 0 and ville_de(fd.camp) >= 0:
+		return ville_de(fd.camp)
+	return -2
+
+
 ## Foyers qui ne trouvent rien depuis longtemps (loyer trop cher) : à la rue.
 func _a_la_rue() -> void:
 	if nuisances == null:
@@ -889,6 +899,8 @@ func _a_la_rue() -> void:
 			continue
 		if not population.households.has(hid) or role_de(int(population.households[hid].b)) == "precaire":
 			continue
+		if ville_de(int(population.households[hid].b)) == _ville_en_fondation():
+			continue
 		nuisances._cher[hid] = 0
 		n += 1
 		var v := ville_de(int(population.households[hid].b))
@@ -899,9 +911,10 @@ func _a_la_rue() -> void:
 ## Des emplois attirent des travailleurs, mais aucun logement libre : ils bâtissent des baraques.
 func _pression_logement() -> void:
 	var c := comptes()
+	var fondation := _ville_en_fondation()
 	for v in c:
 		var d: Dictionary = c[v]
-		if int(d.log) < 30:
+		if int(d.log) < 30 or int(v) == fondation:
 			continue
 		var manque := int(d.emplois_libres) - int(d.chomeurs)
 		if manque < 20 or float(d.libres) / float(d.log) > 0.015:

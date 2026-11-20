@@ -1128,6 +1128,7 @@ func construire_barre(parent: Container) -> void:
 	for h in NIVEAUX_PIECE_MAX:
 		_haut_btn.add_item(niveaux_txt(h + 1))
 	_haut_btn.face_image = Vector2(40, 28)
+	_haut_btn.custom_minimum_size = Vector2(140, 46)
 	_haut_btn.select(hauteur - 1)
 	_haut_btn.item_selected.connect(func(i: int) -> void:
 		hauteur = i + 1

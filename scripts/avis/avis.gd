@@ -403,6 +403,12 @@ func local_now() -> Dictionary:
 	return {"h": 10.0, "wd": 2, "month": 3, "day": 0, "mday": 10}
 
 
+## Vrai quand le sondage quotidien du jour d (étalé sur quelques images) est fini :
+## les statistiques reprennent alors son résultat au lieu d'en refaire un.
+func sondage_du_jour_fini(d: int) -> bool:
+	return _last_day >= d and _jour_file.is_empty()
+
+
 ## Jour de jeu (Population.now().day).
 func jour() -> int:
 	return int(local_now().day)

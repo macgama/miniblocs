@@ -15324,5 +15324,8 @@
 "• Les élevages hors-sol (poulailler, porcherie, basse-cour, rucher, pisciculture) ne demandent pas de bonne terre : le grain s'achète.": "• Stallhaltung (Hühnerstall, Schweinestall, Geflügelhof, Bienenhaus, Fischzucht) braucht keinen guten Boden: Getreide wird gekauft.",
 "• Un forage d'irrigation rend la terre cultivable à 400 m autour (≈ %d %%), même au désert : grosse pompe électrique, et chaque ferme arrosée paie son eau.": "• Ein Bewässerungsbrunnen macht das Land im Umkreis von 400 m bebaubar (≈ %d %%), sogar in der Wüste: große Elektropumpe, und jeder bewässerte Hof zahlt sein Wasser.",
 "• Une ferme du catalogue (grange, hacienda, ferme à cour carrée…) se pose partout : ses champs (Maj+F) rendront environ %d %% ici.": "• Ein Hof aus dem Katalog (Scheune, Hacienda, Vierseithof…) ist überall baubar: seine Felder (Umschalt+F) bringen hier etwa %d %%."
-}
+},
+"Turbo (4 h/s)": "Turbo (4 Std/s)",
+"Départ rapide (chantiers ×3 jusqu'à 200 habitants)": "Schnellstart (Baustellen ×3 bis 200 Einwohner)",
+"Les premières maisons, rues et services se construisent 3 fois plus vite tant que la ville est petite ; le coup de pouce s'efface entre 200 et 400 habitants": "Die ersten Häuser, Straßen und Dienste entstehen dreimal so schnell, solange die Stadt klein ist; der Schub läuft zwischen 200 und 400 Einwohnern aus"
 }

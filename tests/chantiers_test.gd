@@ -38,6 +38,10 @@ func _run() -> void:
 	ReglagesPartie.actuel.deblocage = "tout"  # (ce test ne porte pas sur l'arbre de progression)
 	print("Règles :")
 	var lundi := _lundi(0.0)
+	# Départ rapide : chantiers ×3 jusqu'à 200 habitants, effacé à 400.
+	_check(is_equal_approx(Chantiers.bonus_depart_pour(0), 3.0) and is_equal_approx(Chantiers.bonus_depart_pour(200), 3.0), "départ rapide : ×3 jusqu'à 200 habitants")
+	_check(is_equal_approx(Chantiers.bonus_depart_pour(300), 2.0) and is_equal_approx(Chantiers.bonus_depart_pour(400), 1.0) and is_equal_approx(Chantiers.bonus_depart_pour(5000), 1.0), "départ rapide : s'efface entre 200 et 400 habitants")
+	_check(Chantiers.bonus_depart(null) == 1.0, "sans population : pas de coup de pouce")
 	_check(Chantiers.jour_semaine(lundi) == 0, "le 2 mars 2026 est un lundi")
 	_check(is_equal_approx(Chantiers.heures_ouvrees(lundi, lundi + 86400.0, 0.0, "semaine"), 8.0), "une journée d'équipe = 8 h")
 	var sem := Chantiers.heures_ouvrees(lundi, lundi + 7.0 * 86400.0, 0.0, "semaine")

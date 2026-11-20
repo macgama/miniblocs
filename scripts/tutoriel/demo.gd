@@ -32,6 +32,8 @@ static func reglages() -> ReglagesPartie:
 	# 30 min de jeu : les chantiers gardent le rythme d'avant (×36 en tout, ici
 	# ×4 × 10 = ×40), sinon le village n'a pas le temps de sortir de terre.
 	r.rythme_chantiers = 10.0
+	# Rythme déjà réglé pour 30 min : pas de départ rapide en plus (×120 sinon).
+	r.depart_rapide = false
 	return r
 
 

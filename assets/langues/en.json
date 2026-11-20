@@ -15420,5 +15420,8 @@
 "• Les élevages hors-sol (poulailler, porcherie, basse-cour, rucher, pisciculture) ne demandent pas de bonne terre : le grain s'achète.": "• Indoor livestock (henhouse, piggery, poultry yard, apiary, fish farm) needs no good land: grain can be bought.",
 "• Un forage d'irrigation rend la terre cultivable à 400 m autour (≈ %d %%), même au désert : grosse pompe électrique, et chaque ferme arrosée paie son eau.": "• An irrigation borehole makes land farmable 400 m around (≈ %d %%), even in the desert: big electric pump, and each irrigated farm pays for its water.",
 "• Une ferme du catalogue (grange, hacienda, ferme à cour carrée…) se pose partout : ses champs (Maj+F) rendront environ %d %% ici.": "• A catalogue farm (barn, hacienda, courtyard farm…) can be placed anywhere: its fields (Shift+F) will yield about %d %% here."
-}
+},
+"Turbo (4 h/s)": "Turbo (4 h/s)",
+"Départ rapide (chantiers ×3 jusqu'à 200 habitants)": "Quick start (construction ×3 up to 200 residents)",
+"Les premières maisons, rues et services se construisent 3 fois plus vite tant que la ville est petite ; le coup de pouce s'efface entre 200 et 400 habitants": "The first houses, streets and services are built 3 times faster while the town is small; the boost fades out between 200 and 400 residents"
 }

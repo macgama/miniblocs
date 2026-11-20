@@ -575,7 +575,7 @@ Le mode Terre a maintenant une **horloge** : le Soleil et la Lune sont à leur v
 
 - **La nuit**, des **lampadaires** s'allument le long des routes et des chemins (posés tout seuls), et les **fenêtres** des bâtiments s'éclairent, plus ou moins selon l'heure.
 - **Panneau Horloge** (en bas à droite) : heure et date du lieu, lever et coucher du Soleil, phase de la Lune. Barre pour choisir l'heure, ◀ ▶ pour changer de mois (et donc de saison).
-- **T** : pause / reprise. **Maj + T** : vitesse suivante (temps réel, 1 min/s, 10 min/s, 1 jour/min par défaut, 100 min/s).
+- **T** : pause / reprise. **Maj + T** : vitesse suivante (temps réel, 1 min/s, 10 min/s, 1 jour/min par défaut, 100 min/s, Turbo 4 h/s = 1 jour en 6 s). Au début de partie, le **départ rapide** (F10, actif par défaut) fait aller les chantiers 3 fois plus vite jusqu'à 200 habitants (le coup de pouce s'efface jusqu'à 400).
 - **Heure officielle du lieu**, avec les vrais fuseaux horaires du monde et l'heure d'été.
 - **Météo** selon le climat réel du lieu et la saison : nuages, pluie, neige, brouillard, orages avec éclairs. La liste « Météo » du panneau Horloge permet de forcer un temps.
 - **Phares** des véhicules allumés la nuit et par mauvais temps.

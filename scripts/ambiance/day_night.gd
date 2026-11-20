@@ -3,7 +3,8 @@ extends Node
 ## Cycle jour/nuit du mode Terre.
 ##
 ## - Une horloge de jeu (date et heure réelles, en UTC) avance à la vitesse
-##   choisie : pause, temps réel, 1 min/s, 10 min/s ou 100 min/s.
+##   choisie : pause, temps réel, 1 min/s, 10 min/s, 1 jour/min, 100 min/s ou
+##   Turbo (4 h/s, 1 jour en 6 s, pour faire grandir vite la première ville).
 ## - Le Soleil et la Lune sont placés à leur vraie position dans le ciel pour la
 ##   latitude et la longitude du lieu choisi sur le globe (saisons, nuits
 ##   polaires, phases de la Lune comprises).
@@ -16,8 +17,10 @@ signal time_changed
 
 ## Vitesses proposées (secondes de jeu par seconde réelle).
 ## Par défaut : 1 jour de jeu par minute réelle (365 jours = 365 minutes).
-const SPEEDS := [0.0, 1.0, 60.0, 600.0, 1440.0, 6000.0]
-const SPEED_NAMES := ["Pause", "Réel", "1 min/s", "10 min/s", "1 jour/min", "100 min/s"]
+const SPEEDS := [0.0, 1.0, 60.0, 600.0, 1440.0, 6000.0, 14400.0]
+const SPEED_NAMES := ["Pause", "Réel", "1 min/s", "10 min/s", "1 jour/min", "100 min/s", "Turbo (4 h/s)"]
+## Indice de la vitesse Turbo (la plus rapide).
+const TURBO := 6
 const DEFAULT_SPEED := 4
 const START_HOUR := 10.0
 

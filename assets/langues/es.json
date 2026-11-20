@@ -15321,5 +15321,8 @@
 "• Les élevages hors-sol (poulailler, porcherie, basse-cour, rucher, pisciculture) ne demandent pas de bonne terre : le grain s'achète.": "• La ganadería sin tierra (gallinero, porqueriza, corral, colmenar, piscifactoría) no pide buena tierra: el grano se compra.",
 "• Un forage d'irrigation rend la terre cultivable à 400 m autour (≈ %d %%), même au désert : grosse pompe électrique, et chaque ferme arrosée paie son eau.": "• Un pozo de riego hace cultivable la tierra en 400 m alrededor (≈ %d %%), incluso en el desierto: gran bomba eléctrica, y cada granja regada paga su agua.",
 "• Une ferme du catalogue (grange, hacienda, ferme à cour carrée…) se pose partout : ses champs (Maj+F) rendront environ %d %% ici.": "• Una granja del catálogo (granero, hacienda, cortijo de patio…) se pone en cualquier sitio: sus campos (Mayús+F) rendirán aquí un %d %%."
-}
+},
+"Turbo (4 h/s)": "Turbo (4 h/s)",
+"Départ rapide (chantiers ×3 jusqu'à 200 habitants)": "Inicio rápido (obras ×3 hasta 200 habitantes)",
+"Les premières maisons, rues et services se construisent 3 fois plus vite tant que la ville est petite ; le coup de pouce s'efface entre 200 et 400 habitants": "Las primeras casas, calles y servicios se construyen 3 veces más rápido mientras la ciudad es pequeña; el impulso se desvanece entre 200 y 400 habitantes"
 }

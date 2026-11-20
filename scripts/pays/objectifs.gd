@@ -670,7 +670,7 @@ func to_dict() -> Dictionary:
 		pl[str(vid)] = int(paliers[vid])
 	return {"version": 1, "paliers": pl, "missions": missions.duplicate(true), "historique": historique.duplicate(true),
 		"reussies": reussies, "succes": succes.duplicate(), "reputation": reputation, "next": _next,
-		"defi": defi.duplicate(true), "serie": serie, "serie_date": serie_date, "rangs": 2}
+		"defi": defi.duplicate(true), "serie": serie, "serie_date": serie_date, "rangs": 2, "jour": _dernier_jour}
 
 
 func from_dict(d: Dictionary) -> void:
@@ -701,6 +701,9 @@ func from_dict(d: Dictionary) -> void:
 	defi = (d.get("defi", {}) as Dictionary).duplicate(true)
 	serie = int(d.get("serie", 0))
 	serie_date = String(d.get("serie_date", ""))
+	# Bilan du jour déjà fait dans la partie sauvegardée : le prochain reste à minuit
+	# (sinon les missions étaient jugées au chargement, et pas dans la partie sauvegardée).
+	_dernier_jour = int(d.get("jour", -1))
 	# Les mairies déjà perdues au chargement ne coûtent pas une 2e fois.
 	if Avis.instance != null and communes != null:
 		for vid in communes.villages:

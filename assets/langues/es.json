@@ -15255,6 +15255,21 @@
 "… et %d autres usines avec un apport.": "… y %d fábricas más con aporte externo.",
 "≈ %s de %s par jour": "≈ %s de %s al día",
 "Fiche « Que faire ici ? » au clic": "Ficha «¿Qué hacer aquí?» al hacer clic",
-"Un clic sur un terrain libre montre les ressources du lieu et ce qu'on peut y construire (aussi : P → Ressources).": "Un clic en un terreno libre muestra los recursos del lugar y lo que se puede construir (también: P → Recursos)."
+"Un clic sur un terrain libre montre les ressources du lieu et ce qu'on peut y construire (aussi : P → Ressources).": "Un clic en un terreno libre muestra los recursos del lugar y lo que se puede construir (también: P → Recursos).",
+"Sous terre": "Subsuelo",
+"Sous terre (voir et construire : conduites, câbles, tunnels, métro, caves, bunkers)": "Subsuelo (ver y construir: tuberías, cables, túneles, metro, bodegas, búnkeres)",
+"Sous terre : seulement depuis la vue de dessus (V).": "Subsuelo: solo desde la vista cenital (V).",
+"Sous terre : conduites, câbles, tunnels, métro, caves, parkings, bunkers": "Subsuelo: tuberías, cables, túneles, metro, bodegas, aparcamientos, búnkeres",
+"Choisis ce que tu veux construire : la vue passe sous terre au bon niveau. Page bas / Page haut changent de niveau, Échap remonte en surface.": "Elige lo que quieres construir: la vista pasa al subsuelo en el nivel adecuado. Av Pág / Re Pág cambian de nivel, Esc vuelve a la superficie.",
+"Conduites et câbles (au −1)": "Tuberías y cables (en el −1)",
+"Tunnels et métro (à partir du −3)": "Túneles y metro (desde el −3)",
+"Pièces creusées : caves, parkings, bunkers": "Salas excavadas: bodegas, aparcamientos, búnkeres",
+"2 × 2 voies": "2 × 2 carriles",
+"Rue": "Calle",
+"Hauteur de la pièce": "Altura de la sala",
+"Creuser : %s (glisser un rectangle, sous ce niveau)": "Excavar: %s (arrastra un rectángulo, bajo este nivel)",
+"Câble électrique enterré (ni poteaux, ni pannes de tempête)": "Cable eléctrico enterrado (sin postes ni averías por tormenta)",
+"Page bas sous le rez-de-chaussée, bouton « Sous terre » de la barre du bas, ou Construire → Sous terre": "Av Pág bajo la planta baja, botón «Subsuelo» de la barra inferior, o Construir → Subsuelo",
+"vue sous terre (elle s'ouvre aussi toute seule quand on prend une conduite enterrée, un câble souterrain ou le métro, et revient en surface quand on range l'outil) : Sous-sol −1 à −20 (3 m par niveau). Réseaux sous les rues (vert télécoms, rouge électricité, jaune gaz, bleu eau, marron égouts ; gris : pas alimenté), gros tronçons enterrés, branchements des bâtiments, tunnels, métro et stations, caves, parkings et sous-sols de l'Atelier. Page haut remonte, Origine ou Échap revient à la surface": "vista del subsuelo (también se abre sola al coger una tubería enterrada, un cable subterráneo o el metro, y vuelve a la superficie al guardar la herramienta): Sótano −1 a −20 (3 m por nivel). Redes bajo las calles (verde telecomunicaciones, rojo electricidad, amarillo gas, azul agua, marrón alcantarillado; gris: sin suministro), grandes tramos enterrados, acometidas de los edificios, túneles, metro y estaciones, bodegas, aparcamientos y sótanos del Taller. Re Pág sube, Inicio o Esc vuelve a la superficie"
 }
 }

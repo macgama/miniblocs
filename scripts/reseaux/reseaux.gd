@@ -324,7 +324,8 @@ func poser(type_id: String, pts: PackedVector3Array, payer := true) -> int:
 	# Posé depuis la vue sous terre : plus cher en profondeur (blindage, fonçage).
 	var prof := profondeur_pose
 	if not is_nan(prof):
-		if String(tr.res) == "elec":
+		# Lignes aériennes : pas de profondeur ; le câble enterré, lui, descend.
+		if String(tr.res) == "elec" and not bool(tr.get("enterre", false)):
 			prof = NAN
 		else:
 			prix = roundi(prix * ConstructionSouterraine.facteur_profondeur(prof))
@@ -1608,7 +1609,7 @@ func _aide() -> void:
 	match outil:
 		Outil.TRACER:
 			var tr := ReseauxTypes.troncon(type_troncon)
-			var f := 1.0 if is_nan(profondeur_pose) or String(tr.res) == "elec" else ConstructionSouterraine.facteur_profondeur(profondeur_pose)
+			var f := 1.0 if is_nan(profondeur_pose) or (String(tr.res) == "elec" and not bool(tr.get("enterre", false))) else ConstructionSouterraine.facteur_profondeur(profondeur_pose)
 			var t := "%s : clic pour chaque point, clic droit ou Échap pour finir. %s / m." % [tr.name, BuildingSystem.format_money(roundi(ReglagesPartie.prix(int(tr.prix_m)) * f))]
 			if f != 1.0:
 				t += " (à %s m de fond : %s)" % [TransportTypes._num(snappedf(profondeur_pose, 0.1)), ConstructionSouterraine.methode_conduite(profondeur_pose)]

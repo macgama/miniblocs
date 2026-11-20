@@ -2991,6 +2991,7 @@ func _setup_mairie() -> void:
 		reseaux.raccordements.nombre_change.connect(func(_n: int) -> void: fil_alertes.refresh())
 	_setup_fil_habitants()
 	_setup_jauges()
+	_setup_mini_carte()
 	_setup_pile_gauche()
 	_setup_affichage()
 	recherche = RechercheUniverselle.new()
@@ -3074,6 +3075,21 @@ func _setup_jauges() -> void:
 	jauges.panneau_requested.connect(aller_au_panneau)
 
 
+## Mini-carte vue du dessus en bas à droite (Ctrl+M) : clic pour déplacer la
+## caméra, couleurs de N ou P, alertes cliquables, villes voisines.
+var mini_carte: MiniCarte
+
+
+func _setup_mini_carte() -> void:
+	mini_carte = MiniCarte.new()
+	hud.add_child(mini_carte)
+	mini_carte.setup(self)
+	hud._gerer_only.append(mini_carte)
+	mini_carte.visible = not GameStart.atelier and not hud.create_mode
+	if GameStart.atelier:
+		mini_carte.set_process(false)
+
+
 func _setup_pile_gauche() -> void:
 	pile_gauche = PileGauche.new()
 	pile_gauche.name = "PileGauche"
@@ -3133,6 +3149,12 @@ func _setup_affichage() -> void:
 		func() -> void:
 			if is_instance_valid(jauges):
 				jauges.visible = not GameStart.atelier and not hud.create_mode)
+	affichage.ajouter("mini_carte", "Mini-carte", "cartes", "Vue du dessus en bas à droite : clic pour y aller (Ctrl+M)",
+		func() -> Control: return mini_carte._cadre if is_instance_valid(mini_carte) else null,
+		func() -> void:
+			if is_instance_valid(mini_carte):
+				mini_carte.set_replie(false))
+	mini_carte.confier_a(func(on: bool) -> void: affichage.masquer("mini_carte", on))
 	var maj := func() -> void:
 		hud.gauche_libre = affichage.est_masque("case") and affichage.est_masque("a_faire")
 		hud._fit_dock()

@@ -1010,6 +1010,9 @@ func _advance(v: Dictionary, delta: float) -> bool:
 	var spd: float = v.own_speed if float(v.own_speed) > 0.0 else minf(TransportTypes.speed_of(e0.t), float(v.max_speed)) * float(v.factor)
 	if v.get("siren", false):
 		spd = minf(TransportTypes.speed_of(e0.t) * SIREN_SPEED, float(v.max_speed))
+	# Zone orange : pente au-delà de la norme ou épingles (les camions peinent plus).
+	if e0.has("lent"):
+		spd *= TransportTypes.facteur_vehicule(e0, v.has("delivery") or VehicleCatalog.is_freight(String(v.get("model", ""))))
 	var mode := int(v.mode)
 	if not speed_factors.is_empty() and mode == TransportTypes.Mode.ROAD and not v.has("sidewalk"):
 		spd *= speed_factor(eid, v)

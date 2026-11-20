@@ -216,8 +216,17 @@ func _petit(text: String, tip: String, cb: Callable, parent: Control) -> Button:
 	return b
 
 
-func _option(items: Array, current: String, cb: Callable) -> OptionButton:
-	var opt := OptionButton.new()
+## Les couleurs du club en maillots.
+func _maillots(o: ChoixVisuel) -> ChoixVisuel:
+	for i in o.item_count:
+		var k := int(o.get_item_metadata(i))
+		if k >= 0 and k < ClubDonnees.COULEURS.size():
+			o.set_item_icon(i, Pictos.maillot(String(ClubDonnees.COULEURS[k][0]), String(ClubDonnees.COULEURS[k][1])))
+	return o
+
+
+func _option(items: Array, current: String, cb: Callable) -> ChoixVisuel:
+	var opt := ChoixVisuel.new()
 	opt.focus_mode = Control.FOCUS_NONE
 	opt.clip_text = true
 	opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -360,7 +369,7 @@ func _vue_club() -> void:
 	var cols: Array = []
 	for i in ClubDonnees.COULEURS.size():
 		cols.append([i, ClubDonnees.NOMS_COULEURS[i]])
-	_ligne("Couleurs :", _option(cols, str(ClubDonnees.COULEURS.find(c.couleurs)), func(v: Variant) -> void: _faire("set_couleurs", [int(v)])))
+	_ligne("Couleurs :", _maillots(_option(cols, str(ClubDonnees.COULEURS.find(c.couleurs)), func(v: Variant) -> void: _faire("set_couleurs", [int(v)]))))
 	var st := cs.stades_possibles()
 	if st.size() > 1 or int(c.stade) < 0:
 		var items: Array = []
@@ -405,7 +414,7 @@ func _vue_fonder() -> void:
 	var cols: Array = []
 	for i in ClubDonnees.COULEURS.size():
 		cols.append([i, ClubDonnees.NOMS_COULEURS[i]])
-	_ligne("Couleurs :", _option(cols, str(int(_form.couleurs)), func(v: Variant) -> void: _form.couleurs = int(v)))
+	_ligne("Couleurs :", _maillots(_option(cols, str(int(_form.couleurs)), func(v: Variant) -> void: _form.couleurs = int(v))))
 	var items: Array = []
 	for s in st:
 		items.append([int(s.bid), "%s (%s places)" % [String(s.nom).split(" (")[0], Stades._milliers(int(s.places))]])

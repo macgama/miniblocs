@@ -9,7 +9,7 @@ signal bascule_demandee
 
 var decors: DecorSystem
 var _panel: PanelContainer
-var _cats: OptionButton
+var _cats: ChoixVisuel
 var _liste: ItemList
 var _outils: Array[Button] = []
 var _rayon_label: Label
@@ -51,7 +51,9 @@ func _ready() -> void:
 		ligne.add_child(b)
 		_outils.append(b)
 
-	_cats = OptionButton.new()
+	_cats = ChoixVisuel.new()
+	_cats.modele_meta = "decor_cat"
+	_cats.icone = "decors"
 	for c: Dictionary in Decors.categories():
 		_cats.add_item("%s (%d)" % [c.nom, Decors.de_categorie(c.id).size()])
 		_cats.set_item_metadata(_cats.item_count - 1, c.id)
@@ -60,6 +62,14 @@ func _ready() -> void:
 
 	_liste = ItemList.new()
 	_liste.custom_minimum_size = Vector2(250, 300)
+	# Les décors en images : vignette 3D au-dessus du nom, trois par rangée.
+	_liste.icon_mode = ItemList.ICON_MODE_TOP
+	_liste.max_columns = 3
+	_liste.same_column_width = true
+	_liste.fixed_column_width = 76
+	_liste.fixed_icon_size = Vector2i(68, 51)
+	_liste.max_text_lines = 2
+	_liste.add_theme_font_size_override("font_size", 11)
 	_liste.item_selected.connect(func(i: int) -> void:
 		if decors and i < _ids.size():
 			decors.set_choix(_ids[i])
@@ -135,6 +145,8 @@ func _remplit() -> void:
 			"" if y == 0 else ("\nDepuis %d" % y if libre else "\n" + EpoquesObjets.raison(y))])
 		# Pas encore inventé à l'époque de la partie : visible mais pas choisissable.
 		_liste.set_item_disabled(_liste.item_count - 1, not libre)
+		_liste.set_item_icon(_liste.item_count - 1, Pictos.auto(String(e.nom), 0, 1, "decors", false, 68))
+		Illustrations.poser_dans_liste("decor", String(e.id), _liste, _liste.item_count - 1)
 		_ids.append(e.id)
 
 

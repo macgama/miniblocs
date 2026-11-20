@@ -100,8 +100,8 @@ var _barre: VBoxContainer
 var _boutons := {}
 var _info: Label
 var _bilan: Label
-var _usage_btn: OptionButton
-var _haut_btn: OptionButton
+var _usage_btn: ChoixVisuel
+var _haut_btn: ChoixVisuel
 var _rangement := false
 
 
@@ -1087,16 +1087,19 @@ func construire_barre(parent: Container) -> void:
 		_bouton(r1, "v:" + t, VOIES[t].name, VOIES[t].tip + " (à partir du −3)",
 			func() -> void: activer(Outil.TUNNEL, t))
 	var r2 := _ligne("Creuser :")
-	_usage_btn = OptionButton.new()
+	_usage_btn = ChoixVisuel.new()
 	_usage_btn.focus_mode = Control.FOCUS_NONE
 	for u in USAGE_ORDRE:
 		_usage_btn.add_item(USAGES[u].name)
+		_usage_btn.set_item_modele(_usage_btn.item_count - 1, "picto", "sous_" + String(u))
 	_usage_btn.item_selected.connect(func(i: int) -> void:
 		usage = USAGE_ORDRE[i]
 		if outil == Outil.PIECE:
 			_aide())
 	r2.add_child(_usage_btn)
-	_haut_btn = OptionButton.new()
+	_haut_btn = ChoixVisuel.new()
+	_haut_btn.icone = "souterrain"
+	_haut_btn.gradue = 1
 	_haut_btn.focus_mode = Control.FOCUS_NONE
 	for h in NIVEAUX_PIECE_MAX:
 		_haut_btn.add_item(niveaux_txt(h + 1))

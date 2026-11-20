@@ -199,7 +199,9 @@ func _choix_ferme() -> int:
 		return -1
 	if not fermes.has(agri.ferme_choisie):
 		agri.ferme_choisie = int(fermes[0])
-	var ob := OptionButton.new()
+	var ob := ChoixVisuel.new()
+	ob.icone = "agriculture"
+	ob.gradue = 0
 	ob.focus_mode = Control.FOCUS_NONE
 	ob.add_theme_font_size_override("font_size", 12)
 	for i in fermes.size():
@@ -282,7 +284,8 @@ func _view_champs() -> void:
 	if bid < 0:
 		return
 	_text("Culture des nouveaux champs :", true)
-	var ob := OptionButton.new()
+	var ob := ChoixVisuel.new()
+	ob.gradue = 0
 	ob.focus_mode = Control.FOCUS_NONE
 	ob.add_theme_font_size_override("font_size", 12)
 	for i in AgriDonnees.ORDRE_CULTURES.size():
@@ -293,6 +296,7 @@ func _view_champs() -> void:
 			(" (arrive en %d)" % AgriEpoques.annee_culture(id)) if not pret else ("" if ok else " (climat défavorable)"),
 			"reprise" if bool(AgriDonnees.culture(id).get("perenne", false)) else "semis",
 			AgriDonnees.mois_semis_texte(id, agri.lat(), agri.climat())], i)
+		ob.set_item_modele(ob.item_count - 1, "culture", id)
 		ob.set_item_disabled(ob.item_count - 1, not pret)
 		if id == agri.culture_choisie:
 			ob.select(i)
@@ -384,13 +388,15 @@ func _carte_champ(id: int) -> void:
 	t2.text = "Prochaine culture"
 	t2.add_theme_font_size_override("font_size", 12)
 	row2.add_child(t2)
-	var ob := OptionButton.new()
+	var ob := ChoixVisuel.new()
+	ob.gradue = 0
 	ob.focus_mode = Control.FOCUS_NONE
 	ob.add_theme_font_size_override("font_size", 12)
 	ob.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	for i in AgriDonnees.ORDRE_CULTURES.size():
 		var cid: String = AgriDonnees.ORDRE_CULTURES[i]
 		ob.add_item(AgriDonnees.culture_name(cid), i)
+		ob.set_item_modele(ob.item_count - 1, "culture", cid)
 		ob.set_item_disabled(ob.item_count - 1, not AgriEpoques.culture_disponible(cid))
 		if cid == String(ch.cult):
 			ob.select(i)

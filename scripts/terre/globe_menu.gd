@@ -89,14 +89,17 @@ var _pseudo_edit: LineEdit
 var _amis_panel: MultijoueurPanel
 var _preset_btns := {}
 var _preset_info: Label
-var _epoque_opt: OptionButton
+var _epoque_opt: ChoixVisuel
+var _vignettes: Vignettes
+## Véhicule du jeu qui illustre chaque époque de départ ("" : dessin).
+const EPOQUES_VEHICULES := ["electrique", "diligence_messageries", "loco_crampton", "tram_1900", "populaire_ronde", ""]
 var _epoque_ligne: Control
 var _annee_spin: SpinBox
-var _rythme_opt: OptionButton
+var _rythme_opt: ChoixVisuel
 var _epoque_info: Label
 ## « Autre année… » choisie : l'année se tape dans la case.
 var _epoque_autre := false
-var _argent_opt: OptionButton
+var _argent_opt: ChoixVisuel
 var _options := {}
 var _remplissage := false
 var _tuto_oui: Button
@@ -928,10 +931,24 @@ func _page_reglages(p: VBoxContainer) -> void:
 	p.add_child(_preset_info)
 
 	_titre_section(p, "Époque de départ", "horloge")
-	_epoque_opt = OptionButton.new()
+	_vignettes = Vignettes.new()
+	add_child(_vignettes)
+	_epoque_opt = ChoixVisuel.new()
+	_epoque_opt.face_image = Vector2(54, 38)
+	_epoque_opt.titre = "Époque de départ"
+	_epoque_opt.max_columns = 3
+	_epoque_opt.tile_size = Vector2(170, 136)
+	_epoque_opt.image_height = 92.0
+	_epoque_opt.custom_minimum_size = Vector2(0, 46)
+	_epoque_opt.illustrer = func(i: int, cible: TextureRect) -> void:
+		var vid: String = EPOQUES_VEHICULES[i] if i < EPOQUES_VEHICULES.size() else ""
+		if vid == "":
+			cible.texture = Pictos.get_picto("autre_annee", 120)
+		else:
+			_vignettes.request_mesh("epoque:" + vid, func() -> Mesh: return VehicleCatalog.build_mesh(vid, 0, TransportView.make_material()),
+				cible, 168, Vector3(1.0, 0.55, 0.8), 0.55, 112)
 	for e in EPOQUES:
 		_epoque_opt.add_item(String(e[1]))
-	_epoque_opt.clip_text = true
 	_epoque_opt.item_selected.connect(func(_i: int) -> void: _changer_epoque())
 	p.add_child(_epoque_opt)
 	var he := HBoxContainer.new()
@@ -945,7 +962,9 @@ func _page_reglages(p: VBoxContainer) -> void:
 	_annee_spin.custom_minimum_size = Vector2(110, 0)
 	_annee_spin.value_changed.connect(func(_v: float) -> void: _changer_epoque())
 	he.add_child(_annee_spin)
-	_rythme_opt = OptionButton.new()
+	_rythme_opt = ChoixVisuel.new()
+	_rythme_opt.icone = "horloge"
+	_rythme_opt.gradue = 1
 	for n in Epoques.RYTHME_NOMS:
 		_rythme_opt.add_item(String(n))
 	_rythme_opt.tooltip_text = "Années d'histoire par année de jeu : ×10, on traverse un siècle en dix ans de jeu."
@@ -962,7 +981,7 @@ func _page_reglages(p: VBoxContainer) -> void:
 	p.add_child(_epoque_info)
 	if EditionDemo.active():
 		_epoque_opt.disabled = true
-		_epoque_opt.tooltip_text = "Partir de 1800 et traverser les époques : dans le jeu complet"
+		_epoque_opt.infobulle = "Partir de 1800 et traverser les époques : dans le jeu complet"
 
 	_titre_section(p, "Argent", "budget")
 	var ha := HBoxContainer.new()
@@ -971,7 +990,9 @@ func _page_reglages(p: VBoxContainer) -> void:
 	var la := _panel_label("Argent de départ", 14)
 	la.autowrap_mode = TextServer.AUTOWRAP_OFF
 	ha.add_child(la)
-	_argent_opt = OptionButton.new()
+	_argent_opt = ChoixVisuel.new()
+	_argent_opt.icone = "billet"
+	_argent_opt.gradue = 1
 	_argent_opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_argent_opt.item_selected.connect(func(i: int) -> void:
 		if _remplissage or i >= ARGENTS.size():

@@ -20,7 +20,7 @@ Prototype de city builder en vue de dessus, style low-poly, mode bac à sable. F
 
 Dans le jeu, **F1** (ou le bouton **?** en haut à gauche) affiche toutes les commandes.
 
-L'écran a une barre en haut (lieu, partie, heure et vitesse du temps, chiffres de la ville) et une barre de catégories en bas, avec des icônes : Observer, Terrain, Voies, Paysage, Construire, Lignes, Habitants, Circulation, Véhicules, Vue. Les outils de la catégorie choisie s'affichent juste au-dessus. Détails : [docs/interface.md](docs/interface.md). Thèmes nommés de Construire, recherche dans tout le jeu (Espace), Mairie (M) et parcours « Enregistrer mon bâtiment » de l'Atelier : [docs/ergonomie.md](docs/ergonomie.md).
+L'écran a une barre en haut (lieu, partie, heure et vitesse du temps, chiffres de la ville) et une barre de catégories en bas, avec des icônes : Observer, Terrain, Voies, Paysage, Construire, Lignes, Habitants, Circulation, Véhicules, Vue. Les outils de la catégorie choisie s'affichent juste au-dessus. Détails : [docs/interface.md](docs/interface.md). Thèmes nommés de Construire, recherche dans tout le jeu (Espace), Mairie (M) et parcours « Enregistrer mon bâtiment » de l'Atelier : [docs/ergonomie.md](docs/ergonomie.md). Menus à choix en images (types de routes, rails, chemins, voies d'eau, croisements, météo, biomes, filtres photo, époque de départ) : [docs/menus-en-images.md](docs/menus-en-images.md).
 
 ![Barre de catégories et outils des voies](docs/apercu-menus-voies.png)
 
@@ -35,6 +35,7 @@ L'écran a une barre en haut (lieu, partie, heure et vitesse du temps, chiffres 
 | Transports publics | **L** (stations, gares, ports, aéroports, lignes) |
 | Habitants | **H** (la ville en chiffres, liste des habitants, budget) ; clic sur un bâtiment avec l'outil 1 |
 | Habitants au travail | **K** vue métiers (zoome sur un commerce, une école, un hôpital : il s'ouvre en coupe), **Maj + K** coupe automatique oui/non |
+| Vitrines et devantures | Caméra rasante ou vue au sol (**V**) : vitrines garnies selon le stock réel, vendeur, clients et queue, enseigne au nom du patron, store, terrasse, lumière le soir ; enseignes et stock devant les usines et fermes, plaques des maisons |
 | Internet et téléphone | **Maj + O** (antennes 2G / 4G / 5G, central, cuivre, fibre, calques de couverture et de débit) |
 | Temps | **T** pause, **Maj + T** vitesse suivante |
 | Vue au sol | **V** (dessus, 3e personne, 1re personne) |
@@ -723,6 +724,8 @@ Une ferme entièrement générée en code (longère à colombages et toit de cha
 | `scripts/metiers/accessoires.gd` | Outils en main et postes de travail low-poly (four, pétrin, tableau, lits, caisses, machines…) |
 | `scripts/metiers/effectif.gd` | Personnel des bâtiments : fermé faute d'employés, sous-effectif, ouvert maintenant, conséquences |
 | `scripts/metiers/metiers_vivants.gd` | Vue métiers (K) : bâtiments en coupe, employés dehors, enseignes, rideaux de fer, pancartes, clic sur un employé |
+| `scripts/devantures/devantures.gd` | Devantures vivantes : façade creusée au rez-de-chaussée (boîtes du matériau des bâtiments), vitrine selon le stock, enseignes, stores, terrasses, rideaux, vendeur et clients, éclairage du soir |
+| `scripts/devantures/devantures_types.gd` / `devantures_modeles.gd` | Profils par type de bâtiment et par époque, noms d'enseignes ; maillages low-poly (niche, 35 objets de vitrine, store, terrasse, étal, rideau, ardoise) |
 | `tests/quartiers_test.gd` | Test des quartiers et arrêtés municipaux (pinceau, coûts, effets, mairie perdue, conseil élu, pilote, sauvegarde, panneau) |
 | `tests/metiers_test.gd` | Test des métiers visibles et des conséquences du manque de personnel |
 | `tests/metiers_vitrine.gd` | Captures : boulangerie, école, hôpital, ferme, supérette la nuit (`--seulement boulangerie`…) |

@@ -116,8 +116,8 @@ func _ligne(page: Control, texte: String, ctrl: Control, aide := "") -> void:
 	page.add_child(row)
 
 
-func _choix(items: Array, sel: int, on_change: Callable) -> OptionButton:
-	var o := OptionButton.new()
+func _choix(items: Array, sel: int, on_change: Callable) -> ChoixVisuel:
+	var o := ChoixVisuel.new()
 	for it in items:
 		o.add_item(String(it))
 	o.select(sel)

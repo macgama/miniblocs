@@ -24,8 +24,8 @@ var _titre: Label
 var _resume: Label
 var _annee_l: Label
 var _curseur: HSlider
-var _familles: OptionButton
-var _etats: OptionButton
+var _familles: ChoixVisuel
+var _etats: ChoixVisuel
 
 
 func _ready() -> void:
@@ -66,7 +66,9 @@ func _ready() -> void:
 	var filtres := HBoxContainer.new()
 	filtres.add_theme_constant_override("separation", 8)
 	v.add_child(filtres)
-	_familles = OptionButton.new()
+	_familles = ChoixVisuel.new()
+	_familles.modele_meta = "famille"
+	_familles.icone = "catalogue"
 	_familles.add_item("Toutes les familles")
 	_familles.set_item_metadata(0, "")
 	for f in CatalogueJeu.FAMILLES:
@@ -76,7 +78,9 @@ func _ready() -> void:
 		famille = String(_familles.get_item_metadata(i))
 		refresh())
 	filtres.add_child(_familles)
-	_etats = OptionButton.new()
+	_etats = ChoixVisuel.new()
+	_etats.icone = "catalogue"
+	_etats.gradue = 0
 	for spec in [["tout", "Tout"], ["dispo", "Déjà inventé"], ["avenir", "Pas encore inventé"]]:
 		_etats.add_item(String(spec[1]))
 		_etats.set_item_metadata(_etats.item_count - 1, String(spec[0]))

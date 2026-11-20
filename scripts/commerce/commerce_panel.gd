@@ -290,7 +290,9 @@ func _choix_ville(texte: String) -> void:
 	l.text = texte
 	l.add_theme_font_size_override("font_size", 12)
 	row.add_child(l)
-	var o := OptionButton.new()
+	var o := ChoixVisuel.new()
+	o.icone = "village"
+	o.gradue = 0
 	o.focus_mode = Control.FOCUS_NONE
 	o.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var cur := _ville_choisie()
@@ -539,8 +541,8 @@ func _vue_accords() -> void:
 
 # --- Entre villes et pays ---------------------------------------------------------------------
 
-func _option(items: Array, noms: Array, cur: Variant, cb: Callable) -> OptionButton:
-	var o := OptionButton.new()
+func _option(items: Array, noms: Array, cur: Variant, cb: Callable) -> ChoixVisuel:
+	var o := ChoixVisuel.new()
 	o.focus_mode = Control.FOCUS_NONE
 	o.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	for i in items.size():

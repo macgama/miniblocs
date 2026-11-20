@@ -123,8 +123,8 @@ func _process(delta: float) -> void:
 func _occupe() -> bool:
 	if _chaine_edit != null and _chaine_edit.has_focus():
 		return true
-	for c in _body.find_children("*", "OptionButton", true, false):
-		if (c as OptionButton).get_popup().visible:
+	for c in _body.find_children("*", "Button", true, false):
+		if c is ChoixVisuel and (c as ChoixVisuel).est_ouvert():
 			return true
 	return _panel.get_global_rect().has_point(_panel.get_global_mouse_position())
 
@@ -363,7 +363,8 @@ func _choix(texte: String, valeurs: Array, actuel: int, unite: String, cb: Calla
 	var l := _lab(texte, 13, UiStyle.TEXT)
 	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(l)
-	var ob := OptionButton.new()
+	var ob := ChoixVisuel.new()
+	ob.gradue = 1
 	ob.focus_mode = Control.FOCUS_NONE
 	for i in valeurs.size():
 		var v := int(valeurs[i])

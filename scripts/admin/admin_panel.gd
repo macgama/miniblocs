@@ -30,14 +30,14 @@ var _territoire: CheckBox
 var _fondateurs: SpinBox
 var _vivres: SpinBox
 var _main_oeuvre: CheckBox
-var _deblocage: OptionButton
+var _deblocage: ChoixVisuel
 var _paliers_l: Label
 var _impots: HSlider
 var _impots_l: Label
 var _salaires: HSlider
 var _salaires_l: Label
-var _temps: OptionButton
-var _vie: OptionButton
+var _temps: ChoixVisuel
+var _vie: ChoixVisuel
 var _epuisement: CheckBox
 var _ev_auto: CheckBox
 var _catas: CheckBox
@@ -45,32 +45,32 @@ var _envoi_manuel: CheckBox
 var _neige_routes: CheckBox
 var _telecom: CheckBox
 var _instant: CheckBox
-var _horaires: OptionButton
-var _rythme: OptionButton
-var _freq: OptionButton
+var _horaires: ChoixVisuel
+var _rythme: ChoixVisuel
+var _freq: ChoixVisuel
 var _crises_eco: CheckBox
-var _volatilite: OptionButton
+var _volatilite: ChoixVisuel
 const VOLATILITES := [0.5, 1.0, 2.0]
 var _reseaux: CheckBox
 var _prix_serv: HSlider
 var _prix_serv_l: Label
-var _faim: OptionButton
-var _usure: OptionButton
+var _faim: ChoixVisuel
+var _usure: ChoixVisuel
 var _dechets: CheckBox
 var _dechets_q: HSlider
 var _dechets_q_l: Label
 var _funeraire: CheckBox
 var _recherche_parc: CheckBox
-var _cremation: OptionButton
+var _cremation: ChoixVisuel
 const CREMATIONS := [-1.0, 0.1, 0.25, 0.5, 0.75, 0.95]
-var _pollution: OptionButton
+var _pollution: ChoixVisuel
 var _pol_sante: CheckBox
-var _climat: OptionButton
+var _climat: ChoixVisuel
 var _sols: CheckBox
 var _immo: CheckBox
 var _bidonvilles: CheckBox
 const FREQS := [0.25, 1.0, 3.0]
-var _elections: OptionButton
+var _elections: ChoixVisuel
 var _manifs: CheckBox
 ## Vitesse d'usure des voies et réseaux (budget communal).
 const USURES := [0.0, 0.5, 1.0, 2.0]
@@ -81,7 +81,7 @@ var _obj_ecran: CheckBox
 ## Époques (scripts/epoques).
 var _epoque: CheckBox
 var _annee: SpinBox
-var _rythme_h: OptionButton
+var _rythme_h: ChoixVisuel
 var _epoque_l: Label
 
 
@@ -205,7 +205,9 @@ func _ready() -> void:
 	_main_oeuvre = _check("Les chantiers ont besoin d'ouvriers (fondateurs, entreprises du bâtiment)")
 	_main_oeuvre.tooltip_text = "Sinon, les chantiers avancent toujours avec une équipe complète"
 	g.add_child(_main_oeuvre)
-	_deblocage = OptionButton.new()
+	_deblocage = ChoixVisuel.new()
+	_deblocage.icone = "cadenas"
+	_deblocage.gradue = 0
 	_deblocage.add_item("Tout débloqué (bac à sable)")
 	_deblocage.add_item("Arbre de progression à points (Maj+F10)")
 	_deblocage.tooltip_text = "Arbre : tu gagnes des points en jouant (population, rang des villes, missions, succès) et tu choisis quoi débloquer"
@@ -215,13 +217,17 @@ func _ready() -> void:
 	_instant = _check("Construction instantanée (pas de chantier)")
 	_instant.tooltip_text = "Bac à sable : bâtiments et voies apparaissent d'un coup au lieu de se construire étape par étape"
 	g.add_child(_instant)
-	_horaires = OptionButton.new()
+	_horaires = ChoixVisuel.new()
+	_horaires.icone = "grue"
+	_horaires.gradue = 0
 	for n in Chantiers.HORAIRES_NOMS:
 		_horaires.add_item(n)
 	_horaires.disabled = not editable
 	_horaires.item_selected.connect(func(_i: int) -> void: _changed())
 	_row(g, "Horaires des chantiers", _horaires)
-	_rythme = OptionButton.new()
+	_rythme = ChoixVisuel.new()
+	_rythme.icone = "grue"
+	_rythme.gradue = 1
 	for ry in ReglagesPartie.RYTHMES_CHANTIERS:
 		_rythme.add_item("Réaliste (×1)" if float(ry) == 1.0 else "× %d" % int(ry))
 	_rythme.tooltip_text = "Vitesse des chantiers (bâtiments, voies, réseaux) par rapport aux durées réelles"
@@ -243,7 +249,9 @@ func _ready() -> void:
 	_salaires = c[0]
 	_salaires_l = c[1]
 	_row(g, "Salaires", c[2])
-	_usure = OptionButton.new()
+	_usure = ChoixVisuel.new()
+	_usure.icone = "grue"
+	_usure.gradue = 1
 	for n in USURE_NOMS:
 		_usure.add_item(n)
 	_usure.disabled = not editable
@@ -252,13 +260,17 @@ func _ready() -> void:
 
 	# Temps.
 	g = _section(right, "Temps", "horloge")
-	_temps = OptionButton.new()
+	_temps = ChoixVisuel.new()
+	_temps.icone = "horloge"
+	_temps.gradue = 1
 	for n in DayNight.SPEED_NAMES:
 		_temps.add_item(n)
 	_temps.disabled = not editable
 	_temps.item_selected.connect(func(_i: int) -> void: _changed())
 	_row(g, "Vitesse du temps", _temps)
-	_vie = OptionButton.new()
+	_vie = ChoixVisuel.new()
+	_vie.icone = "habitants"
+	_vie.gradue = 1
 	for n in Population.LIFE_SPEED_NAMES:
 		_vie.add_item(n)
 	_vie.disabled = not editable
@@ -277,7 +289,9 @@ func _ready() -> void:
 	_annee.step = 1
 	_annee.custom_minimum_size = Vector2(110, 0)
 	_row(g, "Année de départ" if creation else "Année en cours", _annee)
-	_rythme_h = OptionButton.new()
+	_rythme_h = ChoixVisuel.new()
+	_rythme_h.icone = "horloge"
+	_rythme_h.gradue = 1
 	for n in Epoques.RYTHME_NOMS:
 		_rythme_h.add_item(n)
 	_rythme_h.disabled = not editable
@@ -293,7 +307,9 @@ func _ready() -> void:
 	g = _section(right, "Ressources", "ressources")
 	_epuisement = _check("Épuisement des ressources (mines, puits, forêts et poissons surexploités)")
 	g.add_child(_epuisement)
-	_faim = OptionButton.new()
+	_faim = ChoixVisuel.new()
+	_faim.icone = "agriculture"
+	_faim.gradue = 1
 	for n in ["Aucun effet", "Normale (santé, départs)", "Mortelle (on peut mourir de faim)"]:
 		_faim.add_item(n)
 	_faim.disabled = not editable
@@ -310,7 +326,9 @@ func _ready() -> void:
 	g.add_child(_envoi_manuel)
 	_neige_routes = _check("Neige sur les routes (chasse-neige et sel à prévoir)")
 	g.add_child(_neige_routes)
-	_freq = OptionButton.new()
+	_freq = ChoixVisuel.new()
+	_freq.icone = "tempete"
+	_freq.gradue = 1
 	for n in ["Rares", "Normales", "Fréquentes"]:
 		_freq.add_item(n)
 	_freq.disabled = not editable
@@ -318,14 +336,18 @@ func _ready() -> void:
 	_row(g, "Fréquence des catastrophes", _freq)
 	_crises_eco = _check("Crises économiques mondiales (choc pétrolier, krach, sécheresse…)")
 	g.add_child(_crises_eco)
-	_volatilite = OptionButton.new()
+	_volatilite = ChoixVisuel.new()
+	_volatilite.icone = "commerce"
+	_volatilite.gradue = 1
 	for n in ["Calme", "Normal", "Agité"]:
 		_volatilite.add_item(n)
 	_volatilite.disabled = not editable
 	_volatilite.item_selected.connect(func(_i: int) -> void: _changed())
 	_row(g, "Marché mondial (cours)", _volatilite)
 	# Vie politique (scripts/avis).
-	_elections = OptionButton.new()
+	_elections = ChoixVisuel.new()
+	_elections.icone = "urne"
+	_elections.gradue = 0
 	for n in Elections.MODE_NOMS:
 		_elections.add_item(n)
 	_elections.disabled = not editable
@@ -369,7 +391,9 @@ func _ready() -> void:
 	g = _section(left, "Obsèques et cimetières", "funeraire")
 	_funeraire = _check("Obsèques, cimetières qui se remplissent, corbillards et crématorium")
 	g.add_child(_funeraire)
-	_cremation = OptionButton.new()
+	_cremation = ChoixVisuel.new()
+	_cremation.icone = "funeraire"
+	_cremation.gradue = 1
 	for n in ["Selon la région de chacun", "10 %", "25 %", "50 %", "75 %", "95 %"]:
 		_cremation.add_item(n)
 	_cremation.disabled = not editable
@@ -377,7 +401,9 @@ func _ready() -> void:
 	_row(g, "Part des crémations", _cremation)
 	# Pollution et bruit.
 	g = _section(right, "Pollution et bruit", "cartes")
-	_pollution = OptionButton.new()
+	_pollution = ChoixVisuel.new()
+	_pollution.icone = "climat"
+	_pollution.gradue = 1
 	for n in ["Désactivée", "Faible", "Normale", "Forte"]:
 		_pollution.add_item(n)
 	_pollution.disabled = not editable
@@ -385,7 +411,9 @@ func _ready() -> void:
 	_row(g, "Pollution (air, eau, bruit)", _pollution)
 	_pol_sante = _check("La pollution rend malade (santé, espérance de vie)")
 	g.add_child(_pol_sante)
-	_climat = OptionButton.new()
+	_climat = ChoixVisuel.new()
+	_climat.icone = "climat"
+	_climat.gradue = 1
 	for n in ClimatTypes.REGLAGES:
 		_climat.add_item(n)
 	_climat.disabled = not editable

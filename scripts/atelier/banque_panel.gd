@@ -100,8 +100,10 @@ func build(bp: BuildingPanel) -> void:
 	bp.add_control(_label("Partage avec les autres joueurs : menu Partage (Maj+W ou touche 8) pour publier tes modèles, tes créations, tes attractions et des plans de site entiers, et installer ceux des autres (fichiers .mbloc, puis le Steam Workshop).", 11, true))
 
 
-func _filter(all: String, values: Array, cur: String, name_of: Callable, cb: Callable) -> OptionButton:
-	var o := OptionButton.new()
+func _filter(all: String, values: Array, cur: String, name_of: Callable, cb: Callable) -> ChoixVisuel:
+	var o := ChoixVisuel.new()
+	o.icone = "banque"
+	o.gradue = 0
 	o.custom_minimum_size = Vector2(150, 0)
 	o.clip_text = true
 	o.add_item(all)

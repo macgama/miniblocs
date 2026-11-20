@@ -11,7 +11,7 @@ var _code: LineEdit
 var _pseudo: LineEdit
 var _etat: Label
 var _rejoindre: Button
-var _parties: OptionButton
+var _parties: ChoixVisuel
 var _port: SpinBox
 var _ids: Array = []
 var _essais := 0
@@ -79,7 +79,9 @@ func _ready() -> void:
 	v.add_child(_texte("Une copie de la partie devient la carte entre amis (ta partie solo ne change pas). Le serveur continue tant que ce PC est allumé ; pour une carte ouverte jour et nuit, voir docs/multijoueur.md (petit serveur gratuit).", UiStyle.TEXT_DIM))
 	var h := HBoxContainer.new()
 	v.add_child(h)
-	_parties = OptionButton.new()
+	_parties = ChoixVisuel.new()
+	_parties.icone = "sauver"
+	_parties.gradue = 0
 	_parties.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	for m in SaveGame.list_saves():
 		if String(m.get("mode", "")) == "entre_amis" and String(m.id).begins_with("amis-") and m.has("serveur"):

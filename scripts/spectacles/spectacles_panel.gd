@@ -206,8 +206,8 @@ func _bouton(text: String, icon: String, tip: String, cb: Callable, parent: Cont
 	return b
 
 
-func _option(items: Array, current: String, cb: Callable) -> OptionButton:
-	var opt := OptionButton.new()
+func _option(items: Array, current: String, cb: Callable) -> ChoixVisuel:
+	var opt := ChoixVisuel.new()
 	opt.focus_mode = Control.FOCUS_NONE
 	opt.clip_text = true
 	opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -682,7 +682,8 @@ func _vue_amenager() -> void:
 	tout.clip_text = true
 	tout.add_theme_font_size_override("font_size", 12)
 	_label("Fonction des pièces (outil Fonction : clic dans une pièce) :", 11, true)
-	var opt := OptionButton.new()
+	var opt := ChoixVisuel.new()
+	opt.modele_meta = "salle"
 	opt.focus_mode = Control.FOCUS_NONE
 	opt.add_theme_font_size_override("font_size", 11)
 	for f in SpectaclesObjets.SALLE_ORDER:

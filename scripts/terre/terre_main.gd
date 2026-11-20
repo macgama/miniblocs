@@ -109,6 +109,7 @@ var mobilier: Mobilier
 var occupants: Occupants
 ## Habitants au travail visibles (scripts/metiers, touche K).
 var metiers_vivants: MetiersVivants
+var devantures: Devantures
 var interieur_panel: InterieurPanel
 ## Décors : mobilier urbain, clôtures, animaux, bateaux, rochers (touche G).
 var decors: DecorSystem
@@ -276,12 +277,13 @@ func _ready() -> void:
 			"toutes les régions" if region == "" else Styles.region_name(region)]))
 	transport.info_changed.connect(func(t: String) -> void: hud.set_tool_info(t))
 	transport.message.connect(func(t: String) -> void: hud.show_message(t))
-	transport.spec_changed.connect(func(id: String, s: Dictionary) -> void: hud.show_spec(id, s, transport.curve_mode, transport.level))
+	transport.spec_changed.connect(func(id: String, s: Dictionary) -> void: hud.show_spec(id, s, transport.curve_mode, transport.level, transport.lacets_mode))
 	hud.spec_edited.connect(func(id: String, s: Dictionary) -> void:
 		_tool_class[TransportTypes.mode_of(id)] = id
 		transport.set_spec(id, s)
-		hud.show_spec(id, transport.spec, transport.curve_mode, transport.level))
+		hud.show_spec(id, transport.spec, transport.curve_mode, transport.level, transport.lacets_mode))
 	hud.curve_toggled.connect(func(on: bool) -> void: transport.set_curve(on))
+	hud.lacets_toggled.connect(func(on: bool) -> void: transport.set_lacets(on))
 	hud.level_changed.connect(func(l: String) -> void:
 		transport.set_level(l)
 		hud.show_message(String(TransportSystem.LEVEL_NAMES[l]) + "."))
@@ -1935,6 +1937,8 @@ func _setup_production() -> void:
 	add_child(production)
 	production.setup(world, buildings, population, transport, ambiance)
 	production.message.connect(func(t: String) -> void: hud.show_message(t))
+	if devantures != null:
+		devantures.production = production
 	resource_overlay = RessourcesOverlay.new()
 	resource_overlay.name = "CarteRessources"
 	resource_overlay.world = world
@@ -2593,6 +2597,13 @@ func _setup_mobilier() -> void:
 	add_child(metiers_vivants)
 	metiers_vivants.setup(population, buildings, ambiance, rig)
 	metiers_vivants.occupants = occupants
+	# Devantures vivantes : vitrines selon le stock, enseignes, stores, terrasses,
+	# intérieurs vus à travers la vitrine (scripts/devantures).
+	devantures = Devantures.new()
+	devantures.name = "Devantures"
+	add_child(devantures)
+	devantures.setup(population, buildings, production, ambiance, rig)
+	devantures.metiers = metiers_vivants
 	# Modèles de l'atelier posés comme bâtiments : leurs vrais murs et meubles.
 	modeles_visites = ModelesVisites.new()
 	modeles_visites.name = "ModelesVisites"

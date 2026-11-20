@@ -237,7 +237,9 @@ func _ready() -> void:
 	# Filtres de la bible : région du monde, époque, recherche par nom.
 	_filters = HFlowContainer.new()
 	right.add_child(_filters)
-	var region_opt := OptionButton.new()
+	var region_opt := ChoixVisuel.new()
+	region_opt.modele_meta = "region"
+	region_opt.icone = "globe"
 	region_opt.add_item("Toutes les régions")
 	region_opt.set_item_metadata(0, "")
 	for r in Styles.REGIONS:
@@ -247,7 +249,9 @@ func _ready() -> void:
 		_region = String(region_opt.get_item_metadata(i))
 		show_category(_category))
 	_filters.add_child(region_opt)
-	var era_opt := OptionButton.new()
+	var era_opt := ChoixVisuel.new()
+	era_opt.modele_meta = "epoque"
+	era_opt.icone = "horloge"
 	era_opt.add_item("Toutes les époques")
 	era_opt.set_item_metadata(0, "")
 	for e in Styles.ERAS:
@@ -688,7 +692,9 @@ func _show_zones() -> void:
 	st.add_theme_font_size_override("font_size", 13)
 	st.add_theme_color_override("font_color", UiStyle.ACCENT)
 	_add(st)
-	var style_opt := OptionButton.new()
+	var style_opt := ChoixVisuel.new()
+	style_opt.modele_meta = "style"
+	style_opt.icone = "construire"
 	style_opt.name = "StyleZonage"
 	style_opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	style_opt.fit_to_longest_item = false

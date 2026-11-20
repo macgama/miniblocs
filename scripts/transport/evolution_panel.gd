@@ -17,11 +17,12 @@ var w := {}
 var _panel: PanelContainer
 var _title: Label
 var _now: Label
-var _class: OptionButton
+var _class: ChoixVisuel
+var _vignettes: Vignettes
 var _class_ids: Array = []
 var _lanes: SpinBox
 var _lane_w: SpinBox
-var _bords: OptionButton
+var _bords: ChoixVisuel
 var _bords_ids: Array = []
 var _tp: CheckBox
 var _bus: CheckBox
@@ -64,7 +65,17 @@ func _build() -> void:
 	head.add_child(x)
 	_now = _label("", 12, true)
 	v.add_child(_now)
-	_class = OptionButton.new()
+	_vignettes = Vignettes.new()
+	add_child(_vignettes)
+	_class = ChoixVisuel.new()
+	_class.face_image = Vector2(54, 38)
+	_class.tile_size = Vector2(150, 142)
+	_class.image_height = 96.0
+	_class.max_columns = 4
+	_class.titre = "Nouvelle classe de la route"
+	_class.illustrer = func(i: int, cible: TextureRect) -> void:
+		if i >= 0 and i < _class_ids.size():
+			VignettesVoies.demander(_vignettes, String(_class_ids[i]), cible)
 	_class.item_selected.connect(func(i: int) -> void:
 		if _filling:
 			return
@@ -73,6 +84,7 @@ func _build() -> void:
 		t = nt
 		_fill())
 	v.add_child(_row("Classe", _class))
+	_class.custom_minimum_size = Vector2(190, 44)
 	_lanes = _spin(1, 4, 1)
 	_lanes.value_changed.connect(func(n: float) -> void: _on_lanes(int(n)))
 	v.add_child(_row("Voies par sens", _lanes))
@@ -82,12 +94,15 @@ func _build() -> void:
 			w.lane_w = x2
 			_update())
 	v.add_child(_row("Largeur d'une voie (m)", _lane_w))
-	_bords = OptionButton.new()
+	_bords = ChoixVisuel.new()
+	_bords.face_image = Vector2(54, 38)
+	_bords.titre = "Bords de la route"
 	_bords.item_selected.connect(func(i: int) -> void:
 		if not _filling:
 			w.bords = _bords_ids[i]
 			_update())
 	v.add_child(_row("Bords", _bords))
+	_bords.custom_minimum_size = Vector2(190, 44)
 	_tp = _check("Terre-plein central", "tp")
 	v.add_child(_tp)
 	_bus = _check("Couloirs de bus (un par sens, à droite)", "bus")
@@ -244,6 +259,7 @@ func _fill() -> void:
 	_class.clear()
 	for id in _class_ids:
 		_class.add_item(String(TransportTypes.get_type(id).name))
+		_class.set_item_tooltip(_class.item_count - 1, VignettesVoies.details(String(id)))
 	_class.select(maxi(0, _class_ids.find(t)))
 	var c := TransportTypes.get_type(t)
 	var lo := 9
@@ -265,6 +281,7 @@ func _fill() -> void:
 	for k in TransportTypes.BORDS:
 		_bords_ids.append(k)
 		_bords.add_item(String(TransportTypes.BORDS_NOMS[k]))
+		_bords.set_item_icon(_bords.item_count - 1, Pictos.get_picto("bords_" + String(k), 120))
 	var bk := TransportTypes.side_kind_of(t, w) if w.has("bords") else String(c.get("side_kind", ""))
 	_bords.select(maxi(0, _bords_ids.find(bk)))
 	_bords.disabled = not opt.bords

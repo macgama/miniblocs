@@ -140,7 +140,9 @@ func refresh() -> void:
 		_text("Conseil : commence par un carrousel, une friterie, une buvette, des toilettes et un atelier d'entretien. Les touristes viennent pour les attractions ; ils restent pour les frites.", true)
 		return
 	if parc.parcs.size() > 1:
-		var ob := OptionButton.new()
+		var ob := ChoixVisuel.new()
+		ob.icone = "parc"
+		ob.gradue = 0
 		ob.focus_mode = Control.FOCUS_NONE
 		var i := 0
 		for k in parc.parcs:
@@ -409,8 +411,8 @@ var _pub_semaines := 2
 var _retour := ""
 
 
-func _option(items: Array, ids: Array, choisi_id: String, cb: Callable, desactives: Array = []) -> OptionButton:
-	var ob := OptionButton.new()
+func _option(items: Array, ids: Array, choisi_id: String, cb: Callable, desactives: Array = []) -> ChoixVisuel:
+	var ob := ChoixVisuel.new()
 	ob.focus_mode = Control.FOCUS_NONE
 	ob.custom_minimum_size = Vector2(W - 30, 0)
 	for i in items.size():

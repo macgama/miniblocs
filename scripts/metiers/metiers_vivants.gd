@@ -118,6 +118,20 @@ func _zoom() -> float:
 	return 999.0
 
 
+## Vue plongeante : la coupe s'ouvre quand on regarde d'en haut. À hauteur
+## d'homme (caméra rasante, vue au sol), on voit plutôt les devantures et
+## l'intérieur à travers les vitrines (Devantures).
+const COUPE_PITCH_MIN := 35.0
+
+
+func _plongeant() -> bool:
+	if pop != null and pop.vue_sol != null and pop.vue_sol.vue != VueSol.Vue.DESSUS:
+		return false
+	if rig != null and "pitch_degrees" in rig:
+		return float(rig.get("pitch_degrees")) >= COUPE_PITCH_MIN
+	return true
+
+
 func _unix() -> float:
 	return ambiance.unix_time if ambiance != null else 0.0
 
@@ -130,7 +144,7 @@ func refresh() -> void:
 		return
 	var focus := _focus()
 	var f2 := Vector2(focus.x, focus.z)
-	var zoom_ok := coupe_auto and _zoom() <= COUPE_ZOOM
+	var zoom_ok := coupe_auto and _zoom() <= COUPE_ZOOM and _plongeant()
 	var vus := {}
 	var figs_vues := {}
 	var nouvelles_coupes := []
@@ -542,6 +556,12 @@ func _enseigne(bid: int, eff: Effectif, proche: bool) -> void:
 	var d := float(t.get("d", 8))
 	var w := float(t.get("w", 8))
 	var ouvert := eff.ouvert_maintenant(bid)
+	# Vitrine creusée par les devantures : elles ont leur pancarte et leur rideau.
+	if Devantures.instance != null and Devantures.instance.a_niche(bid):
+		for k2 in ["enseigne", "rideau"]:
+			if st.get(k2) != null:
+				(st[k2] as Node3D).visible = false
+		return
 	var lab: Label3D = st.get("enseigne")
 	if lab == null:
 		lab = Label3D.new()

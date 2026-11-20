@@ -18,7 +18,7 @@ var _jour_check: CheckButton
 var _auto_check: CheckButton
 var _info_label: Label
 var _slider: HSlider
-var _weather_pick: OptionButton
+var _weather_pick: ChoixVisuel
 var _speed_buttons: Array[Button] = []
 var _details: PanelContainer
 var _updating := false
@@ -128,12 +128,17 @@ func _ready() -> void:
 	var next := UiStyle.icon_button("suivant", "Avancer d'un mois", "", 18, 32)
 	next.pressed.connect(func() -> void: clock.shift_days(30))
 	hrow.add_child(next)
-	_weather_pick = OptionButton.new()
-	_weather_pick.focus_mode = Control.FOCUS_NONE
-	_weather_pick.add_theme_font_size_override("font_size", 12)
-	for n in Meteo.MODE_NAMES:
-		_weather_pick.add_item("Météo : " + n)
-	_weather_pick.tooltip_text = "Automatique : le temps suit le climat réel du lieu et la saison."
+	_weather_pick = ChoixVisuel.new()
+	_weather_pick.custom_minimum_size = Vector2(0, 40)
+	_weather_pick.face_image = Vector2(48, 32)
+	_weather_pick.titre = "Météo"
+	_weather_pick.prefixe = "Météo : "
+	_weather_pick.max_columns = 4
+	var pictos_meteo := ["meteo_auto", "meteo_soleil", "meteo_nuageux", "meteo_couvert", "meteo_pluie", "meteo_orage", "meteo_neige", "meteo_brouillard"]
+	for i in Meteo.MODE_NAMES.size():
+		_weather_pick.add_item(Meteo.MODE_NAMES[i])
+		_weather_pick.set_item_icon(i, Pictos.get_picto(pictos_meteo[i], 120))
+	_weather_pick.set_item_tooltip(0, "Automatique : le temps suit le climat réel du lieu et la saison.")
 	_weather_pick.item_selected.connect(func(i: int) -> void:
 		clock.weather.mode = i as Meteo.Mode)
 	box.add_child(_weather_pick)

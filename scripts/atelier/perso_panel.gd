@@ -117,11 +117,14 @@ func refresh() -> void:
 		_section("Forme")
 		var row := HBoxContainer.new()
 		row.add_child(_small("Toit"))
-		var roof := OptionButton.new()
+		var roof := ChoixVisuel.new()
+		roof.modele_meta = "toit"
+		roof.max_columns = 4
 		roof.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var base_roof := Personnalisation.base_roof(tid)
 		roof.add_item("Comme le modèle (%s)" % String(Personnalisation.ROOFS.get(base_roof, base_roof)).to_lower())
 		roof.set_item_metadata(0, "")
+		roof.set_item_modele(0, "toit", base_roof)
 		for k in Personnalisation.ROOF_ORDER:
 			roof.add_item(String(Personnalisation.ROOFS[k]))
 			roof.set_item_metadata(roof.item_count - 1, k)

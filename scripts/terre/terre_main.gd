@@ -27,6 +27,8 @@ var habitants_panel: HabitantsPanel
 ## Ressources naturelles et chaînes de production (touche P).
 var production: Production
 var production_panel: ProductionPanel
+## Fiche « Que faire ici ? » (clic sur un terrain libre, P → Ressources).
+var que_faire_ici: QueFaireIci
 ## Agriculture : champs, travaux, machines, élevage et repas (Maj+F).
 var agriculture: Agriculture
 var agri_panel: AgriPanel
@@ -148,6 +150,8 @@ var fondateurs: Fondateurs
 var fondateurs_panel: FondateursPanel
 var pays: Pays
 var pays_panel: PaysPanel
+## Passer vite d'une ville à l'autre (barre du haut, Ctrl+Tab).
+var selecteur_villes: SelecteurVilles
 var pilote: PiloteAuto
 var objectifs: Objectifs
 var kit: KitInstallation
@@ -1103,6 +1107,16 @@ func _setup_pays() -> void:
 		rig.position.x = pos.x
 		rig.position.z = pos.z)
 	hud.pays_requested.connect(func() -> void: pays_panel.toggle())
+	# Passer vite d'une ville à l'autre : ◀ drapeau ▶ dans la barre du haut, Ctrl+Tab.
+	selecteur_villes = SelecteurVilles.new()
+	selecteur_villes.name = "SelecteurVilles"
+	hud.add_child(selecteur_villes)
+	selecteur_villes.setup(pays, communes, rig)
+	selecteur_villes.hauteur_sol = rig.ground_height
+	selecteur_villes.bloque = func() -> bool:
+		var vs := get_node_or_null("VueSol") as VueSol
+		return GameStart.atelier or VisiteVille.active() or (vs != null and vs.vue != VueSol.Vue.DESSUS)
+	hud.poser_dans_barre(selecteur_villes.barre, "Chercher")
 	kit = KitInstallation.new()
 	kit.name = "KitInstallation"
 	add_child(kit)
@@ -1992,6 +2006,22 @@ func _resume_nuisances() -> Array:
 
 
 ## Production : sites, stocks, carte des ressources sur le terrain et panneau (P).
+## Clic sur un terrain libre (outil Observer) : fiche « Que faire ici ? ».
+func _terrain_clique(c: Vector2i) -> void:
+	if not OptionsJeu.fiche_lieu or que_faire_ici == null:
+		return
+	if transport != null and transport.is_cell_occupied(c):
+		return
+	ouvrir_que_faire_ici(c)
+
+
+func ouvrir_que_faire_ici(c: Vector2i) -> void:
+	if que_faire_ici == null:
+		return
+	que_faire_ici.lecture_seule = VisiteVille.active()
+	que_faire_ici.ouvrir(c)
+
+
 func _setup_production() -> void:
 	production = Production.new()
 	production.name = "Production"
@@ -2014,6 +2044,18 @@ func _setup_production() -> void:
 		rig.position.x = pos.x
 		rig.position.z = pos.z)
 	hud.production_requested.connect(func() -> void: production_panel.toggle())
+	que_faire_ici = QueFaireIci.new()
+	que_faire_ici.name = "QueFaireIci"
+	add_child(que_faire_ici)
+	que_faire_ici.setup(production)
+	que_faire_ici.construire.connect(func(id: String) -> void:
+		if production_panel.is_open():
+			production_panel.set_open(false)
+		_select_building_tool()
+		buildings.set_place(id))
+	population.ground_clicked.connect(_terrain_clique)
+	production_panel.lieu_requested.connect(func() -> void:
+		ouvrir_que_faire_ici(Vector2i(floori(rig.position.x), floori(rig.position.z))))
 	carrieres = Carrieres.new()
 	carrieres.name = "Carrieres"
 	add_child(carrieres)
@@ -2950,6 +2992,7 @@ func _setup_mairie() -> void:
 	_setup_fil_habitants()
 	_setup_jauges()
 	_setup_pile_gauche()
+	_setup_affichage()
 	recherche = RechercheUniverselle.new()
 	recherche.name = "RechercheUniverselle"
 	add_child(recherche)
@@ -3042,6 +3085,64 @@ func _setup_pile_gauche() -> void:
 	pile_gauche.bas = [
 		func() -> Control: return hud._cell_card,
 		func() -> Control: return fil_alertes._panel if is_instance_valid(fil_alertes) else null]
+
+
+## Fermer et réafficher les cartes d'information (croix sur chaque carte, œil de la
+## barre du haut, Ctrl+H). La barre du haut et la barre du bas restent toujours.
+var affichage: AffichagePanneaux
+
+
+func _setup_affichage() -> void:
+	affichage = AffichagePanneaux.new()
+	add_child(affichage)
+	hud.poser_bouton_affichage(affichage.faire_bouton())
+	affichage.ajouter("objectifs", "Objectifs et tutoriel", "trophee",
+		"Carte du tutoriel et des objectifs, en haut à gauche",
+		func() -> Control: return tuto_carte._col if is_instance_valid(tuto_carte) else null,
+		func() -> void:
+			if is_instance_valid(tuto_carte) and tuto_carte._col != null:
+				tuto_carte._col.visible = true)
+	affichage.ajouter("scenario", "Scénario", "etoile", "Carte du scénario en cours",
+		func() -> Control: return scenario_carte._panel if is_instance_valid(scenario_carte) else null)
+	affichage.ajouter("habitant", "Habitant suivi", "habitants", "Fiche courte de l'habitant que tu suis",
+		func() -> Control: return habitants_panel._card if is_instance_valid(habitants_panel) else null,
+		func() -> void:
+			if is_instance_valid(habitants_panel):
+				habitants_panel._refresh_card())
+	affichage.ajouter("personnage", "Questions du personnage", "valise",
+		"Les grands choix de ton personnage (couple, études, emploi…)",
+		func() -> Control: return habitants_panel._ask if is_instance_valid(habitants_panel) else null,
+		func() -> void:
+			if is_instance_valid(habitants_panel):
+				habitants_panel._refresh_ask())
+	affichage.ajouter("fil_habitants", "Fil des habitants", "megaphone", "Ce que vivent et disent les habitants",
+		func() -> Control: return fil_habitants if is_instance_valid(fil_habitants) else null,
+		func() -> void:
+			if is_instance_valid(fil_habitants):
+				fil_habitants._rafraichir())
+	affichage.ajouter("a_faire", "À faire", "cloche", "Les alertes de la Mairie à traiter (aussi dans la Mairie, M)",
+		func() -> Control: return fil_alertes._panel if is_instance_valid(fil_alertes) else null,
+		func() -> void:
+			if is_instance_valid(fil_alertes):
+				fil_alertes.refresh())
+	affichage.ajouter("case", "Infos de la case", "infos", "Carte de la case survolée, en bas à gauche",
+		func() -> Control: return hud._cell_card,
+		func() -> void: hud._cell_card.visible = true)
+	affichage.ajouter("jauges", "Jauges de la ville", "reseaux", "Demande L/C/I/B et électricité, eau, égouts, déchets",
+		func() -> Control: return jauges if is_instance_valid(jauges) else null,
+		func() -> void:
+			if is_instance_valid(jauges):
+				jauges.visible = not GameStart.atelier and not hud.create_mode)
+	var maj := func() -> void:
+		hud.gauche_libre = affichage.est_masque("case") and affichage.est_masque("a_faire")
+		hud._fit_dock()
+	affichage.change.connect(maj)
+	maj.call()
+	# Questions du personnage fermées : le temps s'arrête quand même, on le rappelle.
+	if population != null:
+		population.questions_changed.connect(func() -> void:
+			if affichage.est_masque("personnage") and not population.principal.questions.is_empty():
+				hud.show_message("Ton personnage attend ta réponse : œil en haut de l'écran → « Questions du personnage » (ou Ctrl+H)."))
 
 
 ## Bâtiments d'une ville (lieu de la Mairie) ; Callable vide pour tout le pays.
@@ -3542,6 +3643,8 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 		avis.clear()
 	if pays != null:
 		pays.clear()
+	if selecteur_villes != null:
+		selecteur_villes.clear()
 	if pilote != null:
 		pilote.clear()
 	if objectifs != null:

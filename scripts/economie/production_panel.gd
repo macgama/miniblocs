@@ -7,6 +7,8 @@ extends CanvasLayer
 signal focus_requested(pos: Vector3)
 ## Outil des carrières demandé : "perimetre" (pour le site bid) ou "sondage".
 signal outil_carriere(mode: String, bid: int)
+## Fiche « Que faire ici ? » demandée au centre de l'écran.
+signal lieu_requested
 
 const W := 348.0
 const H := 560.0
@@ -187,6 +189,13 @@ func _view_resources() -> void:
 	grid.add_theme_constant_override("h_separation", 4)
 	grid.add_theme_constant_override("v_separation", 4)
 	_body.add_child(grid)
+	var ici := Button.new()
+	ici.text = "Que faire ici ? (centre de l'écran)"
+	ici.icon = Icones.get_icon("lieu", 18)
+	ici.focus_mode = Control.FOCUS_NONE
+	ici.tooltip_text = "Ressources du lieu et bâtiments à y construire, en images. Aussi : clic sur un terrain libre."
+	ici.pressed.connect(func() -> void: lieu_requested.emit())
+	_body.add_child(ici)
 	var around := _measure_around()
 	for res in Ressources.ORDRE:
 		var nat := Ressources.naturelle(res)

@@ -93,6 +93,19 @@ Nouveaux bâtiments : 4 fermes (maraîchage, betteraves, lin et coton, lait), 13
 
 Code : `scripts/economie/production.gd` (sites, livraisons, courses, comptes), `ressources.gd` (marchandises, commerces, consommation), `production_types.gd` et `commerces_types.gd` (bâtiments), `Traffic.add_delivery_vehicle` (camions). Sauvegarde : section `production`, version 2 (les parties d'avant gardent leur stock, rangé dans les entrepôts ou chez les producteurs).
 
+## Fiche « Que faire ici ? » (2026-11-20)
+
+Pour savoir ce qu'on peut installer à un endroit, sans tester chaque bâtiment :
+
+- **Clic sur un terrain libre** (outil Observer, ni bâtiment ni voie dessous), ou **P → Ressources → « Que faire ici ? »** (au centre de l'écran).
+- **Ressources autour (150 m)** : un picto rond par ressource, sa jauge et son pourcentage.
+- **À construire ici** : la vignette de chaque bâtiment d'extraction qui passe la règle de pose (même richesse minimale et même rayon que `Production.check_site`), avec les tonnes par jour prévues et un bouton **Construire** qui lance la pose.
+- **Pour transformer ce qui sort d'ici** : les usines dont tous les intrants sortent d'ici, de proche en proche (bois → scierie → menuiserie), en vert ; celles qui reçoivent une partie de leurs intrants d'ici, en orange, avec « À faire venir : … ».
+- **Pas ici** : vignettes grisées avec la raison : trop pauvre (« 4 % / 15 % »), mauvais climat (oliveraie hors climat méditerranéen, plantation tropicale hors climat subtropical ou tropical), pas encore inventé (« arrive en 1860 »), ou à débloquer (arbre de progression).
+- Option : Options → Jeu → « Fiche « Que faire ici ? » au clic ».
+
+Code : `scripts/economie/que_faire_ici.gd` (`QueFaireIci.analyser` est statique). Test : `tests/que_faire_ici_test.gd`. Captures : `tests/que_faire_ici_vitrine.gd`.
+
 ## Étapes suivantes proposées
 
 - Trains et bateaux de fret qui chargent eux-mêmes aux gares et aux ports (aujourd'hui, ils ajoutent de la capacité d'import et d'export).

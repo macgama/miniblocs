@@ -112,6 +112,8 @@ const SECTIONS := [
 	["Pays et caisses des villes", [
 		["Maj+P", "panneau Pays : caisse du pays, impôt national, dotation par habitant, et chaque ville avec sa caisse, son solde du mois et son maire ; Gérer, Subvention, Reverser au pays"],
 		["Une caisse par ville", "chaque ville a ses impôts, ses emprunts, son entretien et sa tutelle ; la caisse affichée en haut est celle de la ville que regarde la caméra (Gérer dans Maj+P pour l'épingler)"],
+		["Ctrl+Tab", "passer à la ville suivante (Ctrl+Maj+Tab : la précédente) : la caméra saute sur sa mairie, sa caisse, son budget et sa Mairie suivent ; aussi avec les flèches ◀ ▶ de la barre du haut, dès la 2e ville"],
+		["Mes villes", "clic sur le drapeau entre les flèches de la barre du haut : toutes tes villes en vignettes (photo prise la dernière fois que tu y étais, habitants, satisfaction, caisse, maire) ; un clic pour y aller"],
 		["Qui paie ?", "ce qui se construit sur le territoire d'une ville est payé par sa caisse ; les voies et bâtiments hors des villes, par le pays ; les ventes des entreprises sont partagées selon la population"],
 		["Caisse du pays", "elle reçoit l'argent de départ et l'impôt national (10 % des impôts des villes) ; elle paie la dotation par habitant, l'entretien des voies hors des villes, les subventions et le capital des nouvelles villes (60 % de la caisse pour la première, 1 M€ pour les suivantes)"],
 		["Pays à sec", "une caisse du pays vide ne verse plus de dotation : les villes doivent alors vivre de leurs impôts"],
@@ -442,6 +444,7 @@ const SECTIONS := [
 		["T", "mettre le temps en pause / reprendre"],
 		["Maj + T", "vitesse suivante du temps : par défaut 1 jour de jeu par minute ; plus lent pour regarder la ville vivre (la marée suit l'heure et la Lune : voir la barre d'état)"],
 		["Ctrl + T, ou clic sur le Soleil de l'horloge", "jour permanent : l'image reste de jour pour construire, l'heure, les habitants et la production continuent (automatique quand Construire ou l'éditeur libre est ouvert)"],
+		["Ctrl + H, ou l'œil en haut de l'écran", "fermer ou réafficher les cartes d'information (objectifs, habitant suivi, fil des habitants, À faire, carte de la case, jauges…) : croix ronde dans le coin de chaque carte, menu Affichage en vignettes, Ctrl + H masque tout puis remet tout comme avant ; le choix est gardé pour les parties suivantes. Les barres du haut et du bas restent toujours"],
 		["V", "vue suivante : dessus, 3e personne, 1re personne"],
 		["ZQSD, Maj, Espace", "marcher, courir, sauter (vue au sol)"],
 		["E ou clic gauche", "ouvrir ou fermer une porte, une porte de garage (vue au sol), y compris dans les murs fins"],

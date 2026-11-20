@@ -442,6 +442,7 @@ const SECTIONS := [
 		["T", "mettre le temps en pause / reprendre"],
 		["Maj + T", "vitesse suivante du temps : par défaut 1 jour de jeu par minute ; plus lent pour regarder la ville vivre (la marée suit l'heure et la Lune : voir la barre d'état)"],
 		["Ctrl + T, ou clic sur le Soleil de l'horloge", "jour permanent : l'image reste de jour pour construire, l'heure, les habitants et la production continuent (automatique quand Construire ou l'éditeur libre est ouvert)"],
+		["Ctrl + H, ou l'œil en haut de l'écran", "fermer ou réafficher les cartes d'information (objectifs, habitant suivi, fil des habitants, À faire, carte de la case, jauges…) : croix ronde dans le coin de chaque carte, menu Affichage en vignettes, Ctrl + H masque tout puis remet tout comme avant ; le choix est gardé pour les parties suivantes. Les barres du haut et du bas restent toujours"],
 		["V", "vue suivante : dessus, 3e personne, 1re personne"],
 		["ZQSD, Maj, Espace", "marcher, courir, sauter (vue au sol)"],
 		["E ou clic gauche", "ouvrir ou fermer une porte, une porte de garage (vue au sol), y compris dans les murs fins"],

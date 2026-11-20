@@ -2960,6 +2960,7 @@ func _setup_mairie() -> void:
 	_setup_fil_habitants()
 	_setup_jauges()
 	_setup_pile_gauche()
+	_setup_affichage()
 	recherche = RechercheUniverselle.new()
 	recherche.name = "RechercheUniverselle"
 	add_child(recherche)
@@ -3052,6 +3053,64 @@ func _setup_pile_gauche() -> void:
 	pile_gauche.bas = [
 		func() -> Control: return hud._cell_card,
 		func() -> Control: return fil_alertes._panel if is_instance_valid(fil_alertes) else null]
+
+
+## Fermer et réafficher les cartes d'information (croix sur chaque carte, œil de la
+## barre du haut, Ctrl+H). La barre du haut et la barre du bas restent toujours.
+var affichage: AffichagePanneaux
+
+
+func _setup_affichage() -> void:
+	affichage = AffichagePanneaux.new()
+	add_child(affichage)
+	hud.poser_bouton_affichage(affichage.faire_bouton())
+	affichage.ajouter("objectifs", "Objectifs et tutoriel", "trophee",
+		"Carte du tutoriel et des objectifs, en haut à gauche",
+		func() -> Control: return tuto_carte._col if is_instance_valid(tuto_carte) else null,
+		func() -> void:
+			if is_instance_valid(tuto_carte) and tuto_carte._col != null:
+				tuto_carte._col.visible = true)
+	affichage.ajouter("scenario", "Scénario", "etoile", "Carte du scénario en cours",
+		func() -> Control: return scenario_carte._panel if is_instance_valid(scenario_carte) else null)
+	affichage.ajouter("habitant", "Habitant suivi", "habitants", "Fiche courte de l'habitant que tu suis",
+		func() -> Control: return habitants_panel._card if is_instance_valid(habitants_panel) else null,
+		func() -> void:
+			if is_instance_valid(habitants_panel):
+				habitants_panel._refresh_card())
+	affichage.ajouter("personnage", "Questions du personnage", "valise",
+		"Les grands choix de ton personnage (couple, études, emploi…)",
+		func() -> Control: return habitants_panel._ask if is_instance_valid(habitants_panel) else null,
+		func() -> void:
+			if is_instance_valid(habitants_panel):
+				habitants_panel._refresh_ask())
+	affichage.ajouter("fil_habitants", "Fil des habitants", "megaphone", "Ce que vivent et disent les habitants",
+		func() -> Control: return fil_habitants if is_instance_valid(fil_habitants) else null,
+		func() -> void:
+			if is_instance_valid(fil_habitants):
+				fil_habitants._rafraichir())
+	affichage.ajouter("a_faire", "À faire", "cloche", "Les alertes de la Mairie à traiter (aussi dans la Mairie, M)",
+		func() -> Control: return fil_alertes._panel if is_instance_valid(fil_alertes) else null,
+		func() -> void:
+			if is_instance_valid(fil_alertes):
+				fil_alertes.refresh())
+	affichage.ajouter("case", "Infos de la case", "infos", "Carte de la case survolée, en bas à gauche",
+		func() -> Control: return hud._cell_card,
+		func() -> void: hud._cell_card.visible = true)
+	affichage.ajouter("jauges", "Jauges de la ville", "reseaux", "Demande L/C/I/B et électricité, eau, égouts, déchets",
+		func() -> Control: return jauges if is_instance_valid(jauges) else null,
+		func() -> void:
+			if is_instance_valid(jauges):
+				jauges.visible = not GameStart.atelier and not hud.create_mode)
+	var maj := func() -> void:
+		hud.gauche_libre = affichage.est_masque("case") and affichage.est_masque("a_faire")
+		hud._fit_dock()
+	affichage.change.connect(maj)
+	maj.call()
+	# Questions du personnage fermées : le temps s'arrête quand même, on le rappelle.
+	if population != null:
+		population.questions_changed.connect(func() -> void:
+			if affichage.est_masque("personnage") and not population.principal.questions.is_empty():
+				hud.show_message("Ton personnage attend ta réponse : œil en haut de l'écran → « Questions du personnage » (ou Ctrl+H)."))
 
 
 ## Bâtiments d'une ville (lieu de la Mairie) ; Callable vide pour tout le pays.

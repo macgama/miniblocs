@@ -834,6 +834,8 @@ func _setup_population() -> void:
 	habitants_panel.name = "PanneauHabitants"
 	add_child(habitants_panel)
 	habitants_panel.setup(population)
+	# En construction bloc par bloc, F renverse la forme : la caméra de l'habitant suivi garde son bouton.
+	habitants_panel.f_key_taken = func() -> bool: return blocks != null and blocks.tool == BlockEditor.Tool.BLOCK
 	habitants_panel.focus_requested.connect(func(pos: Vector3) -> void:
 		rig.position.x = pos.x
 		rig.position.z = pos.z)

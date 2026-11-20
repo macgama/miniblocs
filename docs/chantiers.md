@@ -104,17 +104,35 @@ plus d'acier. Les routes prennent des granulats et du sable (et un peu de
 ciment après 1920), les voies ferrées du ballast, des rails et des traverses
 (bois avant 1950, béton après).
 
+Les quantités suivent la surface de plancher, la même que pour la durée du
+chantier (`Chantiers.plancher_batiment`) : niveaux entiers de 3,5 m, la pointe
+du toit ne compte pas comme un étage. Une maison (10 × 12 m) de 1800 fait
+192 m² de plancher, soit environ 211 t : 144 t de pierre, 23 t de bois, 19 t
+de sable, 15 t de chaux et 10 t de tuiles.
+
 Le chantier se sert d'abord dans les stocks de la carte (carrière, four à
 chaux, scierie, briqueterie, tuilerie, cimenterie, entrepôts…), du plus proche
 au plus loin dans un rayon de 30 km : l'entreprise est payée sur le prix du
 chantier (« Ventes aux chantiers » dans ses comptes). Ce qui manque est
-importé, déjà compris dans le prix. Le prix d'un chantier ne change donc pas,
-mais une ville qui produit ses matériaux fait travailler ses entreprises.
+importé : la caisse qui paie le chantier règle **en plus** la différence entre
+le prix d'import et le prix intérieur (≈ +25 %, selon le marché mondial),
+inscrite au budget « Matériaux importés (chantiers) ». Une ville qui produit
+ses matériaux paie donc ses chantiers moins cher et fait travailler ses
+entreprises.
 
-La carte du marqueur (survol) affiche les principaux matériaux. Code :
+**Camions** (`scripts/chantiers/livraisons_chantiers.gd`) : les tonnes prises
+sont mises de côté par fournisseur et par genre de camion (benne, grumier,
+camion à caisse) ; à chaque plein, un camion part de la carrière ou de l'usine
+(ou de la route qui sort de la carte pour les imports), roule jusqu'au
+chantier, décharge et rentre. Le dernier chargement part à la fin du chantier.
+Les camions sont visibles seulement (tonnes et argent comptés quand le chantier
+les prend) ; sans route jusqu'au chantier, rien ne part.
+
+La carte du marqueur (survol) affiche les principaux matériaux, les tonnes déjà
+livrées, la part importée et son surcoût. Code :
 `scripts/chantiers/materiaux_chantiers.gd` ; `BatimentsVie.materiaux_de(bid)`
 et `SuiviChantiers.materiaux_de(cle)` donnent ce qui a été reçu (local ou
-importé).
+importé, et `surcout` en €).
 
 ## Tester
 

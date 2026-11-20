@@ -200,7 +200,7 @@ const SECTIONS := [
 		["Vitesse de la vie", "réglage du panneau : 1 an de vie = 1 mois de jeu par défaut, ou très rapide (1 an = 1 jour), ou réaliste"],
 		["Fiche d'un habitant", "sa vie en frise et son CV (écoles, diplômes, emplois, couple, enfants, santé, médailles), sa famille cliquable, même après sa mort"],
 		["☆ Suivre (fiche d'un habitant)", "suivre un habitant façon Sims : repère au-dessus de lui, caméra qui l'accompagne, nouvelles de sa vie"],
-		["F", "habitant suivi : la caméra le suit ou reste libre (bouger la caméra la libère aussi)"],
+		["F", "habitant suivi : la caméra le suit ou reste libre (bouger la caméra la libère aussi) ; en posant des blocs, F renverse la forme"],
 		["Clic sur un passant", "les habitants près de la caméra marchent, roulent ou pédalent vers leur travail, l'école, le sport : un clic ouvre sa fiche"],
 		["Donner un ordre (fiche)", "sa journée (aller à…, rentrer, travail, loisir, courses, visite, dormir) ou ses choix de vie (emploi, déménagement, rencontre, mariage, enfant, séparation, retraite) ; Échap annule « Aller à… »"],
 		["Ton personnage", "il naît dans une famille de ta ville ; une carte te demande ses grands choix (couple, mariage, enfants, études, emploi, retraite), le temps se met en pause"],

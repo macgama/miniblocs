@@ -385,19 +385,31 @@ func _materiaux(b: Dictionary, dp: float) -> void:
 	if not b.has("matx"):
 		b["matx"] = MateriauxChantiers.besoins_batiment(String(b.t))
 	var r := buildings._rect_of(b)
-	var c := Vector2(r.position) + Vector2(r.size) * 0.5
-	var f := MateriauxChantiers.fournir(b.matx, dp, Vector3(c.x, 0.0, c.y))
+	var f := MateriauxChantiers.fournir(b.matx, dp, _pos_chantier(b))
 	if not b.has("mat_l"):
 		b["mat_l"] = {}
 		b["mat_i"] = {}
 	MateriauxChantiers.cumule(b.mat_l, f.local)
 	MateriauxChantiers.cumule(b.mat_i, f.import)
+	if float(f.surcout) > 0.0:
+		var caisse_prev := Pays.du_batiment(b, r)
+		var sc := MateriauxChantiers.regler_surcout(f, buildings)
+		Pays.retour(caisse_prev)
+		if sc > 0:
+			b["mat_sc"] = int(b.get("mat_sc", 0)) + sc
+
+
+## Point où les camions livrent un chantier de bâtiment (centre du terrain).
+func _pos_chantier(b: Dictionary) -> Vector3:
+	var r := buildings._rect_of(b)
+	var c := Vector2(r.position) + Vector2(r.size) * 0.5
+	return Vector3(c.x, 0.0, c.y)
 
 
 ## Matériaux reçus par un chantier : {"local": {g: t}, "import": {g: t}, "total": {g: t}}.
 func materiaux_de(bid: int) -> Dictionary:
 	var b: Dictionary = buildings.buildings.get(bid, {})
-	return {"local": b.get("mat_l", {}), "import": b.get("mat_i", {}),
+	return {"local": b.get("mat_l", {}), "import": b.get("mat_i", {}), "surcout": int(b.get("mat_sc", 0)),
 		"total": b.get("matx", MateriauxChantiers.besoins_batiment(String(b.get("t", ""))))}
 
 
@@ -502,10 +514,22 @@ func detail_chantier(bid: int) -> Dictionary:
 			etat = "%d ouvriers sur %d" % [int(eq[0]), int(eq[1])]
 		"repos": etat = "Équipe au repos"
 	var mat := ""
+	var imp := ""
 	if b.has("matx") and not (b.matx as Dictionary).is_empty():
 		mat = MateriauxChantiers.texte(b.matx, 3)
+		# Ce qui est déjà arrivé : d'ici (carrières, usines) ou importé (avec son surcoût).
+		var t_l := 0.0
+		var t_i := 0.0
+		for g in b.get("mat_l", {}):
+			t_l += float(b.mat_l[g])
+		for g in b.get("mat_i", {}):
+			t_i += float(b.mat_i[g])
+		if t_l + t_i >= 0.5:
+			imp = "%s livrées, dont %d %% importées" % [Ressources.format_t(t_l + t_i), roundi(100.0 * t_i / (t_l + t_i))]
+			if int(b.get("mat_sc", 0)) > 0:
+				imp += " (+%s)" % BuildingSystem.format_money(int(b.mat_sc))
 	return {"nom": String(BuildingCatalog.get_type(String(b.t)).get("name", "Chantier")), "etape": String(e[2]) if e.size() > 2 else "",
-		"av": progress(bid), "statut": st, "etat": etat, "materiaux": mat,
+		"av": progress(bid), "statut": st, "etat": etat, "materiaux": mat, "livres": imp,
 		"fin": "" if st == "argent" or st == "pause" or st == "sans_ouvriers" else fin}
 
 
@@ -517,6 +541,8 @@ func texte_chantier(bid: int) -> String:
 	var txt := "%s\n%s · %d %%\n" % [d.nom, d.etape, floori(float(d.av) * 100.0)]
 	if String(d.materiaux) != "":
 		txt += "Matériaux : %s\n" % d.materiaux
+	if String(d.get("livres", "")) != "":
+		txt += "%s\n" % d.livres
 	txt += String(d.etat)
 	if String(d.fin) != "":
 		txt += " · fin vers le %s" % d.fin
@@ -673,7 +699,9 @@ func _finish_chantier(bid: int) -> void:
 		b.erase("ordre")
 		b.erase("av")
 		b.erase("hr")
-		for k in ["matx", "mat_l", "mat_i"]:
+		# Dernier chargement en route vers le chantier qui se termine.
+		LivraisonsChantiers.solder(_pos_chantier(b))
+		for k in ["matx", "mat_l", "mat_i", "mat_sc"]:
 			b.erase(k)
 		b["fin"] = now()
 		_payer_reste(b)

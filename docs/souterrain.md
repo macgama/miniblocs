@@ -8,7 +8,28 @@ Test : `tests/souterrain_test.gd` (avec captures : `-- --dossier /chemin`).
 - **Page bas** sous le rez-de-chaussée (ou tout de suite s'il n'y a pas de
   bâtiment à étages en murs fins autour de la caméra) : c'est la suite de la
   vue par étage (`VueEtages`).
-- Ou le menu **Infos → Vue sous terre**.
+- Ou le bouton **Sous terre** de la barre du bas (à gauche de « Dessus »),
+  allumé tant que la vue est ouverte ; un second clic revient en surface.
+- Ou **Construire (B) → Sous terre** : conduites, câbles, tunnels, métro, caves,
+  parkings, entrepôts, locaux techniques, bunkers, en images.
+- Et **toute seule** dès qu'on prend un outil qui construit sous le sol, d'où
+  qu'il vienne (`scripts/souterrain/sous_terre_auto.gd`, classe `SousTerreAuto`,
+  test `tests/sous_terre_auto_test.gd`) :
+
+  | Outil pris | Où | Niveau |
+  |---|---|---|
+  | Conduite d'eau, collecteur, gaz, câble électrique souterrain, aqueduc, séparatif, chaleur, hydrogène | Réseaux (O) | −1 |
+  | Fibre sous la rue, ligne téléphonique enterrée, coaxial | Télécoms (Maj+O) | −1 |
+  | Métro | Voies → Rail → Métro | −3 |
+  | Conduites, tunnels, pièces | Construire → Sous terre | −1 (tunnels : −3) |
+
+  Si la vue est déjà ouverte, l'outil se pose au niveau affiché. Les lignes sur
+  poteaux ou pylônes et la fibre aérienne restent en surface. Quand on range
+  l'outil (Échap, clic droit, autre outil), la vue revient en surface si c'est
+  l'outil qui l'avait ouverte. **Retour en surface** avec une conduite ou le
+  métro en main le garde en main, en surface (métro aérien, conduite posée à
+  l'ancienne) : il n'est plus repris tant qu'on le garde. En vue au sol (V),
+  rien ne bascule.
 - **Page haut** remonte d'un niveau, **Origine** ou **Échap** revient à la surface.
 - Niveaux : Sous-sol −1 à −20, 3 m chacun (comme un étage de l'Atelier), donc
   jusqu'à 60 m de fond.
@@ -75,7 +96,11 @@ l'outil en main suit le niveau).
 
 ### Poser (conduites et tunnels)
 
-- **Eau, Égout, Gaz, Fibre** : le traceur du panneau O (ou du Télécom), mais à la
+Tous les outils sont des vignettes : coupe du sous-sol pour les conduites, les
+tunnels et les pièces, icônes pour Murs, Porte, Escalier, Gomme, Déplacer,
+Supprimer.
+
+- **Eau, Égout, Gaz, Électricité, Fibre** : le traceur du panneau O (ou du Télécom), mais à la
   profondeur du niveau. Au −1, la conduite garde sa profondeur habituelle ; plus
   bas, elle passe au milieu du niveau (10,5 m au −4). Prix et durée selon la
   profondeur (`facteur_profondeur`) :
@@ -86,7 +111,10 @@ l'outil en main suit le niveau).
   | 2 à 6 m | tranchée blindée | × 1 à × 2 |
   | plus de 6 m | microtunnelier (fonçage) | × 2,5 puis + 8 % par mètre |
 
-- **Métro, Tunnel (rue), Tunnel (2×2), Tunnel ferroviaire** : l'outil des voies,
+  **Électricité** = câble électrique souterrain du panneau O (1 100 €/m, ni
+  poteaux ni pannes de tempête) ; comme les conduites, il descend avec le niveau.
+
+- **Métro, Rue, 2 × 2 voies, Train** (tunnels) : l'outil des voies,
   avec les voies à `niveau × 3 − 1` m (14 m au −5). Pas au-dessus du −3. Partant
   d'une voie de surface, le tracé descend en rampe (pente maxi du type). Prix
   du tunnel au mètre, payé au fil des travaux (étapes : sondages, tunnelier,
@@ -105,8 +133,8 @@ l'outil en main suit le niveau).
 
 ### Creuser (pièces)
 
-Choisir l'usage et la hauteur (1 à 3 niveaux), puis **Creuser** et glisser un
-rectangle. Le chantier creuse, soutient, coule les dalles et les voiles (on le
+Cliquer la vignette de l'usage (Cave, Parking, Entrepôt, Local technique,
+Bunker), choisir la hauteur (1 à 3 niveaux), puis glisser un rectangle. Le chantier creuse, soutient, coule les dalles et les voiles (on le
 voit avancer dans la vue), payé au fil des travaux. À la fin, la pièce devient un
 **sous-sol de l'Atelier** (plan « st ») en béton brut : les outils **Murs, Porte,
 Escalier, Gomme** de la barre (ceux de l'Atelier, au niveau affiché) l'aménagent.

@@ -8,6 +8,8 @@ signal focus_requested(pos: Vector3)
 ## Boutons de la fiche d'un bâtiment : personnaliser (catalogue), aménager (murs fins).
 signal customize_requested(bid: int)
 signal furnish_requested(bid: int)
+## « Aménager l'intérieur » d'un bâtiment du catalogue : il est d'abord ouvert en murs fins.
+signal interior_requested(bid: int)
 
 const W := 348.0
 const H := 560.0
@@ -536,6 +538,54 @@ func _view_list() -> void:
 		_text("… et %d autres (affine la recherche)." % (total - shown), true)
 
 
+## Deux grandes tuiles illustrées sous la fiche : « Modifier la façade » (style,
+## couleurs, toit, étages, avec un devis) et « Aménager l'intérieur » (pièces et
+## meubles ; un bâtiment du catalogue est d'abord ouvert en murs fins).
+func _tuiles_travaux(bid: int, info: Dictionary) -> void:
+	var tid := String(info.t)
+	var b: Dictionary = pop.buildings.buildings.get(bid, {}) if pop.buildings != null else {}
+	var facade := not info.has("plan") and Personnalisation.can_customize(tid)
+	var interieur := info.has("plan") or Conversion.can_open(tid, b.get("perso", {}))
+	if not facade and not interieur:
+		return
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+	_body.add_child(row)
+	if facade:
+		var f := _tuile("Modifier la façade", "Style, couleurs, toit, étages", "peinture",
+			"Change le style, les couleurs (murs, toit, volets, porte…), la forme du toit et les étages de ce bâtiment.\nTu vois le résultat tout de suite, avec le devis des travaux à valider.")
+		f.name = "TuileFacade"
+		f.pressed.connect(func() -> void: customize_requested.emit(bid))
+		row.add_child(f)
+	if interieur:
+		var sous := "Pièces, murs, meubles" if info.has("plan") else "Ouvrir et meubler"
+		var tip := "Meubles, pièces, murs : ouvre l'onglet Intérieur sur ce bâtiment." if info.has("plan") else \
+			"Le bâtiment est refait en vrais murs (portes, escaliers, toit) avec ses couleurs, découpé en pièces et meublé.\nLe prix du bâtiment est repris ; tu paies les murs et les meubles. Ensuite : onglet Intérieur, entre avec V."
+		var i := _tuile("Aménager l'intérieur", sous, "interieur", tip)
+		i.name = "TuileInterieur"
+		i.pressed.connect(func() -> void:
+			if info.has("plan"):
+				furnish_requested.emit(bid)
+			else:
+				interior_requested.emit(bid))
+		row.add_child(i)
+
+
+func _tuile(titre: String, sous: String, icone: String, tip: String) -> Button:
+	var t := Button.new()
+	t.text = "%s\n%s" % [titre, sous]
+	t.icon = Icones.get_icon(icone if Icones.has_icon(icone) else "construire", 34, UiStyle.ACCENT)
+	t.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	t.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
+	t.expand_icon = false
+	t.custom_minimum_size = Vector2(0, 78)
+	t.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	t.add_theme_font_size_override("font_size", 13)
+	t.focus_mode = Control.FOCUS_NONE
+	t.tooltip_text = tip
+	return t
+
+
 ## Agrandissement (3 niveaux) et rénovation d'un bâtiment (Ameliorations).
 func _fiche_amelioration(bid: int) -> void:
 	var am := Ameliorations.instance
@@ -654,23 +704,8 @@ func _view_building(bid: int) -> void:
 	go.pressed.connect(func() -> void: focus_requested.emit(info.pos))
 	var acts := HBoxContainer.new()
 	acts.add_child(go)
-	if info.has("plan"):
-		var fu := Button.new()
-		fu.text = "Aménager"
-		fu.icon = Icones.get_icon("interieur", 18)
-		fu.focus_mode = Control.FOCUS_NONE
-		fu.tooltip_text = "Meubles, pièces, murs : ouvre l'onglet Intérieur sur ce bâtiment (et l'enregistrer dans la banque de modèles)."
-		fu.pressed.connect(func() -> void: furnish_requested.emit(bid))
-		acts.add_child(fu)
-	elif Personnalisation.can_customize(String(info.t)):
-		var cu := Button.new()
-		cu.text = "Personnaliser"
-		cu.icon = Icones.get_icon("peinture", 18)
-		cu.focus_mode = Control.FOCUS_NONE
-		cu.tooltip_text = "Couleurs, toit, étages ; ouvrir l'intérieur ; enregistrer dans la banque de modèles."
-		cu.pressed.connect(func() -> void: customize_requested.emit(bid))
-		acts.add_child(cu)
 	_body.add_child(acts)
+	_tuiles_travaux(bid, info)
 	# Le détail, rubrique par rubrique (repliées au départ : un clic sur le titre déplie).
 	if Reseaux.instance != null and Reseaux.instance.raccordements != null and is_instance_valid(Reseaux.instance):
 		var rac := Reseaux.instance.raccordements

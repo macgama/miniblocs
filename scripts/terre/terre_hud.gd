@@ -184,7 +184,8 @@ const CATEGORIES := [
 	{"id": "arbre", "name": "Arbre de progression (points de progrès à dépenser)", "icon": "etoile", "key": "Maj+F10", "panel": true, "group": "infos"},
 	{"id": "sante", "name": "Santé publique (hygiène, vaccins, épidémies)", "icon": "sante", "key": "F7", "panel": true, "group": "infos"},
 	{"id": "photo", "name": "Mode photo et time-lapse (Maj+F8)", "icon": "appareil_photo", "key": "F8", "panel": true, "group": "infos"},
-	{"id": "souterrain", "name": "Vue sous terre (tuyaux, câbles, métro, sous-sols)", "icon": "souterrain", "key": "Page bas", "panel": true, "group": "infos"},
+	# Dans la barre du bas, à côté de la vue : voir et construire sous le sol.
+	{"id": "souterrain", "name": "Sous terre (voir et construire : conduites, câbles, tunnels, métro, caves, bunkers)", "icon": "souterrain", "key": "Pg↓", "panel": true},
 	{"id": "succes", "name": "Succès", "icon": "trophee", "key": "F6", "panel": true, "group": "infos"},
 	{"id": "catalogue", "name": "Catalogue : tout ce qui se construit, daté, avec ses évolutions", "icon": "catalogue", "key": "Maj+F1", "panel": true, "group": "infos"},
 	{"id": "streamer", "name": "Mode streamer (le chat Twitch vote)", "icon": "direct", "key": "Maj+F11", "panel": true, "group": "infos"},
@@ -816,7 +817,7 @@ func set_compact(on: bool) -> void:
 		if on:
 			btn.set_meta("label", btn.text)
 			btn.text = ""
-			btn.custom_minimum_size = Vector2(52, 52)
+			btn.custom_minimum_size = Vector2(50, 52)
 		else:
 			btn.text = String(btn.get_meta("label", btn.text))
 			btn.custom_minimum_size = DOCK_TILE
@@ -1448,7 +1449,8 @@ func show_spec(type_id: String, spec: Dictionary, curve: bool, level := "auto", 
 	_level_pick.select(maxi(0, LEVEL_IDS.find(level)))
 	_level_pick.visible = int(c.mode) != TransportTypes.Mode.WATER
 	_upgrade.visible = int(c.mode) == TransportTypes.Mode.ROAD
-	_spec_panel.visible = true
+	# Vue sous terre : son panneau a déjà l'outil et son aide.
+	_spec_panel.visible = not sous_terre
 	_filling = false
 	_update_categories()
 
@@ -1565,7 +1567,20 @@ func set_cell_info(text: String) -> void:
 
 func set_tool_info(text: String) -> void:
 	_tool_label.text = text.strip_edges()
-	_hint_panel.visible = _tool_label.text != ""
+	_hint_panel.visible = _tool_label.text != "" and not sous_terre
+
+
+## Vue sous terre ouverte : son panneau montre l'outil et l'aide, on cache ceux
+## de la surface (réglages des voies, aide de l'outil) qui passeraient dessous.
+var sous_terre := false
+
+
+func set_sous_terre(on: bool) -> void:
+	sous_terre = on
+	set_panel_open("souterrain", on)
+	_hint_panel.visible = _tool_label.text != "" and not on
+	if on:
+		_spec_panel.visible = false
 
 
 func set_network_info(text: String) -> void:

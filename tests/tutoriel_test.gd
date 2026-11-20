@@ -119,6 +119,27 @@ func _run() -> void:
 	_check(t.id_courant() == "emplois", "« Passer » : étape « emplois »")
 	_check(zones.add_zone("C", Rect2i(6, 100, 14, 30)) > 0, "zone commerciale")
 	t.verifier()
+	_check(t.id_courant() == "marchandises", "étape « marchandises » (%s)" % t.id_courant())
+	_check(t.progres().contains("pas encore"), "progrès des marchandises : %s" % t.progres())
+	t.agir()
+	_check(scene.transit_panel.is_open(), "bouton : panneau des dépôts ouvert")
+	var dp: Dictionary = transport.stations.place("depot", Vector3(0, y, 100))
+	print("     dépôt : %s" % dp.get("reason", "ok"))
+	t.verifier()
+	_check(t.id_courant() == "marchandises" and t.progres().contains("Entrepôt : pas encore"), "sans entrepôt, on attend (%s)" % t.progres())
+	var ent := -1
+	for c in [Vector2i(26, 190), Vector2i(-26, 190), Vector2i(26, 60), Vector2i(-26, 100), Vector2i(26, 150)]:
+		var r := bs.best_rotation("entrepot", c)
+		if bs.check_place("entrepot", c, r).ok:
+			ent = bs.place("entrepot", c, r)
+			if ent >= 0:
+				break
+	_check(ent > 0, "entrepôt posé")
+	t.verifier()
+	if t.id_courant() == "marchandises":
+		print("     marchandises : %s" % t.progres())
+		t.passer()
+	scene.transit_panel.set_open(false)
 	_check(t.id_courant() == "ecole", "étape « ecole » (%s)" % t.id_courant())
 	var ec := bs.place("ecole", Vector2i(-26, 60), 1)
 	if ec < 0:

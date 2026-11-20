@@ -221,11 +221,15 @@ func _jouer_jusqu_a_fin_etape(id: String, max_min: float, pendant := Callable())
 	var dernier := -1
 	while t.actif and t.id_courant() == id and t.temps_demo - m0 < max_min * 60.0:
 		await process_frame
-		if soigneux:
+		# Comme un joueur qui a lu la bulle « Une manifestation ! » (montrée à la
+		# première) : il négocie.
+		if soigneux or t.manif_expliquee:
 			var mf = Avis.instance.manifs
 			for mid in mf.liste.keys():
 				if String(mf.liste[mid].reponse) == "" and String(mf.liste[mid].etat) != "finie":
 					print("    manifestation (%s) : %s" % [mf.liste[mid].theme, mf.repondre(mid, "negocier")])
+			if game.bulles_aide.actif and game.bulles_aide.id == "tuto:manif":
+				game.bulles_aide.fermer()
 		if pendant.is_valid():
 			pendant.call()
 		var m := int(t.temps_demo / 60.0)
@@ -359,16 +363,19 @@ func _run() -> void:
 
 		print("    réseaux payés : %s (bons du kit)" % BuildingSystem.format_money(m0 - bs.money)))
 
-	if soigneux:
-		# Un maire prévoyant : dépôt de marchandises (import).
-		var dp: Dictionary = tr.stations.place("depot", _p(100, -120 - 5))
-		print("    dépôt de marchandises : %s" % dp.get("reason", "ok"))
-
 	await _etape("temps", func() -> void:
 		print("    vitesse : %s" % DayNight.SPEED_NAMES[amb.speed_index]), 20.0)
 
 	await _etape("emplois", func() -> void:
 		_check(zs.add_zone("C", Rect2i(5, 37, 190, 56)) >= 0, "zone commerciale"))
+
+	await _etape("marchandises", func() -> void:
+		_check(game.transit_panel.is_open(), "panneau des lignes et dépôts ouvert")
+		# Le dépôt et l'entrepôt au bord de la rue de service, loin des maisons.
+		var dp: Dictionary = tr.stations.place("depot", _p(100, -120))
+		_check(dp.get("ok", false), "dépôt de marchandises (%s)" % dp.get("reason", "ok"))
+		_check(_poser("entrepot", -110, 60, -120, 1) >= 0, "entrepôt")
+		print("    %s" % t.progres()))
 
 	await _etape("ecole", func() -> void:
 		_check(game.build_panel.category() == "services", "Construire → Services ouvert")

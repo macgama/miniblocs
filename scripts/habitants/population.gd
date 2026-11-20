@@ -22,6 +22,8 @@ signal building_selected(bid: int)
 signal follow_changed
 ## Clic sur un habitant visible dans la rue.
 signal person_clicked(pid: int)
+## Clic (sans glisser, outil Observer) sur une case sans bâtiment : fiche « Que faire ici ? ».
+signal ground_clicked(cell: Vector2i)
 ## Un habitant meurt (il est encore dans persons, son foyer aussi) : obsèques (Funeraire).
 signal person_died(pid: int, home: int)
 ## Une étape de vie vient d'arriver (naissance, mariage, décès, médaille…) : le journal l'écoute.
@@ -2345,6 +2347,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			_sync_buildings()
 		select_building(bid)
 		get_viewport().set_input_as_handled()
+	else:
+		ground_clicked.emit(hit)
 
 
 # --- Sauvegarde ---------------------------------------------------------------------

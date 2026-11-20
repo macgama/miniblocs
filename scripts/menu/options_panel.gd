@@ -266,6 +266,8 @@ func _onglet_jeu() -> Control:
 		"Éclair, goutte, tuyau ou antenne sur fond rouge au-dessus des bâtiments sans électricité, eau, égouts ou internet (aussi dans le panneau Réseaux, O).")
 	_ligne(p, "Marqueurs des chantiers", _case(OptionsJeu.marqueurs_chantiers, func(b: bool) -> void: OptionsJeu.marqueurs_chantiers = b),
 		"Un cône de chantier et un anneau qui se remplit avec l'avancement, au-dessus des bâtiments en travaux (de près). Le détail s'affiche au survol ; un clic ouvre la fiche.")
+	_ligne(p, "Fiche « Que faire ici ? » au clic", _case(OptionsJeu.fiche_lieu, func(b: bool) -> void: OptionsJeu.fiche_lieu = b),
+		"Un clic sur un terrain libre montre les ressources du lieu et ce qu'on peut y construire (aussi : P → Ressources).")
 	var dossier := Button.new()
 	dossier.text = "Ouvrir le dossier des sauvegardes"
 	dossier.pressed.connect(func() -> void:

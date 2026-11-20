@@ -2392,7 +2392,10 @@ func from_dict(d: Dictionary) -> void:
 	ledger = {"mois": l.get("mois", {}), "precedent": l.get("precedent", {}), "jours": int(l.get("jours", 0))}
 	if buildings != null:
 		for bid in buildings.buildings:
-			known[int(bid)] = _info_of(buildings.buildings[bid])
+			# Comme _sync_buildings : un bâtiment en chantier n'accueille personne (sinon,
+			# au chargement, le campement emménageait d'un coup dans les immeubles pas finis).
+			if not buildings.en_chantier(int(bid)):
+				known[int(bid)] = _info_of(buildings.buildings[bid])
 		var extra := _extras()
 		for bid in extra:
 			known[int(bid)] = extra[bid]

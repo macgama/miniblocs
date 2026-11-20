@@ -213,6 +213,10 @@ func _on_network_changed() -> void:
 ## Plateaux de carrefour : cases réservées (pas d'arbres, pas de talus d'une
 ## autre voie) et terrain mis au niveau de la chaussée, pour que le sol ne
 ## perce pas les trottoirs arrondis des angles.
+## Vrai pendant from_dict : les cases de terrain viennent de la sauvegarde.
+var _chargement := false
+
+
 func _refresh_junction_cells(changed_cells: Array) -> void:
 	var trims := TransportView.compute_trims(network)
 	var keys := {}
@@ -248,7 +252,7 @@ func _refresh_junction_cells(changed_cells: Array) -> void:
 			# Relief pas encore chargé (partie qui s'ouvre) : le plateau a été terrassé à la
 			# pose et ses cases sont dans la sauvegarde ; sinon chaque chargement ajoutait
 			# des centaines de cases « modifiées » sous les carrefours.
-			if world != null and is_nan(water_surface(c.x + 0.5, c.y + 0.5)) and not is_nan(world.cell_height(c)):
+			if world != null and not _chargement and is_nan(water_surface(c.x + 0.5, c.y + 0.5)) and not is_nan(world.cell_height(c)):
 				works[c] = floorf((float(cells[c]) + 0.001) / world.height_step) * world.height_step
 		_node_fp[nid] = {"key": keys[nid], "cells": cells.keys()}
 	if world != null and not works.is_empty():
@@ -1614,6 +1618,11 @@ func from_dict(data: Dictionary) -> void:
 	roundabouts.clear()
 	for g in data.get("giratoires", []):
 		roundabouts.append({"c": Vector3(float(g[0]), float(g[1]), float(g[2])), "r": float(g[3])})
+	# Les plateaux de carrefour sont déjà dans les cases de terrain sauvegardées :
+	# les reterrasser au chargement écrasait le terrassement des voies posées après
+	# (relief déjà en cache : 0,5 m de différence au bout des rues à chaque chargement).
+	_chargement = true
 	network.from_dict(data)
+	_chargement = false
 	junctions.from_dict(data.get("carrefours", {}))
 	stations.from_dict(data.get("stations", {}))

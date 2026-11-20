@@ -487,6 +487,11 @@ static func _demande_type_calc(type_id: String) -> Dictionary:
 	var r := ReseauxTypes.info(type_id)
 	if t.is_empty() or not r.is_empty() or bool(t.get("espace", false)):
 		return {"elec": float(r.get("elec", 0.0)), "eau": 0.0, "egout": 0.0, "gaz": 0.0}
+	# Demande fixée par le type (forage d'irrigation : grosse pompe électrique).
+	if t.has("reseaux"):
+		var dm: Dictionary = t.reseaux
+		return {"elec": float(dm.get("elec", 0.0)), "eau": float(dm.get("eau", 0.0)), "egout": float(dm.get("egout", 0.0)),
+			"gaz": float(dm.get("gaz", 0.0))}
 	var cat := String(t.get("cat", ""))
 	var log := float(t.get("logements", 0))
 	var emp := float(t.get("emplois", 0))

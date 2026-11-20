@@ -24,6 +24,8 @@ const SEUIL := 0.05
 const CLIMATS := {
 	"oliveraie": [Plantes.Climat.MEDITERRANEEN],
 	"plantation_tropicale": [Plantes.Climat.SUBTROPICAL, Plantes.Climat.TROPICAL],
+	"elevage_rennes": [Plantes.Climat.BOREAL],
+	"ranch_buffles": [Plantes.Climat.MEDITERRANEEN, Plantes.Climat.SUBTROPICAL, Plantes.Climat.TROPICAL],
 }
 
 var prod: Production
@@ -256,6 +258,88 @@ static func analyser(p: Production, c: Vector2i) -> Dictionary:
 		if ici:
 			out.apports.append(_chaine(id, manque))
 	out.apports.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return (a.manque as Array).size() < (b.manque as Array).size())
+	out.agri = analyser_agri(p, c, climat)
+	return out
+
+
+## Agriculture autour de la case c : {climat, fert, pat, lat, cultures: [fiche], elevages: [fiche]}.
+## Culture : {id, name, etat ("ok", "climat", "epoque"), t_ha, semis}. Le rendement
+## suit Agriculture.rendement (fertilité 0,4 à 1,25, moitié hors climat, époque),
+## pour un champ engraissé et traité. Élevage : bâtiment de ferme sans règle de
+## sol (posable partout) : {id, name, etat ("ok", "climat", "epoque", "verrou"), betes, raison}.
+static func analyser_agri(p: Production, c: Vector2i, climat: int) -> Dictionary:
+	var autour := Rect2i(c - Vector2i(2, 2), Vector2i(5, 5))
+	var fert := maxf(p.carte.mean_in("fertilite", autour, RAYON), 0.0)
+	var pat := maxf(p.carte.mean_in("paturage", autour, RAYON), 0.0)
+	var lat := 45.0
+	if p.world != null:
+		lat = p.world.local_to_lat_lon(c.x + 0.5, c.y + 0.5).x
+	if climat < 0:
+		climat = Plantes.Climat.TEMPERE
+	var out := {"climat": climat, "fert": fert, "pat": pat, "lat": lat, "cultures": [], "elevages": [],
+		"irrigue": p.irrigation_au_point(c.x + 0.5, c.y + 0.5), "forage": ""}
+	# Forage d'irrigation : rend la terre cultivable autour (s'il existe à cette époque).
+	if not BuildingCatalog.get_type("forage_irrigation").is_empty():
+		var bloc := Epoques.raison_batiment("forage_irrigation")
+		if bloc == "" and ReglagesPartie.actuel != null:
+			bloc = ReglagesPartie.actuel.raison_blocage("forage_irrigation")
+		out.forage = "ok" if bloc == "" else bloc
+	var sol := clampf(0.4 + fert, 0.4, 1.25)
+	for id in AgriDonnees.ORDRE_CULTURES:
+		var cu := AgriDonnees.culture(id)
+		if bool(cu.get("paturage", false)):
+			continue
+		var f := {"id": id, "name": AgriDonnees.culture_name(id), "etat": "ok", "t_ha": 0.0,
+			"semis": AgriDonnees.mois_semis_texte(id, lat, climat), "good": String(cu.get("good", ""))}
+		var k := sol * AgriDonnees.facteur_epoque()
+		if not AgriDonnees.convient(id, climat):
+			f.etat = "climat"
+			k *= 0.5
+		if not AgriEpoques.culture_disponible(id):
+			f.etat = "epoque"
+		f.t_ha = float(cu.get("rdt", 0.0)) * k
+		out.cultures.append(f)
+	out.cultures = _par_etat(out.cultures)
+	var vus := {}
+	for id in AgriDonnees.FERMES.keys() + ProductionTypes.ORDER:
+		if vus.has(id):
+			continue
+		vus[id] = true
+		var t := BuildingCatalog.get_type(id)
+		if t.is_empty() or t.get("cache", false):
+			continue
+		var pr: Dictionary = t.get("prod", {})
+		var kind := String(pr.get("kind", ""))
+		if kind == "extraction" or kind == "transformation" or kind == "service" or kind == "entrepot" or kind == "logistique":
+			continue
+		if kind != "elevage" and not AgriDonnees.est_ferme(id):
+			continue
+		var betes: Array = (AgriDonnees.FERMES.get(id, {}).get("betes", {}) as Dictionary).keys()
+		var f := {"id": id, "name": String(t.get("name", id)), "etat": "ok", "betes": betes, "raison": ""}
+		var epoque := Epoques.raison_batiment(id)
+		if epoque != "":
+			f.etat = "epoque"
+			f.raison = epoque
+		elif CLIMATS.has(id) and not (CLIMATS[id] as Array).has(climat):
+			f.etat = "climat"
+			f.raison = "Climat %s ici." % Plantes.CLIMAT_NOMS[climat]
+		else:
+			var bloc := ReglagesPartie.actuel.raison_blocage(id) if ReglagesPartie.actuel != null else ""
+			if bloc != "":
+				f.etat = "verrou"
+				f.raison = bloc
+		out.elevages.append(f)
+	out.elevages = _par_etat(out.elevages)
+	return out
+
+
+## Range les fiches (ordre gardé) : possibles, mauvais climat, à débloquer, plus tard.
+static func _par_etat(l: Array) -> Array:
+	var out: Array = []
+	for e in ["ok", "climat", "verrou", "epoque"]:
+		for f in l:
+			if String(f.etat) == e:
+				out.append(f)
 	return out
 
 
@@ -286,6 +370,8 @@ func _view() -> void:
 		_text("Aucun bâtiment d'extraction ne trouve assez de ressources ici. Regarde la carte des ressources (P) ou essaie un peu plus loin.", true)
 	for f in ok:
 		_carte_batiment(f)
+	if data.has("agri"):
+		_view_agri(data.agri, ok)
 	var chaines: Array = data.chaines
 	var apports: Array = data.apports
 	if not chaines.is_empty() or not apports.is_empty():
@@ -313,6 +399,218 @@ func _view() -> void:
 	if sous_sol:
 		_text("Le sous-sol est estimé : un sondage (P → Mines) donne la vraie richesse avant d'ouvrir une mine.", true, 11)
 	_text("Les intrants qui manquent s'achètent ailleurs (gares, ports, routes qui sortent de la carte).", true, 11)
+
+
+## Partie « Agriculture ici » : climat, sol et prés, cultures et élevages en vignettes.
+func _view_agri(a: Dictionary, ok: Array) -> void:
+	_section("Agriculture ici", "agriculture")
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 4)
+	_body.add_child(row)
+	var climat := int(a.climat)
+	row.add_child(_tuile_jauge(Icones.get_icon("thermometre", 30, Color("ffd166")), "Climat %s" % Plantes.CLIMAT_NOMS[climat],
+		-1.0, Color.WHITE, "", "Climat d'après la latitude (et la Méditerranée). Il décide des cultures qui poussent bien."))
+	var fert := float(a.fert)
+	row.add_child(_tuile_jauge(icone_ressource("fertilite", 30), "Sol cultivable", fert, Ressources.naturelle("fertilite").color,
+		"champs %d %%" % roundi(clampf(0.4 + fert, 0.4, 1.25) * 100.0),
+		"Terres cultivables autour. Un champ rend entre 40 % (désert, roche) et 125 % (meilleures terres) du rendement moyen."))
+	row.add_child(_tuile_jauge(icone_ressource("paturage", 30), "Prés", float(a.pat), Ressources.naturelle("paturage").color,
+		"", "Prairies et alpages pour les bêtes au pré."))
+	if float(a.irrigue) >= 0.0:
+		var arr := _text(("Arrosé par un forage d'irrigation : la terre est cultivable ici." if float(a.irrigue) >= 0.5
+			else "Dans la zone d'un forage d'irrigation, mais sa pompe est à l'arrêt (courant, employés)."), false, 11)
+		arr.add_theme_color_override("font_color", Color("7cc7ff"))
+	# Cultures (Pictos.champ), puis élevages (vignettes des bâtiments).
+	var cultures: Array = a.cultures
+	var bonnes := 0
+	for f in cultures:
+		if f.etat == "ok":
+			bonnes += 1
+	_text("Cultures possibles (champs : Maj+F) : %d sur %d. Rendement pour un champ engraissé et traité." % [bonnes, cultures.size()], true, 11)
+	var grid := GridContainer.new()
+	grid.columns = 4
+	grid.add_theme_constant_override("h_separation", 4)
+	grid.add_theme_constant_override("v_separation", 4)
+	_body.add_child(grid)
+	for f in cultures:
+		grid.add_child(_tuile_culture(f))
+	var elevages: Array = a.elevages
+	_text("Élevages et fermes posables partout (bêtes nourries au foin et au grain, achetés si besoin) :", true, 11)
+	var grid2 := GridContainer.new()
+	grid2.columns = 4
+	grid2.add_theme_constant_override("h_separation", 4)
+	grid2.add_theme_constant_override("v_separation", 4)
+	_body.add_child(grid2)
+	for f in elevages:
+		grid2.add_child(_tuile_elevage(f))
+	# Rien ne pousse bien ici : que faire ?
+	var fermes_sol := false
+	for f in ok:
+		var res: Dictionary = ProductionTypes.prod_of(String(f.id)).get("res", {})
+		if res.has("fertilite") or res.has("paturage"):
+			fermes_sol = true
+	if not fermes_sol:
+		var p := PanelContainer.new()
+		p.add_theme_stylebox_override("panel", UiStyle.flat_box(Color(1.0, 0.82, 0.4, 0.12), 9, 8))
+		_body.add_child(p)
+		var v := VBoxContainer.new()
+		p.add_child(v)
+		var t := Label.new()
+		t.text = "Pour cultiver ici"
+		t.add_theme_font_size_override("font_size", 13)
+		t.add_theme_color_override("font_color", UiStyle.ACCENT)
+		v.add_child(t)
+		var lignes: Array[String] = [
+			"• Les fermes de production (céréales, lait…) demandent au moins 20 % de terre cultivable : cherche les taches jaunes de la carte P → Ressources → Terres cultivables.",
+			"• Une ferme du catalogue (grange, hacienda, ferme à cour carrée…) se pose partout : ses champs (Maj+F) rendront environ %d %% ici." % roundi(clampf(0.4 + fert, 0.4, 1.25) * 100.0),
+			"• Les élevages hors-sol (poulailler, porcherie, basse-cour, rucher, pisciculture) ne demandent pas de bonne terre : le grain s'achète.",
+			"• Des serres (sous tunnel ou en verre) donnent fruits et légumes sous tous les climats.",
+		]
+		if String(a.forage) == "ok" and float(a.irrigue) < 0.0:
+			lignes.push_front("• Un forage d'irrigation rend la terre cultivable à 400 m autour (≈ %d %%), même au désert : grosse pompe électrique, et chaque ferme arrosée paie son eau." % roundi(CarteRessources.IRRIGUE * 100.0))
+		elif String(a.forage) != "ok" and String(a.forage) != "":
+			lignes.append("• Forage d'irrigation : " + String(a.forage))
+		for l in lignes:
+			var lab := Label.new()
+			lab.text = l
+			lab.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			lab.custom_minimum_size = Vector2(W - 50, 0)
+			lab.add_theme_font_size_override("font_size", 11)
+			v.add_child(lab)
+		if String(a.forage) == "ok" and float(a.irrigue) < 0.0:
+			var t2: Dictionary = BuildingCatalog.get_type("forage_irrigation")
+			_carte_batiment({"id": "forage_irrigation", "name": String(t2.get("name", "")), "res": "fertilite",
+				"rich": CarteRessources.IRRIGUE, "t_jour": 0.0, "good": "", "texte": "Arrose 400 m autour · %s" % BuildingSystem.format_money(int(t2.get("cost", 0)))})
+
+
+## Tuile à icône, nom, jauge (value < 0 : pas de jauge) et ligne de détail.
+func _tuile_jauge(tex: Texture2D, nom: String, value: float, col: Color, detail: String, aide: String) -> Control:
+	var p := PanelContainer.new()
+	p.add_theme_stylebox_override("panel", UiStyle.flat_box(Color(1, 1, 1, 0.06), 8, 5))
+	p.custom_minimum_size = Vector2((W - 40) / 3.0, 0)
+	p.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	p.tooltip_text = aide
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 2)
+	p.add_child(v)
+	var ic := TextureRect.new()
+	ic.texture = tex
+	ic.stretch_mode = TextureRect.STRETCH_KEEP_CENTERED
+	ic.custom_minimum_size = Vector2(0, 32)
+	v.add_child(ic)
+	var l := Label.new()
+	l.text = nom
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.custom_minimum_size = Vector2((W - 56) / 3.0, 0)
+	l.add_theme_font_size_override("font_size", 10)
+	v.add_child(l)
+	if value >= 0.0:
+		v.add_child(_bar(value, col))
+		var pc := Label.new()
+		pc.text = "%d %%" % roundi(value * 100.0) + ("" if detail == "" else " · " + detail)
+		pc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		pc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		pc.custom_minimum_size = Vector2((W - 56) / 3.0, 0)
+		pc.add_theme_font_size_override("font_size", 10)
+		pc.add_theme_color_override("font_color", UiStyle.TEXT_DIM)
+		v.add_child(pc)
+	return p
+
+
+## Vignette d'une culture (champ dessiné) : nom, t/ha, mois de semis, ou la raison en gris.
+func _tuile_culture(f: Dictionary) -> Control:
+	var gris := String(f.etat) != "ok"
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 0)
+	v.custom_minimum_size = Vector2((W - 44) / 4.0, 0)
+	v.mouse_filter = Control.MOUSE_FILTER_STOP
+	var r := TextureRect.new()
+	r.texture = Pictos.champ(String(f.id), 120)
+	r.custom_minimum_size = Vector2(0, 40)
+	r.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	r.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if gris:
+		r.modulate = Color(0.55, 0.55, 0.55, 0.7)
+	v.add_child(r)
+	var l := Label.new()
+	l.text = String(f.name)
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.add_theme_font_size_override("font_size", 9)
+	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if gris:
+		l.add_theme_color_override("font_color", UiStyle.TEXT_DIM)
+	v.add_child(l)
+	var d := Label.new()
+	match String(f.etat):
+		"epoque":
+			d.text = "arrive en %d" % AgriEpoques.annee_culture(String(f.id))
+		"climat":
+			d.text = "mauvais climat"
+		_:
+			d.text = "%s t/ha" % String.num(float(f.t_ha), 1 if float(f.t_ha) < 10.0 else 0)
+	d.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	d.add_theme_font_size_override("font_size", 9)
+	d.add_theme_color_override("font_color", Color("ff9f7a") if gris else UiStyle.GOOD)
+	d.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	v.add_child(d)
+	var aide := "%s\nSemis : %s" % [f.name, f.semis]
+	if String(f.good) != "":
+		aide += "\nDonne : %s" % Ressources.good_name(String(f.good)).to_lower()
+	if String(f.etat) == "climat":
+		aide += "\nPousse mal sous ce climat : rendement divisé par deux."
+	elif String(f.etat) == "epoque":
+		aide += "\n" + AgriEpoques.raison_culture(String(f.id))
+	v.tooltip_text = aide
+	return v
+
+
+## Vignette d'un élevage ou d'une ferme posable partout, avec ses bêtes.
+func _tuile_elevage(f: Dictionary) -> Control:
+	var gris := String(f.etat) != "ok"
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 0)
+	v.custom_minimum_size = Vector2((W - 44) / 4.0, 0)
+	v.mouse_filter = Control.MOUSE_FILTER_STOP
+	var b := Button.new()
+	b.flat = true
+	b.focus_mode = Control.FOCUS_NONE
+	b.custom_minimum_size = Vector2(0, 46)
+	b.disabled = gris or lecture_seule
+	var vi := _vignette(String(f.id), Vector2(66, 44), gris)
+	vi.set_anchors_preset(Control.PRESET_FULL_RECT)
+	b.add_child(vi)
+	var id := String(f.id)
+	b.pressed.connect(func() -> void:
+		construire.emit(id)
+		fermer())
+	v.add_child(b)
+	var l := Label.new()
+	l.text = String(f.name)
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.add_theme_font_size_override("font_size", 9)
+	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if gris:
+		l.add_theme_color_override("font_color", UiStyle.TEXT_DIM)
+	v.add_child(l)
+	var noms: Array[String] = []
+	for e in f.betes:
+		noms.append(String(AgriDonnees.ESPECES.get(e, {}).get("name", e)).to_lower())
+	if gris:
+		var d := Label.new()
+		d.text = {"epoque": "plus tard", "climat": "mauvais climat", "verrou": "à débloquer"}.get(String(f.etat), "")
+		if String(f.etat) == "epoque":
+			d.text = "arrive en %d" % Epoques.annee_batiment(id)
+		d.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		d.add_theme_font_size_override("font_size", 9)
+		d.add_theme_color_override("font_color", Color("ff9f7a"))
+		d.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		v.add_child(d)
+	v.tooltip_text = String(f.name) + ("\n" + ", ".join(noms) if not noms.is_empty() else "") + ("\n" + String(f.raison) if String(f.raison) != "" else "\nClic : construire")
+	return v
 
 
 func _section(t: String, icone := "") -> void:
@@ -449,7 +747,7 @@ func _carte_batiment(f: Dictionary) -> void:
 	pc.add_theme_font_size_override("font_size", 11)
 	r.add_child(pc)
 	var t := Label.new()
-	t.text = "≈ %s de %s par jour" % [Ressources.format_t(float(f.t_jour)), Ressources.good_name(String(f.good)).to_lower()]
+	t.text = String(f.texte) if f.has("texte") else "≈ %s de %s par jour" % [Ressources.format_t(float(f.t_jour)), Ressources.good_name(String(f.good)).to_lower()]
 	t.add_theme_font_size_override("font_size", 11)
 	t.add_theme_color_override("font_color", UiStyle.GOOD)
 	t.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

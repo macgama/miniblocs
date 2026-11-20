@@ -95,11 +95,11 @@ var _vignettes: Vignettes
 const EPOQUES_VEHICULES := ["electrique", "diligence_messageries", "loco_crampton", "tram_1900", "populaire_ronde", ""]
 var _epoque_ligne: Control
 var _annee_spin: SpinBox
-var _rythme_opt: OptionButton
+var _rythme_opt: ChoixVisuel
 var _epoque_info: Label
 ## « Autre année… » choisie : l'année se tape dans la case.
 var _epoque_autre := false
-var _argent_opt: OptionButton
+var _argent_opt: ChoixVisuel
 var _options := {}
 var _remplissage := false
 var _tuto_oui: Button
@@ -934,6 +934,7 @@ func _page_reglages(p: VBoxContainer) -> void:
 	_vignettes = Vignettes.new()
 	add_child(_vignettes)
 	_epoque_opt = ChoixVisuel.new()
+	_epoque_opt.face_image = Vector2(54, 38)
 	_epoque_opt.titre = "Époque de départ"
 	_epoque_opt.max_columns = 3
 	_epoque_opt.tile_size = Vector2(170, 136)
@@ -961,7 +962,9 @@ func _page_reglages(p: VBoxContainer) -> void:
 	_annee_spin.custom_minimum_size = Vector2(110, 0)
 	_annee_spin.value_changed.connect(func(_v: float) -> void: _changer_epoque())
 	he.add_child(_annee_spin)
-	_rythme_opt = OptionButton.new()
+	_rythme_opt = ChoixVisuel.new()
+	_rythme_opt.icone = "horloge"
+	_rythme_opt.gradue = 1
 	for n in Epoques.RYTHME_NOMS:
 		_rythme_opt.add_item(String(n))
 	_rythme_opt.tooltip_text = "Années d'histoire par année de jeu : ×10, on traverse un siècle en dix ans de jeu."
@@ -987,7 +990,9 @@ func _page_reglages(p: VBoxContainer) -> void:
 	var la := _panel_label("Argent de départ", 14)
 	la.autowrap_mode = TextServer.AUTOWRAP_OFF
 	ha.add_child(la)
-	_argent_opt = OptionButton.new()
+	_argent_opt = ChoixVisuel.new()
+	_argent_opt.icone = "billet"
+	_argent_opt.gradue = 1
 	_argent_opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_argent_opt.item_selected.connect(func(i: int) -> void:
 		if _remplissage or i >= ARGENTS.size():

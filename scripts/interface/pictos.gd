@@ -91,6 +91,27 @@ const SVG := {
 	"autre_annee": "<rect width=\"96\" height=\"64\" fill=\"#2a3a44\"/><rect x=\"28\" y=\"10\" width=\"40\" height=\"46\" rx=\"4\" fill=\"#f6f1e8\"/><path d=\"M28 14a4 4 0 0 1 4-4h32a4 4 0 0 1 4 4v9H28Z\" fill=\"#e63946\"/><path d=\"M38 6v8M58 6v8\" stroke=\"#ccc\" stroke-width=\"3\" stroke-linecap=\"round\"/>"
 		+ "<g fill=\"#b7c4bb\"><rect x=\"33\" y=\"28\" width=\"6\" height=\"5\"/><rect x=\"45\" y=\"28\" width=\"6\" height=\"5\"/><rect x=\"57\" y=\"28\" width=\"6\" height=\"5\"/><rect x=\"33\" y=\"37\" width=\"6\" height=\"5\"/><rect x=\"57\" y=\"37\" width=\"6\" height=\"5\"/><rect x=\"33\" y=\"46\" width=\"6\" height=\"5\"/><rect x=\"45\" y=\"46\" width=\"6\" height=\"5\"/></g><rect x=\"44\" y=\"36\" width=\"8\" height=\"7\" fill=\"#e63946\"/>"
 		+ "<path d=\"M70 50l12-16 4 3-12 16-5 2Z\" fill=\"#ffd166\" stroke=\"#2b2d42\" stroke-width=\"1.2\" stroke-linejoin=\"round\"/>",
+	# --- Formes de toit (Atelier, personnalisation) ---
+	"toit_gable": "<rect width=\"96\" height=\"64\" fill=\"" + _CIEL + "\"/><path d=\"M0 54h96v10H0Z\" fill=\"" + _HERBE + "\"/><rect x=\"26\" y=\"32\" width=\"44\" height=\"24\" fill=\"#efe3cf\"/><rect x=\"44\" y=\"42\" width=\"8\" height=\"14\" fill=\"#7a4e2d\"/><rect x=\"31\" y=\"38\" width=\"8\" height=\"7\" fill=\"#7fb3d5\"/><rect x=\"57\" y=\"38\" width=\"8\" height=\"7\" fill=\"#7fb3d5\"/>" + "<path d=\"M20 33L48 10L76 33Z\" fill=\"#b5523b\"/><path d=\"M20 33L48 10L76 33\" fill=\"none\" stroke=\"#7d3526\" stroke-width=\"2\"/>",
+	"toit_hip": "<rect width=\"96\" height=\"64\" fill=\"" + _CIEL + "\"/><path d=\"M0 54h96v10H0Z\" fill=\"" + _HERBE + "\"/><rect x=\"26\" y=\"32\" width=\"44\" height=\"24\" fill=\"#efe3cf\"/><rect x=\"44\" y=\"42\" width=\"8\" height=\"14\" fill=\"#7a4e2d\"/><rect x=\"31\" y=\"38\" width=\"8\" height=\"7\" fill=\"#7fb3d5\"/><rect x=\"57\" y=\"38\" width=\"8\" height=\"7\" fill=\"#7fb3d5\"/>" + "<path d=\"M20 33L36 14H60L76 33Z\" fill=\"#b5523b\"/><path d=\"M36 14L30 33M60 14L66 33\" stroke=\"#7d3526\" stroke-width=\"1.5\"/>",
+	"toit_flat": "<rect width=\"96\" height=\"64\" fill=\"" + _CIEL + "\"/><path d=\"M0 54h96v10H0Z\" fill=\"" + _HERBE + "\"/><rect x=\"26\" y=\"32\" width=\"44\" height=\"24\" fill=\"#efe3cf\"/><rect x=\"44\" y=\"42\" width=\"8\" height=\"14\" fill=\"#7a4e2d\"/><rect x=\"31\" y=\"38\" width=\"8\" height=\"7\" fill=\"#7fb3d5\"/><rect x=\"57\" y=\"38\" width=\"8\" height=\"7\" fill=\"#7fb3d5\"/>" + "<rect x=\"24\" y=\"27\" width=\"48\" height=\"6\" fill=\"#8d8f93\"/><rect x=\"30\" y=\"22\" width=\"10\" height=\"5\" fill=\"#b9bcc0\"/><path d=\"M54 20v7M60 20v7\" stroke=\"#5aa05a\" stroke-width=\"3\"/>",
+	"toit_mansard": "<rect width=\"96\" height=\"64\" fill=\"" + _CIEL + "\"/><path d=\"M0 54h96v10H0Z\" fill=\"" + _HERBE + "\"/><rect x=\"26\" y=\"32\" width=\"44\" height=\"24\" fill=\"#efe3cf\"/><rect x=\"44\" y=\"42\" width=\"8\" height=\"14\" fill=\"#7a4e2d\"/><rect x=\"31\" y=\"38\" width=\"8\" height=\"7\" fill=\"#7fb3d5\"/><rect x=\"57\" y=\"38\" width=\"8\" height=\"7\" fill=\"#7fb3d5\"/>" + "<path d=\"M22 33L28 18H68L74 33Z\" fill=\"#4d5a6a\"/><path d=\"M28 18L36 10H60L68 18Z\" fill=\"#3a4553\"/><rect x=\"36\" y=\"22\" width=\"7\" height=\"8\" fill=\"#efe3cf\"/><rect x=\"53\" y=\"22\" width=\"7\" height=\"8\" fill=\"#efe3cf\"/>",
+	"toit_curved": "<rect width=\"96\" height=\"64\" fill=\"" + _CIEL + "\"/><path d=\"M0 54h96v10H0Z\" fill=\"" + _HERBE + "\"/><rect x=\"26\" y=\"32\" width=\"44\" height=\"24\" fill=\"#efe3cf\"/><rect x=\"44\" y=\"42\" width=\"8\" height=\"14\" fill=\"#7a4e2d\"/><rect x=\"31\" y=\"38\" width=\"8\" height=\"7\" fill=\"#7fb3d5\"/><rect x=\"57\" y=\"38\" width=\"8\" height=\"7\" fill=\"#7fb3d5\"/>" + "<path d=\"M14 28Q22 33 30 26L42 14H54L66 26Q74 33 82 28L76 33H20Z\" fill=\"#3d6b5a\"/><path d=\"M42 14H54L52 10H44Z\" fill=\"#c0392b\"/>",
+	"toit_shed": "<rect width=\"96\" height=\"64\" fill=\"" + _CIEL + "\"/><path d=\"M0 54h96v10H0Z\" fill=\"" + _HERBE + "\"/><rect x=\"26\" y=\"32\" width=\"44\" height=\"24\" fill=\"#efe3cf\"/><rect x=\"44\" y=\"42\" width=\"8\" height=\"14\" fill=\"#7a4e2d\"/><rect x=\"31\" y=\"38\" width=\"8\" height=\"7\" fill=\"#7fb3d5\"/><rect x=\"57\" y=\"38\" width=\"8\" height=\"7\" fill=\"#7fb3d5\"/>" + "<path d=\"M22 33L22 22L74 12L74 33Z\" fill=\"#8a6e4b\"/><path d=\"M20 22L76 11\" stroke=\"#5e4a30\" stroke-width=\"2.5\"/>",
+	"toit_thatch": "<rect width=\"96\" height=\"64\" fill=\"" + _CIEL + "\"/><path d=\"M0 54h96v10H0Z\" fill=\"" + _HERBE + "\"/><rect x=\"26\" y=\"32\" width=\"44\" height=\"24\" fill=\"#efe3cf\"/><rect x=\"44\" y=\"42\" width=\"8\" height=\"14\" fill=\"#7a4e2d\"/><rect x=\"31\" y=\"38\" width=\"8\" height=\"7\" fill=\"#7fb3d5\"/><rect x=\"57\" y=\"38\" width=\"8\" height=\"7\" fill=\"#7fb3d5\"/>" + "<path d=\"M16 36Q20 18 48 8Q76 18 80 36Z\" fill=\"#d9b35a\"/><path d=\"M24 30q6-8 12-14M40 32q4-10 8-20M58 32q-2-10-6-18M72 30q-6-8-12-14\" fill=\"none\" stroke=\"#b08a3a\" stroke-width=\"1.5\"/>",
+	# --- Timbres des cartes postales ---
+	"timbre_montagne": "<rect width=\"96\" height=\"64\" fill=\"#f4ecd8\"/><rect x=\"6\" y=\"6\" width=\"84\" height=\"52\" fill=\"" + _CIEL + "\"/>" + "<path d=\"M6 58L32 18L46 36L60 14L90 58Z\" fill=\"#6c7a89\"/><path d=\"M32 18L38 28L28 26ZM60 14L67 25L54 24Z\" fill=\"#fff\"/>" + "<path d=\"M0 0h96v64H0Z\" fill=\"none\" stroke=\"#2a3a44\" stroke-width=\"4\" stroke-dasharray=\"3 3\"/>",
+	"timbre_lac": "<rect width=\"96\" height=\"64\" fill=\"#f4ecd8\"/><rect x=\"6\" y=\"6\" width=\"84\" height=\"52\" fill=\"" + _CIEL + "\"/>" + "<path d=\"M6 30L26 14L44 30L62 18L90 32V58H6Z\" fill=\"" + _HERBE + "\"/><path d=\"M6 40h84v18H6Z\" fill=\"" + _EAU + "\"/><path d=\"M40 44l10 0-5 6Z\" fill=\"#fff\"/><path d=\"M45 36v8\" stroke=\"#fff\" stroke-width=\"1.4\"/>" + "<path d=\"M0 0h96v64H0Z\" fill=\"none\" stroke=\"#2a3a44\" stroke-width=\"4\" stroke-dasharray=\"3 3\"/>",
+	"timbre_clocher": "<rect width=\"96\" height=\"64\" fill=\"#f4ecd8\"/><rect x=\"6\" y=\"6\" width=\"84\" height=\"52\" fill=\"" + _CIEL + "\"/>" + "<path d=\"M6 50h84v8H6Z\" fill=\"" + _HERBE + "\"/><rect x=\"40\" y=\"22\" width=\"16\" height=\"30\" fill=\"#e7dcc6\"/><path d=\"M38 22L48 6L58 22Z\" fill=\"#7d3526\"/><circle cx=\"48\" cy=\"30\" r=\"4\" fill=\"#fff\" stroke=\"#333\"/><rect x=\"45\" y=\"40\" width=\"6\" height=\"12\" fill=\"#6b4b2a\"/>" + "<path d=\"M0 0h96v64H0Z\" fill=\"none\" stroke=\"#2a3a44\" stroke-width=\"4\" stroke-dasharray=\"3 3\"/>",
+	"timbre_tramway": "<rect width=\"96\" height=\"64\" fill=\"#f4ecd8\"/><rect x=\"6\" y=\"6\" width=\"84\" height=\"52\" fill=\"" + _CIEL + "\"/>" + "<path d=\"M6 50h84v8H6Z\" fill=\"#8d8f93\"/><path d=\"M6 18h84\" stroke=\"#333\" stroke-width=\"1\"/><path d=\"M48 18l-4 8\" stroke=\"#333\" stroke-width=\"1.4\"/><rect x=\"20\" y=\"26\" width=\"56\" height=\"22\" rx=\"4\" fill=\"#d62828\"/><g fill=\"#cfe8f7\"><rect x=\"25\" y=\"30\" width=\"9\" height=\"8\"/><rect x=\"38\" y=\"30\" width=\"9\" height=\"8\"/><rect x=\"51\" y=\"30\" width=\"9\" height=\"8\"/><rect x=\"64\" y=\"30\" width=\"8\" height=\"8\"/></g><circle cx=\"30\" cy=\"49\" r=\"3\" fill=\"#222\"/><circle cx=\"66\" cy=\"49\" r=\"3\" fill=\"#222\"/>" + "<path d=\"M0 0h96v64H0Z\" fill=\"none\" stroke=\"#2a3a44\" stroke-width=\"4\" stroke-dasharray=\"3 3\"/>",
+	"timbre_soleil": "<rect width=\"96\" height=\"64\" fill=\"#f4ecd8\"/><rect x=\"6\" y=\"6\" width=\"84\" height=\"52\" fill=\"" + _CIEL + "\"/>" + "<circle cx=\"48\" cy=\"32\" r=\"11\" fill=\"#ffd166\"/><path d=\"M48 12v6M48 46v6M28 32h6M62 32h6M34 18l4 4M58 42l4 4M34 46l4-4M58 22l4-4\" stroke=\"#f4a261\" stroke-width=\"3\" stroke-linecap=\"round\"/>" + "<path d=\"M0 0h96v64H0Z\" fill=\"none\" stroke=\"#2a3a44\" stroke-width=\"4\" stroke-dasharray=\"3 3\"/>",
+	"timbre_stade": "<rect width=\"96\" height=\"64\" fill=\"#f4ecd8\"/><rect x=\"6\" y=\"6\" width=\"84\" height=\"52\" fill=\"" + _CIEL + "\"/>" + "<path d=\"M6 48h84v10H6Z\" fill=\"" + _HERBE + "\"/><ellipse cx=\"48\" cy=\"40\" rx=\"36\" ry=\"14\" fill=\"#c9c5bd\"/><ellipse cx=\"48\" cy=\"40\" rx=\"26\" ry=\"8\" fill=\"#3d8c5a\"/><path d=\"M48 32v16M22 40h52\" stroke=\"#fff\" stroke-width=\"1\"/><path d=\"M16 18v14M80 18v14\" stroke=\"#555\" stroke-width=\"2\"/><circle cx=\"16\" cy=\"17\" r=\"3\" fill=\"#ffe9a8\"/><circle cx=\"80\" cy=\"17\" r=\"3\" fill=\"#ffe9a8\"/>" + "<path d=\"M0 0h96v64H0Z\" fill=\"none\" stroke=\"#2a3a44\" stroke-width=\"4\" stroke-dasharray=\"3 3\"/>",
+	# --- Pièces creusées sous terre ---
+	"sous_cave": "<rect width=\"96\" height=\"64\" fill=\"" + _TERRE + "\"/><path d=\"M0 0h96v10H0Z\" fill=\"" + _HERBE + "\"/><rect x=\"10\" y=\"20\" width=\"76\" height=\"38\" fill=\"#d8d2c4\"/><path d=\"M10 20h76v38H10Z\" fill=\"none\" stroke=\"#6e6656\" stroke-width=\"2\"/>" + "<g fill=\"#7a4e2d\"><rect x=\"16\" y=\"40\" width=\"18\" height=\"16\" rx=\"8\"/><rect x=\"38\" y=\"40\" width=\"18\" height=\"16\" rx=\"8\"/></g><path d=\"M60 30h20M60 40h20M60 50h20\" stroke=\"#6b4b2a\" stroke-width=\"2\"/><g fill=\"#5a2a3a\"><rect x=\"62\" y=\"24\" width=\"3\" height=\"6\"/><rect x=\"70\" y=\"24\" width=\"3\" height=\"6\"/><rect x=\"66\" y=\"34\" width=\"3\" height=\"6\"/></g>",
+	"sous_parking": "<rect width=\"96\" height=\"64\" fill=\"" + _TERRE + "\"/><path d=\"M0 0h96v10H0Z\" fill=\"" + _HERBE + "\"/><rect x=\"10\" y=\"20\" width=\"76\" height=\"38\" fill=\"#d8d2c4\"/><path d=\"M10 20h76v38H10Z\" fill=\"none\" stroke=\"#6e6656\" stroke-width=\"2\"/>" + "<path d=\"M10 50h76\" stroke=\"#f2f0e6\" stroke-width=\"1\"/><path d=\"M30 30v28M56 30v28\" stroke=\"#f2f0e6\" stroke-width=\"1.5\"/><rect x=\"14\" y=\"40\" width=\"13\" height=\"9\" rx=\"2\" fill=\"#e76f51\"/><rect x=\"60\" y=\"40\" width=\"13\" height=\"9\" rx=\"2\" fill=\"#2a6f97\"/><circle cx=\"43\" cy=\"32\" r=\"8\" fill=\"#2a6f97\"/><path d=\"M40 37v-10h4a3 3 0 0 1 0 6h-4\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2\"/>",
+	"sous_entrepot": "<rect width=\"96\" height=\"64\" fill=\"" + _TERRE + "\"/><path d=\"M0 0h96v10H0Z\" fill=\"" + _HERBE + "\"/><rect x=\"10\" y=\"20\" width=\"76\" height=\"38\" fill=\"#d8d2c4\"/><path d=\"M10 20h76v38H10Z\" fill=\"none\" stroke=\"#6e6656\" stroke-width=\"2\"/>" + "<g fill=\"#b08a5a\" stroke=\"#6b4b2a\" stroke-width=\"1\"><rect x=\"16\" y=\"42\" width=\"14\" height=\"14\"/><rect x=\"32\" y=\"42\" width=\"14\" height=\"14\"/><rect x=\"24\" y=\"28\" width=\"14\" height=\"14\"/><rect x=\"58\" y=\"36\" width=\"20\" height=\"20\"/></g>",
+	"sous_technique": "<rect width=\"96\" height=\"64\" fill=\"" + _TERRE + "\"/><path d=\"M0 0h96v10H0Z\" fill=\"" + _HERBE + "\"/><rect x=\"10\" y=\"20\" width=\"76\" height=\"38\" fill=\"#d8d2c4\"/><path d=\"M10 20h76v38H10Z\" fill=\"none\" stroke=\"#6e6656\" stroke-width=\"2\"/>" + "<rect x=\"18\" y=\"30\" width=\"22\" height=\"26\" fill=\"#7d8a96\"/><circle cx=\"29\" cy=\"40\" r=\"5\" fill=\"#ffd166\"/><path d=\"M44 34h40M44 44h40\" stroke=\"#2a6f97\" stroke-width=\"4\"/><path d=\"M44 52h40\" stroke=\"#e63946\" stroke-width=\"3\"/>",
+	"sous_bunker": "<rect width=\"96\" height=\"64\" fill=\"" + _TERRE + "\"/><path d=\"M0 0h96v10H0Z\" fill=\"" + _HERBE + "\"/><rect x=\"10\" y=\"20\" width=\"76\" height=\"38\" fill=\"#d8d2c4\"/><path d=\"M10 20h76v38H10Z\" fill=\"none\" stroke=\"#6e6656\" stroke-width=\"2\"/>" + "<rect x=\"10\" y=\"20\" width=\"76\" height=\"38\" fill=\"#8b9183\"/><path d=\"M10 20h76v38H10Z\" fill=\"none\" stroke=\"#4b5045\" stroke-width=\"5\"/><circle cx=\"48\" cy=\"39\" r=\"11\" fill=\"#5e6658\" stroke=\"#3d4239\" stroke-width=\"2\"/><path d=\"M48 30v18M39 39h18\" stroke=\"#d8d2c4\" stroke-width=\"2\"/>",
 }
 
 static var _cache := {}
@@ -204,3 +225,110 @@ static func _filtre(f: int, c: Vector3) -> Vector3:
 		10: return _sature(c, 1.25) * Vector3(1.05, 1.0, 0.95) + Vector3(0.04, 0.03, 0.0)
 		11: return _sature(c, 1.8) * Vector3(1.1, 0.85, 1.25)
 	return c
+
+
+## Vignette dessinée d'office pour un choix sans image : l'icône du thème
+## (`icone`, voir Icones) sur une couleur propre au choix, ou, pour une liste
+## graduée (nombres, niveaux), une jauge qui monte avec le rang `i` sur `n`.
+static func auto(texte: String, i: int, n: int, icone := "details", gradue := false, largeur := 120) -> Texture2D:
+	var key := "auto|%s|%d|%d|%s|%s|%d" % [texte, i, n, icone, gradue, largeur]
+	if _cache.has(key):
+		return _cache[key]
+	var h := float(hash(texte) & 0xffff) / 65535.0
+	var fond := Color.from_hsv(h, 0.38, 0.62)
+	var clair := Color.from_hsv(h, 0.28, 0.78)
+	var corps := "<defs><linearGradient id=\"g\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#%s\"/><stop offset=\"1\" stop-color=\"#%s\"/></linearGradient></defs><rect width=\"96\" height=\"64\" fill=\"url(#g)\"/>" % [clair.to_html(false), fond.to_html(false)]
+	var ic: String = Icones.SVG.get(icone, Icones.SVG.get("details", ""))
+	ic = ic.replace("currentColor", "#ffffff")
+	if gradue and n > 1:
+		var barres := mini(n, 6)
+		var rang := roundi(float(i) / float(n - 1) * float(barres - 1))
+		corps += "<g transform=\"translate(6 9) scale(1.15)\" opacity=\"0.9\">%s</g>" % ic
+		var bw := 7.0
+		var x0 := 40.0
+		for b in barres:
+			var bh := 10.0 + 38.0 * float(b + 1) / float(barres)
+			var on := b <= rang
+			corps += "<rect x=\"%.1f\" y=\"%.1f\" width=\"%.1f\" height=\"%.1f\" rx=\"1.5\" fill=\"%s\" opacity=\"%s\"/>" % [
+				x0 + b * (bw + 2.0), 56.0 - bh, bw, bh, "#ffd166" if on else "#ffffff", "1" if on else "0.25"]
+	else:
+		corps += "<circle cx=\"48\" cy=\"32\" r=\"24\" fill=\"#000\" opacity=\"0.12\"/>"
+		corps += "<g transform=\"translate(30 14) scale(1.5)\">%s</g>" % ic
+	var svg := "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"%d\" height=\"%d\" viewBox=\"0 0 %d %d\"><clipPath id=\"c\"><rect width=\"%d\" height=\"%d\" rx=\"6\"/></clipPath><g clip-path=\"url(#c)\">%s</g></svg>" % [W, H, W, H, W, H, corps]
+	var img := Image.new()
+	if img.load_svg_from_string(svg, float(largeur) / float(W)) != OK:
+		return null
+	var tex := ImageTexture.create_from_image(img)
+	_cache[key] = tex
+	return tex
+
+
+## Un champ vu de dessus aux couleurs de la culture `id` (AgriDonnees), en rangs.
+static func champ(id: String, largeur := 120) -> Texture2D:
+	var c := AgriDonnees.culture(id)
+	if c.is_empty():
+		return null
+	var key := "champ|%s|%d" % [id, largeur]
+	if _cache.has(key):
+		return _cache[key]
+	var col: Color = c.get("couleur", Color(0.6, 0.7, 0.3))
+	var fonce := col.darkened(0.3)
+	var corps := "<rect width=\"96\" height=\"64\" fill=\"#%s\"/><rect width=\"96\" height=\"14\" fill=\"%s\"/>" % [_TERRE.substr(1), _CIEL]
+	corps += "<path d=\"M0 14h96v50H0Z\" fill=\"#%s\"/>" % col.to_html(false)
+	var rangs := ""
+	for k in 7:
+		var x := -20.0 + k * 20.0
+		rangs += "M%.1f 64L%.1f 14" % [x, 38.0 + k * 4.0]
+	corps += "<path d=\"%s\" stroke=\"#%s\" stroke-width=\"3\"/>" % [rangs, fonce.to_html(false)]
+	corps += "<path d=\"M0 14h96\" stroke=\"#%s\" stroke-width=\"2\"/>" % _HERBE2.substr(1)
+	var svg := "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"%d\" height=\"%d\" viewBox=\"0 0 %d %d\"><clipPath id=\"c\"><rect width=\"%d\" height=\"%d\" rx=\"6\"/></clipPath><g clip-path=\"url(#c)\">%s</g></svg>" % [W, H, W, H, W, H, corps]
+	var img := Image.new()
+	if img.load_svg_from_string(svg, float(largeur) / float(W)) != OK:
+		return null
+	var tex := ImageTexture.create_from_image(img)
+	_cache[key] = tex
+	return tex
+
+
+## Icône du thème devinée d'après le nom d'un choix (vignettes d'office).
+const _MOTS := [
+	["€", "billet"], ["prix", "billet"], ["budget", "billet"], ["subvention", "billet"], ["emprunt", "banque"],
+	["minute", "horloge"], ["heure", "horloge"], ["jour", "horloge"], ["semaine", "horloge"], ["mois", "horloge"], [" an", "horloge"],
+	["rapide", "fast"], ["lent", "play"], ["vitesse", "fast"], ["×", "fast"], ["réaliste", "horloge"],
+	["ville", "village"], ["village", "village"], ["commune", "mairie"], ["pays", "globe"], ["carte", "globe"], ["monde", "globe"],
+	["école", "ecole"], ["élève", "ecole"], ["étudiant", "ecole"], ["apprenti", "ecole"], ["université", "ecole"],
+	["bébé", "habitants"], ["retraité", "habitants"], ["actif", "emploi"], ["chômeur", "emploi"], ["métier", "emploi"], ["chef", "emploi"],
+	["tout le monde", "habitants"], ["habitant", "habitants"], ["défunt", "funeraire"], ["crémation", "funeraire"],
+	["parc", "parc"], ["zoo", "zoo"], ["enclos", "enclos"], ["musée", "musee"], ["stade", "sport"], ["club", "sport"],
+	["pollution", "climat"], ["climat", "climat"], ["faim", "agriculture"], ["ferme", "agriculture"], ["culture", "agriculture"],
+	["élection", "urne"], ["mairie", "mairie"], ["chantier", "grue"], ["usure", "grue"], ["événement", "fete"], ["catastrophe", "tempete"],
+	["fenêtre", "vue"], ["plein écran", "vue"], ["ombre", "soleil"], ["msaa", "vue"], ["images par", "vue"], ["px", "appareil_photo"],
+	["caméra", "appareil_photo"], ["qualité", "etoile"], ["timbre", "carte_postale"], ["photo", "appareil_photo"],
+	["bâtiment", "construire"], ["maison", "logement"], ["logement", "logement"], ["commerce", "commerce"], ["industrie", "industrie"],
+	["désactiv", "fermer"], ["aucun", "fermer"], ["sans", "fermer"], ["arbre", "feuille"], ["débloqu", "cadenas"],
+	["marchandise", "ressources"], ["stock", "ressources"], ["partie", "sauver"], ["sauvegarde", "sauver"], ["langue", "globe"],
+]
+
+
+static func icone_pour(texte: String) -> String:
+	var t := texte.to_lower()
+	for m in _MOTS:
+		if t.contains(String(m[0])):
+			return String(m[1])
+	return "details"
+
+
+## Maillot aux deux couleurs `c1` et `c2` (codes hexadécimaux), pour les couleurs d'un club.
+static func maillot(c1: String, c2: String, largeur := 120) -> Texture2D:
+	var key := "maillot|%s|%s|%d" % [c1, c2, largeur]
+	if _cache.has(key):
+		return _cache[key]
+	var corps := "<rect width=\"96\" height=\"64\" fill=\"%s\"/><path d=\"M34 8l-16 10 6 12 8-4v32h32V26l8 4 6-12-16-10c-2 6-8 8-14 8s-12-2-14-8Z\" fill=\"#%s\" stroke=\"#222\" stroke-width=\"1.2\"/>" % [_HERBE, c1]
+	corps += "<path d=\"M44 16h8v42h-8Z\" fill=\"#%s\"/><path d=\"M34 8c2 6 8 8 14 8s12-2 14-8\" fill=\"none\" stroke=\"#%s\" stroke-width=\"3\"/>" % [c2, c2]
+	var svg := "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"%d\" height=\"%d\" viewBox=\"0 0 %d %d\"><clipPath id=\"c\"><rect width=\"%d\" height=\"%d\" rx=\"6\"/></clipPath><g clip-path=\"url(#c)\">%s</g></svg>" % [W, H, W, H, W, H, corps]
+	var img := Image.new()
+	if img.load_svg_from_string(svg, float(largeur) / float(W)) != OK:
+		return null
+	var tex := ImageTexture.create_from_image(img)
+	_cache[key] = tex
+	return tex

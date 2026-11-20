@@ -325,7 +325,9 @@ func _vue_zoo(e: int) -> void:
 		return
 	var z: Dictionary = zoo.zoos[e]
 	if zoo.zoos.size() > 1:
-		var ob := OptionButton.new()
+		var ob := ChoixVisuel.new()
+		ob.icone = "zoo"
+		ob.gradue = 0
 		var i := 0
 		for k in zoo.zoos:
 			ob.add_item(String(zoo.zoos[k].nom))
@@ -482,7 +484,9 @@ func _vue_enclos() -> void:
 		return
 	if not zoo.enclos.has(enclos_vu):
 		enclos_vu = int(zoo.enclos.keys()[0])
-	var ob := OptionButton.new()
+	var ob := ChoixVisuel.new()
+	ob.icone = "enclos"
+	ob.gradue = 0
 	var i := 0
 	for id in zoo.enclos:
 		var n := zoo.animaux_de(int(id)).size()
@@ -741,7 +745,10 @@ func _vue_terrain() -> void:
 
 func _vue_animaux() -> void:
 	_titre("Marché aux animaux")
-	var ob := OptionButton.new()
+	var ob := ChoixVisuel.new()
+	ob.icone = "globe"
+	ob.modele_meta = "continent"
+	ob.max_columns = 4
 	ob.add_item("Tous les continents")
 	ob.set_item_metadata(0, "")
 	var i := 1
@@ -973,7 +980,9 @@ func _vue_echanges(e: int) -> void:
 		_texte("%s cherche : %s%s · jusqu'à %s, prestige +%d" % [String(o.partenaire), ZooEspeces.nom_bas(String(o.esp)), sexe,
 			ZooSysteme._euros(float(o.prix) * 1.3), roundi(float(o.prestige) * 1.3)], false, 12)
 		var h := _rangee()
-		var ob := OptionButton.new()
+		var ob := ChoixVisuel.new()
+		ob.icone = "zoo"
+		ob.gradue = 0
 		ob.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		ob.add_theme_font_size_override("font_size", 11)
 		var i := 0
@@ -1018,7 +1027,9 @@ func _proposer(e: int, aid: int) -> void:
 			refresh())
 		return
 	_texte("Sur une carte entre amis, le maire de l'autre ville accepte ou refuse. Prix 0 : don (prêt pour l'élevage).", true, 12)
-	var ob := OptionButton.new()
+	var ob := ChoixVisuel.new()
+	ob.icone = "zoo"
+	ob.gradue = 0
 	for i in autres.size():
 		ob.add_item(String(autres[i][1]))
 		ob.set_item_metadata(i, int(autres[i][0]))
@@ -1046,8 +1057,10 @@ func _proposer(e: int, aid: int) -> void:
 
 
 ## Liste des enclos d'un zoo, le meilleur pour l'espèce choisi d'avance.
-func _choix_enclos(e: int, esp: String) -> OptionButton:
-	var ob := OptionButton.new()
+func _choix_enclos(e: int, esp: String) -> ChoixVisuel:
+	var ob := ChoixVisuel.new()
+	ob.icone = "enclos"
+	ob.gradue = 0
 	ob.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	ob.add_theme_font_size_override("font_size", 11)
 	var best := zoo._meilleur_enclos(e, esp)

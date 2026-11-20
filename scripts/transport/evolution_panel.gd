@@ -68,6 +68,7 @@ func _build() -> void:
 	_vignettes = Vignettes.new()
 	add_child(_vignettes)
 	_class = ChoixVisuel.new()
+	_class.face_image = Vector2(54, 38)
 	_class.tile_size = Vector2(150, 142)
 	_class.image_height = 96.0
 	_class.max_columns = 4
@@ -94,6 +95,7 @@ func _build() -> void:
 			_update())
 	v.add_child(_row("Largeur d'une voie (m)", _lane_w))
 	_bords = ChoixVisuel.new()
+	_bords.face_image = Vector2(54, 38)
 	_bords.titre = "Bords de la route"
 	_bords.item_selected.connect(func(i: int) -> void:
 		if not _filling:

@@ -16,7 +16,7 @@ var _style_filter := ""
 var _search := ""
 var _stats: Label
 var _level: Label
-var _usage_opt: OptionButton
+var _usage_opt: ChoixVisuel
 var _bp: BuildingPanel
 
 
@@ -64,7 +64,9 @@ func build(bp: BuildingPanel) -> void:
 	bp.add_control(_stats)
 	var urow := HBoxContainer.new()
 	urow.add_child(_label("Usage :", 12))
-	_usage_opt = OptionButton.new()
+	_usage_opt = ChoixVisuel.new()
+	_usage_opt.modele_meta = "usage"
+	_usage_opt.icone = "interieur"
 	_usage_opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	for u in Mobilier.USAGE_ORDER:
 		_usage_opt.add_item(String(Mobilier.USAGES[u].name))
@@ -134,7 +136,9 @@ func build(bp: BuildingPanel) -> void:
 		var tid: Mobilier.Tool = t[1]
 		b.pressed.connect(func() -> void: _tool(tid))
 		trow.add_child(b)
-	var fn_opt := OptionButton.new()
+	var fn_opt := ChoixVisuel.new()
+	fn_opt.modele_meta = "piece"
+	fn_opt.icone = "piece"
 	fn_opt.tooltip_text = "Fonction donnée par l'outil Fonction"
 	for f in Meubles.PIECE_ORDER + ["studio"] + SpectaclesObjets.SALLE_ORDER:
 		fn_opt.add_item(Mobilier.fn_name(String(f)))
@@ -188,7 +192,9 @@ func build(bp: BuildingPanel) -> void:
 	# --- Catalogue ----------------------------------------------------------------------
 	bp.add_control(_title("Catalogue : %d meubles et objets du monde entier" % Meubles.count()))
 	var frow := HFlowContainer.new()
-	var cat_opt := OptionButton.new()
+	var cat_opt := ChoixVisuel.new()
+	cat_opt.modele_meta = "piece"
+	cat_opt.icone = "interieur"
 	cat_opt.add_item("Toutes les pièces")
 	cat_opt.set_item_metadata(0, "")
 	for c in Meubles.CATEGORIES:
@@ -255,8 +261,10 @@ func build(bp: BuildingPanel) -> void:
 	_refresh_stats()
 
 
-func _style_option(with_all: bool) -> OptionButton:
-	var o := OptionButton.new()
+func _style_option(with_all: bool) -> ChoixVisuel:
+	var o := ChoixVisuel.new()
+	o.modele_meta = "style_meuble"
+	o.icone = "interieur"
 	o.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	o.fit_to_longest_item = false
 	o.clip_text = true

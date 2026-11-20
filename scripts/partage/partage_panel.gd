@@ -408,7 +408,8 @@ func _vue_decouvrir() -> void:
 			OS.shell_open("steam://url/SteamWorkshopPage/%d" % PartageSteam.app_id_projet()), row)
 	var frow := HBoxContainer.new()
 	_body.add_child(frow)
-	var o := OptionButton.new()
+	var o := ChoixVisuel.new()
+	o.modele_meta = "icone_sorte"
 	o.custom_minimum_size = Vector2(150, 0)
 	o.add_item("Tout")
 	o.set_item_metadata(0, "")

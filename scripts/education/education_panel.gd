@@ -166,7 +166,9 @@ func _choix_ville() -> void:
 	var l := Label.new()
 	l.text = "Ville : "
 	row.add_child(l)
-	var pick := OptionButton.new()
+	var pick := ChoixVisuel.new()
+	pick.icone = "village"
+	pick.gradue = 0
 	pick.focus_mode = Control.FOCUS_NONE
 	pick.add_item("Toute la carte", 0)
 	var ids: Array = cm.villages.keys()
@@ -283,7 +285,9 @@ func _view_systeme() -> void:
 		l.text = "%s : " % (String(code).to_upper() if String(code) != "" else "Partie")
 		l.custom_minimum_size = Vector2(70, 0)
 		row.add_child(l)
-		var pick := OptionButton.new()
+		var pick := ChoixVisuel.new()
+		pick.icone = "ecole"
+		pick.gradue = 0
 		pick.focus_mode = Control.FOCUS_NONE
 		var sys_ids := SystemesScolaires.NOMS.keys()
 		for i in sys_ids.size():

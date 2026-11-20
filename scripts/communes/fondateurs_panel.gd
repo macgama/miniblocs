@@ -264,7 +264,9 @@ func _affecter() -> void:
 		var t := String(pop.known[bid].t)
 		_text("%s · %s" % [pop.building_name(bid), _n(pop.free_jobs(bid), "poste libre", "postes libres")], false, 12)
 		var r := _row()
-		var choix := OptionButton.new()
+		var choix := ChoixVisuel.new()
+		choix.icone = "emploi"
+		choix.gradue = 0
 		choix.focus_mode = Control.FOCUS_NONE
 		choix.add_theme_font_size_override("font_size", 12)
 		choix.add_item("Métier au choix du bâtiment")

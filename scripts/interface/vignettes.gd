@@ -92,7 +92,9 @@ func request_mesh(id: String, builder: Callable, target: Control, px := 128, dir
 static func _apply(target: Object, tex: Texture2D) -> void:
 	if not is_instance_valid(target):
 		return
-	if target is TextureRect:
+	if target.has_method("recevoir_vignette"):
+		target.call("recevoir_vignette", tex)
+	elif target is TextureRect:
 		(target as TextureRect).texture = tex
 	elif target is Button:
 		(target as Button).icon = tex

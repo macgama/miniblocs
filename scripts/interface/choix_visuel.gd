@@ -6,11 +6,16 @@ extends Button
 ##
 ## Même façon de faire qu'une OptionButton : add_item(), select(), selected,
 ## get_selected_id(), clear(), signal item_selected(index).
-## Les images viennent de trois sources, au choix :
+## Les images viennent, dans cet ordre :
 ## - set_item_icon(i, texture) : une texture déjà prête (pictogramme, drapeau…) ;
 ## - add_item(texte, id, "icone") : une icône du jeu (Icones) ;
+## - set_item_modele(i, sorte, id) : un vrai modèle du jeu (bâtiment, véhicule,
+##   meuble, décor, animal…), voir Illustrations ;
 ## - illustrer : Callable(index, cible: TextureRect) appelé pour chaque image à
-##   afficher (vignette 3D rendue plus tard par Vignettes, par exemple).
+##   afficher (vignette 3D rendue plus tard par Vignettes, par exemple) ;
+## - sinon une vignette dessinée d'office (Pictos.auto) : icône du thème
+##   (`icone`) sur une couleur propre à chaque choix, ou une jauge pour les
+##   listes graduées (nombres, niveaux).
 ## Voir docs/menus-en-images.md.
 
 signal item_selected(index: int)
@@ -21,8 +26,9 @@ var tile_size := Vector2(118, 112)
 var image_height := 70.0
 ## Nombre maximal de colonnes de la grille.
 var max_columns := 5
-## Taille de l'image dans le bouton.
-var face_image := Vector2(54, 38):
+## Taille de l'image dans le bouton (petite d'office : le bouton garde la
+## hauteur d'une liste de texte ; plus grande pour les outils de voies).
+var face_image := Vector2(36, 24):
 	set(v):
 		face_image = v
 		if _face_rect != null:
@@ -35,8 +41,28 @@ var titre := ""
 var prefixe := ""
 ## Infobulle imposée au bouton (sinon : nom et détails du choix actuel).
 var infobulle := ""
+## Icône du thème (Icones) pour les vignettes dessinées d'office
+## (vide : devinée d'après le nom de chaque choix, voir Pictos.icone_pour).
+var icone := ""
+## Vignettes d'office en jauge (1 : oui, 0 : non, -1 : oui si les choix sont des nombres).
+var gradue := -1
+## Sorte d'image (Illustrations) donnée par la métadonnée de chaque choix :
+## avec « toit », un choix dont la métadonnée vaut "hip" montre le toit à quatre pans.
+var modele_meta := ""
+## Gardé pour remplacer une OptionButton sans rien changer (sans effet).
+var fit_to_longest_item := false
 
-var selected := -1
+var selected := -1:
+	set(v):
+		if v == selected or _dans_select:
+			selected = v
+			return
+		_dans_select = true
+		selected = v
+		select(v)
+		_dans_select = false
+var _dans_select := false
+var _tip_auto := ""
 var item_count: int:
 	get:
 		return _items.size()
@@ -53,7 +79,6 @@ var _tiles: Array = []
 func _init() -> void:
 	focus_mode = Control.FOCUS_NONE
 	clip_text = true
-	custom_minimum_size = Vector2(230, 44)
 	var row := HBoxContainer.new()
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -87,20 +112,65 @@ func _init() -> void:
 	pressed.connect(ouvrir)
 
 
+## Taille minimale : l'image du bouton et un nom lisible.
+func _get_minimum_size() -> Vector2:
+	var w := 0.0
+	if _face_label != null and _face_label.text != "":
+		var f := _face_label.get_theme_font("font")
+		var fs := _face_label.get_theme_font_size("font_size")
+		if f != null:
+			w = minf(f.get_string_size(_face_label.text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x, 170.0)
+	return Vector2(face_image.x + 34.0 + w, face_image.y + 8.0)
+
+
 # --- Même interface qu'une OptionButton -------------------------------------------------------
 
 ## Ajoute un choix. `icone` : nom d'une icône du jeu (Icones), facultatif.
 func add_item(text: String, id := -1, icone := "") -> void:
 	var tex: Texture2D = Icones.get_icon(icone, 64) if icone != "" and Icones.has_icon(icone) else null
-	_items.append({"text": text, "id": id if id >= 0 else _items.size(), "icon": tex, "tip": "", "disabled": false})
+	_items.append({"text": text, "id": id if id >= 0 else _items.size(), "icon": tex, "tip": "", "disabled": false,
+		"meta": null, "modele": []})
 	if selected < 0:
 		select(0)
 	_close()
 
 
+func add_icon_item(tex: Texture2D, text: String, id := -1) -> void:
+	add_item(text, id)
+	set_item_icon(_items.size() - 1, tex)
+
+
+func set_item_metadata(i: int, m: Variant) -> void:
+	if i >= 0 and i < _items.size():
+		_items[i].meta = m
+
+
+func get_item_metadata(i: int) -> Variant:
+	return _items[i].meta if i >= 0 and i < _items.size() else null
+
+
+## Montre un vrai modèle du jeu pour le choix `i` (voir Illustrations.poser) :
+## sorte = "batiment", "vehicule", "meuble", "decor", "animal", "style"…
+func set_item_modele(i: int, sorte: String, id: String) -> void:
+	if i >= 0 and i < _items.size():
+		_items[i].modele = [sorte, id]
+		if i == selected:
+			_refresh_face()
+
+
+func get_item_modele(i: int) -> Array:
+	return _items[i].modele if i >= 0 and i < _items.size() else []
+
+
+func show_popup() -> void:
+	ouvrir()
+
+
 func clear() -> void:
 	_items.clear()
+	_dans_select = true
 	selected = -1
+	_dans_select = false
 	_face_label.text = ""
 	_face_rect.texture = null
 	_close()
@@ -108,9 +178,16 @@ func clear() -> void:
 
 func select(i: int) -> void:
 	if i < 0 or i >= _items.size():
+		if i == -1:
+			_dans_select = true
+			selected = -1
+			_dans_select = false
 		return
+	_dans_select = true
 	selected = i
+	_dans_select = false
 	_refresh_face()
+	update_minimum_size()
 	for k in _tiles.size():
 		(_tiles[k] as Button).set_pressed_no_signal(k == i)
 
@@ -197,14 +274,47 @@ func _refresh_face() -> void:
 	var tip := prefixe + String(it.text)
 	if String(it.tip) != "":
 		tip += "\n" + String(it.tip)
-	tooltip_text = infobulle if infobulle != "" else tip
+	if infobulle != "":
+		tooltip_text = infobulle
+	elif tooltip_text == "" or tooltip_text == _tip_auto:
+		tooltip_text = tip
+	_tip_auto = tip
+	_face_rect.texture = null
+	_poser_image(selected, _face_rect)
+
+
+## Pose l'image du choix `i` dans `cible` (voir l'ordre en tête du fichier).
+func _poser_image(i: int, cible: TextureRect) -> void:
+	var it: Dictionary = _items[i]
 	if it.icon != null:
-		_face_rect.texture = it.icon
-	else:
-		_face_rect.texture = null
-		if illustrer.is_valid():
-			illustrer.call(selected, _face_rect)
-	_face_rect.visible = _face_rect.texture != null or illustrer.is_valid()
+		cible.texture = it.icon
+		return
+	var m: Array = it.modele
+	if m.size() == 2 and Illustrations.poser(String(m[0]), String(m[1]), cible):
+		return
+	if m.is_empty() and modele_meta != "" and it.meta is String and String(it.meta) != "" \
+			and Illustrations.poser(modele_meta, String(it.meta), cible):
+		return
+	if illustrer.is_valid():
+		illustrer.call(i, cible)
+		return
+	var ic := icone if icone != "" else Pictos.icone_pour(String(it.text))
+	cible.texture = Pictos.auto(String(it.text), i, _items.size(), ic, _est_gradue())
+
+
+func _est_gradue() -> bool:
+	if gradue >= 0:
+		return gradue == 1
+	if _items.size() < 2:
+		return false
+	var n := 0
+	for it in _items:
+		var t := String(it.text)
+		for ch in t:
+			if ch >= "0" and ch <= "9":
+				n += 1
+				break
+	return n * 10 >= _items.size() * 6
 
 
 # --- Grille ------------------------------------------------------------------------------------
@@ -231,6 +341,13 @@ func ouvrir() -> void:
 		t.add_theme_color_override("font_color", UiStyle.ACCENT)
 		t.add_theme_font_size_override("font_size", 14)
 		box.add_child(t)
+	if _items.size() > 24:
+		var cherche := LineEdit.new()
+		cherche.placeholder_text = "Chercher…"
+		cherche.clear_button_enabled = true
+		cherche.text_changed.connect(_filtrer)
+		box.add_child(cherche)
+		cherche.call_deferred("grab_focus")
 	var cols := clampi(ceili(sqrt(float(_items.size()) * 1.7)), 1, max_columns)
 	_grid = GridContainer.new()
 	_grid.columns = cols
@@ -259,6 +376,14 @@ func ouvrir() -> void:
 	pos.x = clampf(pos.x, 4.0, maxf(4.0, vp.x - sz.x - 4.0))
 	_popup.popup(Rect2i(Vector2i(pos), Vector2i(sz)))
 	set_pressed_no_signal(true)
+
+
+## Ne garde que les vignettes dont le nom contient `t` (grandes listes).
+func _filtrer(t: String) -> void:
+	var q := t.strip_edges().to_lower()
+	for i in _tiles.size():
+		var nom := String(_items[i].text)
+		(_tiles[i] as Button).visible = q == "" or nom.to_lower().contains(q) or tr(nom).to_lower().contains(q)
 
 
 func _close() -> void:
@@ -300,10 +425,7 @@ func _make_tile(i: int) -> Button:
 	img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	img.custom_minimum_size = Vector2(0, image_height)
 	col.add_child(img)
-	if it.icon != null:
-		img.texture = it.icon
-	elif illustrer.is_valid():
-		illustrer.call(i, img)
+	_poser_image(i, img)
 	var l := Label.new()
 	l.text = String(it.text)
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE

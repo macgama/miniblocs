@@ -32,7 +32,7 @@ var _export_en_cours := false
 var _cache := {}
 
 var _fond: ColorRect
-var _cams: OptionButton
+var _cams: ChoixVisuel
 var _ratio: AspectRatioContainer
 var _ecran: Control
 var _tex: TextureRect
@@ -46,8 +46,8 @@ var _pos: Label
 var _liste: VBoxContainer
 var _etat: Label
 var _rec: CheckBox
-var _inter: OptionButton
-var _qual: OptionButton
+var _inter: ChoixVisuel
+var _qual: ChoixVisuel
 var _fmt: ChoixVisuel
 
 
@@ -218,7 +218,9 @@ func _construire() -> void:
 	titre.text = "Time-lapse de la ville"
 	titre.add_theme_font_size_override("font_size", 20)
 	haut.add_child(titre)
-	_cams = OptionButton.new()
+	_cams = ChoixVisuel.new()
+	_cams.icone = "appareil_photo"
+	_cams.gradue = 0
 	_cams.focus_mode = Control.FOCUS_NONE
 	_cams.custom_minimum_size = Vector2(260, 0)
 	_cams.item_selected.connect(func(i: int) -> void: _choisir(_cams.get_item_id(i)))
@@ -285,7 +287,9 @@ func _construire() -> void:
 		image = 0
 		_montrer())
 	ligne.add_child(debut)
-	var vit := OptionButton.new()
+	var vit := ChoixVisuel.new()
+	vit.icone = "fast"
+	vit.gradue = 1
 	vit.focus_mode = Control.FOCUS_NONE
 	for v in IPS:
 		vit.add_item("%d images/s" % v)
@@ -366,13 +370,17 @@ func _construire() -> void:
 	_rec.focus_mode = Control.FOCUS_NONE
 	_rec.toggled.connect(func(on: bool) -> void: tl.enregistrer = on)
 	v.add_child(_rec)
-	_inter = OptionButton.new()
+	_inter = ChoixVisuel.new()
+	_inter.icone = "horloge"
+	_inter.gradue = 1
 	_inter.focus_mode = Control.FOCUS_NONE
 	for i in TimeLapse.INTERVALLES:
 		_inter.add_item("Une image par jour" if i == 1 else ("Une image par mois" if i == 30 else ("Une image par semaine" if i == 7 else "Une image tous les %d jours" % i)))
 	_inter.item_selected.connect(func(i: int) -> void: tl.intervalle = int(TimeLapse.INTERVALLES[i]))
 	v.add_child(_inter)
-	_qual = OptionButton.new()
+	_qual = ChoixVisuel.new()
+	_qual.icone = "etoile"
+	_qual.gradue = 1
 	_qual.focus_mode = Control.FOCUS_NONE
 	_qual.add_item("Standard 720p (≈ 100 Ko par image)")
 	_qual.add_item("Haute 1080p (≈ 220 Ko par image)")

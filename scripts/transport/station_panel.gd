@@ -234,7 +234,7 @@ func _refresh_lines() -> void:
 		head.add_child(x)
 		_lines_box.add_child(head)
 		var row := HBoxContainer.new()
-		var pick := OptionButton.new()
+		var pick := ChoixVisuel.new()
 		pick.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		pick.fit_to_longest_item = false
 		pick.custom_minimum_size = Vector2(150, 0)
@@ -246,6 +246,7 @@ func _refresh_lines() -> void:
 			if eco != null:
 				label += " · " + ExploitationLignes.euros(ExploitationLignes.prix_achat(models[i]))
 			pick.add_item(label, i)
+			pick.set_item_modele(pick.item_count - 1, "vehicule", String(models[i]))
 			if models[i] == line.model:
 				pick.select(i)
 		row.add_child(pick)
@@ -315,7 +316,9 @@ func _add_horaire(id_: int) -> void:
 	var r1 := HBoxContainer.new()
 	d.add_child(r1)
 	_small(r1, "Un départ toutes les")
-	var cad := OptionButton.new()
+	var cad := ChoixVisuel.new()
+	cad.icone = "horloge"
+	cad.gradue = 1
 	cad.add_theme_font_size_override("font_size", 12)
 	var cur := int(hr.get("cadence", HorairesLignes.CADENCE))
 	for i in HorairesLignes.CADENCES.size():

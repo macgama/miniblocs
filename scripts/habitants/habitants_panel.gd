@@ -163,7 +163,7 @@ func _process(delta: float) -> void:
 	if view == "liste" or _tick < (1.0 if view != "ville" else 3.0):
 		return
 	for o in _popups:
-		if is_instance_valid(o) and (o.call("get_popup") as PopupMenu).visible:
+		if is_instance_valid(o) and (((o as ChoixVisuel).est_ouvert()) if o is ChoixVisuel else (o.call("get_popup") as PopupMenu).visible):
 			return
 	if true:
 		_tick = 0.0
@@ -363,7 +363,9 @@ func _view_city() -> void:
 	var lbl := Label.new()
 	lbl.text = "Vitesse de la vie :"
 	row.add_child(lbl)
-	var pick := OptionButton.new()
+	var pick := ChoixVisuel.new()
+	pick.icone = "horloge"
+	pick.gradue = 1
 	pick.focus_mode = Control.FOCUS_NONE
 	for i in Population.LIFE_SPEED_NAMES.size():
 		pick.add_item(Population.LIFE_SPEED_NAMES[i], i)
@@ -391,7 +393,8 @@ func _view_city() -> void:
 func _view_list() -> void:
 	_title.text = "Habitants · liste"
 	var row := HBoxContainer.new()
-	var pick := OptionButton.new()
+	var pick := ChoixVisuel.new()
+	pick.gradue = 0
 	pick.focus_mode = Control.FOCUS_NONE
 	var keys := ["", "bebe", "eleve", "apprenti", "etudiant", "actif", "chomeur", "retraite", "defunts"]
 	for i in keys.size():

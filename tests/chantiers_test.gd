@@ -95,6 +95,8 @@ func _run() -> void:
 	bs.unlimited_money = false
 	bs.money = 10_000_000
 	var m0 := bs.money
+	# Surcoût des matériaux importés (pas de carrière sur cette carte) : payé en plus du prix.
+	var sc0 := MateriauxChantiers.surcout_total
 	var bid := bs.place("colombages__maison", Vector2i(-60, 60), 0)
 	_check(bid > 0 and bs.en_chantier(bid), "maison posée : chantier ouvert")
 	var cost := int(bs.buildings[bid].cost)
@@ -135,7 +137,7 @@ func _run() -> void:
 	_check(absf(vie.progress(bid) - 0.5) < 0.02, "chantier à mi-parcours (%d %%)" % roundi(vie.progress(bid) * 100.0))
 	_check(String(vie.etape_de(bid)[1]) == "murs" and node.get_node("Echafaudage").visible and not node.get_node("Fouille").visible, "murs derrière les échafaudages")
 	var paye := m0 - bs.money
-	_check(absf(float(paye) - cost * 0.5) <= cost * 0.03, "la moitié du prix payée (%s)" % BuildingSystem.format_money(paye))
+	_check(absf(float(paye - (MateriauxChantiers.surcout_total - sc0)) - cost * 0.5) <= cost * 0.03, "la moitié du prix payée (%s)" % BuildingSystem.format_money(paye))
 	# Caisse vide : le chantier s'arrête.
 	bs.money = 0
 	var av_stop := vie.progress(bid)
@@ -149,7 +151,9 @@ func _run() -> void:
 	vie._update_chantiers()
 	await process_frame
 	_check(not bs.en_chantier(bid) and node.get_node_or_null("Echafaudage") == null and node.get_node_or_null("Engins") == null, "maison finie, chantier démonté")
-	_check(m1 - bs.money + paye == cost and not bs.buildings[bid].has("du"), "prix total payé exactement")
+	var sc := MateriauxChantiers.surcout_total - sc0
+	_check(m1 - bs.money + paye == cost + sc and not bs.buildings[bid].has("du"),
+		"prix total payé exactement, plus %s de surcoût d'import" % BuildingSystem.format_money(sc))
 	# Ouvriers près de la caméra pendant les heures de travail.
 	var b2 := bs.place("colombages__grande_maison", Vector2i(-100, 60), 0)
 	amb.unix_time = _lundi(off) + 14.0 * 86400.0 + 3600.0 # lundi 8 h 30

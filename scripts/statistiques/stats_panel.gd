@@ -1,8 +1,9 @@
 class_name StatsPanel
 extends CanvasLayer
-## Panneau « Statistiques » (Maj+I, menu Infos) : courbes dans le temps de chaque
-## ville et du pays, tableau des chiffres du jour avec leur évolution sur 30 jours,
-## et l'onglet Conseiller (problèmes repérés et quoi faire).
+## Panneau « Statistiques » (Maj+I, menu Infos) : tableau de bord en vignettes
+## (chiffre du jour, évolution sur 30 jours, mini-courbe), courbes dans le temps de
+## chaque ville et du pays, pyramide des âges, et l'onglet Conseiller (portrait,
+## problèmes repérés et quoi faire).
 
 ## Le conseiller propose d'ouvrir un panneau (id de la barre du bas : budget, avis…).
 signal panneau_requested(id: String)
@@ -14,10 +15,15 @@ const PERIODES := [["30 jours", 30], ["1 an", 365], ["Toute la partie", -1]]
 const PALETTE := [Color("ffd166"), Color("7cc7ff"), Color("9fe3b0"), Color("ff8a7a"), Color("c9a7ff"), Color("f5a3d0"), Color("b7c4bb")]
 const NOMS_PANNEAUX := {"budget": "Budget (M)", "avis": "Avis (Y)", "construire": "Construire (B)", "trafic": "Trafic (Maj+L)",
 	"dechets": "Déchets (X)", "reseaux": "Réseaux (O)", "services": "Services (Maj+U)", "cartes": "Cartes (N)", "lignes": "Lignes (L)",
-	"pays": "Pays (Maj+P)", "production": "Production (P)", "objectifs": "Objectifs (Maj+J)"}
+	"pays": "Pays (Maj+P)", "production": "Production (P)", "objectifs": "Objectifs (Maj+J)",
+	"sante": "Santé (F7)", "immobilier": "Immobilier (F11)", "urgences": "Urgences (U)", "education": "Éducation (Maj+K)"}
 
 var stats: Statistiques
-var view := "courbes"
+var view := "tableau"
+## Onglets : [vue, nom, icône].
+const ONGLETS := [["tableau", "Tableau de bord", "details"], ["courbes", "Courbes", "courbe"],
+	["ages", "Âges", "habitants"], ["conseiller", "Conseiller", "mairie"]]
+const COLONNES := 3
 var lieu := ""
 var ind := "habitants"
 var periode := 365
@@ -27,7 +33,7 @@ var _title: Label
 var _body: VBoxContainer
 var _scroll: ScrollContainer
 var _tab_conseil: Button
-var _tab_courbes: Button
+var _tabs := {}
 
 
 func setup(s: Statistiques) -> void:
@@ -68,8 +74,9 @@ func _build() -> void:
 	head.add_child(x)
 	var tabs := HBoxContainer.new()
 	outer.add_child(tabs)
-	_tab_courbes = _onglet(tabs, "Courbes", "courbes")
-	_tab_conseil = _onglet(tabs, "Conseiller", "conseiller")
+	for o in ONGLETS:
+		_tabs[o[0]] = _onglet(tabs, String(o[1]), String(o[0]), String(o[2]))
+	_tab_conseil = _tabs.conseiller
 	_scroll = ScrollContainer.new()
 	_scroll.custom_minimum_size = Vector2(W, H)
 	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -85,9 +92,11 @@ func _build() -> void:
 	marge.add_child(_body)
 
 
-func _onglet(parent: Control, texte: String, v: String) -> Button:
+func _onglet(parent: Control, texte: String, v: String, icone: String) -> Button:
 	var b := Button.new()
 	b.text = texte
+	b.icon = Icones.get_icon(icone, 16, UiStyle.TEXT)
+	b.add_theme_font_size_override("font_size", 13)
 	b.toggle_mode = true
 	b.focus_mode = Control.FOCUS_NONE
 	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -159,14 +168,19 @@ func refresh() -> void:
 	for c in _body.get_children():
 		_body.remove_child(c)
 		c.queue_free()
-	_tab_courbes.set_pressed_no_signal(view == "courbes")
-	_tab_conseil.set_pressed_no_signal(view == "conseiller")
+	for v in _tabs:
+		(_tabs[v] as Button).set_pressed_no_signal(view == v)
 	_maj_onglets()
 	_choix_lieu()
-	if view == "conseiller":
-		_view_conseiller()
-	else:
-		_view_courbes()
+	match view:
+		"conseiller":
+			_view_conseiller()
+		"tableau":
+			_view_tableau()
+		"ages":
+			_view_ages()
+		_:
+			_view_courbes()
 
 
 # --- Choix du lieu ---------------------------------------------------------------------------
@@ -325,17 +339,195 @@ func _ligne(di: Dictionary, l: String) -> void:
 	box.add_child(le)
 
 
+# --- Tableau de bord ---------------------------------------------------------------------------
+
+func _view_tableau() -> void:
+	var fin := stats.dernier_jour()
+	var info := Label.new()
+	info.text = "Chiffres du %s · évolution sur 30 jours · clic sur une vignette pour sa courbe" % Statistiques.date(fin) \
+		if not stats.historique.is_empty() else "Premier relevé à minuit (heure de la partie) : les vignettes se rempliront."
+	info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	info.add_theme_font_size_override("font_size", 12)
+	info.add_theme_color_override("font_color", UiStyle.TEXT_DIM)
+	_body.add_child(info)
+	for national in [false, true]:
+		if national:
+			var sep := Label.new()
+			sep.text = "Pour tout le pays" if lieu != Statistiques.PAYS else "Réseaux, santé, secours, circulation, climat"
+			sep.add_theme_font_size_override("font_size", 13)
+			sep.add_theme_color_override("font_color", UiStyle.ACCENT)
+			_body.add_child(sep)
+		var grille := GridContainer.new()
+		grille.columns = COLONNES
+		grille.add_theme_constant_override("h_separation", 6)
+		grille.add_theme_constant_override("v_separation", 6)
+		_body.add_child(grille)
+		for di in Statistiques.INDICATEURS:
+			if (String(di.portee) == "pays") != national:
+				continue
+			var l := Statistiques.PAYS if national else lieu
+			if is_nan(stats.dernier(l, String(di.id))):
+				continue
+			grille.add_child(_vignette(di, l, fin))
+
+
+## Une vignette : icône et nom, chiffre du jour, évolution colorée, mini-courbe sur 90 jours.
+func _vignette(di: Dictionary, l: String, fin: int) -> Control:
+	var id := String(di.id)
+	var b := Button.new()
+	b.focus_mode = Control.FOCUS_NONE
+	b.custom_minimum_size = Vector2((W - 30.0) / COLONNES - 6.0, 92)
+	b.tooltip_text = String(di.nom) + " : clic pour la courbe"
+	b.pressed.connect(func() -> void:
+		ind = id
+		show_view("courbes"))
+	var v := VBoxContainer.new()
+	v.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	v.offset_left = 6
+	v.offset_right = -6
+	v.offset_top = 4
+	v.offset_bottom = -4
+	v.add_theme_constant_override("separation", 0)
+	v.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	b.add_child(v)
+	var head := HBoxContainer.new()
+	head.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	v.add_child(head)
+	var ic := TextureRect.new()
+	ic.texture = Icones.get_icon(String(di.icone), 14, UiStyle.TEXT_DIM)
+	ic.stretch_mode = TextureRect.STRETCH_KEEP_CENTERED
+	ic.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	head.add_child(ic)
+	var nom := Label.new()
+	nom.text = String(di.nom)
+	nom.clip_text = true
+	nom.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	nom.add_theme_font_size_override("font_size", 11)
+	nom.add_theme_color_override("font_color", UiStyle.TEXT_DIM)
+	nom.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	head.add_child(nom)
+	var row := HBoxContainer.new()
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	v.add_child(row)
+	var val := Label.new()
+	val.text = Statistiques.format(id, stats.dernier(l, id))
+	val.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	val.clip_text = true
+	val.add_theme_font_size_override("font_size", 17)
+	val.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(val)
+	var ev := stats.evolution(l, id, 30)
+	var col := UiStyle.TEXT_DIM
+	if not is_nan(ev) and absf(ev) >= 0.5:
+		var sens := int(di.sens)
+		if sens != 0:
+			col = Conseiller.COULEURS[0] if (ev > 0.0) == (sens > 0) else Conseiller.COULEURS[2]
+		var le := Label.new()
+		le.text = Statistiques.format_ecart(id, ev)
+		le.add_theme_font_size_override("font_size", 11)
+		le.add_theme_color_override("font_color", col)
+		le.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row.add_child(le)
+	var mc := MiniCourbe.new()
+	mc.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	mc.definir(stats.serie(l, id, fin - 90), col if col != UiStyle.TEXT_DIM else UiStyle.ACCENT)
+	v.add_child(mc)
+	return b
+
+
+# --- Pyramide des âges -------------------------------------------------------------------------
+
+func _view_ages() -> void:
+	var t := stats.pyramide(lieu)
+	var total := 0
+	var jeunes := 0
+	var vieux := 0
+	for i in t.size():
+		var n := int(t[i].h) + int(t[i].f)
+		total += n
+		if i < 2:
+			jeunes += n
+		if i >= 7:
+			vieux += n
+	var titre := Label.new()
+	titre.text = "Pyramide des âges · " + _nom_lieu(lieu)
+	titre.add_theme_font_size_override("font_size", 14)
+	titre.add_theme_color_override("font_color", UiStyle.ACCENT)
+	_body.add_child(titre)
+	if total == 0:
+		var vide := Label.new()
+		vide.text = "Personne n'habite encore ici : la pyramide attend ses premiers bébés."
+		vide.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		_body.add_child(vide)
+		return
+	var p := PyramideAges.new()
+	p.definir(t)
+	_body.add_child(p)
+	var resume := Label.new()
+	resume.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	resume.add_theme_font_size_override("font_size", 13)
+	var am := stats.dernier(lieu, "age_moyen")
+	resume.text = "%s habitants · moins de 20 ans : %d %% · 70 ans et plus : %d %%%s" % [Statistiques._milliers(total),
+		roundi(100.0 * jeunes / total), roundi(100.0 * vieux / total), (" · âge moyen : %.1f ans" % am) if not is_nan(am) else ""]
+	_body.add_child(resume)
+	var forme := Label.new()
+	forme.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	forme.add_theme_font_size_override("font_size", 12)
+	forme.add_theme_color_override("font_color", UiStyle.TEXT_DIM)
+	forme.text = forme_pyramide(t)
+	_body.add_child(forme)
+
+
+## Lecture de la forme : jeune (base large), vieillissante (sommet lourd) ou équilibrée.
+static func forme_pyramide(t: Array) -> String:
+	var total := 0
+	var bas := 0
+	var haut := 0
+	for i in t.size():
+		var n := int(t[i].h) + int(t[i].f)
+		total += n
+		if i < 3:
+			bas += n
+		elif i >= 6:
+			haut += n
+	if total == 0:
+		return ""
+	if bas > 2 * haut:
+		return "Base large : une ville jeune. Les écoles vont avoir du travail, les maternités aussi."
+	if haut > bas:
+		return "Sommet lourd : la ville vieillit. Pense aux soins, et à attirer des familles."
+	return "Forme équilibrée : chaque génération a sa place (pour l'instant)."
+
+
 # --- Conseiller --------------------------------------------------------------------------------
 
 func _view_conseiller() -> void:
 	var avis := Conseiller.analyser(stats, lieu)
+	var h := Conseiller.humeur(avis) if not stats.historique.is_empty() else 0
+	var tete := HBoxContainer.new()
+	tete.add_theme_constant_override("separation", 10)
+	_body.add_child(tete)
+	var portrait := TextureRect.new()
+	portrait.texture = PortraitConseiller.get_portrait(h, 72)
+	portrait.stretch_mode = TextureRect.STRETCH_KEEP_CENTERED
+	portrait.tooltip_text = "Ton conseiller municipal : %s" % Langue.t(Conseiller.HUMEURS[h]).to_lower()
+	tete.add_child(portrait)
+	var cote := VBoxContainer.new()
+	cote.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	cote.alignment = BoxContainer.ALIGNMENT_CENTER
+	tete.add_child(cote)
+	var hum := Label.new()
+	hum.text = "Humeur : %s" % Langue.t(Conseiller.HUMEURS[h])
+	hum.add_theme_font_size_override("font_size", 14)
+	hum.add_theme_color_override("font_color", Conseiller.COULEURS[h])
+	cote.add_child(hum)
 	var intro := Label.new()
 	intro.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	intro.add_theme_font_size_override("font_size", 12)
 	intro.add_theme_color_override("font_color", UiStyle.TEXT_DIM)
 	intro.text = "Ton conseiller relit les chiffres chaque jour. Il ne se trompe pas souvent, et il le sait." if not stats.historique.is_empty() \
 		else "Le conseiller attend le premier relevé (à minuit, heure de la partie)."
-	_body.add_child(intro)
+	cote.add_child(intro)
 	for a in avis:
 		_carte(a)
 
@@ -352,6 +544,10 @@ func _carte(a: Dictionary) -> void:
 	p.add_child(v)
 	var head := HBoxContainer.new()
 	v.add_child(head)
+	var ic := TextureRect.new()
+	ic.texture = Icones.get_icon(String(Conseiller.ICONES_THEMES.get(String(a.theme), "infos")), 18, Conseiller.COULEURS[g])
+	ic.stretch_mode = TextureRect.STRETCH_KEEP_CENTERED
+	head.add_child(ic)
 	var t := Label.new()
 	t.text = String(a.titre)
 	t.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

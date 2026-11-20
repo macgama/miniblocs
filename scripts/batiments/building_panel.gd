@@ -41,6 +41,9 @@ signal plan_level_set(level: int)
 signal save_requested
 ## « Créer un nouveau bâtiment » (Mes modèles) : ouvrir l'Atelier.
 signal atelier_requested
+## Thème « Sous terre » : outil choisi ("conduite", "tunnel" ou "piece") et son type.
+## La vue passe en sous-sol au bon niveau (SousTerreAuto.lancer).
+signal sous_terre_chosen(outil: String, param: String)
 
 var _panel: PanelContainer
 var _list: VBoxContainer
@@ -108,7 +111,7 @@ var _ladder_level := 0
 ## Icône de chaque onglet.
 const CAT_ICONS := {"logement": "logement", "commerce": "commerce", "industrie": "industrie", "production": "ressources", "reseaux": "reseaux",
 	"services": "services", "dechets": "dechets", "funeraire": "funeraire", "loisirs": "loisirs", "sport": "sport", "parc": "parc", "zoo": "zoo", "spectacles": "masques", "tourisme": "valise", "espaces": "publics", "patrimoine": "patrimoine",
-	"zones": "zonage", "blocs": "editeur", "creations": "creations", "interieur": "interieur", "banque": "banque", "mes_modeles": "atelier"}
+	"zones": "zonage", "blocs": "editeur", "creations": "creations", "interieur": "interieur", "banque": "banque", "mes_modeles": "atelier", "sous_terre": "souterrain"}
 
 ## Thèmes du catalogue (mode Gérer) : nom écrit, icône, catégories du catalogue.
 ## « favoris » et « recents » sont des listes du joueur (FavorisConstruire).
@@ -125,6 +128,7 @@ const THEMES := [
 	{"id": "tourisme", "name": "Tourisme", "icon": "valise", "cats": ["tourisme"]},
 	{"id": "mes_modeles", "name": "Mes modèles", "icon": "atelier", "cats": ["mes_modeles"]},
 	{"id": "zones", "name": "Zonage", "icon": "zonage", "cats": ["zones"], "head": "Outils"},
+	{"id": "sous_terre", "name": "Sous terre", "icon": "souterrain", "cats": ["sous_terre"]},
 ]
 ## Nom court des sous-thèmes (sous un thème ouvert).
 const SUB_NAMES := {"industrie": "Industrie", "production": "Production et ressources", "services": "Services publics", "funeraire": "Funéraire",
@@ -184,6 +188,7 @@ func _ready() -> void:
 	tabs.append_array(BuildingCatalog.CATEGORIES.duplicate())
 	tabs.append({"id": ModelesJeu.CATEGORY, "name": "Mes modèles : les bâtiments de ton atelier, avec leur fonction", "color": Color("9fe3b0")})
 	tabs.append({"id": "zones", "name": "Zonage", "color": Color("ffd166")})
+	tabs.append({"id": "sous_terre", "name": "Sous terre : conduites, câbles, tunnels, métro, caves, parkings, bunkers", "color": Color("c2a37a")})
 	tabs.append({"id": "blocs", "name": "Éditeur libre", "color": Color("8ecae6")})
 	tabs.append({"id": Creations.CATEGORY, "name": "Mes créations", "color": Color("f4a261")})
 	tabs.append({"id": "interieur", "name": "Intérieur : meubles, pièces, bâtiments meublés", "color": Color("c9a0dc")})
@@ -375,7 +380,7 @@ func _count(cat: String) -> int:
 			return FavorisConstruire.liste(cat).size()
 		ModelesJeu.CATEGORY:
 			return ModelesJeu.ids().size() + Creations.ids().size()
-		"zones":
+		"zones", "sous_terre":
 			return -1
 	return BuildingCatalog.ids_in(cat, _region, _era).size()
 
@@ -402,7 +407,7 @@ func _fill_themes() -> void:
 		for c in cats:
 			n += maxi(0, _count(String(c)))
 		var open := String(t.id) == _theme_open and _search == ""
-		_themes_box.add_child(_theme_button(String(t.icon), String(t.name), "" if String(t.id) == "zones" else str(n), open and cats.size() == 1, open, String(cats[0]), 0))
+		_themes_box.add_child(_theme_button(String(t.icon), String(t.name), "" if ["zones", "sous_terre"].has(String(t.id)) else str(n), open and cats.size() == 1, open, String(cats[0]), 0))
 		if open and cats.size() > 1:
 			for c in cats:
 				if EditionDemo.categorie_verrouillee(String(c)) or not _cat_buttons.has(String(c)):
@@ -466,6 +471,9 @@ func show_category(cat: String) -> void:
 			return
 	if cat == "zones":
 		_show_zones()
+		return
+	if cat == "sous_terre":
+		_show_sous_terre()
 		return
 	if cat == "blocs":
 		_show_blocks()
@@ -531,7 +539,7 @@ func _show_search_results() -> void:
 	var cats: Array = []
 	for t in THEMES:
 		for c in t.cats:
-			if not ["favoris", "recents", "zones"].has(String(c)) and not EditionDemo.categorie_verrouillee(String(c)):
+			if not ["favoris", "recents", "zones", "sous_terre"].has(String(c)) and not EditionDemo.categorie_verrouillee(String(c)):
 				cats.append(String(c))
 	for c in cats:
 		var pool: Array = (ModelesJeu.ids() + Creations.ids()) if c == ModelesJeu.CATEGORY else BuildingCatalog.ids_in(String(c), _region, _era)
@@ -549,6 +557,52 @@ func _show_search_results() -> void:
 		return pa and not pb)
 	_cat_title.text = "« %s » dans tout le catalogue" % _search
 	_show_list(ids, "Aucun bâtiment ne correspond. Essaie un autre mot (école, piscine, gare…).")
+
+
+## Thème « Sous terre » : tout ce qui se construit sous le sol, en images. Un clic
+## passe la vue en sous-sol au bon niveau avec l'outil en main.
+func _show_sous_terre() -> void:
+	_filters.visible = false
+	var aide := Label.new()
+	aide.text = "Choisis ce que tu veux construire : la vue passe sous terre au bon niveau. Page bas / Page haut changent de niveau, Échap remonte en surface."
+	aide.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	aide.add_theme_font_size_override("font_size", 12)
+	aide.add_theme_color_override("font_color", UiStyle.TEXT_DIM)
+	_add(aide)
+	var CS := ConstructionSouterraine
+	var parts := [
+		["Conduites et câbles (au −1)", "conduite", CS.CONDUITES.keys(), CS.CONDUITES],
+		["Tunnels et métro (à partir du −3)", "tunnel", CS.VOIES.keys(), CS.VOIES],
+		["Pièces creusées : caves, parkings, bunkers", "piece", CS.USAGE_ORDRE, CS.USAGES],
+	]
+	for pt in parts:
+		var t := Label.new()
+		t.text = String(pt[0])
+		t.add_theme_font_size_override("font_size", 13)
+		t.add_theme_color_override("font_color", UiStyle.ACCENT)
+		_add(t)
+		var grid := GridContainer.new()
+		grid.columns = 3
+		grid.add_theme_constant_override("h_separation", 6)
+		grid.add_theme_constant_override("v_separation", 6)
+		for k in pt[2]:
+			var info: Dictionary = pt[3][k]
+			var picto := String(info.get("picto", "sous_" + String(k)))
+			var b := Button.new()
+			b.name = "SousTerre_" + String(k)
+			b.text = String(info.name).get_slice(" (", 0)
+			b.tooltip_text = String(info.get("tip", info.name))
+			b.icon = Pictos.get_picto(picto, 96)
+			b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			b.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
+			b.custom_minimum_size = Vector2(104, 92)
+			b.add_theme_font_size_override("font_size", 12)
+			b.focus_mode = Control.FOCUS_NONE
+			var outil := String(pt[1])
+			var param := String(k)
+			b.pressed.connect(func() -> void: sous_terre_chosen.emit(outil, param))
+			grid.add_child(b)
+		_add(grid)
 
 
 ## Vignettes d'une liste d'ids, avec un message si elle est vide.

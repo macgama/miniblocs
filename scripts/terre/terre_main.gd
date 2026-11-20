@@ -2732,6 +2732,7 @@ var banque_panel: BanquePanel
 ## menu Infos. Réseaux de rue, tronçons enterrés, tunnels, métro, sous-sols.
 var souterrain: VueSouterraine
 var construction_souterraine: ConstructionSouterraine
+var sous_terre_auto: SousTerreAuto
 
 
 func _setup_souterrain() -> void:
@@ -2773,6 +2774,25 @@ func _setup_souterrain() -> void:
 		else:
 			vue_etages.show_all()
 			souterrain.entrer())
+	souterrain.ouverte.connect(func(on: bool) -> void: hud.set_sous_terre(on))
+	# Outil qui construit sous le sol, pris dans n'importe quel menu : la vue y passe seule.
+	sous_terre_auto = SousTerreAuto.new()
+	sous_terre_auto.name = "SousTerreAuto"
+	sous_terre_auto.vue = souterrain
+	sous_terre_auto.construction = construction_souterraine
+	sous_terre_auto.reseaux = reseaux
+	sous_terre_auto.telecom = telecom
+	sous_terre_auto.transport = transport
+	sous_terre_auto.preparer = func() -> void: vue_etages.show_all()
+	add_child(sous_terre_auto)
+	sous_terre_auto.brancher()
+	# Construire → Sous terre : conduites, tunnels, pièces, en images.
+	build_panel.sous_terre_chosen.connect(func(outil: String, param: String) -> void:
+		if not sous_terre_auto.lancer(outil, param):
+			hud.show_message("Sous terre : seulement depuis la vue de dessus (V).")
+			return
+		build_panel.set_open(false)
+		hud.set_panel_open("construire", false))
 
 
 func _setup_atelier_tools() -> void:
@@ -2781,7 +2801,7 @@ func _setup_atelier_tools() -> void:
 	add_child(perso_panel)
 	perso_panel.setup(buildings, mobilier)
 	perso_panel.opened_interior.connect(func(id: String) -> void:
-		mobilier.focus_plan(id))
+		_amenager_plan(id))
 	banque_pose = BanquePose.new()
 	banque_pose.name = "PoseModele"
 	add_child(banque_pose)
@@ -2808,11 +2828,25 @@ func _setup_atelier_tools() -> void:
 	habitants_panel.furnish_requested.connect(func(bid: int) -> void:
 		var info: Dictionary = population.known.get(bid, {})
 		habitants_panel.set_open(false)
-		if not hud.create_mode:
-			set_create_mode(true)
-		mobilier.focus_plan(String(info.get("plan", "")))
-		hud.set_create_category("interieur")
-		_on_create_requested("interieur"))
+		_amenager_plan(String(info.get("plan", ""))))
+	# Bâtiment du catalogue : ouvert en murs fins et meublé, puis onglet Intérieur.
+	habitants_panel.interior_requested.connect(func(bid: int) -> void:
+		var res := Conversion.open_interior(mobilier, bid)
+		if not res.ok:
+			hud.show_message("Impossible d'aménager l'intérieur : %s." % String(res.error))
+			return
+		habitants_panel.set_open(false)
+		hud.show_message("Intérieur ouvert : %s, meublé. Entre avec V, change pièces et meubles dans l'onglet Intérieur." % mobilier.plan_name(String(res.id)))
+		_amenager_plan(String(res.id)))
+
+
+## Onglet Intérieur (mode Créer) sur un bâtiment en murs fins.
+func _amenager_plan(plan_id: String) -> void:
+	if not hud.create_mode:
+		set_create_mode(true)
+	mobilier.focus_plan(plan_id)
+	hud.set_create_category("interieur")
+	_on_create_requested("interieur")
 
 
 ## Avant le chargement : l'atelier est un terrain plat, hors ligne.
@@ -2971,6 +3005,7 @@ func _setup_mairie() -> void:
 		reseaux.raccordements.nombre_change.connect(func(_n: int) -> void: fil_alertes.refresh())
 	_setup_fil_habitants()
 	_setup_jauges()
+	_setup_mini_carte()
 	_setup_pile_gauche()
 	_setup_affichage()
 	recherche = RechercheUniverselle.new()
@@ -3054,12 +3089,35 @@ func _setup_jauges() -> void:
 	jauges.panneau_requested.connect(aller_au_panneau)
 
 
+## Tête de la colonne de gauche : le panneau des coordonnées s'il est ouvert (clic
+## sur le nom du lieu ; le tutoriel est alors caché), sinon la carte du tutoriel.
+func _tete_pile_gauche() -> Control:
+	if hud.coords_open():
+		return hud.coords_panel()
+	return tuto_carte.find_child("CarteTutoriel", true, false) as Control if is_instance_valid(tuto_carte) else null
+
+
+## Mini-carte vue du dessus en bas à droite (Ctrl+M) : clic pour déplacer la
+## caméra, couleurs de N ou P, alertes cliquables, villes voisines.
+var mini_carte: MiniCarte
+
+
+func _setup_mini_carte() -> void:
+	mini_carte = MiniCarte.new()
+	hud.add_child(mini_carte)
+	mini_carte.setup(self)
+	hud._gerer_only.append(mini_carte)
+	mini_carte.visible = not GameStart.atelier and not hud.create_mode
+	if GameStart.atelier:
+		mini_carte.set_process(false)
+
+
 func _setup_pile_gauche() -> void:
 	pile_gauche = PileGauche.new()
 	pile_gauche.name = "PileGauche"
 	add_child(pile_gauche)
 	pile_gauche.haut = [
-		func() -> Control: return tuto_carte.find_child("CarteTutoriel", true, false) as Control if is_instance_valid(tuto_carte) else null,
+		_tete_pile_gauche,
 		func() -> Control: return habitants_panel._card if is_instance_valid(habitants_panel) else null,
 		func() -> Control: return fil_habitants if is_instance_valid(fil_habitants) else null]
 	pile_gauche.bas = [
@@ -3113,6 +3171,12 @@ func _setup_affichage() -> void:
 		func() -> void:
 			if is_instance_valid(jauges):
 				jauges.visible = not GameStart.atelier and not hud.create_mode)
+	affichage.ajouter("mini_carte", "Mini-carte", "cartes", "Vue du dessus en bas à droite : clic pour y aller (Ctrl+M)",
+		func() -> Control: return mini_carte._cadre if is_instance_valid(mini_carte) else null,
+		func() -> void:
+			if is_instance_valid(mini_carte):
+				mini_carte.set_replie(false))
+	mini_carte.confier_a(func(on: bool) -> void: affichage.masquer("mini_carte", on))
 	var maj := func() -> void:
 		hud.gauche_libre = affichage.est_masque("case") and affichage.est_masque("a_faire")
 		hud._fit_dock()

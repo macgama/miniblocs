@@ -343,6 +343,19 @@ func set_historique(annuler: String, refaire: String, plan_actif: bool) -> void:
 	plan_button.set_pressed_no_signal(plan_actif)
 
 
+var _top_row: HBoxContainer
+
+
+## Pose un contrôle dans la barre du haut, juste après le bouton nommé `apres`.
+func poser_dans_barre(c: Control, apres: String) -> void:
+	if _top_row == null or c == null:
+		return
+	var ref := _top_row.get_node_or_null(apres)
+	_top_row.add_child(c)
+	if ref != null:
+		_top_row.move_child(c, ref.get_index() + 1)
+
+
 func _build_top_bar() -> void:
 	var top := PanelContainer.new()
 	top.name = "BarreHaut"
@@ -356,6 +369,7 @@ func _build_top_bar() -> void:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 6)
 	top.add_child(row)
+	_top_row = row
 
 	var pin := TextureRect.new()
 	pin.texture = Icones.get_icon("lieu", 22, UiStyle.ACCENT)

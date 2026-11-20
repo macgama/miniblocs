@@ -125,15 +125,15 @@ static func ameliorable(type_id: String) -> bool:
 
 
 ## Étages ajoutés par la personnalisation (bâtiments dont la forme se règle).
-static func _etages_perso(type_id: String, niv: int) -> int:
-	var base := Personnalisation.base_floors(type_id)
+static func _etages_perso(type_id: String, niv: int, perso: Dictionary = {}) -> int:
+	var base := Personnalisation.base_floors(type_id, perso)
 	return (niv - 1) * maxi(1, roundi(base * 0.3))
 
 
 ## Étages à insérer dans le maillage (bâtiments dont la forme ne se règle pas).
 static func etages_inseres(b: Dictionary) -> int:
 	var niv := niveau(b)
-	if niv <= 1 or not ameliorable(String(b.t)) or Personnalisation.can_shape(String(b.t)):
+	if niv <= 1 or not ameliorable(String(b.t)) or Personnalisation.can_shape(String(b.t), b.get("perso", {})):
 		return 0
 	return niv - 1
 
@@ -143,11 +143,11 @@ static func perso_effectif(b: Dictionary) -> Dictionary:
 	var perso: Dictionary = b.get("perso", {})
 	var niv := niveau(b)
 	var tid := String(b.t)
-	if niv <= 1 or not Personnalisation.can_shape(tid) or not ameliorable(tid):
+	if niv <= 1 or not Personnalisation.can_shape(tid, perso) or not ameliorable(tid):
 		return perso
 	var out := perso.duplicate()
-	var et := int(perso.get("etages", Personnalisation.base_floors(tid)))
-	out["etages"] = mini(et + _etages_perso(tid, niv), maxi(et, Personnalisation.max_floors(tid) + 2 * (niv - 1)))
+	var et := int(perso.get("etages", Personnalisation.base_floors(tid, perso)))
+	out["etages"] = mini(et + _etages_perso(tid, niv, perso), maxi(et, Personnalisation.max_floors(tid, perso) + 2 * (niv - 1)))
 	return out
 
 
@@ -156,8 +156,8 @@ static func etages_ajoutes(b: Dictionary) -> int:
 	var tid := String(b.t)
 	if niveau(b) <= 1:
 		return 0
-	if Personnalisation.can_shape(tid):
-		return int(perso_effectif(b).get("etages", 0)) - int((b.get("perso", {}) as Dictionary).get("etages", Personnalisation.base_floors(tid)))
+	if Personnalisation.can_shape(tid, b.get("perso", {})):
+		return int(perso_effectif(b).get("etages", 0)) - int((b.get("perso", {}) as Dictionary).get("etages", Personnalisation.base_floors(tid, b.get("perso", {}))))
 	return 0
 
 

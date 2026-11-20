@@ -2781,7 +2781,7 @@ func _setup_atelier_tools() -> void:
 	add_child(perso_panel)
 	perso_panel.setup(buildings, mobilier)
 	perso_panel.opened_interior.connect(func(id: String) -> void:
-		mobilier.focus_plan(id))
+		_amenager_plan(id))
 	banque_pose = BanquePose.new()
 	banque_pose.name = "PoseModele"
 	add_child(banque_pose)
@@ -2808,11 +2808,25 @@ func _setup_atelier_tools() -> void:
 	habitants_panel.furnish_requested.connect(func(bid: int) -> void:
 		var info: Dictionary = population.known.get(bid, {})
 		habitants_panel.set_open(false)
-		if not hud.create_mode:
-			set_create_mode(true)
-		mobilier.focus_plan(String(info.get("plan", "")))
-		hud.set_create_category("interieur")
-		_on_create_requested("interieur"))
+		_amenager_plan(String(info.get("plan", ""))))
+	# Bâtiment du catalogue : ouvert en murs fins et meublé, puis onglet Intérieur.
+	habitants_panel.interior_requested.connect(func(bid: int) -> void:
+		var res := Conversion.open_interior(mobilier, bid)
+		if not res.ok:
+			hud.show_message("Impossible d'aménager l'intérieur : %s." % String(res.error))
+			return
+		habitants_panel.set_open(false)
+		hud.show_message("Intérieur ouvert : %s, meublé. Entre avec V, change pièces et meubles dans l'onglet Intérieur." % mobilier.plan_name(String(res.id)))
+		_amenager_plan(String(res.id)))
+
+
+## Onglet Intérieur (mode Créer) sur un bâtiment en murs fins.
+func _amenager_plan(plan_id: String) -> void:
+	if not hud.create_mode:
+		set_create_mode(true)
+	mobilier.focus_plan(plan_id)
+	hud.set_create_category("interieur")
+	_on_create_requested("interieur")
 
 
 ## Avant le chargement : l'atelier est un terrain plat, hors ligne.

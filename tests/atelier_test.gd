@@ -268,13 +268,7 @@ func _run() -> void:
 	hp.set_open(true)
 	hp.show_view("batiment", a)
 	await process_frame
-	var found := false
-	for c in hp._body.get_children():
-		if c is HBoxContainer:
-			for bb in c.get_children():
-				if bb is Button and (bb as Button).text == "Personnaliser":
-					found = true
-	_check(found, "bouton Personnaliser sur la fiche du bâtiment")
+	_check(hp._body.find_child("TuileFacade", true, false) != null, "tuile « Modifier la façade » sur la fiche du bâtiment")
 
 	print("ATELIER TEST OK" if ok else "ATELIER TEST ÉCHEC")
 	quit(0 if ok else 1)

@@ -27,6 +27,8 @@ var habitants_panel: HabitantsPanel
 ## Ressources naturelles et chaînes de production (touche P).
 var production: Production
 var production_panel: ProductionPanel
+## Fiche « Que faire ici ? » (clic sur un terrain libre, P → Ressources).
+var que_faire_ici: QueFaireIci
 ## Agriculture : champs, travaux, machines, élevage et repas (Maj+F).
 var agriculture: Agriculture
 var agri_panel: AgriPanel
@@ -2004,6 +2006,22 @@ func _resume_nuisances() -> Array:
 
 
 ## Production : sites, stocks, carte des ressources sur le terrain et panneau (P).
+## Clic sur un terrain libre (outil Observer) : fiche « Que faire ici ? ».
+func _terrain_clique(c: Vector2i) -> void:
+	if not OptionsJeu.fiche_lieu or que_faire_ici == null:
+		return
+	if transport != null and transport.is_cell_occupied(c):
+		return
+	ouvrir_que_faire_ici(c)
+
+
+func ouvrir_que_faire_ici(c: Vector2i) -> void:
+	if que_faire_ici == null:
+		return
+	que_faire_ici.lecture_seule = VisiteVille.active()
+	que_faire_ici.ouvrir(c)
+
+
 func _setup_production() -> void:
 	production = Production.new()
 	production.name = "Production"
@@ -2026,6 +2044,18 @@ func _setup_production() -> void:
 		rig.position.x = pos.x
 		rig.position.z = pos.z)
 	hud.production_requested.connect(func() -> void: production_panel.toggle())
+	que_faire_ici = QueFaireIci.new()
+	que_faire_ici.name = "QueFaireIci"
+	add_child(que_faire_ici)
+	que_faire_ici.setup(production)
+	que_faire_ici.construire.connect(func(id: String) -> void:
+		if production_panel.is_open():
+			production_panel.set_open(false)
+		_select_building_tool()
+		buildings.set_place(id))
+	population.ground_clicked.connect(_terrain_clique)
+	production_panel.lieu_requested.connect(func() -> void:
+		ouvrir_que_faire_ici(Vector2i(floori(rig.position.x), floori(rig.position.z))))
 	carrieres = Carrieres.new()
 	carrieres.name = "Carrieres"
 	add_child(carrieres)

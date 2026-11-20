@@ -233,7 +233,14 @@ func _run() -> void:
 	var transport: TransportSystem = scene.get_node("Transport")
 	var ya := world.cell_height(Vector2i(0, 0))
 	r.deblocage = "tout"  # (la route n'est pas le sujet : pas d'arbre de progression)
-	_check(transport.build_segment("route", Vector3(-700, ya, 0), Vector3(700, ya, 0)).ok, "route est-ouest")
+	# Relief chargé tout autour avant de tracer la route.
+	for i in 600:
+		await process_frame
+		if world.missing_chunk_count() == 0 and world._dirty.is_empty() and world._jobs.is_empty():
+			break
+	ya = world.cell_height(Vector2i(0, 0))
+	var plan_route := transport.build_segment("route", Vector3(-250, ya, 0), Vector3(400, ya, 0))
+	_check(plan_route.ok, "route est-ouest (%s)" % String(plan_route.get("reason", "")))
 	(scene.get_node("Chantiers") as SuiviChantiers).terminer_tout()  # route ouverte tout de suite
 	prod.sites[carr].st["pierre"] = 0.0
 	var dc := int(BuildingCatalog.get_type("carriere").d)

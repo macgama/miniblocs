@@ -254,8 +254,8 @@ func _run() -> void:
 	var tr := prod._traffic()
 	var n_camions := 0
 	if tr != null:
-		for v in tr.vehicles:
-			if int(v.get("delivery", 0)) <= LivraisonsChantiers.TAG:
+		for veh in tr.vehicles:
+			if int(veh.get("delivery", 0)) <= LivraisonsChantiers.TAG:
 				n_camions += 1
 	_check(LivraisonsChantiers.envoyes > env0 and (tr == null or n_camions > 0),
 		"des camions livrent le chantier (%d partis, %d sur la route)" % [LivraisonsChantiers.envoyes - env0, n_camions])

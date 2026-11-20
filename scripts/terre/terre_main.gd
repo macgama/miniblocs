@@ -841,6 +841,8 @@ func _setup_population() -> void:
 	habitants_panel.name = "PanneauHabitants"
 	add_child(habitants_panel)
 	habitants_panel.setup(population)
+	# En construction bloc par bloc, F renverse la forme : la caméra de l'habitant suivi garde son bouton.
+	habitants_panel.f_key_taken = func() -> bool: return blocks != null and blocks.tool == BlockEditor.Tool.BLOCK
 	habitants_panel.focus_requested.connect(func(pos: Vector3) -> void:
 		rig.position.x = pos.x
 		rig.position.z = pos.z)
@@ -1337,7 +1339,8 @@ func ouvrir_panneau(id: String) -> void:
 	var panels := {"budget": budget_panel, "avis": avis_panel, "construire": build_panel, "trafic": trafic_panel,
 		"dechets": dechets_panel, "reseaux": reseaux_panel, "services": services_panel, "education": education_panel, "cartes": cartes_panel,
 		"lignes": transit_panel, "pays": pays_panel, "production": production_panel, "objectifs": objectifs_panel,
-		"saisons": saisons_panel, "sante": sante_panel, "climat": climat_panel, "arbre": arbre_panel}
+		"saisons": saisons_panel, "sante": sante_panel, "climat": climat_panel, "arbre": arbre_panel,
+		"immobilier": immobilier_panel, "urgences": urgences_panel}
 	var p = panels.get(id)
 	if p != null:
 		p.set_open(true)

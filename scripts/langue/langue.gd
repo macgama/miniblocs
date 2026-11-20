@@ -21,7 +21,6 @@ static var _branchee: Translation = null
 ## Applique une langue : charge sa traduction (une fois) et change la langue de Godot.
 ## Tous les textes affichés se traduisent aussitôt.
 static func activer(code: String) -> void:
-	Polices.installer()
 	if not existe(code):
 		code = "fr"
 	if code != "fr" and not _chargees.has(code):
@@ -40,6 +39,7 @@ static func activer(code: String) -> void:
 			TranslationServer.add_translation(voulue)
 		_branchee = voulue
 	actuelle = code
+	Polices.installer()
 	if TranslationServer.get_locale() != code:
 		TranslationServer.set_locale(code)
 

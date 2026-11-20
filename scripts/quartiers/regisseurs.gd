@@ -284,7 +284,11 @@ func _decors(qid: int, r: Dictionary, car: Dictionary) -> String:
 		return ""
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash([qid, int(r.semaine), int(r.pid)])
-	var id: String = ids[rng.randi() % ids.size()]
+	# Au hasard parmi ce que la cagnotte peut payer (un kiosque attend qu'elle grossisse).
+	var abordables := ids.filter(func(x: String) -> bool: return Decors.prix(x) <= int(r.caisse))
+	if abordables.is_empty():
+		return ""
+	var id: String = abordables[rng.randi() % abordables.size()]
 	var prix := Decors.prix(id)
 	var n := 0
 	var essais := 0

@@ -6,6 +6,8 @@ extends RefCounted
 ##  - emoji.ttf : ⏳ 🏆 📌 🔒 (Noto Color Emoji, OFL).
 ## Sur PC, le système complète déjà ce qui manque ; dans le navigateur (démo web)
 ## il n'y a pas de police système : sans elles, ces signes deviennent des carrés.
+## On ne les ajoute que dans le navigateur et en chinois : Noto Sans SC est plus
+## haute que la police du jeu, et une police de secours agrandit toutes les lignes.
 ## Sous-ensembles régénérés par tools/langue/polices.py quand les textes changent.
 
 const DOSSIER := "res://assets/polices/"
@@ -14,8 +16,9 @@ const FICHIERS := ["symboles.ttf", "chinois.otf", "emoji.ttf"]
 static var _installees := false
 
 
-static func installer() -> void:
-	if _installees:
+## Ajoute les polices si le jeu en a besoin (navigateur, chinois) ou si force.
+static func installer(force := false) -> void:
+	if _installees or not (force or OS.has_feature("web") or Langue.actuelle == "zh"):
 		return
 	_installees = true
 	var base := ThemeDB.fallback_font
@@ -33,5 +36,5 @@ static func installer() -> void:
 
 ## Vrai si la police du jeu (avec ses secours) sait dessiner c.
 static func sait(c: String) -> bool:
-	installer()
+	installer(true)
 	return ThemeDB.fallback_font.has_char(c.unicode_at(0))

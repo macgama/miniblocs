@@ -328,7 +328,8 @@ func _fil(scene: Node) -> void:
 			break
 	pop.etape_vie.emit(p, "mariage", "Se marie", int(q.id))
 	pop.etape_vie.emit(q, "mariage", "Se marie", pid)
-	_check(fil._attente.size() == 1, "un mariage = un seul post pour les deux époux")
+	# (La ville vit pendant le test : d'autres étapes peuvent arriver, on ne compte que les mariages.)
+	_check(fil._attente.filter(func(x: Dictionary) -> bool: return String(x.code) == "mariage").size() == 1, "un mariage = un seul post pour les deux époux")
 	var vus := []
 	fil.person_requested.connect(func(x: int) -> void: vus.append(x))
 	var clic := InputEventMouseButton.new()

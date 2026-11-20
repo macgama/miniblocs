@@ -63,6 +63,31 @@ static func info(id: String) -> Dictionary:
 	return _par_id.get(id, {})
 
 
+## Prix de base par catégorie (€ pour un objet d'environ 1 m², piste CityRT 5) :
+## banc ≈ 200 €, lampadaire ≈ 1 500 €, statue ≈ 18 000 €. Le prix grandit avec
+## l'emprise au sol et la hauteur ; les clôtures se paient au tronçon.
+const PRIX_CATEGORIE := {"urbain": 150, "eclairage": 1200, "monuments": 9000, "clotures": 60, "panneaux": 140,
+	"marche": 250, "jeux": 1800, "plage": 120, "ferme": 350, "cultures": 25, "animaux": 900, "eau": 1600,
+	"rochers": 80, "zoo": 2500, "zoo_objets": 600}
+
+
+## Prix d'un décor posé à la main (€, multiplicateur des coûts de la partie compris).
+## Les décors automatiques sont offerts.
+static func prix(id: String) -> int:
+	var e := info(id)
+	if e.is_empty():
+		return 0
+	var base := float(PRIX_CATEGORIE.get(String(e.get("cat", "")), 200))
+	var t: Array = e.get("taille", [1, 1, 1])
+	var surface := maxf(float(t[0]) * float(t[1]), 0.3)
+	var f := sqrt(surface) * (1.0 + 0.12 * clampf(float(t[2]) - 1.0, 0.0, 10.0))
+	if ligne(id) > 0.0:
+		f = maxf(float(t[0]), 1.0) * 0.6
+	var brut := base * clampf(f, 0.5, 12.0)
+	var arrondi := snappedf(brut, 10.0) if brut < 2000.0 else snappedf(brut, 100.0)
+	return ReglagesPartie.prix(maxi(10, int(arrondi)))
+
+
 static func nom(id: String) -> String:
 	return String(info(id).get("nom", id))
 

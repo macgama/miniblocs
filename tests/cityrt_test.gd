@@ -106,10 +106,85 @@ func _village(scene: Node) -> void:
 	_check(pop.persons.size() >= 8, "des habitants (%d)" % pop.persons.size())
 
 
-## Rien par défaut : les lots suivants (prix, décors, régisseur, route au geste…)
-## ajoutent leurs vérifications ici.
-func _suite(_scene: Node) -> void:
-	pass
+func _suite(scene: Node) -> void:
+	await _prix(scene)
+	await _deplacer(scene)
+
+
+func _prix(scene: Node) -> void:
+	print("Prix sur chaque carte :")
+	var banc := Decors.prix("banc_bois")
+	_check(banc >= 100 and banc <= 400, "banc en bois : %d € (≈ 200 €)" % banc)
+	_check(Decors.prix("statue_equestre") > Decors.prix("buste") and Decors.prix("buste") > banc, "statue équestre > buste > banc")
+	_check(Decors.prix("cloture_bois") < banc, "clôture : prix au tronçon, moins cher qu'un banc")
+	var dp: DecorPanel = scene.decors_panel
+	_check(dp._liste.item_count > 0 and dp._liste.get_item_text(0).contains("€"), "cartes des décors avec leur prix (%s)" % dp._liste.get_item_text(0).replace("\n", " · "))
+	var pr := VignettesVoies.prix("departementale")
+	_check(pr.contains("€") and pr.contains("km"), "carte de voie : entretien %s" % pr)
+	var cv := ChoixVisuel.new()
+	cv.add_item("Rue")
+	cv.set_item_prix(0, "60 €")
+	_check(cv.get_item_prix(0) == "60 €", "tuile en images : ligne de prix")
+	cv.free()
+
+
+func _deplacer(scene: Node) -> void:
+	print("Déplacer à la main les décors :")
+	var d: DecorSystem = scene.decors
+	var bs: BuildingSystem = scene.buildings
+	var y: float = scene.world.cell_height(Vector2i(0, 40))
+	d.set_outil(DecorSystem.Outil.POSER)
+	d.choix = "banc_bois"
+	var argent0 := bs.money
+	var n0 := d.nombre_poses()
+	# Trois bancs posés comme le joueur (clic par clic) : chacun payé.
+	for x in [0.0, 4.0, 8.0]:
+		if d._peut_payer(Decors.prix("banc_bois")) and d.pose("banc_bois", x, 40.0, 0.0):
+			d._payer(Decors.prix("banc_bois"))
+	_check(d.nombre_poses() == n0 + 3, "trois bancs posés")
+	_check(argent0 - bs.money == 3 * Decors.prix("banc_bois"), "payés : %s" % BuildingSystem.format_money(argent0 - bs.money))
+	d.set_outil(DecorSystem.Outil.DEPLACER)
+	# Cadre glissé autour des trois bancs.
+	d.commencer_geste(Vector3(-2, y, 37))
+	_check(d._geste == "cadre", "clic dans le vide : cadre de sélection")
+	d._geste_dernier = Vector3(10, y, 43)
+	d.finir_geste(Vector3(10, y, 43))
+	_check(d.selection.size() == 3, "cadre : trois bancs choisis (%d)" % d.selection.size())
+	# Glisser l'un des bancs : tout le groupe suit.
+	d.commencer_geste(Vector3(4.2, y, 40.1))
+	_check(d._geste == "deplace", "clic sur un banc choisi : on déplace le groupe")
+	d.deplacer_selection(0.0, 10.0)
+	d.finir_geste(Vector3(4.2, y, 50.1))
+	_check(not d.decor_a(Vector3(4, y, 50)).is_empty() and d.decor_a(Vector3(4, y, 40)).is_empty(), "le groupe a bougé de 10 m")
+	_check(d.nombre_poses() == n0 + 3, "déplacer ne copie rien")
+	# Ctrl + glisser : copie (payée).
+	var argent1 := bs.money
+	d.commencer_geste(Vector3(4.0, y, 50.0), false, true)
+	d.deplacer_selection(12.0, 0.0)
+	d.finir_geste(Vector3(16.0, y, 50.0))
+	_check(d.nombre_poses() == n0 + 6, "Ctrl + glisser : trois copies (%d)" % (d.nombre_poses() - n0))
+	_check(argent1 - bs.money == 3 * Decors.prix("banc_bois"), "copies payées")
+	_check(not d.decor_a(Vector3(4, y, 50)).is_empty() and not d.decor_a(Vector3(16, y, 50)).is_empty(), "originaux en place, copies à côté")
+	# R : tourne le groupe autour de son centre.
+	var a0 := float(d.selection[0][4])
+	var c0 := Vector2(float(d.selection[1][1]), float(d.selection[1][3]))
+	d.tourner_selection(PI / 2.0)
+	_check(absf(fposmod(float(d.selection[0][4]) - a0, TAU) - PI / 2.0) < 0.01, "R : chaque banc tourne d'un quart de tour")
+	_check(Vector2(float(d.selection[1][1]), float(d.selection[1][3])).distance_to(c0) < 0.05, "le banc du milieu reste au centre")
+	# Suppr : retire la sélection, la moitié du prix est rendue.
+	var argent2 := bs.money
+	_check(d.retirer_selection() == 3 and d.nombre_poses() == n0 + 3, "Suppr : les trois copies retirées")
+	_check(bs.money - argent2 == 3 * (Decors.prix("banc_bois") / 2), "moitié du prix rendue")
+	# Caisse vide : pas de copie.
+	d.choisir([d.decor_a(Vector3(4, y, 50))])
+	var argent3 := bs.money
+	bs.money = 10
+	_check(d.copier_selection() == 0 and d.nombre_poses() == n0 + 3, "caisse vide : la copie est refusée")
+	bs.money = argent3
+	d.set_inactive()
+	_check(d.selection.is_empty(), "lâcher l'outil vide la sélection")
+	var sv := d.to_dict()
+	_check((sv.poses as Array).size() == d.nombre_poses(), "sauvegarde : les décors déplacés sont gardés")
 
 
 func _touche_f(scene: Node) -> void:

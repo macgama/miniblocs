@@ -1374,7 +1374,9 @@ func show_spec(type_id: String, spec: Dictionary, curve: bool, level := "auto", 
 	_class_pick.titre = String(TransportTypes.MODE_NAMES.get(int(c.mode), ""))
 	for id in _class_ids:
 		_class_pick.add_item(TransportTypes.get_type(id).name)
-		_class_pick.set_item_tooltip(_class_pick.item_count - 1, VignettesVoies.details(String(id)))
+		_class_pick.set_item_tooltip(_class_pick.item_count - 1, VignettesVoies.details(String(id))
+			+ "\nPose gratuite (terrassement de montagne en plus) · entretien conseillé : " + VignettesVoies.prix(String(id)))
+		_class_pick.set_item_prix(_class_pick.item_count - 1, VignettesVoies.prix(String(id)))
 	_class_pick.select(maxi(0, _class_ids.find(type_id)))
 	_spec_rows.lanes.visible = c.has("lanes")
 	_spec_rows.lane_w.visible = c.has("lanes")

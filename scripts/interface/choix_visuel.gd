@@ -158,6 +158,16 @@ func set_item_modele(i: int, sorte: String, id: String) -> void:
 			_refresh_face()
 
 
+## Prix affiché sous le nom de la tuile (piste CityRT 5), en couleur d'accent.
+func set_item_prix(i: int, prix: String) -> void:
+	if i >= 0 and i < _items.size():
+		_items[i]["prix"] = prix
+
+
+func get_item_prix(i: int) -> String:
+	return String(_items[i].get("prix", "")) if i >= 0 and i < _items.size() else ""
+
+
 func get_item_modele(i: int) -> Array:
 	return _items[i].modele if i >= 0 and i < _items.size() else []
 
@@ -438,8 +448,23 @@ func _make_tile(i: int) -> Button:
 	l.add_theme_font_size_override("font_size", 11)
 	l.add_theme_constant_override("line_spacing", -2)
 	col.add_child(l)
+	var pl: Label = null
+	if String(it.get("prix", "")) != "":
+		l.max_lines_visible = 1
+		pl = Label.new()
+		pl.name = "Prix"
+		pl.text = String(it.prix)
+		pl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		pl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		pl.clip_text = true
+		pl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		pl.add_theme_font_size_override("font_size", 10)
+		col.add_child(pl)
+		b.tooltip_text += "\n" + String(it.prix)
 	var ink := func() -> void:
 		l.add_theme_color_override("font_color", UiStyle.ACCENT_INK if b.button_pressed else UiStyle.TEXT)
+		if pl != null:
+			pl.add_theme_color_override("font_color", UiStyle.ACCENT_INK if b.button_pressed else UiStyle.ACCENT)
 	ink.call()
 	b.toggled.connect(func(_on: bool) -> void: ink.call())
 	b.pressed.connect(func() -> void: choisir(i))

@@ -13,8 +13,8 @@ const W := 348.0
 const H := 560.0
 
 var pop: Population
-## Éditeur de blocs de la scène (F y renverse le bloc : voir _editeur_blocs_actif).
-var editeur_blocs: BlockEditor
+## Vrai quand une autre action garde la touche F (poser des blocs : F renverse la forme).
+var f_key_taken := func() -> bool: return false
 var _panel: PanelContainer
 var _title: Label
 var _back: Button
@@ -124,7 +124,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		toggle()
 		get_viewport().set_input_as_handled()
 	elif k and k.pressed and not k.echo and k.physical_keycode == KEY_F and not k.shift_pressed and not k.ctrl_pressed \
-			and pop.followed() >= 0 and not _editeur_blocs_actif():
+			and pop.followed() >= 0 and not f_key_taken.call():
 		_toggle_camera()
 		get_viewport().set_input_as_handled()
 
@@ -823,13 +823,6 @@ func _follow_row(pid: int) -> void:
 
 func _camera_text(p: Dictionary) -> String:
 	return "Caméra : %s (F)" % (CycleVie.g(p, "le suit", "la suit") if pop.follow_camera else "libre")
-
-
-## Vrai quand on pose des blocs à la main : F y renverse le bloc, elle ne doit
-## pas basculer la caméra de l'habitant suivi (les touches clavier passent ici
-## avant l'éditeur de blocs).
-func _editeur_blocs_actif() -> bool:
-	return editeur_blocs != null and is_instance_valid(editeur_blocs) and editeur_blocs.tool == BlockEditor.Tool.BLOCK
 
 
 func _toggle_camera() -> void:

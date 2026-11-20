@@ -194,6 +194,8 @@ func _run() -> void:
 	ReglagesPartie.prochaine.tutoriel = false
 	# Ce parcours trace lui-même son plan de rues : pas de rue en T offerte (tests/rue_fondation_test.gd).
 	ReglagesPartie.prochaine.rue_fondation = false
+	ReglagesPartie.prochaine.services_fondation = false  # (services posés d'office : tests/services_fondation_test.gd)
+	ReglagesPartie.prochaine.annee_depart = 0  # (époque actuelle : batteries, éoliennes… ; l'assistant propose 1800, 1900 ou 2000)
 	globe.start_game()
 	game = await _wait_game()
 	_check(game != null and game.name == "Terre", "la partie s'ouvre")

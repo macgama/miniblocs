@@ -214,8 +214,9 @@ func remise(id: String, rect: Rect2i, cout: int) -> int:
 	return mini(cout, plafond(bon))
 
 
-## Appelé par BuildingSystem.place quand un bon a servi.
-func utiliser(bid: int, id: String, rect: Rect2i) -> void:
+## Appelé par BuildingSystem.place quand un bon a servi (silencieux : sans message,
+## pour les services posés d'office au premier village, ServicesFondation).
+func utiliser(bid: int, id: String, rect: Rect2i, silencieux := false) -> void:
 	var bon := bon_du_type(id)
 	var vid := ville_du_lieu(rect)
 	if not a_le_bon(vid, bon):
@@ -227,6 +228,9 @@ func utiliser(bid: int, id: String, rect: Rect2i) -> void:
 		utilises[vid] = {}
 	utilises[vid][bon] = [bid, id]
 	var reste := restants(vid)
+	if silencieux:
+		changed.emit()
+		return
 	message.emit("%s : offert par l'État (kit d'installation). %s" % [String(BuildingCatalog.get_type(id).get("name", id)),
 		"Il reste : %s." % ", ".join(reste.map(func(b) -> String: return String(BONS[b][0]).to_lower())) if not reste.is_empty() else "Le kit est complet !"])
 	changed.emit()

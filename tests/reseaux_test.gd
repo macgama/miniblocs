@@ -116,6 +116,7 @@ func _run() -> void:
 		if m == null or m.get_surface_count() == 0:
 			_check(false, "modèle de %s" % id)
 	ReglagesPartie.actuel.reseaux_obligatoires = true
+	ReglagesPartie.actuel.deblocage = "tout"
 	amb.set_speed(0)
 	amb.unix_time = _at("2026-06-21", 13.0)
 	bs.money = 5_000_000_000

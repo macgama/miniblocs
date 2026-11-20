@@ -12,12 +12,16 @@ extends RefCounted
 ## - Le chantier se sert d'abord dans les stocks de la carte (carrière, four
 ##   à chaux, scierie, briqueterie, entrepôt…), du plus proche au plus loin :
 ##   l'entreprise est payée au prix du marché intérieur, sur le prix du
-##   chantier (rien de plus pour la caisse). Ce qui manque vient de l'extérieur
-##   (import, déjà compris dans le prix du chantier).
+##   chantier. Ce qui manque vient de l'extérieur : la caisse qui paie le
+##   chantier règle en plus la différence entre le prix d'import et le prix
+##   intérieur (≈ +25 %), inscrite au budget « Matériaux importés (chantiers) ».
+## - Les matériaux arrivent en camion sur les routes (LivraisonsChantiers) :
+##   depuis la carrière ou l'usine, ou depuis la route qui sort de la carte
+##   pour les imports.
 ##
-## Le prix d'un chantier ne change donc pas : une ville qui produit ses
-## matériaux fait travailler ses carrières et ses usines (emplois, impôts sur
-## les bénéfices) au lieu d'acheter ailleurs.
+## Une ville qui produit ses matériaux paie donc ses chantiers moins cher et
+## fait travailler ses carrières et ses usines (emplois, impôts sur les
+## bénéfices) au lieu d'acheter ailleurs.
 
 ## Recettes (t par m² de plancher) : [jusqu'à l'année (exclue), {marchandise: t}].
 const RECETTES := [
@@ -40,6 +44,12 @@ const VOIE_RAIL_M := {"pierre": 1.5, "acier": 0.12, "bois": 0.08}
 const VOIE_RAIL_M_MODERNE := {"pierre": 1.5, "acier": 0.12, "ciment": 0.10}
 ## Rayon (m) où l'on va chercher les matériaux sur la carte.
 const RAYON := 30000.0
+## Poste du budget communal pour le surcoût des imports.
+const POSTE_IMPORT := "Matériaux importés (chantiers)"
+
+## Surcoût des imports réglé depuis le début de la partie (€, pour les bilans et les tests).
+static var surcout_total := 0
+static var _surcout_frac := 0.0
 
 
 static func _annee() -> int:
@@ -70,10 +80,9 @@ static func besoins_batiment(type_id: String, annee := -1) -> Dictionary:
 		for g in ESPACES:
 			out[g] = float(ESPACES[g]) * w * d
 		return out
-	var etages := maxf(1.0, ceilf(BuildingCatalog.approx_height(type_id) / 3.0))
-	# Emprise bâtie : les grands terrains (usines, fermes) ne sont pas bâtis partout.
-	var emprise := w * d * (0.6 if w * d > 400.0 else 0.8)
-	var plancher := emprise * etages
+	# Surface de plancher : la même que pour la durée du chantier (Chantiers),
+	# en niveaux entiers de 3,5 m : la pointe du toit ne fait pas un étage de plus.
+	var plancher := Chantiers.plancher_batiment(type_id)
 	var rec := recette(annee)
 	var hay := (type_id + " " + String(t.get("name", "")) + " " + String(t.get("style", ""))).to_lower()
 	var en_bois := false
@@ -133,9 +142,11 @@ static func texte(m: Dictionary, n := 4) -> String:
 
 ## Fournit la part `dp` (0 à 1) des matériaux `total` à un chantier situé en
 ## `pos` : prise dans les stocks de la carte d'abord, sinon importée. Rend
-## {"local": {g: t}, "import": {g: t}, "valeur_locale": €}.
+## {"local": {g: t}, "import": {g: t}, "valeur_locale": €, "surcout": €} ;
+## surcout = ce que l'import coûte de plus que le marché intérieur, à régler
+## par la caisse du chantier (regler_surcout). Les camions partent (LivraisonsChantiers).
 static func fournir(total: Dictionary, dp: float, pos: Vector3) -> Dictionary:
-	var res := {"local": {}, "import": {}, "valeur_locale": 0.0}
+	var res := {"local": {}, "import": {}, "valeur_locale": 0.0, "surcout": 0.0}
 	if dp <= 0.0 or total.is_empty():
 		return res
 	var prod := Production.instance
@@ -157,9 +168,35 @@ static func fournir(total: Dictionary, dp: float, pos: Vector3) -> Dictionary:
 				res.valeur_locale = float(res.valeur_locale) + v
 				reste -= pris
 				res.local[g] = float(res.local.get(g, 0.0)) + pris
+				LivraisonsChantiers.noter(prod, int(bid), String(g), pris, pos)
 		if reste > 0.000001:
 			res.import[g] = float(res.import.get(g, 0.0)) + reste
+			res.surcout = float(res.surcout) + reste * surcout_tonne(String(g))
+			if prod != null and is_instance_valid(prod):
+				LivraisonsChantiers.noter(prod, -1, String(g), reste, pos)
 	return res
+
+
+## Surcoût d'une tonne importée plutôt qu'achetée sur la carte (€/t).
+static func surcout_tonne(g: String) -> float:
+	return maxf(Ressources.prix_import(g) - Ressources.prix_interieur(g), 0.0)
+
+
+## Débite le surcoût des imports de la caisse active (celle du chantier, déjà
+## choisie par l'appelant) et l'inscrit au budget. Rend les euros débités.
+static func regler_surcout(f: Dictionary, buildings: BuildingSystem) -> int:
+	var v := float(f.get("surcout", 0.0))
+	if v <= 0.0 or buildings == null or buildings.unlimited_money:
+		return 0
+	_surcout_frac += v
+	var entier := floori(_surcout_frac)
+	_surcout_frac -= entier
+	if entier <= 0:
+		return 0
+	buildings.money -= entier
+	surcout_total += entier
+	BudgetCommunal.noter(POSTE_IMPORT, -float(entier))
+	return entier
 
 
 ## Sites de la carte qui ont la marchandise en stock, du plus proche au plus loin

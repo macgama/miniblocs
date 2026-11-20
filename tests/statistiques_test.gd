@@ -150,9 +150,18 @@ func _run() -> void:
 	d[Statistiques.PAYS]["dechets"] = 4.0
 	d[str(v1)]["satisfaction"] = 30.0
 	d[str(v1)]["sans_ecole"] = 5.0
+	var vrais := {"effort": d[str(v1)].get("effort"), "seniors": d[str(v1)].get("seniors"), "malades": d[Statistiques.PAYS].get("malades"),
+		"egouts": d[Statistiques.PAYS].get("egouts"), "intervention": d[Statistiques.PAYS].get("intervention")}
+	print("  (chiffres relevés : %s)" % vrais)
+	d[str(v1)]["effort"] = 50.0
+	d[str(v1)]["seniors"] = 40.0
+	d[Statistiques.PAYS]["malades"] = 25.0
+	d[Statistiques.PAYS]["egouts"] = 20.0
+	d[Statistiques.PAYS]["intervention"] = 15.0
 	a = Conseiller.analyser(st, str(v1))
 	var ids := _ids(a)
-	for id in ["chomage", "electricite", "bouchons", "dechets", "colere", "ecole"]:
+	_check(Conseiller.humeur(a) == 2, "humeur du conseiller : alarmé")
+	for id in ["chomage", "electricite", "bouchons", "dechets", "colere", "ecole", "loyers", "vieillissement", "epidemie", "hygiene_egouts", "secours"]:
 		_check(ids.has(id), "problème repéré : %s" % id)
 	var g := 2
 	var trie := true
@@ -198,6 +207,16 @@ func _run() -> void:
 	_check(panel.is_open(), "Maj+I ouvre le panneau")
 	_check(panel.lieu == str(v1), "il montre la ville gérée (Valfleuri)")
 	await process_frame
+	_check(panel.view == "tableau", "il s'ouvre sur le tableau de bord")
+	var vign := _find(panel, "MiniCourbe")
+	_check(vign.size() >= 8, "vignettes avec mini-courbes (%d)" % vign.size())
+	var noms_vign := _find(panel, "Label").map(func(l) -> String: return String((l as Label).text))
+	for n in ["Âge moyen", "Loyer moyen", "Adultes diplômés du supérieur", "Habitants avec eau potable", "Appels d'urgence du jour"]:
+		_check(n in noms_vign, "vignette « %s »" % n)
+	var b_hab: Button = _find(panel, "Button").filter(func(b) -> bool: return String((b as Button).tooltip_text).begins_with("Habitants :"))[0]
+	b_hab.pressed.emit()
+	await process_frame
+	_check(panel.view == "courbes" and panel.ind == "habitants", "clic sur une vignette : sa courbe")
 	var courbes := _find(panel, "Courbe")
 	_check(courbes.size() == 1 and (courbes[0] as Courbe).series.size() == 1, "une courbe")
 	panel.comparer = true
@@ -210,8 +229,18 @@ func _run() -> void:
 	await process_frame
 	courbes = _find(panel, "Courbe")
 	_check((courbes[0] as Courbe).series.size() == 1, "électricité : une seule courbe (tout le pays)")
+	st.releve()
+	panel.show_view("ages")
+	await process_frame
+	var pyr := _find(panel, "PyramideAges")
+	var tot := 0
+	for t in st.pyramide(panel.lieu):
+		tot += int(t.h) + int(t.f)
+	_check(pyr.size() == 1 and tot > 0 and tot == int(st.dernier(panel.lieu, "habitants")), "pyramide des âges = habitants de la ville (%d)" % tot)
+	_check(StatsPanel.forme_pyramide([{"h": 50, "f": 50}, {"h": 40, "f": 40}, {"h": 30, "f": 30}, {"h": 5, "f": 5}, {"h": 1, "f": 1}, {"h": 0, "f": 0}, {"h": 1, "f": 1}, {"h": 0, "f": 0}, {"h": 0, "f": 0}, {"h": 0, "f": 0}]).begins_with("Base large"), "forme jeune reconnue")
 	panel.show_view("conseiller")
 	await process_frame
+	_check(PortraitConseiller.get_portrait(2, 72) != null and PortraitConseiller.get_portrait(0, 72) != null, "portraits du conseiller")
 	var boutons := _find(panel, "Button").filter(func(b) -> bool: return String((b as Button).text).begins_with("Ouvrir"))
 	_check(not boutons.is_empty(), "cartes du conseiller avec un bouton « Ouvrir … »")
 	(boutons[0] as Button).pressed.emit()

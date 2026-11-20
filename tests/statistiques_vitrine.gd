@@ -37,6 +37,10 @@ func _run() -> void:
 	ReglagesPartie.prochaine = ReglagesPartie.preset("normal")
 	ReglagesPartie.prochaine.deblocage = "tout"  # (ce test ne porte pas sur l'arbre de progression)
 	ReglagesPartie.prochaine.fondateurs = 0
+	# Captures en français, sans tutoriel ni bulles d'aide par-dessus le panneau.
+	Langue.activer("fr")
+	ReglagesPartie.prochaine = ReglagesPartie.preset("normal")
+	ReglagesPartie.prochaine.tutoriel = false
 	var scene: Node = load("res://scenes/terre.tscn").instantiate()
 	var world: TerrainWorld = scene.get_node("Terrain")
 	var bs: BuildingSystem = scene.get_node("Batiments")
@@ -72,21 +76,37 @@ func _run() -> void:
 		d[str(v1)] = {"habitants": h1, "satisfaction": 66.0 - 22.0 * sin(clampf(t * 1.6, 0.0, PI)) + rng.randf_range(-2, 2),
 			"chomage": 6.0 + 9.0 * maxf(0.0, t - 0.55) + rng.randf_range(-0.5, 0.5), "caisse": c1,
 			"solde": -90_000.0 * cos(clampf(t * 1.6, 0.0, PI)) * -1.0, "logements_libres": 30.0 * (1.0 - t), "emplois_libres": 80.0 * t,
-			"sans_ecole": 0.0 if t < 0.8 else 12.0, "pollution": 12.0 + 20.0 * t}
+			"sans_ecole": 0.0 if t < 0.8 else 12.0, "pollution": 12.0 + 20.0 * t,
+			"age_moyen": 34.0 + 3.0 * t, "seniors": 14.0 + 6.0 * t, "loyer": 720.0 + 260.0 * t, "effort": 26.0 + 12.0 * t,
+			"prix_m2": 3100.0 + 900.0 * t, "diplomes": 18.0 + 5.0 * t}
 		if k >= 120:
 			d[str(v2)] = {"habitants": h2, "satisfaction": 72.0 + rng.randf_range(-2, 2), "chomage": 4.0, "caisse": 1_000_000.0 - 400_000.0 * t,
 				"solde": -8_000.0, "logements_libres": 12.0, "emplois_libres": 5.0, "sans_ecole": 0.0, "pollution": 6.0}
 		d[Statistiques.PAYS] = {"habitants": h1 + h2, "satisfaction": 64.0 - 18.0 * sin(clampf(t * 1.6, 0.0, PI)), "chomage": 6.0 + 8.0 * maxf(0.0, t - 0.55),
 			"caisse": 8_000_000.0 - 3_000_000.0 * t, "solde": -20_000.0, "logements_libres": 30.0, "emplois_libres": 80.0, "sans_ecole": 0.0,
 			"pollution": 10.0 + 18.0 * t, "electricite": 100.0 if t < 0.85 else 91.0, "eau": 100.0, "coupures": 0.0 if t < 0.85 else 14.0,
-			"congestion": 5.0 + 40.0 * t * t + rng.randf_range(-2, 2), "trajet": 9.0 + 6.0 * t, "dechets": 0.0 if t < 0.9 else 3.0, "recyclage": 18.0 + 20.0 * t}
+			"congestion": 5.0 + 40.0 * t * t + rng.randf_range(-2, 2), "trajet": 9.0 + 6.0 * t, "dechets": 0.0 if t < 0.9 else 3.0, "recyclage": 18.0 + 20.0 * t,
+			"age_moyen": 35.0 + 2.0 * t, "seniors": 15.0 + 5.0 * t, "loyer": 700.0 + 230.0 * t, "effort": 25.0 + 11.0 * t, "prix_m2": 3000.0 + 800.0 * t,
+			"diplomes": 17.0 + 5.0 * t, "eau_potable": 55.0 + 40.0 * t, "egouts": 40.0 + 50.0 * t, "malades": 0.0 if t < 0.92 else 7.0,
+			"hospitalises": 1.0 + 3.0 * t, "appels": 2.0 + float(rng.randi_range(0, 4)), "intervention": 7.0 + 7.0 * t + rng.randf_range(-1, 1)}
 		st.historique.append({"j": j0 + k, "n": 1, "d": d})
 	st.noms[str(v1)] = "Valfleuri"
 	st.noms[str(v2)] = "Les Granges"
+	var pyr := []
+	for i in 10:
+		var n := roundi(110.0 * exp(-0.5 * pow((i - 3.0) / 2.6, 2.0)) + 8.0)
+		pyr.append({"h": n + i % 3, "f": n + (2 if i >= 6 else 0) + i % 2})
+	st.pyramide_imposee[str(v1)] = pyr
 	var panel: StatsPanel = scene.stats_panel
 	scene.villages_panel._dialog.hide()
 	scene.pays.choisir(v1)
 	panel.set_open(true)
+	await _shot(dossier.path_join("stats-tableau-de-bord.png"))
+	panel._scroll.scroll_vertical = 420
+	await _shot(dossier.path_join("stats-tableau-pays.png"))
+	panel.show_view("ages")
+	await _shot(dossier.path_join("stats-pyramide.png"))
+	panel.show_view("courbes")
 	await _shot(dossier.path_join("stats-habitants.png"))
 	panel.comparer = true
 	panel.refresh()

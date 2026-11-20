@@ -15312,6 +15312,22 @@
 "中文": "中文",
 "Cette forme ne peut pas se renverser : choisis une pente, un arrondi ou une demi-dalle (R tourne toutes les formes).": "This shape cannot be flipped: choose a slope, a rounded piece or a half-slab (R rotates every shape).",
 "Cette forme ne peut pas se coucher : choisis une pente, un arrondi ou une demi-dalle (R tourne toutes les formes).": "This shape cannot be laid down: choose a slope, a rounded piece or a half-slab (R rotates every shape).",
-"Afficher : montre où cliquer (ouvre le bon menu et encadre le bouton à utiliser)": "Show me: shows where to click (opens the right menu and frames the button to use)"
+"Afficher : montre où cliquer (ouvre le bon menu et encadre le bouton à utiliser)": "Show me: shows where to click (opens the right menu and frames the button to use)",
+"Mini-carte (en bas à droite) · Ctrl+M": "Minimap (bottom right) · Ctrl+M",
+"vue du dessus autour de la caméra (1 à 40 km, molette ou − / +) : relief, forêts, champs, eau, routes, bâtiments, frontières des villages ; clic ou glisser pour déplacer la caméra ; elle reprend la carte en couleur de N ou la ressource de P ; points rouges (incendies, urgences), orange (catastrophes), rouge foncé (non raccordés), jaunes (chantiers) : clic pour y aller ; entre amis, les villes voisines ; Ctrl+M ou ✕ pour la replier": "top-down view around the camera (1 to 40 km, mouse wheel or − / +): terrain, forests, fields, water, roads, buildings, village borders; click or drag to move the camera; it shows the colour map chosen in N or the resource from P; red dots (fires, emergencies), orange (disasters), dark red (not connected), yellow (construction sites): click to go there; with friends, the neighbouring towns; Ctrl+M or ✕ to fold it",
+"Mini-carte : clic ou glisser pour déplacer la caméra, molette pour le zoom (Ctrl+M : replier)": "Minimap: click or drag to move the camera, mouse wheel to zoom (Ctrl+M: fold)",
+"Voir plus large": "Zoom out",
+"Voir de plus près": "Zoom in",
+"Replier la mini-carte (Ctrl+M)": "Fold the minimap (Ctrl+M)",
+"Déplier la mini-carte (Ctrl+M)": "Unfold the minimap (Ctrl+M)",
+"Carte · %s": "Map · %s",
+"Couleurs : %s": "Colours: %s",
+"Clic : y aller · molette : zoom": "Click: go there · wheel: zoom",
+"Appel d'urgence": "Emergency call",
+"Catastrophe": "Disaster",
+"Non raccordé": "Not connected",
+"Chantier": "Construction site",
+"%s (ta ville)": "%s (your town)",
+"%s (ville voisine)": "%s (neighbouring town)"
 }
 }

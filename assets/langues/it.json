@@ -15213,6 +15213,22 @@
 "中文": "中文",
 "Cette forme ne peut pas se renverser : choisis une pente, un arrondi ou une demi-dalle (R tourne toutes les formes).": "Questa forma non si può ribaltare: scegli una pendenza, un arrotondamento o una mezza lastra (R ruota tutte le forme).",
 "Cette forme ne peut pas se coucher : choisis une pente, un arrondi ou une demi-dalle (R tourne toutes les formes).": "Questa forma non si può coricare: scegli una pendenza, un arrotondamento o una mezza lastra (R ruota tutte le forme).",
-"Afficher : montre où cliquer (ouvre le bon menu et encadre le bouton à utiliser)": "Mostra: indica dove cliccare (apre il menu giusto e incornicia il pulsante da usare)"
+"Afficher : montre où cliquer (ouvre le bon menu et encadre le bouton à utiliser)": "Mostra: indica dove cliccare (apre il menu giusto e incornicia il pulsante da usare)",
+"Mini-carte (en bas à droite) · Ctrl+M": "Minimappa (in basso a destra) · Ctrl+M",
+"vue du dessus autour de la caméra (1 à 40 km, molette ou − / +) : relief, forêts, champs, eau, routes, bâtiments, frontières des villages ; clic ou glisser pour déplacer la caméra ; elle reprend la carte en couleur de N ou la ressource de P ; points rouges (incendies, urgences), orange (catastrophes), rouge foncé (non raccordés), jaunes (chantiers) : clic pour y aller ; entre amis, les villes voisines ; Ctrl+M ou ✕ pour la replier": "vista dall'alto intorno alla telecamera (da 1 a 40 km, rotellina o − / +): rilievo, boschi, campi, acqua, strade, edifici, confini dei villaggi; clic o trascina per spostare la telecamera; riprende la mappa a colori scelta in N o la risorsa di P; punti rossi (incendi, emergenze), arancioni (catastrofi), rosso scuro (non allacciati), gialli (cantieri): clic per andarci; tra amici, le città vicine; Ctrl+M o ✕ per richiuderla",
+"Mini-carte : clic ou glisser pour déplacer la caméra, molette pour le zoom (Ctrl+M : replier)": "Minimappa: clic o trascina per spostare la telecamera, rotellina per lo zoom (Ctrl+M: richiudi)",
+"Voir plus large": "Vedi più ampio",
+"Voir de plus près": "Vedi più da vicino",
+"Replier la mini-carte (Ctrl+M)": "Richiudi la minimappa (Ctrl+M)",
+"Déplier la mini-carte (Ctrl+M)": "Apri la minimappa (Ctrl+M)",
+"Carte · %s": "Mappa · %s",
+"Couleurs : %s": "Colori: %s",
+"Clic : y aller · molette : zoom": "Clic: vai lì · rotellina: zoom",
+"Appel d'urgence": "Chiamata d'emergenza",
+"Catastrophe": "Catastrofe",
+"Non raccordé": "Non allacciato",
+"Chantier": "Cantiere",
+"%s (ta ville)": "%s (la tua città)",
+"%s (ville voisine)": "%s (città vicina)"
 }
 }

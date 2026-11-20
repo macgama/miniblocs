@@ -15216,6 +15216,22 @@
 "中文": "中文",
 "Cette forme ne peut pas se renverser : choisis une pente, un arrondi ou une demi-dalle (R tourne toutes les formes).": "Diese Form lässt sich nicht kippen: wähle eine Schräge, eine Rundung oder eine halbe Platte (R dreht alle Formen).",
 "Cette forme ne peut pas se coucher : choisis une pente, un arrondi ou une demi-dalle (R tourne toutes les formes).": "Diese Form lässt sich nicht hinlegen: wähle eine Schräge, eine Rundung oder eine halbe Platte (R dreht alle Formen).",
-"Afficher : montre où cliquer (ouvre le bon menu et encadre le bouton à utiliser)": "Zeigen: zeigt, wohin du klicken musst (öffnet das richtige Menü und rahmt die Schaltfläche ein)"
+"Afficher : montre où cliquer (ouvre le bon menu et encadre le bouton à utiliser)": "Zeigen: zeigt, wohin du klicken musst (öffnet das richtige Menü und rahmt die Schaltfläche ein)",
+"Mini-carte (en bas à droite) · Ctrl+M": "Minikarte (unten rechts) · Strg+M",
+"vue du dessus autour de la caméra (1 à 40 km, molette ou − / +) : relief, forêts, champs, eau, routes, bâtiments, frontières des villages ; clic ou glisser pour déplacer la caméra ; elle reprend la carte en couleur de N ou la ressource de P ; points rouges (incendies, urgences), orange (catastrophes), rouge foncé (non raccordés), jaunes (chantiers) : clic pour y aller ; entre amis, les villes voisines ; Ctrl+M ou ✕ pour la replier": "Draufsicht um die Kamera (1 bis 40 km, Mausrad oder − / +): Relief, Wälder, Felder, Wasser, Straßen, Gebäude, Gemeindegrenzen; Klicken oder Ziehen bewegt die Kamera; zeigt die in N gewählte Farbkarte oder den Rohstoff aus P; rote Punkte (Brände, Notfälle), orange (Katastrophen), dunkelrot (nicht angeschlossen), gelb (Baustellen): Klick führt hin; mit Freunden die Nachbarstädte; Strg+M oder ✕ zum Einklappen",
+"Mini-carte : clic ou glisser pour déplacer la caméra, molette pour le zoom (Ctrl+M : replier)": "Minikarte: Klicken oder Ziehen bewegt die Kamera, Mausrad zoomt (Strg+M: einklappen)",
+"Voir plus large": "Weiter herauszoomen",
+"Voir de plus près": "Näher heranzoomen",
+"Replier la mini-carte (Ctrl+M)": "Minikarte einklappen (Strg+M)",
+"Déplier la mini-carte (Ctrl+M)": "Minikarte ausklappen (Strg+M)",
+"Carte · %s": "Karte · %s",
+"Couleurs : %s": "Farben: %s",
+"Clic : y aller · molette : zoom": "Klick: hingehen · Mausrad: Zoom",
+"Appel d'urgence": "Notruf",
+"Catastrophe": "Katastrophe",
+"Non raccordé": "Nicht angeschlossen",
+"Chantier": "Baustelle",
+"%s (ta ville)": "%s (deine Stadt)",
+"%s (ville voisine)": "%s (Nachbarstadt)"
 }
 }

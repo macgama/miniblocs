@@ -2929,6 +2929,7 @@ func _setup_mairie() -> void:
 		reseaux.raccordements.nombre_change.connect(func(_n: int) -> void: fil_alertes.refresh())
 	_setup_fil_habitants()
 	_setup_jauges()
+	_setup_mini_carte()
 	_setup_pile_gauche()
 	recherche = RechercheUniverselle.new()
 	recherche.name = "RechercheUniverselle"
@@ -3009,6 +3010,21 @@ func _setup_jauges() -> void:
 	if GameStart.atelier:
 		jauges.set_process(false)
 	jauges.panneau_requested.connect(aller_au_panneau)
+
+
+## Mini-carte vue du dessus en bas à droite (Ctrl+M) : clic pour déplacer la
+## caméra, couleurs de N ou P, alertes cliquables, villes voisines.
+var mini_carte: MiniCarte
+
+
+func _setup_mini_carte() -> void:
+	mini_carte = MiniCarte.new()
+	hud.add_child(mini_carte)
+	mini_carte.setup(self)
+	hud._gerer_only.append(mini_carte)
+	mini_carte.visible = not GameStart.atelier and not hud.create_mode
+	if GameStart.atelier:
+		mini_carte.set_process(false)
 
 
 func _setup_pile_gauche() -> void:

@@ -15213,6 +15213,22 @@
 "中文": "中文",
 "Cette forme ne peut pas se renverser : choisis une pente, un arrondi ou une demi-dalle (R tourne toutes les formes).": "Esta forma no se puede voltear: elige una pendiente, un redondeo o una media losa (R gira todas las formas).",
 "Cette forme ne peut pas se coucher : choisis une pente, un arrondi ou une demi-dalle (R tourne toutes les formes).": "Esta forma no se puede tumbar: elige una pendiente, un redondeo o una media losa (R gira todas las formas).",
-"Afficher : montre où cliquer (ouvre le bon menu et encadre le bouton à utiliser)": "Mostrar: indica dónde hacer clic (abre el menú correcto y enmarca el botón que hay que usar)"
+"Afficher : montre où cliquer (ouvre le bon menu et encadre le bouton à utiliser)": "Mostrar: indica dónde hacer clic (abre el menú correcto y enmarca el botón que hay que usar)",
+"Mini-carte (en bas à droite) · Ctrl+M": "Minimapa (abajo a la derecha) · Ctrl+M",
+"vue du dessus autour de la caméra (1 à 40 km, molette ou − / +) : relief, forêts, champs, eau, routes, bâtiments, frontières des villages ; clic ou glisser pour déplacer la caméra ; elle reprend la carte en couleur de N ou la ressource de P ; points rouges (incendies, urgences), orange (catastrophes), rouge foncé (non raccordés), jaunes (chantiers) : clic pour y aller ; entre amis, les villes voisines ; Ctrl+M ou ✕ pour la replier": "vista cenital alrededor de la cámara (de 1 a 40 km, rueda o − / +): relieve, bosques, campos, agua, carreteras, edificios, fronteras de los pueblos; clic o arrastrar para mover la cámara; muestra el mapa de color elegido en N o el recurso de P; puntos rojos (incendios, emergencias), naranjas (catástrofes), rojo oscuro (sin conexión), amarillos (obras): clic para ir allí; entre amigos, las ciudades vecinas; Ctrl+M o ✕ para plegarlo",
+"Mini-carte : clic ou glisser pour déplacer la caméra, molette pour le zoom (Ctrl+M : replier)": "Minimapa: clic o arrastrar para mover la cámara, rueda para el zoom (Ctrl+M: plegar)",
+"Voir plus large": "Ver más amplio",
+"Voir de plus près": "Ver más de cerca",
+"Replier la mini-carte (Ctrl+M)": "Plegar el minimapa (Ctrl+M)",
+"Déplier la mini-carte (Ctrl+M)": "Desplegar el minimapa (Ctrl+M)",
+"Carte · %s": "Mapa · %s",
+"Couleurs : %s": "Colores: %s",
+"Clic : y aller · molette : zoom": "Clic: ir allí · rueda: zoom",
+"Appel d'urgence": "Llamada de emergencia",
+"Catastrophe": "Catástrofe",
+"Non raccordé": "Sin conexión",
+"Chantier": "Obra",
+"%s (ta ville)": "%s (tu ciudad)",
+"%s (ville voisine)": "%s (ciudad vecina)"
 }
 }

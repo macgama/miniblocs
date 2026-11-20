@@ -432,6 +432,6 @@ func _regisseur(scene: Node) -> void:
 	await _frames(2)
 	_check(qp._body.get_child_count() > 0, "panneau du quartier avec la section Régisseur")
 	qp.set_open(false)
-	pop.persons.erase(int(c.pid))
+	pop._remove_person(int(c.pid))
 	rg.journee(rg._jour() + 30)
 	_check(rg.de(qid).is_empty(), "régisseur parti : le maire reprend la main")

@@ -47,6 +47,36 @@ Touche **O** : panneau Réseaux (onglets Courant, Eau, Égouts, Chauffage, Compt
   image côté CPU) ; la liste est refaite une fois par seconde et le MultiMesh
   seulement quand elle change.
 
+## Flux sur les routes (`ReseauxFlux`)
+
+Pour voir si le courant, l'eau, les égouts et le gaz passent bien, des bâtiments de
+réseau jusqu'au bout de la ville (`scripts/reseaux/reseaux_flux.gd`, nœud `Reseaux/Flux`) :
+
+- **Clic sur un bâtiment** (fiche) : ses réseaux s'affichent en rubans animés sur les
+  routes et les tronçons qui les portent, côte à côte (jaune électricité, bleu eau,
+  brun égouts, orange gaz). Une centrale, un captage ou une station : son réseau seul.
+  Fiche fermée : le flux disparaît.
+- **Vue O, sans outil** : clic sur une route, une ligne ou une conduite = le réseau de
+  l'onglet sur cette partie ; clic ailleurs ou sortie de la vue O = effacé.
+- **Sens** : flèches en chevron qui partent des sources (distance à la source le long des
+  tracés, Dijkstra) ; pour les égouts, elles vont vers la station d'épuration.
+- **État** (bord du ruban) : vert = tout servi ; orange et flèches lentes = saturé
+  (rationné) ; rouge, flèches arrêtées qui clignotent = coupé (aucune production sur cette
+  partie). Les parties du même réseau qui ne sont pas reliées au bâtiment choisi sont
+  plus pâles. Petits branchements de la route à chaque bâtiment, colorés selon ce qu'il reçoit.
+- **Hors des routes** : les lignes aériennes (HT, MT, BT, THT) et les tronçons enterrés
+  (câble, conduites, collecteurs, gaz, chaleur, aqueduc), posés à travers champs depuis la
+  vue O ou la vue sous terre, portent le flux comme les routes : une centrale ou un forage
+  loin de tout se relie ainsi à la ville, et une ferme isolée aux réseaux.
+- Les flèches avancent à la vitesse du temps (`EchelleTemps`), arrêtées en pause ; le
+  clignotement du rouge continue.
+- Largeur selon la distance de la caméra ; redessiné quand le réseau change (toutes les ~1,5 s).
+  Coût : ~40 ms par réseau pour un quartier de 400 rues (tracés simplifiés, un point par
+  virage ou tous les 60 m).
+
+Test : `godot --headless --path . --script res://tests/reseaux_flux_test.gd` ;
+captures : `godot --path . --script res://tests/reseaux_flux_vitrine.gd -- --dossier captures`.
+
 ## Production (Construire > Réseaux)
 
 | Bâtiment | Capacité | Particularité |

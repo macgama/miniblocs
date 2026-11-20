@@ -315,6 +315,7 @@ func _run() -> void:
 		var m0 := bs.money
 		# Ce parcours trace lui-même son plan de rues : pas de rue en T offerte (tests/rue_fondation_test.gd).
 		ReglagesPartie.actuel.rue_fondation = false
+		ReglagesPartie.actuel.services_fondation = false  # (il pose lui-même courant, eau et déchets)
 		var mc := _poser("maison_commune", -60, 60, 20, -1)
 		_check(mc >= 0, "Maison de commune posée")
 		await _frames(2)

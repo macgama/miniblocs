@@ -66,10 +66,12 @@ const DIFFICULTES := {
 	"libre": "Bac à sable libre : argent illimité, tout débloqué, pas de route ni de réseaux obligatoires.",
 }
 const ARGENTS := [1_000_000, 5_000_000, 10_000_000, 30_000_000, 100_000_000]
-## [année (0 : aujourd'hui, -1 : autre année), nom].
-const EPOQUES := [[0, "Aujourd'hui : tout est déjà inventé"], [1800, "1800 : diligences, puits et lampes à huile"],
-	[1850, "1850 : vapeur et chemin de fer"], [1900, "1900 : tramways et premières lignes électriques"],
-	[1950, "1950 : voitures et grands ensembles"], [-1, "Autre année…"]]
+## Dates de départ d'une partie (toujours le 1er janvier) : [année, nom].
+const EPOQUES := [[1800, "1er janvier 1800 : diligences, puits et lampes à huile"],
+	[1900, "1er janvier 1900 : tramways, vapeur et premières lignes électriques"],
+	[2000, "1er janvier 2000 : voitures, internet et téléphones portables"]]
+## Époque proposée quand rien n'est choisi.
+const EPOQUE_DEFAUT := 2000
 
 var etape := 0
 var mode_carte: int = GameStart.Mode.BAC_A_SABLE
@@ -92,13 +94,11 @@ var _preset_info: Label
 var _epoque_opt: ChoixVisuel
 var _vignettes: Vignettes
 ## Véhicule du jeu qui illustre chaque époque de départ ("" : dessin).
-const EPOQUES_VEHICULES := ["electrique", "diligence_messageries", "loco_crampton", "tram_1900", "populaire_ronde", ""]
+const EPOQUES_VEHICULES := ["diligence_messageries", "tram_1900", "monospace"]
 var _epoque_ligne: Control
 var _annee_spin: SpinBox
 var _rythme_opt: ChoixVisuel
 var _epoque_info: Label
-## « Autre année… » choisie : l'année se tape dans la case.
-var _epoque_autre := false
 var _argent_opt: ChoixVisuel
 var _options := {}
 var _remplissage := false
@@ -1009,6 +1009,8 @@ func _page_reglages(p: VBoxContainer) -> void:
 
 	_titre_section(p, "Ville et habitants", "habitants")
 	_option(p, "reseaux_obligatoires", "Courant, eau et égouts obligatoires", "Sinon, tout est desservi d'office.")
+	_option(p, "services_fondation", "Services de base prêts au premier village",
+		"Courant, eau, égouts et déchets de l'époque, posés un peu à l'écart du centre et raccordés (avec le kit de l'État).")
 	_option(p, "dechets", "Poubelles à ramasser", "Collecte, décharges et incinérateurs.")
 	_option(p, "catastrophes", "Catastrophes (incendies, tempêtes, épidémies)", "Au hasard, de temps en temps.")
 
@@ -1083,11 +1085,9 @@ func _changer_epoque() -> void:
 		return
 	var r := ReglagesPartie.prochaine
 	var i := _epoque_opt.selected
-	var annee := int(EPOQUES[i][0]) if i >= 0 else 0
-	_epoque_autre = annee < 0
-	if annee < 0:
-		annee = int(_annee_spin.value)
-	r.annee_depart = annee
+	r.annee_depart = int(EPOQUES[clampi(i, 0, EPOQUES.size() - 1)][0])
+	r.histoire_saut = 0
+	r.histoire_debut = 0.0
 	r.rythme_histoire = float(Epoques.RYTHMES[maxi(0, _rythme_opt.selected)])
 	_remplir_reglages()
 	_reglages_changes()
@@ -1120,21 +1120,29 @@ func _remplir_reglages() -> void:
 	_argent_opt.disabled = r.argent_illimite
 	for cle in _options:
 		(_options[cle] as CheckBox).set_pressed_no_signal(lire_option(r, cle))
-	var e := 0
-	if r.annee_depart > 0:
-		e = EPOQUES.size() - 1
-		if not _epoque_autre:
-			for i in EPOQUES.size():
-				if int(EPOQUES[i][0]) == r.annee_depart:
-					e = i
-		_annee_spin.value = r.annee_depart
+	# Une partie commence le 1er janvier 1800, 1900 ou 2000 (sinon : 2000).
+	var e := indice_epoque(r.annee_depart)
+	if not EditionDemo.active() and int(EPOQUES[e][0]) != r.annee_depart:
+		r.annee_depart = int(EPOQUES[e][0])
+	_annee_spin.value = r.annee_depart
 	_epoque_opt.select(e)
-	_epoque_ligne.visible = r.annee_depart > 0
-	_annee_spin.visible = int(EPOQUES[e][0]) < 0
+	_epoque_ligne.visible = true
+	_annee_spin.visible = false
 	_rythme_opt.select(AdminPanel._indice_rythme(r.rythme_histoire))
 	_epoque_info.text = _texte_epoque(r)
 	_remplissage = false
 	_update_settings_label()
+
+
+## Case de l'époque pour une année (2000 si elle n'est pas proposée).
+static func indice_epoque(annee: int) -> int:
+	var defaut := 0
+	for i in EPOQUES.size():
+		if int(EPOQUES[i][0]) == annee:
+			return i
+		if int(EPOQUES[i][0]) == EPOQUE_DEFAUT:
+			defaut = i
+	return defaut
 
 
 func _texte_epoque(r: ReglagesPartie) -> String:
@@ -1206,7 +1214,7 @@ func lignes_resume() -> Array:
 	var lieu := sel_name if sel_name != "" else _format_lat_lon(sel_lat, sel_lon)
 	var types := ["Seul (bac à sable)", "Entre amis, sur ce PC", "Carte mondiale"]
 	var argent := "Illimité" if r.argent_illimite else BuildingSystem.format_short(r.argent_depart)
-	var epoque := "Aujourd'hui" if r.annee_depart <= 0 else "%d" % r.annee_depart
+	var epoque := "Aujourd'hui" if r.annee_depart <= 0 else "1er janvier %d" % r.annee_depart
 	if r.annee_depart > 0 and r.rythme_histoire > 1.0:
 		epoque += " · histoire " + Epoques.nom_rythme(r.rythme_histoire)
 	var tuto := "Oui" if r.tutoriel and mode_carte != GameStart.Mode.ENTRE_AMIS else "Non"

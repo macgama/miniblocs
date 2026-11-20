@@ -74,6 +74,7 @@ func _run() -> void:
 	if ReglagesPartie.prochaine == null:
 		ReglagesPartie.prochaine = ReglagesPartie.load_defaults()
 	ReglagesPartie.prochaine.tutoriel = false
+	ReglagesPartie.prochaine.services_fondation = false  # (services posés d'office : tests/services_fondation_test.gd)
 	globe.start_game()
 	var game: Node = await _wait_game()
 	_check(game != null and game.name == "Terre", "Commencer la partie ouvre la scène Terre")

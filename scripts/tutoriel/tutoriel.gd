@@ -583,7 +583,7 @@ func metres_de_route() -> float:
 
 ## Mètres de route tracés par le joueur (sans la rue en T offerte à la fondation).
 func metres_traces() -> float:
-	return maxf(0.0, metres_de_route() - RueFondation.metres_offerts())
+	return maxf(0.0, metres_de_route() - RueFondation.metres_offerts() - ServicesFondation.metres_offerts())
 
 
 func zones_de(kinds: Array) -> int:

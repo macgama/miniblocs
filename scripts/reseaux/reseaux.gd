@@ -976,6 +976,10 @@ func _maj_eau(_now: Dictionary, heures: float) -> void:
 func _taux_elec_source(bid: int) -> float:
 	if not ReglagesPartie.actuel.reseaux_obligatoires:
 		return 1.0
+	# Avant que le courant se répande (Epoques.ATTENDU, 1925), pompes et usines
+	# d'eau marchent à la vapeur ou par gravité : elles n'attendent pas le réseau.
+	if not Epoques.attendu("elec"):
+		return 1.0
 	return elec.taux_servi(bid)
 
 

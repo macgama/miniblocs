@@ -282,6 +282,7 @@ func _reconstruire() -> void:
 	diorama.construire(genre, st.niv, gestion.etoiles(bid), st.obj, st.pannes, gestion.nom(bid))
 	diorama.placer_employes(_employes())
 	diorama.surligner(selection)
+	_maj_engins(false)
 
 
 ## Métiers que le bâtiment du jeu embauche (les autres pièces prennent des extras).
@@ -344,6 +345,22 @@ func _employes() -> Array:
 	return out
 
 
+## Engins de la caserne dans la remise ; un départ fait sonner l'alerte.
+func _maj_engins(anime: bool) -> void:
+	var liste: Array = []
+	var u := gestion.urgences
+	if _ville() and u != null and u.stations.has(bid):
+		for e in u.stations[bid].units:
+			liste.append({"model": String(e.get("model", u.model_for(String(e.base)))) if bool(e.out) else u.model_for(String(e.base)), "out": bool(e.out)})
+	var partis := diorama.placer_engins(liste, anime)
+	if partis > 0:
+		diorama.alerte()
+		var dernier := ""
+		for e in (gestion.etat(bid).journal as Array).slice(0, 1):
+			dernier = String(e[1])
+		_dire("Alerte ! " + (dernier if dernier.begins_with("Départ") else "Un engin part en intervention."), Color("ffb4a2"))
+
+
 func _gd() -> Dictionary:
 	return GestionTypes.genre(genre)
 
@@ -380,6 +397,9 @@ func _remplir_haut() -> void:
 	for c in _chiffres.get_children():
 		_chiffres.remove_child(c)
 		c.queue_free()
+	if _ville():
+		_haut_ville()
+		return
 	var n := gestion.clients(bid)
 	var l := gestion.capacite(bid)
 	var resto := gestion.source(bid) == "production"
@@ -405,6 +425,38 @@ func _remplir_haut() -> void:
 	_maj_auto()
 
 
+## Service public (caserne) : budget, engins, garde, délai, note, moral.
+func _haut_ville() -> void:
+	_chip("banque", "Budget : %s" % BuildingSystem.format_money(int(gestion.compte(bid))),
+		"Argent de %s : le budget versé chaque jour par la ville, moins l'entretien. Les améliorations se paient d'abord avec." % _le())
+	_chip("mairie", "Ville : %s" % BuildingSystem.format_money(gestion.caisse_ville()), "Caisse de la ville : elle verse le budget et avance ce qui manque.")
+	_chip(String(_gd().get("icone", "pompiers")), "%d / %d engins au garage" % [gestion.clients(bid), gestion.capacite(bid)], "Engins prêts à partir / engins de la caserne. La remise en accueille plus à chaque niveau.")
+	var u := gestion.urgences
+	if u != null and u.stations.has(bid) and u.staff_of(bid) < 999:
+		_chip("habitants", "%d de garde" % mini(u.staff_of(bid), 999), "Pompiers de garde aujourd'hui (dont %d grâce aux chambres et aux volontaires). Chaque engin a besoin de son équipage pour partir." % gestion.equipage(bid))
+	var dl := float(gestion.etat(bid).get("delai", -1.0))
+	_chip("horloge", ("Délai %s" % Urgences.format_time(dl)) if dl >= 0.0 else "Pas encore d'intervention", "Temps moyen entre l'appel et l'arrivée des secours de cette caserne. Plus il est court, meilleure est la note.")
+	_chip("sourire", "Note %.1f" % gestion.note(bid), "Note %s sur 5 : délai d'arrivée, moral et galons." % _du())
+	_chip("etoile", "Moral %.1f" % gestion.satisf(bid), "Moral de l'équipe (sur 5) : salaires, formation, cuisine, chambres, pannes.")
+	var hier: Dictionary = gestion.hier(bid)
+	if not hier.is_empty():
+		_chip("budget", "Hier : %d intervention%s" % [int(hier.get("clients", 0)), "s" if int(hier.get("clients", 0)) > 1 else ""], "Équipes arrivées sur les lieux hier (%d en retard)." % int(hier.get("retards", 0)))
+	var np := (gestion.etat(bid).pannes as Array).size()
+	if np > 0:
+		var b := _chip("construire", "%d panne%s" % [np, "s" if np > 1 else ""], "Du matériel est en panne : clique sur les ⚠ de la maquette ou va dans Équipe.")
+		b.add_theme_color_override("font_color", Color("ffb703"))
+	_maj_auto()
+
+
+func _ville() -> bool:
+	return bid >= 0 and gestion.source(bid) == "ville"
+
+
+## Un mot du genre (effets, pourboires…), sinon le mot habituel.
+func _mot(cle: String, defaut: String) -> String:
+	return String((_gd().get("mots", {}) as Dictionary).get(cle, defaut))
+
+
 func _chip(icone: String, texte: String, tip: String) -> Button:
 	var b := Button.new()
 	b.text = texte
@@ -423,6 +475,11 @@ func _maj_auto() -> void:
 	var on := gestion.auto(bid)
 	_auto.set_pressed_no_signal(on)
 	_auto.text = "Gestion auto" if on else "Je gère"
+	if _ville():
+		_auto.tooltip_text = ("Gestion automatique : %s répare ses pannes et investit son budget tout seul " % _le()
+			+ "(sans jamais toucher à la caisse de la ville). Clique pour la gérer toi-même.") if on else \
+			"Tu gères toi-même : améliorations, objets, salaires, réparations. Clique pour laisser %s se gérer seule." % _le()
+		return
 	_auto.tooltip_text = ("Gestion automatique : %s répare ses pannes, ajuste son prix chaque semaine et investit ses bénéfices tout seul " % _le()
 		+ "(sans jamais toucher à la caisse de la ville). Clique pour le gérer toi-même.") if on else \
 		"Tu gères toi-même : améliorations, objets, prix, salaires et réparations. Clique pour laisser %s se gérer seul." % _le()
@@ -665,20 +722,38 @@ func _carte_piece(pid: String) -> void:
 
 func _lignes_effets(eff: Dictionary, court := false) -> Array:
 	var out: Array = []
+	if eff.has("engins"):
+		var n := roundi(float(eff.engins))
+		out.append(("+%d engin" if court else "+%d engin dans la remise (il lui faut son équipage)") % n)
+	if eff.has("equipage"):
+		var n := roundi(float(eff.equipage))
+		out.append(("+%d de garde" if court else "+%d pompier de garde, prêt à partir") % n)
 	if eff.has("couverts"):
 		out.append(("+%d %% couverts" if court else "+%d %% de couverts (tables en plus)") % roundi(float(eff.couverts) * 100.0))
 	if eff.has("lits"):
 		out.append(("+%d %% lits" if court else "+%d %% de lits") % roundi(float(eff.lits) * 100.0) + ("" if court else " (%d lits de plus)" % roundi(float(TourismeTypes.lits_de(gestion.spec_base(bid))) * float(eff.lits))))
 	if eff.has("confort"):
-		out.append(("+%.2f confort" if court else "+%.2f de note (confort)") % float(eff.confort))
+		if _ville():
+			out.append(("+%.2f expérience" if court else "+%.2f d'expérience (galons)") % float(eff.confort))
+		else:
+			out.append(("+%.2f confort" if court else "+%.2f de note (confort)") % float(eff.confort))
 	if eff.has("attrait"):
-		out.append(("+%d %% clients" if court else "+%d %% de clients attirés") % roundi(float(eff.attrait) * 100.0))
+		if _ville():
+			out.append(("+%d %% prestige" if court else "+%d %% de prestige (volontaires, dons)") % roundi(float(eff.attrait) * 100.0))
+		else:
+			out.append(("+%d %% clients" if court else "+%d %% de clients attirés") % roundi(float(eff.attrait) * 100.0))
 	if eff.has("satisf"):
-		out.append(("+%.2f satisfaction" if court else "+%.2f de satisfaction chaque jour") % float(eff.satisf))
+		if _ville():
+			out.append(("+%.2f moral" if court else "+%.2f de moral pour l'équipe") % float(eff.satisf))
+		else:
+			out.append(("+%.2f satisfaction" if court else "+%.2f de satisfaction chaque jour") % float(eff.satisf))
 	if eff.has("repas"):
 		out.append(("+%d %% repas" if court else "+%d %% de repas pris sur place") % roundi(float(eff.repas) * 100.0))
 	if eff.has("vitesse"):
-		out.append(("+%d %% vitesse" if court else "Service %d %% plus rapide") % roundi(float(eff.vitesse) * 100.0))
+		if _ville():
+			out.append(("+%d %% rapidité" if court else "Travail sur place %d %% plus rapide") % roundi(float(eff.vitesse) * 100.0))
+		else:
+			out.append(("+%d %% vitesse" if court else "Service %d %% plus rapide") % roundi(float(eff.vitesse) * 100.0))
 	if eff.has("ventes"):
 		var vm := float(_gd().get("ventes_mult", 1.0))
 		out.append(("+%s / client" if court else ("+%s dépensés par client et par nuit" if genre == "hotel" else "+%s dépensés par client")) % BuildingSystem.format_money(maxi(1, roundi(float(eff.ventes) * vm))))
@@ -691,16 +766,22 @@ func _carte_ensemble() -> void:
 	_titre("%s  %s" % [gestion.nom(bid), etoiles_txt(gestion.etoiles(bid))], 18)
 	var et: Dictionary = gestion.etat(bid)
 	if gestion.auto(bid):
-		_texte("Gestion automatique : %s répare, ajuste son prix et investit ses bénéfices tout seul. Tu peux quand même acheter ce que tu veux." % _le(), true, 12)
+		if _ville():
+			_texte("Gestion automatique : %s répare et investit son budget toute seule. Tu peux quand même acheter ce que tu veux." % _le(), true, 12)
+		else:
+			_texte("Gestion automatique : %s répare, ajuste son prix et investit ses bénéfices tout seul. Tu peux quand même acheter ce que tu veux." % _le(), true, 12)
 	var cl := String(_gd().get("classe", "étoiles"))
 	var av := gestion.avant_etoile(bid)
 	if av > 0.0:
-		_texte("Prochaine %s : encore +%.2f de confort (pièces et objets)." % [cl.trim_suffix("s"), av], true)
+		_texte("%s : encore +%.2f %s (pièces et objets)." % [String(_gd().get("prochain", "Prochaine " + cl.trim_suffix("s"))), av, "d'expérience" if _ville() else "de confort"], true)
 	else:
 		_texte("5 %s : le sommet !" % cl, true)
 	if int(et.label_fin) >= gestion.jour:
-		var l := _texte("★ Recommandé par le guide encore %d jours (+6 %% de clients)." % (int(et.label_fin) - gestion.jour), false, 13)
+		var txt := ("★ Citée en exemple encore %d jours (un pompier de garde en plus)." if _ville() else "★ Recommandé par le guide encore %d jours (+6 %% de clients).") % (int(et.label_fin) - gestion.jour)
+		var l := _texte(txt, false, 13)
 		l.add_theme_color_override("font_color", UiStyle.GOOD)
+	if _ville():
+		_ensemble_ville(et)
 	_texte("Objectifs", false, 15)
 	for o in gestion.objectifs(bid):
 		var l := _texte("%s  %s  (%s)" % ["✔" if bool(o.fait) else "○", String(o.texte), String(o.avance)], false, 13)
@@ -708,10 +789,16 @@ func _carte_ensemble() -> void:
 			l.add_theme_color_override("font_color", UiStyle.GOOD)
 	var hier: Dictionary = gestion.hier(bid)
 	_texte("Comptes d'hier", false, 15)
-	_texte("Recettes %s · charges %s (dont entretien des améliorations %s)" % [BuildingSystem.format_money(int(hier.get("ca", 0.0))),
-		BuildingSystem.format_money(int(hier.get("charges", 0.0))), BuildingSystem.format_money(int(gestion.entretien_jour(bid)))], true)
-	_texte("Investi : %s · pourboires : %s · demandes réglées : %d, oubliées : %d" % [BuildingSystem.format_money(int(et.invest)),
-		BuildingSystem.format_money(int(et.pourboires)), int(et.reglees), int(et.ratees)], true)
+	if _ville():
+		_texte("Budget reçu %s · entretien des améliorations %s" % [BuildingSystem.format_money(int(hier.get("ca", gestion.dotation(bid)))),
+			BuildingSystem.format_money(int(gestion.entretien_jour(bid)))], true)
+		_texte("Investi : %s · dons : %s · demandes réglées : %d, oubliées : %d" % [BuildingSystem.format_money(int(et.invest)),
+			BuildingSystem.format_money(int(et.pourboires)), int(et.reglees), int(et.ratees)], true)
+	else:
+		_texte("Recettes %s · charges %s (dont entretien des améliorations %s)" % [BuildingSystem.format_money(int(hier.get("ca", 0.0))),
+			BuildingSystem.format_money(int(hier.get("charges", 0.0))), BuildingSystem.format_money(int(gestion.entretien_jour(bid)))], true)
+		_texte("Investi : %s · pourboires : %s · demandes réglées : %d, oubliées : %d" % [BuildingSystem.format_money(int(et.invest)),
+			BuildingSystem.format_money(int(et.pourboires)), int(et.reglees), int(et.ratees)], true)
 	# Prix de la nuit ou du menu.
 	if gestion.valide(bid):
 		var row := HBoxContainer.new()
@@ -724,14 +811,17 @@ func _carte_ensemble() -> void:
 		l.custom_minimum_size = Vector2(220, 0)
 		row.add_child(l)
 		for d in [[-1, "moins"], [1, "plus"]]:
-			var b := UiStyle.icon_button(String(d[1]), "Baisser le prix" if int(d[0]) < 0 else "Monter le prix", "", 18, 32)
+			var quoi := "le budget" if _ville() else "le prix"
+			var b := UiStyle.icon_button(String(d[1]), ("Baisser " if int(d[0]) < 0 else "Monter ") + quoi, "", 18, 32)
 			b.name = "Prix_" + String(d[1])
 			var sens := int(d[0])
 			b.pressed.connect(func() -> void:
 				gestion.changer_prix(bid, sens)
 				_remplir_carte())
 			row.add_child(b)
-		if genre != "hotel":
+		if _ville():
+			_texte("Plus de budget : %s s'équipe plus vite (même en gestion automatique), payé chaque jour par la caisse de la ville. À 0, elle ne fait plus que l'entretien." % _le(), true, 12)
+		elif genre != "hotel":
 			_texte("Plus cher : chaque repas rapporte plus, mais il vient moins de monde et les clients sont moins contents.", true, 12)
 	if float(et.aide_ville) > 0.5:
 		var b := _bouton("Rembourser la ville (%s avancés)" % BuildingSystem.format_money(int(et.aide_ville)), "mairie")
@@ -742,6 +832,29 @@ func _carte_ensemble() -> void:
 				_dire("%s rendus à la caisse de la ville." % BuildingSystem.format_money(v)))
 		_carte_corps.add_child(b)
 	_texte("Clique sur une pièce de la maquette (ou une tuile en bas) pour l'améliorer et l'équiper. Les « ! » au-dessus des clients sont des demandes, les ⚠ des pannes : clique dessus.", true, 12)
+
+
+## Interventions et engins de la caserne.
+func _ensemble_ville(et: Dictionary) -> void:
+	_texte("Interventions", false, 15)
+	var dl := float(et.get("delai", -1.0))
+	_texte("%d arrivées sur les lieux · délai moyen %s · %d en retard · %d départs d'engins" % [int(et.interventions),
+		Urgences.format_time(dl) if dl >= 0.0 else "—", int(et.retards), int(et.departs)], true)
+	var u := gestion.urgences
+	if u == null or not u.stations.has(bid):
+		return
+	for e in u.stations[bid].units:
+		var m := String(e.get("model", u.model_for(String(e.base)))) if bool(e.out) else u.model_for(String(e.base))
+		var nm := String(VehicleCatalog.get_type(m).get("name", m))
+		var ou := "au garage"
+		if bool(e.out):
+			var inc: Dictionary = u.incidents.get(int(e.inc), {})
+			ou = ("en intervention : %s" % String(inc.name)) if not inc.is_empty() else "sur le retour"
+		var l := _texte("%s %s — %s%s" % ["●" if not bool(e.out) else "◌", nm, ou, " (gagné en gestion)" if bool(e.get("extra", false)) else ""], false, 12)
+		if not bool(e.out) and not u.unit_ready(bid, e):
+			l.text += " · manque d'équipage"
+			l.add_theme_color_override("font_color", Color("ffb4a2"))
+	_texte("Chaque engin a besoin de son équipage pour partir : agrandis les chambres de garde, recrute des volontaires (prestige, formation).", true, 12)
 
 
 func _carte_personnel() -> void:
@@ -782,7 +895,13 @@ func _carte_personnel() -> void:
 			gestion.set_salaire(bid, float(gestion.etat(bid).salaire) + 0.05 * sens)
 			_remplir_carte())
 		row.add_child(b)
-	_texte("Mieux payée, l'équipe sourit plus (satisfaction des clients) ; moins payée, %s économise mais les clients le sentent." % _le(), true, 12)
+	if _ville():
+		_texte("Mieux payée, l'équipe a meilleur moral (et la note suit) ; moins payée, %s économise mais l'équipe le sent." % _le(), true, 12)
+		var u := gestion.urgences
+		if u != null and u.stations.has(bid):
+			_texte("De garde aujourd'hui : %d (dont %d volontaires et %d de plus grâce aux chambres)." % [u.staff_of(bid), int(et.get("volontaires", 0)), maxi(0, gestion.equipage(bid) - int(et.get("volontaires", 0)))], false, 13)
+	else:
+		_texte("Mieux payée, l'équipe sourit plus (satisfaction des clients) ; moins payée, %s économise mais les clients le sentent." % _le(), true, 12)
 	# Formation.
 	_texte("Formation : niveau %d / %d" % [int(et.formation), Gestion.FORMATION_MAX], false, 15)
 	var pf := gestion.prix_formation(bid)
@@ -793,7 +912,7 @@ func _carte_personnel() -> void:
 		b.pressed.connect(func() -> void:
 			_apres(gestion.former(bid), diorama.centre(_accueil()), "Formation !"))
 		_carte_corps.add_child(b)
-	_texte("Une équipe formée sert plus vite, rend les clients plus contents et casse moins de matériel.", true, 12)
+	_texte("Une équipe formée travaille plus vite sur place, a meilleur moral et casse moins de matériel." if _ville() else "Une équipe formée sert plus vite, rend les clients plus contents et casse moins de matériel.", true, 12)
 	# Pannes.
 	_carte_corps.add_child(HSeparator.new())
 	var pannes: Array = et.pannes
@@ -820,7 +939,7 @@ func _carte_personnel() -> void:
 		b.pressed.connect(func() -> void: _reparer(idx))
 		r2.add_child(b)
 	if not pannes.is_empty():
-		_texte("Chaque panne fait baisser la satisfaction des clients tous les jours.", true, 12)
+		_texte("Chaque panne fait baisser le moral et la note tous les jours." if _ville() else "Chaque panne fait baisser la satisfaction des clients tous les jours.", true, 12)
 
 
 func _reparer(i: int) -> void:
@@ -850,11 +969,18 @@ func _carte_stats() -> void:
 	g.donnees = h
 	g.custom_minimum_size = Vector2(CARTE_W - 30, 150)
 	_carte_corps.add_child(g)
-	_texte("■ recettes   ■ charges   — remplissage", true, 12)
-	_texte("Recettes : %s · charges : %s · bénéfice : %s" % [BuildingSystem.format_money(int(ca)), BuildingSystem.format_money(int(ch)), BuildingSystem.format_money(int(ca - ch))], false, 13)
-	_texte("Remplissage moyen : %d %% · note : %.1f · satisfaction : %.1f" % [roundi(occ / h.size() * 100.0), float(h[-1][5]), float(h[-1][6])], false, 13)
+	_texte(String(_gd().get("legende", "■ recettes   ■ charges   — remplissage")), true, 12)
+	if _ville():
+		var nint := 0
+		for e in h:
+			nint += int(e[3])
+		_texte("Budget reçu : %s · entretien : %s · interventions : %d" % [BuildingSystem.format_money(int(ca)), BuildingSystem.format_money(int(ch)), nint], false, 13)
+		_texte("%s : %d %% · note : %.1f · moral : %.1f" % [String(_gd().get("remplissage_nom", "Remplissage moyen")), roundi(occ / h.size() * 100.0), float(h[-1][5]), float(h[-1][6])], false, 13)
+	else:
+		_texte("Recettes : %s · charges : %s · bénéfice : %s" % [BuildingSystem.format_money(int(ca)), BuildingSystem.format_money(int(ch)), BuildingSystem.format_money(int(ca - ch))], false, 13)
+		_texte("Remplissage moyen : %d %% · note : %.1f · satisfaction : %.1f" % [roundi(occ / h.size() * 100.0), float(h[-1][5]), float(h[-1][6])], false, 13)
 	var et: Dictionary = gestion.etat(bid)
-	_texte((String(_gd().get("evenement_nom", "Événements")) + " : %d · clients célèbres : %d · pannes réparées : %d") % [int(et.seminaires), int(et.vip), int(et.reparees)], true, 12)
+	_texte((String(_gd().get("evenement_nom", "Événements")) + (" : %d · visites : %d · pannes réparées : %d" if _ville() else " : %d · clients célèbres : %d · pannes réparées : %d")) % [int(et.seminaires), int(et.vip), int(et.reparees)], true, 12)
 
 
 func _carte_journal() -> void:
@@ -975,12 +1101,16 @@ func _process(delta: float) -> void:
 	if _t_ui <= 0.0:
 		_t_ui = 0.6
 		_remplir_haut()
+		_maj_engins(true)
 	simuler(delta * clampf(EchelleTemps.facteur(), 0.0, 3.0))
 
 
 # --- Vie de l'établissement ---------------------------------------------------------------------
 
 func _cible_visibles() -> int:
+	if _ville():
+		# Visiteurs : stages de secourisme, écoles, futurs volontaires.
+		return clampi(2 + gestion.niveau(bid, _accueil()) + gestion.niveau(bid, "formation"), 2, mini(MAX_VISIBLES, 9))
 	var n := gestion.clients(bid)
 	if gestion.source(bid) == "production":
 		# Repas par jour : beaucoup plus de passages que de nuitées.
@@ -1129,7 +1259,7 @@ func _regler(c: Dictionary) -> void:
 	var tip := gestion.regler(bid, d)
 	c.demande = {}
 	diorama.poser_bulle(c, null)
-	diorama.flotter((c.fig as Node3D).position, "+%s pourboire" % BuildingSystem.format_money(roundi(tip)), Color("9fe3b0"))
+	diorama.flotter((c.fig as Node3D).position, "+%s %s" % [BuildingSystem.format_money(roundi(tip)), String(_gd().get("pourboire", "pourboire"))], Color("9fe3b0"))
 	var mots: Array = GestionTypes.genre(genre).get("pensees", {}).get("regle", ["Merci !"])
 	_dire("« %s » %s" % [String(d.texte), String(mots[rng.randi() % mots.size()])], Color("d8f3dc"))
 	if String(c.etat) == "installe":

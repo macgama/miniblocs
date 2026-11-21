@@ -469,7 +469,9 @@ static func dessiner(k: LpKit, nom: String, p: Vector3, rot: float, teinte := Co
 static func places(nom: String) -> Array:
 	if PLACES.has(nom):
 		return PLACES[nom]
-	return ModelesRestaurant.PLACES.get(nom, [])
+	if ModelesRestaurant.PLACES.has(nom):
+		return ModelesRestaurant.PLACES[nom]
+	return ModelesCaserne.PLACES.get(nom, [])
 
 
 static func _plante(k: LpKit, taille: float) -> void:

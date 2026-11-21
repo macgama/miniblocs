@@ -1,6 +1,6 @@
 extends SceneTree
 ## Captures du mode gestion « tycoon » (écran isométrique d'un hôtel ou d'un restaurant).
-## Usage : xvfb-run -a godot --path . --rendering-driver opengl3 --script res://tests/gestion_vitrine.gd -- --out DOSSIER [--type hotel_3|haussmann__restaurant] [--niveau 1|3|5] [--piece spa] [--zoom 30] [--onglet personnel|stats|journal] [--x 20 --z 14]
+## Usage : xvfb-run -a godot --path . --rendering-driver opengl3 --script res://tests/gestion_vitrine.gd -- --out DOSSIER [--type hotel_3|haussmann__restaurant|pompiers] [--depart] [--niveau 1|3|5] [--piece spa] [--zoom 30] [--onglet personnel|stats|journal] [--x 20 --z 14]
 
 var out := "user://captures-gestion"
 var niveau := 3
@@ -10,6 +10,7 @@ var onglet := ""
 var cible_x := INF
 var cible_z := INF
 var type_id := "hotel_3"
+var depart := false
 
 const VENDREDI := 1_784_282_400.0
 
@@ -26,6 +27,7 @@ func _initialize() -> void:
 			"--x": cible_x = float(a[i + 1])
 			"--z": cible_z = float(a[i + 1])
 			"--type": type_id = a[i + 1]
+			"--depart": depart = true
 	_run.call_deferred()
 
 
@@ -73,7 +75,12 @@ func _run() -> void:
 	tour.ignore_staff = true
 	tour._sync()
 	scene.production._sync()
-	if g == "hotel":
+	scene.urgences.set_process(false)
+	scene.urgences.random_calls = false
+	scene.urgences._sync_stations()
+	if g == "caserne":
+		pass
+	elif g == "hotel":
 		tour.heb[hotel].nom = "Hôtel Bellevue"
 		tour.heb[hotel].compte = 180_000.0
 		tour.heb[hotel].clients = [[50, 3, 3.5], [40, 2, 3.5]]
@@ -90,6 +97,10 @@ func _run() -> void:
 	var mets := ["receptionniste", "agent_etage", "agent_etage", "cuisinier", "serveur", "serveur", "cadre", "agent_proprete", "maitre_nageur", "maitre_nageur"]
 	if g == "restaurant":
 		mets = ["serveur", "serveur", "serveur", "cuisinier", "cuisinier", "serveur", "serveur"]
+	elif g == "caserne":
+		mets = []
+		for i in 18:
+			mets.append("pompier")
 	var k := 0
 	pop.by_job[hotel] = []
 	for pid in pop.persons:
@@ -118,7 +129,21 @@ func _run() -> void:
 	for j in 30:
 		var ca := 9000.0 + j * 180.0 + rng.randf_range(-1500, 1500)
 		var e := 1.0 if g == "hotel" else 0.25
+		if g == "caserne":
+			(gest.etat(hotel).hist as Array).append([j + 1, 1000.0, 300.0 + rng.randf_range(-60, 60) + j * 6.0, rng.randi_range(2, 7), clampf(0.8 + rng.randf_range(-0.2, 0.15), 0, 1), 3.9, 3.7])
+			continue
 		(gest.etat(hotel).hist as Array).append([j + 1, ca * e, (6500.0 + rng.randf_range(-800, 800)) * e, 80, clampf(0.55 + j * 0.012 + rng.randf_range(-0.05, 0.05), 0, 1), 3.6, 3.8])
+	if g == "caserne":
+		var stc := gest.etat(hotel)
+		stc.hier = {"ca": 1000.0, "charges": 320.0, "clients": 5.0, "retards": 0, "delai": 205.0, "departs": 6}
+		stc.delai = 205.0
+		stc.interventions = 148
+		stc.departs = 171
+		stc.note = 4.1
+		stc.satisf = 3.8
+		stc.caisse = 42_000.0
+		stc.volontaires = 2
+		scene.urgences.maj_flotte(hotel)
 	if g == "restaurant":
 		gest.etat(hotel).hier = {"ca": 2900.0, "charges": 2100.0, "clients": 150.0, "cap": 190.0}
 		gest.etat(hotel).note = 3.8
@@ -133,6 +158,13 @@ func _run() -> void:
 	EchelleTemps.force = 1.0
 	for i in 260:
 		vue.simuler(0.1)
+	if depart:
+		# Un appel : un engin sort de la remise, l'alerte sonne.
+		scene.urgences.ignore_crew = true
+		scene.urgences.random_call("feu_poubelle")
+		vue._maj_engins(true)
+		for i in 6:
+			vue.simuler(0.1)
 	vue.choisir(piece)
 	if onglet != "":
 		vue.onglet = onglet
@@ -140,12 +172,12 @@ func _run() -> void:
 	for i in 30:
 		await process_frame
 	vue._t_demande = 0.0
-	for i in 40:
+	for i in (6 if depart else 40):
 		vue.simuler(0.1)
 		await process_frame
 	await RenderingServer.frame_post_draw
 	var img := root.get_texture().get_image()
-	var f := out.path_join("gestion-%s-niveau%d%s%s.png" % [g, niveau, ("-" + piece) if piece != "" else "", ("-" + onglet) if onglet != "" else ""])
+	var f := out.path_join("gestion-%s-niveau%d%s%s%s.png" % [g, niveau, ("-" + piece) if piece != "" else "", ("-" + onglet) if onglet != "" else "", "-depart" if depart else ""])
 	img.save_png(f)
 	print("capture : ", ProjectSettings.globalize_path(f))
 	quit(0)

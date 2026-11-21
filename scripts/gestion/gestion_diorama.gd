@@ -55,6 +55,12 @@ var _rue_n: Node3D
 var _surbrillance: MeshInstance3D
 var _materiaux := {}
 var _voitures: Array = []
+## Engins de la remise (caserne) : [{n, model, etat ("gare" | "part" | "absent"), feux}].
+var engins: Array = []
+var _engins_n: Node3D
+var _feux_mat: Dictionary = {}
+var _alerte_t := 0.0
+var _alerte_l: Label3D
 var _t := 0.0
 var _n_client := 0
 var rng := RandomNumberGenerator.new()
@@ -63,7 +69,7 @@ var rng := RandomNumberGenerator.new()
 func _ready() -> void:
 	rng.seed = 4242
 	_materiaux = {"base": LpKit.vertex_material(0.85), "eau": _materiau_eau(), "verre": _materiau_verre(), "lumiere": _materiau_lumiere()}
-	for n in ["Decor", "Gens", "Etiquettes", "Rue"]:
+	for n in ["Decor", "Gens", "Etiquettes", "Rue", "Engins"]:
 		var nd := Node3D.new()
 		nd.name = n
 		add_child(nd)
@@ -71,6 +77,7 @@ func _ready() -> void:
 	_gens = get_node("Gens")
 	_etiquettes = get_node("Etiquettes")
 	_rue_n = get_node("Rue")
+	_engins_n = get_node("Engins")
 
 
 static func _materiau_eau() -> StandardMaterial3D:
@@ -387,6 +394,8 @@ func _murs(k: LpKit, gd: Dictionary) -> void:
 	var couleur := Color(String(gd.get("murs", "e9dcc6")))
 	var dehors := Color(String(gd.get("murs_dehors", "c9876a")))
 	var portes: Array = [gd.get("porte", Vector2(plan.x * 0.5, plan.y))]
+	for pg in gd.get("portes_garage", []):
+		portes.append(Vector3(float(pg[0]), float(pg[1]), float(pg[2])))
 	for pid in GestionTypes.ordre(genre):
 		var p := GestionTypes.piece(genre, String(pid))
 		if p.has("porte"):
@@ -427,11 +436,13 @@ func _mur(k: LpKit, a: Vector2, b: Vector2, h: float, col: Color, portes: Array)
 	# Trous des portes sur ce mur.
 	var trous: Array = []
 	for pt in portes:
-		var q: Vector2 = pt
+		# Vector2 : porte ordinaire ; Vector3 (x, z, largeur) : porte de garage.
+		var q := Vector2(pt.x, pt.y)
+		var larg: float = pt.z if pt is Vector3 else PORTE
 		var sur := absf((q.y if horiz else q.x) - fixe) < 0.05
 		var t := q.x if horiz else q.y
 		if sur and t > t0 and t < t1:
-			trous.append([t - PORTE * 0.5, t + PORTE * 0.5])
+			trous.append([t - larg * 0.5, t + larg * 0.5])
 	trous.sort_custom(func(u: Array, v: Array) -> bool: return u[0] < v[0])
 	var debut := t0
 	var morceaux: Array = []
@@ -517,13 +528,16 @@ func _facade(k: LpKit, gd: Dictionary) -> void:
 			k.blob(Vector3(x - 0.5 + i * 0.5, 0.62, plan.y + 0.55), Vector3(0.28, 0.25, 0.25), Color("2f6b35"), [Color("e76f51"), Color("f4d35e"), Color("ef476f")][(int(x) + i) % 3], 0.2, 0)
 	# Range-vélos et deux vélos.
 	var vx := porte.x + 9.0 if libre(Vector2(porte.x + 9.7, plan.y + 2.3), 1.5) else porte.x - 9.0
-	for i in 3:
-		k.box(Vector3(vx + i * 0.7, 0.35, plan.y + 2.3), Vector3(0.05, 0.7, 0.5), Color("6c757d"), 0.0, false)
-	for i in 2:
-		_m(k, "velo", vx + 0.35 + i * 0.7, plan.y + 2.3, PI * 0.5)
+	if libre(Vector2(vx + 0.7, plan.y + 2.3), 1.2):
+		for i in 3:
+			k.box(Vector3(vx + i * 0.7, 0.35, plan.y + 2.3), Vector3(0.05, 0.7, 0.5), Color("6c757d"), 0.0, false)
+		for i in 2:
+			_m(k, "velo", vx + 0.35 + i * 0.7, plan.y + 2.3, PI * 0.5)
 	# Banc et poubelle.
-	_m(k, "banc", porte.x - 6.0, plan.y + 2.4, PI)
-	k.lathe(Vector3(porte.x - 4.4, 0, plan.y + 2.5), [Vector2(0.0, 0.0), Vector2(0.25, 0.0), Vector2(0.28, 0.8), Vector2(0.0, 0.8)], 8, Color("3a5a40"))
+	var bx := porte.x - 6.0 if libre(Vector2(porte.x - 6.0, plan.y + 2.4), 1.2) else porte.x + 2.6
+	if libre(Vector2(bx, plan.y + 2.4), 0.8):
+		_m(k, "banc", bx, plan.y + 2.4, PI)
+		k.lathe(Vector3(bx + 1.6, 0, plan.y + 2.5), [Vector2(0.0, 0.0), Vector2(0.25, 0.0), Vector2(0.28, 0.8), Vector2(0.0, 0.8)], 8, Color("3a5a40"))
 	# Mâts et drapeaux (3 étoiles et plus).
 	if etoiles >= 3 and libre(Vector2(porte.x + 4.5, plan.y + 1.4), 1.6):
 		var cols := [Color("e63946"), Color("1d3557"), Color("f4d35e")]
@@ -541,6 +555,9 @@ func _facade(k: LpKit, gd: Dictionary) -> void:
 
 ## Ce point du terrain est-il libre (hors des pièces du dehors construites) ?
 func libre(p: Vector2, marge := 0.6) -> bool:
+	for r in GestionTypes.genre(genre).get("zones_libres", []):
+		if p.x > float(r[0]) - marge and p.x < float(r[0]) + float(r[2]) + marge and p.y > float(r[1]) - marge and p.y < float(r[1]) + float(r[3]) + marge:
+			return false
 	for pid in (GestionTypes.genre(genre).get("dehors", {}) as Dictionary):
 		var r: Array = GestionTypes.piece(genre, String(pid)).rect
 		if p.x > float(r[0]) - marge and p.x < float(r[0]) + float(r[2]) + marge and p.y > float(r[1]) - marge and p.y < float(r[1]) + float(r[3]) + marge:
@@ -1288,6 +1305,31 @@ static func _geste(met: String, piece: String) -> String:
 			return "porter"
 		"maraicher", "jardinier":
 			return "ranger"
+		"mecanicien":
+			return "marteler"
+		"pompier":
+			match piece:
+				"accueil":
+					return "guichet"
+				"alerte":
+					return "radio"
+				"remise", "lavage":
+					return "entretien_camion"
+				"tour":
+					return "lance"
+				"sport":
+					return "entrainer"
+				"cuisine":
+					return "cuisiner"
+				"formation":
+					return "expliquer"
+				"bureau":
+					return "taper"
+				"reserve", "vestiaires":
+					return "ranger"
+				"dortoir":
+					return "telephoner"
+			return "radio"
 	return "conseiller"
 
 
@@ -1452,6 +1494,7 @@ func poser_bulle(c: Dictionary, l: Label3D) -> void:
 func avancer(dt: float) -> Array:
 	_t += dt
 	_rouler(dt)
+	_rouler_engins(dt)
 	var ev: Array = []
 	for f in employes:
 		(f as Figurine).animer(_t)
@@ -1563,3 +1606,146 @@ func flotter(p: Vector3, texte: String, col := Color("ffe066")) -> void:
 	tw.tween_property(l, "position:y", l.position.y + 1.6, 1.6)
 	tw.tween_property(l, "modulate:a", 0.0, 1.6).set_delay(0.6)
 	tw.chain().tween_callback(l.queue_free)
+
+
+# --- Engins de la remise (caserne) -----------------------------------------------------------------
+
+## Place les engins de la caserne dans la remise : [{model, out}]. Un engin qui
+## vient de partir sort en marche avant, gyrophares allumés, et s'en va par la
+## rue ; un engin rentré réapparaît à sa place. Renvoie le nombre de départs.
+func placer_engins(liste: Array, anime := true) -> int:
+	var gd := GestionTypes.genre(genre)
+	var baies: Array = gd.get("baies", [])
+	var departs := 0
+	while engins.size() > mini(liste.size(), baies.size()):
+		var e: Dictionary = engins.pop_back()
+		(e.n as Node).queue_free()
+	for i in mini(liste.size(), baies.size()):
+		var info: Dictionary = liste[i]
+		var model := String(info.get("model", "fpt"))
+		if i >= engins.size():
+			engins.append({"n": null, "model": "", "etat": "gare", "feux": []})
+		var e: Dictionary = engins[i]
+		if String(e.model) != model and String(e.etat) != "part":
+			if e.n != null:
+				(e.n as Node).queue_free()
+			_creer_engin(e, model, float(gd.get("engin_long", 5.6)))
+		var place := Vector3(float(baies[i][0]), 0, float(baies[i][1]))
+		var dehors := bool(info.get("out", false))
+		match String(e.etat):
+			"gare":
+				if dehors:
+					if anime:
+						e.etat = "part"
+						e.phase = 0
+						departs += 1
+					else:
+						e.etat = "absent"
+						(e.n as Node3D).visible = false
+				else:
+					(e.n as Node3D).position = place
+					(e.n as Node3D).rotation.y = PI
+					(e.n as Node3D).visible = true
+			"absent":
+				if not dehors:
+					e.etat = "gare"
+					(e.n as Node3D).position = place
+					(e.n as Node3D).rotation.y = PI
+					(e.n as Node3D).visible = true
+					_feux(e, false)
+	return departs
+
+
+func _creer_engin(e: Dictionary, model: String, longueur: float) -> void:
+	var root := Node3D.new()
+	root.name = "Engin_" + model
+	var t := VehicleCatalog.get_type(model)
+	var mi := MeshInstance3D.new()
+	mi.mesh = VehicleCatalog.build_mesh(model, 0, EvVisuels.material())
+	var sc := minf(1.0, longueur / maxf(1.0, float(t.get("L", 6.0))))
+	mi.scale = Vector3.ONE * sc
+	root.add_child(mi)
+	var feux: Array = []
+	var box := BoxMesh.new()
+	box.size = Vector3(0.38, 0.16, 0.26) * sc
+	for p in VehicleCatalog.beacons(t):
+		var bp: Vector3 = p
+		var c := VehicleCatalog.beacon_color(t, bp.x)
+		if not _feux_mat.has(c):
+			var m := StandardMaterial3D.new()
+			m.albedo_color = c
+			m.emission_enabled = true
+			m.emission = c
+			m.emission_energy_multiplier = 3.0
+			m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+			_feux_mat[c] = m
+		var f := MeshInstance3D.new()
+		f.mesh = box
+		f.material_override = _feux_mat[c]
+		f.position = (bp + Vector3(0, 0.02, 0)) * sc
+		f.visible = false
+		root.add_child(f)
+		feux.append(f)
+	_engins_n.add_child(root)
+	e.n = root
+	e.model = model
+	e.feux = feux
+
+
+func _feux(e: Dictionary, on: bool, t := 0.0) -> void:
+	var i := 0
+	for f in e.feux:
+		(f as Node3D).visible = on and (int(t * 4.0) + i) % 2 == 0
+		i += 1
+
+
+func _rouler_engins(dt: float) -> void:
+	if engins.is_empty():
+		return
+	var plan := _plan()
+	var e_ := emprise()
+	var rz := plan.y + 12.4 + 1.5
+	for e in engins:
+		if String(e.etat) != "part" or e.n == null:
+			continue
+		var n: Node3D = e.n
+		_feux(e, true, _t)
+		var v := 7.0 * dt
+		if int(e.phase) == 0:
+			# Sortie en marche avant jusqu'à la rue.
+			n.rotation.y = PI
+			n.position.z += v
+			if n.position.z >= rz:
+				n.position.z = rz
+				e.phase = 1
+		else:
+			# Dans la rue, vers la droite.
+			n.rotation.y = -PI * 0.5
+			n.position.x += v * 1.6
+			if n.position.x > float(e_[2]) + 14.0:
+				e.etat = "absent"
+				n.visible = false
+				_feux(e, false)
+	if _alerte_t > 0.0:
+		_alerte_t -= dt
+		if _alerte_l != null:
+			_alerte_l.visible = _alerte_t > 0.0 and int(_alerte_t * 3.0) % 2 == 0
+
+
+## Sonnerie d'alerte : « ALERTE ! » clignote au-dessus de la salle d'alerte.
+func alerte(texte := "ALERTE !") -> void:
+	if _alerte_l == null or not is_instance_valid(_alerte_l):
+		_alerte_l = Label3D.new()
+		_alerte_l.name = "Alerte"
+		_alerte_l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		_alerte_l.font_size = 96
+		_alerte_l.pixel_size = 0.016
+		_alerte_l.outline_size = 22
+		_alerte_l.modulate = Color("ff4d4d")
+		_alerte_l.outline_modulate = Color(0.25, 0, 0, 1)
+		_alerte_l.no_depth_test = true
+		_engins_n.add_child(_alerte_l)
+	_alerte_l.text = texte
+	var c := centre("alerte") if GestionTypes.pieces(genre).has("alerte") else centre(String(GestionTypes.genre(genre).get("accueil", "")))
+	_alerte_l.position = c + Vector3(0, 4.2, 0)
+	_alerte_t = 4.0

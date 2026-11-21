@@ -55,6 +55,7 @@ func _run() -> void:
 	scene.urgences.random_calls = false
 	scene.population.arrivals = false
 	bs.require_access = false
+	Langue.activer("fr")
 	if scene.tutoriel.actif:
 		scene.tutoriel.arreter()
 	scene.kit.pays_de = func(_v: int) -> String: return "zz"
@@ -73,6 +74,7 @@ func _run() -> void:
 				n += 1
 		x += 22
 	bs.unlimited_money = false
+	scene.villages_panel._dialog.hide()
 	scene.fondateurs.repartir()
 	scene.rig.position = Vector3(150, 0, 0)
 	var se: Seance = scene.seance
@@ -82,22 +84,28 @@ func _run() -> void:
 	se.courante = {"type": "habitants", "titre": "Faire grandir la ville", "vid": vid, "debut": se.ecoule - 7.0 * 60.0,
 		"pourquoi": "Plus d'habitants, plus d'impôts, et le prochain rang se rapproche.",
 		"atteints": 0, "depart": float(h0), "cibles": [h0 + 10.0, h0 + 20.0, h0 + 30.0], "prime": 60000}
-	scene.communes.stats[vid].hab = h0 + 13
-	se.suivre()
+	se.courante.atteints = 1
+	se.medailles = [1, 0, 0]
+	scene.seance_banniere.montrer(1, se.courante)
+	scene.guide.bloque = func() -> bool: return true
+	# Objectifs repliés : de la place pour « À faire » dans la colonne de gauche.
+	scene.tutoriel.replie = true
 	scene.statistiques.releve()
+	scene.villages_panel._dialog.hide()
 	scene.fil_alertes.refresh()
 	await _shot(dir + "/1-carte-seance-et-banniere.png", 20)
 	# Fil « À faire » : la cause des chantiers dépliée.
 	for i in 300:
 		await process_frame
-	var ch := scene.fil_alertes._list.find_child("Alerte_chantiers_lents", true, false)
+	var ch: Node = scene.fil_alertes._list.find_child("Alerte_chantiers_lents", true, false)
 	if ch != null:
 		(ch.find_child("Pourquoi", true, false) as Button).button_pressed = true
 	await _shot(dir + "/2-a-faire-cause.png")
 	scene.mairie_panel.set_open(true)
 	await _shot(dir + "/3-mairie-pourquoi.png")
 	scene.mairie_panel.set_open(false)
-	scene.communes.stats[vid].hab = h0 + 40
-	se.suivre()
+	se.courante.atteints = 3
+	scene.seance_banniere.montrer(3, se.courante)
+	scene.tuto_carte.seance_carte.rafraichir()
 	await _shot(dir + "/4-seance-reussie.png", 30)
 	quit(0)

@@ -37,6 +37,8 @@ func _ready() -> void:
 	v.add_child(_titre)
 	_texte = _label(14, UiStyle.TEXT)
 	_texte.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	# Largeur fixée : sans elle, le texte à la ligne fait une bannière démesurément haute.
+	_texte.custom_minimum_size = Vector2(388, 0)
 	v.add_child(_texte)
 	_panel.visible = false
 
@@ -56,12 +58,13 @@ func montrer(n: int, s: Dictionary) -> void:
 	var col: Color = Seance.COULEURS_PALIERS[n - 1]
 	_medaille.text = "●" if n < 3 else "★"
 	_medaille.add_theme_color_override("font_color", col)
-	_titre.text = "Palier %s !" % String(Seance.NOMS_PALIERS[n - 1]).to_lower() if n < 3 else "Séance réussie : médaille d'or !"
+	_titre.text = "Palier %s !" % Seance.nom_palier(n - 1) if n < 3 else "Séance réussie : médaille d'or !"
 	_titre.add_theme_color_override("font_color", col)
 	var prime := roundi(float(s.get("prime", 0)) * float(Seance.PARTS[n - 1]))
 	_texte.text = "%s\n+%s dans la caisse" % [String(s.get("titre", "")), BuildingSystem.format_money(prime)] \
 		+ (" et 1 point de progrès" if n == 3 else "")
 	_panel.visible = true
+	_panel.size = Vector2.ZERO
 	_panel.reset_size()
 	_panel.pivot_offset = _panel.size * 0.5
 	_panel.modulate.a = 0.0

@@ -35,6 +35,7 @@ func _trouver(n: Node, nom: String) -> Node:
 
 
 func _run() -> void:
+	Langue.activer("fr")
 	Creations.persist = false
 	BatimentsVie.chantiers = true
 	GameStart.chosen = true
@@ -93,6 +94,10 @@ func _run() -> void:
 	_check((_trouver(carte, "TitreSeance") as Label).text == String(c.titre), "la carte montre le but")
 	_check((_trouver(carte, "Palier1") as Label).text.contains("Bronze") and (_trouver(carte, "Palier3") as Label).text.contains("Or"), "trois médailles sur la carte")
 	_check((_trouver(carte, "Recompense") as Label).text.begins_with("+"), "la prochaine récompense est affichée")
+	_check(Seance.nom_palier(1) == "Argent", "médaille « Argent » en français")
+	Langue.activer("en")
+	_check(Seance.nom_palier(1) == "Silver", "« Silver » en anglais (pas « Money »)")
+	Langue.activer("fr")
 
 	print("Paliers et récompenses :")
 	# Séance « habitants » fixée pour le test : 10 / 20 / 30 habitants de plus.

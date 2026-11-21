@@ -15434,7 +15434,10 @@
 "« %s » : %d habitant%s": "«%s»: %d abitant%s",
 "Les 3 problèmes les plus urgents arrivent ici, jamais plus. « ? » montre la cause en chiffres (pas assez d'ouvriers, de places, d'argent…), « Régler » ouvre ce qu'il faut pour le régler.": "Qui arrivano i 3 problemi più urgenti, mai di più. «?» mostra la causa in cifre (pochi operai, posti, soldi…), «Risolvi» apre ciò che serve per risolverlo.",
 "Bâtir les premières maisons": "Costruire le prime case",
-"Chaque maison finie loge une famille et fait vivre le village.": "Ogni casa finita ospita una famiglia e fa vivere il villaggio."
+"Chaque maison finie loge une famille et fait vivre le village.": "Ogni casa finita ospita una famiglia e fa vivere il villaggio.",
+"médaille de bronze": "Bronzo",
+"médaille d'argent": "Argento",
+"médaille d'or": "Oro"
 },
 "Turbo (4 h/s)": "Turbo (4 h/s)",
 "Départ rapide (chantiers ×3 jusqu'à 200 habitants)": "Avvio rapido (cantieri ×3 fino a 200 abitanti)",

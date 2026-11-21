@@ -15533,7 +15533,10 @@
 "« %s » : %d habitant%s": "“%s”: %d resident%s",
 "Les 3 problèmes les plus urgents arrivent ici, jamais plus. « ? » montre la cause en chiffres (pas assez d'ouvriers, de places, d'argent…), « Régler » ouvre ce qu'il faut pour le régler.": "The 3 most urgent problems show up here, never more. “?” shows the cause in figures (not enough workers, places, money…), “Fix” opens what you need to fix it.",
 "Bâtir les premières maisons": "Build the first houses",
-"Chaque maison finie loge une famille et fait vivre le village.": "Each finished house shelters a family and brings the village to life."
+"Chaque maison finie loge une famille et fait vivre le village.": "Each finished house shelters a family and brings the village to life.",
+"médaille de bronze": "Bronze",
+"médaille d'argent": "Silver",
+"médaille d'or": "Gold"
 },
 "Turbo (4 h/s)": "Turbo (4 h/s)",
 "Départ rapide (chantiers ×3 jusqu'à 200 habitants)": "Quick start (construction ×3 up to 200 residents)",

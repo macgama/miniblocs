@@ -55,6 +55,7 @@ func setup(s: Seance) -> void:
 		m.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		m.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		m.mouse_filter = Control.MOUSE_FILTER_PASS
+		m.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
 		var sb := UiStyle.flat_box(Color(1, 1, 1, 0.05), 6, 3)
 		m.add_theme_stylebox_override("normal", sb)
 		row.add_child(m)
@@ -124,16 +125,18 @@ func rafraichir() -> void:
 		return
 	var a := int(c.atteints)
 	_titre.text = String(c.titre)
-	_pourquoi.text = String(c.get("pourquoi", ""))
-	_pourquoi.visible = _pourquoi.text != ""
+	# La raison en infobulle : la carte reste courte (la colonne de gauche est chargée).
+	_titre.tooltip_text = String(c.get("pourquoi", ""))
+	_titre.mouse_filter = Control.MOUSE_FILTER_PASS
+	_pourquoi.visible = false
 	_temps.text = "⏱ " + seance.texte_restant()
 	for i in 3:
 		var m := _medailles[i]
 		m.visible = true
 		var gagne := i < a
-		m.text = ("● " if gagne else "○ ") + String(Seance.NOMS_PALIERS[i])
+		m.text = ("● " if gagne else "○ ") + Seance.nom_palier(i)
 		m.add_theme_color_override("font_color", Seance.COULEURS_PALIERS[i] if gagne else UiStyle.TEXT_DIM)
-		m.tooltip_text = "%s : %s · +%s" % [String(Seance.NOMS_PALIERS[i]), seance.texte_palier(i + 1),
+		m.tooltip_text = "%s : %s · +%s" % [Seance.nom_palier(i), seance.texte_palier(i + 1),
 			BuildingSystem.format_money(seance.prime_du_palier(i + 1))] + (" et 1 point de progrès" if i == 2 else "")
 	_barre.visible = a < 3
 	_barre.value = seance.progres()
@@ -141,6 +144,8 @@ func rafraichir() -> void:
 		_progres.text = "Séance réussie ! Les trois médailles sont à toi."
 		_prime.text = ""
 	else:
-		_progres.text = "%s : %s" % [String(Seance.NOMS_PALIERS[a]), seance.texte_palier(a + 1)] + "  ·  " + seance.texte_progres()
+		_progres.text = seance.texte_progres()
+		_progres.tooltip_text = "%s : %s" % [Seance.nom_palier(a), seance.texte_palier(a + 1)]
+		_progres.mouse_filter = Control.MOUSE_FILTER_PASS
 		_prime.text = "+" + BuildingSystem.format_short(seance.prime_du_palier(a + 1))
 	_suivante.visible = a >= 3

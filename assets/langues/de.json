@@ -15437,7 +15437,10 @@
 "« %s » : %d habitant%s": "„%s“: %d Einwohner%s",
 "Les 3 problèmes les plus urgents arrivent ici, jamais plus. « ? » montre la cause en chiffres (pas assez d'ouvriers, de places, d'argent…), « Régler » ouvre ce qu'il faut pour le régler.": "Die 3 dringendsten Probleme erscheinen hier, nie mehr. „?“ zeigt die Ursache in Zahlen (zu wenig Arbeiter, Plätze, Geld…), „Beheben“ öffnet, was du dafür brauchst.",
 "Bâtir les premières maisons": "Die ersten Häuser bauen",
-"Chaque maison finie loge une famille et fait vivre le village.": "Jedes fertige Haus beherbergt eine Familie und belebt das Dorf."
+"Chaque maison finie loge une famille et fait vivre le village.": "Jedes fertige Haus beherbergt eine Familie und belebt das Dorf.",
+"médaille de bronze": "Bronze",
+"médaille d'argent": "Silber",
+"médaille d'or": "Gold"
 },
 "Turbo (4 h/s)": "Turbo (4 Std/s)",
 "Départ rapide (chantiers ×3 jusqu'à 200 habitants)": "Schnellstart (Baustellen ×3 bis 200 Einwohner)",

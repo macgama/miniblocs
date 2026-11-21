@@ -28,6 +28,8 @@ signal message(text: String)
 ## Durée d'une séance (secondes de jeu réelles).
 const DUREE := 20.0 * 60.0
 const NOMS_PALIERS := ["Bronze", "Argent", "Or"]
+## Clés de traduction propres aux médailles (« Argent » seul se traduit déjà par « Money »).
+const CLES_PALIERS := ["médaille de bronze", "médaille d'argent", "médaille d'or"]
 const COULEURS_PALIERS := [Color("d39a62"), Color("cfd8dc"), Color("ffd166")]
 ## Part de la récompense versée à chaque palier.
 const PARTS := [0.25, 0.25, 0.5]
@@ -38,6 +40,14 @@ const PRIME_RANG := 40_000
 const SERVICES := ["ecole", "pompiers", "police", "hopital"]
 
 static var instance: Seance
+
+
+## Nom d'un palier (0 à 2) dans la langue du jeu : Bronze, Argent, Or / Silver…
+## Les textes qui l'utilisent ne doivent plus être retraduits (auto_translate coupé).
+static func nom_palier(i: int) -> String:
+	if Langue.actuelle == "fr":
+		return String(NOMS_PALIERS[i])
+	return Langue.t(String(CLES_PALIERS[i]))
 
 var objectifs: Objectifs
 ## Ville gérée : fonction qui renvoie son id (-1 : la ville principale).

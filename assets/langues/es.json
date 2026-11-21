@@ -15375,7 +15375,7 @@
 "%d chantier%s arrêté%s faute d'argent": "%d obra%s parada%s por falta de dinero",
 "%d chantier%s avec une équipe incomplète": "%d obra%s con un equipo incompleto",
 "%d chantier%s sans aucun ouvrier": "%d obra%s sin ningún obrero",
-"%d chantier%s à l'arrêt ou au ralenti": "%d obra%s parada%s o ralentizada%s",
+"%d chantier%s à l'arrêt ou au ralenti": "%d obra%s parada o ralentizada",
 "%d emplois dans la ville pour %d habitants": "%d empleos en la ciudad para %d habitantes",
 "%d enfant%s sans école": "%d niño%s sin escuela",
 "%d école%s dans la ville": "%d escuela%s en la ciudad",
@@ -15434,7 +15434,10 @@
 "« %s » : %d habitant%s": "«%s»: %d habitante%s",
 "Les 3 problèmes les plus urgents arrivent ici, jamais plus. « ? » montre la cause en chiffres (pas assez d'ouvriers, de places, d'argent…), « Régler » ouvre ce qu'il faut pour le régler.": "Aquí llegan los 3 problemas más urgentes, nunca más. «?» muestra la causa en cifras (faltan obreros, plazas, dinero…), «Resolver» abre lo necesario para resolverlo.",
 "Bâtir les premières maisons": "Construir las primeras casas",
-"Chaque maison finie loge une famille et fait vivre le village.": "Cada casa terminada aloja a una familia y da vida al pueblo."
+"Chaque maison finie loge une famille et fait vivre le village.": "Cada casa terminada aloja a una familia y da vida al pueblo.",
+"médaille de bronze": "Bronce",
+"médaille d'argent": "Plata",
+"médaille d'or": "Oro"
 },
 "Turbo (4 h/s)": "Turbo (4 h/s)",
 "Départ rapide (chantiers ×3 jusqu'à 200 habitants)": "Inicio rápido (obras ×3 hasta 200 habitantes)",

@@ -28,6 +28,11 @@ var masques := {}
 var _avant_tout: Array = []
 ## Persistance (désactivée dans les tests).
 static var persist := true
+## Rangement temporaire (bâtiment isolé, IsolementBatiment) : ids des cartes
+## qui étaient visibles et qu'on recache à chaque image, sans rien enregistrer.
+## Vide = pas de rangement en cours.
+var _ranges := {}
+var range_en_cours := false
 
 var _badges := {}
 var _menu: PanelContainer
@@ -149,6 +154,42 @@ func basculer_tout() -> void:
 	_apres_changement()
 
 
+## Range toutes les cartes un moment (sauf `garder`), sans toucher au choix du
+## joueur ; ranger(false) remontre exactement celles qui étaient visibles.
+func ranger(on: bool, garder: Array = []) -> void:
+	if on == range_en_cours:
+		return
+	range_en_cours = on
+	if on:
+		_ranges.clear()
+		for id in ids():
+			if garder.has(id) or masques.has(id):
+				continue
+			var c := carte(id)
+			if c != null and c.visible:
+				_ranges[id] = true
+				c.visible = false
+	else:
+		for id in _ranges.keys():
+			if masques.has(id):
+				continue
+			var restaurer := Callable()
+			for p in panneaux:
+				if String(p.id) == String(id):
+					restaurer = p.restaurer
+			var c := carte(String(id))
+			if c != null:
+				c.visible = true
+			if restaurer.is_valid():
+				restaurer.call()
+		_ranges.clear()
+	change.emit()
+
+
+func est_range(id: String) -> bool:
+	return _ranges.has(id)
+
+
 func _cacher(id: String) -> void:
 	var c := carte(id)
 	if c != null:
@@ -167,7 +208,7 @@ func _process(_delta: float) -> void:
 		var id := String(p.id)
 		var c := carte(id)
 		var b: Button = _badges[id]
-		if masques.has(id):
+		if masques.has(id) or _ranges.has(id):
 			# Le code de la carte a pu la remontrer : elle reste fermée.
 			if c != null and c.visible:
 				c.visible = false

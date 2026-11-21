@@ -268,6 +268,8 @@ func _onglet_jeu() -> Control:
 		"Un cône de chantier et un anneau qui se remplit avec l'avancement, au-dessus des bâtiments en travaux (de près). Le détail s'affiche au survol ; un clic ouvre la fiche.")
 	_ligne(p, "Fiche « Que faire ici ? » au clic", _case(OptionsJeu.fiche_lieu, func(b: bool) -> void: OptionsJeu.fiche_lieu = b),
 		"Un clic sur un terrain libre montre les ressources du lieu et ce qu'on peut y construire (aussi : P → Ressources).")
+	_ligne(p, "Isoler le bâtiment cliqué", _case(OptionsJeu.isoler_batiment, func(b: bool) -> void: OptionsJeu.isoler_batiment = b),
+		"Un clic sur un bâtiment le cadre : le reste de la ville pâlit et les cartes se rangent, seule sa fiche reste. Échap ou la fermeture de la fiche rétablit tout.")
 	var dossier := Button.new()
 	dossier.text = "Ouvrir le dossier des sauvegardes"
 	dossier.pressed.connect(func() -> void:

@@ -29,6 +29,7 @@ const SECTIONS := [
 		["Mini-carte (en bas à droite) · Ctrl+M", "vue du dessus autour de la caméra (1 à 40 km, molette ou − / +) : relief, forêts, champs, eau, routes, bâtiments, frontières des villages ; clic ou glisser pour déplacer la caméra ; elle reprend la carte en couleur de N ou la ressource de P ; points rouges (incendies, urgences), orange (catastrophes), rouge foncé (non raccordés), jaunes (chantiers) : clic pour y aller ; entre amis, les villes voisines ; Ctrl+M ou ✕ pour la replier"],
 		["Circulation, Véhicules, Vue", "afficher la circulation, choisir l'époque et la région des véhicules, changer de vue"],
 		["1", "observer : survoler une case pour voir son altitude et son biome (et le nom de la rivière)"],
+		["Clic sur un bâtiment (1)", "il reste seul à l'écran : la caméra le cadre, la ville pâlit, les cartes se rangent ; Échap ou ✕ de la fiche rétablit tout, « Toute la ville » garde la fiche (Options → Jeu pour couper)"],
 		["2 · 3 · 4", "aplanir, monter de 1 m, creuser de 1 m (clic gauche glissé)"],
 		["5 · 6 · 7 · 8", "route, rail (tram, train, LGV, crémaillère, métro), chemin, voie d'eau : un clic par point"],
 		["C", "voie en courbe (pendant le tracé)"],

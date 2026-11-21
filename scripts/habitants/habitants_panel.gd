@@ -48,6 +48,8 @@ var ouvertes := {}
 ## Conteneur où les petits outils (_text, _link…) ajoutent leurs lignes : le
 ## corps de la rubrique dépliée en cours, sinon le corps du panneau.
 var _dest: Control = null
+## Bâtiment isolé (IsolementBatiment, posé par terre_main) : bouton « Toute la ville ».
+var isolement: Node = null
 const CFG := "user://interface.cfg"
 
 
@@ -706,6 +708,17 @@ func _view_building(bid: int) -> void:
 	go.pressed.connect(func() -> void: focus_requested.emit(info.pos))
 	var acts := HBoxContainer.new()
 	acts.add_child(go)
+	if isolement != null and is_instance_valid(isolement):
+		var iso := Button.new()
+		iso.name = "Isoler"
+		var seul := bool(isolement.call("actif"))
+		iso.text = "Toute la ville" if seul else "Isoler"
+		iso.icon = Icones.get_icon("oeil", 18)
+		iso.focus_mode = Control.FOCUS_NONE
+		iso.tooltip_text = "Revoir toute la ville autour (Échap ferme la fiche et rétablit tout)" if seul \
+			else "Ne voir que ce bâtiment : la ville pâlit, les cartes se rangent"
+		iso.pressed.connect(func() -> void: isolement.call("basculer"))
+		acts.add_child(iso)
 	_body.add_child(acts)
 	_tuiles_travaux(bid, info)
 	# Le détail, rubrique par rubrique (repliées au départ : un clic sur le titre déplie).

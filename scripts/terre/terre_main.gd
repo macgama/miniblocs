@@ -3120,6 +3120,7 @@ func _setup_mairie() -> void:
 	_setup_mini_carte()
 	_setup_pile_gauche()
 	_setup_affichage()
+	_setup_isolement()
 	recherche = RechercheUniverselle.new()
 	recherche.name = "RechercheUniverselle"
 	add_child(recherche)
@@ -3254,6 +3255,21 @@ func _setup_pile_gauche() -> void:
 	pile_gauche.bas = [
 		func() -> Control: return hud._cell_card,
 		func() -> Control: return fil_alertes._panel if is_instance_valid(fil_alertes) else null]
+
+
+## Clic sur un bâtiment : il reste seul à l'écran (caméra cadrée, ville pâlie,
+## cartes rangées) jusqu'à Échap ou la fermeture de la fiche.
+var isolement: IsolementBatiment
+
+
+func _setup_isolement() -> void:
+	isolement = IsolementBatiment.new()
+	add_child(isolement)
+	isolement.setup(population, buildings, rig, affichage, habitants_panel)
+	habitants_panel.isolement = isolement
+	var vue := get_node_or_null("VueSol")
+	isolement.peut_isoler = func() -> bool:
+		return not GameStart.atelier and (vue == null or int(vue.vue) == 0)
 
 
 ## Fermer et réafficher les cartes d'information (croix sur chaque carte, œil de la

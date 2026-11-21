@@ -15653,7 +15653,14 @@
 "Chaque maison finie loge une famille et fait vivre le village.": "Each finished house shelters a family and brings the village to life.",
 "médaille de bronze": "Bronze",
 "médaille d'argent": "Silver",
-"médaille d'or": "Gold"
+"médaille d'or": "Gold",
+"Isoler le bâtiment cliqué": "Isolate the clicked building",
+"Un clic sur un bâtiment le cadre : le reste de la ville pâlit et les cartes se rangent, seule sa fiche reste. Échap ou la fermeture de la fiche rétablit tout.": "Clicking a building frames it: the rest of the city fades and the cards tidy away, leaving only its sheet. Esc or closing the sheet brings everything back.",
+"Isoler": "Isolate",
+"Revoir toute la ville autour (Échap ferme la fiche et rétablit tout)": "See the whole city around again (Esc closes the sheet and restores everything)",
+"Ne voir que ce bâtiment : la ville pâlit, les cartes se rangent": "Show only this building: the city fades, the cards tidy away",
+"Clic sur un bâtiment (1)": "Click a building (1)",
+"il reste seul à l'écran : la caméra le cadre, la ville pâlit, les cartes se rangent ; Échap ou ✕ de la fiche rétablit tout, « Toute la ville » garde la fiche (Options → Jeu pour couper)": "it stays alone on screen: the camera frames it, the city fades, the cards tidy away; Esc or the sheet's ✕ restores everything, “Whole town” keeps the sheet (Options → Game to turn off)"
 },
 "Turbo (4 h/s)": "Turbo (4 h/s)",
 "Départ rapide (chantiers ×3 jusqu'à 200 habitants)": "Quick start (construction ×3 up to 200 residents)",

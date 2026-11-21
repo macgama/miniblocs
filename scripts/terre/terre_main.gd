@@ -3547,7 +3547,7 @@ func _setup_gestion() -> void:
 	gestion = Gestion.new()
 	gestion.name = "Gestion"
 	add_child(gestion)
-	gestion.setup(buildings, tourisme)
+	gestion.setup(buildings, tourisme, production)
 	gestion.message.connect(func(t: String) -> void: hud.show_message(t))
 	gestion_vue = GestionVue.new()
 	gestion_vue.name = "EcranGestion"

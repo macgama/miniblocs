@@ -1862,9 +1862,11 @@ func _shopping() -> float:
 		if String(s.kind) != "commerce" or not shop.has("consomme") or _workers(bid) <= 0:
 			continue
 		var staff := _staff(bid)
+		# Mode gestion : plus ou moins de clients selon la note, le prix et les couverts.
+		var aff := Gestion.affluence_de(bid)
 		var served := 1.0
 		for g in shop.consomme:
-			var need := _shop_need(bid, g) * staff
+			var need := _shop_need(bid, g) * staff * aff
 			if need <= 0.0:
 				continue
 			var take := minf(need, stock_of(bid, g))
@@ -1874,8 +1876,9 @@ func _shopping() -> float:
 			_put(bid, g, -take)
 			_flow(g, take, "vente")
 		var vis := float(BuildingCatalog.get_type(_type_of(bid)).get("visiteurs", 100)) * Ameliorations.facteur_bid(buildings, bid)
-		var v := vis * staff * served * Ressources.REPAS
+		var v := vis * staff * served * aff * Ressources.REPAS * Gestion.prix_repas_de(bid)
 		_pay(bid, "Repas servis", v)
+		Gestion.compter_de(bid, v, vis * staff * served * aff, vis * staff * Gestion.couverts_de(bid))
 		gain += v
 	# Ventes moyennes : l'objectif des rayons suit les achats réels.
 	for bid in sites:
@@ -1976,7 +1979,7 @@ func repas_touristes(pos: Vector3, n: float, rayon := 3000.0) -> Array:
 		if int(s.get("tour_j", -1)) != jour:
 			s.tour_j = jour
 			s.tour_n = 0.0
-		var cap := maxf(0.0, vis * _staff(bid) - float(s.tour_n))
+		var cap := maxf(0.0, vis * _staff(bid) * Gestion.couverts_de(bid) - float(s.tour_n))
 		var servis := minf(left, cap)
 		if servis <= 0.0:
 			continue
@@ -1991,8 +1994,9 @@ func repas_touristes(pos: Vector3, n: float, rayon := 3000.0) -> Array:
 			_flow(String(g), take, "vente")
 		servis *= maxf(ok, 0.25)
 		s.tour_n = float(s.tour_n) + servis
-		var v := servis * Ressources.REPAS
+		var v := servis * Ressources.REPAS * Gestion.prix_repas_de(bid)
 		_pay(bid, "Repas servis aux touristes", v)
+		Gestion.compter_de(bid, v, servis, 0.0)
 		gain += v
 		left -= servis
 	_book("Repas servis aux touristes", gain)
@@ -2105,6 +2109,11 @@ func new_day() -> void:
 					w += float(Metiers.job(String(q.met)).salaire) * part * ReglagesPartie.actuel.salaires * CHARGES / DAYS_PER_MONTH
 			_pay(bid, "Salaires", -w)
 			wages += w
+			# Mode gestion : entretien des améliorations, puis bilan du jour.
+			var ent := Gestion.entretien_site(bid)
+			if ent > 0.0:
+				_pay(bid, "Entretien et améliorations", -ent)
+			Gestion.cloture_de(bid, w + ent)
 	# Impôt de la ville sur les bénéfices du jour : à la ville où est l'entreprise.
 	var tax := 0.0
 	var multi := Pays.instance != null and Pays.instance.a_des_villes()

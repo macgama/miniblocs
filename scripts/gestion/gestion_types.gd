@@ -30,7 +30,9 @@ extends RefCounted
 ## quels bâtiments s'y rattachent : le diorama, les améliorations, les
 ## objets, les demandes, les pannes, la gestion automatique et la
 ## sauvegarde suivent sans rien écrire d'autre. Seuls les effets sur la
-## simulation sont propres à chaque système (Tourisme pour l'hôtel).
+## simulation sont propres à chaque système ("source" : Tourisme pour
+## l'hôtel, Production pour le restaurant). Les grands genres ont leur
+## fichier dans scripts/gestion/genres (GenreRestaurant…).
 
 ## Effets reconnus (par niveau gagné, ou par objet acheté) :
 ## - "lits" : +x lits (part des lits du bâtiment) ;
@@ -39,11 +41,12 @@ extends RefCounted
 ## - "satisf" : +x satisfaction des clients chaque jour ;
 ## - "repas" : +x part des repas pris sur place ;
 ## - "vitesse" : +x vitesse du service (réception, file d'attente) ;
-## - "ventes" : +x € dépensés par client et par nuit dans l'établissement ;
+## - "ventes" : +x € dépensés par client (et par nuit) dans l'établissement ;
+## - "couverts" : +x part de couverts (restaurant : tables en plus) ;
 ## - "entretien" : € par jour (charges en plus).
 const EFFETS := {
 	"lits": "lits", "confort": "confort", "attrait": "clients attirés", "satisf": "satisfaction", "repas": "repas sur place",
-	"vitesse": "vitesse du service", "ventes": "dépenses des clients",
+	"vitesse": "vitesse du service", "ventes": "dépenses des clients", "couverts": "couverts",
 }
 
 const GENRES := {
@@ -51,6 +54,16 @@ const GENRES := {
 		"nom": "Hôtel",
 		"titre": "Gérer l'hôtel",
 		"icone": "lit",
+		"le": "l'hôtel",
+		"du": "de l'hôtel",
+		"source": "tourisme",
+		"accueil": "reception",
+		"classe": "étoiles",
+		"unite": "lits",
+		"remplir": "Remplir l'hôtel à 75 %",
+		"evenement_nom": "Séminaires",
+		"paye_accueil": true,
+		"gains": {"restaurant": 21.0, "bar": 9.0, "spa": 45.0, "boutique": 12.0, "conference": 30.0},
 		"plan": Vector2(44, 26),
 		"porte": Vector2(16, 26),
 		"hall": Vector2(16.2, 21.6),
@@ -301,10 +314,16 @@ static func genre_de(type_id: String) -> String:
 	var sp := TourismeTypes.spec_of(type_id)
 	if String(sp.get("role", "")) == "hebergement" and String(sp.get("genre", "")) == "hotel":
 		return "hotel"
+	if Ressources.commerce_of(type_id).has("consomme"):
+		return "restaurant"
 	return ""
 
 
+## Genres décrits dans leur propre fichier (scripts/gestion/genres).
 static func genre(g: String) -> Dictionary:
+	match g:
+		"restaurant":
+			return GenreRestaurant.GENRE
 	return GENRES.get(g, {})
 
 

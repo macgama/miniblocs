@@ -545,9 +545,13 @@ Menu **Loisirs → Musée** (touche **Maj+C**) : 12 musées prêts à poser (bea
 
 ## Mode gestion « tycoon » : un jeu de gestion dans chaque bâtiment
 
-Clique sur un hôtel, puis sur **Gérer l'hôtel** dans sa fiche (ou **Gérer** dans le menu Tourisme, Maj+D) : tu entres dans l'hôtel, en 3D isométrique, avec ses 13 pièces (chambres, bar, restaurant, spa, boutique, salle de sport, conférences, piscine, jardin, parking…) et environ 75 objets à acheter, chacun dessiné à sa place (télé, minibar, piano, billard, sauna, toboggan, navette…). Les clients arrivent par le trottoir, font la queue, vont dans les pièces et lèvent un « ! » quand ils ont une demande ; les appareils tombent en panne (⚠, clic pour réparer). Onglets Hôtel, Équipe (salaires, formation, pannes), Chiffres (graphique des 30 derniers jours) et Journal ; inspecteur du guide, séminaires, clients célèbres, autocars. **Si tu ne t'en occupes pas, l'hôtel se gère tout seul** (bouton Gestion auto : réparations, prix, investissements, sans toucher à la caisse de la ville). Le temps du jeu continue (T, Maj + T) ; Échap ramène à la ville. Détails : [docs/gestion-tycoon.md](docs/gestion-tycoon.md).
+Clique sur un hôtel, puis sur **Gérer l'hôtel** dans sa fiche (ou **Gérer** dans le menu Tourisme, Maj+D) : tu entres dans l'hôtel, en 3D isométrique, avec ses 13 pièces (chambres, bar, restaurant, spa, boutique, salle de sport, conférences, piscine, jardin, parking…) et environ 75 objets à acheter, chacun dessiné à sa place (télé, minibar, piano, billard, sauna, toboggan, navette…). Les clients arrivent par le trottoir, font la queue, vont dans les pièces et lèvent un « ! » quand ils ont une demande ; les appareils tombent en panne (⚠, clic pour réparer). Onglets Hôtel, Équipe (salaires, formation, pannes), Chiffres (graphique des 30 derniers jours) et Journal ; inspecteur du guide, séminaires, clients célèbres, autocars. **Si tu ne t'en occupes pas, l'hôtel se gère tout seul** (bouton Gestion auto : réparations, prix, investissements, sans toucher à la caisse de la ville). Le temps du jeu continue (T, Maj + T) ; Échap ramène à la ville. 
+
+**Les restaurants aussi** (tous les cafés et restaurants, tuile **Gérer le restaurant**) : 14 pièces (salle, cuisine, plonge, réserve, bar, cave, salon privé, pâtisserie, terrasse, potager, quai de livraison…), environ 70 objets, couverts, prix du menu, toques, critique gastronomique, inspection d'hygiène, banquets. Le compte est la caisse de l'entreprise ; les couverts et le prix du menu changent vraiment les repas servis dans l'économie. Détails : [docs/gestion-tycoon.md](docs/gestion-tycoon.md).
 
 ![Hôtel en mode gestion](docs/apercu-gestion-hotel.png)
+
+![Restaurant en mode gestion](docs/apercu-gestion-restaurant.png)
 
 ## Mode streamer : le chat Twitch vote
 

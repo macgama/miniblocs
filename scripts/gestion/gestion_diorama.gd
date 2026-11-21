@@ -138,6 +138,8 @@ func construire(g: String, niv: Dictionary, nb_etoiles := 3, objs: Dictionary = 
 		var pl: Array = []
 		if has_method(f):
 			pl = call(f, k, r, n)
+		else:
+			pl = DecorsRestaurant.dessiner(self, k, String(p.get("decor", "")), r, n)
 		pl.append_array(_objets(k, String(pid), r, n))
 		places[String(pid)] = pl
 	_murs(k, gd)
@@ -502,27 +504,28 @@ func _fenetres(k: LpKit, a: Vector2, b: Vector2, pid: String) -> void:
 func _facade(k: LpKit, gd: Dictionary) -> void:
 	var plan: Vector2 = gd.get("plan", Vector2(30, 22))
 	var porte: Vector2 = gd.get("porte", Vector2(plan.x * 0.5, plan.y))
-	var nr := int(niveaux.get("reception", 1))
+	var nr := int(niveaux.get(String(gd.get("accueil", "reception")), 1))
 	# Marches et paillasson.
 	k.box(Vector3(porte.x, 0.05, porte.y + 0.45), Vector3(2.4, 0.1, 0.9), Color("bdb5a6"))
 	k.box(Vector3(porte.x, 0.08, porte.y - 0.6), Vector3(1.4, 0.02, 0.8), Color("3d3a36"), 0.0, false)
 	# Jardinières le long de la façade.
 	for x in [2.0, 6.0, 10.0, 22.0, 30.0, 34.0, 40.0]:
-		if absf(x - porte.x) < 3.0:
+		if absf(x - porte.x) < 3.0 or x > plan.x - 1.0 or not libre(Vector2(x, plan.y + 0.55)):
 			continue
 		k.box(Vector3(x, 0.25, plan.y + 0.55), Vector3(1.6, 0.5, 0.6), Color("8d6e63"))
 		for i in 3:
 			k.blob(Vector3(x - 0.5 + i * 0.5, 0.62, plan.y + 0.55), Vector3(0.28, 0.25, 0.25), Color("2f6b35"), [Color("e76f51"), Color("f4d35e"), Color("ef476f")][(int(x) + i) % 3], 0.2, 0)
 	# Range-vélos et deux vélos.
+	var vx := porte.x + 9.0 if libre(Vector2(porte.x + 9.7, plan.y + 2.3), 1.5) else porte.x - 9.0
 	for i in 3:
-		k.box(Vector3(porte.x + 9.0 + i * 0.7, 0.35, plan.y + 2.3), Vector3(0.05, 0.7, 0.5), Color("6c757d"), 0.0, false)
+		k.box(Vector3(vx + i * 0.7, 0.35, plan.y + 2.3), Vector3(0.05, 0.7, 0.5), Color("6c757d"), 0.0, false)
 	for i in 2:
-		_m(k, "velo", porte.x + 9.35 + i * 0.7, plan.y + 2.3, PI * 0.5)
+		_m(k, "velo", vx + 0.35 + i * 0.7, plan.y + 2.3, PI * 0.5)
 	# Banc et poubelle.
 	_m(k, "banc", porte.x - 6.0, plan.y + 2.4, PI)
 	k.lathe(Vector3(porte.x - 4.4, 0, plan.y + 2.5), [Vector2(0.0, 0.0), Vector2(0.25, 0.0), Vector2(0.28, 0.8), Vector2(0.0, 0.8)], 8, Color("3a5a40"))
 	# Mâts et drapeaux (3 étoiles et plus).
-	if etoiles >= 3:
+	if etoiles >= 3 and libre(Vector2(porte.x + 4.5, plan.y + 1.4), 1.6):
 		var cols := [Color("e63946"), Color("1d3557"), Color("f4d35e")]
 		for i in 3:
 			var x := porte.x + 3.2 + i * 1.3
@@ -534,6 +537,15 @@ func _facade(k: LpKit, gd: Dictionary) -> void:
 			k.lathe(Vector3(porte.x + sx, 0, porte.y + 0.6), [Vector2(0.0, 0.0), Vector2(0.24, 0.0), Vector2(0.2, 0.2), Vector2(0.17, 2.6), Vector2(0.24, 2.8), Vector2(0.0, 2.8)], 10, Color("efe7da"))
 	if nr >= 5:
 		k.box(Vector3(porte.x, 2.9, porte.y + 0.7), Vector3(3.6, 0.14, 1.6), Color("d4af37"))
+
+
+## Ce point du terrain est-il libre (hors des pièces du dehors construites) ?
+func libre(p: Vector2, marge := 0.6) -> bool:
+	for pid in (GestionTypes.genre(genre).get("dehors", {}) as Dictionary):
+		var r: Array = GestionTypes.piece(genre, String(pid)).rect
+		if p.x > float(r[0]) - marge and p.x < float(r[0]) + float(r[2]) + marge and p.y > float(r[1]) - marge and p.y < float(r[1]) + float(r[3]) + marge:
+			return false
+	return true
 
 
 ## Enseigne de l'établissement (nom et étoiles) sur un socle devant l'entrée.
@@ -1125,7 +1137,7 @@ func _objets(k: LpKit, pid: String, r: Array, n: int) -> Array:
 				GestionModeles.dessiner(k, mod, p, rot)
 				if cell:
 					continue
-				for lp in GestionModeles.PLACES.get(mod, []):
+				for lp in GestionModeles.places(mod):
 					var q := p + Basis(Vector3.UP, rot) * Vector3(float(lp[0]), 0, float(lp[1]))
 					out.append(_place(q, rot + float(lp[2]), bool(lp[3])))
 	return out
@@ -1259,7 +1271,9 @@ static func _geste(met: String, piece: String) -> String:
 		"cuisinier":
 			return "cuisiner"
 		"serveur":
-			return "cafe" if piece == "bar" else "servir"
+			if piece == "accueil":
+				return "guichet"
+			return "cafe" if piece in ["bar", "cave"] else "servir"
 		"cadre":
 			return "reunion"
 		"maitre_nageur":
@@ -1270,6 +1284,10 @@ static func _geste(met: String, piece: String) -> String:
 			return "caisse"
 		"coach":
 			return "entrainer"
+		"magasinier", "chauffeur":
+			return "porter"
+		"maraicher", "jardinier":
+			return "ranger"
 	return "conseiller"
 
 

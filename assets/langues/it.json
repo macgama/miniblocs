@@ -15554,7 +15554,14 @@
 "Chaque maison finie loge une famille et fait vivre le village.": "Ogni casa finita ospita una famiglia e fa vivere il villaggio.",
 "médaille de bronze": "Bronzo",
 "médaille d'argent": "Argento",
-"médaille d'or": "Oro"
+"médaille d'or": "Oro",
+"Isoler le bâtiment cliqué": "Isola l'edificio cliccato",
+"Un clic sur un bâtiment le cadre : le reste de la ville pâlit et les cartes se rangent, seule sa fiche reste. Échap ou la fermeture de la fiche rétablit tout.": "Un clic su un edificio lo inquadra: il resto della città sbiadisce e le schede si ritirano, resta solo la sua scheda. Esc o la chiusura della scheda ripristina tutto.",
+"Isoler": "Isola",
+"Revoir toute la ville autour (Échap ferme la fiche et rétablit tout)": "Rivedi tutta la città intorno (Esc chiude la scheda e ripristina tutto)",
+"Ne voir que ce bâtiment : la ville pâlit, les cartes se rangent": "Mostra solo questo edificio: la città sbiadisce, le schede si ritirano",
+"Clic sur un bâtiment (1)": "Clic su un edificio (1)",
+"il reste seul à l'écran : la caméra le cadre, la ville pâlit, les cartes se rangent ; Échap ou ✕ de la fiche rétablit tout, « Toute la ville » garde la fiche (Options → Jeu pour couper)": "resta solo sullo schermo: la telecamera lo inquadra, la città sbiadisce, le schede si ritirano; Esc o la ✕ della scheda ripristina tutto, «Tutta la città» tiene la scheda (Opzioni → Gioco per disattivare)"
 },
 "Turbo (4 h/s)": "Turbo (4 h/s)",
 "Départ rapide (chantiers ×3 jusqu'à 200 habitants)": "Avvio rapido (cantieri ×3 fino a 200 abitanti)",

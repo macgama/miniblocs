@@ -266,6 +266,79 @@ func _run() -> void:
 	print("  sans outil : %.2f ms par clic" % ms0)
 	_check(ms < 25.0 and ms0 < 2.0, "un clic reste léger (%.2f ms, %.2f ms sans outil)" % [ms, ms0])
 
+	print("Enclos du zoo :")
+	h.vider()
+	bs.money = 1_000_000
+	var zoo: ZooSysteme = scene.zoo
+	scene.zoo_outils.outil = ZooOutils.Outil.ENCLOS
+	var ne := zoo.enclos.size()
+	h.ouvrir_geste()
+	var eid := zoo.ajouter_enclos(PackedVector2Array([Vector2(300, 300), Vector2(340, 300), Vector2(340, 340), Vector2(300, 340)]))
+	h.fermer_geste()
+	var me := bs.money
+	_check(eid >= 0 and me < 1_000_000, "enclos tracé, barrière payée (%s)" % BuildingSystem.format_money(1_000_000 - me))
+	h.annuler()
+	_check(zoo.enclos.size() == ne and bs.money == 1_000_000, "Ctrl+Z : l'enclos disparaît, la barrière est remboursée")
+	h.refaire()
+	_check(zoo.enclos.has(eid) and bs.money == me, "Ctrl+Y : l'enclos revient, même numéro")
+	scene.zoo_outils.outil = ZooOutils.Outil.AUCUN
+
+	print("Champs :")
+	h.vider()
+	var agri: Agriculture = scene.agriculture
+	bs.money = 5_000_000
+	var fbid := bs.place("ferme_cereales", Vector2i(-200, -220), 0)
+	agri.outil = "champ"
+	var nc := agri.champs.size()
+	h.ouvrir_geste()
+	var cid := agri.ajoute_champ(Rect2i(Vector2i(-230, -160), Vector2i(50, 50)), "ble", fbid)
+	h.fermer_geste()
+	_check(cid >= 0, "champ tracé")
+	h.annuler()
+	_check(agri.champs.size() == nc, "Ctrl+Z : le champ disparaît")
+	h.refaire()
+	_check(agri.champs.has(cid) and agri.champs[cid].r == Rect2i(Vector2i(-230, -160), Vector2i(50, 50)), "Ctrl+Y : le champ revient tel quel")
+	agri.outil = ""
+
+	print("Séance d'éditeur libre :")
+	h.vider()
+	bs.money = 1_000_000
+	var be: BlockEditor = scene.get_node("Blocs")
+	be.set_tool(BlockEditor.Tool.BLOCK)
+	await process_frame
+	_check(h.en_seance(), "séance ouverte avec l'outil")
+	var gk := world.cell_height(Vector2i(-120, -100))
+	var b0 := Vector3i(-120, roundi(gk / BlockEditor.UNIT_Y), -100)
+	var nb := be.blocks.size()
+	be.place_blocks([b0], 0)
+	be.place_blocks([b0 + Vector3i(1, 0, 0)], 0)
+	_check(be.blocks.size() == nb + 2, "deux blocs posés")
+	be.undo()
+	_check(be.blocks.size() == nb + 1, "dans l'outil, son Ctrl+Z défait un bloc")
+	var mb := bs.money
+	be.set_tool(BlockEditor.Tool.NONE)
+	await process_frame
+	_check(not h.en_seance() and h.taille() == 1, "outil fermé : la séance est un seul geste (%s)" % h.nom_annuler())
+	h.annuler()
+	_check(be.blocks.size() == nb and bs.money == 1_000_000, "Ctrl+Z : le bloc restant part, son prix revient")
+	h.refaire()
+	_check(be.blocks.size() == nb + 1 and bs.money == mb, "Ctrl+Y : il revient, repayé")
+
+	print("Façade :")
+	h.vider()
+	var fid := bs.place("maison", Vector2i(60, -60), 0)
+	var p0: Dictionary = bs.perso_of(fid).duplicate(true)
+	var photo := h.photo()
+	bs.money -= 5000
+	bs.set_perso(fid, {"murs": "#aa3322"})
+	h.noter_lot("Façade : maison", photo, [{"k": "perso", "bid": fid, "av": p0, "v_av": int(bs.buildings[fid].get("v", 0)),
+		"ap": bs.perso_of(fid).duplicate(true), "v_ap": int(bs.buildings[fid].get("v", 0))}])
+	var mf := bs.money
+	h.annuler()
+	_check(bs.perso_of(fid) == p0 and bs.money == mf + 5000, "Ctrl+Z : façade d'avant, travaux remboursés")
+	h.refaire()
+	_check(bs.perso_of(fid).get("murs", "") == "#aa3322" and bs.money == mf, "Ctrl+Y : nouvelle façade, repayée")
+
 	print("Fondation :")
 	h.refaire()
 	_check(h.taille() > 0, "historique non vide")

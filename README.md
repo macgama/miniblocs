@@ -375,6 +375,12 @@ L'onglet **Intérieur** (icône fauteuil) du panneau Construire aménage les bâ
 - **Découvrir** : « Recevoir » lit les fichiers .mbloc du dossier d'échange ; Installer, Mettre à jour, Retirer, filtre par sorte et recherche.
 - **Steam Workshop** : la couche `PartageSteam` (GodotSteam) prendra le relais à la sortie sur Steam : publier enverra sur le Workshop et les abonnements s'installeront seuls. Détails : [docs/partage.md](docs/partage.md).
 
+### Vols cinématiques et grands événements
+
+À chaque nouveau palier d'une ville, la caméra survole la ville avec bandes de cinéma, titre et réaction d'un habitant (un clic ou Échap pour passer, « ● Filmer » pour l'enregistrer en vidéo). Trois grands événements à filmer : **fête de la ville** chaque année à l'anniversaire de sa fondation (feu d'artifice à 22 h), **inauguration** d'un grand monument (ruban, feu d'artifice), **premier train** d'une ville (la caméra suit la rame). Infos (I) → **Filmer** sur n'importe quel événement en cours. Détails : [docs/vols-evenements.md](docs/vols-evenements.md).
+
+![Fête de la ville : feu d'artifice et vol cinématique](docs/apercu-vol-fete.png)
+
 ### Visiter les villes des autres (F12)
 
 - **Faire visiter sa ville** : un mot d'accueil, puis « Fichier .mbloc de ma ville » (à envoyer) ou « Publier sur le Workshop ». Livre d'or au choix : les visiteurs voient les cartes déjà reçues.
@@ -726,6 +732,8 @@ Une ferme entièrement générée en code (longère à colombages et toit de cha
 | `scripts/metiers/metiers_vivants.gd` | Vue métiers (K) : bâtiments en coupe, employés dehors, enseignes, rideaux de fer, pancartes, clic sur un employé |
 | `scripts/devantures/devantures.gd` | Devantures vivantes : façade creusée au rez-de-chaussée (boîtes du matériau des bâtiments), vitrine selon le stock, enseignes, stores, terrasses, rideaux, vendeur et clients, éclairage du soir |
 | `scripts/devantures/devantures_types.gd` / `devantures_modeles.gd` | Profils par type de bâtiment et par époque, noms d'enseignes ; maillages low-poly (niche, 35 objets de vitrine, store, terrasse, étal, rideau, ardoise) |
+| `tests/grands_evenements_test.gd` | Test des vols cinématiques (caméra, interface cachée, temps ralenti, passer, file, réglage) et des grands événements (palier, fête de la ville, inauguration, premier train, sauvegarde, panneau Infos) |
+| `tests/grands_evenements_vitrine.gd` | Captures : fête de la ville avec feu d'artifice et vol, nouveau palier (`--sortie dossier`) |
 | `tests/quartiers_test.gd` | Test des quartiers et arrêtés municipaux (pinceau, coûts, effets, mairie perdue, conseil élu, pilote, sauvegarde, panneau) |
 | `tests/metiers_test.gd` | Test des métiers visibles et des conséquences du manque de personnel |
 | `tests/metiers_vitrine.gd` | Captures : boulangerie, école, hôpital, ferme, supérette la nuit (`--seulement boulangerie`…) |

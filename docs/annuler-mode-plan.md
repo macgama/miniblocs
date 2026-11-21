@@ -38,12 +38,22 @@ Ce qui s'annule :
 - **Zones**, **décors**, **conduites** d'électricité, d'eau, d'égouts et de
   gaz, **télécoms**, **allées du parc**, **pièces souterraines** : avec
   l'argent que le geste a coûté.
+- **Enclos du zoo** (tracé, retrait avec ses animaux) et **champs** des fermes
+  (tracés, supprimés) : barrière remboursée, même numéro au retour.
+- **Façade modifiée** (fiche d'un bâtiment, et « Appliquer aux autres ») :
+  l'ancienne façade revient avec le prix des travaux.
+- **Intérieur ouvert** (bâtiment du catalogue refait en murs fins et meublé) :
+  les murs et meubles partent, le bâtiment d'origine revient, argent compris.
+- **Séance d'éditeur** (éditeur libre, murs et étages, meubles) : tant que
+  l'outil est ouvert, Ctrl+Z défait ses poses une à une (comme avant) ; dès
+  qu'il est fermé (Échap), toute la séance devient **un seul** Ctrl+Z, avec ce
+  qu'elle a coûté. Ctrl+Y attend que l'éditeur soit fermé.
 - **Projets du mode plan** (voir plus bas).
 
 Ce qui ne s'annule pas : la **fondation d'un village** (Maison de commune,
-kit de l'État, rue offerte) remet l'historique à zéro ; l'éditeur libre, les
-murs et étages et les meubles gardent leur propre Ctrl+Z tant que leur outil
-est ouvert. L'historique n'est pas sauvegardé : il repart à zéro au
+kit de l'État, rue offerte) remet l'historique à zéro ; les achats et ventes
+(animaux, machines, bêtes), les périmètres de carrière et les réglages de la
+Mairie. L'historique n'est pas sauvegardé : il repart à zéro au
 chargement d'une partie. Si quelque chose a changé entre-temps (la place
 d'un bâtiment à remettre est prise), Ctrl+Z le dit et fait le reste.
 
@@ -80,6 +90,8 @@ Ctrl + P, ou le bouton en pointillés à droite des flèches ↶ ↷.
   numéros de tronçons).
 - Zones, décors, conduites : défaits sur place, puis envoyés comme tout
   changement de section partagée.
+- Enclos et champs passent par le relais du serveur : ils ne sont suivis
+  qu'en solo et chez l'hôte.
 - Les projets du mode plan restent propres à chaque joueur jusqu'à la
   validation, qui part comme des poses ordinaires.
 
@@ -97,4 +109,10 @@ Ctrl + P, ou le bouton en pointillés à droite des flèches ↶ ↷.
   sont photographiées au clic (0,03 ms sans outil, environ 8 ms avec 4 000
   décors et l'outil Décors ouvert).
 - `scripts/historique/mode_plan.gd` (`ModePlan`) et `mode_plan_panel.gd`.
+- `HistoriqueVille.SECTIONS_LOCALES` : enclos (`ZooSysteme.enclos_dict()` /
+  `remettre_enclos()`) et champs (`Agriculture.champs_dict()` / `remettre_champs()`).
+- `HistoriqueVille.SEANCES` : séances d'éditeur (ouverture quand l'outil
+  s'ouvre, une entrée à la fermeture, coût compté par `depense` dans `_pay`).
+- `photo()` puis `noter_lot(nom, photo, ops)` : une action de panneau (façade,
+  intérieur ouvert) en un seul geste.
 - Test : `tests/historique_test.gd`.

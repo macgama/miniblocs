@@ -56,6 +56,10 @@ const TYPES := {
 	# Climat et pollution (scripts/climat) : nouvelles seulement.
 	"climat": {"nom": "Climat", "icone": "climat", "couleur": Color("e76f51")},
 	"submersion": {"nom": "Submersion marine", "icone": "eau", "couleur": Color("2a9d8f")},
+	# Grands événements à filmer (scripts/evenements/grands_evenements.gd).
+	"fete_ville": {"nom": "Fête de la ville", "icone": "fete", "couleur": Color("ffb703")},
+	"inauguration": {"nom": "Inauguration", "icone": "patrimoine", "couleur": Color("e9c46a")},
+	"premier_train": {"nom": "Premier train", "icone": "rail", "couleur": Color("4cc9f0")},
 }
 ## Vitesse maximale des incendies (secondes de jeu par seconde réelle).
 const FEU_MAX_VITESSE := 600.0
@@ -101,6 +105,11 @@ var visuels: Node3D
 ## Modules des autres fils pour leurs types d'événement : type -> objet avec
 ## on_start(e) et on_end(e) (ex. "crue" : Saisons).
 var modules: Dictionary = {}
+## Modules qui prévoient leurs événements chaque jour et avancent à chaque image :
+## objets avec plan_day(n) et step(t, dt) (ex. GrandsEvenements).
+var planificateurs: Array = []
+## Grands événements à filmer (fête de la ville, inauguration, premier train).
+var grands: GrandsEvenements
 
 var _last_unix := NAN
 var _last_day := -1
@@ -179,6 +188,8 @@ func clear() -> void:
 	_last_day = -1
 	if matchs != null:
 		matchs.clear()
+	if grands != null:
+		grands.clear()
 	if tempetes != null:
 		tempetes.clear()
 	changed.emit()
@@ -242,6 +253,8 @@ func _process(delta: float) -> void:
 	epidemies.step(dt)
 	matchs.step(t, EchelleTemps.dt(delta))
 	fetes.step(t, EchelleTemps.dt(delta))
+	for m in planificateurs:
+		m.step(t, EchelleTemps.dt(delta))
 	_secours_simules(t)
 
 
@@ -249,6 +262,8 @@ func _new_day(n: Dictionary) -> void:
 	if auto_on():
 		fetes.plan_day(n)
 		matchs.plan_day(n)
+		for m in planificateurs:
+			m.plan_day(n)
 	epidemies.new_day(n)
 	if catastrophes_on():
 		incendies.roll_day(n)
@@ -933,7 +948,8 @@ func to_dict() -> Dictionary:
 		dg[str(bid)] = degats[bid]
 	return {"version": 1, "next_event": next_event, "next_incident": next_incident, "events": evs,
 		"incidents": incs, "journal": jr, "degats": dg, "ruines": ruines.duplicate(true),
-		"matchs": matchs.to_dict(), "epidemies": epidemies.to_dict()}
+		"matchs": matchs.to_dict(), "epidemies": epidemies.to_dict(),
+		"grands": grands.to_dict() if grands != null else {}}
 
 
 func _data_out(e: Dictionary) -> Dictionary:
@@ -951,6 +967,8 @@ func from_dict(d: Dictionary) -> void:
 	next_event = int(d.get("next_event", 1))
 	next_incident = int(d.get("next_incident", 1))
 	matchs.from_dict(d.get("matchs", {}))
+	if grands != null:
+		grands.from_dict(d.get("grands", {}))
 	epidemies.from_dict(d.get("epidemies", {}))
 	for k in (d.get("ruines", {}) as Dictionary):
 		var r: Dictionary = d.ruines[k]

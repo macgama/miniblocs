@@ -120,6 +120,49 @@ func setup(w: TerrainWorld, b: BuildingSystem, p: Population, prod: Production, 
 	add_child(_cadre)
 
 
+static func _lire_champ(x: Dictionary) -> Dictionary:
+	var ch: Dictionary = x.duplicate()
+	var a: Array = ch.get("r", [0, 0, 20, 20])
+	ch.r = Rect2i(int(a[0]), int(a[1]), int(a[2]), int(a[3]))
+	ch.id = int(ch.get("id", 0))
+	ch.f = int(ch.get("f", -1))
+	for k in ["jr", "jm", "bottes"]:
+		if ch.has(k):
+			ch[k] = int(ch[k])
+	return ch
+
+
+# --- Annuler (HistoriqueVille) -------------------------------------------------------------------
+
+## Les champs tracés (ce que Ctrl+Z défait), sans les fermes ni leurs travaux.
+func champs_dict() -> Dictionary:
+	return {"champs": to_dict().champs, "next": next_id}
+
+
+## Remet les champs de champs_dict() ; les champs restés gardent leur état (SectionsPartagees).
+func remettre_champs(d: Dictionary) -> void:
+	var avant := champs.duplicate()
+	champs.clear()
+	for x in d.get("champs", []):
+		var ch := _lire_champ(x)
+		champs[int(ch.id)] = ch
+	next_id = maxi(int(d.get("next", 1)), next_id)
+	for id in avant:
+		if not champs.has(id) or champs[id].r != avant[id].r:
+			_marque(avant[id].r)
+			for f in fermes.values():
+				var t: Array = f.get("travail", [])
+				for i in range(t.size() - 1, -1, -1):
+					if int(t[i].champ) == id and not champs.has(id):
+						t.remove_at(i)
+	for id in champs:
+		if not avant.has(id) or champs[id].r != avant[id].r:
+			_marque(champs[id].r)
+	if not champs.has(selection):
+		selection = -1
+	changed.emit()
+
+
 func clear() -> void:
 	champs.clear()
 	fermes.clear()
@@ -1420,14 +1463,7 @@ func from_dict(d: Dictionary) -> void:
 	champs.clear()
 	fermes.clear()
 	for x in d.get("champs", []):
-		var ch: Dictionary = (x as Dictionary).duplicate()
-		var a: Array = ch.get("r", [0, 0, 20, 20])
-		ch.r = Rect2i(int(a[0]), int(a[1]), int(a[2]), int(a[3]))
-		ch.id = int(ch.get("id", 0))
-		ch.f = int(ch.get("f", -1))
-		for k in ["jr", "jm", "bottes"]:
-			if ch.has(k):
-				ch[k] = int(ch[k])
+		var ch := _lire_champ(x)
 		champs[int(ch.id)] = ch
 	var fs: Dictionary = d.get("fermes", {})
 	for k in fs:

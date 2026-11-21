@@ -191,6 +191,66 @@ func _tout_relire() -> void:
 		_sales[id] = true
 
 
+# --- Annuler (HistoriqueVille) -------------------------------------------------------------------
+
+## Les enclos tracés et leurs animaux (ce que Ctrl+Z défait), sans le reste du zoo.
+func enclos_dict() -> Dictionary:
+	var d := to_dict()
+	return {"enclos": d.enclos, "animaux": d.animaux, "next_enclos": next_enclos, "next_animal": next_animal}
+
+
+## Remet les enclos et animaux d'enclos_dict() ; les zoos, offres et visiteurs restent.
+func remettre_enclos(d: Dictionary) -> void:
+	enclos.clear()
+	animaux.clear()
+	_sales.clear()
+	_lire_enclos_animaux(d)
+	for aid in animaux:
+		var a: Dictionary = animaux[aid]
+		if not genealogie.has(aid):
+			genealogie[aid] = {"esp": a.esp, "nom": a.nom, "f": a.f, "pere": a.pere, "mere": a.mere, "F": a.consang,
+				"naiss": float(a.naiss), "genes": a.genes}
+	next_enclos = maxi(int(d.get("next_enclos", 1)), next_enclos)
+	next_animal = maxi(int(d.get("next_animal", 1)), next_animal)
+	_dirty = true
+	changed.emit()
+
+
+## Enclos et animaux d'une section (sauvegarde ou annuler).
+func _lire_enclos_animaux(d: Dictionary) -> void:
+	for k in (d.get("enclos", {}) as Dictionary):
+		var e: Dictionary = d.enclos[k]
+		var pts := PackedVector2Array()
+		for p in e.get("pts", []):
+			pts.append(Vector2(float(p[0]), float(p[1])))
+		var id := int(k)
+		enclos[id] = {"id": id, "nom": String(e.get("nom", "Enclos %d" % id)), "pts": pts, "barriere": String(e.get("barriere", "grillage")),
+			"etat": float(e.get("etat", 100.0)), "propre": float(e.get("propre", 100.0)), "zoo": -1, "cache": {}}
+		_sales[id] = true
+	for k in (d.get("animaux", {}) as Dictionary):
+		var a: Dictionary = (d.animaux[k] as Dictionary).duplicate()
+		a.id = int(k)
+		a.enclos = int(a.get("enclos", -1))
+		a.f = bool(a.get("f", false))
+		a.evade = bool(a.get("evade", false))
+		a.malade = bool(a.get("malade", false))
+		a.besoins = {}
+		# Sauvegardes d'avant la génétique : fondateurs sans lien.
+		if not a.get("genes") is Dictionary:
+			a.genes = ZooGenetique.fondateur(rng)
+		a.consang = float(a.get("consang", 0.0))
+		a.pere = int(a.get("pere", -1))
+		a.mere = int(a.get("mere", -1))
+		a.tare = String(a.get("tare", ""))
+		a.origine = String(a.get("origine", "elevage"))
+		a.contra = bool(a.get("contra", false))
+		if a.has("gest_pere"):
+			a.gest_pere = int(a.gest_pere)
+		animaux[int(k)] = a
+
+
+
+
 # --- Bâtiments et zoos ---------------------------------------------------------------------------
 
 static func _empty_stats() -> Dictionary:
@@ -2029,35 +2089,7 @@ func from_dict(d: Dictionary) -> void:
 	clear()
 	if d.is_empty():
 		return
-	for k in (d.get("enclos", {}) as Dictionary):
-		var e: Dictionary = d.enclos[k]
-		var pts := PackedVector2Array()
-		for p in e.get("pts", []):
-			pts.append(Vector2(float(p[0]), float(p[1])))
-		var id := int(k)
-		enclos[id] = {"id": id, "nom": String(e.get("nom", "Enclos %d" % id)), "pts": pts, "barriere": String(e.get("barriere", "grillage")),
-			"etat": float(e.get("etat", 100.0)), "propre": float(e.get("propre", 100.0)), "zoo": -1, "cache": {}}
-		_sales[id] = true
-	for k in (d.get("animaux", {}) as Dictionary):
-		var a: Dictionary = (d.animaux[k] as Dictionary).duplicate()
-		a.id = int(k)
-		a.enclos = int(a.get("enclos", -1))
-		a.f = bool(a.get("f", false))
-		a.evade = bool(a.get("evade", false))
-		a.malade = bool(a.get("malade", false))
-		a.besoins = {}
-		# Sauvegardes d'avant la génétique : fondateurs sans lien.
-		if not a.get("genes") is Dictionary:
-			a.genes = ZooGenetique.fondateur(rng)
-		a.consang = float(a.get("consang", 0.0))
-		a.pere = int(a.get("pere", -1))
-		a.mere = int(a.get("mere", -1))
-		a.tare = String(a.get("tare", ""))
-		a.origine = String(a.get("origine", "elevage"))
-		a.contra = bool(a.get("contra", false))
-		if a.has("gest_pere"):
-			a.gest_pere = int(a.gest_pere)
-		animaux[int(k)] = a
+	_lire_enclos_animaux(d)
 	for k in (d.get("genealogie", {}) as Dictionary):
 		var g: Dictionary = (d.genealogie[k] as Dictionary).duplicate()
 		g.pere = int(g.get("pere", -1))

@@ -114,6 +114,8 @@ var _occ: Dictionary = {} # id -> {Vector4i(x, e, z, couche): clé du meuble}
 var _nodes: Dictionary = {} # id -> {e: Node3D}
 var _dirty: Dictionary = {} # id -> {e: true}
 var _undo: Array = []
+## Argent dépensé par l'outil depuis le début (moins ce qu'il a rendu) : séance de Ctrl+Z (HistoriqueVille).
+var depense := 0
 var _hover := {}
 var _ghost: MeshInstance3D
 var _ghost_mat: StandardMaterial3D
@@ -628,6 +630,7 @@ func _price_ok(amount: int) -> bool:
 func _pay(amount: int) -> void:
 	if buildings != null and not buildings.unlimited_money:
 		buildings.money -= amount
+		depense += amount
 
 
 ## Pose un meuble (payé). Rend "" ou la raison du refus.

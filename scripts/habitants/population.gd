@@ -508,6 +508,10 @@ func _remove_building(bid: int) -> void:
 func free_homes(bid: int) -> int:
 	if not known.has(bid):
 		return 0
+	# Les tentes libérées au campement des fondateurs (couples, décès) ne se
+	# relouent pas : seul Fondateurs y loge du monde.
+	if Fondateurs.est_campement(bid):
+		return 0
 	return int(known[bid].log) - (by_home.get(bid, []) as Array).size()
 
 
@@ -1832,7 +1836,13 @@ func present_in(bid: int) -> Array:
 							break
 				if hit:
 					candidates.append(pid)
+	# Une même personne peut y dormir et y travailler (campement des fondateurs,
+	# logement de fonction) : on ne la compte qu'une fois.
+	var vus := {}
 	for pid in candidates:
+		if vus.has(pid):
+			continue
+		vus[pid] = true
 		var a := activity(persons[pid])
 		if int(a.bid) == bid and a.kind != "trajet":
 			out.append(pid)

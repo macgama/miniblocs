@@ -834,45 +834,73 @@ func nouveau_jour() -> void:
 			BuildingSystem.format_money(roundi(n * RATION)), n])
 
 
+## Services vitaux (eau, électricité, égouts, déchets) : sans personnel, toute la
+## ville en pâtit. Les fondateurs y vont même s'il faut les prendre aux chantiers.
+const VITAUX := ["reseaux", "dechets"]
+
+
+static func est_vital(info: Dictionary) -> bool:
+	return VITAUX.has(String(info.get("cat", "")))
+
+
 ## Fondateurs sans chantier (libres) : chaque matin, ils vont tenir les
-## bâtiments fermés faute d'un métier indispensable (dépôt de collecte sans assez
-## d'éboueurs pour une benne, boulangerie sans boulanger, école sans
-## enseignant…), autant qu'il en faut pour ouvrir, puis les commerces où l'on
-## fait la queue. Renvoie le nombre affecté.
+## bâtiments fermés faute de personnel (forage ou dépôt de collecte sans
+## personne, boulangerie sans boulanger, école sans enseignant…), autant qu'il
+## en faut pour ouvrir, puis les commerces où l'on fait la queue. Les services
+## vitaux (VITAUX) passent d'abord et sont tenus à moitié au moins, quitte à
+## prendre des ouvriers aux chantiers : les fondateurs ont un emploi (la base de
+## chantier), ils ne sont jamais « sans emploi » pour les embauches ordinaires.
+## Renvoie le nombre affecté.
 func depanner() -> int:
 	if population == null or population.effectif == null or camp < 0 or not regle_active():
 		return 0
 	repartir()
 	var faits := 0
-	for bid in population.known.keys():
-		if libres <= 0:
-			break
-		if bid == camp or population.free_jobs(bid) <= 0:
-			continue
-		var e := population.effectif.etat(bid)
-		if e.is_empty() or population.effectif.en_greve(bid):
-			continue
-		var t := String(population.known[bid].t)
-		var n := 0
-		var met := ""
-		var pourquoi := String(e.raison)
-		if bool(e.ferme) and not (e.requis as Array).is_empty():
-			var deja := 0
-			for m in e.requis:
-				deja += int((e.par_metier as Dictionary).get(m, 0))
-			n = maxi(Effectif.requis_min_de(t) - deja, 1)
-			met = String(e.requis[0])
-		elif not bool(e.ferme) and bool(e.manque) and e.has("besoin"):
-			# Commerce ouvert mais débordé : de quoi servir sa clientèle sans queue.
-			n = ceili(int(e.besoin) * Effectif.SOUS_EFFECTIF) - int(e.embauches)
-			pourquoi = "longues files : %d clients" % int(e.get("clients", 0))
-		if n <= 0:
-			continue
-		var k := affecter(bid, mini(n, libres), met)
-		if k > 0:
-			faits += k
-			message.emit("%d fondateur%s sans chantier %s tenir %s (%s)." % [k, "s" if k > 1 else "", "vont" if k > 1 else "va",
-				population.building_name(bid), pourquoi])
+	for vitaux in [true, false]:
+		for bid in population.known.keys():
+			if bid == camp or not population.known.has(bid) or population.free_jobs(bid) <= 0:
+				continue
+			var info: Dictionary = population.known[bid]
+			var vital := est_vital(info)
+			if vital != vitaux or (not vital and libres <= 0):
+				continue
+			var e := population.effectif.etat(bid)
+			if e.is_empty() or population.effectif.en_greve(bid):
+				continue
+			var t := String(info.t)
+			var n := 0
+			var met := ""
+			var pourquoi := String(e.raison)
+			if bool(e.ferme) and not (e.requis as Array).is_empty():
+				var deja := 0
+				for m in e.requis:
+					deja += int((e.par_metier as Dictionary).get(m, 0))
+				n = maxi(Effectif.requis_min_de(t) - deja, 1)
+				met = String(e.requis[0])
+				if vital:
+					n = maxi(n, ceili(int(e.prevus) * Effectif.SOUS_EFFECTIF) - int(e.embauches))
+			elif vital and bool(e.manque):
+				# Forage, poste électrique, station d'épuration, décharge : la moitié des postes.
+				n = maxi(ceili(int(e.prevus) * Effectif.SOUS_EFFECTIF) - int(e.embauches), 1)
+				if pourquoi == "":
+					pourquoi = "manque de personnel"
+			elif bool(e.ferme):
+				n = 1
+			elif not bool(e.ferme) and bool(e.manque) and e.has("besoin"):
+				# Commerce ouvert mais débordé : de quoi servir sa clientèle sans queue.
+				n = ceili(int(e.besoin) * Effectif.SOUS_EFFECTIF) - int(e.embauches)
+				pourquoi = "longues files : %d clients" % int(e.get("clients", 0))
+			if n <= 0:
+				continue
+			var avant := libres
+			var k := affecter(bid, n if vital else mini(n, libres), met)
+			if k > 0:
+				faits += k
+				var verbe := ("sans chantier vont" if k > 1 else "sans chantier va")
+				if vital and avant < k:
+					verbe = "quittent le chantier pour" if k > 1 else "quitte le chantier pour"
+				message.emit("%d fondateur%s %s tenir %s (%s)." % [k, "s" if k > 1 else "", verbe,
+					population.building_name(bid), pourquoi])
 	faits += _livreurs()
 	return faits
 

@@ -116,6 +116,8 @@ func valider() -> bool:
 		return false
 	var prix := devis()
 	var b: Dictionary = bs.buildings[bid]
+	var histo := HistoriqueVille.instance
+	var photo := histo.photo() if histo != null else {}
 	if prix > 0 and not bs.unlimited_money:
 		var prev := Pays.du_batiment(b, bs._rect_of(b))
 		if bs.money < prix:
@@ -124,6 +126,9 @@ func valider() -> bool:
 			return false
 		bs.money -= prix
 		Pays.retour(prev)
+	if histo != null and a_des_changements():
+		histo.noter_lot("Façade : " + String(BuildingCatalog.get_type(_type_id()).get("name", _type_id())).to_lower(), photo,
+			[{"k": "perso", "bid": bid, "av": _origine.duplicate(true), "v_av": _v_origine, "ap": _perso(), "v_ap": _variant()}])
 	_origine = _perso()
 	_v_origine = _variant()
 	bs.message.emit("Travaux de façade faits : %s." % BuildingSystem.format_money(prix) if prix > 0 else "Façade modifiée.")
@@ -301,13 +306,20 @@ func refresh() -> void:
 		all.pressed.connect(func() -> void:
 			var p := _perso()
 			var cout := _cout_autres(same)
+			var histo := HistoriqueVille.instance
+			var photo := histo.photo() if histo != null else {}
 			if cout > 0 and not bs.unlimited_money:
 				if bs.money < cout:
 					bs.message.emit("Pas assez d'argent dans la caisse (%s)." % BuildingSystem.format_money(cout))
 					return
 				bs.money -= cout
+			var ops := []
 			for o in same:
+				ops.append({"k": "perso", "bid": int(o), "av": bs.perso_of(int(o)).duplicate(true), "v_av": int(bs.buildings[int(o)].get("v", -1)),
+					"ap": p.duplicate(true), "v_ap": -1})
 				bs.set_perso(int(o), p)
+			if histo != null:
+				histo.noter_lot("Façade copiée ×%d" % same.size(), photo, ops)
 			bs.message.emit("%d bâtiment%s personnalisé%s comme celui-ci." % [same.size(), "s" if same.size() > 1 else "", "s" if same.size() > 1 else ""])
 			refresh())
 	if Conversion.can_open(tid, perso) and mob != null:

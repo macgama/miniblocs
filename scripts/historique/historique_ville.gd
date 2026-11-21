@@ -18,9 +18,12 @@ extends Node
 ##    d'électricité, télécoms, allées du parc, pièces souterraines) : différence
 ##    avant / après, comme la carte entre amis (SectionsPartagees), et l'argent que
 ##    le geste a coûté ;
-##  - les projets du mode plan (ModePlan).
-## L'éditeur libre, les murs et les meubles gardent leur propre Ctrl+Z quand leur
-## outil est ouvert. L'historique n'est pas sauvegardé : il repart à zéro au
+##  - les enclos du zoo (avec leurs animaux) et les champs des fermes, tracés à la
+##    main : même différence, sections propres à l'historique (SECTIONS_LOCALES) ;
+##  - les projets du mode plan (ModePlan) ;
+##  - une séance d'éditeur (éditeur libre, murs et étages, façade, meubles) : tant
+##    que l'outil est ouvert il garde son propre Ctrl+Z (vidé à l'ouverture) ; à la
+##    fermeture, toute la séance devient UNE entrée, avec ce qu'elle a coûté. L'historique n'est pas sauvegardé : il repart à zéro au
 ## chargement d'une partie. Voir docs/annuler-mode-plan.md.
 
 signal changed
@@ -36,6 +39,11 @@ signal annule
 const MAX := 60
 ## Sections suivies par différence (noms de SectionsPartagees.specs).
 const SECTIONS := ["zones", "decors", "reseaux", "telecom", "parc_allees", "souterrain"]
+## Sections propres à l'historique (pas partagées : ces outils passent par le relais en
+## carte entre amis, où elles ne sont pas suivies).
+const SECTIONS_LOCALES := ["zoo_enclos", "champs"]
+## Éditeurs suivis par séance : section partagée → propriété de la scène.
+const SEANCES := {"blocs": "blocks", "plans": "plans", "mobilier": "mobilier"}
 ## Images après le relâcher avant de fermer le geste (les panneaux réagissent au relâcher).
 const IMAGES_APRES := 2
 
@@ -53,6 +61,9 @@ var _rejeu := false
 var _geste: Dictionary = {}
 var _fermer_dans := -1
 var _specs: Dictionary = {}
+## Séances d'éditeur ouvertes : nom → {"av": section, "dep": dépense, "cle": caisse}.
+var _seances: Dictionary = {}
+var _specs_seance: Dictionary = {}
 
 
 func _enter_tree() -> void:
@@ -72,6 +83,32 @@ func setup(j: Node) -> void:
 	for nom in SECTIONS:
 		if tout.has(nom):
 			_specs[nom] = tout[nom]
+	for nom in SEANCES:
+		if tout.has(nom):
+			_specs_seance[nom] = tout[nom]
+	var loc := specs_locales(jeu)
+	for nom in loc:
+		_specs[nom] = loc[nom]
+
+
+## Enclos du zoo et champs : lire / écrire seulement ce que le joueur trace.
+static func specs_locales(j: Node) -> Dictionary:
+	var s := {}
+	if j == null:
+		return s
+	var z: Variant = j.get("zoo")
+	if z is ZooSysteme:
+		s["zoo_enclos"] = {"obj": z, "outil": j.get("zoo_outils"), "locale": true,
+			"lire": Callable(z, "enclos_dict"), "ecrire": Callable(z, "remettre_enclos"),
+			"coll": {"enclos": {"genre": "dico", "ids": true}, "animaux": {"genre": "dico", "ids": true}},
+			"champs": ["etat", "propre"], "compteurs": ["next_enclos", "next_animal"]}
+	var a: Variant = j.get("agriculture")
+	if a is Agriculture:
+		s["champs"] = {"obj": a, "locale": true, "lire": Callable(a, "champs_dict"), "ecrire": Callable(a, "remettre_champs"),
+			"coll": {"champs": {"genre": "liste", "cle": "id", "ids": true}},
+			"champs": ["etat", "sc", "cr", "eng", "tr", "pertes", "met", "fait", "tache", "paille", "foin", "prec", "rdt",
+				"azote", "jr", "jm", "bottes", "fert"], "compteurs": ["next"]}
+	return s
 
 
 # --- État ------------------------------------------------------------------------------------
@@ -100,6 +137,7 @@ func taille() -> int:
 func vider() -> void:
 	_annuler.clear()
 	_refaire.clear()
+	_seances.clear()
 	_annuler_geste()
 	changed.emit()
 
@@ -123,6 +161,7 @@ func _input(event: InputEvent) -> void:
 
 
 func _process(_delta: float) -> void:
+	_suivre_seances()
 	if _fermer_dans < 0:
 		return
 	_fermer_dans -= 1
@@ -130,14 +169,81 @@ func _process(_delta: float) -> void:
 		fermer_geste()
 
 
+# --- Séances d'éditeur -----------------------------------------------------------------------------
+
+## Ouvre ou ferme la séance de chaque éditeur selon son outil (léger : un test par image).
+func _suivre_seances() -> void:
+	if jeu == null or _rejeu or not actif:
+		return
+	for nom in _specs_seance:
+		var ed: Variant = jeu.get(SEANCES[nom])
+		var ouvert := ed is Object and _outil_ouvert(ed)
+		if ouvert and not _seances.has(nom):
+			ouvrir_seance(nom)
+		elif not ouvert and _seances.has(nom):
+			fermer_seance(nom)
+
+
+func en_seance() -> bool:
+	return not _seances.is_empty()
+
+
+## Début d'une séance : photo de la section, compteur de dépense ; l'éditeur repart
+## d'un Ctrl+Z vide (ses gestes d'avant sont déjà dans l'historique).
+func ouvrir_seance(nom: String) -> void:
+	var ed: Object = jeu.get(SEANCES[nom])
+	var u: Variant = ed.get("_undo")
+	if u is Array:
+		(u as Array).clear()
+	_seances[nom] = {"av": SectionsPartagees.lire(_specs_seance[nom]), "dep": int(ed.get("depense")), "cle": _cle_caisse()}
+
+
+## Fin d'une séance : tout ce qui a changé devient une entrée, avec son coût.
+func fermer_seance(nom: String) -> void:
+	if not _seances.has(nom):
+		return
+	var se: Dictionary = _seances[nom]
+	_seances.erase(nom)
+	var spec: Dictionary = _specs_seance[nom]
+	var ed: Object = jeu.get(SEANCES[nom])
+	var av: Dictionary = se.av
+	var ap := SectionsPartagees.lire(spec)
+	if av == ap:
+		return
+	var pav := SectionsPartagees.normaliser(av, spec)
+	var pap := SectionsPartagees.normaliser(ap, spec)
+	var p_ann := SectionsPartagees.difference(pap, pav)
+	if SectionsPartagees.vide(p_ann):
+		return
+	var p_ref := SectionsPartagees.difference(pav, pap)
+	var n := (p_ann.mis as Dictionary).size() + (p_ann.otes as Array).size()
+	var e := _entree([], ["%s (%d élément%s)" % [_nom_section(nom), n, "s" if n > 1 else ""]])
+	e.sections[nom] = {"annuler": p_ann, "refaire": p_ref, "spec": nom, "seance": true,
+		"c_av": SectionsPartagees.complets(av, p_ann, spec), "c_ap": SectionsPartagees.complets(ap, p_ref, spec)}
+	var dep := int(ed.get("depense")) - int(se.dep)
+	if dep != 0:
+		e.argent[se.cle] = dep
+	e["ferme"] = true
+	_pousser(e)
+
+
+func _cle_caisse() -> int:
+	var p: Variant = jeu.get("pays") if jeu != null else null
+	return int((p as Pays).actif) if p is Pays else -1
+
+
 ## Commence un geste : photo des sections, de l'argent, journal du relief.
 func ouvrir_geste() -> void:
 	if not _geste.is_empty():
 		fermer_geste()
 	var secs := {}
+	var client := _client_reseau()
 	for nom in _specs:
-		if _outil_ouvert(_specs[nom].obj):
-			secs[nom] = SectionsPartagees.lire(_specs[nom])
+		var spec: Dictionary = _specs[nom]
+		if client and spec.get("locale", false):
+			continue
+		if _outil_ouvert(spec.get("outil", spec.obj)):
+			secs[nom] = SectionsPartagees.lire(spec)
 	_geste = {"ops": [], "noms": [], "sections": secs, "soldes": _soldes()}
 	if _journal_permis():
 		jeu.world.journal = {}
@@ -154,7 +260,7 @@ func fermer_geste() -> void:
 	# Sections changées à la main.
 	var a_bat := false
 	for op in g.ops:
-		a_bat = a_bat or String(op.k).begins_with("bat") or String(op.k).begins_with("mp_")
+		a_bat = a_bat or String(op.k).begins_with("bat") or String(op.k).begins_with("mp_") or String(op.k) == "lot"
 	for nom in g.sections:
 		var spec: Dictionary = _specs[nom]
 		var av: Dictionary = g.sections[nom]
@@ -264,6 +370,11 @@ static func _nom_section(nom: String) -> String:
 		"telecom": return "Télécoms"
 		"parc_allees": return "Allées du parc"
 		"souterrain": return "Sous-sol"
+		"zoo_enclos": return "Enclos du zoo"
+		"champs": return "Champs"
+		"blocs": return "Éditeur libre"
+		"plans": return "Murs et étages"
+		"mobilier": return "Meubles"
 	return nom
 
 
@@ -312,6 +423,8 @@ func _crediter(k: int, v: int) -> void:
 
 ## Défait le dernier geste. Renvoie le message affiché.
 func annuler() -> String:
+	if en_seance():
+		return _dire("Un éditeur est ouvert : son Ctrl+Z défait ses poses une à une (Échap pour le fermer).")
 	fermer_geste()
 	if _annuler.is_empty():
 		return _dire("Rien à annuler.")
@@ -328,6 +441,8 @@ func annuler() -> String:
 
 ## Refait le dernier geste annulé.
 func refaire() -> String:
+	if en_seance():
+		return _dire("Rétablir : ferme d'abord l'éditeur (Échap), sa séance devient un seul Ctrl+Z.")
 	fermer_geste()
 	if _refaire.is_empty():
 		return _dire("Rien à rétablir.")
@@ -385,9 +500,9 @@ func _refaire_entree(e: Dictionary) -> Array:
 
 
 func _appliquer_section(nom: String, p: Dictionary, complets: Dictionary) -> void:
-	if not _specs.has(nom):
+	var spec: Dictionary = _specs.get(nom, _specs_seance.get(nom, {}))
+	if spec.is_empty():
 		return
-	var spec: Dictionary = _specs[nom]
 	var brut := SectionsPartagees.lire(spec)
 	var d := SectionsPartagees.appliquer(brut, p, spec, complets)
 	(spec.ecrire as Callable).call(d)
@@ -405,7 +520,7 @@ func _op(op: Dictionary, defaire: bool) -> String:
 		"bat_pose":
 			return _bat_retirer(op) if defaire else _bat_remettre(op.b, int(op.paye), "")
 		"bat_demoli":
-			return _bat_remettre(op.b, int(op.rendu), "La démolition") if defaire else _bat_demolir(int(op.b.id))
+			return _bat_remettre(op.b, int(op.rendu), "La démolition") if defaire else _bat_demolir(int(op.b.id), bool(op.get("discret", false)))
 		"voies":
 			var tr: TransportSystem = jeu.transport
 			var n := tr.appliquer_diff(op.diff, defaire)
@@ -436,6 +551,13 @@ func _op(op: Dictionary, defaire: bool) -> String:
 			else:
 				bs.relais.call({"t": "demolir", "c": op.a.c})
 			return ""
+		"perso":
+			if not bs.buildings.has(int(op.bid)):
+				return "Le bâtiment n'est plus là."
+			bs.set_perso(int(op.bid), op.av if defaire else op.ap, int(op.v_av if defaire else op.v_ap))
+			return ""
+		"lot":
+			return _lot(op, defaire)
 		"mp_voies":
 			var tr: TransportSystem = jeu.transport
 			if not tr.relais.is_valid():
@@ -481,15 +603,77 @@ func _bat_remettre(b: Dictionary, prix: int, quoi: String) -> String:
 	return ""
 
 
-func _bat_demolir(bid: int) -> String:
+## discret : retiré sans remboursement (conversion en intérieur, l'argent est dans le lot).
+func _bat_demolir(bid: int, discret := false) -> String:
 	var bs: BuildingSystem = jeu.buildings
 	if not bs.buildings.has(bid):
 		return "Le bâtiment n'est plus là."
-	bs.demolish(bid)
+	if discret:
+		bs.remove_quietly(bid)
+	else:
+		bs.demolish(bid)
 	return "" if not bs.buildings.has(bid) else "Démolition refusée."
 
 
+## Un lot : opérations, sections d'éditeur et argent d'un seul coup (conversion, façade).
+func _lot(op: Dictionary, defaire: bool) -> String:
+	var soucis := []
+	var ops: Array = op.ops
+	if defaire:
+		for nom in op.sections:
+			_appliquer_section(nom, op.sections[nom].annuler, op.sections[nom].c_av)
+		for i in range(ops.size() - 1, -1, -1):
+			var r := _op(ops[i], true)
+			if r != "":
+				soucis.append(r)
+	else:
+		for o in ops:
+			var r := _op(o, false)
+			if r != "":
+				soucis.append(r)
+		for nom in op.sections:
+			_appliquer_section(nom, op.sections[nom].refaire, op.sections[nom].c_ap)
+	for k in op.argent:
+		_crediter(int(k), int(op.argent[k]) * (1 if defaire else -1))
+	return "" if soucis.is_empty() else String(soucis[0])
+
+
 # --- Ce que notent les systèmes -----------------------------------------------------------------
+
+## Photo avant une action faite par un panneau (caisse, sections d'éditeur), pour noter_lot.
+func photo() -> Dictionary:
+	var secs := {}
+	for nom in _specs_seance:
+		secs[nom] = SectionsPartagees.lire(_specs_seance[nom])
+	return {"soldes": _soldes(), "sections": secs}
+
+
+## Note une action de panneau comme un seul geste : ses opérations (« perso »,
+## « bat_demoli »…), ce qui a changé dans les éditeurs depuis photo() et l'argent dépensé.
+func noter_lot(nom: String, avant: Dictionary, ops: Array = []) -> void:
+	if _rejeu or not actif or avant.is_empty():
+		return
+	var lot := {"k": "lot", "ops": ops.duplicate(true), "sections": {}, "argent": {}}
+	for n in avant.sections:
+		var spec: Dictionary = _specs_seance[n]
+		var av: Dictionary = avant.sections[n]
+		var ap := SectionsPartagees.lire(spec)
+		if av == ap:
+			continue
+		var pav := SectionsPartagees.normaliser(av, spec)
+		var pap := SectionsPartagees.normaliser(ap, spec)
+		var p_ann := SectionsPartagees.difference(pap, pav)
+		var p_ref := SectionsPartagees.difference(pav, pap)
+		lot.sections[n] = {"annuler": p_ann, "refaire": p_ref,
+			"c_av": SectionsPartagees.complets(av, p_ann, spec), "c_ap": SectionsPartagees.complets(ap, p_ref, spec)}
+	var ap_s := _soldes()
+	for k in avant.soldes:
+		var d := int(avant.soldes[k]) - int(ap_s.get(k, avant.soldes[k]))
+		if d != 0:
+			lot.argent[k] = d
+	if ops.is_empty() and (lot.sections as Dictionary).is_empty() and (lot.argent as Dictionary).is_empty():
+		return
+	noter(nom, lot)
 
 ## Un bâtiment vient d'être posé par le joueur (BuildingSystem, ModePlan).
 func noter_pose(bid: int) -> void:

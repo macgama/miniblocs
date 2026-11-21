@@ -2934,7 +2934,12 @@ func _setup_atelier_tools() -> void:
 		_amenager_plan(String(info.get("plan", ""))))
 	# Bâtiment du catalogue : ouvert en murs fins et meublé, puis onglet Intérieur.
 	habitants_panel.interior_requested.connect(func(bid: int) -> void:
+		var avant: Dictionary = buildings.buildings.get(bid, {}).duplicate(true)
+		var photo := historique.photo() if historique != null else {}
 		var res := Conversion.open_interior(mobilier, bid)
+		if res.ok and historique != null:
+			# Ctrl+Z : les murs fins et les meubles partent, le bâtiment du catalogue revient.
+			historique.noter_lot("Intérieur ouvert", photo, [{"k": "bat_demoli", "b": avant, "rendu": 0, "discret": true}])
 		if not res.ok:
 			hud.show_message("Impossible d'aménager l'intérieur : %s." % String(res.error))
 			return

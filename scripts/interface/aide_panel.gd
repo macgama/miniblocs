@@ -49,7 +49,7 @@ const SECTIONS := [
 		["Clic gauche", "poser le bâtiment choisi"],
 		["Taille (carte en bas pendant la pose)", "1 · Emprise au sol : Petite, Normale, Grande, Très grande, puis largeur et profondeur au mètre près ; 2 · Hauteur : de 1 à N niveaux selon le bâtiment et l'époque (le toit ne compte pas). Logements, emplois, prix, réseaux et durée du chantier suivent la taille"],
 		["R", "tourner le bâtiment d'un quart de tour (sinon il se cale tout seul le long de la route la plus proche, même courbe, à sa hauteur)"],
-		["Ctrl + Z", "annuler le dernier geste en ville : bâtiment posé ou démoli (tout l'argent revient), tronçon de voie, carrefour, terrassement, zones, décors, conduites, projet du mode plan ; dans l'éditeur libre : blocs, murs et étages"],
+		["Ctrl + Z", "annuler le dernier geste en ville : bâtiment posé ou démoli (tout l'argent revient), tronçon de voie, carrefour, terrassement, zones, décors, conduites, enclos du zoo, champs, façade modifiée, intérieur ouvert, projet du mode plan ; dans un éditeur (blocs, murs et étages, meubles) : une pose à la fois, puis toute la séance d'un coup une fois l'outil fermé"],
 		["Ctrl + Y ou Ctrl + Maj + Z", "rétablir ce qui vient d'être annulé ; aussi les flèches en haut de l'écran"],
 		["Ctrl + P", "mode plan : bâtiments et voies posés en projet (fantômes bleus), sans payer ni chantier ; « Tout construire » valide le plan d'un coup (voies d'abord), Ctrl + Z le défait"],
 		["R (éditeur libre)", "tourner la forme d'un quart de tour (escalier, pente, arrondi, porte, fenêtre…) ; sans rien toucher, elle se tourne face à la caméra"],

@@ -164,6 +164,8 @@ var _nodes: Dictionary = {} # id -> {étage: Node3D}
 var _dirty: Dictionary = {} # id -> {étage: true}
 var _bbox: Dictionary = {} # id -> Rect2i
 var _undo: Array = []
+## Argent dépensé par l'outil depuis le début (moins ce qu'il a rendu) : séance de Ctrl+Z (HistoriqueVille).
+var depense := 0
 var _active := ""
 var _hover := {}
 var _drag := false
@@ -388,6 +390,7 @@ func _can_pay(amount: int) -> bool:
 func _pay(amount: int) -> void:
 	if buildings != null and not buildings.unlimited_money:
 		buildings.money -= ReglagesPartie.prix(amount)
+		depense += ReglagesPartie.prix(amount)
 
 
 # --- Plans --------------------------------------------------------------------------

@@ -74,6 +74,8 @@ var _ghost: MeshInstance3D
 var _ghost_ok: StandardMaterial3D
 var _ghost_bad: StandardMaterial3D
 var _undo: Array = []
+## Argent dépensé par l'outil depuis le début (moins ce qu'il a rendu) : séance de Ctrl+Z (HistoriqueVille).
+var depense := 0
 var _target := {}
 var _drag := false
 var _drag_start := {}
@@ -471,6 +473,7 @@ func _can_pay(amount: int) -> bool:
 func _pay(amount: int) -> void:
 	if buildings != null and not buildings.unlimited_money:
 		buildings.money -= amount
+		depense += amount
 
 
 ## Pose plusieurs blocs d'un coup (une seule étape d'annulation). Renvoie le nombre posé.

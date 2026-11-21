@@ -42,6 +42,8 @@ var _replier_b: Button
 var _obj_body: VBoxContainer
 var _tick := 0.0
 var _sig := ""
+## Objectif de séance (20 min, paliers) : sa carte, entre le tutoriel et les objectifs.
+var seance_carte: SeanceCarte
 
 
 func setup(t: Tutoriel, o: Objectifs) -> void:
@@ -189,6 +191,16 @@ func _small(t: String, col := UiStyle.TEXT, size := 12) -> Label:
 	return l
 
 
+func poser_seance(s: Seance) -> void:
+	if s == null or _col == null:
+		return
+	seance_carte = SeanceCarte.new()
+	seance_carte.setup(s)
+	_col.add_child(seance_carte)
+	_col.move_child(seance_carte, _tuto_panel.get_index() + 1)
+	_appliquer_visibilite()
+
+
 func set_cachee(on: bool) -> void:
 	cachee = on
 	_appliquer_visibilite()
@@ -199,6 +211,8 @@ func _appliquer_visibilite() -> void:
 		return
 	_tuto_panel.visible = not cachee and tuto.actif and not tuto.etape_courante().is_empty()
 	_obj_panel.visible = not cachee and ReglagesPartie.actuel.objectifs_ecran and obj != null
+	if seance_carte != null:
+		seance_carte.visible = _obj_panel.visible and seance_carte.seance.actif and not seance_carte.seance.suspendue()
 
 
 func _refresh_tuto() -> void:

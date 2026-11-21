@@ -25,6 +25,12 @@ extends Node
 
 signal changed
 signal message(text: String)
+## Un geste du joueur vient d'entrer dans l'historique : ses opérations (pose,
+## démolition, voies…) et les noms des sections changées (« Zones », « Décors »…).
+## Écouté par les bulles des habitants (ReactionsHabitants).
+signal geste_note(ops: Array, noms: Array)
+## Le joueur vient d'annuler un geste (Ctrl+Z).
+signal annule
 
 ## Nombre de gestes gardés.
 const MAX := 60
@@ -234,6 +240,7 @@ func _pousser(e: Dictionary) -> void:
 		_annuler.pop_front()
 	_refaire.clear()
 	changed.emit()
+	geste_note.emit(e.ops, e.noms)
 
 
 static func _resume(noms: Array) -> String:
@@ -275,6 +282,7 @@ func noter(nom: String, op: Dictionary) -> void:
 		(e.noms as Array).append(nom)
 		e.nom = _resume(e.noms)
 		changed.emit()
+		geste_note.emit([op], [nom])
 		return
 	_pousser(_entree([op], [nom]))
 
@@ -314,6 +322,7 @@ func annuler() -> String:
 	_rejeu = false
 	_refaire.append(e)
 	changed.emit()
+	annule.emit()
 	return _dire("Annulé : %s.%s" % [e.nom, _soucis(soucis)])
 
 

@@ -447,6 +447,7 @@ const SECTIONS := [
 		["Maj + T", "vitesse suivante du temps : par défaut 1 jour de jeu par minute ; plus lent pour regarder la ville vivre, ou Turbo (1 jour en 6 s) pour faire grandir vite la première ville (la marée suit l'heure et la Lune : voir la barre d'état)"],
 		["Ctrl + T, ou clic sur le Soleil de l'horloge", "jour permanent : l'image reste de jour pour construire, l'heure, les habitants et la production continuent (automatique quand Construire ou l'éditeur libre est ouvert)"],
 		["Ctrl + H, ou l'œil en haut de l'écran", "fermer ou réafficher les cartes d'information (objectifs, habitant suivi, fil des habitants, À faire, carte de la case, jauges…) : croix ronde dans le coin de chaque carte, menu Affichage en vignettes, Ctrl + H masque tout puis remet tout comme avant ; le choix est gardé pour les parties suivantes. Les barres du haut et du bas restent toujours"],
+		["Bulles des habitants", "quand tu poses, démolis, traces une route, changes les impôts ou annules, un habitant du coin réagit en une phrase, selon l'époque et son âge ; une bulle à la fois, clic : sa fiche ; la croix ou le menu Affichage les coupe"],
 		["V", "vue suivante : dessus, 3e personne, 1re personne"],
 		["ZQSD, Maj, Espace", "marcher, courir, sauter (vue au sol)"],
 		["E ou clic gauche", "ouvrir ou fermer une porte, une porte de garage (vue au sol), y compris dans les murs fins"],
@@ -462,6 +463,7 @@ const SECTIONS := [
 		["Panneau du mode photo", "heure de la lumière (temps figé), zoom, horizon penché, flou de profondeur, 12 filtres (noir et blanc, sépia, vintage, maquette…), luminosité, contraste, saturation, vignette, grain ; cadrage écran, 16:9, vertical 9:16 (TikTok), carré, 4:5, cinéma ; HD, 2K ou 4K"],
 		["Espace · H · Échap ou F8", "prendre la photo (PNG sans l'interface, dans Images › MiniBlocs › Photos) · masquer le panneau · quitter"],
 		["Maj + F8", "time-lapse : chaque village est filmé depuis sa fondation, une image par jour de jeu vers midi ; lecture accélérée (Espace, ← →), jusqu'à 4 caméras (vue actuelle, « Filmer ce cadrage » du mode photo), export vidéo AVI (MP4 en plus si ffmpeg est installé) ou images, avec la date, les habitants et le logo"],
+		["Frise avant / après (dans Maj + F8)", "la ville à sa fondation et aujourd'hui côte à côte, et une frise de 6 dates avec l'année et les habitants : une image PNG 1920 × 1080 à partager, dans Images › MiniBlocs › Photos"],
 	]],
 	["À bord des véhicules", [
 		["E près d'un véhicule", "monter à bord (vue au sol) : voitures, bus, cars, trams, trains, métros, camions, bennes, corbillards, secours, bateaux, avions, tracteurs et machines agricoles, engins de chantier"],

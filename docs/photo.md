@@ -58,6 +58,10 @@ Vitrine (avec affichage) : `godot --path . --script res://tests/photo_vitrine.gd
   le PATH ; ou la suite d'images. Avec incrustations, chaque image est recomposée
   dans un `SubViewport` ; sans, les JPEG sont copiés tels quels.
 
+- **Frise avant / après** (bouton de la section Partager) : une image PNG
+  1920 × 1080 avec la fondation et aujourd'hui côte à côte et une frise de 6
+  dates. Voir [bulles-frise.md](bulles-frise.md).
+
 ## Pistes
 
 - Rejouer la croissance en 3D (bâtiments datés), avec une caméra libre.

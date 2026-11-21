@@ -3098,6 +3098,25 @@ func _setup_fil_habitants() -> void:
 		if population.persons.has(pid):
 			habitants_panel.set_open(true)
 			habitants_panel.show_view("profil", pid))
+	_setup_reactions()
+
+
+## Bulles des habitants : un habitant du coin réagit en une phrase aux choix du
+## joueur (pose, démolition, routes, impôts, annuler…). Une bulle à la fois.
+var reactions: ReactionsHabitants
+
+
+func _setup_reactions() -> void:
+	reactions = ReactionsHabitants.new()
+	hud.add_child(reactions)
+	reactions.setup(self, population)
+	reactions.actif = not GameStart.atelier
+	reactions.masque = func() -> bool: return affichage != null and affichage.est_masque("bulles")
+	reactions.pret = func() -> bool: return not _chargement
+	reactions.person_requested.connect(func(pid: int) -> void:
+		if population.persons.has(pid):
+			habitants_panel.set_open(true)
+			habitants_panel.show_view("profil", pid))
 
 
 ## Jauges toujours visibles sous la barre du haut (piste CityRT 10) : demande
@@ -3185,6 +3204,8 @@ func _setup_affichage() -> void:
 		func() -> void:
 			if is_instance_valid(fil_habitants):
 				fil_habitants._rafraichir())
+	affichage.ajouter("bulles", "Bulles des habitants", "sourire", "Les habitants réagissent en une phrase à tes choix",
+		func() -> Control: return reactions.carte() if is_instance_valid(reactions) else null)
 	affichage.ajouter("a_faire", "À faire", "cloche", "Les alertes de la Mairie à traiter (aussi dans la Mairie, M)",
 		func() -> Control: return fil_alertes._panel if is_instance_valid(fil_alertes) else null,
 		func() -> void:
@@ -3738,6 +3759,8 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 		journal.clear()
 	if fil_habitants != null:
 		fil_habitants.clear()
+	if reactions != null:
+		reactions.clear()
 	if communes != null:
 		communes.clear()
 	if fondateurs != null:

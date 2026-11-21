@@ -93,6 +93,16 @@ func _verifier_barre(nom: String) -> void:
 		if (b as Control).is_visible_in_tree() and not rb.grow(1.0).encloses((b as Control).get_global_rect()):
 			hors.append(String(b.name))
 	_check(hors.is_empty(), "%s : les boutons de l'horloge restent dans la barre %s" % [nom, hors])
+	# Date (et température) sous l'heure : lisible dans la barre, sous aucun bouton.
+	var date := h.find_child("Date", true, false) as Label
+	if date != null and date.is_visible_in_tree():
+		var rd := date.get_global_rect()
+		var sur := []
+		for b in h.find_children("*", "Button", true, false):
+			if (b as Control).is_visible_in_tree() and _recouvre(rd, (b as Control).get_global_rect()):
+				sur.append(String(b.name))
+		_check(rb.grow(1.0).encloses(rd) and sur.is_empty(),
+			"%s : la date « %s » tient dans la barre, sous aucun bouton %s" % [nom, date.text, sur])
 	# Bas de l'écran : la mention des sources ne passe pas sous la barre des catégories.
 	if hud._dock.is_visible_in_tree():
 		_check(not _recouvre(hud._credit.get_global_rect(), hud._dock.get_global_rect()),
@@ -139,6 +149,21 @@ func _run() -> void:
 	await _attendre(8)
 	await _verifier_barre("Mode Créer 1600×900")
 	scene.set_create_mode(false)
+	await _attendre(8)
+	# 1600×900, plusieurs villes (◀ drapeau ▶ dans la barre) : la date reste affichée
+	# sous l'heure, dans toutes les langues complètes.
+	scene.selecteur_villes.set_process(false)
+	scene.selecteur_villes.barre.visible = true
+	for code in ["fr", "en", "de", "it", "es"]:
+		Langue.activer(code)
+		await _attendre(8)
+		var dl := _horloge().find_child("Date", true, false) as Label
+		_check(dl != null and dl.is_visible_in_tree() and dl.text.contains("°C"),
+			"%s, 1600×900, plusieurs villes : date et température visibles sous l'heure (« %s »)" % [code, dl.text if dl else ""])
+		await _verifier_barre("%s, plusieurs villes" % code)
+	Langue.activer("fr")
+	scene.selecteur_villes.barre.visible = false
+	scene.selecteur_villes.set_process(true)
 	await _attendre(8)
 	# La caisse d'une ville au long nom est raccourcie, le nom complet reste en infobulle.
 	var caisse := hud._chips.caisse as Button

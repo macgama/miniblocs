@@ -505,6 +505,10 @@ func animer(t: float) -> void:
 			haut = 0.12 * j
 			bg = Vector3(-0.3 - 2.4 * j, 0.6 * j, 0.0)
 			bd = Vector3(-0.3 - 2.4 * j, -0.6 * j, 0.0)
+		"marcher":
+			# Marche (mode gestion : clients qui vont et viennent).
+			bg = Vector3(0.45 * sin(u * 8.0), 0.08, -0.15)
+			bd = Vector3(-0.45 * sin(u * 8.0), -0.08, -0.15)
 		"client":
 			tete_yaw = 0.7 * sin(u * 0.35)
 			tete = 0.1 + 0.15 * maxf(sin(u * 0.5), 0.0)
@@ -531,6 +535,8 @@ func animer(t: float) -> void:
 		var moving := absf(fposmod(w, 1.0) - 0.5) < 0.42
 		pas = 0.45 * sin(u * 7.0) if moving else 0.0
 		yaw = 0.0 if w < 1.0 else PI
+	if anim == "marcher":
+		pas = 0.5 * sin((t + phase) * 8.0)
 	if assise:
 		if silhouette != null:
 			_bassin.position = Vector3(0, hauteur_assise + _hanche * 0.09, 0)

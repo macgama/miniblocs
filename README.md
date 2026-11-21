@@ -543,6 +543,12 @@ Menu **Loisirs → Musée** (touche **Maj+C**) : 12 musées prêts à poser (bea
 
 ![Musées en coupe](docs/apercu-musee-coupe.jpg)
 
+## Mode gestion « tycoon » : un jeu de gestion dans chaque bâtiment
+
+Clique sur un hôtel, puis sur **Gérer l'hôtel** dans sa fiche (ou **Gérer** dans le menu Tourisme, Maj+D) : tu entres dans l'hôtel, en 3D isométrique. Les clients arrivent de la rue, font la queue à la réception, vont dans leur chambre, au restaurant, au bar, au spa ou à la piscine ; les vrais employés de l'hôtel sont à leur poste (« Poste vacant » s'il manque quelqu'un). Améliore chaque pièce sur 5 niveaux (plus de lits, de confort, de clients, de repas sur place), gagne des étoiles, règle les demandes des clients d'un clic sur leur « ! » (pourboires), ajuste le prix de la nuit, suis les objectifs. Les travaux se paient avec le compte de l'hôtel, la ville avance ce qui manque (remboursable). Tout compte dans la ville : nuitées, taxe de séjour, impôts. Le temps du jeu continue (T, Maj + T) ; Échap ramène à la ville. Détails : [docs/gestion-tycoon.md](docs/gestion-tycoon.md).
+
+![Hôtel en mode gestion](docs/apercu-gestion-hotel.png)
+
 ## Mode streamer : le chat Twitch vote
 
 **Maj+F11** (menu Infos) : pendant un live, le chat Twitch vote toutes les quelques minutes pour une catastrophe, une décision du maire, la météo ou une fête (les spectateurs tapent 1, 2 ou 3), avec un délai de veto pour le streamer ; `!habitant` donne son pseudo au prochain habitant. Lecture seule et anonyme, sans compte ni clé, désactivé par défaut ; « Simuler le chat » pour essayer sans Twitch. Détails : [docs/streamer.md](docs/streamer.md).

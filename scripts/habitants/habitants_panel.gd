@@ -7,6 +7,8 @@ extends CanvasLayer
 signal focus_requested(pos: Vector3)
 ## Boutons de la fiche d'un bâtiment : personnaliser (catalogue), aménager (murs fins).
 signal customize_requested(bid: int)
+## Mode gestion « tycoon » (Gestion, GestionVue).
+signal gestion_requested(bid: int)
 signal furnish_requested(bid: int)
 ## « Aménager l'intérieur » d'un bâtiment du catalogue : il est d'abord ouvert en murs fins.
 signal interior_requested(bid: int)
@@ -546,6 +548,14 @@ func _tuiles_travaux(bid: int, info: Dictionary) -> void:
 	var b: Dictionary = pop.buildings.buildings.get(bid, {}) if pop.buildings != null else {}
 	var facade := not info.has("plan") and Personnalisation.can_customize(tid)
 	var interieur := info.has("plan") or Conversion.can_open(tid, b.get("perso", {}))
+	var genre := GestionTypes.genre_de(tid) if not info.has("plan") else ""
+	if genre != "" and pop.buildings != null and not pop.buildings.en_chantier(bid):
+		var gd := GestionTypes.genre(genre)
+		var g := _tuile(String(gd.get("titre", "Gérer")), "Mode gestion", String(gd.get("icone", "lit")),
+			"Entre dans le bâtiment en vue isométrique : améliore les pièces, regarde le personnel et les clients, règle leurs demandes.\nLes résultats comptent dans la ville (lits, note, étoiles, taxe de séjour, impôts).")
+		g.name = "TuileGestion"
+		g.pressed.connect(func() -> void: gestion_requested.emit(bid))
+		_body.add_child(g)
 	if not facade and not interieur:
 		return
 	var row := HBoxContainer.new()

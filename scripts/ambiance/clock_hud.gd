@@ -28,6 +28,9 @@ var _row: HBoxContainer
 ## l'horloge s'y centre et lui donne sa largeur, pour ne jamais recouvrir les
 ## boutons voisins (Annuler, Rétablir, mode plan, chiffres de la ville).
 var _zone: Control
+## Date sans la température (barre étroite).
+var _date_courte := false
+var _date_complete := ""
 
 
 func _ready() -> void:
@@ -41,7 +44,7 @@ func _ready() -> void:
 	row.name = "Horloge"
 	row.add_theme_constant_override("separation", 8)
 	row.position = Vector2(-235, 18)
-	row.custom_minimum_size = Vector2(470, 42)
+	row.custom_minimum_size = Vector2(0, 42)
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	anchor.add_child(row)
 	_row = row
@@ -52,22 +55,29 @@ func _ready() -> void:
 	_sky_icon.icon = Icones.get_icon("soleil", 22, UiStyle.ACCENT)
 	_sky_icon.toggled.connect(func(on: bool) -> void: clock.set_jour_permanent(on))
 	row.add_child(_sky_icon)
+	# Heure en haut, date et température juste dessous, dans la hauteur de la barre :
+	# la date reste lisible sans prendre de place à côté des boutons de vitesse.
+	var pile := VBoxContainer.new()
+	pile.name = "HeureDate"
+	pile.add_theme_constant_override("separation", -3)
+	pile.alignment = BoxContainer.ALIGNMENT_CENTER
+	pile.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	pile.mouse_filter = Control.MOUSE_FILTER_PASS
+	row.add_child(pile)
 	_time_label = Label.new()
-	_time_label.add_theme_font_size_override("font_size", 20)
-	_time_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_time_label.add_theme_font_size_override("font_size", 19)
 	# Largeur fixe : l'horloge ne bouge pas quand l'heure passe de 9:59 à 10:00.
 	_time_label.custom_minimum_size = Vector2(56, 0)
 	_time_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_time_label.mouse_filter = Control.MOUSE_FILTER_PASS
-	row.add_child(_time_label)
+	pile.add_child(_time_label)
 	_date_label = Label.new()
-	_date_label.add_theme_font_size_override("font_size", 13)
+	_date_label.name = "Date"
+	_date_label.add_theme_font_size_override("font_size", 11)
 	_date_label.add_theme_color_override("font_color", UiStyle.TEXT_DIM)
-	_date_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	_date_label.custom_minimum_size = Vector2(130, 0)
-	_date_label.clip_text = true
-	_date_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	row.add_child(_date_label)
+	_date_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_date_label.mouse_filter = Control.MOUSE_FILTER_PASS
+	pile.add_child(_date_label)
 
 	var speeds := PanelContainer.new()
 	speeds.add_theme_stylebox_override("panel", UiStyle.flat_box(Color(0, 0, 0, 0.3), 9, 3))
@@ -191,17 +201,26 @@ func _placer() -> void:
 		_zone = get_tree().get_first_node_in_group("zone_horloge") as Control if is_inside_tree() else null
 	if _zone == null:
 		return
-	# Barre trop étroite (petite fenêtre, longue traduction, gros chiffres) : la date
-	# se cache (elle reste dans l'infobulle de l'heure et dans les détails « … »).
+	# Barre trop étroite (petite fenêtre, longue traduction, gros chiffres) : la
+	# température part d'abord, puis la date (elle reste dans l'infobulle de l'heure
+	# et dans les détails « … »).
 	var barre := _zone.get_parent().get_parent() as Control
 	if barre != null:
 		var place := _zone.get_viewport_rect().size.x - 20.0
 		var besoin := barre.get_combined_minimum_size().x
-		if _date_label.visible and besoin > place:
-			_date_label.visible = false
-		elif not _date_label.visible and besoin + _date_label.custom_minimum_size.x + 16.0 < place:
-			_date_label.visible = true
-		_time_label.tooltip_text = "" if _date_label.visible else _date_label.text
+		if besoin > place:
+			if not _date_courte:
+				_date_courte = true
+				refresh()
+			elif _date_label.visible:
+				_date_label.visible = false
+		elif not _date_label.visible:
+			if besoin + _largeur_date(false) + 16.0 < place:
+				_date_label.visible = true
+		elif _date_courte and besoin + _largeur_date(true) + 16.0 < place:
+			_date_courte = false
+			refresh()
+		_time_label.tooltip_text = _date_complete if not _date_label.visible or _date_courte else ""
 	var w := _row.get_combined_minimum_size().x
 	if absf(_zone.custom_minimum_size.x - w) > 0.5:
 		_zone.custom_minimum_size.x = w
@@ -212,6 +231,17 @@ func _placer() -> void:
 	var dw := _details.get_combined_minimum_size().x
 	var dx := clampf(_row.global_position.x + (w - dw) * 0.5, 8.0, maxf(8.0, vue.x - dw - 8.0))
 	_details.global_position = Vector2(roundf(dx), _details.global_position.y)
+
+
+## Place que la date (ou la température en plus) ajouterait à l'horloge.
+func _largeur_date(temperature: bool) -> float:
+	var f := _date_label.get_theme_font("font")
+	var fs := _date_label.get_theme_font_size("font_size")
+	var court := _date_label.text.get_slice(" · ", 0)
+	var w := f.get_string_size(court, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+	if temperature:
+		return f.get_string_size(" · 99 °C", HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+	return maxf(0.0, w - _time_label.custom_minimum_size.x)
 
 
 ## Largeur de l'horloge (pour les tests de mise en page).
@@ -235,7 +265,8 @@ func refresh() -> void:
 	_sky_icon.tooltip_text = ("Jour permanent activé : l'image reste de jour, le temps continue. Clic pour revenir à la vraie nuit (Ctrl + T)"
 		if jour else "Jour permanent : garder l'image de jour pour construire, le temps continue (Ctrl + T)")
 	_time_label.text = format_hour(h)
-	_date_label.text = "%d %s %d" % [d.day, MONTHS[int(d.month) - 1], d.year]
+	_date_label.text = "%d %s %d" % [d.day, tr(MONTHS[int(d.month) - 1]), d.year]
+	_date_complete = _date_label.text
 	var rs := clock.rise_set()
 	var sun_txt: String
 	if rs.x == -1.0:
@@ -252,7 +283,9 @@ func refresh() -> void:
 	if clock.weather != null:
 		var w := clock.weather
 		_info_label.text += "\n%s · %d °C" % [w.describe(), roundi(w.temperature)]
-		_date_label.text += " · %d °C" % roundi(w.temperature)
+		_date_complete += " · %d °C" % roundi(w.temperature)
+		if not _date_courte:
+			_date_label.text = _date_complete
 		_date_label.tooltip_text = w.describe()
 		if _weather_pick.selected != int(w.mode):
 			_weather_pick.select(int(w.mode))

@@ -38,6 +38,9 @@ uniform float room_depth = 4.0;
 uniform float day_interior = 0.26;
 
 uniform float usure = 0.0;
+// Sécheresse du climat de la région (0 humide, 1 désert ; TerrainWorld.aridite) :
+// pas de mousse au sec, mais de la poussière ocre et des couleurs passées au soleil.
+uniform float aride = 0.0;
 uniform float abandon = 0.0;
 uniform float chantier_h = 10000.0;
 uniform float degats = 0.0;
@@ -242,10 +245,19 @@ void fragment() {
 			float wear = clamp(usure + abandon * 0.6, 0.0, 1.0);
 			float lum = dot(alb, vec3(0.3, 0.59, 0.11));
 			vec3 washed = mix(alb, vec3(lum) * vec3(1.03, 1.0, 0.94) * 1.1, 0.7);
-			alb = mix(alb, washed, wear * (0.3 + 0.5 * n1));
+			// Au sec, le soleil délave davantage, surtout ce qui regarde le ciel.
+			float soleil = aride * (0.25 + 0.25 * max(up, 0.0));
+			alb = mix(alb, washed, clamp(wear * (0.3 + 0.5 * n1 + soleil), 0.0, 1.0));
 			float foot = 1.0 - smoothstep(0.0, 2.0, ly);
-			alb *= 1.0 - wear * (0.3 * foot + 0.18 * smoothstep(0.55, 0.85, n1));
-			if (up > 0.25 && ly > 2.2) {
+			alb *= 1.0 - wear * (0.3 * foot + 0.18 * smoothstep(0.55, 0.85, n1)) * (1.0 - aride * 0.6);
+			if (aride > 0.001) {
+				// Poussière ocre : voile doux (pas de taches) au pied des murs, sur
+				// les toits et dans les creux, qui s'épaissit avec l'âge.
+				vec3 ocre = vec3(0.36, 0.22, 0.10);
+				float dep = 0.55 * foot + 0.35 * smoothstep(0.25, 0.9, up) * (0.6 + 0.4 * n1) + 0.12;
+				alb = mix(alb, ocre, clamp(aride * wear * dep, 0.0, 0.5));
+			}
+			if (up > 0.25 && ly > 2.2 && aride < 0.999) {
 				// Mousse : seulement sur les toits (pas sur les cours, terrasses et
 				// trottoirs au pied du bâtiment), et seulement sur un bâtiment déjà
 				// bien vieux (usure >= 40 %). Petites taches discrètes, d'un vert
@@ -253,11 +265,11 @@ void fragment() {
 				float nm = vnoise(wp * 3.1) * 0.6 + n2 * 0.5;
 				float m = smoothstep(1.02 - wear * 0.22, 1.1 - wear * 0.2, nm);
 				vec3 mousse = mix(alb, vec3(0.10, 0.13, 0.05), 0.6);
-				alb = mix(alb, mousse, m * 0.55 * smoothstep(0.35, 0.8, wear));
+				alb = mix(alb, mousse, m * 0.55 * smoothstep(0.35, 0.8, wear) * (1.0 - aride));
 			}
 			if (abs(up) < 0.3) {
 				// Lierre : monte du sol en traînées verticales, plus haut et plus dense quand le bâtiment est abandonné.
-				float cover = abandon * 0.7 + usure * 0.08;
+				float cover = (abandon * 0.7 + usure * 0.08) * (1.0 - aride * 0.85);
 				float reach = 0.8 + abandon * 7.0 * (0.4 + 0.6 * vnoise(vec3(wp.x * 0.25, 0.0, wp.z * 0.25)));
 				float tendril = vnoise(vec3(wp.x * 1.3, wp.y * 0.2, wp.z * 1.3));
 				float leaf = vnoise(wp * 8.0);

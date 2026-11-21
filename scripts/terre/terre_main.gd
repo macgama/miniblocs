@@ -84,6 +84,9 @@ var zoo_panel: ZooPanel
 ## Tourisme : hébergements, touristes, dépenses en ville (menu Loisirs, Maj+R).
 var tourisme: Tourisme
 var tourisme_panel: TourismePanel
+## Mode gestion « tycoon » (hôtel…) : niveaux des pièces et écran isométrique.
+var gestion: Gestion
+var gestion_vue: GestionVue
 ## Patrimoine : classement, abords, entretien, grands monuments (touche Fin).
 var patrimoine: Patrimoine
 var patrimoine_panel: PatrimoinePanel
@@ -495,6 +498,7 @@ func save_sections() -> Dictionary:
 	sec["parc"] = parc.to_dict()
 	sec["zoo"] = zoo.to_dict()
 	sec["tourisme"] = tourisme.to_dict()
+	sec["gestion"] = gestion.to_dict()
 	sec["patrimoine"] = patrimoine.to_dict()
 	sec["expeditions"] = expeditions.to_dict()
 	sec["commerce_mondial"] = commerce_mondial.to_dict()
@@ -645,6 +649,7 @@ func load_game(slot := "") -> bool:
 	parc.from_dict(sec.get("parc", {}))
 	zoo.from_dict(sec.get("zoo", {}))
 	tourisme.from_dict(sec.get("tourisme", {}))
+	gestion.from_dict(sec.get("gestion", {}))
 	patrimoine.from_dict(sec.get("patrimoine", {}))
 	expeditions.from_dict(sec.get("expeditions", {}))
 	commerce_mondial.from_dict(sec.get("commerce_mondial", {}))
@@ -2925,6 +2930,7 @@ func _setup_atelier_tools() -> void:
 	banque_panel = BanquePanel.new()
 	banque_panel.setup(buildings, mobilier, banque_pose, func() -> void: _select_building_tool())
 	build_panel.banque_builder = banque_panel.build
+	habitants_panel.gestion_requested.connect(func(bid: int) -> void: ouvrir_gestion(bid))
 	habitants_panel.customize_requested.connect(func(bid: int) -> void:
 		habitants_panel.set_open(false)
 		perso_panel.edit(bid))
@@ -3517,6 +3523,34 @@ func _setup_tourisme() -> void:
 		rig.position.x = pos.x
 		rig.position.z = pos.z)
 	hud.tourisme_requested.connect(func() -> void: tourisme_panel.toggle())
+	_setup_gestion()
+
+
+## Mode gestion « tycoon » : fiche d'un hôtel → « Gérer l'hôtel » → écran isométrique.
+func _setup_gestion() -> void:
+	gestion = Gestion.new()
+	gestion.name = "Gestion"
+	add_child(gestion)
+	gestion.setup(buildings, tourisme)
+	gestion.message.connect(func(t: String) -> void: hud.show_message(t))
+	gestion_vue = GestionVue.new()
+	gestion_vue.name = "EcranGestion"
+	add_child(gestion_vue)
+	gestion_vue.setup(gestion, tourisme, population, buildings)
+	tourisme_panel.gestion_requested.connect(func(bid: int) -> void: ouvrir_gestion(bid))
+
+
+func ouvrir_gestion(bid: int) -> bool:
+	if gestion_vue == null:
+		return false
+	if habitants_panel != null:
+		habitants_panel.set_open(false)
+	if tourisme_panel != null:
+		tourisme_panel.set_open(false)
+	var ok := gestion_vue.ouvrir(bid)
+	if not ok:
+		hud.show_message("Ce bâtiment ne se gère pas encore en mode gestion.")
+	return ok
 
 
 ## Patrimoine : bâtiments inscrits et classés (protection, abords, entretien,
@@ -3871,6 +3905,10 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 		(clubs[s] as ClubSport).clear()
 	if tourisme != null:
 		tourisme.clear()
+	if gestion != null:
+		gestion.clear()
+	if gestion_vue != null:
+		gestion_vue.fermer()
 	if patrimoine != null:
 		patrimoine.clear()
 	if expeditions != null:

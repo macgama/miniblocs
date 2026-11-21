@@ -90,6 +90,7 @@ func _run() -> void:
 	amb.set_speed(0)
 	amb.unix_time = _at("2026-03-10", 10.0) # mardi
 	bs.unlimited_money = true
+	ReglagesPartie.actuel.deblocage = "tout"
 	var y := world.cell_height(Vector2i(0, 0))
 	_check(transport.build_segment("departementale", Vector3(0, y, -300), Vector3(0, y, 300)).ok, "route")
 	var school := bs.place("ecole", Vector2i(-30, 0), 1)

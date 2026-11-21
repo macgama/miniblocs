@@ -95,6 +95,7 @@ func _city_tests() -> void:
 		scene.ambiance.weather.precip = 0.0
 	bs.unlimited_money = false
 	bs.money = 200_000_000
+	ReglagesPartie.actuel.deblocage = "tout"
 	var y := world.cell_height(Vector2i(0, 0))
 	var road := transport.build_segment("route", Vector3(-600, y, 0), Vector3(600, y, 0))
 	_check(road.ok, "route de 1,2 km")

@@ -295,7 +295,8 @@ func filmer(c: Dictionary) -> bool:
 		img.convert(Image.FORMAT_RGB8)
 	if img.save_jpg(chemin_image(c, n), QUALITE_JPEG) != OK:
 		return false
-	imgs.append({"t": ambiance.unix_time if ambiance != null else 0.0, "hab": _habitants(c)})
+	# « an » : année du calendrier de la partie (les époques ne suivent pas l'horloge Unix).
+	imgs.append({"t": ambiance.unix_time if ambiance != null else 0.0, "hab": _habitants(c), "an": Epoques.annee()})
 	changed.emit()
 	return true
 

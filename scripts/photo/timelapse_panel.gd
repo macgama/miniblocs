@@ -49,6 +49,12 @@ var _rec: CheckBox
 var _inter: ChoixVisuel
 var _qual: ChoixVisuel
 var _fmt: ChoixVisuel
+var _frise: Button
+var _apercu: Control
+var _apercu_tex: TextureRect
+var _apercu_info: Label
+## Chemin de la dernière frise exportée.
+var derniere_frise := ""
 
 
 func setup(t: TimeLapse) -> void:
@@ -165,7 +171,8 @@ func _remplir(comp: Dictionary, c: Dictionary, n: int, tex: Texture2D) -> void:
 	var imgs: Array = c.images
 	(comp.tex as TextureRect).texture = tex
 	var e: Dictionary = imgs[n] if n < imgs.size() else {}
-	(comp.date as Label).text = date_texte(float(e.get("t", 0.0)), _decalage()) if not e.is_empty() else ""
+	# Année de la partie (époques) : « 4 mai 1846 » et non l'année de l'horloge.
+	(comp.date as Label).text = FriseVille.date_texte(e, _decalage()) if not e.is_empty() else ""
 	(comp.hab as Label).text = habitants_texte(int(e.get("hab", 0))) if not e.is_empty() else ""
 	(comp.date as Label).visible = incruster
 	(comp.hab as Label).visible = incruster
@@ -387,6 +394,19 @@ func _construire() -> void:
 	_qual.item_selected.connect(func(i: int) -> void: tl.qualite = "haute" if i == 1 else "standard")
 	v.add_child(_qual)
 
+	_titre(v, "Partager")
+	_frise = Button.new()
+	_frise.text = "Frise avant / après (image)"
+	_frise.icon = Icones.get_icon("appareil_photo", 18, UiStyle.ACCENT_INK)
+	_frise.tooltip_text = "Une seule image à partager : la ville à sa fondation et aujourd'hui, et une frise des années entre les deux (PNG 1920 × 1080)."
+	_frise.focus_mode = Control.FOCUS_NONE
+	UiStyle.tint_pressed(_frise, UiStyle.ACCENT, UiStyle.ACCENT_INK)
+	_frise.add_theme_stylebox_override("normal", UiStyle.flat_box(UiStyle.ACCENT, 8, 6))
+	_frise.add_theme_stylebox_override("hover", UiStyle.flat_box(UiStyle.ACCENT.lightened(0.15), 8, 6))
+	_frise.add_theme_color_override("font_color", UiStyle.ACCENT_INK)
+	_frise.add_theme_color_override("font_hover_color", UiStyle.ACCENT_INK)
+	_frise.pressed.connect(exporter_frise)
+	v.add_child(_frise)
 	_titre(v, "Exporter")
 	for spec in [["Exporter la vidéo", true], ["Exporter les images", false]]:
 		var b := Button.new()
@@ -407,6 +427,88 @@ func _construire() -> void:
 	_etat.add_theme_color_override("font_color", UiStyle.TEXT_DIM)
 	_etat.text = "Vidéo AVI (VLC, lecteur Windows, montage) ; MP4 en plus si ffmpeg est installé. Les images sont dans Images › MiniBlocs › Time-lapse."
 	v.add_child(_etat)
+	_construire_apercu()
+
+
+## Aperçu de la frise exportée, par-dessus l'écran du time-lapse.
+func _construire_apercu() -> void:
+	_apercu = ColorRect.new()
+	(_apercu as ColorRect).color = Color(0, 0, 0, 0.88)
+	_apercu.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_apercu.visible = false
+	add_child(_apercu)
+	var v := VBoxContainer.new()
+	v.set_anchors_preset(Control.PRESET_FULL_RECT)
+	v.offset_left = 40
+	v.offset_right = -40
+	v.offset_top = 24
+	v.offset_bottom = -24
+	v.add_theme_constant_override("separation", 10)
+	_apercu.add_child(v)
+	var t := Label.new()
+	t.text = "Frise avant / après"
+	t.add_theme_font_size_override("font_size", 20)
+	t.add_theme_color_override("font_color", UiStyle.ACCENT)
+	v.add_child(t)
+	_apercu_tex = TextureRect.new()
+	_apercu_tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_apercu_tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_apercu_tex.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	v.add_child(_apercu_tex)
+	_apercu_info = Label.new()
+	_apercu_info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_apercu_info.add_theme_color_override("font_color", UiStyle.TEXT_DIM)
+	v.add_child(_apercu_info)
+	var h := HBoxContainer.new()
+	h.alignment = BoxContainer.ALIGNMENT_CENTER
+	h.add_theme_constant_override("separation", 12)
+	v.add_child(h)
+	var od := Button.new()
+	od.text = "Ouvrir le dossier"
+	od.focus_mode = Control.FOCUS_NONE
+	od.pressed.connect(func() -> void: OS.shell_open(ProjectSettings.globalize_path(ModePhoto.dossier_photos())))
+	h.add_child(od)
+	var f := Button.new()
+	f.text = "Fermer l'aperçu (Échap)"
+	f.focus_mode = Control.FOCUS_NONE
+	f.pressed.connect(func() -> void: _apercu.visible = false)
+	h.add_child(f)
+
+
+## Fabrique la frise avant / après de la caméra choisie et l'enregistre dans
+## Images › MiniBlocs › Photos. Renvoie le chemin (vide en cas d'échec).
+func exporter_frise() -> String:
+	var c := tl.camera(cam_id)
+	if c.is_empty() or (c.images as Array).size() < 2:
+		_etat.text = "La frise a besoin d'au moins deux images de cette caméra : laissez passer quelques jours de jeu."
+		return ""
+	if _export_en_cours:
+		return ""
+	_export_en_cours = true
+	_frise.disabled = true
+	_etat.text = "Frise en cours…"
+	var img: Image = await FriseVille.rendre(self, tl, c, _decalage())
+	_export_en_cours = false
+	_frise.disabled = false
+	if img == null:
+		_etat.text = "La frise n'a pas pu être faite."
+		return ""
+	var imgs: Array = c.images
+	var an0 := FriseVille.annee(imgs[0], _decalage())
+	var an1 := FriseVille.annee(imgs[-1], _decalage())
+	var chemin := ModePhoto.dossier_photos().path_join(FriseVille.nom_fichier(c, an0, an1))
+	if img.save_png(chemin) != OK:
+		_etat.text = "Impossible d'écrire " + chemin
+		return ""
+	derniere_frise = chemin
+	var vrai := ProjectSettings.globalize_path(chemin)
+	_etat.text = "Frise enregistrée : " + vrai
+	_apercu_tex.texture = ImageTexture.create_from_image(img)
+	_apercu_info.text = "Enregistrée dans Images › MiniBlocs › Photos : " + vrai.get_file()
+	_apercu.visible = true
+	message.emit("Frise avant / après enregistrée : " + vrai)
+	Son.jouer("ui_ouvrir", -3.0, 0.0, "Interface")
+	return chemin
 
 
 ## Image et incrustations, à la taille de son parent. `px` : taille de la date.
@@ -491,6 +593,7 @@ func _rafraichir() -> void:
 		_liste.add_child(l)
 	for c in tl.cameras:
 		_ligne_camera(c)
+	_frise.disabled = _nb() < 2 or _export_en_cours
 	_maj_jouer()
 	_montrer()
 
@@ -554,7 +657,10 @@ func _input(event: InputEvent) -> void:
 	match k.keycode:
 		KEY_ESCAPE:
 			if not k.echo:
-				set_open(false)
+				if _apercu != null and _apercu.visible:
+					_apercu.visible = false
+				else:
+					set_open(false)
 		KEY_F8:
 			if not k.echo and k.shift_pressed:
 				set_open(false)

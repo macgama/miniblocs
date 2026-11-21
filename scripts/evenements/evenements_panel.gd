@@ -18,6 +18,10 @@ const W := 360.0
 const H := 560.0
 
 var ev: Evenements
+## Vol cinématique sur un événement en cours (Callable(e)), branché par terre_main.
+var filmer: Callable
+## Organise la fête de la ville sous la caméra (Callable()), branché par terre_main.
+var organiser_fete_ville: Callable
 var _panel: PanelContainer
 var _body: VBoxContainer
 var _scroll: ScrollContainer
@@ -245,7 +249,15 @@ func _view_en_cours() -> void:
 		_text("Rien de spécial en ville. Les marchés ont lieu le samedi matin, les fêtes de quartier l'été, les matchs le week-end.", true)
 	for e in running:
 		var t := _type(e)
-		_row(String(t.icone), t.couleur, String(e.nom), _detail(e, now), e.pos)
+		var film: Control = null
+		if filmer.is_valid() and (e.pos as Vector3).is_finite():
+			var b := UiStyle.icon_button("clap", "Filmer : vol cinématique au-dessus", "", 16, 26)
+			b.text = " Filmer"
+			b.pressed.connect(func() -> void:
+				set_open(false)
+				filmer.call(e))
+			film = b
+		_row(String(t.icone), t.couleur, String(e.nom), _detail(e, now), e.pos, film)
 	if not planned.is_empty():
 		_section("À venir", "precedent")
 		for e in planned.slice(0, 8):
@@ -263,6 +275,10 @@ func _view_en_cours() -> void:
 			"%s · besoin : %s · depuis %s" % [etat, besoin, ev.heure_courte(float(inc.debut))], inc.position)
 	if not ev.secours_branches():
 		_text("Les secours sont simulés : la caserne, l'hôpital ou le commissariat le plus proche intervient après le trajet. Sans caserne, un feu brûle jusqu'au bout.", true, 12)
+
+
+func lieu_de(e: Dictionary) -> String:
+	return _lieu(e)
 
 
 func _lieu(e: Dictionary) -> String:
@@ -324,6 +340,10 @@ func _view_organiser() -> void:
 	_button("Fête de quartier (%s) : clic où la poser" % BuildingSystem.format_money(ReglagesPartie.prix(FetesMarches.COUT_FETE)), "fete", func() -> void:
 		tool_requested.emit()
 		ev.set_outil("fete"), "Tables, guirlandes et petite scène pendant 8 heures. Les voisins viennent faire la fête.")
+	if organiser_fete_ville.is_valid():
+		_button("Fête de la ville (%s) : la ville sous la caméra, ce soir" % BuildingSystem.format_money(ReglagesPartie.prix(GrandsEvenements.COUT_FETE_VILLE)), "fete", func() -> void:
+			organiser_fete_ville.call()
+			refresh(), "Tables et guirlandes devant la mairie de 20 h à minuit, feu d'artifice à 22 h et vol cinématique au-dessus. Elle a lieu toute seule le jour anniversaire de la fondation.")
 	_text("La ville en organise aussi toute seule : marché chaque samedi matin, fête de quartier un samedi par mois de mai à septembre, fête de la musique le 21 juin (réglage Admin, F10).", true, 12)
 	_section("Déclencher une catastrophe", "tempete")
 	_text("Pour voir comment la ville s'en sort (et tester les secours). Au hasard, elles arrivent selon le réglage Admin « Catastrophes ».", true, 12)

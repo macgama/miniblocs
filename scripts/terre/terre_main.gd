@@ -154,6 +154,9 @@ var pays_panel: PaysPanel
 var selecteur_villes: SelecteurVilles
 var pilote: PiloteAuto
 var objectifs: Objectifs
+## Objectif de séance (environ 20 minutes, trois paliers) et sa bannière de récompense.
+var seance: Seance
+var seance_banniere: SeanceBanniere
 var kit: KitInstallation
 var rue_fondation: RueFondation
 var services_fondation: ServicesFondation
@@ -181,6 +184,8 @@ var quartiers: Quartiers
 var quartiers_panel: QuartiersPanel
 ## Mode photo (F8) et time-lapse de la ville (Maj+F8), scripts/photo.
 var mode_photo: ModePhoto
+var vol_cinematique: VolCinematique
+var grands_evenements: GrandsEvenements
 var timelapse: TimeLapse
 var mode_streamer: ModeStreamer
 var streamer_panel: StreamerPanel
@@ -274,6 +279,7 @@ func _ready() -> void:
 	_setup_create_mode()
 	_setup_son()
 	_setup_photo()
+	_setup_cinematique()
 	_setup_streamer()
 	_setup_succes()
 	_setup_visites()
@@ -466,6 +472,8 @@ func save_sections() -> Dictionary:
 	sec["pays"] = pays.to_dict()
 	sec["pilote"] = pilote.to_dict()
 	sec["objectifs"] = objectifs.to_dict()
+	if seance != null:
+		sec["seance"] = seance.to_dict()
 	sec["kit"] = kit.to_dict()
 	sec["rue_fondation"] = rue_fondation.to_dict()
 	sec["services_fondation"] = services_fondation.to_dict()
@@ -664,6 +672,8 @@ func load_game(slot := "") -> bool:
 	avis.from_dict(sec.get("avis", {}))
 	# Après les villages, le pays et les élections (mairies perdues).
 	objectifs.from_dict(sec.get("objectifs", {}))
+	if seance != null:
+		seance.from_dict(sec.get("seance", {}))
 	kit.from_dict(sec.get("kit", {}))
 	rue_fondation.from_dict(sec.get("rue_fondation", {}))
 	services_fondation.from_dict(sec.get("services_fondation", {}))
@@ -717,6 +727,7 @@ func load_game(slot := "") -> bool:
 		rig.set_pitch(float(cam.get("inclinaison", rig.get_target_pitch())), true)
 		_snap_pending = true
 	_chargement = false
+	grands_evenements.apres_chargement()
 	journal.ecoute = true
 	GameStart.slot_id = slot
 	_unsaved = false
@@ -1153,6 +1164,19 @@ func _setup_pays() -> void:
 		rig.position.x = pos.x
 		rig.position.z = pos.z)
 	hud.objectifs_requested.connect(func() -> void: objectifs_panel.toggle())
+	# Objectif de séance (20 min, paliers bronze/argent/or) : carte en haut à gauche.
+	seance = Seance.new()
+	seance.name = "Seance"
+	add_child(seance)
+	seance.setup(objectifs)
+	seance.ville_courante = func() -> int: return pays.actif if pays != null else -1
+	seance.actif = not GameStart.atelier
+	seance.message.connect(func(t: String) -> void: hud.show_message(t))
+	seance.changed.connect(func() -> void: _unsaved = true)
+	seance_banniere = SeanceBanniere.new()
+	seance_banniere.name = "SeanceBanniere"
+	add_child(seance_banniere)
+	seance.palier_atteint.connect(func(n: int, s: Dictionary) -> void: seance_banniere.montrer(n, s))
 
 
 ## Niveaux de vie (Maj+N) : les foyers montent de « Précaire » à « Très aisé »
@@ -1321,6 +1345,77 @@ func _setup_photo() -> void:
 	hud.photo_requested.connect(func() -> void: mode_photo.entrer())
 
 
+## Vols cinématiques (nouveau palier, grands événements, « Filmer » dans Infos)
+## et grands événements : fête de la ville, inauguration, premier train.
+func _setup_cinematique() -> void:
+	vol_cinematique = VolCinematique.new()
+	vol_cinematique.name = "VolCinematique"
+	vol_cinematique.rig = rig
+	vol_cinematique.ambiance = ambiance
+	vol_cinematique.ground_height = rig.ground_height
+	vol_cinematique.bloque = func() -> bool:
+		return GameStart.atelier or VisiteVille.active() or mode_photo.actif
+	add_child(vol_cinematique)
+	vol_cinematique.message.connect(func(t: String) -> void: hud.show_message(t))
+	vol_cinematique.en_vol.connect(func(on: bool) -> void:
+		if on:
+			_select_building_tool())
+	grands_evenements = GrandsEvenements.new(evenements, communes, transport.stations)
+	grands_evenements.filmer = vol_cinematique.lancer
+	evenements.grands = grands_evenements
+	evenements_panel.filmer = func(e: Dictionary) -> void:
+		vol_cinematique.lancer({"centre": e.pos, "rayon": 90.0 if String(e.type) != "match" else 140.0,
+			"titre": String(e.nom), "sous_titre": evenements_panel.lieu_de(e), "son": "ui_ouvrir"})
+	evenements_panel.organiser_fete_ville = func() -> void:
+		grands_evenements.organiser_fete(Vector3(rig.position.x, 0.0, rig.position.z))
+	patrimoine.inaugure.connect(func(bid: int) -> void:
+		if not _chargement:
+			grands_evenements.on_inauguration(bid, patrimoine.nom(bid)))
+	transport.stations.lines_changed.connect(func() -> void:
+		if not _chargement:
+			grands_evenements.verifier_trains())
+	objectifs.palier_gagne.connect(func(vid: int, i: int) -> void:
+		if not _chargement:
+			vol_palier(vid, i))
+	grands_evenements.apres_chargement()
+
+
+const BULLES_PALIER := [
+	"",
+	"« Un village ! Il va falloir trouver un nom au chien du maire. »",
+	"« Un bourg : le marché ne fermera plus à midi. Enfin, pas tous les jours. »",
+	"« Une ville ! Mon cousin dit que ça veut surtout dire des bouchons. »",
+	"« Ville moyenne ? Moyenne… on vise plus haut, non ? »",
+	"« Grande ville : même les pigeons demandent une ligne de tram. »",
+	"« Métropole ! Je vais enfin pouvoir dire que j'habite en banlieue. »",
+]
+
+
+## Vol au-dessus d'une ville qui vient de gagner un palier, petit feu d'artifice sur la mairie.
+func vol_palier(vid: int, i: int) -> bool:
+	if not communes.villages.has(vid) or i <= 0 or i >= Objectifs.PALIERS.size():
+		return false
+	var p: Dictionary = Objectifs.PALIERS[i]
+	var pos := grands_evenements.pos_mairie(vid)
+	if not pos.is_finite():
+		return false
+	var hab := int(communes.stats.get(vid, {}).get("hab", 0))
+	# Rayon du survol selon la taille de la ville (≈ 70 m pour 130 habitants, 400 m pour 5 000).
+	var rayon := clampf(sqrt(float(hab)) * 6.0, 60.0, 400.0)
+	var prime := ReglagesPartie.prix(int(p.prime))
+	var feux := FeuxArtifice.new()
+	feux.duree = GrandsEvenements.FEUX_PALIER
+	feux.rayon = 12.0
+	feux.cadence = 1.0
+	feux.avec_son = DisplayServer.get_name() != "headless"
+	feux.position = pos
+	evenements.visuels.add_child(feux)
+	return vol_cinematique.lancer({"centre": pos, "rayon": rayon,
+		"titre": "%s devient %s" % [String(communes.villages[vid].nom), String(p.nom)],
+		"sous_titre": "%d habitants · prime de %s pour le pays" % [hab, BuildingSystem.format_money(prime)],
+		"bulle": BULLES_PALIER[i], "son": "palier", "auto": true})
+
+
 ## Journal de la ville (F4, menu Infos) : une édition chaque matin sur la veille.
 func _setup_journal() -> void:
 	journal = Journal.new()
@@ -1372,6 +1467,9 @@ func _setup_tutoriel() -> void:
 	add_child(tuto_carte)
 	tuto_carte.ville_courante = func() -> int: return pays.actif
 	tuto_carte.setup(tutoriel, objectifs)
+	tuto_carte.poser_seance(seance)
+	# Pendant le tutoriel (et la démo guidée), c'est lui l'objectif : la séance attend.
+	seance.bloque = func() -> bool: return tutoriel.actif
 	tuto_carte.objectifs_requested.connect(func() -> void: objectifs_panel.set_open(not objectifs_panel.is_open()))
 	# Bulles d'aide et guide par chapitres.
 	bulles_aide = BullesAide.new()
@@ -2992,12 +3090,16 @@ func _setup_mairie() -> void:
 	# Bâtiments non raccordés : une alerte qui emmène au bâtiment.
 	if reseaux != null and reseaux.raccordements != null:
 		reseaux.raccordements.telecom = telecom
-		mairie_panel.autres_alertes = func(l: String) -> Array:
-			var out: Array = reseaux.raccordements.alertes(_filtre_ville(l))
-			# Appels d'urgence qu'aucun bâtiment de la ville ne peut traiter.
-			if urgences != null:
-				out.append_array(urgences.alertes())
-			return out
+	mairie_panel.autres_alertes = func(l: String) -> Array:
+		var out: Array = []
+		if reseaux != null and reseaux.raccordements != null:
+			out.append_array(reseaux.raccordements.alertes(_filtre_ville(l)))
+		# Appels d'urgence qu'aucun bâtiment de la ville ne peut traiter.
+		if urgences != null:
+			out.append_array(urgences.alertes())
+		# Chantiers à l'arrêt : pas assez d'ouvriers, ou plus d'argent.
+		out.append_array(Causes.alertes_chantiers(l))
+		return out
 	hud.mairie_requested.connect(func() -> void: mairie_panel.toggle())
 	mairie_panel.visibilite.connect(func(on: bool) -> void: hud.set_mairie_open(on))
 	fil_alertes = FilAlertes.new()
@@ -3073,6 +3175,25 @@ func _setup_fil_habitants() -> void:
 			if population.persons.has(pid):
 				fil_habitants.ajouter(fil_habitants._post(population.persons[pid], "regisseur", t, "pancarte", false)))
 	fil_habitants.person_requested.connect(func(pid: int) -> void:
+		if population.persons.has(pid):
+			habitants_panel.set_open(true)
+			habitants_panel.show_view("profil", pid))
+	_setup_reactions()
+
+
+## Bulles des habitants : un habitant du coin réagit en une phrase aux choix du
+## joueur (pose, démolition, routes, impôts, annuler…). Une bulle à la fois.
+var reactions: ReactionsHabitants
+
+
+func _setup_reactions() -> void:
+	reactions = ReactionsHabitants.new()
+	hud.add_child(reactions)
+	reactions.setup(self, population)
+	reactions.actif = not GameStart.atelier
+	reactions.masque = func() -> bool: return affichage != null and affichage.est_masque("bulles")
+	reactions.pret = func() -> bool: return not _chargement
+	reactions.person_requested.connect(func(pid: int) -> void:
 		if population.persons.has(pid):
 			habitants_panel.set_open(true)
 			habitants_panel.show_view("profil", pid))
@@ -3163,6 +3284,8 @@ func _setup_affichage() -> void:
 		func() -> void:
 			if is_instance_valid(fil_habitants):
 				fil_habitants._rafraichir())
+	affichage.ajouter("bulles", "Bulles des habitants", "sourire", "Les habitants réagissent en une phrase à tes choix",
+		func() -> Control: return reactions.carte() if is_instance_valid(reactions) else null)
 	affichage.ajouter("a_faire", "À faire", "cloche", "Les alertes de la Mairie à traiter (aussi dans la Mairie, M)",
 		func() -> Control: return fil_alertes._panel if is_instance_valid(fil_alertes) else null,
 		func() -> void:
@@ -3698,6 +3821,8 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 		pilote.clear()
 	if objectifs != null:
 		objectifs.clear()
+	if seance != null:
+		seance.clear()
 	if quartiers != null:
 		quartiers.clear()
 	if kit != null:
@@ -3714,6 +3839,8 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 		journal.clear()
 	if fil_habitants != null:
 		fil_habitants.clear()
+	if reactions != null:
+		reactions.clear()
 	if communes != null:
 		communes.clear()
 	if fondateurs != null:

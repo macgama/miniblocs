@@ -245,11 +245,15 @@ void fragment() {
 			alb = mix(alb, washed, wear * (0.3 + 0.5 * n1));
 			float foot = 1.0 - smoothstep(0.0, 2.0, ly);
 			alb *= 1.0 - wear * (0.3 * foot + 0.18 * smoothstep(0.55, 0.85, n1));
-			if (up > 0.25) {
-				// Mousse : petites taches, surtout vers le bas des pans.
+			if (up > 0.25 && ly > 2.2) {
+				// Mousse : seulement sur les toits (pas sur les cours, terrasses et
+				// trottoirs au pied du bâtiment), et seulement sur un bâtiment déjà
+				// bien vieux (usure >= 40 %). Petites taches discrètes, d'un vert
+				// olive à peine plus sombre que la tuile.
 				float nm = vnoise(wp * 3.1) * 0.6 + n2 * 0.5;
-				float m = smoothstep(0.98 - wear * 0.3, 1.06 - wear * 0.28, nm);
-				alb = mix(alb, vec3(0.07, 0.10, 0.03), m * 0.7 * smoothstep(0.12, 0.45, wear));
+				float m = smoothstep(1.02 - wear * 0.22, 1.1 - wear * 0.2, nm);
+				vec3 mousse = mix(alb, vec3(0.10, 0.13, 0.05), 0.6);
+				alb = mix(alb, mousse, m * 0.55 * smoothstep(0.35, 0.8, wear));
 			}
 			if (abs(up) < 0.3) {
 				// Lierre : monte du sol en traînées verticales, plus haut et plus dense quand le bâtiment est abandonné.

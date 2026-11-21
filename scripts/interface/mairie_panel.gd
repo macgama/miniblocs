@@ -12,6 +12,8 @@ signal panneau_requested(id: String)
 signal visibilite(on: bool)
 
 const KEY := KEY_M
+## Alertes affichées à la fois (Mairie et fil « À faire ») : les plus graves d'abord.
+const MAX_ALERTES := 3
 
 ## Tuiles : titre, icône, indicateur principal, détail, panneau ouvert au clic.
 const TUILES := [
@@ -132,7 +134,7 @@ static func _label(text: String, size := 13, color := Color.WHITE, wrap := true)
 
 
 ## Avis à afficher : urgents et à surveiller d'abord (Conseiller), au plus n.
-func alertes(n := 4) -> Array:
+func alertes(n := MAX_ALERTES) -> Array:
 	if stats == null:
 		return []
 	var out := []
@@ -155,6 +157,15 @@ func alertes(n := 4) -> Array:
 	return out
 
 
+## Nombre total d'alertes (urgentes ou à surveiller), même au-delà des 3 affichées.
+func nombre_alertes() -> int:
+	var n := 0
+	for a in alertes(99):
+		if int(a.gravite) >= 1:
+			n += 1
+	return n
+
+
 func refresh() -> void:
 	for ch in _body.get_children():
 		_body.remove_child(ch)
@@ -169,7 +180,10 @@ func refresh() -> void:
 	for a in al:
 		_body.add_child(carte_alerte(a, func(id: String) -> void:
 			set_open(false)
-			panneau_requested.emit(id)))
+			panneau_requested.emit(id), false, _lieu()))
+	var reste := nombre_alertes() - al.size()
+	if reste > 0:
+		_body.add_child(_label("+ %d autre%s, moins grave%s : elles passeront ici une fois celles-ci réglées." % [reste, "s" if reste > 1 else "", "s" if reste > 1 else ""], 12, UiStyle.TEXT_DIM))
 	# --- État de la ville ---------------------------------------------------------
 	_body.add_child(_label("ÉTAT DE LA VILLE", 11, UiStyle.TEXT_DIM))
 	var grid := GridContainer.new()
@@ -218,17 +232,27 @@ static func _key_of(id: String) -> String:
 	return ""
 
 
-## Carte d'un avis du Conseiller : pastille de couleur, titre, texte, bouton.
-static func carte_alerte(a: Dictionary, ouvrir: Callable, compact := false) -> Control:
+## Causes dépliées (« Pourquoi ? ») : id de l'avis -> true, gardé entre deux rafraîchissements.
+static var causes_ouvertes := {}
+
+
+## Carte d'un avis du Conseiller : pastille de couleur, titre, texte, bouton
+## « Régler » (ouvre ce qu'il faut pour le régler) et « Pourquoi ? » qui déplie la
+## cause chiffrée (Causes.de) : en un clic, on sait d'où vient le problème.
+static func carte_alerte(a: Dictionary, ouvrir: Callable, compact := false, lieu: String = Statistiques.PAYS) -> Control:
 	var g := int(a.gravite)
 	var card := PanelContainer.new()
+	card.name = "Alerte_" + String(a.get("id", ""))
 	var sb := UiStyle.flat_box(Color(1, 1, 1, 0.05), 8, 8)
 	sb.border_color = Conseiller.COULEURS[g]
 	sb.border_width_left = 4
 	card.add_theme_stylebox_override("panel", sb)
+	var tout := VBoxContainer.new()
+	tout.add_theme_constant_override("separation", 4)
+	card.add_child(tout)
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 8)
-	card.add_child(row)
+	row.add_theme_constant_override("separation", 6)
+	tout.add_child(row)
 	var col := VBoxContainer.new()
 	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	col.add_theme_constant_override("separation", 1)
@@ -240,10 +264,50 @@ static func carte_alerte(a: Dictionary, ouvrir: Callable, compact := false) -> C
 	col.add_child(tt)
 	if not compact:
 		col.add_child(_label(String(a.conseil) if String(a.get("conseil", "")) != "" else String(a.texte), 12, UiStyle.TEXT_DIM))
+	var id := String(a.get("id", ""))
+	# Cause chiffrée, dépliée par « Pourquoi ? » (seulement pour ce qui ne va pas).
+	var boite: VBoxContainer = null
+	if g >= 1:
+		boite = VBoxContainer.new()
+		boite.name = "Cause"
+		boite.add_theme_constant_override("separation", 1)
+		tout.add_child(boite)
+		var remplir := func() -> void:
+			for ch in boite.get_children():
+				boite.remove_child(ch)
+				ch.queue_free()
+			var c := Causes.de(a, lieu)
+			var cl := _label("Cause : " + String(c.cause), 12, UiStyle.ACCENT)
+			cl.name = "TexteCause"
+			boite.add_child(cl)
+			for l in c.lignes:
+				if String(l) != "":
+					boite.add_child(_label("· " + String(l), 11, UiStyle.TEXT_DIM))
+		boite.visible = bool(causes_ouvertes.get(id, false))
+		if boite.visible:
+			remplir.call()
+		var q := Button.new()
+		q.name = "Pourquoi"
+		q.text = "?" if compact else "Pourquoi ?"
+		q.tooltip_text = "Pourquoi ? Voir la cause du problème, avec les chiffres"
+		q.focus_mode = Control.FOCUS_NONE
+		q.toggle_mode = true
+		q.button_pressed = boite.visible
+		q.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		if compact:
+			q.custom_minimum_size = Vector2(26, 0)
+		q.toggled.connect(func(on: bool) -> void:
+			causes_ouvertes[id] = on
+			if on:
+				remplir.call()
+			boite.visible = on)
+		row.add_child(q)
 	var pid := String(a.get("panneau", ""))
 	if pid != "":
 		var b := Button.new()
-		b.text = ("Voir ›" if compact else "%s ›" % _verbe(pid))
+		b.name = "Regler"
+		b.text = "Régler" if compact else "Régler ›"
+		b.tooltip_text = "%s : ouvre ce qu'il faut pour régler le problème" % _verbe(pid)
 		b.focus_mode = Control.FOCUS_NONE
 		b.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		b.add_theme_color_override("font_color", UiStyle.ACCENT)

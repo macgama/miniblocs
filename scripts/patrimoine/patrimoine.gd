@@ -31,6 +31,8 @@ extends Node
 signal message(text: String)
 signal actualite(text: String, pos: Vector3)
 signal changed
+## Un grand monument est inauguré (fête, feu d'artifice : GrandsEvenements).
+signal inaugure(bid: int)
 
 static var instance: Patrimoine
 
@@ -668,6 +670,7 @@ func inaugurer(bid: int) -> void:
 		txt += " Les donateurs ont payé %s." % BuildingSystem.format_money(int(s.recu))
 	message.emit(txt)
 	actualite.emit(txt, pos_of(bid))
+	inaugure.emit(bid)
 	changed.emit()
 
 

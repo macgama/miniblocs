@@ -181,6 +181,8 @@ var quartiers: Quartiers
 var quartiers_panel: QuartiersPanel
 ## Mode photo (F8) et time-lapse de la ville (Maj+F8), scripts/photo.
 var mode_photo: ModePhoto
+var vol_cinematique: VolCinematique
+var grands_evenements: GrandsEvenements
 var timelapse: TimeLapse
 var mode_streamer: ModeStreamer
 var streamer_panel: StreamerPanel
@@ -274,6 +276,7 @@ func _ready() -> void:
 	_setup_create_mode()
 	_setup_son()
 	_setup_photo()
+	_setup_cinematique()
 	_setup_streamer()
 	_setup_succes()
 	_setup_visites()
@@ -717,6 +720,7 @@ func load_game(slot := "") -> bool:
 		rig.set_pitch(float(cam.get("inclinaison", rig.get_target_pitch())), true)
 		_snap_pending = true
 	_chargement = false
+	grands_evenements.apres_chargement()
 	journal.ecoute = true
 	GameStart.slot_id = slot
 	_unsaved = false
@@ -1319,6 +1323,77 @@ func _setup_photo() -> void:
 		if cid >= 0:
 			mode_photo._toast("Time-lapse : ce cadrage sera filmé une fois par jour de jeu, vers midi (Maj+F8 pour revoir)."))
 	hud.photo_requested.connect(func() -> void: mode_photo.entrer())
+
+
+## Vols cinématiques (nouveau palier, grands événements, « Filmer » dans Infos)
+## et grands événements : fête de la ville, inauguration, premier train.
+func _setup_cinematique() -> void:
+	vol_cinematique = VolCinematique.new()
+	vol_cinematique.name = "VolCinematique"
+	vol_cinematique.rig = rig
+	vol_cinematique.ambiance = ambiance
+	vol_cinematique.ground_height = rig.ground_height
+	vol_cinematique.bloque = func() -> bool:
+		return GameStart.atelier or VisiteVille.active() or mode_photo.actif
+	add_child(vol_cinematique)
+	vol_cinematique.message.connect(func(t: String) -> void: hud.show_message(t))
+	vol_cinematique.en_vol.connect(func(on: bool) -> void:
+		if on:
+			_select_building_tool())
+	grands_evenements = GrandsEvenements.new(evenements, communes, transport.stations)
+	grands_evenements.filmer = vol_cinematique.lancer
+	evenements.grands = grands_evenements
+	evenements_panel.filmer = func(e: Dictionary) -> void:
+		vol_cinematique.lancer({"centre": e.pos, "rayon": 90.0 if String(e.type) != "match" else 140.0,
+			"titre": String(e.nom), "sous_titre": evenements_panel.lieu_de(e), "son": "ui_ouvrir"})
+	evenements_panel.organiser_fete_ville = func() -> void:
+		grands_evenements.organiser_fete(Vector3(rig.position.x, 0.0, rig.position.z))
+	patrimoine.inaugure.connect(func(bid: int) -> void:
+		if not _chargement:
+			grands_evenements.on_inauguration(bid, patrimoine.nom(bid)))
+	transport.stations.lines_changed.connect(func() -> void:
+		if not _chargement:
+			grands_evenements.verifier_trains())
+	objectifs.palier_gagne.connect(func(vid: int, i: int) -> void:
+		if not _chargement:
+			vol_palier(vid, i))
+	grands_evenements.apres_chargement()
+
+
+const BULLES_PALIER := [
+	"",
+	"« Un village ! Il va falloir trouver un nom au chien du maire. »",
+	"« Un bourg : le marché ne fermera plus à midi. Enfin, pas tous les jours. »",
+	"« Une ville ! Mon cousin dit que ça veut surtout dire des bouchons. »",
+	"« Ville moyenne ? Moyenne… on vise plus haut, non ? »",
+	"« Grande ville : même les pigeons demandent une ligne de tram. »",
+	"« Métropole ! Je vais enfin pouvoir dire que j'habite en banlieue. »",
+]
+
+
+## Vol au-dessus d'une ville qui vient de gagner un palier, petit feu d'artifice sur la mairie.
+func vol_palier(vid: int, i: int) -> bool:
+	if not communes.villages.has(vid) or i <= 0 or i >= Objectifs.PALIERS.size():
+		return false
+	var p: Dictionary = Objectifs.PALIERS[i]
+	var pos := grands_evenements.pos_mairie(vid)
+	if not pos.is_finite():
+		return false
+	var hab := int(communes.stats.get(vid, {}).get("hab", 0))
+	# Rayon du survol selon la taille de la ville (≈ 70 m pour 130 habitants, 400 m pour 5 000).
+	var rayon := clampf(sqrt(float(hab)) * 6.0, 60.0, 400.0)
+	var prime := ReglagesPartie.prix(int(p.prime))
+	var feux := FeuxArtifice.new()
+	feux.duree = GrandsEvenements.FEUX_PALIER
+	feux.rayon = 12.0
+	feux.cadence = 1.0
+	feux.avec_son = DisplayServer.get_name() != "headless"
+	feux.position = pos
+	evenements.visuels.add_child(feux)
+	return vol_cinematique.lancer({"centre": pos, "rayon": rayon,
+		"titre": "%s devient %s" % [String(communes.villages[vid].nom), String(p.nom)],
+		"sous_titre": "%d habitants · prime de %s pour le pays" % [hab, BuildingSystem.format_money(prime)],
+		"bulle": BULLES_PALIER[i], "son": "palier", "auto": true})
 
 
 ## Journal de la ville (F4, menu Infos) : une édition chaque matin sur la veille.

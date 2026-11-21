@@ -20,6 +20,8 @@ extends Node
 
 signal changed
 signal message(text: String)
+## Une ville gagne un palier (index de PALIERS) : vol cinématique au-dessus d'elle.
+signal palier_gagne(vid: int, palier: int)
 
 static var instance: Objectifs
 
@@ -327,6 +329,7 @@ func verifier_palier(vid: int) -> void:
 		message.emit("%s devient « %s » ! Le pays reçoit une prime de %s." % [pays.nom_de(vid), String(p.nom), BuildingSystem.format_money(prime)])
 		ajouter_reputation(float(p.rep), "%s devient %s" % [pays.nom_de(vid), String(p.nom).to_lower()])
 		ArbreProgression.rang_atteint(String(p.nom), pays.nom_de(vid), vid)
+		palier_gagne.emit(vid, i)
 
 
 # --- Missions ------------------------------------------------------------------------------

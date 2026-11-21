@@ -266,6 +266,59 @@ def coq():
     return _finish(b, 0.6, 0.2, 1.5)
 
 
+# --- Grands événements -------------------------------------------------------
+
+def feu_artifice():
+    """Une fusée : sifflement qui monte, boum sourd, puis crépitement doré."""
+    rng = Rng(191)
+    b = _buf(4.2)
+    # Sifflement montant (0,9 s), un peu tremblant.
+    n = samples(0.9)
+    t = secs(n)
+    f = 900 + 2600 * (t / 0.9) ** 1.4
+    ph = 2 * np.pi * np.cumsum(f * (1 + 0.01 * np.sin(2 * np.pi * 23 * t))) / SR
+    wh = np.sin(ph) * np.clip(t / 0.08, 0, 1) * (0.25 + 0.75 * t / 0.9)
+    wh += bp(white(rng, n), 2500, 7000) * 0.25
+    _place(b, 0.0, wh, rng.u(-0.2, 0.2), 0.25)
+    # Boum : bruit grave et court, avec queue de réverbération.
+    nb = samples(1.6)
+    tb = secs(nb)
+    boom = lp(white(rng, nb), 260, 4) * np.exp(-tb * 5.0) * 2.6
+    boom += lp(brown(rng, nb), 120) * np.exp(-tb * 3.0) * 0.8
+    boom += hp(white(rng, nb), 1800) * np.exp(-tb * 40.0) * 0.6
+    _place(b, 0.95, boom, 0.0, 0.9)
+    # Crépitement : petits craquements au hasard pendant 2 s.
+    for _ in range(70):
+        at = 1.15 + rng.u(0.0, 1.0) ** 1.6 * 2.2
+        nk = samples(0.02)
+        tk = secs(nk)
+        k = hp(white(rng, nk), 3000) * np.exp(-tk * 260)
+        _place(b, at, k, rng.u(-0.8, 0.8), rng.u(0.06, 0.22))
+    return _finish(b, 0.85, 0.3, 2.4)
+
+
+def applaudissements():
+    """La foule applaudit et crie « bravo » (inaugurations, premier train)."""
+    rng = Rng(193)
+    b = _buf(5.0)
+    for _ in range(420):
+        at = rng.u(0.0, 4.2)
+        nk = samples(0.03)
+        tk = secs(nk)
+        f = rng.u(900, 2200)
+        k = bp(white(rng, nk), f * 0.6, f * 1.8) * np.exp(-tk * 160)
+        g = rng.u(0.05, 0.18) * min(1.0, at / 0.35) * min(1.0, (4.6 - at) / 1.2)
+        _place(b, at, k, rng.u(-0.9, 0.9), g)
+    # Rumeur de voix (« ouais ! », « bravo ! ») : bruit coloré par des voyelles.
+    n = samples(3.6)
+    t = secs(n)
+    src = pink(rng, n)
+    vox = reson(src, 650, 6) + reson(src, 1100, 7) * 0.7 + reson(src, 2400, 9) * 0.3
+    vox = lp(vox, 3000) * np.clip(t / 0.4, 0, 1) * np.exp(-t * 0.5)
+    _place(b, 0.15, np.vstack([vox, np.roll(vox, 900)]) * 0.35)
+    return _finish(b, 0.7, 0.2, 1.6)
+
+
 ALL = {
     "ui_clic": ui_clic,
     "ui_ouvrir": ui_ouvrir,
@@ -286,4 +339,6 @@ ALL = {
     "tonnerre_2": lambda: tonnerre(182),
     "cloches": cloches,
     "coq": coq,
+    "feu_artifice": feu_artifice,
+    "applaudissements": applaudissements,
 }

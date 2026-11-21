@@ -57,6 +57,34 @@ func _types_tests() -> void:
 		_check(GestionTypes.pieces(g).has(String(d.piece)), "demande « %s » dans une pièce connue" % d.texte)
 	_check(GestionTypes.piece_du_metier(g, "receptionniste") == "reception" and GestionTypes.piece_du_metier(g, "cuisinier") == "restaurant", "métiers rangés par pièce")
 	_check(Icones.has_icon("lit") and Icones.has_icon("grue") and Icones.has_icon("haut"), "icônes du mode gestion")
+	print("Objets :")
+	var nb := 0
+	var modeles_ok := true
+	var poses_ok := true
+	for pid in GestionTypes.ordre(g):
+		var r: Array = GestionTypes.piece(g, String(pid)).rect
+		for oid in GestionTypes.objets(g, String(pid)):
+			var o := GestionTypes.objet(g, String(pid), String(oid))
+			nb += 1
+			_check(o.has("nom") and o.has("prix") and o.has("effets") and int(o.get("niv", 1)) <= int(GestionTypes.piece(g, String(pid)).max), "%s/%s complet" % [pid, oid])
+			var m := String(o.get("modele", ""))
+			if m != "":
+				var k := LpKit.new(1)
+				GestionModeles.dessiner(k, m, Vector3.ZERO, 0.0)
+				if k.triangle_count() <= 0:
+					modeles_ok = false
+					push_error("modèle vide : " + m)
+				var w := 10.0 if bool(o.get("cellules", false)) else float(r[2])
+				var d := float(r[3]) / 6.0 if bool(o.get("cellules", false)) else float(r[3])
+				for ps in o.get("poses", []):
+					if float(ps[0]) < -0.01 or float(ps[0]) > w + 0.01 or float(ps[1]) < -3.0 or float(ps[1]) > d + 0.01:
+						poses_ok = false
+						push_error("%s/%s posé hors de la pièce : %s" % [pid, oid, ps])
+	_check(nb >= 70, "%d objets à acheter" % nb)
+	_check(modeles_ok, "chaque objet a son modèle 3D")
+	_check(poses_ok, "chaque objet est posé dans sa pièce")
+	for f in ["pannes", "pensees", "activites"]:
+		_check(GestionTypes.genre(g).has(f), "le genre a ses %s" % f)
 
 
 func _city_tests() -> void:
@@ -214,7 +242,53 @@ func _city_tests() -> void:
 	var obj := gest.objectifs(hotel)
 	_check(obj.size() >= 4 and bool(obj[0].fait), "objectifs (« %s » fait)" % String(obj[0].texte))
 
+	print("Objets, personnel, pannes :")
+	bs.money = 50_000_000
+	var c0 := gest.effet(hotel, "confort")
+	_check(gest.refus_objet(hotel, "reception", "lustre") != "" and not bool(gest.acheter(hotel, "reception", "lustre").ok), "le lustre attend le hall au niveau 4")
+	var ra := gest.acheter(hotel, "reception", "plantes_hall")
+	_check(bool(ra.ok) and gest.a_objet(hotel, "reception", "plantes_hall") and gest.effet(hotel, "confort") > c0, "plantes vertes installées : plus de confort")
+	_check(gest.refus_objet(hotel, "reception", "plantes_hall") == "déjà installé", "on n'achète pas deux fois le même objet")
+	_check(gest.prix_objet(hotel, "chambres", "tele") > 0 and gest.prix_objet(hotel, "piscine", "toboggan") > gest.prix_objet(hotel, "piscine", "bouees"), "prix des objets")
+	var s0 := gest.effet(hotel, "satisf")
+	gest.set_salaire(hotel, 9.0)
+	_check(absf(float(gest.etat(hotel).salaire) - Gestion.SALAIRE_MAX) < 0.001 and gest.effet(hotel, "satisf") > s0, "salaires au maximum : équipe plus souriante")
+	var ent0 := gest.entretien_jour(hotel)
+	gest.set_salaire(hotel, 1.0)
+	_check(gest.entretien_jour(hotel) < ent0, "et ça coûte plus cher")
+	var v0 := gest.effet(hotel, "vitesse")
+	_check(bool(gest.former(hotel).ok) and int(gest.etat(hotel).formation) == 1 and gest.effet(hotel, "vitesse") > v0, "formation du personnel")
+	var sp0 := gest.effet(hotel, "satisf")
+	var pn := gest.nouvelle_panne(hotel)
+	_check(not pn.is_empty() and (gest.etat(hotel).pannes as Array).size() == 1, "une panne : %s" % String(pn.get("texte", "")))
+	_check(gest.effet(hotel, "satisf") < sp0, "la panne pèse sur la satisfaction")
+	_check(bool(gest.reparer(hotel, 0).ok) and (gest.etat(hotel).pannes as Array).is_empty() and int(gest.etat(hotel).reparees) == 1, "panne réparée")
+	_check((gest.etat(hotel).journal as Array).size() >= 3, "le journal raconte (%d lignes)" % (gest.etat(hotel).journal as Array).size())
+
+	print("Gestion automatique :")
+	gest.set_auto(deux, false)
+	tour.heb[deux].compte = 5_000_000.0
+	var inv0 := float(gest.etat(deux).invest)
+	gest.nouveau_jour({"day": 40, "month": 7})
+	_check(absf(float(gest.etat(deux).invest) - inv0) < 1.0, "« Je gère » : l'hôtel n'achète rien tout seul")
+	_check((gest.etat(deux).hist as Array).size() >= 1, "historique du jour enregistré")
+	gest.set_auto(deux, true)
+	var caisse_auto := bs.money
+	gest.nouvelle_panne(deux)
+	gest.nouveau_jour({"day": 41, "month": 7})
+	_check(float(gest.etat(deux).invest) > inv0, "auto : l'hôtel investit ses bénéfices (%s)" % BuildingSystem.format_money(int(float(gest.etat(deux).invest) - inv0)))
+	_check((gest.etat(deux).pannes as Array).is_empty(), "auto : les pannes sont réparées")
+	_check(bs.money == caisse_auto, "auto : la caisse de la ville n'est jamais touchée")
+	tour.heb[deux].compte = 0.0
+	var inv1 := float(gest.etat(deux).invest)
+	gest.nouveau_jour({"day": 42, "month": 7})
+	_check(absf(float(gest.etat(deux).invest) - inv1) < 1.0, "auto sans argent : rien")
+	var nb_cand := gest.candidats(hotel).size()
+	_check(nb_cand > 20, "%d achats possibles pour la gestion auto" % nb_cand)
+
 	print("Sauvegarde :")
+	gest.nouvelle_panne(hotel)
+	gest.set_salaire(hotel, 1.2)
 	var d := gest.to_dict()
 	var niv_avant: Dictionary = gest.etat(hotel).niv.duplicate()
 	gest.clear()
@@ -222,6 +296,9 @@ func _city_tests() -> void:
 	gest.from_dict(JSON.parse_string(JSON.stringify(d)))
 	_check(gest.etats.has(hotel) and gest.etat(hotel).niv == niv_avant, "rechargé : mêmes niveaux")
 	_check(bool(tour.spec(hotel).get("piscine", false)), "la piscine revient avec la sauvegarde")
+	_check(gest.a_objet(hotel, "reception", "plantes_hall") and (gest.etat(hotel).pannes as Array).size() >= 1, "objets et pannes reviennent")
+	_check(absf(float(gest.etat(hotel).salaire) - 1.2) < 0.001 and int(gest.etat(hotel).formation) == 1, "salaire et formation reviennent")
+	_check(gest.auto(deux), "le mode automatique revient")
 
 	print("Écran isométrique :")
 	tour.heb[hotel].clients = [[40, 3, 3.0], [30, 2, 3.0]]
@@ -270,6 +347,48 @@ func _city_tests() -> void:
 		bouton.pressed.emit()
 	await process_frame
 	_check(gest.niveau(hotel, "parking") == 1, "parking construit depuis l'écran")
+	# Objets depuis l'écran.
+	vue.choisir("reception")
+	var ligne: Node = vue._carte_corps.find_child("Objet_canapes_hall", true, false)
+	_check(ligne != null, "la carte de la réception liste ses objets")
+	var acheter: Button = ligne.find_child("Acheter", true, false) if ligne != null else null
+	_check(acheter != null and not acheter.disabled, "bouton d'achat des canapés")
+	if acheter != null:
+		acheter.pressed.emit()
+	await process_frame
+	_check(gest.a_objet(hotel, "reception", "canapes_hall"), "canapés achetés depuis l'écran")
+	var assis := 0
+	for pl in dio.places.get("reception", []):
+		if bool(pl.assis):
+			assis += 1
+	_check(assis >= 4, "les canapés offrent des places assises (%d)" % assis)
+	# Panne sur la maquette, onglets.
+	_check(dio.pannes_l.size() == (gest.etat(hotel).pannes as Array).size() and dio.pannes_l.size() >= 1, "la panne s'affiche sur la maquette")
+	vue.choisir("")
+	for o in ["personnel", "stats", "journal", "ensemble"]:
+		var b: Button = vue._carte_corps.find_child("Onglet_" + o, true, false)
+		_check(b != null, "onglet %s" % o)
+		if b != null:
+			b.pressed.emit()
+			await process_frame
+			_check(vue.onglet == o, "onglet %s ouvert" % o)
+		if o == "personnel":
+			var rep: Button = vue._carte_corps.find_child("Reparer", true, false)
+			_check(rep != null, "bouton Réparer dans l'équipe")
+			var np0 := (gest.etat(hotel).pannes as Array).size()
+			if rep != null:
+				rep.pressed.emit()
+				await process_frame
+				_check((gest.etat(hotel).pannes as Array).size() == np0 - 1 and dio.pannes_l.size() == np0 - 1, "réparé depuis l'écran")
+			var plus: Button = vue._carte_corps.find_child("Salaire_plus", true, false)
+			if plus != null:
+				plus.pressed.emit()
+			_check(float(gest.etat(hotel).salaire) > 1.2, "salaires augmentés depuis l'écran")
+	var auto: Button = vue._racine.find_child("Auto", true, false)
+	_check(auto != null and auto.button_pressed == gest.auto(hotel), "bouton Gestion auto")
+	if auto != null:
+		auto.button_pressed = not auto.button_pressed
+	_check(auto != null and gest.auto(hotel) == auto.button_pressed, "bascule auto / je gère")
 	var ev := InputEventKey.new()
 	ev.keycode = KEY_ESCAPE
 	ev.pressed = true

@@ -47,6 +47,7 @@ extends RefCounted
 const EFFETS := {
 	"lits": "lits", "confort": "confort", "attrait": "clients attirés", "satisf": "satisfaction", "repas": "repas sur place",
 	"vitesse": "vitesse du service", "ventes": "dépenses des clients", "couverts": "couverts",
+	"equipage": "personnes de garde", "engins": "véhicules",
 }
 
 const GENRES := {
@@ -316,6 +317,11 @@ static func genre_de(type_id: String) -> String:
 		return "hotel"
 	if Ressources.commerce_of(type_id).has("consomme"):
 		return "restaurant"
+	# Services d'urgence (versions d'époque et modèles de l'Atelier compris).
+	var t := type_id if Urgences.BUILDING_SERVICE.has(type_id) else BuildingCatalog.base_of(type_id)
+	match t:
+		"pompiers":
+			return "caserne"
 	return ""
 
 
@@ -324,6 +330,8 @@ static func genre(g: String) -> Dictionary:
 	match g:
 		"restaurant":
 			return GenreRestaurant.GENRE
+		"caserne":
+			return GenreCaserne.GENRE
 	return GENRES.get(g, {})
 
 

@@ -440,6 +440,8 @@ static func dessiner(k: LpKit, nom: String, teinte := Color.WHITE) -> void:
 			k.lathe(Vector3(0, 0.78, 0.05), [Vector2(0.0, 0.0), Vector2(0.16, 0.0), Vector2(0.22, 0.12), Vector2(0.0, 0.12)], 10, BLANC, true, false)
 			k.tube(Vector3(0, 0.88, -0.18), Vector3(0, 1.0, -0.05), 0.02, 0.02, 4, INOX)
 			k.box(Vector3(0, 1.45, -0.22), Vector3(0.55, 0.7, 0.03), Color("cfe8ef"))
+		_:
+			ModelesCaserne.dessiner(k, nom, teinte)
 
 
 ## Petites étagères murales derrière un meuble (boîtes de thé, pots).

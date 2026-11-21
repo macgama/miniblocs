@@ -40,7 +40,7 @@ static func dessiner(d: GestionDiorama, k: LpKit, decor: String, r: Array, n: in
 			return _potager(d, k, r, n)
 		"resto_livraison":
 			return _livraison(d, k, r, n)
-	return []
+	return DecorsCaserne.dessiner(d, k, decor, r, n)
 
 
 static func _a(d: GestionDiorama, pid: String, oid: String) -> bool:

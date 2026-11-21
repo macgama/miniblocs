@@ -549,9 +549,13 @@ Clique sur un hôtel, puis sur **Gérer l'hôtel** dans sa fiche (ou **Gérer** 
 
 **Les restaurants aussi** (tous les cafés et restaurants, tuile **Gérer le restaurant**) : 14 pièces (salle, cuisine, plonge, réserve, bar, cave, salon privé, pâtisserie, terrasse, potager, quai de livraison…), environ 70 objets, couverts, prix du menu, toques, critique gastronomique, inspection d'hygiène, banquets. Le compte est la caisse de l'entreprise ; les couverts et le prix du menu changent vraiment les repas servis dans l'économie. Détails : [docs/gestion-tycoon.md](docs/gestion-tycoon.md).
 
+**Et la caserne de pompiers** (tuile **Gérer la caserne**) : un service public avec un budget versé chaque jour par la ville. 14 pièces (remise, salle d'alerte, chambres de garde, vestiaires, formation, tour de manœuvre…), 74 objets. La gestion change vraiment les urgences : plus d'engins dans la remise, plus de pompiers de garde, travail plus rapide sur place ; la note suit le délai d'arrivée des secours. Quand un appel arrive, l'alerte sonne et on voit l'engin sortir de la remise.
+
 ![Hôtel en mode gestion](docs/apercu-gestion-hotel.png)
 
 ![Restaurant en mode gestion](docs/apercu-gestion-restaurant.png)
+
+![Caserne de pompiers en mode gestion](docs/apercu-gestion-caserne.png)
 
 ## Mode streamer : le chat Twitch vote
 

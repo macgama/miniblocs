@@ -53,6 +53,19 @@ Les 55 cafés et restaurants du jeu (café-restaurant, brasserie, auberge, taver
 - Événements : critique gastronomique incognito (« Coup de cœur » du guide), inspection d'hygiène (amende si la cuisine, la plonge, la réserve ou les toilettes sont en panne), banquets dans le salon privé (mariages, repas d'entreprise), clients célèbres, soirs de match au bar.
 - Gestion automatique comme l'hôtel (sans jamais toucher à la caisse de la ville).
 
+## La caserne de pompiers
+
+Les casernes (et leurs versions d'époque) se gèrent : tuile **Gérer la caserne** sur leur fiche. C'est un **service public** : pas de clients qui paient, mais un **budget versé chaque jour par la caisse de la ville** (1 000 € par jour pour une caserne standard, − / + dans l'onglet Caserne, de 0 à 8 fois plus). La caserne paie son entretien avec ce budget et investit le reste (tout seule en gestion automatique). Une caserne jamais ouverte en mode gestion ne coûte rien de plus.
+
+14 pièces : accueil et couloir, salle d'alerte, remise des engins, chambres de garde, vestiaires et douches, cuisine et réfectoire, salle de formation, bureau du chef de centre, magasin et pharmacie, salle de sport, atelier mécanique, et dehors la cour d'honneur, la tour de manœuvre et l'aire de lavage et de carburant. 74 objets dessinés (râtelier de tuyaux, compresseur d'air, désincarcération, tour de séchage, mât de descente, lits superposés, tenues de feu, mur d'écrans, mannequins de secourisme, simulateur de feu, pont élévateur, pompe à bras de 1890, camion des années 1950, conteneur d'entraînement au feu…).
+
+Ce que ça change **vraiment** dans les urgences (touche U) :
+- **Remise** : chaque niveau ajoute un engin à la flotte (VSAV, fourgon pompe-tonne, VSAV, grande échelle) et l'engin de réserve un de plus. Dans la maquette, les engins sont garés dans la remise ; quand un appel arrive, l'alerte sonne et l'engin sort, gyrophares allumés, et part par la rue. Il revient à sa place quand il rentre.
+- **Chambres de garde** : un pompier de garde de plus par niveau (lits superposés : un de plus). Chaque engin a besoin de son équipage pour partir : plus de garde, plus d'engins en même temps. Les **volontaires** (recrutés grâce au prestige et à la salle de formation) comptent aussi.
+- **Rapidité** : alerte, vestiaires, sport, tour de manœuvre, matériel et formation du personnel font travailler l'équipe plus vite sur place (jusqu'à 2,5 fois).
+- **Note** : elle suit le **délai moyen d'arrivée** des secours de cette caserne (5 sur 5 sous 3 minutes), le moral et les pannes. **Galons** (1 à 5) : gagnés par l'expérience (pièces et objets).
+- Événements : inspection (« citée en exemple » : un pompier de garde en plus pendant 60 jours), bal des pompiers en juillet, tournée des calendriers en fin d'année, volontaires, manœuvres, visites d'écoles. Les visiteurs (stages de secourisme, enfants, futurs volontaires) posent leurs questions : y répondre rapporte un petit don.
+
 ## Rythme
 
 Le mode suit le temps du jeu : rien ne se gagne pendant que le jeu est fermé, rien ne bouge en pause, tout va plus vite en vitesse rapide. La gestion automatique, les pannes et les événements tournent chaque jour de jeu pour tous les hôtels, même ceux qu'on n'ouvre jamais. Un hôtel jamais ouvert garde ses effets à zéro tant qu'il n'a rien acheté.
@@ -61,6 +74,7 @@ Le mode suit le temps du jeu : rien ne se gagne pendant que le jeu est fermé, r
 
 - `scripts/gestion/genres/genre_restaurant.gd` (`GenreRestaurant`) : le restaurant (pièces, objets, demandes, pannes). `source` dit qui fait vivre le bâtiment : `tourisme` (hôtel) ou `production` (restaurant : `Gestion.affluence_de`, `prix_repas_de`, `couverts_de`, `compter_de`, `entretien_site`, `cloture_de` sont appelés par `Production`).
 - `scripts/gestion/decors_restaurant.gd` et `modeles_restaurant.gd` : décors de base des pièces et ~50 modèles du restaurant.
+- `scripts/gestion/genres/genre_caserne.gd` (`GenreCaserne`), `decors_caserne.gd`, `modeles_caserne.gd` : la caserne. Source `ville` : le compte est `etat.caisse`, alimenté par `dotation()` dans `_journee_ville()`. Liens avec `Urgences` : `Gestion.flotte_de` (engins en plus, `Urgences.maj_flotte`), `equipage_de` (ajouté à `staff_of`), effet `vitesse` (temps sur place), `intervention_de` et `depart_de` (délai, note, journal). Les engins de la maquette : `GestionDiorama.placer_engins`.
 - `scripts/gestion/gestion_types.gd` (`GestionTypes`) : les genres gérables. Un genre = ses pièces (plan, niveaux, prix, effets, métiers et postes, portes et chemins), ses objets (modèle, poses, prix, niveau requis, effets), ses demandes, ses pannes, les activités des clients. Pour ajouter la prison, l'hôpital, l'usine… : une entrée dans `GENRES`, une ligne dans `genre_de()`, et les décors de base de ses pièces dans le diorama (`_decor_<nom>`).
 - `scripts/gestion/gestion.gd` (`Gestion`) : niveaux, objets, prix, paiement, effets (`Gestion.effet_de(bid, clé)`), étoiles, personnel (salaires, formation), pannes, événements, historique, journal, gestion automatique (`gerer_auto`, `candidats`), objectifs, sauvegarde (section `gestion`). `nouveau_jour()` est appelé par le tourisme à chaque fin de journée.
 - `scripts/gestion/gestion_modeles.gd` (`GestionModeles`) : la bibliothèque des objets low-poly (72 modèles) et les places qu'ils offrent aux clients.
@@ -68,4 +82,4 @@ Le mode suit le temps du jeu : rien ne se gagne pendant que le jeu est fermé, r
 - `scripts/gestion/gestion_vue.gd` (`GestionVue`) et `graphe_gestion.gd` : l'écran (caméra isométrique, barre du haut, carte à onglets, tuiles du bas, bulles, graphique).
 - Effets lus par le tourisme : `Tourisme.spec`, `lits`, `note`, `attrait_heb`, repas sur place, dépenses sur place (`ventes`), satisfaction, entretien.
 
-Tests : `xvfb-run -a godot --path . --rendering-driver opengl3 --script res://tests/gestion_test.gd` (hôtel) et `res://tests/gestion_restaurant_test.gd` (restaurant). Captures : `tests/gestion_vitrine.gd -- --out DOSSIER [--type haussmann__restaurant] --niveau 1|3|5 [--piece spa] [--zoom 30] [--onglet personnel|stats|journal] [--x 20 --z 14]`.
+Tests : `xvfb-run -a godot --path . --rendering-driver opengl3 --script res://tests/gestion_test.gd` (hôtel) , `res://tests/gestion_restaurant_test.gd` (restaurant) et `res://tests/gestion_caserne_test.gd` (caserne). Captures : `tests/gestion_vitrine.gd -- --out DOSSIER [--type haussmann__restaurant|pompiers] [--depart] --niveau 1|3|5 [--piece spa] [--zoom 30] [--onglet personnel|stats|journal] [--x 20 --z 14]`.

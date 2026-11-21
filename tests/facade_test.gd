@@ -184,5 +184,26 @@ func _run() -> void:
 		meubles = maxi(meubles, (mob.items[pid] as Dictionary).size())
 	_check(meubles > 8, "meublée (%d meubles)" % meubles)
 
+	print("Aménager l'intérieur d'une maison à une autre taille (10 × 14 m, 3 niveaux) :")
+	var tid3 := "maison@10x14x3"
+	_check(not BuildingCatalog.get_type(tid3).is_empty(), "type %s connu" % tid3)
+	var m3 := bs.place(tid3, _spot(bs, tid3, Vector2i(-40, 40)), 0)
+	_check(m3 >= 0, "maison de 3 niveaux posée")
+	if m3 >= 0:
+		for i in 4:
+			await process_frame
+		var h3 := bs.node_of(m3).mesh.get_aabb().size.y
+		var plans0 := mob.pe._bbox.keys()
+		var r3 := Conversion.open_interior(mob, m3)
+		_check(r3.ok, "intérieur ouvert (%s)" % str(r3))
+		if r3.ok:
+			var pid3 := String(r3.id)
+			mob.pe.flush()
+			var niveaux := (mob.pe._nodes.get(pid3, {}) as Dictionary).size()
+			_check(niveaux == 3, "toujours 3 niveaux (%d)" % niveaux)
+			var bb3: Rect2i = mob.pe._bbox[pid3]
+			_check(maxi(bb3.size.x, bb3.size.y) == 9 and mini(bb3.size.x, bb3.size.y) == 8, "même emprise que la façade (%s)" % str(bb3.size))
+			_check(not plans0.has(pid3) and h3 > 8.0, "hauteur de la maison d'origine %.1f m" % h3)
+
 	print("FACADE TEST OK" if ok else "FACADE TEST ÉCHEC")
 	quit(0 if ok else 1)

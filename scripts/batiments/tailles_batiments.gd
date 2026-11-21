@@ -318,6 +318,24 @@ static func chiffres(id: String) -> Dictionary:
 # --- Maillage ------------------------------------------------------------------------------
 
 ## Le modèle de l'origine se dessine-t-il par StyleBuilder (forme réglable) ?
+## Personnalisation avec laquelle ce bâtiment à sa taille est vraiment dessiné
+## (modèle classique : style par défaut ; étages de la taille). « Aménager
+## l'intérieur » s'en sert pour garder la même façade.
+static func perso_dessin(id: String, perso: Dictionary) -> Dictionary:
+	var o := origine(id)
+	var p := perso.duplicate()
+	if Personnalisation.is_classic(o) and hauteur_reglable(o):
+		p = Personnalisation.completer(o, p, true)
+	if _par_style(o, p) and not p.has("etages"):
+		p["etages"] = int(dims(id).e)
+	return p
+
+
+## Dessiné dans un style (StyleBuilder) à cette taille ?
+static func dessine_par_style(id: String, perso: Dictionary) -> bool:
+	return _par_style(origine(id), perso_dessin(id, perso))
+
+
 static func _par_style(o: String, perso: Dictionary) -> bool:
 	var t := BuildingCatalog.get_type(o)
 	for k in ["modele", "monument", "epoque_bat", "blocks", "glb", "boutique_eco", "reseau", "telecom", "funeraire",
@@ -332,13 +350,9 @@ static func _par_style(o: String, perso: Dictionary) -> bool:
 static func build_mesh(id: String, material: Material, details: bool, variant: int, perso: Dictionary) -> ArrayMesh:
 	var o := origine(id)
 	var z := dims(id)
-	var p := perso.duplicate()
-	if Personnalisation.is_classic(o) and hauteur_reglable(o):
-		p = Personnalisation.completer(o, p, true)
+	var p := perso_dessin(id, perso)
 	if _par_style(o, p):
 		# Redessiné à la bonne taille : fenêtres, étages et toit à leur place.
-		if not p.has("etages"):
-			p["etages"] = int(z.e)
 		var ts := Personnalisation.type_of(o, p).duplicate()
 		ts["w"] = int(z.w)
 		ts["d"] = int(z.d)

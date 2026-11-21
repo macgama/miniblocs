@@ -96,6 +96,26 @@ func _run() -> void:
 	for b in scene.find_children("*", "BullesAide", true, false):
 		(b as BullesAide).fermer()
 	match vue:
+		"avant", "apres":
+			var c3 := Vector2i(-62, -6)
+			for dz in [0, -2, -4, -6, -8]:
+				if bs.check_place("maison@10x14x3", c3 + Vector2i(0, dz), 2).ok:
+					c3 += Vector2i(0, dz)
+					break
+			BatimentsVie.chantiers = false
+			var m3 := bs.place("maison@10x14x3", c3, 2)
+			amb.unix_time += 86400.0 * 120
+			for i in 30:
+				await process_frame
+			rig.position = Vector3(c3.x + 5, 40.0, c3.y + 2)
+			rig._distance = 30.0
+			rig._target_distance = 30.0
+			rig.rotation_degrees.y = 20.0
+			if vue == "apres":
+				var r := Conversion.open_interior(scene.mobilier, m3)
+				print("ouverture : ", r)
+				scene.mobilier.pe.flush()
+				scene.mobilier.flush()
 		"fiche":
 			rig.position = Vector3(-26, 40.0, -6)
 			rig._distance = 30.0

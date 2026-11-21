@@ -97,6 +97,19 @@ func _verifier_barre(nom: String) -> void:
 	if hud._dock.is_visible_in_tree():
 		_check(not _recouvre(hud._credit.get_global_rect(), hud._dock.get_global_rect()),
 			"%s : la mention des sources ne passe pas sous la barre du bas" % nom)
+	# Mini-carte en bas à droite : dans l'écran, sous rien d'autre que les panneaux de droite.
+	var mc: MiniCarte = scene.mini_carte
+	if mc != null and mc.est_montree():
+		mc._placer()
+		var rm := mc._cadre.get_global_rect()
+		var pb := []
+		if not vue.grow(1.0).encloses(rm):
+			pb.append("sort de l'écran")
+		for autre in [["barre du haut", rb], ["barre des catégories", hud._dock.get_global_rect()],
+				["carte de la case", hud._cell_card.get_global_rect()], ["sources", hud._credit.get_global_rect()]]:
+			if (autre[1] as Rect2).has_area() and _recouvre(rm, autre[1]):
+				pb.append("recouvre " + String(autre[0]))
+		_check(pb.is_empty(), "%s : la mini-carte %s tient en bas à droite %s" % [nom, rm, ", ".join(pb)])
 
 
 func _run() -> void:

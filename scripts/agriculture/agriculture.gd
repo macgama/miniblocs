@@ -86,6 +86,10 @@ func setup(w: TerrainWorld, b: BuildingSystem, p: Population, prod: Production, 
 	production.agri = self
 	repas = Repas.new(self)
 	production.day_passed.connect(func() -> void: repas.apres_courses())
+	# Forage posé ou démoli : la fertilité des champs est relue.
+	production.irrigation_changed.connect(func() -> void:
+		for id in champs:
+			champs[id].erase("fert"))
 	if population != null:
 		var avant: Callable = population.extra_satisfaction
 		population.extra_satisfaction = func(pp: Dictionary) -> Array:
@@ -1041,6 +1045,13 @@ func rendement(ch: Dictionary) -> float:
 		var part := clampf(float(ch.azote) / float(c.engrais), 0.0, 1.0)
 		f *= lerpf(AgriDonnees.SANS_ENGRAIS, 1.0, part)
 	f *= AgriDonnees.facteur_epoque()
+	# Champ arrosé par un forage à l'arrêt (sans courant ni employés) : il sèche.
+	if production != null and production.carte != null and not production.carte.irrigation.is_empty():
+		var cr := Rect2(ch.r)
+		var centre := cr.get_center()
+		var irr := production.irrigation_au_point(centre.x, centre.y)
+		if irr >= 0.0 and irr < 0.5:
+			f *= lerpf(0.5, 1.0, irr * 2.0)
 	if not bool(ch.tr):
 		f *= AgriDonnees.SANS_TRAITEMENT
 	if not bool(c.get("permanente", false)):

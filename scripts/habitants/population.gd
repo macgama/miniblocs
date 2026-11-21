@@ -508,6 +508,10 @@ func _remove_building(bid: int) -> void:
 func free_homes(bid: int) -> int:
 	if not known.has(bid):
 		return 0
+	# Les tentes libérées au campement des fondateurs (couples, décès) ne se
+	# relouent pas : seul Fondateurs y loge du monde.
+	if Fondateurs.est_campement(bid):
+		return 0
 	return int(known[bid].log) - (by_home.get(bid, []) as Array).size()
 
 
@@ -1832,7 +1836,13 @@ func present_in(bid: int) -> Array:
 							break
 				if hit:
 					candidates.append(pid)
+	# Une même personne peut y dormir et y travailler (campement des fondateurs,
+	# logement de fonction) : on ne la compte qu'une fois.
+	var vus := {}
 	for pid in candidates:
+		if vus.has(pid):
+			continue
+		vus[pid] = true
 		var a := activity(persons[pid])
 		if int(a.bid) == bid and a.kind != "trajet":
 			out.append(pid)
@@ -2006,7 +2016,9 @@ func traffic_demand() -> Dictionary:
 
 # --- Chiffres ---------------------------------------------------------------------
 
-func stats() -> Dictionary:
+## avec_satisfaction = false : sans la satisfaction moyenne (200 habitants
+## examinés, ~60 ms à 1 000 habitants), pour qui a déjà le sondage d'Avis.
+func stats(avec_satisfaction := true) -> Dictionary:
 	var out := {"habitants": persons.size(), "foyers": households.size(), "bebe": 0, "eleve": 0, "apprenti": 0, "etudiant": 0, "actif": 0,
 		"chomeur": 0, "retraite": 0, "sans_ecole": 0, "logements": 0, "emplois": 0, "places": 0, "satisfaction": 0}
 	var sat := 0
@@ -2019,6 +2031,8 @@ func stats() -> Dictionary:
 	# Satisfaction moyenne sur un échantillon (le calcul complet est coûteux).
 	var n := 0
 	for pid in persons:
+		if not avec_satisfaction:
+			break
 		sat += int(satisfaction(persons[pid]).value)
 		n += 1
 		if n >= 200:

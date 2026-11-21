@@ -29,6 +29,9 @@ signal message(text: String)
 signal extrait(bid: int, res: String, t: float)
 ## Une journée vient de se terminer (courses faites, salaires payés).
 signal day_passed
+## Les forages d'irrigation ont changé (posés, démolis) : la carte des terres
+## cultivables aussi (Agriculture oublie la fertilité gardée de ses champs).
+signal irrigation_changed
 
 static var instance: Production
 
@@ -329,6 +332,7 @@ func _sync() -> void:
 	for bid in sites.keys():
 		if not buildings.buildings.has(bid) or kind_of(String(buildings.buildings[bid].t)) != String(sites[bid].kind):
 			_remove_site(bid)
+	_maj_irrigation()
 	for bid in buildings.buildings:
 		var b: Dictionary = buildings.buildings[bid]
 		var kind := kind_of(String(b.t))
@@ -350,6 +354,77 @@ func _sync() -> void:
 	if sig != _shop_sig:
 		_shop_sig = sig
 		_vider_commerces()
+
+
+# --- Irrigation ----------------------------------------------------------------------------
+
+## Ce que paie chaque ferme arrosée à son forage, par jour (eau pompée).
+const PRIX_IRRIGATION_JOUR := 450.0
+
+
+## Disques arrosés par les forages posés : [[x, z, rayon, bid], ...].
+func _disques_irrigation() -> Array:
+	var out: Array = []
+	if buildings == null:
+		return out
+	for bid in buildings.buildings:
+		var b: Dictionary = buildings.buildings[bid]
+		var r := float(ProductionTypes.prod_of(String(b.t)).get("irrigation", 0.0))
+		if r <= 0.0:
+			continue
+		var c := BuildingSystem.rect_center(buildings._rect_of(b))
+		out.append([c.x, c.z, r, bid])
+	return out
+
+
+## Met la carte des ressources à jour quand un forage apparaît ou disparaît ; les
+## fermes déjà posées relisent alors la richesse de leur sol.
+func _maj_irrigation() -> void:
+	if carte == null:
+		return
+	var d := _disques_irrigation()
+	if d == carte.irrigation:
+		return
+	carte.irrigation = d
+	for bid in sites:
+		var s: Dictionary = sites[bid]
+		if String(s.kind) != "extraction" or not buildings.buildings.has(bid):
+			continue
+		var res: Dictionary = ProductionTypes.prod_of(_type_of(bid)).get("res", {})
+		if res.has("fertilite") or res.has("paturage"):
+			s.rich = -1.0
+	irrigation_changed.emit()
+
+
+## Part de marche (0 à 1) des forages qui arrosent le point (x, z) ; -1 s'il n'est pas arrosé.
+func irrigation_au_point(x: float, z: float) -> float:
+	var best := -1.0
+	for d in carte.irrigation if carte != null else []:
+		if Vector2(x - float(d[0]), z - float(d[1])).length() <= float(d[2]):
+			var bid := int(d[3])
+			best = maxf(best, float(sites.get(bid, {}).get("eff", 0.0)))
+	return best
+
+
+## Un forage d'irrigation tourne : chaque ferme arrosée lui paie son eau.
+func _facturer_irrigation(bid: int, frac: float, eff: float) -> void:
+	if eff <= 0.0:
+		return
+	var c := _pos_of(bid)
+	var r := float(ProductionTypes.prod_of(_type_of(bid)).get("irrigation", 0.0))
+	for fid in sites:
+		if fid == bid:
+			continue
+		var t := _type_of(fid)
+		var res: Dictionary = ProductionTypes.prod_of(t).get("res", {})
+		if not (res.has("fertilite") or res.has("paturage") or AgriDonnees.est_ferme(t)):
+			continue
+		var p := _pos_of(fid)
+		if Vector2(p.x - c.x, p.z - c.z).length() > r:
+			continue
+		var v := PRIX_IRRIGATION_JOUR * frac * eff
+		_pay(fid, "Eau d'irrigation", -v)
+		_pay(bid, "Ventes d'eau d'irrigation", v)
 
 
 static func _new_site(kind: String) -> Dictionary:
@@ -695,12 +770,20 @@ func _process(_delta: float) -> void:
 	var dt := clampf(t - last_unix, 0.0, 86400.0 * 3.0)
 	last_unix = t
 	if dt > 0.0:
-		advance(dt)
+		advance(dt, _pas_livraisons())
+
+
+## Livraisons lancées tous les combien de pas de 15 min. En Turbo (1 jour en 6 s),
+## un pas passe toutes les 4 images et chacun coûte ~60 ms à 5 000 habitants : on
+## lance alors les livraisons une fois par heure de jeu (les commandes attendent
+## au plus 45 min de plus). Aux autres vitesses (et dans les tests), à chaque pas.
+func _pas_livraisons() -> int:
+	return 4 if ambiance != null and ambiance.speed_index >= DayNight.TURBO else 1
 
 
 ## Fait avancer l'économie de dt secondes de jeu : logistique toutes les 15 min,
 ## production toutes les heures, ventes et salaires chaque jour.
-func advance(dt: float) -> void:
+func advance(dt: float, livraisons_tous := 1) -> void:
 	if _dirty:
 		_sync()
 	var end_t := (ambiance.unix_time if ambiance != null else clock + dt)
@@ -719,7 +802,7 @@ func advance(dt: float) -> void:
 			new_day()
 		if _log_n % 4 == 0:
 			step_hours(1.0)
-		logistics(clock)
+		logistics(clock, livraisons_tous <= 1 or _log_n % livraisons_tous == 0)
 	if clock < end_t - 86400.0:
 		clock = end_t
 
@@ -774,6 +857,10 @@ func _step_hours(h: float) -> void:
 		if kind == "service":
 			s.status = "Ouvert" if staff >= 0.999 else "Ouvert (%d %% des emplois pourvus)" % roundi(staff * 100.0)
 			s.eff = staff
+			if t.get("prod", {}).has("irrigation"):
+				s.status = ("Pompe en marche : arrose %d m autour" % int(t.prod.irrigation)) if staff >= 0.5 else \
+					"Pompe à l'arrêt : il faut du courant et des employés"
+				_facturer_irrigation(bid, frac0, staff)
 			continue
 		if kind == "commerce":
 			_bake(bid, frac, staff)
@@ -1096,7 +1183,7 @@ func _pick_driver(free: Dictionary, src: int, dst: int, near: Vector3) -> Dictio
 
 
 ## Un pas de logistique : arrivées des camions, puis nouvelles livraisons.
-func logistics(t: float) -> void:
+func logistics(t: float, livrer := true) -> void:
 	for mid in missions.keys():
 		var m: Dictionary = missions[mid]
 		if not bool(m.get("done", false)) and float(m.t_unload) <= t:
@@ -1104,7 +1191,7 @@ func logistics(t: float) -> void:
 		if float(m.t_end) <= t:
 			busy.erase(int(m.driver))
 			missions.erase(mid)
-	if buildings == null or population == null or transport == null:
+	if not livrer or buildings == null or population == null or transport == null:
 		return
 	_dispatch(t)
 

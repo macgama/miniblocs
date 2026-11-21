@@ -8,7 +8,10 @@ extends RefCounted
 ## chantiers, bêtes, manèges, figurants…) suivent donc un facteur lisible, réglé
 ## sur la vitesse par défaut (1 jour/min = ×1) :
 ##
-##   Pause 0 · Réel ×0,25 · 1 min/s ×0,5 · 10 min/s ×0,75 · 1 jour/min ×1 · 100 min/s ×2
+##   Pause 0 · Réel ×0,25 · 1 min/s ×0,5 · 10 min/s ×0,75 · 1 jour/min ×1 · 100 min/s ×2 · Turbo ×3
+##
+## Turbo (×10 du défaut) : les mouvements ne vont que 3 fois plus vite, sinon
+## voitures et piétons sauteraient d'un bout à l'autre de la rue à chaque image.
 ##
 ## En pause, tout s'arrête. Ce qui dépend des heures de jeu (chantiers,
 ## production, emplois du temps des habitants…) lit déjà DayNight.unix_time et
@@ -21,7 +24,7 @@ extends RefCounted
 ## Utilisation dans un _process : `var dt := EchelleTemps.dt(delta)`.
 
 ## Un facteur par vitesse de DayNight.SPEEDS (même ordre).
-const FACTEURS := [0.0, 0.25, 0.5, 0.75, 1.0, 2.0]
+const FACTEURS := [0.0, 0.25, 0.5, 0.75, 1.0, 2.0, 3.0]
 
 ## Horloge du jeu en cours (réglée par DayNight). Sans horloge (vitrines,
 ## tests), le facteur vaut 1.

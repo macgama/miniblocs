@@ -406,9 +406,7 @@ func remplir_fiche(parent: Control, bid: int, largeur := 300.0) -> int:
 		row.add_theme_constant_override("separation", 6)
 		var ic := TextureRect.new()
 		var col: Color = e[2]
-		var mauvais := col == COULEUR_NON or col == COULEUR_COUPE or col == Color("e63946")
-		ic.texture = icone(String(e[0]), NON_RACCORDE if col == COULEUR_NON or col == Color("e63946") else COUPE, 18) if mauvais \
-			else Icones.get_icon({"elec": "reseaux", "eau": "eau", "egout": "reseaux", "gaz": "feu", "telecom": "reseaux"}.get(String(e[0]), "reseaux"), 18, col)
+		ic.texture = _icone_etat(String(e[0]), col, 18)
 		ic.stretch_mode = TextureRect.STRETCH_KEEP_CENTERED
 		ic.custom_minimum_size = Vector2(20, 20)
 		ic.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
@@ -423,12 +421,40 @@ func remplir_fiche(parent: Control, bid: int, largeur := 300.0) -> int:
 		row.add_child(l)
 		parent.add_child(row)
 		n += 1
-	if n > 0 and reseaux != null and reseaux.flux != null:
-		var lg := Label.new()
-		lg.text = "Sur les routes : les flèches montrent le courant, l'eau, les égouts et le gaz qui circulent. Bord vert = tout va bien, orange et lent = saturé, rouge qui clignote = coupé."
-		lg.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		lg.custom_minimum_size = Vector2(largeur, 0)
-		lg.add_theme_font_size_override("font_size", 11)
-		lg.add_theme_color_override("font_color", UiStyle.TEXT_DIM)
-		parent.add_child(lg)
 	return n
+
+
+## Légende du flux sur les routes (infobulle du bouton « Voir sur les routes »).
+const LEGENDE_FLUX := "Sur les routes : les flèches montrent le courant, l'eau, les égouts et le gaz qui circulent.\nBord vert = tout va bien, orange et lent = saturé, rouge qui clignote = coupé."
+
+
+## Icône d'un réseau dans la fiche : la pastille d'alerte si ça ne va pas,
+## sinon l'icône du réseau teintée de sa couleur d'état.
+func _icone_etat(res: String, col: Color, taille := 18) -> Texture2D:
+	var mauvais := col == COULEUR_NON or col == COULEUR_COUPE or col == Color("e63946")
+	if mauvais and RES.has(res):
+		return icone(res, NON_RACCORDE if col == COULEUR_NON or col == Color("e63946") else COUPE, taille)
+	# Gaz (chauffage) : pas de picto d'alerte, son icône teintée de la couleur d'état.
+	return Icones.get_icon({"elec": "reseaux", "eau": "eau", "egout": "reseaux", "gaz": "feu", "telecom": "reseaux"}.get(res, "reseaux"), taille, col)
+
+
+## Résumé en pastilles (fiche courte) : une petite icône par réseau, couleur de
+## son état, le détail en infobulle. Rend le nombre de réseaux qui ne vont pas.
+func remplir_pastilles(parent: Control, bid: int) -> int:
+	var mauvais := 0
+	for e in etat_reseaux(bid):
+		var col: Color = e[2]
+		var p := PanelContainer.new()
+		p.add_theme_stylebox_override("panel", UiStyle.flat_box(Color(col, 0.16), 6, 3))
+		p.tooltip_text = String(e[1])
+		p.mouse_filter = Control.MOUSE_FILTER_STOP
+		var ic := TextureRect.new()
+		ic.texture = _icone_etat(String(e[0]), col, 18)
+		ic.stretch_mode = TextureRect.STRETCH_KEEP_CENTERED
+		ic.custom_minimum_size = Vector2(22, 22)
+		ic.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		p.add_child(ic)
+		parent.add_child(p)
+		if col == COULEUR_NON or col == COULEUR_COUPE or col == Color("e63946"):
+			mauvais += 1
+	return mauvais

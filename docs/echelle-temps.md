@@ -22,9 +22,21 @@ aller à la vitesse du temps choisie par le joueur (T = pause, Maj + T = vitesse
 mouvements est donc lisible plutôt qu'exact, réglé pour que la vitesse par défaut
 ne change pas :
 
-| Vitesse du temps | Pause | Réel | 1 min/s | 10 min/s | 1 jour/min (défaut) | 100 min/s |
-|---|---|---|---|---|---|---|
-| Mouvements | arrêt | ×0,25 | ×0,5 | ×0,75 | ×1 | ×2 |
+| Vitesse du temps | Pause | Réel | 1 min/s | 10 min/s | 1 jour/min (défaut) | 100 min/s | Turbo (4 h/s) |
+|---|---|---|---|---|---|---|---|
+| Mouvements | arrêt | ×0,25 | ×0,5 | ×0,75 | ×1 | ×2 | ×3 |
+
+**Turbo** (ajouté le 2026-11-20) : 1 jour de jeu en 6 s, 10 fois la vitesse par
+défaut, pour faire grandir vite la première ville. Pour tenir la cadence, les
+livraisons (Production) y sont lancées une fois par heure de jeu au lieu de tous
+les quarts d'heure, et le relevé quotidien des statistiques reprend le sondage
+du jour d'Avis au lieu d'en refaire un. Mesures (tests/perf_ville.gd
+`--vitesse 6`, sans GPU) : 1 000 habitants ≈ 70 images/s, 5 000 ≈ 28 images/s,
+avec un à-coup de 0,3 à 0,5 s par jour de jeu (relevés quotidiens, aussi
+présents à 1 jour/min, mais une fois par minute).
+
+Départ rapide (Admin F10, `ReglagesPartie.depart_rapide`) : voir
+`Chantiers.bonus_depart` (chantiers ×3 jusqu'à 200 habitants, effacé à 400).
 
 Le tableau est dans `EchelleTemps.FACTEURS` (un nombre par vitesse de
 `DayNight.SPEEDS`).

@@ -55,3 +55,29 @@ dépôt de collecte sans ses trois éboueurs (une benne), boulangerie sans
 boulanger, école sans enseignant… autant qu'il en faut pour ouvrir, puis les
 commerces où l'on fait la queue (`Fondateurs.depanner`, un message par
 bâtiment). On peut toujours les rappeler au chantier depuis Maj+H.
+
+## Services vitaux tenus par les fondateurs (2026-11-20)
+
+Les fondateurs ont tous un emploi : la base de chantier du campement. Ils ne
+sont donc jamais « sans emploi » (0 % de chômage) et les embauches ordinaires
+ne les prennent pas. Les bâtiments posés d'office (forage, raccordement
+électrique, station d'épuration, dépôt de collecte, décharge) restaient donc
+sans personne : seuls les bâtiments avec un métier indispensable (école,
+boulangerie…) étaient dépannés, et seulement par des fondateurs sans chantier.
+
+Désormais, chaque matin (`Fondateurs.depanner`) :
+- les **services vitaux** (`Fondateurs.VITAUX` : catégories `reseaux` et
+  `dechets`) passent d'abord et sont tenus **à moitié au moins** (forage 1/1,
+  raccordement 2/3, station d'épuration 3/6, dépôt 8/15 dont 3 éboueurs,
+  décharge 3/6), quitte à prendre des ouvriers aux chantiers ;
+- tout autre bâtiment **fermé faute de personnel** reçoit un fondateur sans
+  chantier, même sans métier indispensable.
+
+Le panneau d'un bâtiment sans employé le dit (« des fondateurs du campement
+viennent le tenir dès demain matin »).
+
+Le libellé « N personnes ici » comptait deux fois un fondateur qui dort et
+travaille au campement (243 pour 140 fondateurs) : `Population.present_in` ne
+compte plus qu'une fois chaque personne. Les tentes libérées (couple formé,
+décès) ne se relouent plus (`Population.free_homes` rend 0 au campement).
+

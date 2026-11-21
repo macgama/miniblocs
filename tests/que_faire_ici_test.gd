@@ -99,6 +99,20 @@ func _run() -> void:
 	var rect2 := Rect2i(c - Vector2i(int(t2.w) / 2, int(t2.d) / 2), Vector2i(int(t2.w), int(t2.d)))
 	_check(prod.check_site("exploitation_forestiere", rect2).has("reason"), "même verdict que la règle de pose (forêt refusée)")
 
+	print("Agriculture :")
+	var agri: Dictionary = champs.agri
+	_check(int(agri.climat) == Plantes.Climat.TEMPERE, "climat tempéré en Lorraine")
+	var ble := _fiche(agri.cultures, "ble")
+	_check(not ble.is_empty() and ble.etat == "ok" and float(ble.t_ha) > 3.0, "blé : bon climat, %.1f t/ha" % float(ble.get("t_ha", 0.0)))
+	var cafe := _fiche(agri.cultures, "cafe")
+	_check(not cafe.is_empty() and cafe.etat == "climat" and float(cafe.t_ha) < float(ble.t_ha), "café : mauvais climat, rendement réduit")
+	_check(_fiche(agri.cultures, "paturage").is_empty(), "la pâture n'est pas une culture de la liste")
+	var poul := _fiche(agri.elevages, "poulailler")
+	_check(not poul.is_empty() and poul.etat == "ok" and (poul.betes as Array).has("poule"), "poulailler posable partout, avec des poules")
+	_check(_fiche(agri.elevages, "ferme_cereales").is_empty(), "les fermes à règle de sol restent dans « À construire ici »")
+	_check(String(_fiche(agri.elevages, "elevage_rennes").get("etat", "")) == "climat", "rennes : climat boréal seulement")
+	_check(float(_fiche(foret.agri.cultures, "ble").t_ha) <= float(ble.t_ha) + 0.01, "blé moins bon en forêt que dans les champs")
+
 	print("Clic sur le terrain :")
 	_check(not fiche.is_open(), "fiche fermée au départ")
 	scene.population.ground_clicked.emit(Vector2i(-400, 0))
@@ -119,6 +133,40 @@ func _run() -> void:
 	fiche.construire.emit("exploitation_forestiere")
 	_check(bs.mode == BuildingSystem.Mode.PLACE and bs.type_id == "exploitation_forestiere", "Construire lance la pose du bâtiment")
 
+	print("Irrigation :")
+	var yr := world.cell_height(Vector2i(-400, 600))
+	_check(transport.build_segment("route", Vector3(-700, yr, 600), Vector3(-100, yr, 600)).ok, "route en forêt")
+	var avant_irr := QueFaireIci.analyser(prod, Vector2i(-400, 560))
+	_check(String(avant_irr.agri.forage) == "ok", "forage d'irrigation proposé en 2026")
+	_check(float(avant_irr.agri.irrigue) < 0.0, "pas encore arrosé")
+	var fd := int(BuildingCatalog.get_type("forage_irrigation").d)
+	var cf := Vector2i(-400, 600 - (fd / 2 + 6))
+	var forage := bs.place("forage_irrigation", cf, bs.best_rotation("forage_irrigation", cf))
+	_check(forage > 0, "forage d'irrigation posé")
+	var ferd := int(BuildingCatalog.get_type("ferme_cereales").d)
+	var cfe := Vector2i(-300, 600 - (ferd / 2 + 6))
+	var ferme := bs.place("ferme_cereales", cfe, bs.best_rotation("ferme_cereales", cfe))
+	_check(ferme > 0, "ferme céréalière posée près du forage")
+	prod._sync()
+	_check(prod.carte.irrigation.size() == 1, "la carte connaît le forage")
+	var apres_irr := QueFaireIci.analyser(prod, Vector2i(-400, 560))
+	_check(float(apres_irr.agri.fert) > float(avant_irr.agri.fert) + 0.1, "terre plus cultivable une fois arrosée (%d %% → %d %%)" % [
+		roundi(float(avant_irr.agri.fert) * 100.0), roundi(float(apres_irr.agri.fert) * 100.0)])
+	_check(float(apres_irr.agri.irrigue) >= 0.0, "la fiche dit que le lieu est arrosé")
+	var loin := QueFaireIci.analyser(prod, Vector2i(-400, -400))
+	_check(float(loin.agri.irrigue) < 0.0, "à 1 km : pas arrosé")
+	_check(prod.sites.has(forage) and String(prod.sites[forage].kind) == "service", "le forage est une entreprise de service")
+	var cash_ferme := float(prod.sites[ferme].cash)
+	var cash_forage := float(prod.sites[forage].cash)
+	prod._facturer_irrigation(forage, 1.0, 1.0)
+	_check(float(prod.sites[ferme].cash) < cash_ferme - 400.0 and float(prod.sites[forage].cash) > cash_forage + 400.0,
+		"la ferme arrosée paie son eau au forage (%d € par jour)" % roundi(Production.PRIX_IRRIGATION_JOUR))
+	var dem := Reseaux.demande_type("forage_irrigation")
+	_check(float(dem.elec) >= 0.1, "la pompe consomme beaucoup de courant (%d kW)" % roundi(float(dem.elec) * 1000.0))
+	bs.demolish(forage)
+	prod._sync()
+	_check(prod.carte.irrigation.is_empty(), "forage démoli : plus d'irrigation")
+
 	print("Époque 1800 :")
 	var r := ReglagesPartie.actuel
 	var avant := r.annee_depart if r != null else 0
@@ -132,6 +180,9 @@ func _run() -> void:
 		if String(f.etat) == "epoque":
 			epoque += 1
 	_check(epoque > 0, "en 1800, des bâtiments sont « pas encore inventés » (%d)" % epoque)
+	_check(String(_fiche(vieux.agri.cultures, "quinoa").get("etat", "")) == "epoque", "en 1800, pas encore de quinoa")
+	_check(String(vieux.agri.forage) != "ok", "en 1800, pas de forage d'irrigation électrique")
+	_check(float(_fiche(vieux.agri.cultures, "ble").get("t_ha", 9.0)) < 2.5, "en 1800, rendements d'époque (blé %.1f t/ha)" % float(_fiche(vieux.agri.cultures, "ble").get("t_ha", 0.0)))
 	for f in vieux.ok:
 		if Epoques.annee_batiment(String(f.id)) > 1800:
 			_check(false, "%s proposé en 1800 alors qu'il arrive en %d" % [f.id, Epoques.annee_batiment(String(f.id))])

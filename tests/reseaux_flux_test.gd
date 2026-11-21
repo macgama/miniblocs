@@ -98,7 +98,10 @@ func _run() -> void:
 	print("Clic sur une maison :")
 	scene.population._sync_buildings()
 	scene.population.select_building(maison)
-	_check(fl.actif() and fl.bid == maison and fl.origine == "batiment", "le flux s'affiche au clic")
+	_check(not fl.actif(), "un simple clic n'allume plus le flux (fiche courte)")
+	_check(fl.basculer_batiment(maison) and fl.actif() and fl.bid == maison and fl.origine == "batiment", "bouton « Sur les routes » de la fiche : le flux s'affiche")
+	scene.population.select_building(maison)
+	_check(fl.montre_batiment(maison), "re-cliquer la même maison garde le flux demandé")
 	_check(fl.reseaux_montres.has("elec") and fl.reseaux_montres.has("eau") and fl.reseaux_montres.has("egout"), "électricité, eau et égouts côte à côte (%s)" % [fl.reseaux_montres])
 	var se: Dictionary = fl.stats.get("elec", {})
 	_check(int(se.get("ok", 0)) > 0 and int(se.get("morceaux", 0)) > 0 and fl._mi["elec"].mesh != null, "électricité : ruban vert qui circule (%s)" % [se])
@@ -124,6 +127,8 @@ func _run() -> void:
 
 	print("Clic sur le poste :")
 	scene.population.select_building(poste)
+	_check(not fl.actif(), "un autre bâtiment cliqué : le flux de la maison s'efface")
+	fl.basculer_batiment(poste)
 	_check(fl.reseaux_montres == ["elec"], "une centrale montre son réseau seul (%s)" % [fl.reseaux_montres])
 	_check(_dist_pres(fl, "elec", Vector3(-220, y, 0)) < 30.0, "le flux part du poste")
 
@@ -148,7 +153,11 @@ func _run() -> void:
 
 	print("Désélection :")
 	scene.population.select_building(maison)
+	fl.basculer_batiment(maison)
 	_check(fl.actif(), "réaffiché")
+	fl.basculer_batiment(maison)
+	_check(not fl.actif(), "second appui sur le bouton : le flux se cache")
+	fl.basculer_batiment(maison)
 	scene.population.select_building(-1)
 	_check(not fl.actif() and fl._mi["elec"].mesh == null, "fiche fermée : plus de flux")
 
@@ -176,6 +185,7 @@ func _run() -> void:
 	_check(eau.taux_servi(maison) >= 0.95, "l'eau du forage arrive aussi en ville par la conduite")
 	scene.population._sync_buildings()
 	scene.population.select_building(hameau)
+	fl.basculer_batiment(hameau)
 	var d_f := _dist_pres(fl, "eau", Vector3(-700, y, -390))
 	var d_h := _dist_pres(fl, "eau", Vector3(-650, y, 300))
 	_check(d_f < 30.0 and d_h > 950.0, "l'eau part du forage et suit les conduites dans les champs (%.0f m puis %.0f m)" % [d_f, d_h])
@@ -193,6 +203,7 @@ func _run() -> void:
 	res.simuler(0.0)
 	scene.population._sync_buildings()
 	scene.population.select_building(maison)
+	fl.basculer_batiment(maison)
 	var t0 := Time.get_ticks_msec()
 	fl.refaire()
 	var ms := Time.get_ticks_msec() - t0

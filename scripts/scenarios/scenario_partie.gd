@@ -23,7 +23,7 @@ static var instance: ScenarioPartie
 
 ## Réglages surveillés : les changer dans l'Admin pendant le scénario = pas de classement.
 const REGLAGES_SURVEILLES := ["argent_illimite", "cout_construction", "construction_instantanee",
-	"rythme_chantiers", "catastrophes", "frequence_catastrophes", "impots", "salaires", "acces_route",
+	"rythme_chantiers", "depart_rapide", "catastrophes", "frequence_catastrophes", "impots", "salaires", "acces_route",
 	"fondation", "territoire", "main_oeuvre", "reseaux_obligatoires", "neige_routes"]
 
 var main: Node

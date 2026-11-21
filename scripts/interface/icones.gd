@@ -72,6 +72,7 @@ const SVG := {
 	"moins": "<path d=\"M5 12h14\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\"/>",
 	"glisser": "<path d=\"M9 11V5.5a1.5 1.5 0 0 1 3 0V11m0-1.5a1.5 1.5 0 0 1 3 0V11m0-.5a1.5 1.5 0 0 1 3 0V15a6 6 0 0 1-6 6h-1.2a5 5 0 0 1-4-2L4 15.5a1.6 1.6 0 0 1 2.4-2.1L9 15\" fill=\"currentColor\" fill-opacity=\".3\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/>",
 	"fastest": "<path d=\"M1 6v12l5.5-6ZM7 6v12l5.5-6ZM13 6v12l5.5-6Z\" fill=\"currentColor\"/><rect x=\"19.5\" y=\"6\" width=\"2.5\" height=\"12\" rx=\"1\" fill=\"currentColor\"/>",
+	"turbo": "<path d=\"M1 6v12l5.5-6ZM7 6v12l5.5-6Z\" fill=\"currentColor\"/><path d=\"M17.5 2 11 13h4.5l-1.5 9 7-12h-4.5Z\" fill=\"#ffd166\" stroke=\"currentColor\" stroke-width=\"1\" stroke-linejoin=\"round\"/>",
 	"details": "<circle cx=\"5\" cy=\"12\" r=\"2\" fill=\"currentColor\"/><circle cx=\"12\" cy=\"12\" r=\"2\" fill=\"currentColor\"/><circle cx=\"19\" cy=\"12\" r=\"2\" fill=\"currentColor\"/>",
 	"precedent": "<path d=\"M15 5l-7 7 7 7\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>",
 	"suivant": "<path d=\"M9 5l7 7-7 7\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>",

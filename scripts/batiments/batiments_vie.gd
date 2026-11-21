@@ -87,9 +87,11 @@ func offset_h() -> float:
 
 
 ## Années de « vie » écoulées pour une durée de jeu (suit la vitesse de la vie des habitants).
+## Années du calendrier de la partie. Les murs vieillissent avec la date affichée,
+## pas au rythme de la vie des habitants (« 1 an = 1 mois » par défaut) : sinon
+## une maison posée il y a quelques mois paraissait vieille de plusieurs années.
 func _years(seconds: float) -> float:
-	var k := population.life_speed() if population != null else 1.0
-	return seconds * k / AN
+	return seconds / AN
 
 
 ## Un bâtiment de ce type posé maintenant aura-t-il un chantier ?
@@ -964,7 +966,9 @@ func _update_vie() -> void:
 		# Rénové ou agrandi (Ameliorations) : l'usure repart de la fin des travaux.
 		var age := _years(maxf(t - maxf(float(b.get("ne", t)), float(b.get("renov", 0.0))), 0.0))
 		var rythme := float(extra_usure.call(bid)) if extra_usure.is_valid() else 1.0
-		var usure: float = e.base + age * rythme / (60.0 if occupe or not accueille else 18.0)
+		# Un bâtiment neuf est propre : l'écart propre à chaque bâtiment (base) ne
+		# s'installe qu'au fil de ses dix premières années.
+		var usure: float = e.base * clampf(age / 10.0, 0.0, 1.0) + age * rythme / (60.0 if occupe or not accueille else 18.0)
 		var abandon := 0.0
 		if e.vide >= 0.0:
 			abandon = clampf((_years(t - float(e.vide)) - 0.5) / 2.0, 0.0, 1.0)

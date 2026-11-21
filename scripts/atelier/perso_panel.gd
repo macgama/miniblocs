@@ -171,7 +171,7 @@ func refresh() -> void:
 	# --- Style (modèles classiques) ---------------------------------------------------
 	if Personnalisation.is_classic(tid):
 		_section("Style de la façade")
-		var arch := String(Personnalisation.CLASSIQUES[tid])
+		var arch := String(Personnalisation.CLASSIQUES[TaillesBatiments.origine(tid)])
 		var st := ChoixVisuel.new()
 		st.name = "ChoixStyle"
 		st.max_columns = 4

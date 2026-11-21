@@ -51,7 +51,7 @@ const CLASSIQUE_COULEURS := {"mur": "f1e6d2", "toit_c": "c8553d", "porte": "6b4a
 ## Modèle classique qu'on peut refaire dans un style ?
 static func is_classic(type_id: String) -> bool:
 	var t := BuildingCatalog.get_type(type_id)
-	return CLASSIQUES.has(type_id) and not t.has("arch") and not t.has("glb") and not t.has("modele") and not t.has("creation")
+	return CLASSIQUES.has(TaillesBatiments.origine(type_id)) and not t.has("arch") and not t.has("glb") and not t.has("modele") and not t.has("creation")
 
 
 ## Fiche du type telle que la personnalisation la dessine : un modèle classique
@@ -61,7 +61,7 @@ static func type_of(type_id: String, perso: Dictionary = {}) -> Dictionary:
 	if not is_classic(type_id) or not Styles.STYLES.has(String(perso.get("style", ""))):
 		return t
 	var out := t.duplicate()
-	out["arch"] = String(CLASSIQUES[type_id])
+	out["arch"] = String(CLASSIQUES[TaillesBatiments.origine(type_id)])
 	out["style"] = String(perso.style)
 	var s: Dictionary = Styles.STYLES[perso.style]
 	out["region"] = String(s.get("region", ""))
@@ -73,7 +73,7 @@ static func type_of(type_id: String, perso: Dictionary = {}) -> Dictionary:
 static func styles_for(type_id: String) -> Array:
 	if not is_classic(type_id):
 		return []
-	var arch := String(CLASSIQUES[type_id])
+	var arch := String(CLASSIQUES[TaillesBatiments.origine(type_id)])
 	var out := []
 	for sid in Styles.STYLES:
 		if arch in (Styles.STYLES[sid].get("archs", []) as Array):
@@ -104,7 +104,7 @@ static func completer(type_id: String, perso: Dictionary, force := false) -> Dic
 	for k in CLASSIQUE_COULEURS:
 		if not out.has(k):
 			out[k] = CLASSIQUE_COULEURS[k]
-	if not out.has("toit") and String(CLASSIQUES[type_id]) in ["maison", "grande_maison", "boutique", "restaurant", "atelier"]:
+	if not out.has("toit") and String(CLASSIQUES[TaillesBatiments.origine(type_id)]) in ["maison", "grande_maison", "boutique", "restaurant", "atelier"]:
 		out["toit"] = "gable"
 	return out
 
@@ -154,6 +154,9 @@ static func can_shape(type_id: String, perso: Dictionary = {}) -> bool:
 
 
 static func base_floors(type_id: String, perso: Dictionary = {}) -> int:
+	# Taille choisie à la pose : ses étages deviennent ceux de base.
+	if TaillesBatiments.est_taille(type_id) and TaillesBatiments.hauteur_reglable(type_id):
+		return int(TaillesBatiments.dims(type_id).e)
 	if is_glb(type_id):
 		return int(BibleGlb.volume(type_id).get("etages", 1))
 	var t := type_of(type_id, completer(type_id, perso))

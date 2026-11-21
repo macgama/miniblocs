@@ -173,7 +173,11 @@ static func all_types() -> Dictionary:
 
 
 static func get_type(id: String) -> Dictionary:
-	return all_types().get(id, {})
+	var t: Dictionary = all_types().get(id, {})
+	# Autre taille d'un type du catalogue (« maison@8x10x1 », TaillesBatiments).
+	if t.is_empty() and id.contains(TaillesBatiments.SEP):
+		return TaillesBatiments.entree(id)
+	return t
 
 
 ## Id du bâtiment dont celui-ci joue le rôle (modèle de l'atelier, création
@@ -238,6 +242,8 @@ static func build_mesh(id: String, material: Material = null, details := true, v
 	k.details = details
 	k.variant = variant
 	k.perso = perso
+	if TaillesBatiments.est_taille(id):
+		return TaillesBatiments.build_mesh(id, material, details, variant, perso)
 	var t := get_type(id)
 	var w := float(t.get("w", 4))
 	var d := float(t.get("d", 4))

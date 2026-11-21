@@ -607,6 +607,8 @@ func _fiche_amelioration(bid: int) -> void:
 		return
 	if ok_type:
 		_text("Capacité : %s%s" % [am.texte_capacites(bid), " (×%s)" % str(Ameliorations.facteur(b)).replace(".", ",") if niv > 1 else ""], true, 12)
+	if TaillesBatiments.est_taille(String(b.t)):
+		_text("Taille choisie : %s" % TaillesBatiments.texte_taille(String(b.t)), true, 12)
 	_text("État : %s" % etat, true, 12)
 	if not a.is_empty():
 		var quoi := "Agrandissement au niveau %d" % int(a.cible) if String(a.op) == "niv" else "Rénovation"

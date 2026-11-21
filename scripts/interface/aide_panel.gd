@@ -47,6 +47,7 @@ const SECTIONS := [
 		["B", "afficher ou masquer le panneau Construire : thèmes nommés à gauche (Favoris, Récents, Logement, Services publics, Loisirs et culture…), recherche dans tout le catalogue, bâtiments en vignettes"],
 		["Étoile d'une vignette", "garder le bâtiment dans les Favoris ; les Récents se remplissent seuls"],
 		["Clic gauche", "poser le bâtiment choisi"],
+		["Taille (carte en bas pendant la pose)", "1 · Emprise au sol : Petite, Normale, Grande, Très grande, puis largeur et profondeur au mètre près ; 2 · Hauteur : de 1 à N niveaux selon le bâtiment et l'époque (le toit ne compte pas). Logements, emplois, prix, réseaux et durée du chantier suivent la taille"],
 		["R", "tourner le bâtiment d'un quart de tour (sinon il se cale tout seul le long de la route la plus proche, même courbe, à sa hauteur)"],
 		["Ctrl + Z", "annuler le dernier geste en ville : bâtiment posé ou démoli (tout l'argent revient), tronçon de voie, carrefour, terrassement, zones, décors, conduites, projet du mode plan ; dans l'éditeur libre : blocs, murs et étages"],
 		["Ctrl + Y ou Ctrl + Maj + Z", "rétablir ce qui vient d'être annulé ; aussi les flèches en haut de l'écran"],

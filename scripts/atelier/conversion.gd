@@ -35,7 +35,7 @@ static func usage_of(type_id: String, perso: Dictionary = {}) -> String:
 		return ""
 	# Modèle classique : son archétype (même sans style choisi).
 	if Personnalisation.is_classic(type_id):
-		return String(USAGE.get(String(Personnalisation.CLASSIQUES[type_id]), ""))
+		return String(USAGE.get(String(Personnalisation.CLASSIQUES[TaillesBatiments.origine(type_id)]), ""))
 	if t.has("arch"):
 		return String(USAGE.get(String(t.arch), ""))
 	if Personnalisation.is_glb(type_id) and not BibleGlb.volume(type_id).is_empty():
@@ -253,7 +253,7 @@ static func open_interior(mob: Mobilier, bid: int) -> Dictionary:
 		return {"ok": false, "error": "ce bâtiment ne s'ouvre pas encore (seulement maisons, immeubles, boutiques, restaurants, bureaux, ateliers, écoles)"}
 	var t := Personnalisation.type_of(type_id, perso).duplicate()
 	if Personnalisation.is_classic(type_id) and not t.has("arch"):
-		t["arch"] = String(Personnalisation.CLASSIQUES[type_id])
+		t["arch"] = String(Personnalisation.CLASSIQUES[TaillesBatiments.origine(type_id)])
 	t["id"] = type_id
 	var vol := main_volume(t)
 	var W := maxi(4, int(round(float(vol.w))))

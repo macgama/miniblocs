@@ -154,6 +154,9 @@ var pays_panel: PaysPanel
 var selecteur_villes: SelecteurVilles
 var pilote: PiloteAuto
 var objectifs: Objectifs
+## Objectif de séance (environ 20 minutes, trois paliers) et sa bannière de récompense.
+var seance: Seance
+var seance_banniere: SeanceBanniere
 var kit: KitInstallation
 var rue_fondation: RueFondation
 var services_fondation: ServicesFondation
@@ -466,6 +469,8 @@ func save_sections() -> Dictionary:
 	sec["pays"] = pays.to_dict()
 	sec["pilote"] = pilote.to_dict()
 	sec["objectifs"] = objectifs.to_dict()
+	if seance != null:
+		sec["seance"] = seance.to_dict()
 	sec["kit"] = kit.to_dict()
 	sec["rue_fondation"] = rue_fondation.to_dict()
 	sec["services_fondation"] = services_fondation.to_dict()
@@ -664,6 +669,8 @@ func load_game(slot := "") -> bool:
 	avis.from_dict(sec.get("avis", {}))
 	# Après les villages, le pays et les élections (mairies perdues).
 	objectifs.from_dict(sec.get("objectifs", {}))
+	if seance != null:
+		seance.from_dict(sec.get("seance", {}))
 	kit.from_dict(sec.get("kit", {}))
 	rue_fondation.from_dict(sec.get("rue_fondation", {}))
 	services_fondation.from_dict(sec.get("services_fondation", {}))
@@ -1153,6 +1160,19 @@ func _setup_pays() -> void:
 		rig.position.x = pos.x
 		rig.position.z = pos.z)
 	hud.objectifs_requested.connect(func() -> void: objectifs_panel.toggle())
+	# Objectif de séance (20 min, paliers bronze/argent/or) : carte en haut à gauche.
+	seance = Seance.new()
+	seance.name = "Seance"
+	add_child(seance)
+	seance.setup(objectifs)
+	seance.ville_courante = func() -> int: return pays.actif if pays != null else -1
+	seance.actif = not GameStart.atelier
+	seance.message.connect(func(t: String) -> void: hud.show_message(t))
+	seance.changed.connect(func() -> void: _unsaved = true)
+	seance_banniere = SeanceBanniere.new()
+	seance_banniere.name = "SeanceBanniere"
+	add_child(seance_banniere)
+	seance.palier_atteint.connect(func(n: int, s: Dictionary) -> void: seance_banniere.montrer(n, s))
 
 
 ## Niveaux de vie (Maj+N) : les foyers montent de « Précaire » à « Très aisé »
@@ -1372,6 +1392,9 @@ func _setup_tutoriel() -> void:
 	add_child(tuto_carte)
 	tuto_carte.ville_courante = func() -> int: return pays.actif
 	tuto_carte.setup(tutoriel, objectifs)
+	tuto_carte.poser_seance(seance)
+	# Pendant le tutoriel (et la démo guidée), c'est lui l'objectif : la séance attend.
+	seance.bloque = func() -> bool: return tutoriel.actif
 	tuto_carte.objectifs_requested.connect(func() -> void: objectifs_panel.set_open(not objectifs_panel.is_open()))
 	# Bulles d'aide et guide par chapitres.
 	bulles_aide = BullesAide.new()
@@ -2987,12 +3010,16 @@ func _setup_mairie() -> void:
 	# Bâtiments non raccordés : une alerte qui emmène au bâtiment.
 	if reseaux != null and reseaux.raccordements != null:
 		reseaux.raccordements.telecom = telecom
-		mairie_panel.autres_alertes = func(l: String) -> Array:
-			var out: Array = reseaux.raccordements.alertes(_filtre_ville(l))
-			# Appels d'urgence qu'aucun bâtiment de la ville ne peut traiter.
-			if urgences != null:
-				out.append_array(urgences.alertes())
-			return out
+	mairie_panel.autres_alertes = func(l: String) -> Array:
+		var out: Array = []
+		if reseaux != null and reseaux.raccordements != null:
+			out.append_array(reseaux.raccordements.alertes(_filtre_ville(l)))
+		# Appels d'urgence qu'aucun bâtiment de la ville ne peut traiter.
+		if urgences != null:
+			out.append_array(urgences.alertes())
+		# Chantiers à l'arrêt : pas assez d'ouvriers, ou plus d'argent.
+		out.append_array(Causes.alertes_chantiers(l))
+		return out
 	hud.mairie_requested.connect(func() -> void: mairie_panel.toggle())
 	mairie_panel.visibilite.connect(func(on: bool) -> void: hud.set_mairie_open(on))
 	fil_alertes = FilAlertes.new()
@@ -3693,6 +3720,8 @@ func _on_origin_changed(lat: float, lon: float) -> void:
 		pilote.clear()
 	if objectifs != null:
 		objectifs.clear()
+	if seance != null:
+		seance.clear()
 	if quartiers != null:
 		quartiers.clear()
 	if kit != null:

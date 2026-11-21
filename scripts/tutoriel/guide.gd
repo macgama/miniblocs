@@ -77,7 +77,7 @@ const CHAPITRES := [
 				"texte": "Satisfaction, emploi, école, réseaux, transports, déchets : un coup d'œil suffit. Un clic sur une tuile ouvre le détail.",
 				"touches": "M : Mairie"},
 			{"titre": "La liste « À faire »", "racine": "fil_alertes", "cible": ["À faire"],
-				"texte": "Les problèmes urgents arrivent ici : un quartier sans eau, une école pleine… « Y aller » t'emmène sur place."},
+				"texte": "Les 3 problèmes les plus urgents arrivent ici, jamais plus. « ? » montre la cause en chiffres (pas assez d'ouvriers, de places, d'argent…), « Régler » ouvre ce qu'il faut pour le régler."},
 			{"titre": "Tous les menus", "panneau": "mairie_panel", "cible": ["La ville", "Services"], "section": false,
 				"texte": "Budget, habitants, avis, services, économie, transports, loisirs : tous les panneaux de gestion sont rangés ici."},
 		]},

@@ -1,12 +1,14 @@
 class_name FilAlertes
 extends CanvasLayer
 ## Fil d'alertes à gauche de l'écran : ce que le Conseiller juge urgent ou à
-## surveiller, du plus grave au moins grave, avec un bouton qui ouvre le bon
-## panneau. Replié, c'est une cloche avec le nombre d'alertes.
+## surveiller, du plus grave au moins grave, 3 au plus, chacune avec « Régler »
+## (ouvre le bon panneau) et « ? » (la cause chiffrée, Causes). Replié, c'est une
+## cloche avec le nombre d'alertes.
 
 signal panneau_requested(id: String)
 
-const MAX_LIGNES := 5
+## Jamais plus de 3 alertes à la fois : les plus graves ; les autres attendent leur tour.
+const MAX_LIGNES := MairiePanel.MAX_ALERTES
 
 var mairie: MairiePanel
 var replie := false
@@ -15,6 +17,8 @@ var _panel: PanelContainer
 var _head: Button
 var _list: VBoxContainer
 var _n := 0
+## Toutes les alertes, même celles qui attendent leur tour (au-delà des 3 montrées).
+var total_alertes := 0
 var _montre := true
 ## Trop peu de place dans la colonne de gauche (PileGauche) : la liste se replie,
 ## seul le titre « À faire · n » reste, sans toucher au choix du joueur (replie).
@@ -91,14 +95,26 @@ func refresh() -> void:
 		_list.remove_child(ch)
 		ch.queue_free()
 	var al := []
+	var total := 0
 	if mairie != null:
-		for a in mairie.alertes(MAX_LIGNES):
+		for a in mairie.alertes(99):
 			if int(a.gravite) >= 1:
-				al.append(a)
+				total += 1
+				if al.size() < MAX_LIGNES:
+					al.append(a)
 	_n = al.size()
-	_head.text = "À faire  ·  %d" % _n + ("   ▸" if replie else "   ▾")
+	_head.text = "À faire  ·  %d" % _n + (" sur %d" % total if total > _n else "") + ("   ▸" if replie else "   ▾")
 	_list.visible = not replie and not _serre
+	var lieu := mairie._lieu() if mairie != null else Statistiques.PAYS
 	for a in al:
-		_list.add_child(MairiePanel.carte_alerte(a, func(id: String) -> void: panneau_requested.emit(id), true))
+		_list.add_child(MairiePanel.carte_alerte(a, func(id: String) -> void: panneau_requested.emit(id), true, lieu))
+	if total > _n:
+		var plus := Label.new()
+		plus.name = "AutresAlertes"
+		plus.text = "+ %d moins grave%s : Mairie (M)" % [total - _n, "s" if total - _n > 1 else ""]
+		plus.add_theme_font_size_override("font_size", 11)
+		plus.add_theme_color_override("font_color", UiStyle.TEXT_DIM)
+		_list.add_child(plus)
+	total_alertes = total
 	_panel.visible = _montre and _n > 0 and not _sans_place
 	_panel.reset_size()

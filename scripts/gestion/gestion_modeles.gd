@@ -460,7 +460,16 @@ static func dessiner(k: LpKit, nom: String, p: Vector3, rot: float, teinte := Co
 			voiture(k, Vector3.ZERO, Color("f8f9fa"), true)
 		"voiture":
 			voiture(k, Vector3.ZERO, teinte, false)
+		_:
+			ModelesRestaurant.dessiner(k, nom, teinte)
 	k.xf = avant
+
+
+## Places des clients d'un modèle (toutes les bibliothèques).
+static func places(nom: String) -> Array:
+	if PLACES.has(nom):
+		return PLACES[nom]
+	return ModelesRestaurant.PLACES.get(nom, [])
 
 
 static func _plante(k: LpKit, taille: float) -> void:

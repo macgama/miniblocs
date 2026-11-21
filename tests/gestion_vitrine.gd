@@ -1,6 +1,6 @@
 extends SceneTree
-## Captures du mode gestion « tycoon » (écran isométrique d'un hôtel).
-## Usage : xvfb-run -a godot --path . --rendering-driver opengl3 --script res://tests/gestion_vitrine.gd -- --out DOSSIER [--niveau 1|3|5] [--piece spa] [--zoom 30] [--onglet personnel|stats|journal] [--x 20 --z 14]
+## Captures du mode gestion « tycoon » (écran isométrique d'un hôtel ou d'un restaurant).
+## Usage : xvfb-run -a godot --path . --rendering-driver opengl3 --script res://tests/gestion_vitrine.gd -- --out DOSSIER [--type hotel_3|haussmann__restaurant] [--niveau 1|3|5] [--piece spa] [--zoom 30] [--onglet personnel|stats|journal] [--x 20 --z 14]
 
 var out := "user://captures-gestion"
 var niveau := 3
@@ -9,6 +9,7 @@ var zoom := 0.0
 var onglet := ""
 var cible_x := INF
 var cible_z := INF
+var type_id := "hotel_3"
 
 const VENDREDI := 1_784_282_400.0
 
@@ -24,6 +25,7 @@ func _initialize() -> void:
 			"--onglet": onglet = a[i + 1]
 			"--x": cible_x = float(a[i + 1])
 			"--z": cible_z = float(a[i + 1])
+			"--type": type_id = a[i + 1]
 	_run.call_deferred()
 
 
@@ -64,14 +66,19 @@ func _run() -> void:
 	ReglagesPartie.actuel.deblocage = "tout"
 	var y := world.cell_height(Vector2i(0, 0))
 	transport.build_segment("route", Vector3(-400, y, 0), Vector3(400, y, 0))
-	var sn := bs.road_snap("hotel_3", Vector2i(0, -14))
-	var hotel := bs.place("hotel_3", sn.center, int(sn.r), 0, float(sn.get("a", 0.0)))
+	var g := GestionTypes.genre_de(type_id)
+	var sn := bs.road_snap(type_id, Vector2i(0, -14))
+	var hotel := bs.place(type_id, sn.center, int(sn.r), 0, float(sn.get("a", 0.0)))
 	bs.buildings[hotel]["chantier"] = false
 	tour.ignore_staff = true
 	tour._sync()
-	tour.heb[hotel].nom = "Hôtel Bellevue"
-	tour.heb[hotel].compte = 180_000.0
-	tour.heb[hotel].clients = [[50, 3, 3.5], [40, 2, 3.5]]
+	scene.production._sync()
+	if g == "hotel":
+		tour.heb[hotel].nom = "Hôtel Bellevue"
+		tour.heb[hotel].compte = 180_000.0
+		tour.heb[hotel].clients = [[50, 3, 3.5], [40, 2, 3.5]]
+	else:
+		scene.production.sites[hotel].cash = 60_000.0
 	# Personnel : quelques habitants embauchés à leur poste.
 	var homes: Array[int] = []
 	for i in 6:
@@ -81,6 +88,8 @@ func _run() -> void:
 	for b in homes:
 		pop.spawn_household(b, "famille")
 	var mets := ["receptionniste", "agent_etage", "agent_etage", "cuisinier", "serveur", "serveur", "cadre", "agent_proprete", "maitre_nageur", "maitre_nageur"]
+	if g == "restaurant":
+		mets = ["serveur", "serveur", "serveur", "cuisinier", "cuisinier", "serveur", "serveur"]
 	var k := 0
 	pop.by_job[hotel] = []
 	for pid in pop.persons:
@@ -94,12 +103,12 @@ func _run() -> void:
 	bs.unlimited_money = true
 	if niveau > 1:
 		var cible := 3 if niveau < 5 else 5
-		for pid in GestionTypes.ordre("hotel"):
+		for pid in GestionTypes.ordre(g):
 			while gest.niveau(hotel, String(pid)) < cible:
 				if not bool(gest.ameliorer(hotel, String(pid)).ok):
 					break
-			for oid in GestionTypes.objets("hotel", String(pid)):
-				if niveau >= 5 or int(GestionTypes.objet("hotel", String(pid), String(oid)).get("niv", 1)) <= 2:
+			for oid in GestionTypes.objets(g, String(pid)):
+				if niveau >= 5 or int(GestionTypes.objet(g, String(pid), String(oid)).get("niv", 1)) <= 2:
 					gest.acheter(hotel, String(pid), String(oid))
 	bs.unlimited_money = false
 	if niveau == 3:
@@ -108,7 +117,12 @@ func _run() -> void:
 	var rng := RandomNumberGenerator.new()
 	for j in 30:
 		var ca := 9000.0 + j * 180.0 + rng.randf_range(-1500, 1500)
-		(gest.etat(hotel).hist as Array).append([j + 1, ca, 6500.0 + rng.randf_range(-800, 800), 80, clampf(0.55 + j * 0.012 + rng.randf_range(-0.05, 0.05), 0, 1), 3.6, 3.8])
+		var e := 1.0 if g == "hotel" else 0.25
+		(gest.etat(hotel).hist as Array).append([j + 1, ca * e, (6500.0 + rng.randf_range(-800, 800)) * e, 80, clampf(0.55 + j * 0.012 + rng.randf_range(-0.05, 0.05), 0, 1), 3.6, 3.8])
+	if g == "restaurant":
+		gest.etat(hotel).hier = {"ca": 2900.0, "charges": 2100.0, "clients": 150.0, "cap": 190.0}
+		gest.etat(hotel).note = 3.8
+		gest.etat(hotel).satisf = 3.9
 	gest.set_auto(hotel, niveau != 3)
 	scene.ouvrir_gestion(hotel)
 	if zoom > 0.0:
@@ -131,7 +145,7 @@ func _run() -> void:
 		await process_frame
 	await RenderingServer.frame_post_draw
 	var img := root.get_texture().get_image()
-	var f := out.path_join("gestion-hotel-niveau%d%s%s.png" % [niveau, ("-" + piece) if piece != "" else "", ("-" + onglet) if onglet != "" else ""])
+	var f := out.path_join("gestion-%s-niveau%d%s%s.png" % [g, niveau, ("-" + piece) if piece != "" else "", ("-" + onglet) if onglet != "" else ""])
 	img.save_png(f)
 	print("capture : ", ProjectSettings.globalize_path(f))
 	quit(0)

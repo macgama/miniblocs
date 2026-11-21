@@ -41,12 +41,26 @@ L'hôtel est une entreprise privée : ses bénéfices s'accumulent sur son **com
 
 La boutique, le bar, le spa, le minibar, la cave à vins… font **dépenser** les clients sur place : ces ventes entrent dans les recettes de l'hôtel. Ce que la ville y gagne : plus de lits et de clients, donc plus de nuitées, de taxe de séjour, d'impôts sur les bénéfices, de repas et de courses en ville.
 
+## Le restaurant
+
+Les 55 cafés et restaurants du jeu (café-restaurant, brasserie, auberge, taverne, pub, maquis, salon de thé…) se gèrent aussi : tuile **Gérer le restaurant** sur leur fiche. 14 pièces : accueil et vestiaire, grande salle, cuisine, plonge, réserve et chambre froide, bureau du patron, bar, toilettes, salon privé, cave à vins, salon de thé et pâtisserie, et dehors la terrasse, le potager avec son poulailler et le quai de livraison. Environ 70 objets dessinés (friteuse, four mixte, piano du chef en cuivre, rôtissoire, tireuse à bière, baby-foot, aquarium à homards, pergola et vigne, guirlandes, ruches, scooters de livraison, camionnette…).
+
+- Le compte du restaurant est la caisse de l'entreprise (économie, touche P) : les améliorations se paient d'abord avec elle, la ville avance le reste.
+- **Couverts** : la salle, la terrasse, le salon privé et le bar ajoutent des tables : le restaurant peut servir plus de repas par jour (habitants et touristes).
+- **Affluence** : la note, l'attrait et le **prix du menu** (− / + dans l'onglet Restaurant) décident combien de clients viennent. Plus cher, chaque repas rapporte plus mais il vient moins de monde et ils sont moins contents.
+- **Toques** (1 à 5) : comme les étoiles de l'hôtel, gagnées par le confort ; chaque toque rend le repas plus cher. Le vin, les desserts et les cafés (« ventes ») s'ajoutent à l'addition.
+- Chaque jour : salaires, entretien des améliorations, bilan (recettes, charges, couverts servis), satisfaction (prix, pannes, produits qui manquent) et note.
+- Événements : critique gastronomique incognito (« Coup de cœur » du guide), inspection d'hygiène (amende si la cuisine, la plonge, la réserve ou les toilettes sont en panne), banquets dans le salon privé (mariages, repas d'entreprise), clients célèbres, soirs de match au bar.
+- Gestion automatique comme l'hôtel (sans jamais toucher à la caisse de la ville).
+
 ## Rythme
 
 Le mode suit le temps du jeu : rien ne se gagne pendant que le jeu est fermé, rien ne bouge en pause, tout va plus vite en vitesse rapide. La gestion automatique, les pannes et les événements tournent chaque jour de jeu pour tous les hôtels, même ceux qu'on n'ouvre jamais. Un hôtel jamais ouvert garde ses effets à zéro tant qu'il n'a rien acheté.
 
 ## Pour aller plus loin (code)
 
+- `scripts/gestion/genres/genre_restaurant.gd` (`GenreRestaurant`) : le restaurant (pièces, objets, demandes, pannes). `source` dit qui fait vivre le bâtiment : `tourisme` (hôtel) ou `production` (restaurant : `Gestion.affluence_de`, `prix_repas_de`, `couverts_de`, `compter_de`, `entretien_site`, `cloture_de` sont appelés par `Production`).
+- `scripts/gestion/decors_restaurant.gd` et `modeles_restaurant.gd` : décors de base des pièces et ~50 modèles du restaurant.
 - `scripts/gestion/gestion_types.gd` (`GestionTypes`) : les genres gérables. Un genre = ses pièces (plan, niveaux, prix, effets, métiers et postes, portes et chemins), ses objets (modèle, poses, prix, niveau requis, effets), ses demandes, ses pannes, les activités des clients. Pour ajouter la prison, l'hôpital, l'usine… : une entrée dans `GENRES`, une ligne dans `genre_de()`, et les décors de base de ses pièces dans le diorama (`_decor_<nom>`).
 - `scripts/gestion/gestion.gd` (`Gestion`) : niveaux, objets, prix, paiement, effets (`Gestion.effet_de(bid, clé)`), étoiles, personnel (salaires, formation), pannes, événements, historique, journal, gestion automatique (`gerer_auto`, `candidats`), objectifs, sauvegarde (section `gestion`). `nouveau_jour()` est appelé par le tourisme à chaque fin de journée.
 - `scripts/gestion/gestion_modeles.gd` (`GestionModeles`) : la bibliothèque des objets low-poly (72 modèles) et les places qu'ils offrent aux clients.
@@ -54,4 +68,4 @@ Le mode suit le temps du jeu : rien ne se gagne pendant que le jeu est fermé, r
 - `scripts/gestion/gestion_vue.gd` (`GestionVue`) et `graphe_gestion.gd` : l'écran (caméra isométrique, barre du haut, carte à onglets, tuiles du bas, bulles, graphique).
 - Effets lus par le tourisme : `Tourisme.spec`, `lits`, `note`, `attrait_heb`, repas sur place, dépenses sur place (`ventes`), satisfaction, entretien.
 
-Tests : `xvfb-run -a godot --path . --rendering-driver opengl3 --script res://tests/gestion_test.gd`. Captures : `tests/gestion_vitrine.gd -- --out DOSSIER --niveau 1|3|5 [--piece spa] [--zoom 30] [--onglet personnel|stats|journal] [--x 20 --z 14]`.
+Tests : `xvfb-run -a godot --path . --rendering-driver opengl3 --script res://tests/gestion_test.gd` (hôtel) et `res://tests/gestion_restaurant_test.gd` (restaurant). Captures : `tests/gestion_vitrine.gd -- --out DOSSIER [--type haussmann__restaurant] --niveau 1|3|5 [--piece spa] [--zoom 30] [--onglet personnel|stats|journal] [--x 20 --z 14]`.

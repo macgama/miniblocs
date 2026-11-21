@@ -28,6 +28,13 @@ static var _variants := {}
 
 ## Règle un paramètre partagé (nuit, part des fenêtres allumées) sur le
 ## matériau des bâtiments et toutes ses variantes d'usure.
+## Sécheresse du climat (0 à 1) : vaut aussi pour les chantiers.
+static func set_aride(a: float) -> void:
+	set_shared("aride", a)
+	if _chantier != null:
+		_chantier.set_shader_parameter("aride", a)
+
+
 static func set_shared(param: String, value: Variant) -> void:
 	building_material().set_shader_parameter(param, value)
 	for m: ShaderMaterial in _variants.values():

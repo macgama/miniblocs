@@ -8,6 +8,7 @@ extends SceneTree
 ## --arch culte,palais : seulement ces archétypes. --zone-style japonais : style du zonage.
 ## --cat espaces : seulement une catégorie. --famille publics : seulement une famille de la bible Blender.
 ## --chantiers : bâtiments en chantier (avancement --avancement 0.4). --usure 0.8 / --abandon 1 : vieillissement.
+## --aride 1 : climat sec (poussière ocre au lieu de mousse).
 ## --habite : abords et fumée des maisons comme si elles étaient habitées.
 ## --zones : un quartier né du zonage (routes en grille, zones R/C/I) au lieu du catalogue.
 
@@ -213,6 +214,11 @@ func _vie(scene: Node, bs: BuildingSystem, args: PackedStringArray) -> void:
 		if args[i] == "--avancement" and i + 1 < args.size():
 			avancement = args[i + 1].to_float()
 	BatimentsVie.vie = usure < 0.0
+	var ia := args.find("--aride")
+	if ia >= 0 and ia + 1 < args.size():
+		var world: TerrainWorld = scene.get_node("Terrain")
+		world.aridite = args[ia + 1].to_float()
+		NightWindows.set_aride(world.aridite)
 	var amb: DayNight = scene.get_node("Ambiance")
 	for i in args.size():
 		if args[i] == "--heure" and i + 1 < args.size():

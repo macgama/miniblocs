@@ -223,6 +223,7 @@ func set_origin(lat: float, lon: float) -> void:
 		# Relief synthétique (tests) : pas de vraies rivières par-dessus.
 		water.offline = tiles.offline_generator.is_valid()
 		water.set_origin(lat, lon)
+	aridite = -1.0
 	origin_changed.emit(lat, lon)
 
 
@@ -288,6 +289,38 @@ var _saison_jour := -1000.0
 var _saison_annee := 0
 var _saison_maj_ms := 0
 var _saison_neige := -1.0
+## Sécheresse du climat de la région (0 humide à 1 désert), d'après les biomes
+## WorldCover autour de l'origine ; -1 tant que les tuiles ne sont pas arrivées.
+## Les bâtiments vieillissent alors sans mousse, avec de la poussière ocre.
+var aridite := -1.0
+
+
+## Sécheresse d'après les biomes sur ±4 km autour de l'origine : part de sol nu
+## ou clairsemé (WorldCover 60) et, pour moitié, de broussailles (20), parmi les
+## points connus hors eau et hors bâti. Décidée dès que 25 points sont connus.
+func _mesure_aridite() -> void:
+	var connus := 0
+	var sec := 0.0
+	for j in range(-4, 5):
+		for i in range(-4, 5):
+			var ll := local_to_lat_lon(i * 1000.0, j * 1000.0)
+			var bio := land.class_at(ll.x, ll.y) if land != null else 0
+			if bio == 0 or bio == 50 or bio == 80 or bio == 90 or bio == 95:
+				continue
+			connus += 1
+			if bio == 60:
+				sec += 1.0
+			elif bio == 20:
+				sec += 0.5
+	if connus < 25:
+		return
+	aridite = aridite_de(sec / connus)
+	NightWindows.set_aride(aridite)
+
+
+## Part de terres sèches (0 à 1) -> sécheresse du climat (0 à 1).
+static func aridite_de(part_seche: float) -> float:
+	return smoothstep(0.25, 0.65, part_seche)
 
 
 ## Saisons, champs et neige selon la date du jeu (unix, UTC) et la météo
@@ -311,6 +344,8 @@ func update_saison(unix: float, meteo: Meteo, vie_jours := NAN) -> void:
 			if t > 0.5:
 				neige -= dt_h * (0.02 + 0.015 * t)
 		neige = clampf(neige, 0.0, 1.0)
+	if aridite < 0.0:
+		_mesure_aridite()
 	var annee := floori(horloge_vie / 365.25)
 	if annee != _saison_annee and Time.get_ticks_msec() - _saison_maj_ms > 20000:
 		# Une année de vie de plus : les arbres grandissent, meurent, repoussent

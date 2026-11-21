@@ -2820,6 +2820,8 @@ func _setup_mobilier() -> void:
 # --- Personnaliser, banque de modèles, atelier ---------------------------------------
 
 var perso_panel: PersoPanel
+## Carte « Taille du bâtiment » (emprise puis hauteur) pendant la pose.
+var taille_panel: TaillePanel
 var modeles_visites: ModelesVisites
 var banque_pose: BanquePose
 var vue_etages: VueEtages
@@ -2894,6 +2896,9 @@ func _setup_souterrain() -> void:
 
 
 func _setup_atelier_tools() -> void:
+	taille_panel = TaillePanel.new()
+	add_child(taille_panel)
+	taille_panel.setup(buildings)
 	perso_panel = PersoPanel.new()
 	perso_panel.name = "PanneauPersonnaliser"
 	add_child(perso_panel)

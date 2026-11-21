@@ -1,11 +1,14 @@
 extends SceneTree
 ## Captures du mode gestion « tycoon » (écran isométrique d'un hôtel).
-## Usage : xvfb-run -a godot --path . --rendering-driver opengl3 --script res://tests/gestion_vitrine.gd -- --out DOSSIER [--niveau 1|3|5] [--piece spa] [--zoom 30]
+## Usage : xvfb-run -a godot --path . --rendering-driver opengl3 --script res://tests/gestion_vitrine.gd -- --out DOSSIER [--niveau 1|3|5] [--piece spa] [--zoom 30] [--onglet personnel|stats|journal] [--x 20 --z 14]
 
 var out := "user://captures-gestion"
 var niveau := 3
 var piece := ""
 var zoom := 0.0
+var onglet := ""
+var cible_x := INF
+var cible_z := INF
 
 const VENDREDI := 1_784_282_400.0
 
@@ -18,6 +21,9 @@ func _initialize() -> void:
 			"--niveau": niveau = int(a[i + 1])
 			"--piece": piece = a[i + 1]
 			"--zoom": zoom = float(a[i + 1])
+			"--onglet": onglet = a[i + 1]
+			"--x": cible_x = float(a[i + 1])
+			"--z": cible_z = float(a[i + 1])
 	_run.call_deferred()
 
 
@@ -84,21 +90,39 @@ func _run() -> void:
 		pop.by_job[hotel].append(int(pid))
 		k += 1
 	gest.etat(hotel)
-	var plan := {1: [], 3: ["chambres", "chambres", "bar", "bar", "piscine", "piscine", "reception", "reception"],
-		5: ["chambres", "chambres", "chambres", "chambres", "bar", "bar", "bar", "bar", "bar", "piscine", "piscine", "piscine", "piscine", "piscine",
-			"spa", "spa", "spa", "restaurant", "restaurant", "restaurant", "restaurant", "reception", "reception", "reception", "reception", "parking", "parking", "parking"]}
+	# Niveau 3 : toutes les pièces au niveau 3 et les objets simples ; 5 : tout au maximum.
 	bs.unlimited_money = true
-	for pid in plan.get(niveau, []):
-		gest.ameliorer(hotel, String(pid))
+	if niveau > 1:
+		var cible := 3 if niveau < 5 else 5
+		for pid in GestionTypes.ordre("hotel"):
+			while gest.niveau(hotel, String(pid)) < cible:
+				if not bool(gest.ameliorer(hotel, String(pid)).ok):
+					break
+			for oid in GestionTypes.objets("hotel", String(pid)):
+				if niveau >= 5 or int(GestionTypes.objet("hotel", String(pid), String(oid)).get("niv", 1)) <= 2:
+					gest.acheter(hotel, String(pid), String(oid))
 	bs.unlimited_money = false
+	if niveau == 3:
+		gest.nouvelle_panne(hotel)
+	# Un mois d'historique pour l'onglet Chiffres.
+	var rng := RandomNumberGenerator.new()
+	for j in 30:
+		var ca := 9000.0 + j * 180.0 + rng.randf_range(-1500, 1500)
+		(gest.etat(hotel).hist as Array).append([j + 1, ca, 6500.0 + rng.randf_range(-800, 800), 80, clampf(0.55 + j * 0.012 + rng.randf_range(-0.05, 0.05), 0, 1), 3.6, 3.8])
+	gest.set_auto(hotel, niveau != 3)
 	scene.ouvrir_gestion(hotel)
 	if zoom > 0.0:
 		vue._zoom = zoom
-		vue._placer_camera()
+	if cible_x != INF:
+		vue._cible = Vector3(cible_x, 0, cible_z)
+	vue._placer_camera()
 	EchelleTemps.force = 1.0
 	for i in 260:
 		vue.simuler(0.1)
 	vue.choisir(piece)
+	if onglet != "":
+		vue.onglet = onglet
+		vue._remplir_carte()
 	for i in 30:
 		await process_frame
 	vue._t_demande = 0.0
@@ -107,7 +131,7 @@ func _run() -> void:
 		await process_frame
 	await RenderingServer.frame_post_draw
 	var img := root.get_texture().get_image()
-	var f := out.path_join("gestion-hotel-niveau%d%s.png" % [niveau, ("-" + piece) if piece != "" else ""])
+	var f := out.path_join("gestion-hotel-niveau%d%s%s.png" % [niveau, ("-" + piece) if piece != "" else "", ("-" + onglet) if onglet != "" else ""])
 	img.save_png(f)
 	print("capture : ", ProjectSettings.globalize_path(f))
 	quit(0)

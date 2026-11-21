@@ -20,7 +20,7 @@ signal ferme
 
 const CARTE_W := 360.0
 const ZOOM_MIN := 12.0
-const ZOOM_MAX := 64.0
+const ZOOM_MAX := 90.0
 ## Clients visibles : un pour N clients réels (au plus MAX_VISIBLES).
 const CLIENTS_PAR_FIGURINE := 5.0
 const MAX_VISIBLES := 22
@@ -38,6 +38,8 @@ var buildings: BuildingSystem
 var bid := -1
 var genre := ""
 var selection := ""
+## Onglet de la vue d'ensemble : ensemble, personnel, stats, journal.
+var onglet := "ensemble"
 
 var diorama: GestionDiorama
 var cam: Camera3D
@@ -53,6 +55,7 @@ var _carte: PanelContainer
 var _carte_corps: VBoxContainer
 var _bas: HBoxContainer
 var _toast: Label
+var _auto: Button
 var _t_arrivee := 0.0
 var _t_guichet := 0.0
 var _t_demande := 0.0
@@ -88,6 +91,7 @@ func ouvrir(id: int) -> bool:
 	genre = gestion.genre_of(id)
 	gestion.etat(id)
 	selection = ""
+	onglet = "ensemble"
 	visible = true
 	# La ville n'est plus dessinée derrière (gain de temps de rendu).
 	var vp := _racine.get_viewport()
@@ -98,9 +102,9 @@ func ouvrir(id: int) -> bool:
 	diorama.clients.clear()
 	diorama._prises.clear()
 	_reconstruire()
-	var plan: Vector2 = GestionTypes.genre(genre).get("plan", Vector2(30, 22))
-	_cible = Vector3(plan.x * 0.5 + 9.0, 0, plan.y * 0.5 - 1.0)
-	_zoom = 40.0
+	var e := diorama.emprise()
+	_cible = Vector3((float(e[0]) + float(e[2])) * 0.5 - 2.0, 0, (float(e[1]) + float(e[3])) * 0.5 - 5.5)
+	_zoom = 52.0
 	_placer_camera()
 	_remplir_haut()
 	_remplir_bas()
@@ -213,7 +217,19 @@ func _build_haut() -> void:
 	_chiffres.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_chiffres.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.add_child(_chiffres)
-	var aide := UiStyle.icon_button("aide", "Clic sur une pièce : la choisir.\nClic sur un « ! » : régler la demande du client.\nMolette : zoom. Clic droit glissé, flèches ou ZQSD : se déplacer.\nT : pause, Maj + T : vitesse. Échap : retour à la ville.", "", 20, 36)
+	_auto = Button.new()
+	_auto.name = "Auto"
+	_auto.toggle_mode = true
+	_auto.focus_mode = Control.FOCUS_NONE
+	_auto.icon = Icones.get_icon("tourner", 18, UiStyle.ACCENT)
+	_auto.add_theme_font_size_override("font_size", 14)
+	_auto.toggled.connect(func(on: bool) -> void:
+		if bid >= 0:
+			gestion.set_auto(bid, on)
+			_dire("Gestion automatique : l'hôtel se débrouille seul." if on else "Tu gères l'hôtel toi-même.")
+			_maj_auto())
+	row.add_child(_auto)
+	var aide := UiStyle.icon_button("aide", "Clic sur une pièce : la choisir.\nClic sur un « ! » : régler la demande du client.\nClic sur un ⚠ : réparer la panne.\nMolette : zoom. Clic droit glissé, flèches ou ZQSD : se déplacer.\nT : pause, Maj + T : vitesse. Échap : retour à la ville.", "", 20, 36)
 	row.add_child(aide)
 	var x := UiStyle.icon_button("fermer", "Retour à la ville", "Échap", 20, 36)
 	x.name = "Fermer"
@@ -260,39 +276,64 @@ func _build_bas() -> void:
 # --- Remplissage -----------------------------------------------------------------------------------
 
 func _reconstruire() -> void:
-	diorama.construire(genre, gestion.etat(bid).niv, gestion.etoiles(bid))
+	var st := gestion.etat(bid)
+	diorama.construire(genre, st.niv, gestion.etoiles(bid), st.obj, st.pannes, gestion.nom(bid))
 	diorama.placer_employes(_employes())
 	diorama.surligner(selection)
 
 
-## Employés réels du bâtiment, rangés par pièce selon leur métier.
+## Métiers que le bâtiment du jeu embauche (les autres pièces prennent des extras).
+func _metiers_du_type() -> Dictionary:
+	var out := {}
+	for m in gestion.spec_base(bid).get("metiers", []):
+		out[String(m[0])] = true
+	for m in Metiers.PAR_BATIMENT.get(gestion.type_of(bid), Metiers.PAR_BATIMENT.get(genre, [])):
+		out[String(m[0])] = true
+	return out
+
+
+## Employés réels du bâtiment, rangés par pièce selon leur métier. Les
+## pièces ajoutées par la gestion (boutique, sport, jardin…) dont le bâtiment
+## n'embauche pas le métier ont des extras, payés dans leur entretien.
 func _employes() -> Array:
 	var out: Array = []
-	if population == null:
-		return out
 	var pris := {}
-	for pid in population.by_job.get(bid, []):
-		var p: Dictionary = population.persons.get(int(pid), {})
-		if p.is_empty():
-			continue
-		var met := String(p.get("met", ""))
-		# Première pièce construite de ce métier où il reste un poste libre.
-		var piece := ""
-		var repli := ""
-		for pc in GestionTypes.ordre(genre):
-			var d := GestionTypes.piece(genre, String(pc))
-			if not met in (d.get("metiers", []) as Array) or gestion.niveau(bid, String(pc)) <= 0:
+	if population != null:
+		for pid in population.by_job.get(bid, []):
+			var p: Dictionary = population.persons.get(int(pid), {})
+			if p.is_empty():
 				continue
-			if repli == "":
-				repli = String(pc)
-			if int(pris.get(pc, 0)) < (d.get("postes", []) as Array).size():
-				piece = String(pc)
-				break
-		if piece == "":
-			piece = repli
-		if piece != "":
-			pris[piece] = int(pris.get(piece, 0)) + 1
-			out.append({"piece": piece, "met": met, "pid": int(pid), "nom": String(p.get("n", ""))})
+			var met := String(p.get("met", ""))
+			# Première pièce construite de ce métier où il reste un poste libre.
+			var piece := ""
+			var repli := ""
+			for pc in GestionTypes.ordre(genre):
+				var d := GestionTypes.piece(genre, String(pc))
+				if not met in (d.get("metiers", []) as Array) or gestion.niveau(bid, String(pc)) <= 0:
+					continue
+				if repli == "":
+					repli = String(pc)
+				if int(pris.get(pc, 0)) < (d.get("postes", []) as Array).size():
+					piece = String(pc)
+					break
+			if piece == "":
+				piece = repli
+			if piece != "":
+				pris[piece] = int(pris.get(piece, 0)) + 1
+				out.append({"piece": piece, "met": met, "pid": int(pid), "nom": String(p.get("n", ""))})
+	var du_type := _metiers_du_type()
+	for pc in GestionTypes.ordre(genre):
+		var d := GestionTypes.piece(genre, String(pc))
+		var mets: Array = d.get("metiers", [])
+		if mets.is_empty() or gestion.niveau(bid, String(pc)) <= 0 or int(pris.get(pc, 0)) > 0:
+			continue
+		var embauche := false
+		for m in mets:
+			embauche = embauche or du_type.has(String(m))
+		if embauche:
+			continue
+		for i in (d.get("postes", []) as Array).size():
+			out.append({"piece": String(pc), "met": String(mets[i % mets.size()]), "pid": 700000 + bid * 31 + i * 7 + String(pc).length(), "nom": "Extra", "extra": true})
 	return out
 
 
@@ -303,25 +344,30 @@ static func etoiles_txt(n: int) -> String:
 func _remplir_haut() -> void:
 	if bid < 0:
 		return
-	_haut.text = "%s  %s" % [tourisme.nom(bid) if tourisme != null else "", etoiles_txt(gestion.etoiles(bid))]
+	_haut.text = "%s  %s" % [gestion.nom(bid), etoiles_txt(gestion.etoiles(bid))]
 	for c in _chiffres.get_children():
 		_chiffres.remove_child(c)
 		c.queue_free()
 	var n := tourisme.clients(bid) if tourisme != null else 0
 	var l := tourisme.lits(bid) if tourisme != null else 0
 	var st: Dictionary = tourisme.heb.get(bid, {}) if tourisme != null else {}
-	_chip("banque", "Compte de l'hôtel : %s" % BuildingSystem.format_money(int(gestion.compte(bid))),
+	_chip("banque", "Compte : %s" % BuildingSystem.format_money(int(gestion.compte(bid))),
 		"Bénéfices accumulés par l'hôtel. Les améliorations se paient d'abord avec ce compte.")
 	_chip("mairie", "Ville : %s" % BuildingSystem.format_money(gestion.caisse_ville()), "Caisse de la ville : elle avance ce qui manque.")
 	_chip("lit", "%d / %d lits" % [n, l], "Clients ce soir / lits de l'hôtel.")
-	_chip("sourire", "Note %.1f / 5" % (tourisme.note(bid) if tourisme != null else 0.0), "Note de l'hôtel : confort, prix et avis des clients.")
-	_chip("habitants", "Satisfaction %.1f / 5" % float(st.get("satisf", 3.0)), "Ce que pensent les clients en ce moment.")
+	_chip("sourire", "Note %.1f" % (tourisme.note(bid) if tourisme != null else 0.0), "Note de l'hôtel sur 5 : confort, prix et avis des clients.")
+	_chip("habitants", "Satisfaction %.1f" % float(st.get("satisf", 3.0)), "Ce que pensent les clients en ce moment (sur 5).")
 	var hier: Dictionary = st.get("hier", {})
 	_chip("budget", "Hier : %s" % BuildingSystem.format_money(int(float(hier.get("ca", 0.0)) - float(hier.get("charges", 0.0)))),
 		"Recettes moins charges de la veille (salaires, linge, énergie, entretien).")
+	var np := (gestion.etat(bid).pannes as Array).size()
+	if np > 0:
+		var b := _chip("construire", "%d panne%s" % [np, "s" if np > 1 else ""], "Des appareils sont en panne : clique sur les ⚠ de la maquette ou va dans Personnel.")
+		b.add_theme_color_override("font_color", Color("ffb703"))
+	_maj_auto()
 
 
-func _chip(icone: String, texte: String, tip: String) -> void:
+func _chip(icone: String, texte: String, tip: String) -> Button:
 	var b := Button.new()
 	b.text = texte
 	b.icon = Icones.get_icon(icone, 18, UiStyle.ACCENT)
@@ -330,19 +376,38 @@ func _chip(icone: String, texte: String, tip: String) -> void:
 	b.tooltip_text = tip
 	b.add_theme_font_size_override("font_size", 14)
 	_chiffres.add_child(b)
+	return b
+
+
+func _maj_auto() -> void:
+	if _auto == null or bid < 0:
+		return
+	var on := gestion.auto(bid)
+	_auto.set_pressed_no_signal(on)
+	_auto.text = "Gestion auto" if on else "Je gère"
+	_auto.tooltip_text = ("Gestion automatique : l'hôtel répare ses pannes, ajuste son prix chaque semaine et investit ses bénéfices tout seul "
+		+ "(sans jamais toucher à la caisse de la ville). Clique pour le gérer toi-même.") if on else \
+		"Tu gères toi-même : améliorations, objets, prix, salaires et réparations. Clique pour laisser l'hôtel se gérer seul."
 
 
 func _remplir_bas() -> void:
 	for c in _bas.get_children():
 		_bas.remove_child(c)
 		c.queue_free()
-	var vue := _tuile_bas("", "Vue d'ensemble", "Objectifs, étoiles, comptes", "etoile")
+	var vue := _tuile_bas("", "Ensemble", "Étoiles, comptes", "etoile")
 	_bas.add_child(vue)
+	var pannes := {}
+	for p in gestion.etat(bid).pannes:
+		pannes[String(p.piece)] = true
 	for pid in GestionTypes.ordre(genre):
 		var p := GestionTypes.piece(genre, String(pid))
 		var n := gestion.niveau(bid, String(pid))
-		var sous := ("Niveau %d / %d" % [n, gestion.niveau_max(bid, String(pid))]) if n > 0 else "À construire"
-		var t := _tuile_bas(String(pid), String(p.nom), sous, "piece" if n > 0 else "plus")
+		var nobj := GestionTypes.objets(genre, String(pid)).size()
+		var sous := ("Niv. %d/%d · %d/%d" % [n, gestion.niveau_max(bid, String(pid)), gestion.objets_de(bid, String(pid)).size(), nobj]) if n > 0 else "À construire"
+		var t := _tuile_bas(String(pid), String(p.get("court", p.nom)), sous, "construire" if pannes.has(String(pid)) else ("piece" if n > 0 else "plus"))
+		if pannes.has(String(pid)):
+			t.add_theme_color_override("font_color", Color("ffb703"))
+			t.tooltip_text = "Panne à réparer"
 		_bas.add_child(t)
 
 
@@ -350,12 +415,14 @@ func _tuile_bas(pid: String, titre: String, sous: String, icone: String) -> Butt
 	var b := Button.new()
 	b.name = "Tuile_" + (pid if pid != "" else "ensemble")
 	b.text = "%s\n%s" % [titre, sous]
-	b.icon = Icones.get_icon(icone, 20, UiStyle.ACCENT)
+	b.icon = Icones.get_icon(icone, 16, UiStyle.ACCENT)
+	b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	b.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
 	b.toggle_mode = true
 	b.button_pressed = selection == pid
 	b.focus_mode = Control.FOCUS_NONE
-	b.custom_minimum_size = Vector2(112, 54)
-	b.add_theme_font_size_override("font_size", 12)
+	b.custom_minimum_size = Vector2(98, 62)
+	b.add_theme_font_size_override("font_size", 11)
 	b.pressed.connect(func() -> void: choisir(pid))
 	return b
 
@@ -392,12 +459,69 @@ func _remplir_carte() -> void:
 		_carte_corps.remove_child(c)
 		c.queue_free()
 	if selection == "":
-		_carte_ensemble()
+		_onglets()
+		match onglet:
+			"personnel":
+				_carte_personnel()
+			"stats":
+				_carte_stats()
+			"journal":
+				_carte_journal()
+			_:
+				_carte_ensemble()
 	else:
 		_carte_piece(selection)
 	# Hauteur : le contenu, au plus jusqu'à la barre du bas.
 	var sc: ScrollContainer = _carte.get_meta("scroll")
-	sc.custom_minimum_size.y = minf(560.0, _racine.get_viewport_rect().size.y - 74 - 110)
+	sc.custom_minimum_size.y = minf(600.0, _racine.get_viewport_rect().size.y - 74 - 120)
+
+
+func _onglets() -> void:
+	var row := HBoxContainer.new()
+	row.name = "Onglets"
+	row.add_theme_constant_override("separation", 4)
+	_carte_corps.add_child(row)
+	for o in [["ensemble", "Hôtel", "etoile"], ["personnel", "Équipe", "emploi"], ["stats", "Chiffres", "tableau"], ["journal", "Journal", "journal"]]:
+		var b := Button.new()
+		b.name = "Onglet_" + String(o[0])
+		b.text = String(o[1])
+		b.icon = Icones.get_icon(String(o[2]), 16, UiStyle.ACCENT)
+		b.toggle_mode = true
+		b.button_pressed = onglet == String(o[0])
+		b.focus_mode = Control.FOCUS_NONE
+		b.add_theme_font_size_override("font_size", 13)
+		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var id := String(o[0])
+		b.pressed.connect(func() -> void:
+			onglet = id
+			_remplir_carte())
+		row.add_child(b)
+	_carte_corps.add_child(HSeparator.new())
+
+
+func _bouton(texte: String, icone: String, principal := false) -> Button:
+	var b := Button.new()
+	b.text = texte
+	b.icon = Icones.get_icon(icone, 18 if not principal else 22, UiStyle.ACCENT_INK if principal else UiStyle.ACCENT)
+	b.focus_mode = Control.FOCUS_NONE
+	b.add_theme_font_size_override("font_size", 16 if principal else 13)
+	if principal:
+		b.custom_minimum_size = Vector2(0, 44)
+		UiStyle.tint_pressed(b, UiStyle.ACCENT, UiStyle.ACCENT_INK)
+		b.add_theme_stylebox_override("normal", UiStyle.flat_box(UiStyle.ACCENT, 9, 8))
+		b.add_theme_color_override("font_color", UiStyle.ACCENT_INK)
+	return b
+
+
+## Résultat d'un achat : message, chiffre qui monte, écran à jour.
+func _apres(res: Dictionary, ou: Vector3, texte: String) -> void:
+	if not bool(res.ok):
+		_dire("Impossible : %s." % String(res.error), Color("ffb4a2"))
+		return
+	diorama.flotter(ou, texte, Color("9fe3b0"))
+	_remplir_haut()
+	_remplir_bas()
+	_remplir_carte()
 
 
 func _carte_piece(pid: String) -> void:
@@ -407,84 +531,134 @@ func _carte_piece(pid: String) -> void:
 	_titre(String(p.nom), 19)
 	_texte(("Niveau %d / %d   %s" % [n, mx, "■".repeat(n) + "□".repeat(mx - n)]) if n > 0 else "Pas encore construite", false, 15)
 	_texte(String(p.get("desc", "")), true)
+	for pn in gestion.etat(bid).pannes:
+		if String(pn.piece) == pid:
+			var l := _texte("⚠ Panne : %s (réparer dans Équipe ou d'un clic sur la maquette)" % String(pn.texte), false, 13)
+			l.add_theme_color_override("font_color", Color("ffb703"))
 	var eff: Dictionary = p.get("effets", {})
 	if n < mx:
 		_texte("Au niveau %d :" % (n + 1), false, 14)
-		for ligne in _lignes_effets(eff, pid):
+		for ligne in _lignes_effets(eff):
 			_texte("  • " + String(ligne), false, 13)
 	# Employés de la pièce.
 	var mets: Array = p.get("metiers", [])
-	if not mets.is_empty():
+	if not mets.is_empty() and n > 0:
 		var noms: Array = []
+		var extras := 0
 		for e in _employes():
 			if String(e.piece) == pid:
-				noms.append("%s (%s)" % [String(e.nom), String(Metiers.METIERS.get(String(e.met), {}).get("name", e.met))])
-		if noms.is_empty():
+				if bool(e.get("extra", false)):
+					extras += 1
+				else:
+					noms.append("%s (%s)" % [String(e.nom), String(Metiers.METIERS.get(String(e.met), {}).get("name", e.met))])
+		if extras > 0:
+			_texte("Équipe : %d extra%s (payés dans l'entretien de la pièce)." % [extras, "s" if extras > 1 else ""], true)
+		elif noms.is_empty():
 			_texte("Personne à ce poste : les habitants postulent tout seuls quand l'hôtel embauche. Pense aux logements et à l'école des métiers.", true)
 		else:
 			_texte("Équipe : " + ", ".join(noms.slice(0, 6)) + (" et %d autres" % (noms.size() - 6) if noms.size() > 6 else ""), true)
 	var prix := gestion.prix(bid, pid)
 	if prix <= 0:
 		_texte("Niveau maximum atteint.", false, 14)
-		return
-	var r := gestion.repartition(bid, prix)
-	var b := Button.new()
-	b.name = "Ameliorer"
-	b.text = ("Construire : %s" if n == 0 else "Améliorer : %s") % BuildingSystem.format_money(prix)
-	b.icon = Icones.get_icon("grue" if n == 0 else "haut", 22, UiStyle.ACCENT_INK)
-	b.add_theme_font_size_override("font_size", 16)
-	b.custom_minimum_size = Vector2(0, 44)
-	b.focus_mode = Control.FOCUS_NONE
-	UiStyle.tint_pressed(b, UiStyle.ACCENT, UiStyle.ACCENT_INK)
-	b.add_theme_stylebox_override("normal", UiStyle.flat_box(UiStyle.ACCENT, 9, 8))
-	b.add_theme_color_override("font_color", UiStyle.ACCENT_INK)
-	var manque := not buildings.unlimited_money and int(r.ville) > gestion.caisse_ville()
-	b.disabled = manque
-	b.pressed.connect(func() -> void:
-		var res := gestion.ameliorer(bid, pid)
-		if not bool(res.ok):
-			_dire("Impossible : %s." % String(res.error), Color("ffb4a2"))
-		else:
-			diorama.flotter(diorama.centre(pid), "Niveau %d !" % gestion.niveau(bid, pid), Color("9fe3b0"))
-			_remplir_haut()
-			_remplir_bas())
-	_carte_corps.add_child(b)
-	if buildings.unlimited_money:
-		_texte("Argent illimité : les travaux sont gratuits.", true)
-	elif int(r.ville) <= 0:
-		_texte("Payé par le compte de l'hôtel.", true)
-	elif int(r.batiment) > 0:
-		_texte("%s payés par l'hôtel, %s avancés par la ville." % [BuildingSystem.format_money(int(r.batiment)), BuildingSystem.format_money(int(r.ville))], true)
 	else:
-		_texte("Le compte de l'hôtel est vide : la ville avance %s (remboursables)." % BuildingSystem.format_money(int(r.ville)), true)
-	if manque:
-		_texte("Pas assez d'argent dans la caisse de la ville.", false)
+		var r := gestion.repartition(bid, prix)
+		var b := _bouton(("Construire : %s" if n == 0 else "Améliorer : %s") % BuildingSystem.format_money(prix), "grue" if n == 0 else "haut", true)
+		b.name = "Ameliorer"
+		var manque := not buildings.unlimited_money and int(r.ville) > gestion.caisse_ville()
+		b.disabled = manque
+		b.pressed.connect(func() -> void:
+			var res := gestion.ameliorer(bid, pid)
+			_apres(res, diorama.centre(pid), "Niveau %d !" % gestion.niveau(bid, pid)))
+		_carte_corps.add_child(b)
+		if buildings.unlimited_money:
+			_texte("Argent illimité : les travaux sont gratuits.", true)
+		elif int(r.ville) <= 0:
+			_texte("Payé par le compte de l'hôtel.", true)
+		elif int(r.batiment) > 0:
+			_texte("%s payés par l'hôtel, %s avancés par la ville." % [BuildingSystem.format_money(int(r.batiment)), BuildingSystem.format_money(int(r.ville))], true)
+		else:
+			_texte("Le compte de l'hôtel est vide : la ville avance %s (remboursables)." % BuildingSystem.format_money(int(r.ville)), true)
+		if manque:
+			_texte("Pas assez d'argent dans la caisse de la ville.", false)
+	# Objets à installer.
+	var objs := GestionTypes.objets(genre, pid)
+	if objs.is_empty():
+		return
+	_carte_corps.add_child(HSeparator.new())
+	_texte("Objets (%d / %d installés)" % [gestion.objets_de(bid, pid).size(), objs.size()], false, 15)
+	for oid in objs:
+		var o: Dictionary = objs[oid]
+		var row := HBoxContainer.new()
+		row.name = "Objet_" + String(oid)
+		row.add_theme_constant_override("separation", 6)
+		_carte_corps.add_child(row)
+		var l := Label.new()
+		l.text = "%s\n%s" % [String(o.nom), ", ".join(_lignes_effets(o.get("effets", {}), true))]
+		l.add_theme_font_size_override("font_size", 12)
+		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		l.custom_minimum_size = Vector2(170, 0)
+		row.add_child(l)
+		var refus := gestion.refus_objet(bid, pid, String(oid))
+		var b := Button.new()
+		b.name = "Acheter"
+		b.focus_mode = Control.FOCUS_NONE
+		b.add_theme_font_size_override("font_size", 12)
+		b.custom_minimum_size = Vector2(112, 0)
+		if refus == "déjà installé":
+			b.text = "✔ Installé"
+			b.disabled = true
+			l.add_theme_color_override("font_color", UiStyle.GOOD)
+		elif refus != "":
+			b.text = "Niveau %d requis" % int(o.get("niv", 1)) if refus.begins_with("pièce au") else "Construire d'abord"
+			b.disabled = true
+			l.add_theme_color_override("font_color", UiStyle.TEXT_DIM)
+		else:
+			var px := gestion.prix_objet(bid, pid, String(oid))
+			b.text = BuildingSystem.format_money(px)
+			b.icon = Icones.get_icon("plus", 14, UiStyle.ACCENT)
+			b.disabled = not buildings.unlimited_money and int(gestion.repartition(bid, px).ville) > gestion.caisse_ville()
+			var id := String(oid)
+			b.pressed.connect(func() -> void:
+				var res := gestion.acheter(bid, pid, id)
+				_apres(res, diorama.centre(pid), "%s !" % String(o.nom)))
+		row.add_child(b)
 
 
-func _lignes_effets(eff: Dictionary, _pid: String) -> Array:
+func _lignes_effets(eff: Dictionary, court := false) -> Array:
 	var out: Array = []
 	if eff.has("lits"):
-		out.append("+%d %% de lits (%d lits de plus)" % [roundi(float(eff.lits) * 100.0), roundi(float(TourismeTypes.lits_de(gestion.spec_base(bid))) * float(eff.lits))])
+		out.append(("+%d %% lits" if court else "+%d %% de lits") % roundi(float(eff.lits) * 100.0) + ("" if court else " (%d lits de plus)" % roundi(float(TourismeTypes.lits_de(gestion.spec_base(bid))) * float(eff.lits))))
 	if eff.has("confort"):
-		out.append("+%.2f de note (confort)" % float(eff.confort))
+		out.append(("+%.2f confort" if court else "+%.2f de note (confort)") % float(eff.confort))
 	if eff.has("attrait"):
-		out.append("+%d %% de clients attirés" % roundi(float(eff.attrait) * 100.0))
+		out.append(("+%d %% clients" if court else "+%d %% de clients attirés") % roundi(float(eff.attrait) * 100.0))
 	if eff.has("satisf"):
-		out.append("+%.2f de satisfaction chaque jour" % float(eff.satisf))
+		out.append(("+%.2f satisfaction" if court else "+%.2f de satisfaction chaque jour") % float(eff.satisf))
 	if eff.has("repas"):
-		out.append("+%d %% de repas pris sur place" % roundi(float(eff.repas) * 100.0))
-	if eff.has("entretien"):
+		out.append(("+%d %% repas" if court else "+%d %% de repas pris sur place") % roundi(float(eff.repas) * 100.0))
+	if eff.has("vitesse"):
+		out.append(("+%d %% vitesse" if court else "Service %d %% plus rapide") % roundi(float(eff.vitesse) * 100.0))
+	if eff.has("ventes"):
+		out.append(("+%s / client" if court else "+%s dépensés par client et par nuit") % BuildingSystem.format_money(roundi(float(eff.ventes))))
+	if eff.has("entretien") and not court:
 		out.append("Entretien : +%s par jour" % BuildingSystem.format_money(int(eff.entretien)))
 	return out
 
 
 func _carte_ensemble() -> void:
-	_titre("%s  %s" % [tourisme.nom(bid) if tourisme != null else "", etoiles_txt(gestion.etoiles(bid))], 18)
+	_titre("%s  %s" % [gestion.nom(bid), etoiles_txt(gestion.etoiles(bid))], 18)
+	var et: Dictionary = gestion.etat(bid)
+	if gestion.auto(bid):
+		_texte("Gestion automatique : l'hôtel répare, ajuste son prix et investit ses bénéfices tout seul. Tu peux quand même acheter ce que tu veux.", true, 12)
 	var av := gestion.avant_etoile(bid)
 	if av > 0.0:
-		_texte("Prochaine étoile : encore +%.2f de confort (chambres, bar, restaurant, spa, piscine)." % av, true)
+		_texte("Prochaine étoile : encore +%.2f de confort (pièces et objets)." % av, true)
 	else:
 		_texte("5 étoiles : le sommet !", true)
+	if int(et.label_fin) >= gestion.jour:
+		var l := _texte("★ Recommandé par le guide encore %d jours (+6 %% de clients)." % (int(et.label_fin) - gestion.jour), false, 13)
+		l.add_theme_color_override("font_color", UiStyle.GOOD)
 	_texte("Objectifs", false, 15)
 	for o in gestion.objectifs(bid):
 		var l := _texte("%s  %s  (%s)" % ["✔" if bool(o.fait) else "○", String(o.texte), String(o.avance)], false, 13)
@@ -495,12 +669,12 @@ func _carte_ensemble() -> void:
 	_texte("Comptes d'hier", false, 15)
 	_texte("Recettes %s · charges %s (dont entretien des améliorations %s)" % [BuildingSystem.format_money(int(hier.get("ca", 0.0))),
 		BuildingSystem.format_money(int(hier.get("charges", 0.0))), BuildingSystem.format_money(int(gestion.entretien_jour(bid)))], true)
-	var et: Dictionary = gestion.etat(bid)
 	_texte("Investi : %s · pourboires : %s · demandes réglées : %d, oubliées : %d" % [BuildingSystem.format_money(int(et.invest)),
 		BuildingSystem.format_money(int(et.pourboires)), int(et.reglees), int(et.ratees)], true)
 	# Prix de la nuit.
 	if tourisme != null and tourisme.heb.has(bid):
 		var row := HBoxContainer.new()
+		row.name = "Prix"
 		_carte_corps.add_child(row)
 		var l := Label.new()
 		l.text = "Prix de la nuit : %s par personne" % BuildingSystem.format_money(roundi(float(st.prix)))
@@ -514,16 +688,137 @@ func _carte_ensemble() -> void:
 				_remplir_carte())
 			row.add_child(b)
 	if float(et.aide_ville) > 0.5:
-		var b := Button.new()
-		b.text = "Rembourser la ville (%s avancés)" % BuildingSystem.format_money(int(et.aide_ville))
-		b.focus_mode = Control.FOCUS_NONE
+		var b := _bouton("Rembourser la ville (%s avancés)" % BuildingSystem.format_money(int(et.aide_ville)), "mairie")
 		b.disabled = gestion.compte(bid) < 1.0
 		b.pressed.connect(func() -> void:
 			var v := gestion.rembourser(bid)
 			if v > 0:
 				_dire("%s rendus à la caisse de la ville." % BuildingSystem.format_money(v)))
 		_carte_corps.add_child(b)
-	_texte("Clique sur une pièce de la maquette (ou une tuile en bas) pour l'améliorer. Les « ! » au-dessus des clients sont des demandes : clique dessus.", true, 12)
+	_texte("Clique sur une pièce de la maquette (ou une tuile en bas) pour l'améliorer et l'équiper. Les « ! » au-dessus des clients sont des demandes, les ⚠ des pannes : clique dessus.", true, 12)
+
+
+func _carte_personnel() -> void:
+	var et: Dictionary = gestion.etat(bid)
+	var emp := _employes()
+	var reels := 0
+	for e in emp:
+		if not bool(e.get("extra", false)):
+			reels += 1
+	_titre("Équipe : %d employés, %d extras" % [reels, emp.size() - reels], 17)
+	# Par pièce.
+	var par := {}
+	for e in emp:
+		par[String(e.piece)] = int(par.get(String(e.piece), 0)) + 1
+	for pid in GestionTypes.ordre(genre):
+		var p := GestionTypes.piece(genre, String(pid))
+		if gestion.niveau(bid, String(pid)) <= 0 or (p.get("postes", []) as Array).is_empty():
+			continue
+		var nb := int(par.get(String(pid), 0))
+		var l := _texte("%s : %d / %d postes" % [String(p.nom), mini(nb, (p.postes as Array).size()), (p.postes as Array).size()], false, 13)
+		if nb == 0:
+			l.add_theme_color_override("font_color", Color("ffb4a2"))
+	_carte_corps.add_child(HSeparator.new())
+	# Salaires.
+	var row := HBoxContainer.new()
+	row.name = "Salaire"
+	_carte_corps.add_child(row)
+	var l := Label.new()
+	l.text = "Salaires : %d %%" % roundi(float(et.salaire) * 100.0)
+	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	l.add_theme_font_size_override("font_size", 15)
+	row.add_child(l)
+	for d in [[-1, "moins"], [1, "plus"]]:
+		var b := UiStyle.icon_button(String(d[1]), "Baisser les salaires" if int(d[0]) < 0 else "Augmenter les salaires", "", 18, 32)
+		b.name = "Salaire_" + ("moins" if int(d[0]) < 0 else "plus")
+		var sens := int(d[0])
+		b.pressed.connect(func() -> void:
+			gestion.set_salaire(bid, float(gestion.etat(bid).salaire) + 0.05 * sens)
+			_remplir_carte())
+		row.add_child(b)
+	_texte("Mieux payée, l'équipe sourit plus (satisfaction des clients) ; moins payée, l'hôtel économise mais les clients le sentent.", true, 12)
+	# Formation.
+	_texte("Formation : niveau %d / %d" % [int(et.formation), Gestion.FORMATION_MAX], false, 15)
+	var pf := gestion.prix_formation(bid)
+	if pf > 0:
+		var b := _bouton("Former le personnel : %s" % BuildingSystem.format_money(pf), "ecole")
+		b.name = "Former"
+		b.disabled = not buildings.unlimited_money and int(gestion.repartition(bid, pf).ville) > gestion.caisse_ville()
+		b.pressed.connect(func() -> void:
+			_apres(gestion.former(bid), diorama.centre("reception"), "Formation !"))
+		_carte_corps.add_child(b)
+	_texte("Une équipe formée sert plus vite, rend les clients plus contents et casse moins de matériel.", true, 12)
+	# Pannes.
+	_carte_corps.add_child(HSeparator.new())
+	var pannes: Array = et.pannes
+	_texte("Pannes : %d" % pannes.size() if not pannes.is_empty() else "Aucune panne. Tout fonctionne !", false, 15)
+	for i in pannes.size():
+		var pn: Dictionary = pannes[i]
+		var r2 := HBoxContainer.new()
+		r2.name = "Panne_%d" % i
+		_carte_corps.add_child(r2)
+		var lp := Label.new()
+		lp.text = "⚠ %s\n%s, depuis le jour %d" % [String(pn.texte), String(GestionTypes.piece(genre, String(pn.piece)).get("nom", pn.piece)), int(pn.get("jour", 0))]
+		lp.add_theme_font_size_override("font_size", 12)
+		lp.add_theme_color_override("font_color", Color("ffb703"))
+		lp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		lp.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		lp.custom_minimum_size = Vector2(170, 0)
+		r2.add_child(lp)
+		var b := Button.new()
+		b.name = "Reparer"
+		b.text = "Réparer : %s" % BuildingSystem.format_money(gestion.prix_reparation(bid))
+		b.focus_mode = Control.FOCUS_NONE
+		b.add_theme_font_size_override("font_size", 12)
+		var idx := i
+		b.pressed.connect(func() -> void: _reparer(idx))
+		r2.add_child(b)
+	if not pannes.is_empty():
+		_texte("Chaque panne fait baisser la satisfaction des clients tous les jours.", true, 12)
+
+
+func _reparer(i: int) -> void:
+	var pannes: Array = gestion.etat(bid).pannes
+	if i < 0 or i >= pannes.size():
+		return
+	var pid := String(pannes[i].piece)
+	_apres(gestion.reparer(bid, i), diorama.centre(pid), "Réparé !")
+
+
+func _carte_stats() -> void:
+	var hist: Array = gestion.etat(bid).hist
+	_titre("Les %d derniers jours" % mini(hist.size(), 30), 17)
+	if hist.size() < 2:
+		_texte("Les chiffres apparaissent après quelques jours d'ouverture.", true)
+		return
+	var h := hist.slice(maxi(0, hist.size() - 30))
+	var ca := 0.0
+	var ch := 0.0
+	var occ := 0.0
+	for e in h:
+		ca += float(e[1])
+		ch += float(e[2])
+		occ += float(e[4])
+	var g := GrapheGestion.new()
+	g.name = "Graphe"
+	g.donnees = h
+	g.custom_minimum_size = Vector2(CARTE_W - 30, 150)
+	_carte_corps.add_child(g)
+	_texte("■ recettes   ■ charges   — remplissage", true, 12)
+	_texte("Recettes : %s · charges : %s · bénéfice : %s" % [BuildingSystem.format_money(int(ca)), BuildingSystem.format_money(int(ch)), BuildingSystem.format_money(int(ca - ch))], false, 13)
+	_texte("Remplissage moyen : %d %% · note : %.1f · satisfaction : %.1f" % [roundi(occ / h.size() * 100.0), float(h[-1][5]), float(h[-1][6])], false, 13)
+	var et: Dictionary = gestion.etat(bid)
+	_texte("Séminaires : %d · clients célèbres : %d · pannes réparées : %d" % [int(et.seminaires), int(et.vip), int(et.reparees)], true, 12)
+
+
+func _carte_journal() -> void:
+	var j: Array = gestion.etat(bid).journal
+	_titre("Journal de l'hôtel", 17)
+	if j.is_empty():
+		_texte("Rien encore. Les travaux, les achats, les pannes et les visites importantes s'inscrivent ici.", true)
+		return
+	for e in j.slice(0, 25):
+		_texte("Jour %d · %s" % [int(e[0]), String(e[1])], false, 12)
 
 
 func _dire(t: String, col := Color.WHITE) -> void:
@@ -572,6 +867,10 @@ func cliquer(p: Vector2) -> void:
 	var c := diorama.client_sous(cam, p)
 	if not c.is_empty():
 		_regler(c)
+		return
+	var pn := diorama.panne_sous(cam, p)
+	if pn >= 0:
+		_reparer(pn)
 		return
 	var o := cam.project_ray_origin(p)
 	var d := cam.project_ray_normal(p)
@@ -713,7 +1012,7 @@ func _envoyer(c: Dictionary, montrer: bool) -> void:
 
 ## Petit gain affiché quand un client s'installe (repas, cocktail, soin).
 func _gain_visible(c: Dictionary) -> void:
-	var montants := {"restaurant": Ressources.REPAS * 1.5, "bar": 9.0, "spa": 45.0}
+	var montants := {"restaurant": Ressources.REPAS * 1.5, "bar": 9.0, "spa": 45.0, "boutique": 12.0, "conference": 30.0}
 	var pid := String(c.piece)
 	if montants.has(pid):
 		diorama.flotter((c.fig as Node3D).position, "+%s" % BuildingSystem.format_money(roundi(float(montants[pid]))))

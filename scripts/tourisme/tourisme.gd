@@ -843,6 +843,9 @@ func new_day(now: Dictionary = {}) -> void:
 	_arrivees(now)
 	# La journée des clients : nuitées, repas, courses, souvenirs, visites.
 	_journee(now)
+	# Mode gestion : historique, pannes, événements, gestion automatique.
+	if Gestion.instance != null and is_instance_valid(Gestion.instance) and Gestion.instance.tourisme == self:
+		Gestion.instance.nouveau_jour(now)
 	changed.emit()
 
 
@@ -946,6 +949,8 @@ func _journee(now: Dictionary) -> void:
 		if bool(sp.get("cuisine", false)):
 			dehors *= 0.5
 		ca += (repas - dehors) * Ressources.REPAS * (1.0 + 0.3 * maxf(0.0, float(e) - 2.0))
+		# Mode gestion : bar, boutique, minibar, spa… (dépenses dans l'hôtel).
+		ca += float(n) * Gestion.effet_de(int(bid), "ventes")
 		var servis := 0.0
 		if prod != null and is_instance_valid(prod) and dehors > 0.0:
 			var r := prod.repas_touristes(p, dehors)

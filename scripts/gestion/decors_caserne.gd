@@ -49,7 +49,7 @@ static func dessiner(d: GestionDiorama, k: LpKit, decor: String, r: Array, n: in
 			return _tour(d, k, r, n)
 		"caserne_lavage":
 			return _lavage(d, k, r, n)
-	return []
+	return DecorsCommissariat.dessiner(d, k, decor, r, n)
 
 
 static func _a(d: GestionDiorama, pid: String, oid: String) -> bool:

@@ -14,6 +14,7 @@ const GENRE := {
 	"nom": "Caserne",
 	"titre": "Gérer la caserne",
 	"icone": "pompiers",
+	"seul": "toute seule",
 	"le": "la caserne",
 	"du": "de la caserne",
 	"source": "ville",

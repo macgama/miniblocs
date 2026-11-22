@@ -373,3 +373,5 @@ static func dessiner(k: LpKit, nom: String, _teinte := Color.WHITE) -> void:
 			for j in 3:
 				k.lathe(Vector3(0, 0.4 + j * 0.6, 0), [Vector2(0.76, 0.0), Vector2(0.78, 0.0), Vector2(0.78, 0.06), Vector2(0.76, 0.06)], 14, Color("264653"))
 			k.tube(Vector3(0.75, 0.3, 0), Vector3(1.1, 0.3, 0), 0.06, 0.06, 6, INOX_F)
+		_:
+			ModelesCommissariat.dessiner(k, nom, _teinte)

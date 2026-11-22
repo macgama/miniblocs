@@ -1,6 +1,6 @@
 extends SceneTree
 ## Captures du mode gestion « tycoon » (écran isométrique d'un hôtel ou d'un restaurant).
-## Usage : xvfb-run -a godot --path . --rendering-driver opengl3 --script res://tests/gestion_vitrine.gd -- --out DOSSIER [--type hotel_3|haussmann__restaurant|pompiers] [--depart] [--niveau 1|3|5] [--piece spa] [--zoom 30] [--onglet personnel|stats|journal] [--x 20 --z 14]
+## Usage : xvfb-run -a godot --path . --rendering-driver opengl3 --script res://tests/gestion_vitrine.gd -- --out DOSSIER [--type hotel_3|haussmann__restaurant|pompiers|police] [--depart] [--niveau 1|3|5] [--piece spa] [--zoom 30] [--onglet personnel|stats|journal] [--x 20 --z 14]
 
 var out := "user://captures-gestion"
 var niveau := 3
@@ -78,7 +78,8 @@ func _run() -> void:
 	scene.urgences.set_process(false)
 	scene.urgences.random_calls = false
 	scene.urgences._sync_stations()
-	if g == "caserne":
+	var service := GestionTypes.genre(g).has("service")
+	if service:
 		pass
 	elif g == "hotel":
 		tour.heb[hotel].nom = "Hôtel Bellevue"
@@ -97,10 +98,10 @@ func _run() -> void:
 	var mets := ["receptionniste", "agent_etage", "agent_etage", "cuisinier", "serveur", "serveur", "cadre", "agent_proprete", "maitre_nageur", "maitre_nageur"]
 	if g == "restaurant":
 		mets = ["serveur", "serveur", "serveur", "cuisinier", "cuisinier", "serveur", "serveur"]
-	elif g == "caserne":
+	elif service:
 		mets = []
 		for i in 18:
-			mets.append("pompier")
+			mets.append("pompier" if g == "caserne" else "policier")
 	var k := 0
 	pop.by_job[hotel] = []
 	for pid in pop.persons:
@@ -129,11 +130,11 @@ func _run() -> void:
 	for j in 30:
 		var ca := 9000.0 + j * 180.0 + rng.randf_range(-1500, 1500)
 		var e := 1.0 if g == "hotel" else 0.25
-		if g == "caserne":
+		if service:
 			(gest.etat(hotel).hist as Array).append([j + 1, 1000.0, 300.0 + rng.randf_range(-60, 60) + j * 6.0, rng.randi_range(2, 7), clampf(0.8 + rng.randf_range(-0.2, 0.15), 0, 1), 3.9, 3.7])
 			continue
 		(gest.etat(hotel).hist as Array).append([j + 1, ca * e, (6500.0 + rng.randf_range(-800, 800)) * e, 80, clampf(0.55 + j * 0.012 + rng.randf_range(-0.05, 0.05), 0, 1), 3.6, 3.8])
-	if g == "caserne":
+	if service:
 		var stc := gest.etat(hotel)
 		stc.hier = {"ca": 1000.0, "charges": 320.0, "clients": 5.0, "retards": 0, "delai": 205.0, "departs": 6}
 		stc.delai = 205.0
@@ -143,6 +144,9 @@ func _run() -> void:
 		stc.satisf = 3.8
 		stc.caisse = 42_000.0
 		stc.volontaires = 2
+		stc.elucides = 23
+		stc.non_elucides = 9
+		stc.fourriere = 64
 		scene.urgences.maj_flotte(hotel)
 	if g == "restaurant":
 		gest.etat(hotel).hier = {"ca": 2900.0, "charges": 2100.0, "clients": 150.0, "cap": 190.0}
@@ -161,7 +165,7 @@ func _run() -> void:
 	if depart:
 		# Un appel : un engin sort de la remise, l'alerte sonne.
 		scene.urgences.ignore_crew = true
-		scene.urgences.random_call("feu_poubelle")
+		scene.urgences.random_call("feu_poubelle" if g == "caserne" else "accident")
 		vue._maj_engins(true)
 		for i in 6:
 			vue.simuler(0.1)

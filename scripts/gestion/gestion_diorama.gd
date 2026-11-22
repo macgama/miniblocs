@@ -1330,6 +1330,25 @@ static func _geste(met: String, piece: String) -> String:
 				"dortoir":
 					return "telephoner"
 			return "radio"
+		"policier":
+			match piece:
+				"accueil":
+					return "guichet"
+				"commandement":
+					return "radio"
+				"garage", "fourriere":
+					return "entretien_camion"
+				"tir":
+					return "entrainer"
+				"plaintes", "enquete", "bureau":
+					return "taper"
+				"armurerie", "repos":
+					return "ranger"
+				"pause":
+					return "cafe"
+				"cellules", "chenil", "parvis":
+					return "surveiller"
+			return "surveiller"
 	return "conseiller"
 
 

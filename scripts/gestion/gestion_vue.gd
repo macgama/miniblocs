@@ -358,7 +358,7 @@ func _maj_engins(anime: bool) -> void:
 		var dernier := ""
 		for e in (gestion.etat(bid).journal as Array).slice(0, 1):
 			dernier = String(e[1])
-		_dire("Alerte ! " + (dernier if dernier.begins_with("Départ") else "Un engin part en intervention."), Color("ffb4a2"))
+		_dire("Alerte ! " + (dernier if dernier.begins_with("Départ") else "Un%s %s part en intervention." % ["e" if _gs("vehicule", "engin") == "voiture" else "", _gs("vehicule", "engin")]), Color("ffb4a2"))
 
 
 func _gd() -> Dictionary:
@@ -430,12 +430,15 @@ func _haut_ville() -> void:
 	_chip("banque", "Budget : %s" % BuildingSystem.format_money(int(gestion.compte(bid))),
 		"Argent de %s : le budget versé chaque jour par la ville, moins l'entretien. Les améliorations se paient d'abord avec." % _le())
 	_chip("mairie", "Ville : %s" % BuildingSystem.format_money(gestion.caisse_ville()), "Caisse de la ville : elle verse le budget et avance ce qui manque.")
-	_chip(String(_gd().get("icone", "pompiers")), "%d / %d engins au garage" % [gestion.clients(bid), gestion.capacite(bid)], "Engins prêts à partir / engins de la caserne. La remise en accueille plus à chaque niveau.")
+	var vs := _gs("vehicules", "engins")
+	_chip(String(_gd().get("icone", "pompiers")), "%d / %d %s au garage" % [gestion.clients(bid), gestion.capacite(bid), vs],
+		"%s prêts à partir / %s %s. %s en accueille plus à chaque niveau." % [_maj1(vs), vs, _du(), _maj1(_gs("garage", "la remise"))])
 	var u := gestion.urgences
 	if u != null and u.stations.has(bid) and u.staff_of(bid) < 999:
-		_chip("habitants", "%d de garde" % mini(u.staff_of(bid), 999), "Pompiers de garde aujourd'hui (dont %d grâce aux chambres et aux volontaires). Chaque engin a besoin de son équipage pour partir." % gestion.equipage(bid))
+		_chip("habitants", "%d %s" % [mini(u.staff_of(bid), 999), _gs("de_garde", "de garde")], "%s %s aujourd'hui (dont %d grâce à la gestion et aux %s). Chaque %s a besoin de son équipage pour partir." % [
+			_maj1(_gs("agents", "pompiers")), _gs("de_garde", "de garde"), gestion.equipage(bid), "réservistes" if _gs("agent", "pompier") == "policier" else "volontaires", _gs("vehicule", "engin")])
 	var dl := float(gestion.etat(bid).get("delai", -1.0))
-	_chip("horloge", ("Délai %s" % Urgences.format_time(dl)) if dl >= 0.0 else "Pas encore d'intervention", "Temps moyen entre l'appel et l'arrivée des secours de cette caserne. Plus il est court, meilleure est la note.")
+	_chip("horloge", ("Délai %s" % Urgences.format_time(dl)) if dl >= 0.0 else "Pas encore d'intervention", "Temps moyen entre l'appel et l'arrivée des équipes %s. Plus il est court, meilleure est la note." % _du())
 	_chip("sourire", "Note %.1f" % gestion.note(bid), "Note %s sur 5 : délai d'arrivée, moral et galons." % _du())
 	_chip("etoile", "Moral %.1f" % gestion.satisf(bid), "Moral de l'équipe (sur 5) : salaires, formation, cuisine, chambres, pannes.")
 	var hier: Dictionary = gestion.hier(bid)
@@ -450,6 +453,16 @@ func _haut_ville() -> void:
 
 func _ville() -> bool:
 	return bid >= 0 and gestion.source(bid) == "ville"
+
+
+## Majuscule à la première lettre seulement.
+static func _maj1(t: String) -> String:
+	return t.substr(0, 1).to_upper() + t.substr(1)
+
+
+## Un texte du genre (clé directe), sinon celui de la caserne.
+func _gs(cle: String, defaut: String) -> String:
+	return String(_gd().get(cle, defaut))
 
 
 ## Un mot du genre (effets, pourboires…), sinon le mot habituel.
@@ -476,9 +489,9 @@ func _maj_auto() -> void:
 	_auto.set_pressed_no_signal(on)
 	_auto.text = "Gestion auto" if on else "Je gère"
 	if _ville():
-		_auto.tooltip_text = ("Gestion automatique : %s répare ses pannes et investit son budget tout seul " % _le()
-			+ "(sans jamais toucher à la caisse de la ville). Clique pour la gérer toi-même.") if on else \
-			"Tu gères toi-même : améliorations, objets, salaires, réparations. Clique pour laisser %s se gérer seule." % _le()
+		_auto.tooltip_text = ("Gestion automatique : %s répare ses pannes et investit son budget %s " % [_le(), _gs("seul", "tout seul")]
+			+ "(sans jamais toucher à la caisse de la ville). Clique pour %s gérer toi-même." % ("la" if _gs("seul", "") == "toute seule" else "le")) if on else \
+			"Tu gères toi-même : améliorations, objets, salaires, réparations. Clique pour laisser %s se gérer %s." % [_le(), _gs("seul", "tout seul").trim_prefix("tout ").trim_prefix("toute ")]
 		return
 	_auto.tooltip_text = ("Gestion automatique : %s répare ses pannes, ajuste son prix chaque semaine et investit ses bénéfices tout seul " % _le()
 		+ "(sans jamais toucher à la caisse de la ville). Clique pour le gérer toi-même.") if on else \
@@ -724,10 +737,13 @@ func _lignes_effets(eff: Dictionary, court := false) -> Array:
 	var out: Array = []
 	if eff.has("engins"):
 		var n := roundi(float(eff.engins))
-		out.append(("+%d engin" if court else "+%d engin dans la remise (il lui faut son équipage)") % n)
+		var ve := _gs("vehicule", "engin")
+		out.append(("+%d " + ve if court else "+%d " + ve + " dans " + _gs("garage", "la remise") + " (il lui faut son équipage)") % n)
 	if eff.has("equipage"):
 		var n := roundi(float(eff.equipage))
-		out.append(("+%d de garde" if court else "+%d pompier de garde, prêt à partir") % n)
+		out.append(("+%d " + _gs("de_garde", "de garde") if court else "+%d " + _gs("agent", "pompier") + " " + _gs("de_garde", "de garde") + ", prêt à partir") % n)
+	if eff.has("enquete"):
+		out.append(("+%d %% enquêtes" if court else "+%d %% de cambriolages élucidés même en retard") % roundi(float(eff.enquete) * 100.0))
 	if eff.has("couverts"):
 		out.append(("+%d %% couverts" if court else "+%d %% de couverts (tables en plus)") % roundi(float(eff.couverts) * 100.0))
 	if eff.has("lits"):
@@ -767,7 +783,7 @@ func _carte_ensemble() -> void:
 	var et: Dictionary = gestion.etat(bid)
 	if gestion.auto(bid):
 		if _ville():
-			_texte("Gestion automatique : %s répare et investit son budget toute seule. Tu peux quand même acheter ce que tu veux." % _le(), true, 12)
+			_texte("Gestion automatique : %s répare et investit son budget %s. Tu peux quand même acheter ce que tu veux." % [_le(), _gs("seul", "tout seul")], true, 12)
 		else:
 			_texte("Gestion automatique : %s répare, ajuste son prix et investit ses bénéfices tout seul. Tu peux quand même acheter ce que tu veux." % _le(), true, 12)
 	var cl := String(_gd().get("classe", "étoiles"))
@@ -777,7 +793,7 @@ func _carte_ensemble() -> void:
 	else:
 		_texte("5 %s : le sommet !" % cl, true)
 	if int(et.label_fin) >= gestion.jour:
-		var txt := ("★ Citée en exemple encore %d jours (un pompier de garde en plus)." if _ville() else "★ Recommandé par le guide encore %d jours (+6 %% de clients).") % (int(et.label_fin) - gestion.jour)
+		var txt := ("★ " + String(_gd().get("label_court", "Citée en exemple")) + " encore %d jours (" + _gs("label_effet", "un pompier de garde en plus") + ")." if _ville() else "★ Recommandé par le guide encore %d jours (+6 %% de clients).") % (int(et.label_fin) - gestion.jour)
 		var l := _texte(txt, false, 13)
 		l.add_theme_color_override("font_color", UiStyle.GOOD)
 	if _ville():
@@ -838,8 +854,11 @@ func _carte_ensemble() -> void:
 func _ensemble_ville(et: Dictionary) -> void:
 	_texte("Interventions", false, 15)
 	var dl := float(et.get("delai", -1.0))
-	_texte("%d arrivées sur les lieux · délai moyen %s · %d en retard · %d départs d'engins" % [int(et.interventions),
+	_texte("%d arrivées sur les lieux · délai moyen %s · %d en retard · %d départs" % [int(et.interventions),
 		Urgences.format_time(dl) if dl >= 0.0 else "—", int(et.retards), int(et.departs)], true)
+	if String(_gd().get("service", "")) == "police":
+		_texte("Cambriolages élucidés par l'enquête malgré un retard : %d (%d non élucidés) · chance %d %% · %d voitures à la fourrière" % [
+			int(et.get("elucides", 0)), int(et.get("non_elucides", 0)), roundi(gestion.chance_enquete(bid) * 100.0), int(et.get("fourriere", 0))], true)
 	var u := gestion.urgences
 	if u == null or not u.stations.has(bid):
 		return
@@ -854,7 +873,7 @@ func _ensemble_ville(et: Dictionary) -> void:
 		if not bool(e.out) and not u.unit_ready(bid, e):
 			l.text += " · manque d'équipage"
 			l.add_theme_color_override("font_color", Color("ffb4a2"))
-	_texte("Chaque engin a besoin de son équipage pour partir : agrandis les chambres de garde, recrute des volontaires (prestige, formation).", true, 12)
+	_texte(_gs("conseil", "Chaque engin a besoin de son équipage pour partir : agrandis les chambres de garde, recrute des volontaires (prestige, formation)."), true, 12)
 
 
 func _carte_personnel() -> void:

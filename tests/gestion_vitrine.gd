@@ -1,6 +1,6 @@
 extends SceneTree
 ## Captures du mode gestion « tycoon » (écran isométrique d'un hôtel ou d'un restaurant).
-## Usage : xvfb-run -a godot --path . --rendering-driver opengl3 --script res://tests/gestion_vitrine.gd -- --out DOSSIER [--type hotel_3|haussmann__restaurant|pompiers|police] [--depart] [--niveau 1|3|5] [--piece spa] [--zoom 30] [--onglet personnel|stats|journal] [--x 20 --z 14]
+## Usage : xvfb-run -a godot --path . --rendering-driver opengl3 --script res://tests/gestion_vitrine.gd -- --out DOSSIER [--type hotel_3|haussmann__restaurant|pompiers|police|hopital] [--depart] [--niveau 1|3|5] [--piece spa] [--zoom 30] [--onglet personnel|stats|journal] [--x 20 --z 14]
 
 var out := "user://captures-gestion"
 var niveau := 3
@@ -101,7 +101,7 @@ func _run() -> void:
 	elif service:
 		mets = []
 		for i in 18:
-			mets.append("pompier" if g == "caserne" else "policier")
+			mets.append({"caserne": "pompier", "commissariat": "policier"}.get(g, ["medecin", "infirmier", "aide_soignant"][i % 3]))
 	var k := 0
 	pop.by_job[hotel] = []
 	for pid in pop.persons:
@@ -147,6 +147,9 @@ func _run() -> void:
 		stc.elucides = 23
 		stc.non_elucides = 9
 		stc.fourriere = 64
+		stc.patients = 212
+		stc.sauves = 7
+		stc.parking = 18_400.0
 		scene.urgences.maj_flotte(hotel)
 	if g == "restaurant":
 		gest.etat(hotel).hier = {"ca": 2900.0, "charges": 2100.0, "clients": 150.0, "cap": 190.0}
@@ -165,7 +168,7 @@ func _run() -> void:
 	if depart:
 		# Un appel : un engin sort de la remise, l'alerte sonne.
 		scene.urgences.ignore_crew = true
-		scene.urgences.random_call("feu_poubelle" if g == "caserne" else "accident")
+		scene.urgences.random_call({"caserne": "feu_poubelle", "commissariat": "accident"}.get(g, "malaise"))
 		vue._maj_engins(true)
 		for i in 6:
 			vue.simuler(0.1)

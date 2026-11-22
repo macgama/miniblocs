@@ -159,7 +159,9 @@ static func _etat_vide(g: String) -> Dictionary:
 		# Services publics (caserne) : budget, volontaires, délais d'arrivée.
 		"caisse": 0.0, "dotation": -1.0, "volontaires": 0, "delai": -1.0, "interventions": 0, "retards": 0, "departs": 0, "bal": -999,
 		# Police : affaires élucidées par l'enquête, voitures enlevées.
-		"elucides": 0, "non_elucides": 0, "fourriere": 0}
+		"elucides": 0, "non_elucides": 0, "fourriere": 0,
+		# Hôpital : patients amenés, sauvés malgré le retard, parking.
+		"patients": 0, "sauves": 0, "parking": 0.0}
 
 
 ## Niveau de départ d'une pièce : 1 si le bâtiment l'a déjà (restaurant d'un
@@ -693,6 +695,8 @@ func _evenements(bid: int, st: Dictionary, month: int) -> void:
 			_evenements_caserne(bid, st, month)
 		"commissariat":
 			_evenements_police(bid, st, month)
+		"hopital":
+			_evenements_hopital(bid, st, month)
 		_:
 			_evenements_hotel(bid, st, month)
 
@@ -791,7 +795,8 @@ func candidats(bid: int) -> Array:
 
 static func _valeur(e: Dictionary) -> float:
 	return float(e.get("confort", 0.0)) * 1.0 + float(e.get("attrait", 0.0)) * 1.6 + float(e.get("satisf", 0.0)) * 1.0 \
-		+ float(e.get("lits", 0.0)) * 2.5 + float(e.get("couverts", 0.0)) * 2.0 + float(e.get("equipage", 0.0)) * 0.5 + float(e.get("engins", 0.0)) * 0.9 + float(e.get("repas", 0.0)) * 0.8 + float(e.get("vitesse", 0.0)) * 0.15 + float(e.get("ventes", 0.0)) * 0.02
+		+ float(e.get("lits", 0.0)) * 2.5 + float(e.get("couverts", 0.0)) * 2.0 + float(e.get("equipage", 0.0)) * 0.5 + float(e.get("engins", 0.0)) * 0.9 + float(e.get("repas", 0.0)) * 0.8 + float(e.get("vitesse", 0.0)) * 0.15 + float(e.get("ventes", 0.0)) * 0.02 \
+		+ float(e.get("enquete", 0.0)) * 1.5 + float(e.get("soins", 0.0)) * 1.5 + float(e.get("lits_sup", 0.0)) * 0.04
 
 
 # --- Chiffres de l'établissement (selon sa source) ------------------------------------------------
@@ -1085,6 +1090,9 @@ func objectifs(bid: int) -> Array:
 	if source(bid) == "ville":
 		var dl := float(st.get("delai", -1.0))
 		out.append({"texte": "Arriver en moins de 4 min en moyenne", "fait": dl >= 0.0 and dl < 240.0, "avance": Urgences.format_time(dl) if dl >= 0.0 else "pas encore d'intervention"})
+		if String(gd.get("service", "")) == "ambulance":
+			var pa := int(st.get("patients", 0))
+			out.append({"texte": "Soigner 20 patients amenés par le SAMU", "fait": pa >= 20, "avance": "%d / 20" % mini(pa, 20)})
 		if String(gd.get("service", "")) == "police":
 			var el := int(st.get("elucides", 0))
 			out.append({"texte": "Élucider 5 cambriolages", "fait": el >= 5, "avance": "%d / 5" % mini(el, 5)})
@@ -1291,6 +1299,44 @@ func enquete(bid: int, elucide: bool) -> void:
 		st.non_elucides = int(st.non_elucides) + 1
 
 
+## Lits d'hôpital en plus gagnés en gestion (chambres, lits médicalisés).
+func lits_sup(bid: int) -> int:
+	if not etats.has(bid):
+		return 0
+	return maxi(0, roundi(effet(bid, "lits_sup")))
+
+
+## Part des malaises en retard qu'on sauve quand même (bloc, imagerie, labo…) : 0 à 80 %.
+func chance_soins(bid: int) -> float:
+	if not etats.has(bid):
+		return 0.0
+	return clampf(effet(bid, "soins"), 0.0, 0.8)
+
+
+## Un patient amené par une ambulance de cet hôpital (appelé par Urgences).
+func patient(bid: int, sauve_malgre_retard: bool) -> void:
+	if not etats.has(bid):
+		return
+	var st: Dictionary = etats[bid]
+	st.patients = int(st.patients) + 1
+	if sauve_malgre_retard:
+		st.sauves = int(st.sauves) + 1
+		_noter(bid, "Malaise pris en charge en retard, mais le bloc l'a sauvé : le patient rentrera chez lui.", true)
+
+
+static func lits_sup_de(bid: int) -> int:
+	return _inst().lits_sup(bid) if _inst() != null else 0
+
+
+static func chance_soins_de(bid: int) -> float:
+	return _inst().chance_soins(bid) if _inst() != null else 0.0
+
+
+static func patient_de(bid: int, sauve: bool) -> void:
+	if _inst() != null:
+		_inst().patient(bid, sauve)
+
+
 static func chance_enquete_de(bid: int) -> float:
 	return _inst().chance_enquete(bid) if _inst() != null else 0.0
 
@@ -1428,3 +1474,56 @@ func _evenements_police(bid: int, st: Dictionary, month: int) -> void:
 	# Humour.
 	if rng.randf() < 0.01:
 		_noter(bid, "Appel pour un « bruit suspect » dans un grenier : c'était une famille de loirs.", false)
+
+
+## Certification, parking, internes, naissances, dons du sang, clowns, hélicoptère.
+func _evenements_hopital(bid: int, st: Dictionary, month: int) -> void:
+	# Visite de certification : environ une fois par mois.
+	if int(st.inspection) < 0:
+		st.inspection = jour + rng.randi_range(10, 40)
+	elif jour >= int(st.inspection):
+		st.inspection = jour + rng.randi_range(25, 50)
+		var n := note(bid)
+		var vise := 2.6 + 0.4 * float(etoiles(bid))
+		if n >= vise:
+			st.label_fin = jour + 60
+			_noter(bid, "Certification : hôpital certifié sans réserve ! Un urgentiste de garde en plus pendant 60 jours.", true)
+		else:
+			_noter(bid, "Certification : avec réserves (note %.1f, il fallait %.1f)." % [n, vise], true)
+	var reputation := maxf(0.0, effet(bid, "attrait"))
+	# Parking des visiteurs : les tickets rapportent un peu chaque jour.
+	var pk := niveau(bid, "parking")
+	if pk > 0:
+		var v := 60.0 * pk * (1.0 + reputation) * rng.randf_range(0.7, 1.3)
+		st.parking = float(st.parking) + v
+		_crediter(bid, v)
+		if rng.randf() < 0.03:
+			_noter(bid, "Parking : %s de tickets cette semaine. Les familles trouvent ça trop cher." % BuildingSystem.format_money(int(v * 7.0)), false)
+	# Un interne choisit l'hôpital (comme les volontaires des pompiers).
+	var places := 2 + niveau(bid, "consultations")
+	if int(st.volontaires) < places and rng.randf() < 0.015 * (1.0 + 3.0 * reputation):
+		st.volontaires = int(st.volontaires) + 1
+		_noter(bid, "Une interne choisit l'hôpital pour son stage : %d interne%s de garde en plus." % [int(st.volontaires), "s" if int(st.volontaires) > 1 else ""], true)
+	# Naissance.
+	if rng.randf() < 0.04 * niveau(bid, "chambres"):
+		var prenoms := ["Léa", "Gabriel", "Jade", "Louis", "Emma", "Noah", "Alice", "Raphaël", "Inès", "Jules"]
+		_noter(bid, "Naissance : %s, %.1f kg, tout le monde va bien." % [String(prenoms[rng.randi() % prenoms.size()]), rng.randf_range(2.8, 4.1)], false)
+	# Collecte de sang en hiver.
+	if (month <= 2 or month == 12) and jour - int(st.bal) > 60 and rng.randf() < 0.05:
+		st.bal = jour
+		st.seminaires = int(st.seminaires) + 1
+		_ajouter_satisf(bid, 0.05)
+		_noter(bid, "Collecte de sang dans le hall : %d donneurs en une journée." % rng.randi_range(40, 120), true)
+	# Clowns hospitaliers.
+	if rng.randf() < 0.015 * (1 + niveau(bid, "accueil")):
+		st.vip = int(st.vip) + 1
+		_ajouter_satisf(bid, 0.03)
+		_noter(bid, "Les clowns de l'hôpital passent dans les chambres : même le chef de service a ri.", false)
+	# Hélicoptère.
+	var he := niveau(bid, "helistation")
+	if he > 0 and rng.randf() < 0.04 * he:
+		var d := ["d'un accident en montagne", "d'un village isolé", "d'un malaise sur un bateau", "d'un autre hôpital, pour le bloc"]
+		_noter(bid, "L'hélicoptère se pose avec un patient venu %s." % String(d[rng.randi() % d.size()]), false)
+	# Humour.
+	if rng.randf() < 0.01:
+		_noter(bid, "Aux urgences : un enfant avec un Lego dans le nez. Le troisième de la semaine.", false)

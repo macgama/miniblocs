@@ -553,6 +553,8 @@ Clique sur un hôtel, puis sur **Gérer l'hôtel** dans sa fiche (ou **Gérer** 
 
 **Et le commissariat** (tuile **Gérer le commissariat**) : 14 pièces (garage, salle de commandement, bureau des plaintes, enquêteurs, cellules, stand de tir, chenil, fourrière…), 75 objets. Plus de voitures de patrouille, plus de policiers en service, et des enquêteurs qui élucident les cambriolages même quand la patrouille arrive trop tard ; la fourrière rapporte des frais.
 
+**Et l'hôpital** (tuile **Gérer l'hôpital**) : 14 pièces (garage du SAMU, régulation, chambres, salle de garde, bloc opératoire, imagerie, labo, hélistation…), 67 objets. Plus d'ambulances et de SMUR, plus d'urgentistes de garde, plus de lits pour la ville, et un bloc qui sauve des patients même quand l'ambulance arrive trop tard.
+
 ![Hôtel en mode gestion](docs/apercu-gestion-hotel.png)
 
 ![Restaurant en mode gestion](docs/apercu-gestion-restaurant.png)
@@ -560,6 +562,8 @@ Clique sur un hôtel, puis sur **Gérer l'hôtel** dans sa fiche (ou **Gérer** 
 ![Caserne de pompiers en mode gestion](docs/apercu-gestion-caserne.png)
 
 ![Commissariat en mode gestion](docs/apercu-gestion-commissariat.png)
+
+![Hôpital en mode gestion](docs/apercu-gestion-hopital.png)
 
 ## Mode streamer : le chat Twitch vote
 

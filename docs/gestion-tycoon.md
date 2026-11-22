@@ -80,6 +80,21 @@ Ce que ça change **vraiment** dans la ville :
 - **Note** : délai moyen d'arrivée, moral et pannes. **Insignes** (1 à 5) : gagnés par l'expérience.
 - Événements : contrôle de la préfecture (« félicité » : un policier en plus pendant 60 jours), permis vélo des écoles au printemps, démonstrations de la brigade cynophile, défilé du 14 juillet, objets trouvés rendus, réservistes.
 
+## L'hôpital
+
+Les hôpitaux se gèrent aussi : tuile **Gérer l'hôpital** sur leur fiche. Service public payé par la ville (environ 3 100 € par jour pour un hôpital standard, − / + dans l'onglet Hôpital). Un hôpital jamais ouvert en mode gestion ne coûte rien de plus.
+
+14 pièces : accueil des urgences, régulation du SAMU (le 15), garage du SAMU, chambres des patients, salle de garde des urgentistes, consultations, direction, pharmacie, bloc opératoire, imagerie (radio, scanner), laboratoire, et dehors le jardin des patients, l'hélistation et le parking des visiteurs. 67 objets (fauteuils roulants, lits médicalisés, pieds à perfusion, table d'examen, échographe, table d'opération, scialytique, moniteurs, respirateur, robot chirurgical, scanner, microscopes, frigo à poches de sang, hélicoptère sanitaire…).
+
+Ce que ça change **vraiment** dans la ville :
+- **Garage du SAMU** : chaque niveau ajoute une ambulance ou un SMUR à la vraie flotte (Urgences). Elles sortent du garage gyrophares allumés dans la maquette.
+- **Salle de garde** : un urgentiste de garde de plus par niveau. Les **internes** (attirés par la réputation et les consultations) comptent aussi.
+- **Chambres** (nouveau) : 12 lits de plus par niveau (et 4 avec les lits médicalisés) dans la capacité de l'hôpital, utilisée par les services publics et la santé publique.
+- **Soins** (nouveau) : bloc, imagerie, labo, pharmacie, hélistation. Quand l'ambulance arrive trop tard sur un malaise, une partie des patients qui seraient morts sont sauvés (jusqu'à 80 %).
+- **Parking** : les tickets des visiteurs rapportent un peu chaque jour.
+- **Note** : délai moyen d'arrivée des ambulances, moral, pannes. **Caducées** (1 à 5) : gagnés par l'expérience.
+- Événements : certification (« sans réserve » : un urgentiste en plus pendant 60 jours), naissances, collecte de sang en hiver, clowns hospitaliers, hélicoptère, internes.
+
 ## Rythme
 
 Le mode suit le temps du jeu : rien ne se gagne pendant que le jeu est fermé, rien ne bouge en pause, tout va plus vite en vitesse rapide. La gestion automatique, les pannes et les événements tournent chaque jour de jeu pour tous les hôtels, même ceux qu'on n'ouvre jamais. Un hôtel jamais ouvert garde ses effets à zéro tant qu'il n'a rien acheté.
@@ -90,6 +105,7 @@ Le mode suit le temps du jeu : rien ne se gagne pendant que le jeu est fermé, r
 - `scripts/gestion/decors_restaurant.gd` et `modeles_restaurant.gd` : décors de base des pièces et ~50 modèles du restaurant.
 - `scripts/gestion/genres/genre_caserne.gd` (`GenreCaserne`), `decors_caserne.gd`, `modeles_caserne.gd` : la caserne. Source `ville` : le compte est `etat.caisse`, alimenté par `dotation()` dans `_journee_ville()`. Liens avec `Urgences` : `Gestion.flotte_de` (engins en plus, `Urgences.maj_flotte`), `equipage_de` (ajouté à `staff_of`), effet `vitesse` (temps sur place), `intervention_de` et `depart_de` (délai, note, journal). Les engins de la maquette : `GestionDiorama.placer_engins`.
 - `scripts/gestion/genres/genre_commissariat.gd` (`GenreCommissariat`), `decors_commissariat.gd`, `modeles_commissariat.gd` : le commissariat, même source `ville`. Les mots propres au service (voiture/engin, garage/remise, policier/pompier, « en service »/« de garde », conseil) sont des clés du genre (`vehicule`, `vehicules`, `garage`, `agent`, `agents`, `de_garde`, `conseil`, `label_effet`, `seul`). Effet `enquete` : `Gestion.chance_enquete_de` et `enquete_de`, appelés par `Urgences._effects_on_done` pour un cambriolage arrivé trop tard.
+- `scripts/gestion/genres/genre_hopital.gd` (`GenreHopital`), `decors_hopital.gd`, `modeles_hopital.gd` : l'hôpital. Effet `lits_sup` (un nombre de lits, `Gestion.lits_sup_de`, ajouté dans `ServicesPublics.capacite`) et effet `soins` (`Gestion.chance_soins_de`, `patient_de`, appelés par `Urgences._effects_on_done` pour un malaise en retard).
 - `scripts/gestion/gestion_types.gd` (`GestionTypes`) : les genres gérables. Un genre = ses pièces (plan, niveaux, prix, effets, métiers et postes, portes et chemins), ses objets (modèle, poses, prix, niveau requis, effets), ses demandes, ses pannes, les activités des clients. Pour ajouter la prison, l'hôpital, l'usine… : une entrée dans `GENRES`, une ligne dans `genre_de()`, et les décors de base de ses pièces dans le diorama (`_decor_<nom>`).
 - `scripts/gestion/gestion.gd` (`Gestion`) : niveaux, objets, prix, paiement, effets (`Gestion.effet_de(bid, clé)`), étoiles, personnel (salaires, formation), pannes, événements, historique, journal, gestion automatique (`gerer_auto`, `candidats`), objectifs, sauvegarde (section `gestion`). `nouveau_jour()` est appelé par le tourisme à chaque fin de journée.
 - `scripts/gestion/gestion_modeles.gd` (`GestionModeles`) : la bibliothèque des objets low-poly (72 modèles) et les places qu'ils offrent aux clients.
@@ -97,4 +113,4 @@ Le mode suit le temps du jeu : rien ne se gagne pendant que le jeu est fermé, r
 - `scripts/gestion/gestion_vue.gd` (`GestionVue`) et `graphe_gestion.gd` : l'écran (caméra isométrique, barre du haut, carte à onglets, tuiles du bas, bulles, graphique).
 - Effets lus par le tourisme : `Tourisme.spec`, `lits`, `note`, `attrait_heb`, repas sur place, dépenses sur place (`ventes`), satisfaction, entretien.
 
-Tests : `xvfb-run -a godot --path . --rendering-driver opengl3 --script res://tests/gestion_test.gd` (hôtel) , `res://tests/gestion_restaurant_test.gd` (restaurant) `res://tests/gestion_caserne_test.gd` (caserne) et `res://tests/gestion_commissariat_test.gd` (commissariat). Captures : `tests/gestion_vitrine.gd -- --out DOSSIER [--type haussmann__restaurant|pompiers|police] [--depart] --niveau 1|3|5 [--piece spa] [--zoom 30] [--onglet personnel|stats|journal] [--x 20 --z 14]`.
+Tests : `xvfb-run -a godot --path . --rendering-driver opengl3 --script res://tests/gestion_test.gd` (hôtel) , `res://tests/gestion_restaurant_test.gd` (restaurant) `res://tests/gestion_caserne_test.gd` (caserne) `res://tests/gestion_commissariat_test.gd` (commissariat) et `res://tests/gestion_hopital_test.gd` (hôpital). Captures : `tests/gestion_vitrine.gd -- --out DOSSIER [--type haussmann__restaurant|pompiers|police|hopital] [--depart] --niveau 1|3|5 [--piece spa] [--zoom 30] [--onglet personnel|stats|journal] [--x 20 --z 14]`.

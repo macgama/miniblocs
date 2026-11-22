@@ -784,6 +784,8 @@ func _on_scene(u: Dictionary) -> void:
 	u.wait = float(u.wait) / (1.0 + clampf(Gestion.effet_de(int(u.get("bid", -1)), "vitesse"), 0.0, 1.5))
 	if service == "ambulance" and not inc.meta.has("by"):
 		inc.meta["by"] = "les pompiers" if String(u.base) == "vsav" else "le SAMU"
+	if service == "ambulance" and not inc.meta.has("amb_bid"):
+		inc.meta["amb_bid"] = int(u.get("bid", -1))
 	if service == "police" and not inc.meta.has("police_bid"):
 		inc.meta["police_bid"] = int(u.get("bid", -1))
 	if not inc.arrived.has(service):
@@ -907,7 +909,13 @@ func _effects_on_done(inc: Dictionary, service: String) -> void:
 	var dt := float(inc.arrived.get(service, 0.0))
 	if service == "ambulance" and pid >= 0 and population.persons.has(pid):
 		var p: Dictionary = population.persons[pid]
-		if dt > late and String(inc.type) == "malaise" and rng.randf() < 0.3:
+		# Mode gestion : un hôpital bien équipé sauve une partie des malaises en retard.
+		var ab := int(inc.meta.get("amb_bid", -1))
+		var mort := dt > late and String(inc.type) == "malaise" and rng.randf() < 0.3
+		var sauve := mort and ab >= 0 and rng.randf() < Gestion.chance_soins_de(ab)
+		if ab >= 0 and inc.arrived.has(service):
+			Gestion.patient_de(ab, sauve)
+		if mort and not sauve:
 			population.vie.die(pid, "d'un malaise, les secours sont arrivés trop tard")
 			stats.deces = int(stats.deces) + 1
 			message.emit("%s %s n'a pas survécu : les secours sont arrivés trop tard." % [String(p.get("p", "")), String(p.get("n", ""))])

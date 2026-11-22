@@ -216,7 +216,7 @@ func _city_tests() -> void:
 	if not parti.is_empty():
 		urg._t += 200.0
 		urg._on_arrival(parti, parti.v)
-		_check(String(parti.phase) == "sur_place" and float(parti.wait) < float(Urgences.WORK.police) - 0.5, "sur place, travail plus court (%.0f s au lieu de %.0f)" % [float(parti.wait), float(Urgences.WORK.police)])
+		_check(String(parti.phase) == "sur_place" and float(parti.wait) < float(Urgences.WORK.police) * (1.0 + 0.5 * (int(urg.incidents[id].gravite) - 1)) - 0.5, "sur place, travail plus court (%.0f s au lieu de %.0f)" % [float(parti.wait), float(Urgences.WORK.police) * (1.0 + 0.5 * (int(urg.incidents[id].gravite) - 1))])
 	_check(float(st.delai) > 100.0 and int(st.interventions) == 1, "délai d'arrivée noté (%s)" % Urgences.format_time(float(st.delai)))
 	var n0 := gest.note(cas)
 	for i in 6:

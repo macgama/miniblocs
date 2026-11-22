@@ -742,6 +742,10 @@ func _lignes_effets(eff: Dictionary, court := false) -> Array:
 	if eff.has("equipage"):
 		var n := roundi(float(eff.equipage))
 		out.append(("+%d " + _gs("de_garde", "de garde") if court else "+%d " + _gs("agent", "pompier") + " " + _gs("de_garde", "de garde") + ", prêt à partir") % n)
+	if eff.has("lits_sup"):
+		out.append(("+%d lits" if court else "+%d lits d'hôpital pour la ville") % roundi(float(eff.lits_sup)))
+	if eff.has("soins"):
+		out.append(("+%d %% soins" if court else "+%d %% de malaises sauvés malgré le retard") % roundi(float(eff.soins) * 100.0))
 	if eff.has("enquete"):
 		out.append(("+%d %% enquêtes" if court else "+%d %% de cambriolages élucidés même en retard") % roundi(float(eff.enquete) * 100.0))
 	if eff.has("couverts"):
@@ -755,7 +759,8 @@ func _lignes_effets(eff: Dictionary, court := false) -> Array:
 			out.append(("+%.2f confort" if court else "+%.2f de note (confort)") % float(eff.confort))
 	if eff.has("attrait"):
 		if _ville():
-			out.append(("+%d %% prestige" if court else "+%d %% de prestige (volontaires, dons)") % roundi(float(eff.attrait) * 100.0))
+			var ma := _mot("attrait", "prestige (volontaires, dons)")
+			out.append(("+%d %% " + ma.get_slice(" (", 0).get_slice(" des ", 0) if court else "+%d %% de " + ma) % roundi(float(eff.attrait) * 100.0))
 		else:
 			out.append(("+%d %% clients" if court else "+%d %% de clients attirés") % roundi(float(eff.attrait) * 100.0))
 	if eff.has("satisf"):
@@ -856,6 +861,10 @@ func _ensemble_ville(et: Dictionary) -> void:
 	var dl := float(et.get("delai", -1.0))
 	_texte("%d arrivées sur les lieux · délai moyen %s · %d en retard · %d départs" % [int(et.interventions),
 		Urgences.format_time(dl) if dl >= 0.0 else "—", int(et.retards), int(et.departs)], true)
+	if String(_gd().get("service", "")) == "ambulance":
+		_texte("%d patients amenés par le SAMU · %d sauvés malgré un retard (chance %d %%) · %d lits en plus · parking %s" % [
+			int(et.get("patients", 0)), int(et.get("sauves", 0)), roundi(gestion.chance_soins(bid) * 100.0), gestion.lits_sup(bid),
+			BuildingSystem.format_money(int(et.get("parking", 0.0)))], true)
 	if String(_gd().get("service", "")) == "police":
 		_texte("Cambriolages élucidés par l'enquête malgré un retard : %d (%d non élucidés) · chance %d %% · %d voitures à la fourrière" % [
 			int(et.get("elucides", 0)), int(et.get("non_elucides", 0)), roundi(gestion.chance_enquete(bid) * 100.0), int(et.get("fourriere", 0))], true)

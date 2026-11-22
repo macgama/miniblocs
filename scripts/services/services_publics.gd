@@ -212,6 +212,8 @@ func capacite(bid: int, service: String) -> int:
 			var lits := int(info.get("lits", roundi(int(t.get("lits", 0)) * Ameliorations.facteur_bid(population.buildings, bid)) if t.has("lits") else roundi(float(info.emp) * LITS_PAR_EMPLOI)))
 			if lits <= 0:
 				lits = 10
+			# Mode gestion : chambres agrandies, lits médicalisés.
+			lits += Gestion.lits_sup_de(bid)
 			return 0 if _ferme(bid) else maxi(1, roundi(lits * minf(1.0, _taux(bid))))
 		"police":
 			if _ferme(bid):

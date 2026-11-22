@@ -50,7 +50,7 @@ static func dessiner(d: GestionDiorama, k: LpKit, decor: String, r: Array, n: in
 			return _chenil(d, k, r, n)
 		"police_fourriere":
 			return _fourriere(d, k, r, n)
-	return []
+	return DecorsHopital.dessiner(d, k, decor, r, n)
 
 
 # --- Pièces ------------------------------------------------------------------------------------

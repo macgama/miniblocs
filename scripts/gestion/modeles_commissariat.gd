@@ -270,3 +270,5 @@ static func dessiner(k: LpKit, nom: String, teinte := Color.WHITE) -> void:
 				var p := Vector3(-0.5 + i * 0.5, 0, 0)
 				k.lathe(p, [Vector2(0.0, 0.0), Vector2(0.18, 0.0), Vector2(0.18, 0.3), Vector2(0.0, 0.3)], 8, JAUNE)
 				k.box(p + Vector3(0, 0.32, 0), Vector3(0.1, 0.06, 0.4), NOIR, 0.0, false)
+		_:
+			ModelesHopital.dessiner(k, nom, teinte)

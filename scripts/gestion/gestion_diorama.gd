@@ -1330,6 +1330,25 @@ static func _geste(met: String, piece: String) -> String:
 				"dortoir":
 					return "telephoner"
 			return "radio"
+		"medecin", "infirmier", "aide_soignant":
+			match piece:
+				"accueil":
+					return "guichet"
+				"regulation":
+					return "radio"
+				"garage", "parking":
+					return "brancard" if met == "aide_soignant" else "entretien_camion"
+				"consultations":
+					return "ausculter"
+				"bloc", "chambres":
+					return "perfuser" if met == "infirmier" else ("ausculter" if met == "medecin" else "soigner")
+				"bureau", "garde", "imagerie":
+					return "dossier" if met == "medecin" else "taper"
+				"pharmacie", "labo":
+					return "ranger"
+				"helistation":
+					return "brancard"
+			return "soigner"
 		"policier":
 			match piece:
 				"accueil":

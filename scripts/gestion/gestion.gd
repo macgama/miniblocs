@@ -157,7 +157,9 @@ static func _etat_vide(g: String) -> Dictionary:
 		# Établissements sans système de clients à eux (restaurant) :
 		"prix": 1.0, "satisf": 3.0, "note": 3.0, "j": {}, "hier": {},
 		# Services publics (caserne) : budget, volontaires, délais d'arrivée.
-		"caisse": 0.0, "dotation": -1.0, "volontaires": 0, "delai": -1.0, "interventions": 0, "retards": 0, "departs": 0, "bal": -999}
+		"caisse": 0.0, "dotation": -1.0, "volontaires": 0, "delai": -1.0, "interventions": 0, "retards": 0, "departs": 0, "bal": -999,
+		# Police : affaires élucidées par l'enquête, voitures enlevées.
+		"elucides": 0, "non_elucides": 0, "fourriere": 0}
 
 
 ## Niveau de départ d'une pièce : 1 si le bâtiment l'a déjà (restaurant d'un
@@ -226,10 +228,10 @@ func effet(bid: int, cle: String) -> float:
 		"vitesse":
 			s += 0.08 * float(st.formation)
 		"attrait":
-			if int(st.label_fin) >= jour and g != "caserne":
+			if int(st.label_fin) >= jour and source(bid) != "ville":
 				s += 0.06
 		"equipage":
-			# Volontaires recrutés, et un de plus quand la caserne est citée en exemple.
+			# Volontaires (réservistes) recrutés, et un de plus quand le service est cité en exemple.
 			s += float(st.get("volontaires", 0)) + (1.0 if int(st.label_fin) >= jour else 0.0)
 	return s
 
@@ -689,6 +691,8 @@ func _evenements(bid: int, st: Dictionary, month: int) -> void:
 			_evenements_restaurant(bid, st)
 		"caserne":
 			_evenements_caserne(bid, st, month)
+		"commissariat":
+			_evenements_police(bid, st, month)
 		_:
 			_evenements_hotel(bid, st, month)
 
@@ -1081,6 +1085,9 @@ func objectifs(bid: int) -> Array:
 	if source(bid) == "ville":
 		var dl := float(st.get("delai", -1.0))
 		out.append({"texte": "Arriver en moins de 4 min en moyenne", "fait": dl >= 0.0 and dl < 240.0, "avance": Urgences.format_time(dl) if dl >= 0.0 else "pas encore d'intervention"})
+		if String(gd.get("service", "")) == "police":
+			var el := int(st.get("elucides", 0))
+			out.append({"texte": "Élucider 5 cambriolages", "fait": el >= 5, "avance": "%d / 5" % mini(el, 5)})
 	else:
 		out.append({"texte": String(gd.get("remplir", "Remplir à 75 %")), "fait": occ >= 0.75, "avance": "%d %%" % roundi(occ * 100.0)})
 	out.append({"texte": "Note de 4 sur 5", "fait": nt >= 4.0, "avance": "%.1f / 5" % nt})
@@ -1264,6 +1271,35 @@ func depart(bid: int, modele: String, quoi: String) -> void:
 	_noter(bid, "Départ : %s pour « %s »." % [String(VehicleCatalog.get_type(modele).get("name", modele)), quoi], false)
 
 
+## Chance qu'une enquête retrouve les cambrioleurs malgré une patrouille en
+## retard (enquêteurs, cellules, chien, fichiers) : de 0 à 85 %.
+func chance_enquete(bid: int) -> float:
+	if not etats.has(bid):
+		return 0.0
+	return clampf(effet(bid, "enquete"), 0.0, 0.85)
+
+
+## Un cambriolage arrivé trop tard : élucidé par l'enquête ou non (appelé par Urgences).
+func enquete(bid: int, elucide: bool) -> void:
+	if not etats.has(bid):
+		return
+	var st: Dictionary = etats[bid]
+	if elucide:
+		st.elucides = int(st.elucides) + 1
+		_noter(bid, "Enquête : les cambrioleurs sont retrouvés, les objets volés rendus à leurs propriétaires.", true)
+	else:
+		st.non_elucides = int(st.non_elucides) + 1
+
+
+static func chance_enquete_de(bid: int) -> float:
+	return _inst().chance_enquete(bid) if _inst() != null else 0.0
+
+
+static func enquete_de(bid: int, elucide: bool) -> void:
+	if _inst() != null:
+		_inst().enquete(bid, elucide)
+
+
 static func flotte_de(bid: int) -> Array:
 	return _inst().flotte(bid) if _inst() != null else []
 
@@ -1336,3 +1372,59 @@ func _evenements_caserne(bid: int, st: Dictionary, month: int) -> void:
 	# Humour : le chat redescend seul.
 	if rng.randf() < 0.01:
 		_noter(bid, "Appel pour un chat dans un arbre : il est redescendu tout seul avant l'arrivée du camion.", false)
+
+
+## Préfecture, fourrière, réservistes, prévention routière, chien, objets trouvés.
+func _evenements_police(bid: int, st: Dictionary, month: int) -> void:
+	# Contrôle de la préfecture : environ une fois par mois.
+	if int(st.inspection) < 0:
+		st.inspection = jour + rng.randi_range(10, 40)
+	elif jour >= int(st.inspection):
+		st.inspection = jour + rng.randi_range(25, 50)
+		var n := note(bid)
+		var vise := 2.6 + 0.4 * float(etoiles(bid))
+		if n >= vise:
+			st.label_fin = jour + 60
+			_noter(bid, "Préfecture : commissariat félicité ! Un policier de patrouille en plus pendant 60 jours.", true)
+		else:
+			_noter(bid, "Préfecture : des progrès à faire (note %.1f, il fallait %.1f)." % [n, vise], true)
+	var confiance := maxf(0.0, effet(bid, "attrait"))
+	# Fourrière : les voitures mal garées rapportent des frais.
+	var fr := niveau(bid, "fourriere")
+	if fr > 0 and rng.randf() < 0.12 * fr:
+		var nb := rng.randi_range(1, 1 + fr)
+		var v := 120.0 * nb
+		st.fourriere = int(st.fourriere) + nb
+		_crediter(bid, v)
+		var qui := ["devant l'école", "sur la place du marché", "sur un passage piéton", "devant une sortie de garage", "sur la piste cyclable"]
+		_noter(bid, "Fourrière : %d voiture%s enlevée%s %s, %s de frais." % [nb, "s" if nb > 1 else "", "s" if nb > 1 else "",
+			String(qui[rng.randi() % qui.size()]), BuildingSystem.format_money(int(v))], false)
+	# Un habitant devient réserviste (comme les volontaires des pompiers).
+	var places := 2 + niveau(bid, "plaintes")
+	if int(st.volontaires) < places and rng.randf() < 0.015 * (1.0 + 3.0 * confiance):
+		st.volontaires = int(st.volontaires) + 1
+		_noter(bid, "Un habitant rejoint la réserve de la police : %d réserviste%s en patrouille en plus." % [int(st.volontaires), "s" if int(st.volontaires) > 1 else ""], true)
+	# Permis vélo des écoles au printemps.
+	var pv := niveau(bid, "parvis")
+	if pv > 0 and month >= 4 and month <= 6 and rng.randf() < 0.06 * pv:
+		st.seminaires = int(st.seminaires) + 1
+		_ajouter_satisf(bid, 0.03)
+		_noter(bid, "Permis vélo sur la piste : %d enfants reçoivent leur diplôme de prévention routière." % rng.randi_range(18, 28), false)
+	# Démonstration de la brigade cynophile.
+	var ch := niveau(bid, "chenil")
+	if ch > 0 and rng.randf() < 0.04 * ch:
+		st.vip = int(st.vip) + 1
+		var quoi := ["retrouve un randonneur égaré", "trouve le doudou perdu d'un enfant au parc", "fait une démonstration à la fête de l'école", "flaire un colis suspect : c'était un sandwich"]
+		_noter(bid, "Rex, le chien de la brigade, %s." % String(quoi[rng.randi() % quoi.size()]), false)
+	# Le 14 juillet : défilé, une fois par an.
+	if month == 7 and jour - int(st.bal) > 200 and rng.randf() < 0.2:
+		st.bal = jour
+		_ajouter_satisf(bid, 0.2)
+		_noter(bid, "Défilé du 14 juillet : les voitures du commissariat ouvrent la marche, la ville applaudit.", true)
+	# Objets trouvés rendus.
+	if rng.randf() < 0.03 * niveau(bid, "accueil"):
+		var quoi := ["un portefeuille avec 40 €", "un trousseau de clés", "un téléphone", "un dentier (si, si)", "une alliance", "un chat (pas vraiment un objet)"]
+		_noter(bid, "Objets trouvés : %s rendu à son propriétaire." % String(quoi[rng.randi() % quoi.size()]), false)
+	# Humour.
+	if rng.randf() < 0.01:
+		_noter(bid, "Appel pour un « bruit suspect » dans un grenier : c'était une famille de loirs.", false)

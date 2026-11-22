@@ -784,6 +784,8 @@ func _on_scene(u: Dictionary) -> void:
 	u.wait = float(u.wait) / (1.0 + clampf(Gestion.effet_de(int(u.get("bid", -1)), "vitesse"), 0.0, 1.5))
 	if service == "ambulance" and not inc.meta.has("by"):
 		inc.meta["by"] = "les pompiers" if String(u.base) == "vsav" else "le SAMU"
+	if service == "police" and not inc.meta.has("police_bid"):
+		inc.meta["police_bid"] = int(u.get("bid", -1))
 	if not inc.arrived.has(service):
 		var dt := _t - float(inc.t0)
 		inc.arrived[service] = dt
@@ -914,6 +916,15 @@ func _effects_on_done(inc: Dictionary, service: String) -> void:
 			population.vie.log_event(p, "urgence", "%s : secouru·e par %s" % [String(inc.name),
 				"le SAMU" if String(inc.meta.get("by", "")) == "" else String(inc.meta.by)])
 	if service == "police" and String(inc.type) == "cambriolage" and dt > late:
+		# Mode gestion : les enquêteurs du commissariat retrouvent parfois les voleurs.
+		var pb := int(inc.meta.get("police_bid", -1))
+		if pb >= 0 and inc.arrived.has(service):
+			var ok := rng.randf() < Gestion.chance_enquete_de(pb)
+			Gestion.enquete_de(pb, ok)
+			if ok:
+				stats.elucides = int(stats.get("elucides", 0)) + 1
+				message.emit("Cambriolage élucidé par les enquêteurs : les objets volés sont rendus.")
+				return
 		stats.non_elucides = int(stats.non_elucides) + 1
 		var hid := int(inc.meta.get("hid", -1))
 		if population.households.has(hid):

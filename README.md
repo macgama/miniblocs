@@ -551,11 +551,15 @@ Clique sur un hôtel, puis sur **Gérer l'hôtel** dans sa fiche (ou **Gérer** 
 
 **Et la caserne de pompiers** (tuile **Gérer la caserne**) : un service public avec un budget versé chaque jour par la ville. 14 pièces (remise, salle d'alerte, chambres de garde, vestiaires, formation, tour de manœuvre…), 74 objets. La gestion change vraiment les urgences : plus d'engins dans la remise, plus de pompiers de garde, travail plus rapide sur place ; la note suit le délai d'arrivée des secours. Quand un appel arrive, l'alerte sonne et on voit l'engin sortir de la remise.
 
+**Et le commissariat** (tuile **Gérer le commissariat**) : 14 pièces (garage, salle de commandement, bureau des plaintes, enquêteurs, cellules, stand de tir, chenil, fourrière…), 75 objets. Plus de voitures de patrouille, plus de policiers en service, et des enquêteurs qui élucident les cambriolages même quand la patrouille arrive trop tard ; la fourrière rapporte des frais.
+
 ![Hôtel en mode gestion](docs/apercu-gestion-hotel.png)
 
 ![Restaurant en mode gestion](docs/apercu-gestion-restaurant.png)
 
 ![Caserne de pompiers en mode gestion](docs/apercu-gestion-caserne.png)
+
+![Commissariat en mode gestion](docs/apercu-gestion-commissariat.png)
 
 ## Mode streamer : le chat Twitch vote
 

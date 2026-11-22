@@ -43,11 +43,13 @@ extends RefCounted
 ## - "vitesse" : +x vitesse du service (réception, file d'attente) ;
 ## - "ventes" : +x € dépensés par client (et par nuit) dans l'établissement ;
 ## - "couverts" : +x part de couverts (restaurant : tables en plus) ;
+## - "equipage" / "engins" : personnes de garde / véhicules en plus (services d'urgence) ;
+## - "enquete" : part des cambriolages élucidés malgré une patrouille en retard (police) ;
 ## - "entretien" : € par jour (charges en plus).
 const EFFETS := {
 	"lits": "lits", "confort": "confort", "attrait": "clients attirés", "satisf": "satisfaction", "repas": "repas sur place",
 	"vitesse": "vitesse du service", "ventes": "dépenses des clients", "couverts": "couverts",
-	"equipage": "personnes de garde", "engins": "véhicules",
+	"equipage": "personnes de garde", "engins": "véhicules", "enquete": "affaires élucidées",
 }
 
 const GENRES := {
@@ -322,6 +324,8 @@ static func genre_de(type_id: String) -> String:
 	match t:
 		"pompiers":
 			return "caserne"
+		"police":
+			return "commissariat"
 	return ""
 
 
@@ -332,6 +336,8 @@ static func genre(g: String) -> Dictionary:
 			return GenreRestaurant.GENRE
 		"caserne":
 			return GenreCaserne.GENRE
+		"commissariat":
+			return GenreCommissariat.GENRE
 	return GENRES.get(g, {})
 
 

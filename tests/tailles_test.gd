@@ -200,6 +200,62 @@ func _run() -> void:
 		bs.buildings[ib].erase("niv")
 		_check(Personnalisation.can_customize(tid) and Personnalisation.base_floors(tid) == 8, "façade modifiable, 8 niveaux de base")
 
+	print("Taille au geste (glisser au sol, puis monter la souris) :")
+	ReglagesPartie.actuel.promoteurs_prives = true
+	bs.set_place("maison")
+	bs.manual_rot = true
+	bs.rot = 0
+	var coin := _spot(bs, "maison@12x14x2", Vector2i(-60, 60)) - Vector2i(6, 7)
+	bs.geste = "trace"
+	bs._g_debut = coin
+	bs._g_fin = coin
+	bs._g_rot = 0
+	bs._trace_vers(coin + Vector2i(11, 13), Vector2.ZERO)
+	_check(bs.type_id == "maison@12x14x2", "glisser sur 12 × 14 cases : %s" % bs.type_id)
+	_check(bs._check.get("rect", Rect2i()) == Rect2i(coin, Vector2i(12, 14)), "l'emprise part de la case de départ (%s)" % str(bs._check.get("rect")))
+	bs._trace_vers(coin + Vector2i(60, 13), Vector2.ZERO)
+	_check(bs.type_id == "maison@16x14x2", "trop large : bornée à 16 m (%s)" % bs.type_id)
+	bs._trace_vers(coin + Vector2i(11, 13), Vector2.ZERO)
+	var lache := InputEventMouseButton.new()
+	lache.button_index = MOUSE_BUTTON_LEFT
+	lache.pressed = false
+	lache.position = Vector2(800, 500)
+	bs._geste_souris(lache)
+	_check(bs.geste == "hauteur", "relâcher le bouton passe aux niveaux")
+	bs._hauteur_souris(500.0 - BuildingSystem.PX_NIVEAU * 2.0)
+	_check(bs.type_id == "maison@12x14x4", "monter la souris de 2 crans : 4 niveaux (%s)" % bs.type_id)
+	bs._hauteur_souris(500.0 - BuildingSystem.PX_NIVEAU * 9.0)
+	_check(bs.type_id == "maison@12x14x4", "pas plus de 4 niveaux pour une maison")
+	var molette := InputEventMouseButton.new()
+	molette.button_index = MOUSE_BUTTON_WHEEL_DOWN
+	molette.pressed = true
+	bs._geste_souris(molette)
+	bs._geste_souris(molette)
+	bs._geste_souris(molette)
+	_check(bs.type_id == "maison@12x14x1", "molette vers le bas : plain-pied (%s)" % bs.type_id)
+	_check(bs.texte_geste().contains("promoteur") and bs._g_label != null and bs._g_label.visible and bs._g_label.text.contains("plain-pied"),
+		"aperçu : %s" % bs._g_label.text.replace("\n", " / ") if bs._g_label != null else "pas d'étiquette")
+	await process_frame
+	_check(tp.is_open() and tp.w == 12 and tp.d == 14 and tp.e == 1 and TaillePanel.replie, "la carte (repliée) suit le geste : %s" % tp._resume.text)
+	var argent := bs.money
+	var n_av := bs.buildings.size()
+	var clic := InputEventMouseButton.new()
+	clic.button_index = MOUSE_BUTTON_LEFT
+	clic.pressed = true
+	bs._geste_souris(clic)
+	_check(bs.buildings.size() == n_av + 1 and bs.geste == "", "un clic pose la maison tracée")
+	var posee: Dictionary = bs.buildings[bs.next_id - 1] if bs.buildings.has(bs.next_id - 1) else {}
+	_check(String(posee.get("t", "")) == "maison@12x14x1" and bs._rect_of(posee) == Rect2i(coin, Vector2i(12, 14)), "maison de 12 × 14 m de plain-pied, à l'endroit tracé")
+	_check(bs.money == argent, "payée par un promoteur : la caisse ne bouge pas")
+	bs.geste = "trace"
+	bs._g_debut = coin + Vector2i(40, 0)
+	bs._g_fin = bs._g_debut
+	bs._trace_vers(bs._g_debut + Vector2i(9, 9), Vector2.ZERO)
+	bs.annuler_geste()
+	_check(bs.geste == "" and bs.mode == BuildingSystem.Mode.PLACE, "clic droit / Échap : le geste s'annule, l'outil reste")
+	bs.set_inactive()
+	ReglagesPartie.actuel.promoteurs_prives = false
+
 	# Sauvegarde : l'id voyage tel quel.
 	var d := bs.to_dict()
 	var json: Dictionary = JSON.parse_string(JSON.stringify(d))

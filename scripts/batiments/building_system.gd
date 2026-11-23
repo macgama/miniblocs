@@ -103,6 +103,23 @@ var _check := {}
 var _hover_building := -1
 var _right_press := Vector2.ZERO
 
+# --- Taille au geste (TaillesBatiments) ---------------------------------------------------
+## Pose d'un bâtiment dont la taille se règle : glisser au sol trace l'emprise,
+## puis la souris qui monte (ou la molette) ajoute des niveaux ; un clic pose.
+## "" : survol normal ; "trace" : bouton gauche enfoncé, emprise qui suit la
+## souris ; "hauteur" : emprise fixée, les niveaux suivent la souris.
+var geste := ""
+## Pixels de souris par niveau, en montant.
+const PX_NIVEAU := 26.0
+var _g_debut := Vector2i.ZERO
+var _g_fin := Vector2i.ZERO
+var _g_ecran := Vector2.ZERO
+var _g_y0 := 0.0
+var _g_e0 := 1
+var _g_centre := Vector2i.ZERO
+var _g_rot := 0
+var _g_label: Label3D
+
 
 func _ready() -> void:
 	if not world_path.is_empty():
@@ -262,6 +279,8 @@ var place_variant := -1
 
 func set_place(id: String, perso: Dictionary = {}, v := -1) -> void:
 	mode = Mode.PLACE
+	if geste != "" and TaillesBatiments.origine(id) != TaillesBatiments.origine(type_id):
+		geste = ""
 	type_id = id
 	manual_rot = false
 	place_perso = perso.duplicate()
@@ -282,6 +301,7 @@ func set_inactive() -> void:
 	if mode == Mode.NONE:
 		return
 	mode = Mode.NONE
+	geste = ""
 	_refresh()
 	info_changed.emit("")
 
@@ -831,14 +851,26 @@ func _unhandled_input(event: InputEvent) -> void:
 	if mode == Mode.NONE or camera == null or world == null:
 		return
 	if event is InputEventMouseMotion:
-		_update_cursor((event as InputEventMouseMotion).position)
+		var mm := event as InputEventMouseMotion
+		if geste == "hauteur":
+			_hauteur_souris(mm.position.y)
+			return
+		_update_cursor(mm.position)
+		if geste == "trace":
+			_trace_vers(_cursor, mm.position)
 	elif event is InputEventMouseButton:
 		var mb := event as InputEventMouseButton
 		if mb.button_index == MOUSE_BUTTON_RIGHT:
 			if mb.pressed:
 				_right_press = mb.position
 			elif mb.position.distance_to(_right_press) < 5.0:
-				set_inactive()
+				if geste != "":
+					annuler_geste()
+				else:
+					set_inactive()
+			return
+		if _geste_souris(mb):
+			get_viewport().set_input_as_handled()
 			return
 		if mb.button_index != MOUSE_BUTTON_LEFT or not mb.pressed:
 			return
@@ -846,66 +878,258 @@ func _unhandled_input(event: InputEvent) -> void:
 		if not _cursor_valid:
 			return
 		get_viewport().set_input_as_handled()
-		if relais.is_valid():
-			# Multijoueur : le serveur décide, la ville change chez tout le monde.
-			var histo := HistoriqueVille.instance
-			if mode == Mode.DEMOLISH:
-				if _hover_building >= 0 and buildings.has(_hover_building):
-					var hb: Dictionary = buildings[_hover_building]
-					var hc := _center_of(hb)
-					relais.call({"t": "demolir", "bid": _hover_building, "c": [hc.x, hc.y]})
-					if histo != null:
-						histo.noter("Démolition : " + HistoriqueVille._nom_type(String(hb.t)).to_lower(), {"k": "mp_bat_demoli",
-							"a": {"t": "poser", "id": String(hb.t), "c": [hc.x, hc.y], "r": int(hb.r), "a": float(hb.get("a", 0.0)),
-								"perso": hb.get("perso", {}), "v": int(hb.get("v", -1))}})
-			else:
-				if ModePlan.instance != null and ModePlan.instance.actif:
-					ModePlan.instance.capter_batiment(type_id, _place_center, rot, angle, place_perso, place_variant)
-					return
-				var pa := {"t": "poser", "id": type_id, "c": [_place_center.x, _place_center.y], "r": rot, "a": angle,
-					"perso": place_perso, "v": place_variant}
-				relais.call(pa)
-				if histo != null and not Communes.est_fondateur(type_id):
-					histo.noter(HistoriqueVille._nom_type(type_id), {"k": "mp_bat_pose", "a": pa.duplicate(true)})
-			return
-		if mode == Mode.DEMOLISH:
-			if _hover_building >= 0:
-				var at := _nodes[_hover_building].global_position as Vector3 if _nodes.has(_hover_building) else Vector3.ZERO
-				var had := buildings.has(_hover_building)
-				var avant: Dictionary = buildings[_hover_building].duplicate(true) if had else {}
-				var rendu := demolish(_hover_building)
-				if rendu >= 0 and HistoriqueVille.instance != null:
-					HistoriqueVille.instance.noter_demolition(avant, rendu)
-				if had and not buildings.has(_hover_building):
-					Son.jouer_a("demolition", at)
-				else:
-					Son.jouer("ui_erreur", -4.0, 0.0, "Interface")
-				_refresh()
-			return
-		# Mode plan : le bâtiment reste un projet (fantôme bleu), sans payer.
-		if ModePlan.instance != null and ModePlan.instance.actif:
-			ModePlan.instance.capter_batiment(type_id, _place_center, rot, angle, place_perso, place_variant)
-			return
-		var nb := place(type_id, _place_center, rot, 0, angle)
-		if nb < 0:
-			Son.jouer("ui_erreur", -4.0, 0.0, "Interface")
-		if nb >= 0:
-			Son.jouer("pose_batiment", -2.0, 0.08)
-			if not place_perso.is_empty() or place_variant >= 0:
-				set_perso(nb, place_perso, place_variant)
-			if HistoriqueVille.instance != null:
-				HistoriqueVille.instance.noter_pose(nb)
-			_refresh()
+		_clic()
 	elif event is InputEventKey:
 		var key := event as InputEventKey
 		if not key.pressed or key.echo:
 			return
 		if key.keycode == KEY_ESCAPE:
-			set_inactive()
+			if geste != "":
+				annuler_geste()
+			else:
+				set_inactive()
 			get_viewport().set_input_as_handled()
 		elif key.physical_keycode == KEY_R and mode == Mode.PLACE:
-			rotate_quarter()
+			if geste == "":
+				rotate_quarter()
+			else:
+				_g_rot = (_g_rot + 1) % 4
+				manual_rot = true
+				_maj_geste()
 			get_viewport().set_input_as_handled()
+
+
+## Action du clic gauche (poser, démolir, prévoir), à l'endroit du curseur.
+func _clic() -> void:
+	if relais.is_valid():
+		# Multijoueur : le serveur décide, la ville change chez tout le monde.
+		var histo := HistoriqueVille.instance
+		if mode == Mode.DEMOLISH:
+			if _hover_building >= 0 and buildings.has(_hover_building):
+				var hb: Dictionary = buildings[_hover_building]
+				var hc := _center_of(hb)
+				relais.call({"t": "demolir", "bid": _hover_building, "c": [hc.x, hc.y]})
+				if histo != null:
+					histo.noter("Démolition : " + HistoriqueVille._nom_type(String(hb.t)).to_lower(), {"k": "mp_bat_demoli",
+						"a": {"t": "poser", "id": String(hb.t), "c": [hc.x, hc.y], "r": int(hb.r), "a": float(hb.get("a", 0.0)),
+							"perso": hb.get("perso", {}), "v": int(hb.get("v", -1))}})
+		else:
+			if ModePlan.instance != null and ModePlan.instance.actif:
+				ModePlan.instance.capter_batiment(type_id, _place_center, rot, angle, place_perso, place_variant)
+				return
+			var pa := {"t": "poser", "id": type_id, "c": [_place_center.x, _place_center.y], "r": rot, "a": angle,
+				"perso": place_perso, "v": place_variant}
+			relais.call(pa)
+			if histo != null and not Communes.est_fondateur(type_id):
+				histo.noter(HistoriqueVille._nom_type(type_id), {"k": "mp_bat_pose", "a": pa.duplicate(true)})
+		return
+	if mode == Mode.DEMOLISH:
+		if _hover_building >= 0:
+			var at := _nodes[_hover_building].global_position as Vector3 if _nodes.has(_hover_building) else Vector3.ZERO
+			var had := buildings.has(_hover_building)
+			var avant: Dictionary = buildings[_hover_building].duplicate(true) if had else {}
+			var rendu := demolish(_hover_building)
+			if rendu >= 0 and HistoriqueVille.instance != null:
+				HistoriqueVille.instance.noter_demolition(avant, rendu)
+			if had and not buildings.has(_hover_building):
+				Son.jouer_a("demolition", at)
+			else:
+				Son.jouer("ui_erreur", -4.0, 0.0, "Interface")
+			_refresh()
+		return
+	# Mode plan : le bâtiment reste un projet (fantôme bleu), sans payer.
+	if ModePlan.instance != null and ModePlan.instance.actif:
+		ModePlan.instance.capter_batiment(type_id, _place_center, rot, angle, place_perso, place_variant)
+		return
+	var nb := place(type_id, _place_center, rot, 0, angle)
+	if nb < 0:
+		Son.jouer("ui_erreur", -4.0, 0.0, "Interface")
+	if nb >= 0:
+		Son.jouer("pose_batiment", -2.0, 0.08)
+		if not place_perso.is_empty() or place_variant >= 0:
+			set_perso(nb, place_perso, place_variant)
+		if HistoriqueVille.instance != null:
+			HistoriqueVille.instance.noter_pose(nb)
+		_refresh()
+
+
+# --- Taille au geste ----------------------------------------------------------------------
+
+## Le geste de taille s'applique-t-il à l'outil en cours ?
+func geste_possible() -> bool:
+	return mode == Mode.PLACE and TaillesBatiments.reglable(type_id) and not Communes.est_fondateur(type_id)
+
+
+## Boutons de souris pendant le geste. Rend vrai si l'évènement est pris.
+func _geste_souris(mb: InputEventMouseButton) -> bool:
+	if mode != Mode.PLACE:
+		return false
+	if geste == "hauteur":
+		if mb.button_index == MOUSE_BUTTON_WHEEL_UP or mb.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+			if mb.pressed:
+				_g_y0 += PX_NIVEAU * (1.0 if mb.button_index == MOUSE_BUTTON_WHEEL_UP else -1.0)
+				_hauteur_souris(_g_ecran.y)
+			return true
+		if mb.button_index == MOUSE_BUTTON_LEFT and mb.pressed:
+			poser_geste()
+			return true
+		return false
+	if mb.button_index != MOUSE_BUTTON_LEFT:
+		return false
+	if mb.pressed and geste == "" and geste_possible():
+		_update_cursor(mb.position)
+		if not _cursor_valid:
+			return false
+		geste = "trace"
+		_g_debut = _cursor
+		_g_fin = _cursor
+		_g_ecran = mb.position
+		_g_centre = _place_center
+		_g_rot = rot
+		return true
+	if not mb.pressed and geste == "trace":
+		var grand := absi(_g_fin.x - _g_debut.x) >= 1 or absi(_g_fin.y - _g_debut.y) >= 1
+		if not grand:
+			# Simple clic : pose à la taille en cours, comme avant.
+			geste = ""
+			_refresh()
+			if _cursor_valid:
+				_clic()
+			return true
+		if TaillesBatiments.hauteur_reglable(type_id):
+			geste = "hauteur"
+			_g_ecran = mb.position
+			_g_y0 = mb.position.y
+			_g_e0 = int(TaillesBatiments.dims(type_id).e)
+			_maj_geste()
+		else:
+			poser_geste()
+		return true
+	return false
+
+
+## Emprise tracée de la case de départ à `c` (bouton gauche enfoncé).
+func _trace_vers(c: Vector2i, ecran: Vector2) -> void:
+	_g_fin = c
+	_g_ecran = ecran
+	if absi(_g_fin.x - _g_debut.x) < 1 and absi(_g_fin.y - _g_debut.y) < 1:
+		return
+	var sx := absi(_g_fin.x - _g_debut.x) + 1
+	var sz := absi(_g_fin.y - _g_debut.y) + 1
+	var o := TaillesBatiments.origine(type_id)
+	var e := int(TaillesBatiments.dims(type_id).e)
+	# Orientation : celle choisie à la main (R), sinon la porte vers la voie la plus proche.
+	var best_r := rot
+	if not manual_rot:
+		var best_d := INF
+		for r in 4:
+			var id := _id_trace(o, sx, sz, e, r)
+			var acc := find_access(id, Rect2i(_coin(id, r), BuildingCatalog.footprint(id, r)), r)
+			if not acc.is_empty() and float(acc.dist) < best_d - 0.01:
+				best_d = float(acc.dist)
+				best_r = r
+	_g_rot = best_r
+	_changer_type(_id_trace(o, sx, sz, e, _g_rot))
+	_maj_geste()
+
+
+## Id à la taille tracée (sx le long de X, sz le long de Z) pour une rotation,
+## dans les bornes du type.
+static func _id_trace(o: String, sx: int, sz: int, e: int, r: int) -> String:
+	var b := TaillesBatiments.bornes(o)
+	var w := sx if r % 2 == 0 else sz
+	var d := sz if r % 2 == 0 else sx
+	return TaillesBatiments.id_pour(o, clampi(w, b.w.x, b.w.y), clampi(d, b.d.x, b.d.y), clampi(e, b.e.x, b.e.y))
+
+
+## Coin de l'emprise : collé à la case de départ, du côté où l'on a tiré.
+func _coin(id: String, r: int) -> Vector2i:
+	var fp := BuildingCatalog.footprint(id, r)
+	var x := _g_debut.x if _g_fin.x >= _g_debut.x else _g_debut.x - fp.x + 1
+	var z := _g_debut.y if _g_fin.y >= _g_debut.y else _g_debut.y - fp.y + 1
+	return Vector2i(x, z)
+
+
+## Niveaux selon la hauteur de la souris depuis la fin du tracé.
+func _hauteur_souris(y: float) -> void:
+	_g_ecran.y = y
+	var o := TaillesBatiments.origine(type_id)
+	var b := TaillesBatiments.bornes(o)
+	var z := TaillesBatiments.dims(type_id)
+	var brut := _g_e0 + roundi((_g_y0 - y) / PX_NIVEAU)
+	var e := clampi(brut, b.e.x, b.e.y)
+	if e != brut:
+		# En butée : la souris repart de là (pas de « crans morts » au retour).
+		_g_y0 = y + float(e - _g_e0) * PX_NIVEAU
+	if e != int(z.e):
+		_changer_type(TaillesBatiments.id_pour(o, int(z.w), int(z.d), e))
+	_maj_geste()
+
+
+func _changer_type(id: String) -> void:
+	if id == type_id:
+		return
+	type_id = id
+	_ghost.mesh = mesh_for(id, maxi(place_variant, 0), place_perso)
+
+
+## Recalcule l'emplacement du geste, l'aperçu et l'étiquette.
+func _maj_geste() -> void:
+	var fp := BuildingCatalog.footprint(type_id, _g_rot)
+	_g_centre = _coin(type_id, _g_rot) + fp / 2
+	_refresh()
+
+
+## Pose le bâtiment tracé (ou envoie la pose au serveur).
+func poser_geste() -> void:
+	if geste == "":
+		return
+	_maj_geste()
+	geste = ""
+	var c := _g_centre
+	var r := _g_rot
+	_cursor_valid = true
+	_place_center = c
+	rot = r
+	angle = 0.0
+	_clic()
+	_refresh()
+
+
+## Étiquette au-dessus du fantôme pendant le geste (taille, niveaux, prix).
+func _etiquette(pos: Vector3, texte: String, ok: bool) -> void:
+	if _g_label == null:
+		_g_label = Label3D.new()
+		_g_label.name = "EtiquetteGeste"
+		_g_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		_g_label.no_depth_test = true
+		_g_label.fixed_size = true
+		_g_label.pixel_size = 0.0007
+		_g_label.font_size = 26
+		_g_label.outline_size = 8
+		_g_label.render_priority = 10
+		add_child(_g_label)
+	_g_label.text = texte
+	_g_label.modulate = Color("ffd166") if ok else Color("ff8a7a")
+	_g_label.position = pos
+	_g_label.visible = true
+
+
+## Abandonne le geste en cours (clic droit, Échap) : l'outil reste.
+func annuler_geste() -> void:
+	geste = ""
+	_refresh()
+
+
+## Texte du geste : taille, niveaux, prix (ou promoteur), et quoi faire ensuite.
+func texte_geste() -> String:
+	var z := TaillesBatiments.dims(type_id)
+	var t := BuildingCatalog.get_type(type_id)
+	var prix := "payé par un promoteur" if BuildingCatalog.est_prive(type_id) else format_money(int(_check.get("cost", BuildingCatalog.prix_ville(type_id))))
+	var s := "%s · %d × %d m" % [String(t.get("name", "")), int(z.w), int(z.d)]
+	if TaillesBatiments.hauteur_reglable(type_id):
+		s += " · " + TaillesBatiments.texte_etages(int(z.e))
+	return s + " · " + prix
 
 
 func _update_cursor(screen: Vector2) -> void:
@@ -921,6 +1145,8 @@ func _update_cursor(screen: Vector2) -> void:
 
 ## Met à jour l'aperçu, la surbrillance et le texte d'aide.
 func _refresh() -> void:
+	if _g_label != null:
+		_g_label.visible = false
 	_ghost.visible = false
 	_plate.visible = false
 	_link.visible = false
@@ -933,11 +1159,14 @@ func _refresh() -> void:
 			var en_cours := " (chantier à %d %%)" % floori(float(b.av) * 100.0) if b.has("av") else ""
 			info_changed.emit("Démolir %s%s : clic (%s rendus)" % [BuildingCatalog.get_type(b.t).name, en_cours, format_money(back)])
 		return
-	if mode != Mode.PLACE or not _cursor_valid:
+	if mode != Mode.PLACE or (not _cursor_valid and geste == ""):
 		return
 	_place_center = _cursor
 	angle = 0.0
-	if not manual_rot:
+	if geste != "":
+		_place_center = _g_centre
+		rot = _g_rot
+	elif not manual_rot:
 		rot = best_rotation(type_id, _cursor)
 		var snap := road_snap(type_id, _cursor) if snap_to_road else {}
 		if not snap.is_empty():
@@ -982,8 +1211,21 @@ func _refresh() -> void:
 		txt += "\n" + String(_check.info)
 	if not _check.ok:
 		txt += "\n✗ " + String(_check.reason)
+	if geste != "":
+		txt = texte_geste()
+		if not _check.ok:
+			txt += "\n✗ " + String(_check.reason)
+		if geste == "trace":
+			txt += "\nGlisse pour tracer l'emprise, relâche pour la garder · clic droit : annuler"
+		else:
+			txt += "\nMonte ou descends la souris (ou molette) : niveaux · clic : %s · clic droit : annuler" % ["prévoir" if en_plan else "poser"]
+		_etiquette(center + Vector3(0, h + _ghost.mesh.get_aabb().end.y + 2.5 if _ghost.mesh != null else h + 6.0, 0), texte_geste().get_slice(" · ", 1) + "\n" + " · ".join(texte_geste().split(" · ").slice(2)), _check.ok)
+		info_changed.emit(txt)
+		return
 	if en_plan:
 		txt = "Mode plan · " + txt
+	if TaillesBatiments.reglable(type_id) and not Communes.est_fondateur(type_id):
+		txt += "\nGlisser au sol : tracer la taille, puis monter la souris pour les niveaux"
 	txt += "\nClic : %s · R : tourner%s · clic droit ou Échap : arrêter" % ["prévoir (projet, sans payer)" if en_plan else "poser", "" if manual_rot else " (calé le long de la route)" if angle != 0.0 or _place_center != _cursor else " (orientation auto vers la route)"]
 	info_changed.emit(txt)
 

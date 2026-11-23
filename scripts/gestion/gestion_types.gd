@@ -349,9 +349,9 @@ static func genre_de(type_id: String) -> String:
 	# Usines et ateliers de transformation de l'économie (scierie, moulin, aciérie…).
 	if String(ProductionTypes.prod_of(type_id).get("kind", "")) == "transformation":
 		return "usine"
-	# Services d'urgence (versions d'époque et modèles de l'Atelier compris).
-	var t := type_id if Urgences.BUILDING_SERVICE.has(type_id) else BuildingCatalog.base_of(type_id)
-	match t:
+	# Services d'urgence (versions d'époque, modèles de l'Atelier et bâtiments de la
+	# bible : centre de secours, gendarmerie, hôtel de police, hôpital régional, clinique).
+	match Urgences.service_type(type_id):
 		"pompiers":
 			return "caserne"
 		"police":
@@ -360,6 +360,22 @@ static func genre_de(type_id: String) -> String:
 			return "hopital"
 	# Genres « en kit » (zoo, école, gare, musée, mairie, stades, fermes…).
 	return GenresAuto.genre_de(type_id)
+
+
+## Titre de la tuile « Gérer … » propre à certains bâtiments qui partagent le
+## tycoon d'un autre (la gendarmerie se gère comme un commissariat…).
+const TITRES_TYPE := {
+	"caserne_pompiers": "Gérer le centre de secours", "gendarmerie": "Gérer la gendarmerie",
+	"brigade_gendarmerie": "Gérer la gendarmerie", "commissariat": "Gérer l'hôtel de police",
+	"hopital_regional": "Gérer l'hôpital régional", "clinique": "Gérer la clinique",
+}
+
+
+static func titre_de(type_id: String) -> String:
+	if TITRES_TYPE.has(type_id):
+		return String(TITRES_TYPE[type_id])
+	var g := genre_de(type_id)
+	return String(genre(g).get("titre", "Gérer")) if g != "" else "Gérer"
 
 
 ## Genres décrits dans leur propre fichier (scripts/gestion/genres), avec

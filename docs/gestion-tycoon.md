@@ -95,6 +95,22 @@ Ce que ça change **vraiment** dans la ville :
 - **Note** : délai moyen d'arrivée des ambulances, moral, pannes. **Caducées** (1 à 5) : gagnés par l'expérience.
 - Événements : certification (« sans réserve » : un urgentiste en plus pendant 60 jours), naissances, collecte de sang en hiver, clowns hospitaliers, hélicoptère, internes.
 
+## Les autres bâtiments de secours
+
+Cinq bâtiments de secours de la bible utilisent le tycoon d'un autre bâtiment :
+
+| Bâtiment | Se gère comme | Titre de la tuile |
+|---|---|---|
+| Centre de secours (`caserne_pompiers`) | la caserne | Gérer le centre de secours |
+| Gendarmerie (`gendarmerie`, et la brigade d'époque) | le commissariat | Gérer la gendarmerie |
+| Hôtel de police (`commissariat`) | le commissariat | Gérer l'hôtel de police |
+| Hôpital régional (`hopital_regional`) | l'hôpital | Gérer l'hôpital régional |
+| Clinique (`clinique`) | l'hôpital | Gérer la clinique |
+
+Avant ce changement, ces cinq bâtiments n'envoyaient aucun véhicule. Ils envoient maintenant leurs 3 véhicules comme les modèles de base. Le rôle est lu par `Urgences.service_type` : le type lui-même, sa base, ou le `role` de la bible. Le mode gestion leur ajoute des véhicules en plus, du personnel de garde et des effets, et ils changent avec l'époque et le pays comme les autres.
+
+Pour tester dans Godot 4.7, pose une gendarmerie ou une clinique au bord d'une route. Clique dessus : la tuile s'appelle « Gérer la gendarmerie » ou « Gérer la clinique ». Tu peux aussi lancer le test automatique : `godot --path . --script res://tests/gestion_urgences_bible_test.gd`.
+
 ## Le parc de loisirs
 
 Le parc de loisirs se gère comme une maquette : bouton **Gérer le parc (maquette)** dans le panneau du parc (Maj+G), ou tuile sur la fiche de l'**Entrée du parc**. Le parc appartient à la ville : les billets et les stands vont toujours dans la caisse de la ville. Une fois le parc ouvert en gestion, **25 % du bénéfice du jour** sont mis de côté dans la **caisse des travaux** du parc, qui paie les aménagements (la ville avance le reste). Un parc jamais ouvert en gestion ne change pas.

@@ -28,6 +28,20 @@ signal changed
 ## Service rendu par chaque type de bâtiment.
 const BUILDING_SERVICE := {"pompiers": "pompiers", "police": "police", "hopital": "ambulance"}
 const SERVICES := ["pompiers", "ambulance", "police"]
+
+
+## Rôle de secours d'un type de bâtiment ("pompiers", "police", "hopital" ou "") :
+## le type lui-même, sa base (versions d'époque, modèles de l'Atelier) ou le
+## "role" de la bible (centre de secours, gendarmerie, hôtel de police,
+## hôpital régional, clinique).
+static func service_type(type_id: String) -> String:
+	if BUILDING_SERVICE.has(type_id):
+		return type_id
+	var base := BuildingCatalog.base_of(type_id)
+	if BUILDING_SERVICE.has(base):
+		return base
+	var role := String(BuildingCatalog.get_type(type_id).get("role", ""))
+	return role if BUILDING_SERVICE.has(role) else ""
 const SERVICE_NAMES := {"pompiers": "Pompiers", "ambulance": "Secours (SAMU, VSAV)", "police": "Police"}
 const SERVICE_COLORS := {"pompiers": Color("e63946"), "ambulance": Color("f4f4f4"), "police": Color("3a86ff")}
 ## Flotte de chaque bâtiment : [rôle, modèle par défaut]. Le modèle change
@@ -472,10 +486,8 @@ func _sync_stations() -> void:
 		var b: Dictionary = buildings.buildings[bid]
 		# Le bâtiment joue-t-il le rôle d'une caserne, d'un commissariat ou d'un
 		# hôpital (versions d'époque, modèles de l'Atelier) ?
-		var t := String(b.t)
-		if not BUILDING_SERVICE.has(t):
-			t = BuildingCatalog.base_of(t)
-		if not BUILDING_SERVICE.has(t):
+		var t := service_type(String(b.t))
+		if t == "":
 			continue
 		seen[bid] = true
 		var rect := buildings._rect_of(b)

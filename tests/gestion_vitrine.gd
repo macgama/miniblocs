@@ -1,6 +1,6 @@
 extends SceneTree
 ## Captures du mode gestion « tycoon » (écran isométrique d'un hôtel ou d'un restaurant).
-## Usage : xvfb-run -a godot --path . --rendering-driver opengl3 --script res://tests/gestion_vitrine.gd -- --out DOSSIER [--type hotel_3|haussmann__restaurant|pompiers|police|hopital|entree_parc|scierie] [--depart] [--niveau 1|3|5] [--piece spa] [--zoom 30] [--onglet personnel|stats|journal] [--x 20 --z 14]
+## Usage : xvfb-run -a godot --path . --rendering-driver opengl3 --script res://tests/gestion_vitrine.gd -- --out DOSSIER [--type hotel_3|haussmann__restaurant|pompiers|police|hopital|entree_parc|scierie|supermarche] [--depart] [--niveau 1|3|5] [--piece spa] [--zoom 30] [--onglet personnel|stats|journal] [--x 20 --z 14]
 
 var out := "user://captures-gestion"
 var niveau := 3

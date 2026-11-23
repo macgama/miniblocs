@@ -480,6 +480,8 @@ static func places(nom: String) -> Array:
 	var pu: Array = ModelesUsine.PLACES.get(nom, [])
 	if not pu.is_empty():
 		return pu
+	if ModelesSupermarche.PLACES.has(nom):
+		return ModelesSupermarche.PLACES[nom]
 	return ModelesParc.PLACES.get(nom, [])
 
 

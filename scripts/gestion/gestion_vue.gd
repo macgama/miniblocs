@@ -456,7 +456,10 @@ func _remplir_haut() -> void:
 	_chip("mairie", "Ville : %s" % BuildingSystem.format_money(gestion.caisse_ville()), "Caisse de la ville : elle avance ce qui manque.")
 	if _gd().has("chip_txt"):
 		var hh: Dictionary = gestion.hier(bid)
-		_chip(String(_gd().get("chip", "industrie")), String(_gd().chip_txt) % [_qte(float(hh.get("clients", 0.0))), _qte(float(hh.get("cap", 0.0)))], String(_gd().get("chip_tip", "")))
+		var ent := bool(_gd().get("chip_entier", false))
+		var ca := float(hh.get("clients", 0.0)) if not hh.is_empty() else float(n)
+		var cb := float(hh.get("cap", 0.0)) if not hh.is_empty() else float(l)
+		_chip(String(_gd().get("chip", "industrie")), String(_gd().chip_txt) % ([str(roundi(ca)), str(roundi(cb))] if ent else [_qte(ca), _qte(cb)]), String(_gd().get("chip_tip", "")))
 	elif resto:
 		_chip("couverts", "%d / %d couverts" % [n, l], "Repas servis hier / couverts possibles par jour (tables et personnel).")
 	else:
@@ -853,6 +856,13 @@ func _lignes_effets(eff: Dictionary, court := false) -> Array:
 		out.append(("+%d %% prix" if court else "+%d %% sur le prix de vente des produits (qualité)") % roundi(float(eff.qualite) * 100.0))
 	if eff.has("depollution"):
 		out.append(("−%d %% pollution" if court else "−%d %% de pollution (air, eau, CO₂) autour de l'usine") % roundi(float(eff.depollution) * 100.0))
+	if eff.has("rayons"):
+		out.append(("+%d %% stock" if court else "+%d %% de stock en rayon et en réserve (moins de rayons vides)") % roundi(float(eff.rayons) * 100.0))
+	if eff.has("panier"):
+		out.append(("+%d %% panier" if court else "+%d %% de dépenses par client (panier moyen)") % roundi(float(eff.panier) * 100.0))
+	if eff.has("antivol"):
+		var av := float(eff.antivol)
+		out.append((("−%d %% vols" if av >= 0.0 else "+%d %% vols") if court else ("−%d %% de vols à l'étalage" if av >= 0.0 else "+%d %% de vols à l'étalage")) % roundi(absf(av) * 100.0))
 	if eff.has("economie"):
 		out.append(("−%s / jour" if court else "−%s de factures d'énergie par jour") % BuildingSystem.format_money(roundi(float(eff.economie))))
 	if eff.has("lits"):

@@ -133,6 +133,8 @@ var _gates_ok := false
 var _shop_lists: Dictionary = {}
 ## Commerces qui vendent chaque bien : g -> [[bid, Vector2 position], …] (ordre de sites).
 var _shops_par_bien: Dictionary = {}
+## Version des magasins gérés (Gestion.version_magasins) vue au dernier calcul des listes.
+var _version_magasins := 0
 ## Empreinte des commerces (ids et types) au dernier _sync.
 var _shop_sig := 0
 var _dem_today: Dictionary = {}
@@ -636,7 +638,8 @@ func cap_of(bid: int, good: String) -> float:
 		"entrepot":
 			return STOCK_ENTREPOT
 		"commerce":
-			return maxf(_shop_need(bid, good) * TARGET_DAYS_SHOP * 1.5, 0.05)
+			# Supermarché géré : une réserve et des rayons plus grands (Gestion).
+			return maxf(_shop_need(bid, good) * TARGET_DAYS_SHOP * 1.5, 0.05) * Gestion.rayons_de(bid)
 	if agri != null and agri.manages(bid):
 		var c := float(agri.cap(bid, good))
 		if c > 0.0:
@@ -1786,8 +1789,10 @@ func _shops_for(home: int, g: String) -> Array:
 	var list: Array = []
 	for e in _vendeurs(g):
 		var d := (e[1] as Vector2).distance_to(h2)
-		if d <= SHOP_MAX:
-			list.append([d, e[0]])
+		# Supermarché géré : il attire de plus loin et passe devant les autres (Gestion).
+		var att := Gestion.attraction_de(int(e[0]))
+		if d <= SHOP_MAX * maxf(1.0, minf(att, 1.6)):
+			list.append([d / att, e[0]])
 	list.sort_custom(func(a: Array, b: Array) -> bool: return float(a[0]) < float(b[0]))
 	var out: Array = []
 	for e in list:
@@ -1819,6 +1824,10 @@ func _shopping() -> float:
 	var gain := 0.0
 	manque_foyers.clear()
 	_dem_today.clear()
+	var vm := Gestion.version_magasins_de()
+	if vm != _version_magasins:
+		_version_magasins = vm
+		_shop_lists.clear()
 	for bid in sites:
 		if String(sites[bid].kind) == "commerce":
 			sites[bid].manque = {}
@@ -1845,6 +1854,7 @@ func _shopping() -> float:
 		for g in Ressources.CONSO_VOITURE:
 			if nc.y > 0 and Ressources.disponible(g):
 				want[g] = float(Ressources.CONSO_VOITURE[g]) * nc.y
+		var vus := {}
 		for g in want:
 			var left := float(want[g])
 			var first := true
@@ -1867,8 +1877,10 @@ func _shopping() -> float:
 					continue
 				_put(bid, g, -take)
 				_flow(g, take, "vente")
-				var v := take * Ressources.prix_interieur(g) * Ressources.DETAIL
+				var v := take * Ressources.prix_interieur(g) * Ressources.DETAIL * Gestion.panier_de(bid)
 				_pay(bid, "Ventes aux habitants", v)
+				Gestion.vente_de(bid, v, 0 if vus.has(bid) else nc.x)
+				vus[bid] = true
 				gain += v
 				left -= take
 			if left > float(want[g]) * 0.25:

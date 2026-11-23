@@ -571,7 +571,7 @@ static func bonus(g: Gestion, bid: int, cle: String) -> float:
 	if not g.etats.has(bid):
 		return 0.0
 	var st: Dictionary = g.etats[bid]
-	if not (st.get("essor", null) is Dictionary) or cle in ["economie", "pannes", "points"]:
+	if not (st.get("essor", null) is Dictionary) or cle in ["economie", "pannes", "points", "rayons", "panier", "antivol"]:
 		return 0.0
 	var s := _somme_recherches(g, bid, st, cle)
 	var c := campagne_en_cours(g, bid)

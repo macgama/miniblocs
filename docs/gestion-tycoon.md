@@ -114,6 +114,21 @@ Ce que ça change **vraiment** dans le parc :
 - Le **billet** se règle depuis la maquette (− / +) ; en gestion automatique, il suit ce que vaut le parc et les refus à l'entrée.
 - **Fanions** (1 à 5) : gagnés par l'expérience. Événements : inspection de sécurité (label Sécurité 60 jours), trophée du parc de l'année en décembre, autocars et sorties scolaires, anniversaires, influenceurs, canicule.
 
+## Faire grandir l'établissement (tous les genres)
+
+Deux onglets en plus dans la carte de droite, pour l'hôtel, le restaurant, la caserne, le commissariat, l'hôpital et le parc :
+
+- **Essor**
+  - **Recherche** : un projet à la fois, avancé par des points gagnés chaque jour (équipe, formation, pièces construites). 8 projets : méthodes de travail (+15 % de vitesse), démarche qualité, maintenance préventive (−30 % de pannes), achats groupés (−10 % de charges), design et ambiance (confort), fidélisation (clients, ou une personne de garde en plus pour un service public), atelier d'idées (recherche plus rapide), excellence. Certains attendent un autre projet.
+  - **Publicité** (entreprises) : affiches, journal (dès 1830), radio (1925), télé (1955), site et avis en ligne (1998), influenceurs (2010), journée découverte. **Campagnes** (services publics) : portes ouvertes, recrutement, prévention dans les écoles, affiches, reportage. Payées chaque jour tant qu'elles durent ; la même refaite moins de 30 jours après n'a que la moitié d'effet.
+  - **Défi** : tous les 12 jours environ, un défi est proposé (« Régler 5 demandes en 7 jours », « Aucune panne pendant 10 jours », « Monter la note à 4,2 en 15 jours », « Encaisser 25 000 € en 7 jours », « Faire 8 interventions en 10 jours »…). Accepté : une prime et des clients ravis pendant 30 jours s'il est réussi à temps.
+  - **Paliers** : une pièce au niveau maximum, 10, 25 ou 50 objets, 3 ou 10 défis réussis, toute la recherche : chacun donne un petit bonus permanent, annoncé au journal.
+- **Avis** : les avis écrits par les clients (ou les habitants pour un service public), avec leurs étoiles, la moyenne, ce qui plaît et ce qui fâche (pannes, prix, équipe, pièces, publicité…), et le **classement** des établissements du même genre dans la partie (note, étoiles, part des clients).
+
+En gestion automatique, l'établissement choisit sa recherche, accepte les défis et lance une publicité quand il manque de clients (seulement avec son propre compte).
+
+Code : `scripts/gestion/gestion_essor.gd` (`GestionEssor`, état dans `st.essor`, bonus lus par `Gestion.effet`, charges par `Gestion.entretien_jour`, pannes, journée) et `gestion_essor_vue.gd` (les deux onglets). Test : `tests/gestion_essor_test.gd`. Captures : `tests/gestion_vitrine.gd -- --onglet essor|avis`.
+
 ## Rythme
 
 Le mode suit le temps du jeu : rien ne se gagne pendant que le jeu est fermé, rien ne bouge en pause, tout va plus vite en vitesse rapide. La gestion automatique, les pannes et les événements tournent chaque jour de jeu pour tous les hôtels, même ceux qu'on n'ouvre jamais. Un hôtel jamais ouvert garde ses effets à zéro tant qu'il n'a rien acheté.

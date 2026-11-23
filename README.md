@@ -557,7 +557,11 @@ Clique sur un hôtel, puis sur **Gérer l'hôtel** dans sa fiche (ou **Gérer** 
 
 **Et le parc de loisirs** (bouton **Gérer le parc (maquette)** dans Maj+G) : 13 zones (billetterie, manèges, grands frissons, rivière, royaume des petits, place gourmande, spectacles, atelier…), 68 objets, et les vraies attractions du parc en miniature qui tournent. Une part du bénéfice va à la caisse des travaux ; les aménagements attirent plus de visiteurs, rendent les manèges plus fiables et le parc plus propre.
 
+**Et les usines** (tuile **Gérer l'usine** sur une scierie, une aciérie, une usine de biens…) : 14 pièces (atelier, chaîne de montage, stock, labo qualité, bureau d'études, boutique d'usine, quai, station d'épuration, centrale d'énergie…), 78 objets. Elles produisent vraiment plus, gaspillent moins de matière, vendent plus cher et polluent moins ; la cadence (70 à 130 %) fait monter la production mais aussi la fatigue, les accidents du travail et le risque de grève.
+
 ![Parc de loisirs en mode gestion](docs/apercu-gestion-parc.png)
+
+![Usine en mode gestion](docs/apercu-gestion-usine.png)
 
 ![Hôtel en mode gestion](docs/apercu-gestion-hotel.png)
 

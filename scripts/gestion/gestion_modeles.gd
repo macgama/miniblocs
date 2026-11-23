@@ -477,6 +477,9 @@ static func places(nom: String) -> Array:
 		return ModelesCommissariat.PLACES[nom]
 	if ModelesHopital.PLACES.has(nom):
 		return ModelesHopital.PLACES[nom]
+	var pu: Array = ModelesUsine.PLACES.get(nom, [])
+	if not pu.is_empty():
+		return pu
 	return ModelesParc.PLACES.get(nom, [])
 
 

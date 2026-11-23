@@ -379,10 +379,11 @@ func _blesse(sc: Dictionary, p: Vector3, yaw: float, pid := -1) -> void:
 	var n: Node3D
 	var pop := urg.population if urg != null else null
 	if Silhouettes.disponible() and pop != null and pid >= 0 and pop.persons.has(pid):
-		n = Silhouettes.pour_habitant(pop, pid)
+		n = Silhouettes.pour_habitant(pop, pid, false, true)
 		Silhouettes.poser(n, "couche")
 	elif Silhouettes.disponible():
-		n = Silhouettes.creer(Silhouettes.apparence(_rng.randi_range(1, 99999), _rng.randf_range(20.0, 80.0), "M" if _rng.randf() < 0.5 else "F"))
+		n = Silhouettes.creer(Silhouettes.apparence(_rng.randi_range(1, 99999), _rng.randf_range(20.0, 80.0), "H" if _rng.randf() < 0.5 else "F", "europe", 0,
+			Tenues.contexte_interieur()))
 		Silhouettes.poser(n, "couche")
 	else:
 		n = Node3D.new()

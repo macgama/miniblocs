@@ -1,21 +1,20 @@
 extends Node3D
 ## Vitrine des personnages (scenes/vitrine_personnages.tscn, F6 dans Godot) :
 ## une foule variée (âges, corpulences, peaux, coiffures, tenues) qui se
-## promène, plus une rangée de métiers en tenue.
+## promène, plus une rangée de métiers en tenue (Tenues : uniformes de l'époque).
 ##   R : nouvelle foule   ·   1-4 : vue (foule, rangée des âges, gros plan, assis)
+##   E : époque (1850, 1905, 1960, aujourd'hui)   ·   T : temps (doux, hiver, été, pluie)
 ##   Espace : marche / arrêt   ·   clic gauche glissé : tourner
 
 const REGIONS := ["europe", "afrique", "asie_est", "asie_sud", "moyen_orient", "ameriques", "oceanie", "mediterranee"]
-const TENUES := [
-	{"haut": "f4f4f4", "bas": "f4f4f4", "manches": 1.0},  # soignant
-	{"haut": "1d3557", "bas": "1d3557", "accessoire": "1d3557"},  # police
-	{"haut": "e76f51", "bas": "3b3f4a", "manches": 1.0},  # ouvrier
-	{"haut": "2a9d8f", "bas": "2a9d8f"},  # chirurgien
-	{"haut": "f4f1e8", "bas": "2b2d42"},  # serveur
-	{"haut": "6b8f3a", "bas": "5c4a3a"},  # jardinier
-]
+const METIERS := ["pompier", "policier", "medecin", "infirmier", "ouvrier", "cuisinier", "serveur", "agriculteur"]
+const ANNEES := [1850, 1905, 1960, 2025]
+const TEMPS := [{"nom": "doux", "temp": 16.0, "pluie": 0.0, "saison": 1}, {"nom": "hiver", "temp": -3.0, "pluie": 0.0, "saison": 0},
+	{"nom": "été", "temp": 29.0, "pluie": 0.0, "saison": 2}, {"nom": "pluie", "temp": 11.0, "pluie": 0.7, "saison": 3}]
 
 var graine := 1
+var epoque := 3
+var temps := 0
 var marche := true
 var foule: Array = []  # [{n, dir, vitesse, phase}]
 var cam: Camera3D
@@ -60,6 +59,8 @@ func _ready() -> void:
 
 
 func genere() -> void:
+	var tp: Dictionary = TEMPS[temps]
+	Tenues.force = {"annee": ANNEES[epoque], "temp": tp.temp, "pluie": tp.pluie, "saison": tp.saison}
 	for f in foule:
 		(f.n as Node).queue_free()
 	foule.clear()
@@ -75,11 +76,10 @@ func genere() -> void:
 		add_child(n)
 		foule.append({"n": n, "dir": Vector3.ZERO, "vitesse": 0.0, "phase": 0.0, "fixe": true})
 	# Métiers en tenue (z = 1.5).
-	for i in TENUES.size():
-		var look2 := Silhouettes.apparence(graine * 2000 + i, 30.0 + i * 5.0, "F" if i % 2 else "H", REGIONS[(i * 3 + graine) % REGIONS.size()], graine * 300 + i)
+	for i in METIERS.size():
+		var look2 := Figurine.look_de(graine * 2000 + i * 7, METIERS[i])
 		var n2 := Silhouettes.creer(look2, true)
-		Silhouettes.habiller(n2, TENUES[i])
-		n2.position = Vector3(-3.0 + i * 1.2, 0, 1.5)
+		n2.position = Vector3(-4.2 + i * 1.2, 0, 1.5)
 		add_child(n2)
 		foule.append({"n": n2, "dir": Vector3.ZERO, "vitesse": 0.0, "phase": 0.0, "fixe": true})
 	# Assis sur un banc (x = 9).
@@ -122,7 +122,8 @@ func _process(delta: float) -> void:
 			n.rotation.y += PI
 		f.phase = float(f.phase) + delta * float(f.vitesse) * 4.2
 		Silhouettes.marcher(n, f.phase, 1.0)
-	_info.text = "Personnages : R nouvelle foule · 1-4 vues · Espace marche · glisser pour tourner"
+	_info.text = "Personnages (%d, %s) : R nouvelle foule · 1-4 vues · E époque · T temps · Espace marche · glisser pour tourner" % [
+		ANNEES[epoque], TEMPS[temps].nom]
 
 
 func _place_cam() -> void:
@@ -151,6 +152,12 @@ func _unhandled_input(ev: InputEvent) -> void:
 				genere()
 			KEY_SPACE:
 				marche = not marche
+			KEY_E:
+				epoque = (epoque + 1) % ANNEES.size()
+				genere()
+			KEY_T:
+				temps = (temps + 1) % TEMPS.size()
+				genere()
 			KEY_1, KEY_2, KEY_3, KEY_4:
 				vue = (ev as InputEventKey).keycode - KEY_1
 				_azimut = 0.6 if vue != 1 else 0.0
@@ -160,3 +167,7 @@ func _unhandled_input(ev: InputEvent) -> void:
 	elif ev is InputEventMouseMotion and _drag:
 		_azimut -= (ev as InputEventMouseMotion).relative.x * 0.01
 		_place_cam()
+
+
+func _exit_tree() -> void:
+	Tenues.force = {}

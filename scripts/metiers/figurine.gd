@@ -74,17 +74,61 @@ static func creer(person_id: int, met: String, enfant := false, pop: Population 
 	var f := Figurine.new()
 	f.pid = person_id
 	f.phase = float(absi(hash(person_id)) % 1000) / 137.0
-	if pop != null and pop.persons.has(person_id) and Silhouettes.disponible():
-		f._construire_silhouette(pop, met)
+	if Silhouettes.disponible():
+		f._construire_silhouette(look_de(person_id, met, enfant, pop))
 	else:
 		f._construire(met, enfant)
 	return f
 
 
-func _construire_silhouette(pop: Population, met: String) -> void:
+## Métiers qu'on ne voyait exercer que par des hommes, ou des femmes, avant 1940
+## (pour les figurines sans habitant derrière : secours, ouvriers des chantiers).
+const HOMMES_AUTREFOIS := ["pompier", "policier", "ouvrier", "mineur", "bucheron", "carrier", "conducteur_engins",
+	"porteur_funeraire", "fossoyeur", "siderurgiste", "foreur", "chauffeur", "agent_gare", "eboueur"]
+const FEMMES_AUTREFOIS := ["infirmier", "aide_soignant"]
+
+
+## L'apparence d'une figurine au travail (Tenues : uniforme de l'époque et de
+## la région) : celle de l'habitant s'il existe, sinon une personne stable
+## tirée de son numéro.
+static func look_de(person_id: int, met: String, enfant := false, pop: Population = null) -> Dictionary:
+	var ctx := Tenues.contexte()
+	var look: Dictionary
+	var sexe := "H"
+	var region := String(ctx.get("region", "europe"))
+	if pop != null and pop.persons.has(person_id):
+		var p: Dictionary = pop.persons[person_id]
+		sexe = String(p.s)
+		region = String(pop.households.get(int(p.f), {}).get("reg", region))
+		# Au travail, souvent à l'intérieur : sans manteau ni bonnet (l'uniforme
+		# garde les casques et casquettes du métier).
+		look = Silhouettes.apparence_habitant(pop, person_id, Tenues.contexte_interieur() if met != "" else ctx)
+	else:
+		var h := absi(hash(person_id * 31 + 7))
+		var e := Tenues.epoque(int(ctx.get("annee", 2025)))
+		sexe = "F" if h % 100 < 45 else "H"
+		if met in HOMMES_AUTREFOIS:
+			sexe = "H" if e < 2 or h % 100 >= [0, 0, 6, 18][e] else "F"
+		elif met in FEMMES_AUTREFOIS:
+			sexe = "F" if e < 2 or h % 100 >= [0, 0, 15, 25][e] else "H"
+		var age := 9.0 if enfant else 22.0 + float((h / 100) % 40)
+		look = Silhouettes.apparence(absi(person_id) + 1, age, sexe, region, absi(person_id), ctx)
+	if met != "":
+		Tenues.metier(look, met, sexe, ctx, region)
+	# Les mains servent au métier : pas de parapluie ni de canne.
+	var objets: Array = []
+	for o in look.get("objets", []):
+		if not String(o[1]).begins_with("main") and String(o[0]) != "parapluie":
+			objets.append(o)
+	look.objets = objets
+	return look
+
+
+func _construire_silhouette(look: Dictionary) -> void:
 	_corps = Node3D.new()
 	add_child(_corps)
-	var n := Silhouettes.pour_habitant(pop, pid)
+	var n := Silhouettes.creer(look)
+	n.set_meta("pid", pid)
 	_corps.add_child(n)
 	silhouette = n
 	var rig := Silhouettes.os(n)
@@ -106,30 +150,6 @@ func _construire_silhouette(pop: Population, met: String) -> void:
 		_main = Node3D.new()
 		_main.position = Vector3(0, -0.28, 0)
 		_coudes[1].add_child(_main)
-	var t := tenue_de(met)
-	var tenue := {}
-	if String(t[0]) != "":
-		tenue["haut"] = Color(String(t[0]))
-		tenue["manches"] = 1.0
-	if String(t[1]) != "":
-		tenue["bas"] = Color(String(t[1]))
-		tenue["jambes"] = 1.0
-	if not tenue.is_empty():
-		Silhouettes.habiller(n, tenue)
-	# Couvre-chef du métier (toque, casque, casquette…), posé sur la tête.
-	var chapeau := String(t[2])
-	if chapeau in ["toque", "casque", "casque_lampe", "casque_pompier", "casquette", "chapeau", "bonnet"]:
-		var key := "chapeau_" + chapeau
-		if not _cache.has(key):
-			var k := LpKit.new(1)
-			k.jitter = 0.02
-			_chapeau(k, chapeau)
-			_cache[key] = k.commit({"base": materiau()})
-		var hat := MeshInstance3D.new()
-		hat.mesh = _cache[key]
-		hat.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		hat.position = Vector3(0, _haut_de_tete(_tete) - CHAPEAU_Y, 0)
-		_tete.add_child(hat)
 	_outil = MeshInstance3D.new()
 	_outil.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_main.add_child(_outil)

@@ -11,6 +11,7 @@ extends SceneTree
 ##   --detail      coût de chaque script : on coupe son _process un moment
 ##   --vitesse I   indice de DayNight.SPEEDS mesuré (défaut 4 = 1 jour/min ;
 ##                 6 = Turbo, 1 jour en 6 s)
+##   --sans-cosy   sans le rendu cosy ni les jardins (RenduCosy), pour comparer
 ##   --max-ms X    échoue (code 1) si l'image moyenne dépasse X ms (test chiffré)
 ##   --pres        caméra de près (recul 70 m) au-dessus d'une rue commerçante :
 ##                 devantures et habillage des petits commerces affichés
@@ -148,6 +149,8 @@ func _run() -> void:
 		tailles.append(int(s))
 	var images := int(_arg("--images", "600"))
 	var detail := OS.get_cmdline_user_args().has("--detail")
+	# --sans-cosy : mesure sans le rendu cosy (jardins compris), pour comparer.
+	RenduCosy.actif = not OS.get_cmdline_user_args().has("--sans-cosy")
 	var max_ms := float(_arg("--max-ms", "0"))
 	var vitesse := clampi(int(_arg("--vitesse", str(DayNight.DEFAULT_SPEED))), 1, DayNight.SPEEDS.size() - 1)
 	print("Vitesse du temps : %s" % DayNight.SPEED_NAMES[vitesse])

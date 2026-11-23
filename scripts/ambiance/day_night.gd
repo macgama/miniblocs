@@ -151,6 +151,9 @@ func _ready() -> void:
 		env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 		if rendu_pousse:
 			_rendu_pousse_init()
+			if RenduCosy.actif:
+				RenduCosy.init_env(env, sun)
+				RenduCosy.init_terrain.call_deferred(world)
 
 	weather = Meteo.new()
 	weather.name = "Meteo"
@@ -543,7 +546,8 @@ func _apply() -> void:
 	moon.light_energy = moon_light
 	moon.shadow_enabled = moon_light > 0.08 and (sun == null or not sun.shadow_enabled)
 
-	var k := sky_at(elev)
+	var cosy := rendu_pousse and RenduCosy.actif
+	var k := RenduCosy.sky_at(elev) if cosy else sky_at(elev)
 	if sky_material != null:
 		sky_material.set_shader_parameter("zenith_color", k[1])
 		sky_material.set_shader_parameter("horizon_color", k[2])
@@ -551,7 +555,7 @@ func _apply() -> void:
 		sky_material.set_shader_parameter("glow_color", Color(1.0, 0.45, 0.22).lerp(Color(0.95, 0.6, 0.45), clampf((elev + 3.0) / 10.0, 0.0, 1.0)))
 		sky_material.set_shader_parameter("glow_strength", k[5])
 		sky_material.set_shader_parameter("sun_dir", sun_dir)
-		sky_material.set_shader_parameter("sun_color", sun_color_at(elev))
+		sky_material.set_shader_parameter("sun_color", RenduCosy.sun_color_at(elev) if cosy else sun_color_at(elev))
 		sky_material.set_shader_parameter("sun_visible", smoothstep(-1.5, 0.5, elev))
 		sky_material.set_shader_parameter("moon_dir", moon_dir)
 		sky_material.set_shader_parameter("moon_visible", smoothstep(-1.0, 1.0, moon_horiz.x) * lerpf(0.55, 1.0, night))
@@ -577,6 +581,8 @@ func _apply() -> void:
 		env.tonemap_exposure = lerpf(1.0, 1.35, night)
 		if rendu_pousse:
 			_rendu_pousse_apply(k, elev)
+	if cosy:
+		RenduCosy.apply(self, k, elev, dim)
 
 	NightWindows.set_shared("night", night)
 	NightWindows.set_shared("lit_ratio", NightWindows.lit_ratio_at(local_hour()))
@@ -626,14 +632,19 @@ const HAZE_FOG := 0.00018
 func weather_fog() -> float:
 	if weather == null:
 		return 0.0
-	return HAZE_FOG + weather.fog * weather.fog * 0.014 + weather.precip * 0.0022
+	return _haze() + weather.fog * weather.fog * 0.014 + weather.precip * 0.0022
 
 
 ## Brouillard de base : celui de la vue au sol quand elle est active.
 func _base_fog() -> float:
 	if _vue_sol != null and int(_vue_sol.get("vue")) != 0:
 		return float(_vue_sol.get("brouillard_sol"))
-	return HAZE_FOG
+	return _haze()
+
+
+## Brume de l'air par beau temps : plus légère en rendu cosy (ciel plus pur).
+func _haze() -> float:
+	return HAZE_FOG * (0.55 if rendu_pousse and RenduCosy.actif else 1.0)
 
 
 ## Oriente une lumière directionnelle pour qu'elle vienne de la direction `toward`.

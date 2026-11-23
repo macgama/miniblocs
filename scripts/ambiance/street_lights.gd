@@ -200,6 +200,10 @@ func count() -> int:
 	return heads.size()
 
 
+## Puissance des lampadaires allumés (le rendu cosy la monte).
+var energie := 3.2
+
+
 func set_night(f: float) -> void:
 	if (f > 0.02) != (night > 0.02):
 		_timer = 0.0 # allumage / extinction tout de suite
@@ -239,7 +243,7 @@ func _process(delta: float) -> void:
 		var l := _lights[k]
 		if k < near.size():
 			l.position = heads[int(near[k].y)]
-			l.light_energy = 3.2 * night
+			l.light_energy = energie * night
 			l.visible = true
 		else:
 			l.visible = false

@@ -1204,6 +1204,8 @@ func attrait(e: int) -> float:
 		var esp := String(v[0])
 		var moy := float(v[1]) / float(v[2])
 		tot += float(ZooEspeces.espece(esp).get("attrait", 3.0)) * moy * sqrt(float(v[2]))
+	# Mode gestion de l'entrée : vivarium, nurserie, spectacles… attirent plus de monde.
+	tot *= 1.0 + clampf(Gestion.effet_de(e, "attrait"), 0.0, 0.6)
 	return tot + float(zoos[e].prestige) * 0.05 if zoos.has(e) else tot
 
 
@@ -1368,6 +1370,8 @@ func detail_note(e: int) -> Dictionary:
 	services += 0.3 if not items_of(e, "toilettes").is_empty() else 0.0
 	services += 0.15 if not items_of(e, "repos").is_empty() else 0.0
 	services += 0.15 if not items_of(e, "pedago").is_empty() else 0.0
+	# Mode gestion de l'entrée : accueil, restaurant, boutique, nurserie…
+	services = minf(1.0, services + clampf(Gestion.effet_de(e, "confort") * 0.5, 0.0, 0.4))
 	var z: Dictionary = zoos[e]
 	var d := {
 		"variete": clampf(float(esps.size()) / 12.0, 0.0, 1.0),

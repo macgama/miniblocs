@@ -343,11 +343,19 @@ static func genre_de(type_id: String) -> String:
 			return "commissariat"
 		"hopital":
 			return "hopital"
-	return ""
+	# Genres « en kit » (zoo, école, gare, musée, mairie, stades, fermes…).
+	return GenresAuto.genre_de(type_id)
 
 
-## Genres décrits dans leur propre fichier (scripts/gestion/genres).
+## Genres décrits dans leur propre fichier (scripts/gestion/genres), avec
+## les noms du pays de la partie (GestionEpoques.NOMS_PAYS).
 static func genre(g: String) -> Dictionary:
+	if GestionEpoques.NOMS_PAYS.has(g):
+		return GestionEpoques.adapter(g, _genre_brut(g))
+	return _genre_brut(g)
+
+
+static func _genre_brut(g: String) -> Dictionary:
 	match g:
 		"restaurant":
 			return GenreRestaurant.GENRE
@@ -361,7 +369,9 @@ static func genre(g: String) -> Dictionary:
 			return GenreParc.GENRE
 		"usine":
 			return GenreUsine.GENRE
-	return GENRES.get(g, {})
+	if GENRES.has(g):
+		return GENRES[g]
+	return GenresAuto.genre(g)
 
 
 ## Toutes les pièces d'un genre (dedans et dehors).

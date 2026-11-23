@@ -1,0 +1,176 @@
+class_name GenresHaute
+extends RefCounted
+## Mode gestion : fiches des tycoons de priorité haute, montées par GenresAuto
+## (zoo, école, gare, musée, mairie, stades, fermes).
+##
+## Objets : [id, nom, modèle, prix (part du bâtiment), niveau, effets, poses,
+## {réglages : "annee", "jusqu"…}]. Modèle « deco:… » : un modèle de la
+## touche G (animaux, jeux, bancs, tracteurs).
+
+const ZOO := {
+	"nom": "Zoo", "titre": "Gérer le zoo", "icone": "zoo", "le": "le zoo", "du": "du zoo", "un": "un",
+	"types": ["entree_zoo"],
+	"reel_fn": "zoo", "panier": 22.0, "par_emploi": 60.0, "marge": 1.5, "sensible_prix": 1.1,
+	"classe": "étoiles", "unite": "visiteurs", "remplir": "Accueillir le zoo plein (75 %)", "prix_nom": "Billet d'entrée",
+	"evenement_nom": "Naissances et fêtes", "label_txt": "Être labellisé par l'association des zoos", "label_court": "Labellisé par l'association des zoos",
+	"prix_aide": "Plus cher : chaque billet rapporte plus, mais des familles font demi-tour. Les vrais billets du zoo restent dans le menu du zoo (Maj+Z).",
+	"tuile_tip": "Entre dans le zoo en vue isométrique : agrandis la nurserie, le vivarium, le bassin, la clinique.\nLes résultats comptent dans le vrai zoo : plus de visiteurs et une meilleure note des services.",
+	"mots": {"confort": "qualité des services", "attrait": "visiteurs attirés"},
+	"teinte": "2d6a4f", "murs": "efe6d2", "murs_dehors": "8c6a4f",
+	"saison": {1: 0.4, 2: 0.45, 3: 0.65, 4: 0.9, 5: 1.0, 6: 1.1, 7: 1.5, 8: 1.5, 9: 0.85, 10: 0.85, 11: 0.45, 12: 0.55},
+	"noms_epoque": [[1899, {"nom": "Ménagerie", "titre": "Gérer la ménagerie", "le": "la ménagerie", "du": "de la ménagerie",
+		"pieces": {"accueil": "Grille d'entrée et caisse", "restaurant": "Buvette", "salle": "Cabinet d'histoire naturelle"}}]],
+	"noms_pays": {"ch": {"pieces": {"salle": "Salle des écoles (visites de classes)"}}},
+	"accueil": {"nom": "Entrée et billetterie", "court": "Entrée", "decor": "auto_accueil", "sol": "d8cfbe", "motif": "dalles",
+		"effets": {"vitesse": 0.15, "attrait": 0.03, "confort": 0.03, "entretien": 30.0}, "metiers": ["agent_accueil_zoo"],
+		"desc": "Caisses, plan du zoo et poussettes à louer. Une entrée rapide, c'est moins de familles qui renoncent à cause de la file."},
+	"pieces": [
+		{"id": "boutique", "nom": "Boutique souvenirs", "w": 6, "decor": "auto_boutique", "sol": "f2e2c9", "base": 1,
+			"effets": {"ventes": 1.0, "attrait": 0.01, "entretien": 25.0}, "metiers": ["vendeur"], "part": 0.1,
+			"desc": "Peluches, livres et casquettes : les enfants ne repartent jamais les mains vides."},
+		{"id": "restaurant", "nom": "Restaurant du zoo", "w": 8, "decor": "auto_cafe", "sol": "e6d2b5", "base": 1,
+			"effets": {"ventes": 1.6, "confort": 0.06, "entretien": 60.0}, "metiers": ["cuisinier", "serveur"], "part": 0.2,
+			"desc": "Frites, glaces et tables avec vue sur les girafes. Les familles restent la journée."},
+		{"id": "nurserie", "nom": "Nurserie", "w": 6, "decor": "auto_soins", "sol": "e3eef0", "motif": "carrelage", "annee": 1950,
+			"effets": {"attrait": 0.05, "confort": 0.04, "entretien": 35.0}, "metiers": ["soigneur_animalier"], "part": 0.12,
+			"desc": "Les petits nés au zoo, nourris au biberon derrière une vitre. Tout le monde veut voir le bébé lémurien."},
+		{"id": "clinique", "nom": "Clinique vétérinaire", "w": 6, "decor": "auto_labo", "sol": "dfe7ea", "motif": "carrelage", "base": 1, "annee": 1920,
+			"effets": {"confort": 0.05, "satisf": 0.02, "entretien": 40.0}, "metiers": ["veterinaire_zoo"], "part": 0.03,
+			"desc": "Radios, soins et quarantaine. Des animaux en forme se montrent plus et vivent plus longtemps."},
+		{"id": "cuisine", "nom": "Cuisine des soigneurs", "w": 5, "decor": "auto_cuisine", "sol": "c5d3da", "motif": "carrelage", "base": 1,
+			"effets": {"confort": 0.03, "vitesse": 0.04, "entretien": 20.0}, "metiers": ["soigneur_animalier"], "part": 0.0,
+			"desc": "Foin, viande, poisson et bambou : chaque espèce son menu, préparé chaque matin."},
+		{"id": "salle", "nom": "Salle pédagogique", "w": 6, "decor": "auto_classe", "sol": "d9cfbd", "annee": 1960,
+			"effets": {"attrait": 0.04, "satisf": 0.02, "entretien": 18.0}, "metiers": ["animateur_zoo"], "part": 0.08,
+			"desc": "Classes en visite, ateliers « nourrir les animaux », conférences sur la conservation."},
+		{"id": "direction", "nom": "Direction et conservation", "w": 5, "decor": "auto_bureaux", "sol": "a9b4bf", "motif": "moquette", "base": 1,
+			"effets": {"attrait": 0.03, "satisf": 0.02, "entretien": 18.0}, "metiers": ["cadre"], "part": 0.0,
+			"desc": "Échanges d'animaux avec les autres zoos, programmes d'élevage, budgets. Une bonne direction attire les espèces rares."},
+	],
+	"dehors": [
+		{"id": "savane", "nom": "Plaine africaine", "w": 14, "d": 10, "decor": "auto_enclos:girafe,zebre,autruche:savane", "sol": "c9b26a", "motif": "gazon", "base": 1,
+			"effets": {"attrait": 0.06, "confort": 0.04, "entretien": 60.0}, "metiers": ["soigneur_animalier"], "part": 0.22,
+			"desc": "Girafes, zèbres et autruches ensemble, comme dans la savane. La vedette du zoo."},
+		{"id": "felins", "nom": "Plateau des félins", "w": 11, "d": 10, "decor": "auto_enclos:lion,lionne:roche", "sol": "9c9488", "motif": "gazon",
+			"effets": {"attrait": 0.07, "confort": 0.03, "entretien": 55.0}, "metiers": ["soigneur_animalier"], "part": 0.16,
+			"desc": "Les lions sur leur rocher chauffé. On attend des heures pour les voir bâiller."},
+		{"id": "bassin", "nom": "Bassin des otaries", "w": 11, "d": 9, "decor": "auto_bassin:otarie,manchot", "sol": "dcc69a", "motif": "dalles",
+			"effets": {"attrait": 0.06, "ventes": 0.5, "entretien": 70.0}, "metiers": ["soigneur_animalier"], "part": 0.14,
+			"desc": "Otaries et manchots. À partir du niveau 3, des gradins pour le repas commenté (et quelques éclaboussures)."},
+		{"id": "vivarium", "nom": "Vivarium tropical", "w": 10, "d": 9, "decor": "auto_serre:crocodile,tortue_geante", "sol": "6b8f47", "motif": "gazon", "annee": 1900,
+			"effets": {"attrait": 0.05, "confort": 0.04, "entretien": 65.0}, "part": 0.12,
+			"desc": "Chaleur, brume, crocodiles et tortues géantes. Le refuge des jours de pluie."},
+		{"id": "ferme", "nom": "Ferme des enfants", "w": 10, "d": 9, "decor": "auto_enclos:chevre,mouton_broute,poule_rousse,ane", "sol": "7fbf62", "motif": "gazon", "annee": 1965,
+			"effets": {"attrait": 0.03, "satisf": 0.03, "entretien": 20.0}, "metiers": ["animateur_zoo"], "part": 0.1,
+			"desc": "Chèvres à caresser, poules et ânes. Les plus petits adorent, les parents soufflent."},
+		{"id": "jeux", "nom": "Aire de jeux et pique-nique", "w": 10, "d": 8, "decor": "auto_cour", "sol": "b7b0a3", "motif": "", "annee": 1950,
+			"effets": {"satisf": 0.03, "confort": 0.02, "entretien": 10.0}, "part": 0.08,
+			"desc": "Toboggan, balançoires et tables : on pique-nique entre deux enclos."},
+	],
+	"objets": {
+		"accueil": [
+			["plan_zoo", "Grand plan du zoo", "pk_plan_parc", 0.0003, 1, {"satisf": 0.01}],
+			["poussettes_z", "Poussettes à louer", "pk_poussettes", 0.0005, 1, {"confort": 0.01, "ventes": 0.2}],
+			["bornes_z", "Bornes à billets", "pk_borne_billets", 0.0012, 2, {"vitesse": 0.1}, 2, {"annee": 1990}],
+			["mascotte_z", "Mascotte du zoo", "pk_mascotte", 0.0008, 2, {"attrait": 0.02}],
+			["fontaine_z", "Fontaine d'eau", "fontaine_eau", 0.0003, 1, {"satisf": 0.01}],
+		],
+		"boutique": [
+			["peluches_z", "Rayon des peluches", "peluches", 0.0004, 1, {"ventes": 0.4}],
+			["presentoir_z", "Présentoir de cartes et livres", "presentoir_souvenirs", 0.0004, 1, {"ventes": 0.3}],
+			["photo_z", "Borne photo souvenir", "pk_borne_photo", 0.0008, 2, {"ventes": 0.5}],
+		],
+		"restaurant": [
+			["glaces_z", "Comptoir à glaces", "comptoir_glaces", 0.0006, 1, {"ventes": 0.5}],
+			["friteuse_z", "Friteuse", "friteuse", 0.0006, 1, {"ventes": 0.4}],
+			["distributeur_z", "Distributeur de boissons", "distributeur", 0.0004, 1, {"ventes": 0.2}],
+			["langer_z", "Table à langer", "table_langer", 0.0002, 2, {"confort": 0.01}],
+		],
+		"nurserie": [
+			["couveuse", "Couveuse", "moniteur_medical", 0.0010, 1, {"attrait": 0.02}],
+			["biberons", "Coin des biberons", "frigo_sang", 0.0005, 1, {"confort": 0.01}],
+			["vitre_nurserie", "Grande vitre pour les visiteurs", "vitrine_produit", 0.0008, 2, {"attrait": 0.02}],
+		],
+		"clinique": [
+			["table_vet", "Table de soins", "table_examen", 0.0006, 1, {"confort": 0.01}],
+			["radio_vet", "Appareil de radio", "table_radio", 0.0015, 2, {"confort": 0.02}],
+			["echo_vet", "Échographe", "echographe", 0.0015, 3, {"confort": 0.02}],
+		],
+		"cuisine": [
+			["chambre_froide_z", "Chambre froide", "chambre_froide", 0.0012, 1, {"vitesse": 0.05}],
+			["balance_z", "Balance des rations", "balance", 0.0003, 1, {"confort": 0.01}],
+		],
+		"salle": [
+			["tableau_z", "Tableau et projecteur", "tableau_blanc", 0.0004, 1, {"satisf": 0.01}],
+			["squelette_z", "Squelette d'animal", "squelette", 0.0006, 2, {"attrait": 0.01}],
+			["microscope_z", "Microscopes", "microscope", 0.0006, 2, {"satisf": 0.01}],
+		],
+		"direction": [
+			["ordi_z", "Logiciel des fiches d'animaux", "ordinateur", 0.0005, 1, {"satisf": 0.01}],
+			["carte_z", "Carte des zoos partenaires", "carte_murale", 0.0004, 2, {"attrait": 0.02}],
+		],
+		"savane": [
+			["mangeoire_g", "Mangeoire haute des girafes", "deco:mangeoire_haute", 0.0006, 1, {"confort": 0.02}],
+			["longue_vue_s", "Longue-vue", "deco:longue_vue", 0.0004, 1, {"satisf": 0.01}],
+			["abri_s", "Abri de paille", "deco:abri_paille", 0.0008, 2, {"confort": 0.02}],
+		],
+		"felins": [
+			["rocher_chaud", "Rocher chauffant", "deco:rocher_chauffant", 0.0008, 1, {"attrait": 0.02}],
+			["tronc_f", "Tronc d'escalade", "deco:tronc_escalade", 0.0005, 1, {"confort": 0.01}],
+			["balle_f", "Jouets d'enrichissement", "deco:balle_enrichissement", 0.0003, 2, {"confort": 0.01}],
+		],
+		"bassin": [
+			["bancs_b", "Bancs du spectacle", "deco:banc_bois", 0.0004, 1, {"satisf": 0.01}, 2],
+			["bouee_b", "Bouées et ballons", "bouees", 0.0003, 2, {"attrait": 0.01}],
+		],
+		"vivarium": [
+			["brume", "Brumisateurs", "pk_brumisateur", 0.0006, 1, {"confort": 0.02}, 1, {"annee": 1960}],
+			["aquarium_v", "Aquarium des poissons tropicaux", "aquarium", 0.0012, 2, {"attrait": 0.02}],
+		],
+		"ferme": [
+			["abreuvoir_f", "Abreuvoir", "deco:abreuvoir", 0.0003, 1, {"confort": 0.01}],
+			["poulailler_f", "Poulailler", "deco:poulailler", 0.0004, 1, {"satisf": 0.01}],
+			["foin_f", "Râtelier à foin", "deco:ratelier_foin", 0.0003, 2, {"confort": 0.01}],
+		],
+		"jeux": [
+			["pique_nique", "Tables de pique-nique", "deco:table_pique_nique", 0.0004, 1, {"satisf": 0.01}, 2],
+			["toboggan_j", "Toboggan", "deco:toboggan", 0.0005, 1, {"satisf": 0.01}],
+			["glacier_j", "Kiosque à glaces", "deco:stand_glaces", 0.0006, 2, {"ventes": 0.4}],
+		],
+	},
+	"demandes": [
+		["accueil", "On peut payer en plusieurs fois ? Nous sommes six.", 2],
+		["accueil", "Où sont les lions ? Le petit ne veut voir qu'eux.", 2],
+		["accueil", "Vous louez des poussettes ?", 1],
+		["restaurant", "Il n'y a plus de glace à la fraise ?", 2],
+		["restaurant", "Une chaise haute, s'il vous plaît !", 1],
+		["boutique", "Vous avez la girafe en plus grand ?", 2],
+		["nurserie", "Il a un nom, le bébé ?", 3],
+		["savane", "Les girafes, elles dorment debout ?", 2],
+		["felins", "Il ne bouge pas, il est vivant ?", 2],
+		["bassin", "C'est à quelle heure, le repas des otaries ?", 3],
+		["vivarium", "Il fait trop chaud là-dedans !", 1],
+		["ferme", "On peut leur donner du pain ?", 1],
+		["jeux", "Mon fils est coincé en haut du toboggan.", 2],
+	],
+	"pannes": {
+		"accueil": ["Tourniquet de l'entrée bloqué"], "restaurant": ["Friteuse en panne"], "boutique": ["Caisse en panne"],
+		"nurserie": ["Couveuse trop froide"], "clinique": ["Appareil de radio en panne"], "cuisine": ["Chambre froide en panne"],
+		"salle": ["Projecteur grillé"], "direction": ["Ordinateur planté"], "savane": ["Clôture abîmée"], "felins": ["Rocher chauffant éteint"],
+		"bassin": ["Pompe du bassin en panne"], "vivarium": ["Chauffage du vivarium en panne"], "ferme": ["Portillon cassé"], "jeux": ["Balançoire cassée"],
+	},
+	"evenements": [
+		{"texte": "Naissance d'un girafon : tout le monde veut le voir !", "gain": 0.6, "satisf": 0.2, "annoncer": true},
+		{"texte": "Nuit au zoo : visites à la lampe torche, complet.", "gain": 0.4, "mois": [6, 7, 8]},
+		{"texte": "Une classe entière en sortie scolaire.", "gain": 0.15, "mois": [3, 4, 5, 6, 9, 10]},
+		{"texte": "Reportage à la télévision sur le zoo.", "gain": 0.2, "satisf": 0.1},
+		{"texte": "Journée de la conservation : dons pour les espèces menacées.", "gain": 0.3},
+	],
+	"pensees": {"regle": ["Merci, quelle journée !", "Les enfants sont ravis.", "On reviendra voir le bébé.", "Trop mignon !"],
+		"rate": ["Tout ça pour voir un lion dormir…", "On n'a trouvé personne.", "On rentre, il pleut."]},
+}
+
+
+const SPECS := {
+	"zoo": ZOO,
+}

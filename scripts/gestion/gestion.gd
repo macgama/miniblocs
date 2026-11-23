@@ -107,7 +107,7 @@ func spec_base(bid: int) -> Dictionary:
 	if source(bid) == "production":
 		var t := BuildingCatalog.get_type(type_of(bid))
 		return {"etoiles": 2 if float(t.get("cost", 0.0)) >= 480_000.0 else 1}
-	if source(bid) == "ville" or source(bid) == "parc":
+	if source(bid) == "ville" or source(bid) == "parc" or source(bid) == "lieu":
 		return {"etoiles": 1}
 	return TourismeTypes.spec_of(type_of(bid))
 
@@ -131,6 +131,8 @@ func valide(bid: int) -> bool:
 			return urgences != null and urgences.stations.has(bid)
 		"parc":
 			return _parc() != null and _parc().parcs.has(bid)
+		"lieu":
+			return true
 	return tourisme != null and tourisme.heb.has(bid)
 
 
@@ -339,7 +341,7 @@ static func spec_de(bid: int, base: Dictionary) -> Dictionary:
 func cout_batiment(bid: int) -> float:
 	var t := BuildingCatalog.get_type(type_of(bid))
 	var c := float(t.get("cost", 0.0))
-	if c <= 0.0 and source(bid) == "ville":
+	if c <= 0.0 and (source(bid) == "ville" or source(bid) == "lieu"):
 		c = float(BuildingCatalog.cost(type_of(bid)))
 		if c <= 0.0:
 			c = float(BuildingCatalog.cost(BuildingCatalog.base_of(type_of(bid))))
@@ -384,7 +386,7 @@ func prix_reparation(bid: int) -> int:
 
 ## Argent du compte du bâtiment (hôtel privé : ses bénéfices accumulés).
 func compte(bid: int) -> float:
-	if source(bid) == "ville" or source(bid) == "parc":
+	if source(bid) == "ville" or source(bid) == "parc" or source(bid) == "lieu":
 		return float(etats[bid].caisse) if etats.has(bid) else 0.0
 	if source(bid) == "production":
 		return float(production.sites[bid].cash) if production != null and production.sites.has(bid) else 0.0
@@ -394,7 +396,7 @@ func compte(bid: int) -> float:
 
 
 func _crediter(bid: int, v: float) -> void:
-	if source(bid) == "ville" or source(bid) == "parc":
+	if source(bid) == "ville" or source(bid) == "parc" or source(bid) == "lieu":
 		if etats.has(bid):
 			etats[bid].caisse = float(etats[bid].caisse) + v
 		return
@@ -446,6 +448,10 @@ func ameliorer(bid: int, pid: String, sans_ville := false) -> Dictionary:
 	var p := prix(bid, pid)
 	if p <= 0:
 		return {"ok": false, "error": "déjà au niveau maximum"}
+	if niveau(bid, pid) <= 0:
+		var re := GestionEpoques.refus_piece(genre_of(bid), pid)
+		if re != "":
+			return {"ok": false, "error": re}
 	var e0 := etoiles(bid)
 	var r := _payer(bid, p, sans_ville)
 	if not bool(r.ok):
@@ -472,7 +478,8 @@ func refus_objet(bid: int, pid: String, oid: String) -> String:
 		return "pièce pas encore construite"
 	if n < int(o.get("niv", 1)):
 		return "pièce au niveau %d requise" % int(o.niv)
-	return ""
+	# L'époque de la partie : pas encore inventé, ou plus vendu.
+	return GestionEpoques.refus_objet(genre_of(bid), pid, oid)
 
 
 func acheter(bid: int, pid: String, oid: String, sans_ville := false) -> Dictionary:
@@ -683,7 +690,7 @@ func nouveau_jour(now: Dictionary = {}) -> void:
 			continue
 		# Service public : seulement ceux que le joueur a ouverts une fois
 		# (les autres gardent le fonctionnement habituel, sans budget en plus).
-		if (source(bid) == "ville" or source(bid) == "parc") and not etats.has(bid):
+		if (source(bid) == "ville" or source(bid) == "parc" or source(bid) == "lieu") and not etats.has(bid):
 			continue
 		var st := etat(bid)
 		if source(bid) == "tourisme":
@@ -692,6 +699,8 @@ func nouveau_jour(now: Dictionary = {}) -> void:
 			_journee_ville(bid, st)
 		elif source(bid) == "parc":
 			_journee_parc(bid, st)
+		elif source(bid) == "lieu":
+			GestionLieu.journee(self, bid, st, month)
 		var usure := 1.0 + 2.0 * maxf(0.0, float(st.prix) - 1.0) if _par_tonnes(bid) else 1.0
 		if rng.randf() < CHANCE_PANNE * _nb_pieces(bid) * usure * (1.0 - 0.12 * float(st.formation)) * (0.6 if niveau(bid, "direction") >= 3 or niveau(bid, "bureau") >= 3 else 1.0) * GestionEssor.facteur_pannes(self, bid):
 			nouvelle_panne(bid)
@@ -820,7 +829,7 @@ func candidats(bid: int) -> Array:
 	for pid in GestionTypes.ordre(g):
 		var p := GestionTypes.piece(g, String(pid))
 		var px := prix(bid, String(pid))
-		if px > 0:
+		if px > 0 and (niveau(bid, String(pid)) > 0 or GestionEpoques.refus_piece(g, String(pid)) == ""):
 			out.append({"type": "niveau", "piece": String(pid), "prix": px, "valeur": _valeur(p.get("effets", {})) * (1.3 if niveau(bid, String(pid)) == 0 else 1.0)})
 		for oid in GestionTypes.objets(g, String(pid)):
 			if refus_objet(bid, String(pid), String(oid)) == "":
@@ -844,6 +853,8 @@ static func _valeur(e: Dictionary) -> float:
 
 ## Clients du moment : ce soir (hôtel) ou servis hier (restaurant).
 func clients(bid: int) -> int:
+	if source(bid) == "lieu":
+		return GestionLieu.clients(self, bid)
 	if source(bid) == "ville":
 		return engins_au_garage(bid)
 	if source(bid) == "parc":
@@ -859,6 +870,8 @@ func clients(bid: int) -> int:
 
 ## Capacité : lits (hôtel) ou couverts par jour (restaurant).
 func capacite(bid: int) -> int:
+	if source(bid) == "lieu":
+		return GestionLieu.capacite(self, bid)
 	if source(bid) == "parc":
 		return capacite_parc(bid)
 	if source(bid) == "ville":
@@ -917,6 +930,8 @@ func hier(bid: int) -> Dictionary:
 
 ## Prix payé par un client : la nuit (hôtel) ou le menu (restaurant), en €.
 func prix_unitaire(bid: int) -> float:
+	if source(bid) == "lieu":
+		return GestionLieu.prix_unitaire(self, bid)
 	if source(bid) == "ville":
 		return 0.0
 	if source(bid) == "parc":
@@ -929,6 +944,8 @@ func prix_unitaire(bid: int) -> float:
 
 
 func prix_txt(bid: int) -> String:
+	if source(bid) == "lieu":
+		return GestionLieu.prix_txt(self, bid)
 	if source(bid) == "ville":
 		return "Budget : %s par jour, payé par la ville" % BuildingSystem.format_money(roundi(dotation(bid)))
 	if _par_tonnes(bid):
@@ -945,6 +962,10 @@ func prix_txt(bid: int) -> String:
 
 ## Monte (sens 1) ou baisse (-1) le prix de 5 %.
 func changer_prix(bid: int, sens: int) -> void:
+	if source(bid) == "lieu":
+		GestionLieu.changer_prix(self, bid, sens)
+		changed.emit(bid)
+		return
 	if source(bid) == "ville":
 		changer_dotation(bid, sens)
 		return
@@ -972,6 +993,9 @@ func changer_prix(bid: int, sens: int) -> void:
 func ajuster_prix_auto(bid: int) -> void:
 	# Service public : c'est la ville qui fixe le budget, pas la caserne.
 	if source(bid) == "ville":
+		return
+	if source(bid) == "lieu":
+		GestionLieu.ajuster_prix_auto(self, bid)
 		return
 	if source(bid) == "parc":
 		_prix_auto_parc(bid)

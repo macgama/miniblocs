@@ -73,7 +73,7 @@ const TROPHEES := [
 
 
 static func _ville(g: Gestion, bid: int) -> bool:
-	return g.source(bid) == "ville"
+	return g.source(bid) == "ville" or (g.source(bid) == "lieu" and GestionLieu.public(g, bid))
 
 
 static func _e(g: Gestion, bid: int) -> Dictionary:

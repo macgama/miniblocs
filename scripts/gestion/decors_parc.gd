@@ -52,7 +52,7 @@ static func dessiner(d: GestionDiorama, k: LpKit, decor: String, r: Array, n: in
 			return _atelier(d, k, r, n)
 		"parc_parking":
 			return _parking(d, k, r, n)
-	return []
+	return DecorsAuto.dessiner(d, k, decor, r, n)
 
 
 # --- Petits éléments ---------------------------------------------------------------------------

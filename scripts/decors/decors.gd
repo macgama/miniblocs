@@ -68,7 +68,7 @@ static func info(id: String) -> Dictionary:
 ## l'emprise au sol et la hauteur ; les clôtures se paient au tronçon.
 const PRIX_CATEGORIE := {"urbain": 150, "eclairage": 1200, "monuments": 9000, "clotures": 60, "panneaux": 140,
 	"marche": 250, "jeux": 1800, "plage": 120, "ferme": 350, "cultures": 25, "animaux": 900, "eau": 1600,
-	"rochers": 80, "zoo": 2500, "zoo_objets": 600}
+	"rochers": 80, "zoo": 2500, "zoo_objets": 600, "arbres": 450, "jardins": 700, "toits": 900, "fete": 450}
 
 
 ## Prix d'un décor posé à la main (€, multiplicateur des coûts de la partie compris).
@@ -116,6 +116,11 @@ static func est_anime(id: String) -> bool:
 ## Posé sur l'eau (bateau, bouée : origine à la flottaison).
 static func sur_eau(id: String) -> bool:
 	return int(info(id).get("eau", 0)) == 1
+
+
+## Se pose sur le toit du bâtiment visé (climatiseur, château d'eau, enseigne géante).
+static func sur_toit(id: String) -> bool:
+	return int(info(id).get("toit", 0)) == 1
 
 
 ## Distance (m) au-delà de laquelle le décor n'est plus dessiné.

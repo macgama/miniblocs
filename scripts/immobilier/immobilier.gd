@@ -219,9 +219,11 @@ static func viabilise(bid: int) -> bool:
 
 ## Multiplicateur du loyer d'un logement, appliqué après la valeur du terrain (coef).
 static func mult_loyer(bid: int, coef: float) -> float:
+	# Immeuble géré (mode gestion) : le loyer demandé par le gérant.
+	var g := Gestion.loyer_de(bid)
 	if instance == null:
-		return 1.0
-	return instance._mult(bid, coef)
+		return g
+	return instance._mult(bid, coef) * g
 
 
 func _mult(bid: int, coef: float) -> float:

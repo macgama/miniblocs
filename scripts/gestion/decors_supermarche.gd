@@ -39,7 +39,7 @@ static func dessiner(d: GestionDiorama, k: LpKit, decor: String, r: Array, n: in
 			return _drive(d, k, r, n)
 		"smk_quai":
 			return _quai(d, k, r, n)
-	return DecorsParc.dessiner(d, k, decor, r, n)
+	return DecorsImmeuble.dessiner(d, k, decor, r, n)
 
 
 ## Un objet du supermarché posé dans la maquette (x, z absolus).

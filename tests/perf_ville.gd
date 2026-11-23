@@ -13,6 +13,9 @@ extends SceneTree
 ##                 6 = Turbo, 1 jour en 6 s)
 ##   --sans-cosy   sans le rendu cosy ni les jardins (RenduCosy), pour comparer
 ##   --max-ms X    échoue (code 1) si l'image moyenne dépasse X ms (test chiffré)
+##   --pres        caméra de près (recul 70 m) au-dessus d'une rue commerçante :
+##                 devantures et habillage des petits commerces affichés
+##   --sans-habillage  sans l'habillage des petits commerces (comparaison)
 ## Imprime un tableau et « PERF VILLE OK ».
 
 const BLOC := 120 # côté d'un pâté de maisons (m), routes comprises
@@ -187,6 +190,30 @@ func _run() -> void:
 		rig.position = Vector3.ZERO
 		rig._distance = 350.0
 		rig._target_distance = 350.0
+		Devantures.habillage_actif = not OS.get_cmdline_user_args().has("--sans-habillage")
+		if OS.get_cmdline_user_args().has("--pres"):
+			# Au milieu des commerces : le plus de devantures habillées autour.
+			var meilleur := Vector3.ZERO
+			var score := -1
+			var shops := []
+			for bid in bs.buildings:
+				var pr := DevanturesTypes.profil(String(bs.buildings[bid].t))
+				if not pr.is_empty() and String(pr.genre) in [DevanturesTypes.BOUTIQUE, DevanturesTypes.SALLE] and bs.node_of(bid) != null:
+					shops.append(bs.node_of(bid).global_position)
+			for a in shops:
+				var n := 0
+				for b in shops:
+					if (a as Vector3).distance_to(b) < 80.0:
+						n += 1
+				if n > score:
+					score = n
+					meilleur = a
+			rig.position = meilleur
+			rig._distance = 70.0
+			rig._target_distance = 70.0
+			rig.pitch_degrees = 45.0
+			rig._target_pitch = 45.0
+			print("Caméra de près : %d commerces à moins de 80 m (habillage %s)" % [score, "oui" if Devantures.habillage_actif else "non"])
 		# Mise en route (bâtiments affichés, caches, premiers trajets).
 		var t1 := Time.get_ticks_usec()
 		for i in 120:

@@ -27,6 +27,48 @@
 
 La case **Décors automatiques** coupe tout ce qui vient seul (utile pour un terrain nu). Échap lâche l'outil. Les décors posés et gommés sont sauvegardés dans la section `decors`.
 
+## Lot du 23 novembre 2026 : parcs, arbres d'ornement, toits et rue en fête
+
+Inspiré des planches low-poly envoyées par Gaël (parc carré à fontaine, parc à labyrinthe et étangs, coin de rue
+japonais, toits de New York et de Méditerranée, enseignes de snack géantes, fête foraine). Tout est redessiné par
+code dans `tools/blender/decors/jardins.py`, `toits.py` et `fete.py` : rien n'est copié. 75 décors, de 12 à 940
+triangles chacun, quatre nouvelles catégories dans le panneau G.
+
+![Les 75 nouveautés](apercu-decors-jardins-toits-fete.jpg)
+
+![Un jardin public composé avec ces décors](apercu-decors-jardin-compose.jpg)
+
+- **Arbres d'ornement (19)** : cerisier en fleurs, érable du Japon rouge, arbre d'automne, ginkgo doré, jacaranda,
+  magnolia, bouleau blanc, cyprès d'Italie, saule pleureur, arbre de parc en boule, arbre en pot, palmier en bac,
+  bonsaï, plantes en pots, cinq topiaires (boule, cône, spirale, étages, cube). Ce sont des décors fixes : les arbres
+  sauvages et ceux du pinceau Paysage restent ceux de `plantes_lowpoly.py`.
+- **Parcs et jardins (24)** : labyrinthe de haies (16 × 16 m), pont de bois en arc, pont japonais, étang aux rochers,
+  bassin aux nénuphars, bassin moghol à jets d'eau, tsukubai, jardin zen, porte de lune, pergola à vigne, arche de
+  roses, arche en cœur, banc autour d'un arbre, nappe de pique-nique, bain d'oiseaux, cadran solaire, nichoir,
+  parterre de fleurs, parterre à la française, rocaille, vasque fleurie, gloriette, serre de jardin, bac à sable
+  hexagonal. Plus deux éclairages : borne lumineuse d'allée et lampadaire de parc.
+- **Toits et façades (20)** : climatiseur, climatisation de toit, extracteur, conduit inox, château d'eau de toit,
+  chauffe-eau solaire, parabole, antenne râteau, enseigne néon verticale, enseigne lumineuse, lanternes rouges,
+  distributeur de boissons, comptoir et tabourets, auvent de tuiles, escalier extérieur, et cinq enseignes géantes
+  (cornet de glace, burger, donut, tasse de café, part de pizza).
+- **Rue en fête (10)** : chariots à hot-dogs et à pop-corn, marchand de ballons, charrette de fleuriste, stand de
+  limonade, stand de tir forain, guirlande d'ampoules, fanions, arche de ballons, montgolfière captive.
+
+**Sur les toits** : les décors marqués `toit` dans `decors.json` (climatisation, château d'eau, parabole, antenne,
+cheminée, extracteur, chauffe-eau, enseignes géantes) se posent sur le bâtiment visé : `DecorSystem._pick` vise la
+boîte de collision du bâtiment et `BuildingSystem.hauteur_toit(case)` donne la hauteur. Ailleurs, ils restent au sol.
+Sur un toit en pente, ils se posent au faîte : ils vont mieux sur les toits plats.
+
+**Époques** : années dans `EpoquesObjets.DECORS` (climatiseur 1975, néon 1925, parabole 1985, chariot à pop-corn
+1893, serre 1840…). Arbres, topiaires, jardins japonais, chinois, moghols et à la française, fanions et lanternes :
+de tout temps.
+
+**Performances** : aucun de ces décors n'est posé automatiquement, ils ne coûtent que ce que le joueur pose (un
+MultiMesh par modèle, comme les autres).
+
+Tester : touche **G**, catégories « Arbres d'ornement », « Parcs et jardins », « Toits et façades », « Rue en fête ».
+Vitrine composée : `godot --path . --rendering-driver opengl3 --script res://tests/decors_scene_parc.gd -- --screenshot parc.png`.
+
 ## Comment ça marche
 
 - `tools/blender/decors_lowpoly.py` : la liste des décors (id, catégorie, options) ; les modèles sont des fonctions dans `tools/blender/decors/*.py` (le nom affiché vient de leur docstring). Primitives communes dans `base.py` (boîte, cylindre, poutre, profil, rocher, roue…).

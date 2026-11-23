@@ -19,6 +19,15 @@ var _corps: MultiMeshInstance3D
 var _tetes: MultiMeshInstance3D
 var _t := 0.0
 var _rebuild_t := 0.0
+## Lumières des allées (réverbères, guirlandes) du décor en cours de construction.
+var _kl: BlocMesh
+## Têtes des réverbères des allées (repère du monde), par parc : les plus
+## proches de la caméra éclairent vraiment le sol la nuit.
+var _tetes_lampes: Dictionary = {}
+var _tetes_en_cours: PackedVector3Array
+var _halos: Array[OmniLight3D] = []
+var _halos_t := 0.0
+const MAX_HALOS := 14
 
 
 func setup(p: ParcLoisirs) -> void:
@@ -73,6 +82,12 @@ func _process(delta: float) -> void:
 		return
 	var dt := EchelleTemps.dt(delta)
 	_t += dt
+	var nuit = NightWindows.building_material().get_shader_parameter("night")
+	ParcDeco.regler_nuit(float(nuit) if nuit != null else 0.0)
+	_halos_t -= delta
+	if _halos_t <= 0.0:
+		_halos_t = 0.4
+		_eclairer(float(nuit) if nuit != null else 0.0)
 	_rebuild_t -= delta
 	if _rebuild_t <= 0.0:
 		_rebuild_t = 1.0
@@ -80,6 +95,36 @@ func _process(delta: float) -> void:
 		_sync_decor()
 	_animer(dt)
 	_visiteurs()
+
+
+## La nuit, quelques vraies lumières chaudes sous les réverbères les plus
+## proches de la caméra (les autres brillent sans éclairer le sol).
+func _eclairer(nuit: float) -> void:
+	var cam := get_viewport().get_camera_3d() if is_inside_tree() else null
+	var proches: Array = []
+	if nuit > 0.05 and cam != null:
+		var f := cam.global_position
+		for e in _tetes_lampes:
+			for p: Vector3 in _tetes_lampes[e]:
+				var d2 := p.distance_squared_to(f)
+				if d2 < 300.0 * 300.0:
+					proches.append([d2, p])
+		proches.sort_custom(func(a: Array, b: Array) -> bool: return float(a[0]) < float(b[0]))
+	var n := mini(proches.size(), MAX_HALOS)
+	while _halos.size() < n:
+		var l := OmniLight3D.new()
+		l.light_color = Color(1.0, 0.78, 0.5)
+		l.omni_range = 10.0
+		l.omni_attenuation = 1.2
+		l.shadow_enabled = false
+		add_child(l)
+		_halos.append(l)
+	for i in _halos.size():
+		var l := _halos[i]
+		l.visible = i < n
+		if i < n:
+			l.position = proches[i][1]
+			l.light_energy = 1.6 * nuit
 
 
 # --- Manèges ------------------------------------------------------------------------------------------
@@ -139,6 +184,7 @@ func _sync_decor() -> void:
 			(_decor[e] as Node).queue_free()
 			_decor.erase(e)
 			_sig.erase(e)
+			_tetes_lampes.erase(e)
 	for e in parc.parcs:
 		var sig := _signature(int(e))
 		if _sig.get(e, "") == sig:
@@ -148,9 +194,20 @@ func _sync_decor() -> void:
 			(_decor[e] as Node).queue_free()
 		var mi := MeshInstance3D.new()
 		mi.name = "Parc_%d" % int(e)
+		_kl = BlocMesh.new()
+		_tetes_en_cours = PackedVector3Array()
 		mi.mesh = build_decor(int(e))
+		_tetes_lampes[e] = _tetes_en_cours
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		mi.visibility_range_end = 1400.0
+		if not _kl.verts.is_empty():
+			var li := MeshInstance3D.new()
+			li.name = "Lumieres"
+			li.mesh = _kl.to_mesh(ParcDeco.materiau())
+			li.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			li.visibility_range_end = 900.0
+			mi.add_child(li)
+		_kl = null
 		add_child(mi)
 		_decor[e] = mi
 
@@ -217,6 +274,7 @@ func build_decor(e: int) -> ArrayMesh:
 		return k.to_mesh(NightWindows.building_material())
 	var hub := parc.centre(e)
 	_allee(k, parc.portail(e), hub, h0)
+	_garnir(k, parc.portail(e), hub, h0, true, e)
 	_place(k, hub, h0)
 	for bid in parc.parcs[e].items:
 		if int(bid) == e or not bs.buildings.has(bid):
@@ -224,8 +282,60 @@ func build_decor(e: int) -> ArrayMesh:
 		var door := parc.porte(int(bid))
 		var to := door + parc.facade(int(bid)) * 2.0
 		_allee(k, hub, to, h0)
+		_garnir(k, hub, to, h0, false, e)
 		_allee(k, to, door, h0, 2.4)
 	return k.to_mesh(NightWindows.building_material())
+
+
+## Le long d'une allée : réverbères en alternance, bancs, massifs, buissons ;
+## sur l'allée principale, des fanions d'un réverbère à l'autre en travers.
+func _garnir(k: BlocMesh, a: Vector3, b: Vector3, h0: float, principale: bool, e: int) -> void:
+	var d := Vector2(b.x - a.x, b.z - a.z)
+	var long := d.length()
+	if long < 14.0:
+		return
+	var dir := d / long
+	var side := Vector2(-dir.y, dir.x)
+	var off := LARGEUR_ALLEE / 2.0 + 0.7
+	var n := int((long - 10.0) / 9.0)
+	for i in n + 1:
+		var u := (9.0 + i * 9.0) / long
+		if u > 0.92:
+			break
+		var c := Vector2(a.x, a.z).lerp(Vector2(b.x, b.z), u)
+		var cotes := [1.0, -1.0] if principale else [1.0 if i % 2 == 0 else -1.0]
+		var tetes: Array = []
+		for sg in cotes:
+			var p: Vector2 = c + side * off * float(sg)
+			if _encombre(p, e):
+				continue
+			var y := _sol(p.x, p.y, h0)
+			match i % 3:
+				0:
+					ParcDeco.reverbere(k, _kl, p.x, y, p.y)
+					tetes.append(Vector3(p.x, y + 3.3, p.y))
+					_tetes_en_cours.append(Vector3(p.x, y + 3.5, p.y))
+				1:
+					var q: Vector2 = p + side * float(sg) * 0.3
+					ParcDeco.banc(k, q.x, _sol(q.x, q.y, h0), q.y, absf(dir.x) > absf(dir.y))
+					var m: Vector2 = p + dir * 2.2 + side * float(sg) * 0.4
+					if not _encombre(m, e):
+						ParcDeco.buisson(k, m.x, _sol(m.x, m.y, h0), m.y, 0.7)
+				_:
+					var m: Vector2 = p + side * float(sg) * 0.6
+					if not _encombre(m, e):
+						ParcDeco.massif(k, m.x, _sol(m.x, m.y, h0), m.y, 0.9, i)
+		if tetes.size() == 2:
+			ParcDeco.fanions(k, tetes[0], tetes[1], 0.5, i)
+
+
+func _encombre(p: Vector2, e: int) -> bool:
+	var bs := parc.buildings
+	for dx in [-1, 0, 1]:
+		for dz in [-1, 0, 1]:
+			if bs.occupancy.has(Vector2i(floori(p.x) + dx, floori(p.y) + dz)):
+				return true
+	return _dans_batiment(p, e)
 
 
 ## L'enceinte du parc devient une pelouse (plus de champs ni de vignes entre les manèges).
@@ -295,10 +405,27 @@ func _place(k: BlocMesh, c: Vector3, h0: float) -> void:
 		var a1 := TAU * (i + 1) / n
 		k.tri(Vector3(c.x, y, c.z), Vector3(c.x + cos(a0) * 9.0, y, c.z + sin(a0) * 9.0), Vector3(c.x + cos(a1) * 9.0, y, c.z + sin(a1) * 9.0),
 			Vector3.UP, PAVE if i % 2 == 0 else Color("e9c46a").lerp(PAVE, 0.5))
-	# Fontaine au milieu.
-	k.cylinder(c.x, y, c.z, 2.4, 2.4, 0.6, 12, Color("adb5bd"))
-	k.cylinder(c.x, y + 0.6, c.z, 2.1, 2.1, 0.02, 12, Color("4cc9f0"))
-	k.cylinder(c.x, y, c.z, 0.35, 0.25, 1.8, 8, Color("adb5bd"))
+	# Fontaine à deux vasques au milieu, couronne de fleurs, réverbères et
+	# guirlandes qui montent jusqu'au mât.
+	var pierre := Color("e9e2d0")
+	k.cylinder(c.x, y, c.z, 2.6, 2.6, 0.6, 16, pierre)
+	k.cylinder(c.x, y + 0.6, c.z, 2.3, 2.3, 0.02, 16, Color("4cc9f0"))
+	k.cylinder(c.x, y, c.z, 0.35, 0.25, 1.6, 8, pierre)
+	k.cylinder(c.x, y + 1.6, c.z, 0.3, 1.1, 0.35, 12, pierre)
+	k.cylinder(c.x, y + 1.95, c.z, 1.0, 1.0, 0.02, 12, Color("90e0ef"))
+	k.cylinder(c.x, y + 1.95, c.z, 0.16, 0.1, 1.0, 6, pierre)
+	k.dome(c.x, y + 2.95, c.z, 0.25, 0.35, Color("caf0f8"), 8)
+	for i in 8:
+		var a := TAU * i / 8.0 + 0.2
+		ParcDeco.massif(k, c.x + cos(a) * 4.2, y, c.z + sin(a) * 4.2, 0.75, i)
+	for i in 4:
+		var a := TAU * i / 4.0 + PI / 4.0
+		var p := Vector3(c.x + cos(a) * 7.6, y, c.z + sin(a) * 7.6)
+		ParcDeco.reverbere(k, _kl, p.x, y, p.z)
+		_tetes_en_cours.append(Vector3(p.x, y + 3.5, p.z))
+		ParcDeco.fanions(k, p + Vector3(0, 3.3, 0), Vector3(c.x, y + 6.5, c.z), 0.4, i * 2)
+	k.cylinder(c.x, y + 3.2, c.z, 0.06, 0.06, 3.5, 5, Color("2d6a4f"))
+	k.box(c.x + 0.35, y + 6.3, c.z, 0.7, 0.4, 0.04, Color("ef476f"))
 
 
 # --- Visiteurs ----------------------------------------------------------------------------------------------

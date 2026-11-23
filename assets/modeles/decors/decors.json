@@ -59,6 +59,22 @@
   {
    "id": "zoo_objets",
    "nom": "Objets des enclos"
+  },
+  {
+   "id": "arbres",
+   "nom": "Arbres d'ornement"
+  },
+  {
+   "id": "jardins",
+   "nom": "Parcs et jardins"
+  },
+  {
+   "id": "toits",
+   "nom": "Toits et façades"
+  },
+  {
+   "id": "fete",
+   "nom": "Rue en fête"
   }
  ],
  "decors": [
@@ -3315,6 +3331,844 @@
     13.0,
     12.0,
     1.8
+   ]
+  },
+  {
+   "id": "cerisier_fleurs",
+   "nom": "Cerisier en fleurs",
+   "cat": "arbres",
+   "triangles": 208,
+   "taille": [
+    3.81,
+    3.89,
+    4.02
+   ]
+  },
+  {
+   "id": "erable_rouge",
+   "nom": "Érable du Japon rouge",
+   "cat": "arbres",
+   "triangles": 188,
+   "taille": [
+    3.28,
+    3.21,
+    3.28
+   ]
+  },
+  {
+   "id": "arbre_automne",
+   "nom": "Arbre d'automne",
+   "cat": "arbres",
+   "triangles": 140,
+   "taille": [
+    4.46,
+    4.34,
+    5.39
+   ]
+  },
+  {
+   "id": "ginkgo_dore",
+   "nom": "Ginkgo doré",
+   "cat": "arbres",
+   "triangles": 80,
+   "taille": [
+    2.36,
+    2.38,
+    6.3
+   ]
+  },
+  {
+   "id": "jacaranda",
+   "nom": "Jacaranda en fleurs",
+   "cat": "arbres",
+   "triangles": 208,
+   "taille": [
+    5.11,
+    5.55,
+    4.77
+   ]
+  },
+  {
+   "id": "magnolia",
+   "nom": "Magnolia en fleurs",
+   "cat": "arbres",
+   "triangles": 140,
+   "taille": [
+    3.29,
+    3.42,
+    4.23
+   ]
+  },
+  {
+   "id": "bouleau_blanc",
+   "nom": "Bouleau blanc",
+   "cat": "arbres",
+   "triangles": 160,
+   "taille": [
+    2.23,
+    2.14,
+    6.29
+   ]
+  },
+  {
+   "id": "cypres",
+   "nom": "Cyprès d'Italie",
+   "cat": "arbres",
+   "triangles": 40,
+   "taille": [
+    1.43,
+    1.51,
+    7.26
+   ]
+  },
+  {
+   "id": "saule_pleureur",
+   "nom": "Saule pleureur",
+   "cat": "arbres",
+   "triangles": 256,
+   "taille": [
+    4.82,
+    4.83,
+    4.48
+   ]
+  },
+  {
+   "id": "arbre_rond_parc",
+   "nom": "Arbre de parc en boule",
+   "cat": "arbres",
+   "triangles": 52,
+   "taille": [
+    2.2,
+    2.15,
+    4.05
+   ]
+  },
+  {
+   "id": "arbre_pot",
+   "nom": "Arbre en pot",
+   "cat": "arbres",
+   "triangles": 70,
+   "taille": [
+    0.96,
+    0.86,
+    2.07
+   ]
+  },
+  {
+   "id": "palmier_bac",
+   "nom": "Palmier en bac",
+   "cat": "arbres",
+   "triangles": 46,
+   "taille": [
+    2.28,
+    2.34,
+    1.95
+   ]
+  },
+  {
+   "id": "bonsai",
+   "nom": "Bonsaï",
+   "cat": "arbres",
+   "triangles": 116,
+   "taille": [
+    0.9,
+    0.5,
+    1.14
+   ]
+  },
+  {
+   "id": "plantes_pots",
+   "nom": "Plantes en pots",
+   "cat": "arbres",
+   "triangles": 164,
+   "taille": [
+    1.31,
+    0.63,
+    0.9
+   ]
+  },
+  {
+   "id": "topiaire_boule",
+   "nom": "Topiaire en boule",
+   "cat": "arbres",
+   "triangles": 108,
+   "taille": [
+    0.96,
+    0.99,
+    1.5
+   ]
+  },
+  {
+   "id": "topiaire_cone",
+   "nom": "Topiaire en cône",
+   "cat": "arbres",
+   "triangles": 64,
+   "taille": [
+    0.86,
+    0.9,
+    2.3
+   ]
+  },
+  {
+   "id": "topiaire_spirale",
+   "nom": "Topiaire en spirale",
+   "cat": "arbres",
+   "triangles": 320,
+   "taille": [
+    1.05,
+    0.98,
+    2.41
+   ]
+  },
+  {
+   "id": "topiaire_etages",
+   "nom": "Topiaire à étages",
+   "cat": "arbres",
+   "triangles": 280,
+   "taille": [
+    0.81,
+    0.85,
+    2.42
+   ]
+  },
+  {
+   "id": "topiaire_cube",
+   "nom": "Buis en cube",
+   "cat": "arbres",
+   "triangles": 12,
+   "taille": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "id": "labyrinthe_haies",
+   "nom": "Labyrinthe de haies",
+   "cat": "jardins",
+   "triangles": 452,
+   "taille": [
+    16.0,
+    16.4,
+    2.45
+   ]
+  },
+  {
+   "id": "pont_arche",
+   "nom": "Pont de bois en arc",
+   "cat": "jardins",
+   "triangles": 528,
+   "taille": [
+    6.12,
+    1.56,
+    2.09
+   ]
+  },
+  {
+   "id": "pont_japonais",
+   "nom": "Pont japonais",
+   "cat": "jardins",
+   "triangles": 888,
+   "taille": [
+    6.16,
+    1.76,
+    2.48
+   ]
+  },
+  {
+   "id": "etang_rochers",
+   "nom": "Étang aux rochers",
+   "cat": "jardins",
+   "triangles": 456,
+   "taille": [
+    5.32,
+    5.58,
+    1.74
+   ]
+  },
+  {
+   "id": "bassin_nenuphars",
+   "nom": "Bassin aux nénuphars",
+   "cat": "jardins",
+   "triangles": 340,
+   "taille": [
+    4.0,
+    3.94,
+    0.41
+   ]
+  },
+  {
+   "id": "bassin_mogol",
+   "nom": "Bassin moghol à jets d'eau",
+   "cat": "jardins",
+   "triangles": 208,
+   "taille": [
+    3.63,
+    11.0,
+    3.0
+   ]
+  },
+  {
+   "id": "tsukubai",
+   "nom": "Tsukubai",
+   "cat": "jardins",
+   "triangles": 212,
+   "taille": [
+    2.03,
+    1.78,
+    0.84
+   ]
+  },
+  {
+   "id": "jardin_zen",
+   "nom": "Jardin zen",
+   "cat": "jardins",
+   "triangles": 396,
+   "taille": [
+    4.0,
+    3.0,
+    0.68
+   ]
+  },
+  {
+   "id": "porte_lune",
+   "nom": "Porte de lune",
+   "cat": "jardins",
+   "triangles": 244,
+   "taille": [
+    4.6,
+    0.6,
+    3.45
+   ]
+  },
+  {
+   "id": "pergola_vigne",
+   "nom": "Pergola à vigne",
+   "cat": "jardins",
+   "triangles": 360,
+   "taille": [
+    4.4,
+    3.3,
+    3.26
+   ]
+  },
+  {
+   "id": "arche_roses",
+   "nom": "Arche de roses",
+   "cat": "jardins",
+   "triangles": 760,
+   "taille": [
+    2.03,
+    0.84,
+    2.63
+   ]
+  },
+  {
+   "id": "arche_coeur",
+   "nom": "Arche en cœur",
+   "cat": "jardins",
+   "triangles": 636,
+   "taille": [
+    3.15,
+    0.6,
+    2.87
+   ]
+  },
+  {
+   "id": "banc_arbre",
+   "nom": "Banc autour d'un arbre",
+   "cat": "jardins",
+   "triangles": 344,
+   "taille": [
+    5.14,
+    4.94,
+    6.21
+   ]
+  },
+  {
+   "id": "nappe_pique_nique",
+   "nom": "Nappe de pique-nique",
+   "cat": "jardins",
+   "triangles": 284,
+   "taille": [
+    2.0,
+    2.0,
+    0.3
+   ]
+  },
+  {
+   "id": "bain_oiseaux",
+   "nom": "Bain d'oiseaux",
+   "cat": "jardins",
+   "triangles": 120,
+   "taille": [
+    0.86,
+    0.9,
+    1.01
+   ]
+  },
+  {
+   "id": "cadran_solaire",
+   "nom": "Cadran solaire",
+   "cat": "jardins",
+   "triangles": 92,
+   "taille": [
+    0.6,
+    0.6,
+    1.22
+   ]
+  },
+  {
+   "id": "nichoir",
+   "nom": "Nichoir",
+   "cat": "jardins",
+   "triangles": 52,
+   "taille": [
+    0.34,
+    0.4,
+    2.26
+   ]
+  },
+  {
+   "id": "parterre_rond",
+   "nom": "Parterre de fleurs",
+   "cat": "jardins",
+   "triangles": 544,
+   "taille": [
+    3.0,
+    2.92,
+    0.79
+   ]
+  },
+  {
+   "id": "parterre_francais",
+   "nom": "Parterre à la française",
+   "cat": "jardins",
+   "triangles": 360,
+   "taille": [
+    6.0,
+    6.0,
+    1.3
+   ]
+  },
+  {
+   "id": "rocaille",
+   "nom": "Rocaille fleurie",
+   "cat": "jardins",
+   "triangles": 260,
+   "taille": [
+    2.75,
+    2.17,
+    0.61
+   ]
+  },
+  {
+   "id": "vasque_fleurie",
+   "nom": "Vasque fleurie",
+   "cat": "jardins",
+   "triangles": 216,
+   "taille": [
+    0.76,
+    0.85,
+    1.67
+   ]
+  },
+  {
+   "id": "gloriette",
+   "nom": "Gloriette",
+   "cat": "jardins",
+   "triangles": 210,
+   "taille": [
+    3.56,
+    4.0,
+    4.5
+   ]
+  },
+  {
+   "id": "serre_jardin",
+   "nom": "Serre de jardin",
+   "cat": "jardins",
+   "triangles": 260,
+   "taille": [
+    4.2,
+    3.1,
+    3.32
+   ]
+  },
+  {
+   "id": "bac_a_sable_hexa",
+   "nom": "Bac à sable hexagonal",
+   "cat": "jardins",
+   "triangles": 120,
+   "taille": [
+    4.0,
+    3.52,
+    0.37
+   ]
+  },
+  {
+   "id": "borne_jardin",
+   "nom": "Borne lumineuse d'allée",
+   "cat": "eclairage",
+   "triangles": 84,
+   "taille": [
+    0.28,
+    0.28,
+    0.91
+   ]
+  },
+  {
+   "id": "lampadaire_parc",
+   "nom": "Lampadaire de parc",
+   "cat": "eclairage",
+   "triangles": 72,
+   "taille": [
+    0.5,
+    0.5,
+    3.75
+   ]
+  },
+  {
+   "id": "climatiseur",
+   "nom": "Climatiseur",
+   "cat": "toits",
+   "triangles": 128,
+   "taille": [
+    1.05,
+    0.38,
+    0.65
+   ],
+   "toit": 1
+  },
+  {
+   "id": "climatiseurs_toit",
+   "nom": "Climatisation de toit",
+   "cat": "toits",
+   "triangles": 192,
+   "taille": [
+    3.9,
+    2.24,
+    1.0
+   ],
+   "toit": 1
+  },
+  {
+   "id": "extracteur",
+   "nom": "Extracteur de toit",
+   "cat": "toits",
+   "triangles": 90,
+   "taille": [
+    0.6,
+    0.6,
+    1.15
+   ],
+   "toit": 1
+  },
+  {
+   "id": "cheminee_metal",
+   "nom": "Conduit de cheminée inox",
+   "cat": "toits",
+   "triangles": 124,
+   "taille": [
+    0.5,
+    0.5,
+    2.27
+   ],
+   "toit": 1
+  },
+  {
+   "id": "chateau_eau_toit",
+   "nom": "Château d'eau de toit",
+   "cat": "toits",
+   "triangles": 340,
+   "taille": [
+    2.78,
+    2.8,
+    6.65
+   ],
+   "toit": 1
+  },
+  {
+   "id": "chauffe_eau_solaire",
+   "nom": "Chauffe-eau solaire",
+   "cat": "toits",
+   "triangles": 84,
+   "taille": [
+    2.2,
+    1.06,
+    1.45
+   ],
+   "toit": 1
+  },
+  {
+   "id": "parabole",
+   "nom": "Antenne parabolique",
+   "cat": "toits",
+   "triangles": 88,
+   "taille": [
+    0.8,
+    0.76,
+    1.34
+   ],
+   "toit": 1
+  },
+  {
+   "id": "antenne_rateau",
+   "nom": "Antenne râteau",
+   "cat": "toits",
+   "triangles": 112,
+   "taille": [
+    1.35,
+    1.6,
+    2.6
+   ],
+   "toit": 1
+  },
+  {
+   "id": "cornet_geant",
+   "nom": "Cornet de glace géant",
+   "cat": "toits",
+   "triangles": 356,
+   "taille": [
+    1.63,
+    1.69,
+    4.68
+   ],
+   "toit": 1
+  },
+  {
+   "id": "burger_geant",
+   "nom": "Burger géant",
+   "cat": "toits",
+   "triangles": 476,
+   "taille": [
+    2.7,
+    2.7,
+    2.85
+   ],
+   "toit": 1
+  },
+  {
+   "id": "donut_geant",
+   "nom": "Donut géant",
+   "cat": "toits",
+   "triangles": 936,
+   "taille": [
+    3.37,
+    1.14,
+    4.57
+   ],
+   "toit": 1
+  },
+  {
+   "id": "tasse_geante",
+   "nom": "Tasse de café géante",
+   "cat": "toits",
+   "triangles": 328,
+   "taille": [
+    2.44,
+    2.2,
+    3.4
+   ],
+   "toit": 1
+  },
+  {
+   "id": "pizza_geante",
+   "nom": "Part de pizza géante",
+   "cat": "toits",
+   "triangles": 184,
+   "taille": [
+    2.3,
+    0.7,
+    3.15
+   ],
+   "toit": 1
+  },
+  {
+   "id": "enseigne_neon",
+   "nom": "Enseigne néon verticale",
+   "cat": "toits",
+   "triangles": 108,
+   "taille": [
+    0.16,
+    0.65,
+    3.06
+   ]
+  },
+  {
+   "id": "enseigne_lumineuse",
+   "nom": "Enseigne lumineuse sur pied",
+   "cat": "toits",
+   "triangles": 60,
+   "taille": [
+    0.5,
+    0.3,
+    1.32
+   ]
+  },
+  {
+   "id": "lanternes_rouges",
+   "nom": "Lanternes rouges",
+   "cat": "toits",
+   "triangles": 280,
+   "taille": [
+    4.1,
+    0.27,
+    2.8
+   ]
+  },
+  {
+   "id": "distributeur_boissons",
+   "nom": "Distributeur de boissons",
+   "cat": "toits",
+   "triangles": 228,
+   "taille": [
+    1.0,
+    0.77,
+    1.85
+   ]
+  },
+  {
+   "id": "comptoir_tabourets",
+   "nom": "Comptoir et tabourets",
+   "cat": "toits",
+   "triangles": 624,
+   "taille": [
+    3.2,
+    1.09,
+    1.14
+   ]
+  },
+  {
+   "id": "store_terrasse",
+   "nom": "Auvent de tuiles",
+   "cat": "toits",
+   "triangles": 224,
+   "taille": [
+    4.2,
+    1.32,
+    0.92
+   ]
+  },
+  {
+   "id": "escalier_exterieur",
+   "nom": "Escalier extérieur",
+   "cat": "toits",
+   "triangles": 216,
+   "taille": [
+    1.1,
+    5.8,
+    3.93
+   ]
+  },
+  {
+   "id": "chariot_hot_dog",
+   "nom": "Chariot à hot-dogs",
+   "cat": "fete",
+   "triangles": 300,
+   "taille": [
+    2.3,
+    1.2,
+    2.25
+   ]
+  },
+  {
+   "id": "chariot_popcorn",
+   "nom": "Chariot à pop-corn",
+   "cat": "fete",
+   "triangles": 316,
+   "taille": [
+    1.9,
+    1.1,
+    2.25
+   ]
+  },
+  {
+   "id": "chariot_ballons",
+   "nom": "Marchand de ballons",
+   "cat": "fete",
+   "triangles": 332,
+   "taille": [
+    1.26,
+    1.24,
+    2.85
+   ]
+  },
+  {
+   "id": "charrette_fleurs",
+   "nom": "Charrette de fleuriste",
+   "cat": "fete",
+   "triangles": 560,
+   "taille": [
+    2.4,
+    1.08,
+    1.26
+   ]
+  },
+  {
+   "id": "stand_limonade",
+   "nom": "Stand de limonade",
+   "cat": "fete",
+   "triangles": 176,
+   "taille": [
+    1.5,
+    0.67,
+    2.15
+   ]
+  },
+  {
+   "id": "stand_tir",
+   "nom": "Stand de tir forain",
+   "cat": "fete",
+   "triangles": 472,
+   "taille": [
+    3.12,
+    1.5,
+    2.9
+   ]
+  },
+  {
+   "id": "guirlande_ampoules",
+   "nom": "Guirlande d'ampoules",
+   "cat": "fete",
+   "triangles": 356,
+   "taille": [
+    8.1,
+    0.12,
+    3.4
+   ]
+  },
+  {
+   "id": "fanions",
+   "nom": "Fanions de fête",
+   "cat": "fete",
+   "triangles": 184,
+   "taille": [
+    8.09,
+    0.1,
+    3.2
+   ]
+  },
+  {
+   "id": "arche_ballons",
+   "nom": "Arche de ballons",
+   "cat": "fete",
+   "triangles": 864,
+   "taille": [
+    4.4,
+    0.67,
+    3.08
+   ]
+  },
+  {
+   "id": "montgolfiere_captive",
+   "nom": "Montgolfière captive",
+   "cat": "fete",
+   "triangles": 304,
+   "taille": [
+    5.94,
+    5.85,
+    6.51
    ]
   }
  ]

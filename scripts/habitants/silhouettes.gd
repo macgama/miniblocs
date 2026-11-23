@@ -24,6 +24,8 @@ extends RefCounted
 ##   Silhouettes.os(n).avant_bras_d.rotation.x = -1.2
 
 const DOSSIER := "res://assets/modeles/personnages/"
+## Clés de couleur du shader (instance uniforms).
+const COULEURS := ["peau", "cheveux", "haut", "bas", "chaussures", "accessoire", "manches", "jambes", "motif", "motif_couleur"]
 const NOEUDS := ["bassin", "torse", "tete", "cheveux", "habit", "jambe_g", "jambe_d", "tibia_g", "tibia_d",
 	"bras_g", "bras_d", "avant_bras_g", "avant_bras_d", "main_g", "main_d"]
 
@@ -121,8 +123,11 @@ static func _choix(rng: RandomNumberGenerator, poids: Dictionary) -> String:
 ## Apparence stable d'une personne. famille : graine commune du foyer (même
 ## teinte de base, même couleur de cheveux à peu près) ; region : voir Prenoms.
 ## Renvoie {corps, coiffure, habit, echelle, peau, cheveux, haut, bas,
-## chaussures, accessoire, manches, jambes} (couleurs en Color).
-static func apparence(pid: int, age: float, sexe: String, region := "europe", famille := 0) -> Dictionary:
+## chaussures, accessoire, manches, jambes, chapeau, objets, motif,
+## motif_couleur} (couleurs en Color).
+## ctx : contexte des tenues (Tenues.contexte() : époque, saison, météo) ;
+## null = celui du moment, {} = vêtements de tous les jours, sans adaptation.
+static func apparence(pid: int, age: float, sexe: String, region := "europe", famille := 0, ctx: Variant = null) -> Dictionary:
 	var rf := RandomNumberGenerator.new()
 	rf.seed = hash(famille * 92821 + 17)
 	var r := RandomNumberGenerator.new()
@@ -216,18 +221,22 @@ static func apparence(pid: int, age: float, sexe: String, region := "europe", fa
 	var ech := taille_cible(age, sexe) / taille_modele(t, sexe)
 	if t in ["ado", "adulte", "senior"]:
 		ech *= 1.0 + r.randfn(0.0, 0.035)
-	return {"corps": corps, "coiffure": coif, "habit": habit, "echelle": ech, "peau": peau, "cheveux": cheveux,
+	var look := {"corps": corps, "coiffure": coif, "habit": habit, "echelle": ech, "peau": peau, "cheveux": cheveux,
 		"haut": haut, "bas": bas, "chaussures": chaussures, "accessoire": acc, "manches": manches, "jambes": jambes,
-		"corpulence": corp}
+		"corpulence": corp, "chapeau": "", "objets": [], "motif": 0.0, "motif_couleur": Color("f4f1e8")}
+	var c: Dictionary = Tenues.contexte() if ctx == null else ctx
+	if not c.is_empty():
+		Tenues.civil(look, pid, age, sexe, region, c)
+	return look
 
 
 ## Apparence d'un habitant de la Population.
-static func apparence_habitant(pop: Population, pid: int) -> Dictionary:
+static func apparence_habitant(pop: Population, pid: int, ctx: Variant = null) -> Dictionary:
 	var p: Dictionary = pop.persons.get(pid, {})
 	if p.is_empty():
-		return apparence(pid, 35.0, "F" if pid % 2 == 0 else "H")
+		return apparence(pid, 35.0, "F" if pid % 2 == 0 else "H", "europe", 0, ctx)
 	var h: Dictionary = pop.households.get(int(p.f), {})
-	return apparence(pid, pop.age_of(p), String(p.s), String(h.get("reg", "europe")), int(p.f))
+	return apparence(pid, pop.age_of(p), String(p.s), String(h.get("reg", "europe")), int(p.f), ctx)
 
 
 # --- Construction -------------------------------------------------------------------
@@ -287,6 +296,9 @@ static func creer(look: Dictionary, ombre := false) -> Node3D:
 	racine.set_meta("hanche", (rig.bassin as Node3D).position.y)
 	racine.set_meta("echelle", ech)
 	var coif := String(look.get("coiffure", ""))
+	if String(look.get("chapeau", "")) != "" and rig.get("tete") != null:
+		# Haut du crâne seul (avant les cheveux), pour poser les chapeaux.
+		Tenues.haut_de_tete(rig.tete, String(look.get("corps", "")) + "/")
 	if coif != "" and rig.get("cheveux") != null:
 		var c := _scene("cheveux/" + coif)
 		if c != null:
@@ -296,6 +308,7 @@ static func creer(look: Dictionary, ombre := false) -> Node3D:
 		var h := _scene("habits/" + hab)
 		if h != null:
 			(rig.habit as Node3D).add_child(h.instantiate())
+	Tenues.equiper(racine, rig, look)
 	racine.set_meta("couleurs", {})
 	_materiaux(racine, ombre)
 	colorer(racine, look)
@@ -303,8 +316,9 @@ static func creer(look: Dictionary, ombre := false) -> Node3D:
 
 
 ## Personnage d'un habitant, avec son apparence stable.
-static func pour_habitant(pop: Population, pid: int, ombre := false) -> Node3D:
-	var n := creer(apparence_habitant(pop, pid), ombre)
+## dedans : à l'intérieur (ni chapeau de sortie, ni manteau, ni parapluie).
+static func pour_habitant(pop: Population, pid: int, ombre := false, dedans := false) -> Node3D:
+	var n := creer(apparence_habitant(pop, pid, Tenues.contexte_interieur() if dedans else null), ombre)
 	n.set_meta("pid", pid)
 	return n
 
@@ -323,13 +337,15 @@ static func _materiaux(n: Node, ombre: bool) -> void:
 ## leur valeur.
 static func colorer(n: Node3D, couleurs: Dictionary) -> void:
 	var cur: Dictionary = n.get_meta("couleurs", {})
-	for k in ["peau", "cheveux", "haut", "bas", "chaussures", "accessoire", "manches", "jambes"]:
+	for k in COULEURS:
 		if couleurs.has(k):
 			var v: Variant = couleurs[k]
 			if v is String:
 				v = Color(v as String)
 			elif v is bool:
 				v = 1.0 if v else 0.0
+			elif v is int:
+				v = float(v)
 			cur[k] = v
 	n.set_meta("couleurs", cur)
 	_applique(n, cur)
@@ -346,8 +362,12 @@ static func _applique(n: Node, cur: Dictionary) -> void:
 		_override(n, mat)
 		return
 	if n is GeometryInstance3D:
+		var gi := n as GeometryInstance3D
 		for k in cur:
-			(n as GeometryInstance3D).set_instance_shader_parameter(k, cur[k])
+			gi.set_instance_shader_parameter(k, cur[k])
+		# Gilets, tabliers et vestes s'arrêtent aux épaules.
+		if cur.has("motif") and float(cur.motif) >= 4.5 and (String(n.name).begins_with("bras") or String(n.name).begins_with("avant_bras")):
+			gi.set_instance_shader_parameter("motif", 0.0)
 	for c in n.get_children():
 		_applique(c, cur)
 
@@ -363,7 +383,7 @@ static func _override(n: Node, mat: ShaderMaterial) -> void:
 ## Les clés absentes gardent les vêtements de tous les jours.
 static func habiller(n: Node3D, tenue: Dictionary) -> void:
 	var t := {}
-	for k in ["haut", "bas", "chaussures", "accessoire", "manches", "jambes"]:
+	for k in ["haut", "bas", "chaussures", "accessoire", "manches", "jambes", "motif", "motif_couleur"]:
 		if tenue.has(k):
 			t[k] = tenue[k]
 	colorer(n, t)
@@ -380,7 +400,7 @@ static func os(n: Node3D) -> Dictionary:
 static func repos(n: Node3D) -> void:
 	var rig := os(n)
 	for k in rig:
-		if rig[k] != null and k != "cheveux" and k != "habit" and not String(k).begins_with("main"):
+		if rig[k] is Node3D and k != "cheveux" and k != "habit" and not String(k).begins_with("main"):
 			(rig[k] as Node3D).rotation = Vector3.ZERO
 	if rig.get("bassin") != null:
 		(rig.bassin as Node3D).position.y = float(n.get_meta("hanche", 0.9))
@@ -394,6 +414,16 @@ static func repos(n: Node3D) -> void:
 	if pose:
 		pose.position = Vector3.ZERO
 		pose.rotation = Vector3.ZERO
+	_tenir(n, rig)
+
+
+## Bras qui tiennent un parapluie ou une canne (Tenues.equiper).
+static func _tenir(_n: Node3D, rig: Dictionary) -> void:
+	var tient: Variant = rig.get("_tient")
+	if tient == null:
+		return
+	for cote in tient:
+		Tenues.bras_tenant(rig, String(cote), String(tient[cote]))
 
 
 ## Pose : "debout" (pieds en 0), "assis" (bassin sur l'assise en 0, jambes
@@ -446,6 +476,7 @@ static func marcher(n: Node3D, phase: float, ampleur := 1.0) -> void:
 	(rig.avant_bras_g as Node3D).rotation.x = -0.15 * ampleur
 	(rig.avant_bras_d as Node3D).rotation.x = -0.15 * ampleur
 	(rig.bassin as Node3D).position.y = float(n.get_meta("hanche", 0.9)) + absf(sin(phase)) * 0.015 * ampleur
+	_tenir(n, rig)
 
 
 # --- Secours sans modèles importés --------------------------------------------------

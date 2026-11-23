@@ -38,6 +38,49 @@ mollets nus.
 - L'apparence est **stable** : elle se calcule à partir du numéro de
   l'habitant, de son foyer, de son âge et de sa région. Rien à sauvegarder.
 
+## Tenues selon la situation (époque, saison, métier, région)
+
+`scripts/habitants/tenues.gd` (`Tenues`) habille chacun selon le moment :
+
+- **Époque** (année de la partie) : au XIXe siècle (avant 1870) redingotes et
+  vestes ouvertes sur un plastron, hauts-de-forme, feutres et casquettes ;
+  robes et jupes longues, coiffes, capotes et tabliers pour les femmes. Vers
+  1900 : canotiers l'été, melons, casquettes de titi, chapeaux cloche ; puis
+  costumes, robes et carreaux des Trente Glorieuses ; tenues d'aujourd'hui
+  ensuite. Couleurs sourdes autrefois, plus vives ensuite.
+- **Saison et météo** (température et pluie du jour) : sous 10 °C manteaux,
+  bonnets et écharpes, plus de short ; au-dessus de 21 °C bras nus, shorts,
+  casquettes et chapeaux de soleil ; sous la pluie, une partie des passants
+  sortent le parapluie (tenu au-dessus de la tête, même en marchant).
+- **Âge** : cartable (autrefois) ou sac à dos des écoliers, canne de
+  certaines personnes âgées, sac à main.
+- **Région** : tissus wax d'Afrique de l'Ouest, chapeaux coniques d'Asie, en
+  plus des foulards, turbans et robes longues déjà présents.
+- **Métiers** : un uniforme par époque pour pompiers (casque de laiton → casque
+  F1 et bandes réfléchissantes ; casque américain aux Amériques), policiers
+  (bicorne du gendarme, képi, casquette), médecins (redingote puis blouse et
+  stéthoscope), infirmières (robe longue, tablier et coiffe → tunique),
+  ouvriers (chemise et casquette → bleu de travail → gilet haute visibilité et
+  casque), mineurs, agriculteurs, boulangers, cuisiniers, bouchers, serveurs,
+  cadres, chauffeurs, agents de gare, éboueurs, bûcherons, pêcheurs,
+  jardiniers, artisans, enseignants, pompes funèbres… Les autres métiers
+  gardent les couleurs de `Figurine.TENUES`.
+
+Pour rester léger, rayures, carreaux, wax, bandes réfléchissantes, gilets,
+tabliers et vestes ouvertes sont **peints par le shader** (`motif`,
+`motif_couleur`), sans géométrie. Seuls le chapeau et un ou deux petits objets
+ajoutent un maillage (partagé entre tous, moins de 400 triangles, sans ombre).
+Les figurines sans habitant (secours, ouvriers des chantiers et des réseaux)
+sont désormais elles aussi des personnages arrondis, plus des blocs.
+
+```gdscript
+var look := Silhouettes.apparence(pid, age, "F", "europe", foyer)       # contexte du moment
+var look2 := Silhouettes.apparence(pid, age, "F", "europe", foyer, {})  # sans adaptation
+Tenues.metier(look, "pompier", "F", Tenues.contexte())                  # uniforme de l'époque
+var fig := Figurine.look_de(pid, "medecin", false, pop)                 # look complet d'un employé
+Tenues.force = {"annee": 1850, "temp": -3.0, "pluie": 0.6}             # imposer (vitrine, tests)
+```
+
 ## Dans le jeu
 
 - **Passants** (habitants en trajet à pied) : leur vraie apparence, ils marchent
@@ -86,6 +129,10 @@ blender --background --factory-startup --python tools/blender/personnages_lowpol
 
 - Ouvrir `scenes/vitrine_personnages.tscn` et lancer la scène (F6) : une foule
   qui se promène, la rangée des âges, des tenues de métier, un banc. R : nouvelle
-  foule ; 1-4 : vues ; Espace : marche/arrêt ; glisser à la souris : tourner.
-- Test automatique : `godot --headless --path . --script res://tests/silhouettes_test.gd`.
+  foule ; 1-4 : vues ; E : époque (1850, 1905, 1960, aujourd'hui) ; T : temps
+  (doux, hiver, été, pluie) ; Espace : marche/arrêt ; glisser à la souris : tourner.
+- Test automatique : `godot --headless --path . --script res://tests/silhouettes_test.gd`
+  et `res://tests/tenues_test.gd`.
+- Captures des tenues : `godot --path . --script res://tests/tenues_vitrine.gd --
+  --prefixe captures/tenues/1850 --annee 1850 --temp -2 --pluie 0.5`.
 - Captures : `godot --path . --script res://tests/silhouettes_vitrine.gd -- --prefixe captures/personnages`.

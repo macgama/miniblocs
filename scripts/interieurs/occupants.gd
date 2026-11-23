@@ -237,7 +237,7 @@ func _silhouette(mi: MeshInstance3D, pid: int, pose: String) -> void:
 		fig.queue_free()
 		fig = null
 	if fig == null:
-		fig = Silhouettes.pour_habitant(population, pid)
+		fig = Silhouettes.pour_habitant(population, pid, false, true)
 		fig.set_meta("age", int(population.age_of(population.persons[pid])))
 		mi.add_child(fig)
 		mi.set_meta("silhouette", fig)

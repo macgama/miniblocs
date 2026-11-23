@@ -164,6 +164,8 @@ func _run() -> void:
 		e1.pressed.emit()
 	await process_frame
 	_check(bs.type_id == "maison@%dx15x1" % gw, "plain-pied : %s" % bs.type_id)
+	# Ce test vérifie les prix : la ville paie tout (sans promoteurs privés, voir promoteurs_test).
+	ReglagesPartie.actuel.promoteurs_prives = false
 	var pos := _spot(bs, bs.type_id, Vector2i(20, 0))
 	var avant := bs.money
 	var bid := bs.place(bs.type_id, pos, 0)

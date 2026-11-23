@@ -638,13 +638,14 @@ func _fiche_amelioration(bid: int) -> void:
 	if ok_type and niv < Ameliorations.NIVEAU_MAX:
 		var cible := niv + 1
 		var up := Button.new()
-		up.text = "Agrandir · %s" % BuildingSystem.format_money(am.cout(bid, cible))
+		up.text = "Agrandir · %s" % ("payé par le propriétaire" if am.prive(bid) else BuildingSystem.format_money(am.cout(bid, cible)))
 		up.icon = Icones.get_icon("construire", 18)
 		up.focus_mode = Control.FOCUS_NONE
 		var why := am.refus_agrandir(bid)
 		up.disabled = why != ""
-		up.tooltip_text = "Niveau %d : %s (au lieu de %s).\nUn étage de plus, chantier d'environ %s, payé au fil des travaux. Le bâtiment reste ouvert pendant les travaux.%s" % [
-			cible, am.texte_capacites(bid, cible), am.texte_capacites(bid), Chantiers.duree_texte(am.duree_prevue(bid, cible)), ("\n" + why) if why != "" else ""]
+		up.tooltip_text = "Niveau %d : %s (au lieu de %s).\nUn étage de plus, chantier d'environ %s, %s. Le bâtiment reste ouvert pendant les travaux.%s" % [
+			cible, am.texte_capacites(bid, cible), am.texte_capacites(bid), Chantiers.duree_texte(am.duree_prevue(bid, cible)),
+			"payé par son propriétaire privé (rien pour la ville)" if am.prive(bid) else "payé au fil des travaux", ("\n" + why) if why != "" else ""]
 		up.pressed.connect(func() -> void:
 			am.agrandir(bid)
 			refresh())
@@ -652,7 +653,7 @@ func _fiche_amelioration(bid: int) -> void:
 	var why_r := am.refus_renover(bid)
 	if usure >= Ameliorations.USURE_RENOV:
 		var re := Button.new()
-		re.text = "Rénover · %s" % BuildingSystem.format_money(am.cout(bid, 0))
+		re.text = "Rénover · %s" % ("payé par le propriétaire" if am.prive(bid) else BuildingSystem.format_money(am.cout(bid, 0)))
 		re.icon = Icones.get_icon("peinture", 18)
 		re.focus_mode = Control.FOCUS_NONE
 		re.disabled = why_r != ""

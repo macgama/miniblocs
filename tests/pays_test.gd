@@ -83,6 +83,8 @@ func _run() -> void:
 
 	print("Chaque ville paie chez elle :")
 	transport.build_segment("route", Vector3(-1300, y, 40), Vector3(-700, y, 40))
+	# Ce test vérifie qui paie : la ville paie tout (sans promoteurs privés, voir promoteurs_test).
+	ReglagesPartie.actuel.promoteurs_prives = false
 	var pays_avant := p.solde(Pays.PAYS)
 	var v1_avant := p.solde(v1)
 	var maison := bs.place("maison", Vector2i(-900, 56), bs.best_rotation("maison", Vector2i(-900, 56)))

@@ -186,6 +186,8 @@ func _run() -> void:
 	BatimentsVie.chantiers = true
 	bs.require_access = false
 	bs.unlimited_money = false
+	# Ce test vérifie le surcoût payé par la caisse : la ville paie tout (sans promoteurs privés).
+	ReglagesPartie.actuel.promoteurs_prives = false
 	bs.money = 50_000_000
 	# Une carrière avec de la pierre en stock, et rien d'autre.
 	var carr := bs.place("carriere", Vector2i(300, 300), 0)

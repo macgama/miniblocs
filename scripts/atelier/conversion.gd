@@ -303,12 +303,13 @@ static func open_interior(mob: Mobilier, bid: int) -> Dictionary:
 	# Le bâtiment du catalogue laisse la place ; son prix compte pour la reconstruction.
 	var saved := b.duplicate(true)
 	bs.remove_quietly(bid)
-	if not bs.unlimited_money:
-		bs.money += int(saved.get("cost", 0))
+	# Le prix payé à la pose est rendu, puis les murs se paient : rien de plus au total.
+	# Bâtiment privé (promoteurs) : ses murs sont gratuits, donc rien n'est rendu.
+	var rendu := 0 if bs.unlimited_money or BuildingCatalog.est_prive(String(saved.t)) else int(saved.get("cost", 0))
+	bs.money += rendu
 	var res := Gabarits.build_spec(mob, spec, origin, gr, furniture_style(style_id, String(t.get("region", "")), String(t.get("era", ""))))
 	if not res.ok:
-		if not bs.unlimited_money:
-			bs.money -= int(saved.get("cost", 0))
+		bs.money -= rendu
 		bs.restore(saved)
 		return res
 	mob.set_name_of(String(res.id), String(t.get("name", "")))

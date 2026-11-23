@@ -15,6 +15,7 @@ ouvre ce même panneau.
 | Argent illimité | plus rien n'est payé |
 | Caisse actuelle | en cours de partie, l'admin peut mettre la caisse à un montant |
 | Coût des constructions (×0,5 à ×5) | bâtiments, terrassement, zonage, blocs, murs et étages |
+| Bâtiments privés payés par des promoteurs (coché) | la ville ne paie que voies, réseaux et services publics ; logements, commerces, industrie, production, hôtels, cafés et restaurants (zonage, catalogue B, Atelier) et le zonage sont gratuits pour la caisse ; décoché, la ville paie tout |
 | Accès à une voie obligatoire | règle de pose des bâtiments |
 | Bâtiments | tout débloqué (bac à sable), ou arbre de progression à points (Maj+F10, voir [arbre-progression.md](arbre-progression.md)) |
 | Impôts (×0 à ×3) | taxe foncière et impôts des entreprises touchés par la ville |

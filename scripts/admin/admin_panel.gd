@@ -26,6 +26,7 @@ var _cout_l: Label
 var _acces: CheckBox
 var _fondation: CheckBox
 var _rue_fondation: CheckBox
+var _promoteurs: CheckBox
 var _services_fondation: CheckBox
 var _territoire: CheckBox
 var _fondateurs: SpinBox
@@ -187,6 +188,9 @@ func _ready() -> void:
 	_row(g, "Coût des constructions", c[2])
 	_acces = _check("Accès à une voie obligatoire pour construire")
 	g.add_child(_acces)
+	_promoteurs = _check("Bâtiments privés payés par des promoteurs (la ville ne paie que voies, réseaux et services publics)")
+	_promoteurs.tooltip_text = "Logements, commerces, industrie, fermes, hôtels et restaurants sont financés par le privé, qu'ils poussent dans une zone, soient posés du catalogue ou dessinés dans l'Atelier ; la ville se rembourse par les impôts. Décoche pour que la ville paie tout"
+	g.add_child(_promoteurs)
 	_fondation = _check("Fonder un village (Maison de commune) avant de construire")
 	_fondation.tooltip_text = "Au début de la partie, on pose d'abord la Maison de commune : avant, ni bâtiment, ni zonage, ni voie"
 	g.add_child(_fondation)
@@ -559,6 +563,7 @@ func _fill() -> void:
 	_illimite.button_pressed = reglages.argent_illimite
 	_cout.value = reglages.cout_construction
 	_acces.button_pressed = reglages.acces_route
+	_promoteurs.button_pressed = reglages.promoteurs_prives
 	_fondation.button_pressed = reglages.fondation
 	_rue_fondation.button_pressed = reglages.rue_fondation
 	_services_fondation.button_pressed = reglages.services_fondation
@@ -640,6 +645,7 @@ func _changed() -> void:
 	reglages.argent_illimite = _illimite.button_pressed
 	reglages.cout_construction = _cout.value
 	reglages.acces_route = _acces.button_pressed
+	reglages.promoteurs_prives = _promoteurs.button_pressed
 	reglages.fondation = _fondation.button_pressed
 	reglages.rue_fondation = _rue_fondation.button_pressed
 	reglages.services_fondation = _services_fondation.button_pressed

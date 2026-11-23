@@ -82,7 +82,7 @@ const ETAPES := [
 			{"titre": "Le bouton Construire", "cible": ["Construire"],
 				"texte": "Tous les bâtiments et le zonage sont rangés dans Construire.", "touches": "B : Construire"},
 			{"titre": "Le zonage", "panneau": "build_panel", "cible": ["ZoneR", "Zonage"], "section": false,
-				"texte": "Choisis « Résidentielle » et glisse le long de ta route. Les maisons pousseront toutes seules… enfin, avec tes ouvriers et ton argent."},
+				"texte": "Choisis « Résidentielle » et glisse le long de ta route. Les maisons pousseront toutes seules, payées par des promoteurs privés : ta caisse paie les routes et les réseaux, et se rembourse par les impôts."},
 		]},
 	{"id": "reseaux", "titre": "Courant, eau et égouts",
 		"texte": "Pose une source d'électricité, une source d'eau et de quoi traiter les égouts.",

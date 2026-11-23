@@ -507,6 +507,13 @@ func check_place(id: String, center: Vector2i, r: int, grown := false, a := 0.0)
 			return res
 	if grown:
 		res.cost = 0
+	elif BuildingCatalog.est_prive(id):
+		# Bâtiment privé : un promoteur (ou l'entreprise) le finance, pas la caisse de la ville.
+		res["valeur"] = int(res.cost)
+		res["prive"] = true
+		res.cost = 0
+		res["info"] = ("%s · " % String(res.get("info", "")) if String(res.get("info", "")) != "" else "") + \
+			"Financé par le privé (%s) : gratuit pour la ville" % format_money(int(res.valeur))
 	elif remise.is_valid() and not unlimited_money:
 		var off := int(remise.call(id, rect, int(res.cost)))
 		if off > 0:
@@ -582,7 +589,10 @@ func place(id: String, center: Vector2i, r: int, zone := 0, a := 0.0) -> int:
 	if int(res.get("remise", 0)) > 0 and remise_utilisee.is_valid():
 		remise_utilisee.call(bid, id, rect)
 	if zone == 0:
-		if chantier:
+		if res.get("prive", false):
+			message.emit("%s : %s par un promoteur privé (%s). La ville se rembourse par les impôts." % [
+				BuildingCatalog.get_type(id).name, "chantier financé" if chantier else "financé", format_money(int(res.valeur))])
+		elif chantier:
 			message.emit("Chantier de %s lancé : %s, payés au fil des travaux." % [BuildingCatalog.get_type(id).name, format_money(res.cost)])
 		else:
 			message.emit("%s construit pour %s." % [BuildingCatalog.get_type(id).name, format_money(res.cost)])
@@ -952,8 +962,8 @@ func _refresh() -> void:
 			_link.position = (a + b) / 2.0
 			_link.look_at(b, Vector3.UP)
 	var t := BuildingCatalog.get_type(type_id)
-	var txt := "%s (%d × %d m) · %s" % [t.name, t.w, t.d, format_money(int(_check.cost))]
-	if _check.earth > 0.0:
+	var txt := "%s (%d × %d m) · %s" % [t.name, t.w, t.d, "promoteur privé" if _check.get("prive", false) else format_money(int(_check.cost))]
+	if _check.earth > 0.0 and not _check.get("prive", false):
 		txt += " dont terrassement %s" % format_money(ReglagesPartie.prix(roundi(_check.earth * EARTH_COST)))
 	txt += " · " + ("desservi par une %s" % String(TransportTypes.get_type(acc.type).name).to_lower() if not acc.is_empty() else "aucune voie à proximité")
 	if String(_check.get("info", "")) != "":

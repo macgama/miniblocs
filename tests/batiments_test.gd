@@ -86,6 +86,8 @@ func _run() -> void:
 	world.set_origin(48.8584, 2.2945)
 	for i in 90:
 		await process_frame
+	# Ce test vérifie les prix : la ville paie tout (sans promoteurs privés, voir promoteurs_test).
+	ReglagesPartie.actuel.promoteurs_prives = false
 	_check(not is_nan(world.cell_height(Vector2i(0, 0))), "relief chargé")
 
 	var res := bs.check_place("maison", Vector2i(0, -8), 0)

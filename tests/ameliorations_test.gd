@@ -63,6 +63,8 @@ func _run() -> void:
 	scene.urgences.random_calls = false
 	scene.population.arrivals = false
 	bs.require_access = false
+	# Ce test vérifie les prix des travaux : la ville paie tout (sans promoteurs privés).
+	ReglagesPartie.actuel.promoteurs_prives = false
 	scene.communes.nom_en_attente = "Valfleuri"
 	bs.place("maison_commune", Vector2i(-60, -60), 0)
 	for i in 4:

@@ -51,6 +51,14 @@ var current_style := ""
 const COULEUR_RETIRER := Color(1.0, 0.36, 0.3, 0.35)
 ## Prix du zonage (€ par m²).
 const PRICE_M2 := 2
+
+
+## Prix du zonage pour la caisse : gratuit quand les promoteurs privés bâtissent
+## (ReglagesPartie.promoteurs_prives), sinon PRICE_M2 le m².
+static func prix_zonage(rect: Rect2i) -> int:
+	if ReglagesPartie.actuel.promoteurs_prives:
+		return 0
+	return ReglagesPartie.prix(rect.size.x * rect.size.y * PRICE_M2)
 ## Côté maximal d'une zone (m).
 const MAX_SIDE := 300
 ## Secondes entre deux tentatives de croissance.
@@ -149,7 +157,8 @@ func set_paint(k: String) -> void:
 	_drag = false
 	_update_box()
 	outil_change.emit()
-	info_changed.emit("Zone %s : clic gauche glissé pour peindre un rectangle (%s le m²) · clic droit ou Échap : arrêter" % [String(KINDS[k].name).to_lower(), BuildingSystem.format_money(ReglagesPartie.prix(PRICE_M2))])
+	info_changed.emit("Zone %s : clic gauche glissé pour peindre un rectangle (%s) · clic droit ou Échap : arrêter" % [String(KINDS[k].name).to_lower(),
+		"%s le m²" % BuildingSystem.format_money(ReglagesPartie.prix(PRICE_M2)) if not ReglagesPartie.actuel.promoteurs_prives else "gratuit, les promoteurs bâtissent"])
 
 
 func set_remove() -> void:
@@ -200,8 +209,8 @@ func add_zone(k: String, rect: Rect2i) -> int:
 			return -1
 	# Les zones existantes recouvertes sont retirées de ce rectangle.
 	remove_area(rect, false)
-	var cost := ReglagesPartie.prix(rect.size.x * rect.size.y * PRICE_M2)
-	if buildings != null and not buildings.unlimited_money:
+	var cost := prix_zonage(rect)
+	if buildings != null and not buildings.unlimited_money and cost > 0:
 		# Payé par la caisse de la ville du lieu (Pays).
 		var caisse_prev := Pays.au_rect(rect)
 		if cost > buildings.money:
@@ -214,7 +223,8 @@ func add_zone(k: String, rect: Rect2i) -> int:
 	next_id += 1
 	zones[id] = {"id": id, "k": k, "x": rect.position.x, "z": rect.position.y, "w": rect.size.x, "h": rect.size.y, "s": current_style}
 	_dirty_views[id] = true
-	message.emit("Zone %s de %d × %d m (%s)." % [String(KINDS[k].name).to_lower(), rect.size.x, rect.size.y, BuildingSystem.format_money(cost)])
+	message.emit("Zone %s de %d × %d m (%s)." % [String(KINDS[k].name).to_lower(), rect.size.x, rect.size.y,
+		BuildingSystem.format_money(cost) if cost > 0 else "gratuit : les promoteurs bâtissent à leurs frais"])
 	changed.emit()
 	return id
 

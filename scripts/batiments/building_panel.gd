@@ -805,7 +805,7 @@ func _carte_zone(k: String) -> Button:
 	b.toggle_mode = true
 	b.button_group = _item_group
 	b.focus_mode = Control.FOCUS_NONE
-	b.tooltip_text = ("Pinceau « %s » : maintiens le clic gauche et glisse sur la carte. %s le m².\nDes bâtiments poussent le long des routes selon la demande." % [info[1], BuildingSystem.format_money(ReglagesPartie.prix(ZoneSystem.PRICE_M2))]) if k != "X" else "Gomme : glisse sur une zone pour effacer sa couleur. Les bâtiments déjà construits restent."
+	b.tooltip_text = ("Pinceau « %s » : maintiens le clic gauche et glisse sur la carte. %s.\nDes bâtiments poussent le long des routes selon la demande." % [info[1], _prix_zonage_txt()]) if k != "X" else "Gomme : glisse sur une zone pour effacer sa couleur. Les bâtiments déjà construits restent."
 	var sel := UiStyle.flat_box(Color(col.r, col.g, col.b, 0.22), 10, 0)
 	sel.border_color = col
 	sel.set_border_width_all(3)
@@ -870,7 +870,7 @@ func _carte_zone(k: String) -> Button:
 	vb.add_child(desc)
 	if k != "X":
 		var prix := Label.new()
-		prix.text = "%s / m²" % BuildingSystem.format_money(ReglagesPartie.prix(ZoneSystem.PRICE_M2))
+		prix.text = "Gratuit · promoteurs privés" if ReglagesPartie.actuel.promoteurs_prives else "%s / m²" % BuildingSystem.format_money(ReglagesPartie.prix(ZoneSystem.PRICE_M2))
 		prix.add_theme_font_size_override("font_size", 12)
 		prix.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		vb.add_child(prix)
@@ -1843,7 +1843,7 @@ func _show_creations(standalone := true) -> void:
 		var t := BuildingCatalog.get_type(id)
 		var row := HBoxContainer.new()
 		var b := Button.new()
-		b.text = "%s  ·  %d × %d m  ·  %s" % [t.name, t.w, t.d, BuildingSystem.format_short(ReglagesPartie.prix(BuildingCatalog.cost(id)))]
+		b.text = "%s  ·  %d × %d m  ·  %s" % [t.name, t.w, t.d, "privé" if BuildingCatalog.est_prive(id) else BuildingSystem.format_short(ReglagesPartie.prix(BuildingCatalog.cost(id)))]
 		b.tooltip_text = String(t.desc)
 		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -1911,8 +1911,13 @@ func _card(id: String, fallback_icon: String) -> Button:
 	b.focus_mode = Control.FOCUS_NONE
 	var price := ReglagesPartie.prix(BuildingCatalog.cost(id))
 	var lock := ReglagesPartie.actuel.raison_blocage(id)
-	b.tooltip_text = "%s · %d × %d m · %s\n%s\nPrix : %s (hors terrassement)" % [t.name, t.w, t.d,
-		BuildingSystem.format_short(price), t.desc, BuildingSystem.format_money(price)]
+	var prive := BuildingCatalog.est_prive(id)
+	if prive:
+		b.tooltip_text = "%s · %d × %d m · privé\n%s\nFinancé par un promoteur privé (valeur %s) : gratuit pour la caisse de la ville, qui touche ensuite ses impôts." % [
+			t.name, t.w, t.d, t.desc, BuildingSystem.format_money(price)]
+	else:
+		b.tooltip_text = "%s · %d × %d m · %s\n%s\nPrix : %s (hors terrassement)" % [t.name, t.w, t.d,
+			BuildingSystem.format_short(price), t.desc, BuildingSystem.format_money(price)]
 	if lock != "":
 		b.tooltip_text += "\n" + lock
 		b.modulate = Color(1, 1, 1, 0.45)
@@ -1971,7 +1976,7 @@ func _card(id: String, fallback_icon: String) -> Button:
 	name_l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.add_child(name_l)
 	var meta := Label.new()
-	meta.text = "%d × %d m  ·  %s" % [t.w, t.d, BuildingSystem.format_short(price)]
+	meta.text = "%d × %d m  ·  %s" % [t.w, t.d, "privé" if prive else BuildingSystem.format_short(price)]
 	if offert > 0:
 		meta.text = "%d × %d m  ·  %s" % [t.w, t.d, "Offert" if offert >= price else "%s à payer" % BuildingSystem.format_short(price - offert)]
 	if lock != "":
@@ -2046,3 +2051,10 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	var key := event as InputEventKey
 	if key and key.pressed and not key.echo and key.physical_keycode == KEY_B and not key.shift_pressed:
 		toggle()
+
+
+## Prix du zonage expliqué en une phrase (bulle des pinceaux de zones).
+static func _prix_zonage_txt() -> String:
+	if ReglagesPartie.actuel.promoteurs_prives:
+		return "Gratuit pour la ville : les promoteurs privés bâtissent à leurs frais, la ville touche les impôts"
+	return "%s le m²" % BuildingSystem.format_money(ReglagesPartie.prix(ZoneSystem.PRICE_M2))

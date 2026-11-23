@@ -97,6 +97,8 @@ func _run() -> void:
 	scene.population.arrivals = false
 	bs.require_access = false
 	bs.unlimited_money = false
+	# Ce test vérifie le devis payé par la caisse : la ville paie tout (sans promoteurs privés).
+	ReglagesPartie.actuel.promoteurs_prives = false
 	bs.money = 5_000_000
 	scene.communes.nom_en_attente = "Valfleuri"
 	bs.place("maison_commune", Vector2i(-60, -60), 0)

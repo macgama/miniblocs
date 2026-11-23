@@ -623,11 +623,24 @@ static func _back_row(cells: Array, back: Vector2i) -> Array:
 	return out
 
 
-func _price_ok(amount: int) -> bool:
-	return buildings == null or buildings.unlimited_money or buildings.money >= amount
+## La caisse de la ville paie-t-elle les murs et les meubles de ce plan ? Oui pour
+## un service public ; non pour un bâtiment privé (logement, boutique, bureaux,
+## café…), bâti par un promoteur (ReglagesPartie.promoteurs_prives).
+func ville_paie_plan(id: String) -> bool:
+	if not ReglagesPartie.actuel.promoteurs_prives:
+		return true
+	if linked.has(id) and buildings != null and buildings.buildings.has(int(linked[id])):
+		return not BuildingCatalog.est_prive(String(buildings.buildings[int(linked[id])].t))
+	return not BuildingCatalog.est_prive(String((USAGES.get(usage_of(id), {}) as Dictionary).get("t", "maison")))
 
 
-func _pay(amount: int) -> void:
+func _price_ok(amount: int, id := "") -> bool:
+	return buildings == null or buildings.unlimited_money or (id != "" and not ville_paie_plan(id)) or buildings.money >= amount
+
+
+func _pay(amount: int, id := "") -> void:
+	if id != "" and not ville_paie_plan(id):
+		return
 	if buildings != null and not buildings.unlimited_money:
 		buildings.money -= amount
 		depense += amount
@@ -640,12 +653,12 @@ func place(id: String, e: int, c: Vector2i, r: int, m: String, pay := true, reco
 		return why
 	var ent := Meubles.get_entry(m)
 	var price := int(ent.prix)
-	if pay and not _price_ok(price):
+	if pay and not _price_ok(price, id):
 		return "pas assez d'argent (%s)" % BuildingSystem.format_money(price)
 	if record:
 		_push_undo(id, price if pay else 0)
 	if pay:
-		_pay(price)
+		_pay(price, id)
 	_put(id, e, c, r, m)
 	_after(id, e)
 	return ""
@@ -687,7 +700,7 @@ func remove(id: String, key: Vector4i, record := true) -> bool:
 	var price := int(Meubles.get_entry(String(it.m)).get("prix", 0))
 	if record:
 		_push_undo(id, -roundi(price * REFUND))
-	_pay(-roundi(price * REFUND))
+	_pay(-roundi(price * REFUND), id)
 	_take(id, key)
 	_after(id, key.y)
 	return true
@@ -708,7 +721,7 @@ func remove_rect(id: String, rect: Rect2i, e: int) -> int:
 	for k in keys:
 		refund += roundi(int(Meubles.get_entry(String(items[id][k].m)).get("prix", 0)) * REFUND)
 	_push_undo(id, -refund)
-	_pay(-refund)
+	_pay(-refund, id)
 	for k in keys:
 		_take(id, k)
 	_after(id, e)
@@ -739,7 +752,7 @@ func undo() -> bool:
 	var id: String = op.id
 	var b: Dictionary = op.before
 	_restore(id, b)
-	_pay(-int(op.cost))
+	_pay(-int(op.cost), id)
 	return true
 
 
@@ -800,7 +813,7 @@ func _on_plans_changed() -> void:
 			_put(id, k.y, Vector2i(k.x, k.z), int(it.r), String(it.m))
 		for b in bad:
 			var price := int(Meubles.get_entry(String(b[1].m)).get("prix", 0))
-			_pay(-roundi(price * REFUND))
+			_pay(-roundi(price * REFUND), id)
 			_take(id, b[0])
 			_mark(id, (b[0] as Vector4i).y)
 			lost += 1
@@ -850,7 +863,7 @@ func furnish_room(id: String, e: int, c: Vector2i, s := "", fn := "", record := 
 	var res := _layout(id, e, room, fn, s)
 	for it in res:
 		var price := int(Meubles.get_entry(String(it[3])).prix)
-		if not _price_ok(spent + price):
+		if not _price_ok(spent + price, id):
 			continue
 		if check(id, e, it[0], it[1], it[3]) != "":
 			continue
@@ -859,7 +872,7 @@ func furnish_room(id: String, e: int, c: Vector2i, s := "", fn := "", record := 
 		n += 1
 	if record and not _undo.is_empty():
 		(_undo[_undo.size() - 1] as Dictionary).cost = spent
-	_pay(spent)
+	_pay(spent, id)
 	styles[id] = s
 	if String(room.fn) == "":
 		set_room_function(id, e, c, fn)

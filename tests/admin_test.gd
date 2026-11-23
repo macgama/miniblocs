@@ -113,11 +113,15 @@ func _run() -> void:
 	var y := world.cell_height(Vector2i(0, 0))
 	scene.transport.build_segment("route", Vector3(0, y, -80), Vector3(0, y, 80))
 	await _frames(2)
+	_check(reg.promoteurs_prives and int(bs.check_place("maison", Vector2i(16, 0), 3).cost) == 0, "promoteurs privés : une maison ne coûte rien à la ville")
+	# Le multiplicateur s'applique quand la ville paie (réglage coupé, ou bâtiment public).
+	reg.promoteurs_prives = false
 	var chk := bs.check_place("maison", Vector2i(16, 0), 3)
 	var base := BuildingCatalog.cost("maison") + roundi(float(chk.earth) * BuildingSystem.EARTH_COST)
 	if not chk.ok:
 		print("    raison : ", chk.reason)
 	_check(chk.ok and int(chk.cost) == base * 2, "coûts ×2 : maison à %s" % BuildingSystem.format_money(int(chk.cost)))
+	reg.promoteurs_prives = true
 	var lock := bs.check_place(big, Vector2i(60, 0), 3)
 	_check(not lock.ok and String(lock.reason).contains("arbre de progression"), "bâtiment verrouillé refusé : " + String(lock.reason))
 

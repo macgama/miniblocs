@@ -337,7 +337,7 @@ func construire(vid: int) -> String:
 			voulu = maxi(voulu, compter(vid, "ecole") + (1 if int(c.sans_ecole) > 15 or compter(vid, "ecole") == 0 else 0))
 		if compter(vid, besoin) >= voulu:
 			continue
-		var prix := ReglagesPartie.prix(BuildingCatalog.cost(id))
+		var prix := BuildingCatalog.prix_ville(id)
 		# Établissements chers (lycée, hautes écoles…) : attendus sans bloquer le reste.
 		if besoin in OPTIONNELS and dispo(vid) < prix:
 			continue
@@ -349,7 +349,7 @@ func construire(vid: int) -> String:
 			continue
 		var bid := _poser(vid, id)
 		if bid >= 0:
-			return "%s construit (%s)." % [String(BuildingCatalog.get_type(id).name), BuildingSystem.format_money(prix)]
+			return "%s construit (%s)." % [String(BuildingCatalog.get_type(id).name), BuildingSystem.format_money(prix) if prix > 0 else "promoteur privé"]
 		return _prolonger(vid)
 	if hab >= 50 and float(c.chomage) > CHOMAGE_MAX:
 		var k := "C" if zones_de(vid, "C") <= zones_de(vid, "I") else "I"

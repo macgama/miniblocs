@@ -466,11 +466,21 @@ func partner(k: Vector3i) -> Variant:
 	return o if blocks.has(o) else null
 
 
+## Blocs libres (façon Minecraft) : une façon de dessiner des bâtiments différents,
+## bâtis par le privé. Gratuits pour la ville quand les promoteurs paient
+## (ReglagesPartie.promoteurs_prives) ; un modèle relié à un service public passe
+## par le catalogue B, où la ville le paie.
+static func gratuit() -> bool:
+	return ReglagesPartie.actuel.promoteurs_prives
+
+
 func _can_pay(amount: int) -> bool:
-	return buildings == null or buildings.unlimited_money or buildings.money >= amount
+	return buildings == null or buildings.unlimited_money or gratuit() or buildings.money >= amount
 
 
 func _pay(amount: int) -> void:
+	if gratuit():
+		return
 	if buildings != null and not buildings.unlimited_money:
 		buildings.money -= amount
 		depense += amount

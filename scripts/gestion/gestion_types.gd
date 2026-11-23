@@ -52,6 +52,8 @@ extends RefCounted
 ## - "cadence" / "matiere" / "qualite" : usine plus rapide, moins de déchets,
 ##   produits vendus plus cher ; "depollution" : air et eau moins pollués ;
 ##   "economie" : € d'énergie économisés par jour (usine) ;
+## - "rayons" / "panier" / "antivol" : supermarché qui garde plus de stock,
+##   paniers plus remplis, moins de vols à l'étalage ;
 ## - "entretien" : € par jour (charges en plus).
 const EFFETS := {
 	"lits": "lits", "confort": "confort", "attrait": "clients attirés", "satisf": "satisfaction", "repas": "repas sur place",
@@ -59,6 +61,7 @@ const EFFETS := {
 	"equipage": "personnes de garde", "engins": "véhicules", "enquete": "affaires élucidées", "soins": "qualité des soins", "lits_sup": "lits d'hôpital",
 	"proprete": "propreté", "fiabilite": "fiabilité des manèges",
 	"cadence": "production", "matiere": "économie de matière", "qualite": "qualité des produits", "depollution": "pollution en moins", "economie": "énergie économisée",
+	"rayons": "rayons mieux remplis", "panier": "panier moyen", "antivol": "vols en moins",
 }
 
 const GENRES := {
@@ -331,6 +334,10 @@ static func genre_de(type_id: String) -> String:
 		return "hotel"
 	if Ressources.commerce_of(type_id).has("consomme"):
 		return "restaurant"
+	# Supermarchés et supérettes : les foyers y font leurs courses.
+	var com := Ressources.commerce_of(type_id)
+	if com == Ressources.COMMERCES.supermarche or com == Ressources.COMMERCES.superette:
+		return "supermarche"
 	# Usines et ateliers de transformation de l'économie (scierie, moulin, aciérie…).
 	if String(ProductionTypes.prod_of(type_id).get("kind", "")) == "transformation":
 		return "usine"
@@ -361,6 +368,8 @@ static func genre(g: String) -> Dictionary:
 			return GenreParc.GENRE
 		"usine":
 			return GenreUsine.GENRE
+		"supermarche":
+			return GenreSupermarche.GENRE
 	return GENRES.get(g, {})
 
 

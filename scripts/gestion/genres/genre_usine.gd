@@ -51,6 +51,8 @@ const GENRE := {
 	"visiteurs": ["accueil", "showroom", "quai"],
 	"prix_aide": "Plus de cadence : l'usine produit plus, mais au-delà de 100 % l'équipe fatigue (moral, accidents, pannes). Sous 100 %, tout le monde souffle.",
 	"mots": {"confort": "savoir-faire (certifications)", "satisf": "moral des ouvriers", "attrait": "réputation des produits", "vitesse": "travail plus rapide"},
+	## Seulement une fois ouvert par le joueur : sinon le bâtiment ne change pas.
+	"sur_demande": true,
 	"cout_mult": 0.35,
 	## Les « ventes » de la boutique d'usine : € par visiteur.
 	"ventes_mult": 1.0,

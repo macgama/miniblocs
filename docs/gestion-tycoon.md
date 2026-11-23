@@ -131,6 +131,24 @@ Ce que ça change **vraiment** dans la ville :
 
 ![Usine en mode gestion](apercu-gestion-usine.png)
 
+## Le supermarché
+
+Les supermarchés et les supérettes se gèrent aussi : tuile **Gérer le magasin** sur leur fiche. C'est une entreprise : le compte est la caisse du magasin, qui reçoit les ventes aux habitants et paie les améliorations (les prix suivent ceux du catalogue : une supérette coûte bien moins cher à aménager qu'un supermarché). Un magasin jamais ouvert en gestion vend exactement comme avant.
+
+15 pièces : entrée et sas, ligne de caisses, rayons épicerie et boissons, fruits et légumes, produits frais et surgelés, boucherie et poissonnerie, boulangerie, réserve, bureau du directeur, salle de pause, bazar et électroménager, accueil et point relais, et dehors le parking, le drive et le quai de livraison. 75 objets (chariots, portiques antivol, caisses à tapis, caisses automatiques, gondoles, têtes de gondole, rayon vrac, cave à vins, étals en cagettes, meubles froids, bacs à surgelés, comptoir de boucherie, vivier à homards, four à pain, presse à cartons, casiers du drive, ombrières solaires, camion frigorifique…).
+
+Ce que ça change **vraiment** dans la ville :
+- **Rayons mieux remplis** (réserve, rayons, frais, quai) : le magasin garde jusqu'à 2,5 fois plus de stock, donc moins de rayons vides et moins de foyers qui manquent de tout.
+- **Clients attirés** (parking, fruits, boulangerie, drive, promotions, « Magasin de l'année ») : les foyers du quartier choisissent ce magasin avant les autres commerces, et viennent de plus loin.
+- **Prix en rayon** (− / + de 80 % à 140 %) : plus bas, il attire de plus loin ; plus haut, chaque panier rapporte plus mais des foyers repartent chez le concurrent.
+- **Panier moyen** (boucherie, bazar, cave, drive) : chaque client dépense plus.
+- **Caisses** : plus de clients servis par jour ; quand la file déborde, la satisfaction baisse, puis la note et l'attrait.
+- **Vols à l'étalage** : un peu de la recette disparaît chaque jour ; portiques, caméras, coffre et vigile les divisent.
+- **Énergie** : portes vitrées sur le froid, presse à cartons, ombrières solaires : moins de factures.
+- **Enseignes** (1 à 5) : gagnées par l'expérience. Événements : client mystère (« Magasin de l'année » 60 jours), semaines de promotion, rush de la rentrée et de Noël, foire aux vins, contrôle sanitaire de la chaîne du froid.
+
+![Supermarché en mode gestion](apercu-gestion-supermarche.png)
+
 ## Rythme
 
 Le mode suit le temps du jeu : rien ne se gagne pendant que le jeu est fermé, rien ne bouge en pause, tout va plus vite en vitesse rapide. La gestion automatique, les pannes et les événements tournent chaque jour de jeu pour tous les hôtels, même ceux qu'on n'ouvre jamais. Un hôtel jamais ouvert garde ses effets à zéro tant qu'il n'a rien acheté.
@@ -144,6 +162,7 @@ Le mode suit le temps du jeu : rien ne se gagne pendant que le jeu est fermé, r
 - `scripts/gestion/genres/genre_hopital.gd` (`GenreHopital`), `decors_hopital.gd`, `modeles_hopital.gd` : l'hôpital. Effet `lits_sup` (un nombre de lits, `Gestion.lits_sup_de`, ajouté dans `ServicesPublics.capacite`) et effet `soins` (`Gestion.chance_soins_de`, `patient_de`, appelés par `Urgences._effects_on_done` pour un malaise en retard).
 - `scripts/gestion/genres/genre_parc.gd` (`GenreParc`), `decors_parc.gd`, `modeles_parc.gd` : le parc de loisirs. Source `parc` : chiffres de `ParcLoisirs` (`Gestion._journee_parc`, `visiteurs_parc`, `batiments_parc`). Les effets sont lus par `ParcLoisirs.effet_gestion` (plafonnés par `GESTION_MAX`). Miniatures : `GestionVue.zone_attraction` et `GestionDiorama._poser_miniatures` (clé `miniatures` du genre), clôture et allées : clés `cloture` et `allees`.
 - `scripts/gestion/genres/genre_usine.gd` (`GenreUsine`), `decors_usine.gd`, `modeles_usine.gd` : l'usine (tout bâtiment `kind == "transformation"`). Source `production`, chiffres en tonnes (`hier.clients` / `hier.cap`). Branchements : `Production._step_hours` (`Gestion.cadence_de` : 0 = grève, `matiere_de` multiplie la sortie, `produire_de` compte la journée), `cap_of` et `_needs_calc` (stocks et commandes ×cadence), `_unload` (`prix_vente_de` sur l'export et les ventes entre entreprises), `_pay` (`recette_de`), `Nuisances._sources_batiment` et `Climat` (`depollution_de`). Cadence = `etat.prix` (0,7 à 1,3). Chaîne des modèles et décors : hôpital → usine → parc.
+- `scripts/gestion/genres/genre_supermarche.gd` (`GenreSupermarche`), `decors_supermarche.gd`, `modeles_supermarche.gd` : le supermarché (profil de commerce `superette` ou `supermarche`). Source `production`, clients = personnes des foyers servis. Branchements dans `Production` : `cap_of` (commerce ×`Gestion.rayons_de`), `_shops_for` (classement distance / `attraction_de`, portée jusqu'à ×1,6, listes refaites quand `Gestion.version_magasins` change), `_shopping` (vente ×`panier_de`, `vente_de` compte clients et recette). Prix = `etat.prix` (0,8 à 1,4). Chaîne des modèles et décors : hôpital → usine → supermarché → parc.
 - `scripts/gestion/gestion_types.gd` (`GestionTypes`) : les genres gérables. Un genre = ses pièces (plan, niveaux, prix, effets, métiers et postes, portes et chemins), ses objets (modèle, poses, prix, niveau requis, effets), ses demandes, ses pannes, les activités des clients. Pour ajouter la prison, l'hôpital, l'usine… : une entrée dans `GENRES`, une ligne dans `genre_de()`, et les décors de base de ses pièces dans le diorama (`_decor_<nom>`).
 - `scripts/gestion/gestion.gd` (`Gestion`) : niveaux, objets, prix, paiement, effets (`Gestion.effet_de(bid, clé)`), étoiles, personnel (salaires, formation), pannes, événements, historique, journal, gestion automatique (`gerer_auto`, `candidats`), objectifs, sauvegarde (section `gestion`). `nouveau_jour()` est appelé par le tourisme à chaque fin de journée.
 - `scripts/gestion/gestion_modeles.gd` (`GestionModeles`) : la bibliothèque des objets low-poly (72 modèles) et les places qu'ils offrent aux clients.
@@ -151,4 +170,4 @@ Le mode suit le temps du jeu : rien ne se gagne pendant que le jeu est fermé, r
 - `scripts/gestion/gestion_vue.gd` (`GestionVue`) et `graphe_gestion.gd` : l'écran (caméra isométrique, barre du haut, carte à onglets, tuiles du bas, bulles, graphique).
 - Effets lus par le tourisme : `Tourisme.spec`, `lits`, `note`, `attrait_heb`, repas sur place, dépenses sur place (`ventes`), satisfaction, entretien.
 
-Tests : `xvfb-run -a godot --path . --rendering-driver opengl3 --script res://tests/gestion_test.gd` (hôtel) , `res://tests/gestion_restaurant_test.gd` (restaurant) `res://tests/gestion_caserne_test.gd` (caserne) `res://tests/gestion_commissariat_test.gd` (commissariat) `res://tests/gestion_hopital_test.gd` (hôpital) et `res://tests/gestion_usine_test.gd` (usine). Captures : `tests/gestion_vitrine.gd -- --out DOSSIER [--type haussmann__restaurant|pompiers|police|hopital|scierie] [--depart] --niveau 1|3|5 [--piece spa] [--zoom 30] [--onglet personnel|stats|journal] [--x 20 --z 14]`.
+Tests : `xvfb-run -a godot --path . --rendering-driver opengl3 --script res://tests/gestion_test.gd` (hôtel) , `res://tests/gestion_restaurant_test.gd` (restaurant) `res://tests/gestion_caserne_test.gd` (caserne) `res://tests/gestion_commissariat_test.gd` (commissariat) `res://tests/gestion_hopital_test.gd` (hôpital) `res://tests/gestion_usine_test.gd` (usine) et `res://tests/gestion_supermarche_test.gd` (supermarché). Captures : `tests/gestion_vitrine.gd -- --out DOSSIER [--type haussmann__restaurant|pompiers|police|hopital|scierie|supermarche] [--depart] --niveau 1|3|5 [--piece spa] [--zoom 30] [--onglet personnel|stats|journal] [--x 20 --z 14]`.

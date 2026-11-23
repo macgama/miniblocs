@@ -308,4 +308,4 @@ static func dessiner(k: LpKit, nom: String, teinte := Color.WHITE) -> void:
 				var a := TAU * i / 3.0
 				k.beam(Vector3(0, 6.05, 0.5), Vector3(cos(a) * 2.4, 6.05 + sin(a) * 2.4, 0.5), 0.22, 0.05, BLANC)
 		_:
-			ModelesParc.dessiner(k, nom, teinte)
+			ModelesSupermarche.dessiner(k, nom, teinte)

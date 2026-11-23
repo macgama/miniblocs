@@ -43,6 +43,8 @@ static var icones_raccordement := true
 static var marqueurs_chantiers := true
 ## Fiche « Que faire ici ? » au clic sur un terrain libre (outil Observer).
 static var fiche_lieu := true
+## Clic sur un bâtiment : la caméra le cadre, le reste de la ville s'estompe (IsolementBatiment).
+static var isoler_batiment := true
 
 static var _charge := false
 
@@ -73,6 +75,7 @@ static func charger() -> void:
 	icones_raccordement = bool(cf.get_value("jeu", "icones_raccordement", icones_raccordement))
 	marqueurs_chantiers = bool(cf.get_value("jeu", "marqueurs_chantiers", marqueurs_chantiers))
 	fiche_lieu = bool(cf.get_value("jeu", "fiche_lieu", fiche_lieu))
+	isoler_batiment = bool(cf.get_value("jeu", "isoler_batiment", isoler_batiment))
 
 
 static func sauver() -> void:
@@ -90,6 +93,7 @@ static func sauver() -> void:
 	cf.set_value("jeu", "icones_raccordement", icones_raccordement)
 	cf.set_value("jeu", "marqueurs_chantiers", marqueurs_chantiers)
 	cf.set_value("jeu", "fiche_lieu", fiche_lieu)
+	cf.set_value("jeu", "isoler_batiment", isoler_batiment)
 	cf.set_value("manette", "sensibilite", snappedf(Manette.sensibilite, 0.05))
 	cf.set_value("manette", "inverser_y", Manette.inverser_y)
 	cf.set_value("manette", "vibrations", Manette.vibrations)

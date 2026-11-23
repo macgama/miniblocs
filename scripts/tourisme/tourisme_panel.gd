@@ -12,6 +12,8 @@ extends CanvasLayer
 
 signal focus_requested(pos: Vector3)
 signal building_chosen(id: String)
+## Mode gestion « tycoon » d'un hôtel (GestionVue).
+signal gestion_requested(bid: int)
 
 const W := 390.0
 const H := 560.0
@@ -362,6 +364,14 @@ func _vue_heb() -> void:
 			tour.set_ouvert(b, not bool(tour.heb[b].ouvert))
 			refresh())
 		row.add_child(ob)
+		if GestionTypes.genre_de(tour._type_of(b)) != "" and not tour.buildings.en_chantier(b):
+			var gb := Button.new()
+			gb.text = "Gérer"
+			gb.icon = Icones.get_icon("lit", 16, UiStyle.ACCENT)
+			gb.tooltip_text = "Mode gestion : l'hôtel en vue isométrique, ses pièces à améliorer, ses clients."
+			gb.focus_mode = Control.FOCUS_NONE
+			gb.pressed.connect(func() -> void: gestion_requested.emit(b))
+			row.add_child(gb)
 		_label("Prix conseillé : %s" % _euros(float(sp.get("prix", TourismeTypes.prix_ref(int(sp.get("etoiles", 2)))))), 11, true, box)
 		box.add_child(HSeparator.new())
 

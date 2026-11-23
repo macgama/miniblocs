@@ -488,6 +488,7 @@ func _sync_stations() -> void:
 			stations[bid] = {"bid": bid, "t": t, "units": units, "staff": 0, "staff_t": -INF}
 		stations[bid].road = road
 		stations[bid].door = door
+		maj_flotte(bid, false)
 	for bid in stations.keys():
 		if not seen.has(bid):
 			for u in stations[bid].units:
@@ -496,6 +497,26 @@ func _sync_stations() -> void:
 			stations.erase(bid)
 	_cover_dirty = true
 	changed.emit()
+
+
+## Engins en plus gagnés en mode gestion (remise agrandie…) : on les ajoute
+## à la flotte de base ; ceux qui ne servent plus sont retirés une fois rentrés.
+func maj_flotte(bid: int, signaler := true) -> void:
+	if not stations.has(bid):
+		return
+	var st: Dictionary = stations[bid]
+	var base_n := (FLEETS[st.t] as Array).size()
+	var extra := Gestion.flotte_de(bid)
+	var units: Array = st.units
+	var avant := units.size()
+	while units.size() < base_n + extra.size():
+		var f: Array = extra[units.size() - base_n]
+		units.append({"role": f[0], "base": f[1], "out": false, "v": {}, "inc": 0, "extra": true})
+	while units.size() > base_n + extra.size() and not bool(units[-1].out):
+		units.pop_back()
+	if signaler and units.size() != avant:
+		_cover_dirty = true
+		changed.emit()
 
 
 ## Modèle d'un véhicule de flotte selon la région des véhicules (et la
@@ -535,6 +556,8 @@ func staff_of(bid: int) -> int:
 			continue
 		if population._works_today(p, n) and not population._on_leave(p, n):
 			c += 1
+	# Mode gestion : chambres de garde, volontaires.
+	c += Gestion.equipage_de(bid)
 	if not st.is_empty():
 		st.staff = c
 		st.staff_t = _t
@@ -728,6 +751,7 @@ func _send(inc: Dictionary, bid: int, u: Dictionary) -> bool:
 	u.t_go = _t
 	(inc.units as Array).append(u)
 	inc.state = "en_route"
+	Gestion.depart_de(bid, model, String(inc.name))
 	var service := String(u.role)
 	if not inc.taken.get(service, false):
 		inc.taken[service] = true
@@ -756,8 +780,14 @@ func _on_scene(u: Dictionary) -> void:
 	var service := String(u.role)
 	u.phase = "sur_place"
 	u.wait = float(WORK.get(service, 30.0)) * (1.0 + 0.5 * (int(inc.gravite) - 1))
+	# Mode gestion : une équipe entraînée et bien équipée travaille plus vite.
+	u.wait = float(u.wait) / (1.0 + clampf(Gestion.effet_de(int(u.get("bid", -1)), "vitesse"), 0.0, 1.5))
 	if service == "ambulance" and not inc.meta.has("by"):
 		inc.meta["by"] = "les pompiers" if String(u.base) == "vsav" else "le SAMU"
+	if service == "ambulance" and not inc.meta.has("amb_bid"):
+		inc.meta["amb_bid"] = int(u.get("bid", -1))
+	if service == "police" and not inc.meta.has("police_bid"):
+		inc.meta["police_bid"] = int(u.get("bid", -1))
 	if not inc.arrived.has(service):
 		var dt := _t - float(inc.t0)
 		inc.arrived[service] = dt
@@ -766,6 +796,7 @@ func _on_scene(u: Dictionary) -> void:
 		s.total = float(s.total) + dt
 		s.best = minf(float(s.best), dt)
 		s.worst = maxf(float(s.worst), dt)
+		Gestion.intervention_de(int(u.get("bid", -1)), dt, dt > float(CALLS.get(String(inc.type), {}).get("late", 600.0)))
 		message.emit("%s sur place (%s) en %s." % [String(SERVICE_NAMES[service]), String(inc.name), format_time(dt)])
 	inc.state = "sur_place"
 	changed.emit()
@@ -878,7 +909,13 @@ func _effects_on_done(inc: Dictionary, service: String) -> void:
 	var dt := float(inc.arrived.get(service, 0.0))
 	if service == "ambulance" and pid >= 0 and population.persons.has(pid):
 		var p: Dictionary = population.persons[pid]
-		if dt > late and String(inc.type) == "malaise" and rng.randf() < 0.3:
+		# Mode gestion : un hôpital bien équipé sauve une partie des malaises en retard.
+		var ab := int(inc.meta.get("amb_bid", -1))
+		var mort := dt > late and String(inc.type) == "malaise" and rng.randf() < 0.3
+		var sauve := mort and ab >= 0 and rng.randf() < Gestion.chance_soins_de(ab)
+		if ab >= 0 and inc.arrived.has(service):
+			Gestion.patient_de(ab, sauve)
+		if mort and not sauve:
 			population.vie.die(pid, "d'un malaise, les secours sont arrivés trop tard")
 			stats.deces = int(stats.deces) + 1
 			message.emit("%s %s n'a pas survécu : les secours sont arrivés trop tard." % [String(p.get("p", "")), String(p.get("n", ""))])
@@ -887,6 +924,15 @@ func _effects_on_done(inc: Dictionary, service: String) -> void:
 			population.vie.log_event(p, "urgence", "%s : secouru·e par %s" % [String(inc.name),
 				"le SAMU" if String(inc.meta.get("by", "")) == "" else String(inc.meta.by)])
 	if service == "police" and String(inc.type) == "cambriolage" and dt > late:
+		# Mode gestion : les enquêteurs du commissariat retrouvent parfois les voleurs.
+		var pb := int(inc.meta.get("police_bid", -1))
+		if pb >= 0 and inc.arrived.has(service):
+			var ok := rng.randf() < Gestion.chance_enquete_de(pb)
+			Gestion.enquete_de(pb, ok)
+			if ok:
+				stats.elucides = int(stats.get("elucides", 0)) + 1
+				message.emit("Cambriolage élucidé par les enquêteurs : les objets volés sont rendus.")
+				return
 		stats.non_elucides = int(stats.non_elucides) + 1
 		var hid := int(inc.meta.get("hid", -1))
 		if population.households.has(hid):

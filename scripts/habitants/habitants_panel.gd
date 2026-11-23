@@ -7,6 +7,8 @@ extends CanvasLayer
 signal focus_requested(pos: Vector3)
 ## Boutons de la fiche d'un bâtiment : personnaliser (catalogue), aménager (murs fins).
 signal customize_requested(bid: int)
+## Mode gestion « tycoon » (Gestion, GestionVue).
+signal gestion_requested(bid: int)
 signal furnish_requested(bid: int)
 ## « Aménager l'intérieur » d'un bâtiment du catalogue : il est d'abord ouvert en murs fins.
 signal interior_requested(bid: int)
@@ -48,6 +50,8 @@ var ouvertes := {}
 ## Conteneur où les petits outils (_text, _link…) ajoutent leurs lignes : le
 ## corps de la rubrique dépliée en cours, sinon le corps du panneau.
 var _dest: Control = null
+## Bâtiment isolé (IsolementBatiment, posé par terre_main) : bouton « Toute la ville ».
+var isolement: Node = null
 const CFG := "user://interface.cfg"
 
 
@@ -546,6 +550,14 @@ func _tuiles_travaux(bid: int, info: Dictionary) -> void:
 	var b: Dictionary = pop.buildings.buildings.get(bid, {}) if pop.buildings != null else {}
 	var facade := not info.has("plan") and Personnalisation.can_customize(tid)
 	var interieur := info.has("plan") or Conversion.can_open(tid, b.get("perso", {}))
+	var genre := GestionTypes.genre_de(tid) if not info.has("plan") else ""
+	if genre != "" and pop.buildings != null and not pop.buildings.en_chantier(bid):
+		var gd := GestionTypes.genre(genre)
+		var g := _tuile(String(gd.get("titre", "Gérer")), "Mode gestion", String(gd.get("icone", "lit")),
+			String(gd.get("tuile_tip", "Entre dans le bâtiment en vue isométrique : améliore les pièces, regarde le personnel et les clients, règle leurs demandes.\nLes résultats comptent dans la ville (lits, note, étoiles, taxe de séjour, impôts).")))
+		g.name = "TuileGestion"
+		g.pressed.connect(func() -> void: gestion_requested.emit(bid))
+		_body.add_child(g)
 	if not facade and not interieur:
 		return
 	var row := HBoxContainer.new()
@@ -706,6 +718,17 @@ func _view_building(bid: int) -> void:
 	go.pressed.connect(func() -> void: focus_requested.emit(info.pos))
 	var acts := HBoxContainer.new()
 	acts.add_child(go)
+	if isolement != null and is_instance_valid(isolement):
+		var iso := Button.new()
+		iso.name = "Isoler"
+		var seul := bool(isolement.call("actif"))
+		iso.text = "Toute la ville" if seul else "Isoler"
+		iso.icon = Icones.get_icon("oeil", 18)
+		iso.focus_mode = Control.FOCUS_NONE
+		iso.tooltip_text = "Revoir toute la ville autour (Échap ferme la fiche et rétablit tout)" if seul \
+			else "Ne voir que ce bâtiment : la ville pâlit, les cartes se rangent"
+		iso.pressed.connect(func() -> void: isolement.call("basculer"))
+		acts.add_child(iso)
 	_body.add_child(acts)
 	_tuiles_travaux(bid, info)
 	# Le détail, rubrique par rubrique (repliées au départ : un clic sur le titre déplie).

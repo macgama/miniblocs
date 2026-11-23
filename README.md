@@ -543,6 +543,48 @@ Menu **Loisirs → Musée** (touche **Maj+C**) : 12 musées prêts à poser (bea
 
 ![Musées en coupe](docs/apercu-musee-coupe.jpg)
 
+## Mode gestion « tycoon » : un jeu de gestion dans chaque bâtiment
+
+Clique sur un hôtel, puis sur **Gérer l'hôtel** dans sa fiche (ou **Gérer** dans le menu Tourisme, Maj+D) : tu entres dans l'hôtel, en 3D isométrique, avec ses 13 pièces (chambres, bar, restaurant, spa, boutique, salle de sport, conférences, piscine, jardin, parking…) et environ 75 objets à acheter, chacun dessiné à sa place (télé, minibar, piano, billard, sauna, toboggan, navette…). Les clients arrivent par le trottoir, font la queue, vont dans les pièces et lèvent un « ! » quand ils ont une demande ; les appareils tombent en panne (⚠, clic pour réparer). Onglets Hôtel, Équipe (salaires, formation, pannes), Chiffres (graphique des 30 derniers jours) et Journal ; inspecteur du guide, séminaires, clients célèbres, autocars. **Si tu ne t'en occupes pas, l'hôtel se gère tout seul** (bouton Gestion auto : réparations, prix, investissements, sans toucher à la caisse de la ville). Le temps du jeu continue (T, Maj + T) ; Échap ramène à la ville. 
+
+**Les restaurants aussi** (tous les cafés et restaurants, tuile **Gérer le restaurant**) : 14 pièces (salle, cuisine, plonge, réserve, bar, cave, salon privé, pâtisserie, terrasse, potager, quai de livraison…), environ 70 objets, couverts, prix du menu, toques, critique gastronomique, inspection d'hygiène, banquets. Le compte est la caisse de l'entreprise ; les couverts et le prix du menu changent vraiment les repas servis dans l'économie. Détails : [docs/gestion-tycoon.md](docs/gestion-tycoon.md).
+
+**Et la caserne de pompiers** (tuile **Gérer la caserne**) : un service public avec un budget versé chaque jour par la ville. 14 pièces (remise, salle d'alerte, chambres de garde, vestiaires, formation, tour de manœuvre…), 74 objets. La gestion change vraiment les urgences : plus d'engins dans la remise, plus de pompiers de garde, travail plus rapide sur place ; la note suit le délai d'arrivée des secours. Quand un appel arrive, l'alerte sonne et on voit l'engin sortir de la remise.
+
+**Et le commissariat** (tuile **Gérer le commissariat**) : 14 pièces (garage, salle de commandement, bureau des plaintes, enquêteurs, cellules, stand de tir, chenil, fourrière…), 75 objets. Plus de voitures de patrouille, plus de policiers en service, et des enquêteurs qui élucident les cambriolages même quand la patrouille arrive trop tard ; la fourrière rapporte des frais.
+
+**Et l'hôpital** (tuile **Gérer l'hôpital**) : 14 pièces (garage du SAMU, régulation, chambres, salle de garde, bloc opératoire, imagerie, labo, hélistation…), 67 objets. Plus d'ambulances et de SMUR, plus d'urgentistes de garde, plus de lits pour la ville, et un bloc qui sauve des patients même quand l'ambulance arrive trop tard.
+
+**Et le parc de loisirs** (bouton **Gérer le parc (maquette)** dans Maj+G) : 13 zones (billetterie, manèges, grands frissons, rivière, royaume des petits, place gourmande, spectacles, atelier…), 68 objets, et les vraies attractions du parc en miniature qui tournent. Une part du bénéfice va à la caisse des travaux ; les aménagements attirent plus de visiteurs, rendent les manèges plus fiables et le parc plus propre.
+
+**Et les usines** (tuile **Gérer l'usine** sur une scierie, une aciérie, une usine de biens…) : 14 pièces (atelier, chaîne de montage, stock, labo qualité, bureau d'études, boutique d'usine, quai, station d'épuration, centrale d'énergie…), 78 objets. Elles produisent vraiment plus, gaspillent moins de matière, vendent plus cher et polluent moins ; la cadence (70 à 130 %) fait monter la production mais aussi la fatigue, les accidents du travail et le risque de grève.
+
+**Et les supermarchés** (tuile **Gérer le magasin** sur un supermarché ou une supérette) : 15 pièces (caisses, rayons, fruits et légumes, frais, boucherie, boulangerie, réserve, bazar, drive, parking, quai…), 75 objets. Le magasin garde plus de stock, attire les foyers de plus loin (ou les fait fuir si les prix montent), remplit les paniers ; les caisses, les vols à l'étalage et les promotions comptent vraiment.
+
+**Et les immeubles** (tuile **Gérer l'immeuble** sur un immeuble ou une tour) : 13 pièces (hall, escalier et ascenseur, appartements, caves, loge du gardien, combles, buanderie, jardin partagé, parking, aire de jeux, toit-terrasse), 60 objets. Les appartements et combles aménagés créent de vrais logements où de nouveaux foyers s'installent, les habitants sont plus contents, le loyer demandé change le vrai loyer des foyers, et digicode, gardien et isolation réduisent cambriolages et charges.
+
+![Parc de loisirs en mode gestion](docs/apercu-gestion-parc.png)
+
+**Un parc joli et cosy** : chaque attraction est posée sur un socle bordé de couleurs, avec réverbères à lanterne, guirlandes de fanions, massifs de fleurs et ampoules colorées. Les stands sont des kiosques rayés, le train fantôme un château aux tourelles pointues. Les allées ont des réverbères, des bancs et des massifs ; la place centrale, une fontaine à deux vasques. Le soir, les ampoules brillent et les réverbères proches de la caméra éclairent vraiment le sol.
+
+![Parc de loisirs habillé](docs/apercu-parc-cosy.png)
+
+![Supermarché en mode gestion](docs/apercu-gestion-supermarche.png)
+
+![Immeuble en mode gestion](docs/apercu-gestion-immeuble.png)
+
+![Usine en mode gestion](docs/apercu-gestion-usine.png)
+
+![Hôtel en mode gestion](docs/apercu-gestion-hotel.png)
+
+![Restaurant en mode gestion](docs/apercu-gestion-restaurant.png)
+
+![Caserne de pompiers en mode gestion](docs/apercu-gestion-caserne.png)
+
+![Commissariat en mode gestion](docs/apercu-gestion-commissariat.png)
+
+![Hôpital en mode gestion](docs/apercu-gestion-hopital.png)
+
 ## Mode streamer : le chat Twitch vote
 
 **Maj+F11** (menu Infos) : pendant un live, le chat Twitch vote toutes les quelques minutes pour une catastrophe, une décision du maire, la météo ou une fête (les spectateurs tapent 1, 2 ou 3), avec un délai de veto pour le streamer ; `!habitant` donne son pseudo au prochain habitant. Lecture seule et anonyme, sans compte ni clé, désactivé par défaut ; « Simuler le chat » pour essayer sans Twitch. Détails : [docs/streamer.md](docs/streamer.md).

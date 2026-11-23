@@ -462,6 +462,8 @@ func attendus(e: int, now: Dictionary) -> Array:
 	var prix := clampf(valeur(e) / maxf(float(p.prix), 1.0), 0.2, 1.25)
 	var acces := 1.0 if _relie(e) else 0.15
 	var f := note_f * saison * jour * meteo * prix
+	# Mode gestion (Gérer le parc) : zones aménagées, parking, label Sécurité.
+	f *= maxf(0.5, 1.0 + _g(e, "attrait"))
 	var pub := ParcPublicite.effet(p.get("noto", {}))
 	if ParcRecherche.a_effet("billets"):
 		f *= 1.08
@@ -649,6 +651,7 @@ func _nouveau(e: int, w: int, touriste: bool) -> void:
 		"sensations":
 			a.pref = rng.randf_range(6.0, 10.0)
 			a.tol = rng.randf_range(6.0, 10.0)
+	a.humeur = clampf(float(a.humeur) + Gestion.humeur_parc_de(e), 0.0, 100.0)
 	if ParcRecherche.a_effet("humeur"):
 		a.humeur = float(a.humeur) + 4.0
 		if rng.randf() < 0.01:
@@ -677,6 +680,12 @@ func _nouveau(e: int, w: int, touriste: bool) -> void:
 		_penser(e, "bon_prix")
 	_encaisser(e, "billets", prix * w)
 	a.depense = prix
+	# Mode gestion : photos, consigne, poussettes, parking… dépensés en plus.
+	var extra := _g(e, "ventes")
+	if extra > 0.0 and float(a.argent) > extra + 10.0:
+		a.argent = float(a.argent) - extra
+		a.depense = float(a.depense) + extra
+		_encaisser(e, "stands", extra * w)
 	p.jour.visiteurs = int(p.jour.visiteurs) + w
 	if touriste:
 		p.jour.touristes = int(p.jour.touristes) + w
@@ -1030,7 +1039,7 @@ func _tourner(bid: int, e: int, dt: float) -> void:
 		a.etat = "bord"
 		pris += int(a.w)
 	if pris > 0:
-		var lent := 0.5 + 0.5 * float(staff[0])
+		var lent := (0.5 + 0.5 * float(staff[0])) * maxf(0.5, 1.0 + _g(e, "vitesse"))
 		it.fin = clock + float(spec.get("cycle", 3.0)) * 60.0 / lent
 
 
@@ -1069,7 +1078,7 @@ func _fin_tour(bid: int, e: int, spec: Dictionary) -> void:
 	it.tours = int(it.tours) + n
 	p.jour.tours = int(p.jour.tours) + n
 	# Usure et pannes.
-	var usure := float(spec.get("usure", 0.08)) * (0.75 if ParcRecherche.a_effet("usure") else 1.0)
+	var usure := float(spec.get("usure", 0.08)) * (0.75 if ParcRecherche.a_effet("usure") else 1.0) * clampf(1.0 - _g(e, "fiabilite"), 0.3, 1.0)
 	it.fiab = maxf(0.0, float(it.fiab) - usure * (1.0 + rng.randf()))
 	var risque := 0.0008 + 0.06 * pow((100.0 - float(it.fiab)) / 100.0, 2.0)
 	if rng.randf() < risque:
@@ -1102,7 +1111,7 @@ func _entretien(e: int, dt: float) -> void:
 	var eq := _equipes(e)
 	var techs := float(eq[0])
 	p.techs = techs
-	p.agents_propre = float(eq[1])
+	p.agents_propre = float(eq[1]) * maxf(0.5, 1.0 + _g(e, "proprete"))
 	var hrs := dt / 3600.0
 	var dispo := techs
 	for bid in attractions_ok(e):
@@ -1128,7 +1137,7 @@ func _entretien(e: int, dt: float) -> void:
 	if dispo > 0.0 and not bool(p.ouvert):
 		var list := attractions_ok(e).filter(func(b: int) -> bool: return not bool(items[b].panne))
 		list.sort_custom(func(x: int, y: int) -> bool: return float(items[x].fiab) < float(items[y].fiab))
-		var pts := dispo * 7.0 * hrs
+		var pts := dispo * 7.0 * hrs * (1.0 + maxf(0.0, _g(e, "fiabilite")))
 		for bid in list:
 			if pts <= 0.0:
 				break
@@ -1146,7 +1155,7 @@ func _servir(bid: int, e: int, dt: float) -> void:
 	if (it.file as Array).is_empty() or not bool(parcs[e].ouvert):
 		return
 	var staff := float(personnel(bid)[0])
-	var rate := float(spec.get("service", 60.0)) * (0.5 + 0.5 * staff) * (1.3 if ParcRecherche.a_effet("stands") else 1.0)
+	var rate := float(spec.get("service", 60.0)) * (0.5 + 0.5 * staff) * (1.3 if ParcRecherche.a_effet("stands") else 1.0) * maxf(0.5, 1.0 + _g(e, "vitesse"))
 	it.serv = float(it.serv) + rate * dt / 3600.0
 	var sale_f := 1.0
 	for r in items_of(e, "repos"):
@@ -1243,8 +1252,25 @@ func detail_note(e: int) -> Dictionary:
 	var note := 0.0
 	for k in poids:
 		note += float(d[k]) * float(poids[k])
-	d["note"] = clampf(note * 5.0, 0.0, 5.0)
+	# Mode gestion : décors, files ombragées, mascottes… (confort, jusqu'à +1 étoile).
+	d["gestion"] = maxf(0.0, _g(e, "confort"))
+	d["note"] = clampf(note * 5.0 + float(d.gestion), 0.0, 5.0)
 	return d
+
+
+## Plafonds des effets du mode gestion sur le vrai parc (les attractions
+## restent ce qui fait venir les visiteurs).
+const GESTION_MAX := {"attrait": 0.8, "confort": 1.0, "vitesse": 0.5, "fiabilite": 0.7, "proprete": 1.0}
+
+
+## Effet du mode gestion sur ce parc (0 tant qu'on ne l'a jamais ouvert en gestion).
+func _g(e: int, cle: String) -> float:
+	return effet_gestion(e, cle)
+
+
+static func effet_gestion(e: int, cle: String) -> float:
+	var v := Gestion.effet_de(e, cle)
+	return minf(v, float(GESTION_MAX[cle])) if GESTION_MAX.has(cle) else v
 
 
 func note_cible(e: int) -> float:

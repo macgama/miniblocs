@@ -427,7 +427,7 @@ func _info_of(b: Dictionary) -> Dictionary:
 		if Metiers.venue_matches(hb, String(b.t)):
 			serves.append(hb)
 	# Places propres au bâtiment (campement des fondateurs : "nlog", "nemp").
-	return {"t": String(b.t), "cat": String(t.get("cat", "")), "serves": serves, "log": int(b.get("nlog", roundi(int(t.get("logements", 0)) * fa))),
+	return {"t": String(b.t), "cat": String(t.get("cat", "")), "serves": serves, "log": int(b.get("nlog", roundi(int(t.get("logements", 0)) * fa))) + Gestion.logements_de(int(b.get("id", -1))),
 		"emp": int(b.get("nemp", roundi(int(t.get("emplois", 0)) * fa))), "camp": bool(t.get("campement", false)), "seats": seats, "pos": BuildingSystem.rect_center(rect) + Vector3(0, float(b.get("h", 0.0)), 0),
 		"rect": rect, "public": String(t.get("cat", "")) == "services", "cost": int(b.get("cost", BuildingCatalog.cost(String(b.t)))),
 		"house": t.get("arch", t.get("role", String(b.t))) in ["maison", "villa", "grande_maison", "ferme"],

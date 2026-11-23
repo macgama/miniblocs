@@ -262,7 +262,8 @@ func _type_of(bid: int) -> String:
 
 
 func spec(bid: int) -> Dictionary:
-	return TourismeTypes.spec_of(_type_of(bid))
+	# Mode gestion (Gestion) : pièces construites et étoiles gagnées.
+	return Gestion.spec_de(bid, TourismeTypes.spec_of(_type_of(bid)))
 
 
 func _sync() -> void:
@@ -327,7 +328,8 @@ func etoiles(bid: int) -> int:
 
 func lits(bid: int) -> int:
 	# Hôtel agrandi (Ameliorations) : 1,5 ou 2 fois plus de lits.
-	return roundi(TourismeTypes.lits_de(spec(bid)) * Ameliorations.facteur_bid(buildings, bid))
+	# Mode gestion : chambres ouvertes en plus.
+	return roundi(TourismeTypes.lits_de(spec(bid)) * Ameliorations.facteur_bid(buildings, bid) * (1.0 + Gestion.effet_de(bid, "lits")))
 
 
 func est_municipal(bid: int) -> bool:
@@ -430,7 +432,7 @@ func note(bid: int) -> float:
 	var ref := float(sp.get("prix", TourismeTypes.prix_ref(int(e))))
 	var qp := clampf((ref / maxf(prix, 1.0) - 1.0) * 0.9, -1.5, 0.6)
 	var avis := float(heb[bid].satisf) if heb.has(bid) else 3.0
-	return clampf(confort * 0.55 + avis * 0.35 + qp + 0.3, 0.5, 5.0)
+	return clampf(confort * 0.55 + avis * 0.35 + qp + 0.3 + Gestion.effet_de(bid, "confort"), 0.5, 5.0)
 
 
 # --- Sites touristiques -------------------------------------------------------------------
@@ -750,7 +752,7 @@ func attrait_heb(bid: int, month: int) -> float:
 	if String(sp.get("genre", "")) == "camping" or String(sp.get("genre", "")) == "village":
 		genre = 1.5 if month in [6, 7, 8] else 0.8
 	var route := 1.0 if relie(bid) else 0.2
-	return (0.4 + note(bid) / 5.0) * valeur * valeur * prox * genre * route * sqrt(float(maxi(lits(bid), 1)))
+	return (0.4 + note(bid) / 5.0) * valeur * valeur * prox * genre * route * sqrt(float(maxi(lits(bid), 1))) * (1.0 + Gestion.effet_de(bid, "attrait"))
 
 
 # --- Temps --------------------------------------------------------------------------------------
@@ -841,6 +843,9 @@ func new_day(now: Dictionary = {}) -> void:
 	_arrivees(now)
 	# La journée des clients : nuitées, repas, courses, souvenirs, visites.
 	_journee(now)
+	# Mode gestion : historique, pannes, événements, gestion automatique.
+	if Gestion.instance != null and is_instance_valid(Gestion.instance) and Gestion.instance.tourisme == self:
+		Gestion.instance.nouveau_jour(now)
 	changed.emit()
 
 
@@ -940,10 +945,12 @@ func _journee(now: Dictionary) -> void:
 		jour.ville = float(jour.ville) + taxe
 		# Repas : au restaurant de l'hôtel, sinon en ville.
 		var repas := float(n) * REPAS_JOUR
-		var dehors := repas * (0.4 if bool(sp.get("restaurant", false)) else 1.0)
+		var dehors := repas * (maxf(0.05, 0.4 - Gestion.effet_de(int(bid), "repas")) if bool(sp.get("restaurant", false)) else 1.0)
 		if bool(sp.get("cuisine", false)):
 			dehors *= 0.5
 		ca += (repas - dehors) * Ressources.REPAS * (1.0 + 0.3 * maxf(0.0, float(e) - 2.0))
+		# Mode gestion : bar, boutique, minibar, spa… (dépenses dans l'hôtel).
+		ca += float(n) * Gestion.effet_de(int(bid), "ventes")
 		var servis := 0.0
 		if prod != null and is_instance_valid(prod) and dehors > 0.0:
 			var r := prod.repas_touristes(p, dehors)
@@ -977,7 +984,8 @@ func _journee(now: Dictionary) -> void:
 		var vis := _visites_depuis(p, float(n) * VISITES_JOUR * (1.0 - 0.25 * pluie if not bool(sp.get("animation", false)) else 0.8))
 		# Comptes de l'hébergement : salaires, charges, impôt.
 		var emplois := Ameliorations.cap(buildings.buildings.get(int(bid), {}), "emplois")
-		var charges := float(emplois) * SALAIRE_MOYEN * ReglagesPartie.actuel.salaires / 30.44 + float(n) * float(st.prix) * CHARGES_NUIT
+		var charges := float(emplois) * SALAIRE_MOYEN * ReglagesPartie.actuel.salaires / 30.44 + float(n) * float(st.prix) * CHARGES_NUIT \
+			+ Gestion.entretien_de(int(bid))
 		st.jour.ca = float(st.jour.ca) + ca
 		st.jour.charges = float(st.jour.charges) + charges
 		if est_municipal(int(bid)):
@@ -993,7 +1001,7 @@ func _journee(now: Dictionary) -> void:
 				jour.impots = float(jour.impots) + imp
 				jour.ville = float(jour.ville) + imp
 		# Satisfaction des clients présents.
-		var sat := _satisfaction(int(bid), faim, trouve, vis, boutique, foule)
+		var sat := clampf(_satisfaction(int(bid), faim, trouve, vis, boutique, foule) + Gestion.effet_de(int(bid), "satisf"), 0.5, 5.0)
 		for c in st.clients:
 			c[2] = lerpf(float(c[2]), sat, 0.5)
 		st.satisf = lerpf(float(st.satisf), sat, 0.2)

@@ -15557,7 +15557,14 @@
 "Chaque maison finie loge une famille et fait vivre le village.": "Jedes fertige Haus beherbergt eine Familie und belebt das Dorf.",
 "médaille de bronze": "Bronze",
 "médaille d'argent": "Silber",
-"médaille d'or": "Gold"
+"médaille d'or": "Gold",
+"Isoler le bâtiment cliqué": "Angeklicktes Gebäude hervorheben",
+"Un clic sur un bâtiment le cadre : le reste de la ville pâlit et les cartes se rangent, seule sa fiche reste. Échap ou la fermeture de la fiche rétablit tout.": "Ein Klick auf ein Gebäude rückt es ins Bild: Der Rest der Stadt verblasst, die Karten werden weggeräumt, nur sein Steckbrief bleibt. Esc oder das Schließen des Steckbriefs stellt alles wieder her.",
+"Isoler": "Hervorheben",
+"Revoir toute la ville autour (Échap ferme la fiche et rétablit tout)": "Wieder die ganze Stadt sehen (Esc schließt den Steckbrief und stellt alles wieder her)",
+"Ne voir que ce bâtiment : la ville pâlit, les cartes se rangent": "Nur dieses Gebäude zeigen: Die Stadt verblasst, die Karten werden weggeräumt",
+"Clic sur un bâtiment (1)": "Klick auf ein Gebäude (1)",
+"il reste seul à l'écran : la caméra le cadre, la ville pâlit, les cartes se rangent ; Échap ou ✕ de la fiche rétablit tout, « Toute la ville » garde la fiche (Options → Jeu pour couper)": "es bleibt allein im Bild: Die Kamera rahmt es ein, die Stadt verblasst, die Karten werden weggeräumt; Esc oder ✕ des Steckbriefs stellt alles wieder her, „Ganze Stadt“ behält den Steckbrief (Optionen → Spiel zum Abschalten)"
 },
 "Turbo (4 h/s)": "Turbo (4 Std/s)",
 "Départ rapide (chantiers ×3 jusqu'à 200 habitants)": "Schnellstart (Baustellen ×3 bis 200 Einwohner)",

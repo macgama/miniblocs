@@ -40,6 +40,10 @@ const MAX_DEDANS := 3
 const MAX_QUEUE := 6
 const REFRESH := 0.5
 
+## Habillage des petits commerces (DevanturesHabillage) : désactivable pour
+## comparer (captures avant/après) ou alléger.
+static var habillage_actif := true
+
 static var instance: Devantures
 
 var pop: Population
@@ -229,8 +233,9 @@ func _batiment(bid: int, d: float, proche: bool, ctx: Dictionary, figs_vues: Dic
 	_enseigne(s, g, p, nom, st, ouvert and bool(ctx.soir))
 	var niche := proche and bool(g.niche) and int(ctx.niches) < MAX_NICHES
 	s["a_niche"] = niche
+	var comptoir := _habillage(s, bid, node, g, p, type_id, proche, ouvert, ctx, info)
 	if not proche:
-		_masquer(s, ["niche", "vitres", "contenu", "store", "nom_store", "terrasse", "etal", "ardoise", "texte_ardoise", "affichette", "logis", "stock", "lum", "potence", "rideau", "pancarte"])
+		_masquer(s, ["hab_pres", "niche", "vitres", "contenu", "store", "nom_store", "terrasse", "etal", "ardoise", "texte_ardoise", "affichette", "logis", "stock", "lum", "potence", "rideau", "pancarte"])
 		montres.append(info)
 		return
 	# Logements : plaque, lampe d'entrée, jardinières.
@@ -351,7 +356,12 @@ func _batiment(bid: int, d: float, proche: bool, ctx: Dictionary, figs_vues: Dic
 	# Terrasse des cafés : ouverts, sans pluie, assez doux.
 	var terrasse := genre == DevanturesTypes.SALLE and bool(p.get("terrasse", false)) and ouvert \
 		and float(ctx.pluie) < 0.25 and bool(ctx.chaud) and float(g.cour) + 1.5 >= 1.8
-	if terrasse:
+	if comptoir:
+		# Échoppe à comptoir sur rue : les clients s'assoient aux tabourets.
+		_masquer(s, ["terrasse"])
+		if ouvert:
+			_clients_assis(bid, root, DevanturesHabillage.places_comptoir(w), info, figs_vues, Basis(Vector3.UP, 0.0))
+	elif terrasse:
 		var n := clampi(int(w / 1.6), 1, 4)
 		var mt := _mi(s, "terrasse")
 		mt.mesh = DevanturesModeles.terrasse(w, n, int(ctx.annee), not bool(ctx.soir))
@@ -411,7 +421,13 @@ func _geometrie(node: MeshInstance3D, p: Dictionary) -> Dictionary:
 	# Cour devant la façade : entre le modèle et le bord de la parcelle.
 	var t := BuildingCatalog.get_type(String(p.get("type", "")))
 	var cour := maxf(z0 + float(t.get("d", 0.0)) * 0.5, 0.0) if not t.is_empty() else 0.0
-	return {"origine": Vector3(cx, 0.0, z0), "w": w, "h": h, "d": d, "l": l, "haut": bb.size.y, "niche": niche, "cour": cour}
+	var cote_g := 0.0
+	var cote_d := 0.0
+	if not t.is_empty():
+		cote_g = maxf(float(t.get("w", 0.0)) * 0.5 + bb.position.x, 0.0)
+		cote_d = maxf(float(t.get("w", 0.0)) * 0.5 - bb.end.x, 0.0)
+	return {"origine": Vector3(cx, 0.0, z0), "w": w, "h": h, "d": d, "l": l, "haut": bb.size.y, "niche": niche, "cour": cour,
+		"prof": bb.size.z, "cote_g": cote_g, "cote_d": cote_d}
 
 
 # --- Économie : ouverture et stock -------------------------------------------------------------
@@ -557,6 +573,75 @@ func _gens(bid: int, s: Dictionary, root: Node3D, w: float, dp: float, genre: St
 		n += 1
 
 
+## Clients assis à des places données (comptoir sur rue).
+func _clients_assis(bid: int, root: Node3D, places: Array, info: Dictionary, figs_vues: Dictionary, rot: Basis) -> void:
+	var base := root.global_transform
+	var clients := []
+	for pid in pop.present_in(bid):
+		var k := String(pop.activity(pop.persons[pid]).kind)
+		if (k == "loisir" or k == "courses") and not _deja_montre(int(pid)):
+			clients.append(int(pid))
+	clients.sort()
+	var i2 := 0
+	for pid in clients:
+		if i2 >= places.size() or _figs.size() >= MAX_FIGURINES:
+			break
+		var f := _figurine(pid, "")
+		if f.geste != "terrasse":
+			f.regler("conseiller", true)
+			f.geste = "terrasse"
+			f._outil.mesh = Accessoires.outil("tasse")
+		f.hauteur_assise = Accessoires.ASSISE
+		var pl: Transform3D = places[i2]
+		f.global_transform = base * Transform3D(rot, pl.origin)
+		f.visible = true
+		figs_vues[pid] = true
+		i2 += 1
+	info.clients = i2
+
+
+## Habillage des petits commerces : grandes silhouettes de loin, petites
+## choses de près (DevanturesHabillage). Rend vrai si le commerce a un
+## comptoir sur rue (la terrasse laisse alors la place aux tabourets).
+func _habillage(s: Dictionary, bid: int, node: MeshInstance3D, g: Dictionary, p: Dictionary, type_id: String,
+		proche: bool, ouvert: bool, ctx: Dictionary, info: Dictionary) -> bool:
+	if not habillage_actif or not DevanturesHabillage.concerne(p, float(g.l), float(g.prof)):
+		_masquer(s, ["hab_loin", "hab_pres"])
+		return false
+	var annee := int(ctx.annee)
+	var v := absi(hash("hab%d" % bid)) % 3
+	var th := DevanturesHabillage.theme(type_id, p, annee, v)
+	if not g.has("mes"):
+		g["mes"] = DevanturesHabillage.mesures(node.mesh, g.origine, float(g.l), float(g.prof))
+	var t := BuildingCatalog.get_type(type_id)
+	var st: Dictionary = Styles.STYLES.get(String(t.get("style", "")), {})
+	g["fh"] = float(st.get("floor_h", 3.2))
+	var mois := 6
+	if ambiance != null:
+		mois = int(Time.get_date_dict_from_unix_time(int(ambiance.unix_time)).month)
+		if ambiance.lat < 0.0:
+			mois = (mois + 5) % 12 + 1
+	var ms := DevanturesHabillage.maillages(g, th, mois)
+	var lampes := bool(ctx.soir)
+	var neons := bool(ctx.soir) and (ouvert or float(ctx.heure) < 23.0 and float(ctx.heure) > 12.0)
+	var ml := _mi(s, "hab_loin")
+	if ml.mesh != ms.loin:
+		ml.mesh = ms.loin
+	ml.visible = true
+	DevanturesHabillage.allumer(ml, lampes, neons)
+	if proche:
+		var mp := _mi(s, "hab_pres")
+		if mp.mesh != ms.pres:
+			mp.mesh = ms.pres
+		mp.visible = true
+		DevanturesHabillage.allumer(mp, lampes, neons)
+	else:
+		_masquer(s, ["hab_pres"])
+	info["habillage"] = {"region": th.region, "v": v, "comptoir": th.comptoir, "lampadaire": th.lampadaire, "arbre": th.arbre,
+		"clim": th.clim, "enseigne_v": th.enseigne_v, "distributeur": th.distributeur, "toit_plat": g.mes.plat, "proche": proche}
+	return bool(th.comptoir)
+
+
 ## Clients assis en terrasse (ceux qui sont au café en ce moment).
 func _clients_terrasse(bid: int, s: Dictionary, root: Node3D, w: float, n: int, info: Dictionary, figs_vues: Dictionary) -> void:
 	var base := root.global_transform
@@ -596,7 +681,7 @@ func _mi(s: Dictionary, cle: String) -> MeshInstance3D:
 	if mi == null:
 		mi = MeshInstance3D.new()
 		mi.name = cle
-		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF if cle in ["vitres", "lum"] else GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF if cle in ["vitres", "lum", "hab_pres"] else GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 		(s.root as Node3D).add_child(mi)
 		s[cle] = mi
 	return mi

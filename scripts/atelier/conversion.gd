@@ -248,7 +248,14 @@ static func open_interior(mob: Mobilier, bid: int) -> Dictionary:
 		return {"ok": false, "error": "bâtiment introuvable"}
 	var b: Dictionary = bs.buildings[bid]
 	var type_id := String(b.t)
-	var perso: Dictionary = Personnalisation.completer(type_id, b.get("perso", {}))
+	# La façade doit rester celle qu'on voit : même personnalisation que le
+	# maillage (étages des agrandissements, style et étages d'une autre taille).
+	var perso: Dictionary = Ameliorations.perso_effectif(b)
+	var par_taille := TaillesBatiments.est_taille(type_id) and TaillesBatiments.dessine_par_style(type_id, perso)
+	if par_taille:
+		perso = TaillesBatiments.perso_dessin(type_id, perso)
+	else:
+		perso = Personnalisation.completer(type_id, perso)
 	if not can_open(type_id, perso):
 		return {"ok": false, "error": "ce bâtiment ne s'ouvre pas encore (seulement maisons, immeubles, boutiques, restaurants, bureaux, ateliers, écoles)"}
 	var t := Personnalisation.type_of(type_id, perso).duplicate()
@@ -263,6 +270,10 @@ static func open_interior(mob: Mobilier, bid: int) -> Dictionary:
 	var floors := int(perso.get("etages", vol.get("etages", Personnalisation.base_floors(type_id, perso))))
 	if Personnalisation.is_classic(type_id) and not perso.has("style") and not perso.has("etages"):
 		floors = 2 if String(t.arch) in ["maison", "grande_maison"] else maxi(floors, 1)
+		if TaillesBatiments.est_taille(type_id):
+			floors = int(TaillesBatiments.dims(type_id).e)
+	# Étages insérés dans le maillage par un agrandissement.
+	floors += Ameliorations.etages_inseres(b)
 	var yaw := -int(b.r) * PI / 2.0 + float(b.get("a", 0.0))
 	var basis := Basis(Vector3.UP, yaw)
 	var rect := Rect2i(Vector2i(int(b.x), int(b.z)), BuildingCatalog.footprint(type_id, int(b.r)))

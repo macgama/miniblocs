@@ -133,6 +133,8 @@ var _gates_ok := false
 var _shop_lists: Dictionary = {}
 ## Commerces qui vendent chaque bien : g -> [[bid, Vector2 position], …] (ordre de sites).
 var _shops_par_bien: Dictionary = {}
+## Version des magasins gérés (Gestion.version_magasins) vue au dernier calcul des listes.
+var _version_magasins := 0
 ## Empreinte des commerces (ids et types) au dernier _sync.
 var _shop_sig := 0
 var _dem_today: Dictionary = {}
@@ -636,17 +638,20 @@ func cap_of(bid: int, good: String) -> float:
 		"entrepot":
 			return STOCK_ENTREPOT
 		"commerce":
-			return maxf(_shop_need(bid, good) * TARGET_DAYS_SHOP * 1.5, 0.05)
+			# Supermarché géré : une réserve et des rayons plus grands (Gestion).
+			return maxf(_shop_need(bid, good) * TARGET_DAYS_SHOP * 1.5, 0.05) * Gestion.rayons_de(bid)
 	if agri != null and agri.manages(bid):
 		var c := float(agri.cap(bid, good))
 		if c > 0.0:
 			return c
 	var out := outputs_of(bid)
+	# Usine gérée plus rapide : des stocks à la mesure de sa cadence.
+	var cad := maxf(1.0, Gestion.cadence_de(bid)) if String(s.kind) == "transformation" else 1.0
 	if out.has(good):
-		return maxf(float(out[good]) * SITE_DAYS, SITE_MIN_T)
+		return maxf(float(out[good]) * SITE_DAYS * cad, SITE_MIN_T)
 	var prod := ProductionTypes.prod_of(_type_of(bid))
 	if prod.get("kind", "") == "transformation" and prod.in.has(good):
-		return maxf(float(prod.in[good]) * TARGET_DAYS_SITE * 1.5, 1.0)
+		return maxf(float(prod.in[good]) * TARGET_DAYS_SITE * 1.5 * cad, 1.0)
 	return 0.0
 
 
@@ -736,6 +741,9 @@ func _pay(bid: int, poste: String, amount: float) -> void:
 	var m: Dictionary = s.mois
 	m[poste] = float(m.get(poste, 0.0)) + amount
 	s.jour = float(s.get("jour", 0.0)) + amount
+	# Mode gestion (usine) : les recettes comptent dans le bilan du jour.
+	if amount > 0.0:
+		Gestion.recette_de(bid, amount)
 
 
 func _book(cat: String, amount: float) -> void:
@@ -905,6 +913,17 @@ func _step_hours(h: float) -> void:
 			s.eff = staff
 			s.status = "En activité" if staff >= 0.999 else "En activité (%d %% des emplois pourvus)" % roundi(staff * 100.0)
 		else:
+			# Mode gestion (usine) : cadence des machines et de l'équipe, matière mieux utilisée.
+			var cad := Gestion.cadence_de(bid)
+			if cad <= 0.0:
+				s.status = "En grève : les machines sont arrêtées"
+				Gestion.produire_de(bid, 0.0, 0.0)
+				continue
+			frac *= cad
+			var gm := Gestion.matiere_de(bid)
+			var possible := 0.0
+			for g in prod.out:
+				possible += float(prod.out[g]) * frac * gm
 			var f := staff
 			var missing: Array[String] = []
 			for g in prod.in:
@@ -917,8 +936,9 @@ func _step_hours(h: float) -> void:
 					f = minf(f, staff * have / need)
 			for g in prod.out:
 				var room := cap_of(bid, g) - stock_of(bid, g)
-				f = minf(f, room / (float(prod.out[g]) * frac))
+				f = minf(f, room / (float(prod.out[g]) * frac * gm))
 			f = maxf(f, 0.0)
+			Gestion.produire_de(bid, possible * f, possible)
 			if f <= 0.0:
 				s.status = ("Manque : %s (en attente de livraison)" % ", ".join(missing)) if not missing.is_empty() \
 					else "Stock plein : aucun camion ne vient le chercher"
@@ -931,8 +951,8 @@ func _step_hours(h: float) -> void:
 			for g in prod.out:
 				if not Ressources.disponible(g):
 					continue
-				_put(bid, g, float(prod.out[g]) * frac * f)
-				_flow(g, float(prod.out[g]) * frac * f, "prod")
+				_put(bid, g, float(prod.out[g]) * frac * f * gm)
+				_flow(g, float(prod.out[g]) * frac * f * gm, "prod")
 			s.eff = f
 			if not missing.is_empty():
 				s.status = "Au ralenti (%d %%), manque : %s" % [roundi(f * 100.0), ", ".join(missing)]
@@ -1007,9 +1027,10 @@ func _needs_calc(bid: int, s: Dictionary) -> Dictionary:
 	match String(s.kind):
 		"transformation":
 			var prod := ProductionTypes.prod_of(_type_of(bid))
+			var cad := maxf(1.0, Gestion.cadence_de(bid))
 			for g in prod.in:
 				if Ressources.disponible(g):
-					out[g] = float(prod.in[g])
+					out[g] = float(prod.in[g]) * cad
 		"commerce":
 			var shop := Ressources.commerce_of(_type_of(bid))
 			var made := {}
@@ -1524,13 +1545,15 @@ func _unload(mid: int) -> void:
 			var gain := q * Ressources.prix_export(g)
 			if marche != null:
 				gain = float(marche.vente_export(from, g, q, int(m.get("accord", -1))))
+			# Mode gestion (usine) : des produits de qualité se vendent plus cher.
+			gain *= Gestion.prix_vente_de(from)
 			_pay(from, "Exportations", gain)
 			_book("Exportations", gain)
 		elif String(sites.get(to, {}).get("kind", "")) != "entrepot":
 			if marche != null:
-				value += float(marche.vente_entre(from, to, g, q))
+				value += float(marche.vente_entre(from, to, g, q)) * Gestion.prix_vente_de(from)
 			else:
-				value += q * Ressources.prix_interieur(g)
+				value += q * Ressources.prix_interieur(g) * Gestion.prix_vente_de(from)
 	if value > 0.0 and from >= 0 and to >= 0:
 		_pay(to, "Achats aux fournisseurs", -value)
 		_pay(from, "Ventes aux entreprises", value)
@@ -1766,8 +1789,10 @@ func _shops_for(home: int, g: String) -> Array:
 	var list: Array = []
 	for e in _vendeurs(g):
 		var d := (e[1] as Vector2).distance_to(h2)
-		if d <= SHOP_MAX:
-			list.append([d, e[0]])
+		# Supermarché géré : il attire de plus loin et passe devant les autres (Gestion).
+		var att := Gestion.attraction_de(int(e[0]))
+		if d <= SHOP_MAX * maxf(1.0, minf(att, 1.6)):
+			list.append([d / att, e[0]])
 	list.sort_custom(func(a: Array, b: Array) -> bool: return float(a[0]) < float(b[0]))
 	var out: Array = []
 	for e in list:
@@ -1799,6 +1824,10 @@ func _shopping() -> float:
 	var gain := 0.0
 	manque_foyers.clear()
 	_dem_today.clear()
+	var vm := Gestion.version_magasins_de()
+	if vm != _version_magasins:
+		_version_magasins = vm
+		_shop_lists.clear()
 	for bid in sites:
 		if String(sites[bid].kind) == "commerce":
 			sites[bid].manque = {}
@@ -1825,6 +1854,7 @@ func _shopping() -> float:
 		for g in Ressources.CONSO_VOITURE:
 			if nc.y > 0 and Ressources.disponible(g):
 				want[g] = float(Ressources.CONSO_VOITURE[g]) * nc.y
+		var vus := {}
 		for g in want:
 			var left := float(want[g])
 			var first := true
@@ -1847,8 +1877,10 @@ func _shopping() -> float:
 					continue
 				_put(bid, g, -take)
 				_flow(g, take, "vente")
-				var v := take * Ressources.prix_interieur(g) * Ressources.DETAIL
+				var v := take * Ressources.prix_interieur(g) * Ressources.DETAIL * Gestion.panier_de(bid)
 				_pay(bid, "Ventes aux habitants", v)
+				Gestion.vente_de(bid, v, 0 if vus.has(bid) else nc.x)
+				vus[bid] = true
 				gain += v
 				left -= take
 			if left > float(want[g]) * 0.25:
@@ -1862,9 +1894,11 @@ func _shopping() -> float:
 		if String(s.kind) != "commerce" or not shop.has("consomme") or _workers(bid) <= 0:
 			continue
 		var staff := _staff(bid)
+		# Mode gestion : plus ou moins de clients selon la note, le prix et les couverts.
+		var aff := Gestion.affluence_de(bid)
 		var served := 1.0
 		for g in shop.consomme:
-			var need := _shop_need(bid, g) * staff
+			var need := _shop_need(bid, g) * staff * aff
 			if need <= 0.0:
 				continue
 			var take := minf(need, stock_of(bid, g))
@@ -1874,8 +1908,9 @@ func _shopping() -> float:
 			_put(bid, g, -take)
 			_flow(g, take, "vente")
 		var vis := float(BuildingCatalog.get_type(_type_of(bid)).get("visiteurs", 100)) * Ameliorations.facteur_bid(buildings, bid)
-		var v := vis * staff * served * Ressources.REPAS
+		var v := vis * staff * served * aff * Ressources.REPAS * Gestion.prix_repas_de(bid)
 		_pay(bid, "Repas servis", v)
+		Gestion.compter_de(bid, v, vis * staff * served * aff, vis * staff * Gestion.couverts_de(bid))
 		gain += v
 	# Ventes moyennes : l'objectif des rayons suit les achats réels.
 	for bid in sites:
@@ -1976,7 +2011,7 @@ func repas_touristes(pos: Vector3, n: float, rayon := 3000.0) -> Array:
 		if int(s.get("tour_j", -1)) != jour:
 			s.tour_j = jour
 			s.tour_n = 0.0
-		var cap := maxf(0.0, vis * _staff(bid) - float(s.tour_n))
+		var cap := maxf(0.0, vis * _staff(bid) * Gestion.couverts_de(bid) - float(s.tour_n))
 		var servis := minf(left, cap)
 		if servis <= 0.0:
 			continue
@@ -1991,8 +2026,9 @@ func repas_touristes(pos: Vector3, n: float, rayon := 3000.0) -> Array:
 			_flow(String(g), take, "vente")
 		servis *= maxf(ok, 0.25)
 		s.tour_n = float(s.tour_n) + servis
-		var v := servis * Ressources.REPAS
+		var v := servis * Ressources.REPAS * Gestion.prix_repas_de(bid)
 		_pay(bid, "Repas servis aux touristes", v)
+		Gestion.compter_de(bid, v, servis, 0.0)
 		gain += v
 		left -= servis
 	_book("Repas servis aux touristes", gain)
@@ -2105,6 +2141,11 @@ func new_day() -> void:
 					w += float(Metiers.job(String(q.met)).salaire) * part * ReglagesPartie.actuel.salaires * CHARGES / DAYS_PER_MONTH
 			_pay(bid, "Salaires", -w)
 			wages += w
+			# Mode gestion : entretien des améliorations, puis bilan du jour.
+			var ent := Gestion.entretien_site(bid)
+			if ent > 0.0:
+				_pay(bid, "Entretien et améliorations", -ent)
+			Gestion.cloture_de(bid, w + ent)
 	# Impôt de la ville sur les bénéfices du jour : à la ville où est l'entreprise.
 	var tax := 0.0
 	var multi := Pays.instance != null and Pays.instance.a_des_villes()

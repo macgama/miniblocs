@@ -53,6 +53,33 @@ func get_target_pitch() -> float:
 	return _target_pitch
 
 
+## Cadrage (bâtiment isolé…) : où regarde la caméra, pour y revenir ensuite.
+func etat() -> Dictionary:
+	return {"pos": position, "rot": rotation_degrees.y, "dist": _target_distance, "pitch": _target_pitch}
+
+
+func retablir(e: Dictionary, duree := 0.35) -> void:
+	if e.is_empty():
+		return
+	cadrer(e.pos, float(e.dist), float(e.pitch), duree)
+	rotation_degrees.y = float(e.rot)
+
+
+## Va regarder `pos` à `dist` mètres, incliné de `pitch` degrés (glissé en `duree` s).
+func cadrer(pos: Vector3, dist: float, pitch: float, duree := 0.35) -> void:
+	_target_distance = clampf(dist, min_distance, max_distance)
+	set_pitch(pitch)
+	# La hauteur du pivot suit le relief (terre_main) : on ne glisse qu'en x et z.
+	if duree <= 0.0 or not is_inside_tree():
+		position.x = pos.x
+		position.z = pos.z
+		return
+	var tw := create_tween().set_parallel()
+	tw.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tw.tween_property(self, "position:x", pos.x, duree)
+	tw.tween_property(self, "position:z", pos.z, duree)
+
+
 func _process(delta: float) -> void:
 	# Pas de déplacement pendant la saisie d'un texte (ex. coordonnées).
 	var typing := get_viewport().gui_get_focus_owner() is LineEdit

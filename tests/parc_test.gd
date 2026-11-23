@@ -75,7 +75,7 @@ func _catalog_tests() -> void:
 func _place(bs: BuildingSystem, id: String, x: int, z: int, r := 0) -> int:
 	var bid := bs.place(id, Vector2i(x, z), r)
 	if bid < 0:
-		push_error("pose impossible : %s en %d, %d" % [id, x, z])
+		push_error("pose impossible : %s en %d, %d (%s)" % [id, x, z, bs.check_place(id, Vector2i(x, z), r).reason])
 	return bid
 
 
@@ -99,6 +99,7 @@ func _city_tests() -> void:
 	var parc: ParcLoisirs = scene.parc
 	# Ce test pose les attractions directement : pas de bureau d'études (voir parc_soirees_test).
 	ReglagesPartie.actuel.recherche_parc = false
+	ReglagesPartie.actuel.deblocage = "tout"
 	_check(parc != null and scene.parc_panel != null, "parc et panneau branchés dans la scène")
 	_check(scene.save_sections().has("parc"), "section « parc » dans la sauvegarde")
 	var pop: Population = scene.population

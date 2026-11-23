@@ -279,15 +279,54 @@ func _build_bas() -> void:
 
 func _reconstruire() -> void:
 	var st := gestion.etat(bid)
+	diorama.miniatures = _miniatures_parc() if _parc() else {}
 	diorama.construire(genre, st.niv, gestion.etoiles(bid), st.obj, st.pannes, gestion.nom(bid))
 	diorama.placer_employes(_employes())
 	diorama.surligner(selection)
 	_maj_engins(false)
 
 
+## Le parc de loisirs : ses vraies attractions, rangées par zone de la
+## maquette (aquatique, grands frissons, petits, manèges familiaux).
+func _miniatures_parc() -> Dictionary:
+	var out := {}
+	var pc := ParcLoisirs.instance
+	if pc == null or not is_instance_valid(pc) or not pc.parcs.has(bid):
+		return out
+	for b in pc.attractions_ok(bid):
+		var t := pc._type_of(int(b))
+		var z := GestionVue.zone_attraction(t)
+		if not out.has(z):
+			out[z] = []
+		(out[z] as Array).append(t)
+	return out
+
+
+## Zone de la maquette du parc où va une attraction.
+static func zone_attraction(t: String) -> String:
+	var sp := ParcTypes.spec_of(t)
+	var cat := BuildingCatalog.get_type(t)
+	if String(cat.get("groupe", "")) == "eau" or String(sp.get("anim", "")) in ["bouees", "vagues", "jets", "bateaux", "pedalos"] or String(sp.get("voie", "")) == "eau":
+		return "aquatique"
+	if float(sp.get("exc", 3.0)) >= 5.5:
+		return "sensations"
+	if float(sp.get("int", 3.0)) <= 1.0 and float(sp.get("exc", 3.0)) <= 2.0:
+		return "enfants"
+	return "manege"
+
+
+func _parc() -> bool:
+	return bid >= 0 and gestion.source(bid) == "parc"
+
+
 ## Métiers que le bâtiment du jeu embauche (les autres pièces prennent des extras).
 func _metiers_du_type() -> Dictionary:
 	var out := {}
+	if _parc():
+		for b in gestion.batiments_parc(bid):
+			for m in Metiers.jobs_for(gestion.type_of(int(b))):
+				out[String(m[0])] = true
+		return out
 	for m in gestion.spec_base(bid).get("metiers", []):
 		out[String(m[0])] = true
 	for k in Metiers.keys_of(gestion.type_of(bid)) + [genre]:
@@ -304,8 +343,13 @@ func _metiers_du_type() -> Dictionary:
 func _employes() -> Array:
 	var out: Array = []
 	var pris := {}
+	var lieux: Array = gestion.batiments_parc(bid) if _parc() else [bid]
+	var embauches: Array = []
 	if population != null:
-		for pid in population.by_job.get(bid, []):
+		for b in lieux:
+			embauches.append_array(population.by_job.get(int(b), []))
+	if population != null:
+		for pid in embauches:
 			var p: Dictionary = population.persons.get(int(pid), {})
 			if p.is_empty():
 				continue
@@ -400,6 +444,9 @@ func _remplir_haut() -> void:
 	if _ville():
 		_haut_ville()
 		return
+	if _parc():
+		_haut_parc()
+		return
 	var n := gestion.clients(bid)
 	var l := gestion.capacite(bid)
 	var resto := gestion.source(bid) == "production"
@@ -453,6 +500,32 @@ func _haut_ville() -> void:
 
 func _ville() -> bool:
 	return bid >= 0 and gestion.source(bid) == "ville"
+
+
+## Parc de loisirs : caisse des travaux, visiteurs, note, humeur, billet, attente.
+func _haut_parc() -> void:
+	var pc := ParcLoisirs.instance
+	_chip("banque", "Caisse des travaux : %s" % BuildingSystem.format_money(int(gestion.compte(bid))),
+		"Chaque jour, %d %% du bénéfice du parc est mis de côté ici pour ses travaux. Le reste va dans la caisse de la ville." % roundi(Gestion.PARC_REINVEST * 100.0))
+	_chip("mairie", "Ville : %s" % BuildingSystem.format_money(gestion.caisse_ville()), "Caisse de la ville : elle reçoit les billets et avance ce qui manque pour les travaux.")
+	_chip("habitants", "%d visiteurs" % gestion.clients(bid), "Visiteurs d'hier (ou présents en ce moment). Les attractions peuvent en faire tourner environ %d par jour." % gestion.capacite(bid))
+	_chip("sourire", "Note %.1f" % gestion.note(bid), "Note du parc sur 5 : variété, humeur, propreté, files, prix, fiabilité, services et aménagements.")
+	_chip("etoile", "Humeur %.1f" % gestion.satisf(bid), "Humeur moyenne des visiteurs (sur 5).")
+	_chip("budget", "Billet %s" % BuildingSystem.format_money(roundi(gestion.prix_unitaire(bid))), gestion.prix_txt(bid))
+	if pc != null and pc.parcs.has(bid):
+		_chip("horloge", "Attente %d min" % roundi(float(pc.parcs[bid].attente)), "Attente moyenne dans les files des attractions.")
+		var pannes_reelles := 0
+		for b in pc.attractions_ok(bid):
+			if bool(pc.items[b].panne):
+				pannes_reelles += 1
+		if pannes_reelles > 0:
+			var bp := _chip("loisirs", "%d manège%s arrêté%s" % [pannes_reelles, "s" if pannes_reelles > 1 else "", "s" if pannes_reelles > 1 else ""], "Des attractions du parc sont en panne : les techniciens de l'atelier les réparent (Maj + G → Attractions).")
+			bp.add_theme_color_override("font_color", Color("ffb703"))
+	var np := (gestion.etat(bid).pannes as Array).size()
+	if np > 0:
+		var b := _chip("construire", "%d panne%s" % [np, "s" if np > 1 else ""], "Du matériel est en panne : clique sur les ⚠ de la maquette ou va dans Équipe.")
+		b.add_theme_color_override("font_color", Color("ffb703"))
+	_maj_auto()
 
 
 ## Majuscule à la première lettre seulement.
@@ -748,6 +821,10 @@ func _lignes_effets(eff: Dictionary, court := false) -> Array:
 		out.append(("+%d %% soins" if court else "+%d %% de malaises sauvés malgré le retard") % roundi(float(eff.soins) * 100.0))
 	if eff.has("enquete"):
 		out.append(("+%d %% enquêtes" if court else "+%d %% de cambriolages élucidés même en retard") % roundi(float(eff.enquete) * 100.0))
+	if eff.has("fiabilite"):
+		out.append(("+%d %% fiabilité" if court else "Manèges %d %% moins usés, révisions plus efficaces") % roundi(float(eff.fiabilite) * 100.0))
+	if eff.has("proprete"):
+		out.append(("+%d %% propreté" if court else "Agents de propreté %d %% plus efficaces") % roundi(float(eff.proprete) * 100.0))
 	if eff.has("couverts"):
 		out.append(("+%d %% couverts" if court else "+%d %% de couverts (tables en plus)") % roundi(float(eff.couverts) * 100.0))
 	if eff.has("lits"):
@@ -761,6 +838,8 @@ func _lignes_effets(eff: Dictionary, court := false) -> Array:
 		if _ville():
 			var ma := _mot("attrait", "prestige (volontaires, dons)")
 			out.append(("+%d %% " + ma.get_slice(" (", 0).get_slice(" des ", 0) if court else "+%d %% de " + ma) % roundi(float(eff.attrait) * 100.0))
+		elif _parc():
+			out.append(("+%d %% visiteurs" if court else "+%d %% de visiteurs attirés") % roundi(float(eff.attrait) * 100.0))
 		else:
 			out.append(("+%d %% clients" if court else "+%d %% de clients attirés") % roundi(float(eff.attrait) * 100.0))
 	if eff.has("satisf"):
@@ -798,11 +877,13 @@ func _carte_ensemble() -> void:
 	else:
 		_texte("5 %s : le sommet !" % cl, true)
 	if int(et.label_fin) >= gestion.jour:
-		var txt := ("★ " + String(_gd().get("label_court", "Citée en exemple")) + " encore %d jours (" + _gs("label_effet", "un pompier de garde en plus") + ")." if _ville() else "★ Recommandé par le guide encore %d jours (+6 %% de clients).") % (int(et.label_fin) - gestion.jour)
+		var txt := ("★ " + String(_gd().get("label_court", "Citée en exemple")) + " encore %d jours (" + _gs("label_effet", "un pompier de garde en plus") + ")." if _ville() else ("★ Label Sécurité encore %d jours (+6 %% de visiteurs)." if _parc() else "★ Recommandé par le guide encore %d jours (+6 %% de clients).")) % (int(et.label_fin) - gestion.jour)
 		var l := _texte(txt, false, 13)
 		l.add_theme_color_override("font_color", UiStyle.GOOD)
 	if _ville():
 		_ensemble_ville(et)
+	if _parc():
+		_ensemble_parc(et)
 	_texte("Objectifs", false, 15)
 	for o in gestion.objectifs(bid):
 		var l := _texte("%s  %s  (%s)" % ["✔" if bool(o.fait) else "○", String(o.texte), String(o.avance)], false, 13)
@@ -842,6 +923,8 @@ func _carte_ensemble() -> void:
 			row.add_child(b)
 		if _ville():
 			_texte("Plus de budget : %s s'équipe plus vite (même en gestion automatique), payé chaque jour par la caisse de la ville. À 0, elle ne fait plus que l'entretien." % _le(), true, 12)
+		elif _parc():
+			_texte("Plus cher : chaque billet rapporte plus, mais des familles font demi-tour et les visiteurs sont moins contents. En gestion automatique, le prix suit ce que vaut le parc.", true, 12)
 		elif genre != "hotel":
 			_texte("Plus cher : chaque repas rapporte plus, mais il vient moins de monde et les clients sont moins contents.", true, 12)
 	if float(et.aide_ville) > 0.5:
@@ -853,6 +936,46 @@ func _carte_ensemble() -> void:
 				_dire("%s rendus à la caisse de la ville." % BuildingSystem.format_money(v)))
 		_carte_corps.add_child(b)
 	_texte("Clique sur une pièce de la maquette (ou une tuile en bas) pour l'améliorer et l'équiper. Les « ! » au-dessus des clients sont des demandes, les ⚠ des pannes : clique dessus.", true, 12)
+
+
+## Le vrai parc : attractions par zone, files, propreté, et ce que la gestion y change.
+func _ensemble_parc(et: Dictionary) -> void:
+	var pc := ParcLoisirs.instance
+	if pc == null or not is_instance_valid(pc) or not pc.parcs.has(bid):
+		return
+	var p: Dictionary = pc.parcs[bid]
+	_texte("Le parc aujourd'hui", false, 15)
+	_texte("%s · %d visiteurs en ce moment · attente moyenne %d min · propreté %d / 100" % ["Ouvert" if bool(p.ouvert) else "Fermé",
+		pc.presents(bid), roundi(float(p.attente)), roundi(pc.proprete(bid))], true)
+	var mini := _miniatures_parc()
+	for z in ["manege", "sensations", "aquatique", "enfants"]:
+		var noms: Array = []
+		for t in mini.get(z, []):
+			noms.append(String(BuildingCatalog.get_type(String(t)).get("name", t)))
+		var zn := String(GestionTypes.piece(genre, z).get("nom", z))
+		_texte("%s : %s" % [zn, ", ".join(noms) if not noms.is_empty() else "aucune attraction (pose-en dans Construire → Parc de loisirs)"], true, 12)
+	var effets: Array = []
+	var at := ParcLoisirs.effet_gestion(bid, "attrait")
+	if at > 0.0:
+		effets.append("+%d %% de visiteurs" % roundi(at * 100.0))
+	var cf := ParcLoisirs.effet_gestion(bid, "confort")
+	if cf > 0.0:
+		effets.append("+%.2f étoile" % cf)
+	var vi := ParcLoisirs.effet_gestion(bid, "vitesse")
+	if vi > 0.0:
+		effets.append("manèges et stands %d %% plus rapides" % roundi(vi * 100.0))
+	var fi := ParcLoisirs.effet_gestion(bid, "fiabilite")
+	if fi > 0.0:
+		effets.append("%d %% d'usure en moins" % roundi(fi * 100.0))
+	var pr := ParcLoisirs.effet_gestion(bid, "proprete")
+	if pr > 0.0:
+		effets.append("propreté +%d %%" % roundi(pr * 100.0))
+	var ve := gestion.effet(bid, "ventes")
+	if ve > 0.0:
+		effets.append("+%s dépensés par visiteur" % BuildingSystem.format_money(roundi(ve)))
+	if not effets.is_empty():
+		_texte("Dans le vrai parc : " + ", ".join(effets) + ".", true, 12)
+	_texte("Mis de côté pour les travaux : %s · groupes et fêtes : %d · trophées : %d" % [BuildingSystem.format_money(int(et.get("reinvesti", 0.0))), int(et.get("groupes", 0)), int(et.get("trophees", 0))], true, 12)
 
 
 ## Interventions et engins de la caserne.

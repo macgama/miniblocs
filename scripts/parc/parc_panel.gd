@@ -6,6 +6,8 @@ extends CanvasLayer
 ## (ParcRecherche) et soirées (ParcSoirees : feux d'artifice, spectacles du soir).
 
 signal focus_requested(pos: Vector3)
+## « Gérer le parc » : la maquette du mode gestion (GestionVue), ouverte depuis l'entrée.
+signal gestion_requested(bid: int)
 
 const W := 360.0
 const H := 560.0
@@ -268,6 +270,11 @@ func _view_parc(e: int) -> void:
 	else:
 		_text("Fermé · ouvre de %d h à %d h ce mois-ci" % [int(hr.x), int(hr.y)], true)
 	_link("Aller à l'entrée", parc._center(e))
+	if not parc.en_chantier(e):
+		var g := _bouton("Gérer le parc (maquette)", func() -> void: gestion_requested.emit(e),
+			"Entre dans le parc en vue isométrique : aménage les zones, équipe-les, règle les demandes des visiteurs et répare les pannes.")
+		g.name = "GererParc"
+		g.icon = Icones.get_icon("parc", 18, UiStyle.ACCENT)
 	_section("Billets")
 	_prix_row("Entrée", float(p.prix), 120.0, 1.0, func(v: float) -> void: _faire("set_prix", [e, v, float(parc.parcs[e].prix_tour)], e),
 		"Prix du billet d'entrée. Trop cher, les visiteurs râlent ou font demi-tour ; pas assez, la caisse en pâtit.")
@@ -296,6 +303,8 @@ func _view_parc(e: int) -> void:
 		["fiabilite", "Fiabilité"], ["services", "Services"]]:
 		var v := float(d[spec[0]])
 		_bar(v, Color("52b788") if v >= 0.6 else (Color("ffd166") if v >= 0.35 else Color("e63946")), spec[1])
+	if float(d.get("gestion", 0.0)) > 0.0:
+		_text("Aménagements (Gérer le parc) : +%.2f étoile" % float(d.gestion), true)
 	_text("Propreté : %d / 100 · attente moyenne : %d min · techniciens : %.1f · agents de propreté : %.1f" % [roundi(parc.proprete(e)),
 		roundi(float(p.attente)), float(p.techs), float(p.agents_propre)], true)
 	_section("Conseils")

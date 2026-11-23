@@ -47,11 +47,14 @@ extends RefCounted
 ## - "enquete" : part des cambriolages élucidés malgré une patrouille en retard (police) ;
 ## - "soins" : part des malaises en retard qu'on sauve quand même (hôpital) ;
 ## - "lits_sup" : lits d'hôpital en plus (un nombre, pas une part) ;
+## - "proprete" : agents de propreté plus efficaces (parc de loisirs) ;
+## - "fiabilite" : moins d'usure des attractions, révisions plus efficaces (parc) ;
 ## - "entretien" : € par jour (charges en plus).
 const EFFETS := {
 	"lits": "lits", "confort": "confort", "attrait": "clients attirés", "satisf": "satisfaction", "repas": "repas sur place",
 	"vitesse": "vitesse du service", "ventes": "dépenses des clients", "couverts": "couverts",
 	"equipage": "personnes de garde", "engins": "véhicules", "enquete": "affaires élucidées", "soins": "qualité des soins", "lits_sup": "lits d'hôpital",
+	"proprete": "propreté", "fiabilite": "fiabilité des manèges",
 }
 
 const GENRES := {
@@ -316,6 +319,9 @@ const GENRES := {
 static func genre_de(type_id: String) -> String:
 	if type_id == "":
 		return ""
+	# L'Entrée du parc de loisirs : on gère tout le parc depuis elle.
+	if ParcTypes.role_of(type_id) == "entree":
+		return "parc"
 	var sp := TourismeTypes.spec_of(type_id)
 	if String(sp.get("role", "")) == "hebergement" and String(sp.get("genre", "")) == "hotel":
 		return "hotel"
@@ -344,6 +350,8 @@ static func genre(g: String) -> Dictionary:
 			return GenreCommissariat.GENRE
 		"hopital":
 			return GenreHopital.GENRE
+		"parc":
+			return GenreParc.GENRE
 	return GENRES.get(g, {})
 
 

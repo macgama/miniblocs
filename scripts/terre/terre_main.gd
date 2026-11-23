@@ -3555,6 +3555,10 @@ func _setup_gestion() -> void:
 	add_child(gestion_vue)
 	gestion_vue.setup(gestion, tourisme, population, buildings)
 	tourisme_panel.gestion_requested.connect(func(bid: int) -> void: ouvrir_gestion(bid))
+	if parc_panel != null:
+		parc_panel.gestion_requested.connect(func(bid: int) -> void:
+			parc_panel.set_open(false)
+			ouvrir_gestion(bid))
 
 
 func ouvrir_gestion(bid: int) -> bool:

@@ -1,6 +1,6 @@
 extends SceneTree
 ## Captures du mode gestion « tycoon » (écran isométrique d'un hôtel ou d'un restaurant).
-## Usage : xvfb-run -a godot --path . --rendering-driver opengl3 --script res://tests/gestion_vitrine.gd -- --out DOSSIER [--type hotel_3|haussmann__restaurant|pompiers|police|hopital] [--depart] [--niveau 1|3|5] [--piece spa] [--zoom 30] [--onglet personnel|stats|journal] [--x 20 --z 14]
+## Usage : xvfb-run -a godot --path . --rendering-driver opengl3 --script res://tests/gestion_vitrine.gd -- --out DOSSIER [--type hotel_3|haussmann__restaurant|pompiers|police|hopital|entree_parc] [--depart] [--niveau 1|3|5] [--piece spa] [--zoom 30] [--onglet personnel|stats|journal] [--x 20 --z 14]
 
 var out := "user://captures-gestion"
 var niveau := 3
@@ -61,7 +61,7 @@ func _run() -> void:
 	var gest: Gestion = scene.gestion
 	var vue: GestionVue = scene.gestion_vue
 	var pop: Population = scene.population
-	for n in [transport.traffic, tour, pop, scene.production]:
+	for n in [transport.traffic, tour, pop, scene.production, scene.parc]:
 		n.set_process(false)
 	bs.unlimited_money = false
 	bs.money = 50_000_000
@@ -81,6 +81,23 @@ func _run() -> void:
 	var service := GestionTypes.genre(g).has("service")
 	if service:
 		pass
+	elif g == "parc":
+		# De vraies attractions derrière l'entrée, et une journée d'été.
+		var pc: ParcLoisirs = scene.parc
+		ReglagesPartie.actuel.recherche_parc = false
+		pc.ignore_staff = true
+		pc._sync()
+		for a in [["carrousel_parc", -30, -50], ["grande_roue_parc", 20, -48], ["montagnes_russes", 0, -110],
+				["bateau_pirate", -50, -85], ["tasses_parc", 50, -40], ["friterie_parc", -8, -40], ["toilettes_parc", 40, -75]]:
+			var b := bs.place(String(a[0]), Vector2i(int(a[1]), int(a[2])), 0)
+			if b > 0:
+				bs.buildings[b]["chantier"] = false
+		pc._sync()
+		pc.clock = 1_784_358_000.0 - 3600.0
+		pc.last_day = int(pc._now(pc.clock).day)
+		for i in 360:
+			pc.clock += ParcLoisirs.STEP
+			pc.step(ParcLoisirs.STEP)
 	elif g == "hotel":
 		tour.heb[hotel].nom = "Hôtel Bellevue"
 		tour.heb[hotel].compte = 180_000.0
@@ -98,6 +115,9 @@ func _run() -> void:
 	var mets := ["receptionniste", "agent_etage", "agent_etage", "cuisinier", "serveur", "serveur", "cadre", "agent_proprete", "maitre_nageur", "maitre_nageur"]
 	if g == "restaurant":
 		mets = ["serveur", "serveur", "serveur", "cuisinier", "cuisinier", "serveur", "serveur"]
+	elif g == "parc":
+		mets = ["agent_accueil_parc", "agent_accueil_parc", "operateur_attraction", "operateur_attraction", "operateur_attraction",
+				"technicien_attraction", "vendeur_parc", "vendeur_parc", "agent_proprete", "musicien", "danseur", "animateur_vacances", "cadre", "infirmier", "maitre_nageur"]
 	elif service:
 		mets = []
 		for i in 18:

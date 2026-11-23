@@ -49,7 +49,7 @@ static func dessiner(d: GestionDiorama, k: LpKit, decor: String, r: Array, n: in
 			return _helistation(d, k, r, n)
 		"hopital_parking":
 			return _parking(d, k, r, n)
-	return []
+	return DecorsParc.dessiner(d, k, decor, r, n)
 
 
 static func _croix(k: LpKit, p: Vector3, t: float, col: Color, axe_x := false) -> void:

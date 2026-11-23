@@ -95,6 +95,25 @@ Ce que ça change **vraiment** dans la ville :
 - **Note** : délai moyen d'arrivée des ambulances, moral, pannes. **Caducées** (1 à 5) : gagnés par l'expérience.
 - Événements : certification (« sans réserve » : un urgentiste en plus pendant 60 jours), naissances, collecte de sang en hiver, clowns hospitaliers, hélicoptère, internes.
 
+## Le parc de loisirs
+
+Le parc de loisirs se gère comme une maquette : bouton **Gérer le parc (maquette)** dans le panneau du parc (Maj+G), ou tuile sur la fiche de l'**Entrée du parc**. Le parc appartient à la ville : les billets et les stands vont toujours dans la caisse de la ville. Une fois le parc ouvert en gestion, **25 % du bénéfice du jour** sont mis de côté dans la **caisse des travaux** du parc, qui paie les aménagements (la ville avance le reste). Un parc jamais ouvert en gestion ne change pas.
+
+13 zones : billetterie, direction, infirmerie, manèges familiaux, grands frissons, rivière et toboggans, royaume des petits, place gourmande, boutique de souvenirs, scène des spectacles, toilettes, atelier technique et parking des visiteurs. 68 objets (bornes à billets, mascotte, coupe-file, écrans d'attente, brumisateurs, photo souvenir, petit train, friterie, barbe à papa, food truck, gradins, projecteurs, machine à fumée, nacelle élévatrice, balayeuse, ombrière solaire, autocar…).
+
+**Les vraies attractions** du parc apparaissent **en miniature** dans leur zone, et elles tournent : montagnes russes et bateau pirate dans les grands frissons, attractions sur l'eau dans la rivière, petits manèges chez les petits, le reste dans les manèges familiaux (et là aussi tant que leur zone n'est pas construite).
+
+Ce que ça change **vraiment** dans le parc :
+- **Visiteurs attirés** (billetterie, parking, spectacles, mascotte…) : plus de visiteurs attendus chaque jour, jusqu'à +80 %.
+- **Confort** (décors, files ombragées, bancs…) : jusqu'à +1 étoile sur la note du parc.
+- **Vitesse** : manèges et stands qui servent plus vite (jusqu'à +50 %).
+- **Fiabilité des manèges** (atelier, techniciens) : jusqu'à 70 % d'usure en moins et des révisions plus efficaces.
+- **Propreté** (toilettes, atelier, balayeuse) : les agents de propreté nettoient plus vite.
+- **Ventes** : photos, consigne, poussettes… chaque visiteur dépense un peu plus.
+- **Humeur** : les visiteurs arrivent de meilleure humeur, surtout quand on règle leurs demandes (« J'ai perdu mon fils ! », « Mon ballon s'est envolé ! »).
+- Le **billet** se règle depuis la maquette (− / +) ; en gestion automatique, il suit ce que vaut le parc et les refus à l'entrée.
+- **Fanions** (1 à 5) : gagnés par l'expérience. Événements : inspection de sécurité (label Sécurité 60 jours), trophée du parc de l'année en décembre, autocars et sorties scolaires, anniversaires, influenceurs, canicule.
+
 ## Rythme
 
 Le mode suit le temps du jeu : rien ne se gagne pendant que le jeu est fermé, rien ne bouge en pause, tout va plus vite en vitesse rapide. La gestion automatique, les pannes et les événements tournent chaque jour de jeu pour tous les hôtels, même ceux qu'on n'ouvre jamais. Un hôtel jamais ouvert garde ses effets à zéro tant qu'il n'a rien acheté.
@@ -106,6 +125,7 @@ Le mode suit le temps du jeu : rien ne se gagne pendant que le jeu est fermé, r
 - `scripts/gestion/genres/genre_caserne.gd` (`GenreCaserne`), `decors_caserne.gd`, `modeles_caserne.gd` : la caserne. Source `ville` : le compte est `etat.caisse`, alimenté par `dotation()` dans `_journee_ville()`. Liens avec `Urgences` : `Gestion.flotte_de` (engins en plus, `Urgences.maj_flotte`), `equipage_de` (ajouté à `staff_of`), effet `vitesse` (temps sur place), `intervention_de` et `depart_de` (délai, note, journal). Les engins de la maquette : `GestionDiorama.placer_engins`.
 - `scripts/gestion/genres/genre_commissariat.gd` (`GenreCommissariat`), `decors_commissariat.gd`, `modeles_commissariat.gd` : le commissariat, même source `ville`. Les mots propres au service (voiture/engin, garage/remise, policier/pompier, « en service »/« de garde », conseil) sont des clés du genre (`vehicule`, `vehicules`, `garage`, `agent`, `agents`, `de_garde`, `conseil`, `label_effet`, `seul`). Effet `enquete` : `Gestion.chance_enquete_de` et `enquete_de`, appelés par `Urgences._effects_on_done` pour un cambriolage arrivé trop tard.
 - `scripts/gestion/genres/genre_hopital.gd` (`GenreHopital`), `decors_hopital.gd`, `modeles_hopital.gd` : l'hôpital. Effet `lits_sup` (un nombre de lits, `Gestion.lits_sup_de`, ajouté dans `ServicesPublics.capacite`) et effet `soins` (`Gestion.chance_soins_de`, `patient_de`, appelés par `Urgences._effects_on_done` pour un malaise en retard).
+- `scripts/gestion/genres/genre_parc.gd` (`GenreParc`), `decors_parc.gd`, `modeles_parc.gd` : le parc de loisirs. Source `parc` : chiffres de `ParcLoisirs` (`Gestion._journee_parc`, `visiteurs_parc`, `batiments_parc`). Les effets sont lus par `ParcLoisirs.effet_gestion` (plafonnés par `GESTION_MAX`). Miniatures : `GestionVue.zone_attraction` et `GestionDiorama._poser_miniatures` (clé `miniatures` du genre), clôture et allées : clés `cloture` et `allees`.
 - `scripts/gestion/gestion_types.gd` (`GestionTypes`) : les genres gérables. Un genre = ses pièces (plan, niveaux, prix, effets, métiers et postes, portes et chemins), ses objets (modèle, poses, prix, niveau requis, effets), ses demandes, ses pannes, les activités des clients. Pour ajouter la prison, l'hôpital, l'usine… : une entrée dans `GENRES`, une ligne dans `genre_de()`, et les décors de base de ses pièces dans le diorama (`_decor_<nom>`).
 - `scripts/gestion/gestion.gd` (`Gestion`) : niveaux, objets, prix, paiement, effets (`Gestion.effet_de(bid, clé)`), étoiles, personnel (salaires, formation), pannes, événements, historique, journal, gestion automatique (`gerer_auto`, `candidats`), objectifs, sauvegarde (section `gestion`). `nouveau_jour()` est appelé par le tourisme à chaque fin de journée.
 - `scripts/gestion/gestion_modeles.gd` (`GestionModeles`) : la bibliothèque des objets low-poly (72 modèles) et les places qu'ils offrent aux clients.

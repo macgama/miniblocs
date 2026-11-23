@@ -332,6 +332,11 @@ static func build_mesh(id: String, material: Material = null, details := true, v
 		StyleBuilder.build(k, t)
 		k.fit_xz(w, d)
 		return k.to_mesh(material)
+	# Modèles classiques de la ville (zonage par défaut, services publics).
+	if BatimentsClassiques.gere(id):
+		BatimentsClassiques.build(k, id, w, d)
+		k.fit_xz(w, d)
+		return k.to_mesh(material)
 	match id:
 		"maison":
 			k.plate(0, 0, w, d, GRASS)
@@ -707,11 +712,22 @@ static func variants_of(id: String) -> int:
 	var t := get_type(id)
 	if t.has("glb"):
 		return maxi(int(t.get("variantes", 1)), 1)
+	if BatimentsClassiques.gere(id):
+		return VARIANTES
 	return VARIANTES if t.has("arch") and not t.has("modele") and not t.has("creation") else 1
 
 
 static func approx_height(id: String) -> float:
+	# Mis en cache : le repère de l'habitant suivi la demande à chaque image.
+	if _hauteurs.has(id):
+		return _hauteurs[id]
 	var m := build_mesh(id)
-	if m.get_surface_count() == 0:
-		return 0.0
-	return m.get_aabb().end.y
+	var h := 0.0 if m.get_surface_count() == 0 else m.get_aabb().end.y
+	# Les créations de l'Atelier peuvent changer sous le même id : pas de cache.
+	var t := get_type(id)
+	if not (t.has("blocks") or t.has("creation") or t.has("modele")):
+		_hauteurs[id] = h
+	return h
+
+
+static var _hauteurs: Dictionary = {}

@@ -131,6 +131,30 @@ Ce que ça change **vraiment** dans la ville :
 
 ![Usine en mode gestion](apercu-gestion-usine.png)
 
+## Faire grandir l'établissement (tous les genres)
+
+Deux onglets en plus dans la carte de droite, pour l'hôtel, le restaurant, la caserne, le commissariat, l'hôpital, le parc et l'usine :
+
+- **Essor**
+  - **Recherche** : un projet à la fois, avancé par des points gagnés chaque jour (équipe, formation, pièces construites). 8 projets : méthodes de travail (+15 % de vitesse), démarche qualité, maintenance préventive (−30 % de pannes), achats groupés (−10 % de charges), design et ambiance (confort), fidélisation (clients, ou une personne de garde en plus pour un service public), atelier d'idées (recherche plus rapide), excellence. Certains attendent un autre projet.
+  - **Publicité** (entreprises) : affiches, journal (dès 1830), radio (1925), télé (1955), site et avis en ligne (1998), influenceurs (2010), journée découverte. **Campagnes** (services publics) : portes ouvertes, recrutement, prévention dans les écoles, affiches, reportage. Payées chaque jour tant qu'elles durent ; la même refaite moins de 30 jours après n'a que la moitié d'effet.
+  - **Défi** : tous les 12 jours environ, un défi est proposé (« Régler 5 demandes en 7 jours », « Aucune panne pendant 10 jours », « Monter la note à 4,2 en 15 jours », « Encaisser 25 000 € en 7 jours », « Faire 8 interventions en 10 jours »…). Accepté : une prime et des clients ravis pendant 30 jours s'il est réussi à temps.
+  - **Paliers** : une pièce au niveau maximum, 10, 25 ou 50 objets, 3 ou 10 défis réussis, toute la recherche : chacun donne un petit bonus permanent, annoncé au journal.
+- **Avis** : les avis écrits par les clients (ou les habitants pour un service public), avec leurs étoiles, la moyenne, ce qui plaît et ce qui fâche (pannes, prix, équipe, pièces, publicité…), et le **classement** des établissements du même genre dans la partie (note, étoiles, part des clients).
+
+Et aussi :
+
+- **Équipe en personnes** (onglet Équipe, en bas) : chaque employé a un trait (rapide, aimable, soigneux, endurant, créatif, ambitieux, maladroit, râleur), un moral et une fatigue. Le moral suit le salaire, les augmentations, la formation, la fatigue et les pannes ; resté très bas une semaine, la personne démissionne et une recrue la remplace. Pauses courtes, normales ou longues (plus de repos, service un peu plus lent ; la salle de repos, les vestiaires ou les chambres de garde aident aussi). Demandes d'augmentation (+10 %, à accorder ou refuser) et employé du mois (une prime par mois, moral en hausse pour toute l'équipe).
+- **Prix des services** (onglet Essor) : spa, bar, boutique, cave… chacun de 60 % à 160 % du prix habituel, en plus du prix principal.
+- **Types de clients** (onglet Avis, « Qui vient ») : familles, gens d'affaires, touristes, jeunes, seniors (écoles, actifs, personnes âgées pour un service public). Leur part change avec la saison ; chacun aime certaines pièces et regarde plus ou moins le prix. Plus ils sont contents, plus la satisfaction et l'affluence montent.
+- **Banque** (entreprises) : trois prêts possibles, versés tout de suite sur le compte, remboursés chaque jour pendant 120 jours avec le taux de l'époque (5 % au XIXe siècle, 9 % dans les années 1980, 3,5 % aujourd'hui). Remboursement anticipé possible.
+- **Agrandissement** : deux extensions, chacune donne un niveau de plus à toutes les pièces (jusqu'au niveau 7) et un peu de confort.
+- **Trophées** : 10 à gagner (défis, recherche, publicité, avis à 4,5, première place de la ville, équipe soudée, agrandissement). Chacun donne un petit bonus et s'expose sur un socle devant l'entrée de la maquette.
+
+En gestion automatique, l'établissement choisit sa recherche, accepte les défis et lance une publicité quand il manque de clients (seulement avec son propre compte).
+
+Code : `scripts/gestion/gestion_plus.gd` (`GestionPlus` : équipe, services, types de clients, prêt, trophées, agrandissement), `scripts/gestion/gestion_essor.gd` (`GestionEssor`, état dans `st.essor`, bonus lus par `Gestion.effet`, charges par `Gestion.entretien_jour`, pannes, journée) et `gestion_essor_vue.gd` (les deux onglets). Test : `tests/gestion_essor_test.gd`. Captures : `tests/gestion_vitrine.gd -- --onglet essor|avis`.
+
 ## Rythme
 
 Le mode suit le temps du jeu : rien ne se gagne pendant que le jeu est fermé, rien ne bouge en pause, tout va plus vite en vitesse rapide. La gestion automatique, les pannes et les événements tournent chaque jour de jeu pour tous les hôtels, même ceux qu'on n'ouvre jamais. Un hôtel jamais ouvert garde ses effets à zéro tant qu'il n'a rien acheté.

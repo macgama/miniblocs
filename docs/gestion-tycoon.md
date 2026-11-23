@@ -95,6 +95,22 @@ Ce que ça change **vraiment** dans la ville :
 - **Note** : délai moyen d'arrivée des ambulances, moral, pannes. **Caducées** (1 à 5) : gagnés par l'expérience.
 - Événements : certification (« sans réserve » : un urgentiste en plus pendant 60 jours), naissances, collecte de sang en hiver, clowns hospitaliers, hélicoptère, internes.
 
+## Les autres bâtiments de secours
+
+Cinq bâtiments de secours de la bible utilisent le tycoon d'un autre bâtiment :
+
+| Bâtiment | Se gère comme | Titre de la tuile |
+|---|---|---|
+| Centre de secours (`caserne_pompiers`) | la caserne | Gérer le centre de secours |
+| Gendarmerie (`gendarmerie`, et la brigade d'époque) | le commissariat | Gérer la gendarmerie |
+| Hôtel de police (`commissariat`) | le commissariat | Gérer l'hôtel de police |
+| Hôpital régional (`hopital_regional`) | l'hôpital | Gérer l'hôpital régional |
+| Clinique (`clinique`) | l'hôpital | Gérer la clinique |
+
+Avant ce changement, ces cinq bâtiments n'envoyaient aucun véhicule. Ils envoient maintenant leurs 3 véhicules comme les modèles de base. Le rôle est lu par `Urgences.service_type` : le type lui-même, sa base, ou le `role` de la bible. Le mode gestion leur ajoute des véhicules en plus, du personnel de garde et des effets, et ils changent avec l'époque et le pays comme les autres.
+
+Pour tester dans Godot 4.7, pose une gendarmerie ou une clinique au bord d'une route. Clique dessus : la tuile s'appelle « Gérer la gendarmerie » ou « Gérer la clinique ». Tu peux aussi lancer le test automatique : `godot --path . --script res://tests/gestion_urgences_bible_test.gd`.
+
 ## Le parc de loisirs
 
 Le parc de loisirs se gère comme une maquette : bouton **Gérer le parc (maquette)** dans le panneau du parc (Maj+G), ou tuile sur la fiche de l'**Entrée du parc**. Le parc appartient à la ville : les billets et les stands vont toujours dans la caisse de la ville. Une fois le parc ouvert en gestion, **25 % du bénéfice du jour** sont mis de côté dans la **caisse des travaux** du parc, qui paie les aménagements (la ville avance le reste). Un parc jamais ouvert en gestion ne change pas.
@@ -164,6 +180,61 @@ Ce que ça change **vraiment** dans la ville :
 - **Clés** (1 à 5) : gagnées par l'expérience. Événements : label « Il fait bon vivre » (60 jours), dégât des eaux (moitié moins cher avec un gardien), cambriolage, loyer impayé, fête des voisins.
 
 ![Immeuble en mode gestion](apercu-gestion-immeuble.png)
+
+## Faire grandir l'établissement (tous les genres)
+
+Deux onglets en plus dans la carte de droite, pour l'hôtel, le restaurant, la caserne, le commissariat, l'hôpital, le parc et l'usine :
+
+- **Essor**
+  - **Recherche** : un projet à la fois, avancé par des points gagnés chaque jour (équipe, formation, pièces construites). 8 projets : méthodes de travail (+15 % de vitesse), démarche qualité, maintenance préventive (−30 % de pannes), achats groupés (−10 % de charges), design et ambiance (confort), fidélisation (clients, ou une personne de garde en plus pour un service public), atelier d'idées (recherche plus rapide), excellence. Certains attendent un autre projet.
+  - **Publicité** (entreprises) : affiches, journal (dès 1830), radio (1925), télé (1955), site et avis en ligne (1998), influenceurs (2010), journée découverte. **Campagnes** (services publics) : portes ouvertes, recrutement, prévention dans les écoles, affiches, reportage. Payées chaque jour tant qu'elles durent ; la même refaite moins de 30 jours après n'a que la moitié d'effet.
+  - **Défi** : tous les 12 jours environ, un défi est proposé (« Régler 5 demandes en 7 jours », « Aucune panne pendant 10 jours », « Monter la note à 4,2 en 15 jours », « Encaisser 25 000 € en 7 jours », « Faire 8 interventions en 10 jours »…). Accepté : une prime et des clients ravis pendant 30 jours s'il est réussi à temps.
+  - **Paliers** : une pièce au niveau maximum, 10, 25 ou 50 objets, 3 ou 10 défis réussis, toute la recherche : chacun donne un petit bonus permanent, annoncé au journal.
+- **Avis** : les avis écrits par les clients (ou les habitants pour un service public), avec leurs étoiles, la moyenne, ce qui plaît et ce qui fâche (pannes, prix, équipe, pièces, publicité…), et le **classement** des établissements du même genre dans la partie (note, étoiles, part des clients).
+
+Et aussi :
+
+- **Équipe en personnes** (onglet Équipe, en bas) : chaque employé a un trait (rapide, aimable, soigneux, endurant, créatif, ambitieux, maladroit, râleur), un moral et une fatigue. Le moral suit le salaire, les augmentations, la formation, la fatigue et les pannes ; resté très bas une semaine, la personne démissionne et une recrue la remplace. Pauses courtes, normales ou longues (plus de repos, service un peu plus lent ; la salle de repos, les vestiaires ou les chambres de garde aident aussi). Demandes d'augmentation (+10 %, à accorder ou refuser) et employé du mois (une prime par mois, moral en hausse pour toute l'équipe).
+- **Prix des services** (onglet Essor) : spa, bar, boutique, cave… chacun de 60 % à 160 % du prix habituel, en plus du prix principal.
+- **Types de clients** (onglet Avis, « Qui vient ») : familles, gens d'affaires, touristes, jeunes, seniors (écoles, actifs, personnes âgées pour un service public). Leur part change avec la saison ; chacun aime certaines pièces et regarde plus ou moins le prix. Plus ils sont contents, plus la satisfaction et l'affluence montent.
+- **Banque** (entreprises) : trois prêts possibles, versés tout de suite sur le compte, remboursés chaque jour pendant 120 jours avec le taux de l'époque (5 % au XIXe siècle, 9 % dans les années 1980, 3,5 % aujourd'hui). Remboursement anticipé possible.
+- **Agrandissement** : deux extensions, chacune donne un niveau de plus à toutes les pièces (jusqu'au niveau 7) et un peu de confort.
+- **Trophées** : 10 à gagner (défis, recherche, publicité, avis à 4,5, première place de la ville, équipe soudée, agrandissement). Chacun donne un petit bonus et s'expose sur un socle devant l'entrée de la maquette.
+
+En gestion automatique, l'établissement choisit sa recherche, accepte les défis et lance une publicité quand il manque de clients (seulement avec son propre compte).
+
+Code : `scripts/gestion/gestion_plus.gd` (`GestionPlus` : équipe, services, types de clients, prêt, trophées, agrandissement), `scripts/gestion/gestion_essor.gd` (`GestionEssor`, état dans `st.essor`, bonus lus par `Gestion.effet`, charges par `Gestion.entretien_jour`, pannes, journée) et `gestion_essor_vue.gd` (les deux onglets). Test : `tests/gestion_essor_test.gd`. Captures : `tests/gestion_vitrine.gd -- --onglet essor|avis`.
+
+## Tous les autres bâtiments : les tycoons « en kit » (37 genres)
+
+Plus de 350 types du catalogue (et leurs variantes de style) se gèrent maintenant comme un tycoon, avec le même écran (carte à onglets Essor, Avis, Équipe, Stats, Journal). Ils ont leur propre caisse (compte « lieu ») : visiteurs, recettes du jour, salaires et entretien. Pour un service public (école, mairie, gare, centre sportif, centrale, usine d'eau, déchets, poste, centre technique, office de tourisme), la ville verse en plus un budget chaque jour, réglable par − / +.
+
+| Priorité | Genres |
+|---|---|
+| Haute | zoo, école (et crèche, collège, lycée), université, gare, musée, mairie (et hôtel de ville), stade (tous les `stade_*`, plus salles omnisports, palais des sports, patinoire de hockey, centre de tennis), ferme (céréales, maraîchage, vergers, oliveraies, ruchers, serres… 30 types), ferme laitière et élevages, domaine viticole (et caves) |
+| Moyenne | grand magasin, boulangerie et boucherie, boutique de quartier, marché couvert, pharmacie, station-service, concession et garage, immeuble de bureaux et banque, cinéma, studios de cinéma, salle de spectacle (opéra, théâtre, jazz, cirque…), centre sportif (gymnase, piscine, patinoire), parc aquatique, casino, carrière et mine, entreprise du bâtiment, centrale électrique, centre de traitement des déchets, grands monuments |
+| Basse | bowling et discothèque, usine d'eau et station d'épuration, pompes funèbres et crématorium, poste et télécoms, centre technique municipal, office de tourisme, golf, châteaux et sites historiques |
+
+Chaque genre a au moins 8 pièces (dedans et dehors), 30 objets, ses demandes, pannes, événements et objectifs.
+
+**Les époques.** Une pièce ou un objet peut avoir une année d'apparition (`annee`) ou de disparition (`jusqu`) : en 1850, pas de rayon électronique au grand magasin ni de bornes de recharge à la station ; la pompe à bras disparaît après 1960. Les noms changent aussi (`noms_epoque`) : ménagerie avant 1900, magasin de nouveautés, cinématographe avant le parlant, syndicat d'initiative, dancing, relais de poste… Les prix suivent l'époque (×0,08 avant 1900, ×0,25 avant 1950, ×0,6 avant 1990).
+
+**Les pays.** `noms_pays` adapte des noms : en Suisse, maison de commune, maison de jeu au lieu de casino, fromagerie de gruyère, carnotzet, SUVA… (et les noms CH/BE des tycoons faits à la main).
+
+**Les stades.** Tous les stades (catalogue, styles du monde, modèles de l'Atelier) se gèrent avec la même fiche : la capacité vient des places du bâtiment, les jours de match (un sur sept) remplissent les tribunes, chaque stade garde son nom et sa caisse. Des centaines de stades différents fonctionnent donc sans fiche à écrire.
+
+**Liens avec le jeu.** Zoo et musée : les vrais visiteurs du zoo (Maj+Z) et du musée comptent, et l'attrait de la gestion augmente leur affluence. École : chaque niveau de salle de classe ajoute des places d'élèves dans les services publics (Maj+U). Fermes, carrières et mines : l'effet « rendement » augmente la vraie production (P), jusqu'à +60 %.
+
+### Tester dans Godot 4.7
+
+1. Ouvrir `project.godot`, lancer une partie (F5), Admin (F10) : argent illimité si besoin.
+2. Poser au bord d'une route un des bâtiments du tableau (par exemple une boulangerie, un cinéma, un stade, une ferme, un château), cliquer dessus : la tuile « Gérer … » ouvre la maquette.
+3. Acheter un niveau de pièce, un objet, régler le prix, passer en vitesse rapide (Maj+T) : visiteurs, recettes et avis arrivent. Pour un service public, régler le budget avec − / +.
+4. Pour voir l'adaptation à l'époque : nouvelle partie au 1er janvier 1800 ou 1900, les noms et les objets changent.
+
+Test automatique : `xvfb-run -a godot --path . --rendering-driver opengl3 --script res://tests/gestion_kit_test.gd` (tous les genres, ou `-- --genre cinema` pour un seul). Il vérifie plan, portes, chemins, modèles 3D, métiers, époques et pays, puis pose chaque bâtiment dans une ville et joue plusieurs jours, avec sauvegarde et rechargement.
+
+Code : `scripts/gestion/genres/genres_auto.gd` (`GenresAuto` : monte une fiche courte en vrai genre, plan et poses calculés tout seuls, cache par pays et époque), `genres_haute.gd`, `genres_moyenne.gd`, `genres_basse.gd` (les fiches), `scripts/gestion/gestion_lieu.gd` (`GestionLieu` : visiteurs, recettes, budget), `gestion_epoques.gd` (`GestionEpoques`), `decors_auto.gd` (`DecorsAuto` : ~30 décors de pièces qui s'adaptent à la taille et à l'époque, et les modèles de la touche G avec `deco:`). Ajouter un genre : une entrée dans le `SPECS` d'un de ces fichiers.
 
 ## Rythme
 

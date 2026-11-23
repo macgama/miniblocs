@@ -581,6 +581,12 @@ func attendus(key: String, now: Dictionary) -> Array:
 	tour *= f * clampf(1.15 - prix / 80.0, 0.5, 1.15)
 	# Clients des hôtels de la ville (Tourisme).
 	tour += Tourisme.visites("musee", key) * clampf(1.15 - prix / 80.0, 0.5, 1.15)
+	# Mode gestion du musée : médiation, café, expositions mieux montées.
+	var bid := bid_of(key)
+	if bid > 0:
+		var g := 1.0 + clampf(Gestion.effet_de(bid, "attrait"), 0.0, 0.6)
+		hab *= g
+		tour *= g
 	return [hab, tour]
 
 

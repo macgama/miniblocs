@@ -283,6 +283,7 @@ func _reconstruire() -> void:
 	diorama.construire(genre, st.niv, gestion.etoiles(bid), st.obj, st.pannes, gestion.nom(bid))
 	diorama.placer_employes(_employes())
 	diorama.surligner(selection)
+	GestionEssorVue.poser_trophees(self)
 	_maj_engins(false)
 
 
@@ -661,6 +662,10 @@ func _remplir_carte() -> void:
 				_carte_stats()
 			"journal":
 				_carte_journal()
+			"essor":
+				GestionEssorVue.carte_essor(self)
+			"avis":
+				GestionEssorVue.carte_avis(self)
 			_:
 				_carte_ensemble()
 	else:
@@ -671,11 +676,14 @@ func _remplir_carte() -> void:
 
 
 func _onglets() -> void:
-	var row := HBoxContainer.new()
+	# Deux rangées de trois onglets : la carte garde sa largeur.
+	var row := GridContainer.new()
+	row.columns = 3
 	row.name = "Onglets"
-	row.add_theme_constant_override("separation", 4)
+	row.add_theme_constant_override("h_separation", 4)
+	row.add_theme_constant_override("v_separation", 4)
 	_carte_corps.add_child(row)
-	for o in [["ensemble", String(_gd().get("nom", "Ensemble")), "etoile"], ["personnel", "Équipe", "emploi"], ["stats", "Chiffres", "tableau"], ["journal", "Journal", "journal"]]:
+	for o in [["ensemble", String(_gd().get("nom", "Ensemble")), "etoile"], ["personnel", "Équipe", "emploi"], ["essor", "Essor", "trophee"], ["avis", "Avis", "etoile"], ["stats", "Chiffres", "tableau"], ["journal", "Journal", "journal"]]:
 		var b := Button.new()
 		b.name = "Onglet_" + String(o[0])
 		b.text = String(o[1])
@@ -1130,6 +1138,7 @@ func _carte_personnel() -> void:
 		r2.add_child(b)
 	if not pannes.is_empty():
 		_texte("Chaque panne fait baisser le moral et la note tous les jours." if _ville() else "Chaque panne fait baisser la satisfaction des clients tous les jours.", true, 12)
+	GestionEssorVue.carte_equipe(self)
 
 
 func _reparer(i: int) -> void:

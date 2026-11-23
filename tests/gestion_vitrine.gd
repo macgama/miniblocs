@@ -1,6 +1,6 @@
 extends SceneTree
 ## Captures du mode gestion « tycoon » (écran isométrique d'un hôtel ou d'un restaurant).
-## Usage : xvfb-run -a godot --path . --rendering-driver opengl3 --script res://tests/gestion_vitrine.gd -- --out DOSSIER [--type hotel_3|haussmann__restaurant|pompiers|police|hopital|entree_parc|scierie|supermarche|immeuble] [--depart] [--niveau 1|3|5] [--piece spa] [--zoom 30] [--onglet personnel|stats|journal] [--x 20 --z 14]
+## Usage : xvfb-run -a godot --path . --rendering-driver opengl3 --script res://tests/gestion_vitrine.gd -- --out DOSSIER [--type hotel_3|haussmann__restaurant|pompiers|police|hopital|entree_parc|scierie|supermarche|entree_zoo|ecole|stade_vaduz|ferme…|immeuble] [--depart] [--niveau 1|3|5] [--piece spa] [--zoom 30] [--onglet personnel|stats|journal] [--x 20 --z 14]
 
 var out := "user://captures-gestion"
 var niveau := 3
@@ -64,13 +64,21 @@ func _run() -> void:
 	for n in [transport.traffic, tour, pop, scene.production, scene.parc]:
 		n.set_process(false)
 	bs.unlimited_money = false
-	bs.money = 50_000_000
+	bs.money = 600_000_000
 	ReglagesPartie.actuel.deblocage = "tout"
+	ReglagesPartie.actuel.territoire = false
 	var y := world.cell_height(Vector2i(0, 0))
 	transport.build_segment("route", Vector3(-400, y, 0), Vector3(400, y, 0))
 	var g := GestionTypes.genre_de(type_id)
 	var sn := bs.road_snap(type_id, Vector2i(0, -14))
-	var hotel := bs.place(type_id, sn.center, int(sn.r), 0, float(sn.get("a", 0.0)))
+	var hotel := bs.place(type_id, sn.center, int(sn.r), 0, float(sn.get("a", 0.0))) if sn.has("center") else -1
+	if hotel <= 0:
+		hotel = bs.place(type_id, Vector2i(0, -16), bs.best_rotation(type_id, Vector2i(0, -16)))
+	if hotel <= 0:
+		for r in 4:
+			hotel = bs.place(type_id, Vector2i(0, -BuildingCatalog.footprint(type_id, r).y / 2 - 6), r)
+			if hotel > 0:
+				break
 	bs.buildings[hotel]["chantier"] = false
 	tour.ignore_staff = true
 	tour._sync()
@@ -104,7 +112,7 @@ func _run() -> void:
 		tour.heb[hotel].clients = [[50, 3, 3.5], [40, 2, 3.5]]
 	elif g == "immeuble":
 		pass
-	else:
+	elif scene.production.sites.has(hotel):
 		scene.production.sites[hotel].cash = 60_000.0
 	# Personnel : quelques habitants embauchés à leur poste.
 	var homes: Array[int] = []
@@ -181,6 +189,28 @@ func _run() -> void:
 		gest.etat(hotel).hier = {"ca": 2900.0, "charges": 2100.0, "clients": 150.0, "cap": 190.0}
 		gest.etat(hotel).note = 3.8
 		gest.etat(hotel).satisf = 3.9
+	# Essor : recherche, campagne, défi et avis pour les onglets Essor et Avis.
+	if onglet in ["essor", "avis"]:
+		var se := gest.etat(hotel)
+		var es := GestionEssor.es(se)
+		es.faits = ["methodes", "qualite"]
+		es.rech = "maintenance"
+		es.pts = 11.0
+		GestionEssor.lancer_campagne(gest, hotel, "portes" if service else "radio")
+		es.defi = {"id": "demandes", "etat": "actif", "cible": 5.0, "jours": 7, "offert": gest.jour, "debut": gest.jour, "fin": gest.jour + 5, "base": float(se.reglees) - 3.0, "prime": 4000}
+		es.defis_ok = 2
+		for i in 40:
+			GestionEssor._nouvel_avis(gest, hotel, se)
+	if onglet in ["essor", "avis", "personnel"]:
+		var es2 := GestionEssor.es(gest.etat(hotel))
+		es2.trophees = ["defi_1", "defi_3", "chercheur", "pub", "premier"]
+		es2.ext = 1
+		var eq := GestionPlus.equipe(gest, hotel)
+		for i in eq.size():
+			eq[i].moral = 2.0 + float(i % 4) * 0.8
+			eq[i].fatigue = 15.0 + float(i * 7 % 50)
+		eq[0].aug = 0.1
+		es2.demande = {"i": 1, "jour": gest.jour}
 	gest.set_auto(hotel, niveau != 3)
 	scene.ouvrir_gestion(hotel)
 	if zoom > 0.0:

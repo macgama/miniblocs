@@ -205,7 +205,8 @@ func capacite(bid: int, service: String) -> int:
 		return 0
 	match service:
 		"ecole":
-			return int(info.seats)
+			# Mode gestion : salles de classe en plus.
+			return int(info.seats) + Gestion.places_sup_de(bid)
 		"hopital":
 			var t := BuildingCatalog.get_type(String(info.t))
 			# Les emplois (info.emp) suivent déjà le niveau d'agrandissement ; les lits du catalogue aussi.

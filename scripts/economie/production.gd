@@ -890,6 +890,8 @@ func _step_hours(h: float) -> void:
 				continue
 			var good := _good_of(prod, s.res)
 			var amount := float(prod.res[s.res]) * float(s.rich) * float(s.get("vit", 1.0)) * staff * frac
+			# Mode gestion (ferme, domaine) : machines, irrigation, sélection = meilleur rendement.
+			amount *= Gestion.rendement_de(bid)
 			var depletes := ReglagesPartie.actuel.epuisement
 			if depletes and float(s.reserve) >= 0.0:
 				if float(s.reserve) <= 0.0:

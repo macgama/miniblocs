@@ -553,7 +553,7 @@ func _tuiles_travaux(bid: int, info: Dictionary) -> void:
 	var genre := GestionTypes.genre_de(tid) if not info.has("plan") else ""
 	if genre != "" and pop.buildings != null and not pop.buildings.en_chantier(bid):
 		var gd := GestionTypes.genre(genre)
-		var g := _tuile(String(gd.get("titre", "Gérer")), "Mode gestion", String(gd.get("icone", "lit")),
+		var g := _tuile(GestionTypes.titre_de(tid), "Mode gestion", String(gd.get("icone", "lit")),
 			String(gd.get("tuile_tip", "Entre dans le bâtiment en vue isométrique : améliore les pièces, regarde le personnel et les clients, règle leurs demandes.\nLes résultats comptent dans la ville (lits, note, étoiles, taxe de séjour, impôts).")))
 		g.name = "TuileGestion"
 		g.pressed.connect(func() -> void: gestion_requested.emit(bid))

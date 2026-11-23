@@ -1304,6 +1304,10 @@ func _objets(k: LpKit, pid: String, r: Array, n: int) -> Array:
 			for ps in d.get("poses", []):
 				var p := Vector3((o as Vector2).x + float(ps[0]), 0, (o as Vector2).y + float(ps[1]))
 				var rot := float(ps[2])
+				# « deco:… » : un modèle de la touche G (animal, tracteur, jeu…).
+				if mod.begins_with("deco:"):
+					DecorsAuto.deco(self, mod.substr(5), p, rot)
+					continue
 				GestionModeles.dessiner(k, mod, p, rot)
 				if cell:
 					continue

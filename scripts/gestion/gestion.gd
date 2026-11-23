@@ -117,7 +117,7 @@ func spec_base(bid: int) -> Dictionary:
 	if source(bid) == "production":
 		var t := BuildingCatalog.get_type(type_of(bid))
 		return {"etoiles": 2 if float(t.get("cost", 0.0)) >= 480_000.0 else 1}
-	if source(bid) == "ville" or source(bid) == "parc" or source(bid) == "logement":
+	if source(bid) == "ville" or source(bid) == "parc" or source(bid) == "lieu" or source(bid) == "logement":
 		return {"etoiles": 1}
 	return TourismeTypes.spec_of(type_of(bid))
 
@@ -141,6 +141,8 @@ func valide(bid: int) -> bool:
 			return urgences != null and urgences.stations.has(bid)
 		"parc":
 			return _parc() != null and _parc().parcs.has(bid)
+		"lieu":
+			return true
 		"logement":
 			return population != null and population.known.has(bid)
 	return tourisme != null and tourisme.heb.has(bid)
@@ -183,7 +185,9 @@ static func _etat_vide(g: String) -> Dictionary:
 		# Usine : accidents du travail, grève, grosses commandes, boutique d'usine.
 		"accidents": 0, "dernier_accident": 0, "greve_fin": -1, "commandes": 0, "boutique": 0.0,
 		# Supermarché : vols à l'étalage, promotions, dernier rayon vide, attrait connu de Production.
-		"vols": 0.0, "promo_fin": -1, "promos": 0, "dernier_manque": 0, "attr": 1.0}
+		"vols": 0.0, "promo_fin": -1, "promos": 0, "dernier_manque": 0, "attr": 1.0,
+		# Recherche, campagnes, défis, paliers, avis (GestionEssor).
+		"essor": GestionEssor.vide()}
 
 
 ## Niveau de départ d'une pièce : 1 si le bâtiment l'a déjà (restaurant d'un
@@ -203,7 +207,7 @@ func niveau(bid: int, pid: String) -> int:
 
 
 func niveau_max(bid: int, pid: String) -> int:
-	return int(GestionTypes.piece(genre_of(bid), pid).get("max", 5))
+	return int(GestionTypes.piece(genre_of(bid), pid).get("max", 5)) + GestionPlus.extensions(self, bid)
 
 
 ## Niveaux gagnés au-dessus du départ.
@@ -246,6 +250,8 @@ func effet(bid: int, cle: String) -> float:
 		for oid in objets_de(bid, String(pid)):
 			var eo: Dictionary = GestionTypes.objet(g, String(pid), String(oid)).get("effets", {})
 			s += float(eo.get(cle, 0.0))
+	# Recherche, campagne, paliers et défis (GestionEssor).
+	s += GestionEssor.bonus(self, bid, cle)
 	match cle:
 		"satisf":
 			s += (float(st.salaire) - 1.0) * 0.35 + 0.03 * float(st.formation) - SATISF_PANNE * (st.pannes as Array).size()
@@ -285,6 +291,7 @@ func entretien_jour(bid: int) -> float:
 	s += float(emplois) * 3.0 * float(st.formation)
 	# Énergie produite sur place (usine : solaire, chaudière, éolienne).
 	s -= maxf(0.0, effet(bid, "economie"))
+	s = GestionEssor.ajuster_charges(self, bid, s)
 	return maxf(0.0, s)
 
 
@@ -348,7 +355,7 @@ static func spec_de(bid: int, base: Dictionary) -> Dictionary:
 func cout_batiment(bid: int) -> float:
 	var t := BuildingCatalog.get_type(type_of(bid))
 	var c := float(t.get("cost", 0.0))
-	if c <= 0.0 and source(bid) == "ville":
+	if c <= 0.0 and (source(bid) == "ville" or source(bid) == "lieu"):
 		c = float(BuildingCatalog.cost(type_of(bid)))
 		if c <= 0.0:
 			c = float(BuildingCatalog.cost(BuildingCatalog.base_of(type_of(bid))))
@@ -396,7 +403,7 @@ func prix_reparation(bid: int) -> int:
 
 ## Argent du compte du bâtiment (hôtel privé : ses bénéfices accumulés).
 func compte(bid: int) -> float:
-	if source(bid) == "ville" or source(bid) == "parc" or source(bid) == "logement":
+	if source(bid) == "ville" or source(bid) == "parc" or source(bid) == "lieu" or source(bid) == "logement":
 		return float(etats[bid].caisse) if etats.has(bid) else 0.0
 	if source(bid) == "production":
 		return float(production.sites[bid].cash) if production != null and production.sites.has(bid) else 0.0
@@ -406,7 +413,7 @@ func compte(bid: int) -> float:
 
 
 func _crediter(bid: int, v: float) -> void:
-	if source(bid) == "ville" or source(bid) == "parc" or source(bid) == "logement":
+	if source(bid) == "ville" or source(bid) == "parc" or source(bid) == "lieu" or source(bid) == "logement":
 		if etats.has(bid):
 			etats[bid].caisse = float(etats[bid].caisse) + v
 		return
@@ -458,6 +465,10 @@ func ameliorer(bid: int, pid: String, sans_ville := false) -> Dictionary:
 	var p := prix(bid, pid)
 	if p <= 0:
 		return {"ok": false, "error": "déjà au niveau maximum"}
+	if niveau(bid, pid) <= 0:
+		var re := GestionEpoques.refus_piece(genre_of(bid), pid)
+		if re != "":
+			return {"ok": false, "error": re}
 	var e0 := etoiles(bid)
 	var r := _payer(bid, p, sans_ville)
 	if not bool(r.ok):
@@ -484,7 +495,8 @@ func refus_objet(bid: int, pid: String, oid: String) -> String:
 		return "pièce pas encore construite"
 	if n < int(o.get("niv", 1)):
 		return "pièce au niveau %d requise" % int(o.niv)
-	return ""
+	# L'époque de la partie : pas encore inventé, ou plus vendu.
+	return GestionEpoques.refus_objet(genre_of(bid), pid, oid)
 
 
 func acheter(bid: int, pid: String, oid: String, sans_ville := false) -> Dictionary:
@@ -695,8 +707,8 @@ func nouveau_jour(now: Dictionary = {}) -> void:
 			continue
 		# Service public : seulement ceux que le joueur a ouverts une fois
 		# (les autres gardent le fonctionnement habituel, sans budget en plus).
-		# Usines et magasins aussi (« sur_demande ») : un bâtiment jamais ouvert ne change pas.
-		if (source(bid) == "ville" or source(bid) == "parc" or GestionTypes.genre(genre_of(bid)).get("sur_demande", false)) and not etats.has(bid):
+		# Usines et magasins aussi (« sur_demande »), et les lieux en kit : un bâtiment jamais ouvert ne change pas.
+		if (source(bid) == "ville" or source(bid) == "parc" or source(bid) == "lieu" or GestionTypes.genre(genre_of(bid)).get("sur_demande", false)) and not etats.has(bid):
 			continue
 		var st := etat(bid)
 		if source(bid) == "tourisme":
@@ -705,12 +717,15 @@ func nouveau_jour(now: Dictionary = {}) -> void:
 			_journee_ville(bid, st)
 		elif source(bid) == "parc":
 			_journee_parc(bid, st)
+		elif source(bid) == "lieu":
+			GestionLieu.journee(self, bid, st, month)
 		elif source(bid) == "logement":
 			_journee_logement(bid, st)
 		var usure := 1.0 + 2.0 * maxf(0.0, float(st.prix) - 1.0) if _par_tonnes(bid) else 1.0
-		if rng.randf() < CHANCE_PANNE * _nb_pieces(bid) * usure * (1.0 - 0.12 * float(st.formation)) * (0.6 if niveau(bid, "direction") >= 3 or niveau(bid, "bureau") >= 3 else 1.0):
+		if rng.randf() < CHANCE_PANNE * _nb_pieces(bid) * usure * (1.0 - 0.12 * float(st.formation)) * (0.6 if niveau(bid, "direction") >= 3 or niveau(bid, "bureau") >= 3 else 1.0) * GestionEssor.facteur_pannes(self, bid):
 			nouvelle_panne(bid)
 		_evenements(bid, st, month)
+		GestionEssor.journee(self, bid, st, month)
 		if bool(st.auto):
 			gerer_auto(bid)
 
@@ -838,7 +853,7 @@ func candidats(bid: int) -> Array:
 	for pid in GestionTypes.ordre(g):
 		var p := GestionTypes.piece(g, String(pid))
 		var px := prix(bid, String(pid))
-		if px > 0:
+		if px > 0 and (niveau(bid, String(pid)) > 0 or GestionEpoques.refus_piece(g, String(pid)) == ""):
 			out.append({"type": "niveau", "piece": String(pid), "prix": px, "valeur": _valeur(p.get("effets", {})) * (1.3 if niveau(bid, String(pid)) == 0 else 1.0)})
 		for oid in GestionTypes.objets(g, String(pid)):
 			if refus_objet(bid, String(pid), String(oid)) == "":
@@ -855,6 +870,7 @@ static func _valeur(e: Dictionary) -> float:
 		+ float(e.get("lits", 0.0)) * 2.5 + float(e.get("couverts", 0.0)) * 2.0 + float(e.get("equipage", 0.0)) * 0.5 + float(e.get("engins", 0.0)) * 0.9 + float(e.get("repas", 0.0)) * 0.8 + float(e.get("vitesse", 0.0)) * 0.15 + float(e.get("ventes", 0.0)) * 0.02 \
 		+ float(e.get("enquete", 0.0)) * 1.5 + float(e.get("soins", 0.0)) * 1.5 + float(e.get("lits_sup", 0.0)) * 0.04 \
 		+ float(e.get("proprete", 0.0)) * 1.2 + float(e.get("fiabilite", 0.0)) * 1.4 \
+		+ float(e.get("places", 0.0)) * 0.03 + float(e.get("rendement", 0.0)) * 2.2 \
 		+ float(e.get("cadence", 0.0)) * 2.2 + float(e.get("matiere", 0.0)) * 2.0 + float(e.get("qualite", 0.0)) * 2.0 + float(e.get("depollution", 0.0)) * 0.8 + float(e.get("economie", 0.0)) * 0.004 \
 		+ float(e.get("rayons", 0.0)) * 1.5 + float(e.get("panier", 0.0)) * 2.5 + float(e.get("antivol", 0.0)) * 0.6 \
 		+ float(e.get("logements", 0.0)) * 0.5 + float(e.get("standing", 0.0)) * 1.5
@@ -864,6 +880,8 @@ static func _valeur(e: Dictionary) -> float:
 
 ## Clients du moment : ce soir (hôtel) ou servis hier (restaurant).
 func clients(bid: int) -> int:
+	if source(bid) == "lieu":
+		return GestionLieu.clients(self, bid)
 	if source(bid) == "logement":
 		return (population.by_home.get(bid, []) as Array).size() if population != null else 0
 	if source(bid) == "ville":
@@ -881,6 +899,8 @@ func clients(bid: int) -> int:
 
 ## Capacité : lits (hôtel) ou couverts par jour (restaurant).
 func capacite(bid: int) -> int:
+	if source(bid) == "lieu":
+		return GestionLieu.capacite(self, bid)
 	if source(bid) == "logement":
 		return int(population.known[bid].log) if population != null and population.known.has(bid) else 0
 	if source(bid) == "parc":
@@ -943,6 +963,8 @@ func hier(bid: int) -> Dictionary:
 
 ## Prix payé par un client : la nuit (hôtel) ou le menu (restaurant), en €.
 func prix_unitaire(bid: int) -> float:
+	if source(bid) == "lieu":
+		return GestionLieu.prix_unitaire(self, bid)
 	if source(bid) == "ville":
 		return 0.0
 	if source(bid) == "logement":
@@ -960,6 +982,8 @@ func prix_unitaire(bid: int) -> float:
 
 
 func prix_txt(bid: int) -> String:
+	if source(bid) == "lieu":
+		return GestionLieu.prix_txt(self, bid)
 	if source(bid) == "ville":
 		return "Budget : %s par jour, payé par la ville" % BuildingSystem.format_money(roundi(dotation(bid)))
 	if _par_tonnes(bid):
@@ -980,6 +1004,10 @@ func prix_txt(bid: int) -> String:
 
 ## Monte (sens 1) ou baisse (-1) le prix de 5 %.
 func changer_prix(bid: int, sens: int) -> void:
+	if source(bid) == "lieu":
+		GestionLieu.changer_prix(self, bid, sens)
+		changed.emit(bid)
+		return
 	if source(bid) == "ville":
 		changer_dotation(bid, sens)
 		return
@@ -1016,6 +1044,9 @@ func changer_prix(bid: int, sens: int) -> void:
 func ajuster_prix_auto(bid: int) -> void:
 	# Service public : c'est la ville qui fixe le budget, pas la caserne.
 	if source(bid) == "ville":
+		return
+	if source(bid) == "lieu":
+		GestionLieu.ajuster_prix_auto(self, bid)
 		return
 	if source(bid) == "parc":
 		_prix_auto_parc(bid)
@@ -1806,6 +1837,7 @@ func from_dict(d: Dictionary) -> void:
 		for f in ["pourboires", "invest", "aide_ville", "salaire", "prix", "satisf", "note", "caisse", "dotation", "delai", "boutique", "vols", "attr"]:
 			st[f] = float(st[f])
 		st.auto = bool(st.auto)
+		st.essor = GestionEssor.charger(st.essor)
 		for f in ["j", "hier"]:
 			st[f] = (st[f] as Dictionary).duplicate() if st[f] is Dictionary else {}
 		var jl: Array = []
@@ -1981,6 +2013,22 @@ func patient(bid: int, sauve_malgre_retard: bool) -> void:
 	if sauve_malgre_retard:
 		st.sauves = int(st.sauves) + 1
 		_noter(bid, "Malaise pris en charge en retard, mais le bloc l'a sauvé : le patient rentrera chez lui.", true)
+
+
+## Places d'élèves en plus (école en mode gestion, effet « places »).
+static func places_sup_de(bid: int) -> int:
+	var g := _inst()
+	if g == null or not g.etats.has(bid):
+		return 0
+	return maxi(0, roundi(g.effet(bid, "places")))
+
+
+## Rendement d'une ferme ou d'un domaine (effet « rendement », +60 % au plus).
+static func rendement_de(bid: int) -> float:
+	var g := _inst()
+	if g == null or not g.etats.has(bid):
+		return 1.0
+	return 1.0 + clampf(g.effet(bid, "rendement"), 0.0, 0.6)
 
 
 static func lits_sup_de(bid: int) -> int:

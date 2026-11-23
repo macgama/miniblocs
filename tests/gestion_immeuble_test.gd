@@ -234,16 +234,22 @@ func _city_tests() -> void:
 
 	print("Événements :")
 	gest.etat(imm).prix = 1.3
-	for jx in 300:
+	var vu := {}
+	# Les tirages dépendent de tout ce qui a utilisé le hasard avant : on regarde le journal chaque jour
+	# (il ne garde que les 40 dernières lignes) et on continue jusqu'à 1 500 jours si besoin.
+	for jx in 1500:
 		gest._evenements_immeuble(imm, gest.etat(imm), [3, 6, 9][jx % 3])
 		gest._journee_logement(imm, gest.etat(imm))
 		gest.jour += 1
+		for e in gest.etat(imm).journal:
+			if int(e[0]) < gest.jour - 1:
+				break
+			for mot in ["Dégât des eaux", "label", "Cambriolage", "Fête des voisins", "Assemblée", "loyer"]:
+				if String(e[1]).contains(mot):
+					vu[mot] = true
+		if jx >= 299 and vu.has("label") and vu.has("Dégât des eaux") and vu.has("loyer"):
+			break
 	gest.etat(imm).prix = 1.0
-	var vu := {}
-	for e in gest.etat(imm).journal:
-		for mot in ["Dégât des eaux", "label", "Cambriolage", "Fête des voisins", "Assemblée", "loyer"]:
-			if String(e[1]).contains(mot):
-				vu[mot] = true
 	_check(vu.has("label") and vu.has("Dégât des eaux") and vu.has("loyer"), "label, dégâts des eaux et impayés au journal (%s)" % ", ".join(vu.keys()))
 	var possibles := gest.demandes_possibles(imm)
 	_check(possibles.size() >= 6, "%d demandes possibles" % possibles.size())

@@ -23,6 +23,9 @@ uniform int couche_culture[9];
 uniform float maturite_culture[9];
 // Herbe jaunie (hiver, été sec). La neige (selon l'altitude) : neige.gdshaderinc.
 uniform float herbe_seche = 0.0;
+// Rendu cosy (RenduCosy) : couleurs du sol plus douces (moins saturées, terres
+// sombres éclaircies) et quadrillage plus discret. 0 = rendu d'avant.
+uniform float douceur = 0.0;
 #include "res://scripts/terre/neige.gdshaderinc"
 
 varying vec3 world_pos;
@@ -95,11 +98,21 @@ void fragment() {
 			col = mix(col, NEIGE_COULEUR, couvre);
 		}
 	}
+	if (douceur > 0.0) {
+		float lu = dot(col, vec3(0.3, 0.55, 0.15));
+		// Un peu moins saturé (champs moins criards)…
+		vec3 doux = mix(col, vec3(lu), 0.10);
+		// … terres sombres remontées vers un brun chaud, herbe plus fraîche.
+		doux = doux * 0.86 + vec3(0.034, 0.026, 0.012);
+		float vert = clamp((col.g - max(col.r, col.b)) * 6.0, 0.0, 1.0);
+		doux = mix(doux, doux * vec3(0.92, 1.08, 0.86), vert);
+		col = mix(col, doux, douceur);
+	}
 	if (world_normal.y > 0.5) {
 		vec2 d = abs(fract(world_pos.xz + 0.5) - 0.5) / max(fwidth(world_pos.xz), vec2(1e-4));
 		float line = 1.0 - clamp(min(d.x, d.y) - 0.3, 0.0, 1.0);
 		float fade = 1.0 - smoothstep(grid_fade_start, grid_fade_end, dist);
-		col *= 1.0 - line * fade * grid_strength;
+		col *= 1.0 - line * fade * grid_strength * (1.0 - 0.55 * douceur);
 	}
 	ALBEDO = col;
 	ROUGHNESS = 0.95;

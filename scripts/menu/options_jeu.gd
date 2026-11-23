@@ -32,6 +32,11 @@ static var ombres := 1
 static var anticrenelage := 1
 ## Rendu poussé (heures dorées, occlusion, brume) : voir DayNight.rendu_pousse.
 static var rendu_pousse := true
+## Rendu cosy (lumière chaude, ombres bleutées, nuit bleue, jardins fleuris) :
+## voir RenduCosy. Demande le rendu poussé.
+static var rendu_cosy := true
+## Effet maquette (tilt-shift) : flou devant et derrière ce que vise la caméra.
+static var effet_maquette := false
 ## Minutes entre deux sauvegardes automatiques (0 = jamais).
 static var autosave_min := 5
 static var langue := "fr"
@@ -67,6 +72,8 @@ static func charger() -> void:
 	ombres = clampi(int(cf.get_value("graphismes", "ombres", ombres)), 0, 2)
 	anticrenelage = clampi(int(cf.get_value("graphismes", "anticrenelage", anticrenelage)), 0, 2)
 	rendu_pousse = bool(cf.get_value("graphismes", "rendu_pousse", rendu_pousse))
+	rendu_cosy = bool(cf.get_value("graphismes", "rendu_cosy", rendu_cosy))
+	effet_maquette = bool(cf.get_value("graphismes", "effet_maquette", effet_maquette))
 	autosave_min = int(cf.get_value("jeu", "autosave_min", autosave_min))
 	if not AUTOSAVE_CHOIX.has(autosave_min):
 		autosave_min = 5
@@ -87,6 +94,8 @@ static func sauver() -> void:
 	cf.set_value("graphismes", "ombres", ombres)
 	cf.set_value("graphismes", "anticrenelage", anticrenelage)
 	cf.set_value("graphismes", "rendu_pousse", rendu_pousse)
+	cf.set_value("graphismes", "rendu_cosy", rendu_cosy)
+	cf.set_value("graphismes", "effet_maquette", effet_maquette)
 	cf.set_value("jeu", "autosave_min", autosave_min)
 	cf.set_value("jeu", "langue", langue)
 	cf.set_value("jeu", "titre_fixe", titre_fixe)
@@ -118,6 +127,10 @@ static func appliquer(tree: SceneTree = null) -> void:
 	if tree == null:
 		tree = Engine.get_main_loop() as SceneTree
 	DayNight.rendu_pousse = rendu_pousse
+	RenduCosy.actif = rendu_cosy
+	RenduCosy.maquette = effet_maquette
+	# Ombres hautes : éclairage indirect et ombres plus douces.
+	RenduCosy.qualite = 1 if ombres >= 2 else 0
 	Langue.activer(langue)
 	Engine.max_fps = fps_max
 	if DisplayServer.get_name() == "headless":

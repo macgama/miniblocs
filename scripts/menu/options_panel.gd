@@ -177,6 +177,12 @@ func _onglet_graphismes() -> Control:
 		func(i: int) -> void: OptionsJeu.anticrenelage = i))
 	_ligne(p, "Rendu poussé", _case(OptionsJeu.rendu_pousse, func(b: bool) -> void: OptionsJeu.rendu_pousse = b),
 		"Heures dorées, occlusion ambiante, brume du matin. Prend effet à la prochaine partie chargée.")
+	_ligne(p, "Rendu cosy", _case(OptionsJeu.rendu_cosy, func(b: bool) -> void: OptionsJeu.rendu_cosy = b),
+		"Lumière chaude, ombres bleutées, nuit bleue et fenêtres dorées, arbres et fleurs dans les jardins. Avec le rendu poussé. Prend effet à la prochaine partie chargée.")
+	_ligne(p, "Effet maquette", _case(OptionsJeu.effet_maquette, func(b: bool) -> void:
+		OptionsJeu.effet_maquette = b
+		RenduCosy.maquette = b),
+		"Flou au premier plan et au loin, comme une photo de maquette (tilt-shift). Vue de dessus seulement.")
 	var b := Button.new()
 	b.text = "Préréglage : ordinateur modeste"
 	b.pressed.connect(func() -> void:

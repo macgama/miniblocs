@@ -101,6 +101,7 @@ var zoo_outils: ZooOutils
 var funeraire: Funeraire
 ## Chantiers, usure des bâtiments, abords et fumée des maisons habitées.
 var vie_batiments: BatimentsVie
+var verdure: Verdure
 ## Chantiers des voies et des réseaux (SuiviChantiers) et des voies (ChantiersVoies).
 var chantiers: SuiviChantiers
 var chantiers_voies: ChantiersVoies
@@ -876,6 +877,11 @@ func _setup_vie() -> void:
 	vie_batiments.name = "VieBatiments"
 	add_child(vie_batiments)
 	vie_batiments.setup(buildings, ambiance, population)
+	# Arbres, buissons et fleurs des jardins (rendu cosy).
+	verdure = Verdure.new()
+	verdure.name = "Verdure"
+	add_child(verdure)
+	verdure.setup(buildings, world)
 	chantiers = SuiviChantiers.new()
 	chantiers.name = "Chantiers"
 	add_child(chantiers)

@@ -13,6 +13,8 @@ uniform vec3 focus = vec3(0.0);
 uniform float radius = 10000.0;
 uniform vec4 horizon_color : source_color = vec4(0.76, 0.84, 0.92, 1.0);
 uniform float earth_radius = 6371000.0;
+// Rendu cosy : mêmes couleurs douces que terrain.gdshader.
+uniform float douceur = 0.0;
 // Neige commune avec le terrain détaillé. L'exposition (adret, ubac) ne joue
 // qu'au-delà de neige_expo_debut (m) : les blocs détaillés n'ont pas de pente
 // lisse, on évite ainsi un raccord visible à leur bord.
@@ -48,6 +50,11 @@ void fragment() {
 		if (v > 0.0) {
 			col = mix(col, NEIGE_COULEUR, neige_couvre(world_pos.xz, v));
 		}
+	}
+	if (douceur > 0.0 && water < 0.5) {
+		float lu = dot(col, vec3(0.3, 0.55, 0.15));
+		vec3 doux = mix(col, vec3(lu), 0.10) * 0.86 + vec3(0.034, 0.026, 0.012);
+		col = mix(col, doux, douceur);
 	}
 	ALBEDO = col * (1.0 - f);
 	EMISSION = horizon_color.rgb * f;

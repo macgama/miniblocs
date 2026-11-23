@@ -563,9 +563,17 @@ Clique sur un hôtel, puis sur **Gérer l'hôtel** dans sa fiche (ou **Gérer** 
 
 **Et les supermarchés** (tuile **Gérer le magasin** sur un supermarché ou une supérette) : 15 pièces (caisses, rayons, fruits et légumes, frais, boucherie, boulangerie, réserve, bazar, drive, parking, quai…), 75 objets. Le magasin garde plus de stock, attire les foyers de plus loin (ou les fait fuir si les prix montent), remplit les paniers ; les caisses, les vols à l'étalage et les promotions comptent vraiment.
 
+**Et les immeubles** (tuile **Gérer l'immeuble** sur un immeuble ou une tour) : 13 pièces (hall, escalier et ascenseur, appartements, caves, loge du gardien, combles, buanderie, jardin partagé, parking, aire de jeux, toit-terrasse), 60 objets. Les appartements et combles aménagés créent de vrais logements où de nouveaux foyers s'installent, les habitants sont plus contents, le loyer demandé change le vrai loyer des foyers, et digicode, gardien et isolation réduisent cambriolages et charges.
+
 ![Parc de loisirs en mode gestion](docs/apercu-gestion-parc.png)
 
+**Un parc joli et cosy** : chaque attraction est posée sur un socle bordé de couleurs, avec réverbères à lanterne, guirlandes de fanions, massifs de fleurs et ampoules colorées. Les stands sont des kiosques rayés, le train fantôme un château aux tourelles pointues. Les allées ont des réverbères, des bancs et des massifs ; la place centrale, une fontaine à deux vasques. Le soir, les ampoules brillent et les réverbères proches de la caméra éclairent vraiment le sol.
+
+![Parc de loisirs habillé](docs/apercu-parc-cosy.png)
+
 ![Supermarché en mode gestion](docs/apercu-gestion-supermarche.png)
+
+![Immeuble en mode gestion](docs/apercu-gestion-immeuble.png)
 
 ![Usine en mode gestion](docs/apercu-gestion-usine.png)
 

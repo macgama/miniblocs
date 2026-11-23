@@ -54,6 +54,8 @@ extends RefCounted
 ##   "economie" : € d'énergie économisés par jour (usine) ;
 ## - "rayons" / "panier" / "antivol" : supermarché qui garde plus de stock,
 ##   paniers plus remplis, moins de vols à l'étalage ;
+## - "logements" (nombre) / "standing" : immeuble avec des logements en plus,
+##   un loyer plus haut accepté par les habitants ;
 ## - "entretien" : € par jour (charges en plus).
 const EFFETS := {
 	"lits": "lits", "confort": "confort", "attrait": "clients attirés", "satisf": "satisfaction", "repas": "repas sur place",
@@ -62,6 +64,7 @@ const EFFETS := {
 	"proprete": "propreté", "fiabilite": "fiabilité des manèges",
 	"cadence": "production", "matiere": "économie de matière", "qualite": "qualité des produits", "depollution": "pollution en moins", "economie": "énergie économisée",
 	"rayons": "rayons mieux remplis", "panier": "panier moyen", "antivol": "vols en moins",
+	"logements": "logements en plus", "standing": "standing (loyer accepté)",
 }
 
 const GENRES := {
@@ -338,6 +341,10 @@ static func genre_de(type_id: String) -> String:
 	var com := Ressources.commerce_of(type_id)
 	if com == Ressources.COMMERCES.supermarche or com == Ressources.COMMERCES.superette:
 		return "supermarche"
+	# Immeubles et tours de logements (pas les maisons ni les baraques).
+	var tl := BuildingCatalog.get_type(type_id)
+	if String(tl.get("cat", "")) == "logement" and int(tl.get("logements", 0)) >= 6 and not type_id.contains("rangee") and ImmobilierTypes.role(type_id) != "precaire":
+		return "immeuble"
 	# Usines et ateliers de transformation de l'économie (scierie, moulin, aciérie…).
 	if String(ProductionTypes.prod_of(type_id).get("kind", "")) == "transformation":
 		return "usine"
@@ -370,6 +377,8 @@ static func genre(g: String) -> Dictionary:
 			return GenreUsine.GENRE
 		"supermarche":
 			return GenreSupermarche.GENRE
+		"immeuble":
+			return GenreImmeuble.GENRE
 	return GENRES.get(g, {})
 
 

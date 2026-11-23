@@ -3549,6 +3549,7 @@ func _setup_gestion() -> void:
 	add_child(gestion)
 	gestion.setup(buildings, tourisme, production)
 	gestion.urgences = urgences
+	gestion.brancher_population(population)
 	gestion.message.connect(func(t: String) -> void: hud.show_message(t))
 	gestion_vue = GestionVue.new()
 	gestion_vue.name = "EcranGestion"

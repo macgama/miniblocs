@@ -34,6 +34,7 @@ import bpy  # avant bmesh
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import batiment_lowpoly as bl  # noqa: E402  (lire_options, apercu)
 from decors import base, urbain, clotures, loisirs, ferme, animaux, eau, rochers, zoo, epoques, machines  # noqa: E402
+from decors import jardins, toits, fete  # noqa: E402
 
 # Catégories, dans l'ordre du panneau du jeu.
 CATEGORIES = [
@@ -42,11 +43,14 @@ CATEGORIES = [
     ("jeux", "Jeux et sport"), ("plage", "Plage"), ("ferme", "Ferme"), ("cultures", "Cultures"),
     ("animaux", "Animaux"), ("eau", "Bateaux et pontons"), ("rochers", "Rochers et bois"),
     ("zoo", "Animaux du zoo"), ("zoo_objets", "Objets des enclos"),
+    ("arbres", "Arbres d'ornement"), ("jardins", "Parcs et jardins"), ("toits", "Toits et façades"),
+    ("fete", "Rue en fête"),
 ]
 
 # id -> (fonction, catégorie, options). Options : ligne (longueur d'un tronçon
 # qui se répète, en m), eau (posé sur l'eau, origine à la flottaison), berge
-# (ponton : origine sur la berge), anime (animal qui se déplace).
+# (ponton : origine sur la berge), anime (animal qui se déplace), toit (posé sur
+# le toit du bâtiment visé).
 U, C, L, F, A, E, R, Z, H = urbain, clotures, loisirs, ferme, animaux, eau, rochers, zoo, epoques
 DECORS = {
     # Mobilier urbain
@@ -261,6 +265,29 @@ DECORS = {
     "frigo_solidaire": (H.frigo_solidaire, "urbain", {}), "toilettes_seches": (H.toilettes_seches, "urbain", {}),
     "echange_batteries": (H.echange_batteries, "urbain", {}), "borne_hydrogene": (H.borne_hydrogene, "urbain", {}),
     "robot_livraison": (H.robot_livraison, "urbain", {}), "vertiport": (H.vertiport, "urbain", {}),
+    # Lot du 2026-11-23 (idées de Gaël) : arbres d'ornement, parcs et jardins,
+    # toits et façades, rue en fête.
+    **{n: (getattr(jardins, n), "arbres", {}) for n in (
+        "cerisier_fleurs", "erable_rouge", "arbre_automne", "ginkgo_dore", "jacaranda", "magnolia", "bouleau_blanc",
+        "cypres", "saule_pleureur", "arbre_rond_parc", "arbre_pot", "palmier_bac", "bonsai", "plantes_pots",
+        "topiaire_boule", "topiaire_cone", "topiaire_spirale", "topiaire_etages", "topiaire_cube")},
+    **{n: (getattr(jardins, n), "jardins", {}) for n in (
+        "labyrinthe_haies", "pont_arche", "pont_japonais", "etang_rochers", "bassin_nenuphars", "bassin_mogol",
+        "tsukubai", "jardin_zen", "porte_lune", "pergola_vigne", "arche_roses", "arche_coeur", "banc_arbre",
+        "nappe_pique_nique", "bain_oiseaux", "cadran_solaire", "nichoir", "parterre_rond", "parterre_francais",
+        "rocaille", "vasque_fleurie", "gloriette", "serre_jardin", "bac_a_sable_hexa")},
+    "borne_jardin": (jardins.borne_jardin, "eclairage", {}),
+    "lampadaire_parc": (jardins.lampadaire_parc, "eclairage", {}),
+    # toit : posé sur le toit du bâtiment visé (sinon au sol).
+    **{n: (getattr(toits, n), "toits", {"toit": 1}) for n in (
+        "climatiseur", "climatiseurs_toit", "extracteur", "cheminee_metal", "chateau_eau_toit", "chauffe_eau_solaire",
+        "parabole", "antenne_rateau", "cornet_geant", "burger_geant", "donut_geant", "tasse_geante", "pizza_geante")},
+    **{n: (getattr(toits, n), "toits", {}) for n in (
+        "enseigne_neon", "enseigne_lumineuse", "lanternes_rouges", "distributeur_boissons", "comptoir_tabourets",
+        "store_terrasse", "escalier_exterieur")},
+    **{n: (getattr(fete, n), "fete", {}) for n in (
+        "chariot_hot_dog", "chariot_popcorn", "chariot_ballons", "charrette_fleurs", "stand_limonade", "stand_tir",
+        "guirlande_ampoules", "fanions", "arche_ballons", "montgolfiere_captive")},
 }
 
 

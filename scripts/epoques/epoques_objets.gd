@@ -123,6 +123,16 @@ const DECORS := {
 	"presse_balles": 1975, "presse_enrubanneuse": 2005, "dechaumeur": 2005, "arracheuse": 1985, "vendangeuse": 1975,
 	"tracteur_gps": 2010, "tracteur_autonome": 2035, "robot_agricole": 2032, "robot_desherbeur": 2026, "drone_agricole": 2016,
 	"moissonneuse_autonome": 2030, "robot_cueilleur": 2025, "bac_insectes": 2015,
+	# Lot du 2026-11-23 (idées de Gaël). Arbres, topiaires, jardins japonais, chinois,
+	# moghols et à la française, fanions, lanternes : de tout temps.
+	"serre_jardin": 1840, "bain_oiseaux": 1850, "banc_arbre": 1850, "arche_roses": 1850, "bac_a_sable_hexa": 1950,
+	"borne_jardin": 1960, "lampadaire_parc": 1900, "arche_coeur": 1960,
+	"climatiseur": 1975, "climatiseurs_toit": 1950, "extracteur": 1930, "cheminee_metal": 1960, "chateau_eau_toit": 1880,
+	"chauffe_eau_solaire": 1960, "parabole": 1985, "antenne_rateau": 1950, "enseigne_neon": 1925,
+	"enseigne_lumineuse": 1950, "distributeur_boissons": 1960, "escalier_exterieur": 1900, "cornet_geant": 1930,
+	"burger_geant": 1950, "donut_geant": 1950, "tasse_geante": 1930, "pizza_geante": 1960,
+	"chariot_hot_dog": 1890, "chariot_popcorn": 1893, "chariot_ballons": 1900, "stand_limonade": 1900,
+	"stand_tir": 1850, "guirlande_ampoules": 1900, "arche_ballons": 1970, "montgolfiere_captive": 1850,
 }
 
 ## Décors posés tout seuls (rues, berges, plages, fermes) : équivalents plus

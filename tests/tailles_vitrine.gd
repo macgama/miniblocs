@@ -3,7 +3,7 @@ extends SceneTree
 ## plusieurs tailles, et la carte Taille pendant la pose (étape 1 emprise,
 ## étape 2 hauteur) avec le fantôme.
 ## Usage (avec affichage) :
-##   godot --path . --script res://tests/tailles_vitrine.gd -- --screenshot a.png --vue etape1|etape2|rangee
+##   godot --path . --script res://tests/tailles_vitrine.gd -- --screenshot a.png --vue geste|etape1|etape2|rangee
 
 
 func _initialize() -> void:
@@ -91,7 +91,21 @@ func _run() -> void:
 		scene.tutoriel.arreter()
 	for b in scene.find_children("*", "BullesAide", true, false):
 		(b as BullesAide).fermer()
-	if vue != "rangee":
+	if vue == "geste":
+		bs.set_place("maison")
+		bs.manual_rot = true
+		bs.rot = 2
+		bs.geste = "trace"
+		bs._g_debut = Vector2i(30, 8)
+		bs._g_fin = bs._g_debut
+		bs._g_rot = 2
+		bs._trace_vers(Vector2i(43, 21), Vector2.ZERO)
+		var lache := InputEventMouseButton.new()
+		lache.button_index = MOUSE_BUTTON_LEFT
+		lache.position = Vector2(800, 500)
+		bs._geste_souris(lache)
+		bs._hauteur_souris(500.0 - BuildingSystem.PX_NIVEAU)
+	elif vue != "rangee":
 		bs.set_place("maison")
 		for i in 3:
 			await process_frame

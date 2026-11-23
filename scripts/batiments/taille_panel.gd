@@ -32,6 +32,12 @@ var _corps: VBoxContainer
 var _resume: Label
 var _suivant: Button
 var _dernier_type := ""
+## Carte repliée : la taille se choisit au geste (glisser au sol, puis monter la
+## souris) ; dépliée, les vignettes et − / + servent de secours. Gardé pour la session.
+static var replie := true
+var _menu: Button
+var _aide: Label
+var _rz: Button
 var _annee := -2
 
 
@@ -85,6 +91,24 @@ func setup(b: BuildingSystem) -> void:
 		var b0 := TaillesBatiments.dims(origine)
 		choisir(int(b0.w), int(b0.d), int(b0.e)))
 	head.add_child(rz)
+	_rz = rz
+	_menu = Button.new()
+	_menu.name = "Menu"
+	_menu.focus_mode = Control.FOCUS_NONE
+	_menu.add_theme_font_size_override("font_size", 13)
+	_menu.tooltip_text = "Régler la taille avec des vignettes et des boutons − / +"
+	UiStyle.style_icon_button(_menu)
+	_menu.pressed.connect(func() -> void:
+		replie = not replie
+		_appliquer_repli())
+	head.add_child(_menu)
+	_aide = Label.new()
+	_aide.name = "Aide"
+	_aide.text = "Glisse au sol pour tracer l'emprise, relâche, puis monte la souris (ou molette) pour les niveaux. Un clic pose."
+	_aide.add_theme_font_size_override("font_size", 12)
+	_aide.add_theme_color_override("font_color", UiStyle.TEXT_DIM)
+	_aide.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	outer.add_child(_aide)
 	_corps = VBoxContainer.new()
 	_corps.add_theme_constant_override("separation", 6)
 	outer.add_child(_corps)
@@ -110,6 +134,16 @@ func setup(b: BuildingSystem) -> void:
 	pied.add_child(_suivant)
 
 
+func _appliquer_repli() -> void:
+	_menu.text = "Menu  ▾" if replie else "Replier  ▴"
+	_aide.visible = replie
+	_corps.visible = not replie
+	_suivant.visible = not replie
+	_rz.visible = not replie
+	for i in _onglets.size():
+		_onglets[i].visible = not replie and (i == 0 or TaillesBatiments.hauteur_reglable(origine))
+
+
 func is_open() -> bool:
 	return _panel != null and _panel.visible
 
@@ -130,6 +164,13 @@ func _process(_delta: float) -> void:
 	var o := TaillesBatiments.origine(bs.type_id)
 	if o != origine or not _panel.visible:
 		ouvrir(bs.type_id)
+	else:
+		# Taille changée au geste : la carte suit.
+		var z := TaillesBatiments.dims(bs.type_id)
+		w = int(z.w)
+		d = int(z.d)
+		e = int(z.e)
+		_remplir()
 
 
 ## Ouvre la carte sur un type (id du catalogue ou à une autre taille).
@@ -148,6 +189,7 @@ func ouvrir(type_id: String) -> void:
 	if nouveau or _annee != Epoques.annee():
 		_annee = Epoques.annee()
 	montrer_etape(1 if nouveau else etape)
+	_appliquer_repli()
 
 
 func montrer_etape(n: int) -> void:
@@ -255,7 +297,12 @@ func resume() -> String:
 		parts.append("%d emploi%s" % [c.emplois, "s" if int(c.emplois) > 1 else ""])
 	if int(c.visiteurs) > 0 and int(c.emplois) == 0 and int(c.logements) == 0:
 		parts.append("%d visiteurs" % c.visiteurs)
-	parts.append(BuildingSystem.format_short(ReglagesPartie.prix(int(c.prix))))
+	var z := TaillesBatiments.dims(id)
+	parts.push_front("%d × %d m%s" % [int(z.w), int(z.d), (", " + TaillesBatiments.texte_etages(int(z.e))) if TaillesBatiments.hauteur_reglable(origine) else ""])
+	if BuildingCatalog.est_prive(id):
+		parts.append("payé par un promoteur (%s)" % BuildingSystem.format_short(ReglagesPartie.prix(int(c.prix))))
+	else:
+		parts.append(BuildingSystem.format_short(ReglagesPartie.prix(int(c.prix))))
 	var mois := float(c.mois)
 	parts.append("chantier %s mois" % str(snappedf(mois, 0.1)).replace(".", ",") if mois >= 1.0 else "chantier %d semaines" % maxi(1, roundi(mois * 4.3)))
 	return "  ·  ".join(parts)

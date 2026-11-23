@@ -1,18 +1,33 @@
 # Choisir la taille d'un bâtiment
 
 Quand on pose un bâtiment du catalogue (B, ou un menu Loisirs, Club, Tourisme…),
-une carte **Taille** s'ouvre en bas de l'écran. Elle se règle en deux étapes :
+sa taille se choisit **au geste**, directement sur la carte :
+
+1. **Tracer l'emprise** : bouton gauche enfoncé, glisser au sol. Le bâtiment
+   suit le rectangle tracé, case par case (1 case = 1 m), à partir de la case
+   de départ. Il reste dans les bornes du type (une maison ne dépasse pas
+   16 m de large). La porte se tourne d'office vers la voie la plus proche ;
+   R la tourne à la main.
+2. **Monter les niveaux** : relâcher le bouton, puis monter la souris (un
+   niveau tous les 26 pixels) ou tourner la molette. Le toit ne compte pas.
+3. **Poser** : un clic. Clic droit ou Échap : annuler le geste (l'outil reste).
+
+Pendant le geste, une étiquette au-dessus du fantôme donne la taille, les
+niveaux et le prix (ou « payé par un promoteur » pour un bâtiment privé). Un
+simple clic sans glisser pose à la taille en cours, comme avant.
+
+La carte **Taille** en bas de l'écran rappelle le geste et résume la taille
+choisie. Son bouton **Menu** la déplie (gardé pour la session) en secours, en
+deux étapes :
 
 1. **Emprise au sol** : quatre vignettes dessinées en plan à la même échelle
    (Petite, Normale, Grande, Très grande), puis la largeur et la profondeur au
    mètre près avec − et +. Le trait jaune du dessin est la façade (côté rue).
 2. **Hauteur** : silhouettes de 1 à N niveaux, à la même échelle, avec un
-   bonhomme pour se repérer, puis − et +. Le toit ne compte pas comme niveau.
+   bonhomme pour se repérer, puis − et +.
 
-Le fantôme sur la carte change tout de suite. La ligne du bas donne ce que la
-taille change : logements ou emplois, prix, durée du chantier. La flèche en haut
-à droite remet la taille du catalogue. On peut fermer la carte (« C'est bon ») :
-la taille choisie reste tant qu'on pose ce bâtiment.
+Le fantôme change tout de suite. La ligne du bas donne logements ou emplois,
+prix (payé par la ville ou par un promoteur), durée du chantier.
 
 ## Ce qui suit la taille
 
@@ -54,6 +69,9 @@ catalogue donne un rapport ; tout suit ce rapport :
   classiques) sont redessinés à la bonne taille avec leurs étages ; les autres
   sont étirés au sol et reçoivent ou perdent des étages (étage recopié ou
   retiré au-dessus du rez-de-chaussée).
+- Geste : `BuildingSystem` (geste "trace" puis "hauteur", `_trace_vers`,
+  `_hauteur_souris`, `poser_geste`, `annuler_geste`, `PX_NIVEAU`). La pose
+  passe par le même chemin que le clic (multijoueur, mode plan, historique).
 - `scripts/batiments/taille_panel.gd` (TaillePanel) : la carte, qui suit
   l'outil de pose ; `scripts/batiments/dessin_taille.gd` : les dessins.
 - Test : `tests/tailles_test.gd`.
@@ -61,11 +79,13 @@ catalogue donne un rapport ; tout suit ce rapport :
 ## Tester dans Godot 4.7
 
 1. Ouvrir le projet, lancer la scène principale (F5), commencer une partie.
-2. B → Logement → Maison : la carte Taille s'ouvre en bas.
-3. Choisir « Grande », puis « Suivant : la hauteur », puis « Plain-pied » ou
-   « 4 niveaux » : le fantôme change, le résumé aussi. Poser d'un clic.
-4. Cliquer la maison posée : la fiche affiche « Taille choisie ».
-5. Sauvegarder, recharger : la maison garde sa taille.
+2. B → Logement → Maison.
+3. Bouton gauche enfoncé, glisser au sol sur une douzaine de cases, relâcher,
+   monter la souris (ou molette) : les niveaux changent, l'étiquette aussi.
+   Clic pour poser ; clic droit pour annuler.
+4. Bouton « Menu » de la carte Taille : vignettes et − / + en secours.
+5. Cliquer la maison posée : la fiche affiche « Taille choisie ».
+6. Sauvegarder, recharger : la maison garde sa taille.
 
 Test automatique :
 `godot --path . --script res://tests/tailles_test.gd` (doit finir par « TEST OK »).

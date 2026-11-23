@@ -149,6 +149,22 @@ Ce que ça change **vraiment** dans la ville :
 
 ![Supermarché en mode gestion](apercu-gestion-supermarche.png)
 
+## L'immeuble
+
+Les immeubles, les tours et les résidences de logements se gèrent aussi : tuile **Gérer l'immeuble** sur leur fiche (pas les maisons ni les maisons en rangée, ni les logements précaires). On joue le gérant : le compte encaisse les loyers des foyers qui habitent l'immeuble et paie les travaux (les prix suivent ceux du catalogue). Un immeuble jamais ouvert en gestion reste exactement comme avant.
+
+13 pièces : hall d'entrée, escalier et ascenseur, appartements côté rue et côté cour, caves et local poubelles, loge du gardien, local vélos, combles aménagés, buanderie commune, et dehors le jardin partagé, le parking et les garages, l'aire de jeux et le toit-terrasse. 60 objets (boîtes aux lettres, digicode, lustre, caméras, ascenseur, cuisines équipées, salles de bains, balcons fleuris, studios redécoupés, mezzanine, portes de caves blindées, boîte à livres, étagère à colis, arceaux et prises pour vélos, lave-linge collectifs, carrés potagers, barbecue, toboggan, ping-pong, boxes fermés, bornes de recharge, panneaux solaires, chaudière à condensation, jacuzzi sur le toit…). Plus on monte de niveau, plus les appartements de la maquette sont nombreux et meublés.
+
+Ce que ça change **vraiment** dans la ville :
+- **Logements en plus** (appartements rénovés, combles, studios redécoupés, mezzanine) : l'immeuble compte de vrais logements de plus, et de nouveaux foyers viennent s'y installer.
+- **Habitants contents** (ascenseur, jardin, aire de jeux, buanderie, gardien…) : la satisfaction des habitants de l'immeuble monte dans la ville (ligne « immeuble bien tenu (gérant) »).
+- **Loyer** (− / + de 70 % à 150 % du loyer du quartier) : c'est le vrai loyer que paient les foyers ; trop haut, ceux qui ne peuvent plus payer déménagent. Le **standing** (lustre, parquet, poutres, toit-terrasse) permet de demander plus sans faire fuir.
+- **Cambriolages** : digicode, caméras, portail, gardien et portes blindées les divisent.
+- **Charges** : isolation, volets, chaudière, panneaux solaires, éclairage à détecteur : moins de factures.
+- **Clés** (1 à 5) : gagnées par l'expérience. Événements : label « Il fait bon vivre » (60 jours), dégât des eaux (moitié moins cher avec un gardien), cambriolage, loyer impayé, fête des voisins.
+
+![Immeuble en mode gestion](apercu-gestion-immeuble.png)
+
 ## Faire grandir l'établissement (tous les genres)
 
 Deux onglets en plus dans la carte de droite, pour l'hôtel, le restaurant, la caserne, le commissariat, l'hôpital, le parc et l'usine :
@@ -225,4 +241,6 @@ Le mode suit le temps du jeu : rien ne se gagne pendant que le jeu est fermé, r
 - `scripts/gestion/gestion_vue.gd` (`GestionVue`) et `graphe_gestion.gd` : l'écran (caméra isométrique, barre du haut, carte à onglets, tuiles du bas, bulles, graphique).
 - Effets lus par le tourisme : `Tourisme.spec`, `lits`, `note`, `attrait_heb`, repas sur place, dépenses sur place (`ventes`), satisfaction, entretien.
 
-Tests : `xvfb-run -a godot --path . --rendering-driver opengl3 --script res://tests/gestion_test.gd` (hôtel) , `res://tests/gestion_restaurant_test.gd` (restaurant) `res://tests/gestion_caserne_test.gd` (caserne) `res://tests/gestion_commissariat_test.gd` (commissariat) `res://tests/gestion_hopital_test.gd` (hôpital) `res://tests/gestion_usine_test.gd` (usine) et `res://tests/gestion_supermarche_test.gd` (supermarché). Captures : `tests/gestion_vitrine.gd -- --out DOSSIER [--type haussmann__restaurant|pompiers|police|hopital|scierie|supermarche] [--depart] --niveau 1|3|5 [--piece spa] [--zoom 30] [--onglet personnel|stats|journal] [--x 20 --z 14]`.
+- `scripts/gestion/genres/genre_immeuble.gd` (`GenreImmeuble`), `decors_immeuble.gd`, `modeles_immeuble.gd` : l'immeuble (`GestionTypes.genre_de` : catégorie logement, 6 logements ou plus, pas en rangée ni précaire). Source `logement` : le compte est `etat.caisse`, alimenté par les loyers des foyers (`_journee_logement`). Branchements : `Population._info_of` (`log` + `Gestion.logements_de`, mis à jour par `_maj_logements`), `Population.extra_satisfaction` (chaîné par `Gestion.brancher_population`), `Immobilier.mult_loyer` (× `Gestion.loyer_de`, 0,7 à 1,5). Chaîne des modèles et décors : hôpital → usine → supermarché → immeuble → parc.
+
+Tests : `xvfb-run -a godot --path . --rendering-driver opengl3 --script res://tests/gestion_test.gd` (hôtel) , `res://tests/gestion_restaurant_test.gd` (restaurant) `res://tests/gestion_caserne_test.gd` (caserne) `res://tests/gestion_commissariat_test.gd` (commissariat) `res://tests/gestion_hopital_test.gd` (hôpital) `res://tests/gestion_usine_test.gd` (usine) `res://tests/gestion_supermarche_test.gd` (supermarché) et `res://tests/gestion_immeuble_test.gd` (immeuble). Captures : `tests/gestion_vitrine.gd -- --out DOSSIER [--type haussmann__restaurant|pompiers|police|hopital|scierie|supermarche|immeuble] [--depart] --niveau 1|3|5 [--piece spa] [--zoom 30] [--onglet personnel|stats|journal] [--x 20 --z 14]`.

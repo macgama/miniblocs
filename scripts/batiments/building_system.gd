@@ -676,6 +676,18 @@ func building_at(c: Vector2i) -> int:
 	return int(occupancy.get(c, -1))
 
 
+## Hauteur (m, absolue) du haut du bâtiment posé sur la case c ; NAN s'il n'y en a pas.
+## Sert aux décors de toit (climatiseurs, château d'eau, enseignes géantes).
+func hauteur_toit(c: Vector2i) -> float:
+	var bid := building_at(c)
+	if bid < 0 or not buildings.has(bid):
+		return NAN
+	var mi: MeshInstance3D = _nodes.get(bid)
+	if mi == null or mi.mesh == null:
+		return NAN
+	return float(buildings[bid].h) + mi.mesh.get_aabb().end.y
+
+
 func _rect_of(b: Dictionary) -> Rect2i:
 	return Rect2i(Vector2i(int(b.x), int(b.z)), BuildingCatalog.footprint(b.t, int(b.r)))
 

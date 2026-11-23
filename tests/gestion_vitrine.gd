@@ -1,6 +1,6 @@
 extends SceneTree
 ## Captures du mode gestion « tycoon » (écran isométrique d'un hôtel ou d'un restaurant).
-## Usage : xvfb-run -a godot --path . --rendering-driver opengl3 --script res://tests/gestion_vitrine.gd -- --out DOSSIER [--type hotel_3|haussmann__restaurant|pompiers|police|hopital|entree_parc|scierie|supermarche|entree_zoo|ecole|stade_vaduz|ferme…] [--depart] [--niveau 1|3|5] [--piece spa] [--zoom 30] [--onglet personnel|stats|journal] [--x 20 --z 14]
+## Usage : xvfb-run -a godot --path . --rendering-driver opengl3 --script res://tests/gestion_vitrine.gd -- --out DOSSIER [--type hotel_3|haussmann__restaurant|pompiers|police|hopital|entree_parc|scierie|supermarche|entree_zoo|ecole|stade_vaduz|ferme…|immeuble] [--depart] [--niveau 1|3|5] [--piece spa] [--zoom 30] [--onglet personnel|stats|journal] [--x 20 --z 14]
 
 var out := "user://captures-gestion"
 var niveau := 3
@@ -110,6 +110,8 @@ func _run() -> void:
 		tour.heb[hotel].nom = "Hôtel Bellevue"
 		tour.heb[hotel].compte = 180_000.0
 		tour.heb[hotel].clients = [[50, 3, 3.5], [40, 2, 3.5]]
+	elif g == "immeuble":
+		pass
 	elif scene.production.sites.has(hotel):
 		scene.production.sites[hotel].cash = 60_000.0
 	# Personnel : quelques habitants embauchés à leur poste.
@@ -120,6 +122,10 @@ func _run() -> void:
 	pop._sync_buildings()
 	for b in homes:
 		pop.spawn_household(b, "famille")
+	if g == "immeuble":
+		# Des foyers dans l'immeuble : ce sont eux qui paient les loyers.
+		for i in 9:
+			pop.spawn_household(hotel, ["famille", "couple", "seul"][i % 3])
 	var mets := ["receptionniste", "agent_etage", "agent_etage", "cuisinier", "serveur", "serveur", "cadre", "agent_proprete", "maitre_nageur", "maitre_nageur"]
 	if g == "restaurant":
 		mets = ["serveur", "serveur", "serveur", "cuisinier", "cuisinier", "serveur", "serveur"]

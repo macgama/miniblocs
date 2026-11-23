@@ -125,6 +125,24 @@ func _run() -> void:
 				sur_route += 1
 	_check(sur_route == 0, "rien n'est posé sur la chaussée")
 
+	print("Lot du 2026-11-23 (parcs, arbres, toits, fête) :")
+	for cat in ["arbres", "jardins", "toits", "fete"]:
+		_check(Decors.de_categorie(cat).size() >= 10, "catégorie %s : %d décors" % [cat, Decors.de_categorie(cat).size()])
+	_check(Decors.sur_toit("chateau_eau_toit") and Decors.sur_toit("burger_geant") and not Decors.sur_toit("banc_bois"),
+		"décors de toit repérés")
+	var acces := dec.buildings.require_access
+	dec.buildings.require_access = false
+	var bid := dec.buildings.place("maison", Vector2i(160, -160), 0)
+	dec.buildings.require_access = acces
+	_check(bid >= 0, "maison posée pour les décors de toit")
+	if bid >= 0:
+		var sol := world.cell_height(Vector2i(160, -160))
+		var toit := dec.buildings.hauteur_toit(Vector2i(160, -160))
+		_check(toit > sol + 3.0, "hauteur du toit (%.1f m au-dessus du sol)" % (toit - sol))
+		_check(dec._hauteur("chateau_eau_toit", 160.5, -159.5) > sol + 3.0, "château d'eau : posé sur le toit")
+		_check(absf(dec._hauteur("banc_bois", 160.5, -159.5) - sol) < 0.6, "banc : reste au sol")
+		dec.buildings.remove_quietly(bid)
+
 	print("Pose par le joueur :")
 	var n0 := dec.nombre_poses()
 	_check(dec.pose("fontaine", 20.0, -60.0), "fontaine posée")

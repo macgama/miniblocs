@@ -2223,6 +2223,16 @@
 		"v": "img/v/batiments/concession_agricole.webp"
 	},
 	{
+		"annee": 1910,
+		"evol": "Agrandissable : niveau 2 (+50 %, 540 k€), niveau 3 (×2, 720 k€) ; rénovation 135 k€",
+		"fam": "batiments",
+		"groupe": "Production et ressources",
+		"id": "forage_irrigation",
+		"info": "14 × 12 m · 900 k€ · 2 emplois",
+		"nom": "Forage d'irrigation",
+		"source": "propre"
+	},
+	{
 		"annee": 0,
 		"evo": {
 			"f": "img/evo/batiments/port_peche.webp",
@@ -69513,6 +69523,756 @@
 		"nom": "Plateforme de taxis volants au sol, avec ses bornes",
 		"source": "ajoutee",
 		"v": "img/v/decors/vertiport.webp"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Arbres d'ornement",
+		"id": "cerisier_fleurs",
+		"info": "3,8 × 3,9 m",
+		"nom": "Cerisier en fleurs",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Arbres d'ornement",
+		"id": "erable_rouge",
+		"info": "3,3 × 3,2 m",
+		"nom": "Érable du Japon rouge",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Arbres d'ornement",
+		"id": "arbre_automne",
+		"info": "4,5 × 4,3 m",
+		"nom": "Arbre d'automne",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Arbres d'ornement",
+		"id": "ginkgo_dore",
+		"info": "2,4 × 2,4 m",
+		"nom": "Ginkgo doré",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Arbres d'ornement",
+		"id": "jacaranda",
+		"info": "5,1 × 5,5 m",
+		"nom": "Jacaranda en fleurs",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Arbres d'ornement",
+		"id": "magnolia",
+		"info": "3,3 × 3,4 m",
+		"nom": "Magnolia en fleurs",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Arbres d'ornement",
+		"id": "bouleau_blanc",
+		"info": "2,2 × 2,1 m",
+		"nom": "Bouleau blanc",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Arbres d'ornement",
+		"id": "cypres",
+		"info": "1,4 × 1,5 m",
+		"nom": "Cyprès d'Italie",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Arbres d'ornement",
+		"id": "saule_pleureur",
+		"info": "4,8 × 4,8 m",
+		"nom": "Saule pleureur",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Arbres d'ornement",
+		"id": "arbre_rond_parc",
+		"info": "2,2 × 2,1 m",
+		"nom": "Arbre de parc en boule",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Arbres d'ornement",
+		"id": "arbre_pot",
+		"info": "1,0 × 0,9 m",
+		"nom": "Arbre en pot",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Arbres d'ornement",
+		"id": "palmier_bac",
+		"info": "2,3 × 2,3 m",
+		"nom": "Palmier en bac",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Arbres d'ornement",
+		"id": "bonsai",
+		"info": "0,9 × 0,5 m",
+		"nom": "Bonsaï",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Arbres d'ornement",
+		"id": "plantes_pots",
+		"info": "1,3 × 0,6 m",
+		"nom": "Plantes en pots",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Arbres d'ornement",
+		"id": "topiaire_boule",
+		"info": "1,0 × 1,0 m",
+		"nom": "Topiaire en boule",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Arbres d'ornement",
+		"id": "topiaire_cone",
+		"info": "0,9 × 0,9 m",
+		"nom": "Topiaire en cône",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Arbres d'ornement",
+		"id": "topiaire_spirale",
+		"info": "1,1 × 1,0 m",
+		"nom": "Topiaire en spirale",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Arbres d'ornement",
+		"id": "topiaire_etages",
+		"info": "0,8 × 0,8 m",
+		"nom": "Topiaire à étages",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Arbres d'ornement",
+		"id": "topiaire_cube",
+		"info": "1,0 × 1,0 m",
+		"nom": "Buis en cube",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Parcs et jardins",
+		"id": "labyrinthe_haies",
+		"info": "16,0 × 16,4 m",
+		"nom": "Labyrinthe de haies",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Parcs et jardins",
+		"id": "pont_arche",
+		"info": "6,1 × 1,6 m",
+		"nom": "Pont de bois en arc",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Parcs et jardins",
+		"id": "pont_japonais",
+		"info": "6,2 × 1,8 m",
+		"nom": "Pont japonais",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Parcs et jardins",
+		"id": "etang_rochers",
+		"info": "5,3 × 5,6 m",
+		"nom": "Étang aux rochers",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Parcs et jardins",
+		"id": "bassin_nenuphars",
+		"info": "4,0 × 3,9 m",
+		"nom": "Bassin aux nénuphars",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Parcs et jardins",
+		"id": "bassin_mogol",
+		"info": "3,6 × 11,0 m",
+		"nom": "Bassin moghol à jets d'eau",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Parcs et jardins",
+		"id": "tsukubai",
+		"info": "2,0 × 1,8 m",
+		"nom": "Tsukubai",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Parcs et jardins",
+		"id": "jardin_zen",
+		"info": "4,0 × 3,0 m",
+		"nom": "Jardin zen",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Parcs et jardins",
+		"id": "porte_lune",
+		"info": "4,6 × 0,6 m",
+		"nom": "Porte de lune",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Parcs et jardins",
+		"id": "pergola_vigne",
+		"info": "4,4 × 3,3 m",
+		"nom": "Pergola à vigne",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 1850,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Parcs et jardins",
+		"id": "arche_roses",
+		"info": "2,0 × 0,8 m",
+		"nom": "Arche de roses",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 1960,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Parcs et jardins",
+		"id": "arche_coeur",
+		"info": "3,1 × 0,6 m",
+		"nom": "Arche en cœur",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 1850,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Parcs et jardins",
+		"id": "banc_arbre",
+		"info": "5,1 × 4,9 m",
+		"nom": "Banc autour d'un arbre",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Parcs et jardins",
+		"id": "nappe_pique_nique",
+		"info": "2,0 × 2,0 m",
+		"nom": "Nappe de pique-nique",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 1850,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Parcs et jardins",
+		"id": "bain_oiseaux",
+		"info": "0,9 × 0,9 m",
+		"nom": "Bain d'oiseaux",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Parcs et jardins",
+		"id": "cadran_solaire",
+		"info": "0,6 × 0,6 m",
+		"nom": "Cadran solaire",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Parcs et jardins",
+		"id": "nichoir",
+		"info": "0,3 × 0,4 m",
+		"nom": "Nichoir",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Parcs et jardins",
+		"id": "parterre_rond",
+		"info": "3,0 × 2,9 m",
+		"nom": "Parterre de fleurs",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Parcs et jardins",
+		"id": "parterre_francais",
+		"info": "6,0 × 6,0 m",
+		"nom": "Parterre à la française",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Parcs et jardins",
+		"id": "rocaille",
+		"info": "2,8 × 2,2 m",
+		"nom": "Rocaille fleurie",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Parcs et jardins",
+		"id": "vasque_fleurie",
+		"info": "0,8 × 0,8 m",
+		"nom": "Vasque fleurie",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Parcs et jardins",
+		"id": "gloriette",
+		"info": "3,6 × 4,0 m",
+		"nom": "Gloriette",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 1840,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Parcs et jardins",
+		"id": "serre_jardin",
+		"info": "4,2 × 3,1 m",
+		"nom": "Serre de jardin",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 1950,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Parcs et jardins",
+		"id": "bac_a_sable_hexa",
+		"info": "4,0 × 3,5 m",
+		"nom": "Bac à sable hexagonal",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 1960,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Éclairage",
+		"id": "borne_jardin",
+		"info": "0,3 × 0,3 m",
+		"nom": "Borne lumineuse d'allée",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 1900,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Éclairage",
+		"id": "lampadaire_parc",
+		"info": "0,5 × 0,5 m",
+		"nom": "Lampadaire de parc",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 1975,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Toits et façades",
+		"id": "climatiseur",
+		"info": "1,1 × 0,4 m",
+		"nom": "Climatiseur",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 1950,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Toits et façades",
+		"id": "climatiseurs_toit",
+		"info": "3,9 × 2,2 m",
+		"nom": "Climatisation de toit",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 1930,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Toits et façades",
+		"id": "extracteur",
+		"info": "0,6 × 0,6 m",
+		"nom": "Extracteur de toit",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 1960,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Toits et façades",
+		"id": "cheminee_metal",
+		"info": "0,5 × 0,5 m",
+		"nom": "Conduit de cheminée inox",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 1880,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Toits et façades",
+		"id": "chateau_eau_toit",
+		"info": "2,8 × 2,8 m",
+		"nom": "Château d'eau de toit",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 1960,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Toits et façades",
+		"id": "chauffe_eau_solaire",
+		"info": "2,2 × 1,1 m",
+		"nom": "Chauffe-eau solaire",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 1985,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Toits et façades",
+		"id": "parabole",
+		"info": "0,8 × 0,8 m",
+		"nom": "Antenne parabolique",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 1950,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Toits et façades",
+		"id": "antenne_rateau",
+		"info": "1,4 × 1,6 m",
+		"nom": "Antenne râteau",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 1930,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Toits et façades",
+		"id": "cornet_geant",
+		"info": "1,6 × 1,7 m",
+		"nom": "Cornet de glace géant",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 1950,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Toits et façades",
+		"id": "burger_geant",
+		"info": "2,7 × 2,7 m",
+		"nom": "Burger géant",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 1950,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Toits et façades",
+		"id": "donut_geant",
+		"info": "3,4 × 1,1 m",
+		"nom": "Donut géant",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 1930,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Toits et façades",
+		"id": "tasse_geante",
+		"info": "2,4 × 2,2 m",
+		"nom": "Tasse de café géante",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 1960,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Toits et façades",
+		"id": "pizza_geante",
+		"info": "2,3 × 0,7 m",
+		"nom": "Part de pizza géante",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 1925,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Toits et façades",
+		"id": "enseigne_neon",
+		"info": "0,2 × 0,7 m",
+		"nom": "Enseigne néon verticale",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 1950,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Toits et façades",
+		"id": "enseigne_lumineuse",
+		"info": "0,5 × 0,3 m",
+		"nom": "Enseigne lumineuse sur pied",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Toits et façades",
+		"id": "lanternes_rouges",
+		"info": "4,1 × 0,3 m",
+		"nom": "Lanternes rouges",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 1960,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Toits et façades",
+		"id": "distributeur_boissons",
+		"info": "1,0 × 0,8 m",
+		"nom": "Distributeur de boissons",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Toits et façades",
+		"id": "comptoir_tabourets",
+		"info": "3,2 × 1,1 m",
+		"nom": "Comptoir et tabourets",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Toits et façades",
+		"id": "store_terrasse",
+		"info": "4,2 × 1,3 m",
+		"nom": "Auvent de tuiles",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 1900,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Toits et façades",
+		"id": "escalier_exterieur",
+		"info": "1,1 × 5,8 m",
+		"nom": "Escalier extérieur",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 1890,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Rue en fête",
+		"id": "chariot_hot_dog",
+		"info": "2,3 × 1,2 m",
+		"nom": "Chariot à hot-dogs",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 1893,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Rue en fête",
+		"id": "chariot_popcorn",
+		"info": "1,9 × 1,1 m",
+		"nom": "Chariot à pop-corn",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 1900,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Rue en fête",
+		"id": "chariot_ballons",
+		"info": "1,3 × 1,2 m",
+		"nom": "Marchand de ballons",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Rue en fête",
+		"id": "charrette_fleurs",
+		"info": "2,4 × 1,1 m",
+		"nom": "Charrette de fleuriste",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 1900,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Rue en fête",
+		"id": "stand_limonade",
+		"info": "1,5 × 0,7 m",
+		"nom": "Stand de limonade",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 1850,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Rue en fête",
+		"id": "stand_tir",
+		"info": "3,1 × 1,5 m",
+		"nom": "Stand de tir forain",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 1900,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Rue en fête",
+		"id": "guirlande_ampoules",
+		"info": "8,1 × 0,1 m",
+		"nom": "Guirlande d'ampoules",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 0,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Rue en fête",
+		"id": "fanions",
+		"info": "8,1 × 0,1 m",
+		"nom": "Fanions de fête",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 1970,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Rue en fête",
+		"id": "arche_ballons",
+		"info": "4,4 × 0,7 m",
+		"nom": "Arche de ballons",
+		"source": "ajoutee"
+	},
+	{
+		"annee": 1850,
+		"evol": "",
+		"fam": "decors",
+		"groupe": "Rue en fête",
+		"id": "montgolfiere_captive",
+		"info": "5,9 × 5,8 m",
+		"nom": "Montgolfière captive",
+		"source": "ajoutee"
 	},
 	{
 		"annee": 1900,

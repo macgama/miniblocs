@@ -856,6 +856,11 @@ func _lignes_effets(eff: Dictionary, court := false) -> Array:
 		out.append(("+%d %% prix" if court else "+%d %% sur le prix de vente des produits (qualité)") % roundi(float(eff.qualite) * 100.0))
 	if eff.has("depollution"):
 		out.append(("−%d %% pollution" if court else "−%d %% de pollution (air, eau, CO₂) autour de l'usine") % roundi(float(eff.depollution) * 100.0))
+	if eff.has("logements"):
+		var nl := roundi(float(eff.logements))
+		out.append(("+%d logement%s" if court else "+%d logement%s pour de nouveaux foyers") % [nl, "s" if nl > 1 else ""])
+	if eff.has("standing"):
+		out.append(("+%d %% standing" if court else "+%d %% de loyer accepté sans râler (standing)") % roundi(float(eff.standing) * 100.0))
 	if eff.has("rayons"):
 		out.append(("+%d %% stock" if court else "+%d %% de stock en rayon et en réserve (moins de rayons vides)") % roundi(float(eff.rayons) * 100.0))
 	if eff.has("panier"):

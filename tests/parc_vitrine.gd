@@ -116,4 +116,12 @@ func _run() -> void:
 	await _shot(dir.path_join("parc-panneau-attractions.png"))
 	scene.parc_panel.show_view("visiteurs")
 	await _shot(dir.path_join("parc-panneau-visiteurs.png"))
+	# Le soir : réverbères, lanternes et ampoules allumés.
+	scene.parc_panel.set_open(false)
+	amb.unix_time = SAMEDI + 13.0 * 3600.0
+	rig.position = Vector3(-10, y, -60)
+	rig._target_distance = 80.0
+	rig.set_pitch(26.0, true)
+	rig.rotation_degrees.y = 15.0
+	await _shot(dir.path_join("parc-soir.png"), 90)
 	quit()

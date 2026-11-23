@@ -482,6 +482,8 @@ static func places(nom: String) -> Array:
 		return pu
 	if ModelesSupermarche.PLACES.has(nom):
 		return ModelesSupermarche.PLACES[nom]
+	if ModelesImmeuble.PLACES.has(nom):
+		return ModelesImmeuble.PLACES[nom]
 	return ModelesParc.PLACES.get(nom, [])
 
 

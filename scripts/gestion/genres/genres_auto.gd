@@ -24,11 +24,15 @@ const PROF_ACCUEIL := 7.0
 const ECART := 2.5
 
 static var _cache := {}
+static var _specs := {}
 
 
 ## Toutes les fiches connues : genre → fiche.
 static func specs() -> Dictionary:
-	return GenresHaute.SPECS
+	if _specs.is_empty():
+		for src in [GenresHaute.SPECS, GenresMoyenne.SPECS, GenresBasse.SPECS]:
+			_specs.merge(src)
+	return _specs
 
 
 static func connu(g: String) -> bool:
@@ -292,7 +296,12 @@ static func construire(g: String, s: Dictionary) -> Dictionary:
 		n_d += 1
 		dem.append({"id": "%s_%d" % [g, n_d], "piece": String(d[0]), "texte": String(d[1]), "pourboire": int(d[2]) if (d as Array).size() > 2 else 2})
 	gd["demandes"] = dem
-	gd["pannes"] = s.get("pannes", {})
+	# Pannes : celles de la fiche, sinon des pannes ordinaires (dedans, dehors).
+	var pn: Dictionary = (s.get("pannes", {}) as Dictionary).duplicate(true)
+	for pid in ordre:
+		if not pn.has(pid):
+			pn[pid] = ["Clôture abîmée", "Éclairage en panne"] if dehors.has(pid) else ["Lumière en panne", "Fuite d'eau"]
+	gd["pannes"] = pn
 	if not gd.has("pensees"):
 		gd["pensees"] = {"regle": ["Merci !", "Très bien accueilli.", "On reviendra."], "rate": ["Personne pour m'aider…", "Je repars, tant pis."]}
 	if not gd.has("chip_txt"):

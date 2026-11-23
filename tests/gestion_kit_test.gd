@@ -192,7 +192,7 @@ func _city_tests() -> void:
 	root.add_child(scene)
 	world.tiles.offline_generator = _flat_tile
 	world.land.offline_generator = func(_lat: float, _lon: float) -> int: return 40
-	world.view_radius_override = 600.0
+	world.view_radius_override = 900.0
 	world.set_origin(46.2, 6.9)
 	for i in 3000:
 		await process_frame
@@ -208,33 +208,30 @@ func _city_tests() -> void:
 	ReglagesPartie.actuel.deblocage = "tout"
 	ReglagesPartie.actuel.territoire = false
 	var y := world.cell_height(Vector2i(0, 0))
-	for rz in [0, 220, -220, 440]:
+	var rangs := [0, 220, -220, 440, -440, 660, -660]
+	for rz in rangs.slice(0, ceili(_genres().size() / 7.0)):
 		_check(transport.build_segment("route", Vector3(-560, y, rz), Vector3(560, y, rz)).ok, "route en z = %d" % rz)
 	var n := 0
 	for g in _genres():
 		var x := -500 + (n % 7) * 160
-		var z := [0, 220, -220, 440][mini(n / 7, 3)] as int
+		var z := rangs[mini(n / 7, rangs.size() - 1)] as int
 		n += 1
-		var type_id := String(GenresAuto.specs()[g].get("exemple", ""))
-		if type_id == "":
-			for id in BuildingCatalog.all_types():
-				if GestionTypes.genre_de(String(id)) == g:
-					type_id = String(id)
-					break
-		var sn := bs.road_snap(type_id, Vector2i(x, z - 40))
-		var bid := bs.place(type_id, sn.center, int(sn.r), 0, float(sn.get("a", 0.0))) if sn.has("center") else -1
-		if bid <= 0:
-			var c0 := Vector2i(x, z - 16)
-			bid = bs.place(type_id, c0, bs.best_rotation(type_id, c0))
-		if bid <= 0:
-			for r in 4:
-				var c := Vector2i(x, z - BuildingCatalog.footprint(type_id, r).y / 2 - 6)
-				bid = bs.place(type_id, c, r)
-				if bid > 0:
-					break
-		if bid <= 0:
+		var candidats: Array[String] = []
+		if String(GenresAuto.specs()[g].get("exemple", "")) != "":
+			candidats.append(String(GenresAuto.specs()[g].exemple))
+		for id in BuildingCatalog.all_types():
+			if GestionTypes.genre_de(String(id)) == g and not String(id).contains("__") and not String(id) in candidats:
+				candidats.append(String(id))
+		var type_id := ""
+		var bid := -1
+		# Le premier type du genre qui se pose (une carrière veut son gisement).
+		for t in candidats.slice(0, 6):
+			type_id = t
+			bid = _poser(bs, type_id, x, z)
+			if bid > 0:
+				break
 			var c2 := Vector2i(x, z - BuildingCatalog.footprint(type_id, 0).y / 2 - 6)
-			print("    refus : ", bs.check_place(type_id, c2, bs.best_rotation(type_id, c2), false, 0.0).get("reason", "?"))
+			print("    refus (%s) : %s" % [type_id, bs.check_place(type_id, c2, bs.best_rotation(type_id, c2), false, 0.0).get("reason", "?")])
 		_check(bid > 0, "%s : %s posé" % [g, type_id])
 		if bid <= 0:
 			continue
@@ -257,6 +254,20 @@ func _city_tests() -> void:
 	_check(memes and gest.etats.size() == avant.size(), "%d établissements retrouvés après rechargement" % gest.etats.size())
 	scene.queue_free()
 	await process_frame
+
+
+func _poser(bs: BuildingSystem, type_id: String, x: int, z: int) -> int:
+	var sn := bs.road_snap(type_id, Vector2i(x, z - 40))
+	var bid := bs.place(type_id, sn.center, int(sn.r), 0, float(sn.get("a", 0.0))) if sn.has("center") else -1
+	if bid <= 0:
+		var c0 := Vector2i(x, z - 16)
+		bid = bs.place(type_id, c0, bs.best_rotation(type_id, c0))
+	if bid <= 0:
+		for r in 4:
+			bid = bs.place(type_id, Vector2i(x, z - BuildingCatalog.footprint(type_id, r).y / 2 - 6), r)
+			if bid > 0:
+				break
+	return bid
 
 
 func _un_genre(scene: Node, gest: Gestion, vue: GestionVue, bs: BuildingSystem, g: String, bid: int) -> void:

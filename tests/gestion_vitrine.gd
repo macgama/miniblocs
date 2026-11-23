@@ -1,6 +1,6 @@
 extends SceneTree
 ## Captures du mode gestion « tycoon » (écran isométrique d'un hôtel ou d'un restaurant).
-## Usage : xvfb-run -a godot --path . --rendering-driver opengl3 --script res://tests/gestion_vitrine.gd -- --out DOSSIER [--type hotel_3|haussmann__restaurant|pompiers|police|hopital|entree_parc|scierie|supermarche] [--depart] [--niveau 1|3|5] [--piece spa] [--zoom 30] [--onglet personnel|stats|journal] [--x 20 --z 14]
+## Usage : xvfb-run -a godot --path . --rendering-driver opengl3 --script res://tests/gestion_vitrine.gd -- --out DOSSIER [--type hotel_3|haussmann__restaurant|pompiers|police|hopital|entree_parc|scierie|supermarche|entree_zoo|ecole|stade_vaduz|ferme…] [--depart] [--niveau 1|3|5] [--piece spa] [--zoom 30] [--onglet personnel|stats|journal] [--x 20 --z 14]
 
 var out := "user://captures-gestion"
 var niveau := 3
@@ -64,8 +64,9 @@ func _run() -> void:
 	for n in [transport.traffic, tour, pop, scene.production, scene.parc]:
 		n.set_process(false)
 	bs.unlimited_money = false
-	bs.money = 50_000_000
+	bs.money = 600_000_000
 	ReglagesPartie.actuel.deblocage = "tout"
+	ReglagesPartie.actuel.territoire = false
 	var y := world.cell_height(Vector2i(0, 0))
 	transport.build_segment("route", Vector3(-400, y, 0), Vector3(400, y, 0))
 	var g := GestionTypes.genre_de(type_id)
@@ -73,6 +74,11 @@ func _run() -> void:
 	var hotel := bs.place(type_id, sn.center, int(sn.r), 0, float(sn.get("a", 0.0))) if sn.has("center") else -1
 	if hotel <= 0:
 		hotel = bs.place(type_id, Vector2i(0, -16), bs.best_rotation(type_id, Vector2i(0, -16)))
+	if hotel <= 0:
+		for r in 4:
+			hotel = bs.place(type_id, Vector2i(0, -BuildingCatalog.footprint(type_id, r).y / 2 - 6), r)
+			if hotel > 0:
+				break
 	bs.buildings[hotel]["chantier"] = false
 	tour.ignore_staff = true
 	tour._sync()

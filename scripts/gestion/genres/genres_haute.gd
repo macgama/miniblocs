@@ -173,7 +173,7 @@ const ZOO := {
 
 const ECOLE := {
 	"nom": "École", "titre": "Gérer l'école", "icone": "ecole", "le": "l'école", "du": "de l'école", "un": "une",
-	"types": ["ecole", "ecole_ferry", "college", "lycee", "ecole_professionnelle"], "suffixes": ["__ecole"],
+	"types": ["ecole", "ecole_ferry", "college", "lycee", "ecole_professionnelle", "creche"], "suffixes": ["__ecole"],
 	"public": true, "panier": 0.0, "part_visiteurs": 1.0, "par_emploi": 12.0, "marge": 1.15, "budget": 0.0004,
 	"classe": "palmes", "unite": "élèves", "remplir": "Remplir les classes à 75 %", "prix_nom": "Cantine",
 	"evenement_nom": "Fêtes et sorties", "label_txt": "Être citée en exemple par l'inspection", "label_court": "Citée par l'inspection",
@@ -414,7 +414,7 @@ const UNIVERSITE := {
 
 const GARE := {
 	"nom": "Gare", "titre": "Gérer la gare", "icone": "rail", "le": "la gare", "du": "de la gare", "un": "une",
-	"types": ["gare_ville", "gare_village"], "suffixes": ["__gare"],
+	"types": ["gare_ville", "gare_village", "embarcadere"], "suffixes": ["__gare"],
 	"public": true, "panier": 1.2, "part_visiteurs": 0.5, "par_emploi": 40.0, "marge": 1.3, "budget": 0.0003, "sensible_prix": 0.5,
 	"classe": "étoiles", "unite": "voyageurs", "remplir": "Faire passer la gare à 75 % de sa capacité", "prix_nom": "Loyers des commerces",
 	"prix_aide": "Plus cher : les boutiques et cafés de la gare paient plus de loyer, mais certains voyageurs achètent ailleurs. La ville verse aussi un budget.",
@@ -635,7 +635,7 @@ const MUSEE := {
 
 const MAIRIE := {
 	"nom": "Mairie", "titre": "Gérer la mairie", "icone": "mairie", "le": "la mairie", "du": "de la mairie", "un": "une",
-	"types": ["mairie", "mairie_village", "maison_commune"],
+	"types": ["mairie", "mairie_village", "maison_commune", "hotel_de_ville"],
 	"public": true, "panier": 0.0, "par_emploi": 12.0, "marge": 1.3, "budget": 0.0004,
 	"classe": "étoiles", "unite": "habitants reçus", "remplir": "Recevoir 75 % des habitants qui se présentent", "prix_nom": "Budget",
 	"evenement_nom": "Cérémonies et conseils", "label_txt": "Recevoir le label Marianne de l'accueil", "label_court": "Label Marianne",
@@ -748,7 +748,7 @@ const MAIRIE := {
 ## places, les jours de match du calendrier ; chaque stade a son nom.
 const STADE := {
 	"nom": "Stade", "titre": "Gérer le stade", "icone": "sport", "le": "le stade", "du": "du stade", "un": "un",
-	"types": ["stade_foot"], "prefixes": ["stade_"], "exemple": "stade_vaduz",
+	"types": ["stade_foot", "salle_omnisports", "palais_sports", "patinoire_hockey", "centre_tennis"], "prefixes": ["stade_"], "exemple": "stade_vaduz",
 	"base_fn": "places", "panier": 25.0, "marge": 1.0, "sensible_prix": 1.3, "matchs": {"tous": 7, "autres": 0.03},
 	"classe": "étoiles", "unite": "spectateurs", "remplir": "Remplir le stade à 75 % un jour de match", "prix_nom": "Billet de match",
 	"prix_aide": "Plus cher : chaque billet rapporte plus, mais les tribunes se vident. Un match tous les sept jours ; les autres jours, visites et boutique.",
@@ -792,7 +792,7 @@ const STADE := {
 	],
 	"objets": {
 		"accueil": [
-			["borne_stade", "Bornes billets", "pk_borne_billets", 0.0005, 1, {"vitesse": 0.02}, 2, {"annee": 1990}],
+			["ecran_stade", "Écran des scores", "mur_ecrans", 0.0005, 1, {"attrait": 0.02}, 1, {"annee": 1975}],
 			["tourniquets", "Tourniquets automatiques", "portique", 0.0003, 1, {"vitesse": 0.06}, 1, {"annee": 1960}],
 			["bornes_s", "Bornes à billets", "pk_borne_billets", 0.0004, 2, {"vitesse": 0.06}, 2, {"annee": 1990}],
 			["affiche_match", "Affiche du prochain match", "affiches", 0.0001, 1, {"attrait": 0.01}],
@@ -860,7 +860,9 @@ const STADE := {
 
 const FERME := {
 	"nom": "Ferme", "titre": "Gérer la ferme", "icone": "agriculture", "le": "la ferme", "du": "de la ferme", "un": "une",
-	"types": ["ferme", "ferme_cereales", "ferme_maraichere", "ferme_betteraves", "ferme_fibres", "ferme_jurassienne", "ferme_bavaroise", "ferme_alpage", "ferme_cour_carree"],
+	"types": ["ferme", "ferme_cereales", "ferme_maraichere", "ferme_betteraves", "ferme_fibres", "ferme_jurassienne", "ferme_bavaroise", "ferme_alpage", "ferme_cour_carree",
+		"verger", "oliveraie", "plantation_tropicale", "houblonniere", "basse_cour", "rucher", "pisciculture", "grange_americaine", "grange_ronde",
+		"poulailler", "porcherie", "serres_tunnels", "serre_verre", "cortijo", "hacienda", "rizerie_bali", "hangar_agricole", "silos_grains"],
 	"suffixes": ["__ferme"],
 	"panier": 14.0, "par_emploi": 10.0, "marge": 1.5, "sensible_prix": 1.2,
 	"classe": "épis", "unite": "clients", "remplir": "Remplir le magasin de la ferme à 75 %", "prix_nom": "Prix de la vente à la ferme",
@@ -983,7 +985,7 @@ const FERME := {
 
 const FERME_LAITIERE := {
 	"nom": "Ferme laitière", "titre": "Gérer la ferme laitière", "icone": "agriculture", "le": "la ferme laitière", "du": "de la ferme laitière", "un": "une",
-	"types": ["ferme_laitiere"],
+	"types": ["ferme_laitiere", "elevage", "etable_moderne", "bergerie", "haras", "ranch_buffles", "elevage_andin", "elevage_rennes"],
 	"panier": 16.0, "par_emploi": 10.0, "marge": 1.5, "sensible_prix": 1.2,
 	"classe": "cloches", "unite": "clients", "remplir": "Remplir la fromagerie à 75 %", "prix_nom": "Prix de la fromagerie",
 	"prix_aide": "Plus cher : chaque fromage rapporte plus, mais des clients vont à la grande surface. Le lait, lui, part dans l'économie de la ville.",
@@ -1093,7 +1095,7 @@ const FERME_LAITIERE := {
 
 const DOMAINE := {
 	"nom": "Domaine viticole", "titre": "Gérer le domaine", "icone": "agriculture", "le": "le domaine", "du": "du domaine", "un": "un",
-	"types": ["vignoble"],
+	"types": ["vignoble", "chai", "cave_cooperative"],
 	"panier": 28.0, "par_emploi": 12.0, "marge": 1.5, "sensible_prix": 1.1,
 	"classe": "grappes", "unite": "visiteurs", "remplir": "Remplir le caveau à 75 %", "prix_nom": "Prix des bouteilles au caveau",
 	"prix_aide": "Plus cher : chaque bouteille rapporte plus, mais des clients repartent les mains vides. Le raisin, lui, part dans l'économie de la ville.",

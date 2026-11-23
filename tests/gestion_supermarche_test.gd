@@ -39,7 +39,7 @@ func _run() -> void:
 func _types_tests() -> void:
 	print("Genre supermarché :")
 	_check(GestionTypes.genre_de("supermarche") == "supermarche" and GestionTypes.genre_de("superette") == "supermarche", "supermarché et supérette")
-	_check(GestionTypes.genre_de("boulangerie") == "" and GestionTypes.genre_de("cafe") == "restaurant" and GestionTypes.genre_de("scierie") == "usine", "la boulangerie reste à part, le café et la scierie aussi")
+	_check(GestionTypes.genre_de("boulangerie") == "commerce_bouche" and GestionTypes.genre_de("cafe") == "restaurant" and GestionTypes.genre_de("scierie") == "usine", "la boulangerie a son tycoon en kit, le café et la scierie restent à part")
 	var g := "supermarche"
 	var gd := GestionTypes.genre(g)
 	_check(String(gd.titre) == "Gérer le magasin" and Icones.has_icon(String(gd.icone)), "titre et icône")

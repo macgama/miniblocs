@@ -44,7 +44,7 @@ func _types_tests() -> void:
 			n += 1
 	_check(n >= 20, "%d usines et ateliers se gèrent" % n)
 	_check(GestionTypes.genre_de("scierie") == "usine" and GestionTypes.genre_de("usine_biens") == "usine" and GestionTypes.genre_de("acierie") == "usine", "scierie, usine de biens, aciérie")
-	_check(GestionTypes.genre_de("cafe") == "restaurant" and GestionTypes.genre_de("ferme_cereales") == "" and GestionTypes.genre_de("maison") == "", "le café reste un restaurant, la ferme et la maison rien")
+	_check(GestionTypes.genre_de("cafe") == "restaurant" and GestionTypes.genre_de("ferme_cereales") == "ferme" and GestionTypes.genre_de("maison") == "", "le café reste un restaurant, la ferme a son tycoon en kit, la maison rien")
 	var g := "usine"
 	var gd := GestionTypes.genre(g)
 	_check(String(gd.titre) == "Gérer l'usine" and Icones.has_icon(String(gd.icone)), "titre et icône")

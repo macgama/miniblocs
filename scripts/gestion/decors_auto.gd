@@ -110,11 +110,23 @@ static func deco(d: GestionDiorama, id: String, p: Vector3, rot := 0.0, s := 1.0
 	var mi := MeshInstance3D.new()
 	mi.mesh = m
 	if not Decors.procedural(id):
-		mi.material_override = Decors.materiau()
+		mi.material_override = _materiau()
 	mi.position = p
 	mi.rotation.y = rot
 	mi.scale = Vector3.ONE * s
 	d._statique.add_child(mi)
+
+
+static var _mat: StandardMaterial3D
+
+
+## Palette des modèles de la touche G, sans les lumières de nuit (la maquette
+## a son propre éclairage).
+static func _materiau() -> StandardMaterial3D:
+	if _mat == null:
+		_mat = Decors.materiau().duplicate() as StandardMaterial3D
+		_mat.emission_enabled = false
+	return _mat
 
 
 static func _ids(arg: String, defaut: Array) -> Array:

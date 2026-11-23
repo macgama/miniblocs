@@ -70,7 +70,9 @@ func _run() -> void:
 	transport.build_segment("route", Vector3(-400, y, 0), Vector3(400, y, 0))
 	var g := GestionTypes.genre_de(type_id)
 	var sn := bs.road_snap(type_id, Vector2i(0, -14))
-	var hotel := bs.place(type_id, sn.center, int(sn.r), 0, float(sn.get("a", 0.0)))
+	var hotel := bs.place(type_id, sn.center, int(sn.r), 0, float(sn.get("a", 0.0))) if sn.has("center") else -1
+	if hotel <= 0:
+		hotel = bs.place(type_id, Vector2i(0, -16), bs.best_rotation(type_id, Vector2i(0, -16)))
 	bs.buildings[hotel]["chantier"] = false
 	tour.ignore_staff = true
 	tour._sync()
@@ -102,7 +104,7 @@ func _run() -> void:
 		tour.heb[hotel].nom = "Hôtel Bellevue"
 		tour.heb[hotel].compte = 180_000.0
 		tour.heb[hotel].clients = [[50, 3, 3.5], [40, 2, 3.5]]
-	else:
+	elif scene.production.sites.has(hotel):
 		scene.production.sites[hotel].cash = 60_000.0
 	# Personnel : quelques habitants embauchés à leur poste.
 	var homes: Array[int] = []

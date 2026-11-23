@@ -64,4 +64,8 @@ godot --path . --script res://tests/batiments_detail_vitrine.gd -- --screenshot 
   lointaine garde les volumes et les couleurs : 70 à 900 triangles.
 - De près : 1 000 à 9 000 triangles par modèle. Un modèle est construit une
   fois par type et par variante puis partagé (2 à 25 ms la première fois).
-- Banc `tests/perf_ville.gd --hab 1000` : voir la PR pour la comparaison avec main.
+- `BuildingCatalog.approx_height` est mis en cache : le repère de l'habitant
+  suivi reconstruisait le maillage complet du bâtiment à chaque image.
+- Banc `tests/perf_ville.gd` (headless, CPU) : 1 000 habitants, image moyenne
+  6,7 ms (main : 9,4 à 10 ms) ; 5 000 habitants, 17,3 ms (main : 18,3 ms). Le
+  rendu GPU reste à mesurer sur un vrai PC (sans `--headless`).

@@ -718,7 +718,16 @@ static func variants_of(id: String) -> int:
 
 
 static func approx_height(id: String) -> float:
+	# Mis en cache : le repère de l'habitant suivi la demande à chaque image.
+	if _hauteurs.has(id):
+		return _hauteurs[id]
 	var m := build_mesh(id)
-	if m.get_surface_count() == 0:
-		return 0.0
-	return m.get_aabb().end.y
+	var h := 0.0 if m.get_surface_count() == 0 else m.get_aabb().end.y
+	# Les créations de l'Atelier peuvent changer sous le même id : pas de cache.
+	var t := get_type(id)
+	if not (t.has("blocks") or t.has("creation") or t.has("modele")):
+		_hauteurs[id] = h
+	return h
+
+
+static var _hauteurs: Dictionary = {}

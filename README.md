@@ -555,6 +555,10 @@ Clique sur un hôtel, puis sur **Gérer l'hôtel** dans sa fiche (ou **Gérer** 
 
 **Et l'hôpital** (tuile **Gérer l'hôpital**) : 14 pièces (garage du SAMU, régulation, chambres, salle de garde, bloc opératoire, imagerie, labo, hélistation…), 67 objets. Plus d'ambulances et de SMUR, plus d'urgentistes de garde, plus de lits pour la ville, et un bloc qui sauve des patients même quand l'ambulance arrive trop tard.
 
+**Et le parc de loisirs** (bouton **Gérer le parc (maquette)** dans Maj+G) : 13 zones (billetterie, manèges, grands frissons, rivière, royaume des petits, place gourmande, spectacles, atelier…), 68 objets, et les vraies attractions du parc en miniature qui tournent. Une part du bénéfice va à la caisse des travaux ; les aménagements attirent plus de visiteurs, rendent les manèges plus fiables et le parc plus propre.
+
+![Parc de loisirs en mode gestion](docs/apercu-gestion-parc.png)
+
 ![Hôtel en mode gestion](docs/apercu-gestion-hotel.png)
 
 ![Restaurant en mode gestion](docs/apercu-gestion-restaurant.png)

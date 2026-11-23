@@ -475,7 +475,9 @@ static func places(nom: String) -> Array:
 		return ModelesCaserne.PLACES[nom]
 	if ModelesCommissariat.PLACES.has(nom):
 		return ModelesCommissariat.PLACES[nom]
-	return ModelesHopital.PLACES.get(nom, [])
+	if ModelesHopital.PLACES.has(nom):
+		return ModelesHopital.PLACES[nom]
+	return ModelesParc.PLACES.get(nom, [])
 
 
 static func _plante(k: LpKit, taille: float) -> void:

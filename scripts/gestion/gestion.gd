@@ -107,14 +107,15 @@ func spec_base(bid: int) -> Dictionary:
 	if source(bid) == "production":
 		var t := BuildingCatalog.get_type(type_of(bid))
 		return {"etoiles": 2 if float(t.get("cost", 0.0)) >= 480_000.0 else 1}
-	if source(bid) == "ville":
+	if source(bid) == "ville" or source(bid) == "parc":
 		return {"etoiles": 1}
 	return TourismeTypes.spec_of(type_of(bid))
 
 
 ## D'où viennent les chiffres du bâtiment : "tourisme" (hôtel),
-## "production" (entreprise : restaurant…) ou "ville" (service public :
-## caserne… ; budget payé par la ville, chiffres des urgences).
+## "production" (entreprise : restaurant…), "ville" (service public :
+## caserne… ; budget payé par la ville, chiffres des urgences) ou "parc"
+## (parc de loisirs de la ville : chiffres de ParcLoisirs).
 func source(bid: int) -> String:
 	return String(GestionTypes.genre(genre_of(bid)).get("source", "tourisme"))
 
@@ -128,6 +129,8 @@ func valide(bid: int) -> bool:
 			return production != null and production.sites.has(bid)
 		"ville":
 			return urgences != null and urgences.stations.has(bid)
+		"parc":
+			return _parc() != null and _parc().parcs.has(bid)
 	return tourisme != null and tourisme.heb.has(bid)
 
 
@@ -161,7 +164,9 @@ static func _etat_vide(g: String) -> Dictionary:
 		# Police : affaires élucidées par l'enquête, voitures enlevées.
 		"elucides": 0, "non_elucides": 0, "fourriere": 0,
 		# Hôpital : patients amenés, sauvés malgré le retard, parking.
-		"patients": 0, "sauves": 0, "parking": 0.0}
+		"patients": 0, "sauves": 0, "parking": 0.0,
+		# Parc de loisirs : humeur gagnée par les demandes réglées, mis de côté, groupes.
+		"bonus": 0.0, "reinvesti": 0.0, "groupes": 0, "trophees": 0, "trophee_an": -1}
 
 
 ## Niveau de départ d'une pièce : 1 si le bâtiment l'a déjà (restaurant d'un
@@ -273,6 +278,13 @@ static func entretien_de(bid: int) -> float:
 func emplois_de(bid: int) -> int:
 	if buildings == null or not buildings.buildings.has(bid):
 		return 0
+	# Le parc : tout le personnel de ses attractions, stands et ateliers.
+	if source(bid) == "parc":
+		var n := 0
+		for b in batiments_parc(bid):
+			if buildings.buildings.has(b):
+				n += Ameliorations.cap(buildings.buildings[b], "emplois")
+		return n
 	return Ameliorations.cap(buildings.buildings[bid], "emplois")
 
 
@@ -362,7 +374,7 @@ func prix_reparation(bid: int) -> int:
 
 ## Argent du compte du bâtiment (hôtel privé : ses bénéfices accumulés).
 func compte(bid: int) -> float:
-	if source(bid) == "ville":
+	if source(bid) == "ville" or source(bid) == "parc":
 		return float(etats[bid].caisse) if etats.has(bid) else 0.0
 	if source(bid) == "production":
 		return float(production.sites[bid].cash) if production != null and production.sites.has(bid) else 0.0
@@ -372,7 +384,7 @@ func compte(bid: int) -> float:
 
 
 func _crediter(bid: int, v: float) -> void:
-	if source(bid) == "ville":
+	if source(bid) == "ville" or source(bid) == "parc":
 		if etats.has(bid):
 			etats[bid].caisse = float(etats[bid].caisse) + v
 		return
@@ -546,6 +558,8 @@ func rembourser(bid: int) -> int:
 func nom(bid: int) -> String:
 	if source(bid) == "tourisme" and tourisme != null and tourisme.heb.has(bid):
 		return tourisme.nom(bid)
+	if source(bid) == "parc" and _parc() != null and _parc().parcs.has(bid):
+		return String(_parc().parcs[bid].nom)
 	return String(BuildingCatalog.get_type(type_of(bid)).get("name", "Bâtiment"))
 
 
@@ -625,6 +639,8 @@ func regler(bid: int, d: Dictionary) -> float:
 	st.pourboires = float(st.pourboires) + tip
 	st.reglees = int(st.reglees) + 1
 	_ajouter_satisf(bid, SATISF_REGLEE)
+	if source(bid) == "parc":
+		st.bonus = minf(float(st.bonus) + BONUS_REGLEE, BONUS_MAX)
 	changed.emit(bid)
 	return tip
 
@@ -636,6 +652,8 @@ func rater(bid: int) -> void:
 		return
 	st.ratees = int(st.ratees) + 1
 	_ajouter_satisf(bid, -SATISF_RATEE)
+	if source(bid) == "parc":
+		st.bonus = maxf(float(st.bonus) - BONUS_REGLEE * 0.5, -BONUS_MAX)
 	changed.emit(bid)
 
 
@@ -655,13 +673,15 @@ func nouveau_jour(now: Dictionary = {}) -> void:
 			continue
 		# Service public : seulement ceux que le joueur a ouverts une fois
 		# (les autres gardent le fonctionnement habituel, sans budget en plus).
-		if source(bid) == "ville" and not etats.has(bid):
+		if (source(bid) == "ville" or source(bid) == "parc") and not etats.has(bid):
 			continue
 		var st := etat(bid)
 		if source(bid) == "tourisme":
 			_historique(bid, st)
 		elif source(bid) == "ville":
 			_journee_ville(bid, st)
+		elif source(bid) == "parc":
+			_journee_parc(bid, st)
 		if rng.randf() < CHANCE_PANNE * _nb_pieces(bid) * (1.0 - 0.12 * float(st.formation)) * (0.6 if niveau(bid, "direction") >= 3 or niveau(bid, "bureau") >= 3 else 1.0):
 			nouvelle_panne(bid)
 		_evenements(bid, st, month)
@@ -697,6 +717,8 @@ func _evenements(bid: int, st: Dictionary, month: int) -> void:
 			_evenements_police(bid, st, month)
 		"hopital":
 			_evenements_hopital(bid, st, month)
+		"parc":
+			_evenements_parc(bid, st, month)
 		_:
 			_evenements_hotel(bid, st, month)
 
@@ -751,6 +773,9 @@ func gerer_auto(bid: int) -> void:
 		ajuster_prix_auto(bid)
 	# Investir ce qui dépasse la réserve, dans le meilleur rapport effet / prix.
 	var charges := maxf(float(hier(bid).get("charges", 0.0)), {"tourisme": 500.0, "production": 150.0}.get(source(bid), 100.0))
+	# Le parc : ses charges sont payées par la ville, la caisse ne sert qu'aux travaux.
+	if source(bid) == "parc":
+		charges = 300.0
 	var dispo := compte(bid) - charges * RESERVE_JOURS
 	if dispo <= 0.0:
 		return
@@ -796,7 +821,8 @@ func candidats(bid: int) -> Array:
 static func _valeur(e: Dictionary) -> float:
 	return float(e.get("confort", 0.0)) * 1.0 + float(e.get("attrait", 0.0)) * 1.6 + float(e.get("satisf", 0.0)) * 1.0 \
 		+ float(e.get("lits", 0.0)) * 2.5 + float(e.get("couverts", 0.0)) * 2.0 + float(e.get("equipage", 0.0)) * 0.5 + float(e.get("engins", 0.0)) * 0.9 + float(e.get("repas", 0.0)) * 0.8 + float(e.get("vitesse", 0.0)) * 0.15 + float(e.get("ventes", 0.0)) * 0.02 \
-		+ float(e.get("enquete", 0.0)) * 1.5 + float(e.get("soins", 0.0)) * 1.5 + float(e.get("lits_sup", 0.0)) * 0.04
+		+ float(e.get("enquete", 0.0)) * 1.5 + float(e.get("soins", 0.0)) * 1.5 + float(e.get("lits_sup", 0.0)) * 0.04 \
+		+ float(e.get("proprete", 0.0)) * 1.2 + float(e.get("fiabilite", 0.0)) * 1.4
 
 
 # --- Chiffres de l'établissement (selon sa source) ------------------------------------------------
@@ -805,6 +831,8 @@ static func _valeur(e: Dictionary) -> float:
 func clients(bid: int) -> int:
 	if source(bid) == "ville":
 		return engins_au_garage(bid)
+	if source(bid) == "parc":
+		return visiteurs_parc(bid)
 	if source(bid) == "production":
 		var st: Dictionary = etats.get(bid, {})
 		var h: Dictionary = st.get("hier", {})
@@ -816,6 +844,8 @@ func clients(bid: int) -> int:
 
 ## Capacité : lits (hôtel) ou couverts par jour (restaurant).
 func capacite(bid: int) -> int:
+	if source(bid) == "parc":
+		return capacite_parc(bid)
 	if source(bid) == "ville":
 		return (urgences.stations[bid].units as Array).size() if urgences != null and urgences.stations.has(bid) else 0
 	if source(bid) == "production":
@@ -835,12 +865,16 @@ func occupation(bid: int) -> float:
 
 
 func note(bid: int) -> float:
+	if source(bid) == "parc":
+		return float(_parc().parcs[bid].note) if _parc() != null and _parc().parcs.has(bid) else 0.0
 	if source(bid) != "tourisme":
 		return float((etats.get(bid, {}) as Dictionary).get("note", 3.0))
 	return tourisme.note(bid) if tourisme != null and tourisme.heb.has(bid) else 0.0
 
 
 func satisf(bid: int) -> float:
+	if source(bid) == "parc" and _parc() != null and _parc().parcs.has(bid):
+		return clampf(_parc().humeur_moyenne(bid) / 20.0, 0.0, 5.0)
 	if source(bid) != "tourisme":
 		return float((etats.get(bid, {}) as Dictionary).get("satisf", 3.0))
 	return float(tourisme.heb[bid].get("satisf", 3.0)) if tourisme != null and tourisme.heb.has(bid) else 3.0
@@ -865,6 +899,8 @@ func hier(bid: int) -> Dictionary:
 func prix_unitaire(bid: int) -> float:
 	if source(bid) == "ville":
 		return 0.0
+	if source(bid) == "parc":
+		return float(_parc().parcs[bid].prix) if _parc() != null and _parc().parcs.has(bid) else 0.0
 	if source(bid) == "production":
 		return Ressources.REPAS * prix_repas(bid)
 	return float(tourisme.heb[bid].prix) if tourisme != null and tourisme.heb.has(bid) else 0.0
@@ -874,6 +910,9 @@ func prix_txt(bid: int) -> String:
 	if source(bid) == "ville":
 		return "Budget : %s par jour, payé par la ville" % BuildingSystem.format_money(roundi(dotation(bid)))
 	var v := BuildingSystem.format_money(roundi(prix_unitaire(bid)))
+	if source(bid) == "parc":
+		var val := _parc().valeur(bid) if _parc() != null and _parc().parcs.has(bid) else 0.0
+		return "Billet d'entrée : %s (le parc en vaut %s aux yeux des visiteurs)" % [v, BuildingSystem.format_money(roundi(val))]
 	if source(bid) == "production":
 		return "Prix moyen du repas : %s (%d %% du prix habituel)" % [v, roundi(float(etat(bid).prix) * 100.0)]
 	return "Prix de la nuit : %s par personne" % v
@@ -883,6 +922,13 @@ func prix_txt(bid: int) -> String:
 func changer_prix(bid: int, sens: int) -> void:
 	if source(bid) == "ville":
 		changer_dotation(bid, sens)
+		return
+	if source(bid) == "parc":
+		var pc := _parc()
+		if pc != null and pc.parcs.has(bid):
+			var p := float(pc.parcs[bid].prix)
+			pc.set_prix(bid, maxf(0.0, snappedf(p * (1.0 + 0.05 * sens), 0.5) if p >= 2.0 else p + 1.0 * sens))
+			changed.emit(bid)
 		return
 	if source(bid) == "production":
 		var st := etat(bid)
@@ -898,6 +944,9 @@ func changer_prix(bid: int, sens: int) -> void:
 func ajuster_prix_auto(bid: int) -> void:
 	# Service public : c'est la ville qui fixe le budget, pas la caserne.
 	if source(bid) == "ville":
+		return
+	if source(bid) == "parc":
+		_prix_auto_parc(bid)
 		return
 	var occ := occupation(bid)
 	if source(bid) == "production":
@@ -1096,6 +1145,10 @@ func objectifs(bid: int) -> Array:
 		if String(gd.get("service", "")) == "police":
 			var el := int(st.get("elucides", 0))
 			out.append({"texte": "Élucider 5 cambriolages", "fait": el >= 5, "avance": "%d / 5" % mini(el, 5)})
+	elif source(bid) == "parc":
+		var vis := clients(bid) if valide(bid) else 0
+		out.append({"texte": "Accueillir 1 000 visiteurs en un jour", "fait": int(st.get("record", 0)) >= 1000, "avance": "record %d" % int(st.get("record", vis))})
+		out.append({"texte": "Gagner le trophée du parc de l'année", "fait": int(st.get("trophees", 0)) > 0, "avance": "%d trophée%s" % [int(st.get("trophees", 0)), "s" if int(st.get("trophees", 0)) > 1 else ""]})
 	else:
 		out.append({"texte": String(gd.get("remplir", "Remplir à 75 %")), "fait": occ >= 0.75, "avance": "%d %%" % roundi(occ * 100.0)})
 	out.append({"texte": "Note de 4 sur 5", "fait": nt >= 4.0, "avance": "%.1f / 5" % nt})
@@ -1527,3 +1580,179 @@ func _evenements_hopital(bid: int, st: Dictionary, month: int) -> void:
 	# Humour.
 	if rng.randf() < 0.01:
 		_noter(bid, "Aux urgences : un enfant avec un Lego dans le nez. Le troisième de la semaine.", false)
+
+
+# --- Parc de loisirs : la maquette branchée sur ParcLoisirs -------------------------------------
+
+## Part du bénéfice du jour mise de côté dans la caisse du parc (pour ses travaux).
+const PARC_REINVEST := 0.25
+## Humeur gagnée par les visiteurs à chaque demande réglée (et perdue à moitié par oubli).
+const BONUS_REGLEE := 0.8
+const BONUS_MAX := 8.0
+
+
+func _parc() -> ParcLoisirs:
+	var p := ParcLoisirs.instance
+	return p if p != null and is_instance_valid(p) else null
+
+
+## Bâtiments rattachés au parc (attractions, stands, ateliers ; entrée comprise).
+func batiments_parc(bid: int) -> Array:
+	var pc := _parc()
+	if pc == null or not pc.parcs.has(bid):
+		return [bid]
+	var out: Array = [bid]
+	for b in pc.parcs[bid].items:
+		if int(b) != bid:
+			out.append(int(b))
+	return out
+
+
+## Visiteurs d'hier (ou présents en ce moment, si c'est plus).
+func visiteurs_parc(bid: int) -> int:
+	var pc := _parc()
+	if pc == null or not pc.parcs.has(bid):
+		return 0
+	return maxi(int((pc.parcs[bid].hier as Dictionary).get("visiteurs", 0)), pc.presents(bid))
+
+
+## Visiteurs que les attractions peuvent faire tourner dans la journée (4 tours chacun).
+func capacite_parc(bid: int) -> int:
+	var pc := _parc()
+	if pc == null or not pc.parcs.has(bid):
+		return 0
+	var tours_h := 0.0
+	for b in pc.attractions_ok(bid):
+		var sp := ParcTypes.spec_of(pc._type_of(int(b)))
+		tours_h += float(sp.get("cap", 10)) * 60.0 / maxf(1.0, float(sp.get("cycle", 3.0)) + 1.5)
+	return roundi(tours_h * 9.0 / 4.0 * (1.0 + maxf(0.0, effet(bid, "vitesse"))))
+
+
+## Fin de journée d'un parc géré : entretien des aménagements, part du
+## bénéfice mise de côté pour les travaux, historique, record.
+func _journee_parc(bid: int, st: Dictionary) -> void:
+	var pc := _parc()
+	if pc == null or not pc.parcs.has(bid):
+		return
+	var p: Dictionary = pc.parcs[bid]
+	var h: Dictionary = p.hier
+	var ca := float(h.get("billets", 0.0)) + float(h.get("tours_argent", 0.0)) + float(h.get("stands", 0.0))
+	var charges := float(h.get("depenses", 0.0))
+	var ent := entretien_jour(bid)
+	if ent > 0.0:
+		pc._payer(bid, "Parc de loisirs : aménagements (gestion)", ent)
+	var mise := PARC_REINVEST * maxf(0.0, ca - charges - ent)
+	if mise >= 1.0:
+		pc._flux(bid, "Parc de loisirs : mis de côté pour ses travaux", -mise)
+		st.caisse = float(st.caisse) + mise
+		st.reinvesti = float(st.reinvesti) + mise
+	var vis := int(h.get("visiteurs", 0))
+	st.hier = {"ca": ca, "charges": charges + ent, "clients": float(vis), "refus": int(h.get("refus", 0)), "mise": mise}
+	st.record = maxi(int(st.get("record", 0)), vis)
+	st.bonus = float(st.bonus) * 0.85
+	st.note = float(p.note)
+	st.satisf = satisf(bid)
+	(st.hist as Array).append([jour, ca, charges + ent, vis, snappedf(occupation(bid), 0.01), snappedf(float(p.note), 0.01), snappedf(float(st.satisf), 0.01)])
+	while (st.hist as Array).size() > HISTORIQUE:
+		(st.hist as Array).pop_front()
+
+
+## Prix du billet en gestion automatique : suivre ce que vaut le parc et les refus.
+func _prix_auto_parc(bid: int) -> void:
+	var pc := _parc()
+	if pc == null or not pc.parcs.has(bid):
+		return
+	var p: Dictionary = pc.parcs[bid]
+	var val := pc.valeur(bid)
+	var prix := float(p.prix)
+	var h: Dictionary = p.hier
+	var vis := int(h.get("visiteurs", 0)) + int(h.get("refus", 0))
+	if vis > 0 and int(h.get("refus", 0)) > vis * 0.05:
+		prix *= 0.95
+	elif prix < val * 0.9:
+		prix *= 1.04
+	elif prix > val * 1.2:
+		prix *= 0.96
+	pc.set_prix(bid, snappedf(clampf(prix, val * 0.6, val * 1.4), 0.5))
+
+
+## Humeur en plus des visiteurs à leur arrivée (aménagements, demandes réglées).
+func humeur_parc(bid: int) -> float:
+	if not etats.has(bid):
+		return 0.0
+	return effet(bid, "satisf") * 40.0 + float(etats[bid].get("bonus", 0.0))
+
+
+static func humeur_parc_de(bid: int) -> float:
+	return _inst().humeur_parc(bid) if _inst() != null else 0.0
+
+
+## Inspection de sécurité, trophée de l'année, autocars et sorties scolaires,
+## anniversaires, influenceurs, canicule.
+func _evenements_parc(bid: int, st: Dictionary, month: int) -> void:
+	var pc := _parc()
+	if pc == null or not pc.parcs.has(bid):
+		return
+	var p: Dictionary = pc.parcs[bid]
+	# Inspection de sécurité des manèges : environ une fois par mois.
+	if int(st.inspection) < 0:
+		st.inspection = jour + rng.randi_range(10, 40)
+	elif jour >= int(st.inspection):
+		st.inspection = jour + rng.randi_range(25, 50)
+		var att := pc.attractions_ok(bid)
+		var fiab := 0.0
+		var en_panne := 0
+		for b in att:
+			fiab += float(pc.items[b].fiab)
+			if bool(pc.items[b].panne):
+				en_panne += 1
+		fiab = fiab / att.size() if not att.is_empty() else 100.0
+		var vise := 70.0 + 3.0 * float(etoiles(bid))
+		if fiab >= vise and en_panne == 0 and (st.pannes as Array).size() <= 1:
+			st.label_fin = jour + 60
+			_noter(bid, "Inspection de sécurité : aucun défaut ! Label Sécurité pendant 60 jours (+6 % de visiteurs).", true)
+		else:
+			_noter(bid, "Inspection de sécurité : des remarques (manèges à %d %% de fiabilité, il fallait %d %%%s)." % [roundi(fiab), roundi(vise), ", %d en panne" % en_panne if en_panne > 0 else ""], true)
+	# Trophée du parc de l'année, en décembre.
+	if month == 12 and jour - int(st.trophee_an) > 300:
+		st.trophee_an = jour
+		if float(p.note) >= 4.0:
+			st.trophees = int(st.trophees) + 1
+			st.label_fin = maxi(int(st.label_fin), jour + 90)
+			_noter(bid, "Trophée du parc de l'année ! Note de %.1f : le jury a adoré (et la mascotte aussi)." % float(p.note), true)
+		else:
+			_noter(bid, "Trophée du parc de l'année : pas cette fois (note %.1f, il fallait 4)." % float(p.note), false)
+	var ouvert_saison := month >= 4 and month <= 10
+	# Autocars de touristes (plus avec un parking) et sorties scolaires.
+	if ouvert_saison and rng.randf() < 0.04 + 0.03 * float(niveau(bid, "parking")) + (0.05 if "autocars" in objets_de(bid, "parking") else 0.0):
+		var n := rng.randi_range(25, 55)
+		p.reste = float(p.reste) + n
+		st.groupes = int(st.groupes) + 1
+		st.seminaires = int(st.seminaires) + 1
+		_noter(bid, "Un autocar de %d touristes se gare devant l'entrée." % n, false)
+	if (month == 5 or month == 6) and rng.randf() < 0.05:
+		var cl := rng.randi_range(2, 5)
+		p.reste = float(p.reste) + cl * 25
+		st.groupes = int(st.groupes) + 1
+		st.seminaires = int(st.seminaires) + 1
+		_noter(bid, "Sortie scolaire : %d classes et leurs maîtresses (qui ont fait les tasses deux fois)." % cl, false)
+	# Anniversaires à la Place gourmande.
+	if niveau(bid, "restauration") > 0 and rng.randf() < 0.03 * niveau(bid, "restauration"):
+		var v := 90.0 * niveau(bid, "restauration")
+		_crediter(bid, v)
+		st.seminaires = int(st.seminaires) + 1
+		_noter(bid, "Un anniversaire à la Place gourmande : %d enfants, un gâteau, trois parents épuisés (%s)." % [rng.randi_range(8, 16), BuildingSystem.format_money(int(v))], false)
+	# Influenceuse ou youtubeur : la notoriété monte.
+	if rng.randf() < 0.008 * float(etoiles(bid)):
+		var noto: Dictionary = p.get("noto", {})
+		noto["ville"] = minf(1.0, float(noto.get("ville", 0.0)) + 0.08)
+		noto["region"] = minf(1.0, float(noto.get("region", 0.0)) + 0.05)
+		st.vip = int(st.vip) + 1
+		var qui := ["Une youtubeuse des montagnes russes", "Un influenceur famille", "Une chanteuse et ses enfants", "Le champion de France de barbe à papa"]
+		_noter(bid, "%s a filmé sa journée au parc : tout le monde en parle." % String(qui[rng.randi() % qui.size()]), true)
+	# Canicule : la zone aquatique est prise d'assaut.
+	if (month == 7 or month == 8) and niveau(bid, "aquatique") > 0 and rng.randf() < 0.05:
+		p.reste = float(p.reste) + 15.0 * niveau(bid, "aquatique")
+		_noter(bid, "Canicule : la rivière et les toboggans sont pris d'assaut.", false)
+	if rng.randf() < 0.01:
+		_noter(bid, "Un visiteur demande si la grande roue tourne aussi dans l'autre sens.", false)

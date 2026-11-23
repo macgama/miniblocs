@@ -48,6 +48,10 @@ var clients: Array = []
 var vacants: Dictionary = {}
 ## Étiquettes des pannes (dans l'ordre de `pannes`).
 var pannes_l: Array = []
+## Parc de loisirs : vraies attractions à poser en miniature, zone → [type_id].
+var miniatures: Dictionary = {}
+## Miniatures posées : [{node, anim, type, phase}].
+var _minis: Array = []
 var _statique: Node3D
 var _gens: Node3D
 var _etiquettes: Node3D
@@ -165,6 +169,10 @@ func construire(g: String, niv: Dictionary, nb_etoiles := 3, objs: Dictionary = 
 	_surbrillance.visible = false
 	_statique.add_child(_surbrillance)
 	_enseigne(gd)
+	if gd.has("miniatures"):
+		_poser_miniatures(gd)
+	else:
+		_minis.clear()
 	_etiquettes_pannes()
 	if _voitures.is_empty():
 		_creer_voitures(gd)
@@ -278,6 +286,9 @@ func _sol(k: LpKit, gd: Dictionary) -> void:
 		var x := xa + 6.0 + i * 12.0
 		_m(k, "lampadaire", x, rz - 1.1)
 		_arbre(k, Vector3(x + 6.0, 0, rz + 7.6), 0.9)
+	if gd.has("cloture"):
+		_cloture(k, gd)
+		return
 	# Arbres et haies autour du terrain.
 	for t in [Vector3(-4, 0, 2), Vector3(-4, 0, 10), Vector3(-4, 0, 18), Vector3(-5, 0, 26), Vector3(float(e[2]) + 3.0, 0, 2.0),
 			Vector3(float(e[2]) + 3.5, 0, 12.0), Vector3(float(e[2]) + 3.0, 0, 22.0), Vector3(20, 0, -4), Vector3(34, 0, -4.5)]:
@@ -286,6 +297,148 @@ func _sol(k: LpKit, gd: Dictionary) -> void:
 		k.box(Vector3(plan.x + 2.5 + i * 1.0, 0.45, -0.6), Vector3(0.9, 0.9, 0.9), Color("4f8f45"), 0.08)
 	for i in int(float(e[3]) - plan.y - 0.5):
 		k.box(Vector3(float(e[2]) + 0.6, 0.45, plan.y + 0.5 + i * 1.0), Vector3(0.9, 0.9, 0.9), Color("4f8f45"), 0.08)
+
+
+## Parc : allées pavées entre les zones, clôture du parc (ouverte là où
+## passent les allées) et arbres tout autour.
+func _cloture(k: LpKit, gd: Dictionary) -> void:
+	var allees: Array = gd.get("allees", [])
+	for a in allees:
+		var x0 := float(a[0])
+		var z0 := float(a[1])
+		var w := float(a[2])
+		var dz := float(a[3])
+		k.box(Vector3(x0 + w * 0.5, 0.0, z0 + dz * 0.5), Vector3(w, 0.05, dz), Color("e3d5b8"), 0.0, false)
+		for i in int(w / 1.5):
+			if i % 2 == 0:
+				_q(k, x0 + i * 1.5, z0 + 0.1, x0 + i * 1.5 + 1.5, z0 + dz - 0.1, 0.028, Color("d8c7a4"))
+	var c: Array = gd.cloture
+	var x0 := float(c[0])
+	var z0 := float(c[1])
+	var x1 := float(c[2])
+	var z1 := float(c[3])
+	var col := Color(String(gd.get("murs_dehors", "c1440e")))
+	var cotes := [[Vector2(x0, z0), Vector2(x1, z0)], [Vector2(x1, z0), Vector2(x1, z1)],
+			[Vector2(x1, z1), Vector2(x0, z1)], [Vector2(x0, z1), Vector2(x0, z0)]]
+	for cote in cotes:
+		var a: Vector2 = cote[0]
+		var b: Vector2 = cote[1]
+		var lg := a.distance_to(b)
+		var nb := int(lg / 2.0)
+		for i in nb:
+			var p0 := a.lerp(b, float(i) / nb)
+			var p1 := a.lerp(b, float(i + 1) / nb)
+			var m := (p0 + p1) * 0.5
+			if _dans_allee(m, allees, 0.4):
+				continue
+			k.box(Vector3(p0.x, 0.55, p0.y), Vector3(0.12, 1.1, 0.12), col.darkened(0.2))
+			k.beam(Vector3(p0.x, 0.95, p0.y), Vector3(p1.x, 0.95, p1.y), 0.06, 0.08, col)
+			k.beam(Vector3(p0.x, 0.45, p0.y), Vector3(p1.x, 0.45, p1.y), 0.06, 0.08, col)
+	# Arbres à l'extérieur de la clôture.
+	var e := emprise()
+	var i := 0
+	var x := x0 + 3.0
+	while x < x1:
+		_arbre(k, Vector3(x, 0, z0 - 2.8 - (i % 2) * 0.8), 0.9 + (i % 3) * 0.12)
+		x += 7.5
+		i += 1
+	var z := z0 + 2.0
+	while z < z1:
+		_arbre(k, Vector3(x1 + 2.8 + (i % 2) * 0.7, 0, z), 0.9 + (i % 3) * 0.12)
+		z += 6.5
+		i += 1
+	for t in [Vector3(float(e[0]) - 3.5, 0, 2.0), Vector3(float(e[0]) - 3.5, 0, 9.0), Vector3(-3.0, 0, -5.0), Vector3(6.0, 0, -6.0)]:
+		_arbre(k, t)
+
+
+func _dans_allee(p: Vector2, allees: Array, marge: float) -> bool:
+	for a in allees:
+		if p.x >= float(a[0]) - marge and p.x <= float(a[0]) + float(a[2]) + marge \
+				and p.y >= float(a[1]) - marge and p.y <= float(a[1]) + float(a[3]) + marge:
+			return true
+	return false
+
+
+## Texte posé dans le décor (fronton d'un portique, panneau) : face à la rue.
+func texte_sol(pos: Vector3, texte: String, col: Color) -> void:
+	var l := Label3D.new()
+	l.text = texte
+	l.font_size = 44
+	l.pixel_size = 0.009
+	l.outline_size = 6
+	l.modulate = Color("fffbea")
+	l.outline_modulate = col
+	l.position = pos
+	_etiquettes.add_child(l)
+
+
+## Parc : les vraies attractions du parc, en miniature dans leur zone.
+func _poser_miniatures(gd: Dictionary) -> void:
+	_minis.clear()
+	var zones: Dictionary = gd.get("miniatures", {})
+	# Une zone pas encore construite : ses attractions vont aux manèges familiaux.
+	var par_zone := {}
+	for z in miniatures:
+		var dest := String(z)
+		if not zones.has(dest) or int(niveaux.get(dest, 0)) <= 0:
+			dest = "manege"
+		if not par_zone.has(dest):
+			par_zone[dest] = []
+		(par_zone[dest] as Array).append_array(miniatures[z])
+	for pid in zones:
+		var liste: Array = par_zone.get(pid, [])
+		if liste.is_empty() or int(niveaux.get(pid, 0)) <= 0:
+			continue
+		var p := GestionTypes.piece(genre, String(pid))
+		var r: Array = p.rect
+		var z: Array = zones[pid]
+		var ax := float(r[0]) + float(z[0])
+		var az := float(r[1]) + float(z[1])
+		var aw := float(z[2])
+		var ad := float(z[3])
+		var nb := mini(liste.size(), 3)
+		var slot := aw / nb
+		for i in nb:
+			var t := String(liste[i])
+			var mesh := BuildingCatalog.build_mesh(t, ParcTypes.material())
+			if mesh == null:
+				continue
+			var bb := mesh.get_aabb()
+			var w := maxf(bb.size.x, 0.5)
+			var d := maxf(bb.size.z, 0.5)
+			var ech := minf(minf((slot - 0.6) / w, (ad - 0.6) / d), 0.42)
+			var hold := Node3D.new()
+			hold.name = "Mini_%s_%d" % [String(pid), i]
+			hold.position = Vector3(ax + slot * (i + 0.5), 0.02, az + ad * 0.5)
+			hold.scale = Vector3.ONE * ech
+			var inner := Node3D.new()
+			inner.position = Vector3(-bb.get_center().x, -bb.position.y, -bb.get_center().z)
+			hold.add_child(inner)
+			var mi := MeshInstance3D.new()
+			mi.mesh = mesh
+			inner.add_child(mi)
+			var anim := ParcTypes.build_anim(t)
+			if anim != null:
+				inner.add_child(anim)
+			_statique.add_child(hold)
+			_minis.append({"node": hold, "anim": anim, "type": t, "phase": float(i) * 1.7})
+		if liste.size() > 3:
+			var l := Label3D.new()
+			l.text = "+%d attraction%s" % [liste.size() - 3, "s" if liste.size() > 4 else ""]
+			l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+			l.font_size = 36
+			l.pixel_size = 0.01
+			l.outline_size = 8
+			l.no_depth_test = true
+			l.position = Vector3(ax + aw - 1.0, 2.2, az + 0.6)
+			_etiquettes.add_child(l)
+
+
+func _animer_miniatures(dt: float) -> void:
+	for m in _minis:
+		var a: Node3D = m.anim
+		if a != null and is_instance_valid(a):
+			ParcTypes.animate(a, String(m.type), _t, dt, 1.0, float(m.phase))
 
 
 ## Sol d'une pièce, avec son motif (damier, parquet, moquette, carrelage,
@@ -1349,6 +1502,16 @@ static func _geste(met: String, piece: String) -> String:
 				"helistation":
 					return "brancard"
 			return "soigner"
+		"agent_accueil_parc":
+			return "guichet"
+		"operateur_attraction", "operateur":
+			return "surveiller"
+		"technicien_attraction":
+			return "marteler"
+		"vendeur_parc":
+			return "servir" if piece == "restauration" else "vendre"
+		"musicien", "danseur", "animateur_vacances":
+			return "expliquer"
 		"policier":
 			match piece:
 				"accueil":
@@ -1533,6 +1696,7 @@ func avancer(dt: float) -> Array:
 	_t += dt
 	_rouler(dt)
 	_rouler_engins(dt)
+	_animer_miniatures(dt)
 	var ev: Array = []
 	for f in employes:
 		(f as Figurine).animer(_t)

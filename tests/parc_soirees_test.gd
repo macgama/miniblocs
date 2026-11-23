@@ -112,6 +112,7 @@ func _regles() -> void:
 
 	# Époques : en 1850, pas de radio ni de télévision, pas de looping.
 	var r := ReglagesPartie.actuel
+	r.deblocage = "tout"
 	var avant := r.annee_depart
 	r.annee_depart = 1850
 	r.histoire_debut = 0.0
@@ -200,6 +201,7 @@ func _partie() -> void:
 	bs.unlimited_money = false
 	bs.money = 80_000_000
 	ReglagesPartie.actuel.recherche_parc = true
+	ReglagesPartie.actuel.deblocage = "tout"
 	var y := world.cell_height(Vector2i(0, 0))
 	_check(transport.build_segment("route", Vector3(-500, y, 0), Vector3(500, y, 0)).ok, "route")
 	var c0 := Vector2i(0, -14)

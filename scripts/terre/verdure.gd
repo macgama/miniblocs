@@ -33,7 +33,7 @@ const PAR_CLIMAT := {
 ## Arbres au plus près à cette distance (m) les uns des autres.
 const ECART_ARBRES := 5.0
 ## Attente (s) après un changement avant de replanter.
-const ATTENTE := 1.2
+const ATTENTE := 3.0
 
 var buildings: BuildingSystem
 var world: TerrainWorld

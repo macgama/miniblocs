@@ -129,6 +129,7 @@ func _run() -> void:
 	var steep := bs.check_place("foot", Vector2i(-70, 0), 1)
 	_check(not steep.ok and String(steep.reason).contains("pentu"), "terrain de foot refusé sur la pente (« %s »)" % steep.reason)
 	bs.require_access = false
+	ReglagesPartie.actuel.deblocage = "tout"
 	var lake := bs.check_place("maison", Vector2i(130, -170), 0)
 	_check(not lake.ok and String(lake.reason).contains("lac"), "pas de construction sur un lac (« %s »)" % lake.reason)
 	bs.require_access = true

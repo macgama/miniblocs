@@ -453,7 +453,10 @@ func _remplir_haut() -> void:
 	_chip("banque", "Compte : %s" % BuildingSystem.format_money(int(gestion.compte(bid))),
 		"Bénéfices accumulés par %s. Les améliorations se paient d'abord avec ce compte." % _le())
 	_chip("mairie", "Ville : %s" % BuildingSystem.format_money(gestion.caisse_ville()), "Caisse de la ville : elle avance ce qui manque.")
-	if resto:
+	if _gd().has("chip_txt"):
+		var hh: Dictionary = gestion.hier(bid)
+		_chip(String(_gd().get("chip", "industrie")), String(_gd().chip_txt) % [_qte(float(hh.get("clients", 0.0))), _qte(float(hh.get("cap", 0.0)))], String(_gd().get("chip_tip", "")))
+	elif resto:
 		_chip("couverts", "%d / %d couverts" % [n, l], "Repas servis hier / couverts possibles par jour (tables et personnel).")
 	else:
 		_chip("lit", "%d / %d lits" % [n, l], "Clients ce soir / lits de l'hôtel.")
@@ -461,9 +464,9 @@ func _remplir_haut() -> void:
 	_chip("habitants", "Satisfaction %.1f" % gestion.satisf(bid), "Ce que pensent les clients en ce moment (sur 5).")
 	var hier: Dictionary = gestion.hier(bid)
 	_chip("budget", "Hier : %s" % BuildingSystem.format_money(int(float(hier.get("ca", 0.0)) - float(hier.get("charges", 0.0)))),
-		"Recettes moins charges de la veille (salaires, %s, entretien)." % ("produits, énergie" if resto else "linge, énergie"))
+		"Recettes moins charges de la veille (salaires, %s, entretien)." % _gs("charges_txt", "produits, énergie" if resto else "linge, énergie"))
 	if resto and bool(hier.get("manque", false)):
-		var bm := _chip("commerce", "Produits manquants", "Il manque de la viande, des légumes ou des boissons : il faut des livraisons (fournisseurs, routes).")
+		var bm := _chip("commerce", "Produits manquants", _gs("manque_txt", "Il manque de la viande, des légumes ou des boissons : il faut des livraisons (fournisseurs, routes)."))
 		bm.add_theme_color_override("font_color", Color("ffb703"))
 	var np := (gestion.etat(bid).pannes as Array).size()
 	if np > 0:
@@ -526,6 +529,13 @@ func _haut_parc() -> void:
 		var b := _chip("construire", "%d panne%s" % [np, "s" if np > 1 else ""], "Du matériel est en panne : clique sur les ⚠ de la maquette ou va dans Équipe.")
 		b.add_theme_color_override("font_color", Color("ffb703"))
 	_maj_auto()
+## Une quantité en tonnes, lisible (0,35 · 4,2 · 180).
+static func _qte(t: float) -> String:
+	if t >= 100.0:
+		return "%d" % roundi(t)
+	if t >= 10.0:
+		return "%.1f" % t
+	return "%.2f" % t
 
 
 ## Majuscule à la première lettre seulement.
@@ -827,6 +837,16 @@ func _lignes_effets(eff: Dictionary, court := false) -> Array:
 		out.append(("+%d %% propreté" if court else "Agents de propreté %d %% plus efficaces") % roundi(float(eff.proprete) * 100.0))
 	if eff.has("couverts"):
 		out.append(("+%d %% couverts" if court else "+%d %% de couverts (tables en plus)") % roundi(float(eff.couverts) * 100.0))
+	if eff.has("cadence"):
+		out.append(("+%d %% production" if court else "+%d %% de production chaque jour (matières transformées)") % roundi(float(eff.cadence) * 100.0))
+	if eff.has("matiere"):
+		out.append(("+%d %% matière" if court else "+%d %% de produits pour la même matière (moins de déchets)") % roundi(float(eff.matiere) * 100.0))
+	if eff.has("qualite"):
+		out.append(("+%d %% prix" if court else "+%d %% sur le prix de vente des produits (qualité)") % roundi(float(eff.qualite) * 100.0))
+	if eff.has("depollution"):
+		out.append(("−%d %% pollution" if court else "−%d %% de pollution (air, eau, CO₂) autour de l'usine") % roundi(float(eff.depollution) * 100.0))
+	if eff.has("economie"):
+		out.append(("−%s / jour" if court else "−%s de factures d'énergie par jour") % BuildingSystem.format_money(roundi(float(eff.economie))))
 	if eff.has("lits"):
 		out.append(("+%d %% lits" if court else "+%d %% de lits") % roundi(float(eff.lits) * 100.0) + ("" if court else " (%d lits de plus)" % roundi(float(TourismeTypes.lits_de(gestion.spec_base(bid))) * float(eff.lits))))
 	if eff.has("confort"):
@@ -840,11 +860,15 @@ func _lignes_effets(eff: Dictionary, court := false) -> Array:
 			out.append(("+%d %% " + ma.get_slice(" (", 0).get_slice(" des ", 0) if court else "+%d %% de " + ma) % roundi(float(eff.attrait) * 100.0))
 		elif _parc():
 			out.append(("+%d %% visiteurs" if court else "+%d %% de visiteurs attirés") % roundi(float(eff.attrait) * 100.0))
+		elif _gd().has("mots") and (_gd().mots as Dictionary).has("attrait"):
+			out.append(("+%d %% réputation" if court else "+%d %% de " + _mot("attrait", "")) % roundi(float(eff.attrait) * 100.0))
 		else:
 			out.append(("+%d %% clients" if court else "+%d %% de clients attirés") % roundi(float(eff.attrait) * 100.0))
 	if eff.has("satisf"):
 		if _ville():
 			out.append(("+%.2f moral" if court else "+%.2f de moral pour l'équipe") % float(eff.satisf))
+		elif _gd().has("mots") and (_gd().mots as Dictionary).has("satisf"):
+			out.append(("+%.2f moral" if court else "+%.2f de " + _mot("satisf", "") + " chaque jour") % float(eff.satisf))
 		else:
 			out.append(("+%.2f satisfaction" if court else "+%.2f de satisfaction chaque jour") % float(eff.satisf))
 	if eff.has("repas"):
@@ -913,7 +937,7 @@ func _carte_ensemble() -> void:
 		l.custom_minimum_size = Vector2(220, 0)
 		row.add_child(l)
 		for d in [[-1, "moins"], [1, "plus"]]:
-			var quoi := "le budget" if _ville() else "le prix"
+			var quoi := "le budget" if _ville() else _gs("prix_quoi", "le prix")
 			var b := UiStyle.icon_button(String(d[1]), ("Baisser " if int(d[0]) < 0 else "Monter ") + quoi, "", 18, 32)
 			b.name = "Prix_" + String(d[1])
 			var sens := int(d[0])
@@ -926,7 +950,7 @@ func _carte_ensemble() -> void:
 		elif _parc():
 			_texte("Plus cher : chaque billet rapporte plus, mais des familles font demi-tour et les visiteurs sont moins contents. En gestion automatique, le prix suit ce que vaut le parc.", true, 12)
 		elif genre != "hotel":
-			_texte("Plus cher : chaque repas rapporte plus, mais il vient moins de monde et les clients sont moins contents.", true, 12)
+			_texte(_gs("prix_aide", "Plus cher : chaque repas rapporte plus, mais il vient moins de monde et les clients sont moins contents."), true, 12)
 	if float(et.aide_ville) > 0.5:
 		var b := _bouton("Rembourser la ville (%s avancés)" % BuildingSystem.format_money(int(et.aide_ville)), "mairie")
 		b.disabled = gestion.compte(bid) < 1.0
@@ -1262,6 +1286,12 @@ func _cible_visibles() -> int:
 	if _ville():
 		# Visiteurs : stages de secourisme, écoles, futurs volontaires.
 		return clampi(2 + gestion.niveau(bid, _accueil()) + gestion.niveau(bid, "formation"), 2, mini(MAX_VISIBLES, 9))
+	if _gd().has("visiteurs"):
+		# Visiteurs (chauffeurs, acheteurs, groupes) : selon les pièces qui les accueillent.
+		var nv := 2
+		for pc in _gd().visiteurs:
+			nv += gestion.niveau(bid, String(pc))
+		return clampi(nv, 2, mini(MAX_VISIBLES, 12))
 	var n := gestion.clients(bid)
 	if gestion.source(bid) == "production":
 		# Repas par jour : beaucoup plus de passages que de nuitées.

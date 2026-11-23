@@ -149,6 +149,7 @@ func etat(bid: int) -> Dictionary:
 	var st := _etat_vide(g)
 	for pid in GestionTypes.ordre(g):
 		st.niv[String(pid)] = niveau_depart(bid, String(pid))
+	st.dernier_accident = jour
 	etats[bid] = st
 	return st
 
@@ -166,7 +167,9 @@ static func _etat_vide(g: String) -> Dictionary:
 		# Hôpital : patients amenés, sauvés malgré le retard, parking.
 		"patients": 0, "sauves": 0, "parking": 0.0,
 		# Parc de loisirs : humeur gagnée par les demandes réglées, mis de côté, groupes.
-		"bonus": 0.0, "reinvesti": 0.0, "groupes": 0, "trophees": 0, "trophee_an": -1}
+		"bonus": 0.0, "reinvesti": 0.0, "groupes": 0, "trophees": 0, "trophee_an": -1,
+		# Usine : accidents du travail, grève, grosses commandes, boutique d'usine.
+		"accidents": 0, "dernier_accident": 0, "greve_fin": -1, "commandes": 0, "boutique": 0.0}
 
 
 ## Niveau de départ d'une pièce : 1 si le bâtiment l'a déjà (restaurant d'un
@@ -266,6 +269,8 @@ func entretien_jour(bid: int) -> float:
 	var sal := Tourisme.SALAIRE_MOYEN * ReglagesPartie.actuel.salaires / 30.44
 	s += float(emplois) * sal * (float(st.salaire) - 1.0)
 	s += float(emplois) * 3.0 * float(st.formation)
+	# Énergie produite sur place (usine : solaire, chaudière, éolienne).
+	s -= maxf(0.0, effet(bid, "economie"))
 	return maxf(0.0, s)
 
 
@@ -682,7 +687,8 @@ func nouveau_jour(now: Dictionary = {}) -> void:
 			_journee_ville(bid, st)
 		elif source(bid) == "parc":
 			_journee_parc(bid, st)
-		if rng.randf() < CHANCE_PANNE * _nb_pieces(bid) * (1.0 - 0.12 * float(st.formation)) * (0.6 if niveau(bid, "direction") >= 3 or niveau(bid, "bureau") >= 3 else 1.0):
+		var usure := 1.0 + 2.0 * maxf(0.0, float(st.prix) - 1.0) if _par_tonnes(bid) else 1.0
+		if rng.randf() < CHANCE_PANNE * _nb_pieces(bid) * usure * (1.0 - 0.12 * float(st.formation)) * (0.6 if niveau(bid, "direction") >= 3 or niveau(bid, "bureau") >= 3 else 1.0):
 			nouvelle_panne(bid)
 		_evenements(bid, st, month)
 		if bool(st.auto):
@@ -719,6 +725,8 @@ func _evenements(bid: int, st: Dictionary, month: int) -> void:
 			_evenements_hopital(bid, st, month)
 		"parc":
 			_evenements_parc(bid, st, month)
+		"usine":
+			_evenements_usine(bid, st, month)
 		_:
 			_evenements_hotel(bid, st, month)
 
@@ -822,7 +830,8 @@ static func _valeur(e: Dictionary) -> float:
 	return float(e.get("confort", 0.0)) * 1.0 + float(e.get("attrait", 0.0)) * 1.6 + float(e.get("satisf", 0.0)) * 1.0 \
 		+ float(e.get("lits", 0.0)) * 2.5 + float(e.get("couverts", 0.0)) * 2.0 + float(e.get("equipage", 0.0)) * 0.5 + float(e.get("engins", 0.0)) * 0.9 + float(e.get("repas", 0.0)) * 0.8 + float(e.get("vitesse", 0.0)) * 0.15 + float(e.get("ventes", 0.0)) * 0.02 \
 		+ float(e.get("enquete", 0.0)) * 1.5 + float(e.get("soins", 0.0)) * 1.5 + float(e.get("lits_sup", 0.0)) * 0.04 \
-		+ float(e.get("proprete", 0.0)) * 1.2 + float(e.get("fiabilite", 0.0)) * 1.4
+		+ float(e.get("proprete", 0.0)) * 1.2 + float(e.get("fiabilite", 0.0)) * 1.4 \
+		+ float(e.get("cadence", 0.0)) * 2.2 + float(e.get("matiere", 0.0)) * 2.0 + float(e.get("qualite", 0.0)) * 2.0 + float(e.get("depollution", 0.0)) * 0.8 + float(e.get("economie", 0.0)) * 0.004
 
 
 # --- Chiffres de l'établissement (selon sa source) ------------------------------------------------
@@ -852,12 +861,17 @@ func capacite(bid: int) -> int:
 		var h: Dictionary = (etats.get(bid, {}) as Dictionary).get("hier", {})
 		if float(h.get("cap", 0.0)) > 0.0:
 			return roundi(float(h.cap))
+		if _par_tonnes(bid):
+			return 0
 		var vis := float(BuildingCatalog.get_type(type_of(bid)).get("visiteurs", 100)) * Ameliorations.facteur_bid(buildings, bid)
 		return roundi(vis * couverts(bid))
 	return tourisme.lits(bid) if tourisme != null and tourisme.heb.has(bid) else 0
 
 
 func occupation(bid: int) -> float:
+	if _par_tonnes(bid):
+		var h: Dictionary = (etats.get(bid, {}) as Dictionary).get("hier", {})
+		return clampf(float(h.get("clients", 0.0)) / float(h.cap), 0.0, 1.0) if float(h.get("cap", 0.0)) > 0.0 else 0.0
 	if source(bid) != "tourisme":
 		var c := capacite(bid)
 		return clampf(float(clients(bid)) / float(c), 0.0, 1.0) if c > 0 else 0.0
@@ -901,6 +915,8 @@ func prix_unitaire(bid: int) -> float:
 		return 0.0
 	if source(bid) == "parc":
 		return float(_parc().parcs[bid].prix) if _parc() != null and _parc().parcs.has(bid) else 0.0
+	if _par_tonnes(bid):
+		return 0.0
 	if source(bid) == "production":
 		return Ressources.REPAS * prix_repas(bid)
 	return float(tourisme.heb[bid].prix) if tourisme != null and tourisme.heb.has(bid) else 0.0
@@ -909,6 +925,9 @@ func prix_unitaire(bid: int) -> float:
 func prix_txt(bid: int) -> String:
 	if source(bid) == "ville":
 		return "Budget : %s par jour, payé par la ville" % BuildingSystem.format_money(roundi(dotation(bid)))
+	if _par_tonnes(bid):
+		var r := float(etat(bid).prix)
+		return "Cadence demandée : %d %%%s" % [roundi(r * 100.0), " (heures sup)" if r > 1.001 else (" (on souffle)" if r < 0.999 else "")]
 	var v := BuildingSystem.format_money(roundi(prix_unitaire(bid)))
 	if source(bid) == "parc":
 		var val := _parc().valeur(bid) if _parc() != null and _parc().parcs.has(bid) else 0.0
@@ -933,7 +952,10 @@ func changer_prix(bid: int, sens: int) -> void:
 	if source(bid) == "production":
 		var st := etat(bid)
 		if not st.is_empty():
-			st.prix = clampf(snappedf(float(st.prix) * (1.0 + 0.05 * sens), 0.01), PRIX_MIN, PRIX_MAX)
+			if _par_tonnes(bid):
+				st.prix = clampf(snappedf(float(st.prix) + 0.05 * sens, 0.01), RYTHME_MIN, RYTHME_MAX)
+			else:
+				st.prix = clampf(snappedf(float(st.prix) * (1.0 + 0.05 * sens), 0.01), PRIX_MIN, PRIX_MAX)
 			changed.emit(bid)
 	elif tourisme != null and tourisme.heb.has(bid):
 		tourisme.set_prix(bid, roundf(float(tourisme.heb[bid].prix) * (1.0 + 0.05 * sens)))
@@ -949,6 +971,18 @@ func ajuster_prix_auto(bid: int) -> void:
 		_prix_auto_parc(bid)
 		return
 	var occ := occupation(bid)
+	if _par_tonnes(bid):
+		# Usine : pousser la cadence quand l'équipe a le moral, souffler sinon.
+		var su := etat(bid)
+		var r := float(su.prix)
+		if float(su.satisf) < 2.6 or float(su.greve_fin) >= jour:
+			r -= 0.05
+		elif float(su.satisf) > 3.6 and occ > 0.85:
+			r += 0.05
+		elif r > 1.0 and float(su.satisf) < 3.2:
+			r -= 0.05
+		su.prix = clampf(snappedf(r, 0.01), 0.9, 1.15)
+		return
 	if source(bid) == "production":
 		var st := etat(bid)
 		var p := float(st.prix)
@@ -974,6 +1008,9 @@ func ajuster_prix_auto(bid: int) -> void:
 ## Prix du menu : facteur du prix habituel des repas.
 const PRIX_MIN := 0.6
 const PRIX_MAX := 2.0
+## Usine : cadence demandée à l'équipe (le « prix » de l'usine).
+const RYTHME_MIN := 0.7
+const RYTHME_MAX := 1.3
 
 
 ## Couverts : facteur de la capacité de service (tables en plus).
@@ -1018,9 +1055,17 @@ func cloture(bid: int, charges: float) -> void:
 	var st: Dictionary = etats[bid]
 	var j: Dictionary = st.j
 	var manque := production != null and production.sites.has(bid) and not (production.sites[bid].get("manque", {}) as Dictionary).is_empty()
+	if _par_tonnes(bid) and production != null and production.sites.has(bid):
+		var stt := String(production.sites[bid].get("status", ""))
+		manque = stt.begins_with("Manque") or stt.contains("manque :")
 	st.hier = {"ca": float(j.get("ca", 0.0)), "charges": charges, "clients": float(j.get("clients", 0.0)), "cap": float(j.get("cap", 0.0)), "manque": manque}
 	st.j = {}
 	var cible := 3.0 + 3.0 * effet(bid, "satisf") + 0.5 * effet(bid, "confort") - 1.4 * (float(st.prix) - 1.0) - (0.7 if manque else 0.0)
+	if _par_tonnes(bid):
+		# Moral des ouvriers : la cadence au-delà de 100 % fatigue, en dessous on souffle.
+		var rr := float(st.prix)
+		cible = 3.0 + 3.0 * effet(bid, "satisf") + 0.5 * effet(bid, "confort") - 3.0 * maxf(0.0, rr - 1.0) + 1.5 * maxf(0.0, 1.0 - rr) \
+			- (0.4 if jour - int(st.dernier_accident) < 7 and int(st.accidents) > 0 else 0.0)
 	st.satisf = clampf(lerpf(float(st.satisf), clampf(cible, 0.5, 5.0), 0.2), 0.5, 5.0)
 	st.note = clampf(2.7 + 0.3 * float(etoiles(bid)) + 0.6 * (float(st.satisf) - 3.0), 0.5, 5.0)
 	(st.hist as Array).append([jour, float(st.hier.ca), charges, roundi(float(st.hier.clients)),
@@ -1114,6 +1159,163 @@ func _evenements_restaurant(bid: int, st: Dictionary) -> void:
 		_noter(bid, "Soir de match : le bar est plein, %s de boissons en plus." % BuildingSystem.format_money(int(v)), false)
 
 
+# --- Usine : ce que la gestion change dans la production (Production, Nuisances, Climat) -------
+
+## Le bâtiment compte en tonnes produites (usine) plutôt qu'en clients.
+func _par_tonnes(bid: int) -> bool:
+	return genre_of(bid) == "usine"
+
+
+## Facteur de vitesse de l'usine : machines, cadence demandée, moral. 0 pendant une grève.
+func cadence(bid: int) -> float:
+	if not etats.has(bid) or not _par_tonnes(bid):
+		return 1.0
+	var st: Dictionary = etats[bid]
+	if int(st.greve_fin) >= jour:
+		return 0.0
+	var moral := clampf(1.0 + 0.06 * (float(st.satisf) - 3.0), 0.85, 1.08)
+	return maxf(0.1, (1.0 + maxf(0.0, effet(bid, "cadence"))) * float(st.prix) * moral)
+
+
+## Produits en plus pour la même matière (moins de déchets) : 1 à 1,4.
+func matiere(bid: int) -> float:
+	if not etats.has(bid) or not _par_tonnes(bid):
+		return 1.0
+	return 1.0 + clampf(effet(bid, "matiere"), 0.0, 0.4)
+
+
+## Prix de vente des produits (qualité, réputation, label, note) : facteur.
+func prix_vente(bid: int) -> float:
+	if not etats.has(bid) or not _par_tonnes(bid):
+		return 1.0
+	var st: Dictionary = etats[bid]
+	var q := maxf(0.0, effet(bid, "qualite")) + 0.3 * maxf(0.0, effet(bid, "attrait")) + 0.04 * (float(st.note) - 3.0) \
+		+ 0.03 * float(etoiles(bid) - int(spec_base(bid).get("etoiles", 1)))
+	return clampf(1.0 + q, 0.85, 1.8)
+
+
+## Part de la pollution (air, eau, CO₂) que l'usine n'émet plus : 0 à 80 %.
+func depollution(bid: int) -> float:
+	if not etats.has(bid) or not _par_tonnes(bid):
+		return 0.0
+	return clampf(effet(bid, "depollution"), 0.0, 0.8)
+
+
+## Production de l'heure (appelée par Production) : t produites et t possibles.
+func produire(bid: int, faites: float, possibles: float) -> void:
+	if not etats.has(bid):
+		return
+	var j: Dictionary = etats[bid].j
+	j["clients"] = float(j.get("clients", 0.0)) + faites
+	j["cap"] = float(j.get("cap", 0.0)) + possibles
+
+
+## Une recette encaissée par l'entreprise (ventes, export) : comptée dans le bilan du jour.
+func recette(bid: int, euros: float) -> void:
+	if not etats.has(bid) or euros <= 0.0 or not _par_tonnes(bid):
+		return
+	var j: Dictionary = etats[bid].j
+	j["ca"] = float(j.get("ca", 0.0)) + euros
+
+
+static func cadence_de(bid: int) -> float:
+	var g := _inst()
+	return g.cadence(bid) if g != null and g.etats.has(bid) else 1.0
+
+
+static func matiere_de(bid: int) -> float:
+	var g := _inst()
+	return g.matiere(bid) if g != null and g.etats.has(bid) else 1.0
+
+
+static func prix_vente_de(bid: int) -> float:
+	var g := _inst()
+	return g.prix_vente(bid) if g != null and g.etats.has(bid) else 1.0
+
+
+static func depollution_de(bid: int) -> float:
+	var g := _inst()
+	return g.depollution(bid) if g != null and g.etats.has(bid) else 0.0
+
+
+static func produire_de(bid: int, faites: float, possibles: float) -> void:
+	var g := _inst()
+	if g != null and g.etats.has(bid):
+		g.produire(bid, faites, possibles)
+
+
+static func recette_de(bid: int, euros: float) -> void:
+	var g := _inst()
+	if g != null and g.etats.has(bid):
+		g.recette(bid, euros)
+
+
+## Audit de certification, accidents, grève, grosses commandes, boutique, visites, salon.
+func _evenements_usine(bid: int, st: Dictionary, month: int) -> void:
+	# Audit « Usine du futur » : environ une fois par mois.
+	if int(st.inspection) < 0:
+		st.inspection = jour + rng.randi_range(10, 40)
+	elif jour >= int(st.inspection):
+		st.inspection = jour + rng.randi_range(25, 50)
+		var n := note(bid)
+		var vise := 2.6 + 0.4 * float(etoiles(bid))
+		if n >= vise:
+			st.label_fin = jour + 60
+			_noter(bid, "Audit réussi : l'usine est labellisée « Usine du futur » pendant 60 jours (produits vendus plus cher) !", true)
+		else:
+			_noter(bid, "Audit « Usine du futur » : pas cette fois (note %.1f, il fallait %.1f)." % [n, vise], true)
+	var rythme := float(st.prix)
+	var secu := float(niveau(bid, "infirmerie")) + 0.5 * float(objets_de(bid, "infirmerie").size()) + 0.5 * float(st.formation)
+	# Accident du travail : plus fréquent quand on pousse la cadence, rare avec une bonne sécurité.
+	if rng.randf() < 0.02 * (1.0 + 3.0 * maxf(0.0, rythme - 1.0)) / (1.0 + 0.5 * secu):
+		st.accidents = int(st.accidents) + 1
+		st.dernier_accident = jour
+		_ajouter_satisf(bid, -0.25)
+		var quoi := ["Un ouvrier s'est coupé sur une tôle", "Une palette est tombée d'un rack", "Une main coincée dans une machine", "Une chute dans l'escalier du stock", "Une brûlure au four"]
+		_noter(bid, "Accident du travail : %s. %s" % [String(quoi[rng.randi() % quoi.size()]), "L'infirmerie l'a soigné sur place." if niveau(bid, "infirmerie") > 0 else "Pas d'infirmerie : il part aux urgences."], true)
+		# Inspection du travail après un accident sans sécurité.
+		if niveau(bid, "infirmerie") == 0 and rng.randf() < 0.4:
+			var amende := 400.0 + 0.0002 * cout_batiment(bid)
+			_crediter(bid, -amende)
+			_noter(bid, "L'inspection du travail passe : amende de %s (pas d'infirmerie ni de consignes)." % BuildingSystem.format_money(int(amende)), true)
+	# Grève quand le moral s'effondre et que les salaires sont bas.
+	if int(st.greve_fin) < jour and float(st.satisf) < 1.8 and float(st.salaire) < 1.05 and rng.randf() < 0.15:
+		st.greve_fin = jour + rng.randi_range(1, 3)
+		_noter(bid, "Grève ! Les ouvriers arrêtent les machines jusqu'au jour %d : salaires et cadence en cause." % int(st.greve_fin), true)
+	# Grosse commande d'un client (plus souvent avec une bonne réputation et le service commercial).
+	var rep := maxf(0.0, effet(bid, "attrait")) + 0.1 * float(niveau(bid, "direction"))
+	if rng.randf() < 0.03 * (1.0 + 3.0 * rep):
+		var v := (300.0 + 0.00015 * cout_batiment(bid)) * (1.0 + 2.0 * rep) * rng.randf_range(0.7, 1.4)
+		_crediter(bid, v)
+		st.commandes = int(st.commandes) + 1
+		st.seminaires = int(st.seminaires) + 1
+		var qui := ["une chaîne de magasins", "un client à l'export", "l'armée", "un grand constructeur", "une start-up pressée", "la mairie"]
+		_noter(bid, "Grosse commande de %s : %s de marge en plus." % [String(qui[rng.randi() % qui.size()]), BuildingSystem.format_money(int(v))], false)
+	# Boutique d'usine : les habitants achètent sur place.
+	var sh := niveau(bid, "showroom")
+	if sh > 0:
+		var vb := maxf(0.0, effet(bid, "ventes")) * 8.0 * float(sh) * (1.0 + maxf(0.0, effet(bid, "attrait"))) * rng.randf_range(0.7, 1.3)
+		st.boutique = float(st.boutique) + vb
+		_crediter(bid, vb)
+		var j: Dictionary = st.j
+		j["ca"] = float(j.get("ca", 0.0)) + vb
+	# Visite d'usine (écoles, retraités) : bonne image.
+	if sh > 0 and rng.randf() < 0.02 * (1.0 + float(objets_de(bid, "atelier").has("passerelle"))):
+		st.vip = int(st.vip) + 1
+		_ajouter_satisf(bid, 0.03)
+		var qui := ["Une classe de CM2", "Le club des retraités", "Des étudiants ingénieurs", "Une délégation étrangère"]
+		_noter(bid, "%s visite l'usine : tout le monde repart avec un échantillon." % String(qui[rng.randi() % qui.size()]), false)
+	# Salon de l'industrie au printemps.
+	if month in [3, 4] and jour - int(st.bal) > 200 and rng.randf() < 0.05:
+		st.bal = jour
+		var gain := 0.0002 * cout_batiment(bid) * (1.0 + float(niveau(bid, "etudes")))
+		_crediter(bid, gain)
+		_noter(bid, "Salon de l'industrie : le stand de l'usine décroche %s de contrats." % BuildingSystem.format_money(int(gain)), true)
+	# Humour.
+	if rng.randf() < 0.01:
+		_noter(bid, "Le robot de la chaîne s'est arrêté pile à midi. Personne ne sait pourquoi, mais il a l'air content.", false)
+
+
 # --- Objectifs ---------------------------------------------------------------------------------
 
 ## Petits objectifs de l'établissement : [{texte, fait, avance}].
@@ -1151,6 +1353,11 @@ func objectifs(bid: int) -> Array:
 		out.append({"texte": "Gagner le trophée du parc de l'année", "fait": int(st.get("trophees", 0)) > 0, "avance": "%d trophée%s" % [int(st.get("trophees", 0)), "s" if int(st.get("trophees", 0)) > 1 else ""]})
 	else:
 		out.append({"texte": String(gd.get("remplir", "Remplir à 75 %")), "fait": occ >= 0.75, "avance": "%d %%" % roundi(occ * 100.0)})
+	if g == "usine":
+		var sa := jour - int(st.get("dernier_accident", 0)) if not st.is_empty() else 0
+		out.append({"texte": "60 jours sans accident du travail", "fait": sa >= 60, "avance": "%d / 60 jours" % mini(sa, 60)})
+		var dp := depollution(bid)
+		out.append({"texte": "Diviser la pollution par deux", "fait": dp >= 0.5, "avance": "−%d %%" % roundi(dp * 100.0)})
 	out.append({"texte": "Note de 4 sur 5", "fait": nt >= 4.0, "avance": "%.1f / 5" % nt})
 	out.append({"texte": String(gd.get("label_txt", "Être recommandé par le guide")), "fait": int(st.get("label_fin", -1)) >= jour, "avance": "en cours" if int(st.get("label_fin", -1)) >= jour else "pas encore"})
 	out.append({"texte": "Construire toutes les pièces", "fait": construites >= GestionTypes.ordre(g).size(), "avance": "%d / %d" % [construites, GestionTypes.ordre(g).size()]})
@@ -1198,9 +1405,10 @@ func from_dict(d: Dictionary) -> void:
 				l.append(String(o))
 			obj[String(pid)] = l
 		st.obj = obj
-		for f in ["reglees", "ratees", "reparees", "formation", "label_fin", "inspection", "seminaires", "vip", "volontaires", "interventions", "retards", "departs", "bal"]:
+		for f in ["reglees", "ratees", "reparees", "formation", "label_fin", "inspection", "seminaires", "vip", "volontaires", "interventions", "retards", "departs", "bal",
+				"accidents", "dernier_accident", "greve_fin", "commandes"]:
 			st[f] = int(st[f])
-		for f in ["pourboires", "invest", "aide_ville", "salaire", "prix", "satisf", "note", "caisse", "dotation", "delai"]:
+		for f in ["pourboires", "invest", "aide_ville", "salaire", "prix", "satisf", "note", "caisse", "dotation", "delai", "boutique"]:
 			st[f] = float(st[f])
 		st.auto = bool(st.auto)
 		for f in ["j", "hier"]:

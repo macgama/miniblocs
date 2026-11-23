@@ -1460,6 +1460,21 @@ static func _geste(met: String, piece: String) -> String:
 			return "ranger"
 		"mecanicien":
 			return "marteler"
+		"ouvrier", "operateur", "siderurgiste", "menuisier", "couturier", "boucher", "meunier", "boulanger":
+			match piece:
+				"chaine", "epuration":
+					return "controle"
+				"quai", "stock", "entrepot":
+					return "porter"
+			return "souder" if met == "siderurgiste" else ("raboter" if met == "menuisier" else "machine")
+		"ingenieur":
+			return "plans" if piece == "etudes" else "controle"
+		"laborantin":
+			return "controle"
+		"employe":
+			return "taper"
+		"agent_accueil_parc":
+			return "guichet"
 		"pompier":
 			match piece:
 				"accueil":

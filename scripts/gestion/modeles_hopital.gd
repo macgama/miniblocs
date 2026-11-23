@@ -185,4 +185,4 @@ static func dessiner(k: LpKit, nom: String, _teinte := Color.WHITE) -> void:
 			k.box(Vector3(0.93, 1.3, 0.4), Vector3(0.02, 0.36, 0.12), ROUGE, 0.0, false)
 			k.box(Vector3(0.93, 1.3, 0.4), Vector3(0.02, 0.12, 0.36), ROUGE, 0.0, false)
 		_:
-			ModelesParc.dessiner(k, nom, _teinte)
+			ModelesUsine.dessiner(k, nom, _teinte)

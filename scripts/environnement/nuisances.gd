@@ -474,6 +474,8 @@ func _sources_batiment(bid: int, k: float) -> int:
 		var f := k * clampf(size / 50.0, 0.5, 1.5)
 		# Filtres, épuration, normes du plan climat (module Climat).
 		var m := Climat.instance.facteurs_nuisances(tid) if Climat.instance != null else Vector2.ONE
+		# Mode gestion (usine) : filtres et station d'épuration.
+		m *= 1.0 - Gestion.depollution_de(bid)
 		if float(e.air) > 0.0:
 			_splat(L.AIR, c, float(e.air) * f * m.x, r)
 		if float(e.eau) > 0.0:

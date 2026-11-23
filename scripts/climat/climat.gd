@@ -360,7 +360,8 @@ func _batiments(_y: float, t: Dictionary) -> void:
 			var st := 1.0
 			if population != null:
 				st = clampf(float((population.by_job.get(bid, []) as Array).size()) / emp, 0.0, 1.0)
-			ind += float(info.ind) * emp * st / 24.0
+			# Mode gestion (usine) : filtres, épuration, énergie propre.
+			ind += float(info.ind) * emp * st / 24.0 * (1.0 - Gestion.depollution_de(bid))
 		elif bool(info.elev):
 			agri += ClimatTypes.ELEVAGE_CO2 / 24.0
 		if bool(info.decharge):

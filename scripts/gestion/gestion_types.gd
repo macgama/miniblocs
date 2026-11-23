@@ -49,12 +49,16 @@ extends RefCounted
 ## - "lits_sup" : lits d'hôpital en plus (un nombre, pas une part) ;
 ## - "proprete" : agents de propreté plus efficaces (parc de loisirs) ;
 ## - "fiabilite" : moins d'usure des attractions, révisions plus efficaces (parc) ;
+## - "cadence" / "matiere" / "qualite" : usine plus rapide, moins de déchets,
+##   produits vendus plus cher ; "depollution" : air et eau moins pollués ;
+##   "economie" : € d'énergie économisés par jour (usine) ;
 ## - "entretien" : € par jour (charges en plus).
 const EFFETS := {
 	"lits": "lits", "confort": "confort", "attrait": "clients attirés", "satisf": "satisfaction", "repas": "repas sur place",
 	"vitesse": "vitesse du service", "ventes": "dépenses des clients", "couverts": "couverts",
 	"equipage": "personnes de garde", "engins": "véhicules", "enquete": "affaires élucidées", "soins": "qualité des soins", "lits_sup": "lits d'hôpital",
 	"proprete": "propreté", "fiabilite": "fiabilité des manèges",
+	"cadence": "production", "matiere": "économie de matière", "qualite": "qualité des produits", "depollution": "pollution en moins", "economie": "énergie économisée",
 }
 
 const GENRES := {
@@ -327,6 +331,9 @@ static func genre_de(type_id: String) -> String:
 		return "hotel"
 	if Ressources.commerce_of(type_id).has("consomme"):
 		return "restaurant"
+	# Usines et ateliers de transformation de l'économie (scierie, moulin, aciérie…).
+	if String(ProductionTypes.prod_of(type_id).get("kind", "")) == "transformation":
+		return "usine"
 	# Services d'urgence (versions d'époque et modèles de l'Atelier compris).
 	var t := type_id if Urgences.BUILDING_SERVICE.has(type_id) else BuildingCatalog.base_of(type_id)
 	match t:
@@ -352,6 +359,8 @@ static func genre(g: String) -> Dictionary:
 			return GenreHopital.GENRE
 		"parc":
 			return GenreParc.GENRE
+		"usine":
+			return GenreUsine.GENRE
 	return GENRES.get(g, {})
 
 

@@ -642,11 +642,13 @@ func cap_of(bid: int, good: String) -> float:
 		if c > 0.0:
 			return c
 	var out := outputs_of(bid)
+	# Usine gérée plus rapide : des stocks à la mesure de sa cadence.
+	var cad := maxf(1.0, Gestion.cadence_de(bid)) if String(s.kind) == "transformation" else 1.0
 	if out.has(good):
-		return maxf(float(out[good]) * SITE_DAYS, SITE_MIN_T)
+		return maxf(float(out[good]) * SITE_DAYS * cad, SITE_MIN_T)
 	var prod := ProductionTypes.prod_of(_type_of(bid))
 	if prod.get("kind", "") == "transformation" and prod.in.has(good):
-		return maxf(float(prod.in[good]) * TARGET_DAYS_SITE * 1.5, 1.0)
+		return maxf(float(prod.in[good]) * TARGET_DAYS_SITE * 1.5 * cad, 1.0)
 	return 0.0
 
 
@@ -736,6 +738,9 @@ func _pay(bid: int, poste: String, amount: float) -> void:
 	var m: Dictionary = s.mois
 	m[poste] = float(m.get(poste, 0.0)) + amount
 	s.jour = float(s.get("jour", 0.0)) + amount
+	# Mode gestion (usine) : les recettes comptent dans le bilan du jour.
+	if amount > 0.0:
+		Gestion.recette_de(bid, amount)
 
 
 func _book(cat: String, amount: float) -> void:
@@ -905,6 +910,17 @@ func _step_hours(h: float) -> void:
 			s.eff = staff
 			s.status = "En activité" if staff >= 0.999 else "En activité (%d %% des emplois pourvus)" % roundi(staff * 100.0)
 		else:
+			# Mode gestion (usine) : cadence des machines et de l'équipe, matière mieux utilisée.
+			var cad := Gestion.cadence_de(bid)
+			if cad <= 0.0:
+				s.status = "En grève : les machines sont arrêtées"
+				Gestion.produire_de(bid, 0.0, 0.0)
+				continue
+			frac *= cad
+			var gm := Gestion.matiere_de(bid)
+			var possible := 0.0
+			for g in prod.out:
+				possible += float(prod.out[g]) * frac * gm
 			var f := staff
 			var missing: Array[String] = []
 			for g in prod.in:
@@ -917,8 +933,9 @@ func _step_hours(h: float) -> void:
 					f = minf(f, staff * have / need)
 			for g in prod.out:
 				var room := cap_of(bid, g) - stock_of(bid, g)
-				f = minf(f, room / (float(prod.out[g]) * frac))
+				f = minf(f, room / (float(prod.out[g]) * frac * gm))
 			f = maxf(f, 0.0)
+			Gestion.produire_de(bid, possible * f, possible)
 			if f <= 0.0:
 				s.status = ("Manque : %s (en attente de livraison)" % ", ".join(missing)) if not missing.is_empty() \
 					else "Stock plein : aucun camion ne vient le chercher"
@@ -931,8 +948,8 @@ func _step_hours(h: float) -> void:
 			for g in prod.out:
 				if not Ressources.disponible(g):
 					continue
-				_put(bid, g, float(prod.out[g]) * frac * f)
-				_flow(g, float(prod.out[g]) * frac * f, "prod")
+				_put(bid, g, float(prod.out[g]) * frac * f * gm)
+				_flow(g, float(prod.out[g]) * frac * f * gm, "prod")
 			s.eff = f
 			if not missing.is_empty():
 				s.status = "Au ralenti (%d %%), manque : %s" % [roundi(f * 100.0), ", ".join(missing)]
@@ -1007,9 +1024,10 @@ func _needs_calc(bid: int, s: Dictionary) -> Dictionary:
 	match String(s.kind):
 		"transformation":
 			var prod := ProductionTypes.prod_of(_type_of(bid))
+			var cad := maxf(1.0, Gestion.cadence_de(bid))
 			for g in prod.in:
 				if Ressources.disponible(g):
-					out[g] = float(prod.in[g])
+					out[g] = float(prod.in[g]) * cad
 		"commerce":
 			var shop := Ressources.commerce_of(_type_of(bid))
 			var made := {}
@@ -1524,13 +1542,15 @@ func _unload(mid: int) -> void:
 			var gain := q * Ressources.prix_export(g)
 			if marche != null:
 				gain = float(marche.vente_export(from, g, q, int(m.get("accord", -1))))
+			# Mode gestion (usine) : des produits de qualité se vendent plus cher.
+			gain *= Gestion.prix_vente_de(from)
 			_pay(from, "Exportations", gain)
 			_book("Exportations", gain)
 		elif String(sites.get(to, {}).get("kind", "")) != "entrepot":
 			if marche != null:
-				value += float(marche.vente_entre(from, to, g, q))
+				value += float(marche.vente_entre(from, to, g, q)) * Gestion.prix_vente_de(from)
 			else:
-				value += q * Ressources.prix_interieur(g)
+				value += q * Ressources.prix_interieur(g) * Gestion.prix_vente_de(from)
 	if value > 0.0 and from >= 0 and to >= 0:
 		_pay(to, "Achats aux fournisseurs", -value)
 		_pay(from, "Ventes aux entreprises", value)

@@ -50,7 +50,7 @@ static func dessiner(d: GestionDiorama, k: LpKit, decor: String, r: Array, n: in
 			return _epuration(d, k, r, n)
 		"usine_energie":
 			return _energie(d, k, r, n)
-	return DecorsParc.dessiner(d, k, decor, r, n)
+	return DecorsSupermarche.dessiner(d, k, decor, r, n)
 
 
 ## Bande de sécurité jaune et noire au sol.

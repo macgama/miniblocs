@@ -173,6 +173,8 @@ func _city_tests() -> void:
 	print("Sans gestion, rien ne change :")
 	_check(not gest.etats.has(usine) and Gestion.cadence_de(usine) == 1.0 and Gestion.matiere_de(usine) == 1.0 and Gestion.prix_vente_de(usine) == 1.0 and Gestion.depollution_de(usine) == 0.0, "cadence, matière, prix et pollution habituels")
 	_check(Gestion.entretien_site(usine) == 0.0, "pas d'entretien en plus")
+	gest.nouveau_jour({"day": gest.jour + 1, "month": 6})
+	_check(not gest.etats.has(usine) and not gest.etats.has(autre), "un jour passe : les usines jamais ouvertes restent comme avant")
 	var avant := _produit(prod, usine, 6.0)
 	_check(float(avant[0]) > 0.0, "la scierie produit %.2f t de planches en 6 h" % float(avant[0]))
 

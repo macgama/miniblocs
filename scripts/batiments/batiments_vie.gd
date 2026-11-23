@@ -475,7 +475,8 @@ func _materiaux(b: Dictionary, dp: float) -> void:
 		b["mat_i"] = {}
 	MateriauxChantiers.cumule(b.mat_l, f.local)
 	MateriauxChantiers.cumule(b.mat_i, f.import)
-	if float(f.surcout) > 0.0:
+	# Bâtiment privé : son promoteur paie aussi les matériaux importés, pas la ville.
+	if float(f.surcout) > 0.0 and not BuildingCatalog.est_prive(String(b.t)):
 		var caisse_prev := Pays.du_batiment(b, r)
 		var sc := MateriauxChantiers.regler_surcout(f, buildings)
 		Pays.retour(caisse_prev)

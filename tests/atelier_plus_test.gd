@@ -153,6 +153,8 @@ func _run() -> void:
 	var dome := be.current_code()
 	var anchors := be.piece_anchors(Vector3i(60, gy, 60), dome)
 	_check(anchors.size() == 1 and anchors[0] == Vector3i(55, gy, 55), "coupole centrée sur la case visée")
+	# Ce test vérifie le prix des blocs : la ville paie tout (sans promoteurs privés).
+	ReglagesPartie.actuel.promoteurs_prives = false
 	var m0 := bs.money
 	var n := be.place_blocks(anchors, dome)
 	_check(n > 20, "coupole de 10 m posée : %d morceaux" % n)

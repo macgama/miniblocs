@@ -100,6 +100,11 @@ func devis() -> int:
 	return Personnalisation.cout_travaux(_type_id(), _origine, _perso(), _prix_batiment(), _v_origine != _variant())
 
 
+## Bâtiment privé : son propriétaire paie la façade, pas la caisse de la ville.
+func prive() -> bool:
+	return bs.buildings.has(bid) and BuildingCatalog.est_prive(String(bs.buildings[bid].t))
+
+
 func _prix_batiment() -> int:
 	var b: Dictionary = bs.buildings[bid]
 	var p := int(b.get("cost", 0))
@@ -118,7 +123,7 @@ func valider() -> bool:
 	var b: Dictionary = bs.buildings[bid]
 	var histo := HistoriqueVille.instance
 	var photo := histo.photo() if histo != null else {}
-	if prix > 0 and not bs.unlimited_money:
+	if prix > 0 and not bs.unlimited_money and not prive():
 		var prev := Pays.du_batiment(b, bs._rect_of(b))
 		if bs.money < prix:
 			Pays.retour(prev)
@@ -308,7 +313,7 @@ func refresh() -> void:
 			var cout := _cout_autres(same)
 			var histo := HistoriqueVille.instance
 			var photo := histo.photo() if histo != null else {}
-			if cout > 0 and not bs.unlimited_money:
+			if cout > 0 and not bs.unlimited_money and not prive():
 				if bs.money < cout:
 					bs.message.emit("Pas assez d'argent dans la caisse (%s)." % BuildingSystem.format_money(cout))
 					return
@@ -438,7 +443,8 @@ func _devis_bar() -> void:
 	if not chg:
 		l.text = "Devis : rien à payer pour l'instant."
 	else:
-		l.text = "Devis des travaux : %s" % BuildingSystem.format_money(prix) + (" (argent illimité)" if bs.unlimited_money else "")
+		l.text = "Devis des travaux : %s" % BuildingSystem.format_money(prix) + (" (argent illimité)" if bs.unlimited_money else
+			", payés par le propriétaire (rien pour la ville)" if prive() else "")
 		l.add_theme_color_override("font_color", UiStyle.ACCENT)
 	col.add_child(l)
 	if not chg:

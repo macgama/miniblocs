@@ -2796,6 +2796,8 @@ func _setup_mobilier() -> void:
 	mobilier.info_changed.connect(func(t: String) -> void: hud.set_tool_info(t))
 	mobilier.message.connect(func(t: String) -> void: hud.show_message(t))
 	population.extra_buildings = mobilier.population_info
+	# Murs fins : la ville ne paie que ceux des services publics (promoteurs privés).
+	plans.paie_ville = mobilier.ville_paie_plan
 	population.extra_pick = mobilier.bid_at
 	mobilier.changed.connect(func() -> void: population.demander_sync())
 	plans.changed.connect(func() -> void: population.demander_sync())

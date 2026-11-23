@@ -82,6 +82,8 @@ func _run() -> void:
 		await process_frame
 	bs.unlimited_money = true
 	bs.require_access = false
+	# Ce test vérifie les prix : la ville paie tout (sans promoteurs privés).
+	ReglagesPartie.actuel.promoteurs_prives = false
 	var mob: Mobilier = scene.mobilier
 	var pe: PlanEditor = mob.pe
 

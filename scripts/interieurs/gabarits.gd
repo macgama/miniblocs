@@ -203,6 +203,10 @@ static func build_spec(mob: Mobilier, g: Dictionary, origin: Vector2i, r: int, s
 	pe.set_tint(int(g.get("wall_tint", 0)))
 	pe.set_material(wall_mat)
 	var id := pe.new_plan(y0)
+	# L'usage d'abord : il dit qui paie les murs (ville pour un service public,
+	# promoteur pour un logement ou une boutique, Mobilier.ville_paie_plan).
+	if Mobilier.USAGES.has(String(g.get("usage", ""))):
+		mob.usages[id] = String(g.usage)
 	var lv: Array = g.levels
 	var fns := []
 	for e in lv.size():

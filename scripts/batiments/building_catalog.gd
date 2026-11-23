@@ -192,6 +192,50 @@ static func cost(id: String) -> int:
 	return int(get_type(id).get("cost", 0))
 
 
+## Base économique du jeu : la ville paie seulement les voies, les réseaux et les
+## services publics, puis se rembourse par les impôts. Tout le reste (logements,
+## commerces, industrie, production, hébergements, cafés et restaurants) est
+## financé par des promoteurs et des entreprises privés : rien pour la caisse,
+## qu'il pousse dans une zone, soit posé du catalogue B ou dessiné dans l'Atelier.
+## Restent payés par la ville : logements sociaux (HBM, HLM…), campement des
+## fondateurs, parc de loisirs et zoo (ce sont les affaires du joueur).
+## Réglage Admin (F10 → Construction) : ReglagesPartie.promoteurs_prives.
+const CATS_PRIVEES := ["logement", "commerce", "industrie", "production"]
+## Catégories mêlées : privé seulement pour les hébergements et les commerces (cafés, restaurants, cinémas…).
+const CATS_MIXTES := ["loisirs", "spectacles", "tourisme"]
+
+
+## Ce type est-il bâti par le privé, à ses frais, dans la partie en cours ?
+static func est_prive(id: String) -> bool:
+	return ReglagesPartie.actuel.promoteurs_prives and nature_privee(id)
+
+
+## Ce type relève-t-il du privé par nature (sans regarder le réglage) ?
+static func nature_privee(id: String) -> bool:
+	var t := get_type(id)
+	if t.is_empty():
+		return false
+	var base := base_of(id)
+	if id == "campement" or base == "campement":
+		return false
+	var immo := String(t.get("immo", get_type(base).get("immo", "")))
+	if immo == "social" or immo == "precaire":
+		return false
+	var cat := String(t.get("cat", ""))
+	if cat in CATS_PRIVEES:
+		return true
+	if cat in CATS_MIXTES:
+		if String((t.get("touris", {}) as Dictionary).get("role", "")) == "hebergement":
+			return true
+		return not Ressources.commerce_of(base).is_empty()
+	return false
+
+
+## Ce que la caisse de la ville paie pour ce type (0 : bâti par le privé).
+static func prix_ville(id: String) -> int:
+	return 0 if est_prive(id) else ReglagesPartie.prix(cost(id))
+
+
 ## Identifiants d'une catégorie, filtrés par région et par époque ("" = toutes).
 static func ids_in(cat: String, region := "", era := "") -> Array[String]:
 	var out: Array[String] = []

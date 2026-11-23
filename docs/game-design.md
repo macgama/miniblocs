@@ -106,17 +106,26 @@ Tensions intéressantes pour le joueur :
 
 ## 7. Économie
 
+### 7.0 Règle de base : la ville paie l'équipement, le privé bâtit (décision du 2026-11-23)
+Comme dans les grands city builders, **la caisse de la ville ne paie que ce qui est public** :
+- **Payé par la ville** : voies (routes, rails, chemins, ponts, tunnels), réseaux (électricité, eau, égouts, gaz, télécoms, déchets), services publics (mairie, écoles, police, pompiers, santé, cimetières…), espaces publics, culture publique (musées, théâtres, cinémas), sport, parc de loisirs et zoo, monuments, logements sociaux (HBM, HLM…).
+- **Financé par des promoteurs et des entreprises privés, gratuit pour la ville** : tous les logements, commerces, bureaux, industries, fermes et sites de production, hôtels, campings et gîtes, cafés et restaurants. Peu importe comment ils arrivent : ils poussent dans une zone, sont posés à la main depuis le catalogue B, ou dessinés dans l'Atelier / l'éditeur libre (murs fins, blocs, meubles). Poser une maison à la main n'est qu'une façon de choisir un bâtiment différent : c'est toujours un promoteur qui paie.
+- Le **zonage est gratuit**. Les agrandissements, rénovations et changements de façade d'un bâtiment privé sont payés par son propriétaire.
+- **La ville se rembourse par les impôts** (taxe foncière, impôts des entreprises, taxe d'aménagement des permis de promoteurs, taxe de séjour). L'équilibre du maire : investir dans les voies, les réseaux et les services pour attirer habitants et entreprises, puis attendre que leurs impôts remboursent l'investissement.
+- Réglage Admin (F10 → Construction) : « Bâtiments privés payés par des promoteurs », coché par défaut. Décoché, la ville paie tout comme avant.
+- Code : `BuildingCatalog.est_prive(id)` / `prix_ville(id)` décide qui paie ; `ReglagesPartie.promoteurs_prives`.
+
 ### 7.1 Une seule monnaie
 La caisse de la ville et la caisse du parc sont **une seule trésorerie**. C'est plus simple à comprendre et ça renforce le lien entre les deux.
 
 ### 7.2 Entrées
-- Impôts résidentiels, commerciaux, industriels (taux réglable par zone).
+- Impôts résidentiels, commerciaux, industriels (taux réglable par zone) : c'est ainsi que la ville récupère ce qu'elle a investi.
 - Billets d'entrée du parc et/ou prix par attraction.
 - Ventes des stands.
 - Taxe de séjour sur les touristes (débloquée plus tard).
 
 ### 7.3 Sorties
-- Coût de construction (routes, services, attractions).
+- Coût de construction des équipements publics seulement (voies, réseaux, services, attractions) : voir 7.0.
 - Entretien mensuel des services et des attractions.
 - Salaires du personnel du parc.
 

@@ -309,7 +309,7 @@ static func prix(p: Dictionary) -> int:
 	var total := 0
 	for b: Dictionary in p.get("batiments", []):
 		if not BuildingCatalog.get_type(String(b.t)).is_empty():
-			total += ReglagesPartie.prix(BuildingCatalog.cost(String(b.t)))
+			total += BuildingCatalog.prix_ville(String(b.t))
 	for e: Dictionary in p.get("enclos", []):
 		var pts := _pts(e.get("pts", []), Vector2.ZERO, 0, 0, 0)
 		total += int(ZooSysteme.perimetre(pts) * float(ZooEspeces.barriere(String(e.get("barriere", "grillage"))).get("prix_m", 0.0)))

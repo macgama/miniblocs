@@ -57,6 +57,10 @@ var argent_illimite := false
 ## Multiplicateur de tous les prix de construction (bâtiments, terrassement, zonage, blocs, murs).
 var cout_construction := 1.0
 var acces_route := true
+## Base économique : les bâtiments privés (logement, commerce, industrie, production,
+## hébergements, cafés…) sont financés par des promoteurs, pas par la caisse de la
+## ville, qui ne paie que voies, réseaux et services publics (BuildingCatalog.est_prive).
+var promoteurs_prives := true
 ## Une partie commence par la fondation d'un village (Maison de commune) :
 ## avant, ni bâtiment, ni zonage, ni voie (scripts/communes).
 var fondation := true
@@ -325,7 +329,7 @@ func to_dict() -> Dictionary:
 		"horaires_chantiers": horaires_chantiers, "rythme_chantiers": rythme_chantiers, "depart_rapide": depart_rapide, "usure": usure, "dechets": dechets, "dechets_quantite": dechets_quantite, "pollution": pollution, "pollution_sante": pollution_sante, "climat": climat, "sols_pollues": sols_pollues,
 		"immobilier_vivant": immobilier_vivant, "bidonvilles": bidonvilles,
 		"elections": elections, "manifestations": manifestations, "funeraire": funeraire, "recherche_parc": recherche_parc, "cremation": cremation, "reseaux_obligatoires": reseaux_obligatoires, "prix_services": prix_services,
-		"fondation": fondation, "rue_fondation": rue_fondation, "services_fondation": services_fondation, "territoire": territoire, "fondateurs": fondateurs, "vivres_jours": vivres_jours, "main_oeuvre": main_oeuvre,
+		"fondation": fondation, "rue_fondation": rue_fondation, "promoteurs_prives": promoteurs_prives, "services_fondation": services_fondation, "territoire": territoire, "fondateurs": fondateurs, "vivres_jours": vivres_jours, "main_oeuvre": main_oeuvre,
 		"tutoriel": tutoriel, "objectifs_ecran": objectifs_ecran,
 		"annee_depart": annee_depart, "rythme_histoire": rythme_histoire, "histoire_debut": histoire_debut, "histoire_saut": histoire_saut}
 
@@ -338,6 +342,7 @@ func from_dict(d: Dictionary) -> void:
 	acces_route = bool(d.get("acces_route", true))
 	fondation = bool(d.get("fondation", true))
 	rue_fondation = bool(d.get("rue_fondation", true))
+	promoteurs_prives = bool(d.get("promoteurs_prives", true))
 	services_fondation = bool(d.get("services_fondation", true))
 	territoire = bool(d.get("territoire", true))
 	fondateurs = clampi(int(d.get("fondateurs", 100)), 0, FONDATEURS_MAX)

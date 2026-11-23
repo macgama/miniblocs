@@ -186,6 +186,7 @@ const SECTIONS := [
 	]],
 	["Budget de la commune", [
 		["M · Mairie", "tableau de bord : ce qu'il faut régler maintenant (avec un bouton qui ouvre le bon panneau), l'état de la ville en 8 tuiles, et tous les menus de gestion ; le fil « À faire » en bas à gauche reprend les alertes"],
+		["Qui paie quoi", "la ville paie les voies, les réseaux et les services publics ; logements, commerces, bureaux, industries, fermes, hôtels et restaurants sont financés par des promoteurs privés, qu'ils poussent dans une zone, soient posés à la main ou dessinés dans l'Atelier (gratuits pour la caisse, zonage compris) ; la ville se rembourse par les impôts. Admin (F10) → Construction pour que la ville paie tout"],
 		["Mairie → Argent (ou Ville → Budget)", "panneau Budget : bilan du mois, impôts votés par le maire, emprunts, entretien et état des voies"],
 		["Impôts", "taxe foncière, impôt des entreprises, impôt sur les bénéfices de 0 à 200 % : plus haut, la caisse se remplit et les habitants râlent"],
 		["Emprunts", "de 100 k€ à 20 M€ sur 5 à 30 ans ; le taux monte avec la dette, plafond de 8 ans de recettes, remboursement anticipé possible"],

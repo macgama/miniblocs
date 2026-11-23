@@ -44,6 +44,8 @@ func _run() -> void:
 	var be: BlockEditor = scene.get_node("Blocs")
 	_check(pe != null and pe.world != null and pe.blocks == be, "éditeur de murs créé et relié")
 	bs.unlimited_money = false
+	# Ce test vérifie qui paie : la ville paie tout (sans promoteurs privés, voir promoteurs_test).
+	ReglagesPartie.actuel.promoteurs_prives = false
 	bs.money = 1_000_000
 
 	print("Pièce et murs :")

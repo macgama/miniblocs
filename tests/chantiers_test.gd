@@ -97,6 +97,8 @@ func _run() -> void:
 	BatimentsVie.chantiers = true
 	bs.require_access = false
 	bs.unlimited_money = false
+	# Ce test vérifie qui paie : la ville paie tout (sans promoteurs privés, voir promoteurs_test).
+	ReglagesPartie.actuel.promoteurs_prives = false
 	bs.money = 10_000_000
 	var m0 := bs.money
 	# Surcoût des matériaux importés (pas de carrière sur cette carte) : payé en plus du prix.

@@ -82,6 +82,8 @@ func _run() -> void:
 	amb.set_speed(0)
 	amb.unix_time = _at("2026-03-10", 10.0)
 	bs.unlimited_money = false
+	# Ce test vérifie qui paie : la ville paie tout (sans promoteurs privés, voir promoteurs_test).
+	ReglagesPartie.actuel.promoteurs_prives = false
 	bs.money = 20_000_000
 
 	print("Pièces et pose case par case :")

@@ -62,6 +62,8 @@ func _run() -> void:
 	_check(mp != null and ModePlan.instance == mp, "nœud ModePlan")
 	bs.require_access = false
 	bs.unlimited_money = false
+	# Ce test vérifie les prix : la ville paie tout (sans promoteurs privés, voir promoteurs_test).
+	ReglagesPartie.actuel.promoteurs_prives = false
 	h.vider()
 
 	print("Bâtiments :")

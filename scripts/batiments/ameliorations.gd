@@ -315,7 +315,13 @@ func refus_agrandir(bid: int) -> String:
 		return "Attends la fin de son chantier."
 	if not en_cours(bid).is_empty():
 		return "Des travaux sont déjà en cours."
-	return _refus_argent(b, cout(bid, niveau(b) + 1))
+	return "" if prive(bid) else _refus_argent(b, cout(bid, niveau(b) + 1))
+
+
+## Bâtiment privé : son propriétaire paie ses travaux, pas la caisse de la ville.
+func prive(bid: int) -> bool:
+	var b: Dictionary = buildings.buildings.get(bid, {})
+	return not b.is_empty() and BuildingCatalog.est_prive(String(b.t))
 
 
 func refus_renover(bid: int) -> String:
@@ -328,7 +334,7 @@ func refus_renover(bid: int) -> String:
 		return "Des travaux sont déjà en cours."
 	if usure(bid) < USURE_RENOV:
 		return "Encore en bon état."
-	return _refus_argent(b, cout(bid, 0))
+	return "" if prive(bid) else _refus_argent(b, cout(bid, 0))
 
 
 ## La caisse peut-elle payer au moins la première semaine de travaux ?
@@ -353,9 +359,10 @@ func agrandir(bid: int) -> bool:
 		return false
 	var b: Dictionary = buildings.buildings[bid]
 	var cible := niveau(b) + 1
-	_lancer(bid, "niv", cible, cout(bid, cible), false)
-	message.emit("Agrandissement de %s lancé (niveau %d) : %s, payés au fil des travaux. Fin vers le %s." % [
-		_nom(bid), cible, BuildingSystem.format_money(cout(bid, cible)), _date_fin(bid)])
+	var pv := prive(bid)
+	_lancer(bid, "niv", cible, cout(bid, cible), pv)
+	message.emit("Agrandissement de %s lancé (niveau %d) : %s. Fin vers le %s." % [
+		_nom(bid), cible, ("%s payés par le propriétaire" if pv else "%s, payés au fil des travaux") % BuildingSystem.format_money(cout(bid, cible)), _date_fin(bid)])
 	return true
 
 
@@ -366,8 +373,10 @@ func renover(bid: int) -> bool:
 	if why != "":
 		message.emit(why)
 		return false
-	_lancer(bid, "renov", 0, cout(bid, 0), false)
-	message.emit("Rénovation de %s lancée : %s. Fin vers le %s." % [_nom(bid), BuildingSystem.format_money(cout(bid, 0)), _date_fin(bid)])
+	var pv := prive(bid)
+	_lancer(bid, "renov", 0, cout(bid, 0), pv)
+	message.emit("Rénovation de %s lancée : %s%s. Fin vers le %s." % [_nom(bid), BuildingSystem.format_money(cout(bid, 0)),
+		" payés par le propriétaire" if pv else "", _date_fin(bid)])
 	return true
 
 

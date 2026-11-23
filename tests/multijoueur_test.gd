@@ -196,6 +196,8 @@ func _sections_partagees(a: ClientAmis, b: ClientAmis, scene: Node, vid: int) ->
 	a.info_recue.connect(func(t: String) -> void: print("      (serveur → Alice) ", t))
 	# Alice zone : le zonage part au serveur, et le serveur le fait payer à sa ville.
 	await _attendre(func() -> bool: return false, 1.2)
+	# Ce test vérifie qui paie : la ville paie tout (sans promoteurs privés, voir promoteurs_test).
+	ReglagesPartie.actuel.promoteurs_prives = false
 	var avant := bs.money
 	a._input(_touche())
 	var zid: int = scene.zones.add_zone("R", Rect2i(10, 70, 20, 20))

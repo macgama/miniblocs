@@ -383,11 +383,23 @@ const STAIR_PRICE := 1500
 
 ## Les prix des murs et étages sont des prix de base : le coût de la partie
 ## (ReglagesPartie.cout_construction) s'applique au moment de payer.
-func _can_pay(amount: int) -> bool:
-	return buildings == null or buildings.unlimited_money or buildings.money >= ReglagesPartie.prix(amount)
+## Optionnel : Callable(id du plan) -> bool, vrai quand la caisse de la ville paie ce
+## bâtiment (service public). Faux : bâtiment privé, ses murs ne coûtent rien à la
+## ville (ReglagesPartie.promoteurs_prives). Branché par terre_main sur Mobilier.
+var paie_ville: Callable
 
 
-func _pay(amount: int) -> void:
+func _gratuit(id: String) -> bool:
+	return id != "" and paie_ville.is_valid() and not bool(paie_ville.call(id))
+
+
+func _can_pay(amount: int, id := "") -> bool:
+	return buildings == null or buildings.unlimited_money or _gratuit(id) or buildings.money >= ReglagesPartie.prix(amount)
+
+
+func _pay(amount: int, id := "") -> void:
+	if _gratuit(id):
+		return
 	if buildings != null and not buildings.unlimited_money:
 		buildings.money -= ReglagesPartie.prix(amount)
 		depense += ReglagesPartie.prix(amount)
@@ -739,7 +751,7 @@ func add_walls(id: String, keys: Array, code := -1) -> int:
 			message.emit(reason)
 		return 0
 	var cost := todo.size() * wall_price(BlocFormes.mat_of(code))
-	if not _can_pay(cost):
+	if not _can_pay(cost, id):
 		message.emit("Pas assez d'argent : %s nécessaires." % BuildingSystem.format_money(ReglagesPartie.prix(cost)))
 		return 0
 	var before: Variant = _snapshot(id)
@@ -748,7 +760,7 @@ func add_walls(id: String, keys: Array, code := -1) -> int:
 		return 0
 	for kw in todo:
 		plans[id].walls[kw] = {"a": code, "b": code, "o": "", "om": 0, "op": false}
-	_pay(cost)
+	_pay(cost, id)
 	_push_undo(id, before, cost)
 	_after_change(id)
 	return todo.size()
@@ -779,14 +791,14 @@ func add_floors(id: String, rect: Rect2i, e: int, code := -1, replace := false) 
 			message.emit(reason)
 		return 0
 	var cost := todo.size() * floor_price(BlocFormes.mat_of(code))
-	if not _can_pay(cost):
+	if not _can_pay(cost, id):
 		message.emit("Pas assez d'argent : %s nécessaires." % BuildingSystem.format_money(ReglagesPartie.prix(cost)))
 		return 0
 	var before: Variant = _snapshot(id)
 	for k in todo:
 		var old: Dictionary = p.floors.get(k, {})
 		p.floors[k] = {"t": code, "u": int(old.get("u", BlocFormes.encode(CEILING_MAT)))}
-	_pay(cost)
+	_pay(cost, id)
 	_push_undo(id, before, cost)
 	_after_change(id)
 	return todo.size()
@@ -824,7 +836,7 @@ func add_room(id: String, rect: Rect2i, e: int, n := 1, payer := true) -> bool:
 	var cost := walls.size() * wall_price(material) + floors.size() * floor_price(BlocFormes.mat_of(fcode))
 	if not payer:
 		cost = 0
-	if not _can_pay(cost):
+	if not _can_pay(cost, id):
 		message.emit("Pas assez d'argent : %s nécessaires." % BuildingSystem.format_money(ReglagesPartie.prix(cost)))
 		return false
 	var before: Variant = _snapshot(id)
@@ -832,7 +844,7 @@ func add_room(id: String, rect: Rect2i, e: int, n := 1, payer := true) -> bool:
 		p.walls[k] = {"a": wcode, "b": wcode, "o": "", "om": 0, "op": false}
 	for k in floors:
 		p.floors[k] = {"t": int(fcodes.get((k as Vector3i).y, fcode)), "u": BlocFormes.encode(CEILING_MAT)}
-	_pay(cost)
+	_pay(cost, id)
 	_push_undo(id, before, cost)
 	_after_change(id)
 	return true
@@ -851,7 +863,7 @@ func set_opening_at(id: String, k: Vector4i, kind: String) -> bool:
 		cost += wall_price(material)
 	elif String(p.walls[k].o) == kind:
 		return false
-	if not _can_pay(cost):
+	if not _can_pay(cost, id):
 		message.emit("Pas assez d'argent : %s nécessaires." % BuildingSystem.format_money(ReglagesPartie.prix(cost)))
 		return false
 	var before: Variant = _snapshot(id)
@@ -860,7 +872,7 @@ func set_opening_at(id: String, k: Vector4i, kind: String) -> bool:
 	p.walls[k].o = kind
 	p.walls[k].om = _opening_material(kind)
 	p.walls[k].op = false
-	_pay(cost)
+	_pay(cost, id)
 	_push_undo(id, before, cost)
 	_after_change(id, false)
 	_mark(id, k.y)
@@ -876,11 +888,11 @@ func paint_wall(id: String, k: Vector4i, side: String) -> bool:
 	if int(p.walls[k][side]) == code:
 		return false
 	var cost := maxi(1, wall_price(material) / 3)
-	if not _can_pay(cost):
+	if not _can_pay(cost, id):
 		return false
 	var before: Variant = _snapshot(id)
 	p.walls[k][side] = code
-	_pay(cost)
+	_pay(cost, id)
 	_push_undo(id, before, cost)
 	_after_change(id, false)
 	_mark(id, k.y)
@@ -917,7 +929,7 @@ func paint_rect(id: String, rect: Rect2i, e: int) -> int:
 	if n == 0:
 		return 0
 	var cost := n * maxi(1, wall_price(material) / 3)
-	_pay(cost)
+	_pay(cost, id)
 	_push_undo(id, before, cost)
 	_after_change(id, false)
 	_mark(id, e)
@@ -934,7 +946,7 @@ func paint_floor(id: String, k: Vector3i) -> bool:
 	var before: Variant = _snapshot(id)
 	p.floors[k].t = code
 	var cost := maxi(1, floor_price(material) / 2)
-	_pay(cost)
+	_pay(cost, id)
 	_push_undo(id, before, cost)
 	_after_change(id, false)
 	_mark(id, k.y)
@@ -959,7 +971,7 @@ func add_stairs(id: String, c: Vector2i, e: int, r: int) -> bool:
 			message.emit(reason)
 			return false
 	var cost := STAIR_PRICE
-	if not _can_pay(cost):
+	if not _can_pay(cost, id):
 		message.emit("Pas assez d'argent : %s nécessaires." % BuildingSystem.format_money(ReglagesPartie.prix(cost)))
 		return false
 	var before: Variant = _snapshot(id)
@@ -970,7 +982,7 @@ func add_stairs(id: String, c: Vector2i, e: int, r: int) -> bool:
 		var fk := Vector3i(sc.x, e, sc.y)
 		if not p.floors.has(fk):
 			p.floors[fk] = {"t": BlocFormes.encode(BASEMENT_MAT if e < 0 else FLOOR_MAT), "u": BlocFormes.encode(CEILING_MAT)}
-	_pay(cost)
+	_pay(cost, id)
 	_push_undo(id, before, cost)
 	_after_change(id)
 	return true
@@ -1008,13 +1020,13 @@ func add_amenagement(id: String, rect: Rect2i, e: int, kind: String, r := 0) -> 
 				message.emit(reason)
 				return false
 	var cost := Amenagements.price(kind, rect.size.x, rect.size.y, r)
-	if not _can_pay(cost):
+	if not _can_pay(cost, id):
 		message.emit("Pas assez d'argent : %s nécessaires." % BuildingSystem.format_money(ReglagesPartie.prix(cost)))
 		return false
 	var before: Variant = _snapshot(id)
 	var m := BlocFormes.encode(material, 0, 0, tint) if amenag_own_mat else -1
 	p.am[Vector3i(rect.position.x, e, rect.position.y)] = {"k": kind, "w": rect.size.x, "d": rect.size.y, "r": r % 4, "m": m}
-	_pay(cost)
+	_pay(cost, id)
 	_push_undo(id, before, cost)
 	_after_change(id)
 	message.emit("%s · %s" % [Amenagements.describe(kind, rect.size.x, rect.size.y, r), BuildingSystem.format_money(ReglagesPartie.prix(cost))])
@@ -1038,7 +1050,7 @@ func erase_at(id: String, hit: Dictionary, only_opening := false) -> bool:
 			back += roundi(int(OPENINGS[w.o].price) * REFUND)
 			if only_opening:
 				w.o = ""
-				_pay(-back)
+				_pay(-back, id)
 				_push_undo(id, before, -back)
 				_after_change(id, false)
 				_mark(id, e)
@@ -1064,7 +1076,7 @@ func erase_at(id: String, hit: Dictionary, only_opening := false) -> bool:
 				return false
 			back += roundi(floor_price(BlocFormes.mat_of(int(p.floors[fk].t))) * REFUND)
 			p.floors.erase(fk)
-	_pay(-back)
+	_pay(-back, id)
 	_push_undo(id, before, -back)
 	_after_change(id)
 	return true
@@ -1109,7 +1121,7 @@ func erase_rect(id: String, rect: Rect2i, e: int) -> int:
 				n += 1
 	if n == 0:
 		return 0
-	_pay(-back)
+	_pay(-back, id)
 	_push_undo(id, before, -back)
 	_after_change(id)
 	return n
@@ -1180,7 +1192,7 @@ func copy_level_up(id: String, e: int, n := 1) -> int:
 	if add_w.is_empty() and add_f.is_empty():
 		message.emit("L'étage du dessus est déjà construit.")
 		return 0
-	if not _can_pay(cost):
+	if not _can_pay(cost, id):
 		message.emit("Pas assez d'argent : %s nécessaires." % BuildingSystem.format_money(ReglagesPartie.prix(cost)))
 		return 0
 	var before: Variant = _snapshot(id)
@@ -1190,7 +1202,7 @@ func copy_level_up(id: String, e: int, n := 1) -> int:
 		p.floors[k] = add_f[k]
 	for k in add_s:
 		p.stairs[k] = add_s[k]
-	_pay(cost)
+	_pay(cost, id)
 	_push_undo(id, before, cost)
 	_after_change(id)
 	return n
@@ -1262,7 +1274,7 @@ func undo() -> bool:
 		plans[id].dug = {}
 		if not _bbox.has(id):
 			_bbox[id] = Rect2i()
-	_pay(-int(op.cost))
+	_pay(-int(op.cost), id)
 	_after_change(id)
 	return true
 

@@ -146,7 +146,7 @@ func _card(id: String, bp: BuildingPanel) -> Control:
 	if plan and not BuildingCatalog.get_type(cid).is_empty():
 		var t := BuildingCatalog.get_type(cid)
 		var fl := _label("Fonction : %s · %d × %d m · %s" % [ModelesJeu.fonction_name(ModelesJeu.fonction_of(d)), int(t.w), int(t.d),
-			BuildingSystem.format_short(ReglagesPartie.prix(BuildingCatalog.cost(cid)))], 12)
+			"privé (gratuit pour la ville)" if BuildingCatalog.est_prive(cid) else BuildingSystem.format_short(ReglagesPartie.prix(BuildingCatalog.cost(cid)))], 12)
 		fl.add_theme_color_override("font_color", UiStyle.GOOD)
 		fl.tooltip_text = FonctionChoix._resume(t)
 		fl.mouse_filter = Control.MOUSE_FILTER_PASS

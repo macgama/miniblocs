@@ -238,6 +238,10 @@ func _hauteur(id: String, x: float, z: float) -> float:
 		if not is_nan(s):
 			return s
 		return world.sea_level()
+	if Decors.sur_toit(id) and buildings:
+		var t := buildings.hauteur_toit(Vector2i(floori(x), floori(z)))
+		if not is_nan(t):
+			return t
 	var h := world.cell_height(Vector2i(floori(x), floori(z)))
 	if is_nan(h):
 		return NAN
@@ -963,7 +967,15 @@ func _pick(pos: Vector2) -> Variant:
 	var cam := get_viewport().get_camera_3d()
 	if cam == null:
 		return null
-	return world.pick_point(cam.project_ray_origin(pos), cam.project_ray_normal(pos))
+	var o := cam.project_ray_origin(pos)
+	var n := cam.project_ray_normal(pos)
+	# Décor de toit : on vise le bâtiment lui-même (sa boîte de collision).
+	if outil == Outil.POSER and Decors.sur_toit(choix) and is_inside_tree():
+		var q := PhysicsRayQueryParameters3D.create(o, o + n * 4000.0)
+		var hit := get_world_3d().direct_space_state.intersect_ray(q)
+		if not hit.is_empty() and hit.collider is Node and String((hit.collider as Node).get_parent().name).begins_with("Batiment_"):
+			return (hit.position as Vector3) + n * 0.05
+	return world.pick_point(o, n)
 
 
 func _unhandled_input(event: InputEvent) -> void:

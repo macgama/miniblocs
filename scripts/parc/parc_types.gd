@@ -231,6 +231,12 @@ static func cheval(k: BlocMesh, col: Color) -> void:
 # --- Modèles fixes ------------------------------------------------------------------------------
 
 static func build(k: BlocMesh, id: String, t: Dictionary) -> void:
+	_build_base(k, id, t)
+	# Habillage « fête foraine » : socle bordé, réverbères, fanions, massifs.
+	ParcDeco.habiller(k, null, id, t)
+
+
+static func _build_base(k: BlocMesh, id: String, t: Dictionary) -> void:
 	var w := float(t.w)
 	var d := float(t.d)
 	if t.has("voie_famille"):
@@ -335,23 +341,49 @@ static func build(k: BlocMesh, id: String, t: Dictionary) -> void:
 			guichet(k, -10.0, -7.4, Color("3d2b1f"))
 		"train_fantome":
 			k.plate(0, 0, w, d, Color("5c5346"))
-			var mur := Color("4a3b5c")
-			k.box(0, 0, 2.0, 18.0, 7.0, 12.0, mur)
-			k.gable(0, 7.0, 2.0, 18.6, 12.6, 4.0, Color("2b2d42"))
-			# Tour de travers.
-			k.box(7.0, 0, 5.0, 4.0, 13.0, 4.0, mur.darkened(0.1))
-			k.pyramid(7.0, 13.0, 5.0, 4.8, 4.8, 4.0, Color("2b2d42"))
+			# Château hanté de fête foraine : murs violets, créneaux, tourelles
+			# à toits pointus rouges et orange, fenêtres vertes, citrouilles.
+			var mur := Color("8a6bbf")
+			var pierre := Color("8d99ae")
+			k.box(0, 0, 2.0, 18.4, 0.6, 12.4, pierre)
+			k.box(0, 0.6, 2.0, 18.0, 6.4, 12.0, mur)
+			for i in 12:
+				var x := -8.25 + i * 1.5
+				k.box(x, 7.0, -4.0, 0.8, 0.7, 0.5, mur.lightened(0.08))
+				k.box(x, 7.0, 8.0, 0.8, 0.7, 0.5, mur.lightened(0.08))
+			k.box(0, 7.0, 2.0, 17.0, 0.1, 11.0, Color("3c2a4d"))
+			var toits := [ROUGE, ORANGE, ROUGE, ORANGE]
+			var coins := [Vector2(-8.6, -3.6), Vector2(8.6, -3.6), Vector2(-8.6, 7.6), Vector2(1.0, 7.6)]
+			for c in 4:
+				var p: Vector2 = coins[c]
+				k.cylinder(p.x, 0, p.y, 1.4, 1.3, 9.0, 10, mur.darkened(0.08))
+				k.cylinder(p.x, 9.0, p.y, 1.7, 1.7, 0.3, 10, pierre)
+				k.cylinder(p.x, 9.3, p.y, 1.75, 0.0, 3.6, 10, toits[c])
+				k.box(p.x, 4.5, p.y - 1.35, 0.5, 0.9, 0.08, Color("b5e48c"))
+			# Grande tour de travers avec son drapeau.
+			k.box(7.0, 0, 5.0, 4.0, 13.0, 4.0, mur.darkened(0.12))
+			k.pyramid(7.0, 13.0, 5.0, 4.8, 4.8, 4.5, ROUGE)
+			k.cylinder(7.0, 17.5, 5.0, 0.06, 0.06, 2.0, 4, METAL_F)
+			k.box(7.6, 18.9, 5.0, 1.2, 0.7, 0.05, JAUNE)
 			var lueur := Color("b5e48c")
-			k.windows_row(0, -4.05, 14.0, 4.2, 5, 1.0, 1.4, lueur)
+			k.windows_row(0, -4.05, 14.0, 4.0, 5, 1.0, 1.4, lueur)
 			k.windows_row(7.0, 2.95, 3.0, 9.0, 1, 1.0, 1.4, lueur)
-			# Porte d'entrée et de sortie des wagonnets, rails.
+			# Portes (entrée et sortie des wagonnets) sous une marquise de fête.
 			for x in [-4.5, 3.0]:
 				k.box(x, 0, -4.05, 2.6, 3.0, 0.1, Color("111111"))
-				k.box(x, 3.0, -4.06, 3.2, 0.5, 0.1, ROUGE)
+				k.box(x, 3.0, -4.15, 3.4, 0.6, 0.2, JAUNE)
+				k.box(x, 3.1, -4.27, 2.8, 0.4, 0.05, ROUGE)
+			k.box(-0.75, 3.9, -4.3, 10.6, 1.3, 0.3, VIOLET)
+			for i in 7:
+				k.box(-5.25 + i * 1.5, 4.1, -4.47, 0.9, 0.9, 0.05, VIFS[i % VIFS.size()])
 			k.box(-0.75, 0.0, -5.5, 9.0, 0.12, 0.8, METAL_F)
-			# Pierres tombales.
+			# Pierres tombales et citrouilles.
 			for i in 5:
-				k.box(-9.0 + i * 1.4, 0, -6.5, 0.8, 1.0 + 0.2 * (i % 2), 0.25, Color("8d99ae"))
+				k.box(-9.0 + i * 1.4, 0, -6.5, 0.8, 1.0 + 0.2 * (i % 2), 0.25, Color("ced4da"))
+			for i in 4:
+				var x := 5.5 + i * 1.1
+				k.dome(x, 0, -5.4, 0.42, 0.55, ORANGE, 8)
+				k.box(x, 0.5, -5.4, 0.08, 0.2, 0.08, Color("2d6a4f"))
 			guichet(k, 9.0, -7.5, VIOLET)
 		"tour_chute":
 			k.plate(0, 0, w, d, PAVE)
@@ -390,21 +422,24 @@ static func build(k: BlocMesh, id: String, t: Dictionary) -> void:
 				k.tree(-20.0 + i * 6.0, 3.0 + (i % 3) * 2.0, 0.9 + 0.1 * (i % 2), Color("40916c"))
 		"friterie_parc":
 			k.plate(0, 0, w, d, PAVE)
-			k.box(0, 0, 0.5, 6.0, 3.0, 4.5, BLANC)
+			_kiosque(k, 6.0, 4.5, 0.5, 3.0, ROUGE, JAUNE, BLANC)
 			k.box(0, 1.0, -1.77, 4.6, 1.2, 0.05, VITRE)
 			_store(k, -1.8, 6.6, JAUNE, ROUGE)
-			k.box(0, 0, -2.4, 5.0, 1.0, 0.6, Color("e9e2c8"))
+			_comptoir(k, -2.4, 5.0, Color("e9e2c8"), ROUGE)
+			_menu(k, 2.3, -1.8, JAUNE)
 		"glacier_parc":
 			k.plate(0, 0, w, d, PAVE)
-			k.box(0, 0, 0.4, 4.4, 2.8, 3.6, Color("caf0f8"))
+			_kiosque(k, 4.4, 3.6, 0.4, 2.8, ROSE, Color("caf0f8"), BLANC)
 			k.box(0, 1.0, -1.42, 3.2, 1.1, 0.05, VITRE)
 			_store(k, -1.45, 5.0, ROSE, BLANC)
+			_comptoir(k, -1.95, 3.6, BLANC, ROSE)
 		"buvette_parc":
 			k.plate(0, 0, w, d, PAVE)
-			k.box(0, 0, 0.5, 6.0, 3.0, 4.5, Color("d8f3dc"))
+			_kiosque(k, 6.0, 4.5, 0.5, 3.0, VERT, Color("d8f3dc"), BLANC)
 			k.box(0, 1.0, -1.77, 4.6, 1.2, 0.05, VITRE)
 			_store(k, -1.8, 6.6, VERT, BLANC)
-			k.box(0, 0, -2.4, 5.0, 1.0, 0.6, BOIS)
+			_comptoir(k, -2.4, 5.0, BOIS, VERT)
+			_menu(k, 2.3, -1.8, Color("4cc9f0"))
 		"boutique_souvenirs":
 			k.plate(0, 0, w, d, PAVE)
 			k.box(0, 0, 0.5, 10.0, 3.6, 8.0, Color("ffe8d6"))
@@ -412,6 +447,13 @@ static func build(k: BlocMesh, id: String, t: Dictionary) -> void:
 			k.windows_row(0, -3.55, 8.0, 0.8, 2, 2.4, 2.0, VITRE)
 			k.box(0, 0, -3.55, 1.6, 2.6, 0.1, BOIS)
 			k.box(0, 3.0, -3.6, 6.0, 0.6, 0.05, JAUNE)
+			for sx in [-1.0, 1.0]:
+				for e in [-1.0, 1.0]:
+					k.box(sx * 2.67 + e * 1.45, 0.8, -3.58, 0.45, 2.0, 0.06, Color("4cc9f0"))
+			var n_st := 10
+			for i in n_st:
+				var x0 := -5.0 + i * 1.0
+				k.panel(Vector3(x0, 3.55, -3.55), Vector3(x0 + 1.0, 3.55, -3.55), Vector3(x0 + 1.0, 3.0, -4.6), Vector3(x0, 3.0, -4.6), Vector3(0, 1, -1), ROSE if i % 2 == 0 else BLANC)
 			# Grappe de ballons devant la porte.
 			for i in 7:
 				var a := float(i) * 0.9
@@ -424,6 +466,7 @@ static func build(k: BlocMesh, id: String, t: Dictionary) -> void:
 			k.box(-1.8, 0, -1.96, 1.0, 2.1, 0.06, Color("4895ef"))
 			k.box(1.8, 0, -1.96, 1.0, 2.1, 0.06, ROSE)
 			k.box(0, 2.3, -1.99, 1.0, 0.5, 0.04, BLANC)
+			k.hip(0, 3.3, 0.3, 7.4, 5.0, 1.0, Color("4cc9f0"))
 		"aire_repos_parc":
 			k.plate(0, 0, w, d, Color("8ab17d"))
 			k.plate(0, 0, 8.0, 8.0, PAVE, 0.0, 0.1)
@@ -453,6 +496,56 @@ static func build(k: BlocMesh, id: String, t: Dictionary) -> void:
 		_:
 			k.plate(0, 0, w, d, PAVE)
 			k.box(0, 0, 0, w * 0.5, 4, d * 0.5, BLANC)
+
+
+## Kiosque de stand : murs à rayures verticales, soubassement, corniche
+## festonnée et toit à quatre pans (façade côté −Z).
+static func _kiosque(k: BlocMesh, larg: float, prof: float, zc: float, h: float, c1: Color, c2: Color, toit: Color) -> void:
+	var z0 := zc - prof / 2.0
+	var z1 := zc + prof / 2.0
+	k.box(0, 0, zc, larg, h, prof, c2)
+	k.box(0, 0, zc, larg + 0.1, 0.4, prof + 0.1, c1.darkened(0.25))
+	# Rayures verticales sur la façade, les côtés et l'arrière.
+	var n := int(larg / 0.6)
+	for i in n:
+		if i % 2 == 0:
+			continue
+		var x := -larg / 2.0 + (i + 0.5) * larg / n
+		k.box(x, 0.4, z0 - 0.03, larg / n, h - 0.4, 0.04, c1)
+		k.box(x, 0.4, z1 + 0.03, larg / n, h - 0.4, 0.04, c1)
+	var m := int(prof / 0.6)
+	for i in m:
+		if i % 2 == 0:
+			continue
+		var z := z0 + (i + 0.5) * prof / m
+		for sx in [-1.0, 1.0]:
+			k.box(sx * (larg / 2.0 + 0.03), 0.4, z, 0.04, h - 0.4, prof / m, c1)
+	# Corniche, lambrequin et toit.
+	k.box(0, h, zc, larg + 0.5, 0.3, prof + 0.5, toit)
+	var nl := int((larg + 0.5) / 0.5)
+	for i in nl:
+		var x := -(larg + 0.5) / 2.0 + (i + 0.5) * (larg + 0.5) / nl
+		k.tri(Vector3(x - 0.25, h, z1 + 0.26), Vector3(x + 0.25, h, z1 + 0.26), Vector3(x, h - 0.3, z1 + 0.26), Vector3.BACK, c1 if i % 2 == 0 else toit)
+	k.hip(0, h + 0.3, zc, larg + 0.5, prof + 0.5, 0.9, c1)
+
+
+## Comptoir devant le stand, avec bandeau de couleur et deux tabourets.
+static func _comptoir(k: BlocMesh, z: float, larg: float, col: Color, bande: Color) -> void:
+	k.box(0, 0, z, larg, 1.0, 0.6, col)
+	k.box(0, 1.0, z, larg + 0.1, 0.08, 0.7, Color("8d6e63"))
+	k.box(0, 0.45, z - 0.31, larg, 0.25, 0.03, bande)
+	for x in [-larg * 0.3, larg * 0.3]:
+		k.cylinder(x, 0, z - 0.75, 0.05, 0.05, 0.65, 5, METAL_F)
+		k.cylinder(x, 0.65, z - 0.75, 0.2, 0.2, 0.08, 8, bande)
+
+
+## Petit tableau du menu sur pied, à côté du stand.
+static func _menu(k: BlocMesh, x: float, z: float, cadre: Color) -> void:
+	k.box(x, 0, z, 0.06, 1.0, 0.06, BOIS)
+	k.box(x, 1.0, z, 0.9, 0.7, 0.08, cadre)
+	k.box(x, 1.06, z - 0.05, 0.75, 0.58, 0.02, Color("2b2d42"))
+	for i in 3:
+		k.box(x - 0.1, 1.42 - i * 0.15, z - 0.065, 0.45, 0.04, 0.01, BLANC)
 
 
 ## Auvent rayé du stand (devant, côté −Z) et support de l'enseigne au-dessus.
@@ -524,6 +617,18 @@ static func _nacelle(col: Color) -> BlocMesh:
 
 ## Parties mobiles d'un objet du parc (vide si rien ne bouge).
 static func build_anim(id: String) -> Node3D:
+	var root := _anim_base(id)
+	var l := ParcDeco.lumieres(BuildingCatalog.base_of(id))
+	if l == null:
+		return root
+	if root == null:
+		root = Node3D.new()
+		root.name = "Anim"
+	root.add_child(l)
+	return root
+
+
+static func _anim_base(id: String) -> Node3D:
 	# Un modèle de l'atelier garde son apparence : pas de pièces mobiles ajoutées.
 	var spec := {} if ModelesJeu.is_model(id) else spec_of(id)
 	var extra := ParcExtras.build_anim(id, spec)
@@ -725,7 +830,7 @@ static func build_anim(id: String) -> Node3D:
 					k.cylinder(0.3, 2.4, 0, 0.08, 0.08, 1.2, 4, Color("ffc93c"))
 			var s := _mi(k, "enseigne")
 			var z := -1.45 if id == "glacier_parc" else -1.8
-			s.position = Vector3(0, 3.3 if id != "glacier_parc" else 2.8, z + 2.0)
+			s.position = Vector3(0, 4.1 if id != "glacier_parc" else 3.9, z + 2.0)
 			root.add_child(s)
 	if root.get_child_count() == 0:
 		root.free()

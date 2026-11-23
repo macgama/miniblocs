@@ -283,6 +283,7 @@ func _reconstruire() -> void:
 	diorama.construire(genre, st.niv, gestion.etoiles(bid), st.obj, st.pannes, gestion.nom(bid))
 	diorama.placer_employes(_employes())
 	diorama.surligner(selection)
+	GestionEssorVue.poser_trophees(self)
 	_maj_engins(false)
 
 
@@ -1122,6 +1123,7 @@ func _carte_personnel() -> void:
 		r2.add_child(b)
 	if not pannes.is_empty():
 		_texte("Chaque panne fait baisser le moral et la note tous les jours." if _ville() else "Chaque panne fait baisser la satisfaction des clients tous les jours.", true, 12)
+	GestionEssorVue.carte_equipe(self)
 
 
 func _reparer(i: int) -> void:

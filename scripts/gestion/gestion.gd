@@ -191,7 +191,7 @@ func niveau(bid: int, pid: String) -> int:
 
 
 func niveau_max(bid: int, pid: String) -> int:
-	return int(GestionTypes.piece(genre_of(bid), pid).get("max", 5))
+	return int(GestionTypes.piece(genre_of(bid), pid).get("max", 5)) + GestionPlus.extensions(self, bid)
 
 
 ## Niveaux gagnés au-dessus du départ.
@@ -696,7 +696,7 @@ func nouveau_jour(now: Dictionary = {}) -> void:
 		if rng.randf() < CHANCE_PANNE * _nb_pieces(bid) * usure * (1.0 - 0.12 * float(st.formation)) * (0.6 if niveau(bid, "direction") >= 3 or niveau(bid, "bureau") >= 3 else 1.0) * GestionEssor.facteur_pannes(self, bid):
 			nouvelle_panne(bid)
 		_evenements(bid, st, month)
-		GestionEssor.journee(self, bid, st)
+		GestionEssor.journee(self, bid, st, month)
 		if bool(st.auto):
 			gerer_auto(bid)
 

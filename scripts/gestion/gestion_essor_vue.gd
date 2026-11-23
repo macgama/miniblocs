@@ -141,6 +141,7 @@ static func carte_essor(v: GestionVue) -> void:
 		l.add_theme_color_override("font_color", UiStyle.GOOD)
 	for t in GestionEssor.prochains_paliers(g, bid):
 		v._texte("○ " + String(t), true, 12)
+	carte_argent(v)
 
 
 static func _effets_txt(eff: Dictionary) -> String:
@@ -188,6 +189,7 @@ static func carte_avis(v: GestionVue) -> void:
 		v._texte("Pas encore d'avis : ils arrivent au fil des jours.", true, 12)
 	for a in (e.avis as Array).slice(0, 8):
 		v._texte("%s  %s, jour %d : « %s »" % ["★".repeat(int(a[1])) + "☆".repeat(5 - int(a[1])), String(a[2]), int(a[0]), String(a[3])], false, 12)
+	carte_segments(v)
 	v._carte_corps.add_child(HSeparator.new())
 	var cl := GestionEssor.concurrents(g, bid)
 	var rg := GestionEssor.rang(g, bid)
@@ -207,3 +209,230 @@ static func carte_avis(v: GestionVue) -> void:
 		var l := v._texte("%d. %s — %.1f / 5, %s%s" % [i, String(c.nom), float(c.note), "★".repeat(int(c.etoiles)), part], false, 12)
 		if bool(c.moi):
 			l.add_theme_color_override("font_color", UiStyle.ACCENT)
+
+
+# --- Équipe en personnes (onglet Équipe) ----------------------------------------------------------
+
+static func _ligne_pm(v: GestionVue, texte: String, nom: String, moins: Callable, plus: Callable) -> void:
+	var row := HBoxContainer.new()
+	row.name = nom
+	v._carte_corps.add_child(row)
+	var l := Label.new()
+	l.text = texte
+	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.custom_minimum_size = Vector2(230, 0)
+	l.add_theme_font_size_override("font_size", 12)
+	row.add_child(l)
+	for d in [["moins", "Baisser", moins], ["plus", "Monter", plus]]:
+		var b := UiStyle.icon_button(String(d[0]), String(d[1]), "", 16, 28)
+		b.name = String(d[0]).capitalize()
+		b.pressed.connect(d[2])
+		row.add_child(b)
+
+
+static func carte_equipe(v: GestionVue) -> void:
+	var g := v.gestion
+	var bid := v.bid
+	var e := GestionEssor.es(g.etat(bid))
+	var l := GestionPlus.equipe(g, bid)
+	v._carte_corps.add_child(HSeparator.new())
+	v._titre("Les personnes", 17)
+	v._texte("Moral moyen %.1f / 5 · fatigue %d %% · %d démission(s). Le moral suit le salaire, la formation, la fatigue et les pannes ; trop bas une semaine, la personne s'en va." % [
+		GestionPlus.moral_moyen(g, bid), roundi(GestionPlus.fatigue_moyenne(g, bid)), int(e.demissions)], true, 12)
+	# Vrais noms des employés quand le bâtiment en a.
+	var noms: Array = []
+	for x in v._employes():
+		if not bool(x.get("extra", false)) and String(x.nom) != "":
+			noms.append(String(x.nom))
+	var dem: Dictionary = e.demande
+	if not dem.is_empty() and int(dem.i) < l.size():
+		var qui := String(noms[int(dem.i)]) if int(dem.i) < noms.size() else String(l[int(dem.i)].nom)
+		v._texte("%s demande une augmentation de 10 %% (%s par jour)." % [qui, BuildingSystem.format_money(roundi(GestionPlus.prix_augmentation(g, bid)))], false, 13)
+		var row := HBoxContainer.new()
+		row.name = "Augmentation"
+		v._carte_corps.add_child(row)
+		for c in [[true, "Accorder", "plus"], [false, "Refuser", "fermer"]]:
+			var b := v._bouton(String(c[1]), String(c[2]))
+			b.name = "Augmentation_" + ("oui" if bool(c[0]) else "non")
+			var oui := bool(c[0])
+			b.pressed.connect(func() -> void:
+				GestionPlus.repondre_augmentation(g, bid, oui)
+				v._remplir_carte())
+			row.add_child(b)
+	var pz := int(e.pauses)
+	_ligne_pm(v, "Pauses : %s (plus longues : moins de fatigue, service un peu plus lent)" % GestionPlus.PAUSES[clampi(pz, 0, 2)], "Pauses",
+		func() -> void:
+			GestionPlus.set_pauses(g, bid, pz - 1)
+			v._remplir_carte(),
+		func() -> void:
+			GestionPlus.set_pauses(g, bid, pz + 1)
+			v._remplir_carte())
+	var lib := int(e.mois_fin) <= g.jour
+	v._texte(("Employé du mois : prime de %s, +moral pour lui et toute l'équipe." % BuildingSystem.format_money(GestionPlus.prix_prime(g, bid))) if lib
+		else "Employé du mois déjà élu (encore %d jours)." % (int(e.mois_fin) - g.jour), true, 12)
+	for i in mini(l.size(), 14):
+		var p: Dictionary = l[i]
+		var t: Dictionary = GestionPlus.TRAITS.get(String(p.trait), {})
+		var nm := String(noms[i]) if i < noms.size() else String(p.nom)
+		var txt := "%s — %s (%s) · moral %s · fatigue %d %%%s%s" % [nm, String(t.get("nom", "")), String(t.get("desc", "")), "●".repeat(roundi(float(p.moral))) + "○".repeat(5 - roundi(float(p.moral))),
+			roundi(float(p.fatigue)), (" · +%d %% de salaire" % roundi(float(p.aug) * 100.0)) if float(p.aug) > 0.0 else "", " · ★ employé du mois" if int(p.mois) >= g.jour else ""]
+		var idx := i
+		var b := _ligne_bouton(v, txt, "★", "trophee", "Personne_%d" % i, lib, func() -> void:
+			var r := GestionPlus.employe_du_mois(g, bid, idx)
+			v._dire("Bravo à %s !" % nm if bool(r.ok) else "Impossible : %s." % String(r.get("error", "")))
+			v._remplir_carte())
+		b.tooltip_text = "Élire employé du mois"
+	if l.size() > 14:
+		v._texte("… et %d autres." % (l.size() - 14), true, 12)
+
+
+# --- Argent et bâtiment (onglet Essor) -------------------------------------------------------------
+
+static func carte_argent(v: GestionVue) -> void:
+	var g := v.gestion
+	var bid := v.bid
+	var ville := g.source(bid) == "ville"
+	v._carte_corps.add_child(HSeparator.new())
+	# Prix de chaque service.
+	var sv := GestionPlus.services(g, bid)
+	if not sv.is_empty():
+		v._titre("Prix des services", 17)
+		v._texte("En plus du prix principal : plus cher, chaque client dépense plus mais il est moins content.", true, 12)
+		for pid in sv:
+			var id := String(pid)
+			var f := GestionPlus.tarif(g, bid, id)
+			_ligne_pm(v, "%s : %d %% du prix habituel" % [String(GestionTypes.piece(v.genre, id).get("court", id)), roundi(f * 100.0)], "Tarif_" + id,
+				func() -> void:
+					GestionPlus.changer_tarif(g, bid, id, -1)
+					v._remplir_carte(),
+				func() -> void:
+					GestionPlus.changer_tarif(g, bid, id, 1)
+					v._remplir_carte())
+		v._carte_corps.add_child(HSeparator.new())
+	# Banque.
+	if not ville:
+		v._titre("Banque", 17)
+		var pr := GestionPlus.pret(g, bid)
+		if not pr.is_empty():
+			v._texte("Prêt de %s à %.1f %% : encore %s à rembourser (%s par jour, dans les charges)." % [BuildingSystem.format_money(int(pr.montant)), float(pr.taux) * 100.0,
+				BuildingSystem.format_money(int(pr.reste)), BuildingSystem.format_money(int(pr.jour))], false, 13)
+			var b := v._bouton("Tout rembourser maintenant", "banque")
+			b.name = "Pret_rembourser"
+			b.pressed.connect(func() -> void:
+				var r := GestionPlus.rembourser_pret(g, bid)
+				v._dire("Prêt remboursé." if bool(r.ok) else "Impossible : %s." % String(r.get("error", "")))
+				v._remplir_carte())
+			v._carte_corps.add_child(b)
+		else:
+			v._texte("De l'argent tout de suite sur le compte %s, remboursé chaque jour pendant %d jours avec les intérêts de l'époque." % [v._du(), GestionPlus.PRET_JOURS], true, 12)
+			var o := GestionPlus.offres_pret(g, bid)
+			for i in o.size():
+				var of: Dictionary = o[i]
+				var idx := i
+				_ligne_bouton(v, "%s à %.1f %% : %s par jour (total %s)" % [BuildingSystem.format_money(int(of.montant)), float(of.taux) * 100.0,
+					BuildingSystem.format_money(int(of.jour)), BuildingSystem.format_money(int(of.total))], "Emprunter", "banque", "Pret_%d" % i, true, func() -> void:
+						var r := GestionPlus.emprunter(g, bid, idx)
+						v._dire("Prêt accordé." if bool(r.ok) else "Impossible : %s." % String(r.get("error", "")))
+						v._remplir_haut()
+						v._remplir_carte())
+		v._carte_corps.add_child(HSeparator.new())
+	# Agrandissement.
+	v._titre("Agrandissement", 17)
+	var n := GestionPlus.extensions(g, bid)
+	var px := GestionPlus.prix_extension(g, bid)
+	if px <= 0:
+		v._texte("Agrandi au maximum (%d extensions) : chaque pièce peut monter jusqu'au niveau %d." % [n, 5 + n], false, 13)
+	else:
+		var r := g.repartition(bid, px)
+		var qui := ("payé par %s" % v._le()) if int(r.ville) <= 0 else ("%s par %s, %s avancés par la ville" % [BuildingSystem.format_money(int(r.batiment)), v._le(), BuildingSystem.format_money(int(r.ville))])
+		_ligne_bouton(v, "Extension %d / %d : chaque pièce gagne un niveau possible, et un peu de confort. %s (%s)." % [n + 1, GestionPlus.EXT_MAX, BuildingSystem.format_money(px), qui],
+			"Agrandir", "construire", "Agrandir", true, func() -> void:
+				var res := GestionPlus.agrandir(g, bid)
+				if bool(res.ok):
+					v._dire("Agrandissement inauguré !")
+					v._reconstruire()
+					v._remplir_bas()
+				else:
+					v._dire("Impossible : %s." % String(res.get("error", "")))
+				v._remplir_carte())
+	v._carte_corps.add_child(HSeparator.new())
+	# Trophées.
+	v._titre("Trophées", 17)
+	var tr := GestionPlus.trophees(g, bid)
+	for t in GestionPlus.TROPHEES:
+		var a := String(t.id) in tr
+		var l := v._texte("%s %s" % ["★" if a else "○", String(t.nom)], not a, 12)
+		if a:
+			l.add_theme_color_override("font_color", UiStyle.GOOD)
+
+
+# --- Types de clients (onglet Avis) ----------------------------------------------------------------
+
+static func carte_segments(v: GestionVue) -> void:
+	var g := v.gestion
+	var bid := v.bid
+	var ville := g.source(bid) == "ville"
+	v._carte_corps.add_child(HSeparator.new())
+	v._titre("Qui vient" if not ville else "Pour qui", 17)
+	var pa := GestionPlus.parts(g, bid, GestionPlus.mois(g, bid))
+	for sg in GestionPlus.segments(g, bid):
+		var a := GestionPlus.avis_segment(g, bid, sg)
+		var f := float(a.fit)
+		var aime: Array = []
+		for pid in a.aime:
+			aime.append(String(GestionTypes.piece(v.genre, String(pid)).get("court", pid)).to_lower())
+		var manque: Array = []
+		for pid in (a.manque as Array).slice(0, 2):
+			manque.append(String(GestionTypes.piece(v.genre, String(pid)).get("court", pid)).to_lower())
+		var txt := "%s : %d %% · %s" % [String(sg.nom), roundi(float(pa.get(String(sg.id), 0.0)) * 100.0), "★".repeat(roundi(f * 5.0)) + "☆".repeat(5 - roundi(f * 5.0))]
+		if not aime.is_empty():
+			txt += " · aiment : " + ", ".join(aime.slice(0, 3))
+		if not manque.is_empty():
+			txt += " · aimeraient : " + ", ".join(manque)
+		if float(sg.prix) >= 1.4 and GestionPlus.facteur_prix(g, bid) > 1.15:
+			txt += " · trouvent ça cher"
+		v._texte(txt, false, 12)
+	v._texte("Les parts changent avec la saison (familles et touristes l'été…). Construire et monter les pièces qu'un type aime le rend plus content.", true, 12)
+
+
+# --- Trophées exposés devant l'entrée (maquette) ----------------------------------------------------
+
+static func poser_trophees(v: GestionVue) -> void:
+	var dio := v.diorama
+	var vieux := dio._statique.get_node_or_null("Trophees")
+	if vieux != null:
+		dio._statique.remove_child(vieux)
+		vieux.queue_free()
+	var tr := GestionPlus.trophees(v.gestion, v.bid)
+	if tr.is_empty():
+		return
+	var k := LpKit.new(11)
+	var porte := dio._porte()
+	var x := porte.x + 2.2
+	var z := porte.z + 1.4
+	var n := 0
+	for id in tr:
+		var t := GestionPlus.trophee(String(id))
+		var col := Color(String(t.get("couleur", "e8c040")))
+		var essais := 0
+		while not dio.libre(Vector2(x, z), 0.3) and essais < 12:
+			x += 0.9
+			essais += 1
+		var p := Vector3(x, 0, z)
+		k.box(p + Vector3(0, 0.25, 0), Vector3(0.55, 0.5, 0.55), Color("3d3f4a"))
+		match String(t.cond):
+			"defis", "premier":
+				k.tube(p + Vector3(0, 0.5, 0), p + Vector3(0, 0.62, 0), 0.06, 0.04, 6, col)
+				k.lathe(p + Vector3(0, 0.62, 0), [Vector2(0.04, 0.0), Vector2(0.16, 0.08), Vector2(0.18, 0.28), Vector2(0.14, 0.3)], 8, col)
+			"recherches":
+				k.box(p + Vector3(0, 0.78, 0), Vector3(0.22, 0.56, 0.22), col)
+				k.box(p + Vector3(0, 1.12, 0), Vector3(0.16, 0.16, 0.16), col)
+			_:
+				k.box(p + Vector3(0, 0.72, 0), Vector3(0.42, 0.44, 0.06), col)
+		x += 0.9
+		n += 1
+	var mi := MeshInstance3D.new()
+	mi.name = "Trophees"
+	mi.mesh = k.commit(dio._materiaux)
+	dio._statique.add_child(mi)

@@ -157,7 +157,12 @@ func _city_tests() -> void:
 	gest.nouveau_jour({"day": gest.jour + 1, "month": 6})
 	_check(int(e.defis_ok) == 1 and (e.defi as Dictionary).is_empty(), "défi réussi")
 	_check(float(prod.sites[resto].cash) > cash0 + 1000.0, "prime versée sur la caisse du restaurant")
-	_check(int(e.bonus_fin) > gest.jour and GestionEssor.bonus(gest, resto, "satisf") > 0.03, "clients ravis pendant 30 jours")
+	var bs_avec := GestionEssor.bonus(gest, resto, "satisf")
+	var bf := int(e.bonus_fin)
+	e.bonus_fin = -1
+	var bs_sans := GestionEssor.bonus(gest, resto, "satisf")
+	e.bonus_fin = bf
+	_check(int(e.bonus_fin) > gest.jour and bs_avec - bs_sans > 0.03, "clients ravis pendant 30 jours")
 	e.defi = {"id": "objets", "etat": "offert", "cible": 3.0, "jours": 2, "offert": gest.jour, "prime": 1000}
 	GestionEssor.accepter_defi(gest, resto)
 	for i in 3:
@@ -204,6 +209,73 @@ func _city_tests() -> void:
 	_check(gest.effet(cas, "equipage") >= 1.0, "fidélisation de la caserne : une personne de garde en plus")
 	_check(GestionEssor.effets_recherche(gest, cas, GestionEssor.recherche("fidelite")).has("equipage") and not GestionEssor.effets_recherche(gest, cas, GestionEssor.recherche("fidelite")).has("attrait"), "pas de clients attirés pour un service public")
 
+	print("Équipe en personnes :")
+	var eq := GestionPlus.equipe(gest, resto)
+	_check(eq.size() >= 2 and GestionPlus.TRAITS.has(String(eq[0].trait)), "%d personnes, chacune son trait" % eq.size())
+	gest.etat(resto).salaire = 1.5
+	for i in 10:
+		gest.nouveau_jour({"day": gest.jour + 1, "month": 6})
+	var mh := GestionPlus.moral_moyen(gest, resto)
+	gest.etat(resto).salaire = 0.8
+	for i in 10:
+		gest.nouveau_jour({"day": gest.jour + 1, "month": 6})
+	_check(GestionPlus.moral_moyen(gest, resto) < mh - 0.5, "le moral suit le salaire (%.1f → %.1f)" % [mh, GestionPlus.moral_moyen(gest, resto)])
+	for p in eq:
+		p.moral = 0.2
+		p.bas = 6
+	gest.etat(resto).salaire = 0.8
+	var dem0 := int(e.demissions)
+	gest.nouveau_jour({"day": gest.jour + 1, "month": 6})
+	_check(int(e.demissions) > dem0, "moral trop bas une semaine : démissions (%d)" % (int(e.demissions) - dem0))
+	gest.etat(resto).salaire = 1.0
+	e.demande = {"i": 0, "jour": gest.jour}
+	var ch_a := gest.entretien_jour(resto)
+	GestionPlus.repondre_augmentation(gest, resto, true)
+	_check(float(GestionPlus.equipe(gest, resto)[0].aug) > 0.0 and gest.entretien_jour(resto) > ch_a, "augmentation accordée : elle se paie chaque jour")
+	_check(bool(GestionPlus.employe_du_mois(gest, resto, 1).ok) and not bool(GestionPlus.employe_du_mois(gest, resto, 2).ok), "un employé du mois par mois")
+	var f0 := GestionPlus.fatigue_moyenne(gest, resto)
+	GestionPlus.set_pauses(gest, resto, 2)
+	for i in 5:
+		gest.nouveau_jour({"day": gest.jour + 1, "month": 6})
+	_check(GestionPlus.fatigue_moyenne(gest, resto) <= f0 + 0.01, "pauses longues : l'équipe récupère")
+
+	print("Prix des services :")
+	var svc := GestionPlus.services(gest, resto)
+	_check(not svc.is_empty(), "services à prix : %s" % ", ".join(svc))
+	if not svc.is_empty():
+		var ve0 := gest.effet(resto, "ventes")
+		GestionPlus.changer_tarif(gest, resto, String(svc[0]), 1)
+		GestionPlus.changer_tarif(gest, resto, String(svc[0]), 1)
+		_check(gest.effet(resto, "ventes") > ve0 and GestionPlus.bonus_tarifs(gest, resto, "satisf") < 0.0, "plus cher : plus de ventes, clients moins contents")
+
+	print("Types de clients :")
+	var pe := GestionPlus.parts(gest, resto, 7)
+	var ph := GestionPlus.parts(gest, resto, 1)
+	_check(float(pe.familles) > float(ph.familles) and float(ph.affaires) > float(pe.affaires), "l'été plus de familles, l'hiver plus de gens d'affaires")
+	var ff0 := float(GestionPlus.avis_segment(gest, resto, GestionPlus.SEGMENTS[0]).fit)
+	gest.ameliorer(resto, "terrasse")
+	gest.ameliorer(resto, "terrasse")
+	_check(float(GestionPlus.avis_segment(gest, resto, GestionPlus.SEGMENTS[0]).fit) > ff0, "la terrasse plaît aux familles")
+
+	print("Banque :")
+	var o := GestionPlus.offres_pret(gest, resto)
+	_check(o.size() == 3 and float(o[0].total) > float(o[0].montant), "3 prêts possibles, avec intérêts")
+	var c0 := float(prod.sites[resto].cash)
+	_check(bool(GestionPlus.emprunter(gest, resto, 0).ok) and float(prod.sites[resto].cash) > c0 + float(o[0].montant) - 1.0, "argent versé sur la caisse")
+	_check(not bool(GestionPlus.emprunter(gest, resto, 1).ok), "un seul prêt à la fois")
+	var reste := float(GestionPlus.pret(gest, resto).reste)
+	gest.nouveau_jour({"day": gest.jour + 1, "month": 6})
+	_check(float(GestionPlus.pret(gest, resto).reste) < reste, "une échéance par jour")
+	_check(bool(GestionPlus.rembourser_pret(gest, resto).ok) and GestionPlus.pret(gest, resto).is_empty(), "remboursé d'un coup")
+	_check(GestionPlus.offres_pret(gest, cas).is_empty(), "pas de prêt pour un service public")
+
+	print("Agrandissement et trophées :")
+	var mx := gest.niveau_max(resto, "cuisine")
+	_check(bool(GestionPlus.agrandir(gest, resto).ok) and gest.niveau_max(resto, "cuisine") == mx + 1, "agrandi : un niveau de plus par pièce")
+	gest.nouveau_jour({"day": gest.jour + 1, "month": 6})
+	var tr := GestionPlus.trophees(gest, resto)
+	_check("defi_1" in tr and "agrandi" in tr, "trophées gagnés : %s" % ", ".join(tr))
+
 	print("Sauvegarde :")
 	var faits: Array = (e.faits as Array).duplicate()
 	var nav := (e.avis as Array).size()
@@ -212,6 +284,7 @@ func _city_tests() -> void:
 	gest.from_dict(JSON.parse_string(JSON.stringify(d)))
 	var e2 := GestionEssor.es(gest.etat(resto))
 	_check(e2.faits == faits and int(e2.defis_ok) == 1 and (e2.avis as Array).size() == nav, "recherche, défis et avis rechargés")
+	_check((e2.equipe as Array).size() >= 2 and typeof(e2.ext) == TYPE_INT and int(e2.ext) == 1 and (e2.trophees as Array).size() >= 2, "équipe, agrandissement et trophées rechargés")
 	_check(typeof(e2.bonus_fin) == TYPE_INT and typeof((e2.avis as Array)[0][1]) == TYPE_INT, "types remis après le JSON")
 
 	print("Écran :")
@@ -228,6 +301,12 @@ func _city_tests() -> void:
 	if lancer != null:
 		lancer.pressed.emit()
 	_check(String(GestionEssor.campagne_en_cours(gest, resto).get("id", "")) == "journal", "campagne lancée depuis l'écran")
+	_check(vue._carte_corps.find_child("Pret_0", true, false) != null and vue._carte_corps.find_child("Agrandir", true, false) != null, "banque et agrandissement dans l'onglet Essor")
+	_check(vue.diorama._statique.get_node_or_null("Trophees") != null, "trophées exposés devant l'entrée")
+	var teq: Button = vue._carte_corps.find_child("Onglet_personnel", true, false)
+	if teq != null:
+		teq.pressed.emit()
+	_check(vue._carte_corps.find_child("Personne_0", true, false) != null and vue._carte_corps.find_child("Pauses", true, false) != null, "les personnes de l'équipe et les pauses")
 	var tav: Button = vue._carte_corps.find_child("Onglet_avis", true, false)
 	_check(tav != null, "onglet Avis")
 	if tav != null:
@@ -236,7 +315,7 @@ func _city_tests() -> void:
 	for c in vue._carte_corps.get_children():
 		if c is Label:
 			txt2 += (c as Label).text + "\n"
-	_check(txt2.contains("Classement") and txt2.contains("★"), "avis et classement affichés")
+	_check(txt2.contains("Classement") and txt2.contains("★") and txt2.contains("Familles"), "avis, types de clients et classement affichés")
 	vue.fermer()
 	scene.queue_free()
 	await process_frame

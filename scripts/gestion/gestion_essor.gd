@@ -94,7 +94,10 @@ const PRENOMS := ["Léa", "Hugo", "Chloé", "Lucas", "Emma", "Nathan", "Inès", 
 
 static func vide() -> Dictionary:
 	return {"pts": 0.0, "rech": "", "faits": [], "camp": {}, "dernieres": {}, "camps": 0, "defi": {}, "defi_prochain": 3,
-		"defis_ok": 0, "defis_rates": 0, "bonus_fin": -1, "paliers": [], "avis": [], "cumul": 0.0}
+		"defis_ok": 0, "defis_rates": 0, "bonus_fin": -1, "paliers": [], "avis": [], "cumul": 0.0,
+		# GestionPlus : équipe, pauses, augmentation demandée, prix des services, prêt, trophées, agrandissements.
+		"equipe": [], "pauses": 1, "demande": {}, "demissions": 0, "mois_fin": -1, "moral_bon": 0, "mois": 6,
+		"tarifs": {}, "pret": {}, "trophees": [], "ext": 0}
 
 
 ## Remet les types après un chargement (le JSON rend des nombres à virgule).
@@ -108,12 +111,31 @@ static func charger(src: Variant) -> Dictionary:
 	e.pts = float(e.pts)
 	e.cumul = float(e.cumul)
 	e.rech = String(e.rech)
-	for k in ["camps", "defi_prochain", "defis_ok", "defis_rates", "bonus_fin"]:
+	for k in ["camps", "defi_prochain", "defis_ok", "defis_rates", "bonus_fin", "pauses", "demissions", "mois_fin", "moral_bon", "mois", "ext"]:
 		e[k] = int(e[k])
 	var faits: Array = []
 	for f in e.faits:
 		faits.append(String(f))
 	e.faits = faits
+	var eq: Array = []
+	for p in e.equipe:
+		if p is Dictionary:
+			eq.append({"nom": String(p.get("nom", "")), "trait": String(p.get("trait", "rapide")), "moral": float(p.get("moral", 3.0)),
+				"fatigue": float(p.get("fatigue", 0.0)), "bas": int(p.get("bas", 0)), "aug": float(p.get("aug", 0.0)), "mois": int(p.get("mois", -1))})
+	e.equipe = eq
+	var dm: Dictionary = e.demande if e.demande is Dictionary else {}
+	e.demande = {"i": int(dm.i), "jour": int(dm.get("jour", 0))} if dm.has("i") else {}
+	var tf := {}
+	if e.tarifs is Dictionary:
+		for k in e.tarifs:
+			tf[String(k)] = float(e.tarifs[k])
+	e.tarifs = tf
+	var pr: Dictionary = e.pret if e.pret is Dictionary else {}
+	e.pret = {} if pr.is_empty() else {"montant": int(pr.get("montant", 0)), "reste": float(pr.get("reste", 0.0)), "jour": float(pr.get("jour", 0.0)), "taux": float(pr.get("taux", 0.0)), "debut": int(pr.get("debut", 0))}
+	var tr: Array = []
+	for f in e.trophees:
+		tr.append(String(f))
+	e.trophees = tr
 	var pal: Array = []
 	for f in e.paliers:
 		pal.append(String(f))
@@ -220,7 +242,7 @@ static func points_jour(g: Gestion, bid: int) -> float:
 	if st.is_empty():
 		return 0.0
 	var p := 1.0 + 0.4 * float(st.formation) + 0.12 * float(g._nb_pieces(bid))
-	return p * (1.0 + _somme_recherches(g, bid, st, "points"))
+	return p * maxf(0.2, 1.0 + _somme_recherches(g, bid, st, "points") + GestionPlus.points(g, bid))
 
 
 static func lancer_recherche(g: Gestion, bid: int, id: String) -> Dictionary:
@@ -557,6 +579,7 @@ static func bonus(g: Gestion, bid: int, cle: String) -> float:
 		s += float(campagne(g, bid, String(c.id)).get("effets", {}).get(cle, 0.0)) * float(c.get("force", 1.0))
 	for p in paliers(g, bid):
 		s += float((p.effets as Dictionary).get(cle, 0.0))
+	s += GestionPlus.bonus(g, bid, cle)
 	if int(es(st).bonus_fin) >= g.jour:
 		if cle == "satisf":
 			s += 0.04
@@ -571,20 +594,21 @@ static func ajuster_charges(g: Gestion, bid: int, s: float) -> float:
 		return s
 	var c := campagne_en_cours(g, bid)
 	var plus := float(c.get("cout", 0.0)) if not c.is_empty() else 0.0
-	return s * (1.0 - _somme_recherches(g, bid, g.etats[bid], "economie")) + plus
+	return s * (1.0 - _somme_recherches(g, bid, g.etats[bid], "economie")) + plus + GestionPlus.charges(g, bid)
 
 
 ## Facteur des pannes (maintenance préventive).
 static func facteur_pannes(g: Gestion, bid: int) -> float:
 	if not g.etats.has(bid) or not (g.etats[bid].get("essor", null) is Dictionary):
 		return 1.0
-	return maxf(0.2, 1.0 - _somme_recherches(g, bid, g.etats[bid], "pannes"))
+	return maxf(0.2, (1.0 - _somme_recherches(g, bid, g.etats[bid], "pannes")) * GestionPlus.facteur_pannes(g, bid))
 
 
 # --- La journée -----------------------------------------------------------------------------------
 
-static func journee(g: Gestion, bid: int, st: Dictionary) -> void:
+static func journee(g: Gestion, bid: int, st: Dictionary, month := 6) -> void:
 	var e := es(st)
+	GestionPlus.journee(g, bid, st, month)
 	e.cumul = float(e.cumul) + float(g.hier(bid).get("ca", 0.0)) if not _ville(g, bid) else 0.0
 	_avancer_recherche(g, bid, st)
 	_suivre_defi(g, bid, st)

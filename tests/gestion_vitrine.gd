@@ -187,6 +187,16 @@ func _run() -> void:
 		es.defis_ok = 2
 		for i in 40:
 			GestionEssor._nouvel_avis(gest, hotel, se)
+	if onglet in ["essor", "avis", "personnel"]:
+		var es2 := GestionEssor.es(gest.etat(hotel))
+		es2.trophees = ["defi_1", "defi_3", "chercheur", "pub", "premier"]
+		es2.ext = 1
+		var eq := GestionPlus.equipe(gest, hotel)
+		for i in eq.size():
+			eq[i].moral = 2.0 + float(i % 4) * 0.8
+			eq[i].fatigue = 15.0 + float(i * 7 % 50)
+		eq[0].aug = 0.1
+		es2.demande = {"i": 1, "jour": gest.jour}
 	gest.set_auto(hotel, niveau != 3)
 	scene.ouvrir_gestion(hotel)
 	if zoom > 0.0:

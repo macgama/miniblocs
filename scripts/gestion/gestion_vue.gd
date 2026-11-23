@@ -648,6 +648,10 @@ func _remplir_carte() -> void:
 				_carte_stats()
 			"journal":
 				_carte_journal()
+			"essor":
+				GestionEssorVue.carte_essor(self)
+			"avis":
+				GestionEssorVue.carte_avis(self)
 			_:
 				_carte_ensemble()
 	else:
@@ -658,11 +662,14 @@ func _remplir_carte() -> void:
 
 
 func _onglets() -> void:
-	var row := HBoxContainer.new()
+	# Deux rangées de trois onglets : la carte garde sa largeur.
+	var row := GridContainer.new()
+	row.columns = 3
 	row.name = "Onglets"
-	row.add_theme_constant_override("separation", 4)
+	row.add_theme_constant_override("h_separation", 4)
+	row.add_theme_constant_override("v_separation", 4)
 	_carte_corps.add_child(row)
-	for o in [["ensemble", String(_gd().get("nom", "Ensemble")), "etoile"], ["personnel", "Équipe", "emploi"], ["stats", "Chiffres", "tableau"], ["journal", "Journal", "journal"]]:
+	for o in [["ensemble", String(_gd().get("nom", "Ensemble")), "etoile"], ["personnel", "Équipe", "emploi"], ["essor", "Essor", "trophee"], ["avis", "Avis", "etoile"], ["stats", "Chiffres", "tableau"], ["journal", "Journal", "journal"]]:
 		var b := Button.new()
 		b.name = "Onglet_" + String(o[0])
 		b.text = String(o[1])

@@ -166,7 +166,9 @@ static func _etat_vide(g: String) -> Dictionary:
 		# Hôpital : patients amenés, sauvés malgré le retard, parking.
 		"patients": 0, "sauves": 0, "parking": 0.0,
 		# Parc de loisirs : humeur gagnée par les demandes réglées, mis de côté, groupes.
-		"bonus": 0.0, "reinvesti": 0.0, "groupes": 0, "trophees": 0, "trophee_an": -1}
+		"bonus": 0.0, "reinvesti": 0.0, "groupes": 0, "trophees": 0, "trophee_an": -1,
+		# Recherche, campagnes, défis, paliers, avis (GestionEssor).
+		"essor": GestionEssor.vide()}
 
 
 ## Niveau de départ d'une pièce : 1 si le bâtiment l'a déjà (restaurant d'un
@@ -229,6 +231,8 @@ func effet(bid: int, cle: String) -> float:
 		for oid in objets_de(bid, String(pid)):
 			var eo: Dictionary = GestionTypes.objet(g, String(pid), String(oid)).get("effets", {})
 			s += float(eo.get(cle, 0.0))
+	# Recherche, campagne, paliers et défis (GestionEssor).
+	s += GestionEssor.bonus(self, bid, cle)
 	match cle:
 		"satisf":
 			s += (float(st.salaire) - 1.0) * 0.35 + 0.03 * float(st.formation) - SATISF_PANNE * (st.pannes as Array).size()
@@ -266,6 +270,7 @@ func entretien_jour(bid: int) -> float:
 	var sal := Tourisme.SALAIRE_MOYEN * ReglagesPartie.actuel.salaires / 30.44
 	s += float(emplois) * sal * (float(st.salaire) - 1.0)
 	s += float(emplois) * 3.0 * float(st.formation)
+	s = GestionEssor.ajuster_charges(self, bid, s)
 	return maxf(0.0, s)
 
 
@@ -682,9 +687,10 @@ func nouveau_jour(now: Dictionary = {}) -> void:
 			_journee_ville(bid, st)
 		elif source(bid) == "parc":
 			_journee_parc(bid, st)
-		if rng.randf() < CHANCE_PANNE * _nb_pieces(bid) * (1.0 - 0.12 * float(st.formation)) * (0.6 if niveau(bid, "direction") >= 3 or niveau(bid, "bureau") >= 3 else 1.0):
+		if rng.randf() < CHANCE_PANNE * _nb_pieces(bid) * (1.0 - 0.12 * float(st.formation)) * (0.6 if niveau(bid, "direction") >= 3 or niveau(bid, "bureau") >= 3 else 1.0) * GestionEssor.facteur_pannes(self, bid):
 			nouvelle_panne(bid)
 		_evenements(bid, st, month)
+		GestionEssor.journee(self, bid, st)
 		if bool(st.auto):
 			gerer_auto(bid)
 
@@ -1203,6 +1209,7 @@ func from_dict(d: Dictionary) -> void:
 		for f in ["pourboires", "invest", "aide_ville", "salaire", "prix", "satisf", "note", "caisse", "dotation", "delai"]:
 			st[f] = float(st[f])
 		st.auto = bool(st.auto)
+		st.essor = GestionEssor.charger(st.essor)
 		for f in ["j", "hier"]:
 			st[f] = (st[f] as Dictionary).duplicate() if st[f] is Dictionary else {}
 		var jl: Array = []

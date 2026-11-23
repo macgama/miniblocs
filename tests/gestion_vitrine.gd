@@ -175,6 +175,18 @@ func _run() -> void:
 		gest.etat(hotel).hier = {"ca": 2900.0, "charges": 2100.0, "clients": 150.0, "cap": 190.0}
 		gest.etat(hotel).note = 3.8
 		gest.etat(hotel).satisf = 3.9
+	# Essor : recherche, campagne, défi et avis pour les onglets Essor et Avis.
+	if onglet in ["essor", "avis"]:
+		var se := gest.etat(hotel)
+		var es := GestionEssor.es(se)
+		es.faits = ["methodes", "qualite"]
+		es.rech = "maintenance"
+		es.pts = 11.0
+		GestionEssor.lancer_campagne(gest, hotel, "portes" if service else "radio")
+		es.defi = {"id": "demandes", "etat": "actif", "cible": 5.0, "jours": 7, "offert": gest.jour, "debut": gest.jour, "fin": gest.jour + 5, "base": float(se.reglees) - 3.0, "prime": 4000}
+		es.defis_ok = 2
+		for i in 40:
+			GestionEssor._nouvel_avis(gest, hotel, se)
 	gest.set_auto(hotel, niveau != 3)
 	scene.ouvrir_gestion(hotel)
 	if zoom > 0.0:

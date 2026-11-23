@@ -173,6 +173,37 @@ En gestion automatique, l'établissement choisit sa recherche, accepte les défi
 
 Code : `scripts/gestion/gestion_plus.gd` (`GestionPlus` : équipe, services, types de clients, prêt, trophées, agrandissement), `scripts/gestion/gestion_essor.gd` (`GestionEssor`, état dans `st.essor`, bonus lus par `Gestion.effet`, charges par `Gestion.entretien_jour`, pannes, journée) et `gestion_essor_vue.gd` (les deux onglets). Test : `tests/gestion_essor_test.gd`. Captures : `tests/gestion_vitrine.gd -- --onglet essor|avis`.
 
+## Tous les autres bâtiments : les tycoons « en kit » (37 genres)
+
+Plus de 350 types du catalogue (et leurs variantes de style) se gèrent maintenant comme un tycoon, avec le même écran (carte à onglets Essor, Avis, Équipe, Stats, Journal). Ils ont leur propre caisse (compte « lieu ») : visiteurs, recettes du jour, salaires et entretien. Pour un service public (école, mairie, gare, centre sportif, centrale, usine d'eau, déchets, poste, centre technique, office de tourisme), la ville verse en plus un budget chaque jour, réglable par − / +.
+
+| Priorité | Genres |
+|---|---|
+| Haute | zoo, école (et crèche, collège, lycée), université, gare, musée, mairie (et hôtel de ville), stade (tous les `stade_*`, plus salles omnisports, palais des sports, patinoire de hockey, centre de tennis), ferme (céréales, maraîchage, vergers, oliveraies, ruchers, serres… 30 types), ferme laitière et élevages, domaine viticole (et caves) |
+| Moyenne | grand magasin, boulangerie et boucherie, boutique de quartier, marché couvert, pharmacie, station-service, concession et garage, immeuble de bureaux et banque, cinéma, studios de cinéma, salle de spectacle (opéra, théâtre, jazz, cirque…), centre sportif (gymnase, piscine, patinoire), parc aquatique, casino, carrière et mine, entreprise du bâtiment, centrale électrique, centre de traitement des déchets, grands monuments |
+| Basse | bowling et discothèque, usine d'eau et station d'épuration, pompes funèbres et crématorium, poste et télécoms, centre technique municipal, office de tourisme, golf, châteaux et sites historiques |
+
+Chaque genre a au moins 8 pièces (dedans et dehors), 30 objets, ses demandes, pannes, événements et objectifs.
+
+**Les époques.** Une pièce ou un objet peut avoir une année d'apparition (`annee`) ou de disparition (`jusqu`) : en 1850, pas de rayon électronique au grand magasin ni de bornes de recharge à la station ; la pompe à bras disparaît après 1960. Les noms changent aussi (`noms_epoque`) : ménagerie avant 1900, magasin de nouveautés, cinématographe avant le parlant, syndicat d'initiative, dancing, relais de poste… Les prix suivent l'époque (×0,08 avant 1900, ×0,25 avant 1950, ×0,6 avant 1990).
+
+**Les pays.** `noms_pays` adapte des noms : en Suisse, maison de commune, maison de jeu au lieu de casino, fromagerie de gruyère, carnotzet, SUVA… (et les noms CH/BE des tycoons faits à la main).
+
+**Les stades.** Tous les stades (catalogue, styles du monde, modèles de l'Atelier) se gèrent avec la même fiche : la capacité vient des places du bâtiment, les jours de match (un sur sept) remplissent les tribunes, chaque stade garde son nom et sa caisse. Des centaines de stades différents fonctionnent donc sans fiche à écrire.
+
+**Liens avec le jeu.** Zoo et musée : les vrais visiteurs du zoo (Maj+Z) et du musée comptent, et l'attrait de la gestion augmente leur affluence. École : chaque niveau de salle de classe ajoute des places d'élèves dans les services publics (Maj+U). Fermes, carrières et mines : l'effet « rendement » augmente la vraie production (P), jusqu'à +60 %.
+
+### Tester dans Godot 4.7
+
+1. Ouvrir `project.godot`, lancer une partie (F5), Admin (F10) : argent illimité si besoin.
+2. Poser au bord d'une route un des bâtiments du tableau (par exemple une boulangerie, un cinéma, un stade, une ferme, un château), cliquer dessus : la tuile « Gérer … » ouvre la maquette.
+3. Acheter un niveau de pièce, un objet, régler le prix, passer en vitesse rapide (Maj+T) : visiteurs, recettes et avis arrivent. Pour un service public, régler le budget avec − / +.
+4. Pour voir l'adaptation à l'époque : nouvelle partie au 1er janvier 1800 ou 1900, les noms et les objets changent.
+
+Test automatique : `xvfb-run -a godot --path . --rendering-driver opengl3 --script res://tests/gestion_kit_test.gd` (tous les genres, ou `-- --genre cinema` pour un seul). Il vérifie plan, portes, chemins, modèles 3D, métiers, époques et pays, puis pose chaque bâtiment dans une ville et joue plusieurs jours, avec sauvegarde et rechargement.
+
+Code : `scripts/gestion/genres/genres_auto.gd` (`GenresAuto` : monte une fiche courte en vrai genre, plan et poses calculés tout seuls, cache par pays et époque), `genres_haute.gd`, `genres_moyenne.gd`, `genres_basse.gd` (les fiches), `scripts/gestion/gestion_lieu.gd` (`GestionLieu` : visiteurs, recettes, budget), `gestion_epoques.gd` (`GestionEpoques`), `decors_auto.gd` (`DecorsAuto` : ~30 décors de pièces qui s'adaptent à la taille et à l'époque, et les modèles de la touche G avec `deco:`). Ajouter un genre : une entrée dans le `SPECS` d'un de ces fichiers.
+
 ## Rythme
 
 Le mode suit le temps du jeu : rien ne se gagne pendant que le jeu est fermé, rien ne bouge en pause, tout va plus vite en vitesse rapide. La gestion automatique, les pannes et les événements tournent chaque jour de jeu pour tous les hôtels, même ceux qu'on n'ouvre jamais. Un hôtel jamais ouvert garde ses effets à zéro tant qu'il n'a rien acheté.

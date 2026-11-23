@@ -288,7 +288,7 @@ func _run() -> void:
 	var c0: PackedColorArray = fin.surface_get_arrays(0)[Mesh.ARRAY_COLOR]
 	var c1: PackedColorArray = v1.surface_get_arrays(0)[Mesh.ARRAY_COLOR]
 	_check(c0 != c1, "deux variantes du même type ne sont pas identiques")
-	_check(BuildingCatalog.variants_of("colombages__maison") == BuildingCatalog.VARIANTES and BuildingCatalog.variants_of("maison") == 1, "variantes pour les types de la bible")
+	_check(BuildingCatalog.variants_of("colombages__maison") == BuildingCatalog.VARIANTES and BuildingCatalog.variants_of("maison") == BuildingCatalog.VARIANTES and BuildingCatalog.variants_of("parc") == 1, "variantes pour les types de la bible et les modèles classiques de la ville")
 	var shop := BuildingCatalog.build_mesh("colombages__boutique")
 	var shop_far := BuildingCatalog.build_mesh("colombages__boutique", null, false)
 	_check(shop.surface_get_array_len(0) > shop_far.surface_get_array_len(0) * 2, "boutique : enseigne, auvent rayé, volets")

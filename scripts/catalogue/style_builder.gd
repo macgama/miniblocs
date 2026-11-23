@@ -328,6 +328,8 @@ static func _generic(k: BlocMesh, s: Dictionary, p: Dictionary, arch: String, w:
 	# Petits détails modelés du style (volets, cheminées, gouttières, enseignes…).
 	if k._fine():
 		StyleKit.build(k, s, p, arch, bw, bd, cz, y0, top, tw, td, roof, floors, fh)
+		# Habillage de la ville : toits équipés, entrées, enseignes, abords (HabillageVille).
+		HabillageVille.habiller_bible(k, s, p, arch, w, d, bw, bd, cz, y0, top, tw, td, roof, floors, fh)
 	# Annexes.
 	if arch == "gratte_ciel":
 		k.cylinder(0, top + 2.0, cz, 0.3, 0.1, 18.0 if era != "futuriste" else 40.0, 6, Color("d9d9d9"))
@@ -423,7 +425,8 @@ static func _roof(k: BlocMesh, s: Dictionary, p: Dictionary, kind: String, cx: f
 			k.box(cx + sx / 2.0, y + 0.25, cz, 0.2, 0.6, sz, Color(p.wall).darkened(0.05))
 			if s.get("green_roof", false):
 				k.plate(cx, cz, sx - 0.6, sz - 0.6, Color("6aa84f"), y + 0.25, 0.15)
-			elif arch in ["tour", "gratte_ciel", "bureaux", "immeuble", "hopital"]:
+			elif arch in ["tour", "gratte_ciel", "bureaux", "immeuble", "hopital"] and not (k._fine() and String(s.era) not in ["antique", "traditionnel"]):
+				# De près, HabillageVille équipe le toit à la place de ce bloc.
 				k.box(cx + sx * 0.2, y + 0.25, cz, sx * 0.25, 2.2, sz * 0.25, Color("9aa0a6"))
 
 

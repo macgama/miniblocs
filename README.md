@@ -83,6 +83,8 @@ La touche **0** ouvre le panneau **Paysage**. Clic gauche glissé avec un pincea
 - **Peindre un biome** : forêt (qui se remplit d'arbres), prairie, champs, broussailles, désert, plage, roche, neige, marais, toundra.
 - **Planter** ou **arracher** des arbres.
 
+Les bâtiments de tous les jours (maisons, immeubles, tours, bureaux, services publics, usines) ont des toits équipés, des balcons, des marquises, des enseignes et des abords plantés, en quatre variantes de couleurs par type : voir [docs/batiments-ville.md](docs/batiments-ville.md).
+
 Les plantes (46 espèces modélisées dans Blender : arbres, arbustes, herbes, fleurs, cultures, rochers) et les textures du sol (herbe, roche, sable, champs en patchwork…) changent selon le biome, le climat et l'altitude, et vivent au fil des saisons (feuilles d'automne, neige, moissons) et des âges (de la jeune pousse à l'arbre mort) : voir [docs/plantes-et-sols.md](docs/plantes-et-sols.md).
 
 Tout est sauvegardé avec la partie.
@@ -772,6 +774,7 @@ Une ferme entièrement générée en code (longère à colombages et toit de cha
 | `tests/metiers_test.gd` | Test des métiers visibles et des conséquences du manque de personnel |
 | `tests/metiers_vitrine.gd` | Captures : boulangerie, école, hôpital, ferme, supérette la nuit (`--seulement boulangerie`…) |
 | `tests/batiments_vitrine.gd` | Pose tout le catalogue (ou fait pousser un quartier avec `--zones`, ou construit une maison en blocs avec `--blocs`) et prend une capture. `--styles japonais,chinois` ou `--arch culte` filtrent la bible, `--zone-style` choisit le style du zonage, `--cat espaces` une catégorie, `--maison` construit la maison de démonstration de l'éditeur libre, `--courbe` des bâtiments calés le long d'une route courbe, `--murs` une maison et un immeuble en murs fins (`--coupe 0` : vue en coupe du rez-de-chaussée) |
+| `tests/batiments_detail_vitrine.gd` | Planche avant/après : chaque bâtiment photographié seul de trois quarts face (`--ids immeuble,mairie`, `--variantes`, `--loin`, `--tuile 800`) |
 
 ## Sauvegarde des parties
 

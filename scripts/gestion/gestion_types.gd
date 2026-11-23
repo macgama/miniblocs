@@ -60,6 +60,7 @@ const EFFETS := {
 	"vitesse": "vitesse du service", "ventes": "dépenses des clients", "couverts": "couverts",
 	"equipage": "personnes de garde", "engins": "véhicules", "enquete": "affaires élucidées", "soins": "qualité des soins", "lits_sup": "lits d'hôpital",
 	"proprete": "propreté", "fiabilite": "fiabilité des manèges",
+	"places": "places d'élèves", "rendement": "rendement des récoltes",
 	"cadence": "production", "matiere": "économie de matière", "qualite": "qualité des produits", "depollution": "pollution en moins", "economie": "énergie économisée",
 	"rayons": "rayons mieux remplis", "panier": "panier moyen", "antivol": "vols en moins",
 }

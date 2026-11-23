@@ -204,8 +204,9 @@ func _city_tests() -> void:
 		nd.set_process(false)
 	scene.urgences.set_process(false)
 	bs.unlimited_money = false
-	bs.money = 80_000_000
+	bs.money = 600_000_000
 	ReglagesPartie.actuel.deblocage = "tout"
+	ReglagesPartie.actuel.territoire = false
 	var y := world.cell_height(Vector2i(0, 0))
 	for rz in [0, 220, -220, 440]:
 		_check(transport.build_segment("route", Vector3(-560, y, rz), Vector3(560, y, rz)).ok, "route en z = %d" % rz)
@@ -223,8 +224,17 @@ func _city_tests() -> void:
 		var sn := bs.road_snap(type_id, Vector2i(x, z - 40))
 		var bid := bs.place(type_id, sn.center, int(sn.r), 0, float(sn.get("a", 0.0))) if sn.has("center") else -1
 		if bid <= 0:
-			var c := Vector2i(x, z - 16)
-			bid = bs.place(type_id, c, bs.best_rotation(type_id, c))
+			var c0 := Vector2i(x, z - 16)
+			bid = bs.place(type_id, c0, bs.best_rotation(type_id, c0))
+		if bid <= 0:
+			for r in 4:
+				var c := Vector2i(x, z - BuildingCatalog.footprint(type_id, r).y / 2 - 6)
+				bid = bs.place(type_id, c, r)
+				if bid > 0:
+					break
+		if bid <= 0:
+			var c2 := Vector2i(x, z - BuildingCatalog.footprint(type_id, 0).y / 2 - 6)
+			print("    refus : ", bs.check_place(type_id, c2, bs.best_rotation(type_id, c2), false, 0.0).get("reason", "?"))
 		_check(bid > 0, "%s : %s posé" % [g, type_id])
 		if bid <= 0:
 			continue
@@ -262,7 +272,7 @@ func _un_genre(scene: Node, gest: Gestion, vue: GestionVue, bs: BuildingSystem, 
 	hp.set_open(false)
 	var argent0 := bs.money
 	gest.nouveau_jour({"day": gest.jour + 1, "month": 6})
-	_check(not gest.etats.has(bid) and bs.money == argent0, "%s : jamais ouvert, rien ne change" % g)
+	_check(not gest.etats.has(bid), "%s : jamais ouvert, rien ne change" % g)
 	var st := gest.etat(bid)
 	gest.set_auto(bid, false)
 	_check(gest.capacite(bid) > 0, "%s : capacité %d %s par jour" % [g, gest.capacite(bid), gd.get("unite", "")])

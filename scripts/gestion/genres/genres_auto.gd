@@ -67,12 +67,25 @@ static func vider_cache() -> void:
 # --- Rattachement des bâtiments -------------------------------------------------------------------
 
 ## Genre « en kit » d'un type de bâtiment ("" : aucun).
+static var _de := {}
+
+
 static func genre_de(type_id: String) -> String:
+	if _de.has(type_id):
+		return _de[type_id]
+	var g := _chercher(type_id)
+	_de[type_id] = g
+	return g
+
+
+static func _chercher(type_id: String) -> String:
 	var base := BuildingCatalog.base_of(type_id)
 	for g in specs():
 		var s: Dictionary = specs()[g]
 		if base in (s.get("types", []) as Array) or type_id in (s.get("types", []) as Array):
 			return String(g)
+	for g in specs():
+		var s: Dictionary = specs()[g]
 		for pre in s.get("prefixes", []):
 			if base.begins_with(String(pre)) or type_id.begins_with(String(pre)):
 				return String(g)
@@ -105,6 +118,14 @@ static func reel(g: Gestion, bid: int, fn: String) -> Dictionary:
 				return {}
 			var h: Dictionary = z.zoos[bid].hier
 			return {"clients": float(h.get("visiteurs", 0)), "recettes": float(h.get("billets", 0.0)) + float(h.get("stands", 0.0))}
+		"musee":
+			var m := Musee.instance
+			if m == null or not is_instance_valid(m):
+				return {}
+			for key in m.musees:
+				if m.bid_of(String(key)) == bid:
+					var h: Dictionary = m.musees[key].hier
+					return {"clients": float(h.get("visiteurs", 0)), "recettes": float(h.get("billets", 0.0)) + float(h.get("boutique", 0.0)) + float(h.get("cafe", 0.0))}
 	return {}
 
 
@@ -287,11 +308,9 @@ static func construire(g: String, s: Dictionary) -> Dictionary:
 			ne = e[1]
 			break
 	for src in [np, ne]:
-		if src.has("titre"):
-			gd["titre"] = String(src.titre)
-		for k in ["nom", "le", "du"]:
-			if src.has(k):
-				gd[k] = String(src[k])
+		for k in src:
+			if String(k) != "pieces":
+				gd[k] = src[k]
 		for pid in (src.get("pieces", {}) as Dictionary):
 			if tout.has(pid):
 				tout[pid]["nom"] = String(src.pieces[pid])

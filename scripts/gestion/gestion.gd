@@ -854,6 +854,7 @@ static func _valeur(e: Dictionary) -> float:
 		+ float(e.get("lits", 0.0)) * 2.5 + float(e.get("couverts", 0.0)) * 2.0 + float(e.get("equipage", 0.0)) * 0.5 + float(e.get("engins", 0.0)) * 0.9 + float(e.get("repas", 0.0)) * 0.8 + float(e.get("vitesse", 0.0)) * 0.15 + float(e.get("ventes", 0.0)) * 0.02 \
 		+ float(e.get("enquete", 0.0)) * 1.5 + float(e.get("soins", 0.0)) * 1.5 + float(e.get("lits_sup", 0.0)) * 0.04 \
 		+ float(e.get("proprete", 0.0)) * 1.2 + float(e.get("fiabilite", 0.0)) * 1.4 \
+		+ float(e.get("places", 0.0)) * 0.03 + float(e.get("rendement", 0.0)) * 2.2 \
 		+ float(e.get("cadence", 0.0)) * 2.2 + float(e.get("matiere", 0.0)) * 2.0 + float(e.get("qualite", 0.0)) * 2.0 + float(e.get("depollution", 0.0)) * 0.8 + float(e.get("economie", 0.0)) * 0.004 \
 		+ float(e.get("rayons", 0.0)) * 1.5 + float(e.get("panier", 0.0)) * 2.5 + float(e.get("antivol", 0.0)) * 0.6
 
@@ -1816,6 +1817,22 @@ func patient(bid: int, sauve_malgre_retard: bool) -> void:
 	if sauve_malgre_retard:
 		st.sauves = int(st.sauves) + 1
 		_noter(bid, "Malaise pris en charge en retard, mais le bloc l'a sauvé : le patient rentrera chez lui.", true)
+
+
+## Places d'élèves en plus (école en mode gestion, effet « places »).
+static func places_sup_de(bid: int) -> int:
+	var g := _inst()
+	if g == null or not g.etats.has(bid):
+		return 0
+	return maxi(0, roundi(g.effet(bid, "places")))
+
+
+## Rendement d'une ferme ou d'un domaine (effet « rendement », +60 % au plus).
+static func rendement_de(bid: int) -> float:
+	var g := _inst()
+	if g == null or not g.etats.has(bid):
+		return 1.0
+	return 1.0 + clampf(g.effet(bid, "rendement"), 0.0, 0.6)
 
 
 static func lits_sup_de(bid: int) -> int:
